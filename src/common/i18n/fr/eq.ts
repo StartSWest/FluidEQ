@@ -122,6 +122,7 @@ const eq: Partial<Dictionary> = {
   'graph.styleName.braid': 'Tresse',
   'graph.styleName.stitch': 'Point de croix',
   'graph.styleName.canyon': 'Canyon',
+  'graph.styleName.fluid': 'Fluide',
   'graph.meter.aria':
     'Niveau de sortie en direct, en décibels réels sous la pleine échelle',
   'graph.meter.left': 'G',

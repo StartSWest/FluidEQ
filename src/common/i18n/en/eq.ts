@@ -120,6 +120,7 @@ const eq = {
   'graph.styleName.braid': 'Braid',
   'graph.styleName.stitch': 'Cross-stitch',
   'graph.styleName.canyon': 'Canyon',
+  'graph.styleName.fluid': 'Fluid',
   'graph.meter.aria': 'Live output level, in real decibels below full scale',
   'graph.meter.left': 'L',
   'graph.meter.right': 'R',

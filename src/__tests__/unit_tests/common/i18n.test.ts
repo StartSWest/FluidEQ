@@ -17,6 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import manifest from '../../../../package.json';
+import { GRAPH_STYLES } from '../../../common/graphStyles';
 import en, { TranslationKey } from '../../../common/i18n/en';
 import {
   DEFAULT_LOCALE,
@@ -34,6 +35,26 @@ describe('i18n', () => {
     // dictionaries can be left half-done.
     LOCALES.forEach(({ code, name }) => {
       expect(`${name}: ${getCoverage(code)}`).toBe(`${name}: 1`);
+    });
+  });
+
+  it('names every graph form, including the newest one', () => {
+    /*
+     * THE KEY IS BUILT AT RUNTIME, which is why this test exists.
+     *
+     * The picker asks for `graph.styleName.${look.style}`, so a form added
+     * without its name simply renders the key: the menu showed a row reading
+     * "graph.styleName.fluid" between Canyon and Dot matrix, and nothing
+     * failed anywhere. Not the type checker, because the key is a template
+     * string; not the coverage test above, because coverage compares each
+     * locale against English and English was missing it too.
+     *
+     * English alone is enough to assert here — a key present in English and
+     * absent elsewhere is exactly what the coverage test already catches.
+     */
+    const named = Object.keys(en);
+    GRAPH_STYLES.forEach((style) => {
+      expect(named).toContain(`graph.styleName.${style}`);
     });
   });
 

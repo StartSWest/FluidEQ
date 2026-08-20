@@ -121,8 +121,18 @@ const persistSelection = () => {
  */
 export const getSelectableLooks = (
   customLooks: readonly ICustomLook[] = getCustomLooks(),
+  /**
+   * Which palette to show the rows in, defaulted to the live one for the
+   * same reason `customLooks` is — the two callers reach it differently.
+   *
+   * The cycle reads the store as it stands. React has to PASS it, and not
+   * merely because of the memo lint: a memo whose body reads module state
+   * it never mentions is a stale list waiting to happen, and this one went
+   * stale the first time somebody pressed the palette toggle. Taking it as
+   * an argument is what makes the dependency real rather than remembered.
+   */
+  palette: GraphPalette = getGraphPalette(),
 ): IResolvedLook[] => {
-  const palette = getGraphPalette();
   return [
     // One row per form, shown in whichever palette is currently on. The
     // palette is a toggle rather than three rows each, so the list is
