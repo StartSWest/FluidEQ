@@ -34,17 +34,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // of the list it steers while the Media tab's sat right on top of its own
   // content — the same two rows, spaced two different ways.
   gap: $spacing-s;
-  // A floor, so a short pane scrolls instead of crushing everything in here.
-  //
-  // Every box in this tab is `min-height: 0; flex: 1 1 auto`, which is what
-  // lets the list and the carousel give ground gracefully — and, with the
-  // graph dragged up to half the window, is also what let them give ground
-  // all the way to nothing: the drill-in header kept its full height and the
-  // table under it was left a single clipped row with no way to reach the
-  // rest. Refusing to go below a workable height hands the overflow to
-  // `.workspace-tab-panel`, which already scrolls.
-  min-height: 460px;
-  overflow: hidden;
+  // This element IS `.workspace-tab-panel--library` — `LibraryWorkspace` puts
+  // both classes on one div — which is why `overflow: hidden` here was fatal:
+  // it overrode the panel's own `overflow-y: auto` on the very box that was
+  // supposed to scroll, so with the graph dragged up the table was crushed to
+  // a single clipped row and there was no way to reach the rest. The floors
+  // that make the scroll actually happen are on the views below, because they
+  // are what knows how much room a cover and a few rows need.
+  overflow-x: hidden;
+  overflow-y: auto;
 
   &.is-hidden {
     display: none;
@@ -698,7 +696,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .library-list {
   @include inset-surface;
   display: flex;
-  min-height: 0;
+  // A floor rather than zero, so the table cannot be squeezed to a single
+  // clipped row when the graph takes half the window. Below this the
+  // workspace above overflows instead, and it scrolls — see its own comment.
+  // Roughly a header and four rows, which is the least that still reads as a
+  // list you can work in.
+  min-height: 220px;
   flex: 1 1 auto;
   flex-direction: column;
   overflow: hidden;
@@ -1130,7 +1133,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   @include inset-surface;
   @include slim-scrollbar;
   display: grid;
-  min-height: 0;
+  // Same floor and the same reason as `.library-list` — about one row of
+  // tiles.
+  min-height: 220px;
   flex: 1 1 auto;
   grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
   align-content: start;
@@ -1358,7 +1363,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 .library-detail {
   display: flex;
-  min-height: 0;
+  // The 160px cover, its titles and the Play button come to about 230 before
+  // a single track is listed; this leaves room for the table under them
+  // rather than letting the header eat the whole drill-in.
+  min-height: 420px;
   flex: 1 1 auto;
   flex-direction: column;
   gap: $spacing-m;

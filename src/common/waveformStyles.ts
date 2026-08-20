@@ -238,16 +238,18 @@ export const createWaveformShape = (
       return { line: line.trim(), mirror: '', fill: '' };
     }
 
-    // The live-output spectrum: a bar per band rising from the floor, with a
-    // light curve traced along their tips. The bars are the shape somebody
-    // reading a spectrum expects; the curve is what turns it from a level
-    // meter into the same figure the graph two panels down is drawing. Both
-    // are built from the same samples, so a bar and the point of the curve
-    // above it can never disagree about how loud that band is.
+    // The site's compact meter, ported: a bar per band rising from the floor
+    // with a smooth wave flowing through the middle over the top of them.
+    // The wave is the same signed sample the `line` style draws — mirrored
+    // top and bottom — rather than a curve traced along the bar tips, so it
+    // reads as an independent figure crossing the spectrum rather than as
+    // an outline of it. That is what the FluidEQ site nav-signal draws and
+    // what somebody hearing "the site's visualiser" is looking at.
     case 'spectrum': {
       const barWidth = Math.max(1, step * 0.6);
+      const upper: string[] = [];
+      const lower: string[] = [];
       let fill = '';
-      const tips: string[] = [];
       for (let index = 0; index < samples.length; index += 1) {
         const magnitude = Math.abs(at(index)) * 2;
         fill += rect(
@@ -256,14 +258,16 @@ export const createWaveformShape = (
           barWidth,
           magnitude,
         );
-        // The curve rides one pixel above the bar tip, so a bright stroke
-        // over a bright fill still reads as two things rather than as a
-        // slightly thicker bar edge.
-        tips.push(
-          `${(index * step).toFixed(1)},${(height - magnitude - 1).toFixed(1)}`,
-        );
+        const x = (index * step).toFixed(1);
+        const offset = at(index);
+        upper.push(`${x},${(centre - offset).toFixed(1)}`);
+        lower.push(`${x},${(centre + offset).toFixed(1)}`);
       }
-      return { line: `M ${tips.join(' L ')}`, mirror: '', fill };
+      return {
+        line: `M ${upper.join(' L ')}`,
+        mirror: `M ${lower.join(' L ')}`,
+        fill,
+      };
     }
 
     default:

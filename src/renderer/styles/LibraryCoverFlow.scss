@@ -32,7 +32,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .library-coverflow {
   @include inset-surface;
   display: flex;
-  min-height: 0;
+  // A floor, so the row and whatever is open under it are never crushed into
+  // an unreadable strip when the graph takes half the window — past this the
+  // workspace overflows and scrolls instead. Roughly a legible fan plus the
+  // drill-in's own minimum; with a panel open the two together ask for more
+  // again, which is exactly when the scrollbar should appear.
+  min-height: 300px;
   flex: 1 1 auto;
   flex-direction: column;
   overflow: hidden;
@@ -60,10 +65,18 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 .library-coverflow.is-expanded {
+  // The row and the drill-in both need their share: a strip of covers tall
+  // enough to steer plus a table tall enough to read. Together they ask for
+  // more than a pane the graph has taken half of, and that is precisely when
+  // the workspace should hand over a scrollbar rather than crush both.
+  min-height: 620px;
+
   .library-coverflow__stage {
     // Enough of the column to keep the fan legible and its centre cover
     // recognisable; the rest belongs to the songs, which is what the reader
-    // just asked to see.
+    // just asked to see. The floor stops the percentage from collapsing the
+    // row to nothing in a short pane — see this block's own `min-height`.
+    min-height: 190px;
     flex: 0 0 34%;
   }
 
@@ -366,8 +379,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // `LibraryDetail` verbatim, so it brings its own card. The panel already
   // draws the seam it hangs off; a second inset box inside it is a card in a
   // card.
+  //
+  // A floor rather than zero: at zero the drill-in gave all its ground to the
+  // row above and its table was left a couple of clipped rows with no way to
+  // reach the rest. Below this the workspace overflows and scrolls, which is
+  // the honest answer to a pane that is simply too short for both.
   .library-detail {
-    min-height: 0;
+    min-height: 360px;
     flex: 1 1 auto;
   }
 

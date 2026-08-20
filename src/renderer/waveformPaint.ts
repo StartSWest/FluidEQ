@@ -165,22 +165,23 @@ export const BODY_STOPS = [
 /**
  * The cyan-tones fallback the spectrum style uses when rainbow mode is off.
  *
- * Five stops across the axis, matching `BAND_SPECTRUM_STOPS` position-for-
- * position so the same bar lines up with the same offset whichever ramp is
- * in force. The colours are cyan tones — brightest at the middle, softer at
- * the edges — so the visualiser still reads as a spectrum without borrowing
- * a mode the rest of the app gates on.
+ * Ported stop-for-stop from the FluidEQ site's `[data-nav-signal]` compact
+ * meter, which is what "the one in the site" refers to: a horizontal cyan
+ * gradient that fades to transparent at both ends, so the drawing reads as
+ * something the pane cradles rather than as a strip painted flat to its
+ * edges. The middle stop is the light-cyan the site uses; the two
+ * quarter-way stops are its cyan and cyan-teal.
  *
  * Comma-separated rgba: a canvas gradient stop is parsed by whatever is
  * running the code (Chromium and jsdom alike), and the older comma form is
  * the one nothing argues about.
  */
 export const SPECTRUM_CYAN_STOPS = [
-  { offset: 0, colour: 'rgba(139, 246, 255, 0.5)' },
-  { offset: 0.28, colour: 'rgba(105, 246, 233, 0.85)' },
-  { offset: 0.52, colour: 'rgba(0, 229, 255, 1)' },
-  { offset: 0.76, colour: 'rgba(79, 200, 247, 0.85)' },
-  { offset: 1, colour: 'rgba(139, 200, 255, 0.5)' },
+  { offset: 0, colour: 'rgba(0, 229, 255, 0)' },
+  { offset: 0.16, colour: 'rgba(0, 229, 255, 1)' },
+  { offset: 0.5, colour: 'rgba(156, 255, 244, 1)' },
+  { offset: 0.84, colour: 'rgba(0, 229, 207, 1)' },
+  { offset: 1, colour: 'rgba(0, 229, 207, 0)' },
 ];
 
 /** One pass of the bloom: how much wider than the figure, and how faint. */
@@ -273,10 +274,16 @@ export const STYLE_PAINT: Partial<Record<WaveformStyle, Partial<IStylePaint>>> =
     lattice: { strokeWidth: 1.4, strokeAlpha: 0.85, lineCap: 'round' },
     // One edge, thicker, because it is carrying the whole picture alone.
     outline: { strokeWidth: 2.4 },
-    // Bars from the floor with a light curve tracing their tips — the graph
-    // panel's LIVE OUTPUT figure in the titlebar. Thin curve, so it reads as
-    // a highlight over the bars rather than as a second competing wave.
-    spectrum: { fill: 'trace', fillAlpha: 0.9, strokeWidth: 1.2 },
+    // Bars from the floor with a smooth wave flowing through the middle
+    // over the top of them — the FluidEQ site's compact nav-signal meter,
+    // in the titlebar. Stroke thickness matches the site's 1.65px lineWidth
+    // and the round cap keeps the curve legible where it crosses a bar.
+    spectrum: {
+      fill: 'trace',
+      fillAlpha: 0.9,
+      strokeWidth: 1.6,
+      lineCap: 'round',
+    },
   };
 
 export const resolveStylePaint = (style: WaveformStyle): IStylePaint => ({
