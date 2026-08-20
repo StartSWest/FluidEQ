@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { CSSProperties, useEffect, useRef } from 'react';
+import { CSSProperties, useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { ILibraryTrack } from '../../../common/library/types';
 import { TLibraryRepeat } from '../../../common/library/queue';
@@ -360,20 +360,55 @@ const NowPlayingBar = ({
     return () => observer.disconnect();
   }, [track]);
 
+  /**
+   * Where the thumb is while it is being dragged, and nothing else.
+   *
+   * Held rather than sent straight through, because `change` on a range input
+   * fires on every pointer move: seeking from each one asked the decoder for
+   * a new position dozens of times a second, and the fragment of audio heard
+   * repeating is one of those decodes finishing after the next had already
+   * been asked for. The five-second buttons ask exactly once and have always
+   * been clean — that difference is the whole diagnosis.
+   *
+   * `undefined` the rest of the time, so the bar follows the element rather
+   * than a stale number: the last version of this held the scrub value past
+   * the release and fought the position coming back.
+   */
+  const [scrubMs, setScrubMs] = useState<number | undefined>(undefined);
+  /** The same value, readable by `commitScrub` without making it depend on
+   * the state it is about to clear — a state updater is not the place to seek
+   * from, and reading it through a ref keeps that callback pure. */
+  const scrubRef = useRef<number | undefined>(undefined);
+  const startScrub = useCallback((value: number) => {
+    scrubRef.current = value;
+    setScrubMs(value);
+  }, []);
+  const commitScrub = useCallback(() => {
+    const value = scrubRef.current;
+    if (value === undefined) {
+      return;
+    }
+    // Cleared in the same breath as the seek. `seek` reads the playhead
+    // straight back off the element, so the position this bar renders next is
+    // already the number the thumb is showing and there is nothing to jump
+    // back from.
+    scrubRef.current = undefined;
+    setScrubMs(undefined);
+    onSeek(value);
+  }, [onSeek]);
+
   if (!track) {
     return null;
   }
 
-  // `KaraokeTransport`'s own two lines, verbatim in shape. That transport has
-  // seeked correctly the whole time this one did not, and the difference was
-  // never the slider: `LibraryPlayerContext` now reads the position back off
-  // the element after a seek and re-reads it on `seeked`, exactly as
-  // `useKaraokeSession` does, so there is nothing here left for a held scrub
-  // value to protect against.
   const format = formatSummary(track);
   const clampedPosition = Math.min(positionMs, Math.max(1, durationMs));
+  // While a drag is in progress the bar shows where the thumb is, not where
+  // the audio still is — the filled track and both clocks with it, or the
+  // thumb would slide across a bar that disagreed with it.
+  const shownPosition = scrubMs ?? clampedPosition;
   const progressPercent =
-    durationMs > 0 ? Math.min(100, (positionMs / durationMs) * 100) : 0;
+    durationMs > 0 ? Math.min(100, (shownPosition / durationMs) * 100) : 0;
 
   // Portalled to `document.body`, the same escape `AnchoredMenu` uses and for
   // the same reason: this is fixed to the foot of the *window*, and mounting
@@ -502,7 +537,7 @@ const NowPlayingBar = ({
 
         <div className="now-playing-bar__position">
           <time className="now-playing-bar__time">
-            {formatDuration(positionMs)}
+            {formatDuration(shownPosition)}
           </time>
           <input
             type="range"
@@ -510,7 +545,7 @@ const NowPlayingBar = ({
             min={0}
             max={Math.max(1, durationMs)}
             step={100}
-            value={clampedPosition}
+            value={shownPosition}
             style={
               {
                 '--now-playing-progress': `${progressPercent}%`,
@@ -525,10 +560,28 @@ const NowPlayingBar = ({
             // slider next to a disabled Play button and a "cannot play this
             // format" message reads as broken.
             disabled={durationMs <= 0 || isUnplayable}
-            onChange={(event) => onSeek(Number(event.target.value))}
+            // A drag moves the thumb; only letting go moves the audio.
+            //
+            // `change` on a range input fires on every pointer move, so
+            // seeking from here asked the decoder for a new position dozens
+            // of times a second — and each one abandons what it was decoding
+            // and re-syncs, which is heard as a fragment of the passage
+            // repeating. The five-second buttons never did it because they
+            // ask exactly once; that is the whole difference, and it is the
+            // reason this is a held value rather than a live one.
+            //
+            // Cleared in the same breath as the seek: `seek` reads the
+            // playhead straight back off the element, so by the time this
+            // renders again `positionMs` is already the number the thumb is
+            // showing and there is nothing to jump back from.
+            onChange={(event) => startScrub(Number(event.target.value))}
+            onPointerUp={commitScrub}
+            onPointerCancel={commitScrub}
+            onKeyUp={commitScrub}
+            onBlur={commitScrub}
           />
           <time className="now-playing-bar__time">
-            -{formatDuration(Math.max(0, durationMs - positionMs))}
+            -{formatDuration(Math.max(0, durationMs - shownPosition))}
           </time>
         </div>
       </div>
