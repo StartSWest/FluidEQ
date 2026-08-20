@@ -25,7 +25,6 @@ import {
   getGraphLook,
   isDiscreteGraphStyle,
 } from 'common/graphStyles';
-import { hasGraphAccent } from 'common/graphShapes';
 import {
   DEFAULT_LEVEL_COLOURS,
   DEFAULT_SIGNAL_COLOUR,
@@ -374,17 +373,34 @@ const LookDesigner = ({ onClose, isClosing = false }: ILookDesignerProps) => {
     const id = getGraphLookId();
     const existing = getCustomLook(id);
     const isEditing = Boolean(existing);
-    // Anything left half-built comes back first — a reload or a crash in the
-    // middle of mixing a ramp should not cost the ramp. Only a look that is not
-    // already saved: once it is in the list, the list is the truth.
-    const resumed = existing ? null : readLookDraft();
+    const current = getResolvedLook();
+    /**
+     * Anything left half-built comes back — but only if it is half-built OF
+     * THIS LOOK.
+     *
+     * A reload or a crash in the middle of mixing a ramp should not cost the
+     * ramp, which is what this is for. Unconditionally, though, it hijacked
+     * every new look after it: a draft abandoned on Staircase months ago came
+     * back over whatever was on the graph, so the panel opened on the wrong
+     * form, under the wrong name, with the wrong settings — and "New look"
+     * quietly meant "that old look again".
+     *
+     * Matching the form and the palette is the difference between coming back
+     * to something and being dragged back to it.
+     */
+    const stored = existing ? null : readLookDraft();
+    const resumed =
+      stored &&
+      stored.style === current.style &&
+      stored.palette === current.palette
+        ? stored
+        : null;
     // A new look starts from what is on the graph, not from the form's own
     // defaults. Those differ the moment anything has been tuned — the border,
     // the glow, a colour ramp — and starting from the defaults meant opening
     // the panel changed the drawing before a single control had been touched.
     // Every one of these settings belongs to the look, so the look is what the
     // draft is taken from.
-    const current = getResolvedLook();
     const look = existing ??
       resumed ?? {
         ...createDraftLook(current.style, current.palette),
@@ -517,7 +533,6 @@ const LookDesigner = ({ onClose, isClosing = false }: ILookDesignerProps) => {
 
   const { tuning, style } = draft;
   const isDiscrete = isDiscreteGraphStyle(style);
-  const canAccent = hasGraphAccent(style);
   const fallbackName = t(`graph.styleName.${style}` as TranslationKey);
   const isFull = !origin.isEditing && isCustomLookListFull();
   /**
@@ -938,11 +953,11 @@ const LookDesigner = ({ onClose, isClosing = false }: ILookDesignerProps) => {
           />
         </SettingRow>
 
-        <div
-          className={`look-designer__row look-designer__row--switch${
-            canAccent ? '' : ' is-disabled'
-          }`}
-        >
+        {/* Offered on every form. It used to be greyed out on all but one,
+            which withheld a mark on somebody else's judgement about taste —
+            and taste is the whole reason there is a switch. The forms it
+            says nothing on simply arrive with it off. */}
+        <div className="look-designer__row look-designer__row--switch">
           {/* The control sits inside its own label, so the caption is part of
               the hit target rather than a word next to one. */}
           <label
@@ -954,14 +969,10 @@ const LookDesigner = ({ onClose, isClosing = false }: ILookDesignerProps) => {
               id="look-designer-accents"
               type="checkbox"
               className="look-designer__check"
-              checked={canAccent && tuning.accents}
-              disabled={!canAccent}
+              checked={tuning.accents}
               onChange={(event) => tune({ accents: event.target.checked })}
             />
           </label>
-          {!canAccent && (
-            <span className="look-designer__hint">{t('look.noLitPeaks')}</span>
-          )}
         </div>
 
         {/* How heavy the mark is. Only once there is a mark to make heavy —
@@ -972,7 +983,7 @@ const LookDesigner = ({ onClose, isClosing = false }: ILookDesignerProps) => {
           id="look-designer-accent-width"
           label={t('look.litPeakWeight')}
           value={`${Math.round(tuning.accentWidth * 100)}%`}
-          isDisabled={!canAccent || !tuning.accents}
+          isDisabled={!tuning.accents}
         >
           <SettingSlider
             id="look-designer-accent-width"
