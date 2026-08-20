@@ -189,9 +189,15 @@ export const euphoriaOutlineColour = (hue: number): string =>
  * This is the cascade the stylesheet used to run, written down. In the SVG
  * version there were three rules of decreasing reach and their order mattered:
  *
+ *  0. Does a stroke exist at all? A painted form with the border off has
+ *     none. This is asked first now and it did not used to be: the sweep won
+ *     here and applied even where the attribute said `stroke: none`, so a
+ *     filled look grew an outline in the mode. Faithful to the cascade, and
+ *     wrong from the moment the border became a switch — it drew the rainbow
+ *     border on looks whose box was unticked. The sweep recolours a stroke;
+ *     it does not create one.
  *  1. Euphoria recolours any live trace that has no colours of its own. It won
- *     on specificity, and it applied even where the attribute said `stroke:
- *     none` — which is why a filled look grows an outline in the mode.
+ *     on specificity, and still does among the colours.
  *  2. Failing that, a look asking for the cycling border gets the sweep at the
  *     outline's own weight.
  *  3. Otherwise the look decides: a painted form has no stroke at all unless it
@@ -205,14 +211,29 @@ export const resolveFigureStroke = (
   isSelfColoured: boolean,
   euphoria: IEuphoriaPaint,
 ): TracePaint | undefined => {
+  /**
+   * Does a stroke exist at all? Asked FIRST, and separately from what colour
+   * it is.
+   *
+   * A painted form with the border off has none, in either mode. The sweep
+   * used to be tested before this and won, which is what the old stylesheet
+   * did — its rule applied even where the attribute said `stroke: none`, so a
+   * filled look grew an outline in the mode. That was a faithful port of a
+   * cascade and it stopped being right the moment the border became a switch:
+   * it drew the rainbow border on looks whose box was unticked, and on a
+   * filled form there is nothing else that outline could have been.
+   *
+   * The sweep RECOLOURS a stroke; it does not create one. Which colour wins
+   * is left exactly as it was below.
+   */
+  if (isFilled && !hasBorder) {
+    return undefined;
+  }
   if (euphoria.isOn && !isSelfColoured) {
     return euphoriaTraceColour(euphoria.hue);
   }
   if (euphoria.isOn && hasBorder) {
     return euphoriaOutlineColour(euphoria.hue);
-  }
-  if (isFilled && !hasBorder) {
-    return undefined;
   }
   return paint;
 };

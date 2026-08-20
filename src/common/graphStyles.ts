@@ -676,16 +676,36 @@ const FILL_OPACITY_OVERRIDES: Partial<Record<GraphStyle, number>> = {
 /**
  * How much of a column each form leaves empty, by default.
  *
- * Zero is bars that touch, which is what the setting has to mean — a gap of
- * none is no gap. The widths these forms were drawn at are gaps of their own,
- * so they live here as starting positions rather than being baked into the
- * geometry: bars were 62% of the column, pillars 96%, skyline 88%.
+ * Zero is pieces that touch, which is what the setting has to mean — a gap of
+ * none is no gap. Every one of these forms was drawn at a width chosen by eye,
+ * and that width IS a gap, so they live here as starting positions rather than
+ * baked into the geometry: bars were 62% of the column, pillars 96%, dots 50%,
+ * diamonds 85%.
+ *
+ * A form missing from the table has no piece to space — a line, a curve, a
+ * contour — and reads zero, which it then ignores.
  */
 const BAR_GAP_DEFAULTS: Partial<Record<GraphStyle, number>> = {
   bars: 0.38,
   blocks: 0.38,
   pillars: 0.04,
   skyline: 0.12,
+  dots: 0.5,
+  stems: 0.58,
+  dashes: 0.3,
+  scatter: 0.66,
+  caps: 0.34,
+  ribs: 0.34,
+  crown: 0.2,
+  matrix: 0.64,
+  stalactites: 0.38,
+  bubbles: 0.38,
+  diamonds: 0.15,
+  fence: 0.64,
+  candles: 0.48,
+  barcode: 0.18,
+  honeycomb: 0.2,
+  invaders: 0.35,
 };
 
 export const getGraphBarGap = (style: GraphStyle): number =>
