@@ -11,17 +11,16 @@ it under the terms of the GNU General Public License version 3 or later.
 
 .waveform-visualizer {
   position: relative;
-  // Label row, then the trace taking whatever is left. The trace centring is
-  // the grid's job, not a magic margin, so it stays centred at any pane height.
-  display: grid;
+  // The canvas fills the whole pane now — labels and readouts are painted
+  // on the bitmap alongside the wave. No grid rows, no gap: one child,
+  // one drawing.
+  display: block;
   width: min(31vw, 420px);
   min-width: 230px;
   height: 62px;
-  align-content: stretch;
-  gap: 4px;
-  grid-template-rows: auto minmax(0, 1fr);
-  padding: 8px 14px 10px;
+  padding: 0;
   border: 1px solid rgba($primary-lighter, 0.1);
+  border-bottom: 0;
   border-radius: 18px;
   // The same bargain the panels and the title bar make: translucent enough
   // that the shell's own colour comes through, opaque enough that a trace drawn
@@ -73,12 +72,22 @@ it under the terms of the GNU General Public License version 3 or later.
     opacity: 0.78;
   }
 
-  // Clipping is the one state worth interrupting the theme for.
+  // Clipping is the one state worth interrupting the theme for, and the
+  // one place this pane is allowed a hard edge: the border goes red at
+  // full strength and the glow with it, so the whole card says it rather
+  // than a badge in the corner having to be found.
+  //
+  // It has to beat the euphoria rule, which is the only other thing that
+  // touches this border and would otherwise keep sweeping its hue
+  // straight over the warning. `!important` rather than a longer
+  // selector because the two are declared in different files and the
+  // one that must win is the one about the audio being broken.
   &.is-clipping {
-    border-color: rgba($red, 0.5);
+    border-color: rgba($red, 0.85) !important;
     box-shadow:
       inset 0 1px 0 rgba($white, 0.08),
-      0 0 26px rgba($red, 0.2);
+      inset 0 0 18px rgba($red, 0.18),
+      0 0 26px rgba($red, 0.32) !important;
   }
 
   &:hover,
@@ -91,12 +100,33 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
+// The meta labels (signal dot, LIVE/SIGNAL, peak dB, CLIP badge) and
+// the style-announcement pill are all painted directly on the canvas
+// now — see `WaveformVisualizer.tsx`, where the frame loop draws them
+// as the last pass in each frame. The visualiser is one bitmap, no DOM
+// overlays on top.
+
+// The stage exists for one reason: to clip the canvas to the pane's
+// rounded shape. The canvas is grown past the pane on every side so the
+// trace's bloom has room to spill, and with nothing clipping it that
+// overspill painted outside the rounded border — the drawing reached
+// into the square corners and sat proud of the card. `overflow: hidden`
+// on a box that inherits the pane's radius puts it back inside.
+// The meta row: signal light and label on the left, held peak and the
+// clip badge on the right. Outside the stage and above it, hugging the
+// top of the pane — only the waveform underneath is inset. The inline
+// padding is the least that clears the pane's rounded corners; there is
+// no vertical padding at all, which is what puts it at the very top.
 .waveform-visualizer__meta {
+  position: absolute;
+  z-index: 2;
+  top: 5px;
+  right: 0;
+  left: 0;
   display: flex;
-  min-width: 0;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
+  padding-inline: 14px;
   color: rgba($primary-lighter, 0.82);
   font-size: 0.5rem;
   font-weight: 800;
@@ -131,10 +161,9 @@ it under the terms of the GNU General Public License version 3 or later.
   gap: 6px;
 }
 
-// Held peak in dBFS. Tabular so the digits do not shuffle the layout as they
-// change, which they do several times a second.
+// Held peak in dBFS. Tabular so the digits do not shuffle the layout as
+// they change, which they do several times a second.
 .waveform-visualizer__peak {
-  min-width: 4.2em;
   color: rgba($secondary-light, 0.86);
   font-size: 0.52rem;
   font-variant-numeric: tabular-nums;
@@ -154,6 +183,67 @@ it under the terms of the GNU General Public License version 3 or later.
   background: rgba($red, 0.14);
   font-size: 0.46rem;
   letter-spacing: 0.12em;
+}
+
+// Explicitly below the euphoria pill, which sits over the pane's top
+// edge at `z-index: 1`. The stage is a positioned box covering the whole
+// pane, so without a stated layer it competes with that pill for the
+// same strip of window and paints the wave over the "RAINBOW MODE"
+// label. Starting below the meta row is what gives the waveform its own
+// inset while the labels above stay flush with the top of the pane.
+// The name of the style just cycled into. Outside the stage and above
+// it, so it sits on the card rather than inside the clipped drawing.
+.waveform-visualizer__announcement {
+  position: absolute;
+  z-index: 2;
+  right: 12px;
+  bottom: 5px;
+  padding: 2px;
+  color: rgba($white, 0.94);
+  border: 1px solid rgba($secondary-light, 0.32);
+  border-radius: 3px;
+  background: rgba($panel-bottom, 0.72);
+  font-size: 0.5rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(4px);
+  transition:
+    opacity 260ms cubic-bezier(0.32, 0.72, 0, 1),
+    transform 260ms cubic-bezier(0.32, 0.72, 0, 1);
+
+  &.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.waveform-visualizer__stage {
+  position: absolute;
+  z-index: 0;
+  // Top clears the meta row; two pixels on the other three sides is the
+  // least that keeps the drawing off the pane's own edge without eating
+  // into the width the wave has to span.
+  inset: 18px 2px 2px;
+  display: block;
+  overflow: hidden;
+  // Two pixels inside an eighteen-pixel outer curve leaves sixteen. The
+  // radius has to be stated: with square corners the clip cuts a straight
+  // edge across the pane's own curve and the wave paints over the rounded
+  // border at each bottom corner.
+  border-radius: 16px;
+  // `overflow: hidden` alone does NOT round the canvas. Chromium gives a
+  // canvas its own composited layer, and a composited child is clipped by
+  // an ancestor's rectangle but not by its border-radius unless that
+  // ancestor is itself promoted — so the corners came back square and the
+  // bars painted across the pane's curve. Promoting the stage gives the
+  // compositor a rounded clip to apply. This is a static wrapper, not
+  // animated content, so it costs one small layer and nothing per frame.
+  transform: translateZ(0);
+  pointer-events: none;
 }
 
 // *** The trace ************************************************************

@@ -585,7 +585,12 @@ const useLiveOutputSpectrum = () => {
       });
 
       const frequencyData = new Float32Array(analyser.frequencyBinCount);
-      const timeDomainData = new Uint8Array(analyser.fftSize);
+      // Float rather than the byte domain, because the clip detector is the
+      // only thing that reads this and it looks for samples ABOVE full scale
+      // — which eight bits cannot represent at all, since they clamp at 255.
+      // See `CLIP_RAIL_AMPLITUDE`. The waveform drawing takes the meter's own
+      // per-channel float samples and never used this buffer.
+      const timeDomainFloat = new Float32Array(analyser.fftSize);
       const axis = createFrequencyAxis(activeAudioContext.sampleRate);
       const cells: IAxisCell[] = createAxisCells(
         axis,
@@ -645,7 +650,7 @@ const useLiveOutputSpectrum = () => {
         }
 
         analyser.getFloatFrequencyData(frequencyData);
-        analyser.getByteTimeDomainData(timeDomainData);
+        analyser.getFloatTimeDomainData(timeDomainFloat);
         readAbsoluteLevels(frequencyData, cells, levelBuffer);
         const peak = getPeakLevel(frequencyData);
 
@@ -685,7 +690,7 @@ const useLiveOutputSpectrum = () => {
           }
           // Held briefly so a single clipped frame is actually seen: at 45 ms a
           // flash would be gone before the eye registers it.
-          if (detectClipping(timeDomainData)) {
+          if (detectClipping(timeDomainFloat)) {
             clipUntilRef.current = performance.now() + CLIP_HOLD_MS;
           }
           const clipping = performance.now() < clipUntilRef.current;

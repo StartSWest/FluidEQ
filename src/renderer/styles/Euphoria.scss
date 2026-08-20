@@ -57,11 +57,39 @@ it under the terms of the GNU General Public License version 3 or later.
   //
   // AND NOTHING SWEEPS FROM AN ANCESTOR. Each element that travels through the
   // spectrum animates its own hue; see the @property declaration below.
-  .waveform-visualizer,
   .rhythm-game__trace {
     animation: euphoria-sweep 3.6s linear infinite;
     border-color: hsl(var(--euphoria-hue) 90% 62% / 55%);
     box-shadow: 0 0 18px hsl(var(--euphoria-hue) 95% 60% / 30%);
+  }
+
+  // The wave pane's rim, as light rather than as a drawn line.
+  //
+  // It used to take the same treatment as the trace above: a 55%-opaque
+  // border colour, which at one pixel is a hard bright outline. Against a
+  // drawing that is itself full of colour that line read as a sticker
+  // stuck round the pane rather than as the pane glowing.
+  //
+  // The border is dropped almost to nothing and the rim is rebuilt out of
+  // shadows instead — a tight inset ring for the edge itself, a wider
+  // inset wash so the colour falls off inward, and two outward layers for
+  // the bloom. Same rim, no hard edge anywhere in it.
+  //
+  // Three layers, not four, and none of them wide. Every one of these is
+  // re-rasterised on each step of the hue sweep, and in euphoria the pane
+  // redraws at the display's own rate rather than at thirty — so a layer
+  // here is not free the way a static shadow is. The blur radii never
+  // move, which is the rule this whole file is built on: changing a
+  // shadow's geometry rebuilds it, changing only its colour does not. A
+  // fourth pass at 30px was dropped for exactly that reason — it was the
+  // largest region of the four and the faintest of them.
+  .waveform-visualizer {
+    animation: euphoria-sweep 3.6s linear infinite;
+    border-color: hsl(var(--euphoria-hue) 90% 62% / 16%);
+    box-shadow:
+      inset 0 0 0 1px hsl(var(--euphoria-hue) 95% 68% / 22%),
+      inset 0 0 14px hsl(var(--euphoria-hue) 95% 62% / 16%),
+      0 0 14px hsl(var(--euphoria-hue) 95% 60% / 26%);
   }
 
   .euphoria-pill {

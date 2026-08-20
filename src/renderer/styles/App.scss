@@ -352,9 +352,10 @@ select option {
     justify-self: center;
     width: 100%;
     max-width: 420px;
-    // Give the ordinary meter a little more room to show its waveform. The
-    // euphoric override remains 64px, so this only affects the quiet titlebar.
-    height: 52px;
+    // Same 64px as the euphoric override, so the pane no longer resizes
+    // when rainbow mode is toggled — the wave inside was already unified
+    // to max amplitude + normalise, and this makes the container match.
+    height: 64px;
     -webkit-app-region: no-drag;
   }
 }

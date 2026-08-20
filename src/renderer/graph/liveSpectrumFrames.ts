@@ -136,28 +136,45 @@ export const METER_CHANNELS = 2;
 export const NO_LEVELS: IOutputLevel[] = [];
 
 /**
- * Digital full scale, in the 0..255 byte domain the analyser reports.
- * A run of samples pinned to either rail is the signature of a signal that has
- * been clipped somewhere upstream — usually too much EQ boost or preamp.
+ * Digital full scale, as a linear amplitude. Reaching it is what clipping
+ * looks like from here — too much EQ boost or preamp, with nowhere left for
+ * the signal to go.
+ *
+ * `>=` AND NOT `>`, and the difference is the whole detector. Strictly greater
+ * is the textbook definition and it is unreachable in this position: whatever
+ * sits between the equaliser and this capture clamps, so a signal driven to
+ * three times full scale does not arrive as 3.0, it arrives as 1.0 with its
+ * peaks sheared flat. The overshoot is destroyed before we see it and only the
+ * ceiling survives, so the ceiling is what has to be tested for.
+ *
+ * READ FROM THE FLOAT SAMPLES. `getByteTimeDomainData` has eight bits and
+ * clamps at 255, so it cannot represent anything above full scale at all; the
+ * closest rail it could offer was byte 254, which is amplitude 0.984 — −0.14
+ * dBFS, and merely loud. `getFloatTimeDomainData` is not clamped by the
+ * analyser, so a signal driven past the ceiling arrives as the number it is.
+ *
+ * WHAT THIS WILL AND WILL NOT CATCH, measured on this machine rather than
+ * assumed. With auto-normalise off and the preamp at +20 dB, the loopback
+ * reports a peak of 0.92 while the audio is audibly breaking up: something
+ * upstream of the capture — the Windows mixer, or Chromium's own capture
+ * pipeline — clamps before we see it, so the overshoot that would trip this is
+ * destroyed a step before it reaches us. The threshold is nonetheless the
+ * correct one: it says clipping and only clipping, and it will not light on
+ * audio that is merely loud, which every softer value tried here did. Knowing
+ * that the chain is asking for more than the output can carry is a question for
+ * the chain's own gain, not for this capture.
  */
-export const CLIP_RAIL_LOW = 1;
-export const CLIP_RAIL_HIGH = 254;
-/** Consecutive railed samples before it counts. One is just a loud peak. */
-export const CLIP_RUN_LENGTH = 3;
+export const CLIP_RAIL_AMPLITUDE = 1;
 /** How long a clip indication stays up after the last railed frame. */
 export const CLIP_HOLD_MS = 1200;
 
-export const detectClipping = (timeDomainData: Uint8Array): boolean => {
-  let run = 0;
+export const detectClipping = (timeDomainData: ArrayLike<number>): boolean => {
   for (let index = 0; index < timeDomainData.length; index += 1) {
-    const sample = timeDomainData[index];
-    if (sample <= CLIP_RAIL_LOW || sample >= CLIP_RAIL_HIGH) {
-      run += 1;
-      if (run >= CLIP_RUN_LENGTH) {
-        return true;
-      }
-    } else {
-      run = 0;
+    // No run length. Unlike a level threshold this needs no protection from
+    // loud music: a sample above full scale is not a peak that happens to be
+    // near the ceiling, it is a value that could not be represented.
+    if (Math.abs(timeDomainData[index]) >= CLIP_RAIL_AMPLITUDE) {
+      return true;
     }
   }
   return false;
@@ -295,23 +312,6 @@ export const getPeakLevel = (
     }
   }
   return peak > LIVE_SILENCE_DB ? peak : undefined;
-};
-
-export const writeWaveformPoints = (
-  target: number[],
-  timeDomainData: Uint8Array,
-): number[] => {
-  const bucketSize = timeDomainData.length / WAVEFORM_POINT_COUNT;
-  for (let index = 0; index < WAVEFORM_POINT_COUNT; index += 1) {
-    const start = Math.floor(index * bucketSize);
-    const end = Math.max(start + 1, Math.floor((index + 1) * bucketSize));
-    let peak = 0;
-    for (let sampleIndex = start; sampleIndex < end; sampleIndex += 1) {
-      peak = Math.max(peak, Math.abs(timeDomainData[sampleIndex] - 128) / 128);
-    }
-    target[index] = peak;
-  }
-  return target;
 };
 
 /**
