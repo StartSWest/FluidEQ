@@ -1455,21 +1455,6 @@ $tab-border: rgba($secondary-light, 0.2);
   // only, so nothing can shadow it.
   container-name: autoeq-workspace eq-panel;
   container-type: inline-size;
-
-  // The bottom breathing room lives on the content, not on this box.
-  //
-  // These panels are flex columns that scroll, and a scrolling flex
-  // container's bottom padding is not reserved past the end of its content:
-  // scroll to the foot of Voicing or EQ Presets and the last card ended flush
-  // against the border, which reads as clipped rather than as finished. A
-  // margin on the last thing inside is part of the content, so it scrolls
-  // with it and is still there at the end.
-  //
-  // It matches the padding the other three sides keep, so nothing about the
-  // spacing changes — only whether it survives being scrolled to.
-  > :last-child {
-    margin-bottom: 12px;
-  }
 }
 
 .workspace-tab-panel--eq,
@@ -1509,11 +1494,7 @@ $tab-border: rgba($secondary-light, 0.2);
   // picture and every pixel of margin around a video is a pixel the video
   // does not get; its bar re-adds the same 12 inline, so the two toolbars sit
   // on the same rule.
-  // No bottom padding: the `::after` on `.workspace-tab-panel` carries that
-  // instead, because a scrolling flex container does not reserve its bottom
-  // padding past the end of its content. Twelve either way, so the spacing
-  // is unchanged — see that rule.
-  padding: 10px 12px 0;
+  padding: 10px 12px 12px;
   border-top-color: $tab-border;
 }
 
@@ -1594,11 +1575,22 @@ $tab-border: rgba($secondary-light, 0.2);
   min-height: 0;
   flex: 1 1 auto;
 
+  // These fill the panel, but they are never squeezed smaller than what is
+  // inside them.
+  //
+  // `min-height: 0` was letting exactly that happen: measured on EQ Presets,
+  // a 257px box around 1,328px of content, which then spilled out of it and
+  // left the panel scrolling an overflow rather than a box. Everything that
+  // belongs to the box instead of to the content — its bottom padding, its
+  // margin, the room at the foot of the tab — sat a thousand pixels above
+  // where the reader's scroll ended, which is why no amount of padding on
+  // either of them ever showed up there. The automatic floor is `min-content`,
+  // and that is the honest one: grow into the panel, never shrink out of your
+  // own contents.
   > .convolution-panel,
   > .voicing-panel,
   > .autoeq-panel,
   > .config-inspector {
-    min-height: 0;
     flex: 1 1 auto;
   }
 }

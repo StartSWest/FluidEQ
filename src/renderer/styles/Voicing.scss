@@ -26,7 +26,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // will do.
 .voicing-panel {
   display: flex;
-  min-height: 0;
+  // No `min-height: 0`, for the reason `.autoeq-panel` gives at length: it let
+  // this box be squeezed below its own content — 413px of box around 685px of
+  // content — so the content spilled out of it and everything belonging to the
+  // box, its bottom margin included, ended up hundreds of pixels above where
+  // the reader's scroll ends.
   flex-direction: column;
   gap: 12px;
 }

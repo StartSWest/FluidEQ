@@ -28,7 +28,14 @@ it under the terms of the GNU General Public License version 3 or later.
 // voicing and convolution pages work.
 .autoeq-panel {
   display: flex;
-  min-height: 0;
+  // No `min-height: 0`. It let this box be squeezed below the height of what
+  // is in it — measured, 653px of box around 1,328px of content — so the
+  // content spilled out of it and the panel above scrolled that overflow
+  // instead. Everything that belongs to the box rather than to the content,
+  // its bottom margin included, then sat six hundred pixels above where the
+  // reader's scroll ends, which is why the tab looked as though it had no
+  // room at the foot of it. The box wraps its content; the panel scrolls the
+  // box.
   flex-direction: column;
   gap: 14px;
 }
