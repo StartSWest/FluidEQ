@@ -40,6 +40,7 @@ import {
 import { useIsEuphoric, winEuphoria } from './utils/euphoriaMode';
 import { useRhythmRun } from './utils/rhythmRun';
 import supportQrImage from '../../assets/support-qr.png';
+import MemoryTraceButton from './components/MemoryTraceButton';
 import QrCode from './components/QrCode';
 import RhythmGame, { IRhythmGameHandle } from './components/RhythmGame';
 import { SupportPetHero } from './SupportPet';
@@ -607,6 +608,14 @@ export default function SupportDialog({
                     ? 'dev: hide ad blocker switch'
                     : 'dev: show ad blocker switch'}
                 </button>
+                {/* The memory recorder, which used to sit in the titlebar.
+                    It is a development tool with a development tool's audience,
+                    and the titlebar is the most contested strip in the window
+                    — it already carries the analyser, the transport, the pet
+                    and the window controls, and at a narrow width this was the
+                    thing pushing them into each other. Here it is among the
+                    other switches nobody but a developer goes looking for. */}
+                <MemoryTraceButton />
               </div>
             )}
 

@@ -19,6 +19,21 @@ what is already running, and none of them are optional.
   to prevent. It has happened repeatedly and it is what he asks for by name:
   _"attempt all my requests"_.
 
+## The change first. Tests after he is happy with it
+
+What he asked for goes in, and he gets to look at it. Only once he is
+satisfied does the suite get run, read or added to.
+
+- **Do not stop mid-request to chase a red suite.** A failing test while he is
+  waiting to see a change is a detour, and he has said so while waiting:
+  _"I am waiting for this no tests"_.
+- Type-check and lint as you go — those are seconds, and they catch what would
+  otherwise reach his window broken. Running the whole suite, reading its
+  failures and writing new cases is the part that waits.
+- When he says the change is right, run everything, fix what broke, and add
+  the cases that would have caught it. Nothing gets committed with the suite
+  unexamined — the rule is about the order, not about skipping it.
+
 ## Response format
 
 - Yes/no question → the direct answer in the FIRST sentence.

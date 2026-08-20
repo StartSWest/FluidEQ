@@ -353,13 +353,11 @@ it under the terms of the GNU General Public License version 3 or later.
   // colour, so it matches by construction rather than by two lists agreeing.
 }
 
-// Minimum-width window chrome has less vertical and horizontal room. Rainbow
-// keeps its colour and motion there, but not the expanded meter dimensions.
-@media (max-width: 760px) {
-  .is-euphoric .waveform-visualizer {
-    height: 46px;
-  }
-}
+// No height override at narrow widths any more. Cutting the meter to 46px
+// there is half of why the rainbow pill and the "LIVE OUTPUT" label could not
+// share a line: the pill is centred over the top of the pane, and on a short,
+// narrow meter the two were painted across each other. The pane keeps the
+// 64px it has at every other width.
 
 // The moment it lands.
 //

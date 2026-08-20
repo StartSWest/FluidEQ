@@ -21,6 +21,8 @@ import { createPortal } from 'react-dom';
 import { ILibraryTrack } from '../../../common/library/types';
 import { TLibraryRepeat } from '../../../common/library/queue';
 import { useTranslation } from '../../utils/I18nContext';
+import AnchoredMenu from '../../widgets/AnchoredMenu';
+import MenuIcon from '../../icons/MenuIcon';
 import LibraryCoverArt from '../LibraryCoverArt';
 import '../../styles/NowPlayingBar.scss';
 
@@ -380,6 +382,43 @@ const NowPlayingBar = ({
    * than a stale number: the last version of this held the scrub value past
    * the release and fought the position coming back.
    */
+  /**
+   * True when the window is too narrow for the bar to carry its secondary
+   * controls on the surface.
+   *
+   * Measured rather than styled, because the alternative is rendering both
+   * arrangements and hiding one — and two copies of a volume fader is two
+   * things a screen reader offers where only one is real. The breakpoint is
+   * the shell's own: below it `App.scss` has already dropped to two columns,
+   * and the bar's three-column grid has no room left for a slider.
+   */
+  const [isCompact, setIsCompact] = useState(false);
+  useEffect(() => {
+    // Guarded, the way `KaraokeWorkspace` and `KaraokeLyrics` guard their own
+    // calls: jsdom has no `matchMedia`, and a stub for it in the shared test
+    // setup is not a free thing to add — one answering `matches: false` where
+    // there had been nothing flipped Karaoke onto a different branch and took
+    // its pitch lane off the stage.
+    if (typeof window.matchMedia !== 'function') {
+      return undefined;
+    }
+    const query = window.matchMedia('(max-width: 900px)');
+    const apply = () => setIsCompact(query.matches);
+    apply();
+    query.addEventListener('change', apply);
+    return () => query.removeEventListener('change', apply);
+  }, []);
+
+  /** The button the options menu hangs off, or nothing while it is shut —
+   * the same shape `KaraokeTransport` gives its own mix popover. */
+  const [optionsAnchor, setOptionsAnchor] = useState<HTMLElement | null>(null);
+  // Nothing to hang a menu off once the bar stops being compact.
+  useEffect(() => {
+    if (!isCompact) {
+      setOptionsAnchor(null);
+    }
+  }, [isCompact]);
+
   const [scrubMs, setScrubMs] = useState<number | undefined>(undefined);
   /** The same value, readable by `commitScrub` without making it depend on
    * the state it is about to clear — a state updater is not the place to seek
@@ -407,6 +446,63 @@ const NowPlayingBar = ({
     return null;
   }
 
+  /** The three secondary controls, written once and placed in one of two
+   * spots — see where this is used. */
+  const secondaryControls = (
+    <>
+      <button
+        type="button"
+        className="now-playing-bar__toggle"
+        aria-label={t('library.shuffle')}
+        title={t('library.shuffle')}
+        aria-pressed={isShuffled}
+        onClick={onShuffle}
+      >
+        <TransportIcon name="shuffle" />
+        {/* Shown only inside the menu, where a row is the width of the panel
+            and an icon alone in it reads as a stray dot. Hidden on the bar by
+            `NowPlayingBar.scss` rather than rendered twice. */}
+        <span className="now-playing-bar__option-label">
+          {t('library.shuffle')}
+        </span>
+      </button>
+      <button
+        type="button"
+        className="now-playing-bar__toggle"
+        aria-label={t(REPEAT_LABEL_KEYS[repeat])}
+        title={t(REPEAT_LABEL_KEYS[repeat])}
+        aria-pressed={repeat !== 'off'}
+        onClick={onRepeat}
+      >
+        <TransportIcon name="repeat" />
+        {repeat === 'one' && <small>1</small>}
+        <span className="now-playing-bar__option-label">
+          {t(REPEAT_LABEL_KEYS[repeat])}
+        </span>
+      </button>
+      <div className="now-playing-bar__volume">
+        <span className="now-playing-bar__volume-icon" aria-hidden="true">
+          <TransportIcon name="volume" />
+        </span>
+        <input
+          type="range"
+          className="now-playing-bar__volume-slider"
+          min={0}
+          max={1}
+          step={0.01}
+          value={volume}
+          style={
+            {
+              '--now-playing-progress': `${volume * 100}%`,
+            } as CSSProperties
+          }
+          aria-label={t('library.volume')}
+          onChange={(event) => onVolume(Number(event.target.value))}
+        />
+      </div>
+    </>
+  );
+
   const format = formatSummary(track);
   const clampedPosition = Math.min(positionMs, Math.max(1, durationMs));
   // While a drag is in progress the bar shows where the thumb is, not where
@@ -425,7 +521,7 @@ const NowPlayingBar = ({
   return createPortal(
     <div
       ref={barRef}
-      className="now-playing-bar"
+      className={`now-playing-bar${isCompact ? ' is-compact' : ''}`}
       role="region"
       aria-label={t('library.nowPlaying')}
     >
@@ -592,49 +688,48 @@ const NowPlayingBar = ({
         </div>
       </div>
 
-      <div className="now-playing-bar__secondary">
-        <button
-          type="button"
-          className="now-playing-bar__toggle"
-          aria-label={t('library.shuffle')}
-          title={t('library.shuffle')}
-          aria-pressed={isShuffled}
-          onClick={onShuffle}
-        >
-          <TransportIcon name="shuffle" />
-        </button>
-        <button
-          type="button"
-          className="now-playing-bar__toggle"
-          aria-label={t(REPEAT_LABEL_KEYS[repeat])}
-          title={t(REPEAT_LABEL_KEYS[repeat])}
-          aria-pressed={repeat !== 'off'}
-          onClick={onRepeat}
-        >
-          <TransportIcon name="repeat" />
-          {repeat === 'one' && <small>1</small>}
-        </button>
-        <div className="now-playing-bar__volume">
-          <span className="now-playing-bar__volume-icon" aria-hidden="true">
-            <TransportIcon name="volume" />
-          </span>
-          <input
-            type="range"
-            className="now-playing-bar__volume-slider"
-            min={0}
-            max={1}
-            step={0.01}
-            value={volume}
-            style={
-              {
-                '--now-playing-progress': `${volume * 100}%`,
-              } as CSSProperties
-            }
-            aria-label={t('library.volume')}
-            onChange={(event) => onVolume(Number(event.target.value))}
-          />
+      {/* Shuffle, repeat and the volume fader — on the bar while there is
+          room for them, and behind one button when there is not. Never
+          duplicated into the document and hidden with CSS: two copies of a
+          fader is two things a screen reader offers and only one of them
+          real. */}
+      {isCompact ? (
+        <div className="now-playing-bar__secondary">
+          <button
+            type="button"
+            className="now-playing-bar__toggle"
+            aria-label={t('library.playbackOptions')}
+            title={t('library.playbackOptions')}
+            aria-haspopup="dialog"
+            aria-expanded={Boolean(optionsAnchor)}
+            onClick={(event) => {
+              const trigger = event.currentTarget;
+              setOptionsAnchor((current) =>
+                current === trigger ? null : trigger,
+              );
+            }}
+          >
+            {/* The cog the rest of the app already uses for "settings",
+                rather than a hamburger — this opens three controls, not a
+                list of places to go. */}
+            <MenuIcon
+              name="settings"
+              className="now-playing-bar__options-icon"
+            />
+          </button>
+          <AnchoredMenu
+            anchor={optionsAnchor}
+            isOpen={Boolean(optionsAnchor)}
+            className="now-playing-bar__options"
+            role="dialog"
+            ariaLabel={t('library.playbackOptions')}
+          >
+            {secondaryControls}
+          </AnchoredMenu>
         </div>
-      </div>
+      ) : (
+        <div className="now-playing-bar__secondary">{secondaryControls}</div>
+      )}
     </div>,
     document.body,
   );

@@ -370,6 +370,7 @@ select option {
 }
 
 .workspace-header__identity {
+  position: relative;
   display: flex;
   min-width: 0;
   align-items: center;
@@ -377,6 +378,56 @@ select option {
 
   > div {
     min-width: 0;
+  }
+}
+
+// Narrow: the mark alone, and the name on hover.
+//
+// The titlebar carries the analyser, the transport, the pet and the window
+// controls, and below this width the product's own name is the first thing
+// that can go — everyone looking at it already knows what they opened. It is
+// not deleted, though: it comes back beside the mark when the mark is pointed
+// at, which is where a version number is wanted anyway, and lifted out of the
+// flow so revealing it cannot push the bar's other contents around.
+@media (max-width: 900px) {
+  // Hover cannot reach the mark while it is part of the window's drag
+  // handle: `.window-titlebar` is `-webkit-app-region: drag`, so Windows
+  // takes the pointer over it and the renderer is never told the mouse is
+  // there — the reveal below simply never fired. Only at this width, and
+  // only over the 44px mark, because that is the only place the reveal
+  // exists; the rest of the bar stays a drag handle.
+  .workspace-header__identity {
+    -webkit-app-region: no-drag;
+  }
+
+  .workspace-header__identity-text {
+    position: absolute;
+    z-index: 40;
+    top: 50%;
+    left: calc(100% + #{$spacing-xs});
+    padding: 6px $spacing-s;
+    border: 1px solid rgba($secondary-light, 0.2);
+    border-radius: $radius-s;
+    background: rgba(#07131f, 0.96);
+    box-shadow: 0 10px 26px rgba($black, 0.45);
+    opacity: 0;
+    visibility: hidden;
+    white-space: nowrap;
+    // Its own `translate`, so the transition composes with the centring
+    // rather than replacing it — the same reason `.library-coverflow__arrow`
+    // uses one.
+    translate: 0 -50%;
+    backdrop-filter: blur(14px);
+    pointer-events: none;
+    transition:
+      opacity 160ms $ease-out,
+      visibility 160ms $ease-out;
+  }
+
+  .workspace-header__identity:hover .workspace-header__identity-text,
+  .workspace-header__identity:focus-within .workspace-header__identity-text {
+    opacity: 1;
+    visibility: visible;
   }
 }
 
@@ -1010,8 +1061,28 @@ select option {
 // above the strip instead of the bar's glass panel sitting over the last row
 // of it. The fallback below only covers the one frame before that effect has
 // measured anything.
+// The reservation carries the gap, and the workspace contributes nothing.
+//
+// Split any other way this is not predictable: the reservation is measured
+// from the foot of the window to the top of the card, the workspace adds its
+// own bottom padding on top of that, and how much of *that* survives depends
+// on how the grid has laid its last row out. Measured both ways at two
+// widths: padding on, 24px of gap; padding off, none at all — the graph's
+// last row and the card's top edge on the same pixel.
+//
+// Written like this it is arithmetic instead. The gap is
+// `rootPadding - reservation`, and `rootPadding` is the reservation plus one
+// gutter, so the gap is one gutter at every width — the same gutter the card
+// keeps beneath itself, which is what makes the strip read as evenly spaced
+// from both sides.
 #root.has-now-playing {
-  padding-bottom: var(--now-playing-bar-height, 86px);
+  padding-bottom: calc(
+    var(--now-playing-bar-height, 86px) + var(--shell-gutter-bottom)
+  );
+}
+
+#root.has-now-playing .app-workspace {
+  padding-bottom: 0;
 }
 
 // Where selecting text is the whole point.
@@ -2101,54 +2172,43 @@ button.graph-legend {
     grid-template-rows: max-content minmax(0, 1fr) max-content;
   }
 
+  // The grid already leaves the gap here, so the reservation must not leave a
+  // second one.
+  //
+  // Stacked, the profile column is a row *below* the graph, and the row gap
+  // that separates them is the last thing after it — measured at 640: the
+  // graph ended at 872, the workspace at 884, and the card began at 896.
+  // Twelve of the gutter, twelve of the row gap, and the strip read as
+  // sitting twice as far from the graph as it does at any other width. At
+  // full width there is no row under the graph and no gap with it, which is
+  // why the reservation carries its own there and not here.
+  #root.has-now-playing {
+    padding-bottom: var(--now-playing-bar-height, 86px);
+  }
+
   .right-content {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  // Stacked, the viewport-sized shell stops making sense: three panels one
-  // above another cannot each have a useful share of one screen, and docking
-  // the graph would leave the editor a sliver. The document goes back to being
-  // the scroll surface, every column back to its own content height, and the
-  // graph back to being a fixed slice of a page that scrolls.
-  #root {
-    overflow-x: hidden;
-    overflow-y: auto;
-    scrollbar-gutter: stable;
-  }
-
-  .app-workspace {
-    height: auto;
-    min-height: 100%;
-    grid-template-rows: max-content minmax(0, 1fr) max-content;
-    overflow: visible;
-  }
-
-  .side-bar,
-  .center-workspace {
-    min-height: 0;
-    overflow: visible;
-  }
-
-  // A stacked page has no finite flex row for the divider to apportion. Keep
-  // the editor at its natural content height and give the graph one bounded
-  // viewport-sized slice instead. Leaving the desktop `flex: 1` here creates
-  // a feedback loop: the graph enlarges the page, then flexes into that new
-  // page height, enlarging it again on every ResizeObserver pass.
-  .center-workspace > .middle-content {
-    height: auto;
-    flex: 0 0 auto;
-  }
-
-  .center-workspace > .pane-resizer {
-    display: none;
-  }
-
-  .center-workspace > .graph-wrapper {
-    height: clamp(420px, calc(100dvh - #{$title-bar-height} - 32px), 720px);
-    min-height: 420px;
-    max-height: 720px;
-    flex: 0 0 clamp(420px, calc(100dvh - #{$title-bar-height} - 32px), 720px);
-  }
+  // The shell stays the size of the window here, exactly as it is at every
+  // other width.
+  //
+  // It used to become a scrolling document at this breakpoint — `#root` took
+  // `overflow-y: auto`, the columns took their content height, the graph
+  // became a fixed slice, and the divider was hidden because a page with no
+  // finite row has nothing for a divider to apportion. Two things were wrong
+  // with that. The panes ended up inset by the scrollbar's own strip while
+  // the now-playing bar, which is fixed to the window, did not, so the cards
+  // no longer lined up with each other. And it took away the graph divider,
+  // which is the one control that makes a short window usable at all.
+  //
+  // Nothing is lost by keeping the shell fixed: the panes that need to scroll
+  // scroll themselves — the EQ has had its own scroller all along, and so do
+  // the library's list and grid. So there are no overrides here at all now,
+  // and that is the point: at this width the shell, the columns, the divider
+  // and every pane's own scroller behave exactly as they do at any other, and
+  // the only thing the breakpoint still changes is how the columns are
+  // arranged.
 
   // The right column is still a fixed slide-over at this breakpoint, not part
   // of the scrolling document. Preserve its own remaining-viewport scroller.
@@ -2159,22 +2219,19 @@ button.graph-legend {
     overscroll-behavior: contain;
   }
 
-  // Back to growing the page rather than scrolling inside a fixed column —
-  // and with the overflow gone, dropdowns escape their cards again.
-  .middle-content,
-  .workspace-tab-panel {
-    overflow: visible;
-  }
-
-  .workspace-tab-panel {
-    flex: 1 1 auto;
-  }
-
-  // The page carries the height here, so the editor goes back to asking for
-  // what it needs rather than scrolling inside a share of the window.
-  .workspace-tab-panel--eq {
-    min-height: min-content;
-  }
+  // Nothing here about `.middle-content` or `.workspace-tab-panel` any more.
+  //
+  // Three overrides stood here — `overflow: visible`, `flex: 1 1 auto`, and a
+  // `min-content` floor on the EQ — and all three were written for a page
+  // that scrolled. It does not any more, so between them they made the panel
+  // refuse to shrink and refuse to scroll: measured at 720x1168, the editor
+  // asked for 784px inside a 394px row, so 390px of it was cut off with no
+  // way to reach it, and it overflowed far enough to cover the divider — the
+  // divider being "missing" was the editor lying on top of it.
+  //
+  // The base rule already says what should happen, and says why: `min-height:
+  // 0` with `flex: 0 1 auto` is what lets the panel give ground, and
+  // `overflow-y: auto` is the scroller it gives ground into.
 
   // Karaoke and its Canvas-backed Maker cannot usefully collapse to the
   // natural height of their toolbars. In the one-column shell the document is
@@ -2246,32 +2303,17 @@ button.graph-legend {
     gap: 5px;
     padding-inline: 8px;
 
-    .waveform-visualizer {
-      width: 100%;
-      min-width: 0;
-      max-width: 220px;
-      height: 46px;
-      padding: 6px 8px 7px;
-      border-radius: 14px;
-    }
+    // No override for the waveform here any more. Shrinking it to 220px wide
+    // and 46px tall is what left the rainbow pill — which is centred over the
+    // top of the pane — painted across "LIVE OUTPUT": measured, the label ran
+    // to x=266 and the pill began at 253. It keeps the 320px the breakpoint
+    // above gives it, where both fit.
   }
 
-  .window-titlebar > .waveform-visualizer-shell {
-    width: 100%;
-    max-width: 220px;
-    justify-self: center;
-  }
-
-  .brand-mark {
-    width: 36px;
-    height: 36px;
-    border-radius: $radius-m;
-
-    svg {
-      width: 24px;
-      height: 24px;
-    }
-  }
+  // No shrunken brand mark here either. At this width the name and the
+  // version are already hidden and the mark is the only identity left on the
+  // bar, so making it smaller took away the one thing that was still saying
+  // what this window is. It keeps its 44px.
 
   .workspace-header__name {
     font-size: 1rem;
@@ -2321,11 +2363,11 @@ button.graph-legend {
     height: 32px;
   }
 
-  .workspace-header__tools-trigger {
-    width: 34px;
-    height: 32px;
-    padding: 0;
-  }
+  // No squeeze on the tools trigger. At 34px wide with no padding its two
+  // contents — an 18px glyph and the 6px live dot beside it — spanned 31px of
+  // a 32px box, so the dot sat hard against a `999px` corner and read as
+  // clipped. It keeps the size the breakpoint above gives it, which has room
+  // for both.
 
   .workspace-tabs {
     margin-inline: 8px;

@@ -33,9 +33,6 @@ import {
   PRODUCT_NAME,
   PRODUCT_VERSION,
 } from 'common/branding';
-// Type only. The module itself is main-process code and never enters this
-// bundle; what is shared is the closed set of names the transport can send.
-import type { TMediaTransportAction } from 'main/mediaKeys';
 import { resetRhythmRun } from './utils/rhythmRun';
 import ConfigInspector from './components/ConfigInspector';
 import { resetEuphoriaMode } from './utils/euphoriaMode';
@@ -44,12 +41,10 @@ import MainContent from './MainContent';
 import SmartEqEngine from './SmartEqEngine';
 import SupportDialog from './SupportDialog';
 import SupportPet from './SupportPet';
-import MemoryTraceButton from './components/MemoryTraceButton';
 import { FluidEqProvider, useFluidEqContext } from './utils/FluidEqContext';
 import PrereqMissingModal from './PrereqMissingModal';
 import BugReportDialog from './components/BugReportDialog';
 import AudioTroubleshooter from './components/AudioTroubleshooter';
-import TitlebarMediaTransport from './components/TitlebarMediaTransport';
 import SideBar from './SideBar';
 import {
   onWindowFullScreenChange,
@@ -852,29 +847,6 @@ const AppContent = () => {
    * other control and do nothing when pressed. Not rendering them is the honest
    * version of that. The main process refuses the same way, independently.
    */
-  const isWindows = window.electron.platform === 'win32';
-
-  /**
-   * A transport button, for whatever is playing on the machine.
-   *
-   * Fire and forget, and nothing is read back. The main process sends a media
-   * key and Windows tells nobody which application answered it — so there is no
-   * playing/paused state to hold here, and the play button is one glyph that
-   * means "toggle" rather than a light that could be wrong.
-   *
-   * NOT wired to `LibraryPlayerContext`, on purpose, even though the Library
-   * tab now has its own real play/pause. Routing the Library player's toggle
-   * through this same channel would make one press of this button act on two
-   * players — this one AND whatever external application last grabbed the
-   * key — when only one was ever intended. `NowPlayingBar` calls
-   * `useLibraryPlayer().toggle` directly instead.
-   */
-  const handleMediaTransport = (action: TMediaTransportAction) => {
-    window.electron.ipcRenderer
-      .sendMediaTransport(action)
-      .catch(() => undefined);
-  };
-
   const handleTitlebarDoubleClick = (event: MouseEvent<HTMLElement>) => {
     const target = event.target as HTMLElement;
     if (target.closest('button, a, input, select, textarea')) {
@@ -902,7 +874,9 @@ const AppContent = () => {
         <div className="window-titlebar__left">
           <div className="workspace-header__identity">
             <BrandMark />
-            <div>
+            {/* Named, because a narrow window hides this and leaves the mark
+                alone — see `.workspace-header__identity-text`. */}
+            <div className="workspace-header__identity-text">
               <div className="workspace-header__name">
                 {PRODUCT_NAME}
                 {/* Inlined at build time from the same package.json
@@ -936,21 +910,24 @@ const AppContent = () => {
             bar; this stays put behind it. */}
         <WaveformVisualizer />
         <div className="window-titlebar__right">
-          {/* Renders nothing outside a development build — see the component,
-              where the check folds away at build time and takes the file with
-              it. */}
-          <MemoryTraceButton />
           {!isChromeHidden && (
             <SupportPet
               hasContributed={hasContributed}
               onOpen={() => setShowSupportDialog(true)}
             />
           )}
-          {/* Kept beside the pet, before the actions and window controls. The
-              gap after it protects fast media clicks from the close button. */}
-          {isWindows && (
-            <TitlebarMediaTransport onAction={handleMediaTransport} />
-          )}
+          {/* No transport here any more. The bar at the foot of the window is
+              the one transport this app has, and two of them meant the most
+              contested strip in the window — analyser, pet, actions, window
+              controls — was also carrying a second set of the same buttons.
+
+              The row that stood here sent Windows media keys rather than
+              driving anything in this app: one press acted on whatever
+              external application had last claimed the key, which is a
+              different thing from the play button beside it and was never
+              obvious from looking at them. `TitlebarMediaTransport` and the
+              `sendMediaTransport` channel behind it are still there for
+              whatever wants them next. */}
           <div className="workspace-header__tools">
             <button
               type="button"

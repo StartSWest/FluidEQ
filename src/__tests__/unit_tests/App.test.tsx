@@ -104,36 +104,24 @@ describe('App', () => {
     ).toHaveAttribute('aria-expanded', 'false');
   });
 
-  it('uses the floating titlebar transport for Windows media controls', async () => {
+  // This used to pin the transport the titlebar carried. There is one
+  // transport in this app now — the card at the foot of the window — and the
+  // row that stood here sent Windows media keys rather than driving anything
+  // in FluidEQ: one press acted on whatever external application had last
+  // claimed the key, which is a different thing from the play button beside
+  // it and was never obvious from looking at them. Kept as the inverse
+  // assertion so a second transport cannot quietly reappear.
+  it('keeps no second transport in the titlebar', async () => {
     const { container } = render(<App />);
     await act(async () => Promise.resolve());
 
-    const previous = screen.getByRole('button', {
-      name: 'Previous track, anywhere on this computer',
-    });
-    const playPause = screen.getByRole('button', {
-      name: 'Play or pause, anywhere on this computer',
-    });
-    const next = screen.getByRole('button', {
-      name: 'Next track, anywhere on this computer',
-    });
-    const transport = container.querySelector('.window-titlebar__transport');
-    const pet = container.querySelector('.support-pet');
-    expect(transport).toBeVisible();
-    expect(pet?.nextElementSibling).toBe(transport);
-    expect(playPause).toHaveClass('window-control--media-toggle');
-
-    fireEvent.click(previous);
-    fireEvent.click(playPause);
-    fireEvent.click(next);
-
-    await waitFor(() => {
-      expect(sendMediaTransport.mock.calls.map(([action]) => action)).toEqual([
-        'previous',
-        'playPause',
-        'next',
-      ]);
-    });
+    expect(container.querySelector('.window-titlebar__transport')).toBeNull();
+    expect(
+      screen.queryByRole('button', {
+        name: 'Play or pause, anywhere on this computer',
+      }),
+    ).toBeNull();
+    expect(sendMediaTransport).not.toHaveBeenCalled();
   });
 
   it('changes and persists the interface language from the actions menu', async () => {

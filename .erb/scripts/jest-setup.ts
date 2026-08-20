@@ -27,3 +27,12 @@ if (!('ResizeObserver' in globalThis)) {
     },
   });
 }
+
+// No `matchMedia` stub here, deliberately. jsdom does not implement it, and
+// adding one globally changed what other suites saw: `KaraokeWorkspace`
+// captures `window.matchMedia` at describe time and restores it after every
+// test, so a stub answering `matches: false` where there had been nothing at
+// all flipped that component onto its "the query says no" branch and took the
+// pitch lane off the stage. Components that ask for it guard the call
+// themselves — see `KaraokeWorkspace`, `KaraokeLyrics` and `NowPlayingBar`,
+// all of which check it is a function first.

@@ -107,6 +107,7 @@ const library = {
   'library.repeat.one': 'Repeat this song',
   'library.repeat.off': 'Do not repeat',
   'library.volume': 'Volume',
+  'library.playbackOptions': 'Playback options',
   'library.position': 'Position',
   'library.queue': 'Queue',
   'library.queue.remove': 'Remove from the queue',

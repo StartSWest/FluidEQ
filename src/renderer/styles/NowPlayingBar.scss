@@ -75,6 +75,23 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   backdrop-filter: blur(18px) saturate(1.25);
 }
 
+// Narrow: a grid that fits, rather than three columns that do not.
+//
+// The three minimums above come to 700px, and with the gaps and the padding
+// the card needs about 800 before its last column has anywhere to be. Below
+// that the options button was laid out past the card's right edge and simply
+// disappeared — the control that exists *because* the window is narrow was
+// the first casualty of the window being narrow.
+//
+// So: the track takes what is left, and the transport and the one button take
+// exactly what they need. Tighter gaps and padding with it, because at this
+// width `$spacing-l` either side is a third of the room.
+.now-playing-bar.is-compact {
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: $spacing-s;
+  padding: 8px $spacing-s;
+}
+
 .now-playing-bar__track {
   display: flex;
   min-width: 0;
@@ -587,4 +604,76 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     background: rgba(4, 16, 26, 0.9);
     outline: none;
   }
+}
+
+// *** The compact options menu ***********************************************
+//
+// Below 900px the bar has no room for shuffle, repeat and a fader on its
+// surface, so they move behind one button — see `isCompact`. Laid out down the
+// menu rather than across it: a popover is free to be tall, and the fader is
+// the reason this menu exists, so it gets a full row rather than the sliver a
+// crowded bar could spare it.
+// A label per row, and only in the menu. On the bar the same three controls
+// are 34px discs with room for a glyph and nothing else.
+.now-playing-bar__option-label {
+  display: none;
+}
+
+.now-playing-bar__options {
+  // `AnchoredMenu` draws no surface of its own — every menu in the app brings
+  // one, and this had none: the three controls came out as bare buttons
+  // floating over whatever was behind them.
+  @include menu-surface;
+  // Above the bar it belongs to. The bar is `z-index: 1100` and this opens
+  // upward from a button near its foot, so at anything lower the bar painted
+  // over the menu's last row — measured, the volume fader was underneath it.
+  z-index: 1200;
+  display: flex;
+  min-width: 232px;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+  padding: 7px;
+
+  // A row each, and the whole row is the target — a 34px disc in a column of
+  // its own reads as a stray dot rather than as an entry in a menu.
+  .now-playing-bar__toggle {
+    display: flex;
+    width: 100%;
+    height: 34px;
+    justify-content: flex-start;
+    gap: $spacing-s;
+    padding: 0 10px;
+    border-radius: $radius-s;
+    font-size: 0.7rem;
+  }
+
+  .now-playing-bar__option-label {
+    display: inline;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  // The fader gets a full row, which is the reason this menu exists: on the
+  // bar it was the first thing squeezed, and here it has the width to be
+  // aimed at.
+  .now-playing-bar__volume {
+    width: 100%;
+    height: 34px;
+    padding: 0 10px;
+    border-radius: $radius-s;
+    background: rgba($white, 0.03);
+  }
+
+  .now-playing-bar__volume-slider {
+    width: auto;
+    flex: 1 1 auto;
+  }
+}
+
+.now-playing-bar__options-icon {
+  width: 16px;
+  height: 16px;
+  stroke: currentcolor;
 }

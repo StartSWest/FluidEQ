@@ -108,6 +108,7 @@ const library: Partial<Dictionary> = {
   'library.repeat.one': 'यह गाना दोहराएँ',
   'library.repeat.off': 'न दोहराएँ',
   'library.volume': 'आवाज़',
+  'library.playbackOptions': 'प्लेबैक विकल्प',
   'library.position': 'स्थिति',
   'library.queue': 'कतार',
   'library.queue.remove': 'कतार से हटाएँ',
