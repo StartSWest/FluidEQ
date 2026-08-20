@@ -28,6 +28,7 @@ import {
   clampGraphColumns,
   getGraphBallistics,
   getGraphColumnCount,
+  getGraphBarGap,
   getGraphFillOpacity,
   isFilledGraphStyle,
 } from './graphStyles';
@@ -242,7 +243,6 @@ export const DEFAULT_FILL_OPACITY = 0.55;
  * How heavy a lit tip is, as a multiple. One is what the forms were drawn
  * with, so an untouched look is exactly what it always was.
  */
-export const DEFAULT_BAR_GAP = 0;
 export const MIN_BAR_GAP = 0;
 /** Most of the column, which is a picket fence rather than a bar chart. */
 export const MAX_BAR_GAP = 0.85;
@@ -339,7 +339,7 @@ export const getDefaultTuning = (style: GraphStyle): ILookTuning => {
     filled: isFilledGraphStyle(style),
     strokeWidth: DEFAULT_STROKE_WIDTH,
     fillOpacity: getGraphFillOpacity(style, DEFAULT_FILL_OPACITY),
-    gap: DEFAULT_BAR_GAP,
+    gap: getGraphBarGap(style),
     accents: hasGraphAccent(style),
     accentWidth: DEFAULT_ACCENT_WIDTH,
     glow: DEFAULT_GLOW,

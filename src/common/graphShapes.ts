@@ -67,6 +67,23 @@ const toColumns = (
     return points as Projected[];
   }
   const perColumn = points.length / count;
+  /**
+   * The column's x comes from an EVEN DIVISION of the span, not from a
+   * sample's own position.
+   *
+   * It used to be the x of whichever sample sat in the middle of the bucket.
+   * That is fixed, which is what mattered — a bar must not shuffle sideways
+   * as the music moves — but it is not EVENLY SPACED: the bucket bounds are
+   * floored, so consecutive middles land a sample nearer or further than the
+   * pair before them. Against a constant bar width the gaps then came out
+   * visibly uneven, and at some piece counts more than others, which read as
+   * the drawing being wrong rather than as rounding.
+   *
+   * An even division is fixed for the same reason and even as well: it
+   * depends only on the count and the plot.
+   */
+  const left = points[0][0];
+  const stride = (points[points.length - 1][0] - left) / count;
   const columns: Projected[] = [];
   for (let index = 0; index < count; index += 1) {
     const from = Math.floor(index * perColumn);
@@ -78,7 +95,7 @@ const toColumns = (
         [, peak] = points[at];
       }
     }
-    columns.push([points[Math.floor((from + to - 1) / 2)][0], peak]);
+    columns.push([left + (index + 0.5) * stride, peak]);
   }
   return columns;
 };
@@ -235,10 +252,10 @@ export const createGraphShape = (
   // a slab at 20kHz.
   const span = figure[figure.length - 1][0] - figure[0][0];
   const step = Math.max(1, span / (figure.length - 1));
-  // Applied to the form's own width rather than replacing it, so zero is
-  // whatever it was designed at and the scale means the same on all of them.
-  const columnWidth = (fraction: number, floorPx: number) =>
-    Math.max(floorPx, step * fraction * (1 - Math.max(0, Math.min(0.85, gap))));
+  // The gap IS the separation: zero is columns that touch. Each form's own
+  // width lives in `BAR_GAP_DEFAULTS` as a starting position instead.
+  const columnWidth = (floorPx: number) =>
+    Math.max(floorPx, step * (1 - Math.max(0, Math.min(0.85, gap))));
 
   /**
    * The titlebar's ten, drawn by the titlebar's own code.
@@ -331,7 +348,7 @@ export const createGraphShape = (
     }
 
     case 'bars': {
-      const width = columnWidth(0.62, 1);
+      const width = columnWidth(1);
       let path = '';
       for (let index = 0; index < figure.length; index += 1) {
         const [x, y] = figure[index];
@@ -362,7 +379,7 @@ export const createGraphShape = (
     }
 
     case 'blocks': {
-      const width = columnWidth(0.62, 1);
+      const width = columnWidth(1);
       // Taller segments than the meter uses: this pane is far deeper, and a
       // seven-pixel ladder over it is hundreds of rectangles per column.
       const segment = 11;
@@ -477,11 +494,13 @@ export const createGraphShape = (
     // Horizontal rungs stacked up each column.
     case 'ribs': {
       const width = Math.max(2, step * 0.66);
-      const gap = 9;
+      // Rungs every nine pixels. Named for what it is: `gap` shadowed the
+      // column-gap parameter and read as though this form answered it.
+      const pitch = 9;
       let path = '';
       for (let index = 0; index < figure.length; index += 1) {
         const [x, y] = figure[index];
-        for (let at = baseline; at > y; at -= gap) {
+        for (let at = baseline; at > y; at -= pitch) {
           path += `M ${(x - width / 2).toFixed(1)},${at.toFixed(
             1,
           )} h ${width.toFixed(1)} `;
@@ -492,7 +511,7 @@ export const createGraphShape = (
 
     // Wide columns with no gap, so the spectrum reads as a solid skyline.
     case 'pillars': {
-      const width = columnWidth(0.96, 1);
+      const width = columnWidth(1);
       let path = '';
       for (let index = 0; index < figure.length; index += 1) {
         const [x, y] = figure[index];
@@ -649,7 +668,7 @@ export const createGraphShape = (
     // Fewer, fatter columns than the bars use: sixty-four skyscrapers is a
     // fence, and the point is that you can tell one building from the next.
     case 'skyline': {
-      const width = columnWidth(0.88, 4);
+      const width = columnWidth(4);
       const pane = Math.max(1.4, width * 0.16);
       const floorHeight = 17;
       let path = '';
@@ -1460,6 +1479,9 @@ const ACCENT_THRESHOLD = 0.62;
  * Without it, a wall of pink noise lights every column and the accent stops
  * meaning "here is the peak".
  */
+/** As wide as a lit peak is ever allowed to be, whatever the density. */
+const MAX_ACCENT_BEAD = 7;
+
 const MAX_ACCENTS = 10;
 
 /**
@@ -1538,7 +1560,16 @@ export const createGraphAccent = (
     return '';
   }
 
-  const bead = Math.max(2.6, step * 0.5);
+  /**
+   * A mark, and capped like one.
+   *
+   * Sized from the column so it sits on the piece it marks rather than
+   * beside it — which is right at sixty-four columns and absurd at eight,
+   * where half a column is a hundred pixels and the "lit peak" arrived as a
+   * white slab wider than the bar under it. A peak mark has a size a peak
+   * mark should be, whatever the density is.
+   */
+  const bead = Math.max(2.6, Math.min(MAX_ACCENT_BEAD, step * 0.5));
   const floor = tallest * ACCENT_THRESHOLD;
   let path = '';
   let count = 0;

@@ -673,6 +673,24 @@ const FILL_OPACITY_OVERRIDES: Partial<Record<GraphStyle, number>> = {
   fluid: 0.7,
 };
 
+/**
+ * How much of a column each form leaves empty, by default.
+ *
+ * Zero is bars that touch, which is what the setting has to mean — a gap of
+ * none is no gap. The widths these forms were drawn at are gaps of their own,
+ * so they live here as starting positions rather than being baked into the
+ * geometry: bars were 62% of the column, pillars 96%, skyline 88%.
+ */
+const BAR_GAP_DEFAULTS: Partial<Record<GraphStyle, number>> = {
+  bars: 0.38,
+  blocks: 0.38,
+  pillars: 0.04,
+  skyline: 0.12,
+};
+
+export const getGraphBarGap = (style: GraphStyle): number =>
+  BAR_GAP_DEFAULTS[style] ?? 0;
+
 export const getGraphFillOpacity = (
   style: GraphStyle,
   fallback: number,
