@@ -405,21 +405,39 @@ const LibraryWorkspace = ({
   }, []);
 
   /**
-   * The track that stands for whatever drill-in is open.
+   * The track a browse-mode change should land on.
    *
    * The three grouping ids have nothing in common — an album key is not a
-   * path and neither is an artist name — so a browse-mode change cannot
-   * translate one into another directly. A track can: it belongs to exactly
-   * one album, one artist and one folder, and any of the three ids is
-   * derivable from it.
+   * path and neither is an artist name — so a mode change cannot translate
+   * one into another directly. A track can: it belongs to exactly one album,
+   * one artist and one folder, and any of the three ids is derivable from it.
    *
-   * The playing track wins whenever it is inside the open grouping, which is
-   * the case that matters most: "show me what is playing" opens that song's
-   * album, and switching to Folders afterwards must land on the folder that
-   * song is in, not on the folder the album's first track happens to sit in
-   * — on a compilation those are different directories.
+   * Which track, in order:
+   *
+   * The playing one, whenever it is inside whatever is open. That is the case
+   * that matters most — "show me what is playing" opens that song's album,
+   * and switching to Folders afterwards must land on the folder that song is
+   * in, not on the folder the album's first track happens to sit in; on a
+   * compilation those are different directories.
+   *
+   * Otherwise the first track of whatever is open, which is how an album
+   * nothing is playing out of still carries across.
+   *
+   * And when *nothing* is open, the playing one again. Songs is the mode with
+   * no drill-in at all, so before this it handed the next mode nothing and
+   * the reader landed at the top of a list of folders with no relation to the
+   * song they had been looking at — reported as "it gets lost and shows
+   * another album". The playing track is the reader's place in a view that
+   * has no other way to say where they are.
    */
   const drillInAnchor = useMemo(() => {
+    if (
+      openAlbumId === undefined &&
+      openArtistId === undefined &&
+      openFolderPath === undefined
+    ) {
+      return playingTrack;
+    }
     const belongs = (track: ILibraryTrack): boolean => {
       if (openAlbumId !== undefined) {
         return albumKey(track) === openAlbumId;
@@ -427,10 +445,7 @@ const LibraryWorkspace = ({
       if (openArtistId !== undefined) {
         return artistKey(track) === openArtistId;
       }
-      if (openFolderPath !== undefined) {
-        return trackFolderPath(track.path) === openFolderPath;
-      }
-      return false;
+      return trackFolderPath(track.path) === openFolderPath;
     };
     if (playingTrack && belongs(playingTrack)) {
       return playingTrack;
