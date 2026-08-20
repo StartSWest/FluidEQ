@@ -96,6 +96,7 @@ import {
   useGraphView,
   useFullScreenTopBar,
   useLiveOutputSolo,
+  useGraphLook,
   useGraphPalette,
   useIsPaletteSelectable,
   useSelectedLookId,
@@ -174,6 +175,82 @@ const PALETTE_LABEL_KEYS: Record<GraphPalette, TranslationKey> = {
   rainbow: 'look.palette.frequency',
   level: 'look.palette.level',
   heat: 'look.palette.heat',
+};
+
+/** How long the look's name stays up after it changes. */
+const LOOK_ANNOUNCEMENT_MS = 2000;
+
+/**
+ * The look's name, shown for a moment whenever it changes.
+ *
+ * The same idea as the titlebar wave's: the form is cycled by clicking the
+ * plot and by two arrows that carry no label, so without this the only way
+ * to know which of the fifty-seven you just landed on is to open the picker
+ * and read it — by which point you are no longer looking at the drawing.
+ *
+ * Its own subscriber, so a name that is absent almost all of the time does
+ * not wake the chart to say so. Silent on mount: the look has not changed,
+ * it is simply what was already there.
+ */
+const LookAnnouncement = () => {
+  const { t } = useTranslation();
+  const look = useGraphLook();
+  const [shown, setShown] = useState('');
+  const [isVisible, setIsVisible] = useState(false);
+  const knownRef = useRef<string | null>(null);
+  const timerRef = useRef<number | null>(null);
+
+  const name = look.isCustom
+    ? look.label
+    : [
+        t(`graph.styleName.${look.style}` as TranslationKey),
+        look.palette === 'signal' ? '' : t(PALETTE_LABEL_KEYS[look.palette]),
+      ]
+        .filter(Boolean)
+        .join(' · ');
+
+  useEffect(() => {
+    if (knownRef.current === null) {
+      knownRef.current = name;
+      return undefined;
+    }
+    if (knownRef.current === name) {
+      return undefined;
+    }
+    knownRef.current = name;
+    // The name stays through the fade, or there would be nothing left to
+    // fade away — clearing it when the timer fires cuts the animation at
+    // the instant it starts.
+    setShown(name);
+    setIsVisible(true);
+    if (timerRef.current !== null) {
+      window.clearTimeout(timerRef.current);
+    }
+    timerRef.current = window.setTimeout(() => {
+      setIsVisible(false);
+      timerRef.current = null;
+    }, LOOK_ANNOUNCEMENT_MS);
+    return undefined;
+  }, [name]);
+
+  useEffect(
+    () => () => {
+      if (timerRef.current !== null) {
+        window.clearTimeout(timerRef.current);
+      }
+    },
+    [],
+  );
+
+  return (
+    <span
+      className={`graph-look-announcement${isVisible ? ' is-visible' : ''}`}
+      role="status"
+      aria-hidden={!isVisible}
+    >
+      {shown}
+    </span>
+  );
 };
 
 /**
@@ -1732,6 +1809,10 @@ const FrequencyResponseChart = ({
             time does not wake the graph up to say so. */}
         <LiveClipWarning />
       </div>
+      {/* Its own subscriber, in the wrapper rather than the control strip:
+          the strip's height sets the plot's headroom, and a badge that comes
+          and goes must not be able to move the drawing. */}
+      <LookAnnouncement />
       {/* Only solo cares whether the music stopped, because it is the only mode
           where silence puts something back on the graph. Outside it nothing here
           watches the frames at all, and the chart re-renders when a band moves
