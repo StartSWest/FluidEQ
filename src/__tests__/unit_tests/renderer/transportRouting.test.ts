@@ -88,6 +88,21 @@ describe('which player the bar belongs to', () => {
     );
   });
 
+  it('falls back to this app’s last player, never to a paused browser tab', () => {
+    // On a tab that is not a player — the EQ, Voicing, Config — with nothing
+    // making a sound anywhere. The browser tab paused an hour ago is not what
+    // the bar is for: something outside earns the bar by playing and by
+    // nothing else. `setTransportSource` is what keeps `system` out of the
+    // last-owner slot; this is the rule that depends on it.
+    const sources = {
+      library: source('library'),
+      system: source('system', false),
+    };
+    expect(pickTransportOwner(undefined, sources, undefined, 'library')).toBe(
+      'library',
+    );
+  });
+
   it('never takes the bar from a player of this app that is playing', () => {
     // Both are making sound — a video in the Media tab and something outside.
     // The one with controls that work is the one worth showing.

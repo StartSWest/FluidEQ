@@ -139,7 +139,17 @@ const publish = (next: Partial<Record<TPlaybackOwner, ITransportSource>>) => {
  * more than re-rendering a bar of six buttons.
  */
 export const setTransportSource = (next: ITransportSource): void => {
-  lastOwner = next.owner;
+  // THE MACHINE'S OWN PLAYER IS NEVER "THE LAST THING".
+  //
+  // It takes the bar by playing and by nothing else — see `pickTransportOwner`
+  // — so on a tab that is not a player, with nothing making any sound, the bar
+  // goes back to the last song of this app's rather than to a browser tab
+  // somebody paused an hour ago. Which is the whole of the rule: something
+  // outside is worth the bar while it is playing, and worth nothing once it
+  // stops.
+  if (next.owner !== 'system') {
+    lastOwner = next.owner;
+  }
   publish({ ...sources, [next.owner]: next });
 };
 

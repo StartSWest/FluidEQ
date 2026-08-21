@@ -46,7 +46,44 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import { ChildProcess, spawn } from 'child_process';
+import { APP_ID } from '../common/branding';
 import { POWERSHELL_PATH } from './powershell';
+
+/**
+ * THIS APP'S OWN PLAYERS ARE NOT "THE REST OF THE MACHINE".
+ *
+ * The Media tab is a Chromium guest, and a page playing in it registers a
+ * media session like any other player would — under this app's own identity,
+ * measured as `com.gigabytz.fluideq`. Reported back it was the same song
+ * arriving twice: once as the Media tab's transport and once as "System
+ * audio", and pausing the tab left the second card on the bar naming the
+ * track the first card had just stopped.
+ *
+ * So the watcher looks past itself. Anything playing elsewhere wins; failing
+ * that, whatever Windows calls the current session, as long as it is not
+ * ours; failing that, the first session that is not ours. It is a function
+ * rather than a filter at the call site because the command script has to
+ * choose the same session this one is describing — a "next" that went to the
+ * app's own webview because the manager happened to call it current would be
+ * a button acting on something other than the card above it.
+ */
+const SELF_SKIP = `
+$selfId = '${APP_ID}'
+function Select-OtherSession($manager) {
+  $sessions = @($manager.GetSessions() | Where-Object {
+    $_.SourceAppUserModelId -ne $selfId
+  })
+  foreach ($candidate in $sessions) {
+    if ("$($candidate.GetPlaybackInfo().PlaybackStatus)" -eq 'Playing') {
+      return $candidate
+    }
+  }
+  $current = $manager.GetCurrentSession()
+  if ($current -and $current.SourceAppUserModelId -ne $selfId) { return $current }
+  if ($sessions.Count -gt 0) { return $sessions[0] }
+  return $null
+}
+`;
 
 /** One line of the watcher's output: what one player is doing. */
 export interface ISystemMediaSnapshot {
@@ -121,11 +158,13 @@ $propsType = [Windows.Media.Control.GlobalSystemMediaTransportControlsSessionMed
 $manager = Await ($managerType::RequestAsync()) ([Windows.Media.Control.GlobalSystemMediaTransportControlsSessionManager])
 if (-not $manager) { exit 1 }
 
+${SELF_SKIP}
+
 $last = ''
 while ($true) {
   $line = 'null'
   try {
-    $session = $manager.GetCurrentSession()
+    $session = Select-OtherSession $manager
     if ($session) {
       $info = $session.GetPlaybackInfo()
       $props = Await ($session.TryGetMediaPropertiesAsync()) $propsType
@@ -318,7 +357,8 @@ function Await($op, $type) {
 $managerType = [Windows.Media.Control.GlobalSystemMediaTransportControlsSessionManager, Windows.Media.Control, ContentType = WindowsRuntime]
 $manager = Await ($managerType::RequestAsync()) ([Windows.Media.Control.GlobalSystemMediaTransportControlsSessionManager])
 if (-not $manager) { exit 1 }
-$session = $manager.GetCurrentSession()
+${SELF_SKIP}
+$session = Select-OtherSession $manager
 if (-not $session) { exit 1 }
 Await (${call}) ([bool]) | Out-Null
 `;
