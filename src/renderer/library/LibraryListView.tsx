@@ -977,7 +977,13 @@ const LibraryListView = ({
                   the normal case, and the only thing that tells them apart is
                   where they live. */}
                 <small className="library-list__subtitle">
-                  {`${t('library.trackCount', { count: folder.trackCount })} · ${folder.id}`}
+                  {/* Except inside the tree, where the reader walked in and
+                      knows where they are: there the path is the same forty
+                      characters on every row, ending in the one word already
+                      printed above it. */}
+                  {folderParent === undefined
+                    ? `${t('library.trackCount', { count: folder.trackCount })} · ${folder.id}`
+                    : t('library.trackCount', { count: folder.trackCount })}
                 </small>
               </span>
             </div>

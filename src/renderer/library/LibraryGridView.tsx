@@ -429,7 +429,14 @@ const LibraryGridView = ({
         title: folder.name,
         // The path under the name — two folders called "CD1" are the normal
         // case and only their location tells them apart.
-        artistName: folder.id,
+        //
+        // Inside the tree it says nothing: the reader walked in, so every
+        // tile carries the same forty characters ending in the folder they
+        // are standing in. The count is what is worth the line there.
+        artistName:
+          folderParent === undefined
+            ? folder.id
+            : t('library.trackCount', { count: folder.trackCount }),
         isPending: folder.isPending,
       }));
     }
@@ -457,7 +464,7 @@ const LibraryGridView = ({
       rootId: track.rootId,
       isPending: track.isPending === true,
     }));
-  }, [tracks, browseMode, sort, sortDirection, folderEntries]);
+  }, [tracks, browseMode, sort, sortDirection, folderEntries, folderParent, t]);
 
   /** The same tiles, readable from the reveal without being one of its
    * dependencies — `items` gets a new identity on every scan batch, and a

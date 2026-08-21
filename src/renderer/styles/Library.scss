@@ -2052,7 +2052,22 @@ $library-wave-step: 4ms;
 // from the table: two lists in one panel, and one of them is somewhere to go
 // rather than something to play.
 .library-detail__children {
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
   padding-bottom: $spacing-s;
   border-bottom: 1px solid $border-panel;
   margin-bottom: $spacing-s;
+}
+
+// A folder that only leads to other folders: the list of them is the whole
+// panel, so it takes the whole panel. Left at its own height it sat four rows
+// deep with its own scrollbar under half a screen of nothing — and the line
+// under it divided the list from an empty space, which is not a division
+// worth drawing.
+.library-detail__children.is-only {
+  flex: 1 1 auto;
+  padding-bottom: 0;
+  border-bottom: none;
+  margin-bottom: 0;
 }

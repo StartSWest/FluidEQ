@@ -198,10 +198,21 @@ const LibraryDetail = ({
       .sort((left, right) => left.path.localeCompare(right.path));
   }, [tracks, folderPath]);
 
+  // A FOLDER WITH NOTHING LOOSE IN IT IS NOT AN ORPHAN — it is most folders.
+  //
+  // This closes a drill-in whose subject has gone: a rescan dropped the album,
+  // the root was removed while it was open. For a folder it asked whether any
+  // track sits *directly* inside, which is exactly false for `D:/Music` when
+  // every song lives a level down — so in the tree the first thing anybody
+  // pressed opened and shut in the same frame, and the root was the one folder
+  // that could not be walked into. What is inside it counts as well; a folder
+  // with neither files nor children is the one that is genuinely gone.
   const isOrphaned =
     (Boolean(albumId) && !album) ||
     (Boolean(artistId) && !artist) ||
-    (Boolean(folderPath) && folderTracks.length === 0);
+    (Boolean(folderPath) &&
+      folderTracks.length === 0 &&
+      childFolders.length === 0);
 
   useEffect(() => {
     if (isOrphaned) {
@@ -294,6 +305,17 @@ const LibraryDetail = ({
 
   const isAlbum = Boolean(albumId);
   const isFolder = Boolean(folderPath);
+  // A FOLDER WITH NOTHING BUT FOLDERS IN IT IS A WAY THROUGH, NOT A RECORD.
+  //
+  // The header — a cover the size of a sleeve, the name, a Play button — and
+  // the table under it are for something you can listen to. Standing in
+  // `Music`, with fourteen thousand songs all of them one level down, that
+  // block was a generated tile over an empty table with a Play button between
+  // them, and the subfolders you actually came for pushed off the bottom of
+  // the screen. Here the panel is the way in and nothing else; the moment a
+  // folder has files of its own, its own record appears.
+  const isWayThrough =
+    isFolder && folderTracks.length === 0 && childFolders.length > 0;
   const folderName = folderPath ? folderDisplayName(folderPath) : '';
   let title = artist?.name || t('library.unknownArtist');
   if (isAlbum) {
@@ -315,6 +337,16 @@ const LibraryDetail = ({
   )}`;
   if (isAlbum || isFolder) {
     counts = t('library.trackCount', { count: detailTracks.length });
+  }
+  // A folder with subfolders counts what is under it, not what is loose in
+  // it: standing in `Music` and reading "0 songs" while five hundred sit one
+  // level down is the kind of true that reads as broken.
+  if (isFolder && childFolders.length > 0) {
+    counts = t('library.trackCount', {
+      count:
+        detailTracks.length +
+        childFolders.reduce((total, child) => total + child.trackCount, 0),
+    });
   }
 
   const handlePlay = () => {
@@ -342,40 +374,44 @@ const LibraryDetail = ({
           </svg>
           <span>{t('library.back')}</span>
         </button>
-        <div className="library-detail__search">
-          <LibrarySearchField
-            value={filter}
-            onChange={setFilter}
-            label={t('library.filterHere')}
-            history={libraryFilterHistory}
+        {!isWayThrough && (
+          <div className="library-detail__search">
+            <LibrarySearchField
+              value={filter}
+              onChange={setFilter}
+              label={t('library.filterHere')}
+              history={libraryFilterHistory}
+            />
+          </div>
+        )}
+      </div>
+      {!isWayThrough && (
+        <div className="library-detail__header">
+          <LibraryCoverArt
+            artId={
+              (isAlbum || isFolder ? album?.artId : artist?.artId) ??
+              detailTracks.find((entry) => entry.artId !== undefined)?.artId
+            }
+            label={title}
+            size="cover"
           />
-        </div>
-      </div>
-      <div className="library-detail__header">
-        <LibraryCoverArt
-          artId={
-            (isAlbum || isFolder ? album?.artId : artist?.artId) ??
-            detailTracks.find((entry) => entry.artId !== undefined)?.artId
-          }
-          label={title}
-          size="cover"
-        />
-        <div className="library-detail__info">
-          <h2 className="library-detail__title">{title}</h2>
-          {subtitle && <p className="library-detail__subtitle">{subtitle}</p>}
-          <p className="library-detail__counts">{counts}</p>
-          {/* Emphasis follows recommendation: this is the one filled button
+          <div className="library-detail__info">
+            <h2 className="library-detail__title">{title}</h2>
+            {subtitle && <p className="library-detail__subtitle">{subtitle}</p>}
+            <p className="library-detail__counts">{counts}</p>
+            {/* Emphasis follows recommendation: this is the one filled button
               on the screen, Back above is the quiet one. */}
-          <button
-            type="button"
-            className="button small library-detail__play"
-            onClick={handlePlay}
-          >
-            <MenuIcon name="play" className="library-detail__play-icon" />
-            <span>{t('library.play')}</span>
-          </button>
+            <button
+              type="button"
+              className="button small library-detail__play"
+              onClick={handlePlay}
+            >
+              <MenuIcon name="play" className="library-detail__play-icon" />
+              <span>{t('library.play')}</span>
+            </button>
+          </div>
         </div>
-      </div>
+      )}
       {/* What is inside this folder, above what is loose in it.
           Drawn by the same two views the panel already uses, so a choice of
           list or grid holds all the way down the tree instead of turning into
@@ -383,7 +419,11 @@ const LibraryDetail = ({
           Directories reading has children to draw: the flat one lists every
           folder up front and has nothing below. */}
       {childFolders.length > 0 && onOpenFolder && (
-        <div className="library-detail__children">
+        <div
+          className={`library-detail__children${
+            isWayThrough ? ' is-only' : ''
+          }`}
+        >
           {viewMode === 'grid' ? (
             <LibraryGridView
               tracks={tracks}
@@ -413,33 +453,36 @@ const LibraryDetail = ({
           )}
         </div>
       )}
-      {viewMode === 'grid' ? (
-        <LibraryGridView
-          tracks={listTracks}
-          browseMode="song"
-          onOpenAlbum={() => undefined}
-          onOpenArtist={() => undefined}
-          onPlayTrack={onPlayTrack}
-          offlineRootIds={offlineRootIds}
-          resetKey={`detail|${albumId ?? artistId ?? ''}`}
-        />
-      ) : (
-        <LibraryListView
-          tracks={listTracks}
-          browseMode="song"
-          onOpenAlbum={() => undefined}
-          onOpenArtist={() => undefined}
-          onPlayTrack={onPlayTrack}
-          offlineRootIds={offlineRootIds}
-          folderOnlyIds={folderOnlyIds}
-          playingTrackId={playingTrackId}
-          revealTrack={revealTrack}
-          sort={sort}
-          sortDirection={sortDirection}
-          onSort={handleSort}
-          resetKey={`detail|${albumId ?? artistId ?? ''}|${sort ?? ''}|${sortDirection}`}
-        />
-      )}
+      {/* And no table where there is nothing in this folder to put in one.
+          A folder that has files as well as folders shows both. */}
+      {!isWayThrough &&
+        (viewMode === 'grid' ? (
+          <LibraryGridView
+            tracks={listTracks}
+            browseMode="song"
+            onOpenAlbum={() => undefined}
+            onOpenArtist={() => undefined}
+            onPlayTrack={onPlayTrack}
+            offlineRootIds={offlineRootIds}
+            resetKey={`detail|${albumId ?? artistId ?? ''}`}
+          />
+        ) : (
+          <LibraryListView
+            tracks={listTracks}
+            browseMode="song"
+            onOpenAlbum={() => undefined}
+            onOpenArtist={() => undefined}
+            onPlayTrack={onPlayTrack}
+            offlineRootIds={offlineRootIds}
+            folderOnlyIds={folderOnlyIds}
+            playingTrackId={playingTrackId}
+            revealTrack={revealTrack}
+            sort={sort}
+            sortDirection={sortDirection}
+            onSort={handleSort}
+            resetKey={`detail|${albumId ?? artistId ?? ''}|${sort ?? ''}|${sortDirection}`}
+          />
+        ))}
     </div>
   );
 };
