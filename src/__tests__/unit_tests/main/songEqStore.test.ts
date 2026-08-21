@@ -70,4 +70,24 @@ describe('songEqStore', () => {
     );
     expect(loadSongEqSettings(dir)).toEqual(getDefaultSongEqSettings());
   });
+
+  it('fills in a missing entries or aliases half instead of handing a shape that throws downstream', () => {
+    // Valid JSON, valid version, but an output missing both halves — the
+    // shape that used to reach common/songEq.ts's `output.entries[...]` and
+    // throw a TypeError inside an ipcMain handler that had already committed
+    // to replying, hanging the renderer's promise forever. The positive
+    // control is the "reads back exactly what it wrote" test above: it
+    // proves a well-formed output's entries and aliases survive untouched, so
+    // this test cannot be satisfied by a loader that empties every output.
+    const dir = tempDir();
+    fs.writeFileSync(
+      path.join(dir, 'song-eq.json'),
+      JSON.stringify({ version: 1, outputs: { 'device-a': {} } }),
+      'utf8',
+    );
+    expect(loadSongEqSettings(dir)).toEqual({
+      version: 1,
+      outputs: { 'device-a': { entries: {}, aliases: {} } },
+    });
+  });
 });

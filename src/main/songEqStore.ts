@@ -19,7 +19,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import fs from 'fs';
 import path from 'path';
 import log from 'electron-log';
-import { ISongEqSettings, getDefaultSongEqSettings } from '../common/songEq';
+import {
+  ISongEqOutput,
+  ISongEqSettings,
+  getDefaultSongEqSettings,
+} from '../common/songEq';
 
 /**
  * Where remembered songs live. `device-profiles.json`'s neighbour, and read and
@@ -28,19 +32,61 @@ import { ISongEqSettings, getDefaultSongEqSettings } from '../common/songEq';
  */
 const SETTINGS_FILENAME = 'song-eq.json';
 
+/**
+ * Every output, guaranteed to have both halves.
+ *
+ * A file that is valid JSON but missing an output's `entries` or `aliases`
+ * reaches the pure store, which indexes them without checking — and the
+ * TypeError lands inside an ipcMain handler that has already committed to
+ * replying. No reply is ever sent, so the renderer waits forever. Coercing
+ * here is what keeps a hand-edited or half-written file from hanging the
+ * feature instead of just losing a few remembered songs. Only the shape is
+ * fixed up; what is inside each entry is still `common/songEq.ts`'s concern.
+ */
+const normalizeOutputs = (
+  outputs: Record<string, unknown>,
+): Record<string, ISongEqOutput> => {
+  const normalized: Record<string, ISongEqOutput> = {};
+  Object.entries(outputs).forEach(([deviceId, output]) => {
+    if (typeof output !== 'object' || output === null) {
+      return;
+    }
+    const { entries, aliases } = output as {
+      entries?: unknown;
+      aliases?: unknown;
+    };
+    normalized[deviceId] = {
+      entries:
+        typeof entries === 'object' && entries !== null
+          ? (entries as ISongEqOutput['entries'])
+          : {},
+      aliases:
+        typeof aliases === 'object' && aliases !== null
+          ? (aliases as ISongEqOutput['aliases'])
+          : {},
+    };
+  });
+  return normalized;
+};
+
 export const loadSongEqSettings = (userDataDir: string): ISongEqSettings => {
   const settingsPath = path.join(userDataDir, SETTINGS_FILENAME);
   try {
     const input: unknown = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+    const outputs = (input as { outputs?: unknown } | null)?.outputs;
     if (
       typeof input !== 'object' ||
       input === null ||
       (input as { version?: unknown }).version !== 1 ||
-      typeof (input as { outputs?: unknown }).outputs !== 'object'
+      typeof outputs !== 'object' ||
+      outputs === null
     ) {
       return getDefaultSongEqSettings();
     }
-    return input as ISongEqSettings;
+    return {
+      version: 1,
+      outputs: normalizeOutputs(outputs as Record<string, unknown>),
+    };
   } catch {
     // A missing file is the ordinary case at first launch, and a corrupt one
     // is a half-written file after a power cut. Neither is worth stopping the
