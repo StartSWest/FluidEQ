@@ -344,6 +344,7 @@ const eq: Partial<Dictionary> = {
   'eq.smart.status.pausedResume': '已暂停 - 继续播放即可完成',
   'eq.smart.status.pausedSilent': '已暂停 - 没有声音在播放',
   'eq.smart.status.waitingForSound': '等待声音',
+  'eq.smart.status.bandLimited': '滤波段落 - 等待完整频段',
   'eq.smart.status.soundChanged': '声音变了 - 正在重新测量',
   'eq.smart.status.keptChanging': '声音一直在变 - 已停止',
   'eq.smart.status.notEnoughRange': '频段范围不足，无法测量',

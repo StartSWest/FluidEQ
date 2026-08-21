@@ -351,6 +351,8 @@ const eq: Partial<Dictionary> = {
   'eq.smart.status.pausedResume': 'रुका हुआ - पूरा करने के लिए फिर चलाएँ',
   'eq.smart.status.pausedSilent': 'रुका हुआ - कोई आवाज़ नहीं चल रही',
   'eq.smart.status.waitingForSound': 'आवाज़ का इंतज़ार',
+  'eq.smart.status.bandLimited':
+    'फ़िल्टर किया गया हिस्सा - पूरी रेंज का इंतज़ार',
   'eq.smart.status.soundChanged': 'आवाज़ बदल गई - फिर से मापा जा रहा है',
   'eq.smart.status.keptChanging': 'आवाज़ बदलती रही - रोक दिया',
   'eq.smart.status.notEnoughRange': 'मापने के लिए पर्याप्त रेंज नहीं',

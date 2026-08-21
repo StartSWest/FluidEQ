@@ -354,6 +354,8 @@ const eq: Partial<Dictionary> = {
   'eq.smart.status.pausedResume': 'Pausiert - zum Abschließen fortsetzen',
   'eq.smart.status.pausedSilent': 'Pausiert - es läuft kein Ton',
   'eq.smart.status.waitingForSound': 'Wartet auf Ton',
+  'eq.smart.status.bandLimited':
+    'Gefilterte Passage - wartet auf das volle Spektrum',
   'eq.smart.status.soundChanged': 'Der Ton hat sich geändert - misst neu',
   'eq.smart.status.keptChanging': 'Der Ton änderte sich ständig - abgebrochen',
   'eq.smart.status.notEnoughRange': 'Zu wenig Bandbreite zum Messen',

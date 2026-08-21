@@ -347,6 +347,7 @@ const eq: Partial<Dictionary> = {
   'eq.smart.status.pausedResume': '一時停止中 - 再開すると完了します',
   'eq.smart.status.pausedSilent': '一時停止中 - 音が再生されていません',
   'eq.smart.status.waitingForSound': '音を待っています',
+  'eq.smart.status.bandLimited': 'フィルターされた区間 - 全帯域を待っています',
   'eq.smart.status.soundChanged': '音が変わりました - 測定し直しています',
   'eq.smart.status.keptChanging': '音が変わり続けました - 中止しました',
   'eq.smart.status.notEnoughRange': '測定できる帯域が足りません',
