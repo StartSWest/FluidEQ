@@ -47,9 +47,20 @@ export const useFolderEntries = (
   tracks: readonly ILibraryTrack[],
   roots: readonly { path: string }[],
   parentPath?: string,
+  isSearching = false,
 ): ILibraryFolder[] => {
   const asTree = useFolderTree();
   return useMemo(() => {
+    // A SEARCH IS FLAT WHICHEVER READING IS ON.
+    //
+    // The tracks handed here are already the matches, so the tree drew them
+    // as the tree always does: one row, the root they all live under, saying
+    // "MUSIC" whatever had been typed. What somebody searching wants is where
+    // the matches are, and that is the other reading exactly — every folder
+    // holding one, with its path underneath.
+    if (isSearching) {
+      return groupIntoFolders(tracks);
+    }
     if (!asTree || roots.length === 0) {
       return groupIntoFolders(tracks);
     }
@@ -58,7 +69,7 @@ export const useFolderEntries = (
     return parentPath === undefined
       ? rootFolders(tracks, roots)
       : folderChildren(tracks, parentPath);
-  }, [asTree, parentPath, roots, tracks]);
+  }, [asTree, isSearching, parentPath, roots, tracks]);
 };
 
 export default useFolderEntries;

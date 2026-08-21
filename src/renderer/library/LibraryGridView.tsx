@@ -64,6 +64,9 @@ interface ILibraryGridViewProps {
   /** Show what is inside this folder rather than the top of the tree. Set by
    * the drill-in, which is the only place a level below the roots is drawn. */
   folderParent?: string;
+  /** A search is on, so the folders shown are where the matches are rather
+   * than the top of the tree — see `useFolderEntries`. */
+  isSearching?: boolean;
   /** The active order. Song tiles arrive already sorted — the workspace sorts
    * the track list itself — but albums and artists come out of their grouping
    * in whatever order the Map built them, so this view has to apply it. */
@@ -233,6 +236,7 @@ const LibraryGridView = ({
   offlineRootIds = NO_OFFLINE_ROOTS,
   folderRoots = NO_FOLDER_ROOTS,
   folderParent,
+  isSearching = false,
   sort,
   sortDirection = 'asc',
   resetKey = '',
@@ -405,7 +409,12 @@ const LibraryGridView = ({
   // instead — the same split `LibraryDetail` already makes between its
   // memoised lookups and its render-time `t(...)` calls.
   // Which folders the shelf holds, under whichever reading is on.
-  const folderEntries = useFolderEntries(tracks, folderRoots, folderParent);
+  const folderEntries = useFolderEntries(
+    tracks,
+    folderRoots,
+    folderParent,
+    isSearching,
+  );
 
   const items: IGridItem[] = useMemo(() => {
     if (browseMode === 'album') {

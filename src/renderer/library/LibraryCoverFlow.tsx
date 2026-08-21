@@ -164,6 +164,9 @@ interface ILibraryCoverFlowProps {
   /** The library roots, for the Directories reading of the Folders shelf —
    * see `useFolderEntries`. Without them this shows every folder at once. */
   folderRoots?: readonly { path: string }[];
+  /** A search is on, so the folders shown are where the matches are rather
+   * than the top of the tree — see `useFolderEntries`. */
+  isSearching?: boolean;
   /** An album or artist the workspace already has open — from the list or
    * the grid, before the reader switched to this view. The row centres on it
    * and opens it, so changing view carries you to the same place rather than
@@ -245,6 +248,7 @@ const LibraryCoverFlow = ({
   sort,
   sortDirection = 'asc',
   folderRoots = NO_FOLDER_ROOTS,
+  isSearching = false,
   openId,
   onOpenChange,
   playingTrackId,
@@ -261,7 +265,12 @@ const LibraryCoverFlow = ({
   // Declared above the state rather than beside the rest of the derivations
   // because `currentIndex` starts from it — see that hook.
   // Which folders the shelf holds, under whichever reading is on.
-  const folderEntries = useFolderEntries(tracks, folderRoots);
+  const folderEntries = useFolderEntries(
+    tracks,
+    folderRoots,
+    undefined,
+    isSearching,
+  );
 
   const items: ICoverFlowItem[] = useMemo(() => {
     if (browseMode === 'album') {

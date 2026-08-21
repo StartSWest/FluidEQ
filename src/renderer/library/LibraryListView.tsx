@@ -69,6 +69,9 @@ interface ILibraryListViewProps {
   /** Show what is inside this folder rather than the top of the tree. Set by
    * the drill-in, which is the only place a level below the roots is drawn. */
   folderParent?: string;
+  /** A search is on, so the folders shown are where the matches are rather
+   * than the top of the tree — see `useFolderEntries`. */
+  isSearching?: boolean;
   /** The active sort, so a header can show which column is driving the order
    * and which way. Optional with `onSort`: without a handler the headers stay
    * plain labels, which is what the album and artist branches want. */
@@ -342,6 +345,7 @@ const LibraryListView = ({
   offlineRootIds = NO_OFFLINE_ROOTS,
   folderRoots = NO_FOLDER_ROOTS,
   folderParent,
+  isSearching = false,
   sort,
   sortDirection,
   onSort,
@@ -457,7 +461,12 @@ const LibraryListView = ({
   // Which folders this shelf holds, under whichever reading is on — the tree's
   // roots or every directory at once. Above the branch that draws them because
   // that branch is a return, and a hook cannot live under one.
-  const folderEntries = useFolderEntries(tracks, folderRoots, folderParent);
+  const folderEntries = useFolderEntries(
+    tracks,
+    folderRoots,
+    folderParent,
+    isSearching,
+  );
 
   /** Where a track sits *down the list*, headings included. Held in a ref so
    * the reveal effect can ask without listing it as a dependency — it changes
