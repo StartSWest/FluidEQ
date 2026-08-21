@@ -158,11 +158,12 @@ describe('SongEqNotice', () => {
   });
 
   /**
-   * Fails if the guard is written `plays < 1` instead of `plays <= 1`, or
-   * reads `entry.plays` as truthy (`0` is falsy, which a careless `if
-   * (entry.plays)` guard would treat the same as `undefined`) — either would
-   * fall through to the plural key at the one value the singular text exists
-   * for most.
+   * Does not distinguish `plays < 1` from `plays <= 1` — both read `0` as
+   * singular, so a mutant that weakened the boundary that way would still
+   * pass this one (the `plays === 1` case below is what actually pins that
+   * boundary). What this does catch: a guard written as `if (entry.plays)`
+   * instead of a numeric comparison. `0` is falsy, so a truthy check would
+   * treat it the same as `undefined` and fall through to the plural key.
    */
   it('uses the singular body at zero plays', () => {
     mockUseSongEqNotice.mockReturnValue({

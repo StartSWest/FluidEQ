@@ -37,14 +37,35 @@ SPDX-License-Identifier: GPL-3.0-or-later
 // `Modal.scss`, `GraphTheme.scss` and this app's own `.audio-restart-notice`
 // (`App.scss`) already anchor overlays there for the same reason: the first
 // row clear of the titlebar. Right rather than centred, which is
-// `.audio-restart-notice`'s own spot, so the two do not trade one collision
-// for another.
+// `.audio-restart-notice`'s own spot — but that only keeps the two apart when
+// the window is wide. `.audio-restart-notice` is `min(760px, 100vw - 40px)`
+// wide and centred; below roughly 1050px of window width it reaches far
+// enough right to overlap this notice's box regardless of which side either
+// one favours, and at this app's own enforced floor (`WINDOW_MIN_WIDTH`,
+// 720px) the overlap covers nearly this notice's entire width. No position
+// avoids that at this app's minimum size — only the z-index below decides who
+// is readable when it happens.
 .song-eq-notice {
   @include animate(slide-in-right, $motion-base);
   position: fixed;
-  // Same tier as `.audio-restart-notice`: above every workspace panel,
-  // including the chain raised for open menus.
-  z-index: 1200;
+  // This notice deliberately loses every stacking contest. It is the only one
+  // of the app's notices that asks nothing of the user — it is informational,
+  // it fades on its own, and its two actions are optional by design, since
+  // doing nothing is the recommendation the fade expresses. Everything else
+  // sharing this strip under the titlebar is a prompt: `.audio-restart-notice`
+  // (App.scss) carries Restart Now / Try Again / Dismiss, `.prereq-notice`
+  // (Modal.scss) carries its own install/retry actions, and
+  // `.karaoke-microphone-popover` (Karaoke.scss) is a device picker the user
+  // opened on purpose — all three sit at `z-index: 1200`. A passive toast
+  // must never cover a prompt's buttons, so when they collide this one goes
+  // underneath: below that whole 1200 tier (which also puts it below
+  // `update-notice`, `workspace-notice` and `speech-memory-notice`, all
+  // higher still), but above the ordinary UI it would otherwise be lost
+  // beneath — the now-playing bar (`NowPlayingBar.scss`, 1100), a fullscreen
+  // video (`.library-video-stage.is-fullscreen`, `NowPlayingBar.scss`, 1150),
+  // and every plain dropdown menu in the app (`.dropdown-menu-layer
+  // .list-wrapper`, `Dropdown.scss`, 1001).
+  z-index: 1190;
   top: calc($title-bar-height + 16px);
   right: 18px;
   display: grid;
