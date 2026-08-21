@@ -29,7 +29,6 @@ import {
   artistKey,
   groupIntoAlbums,
   groupIntoArtists,
-  groupIntoFolders,
   sortAlbums,
   sortArtists,
   sortFolders,
@@ -44,6 +43,7 @@ import {
 import { useTranslation } from '../utils/I18nContext';
 import MenuIcon from '../icons/MenuIcon';
 import LibraryCoverArt from './LibraryCoverArt';
+import { useFolderEntries } from './useFolderEntries';
 
 interface ILibraryGridViewProps {
   tracks: readonly ILibraryTrack[];
@@ -58,6 +58,12 @@ interface ILibraryGridViewProps {
    * and dimmed. Optional for the same reason `LibraryListView`'s own prop of
    * the same name is: real usage always supplies it. */
   offlineRootIds?: ReadonlySet<string>;
+  /** The library roots, for the Directories reading of the Folders shelf —
+   * see `useFolderEntries`. Without them this shows every folder at once. */
+  folderRoots?: readonly { path: string }[];
+  /** Show what is inside this folder rather than the top of the tree. Set by
+   * the drill-in, which is the only place a level below the roots is drawn. */
+  folderParent?: string;
   /** The active order. Song tiles arrive already sorted — the workspace sorts
    * the track list itself — but albums and artists come out of their grouping
    * in whatever order the Map built them, so this view has to apply it. */
@@ -78,6 +84,8 @@ interface ILibraryGridViewProps {
 }
 
 const NO_OFFLINE_ROOTS: ReadonlySet<string> = new Set();
+/** Stable, so the folder memo is not handed a new array every render. */
+const NO_FOLDER_ROOTS: readonly { path: string }[] = [];
 
 /** How far beyond the viewport stays mounted, each way, in viewports — the
  * list view's own constant, and everything its comment says applies here. */
@@ -223,6 +231,8 @@ const LibraryGridView = ({
   onOpenFolder,
   onPlayTrack,
   offlineRootIds = NO_OFFLINE_ROOTS,
+  folderRoots = NO_FOLDER_ROOTS,
+  folderParent,
   sort,
   sortDirection = 'asc',
   resetKey = '',
@@ -394,6 +404,9 @@ const LibraryGridView = ({
   // as leaving it out entirely. Both are resolved in the render body below
   // instead — the same split `LibraryDetail` already makes between its
   // memoised lookups and its render-time `t(...)` calls.
+  // Which folders the shelf holds, under whichever reading is on.
+  const folderEntries = useFolderEntries(tracks, folderRoots, folderParent);
+
   const items: IGridItem[] = useMemo(() => {
     if (browseMode === 'album') {
       const grouped = groupIntoAlbums(tracks);
@@ -408,18 +421,17 @@ const LibraryGridView = ({
       );
     }
     if (browseMode === 'folder') {
-      const grouped = groupIntoFolders(tracks);
-      return (sort ? sortFolders(grouped, sort, sortDirection) : grouped).map(
-        (folder) => ({
-          id: folder.id,
-          artId: folder.artId,
-          title: folder.name,
-          // The path under the name — two folders called "CD1" are the normal
-          // case and only their location tells them apart.
-          artistName: folder.id,
-          isPending: folder.isPending,
-        }),
-      );
+      return (
+        sort ? sortFolders(folderEntries, sort, sortDirection) : folderEntries
+      ).map((folder) => ({
+        id: folder.id,
+        artId: folder.artId,
+        title: folder.name,
+        // The path under the name — two folders called "CD1" are the normal
+        // case and only their location tells them apart.
+        artistName: folder.id,
+        isPending: folder.isPending,
+      }));
     }
     if (browseMode === 'artist') {
       const grouped = groupIntoArtists(tracks);
@@ -445,7 +457,7 @@ const LibraryGridView = ({
       rootId: track.rootId,
       isPending: track.isPending === true,
     }));
-  }, [tracks, browseMode, sort, sortDirection]);
+  }, [tracks, browseMode, sort, sortDirection, folderEntries]);
 
   /** The same tiles, readable from the reveal without being one of its
    * dependencies — `items` gets a new identity on every scan batch, and a

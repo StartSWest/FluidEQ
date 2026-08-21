@@ -259,6 +259,128 @@ export const groupIntoFolders = (
   }));
 };
 
+/** Everything at or below this directory, separator-agnostic. */
+const isBeneath = (filePath: string, folderPath: string): boolean => {
+  const dir = trackFolderPath(filePath);
+  return dir === folderPath || dir.startsWith(`${folderPath}/`);
+};
+
+/** One folder entry, summed from whatever is beneath it. */
+const summarise = (
+  id: string,
+  beneath: readonly ILibraryTrack[],
+): ILibraryFolder => ({
+  id,
+  name: folderDisplayName(id),
+  trackCount: beneath.length,
+  artId: beneath.find((track) => track.artId !== undefined)?.artId,
+  addedAt: beneath.reduce(
+    (latest, track) => Math.max(latest, track.addedAt),
+    0,
+  ),
+  isPending:
+    beneath.length > 0 && beneath.every((track) => track.isPending === true),
+});
+
+/** A path as this module compares them: forward slashes, no trailing one. */
+export const normaliseFolderPath = (path: string): string =>
+  path.replace(/\\/g, '/').replace(/\/+$/, '');
+
+/**
+ * The top of the tree: the folders somebody actually added.
+ *
+ * The other way to look at this — every directory that holds a file, flat and
+ * all at once — is still there and is still worth having: it is the fastest
+ * way to find a folder whose name you know. But as the only way in it made a
+ * library of forty albums forty rows deep with a full path under each, and no
+ * way to see that thirty of them sat inside one place. This is what a file
+ * manager gives instead: the roots, and you walk in.
+ *
+ * A root with nothing in it is still listed. It is a folder somebody chose,
+ * and an empty one usually means a drive that is not plugged in — worth
+ * seeing rather than quietly missing.
+ *
+ * The count is everything beneath rather than what is loose in the root
+ * itself: "Music (614)" answers what is in there, where "Music (0)" for a
+ * root whose files all live a level down is true and useless.
+ */
+export const rootFolders = (
+  tracks: readonly ILibraryTrack[],
+  roots: readonly { path: string }[],
+): ILibraryFolder[] =>
+  roots.map((root) => {
+    const id = normaliseFolderPath(root.path);
+    return summarise(
+      id,
+      tracks.filter((track) => isBeneath(track.path, id)),
+    );
+  });
+
+/**
+ * What sits directly inside one folder, one level down and no further.
+ *
+ * The subfolders only: the files in the folder itself are the list the
+ * drill-in has always shown, and they are drawn under these.
+ *
+ * A folder several levels above its music still appears with everything
+ * beneath it counted — walk into `Music` and `Artist (37)` is one row, not
+ * thirty-seven spread over the albums below it.
+ */
+export const folderChildren = (
+  tracks: readonly ILibraryTrack[],
+  parentPath: string,
+): ILibraryFolder[] => {
+  const prefix = `${parentPath}/`;
+  const grouped = new Map<string, ILibraryTrack[]>();
+  tracks.forEach((track) => {
+    const dir = trackFolderPath(track.path);
+    if (!dir.startsWith(prefix)) {
+      return;
+    }
+    const child = dir.slice(prefix.length).split('/')[0];
+    if (!child) {
+      return;
+    }
+    const id = `${prefix}${child}`;
+    const existing = grouped.get(id);
+    if (existing) {
+      existing.push(track);
+      return;
+    }
+    grouped.set(id, [track]);
+  });
+  return Array.from(grouped.entries()).map(([id, beneath]) =>
+    summarise(id, beneath),
+  );
+};
+
+/**
+ * The folder one level up, or nothing when this is already a root.
+ *
+ * Nothing rather than the drive: the tree somebody is walking is the one they
+ * added, and stepping out of it into `D:/` offers a folder the library knows
+ * nothing about and cannot fill.
+ */
+export const parentFolderPath = (
+  folderPath: string,
+  roots: readonly { path: string }[],
+): string | undefined => {
+  const normalisedRoots = roots.map((root) => normaliseFolderPath(root.path));
+  if (normalisedRoots.includes(folderPath)) {
+    return undefined;
+  }
+  const cut = folderPath.lastIndexOf('/');
+  if (cut <= 0) {
+    return undefined;
+  }
+  const parent = folderPath.slice(0, cut);
+  return normalisedRoots.some(
+    (root) => parent === root || parent.startsWith(`${root}/`),
+  )
+    ? parent
+    : undefined;
+};
+
 export const sortFolders = (
   folders: readonly ILibraryFolder[],
   sort: TLibrarySort,

@@ -74,7 +74,10 @@ describe('the library toolbar', () => {
       'Albums',
       'Artists',
       'Songs',
-      'Folders',
+      // The folder shelf has two readings and its chip says which one is on.
+      // The tree is what it opens with, so this reads "Directories" until
+      // somebody chooses otherwise — see `folderTree`.
+      'Directories',
       'Videos',
     ]);
     const videos = screen.getByRole('tab', { name: 'Videos' });

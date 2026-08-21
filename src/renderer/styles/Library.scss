@@ -1972,3 +1972,87 @@ $library-wave-step: 4ms;
   width: 10px;
   height: 10px;
 }
+
+// *** The Folders chip, which is two chips ***********************************
+//
+// One shelf with two readings — every folder at once, or the tree they sit in
+// — so the chip carries a chevron the other four do not. Drawn as one pill
+// split down the middle rather than two chips side by side: they are not
+// alternatives to each other, they are a thing and a way of asking about it.
+.library-toolbar__folder {
+  display: inline-flex;
+  align-items: stretch;
+  gap: 1px;
+
+  > .library-toolbar__chip:first-child {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+}
+
+.library-toolbar__folder-more {
+  display: inline-flex;
+  align-items: center;
+  padding-right: 6px;
+  padding-left: 6px;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+
+  svg {
+    width: 11px;
+    height: 11px;
+  }
+}
+
+// Two rows, each a name over the sentence that says what it means. The
+// sentence is the point: "Folders" and "Directories" are near-synonyms in
+// English, and without a line under each nobody could tell which was which.
+.library-toolbar__folder-menu {
+  display: grid;
+  min-width: 232px;
+  gap: 2px;
+}
+
+.library-toolbar__folder-option {
+  display: grid;
+  padding: 7px 10px;
+  border: 1px solid transparent;
+  border-radius: $radius-s;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+  gap: 1px;
+  text-align: left;
+
+  &:hover,
+  &:focus-visible {
+    border-color: rgba($secondary-light, 0.3);
+    background: rgba($secondary-default, 0.1);
+    outline: none;
+  }
+
+  &.is-active {
+    border-color: rgba($secondary-light, 0.42);
+    background: rgba($secondary-default, 0.16);
+  }
+}
+
+.library-toolbar__folder-option-name {
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.library-toolbar__folder-option-hint {
+  color: $text-muted;
+  font-size: 0.66rem;
+}
+
+// The folders inside the one that is open, above the files that are loose in
+// it. Separated by a line for the reason the header above it is separated
+// from the table: two lists in one panel, and one of them is somewhere to go
+// rather than something to play.
+.library-detail__children {
+  padding-bottom: $spacing-s;
+  border-bottom: 1px solid $border-panel;
+  margin-bottom: $spacing-s;
+}

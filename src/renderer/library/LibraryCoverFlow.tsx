@@ -31,7 +31,6 @@ import {
   artistKey,
   groupIntoAlbums,
   groupIntoArtists,
-  groupIntoFolders,
   normalizeForSearch,
   sortAlbums,
   sortArtists,
@@ -47,6 +46,7 @@ import {
 import { useTranslation } from '../utils/I18nContext';
 import MenuIcon from '../icons/MenuIcon';
 import LibraryCoverArt from './LibraryCoverArt';
+import { useFolderEntries } from './useFolderEntries';
 import LibraryDetail from './LibraryDetail';
 import '../styles/LibraryCoverFlow.scss';
 
@@ -142,6 +142,9 @@ export const coverFlowTransform = (offset: number): string => {
   ].join(' ');
 };
 
+/** Stable, so the folder memo is not handed a new array every render. */
+const NO_FOLDER_ROOTS: readonly { path: string }[] = [];
+
 interface ILibraryCoverFlowProps {
   tracks: readonly ILibraryTrack[];
   browseMode: TLibraryBrowseMode;
@@ -158,6 +161,9 @@ interface ILibraryCoverFlowProps {
    * covers arrive already sorted, groupings do not. */
   sort?: TLibrarySort;
   sortDirection?: TLibrarySortDirection;
+  /** The library roots, for the Directories reading of the Folders shelf —
+   * see `useFolderEntries`. Without them this shows every folder at once. */
+  folderRoots?: readonly { path: string }[];
   /** An album or artist the workspace already has open — from the list or
    * the grid, before the reader switched to this view. The row centres on it
    * and opens it, so changing view carries you to the same place rather than
@@ -238,6 +244,7 @@ const LibraryCoverFlow = ({
   onPlayTrack,
   sort,
   sortDirection = 'asc',
+  folderRoots = NO_FOLDER_ROOTS,
   openId,
   onOpenChange,
   playingTrackId,
@@ -253,6 +260,9 @@ const LibraryCoverFlow = ({
   //
   // Declared above the state rather than beside the rest of the derivations
   // because `currentIndex` starts from it — see that hook.
+  // Which folders the shelf holds, under whichever reading is on.
+  const folderEntries = useFolderEntries(tracks, folderRoots);
+
   const items: ICoverFlowItem[] = useMemo(() => {
     if (browseMode === 'album') {
       const grouped = groupIntoAlbums(tracks);
@@ -280,19 +290,18 @@ const LibraryCoverFlow = ({
       );
     }
     if (browseMode === 'folder') {
-      const grouped = groupIntoFolders(tracks);
-      return (sort ? sortFolders(grouped, sort, sortDirection) : grouped).map(
-        (folder) => ({
-          id: folder.id,
-          artId: folder.artId,
-          title: folder.name,
-          // The path under the name, exactly as `LibraryGridView` shows it:
-          // two folders called "CD1" are the normal case, and the name alone
-          // cannot tell them apart.
-          artistName: folder.id,
-          isPending: folder.isPending,
-        }),
-      );
+      return (
+        sort ? sortFolders(folderEntries, sort, sortDirection) : folderEntries
+      ).map((folder) => ({
+        id: folder.id,
+        artId: folder.artId,
+        title: folder.name,
+        // The path under the name, exactly as `LibraryGridView` shows it:
+        // two folders called "CD1" are the normal case, and the name alone
+        // cannot tell them apart.
+        artistName: folder.id,
+        isPending: folder.isPending,
+      }));
     }
     // 'song', and any browse mode this view does not know about yet — the
     // same fallback `LibraryGridView` and `LibraryListView` make.
@@ -303,7 +312,7 @@ const LibraryCoverFlow = ({
       artistName: track.artist ?? '',
       isPending: track.isPending === true,
     }));
-  }, [tracks, browseMode, sort, sortDirection]);
+  }, [tracks, browseMode, sort, sortDirection, folderEntries]);
 
   /**
    * The centre starts on whatever the workspace already had open.
@@ -1005,6 +1014,10 @@ const LibraryCoverFlow = ({
             albumId={browseMode === 'album' ? expandedId : undefined}
             artistId={browseMode === 'artist' ? expandedId : undefined}
             folderPath={browseMode === 'folder' ? expandedId : undefined}
+            folderRoots={folderRoots}
+            // Walking deeper is opening a different cover, which this view
+            // already knows how to do.
+            onOpenFolder={(path) => openPanel(path)}
             onBack={() => openPanel(undefined)}
             onPlayTrack={(trackId) => onPlayTrack?.(trackId)}
             playingTrackId={playingTrackId}

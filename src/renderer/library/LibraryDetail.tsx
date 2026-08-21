@@ -18,7 +18,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
+  ILibraryFolder,
   artistKey,
+  folderChildren,
   folderDisplayName,
   groupIntoAlbums,
   groupIntoArtists,
@@ -39,6 +41,7 @@ import LibraryCoverArt from './LibraryCoverArt';
 import LibraryGridView from './LibraryGridView';
 import LibrarySearchField from './LibrarySearchField';
 import LibraryListView from './LibraryListView';
+import { useFolderTree } from './folderTree';
 
 interface ILibraryDetailProps {
   tracks: readonly ILibraryTrack[];
@@ -52,6 +55,12 @@ interface ILibraryDetailProps {
   /** Forwarded straight to the `LibraryListView` this renders — see that
    * component's own doc comment for why it stays optional. */
   offlineRootIds?: ReadonlySet<string>;
+  /** The library roots, so a folder drill-in can list what is inside it and
+   * know when it has reached the top — see `folderChildren`. */
+  folderRoots?: readonly { path: string }[];
+  /** Walk into a folder from this panel. Only the Directories reading ever
+   * has one to walk into. */
+  onOpenFolder?: (folderPath: string) => void;
   /** Which of the toolbar's three views the reader chose. Honoured here as
    * well as outside, because switching to Grid and then opening an album used
    * to drop them back into a table — the toggle appeared to stop working the
@@ -91,6 +100,9 @@ const trackFolder = (filePath: string): string => {
   return cut > 0 ? normalised.slice(0, cut) : normalised;
 };
 
+const NO_FOLDER_ROOTS: readonly { path: string }[] = [];
+const EMPTY_CHILDREN: readonly ILibraryFolder[] = [];
+
 const LibraryDetail = ({
   tracks,
   albumId,
@@ -99,12 +111,24 @@ const LibraryDetail = ({
   onBack,
   onPlayTrack,
   offlineRootIds,
+  folderRoots = NO_FOLDER_ROOTS,
+  onOpenFolder,
   viewMode = 'list',
   playingTrackId,
   revealTrack,
   query = '',
 }: ILibraryDetailProps) => {
   const { t } = useTranslation();
+  const asTree = useFolderTree();
+
+  /** The folders inside this one, and only in the reading that has them. */
+  const childFolders = useMemo(
+    () =>
+      asTree && folderPath
+        ? folderChildren(tracks, folderPath)
+        : EMPTY_CHILDREN,
+    [asTree, folderPath, tracks],
+  );
 
   /**
    * The column this table is ordered by, or nothing at all.
@@ -352,6 +376,43 @@ const LibraryDetail = ({
           </button>
         </div>
       </div>
+      {/* What is inside this folder, above what is loose in it.
+          Drawn by the same two views the panel already uses, so a choice of
+          list or grid holds all the way down the tree instead of turning into
+          a table the moment somebody walks into something. Only the
+          Directories reading has children to draw: the flat one lists every
+          folder up front and has nothing below. */}
+      {childFolders.length > 0 && onOpenFolder && (
+        <div className="library-detail__children">
+          {viewMode === 'grid' ? (
+            <LibraryGridView
+              tracks={tracks}
+              browseMode="folder"
+              folderRoots={folderRoots}
+              folderParent={folderPath}
+              onOpenAlbum={() => undefined}
+              onOpenArtist={() => undefined}
+              onOpenFolder={onOpenFolder}
+              onPlayTrack={onPlayTrack}
+              offlineRootIds={offlineRootIds}
+              resetKey={`children|${folderPath ?? ''}`}
+            />
+          ) : (
+            <LibraryListView
+              tracks={tracks}
+              browseMode="folder"
+              folderRoots={folderRoots}
+              folderParent={folderPath}
+              onOpenAlbum={() => undefined}
+              onOpenArtist={() => undefined}
+              onOpenFolder={onOpenFolder}
+              onPlayTrack={onPlayTrack}
+              offlineRootIds={offlineRootIds}
+              resetKey={`children|${folderPath ?? ''}`}
+            />
+          )}
+        </div>
+      )}
       {viewMode === 'grid' ? (
         <LibraryGridView
           tracks={listTracks}

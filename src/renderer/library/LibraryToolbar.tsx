@@ -16,6 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+import { useState } from 'react';
 import type {
   TLibraryBrowseMode,
   TLibrarySort,
@@ -23,7 +24,10 @@ import type {
   TLibraryViewMode,
 } from '../../common/library/types';
 import { useTranslation } from '../utils/I18nContext';
+import ArrowIcon from '../icons/ArrowIcon';
+import AnchoredMenu from '../widgets/AnchoredMenu';
 import Dropdown from '../widgets/Dropdown';
+import { setFolderTree, useFolderTree } from './folderTree';
 import LibrarySearchField from './LibrarySearchField';
 import { IOptionEntry } from '../widgets/List';
 import { librarySearchHistory } from '../utils/librarySearchHistory';
@@ -80,6 +84,20 @@ const VIEW_LABEL_KEYS = {
   coverflow: 'library.view.coverflow',
 } as const;
 
+/** The two readings of the same shelf, in the order the menu offers them. */
+const FOLDER_READINGS = [
+  {
+    key: 'library.browse.folder',
+    hint: 'library.browse.folderHint',
+    asTree: false,
+  },
+  {
+    key: 'library.browse.directory',
+    hint: 'library.browse.directoryHint',
+    asTree: true,
+  },
+] as const;
+
 const SORT_LABEL_KEYS = {
   title: 'library.sort.title',
   artist: 'library.sort.artist',
@@ -104,6 +122,10 @@ const LibraryToolbar = ({
   onQuery,
 }: ILibraryToolbarProps) => {
   const { t } = useTranslation();
+  const asTree = useFolderTree();
+  const [folderMenuAnchor, setFolderMenuAnchor] = useState<HTMLElement | null>(
+    null,
+  );
 
   // The open menu lists the columns; the closed trigger says what it is for.
   // Without the prefix the control reads as a label for whatever it happens
@@ -135,21 +157,100 @@ const LibraryToolbar = ({
         role="tablist"
         aria-label={t('library.browse.aria')}
       >
-        {BROWSE_MODES.map((mode) => (
+        {BROWSE_MODES.map((mode) => {
+          // Folders is two readings of the same shelf, so its chip carries a
+          // chevron and the others do not: "Folders" is every directory that
+          // holds a file, all at once, and "Directories" is the tree they
+          // actually sit in. The label says which one is on, because a chip
+          // that always read "Folders" would be a control whose state you can
+          // only learn by opening it.
+          if (mode === 'folder') {
+            return (
+              <span className="library-toolbar__folder" key={mode}>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={browseMode === mode}
+                  className={`library-toolbar__chip${
+                    browseMode === mode ? ' is-active' : ''
+                  }`}
+                  onClick={() => onBrowseMode(mode)}
+                >
+                  {t(
+                    asTree
+                      ? 'library.browse.directory'
+                      : BROWSE_LABEL_KEYS[mode],
+                  )}
+                </button>
+                <button
+                  type="button"
+                  className={`library-toolbar__chip library-toolbar__folder-more${
+                    browseMode === mode ? ' is-active' : ''
+                  }`}
+                  aria-label={t('library.browse.folderReading')}
+                  title={t('library.browse.folderReading')}
+                  aria-haspopup="menu"
+                  aria-expanded={Boolean(folderMenuAnchor)}
+                  onClick={(event) => {
+                    const trigger = event.currentTarget;
+                    setFolderMenuAnchor((current) =>
+                      current ? null : trigger,
+                    );
+                  }}
+                >
+                  <ArrowIcon type={folderMenuAnchor ? 'up' : 'down'} />
+                </button>
+              </span>
+            );
+          }
+          return (
+            <button
+              key={mode}
+              type="button"
+              role="tab"
+              aria-selected={browseMode === mode}
+              className={`library-toolbar__chip${
+                browseMode === mode ? ' is-active' : ''
+              }`}
+              onClick={() => onBrowseMode(mode)}
+            >
+              {t(BROWSE_LABEL_KEYS[mode])}
+            </button>
+          );
+        })}
+      </div>
+      <AnchoredMenu
+        anchor={folderMenuAnchor}
+        isOpen={Boolean(folderMenuAnchor)}
+        className="library-toolbar__folder-menu"
+        ariaLabel={t('library.browse.folderReading')}
+      >
+        {FOLDER_READINGS.map((reading) => (
           <button
-            key={mode}
+            key={reading.key}
             type="button"
-            role="tab"
-            aria-selected={browseMode === mode}
-            className={`library-toolbar__chip${
-              browseMode === mode ? ' is-active' : ''
+            role="menuitemradio"
+            aria-checked={asTree === reading.asTree}
+            className={`library-toolbar__folder-option${
+              asTree === reading.asTree ? ' is-active' : ''
             }`}
-            onClick={() => onBrowseMode(mode)}
+            onClick={() => {
+              setFolderTree(reading.asTree);
+              setFolderMenuAnchor(null);
+              // Choosing a reading is also choosing the shelf: pressing
+              // "Directories" while looking at Albums plainly means both.
+              onBrowseMode('folder');
+            }}
           >
-            {t(BROWSE_LABEL_KEYS[mode])}
+            <span className="library-toolbar__folder-option-name">
+              {t(reading.key)}
+            </span>
+            <span className="library-toolbar__folder-option-hint">
+              {t(reading.hint)}
+            </span>
           </button>
         ))}
-      </div>
+      </AnchoredMenu>
       <div
         className="library-toolbar__view-modes"
         role="group"

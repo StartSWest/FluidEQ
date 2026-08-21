@@ -30,6 +30,7 @@ import {
   groupIntoAlbums,
   searchTracks,
   sortTracks,
+  parentFolderPath,
   trackFolderPath,
 } from '../../common/library/grouping';
 import type {
@@ -53,6 +54,7 @@ import LibraryListView from './LibraryListView';
 import LibraryScanProgress from './LibraryScanProgress';
 import MenuIcon from '../icons/MenuIcon';
 import LibraryToolbar from './LibraryToolbar';
+import { isFolderTree } from './folderTree';
 import LibraryVideoSection, { videoFolderGroups } from './LibraryVideoSection';
 import '../styles/Library.scss';
 
@@ -568,8 +570,16 @@ const LibraryWorkspace = ({
   const handleBack = useCallback(() => {
     setOpenAlbumId(undefined);
     setOpenArtistId(undefined);
-    setOpenFolderPath(undefined);
-  }, []);
+    // Up one level, where there is one above and the tree is what is being
+    // walked: back out of `Artist/Album` in a file manager is `Artist`, not
+    // the shelf you came in from. At a root there is nothing above that this
+    // library knows anything about, so there it closes as it always did.
+    setOpenFolderPath((current) =>
+      current && isFolderTree()
+        ? parentFolderPath(current, index.roots)
+        : undefined,
+    );
+  }, [index.roots]);
   // The queue a click hands to `playTracks`: whatever list the surface the
   // click came from is actually showing, so the order the bar plays through
   // matches the order on screen — mirroring `LibraryDetail`'s own
@@ -809,6 +819,8 @@ const LibraryWorkspace = ({
             onBack={handleBack}
             onPlayTrack={handlePlayTrack}
             offlineRootIds={offlineRootIds}
+            folderRoots={index.roots}
+            onOpenFolder={handleOpenFolder}
             viewMode={viewMode}
             playingTrackId={playingMarkId}
             revealTrack={revealTrack}
@@ -828,6 +840,7 @@ const LibraryWorkspace = ({
             onOpenFolder={handleOpenFolder}
             onPlayTrack={handlePlayTrack}
             offlineRootIds={offlineRootIds}
+            folderRoots={index.roots}
             sort={viewSort}
             sortDirection={sortDirection}
             onSort={handleSort}
@@ -850,6 +863,7 @@ const LibraryWorkspace = ({
             onOpenFolder={handleOpenFolder}
             onPlayTrack={handlePlayTrack}
             offlineRootIds={offlineRootIds}
+            folderRoots={index.roots}
             sort={viewSort}
             sortDirection={sortDirection}
             playingTrackId={playingMarkId}
@@ -872,6 +886,7 @@ const LibraryWorkspace = ({
             onPlayTrack={handlePlayTrack}
             sort={viewSort}
             sortDirection={sortDirection}
+            folderRoots={index.roots}
             playingTrackId={playingMarkId}
             revealTrack={revealTrack}
             query={query}

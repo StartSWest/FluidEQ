@@ -29,7 +29,6 @@ import {
 import {
   groupIntoAlbums,
   groupIntoArtists,
-  groupIntoFolders,
   sortAlbums,
   sortArtists,
   sortFolders,
@@ -45,6 +44,7 @@ import AnchoredMenu, { isInsideAnchoredMenu } from '../widgets/AnchoredMenu';
 import MenuIcon from '../icons/MenuIcon';
 import LibraryCoverArt from './LibraryCoverArt';
 import LibraryTrackRow from './LibraryTrackRow';
+import { useFolderEntries } from './useFolderEntries';
 
 interface ILibraryListViewProps {
   tracks: readonly ILibraryTrack[];
@@ -62,6 +62,13 @@ interface ILibraryListViewProps {
    * and no test of this view's other behaviours needs a real one to exercise
    * them. */
   offlineRootIds?: ReadonlySet<string>;
+  /** The library's own roots, for the Directories reading of the Folders
+   * shelf — see `useFolderEntries`. Without them this falls back to every
+   * folder at once, which is what the shelf has always shown. */
+  folderRoots?: readonly { path: string }[];
+  /** Show what is inside this folder rather than the top of the tree. Set by
+   * the drill-in, which is the only place a level below the roots is drawn. */
+  folderParent?: string;
   /** The active sort, so a header can show which column is driving the order
    * and which way. Optional with `onSort`: without a handler the headers stay
    * plain labels, which is what the album and artist branches want. */
@@ -97,6 +104,9 @@ interface ILibraryListViewProps {
 }
 
 const NO_OFFLINE_ROOTS: ReadonlySet<string> = new Set();
+/** A stable empty list, so the memo behind the folder entries does not see a
+ * new array on every render. */
+const NO_FOLDER_ROOTS: readonly { path: string }[] = [];
 const NO_FOLDER_ONLY: ReadonlySet<string> = new Set();
 
 /** The directory a file sits in, by name alone — the whole path would be a
@@ -330,6 +340,8 @@ const LibraryListView = ({
   onOpenFolder,
   onPlayTrack,
   offlineRootIds = NO_OFFLINE_ROOTS,
+  folderRoots = NO_FOLDER_ROOTS,
+  folderParent,
   sort,
   sortDirection,
   onSort,
@@ -441,6 +453,11 @@ const LibraryListView = ({
     });
     return entries;
   }, [tracks, groupByFolder, browseMode]);
+
+  // Which folders this shelf holds, under whichever reading is on — the tree's
+  // roots or every directory at once. Above the branch that draws them because
+  // that branch is a return, and a hook cannot live under one.
+  const folderEntries = useFolderEntries(tracks, folderRoots, folderParent);
 
   /** Where a track sits *down the list*, headings included. Held in a ref so
    * the reveal effect can ask without listing it as a dependency — it changes
@@ -912,10 +929,9 @@ const LibraryListView = ({
   }
 
   if (browseMode === 'folder') {
-    const groupedFolders = groupIntoFolders(tracks);
     const folders = sort
-      ? sortFolders(groupedFolders, sort, sortDirection)
-      : groupedFolders;
+      ? sortFolders(folderEntries, sort, sortDirection)
+      : folderEntries;
     return renderTable(
       sortableHeader('title', 'title', 'library-list__col--span'),
       folders.length,
