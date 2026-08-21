@@ -150,11 +150,15 @@ describe('App', () => {
     await act(async () => Promise.resolve());
     const tabs = screen.getAllByRole('tab');
 
-    expect(tabs.slice(-4).map((tab) => tab.textContent)).toEqual([
+    // The strip itself: four places. The equaliser's five — bands, presets,
+    // voicing, convolution, config — are pills inside the EQ page, which is
+    // why they are not in this list and why it is the first four rather than
+    // the last four.
+    expect(tabs.slice(0, 4).map((tab) => tab.textContent)).toEqual([
+      'EQ',
       'Media',
       'Library',
       'Karaoke',
-      'Config',
     ]);
 
     const karaokeTab = screen.getByRole('tab', { name: 'Karaoke' });
@@ -194,10 +198,13 @@ describe('App', () => {
     fireEvent.click(screen.getByRole('tab', { name: 'Karaoke' }));
     expect(container.querySelector('.graph-wrapper')).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole('tab', { name: 'EQ Presets' }));
+    // Presets is a pill inside the EQ page now rather than a tab of its own,
+    // so reaching it means going to that page first — which is the point of
+    // the split, and changes nothing about what each of them remembers.
+    fireEvent.click(screen.getByRole('tab', { name: 'EQ' }));
     expect(container.querySelector('.graph-wrapper')).toBeNull();
 
-    fireEvent.click(screen.getByRole('tab', { name: 'EQ' }));
+    fireEvent.click(screen.getByRole('tab', { name: 'EQ Presets' }));
     expect(container.querySelector('.graph-wrapper')).toBeNull();
   });
 

@@ -99,6 +99,7 @@ const app: Partial<Dictionary> = {
   'common.icon.cancel': 'Отмена',
   'tabs.aria': 'Рабочая область звука',
   'tabs.eq': 'Эквалайзер',
+  'tabs.eqMain': 'Полосы',
   'tabs.presets': 'Пресеты EQ',
   'tabs.voicing': 'Характер',
   'tabs.convolution': 'Свёртка',

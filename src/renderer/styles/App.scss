@@ -1317,9 +1317,19 @@ textarea,
 
 // *** Workspace tabs *********************************************************
 //
-// The tab strip and the panel below it are one continuous surface: every tab
-// is painted from the panel's own top colour (`panel-top()`), and the active
-// one masks the dividing line so it merges into the card.
+// Four places, centred, drawn as one segmented capsule rather than as a row of
+// file-folder tabs joined to the panel below.
+//
+// The strip used to hold eight, and eight tab-shaped things across the top of
+// a window is a menu bar somebody has to read rather than a choice they can
+// see. Five of those eight were the equaliser and the things that set it, and
+// they are pills inside that page now — so what is left up here is genuinely
+// four different places, few enough to sit in the middle of the window and be
+// taken in at a glance.
+//
+// The capsule is why the tabs no longer merge into the card: they are not the
+// top of it any more, they are a control above it. `panel-top()` and the seam
+// that masked the dividing line went with the shape.
 
 $tab-border: rgba($secondary-light, 0.2);
 
@@ -1335,78 +1345,96 @@ $tab-border: rgba($secondary-light, 0.2);
   // mean anything. Left at `0 0 auto` the strip stayed at its content width
   // and the shell clipped it instead, so nothing ever measured as overflowing
   // and the arrows never appeared.
-  flex: 1 1 auto;
-  overflow-x: auto;
-  scrollbar-width: none;
-
-  &::-webkit-scrollbar {
-    display: none;
-  }
-  align-items: flex-end;
+  flex: 0 1 auto;
+  flex-wrap: wrap;
+  justify-content: center;
+  // No scrolling and nothing hidden: four short words fit anywhere, and the
+  // pill that lands on them overshoots by a hair — measured as an overflow,
+  // that bounce was enough to flash a scroll arrow on and off again.
+  overflow: visible;
+  align-items: center;
+  // The capsule the four sit in. A real surface, sunk into the window rather
+  // than floated over it: the row is a control, and at a whisper of a border
+  // it read as four loose words with one of them highlighted.
+  padding: 4px;
+  border: 1px solid rgba($secondary-light, 0.16);
+  border-radius: $radius-pill;
+  background: rgba($surface-field, 0.55);
+  box-shadow:
+    inset 0 1px 0 rgba($white, 0.04),
+    inset 0 -1px 0 rgba($black, 0.25),
+    0 6px 18px rgba($black, 0.28);
   gap: 3px;
-  padding: 0 4px;
+}
+
+// The lit pill, drawn once and moved — see `WorkspaceTabStrip`, which measures
+// where it goes. Behind the labels, so the text it lands under keeps its own
+// colour rather than being painted over.
+.workspace-tabs__pill {
+  position: absolute;
+  z-index: 0;
+  top: 4px;
+  bottom: 4px;
+  left: 0;
+  width: var(--tab-pill-width, 0);
+  border: 1px solid rgba($secondary-light, 0.45);
+  border-radius: $radius-pill;
+  background: rgba($secondary-default, 0.2);
+  box-shadow: 0 0 20px rgba($secondary-default, 0.18);
+  pointer-events: none;
+  transform: translateX(var(--tab-pill-x, 0));
+  transition:
+    transform $motion-base $ease-out,
+    width $motion-base $ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .workspace-tabs__pill {
+    transition: none;
+  }
 }
 
 .workspace-tab {
   position: relative;
-  min-height: 36px;
-  padding: 9px 16px 10px;
+  min-height: 32px;
+  padding: 7px 18px 8px;
+  border: 1px solid transparent;
+  border-radius: $radius-pill;
+  background: none;
   color: rgba($primary-lighter, 0.66);
-  // Inactive tabs are the same hue as the panel, just sunk into the
-  // background, so the whole strip reads as one piece of furniture.
-  border: 1px solid rgba($secondary-light, 0.1);
-  border-bottom: 0;
-  border-radius: $radius-m $radius-m 0 0;
-  background: sass-color.mix(panel-top(), $surface-base, 42%);
-  font-size: 0.72rem;
+  font-size: 0.74rem;
   font-weight: 800;
+  letter-spacing: 0.01em;
   white-space: nowrap;
   cursor: pointer;
   transition: $transition-control;
 
   &:hover:not(.is-active) {
-    color: rgba($primary-lighter, 0.92);
-    border-color: rgba($secondary-light, 0.18);
-    background: sass-color.mix(panel-top(), $surface-base, 68%);
+    color: rgba($primary-lighter, 0.95);
+    background: rgba($white, 0.05);
   }
 
   &:focus-visible {
+    @include focus-ring;
     color: $white;
-    border-color: rgba($secondary-light, 0.5);
     outline: none;
   }
 
-  &.is-active {
-    z-index: 3;
-    color: $secondary-light;
-    border-color: $tab-border;
-    // Exactly the panel's top colour: the tab is the top of the card.
-    background: panel-top();
+  // Above the sliding pill, and carrying no background of its own: the
+  // highlight is one element that travels, so a tab that lit itself as well
+  // would arrive before the pill did and leave two lit at once mid-slide.
+  position: relative;
+  z-index: 1;
 
-    // Masks the strip border and the panel's own top border underneath, so
-    // there is no seam between the tab and its panel.
-    &::after {
-      position: absolute;
-      right: 0;
-      bottom: -2px;
-      left: 0;
-      height: 3px;
-      background: panel-top();
-      content: '';
-    }
+  &.is-active {
+    color: $secondary-light;
   }
 }
 
-// Pushed to the far edge, away from the tabs that change the sound. It
-// reports what is on disk rather than altering it, and the gap says so more
-// plainly than its position at the end of the row ever did.
-//
-// An auto margin and not a spacer element: when the strip is too narrow to have
-// any free space it collapses to nothing on its own, and Config falls back to
-// sitting at the end of a row that scrolls.
-.workspace-tab--config {
-  margin-left: auto;
-}
+// Config was pushed to the far edge of this strip once, away from the tabs
+// that change the sound. It is a pill inside the EQ page now — last among
+// them, for the same reason it was last here — and the rule that held it out
+// at the edge went with it.
 
 // The Karaoke player established the motion for changing workspace tabs: a
 // nearly opaque surface settling by three pixels. Starting at 88%, rather than
@@ -1759,18 +1787,26 @@ $tab-border: rgba($secondary-light, 0.2);
 
 .workspace-tabs-shell {
   flex: 0 0 auto;
-  // As wide as the tabs and their arrows, never wider.
+  // In the middle of the column, and only as wide as what is in it.
   //
-  // The strip's line runs under the arrows too, so the three read as one edge
-  // rather than a strip with two ends stuck on — but the line has to stop
-  // where the tabs do. Stretched to the panel's width it ran straight past
-  // the card's rounded corners and left a stub poking out either side, just
-  // under the first and last tab.
-  align-self: flex-start;
+  // The four are a choice, not a heading, and a choice of four belongs where
+  // the eye already is. It used to be pinned to the left with a rule running
+  // under it, because the tabs were the top edge of the card below — they are
+  // a capsule floating above it now, so the rule went with the shape it was
+  // finishing.
+  align-self: center;
+  // On the card rather than above it.
+  //
+  // Centred in a strip of its own, the capsule floated in dead space between
+  // the titlebar and the panel, and the two header rows read as things left
+  // over rather than as the top of the page. Pulled down over the panel edge
+  // it belongs to the card the way a tab always did — only as one control
+  // instead of eight, and lifted off the surface by its own shadow.
+  position: relative;
+  z-index: 4;
   max-width: calc(100% - 32px);
-  align-items: flex-end;
-  margin: 0 16px -1px;
-  border-bottom: 1px solid $tab-border;
+  align-items: center;
+  margin: 4px 16px -20px;
 }
 
 .overflow-arrow {
@@ -2686,5 +2722,66 @@ button.graph-legend {
   .workspace-header__menu-columns {
     grid-template-columns: 1fr;
     gap: 10px;
+  }
+}
+
+// *** The equaliser's five, as pills ******************************************
+//
+// Not tabs. The strip above is where the app's four places are chosen, and a
+// second row of tab-shaped things under it would read as eight tabs again in
+// two rows — which is the thing this split exists to undo. These are the same
+// pill the Media tab draws its sites with and the Library its browse chips:
+// standalone, rounded, quiet until chosen.
+//
+// Centred, because they belong to the panel below rather than to the strip
+// above: a row of five hugging the left edge reads as a continuation of the
+// tabs, and the same five in the middle read as the panel's own heading.
+.workspace-tab-group {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  // Under the capsule that now overlaps this card, and clear of the content
+  // below: the two rows are one header, so the space above these is the room
+  // the capsule takes and the space below them is the header ending.
+  padding: 26px 0 10px;
+  border-bottom: 1px solid rgba($secondary-light, 0.1);
+  margin-bottom: $spacing-s;
+  gap: 4px;
+}
+
+.workspace-pill {
+  display: inline-flex;
+  align-items: center;
+  // Quieter than the capsule above: no border and no surface until chosen.
+  // Given the same weight as the tabs the two rows competed, and the eye had
+  // to work out which of the nine words was the place it was in.
+  padding: 3px 11px;
+  gap: 5px;
+  border: 1px solid transparent;
+  border-radius: -pill;
+  background: none;
+  color: rgba(-lighter, 0.55);
+  font-size: 0.66rem;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: -control;
+
+  &:hover:not(.is-active) {
+    color: rgba(-lighter, 0.9);
+    background: rgba(, 0.05);
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+    outline: none;
+  }
+
+  &.is-active {
+    border-color: rgba(-light, 0.34);
+    background: rgba(-default, 0.12);
+    color: -light;
   }
 }

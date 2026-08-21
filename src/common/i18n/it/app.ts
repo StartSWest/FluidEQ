@@ -101,6 +101,7 @@ const app: Partial<Dictionary> = {
   'common.icon.cancel': 'Annulla',
   'tabs.aria': 'Area di lavoro del suono',
   'tabs.eq': 'EQ',
+  'tabs.eqMain': 'Bande',
   'tabs.presets': 'Preset EQ',
   'tabs.voicing': 'Carattere',
   'tabs.convolution': 'Convoluzione',

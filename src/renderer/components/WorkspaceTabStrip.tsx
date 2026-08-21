@@ -16,18 +16,29 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { ReactNode } from 'react';
-import OverflowArrow from './OverflowArrow';
-import { useOverflowScroll } from '../utils/useOverflowScroll';
+import {
+  CSSProperties,
+  ReactNode,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from 'react';
 
 /**
- * The workspace tabs, with a way to reach the ones that do not fit.
+ * The workspace tabs: four places, in one capsule, in the middle of the
+ * window.
  *
- * The strip has scrolled horizontally at narrow widths for a while, but with
- * its scrollbar hidden and no wheel over it there was nothing to say so: the
- * tabs ended at the window's edge and Config, the last of them, could not be
- * reached with a pointer at all. An arrow at each end, and only at the end
- * that has something past it.
+ * It used to scroll, with an arrow at each end for whatever did not fit —
+ * necessary when there were eight of them and Config, the last, could not be
+ * reached with a pointer at a narrow width. There are four now, of four short
+ * words, and they fit on anything this app runs on. The arrows went with the
+ * scrolling: the lit pill overshoots slightly as it lands, and an overflow
+ * measured mid-bounce was enough to make an arrow flash on for the length of
+ * the animation.
+ *
+ * Wrapping rather than scrolling is what happens if a translation ever does
+ * run long — two centred rows, which reads as a capsule that grew, not as a
+ * control with something hidden off the end of it.
  */
 const WorkspaceTabStrip = ({
   label,
@@ -36,26 +47,73 @@ const WorkspaceTabStrip = ({
   label: string;
   children: ReactNode;
 }) => {
-  const { ref, canScrollBack, canScrollForward, scrollBy, onScroll } =
-    useOverflowScroll(children);
+  /**
+   * The lit pill slides to whichever tab was chosen.
+   *
+   * Drawn once, behind them, and moved — rather than each tab lighting its
+   * own background. A control whose highlight travels says the four are one
+   * choice with one answer; four backgrounds switching on and off says they
+   * are four switches that happen to agree.
+   *
+   * Measured rather than guessed, because these are words of different
+   * lengths: the chosen tab's own box is where the pill goes. Re-measured
+   * when the strip changes size — a window resize, a side pane opening —
+   * through an observer rather than a clock, and whenever the selection moves,
+   * which is what the second observer is for: what is selected lives in the
+   * caller's markup, not in a prop this component is handed.
+   */
+  const stripRef = useRef<HTMLDivElement | null>(null);
+  const [pill, setPill] = useState<{ x: number; width: number } | undefined>(
+    undefined,
+  );
+
+  useLayoutEffect(() => {
+    const strip = stripRef.current;
+    if (!strip) {
+      return undefined;
+    }
+    const measure = () => {
+      const active = strip.querySelector<HTMLElement>('[aria-selected="true"]');
+      setPill(
+        active
+          ? { x: active.offsetLeft, width: active.offsetWidth }
+          : undefined,
+      );
+    };
+    measure();
+    const size = new ResizeObserver(measure);
+    size.observe(strip);
+    const selection = new MutationObserver(measure);
+    selection.observe(strip, {
+      attributeFilter: ['aria-selected'],
+      childList: true,
+      subtree: true,
+    });
+    return () => {
+      size.disconnect();
+      selection.disconnect();
+    };
+  }, [children]);
 
   return (
     <div className="workspace-tabs-shell">
-      {canScrollBack && (
-        <OverflowArrow direction="back" onPress={() => scrollBy(-1)} />
-      )}
       <div
-        ref={ref}
+        ref={stripRef}
         className="workspace-tabs"
         role="tablist"
         aria-label={label}
-        onScroll={onScroll}
+        style={
+          pill
+            ? ({
+                '--tab-pill-x': `${pill.x}px`,
+                '--tab-pill-width': `${pill.width}px`,
+              } as CSSProperties)
+            : undefined
+        }
       >
+        {pill && <span className="workspace-tabs__pill" aria-hidden="true" />}
         {children}
       </div>
-      {canScrollForward && (
-        <OverflowArrow direction="forward" onPress={() => scrollBy(1)} />
-      )}
     </div>
   );
 };

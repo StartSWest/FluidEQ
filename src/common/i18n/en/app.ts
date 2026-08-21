@@ -95,6 +95,7 @@ const app = {
   'common.icon.cancel': 'Cancel',
   'tabs.aria': 'Sound workspace',
   'tabs.eq': 'EQ',
+  'tabs.eqMain': 'Bands',
   'tabs.presets': 'EQ Presets',
   'tabs.voicing': 'Voicing',
   'tabs.convolution': 'Convolution',

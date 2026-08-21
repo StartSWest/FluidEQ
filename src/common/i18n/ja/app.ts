@@ -100,6 +100,7 @@ const app: Partial<Dictionary> = {
   'common.icon.cancel': 'キャンセル',
   'tabs.aria': 'サウンド作業領域',
   'tabs.eq': 'EQ',
+  'tabs.eqMain': 'バンド',
   'tabs.presets': 'EQ プリセット',
   'tabs.voicing': '音の傾向',
   'tabs.convolution': 'コンボリューション',

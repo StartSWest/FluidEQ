@@ -189,6 +189,40 @@ const WORKSPACE_TABS: TWorkspaceTab[] = [
   'config',
 ];
 
+/**
+ * The five tabs that are one place: the equaliser and the things that set it.
+ *
+ * The strip had grown to eight, which is not a row of tabs any more but a
+ * menu bar somebody has to read. Four of these are the same subject seen from
+ * different sides — the bands, the presets that fill them, the voicing over
+ * them, the impulse under them — and Config is the one that reports what is
+ * on disk when a tuning is not doing what it should. They live behind one
+ * tab, with a row of pills inside it, and the strip is left with the four
+ * things that are genuinely different places: EQ, Media, Library, Karaoke.
+ *
+ * Config last among them, for the reason it was last in the strip: it is the
+ * only one that changes nothing, so it is where you go when something is
+ * wrong rather than somewhere you pass through on the way to a tuning.
+ */
+const EQ_GROUP_TABS: readonly TWorkspaceTab[] = [
+  'eq',
+  'presets',
+  'voicing',
+  'convolution',
+  'config',
+];
+
+const EQ_GROUP_LABEL_KEYS = {
+  eq: 'tabs.eqMain',
+  presets: 'tabs.presets',
+  voicing: 'tabs.voicing',
+  convolution: 'tabs.convolution',
+  config: 'tabs.config',
+} as const;
+
+const isEqGroupTab = (tab: TWorkspaceTab): boolean =>
+  EQ_GROUP_TABS.includes(tab);
+
 /** A stored tab name, under whatever name that tab had when it was written. */
 const resolveWorkspaceTab = (stored: unknown): TWorkspaceTab | undefined =>
   typeof stored === 'string'
@@ -442,9 +476,60 @@ const AppContent = () => {
   const [topPaneOpen, setTopPaneOpen] = useState(false);
   const [activeWorkspaceTab, setActiveWorkspaceTab] =
     useState<TWorkspaceTab>(readWorkspaceTab);
+  /**
+   * Which of the equaliser's five was last open, for the tab that holds them.
+   *
+   * Pressing EQ from Media has to land somewhere, and always landing on the
+   * bands would mean somebody working in Voicing lost their place every time
+   * they looked at something else. Seeded from the stored tab, so it survives
+   * a restart the same way the tab itself does.
+   */
+  const [lastEqTab, setLastEqTab] = useState<TWorkspaceTab>(() => {
+    const stored = readWorkspaceTab();
+    return isEqGroupTab(stored) ? stored : 'eq';
+  });
+  useEffect(() => {
+    if (isEqGroupTab(activeWorkspaceTab)) {
+      setLastEqTab(activeWorkspaceTab);
+    }
+  }, [activeWorkspaceTab]);
+
   const [graphVisibilityByTab, setGraphVisibilityByTab] = useState<
     TWorkspaceGraphVisibility | undefined
   >(readWorkspaceGraphVisibility);
+
+  /**
+   * The equaliser's five, drawn at the top of whichever of them is open.
+   *
+   * Inside the page rather than above it, and pills rather than tabs: the
+   * strip is where the app's four places are chosen, and a second row of
+   * tab-shaped things under it would read as eight tabs in two rows — which
+   * is the arrangement this split exists to undo. Built once here and placed
+   * by each panel, because they are five separate pages and a row that is
+   * part of the page has to be inside it.
+   */
+  const eqGroupPills = (
+    <div
+      className="workspace-tab-group"
+      role="tablist"
+      aria-label={t('tabs.eq')}
+    >
+      {EQ_GROUP_TABS.map((tab) => (
+        <button
+          key={tab}
+          type="button"
+          role="tab"
+          aria-selected={activeWorkspaceTab === tab}
+          className={`workspace-pill${
+            activeWorkspaceTab === tab ? ' is-active' : ''
+          }`}
+          onClick={() => setActiveWorkspaceTab(tab)}
+        >
+          {t(EQ_GROUP_LABEL_KEYS[tab as keyof typeof EQ_GROUP_LABEL_KEYS])}
+        </button>
+      ))}
+    </div>
+  );
   const isVideoTab = activeWorkspaceTab === 'video';
   const isLibraryTab = activeWorkspaceTab === 'library';
   const isKaraokeTab = activeWorkspaceTab === 'karaoke';
@@ -1506,52 +1591,19 @@ const AppContent = () => {
             }
           >
             <WorkspaceTabStrip label={t('tabs.aria')}>
+              {/* Four places, not eight. The equaliser and everything that
+                  sets it are one tab with a row of pills inside — see
+                  EQ_GROUP_TABS. */}
               <button
                 type="button"
                 role="tab"
-                aria-selected={activeWorkspaceTab === 'eq'}
+                aria-selected={isEqGroupTab(activeWorkspaceTab)}
                 className={`workspace-tab${
-                  activeWorkspaceTab === 'eq' ? ' is-active' : ''
+                  isEqGroupTab(activeWorkspaceTab) ? ' is-active' : ''
                 }`}
-                onClick={() => setActiveWorkspaceTab('eq')}
+                onClick={() => setActiveWorkspaceTab(lastEqTab)}
               >
                 {t('tabs.eq')}
-              </button>
-              {/* Next to the EQ rather than out at the end, because it is
-                  where most tunings start: you pick the headphones you own,
-                  and then go and edit what it gave you. */}
-              <button
-                type="button"
-                role="tab"
-                aria-selected={activeWorkspaceTab === 'presets'}
-                className={`workspace-tab${
-                  activeWorkspaceTab === 'presets' ? ' is-active' : ''
-                }`}
-                onClick={() => setActiveWorkspaceTab('presets')}
-              >
-                {t('tabs.presets')}
-              </button>
-              <button
-                type="button"
-                role="tab"
-                aria-selected={activeWorkspaceTab === 'voicing'}
-                className={`workspace-tab${
-                  activeWorkspaceTab === 'voicing' ? ' is-active' : ''
-                }`}
-                onClick={() => setActiveWorkspaceTab('voicing')}
-              >
-                {t('tabs.voicing')}
-              </button>
-              <button
-                type="button"
-                role="tab"
-                aria-selected={activeWorkspaceTab === 'convolution'}
-                className={`workspace-tab${
-                  activeWorkspaceTab === 'convolution' ? ' is-active' : ''
-                }`}
-                onClick={() => setActiveWorkspaceTab('convolution')}
-              >
-                {t('tabs.convolution')}
               </button>
               <button
                 type="button"
@@ -1580,20 +1632,6 @@ const AppContent = () => {
               >
                 {t('tabs.karaoke')}
               </button>
-              {/* Last, and held out at the far edge by an auto margin. See
-                  WORKSPACE_TABS for why the one tab that changes nothing is
-                  kept apart from the ones that do. */}
-              <button
-                type="button"
-                role="tab"
-                aria-selected={activeWorkspaceTab === 'config'}
-                className={`workspace-tab workspace-tab--config${
-                  activeWorkspaceTab === 'config' ? ' is-active' : ''
-                }`}
-                onClick={() => setActiveWorkspaceTab('config')}
-              >
-                {t('tabs.config')}
-              </button>
             </WorkspaceTabStrip>
             {activeWorkspaceTab === 'eq' && (
               <div
@@ -1612,6 +1650,7 @@ const AppContent = () => {
                 }`}
                 aria-disabled={!isEngineUsable}
               >
+                {eqGroupPills}
                 <MainContent />
               </div>
             )}
@@ -1628,6 +1667,7 @@ const AppContent = () => {
                 }`}
                 aria-disabled={!isEngineUsable}
               >
+                {eqGroupPills}
                 <EqPresetsPanel />
               </div>
             )}
@@ -1643,6 +1683,7 @@ const AppContent = () => {
                 }`}
                 aria-disabled={!isEngineUsable}
               >
+                {eqGroupPills}
                 {activeWorkspaceTab === 'voicing' ? (
                   <VoicingPanel />
                 ) : (
@@ -1661,6 +1702,7 @@ const AppContent = () => {
                 key={activeWorkspaceTab}
                 className="workspace-tab-panel workspace-tab-panel--config"
               >
+                {eqGroupPills}
                 <ConfigInspector />
               </div>
             )}
