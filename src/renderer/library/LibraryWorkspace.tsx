@@ -30,6 +30,7 @@ import {
   groupIntoAlbums,
   searchTracks,
   sortTracks,
+  isTrackBeneathFolder,
   parentFolderPath,
   trackFolderPath,
 } from '../../common/library/grouping';
@@ -358,7 +359,11 @@ const LibraryWorkspace = ({
     }
     setOpenAlbumId(undefined);
     setOpenArtistId(undefined);
-    setOpenFolderPath(undefined);
+    // The folder stays. An album id means nothing while artists are listed —
+    // that is what this effect is for — but a directory means the same thing
+    // on every shelf, and it is where the reader is rather than what they had
+    // opened. Cleared here it took them out of the folder they were standing
+    // in every time they changed how it was arranged.
   }, [browseMode]);
 
   const karaokeSkippedCount = index.roots.reduce(
@@ -397,10 +402,31 @@ const LibraryWorkspace = ({
    * Clearing the box puts the chosen column back.
    */
   const isSearching = query.trim().length > 0;
+
+  /**
+   * THE FOLDER SOMEBODY IS STANDING IN IS WHERE THEY ARE, ON EVERY SHELF.
+   *
+   * Not a drill-in that belongs to the Folders view: a physical directory is
+   * the one thing all four shelves can agree on, so walking into `[Country]`
+   * and pressing Albums shows the albums in `[Country]`, Artists the artists
+   * in it, Songs its songs. Leaving it is the Back chip, and nothing else
+   * moves it — which is why it survives a shelf change and a restart, where
+   * an album id would not: the tags can change under it, the path cannot.
+   */
+  const scopedTracks = useMemo(
+    () =>
+      openFolderPath === undefined
+        ? index.tracks
+        : index.tracks.filter((track) =>
+            isTrackBeneathFolder(track.path, openFolderPath),
+          ),
+    [index.tracks, openFolderPath],
+  );
+
   const visibleTracks = useMemo(() => {
-    const matches = searchTracks(index.tracks, query);
+    const matches = searchTracks(scopedTracks, query);
     return isSearching ? matches : sortTracks(matches, sort, sortDirection);
-  }, [index.tracks, query, isSearching, sort, sortDirection]);
+  }, [scopedTracks, query, isSearching, sort, sortDirection]);
 
   /** The order to hand the views: nothing while searching, which every one of
    * them already reads as "leave this order alone" — the same meaning
@@ -517,9 +543,14 @@ const LibraryWorkspace = ({
       setOpenArtistId(
         anchor && mode === 'artist' ? artistKey(anchor) : undefined,
       );
-      setOpenFolderPath(
-        anchor && mode === 'folder' ? trackFolderPath(anchor.path) : undefined,
-      );
+      // The folder is not touched. It is not this shelf's drill-in, it is
+      // where the reader is standing — see `scopedTracks` — and a shelf
+      // change is a change of arrangement, not of place. Re-derived from the
+      // anchor it also vanished outright whenever the folder held only
+      // folders, because there is no track in one for the anchor to be.
+      if (mode === 'folder' && openFolderPath === undefined && anchor) {
+        setOpenFolderPath(trackFolderPath(anchor.path));
+      }
       if (mode === 'song' && anchor) {
         // The first track of what was open, and only that. It fell back to the
         // playing song, which is the same move as the anchor's old fallback
@@ -532,7 +563,7 @@ const LibraryWorkspace = ({
       drillInDrivenMode.current = mode;
       setBrowseMode(mode);
     },
-    [drillInAnchor, revealRow],
+    [drillInAnchor, openFolderPath, revealRow],
   );
 
   const handleOpenFolder = useCallback((folderPath: string) => {
@@ -559,9 +590,19 @@ const LibraryWorkspace = ({
     [browseMode],
   );
 
-  /** A drill-in is open, so the list the toolbar steers is not the thing on
-   * screen. */
-  const isDrilledIn = Boolean(openAlbumId || openArtistId || openFolderPath);
+  /**
+   * A drill-in is open, so the list the toolbar steers is not the thing on
+   * screen.
+   *
+   * A folder counts only on the Folders shelf. Everywhere else it is not a
+   * drill-in at all: it is where the reader is standing, and the shelf goes
+   * on drawing albums or artists — the ones inside it. See `scopedTracks`.
+   */
+  const isDrilledIn = Boolean(
+    openAlbumId ||
+    openArtistId ||
+    (openFolderPath !== undefined && browseMode === 'folder'),
+  );
 
   /** The toolbar's arrow: reverses whatever column is already chosen. The
    * dropdown beside it picks the column and leaves the direction alone, so
@@ -801,6 +842,30 @@ const LibraryWorkspace = ({
           are never shown at once, the same way the drill-in below replaces
           the browse views rather than sitting over them. */}
       {index.tracks.length > 0 && videoTrackId && <LibraryVideoStage />}
+      {/* Where the reader is standing, on the shelves that are not the tree.
+          Without it the library simply looks smaller than it is: the albums
+          shown are the albums in this folder, and nothing on screen would say
+          so or offer the way out. The Folders shelf has its own panel and
+          says it there. */}
+      {openFolderPath !== undefined && browseMode !== 'folder' && (
+        <div className="library-workspace__scope">
+          {/* The drill-in's own Back, markup and all, so the way out of a
+              folder is the same control wherever it is met. */}
+          <button
+            type="button"
+            className="library-toolbar__chip library-detail__back"
+            onClick={handleBack}
+          >
+            <svg viewBox="0 0 16 16" aria-hidden="true">
+              <path d="M10 3L5 8l5 5" />
+            </svg>
+            <span>{t('library.back')}</span>
+          </button>
+          <span className="library-workspace__scope-path">
+            {openFolderPath}
+          </span>
+        </div>
+      )}
       {/* Videos have no album or artist to drill into — routed here on its
           own rather than through the three views below, which never see
           `browseMode === 'video'` at all. The view-mode toggle (list/grid/
@@ -831,7 +896,11 @@ const LibraryWorkspace = ({
             tracks={index.tracks}
             albumId={openAlbumId}
             artistId={openArtistId}
-            folderPath={openFolderPath}
+            // Only the Folders shelf draws a folder as a panel. On the other
+            // three the same folder is the place the shelf is being read in,
+            // and the panel would be a second answer to a question the list
+            // below is already answering.
+            folderPath={browseMode === 'folder' ? openFolderPath : undefined}
             onBack={handleBack}
             onPlayTrack={handlePlayTrack}
             offlineRootIds={offlineRootIds}

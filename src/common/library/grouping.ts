@@ -259,7 +259,21 @@ export const groupIntoFolders = (
   }));
 };
 
-/** Everything at or below this directory, separator-agnostic. */
+/**
+ * Everything at or below this directory, separator-agnostic.
+ *
+ * Exported because the folder somebody is standing in is not only how the
+ * tree is drawn — it is where they are, and every shelf reads it: the albums
+ * shown while inside `[Country]` are the albums in `[Country]`.
+ */
+export const isTrackBeneathFolder = (
+  filePath: string,
+  folderPath: string,
+): boolean => {
+  const dir = trackFolderPath(filePath);
+  return dir === folderPath || dir.startsWith(`${folderPath}/`);
+};
+
 const isBeneath = (filePath: string, folderPath: string): boolean => {
   const dir = trackFolderPath(filePath);
   return dir === folderPath || dir.startsWith(`${folderPath}/`);
