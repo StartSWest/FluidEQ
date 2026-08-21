@@ -10,7 +10,10 @@ actions menu opens it again any time.
 
 FluidEQ 1.5 adds a music and video library. The app could already shape whatever
 your PC was playing and open other people's media in the Media tab; it could not
-see the music sitting on your own drives. Now it can.
+see the music sitting on your own drives. Now it can — and because there is
+finally one thing playing at a time, everything that draws sound got rebuilt
+around it: one transport at the foot of every tab, a level meter redrawn from
+scratch, and the title bar's visualiser brought to the response graph.
 
 ### New
 
@@ -24,10 +27,12 @@ see the music sitting on your own drives. Now it can.
   dimmed until their details arrive. The scan then fills in the real tags and
   artwork behind them, so a large library is usable while it is still being read
   instead of blank until it finishes.
-- **Four ways to browse, three ways to look.** Album, artist, song or video,
-  each as a dense sortable list, a grid of covers, or a Cover Flow you sweep
-  through with the wheel, a drag or the arrow keys. Click a column to sort by
-  it, click again to reverse, and both choices are remembered.
+- **Five ways to browse, three ways to look.** Album, artist, song, folder or
+  video, each as a dense sortable list, a grid of covers, or a Cover Flow you
+  sweep through with the wheel, a drag or the arrow keys. Folders read either as
+  the tree they actually sit in or as every folder at once, which is the one to
+  use when you would rather find than browse. Click a column to sort by it,
+  click again to reverse, and both choices are remembered.
 - **A player that does not stop when you look away.** Double-click a song and
   whatever you were looking at becomes the queue, with shuffle, repeat and a
   transport at the foot of the window that stays there on every tab. Videos play
@@ -35,20 +40,167 @@ see the music sitting on your own drives. Now it can.
 - **Cover art without asking anyone.** The file's own embedded picture, or a
   `cover.jpg` beside it, or a tile drawn from the album's name. Nothing is
   fetched from the internet and no album name leaves the machine.
+- **One transport, for whatever is playing.** The bar at the foot of the window
+  follows the tab you are on — the Library, Karaoke, the Media tab — and when
+  none of them is playing it shows what the rest of the computer is: a desktop
+  player, a browser tab. Play, pause, skip and seek reach it from there. Windows
+  only. The bar is always drawn, quiet and empty before anything is chosen,
+  rather than appearing on the first press and taking sixty pixels off the
+  workspace as it arrives — and which player it belongs to survives a restart.
+- **One player at a time.** Starting a song in the Library stops the Karaoke
+  stage, and starting either stops the Media tab. Optionally it stops players
+  outside FluidEQ too, which is off unless you ask for it.
+- **The title bar's visualiser, on the response graph.** Fifty-seven forms now
+  draw the live spectrum, including the ten wave forms the title bar has always
+  had, painted by the same code so the two panes finally agree about what they
+  are drawing. Four palettes — signal, rainbow, level and the new Heat, which is
+  the reading rather than a map of it — and ten marks for a lit peak, each with
+  its own behaviour rather than its own silhouette. The Look designer reaches
+  all of it: fill, glow, thickness, how many pieces a form is broken into, and a
+  new Gap that thins a column form without changing its count.
+- **A level meter with ten looks.** The stereo output meter is drawn in canvas
+  rather than assembled from elements: bar, segments, LEDs, fluid, mercury,
+  needle, pulse, stack, flow and centre.
+- **A clip indicator that watches the real ceiling.** It reads where the output
+  actually clips rather than where the chain could in theory, and floats clear
+  of the controls beneath it.
+- **Auto-normalize gives back the volume it used to waste.** It is the same
+  single switch it always was, and off still hands the preamp to you. What
+  changed is what "on" reserves. It used to assume the music has full-scale
+  energy at the exact frequency where your chain peaks, so a 6 dB boost at
+  10 kHz cost 6 dB of volume — while the music up there is typically 30 dB
+  down. It now measures what is actually coming out and reserves what the
+  programme asks for instead. The arithmetic is still underneath as a floor, so
+  a cold start, a silent room or a measurement that is wholly wrong behaves
+  exactly like the auto-normalize that shipped, and it can never be louder than
+  no chain at all. Measurement lasts the session; nothing about it is stored.
+- **The preamp is a dial.** A turned metal knob with a cut notch, which reads at
+  a glance in a way a slider on an even range never did.
+- **A tray icon.** FluidEQ keeps running when the window is closed, so the
+  equalisation does not stop because you tidied your taskbar — see _Changed_
+  below, because this changes what the close button does. The icon carries a
+  badge when an update is waiting, and its menu will install it, check for one,
+  reopen the window or quit for real.
+- **Karaoke files that open elsewhere, and open here.** Every format the app
+  says it can read it now genuinely reads, and what the Maker exports opens in
+  other UltraStar players rather than only in this one.
 
-### Fixed and honest about
+### Changed
+
+- **The close button hides the window instead of quitting.** FluidEQ carries on
+  in the tray, because a window that is closed is not a reason to stop
+  equalising the machine. Quit from the tray menu when you mean it. Windows
+  shutdown, a session logout and the installer all still end it properly.
+- **Only one copy of FluidEQ runs at a time, whichever build it is.** Two copies
+  write the same Equalizer APO config and each reads the other's write as an
+  outside edit, so they spend the session undoing one another. The second one
+  now steps aside and says why.
+- **Every output gets its own profiles and its own undo.** A profile is
+  identified by the output it belongs to as well as its name, so renaming or
+  deleting one on your headphones leaves the identically named one on your
+  speakers alone. Saved copies moved the same way, and both are migrated at
+  startup.
+- **The speech model's real cost, in the two sizes it comes in.** About 570 MB
+  where your graphics card can run it and about 1.1 GB where it cannot, rather
+  than one number that was right in neither case.
+- **Melody detection is no longer offered on the full mix.** It reads the
+  isolated voice, which is the only thing it can read honestly, so the button
+  waits for a split instead of returning a plausible-looking wrong answer.
+- **The side bar is a card per concept**, the tab panels keep their bottom
+  breathing room when they are scrolled, and the graph has its floating toolbar
+  back.
+
+### Fixed
 
 - A format Chromium cannot decode — MKV, AVI, WMA — is listed and marked rather
   than playing as a black rectangle.
 - A folder on a drive that is not plugged in keeps its songs and dims them.
   Unplugging a drive never empties a library, and neither does stopping a scan
-  part-way through.
+  part-way through, nor a file that vanishes while it is being read.
 - An album that does not account for every file in its folder lists the rest
   underneath it, instead of quietly leaving them out.
 - A file whose tags cannot be read still appears, under its filename, and says
   that its tags were the problem rather than leaving you to guess.
 - Songs that come with their own lyrics stay out of the library and are counted
   where they went: they belong to the Karaoke tab.
+- Seeking in the Library player lands where you let go of the thumb, instead of
+  resetting the song to the start. Audio is held as a blob and byte ranges are
+  served for video, which is the whole of what seeking needed.
+- **Pressing Play on the album already cued now plays it.** After a restart, or
+  after Stop, an album's own Play did nothing while the bar's Play worked.
+- **Searching the library searches the library.** Typing in the box steps out of
+  whatever folder you are standing in, instead of returning the four matches in
+  that one directory and looking like an empty library. On the folder shelf a
+  search lists every folder holding a match with its path underneath, rather
+  than the single root they all live under.
+- **Play in an opened album plays the list in front of you**, which is a
+  different record the moment you have typed a filter or sorted a column.
+- **The folder chip selects the shelf again.** Opening the menu from the chip
+  itself meant the press people make most often cost a second one to dismiss a
+  menu nobody asked for; the arrow beside it is the half that means "which
+  reading".
+- **Auto-normalize no longer walks the preamp down to the floor.** Two faults,
+  both in the first cut of the measured reserve: the ceiling it held the output
+  under was −3 dBFS, which is _below_ ordinary mastered music and so read "too
+  loud" on every track forever — it is −0.3 now, which is the Windows limiter's
+  own documented figure with two tenths of margin. And the automatic preamp
+  shared its floor with a single band at −20 dB, while two bands an octave apart
+  can peak near +26, so it reserved less than the chain took and clipped by
+  construction. The automatic value reaches −60 dB now; the manual control keeps
+  −20, because it is your thumb.
+- **The preamp the config is actually using now reaches the window.** Nothing
+  subscribed to the channel carrying it, so the slider and the final curve
+  showed whatever was true when a switch was last clicked and then froze — the
+  config carried −4.36 dB while the sidebar sat at −20.00 dB. The graph no
+  longer computes a second answer of its own and overwrites the real one, which
+  is what made the mode look like it did nothing.
+- **The preamp dial paints before it writes**, so dragging it no longer waits on
+  a round trip to the config for every pixel, and the number field comes back
+  when auto-normalize is off — a dial is a poor way to ask for −6.5 exactly.
+- **EQ Presets stopped the two layers clearing each other.** A published
+  headphone correction and an imported set of bands are separate layers, and
+  applying one no longer blanks the other. Both curves are drawn.
+- **An output that drops out of the Equalizer APO config now says so.** A
+  profile that cannot be read used to take its output out of the chain in
+  complete silence, and the error surfaced later somewhere unrelated. It is
+  written to the log, naming the output and the profile.
+- **A profile name the disk cannot keep is refused as you type it.** Names
+  carrying `: ? * " < > |` or a trailing dot used to be accepted and then fail
+  as a file-permissions error that sent people looking at folder permissions.
+- **Transcription no longer invents timings it never measured.** Whisper
+  sometimes returns a whole verse collapsed onto one instant; those are now
+  discarded rather than laundered into word timings, and the timings it did
+  place are trusted and the rest sung onto the notes. Lines break where the
+  singing pauses rather than mid-phrase.
+- **Vibrato no longer shatters a held note into a dozen**, and how long a note
+  was held is decided by the stem rather than by counting syllables.
+- **A sung aside is no longer read as a section label.** `[Ooh ooh ooh]` and
+  `[x2]` stay in the song instead of being demoted to a heading and dropped.
+- **The graph no longer stacks on itself in full screen**, the editor no longer
+  goes see-through when it takes the whole window, and the video player can ask
+  for the whole window and get it.
+- **The Look designer opens on the look you are actually using**, without
+  repainting the graph the moment it appears and without resuming somebody
+  else's abandoned draft.
+- The release button lets go when it is clicked rather than four seconds later.
+
+### Faster
+
+- **The library scan runs in a process of its own**, so a folder of ten thousand
+  files no longer holds the window still while it is read.
+- **Tags are read through the file's headers instead of loading every file
+  whole** — the difference between reading a few kilobytes and reading forty
+  megabytes, once per track.
+- **A scan sends its batches rather than the whole library each time.** A
+  five-hundred-track folder used to send five hundred copies of a list that grew
+  as it went.
+- **One cached thumbnail per cover, not one per track.** Two hundred tracks from
+  one album share one file instead of writing the same picture two hundred
+  times.
+- **Only the rows and tiles near the viewport are mounted**, and the list grows a
+  page at a time, so scrolling a large library stays smooth.
+- Three ways the library held on to things it was finished with are closed, so a
+  long session no longer grows.
 
 ---
 

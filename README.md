@@ -70,6 +70,25 @@ brings every record to the same tonal balance.
 derived from the real combined response, so adding a voicing or a convolution
 cannot clip you — and removing one gives the headroom back.
 
+Computing it from the response alone is a worst case, though: it assumes the
+music has full-scale energy at the exact frequency where your chain peaks, and
+real music never does. So auto-normalize — still the one switch it always was —
+also measures what is actually coming out, and reserves what the programme asks
+for rather than what the chain could theoretically need. A 6 dB boost at 10 kHz
+stops costing 6 dB of volume when the music up there is 30 dB down.
+
+The two halves answer questions neither can answer alone. The arithmetic is a
+proof about what happens inside Equalizer APO, so it holds whatever plays and
+wherever the volume sits, and it stays underneath as the floor: a cold start, a
+silent room or a measurement that is wholly wrong behaves exactly like the
+worst case, never like distortion. The measurement covers what happens after,
+where Windows applies its own volume and ends the path with a limiter — whether
+that fires depends on a number the main process cannot compute. A sample-peak
+supervisor holds the output under −0.3 dBFS, which is the limiter's own
+documented figure with two tenths of margin. Nothing measured is stored; every
+launch starts at the worst case and works up. A clip indicator watches where
+the output really clips, not where the chain theoretically could.
+
 **Import what you already have.** An Equalizer APO ParametricEQ or GraphicEQ
 file, a FluidEQ profile, or any WAV impulse response.
 
@@ -84,6 +103,23 @@ imports back onto the output you are listening to.
 whatever is playing anywhere on the computer — a desktop player, a browser tab,
 FluidEQ's own Media tab. They send the media keys a keyboard sends, so anything
 already listening for those responds. Windows only.
+
+**One transport, at the foot of every tab.** It follows whichever of FluidEQ's
+own players is going — the Library, Karaoke, the Media tab — and when none of
+them is, it shows what the rest of the computer is playing and names it, with
+play, pause, skip and seek reaching that player instead. Only one thing plays at
+a time: starting a song in the Library stops the Karaoke stage, and starting
+either stops the Media tab. It will stop players outside FluidEQ too, if you ask
+it to.
+
+**Watch the sound, however you like to.** The live spectrum draws in any of
+fifty-seven forms — lines, bars, terraces, ribbons, flames, a fluid — including
+the ten the title bar has always used, now painted by the same code so the two
+panes agree. Four palettes, ten different marks for a lit peak, and a designer
+that opens on the look you are using and changes its fill, glow, thickness,
+piece count and spacing without touching the geometry. The stereo output meter
+has ten looks of its own: bar, segments, LEDs, fluid, mercury, needle, pulse,
+stack, flow and centre.
 
 **Plays in two places at once.** A second output mirrors what you are hearing to
 any number of other devices, with a level for each, and nothing to install.
@@ -115,6 +151,14 @@ remembered. The position is only reused if a display still covers it, so
 unplugging a second monitor cannot strand the window somewhere you cannot
 reach it.
 
+**Closing the window does not stop it.** FluidEQ carries on in the notification
+area, because a window you tidied away is not a reason to stop equalising the
+machine. Its tray icon reopens the window, carries a badge when an update is
+waiting, and its menu installs that update, checks for one, or quits for real.
+A Windows shutdown, a session logout and the installer all still end it
+properly. Only one copy runs at a time — two would both write the same Equalizer
+APO config and spend the session undoing each other.
+
 **Plays something to tune against.** A **Media** tab opens a small set of music
 and video sites — YouTube, YouTube Music, Bandcamp, Twitch and Suno — in a window
 inside the app, so a track can be playing while the spectrum moves underneath it
@@ -137,8 +181,11 @@ responsible for keeping to each site's own terms of service.
 
 **Play what is already on the machine.** A **Library** tab reads the folders you
 add — MP3, WAV, OGG, FLAC, M4A, Opus, AAC and more, plus video — and browses them
-by album, artist, song or video, as a dense sortable list, a grid of covers, or a
-Cover Flow you sweep through. Everything in a folder appears the moment you add
+by album, artist, song, folder or video, as a dense sortable list, a grid of
+covers, or a Cover Flow you sweep through. Folders read either as the tree they
+actually sit in, which is how you see that thirty of your forty albums live in
+one place, or as every folder at once, which is the one to use when you would
+rather find than browse. Everything in a folder appears the moment you add
 it, titled from the filename and grouped by the folder it sits in; the scan then
 fills in the real tags, cover art and durations behind it, so a large library is
 usable while it is still being read rather than blank until it finishes.
@@ -469,11 +516,16 @@ what you interact with.
   and lyrics, words that follow the audio's own clock, a live pitch lane drawn
   against the song's target notes where it has them, a chord guide read out of
   the backing track, and a full-screen stage.
+- **A Library tab** for the music and video on your own drives, browsed by
+  album, artist, song, folder or video, with one transport at the foot of every
+  tab and only one thing playing at a time.
 - **Media buttons in the title bar** for whatever is playing on the machine.
 - **A live spectrum, a response graph and a real level meter**, in three sizes
-  that each remember how you left them.
+  that each remember how you left them, drawn in any of fifty-seven forms and
+  ten meter looks.
 - **Ten languages**, with a test that fails the build when one falls behind.
-- **In-app updates** and a What's new dialog rendered from the changelog.
+- **In-app updates** and a What's new dialog rendered from the changelog, with a
+  tray icon that keeps the equaliser running when the window is closed.
 - Window position and size remembered, and no white flash on launch.
 - A small animated companion in the titlebar, because the app should be
   pleasant to leave open.

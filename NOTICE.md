@@ -113,12 +113,20 @@ published source. No part of it has been copied.
 
 ## Libraries FluidEQ is built with
 
-FluidEQ ships Electron and ten npm packages. All are permissively licensed —
-MIT, except d3, which is ISC — and both licences require their copyright notice
-to accompany the software rather than stay in a repository. It travels in
+FluidEQ ships Electron and sixteen npm packages. Most are permissively licensed
+— MIT, except d3, which is ISC, and `@huggingface/transformers`, which is
+Apache-2.0 — and each of those licences requires its copyright notice to
+accompany the software rather than stay in a repository. They travel in
 `assets/licenses/THIRD-PARTY-NOTICES.txt`, which is installed alongside the
 application, together with the notices for Chromium and Node.js that Electron
 brings with it.
+
+One of the sixteen is copyleft. `@breezystack/lamejs`, the LAME MP3 encoder the
+Karaoke Maker writes MP3 stems with, is LGPL-3.0. It is used unmodified as
+published, its own licence text ships as `assets/licenses/LGPL-3.0-LICENSE.txt`,
+and the combined work is conveyed under GPL-3.0-or-later as LGPL-3.0 section 2
+permits. The third-party notices acknowledge LAME and link to its project, which
+is what the LAME authors ask of anyone shipping it.
 
 ## Third-party websites reached from the Video tab
 

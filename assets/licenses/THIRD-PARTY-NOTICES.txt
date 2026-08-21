@@ -31,23 +31,58 @@ origin of much of the data OPRA redistributes.
 
 Karaoke Maker analysis components (Apache-2.0)
 ------------------------------------------------
-@spotify/basic-pitch 1.0.1 and its bundled model
-Copyright 2022 Spotify AB
-https://github.com/spotify/basic-pitch-ts
-
 @huggingface/transformers 3.7.6
 Copyright Hugging Face and contributors
 https://github.com/huggingface/transformers.js
 
-onnx-community/whisper-tiny (downloaded only after explicit user consent)
-Derived from openai/whisper-tiny
-https://huggingface.co/onnx-community/whisper-tiny
-https://huggingface.co/openai/whisper-tiny
+onnx-community/whisper-large-v3-turbo_timestamped
+(downloaded only after explicit user consent)
+Derived from openai/whisper-large-v3-turbo
+https://huggingface.co/onnx-community/whisper-large-v3-turbo_timestamped
+https://huggingface.co/openai/whisper-large-v3-turbo
 
 These components and model weights are licensed under the Apache License,
 Version 2.0. The full licence is included as Apache-2.0-LICENSE.txt beside this
 notice. Karaoke media and lyrics imported by a user are not supplied by these
 projects and remain subject to their respective copyright holders' terms.
+
+The melody detector and the vocal separator use model weights that are not
+supplied by the projects above and carry their own terms. What FluidEQ uses,
+and where each comes from:
+
+  SwiftF0            bundled, assets/models/swift-f0.onnx
+                     the melody detector's fallback
+
+  RMVPE              downloaded on request
+                     https://huggingface.co/lj1995/VoiceConversionWebUI
+                     the melody detector's primary model
+
+  Mel-Band RoFormer  downloaded on request
+                     https://huggingface.co/silverdaw/mel-band-roformer-vocals-onnx
+                     the voice and backing separator
+
+Neither downloaded model is fetched until the user presses the control that
+needs it, and neither is redistributed by FluidEQ.
+
+
+LAME, through @breezystack/lamejs (LGPL-3.0)
+--------------------------------------------
+The Karaoke Maker writes an MP3 beside the WAV when it splits a song. Chromium
+decodes MP3 and cannot encode it, so that encoder is LAME — the LAME project's
+encoder, ported to JavaScript as @breezystack/lamejs 1.2.7.
+
+FluidEQ acknowledges its use of LAME. The LAME project's own site is
+https://lame.sourceforge.net, and the port is published at
+https://github.com/breezystack/lamejs.
+
+lamejs is used unmodified, as published on npm. It is licensed under the GNU
+Lesser General Public License version 3, whose full text is included as
+LGPL-3.0-LICENSE.txt beside this notice; the GNU GPL version 3 that it
+incorporates is LICENSE.txt, already in this directory. Because FluidEQ itself
+is conveyed under GPL-3.0-or-later, the combined work is conveyed under that
+licence, as LGPL-3.0 section 2 permits. The corresponding source for lamejs is
+the published npm package named above; FluidEQ's own corresponding source is
+published with the release this notice shipped in.
 
 
 Electron
@@ -77,17 +112,26 @@ THIS SOFTWARE.
 
 The following are used under the MIT licence
 --------------------------------------------
-ajv                Copyright (c) 2015-2021 Evgeny Poberezkin
-electron-debug     Copyright (c) Sindre Sorhus <sindresorhus@gmail.com>
-electron-log       Copyright (c) 2016 Alexey Prokhorov
-electron-updater   Copyright (c) 2015 Loopline Systems
-react              Copyright (c) Meta Platforms, Inc. and affiliates
-react-dom          Copyright (c) Meta Platforms, Inc. and affiliates
-react-router-dom   Copyright (c) React Training LLC 2015-2019
-                   Copyright (c) Remix Software Inc. 2020-2021
-                   Copyright (c) Shopify Inc. 2022-2023
-regedit            Copyright (c) 2014 ironSource
-uid                Copyright (c) Luke Edwards <luke.edwards05@gmail.com>
+ajv                 Copyright (c) 2015-2021 Evgeny Poberezkin
+electron-debug      Copyright (c) Sindre Sorhus <sindresorhus@gmail.com>
+electron-log        Copyright (c) 2016 Alexey Prokhorov
+electron-updater    Copyright (c) 2015 Loopline Systems
+music-metadata      Copyright (c) 2026 Borewit
+onnxruntime-common  Copyright (c) Microsoft Corporation
+onnxruntime-node    Copyright (c) Microsoft Corporation
+onnxruntime-web     Copyright (c) Microsoft Corporation
+react               Copyright (c) Meta Platforms, Inc. and affiliates
+react-dom           Copyright (c) Meta Platforms, Inc. and affiliates
+react-router-dom    Copyright (c) React Training LLC 2015-2019
+                    Copyright (c) Remix Software Inc. 2020-2021
+                    Copyright (c) Shopify Inc. 2022-2023
+regedit             Copyright (c) 2014 ironSource
+uid                 Copyright (c) Luke Edwards <luke.edwards05@gmail.com>
+
+music-metadata reads the tags, cover art and durations behind the Library tab.
+The three onnxruntime packages are the inference runtime the Karaoke Maker's
+models are executed by; they are published by the ONNX Runtime project at
+https://github.com/microsoft/onnxruntime.
 
 regedit's VBS scripts ship separately from the application bundle, in the
 resources\vbs directory, and are covered by the notice above.
