@@ -21,6 +21,7 @@ import { createPortal } from 'react-dom';
 import type { ITransportSource } from '../../audio/transportSource';
 import { setTransportSlot } from '../../audio/transportSlot';
 import { useTransportStrip } from '../../audio/useTransportStrip';
+import SongEqBadge from '../../components/SongEqBadge';
 import LibraryCoverArt from '../LibraryCoverArt';
 import { useTranslation } from '../../utils/I18nContext';
 import { TransportIcon, formatDuration } from './NowPlayingBar';
@@ -196,6 +197,7 @@ const SourceTransportBar = ({
             </span>
           </span>
         </button>
+        <SongEqBadge />
       </div>
 
       {/* The context's own controls where the buttons would be, when it has

@@ -1,0 +1,41 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+@use 'color' as *;
+
+// The same live-dot language `.waveform-visualizer__signal-dot` already
+// draws for "something is happening right now" — reused rather than
+// invented, on a transport bar this dot is the only surface that says a
+// song is being recorded from any tab but the EQ one.
+.song-eq-badge {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: rgba($secondary-light, 0.45);
+}
+
+// `willSave` true: continuing to listen, exactly as things stand, ends in a
+// saved entry. The brighter, glowing dot is reserved for that one honest
+// case rather than for "recording at all" — see `useSongEqRecording`'s own
+// comment on what `willSave` already accounts for.
+.song-eq-badge--will-save {
+  background: $secondary-light;
+  box-shadow: 0 0 8px rgba($secondary-light, 0.85);
+}

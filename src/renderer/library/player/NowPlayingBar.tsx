@@ -25,6 +25,7 @@ import { useMediaQuery } from '../../utils/useMediaQuery';
 import { useTranslation } from '../../utils/I18nContext';
 import AnchoredMenu from '../../widgets/AnchoredMenu';
 import MenuIcon from '../../icons/MenuIcon';
+import SongEqBadge from '../../components/SongEqBadge';
 import LibraryCoverArt from '../LibraryCoverArt';
 import '../../styles/NowPlayingBar.scss';
 
@@ -644,6 +645,7 @@ const NowPlayingBar = ({
             {t('library.unplayable')}
           </span>
         )}
+        <SongEqBadge />
       </div>
 
       {/* The bar's middle column, and nothing else in it. That is what
