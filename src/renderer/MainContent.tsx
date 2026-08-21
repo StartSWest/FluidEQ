@@ -78,6 +78,7 @@ import { cancelSmartEq, runSmartEq, useSmartEqRun } from './utils/smartEqRun';
 import { useCorrectionFlash } from './utils/correctionFlash';
 import VoicingQuickPick from './components/VoicingQuickPick';
 import ActiveLayers from './components/ActiveLayers';
+import SongEqSaveSwitch from './components/SongEqSaveSwitch';
 import MenuIcon from './icons/MenuIcon';
 import TrashIcon from './icons/TrashIcon';
 import { PetArt } from './SupportPet';
@@ -919,6 +920,7 @@ const MainContent = () => {
               </span>
             )}
           </span>
+          <SongEqSaveSwitch id="songEqSave" />
           <Button
             ariaLabel={t('eq.clear')}
             isDisabled={false}

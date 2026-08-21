@@ -24,6 +24,10 @@ interface ISwitchProps {
   isOn: boolean;
   isDisabled: boolean;
   handleToggle: () => void;
+  /** The checkbox's accessible name. Every existing caller omits this and
+   * keeps relying on `id` for the wrapper button's label below — optional so
+   * none of them has to start naming a switch that was working without one. */
+  ariaLabel?: string;
 }
 
 // Structure taken from https://upmostly.com/tutorials/build-a-react-switch-toggle-component
@@ -32,6 +36,7 @@ export default function Switch({
   isOn,
   isDisabled,
   handleToggle,
+  ariaLabel,
 }: ISwitchProps) {
   const handleKeyUp = (e: KeyboardEvent) => {
     if (e.code === 'Enter') {
@@ -46,12 +51,13 @@ export default function Switch({
         type="checkbox"
         checked={isOn}
         aria-checked={isOn}
+        aria-label={ariaLabel}
         className="switch-checkbox"
         onChange={handleToggle}
         onKeyUp={handleKeyUp}
         disabled={isDisabled}
       />
-      <div role="button" className="switch-label" aria-label={id}>
+      <div role="button" className="switch-label" aria-label={ariaLabel ?? id}>
         <span className="switch-button" />
       </div>
     </label>
