@@ -449,12 +449,15 @@ const LibraryWorkspace = ({
    * Otherwise the first track of whatever is open, which is how an album
    * nothing is playing out of still carries across.
    *
-   * And when *nothing* is open, the playing one again. Songs is the mode with
-   * no drill-in at all, so before this it handed the next mode nothing and
-   * the reader landed at the top of a list of folders with no relation to the
-   * song they had been looking at — reported as "it gets lost and shows
-   * another album". The playing track is the reader's place in a view that
-   * has no other way to say where they are.
+   * And when *nothing* is open, NOTHING. This used to fall back to the playing
+   * track, on the reasoning that Songs has no drill-in and would otherwise
+   * hand the next shelf nothing at all. What it actually did was move the
+   * reader: standing in a list with nothing opened and pressing Tree carried
+   * them off to the folder of whatever was coming out of the speakers, which
+   * from the outside is a shelf switching to a random album, artist or folder.
+   * A press that changes how the library is arranged is not a request to go
+   * somewhere, and going to the playing song is what the bar at the foot of
+   * the window is for.
    */
   const drillInAnchor = useMemo(() => {
     if (
@@ -462,7 +465,7 @@ const LibraryWorkspace = ({
       openArtistId === undefined &&
       openFolderPath === undefined
     ) {
-      return playingTrack;
+      return undefined;
     }
     const belongs = (track: ILibraryTrack): boolean => {
       if (openAlbumId !== undefined) {
@@ -517,18 +520,19 @@ const LibraryWorkspace = ({
       setOpenFolderPath(
         anchor && mode === 'folder' ? trackFolderPath(anchor.path) : undefined,
       );
-      if (mode === 'song') {
-        const row = anchor ?? playingTrack;
-        if (row) {
-          revealRow(row.id);
-        }
+      if (mode === 'song' && anchor) {
+        // The first track of what was open, and only that. It fell back to the
+        // playing song, which is the same move as the anchor's old fallback
+        // and the same complaint: a list that scrolled itself somewhere the
+        // reader had not been.
+        revealRow(anchor.id);
       }
       // The effect below closes the drill-in on every mode change it did not
       // cause itself; this is one it did not cause but must not undo.
       drillInDrivenMode.current = mode;
       setBrowseMode(mode);
     },
-    [drillInAnchor, playingTrack, revealRow],
+    [drillInAnchor, revealRow],
   );
 
   const handleOpenFolder = useCallback((folderPath: string) => {
