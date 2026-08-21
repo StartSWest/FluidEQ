@@ -186,7 +186,7 @@ describe('songEqRecorder', () => {
     const { effects } = run(armed(), [
       [0, { kind: 'nowPlaying', identity: songA, isPlaying: true }],
       [SONG_EQ_SETTLE_MS + 1, { kind: 'tick' }],
-      [SONG_EQ_SETTLE_MS + 2, { kind: 'matched', entry }],
+      [SONG_EQ_SETTLE_MS + 2, { kind: 'matched', identity: songA, entry }],
       [
         SONG_EQ_SETTLE_MS + 3,
         { kind: 'nowPlaying', identity: songB, isPlaying: true },
@@ -209,7 +209,7 @@ describe('songEqRecorder', () => {
     const { effects } = run(armed(), [
       [0, { kind: 'nowPlaying', identity: songA, isPlaying: true }],
       [SONG_EQ_SETTLE_MS + 1, { kind: 'tick' }],
-      [SONG_EQ_SETTLE_MS + 2, { kind: 'matched', entry }],
+      [SONG_EQ_SETTLE_MS + 2, { kind: 'matched', identity: songA, entry }],
     ]);
     expect(effects.filter((effect) => effect.kind === 'notice')).toHaveLength(
       1,
@@ -228,7 +228,7 @@ describe('songEqRecorder', () => {
     const { effects } = run(armed(), [
       [0, { kind: 'nowPlaying', identity: songA, isPlaying: true }],
       [SONG_EQ_SETTLE_MS + 1, { kind: 'tick' }],
-      [SONG_EQ_SETTLE_MS + 2, { kind: 'matched', entry }],
+      [SONG_EQ_SETTLE_MS + 2, { kind: 'matched', identity: songA, entry }],
       [SONG_EQ_SETTLE_MS + 3, { kind: 'layerChanged', layer: layerOf(-4) }],
       [
         SONG_EQ_SETTLE_MS + 4,
@@ -314,5 +314,108 @@ describe('songEqRecorder', () => {
     expect(
       at.effects.filter((effect) => effect.kind === 'commit'),
     ).toHaveLength(1);
+  });
+
+  it("does not carry one song's curve into the next after a pause", () => {
+    // The grace close hands the loan back as an EFFECT. Anything that forgets
+    // to move `liveLayer` with it commits song A's borrowed curve under song
+    // B's key — and a minute's pause is all it takes to get there.
+    const entry = {
+      settings: layerOf(9),
+      title: 'Song A',
+      plays: 1,
+      updatedAt: 1,
+    };
+    const { effects } = run(armed(), [
+      [0, { kind: 'nowPlaying', identity: songA, isPlaying: true }],
+      [SONG_EQ_SETTLE_MS + 1, { kind: 'tick' }],
+      [SONG_EQ_SETTLE_MS + 2, { kind: 'matched', identity: songA, entry }],
+      [3000, { kind: 'nowPlaying', identity: songA, isPlaying: false }],
+      [3001 + SONG_EQ_SUSPEND_GRACE_MS, { kind: 'tick' }],
+      ...play(songB, 130_000, 70_000),
+      [210_000, { kind: 'closing' }],
+    ]);
+    const commits = effects.filter((effect) => effect.kind === 'commit');
+    expect(commits).toHaveLength(1);
+    expect(commits[0]).toMatchObject({ layer: layerOf(2) });
+  });
+
+  it('ignores a lookup that answers after the track has changed', () => {
+    // `lookup` is a store read the shell answers later. Skip tracks between
+    // the lookup and its answer and, without the identity check, the answer
+    // for song A would be applied to song B and reported as a match for it.
+    const entry = {
+      settings: layerOf(9),
+      title: 'Song A',
+      plays: 1,
+      updatedAt: 1,
+    };
+    const { effects } = run(armed(), [
+      [0, { kind: 'nowPlaying', identity: songA, isPlaying: true }],
+      [SONG_EQ_SETTLE_MS + 1, { kind: 'tick' }],
+      [
+        SONG_EQ_SETTLE_MS + 2,
+        { kind: 'nowPlaying', identity: songB, isPlaying: true },
+      ],
+      [SONG_EQ_SETTLE_MS + 3, { kind: 'matched', identity: songA, entry }],
+    ]);
+    expect(
+      effects.filter((effect) => effect.kind === 'applyLayer'),
+    ).toHaveLength(0);
+    expect(effects.filter((effect) => effect.kind === 'notice')).toHaveLength(
+      0,
+    );
+  });
+
+  it('recognises its own write even when the layer echoes back with keys re-ordered', () => {
+    // The applied layer comes back to us round-tripped through the main
+    // process — rebuilt and re-sanitised by `sanitizeSmartEqSettings` — so
+    // its keys are never guaranteed to land in the same insertion order they
+    // left in. `appliedLayer` and `echoedLayer` hold the same two bands with
+    // the same values; only the order their keys were inserted in differs,
+    // which is enough to make a `JSON.stringify` compare disagree even though
+    // nothing audible changed.
+    const bandLow = {
+      id: 'smart-500',
+      frequency: 500,
+      gain: 3,
+      quality: 1.4,
+      type: FilterTypeEnum.PK,
+    };
+    const bandHigh = {
+      id: 'smart-1500',
+      frequency: 1500,
+      gain: -2,
+      quality: 1.4,
+      type: FilterTypeEnum.PK,
+    };
+    const appliedLayer: ISmartEqSettings = {
+      filters: { [bandLow.id]: bandLow, [bandHigh.id]: bandHigh },
+    };
+    const echoedLayer: ISmartEqSettings = {
+      filters: { [bandHigh.id]: bandHigh, [bandLow.id]: bandLow },
+    };
+    const entry = {
+      settings: appliedLayer,
+      title: 'Song A',
+      plays: 1,
+      updatedAt: 1,
+    };
+    const { effects } = run(armed(), [
+      [0, { kind: 'nowPlaying', identity: songA, isPlaying: true }],
+      [SONG_EQ_SETTLE_MS + 1, { kind: 'tick' }],
+      [SONG_EQ_SETTLE_MS + 2, { kind: 'matched', identity: songA, entry }],
+      [SONG_EQ_SETTLE_MS + 3, { kind: 'layerChanged', layer: echoedLayer }],
+      [
+        SONG_EQ_SETTLE_MS + 4,
+        { kind: 'nowPlaying', identity: songB, isPlaying: true },
+      ],
+    ]);
+    const applied = effects.filter((effect) => effect.kind === 'applyLayer');
+    // The lend, and the hand-back once the loan is recognised as surviving
+    // the echo rather than dropped as a foreign write.
+    expect(applied).toHaveLength(2);
+    expect(applied[0]).toMatchObject({ settings: appliedLayer });
+    expect(applied[1]).toMatchObject({ settings: layerOf(2) });
   });
 });
