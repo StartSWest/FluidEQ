@@ -120,6 +120,38 @@ const highPass = (
   reason,
 });
 
+/*
+ * ┌──────────────────────────────────────────────────────────────────────────┐
+ * │  DO NOT TOUCH THESE CURVES. NOT A DECIBEL, NOT A HERTZ, NOT A Q.         │
+ * │  NOT TO "TIDY", NOT TO "IMPROVE", NOT TO MAKE A TEST PASS.               │
+ * └──────────────────────────────────────────────────────────────────────────┘
+ *
+ * This table is why FluidEQ sounds the way it does. It was arrived at by
+ * listening, over a long time, and the numbers below are the result — not a
+ * starting point, not an approximation of some published target, and not
+ * something a later refactor gets to round off. The rest of this codebase is
+ * arithmetic that can be reasoned about and corrected; this is taste that
+ * cannot, and there is no test anywhere that will tell you that you have made
+ * the sound worse.
+ *
+ * That is exactly why it needs a rule rather than a review: a wrong number here
+ * does not crash, does not fail a build, does not look wrong on the graph, and
+ * nobody notices until the product no longer sounds like itself.
+ *
+ * CHANGING ANY VALUE BELOW REQUIRES THE OWNER'S EXPLICIT AUTHORISATION, ASKED
+ * FOR AND GIVEN, EVERY TIME. That applies to anyone, human or otherwise, and it
+ * applies hardest to changes that look trivial — a decibel here reads as a
+ * rounding error and is not one.
+ *
+ * `voicingCurvesLocked.test.ts` pins every value below and fails loudly if one
+ * moves. If it is failing and you did not deliberately mean to change the
+ * sound, the fix is your edit, not the test. If you did mean to, get
+ * authorisation first and update the lock in the same commit, so the diff reads
+ * as a decision instead of an accident.
+ *
+ * Adding a NEW profile is not covered by this: a new row breaks nobody's sound.
+ * Editing an existing one is.
+ */
 export const VOICING_PROFILES: IVoicingProfile[] = [
   {
     id: 'music',

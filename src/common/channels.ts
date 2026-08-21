@@ -24,8 +24,6 @@ enum ChannelEnum {
   GET_ENABLE = 'getEnable',
   SET_ENABLE = 'setEnable',
   SET_AUTO_PREAMP = 'setAutoPreAmp',
-  /** The third position of the Auto normalize switch. */
-  SET_SMART_HEADROOM = 'setSmartHeadroom',
   /**
    * What the capture has heard, handed to the writer that owns the preamp.
    *

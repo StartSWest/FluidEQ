@@ -23,8 +23,6 @@ import {
   IFilter,
   IFiltersMap,
   IState,
-  MAX_GAIN,
-  MIN_GAIN,
   TApoLayer,
 } from 'common/constants';
 import {
@@ -49,7 +47,6 @@ import {
 } from '../../common/headphone';
 import { getSmartEqFilters, getSmartEqGraphicEq } from '../../common/smartEq';
 import { hasCustomFxCurve } from '../../common/customFx';
-import { getAutoPreAmpGain } from '../../common/response';
 
 /** Supporting curves sit behind the one in focus rather than competing with it. */
 export const SUPPORTING_CURVE_OPACITY = 0.5;
@@ -77,7 +74,6 @@ export interface IBuildChartDataParams extends Pick<
   | 'graphicEq'
   | 'headphone'
   | 'isAutoPreAmpOn'
-  | 'isSmartHeadroomOn'
   | 'preAmp'
   | 'smartEq'
   | 'voicing'
@@ -149,8 +145,6 @@ export const buildChartData = ({
   graphicEq,
   hasConvolution,
   headphone,
-  isAutoPreAmpOn,
-  isSmartHeadroomOn,
   isEqQuiet,
   preAmp,
   prevFilterLines,
@@ -462,131 +456,6 @@ export const buildChartData = ({
     { offset: 1, color: getBandColor(1).color },
   ];
 
-  // Compute preAmp line data
-  // const preAmpLine = getPreAmpLine(preAmp);
-
-  // One rule for how loud a chain is, and it is the writer's.
-  //
-  // This used to negate the highest point of the drawn curve with no floor at
-  // zero, so a chain that only cuts produced a *positive* preamp — sixteen
-  // decibels of makeup gain on one real profile — and the graph then drew
-  // itself lifted by it, which is why a heavily cut correction appeared to be
-  // sitting at unity. Equalizer APO never saw a decibel of it: the writer
-  // reserves headroom for boosts and stops at zero, so the file said 0 dB
-  // while the picture claimed otherwise and the volume never moved.
-  //
-  // Worse, it moved for no reason anybody could hear. Switching one band to
-  // Low Pass changes where the chain peaks, which changed the makeup, which
-  // slid the entire curve up or down — a redraw that looked like a tuning
-  // change and was not.
-  //
-  // So the peak comes from the same strict combined-response function the
-  // config writer uses. File-backed convolutions contribute their measured
-  // WAV response rather than an assumption about publisher normalization.
-  // Floored at MIN_GAIN, because the chain can now ask for more headroom than
-  // a preamp is allowed to give.
-  //
-  // Every layer is capped at 20 dB on its own and there are five of them, so
-  // the sum has always been able to exceed the range — but in practice the
-  // only layer that stacked on top of the user's own was Smart EQ, and Smart
-  // EQ was capped at 6. Taking that cap off, so a continuous mode can actually
-  // undo a band somebody dragged to -16, is what made the arithmetic reachable
-  // and threw "Invalid gain value - outside of range" out of an effect on
-  // mount, which the error boundary turns into a blank workspace.
-  //
-  // Clamping loses nothing real: a chain needing more than 20 dB of headroom
-  // will clip on the loudest peaks whatever this says, and the alternative is
-  // not "correct headroom" but "no application".
-  // Both directions, and clamped at both ends. The third copy of this
-  // arithmetic and the third place the same `Math.max(0, …)` was pinning the
-  // preamp to attenuation only — so a chain that merely cut left the volume
-  // on the floor, live as well as on disk. Positive when the chain cuts,
-  // negative when it boosts; the loudest point lands at unity either way.
-  // Native GraphicEQ stages are not represented by the projected editor
-  // bands when APO writes the chain. Remove those projections from the
-  // biquad list and measure the actual points instead, matching flush.ts.
-  const nativeHeadphoneGraphic = bypassed.includes('headphone')
-    ? undefined
-    : getHeadphoneGraphicEq(headphone);
-  const nativeDriverGraphic = bypassed.includes('driver')
-    ? undefined
-    : getDriverGraphicEq(driver);
-  const nativeVoicingGraphic = bypassed.includes('voicing')
-    ? undefined
-    : getVoicingGraphicEq(voicing);
-  const nativeSmartGraphic = bypassed.includes('smart')
-    ? undefined
-    : getSmartEqGraphicEq(smartEq);
-  const nativeCustomGraphic =
-    !bypassed.includes('custom') && customFx?.graphicEq?.length
-      ? customFx.graphicEq
-      : undefined;
-  const eqFilters =
-    bypassed.includes('eq') || nativeEqGraphic ? [] : Object.values(filters);
-  const headphoneFilters =
-    bypassed.includes('headphone') || nativeHeadphoneGraphic?.length
-      ? []
-      : getHeadphoneFilters(headphone);
-  const customFilters =
-    bypassed.includes('custom') || !customFx
-      ? []
-      : Object.values(customFx.filters);
-  const customPreAmp =
-    bypassed.includes('custom') || !customFx ? 0 : customFx.preAmp;
-  const convolutionCurve =
-    convolution?.fileName &&
-    !bypassed.includes('convolution') &&
-    convolution.response?.length
-      ? convolution.response
-      : undefined;
-  const fallbackConvolutionCurve =
-    convolution?.fileName &&
-    !convolutionCurve &&
-    !bypassed.includes('convolution') &&
-    Number.isFinite(convolution.peakGainDb)
-      ? [
-          { frequency: 10, gain: convolution.peakGainDb as number },
-          { frequency: 20000, gain: convolution.peakGainDb as number },
-        ]
-      : undefined;
-  const calculatedAutoPreAmpValue = Math.min(
-    MAX_GAIN,
-    Math.max(
-      MIN_GAIN,
-      getAutoPreAmpGain({
-        filters: [
-          ...(convolution &&
-          !convolution.fileName &&
-          !bypassed.includes('convolution')
-            ? Object.values(convolution.filters || {})
-            : []),
-          ...eqFilters,
-          ...(bypassed.includes('driver') || nativeDriverGraphic?.length
-            ? []
-            : getDriverFilters(driver)),
-          ...headphoneFilters,
-          ...(bypassed.includes('voicing') || nativeVoicingGraphic?.length
-            ? []
-            : getVoicingFilters(voicing)),
-          ...(bypassed.includes('smart') || nativeSmartGraphic?.length
-            ? []
-            : getSmartEqFilters(smartEq)),
-          ...customFilters,
-        ],
-        curves: [
-          nativeEqGraphic,
-          nativeDriverGraphic,
-          nativeHeadphoneGraphic,
-          nativeVoicingGraphic,
-          nativeSmartGraphic,
-          nativeCustomGraphic,
-          convolutionCurve,
-          fallbackConvolutionCurve,
-        ],
-        constantGain: customPreAmp,
-      }),
-    ),
-  );
   return {
     chartData: [
       ...(hasConvolution && convolution
@@ -736,21 +605,20 @@ export const buildChartData = ({
     // Rounding to two decimals. When disabled, expose the current manual
     // preamp so the graph and APO remain in sync without auto-adjusting it.
     /*
-     * Smart's number is not derivable here, and must not be guessed at.
+     * THE GRAPH NO LONGER DERIVES THIS. IT REPORTS IT.
      *
-     * The value above is the worst case, computed from the chain alone. Smart's
-     * depends on a measurement that lives in the main process, so the only
-     * honest thing the graph can show is the value that came back from the
-     * writer — which is what `preAmp` already holds.
+     * Auto normalize now reserves what the music needs, and half of that answer
+     * is a measurement the main process holds. Recomputing the chain-only worst
+     * case here would produce a different, always-wrong number — and because
+     * `FrequencyResponseChart` mirrors this straight into `setPreAmp`, it would
+     * overwrite the real one on every re-render and the whole mode would look
+     * like it did nothing. That is exactly the bug it caused: the config carried
+     * -4.36 dB while the sidebar sat at -20.00 dB and never moved.
      *
-     * This is a correctness fix and not a display one. `FrequencyResponseChart`
-     * mirrors this straight into `setPreAmp`, so returning the worst case while
-     * Smart was on would have the renderer overwrite the measured preamp with
-     * an unmeasured one on every re-render, and the mode would appear to do
-     * nothing at all. Returning `preAmp` makes that mirror a no-op, which is
-     * exactly what it should be when somebody else owns the number.
+     * So the chain arithmetic that used to live here is gone rather than
+     * ignored, and `preAmp` — whatever the writer last derived, automatic or
+     * manual — is what the slider and the final curve both show.
      */
-    autoPreAmpValue:
-      isAutoPreAmpOn && !isSmartHeadroomOn ? calculatedAutoPreAmpValue : preAmp,
+    autoPreAmpValue: preAmp,
   };
 };

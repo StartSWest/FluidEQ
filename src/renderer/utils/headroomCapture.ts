@@ -369,19 +369,30 @@ export const shouldPushMeasurement = ({
 /**
  * Where the true output peak is held, in dBFS.
  *
- * NOT ZERO, AND NOT ANYWHERE NEAR IT. Since Vista the Windows audio engine runs
- * a limiter that will not let the output rail: at +20 dB of preamp, with the
- * sound audibly breaking up, not one sample in 143,360 reached full scale and
- * the peak sat between -0.1 and -1 dBFS. A ceiling at 0 is unreachable, and a
- * ceiling at -1 is inside the region where the limiter is already working and
- * the measurement has stopped meaning anything.
+ * THE NUMBER IS CAudioLimiter'S, NOT ONE WE CHOSE. Windows ends every output
+ * path with a limiter — CAudioLimiter, right before the conversion to integer —
+ * and the documented figure is that "the effects of CAudioLimiter are negligible
+ * on signals whose peak value is below approx. -0.1 dBFS". That is the whole
+ * specification: at -0.1 the limiter starts working, and the limiter working IS
+ * the distortion this mode exists to prevent.
  *
- * Three decibels down is the last honest reading. Holding the peak there keeps
- * the signal in the linear region where what the analyser reports is what the
- * endpoint received, and — the actual goal — keeps the limiter from ever
- * engaging, because the limiter engaging IS the distortion.
+ * Two tenths of margin under it, and no more. THE FIRST ATTEMPT USED -3 dBFS,
+ * on the reasoning that -1 was already inside the limiter's region. It is not:
+ * mastered music peaks between -0.1 and -1 dBFS as a matter of course, so a
+ * ceiling at -3 is BELOW ordinary programme material and the supervisor read
+ * "too loud" on every track, forever. In the real window it walked the preamp
+ * from -4.36 dB to the -20 dB clamp in about three minutes and never came back.
+ * The mechanism was sound; the threshold was roughly three decibels into the
+ * music itself.
+ *
+ * Measured where the limiter measures. The loopback sits after the volume APO —
+ * Windows inserts that "right before the samples are converted to integer",
+ * after Equalizer APO — so what this capture reads is what CAudioLimiter is
+ * about to be handed, volume knob included. That is the point of taking it from
+ * the capture rather than computing it: the arithmetic upstream cannot see the
+ * volume, and the volume is half of whether the limiter fires.
  */
-export const SUPERVISOR_CEILING_DBFS = -3;
+export const SUPERVISOR_CEILING_DBFS = -0.3;
 
 /**
  * Down fast, up slowly, and the asymmetry is the whole point.

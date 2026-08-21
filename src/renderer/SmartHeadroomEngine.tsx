@@ -74,7 +74,7 @@ const SmartHeadroomEngine = () => {
     graphicEq,
     headphone,
     isAutoPreAmpOn,
-    isSmartHeadroomOn,
+
     preAmp,
     smartEq,
     voicing,
@@ -134,7 +134,7 @@ const SmartHeadroomEngine = () => {
   const buildResponseRef = useRef(buildResponse);
   buildResponseRef.current = buildResponse;
 
-  const isOn = isAutoPreAmpOn && isSmartHeadroomOn;
+  const isOn = isAutoPreAmpOn;
 
   useEffect(() => {
     if (!isOn || !isActive || !capture) {

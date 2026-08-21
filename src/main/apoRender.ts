@@ -18,6 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import {
+  clampPreAmp,
   AutoEqFormat,
   clampFrequency,
   clampGain,
@@ -38,7 +39,6 @@ import {
   getHeadphoneGraphicEq,
 } from '../common/headphone';
 import { getSmartEqFilters, getSmartEqGraphicEq } from '../common/smartEq';
-import { getAutoPreAmpGain } from '../common/response';
 import { getSmartPreAmpGain } from '../common/smartHeadroom';
 
 /**
@@ -156,27 +156,32 @@ const resolvePreAmp = (
   };
 
   /*
-   * Smart is the third position of the same switch, never a fourth writer.
+   * ONE SWITCH, AND ON MEANS BOTH HALVES OF IT.
    *
-   * It is only reachable with auto normalize already on — the early return at
-   * the top of this function is the Off position and still hands back the
-   * manual value. Which means the config writer remains the single authority on
-   * gain staging: the renderer measures and reports, this decides. The
-   * measurement travelling in on `state` rather than the preamp itself is what
-   * keeps it that way.
+   * There is no separate adaptive mode to enable. Auto normalize on reserves
+   * what the music needs — the arithmetic and the measurement together — and off
+   * hands the level back to the user, which is the early return at the top of
+   * this function.
    *
-   * With no measurement yet, `getSmartPreAmpGain` reproduces the worst case
-   * exactly, so a cold start and a silent room both behave like the switch
-   * position below this one rather than like a special case written here.
+   * The two halves answer different questions and neither can answer the
+   * other's. The arithmetic protects what happens INSIDE Equalizer APO, where a
+   * boosted chain can push a full-scale input past 0 dB, and it is a proof
+   * rather than a measurement, so it holds whatever is playing and wherever the
+   * volume knob is. The measurement protects what happens AFTER: Windows applies
+   * its volume APO downstream of us and ends the path with a limiter, so whether
+   * that limiter fires depends on a number this process cannot compute. The
+   * renderer can see it, and reports it.
+   *
+   * With nothing measured yet, `getSmartPreAmpGain` reproduces the worst case
+   * exactly. So a cold start, a silent room and a machine whose loopback never
+   * opens all behave precisely like the auto-normalize that shipped, by
+   * construction rather than by a special case written here.
    */
-  if (state.isSmartHeadroomOn) {
-    return getSmartPreAmpGain(
-      response,
-      state.smartHeadroomProgramme ?? [],
-      state.smartHeadroomTrimDb ?? 0,
-    );
-  }
-  return getAutoPreAmpGain(response);
+  return getSmartPreAmpGain(
+    response,
+    state.smartHeadroomProgramme ?? [],
+    state.smartHeadroomTrimDb ?? 0,
+  );
 };
 
 /** A filter stripped to the four things a config line is made of. */
@@ -430,7 +435,7 @@ const preAmpLine = (
   state: IState,
   layers: IApoLayer[],
   hasConvolution: boolean,
-) => `Preamp: ${clampGain(resolvePreAmp(state, layers, hasConvolution))} dB`;
+) => `Preamp: ${clampPreAmp(resolvePreAmp(state, layers, hasConvolution))} dB`;
 
 /**
  * Whether the impulse response is part of this chain.
@@ -460,7 +465,7 @@ export const getResolvedPreAmp = (
     ? (state.convolution.fileName ?? 'generated-convolution.wav')
     : undefined,
 ) =>
-  clampGain(
+  clampPreAmp(
     resolvePreAmp(
       state,
       buildLayers(state),

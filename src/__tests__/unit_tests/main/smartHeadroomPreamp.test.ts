@@ -65,7 +65,6 @@ describe('smart auto-normalize through the config writer', () => {
   it('is the shipped worst case until something has been heard (null)', () => {
     const state = withTrebleBoost();
     const normalize = getResolvedPreAmp(state);
-    state.isSmartHeadroomOn = true;
     expect(getResolvedPreAmp(state)).toBe(normalize);
   });
 
@@ -74,7 +73,6 @@ describe('smart auto-normalize through the config writer', () => {
     // difference being that a measurement exists.
     const state = withTrebleBoost();
     const normalize = getResolvedPreAmp(state);
-    state.isSmartHeadroomOn = true;
     state.smartHeadroomProgramme = PINK;
     expect(getResolvedPreAmp(state)).toBeGreaterThan(normalize + 3);
   });
@@ -82,7 +80,6 @@ describe('smart auto-normalize through the config writer', () => {
   it('recovers nothing when the music fills the band evenly', () => {
     const state = withTrebleBoost();
     const normalize = getResolvedPreAmp(state);
-    state.isSmartHeadroomOn = true;
     state.smartHeadroomProgramme = FLAT;
     expect(getResolvedPreAmp(state)).toBe(normalize);
   });
@@ -96,7 +93,6 @@ describe('smart auto-normalize through the config writer', () => {
     ];
     const state = withTrebleBoost();
     const normalize = getResolvedPreAmp(state);
-    state.isSmartHeadroomOn = true;
     materials.forEach((material) => {
       state.smartHeadroomProgramme = material;
       expect(getResolvedPreAmp(state)).toBeGreaterThanOrEqual(normalize);
@@ -105,7 +101,6 @@ describe('smart auto-normalize through the config writer', () => {
 
   it('applies the supervisor trim, and only downwards', () => {
     const state = withTrebleBoost();
-    state.isSmartHeadroomOn = true;
     state.smartHeadroomProgramme = PINK;
     const plain = getResolvedPreAmp(state);
     state.smartHeadroomTrimDb = -4;
@@ -121,17 +116,43 @@ describe('smart auto-normalize through the config writer', () => {
     const state = withTrebleBoost();
     state.isAutoPreAmpOn = false;
     state.preAmp = -5;
-    state.isSmartHeadroomOn = true;
     state.smartHeadroomProgramme = PINK;
     // Off means the user owns the number, and Smart is a position of the same
     // switch rather than something layered on top of Off.
     expect(getResolvedPreAmp(state)).toBe(-5);
   });
 
+  /*
+   * Moved here from the response-graph test, which used to assert it by
+   * recomputing the worst case beside the plot. The graph no longer derives the
+   * preamp at all — it reports what this resolver settled on — so the guarantee
+   * that every layer is reserved for belongs against the resolver itself, which
+   * is also the thing that writes the `Preamp:` line.
+   */
+  it('reserves headroom for the headphone layer, not just the bands', () => {
+    const bandsOnly = getResolvedPreAmp(withTrebleBoost());
+
+    const withCorrection = withTrebleBoost();
+    withCorrection.headphone = {
+      intensity: 1,
+      filters: {
+        h: {
+          id: 'h',
+          frequency: 3000,
+          gain: 6,
+          quality: 1,
+          type: FilterTypeEnum.PK,
+        },
+      },
+    };
+    // A layer boosting where the bands do not has to cost headroom of its own.
+    // It once cost nothing, because the arithmetic did not know it was there.
+    expect(getResolvedPreAmp(withCorrection)).toBeLessThan(bandsOnly);
+  });
+
   it('leaves a chain that does nothing at unity', () => {
     const state = getDefaultState();
     state.isAutoPreAmpOn = true;
-    state.isSmartHeadroomOn = true;
     state.smartHeadroomProgramme = PINK;
     expect(getResolvedPreAmp(state)).toBe(0);
   });

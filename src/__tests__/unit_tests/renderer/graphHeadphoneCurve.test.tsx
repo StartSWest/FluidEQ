@@ -41,8 +41,6 @@ import {
   IHeadphoneSettings,
   TApoLayer,
 } from 'common/constants';
-import { getHeadphoneFilters } from 'common/headphone';
-import { getChainPeakGain } from 'common/response';
 import { getLineGainAtFrequency } from 'renderer/graph/utils';
 import { IChartCurveData } from 'renderer/graph/ChartController';
 
@@ -229,38 +227,32 @@ describe('the headphone layer on the frequency response graph', () => {
     expect(gainAt('EQ Response', 100)).toBeCloseTo(3, 1);
   });
 
-  it('reserves headroom for it', () => {
+  /*
+   * THE GRAPH REPORTS THE PREAMP; IT NO LONGER DERIVES IT.
+   *
+   * This used to recompute the worst case from the drawn chain and assert the
+   * two agreed. They cannot any more, and should not: auto normalize now
+   * reserves what the music needs, half of which is a measurement only the main
+   * process holds. A second derivation here would be a second, always-different
+   * answer — and because the chart mirrors this value straight into `setPreAmp`,
+   * it would overwrite the real one on every render. Which is not hypothetical:
+   * measured in the running app, the config carried -4.36 dB while the sidebar
+   * sat at -20.00 dB and never moved.
+   *
+   * That the headphone layer is reserved for at all is still guaranteed and
+   * still tested — against the resolver that actually writes the config, in
+   * `main/smartHeadroomPreamp.test.ts`.
+   */
+  it('shows the preamp the writer settled on, without deriving its own', () => {
     draw({ headphone: CORRECTION, isAutoPreAmpOn: true });
 
-    // Against the same function the config is written from, so the number under
-    // the plot and the `Preamp:` line on disk cannot drift apart — which is
-    // exactly what they did while this layer was missing from the list.
-    expect(displayedPreAmp()).toBeCloseTo(
-      -(
-        getChainPeakGain([
-          ...Object.values(EQ_BANDS),
-          ...getHeadphoneFilters(CORRECTION),
-        ]) + 0.2
-      ),
-      2,
-    );
-
-    const withCorrection = displayedPreAmp();
-    draw({ isAutoPreAmpOn: true });
-    const withoutCorrection = displayedPreAmp();
-
-    // The bands already reserve three of the correction's six, so what the
-    // layer costs on top is the other three — and that three used to cost
-    // nothing at all, because nothing in this arithmetic knew it was there.
-    expect(withoutCorrection).toBeCloseTo(
-      -(getChainPeakGain(Object.values(EQ_BANDS)) + 0.2),
-      2,
-    );
-    expect(withCorrection).toBeLessThan(withoutCorrection - 2.5);
+    expect(displayedPreAmp()).toBeCloseTo(0, 2);
+    // Still never writes back. The renderer mirrors this number; it does not
+    // own it, and a write from here would be a second author for one value.
     expect(mockSetMainPreAmp).not.toHaveBeenCalled();
   });
 
-  it('takes the curve, the chip and the headroom away when it is bypassed', () => {
+  it('takes the curve and the chip away when it is bypassed', () => {
     draw({
       headphone: CORRECTION,
       bypassed: ['headphone'],
@@ -269,13 +261,9 @@ describe('the headphone layer on the frequency response graph', () => {
 
     // Switched off means not in the config, so it is not on the plot either —
     // the rule every other layer already followed, and what makes the A/B
-    // honest.
+    // honest. The headroom half of this moved to the resolver; see above.
     expect(curve('Headphone Correction')).toBeUndefined();
     expect(screen.queryByRole('button', { name: 'Headphone' })).toBeNull();
-    expect(displayedPreAmp()).toBeCloseTo(
-      -(getChainPeakGain(Object.values(EQ_BANDS)) + 0.2),
-      2,
-    );
   });
 
   it('draws a native GraphicEQ file edit in its original layer and the total', () => {

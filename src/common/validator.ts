@@ -106,12 +106,6 @@ const IStateSchema = {
     isAutoPreAmpOn: {
       type: 'boolean',
     },
-    // Not in `required` below, and that is not an oversight: every state file
-    // written before this mode existed lacks the key, and requiring it would
-    // make all of them fail validation on the first launch after an update.
-    isSmartHeadroomOn: {
-      type: 'boolean',
-    },
     isEnabled: {
       type: 'boolean',
     },

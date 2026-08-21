@@ -649,7 +649,7 @@ const FrequencyResponseChart = ({
     isLoading,
     globalError,
     isAutoPreAmpOn,
-    isSmartHeadroomOn,
+
     convolution,
     preAmp,
     eqFormat,
@@ -1020,7 +1020,7 @@ const FrequencyResponseChart = ({
         hasConvolution,
         headphone,
         isAutoPreAmpOn,
-        isSmartHeadroomOn,
+
         isEqQuiet,
         preAmp,
         prevFilterLines,
@@ -1040,7 +1040,7 @@ const FrequencyResponseChart = ({
       hasConvolution,
       headphone,
       isAutoPreAmpOn,
-      isSmartHeadroomOn,
+
       isEqQuiet,
       preAmp,
       smartEq,

@@ -91,6 +91,14 @@ export const registerPreampIpc = ({
     const automatic = getResolvedPreAmp({ ...state, isAutoPreAmpOn: true });
     state.isAutoPreAmpOn = isAutoPreAmpOn;
     state.preAmp = automatic;
+    // Switching off drops what was measured. Nothing updates it while the mode
+    // is off, so keeping it would leave a spectrum and a trim in memory ready to
+    // move the level the instant the switch came back — evidence about a session
+    // that ended, applied to one that has not started listening yet.
+    if (!isAutoPreAmpOn) {
+      state.smartHeadroomProgramme = undefined;
+      state.smartHeadroomTrimDb = undefined;
+    }
     // This is device-profile state, just like its manual preamp. Without the
     // active-session path the flag changed in memory, then the flush rebuilt APO
     // from the attached profile where Auto normalize was still off — so enabling
@@ -104,47 +112,11 @@ export const registerPreampIpc = ({
     );
   });
 
-  ipcMain.on(ChannelEnum.SET_SMART_HEADROOM, async (event, arg) => {
-    // The same reasoning as the switch above, one position along: whichever way
-    // this moves, the number that comes out is the one the resolver derives for
-    // the chain as it stands, asked with both flags forced into the position
-    // they are about to be in. Reading it before the assignment would answer
-    // for the mode being left rather than the mode being entered.
-    const isSmartHeadroomOn = Boolean(arg[0]);
-    state.isSmartHeadroomOn = isSmartHeadroomOn;
-    // Turning Smart off drops the measurement with it. Keeping it would leave a
-    // spectrum in memory that nothing is updating any more, ready to be applied
-    // the moment somebody switched back — evidence about a session that ended.
-    if (!isSmartHeadroomOn) {
-      state.smartHeadroomProgramme = undefined;
-      state.smartHeadroomTrimDb = undefined;
-    }
-    /*
-     * Resolved as the state actually is, NOT with the flag forced on.
-     *
-     * The switch above forces it because both of its directions are about the
-     * automatic value. This one is not: Smart is a position of that switch, so
-     * it is only ever reached with Auto normalize already on, and forcing the
-     * flag here would mean that a call arriving while it is off replaces a
-     * preamp the user typed with a chain-derived one. Nothing in the UI does
-     * that today — the control enables Auto normalize first — but this is an
-     * IPC endpoint, and the manual value it would overwrite is not recoverable.
-     */
-    state.preAmp = getResolvedPreAmp(state);
-    await handleUpdateHelper<number>(
-      event,
-      ChannelEnum.SET_SMART_HEADROOM,
-      state.preAmp,
-      false,
-      true,
-    );
-  });
-
   ipcMain.on(ChannelEnum.SET_SMART_HEADROOM_MEASUREMENT, async (event, arg) => {
-    // Ignored unless the mode is on. A measurement arriving for a mode nobody
-    // asked for would sit in state waiting to change the preamp the instant the
-    // switch moved, which is not what moving that switch should mean.
-    if (!state.isSmartHeadroomOn || !state.isAutoPreAmpOn) {
+    // Ignored while the user owns the level. Auto normalize off means the preamp
+    // is theirs, and a measurement arriving then would sit in state waiting to
+    // move it the instant the switch came back on.
+    if (!state.isAutoPreAmpOn) {
       return;
     }
     const points = Array.isArray(arg[0]) ? arg[0] : [];

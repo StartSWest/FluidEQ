@@ -323,9 +323,6 @@ const presetForDeviceChain = (
     // undefined would otherwise overwrite the default with nothing. Absent
     // means automatic, which every profile written before the flag existed was.
     isAutoPreAmpOn: preset.isAutoPreAmpOn ?? true,
-    // Absent means off, unlike the line above: an older profile predates the
-    // mode and must not acquire it by being opened in a newer build.
-    isSmartHeadroomOn: preset.isSmartHeadroomOn ?? false,
     customFx,
   };
 
@@ -687,7 +684,6 @@ export const getStateForAudioDevice = (
     // flag existed was. Not `?? defaultState` — the default is the same value,
     // but saying so here keeps the rule in one place.
     isAutoPreAmpOn: preset?.isAutoPreAmpOn ?? true,
-    isSmartHeadroomOn: preset?.isSmartHeadroomOn ?? false,
   };
 };
 

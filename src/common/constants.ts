@@ -36,6 +36,41 @@ const DEFAULT_QUALITY = 1;
 export const clampGain = (gain: number) =>
   Number.isFinite(gain) ? Math.min(MAX_GAIN, Math.max(MIN_GAIN, gain)) : 0;
 
+/**
+ * The preamp's own floor, and it is nothing like a band's.
+ *
+ * A BAND'S RANGE IS A TASTE LIMIT. THE PREAMP'S IS AN ARITHMETIC ONE, AND THE
+ * TWO HAVE NO REASON TO MATCH. ±20 dB bounds what one filter may be asked to
+ * do, which is a judgement about what is musically sensible. The preamp is not
+ * a judgement: it is whatever number cancels the chain's peak, and the chain is
+ * a SUM of layers that are each allowed 20 dB of their own.
+ *
+ * Sharing the band limit therefore capped the answer below the question. Two
+ * bands at +20 dB an octave apart overlap into about +26 dB of chain peak, and
+ * the preamp needed -26 to cancel it — but clamped at -20 it reserved six
+ * decibels less than the chain takes, so the output clipped inside Equalizer
+ * APO by construction, on a curve the editor had just invited the user to draw.
+ * No measurement can recover that: it is the reserve being smaller than what is
+ * being reserved against.
+ *
+ * Sixty decibels covers any chain the editor can express, including several
+ * fully boosted layers stacked, and it costs nothing to allow — a preamp is one
+ * multiplication, and a value nobody's chain reaches is never written.
+ */
+export const PREAMP_MIN_GAIN = -60;
+
+/**
+ * Bound a preamp rather than a band. See PREAMP_MIN_GAIN.
+ *
+ * The ceiling stays at MAX_GAIN: a preamp that pushes level UP is makeup for a
+ * chain that only cuts, and +20 dB of that is already far more than any real
+ * correction asks for. It is only the floor that had to move.
+ */
+export const clampPreAmp = (gain: number) =>
+  Number.isFinite(gain)
+    ? Math.min(MAX_GAIN, Math.max(PREAMP_MIN_GAIN, gain))
+    : 0;
+
 export const MAX_FREQUENCY = 20000;
 export const MIN_FREQUENCY = 1;
 export const MIN_QUALITY = 0.01;
@@ -349,18 +384,6 @@ export interface IEqImportReference {
 export interface IState {
   isEnabled: boolean;
   isAutoPreAmpOn: boolean;
-  /**
-   * The third position of the Auto normalize switch: reserve what the music
-   * needs rather than what the chain could theoretically need.
-   *
-   * A separate flag rather than turning `isAutoPreAmpOn` into an enum, because
-   * that boolean is written by eight files, validated by a schema, and stored
-   * in every device profile ever saved. Two booleans express the same three
-   * positions — Off, Normalize, Smart — with no migration and no profile
-   * written by an older build becoming unreadable. Smart is only ever consulted
-   * while `isAutoPreAmpOn` is true.
-   */
-  isSmartHeadroomOn?: boolean;
   /**
    * What the music itself measures, per frequency region. SESSION ONLY.
    *
@@ -694,16 +717,6 @@ export interface IPresetV2 {
    * automatic, which is what every profile written before this existed was.
    */
   isAutoPreAmpOn?: boolean;
-  /**
-   * Whether this profile wants that preamp measured rather than assumed.
-   *
-   * Absent means no, unlike its neighbour above: every profile written before
-   * this existed predates the mode, and a profile silently gaining an adaptive
-   * preamp because the app updated is the one outcome the third switch position
-   * was chosen to avoid. Only the flag is stored — the measurement behind it
-   * never is.
-   */
-  isSmartHeadroomOn?: boolean;
   /** Which measured headphone this profile's bands came from, if any. */
   headset?: string;
   /** Which measurement of it — models usually have more than one. */
@@ -917,12 +930,6 @@ export const getDefaultState = (): IState => {
   return {
     isEnabled: true,
     isAutoPreAmpOn: true,
-    // Off by default, and that is the whole reason it is a third position
-    // rather than a change to the second. Smart trades determinism away: two
-    // people with identical chains get different preamps because they listen to
-    // different records. Nobody's output level starts moving on its own because
-    // they updated.
-    isSmartHeadroomOn: false,
     isGraphViewOn: true, // true as default so that spinner can be seen on initial load
     isCaseSensitiveFs: false, // false as default so we assume windows case insensitive behavior (foo = FoO)
     preAmp: 0,

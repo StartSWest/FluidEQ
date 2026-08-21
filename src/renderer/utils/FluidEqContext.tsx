@@ -49,6 +49,7 @@ import {
   ErrorDescription,
   isBlockingError as isBlockingErrorCode,
 } from '../../common/errors';
+import ChannelEnum from '../../common/channels';
 import { cloneFilters } from '../../common/utils';
 import { getEqualizerState } from './equalizerApi';
 import { IBandRevealBand, planBandReveal, revealBands } from './bandReveal';
@@ -163,7 +164,6 @@ export interface IFluidEqContext extends IState {
   setGlobalError: (newValue?: ErrorDescription) => void;
   setIsEnabled: (newValue: boolean) => void;
   setAutoPreAmpOn: (newValue: boolean) => void;
-  setSmartHeadroomOn: (newValue: boolean) => void;
   setGraphViewOn: (newValue: boolean) => void;
   setPreAmp: (newValue: number) => void;
   /** Optional APO convolution profile applied before the editable EQ. */
@@ -396,9 +396,6 @@ export const FluidEqProvider = ({ children }: IFluidEqProviderProps) => {
   const [isAutoPreAmpOn, setAutoPreAmpOn] = useState<boolean>(
     DEFAULT_STATE.isAutoPreAmpOn,
   );
-  const [isSmartHeadroomOn, setSmartHeadroomOn] = useState<boolean>(
-    Boolean(DEFAULT_STATE.isSmartHeadroomOn),
-  );
   const [isGraphViewOn, setIsGraphViewOn] = useState<boolean>(
     DEFAULT_STATE.isGraphViewOn,
   );
@@ -564,7 +561,6 @@ export const FluidEqProvider = ({ children }: IFluidEqProviderProps) => {
         // Keep the persisted preference so Auto normalize can be disabled for
         // users who want to set the APO preamp manually.
         setAutoPreAmpOn(state.isAutoPreAmpOn);
-        setSmartHeadroomOn(Boolean(state.isSmartHeadroomOn));
         setGraphViewOn(state.isGraphViewOn);
         setPreAmp(state.preAmp);
         setIsFlat(state.isFlat);
@@ -665,6 +661,33 @@ export const FluidEqProvider = ({ children }: IFluidEqProviderProps) => {
     performHealthCheck();
   }, [performHealthCheck]);
 
+  /*
+   * THE WRITER DERIVES THE PREAMP; THIS IS HOW THE WINDOW HEARS ABOUT IT.
+   *
+   * Auto normalize keeps measuring while music plays, so the number moves
+   * without anybody touching a control. The renderer used to learn it only when
+   * a switch was clicked, which meant the slider and the final curve showed
+   * whatever was true at that click and then froze: measured live, the config
+   * carried -4.36 dB while the sidebar sat at -20.00 dB and stayed there.
+   *
+   * The measurement channel already answers with the value the writer settled
+   * on. Nothing was listening. This listens.
+   */
+  useEffect(() => {
+    const unsubscribe = window.electron.ipcRenderer.on(
+      ChannelEnum.SET_SMART_HEADROOM_MEASUREMENT,
+      (payload) => {
+        const applied = (payload as { result?: unknown } | undefined)?.result;
+        if (typeof applied === 'number' && Number.isFinite(applied)) {
+          setPreAmp(applied);
+        }
+      },
+    );
+    return () => {
+      unsubscribe();
+    };
+  }, []);
+
   // The main process owns the switch: it notices Windows changing endpoint,
   // loads that output's profile and then says so. Everything on screen — bands,
   // preamp, voicing, driver correction, convolution — is a property of the
@@ -703,7 +726,6 @@ export const FluidEqProvider = ({ children }: IFluidEqProviderProps) => {
         isEngineUsable: isEnabled && !isBlockingErrorCode(globalError),
         isEnabled,
         isAutoPreAmpOn,
-        isSmartHeadroomOn,
         isGraphViewOn,
         isCaseSensitiveFs,
         preAmp,
@@ -717,7 +739,6 @@ export const FluidEqProvider = ({ children }: IFluidEqProviderProps) => {
         setGlobalError,
         setIsEnabled,
         setAutoPreAmpOn,
-        setSmartHeadroomOn,
         setGraphViewOn,
         setPreAmp,
         convolution,

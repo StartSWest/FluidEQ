@@ -36,6 +36,7 @@ import {
   AutoEqFormat,
   FilterTypeEnum,
   getDefaultState,
+  PREAMP_MIN_GAIN,
   IPresetV2,
   IState,
 } from 'common/constants';
@@ -211,18 +212,47 @@ describe('flush', () => {
       });
     });
 
-    it('clamps legacy gain values to the safe +/-20 dB range', () => {
+    /*
+     * A BAND'S LIMIT AND THE PREAMP'S ARE NO LONGER THE SAME NUMBER.
+     *
+     * They used to share ±20 dB, and that shared floor was a bug rather than a
+     * policy: a band's range bounds what one filter may be asked to do, while
+     * the preamp is whatever cancels the SUM of every layer. Two bands at +20 dB
+     * an octave apart peak around +26, so a preamp capped at -20 reserved six
+     * decibels less than the chain took and the output clipped by construction.
+     *
+     * So the band half of this case still holds exactly, and the preamp half is
+     * deliberately gone — see PREAMP_MIN_GAIN.
+     */
+    it('clamps legacy band gains to the safe +/-20 dB range', () => {
       const state = getDefaultState();
       const firstFilter = Object.values(state.filters)[0];
       firstFilter.gain = 30;
-      state.preAmp = -30;
 
       const returnedString = stateToString(state);
 
       expect(returnedString).toContain('Gain 20 dB');
-      expect(returnedString).toContain('Preamp: -20 dB');
       expect(returnedString).not.toContain('Gain 30 dB');
-      expect(returnedString).not.toContain('Preamp: -30 dB');
+    });
+
+    it('lets the preamp reserve more headroom than a band may ask for', () => {
+      const state = getDefaultState();
+      // Two fully boosted bands an octave apart, which is a curve the editor
+      // invites anybody to draw and which needs more than 20 dB back.
+      const [first, second] = Object.values(state.filters);
+      first.frequency = 64;
+      first.gain = 20;
+      first.quality = 1;
+      second.frequency = 125;
+      second.gain = 20;
+      second.quality = 1;
+
+      const reserved = Number(
+        (stateToString(state).match(/Preamp:\s*(-?[0-9.]+)/) ?? [])[1],
+      );
+
+      expect(reserved).toBeLessThan(-20);
+      expect(reserved).toBeGreaterThanOrEqual(PREAMP_MIN_GAIN);
     });
 
     it('omits every filter while the state is explicitly flat', () => {

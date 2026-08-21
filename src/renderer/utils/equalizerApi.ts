@@ -502,16 +502,6 @@ export const disableAutoPreAmp = (): Promise<number> => {
 };
 
 /**
- * Move Auto normalize into or out of its adaptive position.
- * @returns { Promise<number> } the preamp the writer derived for the new mode.
- */
-export const setSmartHeadroom = (isOn: boolean): Promise<number> => {
-  const channel = ChannelEnum.SET_SMART_HEADROOM;
-  window.electron.ipcRenderer.sendMessage(channel, [isOn]);
-  return promisifyResult(simpleResponseHandler<number>(), channel);
-};
-
-/**
  * Report what the capture has heard to the process that owns the preamp.
  *
  * Fire and forget on purpose. This runs on a slow timer for as long as somebody
