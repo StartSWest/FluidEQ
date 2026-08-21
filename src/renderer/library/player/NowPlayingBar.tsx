@@ -20,6 +20,8 @@ import { CSSProperties, useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { ILibraryTrack } from '../../../common/library/types';
 import { TLibraryRepeat } from '../../../common/library/queue';
+import { useTransportStrip } from '../../audio/useTransportStrip';
+import { useMediaQuery } from '../../utils/useMediaQuery';
 import { useTranslation } from '../../utils/I18nContext';
 import AnchoredMenu from '../../widgets/AnchoredMenu';
 import MenuIcon from '../../icons/MenuIcon';
@@ -27,6 +29,23 @@ import LibraryCoverArt from '../LibraryCoverArt';
 import '../../styles/NowPlayingBar.scss';
 
 export interface INowPlayingBarProps {
+  /**
+   * Over the content rather than beside it, in full screen.
+   *
+   * The strip this bar reserves at the foot of the window is what keeps it
+   * from covering the last row of a tab. Full screen has no last row to
+   * protect: the picture is meant to reach the edge, and a reserved strip
+   * there is a band of background under a stage that should have filled it.
+   */
+  isFloating?: boolean;
+  /**
+   * Faded out of the way, while full screen has been still for a moment.
+   *
+   * Set from the same store the graph's own toolbar reads, so the two go and
+   * come back together: two pieces of chrome disagreeing by a few hundred
+   * milliseconds is worse than either behaviour on its own.
+   */
+  isIdle?: boolean;
   track: ILibraryTrack | undefined;
   isPlaying: boolean;
   positionMs: number;
@@ -62,7 +81,7 @@ export interface INowPlayingBarProps {
 /** `m:ss`, and blank rather than `NaN:NaN` for anything that is not a real,
  * non-negative duration — the same rule `LibraryListView`'s own formatter
  * applies to a track's tagged length. */
-const formatDuration = (ms: number): string => {
+export const formatDuration = (ms: number): string => {
   if (!Number.isFinite(ms) || ms < 0) {
     return '';
   }
@@ -131,7 +150,8 @@ type TTransportIcon =
   | 'repeat'
   | 'back5'
   | 'forward5'
-  | 'volume';
+  | 'volume'
+  | 'volumeOff';
 
 /**
  * Compact transport glyphs, sized for a 34px circular button — the same
@@ -141,7 +161,7 @@ type TTransportIcon =
  * anywhere in the icon set, so those two are new, drawn in the same
  * stroke-only 24x24 language as the rest.
  */
-const TransportIcon = ({ name }: { name: TTransportIcon }) => {
+export const TransportIcon = ({ name }: { name: TTransportIcon }) => {
   let drawing = null;
   if (name === 'previous') {
     drawing = (
@@ -253,6 +273,22 @@ const TransportIcon = ({ name }: { name: TTransportIcon }) => {
         />
       </>
     );
+  } else if (name === 'volumeOff') {
+    // The same cone, with the arcs struck through rather than removed: a
+    // muted fader and a quiet one have to be told apart at a glance, and an
+    // icon that merely loses its waves reads as "turned down".
+    drawing = (
+      <>
+        <path
+          className="now-playing-bar__icon-fill"
+          d="M5 9.4h3.1l4.2-3.2v11.6l-4.2-3.2H5V9.4z"
+        />
+        <path
+          className="now-playing-bar__icon-stroke"
+          d="M15.5 9.8l4.4 4.4M19.9 9.8l-4.4 4.4"
+        />
+      </>
+    );
   } else if (name === 'shuffle') {
     drawing = (
       <>
@@ -305,6 +341,8 @@ const TransportIcon = ({ name }: { name: TTransportIcon }) => {
  * file) without a provider at all.
  */
 const NowPlayingBar = ({
+  isIdle = false,
+  isFloating = false,
   track,
   isPlaying,
   positionMs,
@@ -325,48 +363,16 @@ const NowPlayingBar = ({
   const { t } = useTranslation();
   const barRef = useRef<HTMLDivElement | null>(null);
 
-  // A reserved strip at the foot of the window, only while there is
-  // something to reserve it for — mirrors the `.minimized` toggle `App.tsx`
-  // already applies to `#root` for the response graph, so `App.scss` can
-  // give the workspace real breathing room instead of the bar sitting over
-  // whatever was already at the bottom of the screen.
-  useEffect(() => {
-    const root = document.getElementById('root');
-    root?.classList.toggle('has-now-playing', Boolean(track));
-    return () => root?.classList.remove('has-now-playing');
-  }, [track]);
+  // Where the fader was before it was muted, so unmuting is not a guess.
+  // A ref because it is only ever read on the next press.
+  const restoreVolumeRef = useRef(volume > 0 ? volume : 1);
+  if (volume > 0) {
+    restoreVolumeRef.current = volume;
+  }
 
-  // The exact strip the bar occupies, published as a CSS variable rather
-  // than a guessed pixel figure baked into `App.scss` — the same `--editor-
-  // height` pattern `App.tsx` already uses for the graph divider, so a
-  // future change to this bar's own padding or icon size cannot silently
-  // drift out of sync with how much room `#root` sets aside for it.
-  // `ResizeObserver` is absent in the jsdom this file's own tests run
-  // under — see `WaveformVisualizer.tsx` for the same guard — so the effect
-  // is simply a no-op there rather than something to mock.
-  useEffect(() => {
-    const element = barRef.current;
-    const root = document.getElementById('root');
-    if (!element || !root || typeof ResizeObserver === 'undefined') {
-      return undefined;
-    }
-    const applyHeight = () => {
-      // Measured from the foot of the window to the top of the card, not the
-      // card's own height. Now that it is inset by the shell's gutter rather
-      // than sitting on the bottom edge, its height is no longer the room it
-      // takes up — and reserving only that would leave the gutter's worth of
-      // content underneath it. Taking it this way needs no second constant
-      // and cannot fall out of step with the stylesheet that sets the inset.
-      root.style.setProperty(
-        '--now-playing-bar-height',
-        `${Math.round(window.innerHeight - element.getBoundingClientRect().top)}px`,
-      );
-    };
-    applyHeight();
-    const observer = new ResizeObserver(applyHeight);
-    observer.observe(element);
-    return () => observer.disconnect();
-  }, [track]);
+  // The strip of window this bar occupies, reserved and measured — see
+  // `useTransportStrip`, which the other tabs' bar shares.
+  useTransportStrip(barRef, Boolean(track), isFloating);
 
   /**
    * Where the thumb is while it is being dragged, and nothing else.
@@ -392,22 +398,16 @@ const NowPlayingBar = ({
    * the shell's own: below it `App.scss` has already dropped to two columns,
    * and the bar's three-column grid has no room left for a slider.
    */
-  const [isCompact, setIsCompact] = useState(false);
-  useEffect(() => {
-    // Guarded, the way `KaraokeWorkspace` and `KaraokeLyrics` guard their own
-    // calls: jsdom has no `matchMedia`, and a stub for it in the shared test
-    // setup is not a free thing to add — one answering `matches: false` where
-    // there had been nothing flipped Karaoke onto a different branch and took
-    // its pitch lane off the stage.
-    if (typeof window.matchMedia !== 'function') {
-      return undefined;
-    }
-    const query = window.matchMedia('(max-width: 900px)');
-    const apply = () => setIsCompact(query.matches);
-    apply();
-    query.addEventListener('change', apply);
-    return () => query.removeEventListener('change', apply);
-  }, []);
+  const isCompact = useMediaQuery('(max-width: 900px)');
+
+  /**
+   * Narrower still: no room for a seek line beside the keys.
+   *
+   * Measured at 700 the line was under the fader next to it. The keys stay on
+   * the surface because they are what a bar is for; the line and its clock go
+   * behind the button, with everything else that had to leave.
+   */
+  const isTight = useMediaQuery('(max-width: 700px)');
 
   /** The button the options menu hangs off, or nothing while it is shut —
    * the same shape `KaraokeTransport` gives its own mix popover. */
@@ -448,8 +448,78 @@ const NowPlayingBar = ({
 
   /** The three secondary controls, written once and placed in one of two
    * spots — see where this is used. */
+  const format = formatSummary(track);
+  const clampedPosition = Math.min(positionMs, Math.max(1, durationMs));
+  // While a drag is in progress the bar shows where the thumb is, not where
+  // the audio still is — the filled track and both clocks with it, or the
+  // thumb would slide across a bar that disagreed with it.
+  const shownPosition = scrubMs ?? clampedPosition;
+  const progressPercent =
+    durationMs > 0 ? Math.min(100, (shownPosition / durationMs) * 100) : 0;
+
+  /**
+   * The seek line and its two clocks.
+   *
+   * Named because it is drawn in one of two places and never in both: beside
+   * the keys while there is room, and inside the options menu when there is
+   * not. Rendered twice and hidden with CSS it would be two sliders a screen
+   * reader offers where only one of them is real.
+   */
+  const positionRow = (
+    <div className="now-playing-bar__position">
+      <time className="now-playing-bar__time">
+        {formatDuration(shownPosition)}
+      </time>
+      <input
+        type="range"
+        className="now-playing-bar__seek"
+        min={0}
+        max={Math.max(1, durationMs)}
+        step={100}
+        value={shownPosition}
+        style={
+          {
+            '--now-playing-progress': `${progressPercent}%`,
+          } as CSSProperties
+        }
+        aria-label={t('library.position')}
+        // `durationMs` alone leaves this draggable for an unplayable
+        // track: `LibraryPlayerContext` sets it from the tag before it
+        // even checks `isPlayable`, so a file with real metadata but no
+        // demuxer still reports a real length here. Harmless in itself —
+        // `seek()` only ever touches a srcless element — but a live
+        // slider next to a disabled Play button and a "cannot play this
+        // format" message reads as broken.
+        disabled={durationMs <= 0 || isUnplayable}
+        // A drag moves the thumb; only letting go moves the audio.
+        //
+        // `change` on a range input fires on every pointer move, so
+        // seeking from here asked the decoder for a new position dozens
+        // of times a second — and each one abandons what it was decoding
+        // and re-syncs, which is heard as a fragment of the passage
+        // repeating. The five-second buttons never did it because they
+        // ask exactly once; that is the whole difference, and it is the
+        // reason this is a held value rather than a live one.
+        //
+        // Cleared in the same breath as the seek: `seek` reads the
+        // playhead straight back off the element, so by the time this
+        // renders again `positionMs` is already the number the thumb is
+        // showing and there is nothing to jump back from.
+        onChange={(event) => startScrub(Number(event.target.value))}
+        onPointerUp={commitScrub}
+        onPointerCancel={commitScrub}
+        onKeyUp={commitScrub}
+        onBlur={commitScrub}
+      />
+      <time className="now-playing-bar__time">
+        -{formatDuration(Math.max(0, durationMs - shownPosition))}
+      </time>
+    </div>
+  );
+
   const secondaryControls = (
     <>
+      {isTight && positionRow}
       <button
         type="button"
         className="now-playing-bar__toggle"
@@ -481,9 +551,26 @@ const NowPlayingBar = ({
         </span>
       </button>
       <div className="now-playing-bar__volume">
-        <span className="now-playing-bar__volume-icon" aria-hidden="true">
-          <TransportIcon name="volume" />
-        </span>
+        {/* The icon is the mute switch, the way karaoke's faders are. A fader
+            dragged to zero leaves nothing to say where it was; this puts it
+            back. */}
+        <button
+          type="button"
+          className="now-playing-bar__volume-icon"
+          aria-label={t(volume > 0 ? 'library.mute' : 'library.unmute')}
+          title={t(volume > 0 ? 'library.mute' : 'library.unmute')}
+          aria-pressed={volume === 0}
+          onClick={() => {
+            if (volume > 0) {
+              restoreVolumeRef.current = volume;
+              onVolume(0);
+              return;
+            }
+            onVolume(restoreVolumeRef.current);
+          }}
+        >
+          <TransportIcon name={volume > 0 ? 'volume' : 'volumeOff'} />
+        </button>
         <input
           type="range"
           className="now-playing-bar__volume-slider"
@@ -499,18 +586,12 @@ const NowPlayingBar = ({
           aria-label={t('library.volume')}
           onChange={(event) => onVolume(Number(event.target.value))}
         />
+        <span className="now-playing-bar__volume-value" aria-hidden="true">
+          {Math.round(volume * 100)}%
+        </span>
       </div>
     </>
   );
-
-  const format = formatSummary(track);
-  const clampedPosition = Math.min(positionMs, Math.max(1, durationMs));
-  // While a drag is in progress the bar shows where the thumb is, not where
-  // the audio still is — the filled track and both clocks with it, or the
-  // thumb would slide across a bar that disagreed with it.
-  const shownPosition = scrubMs ?? clampedPosition;
-  const progressPercent =
-    durationMs > 0 ? Math.min(100, (shownPosition / durationMs) * 100) : 0;
 
   // Portalled to `document.body`, the same escape `AnchoredMenu` uses and for
   // the same reason: this is fixed to the foot of the *window*, and mounting
@@ -521,7 +602,9 @@ const NowPlayingBar = ({
   return createPortal(
     <div
       ref={barRef}
-      className={`now-playing-bar${isCompact ? ' is-compact' : ''}`}
+      className={`now-playing-bar${isCompact ? ' is-compact' : ''}${
+        isIdle ? ' is-idle' : ''
+      }${isFloating ? ' is-floating' : ''}`}
       role="region"
       aria-label={t('library.nowPlaying')}
     >
@@ -563,32 +646,46 @@ const NowPlayingBar = ({
         )}
       </div>
 
-      <div className="now-playing-bar__transport">
+      {/* The bar's middle column, and nothing else in it. That is what
+          keeps the play button on the same pixel whichever tab is driving
+          the bar: the two columns either side of it are equal fractions,
+          so the group between them is centred in the window whether the
+          tab has five buttons or one. */}
+      <div className="now-playing-bar__deck">
         <div className="now-playing-bar__buttons">
-          <button
-            type="button"
-            className="now-playing-bar__control"
-            aria-label={t('library.previous')}
-            title={t('library.previous')}
-            onClick={() => onSkip(-1)}
-          >
-            <TransportIcon name="previous" />
-          </button>
-          {/* Five seconds either way, between the track skips and Play.
+          {/* The flanks are equal fixed widths and the play button sits
+            between them, which is what keeps it on the window's centre
+            line. Six buttons do not divide evenly around a seventh, so
+            left to itself the row put play half a button off centre and
+            the Media tab, with one button, put it dead centre — and the
+            control moved under the pointer on the way between tabs. */}
+          <div className="now-playing-bar__flank now-playing-bar__flank--start">
+            <button
+              type="button"
+              className="now-playing-bar__control"
+              aria-label={t('library.previous')}
+              title={t('library.previous')}
+              onClick={() => onSkip(-1)}
+            >
+              <TransportIcon name="previous" />
+            </button>
+            {/* Five seconds either way, between the track skips and Play.
               Clamped at both ends here rather than trusting `seek`: a
               negative position is refused by the element and a position past
               the end ends the track, and neither is what "back five seconds"
               near the start or "forward five" near the finish means. */}
-          <button
-            type="button"
-            className="now-playing-bar__control now-playing-bar__nudge"
-            aria-label={t('library.back5')}
-            title={t('library.back5')}
-            disabled={durationMs <= 0 || isUnplayable}
-            onClick={() => onSeek(Math.max(0, positionMs - NUDGE_MS))}
-          >
-            <TransportIcon name="back5" />
-          </button>
+            <button
+              type="button"
+              className="now-playing-bar__control now-playing-bar__nudge"
+              aria-label={t('library.back5')}
+              title={t('library.back5')}
+              disabled={durationMs <= 0 || isUnplayable}
+              onClick={() => onSeek(Math.max(0, positionMs - NUDGE_MS))}
+            >
+              <TransportIcon name="back5" />
+            </button>
+          </div>
+
           <button
             type="button"
             className={`now-playing-bar__control now-playing-bar__play${
@@ -603,133 +700,94 @@ const NowPlayingBar = ({
           >
             <TransportIcon name={isPlaying ? 'pause' : 'play'} />
           </button>
-          <button
-            type="button"
-            className="now-playing-bar__control now-playing-bar__nudge"
-            aria-label={t('library.forward5')}
-            title={t('library.forward5')}
-            disabled={durationMs <= 0 || isUnplayable}
-            onClick={() => onSeek(Math.min(durationMs, positionMs + NUDGE_MS))}
-          >
-            <TransportIcon name="forward5" />
-          </button>
-          <button
-            type="button"
-            className="now-playing-bar__control"
-            aria-label={t('library.next')}
-            title={t('library.next')}
-            onClick={() => onSkip(1)}
-          >
-            <TransportIcon name="next" />
-          </button>
-          {/* The one control that always ends the dead end a video with
-              nothing queued after it leaves the Library tab in — see
-              `LibraryPlayerContext.stop`'s own comment for why this bar, not
-              a close button on the video stage, is where that fix lives. */}
-          <button
-            type="button"
-            className="now-playing-bar__control"
-            aria-label={t('library.stop')}
-            title={t('library.stop')}
-            onClick={onStop}
-          >
-            <TransportIcon name="stop" />
-          </button>
+
+          <div className="now-playing-bar__flank now-playing-bar__flank--end">
+            <button
+              type="button"
+              className="now-playing-bar__control now-playing-bar__nudge"
+              aria-label={t('library.forward5')}
+              title={t('library.forward5')}
+              disabled={durationMs <= 0 || isUnplayable}
+              onClick={() =>
+                onSeek(Math.min(durationMs, positionMs + NUDGE_MS))
+              }
+            >
+              <TransportIcon name="forward5" />
+            </button>
+            <button
+              type="button"
+              className="now-playing-bar__control"
+              aria-label={t('library.next')}
+              title={t('library.next')}
+              onClick={() => onSkip(1)}
+            >
+              <TransportIcon name="next" />
+            </button>
+            {/* Back among the transport keys, where it was asked for, and it
+            costs the row nothing: the flank it sits in is a fixed width
+            whether it holds two controls or three. */}
+            <button
+              type="button"
+              className="now-playing-bar__control now-playing-bar__stop"
+              aria-label={t('library.stop')}
+              title={t('library.stop')}
+              onClick={onStop}
+            >
+              <TransportIcon name="stop" />
+            </button>
+          </div>
         </div>
 
-        <div className="now-playing-bar__position">
-          <time className="now-playing-bar__time">
-            {formatDuration(shownPosition)}
-          </time>
-          <input
-            type="range"
-            className="now-playing-bar__seek"
-            min={0}
-            max={Math.max(1, durationMs)}
-            step={100}
-            value={shownPosition}
-            style={
-              {
-                '--now-playing-progress': `${progressPercent}%`,
-              } as CSSProperties
-            }
-            aria-label={t('library.position')}
-            // `durationMs` alone leaves this draggable for an unplayable
-            // track: `LibraryPlayerContext` sets it from the tag before it
-            // even checks `isPlayable`, so a file with real metadata but no
-            // demuxer still reports a real length here. Harmless in itself —
-            // `seek()` only ever touches a srcless element — but a live
-            // slider next to a disabled Play button and a "cannot play this
-            // format" message reads as broken.
-            disabled={durationMs <= 0 || isUnplayable}
-            // A drag moves the thumb; only letting go moves the audio.
-            //
-            // `change` on a range input fires on every pointer move, so
-            // seeking from here asked the decoder for a new position dozens
-            // of times a second — and each one abandons what it was decoding
-            // and re-syncs, which is heard as a fragment of the passage
-            // repeating. The five-second buttons never did it because they
-            // ask exactly once; that is the whole difference, and it is the
-            // reason this is a held value rather than a live one.
-            //
-            // Cleared in the same breath as the seek: `seek` reads the
-            // playhead straight back off the element, so by the time this
-            // renders again `positionMs` is already the number the thumb is
-            // showing and there is nothing to jump back from.
-            onChange={(event) => startScrub(Number(event.target.value))}
-            onPointerUp={commitScrub}
-            onPointerCancel={commitScrub}
-            onKeyUp={commitScrub}
-            onBlur={commitScrub}
-          />
-          <time className="now-playing-bar__time">
-            -{formatDuration(Math.max(0, durationMs - shownPosition))}
-          </time>
-        </div>
+        {!isTight && positionRow}
       </div>
 
-      {/* Shuffle, repeat and the volume fader — on the bar while there is
+      {/* The third column: the faders, and whatever else the window has
+          room for. One item, because the column has to be one column for
+          the deck between the two of them to be centred. */}
+      <div className="now-playing-bar__aside">
+        {/* Shuffle, repeat and the volume fader — on the bar while there is
           room for them, and behind one button when there is not. Never
           duplicated into the document and hidden with CSS: two copies of a
           fader is two things a screen reader offers and only one of them
           real. */}
-      {isCompact ? (
-        <div className="now-playing-bar__secondary">
-          <button
-            type="button"
-            className="now-playing-bar__toggle"
-            aria-label={t('library.playbackOptions')}
-            title={t('library.playbackOptions')}
-            aria-haspopup="dialog"
-            aria-expanded={Boolean(optionsAnchor)}
-            onClick={(event) => {
-              const trigger = event.currentTarget;
-              setOptionsAnchor((current) =>
-                current === trigger ? null : trigger,
-              );
-            }}
-          >
-            {/* The cog the rest of the app already uses for "settings",
+        {isCompact ? (
+          <div className="now-playing-bar__secondary">
+            <button
+              type="button"
+              className="now-playing-bar__toggle"
+              aria-label={t('library.playbackOptions')}
+              title={t('library.playbackOptions')}
+              aria-haspopup="dialog"
+              aria-expanded={Boolean(optionsAnchor)}
+              onClick={(event) => {
+                const trigger = event.currentTarget;
+                setOptionsAnchor((current) =>
+                  current === trigger ? null : trigger,
+                );
+              }}
+            >
+              {/* The cog the rest of the app already uses for "settings",
                 rather than a hamburger — this opens three controls, not a
                 list of places to go. */}
-            <MenuIcon
-              name="settings"
-              className="now-playing-bar__options-icon"
-            />
-          </button>
-          <AnchoredMenu
-            anchor={optionsAnchor}
-            isOpen={Boolean(optionsAnchor)}
-            className="now-playing-bar__options"
-            role="dialog"
-            ariaLabel={t('library.playbackOptions')}
-          >
-            {secondaryControls}
-          </AnchoredMenu>
-        </div>
-      ) : (
-        <div className="now-playing-bar__secondary">{secondaryControls}</div>
-      )}
+              <MenuIcon
+                name="settings"
+                className="now-playing-bar__options-icon"
+              />
+            </button>
+            <AnchoredMenu
+              anchor={optionsAnchor}
+              isOpen={Boolean(optionsAnchor)}
+              className="now-playing-bar__options"
+              role="dialog"
+              ariaLabel={t('library.playbackOptions')}
+            >
+              {secondaryControls}
+            </AnchoredMenu>
+          </div>
+        ) : (
+          <div className="now-playing-bar__secondary">{secondaryControls}</div>
+        )}
+      </div>
     </div>,
     document.body,
   );

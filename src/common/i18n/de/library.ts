@@ -109,6 +109,8 @@ const library: Partial<Dictionary> = {
   'library.repeat.one': 'Diesen Song wiederholen',
   'library.repeat.off': 'Nicht wiederholen',
   'library.volume': 'Lautstärke',
+  'library.mute': 'Stumm schalten',
+  'library.unmute': 'Ton einschalten',
   'library.playbackOptions': 'Wiedergabeoptionen',
   'library.position': 'Position',
   'library.queue': 'Warteschlange',

@@ -111,6 +111,8 @@ const library: Partial<Dictionary> = {
   'library.repeat.one': 'この曲をリピート',
   'library.repeat.off': 'リピートしない',
   'library.volume': '音量',
+  'library.mute': 'ミュート',
+  'library.unmute': 'ミュート解除',
   'library.playbackOptions': '再生オプション',
   'library.position': '再生位置',
   'library.queue': '再生キュー',

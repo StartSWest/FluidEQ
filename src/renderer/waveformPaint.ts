@@ -330,6 +330,25 @@ export const paintSpectrumBars = (
   hueAt: SpectrumHue,
   gap: number,
   /**
+   * How much brighter the TOP of a bar is drawn, as a multiple.
+   *
+   * The fade from a lit top to an almost-clear foot is the effect — it is
+   * what makes these read as a spectrum rather than as a bar chart — so
+   * making them more visible has to raise the top rather than lift the foot.
+   * Lifting the foot was tried and it flattens the gradient into a slab,
+   * which is not a brighter version of the drawing but a different one.
+   *
+   * One on the titlebar, where the numbers were chosen. The graph asks for
+   * more because its plot is several times deeper and the same alphas over
+   * that much more area read as a ghost.
+   *
+   * Optional rather than defaulted in the list, because the parameter after it
+   * is optional too and a default in front of one is the shape `default-param-
+   * last` exists to stop: the caller that wants only the later argument has to
+   * pass `undefined` for this one, which is the same thing said twice.
+   */
+  lift?: number,
+  /**
    * Replaces the sweep, for the palette that is a meter rather than a map.
    *
    * `level` runs its ramp UP the plot and is pinned to the plot, so a colour
@@ -340,7 +359,7 @@ export const paintSpectrumBars = (
    */
   paint?: string | CanvasGradient,
 ) => {
-  const topAlpha = isRainbow ? 0.5 : 0.42;
+  const topAlpha = Math.min(1, (isRainbow ? 0.5 : 0.42) * (lift ?? 1));
   forEachSpectrumBar(box, bars, gap, (x, y, width, height, across, energy) => {
     if (paint === undefined) {
       const gradient = context.createLinearGradient(0, y, 0, y + height);

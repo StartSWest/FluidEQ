@@ -124,8 +124,16 @@ describe('Karaoke local file selection', () => {
       audio: { name: 'Artist - Second.ogg' },
       lyrics: undefined,
     });
-    expect(selection.unpairedLyrics).toEqual([license]);
-    expect(selection.ignored[0].name).toBe('cover.jpg');
+    // The licence is not a lyric sheet. A karaoke folder routinely ships one,
+    // and counted as an unpaired lyric it became "a song whose audio is
+    // missing" in the import notice — a warning about nothing, on every
+    // download that documents itself. It is set aside with the artwork.
+    expect(license.name).toBe('License.txt');
+    expect(selection.unpairedLyrics).toEqual([]);
+    expect(selection.ignored.map((entry) => entry.name).sort()).toEqual([
+      'License.txt',
+      'cover.jpg',
+    ]);
   });
 
   it('does not cross-pair identical names from different subfolders', () => {

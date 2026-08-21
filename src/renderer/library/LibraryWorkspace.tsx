@@ -45,6 +45,7 @@ import { useLibraryPlayer } from './player/LibraryPlayerContext';
 import LibraryVideoStage from './player/LibraryVideoStage';
 import LibraryCoverFlow from './LibraryCoverFlow';
 import LibraryDetail from './LibraryDetail';
+import Spinner from '../icons/Spinner';
 import LibraryEmptyState from './LibraryEmptyState';
 import LibraryFolderActions from './LibraryFolderActions';
 import LibraryGridView from './LibraryGridView';
@@ -169,6 +170,7 @@ const LibraryWorkspace = ({
   const {
     index,
     wasReset,
+    isIndexLoaded,
     isScanning,
     progress,
     addFolder,
@@ -178,7 +180,24 @@ const LibraryWorkspace = ({
     cancelScan,
     removeRoot,
   } = useLibrary();
-  const { playTracks, videoTrackId, track: playingTrack } = useLibraryPlayer();
+  const {
+    playTracks,
+    videoTrackId,
+    track: playingTrack,
+    isPlaying,
+  } = useLibraryPlayer();
+
+  /**
+   * The mark on the row, which is not the same as the track that is loaded.
+   *
+   * A paused song is the selected row and nothing more — the animated meter
+   * beside a title says "this is what you are hearing", and there is nothing
+   * to hear. `playingTrack` itself stays the loaded one wherever the question
+   * is which album to open or which row to reveal, because that is still the
+   * song being listened to.
+   */
+  const playingMarkId = isPlaying ? playingTrack?.id : undefined;
+
   const [isDragOver, setIsDragOver] = useState(false);
   const [isResetNoticeDismissed, setIsResetNoticeDismissed] = useState(false);
 
@@ -188,8 +207,13 @@ const LibraryWorkspace = ({
   const [browseMode, setBrowseMode] = useState<TLibraryBrowseMode>(() =>
     readPersistedMode(BROWSE_MODE_KEY, BROWSE_MODES, 'album'),
   );
+  // Cover Flow on a fresh install, and albums with it: the first thing the
+  // library should be is a shelf of covers, because that is what somebody
+  // recognises their own music by. The grid is a fine second look and the list
+  // is the one for work; neither is the one to open on. Anybody who picks
+  // another keeps it — this is only the value with nothing remembered yet.
   const [viewMode, setViewMode] = useState<TLibraryViewMode>(() =>
-    readPersistedMode(VIEW_MODE_KEY, VIEW_MODES, 'grid'),
+    readPersistedMode(VIEW_MODE_KEY, VIEW_MODES, 'coverflow'),
   );
   const [sortDirection, setSortDirection] = useState<TLibrarySortDirection>(
     () => readPersistedMode(SORT_DIRECTION_KEY, SORT_DIRECTIONS, 'asc'),
@@ -729,11 +753,20 @@ const LibraryWorkspace = ({
       {isScanning && progress && (
         <LibraryScanProgress progress={progress} onCancel={cancelScan} />
       )}
-      {index.tracks.length === 0 && (
+      {/* Only once the index has actually been read. It starts empty and is
+          filled by a reply a moment later, so gated on the count alone this
+          panel greeted everybody with a library every time they opened the
+          tab — "no music yet" over a library of fourteen thousand songs. */}
+      {isIndexLoaded && index.tracks.length === 0 && (
         <LibraryEmptyState
           karaokeSkippedCount={karaokeSkippedCount}
           onAddFolder={handleAddFolder}
         />
+      )}
+      {!isIndexLoaded && (
+        <div className="library-loading" role="status">
+          <Spinner />
+        </div>
       )}
       {/* Takes the whole body the moment the queue's current track is a
           video, regardless of which browse mode the toolbar is sitting on —
@@ -777,7 +810,7 @@ const LibraryWorkspace = ({
             onPlayTrack={handlePlayTrack}
             offlineRootIds={offlineRootIds}
             viewMode={viewMode}
-            playingTrackId={playingTrack?.id}
+            playingTrackId={playingMarkId}
             revealTrack={revealTrack}
             query={query}
           />
@@ -799,7 +832,7 @@ const LibraryWorkspace = ({
             sortDirection={sortDirection}
             onSort={handleSort}
             groupByFolder={groupByFolder}
-            playingTrackId={playingTrack?.id}
+            playingTrackId={playingMarkId}
             revealTrack={revealTrack}
             resetKey={listResetKey}
           />
@@ -819,7 +852,7 @@ const LibraryWorkspace = ({
             offlineRootIds={offlineRootIds}
             sort={viewSort}
             sortDirection={sortDirection}
-            playingTrackId={playingTrack?.id}
+            playingTrackId={playingMarkId}
             revealTrack={revealTrack}
             resetKey={listResetKey}
           />
@@ -839,7 +872,7 @@ const LibraryWorkspace = ({
             onPlayTrack={handlePlayTrack}
             sort={viewSort}
             sortDirection={sortDirection}
-            playingTrackId={playingTrack?.id}
+            playingTrackId={playingMarkId}
             revealTrack={revealTrack}
             query={query}
             openId={openAlbumId ?? openArtistId ?? openFolderPath}

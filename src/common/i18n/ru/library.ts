@@ -108,6 +108,8 @@ const library: Partial<Dictionary> = {
   'library.repeat.one': 'Повторять эту песню',
   'library.repeat.off': 'Не повторять',
   'library.volume': 'Громкость',
+  'library.mute': 'Выключить звук',
+  'library.unmute': 'Включить звук',
   'library.playbackOptions': 'Параметры воспроизведения',
   'library.position': 'Позиция',
   'library.queue': 'Очередь',

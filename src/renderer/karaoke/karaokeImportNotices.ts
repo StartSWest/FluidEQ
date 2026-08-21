@@ -130,8 +130,15 @@ export const karaokeSetAsideFiles = (
         .filter((extension) => extension.length > 0),
     ),
   ).sort();
-  const unpaired = selection.unpairedLyrics.map((file) => file.name);
-  const ambiguous = selection.ambiguousLyrics.map((file) => file.name);
+  // By name, and each name once. A folder of songs carries the same handful
+  // of filenames over and over, and "License.txt, License.txt, License.txt"
+  // is a longer way of saying nothing.
+  const unpaired = Array.from(
+    new Set(selection.unpairedLyrics.map((file) => file.name)),
+  );
+  const ambiguous = Array.from(
+    new Set(selection.ambiguousLyrics.map((file) => file.name)),
+  );
   return formats.length || unpaired.length || ambiguous.length
     ? { formats, unpaired, ambiguous }
     : undefined;

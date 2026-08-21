@@ -26,14 +26,19 @@ import {
   getGraphColumnCount,
   isFilledGraphStyle,
 } from 'common/graphStyles';
-import { hasGraphAccent } from 'common/graphShapes';
+import { ACCENT_STYLES, hasGraphAccent } from 'common/graphShapes';
 import {
   CUSTOM_LOOK_PREFIX,
+  DEFAULT_ACCENT_WIDTH,
   DEFAULT_BORDER_WIDTH,
   DEFAULT_GLOW,
   DEFAULT_LEVEL_COLOURS,
   ICustomLook,
   ILookTuning,
+  MIN_BAR_GAP,
+  MAX_BAR_GAP,
+  MIN_ACCENT_WIDTH,
+  MAX_ACCENT_WIDTH,
   MIN_BORDER_WIDTH,
   MAX_BORDER_WIDTH,
   getMaxLookColours,
@@ -120,7 +125,10 @@ describe('normalizeTuning', () => {
         filled: true,
         strokeWidth: 3,
         fillOpacity: 0.4,
+        gap: 0.2,
         accents: false,
+        accentWidth: DEFAULT_ACCENT_WIDTH,
+        accentStyle: 'bead',
         glow: 0.5,
       },
       'bars',
@@ -132,8 +140,10 @@ describe('normalizeTuning', () => {
       filled: true,
       strokeWidth: 3,
       fillOpacity: 0.4,
-      // Bars have no lit tips to switch on, so the stored answer is irrelevant.
+      gap: 0.2,
       accents: false,
+      accentWidth: DEFAULT_ACCENT_WIDTH,
+      accentStyle: 'bead',
       glow: 0.5,
       border: false,
       borderWidth: DEFAULT_BORDER_WIDTH,
@@ -236,9 +246,14 @@ describe('normalizeTuning', () => {
     expect(tuning.releaseMs).toBe(50);
   });
 
-  it('refuses lit tips to a form that has none', () => {
-    expect(normalizeTuning({ accents: true }, 'bars').accents).toBe(false);
-    // And keeps them for the one form that does.
+  it('lets any form be asked for lit peaks, and keeps the answer', () => {
+    // This used to refuse them to everything but the stem, which was right
+    // when there was one lit-peak drawing and it was a bead on a stalk. There
+    // are ten behaviours now and they suit different families, so which form
+    // is asking is no longer a reason to say no — the form only decides which
+    // behaviour it starts with.
+    expect(normalizeTuning({ accents: true }, 'bars').accents).toBe(true);
+    expect(normalizeTuning({ accents: false }, 'bars').accents).toBe(false);
     expect(normalizeTuning({ accents: true }, 'stems').accents).toBe(true);
     expect(normalizeTuning({ accents: false }, 'stems').accents).toBe(false);
   });
@@ -583,6 +598,8 @@ describe('every stored setting is validated', () => {
     ['fillOpacity', MIN_FILL_OPACITY, MAX_FILL_OPACITY],
     ['glow', MIN_GLOW, MAX_GLOW],
     ['borderWidth', MIN_BORDER_WIDTH, MAX_BORDER_WIDTH],
+    ['gap', MIN_BAR_GAP, MAX_BAR_GAP],
+    ['accentWidth', MIN_ACCENT_WIDTH, MAX_ACCENT_WIDTH],
   ];
 
   it.each(NUMERIC)('clamps %s to its range', (key, min, max) => {
@@ -610,6 +627,27 @@ describe('every stored setting is validated', () => {
     },
   );
 
+  it('refuses a lit-peak behaviour it does not have', () => {
+    // It is written to disk as a string, so a hand-edited file or a look
+    // saved by a later build can name one this build has never drawn. Falling
+    // through to the form's own default is what keeps that a stale setting
+    // rather than a blank accent.
+    expect(normalizeTuning({ accentStyle: 'bead' }, 'stems').accentStyle).toBe(
+      'bead',
+    );
+    expect(
+      ACCENT_STYLES.includes(
+        normalizeTuning({ accentStyle: 'from-the-future' }, 'stems')
+          .accentStyle,
+      ),
+    ).toBe(true);
+    expect(
+      ACCENT_STYLES.includes(
+        normalizeTuning({ accentStyle: 7 }, 'stems').accentStyle,
+      ),
+    ).toBe(true);
+  });
+
   it('covers every field of the tuning', () => {
     // The guard against adding a setting and forgetting to validate it: the
     // rules above plus the booleans have to account for the whole shape.
@@ -618,6 +656,9 @@ describe('every stored setting is validated', () => {
       'filled',
       'accents',
       'border',
+      // Neither a number nor a boolean: one of a fixed list of behaviours,
+      // checked by the test below rather than by the tables above.
+      'accentStyle',
     ]);
     Object.keys(getDefaultTuning('bars')).forEach((key) => {
       expect(covered.has(key)).toBe(true);

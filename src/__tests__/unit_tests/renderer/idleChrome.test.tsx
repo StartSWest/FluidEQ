@@ -35,11 +35,11 @@ describe('idle chrome', () => {
     jest.useRealTimers();
   });
 
-  it('hides after two seconds and wakes on movement or an explicit reveal', () => {
+  it('hides after five seconds and wakes only for a move into the chrome bands', () => {
     const { result } = renderHook(() => useIsChromeIdle());
 
     act(() => watchChromeIdle(true));
-    expect(CHROME_IDLE_MS).toBe(2000);
+    expect(CHROME_IDLE_MS).toBe(5000);
     expect(result.current).toBe(false);
 
     act(() => jest.advanceTimersByTime(CHROME_IDLE_MS - 1));
@@ -48,7 +48,33 @@ describe('idle chrome', () => {
     act(() => jest.advanceTimersByTime(1));
     expect(result.current).toBe(true);
 
-    act(() => window.dispatchEvent(new Event('pointermove')));
+    // The middle of the screen is somebody watching, or a hand resting on a
+    // mouse. Waking for that was a bar that never stayed away.
+    act(() => {
+      window.dispatchEvent(
+        new MouseEvent('pointermove', {
+          clientY: Math.round(window.innerHeight / 2),
+        }),
+      );
+    });
+    expect(result.current).toBe(true);
+
+    // The foot of the window is where the transport is, and going there is
+    // reaching for it.
+    act(() => {
+      window.dispatchEvent(
+        new MouseEvent('pointermove', { clientY: window.innerHeight - 4 }),
+      );
+    });
+    expect(result.current).toBe(false);
+
+    act(() => jest.advanceTimersByTime(CHROME_IDLE_MS));
+    expect(result.current).toBe(true);
+
+    // And the head of it is where the graph's own toolbar is.
+    act(() => {
+      window.dispatchEvent(new MouseEvent('pointermove', { clientY: 4 }));
+    });
     expect(result.current).toBe(false);
 
     act(() => jest.advanceTimersByTime(CHROME_IDLE_MS));

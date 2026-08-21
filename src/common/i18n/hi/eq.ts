@@ -289,6 +289,8 @@ const eq: Partial<Dictionary> = {
   'eq.smart.mode.target': 'लक्ष्य',
   'eq.smart.mode.target.note': 'मापता रहता है · हर रिकॉर्डिंग को एक ही कर्व पर',
   'eq.layers': 'यह भी लागू है',
+  'eq.layers.count': '{count} परतें',
+  'eq.layers.countOff': '{count} परतें · {off} बंद',
   'eq.layers.aria': 'इस आउटपुट पर और क्या असर डाल रहा है',
   'eq.layers.eq': 'EQ',
   'eq.layers.eq.modified': '(बदला हुआ)',

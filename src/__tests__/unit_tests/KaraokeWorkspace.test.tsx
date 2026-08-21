@@ -31,6 +31,7 @@ import {
 } from '../../common/karaoke/files';
 import { createKaraokeMakerProject } from '../../common/karaoke/makerProject';
 import { parseUltraStar } from '../../common/karaoke/ultrastar';
+import { setTransportSlot } from '../../renderer/audio/transportSlot';
 import KaraokeWorkspace from '../../renderer/karaoke/KaraokeWorkspace';
 import { karaokeLayoutStorageKey } from '../../renderer/karaoke/karaokeLayout';
 
@@ -53,6 +54,7 @@ const fireTestPointer = (
 
 describe('KaraokeWorkspace', () => {
   const originalMatchMedia = window.matchMedia;
+  let barSlot: HTMLDivElement | undefined;
   const createObjectURL = jest.fn(() => 'blob:karaoke-song');
   const revokeObjectURL = jest.fn();
   const load = jest.fn();
@@ -129,15 +131,46 @@ describe('KaraokeWorkspace', () => {
       },
     });
     window.localStorage.clear();
+
+    // The strip of the shared transport bar this tab draws into.
+    //
+    // The app has one bar and karaoke portals its controls — faders, jumps
+    // and pitch tone — into it rather than drawing a second row of its own.
+    // Without the node the bar supplies there is nowhere for them to land, so
+    // a workspace mounted alone has no play button at all. This is the bar's
+    // own ref callback, given a node to hand over.
+    barSlot = document.createElement('div');
+    document.body.append(barSlot);
+    setTransportSlot(barSlot);
   });
 
   afterEach(() => {
+    setTransportSlot(null);
+    barSlot?.remove();
+    barSlot = undefined;
     jest.useRealTimers();
     Object.defineProperty(window, 'matchMedia', {
       configurable: true,
       value: originalMatchMedia,
     });
   });
+
+  /**
+   * The two things this tab has to say, and which is which.
+   *
+   * `getByRole('status')` was unambiguous while there was one notice. There
+   * are two now and they answer different questions: the import's own line is
+   * about the folder that was just opened — a `.srt` nothing here reads, two
+   * lyric files matching one song — while the lyric line sits beside the
+   * words and is about the song on the stage. A bare role query matches both.
+   */
+  const importNotice = (container: HTMLElement) =>
+    container.querySelector(
+      '.karaoke-workspace__notice.is-warning',
+    ) as HTMLElement;
+
+  const lyricNotice = (container: HTMLElement) =>
+    container.querySelector('.karaoke-lyrics__notice') as HTMLElement;
 
   const finishCountIn = async (container: HTMLElement) => {
     const cue = () =>
@@ -154,8 +187,22 @@ describe('KaraokeWorkspace', () => {
     });
   };
 
-  it('offers real local import actions in the empty state', () => {
+  it('offers real local import actions in the empty state', async () => {
     const { container } = render(<KaraokeWorkspace isHidden={false} />);
+
+    // Nothing about being empty until the question has been answered. Last
+    // session's playlist is read back a moment after the tab opens, and for
+    // that moment this drew a microphone and "drop a folder here" over a
+    // playlist that was about to appear.
+    expect(
+      container.querySelector('.karaoke-workspace__restoring'),
+    ).toBeInTheDocument();
+    await waitFor(() =>
+      expect(
+        container.querySelector('.karaoke-workspace__restoring'),
+      ).not.toBeInTheDocument(),
+    );
+
     const readiness = container.querySelector(
       '.karaoke-workspace__readiness',
     ) as HTMLElement;
@@ -727,9 +774,10 @@ describe('KaraokeWorkspace', () => {
     const deleteSelection = maker.querySelector(
       'button[aria-label="Delete"]',
     ) as HTMLButtonElement;
-    const editorPlay = maker.querySelector(
-      'button[aria-label="Play"]',
-    ) as HTMLButtonElement;
+    // The transport is no longer a row inside the editor: the app has one bar
+    // and karaoke draws into it, Maker open or not. Same button and the same
+    // shortcut — only where it lands has moved.
+    const editorPlay = screen.getByRole('button', { name: 'Play' });
     expect(editorPlay).toHaveAttribute('aria-keyshortcuts', 'Space');
     expect(editorPlay).toHaveAttribute('data-tooltip', 'Play · Space');
 
@@ -760,6 +808,10 @@ describe('KaraokeWorkspace', () => {
       configurable: true,
       value: 12,
     });
+    // And announce it. The transport belongs to the bar now and the bar is
+    // driven by the session, not by the element — a duration set on the tag
+    // and never announced leaves "jump to the end" with nowhere to jump to.
+    fireEvent.durationChange(audio);
     jest.spyOn(editorCanvas, 'getBoundingClientRect').mockReturnValue({
       bottom: 420,
       height: 400,
@@ -786,17 +838,9 @@ describe('KaraokeWorkspace', () => {
     fireTestPointer(editorCanvas, 'pointerup', 17, 700);
     expect(editorCanvas).not.toHaveClass('is-scrubbing');
 
-    fireEvent.click(
-      maker.querySelector(
-        'button[aria-label="Jump to song start"]',
-      ) as HTMLButtonElement,
-    );
+    fireEvent.click(screen.getByRole('button', { name: 'Jump to song start' }));
     expect(audio.currentTime).toBe(0);
-    fireEvent.click(
-      maker.querySelector(
-        'button[aria-label="Jump to song end"]',
-      ) as HTMLButtonElement,
-    );
+    fireEvent.click(screen.getByRole('button', { name: 'Jump to song end' }));
     expect(audio.currentTime).toBe(12);
 
     expect(deleteSelection).toBeDisabled();
@@ -933,16 +977,19 @@ describe('KaraokeWorkspace', () => {
     const fullscreenMakerDock = container.querySelector(
       '.karaoke-maker.is-fullscreen > .karaoke-maker__command-dock',
     );
-    const fullscreenMakerTransport = fullscreenMakerDock?.querySelector(
-      ':scope > .karaoke-transport',
-    );
-    expect(fullscreenMakerTransport).toBeInTheDocument();
+    expect(fullscreenMakerDock).toBeInTheDocument();
+    // The dock keeps its tools and no longer keeps a transport. There is one
+    // bar in this app and karaoke draws into it from wherever it is — the
+    // editor full screen included, which used to stack a second row of
+    // controls a few pixels above the first.
     expect(
-      fullscreenMakerTransport?.querySelector('button[aria-label="Play"]'),
+      fullscreenMakerDock?.querySelector('.karaoke-transport'),
+    ).not.toBeInTheDocument();
+    const barTransport = barSlot?.querySelector('.karaoke-transport');
+    expect(barTransport).toBeInTheDocument();
+    expect(
+      barTransport?.querySelector('button[aria-label="Play"]'),
     ).toBeInTheDocument();
-    expect(fullscreenMakerDock?.lastElementChild).toBe(
-      fullscreenMakerTransport,
-    );
     canvasContext.mockRestore();
   });
 
@@ -1385,17 +1432,13 @@ describe('KaraokeWorkspace', () => {
     expect(
       container.querySelector('.karaoke-workspace__stage .karaoke-pitch'),
     ).toBeVisible();
-    const workspace = container.querySelector(
-      '.karaoke-workspace',
-    ) as HTMLElement;
-    const player = container.querySelector(
-      '.karaoke-workspace__player',
-    ) as HTMLElement;
-    const transport = container.querySelector(
-      '.karaoke-transport',
-    ) as HTMLElement;
-    expect(transport.parentElement).toBe(workspace);
-    expect(player.nextElementSibling).toBe(transport);
+    // The transport is drawn into the bar at the foot of the window, not
+    // under the stage: this app has one transport and one place for it, and
+    // rendered in both it was two bars stacked on each other.
+    expect(
+      container.querySelector('.karaoke-transport'),
+    ).not.toBeInTheDocument();
+    expect(barSlot?.querySelector('.karaoke-transport')).toBeInTheDocument();
     expect(
       screen.queryByRole('separator', {
         name: 'Resize microphone and pitch panels',
@@ -1512,7 +1555,7 @@ describe('KaraokeWorkspace', () => {
     });
 
     expect(await screen.findByText('Audio only')).toBeVisible();
-    expect(screen.getByRole('status')).toHaveTextContent(
+    expect(lyricNotice(container)).toHaveTextContent(
       'voice.lrc carries no timings FluidEQ could read. The audio remains available without timed lyrics.',
     );
     expect(screen.getByRole('button', { name: 'Play' })).toBeEnabled();
@@ -1540,7 +1583,7 @@ describe('KaraokeWorkspace', () => {
     );
 
     expect(await screen.findByText('Audio only')).toBeVisible();
-    expect(screen.getByRole('status')).toHaveTextContent(
+    expect(lyricNotice(container)).toHaveTextContent(
       'beatless.txt declares no BPM, which an UltraStar file needs. The audio remains available without timed lyrics.',
     );
   });
@@ -1569,7 +1612,7 @@ describe('KaraokeWorkspace', () => {
     );
 
     expect(await screen.findByText('Audio only')).toBeVisible();
-    expect(screen.getByRole('status')).toHaveTextContent(
+    expect(lyricNotice(container)).toHaveTextContent(
       'broken.txt has a note row FluidEQ could not read. Line 6. The audio remains available without timed lyrics.',
     );
   });
@@ -1595,7 +1638,7 @@ describe('KaraokeWorkspace', () => {
     expect(
       await screen.findByRole('heading', { name: 'Sing Along' }),
     ).toBeVisible();
-    expect(screen.getByRole('status')).toHaveTextContent(
+    expect(importNotice(container)).toHaveTextContent(
       'FluidEQ has no karaoke reader for these files yet, so they were set aside: CDG, SRT.',
     );
   });
@@ -1620,7 +1663,7 @@ describe('KaraokeWorkspace', () => {
     );
 
     expect(await screen.findByText('Audio only')).toBeVisible();
-    expect(screen.getByRole('status')).toHaveTextContent(
+    expect(importNotice(container)).toHaveTextContent(
       'Two lyric files matched the same song, so neither was used: Twin.lrc, Twin.txt.',
     );
   });
@@ -1645,7 +1688,7 @@ describe('KaraokeWorkspace', () => {
     );
 
     expect(await screen.findByText('Audio only')).toBeVisible();
-    expect(screen.getByRole('status')).toHaveTextContent(
+    expect(importNotice(container)).toHaveTextContent(
       'Two lyric files matched the same song, so neither was used: Twin.lrc, Twin.txt.',
     );
 
@@ -1660,7 +1703,7 @@ describe('KaraokeWorkspace', () => {
         .map((node) => node.textContent ?? '')
         .join(' '),
     ).not.toContain('Two lyric files matched the same song');
-    expect(screen.getByRole('status')).toHaveTextContent(
+    expect(importNotice(container)).toHaveTextContent(
       'No audio file matches these lyric files, so they were not used: Twin.lrc, Twin.txt.',
     );
   });

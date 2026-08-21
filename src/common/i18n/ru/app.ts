@@ -86,6 +86,8 @@ const app: Partial<Dictionary> = {
   'tabs.config': 'Config',
   'tabs.media': 'Медиа',
   'tabs.karaoke': 'Караоке',
+  'tabs.scrollBack': 'Прокрутить вкладки назад',
+  'tabs.scrollForward': 'Прокрутить вкладки вперёд',
   'notice.apoReconfigured':
     'Equalizer APO был установлен или перенастроен. Если звук пропал, перезапустите службу звука Windows, а не весь компьютер.',
   'notice.restartNow': 'Перезапустить звук сейчас',

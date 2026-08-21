@@ -164,24 +164,28 @@ describe('the stroke cascade, in the order the stylesheet resolved it', () => {
     );
   });
 
-  it('recolours a stroke it finds, and never creates one', () => {
-    // A STROKED look with no colours of its own takes the sweep. That is the
-    // rule the old stylesheet reached by specificity and it still holds.
+  it('leaves a look alone until it asks for the border', () => {
+    // The sweep used to recolour any trace with no colours of its own, which
+    // was right when there was no switch to consult. On a STROKED form that
+    // recolour is the whole drawing, so it read as the rainbow border being
+    // on while its box sat empty — reported as exactly that.
     expect(resolveFigureStroke('#54ff8a', false, false, false, ON)).toBe(
+      '#54ff8a',
+    );
+    // Asked for, it arrives. A look with no colours of its own takes the
+    // trace hue; one that has some takes the outline hue, which is the
+    // precedence the old cascade had among the colours.
+    expect(resolveFigureStroke('#54ff8a', false, true, false, ON)).toBe(
       euphoriaTraceColour(ON.hue),
     );
-    // A PAINTED one with the border off does not, and this is the half that
-    // changed. The old rule beat the `stroke: none` attribute, so a filled
-    // look grew an outline in the mode whether or not it had asked for a
-    // border — faithful to the cascade, and wrong once the border was a
-    // switch: the rainbow border appeared on looks whose box was unticked.
+    expect(resolveFigureStroke('#54ff8a', false, true, true, ON)).toBe(
+      euphoriaOutlineColour(ON.hue),
+    );
+    // And a painted form with the border off still has no outline at all,
+    // which is the half of this that was already true.
     expect(
       resolveFigureStroke('#54ff8a', true, false, false, ON),
     ).toBeUndefined();
-    // And with the box ticked it is back, which is what the switch is for.
-    expect(resolveFigureStroke('#54ff8a', true, true, false, ON)).toBe(
-      euphoriaTraceColour(ON.hue),
-    );
   });
 
   it('lets the sweep beat the border rule, as specificity did', () => {
@@ -204,20 +208,19 @@ describe('whether the stroke is euphoria’s or the look’s own', () => {
   // own edge straddles the path the way it always has, and euphoria's is laid
   // outside the figure so the fill it decorates survives underneath. Answer
   // this wrong and a border eats half its width out of a spectrum.
-  it('claims both of the cases the sweep reaches', () => {
-    expect(isEuphoriaFigureStroke(false, false, ON)).toBe(true);
-    expect(isEuphoriaFigureStroke(true, true, ON)).toBe(true);
-  });
-
-  it('leaves a self-coloured look that asked for no border alone', () => {
-    expect(isEuphoriaFigureStroke(false, true, ON)).toBe(false);
+  it('claims the figure only where a border was asked for', () => {
+    // It used to claim any look with no colours of its own as well, which is
+    // how the sweep reached a figure nobody had bordered — see
+    // `resolveFigureStroke`. Whether there is a border is the only question
+    // left here; which HUE it takes is the other function's.
+    expect(isEuphoriaFigureStroke(true, ON)).toBe(true);
+    expect(isEuphoriaFigureStroke(false, ON)).toBe(false);
   });
 
   it('claims nothing at all with the mode off', () => {
     // Including a look with the border switched on: the border is a euphoria
     // setting, so outside the mode there is no border to place anywhere.
-    expect(isEuphoriaFigureStroke(true, false, OFF)).toBe(false);
-    expect(isEuphoriaFigureStroke(true, true, OFF)).toBe(false);
+    expect(isEuphoriaFigureStroke(true, OFF)).toBe(false);
   });
 });
 

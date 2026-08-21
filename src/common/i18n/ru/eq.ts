@@ -291,6 +291,8 @@ const eq: Partial<Dictionary> = {
   'eq.smart.mode.target.note':
     'Продолжает измерять · каждую запись к одной кривой',
   'eq.layers': 'Также применено',
+  'eq.layers.count': 'Слоёв: {count}',
+  'eq.layers.countOff': 'Слоёв: {count} · выкл.: {off}',
   'eq.layers.aria': 'Что ещё влияет на этот выход',
   'eq.layers.eq': 'Эквалайзер',
   'eq.layers.eq.modified': '(изменён)',

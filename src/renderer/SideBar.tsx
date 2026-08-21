@@ -33,12 +33,22 @@ import Spinner from './icons/Spinner';
 interface SideBarProps {
   showGraphToggle: boolean;
   isGraphVisible?: boolean;
+  /**
+   * Whether the drawer is showing, on the widths where this is a drawer.
+   *
+   * Above the two-column breakpoint it is a column in the layout and this
+   * changes nothing — the stylesheet only reads it below that width, where
+   * the panel slides down from the titlebar the way the sound panel slides in
+   * from the side.
+   */
+  isOpen?: boolean;
   onGraphVisibilityChange?: (next: boolean) => void | Promise<void>;
 }
 
 const SideBar = ({
   showGraphToggle,
   isGraphVisible,
+  isOpen,
   onGraphVisibilityChange,
 }: SideBarProps) => {
   const { isAutoPreAmpOn, isLoading, preAmp, setGlobalError, setPreAmp } =
@@ -58,7 +68,7 @@ const SideBar = ({
   );
 
   return (
-    <div className="col side-bar center">
+    <div className={`col side-bar center${isOpen ? ' is-open' : ''}`}>
       {isLoading ? (
         <div className="center full row">
           <Spinner />

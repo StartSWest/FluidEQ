@@ -124,8 +124,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     --range-length: 102px;
   }
 
-  // The "+20 dB" ceiling caption above the track.
-  > div:not(.slider) {
+  // The "+20 dB" ceiling caption above the track. Not the knob, which is
+  // also a div and also not `.slider` — it draws its own numbers.
+  > div:not(.slider):not(.knob) {
     color: rgba($primary-lighter, 0.82);
     font-size: 0.58rem;
     font-variant-numeric: tabular-nums;
@@ -146,189 +147,49 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 // *** Compact shell **********************************************************
 //
-// Below the two-column breakpoint the sidebar is a horizontal strip of control
-// chips above the workspace, and the preamp slider lies flat.
-
+// Below the two-column breakpoint this panel leaves the layout and becomes a
+// drawer that slides in from the left edge, holding the same column it holds
+// on a wide window.
+//
+// It used to reflow into a horizontal strip of chips across the top — three
+// cards abreast, the preamp lying flat, its own grid areas at two widths. That
+// was a second design of the same panel to keep working, and it took a band of
+// a short window permanently. This is the arrangement the sound panel already
+// uses on the opposite edge: summoned by a tab, dismissed by its own backdrop,
+// and while it is shut the workspace has the whole window.
 @media (max-width: $bp-two-column) {
   .side-bar {
+    position: fixed;
+    z-index: 60;
+    // Fixed positioning ignores #root's titlebar padding, the same way
+    // `.right-content` does — start at the real titlebar edge so the first
+    // card is never painted under the chrome.
+    top: $title-bar-height;
+    // Stops where the transport bar starts, rather than running under it.
+    // `--now-playing-bar-height` is the strip that bar reserves and is zero
+    // while there is no bar; the gutter is the same one every card keeps.
+    bottom: calc(
+      var(--now-playing-bar-height, 0px) + var(--shell-gutter-bottom, 18px)
+    );
+    left: 0;
+    // Exactly the column it replaces, so crossing the breakpoint moves the
+    // panel rather than resizing it.
+    width: min($side-bar-width-compact, 86vw);
+    padding: 14px;
+    overflow-y: auto;
+    border-right: 1px solid rgba(63, 149, 173, 0.3);
+    background: rgba(6, 20, 33, 0.97);
+    box-shadow: 18px 0 48px rgba(0, 0, 0, 0.45);
+    transform: translateX(-105%);
+    transition: transform 180ms ease-out;
+
+    &.is-open {
+      transform: translateX(0);
+    }
+  }
+
+  .side-bar-toggle {
     display: grid;
-    align-items: stretch;
-    align-content: start;
-    gap: 8px;
-    padding: 10px;
-    grid-template-columns:
-      minmax(118px, 0.72fr) minmax(240px, 2fr)
-      minmax(150px, 0.9fr);
-    grid-template-rows: repeat(2, minmax(48px, auto));
-    grid-template-areas:
-      'engine preamp headroom'
-      'engine preamp response';
-
-    h4 {
-      margin: 0;
-      font-size: 0.66rem;
-    }
-  }
-
-  .side-bar__control-card,
-  .side-bar__preamp {
-    @include inset-surface;
-    display: grid;
-    width: 100%;
-    min-width: 0;
-    min-height: 0;
-    align-items: center;
-    gap: 2px 8px;
-    padding: 7px 10px;
-  }
-
-  .side-bar__control-card {
-    grid-template-columns: minmax(0, 1fr) auto;
-    grid-template-rows: auto auto;
-
-    .control-kicker {
-      grid-area: 1 / 1;
-    }
-
-    h4 {
-      grid-area: 2 / 1;
-    }
-
-    .switch {
-      grid-area: 1 / 2 / span 2;
-      align-self: center;
-    }
-  }
-
-  // The engine card is the tall one on the left, so it stays stacked.
-  .side-bar__engine {
-    grid-area: engine;
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: auto auto auto;
-    align-content: center;
-    justify-items: center;
-
-    .control-kicker,
-    h4,
-    .switch {
-      grid-area: auto / 1;
-    }
-  }
-
-  .side-bar__headroom {
-    grid-area: headroom;
-  }
-
-  .side-bar__response {
-    grid-area: response;
-  }
-
-  // The compact shell is a two-row grid and intentionally hides the meter.
-  // Its response chip therefore does not need the vertical pane's meter floor.
-  .side-bar > .side-bar__response {
-    min-height: 0;
-  }
-
-  /*
-   * No meter in the compact shell.
-   *
-   * Here the sidebar is a strip of chips above the workspace on rows of about
-   * forty-eight pixels, and a level meter in that is neither readable nor
-   * honest: a bar three characters tall cannot show the difference between
-   * -6 and -20 dBFS, which is the only thing it exists to show. Better absent
-   * than present and useless — and the switch it sits under still works, which
-   * is what that card is for at this size.
-   */
-  .side-bar__response .output-meter {
-    display: none;
-  }
-
-  .side-bar__preamp {
-    grid-area: preamp;
-    grid-template-columns: minmax(0, 1fr);
-    align-content: center;
-    justify-items: center;
-    gap: 6px;
-    padding: 8px 12px;
-
-    > h4 {
-      color: rgba($white, 0.84);
-    }
-
-    // The stacked ceiling caption is replaced by the inline ones below.
-    > div:not(.slider) {
-      display: none;
-    }
-
-    .slider {
-      display: grid;
-      width: 100%;
-      grid-template-columns: minmax(0, 1fr) 72px;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .slider > div:not(.range):not(.number-input) {
-      display: none;
-    }
-
-    .range {
-      display: flex;
-      width: 100%;
-      min-width: 0;
-      flex-direction: row;
-      align-items: center;
-      gap: 6px;
-
-      // Inline range captions replace the stacked ones.
-      &::before,
-      &::after {
-        color: rgba($primary-lighter, 0.82);
-        font-size: 0.58rem;
-        font-variant-numeric: tabular-nums;
-        white-space: nowrap;
-      }
-
-      &::before {
-        content: '+20 dB';
-      }
-
-      &::after {
-        content: '-20 dB';
-      }
-    }
-
-    // Lay the rotated track flat and let it fill the row.
-    .range input[type='range'] {
-      width: auto;
-      min-width: 0;
-      flex: 1 1 auto;
-      margin-block: 0;
-      transform: none;
-    }
-
-    .range .arrow-up,
-    .range .arrow-down {
-      width: 14px;
-      height: 14px;
-      flex: 0 0 14px;
-      transform: rotate(90deg);
-    }
-
-    .number-input {
-      width: 72px;
-    }
-  }
-}
-
-@media (max-width: 640px) {
-  .side-bar {
-    grid-template-columns: minmax(116px, 0.8fr) minmax(0, 1.2fr);
-    grid-template-rows: repeat(2, minmax(48px, auto)) auto;
-    grid-template-areas:
-      'engine headroom'
-      'engine response'
-      'preamp preamp';
   }
 }
 

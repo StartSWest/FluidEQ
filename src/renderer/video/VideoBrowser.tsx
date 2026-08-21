@@ -66,6 +66,7 @@ import '../styles/VideoBrowser.scss';
 import {
   EXIT_PAGE_FULLSCREEN,
   PLAYER_ONLY_CSS,
+  PROBE_PLAYBACK,
   READ_POSITION,
   STOP_PLAYBACK,
   TOGGLE_PLAYBACK,
@@ -108,6 +109,18 @@ interface IWebview extends HTMLElement {
   executeJavaScript(code: string, userGesture?: boolean): Promise<unknown>;
   /** Returns a key the stylesheet can be removed by. */
   insertCSS(css: string): Promise<string>;
+  /**
+   * A picture of what the guest is showing, for the bar at the foot of the
+   * window.
+   *
+   * Typed by what is used rather than by importing Electron's `NativeImage`
+   * into the renderer: this file already describes the tag it drives, and one
+   * shape describing both is one place to look.
+   */
+  capturePage(): Promise<{
+    isEmpty(): boolean;
+    resize(options: { height: number }): { toDataURL(): string };
+  }>;
   removeInsertedCSS(key: string): Promise<void>;
 }
 
@@ -284,6 +297,14 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
   /** Whether the guest is playing, for the description rebuilt when the fader
    * moves — that has no event of its own to read the state from. */
   const playingRef = useRef(false);
+  /** The last frame taken of the guest, as a `data:` URL, for the bar's
+   * cover. Held in a ref because it is read by listeners registered once and
+   * never drawn by this component itself. */
+  const frameRef = useRef<string | undefined>(undefined);
+  /** Whether this tab is the one being looked at, for the same listeners:
+   * they are registered on mount and cannot see a prop that changes. */
+  const isHiddenRef = useRef(isHidden);
+  isHiddenRef.current = isHidden;
   const graphView = useGraphView();
 
   // Read once, into a ref as well as into state: the `src` attribute must not
@@ -474,6 +495,7 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
       setTransportSource({
         owner: 'media',
         title: view.getTitle() || t('tabs.media'),
+        artworkUrl: frameRef.current,
         isPlaying,
         positionMs: 0,
         durationMs: 0,
@@ -508,14 +530,81 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
       playingRef.current = true;
       claimPlayback('media');
       describe(true);
+      // A frame taken now is a frame of the thing that just started, which is
+      // a better picture than the page's poster or its cookie banner.
+      grabFrame();
     };
     const onPaused = () => {
       playingRef.current = false;
       releasePlayback('media');
       describe(false);
     };
+    /**
+     * Ask the page what it has, and describe it or take the bar away.
+     *
+     * The tag's own events only fire when playback starts or stops, so a page
+     * that arrives with a paused video — which is every video, under the
+     * autoplay policy this tag is loaded with — announced nothing, and the
+     * Media tab sat there with no bar until something was played. Run when a
+     * page finishes arriving instead, and the bar is there to press.
+     */
+    /**
+     * A still of the page, for the bar's cover.
+     *
+     * The guest is a web page and has no artwork to ask for, so the picture
+     * is the picture: one frame, cut down to bar height. Skipped while the
+     * tab is hidden — a webview nobody is looking at captures black, and a
+     * black square is worse than the generated tile it would replace.
+     */
+    const grabFrame = () => {
+      if (isHiddenRef.current) {
+        return;
+      }
+      try {
+        view
+          .capturePage()
+          .then((image) => {
+            if (image.isEmpty()) {
+              return undefined;
+            }
+            // 72 rather than the bar's 36: the cover is drawn at a device
+            // pixel ratio this process cannot know, and a picture asked for
+            // at exactly its drawn size is the one that looks soft.
+            frameRef.current = image.resize({ height: 72 }).toDataURL();
+            describe(playingRef.current);
+            return undefined;
+          })
+          .catch(() => undefined);
+      } catch {
+        // No web contents to photograph.
+      }
+    };
+
+    const probe = () => {
+      try {
+        view
+          .executeJavaScript(PROBE_PLAYBACK)
+          .then((state) => {
+            if (typeof state !== 'boolean') {
+              clearTransportSource('media');
+              return state;
+            }
+            playingRef.current = state;
+            describe(state);
+            grabFrame();
+            return state;
+          })
+          .catch(() => undefined);
+      } catch {
+        // No web contents to ask.
+      }
+    };
     view.addEventListener('media-started-playing', onPlaying);
     view.addEventListener('media-paused', onPaused);
+    view.addEventListener('dom-ready', probe);
+    view.addEventListener('did-navigate', probe);
+    view.addEventListener('did-navigate-in-page', probe);
+    view.addEventListener('page-title-updated', probe);
     const unregister = registerPlayer('media', () => {
       try {
         view.executeJavaScript(STOP_PLAYBACK).catch(() => undefined);
@@ -526,6 +615,10 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
     return () => {
       view.removeEventListener('media-started-playing', onPlaying);
       view.removeEventListener('media-paused', onPaused);
+      view.removeEventListener('dom-ready', probe);
+      view.removeEventListener('did-navigate', probe);
+      view.removeEventListener('did-navigate-in-page', probe);
+      view.removeEventListener('page-title-updated', probe);
       unregister();
       clearTransportSource('media');
     };

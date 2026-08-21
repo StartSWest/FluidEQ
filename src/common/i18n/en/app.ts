@@ -82,6 +82,8 @@ const app = {
   'tabs.config': 'Config',
   'tabs.media': 'Media',
   'tabs.karaoke': 'Karaoke',
+  'tabs.scrollBack': 'Scroll tabs back',
+  'tabs.scrollForward': 'Scroll tabs forward',
   'notice.apoReconfigured':
     'Equalizer APO was installed or reconfigured. If audio is missing, reload Windows Audio instead of rebooting the PC.',
   'notice.restartNow': 'Restart audio now',

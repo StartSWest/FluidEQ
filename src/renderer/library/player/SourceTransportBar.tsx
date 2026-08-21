@@ -16,162 +16,300 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { CSSProperties, useCallback, useState } from 'react';
+import { CSSProperties, useCallback, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { ITransportSource } from '../../audio/transportSource';
+import { setTransportSlot } from '../../audio/transportSlot';
+import { useTransportStrip } from '../../audio/useTransportStrip';
+import LibraryCoverArt from '../LibraryCoverArt';
 import { useTranslation } from '../../utils/I18nContext';
+import { TransportIcon, formatDuration } from './NowPlayingBar';
 import '../../styles/NowPlayingBar.scss';
+
+/** The same five seconds the library's own nudge buttons move by. */
+const NUDGE_MS = 5_000;
 
 /**
  * The bar, driven by a tab that is not the library.
  *
- * Deliberately the same card, the same buttons and the same stylesheet as
- * `NowPlayingBar` — this is one transport with two things behind it, not two
- * transports. What it does not have is everything that belongs to a *queue*:
- * no skip, no shuffle, no repeat, no cover art, because a karaoke session is
- * one song and a web page is one page, and offering "next" for either would
- * be offering something nothing can answer.
+ * The same card, the same grid, the same buttons, the same glyphs and the same
+ * stylesheet — deliberately down to importing `TransportIcon` from the library
+ * bar rather than drawing its own, because this is one transport with two
+ * things behind it and not two transports that look alike. Anything drawn
+ * twice would eventually be drawn differently.
  *
- * The seek bar and the fader each appear only when the source says it has one.
- * A page we can ask to play or pause has no playhead we can move, and putting
- * a dead slider on the bar would say otherwise.
+ * What it does not have is what belongs to a *queue*: no previous, no next, no
+ * shuffle, no repeat. A karaoke session is one song and a web page is one
+ * page, and offering "next" for either is offering something nothing can
+ * answer.
+ *
+ * The position row and the fader each appear only where the source says it has
+ * one. A page we can ask to play or pause has no playhead we can move, and a
+ * slider that does nothing would say otherwise.
  */
-const SourceTransportBar = ({ source }: { source: ITransportSource }) => {
+const SourceTransportBar = ({
+  source,
+  isIdle = false,
+  isFloating = false,
+  onReveal,
+}: {
+  source: ITransportSource;
+  /** Over the content rather than beside it — see `NowPlayingBar`. */
+  isFloating?: boolean;
+  /** Faded out while full screen has been still — see `NowPlayingBar`. */
+  isIdle?: boolean;
+  /** Go to the tab this player belongs to. */
+  onReveal: () => void;
+}) => {
   const { t } = useTranslation();
-  const [scrubMs, setScrubMs] = useState<number | undefined>(undefined);
 
-  const commitScrub = useCallback(
-    (value: number) => {
-      setScrubMs(undefined);
-      source.seek?.(value);
-    },
-    [source],
+  /**
+   * The tab's own name, on the line the library spends on the codec.
+   *
+   * Read from the same catalogue the tab strip reads, so the bar and the tab
+   * cannot end up calling the same place two things.
+   */
+  const contextLabel = t(
+    source.owner === 'karaoke' ? 'tabs.karaoke' : 'tabs.media',
   );
 
+  const [scrubMs, setScrubMs] = useState<number | undefined>(undefined);
+
+  const barRef = useRef<HTMLDivElement | null>(null);
+
+  // Where the fader was before it was muted — see `NowPlayingBar`.
+  const restoreVolumeRef = useRef(source.volume || 1);
+  if ((source.volume ?? 0) > 0) {
+    restoreVolumeRef.current = source.volume ?? 1;
+  }
+
+  // The same strip of window the library's bar reserves, reserved the
+  // same way — this is the same bar in the same place, on another tab.
+  useTransportStrip(barRef, true, isFloating);
+
+  const canSeek = Boolean(source.seek) && source.durationMs > 0;
   const shownPosition =
-    scrubMs ?? Math.min(source.positionMs, source.durationMs);
+    scrubMs ?? Math.min(source.positionMs, Math.max(1, source.durationMs));
   const progressPercent =
     source.durationMs > 0
       ? Math.min(100, (shownPosition / source.durationMs) * 100)
       : 0;
-  const canSeek = Boolean(source.seek) && source.durationMs > 0;
+
+  // Held through the drag and sent once on release, for the reason
+  // `NowPlayingBar` holds its own: `change` fires on every pointer move, and
+  // asking a decoder for a new position dozens of times a second is heard as
+  // a fragment of the audio repeating.
+  const commitScrub = useCallback(() => {
+    setScrubMs((current) => {
+      if (current !== undefined) {
+        source.seek?.(current);
+      }
+      return undefined;
+    });
+  }, [source]);
+
+  const nudge = (direction: 1 | -1) => {
+    source.seek?.(
+      Math.min(
+        source.durationMs,
+        Math.max(0, source.positionMs + direction * NUDGE_MS),
+      ),
+    );
+  };
 
   return createPortal(
     <div
-      className="now-playing-bar is-compact"
+      ref={barRef}
+      className={`now-playing-bar${isIdle ? ' is-idle' : ''}${
+        isFloating ? ' is-floating' : ''
+      }`}
       role="region"
       aria-label={t('library.nowPlaying')}
     >
       <div className="now-playing-bar__track">
-        <span className="now-playing-bar__meta">
-          <span className="now-playing-bar__title">{source.title}</span>
-          {source.subtitle && (
-            <span className="now-playing-bar__artist">{source.subtitle}</span>
-          )}
-        </span>
-      </div>
-
-      <div className="now-playing-bar__transport">
-        <div className="now-playing-bar__buttons">
-          <button
-            type="button"
-            className={`now-playing-bar__control now-playing-bar__play${
-              source.isPlaying ? ' is-playing' : ''
-            }`}
-            aria-label={
-              source.isPlaying ? t('library.pause') : t('library.play')
-            }
-            title={source.isPlaying ? t('library.pause') : t('library.play')}
-            onClick={source.toggle}
-          >
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              {source.isPlaying ? (
-                <>
-                  <rect
-                    className="now-playing-bar__icon-fill"
-                    x="7.5"
-                    y="6.5"
-                    width="3.4"
-                    height="11"
-                    rx="1.3"
-                  />
-                  <rect
-                    className="now-playing-bar__icon-fill"
-                    x="13.1"
-                    y="6.5"
-                    width="3.4"
-                    height="11"
-                    rx="1.3"
-                  />
-                </>
-              ) : (
-                <path
-                  className="now-playing-bar__icon-fill"
-                  d="M8.6 6.4c0-.8.9-1.2 1.6-.8l7.8 5.6c.6.4.6 1.2 0 1.6l-7.8 5.6c-.7.5-1.6 0-1.6-.8V6.4z"
-                />
-              )}
-            </svg>
-          </button>
-        </div>
-        {canSeek && (
-          <div className="now-playing-bar__scrubber">
-            <input
-              type="range"
-              className="now-playing-bar__seek"
-              min={0}
-              max={Math.max(1, source.durationMs)}
-              step={100}
-              value={shownPosition}
-              style={
-                {
-                  '--now-playing-progress': `${progressPercent}%`,
-                } as CSSProperties
-              }
-              aria-label={t('library.position')}
-              // Held through the drag and sent once on release, for the reason
-              // `NowPlayingBar` holds its own: `change` fires on every pointer
-              // move, and asking a decoder for a new position dozens of times
-              // a second is heard as a fragment repeating.
-              onChange={(event) => setScrubMs(Number(event.target.value))}
-              onPointerUp={() => scrubMs !== undefined && commitScrub(scrubMs)}
-              onKeyUp={() => scrubMs !== undefined && commitScrub(scrubMs)}
-              onBlur={() => scrubMs !== undefined && commitScrub(scrubMs)}
-            />
-          </div>
-        )}
-      </div>
-
-      <div className="now-playing-bar__secondary">
-        {source.setVolume !== undefined && (
-          <div className="now-playing-bar__volume">
-            <span className="now-playing-bar__volume-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24">
-                <path
-                  className="now-playing-bar__icon-fill"
-                  d="M5 9.5h3.1L12.5 6v12L8.1 14.5H5z"
-                />
-              </svg>
+        {/* Pressing it goes to the tab that is playing, the way the library's
+            own bar goes to the row in the list. The cover and the two lines
+            are one target, because "what is playing" is one thing. */}
+        <button
+          type="button"
+          className="now-playing-bar__reveal"
+          onClick={onReveal}
+          title={contextLabel}
+          aria-label={`${contextLabel} — ${source.title}`}
+        >
+          {/* The same cover the library's bar carries, in the same place. A
+              source with no picture of its own gets the generated tile rather
+              than a gap, so the bar keeps its shape across tabs. */}
+          <LibraryCoverArt
+            src={source.artworkUrl}
+            label={source.title}
+            size="row"
+          />
+          <span className="now-playing-bar__meta">
+            <span className="now-playing-bar__title">{source.title}</span>
+            {source.subtitle && (
+              <span className="now-playing-bar__artist">{source.subtitle}</span>
+            )}
+            {/* The library's third line is the codec and the bitrate. Neither
+                means anything for a karaoke session or a web page, and left
+                out the block was two lines against the library's three and
+                the bar changed height on the way between tabs. The tab's own
+                name is the honest thing to put there: it says which player
+                these buttons belong to, which is the one question a bar that
+                follows the tab can raise. */}
+            <span className="now-playing-bar__format now-playing-bar__context">
+              {contextLabel}
             </span>
-            <input
-              type="range"
-              className="now-playing-bar__volume-slider"
-              min={0}
-              max={1}
-              step={0.01}
-              value={source.volume ?? 1}
-              style={
-                {
-                  '--now-playing-progress': `${(source.volume ?? 1) * 100}%`,
-                } as CSSProperties
-              }
-              aria-label={t('library.volume')}
-              onChange={(event) =>
-                source.setVolume?.(Number(event.target.value))
-              }
-            />
-          </div>
-        )}
+          </span>
+        </button>
       </div>
+
+      {/* The context's own controls where the buttons would be, when it has
+          them. Karaoke hands over the transport it already draws — its mix
+          faders, its jump-to-start, its pitch tone — because reducing that to
+          a play button on the way into a shared bar would take those controls
+          away from the one tab that needs them. Same wrapper, same place, and
+          the same middle column; the options are the tab's. */}
+      {source.hasOwnControls ? (
+        <div className="now-playing-bar__adopted" ref={setTransportSlot} />
+      ) : (
+        <>
+          <div className="now-playing-bar__deck">
+            <div className="now-playing-bar__buttons">
+              {canSeek && (
+                <button
+                  type="button"
+                  className="now-playing-bar__control now-playing-bar__nudge"
+                  aria-label={t('library.back5')}
+                  title={t('library.back5')}
+                  onClick={() => nudge(-1)}
+                >
+                  <TransportIcon name="back5" />
+                </button>
+              )}
+              <button
+                type="button"
+                className={`now-playing-bar__control now-playing-bar__play${
+                  source.isPlaying ? ' is-playing' : ''
+                }`}
+                aria-label={
+                  source.isPlaying ? t('library.pause') : t('library.play')
+                }
+                title={
+                  source.isPlaying ? t('library.pause') : t('library.play')
+                }
+                onClick={source.toggle}
+              >
+                <TransportIcon name={source.isPlaying ? 'pause' : 'play'} />
+              </button>
+              {canSeek && (
+                <button
+                  type="button"
+                  className="now-playing-bar__control now-playing-bar__nudge"
+                  aria-label={t('library.forward5')}
+                  title={t('library.forward5')}
+                  onClick={() => nudge(1)}
+                >
+                  <TransportIcon name="forward5" />
+                </button>
+              )}
+            </div>
+            {canSeek && (
+              <div className="now-playing-bar__position">
+                <time className="now-playing-bar__time">
+                  {formatDuration(shownPosition)}
+                </time>
+                <input
+                  type="range"
+                  className="now-playing-bar__seek"
+                  min={0}
+                  max={Math.max(1, source.durationMs)}
+                  step={100}
+                  value={shownPosition}
+                  style={
+                    {
+                      '--now-playing-progress': `${progressPercent}%`,
+                    } as CSSProperties
+                  }
+                  aria-label={t('library.position')}
+                  onChange={(event) => setScrubMs(Number(event.target.value))}
+                  onPointerUp={commitScrub}
+                  onPointerCancel={commitScrub}
+                  onKeyUp={commitScrub}
+                  onBlur={commitScrub}
+                />
+                <time className="now-playing-bar__time">
+                  -
+                  {formatDuration(
+                    Math.max(0, source.durationMs - shownPosition),
+                  )}
+                </time>
+              </div>
+            )}
+          </div>
+
+          <div className="now-playing-bar__aside">
+            <div className="now-playing-bar__secondary">
+              {source.setVolume !== undefined && (
+                <div className="now-playing-bar__volume">
+                  {/* The icon mutes, as it does on every other bar. */}
+                  <button
+                    type="button"
+                    className="now-playing-bar__volume-icon"
+                    aria-label={t(
+                      (source.volume ?? 1) > 0
+                        ? 'library.mute'
+                        : 'library.unmute',
+                    )}
+                    title={t(
+                      (source.volume ?? 1) > 0
+                        ? 'library.mute'
+                        : 'library.unmute',
+                    )}
+                    aria-pressed={(source.volume ?? 1) === 0}
+                    onClick={() => {
+                      const current = source.volume ?? 1;
+                      if (current > 0) {
+                        restoreVolumeRef.current = current;
+                        source.setVolume?.(0);
+                        return;
+                      }
+                      source.setVolume?.(restoreVolumeRef.current);
+                    }}
+                  >
+                    <TransportIcon
+                      name={(source.volume ?? 1) > 0 ? 'volume' : 'volumeOff'}
+                    />
+                  </button>
+                  <input
+                    type="range"
+                    className="now-playing-bar__volume-slider"
+                    min={0}
+                    max={1}
+                    step={0.01}
+                    value={source.volume ?? 1}
+                    style={
+                      {
+                        '--now-playing-progress': `${(source.volume ?? 1) * 100}%`,
+                      } as CSSProperties
+                    }
+                    aria-label={t('library.volume')}
+                    onChange={(event) =>
+                      source.setVolume?.(Number(event.target.value))
+                    }
+                  />
+                  <span
+                    className="now-playing-bar__volume-value"
+                    aria-hidden="true"
+                  >
+                    {Math.round((source.volume ?? 1) * 100)}%
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+        </>
+      )}
     </div>,
     document.body,
   );

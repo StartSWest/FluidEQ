@@ -86,6 +86,8 @@ const app: Partial<Dictionary> = {
   'tabs.config': 'Config',
   'tabs.media': 'Mídia',
   'tabs.karaoke': 'Karaokê',
+  'tabs.scrollBack': 'Rolar separadores para trás',
+  'tabs.scrollForward': 'Rolar separadores para a frente',
   'notice.apoReconfigured':
     'O Equalizer APO foi instalado ou reconfigurado. Se ficar sem som, reinicie o serviço de áudio do Windows em vez de reiniciar o computador.',
   'notice.restartNow': 'Reiniciar o áudio agora',

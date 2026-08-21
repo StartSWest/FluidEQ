@@ -62,6 +62,10 @@ import {
   registerPlayer,
   releasePlayback,
 } from '../../audio/playbackOwner';
+import {
+  clearTransportSource,
+  setTransportSource,
+} from '../../audio/transportSource';
 import { ILibraryTrack } from '../../../common/library/types';
 import { useLibrary } from '../LibraryContext';
 import {
@@ -878,6 +882,45 @@ export const LibraryPlayerProvider = ({
   const setVolume = useCallback((value: number) => {
     setVolumeState(clampVolume(value));
   }, []);
+
+  /**
+   * The library's claim on the bar at the foot of the window.
+   *
+   * Published in the same register as karaoke's and the Media tab's, so one
+   * rule can decide between them — see `pickTransportOwner`. What the library
+   * gets when it wins is not this: `NowPlayingBar` draws it from this context
+   * directly, because the library has cover art, a format readout, shuffle and
+   * repeat, and none of those fit a shape the other two could honestly fill in.
+   */
+  useEffect(() => {
+    if (!track) {
+      clearTransportSource('library');
+      return;
+    }
+    setTransportSource({
+      owner: 'library',
+      title: track.title,
+      subtitle: track.artist,
+      isPlaying,
+      positionMs,
+      durationMs,
+      toggle,
+      seek,
+      volume,
+      setVolume,
+    });
+  }, [
+    track,
+    isPlaying,
+    positionMs,
+    durationMs,
+    toggle,
+    seek,
+    volume,
+    setVolume,
+  ]);
+
+  useEffect(() => () => clearTransportSource('library'), []);
 
   const value = useMemo<ILibraryPlayerContextValue>(
     () => ({

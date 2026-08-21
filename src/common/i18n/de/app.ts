@@ -85,6 +85,8 @@ const app: Partial<Dictionary> = {
   'tabs.config': 'Config',
   'tabs.media': 'Medien',
   'tabs.karaoke': 'Karaoke',
+  'tabs.scrollBack': 'Tabs zurück scrollen',
+  'tabs.scrollForward': 'Tabs weiter scrollen',
   'notice.apoReconfigured':
     'Equalizer APO wurde installiert oder neu eingerichtet. Falls kein Ton kommt, starten Sie den Windows-Audiodienst neu, statt den PC neu zu starten.',
   'notice.restartNow': 'Audio jetzt neu starten',

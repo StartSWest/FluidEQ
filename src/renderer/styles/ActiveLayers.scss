@@ -23,7 +23,20 @@ it under the terms of the GNU General Public License version 3 or later.
 .active-layers {
   display: flex;
   min-width: 0;
-  flex-wrap: wrap;
+  // One line, always. It used to wrap, which is how five chips with faders
+  // became three ragged rows above the bands; now the row that does not fit
+  // is collapsed into a single control instead — see `ActiveLayers`, which
+  // measures this element to decide.
+  flex-wrap: nowrap;
+  // Hidden rather than visible, and the chips do not shrink.
+  //
+  // Both are what make "does this fit" answerable at all: allowed to shrink,
+  // four chips squeezed themselves into any width and the row always reported
+  // that it fitted, names truncated to two letters and all. At their own width
+  // they overflow instead, which is the measurement `ActiveLayers` reads —
+  // and `hidden` keeps that overflow from being painted in the frame before
+  // the row collapses into its button.
+  overflow: hidden;
   align-items: center;
   justify-content: center;
   gap: 6px;
@@ -68,6 +81,77 @@ it under the terms of the GNU General Public License version 3 or later.
 
 // Appears in response to a click on another tab, one at a time, so a small
 // overshoot is right here in a way it would not be for a list.
+// Collapsed there is nothing to clip and something that must not be: the
+// button is taller than the strip the row reserves for a chip, and hidden
+// overflow took a slice off its bottom edge.
+//
+// Centred here too, whatever the narrow rule below says. That rule pushes a
+// row of chips to the left because a centred row of five reads as adrift;
+// one short label and one button is not that row, and left of a centred
+// toolbar it was the only thing in the header off the axis.
+.active-layers.is-collapsed {
+  overflow: visible;
+  justify-content: center;
+}
+
+.active-layers > .active-layer {
+  flex: 0 0 auto;
+}
+
+// Collapsed: one button saying how many, and the chips in its menu.
+.active-layers__picker {
+  display: inline-flex;
+  min-width: 0;
+  flex: 0 0 auto;
+  // NOT `center`. `.eq-mode` stretches its two halves to a common height and
+  // that is the only thing making them one control; centring them here left
+  // the caret at its own content height, a short box against a taller button
+  // with the seam between them visible.
+  align-items: stretch;
+}
+
+.active-layers__trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  > svg {
+    width: 11px;
+    height: 11px;
+    opacity: 0.75;
+    transition: transform $motion-fast $ease-out;
+  }
+}
+
+.active-layers__picker.is-open .active-layers__trigger > svg {
+  transform: rotate(180deg);
+}
+
+// The chips again, in a column.
+//
+// `max-content` with a cap, not a fixed width: the menu is as wide as its
+// widest chip and never wider than the window, which is what stops a row
+// being cut off at either end. The cap is on the chips too — a chip is a
+// grid whose name column is the flexible one, and left uncapped a long
+// convolution title set the width of the whole menu.
+.active-layers__menu {
+  @include menu-surface;
+  z-index: 1000;
+  display: grid;
+  width: max-content;
+  min-width: 220px;
+  max-width: min(420px, calc(100vw - 24px));
+  gap: 6px;
+  padding: 8px;
+  overflow-y: auto;
+
+  .active-layer {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+  }
+}
+
 .active-layer {
   @include animate(pop-in, $motion-base, $ease-spring);
   // Wide enough to read, short enough that four fit on a line.

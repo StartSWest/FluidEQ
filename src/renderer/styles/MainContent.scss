@@ -61,8 +61,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
-.eq-toolbar,
-.quick-layouts {
+.eq-toolbar {
   display: flex;
   min-width: 0;
   flex-wrap: wrap;
@@ -192,6 +191,33 @@ $eq-caret-width: 24px;
 
   &.is-open .eq-mode__caret svg {
     transform: rotate(180deg);
+  }
+}
+
+// The quiet version of the pair.
+//
+// The caret above is drawn in the accent because the half it is attached to
+// is: the Smart EQ button is the recommended action on this toolbar and wears
+// the loud style. The layout picker and the layer list are not actions at all
+// — they open a list — so they take the outline style, and their caret has
+// to follow. Left as it was, a quiet main half carried a bright green end and
+// the two halves read as two controls stuck together.
+.eq-mode.is-subtle {
+  .eq-mode__caret {
+    color: $secondary-light;
+    border-color: rgba($secondary-light, 0.24);
+    border-left-color: rgba($secondary-light, 0.24);
+    background: rgba($secondary-default, 0.07);
+    box-shadow: none;
+  }
+
+  &:hover:not(.is-disabled) {
+    .button.eq-mode__main:not([aria-disabled='true']),
+    .eq-mode__caret:not(:disabled) {
+      color: $white;
+      border-color: rgba($secondary-light, 0.55);
+      background: rgba($secondary-default, 0.16);
+    }
   }
 }
 
@@ -461,36 +487,16 @@ $eq-caret-width: 24px;
 //
 // It replaces the divider rather than joining it. Both at once is two
 // separators for one seam.
-.quick-layouts {
-  @include inset-surface;
-  // Pill, against the mixin's own $radius-m: the track wraps a row of pills
-  // and a squarer end around a round button leaves a crescent of surface in
-  // each corner.
-  border-radius: $radius-pill;
-  // Closer together inside the track than the toolbar's own spacing, so the
-  // four read as one control rather than as four that share a background.
-  gap: 4px;
-  padding: 3px 6px 3px 10px;
-  // The gap the border used to hold open. The track's own edge is the seam
-  // now, and it needs a little air on the outside of it to be seen as one.
-  margin-left: 3px;
+// The layout picker is `eq-mode` wearing a different label: same split
+// button, same caret, same menu surface. All that is left to say here is how
+// wide the list is, because these rows carry a name and no sentence under it.
+.quick-layouts__menu {
+  width: max-content;
+  min-width: 148px;
 
-  > span {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
+  button {
+    grid-template-areas: 'icon name';
   }
-
-  .eq-toolbar__icon {
-    color: rgba($secondary-light, 0.7);
-  }
-}
-
-.quick-layouts > span {
-  margin-right: 3px;
-  color: $text-muted;
-  font-size: 0.67rem;
-  font-weight: 650;
 }
 
 // Compact inline toggle sitting beside a toolbar button.
@@ -597,8 +603,9 @@ $eq-caret-width: 24px;
     grid-column: 1;
   }
 
-  > .bands {
+  > .bands-rail {
     z-index: 1;
+    min-width: 0;
     grid-row: 1;
     grid-column: 2;
   }
@@ -638,13 +645,48 @@ $eq-caret-width: 24px;
   }
 }
 
+// The rail and its viewport. The bands themselves are inside, at their own
+// width; this is what scrolls when there are more of them than there is room.
+.bands-rail {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 6px;
+}
+
+.bands-rail__viewport {
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow-x: auto;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
 .bands {
   position: relative;
   display: grid;
-  width: 100%;
-  min-width: 0;
+  // As wide as its own tracks, and never narrower than the viewport: that is
+  // what makes the overflow real rather than a grid quietly painting outside
+  // its box, and it is what the viewport measures to decide about arrows.
+  // With no floor set the tracks are an even share of the viewport, so this
+  // resolves to exactly the viewport and nothing scrolls.
+  width: max-content;
+  min-width: 100%;
   padding: 0;
-  grid-template-columns: repeat(var(--band-count), minmax(0, 1fr));
+  // An even share by default, and a floor per band only where the share stops
+  // being usable — see the compact rules at the foot of this file, which set
+  // `--band-min-width`. On a wide window thirty-one bands across the card is
+  // exactly right and nothing here changes it; on a narrow one it came to
+  // nine pixels a band, with the frequency labels printed over one another
+  // and the sliders a picket fence. There the floor applies, the row runs
+  // past the edge, and the viewport scrolls it.
+  grid-template-columns: repeat(
+    var(--band-count),
+    minmax(var(--band-min-width, 0px), 1fr)
+  );
   align-items: center;
   // No background of its own any more. The 0 dB guide moved onto the face
   // behind this row so that it reaches the scale column as well — see
@@ -1154,6 +1196,13 @@ $eq-caret-width: 24px;
     font-size: 0.5rem;
   }
 
+  // A floor per band here, and only here: see `.bands`. On a wide window the
+  // even share is right; at this width it stops being usable long before the
+  // band count runs out.
+  .bands {
+    --band-min-width: 40px;
+  }
+
   .bandWrapper .range {
     --range-length: 112px;
   }
@@ -1197,24 +1246,35 @@ $eq-caret-width: 24px;
   }
 }
 
-@media (max-width: 640px) {
+// The selected-band pane, folded rather than stretched.
+//
+// Its six columns are fixed widths adding to about 700px, so below that they
+// simply ran off the card. One column was tried and is worse: six fields at
+// full width is a stack three hundred pixels tall, which on a short phone-
+// shaped window is the whole editor. Two columns fold it to three rows and
+// every field keeps a width you can read a number in.
+@media (max-width: $bp-two-column) {
   .eq-flat-editor {
+    width: 100%;
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-}
 
-@media (max-width: 460px) {
-  .eq-flat-editor {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
+  // Which band, across the top: it names what the rest of the pane edits.
   .eq-flat-editor__identity {
+    grid-column: 1 / -1;
     grid-template-columns: minmax(0, 1fr);
     gap: 4px;
 
     strong {
       justify-content: flex-start;
     }
+  }
+}
+
+@media (max-width: 460px) {
+  .eq-flat-editor {
+    padding: 8px;
+    gap: 6px;
   }
 }
 

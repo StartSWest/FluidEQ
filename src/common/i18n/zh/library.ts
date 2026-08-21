@@ -106,6 +106,8 @@ const library: Partial<Dictionary> = {
   'library.repeat.one': '单曲循环',
   'library.repeat.off': '不循环',
   'library.volume': '音量',
+  'library.mute': '静音',
+  'library.unmute': '取消静音',
   'library.playbackOptions': '播放选项',
   'library.position': '播放位置',
   'library.queue': '播放队列',

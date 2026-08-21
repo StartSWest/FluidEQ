@@ -1,0 +1,141 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+@use 'color' as *;
+@use 'motion' as *;
+@use 'theme' as *;
+
+// *** The song, behind a full-screen graph ***********************************
+//
+// Fixed to the window and drawn at z-index 0, with the plot lifted to 1 in
+// `GraphTheme.scss`: the picture is the backdrop and the response curve and
+// its live spectrum are what is read over it.
+.library-stage-art {
+  position: fixed;
+  z-index: 0;
+  // The column, measured in `LibraryStageArt.tsx`. Expanded keeps the sidebars
+  // and the picture belongs to the middle; full screen is the window and the
+  // same four numbers say so. The fallback is the window, for the frame before
+  // the first measurement lands.
+  top: var(--stage-art-top, 0);
+  left: var(--stage-art-left, 0);
+  width: var(--stage-art-width, 100vw);
+  height: var(--stage-art-height, 100vh);
+  overflow: hidden;
+  // The card's own corners. In full screen this is invisible — those corners
+  // are the display's — and expanded it is the difference between a picture in
+  // the column and a black square laid across it.
+  border-radius: $radius-xl;
+  background: #050d16;
+  pointer-events: none;
+  animation: library-stage-art-in $motion-slow $ease-out both;
+}
+
+// Blown up past the edges and blurred. The scale is what keeps the blur from
+// showing a soft rim where the picture ends.
+.library-stage-art__wash {
+  position: absolute;
+  inset: -8%;
+  width: 116%;
+  height: 116%;
+  opacity: 0.42;
+  filter: blur(46px) saturate(1.25);
+  object-fit: cover;
+}
+
+// The record itself, at a size that reads as the record rather than as a
+// texture: a share of the shorter edge, so it is the same picture on a tall
+// window as on a wide one.
+.library-stage-art__cover {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: min(38vh, 38vw);
+  height: min(38vh, 38vw);
+  transform: translate(-50%, -58%);
+
+  .library-cover-art {
+    width: 100%;
+    height: 100%;
+    border-radius: $radius-xl;
+    box-shadow:
+      0 40px 90px rgba($black, 0.6),
+      0 0 0 1px rgba($white, 0.06);
+  }
+
+  .library-cover-art__image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .library-cover-art__tile {
+    width: 100%;
+    height: 100%;
+    font-size: clamp(2rem, 7vh, 5rem);
+  }
+}
+
+// Under the cover rather than in a corner: it is a caption to the picture, and
+// a caption sits with what it names.
+.library-stage-art__meta {
+  position: absolute;
+  top: calc(50% + min(19vh, 19vw));
+  right: 0;
+  left: 0;
+  padding: 0 24px;
+  text-align: center;
+
+  h2 {
+    margin: 0;
+    color: $white;
+    font-size: clamp(1.1rem, 2.6vh, 1.8rem);
+    font-weight: 800;
+    text-shadow: 0 2px 18px rgba($black, 0.65);
+  }
+
+  p {
+    margin: 2px 0 0;
+    color: rgba($secondary-light, 0.92);
+    font-size: clamp(0.8rem, 1.7vh, 1.05rem);
+    font-weight: 650;
+  }
+
+  small {
+    display: block;
+    margin-top: 2px;
+    color: rgba($primary-lighter, 0.6);
+    font-size: clamp(0.66rem, 1.3vh, 0.85rem);
+  }
+}
+
+@keyframes library-stage-art-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .library-stage-art {
+    animation: none;
+  }
+}

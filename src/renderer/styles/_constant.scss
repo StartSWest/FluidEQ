@@ -29,6 +29,19 @@ $title-bar-height: 78px;
 $bp-three-column: 1560px;
 $bp-two-column: 940px;
 
+// The left column's width, docked and floating alike.
+//
+// Two figures because the layout narrows it once on the way down, and one
+// place for each because the panel also floats: below the two-column
+// breakpoint it is a drawer, and a drawer wider than the column it replaces
+// makes crossing that breakpoint look like the panel grew.
+$side-bar-width: 164px;
+$side-bar-width-compact: 150px;
+
+// The sound panel's width as a drawer. Read twice: by the panel, and by the
+// tab that rides on its edge while it is open.
+$sound-panel-width: min(340px, 90vw);
+
 $band-width: 64px;
 
 $equalizer-height: 574px;

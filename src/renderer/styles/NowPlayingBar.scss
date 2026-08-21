@@ -17,6 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 @use 'color' as *;
+@use 'motion' as *;
 @use 'spacing' as *;
 @use 'theme' as *;
 
@@ -32,6 +33,31 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // The glass-panel recipe below — the two-stop gradient, the inset highlight,
 // the blur — is `.karaoke-transport`'s own, reused rather than redrawn for a
 // second floating transport bar.
+
+// The play button lands on the same pixel whichever tab is driving the bar,
+// and these two figures are how.
+//
+// The first column is a fixed width rather than a fraction, so the transport
+// beside it always starts at the same x. The button group is a fixed width
+// with its contents centred, so the play button sits at that group's centre
+// however many buttons flank it — five on the library and karaoke rows,
+// one on a web page that can only be played and paused. Without the second
+// figure the Media tab's lone play button sat where the library's `previous`
+// was, and switching tabs moved the control under the pointer.
+$now-playing-art-size: 36px;
+$now-playing-buttons-width: 250px;
+$now-playing-flank-width: 98px;
+$now-playing-seek-width: 340px;
+
+// One height, whichever tab is driving it.
+//
+// The bar is the same object on every tab and switching tabs must not move it
+// — the reserved strip at the foot of the window is measured from its top
+// edge, so a bar that changed height would shift the whole workspace under
+// the pointer. 64px is the tallest of the three rows measured in the running
+// window: karaoke's, which carries buttons, a seek line and up to three
+// faders. The other two have room to spare inside it.
+$now-playing-bar-height: 64px;
 
 // A card, on the same line as every other outermost card in the shell.
 //
@@ -50,12 +76,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   bottom: var(--shell-gutter-bottom, 18px);
   left: var(--shell-gutter, 16px);
   display: grid;
-  grid-template-columns: minmax(180px, 1fr) minmax(320px, 2fr) minmax(
-      200px,
-      1fr
-    );
+  // The side columns have a floor and the middle one does not, so when the
+  // window tightens it is the seek line that shortens rather than the title
+  // that disappears. Written the other way round — `minmax(0, 1fr)` on the
+  // sides — the deck kept its full width and squeezed the track column to
+  // the width of half a cover.
+  grid-template-columns: minmax(150px, 1fr) auto minmax(64px, 1fr);
   align-items: center;
   gap: $spacing-l;
+  height: $now-playing-bar-height;
   padding: 9px $spacing-l;
   // All four sides now, and `$radius-xl` because that is what `panel-surface`
   // gives every other card — 18px, not a number chosen here. The gradient,
@@ -75,6 +104,37 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   backdrop-filter: blur(18px) saturate(1.25);
 }
 
+// Closer to the edge in full screen. The gutter it keeps in a window is the
+// same one every card keeps from the window's sides; over a picture there is
+// no card to line up with, and the bar reads better sitting low.
+.now-playing-bar.is-floating {
+  bottom: 8px;
+}
+
+// Out of the way, once full screen has been still for two seconds.
+//
+// Slid down as well as faded: a bar that only fades leaves its shadow over the
+// bottom of the picture, and this one casts a wide one. `pointer-events` with
+// it, so the hidden bar cannot swallow a press meant for what is behind it —
+// though any movement brings it back before a press can land anyway.
+.now-playing-bar {
+  transition:
+    opacity $motion-base $ease-out,
+    transform $motion-base $ease-out;
+}
+
+.now-playing-bar.is-idle {
+  opacity: 0;
+  transform: translateY(calc(100% + var(--shell-gutter-bottom, 18px)));
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .now-playing-bar {
+    transition: none;
+  }
+}
+
 // Narrow: a grid that fits, rather than three columns that do not.
 //
 // The three minimums above come to 700px, and with the gaps and the padding
@@ -92,11 +152,95 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   padding: 8px $spacing-s;
 }
 
+// The fixed first column, given up when there is no window left to spend it
+// on. `is-compact` above says the same thing for the library's bar, but it is
+// set from a media query in JavaScript and only that bar has it — the other
+// tabs' bar needs the rule in the stylesheet, at the width where 280px of
+// title stops being affordable. The play button stops being pinned here, and
+// at this width everything else has moved too.
+@media (max-width: 1100px) {
+  // The cover keeps its own width whatever else has to give: it is the one
+  // thing on the left that still says what is playing once the title has run
+  // out of room, and clipped down its own middle it says nothing at all.
+  // `.is-compact` is listed beside the bare class deliberately: that one is
+  // set from a media query in JavaScript, carries the same declarations, and
+  // being one class heavier it would otherwise win here and put the old
+  // arrangement back at exactly the width this rule exists for.
+  .now-playing-bar,
+  .now-playing-bar.is-compact {
+    grid-template-columns:
+      minmax($now-playing-art-size, 1fr)
+      minmax(0, 3fr)
+      auto;
+    gap: $spacing-s;
+    padding: 8px $spacing-s;
+  }
+
+  // The seek line gives up most of its length here. Short is still usable for
+  // seeing where you are; the alternative was pushing the cover off the card.
+  .now-playing-bar__position,
+  .now-playing-bar__adopted .karaoke-transport__position {
+    min-width: 72px;
+  }
+
+  .now-playing-bar__buttons,
+  .now-playing-bar__adopted .karaoke-transport__buttons {
+    width: auto;
+  }
+
+  // The reading goes before the fader does. Squeezed, it was a column of
+  // nothing between the slider and the arrow; gone, the slider has the room.
+  .now-playing-bar__volume-value,
+  .now-playing-bar__adopted
+    .karaoke-transport__volume:not(.is-in-mix-menu)
+    .karaoke-transport__volume-value {
+    display: none;
+  }
+
+  // And below this the fader is one icon: the way to the menu that holds it,
+  // and the others with it. A slider narrow enough to fit here is one nobody
+  // can set anyway, and the menu draws them all at a usable width. Only where
+  // there is a menu to open — a song with a single fader keeps the fader,
+  // because pressing its icon mutes and there is nothing else to reach.
+  .now-playing-bar__adopted
+    .karaoke-transport__volume.has-trailing:not(.is-in-mix-menu) {
+    grid-template-columns: auto;
+    padding: 0;
+    border: 0;
+    background: none;
+    box-shadow: none;
+
+    > *:not(.karaoke-transport__mix-trigger) {
+      display: none;
+    }
+  }
+
+  .now-playing-bar__adopted button.karaoke-transport__mix-trigger {
+    width: 30px;
+    min-width: 30px;
+    height: 30px;
+    min-height: 30px;
+    color: rgba($secondary-light, 0.76);
+    border: 1px solid rgba($secondary-light, 0.1) !important;
+    background: rgba($secondary-default, 0.07) !important;
+  }
+}
+
 .now-playing-bar__track {
   display: flex;
   min-width: 0;
   align-items: center;
   gap: $spacing-s;
+}
+
+// The same picture on a bar whose title is not a button. Only the library's
+// cover can be pressed — it goes to the row in the list, and there is no
+// list to go to for a karaoke session or a web page.
+.now-playing-bar__track > .library-cover-art--row {
+  width: $now-playing-art-size;
+  height: $now-playing-art-size;
+  flex: 0 0 auto;
+  border-radius: $radius-s;
 }
 
 // The cover and the two lines beside it, as one press-target.
@@ -112,7 +256,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   flex: 1 1 auto;
   align-items: center;
   gap: $spacing-s;
-  padding: 3px;
+  padding: 2px 3px;
   border: 1px solid transparent;
   border-radius: $radius-s;
   background: none;
@@ -132,13 +276,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     outline: none;
   }
 
-  // Larger than the list rows' own leading column. That one is sized to line
-  // up with a table of 32px controls; this is the single picture of what is
-  // playing, on a bar with the height to spend, and at 32 it read as a stray
-  // icon rather than a cover.
+  // Larger than the list rows' own leading column, which is sized to line up
+  // with a table of 32px controls; this is the single picture of what is
+  // playing and at 32 it read as a stray icon. 36 rather than the 40 it was:
+  // with the bar's padding and this button's own border that made the track
+  // column 48 tall against a 44 transport, and the bar four pixels taller on
+  // the library tab than on every other one.
   .library-cover-art--row {
-    width: 40px;
-    height: 40px;
+    width: $now-playing-art-size;
+    height: $now-playing-art-size;
     border-radius: $radius-s;
   }
 
@@ -147,10 +293,17 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
+// Three lines that have to fit in the same room the buttons take.
+//
+// Measured: at the browser's default leading the block came to 47px inside a
+// 44px content box, so the whole track column overflowed the bar and every
+// item in it settled two pixels below the centre line — the grid centres
+// items in a row, and the row was taller than the box it sat in. Tight
+// leading and no gap is what keeps the three lines inside it.
 .now-playing-bar__meta {
   display: grid;
   min-width: 0;
-  gap: 1px;
+  line-height: 1.15;
 }
 
 .now-playing-bar__title {
@@ -187,6 +340,17 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   font-weight: 500;
 }
 
+// The tab's name, on the line the library spends on the codec, and in the
+// accent rather than the line's own grey. It is not a fourth piece of
+// metadata about the song — it says which player these buttons belong to,
+// which is worth reading once and then recognising by its colour.
+.now-playing-bar__context {
+  color: rgba($secondary-light, 0.92);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
 .now-playing-bar__unplayable {
   flex: 0 0 auto;
   color: $red;
@@ -195,24 +359,118 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   white-space: nowrap;
 }
 
-// *** Transport: previous / play / next, and the seek line *******************
+// *** A tab's own controls, in the bar's wrapper *****************************
+//
+// Karaoke's transport is not a play button: it carries the mix faders, the
+// jump-to-start and jump-to-end and the pitch tone. Reducing it to play/pause
+// on the way into a shared bar would take those away from the one tab that
+// has them, so the tab keeps drawing its own row and portals it in here.
+//
+// What comes off is the chrome. On its own tab that row floats over the stage
+// with nothing behind it and needs a card of its own; here it is already
+// inside one, and a card inside a card reads as a mistake.
+.now-playing-bar__adopted {
+  // Both this and the transport inside it vanish as boxes, so karaoke's own
+  // buttons and its own right-hand side become items of the bar's grid —
+  // the middle column and the third, the same two the library's bar fills.
+  // Nested instead, they were one item in the middle column and the play
+  // button sat wherever that item's contents put it.
+  display: contents;
 
-.now-playing-bar__transport {
-  display: grid;
-  min-width: 0;
-  justify-items: center;
-  gap: 6px;
+  .karaoke-transport__buttons {
+    width: $now-playing-buttons-width;
+    justify-content: center;
+  }
+
+  > .karaoke-transport {
+    display: contents;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+    backdrop-filter: none;
+
+    &::before {
+      display: none;
+    }
+
+    &:hover,
+    &:focus-within {
+      border-color: transparent;
+      box-shadow: none;
+    }
+  }
 }
 
-// Roomier than the karaoke transport's identical recipe, deliberately. That
-// bar sits among dense editing tools where 3px reads as tidy; this one spans
-// the whole window with nothing beside it, and at that width the same figures
-// read as cramped.
-.now-playing-bar__buttons {
+// *** Transport: previous / play / next, and the seek line *******************
+
+// One row, not two stacked.
+//
+// Buttons over a seek line made this bar half again as tall as the same bar
+// on the karaoke tab, and switching between them moved the whole window's
+// floor. Side by side is also karaoke's own arrangement, which is the point:
+// there is one bar here wearing three sets of controls, and it should not be
+// possible to tell which tab drew it from its shape.
+.now-playing-bar__transport {
   display: flex;
+  min-width: 0;
   align-items: center;
-  gap: 6px;
-  padding: 5px 7px;
+  gap: 12px;
+}
+
+// The karaoke transport's recipe exactly, down to the figures. It used to be
+// deliberately roomier, on the reasoning that this bar spans the window while
+// that one sat among dense editing tools — and then both became the same bar
+// in the same card, which retired the argument along with the difference.
+// The third column: the seek line and whatever sits beside it.
+//
+// One item rather than several, because the buttons are only centred in the
+// window while the columns either side of them are equal fractions — and a
+// fourth column would make the right side wider than the left by exactly its
+// own width. The karaoke transport's own row is wrapped the same way.
+.now-playing-bar__aside,
+.now-playing-bar__adopted .karaoke-transport__rest {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: $spacing-m;
+}
+
+// The same length on every tab. Left to size itself it was the width of
+// whatever was left over, which is a different number on each of them.
+.now-playing-bar__position,
+.now-playing-bar__adopted .karaoke-transport__position {
+  // 340 where the window allows it, and the first thing to give when it
+  // does not: a bar that keeps its seek line at full length in a narrow
+  // window pushes the fader off its own right edge instead.
+  width: $now-playing-seek-width;
+  min-width: 96px;
+  max-width: 100%;
+  flex: 1 1 auto;
+  padding: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
+}
+
+// The transport keys and the seek line in one wrapper, and the wrapper is the
+// pill. Two pills side by side read as two controls; the keys and the line
+// they move along are one.
+//
+// Fixed widths inside it rather than fractions, so the deck is the same size
+// on every tab and, being the middle column between two equal fractions, in
+// the same place -- karaoke's five keys and the library's six sit in a group
+// of one width, and the seek line is one length everywhere.
+.now-playing-bar__deck,
+.now-playing-bar__adopted .karaoke-transport__deck {
+  display: flex;
+  min-width: 0;
+  flex: 0 1 auto;
+  align-items: center;
+  gap: 8px;
+  padding: 3px 10px 3px 3px;
   border: 1px solid rgba($secondary-light, 0.1);
   border-radius: $radius-pill;
   background: rgba(#020a12, 0.38);
@@ -221,12 +479,49 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     inset 0 1px 0 rgba($white, 0.035);
 }
 
+.now-playing-bar__buttons,
+.now-playing-bar__adopted .karaoke-transport__buttons {
+  display: flex;
+  width: $now-playing-buttons-width;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
+}
+
+// Either side of the play button, and the same width whichever holds more.
+//
+// Three controls and two gaps, which is what the busier flank holds: forward,
+// next and stop. The other holds two and is padded out to match, so the play
+// button between them stays on the window's centre line — an odd number of
+// controls around it cannot be balanced by centring the row, only by making
+// both sides the same size.
+.now-playing-bar__flank {
+  display: flex;
+  width: $now-playing-flank-width;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 4px;
+}
+
+.now-playing-bar__flank--start {
+  justify-content: flex-end;
+}
+
+.now-playing-bar__flank--end {
+  justify-content: flex-start;
+}
+
 .now-playing-bar__control {
   display: grid;
-  width: 38px;
-  min-width: 38px;
-  height: 38px;
-  min-height: 38px;
+  width: 34px;
+  min-width: 34px;
+  height: 34px;
+  min-height: 34px;
   place-items: center;
   padding: 0;
   color: rgba($secondary-light, 0.82);
@@ -258,11 +553,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 .now-playing-bar__play {
-  width: 50px;
-  min-width: 50px;
-  height: 50px;
-  min-height: 50px;
-  margin: -5px 2px;
+  width: 44px;
+  min-width: 44px;
+  height: 44px;
+  min-height: 44px;
+  margin: -4px 1px;
   color: #031411;
   border: 1px solid rgba($white, 0.32);
   border-radius: 50%;
@@ -284,13 +579,20 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
+// Beside the keys rather than under them, and inside their wrapper rather
+// than in a pill of its own.
 .now-playing-bar__position {
   display: grid;
-  width: 100%;
-  max-width: 560px;
-  grid-template-columns: auto minmax(100px, 1fr) auto;
+  grid-template-columns: auto minmax(80px, 1fr) auto;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
+}
+
+// Quieter than the five that move through a queue, though it sits with them.
+// It ends playback rather than moving within it, and at the same weight as
+// Next it read as one more way to change track.
+.now-playing-bar__stop {
+  color: rgba($primary-lighter, 0.62);
 }
 
 .now-playing-bar__time {
@@ -364,24 +666,69 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
+// One fader, drawn as one of a set.
+//
+// The same recessed pill karaoke gives each of its three, with the same three
+// columns — icon, slider, reading — so a tab with one fader and a tab with
+// three look like the same control repeated rather than two different ideas
+// about what a fader is. The count is the only thing that changes with the
+// tab.
 .now-playing-bar__volume {
-  display: flex;
-  width: 120px;
+  display: grid;
+  width: 168px;
   min-width: 0;
+  // The reading is as wide as the reading, not a reserved column: a fader
+  // in the bar has a window's worth of neighbours and no room to hold empty
+  // space open. The copies in the mix menu keep their column, where the
+  // readings line up under each other and want to.
+  grid-template-columns: 26px minmax(56px, 1fr) auto;
   align-items: center;
-  gap: 6px;
+  gap: 7px;
+  padding: 4px 7px 4px 4px;
+  border: 1px solid rgba($secondary-light, 0.08);
+  border-radius: $radius-pill;
+  background: rgba(#020a12, 0.25);
+  box-shadow: inset 0 1px 2px rgba($black, 0.24);
 }
 
+// The figure at the end of the fader, in the same grey the format line uses.
+// It is a readout, not a control, and reading it should never be the way
+// somebody notices where the fader is.
+.now-playing-bar__volume-value {
+  @include truncate;
+  color: rgba($primary-lighter, 0.6);
+  font-size: 0.6rem;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+// A button now, not a label: it mutes. Sized and coloured exactly as it was,
+// so the change is what it does rather than what it looks like — until it is
+// pressed, when the struck-through cone and the dimmed face say so.
 .now-playing-bar__volume-icon {
   display: grid;
   width: 26px;
   height: 26px;
   flex: 0 0 auto;
   place-items: center;
+  padding: 0;
   color: rgba($secondary-light, 0.76);
   border: 1px solid rgba($secondary-light, 0.1);
   border-radius: 50%;
   background: rgba($secondary-default, 0.07);
+  box-shadow: none;
+  cursor: pointer;
+  transition: $transition-control;
+
+  &:hover {
+    color: $white;
+    background: rgba($secondary-default, 0.16);
+  }
+
+  &[aria-pressed='true'] {
+    color: rgba($primary-lighter, 0.5);
+    background: rgba(#020a12, 0.4);
+  }
 }
 
 // *** The icon glyphs *********************************************************

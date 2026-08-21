@@ -984,7 +984,14 @@ it under the terms of the GNU General Public License version 3 or later.
   top: calc(100% + 5px);
   right: 0;
   min-width: 216px;
+  // Taller than the room it has, on a graph docked at the foot of the window:
+  // the list is long and the last rows were simply cut off at the window's
+  // edge with no way to reach them. It stops at the room available and
+  // scrolls — `overscroll-behavior` and the thin scrollbar above were
+  // already here waiting for it.
+  max-height: min(58vh, 420px);
   padding: 5px;
+  overflow-y: auto;
 
   &.is-above {
     top: auto;
@@ -1499,6 +1506,57 @@ it under the terms of the GNU General Public License version 3 or later.
 // picture is a black border around a picture. It survived because the rule
 // that opens this mode up only ever dealt with the title bar's height, so the
 // top came free and the other three sides did not.
+// Over the cover art the Library tab draws behind its full-screen graph, and
+// only there: `has-stage-art` is set by that view alone. The picture is fixed
+// to the window and portalled to the body, so it is a later sibling of
+// everything in `#root` and paints over whatever is not lifted above it — and
+// a full screen showing the record but not the curve is half the feature.
+// THE COLUMN IS WHAT HAS TO BE LIFTED, NOT THE CARD.
+//
+// `z-index: 1` on the graph alone was measured doing nothing, and the reason is
+// two stacking contexts up: `.center-workspace` carries `will-change: opacity,
+// transform`, which makes it a stacking context of its own. Everything inside
+// it — the card included — is sorted *within* it, and the column then competes
+// with the picture as a single unit at the parent's z-index, which is `auto`.
+// The picture is a later sibling of `#root`, so a tie on z-index is decided by
+// document order and the picture wins: an opaque `#050d16` sheet over the
+// entire graph, with only the toolbar showing through from a layer above.
+// Lifting the column lifts the card with it.
+#root.has-stage-art .center-workspace.is-graph-full {
+  z-index: 1;
+}
+
+#root.has-stage-art .center-workspace.is-graph-full > .graph-wrapper {
+  // Fixed to the window, and only in this view.
+  //
+  // Two things at once, both measured. The card has to be above the picture,
+  // which is a body-level layer at z-index 0. And it has to be the size of the
+  // window: the column it covers is as tall as the library inside it -- 2618px
+  // against a 1440px screen — so the plot was drawn at that height and its
+  // curve fell a screen and a half below the fold. That is the whole of "the
+  // graph is not visible on the album": it was being drawn, off-screen.
+  position: fixed;
+  z-index: 1;
+  // The same measured column the picture stands in, so the card and the record
+  // are the same rectangle in both of the graph's modes: expanded it is the
+  // middle column with the sidebars either side, full screen it is the window.
+  //
+  // Fixed, and still laid out against the column: `.center-workspace` carries
+  // `will-change: opacity, transform`, and a will-change of transform makes an
+  // element the containing block for its fixed descendants. So the offsets
+  // here are the column's, not the window's — the picture, which really is
+  // fixed to the window, takes the viewport pair instead. Reading the window's
+  // numbers here put the card exactly one column-origin down and to the right.
+  top: var(--stage-art-shift, 0);
+  left: 0;
+  width: 100%;
+  height: var(--stage-art-height, 100vh);
+  // The block below sets all four insets; with a width and a height of its own
+  // this box takes two of them and must give the other two back.
+  right: auto;
+  bottom: auto;
+}
+
 .app-workspace.is-app-full {
   padding: 0;
 }
@@ -1828,6 +1886,15 @@ it under the terms of the GNU General Public License version 3 or later.
       pointer-events: auto;
     }
   }
+
+  // The Library's cover art gets the card drawn over it and NOT the
+  // click-through above, which was tried here and taken out again.
+  //
+  // Over a video the clicks are wanted underneath: there is a player down
+  // there with a play button and a seek bar. Under the record there is a
+  // picture — `pointer-events: none` on the whole of it — and a song list that
+  // is hidden, so nothing gains a click and the card loses the one gesture
+  // this mode is left with: a double-click on the graph to come back out.
 
   // And with them gone, the player is the panel.
   //

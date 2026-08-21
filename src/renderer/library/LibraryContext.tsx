@@ -45,6 +45,16 @@ interface ILibraryContextValue {
    * the folders were still there and the songs were not.
    */
   wasReset: boolean;
+  /**
+   * Whether the first read of the on-disk index has come back.
+   *
+   * False for the round-trip after the tab is opened, and the difference
+   * between "no songs" and "not asked yet" for anything drawing an empty
+   * state: an index that starts empty and fills a moment later showed the
+   * "add a folder" panel to everybody with a library, every time they opened
+   * the tab.
+   */
+  isIndexLoaded: boolean;
   isScanning: boolean;
   progress: ILibraryScanProgress | undefined;
   addFolder: () => Promise<void>;
@@ -74,6 +84,7 @@ const LibraryContext = createContext<ILibraryContextValue | undefined>(
 export const LibraryProvider = ({ children }: { children: ReactNode }) => {
   const [index, setIndex] = useState<ILibraryIndex>(EMPTY_INDEX);
   const [wasReset, setWasReset] = useState(false);
+  const [isIndexLoaded, setIsIndexLoaded] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
   const [progress, setProgress] = useState<ILibraryScanProgress | undefined>(
     undefined,
@@ -87,10 +98,18 @@ export const LibraryProvider = ({ children }: { children: ReactNode }) => {
         if (mounted) {
           setIndex(result.index);
           setWasReset(result.wasReset);
+          setIsIndexLoaded(true);
         }
         return undefined;
       })
-      .catch(() => undefined);
+      // Loaded on a failure too. The reply is how the interface learns there
+      // is nothing to show; a rejection that left this false would leave the
+      // tab spinning at a library that is never coming.
+      .catch(() => {
+        if (mounted) {
+          setIsIndexLoaded(true);
+        }
+      });
     return () => {
       mounted = false;
     };
@@ -239,6 +258,7 @@ export const LibraryProvider = ({ children }: { children: ReactNode }) => {
     () => ({
       index,
       wasReset,
+      isIndexLoaded,
       isScanning,
       progress,
       addFolder,
@@ -251,6 +271,7 @@ export const LibraryProvider = ({ children }: { children: ReactNode }) => {
     [
       index,
       wasReset,
+      isIndexLoaded,
       isScanning,
       progress,
       addFolder,

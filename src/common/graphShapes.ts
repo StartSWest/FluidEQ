@@ -185,8 +185,12 @@ const WAVE_FORMS: Partial<Record<GraphStyle, WaveformStyle>> = {
 const toWaveSamples = (
   points: readonly Projected[],
   baseline: number,
+  // Normalised against the plot's depth rather than the floor's distance from
+  // the card, or a reading at the ceiling comes back short of full scale by
+  // exactly the headroom above the plot.
+  ceiling = 0,
 ): number[] => {
-  const depth = Math.max(1, baseline);
+  const depth = Math.max(1, baseline - ceiling);
   const samples: number[] = [];
   for (let index = 0; index < points.length; index += 1) {
     samples.push(
@@ -194,6 +198,34 @@ const toWaveSamples = (
     );
   }
   return samples;
+};
+
+/**
+ * The same list of points, rounded off.
+ *
+ * Quadratic Beziers between the midpoints: each point becomes the control of
+ * a segment whose ends are the midpoints to its neighbours, so the curve
+ * visits those midpoints and every per-point corner rounds away. The
+ * technique the titlebar's own shapes use, for the same reason — a figure
+ * built from alternating offsets is a saw when its corners are kept and a
+ * thread when they are not.
+ */
+const smoothPolyline = (points: readonly Projected[]): string => {
+  if (points.length < 3) {
+    return polyline(points);
+  }
+  const [firstX, firstY] = points[0];
+  let d = `M ${firstX.toFixed(1)},${firstY.toFixed(1)}`;
+  for (let index = 1; index < points.length - 1; index += 1) {
+    const [px, py] = points[index];
+    const [nx, ny] = points[index + 1];
+    d += ` Q ${px.toFixed(1)},${py.toFixed(1)} ${((px + nx) / 2).toFixed(
+      1,
+    )},${((py + ny) / 2).toFixed(1)}`;
+  }
+  const [lastX, lastY] = points[points.length - 1];
+  d += ` L ${lastX.toFixed(1)},${lastY.toFixed(1)}`;
+  return d;
 };
 
 const polyline = (points: readonly Projected[]) =>
@@ -353,6 +385,38 @@ export const createGraphShape = (
    * speak of and ignore it.
    */
   gap = 0,
+  /**
+   * The pixel row the plot's ceiling sits on.
+   *
+   * Only the mirrored wave family reads it, and it reads it because it is the
+   * only family that needs to know where the plot's MIDDLE is. Everything
+   * else here hangs from the floor and is content with `baseline`.
+   *
+   * Zero was assumed, and the plot's ceiling is never zero: there is headroom
+   * above it for the controls strip that floats over the card, measured from
+   * the live strip and taller when it wraps. So the wave was centred on half
+   * the floor's depth instead of half the plot's, which put its middle too
+   * high by half the headroom and its crest above the plot entirely, where it
+   * was cut off. Turning the grid off made it worse rather than causing it —
+   * that drops the bottom margin, so the floor moves down, the assumed height
+   * grows, and the overshoot at the top grows with it.
+   */
+  ceiling = 0,
+  /**
+   * Whether this is going to be painted rather than stroked.
+   *
+   * Read only by the handful of forms that are a single open trace, and read
+   * because those two jobs want different paths from the same drawing. Left
+   * open, a fill is closed for you by a straight line from the last point
+   * back to the first — a diagonal across the whole plot with a meaningless
+   * wedge under it. Closed to the floor unconditionally, the STROKED version
+   * grows a hairline along the bottom of the plot and a vertical up each
+   * side, which is a box drawn round a line nobody asked to frame.
+   *
+   * So the trace says how it shuts, and it can only say that if it is told
+   * which of the two it is being asked for.
+   */
+  filled = false,
 ): string => {
   if (points.length < 2) {
     return '';
@@ -376,6 +440,20 @@ export const createGraphShape = (
   const step = Math.max(1, span / (figure.length - 1));
   // The gap IS the separation: zero is columns that touch. Each form's own
   // width lives in `BAR_GAP_DEFAULTS` as a starting position instead.
+  /**
+   * The same trace, shut against the floor.
+   *
+   * Down from where it ended, back along the bottom of the plot, and closed
+   * — which is what filling a spectrum means in every other form here.
+   */
+  const closedUnder = (
+    trace: string,
+    fromX = points[0][0],
+    toX = points[points.length - 1][0],
+  ): string =>
+    `${trace} L ${toX.toFixed(1)},${baseline.toFixed(1)} L ${fromX.toFixed(
+      1,
+    )},${baseline.toFixed(1)} Z`;
   const columnWidth = (floorPx: number) =>
     Math.max(floorPx, step * (1 - Math.max(0, Math.min(0.85, gap))));
 
@@ -409,14 +487,20 @@ export const createGraphShape = (
        */
       waveform !== undefined && waveform.length >= 2
         ? waveform
-        : toWaveSamples(toColumns(points, WAVE_SAMPLE_COUNT), baseline),
+        : toWaveSamples(
+            toColumns(points, WAVE_SAMPLE_COUNT),
+            baseline,
+            ceiling,
+          ),
       waveStyle,
       Math.max(1, points[points.length - 1][0] - left),
-      baseline,
+      // The plot's own depth, floor to ceiling — not the floor's distance
+      // from the top of the card, which is what `baseline` alone is.
+      Math.max(1, baseline - ceiling),
       // Half the plot, because the figure is mirrored: a full-scale reading
       // reaches the ceiling going up and the floor going down, and anything
       // more would draw outside the plot in both directions at once.
-      baseline / 2,
+      Math.max(1, baseline - ceiling) / 2,
       /**
        * THE SECOND READING, and the thing that was missing.
        *
@@ -447,8 +531,9 @@ export const createGraphShape = (
             : clampGraphColumns(columns),
         ),
         baseline,
+        ceiling,
       ),
-      { x: left, y: 0 },
+      { x: left, y: ceiling },
     );
     if (shape.fill) {
       return shape.fill;
@@ -458,7 +543,7 @@ export const createGraphShape = (
 
   switch (style) {
     case 'line':
-      return polyline(points);
+      return filled ? closedUnder(polyline(points)) : polyline(points);
 
     case 'area':
     case 'ridge': {
@@ -496,7 +581,7 @@ export const createGraphShape = (
         const [x, y] = points[index];
         path += ` H ${x.toFixed(1)} V ${y.toFixed(1)}`;
       }
-      return path;
+      return filled ? closedUnder(path) : path;
     }
 
     case 'blocks':
@@ -669,6 +754,23 @@ export const createGraphShape = (
       const spacing = Math.max(4, Math.min(16, (baseline - ceiling) / 4));
       const rightEdge = points[points.length - 1][0];
       let path = '';
+      /**
+       * The contours have thickness, because a fill needs something to fill.
+       *
+       * They were bare horizontal segments, and a segment encloses no area —
+       * so with the look's Filled switch on, the canvas painted precisely
+       * nothing and the form vanished from the pane. Not faint, not wrong:
+       * gone, in a way indistinguishable from the capture having stopped.
+       *
+       * A drawn contour line has a width on any real map, so giving these one
+       * costs the form nothing and makes both switch positions draw the same
+       * map. Thin enough to stay a line, and tied to the spacing so the bands
+       * never thicken into each other when the thresholds crowd up in a quiet
+       * passage.
+       */
+      const weight = Math.max(1.5, Math.min(2.5, spacing * 0.3));
+      const band = (from: number, to: number, level: number) =>
+        rect(from, level - weight / 2, Math.max(weight, to - from), weight);
       for (let level = baseline - spacing; level > ceiling; level -= spacing) {
         let from: number | undefined;
         for (let index = 0; index < points.length; index += 1) {
@@ -676,14 +778,12 @@ export const createGraphShape = (
           if (y <= level && from === undefined) {
             from = x;
           } else if (y > level && from !== undefined) {
-            path += `M ${from.toFixed(1)},${level.toFixed(1)} H ${x.toFixed(1)} `;
+            path += band(from, x, level);
             from = undefined;
           }
         }
         if (from !== undefined) {
-          path += `M ${from.toFixed(1)},${level.toFixed(
-            1,
-          )} H ${rightEdge.toFixed(1)} `;
+          path += band(from, rightEdge, level);
         }
       }
       // Nothing clears the first threshold when the signal is at the floor.
@@ -808,7 +908,7 @@ export const createGraphShape = (
           (after[1] - from[1]) / 6
         ).toFixed(1)} ${to[0].toFixed(1)},${to[1].toFixed(1)}`;
       }
-      return path;
+      return filled ? closedUnder(path) : path;
     }
 
     // A band that swells where the signal is strong.
@@ -1010,7 +1110,7 @@ export const createGraphShape = (
           beat * 0.11
         ).toFixed(1)} L ${(x + width * 2).toFixed(1)},${rest.toFixed(1)}`;
       }
-      return path;
+      return filled ? closedUnder(path) : path;
     }
 
     // The trace, and three afterimages of it — each arriving a little to the
@@ -1019,15 +1119,25 @@ export const createGraphShape = (
     // are the same instant redrawn smaller, which is a picture of decay rather
     // than a recording of it.
     case 'echo': {
-      let path = polyline(points);
+      const left = points[0][0];
+      const right = points[points.length - 1][0];
+      // Each repeat shuts against the floor on ITS own span, not on the live
+      // trace's — they are offset to the right, and closing all four between
+      // the same two verticals would slant every repeat's end wall.
+      const shut = (trace: string, late: number) =>
+        filled ? closedUnder(trace, left + late, right + late) : trace;
+      let path = shut(polyline(points), 0);
       for (let copy = 1; copy <= 3; copy += 1) {
         const decay = 1 - copy * 0.26;
         const late = copy * 6;
-        path += ` ${polyline(
-          points.map(
-            ([x, y]) =>
-              [x + late, baseline - (baseline - y) * decay] as Projected,
+        path += ` ${shut(
+          polyline(
+            points.map(
+              ([x, y]) =>
+                [x + late, baseline - (baseline - y) * decay] as Projected,
+            ),
           ),
+          late,
         )}`;
       }
       return path;
@@ -1332,6 +1442,14 @@ export const createGraphShape = (
         over.push([x, y + twist]);
         under.push([x, y - twist]);
       }
+      // Painted, the plait is the room between its two rails rather than the
+      // area under them — this form has no underside, it has a body, and that
+      // body already swells where the signal does. Closing it to the floor
+      // instead would bury the twist that is the whole form.
+      if (filled) {
+        const back = [...under].reverse();
+        return `${polyline(over)} ${polyline(back).replace(/^M/, 'L')} Z`;
+      }
       return `${polyline(over)} ${polyline(under)}`;
     }
 
@@ -1381,14 +1499,53 @@ export const createGraphShape = (
      * music is and closes to a nearly straight thread where it is not.
      */
     case 'weave': {
-      let path = `M ${figure[0][0].toFixed(1)},${figure[0][1].toFixed(1)}`;
-      for (let index = 1; index < figure.length; index += 1) {
+      /**
+       * Threaded rather than sawn.
+       *
+       * The swings were joined corner to corner, which at any useful density
+       * is a row of hard teeth — a saw blade, not a weave. Rounded through
+       * the midpoints the same alternation reads as one thread crossing the
+       * line and back, which is what the form is called.
+       *
+       * The alternation and the depth are untouched: the side still comes
+       * from the column's parity and how far it goes still comes from how
+       * loud that band is.
+       */
+      const woven: Projected[] = [];
+      for (let index = 0; index < figure.length; index += 1) {
         const [x, y] = figure[index];
         const depth = 1.5 + Math.min(11, Math.max(0, baseline - y) * 0.055);
-        const swing = index % 2 === 0 ? -depth : depth;
-        path += ` L ${x.toFixed(1)},${(y + swing).toFixed(1)}`;
+        // Doubled because these become control points, and a quadratic only
+        // reaches halfway to its control — the same arithmetic `arches` does
+        // above. Undoubled, rounding the corners silently halved the swing.
+        const swing = 2 * depth;
+        woven.push([x, y + (index % 2 === 0 ? -swing : swing)] as Projected);
       }
-      return path;
+      /**
+       * Closed down to the floor, like every other form that can be painted.
+       *
+       * An open path handed to a fill is closed for you, by a straight line
+       * from its last point back to its first — which on a trace that starts
+       * loud at 20Hz and ends quiet at 20k is a diagonal clean across the
+       * graph, with an enormous wedge under it that means nothing. Nobody
+       * drew that; it was the absence of a decision.
+       *
+       * Returning along the response instead, so each swing shuts into its
+       * own lobe, is the geometry the name suggests and it looked wrong: at
+       * any depth a thread can plausibly have, the plait is a thin band and
+       * the form stops reading as a level at all.
+       *
+       * So the fill is the area under the thread, which is what filling a
+       * spectrum means everywhere else in this catalogue. The thread is
+       * still the top edge; only the way it shuts changed.
+       */
+      const [firstX] = figure[0];
+      const [lastX] = figure[figure.length - 1];
+      return `${smoothPolyline(woven)} L ${lastX.toFixed(
+        1,
+      )},${baseline.toFixed(1)} L ${firstX.toFixed(1)},${baseline.toFixed(
+        1,
+      )} Z`;
     }
 
     default:

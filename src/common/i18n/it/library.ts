@@ -110,6 +110,8 @@ const library: Partial<Dictionary> = {
   'library.repeat.one': 'Ripeti questo brano',
   'library.repeat.off': 'Non ripetere',
   'library.volume': 'Volume',
+  'library.mute': 'Disattiva audio',
+  'library.unmute': 'Riattiva audio',
   'library.playbackOptions': 'Opzioni di riproduzione',
   'library.position': 'Posizione',
   'library.queue': 'Coda',

@@ -284,6 +284,8 @@ const eq: Partial<Dictionary> = {
   'eq.smart.mode.target': '目标',
   'eq.smart.mode.target.note': '持续测量 · 让每张唱片贴合同一条曲线',
   'eq.layers': '同时生效',
+  'eq.layers.count': '{count} 个层',
+  'eq.layers.countOff': '{count} 个层 · {off} 个已关闭',
   'eq.layers.aria': '还有什么在影响这个输出',
   'eq.layers.eq': '均衡器',
   'eq.layers.eq.modified': '（已修改）',

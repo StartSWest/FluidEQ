@@ -23,6 +23,8 @@ import {
   MAX_GRAPH_COLUMNS,
   MIN_GRAPH_COLUMNS,
   getGraphLook,
+  canGraphFill,
+  hasGraphGap,
   isDiscreteGraphStyle,
 } from 'common/graphStyles';
 import { ACCENT_STYLES } from 'common/graphShapes';
@@ -536,6 +538,13 @@ const LookDesigner = ({ onClose, isClosing = false }: ILookDesignerProps) => {
 
   const { tuning, style } = draft;
   const isDiscrete = isDiscreteGraphStyle(style);
+  // Pieces and Gap are different questions — see `hasGraphGap`.
+  const canGap = hasGraphGap(style);
+  // Whether painting this form draws anything at all — see `canGraphFill`.
+  // On the ones it does not, the choice below is not offered and the setting
+  // is read as stroked whatever an older saved look happens to hold.
+  const canFill = canGraphFill(style);
+  const isFilled = canFill && tuning.filled;
   const fallbackName = t(`graph.styleName.${style}` as TranslationKey);
   const isFull = !origin.isEditing && isCustomLookListFull();
   /**
@@ -784,8 +793,8 @@ const LookDesigner = ({ onClose, isClosing = false }: ILookDesignerProps) => {
         <SettingRow
           id="look-designer-gap"
           label={t('look.gap')}
-          value={isDiscrete ? `${Math.round(tuning.gap * 100)}%` : '—'}
-          isDisabled={!isDiscrete}
+          value={canGap ? `${Math.round(tuning.gap * 100)}%` : '—'}
+          isDisabled={!canGap}
         >
           <SettingSlider
             id="look-designer-gap"
@@ -793,7 +802,7 @@ const LookDesigner = ({ onClose, isClosing = false }: ILookDesignerProps) => {
             max={MAX_BAR_GAP}
             step={0.05}
             value={tuning.gap}
-            isDisabled={!isDiscrete}
+            isDisabled={!canGap}
             onChange={(gap) => tune({ gap })}
           />
         </SettingRow>
@@ -838,39 +847,45 @@ const LookDesigner = ({ onClose, isClosing = false }: ILookDesignerProps) => {
           />
         </SettingRow>
 
-        <div className="look-designer__row">
-          <span className="look-designer__caption">
-            <span>{t('look.drawnAs')}</span>
-          </span>
-          <div
-            className="look-designer__choice"
-            role="group"
-            aria-label={t('look.drawnAs')}
-          >
-            <button
-              type="button"
-              className={`look-designer__pill${tuning.filled ? ' is-on' : ''}`}
-              aria-pressed={tuning.filled}
-              onClick={() => tune({ filled: true })}
+        {/* Hidden rather than disabled on the forms made of marks. A greyed
+            pair of pills invites the question "why can I not have that?", and
+            the answer — a hatch has no inside to paint — is a property of the
+            drawing rather than of anything the user did. */}
+        {canFill ? (
+          <div className="look-designer__row">
+            <span className="look-designer__caption">
+              <span>{t('look.drawnAs')}</span>
+            </span>
+            <div
+              className="look-designer__choice"
+              role="group"
+              aria-label={t('look.drawnAs')}
             >
-              {t('look.filled')}
-            </button>
-            <button
-              type="button"
-              className={`look-designer__pill${!tuning.filled ? ' is-on' : ''}`}
-              aria-pressed={!tuning.filled}
-              onClick={() => tune({ filled: false })}
-            >
-              {t('look.stroked')}
-            </button>
+              <button
+                type="button"
+                className={`look-designer__pill${isFilled ? ' is-on' : ''}`}
+                aria-pressed={isFilled}
+                onClick={() => tune({ filled: true })}
+              >
+                {t('look.filled')}
+              </button>
+              <button
+                type="button"
+                className={`look-designer__pill${!isFilled ? ' is-on' : ''}`}
+                aria-pressed={!isFilled}
+                onClick={() => tune({ filled: false })}
+              >
+                {t('look.stroked')}
+              </button>
+            </div>
           </div>
-        </div>
+        ) : null}
 
         {/* One control, because only one of the two ever applies: a painted
             figure has no stroke to widen and a stroked one has nothing to set
             the opacity of. Showing both would leave a dead slider on screen
             whichever way the choice above went. */}
-        {tuning.filled ? (
+        {isFilled ? (
           <SettingRow
             id="look-designer-fill"
             label={t('look.fill')}

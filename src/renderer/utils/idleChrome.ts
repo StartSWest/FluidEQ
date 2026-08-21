@@ -41,10 +41,11 @@ import { useSyncExternalStore } from 'react';
 /**
  * How long the pointer has to be still.
  *
- * Two seconds is long enough to reach a control after revealing it, while
- * still getting the chrome out of the singer's sight before the next phrase.
+ * Five seconds. Two was long enough to reach a control after revealing it,
+ * and short enough to be startling: the chrome left while you were still
+ * looking at what you had just changed.
  */
-export const CHROME_IDLE_MS = 2000;
+export const CHROME_IDLE_MS = 5000;
 
 /**
  * What counts as being here.
@@ -119,8 +120,74 @@ const clearTimer = () => {
   }
 };
 
+/**
+ * The strips of screen the chrome lives in.
+ *
+ * Movement brings it back only here, and only the clock takes it away again:
+ * five still seconds. Anywhere else on the screen it is somebody
+ * watching, singing, or resting a hand on a mouse -- and a bar that came back
+ * for any of those was a bar that never stayed away. Reaching for it, on the
+ * other hand, means going to where it is: the foot of the window for the
+ * transport, the head of it for the graph's own toolbar.
+ *
+ * Generous, because a pointer moving fast reports few positions on the way:
+ * at 120px the band is crossed by every approach and by nothing else.
+ */
+const WAKE_EDGE_PX = 120;
+
+const isInWakeZone = (event: PointerEvent): boolean =>
+  event.clientY >= window.innerHeight - WAKE_EDGE_PX ||
+  event.clientY <= WAKE_EDGE_PX;
+
+/**
+ * Whether the pointer is down where the transport bar lives.
+ *
+ * The bar has two ways to go: the pointer leaving its strip, and the clock
+ * running out. Leaving is the quick one and is what somebody who came for one
+ * button expects; the clock catches the case where the pointer stops inside
+ * the strip and stays there.
+ */
+let isNearBottom = false;
+const bottomListeners = new Set<() => void>();
+
+const setNearBottom = (next: boolean) => {
+  if (next === isNearBottom) {
+    return;
+  }
+  isNearBottom = next;
+  bottomListeners.forEach((listener) => listener());
+};
+
+const subscribeNearBottom = (listener: () => void) => {
+  bottomListeners.add(listener);
+  return () => {
+    bottomListeners.delete(listener);
+  };
+};
+
+/** True while the pointer is within the bar's own strip of screen. */
+export const useIsPointerNearBottom = () =>
+  useSyncExternalStore(
+    subscribeNearBottom,
+    () => isNearBottom,
+    () => false,
+  );
+
 const handleActivity = (event?: Event) => {
+  if (event?.type === 'pointermove') {
+    const move = event as PointerEvent;
+    setNearBottom(move.clientY >= window.innerHeight - WAKE_EDGE_PX);
+  }
   if (event?.type === 'keydown' && isQuietKey(event as KeyboardEvent)) {
+    return;
+  }
+  // Keys and the wheel are deliberate by nature and wake it at once. The
+  // pointer has to be where the chrome is — see `isInWakeZone`.
+  if (
+    isIdle &&
+    event?.type === 'pointermove' &&
+    !isInWakeZone(event as PointerEvent)
+  ) {
     return;
   }
   // MOVING THE POINTER WAKES IT, HOWEVER IT WENT AWAY.
@@ -232,6 +299,7 @@ export const watchChromeIdle = (next: boolean) => {
     window.removeEventListener(event, handleActivity),
   );
   clearTimer();
+  setNearBottom(false);
   // A dismissal belongs to the mode it was made in. Carrying it out would mean
   // the next time this mode opened, the toolbar was already hidden and no
   // amount of moving the mouse would explain why. A hold is dropped for the

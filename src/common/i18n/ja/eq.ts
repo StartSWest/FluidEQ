@@ -285,6 +285,8 @@ const eq: Partial<Dictionary> = {
   'eq.smart.mode.target': 'ターゲット',
   'eq.smart.mode.target.note': '測定を継続 · すべての音源を同じカーブへ',
   'eq.layers': '同時に適用中',
+  'eq.layers.count': '{count} レイヤー',
+  'eq.layers.countOff': '{count} レイヤー · {off} オフ',
   'eq.layers.aria': 'この出力に効いているその他の処理',
   'eq.layers.eq': 'EQ',
   'eq.layers.eq.modified': '（変更あり）',

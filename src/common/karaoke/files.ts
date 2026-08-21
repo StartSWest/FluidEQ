@@ -104,8 +104,42 @@ export const KARAOKE_FILE_PICKER_ACCEPT = [
   .map((extension) => `.${extension}`)
   .join(',');
 
+/**
+ * The `.txt` files in a song folder that are not lyrics.
+ *
+ * UltraStar lyrics are `.txt`, and so is the paperwork every downloaded pack
+ * carries: a folder of twenty songs with a `License.txt` beside each one
+ * produced twenty "no audio file matches this lyric file" warnings, which is
+ * the app being wrong twenty times in one sentence. Matched on the stem, so
+ * `LICENSE.txt` and `license.TXT` go the same way.
+ *
+ * A name test rather than a content test because this runs at selection time,
+ * before anything has been read: `KARAOKE_TEXT_ADAPTERS` already checks the
+ * contents of the ones that get this far, and a file this list turns away was
+ * never going to pass that check either.
+ */
+const NON_LYRIC_STEMS: readonly string[] = [
+  'authors',
+  'changelog',
+  'copying',
+  'credits',
+  'install',
+  'licence',
+  'license',
+  'notice',
+  'readme',
+  'thanks',
+];
+
+const karaokeFileStem = (name: string): string =>
+  name
+    .replace(/\.[^.]+$/, '')
+    .trim()
+    .toLowerCase();
+
 export const isKaraokeLyricFile = (file: File): boolean =>
-  KARAOKE_LYRIC_EXTENSIONS.includes(karaokeFileExtension(file.name));
+  KARAOKE_LYRIC_EXTENSIONS.includes(karaokeFileExtension(file.name)) &&
+  !NON_LYRIC_STEMS.includes(karaokeFileStem(file.name));
 
 export type TKaraokeFileSelection =
   | { kind: 'ready'; audio: File; lyrics?: File; ignored: File[] }

@@ -129,12 +129,14 @@ describe('KaraokeTransport', () => {
       'data-level-count',
       '3',
     );
-    const mixButtons = screen.getByRole('group', { name: 'Mix settings' });
-    expect(within(mixButtons).getAllByRole('button')).toHaveLength(3);
+    // One fader on the bar with a chevron beside it, not a row of three
+    // icons: this strip is shared with the library's player and has a single
+    // column to spend here. Backing is what shows until something else is
+    // touched — it is the fader a singer actually moves.
+    expect(screen.getByLabelText('Backing')).toBeVisible();
+    expect(screen.queryByLabelText('Guide vocal')).not.toBeInTheDocument();
 
-    const backingTrigger = within(mixButtons).getByRole('button', {
-      name: 'Open mix settings for Backing',
-    });
+    const backingTrigger = screen.getByRole('button', { name: 'Mix settings' });
     fireEvent.click(backingTrigger);
 
     expect(backingTrigger).toHaveAttribute('aria-expanded', 'true');
@@ -201,6 +203,18 @@ describe('KaraokeTransport', () => {
       return { onVocalLevel };
     };
 
+    /**
+     * The bar carries one fader — the last one touched — and the rest are a
+     * chevron away. Every assertion about a channel that is not the one on
+     * show has to open that menu first, and read the fader inside it: the
+     * shown fader and its copy in the menu share a label, and a query that
+     * did not say which meant both.
+     */
+    const openMix = () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Mix settings' }));
+      return screen.getByRole('dialog', { name: 'Mix settings' });
+    };
+
     it('stays hidden for a song that was never separated', () => {
       // Nothing to blend, so the control would be a slider that does nothing.
       render(
@@ -227,12 +241,14 @@ describe('KaraokeTransport', () => {
 
     it('appears once a song has an isolated voice to blend', () => {
       transport(0);
-      expect(screen.getByLabelText('Guide vocal')).toBeInTheDocument();
+      expect(
+        within(openMix()).getByLabelText('Guide vocal'),
+      ).toBeInTheDocument();
     });
 
     it('reports the level as a fraction, like the volume beside it', () => {
       const { onVocalLevel } = transport(0.25);
-      fireEvent.change(screen.getByLabelText('Guide vocal'), {
+      fireEvent.change(within(openMix()).getByLabelText('Guide vocal'), {
         target: { value: '0.6' },
       });
       expect(onVocalLevel).toHaveBeenCalledWith(0.6);
@@ -242,7 +258,7 @@ describe('KaraokeTransport', () => {
       // "0%" invites the reading that something is broken. The bottom of this
       // fader is a working state with a name: the backing track on its own.
       transport(0);
-      expect(screen.getByLabelText('Guide vocal')).toHaveAttribute(
+      expect(within(openMix()).getByLabelText('Guide vocal')).toHaveAttribute(
         'aria-valuetext',
         'Backing only',
       );
@@ -252,8 +268,9 @@ describe('KaraokeTransport', () => {
       // Folding the two together would mean turning the guide vocal down also
       // quietened the backing track, which is not what anyone means by it.
       transport(0.5);
-      expect(screen.getByLabelText('Guide vocal')).toBeInTheDocument();
-      expect(screen.getByLabelText('Volume')).toBeInTheDocument();
+      const dialog = openMix();
+      expect(within(dialog).getByLabelText('Guide vocal')).toBeInTheDocument();
+      expect(within(dialog).getByLabelText('Volume')).toBeInTheDocument();
     });
   });
 });

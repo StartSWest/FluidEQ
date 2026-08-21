@@ -291,6 +291,8 @@ const eq = {
   'eq.smart.mode.target.note':
     'Keeps measuring · every record to the same curve',
   'eq.layers': 'Also applied',
+  'eq.layers.count': '{count} layers',
+  'eq.layers.countOff': '{count} layers · {off} off',
   'eq.layers.aria': 'Also shaping this output',
   'eq.layers.eq': 'EQ',
   'eq.layers.eq.modified': '(modified)',

@@ -822,11 +822,28 @@ const LibraryCoverFlow = ({
 
   const centreItem = items[currentIndex];
   const optionId = (id: string) => `library-coverflow-option-${id}`;
+  /**
+   * Which browse modes have anything to drill into.
+   *
+   * An album, an artist and a folder are containers and the panel below lists
+   * what is in them. A song is not: the row is the songs, and pressing one
+   * plays it. Left ungated, switching to Songs with an album still remembered
+   * from another view opened that panel with no container id to look up — a
+   * header reading "Unknown artist, 0 albums, 0 songs" over an empty table,
+   * with a Play button that could not do anything.
+   */
+  const hasDrillIn =
+    browseMode === 'album' ||
+    browseMode === 'artist' ||
+    browseMode === 'folder';
+
   // Open, and still pointing at something that exists: a rescan can remove
   // the album out from under it, and a panel with nothing behind it is a
   // blank page with a Back button.
   const isExpanded =
-    expandedId !== undefined && items.some((item) => item.id === expandedId);
+    hasDrillIn &&
+    expandedId !== undefined &&
+    items.some((item) => item.id === expandedId);
 
   return (
     <div className={`library-coverflow${isExpanded ? ' is-expanded' : ''}`}>

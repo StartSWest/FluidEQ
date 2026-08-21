@@ -293,6 +293,8 @@ const eq: Partial<Dictionary> = {
   'eq.smart.mode.target.note':
     'Continue à mesurer · chaque enregistrement sur la même courbe',
   'eq.layers': 'Également appliqué',
+  'eq.layers.count': '{count} couches',
+  'eq.layers.countOff': '{count} couches · {off} désactivées',
   'eq.layers.aria': 'Autres traitements appliqués à cette sortie',
   'eq.layers.eq': 'EQ',
   'eq.layers.eq.modified': '(modifié)',

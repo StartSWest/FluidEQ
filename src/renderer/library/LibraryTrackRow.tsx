@@ -137,40 +137,32 @@ const LibraryTrackRow = ({
       </span>
       <span role="cell" className="library-list__col library-list__col--title">
         <span className="library-list__title-text">
-          {/* Three bars in front of the title of whatever the player is on.
-              Colour alone would not do it: the row is already tinted when it
-              is the selected one, and a reader scrolling a thousand rows
-              needs a mark they can find, not a shade they have to compare
-              against its neighbours. */}
+          {/* In front of the title of whatever the player is *playing*, not
+              of whatever it has loaded: a paused song is the selected row and
+              nothing more. Colour alone would not mark it either way — the
+              selected row is already tinted, and a reader scrolling a
+              thousand rows needs a mark they can find rather than a shade to
+              compare against its neighbours. */}
           {isPlaying && (
             <span
               className="library-list__playing-mark"
               title={t('library.nowPlaying')}
               aria-label={t('library.nowPlaying')}
             >
-              {/* The app's own live-output visualiser, in miniature: a
-                  five-bar spectrum with the response curve riding across
-                  it — the same figure LiveTraceCanvas paints on the graph,
-                  not a generic equaliser. The bars are tall enough to be
-                  read at row size (10 of the 12 available), and each takes
-                  its colour from the shared `BAND_SPECTRUM_STOPS` when the
-                  app is in rainbow mode; in the quiet default they all sit
-                  in the same cyan the rest of the row is painted in. The
-                  wave is drawn twice its own width and slid left forever,
-                  so one `translate` is the whole animation and the seam
-                  never shows. */}
-              <svg viewBox="0 0 20 12" aria-hidden="true">
+              {/* Four bars, and nothing else. This was a five-bar spectrum
+                  with the response curve riding across it — the graph's own
+                  figure in miniature — and at twenty pixels beside a title
+                  it read as a smudge: the curve crossed the bars at their own
+                  weight and neither could be made out. Four bars at twice the
+                  width, no overlay, each on its own period so they never fall
+                  into step and pulse as one block. */}
+              <svg viewBox="0 0 14 12" aria-hidden="true">
                 <g className="library-list__playing-bars">
-                  <rect x="1" y="1" width="1.8" height="10" rx="0.9" />
-                  <rect x="5" y="1" width="1.8" height="10" rx="0.9" />
-                  <rect x="9" y="1" width="1.8" height="10" rx="0.9" />
-                  <rect x="13" y="1" width="1.8" height="10" rx="0.9" />
-                  <rect x="17" y="1" width="1.8" height="10" rx="0.9" />
+                  <rect x="0.5" y="1" width="2.2" height="10" rx="1.1" />
+                  <rect x="4.1" y="1" width="2.2" height="10" rx="1.1" />
+                  <rect x="7.7" y="1" width="2.2" height="10" rx="1.1" />
+                  <rect x="11.3" y="1" width="2.2" height="10" rx="1.1" />
                 </g>
-                <path
-                  className="library-list__playing-wave"
-                  d="M0 6c2-4 4-4 6 0s4 4 6 0 4-4 6 0 4 4 6 0 4-4 6 0"
-                />
               </svg>
             </span>
           )}

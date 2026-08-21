@@ -27,6 +27,16 @@ export type TLibraryCoverArtSize = 'row' | 'tile' | 'cover';
 interface ILibraryCoverArtProps {
   /** Thumbnail id in the art cache; absent draws the generated tile. */
   artId?: string;
+  /**
+   * A cover that is not in the library's cache, already resolved to a URL.
+   *
+   * Wins over `artId` when both are given. It exists for the two players that
+   * are not library tracks and never will be: the karaoke session, whose
+   * cover is a file inside the song's own folder, and the Media tab, whose
+   * picture is grabbed from the page. Both hand over a `blob:` or `data:` URL
+   * they own the lifetime of — this component only draws it.
+   */
+  src?: string;
   /** What the initials and the hue are derived from — the track, album or
    * artist name this cover stands for. */
   label: string;
@@ -57,31 +67,39 @@ const libraryTileBackground = (label: string): string => {
  * freshly scanned library, where most rows have no cover yet — is worse
  * than not reading the image at all.
  */
-const LibraryCoverArt = ({ artId, label, size }: ILibraryCoverArtProps) => (
-  <span className={`library-cover-art library-cover-art--${size}`}>
-    {artId ? (
-      <img
-        className="library-cover-art__image"
-        src={libraryMediaUrl('art', artId)}
-        alt=""
-        loading="lazy"
-        // Off the main thread, and — with `content-visibility: auto` on the
-        // row or tile around it — not decoded at all until it is close to
-        // the viewport. Measured: 609 rows' worth of covers held 176MB of
-        // decoded pixels, about 0.29MB a row, which over fourteen thousand
-        // tracks is several gigabytes of a library nobody is looking at.
-        decoding="async"
-      />
-    ) : (
-      <span
-        className="library-cover-art__tile"
-        style={{ background: libraryTileBackground(label) }}
-        aria-hidden="true"
-      >
-        {libraryTileInitials(label)}
-      </span>
-    )}
-  </span>
-);
+const LibraryCoverArt = ({
+  artId,
+  src,
+  label,
+  size,
+}: ILibraryCoverArtProps) => {
+  const source = src ?? (artId ? libraryMediaUrl('art', artId) : undefined);
+  return (
+    <span className={`library-cover-art library-cover-art--${size}`}>
+      {source ? (
+        <img
+          className="library-cover-art__image"
+          src={source}
+          alt=""
+          loading="lazy"
+          // Off the main thread, and — with `content-visibility: auto` on the
+          // row or tile around it — not decoded at all until it is close to
+          // the viewport. Measured: 609 rows' worth of covers held 176MB of
+          // decoded pixels, about 0.29MB a row, which over fourteen thousand
+          // tracks is several gigabytes of a library nobody is looking at.
+          decoding="async"
+        />
+      ) : (
+        <span
+          className="library-cover-art__tile"
+          style={{ background: libraryTileBackground(label) }}
+          aria-hidden="true"
+        >
+          {libraryTileInitials(label)}
+        </span>
+      )}
+    </span>
+  );
+};
 
 export default LibraryCoverArt;

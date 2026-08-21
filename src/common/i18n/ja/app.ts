@@ -84,6 +84,8 @@ const app: Partial<Dictionary> = {
   'tabs.config': 'Config',
   'tabs.media': 'メディア',
   'tabs.karaoke': 'カラオケ',
+  'tabs.scrollBack': 'タブを前へスクロール',
+  'tabs.scrollForward': 'タブを後へスクロール',
   'notice.apoReconfigured':
     'Equalizer APO がインストールまたは再設定されました。音が出ない場合は PC を再起動せず、Windows オーディオを再起動してください。',
   'notice.restartNow': 'いますぐオーディオを再起動',

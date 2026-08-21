@@ -816,6 +816,20 @@ export enum FixedBandSizeEnum {
 }
 
 /**
+ * The same four, in the order they are offered.
+ *
+ * A numeric enum's `Object.values` holds both directions of the mapping, so
+ * every reader of the list had to filter the names back out first. Written
+ * once, here.
+ */
+export const FIXED_BAND_SIZES: readonly FixedBandSizeEnum[] = [
+  FixedBandSizeEnum.SIX,
+  FixedBandSizeEnum.TEN,
+  FixedBandSizeEnum.FIFTEEN,
+  FixedBandSizeEnum.THIRTY_ONE,
+];
+
+/**
  * Band centres for each quick layout.
  *
  * Ten, fifteen and thirty-one are the ISO octave, 2/3-octave and 1/3-octave

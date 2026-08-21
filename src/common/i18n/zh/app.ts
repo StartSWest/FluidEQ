@@ -83,6 +83,8 @@ const app: Partial<Dictionary> = {
   'tabs.config': 'Config',
   'tabs.media': '媒体',
   'tabs.karaoke': '卡拉OK',
+  'tabs.scrollBack': '向前滚动标签',
+  'tabs.scrollForward': '向后滚动标签',
   'notice.apoReconfigured':
     'Equalizer APO 已安装或重新配置。如果没有声音，请重启 Windows 音频服务，而不是重启电脑。',
   'notice.restartNow': '立即重启音频',

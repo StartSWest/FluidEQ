@@ -74,6 +74,7 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.warning.ambiguousLyrics':
     'Zwei Textdateien passten zum selben Song, deshalb wurde keine verwendet: {files}.',
   'karaoke.warning.andMore': 'und {count} weitere',
+  'karaoke.countdown.sing': 'Sing',
   'karaoke.song.unknownArtist': 'Lokaler Song',
   'karaoke.stage.videoUnsupported':
     '{format}-Videos können hier nicht abgespielt werden',

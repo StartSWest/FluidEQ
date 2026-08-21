@@ -30,6 +30,7 @@ import {
   FilterTypeEnum,
   FilterTypeToLabelMap,
   FixedBandSizeEnum,
+  FIXED_BAND_SIZES,
   IFilter,
   IFilterEdit,
   MAX_NUM_FILTERS,
@@ -51,6 +52,8 @@ import Spinner from './icons/Spinner';
 import { clamp, sortHelper, useThrottleAndExecuteLatest } from './utils/utils';
 import Button from './widgets/Button';
 import AnchoredMenu, { isInsideAnchoredMenu } from './widgets/AnchoredMenu';
+import OverflowArrow from './components/OverflowArrow';
+import { useOverflowScroll } from './utils/useOverflowScroll';
 import {
   addEqualizerSlider,
   clearGains,
@@ -130,6 +133,8 @@ const MainContent = () => {
   const smartEqMode = useSmartEqMode();
   const [isModeMenuOpen, setIsModeMenuOpen] = useState(false);
   const modeMenuHolder = useRef<HTMLSpanElement>(null);
+  const [isLayoutMenuOpen, setIsLayoutMenuOpen] = useState(false);
+  const layoutMenuHolder = useRef<HTMLSpanElement>(null);
   /**
    * On, chosen, and not held up by a switch on the other side of the screen.
    *
@@ -215,6 +220,32 @@ const MainContent = () => {
       window.removeEventListener('keydown', onKeyDown);
     };
   }, [isModeMenuOpen]);
+
+  // The same for the layout picker beside it.
+  useEffect(() => {
+    if (!isLayoutMenuOpen) {
+      return undefined;
+    }
+    const onPointerDown = (event: MouseEvent) => {
+      if (
+        !layoutMenuHolder.current?.contains(event.target as Node) &&
+        !isInsideAnchoredMenu(event.target)
+      ) {
+        setIsLayoutMenuOpen(false);
+      }
+    };
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsLayoutMenuOpen(false);
+      }
+    };
+    window.addEventListener('mousedown', onPointerDown);
+    window.addEventListener('keydown', onKeyDown);
+    return () => {
+      window.removeEventListener('mousedown', onPointerDown);
+      window.removeEventListener('keydown', onKeyDown);
+    };
+  }, [isLayoutMenuOpen]);
   const frequencySortedFilters = useMemo(
     () => Object.values(filters).sort(sortHelper),
     [filters],
@@ -314,6 +345,8 @@ const MainContent = () => {
   filtersRef.current = filters;
 
   const bandsRef = useRef<HTMLDivElement>(null);
+  // Whether the band rail runs past its viewport, and the way to the rest.
+  const canScrollBands = useOverflowScroll(frequencySortedFilters.length);
   const [selectionBox, setSelectionBox] = useState<
     | { startX: number; startY: number; currentX: number; currentY: number }
     | undefined
@@ -592,6 +625,17 @@ const MainContent = () => {
     }
   };
 
+  /**
+   * The band counts the quick picker offers, and which one is in force.
+   *
+   * `undefined` while the EQ is on a count none of them makes -- a preset with
+   * seven bands, or a band added to a ten-band layout. The picker then names
+   * itself rather than claiming a layout that is not the one on screen.
+   */
+  const activeBandLayout = FIXED_BAND_SIZES.find(
+    (size) => Number(size) === frequencySortedFilters.length,
+  );
+
   const handleFixedBand = (size: FixedBandSizeEnum) => async () => {
     try {
       const newFilters = await setFixedBand(size);
@@ -853,29 +897,73 @@ const MainContent = () => {
             <MenuIcon name="plus" className="eq-toolbar__icon" />
             {t('eq.addBand')}
           </Button>
-          <div className="quick-layouts">
-            <span>
+          {/* One control, not five, and the same control the Smart EQ button
+              beside it is: a main half that applies what it names and a caret
+              that lists the rest. A track holding a label and four band counts
+              was the widest thing in this row by a distance and the first to
+              be sent to a second line — under about a thousand pixels the
+              toolbar broke into three ragged rows, and at 300% zoom into six.
+              It borrows `eq-mode`'s own classes rather than restating them, so
+              the two cannot drift into looking like different kinds of thing. */}
+          <span
+            className={`eq-mode is-subtle quick-layouts${
+              isLayoutMenuOpen ? ' is-open' : ''
+            }`}
+            ref={layoutMenuHolder}
+          >
+            <Button
+              ariaLabel={t('eq.quickLayouts')}
+              isDisabled={false}
+              className="small subtle eq-mode__main"
+              // Both halves open the list, and neither applies anything.
+              // Re-applying the layout it names is a rebuild of every band —
+              // gains, widths and all — and a control whose label is the
+              // thing you are already on must not be the one that throws it
+              // away. The layouts in the list are the only thing that acts.
+              handleChange={() => setIsLayoutMenuOpen((wasOpen) => !wasOpen)}
+            >
               <MenuIcon name="layout" className="eq-toolbar__icon" />
-              {t('eq.quickLayouts')}
-            </span>
-            {Object.values(FixedBandSizeEnum)
-              .filter((s) => !Number.isNaN(Number(s)))
-              .map((size) => (
-                <Button
-                  key={`${size}-band`}
-                  ariaLabel={t('eq.bandCount', { count: size })}
-                  isDisabled={false}
-                  className={
-                    frequencySortedFilters.length === Number(size)
-                      ? 'small'
-                      : 'small subtle'
-                  }
-                  handleChange={handleFixedBand(size as FixedBandSizeEnum)}
-                >
-                  {t('eq.bandCount', { count: size })}
-                </Button>
-              ))}
-          </div>
+              {activeBandLayout
+                ? t('eq.bandCount', { count: activeBandLayout })
+                : t('eq.quickLayouts')}
+            </Button>
+            <button
+              type="button"
+              className="eq-mode__caret"
+              aria-label={t('eq.quickLayouts')}
+              aria-expanded={isLayoutMenuOpen}
+              onClick={() => setIsLayoutMenuOpen((wasOpen) => !wasOpen)}
+            >
+              <svg viewBox="0 0 16 16" aria-hidden>
+                <path d="M4 6.5l4 4 4-4" />
+              </svg>
+            </button>
+            {/* Only the layouts this button is not, the same way the mode menu
+                leaves out the mode you are already in. */}
+            <AnchoredMenu
+              anchor={layoutMenuHolder.current}
+              isOpen={isLayoutMenuOpen}
+              className="eq-mode__menu quick-layouts__menu"
+            >
+              {FIXED_BAND_SIZES.filter((size) => size !== activeBandLayout).map(
+                (size) => (
+                  <button
+                    key={`${size}-band`}
+                    type="button"
+                    onClick={() => {
+                      handleFixedBand(size)();
+                      setIsLayoutMenuOpen(false);
+                    }}
+                  >
+                    <MenuIcon name="layout" className="eq-toolbar__icon" />
+                    <span className="eq-mode__menu-name">
+                      {t('eq.bandCount', { count: size })}
+                    </span>
+                  </button>
+                ),
+              )}
+            </AnchoredMenu>
+          </span>
         </div>
         {/* Its own full-width row under the title and the toolbar. The bands
             below are not the whole chain, and anything else that is live is
@@ -892,56 +980,88 @@ const MainContent = () => {
           <span>0 dB</span>
           <span>-20</span>
         </div>
-        <div
-          ref={bandsRef}
-          className={`bands bands--${density} bands--${bandLayout}`}
-          onPointerDown={handleBandsPointerDown}
-          onPointerMove={handleBandsPointerMove}
-          onPointerUp={finishBandSelection}
-          onPointerCancel={finishBandSelection}
-          style={
-            { '--band-count': frequencySortedFilters.length } as CSSProperties
-          }
-        >
-          {selectionBox && (
-            <div
-              className="bands__selection-box"
-              style={{
-                left: Math.min(selectionBox.startX, selectionBox.currentX),
-                top: Math.min(selectionBox.startY, selectionBox.currentY),
-                width: Math.abs(selectionBox.currentX - selectionBox.startX),
-                height: Math.abs(selectionBox.currentY - selectionBox.startY),
-              }}
+        {/* The rail scrolls when the bands stop fitting, with an arrow at
+            each end — the same pair the workspace tabs use. Thirty-one bands
+            in a narrow window were nine pixels each: a row of slivers with
+            their frequencies overprinted on one another, and nothing anybody
+            could aim at. Each band keeps a floor of its own instead and the
+            row runs past the edge, which is a thing you can scroll. */}
+        <div className="bands-rail">
+          {canScrollBands.canScrollBack && (
+            <OverflowArrow
+              direction="back"
+              onPress={() => canScrollBands.scrollBy(-1)}
             />
           )}
-          {frequencySortedFilters.map((filter, index) => (
-            <FrequencyBand
-              key={filter.id}
-              filter={filter}
-              colorProgress={
-                frequencySortedFilters.length > 1
-                  ? index / (frequencySortedFilters.length - 1)
-                  : 0
+          <div
+            className="bands-rail__viewport"
+            ref={canScrollBands.ref}
+            onScroll={canScrollBands.onScroll}
+          >
+            <div
+              ref={bandsRef}
+              className={`bands bands--${density} bands--${bandLayout}`}
+              onPointerDown={handleBandsPointerDown}
+              onPointerMove={handleBandsPointerMove}
+              onPointerUp={finishBandSelection}
+              onPointerCancel={finishBandSelection}
+              style={
+                {
+                  '--band-count': frequencySortedFilters.length,
+                } as CSSProperties
               }
-              density={density}
-              flatLayout
-              isSelected={selectedFilterIds.includes(filter.id)}
-              onSelect={(event) =>
-                toggleFilterSelection(
-                  filter.id,
-                  event.ctrlKey || event.metaKey || event.shiftKey,
-                )
-              }
-              isHovered={hoveredFilterId === filter.id}
-              onHover={(isHovered) =>
-                setHoveredFilterId(isHovered ? filter.id : '')
-              }
-              isMinSliderCount={
-                frequencySortedFilters.length <= MIN_NUM_FILTERS
-              }
-              onGainChange={handleBandGainChange}
+            >
+              {selectionBox && (
+                <div
+                  className="bands__selection-box"
+                  style={{
+                    left: Math.min(selectionBox.startX, selectionBox.currentX),
+                    top: Math.min(selectionBox.startY, selectionBox.currentY),
+                    width: Math.abs(
+                      selectionBox.currentX - selectionBox.startX,
+                    ),
+                    height: Math.abs(
+                      selectionBox.currentY - selectionBox.startY,
+                    ),
+                  }}
+                />
+              )}
+              {frequencySortedFilters.map((filter, index) => (
+                <FrequencyBand
+                  key={filter.id}
+                  filter={filter}
+                  colorProgress={
+                    frequencySortedFilters.length > 1
+                      ? index / (frequencySortedFilters.length - 1)
+                      : 0
+                  }
+                  density={density}
+                  flatLayout
+                  isSelected={selectedFilterIds.includes(filter.id)}
+                  onSelect={(event) =>
+                    toggleFilterSelection(
+                      filter.id,
+                      event.ctrlKey || event.metaKey || event.shiftKey,
+                    )
+                  }
+                  isHovered={hoveredFilterId === filter.id}
+                  onHover={(isHovered) =>
+                    setHoveredFilterId(isHovered ? filter.id : '')
+                  }
+                  isMinSliderCount={
+                    frequencySortedFilters.length <= MIN_NUM_FILTERS
+                  }
+                  onGainChange={handleBandGainChange}
+                />
+              ))}
+            </div>
+          </div>
+          {canScrollBands.canScrollForward && (
+            <OverflowArrow
+              direction="forward"
+              onPress={() => canScrollBands.scrollBy(1)}
             />
-          ))}
+          )}
         </div>
         {selectedFilter && (
           <div className="eq-flat-editor">

@@ -351,6 +351,88 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     z-index: 1;
   }
 
+  // The picture is the whole background: playlist, splitter, top bar and all.
+  //
+  // Nothing about the layout changes. `.karaoke-stage-media` is absolutely
+  // positioned, so it filled its nearest positioned ancestor — the stage
+  // column first, and the player after that, which is why it stopped at the
+  // playlist's edge and again 86px below the window's top. Fixed to the
+  // viewport it has no ancestor to be bounded by: in full screen the window
+  // is the stage, and the picture reaches all four of its edges. It stays
+  // inside this element's stacking context, so every panel still draws over
+  // it.
+  .karaoke-stage-media {
+    position: fixed;
+    inset: 0;
+  }
+
+  // No inset at the stage's foot. Everywhere else it is the breathing room
+  // the stage is drawn with; down here it was the difference between where
+  // the pitch lane ended and where the playlist beside it ended — two panels
+  // in the same row with their feet on different lines.
+  .karaoke-workspace__stage {
+    // Closer to the playlist. The stage's generous side inset is right when it
+    // is a card in a window; over a full screen it left the pitch lane and
+    // the words floating in the middle with a hand's width of nothing to
+    // their left.
+    padding-inline: 12px;
+    // Nothing at the foot. The clearance below sets `margin-bottom` on both
+    // panels and that REPLACES the playlist's own 12px inset, so any padding
+    // left here lands on the pitch lane alone — measured, twelve pixels of
+    // it, which is exactly how far apart their feet were.
+    padding-bottom: 0;
+  }
+
+  .karaoke-workspace__player.has-playlist > .karaoke-playlist,
+  .karaoke-workspace__player.has-playlist > .karaoke-pane-splitter {
+    position: relative;
+    z-index: 1;
+  }
+
+  // The panels clear the bar; the picture does not.
+  //
+  // The bar floats over full screen so the artwork can reach the bottom
+  // edge, which leaves the panels drawn over that artwork sitting under it:
+  // the playlist's last rows and the foot of the pitch lane. Each ends
+  // higher instead: a margin at the foot, so the top edge stays exactly where
+  // it is and the height is what changes. Padding inside them was tried and
+  // it is not the same thing — the panel still reached under the bar, only
+  // its contents moved. Shrinking the row that holds them is not it either:
+  // the stage's rows re-share what that row loses, and the lyric above moves
+  // with it.
+  .karaoke-playlist,
+  .karaoke-pitch {
+    // The inset they keep when there is no bar to clear. Without it the two
+    // panels sat on the window's bottom edge the moment the bar faded, which
+    // is the one place nothing else in this app touches.
+    margin-bottom: 12px;
+    transition: margin-bottom $motion-base $ease-out;
+  }
+
+  // The notch, over a picture rather than over a panel.
+  //
+  // At 18% of a pale ink it was invisible against the artwork, which is the
+  // one background it now always has. Brighter, and with a dark rim under it
+  // so it reads on a white sleeve as well as on a dark one — the rim is what
+  // does the work, since no single ink is visible against every picture.
+  .karaoke-pane-splitter__handle > span {
+    background: rgba($white, 0.62);
+    box-shadow:
+      0 0 0 1px rgba(#020a12, 0.5),
+      0 2px 10px rgba(#020a12, 0.55);
+  }
+
+  // Inset from the screen edges, and solid enough to read over a bright
+  // cover. The picture now runs under this panel, so at 34% the song titles
+  // were sitting on whatever the artwork happened to be — white sleeves and
+  // pale photographs among them.
+  .karaoke-workspace__player.has-playlist > .karaoke-playlist {
+    margin: 12px 0 12px 12px;
+    border-color: rgba($secondary-light, 0.2);
+    background: rgba(#0b1626, 0.88);
+    backdrop-filter: blur(12px) saturate(1.15);
+  }
+
   .karaoke-workspace__stage {
     border: 0;
     border-radius: 0;
@@ -1045,6 +1127,34 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   font-weight: 850;
   letter-spacing: 0.03em;
   pointer-events: none;
+}
+
+// The stage while last session's playlist is being read back. A spinner and
+// nothing else: the empty state's own words would be wrong, and its picture
+// would be the wrong picture.
+// What is wrong with this song's words, beside the words.
+//
+// One line, quiet, and only while there is something to say: a song whose
+// lyric file could not be read, or one that never had a lyric file. It sat in
+// the header as a sentence about a whole import before this, which is how a
+// folder of twenty songs produced a complaint that stayed on screen while a
+// song played perfectly well.
+.karaoke-lyrics__notice {
+  margin: 0 0 6px;
+  padding: 6px 10px;
+  color: rgba($primary-lighter, 0.78);
+  border: 1px solid rgba($secondary-light, 0.12);
+  border-radius: $radius-s;
+  background: rgba(#020a12, 0.32);
+  font-size: 0.62rem;
+  text-align: center;
+}
+
+.karaoke-workspace__restoring {
+  display: grid;
+  flex: 1 1 auto;
+  place-items: center;
+  padding: 40px 0;
 }
 
 .karaoke-workspace__microphone-art {
@@ -1863,6 +1973,68 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
+// The way to the other faders, inside the fader's own pill.
+//
+// It used to be a round outlined button floating beside the pill, which read
+// as a stray control that belonged to nothing. Here it is the last column of
+// the pill, flat and quiet, the way a combo box carries its own arrow — and
+// the arrow turns over when the menu is open, so the button says which way it
+// will go before it is pressed.
+.karaoke-transport__volume.has-trailing {
+  grid-template-columns: 26px minmax(56px, 1fr) auto 22px;
+  padding-right: 3px;
+}
+
+// Same rule for a song with one fader and so no arrow beside it: in the bar
+// the reading takes the width of the reading. Only the mix menu keeps a
+// column wide enough to line its readings up.
+.now-playing-bar__adopted .karaoke-transport__volume:not(.is-in-mix-menu) {
+  grid-template-columns: 26px minmax(56px, 1fr) auto;
+}
+
+.now-playing-bar__adopted
+  .karaoke-transport__volume.has-trailing:not(.is-in-mix-menu) {
+  grid-template-columns: 26px minmax(56px, 1fr) auto 22px;
+}
+
+.karaoke-transport__volume button.karaoke-transport__mix-trigger {
+  display: grid;
+  width: 22px;
+  min-width: 22px;
+  height: 22px;
+  min-height: 22px;
+  place-items: center;
+  padding: 0;
+  color: rgba($secondary-light, 0.6);
+  border: 0 !important;
+  border-radius: 50%;
+  background: none !important;
+  box-shadow: none !important;
+
+  > svg {
+    width: 13px;
+    height: 13px;
+    transition: transform $motion-fast $ease-out;
+  }
+
+  &:hover {
+    color: $white !important;
+    background: rgba($secondary-default, 0.16) !important;
+  }
+
+  // Open: the arrow points back the way the menu came from. The menu itself
+  // rises out of the bar at the foot of the window, so shut it points up.
+  &[aria-expanded='true'] {
+    color: $secondary-light !important;
+    background: rgba($secondary-default, 0.2) !important;
+    box-shadow: none !important;
+
+    > svg {
+      transform: rotate(180deg);
+    }
+  }
+}
+
 .karaoke-transport__mix-popover {
   @include menu-surface;
   z-index: 1400;
@@ -2435,7 +2607,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   overflow: hidden;
   color: $text-muted;
   border-color: rgba($secondary-light, 0.13);
-  border-radius: 18px;
+  // The playlist's corner, which `inset-surface` sets from `$radius-m`. An
+  // 18px corner of its own made two panels of the same row read as two
+  // different kinds of thing, in a window as much as in full screen.
+  border-radius: $radius-m;
   background:
     radial-gradient(
       circle at 32% 0,
@@ -8522,5 +8697,19 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   .karaoke-maker-preview__stage.is-capture-armed,
   .karaoke-maker-preview__stage.is-capture-ready {
     animation: none;
+  }
+}
+
+// The karaoke stage, under a floating transport bar.
+//
+// Written outside `.karaoke-workspace.is-fullscreen` because the state it
+// reads lives on the root: `is-floating-bar` says a bar is drawn over the
+// content rather than beside it, and `is-chrome-idle` says it has gone quiet.
+// Together they are "make room" and "the room is yours again".
+#root.has-now-playing.is-floating-bar:not(.is-chrome-idle)
+  .karaoke-workspace.is-fullscreen {
+  .karaoke-playlist,
+  .karaoke-pitch {
+    margin-bottom: calc(var(--now-playing-bar-height, 0px) + 8px);
   }
 }

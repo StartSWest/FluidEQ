@@ -1075,14 +1075,15 @@ select option {
 // gutter, so the gap is one gutter at every width — the same gutter the card
 // keeps beneath itself, which is what makes the strip read as evenly spaced
 // from both sides.
-#root.has-now-playing {
-  padding-bottom: calc(
-    var(--now-playing-bar-height, 86px) + var(--shell-gutter-bottom)
-  );
-}
-
-#root.has-now-playing .app-workspace {
-  padding-bottom: 0;
+// The bar's own strip, and no second gutter: `.app-workspace`'s bottom
+// padding above is the gap between the last card and the bar.
+//
+// Not in full screen. There the bar floats over the picture and the strip is
+// reserved by the panels that must not be covered instead — see the karaoke
+// stage, which pads its own foot while the bar is up and takes it back when
+// the bar fades. Reserving it here would shorten the picture as well.
+#root.has-now-playing:not(.is-floating-bar) {
+  padding-bottom: var(--now-playing-bar-height, 86px);
 }
 
 // Where selecting text is the whole point.
@@ -1122,12 +1123,15 @@ textarea,
   // `document.body`, outside this element entirely. Declared on `:root` below
   // so that bar can read it, consumed here, and overridden in one place per
   // breakpoint instead of in two files that would drift.
+  // The same inset on all four sides. With a transport bar the reservation on
+  // `#root` below carries the bar's strip plus one of these, so the gap under
+  // the last card is the same whether there is a bar or not.
   padding: var(--shell-gutter) var(--shell-gutter) var(--shell-gutter-bottom);
   gap: 12px;
   overflow: hidden;
 
   grid-template-areas: 'side-bar center-workspace right-content';
-  grid-template-columns: 164px minmax(0, 1fr) minmax(280px, 330px);
+  grid-template-columns: $side-bar-width minmax(0, 1fr) minmax(280px, 330px);
   // One row, the height of the shell. `minmax(0, 1fr)` rather than
   // `minmax(min-content, 1fr)`: min-content would let a long column force the
   // row taller than the window, which is the whole thing being prevented.
@@ -1323,15 +1327,24 @@ $tab-border: rgba($secondary-light, 0.2);
   position: relative;
   z-index: 2;
   display: flex;
-  // Never squeezed. The scrolling happens in the panel below this strip, so it
-  // keeps its full height however little room the column has left.
-  flex: 0 0 auto;
+  min-width: 0;
+  // Never squeezed vertically — the scrolling happens in the panel below this
+  // strip, so it keeps its full height however little room the column has
+  // left. Horizontally it is the opposite: it takes what the shell gives it
+  // and scrolls inside that, which is what makes the arrows either side of it
+  // mean anything. Left at `0 0 auto` the strip stayed at its content width
+  // and the shell clipped it instead, so nothing ever measured as overflowing
+  // and the arrows never appeared.
+  flex: 1 1 auto;
+  overflow-x: auto;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
   align-items: flex-end;
   gap: 3px;
-  // Overlaps the panel's top border so the two lines become one.
-  margin: 0 16px -1px;
   padding: 0 4px;
-  border-bottom: 1px solid $tab-border;
 }
 
 .workspace-tab {
@@ -1404,30 +1417,14 @@ $tab-border: rgba($secondary-light, 0.2);
 // toggle `display: none`; a CSS entrance works for both lifetimes and does not
 // need a timer or an extra React render. The Maker keeps its own view-change
 // animation, so exclude that one nested surface instead of animating it twice.
-@keyframes workspace-tab-surface-enter {
-  from {
-    opacity: 0.88;
-    transform: translateY(-3px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.workspace-tab-panel:not(.is-hidden):not(:has(> .karaoke-maker)),
-.workspace-tab-panel--video:not(.is-hidden) {
-  animation: workspace-tab-surface-enter 190ms cubic-bezier(0.2, 0.8, 0.2, 1)
-    both;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .workspace-tab-panel:not(.is-hidden):not(:has(> .karaoke-maker)),
-  .workspace-tab-panel--video:not(.is-hidden) {
-    animation: none;
-  }
-}
+// No entrance on the panel itself.
+//
+// The surface used to fade and rise 3px on every tab change. What each tab
+// puts INSIDE itself still arrives — the library's rows, the karaoke stage,
+// the sidebar's cards — and that is the part worth animating: it is content
+// appearing. The panel is the same card in the same place whichever tab is
+// showing, and animating it made switching tabs feel like the window moving
+// rather than the contents changing.
 
 .workspace-tab-panel {
   position: relative;
@@ -1618,7 +1615,12 @@ $tab-border: rgba($secondary-light, 0.2);
 // these render as nothing at all.
 .right-content-toggle {
   position: fixed;
-  z-index: 59;
+  // Four layers, in pairs: the left drawer (60) under its tab (61), and the
+  // right drawer (62) under its own (63). Each tab is above the panel it
+  // opens -- that is how it stays pressable — and the whole right pair is
+  // above the whole left one, so the left tab riding on its panel's edge
+  // cannot end up drawn on top of the right panel.
+  z-index: 63;
   top: 50%;
   right: 0;
   display: none;
@@ -1630,10 +1632,21 @@ $tab-border: rgba($secondary-light, 0.2);
   background: rgba(9, 30, 44, 0.94);
   border: 1px solid rgba(63, 149, 173, 0.35);
   border-right: 0;
-  border-radius: 10px 0 0 10px;
+  border-radius: 16px 0 0 16px;
   box-shadow: -8px 0 22px rgba(0, 0, 0, 0.3);
   transform: translateY(-50%);
   cursor: pointer;
+  animation: drawer-tab-hint 14s $ease-out infinite;
+  transition: right 180ms ease-out;
+
+  // Open, the tab rides on the panel's own edge and travels with it. Left at
+  // the window's edge it ended up underneath the panel it opened, and on a
+  // narrow window with both drawers out there was no bare backdrop left to
+  // press either -- the panels covered the window and nothing could be shut.
+  &.is-open {
+    right: $sound-panel-width;
+    animation: none;
+  }
 
   svg {
     width: 16px;
@@ -1641,15 +1654,202 @@ $tab-border: rgba($secondary-light, 0.2);
   }
 }
 
-.right-content-backdrop {
+// One backdrop behind both drawers. It is only ever rendered while one of
+// them is open, so it needs no `display: none` at wide widths — the drawers
+// do not exist there to open.
+.drawer-backdrop {
   position: fixed;
   z-index: 58;
   inset: 0;
-  display: none;
   padding: 0;
   background: rgba(2, 8, 14, 0.45);
   border: 0;
   cursor: pointer;
+  // The window darkens over the same 180ms the panel takes to arrive, rather
+  // than in one frame the moment the tab is pressed. Appearing instantly, the
+  // dimming read as the app blinking; faded, it reads as the panel casting it.
+  animation: drawer-backdrop-in $motion-base $ease-out both;
+}
+
+@keyframes drawer-backdrop-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+// The same tab and the same backdrop as the sound panel's, mirrored to the
+// other edge rather than redrawn: one shape for "there is a panel this way",
+// whichever side it is on.
+.side-bar-toggle {
+  position: fixed;
+  z-index: 61;
+  top: 50%;
+  left: 0;
+  display: none;
+  place-items: center;
+  width: 30px;
+  height: 56px;
+  padding: 0;
+  color: #bfeef2;
+  background: rgba(9, 30, 44, 0.94);
+  border: 1px solid rgba(63, 149, 173, 0.35);
+  border-left: 0;
+  border-radius: 0 16px 16px 0;
+  box-shadow: 8px 0 22px rgba(0, 0, 0, 0.3);
+  transform: translateY(-50%);
+  cursor: pointer;
+  // Offset from the other tab's cycle, so the two never light together and
+  // read as one thing flashing across the window.
+  animation: drawer-tab-hint 14s $ease-out 7s infinite;
+  transition: left 180ms ease-out;
+
+  // The same, on the other edge.
+  &.is-open {
+    left: min($side-bar-width-compact, 86vw);
+    animation: none;
+  }
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+// The cards inside a drawer arrive after it does.
+//
+// The panel slides in as one surface, which is right for the panel and wrong
+// for its contents: at 180ms of travel the cards read as painted on the front
+// of a moving box. They fade up instead, once the panel is nearly home, so
+// what you see is a surface arriving and then its contents settling on it.
+// Keyed off `.is-open` rather than mount, because the drawer is never
+// unmounted -- it is the same element in both states.
+.side-bar.is-open > *,
+.right-content.is-open > * {
+  animation: drawer-content-in $motion-base $ease-out both;
+  animation-delay: 90ms;
+}
+
+@keyframes drawer-content-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+// The way to the part of a row that does not fit. One drawing, used by the
+// workspace tabs and by the layer row under the EQ heading, and only rendered
+// while there is something past that end — so an arrow always leads
+// somewhere.
+.workspace-tabs-shell,
+.active-layers-shell {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  align-items: center;
+}
+
+.workspace-tabs-shell {
+  flex: 0 0 auto;
+  // As wide as the tabs and their arrows, never wider.
+  //
+  // The strip's line runs under the arrows too, so the three read as one edge
+  // rather than a strip with two ends stuck on — but the line has to stop
+  // where the tabs do. Stretched to the panel's width it ran straight past
+  // the card's rounded corners and left a stub poking out either side, just
+  // under the first and last tab.
+  align-self: flex-start;
+  max-width: calc(100% - 32px);
+  align-items: flex-end;
+  margin: 0 16px -1px;
+  border-bottom: 1px solid $tab-border;
+}
+
+.overflow-arrow {
+  z-index: 3;
+  display: grid;
+  width: 24px;
+  min-width: 24px;
+  height: 24px;
+  flex: 0 0 auto;
+  place-items: center;
+  padding: 0;
+  color: rgba($secondary-light, 0.8);
+  border: 1px solid rgba($secondary-light, 0.12);
+  border-radius: 50%;
+  background: rgba(#020a12, 0.5);
+  box-shadow: none;
+  cursor: pointer;
+
+  &:hover {
+    color: $white;
+    background: rgba($secondary-default, 0.16);
+  }
+
+  svg {
+    width: 12px;
+    height: 12px;
+  }
+}
+
+// One glyph, turned: `ArrowIcon` draws a chevron up and down only.
+.overflow-arrow--back svg {
+  transform: rotate(-90deg);
+}
+
+.overflow-arrow--forward svg {
+  transform: rotate(90deg);
+}
+
+// The tab strip's arrows are the round ones too. Drawn as tabs they read as
+// two more places to go rather than as a way to see the ones that are there.
+.workspace-tabs-shell .overflow-arrow {
+  align-self: center;
+  margin-bottom: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .side-bar.is-open > *,
+  .right-content.is-open > *,
+  .drawer-backdrop {
+    animation: none;
+  }
+}
+
+// A tab at the edge of the window is easy to miss, and a tab that glows all
+// the time is a light left on. It lights for a moment and then goes quiet:
+// most of this cycle is the resting state, and the cyan edge occupies about a
+// second of every fourteen — long enough to catch an eye passing, short
+// enough that nobody watching the panel is being flashed at.
+@keyframes drawer-tab-hint {
+  0%,
+  86%,
+  100% {
+    border-color: rgba(63, 149, 173, 0.35);
+    color: #bfeef2;
+  }
+
+  91% {
+    border-color: rgba($secondary-light, 0.95);
+    color: $white;
+  }
+}
+
+// Nothing blinks for a reader who asked for stillness; the tabs are still
+// drawn, still where they were, and the hover state still says what they are.
+@media (prefers-reduced-motion: reduce) {
+  .right-content-toggle,
+  .side-bar-toggle {
+    animation: none;
+  }
 }
 
 // *** Right column ***********************************************************
@@ -2148,7 +2348,7 @@ button.graph-legend {
     // two panels wide, half of it below the fold — which read as clutter,
     // not as settings. It floats now.
     grid-template-areas: 'side-bar center-workspace';
-    grid-template-columns: 150px minmax(0, 1fr);
+    grid-template-columns: $side-bar-width-compact minmax(0, 1fr);
     grid-template-rows: minmax(0, 1fr);
   }
 
@@ -2156,13 +2356,19 @@ button.graph-legend {
   // dismissed by its backdrop, scrolling on its own.
   .right-content {
     position: fixed;
-    z-index: 60;
+    // Above the left drawer and its tab; see `.right-content-toggle`.
+    z-index: 62;
     // Fixed positioning ignores #root's titlebar padding. Start at the real
     // titlebar edge so its first section is never painted underneath chrome.
     top: $title-bar-height;
     right: 0;
-    bottom: 0;
-    width: min(340px, 90vw);
+    // The same floor the left drawer keeps: above the transport bar, not
+    // behind it. Both drawers ran to the window's edge and the bar, which is
+    // fixed and drawn later, sat on top of the last thing in each of them.
+    bottom: calc(
+      var(--now-playing-bar-height, 0px) + var(--shell-gutter-bottom, 18px)
+    );
+    width: $sound-panel-width;
     padding: 14px;
     overflow-y: auto;
     background: rgba(6, 20, 33, 0.97);
@@ -2180,30 +2386,29 @@ button.graph-legend {
     display: grid;
   }
 
-  .right-content-backdrop {
-    display: block;
-  }
-
   .workspace-header__tagline {
     display: none;
   }
 }
 
-// One column: the sidebar becomes a horizontal strip of control chips
-// (see SideBar.scss) and every section owns a full-width row.
+// One column: the sidebar is a drawer over the window (see SideBar.scss) and
+// every remaining section owns a full-width row.
 @media (max-width: $bp-two-column) {
   .app-workspace {
-    grid-template-areas:
-      'side-bar'
-      'center-workspace'
-      'right-content';
+    // One area, and one row.
+    //
+    // Neither of the other two panels is in the layout at this width: both are
+    // drawers that float over it. A `right-content` row left behind measured
+    // zero but still took the grid's 12px row gap after the workspace, which
+    // is a band of nothing between the last card and the transport bar —
+    // twice the inset the same card keeps at its sides.
+    grid-template-areas: 'center-workspace';
     grid-template-columns: minmax(0, 1fr);
-    // The compact sidebar takes what it needs; the active workspace receives
-    // the rest of the viewport and may grow past it when its content genuinely
-    // needs a scrolling page. With three max-content rows, Media and Karaoke
-    // stopped at their intrinsic content height and left the lower half of a
-    // tall narrow window empty.
-    grid-template-rows: max-content minmax(0, 1fr) max-content;
+    // One row, for the one area above. Each time this list has disagreed with
+    // the areas the result was the same kind of bug: a stale third row put the
+    // workspace in `max-content` and the response graph grew without limit; a
+    // stale second row left a gap under it with nothing in it.
+    grid-template-rows: minmax(0, 1fr);
   }
 
   // The grid already leaves the gap here, so the reservation must not leave a
@@ -2220,8 +2425,13 @@ button.graph-legend {
     padding-bottom: var(--now-playing-bar-height, 86px);
   }
 
+  // One column, not two. The pair was written for the panel's old fate at
+  // this width — a full-width band under the workspace, where two columns
+  // were the difference between a strip and a wall. It is a 340px drawer
+  // now, and two columns inside it truncated every label it has: "Automatic
+  // ...", "Second out...", "No compe...".
   .right-content {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 1fr);
   }
 
   // The shell stays the size of the window here, exactly as it is at every
@@ -2403,14 +2613,11 @@ button.graph-legend {
   // clipped. It keeps the size the breakpoint above gives it, which has room
   // for both.
 
-  .workspace-tabs {
+  .workspace-tabs-shell {
+    // The cap follows the inset: 8px a side here, so the line stops 8px short
+    // of the panel's edge and inside its corner rather than past it.
+    max-width: calc(100% - 16px);
     margin-inline: 8px;
-    overflow-x: auto;
-    scrollbar-width: none;
-
-    &::-webkit-scrollbar {
-      display: none;
-    }
   }
 
   .workspace-tab {

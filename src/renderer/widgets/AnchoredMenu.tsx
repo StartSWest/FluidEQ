@@ -35,16 +35,21 @@ import { createPortal } from 'react-dom';
  * flow is also what lets it cover the graph, which is a sibling of the panel
  * rather than a descendant.
  *
- * Upward by preference, downward when that does not fit, and scrolling when
+ * Downward by preference, upward when that does not fit, and scrolling when
  * neither does.
  *
- * Upward is the preference because these triggers sit in a toolbar at the top of
- * a panel that scrolls, so "down" is into the part of the window most likely to
- * have run out. It was the only behaviour for a while, on a fixed guess at how
- * much room a menu needs — which held until the voicing list grew genre entries
- * and became twice as tall as the guess. A menu that opens into a space it does
- * not fit in loses its far end silently, and the far end is where the new
- * entries are.
+ * Downward because of where these triggers are: a toolbar at the TOP of a
+ * panel. Opening up puts the list over the panel's own heading and the tab
+ * strip above it, which is the furniture that says where you are; opening
+ * down puts it over the panel's contents, which is what a menu is expected to
+ * cover while it is open.
+ *
+ * It preferred up for a while, and before that it only went up, on a fixed
+ * guess at how much room a menu needs — which held until the voicing list grew
+ * genre entries and became twice as tall as the guess. A menu that opens into
+ * a space it does not fit in loses its far end silently, and the far end is
+ * where the new entries are. Hence the measurement below, whichever side is
+ * preferred.
  *
  * So the menu is measured, and the answer is the side it actually fits on. If
  * neither side can hold it, it takes the larger side and scrolls — because a
@@ -58,13 +63,13 @@ const OFFSET = 6;
 /** Clearance kept from the window edge, so it never looks pinned to it. */
 const MARGIN = 8;
 
-const positionFrom = (rect: DOMRect, menuHeight: number) => {
+const positionFrom = (rect: DOMRect, menuHeight: number, menuWidth: number) => {
   const roomAbove = rect.top - OFFSET - MARGIN;
   const roomBelow = window.innerHeight - rect.bottom - OFFSET - MARGIN;
   // Unmeasured on the first pass — height 0 fits anywhere, so this takes the
   // preferred side and the measured pass corrects it before the frame is
   // painted.
-  const openUpward = menuHeight <= roomAbove || roomAbove >= roomBelow;
+  const openUpward = menuHeight > roomBelow && roomAbove > roomBelow;
   return {
     position: 'fixed' as const,
     // Anchored by the edge nearest the trigger in both directions, so the menu
@@ -73,9 +78,18 @@ const positionFrom = (rect: DOMRect, menuHeight: number) => {
       ? { bottom: window.innerHeight - rect.top + OFFSET }
       : { top: rect.bottom + OFFSET }),
     maxHeight: Math.max(0, openUpward ? roomAbove : roomBelow),
-    // Right-aligned to the trigger, like every other menu here, and held inside
-    // the window so a control near the edge cannot push it off.
-    right: Math.max(MARGIN, window.innerWidth - rect.right),
+    // Right-aligned to the trigger, like every other menu here, and held
+    // inside the window at BOTH edges.
+    //
+    // Clamping only the right one was half the job: a wide menu hanging off a
+    // trigger near the left of the window grew leftwards past x=0 and the
+    // first part of every row in it was cut off the screen. The second term
+    // is the furthest right it can sit before that happens, which is the
+    // window less a margin and its own width.
+    right: Math.min(
+      Math.max(MARGIN, window.innerWidth - rect.right),
+      Math.max(MARGIN, window.innerWidth - MARGIN - menuWidth),
+    ),
   };
 };
 
@@ -113,6 +127,10 @@ const AnchoredMenu = ({
           // reports how tall it wants to be. `offsetHeight` would report the
           // cap, which would then look like a perfect fit and never flip back.
           menu?.scrollHeight ?? 0,
+          // Width is the opposite case: `offsetWidth` is what it occupies, and
+          // what has to be kept inside the window. Zero on the first pass, so
+          // the clamp is inert until the measured pass corrects it.
+          menu?.offsetWidth ?? 0,
         ),
       );
     place();

@@ -30,6 +30,8 @@ interface IKaraokePlaylistProps {
   groupByFolder?: boolean;
   onToggleFolderGrouping: () => void;
   onSelect: (id: string) => void;
+  /** Двойной... */
+  onActivate: (id: string) => void;
   onMove: (id: string, targetId: string) => void;
   onRemove: (id: string) => void;
   onCollapse: () => void;
@@ -107,6 +109,7 @@ const KaraokePlaylist = ({
   groupByFolder = false,
   onToggleFolderGrouping,
   onSelect,
+  onActivate,
   onMove,
   onRemove,
   onCollapse,
@@ -144,6 +147,7 @@ const KaraokePlaylist = ({
           aria-current={isSelected ? 'true' : undefined}
           aria-label={t('karaoke.playlist.select', { title: item.title })}
           onClick={() => onSelect(item.id)}
+          onDoubleClick={() => onActivate(item.id)}
           onDragStart={(event) => {
             event.stopPropagation();
             event.dataTransfer.effectAllowed = 'move';

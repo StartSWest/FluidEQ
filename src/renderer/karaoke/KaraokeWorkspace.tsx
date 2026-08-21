@@ -23,10 +23,12 @@ import {
   useCallback,
   useEffect,
   useId,
+  useMemo,
   useRef,
   useState,
   useSyncExternalStore,
 } from 'react';
+import { createPortal } from 'react-dom';
 import karaokeMicrophoneImage from '../../../assets/karaoke-microphone.png';
 import { TranslationKey } from '../../common/i18n';
 import {
@@ -45,8 +47,14 @@ import {
 } from '../../common/karaoke/sessionPersistence';
 import { karaokeProviderDisplayName } from '../../common/karaoke/provider';
 import { karaokeMakerProjectToSong } from '../../common/karaoke/makerProject';
+import {
+  clearTransportSource,
+  setTransportSource,
+} from '../audio/transportSource';
+import { useTransportSlot } from '../audio/transportSlot';
 import { useTranslation } from '../utils/I18nContext';
-import { revealChromeNow, setChromeHeld } from '../utils/idleChrome';
+import { setChromeHeld } from '../utils/idleChrome';
+import Spinner from '../icons/Spinner';
 import MenuIcon from '../icons/MenuIcon';
 import AnchoredMenu, { isInsideAnchoredMenu } from '../widgets/AnchoredMenu';
 import { KaraokeMicrophoneSettings } from './KaraokeMicrophone';
@@ -261,6 +269,15 @@ const KaraokeWorkspace = ({
     readKaraokePlaylistFolderGrouping,
   );
   const [selectedPlaylistId, setSelectedPlaylistId] = useState<string>();
+  /**
+   * What an import could not use, and why.
+   *
+   * A fact about the import rather than about a song, which is why it stayed
+   * here when the lyric warning moved beside the words: "these three files
+   * were set aside" answers a question about the folder that was just opened,
+   * and there is no one song to attach it to. Without it `Song.mp3` beside
+   * `Song.srt` played with no lyrics and no explanation.
+   */
   const [setAsideFiles, setSetAsideFiles] = useState<IKaraokeSetAsideFiles>();
   const [useStagePitch, setUseStagePitch] = useState(initiallyUseStagePitch);
   const [isPitchGuideVisible, setIsPitchGuideVisible] = useState(
@@ -749,10 +766,22 @@ const KaraokeWorkspace = ({
       .catch(() => undefined);
   }, [persistedFileReference]);
 
+  /**
+   * Whether last session's playlist is still being read back.
+   *
+   * The tab opens with no song because the songs arrive a moment later, and
+   * for that moment the workspace drew its empty state: a microphone and
+   * "drop a folder here" over a library that was about to appear. Same bug as
+   * the library tab's own empty panel, same fix -- say nothing about being
+   * empty until the question has been answered.
+   */
+  const [isRestoring, setIsRestoring] = useState(true);
+
   useEffect(() => {
     const bridge = window.electron?.ipcRenderer;
     if (!bridge?.restoreKaraokeSession) {
       persistenceReadyRef.current = true;
+      setIsRestoring(false);
       return undefined;
     }
     let cancelled = false;
@@ -804,6 +833,7 @@ const KaraokeWorkspace = ({
       .catch(() => undefined)
       .finally(() => {
         persistenceReadyRef.current = true;
+        setIsRestoring(false);
       });
     return () => {
       cancelled = true;
@@ -981,10 +1011,42 @@ const KaraokeWorkspace = ({
     window.electron?.ipcRenderer.clearKaraokeSession?.().catch(() => undefined);
   };
 
+  /**
+   * One press: load it, unless it is already the one that is loaded.
+   *
+   * The guard is the whole point. Every press used to reload the song from
+   * its files, so a double-click on the song already on the stage tore it
+   * down and rebuilt it twice — the transport bar blanking and coming back
+   * for a song that had not changed.
+   */
   const selectPlaylistItem = (id: string) => {
+    if (id === selectedPlaylistId) {
+      return;
+    }
     const item = playlist.find((candidate) => candidate.id === id);
     if (item) {
       loadPlaylistItem(item, status === 'playing');
+    }
+  };
+
+  /**
+   * Two presses: play it, from the top.
+   *
+   * What a double-click means everywhere else a list of songs exists. Loading
+   * one already loaded is skipped for the reason above; it is sent back to
+   * the start instead, because "play this" on a song half way through means
+   * play it, not resume it.
+   */
+  const activatePlaylistItem = (id: string) => {
+    if (id === selectedPlaylistId) {
+      sessionRef.current.seek(0);
+      playheadRef.current = 0;
+      startSongPlayback(true);
+      return;
+    }
+    const item = playlist.find((candidate) => candidate.id === id);
+    if (item) {
+      loadPlaylistItem(item, true);
     }
   };
 
@@ -1367,6 +1429,146 @@ const KaraokeWorkspace = ({
     </div>
   );
 
+  const transportSlot = useTransportSlot();
+
+  /**
+   * The song's own cover, for the bar at the foot of the window.
+   *
+   * An UltraStar pack keeps its artwork beside the audio as a plain file, so
+   * this is the same asset the stage draws behind the words. Revoked when the
+   * song changes: an object URL holds the file alive until it is, and a
+   * session that plays a hundred songs would hold a hundred.
+   */
+  const coverAsset = song?.assets.find((asset) => asset.role === 'cover');
+  const coverUrl = useMemo(
+    () => (coverAsset ? URL.createObjectURL(coverAsset.file) : undefined),
+    [coverAsset],
+  );
+  useEffect(
+    () => () => {
+      if (coverUrl) {
+        URL.revokeObjectURL(coverUrl);
+      }
+    },
+    [coverUrl],
+  );
+
+  /**
+   * Tell the bar at the foot of the window what this tab is playing.
+   *
+   * Position included, so it runs several times a second — which is what the
+   * store is built for. `hasOwnControls` is the arrangement itself: the bar
+   * keeps the space, this tab fills it, and the karaoke buttons stay
+   * karaoke's.
+   */
+  useEffect(() => {
+    if (!song) {
+      clearTransportSource('karaoke');
+      return;
+    }
+    setTransportSource({
+      owner: 'karaoke',
+      title: song.title,
+      subtitle: song.artist || undefined,
+      artworkUrl: coverUrl,
+      isPlaying: status === 'playing',
+      positionMs: session.playheadMs,
+      durationMs: session.durationMs,
+      toggle: handleTogglePlayback,
+      seek: handleSeek,
+      hasOwnControls: true,
+    });
+  }, [
+    song,
+    coverUrl,
+    status,
+    session.playheadMs,
+    session.durationMs,
+    handleTogglePlayback,
+    handleSeek,
+  ]);
+
+  // The tab can go away while another is playing; `clearTransportSource` is
+  // guarded so it only takes the bar back if karaoke still owns it.
+  useEffect(() => () => clearTransportSource('karaoke'), []);
+
+  /**
+   * This tab's own transport, handed to the bar at the foot of the window.
+   *
+   * One wrapper for the whole app, and the options change with the tab: a
+   * karaoke transport is not a play button, and reducing it to one on the way
+   * into a shared bar would take the mix faders, the jumps and the pitch tone
+   * away from the one tab that has them. The bar draws this where its own
+   * buttons would have gone.
+   */
+  /**
+   * What is wrong with THIS song's lyrics, if anything.
+   *
+   * Two cases and one line: a lyric file that could not be read, and a song
+   * that simply has none. Both are facts about the song on the stage, which
+   * is why this is worked out here and drawn beside the words rather than
+   * announced once for an import and left there.
+   */
+  const selectedItem = playlist.find((item) => item.id === selectedPlaylistId);
+  const lyricNotice = (() => {
+    if (warning) {
+      return `${warning.fileName} ${lyricWarningSentence} ${t(
+        'karaoke.warning.lyricsAudioIntact',
+      )}`;
+    }
+    if (song && selectedItem && !selectedItem.lyrics) {
+      return t('karaoke.warning.lyricsAudioIntact');
+    }
+    return undefined;
+  })();
+
+  const karaokeControls = song ? (
+    <KaraokeTransport
+      status={status}
+      playheadMs={session.playheadMs}
+      durationMs={session.durationMs}
+      levels={[
+        {
+          id: 'melody',
+          label: t('karaoke.pitch.toneVolume'),
+          value: melodyTone.volume,
+          channel: 'melody',
+          disabled: !melodyTone.isAvailable || !melodyTone.enabled,
+          toggleDisabled: !melodyTone.isAvailable,
+          pressed: melodyTone.enabled,
+          onToggle: () => melodyTone.toggle().catch(() => undefined),
+          onChange: melodyTone.setVolume,
+        },
+        {
+          id: 'backing',
+          label: t('karaoke.maker.stemBacking'),
+          value: backingLevel,
+          channel: 'backing',
+          onChange: changeBackingLevel,
+        },
+        ...(canMixVocals
+          ? [
+              {
+                id: 'vocal',
+                label: t('karaoke.transport.vocalLevel'),
+                value: vocalLevel,
+                valueText:
+                  vocalLevel === 0
+                    ? t('karaoke.transport.vocalOff')
+                    : `${Math.round(vocalLevel * 100)}%`,
+                channel: 'vocal' as const,
+                onChange: setVocalLevel,
+              },
+            ]
+          : []),
+      ]}
+      onTogglePlayback={handleTogglePlayback}
+      onJumpToStart={() => handleSeek(0)}
+      onJumpToEnd={() => handleSeek(session.durationMs)}
+      onSeek={handleSeek}
+    />
+  ) : undefined;
+
   return (
     <section
       ref={workspaceRef}
@@ -1378,11 +1580,13 @@ const KaraokeWorkspace = ({
       aria-labelledby={isFullScreen ? undefined : 'karaoke-workspace-title'}
       aria-label={isFullScreen ? t('karaoke.title') : undefined}
       aria-hidden={isHidden}
-      onPointerDownCapture={() => {
-        if (isFullScreen) {
-          revealChromeNow();
-        }
-      }}
+      /* No press handler on the stage.
+
+         Pressing used to show the chrome and later to toggle it, and both
+         fought the gestures the stage already has: a double-click leaves full
+         screen, and each of its two presses flipped the bar on the way out.
+         The chrome is on one rule now — it goes after five still seconds and
+         comes back when the pointer reaches the edge it lives at. */
       onDoubleClick={(event) => {
         const target = event.target as Element;
         // The stage itself is the fullscreen target. Controls keep their own
@@ -1444,7 +1648,14 @@ const KaraokeWorkspace = ({
           <div>
             <p className="eyebrow">{t('karaoke.eyebrow')}</p>
             <h2 id="karaoke-workspace-title">{t('karaoke.title')}</h2>
-            <p className="karaoke-workspace__intro">{t('karaoke.intro')}</p>
+            {/* The sentence explaining what this tab is for, and only while
+                it is not being used for it. With a playlist loaded and a song
+                on the stage, "this workspace will keep songs, timed lyrics and
+                pitch feedback together" is a paragraph about what is already
+                on screen, taking the room the playlist could have. */}
+            {!song && playlist.length === 0 && (
+              <p className="karaoke-workspace__intro">{t('karaoke.intro')}</p>
+            )}
           </div>
           {workspaceActions}
         </header>
@@ -1455,19 +1666,20 @@ const KaraokeWorkspace = ({
           {t(ERROR_KEYS[error])}
         </div>
       )}
-      {/* The idle-release question is not drawn here. It outlives this tab
-          being looked at, so `SpeechMemoryNotice` asks it from the app root. */}
-      {warning && (
-        <div className="karaoke-workspace__notice is-warning" role="status">
-          <strong>{warning.fileName}</strong> {lyricWarningSentence}{' '}
-          <span>{t('karaoke.warning.lyricsAudioIntact')}</span>
-        </div>
-      )}
+      {/* What the import could not use. Not the same thing as the lyric
+          warning that used to sit beside it: that one is about the song on
+          the stage and now lives in the lyrics pane, while this is about the
+          folder that was just opened — the `.srt` nothing here can read, the
+          two lyric files that matched one song. There is no single song to
+          hang it on, and set aside without a word it reads as a feature that
+          silently did nothing. */}
       {setAsideFiles && (
         <div className="karaoke-workspace__notice is-warning" role="status">
           {karaokeSetAsideSentences(setAsideFiles, t).join(' ')}
         </div>
       )}
+      {/* The idle-release question is not drawn here. It outlives this tab
+          being looked at, so `SpeechMemoryNotice` asks it from the app root. */}
 
       <div
         ref={playerRef}
@@ -1493,6 +1705,7 @@ const KaraokeWorkspace = ({
               });
             }}
             onSelect={selectPlaylistItem}
+            onActivate={activatePlaylistItem}
             onMove={movePlaylistItem}
             onRemove={removePlaylistItem}
             onCollapse={() => updateLayout({ playlistCollapsed: true }, true)}
@@ -1587,7 +1800,7 @@ const KaraokeWorkspace = ({
                         aria-valuetext={`${lyricTextSize}%`}
                         title={`${t(
                           'karaoke.lyrics.textSize',
-                        )} · ${lyricTextSize}%`}
+                        )} Â· ${lyricTextSize}%`}
                         style={
                           {
                             '--karaoke-lyric-size-progress': `${
@@ -1611,6 +1824,17 @@ const KaraokeWorkspace = ({
                   </div>
                 </div>
               </div>
+              {/* Beside the words, because it is about the words.
+                  It used to sit in the header as one sentence for a whole
+                  import -- "these lyric files were not used", listed for a
+                  folder of twenty songs, still on screen while a song played
+                  perfectly well. What belongs on screen is what is wrong with
+                  the song you are looking at. */}
+              {lyricNotice && (
+                <p className="karaoke-lyrics__notice" role="status">
+                  {lyricNotice}
+                </p>
+              )}
               <KaraokeLyrics
                 song={song}
                 playheadMs={session.playheadMs}
@@ -1658,45 +1882,59 @@ const KaraokeWorkspace = ({
               )}
             </>
           ) : (
-            <>
-              <img
-                className="karaoke-workspace__microphone-art"
-                src={karaokeMicrophoneImage}
-                alt=""
-                aria-hidden="true"
-                draggable="false"
-              />
-              <div className="karaoke-workspace__empty-copy">
-                <h3>
-                  {t(
-                    isLoading
-                      ? 'karaoke.import.loading'
-                      : 'karaoke.empty.title',
-                  )}
-                </h3>
-                <p>{t('karaoke.empty.body')}</p>
-                <button
-                  type="button"
-                  className="button small karaoke-workspace__empty-open"
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={isLoading}
-                  aria-disabled={isLoading}
-                >
-                  <MenuIcon name="filePlus" className="karaoke-button__icon" />
-                  <span>{t('karaoke.import.open')}</span>
-                </button>
-                <small>{t('karaoke.import.formats')}</small>
+            /* Nothing about being empty until the question has been
+               answered. Last session's playlist is read back a moment after
+               the tab opens, and for that moment this drew a microphone and
+               "drop a folder here" over a library that was about to appear.
+               Same as the library tab's own empty panel. */
+            (isRestoring && (
+              <div className="karaoke-workspace__restoring" role="status">
+                <Spinner />
               </div>
-              <div className="karaoke-workspace__levels" aria-hidden="true">
-                <i />
-                <i />
-                <i />
-                <i />
-                <i />
-                <i />
-                <i />
-              </div>
-            </>
+            )) || (
+              <>
+                <img
+                  className="karaoke-workspace__microphone-art"
+                  src={karaokeMicrophoneImage}
+                  alt=""
+                  aria-hidden="true"
+                  draggable="false"
+                />
+                <div className="karaoke-workspace__empty-copy">
+                  <h3>
+                    {t(
+                      isLoading
+                        ? 'karaoke.import.loading'
+                        : 'karaoke.empty.title',
+                    )}
+                  </h3>
+                  <p>{t('karaoke.empty.body')}</p>
+                  <button
+                    type="button"
+                    className="button small karaoke-workspace__empty-open"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isLoading}
+                    aria-disabled={isLoading}
+                  >
+                    <MenuIcon
+                      name="filePlus"
+                      className="karaoke-button__icon"
+                    />
+                    <span>{t('karaoke.import.open')}</span>
+                  </button>
+                  <small>{t('karaoke.import.formats')}</small>
+                </div>
+                <div className="karaoke-workspace__levels" aria-hidden="true">
+                  <i />
+                  <i />
+                  <i />
+                  <i />
+                  <i />
+                  <i />
+                  <i />
+                </div>
+              </>
+            )
           )}
           {isDragging && (
             <div className="karaoke-workspace__drop-overlay" role="status">
@@ -1739,52 +1977,14 @@ const KaraokeWorkspace = ({
           </div>
         </>
       )}
-      {song && (
-        <KaraokeTransport
-          status={status}
-          playheadMs={session.playheadMs}
-          durationMs={session.durationMs}
-          levels={[
-            {
-              id: 'melody',
-              label: t('karaoke.pitch.toneVolume'),
-              value: melodyTone.volume,
-              channel: 'melody',
-              disabled: !melodyTone.isAvailable || !melodyTone.enabled,
-              toggleDisabled: !melodyTone.isAvailable,
-              pressed: melodyTone.enabled,
-              onToggle: () => melodyTone.toggle().catch(() => undefined),
-              onChange: melodyTone.setVolume,
-            },
-            {
-              id: 'backing',
-              label: t('karaoke.maker.stemBacking'),
-              value: backingLevel,
-              channel: 'backing',
-              onChange: changeBackingLevel,
-            },
-            ...(canMixVocals
-              ? [
-                  {
-                    id: 'vocal',
-                    label: t('karaoke.transport.vocalLevel'),
-                    value: vocalLevel,
-                    valueText:
-                      vocalLevel === 0
-                        ? t('karaoke.transport.vocalOff')
-                        : `${Math.round(vocalLevel * 100)}%`,
-                    channel: 'vocal' as const,
-                    onChange: setVocalLevel,
-                  },
-                ]
-              : []),
-          ]}
-          onTogglePlayback={handleTogglePlayback}
-          onJumpToStart={() => handleSeek(0)}
-          onJumpToEnd={() => handleSeek(session.durationMs)}
-          onSeek={handleSeek}
-        />
-      )}
+      {/* Drawn into the bar at the foot of the window rather than here.
+          This app has one transport and one place for it; rendered in both,
+          it was two bars stacked on each other — measured, the karaoke row
+          sat inside the bar's own card. The controls themselves are
+          unchanged, mix faders and all: only where they land has moved. */}
+      {transportSlot &&
+        karaokeControls &&
+        createPortal(karaokeControls, transportSlot)}
       {isMakerOpen &&
         song &&
         song.assets.find((asset) => asset.role === 'audio') && (
@@ -1806,8 +2006,6 @@ const KaraokeWorkspace = ({
             readPlayheadMs={session.readPlayheadMs}
             vocalLevel={canMixVocals ? vocalLevel : undefined}
             onVocalLevel={canMixVocals ? setVocalLevel : undefined}
-            backingLevel={backingLevel}
-            onBackingLevel={changeBackingLevel}
             stemFocus={stemFocus}
             onFocusStem={focusStem}
             backingBlend={backingBlend}

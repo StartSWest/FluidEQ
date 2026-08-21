@@ -53,12 +53,17 @@ import {
   useGraphView,
   useFullScreenTopBar,
 } from './utils/graphStyle';
-import { useIsChromeIdle, watchChromeIdle } from './utils/idleChrome';
+import {
+  useIsChromeIdle,
+  useIsPointerNearBottom,
+  watchChromeIdle,
+} from './utils/idleChrome';
 import { reportError } from './utils/logger';
 import VideoBrowser from './video/VideoBrowser';
 import { albumKey } from '../common/library/grouping';
 import { ILibraryTrack } from '../common/library/types';
 import LibraryWorkspace from './library/LibraryWorkspace';
+import LibraryStageArt from './library/LibraryStageArt';
 import { LibraryProvider } from './library/LibraryContext';
 import {
   LibraryPlayerProvider,
@@ -66,10 +71,15 @@ import {
 } from './library/player/LibraryPlayerContext';
 import NowPlayingBar from './library/player/NowPlayingBar';
 import SourceTransportBar from './library/player/SourceTransportBar';
-import type { TPlaybackOwner } from './audio/playbackOwner';
-import { useTransportSource } from './audio/transportSource';
+import { usePlaybackOwner, type TPlaybackOwner } from './audio/playbackOwner';
+import {
+  useLastTransportOwner,
+  useTransportSources,
+} from './audio/transportSource';
+import { pickTransportOwner } from './audio/transportRouting';
 import KaraokeWorkspace from './karaoke/KaraokeWorkspace';
 import PaneResizer from './components/PaneResizer';
+import WorkspaceTabStrip from './components/WorkspaceTabStrip';
 import {
   clampToWindow,
   commitPaneSizes,
@@ -250,41 +260,101 @@ const readWorkspaceTab = (): TWorkspaceTab => {
  * happens here rather than inside the view.
  */
 /**
- * Which tab each transport source belongs to.
+ * Which player each tab's bar drives.
  *
- * The bar follows the tab being looked at, so a source only takes it over on
- * its own ground: the karaoke session drives it on the Karaoke tab, the Media
- * page on the Media tab, and everywhere else — the EQ, Voicing, Config — the
- * library keeps it. That last part is the important half. A bar that showed
- * whatever tab you happened to open would take the controls for the music
- * that is playing away the moment you went to adjust the sound it is playing
- * through, which is the one time you are most likely to want them.
+ * The tabs that are not players have no entry, and there the bar falls back
+ * to whatever is making sound — see `pickTransportOwner`, which holds the
+ * rule both halves of the bar ask.
  */
+const TAB_TRANSPORT: Partial<Record<TWorkspaceTab, TPlaybackOwner>> = {
+  library: 'library',
+  karaoke: 'karaoke',
+  video: 'media',
+};
+
+/**
+ * The bar for every tab that is not the library.
+ *
+ * Mounted outside `hasOpenedLibrary`, which is the whole point of it being a
+ * separate component: the library's providers are built on first visit to
+ * that tab, and the karaoke transport used to live inside them. A window
+ * opened straight onto Karaoke therefore had no bar at all until the user
+ * happened to look at the Library.
+ */
+/** Where each player lives, for the press that goes to it. */
 const TRANSPORT_TAB: Record<TPlaybackOwner, TWorkspaceTab> = {
   library: 'library',
   karaoke: 'karaoke',
   media: 'video',
 };
 
+const TabTransportBar = ({
+  activeTab,
+  isIdle,
+  isFloating,
+  onGoToTab,
+}: {
+  activeTab: TWorkspaceTab;
+  isIdle: boolean;
+  isFloating: boolean;
+  onGoToTab: (tab: TWorkspaceTab) => void;
+}) => {
+  const sources = useTransportSources();
+  const playingOwner = usePlaybackOwner();
+  const lastOwner = useLastTransportOwner();
+  const owner = pickTransportOwner(
+    TAB_TRANSPORT[activeTab],
+    sources,
+    playingOwner,
+    lastOwner,
+  );
+  const source = owner === undefined ? undefined : sources[owner];
+  if (owner === 'library' || source === undefined) {
+    return null;
+  }
+  return (
+    <SourceTransportBar
+      source={source}
+      isIdle={isIdle}
+      isFloating={isFloating}
+      onReveal={() => onGoToTab(TRANSPORT_TAB[source.owner])}
+    />
+  );
+};
+
 const ConnectedNowPlayingBar = ({
   activeTab,
+  isIdle,
+  isFloating,
   onReveal,
 }: {
   activeTab: TWorkspaceTab;
+  isIdle: boolean;
+  isFloating: boolean;
   onReveal: (track: ILibraryTrack) => void;
 }) => {
   const player = useLibraryPlayer();
-  const source = useTransportSource();
+  const sources = useTransportSources();
+  const playingOwner = usePlaybackOwner();
+  const lastOwner = useLastTransportOwner();
   const { track } = player;
-  if (
-    source &&
-    source.owner !== 'library' &&
-    TRANSPORT_TAB[source.owner] === activeTab
-  ) {
-    return <SourceTransportBar source={source} />;
+  const owner = pickTransportOwner(
+    TAB_TRANSPORT[activeTab],
+    sources,
+    playingOwner,
+    lastOwner,
+  );
+
+  // Another tab's bar is up; this one stays down. `TabTransportBar` asks the
+  // same question of the same two stores, so exactly one of us answers yes.
+  if (owner !== undefined && owner !== 'library') {
+    return null;
   }
+
   return (
     <NowPlayingBar
+      isIdle={isIdle}
+      isFloating={isFloating}
       track={player.track}
       isPlaying={player.isPlaying}
       positionMs={player.positionMs}
@@ -319,6 +389,8 @@ const AppContent = () => {
   const { t } = useTranslation();
   // The sound panel drawer, meaningful only under the three-column breakpoint.
   const [rightPaneOpen, setRightPaneOpen] = useState(false);
+  // The same, for the panel that becomes a drawer at the top of the window.
+  const [topPaneOpen, setTopPaneOpen] = useState(false);
   const [activeWorkspaceTab, setActiveWorkspaceTab] =
     useState<TWorkspaceTab>(readWorkspaceTab);
   const [graphVisibilityByTab, setGraphVisibilityByTab] = useState<
@@ -417,11 +489,35 @@ const AppContent = () => {
   const hasFullScreenTopBar = useFullScreenTopBar();
   const isChromeHidden =
     (isGraphAppFullScreen || isKaraokeFullScreen) && !hasFullScreenTopBar;
+  /**
+   * Full screen, whether or not the top bar is showing.
+   *
+   * `isChromeHidden` is a narrower question — it asks whether the chrome is
+   * getting out of the way, which the top-bar toggle can veto. The transport
+   * bar floats over the stage in every full screen: the picture is meant to
+   * reach the bottom edge, and a reserved strip there is a band of background
+   * under a stage that should have filled it.
+   */
+  const isAppFullScreen = isGraphAppFullScreen || isKaraokeFullScreen;
   const editorHeight = useEditorHeight(activeWorkspaceTab);
 
   // Watched only in full screen, and stopped on the way out — see the store for
   // why leaving it running would strand a faded workspace.
   const isChromeIdle = useIsChromeIdle();
+  // The bar answers to the pointer, not to the clock — see `idleChrome`.
+  const isPointerNearBottom = useIsPointerNearBottom();
+
+  // Published on `#root` for the stylesheets that have to know: a panel over
+  // a floating bar clears it while it is up and takes the room back when it
+  // fades, and CSS cannot read a React flag.
+  useEffect(() => {
+    const root = document.getElementById('root');
+    root?.classList.toggle(
+      'is-chrome-idle',
+      isAppFullScreen && (!isPointerNearBottom || isChromeIdle),
+    );
+    return () => root?.classList.remove('is-chrome-idle');
+  }, [isAppFullScreen, isChromeIdle, isPointerNearBottom]);
   useEffect(() => {
     // Every mode the graph is drawn in, not only the ones that fill the screen.
     //
@@ -434,9 +530,12 @@ const AppContent = () => {
     // Tied to visible auto-hiding chrome: the graph in any view, or Karaoke's
     // centre dock while its stage owns the full screen. With neither rendered
     // there is no listener on the window watching activity for nothing.
-    watchChromeIdle(showsGraph || isKaraokeFullScreen);
+    // `isChromeHidden` as well: full screen fades the transport bar too, and a
+    // full-screen surface with no graph on it would otherwise have nothing
+    // watching for the stillness that fades it.
+    watchChromeIdle(showsGraph || isKaraokeFullScreen || isChromeHidden);
     return () => watchChromeIdle(false);
-  }, [isKaraokeFullScreen, showsGraph]);
+  }, [isChromeHidden, isKaraokeFullScreen, showsGraph]);
 
   /**
    * Take the window fullscreen when the graph asks for it.
@@ -1308,11 +1407,27 @@ const AppContent = () => {
             </div>
           </aside>
         )}
+        {/* Below the two-column breakpoint this panel is a drawer that slides
+            in from the left edge, summoned by the tab below and dismissed by
+            its own backdrop — the same arrangement the sound panel has on the
+            other edge. Above that width the tab and the backdrop are
+            display:none and the class does nothing. */}
+        <button
+          type="button"
+          className={`side-bar-toggle${topPaneOpen ? ' is-open' : ''}`}
+          aria-expanded={topPaneOpen}
+          aria-label={t('app.soundPanel')}
+          onClick={() => setTopPaneOpen((open) => !open)}
+        >
+          <MenuIcon name="settings" />
+        </button>
         <SideBar
           showGraphToggle
           isGraphVisible={showsGraph}
+          isOpen={topPaneOpen}
           onGraphVisibilityChange={setActiveTabGraphVisibility}
         />
+
         <div
           className={`center-workspace${
             isGraphFullScreen && showsGraph && !isKaraokeFullScreen
@@ -1335,11 +1450,7 @@ const AppContent = () => {
                 : undefined
             }
           >
-            <div
-              className="workspace-tabs"
-              role="tablist"
-              aria-label={t('tabs.aria')}
-            >
+            <WorkspaceTabStrip label={t('tabs.aria')}>
               <button
                 type="button"
                 role="tab"
@@ -1428,7 +1539,7 @@ const AppContent = () => {
               >
                 {t('tabs.config')}
               </button>
-            </div>
+            </WorkspaceTabStrip>
             {activeWorkspaceTab === 'eq' && (
               <div
                 // Remounts on every tab change so the panel entrance animation
@@ -1503,6 +1614,19 @@ const AppContent = () => {
                 stop the music. It has no engine-disabled state either — a
                 video plays whether or not Equalizer APO is behind it. */}
             {hasOpenedVideo && <VideoBrowser isHidden={!isVideoTab} />}
+            {/* The bar for karaoke and for the Media page, mounted where
+                nothing can gate it. Its own rule keeps it and the library's
+                bar from ever both being up. */}
+            {/* Faded out with the rest of the chrome once full screen has been
+                still for a moment, and back on the next movement — the same
+                two seconds the graph's own toolbar waits, from the same
+                store, so the two cannot disagree about when to go. */}
+            <TabTransportBar
+              activeTab={activeWorkspaceTab}
+              isIdle={isAppFullScreen && (!isPointerNearBottom || isChromeIdle)}
+              isFloating={isAppFullScreen}
+              onGoToTab={setActiveWorkspaceTab}
+            />
             {/* Same lifetime rule as the player above: mounted once a scan
                 could be running here, then hidden rather than destroyed so
                 switching tabs cannot cancel it. `LibraryPlayerProvider`
@@ -1520,8 +1644,23 @@ const AppContent = () => {
                     isHidden={!isLibraryTab}
                     revealRequest={libraryReveal}
                   />
+                  {/* The song behind a full-screen graph, on this tab only.
+                      Gated on the same pair the layout is — the graph being
+                      full screen AND drawn — because `isGraphAppFullScreen`
+                      alone is true on a Library tab that still has its own
+                      layout, and the picture then covered the library rather
+                      than backing the plot. Media and Karaoke have full
+                      screens of their own with their own picture in them; a
+                      third one here would be a third answer to one question. */}
+                  {isGraphFullScreen && showsGraph && isLibraryTab && (
+                    <LibraryStageArt />
+                  )}
                   <ConnectedNowPlayingBar
                     activeTab={activeWorkspaceTab}
+                    isIdle={
+                      isAppFullScreen && (!isPointerNearBottom || isChromeIdle)
+                    }
+                    isFloating={isAppFullScreen}
                     onReveal={revealPlayingTrack}
                   />
                 </LibraryPlayerProvider>
@@ -1573,19 +1712,26 @@ const AppContent = () => {
         */}
         <button
           type="button"
-          className="right-content-toggle"
+          className={`right-content-toggle${rightPaneOpen ? ' is-open' : ''}`}
           aria-expanded={rightPaneOpen}
           aria-label={t('app.soundPanel')}
           onClick={() => setRightPaneOpen((open) => !open)}
         >
           <MenuIcon name="settings" />
         </button>
-        {rightPaneOpen && (
+        {/* One backdrop for both drawers, and pressing it shuts both. Two of
+            them stacked, each closing only its own, meant a press outside
+            with both open closed whichever happened to be on top and left
+            the other standing. */}
+        {(rightPaneOpen || topPaneOpen) && (
           <button
             type="button"
-            className="right-content-backdrop"
-            aria-label={t('app.soundPanel')}
-            onClick={() => setRightPaneOpen(false)}
+            className="drawer-backdrop"
+            aria-label={t('app.dismiss')}
+            onClick={() => {
+              setRightPaneOpen(false);
+              setTopPaneOpen(false);
+            }}
           />
         )}
         <div className={`right-content${rightPaneOpen ? ' is-open' : ''}`}>

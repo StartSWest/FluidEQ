@@ -599,6 +599,11 @@ const COLUMN_OVERRIDES: Partial<Record<GraphStyle, number>> = {
   // varying width, and at sixty-four it stops looking like one.
   barcode: 56,
 
+  // Few enough that a stitch is a stitch. At the default sixty-four the
+  // swings are still closer together than they are deep, which reads as a
+  // ripple rather than as a thread crossing a line.
+  weave: 30,
+
   fence: 46,
   rain: 44,
   stitch: 38,
@@ -670,7 +675,7 @@ const FILL_OPACITY_OVERRIDES: Partial<Record<GraphStyle, number>> = {
    * light on screen, and the bars stopped sitting behind the curves they are
    * supposed to sit behind.
    */
-  fluid: 0.7,
+  fluid: 0.92,
 };
 
 /**
@@ -711,10 +716,66 @@ const BAR_GAP_DEFAULTS: Partial<Record<GraphStyle, number>> = {
 export const getGraphBarGap = (style: GraphStyle): number =>
   BAR_GAP_DEFAULTS[style] ?? 0;
 
+/**
+ * Whether Gap means anything on this form.
+ *
+ * Not the same question as whether it is discrete. A weave is made of pieces
+ * and answers Pieces, but its pieces are stitches on a thread and have no
+ * width to leave a gap between — and the starfield's streaks are placed by
+ * the column rather than sized by it. Offering the slider on those is
+ * offering a control that does nothing, which is the fault this codebase
+ * keeps having to fix.
+ *
+ * The table is the answer: a form is in it because it has a width that was
+ * chosen for it, and a form that has one is a form that can space it.
+ */
+export const hasGraphGap = (style: GraphStyle): boolean =>
+  BAR_GAP_DEFAULTS[style] !== undefined;
+
 export const getGraphFillOpacity = (
   style: GraphStyle,
   fallback: number,
 ): number => FILL_OPACITY_OVERRIDES[style] ?? fallback;
+
+/**
+ * The forms made of marks rather than of a body, for which Filled is not a
+ * question that has an answer.
+ *
+ * A fill needs an inside. These forms have none: their drawings are thin
+ * strokes — dashes floating at the level, rungs up a column, ticks lying
+ * along the gradient, streaks, drops, teeth, cross-stitches, hatching. Asking
+ * the canvas to paint a straight line paints nothing at all, so turning the
+ * switch on did not restyle them, it ERASED them, and an empty pane reads as
+ * the capture having died rather than as a setting having been changed.
+ *
+ * The three wave entries are here on the titlebar's own authority: it gives
+ * those three no fill path, because there is where these ten figures are
+ * defined and stroke-only is what it decided they are.
+ *
+ * Giving each of them a body instead was the alternative and it is the wrong
+ * trade — a hatch with solid diagonals is a wall, which is the exact thing
+ * hatching exists to avoid, and fattened ticks are the same picture slightly
+ * blurred. The switch is what is wrong here, not the drawings.
+ */
+const STROKE_ONLY_STYLES = new Set<GraphStyle>([
+  'dashes',
+  'ribs',
+  'slope',
+  'starfield',
+  'rain',
+  'feather',
+  'truss',
+  'zipper',
+  'stitch',
+  'hatch',
+  'wave-line',
+  'wave-outline',
+  'wave-lattice',
+]);
+
+/** Whether painting this form instead of stroking it draws anything. */
+export const canGraphFill = (style: GraphStyle): boolean =>
+  !STROKE_ONLY_STYLES.has(style);
 
 /** The forms drawn one piece per column rather than as a continuous figure. */
 export const DISCRETE_STYLES = new Set<GraphStyle>([
@@ -731,6 +792,18 @@ export const DISCRETE_STYLES = new Set<GraphStyle>([
    * not — line, body and ribbon — draw one continuous figure from the
    * waveform, so the control stays greyed out on those.
    */
+  /**
+   * The weave belongs here, and its absence was the whole of what was wrong
+   * with it.
+   *
+   * "A zigzag threading the peaks" is what it is called and what its comment
+   * says, and threading peaks means one stitch per peak. Left continuous it
+   * was drawn over every point on the plot — three hundred-odd of them, two
+   * or three pixels apart — so the zigzag had no room to be a zigzag and the
+   * form came out as a solid band with a fuzzy edge. Nothing about it read as
+   * weaving.
+   */
+  'weave',
   'fluid',
   'wave-bars',
   'wave-mirror',

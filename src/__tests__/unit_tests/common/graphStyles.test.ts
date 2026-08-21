@@ -18,6 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import {
   GRAPH_LOOKS,
+  canGraphFill,
   GRAPH_PALETTES,
   GRAPH_STYLES,
   GRAPH_STYLE_LABELS,
@@ -204,11 +205,93 @@ describe('createGraphShape', () => {
   });
 
   it('draws contours at levels, not at points', () => {
-    // Every contour is a horizontal run at a fixed height, so the path is all
-    // H commands. A diagonal in here means it has gone back to tracing the
-    // curve, which is the one thing this form is not.
-    expect(shapeOf('contour')).toMatch(/H/);
-    expect(shapeOf('contour')).not.toMatch(/ L /);
+    // Every contour is a horizontal run at a fixed height. A diagonal in here
+    // means it has gone back to tracing the curve, which is the one thing this
+    // form is not. Either case of the horizontal command counts: the runs are
+    // closed bands now rather than bare segments, so they are written
+    // relative, and the letter is not the thing being tested.
+    expect(shapeOf('contour')).toMatch(/h/i);
+    expect(shapeOf('contour')).not.toMatch(/ L /i);
+  });
+
+  it('gives its contours area, so painting them draws something', () => {
+    // Bare segments enclose nothing, so the look's Filled switch painted an
+    // empty path and the form disappeared from the pane — which reads as the
+    // capture having died rather than as a setting.
+    const d = shapeOf('contour');
+    expect(d).toMatch(/Z/);
+    expect(d).toMatch(/v [\d.]+/);
+  });
+
+  it('leaves every fillable form something to paint', () => {
+    // A path with no closed subpath in it paints nothing, and an empty pane
+    // reads as the capture having died rather than as a switch having been
+    // thrown. Whatever the form is, if the picker offers Filled for it then
+    // asking for it has to draw.
+    GRAPH_STYLES.filter(canGraphFill).forEach((style) => {
+      expect(
+        createGraphShape(
+          points,
+          style,
+          BASELINE,
+          undefined,
+          undefined,
+          0,
+          0,
+          true,
+        ),
+      ).toMatch(/Z/);
+    });
+  });
+
+  it('does not frame the stroked forms in a box to achieve it', () => {
+    // The positive control for the test above. Closing these to the floor
+    // unconditionally would satisfy it while growing a hairline along the
+    // bottom of the plot and a vertical up each side — a frame drawn round a
+    // line nobody asked to frame. Stroked, they must still be open.
+    (['line', 'steps', 'bezier', 'ecg', 'echo'] as GraphStyle[]).forEach(
+      (style) => {
+        expect(shapeOf(style)).not.toMatch(/Z/);
+      },
+    );
+  });
+
+  it('offers Filled only where a form has an inside', () => {
+    // Marks have no inside: dashes float, ribs are rungs, hatching is the
+    // absence of a fill by design. The wave three are stroke-only on the
+    // titlebar's own authority, which is where those figures are defined.
+    expect(canGraphFill('hatch')).toBe(false);
+    expect(canGraphFill('dashes')).toBe(false);
+    expect(canGraphFill('wave-lattice')).toBe(false);
+    expect(canGraphFill('line')).toBe(true);
+    expect(canGraphFill('bars')).toBe(true);
+  });
+
+  it('keeps the mirrored wave inside the plot it was given', () => {
+    // The wave family is the only one that straddles a centre line, so it is
+    // the only one that has to be told where the plot's ceiling is. Told
+    // nothing, it centred itself on half the floor's distance from the top of
+    // the card and its crest climbed above the plot, where it was cut off.
+    const flat: [number, number][] = [];
+    for (let index = 0; index < 96; index += 1) {
+      // A full-scale reading, sitting right on the ceiling.
+      flat.push([30 + index * 6, 40]);
+    }
+    const topOf = (d: string) =>
+      Math.min(
+        ...[...d.matchAll(/[-\d.]+,([-\d.]+)/g)]
+          .map((match) => Number(match[1]))
+          .filter((y) => Number.isFinite(y)),
+      );
+    // The positive control: the assumption this fixed, reproduced by making
+    // it again. Without it, "stays below the ceiling" would also pass on a
+    // form that had stopped drawing anything at all.
+    expect(
+      topOf(createGraphShape(flat, 'wave-line', 300, 64, undefined, 0, 0)),
+    ).toBeLessThan(40);
+    expect(
+      topOf(createGraphShape(flat, 'wave-line', 300, 64, undefined, 0, 40)),
+    ).toBeGreaterThanOrEqual(39);
   });
 
   it('sizes the bubbles by level rather than drawing them all alike', () => {

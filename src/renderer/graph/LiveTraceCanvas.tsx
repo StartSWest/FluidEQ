@@ -59,7 +59,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import type { AxisScale, NumberValue } from 'd3';
 import { useCallback, useEffect, useRef } from 'react';
 import { DEFAULT_GLOW } from 'common/customLooks';
-import { heatHue } from 'common/graphStyles';
+import { canGraphFill, heatHue } from 'common/graphStyles';
 import { easeTowards, getEaseFactor } from 'common/smoothing';
 import {
   createGraphAccent,
@@ -169,6 +169,16 @@ const GLOW_RELEASE_MS = 260;
  * of this file that is a reimplementation rather than a move.
  */
 const PRESENTATION_SETTLE_MS = 120;
+
+/**
+ * How much brighter the fluid's bars are drawn here than in the titlebar.
+ *
+ * The plot is several times deeper, so the same alphas cover far more area
+ * and the drawing reads as a ghost — barely there in a screen recording.
+ * This lifts the LIT TOP and leaves the fade alone, because the fade is the
+ * effect: raising the foot instead flattens every bar into a slab.
+ */
+const GRAPH_BAR_LIFT = 1.7;
 
 /** Below these the eased presentation values have arrived and are snapped. */
 const OPACITY_EPSILON = 0.002;
@@ -507,6 +517,14 @@ const LiveTraceCanvas = ({
       const isWaveForm = chosen.startsWith('wave-');
       const isFluidForm = chosen === 'fluid';
       /**
+       * Filled, but only where filling draws something.
+       *
+       * The look's switch is honoured through here rather than read directly,
+       * so a look saved with it on before the picker learned to hide it still
+       * draws its form instead of an empty pane.
+       */
+      const isFilled = tuning.filled && canGraphFill(chosen);
+      /**
        * The bars span the READING, not the plot.
        *
        * The axis runs 16Hz to 25kHz and the analyser only reaches 20Hz to
@@ -569,6 +587,8 @@ const LiveTraceCanvas = ({
             // its own frames, and the envelope arrives on the pump's.
             waveformRef.current,
             tuning.gap,
+            plot.top,
+            isFilled,
           );
       const figure = new Path2D(shape);
 
@@ -665,6 +685,11 @@ const LiveTraceCanvas = ({
                   glowStyle,
                   baseline,
                   tuning.columns,
+                  // The halo has to be the same figure it sits behind, which
+                  // includes standing in the same box.
+                  waveformRef.current,
+                  tuning.gap,
+                  plot.top,
                 ),
               );
       } else {
@@ -760,11 +785,7 @@ const LiveTraceCanvas = ({
         isEuphoric,
       );
       // Whose edge this is, which decides where it is allowed to sit.
-      const isEuphoriaEdge = isEuphoriaFigureStroke(
-        tuning.border,
-        isSelfColoured,
-        euphoria,
-      );
+      const isEuphoriaEdge = isEuphoriaFigureStroke(tuning.border, euphoria);
 
       /**
        * Everywhere the figure is not, for the euphoria border to be stroked in.
@@ -809,10 +830,7 @@ const LiveTraceCanvas = ({
        * is where this form's light belongs.
        */
       const needsOutside =
-        isEuphoriaEdge &&
-        tuning.filled &&
-        figureStrokeWidth > 0 &&
-        !isFluidForm;
+        isEuphoriaEdge && isFilled && figureStrokeWidth > 0 && !isFluidForm;
       let outside: Path2D | undefined;
       if (needsOutside) {
         const bleed = figureStrokeWidth + 1;
@@ -917,7 +935,7 @@ const LiveTraceCanvas = ({
             (tuning.glow / DEFAULT_GLOW);
         }
 
-        if (isFluidForm && tuning.filled) {
+        if (isFluidForm && isFilled) {
           // The titlebar's own bars, from the titlebar's own painter. The hue
           // sweep is the form's own fill — it is what makes this drawing this
           // drawing — but WHETHER it is filled, and how solidly, are settings
@@ -941,11 +959,14 @@ const LiveTraceCanvas = ({
              */
             SPECTRUM_HUE_BY_PALETTE[lookRef.current.palette],
             tuning.gap,
+            // Brighter at the top than the titlebar, and faded identically —
+            // see the constant's own note.
+            GRAPH_BAR_LIFT,
             // Level is a meter: the ramp is pinned to the plot and each bar
             // shows its own slice of it, so a colour is a decibel.
             lookRef.current.palette === 'level' ? canvasPaint : undefined,
           );
-        } else if (tuning.filled && piecePaths) {
+        } else if (isFilled && piecePaths) {
           /**
            * A colour per piece, for the palette that has one to give.
            *
@@ -964,7 +985,7 @@ const LiveTraceCanvas = ({
             context.fillStyle = `hsl(${heatHue(piece.energy)}, 92%, 60%)`;
             context.fill(piece.path);
           });
-        } else if (tuning.filled) {
+        } else if (isFilled) {
           // The fill and the stroke are composited separately here, where SVG
           // composited the element as a group. The only place the two differ is
           // the sliver where a translucent stroke sits over its own fill, and
@@ -989,7 +1010,7 @@ const LiveTraceCanvas = ({
 
         const figureStroke = resolveFigureStroke(
           basePaint,
-          tuning.filled,
+          isFilled,
           tuning.border,
           isSelfColoured,
           euphoria,
@@ -1019,18 +1040,24 @@ const LiveTraceCanvas = ({
             context.lineWidth = figureStrokeWidth * 2;
             context.stroke(figure);
             context.restore();
-          } else if (isEuphoriaEdge && isSelfColoured) {
-            // A stroked form that already says something with its colour — the
-            // only way here is with the border switched on, since the sweep
-            // otherwise leaves a self-coloured look alone.
-            //
-            // There is no fill to clip against on a form that is only a line,
-            // so the border becomes a casing laid under it: stroked first, wide
-            // enough that `figureStrokeWidth` of it stands proud on each side,
-            // and then the look's own paint over the top at its own weight. The
-            // spectrum survives with the travelling hue around it, where before
-            // the border simply replaced it and a rainbow trace turned into one
-            // cycling colour.
+          } else if (isEuphoriaEdge) {
+            /**
+             * A stroked form: the border goes AROUND the line, never over it.
+             *
+             * There is no fill to clip against on a figure that is only a
+             * line, so the border is a casing laid under it — stroked first,
+             * wide enough that `figureStrokeWidth` of it stands proud on each
+             * side, and then the look's own paint over the top at its own
+             * weight. The line stays the colour it was and the travelling hue
+             * runs outside it, which is what a border is.
+             *
+             * This used to require the look to have colours of its own, on
+             * the reasoning that only those had something to lose. They were
+             * not the only ones: a flat look's line is still a line, and
+             * replacing its colour is not bordering it — it is painting over
+             * it, which is what `echo` and every other stroked form were
+             * getting while their Rainbow border box did the asking.
+             */
             context.lineWidth = strokeWidth + figureStrokeWidth * 2;
             context.stroke(figure);
             context.strokeStyle = canvasPaint;

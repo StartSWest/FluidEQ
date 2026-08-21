@@ -28,6 +28,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .voicing-pick {
   position: relative;
   flex: 0 0 auto;
+  // The same lift the split buttons beside it have. It is the one control in
+  // this row that stayed put under the pointer, which read as it not being a
+  // control at all.
+  transition: transform 150ms ease;
+
+  &:hover {
+    transform: translateY(-1px);
+  }
 }
 
 .voicing-pick__trigger {

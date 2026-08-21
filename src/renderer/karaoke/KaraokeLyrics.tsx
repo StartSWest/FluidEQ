@@ -74,11 +74,27 @@ export const lyricHitRegionContains = (
   y >= region.top &&
   y <= region.bottom;
 
+/** Waits shorter than this are a breath, not a silence to count through. */
+const COUNTDOWN_MIN_WAIT_MS = 3_000;
+
+/** How long before the line the count starts. */
+const COUNTDOWN_MS = 3_200;
+
+/** How long "sing" stays after the line has started. */
+const COUNTDOWN_SING_MS = 700;
+
 interface ILyricDrawState {
   song: IKaraokeSong;
   playheadMs: number;
   activeIndex: number;
   centerIndex: number;
+  /** When the next sung line starts, while nothing is being sung. */
+  nextStartMs?: number;
+  /** When the silence before it began: the end of the last line, or zero at
+   * the top of the song. The two together are the length of the wait. */
+  waitStartMs?: number;
+  /** The word under the last beat of the count, in the reader's language. */
+  singLabel: string;
 }
 
 interface ILyricMotionState {
@@ -203,13 +219,43 @@ const KaraokeLyrics = ({
     requestedCenterIndex >= 0 || isFollowing
       ? playbackCenterIndex
       : clamp(manualCenterIndex, 0, Math.max(0, song.lines.length - 1));
+  /**
+   * The wait before the singing starts again, if there is one worth counting.
+   *
+   * An intro, a solo, the pause between verses: the words are on screen but
+   * nothing says when to come in, so the singer either guesses or watches the
+   * playhead. Measured from the end of the last line rather than from now, so
+   * a wait is a property of the song and not of when somebody happened to
+   * look at it.
+   */
+  const previousEndMs =
+    detectedActiveIndex >= 0
+      ? song.lines[detectedActiveIndex]?.endMs
+      : undefined;
+  const waitStartMs = detectedActiveIndex >= 0 ? previousEndMs : 0;
+  const isSinging =
+    activeLine?.kind !== 'section' &&
+    activeLine?.startMs !== undefined &&
+    activeLine.endMs !== undefined &&
+    playheadMs >= activeLine.startMs &&
+    playheadMs < activeLine.endMs;
+
   const drawStateRef = useRef<ILyricDrawState>({
     song,
     playheadMs,
     activeIndex,
     centerIndex,
+    singLabel: t('karaoke.countdown.sing'),
   });
-  drawStateRef.current = { song, playheadMs, activeIndex, centerIndex };
+  drawStateRef.current = {
+    song,
+    playheadMs,
+    activeIndex,
+    centerIndex,
+    nextStartMs: isSinging ? undefined : nextLyric?.startMs,
+    waitStartMs,
+    singLabel: t('karaoke.countdown.sing'),
+  };
 
   useEffect(() => {
     setIsFollowing(true);
@@ -566,6 +612,55 @@ const KaraokeLyrics = ({
         hitRegionCount += 1;
       }
       hitRegions.length = hitRegionCount;
+
+      // *** The count-in ****************************************************
+      //
+      // Three, two, one, sing. Only where there is a wait long enough to lose
+      // your place in — three seconds is about where a gap stops being a
+      // breath and starts being a silence — and never while a line is being
+      // sung, where it would be a second thing moving over the words.
+      //
+      // Drawn under the lyric lane rather than in it: the line about to be
+      // sung is already at the centre, and the count is a thing to glance at,
+      // not to read.
+      const {
+        nextStartMs,
+        waitStartMs: silenceFromMs,
+        singLabel,
+      } = drawStateRef.current;
+      if (
+        nextStartMs !== undefined &&
+        silenceFromMs !== undefined &&
+        nextStartMs - silenceFromMs >= COUNTDOWN_MIN_WAIT_MS
+      ) {
+        const remainingMs = nextStartMs - currentPlayheadMs;
+        if (remainingMs > -COUNTDOWN_SING_MS && remainingMs <= COUNTDOWN_MS) {
+          const isSing = remainingMs <= 0;
+          // Three at most. The window is a fraction over three seconds so the
+          // first beat lands with its swell rather than appearing mid-pulse,
+          // and without the clamp that fraction reads as a "4" nobody counted.
+          const beat = clamp(Math.ceil(remainingMs / 1000), 1, 3);
+          const label = isSing ? singLabel : String(beat);
+          // Each beat swells as it arrives and settles: the fraction of the
+          // current second that has passed drives both, so the pulse is on
+          // the beat rather than on the frame.
+          const beatProgress = isSing
+            ? clamp(-remainingMs / COUNTDOWN_SING_MS, 0, 1)
+            : 1 - ((remainingMs % 1000) + 1000) / 1000;
+          const swell = 1 + 0.18 * Math.max(0, 1 - beatProgress * 3);
+          const fade = isSing ? 1 - beatProgress : 1;
+          const size = clamp(width * 0.028, 20, 34) * swell;
+          context.save();
+          context.font = `800 ${size}px ${LYRIC_FONT_FAMILY}`;
+          context.textAlign = 'center';
+          context.textBaseline = 'middle';
+          context.shadowColor = 'rgba(0, 229, 207, 0.55)';
+          context.shadowBlur = 18;
+          context.fillStyle = `rgba(126, 245, 232, ${0.9 * fade})`;
+          context.fillText(label, width / 2, height - size * 1.1);
+          context.restore();
+        }
+      }
     };
 
     const animate = (frameTimeMs: number) => {

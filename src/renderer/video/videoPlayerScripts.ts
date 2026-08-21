@@ -309,6 +309,24 @@ export const READ_POSITION = `(() => {
 })()`;
 
 /**
+ * Whether the page has a player at all, and whether it is running.
+ *
+ * `true` or `false` when there is something to control, `null` when there is
+ * nothing. The bar at the foot of the window uses the difference: a page with
+ * no media gets no bar, rather than a play button that would do nothing when
+ * pressed.
+ *
+ * Asked when a page finishes arriving, because the tag only reports playback
+ * once it *starts* — a video that is sitting there paused, which is every
+ * video the autoplay policy stopped, announces nothing at all.
+ */
+export const PROBE_PLAYBACK = `(() => {
+  const media = [...document.querySelectorAll('video, audio')];
+  if (media.length === 0) { return null; }
+  return media.some((m) => !m.paused && !m.ended);
+})()`;
+
+/**
  * End the page's own fullscreen, and never begin one.
  *
  * `exitFullscreen` rather than the site's button, deliberately: the button is a

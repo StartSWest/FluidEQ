@@ -151,8 +151,11 @@ export const resolveTracePaint = (
 };
 
 /**
- * Whether a look carries a colour scheme of its own, which is what decides if
- * euphoria may recolour it.
+ * Whether a look carries a colour scheme of its own.
+ *
+ * It used to decide whether euphoria MAY recolour a figure; that is the
+ * border's switch now. What it still decides is which of the mode's two hues
+ * a border takes — see `resolveFigureStroke`.
  *
  * Rainbow counts even with no stops of its own: its colours are the app's
  * shared spectrum. Tested on the colours rather than on the palette's name as
@@ -229,11 +232,28 @@ export const resolveFigureStroke = (
   if (isFilled && !hasBorder) {
     return undefined;
   }
-  if (euphoria.isOn && !isSelfColoured) {
-    return euphoriaTraceColour(euphoria.hue);
-  }
+  /**
+   * THE SWEEP ASKS PERMISSION NOW, and that is the last of the cascade to go.
+   *
+   * The old rule recoloured any trace with no colours of its own, and it was
+   * right when there was no switch to consult. There is one, and on a STROKED
+   * form the recolour is indistinguishable from it: the stroke is the whole
+   * drawing, so the travelling hue takes the figure and it reads as the
+   * rainbow border being on while its box sits empty. Which is exactly what
+   * it was reported as.
+   *
+   * The mode still shows on a look that has not asked for the border — it
+   * lights it, through the halo, which is what Glow is for. Colour on the
+   * figure is what Rainbow border is for. Two switches, and neither of them
+   * surprises anybody.
+   */
   if (euphoria.isOn && hasBorder) {
-    return euphoriaOutlineColour(euphoria.hue);
+    // A look with colours of its own gets the outline hue rather than the
+    // trace hue, which is the precedence the cascade had among the colours
+    // and the half of it worth keeping.
+    return isSelfColoured
+      ? euphoriaOutlineColour(euphoria.hue)
+      : euphoriaTraceColour(euphoria.hue);
   }
   return paint;
 };
@@ -254,9 +274,8 @@ export const resolveFigureStroke = (
  */
 export const isEuphoriaFigureStroke = (
   hasBorder: boolean,
-  isSelfColoured: boolean,
   euphoria: IEuphoriaPaint,
-): boolean => euphoria.isOn && (!isSelfColoured || hasBorder);
+): boolean => euphoria.isOn && hasBorder;
 
 /**
  * How much heavier the trace is drawn when it is the only thing on the grid.

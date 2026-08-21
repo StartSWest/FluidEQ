@@ -36,3 +36,41 @@ if (!('ResizeObserver' in globalThis)) {
 // pitch lane off the stage. Components that ask for it guard the call
 // themselves — see `KaraokeWorkspace`, `KaraokeLyrics` and `NowPlayingBar`,
 // all of which check it is a function first.
+
+/**
+ * Pointer capture, which jsdom does not implement and every browser does.
+ *
+ * The cover flow drags: a press on the fan captures the pointer so that a
+ * drag which leaves the element still arrives, and releases it on the way up.
+ * jsdom has the pointer events but not the capture API, so the release threw
+ * `hasPointerCapture is not a function` and took the whole click with it —
+ * which is every test that clicks a cover, now that the fan is the library's
+ * first view.
+ *
+ * A record rather than a no-op: `hasPointerCapture` has to answer honestly or
+ * the guard around the release is testing nothing.
+ */
+// Guarded on `Element` itself and not just on the method: the main-process
+// suites run in the node environment, where there is no DOM at all, and
+// reaching for `Element.prototype` here took two of them down with a
+// ReferenceError before either had run a line.
+if (
+  typeof Element !== 'undefined' &&
+  !('hasPointerCapture' in Element.prototype)
+) {
+  const captured = new WeakMap<Element, Set<number>>();
+
+  Object.assign(Element.prototype, {
+    setPointerCapture(pointerId: number): void {
+      const ids = captured.get(this as Element) ?? new Set<number>();
+      ids.add(pointerId);
+      captured.set(this as Element, ids);
+    },
+    releasePointerCapture(pointerId: number): void {
+      captured.get(this as Element)?.delete(pointerId);
+    },
+    hasPointerCapture(pointerId: number): boolean {
+      return captured.get(this as Element)?.has(pointerId) ?? false;
+    },
+  });
+}

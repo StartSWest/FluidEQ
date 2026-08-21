@@ -26,6 +26,7 @@ import { hasHeadphoneCorrection } from '../../common/headphone';
 import { useFluidEqContext } from '../utils/FluidEqContext';
 import { setContinuousEq, useContinuousEq } from '../utils/continuousEq';
 import { useTranslation } from '../utils/I18nContext';
+import AnchoredMenu, { isInsideAnchoredMenu } from '../widgets/AnchoredMenu';
 import {
   clearConvolution,
   clearGains,
@@ -562,35 +563,127 @@ const ActiveLayers = () => {
     });
   }
 
-  // Empty, but still there.
-  //
-  // This row grows as somebody works — the first band they shape, the first
-  // voicing they try — and appearing from nothing pushed the whole editor down
-  // under their hands mid-drag. A control that moves while you are using it is
-  // the worst thing an interface can do, and it happened at exactly the moment
-  // somebody was tuning for the first time.
-  //
-  // So the space is always reserved and the row simply has nothing in it. One
-  // line of height is a small price for an editor that never moves; the
+  /**
+   * The chips, on one line or behind a button.
+   *
+   * Five layers with faders is most of a window; on a narrow one they wrapped
+   * into three ragged rows above the bands and the header stopped reading as
+   * a header. Collapsed they are one control saying how many there are, and
+   * the same chips are inside it -- laid out as a column there, which is the
+   * part that took two goes: a chip sized for a row is cut off in a menu.
+   *
+   * The decision is made against the widest the row has ever needed rather
+   * than against what it currently measures. Measuring the collapsed row
+   * would find it narrow, expand it, find it too wide, collapse it again —
+   * a loop that runs as fast as the browser can lay out. The remembered
+   * figure only grows while the row is open, which is the only state where it
+   * means anything, and a little hysteresis on top keeps a window dragged to
+   * exactly the boundary from flickering.
+   */
+  const rowRef = useRef<HTMLDivElement | null>(null);
+  const naturalWidthRef = useRef(0);
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const menuHolder = useRef<HTMLSpanElement>(null);
+
+  useEffect(() => {
+    const row = rowRef.current;
+    if (!row || typeof ResizeObserver === 'undefined') {
+      return undefined;
+    }
+    const measure = () => {
+      const available = row.clientWidth;
+      setIsCollapsed((wasCollapsed) => {
+        if (!wasCollapsed) {
+          // The children's own widths, added up, and not `scrollWidth`.
+          //
+          // A flex row wider than its contents reports `scrollWidth` as its
+          // own width, so on a wide window the figure recorded here was the
+          // window rather than the chips — and the row then stayed collapsed
+          // at widths where everything would have fitted twice over. Summing
+          // the children asks the question that was meant: how much do these
+          // need.
+          const gap = Number.parseFloat(getComputedStyle(row).columnGap) || 0;
+          const children = Array.from(row.children);
+          naturalWidthRef.current = children.reduce(
+            (total, child) => total + child.getBoundingClientRect().width,
+            gap * Math.max(0, children.length - 1),
+          );
+        }
+        const needed = naturalWidthRef.current;
+        if (needed === 0) {
+          return wasCollapsed;
+        }
+        return wasCollapsed ? available < needed + 24 : available < needed;
+      });
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(row);
+    return () => observer.disconnect();
+  }, [layers.length]);
+
+  // Nothing to hang a menu off once the row fits again.
+  useEffect(() => {
+    if (!isCollapsed) {
+      setIsMenuOpen(false);
+    }
+  }, [isCollapsed]);
+
+  // Closes on a press elsewhere and on Escape, like every other menu here.
+  useEffect(() => {
+    if (!isMenuOpen) {
+      return undefined;
+    }
+    const onPointerDown = (event: MouseEvent) => {
+      if (
+        !menuHolder.current?.contains(event.target as Node) &&
+        !isInsideAnchoredMenu(event.target)
+      ) {
+        setIsMenuOpen(false);
+      }
+    };
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsMenuOpen(false);
+      }
+    };
+    window.addEventListener('mousedown', onPointerDown);
+    window.addEventListener('keydown', onKeyDown);
+    return () => {
+      window.removeEventListener('mousedown', onPointerDown);
+      window.removeEventListener('keydown', onKeyDown);
+    };
+  }, [isMenuOpen]);
+
   // alternative was floating it over the layout, which trades the jump for a
   // strip that covers whatever is underneath.
   if (layers.length === 0) {
     return <div className="active-layers is-empty" aria-hidden />;
   }
 
-  return (
-    <div className="active-layers" aria-label={t('eq.layers.aria')}>
-      <span className="active-layers__lede">{t('eq.layers')}</span>
-      {layers.map((layer) => (
-        <span
-          className={`active-layer${
-            (layer.feature && isBypassed(layer.feature)) || layer.isInactive
-              ? ' is-bypassed'
-              : ''
-          }${layer.strength !== undefined ? ' has-strength' : ''}`}
-          key={layer.key}
-        >
-          {/* The body of the chip is the A/B switch.
+  /**
+   * How many of them are switched off, for the button that hides them.
+   *
+   * Only the button says it. With the chips on the surface a bypassed one is
+   * struck through and dimmed where you can see it; folded behind a count,
+   * "4 layers" would be the same words whether all four were doing something
+   * or none of them were.
+   */
+  const offCount = layers.filter(
+    (layer) => (layer.feature && isBypassed(layer.feature)) || layer.isInactive,
+  ).length;
+
+  const chips = layers.map((layer) => (
+    <span
+      className={`active-layer${
+        (layer.feature && isBypassed(layer.feature)) || layer.isInactive
+          ? ' is-bypassed'
+          : ''
+      }${layer.strength !== undefined ? ' has-strength' : ''}`}
+      key={layer.key}
+    >
+      {/* The body of the chip is the A/B switch.
 
               Pressing it takes the layer out of the config and leaves it here,
               dimmed; pressing again puts it back. Nothing is recomputed either
@@ -606,124 +699,120 @@ const ActiveLayers = () => {
 
               A plain span for the convolution, which is a line in the device
               file rather than an include and so has nothing to leave out. */}
-          {layer.feature ? (
-            <button
-              type="button"
-              className="active-layer__body"
-              aria-pressed={!isBypassed(layer.feature)}
-              disabled={isBlockingError || !isEnabled}
-              title={
-                isBypassed(layer.feature)
-                  ? t('eq.layers.enable', { layer: layer.label })
-                  : t('eq.layers.disable', { layer: layer.label })
-              }
-              /*
-               * SWITCHING ON FROM ZERO GOES TO FULL, so the switch is a switch.
-               *
-               * Zero strength and bypassed are one state now, which means a
-               * layer can be arrived at from either control — and un-bypassing
-               * one that was dragged to zero used to put it back at zero. The
-               * chip lit up, the file was written, and not one decibel of it was
-               * applied: a control that says "on" and does nothing, which is
-               * worse than one that refuses.
-               *
-               * Only from zero. A layer left at 40% comes back at 40%, because
-               * that is a strength somebody chose and the switch is not the
-               * place to lose it.
-               */
-              onClick={() => {
-                const feature = layer.feature as TApoLayer;
-                const turningOn = isBypassed(feature);
-                if (
-                  turningOn &&
-                  layer.onStrength &&
-                  (layer.strength ?? 0) <= 0
-                ) {
-                  layer.onStrength(1);
-                }
-                setLayerBypass(feature, !turningOn)
-                  .then(() => refreshState())
-                  .catch((e) => setGlobalError(e as ErrorDescription));
-              }}
-            >
-              <span
-                className="active-layer__swatch"
-                style={{ background: LAYER_SWATCH[layer.key] }}
-                aria-hidden
-              />
-              {layer.isVoicing ? (
-                <VoicingIcon
-                  profileId={voicing?.profileId}
-                  className="active-layer__icon"
-                />
-              ) : (
-                <MenuIcon
-                  name={layer.icon as MenuIconName}
-                  className="active-layer__icon"
-                />
-              )}
-              <span className="active-layer__label">{layer.label}</span>
-              <span className="active-layer__name" title={layer.name}>
-                {layer.name}
-                {/* Its own cell with a reserved width, so 5% and 100% take the
-                    same room. Appended to the name it changed the chip width on
-                    every step of a drag, shoving the chips beside it around
-                    under the cursor. */}
-                {layer.percent !== undefined && (
-                  <em className="active-layer__percent">{layer.percent}%</em>
-                )}
-                {/* A pip, not a word. The row is four chips wide already and
-                    this is a state of one of them rather than a fifth thing to
-                    read; the title carries the sentence. */}
-                {layer.isLive && (
-                  <span
-                    className="active-layer__live"
-                    title={t('eq.smart.continuousAria')}
-                  />
-                )}
-              </span>
-            </button>
+      {layer.feature ? (
+        <button
+          type="button"
+          className="active-layer__body"
+          aria-pressed={!isBypassed(layer.feature)}
+          disabled={isBlockingError || !isEnabled}
+          title={
+            isBypassed(layer.feature)
+              ? t('eq.layers.enable', { layer: layer.label })
+              : t('eq.layers.disable', { layer: layer.label })
+          }
+          /*
+           * SWITCHING ON FROM ZERO GOES TO FULL, so the switch is a switch.
+           *
+           * Zero strength and bypassed are one state now, which means a
+           * layer can be arrived at from either control — and un-bypassing
+           * one that was dragged to zero used to put it back at zero. The
+           * chip lit up, the file was written, and not one decibel of it was
+           * applied: a control that says "on" and does nothing, which is
+           * worse than one that refuses.
+           *
+           * Only from zero. A layer left at 40% comes back at 40%, because
+           * that is a strength somebody chose and the switch is not the
+           * place to lose it.
+           */
+          onClick={() => {
+            const feature = layer.feature as TApoLayer;
+            const turningOn = isBypassed(feature);
+            if (turningOn && layer.onStrength && (layer.strength ?? 0) <= 0) {
+              layer.onStrength(1);
+            }
+            setLayerBypass(feature, !turningOn)
+              .then(() => refreshState())
+              .catch((e) => setGlobalError(e as ErrorDescription));
+          }}
+        >
+          <span
+            className="active-layer__swatch"
+            style={{ background: LAYER_SWATCH[layer.key] }}
+            aria-hidden
+          />
+          {layer.isVoicing ? (
+            <VoicingIcon
+              profileId={voicing?.profileId}
+              className="active-layer__icon"
+            />
           ) : (
-            <span className="active-layer__body">
-              <span
-                className="active-layer__swatch"
-                style={{ background: LAYER_SWATCH[layer.key] }}
-                aria-hidden
-              />
-              {layer.isVoicing ? (
-                <VoicingIcon
-                  profileId={voicing?.profileId}
-                  className="active-layer__icon"
-                />
-              ) : (
-                <MenuIcon
-                  name={layer.icon as MenuIconName}
-                  className="active-layer__icon"
-                />
-              )}
-              <span className="active-layer__label">{layer.label}</span>
-              <span className="active-layer__name" title={layer.name}>
-                {layer.name}
-                {/* Its own cell with a reserved width, so 5% and 100% take the
+            <MenuIcon
+              name={layer.icon as MenuIconName}
+              className="active-layer__icon"
+            />
+          )}
+          <span className="active-layer__label">{layer.label}</span>
+          <span className="active-layer__name" title={layer.name}>
+            {layer.name}
+            {/* Its own cell with a reserved width, so 5% and 100% take the
                     same room. Appended to the name it changed the chip width on
                     every step of a drag, shoving the chips beside it around
                     under the cursor. */}
-                {layer.percent !== undefined && (
-                  <em className="active-layer__percent">{layer.percent}%</em>
-                )}
-                {/* A pip, not a word. The row is four chips wide already and
+            {layer.percent !== undefined && (
+              <em className="active-layer__percent">{layer.percent}%</em>
+            )}
+            {/* A pip, not a word. The row is four chips wide already and
                     this is a state of one of them rather than a fifth thing to
                     read; the title carries the sentence. */}
-                {layer.isLive && (
-                  <span
-                    className="active-layer__live"
-                    title={t('eq.smart.continuousAria')}
-                  />
-                )}
-              </span>
-            </span>
+            {layer.isLive && (
+              <span
+                className="active-layer__live"
+                title={t('eq.smart.continuousAria')}
+              />
+            )}
+          </span>
+        </button>
+      ) : (
+        <span className="active-layer__body">
+          <span
+            className="active-layer__swatch"
+            style={{ background: LAYER_SWATCH[layer.key] }}
+            aria-hidden
+          />
+          {layer.isVoicing ? (
+            <VoicingIcon
+              profileId={voicing?.profileId}
+              className="active-layer__icon"
+            />
+          ) : (
+            <MenuIcon
+              name={layer.icon as MenuIconName}
+              className="active-layer__icon"
+            />
           )}
-          {/* Outside the body, not inside it: the body is a button, and a range
+          <span className="active-layer__label">{layer.label}</span>
+          <span className="active-layer__name" title={layer.name}>
+            {layer.name}
+            {/* Its own cell with a reserved width, so 5% and 100% take the
+                    same room. Appended to the name it changed the chip width on
+                    every step of a drag, shoving the chips beside it around
+                    under the cursor. */}
+            {layer.percent !== undefined && (
+              <em className="active-layer__percent">{layer.percent}%</em>
+            )}
+            {/* A pip, not a word. The row is four chips wide already and
+                    this is a state of one of them rather than a fifth thing to
+                    read; the title carries the sentence. */}
+            {layer.isLive && (
+              <span
+                className="active-layer__live"
+                title={t('eq.smart.continuousAria')}
+              />
+            )}
+          </span>
+        </span>
+      )}
+      {/* Outside the body, not inside it: the body is a button, and a range
               input nested in one cannot be dragged — the button swallows the
               pointer and every attempt to slide toggles the layer off instead.
 
@@ -740,77 +829,128 @@ const ActiveLayers = () => {
               applied" without also refusing to be moved. It is never removed
               either: taking it away changed the chip's width, so switching a
               layer off resized it and shoved every chip beside it along. */}
-          {layer.strength !== undefined && (
-            <input
-              type="range"
-              className="active-layer__strength"
-              min={0}
-              max={100}
-              step={5}
-              value={Math.round(layer.strength * 100)}
-              aria-label={t('voicing.strength')}
-              title={t('voicing.strength')}
-              disabled={isBlockingError || !isEnabled}
-              style={
-                {
-                  '--fill': `${Math.round(layer.strength * 100)}%`,
-                } as React.CSSProperties
+      {layer.strength !== undefined && (
+        <input
+          type="range"
+          className="active-layer__strength"
+          min={0}
+          max={100}
+          step={5}
+          value={Math.round(layer.strength * 100)}
+          aria-label={t('voicing.strength')}
+          title={t('voicing.strength')}
+          disabled={isBlockingError || !isEnabled}
+          style={
+            {
+              '--fill': `${Math.round(layer.strength * 100)}%`,
+            } as React.CSSProperties
+          }
+          /*
+           * ZERO IS THE SAME AS SWITCHED OFF, so the chip says so.
+           *
+           * They were already the same in the sound — a layer at zero
+           * strength writes no filters, exactly like a bypassed one — and
+           * having two controls that reach one outcome by different routes
+           * meant the chip could sit at 0% looking applied, or bypassed at
+           * 100% looking loud. Neither described what was coming out.
+           *
+           * So the two are kept in step from here: arriving at zero
+           * bypasses, and moving off zero un-bypasses. The switch still
+           * works on its own — it is the fast way, and it leaves the
+           * strength where it was for when it comes back.
+           */
+          onChange={(event) => {
+            const next = Number(event.target.value) / 100;
+            layer.onStrength?.(next);
+            if (layer.feature) {
+              const shouldBypass = next <= 0;
+              if (shouldBypass !== isBypassed(layer.feature)) {
+                setLayerBypass(layer.feature, shouldBypass).catch((e) =>
+                  setGlobalError(e as ErrorDescription),
+                );
               }
-              /*
-               * ZERO IS THE SAME AS SWITCHED OFF, so the chip says so.
-               *
-               * They were already the same in the sound — a layer at zero
-               * strength writes no filters, exactly like a bypassed one — and
-               * having two controls that reach one outcome by different routes
-               * meant the chip could sit at 0% looking applied, or bypassed at
-               * 100% looking loud. Neither described what was coming out.
-               *
-               * So the two are kept in step from here: arriving at zero
-               * bypasses, and moving off zero un-bypasses. The switch still
-               * works on its own — it is the fast way, and it leaves the
-               * strength where it was for when it comes back.
-               */
-              onChange={(event) => {
-                const next = Number(event.target.value) / 100;
-                layer.onStrength?.(next);
-                if (layer.feature) {
-                  const shouldBypass = next <= 0;
-                  if (shouldBypass !== isBypassed(layer.feature)) {
-                    setLayerBypass(layer.feature, shouldBypass).catch((e) =>
-                      setGlobalError(e as ErrorDescription),
-                    );
-                  }
-                }
-              }}
-            />
-          )}
+            }
+          }}
+        />
+      )}
+      <button
+        type="button"
+        aria-label={
+          layer.clearHint ?? t('eq.layers.remove', { layer: layer.label })
+        }
+        title={layer.clearHint ?? t('eq.layers.remove', { layer: layer.label })}
+        disabled={isBlockingError || !isEnabled}
+        onClick={() => {
+          // Switching it back on is the main process's job, not this
+          // button's. Every clear here goes through a handler that already
+          // treats a layer being taken away as reason enough — and doing it
+          // from this side would have switched the EQ back on even where
+          // its X does nothing at all, which is the case for bands nobody
+          // applied a reference to.
+          layer.onClear().catch((e) => setGlobalError(e as ErrorDescription));
+        }}
+      >
+        <svg viewBox="0 0 12 12" aria-hidden="true">
+          <path d="M3 3l6 6M9 3l-6 6" />
+        </svg>
+      </button>
+    </span>
+  ));
+
+  return (
+    <div
+      ref={rowRef}
+      className={`active-layers${isCollapsed ? ' is-collapsed' : ''}`}
+      aria-label={t('eq.layers.aria')}
+    >
+      <span className="active-layers__lede">{t('eq.layers')}</span>
+      {isCollapsed ? (
+        // The same split control as the Smart EQ button and the layout picker
+        // beside it, down to their classes: a main half and a caret attached
+        // to it. Written as a plain button with a chevron inside, it was the
+        // one dropdown in this header that looked like something else.
+        <span
+          className={`eq-mode is-subtle active-layers__picker${
+            isMenuOpen ? ' is-open' : ''
+          }`}
+          ref={menuHolder}
+        >
           <button
             type="button"
-            aria-label={
-              layer.clearHint ?? t('eq.layers.remove', { layer: layer.label })
-            }
-            title={
-              layer.clearHint ?? t('eq.layers.remove', { layer: layer.label })
-            }
-            disabled={isBlockingError || !isEnabled}
-            onClick={() => {
-              // Switching it back on is the main process's job, not this
-              // button's. Every clear here goes through a handler that already
-              // treats a layer being taken away as reason enough — and doing it
-              // from this side would have switched the EQ back on even where
-              // its X does nothing at all, which is the case for bands nobody
-              // applied a reference to.
-              layer
-                .onClear()
-                .catch((e) => setGlobalError(e as ErrorDescription));
-            }}
+            className="button small subtle eq-mode__main active-layers__trigger"
+            aria-expanded={isMenuOpen}
+            onClick={() => setIsMenuOpen((wasOpen) => !wasOpen)}
           >
-            <svg viewBox="0 0 12 12" aria-hidden="true">
-              <path d="M3 3l6 6M9 3l-6 6" />
+            {offCount > 0
+              ? t('eq.layers.countOff', {
+                  count: layers.length,
+                  off: offCount,
+                })
+              : t('eq.layers.count', { count: layers.length })}
+          </button>
+          <button
+            type="button"
+            className="eq-mode__caret"
+            aria-label={t('eq.layers.aria')}
+            aria-expanded={isMenuOpen}
+            onClick={() => setIsMenuOpen((wasOpen) => !wasOpen)}
+          >
+            <svg viewBox="0 0 16 16" aria-hidden>
+              <path d="M4 6.5l4 4 4-4" />
             </svg>
           </button>
+          <AnchoredMenu
+            anchor={menuHolder.current}
+            isOpen={isMenuOpen}
+            className="active-layers__menu"
+            ariaLabel={t('eq.layers.aria')}
+          >
+            {chips}
+          </AnchoredMenu>
         </span>
-      ))}
+      ) : (
+        chips
+      )}
     </div>
   );
 };

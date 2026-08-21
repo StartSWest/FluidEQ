@@ -41,6 +41,14 @@ export interface ITransportSource {
   title: string;
   /** The line under it, if there is one worth showing. */
   subtitle?: string;
+  /**
+   * A cover, already resolved to a URL this source owns the lifetime of.
+   *
+   * Absent is not "no picture": the bar draws the same generated tile the
+   * library draws for a track with no artwork, from the title. Every bar has
+   * a cover in the same place, whichever tab drew it.
+   */
+  artworkUrl?: string;
   isPlaying: boolean;
   positionMs: number;
   durationMs: number;
@@ -51,38 +59,81 @@ export interface ITransportSource {
   /** 0 to 1. Absent where the source has no fader of its own to offer. */
   volume?: number;
   setVolume?: (value: number) => void;
+  /**
+   * This context's own controls, drawn inside the bar in place of the plain
+   * play button.
+   *
+   * One wrapper, and the options change with the tab. Karaoke's transport is
+   * not a play button — it has the mix faders, the jump-to-start and
+   * jump-to-end, the pitch tone — and reducing it to play/pause on the way
+   * into a shared bar would be taking those away from the tab that needs
+   * them. It hands over the row it already draws instead, and the bar puts it
+   * where its own buttons would have gone.
+   *
+   * A flag and not the element itself: the tab portals its controls into the
+   * space the bar keeps for them — see `transportSlot` for why the element
+   * cannot travel through here.
+   */
+  hasOwnControls?: boolean;
 }
 
 const listeners = new Set<() => void>();
 
-let source: ITransportSource | undefined;
+/**
+ * One description per player, not one for the app.
+ *
+ * The bar belongs to the page it is under: open Karaoke and it drives the
+ * karaoke session, open Media and it drives the page. Only a tab with nothing
+ * loaded falls back to whatever is actually making sound, so a song started
+ * in the library can still be paused from anywhere. Keeping a single
+ * description would make that impossible — the last tab to publish would own
+ * the bar on every other tab.
+ */
+let sources: Partial<Record<TPlaybackOwner, ITransportSource>> = {};
 
-const publish = (next: ITransportSource | undefined) => {
-  source = next;
+/**
+ * Who described themselves last.
+ *
+ * The bar on a tab that is not a player — the EQ, Voicing, Config — is
+ * whatever was last being used, and this is how it is known. Publishing
+ * happens on every change a transport can show, so the most recent publish is
+ * the song that is playing, or, once it is paused, the song somebody paused
+ * and is about to resume. Without it, pausing while on one of those tabs made
+ * the bar vanish and took the resume button with it.
+ */
+let lastOwner: TPlaybackOwner | undefined;
+
+const publish = (next: Partial<Record<TPlaybackOwner, ITransportSource>>) => {
+  sources = next;
   listeners.forEach((listener) => listener());
 };
 
 /**
- * Describe this player to the bar, or take the description away.
+ * Describe this player to the bar.
  *
  * Called on every change a transport can show — position included, which is
  * several times a second — so it is deliberately a plain assignment with no
  * comparison: working out whether a snapshot is equal to the last one costs
  * more than re-rendering a bar of six buttons.
  */
-export const setTransportSource = (
-  next: ITransportSource | undefined,
-): void => {
-  publish(next);
+export const setTransportSource = (next: ITransportSource): void => {
+  lastOwner = next.owner;
+  publish({ ...sources, [next.owner]: next });
 };
 
-/** Withdraw a description, if it is still the one on show. Guarded for the
- * reason `releasePlayback` is: a tab unmounting after another has taken over
- * must not blank the bar the new one just filled. */
+/** Withdraw a description. Not guarded against another owner's, the way
+ * `releasePlayback` has to be — each player has its own entry here, so a tab
+ * unmounting can only ever take its own away. */
 export const clearTransportSource = (owner: TPlaybackOwner): void => {
-  if (source?.owner === owner) {
-    publish(undefined);
+  if (sources[owner] === undefined) {
+    return;
   }
+  const next = { ...sources };
+  delete next[owner];
+  if (lastOwner === owner) {
+    lastOwner = undefined;
+  }
+  publish(next);
 };
 
 const subscribe = (listener: () => void) => {
@@ -92,16 +143,29 @@ const subscribe = (listener: () => void) => {
   };
 };
 
-/** What the bar should be showing, or nothing. */
-export const useTransportSource = (): ITransportSource | undefined =>
+const EMPTY: Partial<Record<TPlaybackOwner, ITransportSource>> = {};
+
+/** Every player that has something to show, by owner. */
+export const useTransportSources = (): Partial<
+  Record<TPlaybackOwner, ITransportSource>
+> =>
   useSyncExternalStore(
     subscribe,
-    () => source,
+    () => sources,
+    () => EMPTY,
+  );
+
+/** The owner of the most recent description — see `lastOwner`. */
+export const useLastTransportOwner = (): TPlaybackOwner | undefined =>
+  useSyncExternalStore(
+    subscribe,
+    () => lastOwner,
     () => undefined,
   );
 
 /** Test seam — module state outlives a render, see `resetPlaybackOwner`. */
 export const resetTransportSource = (): void => {
-  source = undefined;
+  sources = {};
+  lastOwner = undefined;
   listeners.forEach((listener) => listener());
 };

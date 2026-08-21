@@ -292,6 +292,8 @@ const eq: Partial<Dictionary> = {
   'eq.smart.mode.target.note':
     'Misst weiter · jede Aufnahme auf dieselbe Kurve',
   'eq.layers': 'Ebenfalls aktiv',
+  'eq.layers.count': '{count} Ebenen',
+  'eq.layers.countOff': '{count} Ebenen · {off} aus',
   'eq.layers.aria': 'Was diesen Ausgang außerdem formt',
   'eq.layers.eq': 'EQ',
   'eq.layers.eq.modified': '(geändert)',

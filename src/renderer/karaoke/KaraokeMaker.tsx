@@ -85,7 +85,6 @@ import KaraokeMakerToolbar from './KaraokeMakerToolbar';
 import KaraokeMakerAnalysisPanels from './KaraokeMakerAnalysisPanels';
 import KaraokeMakerWhisperConsent from './KaraokeMakerWhisperConsent';
 import KaraokeMakerInspector from './KaraokeMakerInspector';
-import KaraokeTransport from './KaraokeTransport';
 import { useMakerProjectFiles } from './useMakerProjectFiles';
 import { useMakerSeparation } from './useMakerSeparation';
 import KaraokeMakerWizard, {
@@ -130,8 +129,6 @@ interface IKaraokeMakerProps {
   vocalLevel?: number;
   onVocalLevel?: (level: number) => void;
   /** The backing track's own level, master times this. */
-  backingLevel?: number;
-  onBackingLevel?: (level: number) => void;
   stemFocus?: 'backing' | 'voice';
   onFocusStem?: (row: 'backing' | 'voice') => void;
   backingBlend?: number;
@@ -158,8 +155,6 @@ const KaraokeMaker = ({
   vocalLevel,
   onVocalLevel,
   onStems,
-  backingLevel,
-  onBackingLevel,
   stemFocus,
   onFocusStem,
   backingBlend,
@@ -228,19 +223,16 @@ const KaraokeMaker = ({
       }),
     };
   }, [project.lyrics.lines, project.melody.notes, project.melody.octavePolicy]);
-  const melodyTone = useKaraokeMelodyTone({
+  // Called for what it does, not for what it returns: the tone plays from
+  // here, and the fader that sets its level is on the bar at the foot of the
+  // window with the rest of the karaoke transport.
+  useKaraokeMelodyTone({
     isActive: true,
     isPlaying,
     target: makerMelodyTarget,
     playheadMs,
     readPlayheadMs,
   });
-  const lastVocalLevelRef = useRef(
-    vocalLevel !== undefined && vocalLevel > 0 ? vocalLevel : 0.6,
-  );
-  const lastBackingLevelRef = useRef(
-    backingLevel !== undefined && backingLevel > 0 ? backingLevel : 1,
-  );
   // Read once, here, because two things seed from it: the selection below and
   // the view state the hook owns. Two reads that have to agree is one more than
   // is needed.
@@ -2143,101 +2135,11 @@ const KaraokeMaker = ({
           project={project}
         />
 
-        <KaraokeTransport
-          status={isPlaying ? 'playing' : 'paused'}
-          playheadMs={visualPlayheadMs}
-          durationMs={effectiveDurationMs}
-          levels={[
-            {
-              id: 'melody',
-              label: t('karaoke.pitch.toneVolume'),
-              value: melodyTone.volume,
-              valueText: `${Math.round(melodyTone.volume * 100)}%`,
-              channel: 'melody',
-              disabled:
-                !makerMelodyTarget ||
-                !melodyTone.isAvailable ||
-                !melodyTone.enabled,
-              toggleDisabled: !makerMelodyTarget || !melodyTone.isAvailable,
-              pressed: melodyTone.enabled,
-              onToggle: () => melodyTone.toggle().catch(() => undefined),
-              onChange: melodyTone.setVolume,
-            },
-            ...(stemWaveforms &&
-            backingLevel !== undefined &&
-            onBackingLevel &&
-            vocalLevel !== undefined &&
-            onVocalLevel
-              ? [
-                  {
-                    id: 'backing',
-                    label: t('karaoke.maker.stemBacking'),
-                    value: backingLevel,
-                    valueText: `${Math.round(backingLevel * 100)}%`,
-                    channel: 'backing' as const,
-                    pressed: backingLevel > 0,
-                    onToggle: () => {
-                      if (backingLevel > 0) {
-                        lastBackingLevelRef.current = backingLevel;
-                        onBackingLevel(0);
-                        return;
-                      }
-                      onBackingLevel(lastBackingLevelRef.current);
-                    },
-                    onChange: (level: number) => {
-                      if (level > 0) {
-                        lastBackingLevelRef.current = level;
-                      }
-                      onBackingLevel(level);
-                    },
-                  },
-                  {
-                    id: 'vocal',
-                    label: t('karaoke.transport.vocalLevel'),
-                    value: vocalLevel,
-                    valueText:
-                      vocalLevel === 0
-                        ? t('karaoke.transport.vocalOff')
-                        : `${Math.round(vocalLevel * 100)}%`,
-                    channel: 'vocal' as const,
-                    pressed: vocalLevel > 0,
-                    onToggle: () => {
-                      if (vocalLevel > 0) {
-                        lastVocalLevelRef.current = vocalLevel;
-                        onVocalLevel(0);
-                        return;
-                      }
-                      onVocalLevel(lastVocalLevelRef.current);
-                    },
-                    onChange: (level: number) => {
-                      if (level > 0) {
-                        lastVocalLevelRef.current = level;
-                      }
-                      onVocalLevel(level);
-                    },
-                  },
-                ]
-              : []),
-          ]}
-          onTogglePlayback={() => {
-            if (isPlaying) {
-              onPause();
-            } else {
-              Promise.resolve(onPlay()).catch(() => undefined);
-            }
-          }}
-          onJumpToStart={() => {
-            onSeek(0);
-            setViewStartMs(0);
-            setFollowViewport(true);
-          }}
-          onJumpToEnd={() => {
-            onSeek(effectiveDurationMs);
-            setViewStartMs(maximumViewStartMs);
-            setFollowViewport(true);
-          }}
-          onSeek={onSeek}
-        />
+        {/* No transport here. The bar at the foot of the window carries the
+            karaoke controls now — the same buttons, the same faders — and a
+            second copy inside the editor was two sets of controls for one
+            song, twenty pixels apart. See `KaraokeWorkspace`, which hands its
+            transport to that bar. */}
       </div>
 
       {/*
