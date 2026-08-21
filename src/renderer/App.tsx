@@ -39,6 +39,7 @@ import { resetEuphoriaMode } from './utils/euphoriaMode';
 import './styles/App.scss';
 import MainContent from './MainContent';
 import SmartEqEngine from './SmartEqEngine';
+import SmartHeadroomEngine from './SmartHeadroomEngine';
 import SupportDialog from './SupportDialog';
 import SupportPet from './SupportPet';
 import { FluidEqProvider, useFluidEqContext } from './utils/FluidEqContext';
@@ -1702,6 +1703,10 @@ const AppContent = () => {
                 tab. Mounted once and never unmounted, a continuous measurement
                 keeps its evidence for as long as the window is open. */}
             <SmartEqEngine />
+            {/* Headless, and mounted beside its sibling for the same reason:
+                the measurement has to run wherever the user happens to be, not
+                only where the response graph is. */}
+            <SmartHeadroomEngine />
           </div>
           {/* One divider, both tabs, always in the same place: the seam between
               whatever is above and the graph. In full screen there is nothing

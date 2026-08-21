@@ -39,6 +39,7 @@ import {
 } from '../common/headphone';
 import { getSmartEqFilters, getSmartEqGraphicEq } from '../common/smartEq';
 import { getAutoPreAmpGain } from '../common/response';
+import { getSmartPreAmpGain } from '../common/smartHeadroom';
 
 /**
  * Turning the live state into the text Equalizer APO reads.
@@ -148,11 +149,34 @@ const resolvePreAmp = (
     ]);
   }
 
-  return getAutoPreAmpGain({
+  const response = {
     filters: [...writtenFilters, ...convolutionFilters, ...customFilters],
     curves,
     constantGain: customFx?.preAmp ?? 0,
-  });
+  };
+
+  /*
+   * Smart is the third position of the same switch, never a fourth writer.
+   *
+   * It is only reachable with auto normalize already on — the early return at
+   * the top of this function is the Off position and still hands back the
+   * manual value. Which means the config writer remains the single authority on
+   * gain staging: the renderer measures and reports, this decides. The
+   * measurement travelling in on `state` rather than the preamp itself is what
+   * keeps it that way.
+   *
+   * With no measurement yet, `getSmartPreAmpGain` reproduces the worst case
+   * exactly, so a cold start and a silent room both behave like the switch
+   * position below this one rather than like a special case written here.
+   */
+  if (state.isSmartHeadroomOn) {
+    return getSmartPreAmpGain(
+      response,
+      state.smartHeadroomProgramme ?? [],
+      state.smartHeadroomTrimDb ?? 0,
+    );
+  }
+  return getAutoPreAmpGain(response);
 };
 
 /** A filter stripped to the four things a config line is made of. */

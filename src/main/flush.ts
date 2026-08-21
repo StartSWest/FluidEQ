@@ -309,6 +309,10 @@ export const fetchSettings = (settingsDir: string) => {
         typeof input.isAutoPreAmpOn === 'boolean'
           ? input.isAutoPreAmpOn
           : fallbackState.isAutoPreAmpOn,
+      isSmartHeadroomOn:
+        typeof input.isSmartHeadroomOn === 'boolean'
+          ? input.isSmartHeadroomOn
+          : fallbackState.isSmartHeadroomOn,
       isGraphViewOn:
         typeof input.isGraphViewOn === 'boolean'
           ? input.isGraphViewOn

@@ -104,6 +104,76 @@ export const registerPreampIpc = ({
     );
   });
 
+  ipcMain.on(ChannelEnum.SET_SMART_HEADROOM, async (event, arg) => {
+    // The same reasoning as the switch above, one position along: whichever way
+    // this moves, the number that comes out is the one the resolver derives for
+    // the chain as it stands, asked with both flags forced into the position
+    // they are about to be in. Reading it before the assignment would answer
+    // for the mode being left rather than the mode being entered.
+    const isSmartHeadroomOn = Boolean(arg[0]);
+    state.isSmartHeadroomOn = isSmartHeadroomOn;
+    // Turning Smart off drops the measurement with it. Keeping it would leave a
+    // spectrum in memory that nothing is updating any more, ready to be applied
+    // the moment somebody switched back — evidence about a session that ended.
+    if (!isSmartHeadroomOn) {
+      state.smartHeadroomProgramme = undefined;
+      state.smartHeadroomTrimDb = undefined;
+    }
+    /*
+     * Resolved as the state actually is, NOT with the flag forced on.
+     *
+     * The switch above forces it because both of its directions are about the
+     * automatic value. This one is not: Smart is a position of that switch, so
+     * it is only ever reached with Auto normalize already on, and forcing the
+     * flag here would mean that a call arriving while it is off replaces a
+     * preamp the user typed with a chain-derived one. Nothing in the UI does
+     * that today — the control enables Auto normalize first — but this is an
+     * IPC endpoint, and the manual value it would overwrite is not recoverable.
+     */
+    state.preAmp = getResolvedPreAmp(state);
+    await handleUpdateHelper<number>(
+      event,
+      ChannelEnum.SET_SMART_HEADROOM,
+      state.preAmp,
+      false,
+      true,
+    );
+  });
+
+  ipcMain.on(ChannelEnum.SET_SMART_HEADROOM_MEASUREMENT, async (event, arg) => {
+    // Ignored unless the mode is on. A measurement arriving for a mode nobody
+    // asked for would sit in state waiting to change the preamp the instant the
+    // switch moved, which is not what moving that switch should mean.
+    if (!state.isSmartHeadroomOn || !state.isAutoPreAmpOn) {
+      return;
+    }
+    const points = Array.isArray(arg[0]) ? arg[0] : [];
+    const programme = points
+      .filter(
+        (point: unknown): point is { frequency: number; gain: number } =>
+          typeof point === 'object' &&
+          point !== null &&
+          Number.isFinite((point as { frequency: unknown }).frequency) &&
+          Number.isFinite((point as { gain: unknown }).gain),
+      )
+      .map(({ frequency, gain }) => ({ frequency, gain }));
+    const trim = Number.parseFloat(String(arg[1]));
+
+    state.smartHeadroomProgramme = programme.length > 0 ? programme : undefined;
+    // Never positive. The supervisor exists to take level away; a trim above
+    // zero arriving over IPC would be it adding some, and the renderer is not
+    // trusted to be the only thing that checks.
+    state.smartHeadroomTrimDb = Number.isFinite(trim) ? Math.min(0, trim) : 0;
+    state.preAmp = getResolvedPreAmp(state);
+    await handleUpdateHelper<number>(
+      event,
+      ChannelEnum.SET_SMART_HEADROOM_MEASUREMENT,
+      state.preAmp,
+      false,
+      true,
+    );
+  });
+
   ipcMain.on(ChannelEnum.GET_PREAMP, async (event) => {
     const reply: TSuccess<number> = { result: state.preAmp || 0 };
     event.reply(ChannelEnum.GET_PREAMP, reply);

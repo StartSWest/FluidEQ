@@ -366,6 +366,50 @@ export interface ICombinedResponse {
 }
 
 /**
+ * The chain's gain at each of `frequencies`, in dB.
+ *
+ * `getCombinedResponsePeakGain` below answers "how loud is the loudest point";
+ * Smart auto-normalize needs the shape as well, because it weighs the chain
+ * against where the music's energy actually is. Same two primitives, so the two
+ * cannot drift apart in kind — and the one caller that compares their results
+ * clamps to the peak, so a disagreement in degree can only ever resolve towards
+ * less output rather than more.
+ *
+ * Curves are sorted once here for the same reason the peak does it once: a
+ * measured convolution carries about a thousand points and this runs on every
+ * filter drag.
+ */
+export const getResponseGainAtFrequencies = (
+  { filters = [], curves = [], constantGain = 0 }: ICombinedResponse,
+  frequencies: readonly number[],
+): number[] => {
+  const coefficients = filters
+    .filter(
+      (filter) =>
+        Number.isFinite(filter.frequency) &&
+        Number.isFinite(filter.gain) &&
+        Number.isFinite(filter.quality),
+    )
+    .map((filter) => getTFCoefficients(filter as IFilter));
+  const usableCurves = curves
+    .filter((curve): curve is IGraphicEqPoint[] => Array.isArray(curve))
+    .map(sortedGraphicEqPoints)
+    .filter((curve) => curve.length > 0);
+  const base = Number.isFinite(constantGain) ? constantGain : 0;
+
+  return Array.from(frequencies, (frequency) => {
+    let total = base;
+    coefficients.forEach((c) => {
+      total += gainAtFrequency(frequency, c);
+    });
+    usableCurves.forEach((curve) => {
+      total += gainAtSortedGraphicEqFrequency(curve, frequency);
+    });
+    return total;
+  });
+};
+
+/**
  * The strict peak of every measurable stage at the same frequencies.
  *
  * Peaks are combined before the maximum is selected. Adding each layer's own
@@ -374,11 +418,10 @@ export interface ICombinedResponse {
  * Curve frequencies are added to the normal probe grid so a measured FIR peak
  * cannot fall between the logarithmic samples.
  */
-export const getCombinedResponsePeakGain = ({
-  filters = [],
-  curves = [],
-  constantGain = 0,
-}: ICombinedResponse): number => {
+export const getCombinedResponsePeakGain = (
+  response: ICombinedResponse,
+): number => {
+  const { filters = [], curves = [], constantGain = 0 } = response;
   const coefficients = filters
     .filter(
       (filter) =>

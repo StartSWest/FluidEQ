@@ -24,6 +24,18 @@ enum ChannelEnum {
   GET_ENABLE = 'getEnable',
   SET_ENABLE = 'setEnable',
   SET_AUTO_PREAMP = 'setAutoPreAmp',
+  /** The third position of the Auto normalize switch. */
+  SET_SMART_HEADROOM = 'setSmartHeadroom',
+  /**
+   * What the capture has heard, handed to the writer that owns the preamp.
+   *
+   * The renderer is a sensor on this channel and nothing more: it sends the
+   * measured spectrum and the supervisor's trim, never a preamp. Sending a
+   * finished number would make it the second writer of a value the config
+   * writer derives, which is the arrangement this file's preamp channels were
+   * split out to end.
+   */
+  SET_SMART_HEADROOM_MEASUREMENT = 'setSmartHeadroomMeasurement',
   SET_GRAPH_VIEW = 'setGraphView',
   GET_PREAMP = 'getPreAmp',
   SET_PREAMP = 'setPreAmp',

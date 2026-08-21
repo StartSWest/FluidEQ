@@ -148,6 +148,12 @@ const app: Partial<Dictionary> = {
     'Wird für Sie gesetzt. Schalten Sie „Automatisch normalisieren“ aus, um selbst zu regeln.',
   'sidebar.headroom': 'APO-HEADROOM',
   'sidebar.autoPreamp': 'Automatisch normalisieren',
+  'sidebar.autoNormalize.off': 'Aus',
+  'sidebar.autoNormalize.on': 'Ein',
+  'sidebar.autoNormalize.smart': 'Smart',
+  'sidebar.autoNormalize.aria': 'Modus für automatische Normalisierung',
+  'sidebar.preampSmart':
+    'Wird aus dem gemessen, was läuft, und beim Hören angepasst.',
   'sidebar.visualizer': 'ANZEIGE',
   'sidebar.graphView': 'Frequenzgang',
   'config.eyebrow': 'WAS DIE ENGINE LIEST',

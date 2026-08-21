@@ -50,6 +50,7 @@ const defaultFluidEqContext: IFluidEqContext = {
   setGlobalError: (_newValue?: ErrorDescription) => {},
   setIsEnabled: (_newValue: boolean) => {},
   setAutoPreAmpOn: (_newValue: boolean) => {},
+  setSmartHeadroomOn: (_newValue: boolean) => {},
   setGraphViewOn: (_newValue: boolean) => {},
   setPreAmp: (_newValue: number) => {},
   setConvolution: () => {},

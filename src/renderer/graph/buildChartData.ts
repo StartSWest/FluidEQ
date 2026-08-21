@@ -77,6 +77,7 @@ export interface IBuildChartDataParams extends Pick<
   | 'graphicEq'
   | 'headphone'
   | 'isAutoPreAmpOn'
+  | 'isSmartHeadroomOn'
   | 'preAmp'
   | 'smartEq'
   | 'voicing'
@@ -149,6 +150,7 @@ export const buildChartData = ({
   hasConvolution,
   headphone,
   isAutoPreAmpOn,
+  isSmartHeadroomOn,
   isEqQuiet,
   preAmp,
   prevFilterLines,
@@ -733,6 +735,22 @@ export const buildChartData = ({
     ],
     // Rounding to two decimals. When disabled, expose the current manual
     // preamp so the graph and APO remain in sync without auto-adjusting it.
-    autoPreAmpValue: isAutoPreAmpOn ? calculatedAutoPreAmpValue : preAmp,
+    /*
+     * Smart's number is not derivable here, and must not be guessed at.
+     *
+     * The value above is the worst case, computed from the chain alone. Smart's
+     * depends on a measurement that lives in the main process, so the only
+     * honest thing the graph can show is the value that came back from the
+     * writer — which is what `preAmp` already holds.
+     *
+     * This is a correctness fix and not a display one. `FrequencyResponseChart`
+     * mirrors this straight into `setPreAmp`, so returning the worst case while
+     * Smart was on would have the renderer overwrite the measured preamp with
+     * an unmeasured one on every re-render, and the mode would appear to do
+     * nothing at all. Returning `preAmp` makes that mirror a no-op, which is
+     * exactly what it should be when somebody else owns the number.
+     */
+    autoPreAmpValue:
+      isAutoPreAmpOn && !isSmartHeadroomOn ? calculatedAutoPreAmpValue : preAmp,
   };
 };

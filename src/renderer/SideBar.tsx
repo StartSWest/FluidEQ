@@ -21,7 +21,7 @@ import { MAX_GAIN, MIN_GAIN } from 'common/constants';
 import { useCallback } from 'react';
 import { setMainPreAmp } from './utils/equalizerApi';
 import EqualizerEnablerSwitch from './components/EqualizerEnablerSwitch';
-import AutoPreAmpEnablerSwitch from './components/AutoPreAmpEnablerSwitch';
+import AutoNormalizeModeControl from './components/AutoNormalizeModeControl';
 import Knob from './widgets/Knob';
 import './styles/SideBar.scss';
 import { useFluidEqContext } from './utils/FluidEqContext';
@@ -51,8 +51,14 @@ const SideBar = ({
   isOpen,
   onGraphVisibilityChange,
 }: SideBarProps) => {
-  const { isAutoPreAmpOn, isLoading, preAmp, setGlobalError, setPreAmp } =
-    useFluidEqContext();
+  const {
+    isAutoPreAmpOn,
+    isSmartHeadroomOn,
+    isLoading,
+    preAmp,
+    setGlobalError,
+    setPreAmp,
+  } = useFluidEqContext();
   const { t } = useTranslation();
 
   const setGain = useCallback(
@@ -102,13 +108,20 @@ const SideBar = ({
               handleChange={setGain}
             />
             {isAutoPreAmpOn && (
-              <p className="side-bar__preamp-note">{t('sidebar.preampAuto')}</p>
+              /* Smart says so in as many words. The value moves on its own
+                 while music plays, and a number that changes with nothing on
+                 screen to explain it reads as a bug rather than a feature. */
+              <p className="side-bar__preamp-note">
+                {isSmartHeadroomOn
+                  ? t('sidebar.preampSmart')
+                  : t('sidebar.preampAuto')}
+              </p>
             )}
           </div>
           <div className="col center auto-normalize-control side-bar__control-card side-bar__headroom">
             <span className="control-kicker">{t('sidebar.headroom')}</span>
             <h4>{t('sidebar.autoPreamp')}</h4>
-            <AutoPreAmpEnablerSwitch id="autoPreAmpEnabler" />
+            <AutoNormalizeModeControl id="autoPreAmpEnabler" />
           </div>
           {showGraphToggle ? (
             <div className="col center side-bar__control-card side-bar__response">

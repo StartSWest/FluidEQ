@@ -163,6 +163,7 @@ export interface IFluidEqContext extends IState {
   setGlobalError: (newValue?: ErrorDescription) => void;
   setIsEnabled: (newValue: boolean) => void;
   setAutoPreAmpOn: (newValue: boolean) => void;
+  setSmartHeadroomOn: (newValue: boolean) => void;
   setGraphViewOn: (newValue: boolean) => void;
   setPreAmp: (newValue: number) => void;
   /** Optional APO convolution profile applied before the editable EQ. */
@@ -395,6 +396,9 @@ export const FluidEqProvider = ({ children }: IFluidEqProviderProps) => {
   const [isAutoPreAmpOn, setAutoPreAmpOn] = useState<boolean>(
     DEFAULT_STATE.isAutoPreAmpOn,
   );
+  const [isSmartHeadroomOn, setSmartHeadroomOn] = useState<boolean>(
+    Boolean(DEFAULT_STATE.isSmartHeadroomOn),
+  );
   const [isGraphViewOn, setIsGraphViewOn] = useState<boolean>(
     DEFAULT_STATE.isGraphViewOn,
   );
@@ -560,6 +564,7 @@ export const FluidEqProvider = ({ children }: IFluidEqProviderProps) => {
         // Keep the persisted preference so Auto normalize can be disabled for
         // users who want to set the APO preamp manually.
         setAutoPreAmpOn(state.isAutoPreAmpOn);
+        setSmartHeadroomOn(Boolean(state.isSmartHeadroomOn));
         setGraphViewOn(state.isGraphViewOn);
         setPreAmp(state.preAmp);
         setIsFlat(state.isFlat);
@@ -698,6 +703,7 @@ export const FluidEqProvider = ({ children }: IFluidEqProviderProps) => {
         isEngineUsable: isEnabled && !isBlockingErrorCode(globalError),
         isEnabled,
         isAutoPreAmpOn,
+        isSmartHeadroomOn,
         isGraphViewOn,
         isCaseSensitiveFs,
         preAmp,
@@ -711,6 +717,7 @@ export const FluidEqProvider = ({ children }: IFluidEqProviderProps) => {
         setGlobalError,
         setIsEnabled,
         setAutoPreAmpOn,
+        setSmartHeadroomOn,
         setGraphViewOn,
         setPreAmp,
         convolution,

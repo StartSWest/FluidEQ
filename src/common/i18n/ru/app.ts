@@ -148,6 +148,12 @@ const app: Partial<Dictionary> = {
     'Подбирается автоматически. Отключите авто-нормализацию, чтобы задать вручную.',
   'sidebar.headroom': 'ЗАПАС APO',
   'sidebar.autoPreamp': 'Авто-нормализация',
+  'sidebar.autoNormalize.off': 'Выкл.',
+  'sidebar.autoNormalize.on': 'Вкл.',
+  'sidebar.autoNormalize.smart': 'Умная',
+  'sidebar.autoNormalize.aria': 'Режим авто-нормализации',
+  'sidebar.preampSmart':
+    'Измеряется по тому, что играет, и подстраивается во время прослушивания.',
   'sidebar.visualizer': 'ВИЗУАЛИЗАЦИЯ',
   'sidebar.graphView': 'График АЧХ',
   'config.eyebrow': 'ЧТО ЧИТАЕТ ДВИЖОК',

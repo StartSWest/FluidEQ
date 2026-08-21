@@ -212,6 +212,25 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 // Says why it cannot be dragged, right where the hand goes.
+/*
+ * The three positions of Auto normalize.
+ *
+ * Placement only. Every pixel of the look comes from `button small` and
+ * `button small subtle`, which are the measured filled and quiet styles this
+ * app already uses for "chosen" and "not chosen" — the same pairing the quick
+ * layout buttons use for exactly the same job.
+ *
+ * Wraps rather than squeezing: the sidebar column is narrow and three labels in
+ * ten languages will not always fit on one line. A second row is legible; three
+ * buttons compressed until their text is clipped is not.
+ */
+.side-bar__mode {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px;
+}
+
 .side-bar__preamp-note {
   margin: 2px 0 0;
   color: rgba($primary-lighter, 0.5);

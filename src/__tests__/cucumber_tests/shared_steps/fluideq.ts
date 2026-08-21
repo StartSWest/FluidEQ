@@ -104,21 +104,21 @@ export const givenAutoPreAmpState = (
   given: DefineStepFunction,
   webdriver: IDriverSession,
 ) => {
-  given(/^auto pre-amp is (on|off)$/, async (state: string) => {
-    const desiredState = state === 'on';
-    const equalizerSwitch = await requireDriver(webdriver).$(
-      '.side-bar label[class="switch"][for="autoPreAmpEnabler"]',
-    );
-
-    const switchOn = await equalizerSwitch
-      .$('[aria-checked="true"]')
-      .isExisting();
-    if ((desiredState && !switchOn) || (!desiredState && switchOn)) {
-      equalizerSwitch.click();
-      // wait 1000 ms for the action.
-      await new Promise<void>((resolve) => {
-        setTimeout(resolve, 1000);
-      });
+  // Auto normalize became three positions rather than two — Off, On, Smart —
+  // so this drives the segmented control that replaced the switch. Each
+  // position reports its own state through `aria-pressed`, which is what makes
+  // "already there" answerable without reading a colour.
+  given(/^auto pre-amp is (on|off|smart)$/, async (state: string) => {
+    const group = await requireDriver(webdriver).$('#autoPreAmpEnabler');
+    const index = { off: 0, on: 1, smart: 2 }[state] ?? 1;
+    const option = await group.$$('[role="button"]')[index];
+    if ((await option.getAttribute('aria-pressed')) === 'true') {
+      return;
     }
+    option.click();
+    // wait 1000 ms for the action.
+    await new Promise<void>((resolve) => {
+      setTimeout(resolve, 1000);
+    });
   });
 };

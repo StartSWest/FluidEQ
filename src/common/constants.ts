@@ -349,6 +349,29 @@ export interface IEqImportReference {
 export interface IState {
   isEnabled: boolean;
   isAutoPreAmpOn: boolean;
+  /**
+   * The third position of the Auto normalize switch: reserve what the music
+   * needs rather than what the chain could theoretically need.
+   *
+   * A separate flag rather than turning `isAutoPreAmpOn` into an enum, because
+   * that boolean is written by eight files, validated by a schema, and stored
+   * in every device profile ever saved. Two booleans express the same three
+   * positions — Off, Normalize, Smart — with no migration and no profile
+   * written by an older build becoming unreadable. Smart is only ever consulted
+   * while `isAutoPreAmpOn` is true.
+   */
+  isSmartHeadroomOn?: boolean;
+  /**
+   * What the music itself measures, per frequency region. SESSION ONLY.
+   *
+   * Deliberately never persisted. It is evidence about what HAS played, and
+   * applying last night's evidence to this morning's record is exactly the
+   * promise the measurement cannot make. Every launch starts with no opinion,
+   * which reads as the worst case, and walks up from there.
+   */
+  smartHeadroomProgramme?: Array<{ frequency: number; gain: number }>;
+  /** The sample peak supervisor's standing correction, in dB. Session only. */
+  smartHeadroomTrimDb?: number;
   isGraphViewOn: boolean;
   isCaseSensitiveFs: boolean;
   /** True after Reset gains until the user edits an EQ band again. */
@@ -671,6 +694,16 @@ export interface IPresetV2 {
    * automatic, which is what every profile written before this existed was.
    */
   isAutoPreAmpOn?: boolean;
+  /**
+   * Whether this profile wants that preamp measured rather than assumed.
+   *
+   * Absent means no, unlike its neighbour above: every profile written before
+   * this existed predates the mode, and a profile silently gaining an adaptive
+   * preamp because the app updated is the one outcome the third switch position
+   * was chosen to avoid. Only the flag is stored — the measurement behind it
+   * never is.
+   */
+  isSmartHeadroomOn?: boolean;
   /** Which measured headphone this profile's bands came from, if any. */
   headset?: string;
   /** Which measurement of it — models usually have more than one. */
@@ -884,6 +917,12 @@ export const getDefaultState = (): IState => {
   return {
     isEnabled: true,
     isAutoPreAmpOn: true,
+    // Off by default, and that is the whole reason it is a third position
+    // rather than a change to the second. Smart trades determinism away: two
+    // people with identical chains get different preamps because they listen to
+    // different records. Nobody's output level starts moving on its own because
+    // they updated.
+    isSmartHeadroomOn: false,
     isGraphViewOn: true, // true as default so that spinner can be seen on initial load
     isCaseSensitiveFs: false, // false as default so we assume windows case insensitive behavior (foo = FoO)
     preAmp: 0,

@@ -142,6 +142,12 @@ const app = {
   'sidebar.preampAuto': 'Set for you. Turn off Auto normalize to adjust it.',
   'sidebar.headroom': 'APO HEADROOM',
   'sidebar.autoPreamp': 'Auto normalize',
+  'sidebar.autoNormalize.off': 'Off',
+  'sidebar.autoNormalize.on': 'On',
+  'sidebar.autoNormalize.smart': 'Smart',
+  'sidebar.autoNormalize.aria': 'Auto normalize mode',
+  'sidebar.preampSmart':
+    'Measured from what you play, and adjusted as you listen.',
   'sidebar.visualizer': 'VISUALIZER',
   'sidebar.graphView': 'Response graph',
   'config.eyebrow': 'WHAT THE ENGINE READS',

@@ -146,6 +146,12 @@ const app: Partial<Dictionary> = {
     'यह अपने आप तय होता है। खुद बदलने के लिए “अपने आप सामान्य करें” बंद करें।',
   'sidebar.headroom': 'APO हेडरूम',
   'sidebar.autoPreamp': 'अपने आप सामान्य करें',
+  'sidebar.autoNormalize.off': 'बंद',
+  'sidebar.autoNormalize.on': 'चालू',
+  'sidebar.autoNormalize.smart': 'स्मार्ट',
+  'sidebar.autoNormalize.aria': 'अपने आप सामान्य करने का मोड',
+  'sidebar.preampSmart':
+    'जो चल रहा है उससे मापा जाता है और सुनते-सुनते समायोजित होता है।',
   'sidebar.visualizer': 'विज़ुअलाइज़र',
   'sidebar.graphView': 'रिस्पॉन्स ग्राफ़',
   'config.eyebrow': 'इंजन असल में क्या पढ़ता है',

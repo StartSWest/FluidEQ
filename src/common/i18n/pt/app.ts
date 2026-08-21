@@ -151,6 +151,12 @@ const app: Partial<Dictionary> = {
     'É ajustado sozinho. Desligue Normalizar automaticamente para mudar.',
   'sidebar.headroom': 'MARGEM DO APO',
   'sidebar.autoPreamp': 'Normalizar automaticamente',
+  'sidebar.autoNormalize.off': 'Não',
+  'sidebar.autoNormalize.on': 'Sim',
+  'sidebar.autoNormalize.smart': 'Inteligente',
+  'sidebar.autoNormalize.aria': 'Modo de normalização automática',
+  'sidebar.preampSmart':
+    'Medido a partir do que você reproduz e ajustado enquanto ouve.',
   'sidebar.visualizer': 'VISUALIZADOR',
   'sidebar.graphView': 'Gráfico de resposta',
   'config.eyebrow': 'O QUE O MOTOR LÊ',
