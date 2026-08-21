@@ -344,6 +344,10 @@ describe('songEqRecorder', () => {
     // `lookup` is a store read the shell answers later. Skip tracks between
     // the lookup and its answer and, without the identity check, the answer
     // for song A would be applied to song B and reported as a match for it.
+    // The matched event has to land once song B has itself settled into
+    // 'recording' — the guard's phase check short-circuits before the
+    // identity check while B is still settling, so a `matched` that lands
+    // too early would pass here whether or not the identity was compared.
     const entry = {
       settings: layerOf(9),
       title: 'Song A',
@@ -357,7 +361,7 @@ describe('songEqRecorder', () => {
         SONG_EQ_SETTLE_MS + 2,
         { kind: 'nowPlaying', identity: songB, isPlaying: true },
       ],
-      [SONG_EQ_SETTLE_MS + 3, { kind: 'matched', identity: songA, entry }],
+      [SONG_EQ_SETTLE_MS * 2 + 3, { kind: 'matched', identity: songA, entry }],
     ]);
     expect(
       effects.filter((effect) => effect.kind === 'applyLayer'),
