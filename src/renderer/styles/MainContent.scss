@@ -45,8 +45,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // 12px on all sides, and adding another 8px here put the EQ heading further
   // from the card edge than the headings on Presets, Voicing and Convolution.
   // One inset for every page.
-  gap: 11px;
-  margin: 2px 0 0;
+  // 8 rather than 11 between the heading and the toolbar under it, and no top
+  // margin at all: the section rail above already ends in a rule and a gap,
+  // and every pixel here is one the parametric editor does not get on a
+  // 1080-tall screen.
+  gap: 8px;
+  margin: 0;
   padding: 0;
 
   > div:first-child {
@@ -544,8 +548,9 @@ $eq-caret-width: 24px;
   display: grid;
   min-width: 0;
   // Enough of a break above the sliders that the applied-layer chips do not
-  // look like a caption for the first band.
-  padding: 12px 10px 0;
+  // look like a caption for the first band, and no more than that: the panel
+  // already contributes its own row gap above this box.
+  padding: 6px 10px 0;
   gap: 10px;
   grid-template-columns: 38px minmax(0, 1fr);
   grid-template-rows: minmax(min-content, 1fr) auto;

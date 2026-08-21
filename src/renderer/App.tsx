@@ -83,6 +83,7 @@ import { pickTransportOwner } from './audio/transportRouting';
 import KaraokeWorkspace from './karaoke/KaraokeWorkspace';
 import PaneResizer from './components/PaneResizer';
 import WorkspaceTabStrip from './components/WorkspaceTabStrip';
+import WorkspaceSectionTabs from './components/WorkspaceSectionTabs';
 import {
   clampToWindow,
   commitPaneSizes,
@@ -509,30 +510,82 @@ const AppContent = () => {
    * part of the page has to be inside it.
    */
   const eqGroupPills = (
-    <div
-      className="workspace-tab-group"
-      role="tablist"
-      aria-label={t('tabs.eq')}
-    >
-      {EQ_GROUP_TABS.map((tab) => (
-        <button
-          key={tab}
-          type="button"
-          role="tab"
-          aria-selected={activeWorkspaceTab === tab}
-          className={`workspace-pill${
-            activeWorkspaceTab === tab ? ' is-active' : ''
-          }`}
-          onClick={() => setActiveWorkspaceTab(tab)}
-        >
-          {t(EQ_GROUP_LABEL_KEYS[tab as keyof typeof EQ_GROUP_LABEL_KEYS])}
-        </button>
-      ))}
-    </div>
+    <WorkspaceSectionTabs
+      label={t('tabs.eq')}
+      activeId={activeWorkspaceTab}
+      tabs={EQ_GROUP_TABS.map((tab) => ({
+        id: tab,
+        label: t(EQ_GROUP_LABEL_KEYS[tab as keyof typeof EQ_GROUP_LABEL_KEYS]),
+      }))}
+      onSelect={(id) => {
+        const next = resolveWorkspaceTab(id);
+        if (next) {
+          setActiveWorkspaceTab(next);
+        }
+      }}
+    />
   );
   const isVideoTab = activeWorkspaceTab === 'video';
   const isLibraryTab = activeWorkspaceTab === 'library';
   const isKaraokeTab = activeWorkspaceTab === 'karaoke';
+
+  /**
+   * The four places, drawn in the titlebar beside the live output meter.
+   *
+   * Above the workspace rather than on it. The meter is the one element that
+   * makes this window look like itself and it already floats across the top;
+   * putting the places in the same wrapper means the app's navigation lives
+   * in its signature element and the workspace below gets its row back.
+   *
+   * Built here rather than in the header markup only because it is long, and
+   * the titlebar reads better as three things than as three things and a
+   * list.
+   */
+  const workspaceTabs = (
+    <WorkspaceTabStrip label={t('tabs.aria')}>
+      {/* Four places, not eight. The equaliser and everything that sets it
+          are one tab with a row of pills inside — see EQ_GROUP_TABS. */}
+      <button
+        type="button"
+        role="tab"
+        aria-selected={isEqGroupTab(activeWorkspaceTab)}
+        className={`workspace-tab${
+          isEqGroupTab(activeWorkspaceTab) ? ' is-active' : ''
+        }`}
+        onClick={() => setActiveWorkspaceTab(lastEqTab)}
+      >
+        {t('tabs.eq')}
+      </button>
+      <button
+        type="button"
+        role="tab"
+        aria-selected={isVideoTab}
+        className={`workspace-tab${isVideoTab ? ' is-active' : ''}`}
+        onClick={() => setActiveWorkspaceTab('video')}
+      >
+        {t('tabs.media')}
+      </button>
+      <button
+        type="button"
+        role="tab"
+        aria-selected={isLibraryTab}
+        className={`workspace-tab${isLibraryTab ? ' is-active' : ''}`}
+        onClick={() => setActiveWorkspaceTab('library')}
+      >
+        {t('tabs.library')}
+      </button>
+      <button
+        type="button"
+        role="tab"
+        aria-selected={isKaraokeTab}
+        className={`workspace-tab${isKaraokeTab ? ' is-active' : ''}`}
+        onClick={() => setActiveWorkspaceTab('karaoke')}
+      >
+        {t('tabs.karaoke')}
+      </button>
+    </WorkspaceTabStrip>
+  );
+
   const [isKaraokeFullScreen, setIsKaraokeFullScreen] = useState(false);
   const karaokeFullScreenRequestedRef = useRef(false);
   const [showAudioRestartRecommendation, setShowAudioRestartRecommendation] =
@@ -1177,7 +1230,14 @@ const AppContent = () => {
             unmounting it would tear the analyser's hook down and build it again
             on every mode change, for a component nobody can see. CSS hides the
             bar; this stays put behind it. */}
-        <WaveformVisualizer />
+        {/* One wrapper, two things: the meter exactly as it was, and the four
+            places beside it. The meter is not restyled or resized by being in
+            here — it keeps its own pane, its own width and its own height, and
+            the wrapper is drawn around whatever that comes to. */}
+        <div className="titlebar-nav">
+          <WaveformVisualizer />
+          {workspaceTabs}
+        </div>
         <div className="window-titlebar__right">
           {!isChromeHidden && (
             <SupportPet
@@ -1590,49 +1650,8 @@ const AppContent = () => {
                 : undefined
             }
           >
-            <WorkspaceTabStrip label={t('tabs.aria')}>
-              {/* Four places, not eight. The equaliser and everything that
-                  sets it are one tab with a row of pills inside — see
-                  EQ_GROUP_TABS. */}
-              <button
-                type="button"
-                role="tab"
-                aria-selected={isEqGroupTab(activeWorkspaceTab)}
-                className={`workspace-tab${
-                  isEqGroupTab(activeWorkspaceTab) ? ' is-active' : ''
-                }`}
-                onClick={() => setActiveWorkspaceTab(lastEqTab)}
-              >
-                {t('tabs.eq')}
-              </button>
-              <button
-                type="button"
-                role="tab"
-                aria-selected={isVideoTab}
-                className={`workspace-tab${isVideoTab ? ' is-active' : ''}`}
-                onClick={() => setActiveWorkspaceTab('video')}
-              >
-                {t('tabs.media')}
-              </button>
-              <button
-                type="button"
-                role="tab"
-                aria-selected={isLibraryTab}
-                className={`workspace-tab${isLibraryTab ? ' is-active' : ''}`}
-                onClick={() => setActiveWorkspaceTab('library')}
-              >
-                {t('tabs.library')}
-              </button>
-              <button
-                type="button"
-                role="tab"
-                aria-selected={isKaraokeTab}
-                className={`workspace-tab${isKaraokeTab ? ' is-active' : ''}`}
-                onClick={() => setActiveWorkspaceTab('karaoke')}
-              >
-                {t('tabs.karaoke')}
-              </button>
-            </WorkspaceTabStrip>
+            {/* The four places are in the titlebar now, beside the meter —
+                see `workspaceTabs` and the wrapper it is drawn in. */}
             {activeWorkspaceTab === 'eq' && (
               <div
                 // Remounts on every tab change so the panel entrance animation

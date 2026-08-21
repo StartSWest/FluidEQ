@@ -240,6 +240,27 @@ const LibraryDetail = ({
   }, [tracks, album, albumId, artistId, folderTracks]);
 
   /**
+   * The directory this drill-in is standing in, drawn beside Back.
+   *
+   * There were two Backs on screen for a while — this one, and a second on
+   * the workspace above carrying the folder scope's path. They did different
+   * things and only one of them said where you were, so the path moved here,
+   * onto the control that leaves.
+   *
+   * A folder drill-in knows its own directory. An album or an artist does
+   * not, so it is taken from the first file in the list — which is the folder
+   * the reader would find it in, and the only honest answer for a selection
+   * that can span several.
+   */
+  const detailFolder = useMemo(() => {
+    if (folderPath) {
+      return folderPath;
+    }
+    const [first] = detailTracks;
+    return first ? trackFolder(first.path) : undefined;
+  }, [detailTracks, folderPath]);
+
+  /**
    * Files sitting in the same folders as this album, that the album does not
    * account for.
    *
@@ -381,6 +402,11 @@ const LibraryDetail = ({
           </svg>
           <span>{t('library.back')}</span>
         </button>
+        {detailFolder !== undefined && (
+          <span className="library-detail__folder" title={detailFolder}>
+            {detailFolder}
+          </span>
+        )}
         {!isWayThrough && (
           <div className="library-detail__search">
             <LibrarySearchField
@@ -431,6 +457,12 @@ const LibraryDetail = ({
             isWayThrough ? ' is-only' : ''
           }`}
         >
+          {/* Sorted by the same control as everything else on this page.
+              These three were the one table in the library whose header did
+              nothing: the folder branch has always been able to sort itself —
+              `sortFolders` answers for folders what `sortTracks` answers for
+              tracks — but a header only becomes a button when a handler is
+              handed to it, and this call site never handed one over. */}
           {viewMode === 'grid' ? (
             <LibraryGridView
               tracks={tracks}
@@ -442,7 +474,9 @@ const LibraryDetail = ({
               onOpenFolder={onOpenFolder}
               onPlayTrack={onPlayTrack}
               offlineRootIds={offlineRootIds}
-              resetKey={`children|${folderPath ?? ''}`}
+              sort={sort}
+              sortDirection={sortDirection}
+              resetKey={`children|${folderPath ?? ''}|${sort ?? ''}|${sortDirection}`}
             />
           ) : (
             <LibraryListView
@@ -455,7 +489,10 @@ const LibraryDetail = ({
               onOpenFolder={onOpenFolder}
               onPlayTrack={onPlayTrack}
               offlineRootIds={offlineRootIds}
-              resetKey={`children|${folderPath ?? ''}`}
+              sort={sort}
+              sortDirection={sortDirection}
+              onSort={handleSort}
+              resetKey={`children|${folderPath ?? ''}|${sort ?? ''}|${sortDirection}`}
             />
           )}
         </div>

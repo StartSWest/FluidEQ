@@ -867,30 +867,15 @@ const LibraryWorkspace = ({
           are never shown at once, the same way the drill-in below replaces
           the browse views rather than sitting over them. */}
       {index.tracks.length > 0 && videoTrackId && <LibraryVideoStage />}
-      {/* Where the reader is standing, on the shelves that are not the tree.
-          Without it the library simply looks smaller than it is: the albums
-          shown are the albums in this folder, and nothing on screen would say
-          so or offer the way out. The Folders shelf has its own panel and
-          says it there. */}
-      {openFolderPath !== undefined && browseMode !== 'folder' && (
-        <div className="library-workspace__scope">
-          {/* The drill-in's own Back, markup and all, so the way out of a
-              folder is the same control wherever it is met. */}
-          <button
-            type="button"
-            className="library-toolbar__chip library-detail__back"
-            onClick={handleBack}
-          >
-            <svg viewBox="0 0 16 16" aria-hidden="true">
-              <path d="M10 3L5 8l5 5" />
-            </svg>
-            <span>{t('library.back')}</span>
-          </button>
-          <span className="library-workspace__scope-path">
-            {openFolderPath}
-          </span>
-        </div>
-      )}
+      {/* A second Back used to stand here, on the shelves that are not the
+          tree, naming the folder the albums below belonged to.
+
+          Two of them on screen at once is one too many, and they did not do
+          the same thing: this one walked up the tree while the drill-in's own
+          went back to the shelf, so which you got depended on which line you
+          happened to aim at. There is one Back now — the drill-in's — and it
+          carries the directory beside it, so where the reader is standing is
+          said once, on the control that leaves it. */}
       {/* Videos have no album or artist to drill into — routed here on its
           own rather than through the three views below, which never see
           `browseMode === 'video'` at all. The view-mode toggle (list/grid/

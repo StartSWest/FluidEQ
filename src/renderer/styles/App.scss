@@ -297,14 +297,22 @@ select option {
   right: 0;
   left: 0;
   display: grid;
-  // Equal outer tracks keep the waveform optically centred in the window
-  // regardless of how wide the brand block or the control cluster get.
-  grid-template-columns: minmax(0, 1fr) minmax(200px, 420px) minmax(0, 1fr);
+  // Equal outer tracks keep the middle one optically centred in the window
+  // regardless of how wide the brand block or the control cluster get. The
+  // middle track is sized by its contents now rather than capped at the
+  // meter's 420px: it carries the meter AND the four places beside it, and a
+  // cap written for one of them would squeeze both.
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
   gap: 16px;
   width: 100%;
   height: $title-bar-height;
-  padding: 7px 12px 7px 18px;
+  // 2px rather than 7 above and below. The wrapper carries its own 4px margin
+  // on top of this, so the bar shows 6px above and below its outline — enough
+  // to read as something sitting in the bar rather than as the bar itself.
+  // Nothing else moves: every other child here is centred in its track rather
+  // than stretched to it.
+  padding: 2px 12px 2px 18px;
   // Sits almost flush with the page rather than as a bar laid over it. The
   // old surface topped out at #101d2a against a page nearer #061019, which is
   // a big enough step to read as a separate strip of chrome.
@@ -357,6 +365,198 @@ select option {
     // to max amplitude + normalise, and this makes the container match.
     height: 64px;
     -webkit-app-region: no-drag;
+  }
+}
+
+// *** The titlebar's navigation wrapper ***************************************
+//
+// The meter and the app's four places, in one outline across the top of the
+// window.
+//
+// The places used to sit in a capsule of their own above the workspace card,
+// which cost a row of the window and read as a strip of chrome left over
+// between the titlebar and the page. Up here they share the outline of the one
+// element that makes this window look like itself, and the workspace starts at
+// the top of the workspace.
+//
+// THE METER IS NOT TOUCHED BY ANY OF THIS. Its pane, its width, its height and
+// its drawing are exactly what they were; the wrapper is measured around them,
+// and the flex basis below restates the width the grid track used to give it
+// rather than choosing a new one.
+.titlebar-nav {
+  display: flex;
+  max-width: 100%;
+  min-width: 0;
+  align-items: center;
+  // Sized by what is in it, not by the track. Below 1280 the middle column is
+  // a `1fr` remainder, and a grid item stretches to its track by default —
+  // which drew the outline right across whatever was left of the window.
+  justify-self: center;
+  // The meter is 64px tall and sits 3px inside the outline, so the wrapper
+  // comes to 72px with its border — which is what the titlebar's own padding
+  // was opened up to allow.
+  //
+  // Nothing at all on the left. The pane's stage clips its drawing at 18px
+  // and the wrapper's inner corner is 19, so at zero the two curves are very
+  // nearly concentric and the spectrum runs right up to the outline. Any
+  // padding here shows as a crescent of empty ground in the corner, which is
+  // what it looked like at 12 and still at 4.
+  //
+  // Above and below it is the opposite: the pane has no fill of its own any
+  // more, so what sits there is the wrapper's own ground, and 4px of it is
+  // what keeps the spectrum from running into the outline top and bottom.
+  padding: 4px 12px 4px 0;
+  // The bar it sits in, showing. 4 here plus the bar's own 2 of padding puts
+  // 6px of titlebar above and below the outline, which is the difference
+  // between a control set into the bar and a control that is the bar. The
+  // bar's height was grown by exactly this much to pay for it.
+  margin-block: 4px;
+  border: 1px solid rgba($secondary-light, 0.28);
+  // A rounded box rather than a stadium. At half the height the caps were
+  // the widest thing about it and the outline read as a lozenge with a
+  // spectrum stuck in it; at 20 it is the shape the panels below use, which
+  // is what makes it belong to this app rather than to a media player.
+  border-radius: 20px;
+  background: rgba(#040c14, 0.5);
+  box-shadow:
+    inset 0 1px 0 rgba($white, 0.04),
+    0 0 26px rgba($secondary-default, 0.08);
+  // Wide enough that the two halves read as two things sharing an outline
+  // rather than as a spectrum with words crowded onto the end of it. The
+  // drawing runs to its own edge and the menu starts well clear of it.
+  gap: 24px;
+  -webkit-app-region: no-drag;
+}
+
+// The 420px the grid track used to hand it, restated as a real width.
+//
+// A flex basis is not enough: the pane's own width is a percentage of this
+// box, and a percentage inside a shrink-to-fit parent contributes nothing to
+// the parent's intrinsic size — so the line was measured from the pane's
+// 230px minimum and the meter came out at 230 instead of 420. A length here
+// gives the percentage something definite to resolve against, and the number
+// is the one the track was already producing.
+.titlebar-nav .waveform-visualizer-shell {
+  width: 420px;
+  min-width: 0;
+  flex: 0 1 auto;
+}
+
+// The meter's own rim, off.
+//
+// Two outlines around the same drawing is a pane inside a pill, and the eye
+// reads the inner one as the edge of something separate — which is exactly
+// what the wrapper exists to stop. Everything about the pane that is a
+// measurement stays: the width, the height, the canvas and what it draws.
+// What goes is the border, the fill and the glow, all three of which are now
+// the wrapper's to carry.
+//
+// Three classes deep because the pane's lit and paused states are two, and a
+// tie would be settled by whichever stylesheet the bundler happened to put
+// last.
+.titlebar-nav > .waveform-visualizer-shell > .waveform-visualizer {
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+}
+
+// Lit when there is signal: the glow the pane used to carry, on the outline
+// that replaced its own.
+//
+// `:where` around the test so the argument adds no specificity — otherwise
+// this beats the rainbow rule below, and the mode somebody deliberately
+// switched on would lose to the ordinary state.
+.titlebar-nav:has(:where(.waveform-visualizer.is-active)) {
+  border-color: rgba($secondary-light, 0.45);
+  box-shadow:
+    inset 0 1px 0 rgba($white, 0.06),
+    0 0 26px rgba($secondary-default, 0.16),
+    0 0 60px rgba($analogous-2, 0.08);
+}
+
+// Rainbow mode, on the outline that goes all the way across the window.
+//
+// The same rim the pane used to sweep — a tight inset ring for the edge, a
+// wider inset wash falling off inward, one outward bloom — and the same
+// keyframes, so the wrapper, the badge and the game's trace stay in step
+// without being driven from a common ancestor. It is one element travelling
+// through the spectrum rather than one inside another.
+.is-euphoric .titlebar-nav {
+  animation: euphoria-sweep 3.6s linear infinite;
+  border-color: hsl(var(--euphoria-hue) 90% 62% / 42%);
+  box-shadow:
+    inset 0 0 0 1px hsl(var(--euphoria-hue) 95% 68% / 22%),
+    inset 0 0 14px hsl(var(--euphoria-hue) 95% 62% / 16%),
+    0 0 18px hsl(var(--euphoria-hue) 95% 60% / 30%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .is-euphoric .titlebar-nav {
+    animation: none;
+  }
+}
+
+// Nothing left of the capsule the four used to sit in. There is one outline
+// across the top of the window now and it belongs to the wrapper; a second one
+// inside it reads as a control inside a control.
+.titlebar-nav .workspace-tabs-shell {
+  z-index: auto;
+  max-width: none;
+  margin: 0;
+}
+
+.titlebar-nav .workspace-tabs {
+  padding: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
+  flex-wrap: nowrap;
+  gap: 6px;
+}
+
+// Read at a glance, not squinted at.
+//
+// These were sized for a capsule sitting on the workspace card, where they
+// were one control among many. Up here they are the app's navigation and the
+// only text in the middle of the bar, and 0.74rem next to a 64px spectrum
+// read as a caption on it. Nothing else about them changes: same weight, same
+// colours, same lit pill measured against whichever one is chosen.
+.titlebar-nav .workspace-tab {
+  min-height: 38px;
+  padding: 9px 20px 10px;
+  font-size: 0.86rem;
+  letter-spacing: 0.012em;
+
+  &:not(.is-active) {
+    color: rgba($primary-lighter, 0.7);
+  }
+}
+
+// The lit pill, bigger and softer.
+//
+// It used to be a 24px lozenge inset inside a 32px strip with a hard cyan
+// edge — a small bright shape that announced itself before the word inside
+// it did. It takes the whole height of the row now and most of its colour is
+// bloom rather than border: the word stays the brightest thing in it, and the
+// pill reads as light behind the choice rather than as a box around it.
+.titlebar-nav .workspace-tabs__pill {
+  top: 0;
+  bottom: 0;
+  border-color: rgba($secondary-light, 0.24);
+  background: rgba($secondary-default, 0.15);
+  box-shadow:
+    inset 0 0 14px rgba($secondary-light, 0.12),
+    0 0 30px rgba($secondary-default, 0.28);
+}
+
+// With the meter switched off from the View menu the wrapper has nothing to
+// hold a space for. Its own rule above hides it while keeping it mounted —
+// this only stops the outline being drawn around 420px of nothing.
+.titlebar-nav:has(> .waveform-visualizer-shell.is-hidden) {
+  padding-left: 6px;
+
+  > .waveform-visualizer-shell {
+    display: none;
   }
 }
 
@@ -1106,7 +1306,12 @@ textarea,
 // outside this element's subtree.
 :root {
   --shell-gutter: 16px;
-  --shell-gutter-bottom: 18px;
+  // 10 rather than 18, and it is spent twice: once as the gap between the
+  // last card and the transport bar, once as the gap between that bar and the
+  // foot of the window. On a 1080-tall screen those 16px were the easiest
+  // vertical to give back, and the bar still reads as a card set into the
+  // shell rather than as a strip stuck to the edge.
+  --shell-gutter-bottom: 10px;
 }
 
 .app-workspace {
@@ -2536,10 +2741,76 @@ button.graph-legend {
     grid-template-columns: auto minmax(180px, 1fr) auto;
   }
 
-  .window-titlebar > .waveform-visualizer-shell {
-    width: 100%;
-    max-width: 320px;
-    justify-self: center;
+  // The same 320px cap the meter has always had at this width, written where
+  // the wrapper's flex line can see it. The pane is unchanged; only the box
+  // handing it that number moved.
+  .titlebar-nav .waveform-visualizer-shell {
+    width: 320px;
+  }
+}
+
+// The wrapper holds two things that both want room, so it gives ground in the
+// order that costs least: the spectrum first, which only draws narrower, and
+// the words after it — smaller and closer together, never wrapped or hidden.
+// A place nobody can reach is worse than a place set in small type.
+@media (max-width: 1080px) {
+  .titlebar-nav {
+    gap: 16px;
+  }
+
+  .titlebar-nav .waveform-visualizer-shell {
+    width: 260px;
+  }
+
+  .titlebar-nav .workspace-tabs {
+    gap: 4px;
+  }
+
+  .titlebar-nav .workspace-tab {
+    min-height: 34px;
+    padding: 8px 14px 9px;
+    font-size: 0.78rem;
+  }
+}
+
+@media (max-width: 900px) {
+  .titlebar-nav {
+    padding-right: 8px;
+    gap: 10px;
+  }
+
+  .titlebar-nav .waveform-visualizer-shell {
+    width: 190px;
+  }
+
+  // The pane's own 230px floor was written for a meter with the middle of the
+  // titlebar to itself. It shares that space now, and a floor it cannot go
+  // under is a pane that slides out of its box and under the words beside it
+  // — which is exactly what a 720px window showed. The canvas is sized from
+  // its box, so giving ground here just draws a narrower spectrum.
+  .titlebar-nav .waveform-visualizer {
+    min-width: 0;
+  }
+
+  // "LIVE OUTPUT" goes here, and only here.
+  //
+  // It and the rainbow badge are both centred on the top of the pane, and on
+  // a meter this narrow they are painted across each other. The badge names a
+  // mode that is otherwise invisible; the label repeats what a moving
+  // spectrum under the words "live" already says. The dot goes with it — a
+  // signal light with nothing beside it is a mark nobody can read.
+  .titlebar-nav .waveform-visualizer__signal {
+    display: none;
+  }
+
+  .titlebar-nav .workspace-tabs {
+    gap: 2px;
+  }
+
+  .titlebar-nav .workspace-tab {
+    min-height: 32px;
+    padding: 7px 9px 8px;
+    font-size: 0.7rem;
   }
 }
 
@@ -2649,17 +2920,10 @@ button.graph-legend {
   // clipped. It keeps the size the breakpoint above gives it, which has room
   // for both.
 
-  .workspace-tabs-shell {
-    // The cap follows the inset: 8px a side here, so the line stops 8px short
-    // of the panel's edge and inside its corner rather than past it.
-    max-width: calc(100% - 16px);
-    margin-inline: 8px;
-  }
-
-  .workspace-tab {
-    flex: 0 0 auto;
-    padding-inline: 12px;
-  }
+  // The tab strip's own narrow-width rules used to stand here, insetting it
+  // from the panel edge and squeezing its padding. It is in the titlebar now
+  // and gives ground on the wrapper's terms; see the two queries under
+  // `.titlebar-nav`.
 }
 
 // Short windows used to cap the graph at 240px so the even split could not
@@ -2725,53 +2989,101 @@ button.graph-legend {
   }
 }
 
-// *** The equaliser's five, as pills ******************************************
+// *** The equaliser's five, as a rail *****************************************
 //
-// Not tabs. The strip above is where the app's four places are chosen, and a
-// second row of tab-shaped things under it would read as eight tabs again in
-// two rows — which is the thing this split exists to undo. These are the same
-// pill the Media tab draws its sites with and the Library its browse chips:
-// standalone, rounded, quiet until chosen.
+// A different instrument from the row in the titlebar, on purpose.
 //
-// Centred, because they belong to the panel below rather than to the strip
-// above: a row of five hugging the left edge reads as a continuation of the
-// tabs, and the same five in the middle read as the panel's own heading.
+// That one is the app's four places and lights the chosen one with a filled
+// pill; five smaller pills under it read as nine tabs of the same kind on two
+// lines, which is the arrangement splitting them was meant to undo. These are
+// set as a rail instead — small letters spaced out, and one lit bar travelling
+// along the rule beneath them. Same accent, different shape, so the two rows
+// read as two levels.
+//
+// Centred, because they belong to the page rather than to the window: a row of
+// five hugging the left edge reads as a strip of chrome, and the same five in
+// the middle read as the page's own heading.
 .workspace-tab-group {
+  // Stuck to the top of the page it belongs to.
+  //
+  // The panel below is the scroll surface, and a section rail that scrolls out
+  // of it takes the only thing on screen saying which of the five you are in.
+  //
+  // Blur and nothing else — no fill of its own. The panel's own gradient is
+  // translucent and anchored to the viewport, so any colour painted here is a
+  // second layer over the same ramp and shows as a band across the top of
+  // every page. The blur alone takes the scrolled content out from under the
+  // letters, and the page keeps one surface.
+  position: sticky;
+  z-index: 5;
+  top: 0;
   display: flex;
   flex: 0 0 auto;
   flex-wrap: wrap;
   align-items: center;
   justify-content: center;
-  // Under the capsule that now overlaps this card, and clear of the content
-  // below: the two rows are one header, so the space above these is the room
-  // the capsule takes and the space below them is the header ending.
-  padding: 26px 0 10px;
+  backdrop-filter: blur(10px);
+  // The first thing on the page, with nothing overlapping it: the four places
+  // moved up into the titlebar, and the clearance this row used to hold for
+  // the capsule that hung over the card went with them. The panel's own 10px
+  // row gap already separates it from the heading below, so what is set here
+  // is only what that gap is short of — on a 1080-tall screen the difference
+  // between this and the 16 it started at is a band of the parametric editor.
+  padding: 0;
   border-bottom: 1px solid rgba($secondary-light, 0.1);
-  margin-bottom: $spacing-s;
-  gap: 4px;
+  margin-bottom: $spacing-xs;
+  gap: 6px;
+}
+
+// The lit bar, sitting on the rule rather than above it — so the rule reads as
+// the rail it travels along instead of as a border that happens to be there.
+// Measured in `useSlidingIndicator`; a hair wider than nothing at either end
+// because a bar the exact width of a spaced-out word looks short.
+.workspace-tab-group__bar {
+  position: absolute;
+  z-index: 1;
+  bottom: -1px;
+  left: 0;
+  width: var(--section-bar-width, 0);
+  height: 2px;
+  border-radius: 2px;
+  background: $secondary-default;
+  box-shadow: 0 0 12px rgba($secondary-default, 0.75);
+  pointer-events: none;
+  transform: translateX(var(--section-bar-x, 0));
+  transition:
+    transform $motion-base $ease-out,
+    width $motion-base $ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .workspace-tab-group__bar {
+    transition: none;
+  }
 }
 
 .workspace-pill {
   display: inline-flex;
   align-items: center;
-  // Quieter than the capsule above: no border and no surface until chosen.
-  // Given the same weight as the tabs the two rows competed, and the eye had
-  // to work out which of the nine words was the place it was in.
-  padding: 3px 11px;
+  // Small and spaced, the way a section is labelled rather than the way a
+  // place is chosen. The uppercase is what does most of the work: at this size
+  // it reads as a rail of labels at a glance, where sentence case at the same
+  // size just reads as the titlebar's words shrunk.
+  padding: 9px 14px 11px;
   gap: 5px;
-  border: 1px solid transparent;
-  border-radius: -pill;
+  border: 0;
   background: none;
-  color: rgba(-lighter, 0.55);
-  font-size: 0.66rem;
+  color: rgba($primary-lighter, 0.5);
+  font-size: 0.64rem;
   font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
   white-space: nowrap;
   cursor: pointer;
-  transition: -control;
+  transition: $transition-control;
 
   &:hover:not(.is-active) {
-    color: rgba(-lighter, 0.9);
-    background: rgba(, 0.05);
+    color: rgba($primary-lighter, 0.85);
   }
 
   &:focus-visible {
@@ -2779,9 +3091,9 @@ button.graph-legend {
     outline: none;
   }
 
+  // Nothing but the colour: the bar under it is the mark, and a filled
+  // background as well would be the same answer given twice.
   &.is-active {
-    border-color: rgba(-light, 0.34);
-    background: rgba(-default, 0.12);
-    color: -light;
+    color: $secondary-light;
   }
 }

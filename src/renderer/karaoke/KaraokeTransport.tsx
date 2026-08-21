@@ -28,7 +28,6 @@ import { formatKaraokeTime } from '../../common/karaoke/clock';
 import { useTranslation } from '../utils/I18nContext';
 import { useMediaQuery } from '../utils/useMediaQuery';
 import AnchoredMenu, { isInsideAnchoredMenu } from '../widgets/AnchoredMenu';
-import ArrowIcon from '../icons/ArrowIcon';
 import { TKaraokePlaybackStatus } from './useKaraokeSession';
 import KaraokeMakerToolIcon, {
   TKaraokeMakerToolIcon,
@@ -532,7 +531,17 @@ const KaraokeTransport = ({
                     setMixMenuAnchor((current) => (current ? null : trigger));
                   }}
                 >
-                  <ArrowIcon type="up" />
+                  {/* The app's own chevron rather than `ArrowIcon`.
+                      That one is a filled triangle with `#4FC3F7` baked into
+                      its path and a drop shadow under it — a light blue that
+                      appears nowhere else in this window, and one the
+                      button's own `color` cannot reach, so every state below
+                      it was being set on a glyph that ignored them. This is
+                      the shape the voicing pick and the EQ mode picker carry,
+                      stroked in `currentColor`. */}
+                  <svg viewBox="0 0 16 16" aria-hidden>
+                    <path d="M4 6.5l4 4 4-4" />
+                  </svg>
                 </button>
               ) : undefined
             }

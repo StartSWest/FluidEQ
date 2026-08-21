@@ -32,6 +32,7 @@ import {
   groupIntoAlbums,
   groupIntoArtists,
   normalizeForSearch,
+  parentFolderPath,
   sortAlbums,
   sortArtists,
   sortFolders,
@@ -264,11 +265,30 @@ const LibraryCoverFlow = ({
   //
   // Declared above the state rather than beside the rest of the derivations
   // because `currentIndex` starts from it — see that hook.
+  /**
+   * The level of the tree this row is standing on: the siblings of whatever
+   * is open, so the open one is always among the covers.
+   *
+   * The row used to be the roots and only the roots. Walking into a folder
+   * from the panel below set an id that was nowhere in the row — and the
+   * panel only draws while its id is one of the covers, so the second step
+   * into a tree closed the panel and left a carousel of one card. Reading the
+   * level from the open folder's parent makes each step a row of that
+   * folder's neighbours, which is what walking a tree looks like.
+   *
+   * From `openId` rather than `expandedId`: this has to be resolved before
+   * the state below it, and the workspace hands the same value straight back
+   * down through `onOpenChange`.
+   */
+  const folderLevel =
+    browseMode === 'folder' && openId !== undefined
+      ? parentFolderPath(openId, folderRoots)
+      : undefined;
   // Which folders the shelf holds, under whichever reading is on.
   const folderEntries = useFolderEntries(
     tracks,
     folderRoots,
-    undefined,
+    folderLevel,
     isSearching,
   );
 
@@ -1027,7 +1047,18 @@ const LibraryCoverFlow = ({
             // Walking deeper is opening a different cover, which this view
             // already knows how to do.
             onOpenFolder={(path) => openPanel(path)}
-            onBack={() => openPanel(undefined)}
+            // Up one level in the tree, not out of it: Back from
+            // `Artist/Album` is `Artist`, the same as it is everywhere else
+            // this library is walked. At a root there is nothing above, and
+            // `parentFolderPath` says so by answering nothing — which closes
+            // the panel, which is what Back has always done there.
+            onBack={() =>
+              openPanel(
+                browseMode === 'folder' && expandedId !== undefined
+                  ? parentFolderPath(expandedId, folderRoots)
+                  : undefined,
+              )
+            }
             onPlayTrack={(trackId) => onPlayTrack?.(trackId)}
             playingTrackId={playingTrackId}
             revealTrack={revealTrack}

@@ -202,7 +202,16 @@ $now-playing-bar-height: 64px;
   // can set anyway, and the menu draws them all at a usable width. Only where
   // there is a menu to open — a song with a single fader keeps the fader,
   // because pressing its icon mutes and there is nothing else to reach.
-  .now-playing-bar__adopted
+  // `.now-playing-bar` on the front, and it is load-bearing.
+  //
+  // `Karaoke.scss` carries this exact selector at this exact specificity with
+  // the four-column template on it, and which of the two wins was decided by
+  // whichever stylesheet the bundler put last — media query or not, a query
+  // adds no weight. Karaoke won, so at 720px the children below were hidden
+  // by the uncontested rule while the row went on reserving `26px 56px auto
+  // 22px` for them: a hundred pixels of empty bar with one chevron in it.
+  .now-playing-bar
+    .now-playing-bar__adopted
     .karaoke-transport__volume.has-trailing:not(.is-in-mix-menu) {
     grid-template-columns: auto;
     padding: 0;
@@ -215,7 +224,11 @@ $now-playing-bar-height: 64px;
     }
   }
 
-  .now-playing-bar__adopted button.karaoke-transport__mix-trigger {
+  // The same tie, and the same answer: this is the fader at this width, so it
+  // is drawn as a control rather than as a bare glyph floating in the bar.
+  .now-playing-bar
+    .now-playing-bar__adopted
+    button.karaoke-transport__mix-trigger {
     width: 30px;
     min-width: 30px;
     height: 30px;

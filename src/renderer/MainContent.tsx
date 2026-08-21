@@ -337,6 +337,46 @@ const MainContent = () => {
     hasSelectedOnce.current = true;
   }, [filters, frequencySortedFilters, selectedFilterId, setSelectedFilterId]);
 
+  /**
+   * A press anywhere else puts the selection down.
+   *
+   * The editor below opens on whatever is selected, and there was no way to
+   * close it except by clicking the empty part of the band rail or of the
+   * graph — so it sat open across the bottom of the page while the user was
+   * working somewhere else entirely, on a band they had stopped caring about.
+   *
+   * Three regions are excluded, each for its own reason: the rail and the
+   * graph both select bands themselves, and a dialog is a surface that should
+   * leave the page behind it exactly as it was.
+   *
+   * Capture phase, so this runs before whatever the press was actually for.
+   * Pressing a band in the graph clears the selection here and the graph's own
+   * handler then sets it, which is the order that ends on the band the user
+   * pressed; in the bubble phase the two happen the other way round and every
+   * selection is undone a moment after it is made.
+   */
+  useEffect(() => {
+    if (selectedFilterIds.length === 0) {
+      return undefined;
+    }
+    // The DOM's event rather than React's synthetic one: the name is taken in
+    // this file by the React type, and nothing here needs the pointer detail.
+    const onPointerDown = (event: Event) => {
+      const target = event.target as HTMLElement | null;
+      if (
+        target?.closest?.(
+          '.bands-rail, .eq-flat-editor, .graph-wrapper, [role="dialog"]',
+        )
+      ) {
+        return;
+      }
+      setSelectedFilterIds([]);
+    };
+    document.addEventListener('pointerdown', onPointerDown, true);
+    return () =>
+      document.removeEventListener('pointerdown', onPointerDown, true);
+  }, [selectedFilterIds.length, setSelectedFilterIds]);
+
   // The bands as they are right now, not as they were when this render's
   // closures were made. The group edit below runs from a throttled timer, so
   // everything captured in that closure is frozen at the moment the drag

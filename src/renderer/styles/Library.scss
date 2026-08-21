@@ -2109,23 +2109,21 @@ $library-wave-step: 4ms;
   margin-bottom: 0;
 }
 
-// Where the reader is standing, on the shelves that are not the tree.
+// Where the reader is standing, beside the control that leaves it.
 //
-// The albums on screen are the albums in this folder; without this the
-// library just looks smaller than it is, with nothing saying why and no way
-// back. The path is muted and truncates from the left, because the end of it
-// — the folder itself — is the part worth reading.
-.library-workspace__scope {
-  display: flex;
+// This used to be a row of its own above the drill-in, with a second Back of
+// its own on it; there is one Back now and the path sits next to it. Muted,
+// and truncating from the left, because the end of it — the folder itself —
+// is the part worth reading.
+//
+// `flex: 1 1 auto` with a zero floor so it gives way to the filter field on
+// its right rather than pushing it off the line: a long path is the one thing
+// here that has no natural width.
+.library-detail__folder {
   min-width: 0;
-  flex: 0 0 auto;
-  align-items: center;
-  gap: $spacing-s;
-}
-
-.library-workspace__scope-path {
-  min-width: 0;
+  flex: 1 1 auto;
   overflow: hidden;
+  margin-inline-end: auto;
   color: $text-muted;
   direction: rtl;
   font-size: 0.66rem;

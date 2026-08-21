@@ -1950,9 +1950,17 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   color: rgba($secondary-light, 0.76);
   border-radius: 50%;
 
+  // Stroked in the button's own colour. The glyph here used to be a filled
+  // triangle with its blue written into the path, so every state colour set
+  // on this button was set on something that could not take it.
   > svg {
     width: 15px;
     height: 15px;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.8;
   }
 
   &[data-enabled='true'] {
@@ -2011,9 +2019,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   background: none !important;
   box-shadow: none !important;
 
+  // Shut, it points the way the menu will come from. The chevron is drawn
+  // pointing down — it is the same one every other menu trigger in the app
+  // uses — and this menu rises out of the bar at the foot of the window, so
+  // the resting state is the turned one and opening returns it.
   > svg {
     width: 13px;
     height: 13px;
+    transform: rotate(180deg);
     transition: transform $motion-fast $ease-out;
   }
 
@@ -2022,15 +2035,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     background: rgba($secondary-default, 0.16) !important;
   }
 
-  // Open: the arrow points back the way the menu came from. The menu itself
-  // rises out of the bar at the foot of the window, so shut it points up.
+  // Open: the arrow points back the way the menu came from, which is down.
   &[aria-expanded='true'] {
     color: $secondary-light !important;
     background: rgba($secondary-default, 0.2) !important;
     box-shadow: none !important;
 
     > svg {
-      transform: rotate(180deg);
+      transform: rotate(0deg);
     }
   }
 }
