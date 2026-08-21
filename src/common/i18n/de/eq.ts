@@ -150,6 +150,9 @@ const eq: Partial<Dictionary> = {
   'output.hint':
     'FluidEQ merkt sich die feste Geräte-ID, dieser Klang folgt dem Gerät also immer, wenn Windows es auswählt.',
   'extraOutput.eyebrow': 'SPIELT AN ZWEI ORTEN',
+  'extraOutput.singlePlayer': 'Nur ein Player',
+  'extraOutput.singlePlayerHint':
+    'Startet hier etwas, pausiert der Rest des Systems — und umgekehrt.',
   'extraOutput.title': 'Zweite Ausgabe',
   'extraOutput.target': 'Spiegeln auf',
   'extraOutput.off': 'Aus',

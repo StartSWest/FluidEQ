@@ -150,6 +150,9 @@ const eq: Partial<Dictionary> = {
   'output.hint':
     'FluidEQ запоминает постоянный идентификатор устройства, поэтому звук следует за ним всякий раз, когда Windows его выбирает.',
   'extraOutput.eyebrow': 'ЗВУЧИТ В ДВУХ МЕСТАХ',
+  'extraOutput.singlePlayer': 'Только один проигрыватель',
+  'extraOutput.singlePlayerHint':
+    'Запуск здесь ставит остальное на паузу, и наоборот.',
   'extraOutput.title': 'Второй выход',
   'extraOutput.target': 'Дублировать на',
   'extraOutput.off': 'Выключено',

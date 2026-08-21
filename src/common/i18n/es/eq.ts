@@ -152,6 +152,9 @@ const eq: Partial<Dictionary> = {
   'output.hint':
     'FluidEQ usa el identificador estable del dispositivo, así que este sonido lo acompaña siempre que Windows lo seleccione.',
   'extraOutput.eyebrow': 'SUENA EN DOS SITIOS',
+  'extraOutput.singlePlayer': 'Un solo reproductor',
+  'extraOutput.singlePlayerHint':
+    'Si empieza algo aquí, se pausa lo demás del sistema, y al revés.',
   'extraOutput.title': 'Segunda salida',
   'extraOutput.target': 'Duplicar en',
   'extraOutput.off': 'Desactivado',

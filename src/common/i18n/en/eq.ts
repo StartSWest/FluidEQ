@@ -148,6 +148,9 @@ const eq = {
   'output.hint':
     'FluidEQ maps the stable endpoint ID, so this sound follows the device whenever Windows selects it.',
   'extraOutput.eyebrow': 'PLAYS IN TWO PLACES',
+  'extraOutput.singlePlayer': 'One player at a time',
+  'extraOutput.singlePlayerHint':
+    'Starting something here pauses the rest of the machine, and the other way round.',
   'extraOutput.title': 'Second output',
   'extraOutput.target': 'Mirror to',
   'extraOutput.off': 'Off',

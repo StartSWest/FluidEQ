@@ -151,6 +151,9 @@ const eq: Partial<Dictionary> = {
   'output.hint':
     'FluidEQ retient l’identifiant stable du périphérique : ce son le suit chaque fois que Windows le sélectionne.',
   'extraOutput.eyebrow': 'JOUE À DEUX ENDROITS',
+  'extraOutput.singlePlayer': 'Un seul lecteur',
+  'extraOutput.singlePlayerHint':
+    'Démarrer ici met en pause le reste de la machine, et inversement.',
   'extraOutput.title': 'Deuxième sortie',
   'extraOutput.target': 'Dupliquer vers',
   'extraOutput.off': 'Désactivé',

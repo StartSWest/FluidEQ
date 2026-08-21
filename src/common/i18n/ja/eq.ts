@@ -148,6 +148,9 @@ const eq: Partial<Dictionary> = {
   'output.hint':
     'FluidEQ はデバイスの固定 ID を記録するため、Windows がその機器を選ぶたびにこの音が付いてきます。',
   'extraOutput.eyebrow': '2 か所で鳴らす',
+  'extraOutput.singlePlayer': '再生はひとつだけ',
+  'extraOutput.singlePlayerHint':
+    'ここで再生すると他のアプリが一時停止し、その逆も同じです。',
   'extraOutput.title': '2 つめの出力',
   'extraOutput.target': 'ミラー先',
   'extraOutput.off': 'オフ',

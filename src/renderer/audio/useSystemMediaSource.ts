@@ -53,6 +53,7 @@ import type { ISystemMediaSnapshot } from '../../main/systemMedia';
 import { stopAllPlayback, usePlaybackOwner } from './playbackOwner';
 import type { TPlaybackOwner } from './playbackOwner';
 import { clearTransportSource, setTransportSource } from './transportSource';
+import { isSinglePlayerEnabled } from '../utils/singlePlayer';
 
 /** What the bar shows for a player that has published no artist. */
 const subtitleFor = (snapshot: ISystemMediaSnapshot): string | undefined =>
@@ -77,7 +78,9 @@ export const shouldYieldToSystem = (
   wasPlaying: boolean,
   isPlaying: boolean,
   appOwner: TPlaybackOwner | undefined,
-): boolean => isPlaying && !wasPlaying && appOwner !== undefined;
+  isSinglePlayer: boolean,
+): boolean =>
+  isSinglePlayer && isPlaying && !wasPlaying && appOwner !== undefined;
 
 export const useSystemMediaSource = (): void => {
   const playingOwner = usePlaybackOwner();
@@ -110,6 +113,7 @@ export const useSystemMediaSource = (): void => {
           wasPlaying,
           snapshot?.isPlaying === true,
           playingOwnerRef.current,
+          isSinglePlayerEnabled(),
         )
       ) {
         // Somebody pressed play somewhere else. Ours stops, the way it stops
@@ -187,7 +191,11 @@ export const useSystemMediaSource = (): void => {
    * start it, which is this app turning somebody's music on for them.
    */
   useEffect(() => {
-    if (playingOwner === undefined || !lastSnapshotRef.current?.isPlaying) {
+    if (
+      !isSinglePlayerEnabled() ||
+      playingOwner === undefined ||
+      !lastSnapshotRef.current?.isPlaying
+    ) {
       return;
     }
     window.electron?.ipcRenderer

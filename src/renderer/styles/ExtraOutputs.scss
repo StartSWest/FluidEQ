@@ -21,6 +21,25 @@ it under the terms of the GNU General Public License version 3 or later.
   list-style: none;
 }
 
+// The one row on this card that is not an output.
+//
+// The same shape as the rows below it — a switch, then two stacked lines —
+// and fenced off underneath, because the list is a set of places to send
+// sound and this is a rule about the sound itself. Without the line it read
+// as a speaker somebody had forgotten to name.
+.extra-outputs__rule {
+  display: flex;
+  min-width: 0;
+  align-items: flex-start;
+  padding-bottom: 10px;
+  border-bottom: 1px solid $border-panel;
+  gap: 8px;
+
+  > .switch {
+    flex: 0 0 auto;
+  }
+}
+
 // Switch and dot hold their size; the text takes whatever is left. Aligned to
 // the top rather than centred, so a name that needs two lines grows downward
 // instead of dragging the switch off the row it belongs to.

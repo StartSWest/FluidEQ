@@ -33,6 +33,15 @@ interface ISidebarSectionProps {
   summary?: ReactNode;
   /** Hide the summary while expanded when it only previews folded content. */
   summaryWhenCollapsedOnly?: boolean;
+  /**
+   * A control of this section's that is never folded away.
+   *
+   * Not the same thing as `summary`, which previews what folding hid and is
+   * therefore dropped once the section is open. This is a setting that lives
+   * on this card, and hiding it while the card is open would be the one
+   * arrangement where it is never on screen at all.
+   */
+  aside?: ReactNode;
   /** Extra class on the section, for callers outside the sidebar. */
   className?: string;
   /**
@@ -60,6 +69,7 @@ export default function SidebarSection({
   title,
   summary,
   summaryWhenCollapsedOnly = false,
+  aside,
   className,
   defaultOpen = true,
   children,
@@ -100,6 +110,8 @@ export default function SidebarSection({
           />
         </svg>
       </button>
+
+      {aside && <div className="sidebar-section__aside">{aside}</div>}
 
       {summary && (!summaryWhenCollapsedOnly || !isOpen) && (
         <div className="sidebar-section__summary">{summary}</div>

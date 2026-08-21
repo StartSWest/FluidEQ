@@ -147,6 +147,8 @@ const eq: Partial<Dictionary> = {
   'output.hint':
     'FluidEQ 记录设备的固定标识，因此只要 Windows 选中该设备，这套声音就会跟着走。',
   'extraOutput.eyebrow': '同时在两处播放',
+  'extraOutput.singlePlayer': '同时只播放一处',
+  'extraOutput.singlePlayerHint': '在此开始播放会暂停系统其他声音，反之亦然。',
   'extraOutput.title': '第二路输出',
   'extraOutput.target': '镜像到',
   'extraOutput.off': '关闭',

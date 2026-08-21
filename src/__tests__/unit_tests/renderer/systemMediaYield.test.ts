@@ -31,18 +31,18 @@ import { shouldYieldToSystem } from '../../../renderer/audio/useSystemMediaSourc
 
 describe('yielding to the machine’s own player', () => {
   it('stops ours when something out there starts', () => {
-    expect(shouldYieldToSystem(false, true, 'library')).toBe(true);
+    expect(shouldYieldToSystem(false, true, 'library', true)).toBe(true);
   });
 
   it('leaves ours alone while nothing out there is playing', () => {
-    expect(shouldYieldToSystem(false, false, 'library')).toBe(false);
+    expect(shouldYieldToSystem(false, false, 'library', true)).toBe(false);
   });
 
   it('does not act twice on one start', () => {
     // The watcher reports every change — a position moving, a queue's next
     // track — and every one of those readings still says "playing". Only the
     // first is somebody pressing play.
-    expect(shouldYieldToSystem(true, true, 'library')).toBe(false);
+    expect(shouldYieldToSystem(true, true, 'library', true)).toBe(false);
   });
 
   it('does not stop ours for the pause we just sent', () => {
@@ -50,11 +50,19 @@ describe('yielding to the machine’s own player', () => {
     // for one reading it is still playing. Read as state, that says "outside
     // is playing and we are playing" and stops the song that just started;
     // read as a change, it says nothing happened.
-    expect(shouldYieldToSystem(true, true, 'karaoke')).toBe(false);
+    expect(shouldYieldToSystem(true, true, 'karaoke', true)).toBe(false);
   });
 
   it('has nothing to stop when this app is silent', () => {
     // The ordinary case: a browser starts and the bar simply shows it.
-    expect(shouldYieldToSystem(false, true, undefined)).toBe(false);
+    expect(shouldYieldToSystem(false, true, undefined, true)).toBe(false);
+  });
+
+  it('leaves both alone when the setting is off', () => {
+    // Two outputs, two rooms: a browser on one and the library on the other
+    // is somebody's deliberate arrangement, and stopping either is this app
+    // breaking a setup it cannot see. The switch lives on the card where the
+    // second output is chosen — see `singlePlayer`.
+    expect(shouldYieldToSystem(false, true, 'library', false)).toBe(false);
   });
 });

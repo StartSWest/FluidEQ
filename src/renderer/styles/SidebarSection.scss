@@ -162,6 +162,17 @@ it under the terms of the GNU General Public License version 3 or later.
   padding: 10px 13px 0;
 }
 
+// The section's own setting, on screen whether the section is folded or not.
+//
+// Padded like the summary because it stands in the same place, and it carries
+// its bottom padding in both states: it is not a preview of the body, so
+// there is nothing after it to lean on when the section is closed and nothing
+// to crowd when it is open.
+.sidebar-section__aside {
+  min-width: 0;
+  padding: 10px 13px 12px;
+}
+
 // Without a body to follow it, the summary needs the bottom padding itself.
 .sidebar-section:not(.is-open) .sidebar-section__summary {
   padding-bottom: 13px;

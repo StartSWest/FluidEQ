@@ -150,6 +150,9 @@ const eq: Partial<Dictionary> = {
   'output.hint':
     'FluidEQ डिवाइस की स्थायी ID याद रखता है, इसलिए Windows जब भी उसे चुनेगा यह आवाज़ उसके साथ रहेगी।',
   'extraOutput.eyebrow': 'दो जगह बजता है',
+  'extraOutput.singlePlayer': 'एक समय पर एक प्लेयर',
+  'extraOutput.singlePlayerHint':
+    'यहाँ कुछ चलाने पर बाकी सिस्टम रुक जाता है, और इसका उल्टा भी।',
   'extraOutput.title': 'दूसरा आउटपुट',
   'extraOutput.target': 'यहाँ मिरर करें',
   'extraOutput.off': 'बंद',

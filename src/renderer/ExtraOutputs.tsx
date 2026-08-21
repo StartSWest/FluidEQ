@@ -14,10 +14,12 @@ import SidebarSection from './components/SidebarSection';
 import Switch from './widgets/Switch';
 import useOutputMirror, { IMirrorTarget } from './audio/useOutputMirror';
 import { useTranslation } from './utils/I18nContext';
+import { setSinglePlayer, useSinglePlayer } from './utils/singlePlayer';
 import './styles/ExtraOutputs.scss';
 
 const ExtraOutputs = () => {
   const { t } = useTranslation();
+  const isSinglePlayer = useSinglePlayer();
   const {
     error,
     isMirroring,
@@ -112,6 +114,27 @@ const ExtraOutputs = () => {
         ) : undefined
       }
       summaryWhenCollapsedOnly
+      // Never folded away with the rest. It is a rule about the sound, not a
+      // detail of the list, and the card is closed by default — folded with
+      // the endpoints it would be a setting nobody ever meets.
+      aside={
+        <div className="extra-outputs__rule">
+          <Switch
+            id="single-player"
+            isOn={isSinglePlayer}
+            isDisabled={false}
+            handleToggle={() => setSinglePlayer(!isSinglePlayer)}
+          />
+          <span className="extra-outputs__text">
+            <span className="extra-outputs__name">
+              {t('extraOutput.singlePlayer')}
+            </span>
+            <span className="extra-outputs__profile">
+              {t('extraOutput.singlePlayerHint')}
+            </span>
+          </span>
+        </div>
+      }
     >
       {eligible.length === 0 ? (
         <p className="extra-outputs__hint">{t('extraOutput.none')}</p>
