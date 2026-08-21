@@ -266,7 +266,7 @@ $now-playing-bar-height: 64px;
   cursor: pointer;
   transition: $transition-control;
 
-  &:hover {
+  &:hover:not(:disabled) {
     border-color: rgba($secondary-light, 0.3);
     background: rgba($secondary-default, 0.1);
   }
@@ -274,6 +274,17 @@ $now-playing-bar-height: 64px;
   &:focus-visible {
     @include focus-ring;
     outline: none;
+  }
+
+  // Nowhere to go, and not switched off.
+  //
+  // This is the bar showing sound another program is making: no tab here
+  // reveals it, so the press is not offered. Dimming would say the wrong
+  // thing — the title and the cover are as true as on any other tab, and a
+  // greyed-out song reads as one that failed to load.
+  &:disabled {
+    opacity: 1;
+    cursor: default;
   }
 
   // Larger than the list rows' own leading column, which is sized to line up

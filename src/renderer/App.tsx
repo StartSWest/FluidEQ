@@ -72,6 +72,7 @@ import {
 import NowPlayingBar from './library/player/NowPlayingBar';
 import SourceTransportBar from './library/player/SourceTransportBar';
 import { usePlaybackOwner, type TPlaybackOwner } from './audio/playbackOwner';
+import { useSystemMediaSource } from './audio/useSystemMediaSource';
 import {
   useLastTransportOwner,
   useTransportSources,
@@ -281,8 +282,14 @@ const TAB_TRANSPORT: Partial<Record<TWorkspaceTab, TPlaybackOwner>> = {
  * opened straight onto Karaoke therefore had no bar at all until the user
  * happened to look at the Library.
  */
-/** Where each player lives, for the press that goes to it. */
-const TRANSPORT_TAB: Record<TPlaybackOwner, TWorkspaceTab> = {
+/**
+ * Where each player lives, for the press that goes to it.
+ *
+ * Partial because one of them has nowhere to go: `system` is another program
+ * making the sound, and no tab here shows it. The bar leaves its cover and
+ * title as plain text rather than as a button that would go nowhere.
+ */
+const TRANSPORT_TAB: Partial<Record<TPlaybackOwner, TWorkspaceTab>> = {
   library: 'library',
   karaoke: 'karaoke',
   media: 'video',
@@ -312,12 +319,13 @@ const TabTransportBar = ({
   if (owner === 'library' || source === undefined) {
     return null;
   }
+  const tab = TRANSPORT_TAB[source.owner];
   return (
     <SourceTransportBar
       source={source}
       isIdle={isIdle}
       isFloating={isFloating}
-      onReveal={() => onGoToTab(TRANSPORT_TAB[source.owner])}
+      onReveal={tab === undefined ? undefined : () => onGoToTab(tab)}
     />
   );
 };
@@ -435,6 +443,12 @@ const AppContent = () => {
         ? 'latest'
         : null,
   );
+  // What the rest of the machine is playing, on the bar when this app has
+  // nothing of its own there. Mounted at the root because it is nobody's tab:
+  // the sound is Spotify's or a browser's, and the curve on screen is shaping
+  // it just the same.
+  useSystemMediaSource();
+
   // Set from inside the graph pane; read here because the elements that have
   // to get out of the way are not the graph's — the EQ panel is its sibling,
   // and the side panels and titlebar are further out still.

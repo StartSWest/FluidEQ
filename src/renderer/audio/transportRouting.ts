@@ -47,6 +47,17 @@ export const pickTransportOwner = (
   if (playingOwner !== undefined && sources[playingOwner] !== undefined) {
     return playingOwner;
   }
+  // The machine's own sound plays by the same rule, and has to say so itself.
+  //
+  // `playbackOwner` is a register of players this app can silence, and another
+  // program is not one of them — so a browser tab is never the "playing owner"
+  // however loudly it is playing. Its own `isPlaying` is the only word there
+  // is on the subject: while that is true the bar is its own on every page,
+  // exactly as a song of this app's would be, and when it stops the page's own
+  // player has the bar back.
+  if (sources.system?.isPlaying === true) {
+    return 'system';
+  }
   if (tabOwner !== undefined && sources[tabOwner] !== undefined) {
     return tabOwner;
   }

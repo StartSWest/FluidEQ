@@ -37,7 +37,16 @@ import { useSyncExternalStore } from 'react';
  * custom element driven imperatively — so a provider above all three would
  * have to be above the whole app and reach into it by ref anyway.
  */
-export type TPlaybackOwner = 'library' | 'karaoke' | 'media';
+/**
+ * `system` is the one that is not a player of this app's.
+ *
+ * It is whatever else on the machine is making sound — a browser tab, Spotify,
+ * VLC — as Windows reports it, shown on the bar when this app has nothing of
+ * its own to show. It never claims playback and never registers a stopper:
+ * FluidEQ cannot silence another program, and a claim it could not honour
+ * would have the library's own audio stop for something that cannot stop.
+ */
+export type TPlaybackOwner = 'library' | 'karaoke' | 'media' | 'system';
 
 /** What each player hands over when it registers: how to silence it. Called
  * when somebody else claims playback, and never called on the owner that is

@@ -117,6 +117,7 @@ const library: Partial<Dictionary> = {
   'library.queue': 'Coda',
   'library.queue.remove': 'Rimuovi dalla coda',
   'library.nowPlaying': 'In riproduzione',
+  'library.systemAudio': 'Audio di sistema',
   'library.fullScreen': 'Schermo intero',
 };
 

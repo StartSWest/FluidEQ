@@ -118,6 +118,7 @@ const library: Partial<Dictionary> = {
   'library.queue': '再生キュー',
   'library.queue.remove': 'キューから削除',
   'library.nowPlaying': '再生中',
+  'library.systemAudio': 'システム音声',
   'library.fullScreen': '全画面',
 };
 

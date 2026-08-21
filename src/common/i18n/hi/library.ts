@@ -115,6 +115,7 @@ const library: Partial<Dictionary> = {
   'library.queue': 'कतार',
   'library.queue.remove': 'कतार से हटाएँ',
   'library.nowPlaying': 'अभी चल रहा है',
+  'library.systemAudio': 'सिस्टम ऑडियो',
   'library.fullScreen': 'पूर्ण स्क्रीन',
 };
 

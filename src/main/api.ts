@@ -20,6 +20,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { ipcRenderer, IpcRendererEvent, webUtils } from 'electron';
 // Type only, so the preload bundle does not pull `child_process` in behind it.
 import type { TMediaTransportAction } from './mediaKeys';
+import type { ISystemMediaSnapshot } from './systemMedia';
 import type {
   IKaraokeRestoredFileBytes,
   IKaraokeRestoredSession,
@@ -140,6 +141,48 @@ const setWindowFullScreen = (next: boolean) =>
  */
 const sendMediaTransport = (action: TMediaTransportAction) =>
   ipcRenderer.invoke('media-transport', action) as Promise<void>;
+
+/**
+ * Ask main to report what the rest of the machine is playing, or to stop.
+ *
+ * On only while the bar has none of this app's own players to show: the
+ * watcher is a child process, and one nobody is reading is one that should
+ * not be running.
+ */
+const watchSystemMedia = (enabled: boolean) =>
+  ipcRenderer.invoke('system-media-watch', enabled) as Promise<void>;
+
+/**
+ * Skip or seek whatever the machine is playing.
+ *
+ * Only the three commands a session can be asked for, and only where it said
+ * it would take them — the flags travel with each snapshot. Play and pause are
+ * not here: those go out as a media key, which reaches players that never
+ * registered a session at all.
+ */
+const sendSystemMediaCommand = (
+  command: 'next' | 'previous' | 'seek',
+  positionMs?: number,
+) =>
+  ipcRenderer.invoke(
+    'system-media-command',
+    command,
+    positionMs,
+  ) as Promise<void>;
+
+/** Whatever the machine is playing now, or nothing. */
+const onSystemMedia = (
+  listener: (snapshot: ISystemMediaSnapshot | undefined) => void,
+) => {
+  const wrapped = (
+    _event: IpcRendererEvent,
+    snapshot: ISystemMediaSnapshot | undefined,
+  ) => listener(snapshot);
+  ipcRenderer.on('system-media-changed', wrapped);
+  return () => {
+    ipcRenderer.removeListener('system-media-changed', wrapped);
+  };
+};
 
 /** Electron removed File.path; this is the supported replacement. */
 const getPathForFile = (file: File): string => webUtils.getPathForFile(file);
@@ -394,6 +437,9 @@ export default {
     isWindowMaximized,
     setWindowFullScreen,
     sendMediaTransport,
+    watchSystemMedia,
+    sendSystemMediaCommand,
+    onSystemMedia,
     getPathForFile,
     saveKaraokeSession,
     restoreKaraokeSession,

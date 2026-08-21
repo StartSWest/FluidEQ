@@ -56,6 +56,28 @@ export interface ITransportSource {
   /** Absent where the source cannot seek — a page we can only ask to play or
    * pause has no playhead to move. */
   seek?: (positionMs: number) => void;
+  /**
+   * Move the playhead by a step, for a source that will not say where it is.
+   *
+   * The Media tab's page and the machine's own players both take "five
+   * seconds on from wherever you are", and neither reports a position often
+   * enough for the bar to work that out itself: the guest is sampled every
+   * few seconds, and Windows publishes a position only when a player thinks
+   * to republish one. A relative step is the honest shape for both, and where
+   * a source has one the skip buttons use it rather than doing arithmetic on
+   * a stale number.
+   */
+  nudge?: (deltaMs: number) => void;
+  /**
+   * The queue either side, where there is one.
+   *
+   * Absent for a karaoke session and for a web page: one song and one page
+   * have no next. Present for another program's player only where Windows
+   * says that player takes the command — a button that answers nothing is
+   * worse than a button that is not offered.
+   */
+  next?: () => void;
+  previous?: () => void;
   /** 0 to 1. Absent where the source has no fader of its own to offer. */
   volume?: number;
   setVolume?: (value: number) => void;

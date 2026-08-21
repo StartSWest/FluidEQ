@@ -130,6 +130,11 @@ import {
   saveDeviceProfileSettings,
 } from './deviceProfiles';
 import { sendMediaTransportKey } from './mediaKeys';
+import {
+  sendSystemMediaCommand,
+  stopWatchingSystemMedia,
+  watchSystemMedia,
+} from './systemMedia';
 import { claimInstance, isAnotherInstanceLive } from './singleInstance';
 import { POWERSHELL_PATH } from './powershell';
 import { hydrateConvolutionAnalysis } from './convolutionAnalysis';
@@ -2155,6 +2160,55 @@ ipcMain.handle('restart-windows-audio', async () => {
 ipcMain.handle('media-transport', async (_event, action: unknown) => {
   await sendMediaTransportKey(action);
 });
+
+/**
+ * Watch what the rest of the machine is playing, or stop watching.
+ *
+ * Asked for by the window and only while it has nothing of its own on the
+ * bar: this app equalises whatever the device outputs, so "nothing is
+ * playing" was wrong every time the sound was coming from a browser tab. The
+ * watcher is a PowerShell child — see `systemMedia` for why — and one that is
+ * not needed is one that should not be running.
+ */
+ipcMain.handle('system-media-watch', (event, enabled: unknown) => {
+  if (enabled !== true) {
+    stopWatchingSystemMedia();
+    return;
+  }
+  watchSystemMedia((snapshot) => {
+    if (!event.sender.isDestroyed()) {
+      event.sender.send('system-media-changed', snapshot);
+    }
+  });
+});
+
+/**
+ * Skip or seek whatever the machine is playing.
+ *
+ * The renderer names one of three commands and, for a seek, where to go. The
+ * name is checked here rather than trusted: everything else on this path ends
+ * up inside a PowerShell script, and a name from a window that reached it
+ * would be a window writing PowerShell.
+ */
+ipcMain.handle(
+  'system-media-command',
+  async (_event, command: unknown, positionMs: unknown) => {
+    if (command !== 'next' && command !== 'previous' && command !== 'seek') {
+      return;
+    }
+    await sendSystemMediaCommand(
+      command,
+      typeof positionMs === 'number' && Number.isFinite(positionMs)
+        ? positionMs
+        : undefined,
+    );
+  },
+);
+
+// The child outlives nothing. A window that has gone cannot be told what is
+// playing, and a PowerShell left running after the app closed is a process
+// somebody finds in Task Manager with this app's name on it.
+app.on('will-quit', stopWatchingSystemMedia);
 
 const sendWindowState = () => {
   if (!mainWindow || mainWindow.isDestroyed()) {

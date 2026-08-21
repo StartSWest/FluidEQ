@@ -68,6 +68,7 @@ import {
   PLAYER_ONLY_CSS,
   PROBE_PLAYBACK,
   READ_POSITION,
+  nudgePositionScript,
   STOP_PLAYBACK,
   TOGGLE_PLAYBACK,
   setGuestVolumeScript,
@@ -507,6 +508,23 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
             // policy the tag is loaded under.
             view
               .executeJavaScript(TOGGLE_PLAYBACK, true)
+              .catch(() => undefined);
+          } catch {
+            // No web contents to ask.
+          }
+        },
+        // Five seconds either way, done inside the page.
+        //
+        // No `seek` beside it, and that is the honest pair: this pane learns
+        // the position from a sample every few seconds — enough to remember
+        // where a video was left, nowhere near enough to drive a slider — so
+        // the bar gets the step it can offer truthfully rather than a slider
+        // it could not. The page holds the playhead and does the arithmetic:
+        // see `nudgePositionScript`.
+        nudge: (deltaMs: number) => {
+          try {
+            view
+              .executeJavaScript(nudgePositionScript(deltaMs / 1000))
               .catch(() => undefined);
           } catch {
             // No web contents to ask.

@@ -391,3 +391,38 @@ export const setGuestVolumeScript = (volume: number) => `(() => {
   });
   return 'ok';
 })()`;
+
+/**
+ * Move the page's playhead by a step, from wherever it actually is.
+ *
+ * A step and not a position, because this end does not know the position: the
+ * pane samples the guest every few seconds for its resume mark, and five
+ * seconds worked out from a five-second-old reading lands somewhere nobody
+ * asked for. The page holds the truth and does the arithmetic.
+ *
+ * The element is chosen the way `READ_POSITION` chooses one, and for the same
+ * reason: the running player first, the largest otherwise, so a muted preview
+ * loop bigger than the video does not take the press.
+ *
+ * Clamped at both ends. Past the end is a video that finished — and on a
+ * stream with no duration to compare against, the guest is left to refuse the
+ * seek itself, which it does far more sensibly than a guess from here.
+ */
+export const nudgePositionScript = (deltaSeconds: number) => `(() => {
+  const media = [...document.querySelectorAll('video, audio')];
+  if (media.length === 0) { return 'none'; }
+  media.sort(
+    (a, b) => (b.clientWidth * b.clientHeight) - (a.clientWidth * a.clientHeight)
+  );
+  const playing = media.find((el) => !el.paused && el.currentTime > 0);
+  const target = playing || media[0];
+  try {
+    const next = target.currentTime + ${Number.isFinite(deltaSeconds) ? deltaSeconds : 0};
+    const end = Number.isFinite(target.duration) ? target.duration : undefined;
+    target.currentTime = Math.max(0, end === undefined ? next : Math.min(next, end));
+    return 'moved';
+  } catch (e) {
+    // A server-controlled stream can refuse a seek, and says so by throwing.
+    return 'none';
+  }
+})()`;

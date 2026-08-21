@@ -58,8 +58,14 @@ const SourceTransportBar = ({
   isFloating?: boolean;
   /** Faded out while full screen has been still — see `NowPlayingBar`. */
   isIdle?: boolean;
-  /** Go to the tab this player belongs to. */
-  onReveal: () => void;
+  /**
+   * Go to the tab this player belongs to, where there is one.
+   *
+   * Absent for the machine's own sound: that is another program playing, and
+   * a press that took you to a tab which does not show it would be worse than
+   * a press that does nothing.
+   */
+  onReveal?: () => void;
 }) => {
   const { t } = useTranslation();
 
@@ -69,9 +75,17 @@ const SourceTransportBar = ({
    * Read from the same catalogue the tab strip reads, so the bar and the tab
    * cannot end up calling the same place two things.
    */
-  const contextLabel = t(
-    source.owner === 'karaoke' ? 'tabs.karaoke' : 'tabs.media',
-  );
+  const contextLabel = (() => {
+    if (source.owner === 'karaoke') {
+      return t('tabs.karaoke');
+    }
+    // Not a tab at all: the sound is another program's, and the honest line
+    // is what it is rather than the name of a page in this app.
+    if (source.owner === 'system') {
+      return t('library.systemAudio');
+    }
+    return t('tabs.media');
+  })();
 
   const [scrubMs, setScrubMs] = useState<number | undefined>(undefined);
 
@@ -87,7 +101,15 @@ const SourceTransportBar = ({
   // same way — this is the same bar in the same place, on another tab.
   useTransportStrip(barRef, true, isFloating);
 
+  // Two different questions that used to be one.
+  //
+  // A slider needs to know where the playhead is and how long the thing is;
+  // a five-second step needs neither, as long as the source will take a
+  // relative move. The Media tab's page and the machine's own players are
+  // exactly that case — steppable, unmeasurable — and folding the two
+  // questions together is why they had no skip buttons at all.
   const canSeek = Boolean(source.seek) && source.durationMs > 0;
+  const canStep = canSeek || Boolean(source.nudge);
   const shownPosition =
     scrubMs ?? Math.min(source.positionMs, Math.max(1, source.durationMs));
   const progressPercent =
@@ -109,6 +131,12 @@ const SourceTransportBar = ({
   }, [source]);
 
   const nudge = (direction: 1 | -1) => {
+    // The source's own step first: where there is one, it is because this end
+    // cannot be trusted to know the position — see `ITransportSource.nudge`.
+    if (source.nudge) {
+      source.nudge(direction * NUDGE_MS);
+      return;
+    }
     source.seek?.(
       Math.min(
         source.durationMs,
@@ -130,10 +158,16 @@ const SourceTransportBar = ({
         {/* Pressing it goes to the tab that is playing, the way the library's
             own bar goes to the row in the list. The cover and the two lines
             are one target, because "what is playing" is one thing. */}
+        {/* Pressable only while there is somewhere to go. The machine's own
+            sound has no tab here, and a press that silently did nothing is
+            the one thing worse than a press that is plainly not offered — see
+            the stylesheet, where this state keeps its colours rather than
+            being dimmed like a control that has been switched off. */}
         <button
           type="button"
           className="now-playing-bar__reveal"
           onClick={onReveal}
+          disabled={onReveal === undefined}
           title={contextLabel}
           aria-label={`${contextLabel} — ${source.title}`}
         >
@@ -176,7 +210,22 @@ const SourceTransportBar = ({
         <>
           <div className="now-playing-bar__deck">
             <div className="now-playing-bar__buttons">
-              {canSeek && (
+              {/* A queue either side, for the one source that has one: the
+                  machine's own player, and only where Windows says it takes
+                  the command. A karaoke session and a web page have no next,
+                  and neither draws these. */}
+              {source.previous && (
+                <button
+                  type="button"
+                  className="now-playing-bar__control"
+                  aria-label={t('library.previous')}
+                  title={t('library.previous')}
+                  onClick={source.previous}
+                >
+                  <TransportIcon name="previous" />
+                </button>
+              )}
+              {canStep && (
                 <button
                   type="button"
                   className="now-playing-bar__control now-playing-bar__nudge"
@@ -202,7 +251,7 @@ const SourceTransportBar = ({
               >
                 <TransportIcon name={source.isPlaying ? 'pause' : 'play'} />
               </button>
-              {canSeek && (
+              {canStep && (
                 <button
                   type="button"
                   className="now-playing-bar__control now-playing-bar__nudge"
@@ -211,6 +260,17 @@ const SourceTransportBar = ({
                   onClick={() => nudge(1)}
                 >
                   <TransportIcon name="forward5" />
+                </button>
+              )}
+              {source.next && (
+                <button
+                  type="button"
+                  className="now-playing-bar__control"
+                  aria-label={t('library.next')}
+                  title={t('library.next')}
+                  onClick={source.next}
+                >
+                  <TransportIcon name="next" />
                 </button>
               )}
             </div>

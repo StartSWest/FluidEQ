@@ -115,6 +115,7 @@ const library: Partial<Dictionary> = {
   'library.queue': 'Очередь',
   'library.queue.remove': 'Удалить из очереди',
   'library.nowPlaying': 'Сейчас играет',
+  'library.systemAudio': 'Звук системы',
   'library.fullScreen': 'Полный экран',
 };
 
