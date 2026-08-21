@@ -99,6 +99,15 @@ enum ChannelEnum {
   // The measured correction, stored as its own layer. An empty payload removes
   // it; nothing here ever touches the user's bands.
   SET_SMART_EQ = 'setSmartEq',
+  // What this output remembers about a song. Read on every settled track, so
+  // it is a lookup and not a snapshot of the whole store.
+  LOOKUP_SONG_EQ = 'lookupSongEq',
+  // Written the moment two minutes have been listened to, so the song survives
+  // the app being killed mid-track. Does not count a play.
+  CHECKPOINT_SONG_EQ = 'checkpointSongEq',
+  // Written when the song ends. Counts the play.
+  COMMIT_SONG_EQ = 'commitSongEq',
+  FORGET_SONG_EQ = 'forgetSongEq',
   // Switch a layer out of the config without disturbing a single one of its
   // settings — the A/B switch on each chip. Takes a feature name and whether it
   // should be off, and moves nothing else.

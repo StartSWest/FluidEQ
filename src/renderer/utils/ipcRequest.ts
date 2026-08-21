@@ -36,6 +36,7 @@ import {
 import { IConvolutionCatalogEntry } from 'common/convolution';
 import { IApoConfigTree } from 'common/apoConfig';
 import { IChainImport } from 'common/chainBundle';
+import type { ISongEqEntry } from 'common/songEq';
 
 /**
  * One request to the main process, and how it is allowed to fail.
@@ -179,7 +180,8 @@ export const buildResponseHandler = <
     | IConvolutionProfile
     | IGatheredFacts
     | IApoConfigTree
-    | IChainImport,
+    | IChainImport
+    | ISongEqEntry,
 >(
   resultEvaluator: (
     result: Type,
@@ -226,7 +228,8 @@ export const simpleResponseHandler = <
     | IConvolutionProfile
     | IGatheredFacts
     | IApoConfigTree
-    | IChainImport,
+    | IChainImport
+    | ISongEqEntry,
 >() =>
   buildResponseHandler<Type>((result, resolve) => {
     resolve(result);

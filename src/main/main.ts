@@ -117,6 +117,7 @@ import { registerKaraokeIpc } from './ipc/karaoke';
 import { registerWindowIpc } from './ipc/window';
 import { registerFiltersIpc } from './ipc/filters';
 import { registerLayersIpc } from './ipc/layers';
+import { registerSongEqHandlers } from './ipc/songEq';
 import { registerPreampIpc } from './ipc/preamp';
 import { registerVideoIpc } from './ipc/video';
 import { registerKaraokeSeparation } from './karaokeSeparation';
@@ -2173,6 +2174,8 @@ registerLayersIpc({
   handleError,
   applyingLayer,
 });
+
+registerSongEqHandlers(userDataDir);
 
 ipcMain.on(ChannelEnum.SET_WINDOW_SIZE, async (event, arg) => {
   const channel = ChannelEnum.SET_WINDOW_SIZE;

@@ -41,6 +41,13 @@ import {
 import { IConvolutionCatalogEntry } from 'common/convolution';
 import { IApoConfigTree } from 'common/apoConfig';
 import { IChainImport } from 'common/chainBundle';
+// Types only. `lookupSongEq`, `checkpointSongEq`, `commitSongEq` and
+// `forgetSongEq` below share names with the pure functions in
+// `common/songEq.ts` on purpose — thin wrappers over channels of the same
+// name — and `import type` erases this so nothing here can resolve to the
+// pure implementation by accident.
+import type { ISongEqEntry } from 'common/songEq';
+import type { ISongIdentity } from 'common/songIdentity';
 
 import {
   buildResponseHandler,
@@ -801,6 +808,76 @@ export const setDriver = (
 export const setSmartEq = (settings?: ISmartEqSettings): Promise<void> => {
   const channel = ChannelEnum.SET_SMART_EQ;
   window.electron.ipcRenderer.sendMessage(channel, [settings]);
+  return promisifyResult(setterResponseHandler, channel);
+};
+
+// These four deliberately share names with the pure functions of the same
+// name in common/songEq.ts. Those take the whole store and return a new one;
+// these talk to main over IPC and return a promise. The renderer reaches the
+// song EQ store only through these wrappers, never by importing the pure
+// functions directly.
+
+/**
+ * What this output remembers about a song, if anything.
+ * @param { string } deviceId - the active output
+ * @param { ISongIdentity } identity - what is playing
+ * @returns { Promise<ISongEqEntry | undefined> } the saved curve, or nothing
+ */
+export const lookupSongEq = (
+  deviceId: string,
+  identity: ISongIdentity,
+): Promise<ISongEqEntry | undefined> => {
+  const channel = ChannelEnum.LOOKUP_SONG_EQ;
+  window.electron.ipcRenderer.sendMessage(channel, [deviceId, identity]);
+  return promisifyResult(
+    simpleResponseHandler<ISongEqEntry | undefined>(),
+    channel,
+  );
+};
+
+/**
+ * Write what has been learned so far, without counting it as a play.
+ * @param { string } deviceId - the active output
+ * @param { ISongIdentity } identity - what is playing
+ * @param { ISmartEqSettings } layer - the correction as it stands
+ * @returns { Promise<void> } exception if the payload is not a layer
+ */
+export const checkpointSongEq = (
+  deviceId: string,
+  identity: ISongIdentity,
+  layer: ISmartEqSettings,
+): Promise<void> => {
+  const channel = ChannelEnum.CHECKPOINT_SONG_EQ;
+  window.electron.ipcRenderer.sendMessage(channel, [deviceId, identity, layer]);
+  return promisifyResult(setterResponseHandler, channel);
+};
+
+/**
+ * Write the finished curve and count the play.
+ * @param { string } deviceId - the active output
+ * @param { ISongIdentity } identity - what was playing
+ * @param { ISmartEqSettings } layer - the correction as it ended
+ * @returns { Promise<void> } exception if the payload is not a layer
+ */
+export const commitSongEq = (
+  deviceId: string,
+  identity: ISongIdentity,
+  layer: ISmartEqSettings,
+): Promise<void> => {
+  const channel = ChannelEnum.COMMIT_SONG_EQ;
+  window.electron.ipcRenderer.sendMessage(channel, [deviceId, identity, layer]);
+  return promisifyResult(setterResponseHandler, channel);
+};
+
+/**
+ * Forget one song on one output.
+ * @param { string } deviceId - the output to forget it on
+ * @param { string } key - the identity key
+ * @returns { Promise<void> } exception if the key is not a string
+ */
+export const forgetSongEq = (deviceId: string, key: string): Promise<void> => {
+  const channel = ChannelEnum.FORGET_SONG_EQ;
+  window.electron.ipcRenderer.sendMessage(channel, [deviceId, key]);
   return promisifyResult(setterResponseHandler, channel);
 };
 
