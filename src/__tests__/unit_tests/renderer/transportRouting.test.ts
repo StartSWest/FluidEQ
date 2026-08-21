@@ -100,6 +100,17 @@ describe('which player the bar belongs to', () => {
     );
   });
 
+  it('holds the bar for a player of this app that has not described itself yet', () => {
+    // Suno starting in the Media tab claims playback from the tag's own
+    // event, and the description follows a render later. In that gap the
+    // machine's player must not take the bar and hand it back — which is one
+    // flicker per press of play.
+    const sources = { system: source('system', true) };
+    expect(pickTransportOwner('media', sources, 'media', undefined)).toBe(
+      undefined,
+    );
+  });
+
   it('says nobody when there is nobody', () => {
     expect(
       pickTransportOwner('library', {}, undefined, undefined),

@@ -34,13 +34,17 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * playing; that one wins, and the watcher in main is not even running while it
  * does.
  *
- * Play/pause goes out as a media key rather than through the session: the key
- * is the one transport command that reaches every player on Windows, it is
- * already how the titlebar's buttons work, and Windows answers a session
- * command with nothing this app could show.
+ * The bar's play/pause button goes out as a media key rather than through the
+ * session: the key is the one transport command that reaches every player on
+ * Windows, including those that never registered a session, and it is already
+ * how the titlebar's buttons work.
+ *
+ * The pause sent when one of our own players starts is the exception, and has
+ * to be: a toggle would have started whatever was sitting there paused. That
+ * one is asked of the session by name.
  */
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import type { ISystemMediaSnapshot } from '../../main/systemMedia';
 import { usePlaybackOwner } from './playbackOwner';
 import { clearTransportSource, setTransportSource } from './transportSource';
@@ -58,6 +62,14 @@ export const useSystemMediaSource = (): void => {
   // the watcher down — and when it does, it is also the thing the bar shows.
   const playingOwner = usePlaybackOwner();
   const isAppPlaying = playingOwner !== undefined;
+  /**
+   * The last thing the watcher said, kept for the moment it stops.
+   *
+   * When a player of ours starts, the watcher is taken down — and the
+   * question "was anything playing out there a moment ago" has to be
+   * answerable after that, because that is exactly when the pause is sent.
+   */
+  const lastSnapshotRef = useRef<ISystemMediaSnapshot | undefined>(undefined);
 
   useEffect(() => {
     const bridge = window.electron?.ipcRenderer;
@@ -66,12 +78,28 @@ export const useSystemMediaSource = (): void => {
     }
 
     if (isAppPlaying) {
+      // AND QUIETEN IT, the way one player of this app's silences another.
+      //
+      // `playbackOwner` allows one player at a time and this is the same rule
+      // reaching one step further out: a song starting here should not play
+      // over the top of a browser tab. A pause and never the play/pause key —
+      // a toggle sent to a session that was already paused would *start* it,
+      // which is the app turning somebody's music on for them.
+      //
+      // Only when it was actually playing. Windows takes a pause for a
+      // stopped session without complaint, but there is no reason to spawn a
+      // process to say nothing.
+      if (lastSnapshotRef.current?.isPlaying) {
+        bridge.sendSystemMediaCommand('pause').catch(() => undefined);
+      }
+      lastSnapshotRef.current = undefined;
       clearTransportSource('system');
       bridge.watchSystemMedia(false).catch(() => undefined);
       return undefined;
     }
 
     const unsubscribe = bridge.onSystemMedia((snapshot) => {
+      lastSnapshotRef.current = snapshot;
       if (!snapshot) {
         clearTransportSource('system');
         return;

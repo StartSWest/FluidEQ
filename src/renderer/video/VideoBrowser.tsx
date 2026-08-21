@@ -67,8 +67,11 @@ import {
   EXIT_PAGE_FULLSCREEN,
   PLAYER_ONLY_CSS,
   PROBE_PLAYBACK,
+  PROBE_SKIP_CONTROLS,
+  READ_NOW_PLAYING,
   READ_POSITION,
   nudgePositionScript,
+  skipScript,
   STOP_PLAYBACK,
   TOGGLE_PLAYBACK,
   setGuestVolumeScript,
@@ -298,6 +301,26 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
   /** Whether the guest is playing, for the description rebuilt when the fader
    * moves — that has no event of its own to read the state from. */
   const playingRef = useRef(false);
+  /**
+   * Whether the page has skip controls of its own, as of the last probe.
+   *
+   * A ref for the reason the two beside it are: it is read by listeners
+   * registered once, and re-registering them on a change would take the
+   * guest's own events with them.
+   */
+  const skipsRef = useRef({ next: false, previous: false });
+  /** The track the page says it is playing, where it says so at all. */
+  const nowPlayingRef = useRef<{ title?: string; artist?: string }>({});
+  /**
+   * The ask, held where the sampler can reach it.
+   *
+   * The probe closes over the `describe` that belongs to the effect holding
+   * the guest's own listeners, and that effect runs once; the position
+   * sampler is a different effect with a different lifetime. A ref is the
+   * seam between them, and the alternative — moving `describe` up — would
+   * re-register the guest's listeners on every render that touches it.
+   */
+  const nowPlayingProbeRef = useRef<() => void>(() => {});
   /** The last frame taken of the guest, as a `data:` URL, for the bar's
    * cover. Held in a ref because it is read by listeners registered once and
    * never drawn by this component itself. */
@@ -392,6 +415,10 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
       if (!view) {
         return;
       }
+      // The queue can move without the document changing — a Suno playlist,
+      // a YouTube Music queue — and this is the only thing already ticking
+      // while it does.
+      nowPlayingProbeRef.current();
       try {
         view
           .executeJavaScript(READ_POSITION)
@@ -486,16 +513,33 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
     /**
      * What the bar shows while the Media tab is the one being looked at.
      *
-     * Title only, with play and pause and a fader — no seek bar and no skip,
-     * because neither is a thing we can honestly offer for a page. There is
-     * no playhead we own to move, and "next" belongs to whatever site is
-     * loaded and means something different on each of them. A dead slider
-     * would say otherwise.
+     * Title, play and pause, a fader, five seconds either way — and the
+     * page's own skip buttons where the page has them.
+     *
+     * No seek SLIDER, still: there is no playhead we own to move and this
+     * pane learns the position from a sample every few seconds, so a slider
+     * would be a control that lies about where it is. The step is done inside
+     * the page instead, which does know.
+     *
+     * "Next" belongs to whatever site is loaded and means something different
+     * on each — the queue on YouTube Music, the album on Bandcamp, nothing at
+     * all on a live stream — so the answer is not a rule of ours but the
+     * page's own button, pressed where the page has one and not offered where
+     * it does not. See `PROBE_SKIP_CONTROLS`.
      */
     const describe = (isPlaying: boolean) => {
       setTransportSource({
         owner: 'media',
-        title: view.getTitle() || t('tabs.media'),
+        // The song where the page publishes one, the page otherwise.
+        //
+        // A document title is the site, not the track: Suno reads "Suno | AI
+        // Music" through every song it plays, and YouTube Music keeps the
+        // tab's name while the queue moves underneath it. What those players
+        // hand the lock screen is `mediaSession.metadata`, and that is what
+        // this bar carries too — see `READ_NOW_PLAYING`.
+        title:
+          nowPlayingRef.current.title || view.getTitle() || t('tabs.media'),
+        subtitle: nowPlayingRef.current.artist || undefined,
         artworkUrl: frameRef.current,
         isPlaying,
         positionMs: 0,
@@ -530,6 +574,13 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
             // No web contents to ask.
           }
         },
+        // The page's own, and only where the page has one. `skipsRef` is what
+        // the last probe found — see the probe below, which runs on every
+        // navigation because a queue appears and disappears with the page.
+        next: skipsRef.current.next ? () => press('next') : undefined,
+        previous: skipsRef.current.previous
+          ? () => press('previous')
+          : undefined,
         volume: guestVolumeRef.current,
         setVolume: (value: number) => {
           guestVolumeRef.current = value;
@@ -598,7 +649,98 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
       }
     };
 
+    /**
+     * Press the page's own skip control.
+     *
+     * With a user gesture, which is what it is: somebody pressed a transport
+     * button on our bar, and the next track does not start under the guest's
+     * autoplay policy without it — see `VIDEO_WEB_PREFERENCES`.
+     */
+    const press = (direction: 'next' | 'previous') => {
+      try {
+        view
+          .executeJavaScript(skipScript(direction), true)
+          // The page it lands on is a different page: probe again so the
+          // buttons match what the new one has, and so the title on the bar
+          // is the track that is now playing.
+          .then(() => probeSkips())
+          .catch(() => undefined);
+      } catch {
+        // No web contents to ask.
+      }
+    };
+
+    /**
+     * What the page can be asked to skip to, asked of the page.
+     *
+     * On every navigation, because it changes with one: a YouTube video
+     * opened on its own has no next until it is opened from a playlist, and
+     * YouTube Music has neither until something is queued.
+     */
+    const probeSkips = () => {
+      try {
+        view
+          .executeJavaScript(PROBE_SKIP_CONTROLS)
+          .then((found) => {
+            const record = (found ?? {}) as Record<string, unknown>;
+            const next = record.next === true;
+            const previous = record.previous === true;
+            if (
+              next === skipsRef.current.next &&
+              previous === skipsRef.current.previous
+            ) {
+              return found;
+            }
+            skipsRef.current = { next, previous };
+            describe(playingRef.current);
+            return found;
+          })
+          .catch(() => undefined);
+      } catch {
+        // No web contents to ask.
+      }
+    };
+
+    /**
+     * What the page says is playing, asked of the page.
+     *
+     * Cheap and idempotent, so it runs anywhere the answer could have moved:
+     * on navigation with the rest of the probe, and on the position sample,
+     * which is the one thing already ticking while a queue advances without
+     * the document changing at all — a Suno playlist, a YouTube Music queue.
+     */
+    const probeNowPlaying = () => {
+      try {
+        view
+          .executeJavaScript(READ_NOW_PLAYING)
+          .then((found) => {
+            const record = (found ?? {}) as Record<string, unknown>;
+            const title =
+              typeof record.title === 'string' ? record.title : undefined;
+            const artist =
+              typeof record.artist === 'string' && record.artist
+                ? record.artist
+                : undefined;
+            if (
+              title === nowPlayingRef.current.title &&
+              artist === nowPlayingRef.current.artist
+            ) {
+              return found;
+            }
+            nowPlayingRef.current = { title, artist };
+            describe(playingRef.current);
+            return found;
+          })
+          .catch(() => undefined);
+      } catch {
+        // No web contents to ask.
+      }
+    };
+    nowPlayingProbeRef.current = probeNowPlaying;
+
     const probe = () => {
+      probeSkips();
+      probeNowPlaying();
       try {
         view
           .executeJavaScript(PROBE_PLAYBACK)

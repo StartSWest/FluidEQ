@@ -426,3 +426,113 @@ export const nudgePositionScript = (deltaSeconds: number) => `(() => {
     return 'none';
   }
 })()`;
+
+/**
+ * The page's own skip controls, named where the sites this app offers keep
+ * them.
+ *
+ * A web page has no "next" in general — which is why the bar never offered
+ * one — but the five players reachable from this pane all have their own, and
+ * pressing theirs is the only thing that means what next means on that site:
+ * the queue's next track on YouTube Music, the album's next on Bandcamp, the
+ * playlist's next on YouTube. A media key would go to the machine and might
+ * be answered by something else entirely.
+ *
+ * Selectors and not a heuristic. `[aria-label*="next"]` matches "Next page",
+ * "Next comment" and half a sidebar; a button that skips somewhere nobody
+ * asked for is worse than no button. Twitch is deliberately absent: a live
+ * stream has no next, and it has none here either.
+ */
+const SKIP_SELECTORS = {
+  next: [
+    // YouTube's player, and YouTube Music's bar.
+    '.ytp-next-button',
+    'ytmusic-player-bar .next-button',
+    // Bandcamp's album player.
+    '.nextbutton',
+    // Suno's playbar, named exactly as the site names it — read off the
+    // running page, not guessed. The reason it is this and not
+    // `[aria-label*="next" i]` is on that same page: every song carousel
+    // there has its own plain "Next" button, and a heuristic pressed one of
+    // those instead of the player.
+    'button[aria-label="Playbar: Next Song button"]',
+  ],
+  previous: [
+    '.ytp-prev-button',
+    'ytmusic-player-bar .previous-button',
+    '.prevbutton',
+    'button[aria-label="Playbar: Previous Song button"]',
+  ],
+};
+
+/**
+ * A control that is present, visible and not switched off.
+ *
+ * All three matter: YouTube keeps its previous button in the DOM at the head
+ * of a playlist and disables it, and YouTube Music hides its bar entirely
+ * until something is queued. Offering either as a live button is offering a
+ * press that does nothing.
+ */
+const USABLE_CONTROL = `(el) => Boolean(
+  el &&
+  el.offsetParent !== null &&
+  el.getAttribute('aria-disabled') !== 'true' &&
+  !el.disabled
+)`;
+
+/** Which of the two the page has right now, as `{ next, previous }`. */
+export const PROBE_SKIP_CONTROLS = `(() => {
+  const usable = ${USABLE_CONTROL};
+  const find = (selectors) =>
+    selectors.map((selector) => document.querySelector(selector)).some(usable);
+  return {
+    next: find(${JSON.stringify(SKIP_SELECTORS.next)}),
+    previous: find(${JSON.stringify(SKIP_SELECTORS.previous)}),
+  };
+})()`;
+
+/**
+ * Press the page's own skip button.
+ *
+ * Run WITH a user gesture, for the same reason `TOGGLE_PLAYBACK` is: somebody
+ * pressed a transport button on our bar, and the next track will not start
+ * under the guest's autoplay policy without the activation that press is.
+ */
+export const skipScript = (direction: 'next' | 'previous') => `(() => {
+  const usable = ${USABLE_CONTROL};
+  const selectors = ${JSON.stringify(SKIP_SELECTORS)}['${direction === 'previous' ? 'previous' : 'next'}'];
+  const control = selectors
+    .map((selector) => document.querySelector(selector))
+    .find(usable);
+  if (!control) { return 'none'; }
+  control.click();
+  return 'pressed';
+})()`;
+
+/**
+ * What the page says is playing, from the page's own now-playing card.
+ *
+ * The document title is the site, not the song. On Suno it is "Suno | AI
+ * Music" through every track; on YouTube Music it is the tab's name while the
+ * queue moves underneath it. `navigator.mediaSession.metadata` is what those
+ * players hand Windows and the lock screen — read off the running site: Suno
+ * publishes "in the dust" by "Suno - grayybird" while its own title never
+ * changes — so it is what the bar should carry too.
+ *
+ * The artwork is deliberately left behind. It is a remote URL, the window's
+ * CSP allows images only from `self`, `data:`, `blob:` and this app's own
+ * media scheme, and the bar already has a picture of the guest that always
+ * loads.
+ *
+ * `null` when there is no metadata, which is most of the web: the caller
+ * falls back to the document title, as it always did.
+ */
+export const READ_NOW_PLAYING = `(() => {
+  try {
+    const meta = navigator.mediaSession && navigator.mediaSession.metadata;
+    if (!meta || !meta.title) { return null; }
+    return { title: String(meta.title), artist: String(meta.artist || '') };
+  } catch (e) {
+    return null;
+  }
+})()`;

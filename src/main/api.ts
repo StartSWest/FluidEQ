@@ -153,15 +153,16 @@ const watchSystemMedia = (enabled: boolean) =>
   ipcRenderer.invoke('system-media-watch', enabled) as Promise<void>;
 
 /**
- * Skip or seek whatever the machine is playing.
+ * Skip, seek, or quieten whatever the machine is playing.
  *
- * Only the three commands a session can be asked for, and only where it said
- * it would take them — the flags travel with each snapshot. Play and pause are
- * not here: those go out as a media key, which reaches players that never
- * registered a session at all.
+ * Skip and seek are buttons, drawn only where the session said it takes them
+ * — the flags travel with each snapshot. `pause` is not a button: it is sent
+ * when a player of this app's starts, so the machine's sound gets out of the
+ * way exactly as one of our own players would. Play still goes out as a media
+ * key, which reaches players that never registered a session at all.
  */
 const sendSystemMediaCommand = (
-  command: 'next' | 'previous' | 'seek',
+  command: 'next' | 'previous' | 'seek' | 'pause',
   positionMs?: number,
 ) =>
   ipcRenderer.invoke(

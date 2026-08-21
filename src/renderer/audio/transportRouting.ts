@@ -55,7 +55,14 @@ export const pickTransportOwner = (
   // is on the subject: while that is true the bar is its own on every page,
   // exactly as a song of this app's would be, and when it stops the page's own
   // player has the bar back.
-  if (sources.system?.isPlaying === true) {
+  //
+  // Second, and never first. A player of this app's that is playing holds the
+  // bar even in the instant before it has described itself — a video starting
+  // in the Media tab claims playback from the tag's own event, and the
+  // description follows a render later. Without the `undefined` here that gap
+  // was a bar that flicked to the machine's player and back, on every press
+  // of play.
+  if (playingOwner === undefined && sources.system?.isPlaying === true) {
     return 'system';
   }
   if (tabOwner !== undefined && sources[tabOwner] !== undefined) {

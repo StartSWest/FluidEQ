@@ -2193,7 +2193,12 @@ ipcMain.handle('system-media-watch', (event, enabled: unknown) => {
 ipcMain.handle(
   'system-media-command',
   async (_event, command: unknown, positionMs: unknown) => {
-    if (command !== 'next' && command !== 'previous' && command !== 'seek') {
+    if (
+      command !== 'next' &&
+      command !== 'previous' &&
+      command !== 'seek' &&
+      command !== 'pause'
+    ) {
       return;
     }
     await sendSystemMediaCommand(

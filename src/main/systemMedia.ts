@@ -79,8 +79,15 @@ export interface ISystemMediaSnapshot {
   canSeek: boolean;
 }
 
-/** The three things the bar can ask another program's player to do. */
-export type TSystemMediaCommand = 'next' | 'previous' | 'seek';
+/**
+ * What the bar can ask another program's player to do.
+ *
+ * `pause` is the one that is not a button: it is sent when a player of this
+ * app's starts, so that the machine's sound gets out of the way the same way
+ * one of our own players does. A pause and never a toggle — a media key would
+ * have *started* whatever was sitting there paused.
+ */
+export type TSystemMediaCommand = 'next' | 'previous' | 'seek' | 'pause';
 
 /**
  * The watcher, as one PowerShell script.
@@ -288,6 +295,9 @@ export const sendSystemMediaCommand = async (
     }
     if (command === 'previous') {
       return '$session.TrySkipPreviousAsync()';
+    }
+    if (command === 'pause') {
+      return '$session.TryPauseAsync()';
     }
     const ticks = Math.max(0, Math.round((positionMs ?? 0) * 10_000));
     return `$session.TryChangePlaybackPositionAsync([long]${ticks})`;
