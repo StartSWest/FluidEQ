@@ -53,6 +53,25 @@ const app: Partial<Dictionary> = {
   'app.tray.open': 'Открыть {product}',
   'app.tray.quit': 'Выйти из {product}',
   'app.tray.tooltip': '{product} — продолжает работать',
+  'app.tray.installUpdate': 'Установить обновление и перезапустить',
+  'app.tray.checkForUpdates': 'Проверить наличие обновлений',
+  'app.tray.tooltip.updateReady': '{product} — обновление готово к установке',
+  'app.notification.updateReady.title': 'Обновление FluidEQ готово',
+  'app.notification.updateReady.body':
+    'Версия {version} готова. Нажмите, чтобы перезапустить FluidEQ.',
+  'app.notification.updateReady.bodyNoVersion':
+    'Обновление готово. Нажмите, чтобы перезапустить FluidEQ.',
+  'app.notification.upToDate.title': 'FluidEQ обновлён',
+  'app.notification.upToDate.body': 'У вас уже последняя версия.',
+  'app.notification.updateFound.title': 'Найдено обновление FluidEQ',
+  'app.notification.updateFound.body':
+    'Версия {version} загружается. Мы сообщим, когда её можно будет установить.',
+  'app.notification.checkFailed.title': 'Не удалось проверить обновления',
+  'app.notification.checkFailed.body':
+    'Сервер обновлений недоступен. FluidEQ повторит попытку позже.',
+  'app.notification.installFailed.title': 'Не удалось установить обновление',
+  'app.notification.installFailed.body':
+    'FluidEQ не смог запустить установщик. Нажмите, чтобы открыть FluidEQ и попробовать снова.',
   'app.window.minimizeApp': 'Свернуть FluidEQ',
   'app.window.maximizeApp': 'Развернуть FluidEQ',
   'app.window.restoreApp': 'Восстановить FluidEQ',

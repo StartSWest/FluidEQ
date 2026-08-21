@@ -53,6 +53,28 @@ const app: Partial<Dictionary> = {
   'app.tray.open': '{product} を開く',
   'app.tray.quit': '{product} を終了',
   'app.tray.tooltip': '{product} — 実行中です',
+  'app.tray.installUpdate': 'アップデートをインストールして再起動',
+  'app.tray.checkForUpdates': 'アップデートを確認',
+  'app.tray.tooltip.updateReady':
+    '{product} — アップデートをインストールできます',
+  'app.notification.updateReady.title': 'FluidEQ のアップデートが利用可能です',
+  'app.notification.updateReady.body':
+    'バージョン {version} をインストールできます。クリックして FluidEQ を再起動します。',
+  'app.notification.updateReady.bodyNoVersion':
+    'アップデートをインストールできます。クリックして FluidEQ を再起動します。',
+  'app.notification.upToDate.title': 'FluidEQ は最新です',
+  'app.notification.upToDate.body': 'すでに最新のバージョンです。',
+  'app.notification.updateFound.title':
+    'FluidEQ のアップデートが見つかりました',
+  'app.notification.updateFound.body':
+    'バージョン {version} をダウンロードしています。インストールできるようになったらお知らせします。',
+  'app.notification.checkFailed.title': 'アップデートを確認できませんでした',
+  'app.notification.checkFailed.body':
+    'アップデートサーバーに接続できませんでした。FluidEQ が後でもう一度試します。',
+  'app.notification.installFailed.title':
+    'アップデートをインストールできませんでした',
+  'app.notification.installFailed.body':
+    'FluidEQ はインストーラーを起動できませんでした。クリックして FluidEQ を開き、もう一度お試しください。',
   'app.window.minimizeApp': 'FluidEQ を最小化',
   'app.window.maximizeApp': 'FluidEQ を最大化',
   'app.window.restoreApp': 'FluidEQ を元に戻す',

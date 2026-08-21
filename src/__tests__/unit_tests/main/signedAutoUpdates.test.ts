@@ -43,7 +43,13 @@ const makeHarness = () => {
   } as unknown as NsisUpdater;
   const logger = { error: jest.fn(), info: jest.fn(), warn: jest.fn() };
   const loadUpdater = jest.fn(() => updater);
-  const schedule = jest.fn();
+  // A clock the test moves by hand. There is no timer in the module under
+  // test, so ageing a check means moving this, not waiting.
+  let clock = 1_000_000;
+  const now = () => clock;
+  const advance = (ms: number) => {
+    clock += ms;
+  };
   const verifyPublisher = jest.fn().mockResolvedValue({ valid: true });
 
   const options: IReleaseAutoUpdateOptions = {
@@ -53,7 +59,7 @@ const makeHarness = () => {
     logger,
     platform: 'win32',
     publisherName: OFFICIAL_PUBLISHER,
-    schedule: schedule as unknown as typeof setInterval,
+    now,
     sendStatus: jest.fn(),
     updateUrl: UPDATE_URL,
     verifyPublisher,
@@ -64,7 +70,8 @@ const makeHarness = () => {
     loadUpdater,
     logger,
     options,
-    schedule,
+    advance,
+    now,
     updater,
     verifyPublisher,
   };
@@ -86,7 +93,6 @@ describe('current executable update authorization', () => {
 
       expect(harness.loadUpdater).not.toHaveBeenCalled();
       expect(harness.updater.checkForUpdates).not.toHaveBeenCalled();
-      expect(harness.schedule).not.toHaveBeenCalled();
     },
   );
 
@@ -103,7 +109,6 @@ describe('current executable update authorization', () => {
     expect(result).toBeUndefined();
     expect(harness.loadUpdater).not.toHaveBeenCalled();
     expect(harness.updater.checkForUpdates).not.toHaveBeenCalled();
-    expect(harness.schedule).not.toHaveBeenCalled();
     expect(harness.logger.warn).toHaveBeenCalledWith(
       expect.stringContaining(reason),
     );
@@ -117,7 +122,11 @@ describe('current executable update authorization', () => {
     // A controller, not the updater itself. Handing the raw updater back would
     // hand out `quitAndInstall` unguarded, and installing is the one thing that
     // must stay behind the verification the controller performs.
-    expect(result).toEqual({ quitAndInstall: expect.any(Function) });
+    expect(result).toEqual({
+      checkIfDue: expect.any(Function),
+      checkNow: expect.any(Function),
+      quitAndInstall: expect.any(Function),
+    });
     expect(harness.verifyPublisher).toHaveBeenCalledWith(
       CURRENT_EXE,
       OFFICIAL_PUBLISHER,
@@ -127,10 +136,227 @@ describe('current executable update authorization', () => {
       url: UPDATE_URL,
     });
     expect(harness.updater.checkForUpdates).toHaveBeenCalledTimes(1);
-    expect(harness.schedule).toHaveBeenCalledWith(
-      expect.any(Function),
-      60 * 60 * 1000,
+  });
+});
+
+describe('checking without a timer, and on demand', () => {
+  const FOUR_HOURS = 4 * 60 * 60 * 1000;
+
+  it('does not check again while the last one is still fresh', async () => {
+    const harness = makeHarness();
+    const controller = await setUpReleaseAutoUpdates(harness.options);
+    expect(harness.updater.checkForUpdates).toHaveBeenCalledTimes(1);
+
+    harness.advance(FOUR_HOURS - 1);
+
+    await expect(controller?.checkIfDue()).resolves.toBe(false);
+    expect(harness.updater.checkForUpdates).toHaveBeenCalledTimes(1);
+  });
+
+  it('checks once the last one has gone stale', async () => {
+    const harness = makeHarness();
+    const controller = await setUpReleaseAutoUpdates(harness.options);
+
+    harness.advance(FOUR_HOURS);
+
+    await expect(controller?.checkIfDue()).resolves.toBe(true);
+    expect(harness.updater.checkForUpdates).toHaveBeenCalledTimes(2);
+  });
+
+  it('collapses a burst of wake signals into one request', async () => {
+    const harness = makeHarness();
+    const controller = await setUpReleaseAutoUpdates(harness.options);
+    harness.advance(FOUR_HOURS);
+
+    // A wake is followed by an unlock is followed by the window being shown,
+    // all within a second or two. That must be one check, not three.
+    await controller?.checkIfDue();
+    await controller?.checkIfDue();
+    await controller?.checkIfDue();
+
+    expect(harness.updater.checkForUpdates).toHaveBeenCalledTimes(2);
+  });
+
+  it('counts an explicit check, so a wake right after it does nothing', async () => {
+    const harness = makeHarness();
+    const controller = await setUpReleaseAutoUpdates(harness.options);
+    harness.advance(FOUR_HOURS);
+
+    await controller?.checkNow();
+    expect(harness.updater.checkForUpdates).toHaveBeenCalledTimes(2);
+
+    await expect(controller?.checkIfDue()).resolves.toBe(false);
+    expect(harness.updater.checkForUpdates).toHaveBeenCalledTimes(2);
+  });
+
+  it('measures elapsed time, so sleeping through the window still checks on wake', async () => {
+    const harness = makeHarness();
+    const controller = await setUpReleaseAutoUpdates(harness.options);
+
+    // A timer would not have fired at all across a suspend; a clock
+    // comparison sees the whole three days the lid was shut.
+    harness.advance(3 * 24 * 60 * 60 * 1000);
+
+    await expect(controller?.checkIfDue()).resolves.toBe(true);
+    expect(harness.updater.checkForUpdates).toHaveBeenCalledTimes(2);
+  });
+
+  it('checkNow runs an extra update check on demand', async () => {
+    const harness = makeHarness();
+
+    const result = await setUpReleaseAutoUpdates(harness.options);
+    // The startup check has already fired.
+    expect(harness.updater.checkForUpdates).toHaveBeenCalledTimes(1);
+
+    await result?.checkNow();
+
+    expect(harness.updater.checkForUpdates).toHaveBeenCalledTimes(2);
+  });
+
+  it('arms beforeQuit before handing off to electron-updater', async () => {
+    const harness = makeHarness();
+    const beforeQuit = jest.fn();
+    const controller = await setUpReleaseAutoUpdates({
+      ...harness.options,
+      beforeQuit,
+    });
+    if (!controller) {
+      throw new Error('setUpReleaseAutoUpdates returned no controller');
+    }
+
+    // Simulate the download reaching authorized state so quitAndInstall does
+    // not throw the verification error.
+    harness.listeners.get('update-downloaded')?.({
+      downloadedFile: 'C:\\Temp\\FluidEQ-Setup.exe',
+      version: '1.3.2',
+    });
+    await Promise.resolve();
+    await Promise.resolve();
+
+    controller.quitAndInstall(false, true);
+
+    expect(beforeQuit).toHaveBeenCalledTimes(1);
+    expect(harness.updater.quitAndInstall).toHaveBeenCalledTimes(1);
+    // Ordering: beforeQuit must fire strictly before the underlying updater is
+    // told to quit — otherwise the tray flag is not set when the close handler
+    // runs, and the exit is cancelled.
+    const beforeOrder = beforeQuit.mock.invocationCallOrder[0];
+    const quitOrder = (harness.updater.quitAndInstall as jest.Mock).mock
+      .invocationCallOrder[0];
+    expect(beforeOrder).toBeLessThan(quitOrder);
+  });
+
+  it('tells the caller when a manual check finds nothing', async () => {
+    const harness = makeHarness();
+    const onManualCheckResult = jest.fn();
+    const controller = await setUpReleaseAutoUpdates({
+      ...harness.options,
+      onManualCheckResult,
+    });
+
+    await controller?.checkNow();
+    harness.listeners.get('update-not-available')?.({ version: '1.3.1' });
+
+    expect(onManualCheckResult).toHaveBeenCalledWith('up-to-date', undefined);
+  });
+
+  // THE NEGATIVE CONTROL FOR THE TEST ABOVE. Without it, an implementation
+  // that reported every 'update-not-available' — including the four-hourly
+  // ones nobody asked about — would pass the positive test and toast the user
+  // six times a day.
+  it('stays silent when a periodic check finds nothing', async () => {
+    const harness = makeHarness();
+    const onManualCheckResult = jest.fn();
+    await setUpReleaseAutoUpdates({
+      ...harness.options,
+      onManualCheckResult,
+    });
+
+    // No checkNow: this is the startup check and the scheduled ones.
+    harness.listeners.get('update-not-available')?.({ version: '1.3.1' });
+
+    expect(onManualCheckResult).not.toHaveBeenCalled();
+  });
+
+  it('reports the version when a manual check starts a download', async () => {
+    const harness = makeHarness();
+    const onManualCheckResult = jest.fn();
+    const controller = await setUpReleaseAutoUpdates({
+      ...harness.options,
+      onManualCheckResult,
+    });
+
+    await controller?.checkNow();
+    harness.listeners.get('update-available')?.({ version: '1.3.3' });
+
+    expect(onManualCheckResult).toHaveBeenCalledWith('downloading', '1.3.3');
+  });
+
+  it('reports a manual check that errors', async () => {
+    const harness = makeHarness();
+    const onManualCheckResult = jest.fn();
+    const controller = await setUpReleaseAutoUpdates({
+      ...harness.options,
+      onManualCheckResult,
+    });
+
+    await controller?.checkNow();
+    harness.listeners.get('error')?.(new Error('feed unreachable'));
+
+    expect(onManualCheckResult).toHaveBeenCalledWith('failed', undefined);
+  });
+
+  it('reports a manual check whose request rejects outright', async () => {
+    const harness = makeHarness();
+    const onManualCheckResult = jest.fn();
+    const controller = await setUpReleaseAutoUpdates({
+      ...harness.options,
+      onManualCheckResult,
+    });
+    // AFTER setup, or the startup check consumes the rejection and this test
+    // silently exercises nothing — which is exactly what it did at first.
+    (harness.updater.checkForUpdates as jest.Mock).mockRejectedValueOnce(
+      new Error('DNS failure'),
     );
+
+    await expect(controller?.checkNow()).rejects.toThrow('DNS failure');
+
+    expect(onManualCheckResult).toHaveBeenCalledWith('failed', undefined);
+  });
+
+  it('answers each manual check once, not once per later event', async () => {
+    const harness = makeHarness();
+    const onManualCheckResult = jest.fn();
+    const controller = await setUpReleaseAutoUpdates({
+      ...harness.options,
+      onManualCheckResult,
+    });
+
+    await controller?.checkNow();
+    harness.listeners.get('update-not-available')?.({ version: '1.3.1' });
+    // A later periodic cycle must not re-answer a question already answered.
+    harness.listeners.get('update-not-available')?.({ version: '1.3.1' });
+    harness.listeners.get('error')?.(new Error('unrelated later failure'));
+
+    expect(onManualCheckResult).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not call beforeQuit when the installer is unauthorized', async () => {
+    const harness = makeHarness();
+    const beforeQuit = jest.fn();
+    const controller = await setUpReleaseAutoUpdates({
+      ...harness.options,
+      beforeQuit,
+    });
+    if (!controller) {
+      throw new Error('setUpReleaseAutoUpdates returned no controller');
+    }
+
+    expect(() => controller.quitAndInstall(false, true)).toThrow(
+      /release-channel verification/,
+    );
+    expect(beforeQuit).not.toHaveBeenCalled();
+    expect(harness.updater.quitAndInstall).not.toHaveBeenCalled();
   });
 });
 

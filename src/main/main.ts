@@ -32,6 +32,8 @@ import {
   BrowserWindow,
   contentTracing,
   ipcMain,
+  Notification,
+  powerMonitor,
   screen,
   shell,
 } from 'electron';
@@ -93,7 +95,20 @@ import {
 import { TSuccess, TError } from '../renderer/utils/equalizerApi';
 import { syncOpraDatabase } from './opraUpdater';
 import { setUpVideoBrowser } from './videoBrowser';
-import { beginQuit, destroyTray, setUpTray } from './tray';
+import {
+  beginQuit,
+  destroyTray,
+  getTrayLocale,
+  revealMainWindow,
+  setTrayUpdateReady,
+  setTrayUpdatesEnabled,
+  setUpTray,
+} from './tray';
+import {
+  createNativeUpdatePrompt,
+  INativeUpdatePrompt,
+} from './nativeUpdatePrompt';
+import { translate } from '../common/i18n';
 import { createMainWindowFactory } from './mainWindow';
 import { createApoAdoption } from './apoAdopt';
 import { registerTransferIpc } from './ipc/transfer';
@@ -427,12 +442,108 @@ const setUpMemoryTraceTrigger = () => {
   log.info(`[trace] drop trace.start / trace.stop in ${logsDir}`);
 };
 
+/**
+ * Owns the tray badge and the Windows toast that catch a user who is not
+ * looking at the window. Built at setUpAutoUpdates so the install callback
+ * closes over the controller once it exists — the prompt is what turns a
+ * "ready" status into a real chance to install without the app being open.
+ */
+let nativeUpdatePrompt: INativeUpdatePrompt | undefined;
+
+const installActiveUpdate = () => {
+  if (!activeAutoUpdater) {
+    // Reachable only if the tray or a toast outlived the updater. Say so
+    // rather than returning quietly: this is the button the whole feature
+    // exists to offer.
+    log.warn('Update install requested with no active updater; ignoring.');
+    nativeUpdatePrompt?.notifyInstallFailed();
+    return;
+  }
+  try {
+    // `false` for isSilent so the NSIS installer stays visible — the honest
+    // thing when the app the user was looking at (or just clicked a
+    // notification for) is about to vanish. `true` for isForceRunAfter so
+    // FluidEQ opens again once the install finishes. The controller arms the
+    // tray's quit flag via beforeQuit; without that the window's close
+    // handler would cancel the exit and the installer would fail to replace
+    // a still-open executable.
+    activeAutoUpdater.quitAndInstall(false, true);
+  } catch (error) {
+    // NOT LOG-ONLY. This is the primary action of the whole tray update flow,
+    // reached from the notification and from the menu item, and both of those
+    // are pressed by somebody who cannot see a window. Swallowing the failure
+    // into the log would leave the loudest button in the app doing visibly
+    // nothing. The tray badge is deliberately left up so the action can be
+    // tried again.
+    log.error('Update install could not start', error);
+    nativeUpdatePrompt?.notifyInstallFailed();
+  }
+};
+
+/**
+ * Ask the updater to check, if its last check has gone stale.
+ *
+ * Deliberately fire-and-forget and deliberately noisy in its callers: the
+ * staleness test inside the controller is what decides whether anything
+ * actually happens, so wiring this to four different signals costs nothing
+ * and covers the ways a person comes back to a machine.
+ */
+const checkForUpdatesIfDue = (reason: string) => {
+  if (!activeAutoUpdater) {
+    return;
+  }
+  activeAutoUpdater
+    .checkIfDue()
+    .then((ran) => {
+      if (ran) {
+        log.info(`Update check ran on ${reason}`);
+      }
+      return ran;
+    })
+    .catch((error) => {
+      log.info(`Update check on ${reason} could not start`, error);
+    });
+};
+
+/**
+ * The events that stand in for a timer.
+ *
+ * See UPDATE_CHECK_STALE_AFTER_MS in signedAutoUpdates for why there is no
+ * interval. Each of these means "somebody is, or is about to be, at this
+ * machine", which is both when a check is worth making and the only time a
+ * notification about one can be seen. `resume` and `unlock-screen` usually
+ * arrive together and the window is often shown right after; the controller
+ * collapses the burst into one request.
+ */
+const watchForUpdateOpportunities = () => {
+  powerMonitor.on('resume', () => checkForUpdatesIfDue('wake from sleep'));
+  powerMonitor.on('unlock-screen', () => checkForUpdatesIfDue('screen unlock'));
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.on('show', () => checkForUpdatesIfDue('window shown'));
+    mainWindow.on('focus', () => checkForUpdatesIfDue('window focused'));
+  }
+};
+
 const setUpAutoUpdates = async () => {
   if (hasAttemptedAutoUpdates) {
     return;
   }
   hasAttemptedAutoUpdates = true;
   log.transports.file.level = 'info';
+
+  // Built up front so `sendStatus` can fan out to it. `handleStatus` is a
+  // no-op for anything other than a 'ready' phase, so creating this before
+  // the tray or updater exist is harmless.
+  nativeUpdatePrompt = createNativeUpdatePrompt({
+    getMainWindow: () => mainWindow,
+    installNow: installActiveUpdate,
+    setTrayUpdateReady: (isReady) =>
+      setTrayUpdateReady(isReady, { getMainWindow: () => mainWindow }),
+    revealWindow: () => revealMainWindow(() => mainWindow),
+    translate: (key, params) => translate(getTrayLocale(), key, params),
+    createNotification: ({ title, body }) => new Notification({ title, body }),
+    logger: log,
+  });
 
   activeAutoUpdater = await setUpReleaseAutoUpdates({
     executablePath: process.execPath,
@@ -441,16 +552,36 @@ const setUpAutoUpdates = async () => {
     publisherName: process.env.FLUIDEQ_SIGN_PUBLISHER || '',
     updateUrl: process.env.FLUIDEQ_UPDATE_URL || '',
     logger: log,
+    beforeQuit: beginQuit,
+    // Only fires for checks started from the tray. The periodic ones stay
+    // silent when they find nothing, which is most of the time.
+    onManualCheckResult: (result, version) =>
+      nativeUpdatePrompt?.notifyManualCheckResult(result, version),
     loadUpdater: () =>
       // eslint-disable-next-line global-require
       require('electron-updater').autoUpdater as NsisUpdater,
     sendStatus: (payload) => {
-      if (!mainWindow || mainWindow.isDestroyed()) {
-        return;
+      // The native surfaces first — a user with the window hidden into the
+      // tray must see something regardless of whether the renderer is alive.
+      nativeUpdatePrompt?.handleStatus(payload);
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.webContents.send(APP_UPDATE_EVENT, payload);
       }
-      mainWindow.webContents.send(APP_UPDATE_EVENT, payload);
     },
   });
+
+  // The tray asks before it offers anything. An updater that failed its
+  // Authenticode or feed check leaves this false, and the menu then shows
+  // only Open and Quit rather than an item whose click goes nowhere.
+  setTrayUpdatesEnabled(Boolean(activeAutoUpdater), {
+    getMainWindow: () => mainWindow,
+  });
+
+  // Only once there is a controller to drive: the wake events are the
+  // replacement for the interval, and they are useless without one.
+  if (activeAutoUpdater) {
+    watchForUpdateOpportunities();
+  }
 };
 
 let mainWindow: BrowserWindow | null = null;
@@ -2559,7 +2690,27 @@ app
         // Nothing is lost by waiting. `isAppQuitting` reports false until a
         // quit is armed, which is the correct answer for every close that can
         // happen in the milliseconds before this runs.
-        setUpTray({ getMainWindow: () => mainWindow });
+        setUpTray({
+          getMainWindow: () => mainWindow,
+          // Same code path as the notification click and the in-window
+          // banner — installActiveUpdate is the one place that decides
+          // whether we have a downloaded, verified installer to run.
+          onInstallUpdate: installActiveUpdate,
+          // Fires the same check the four-hour schedule fires. A miss (the
+          // updater is not initialised yet, or the network fails) is not
+          // worth interrupting the user; `catch` keeps it in the log.
+          onCheckForUpdates: () => {
+            if (!activeAutoUpdater) {
+              log.info(
+                'Tray "check for updates" ignored: updater is not active.',
+              );
+              return;
+            }
+            activeAutoUpdater.checkNow().catch((error) => {
+              log.info('Manual update check failed', error);
+            });
+          },
+        });
         return undefined;
       })
       .catch((error) => {

@@ -52,6 +52,25 @@ const app: Partial<Dictionary> = {
   'app.tray.open': '打开 {product}',
   'app.tray.quit': '退出 {product}',
   'app.tray.tooltip': '{product} — 仍在运行',
+  'app.tray.installUpdate': '安装更新并重启',
+  'app.tray.checkForUpdates': '检查更新',
+  'app.tray.tooltip.updateReady': '{product} — 更新已准备安装',
+  'app.notification.updateReady.title': 'FluidEQ 更新已准备好',
+  'app.notification.updateReady.body':
+    '版本 {version} 已准备好。点击以重启 FluidEQ。',
+  'app.notification.updateReady.bodyNoVersion':
+    '更新已准备好。点击以重启 FluidEQ。',
+  'app.notification.upToDate.title': 'FluidEQ 已是最新版本',
+  'app.notification.upToDate.body': '您已经在使用最新版本。',
+  'app.notification.updateFound.title': '发现 FluidEQ 更新',
+  'app.notification.updateFound.body':
+    '正在下载版本 {version}。准备好安装时会通知您。',
+  'app.notification.checkFailed.title': '无法检查更新',
+  'app.notification.checkFailed.body':
+    '无法连接更新服务器。FluidEQ 稍后会再试。',
+  'app.notification.installFailed.title': '无法安装更新',
+  'app.notification.installFailed.body':
+    'FluidEQ 无法启动安装程序。点击以打开 FluidEQ 并重试。',
   'app.window.minimizeApp': '最小化 FluidEQ',
   'app.window.maximizeApp': '最大化 FluidEQ',
   'app.window.restoreApp': '还原 FluidEQ',

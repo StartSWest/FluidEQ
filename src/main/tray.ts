@@ -16,6 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+import fs from 'fs';
 import path from 'path';
 import { app, BrowserWindow, Menu, Tray } from 'electron';
 import log from 'electron-log';
@@ -63,8 +64,83 @@ let isQuitting = false;
 /** The language the renderer is showing, for the tray's menu. */
 let locale: LocaleCode = DEFAULT_LOCALE;
 
+/**
+ * Whether the tray should advertise that an update is waiting.
+ *
+ * Held here rather than passed on every rebuild, because the state only ever
+ * changes when the updater says so — nativeUpdatePrompt flips this on 'ready'
+ * and back off on a failure or the start of a new cycle. Callers that rebuild
+ * the menu for other reasons (a language change) get the current state without
+ * having to know what the updater is doing.
+ */
+let isUpdateReady = false;
+
+/**
+ * The two update actions the tray offers, captured once at setup.
+ *
+ * Held at module scope rather than passed on every menu rebuild, because a
+ * language change and a "check now" click both rebuild the menu and neither
+ * of the callers has any business knowing about updates. Without this, a
+ * `setTrayLocale` from the language picker would rebuild the template with
+ * no callbacks and quietly drop the update items — the tray would fall back
+ * to Open/Quit only, exactly the failure mode this whole feature is meant to
+ * prevent.
+ */
+let updateActions: {
+  onInstallUpdate?: () => void;
+  onCheckForUpdates?: () => void;
+} = {};
+
+/**
+ * Whether this build can actually update itself.
+ *
+ * FALSE UNTIL PROVEN, and that is the whole point. The updater is built
+ * asynchronously behind an Authenticode check, and it stays unbuilt for a
+ * development build, an unsigned fork, or a signed one whose publisher or
+ * feed does not verify. Having a callback wired in says nothing about any of
+ * that — main.ts always passes one — so the presence of the function is not
+ * evidence the menu item can do anything.
+ *
+ * Without this the tray offered "Check for updates" in every one of those
+ * cases and the click reached a `return` and a log line. That is the failure
+ * this project names outright: a click that visibly does nothing.
+ */
+let areUpdatesEnabled = false;
+
+/**
+ * The two icons the notification area swaps between, resolved at setup.
+ *
+ * Null until the tray is built, and `update` falls back to the plain mark
+ * when the badged asset is not on disk — see the note where it is assigned.
+ */
+let trayIcons: { plain: string; update: string } | null = null;
+
+/**
+ * Put the right mark in the notification area for the current state.
+ *
+ * THE ONLY PART OF THIS THE USER SEES WITHOUT DOING ANYTHING. The tooltip
+ * needs a hover and the menu item needs a right-click, so before this the
+ * whole "an update is waiting" state was invisible to somebody glancing at
+ * their taskbar — and the toast that announced it is gone within seconds.
+ */
+const applyTrayIcon = () => {
+  if (!tray || tray.isDestroyed() || !trayIcons) {
+    return;
+  }
+  tray.setImage(isUpdateReady ? trayIcons.update : trayIcons.plain);
+};
+
 /** Read by the window's `close` handler; see the note on the flag. */
 export const isAppQuitting = () => isQuitting;
+
+/**
+ * What language main-process UI (tray, native notifications) should use.
+ *
+ * The renderer owns this — see the note on `setTrayLocale`. Other main-side
+ * surfaces read it at the moment they render, so a language change taking
+ * effect between one call and the next never leaves a mixed screen.
+ */
+export const getTrayLocale = (): LocaleCode => locale;
 
 /**
  * Arm a real quit.
@@ -79,6 +155,23 @@ export const beginQuit = () => {
 
 export interface ITrayDeps {
   getMainWindow: () => BrowserWindow | null;
+  /**
+   * Run the "install the downloaded update and restart" path.
+   *
+   * Optional so a build with no updater (development, unsigned dev branch)
+   * can still have a tray with only Open and Quit. When present, and only
+   * when `isUpdateReady` is on, a prominent item at the top of the menu calls
+   * this. The install path itself lives in signedAutoUpdates' controller —
+   * this is only a wire.
+   */
+  onInstallUpdate?: () => void;
+  /**
+   * Run an update check outside the periodic schedule.
+   *
+   * Optional for the same reason as onInstallUpdate. Rejections are the
+   * caller's to log — the menu click has no UI to report back to.
+   */
+  onCheckForUpdates?: () => void;
 }
 
 const revealWindow = (getMainWindow: () => BrowserWindow | null) => {
@@ -98,21 +191,69 @@ const revealWindow = (getMainWindow: () => BrowserWindow | null) => {
   mainWindow.focus();
 };
 
-const buildMenu = (getMainWindow: () => BrowserWindow | null) =>
-  Menu.buildFromTemplate([
-    {
-      label: translate(locale, 'app.tray.open', { product: PRODUCT_NAME }),
-      click: () => revealWindow(getMainWindow),
+/**
+ * Bring the window back, from anywhere in the main process.
+ *
+ * The tray's own click handlers use the local `revealWindow`; this is the
+ * same act exposed for the update notifications, whose whole premise is that
+ * there may be no window on screen to talk to.
+ */
+export const revealMainWindow = (getMainWindow: () => BrowserWindow | null) => {
+  revealWindow(getMainWindow);
+};
+
+const buildMenu = (getMainWindow: () => BrowserWindow | null) => {
+  const { onInstallUpdate, onCheckForUpdates } = updateActions;
+  const template: Electron.MenuItemConstructorOptions[] = [];
+
+  // AT THE TOP WHEN THERE IS AN UPDATE TO INSTALL. Position is the only
+  // emphasis available: Electron's menu template has no weight, colour or
+  // icon for a default item on Windows, so first-with-a-separator-under-it is
+  // what makes it read as the thing to press. The whole point of raising the
+  // tray badge is to draw the eye here, and burying the action underneath
+  // Open would waste the notification that got the user to this menu.
+  if (areUpdatesEnabled && isUpdateReady && onInstallUpdate) {
+    template.push({
+      label: translate(locale, 'app.tray.installUpdate'),
+      click: () => onInstallUpdate(),
+    });
+    template.push({ type: 'separator' });
+  }
+
+  template.push({
+    label: translate(locale, 'app.tray.open', { product: PRODUCT_NAME }),
+    click: () => revealWindow(getMainWindow),
+  });
+
+  if (areUpdatesEnabled && onCheckForUpdates && !isUpdateReady) {
+    // Only when there is not one already staged. With "Install update and
+    // restart" already at the top, offering a check as well reads as "did
+    // you mean this or that" for the same subject; picking it would also
+    // discard the download that is ready to go.
+    template.push({
+      label: translate(locale, 'app.tray.checkForUpdates'),
+      click: () => onCheckForUpdates(),
+    });
+  }
+
+  template.push({ type: 'separator' });
+  template.push({
+    label: translate(locale, 'app.tray.quit', { product: PRODUCT_NAME }),
+    click: () => {
+      beginQuit();
+      app.quit();
     },
-    { type: 'separator' },
-    {
-      label: translate(locale, 'app.tray.quit', { product: PRODUCT_NAME }),
-      click: () => {
-        beginQuit();
-        app.quit();
-      },
-    },
-  ]);
+  });
+
+  return Menu.buildFromTemplate(template);
+};
+
+const currentTooltip = () =>
+  translate(
+    locale,
+    isUpdateReady ? 'app.tray.tooltip.updateReady' : 'app.tray.tooltip',
+    { product: PRODUCT_NAME },
+  );
 
 /**
  * Rebuild the menu in the language the window is using.
@@ -125,21 +266,65 @@ const buildMenu = (getMainWindow: () => BrowserWindow | null) =>
  */
 export const setTrayLocale = (
   next: LocaleCode,
-  { getMainWindow }: ITrayDeps,
+  { getMainWindow }: Pick<ITrayDeps, 'getMainWindow'>,
 ) => {
   locale = next;
   if (!tray || tray.isDestroyed()) {
     return;
   }
-  tray.setToolTip(
-    translate(locale, 'app.tray.tooltip', {
-      product: PRODUCT_NAME,
-    }),
-  );
+  tray.setToolTip(currentTooltip());
   tray.setContextMenu(buildMenu(getMainWindow));
 };
 
-export const setUpTray = ({ getMainWindow }: ITrayDeps) => {
+/**
+ * Say whether this build has a working updater behind it.
+ *
+ * Called once the Authenticode and feed checks have settled, which happens
+ * after the tray may already exist — so this rebuilds the menu rather than
+ * assuming it can be read at setup. Until it is called, and forever in a
+ * build that cannot update, the tray offers only Open and Quit.
+ */
+export const setTrayUpdatesEnabled = (
+  next: boolean,
+  { getMainWindow }: Pick<ITrayDeps, 'getMainWindow'>,
+) => {
+  if (areUpdatesEnabled === next) {
+    return;
+  }
+  areUpdatesEnabled = next;
+  if (!tray || tray.isDestroyed()) {
+    return;
+  }
+  tray.setContextMenu(buildMenu(getMainWindow));
+};
+
+/**
+ * Advertise (or stop advertising) that an update is waiting to install.
+ *
+ * Rebuilds the menu and the tooltip so somebody who opens the tray between
+ * a background check finishing and the notification landing sees the same
+ * "install update and restart" item without having to close and reopen it.
+ * A no-op when the tray has failed to initialize — nothing to update.
+ */
+export const setTrayUpdateReady = (
+  next: boolean,
+  { getMainWindow }: Pick<ITrayDeps, 'getMainWindow'>,
+) => {
+  if (isUpdateReady === next) {
+    return;
+  }
+  isUpdateReady = next;
+  if (!tray || tray.isDestroyed()) {
+    return;
+  }
+  applyTrayIcon();
+  tray.setToolTip(currentTooltip());
+  tray.setContextMenu(buildMenu(getMainWindow));
+};
+
+export const setUpTray = (deps: ITrayDeps) => {
+  const { getMainWindow, onInstallUpdate, onCheckForUpdates } = deps;
+  updateActions = { onInstallUpdate, onCheckForUpdates };
   if (tray) {
     return;
   }
@@ -158,6 +343,27 @@ export const setUpTray = ({ getMainWindow }: ITrayDeps) => {
     process.platform === 'win32' ? 'icon.ico' : 'icon.png',
   );
 
+  // The same mark with the update dot on it, built by
+  // .erb/scripts/make-tray-badge-icon.ts. Resolved once here rather than at
+  // each swap, and only if it is really on disk: `setImage` with a path
+  // Electron cannot read does not throw, it sets an empty image — so a
+  // missing asset would make the tray icon disappear entirely, which is a
+  // great deal worse than not having a badge. Windows only, because the
+  // generator emits an .ico and nothing else needs one.
+  const badgedPath = path.join(assetsPath, 'icon-update.ico');
+  trayIcons = {
+    plain: iconPath,
+    update:
+      process.platform === 'win32' && fs.existsSync(badgedPath)
+        ? badgedPath
+        : iconPath,
+  };
+  if (trayIcons.update === iconPath && process.platform === 'win32') {
+    log.warn(
+      'Tray update badge is missing (assets/icon-update.ico); the icon will not change when an update is ready.',
+    );
+  }
+
   try {
     tray = new Tray(iconPath);
   } catch (error) {
@@ -170,11 +376,11 @@ export const setUpTray = ({ getMainWindow }: ITrayDeps) => {
     return;
   }
 
-  tray.setToolTip(
-    translate(locale, 'app.tray.tooltip', {
-      product: PRODUCT_NAME,
-    }),
-  );
+  // Before the first paint, because a download can finish before the tray
+  // is built — setUpTray runs after createMainWindow resolves, and the
+  // updater starts inside it.
+  applyTrayIcon();
+  tray.setToolTip(currentTooltip());
   tray.setContextMenu(buildMenu(getMainWindow));
 
   // Windows convention: left click opens the thing, right click opens the menu

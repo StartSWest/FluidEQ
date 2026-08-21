@@ -53,6 +53,28 @@ const app: Partial<Dictionary> = {
   'app.tray.open': 'Apri {product}',
   'app.tray.quit': 'Esci da {product}',
   'app.tray.tooltip': '{product} — ancora in esecuzione',
+  'app.tray.installUpdate': 'Installa aggiornamento e riavvia',
+  'app.tray.checkForUpdates': 'Verifica aggiornamenti',
+  'app.tray.tooltip.updateReady':
+    '{product} — aggiornamento pronto per l’installazione',
+  'app.notification.updateReady.title': 'Aggiornamento FluidEQ pronto',
+  'app.notification.updateReady.body':
+    'La versione {version} è pronta. Fai clic per riavviare FluidEQ.',
+  'app.notification.updateReady.bodyNoVersion':
+    'Un aggiornamento è pronto. Fai clic per riavviare FluidEQ.',
+  'app.notification.upToDate.title': 'FluidEQ è aggiornato',
+  'app.notification.upToDate.body': 'Hai già la versione più recente.',
+  'app.notification.updateFound.title': 'Aggiornamento FluidEQ trovato',
+  'app.notification.updateFound.body':
+    'La versione {version} è in download. Ti avviseremo quando sarà pronta da installare.',
+  'app.notification.checkFailed.title':
+    'Impossibile verificare gli aggiornamenti',
+  'app.notification.checkFailed.body':
+    'Il server degli aggiornamenti non è raggiungibile. FluidEQ riproverà più tardi.',
+  'app.notification.installFailed.title':
+    'Impossibile installare l’aggiornamento',
+  'app.notification.installFailed.body':
+    'FluidEQ non è riuscito ad avviare il programma di installazione. Fai clic per aprire FluidEQ e riprovare.',
   'app.window.minimizeApp': 'Riduci a icona FluidEQ',
   'app.window.maximizeApp': 'Ingrandisci FluidEQ',
   'app.window.restoreApp': 'Ripristina FluidEQ',

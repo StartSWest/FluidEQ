@@ -40,6 +40,7 @@
     "build:renderer": "cross-env NODE_ENV=production TS_NODE_TRANSPILE_ONLY=true webpack --config ./.erb/configs/webpack.config.renderer.prod.cjs",
     "postinstall": "ts-node .erb/scripts/postinstall.ts",
     "lint": "cross-env NODE_ENV=development eslint . --ext .js,.jsx,.ts,.tsx",
+    "make-tray-badge-icon": "ts-node .erb/scripts/make-tray-badge-icon.ts",
     "fetch-apo": "ts-node ./.erb/scripts/fetch-equalizer-apo.ts",
     "fetch-apo:source": "ts-node ./.erb/scripts/fetch-equalizer-apo.ts --source",
     "package": "ts-node ./.erb/scripts/clean.js dist && pnpm fetch-apo && pnpm build && electron-builder build --publish never",

@@ -53,6 +53,29 @@ const app: Partial<Dictionary> = {
   'app.tray.open': 'Ouvrir {product}',
   'app.tray.quit': 'Quitter {product}',
   'app.tray.tooltip': '{product} — toujours en cours d’exécution',
+  'app.tray.installUpdate': 'Installer la mise à jour et redémarrer',
+  'app.tray.checkForUpdates': 'Rechercher des mises à jour',
+  'app.tray.tooltip.updateReady':
+    '{product} — mise à jour prête à être installée',
+  'app.notification.updateReady.title': 'Mise à jour FluidEQ prête',
+  'app.notification.updateReady.body':
+    'La version {version} est prête. Cliquez pour redémarrer FluidEQ.',
+  'app.notification.updateReady.bodyNoVersion':
+    'Une mise à jour est prête. Cliquez pour redémarrer FluidEQ.',
+  'app.notification.upToDate.title': 'FluidEQ est à jour',
+  'app.notification.upToDate.body':
+    'Vous avez déjà la version la plus récente.',
+  'app.notification.updateFound.title': 'Mise à jour FluidEQ trouvée',
+  'app.notification.updateFound.body':
+    'La version {version} est en cours de téléchargement. Vous serez prévenu lorsqu’elle sera prête à installer.',
+  'app.notification.checkFailed.title':
+    'Impossible de rechercher des mises à jour',
+  'app.notification.checkFailed.body':
+    'Le serveur de mise à jour est injoignable. FluidEQ réessaiera plus tard.',
+  'app.notification.installFailed.title':
+    'Impossible d’installer la mise à jour',
+  'app.notification.installFailed.body':
+    'FluidEQ n’a pas pu lancer le programme d’installation. Cliquez pour ouvrir FluidEQ et réessayer.',
   'app.window.minimizeApp': 'Réduire FluidEQ',
   'app.window.maximizeApp': 'Agrandir FluidEQ',
   'app.window.restoreApp': 'Restaurer FluidEQ',

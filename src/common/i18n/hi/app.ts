@@ -53,6 +53,25 @@ const app: Partial<Dictionary> = {
   'app.tray.open': '{product} खोलें',
   'app.tray.quit': '{product} बंद करें',
   'app.tray.tooltip': '{product} — अब भी चल रहा है',
+  'app.tray.installUpdate': 'अपडेट इंस्टॉल करें और पुनः प्रारंभ करें',
+  'app.tray.checkForUpdates': 'अपडेट की जाँच करें',
+  'app.tray.tooltip.updateReady': '{product} — अपडेट स्थापित करने के लिए तैयार',
+  'app.notification.updateReady.title': 'FluidEQ अपडेट तैयार है',
+  'app.notification.updateReady.body':
+    'संस्करण {version} तैयार है। FluidEQ को पुनः प्रारंभ करने के लिए क्लिक करें।',
+  'app.notification.updateReady.bodyNoVersion':
+    'एक अपडेट तैयार है। FluidEQ को पुनः प्रारंभ करने के लिए क्लिक करें।',
+  'app.notification.upToDate.title': 'FluidEQ अद्यतित है',
+  'app.notification.upToDate.body': 'आपके पास पहले से नवीनतम संस्करण है।',
+  'app.notification.updateFound.title': 'FluidEQ अपडेट मिला',
+  'app.notification.updateFound.body':
+    'संस्करण {version} डाउनलोड हो रहा है। तैयार होने पर आपको बता दिया जाएगा।',
+  'app.notification.checkFailed.title': 'अपडेट की जाँच नहीं हो सकी',
+  'app.notification.checkFailed.body':
+    'अपडेट सर्वर तक पहुँच नहीं बनी। FluidEQ बाद में फिर कोशिश करेगा।',
+  'app.notification.installFailed.title': 'अपडेट इंस्टॉल नहीं हो सका',
+  'app.notification.installFailed.body':
+    'FluidEQ इंस्टॉलर चालू नहीं कर सका। FluidEQ खोलकर फिर कोशिश करने के लिए क्लिक करें।',
   'app.window.minimizeApp': 'FluidEQ छोटा करें',
   'app.window.maximizeApp': 'FluidEQ बड़ा करें',
   'app.window.restoreApp': 'FluidEQ पहले जैसा करें',

@@ -53,6 +53,28 @@ const app: Partial<Dictionary> = {
   'app.tray.open': 'Abrir o {product}',
   'app.tray.quit': 'Sair do {product}',
   'app.tray.tooltip': '{product} — ainda em execução',
+  'app.tray.installUpdate': 'Instalar atualização e reiniciar',
+  'app.tray.checkForUpdates': 'Procurar atualizações',
+  'app.tray.tooltip.updateReady':
+    '{product} — atualização pronta para instalar',
+  'app.notification.updateReady.title': 'Atualização do FluidEQ pronta',
+  'app.notification.updateReady.body':
+    'A versão {version} está pronta. Clique para reiniciar o FluidEQ.',
+  'app.notification.updateReady.bodyNoVersion':
+    'Uma atualização está pronta. Clique para reiniciar o FluidEQ.',
+  'app.notification.upToDate.title': 'O FluidEQ está atualizado',
+  'app.notification.upToDate.body': 'Já tem a versão mais recente.',
+  'app.notification.updateFound.title': 'Atualização do FluidEQ encontrada',
+  'app.notification.updateFound.body':
+    'A versão {version} está a ser transferida. Avisamos quando estiver pronta para instalar.',
+  'app.notification.checkFailed.title':
+    'Não foi possível procurar atualizações',
+  'app.notification.checkFailed.body':
+    'Não foi possível contactar o servidor de atualizações. O FluidEQ tentará novamente mais tarde.',
+  'app.notification.installFailed.title':
+    'Não foi possível instalar a atualização',
+  'app.notification.installFailed.body':
+    'O FluidEQ não conseguiu iniciar o instalador. Clique para abrir o FluidEQ e tentar novamente.',
   'app.window.minimizeApp': 'Minimizar o FluidEQ',
   'app.window.maximizeApp': 'Maximizar o FluidEQ',
   'app.window.restoreApp': 'Restaurar o FluidEQ',

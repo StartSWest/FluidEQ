@@ -51,6 +51,25 @@ const app = {
   'app.tray.open': 'Open {product}',
   'app.tray.quit': 'Quit {product}',
   'app.tray.tooltip': '{product} — still running',
+  'app.tray.installUpdate': 'Install update and restart',
+  'app.tray.checkForUpdates': 'Check for updates',
+  'app.tray.tooltip.updateReady': '{product} — update ready to install',
+  'app.notification.updateReady.title': 'FluidEQ update ready',
+  'app.notification.updateReady.body':
+    'Version {version} is ready. Click to restart FluidEQ.',
+  'app.notification.updateReady.bodyNoVersion':
+    'An update is ready. Click to restart FluidEQ.',
+  'app.notification.upToDate.title': 'FluidEQ is up to date',
+  'app.notification.upToDate.body': 'You already have the latest version.',
+  'app.notification.updateFound.title': 'FluidEQ update found',
+  'app.notification.updateFound.body':
+    'Version {version} is downloading. You will be told when it is ready to install.',
+  'app.notification.checkFailed.title': 'Could not check for updates',
+  'app.notification.checkFailed.body':
+    'The update server could not be reached. FluidEQ will try again later.',
+  'app.notification.installFailed.title': 'Could not install the update',
+  'app.notification.installFailed.body':
+    'FluidEQ could not start the installer. Click to open FluidEQ and try again.',
   'app.window.minimizeApp': 'Minimize FluidEQ',
   'app.window.maximizeApp': 'Maximize FluidEQ',
   'app.window.restoreApp': 'Restore FluidEQ',
