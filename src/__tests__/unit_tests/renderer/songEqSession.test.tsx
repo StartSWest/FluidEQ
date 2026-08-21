@@ -20,12 +20,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * The shell's own wiring, thin on purpose.
  *
  * Every rule about when a song is recorded, saved or restored is already
- * covered by `songEqRecorder.test.ts`'s seventeen cases against the pure
- * reducer. Nothing here re-proves those. What only this file can catch is
- * the wiring itself: that the host actually dispatches what the reducer
- * expects, and — the one behaviour that lives ENTIRELY in this module and
- * nowhere else — that the shell recognises the echo of its own write to
- * `FluidEqContext` and does not mistake it for somebody else's edit.
+ * covered by `songEqRecorder.test.ts`'s reducer cases. Nothing here re-proves
+ * those. What only this file can catch is the wiring itself: that the host
+ * actually dispatches what the reducer expects, that the persisted save
+ * preference actually reaches the reducer at launch, and that a matched
+ * layer mirrored into `FluidEqContext` survives its own round trip rather
+ * than being mistaken for somebody else's edit.
  */
 
 import { act, renderHook } from '@testing-library/react';
@@ -33,7 +33,10 @@ import type { ReactNode } from 'react';
 import { FilterTypeEnum, ISmartEqSettings } from 'common/constants';
 import type { ISongEqEntry } from 'common/songEq';
 import { buildSongIdentity } from 'common/songIdentity';
-import { SONG_EQ_SETTLE_MS } from 'common/songEqRecorder';
+import {
+  SONG_EQ_MIN_LISTENED_MS,
+  SONG_EQ_SETTLE_MS,
+} from 'common/songEqRecorder';
 import * as api from 'renderer/utils/equalizerApi';
 import { useNowPlayingIdentity } from 'renderer/audio/nowPlayingIdentity';
 import {
@@ -42,7 +45,9 @@ import {
 } from 'renderer/utils/FluidEqContext';
 import defaultFluidEqContext from '__tests__/utils/mockFluidEqProvider';
 import {
+  forgetCurrentSongEq,
   getSongEqSaveOn,
+  resetSongEqSession,
   setSongEqSaveOn,
   undoSongEqLoan,
   useSongEqNotice,
@@ -51,6 +56,8 @@ import {
 
 jest.mock('renderer/utils/equalizerApi');
 jest.mock('renderer/audio/nowPlayingIdentity');
+
+const SAVE_STORAGE_KEY = 'fluideq.songEq.save';
 
 const mockUseNowPlayingIdentity = useNowPlayingIdentity as jest.Mock;
 
@@ -75,9 +82,9 @@ const entryOf = (title: string, settings: ISmartEqSettings): ISongEqEntry => ({
 
 describe('songEqSession', () => {
   // Stands in for the live `smartEq` a real FluidEqProvider would hold in
-  // state — mutated either by the shell's own `setSmartEq` call (the echo) or
-  // directly by the test (a stand-in for some other panel's edit), then
-  // carried into context fresh on the next `rerender()`.
+  // state — mutated either by the shell's own `setSmartEq` call (mirroring a
+  // matched layer) or directly by the test (a stand-in for some other
+  // panel's edit), then carried into context fresh on the next `rerender()`.
   let contextSmartEq: ISmartEqSettings | undefined;
   let setSmartEqSpy: jest.Mock;
 
@@ -97,13 +104,24 @@ describe('songEqSession', () => {
 
   beforeEach(() => {
     jest.useFakeTimers();
-    setSongEqSaveOn(false);
+    try {
+      window.localStorage.removeItem(SAVE_STORAGE_KEY);
+    } catch {
+      // Nothing was stored; nothing to clear.
+    }
+    // Module state outlives a render — see `resetSongEqSession`'s own
+    // comment — so every test starts from a session-free, notice-free,
+    // save-off module rather than whatever the previous test left behind.
+    resetSongEqSession();
     jest.clearAllMocks();
     contextSmartEq = undefined;
     setSmartEqSpy = jest.fn((next?: ISmartEqSettings) => {
       contextSmartEq = next;
     });
-    mockUseNowPlayingIdentity.mockReturnValue(undefined);
+    mockUseNowPlayingIdentity.mockReturnValue({
+      identity: undefined,
+      isPlaying: false,
+    });
     // Every background write this shell fires resolves by default; a test
     // that cares about a failure overrides its own mock.
     (api.setSmartEq as jest.Mock).mockResolvedValue(undefined);
@@ -123,6 +141,70 @@ describe('songEqSession', () => {
     expect(getSongEqSaveOn()).toBe(false);
   });
 
+  /**
+   * Two variables holding the same fact is what let this bug through: a
+   * module-level `saveOn` read from storage at import time fed the getter
+   * and the hook, while `state.isSaveOn` — what the reducer actually gates
+   * every checkpoint and commit on — started at `false` regardless and only
+   * ever changed on a `saveToggled` dispatch nothing fired until the switch
+   * was next pressed. A launch where the stored preference was already on
+   * reported "on" everywhere the badge looked and stayed silently inert in
+   * the one place that mattered.
+   */
+  it('records from launch when the stored preference is already on, with no toggle pressed', async () => {
+    window.localStorage.setItem(SAVE_STORAGE_KEY, 'true');
+    resetSongEqSession();
+    expect(getSongEqSaveOn()).toBe(true);
+
+    const song = buildSongIdentity(
+      'library',
+      'seeded-song',
+      'Seeded Song',
+      'Artist',
+    );
+    const nextSong = buildSongIdentity(
+      'library',
+      'seeded-song-next',
+      'Next Song',
+      'Artist',
+    );
+    if (!song || !nextSong) {
+      throw new Error('test fixture produced no identity');
+    }
+    // A live layer to record — without one, `willSongEqSave` never reaches
+    // true regardless of the save switch.
+    contextSmartEq = layerOf(2);
+    (api.lookupSongEq as jest.Mock).mockResolvedValue(undefined);
+    mockUseNowPlayingIdentity.mockReturnValue({
+      identity: song,
+      isPlaying: true,
+    });
+
+    const { rerender } = renderHook(() => useSongEqSessionHost(), { wrapper });
+
+    await act(async () => {
+      jest.advanceTimersByTime(
+        SONG_EQ_MIN_LISTENED_MS + SONG_EQ_SETTLE_MS + 2000,
+      );
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    // The two-minute checkpoint, with nobody having touched the switch.
+    expect(api.checkpointSongEq).toHaveBeenCalled();
+
+    // A different song closes the first, which is when the commit that
+    // counts the play fires.
+    mockUseNowPlayingIdentity.mockReturnValue({
+      identity: nextSong,
+      isPlaying: true,
+    });
+    act(() => {
+      rerender();
+    });
+    expect(api.commitSongEq).toHaveBeenCalled();
+  });
+
   it('raises no notice for a song nothing is remembered about', async () => {
     const song = buildSongIdentity(
       'library',
@@ -134,7 +216,10 @@ describe('songEqSession', () => {
       throw new Error('test fixture produced no identity');
     }
     (api.lookupSongEq as jest.Mock).mockResolvedValue(undefined);
-    mockUseNowPlayingIdentity.mockReturnValue(song);
+    mockUseNowPlayingIdentity.mockReturnValue({
+      identity: song,
+      isPlaying: true,
+    });
 
     const { result } = renderHook(
       () => {
@@ -154,20 +239,45 @@ describe('songEqSession', () => {
     expect(result.current).toBeUndefined();
   });
 
-  /**
-   * The one behaviour only this file can catch.
-   *
-   * `reduceSongEq`'s own `isSameLayer` guard would in fact also keep this
-   * particular loan alive, because the value mirrored into context is the
-   * exact object this module just wrote — so this test cannot prove the
-   * shell's `expectedEcho` tracking is the thing standing between the loan
-   * and being dropped; the reducer's field-wise comparison would do that on
-   * its own here too. What it DOES prove, end to end, is that applying a
-   * matched layer survives its own round trip through context and that Undo
-   * still restores the pre-match layer afterwards — a regression either in
-   * the shell's wiring or in the reducer's guard turns this red.
-   */
-  it('keeps the loan through the echo of its own write', async () => {
+  /** The positive control beside the test above: a lookup that DOES find
+   * something must raise a notice naming that song. Without this, the null
+   * result above would pass equally well against a `useSongEqNotice` wired
+   * to return `undefined` unconditionally. */
+  it('raises a notice naming the song when a lookup finds one', async () => {
+    const song = buildSongIdentity(
+      'library',
+      'remembered-song',
+      'Remembered Song',
+      'Artist',
+    );
+    if (!song) {
+      throw new Error('test fixture produced no identity');
+    }
+    const entry = entryOf('Remembered Song', layerOf(4));
+    (api.lookupSongEq as jest.Mock).mockResolvedValue(entry);
+    mockUseNowPlayingIdentity.mockReturnValue({
+      identity: song,
+      isPlaying: true,
+    });
+
+    const { result } = renderHook(
+      () => {
+        useSongEqSessionHost();
+        return useSongEqNotice();
+      },
+      { wrapper },
+    );
+
+    await act(async () => {
+      jest.advanceTimersByTime(SONG_EQ_SETTLE_MS + 1000);
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(result.current).toEqual({ identity: song, entry });
+  });
+
+  it('keeps the loan through its own write landing back in context', async () => {
     const song = buildSongIdentity(
       'library',
       'echo-song',
@@ -177,9 +287,16 @@ describe('songEqSession', () => {
     if (!song) {
       throw new Error('test fixture produced no identity');
     }
+    // Distinguishable from "cleared": Undo restoring `layerOf(1)` proves it
+    // restored what was actually there before the match, not merely that it
+    // called `setSmartEq` with something.
+    contextSmartEq = layerOf(1);
     const entry = entryOf('Echo Song', layerOf(3));
     (api.lookupSongEq as jest.Mock).mockResolvedValue(entry);
-    mockUseNowPlayingIdentity.mockReturnValue(song);
+    mockUseNowPlayingIdentity.mockReturnValue({
+      identity: song,
+      isPlaying: true,
+    });
 
     const { rerender } = renderHook(() => useSongEqSessionHost(), { wrapper });
 
@@ -194,25 +311,25 @@ describe('songEqSession', () => {
     expect(setSmartEqSpy).toHaveBeenCalledWith(entry.settings);
 
     // `contextSmartEq` now holds the applied layer; rerendering is what lets
-    // the host observe it come back through `smartEq` — the echo.
+    // the host observe it come back through `smartEq`.
     rerender();
 
     act(() => {
       undoSongEqLoan();
     });
 
-    // Undo only ever produces a write when a loan is still on record. Seeing
-    // one here, restoring the layer from before the match (nothing, in this
-    // test), is what proves the echo did not get mistaken for someone else's
-    // edit and drop it first.
-    expect(api.setSmartEq).toHaveBeenLastCalledWith(undefined);
+    // Undo only ever produces a write when a loan is still on record, and it
+    // restores the exact pre-match layer — proof the reducer's `isSameLayer`
+    // recognised the mirrored write as this session's own rather than
+    // dropping the loan on it.
+    expect(api.setSmartEq).toHaveBeenLastCalledWith(layerOf(1));
   });
 
   /** The positive control beside the test above: a layer change that is NOT
-   * this module's own write must still drop the loan, so pressing Undo
+   * this session's own write must still drop the loan, so pressing Undo
    * afterwards does nothing. Without this beside it, "the loan survived"
-   * above would be indistinguishable from "nothing this module does can ever
-   * drop a loan". */
+   * above would be indistinguishable from "nothing here can ever drop a
+   * loan". */
   it('drops the loan when the layer changes for a reason that is not its own write', async () => {
     const song = buildSongIdentity(
       'library',
@@ -223,9 +340,13 @@ describe('songEqSession', () => {
     if (!song) {
       throw new Error('test fixture produced no identity');
     }
+    contextSmartEq = layerOf(1);
     const entry = entryOf('Foreign Song', layerOf(3));
     (api.lookupSongEq as jest.Mock).mockResolvedValue(entry);
-    mockUseNowPlayingIdentity.mockReturnValue(song);
+    mockUseNowPlayingIdentity.mockReturnValue({
+      identity: song,
+      isPlaying: true,
+    });
 
     const { rerender } = renderHook(() => useSongEqSessionHost(), { wrapper });
 
@@ -240,7 +361,7 @@ describe('songEqSession', () => {
 
     // Somebody else — a preset load, the "Clear" chip — changes the layer
     // out from under the loan. Set directly on the stand-in rather than
-    // through `setSmartEqSpy`, since this is specifically NOT this module's
+    // through `setSmartEqSpy`, since this is specifically NOT this session's
     // own write.
     contextSmartEq = layerOf(9);
     rerender();
@@ -253,5 +374,45 @@ describe('songEqSession', () => {
     expect((api.setSmartEq as jest.Mock).mock.calls.length).toBe(
       callsAfterMatch,
     );
+  });
+
+  it('forgets the notice-named song over IPC and clears the notice', async () => {
+    const song = buildSongIdentity(
+      'library',
+      'forget-song',
+      'Forget Song',
+      'Artist',
+    );
+    if (!song) {
+      throw new Error('test fixture produced no identity');
+    }
+    const entry = entryOf('Forget Song', layerOf(5));
+    (api.lookupSongEq as jest.Mock).mockResolvedValue(entry);
+    mockUseNowPlayingIdentity.mockReturnValue({
+      identity: song,
+      isPlaying: true,
+    });
+
+    const { result } = renderHook(
+      () => {
+        useSongEqSessionHost();
+        return useSongEqNotice();
+      },
+      { wrapper },
+    );
+
+    await act(async () => {
+      jest.advanceTimersByTime(SONG_EQ_SETTLE_MS + 1000);
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    expect(result.current).toEqual({ identity: song, entry });
+
+    act(() => {
+      forgetCurrentSongEq();
+    });
+
+    expect(api.forgetSongEq).toHaveBeenCalledWith('device-a', song.key);
+    expect(result.current).toBeUndefined();
   });
 });

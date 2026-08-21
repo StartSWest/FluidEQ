@@ -68,6 +68,14 @@ export interface ISongEqSession {
   /** Whether the two-minute checkpoint has already been written. */
   hasCheckpointed: boolean;
   /**
+   * Set by a 'forget' event. The session keeps timing — the badge stays
+   * honest about a song still playing — but `close` in `songEqTiming.ts`
+   * must never commit one marked this way, however long it plays afterwards,
+   * or "forget" would just be a way to re-file the same curve a moment
+   * later.
+   */
+  forgotten?: boolean;
+  /**
    * What the layer held before a match was applied, and whether there is one.
    *
    * `hasLoan` is separate from `loanLayer` because "there was no layer" is a
@@ -96,7 +104,18 @@ export type TSongEqEvent =
   | { kind: 'saveToggled'; isSaveOn: boolean }
   | { kind: 'matched'; identity: ISongIdentity; entry?: ISongEqEntry }
   | { kind: 'undo' }
-  | { kind: 'closing' };
+  | { kind: 'closing' }
+  /**
+   * Forget whatever this output remembers about the current song.
+   *
+   * `identity` is the shell's fallback for when nothing is playing but a
+   * notice is still up naming the last one — the session's own identity, when
+   * there is a session, always wins over it. That precedence lives here
+   * rather than in the shell because the shell has no way to know which one
+   * the reducer will actually use, and guessing wrong would forget the wrong
+   * song.
+   */
+  | { kind: 'forget'; identity?: ISongIdentity };
 
 export type TSongEqEffect =
   | { kind: 'lookup'; identity: ISongIdentity; deviceId: string }
@@ -113,7 +132,10 @@ export type TSongEqEffect =
       deviceId: string;
       layer: ISmartEqSettings;
     }
-  | { kind: 'notice'; identity: ISongIdentity; entry: ISongEqEntry };
+  | { kind: 'notice'; identity: ISongIdentity; entry: ISongEqEntry }
+  /** Delete whatever this output has stored under `key` — the storage side
+   * of a 'forget' event, once the reducer has decided whose song it is. */
+  | { kind: 'forget'; deviceId: string; key: string };
 
 export const getInitialRecorderState = (): ISongEqRecorderState => ({
   deviceId: '',
@@ -155,6 +177,14 @@ const sameFilters = (a: IFiltersMap, b: IFiltersMap): boolean => {
  * A string compare over that JSON would call every echo of our own write
  * "foreign" and drop the loan on every single match; field-wise, key order
  * cannot matter.
+ *
+ * Only the fields `sanitizeSmartEqSettings` actually keeps. It rebuilds a
+ * layer from `filters`, `intensity` and `apoOverride` alone and drops
+ * `status`, `lowFrequency` and `highFrequency` on the floor — a stored entry
+ * can carry all three, so a round-tripped echo of this recorder's own write
+ * never has them, whatever the original had. Comparing a field the sanitiser
+ * discards is comparing something that can never match, which dropped the
+ * loan on every match whose entry happened to carry a `status`.
  */
 const isSameLayer = (
   a: ISmartEqSettings | undefined,
@@ -166,9 +196,6 @@ const isSameLayer = (
   return (
     sameFilters(a.filters, b.filters) &&
     a.intensity === b.intensity &&
-    a.status === b.status &&
-    a.lowFrequency === b.lowFrequency &&
-    a.highFrequency === b.highFrequency &&
     // Presence only: the override's own contents are an applied config file,
     // not a value this recorder ever wrote, so it cannot be part of "ours".
     (a.apoOverride === undefined) === (b.apoOverride === undefined)
@@ -251,6 +278,43 @@ export const reduceSongEq = (
           session: { ...session, hasLoan: false, loanLayer: undefined },
         },
         [...timed, { kind: 'applyLayer', settings: session.loanLayer }],
+      ];
+    }
+
+    case 'forget': {
+      // The session's own identity always wins: forgetting is about the
+      // song actually open, and the shell's fallback only matters once
+      // there is none to prefer.
+      const target = session?.identity ?? event.identity;
+      if (!target) {
+        return [state, timed];
+      }
+      const forgetEffect: TSongEqEffect = {
+        kind: 'forget',
+        deviceId: state.deviceId,
+        key: target.key,
+      };
+      if (!session) {
+        return [state, [...timed, forgetEffect]];
+      }
+      return [
+        {
+          ...state,
+          liveLayer: session.hasLoan ? session.loanLayer : state.liveLayer,
+          session: {
+            ...session,
+            hasLoan: false,
+            loanLayer: undefined,
+            forgotten: true,
+          },
+        },
+        session.hasLoan
+          ? [
+              ...timed,
+              forgetEffect,
+              { kind: 'applyLayer', settings: session.loanLayer },
+            ]
+          : [...timed, forgetEffect],
       ];
     }
 

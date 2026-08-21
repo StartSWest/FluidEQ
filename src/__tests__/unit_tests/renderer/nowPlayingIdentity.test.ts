@@ -23,9 +23,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * player it falls back to whatever was last described — the paused song
  * somebody is about to resume. Right for a bar, wrong for a recorder: a paused
  * song is not being equalised, and opening the EQ tab must not start one being
- * recorded. `pickPlayingIdentity` is only the first two clauses of that
- * function, so the cases worth pinning are the ones a bar would answer
- * differently from a recorder.
+ * recorded. `pickPlayingIdentity` shares its first two clauses with that
+ * function and none of the rest, so the cases worth pinning are the ones a
+ * bar would answer differently from a recorder — plus the one case the
+ * recorder needs that the bar has no reason to: telling a pause apart from a
+ * stop, which is `lastReleasedOwner`'s whole job.
  */
 
 import { buildSongIdentity } from 'common/songIdentity';
@@ -52,15 +54,23 @@ const sourceOf = (
 describe('pickPlayingIdentity', () => {
   it('is nothing when nothing is playing', () => {
     expect(
-      pickPlayingIdentity({ library: sourceOf('library', false) }, undefined),
-    ).toBeUndefined();
+      pickPlayingIdentity(
+        { library: sourceOf('library', false) },
+        undefined,
+        undefined,
+      ),
+    ).toEqual({ identity: undefined, isPlaying: false });
   });
 
   it('is the app player that holds playback', () => {
     // Positive control for the test above.
     expect(
-      pickPlayingIdentity({ library: sourceOf('library', true) }, 'library'),
-    ).toBe(songA);
+      pickPlayingIdentity(
+        { library: sourceOf('library', true) },
+        'library',
+        undefined,
+      ),
+    ).toEqual({ identity: songA, isPlaying: true });
   });
 
   it("is the machine's own player when nothing of ours holds playback", () => {
@@ -68,8 +78,9 @@ describe('pickPlayingIdentity', () => {
       pickPlayingIdentity(
         { system: sourceOf('system', true, songB) },
         undefined,
+        undefined,
       ),
-    ).toBe(songB);
+    ).toEqual({ identity: songB, isPlaying: true });
   });
 
   it("ignores the machine's player while one of ours is playing", () => {
@@ -80,8 +91,9 @@ describe('pickPlayingIdentity', () => {
           system: sourceOf('system', true, songB),
         },
         'library',
+        undefined,
       ),
-    ).toBe(songA);
+    ).toEqual({ identity: songA, isPlaying: true });
   });
 
   it("reads only the playing owner's entry, not any source that is registered", () => {
@@ -93,25 +105,60 @@ describe('pickPlayingIdentity', () => {
       pickPlayingIdentity(
         { karaoke: sourceOf('karaoke', false, karaokeSong) },
         'library',
+        undefined,
       ),
-    ).toBeUndefined();
+    ).toEqual({ identity: undefined, isPlaying: true });
   });
 
   it("is nothing when the machine's own player is only paused", () => {
     // A regression dropping the `isPlaying` gate on the system fallback would
     // pass every other test here — this is the one case that depends on it.
+    // `system` never claims playback in the first place (see
+    // `playbackOwner.ts`), so there is no `lastReleasedOwner` fallback for it
+    // to be rescued by either.
     expect(
       pickPlayingIdentity(
         { system: sourceOf('system', false, songB) },
         undefined,
+        undefined,
       ),
-    ).toBeUndefined();
+    ).toEqual({ identity: undefined, isPlaying: false });
   });
 
   it('is nothing for a source that published no identity', () => {
     const anonymous = { ...sourceOf('library', true), identity: undefined };
     expect(
-      pickPlayingIdentity({ library: anonymous }, 'library'),
-    ).toBeUndefined();
+      pickPlayingIdentity({ library: anonymous }, 'library', undefined),
+    ).toEqual({ identity: undefined, isPlaying: true });
+  });
+
+  it('reports a paused player as paused rather than as nothing playing at all', () => {
+    // The positive control for the new fallback: a pause must be tellable
+    // apart from a stop, or the suspend grace `songEqTiming.ts` gives a
+    // resuming song is never actually reachable.
+    expect(
+      pickPlayingIdentity(
+        { library: sourceOf('library', false) },
+        undefined,
+        'library',
+      ),
+    ).toEqual({ identity: songA, isPlaying: false });
+  });
+
+  it('reports whoever is actually playing over a stale last-released owner', () => {
+    // library paused a while ago (so it is `lastReleasedOwner`), then karaoke
+    // started and is now playing. The currently playing owner must still win
+    // outright.
+    const karaokeSong = buildSongIdentity('karaoke', 'k1', 'Karaoke Song');
+    expect(
+      pickPlayingIdentity(
+        {
+          library: sourceOf('library', false),
+          karaoke: sourceOf('karaoke', true, karaokeSong),
+        },
+        'karaoke',
+        'library',
+      ),
+    ).toEqual({ identity: karaokeSong, isPlaying: true });
   });
 });

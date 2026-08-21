@@ -67,12 +67,33 @@ export const listenedAt = (session: ISongEqSession, now: number) =>
   (session.playingSince === undefined ? 0 : now - session.playingSince);
 
 /**
+ * Whether continuing to listen, exactly as things stand, ends in a saved
+ * entry. The one gate both `close` (does this song get committed) and
+ * `advance` (has it earned its two-minute checkpoint) write under — pulled
+ * out once so nothing outside this file, including the shell's own "will
+ * this be saved" badge, can restate it and quietly drift from it the moment
+ * one of the two changes without the other noticing.
+ */
+export const willSongEqSave = (
+  state: ISongEqRecorderState,
+  session: ISongEqSession,
+  now: number,
+): boolean =>
+  state.isSaveOn &&
+  listenedAt(session, now) >= SONG_EQ_MIN_LISTENED_MS &&
+  Boolean(state.liveLayer);
+
+/**
  * End a session: save it if it earned that, hand back the loan if it is still
  * ours, and produce the effects for both.
  *
  * The order is deliberate and load-bearing. Reversed, the refinement would be
  * read off a layer already put back to what preceded the song, and every
  * remembered curve would decay towards whatever was in the chain before it.
+ *
+ * `forgotten` skips the commit outright, however long the song played: a
+ * 'forget' event exists precisely so continuing to listen after it does not
+ * quietly re-file the thing just asked to be dropped.
  */
 const close = (
   state: ISongEqRecorderState,
@@ -81,10 +102,9 @@ const close = (
   deviceId: string,
 ): TSongEqEffect[] => {
   const effects: TSongEqEffect[] = [];
-  const listened = listenedAt(session, now);
   if (
-    state.isSaveOn &&
-    listened >= SONG_EQ_MIN_LISTENED_MS &&
+    !session.forgotten &&
+    willSongEqSave(state, session, now) &&
     state.liveLayer
   ) {
     effects.push({
@@ -163,9 +183,9 @@ export const advance = (
   if (
     session.phase === 'recording' &&
     !session.hasCheckpointed &&
-    state.isSaveOn &&
-    state.liveLayer &&
-    listenedAt(session, now) >= SONG_EQ_MIN_LISTENED_MS
+    !session.forgotten &&
+    willSongEqSave(state, session, now) &&
+    state.liveLayer
   ) {
     return [
       { ...state, session: { ...session, hasCheckpointed: true } },

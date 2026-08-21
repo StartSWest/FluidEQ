@@ -16,12 +16,14 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+import { renderHook } from '@testing-library/react';
 import {
   claimPlayback,
   getPlaybackOwner,
   registerPlayer,
   releasePlayback,
   resetPlaybackOwner,
+  useLastReleasedOwner,
 } from '../../../renderer/audio/playbackOwner';
 
 /**
@@ -145,5 +147,27 @@ describe('playback ownership', () => {
     // itself, which the test above pins.
     expect(stopLibrary).toHaveBeenCalledTimes(2);
     expect(getPlaybackOwner()).toBe('karaoke');
+  });
+
+  it('remembers who released playback last, feeding the "paused, not stopped" fallback nowPlayingIdentity needs', () => {
+    registerPlayer('library', () => {});
+    claimPlayback('library');
+    releasePlayback('library');
+
+    const { result } = renderHook(() => useLastReleasedOwner());
+    expect(result.current).toBe('library');
+  });
+
+  it('forgets who released last once that player unregisters entirely', () => {
+    // Gone is not the same as paused: a player that has torn down has
+    // nothing left to resume, and reporting it would name a source with no
+    // stopper and no way back.
+    const unregister = registerPlayer('library', () => {});
+    claimPlayback('library');
+    releasePlayback('library');
+    unregister();
+
+    const { result } = renderHook(() => useLastReleasedOwner());
+    expect(result.current).toBeUndefined();
   });
 });

@@ -62,6 +62,20 @@ const run = (
   return { state, effects };
 };
 
+/** A tick every second across the given span, with no accompanying
+ * `nowPlaying` — for a test that needs to keep a session running past a
+ * point where something else already happened to it. */
+const ticksFrom = (
+  startAt: number,
+  endAt: number,
+): Array<[number, TSongEqEvent]> => {
+  const steps: Array<[number, TSongEqEvent]> = [];
+  for (let at = startAt; at <= endAt; at += 1000) {
+    steps.push([at, { kind: 'tick' }]);
+  }
+  return steps;
+};
+
 const armed = (): ISongEqRecorderState => ({
   ...getInitialRecorderState(),
   deviceId: 'device-a',
@@ -421,5 +435,93 @@ describe('songEqRecorder', () => {
     expect(applied).toHaveLength(2);
     expect(applied[0]).toMatchObject({ settings: appliedLayer });
     expect(applied[1]).toMatchObject({ settings: layerOf(2) });
+  });
+
+  it('recognises its own write even when the entry carried a field the sanitiser discards', () => {
+    // sanitizeSmartEqSettings rebuilds a layer from `filters`, `intensity`
+    // and `apoOverride` alone — `status`, `lowFrequency` and `highFrequency`
+    // never survive the round trip through main. A stored entry can carry
+    // all three, so an `isSameLayer` that compared them would be comparing a
+    // field that can never match and would drop the loan on every match
+    // whose entry happened to carry a `status`.
+    const appliedLayer: ISmartEqSettings = {
+      ...layerOf(9),
+      status: 'ready',
+      lowFrequency: 80,
+      highFrequency: 12_000,
+    };
+    // What actually comes back once main has rebuilt it.
+    const sanitisedEcho: ISmartEqSettings = layerOf(9);
+    const entry = {
+      settings: appliedLayer,
+      title: 'Song A',
+      plays: 1,
+      updatedAt: 1,
+    };
+    const { effects } = run(armed(), [
+      [0, { kind: 'nowPlaying', identity: songA, isPlaying: true }],
+      [SONG_EQ_SETTLE_MS + 1, { kind: 'tick' }],
+      [SONG_EQ_SETTLE_MS + 2, { kind: 'matched', identity: songA, entry }],
+      [SONG_EQ_SETTLE_MS + 3, { kind: 'layerChanged', layer: sanitisedEcho }],
+      [
+        SONG_EQ_SETTLE_MS + 4,
+        { kind: 'nowPlaying', identity: songB, isPlaying: true },
+      ],
+    ]);
+    const applied = effects.filter((effect) => effect.kind === 'applyLayer');
+    // The lend, and the hand-back once the loan survives the stripped echo.
+    expect(applied).toHaveLength(2);
+    expect(applied[1]).toMatchObject({ settings: layerOf(2) });
+  });
+
+  it('does not recommit a song after it has been forgotten mid-play, however long it continues', () => {
+    // The bug this guards: pressing Forget and continuing to listen used to
+    // re-file the same curve at track end regardless.
+    const { effects } = run(armed(), [
+      [0, { kind: 'nowPlaying', identity: songA, isPlaying: true }],
+      [SONG_EQ_SETTLE_MS + 1, { kind: 'tick' }],
+      [60_000, { kind: 'forget' }],
+      ...ticksFrom(61_000, 130_000),
+      [130_001, { kind: 'nowPlaying', identity: songB, isPlaying: true }],
+    ]);
+    expect(
+      effects.filter((effect) => effect.kind === 'checkpoint'),
+    ).toHaveLength(0);
+    expect(effects.filter((effect) => effect.kind === 'commit')).toHaveLength(
+      0,
+    );
+    expect(effects.filter((effect) => effect.kind === 'forget')).toHaveLength(
+      1,
+    );
+  });
+
+  it("forgets the session's own identity, not whatever the shell offers as a fallback", () => {
+    // The precedence is the reducer's to decide, not the shell's: a session
+    // for song A must forget song A even if the shell's own fallback names
+    // something else.
+    const { effects } = run(armed(), [
+      [0, { kind: 'nowPlaying', identity: songA, isPlaying: true }],
+      [1, { kind: 'forget', identity: songB }],
+    ]);
+    const forgets = effects.filter((effect) => effect.kind === 'forget');
+    expect(forgets).toHaveLength(1);
+    expect(forgets[0]).toMatchObject({ key: songA.key });
+  });
+
+  it('forgets the fallback identity when nothing is playing to prefer', () => {
+    // No session open — the shell's own notice is all there is to go on.
+    const { effects } = run(armed(), [
+      [0, { kind: 'forget', identity: songB }],
+    ]);
+    const forgets = effects.filter((effect) => effect.kind === 'forget');
+    expect(forgets).toHaveLength(1);
+    expect(forgets[0]).toMatchObject({ key: songB.key });
+  });
+
+  it('does nothing to forget when neither a session nor a fallback names anything', () => {
+    const { effects } = run(armed(), [[0, { kind: 'forget' }]]);
+    expect(effects.filter((effect) => effect.kind === 'forget')).toHaveLength(
+      0,
+    );
   });
 });
