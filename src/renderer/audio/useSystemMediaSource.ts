@@ -29,10 +29,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * WHAT IS PLAYING WINS, WHOEVER IS PLAYING IT. The rule the bar has always
  * had, extended to the one player this app does not own: sound from a browser
  * keeps the bar on every page until it stops, and then the page's own player
- * has it back — the same thing a library track does when it is paused. What
- * this never does is take the bar from a player of this app's that is actually
- * playing; that one wins, and the watcher in main is not even running while it
- * does.
+ * has it back — the same thing a library track does when it is paused.
+ *
+ * ONE OF THEM AT A TIME, in both directions. This app is the equaliser
+ * everything on the machine runs through, so a browser tab playing over a
+ * library song is two things at once through one curve — the same fault as
+ * two of this app's own players at once, and it reads the same way. Start
+ * something here and the machine's player is asked to pause; start something
+ * out there and ours stops.
  *
  * The bar's play/pause button goes out as a media key rather than through the
  * session: the key is the one transport command that reaches every player on
@@ -46,60 +50,72 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { useEffect, useRef } from 'react';
 import type { ISystemMediaSnapshot } from '../../main/systemMedia';
-import { usePlaybackOwner } from './playbackOwner';
+import { stopAllPlayback, usePlaybackOwner } from './playbackOwner';
+import type { TPlaybackOwner } from './playbackOwner';
 import { clearTransportSource, setTransportSource } from './transportSource';
 
 /** What the bar shows for a player that has published no artist. */
 const subtitleFor = (snapshot: ISystemMediaSnapshot): string | undefined =>
   snapshot.artist || snapshot.app || undefined;
 
+/**
+ * Whether the app should go quiet because something outside just started.
+ *
+ * A TRANSITION, and that is the whole of the trick. "It is playing out there
+ * and we are playing here" is true for a second after we ask an external
+ * player to pause — the pause has been sent and the next reading has not
+ * caught up — so acting on the state rather than on the change made the two
+ * take it in turns to stop each other. Asking whether it *started* is what
+ * separates "somebody pressed play in a browser" from "the thing we just
+ * paused has not stopped yet", and it needs no clock to do it.
+ *
+ * The other half is the same rule from the other side, and it lives in the
+ * hook: when a player of ours starts, the machine's player is asked to pause.
+ * One of the two is always making the sound.
+ */
+export const shouldYieldToSystem = (
+  wasPlaying: boolean,
+  isPlaying: boolean,
+  appOwner: TPlaybackOwner | undefined,
+): boolean => isPlaying && !wasPlaying && appOwner !== undefined;
+
 export const useSystemMediaSource = (): void => {
-  // WHILE ONE OF THIS APP'S OWN PLAYERS IS PLAYING, AND NOT MERELY LOADED.
-  //
-  // A paused album on the Library tab does not silence the machine: sound
-  // could still be coming from a browser, and that is exactly the case the bar
-  // used to be blank for. Only something this app is actually playing takes
-  // the watcher down — and when it does, it is also the thing the bar shows.
   const playingOwner = usePlaybackOwner();
-  const isAppPlaying = playingOwner !== undefined;
   /**
-   * The last thing the watcher said, kept for the moment it stops.
+   * The last thing the watcher said, and who was playing when it said it.
    *
-   * When a player of ours starts, the watcher is taken down — and the
-   * question "was anything playing out there a moment ago" has to be
-   * answerable after that, because that is exactly when the pause is sent.
+   * Refs rather than state: they are read inside a subscription registered
+   * once, and re-registering it on every change would take the watcher down
+   * and put it back several times a second.
    */
   const lastSnapshotRef = useRef<ISystemMediaSnapshot | undefined>(undefined);
+  const playingOwnerRef = useRef<TPlaybackOwner | undefined>(undefined);
+  playingOwnerRef.current = playingOwner;
 
+  // THE WATCHER STAYS UP WHILE THIS APP IS PLAYING, and that is the price of
+  // the rule working both ways: a browser tab starting is a thing that has to
+  // be noticed, and it cannot be noticed by something that was switched off
+  // for the duration.
   useEffect(() => {
     const bridge = window.electron?.ipcRenderer;
     if (!bridge?.watchSystemMedia || !bridge.onSystemMedia) {
       return undefined;
     }
 
-    if (isAppPlaying) {
-      // AND QUIETEN IT, the way one player of this app's silences another.
-      //
-      // `playbackOwner` allows one player at a time and this is the same rule
-      // reaching one step further out: a song starting here should not play
-      // over the top of a browser tab. A pause and never the play/pause key —
-      // a toggle sent to a session that was already paused would *start* it,
-      // which is the app turning somebody's music on for them.
-      //
-      // Only when it was actually playing. Windows takes a pause for a
-      // stopped session without complaint, but there is no reason to spawn a
-      // process to say nothing.
-      if (lastSnapshotRef.current?.isPlaying) {
-        bridge.sendSystemMediaCommand('pause').catch(() => undefined);
-      }
-      lastSnapshotRef.current = undefined;
-      clearTransportSource('system');
-      bridge.watchSystemMedia(false).catch(() => undefined);
-      return undefined;
-    }
-
     const unsubscribe = bridge.onSystemMedia((snapshot) => {
+      const wasPlaying = lastSnapshotRef.current?.isPlaying === true;
       lastSnapshotRef.current = snapshot;
+      if (
+        shouldYieldToSystem(
+          wasPlaying,
+          snapshot?.isPlaying === true,
+          playingOwnerRef.current,
+        )
+      ) {
+        // Somebody pressed play somewhere else. Ours stops, the way it stops
+        // when somebody presses play on another tab of this app.
+        stopAllPlayback();
+      }
       if (!snapshot) {
         clearTransportSource('system');
         return;
@@ -160,7 +176,24 @@ export const useSystemMediaSource = (): void => {
       bridge.watchSystemMedia(false).catch(() => undefined);
       clearTransportSource('system');
     };
-  }, [isAppPlaying]);
+  }, []);
+
+  /**
+   * And the same rule from our side: what we start, we start alone.
+   *
+   * Sent on the change of owner rather than on every snapshot, so it is one
+   * command per press of play. A pause asked of the session by name and never
+   * the play/pause key — a toggle sent to something already paused would
+   * start it, which is this app turning somebody's music on for them.
+   */
+  useEffect(() => {
+    if (playingOwner === undefined || !lastSnapshotRef.current?.isPlaying) {
+      return;
+    }
+    window.electron?.ipcRenderer
+      .sendSystemMediaCommand('pause')
+      .catch(() => undefined);
+  }, [playingOwner]);
 };
 
 export default useSystemMediaSource;

@@ -116,6 +116,27 @@ export const releasePlayback = (id: TPlaybackOwner): void => {
   }
 };
 
+/**
+ * Everything of ours, silent — because something outside just started.
+ *
+ * The one-player rule has always been about this app's three players. The
+ * machine has others, and this app is the equaliser they all run through: a
+ * browser tab starting while a library song plays is two things at once
+ * through one curve, which is the same fault as two of ours at once and reads
+ * the same way.
+ *
+ * `claimPlayback` cannot do this job. It hands ownership to the claimant, and
+ * the claimant here is a program we do not own and cannot answer for — the
+ * bar would then be showing a player registered in a table it is not in. This
+ * says the honest thing instead: nothing of ours is playing. The bar goes to
+ * the machine's own transport by the ordinary rule, because that is what is
+ * making the sound.
+ */
+export const stopAllPlayback = (): void => {
+  stoppers.forEach((stop) => stop());
+  publish(undefined);
+};
+
 /** For anything that needs to know without subscribing — an event handler
  * deciding whether the thing it is about to do is even its business. */
 export const getPlaybackOwner = (): TPlaybackOwner | undefined => owner;
