@@ -72,7 +72,7 @@ export interface ILibraryTrack {
 }
 
 export type TLibraryBrowseMode =
-  'album' | 'artist' | 'song' | 'folder' | 'video';
+  'album' | 'artist' | 'song' | 'folder' | 'video' | 'playlist';
 export type TLibraryViewMode = 'list' | 'grid' | 'coverflow';
 export type TLibrarySort = 'title' | 'artist' | 'album' | 'year' | 'added';
 export type TLibrarySortDirection = 'asc' | 'desc';

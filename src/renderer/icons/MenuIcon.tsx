@@ -90,6 +90,19 @@ const PATHS: Record<string, string> = {
     'M9.5 14a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v5a3 3 0 0 0 3 3zM4.5 11a5 5 0 0 0 8.5 3.6M9.5 16v4M7 20h5M17 5v3M17 11v7M14.5 8h5M20.5 5v7M20.5 15v3M18 12h5',
   previous: 'M15.5 6L9 12l6.5 6M7 6v12',
   next: 'M8.5 6L15 12l-6.5 6M17 6v12',
+  // A five-pointed star: the favourite mark, and the one glyph here that is
+  // also drawn filled — see `.library-list__badge--favorite`, which fills it
+  // so a favourited row can be picked out of a hundred at a glance rather
+  // than compared stroke by stroke against its neighbours.
+  star: 'M12 4l2.3 4.7 5.2.8-3.75 3.65.9 5.15L12 15.9l-4.65 2.4.9-5.15L4.5 9.5l5.2-.8L12 4z',
+  // Rails with a note hanging off the end: a named run of songs, distinct
+  // from the plain `menu` rails which mean "more actions".
+  playlist:
+    'M4 6h11M4 11h11M4 16h7M20.5 16.5a2 2 0 1 1-4 0 2 2 0 0 1 4 0M20.5 16.5V7',
+  // The same rails with a plus: put this song into one of them.
+  playlistAdd: 'M4 6h12M4 11h12M4 16h6M16 18.5h6M19 15.5v6',
+  // Chevron pointing back: the menu's second page returning to its first.
+  back: 'M14.5 6L8.5 12l6 6',
   play: 'M9 6l8 6-8 6V6z',
   pause: 'M9 6v12M15 6v12',
   volume: 'M5 10v4h3l4 3V7l-4 3H5M15 9a4 4 0 0 1 0 6',

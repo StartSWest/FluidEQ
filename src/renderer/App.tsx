@@ -66,6 +66,8 @@ import { ILibraryTrack } from '../common/library/types';
 import LibraryWorkspace from './library/LibraryWorkspace';
 import LibraryStageArt from './library/LibraryStageArt';
 import { LibraryProvider } from './library/LibraryContext';
+import { PlaylistProvider } from './library/PlaylistContext';
+import { useHasPendingKaraokeFiles } from './library/karaokeHandoff';
 import {
   LibraryPlayerProvider,
   useLibraryPlayer,
@@ -844,6 +846,27 @@ const AppContent = () => {
   // Karaoke follows the same lifetime rule. Once audio and microphone capture
   // land here, leaving the tab must not tear either pipeline down.
   const [hasOpenedKaraoke, setHasOpenedKaraoke] = useState(false);
+
+  /**
+   * A song was sent over from the Library tab.
+   *
+   * App's whole share of the handoff is moving the reader and mounting the
+   * destination; `KaraokeWorkspace` drains the queue itself. Both halves are
+   * needed and neither is enough: without the mount there is nobody to drain
+   * it, and without the switch the song arrives on a tab nobody is looking
+   * at — a menu item that appears to have done nothing.
+   *
+   * The queue is what is watched rather than an event, so a file sent before
+   * the workspace has ever been mounted still lands. See `karaokeHandoff.ts`.
+   */
+  const hasPendingKaraokeFiles = useHasPendingKaraokeFiles();
+  useEffect(() => {
+    if (!hasPendingKaraokeFiles) {
+      return;
+    }
+    setHasOpenedKaraoke(true);
+    setActiveWorkspaceTab('karaoke');
+  }, [hasPendingKaraokeFiles]);
 
   // The editor's height when the drag began, so every move is measured from one
   // fixed point rather than accumulated.
@@ -1759,12 +1782,17 @@ const AppContent = () => {
                 ref, never rendered, so nothing here can remount it either. */}
             {hasOpenedLibrary && (
               <LibraryProvider>
-                <LibraryPlayerProvider>
-                  <LibraryWorkspace
-                    isHidden={!isLibraryTab}
-                    revealRequest={libraryReveal}
-                  />
-                  {/* The song behind a full-screen graph, on this tab only.
+                {/* Inside `LibraryProvider` for tidiness rather than
+                    necessity — it needs nothing from it — and outside
+                    `LibraryPlayerProvider`, which does: a queue built from a
+                    playlist is resolved against the index the player reads. */}
+                <PlaylistProvider>
+                  <LibraryPlayerProvider>
+                    <LibraryWorkspace
+                      isHidden={!isLibraryTab}
+                      revealRequest={libraryReveal}
+                    />
+                    {/* The song behind a full-screen graph, on this tab only.
                       Gated on the same pair the layout is — the graph being
                       full screen AND drawn — because `isGraphAppFullScreen`
                       alone is true on a Library tab that still has its own
@@ -1772,18 +1800,20 @@ const AppContent = () => {
                       than backing the plot. Media and Karaoke have full
                       screens of their own with their own picture in them; a
                       third one here would be a third answer to one question. */}
-                  {isGraphFullScreen && showsGraph && isLibraryTab && (
-                    <LibraryStageArt />
-                  )}
-                  <ConnectedNowPlayingBar
-                    activeTab={activeWorkspaceTab}
-                    isIdle={
-                      isAppFullScreen && (!isPointerNearBottom || isChromeIdle)
-                    }
-                    isFloating={isAppFullScreen}
-                    onReveal={revealPlayingTrack}
-                  />
-                </LibraryPlayerProvider>
+                    {isGraphFullScreen && showsGraph && isLibraryTab && (
+                      <LibraryStageArt />
+                    )}
+                    <ConnectedNowPlayingBar
+                      activeTab={activeWorkspaceTab}
+                      isIdle={
+                        isAppFullScreen &&
+                        (!isPointerNearBottom || isChromeIdle)
+                      }
+                      isFloating={isAppFullScreen}
+                      onReveal={revealPlayingTrack}
+                    />
+                  </LibraryPlayerProvider>
+                </PlaylistProvider>
               </LibraryProvider>
             )}
             {/* Mounted on first visit and then hidden instead of destroyed.

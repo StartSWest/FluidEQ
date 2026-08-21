@@ -124,6 +124,39 @@ const library: Partial<Dictionary> = {
   'library.nothingPlayingHint': 'Wähle etwas zum Abspielen',
   'library.systemAudio': 'Systemaudio',
   'library.fullScreen': 'Vollbild',
+
+  'library.trackActions': 'Was mit diesem Titel geschehen soll',
+  'library.browse.playlist': 'Playlists',
+  'library.playlist.favorites': 'Favoriten',
+  'library.playlist.addToFavorites': 'Zu Favoriten hinzufügen',
+  'library.playlist.removeFromFavorites': 'Aus Favoriten entfernen',
+  'library.playlist.favorite': 'In deinen Favoriten',
+  'library.playlist.addTo': 'Zu Playlist hinzufügen',
+  'library.playlist.alreadyIn': 'Schon in dieser Playlist',
+  'library.playlist.removeFrom': 'Aus dieser Playlist entfernen',
+  'library.playlist.new': 'Neue Playlist',
+  'library.playlist.newName': 'Name der Playlist',
+  'library.playlist.create': 'Anlegen',
+  'library.playlist.rename': 'Umbenennen',
+  'library.playlist.keep': 'Behalten',
+  'library.playlist.delete': 'Playlist löschen',
+  'library.playlist.deleteConfirm':
+    '„{name}“ löschen? Die Titel bleiben in deiner Bibliothek.',
+  'library.playlist.builtIn':
+    'Favoriten ist immer da und lässt sich nicht entfernen',
+  'library.playlist.songCount': '{count} Titel',
+  'library.playlist.songCountOne': '1 Titel',
+  'library.playlist.empty': 'In dieser Playlist ist noch nichts',
+  'library.playlist.emptyHint':
+    'Rechtsklick auf einen Titel und „Zu Playlist hinzufügen“ wählen.',
+  'library.playlist.missing':
+    '{count} Titel dieser Playlist sind derzeit nicht in deiner Bibliothek',
+  'library.playlist.reset':
+    'Deine Playlists konnten nicht gelesen werden und wurden zurückgesetzt.',
+  'library.karaoke.send': 'An Karaoke senden',
+  'library.karaoke.sending': 'Wird an Karaoke gesendet…',
+  'library.karaoke.failed':
+    'Diese Datei konnte nicht an Karaoke gesendet werden — sie ist vielleicht zu groß oder nicht lesbar.',
 };
 
 export default library;

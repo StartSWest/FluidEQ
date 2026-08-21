@@ -60,6 +60,11 @@ const BROWSE_MODES: readonly TLibraryBrowseMode[] = [
   'song',
   'folder',
   'video',
+  // Last, and deliberately after Videos: the five before it are readings of
+  // the files on disk, and this one is the only shelf the reader built
+  // themselves. Putting it first would move every chip somebody already
+  // knows the position of.
+  'playlist',
 ];
 const VIEW_MODES: readonly TLibraryViewMode[] = ['list', 'grid', 'coverflow'];
 const SORTS: readonly TLibrarySort[] = [
@@ -76,6 +81,7 @@ const BROWSE_LABEL_KEYS = {
   song: 'library.browse.song',
   folder: 'library.browse.folder',
   video: 'library.videos',
+  playlist: 'library.browse.playlist',
 } as const;
 
 const VIEW_LABEL_KEYS = {

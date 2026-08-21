@@ -123,6 +123,38 @@ const library: Partial<Dictionary> = {
   'library.nothingPlayingHint': 'सुनने के लिए कुछ चुनें',
   'library.systemAudio': 'सिस्टम ऑडियो',
   'library.fullScreen': 'पूर्ण स्क्रीन',
+
+  'library.trackActions': 'इस गाने का क्या करें',
+  'library.browse.playlist': 'प्लेलिस्ट',
+  'library.playlist.favorites': 'पसंदीदा',
+  'library.playlist.addToFavorites': 'पसंदीदा में जोड़ें',
+  'library.playlist.removeFromFavorites': 'पसंदीदा से हटाएँ',
+  'library.playlist.favorite': 'आपके पसंदीदा में है',
+  'library.playlist.addTo': 'प्लेलिस्ट में जोड़ें',
+  'library.playlist.alreadyIn': 'इस प्लेलिस्ट में पहले से है',
+  'library.playlist.removeFrom': 'इस प्लेलिस्ट से हटाएँ',
+  'library.playlist.new': 'नई प्लेलिस्ट',
+  'library.playlist.newName': 'प्लेलिस्ट का नाम',
+  'library.playlist.create': 'बनाएँ',
+  'library.playlist.rename': 'नाम बदलें',
+  'library.playlist.keep': 'रहने दें',
+  'library.playlist.delete': 'प्लेलिस्ट मिटाएँ',
+  'library.playlist.deleteConfirm':
+    '“{name}” मिटाएँ? गाने आपकी लाइब्रेरी में बने रहेंगे।',
+  'library.playlist.builtIn': 'पसंदीदा हमेशा रहती है और मिटाई नहीं जा सकती',
+  'library.playlist.songCount': '{count} गाने',
+  'library.playlist.songCountOne': '1 गाना',
+  'library.playlist.empty': 'इस प्लेलिस्ट में अभी कुछ नहीं है',
+  'library.playlist.emptyHint':
+    'किसी गाने पर दायाँ क्लिक करें और “प्लेलिस्ट में जोड़ें” चुनें।',
+  'library.playlist.missing':
+    'इस प्लेलिस्ट के {count} गाने अभी आपकी लाइब्रेरी में नहीं हैं',
+  'library.playlist.reset':
+    'आपकी प्लेलिस्ट पढ़ी नहीं जा सकीं और रीसेट कर दी गई हैं।',
+  'library.karaoke.send': 'कराओके में भेजें',
+  'library.karaoke.sending': 'कराओके में भेजा जा रहा है…',
+  'library.karaoke.failed':
+    'यह फ़ाइल कराओके में नहीं भेजी जा सकी — शायद यह बहुत बड़ी है या पढ़ी नहीं जा सकती।',
 };
 
 export default library;

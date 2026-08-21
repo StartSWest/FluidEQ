@@ -121,6 +121,35 @@ const library: Partial<Dictionary> = {
   'library.nothingPlayingHint': '选择要播放的内容',
   'library.systemAudio': '系统音频',
   'library.fullScreen': '全屏',
+
+  'library.trackActions': '对这首歌做什么',
+  'library.browse.playlist': '播放列表',
+  'library.playlist.favorites': '收藏',
+  'library.playlist.addToFavorites': '加入收藏',
+  'library.playlist.removeFromFavorites': '从收藏中移除',
+  'library.playlist.favorite': '已在你的收藏里',
+  'library.playlist.addTo': '加入播放列表',
+  'library.playlist.alreadyIn': '已在这个播放列表里',
+  'library.playlist.removeFrom': '从这个播放列表中移除',
+  'library.playlist.new': '新建播放列表',
+  'library.playlist.newName': '播放列表名称',
+  'library.playlist.create': '创建',
+  'library.playlist.rename': '重命名',
+  'library.playlist.keep': '保留',
+  'library.playlist.delete': '删除播放列表',
+  'library.playlist.deleteConfirm': '删除“{name}”？歌曲仍会留在你的音乐库里。',
+  'library.playlist.builtIn': '收藏一直都在，无法删除',
+  'library.playlist.songCount': '{count} 首歌',
+  'library.playlist.songCountOne': '1 首歌',
+  'library.playlist.empty': '这个播放列表还是空的',
+  'library.playlist.emptyHint': '右键点击一首歌，选择“加入播放列表”。',
+  'library.playlist.missing':
+    '这个播放列表里有 {count} 首歌现在不在你的音乐库中',
+  'library.playlist.reset': '无法读取你的播放列表，已重置。',
+  'library.karaoke.send': '发送到卡拉OK',
+  'library.karaoke.sending': '正在发送到卡拉OK…',
+  'library.karaoke.failed':
+    '无法把这个文件发送到卡拉OK — 它可能太大或无法读取。',
 };
 
 export default library;

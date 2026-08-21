@@ -88,6 +88,10 @@ import {
 } from './karaokeEditorPersistence';
 import collectKaraokeDropFiles from './droppedFiles';
 import {
+  drainKaraokeFiles,
+  usePendingKaraokeFiles,
+} from '../library/karaokeHandoff';
+import {
   clampKaraokePitchShare,
   clampKaraokePlaylistShare,
   IKaraokeLayoutSettings,
@@ -974,6 +978,29 @@ const KaraokeWorkspace = ({
     },
     [loadPlaylistItem, playlist, selectedPlaylistId, session],
   );
+
+  /**
+   * Songs sent over from the Library tab's row menu.
+   *
+   * Drained rather than read, and drained here rather than in App: this is
+   * the only place that knows how to turn a file into a playlist entry, and
+   * anything that read the queue without emptying it would import the same
+   * song again on the next render. App's half is switching to this tab and
+   * making sure this component is mounted to do the draining at all.
+   *
+   * The queue itself is the dependency, so a file sent while this tab was
+   * already open lands as promptly as one that mounted it.
+   */
+  const pendingKaraokeFiles = usePendingKaraokeFiles();
+  useEffect(() => {
+    if (pendingKaraokeFiles.length === 0) {
+      return;
+    }
+    const taken = drainKaraokeFiles();
+    if (taken.length > 0) {
+      addFiles([...taken]).catch(() => undefined);
+    }
+  }, [pendingKaraokeFiles, addFiles]);
 
   const loadSelectedFiles = (files: FileList | null) => {
     if (files?.length) {

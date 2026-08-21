@@ -123,6 +123,38 @@ const library: Partial<Dictionary> = {
   'library.nothingPlayingHint': 'Выберите, что послушать',
   'library.systemAudio': 'Звук системы',
   'library.fullScreen': 'Полный экран',
+
+  'library.trackActions': 'Что сделать с этой песней',
+  'library.browse.playlist': 'Плейлисты',
+  'library.playlist.favorites': 'Избранное',
+  'library.playlist.addToFavorites': 'Добавить в Избранное',
+  'library.playlist.removeFromFavorites': 'Убрать из Избранного',
+  'library.playlist.favorite': 'В вашем Избранном',
+  'library.playlist.addTo': 'Добавить в плейлист',
+  'library.playlist.alreadyIn': 'Уже в этом плейлисте',
+  'library.playlist.removeFrom': 'Убрать из этого плейлиста',
+  'library.playlist.new': 'Новый плейлист',
+  'library.playlist.newName': 'Название плейлиста',
+  'library.playlist.create': 'Создать',
+  'library.playlist.rename': 'Переименовать',
+  'library.playlist.keep': 'Оставить',
+  'library.playlist.delete': 'Удалить плейлист',
+  'library.playlist.deleteConfirm':
+    'Удалить «{name}»? Песни останутся в вашей библиотеке.',
+  'library.playlist.builtIn': 'Избранное есть всегда, и его нельзя удалить',
+  'library.playlist.songCount': 'Песен: {count}',
+  'library.playlist.songCountOne': '1 песня',
+  'library.playlist.empty': 'В этом плейлисте пока ничего нет',
+  'library.playlist.emptyHint':
+    'Нажмите на песню правой кнопкой и выберите «Добавить в плейлист».',
+  'library.playlist.missing':
+    'Песен из этого плейлиста сейчас нет в библиотеке: {count}',
+  'library.playlist.reset':
+    'Не удалось прочитать ваши плейлисты, они были сброшены.',
+  'library.karaoke.send': 'Отправить в Караоке',
+  'library.karaoke.sending': 'Отправляем в Караоке…',
+  'library.karaoke.failed':
+    'Не удалось отправить этот файл в Караоке — возможно, он слишком большой или нечитаемый.',
 };
 
 export default library;

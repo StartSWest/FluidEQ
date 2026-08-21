@@ -126,6 +126,39 @@ const library: Partial<Dictionary> = {
   'library.nothingPlayingHint': 'Choisis quelque chose à écouter',
   'library.systemAudio': 'Audio du système',
   'library.fullScreen': 'Plein écran',
+
+  'library.trackActions': 'Que faire de ce morceau',
+  'library.browse.playlist': 'Playlists',
+  'library.playlist.favorites': 'Favoris',
+  'library.playlist.addToFavorites': 'Ajouter aux Favoris',
+  'library.playlist.removeFromFavorites': 'Retirer des Favoris',
+  'library.playlist.favorite': 'Dans vos Favoris',
+  'library.playlist.addTo': 'Ajouter à une playlist',
+  'library.playlist.alreadyIn': 'Déjà dans cette playlist',
+  'library.playlist.removeFrom': 'Retirer de cette playlist',
+  'library.playlist.new': 'Nouvelle playlist',
+  'library.playlist.newName': 'Nom de la playlist',
+  'library.playlist.create': 'Créer',
+  'library.playlist.rename': 'Renommer',
+  'library.playlist.keep': 'La garder',
+  'library.playlist.delete': 'Supprimer la playlist',
+  'library.playlist.deleteConfirm':
+    'Supprimer « {name} » ? Les morceaux restent dans votre bibliothèque.',
+  'library.playlist.builtIn':
+    'Favoris est toujours là et ne peut pas être supprimé',
+  'library.playlist.songCount': '{count} morceaux',
+  'library.playlist.songCountOne': '1 morceau',
+  'library.playlist.empty': 'Cette playlist est encore vide',
+  'library.playlist.emptyHint':
+    'Clic droit sur un morceau, puis « Ajouter à une playlist ».',
+  'library.playlist.missing':
+    '{count} morceaux de cette playlist ne sont pas dans votre bibliothèque en ce moment',
+  'library.playlist.reset':
+    'Vos playlists n’ont pas pu être lues et ont été réinitialisées.',
+  'library.karaoke.send': 'Envoyer au Karaoké',
+  'library.karaoke.sending': 'Envoi au Karaoké…',
+  'library.karaoke.failed':
+    'Ce fichier n’a pas pu être envoyé au Karaoké — il est peut-être trop volumineux ou illisible.',
 };
 
 export default library;

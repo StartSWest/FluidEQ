@@ -122,6 +122,38 @@ const library = {
   'library.nothingPlayingHint': 'Pick something to play',
   'library.systemAudio': 'System audio',
   'library.fullScreen': 'Full screen',
+
+  'library.trackActions': 'What to do with this song',
+  'library.browse.playlist': 'Playlists',
+  'library.playlist.favorites': 'Favourites',
+  'library.playlist.addToFavorites': 'Add to Favourites',
+  'library.playlist.removeFromFavorites': 'Remove from Favourites',
+  'library.playlist.favorite': 'In your Favourites',
+  'library.playlist.addTo': 'Add to playlist',
+  'library.playlist.alreadyIn': 'Already in this playlist',
+  'library.playlist.removeFrom': 'Remove from this playlist',
+  'library.playlist.new': 'New playlist',
+  'library.playlist.newName': 'Playlist name',
+  'library.playlist.create': 'Create',
+  'library.playlist.rename': 'Rename',
+  'library.playlist.keep': 'Keep it',
+  'library.playlist.delete': 'Delete playlist',
+  'library.playlist.deleteConfirm':
+    'Delete “{name}”? The songs stay in your library.',
+  'library.playlist.builtIn': 'Favourites is always here and cannot be removed',
+  'library.playlist.songCount': '{count} songs',
+  'library.playlist.songCountOne': '1 song',
+  'library.playlist.empty': 'Nothing in this playlist yet',
+  'library.playlist.emptyHint':
+    'Right-click a song and choose “Add to playlist”.',
+  'library.playlist.missing':
+    '{count} songs in this playlist are not in your library right now',
+  'library.playlist.reset':
+    'Your playlists could not be read and have been reset.',
+  'library.karaoke.send': 'Send to Karaoke',
+  'library.karaoke.sending': 'Sending to Karaoke…',
+  'library.karaoke.failed':
+    'This file could not be sent to Karaoke — it may be too large or unreadable.',
 } as const;
 
 export default library;

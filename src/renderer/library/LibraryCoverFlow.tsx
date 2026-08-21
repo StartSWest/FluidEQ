@@ -49,6 +49,8 @@ import MenuIcon from '../icons/MenuIcon';
 import LibraryCoverArt from './LibraryCoverArt';
 import { useFolderEntries } from './useFolderEntries';
 import LibraryDetail from './LibraryDetail';
+import { FAVORITES_PLAYLIST_ID } from '../../common/library/playlists';
+import { usePlaylists } from './PlaylistContext';
 import '../styles/LibraryCoverFlow.scss';
 
 /** Covers kept mounted either side of the centre. Past this, nothing renders
@@ -257,6 +259,7 @@ const LibraryCoverFlow = ({
   query,
 }: ILibraryCoverFlowProps) => {
   const { t } = useTranslation();
+  const { playlists } = usePlaylists();
 
   // Same memo shape as `LibraryGridView`: keyed only on the two inputs that
   // actually change what is grouped, not on the callbacks `LibraryWorkspace`
@@ -332,6 +335,26 @@ const LibraryCoverFlow = ({
         isPending: folder.isPending,
       }));
     }
+    if (browseMode === 'playlist') {
+      // In `sortPlaylists`' order and not the toolbar's, for the reason the
+      // list and grid branches give: Favourites is always the first cover.
+      return playlists.map((playlist) => ({
+        id: playlist.id,
+        artId: tracks.find((track) => playlist.trackIds.includes(track.id))
+          ?.artId,
+        title:
+          playlist.id === FAVORITES_PLAYLIST_ID
+            ? t('library.playlist.favorites')
+            : playlist.name,
+        artistName: t(
+          playlist.trackIds.length === 1
+            ? 'library.playlist.songCountOne'
+            : 'library.playlist.songCount',
+          { count: playlist.trackIds.length },
+        ),
+        isPending: false,
+      }));
+    }
     // 'song', and any browse mode this view does not know about yet — the
     // same fallback `LibraryGridView` and `LibraryListView` make.
     return tracks.map((track) => ({
@@ -341,7 +364,7 @@ const LibraryCoverFlow = ({
       artistName: track.artist ?? '',
       isPending: track.isPending === true,
     }));
-  }, [tracks, browseMode, sort, sortDirection, folderEntries]);
+  }, [tracks, browseMode, sort, sortDirection, folderEntries, playlists, t]);
 
   /**
    * The centre starts on whatever the workspace already had open.
@@ -643,7 +666,8 @@ const LibraryCoverFlow = ({
     if (
       browseMode === 'album' ||
       browseMode === 'artist' ||
-      browseMode === 'folder'
+      browseMode === 'folder' ||
+      browseMode === 'playlist'
     ) {
       openPanel(expandedId === item.id ? undefined : item.id);
       return;
@@ -873,7 +897,8 @@ const LibraryCoverFlow = ({
   const hasDrillIn =
     browseMode === 'album' ||
     browseMode === 'artist' ||
-    browseMode === 'folder';
+    browseMode === 'folder' ||
+    browseMode === 'playlist';
 
   // Open, and still pointing at something that exists: a rescan can remove
   // the album out from under it, and a panel with nothing behind it is a
@@ -1043,6 +1068,7 @@ const LibraryCoverFlow = ({
             albumId={browseMode === 'album' ? expandedId : undefined}
             artistId={browseMode === 'artist' ? expandedId : undefined}
             folderPath={browseMode === 'folder' ? expandedId : undefined}
+            playlistId={browseMode === 'playlist' ? expandedId : undefined}
             folderRoots={folderRoots}
             // Walking deeper is opening a different cover, which this view
             // already knows how to do.

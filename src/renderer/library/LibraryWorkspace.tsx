@@ -43,6 +43,8 @@ import type {
 } from '../../common/library/types';
 import { useTranslation } from '../utils/I18nContext';
 import { useLibrary } from './LibraryContext';
+import { usePlaylists } from './PlaylistContext';
+import { findPlaylist } from '../../common/library/playlists';
 import { useLibraryPlayer } from './player/LibraryPlayerContext';
 import LibraryVideoStage from './player/LibraryVideoStage';
 import LibraryCoverFlow from './LibraryCoverFlow';
@@ -67,6 +69,7 @@ const GROUP_BY_FOLDER_KEY = 'fluideq.library.groupByFolder';
 const OPEN_ALBUM_KEY = 'fluideq.library.openAlbum';
 const OPEN_ARTIST_KEY = 'fluideq.library.openArtist';
 const OPEN_FOLDER_KEY = 'fluideq.library.openFolder';
+const OPEN_PLAYLIST_KEY = 'fluideq.library.openPlaylist';
 
 const BROWSE_MODES: readonly TLibraryBrowseMode[] = [
   'album',
@@ -74,6 +77,7 @@ const BROWSE_MODES: readonly TLibraryBrowseMode[] = [
   'song',
   'folder',
   'video',
+  'playlist',
 ];
 const VIEW_MODES: readonly TLibraryViewMode[] = ['list', 'grid', 'coverflow'];
 const SORT_DIRECTIONS: readonly TLibrarySortDirection[] = ['asc', 'desc'];
@@ -183,6 +187,7 @@ const LibraryWorkspace = ({
     cancelScan,
     removeRoot,
   } = useLibrary();
+  const { playlists, wasReset: playlistsWereReset } = usePlaylists();
   const {
     playTracks,
     videoTrackId,
@@ -203,6 +208,8 @@ const LibraryWorkspace = ({
 
   const [isDragOver, setIsDragOver] = useState(false);
   const [isResetNoticeDismissed, setIsResetNoticeDismissed] = useState(false);
+  const [isPlaylistNoticeDismissed, setIsPlaylistNoticeDismissed] =
+    useState(false);
 
   // The toolbar's own state. Held here rather than inside `LibraryToolbar` so
   // that component stays a pure controlled view, testable without a
@@ -253,7 +260,14 @@ const LibraryWorkspace = ({
   const [openArtistId, setOpenArtistId] = useState<string | undefined>(() =>
     readPersistedText(OPEN_ARTIST_KEY),
   );
+  const [openPlaylistId, setOpenPlaylistId] = useState<string | undefined>(() =>
+    readPersistedText(OPEN_PLAYLIST_KEY),
+  );
 
+  useEffect(
+    () => writePersistedText(OPEN_PLAYLIST_KEY, openPlaylistId),
+    [openPlaylistId],
+  );
   useEffect(
     () => writePersistedText(OPEN_ALBUM_KEY, openAlbumId),
     [openAlbumId],
@@ -359,6 +373,11 @@ const LibraryWorkspace = ({
     }
     setOpenAlbumId(undefined);
     setOpenArtistId(undefined);
+    // The open playlist goes with them, and unlike the folder below it has
+    // no second reading: a playlist is a thing that was opened, never a
+    // place the reader is standing, so it means nothing at all on a shelf of
+    // albums.
+    setOpenPlaylistId(undefined);
     // The folder stays. An album id means nothing while artists are listed —
     // that is what this effect is for — but a directory means the same thing
     // on every shelf, and it is where the reader is rather than what they had
@@ -543,6 +562,12 @@ const LibraryWorkspace = ({
       setOpenArtistId(
         anchor && mode === 'artist' ? artistKey(anchor) : undefined,
       );
+      // Nothing is re-derived for the Playlists shelf. The other three modes
+      // can carry a drill-in across because the album, artist and folder an
+      // anchoring track belongs to are all facts about that track; which
+      // playlist it "belongs to" is not — it may be in none of them or in
+      // four. So this shelf always opens at the top.
+      setOpenPlaylistId(undefined);
       // The folder is not touched. It is not this shelf's drill-in, it is
       // where the reader is standing — see `scopedTracks` — and a shelf
       // change is a change of arrangement, not of place. Re-derived from the
@@ -572,6 +597,12 @@ const LibraryWorkspace = ({
     setOpenFolderPath(folderPath);
   }, []);
 
+  const handleOpenPlaylist = useCallback((playlistId: string) => {
+    setOpenAlbumId(undefined);
+    setOpenArtistId(undefined);
+    setOpenPlaylistId(playlistId);
+  }, []);
+
   /** Cover Flow opened or closed its own panel. The drill-in is one piece of
    * state shared by all three views, so changing view keeps whatever was open
    * instead of each view remembering something different. */
@@ -583,6 +614,10 @@ const LibraryWorkspace = ({
       }
       if (browseMode === 'folder') {
         setOpenFolderPath(openId);
+        return;
+      }
+      if (browseMode === 'playlist') {
+        setOpenPlaylistId(openId);
         return;
       }
       setOpenAlbumId(openId);
@@ -601,6 +636,12 @@ const LibraryWorkspace = ({
   const isDrilledIn = Boolean(
     openAlbumId ||
     openArtistId ||
+    // Gated on its own shelf, the way the folder below is. Nothing should be
+    // able to leave a playlist open while albums are being browsed — both the
+    // chip handler and the mode effect clear it — but the two values are
+    // restored from storage independently at launch, and a stale pair would
+    // otherwise put a playlist on the Albums shelf.
+    (openPlaylistId !== undefined && browseMode === 'playlist') ||
     (openFolderPath !== undefined && browseMode === 'folder'),
   );
 
@@ -626,6 +667,7 @@ const LibraryWorkspace = ({
     }
     setOpenAlbumId(undefined);
     setOpenArtistId(undefined);
+    setOpenPlaylistId(undefined);
     setOpenFolderPath(undefined);
   }, []);
 
@@ -652,6 +694,7 @@ const LibraryWorkspace = ({
   const handleBack = useCallback(() => {
     setOpenAlbumId(undefined);
     setOpenArtistId(undefined);
+    setOpenPlaylistId(undefined);
     // Up one level, where there is one above and the tree is what is being
     // walked: back out of `Artist/Album` in a file manager is `Artist`, not
     // the shelf you came in from. At a root there is nothing above that this
@@ -672,6 +715,18 @@ const LibraryWorkspace = ({
   // way those two already do, so it is memoised the same way: on the track
   // list and the id actually open, not on every render this workspace has.
   const queueTrackIds = useMemo(() => {
+    if (openPlaylistId && browseMode === 'playlist') {
+      // The playlist's own order, and only the songs the library can
+      // currently resolve — an id whose drive is unplugged is not a track the
+      // player can be handed. `LibraryDetail` filters the same way for the
+      // table, so the queue matches what is on screen.
+      const known = new Set(index.tracks.map((track) => track.id));
+      return (
+        findPlaylist(playlists, openPlaylistId)?.trackIds.filter((id) =>
+          known.has(id),
+        ) ?? []
+      );
+    }
     if (openAlbumId) {
       return (
         groupIntoAlbums(index.tracks).find((album) => album.id === openAlbumId)
@@ -690,7 +745,15 @@ const LibraryWorkspace = ({
       );
     }
     return visibleTracks.map((track) => track.id);
-  }, [index.tracks, openAlbumId, openArtistId, browseMode, visibleTracks]);
+  }, [
+    index.tracks,
+    openAlbumId,
+    openArtistId,
+    openPlaylistId,
+    playlists,
+    browseMode,
+    visibleTracks,
+  ]);
 
   // The one real destination every view's click hands off to. A track this
   // build cannot decode (`isPlayable === false`) is still handed to
@@ -770,6 +833,23 @@ const LibraryWorkspace = ({
             type="button"
             aria-label={t('app.dismiss')}
             onClick={() => setIsResetNoticeDismissed(true)}
+          >
+            <svg viewBox="0 0 12 12" aria-hidden="true">
+              <path d="M3 3l6 6M9 3l-6 6" />
+            </svg>
+          </button>
+        </div>
+      )}
+      {/* Its own notice rather than a line in the one above, and worth more
+          than that one is: a rescan puts the songs back, and nothing puts
+          back a playlist. This is the only moment it can be said. */}
+      {playlistsWereReset && !isPlaylistNoticeDismissed && (
+        <div className="library-workspace__notice" role="status">
+          <span>{t('library.playlist.reset')}</span>
+          <button
+            type="button"
+            aria-label={t('app.dismiss')}
+            onClick={() => setIsPlaylistNoticeDismissed(true)}
           >
             <svg viewBox="0 0 12 12" aria-hidden="true">
               <path d="M3 3l6 6M9 3l-6 6" />
@@ -911,6 +991,7 @@ const LibraryWorkspace = ({
             // and the panel would be a second answer to a question the list
             // below is already answering.
             folderPath={browseMode === 'folder' ? openFolderPath : undefined}
+            playlistId={browseMode === 'playlist' ? openPlaylistId : undefined}
             onBack={handleBack}
             onPlayTrack={handlePlayTrack}
             offlineRootIds={offlineRootIds}
@@ -933,6 +1014,7 @@ const LibraryWorkspace = ({
             onOpenAlbum={handleOpenAlbum}
             onOpenArtist={handleOpenArtist}
             onOpenFolder={handleOpenFolder}
+            onOpenPlaylist={handleOpenPlaylist}
             onPlayTrack={handlePlayTrack}
             offlineRootIds={offlineRootIds}
             folderRoots={index.roots}
@@ -957,6 +1039,7 @@ const LibraryWorkspace = ({
             onOpenAlbum={handleOpenAlbum}
             onOpenArtist={handleOpenArtist}
             onOpenFolder={handleOpenFolder}
+            onOpenPlaylist={handleOpenPlaylist}
             onPlayTrack={handlePlayTrack}
             offlineRootIds={offlineRootIds}
             folderRoots={index.roots}
@@ -988,7 +1071,9 @@ const LibraryWorkspace = ({
             playingTrackId={playingMarkId}
             revealTrack={revealTrack}
             query={query}
-            openId={openAlbumId ?? openArtistId ?? openFolderPath}
+            openId={
+              openAlbumId ?? openArtistId ?? openPlaylistId ?? openFolderPath
+            }
             onOpenChange={handleCoverFlowOpen}
           />
         )}

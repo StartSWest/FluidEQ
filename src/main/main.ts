@@ -124,6 +124,7 @@ import { registerKaraokePitch } from './karaokePitch';
 import { registerProfilesIpc } from './ipc/profiles';
 import { registerUpdatesIpc } from './ipc/updates';
 import { libraryIndexSnapshot, registerLibraryIpc } from './ipc/library';
+import { registerLibraryPlaylistsIpc } from './ipc/libraryPlaylists';
 import {
   handleLibraryMedia,
   registerLibraryMediaScheme,
@@ -2373,6 +2374,11 @@ registerKaraokeIpc({
 });
 
 registerLibraryIpc({
+  userDataDir,
+  getMainWindow: () => mainWindow,
+});
+
+registerLibraryPlaylistsIpc({
   userDataDir,
   getMainWindow: () => mainWindow,
 });

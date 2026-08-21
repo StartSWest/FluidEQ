@@ -37,6 +37,7 @@ import type {
   ILibraryScanProgress,
   ILibraryTrack,
 } from '../common/library/types';
+import type { ILibraryPlaylists } from '../common/library/playlists';
 
 export type Channels = string;
 
@@ -412,6 +413,71 @@ const libraryTrackBytes = (trackId: string) =>
     ArrayBuffer | undefined
   >;
 
+/**
+ * The playlists, and whether the file holding them had to be thrown away.
+ *
+ * `wasReset` answers the same question `getLibraryIndex`'s does and is worth
+ * as much: a scan puts the songs back, but nothing puts back a playlist, so
+ * the one moment it can be said is the moment it is noticed.
+ */
+const getLibraryPlaylists = () =>
+  ipcRenderer.invoke('library-playlists-get') as Promise<{
+    playlists: ILibraryPlaylists;
+    wasReset: boolean;
+  }>;
+
+/** Every mutator answers with the whole set — see `ipc/libraryPlaylists.ts`. */
+const createLibraryPlaylist = (name: string, trackIds: readonly string[]) =>
+  ipcRenderer.invoke(
+    'library-playlist-create',
+    name,
+    trackIds,
+  ) as Promise<ILibraryPlaylists>;
+
+const renameLibraryPlaylist = (playlistId: string, name: string) =>
+  ipcRenderer.invoke(
+    'library-playlist-rename',
+    playlistId,
+    name,
+  ) as Promise<ILibraryPlaylists>;
+
+const deleteLibraryPlaylist = (playlistId: string) =>
+  ipcRenderer.invoke(
+    'library-playlist-delete',
+    playlistId,
+  ) as Promise<ILibraryPlaylists>;
+
+const addTracksToLibraryPlaylist = (
+  playlistId: string,
+  trackIds: readonly string[],
+) =>
+  ipcRenderer.invoke(
+    'library-playlist-tracks-add',
+    playlistId,
+    trackIds,
+  ) as Promise<ILibraryPlaylists>;
+
+const removeTracksFromLibraryPlaylist = (
+  playlistId: string,
+  trackIds: readonly string[],
+) =>
+  ipcRenderer.invoke(
+    'library-playlist-tracks-remove',
+    playlistId,
+    trackIds,
+  ) as Promise<ILibraryPlaylists>;
+
+const onLibraryPlaylistsChanged = (
+  listener: (playlists: ILibraryPlaylists) => void,
+) => {
+  const wrapped = (_event: IpcRendererEvent, playlists: ILibraryPlaylists) =>
+    listener(playlists);
+  ipcRenderer.on('library-playlists-changed', wrapped);
+  return () => {
+    ipcRenderer.removeListener('library-playlists-changed', wrapped);
+  };
+};
+
 export default {
   /**
    * What this build is running on, read once while the preload has a `process`.
@@ -473,5 +539,12 @@ export default {
     onLibraryTracksAdded,
     revealLibraryTrack,
     libraryTrackBytes,
+    getLibraryPlaylists,
+    createLibraryPlaylist,
+    renameLibraryPlaylist,
+    deleteLibraryPlaylist,
+    addTracksToLibraryPlaylist,
+    removeTracksFromLibraryPlaylist,
+    onLibraryPlaylistsChanged,
   },
 };

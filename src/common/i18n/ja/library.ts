@@ -126,6 +126,38 @@ const library: Partial<Dictionary> = {
   'library.nothingPlayingHint': '再生するものを選んでください',
   'library.systemAudio': 'システム音声',
   'library.fullScreen': '全画面',
+
+  'library.trackActions': 'この曲をどうしますか',
+  'library.browse.playlist': 'プレイリスト',
+  'library.playlist.favorites': 'お気に入り',
+  'library.playlist.addToFavorites': 'お気に入りに追加',
+  'library.playlist.removeFromFavorites': 'お気に入りから削除',
+  'library.playlist.favorite': 'お気に入りに入っています',
+  'library.playlist.addTo': 'プレイリストに追加',
+  'library.playlist.alreadyIn': 'このプレイリストにすでにあります',
+  'library.playlist.removeFrom': 'このプレイリストから削除',
+  'library.playlist.new': '新しいプレイリスト',
+  'library.playlist.newName': 'プレイリスト名',
+  'library.playlist.create': '作成',
+  'library.playlist.rename': '名前を変更',
+  'library.playlist.keep': 'そのままにする',
+  'library.playlist.delete': 'プレイリストを削除',
+  'library.playlist.deleteConfirm':
+    '「{name}」を削除しますか？曲はライブラリに残ります。',
+  'library.playlist.builtIn': 'お気に入りは常にあり、削除できません',
+  'library.playlist.songCount': '{count} 曲',
+  'library.playlist.songCountOne': '1 曲',
+  'library.playlist.empty': 'このプレイリストにはまだ何もありません',
+  'library.playlist.emptyHint':
+    '曲を右クリックして「プレイリストに追加」を選んでください。',
+  'library.playlist.missing':
+    'このプレイリストの {count} 曲は今ライブラリにありません',
+  'library.playlist.reset':
+    'プレイリストを読み込めなかったため、リセットしました。',
+  'library.karaoke.send': 'カラオケへ送る',
+  'library.karaoke.sending': 'カラオケへ送っています…',
+  'library.karaoke.failed':
+    'このファイルはカラオケへ送れませんでした。大きすぎるか、読み取れない可能性があります。',
 };
 
 export default library;

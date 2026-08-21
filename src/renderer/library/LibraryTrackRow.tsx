@@ -34,6 +34,10 @@ interface ILibraryTrackRowProps {
    * the flags above are: resolved by the parent so the memo holds for the
    * ninety-nine rows that are not playing. */
   isPlaying: boolean;
+  /** This song is in Favourites. A primitive for the reason the two above
+   * are: the parent asks the playlist once and answers per row, so the memo
+   * still holds for every row whose answer did not change. */
+  isFavorite: boolean;
   duration: string;
   onPlay: (trackId: string) => void;
   /** Marks the row as the one the reader is on. Called alongside `onPlay`,
@@ -66,6 +70,7 @@ const LibraryTrackRow = ({
   isFolderOnly,
   isSelected,
   isPlaying,
+  isFavorite,
   duration,
   onPlay,
   onSelect,
@@ -167,6 +172,20 @@ const LibraryTrackRow = ({
             </span>
           )}
           <span className="library-list__title-label">{track.title}</span>
+          {/* A filled star, before the warning badges rather than among
+              them: those say something is wrong with the file and this says
+              something the reader chose. Without it the only way to know
+              what is favourited would be to open a menu on every row, or to
+              go and read the Favourites playlist — which is the question
+              this answers in place. */}
+          {isFavorite && (
+            <span
+              className="library-list__badge library-list__badge--favorite"
+              title={t('library.playlist.favorite')}
+            >
+              <MenuIcon name="star" className="library-list__badge-icon" />
+            </span>
+          )}
           {/* Chromium has no decoder for this container — marked, not
               silently broken. */}
           {!track.isPlayable && (

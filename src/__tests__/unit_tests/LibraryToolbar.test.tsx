@@ -51,7 +51,7 @@ describe('the library toolbar', () => {
     expect(onBrowseMode).toHaveBeenCalledWith('artist');
   });
 
-  it('carries a fourth tab for videos, labelled and wired the same as the other three', async () => {
+  it('carries a chip per shelf, each labelled and wired the same way', async () => {
     const onBrowseMode = jest.fn();
     wrap(
       <LibraryToolbar
@@ -67,9 +67,9 @@ describe('the library toolbar', () => {
         onQuery={jest.fn()}
       />,
     );
-    // Album, Artist, Song, Folder, Video — every browse mode the library has,
-    // named rather than counted, so this says which one went missing rather
-    // than only that the count moved.
+    // Every browse mode the library has, named rather than counted and in
+    // the order they are drawn, so this says which one went missing — or
+    // which one moved — rather than only that the count changed.
     expect(screen.getAllByRole('tab').map((tab) => tab.textContent)).toEqual([
       'Albums',
       'Artists',
@@ -79,11 +79,18 @@ describe('the library toolbar', () => {
       // 'Folders' and 'Directories' are the same word to most readers.
       'Tree',
       'Videos',
+      // Last on purpose: the five before it are readings of what is on disk,
+      // and this is the only shelf the reader built themselves. Adding it
+      // ahead of them would move every chip somebody already knows the
+      // position of.
+      'Playlists',
     ]);
     const videos = screen.getByRole('tab', { name: 'Videos' });
     expect(videos).toHaveAttribute('aria-selected', 'false');
     await userEvent.click(videos);
     expect(onBrowseMode).toHaveBeenCalledWith('video');
+    await userEvent.click(screen.getByRole('tab', { name: 'Playlists' }));
+    expect(onBrowseMode).toHaveBeenCalledWith('playlist');
   });
 
   it('passes what was typed straight through', async () => {

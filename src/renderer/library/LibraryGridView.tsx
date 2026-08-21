@@ -42,7 +42,9 @@ import {
 } from '../../common/library/types';
 import { useTranslation } from '../utils/I18nContext';
 import MenuIcon from '../icons/MenuIcon';
+import { FAVORITES_PLAYLIST_ID } from '../../common/library/playlists';
 import LibraryCoverArt from './LibraryCoverArt';
+import { usePlaylists } from './PlaylistContext';
 import { useFolderEntries } from './useFolderEntries';
 
 interface ILibraryGridViewProps {
@@ -53,6 +55,9 @@ interface ILibraryGridViewProps {
   /** Only the folder browse mode can call this — optional for the same
    * reason `LibraryListView`'s own is. */
   onOpenFolder?: (folderPath: string) => void;
+  /** Optional for the reason `onOpenFolder` is: only the Playlists shelf can
+   * ever call it. */
+  onOpenPlaylist?: (playlistId: string) => void;
   onPlayTrack: (trackId: string) => void;
   /** Root ids currently marked `isOffline` — spec §10: kept, never deleted,
    * and dimmed. Optional for the same reason `LibraryListView`'s own prop of
@@ -210,6 +215,9 @@ interface IGridItem {
   /** Only ever set for a song tile — an album or artist has no single root
    * of its own to dim by. */
   rootId?: string;
+  /** A playlist tile: how many songs it holds. Unset everywhere else, which
+   * is why the subtitle asks the browse mode rather than this field. */
+  trackCount?: number;
   /** A song tile: the track itself. An album or artist tile: true only
    * while every track currently grouped into it is still unread — see
    * `groupIntoAlbums`'/`groupIntoArtists`' own comments. */
@@ -232,6 +240,7 @@ const LibraryGridView = ({
   onOpenAlbum,
   onOpenArtist,
   onOpenFolder,
+  onOpenPlaylist,
   onPlayTrack,
   offlineRootIds = NO_OFFLINE_ROOTS,
   folderRoots = NO_FOLDER_ROOTS,
@@ -244,6 +253,7 @@ const LibraryGridView = ({
   revealTrack,
 }: ILibraryGridViewProps) => {
   const { t } = useTranslation();
+  const { playlists } = usePlaylists();
   const gridRef = useRef<HTMLDivElement | null>(null);
   const isRestoringRef = useRef(false);
   const [activeId, setActiveId] = useState<string | undefined>(
@@ -462,6 +472,26 @@ const LibraryGridView = ({
         }),
       );
     }
+    if (browseMode === 'playlist') {
+      // Already in the order every surface shows — Favourites, then by name.
+      // The toolbar's sort is not applied for the reason `LibraryListView`'s
+      // own playlist branch does not apply it.
+      return playlists.map((playlist) => ({
+        id: playlist.id,
+        // The first song in it the library can still see; a playlist whose
+        // drive is unplugged draws a generated tile rather than a cover for
+        // something it cannot play.
+        artId: tracks.find((track) => playlist.trackIds.includes(track.id))
+          ?.artId,
+        title:
+          playlist.id === FAVORITES_PLAYLIST_ID
+            ? t('library.playlist.favorites')
+            : playlist.name,
+        artistName: '',
+        trackCount: playlist.trackIds.length,
+        isPending: false,
+      }));
+    }
     // 'song', and any browse mode this view does not know about yet — the
     // same fallback `LibraryListView` makes: anything that is not 'album'
     // or 'artist' is treated as 'song'.
@@ -473,7 +503,16 @@ const LibraryGridView = ({
       rootId: track.rootId,
       isPending: track.isPending === true,
     }));
-  }, [tracks, browseMode, sort, sortDirection, folderEntries, folderParent, t]);
+  }, [
+    tracks,
+    browseMode,
+    sort,
+    sortDirection,
+    folderEntries,
+    folderParent,
+    playlists,
+    t,
+  ]);
 
   /** The same tiles, readable from the reveal without being one of its
    * dependencies — `items` gets a new identity on every scan batch, and a
@@ -500,6 +539,11 @@ const LibraryGridView = ({
       onOpenFolder?.(id);
       return;
     }
+    if (browseMode === 'playlist') {
+      rememberActive(id);
+      onOpenPlaylist?.(id);
+      return;
+    }
     onPlayTrack(id);
   };
 
@@ -509,6 +553,14 @@ const LibraryGridView = ({
    * is a translated string, not raw data — see the interface's doc
    * comment. */
   const tileSubtitle = (item: IGridItem): string => {
+    if (browseMode === 'playlist') {
+      return t(
+        item.trackCount === 1
+          ? 'library.playlist.songCountOne'
+          : 'library.playlist.songCount',
+        { count: item.trackCount ?? 0 },
+      );
+    }
     if (browseMode === 'artist') {
       return t('library.albumCount', { count: item.albumCount ?? 0 });
     }

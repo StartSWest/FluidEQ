@@ -39,11 +39,14 @@ import {
   TLibrarySort,
   TLibrarySortDirection,
 } from '../../common/library/types';
+import { FAVORITES_PLAYLIST_ID } from '../../common/library/playlists';
 import { useTranslation } from '../utils/I18nContext';
-import AnchoredMenu, { isInsideAnchoredMenu } from '../widgets/AnchoredMenu';
+import { isInsideAnchoredMenu } from '../widgets/AnchoredMenu';
 import MenuIcon from '../icons/MenuIcon';
 import LibraryCoverArt from './LibraryCoverArt';
 import LibraryTrackRow from './LibraryTrackRow';
+import LibraryTrackMenu from './LibraryTrackMenu';
+import { usePlaylists } from './PlaylistContext';
 import { useFolderEntries } from './useFolderEntries';
 
 interface ILibraryListViewProps {
@@ -55,6 +58,12 @@ interface ILibraryListViewProps {
    * same way the sort handler is: a caller that never shows folders has
    * nothing to supply. */
   onOpenFolder?: (folderPath: string) => void;
+  /** Optional for the reason `onOpenFolder` is: only the Playlists shelf can
+   * ever call it, and every other caller has nothing to supply. */
+  onOpenPlaylist?: (playlistId: string) => void;
+  /** The playlist being read, when the rows below are one. Puts "Remove from
+   * this playlist" in the row menu, and nothing else. */
+  openPlaylistId?: string;
   onPlayTrack: (trackId: string) => void;
   /** Root ids currently marked `isOffline` — spec §10: kept, never deleted,
    * and dimmed. Optional, matching `NowPlayingBar`'s own `volume` prop: real
@@ -341,6 +350,8 @@ const LibraryListView = ({
   onOpenAlbum,
   onOpenArtist,
   onOpenFolder,
+  onOpenPlaylist,
+  openPlaylistId,
   onPlayTrack,
   offlineRootIds = NO_OFFLINE_ROOTS,
   folderRoots = NO_FOLDER_ROOTS,
@@ -356,6 +367,7 @@ const LibraryListView = ({
   resetKey = '',
 }: ILibraryListViewProps) => {
   const { t } = useTranslation();
+  const { playlists, isFavorite } = usePlaylists();
   const bodyRef = useRef<HTMLDivElement | null>(null);
 
   /** The half-open slice of rows that is mounted. Everything outside it is
@@ -1068,6 +1080,92 @@ const LibraryListView = ({
     );
   }
 
+  if (browseMode === 'playlist') {
+    // Not sorted by the toolbar. `sortPlaylists` has already put Favourites
+    // first and the rest by name, and that order is the point: the one list
+    // that is always there is always in the same place. A title/artist/year
+    // sort has nothing to say about a playlist anyway — two of those three
+    // columns do not exist here.
+    return renderTable(
+      // A plain label, not `sortableHeader`. This branch ignores the sort —
+      // see above — so a header that could be pressed would be a control
+      // that does nothing, which is worse than no control.
+      <span
+        role="columnheader"
+        className="library-list__col library-list__col--span"
+      >
+        {columnHeader('title')}
+      </span>,
+      playlists.length,
+      (start, end) =>
+        playlists.slice(start, end).map((playlist) => {
+          const activate = () => {
+            rememberActive(playlist.id);
+            onOpenPlaylist?.(playlist.id);
+          };
+          const isBuiltIn = playlist.id === FAVORITES_PLAYLIST_ID;
+          const name = isBuiltIn
+            ? t('library.playlist.favorites')
+            : playlist.name;
+          const isSelected = activeId === playlist.id;
+          // The first song in it that the library can still see. A playlist
+          // of songs from an unplugged drive keeps its entry and draws a
+          // generated tile, rather than showing a cover for a song it cannot
+          // play.
+          const cover = tracks.find((track) =>
+            playlist.trackIds.includes(track.id),
+          );
+          return (
+            <div
+              key={playlist.id}
+              role="row"
+              tabIndex={0}
+              aria-selected={isSelected}
+              className={`library-list__row${
+                isSelected ? ' library-list__row--selected' : ''
+              }`}
+              onClick={activate}
+              onKeyDown={(event) => onActivateKeyDown(event, activate)}
+            >
+              <span
+                role="cell"
+                className="library-list__col library-list__col--art"
+              >
+                <LibraryCoverArt artId={cover?.artId} label={name} size="row" />
+              </span>
+              <span
+                role="cell"
+                className="library-list__col library-list__col--title library-list__col--span"
+              >
+                <span className="library-list__title-text">
+                  {isBuiltIn && (
+                    <span
+                      className="library-list__badge library-list__badge--favorite"
+                      title={t('library.playlist.builtIn')}
+                    >
+                      <MenuIcon
+                        name="star"
+                        className="library-list__badge-icon"
+                      />
+                    </span>
+                  )}
+                  <span className="library-list__title-label">{name}</span>
+                </span>
+                <small className="library-list__subtitle">
+                  {t(
+                    playlist.trackIds.length === 1
+                      ? 'library.playlist.songCountOne'
+                      : 'library.playlist.songCount',
+                    { count: playlist.trackIds.length },
+                  )}
+                </small>
+              </span>
+            </div>
+          );
+        }),
+    );
+  }
+
   // 'song', and any browse mode this component does not know about yet — see
   // the doc comment above for why that fallback is deliberate.
   return renderTable(
@@ -1107,6 +1205,7 @@ const LibraryListView = ({
             isFolderOnly={folderOnlyIds.has(entry.track.id)}
             isSelected={activeId === entry.track.id}
             isPlaying={playingTrackId === entry.track.id}
+            isFavorite={isFavorite(entry.track.id)}
             duration={formatDuration(entry.track.durationMs)}
             onPlay={onPlayTrack}
             onSelect={rememberActive}
@@ -1115,24 +1214,17 @@ const LibraryListView = ({
           />
         ),
       ),
-    <AnchoredMenu
+    <LibraryTrackMenu
       anchor={trackMenu?.anchor ?? null}
       isOpen={Boolean(trackMenu)}
-      className="library-list__menu"
-      ariaLabel={t('library.reveal')}
-    >
-      <button
-        type="button"
-        onClick={() => {
-          if (trackMenu) {
-            reveal(trackMenu.trackId);
-          }
-        }}
-      >
-        <MenuIcon name="external" className="library-list__menu-icon" />
-        <span>{t('library.reveal')}</span>
-      </button>
-    </AnchoredMenu>,
+      // Resolved from the list this view is already holding rather than
+      // stored alongside the anchor: a rescan can replace the track object
+      // under an open menu, and the menu must act on what the index says now.
+      track={tracks.find((track) => track.id === trackMenu?.trackId)}
+      openPlaylistId={openPlaylistId}
+      onReveal={reveal}
+      onClose={() => setTrackMenu(undefined)}
+    />,
   );
 };
 

@@ -41,6 +41,13 @@ import LibraryCoverArt from './LibraryCoverArt';
 import LibraryGridView from './LibraryGridView';
 import LibrarySearchField from './LibrarySearchField';
 import LibraryListView from './LibraryListView';
+import TextInput from '../widgets/TextInput';
+import {
+  FAVORITES_PLAYLIST_ID,
+  MAX_PLAYLIST_NAME_LENGTH,
+  findPlaylist,
+} from '../../common/library/playlists';
+import { usePlaylists } from './PlaylistContext';
 import { useFolderTree } from './folderTree';
 
 interface ILibraryDetailProps {
@@ -50,6 +57,9 @@ interface ILibraryDetailProps {
   /** A physical directory, opened from the folder browse mode. Mutually
    * exclusive with the other two the same way they are with each other. */
   folderPath?: string;
+  /** A playlist, opened from the Playlists shelf. Mutually exclusive with
+   * the three above the same way they are with each other. */
+  playlistId?: string;
   onBack: () => void;
   onPlayTrack: (trackId: string) => void;
   /** Forwarded straight to the `LibraryListView` this renders — see that
@@ -108,6 +118,7 @@ const LibraryDetail = ({
   albumId,
   artistId,
   folderPath,
+  playlistId,
   onBack,
   onPlayTrack,
   offlineRootIds,
@@ -120,6 +131,12 @@ const LibraryDetail = ({
 }: ILibraryDetailProps) => {
   const { t } = useTranslation();
   const asTree = useFolderTree();
+  const { playlists, renamePlaylist, deletePlaylist } = usePlaylists();
+  /** The header's rename field while it is open; `undefined` when it is not.
+   * Empty string is a legitimate half-typed name, so "is it open" cannot be
+   * asked of the text. */
+  const [draftName, setDraftName] = useState<string | undefined>(undefined);
+  const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
 
   /** The folders inside this one, and only in the reading that has them. */
   const childFolders = useMemo(
@@ -207,9 +224,41 @@ const LibraryDetail = ({
   // pressed opened and shut in the same frame, and the root was the one folder
   // that could not be walked into. What is inside it counts as well; a folder
   // with neither files nor children is the one that is genuinely gone.
+  const playlist = useMemo(
+    () => (playlistId ? findPlaylist(playlists, playlistId) : undefined),
+    [playlists, playlistId],
+  );
+
+  /**
+   * The playlist's songs, in the playlist's own order.
+   *
+   * Ids the library cannot resolve are dropped from the listing and counted
+   * instead — see `missingCount`. They are NOT dropped from the playlist:
+   * an unplugged drive takes its tracks out of the index and gives them
+   * back, and a playlist that pruned itself every time a drive was out
+   * would empty over a few weeks with nothing ever having gone wrong.
+   */
+  const playlistTracks = useMemo(() => {
+    if (!playlist) {
+      return [];
+    }
+    const byId = new Map(tracks.map((track) => [track.id, track]));
+    return playlist.trackIds
+      .map((id) => byId.get(id))
+      .filter((track): track is ILibraryTrack => track !== undefined);
+  }, [playlist, tracks]);
+
+  const missingCount = playlist
+    ? playlist.trackIds.length - playlistTracks.length
+    : 0;
+
+  // AN EMPTY PLAYLIST IS NOT AN ORPHAN. Favourites starts empty and stays
+  // empty until somebody presses the star, so emptiness here has to mean
+  // "nothing in it yet" — only an id no playlist answers to is gone.
   const isOrphaned =
     (Boolean(albumId) && !album) ||
     (Boolean(artistId) && !artist) ||
+    (Boolean(playlistId) && !playlist) ||
     (Boolean(folderPath) &&
       folderTracks.length === 0 &&
       childFolders.length === 0);
@@ -236,8 +285,19 @@ const LibraryDetail = ({
         'album',
       );
     }
+    if (playlistId) {
+      return playlistTracks;
+    }
     return folderTracks;
-  }, [tracks, album, albumId, artistId, folderTracks]);
+  }, [
+    tracks,
+    album,
+    albumId,
+    artistId,
+    playlistId,
+    playlistTracks,
+    folderTracks,
+  ]);
 
   /**
    * The directory this drill-in is standing in, drawn beside Back.
@@ -256,9 +316,15 @@ const LibraryDetail = ({
     if (folderPath) {
       return folderPath;
     }
+    // A playlist deliberately has no folder. Its songs come from wherever
+    // the reader put them, so the first one's directory is not "where this
+    // is" — it is one of them, printed as though it were all of them.
+    if (playlistId) {
+      return undefined;
+    }
     const [first] = detailTracks;
     return first ? trackFolder(first.path) : undefined;
-  }, [detailTracks, folderPath]);
+  }, [detailTracks, folderPath, playlistId]);
 
   /**
    * Files sitting in the same folders as this album, that the album does not
@@ -326,6 +392,11 @@ const LibraryDetail = ({
 
   const isAlbum = Boolean(albumId);
   const isFolder = Boolean(folderPath);
+  const isPlaylist = Boolean(playlistId);
+  // Favourites is the one playlist that is not the reader's to rename or
+  // remove. Checked against what is stored rather than against the id alone,
+  // so a future second built-in needs no change here.
+  const isBuiltInPlaylist = playlist?.isBuiltIn === true;
   // A FOLDER WITH NOTHING BUT FOLDERS IN IT IS A WAY THROUGH, NOT A RECORD.
   //
   // The header — a cover the size of a sleeve, the name, a Play button — and
@@ -343,6 +414,11 @@ const LibraryDetail = ({
     title = album?.title || t('library.unknownAlbum');
   } else if (isFolder) {
     title = folderName;
+  } else if (isPlaylist) {
+    title =
+      playlistId === FAVORITES_PLAYLIST_ID
+        ? t('library.playlist.favorites')
+        : (playlist?.name ?? '');
   }
   // The full path under a folder's name: its last segment is what the reader
   // recognises, but "CD1" on its own says nothing about which CD1.
@@ -351,6 +427,11 @@ const LibraryDetail = ({
     subtitle = album?.artist || t('library.unknownArtist');
   } else if (isFolder) {
     subtitle = folderPath ?? '';
+  } else if (isPlaylist && missingCount > 0) {
+    // The one thing a playlist's second line is worth saying: the list holds
+    // more than the table shows, and the difference is not a bug. Without it
+    // an unplugged drive makes a playlist look as though it lost songs.
+    subtitle = t('library.playlist.missing', { count: missingCount });
   }
   let counts = `${t('library.albumCount', { count: artist?.albumCount ?? 0 })} · ${t(
     'library.trackCount',
@@ -358,6 +439,19 @@ const LibraryDetail = ({
   )}`;
   if (isAlbum || isFolder) {
     counts = t('library.trackCount', { count: detailTracks.length });
+  }
+  if (isPlaylist) {
+    // What the playlist holds, including the songs the library cannot see
+    // right now — the subtitle above says how many of them there are. A
+    // count that only totalled what is on screen would make a playlist look
+    // as though it had shrunk.
+    const held = playlist?.trackIds.length ?? 0;
+    counts = t(
+      held === 1
+        ? 'library.playlist.songCountOne'
+        : 'library.playlist.songCount',
+      { count: held },
+    );
   }
   // A folder with subfolders counts what is under it, not what is loose in
   // it: standing in `Music` and reading "0 songs" while five hundred sit one
@@ -429,19 +523,123 @@ const LibraryDetail = ({
             size="cover"
           />
           <div className="library-detail__info">
-            <h2 className="library-detail__title">{title}</h2>
+            {/* The name becomes the field it is edited in, in place. A modal
+                for one text box would cover the very list that says which
+                playlist this is. */}
+            {draftName !== undefined ? (
+              <div className="library-detail__rename">
+                <TextInput
+                  value={draftName}
+                  ariaLabel={t('library.playlist.newName')}
+                  isDisabled={false}
+                  errorMessage=""
+                  formatInput={(value) =>
+                    value.slice(0, MAX_PLAYLIST_NAME_LENGTH)
+                  }
+                  handleChange={setDraftName}
+                  handleSubmit={(value) => {
+                    if (playlistId && value.trim()) {
+                      renamePlaylist(playlistId, value.trim());
+                    }
+                    setDraftName(undefined);
+                  }}
+                  handleEscape={() => setDraftName(undefined)}
+                />
+                <button
+                  type="button"
+                  className="button small"
+                  disabled={draftName.trim().length === 0}
+                  onClick={() => {
+                    if (playlistId && draftName.trim()) {
+                      renamePlaylist(playlistId, draftName.trim());
+                    }
+                    setDraftName(undefined);
+                  }}
+                >
+                  {t('library.playlist.rename')}
+                </button>
+              </div>
+            ) : (
+              <h2 className="library-detail__title">{title}</h2>
+            )}
             {subtitle && <p className="library-detail__subtitle">{subtitle}</p>}
             <p className="library-detail__counts">{counts}</p>
-            {/* Emphasis follows recommendation: this is the one filled button
-              on the screen, Back above is the quiet one. */}
-            <button
-              type="button"
-              className="button small library-detail__play"
-              onClick={handlePlay}
-            >
-              <MenuIcon name="play" className="library-detail__play-icon" />
-              <span>{t('library.play')}</span>
-            </button>
+            <div className="library-detail__actions">
+              {/* Emphasis follows recommendation: this is the one filled
+                button on the screen, Back above is the quiet one. Withheld
+                for an empty playlist — a Play that starts nothing is the
+                click-that-does-nothing this project treats as a bug. */}
+              {detailTracks.length > 0 && (
+                <button
+                  type="button"
+                  className="button small library-detail__play"
+                  onClick={handlePlay}
+                >
+                  <MenuIcon name="play" className="library-detail__play-icon" />
+                  <span>{t('library.play')}</span>
+                </button>
+              )}
+              {/* Absent for Favourites rather than disabled: it is not a
+                thing you may not do to it today, it is a thing that is never
+                true of it. The tooltip on the shelf's own star says so. */}
+              {isPlaylist && !isBuiltInPlaylist && draftName === undefined && (
+                <>
+                  <button
+                    type="button"
+                    className="button small subtle"
+                    onClick={() => {
+                      setIsConfirmingDelete(false);
+                      setDraftName(playlist?.name ?? '');
+                    }}
+                  >
+                    {t('library.playlist.rename')}
+                  </button>
+                  {isConfirmingDelete ? (
+                    <span
+                      className="library-detail__confirm"
+                      role="alertdialog"
+                      aria-label={t('library.playlist.delete')}
+                    >
+                      <span>
+                        {t('library.playlist.deleteConfirm', {
+                          name: playlist?.name ?? '',
+                        })}
+                      </span>
+                      {/* The decline wears the quiet style and the action the
+                          reader already asked for wears the loud one. */}
+                      <button
+                        type="button"
+                        className="button small"
+                        onClick={() => {
+                          if (playlistId) {
+                            deletePlaylist(playlistId);
+                          }
+                          setIsConfirmingDelete(false);
+                          onBack();
+                        }}
+                      >
+                        {t('library.playlist.delete')}
+                      </button>
+                      <button
+                        type="button"
+                        className="button small subtle"
+                        onClick={() => setIsConfirmingDelete(false)}
+                      >
+                        {t('library.playlist.keep')}
+                      </button>
+                    </span>
+                  ) : (
+                    <button
+                      type="button"
+                      className="button small subtle"
+                      onClick={() => setIsConfirmingDelete(true)}
+                    >
+                      {t('library.playlist.delete')}
+                    </button>
+                  )}
+                </>
+              )}
+            </div>
           </div>
         </div>
       )}
@@ -497,9 +695,21 @@ const LibraryDetail = ({
           )}
         </div>
       )}
+      {/* A playlist nobody has put anything in yet, and how to. A table of
+          five empty column headers says "this is broken"; this says "this is
+          new", and names the action that fills it. */}
+      {isPlaylist && detailTracks.length === 0 && missingCount === 0 && (
+        <div className="library-detail__empty" role="status">
+          <p>{t('library.playlist.empty')}</p>
+          <p className="library-detail__empty-hint">
+            {t('library.playlist.emptyHint')}
+          </p>
+        </div>
+      )}
       {/* And no table where there is nothing in this folder to put in one.
           A folder that has files as well as folders shows both. */}
       {!isWayThrough &&
+        !(isPlaylist && detailTracks.length === 0) &&
         (viewMode === 'grid' ? (
           <LibraryGridView
             tracks={listTracks}
@@ -521,10 +731,14 @@ const LibraryDetail = ({
             folderOnlyIds={folderOnlyIds}
             playingTrackId={playingTrackId}
             revealTrack={revealTrack}
+            // Puts "Remove from this playlist" in each row's menu, and only
+            // here — the same table drawn for an album has no such thing to
+            // remove a song from.
+            openPlaylistId={playlistId}
             sort={sort}
             sortDirection={sortDirection}
             onSort={handleSort}
-            resetKey={`detail|${albumId ?? artistId ?? ''}|${sort ?? ''}|${sortDirection}`}
+            resetKey={`detail|${albumId ?? artistId ?? playlistId ?? ''}|${sort ?? ''}|${sortDirection}`}
           />
         ))}
     </div>
