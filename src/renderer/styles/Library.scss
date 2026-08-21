@@ -2008,8 +2008,18 @@ $library-wave-step: 4ms;
 // sentence is the point: "Folders" and "Directories" are near-synonyms in
 // English, and without a line under each nobody could tell which was which.
 .library-toolbar__folder-menu {
+  // The shared floating-menu surface rather than one built here — the same
+  // one the graph's View menu and the karaoke mix popover use, which is what
+  // gives it a background at all and the euphoria sweep for free. Without it
+  // this menu was drawn with no surface and under the toolbar it hangs from:
+  // a portalled element with no z-index of its own loses to the row above,
+  // which carries one.
+  @include menu-surface;
+
+  z-index: 60;
   display: grid;
   min-width: 232px;
+  padding: 5px;
   gap: 2px;
 }
 
