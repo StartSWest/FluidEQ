@@ -31,13 +31,28 @@ it under the terms of the GNU General Public License version 3 or later.
   display: flex;
   min-width: 0;
   align-items: flex-start;
-  padding-bottom: 10px;
-  border-bottom: 1px solid $border-panel;
   gap: 8px;
 
   > .switch {
     flex: 0 0 auto;
   }
+
+  // The sentence under the name wraps here, where an endpoint's profile does
+  // not. A profile is a name and a clipped name is still recognisable; this
+  // is a sentence, and clipped it read "pauses the rest of the ..." — which
+  // is the half that says what the switch does.
+  .extra-outputs__profile {
+    overflow: visible;
+    text-overflow: clip;
+    white-space: normal;
+  }
+}
+
+// The line under it divides the setting from the list of outputs, so it is
+// drawn only when there is a list under it to divide from.
+.sidebar-section.is-open .extra-outputs__rule {
+  padding-bottom: 10px;
+  border-bottom: 1px solid $border-panel;
 }
 
 // Switch and dot hold their size; the text takes whatever is left. Aligned to
