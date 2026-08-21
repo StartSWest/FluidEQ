@@ -495,21 +495,21 @@ const LibraryWorkspace = ({
    * other three, "the song" is a thing the reader has even when nothing is
    * drilled in at all.
    *
-   * And pressing the shelf that is already open means the same thing on all
-   * four: take me to what is playing. See the anchor below.
+   * Songs takes the first track of whatever was open — the anchor is already
+   * that, or the playing song when it happens to be inside it — so switching
+   * to it from a folder lands on that folder's first row rather than
+   * somewhere else in the library.
    */
   const handleBrowseMode = useCallback(
     (mode: TLibraryBrowseMode) => {
-      // PRESSING THE SHELF YOU ARE ALREADY ON MEANS "TAKE ME TO WHAT IS
-      // PLAYING", on that shelf.
+      // WHERE THE READER IS, NEVER WHAT IS PLAYING.
       //
-      // It used to mean nothing at all: the chip was already active, the
-      // handler re-derived the same state, and the press was swallowed. The
-      // question it obviously asks is the one the reader is holding — where
-      // is this song in here — and every shelf has an answer: its album, its
-      // artist, the folder it sits in, or the row itself.
-      const anchor =
-        mode === browseMode ? (playingTrack ?? drillInAnchor) : drillInAnchor;
+      // Pressing a shelf was made to jump to the playing song and that was
+      // wrong: somebody standing in `Cascade Popo` and pressing Tree is asking
+      // to see that folder as a tree, not to be carried off to the folder of
+      // whatever happens to be coming out of the speakers. The bar at the foot
+      // of the window is what goes to what is playing, and it already does.
+      const anchor = drillInAnchor;
       setOpenAlbumId(anchor && mode === 'album' ? albumKey(anchor) : undefined);
       setOpenArtistId(
         anchor && mode === 'artist' ? artistKey(anchor) : undefined,
@@ -528,7 +528,7 @@ const LibraryWorkspace = ({
       drillInDrivenMode.current = mode;
       setBrowseMode(mode);
     },
-    [browseMode, drillInAnchor, playingTrack, revealRow],
+    [drillInAnchor, playingTrack, revealRow],
   );
 
   const handleOpenFolder = useCallback((folderPath: string) => {

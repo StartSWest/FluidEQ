@@ -1973,30 +1973,57 @@ $library-wave-step: 4ms;
   height: 10px;
 }
 
-// *** The Folders chip, which is two chips ***********************************
+// *** The Folders chip, which carries its own chevron **********************
 //
-// One shelf with two readings — every folder at once, or the tree they sit in
-// — so the chip carries a chevron the other four do not. Drawn as one pill
-// split down the middle rather than two chips side by side: they are not
-// alternatives to each other, they are a thing and a way of asking about it.
+// One shelf with two readings — every folder at once, or the tree they sit
+// in — so this chip has an arrow and the other four do not. ONE PILL, and
+// the seam is the whole point of the rule: drawn as two chips it read as two
+// controls sitting next to each other, with a line down the middle saying
+// they were separate things. They are not: it is a shelf and the way of
+// asking about it. So the pill is the wrapper — border, background, the
+// active state — and the two buttons inside it are bare.
 .library-toolbar__folder {
   display: inline-flex;
-  align-items: stretch;
-  gap: 1px;
+  align-items: center;
+  padding-right: 5px;
+  border: 1px solid rgba($primary-lighter, 0.14);
+  border-radius: $radius-pill;
+  background: rgba($white, 0.03);
+  transition:
+    background 140ms ease,
+    border-color 140ms ease;
 
-  > .library-toolbar__chip:first-child {
-    border-top-right-radius: 0;
-    border-bottom-right-radius: 0;
+  &:hover {
+    border-color: rgba($secondary-light, 0.45);
+  }
+
+  &.is-active {
+    border-color: rgba($secondary-light, 0.7);
+    background: rgba($secondary-light, 0.16);
+  }
+
+  // Bare inside the pill: the pill is what is drawn, these are only where
+  // the presses land. The focus ring stays, because a keyboard has to be able
+  // to tell which half it is on.
+  //
+  // The active state is listed with them rather than left to fall through,
+  // because that is the seam: the label keeps its class for the cyan text,
+  // and the chip border came with it — a line down the middle of a pill that
+  // is meant to read as one control.
+  > .library-toolbar__chip,
+  > .library-toolbar__chip.is-active {
+    border-color: transparent;
+    background: none;
+
+    &:hover {
+      border-color: transparent;
+    }
   }
 }
 
 .library-toolbar__folder-more {
-  display: inline-flex;
-  align-items: center;
-  padding-right: 6px;
-  padding-left: 6px;
-  border-top-left-radius: 0;
-  border-bottom-left-radius: 0;
+  padding-right: 2px;
+  padding-left: 3px;
 
   svg {
     width: 11px;

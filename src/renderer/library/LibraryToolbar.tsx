@@ -166,7 +166,12 @@ const LibraryToolbar = ({
           // only learn by opening it.
           if (mode === 'folder') {
             return (
-              <span className="library-toolbar__folder" key={mode}>
+              <span
+                className={`library-toolbar__folder${
+                  browseMode === mode ? ' is-active' : ''
+                }`}
+                key={mode}
+              >
                 <button
                   type="button"
                   role="tab"
