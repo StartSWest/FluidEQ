@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type {
   TLibraryBrowseMode,
   TLibrarySort,
@@ -25,7 +25,7 @@ import type {
 } from '../../common/library/types';
 import { useTranslation } from '../utils/I18nContext';
 import ArrowIcon from '../icons/ArrowIcon';
-import AnchoredMenu from '../widgets/AnchoredMenu';
+import AnchoredMenu, { isInsideAnchoredMenu } from '../widgets/AnchoredMenu';
 import Dropdown from '../widgets/Dropdown';
 import { setFolderTree, useFolderTree } from './folderTree';
 import LibrarySearchField from './LibrarySearchField';
@@ -127,6 +127,44 @@ const LibraryToolbar = ({
     null,
   );
 
+  /**
+   * A press elsewhere puts it away, and so does Escape.
+   *
+   * The menu is portalled to the body, so "elsewhere" cannot be answered by
+   * asking whether the press was inside this toolbar — `isInsideAnchoredMenu`
+   * is what every other menu here asks, and this one was the only one that
+   * stayed open until its own trigger was pressed again.
+   */
+  useEffect(() => {
+    if (!folderMenuAnchor) {
+      return undefined;
+    }
+    const onPointerDown = (event: globalThis.MouseEvent) => {
+      // The trigger itself is not "outside": it toggles, and closing here
+      // first would leave the press reopening what it had just shut.
+      if (
+        !isInsideAnchoredMenu(event.target) &&
+        !(
+          event.target instanceof Node &&
+          folderMenuAnchor.contains(event.target)
+        )
+      ) {
+        setFolderMenuAnchor(null);
+      }
+    };
+    const onKeyDown = (event: globalThis.KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setFolderMenuAnchor(null);
+      }
+    };
+    window.addEventListener('mousedown', onPointerDown);
+    window.addEventListener('keydown', onKeyDown);
+    return () => {
+      window.removeEventListener('mousedown', onPointerDown);
+      window.removeEventListener('keydown', onKeyDown);
+    };
+  }, [folderMenuAnchor]);
+
   // The open menu lists the columns; the closed trigger says what it is for.
   // Without the prefix the control reads as a label for whatever it happens
   // to be set to — a box saying "Title" beside a search box saying nothing.
@@ -179,7 +217,17 @@ const LibraryToolbar = ({
                   className={`library-toolbar__chip${
                     browseMode === mode ? ' is-active' : ''
                   }`}
-                  onClick={() => onBrowseMode(mode)}
+                  // The shelf and its menu in one press. The two readings are
+                  // what this chip is: pressing it says "folders" and then
+                  // asks which of the two you meant, and pressing outside
+                  // leaves with the one already on — a menu's own manners.
+                  onClick={(event) => {
+                    const trigger = event.currentTarget;
+                    onBrowseMode(mode);
+                    setFolderMenuAnchor((current) =>
+                      current ? null : trigger,
+                    );
+                  }}
                 >
                   {t(
                     asTree
