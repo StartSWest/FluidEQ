@@ -86,13 +86,42 @@ describe('buildSongIdentity', () => {
     );
   });
 
-  it('cuts tracking off a media url but keeps the path', () => {
+  it('cuts tracking off a media url but keeps what names the video', () => {
     const identity = buildSongIdentity(
       'media',
       'https://www.youtube.com/watch?v=abc&t=42s&si=track',
       'Song',
     );
-    expect(identity?.key).toBe('media:https://www.youtube.com/watch');
+    expect(identity?.key).toBe('media:https://www.youtube.com/watch?v=abc');
+  });
+
+  it('gives two different videos on the same site different keys', () => {
+    // THE POSITIVE CONTROL FOR THE CUT ABOVE. A denylist that dropped `v` as
+    // well as the tracking parameters would merge every video on the site
+    // onto the one key `media:https://www.youtube.com/watch` — the exact bug
+    // this fix exists to remove.
+    const first = buildSongIdentity(
+      'media',
+      'https://www.youtube.com/watch?v=abc',
+      'Song A',
+    );
+    const second = buildSongIdentity(
+      'media',
+      'https://www.youtube.com/watch?v=xyz',
+      'Song B',
+    );
+    expect(first?.key).not.toBe(second?.key);
+  });
+
+  it('keys a video the same however its parameters are ordered', () => {
+    // The denylist's survivors are sorted for exactly this: two loads of one
+    // video that differ only in parameter order must not mint two keys.
+    const reordered = buildSongIdentity(
+      'media',
+      'https://www.youtube.com/watch?si=track&v=abc&t=42s',
+      'Song',
+    );
+    expect(reordered?.key).toBe('media:https://www.youtube.com/watch?v=abc');
   });
 
   it('puts title and artist in a system key, because the app alone is not a song', () => {

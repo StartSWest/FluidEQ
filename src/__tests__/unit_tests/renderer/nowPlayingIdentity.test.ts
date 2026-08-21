@@ -84,11 +84,27 @@ describe('pickPlayingIdentity', () => {
     ).toBe(songA);
   });
 
-  it('does not follow the tab, unlike the bar', () => {
-    // The bar shows the last paused thing on a tab that is not a player. A
-    // paused song is not being equalised, so this must not.
+  it("reads only the playing owner's entry, not any source that is registered", () => {
+    // If this fell back to "whatever is in the register" instead of indexing
+    // by `playingOwner`, a karaoke source sitting there unplayed while the
+    // library plays would leak its identity into the recording.
+    const karaokeSong = buildSongIdentity('karaoke', 'k1', 'Karaoke Song');
     expect(
-      pickPlayingIdentity({ library: sourceOf('library', false) }, undefined),
+      pickPlayingIdentity(
+        { karaoke: sourceOf('karaoke', false, karaokeSong) },
+        'library',
+      ),
+    ).toBeUndefined();
+  });
+
+  it("is nothing when the machine's own player is only paused", () => {
+    // A regression dropping the `isPlaying` gate on the system fallback would
+    // pass every other test here — this is the one case that depends on it.
+    expect(
+      pickPlayingIdentity(
+        { system: sourceOf('system', false, songB) },
+        undefined,
+      ),
     ).toBeUndefined();
   });
 

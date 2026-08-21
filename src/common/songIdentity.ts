@@ -120,10 +120,60 @@ export const normalizeSongAlias = (
   return `${cleanTitle}|${cleanArtist}`;
 };
 
-/** A media URL with its tracking cut off. The path identifies the page; the
- * query is a session, a timestamp and a referrer, and none of those are the
- * song. */
-const trimMediaUrl = (url: string) => url.split('#')[0].split('?')[0];
+/**
+ * Query parameters known to be tracking or session noise, never the content.
+ *
+ * A denylist, and the direction is deliberate. Keeping a tracking parameter
+ * by mistake splits one video across two keys, which costs a re-learn.
+ * Stripping one that identifies the content merges many videos onto a single
+ * key — the wrong curve, applied to the wrong song, named wrongly in the
+ * notice. Under-remembering is recoverable; over-merging is a bug nobody can
+ * explain. The title alias is a second chance for the split case and no help
+ * at all for the merge.
+ */
+const MEDIA_URL_NOISE_PARAMS = new Set([
+  't',
+  'si',
+  'feature',
+  'pp',
+  'ab_channel',
+  'index',
+  'start_radio',
+  'fbclid',
+  'gclid',
+  'igshid',
+  'ref',
+  'ref_src',
+  'source',
+]);
+
+/**
+ * A media URL with its tracking cut off, keeping whatever names the content.
+ *
+ * The hash is never the content. The query can be — YouTube's video id lives
+ * in `v=` — so parameters are filtered against a denylist rather than
+ * dropped wholesale, and the survivors are sorted: the same video loaded with
+ * its parameters in a different order must still produce one key.
+ */
+const trimMediaUrl = (url: string): string => {
+  const hashIndex = url.indexOf('#');
+  const withoutHash = hashIndex === -1 ? url : url.slice(0, hashIndex);
+  const queryIndex = withoutHash.indexOf('?');
+  if (queryIndex === -1) {
+    return withoutHash;
+  }
+  const base = withoutHash.slice(0, queryIndex);
+  const keptParams = withoutHash
+    .slice(queryIndex + 1)
+    .split('&')
+    .filter((pair) => pair.length > 0)
+    .filter((pair) => {
+      const name = pair.split('=')[0];
+      return !MEDIA_URL_NOISE_PARAMS.has(name) && !name.startsWith('utm_');
+    })
+    .sort();
+  return keptParams.length > 0 ? `${base}?${keptParams.join('&')}` : base;
+};
 
 export const buildSongIdentity = (
   source: TSongSource,
