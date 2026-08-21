@@ -120,6 +120,8 @@ const library: Partial<Dictionary> = {
   'library.queue': 'Fila',
   'library.queue.remove': 'Remover da fila',
   'library.nowPlaying': 'Tocando agora',
+  'library.nothingPlaying': 'Nada tocando',
+  'library.nothingPlayingHint': 'Escolhe algo para tocar',
   'library.systemAudio': 'Áudio do sistema',
   'library.fullScreen': 'Tela inteira',
 };

@@ -118,6 +118,8 @@ const library = {
   'library.queue': 'Queue',
   'library.queue.remove': 'Remove from the queue',
   'library.nowPlaying': 'Now playing',
+  'library.nothingPlaying': 'Nothing playing',
+  'library.nothingPlayingHint': 'Pick something to play',
   'library.systemAudio': 'System audio',
   'library.fullScreen': 'Full screen',
 } as const;

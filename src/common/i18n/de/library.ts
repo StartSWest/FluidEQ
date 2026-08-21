@@ -120,6 +120,8 @@ const library: Partial<Dictionary> = {
   'library.queue': 'Warteschlange',
   'library.queue.remove': 'Aus der Warteschlange entfernen',
   'library.nowPlaying': 'Wird gerade wiedergegeben',
+  'library.nothingPlaying': 'Nichts läuft',
+  'library.nothingPlayingHint': 'Wähle etwas zum Abspielen',
   'library.systemAudio': 'Systemaudio',
   'library.fullScreen': 'Vollbild',
 };

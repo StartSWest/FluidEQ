@@ -122,8 +122,34 @@ let sources: Partial<Record<TPlaybackOwner, ITransportSource>> = {};
  * the song that is playing, or, once it is paused, the song somebody paused
  * and is about to resume. Without it, pausing while on one of those tabs made
  * the bar vanish and took the resume button with it.
+ *
+ * Remembered across restarts, so the answer survives the one moment it is
+ * least obvious: the app opens with nothing having been described yet, and
+ * the first player to come back — the library restoring its queue, karaoke
+ * its session — is not necessarily the one somebody was using. The stored
+ * name is only a preference for whichever of them registers; a source that
+ * never arrives is never shown, because `pickTransportOwner` reads the
+ * register rather than this.
  */
-let lastOwner: TPlaybackOwner | undefined;
+const LAST_OWNER_KEY = 'fluideq.transport.lastOwner';
+
+const OWNERS: readonly TPlaybackOwner[] = [
+  'library',
+  'karaoke',
+  'media',
+  'system',
+];
+
+const readLastOwner = (): TPlaybackOwner | undefined => {
+  try {
+    const stored = window.localStorage.getItem(LAST_OWNER_KEY);
+    return OWNERS.find((owner) => owner === stored);
+  } catch {
+    return undefined;
+  }
+};
+
+let lastOwner: TPlaybackOwner | undefined = readLastOwner();
 
 const publish = (next: Partial<Record<TPlaybackOwner, ITransportSource>>) => {
   sources = next;
@@ -149,6 +175,12 @@ export const setTransportSource = (next: ITransportSource): void => {
   // stops.
   if (next.owner !== 'system') {
     lastOwner = next.owner;
+    try {
+      window.localStorage.setItem(LAST_OWNER_KEY, next.owner);
+    } catch {
+      // The preference then lasts as long as the window, which is what it
+      // did before it was written down at all.
+    }
   }
   publish({ ...sources, [next.owner]: next });
 };
@@ -199,5 +231,12 @@ export const useLastTransportOwner = (): TPlaybackOwner | undefined =>
 export const resetTransportSource = (): void => {
   sources = {};
   lastOwner = undefined;
+  try {
+    // Tests share one jsdom, and a remembered owner would leak from one case
+    // into the next exactly as the register itself would.
+    window.localStorage.removeItem(LAST_OWNER_KEY);
+  } catch {
+    // Nothing was stored; nothing to forget.
+  }
   listeners.forEach((listener) => listener());
 };

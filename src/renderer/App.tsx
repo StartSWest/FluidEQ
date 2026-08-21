@@ -71,6 +71,7 @@ import {
   useLibraryPlayer,
 } from './library/player/LibraryPlayerContext';
 import NowPlayingBar from './library/player/NowPlayingBar';
+import IdleTransportBar from './library/player/IdleTransportBar';
 import SourceTransportBar from './library/player/SourceTransportBar';
 import { usePlaybackOwner, type TPlaybackOwner } from './audio/playbackOwner';
 import { useSystemMediaSource } from './audio/useSystemMediaSource';
@@ -294,6 +295,37 @@ const TRANSPORT_TAB: Partial<Record<TPlaybackOwner, TWorkspaceTab>> = {
   library: 'library',
   karaoke: 'karaoke',
   media: 'video',
+};
+
+/**
+ * The bar when there is no player to put in it.
+ *
+ * Asks the same question of the same stores the two real bars ask, and draws
+ * only when both of them have answered no — which is the one case the foot of
+ * the window used to be empty for. Not in full screen: there the bar is
+ * something that arrives over a picture when the pointer goes looking for it,
+ * and an empty one arriving would be chrome with nothing to say.
+ */
+const IdleTransportBarSlot = ({
+  activeTab,
+  isFullScreen,
+}: {
+  activeTab: TWorkspaceTab;
+  isFullScreen: boolean;
+}) => {
+  const sources = useTransportSources();
+  const playingOwner = usePlaybackOwner();
+  const lastOwner = useLastTransportOwner();
+  const owner = pickTransportOwner(
+    TAB_TRANSPORT[activeTab],
+    sources,
+    playingOwner,
+    lastOwner,
+  );
+  if (owner !== undefined || isFullScreen) {
+    return null;
+  }
+  return <IdleTransportBar />;
 };
 
 const TabTransportBar = ({
@@ -1636,6 +1668,10 @@ const AppContent = () => {
                 still for a moment, and back on the next movement — the same
                 two seconds the graph's own toolbar waits, from the same
                 store, so the two cannot disagree about when to go. */}
+            <IdleTransportBarSlot
+              activeTab={activeWorkspaceTab}
+              isFullScreen={isAppFullScreen}
+            />
             <TabTransportBar
               activeTab={activeWorkspaceTab}
               isIdle={isAppFullScreen && (!isPointerNearBottom || isChromeIdle)}

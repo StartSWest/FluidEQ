@@ -122,6 +122,8 @@ const library: Partial<Dictionary> = {
   'library.queue': 'File d’attente',
   'library.queue.remove': 'Retirer de la file d’attente',
   'library.nowPlaying': 'Lecture en cours',
+  'library.nothingPlaying': 'Rien en lecture',
+  'library.nothingPlayingHint': 'Choisis quelque chose à écouter',
   'library.systemAudio': 'Audio du système',
   'library.fullScreen': 'Plein écran',
 };

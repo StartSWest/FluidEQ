@@ -152,12 +152,6 @@ const app: Partial<Dictionary> = {
     'Réglé pour vous. Désactivez la normalisation auto pour y toucher.',
   'sidebar.headroom': 'MARGE APO',
   'sidebar.autoPreamp': 'Normalisation auto',
-  'sidebar.autoNormalize.off': 'Non',
-  'sidebar.autoNormalize.on': 'Oui',
-  'sidebar.autoNormalize.smart': 'Intelligent',
-  'sidebar.autoNormalize.aria': 'Mode de normalisation automatique',
-  'sidebar.preampSmart':
-    'Mesuré sur ce que vous écoutez et ajusté au fil de l’écoute.',
   'sidebar.visualizer': 'VISUALISEUR',
   'sidebar.graphView': 'Courbe de réponse',
   'config.eyebrow': 'CE QUE LIT LE MOTEUR',

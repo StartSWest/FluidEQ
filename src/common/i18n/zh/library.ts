@@ -117,6 +117,8 @@ const library: Partial<Dictionary> = {
   'library.queue': '播放队列',
   'library.queue.remove': '从队列中移除',
   'library.nowPlaying': '正在播放',
+  'library.nothingPlaying': '没有在播放',
+  'library.nothingPlayingHint': '选择要播放的内容',
   'library.systemAudio': '系统音频',
   'library.fullScreen': '全屏',
 };
