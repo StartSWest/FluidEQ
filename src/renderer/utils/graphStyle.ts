@@ -18,8 +18,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { useSyncExternalStore } from 'react';
 import {
+  DEFAULT_GRAPH_LOOK,
+  DEFAULT_GRAPH_LOOK_ID,
   GRAPH_FORM_LOOKS,
-  GRAPH_LOOKS,
   GraphPalette,
   getGraphLook,
   graphLookId,
@@ -48,7 +49,7 @@ const listeners = new Set<() => void>();
  * a fixed list — a custom one can be edited or deleted while it is selected, and
  * an id survives that where a held object would go stale.
  */
-let selectedId = GRAPH_LOOKS[0].id;
+let selectedId = DEFAULT_GRAPH_LOOK_ID;
 try {
   selectedId = window.localStorage.getItem(STORAGE_KEY) || selectedId;
 } catch {
@@ -247,7 +248,7 @@ export const setLookDraft = (next: ICustomLook | null) => {
 // means anything.
 subscribeCustomLooks(() => {
   if (isCustomLookId(selectedId) && !getCustomLook(selectedId)) {
-    selectedId = GRAPH_LOOKS[0].id;
+    selectedId = DEFAULT_GRAPH_LOOK_ID;
     persistSelection();
   }
   refresh();
@@ -260,7 +261,7 @@ const subscribe = (listener: () => void) => {
   };
 };
 
-const DEFAULT_RESOLVED = resolveBuiltInLook(GRAPH_LOOKS[0]);
+const DEFAULT_RESOLVED = resolveBuiltInLook(DEFAULT_GRAPH_LOOK);
 
 /**
  * The whole look, as one stable object: which form, which palette, and every
@@ -288,7 +289,7 @@ export const useSelectedLookId = () =>
   useSyncExternalStore(
     subscribe,
     () => selectedId,
-    () => GRAPH_LOOKS[0].id,
+    () => DEFAULT_GRAPH_LOOK_ID,
   );
 
 /**

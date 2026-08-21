@@ -17,6 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import {
+  DEFAULT_GRAPH_LOOK,
   GRAPH_LOOKS,
   canGraphFill,
   GRAPH_PALETTES,
@@ -85,8 +86,13 @@ describe('the graph style cycle', () => {
     });
   });
 
-  it('falls back to the first look for an id it does not know', () => {
-    expect(getGraphLook('nonsense')).toBe(GRAPH_LOOKS[0]);
+  it('falls back to the default look for an id it does not know', () => {
+    // Not "the first look", which is only whichever form happens to be
+    // written first in the cycle order — a list people append to. A stored
+    // preference naming a form this build does not have lands on the same
+    // drawing a fresh install starts with.
+    expect(getGraphLook('nonsense')).toBe(DEFAULT_GRAPH_LOOK);
+    expect(DEFAULT_GRAPH_LOOK.style).toBe('fluid');
   });
 
   it('comes back round', () => {

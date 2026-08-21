@@ -377,8 +377,28 @@ export const GRAPH_FORM_LOOKS: IGraphLook[] = GRAPH_LOOKS.filter(
   (look) => look.palette === 'signal',
 );
 
+/**
+ * What a machine that has never been told otherwise draws.
+ *
+ * The fluid, because it is the only form here that reads BOTH inputs — the
+ * spectrum as bars and the output envelope as the curve over them — so it is
+ * the one that shows a new user what this pane is for without them touching a
+ * setting. It is also the drawing the titlebar already runs, which makes the
+ * two halves of the window agree on first launch rather than introducing the
+ * product with two unrelated pictures of the same audio.
+ *
+ * Named rather than positional. This was `GRAPH_LOOKS[0]` in five places,
+ * which is not a choice — it is whichever form happens to be written first in
+ * the cycle order, and that order is a list people append to.
+ */
+export const DEFAULT_GRAPH_LOOK_ID = graphLookId('fluid', 'signal');
+
+export const DEFAULT_GRAPH_LOOK: IGraphLook =
+  GRAPH_LOOKS.find((look) => look.id === DEFAULT_GRAPH_LOOK_ID) ??
+  GRAPH_LOOKS[0];
+
 export const getGraphLook = (id: string): IGraphLook =>
-  GRAPH_LOOKS.find((look) => look.id === id) ?? GRAPH_LOOKS[0];
+  GRAPH_LOOKS.find((look) => look.id === id) ?? DEFAULT_GRAPH_LOOK;
 
 /**
  * How each form moves.
