@@ -24,6 +24,7 @@ import app from './app';
 import look from './look';
 import video from './video';
 import library from './library';
+import songEq from './songEq';
 
 const fr: Partial<Dictionary> = {
   ...karaoke,
@@ -32,6 +33,7 @@ const fr: Partial<Dictionary> = {
   ...look,
   ...video,
   ...library,
+  ...songEq,
 };
 
 export default fr;

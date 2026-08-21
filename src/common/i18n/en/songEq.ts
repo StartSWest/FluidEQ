@@ -16,24 +16,17 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-/** Every key of this language, by feature. Partial by design — see `../en`. */
-import { Dictionary } from '../en';
-import karaoke from './karaoke';
-import eq from './eq';
-import app from './app';
-import look from './look';
-import video from './video';
-import library from './library';
-import songEq from './songEq';
-
-const ja: Partial<Dictionary> = {
-  ...karaoke,
-  ...eq,
-  ...app,
-  ...look,
-  ...video,
-  ...library,
-  ...songEq,
+/** Smart EQ song memory — the tick, its progress, and the notice. */
+export default {
+  'songEq.save': 'Save for this song',
+  'songEq.saveAria': 'Remember the Smart EQ correction for whatever is playing',
+  'songEq.waiting': 'Waiting for something to play',
+  'songEq.listening': 'Learning — {remaining} to go',
+  'songEq.willSave': 'Will save — {title}',
+  'songEq.noticeTitle': 'Using saved EQ for this song',
+  'songEq.noticeBody': '{title} — learned over {plays} plays',
+  'songEq.noticeBodyOnce': '{title} — learned once',
+  'songEq.undo': 'Undo',
+  'songEq.forget': 'Forget this song',
+  'songEq.badgeAria': 'Smart EQ is learning this song',
 };
-
-export default ja;
