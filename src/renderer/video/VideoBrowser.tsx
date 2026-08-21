@@ -19,6 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { FC, Ref, useCallback, useEffect, useRef, useState } from 'react';
 import ChannelEnum from 'common/channels';
 import type { TranslationKey } from 'common/i18n';
+import { buildSongIdentity } from 'common/songIdentity';
 import {
   VIDEO_AD_BLOCK_DEFAULT,
   VIDEO_AD_BLOCK_STORAGE_KEY,
@@ -528,19 +529,28 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
      * it does not. See `PROBE_SKIP_CONTROLS`.
      */
     const describe = (isPlaying: boolean) => {
+      // The song where the page publishes one, the page otherwise.
+      //
+      // A document title is the site, not the track: Suno reads "Suno | AI
+      // Music" through every song it plays, and YouTube Music keeps the tab's
+      // name while the queue moves underneath it. What those players hand the
+      // lock screen is `mediaSession.metadata`, and that is what this bar
+      // carries too — see `READ_NOW_PLAYING`.
+      const resolvedTitle =
+        nowPlayingRef.current.title || view.getTitle() || t('tabs.media');
       setTransportSource({
         owner: 'media',
-        // The song where the page publishes one, the page otherwise.
-        //
-        // A document title is the site, not the track: Suno reads "Suno | AI
-        // Music" through every song it plays, and YouTube Music keeps the
-        // tab's name while the queue moves underneath it. What those players
-        // hand the lock screen is `mediaSession.metadata`, and that is what
-        // this bar carries too — see `READ_NOW_PLAYING`.
-        title:
-          nowPlayingRef.current.title || view.getTitle() || t('tabs.media'),
+        title: resolvedTitle,
         subtitle: nowPlayingRef.current.artist || undefined,
         artworkUrl: frameRef.current,
+        // The URL, not the title, is the exact key: two pages can share a
+        // title (every unplayed YouTube tab is "YouTube") but never a URL.
+        identity: buildSongIdentity(
+          'media',
+          view.getURL(),
+          resolvedTitle,
+          nowPlayingRef.current.artist,
+        ),
         isPlaying,
         positionMs: 0,
         durationMs: 0,

@@ -47,6 +47,7 @@ import {
   useRef,
   useState,
 } from 'react';
+import { buildSongIdentity } from 'common/songIdentity';
 import {
   advanceQueue,
   buildQueue,
@@ -1285,6 +1286,12 @@ export const LibraryPlayerProvider = ({
       seek,
       volume,
       setVolume,
+      identity: buildSongIdentity(
+        'library',
+        track.id,
+        track.title,
+        track.artist,
+      ),
     });
   }, [
     track,

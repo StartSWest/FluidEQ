@@ -29,6 +29,7 @@ import {
   useSyncExternalStore,
 } from 'react';
 import { createPortal } from 'react-dom';
+import { buildSongIdentity } from 'common/songIdentity';
 import karaokeMicrophoneImage from '../../../assets/karaoke-microphone.png';
 import { TranslationKey } from '../../common/i18n';
 import {
@@ -1504,6 +1505,7 @@ const KaraokeWorkspace = ({
       toggle: handleTogglePlayback,
       seek: handleSeek,
       hasOwnControls: true,
+      identity: buildSongIdentity('karaoke', song.id, song.title, song.artist),
     });
   }, [
     song,

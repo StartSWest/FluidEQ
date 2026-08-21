@@ -49,6 +49,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import { useEffect, useRef } from 'react';
+import { buildSongIdentity } from 'common/songIdentity';
 import type { ISystemMediaSnapshot } from '../../main/systemMedia';
 import { stopAllPlayback, usePlaybackOwner } from './playbackOwner';
 import type { TPlaybackOwner } from './playbackOwner';
@@ -128,6 +129,12 @@ export const useSystemMediaSource = (): void => {
         owner: 'system',
         title: snapshot.title,
         subtitle: subtitleFor(snapshot),
+        identity: buildSongIdentity(
+          'system',
+          snapshot.app,
+          snapshot.title,
+          snapshot.artist,
+        ),
         isPlaying: snapshot.isPlaying,
         positionMs: snapshot.positionMs,
         durationMs: snapshot.durationMs,

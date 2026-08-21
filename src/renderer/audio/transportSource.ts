@@ -17,6 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { useSyncExternalStore } from 'react';
+import type { ISongIdentity } from 'common/songIdentity';
 import type { TPlaybackOwner } from './playbackOwner';
 
 /**
@@ -97,6 +98,14 @@ export interface ITransportSource {
    * cannot travel through here.
    */
   hasOwnControls?: boolean;
+  /**
+   * What this is, for the app to remember it by.
+   *
+   * Optional because a source can honestly have none — a page with no title,
+   * a player that registered and loaded nothing. Absent means this is not a
+   * thing worth filing a correction under, and the recorder skips it.
+   */
+  identity?: ISongIdentity;
 }
 
 const listeners = new Set<() => void>();
