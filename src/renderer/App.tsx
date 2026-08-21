@@ -78,6 +78,7 @@ import IdleTransportBar from './library/player/IdleTransportBar';
 import SourceTransportBar from './library/player/SourceTransportBar';
 import { usePlaybackOwner, type TPlaybackOwner } from './audio/playbackOwner';
 import { useSystemMediaSource } from './audio/useSystemMediaSource';
+import { useSongEqSessionHost } from './audio/songEqSession';
 import {
   useLastTransportOwner,
   useTransportSources,
@@ -630,6 +631,10 @@ const AppContent = () => {
   // the sound is Spotify's or a browser's, and the curve on screen is shaping
   // it just the same.
   useSystemMediaSource();
+  // The Smart EQ song-memory recorder: same lifetime and the same reason as
+  // the line above it. A recording must not end because somebody switched
+  // tabs, so this is hosted here rather than inside the EQ page.
+  useSongEqSessionHost();
 
   // Set from inside the graph pane; read here because the elements that have
   // to get out of the way are not the graph's — the EQ panel is its sibling,
