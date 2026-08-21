@@ -494,10 +494,22 @@ const LibraryWorkspace = ({
    * it. Its anchor falls back to whatever is playing, because unlike the
    * other three, "the song" is a thing the reader has even when nothing is
    * drilled in at all.
+   *
+   * And pressing the shelf that is already open means the same thing on all
+   * four: take me to what is playing. See the anchor below.
    */
   const handleBrowseMode = useCallback(
     (mode: TLibraryBrowseMode) => {
-      const anchor = drillInAnchor;
+      // PRESSING THE SHELF YOU ARE ALREADY ON MEANS "TAKE ME TO WHAT IS
+      // PLAYING", on that shelf.
+      //
+      // It used to mean nothing at all: the chip was already active, the
+      // handler re-derived the same state, and the press was swallowed. The
+      // question it obviously asks is the one the reader is holding — where
+      // is this song in here — and every shelf has an answer: its album, its
+      // artist, the folder it sits in, or the row itself.
+      const anchor =
+        mode === browseMode ? (playingTrack ?? drillInAnchor) : drillInAnchor;
       setOpenAlbumId(anchor && mode === 'album' ? albumKey(anchor) : undefined);
       setOpenArtistId(
         anchor && mode === 'artist' ? artistKey(anchor) : undefined,
@@ -516,7 +528,7 @@ const LibraryWorkspace = ({
       drillInDrivenMode.current = mode;
       setBrowseMode(mode);
     },
-    [drillInAnchor, playingTrack, revealRow],
+    [browseMode, drillInAnchor, playingTrack, revealRow],
   );
 
   const handleOpenFolder = useCallback((folderPath: string) => {
