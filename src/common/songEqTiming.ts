@@ -73,12 +73,17 @@ export const listenedAt = (session: ISongEqSession, now: number) =>
  * out once so nothing outside this file, including the shell's own "will
  * this be saved" badge, can restate it and quietly drift from it the moment
  * one of the two changes without the other noticing.
+ *
+ * `forgotten` lives here rather than beside each call site for the same
+ * reason: a badge that asked this without it would go on promising a save
+ * for a song `close` has already been told never to commit again.
  */
 export const willSongEqSave = (
   state: ISongEqRecorderState,
   session: ISongEqSession,
   now: number,
 ): boolean =>
+  !session.forgotten &&
   state.isSaveOn &&
   listenedAt(session, now) >= SONG_EQ_MIN_LISTENED_MS &&
   Boolean(state.liveLayer);
@@ -102,11 +107,7 @@ const close = (
   deviceId: string,
 ): TSongEqEffect[] => {
   const effects: TSongEqEffect[] = [];
-  if (
-    !session.forgotten &&
-    willSongEqSave(state, session, now) &&
-    state.liveLayer
-  ) {
+  if (willSongEqSave(state, session, now) && state.liveLayer) {
     effects.push({
       kind: 'commit',
       identity: session.identity,
@@ -183,7 +184,6 @@ export const advance = (
   if (
     session.phase === 'recording' &&
     !session.hasCheckpointed &&
-    !session.forgotten &&
     willSongEqSave(state, session, now) &&
     state.liveLayer
   ) {

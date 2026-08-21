@@ -51,6 +51,7 @@ import {
   setSongEqSaveOn,
   undoSongEqLoan,
   useSongEqNotice,
+  useSongEqRecording,
   useSongEqSessionHost,
 } from 'renderer/audio/songEqSession';
 
@@ -414,5 +415,98 @@ describe('songEqSession', () => {
 
     expect(api.forgetSongEq).toHaveBeenCalledWith('device-a', song.key);
     expect(result.current).toBeUndefined();
+  });
+
+  /**
+   * `willSongEqSave` folds `forgotten` in, rather than leaving it as a
+   * separate check `close` and `advance` each restated — the exact drift
+   * finding 3 (`willSave` reimplementing the rule) warned about, recreated
+   * by finding 6 (`forget`) the moment the two lived apart again.
+   */
+  it('stops promising a save once the current song has been forgotten', async () => {
+    setSongEqSaveOn(true);
+    const song = buildSongIdentity(
+      'library',
+      'forgotten-badge-song',
+      'Forgotten Badge Song',
+      'Artist',
+    );
+    if (!song) {
+      throw new Error('test fixture produced no identity');
+    }
+    // A live layer past the floor, saving on — `willSave` has every reason
+    // to answer true, until forgetting is asked to override it.
+    contextSmartEq = layerOf(2);
+    (api.lookupSongEq as jest.Mock).mockResolvedValue(undefined);
+    mockUseNowPlayingIdentity.mockReturnValue({
+      identity: song,
+      isPlaying: true,
+    });
+
+    const { result } = renderHook(
+      () => {
+        useSongEqSessionHost();
+        return useSongEqRecording();
+      },
+      { wrapper },
+    );
+
+    await act(async () => {
+      jest.advanceTimersByTime(
+        SONG_EQ_MIN_LISTENED_MS + SONG_EQ_SETTLE_MS + 2000,
+      );
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    // Positive control: this is what the bug would have kept showing.
+    expect(result.current.willSave).toBe(true);
+
+    act(() => {
+      forgetCurrentSongEq();
+    });
+
+    expect(result.current.willSave).toBe(false);
+  });
+});
+
+/**
+ * Critical 1's actual production seam, as opposed to the test-only reset
+ * `resetSongEqSession` provides.
+ *
+ * Every test above seeds `localStorage` and then calls `resetSongEqSession`
+ * to get a clean module — which is the right seam for those tests, but it is
+ * not the path the running app takes. The app only ever seeds
+ * `state.isSaveOn` once, at the module-level initialiser in
+ * `songEqSession.ts`, the moment the module is first imported. Nothing above
+ * exercises that line: this loads a genuinely fresh instance of the module
+ * with `jest.isolateModules`, the same seam `graphViewSettings.test.ts` and
+ * `euphoriaMode.test.ts` already use for exactly this reason, so the
+ * initialiser itself runs under test rather than being stood in for.
+ */
+describe("the module-load path Critical 1's fix depends on", () => {
+  afterEach(() => {
+    jest.resetModules();
+  });
+
+  it('seeds state.isSaveOn from storage the moment the module loads, not only on a later reset', () => {
+    try {
+      window.localStorage.setItem(SAVE_STORAGE_KEY, 'true');
+    } catch {
+      // Nothing stored means the assertion below fails honestly rather than
+      // this test silently passing for the wrong reason.
+    }
+
+    let freshGetSongEqSaveOn: (() => boolean) | undefined;
+    jest.isolateModules(() => {
+      const fresh =
+        require('renderer/audio/songEqSession') as typeof import('renderer/audio/songEqSession'); // eslint-disable-line global-require -- the whole point is a fresh, uncached require
+      freshGetSongEqSaveOn = fresh.getSongEqSaveOn;
+    });
+
+    if (!freshGetSongEqSaveOn) {
+      throw new Error('module did not load inside isolateModules');
+    }
+    expect(freshGetSongEqSaveOn()).toBe(true);
   });
 });

@@ -58,18 +58,6 @@ const listeners = new Set<() => void>();
 
 let owner: TPlaybackOwner | undefined;
 
-/**
- * Who most recently actually held playback, kept past the release itself.
- *
- * Distinct from `lastTransportOwner` in `transportSource.ts`, which tracks
- * who last *described* itself — including a player that only ever had
- * something cued, never played — and deliberately excludes `system`. This is
- * narrower on purpose: it exists so a pause can be told apart from a stop by
- * whoever is asking afterwards, and a player that never played has nothing
- * to resume.
- */
-let lastReleasedOwner: TPlaybackOwner | undefined;
-
 const publish = (next: TPlaybackOwner | undefined) => {
   if (owner === next) {
     return;
@@ -94,12 +82,6 @@ export const registerPlayer = (
     stoppers.delete(id);
     if (owner === id) {
       publish(undefined);
-    }
-    // Gone entirely — a player that has unmounted has nothing left to
-    // resume, and reporting it as merely paused would name a source with no
-    // stopper, no registration and no way back.
-    if (lastReleasedOwner === id) {
-      lastReleasedOwner = undefined;
     }
   };
 };
@@ -130,9 +112,6 @@ export const claimPlayback = (id: TPlaybackOwner): void => {
  */
 export const releasePlayback = (id: TPlaybackOwner): void => {
   if (owner === id) {
-    // Recorded before the clear below, so the two never disagree about who
-    // was playing a moment ago.
-    lastReleasedOwner = id;
     publish(undefined);
   }
 };
@@ -177,21 +156,10 @@ export const usePlaybackOwner = (): TPlaybackOwner | undefined =>
     () => undefined,
   );
 
-/** Who last actually held playback — see the module comment on
- * `lastReleasedOwner`. Changes in lockstep with `owner`, so it shares its
- * subscription rather than needing one of its own. */
-export const useLastReleasedOwner = (): TPlaybackOwner | undefined =>
-  useSyncExternalStore(
-    subscribe,
-    () => lastReleasedOwner,
-    () => undefined,
-  );
-
 /** Test seam. The store is module state and outlives a test's render, so a
  * suite that claims playback would otherwise leak that into the next one. */
 export const resetPlaybackOwner = (): void => {
   stoppers.clear();
   owner = undefined;
-  lastReleasedOwner = undefined;
   listeners.forEach((listener) => listener());
 };

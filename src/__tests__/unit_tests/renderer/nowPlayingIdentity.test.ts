@@ -27,7 +27,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * function and none of the rest, so the cases worth pinning are the ones a
  * bar would answer differently from a recorder — plus the one case the
  * recorder needs that the bar has no reason to: telling a pause apart from a
- * stop, which is `lastReleasedOwner`'s whole job.
+ * stop, which is `lastPlayingOwner`'s whole job.
  */
 
 import { buildSongIdentity } from 'common/songIdentity';
@@ -110,12 +110,25 @@ describe('pickPlayingIdentity', () => {
     ).toEqual({ identity: undefined, isPlaying: true });
   });
 
-  it("is nothing when the machine's own player is only paused", () => {
-    // A regression dropping the `isPlaying` gate on the system fallback would
-    // pass every other test here — this is the one case that depends on it.
-    // `system` never claims playback in the first place (see
-    // `playbackOwner.ts`), so there is no `lastReleasedOwner` fallback for it
-    // to be rescued by either.
+  it("reports the machine's own player as paused rather than as playing", () => {
+    // The rule this and the test below both pin: clause 2 must gate on
+    // `isPlaying`, and a `system` player that has actually played is exactly
+    // as eligible for clause 3's fallback as any of this app's own three —
+    // unlike an ownership scheme, `lastPlayingOwner` does not exclude it.
+    expect(
+      pickPlayingIdentity(
+        { system: sourceOf('system', false, songB) },
+        undefined,
+        'system',
+      ),
+    ).toEqual({ identity: songB, isPlaying: false });
+  });
+
+  it("is nothing when the machine's own player never played at all", () => {
+    // A regression dropping the `isPlaying` gate on clause 2 would answer
+    // `{ identity: songB, isPlaying: true }` here, which every assertion
+    // above this one would still pass regardless — this is the one case
+    // that depends on the gate.
     expect(
       pickPlayingIdentity(
         { system: sourceOf('system', false, songB) },
@@ -132,10 +145,11 @@ describe('pickPlayingIdentity', () => {
     ).toEqual({ identity: undefined, isPlaying: true });
   });
 
-  it('reports a paused player as paused rather than as nothing playing at all', () => {
-    // The positive control for the new fallback: a pause must be tellable
-    // apart from a stop, or the suspend grace `songEqTiming.ts` gives a
-    // resuming song is never actually reachable.
+  it('reports a paused library player as paused rather than as nothing playing at all', () => {
+    // The positive control for the new fallback, for one of this app's own
+    // three players rather than for `system`: a pause must be tellable apart
+    // from a stop, or the suspend grace `songEqTiming.ts` gives a resuming
+    // song is never actually reachable.
     expect(
       pickPlayingIdentity(
         { library: sourceOf('library', false) },
@@ -145,8 +159,8 @@ describe('pickPlayingIdentity', () => {
     ).toEqual({ identity: songA, isPlaying: false });
   });
 
-  it('reports whoever is actually playing over a stale last-released owner', () => {
-    // library paused a while ago (so it is `lastReleasedOwner`), then karaoke
+  it('reports whoever is actually playing over a stale last-playing owner', () => {
+    // library paused a while ago (so it is `lastPlayingOwner`), then karaoke
     // started and is now playing. The currently playing owner must still win
     // outright.
     const karaokeSong = buildSongIdentity('karaoke', 'k1', 'Karaoke Song');

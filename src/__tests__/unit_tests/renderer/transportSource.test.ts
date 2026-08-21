@@ -25,10 +25,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import { act, renderHook } from '@testing-library/react';
+import { buildSongIdentity } from 'common/songIdentity';
 import {
   clearTransportSource,
   resetTransportSource,
   setTransportSource,
+  useLastPlayingOwner,
   useLastTransportOwner,
   useTransportSources,
 } from '../../../renderer/audio/transportSource';
@@ -46,6 +48,21 @@ const source = (
   durationMs: 1000,
   toggle: () => {},
 });
+
+const librarySongA = buildSongIdentity('library', 'a', 'Song A');
+const librarySongB = buildSongIdentity('library', 'b', 'Song B');
+const spotifySong = buildSongIdentity('system', 'Spotify.exe', 'Song B');
+if (!librarySongA || !librarySongB || !spotifySong) {
+  throw new Error('test fixtures produced no identity');
+}
+
+/** `source` above, with a song attached — what `lastPlayingOwner` actually
+ * reads to decide whether a pause is still on the same track. */
+const playing = (
+  owner: TPlaybackOwner,
+  isPlaying: boolean,
+  identity: NonNullable<ITransportSource['identity']>,
+): ITransportSource => ({ ...source(owner, isPlaying), identity });
 
 describe('the register of players', () => {
   beforeEach(() => {
@@ -88,5 +105,58 @@ describe('the register of players', () => {
     act(() => clearTransportSource('library'));
 
     expect(result.current.library).toBeUndefined();
+  });
+
+  it('remembers who last actually played, across their own pause', () => {
+    const { result } = renderHook(() => useLastPlayingOwner());
+
+    act(() => setTransportSource(playing('library', true, librarySongA)));
+    act(() => setTransportSource(playing('library', false, librarySongA)));
+
+    expect(result.current).toBe('library');
+  });
+
+  it('does not let a player who has since been superseded stay "last playing" forever', () => {
+    // The bug this guards: an ownership-release tracker only updates when
+    // its OWN owner releases, so a library track paused once resolved every
+    // later Spotify pause to the same stale library song forever, because
+    // `system` never participates in that ownership scheme at all. Tracking
+    // "who last reported isPlaying: true" instead means anyone starting to
+    // play — `system` included — overwrites the previous answer on its own.
+    const { result } = renderHook(() => useLastPlayingOwner());
+
+    act(() => setTransportSource(playing('library', true, librarySongA)));
+    act(() => setTransportSource(playing('library', false, librarySongA)));
+    expect(result.current).toBe('library');
+
+    act(() => setTransportSource(playing('system', true, spotifySong)));
+    act(() => setTransportSource(playing('system', false, spotifySong)));
+
+    expect(result.current).toBe('system');
+  });
+
+  it('drops a player once it cues something else without playing it', () => {
+    // The same-track guard: describing a newly cued track while paused is
+    // not "still paused on the song that was playing", and reporting it as
+    // such would leak a stale identity into whatever reads this.
+    const { result } = renderHook(() => useLastPlayingOwner());
+
+    act(() => setTransportSource(playing('library', true, librarySongA)));
+    act(() => setTransportSource(playing('library', false, librarySongA)));
+    expect(result.current).toBe('library');
+
+    act(() => setTransportSource(playing('library', false, librarySongB)));
+
+    expect(result.current).toBeUndefined();
+  });
+
+  it('forgets who last played once that player is gone entirely', () => {
+    const { result } = renderHook(() => useLastPlayingOwner());
+
+    act(() => setTransportSource(playing('library', true, librarySongA)));
+    act(() => setTransportSource(playing('library', false, librarySongA)));
+    act(() => clearTransportSource('library'));
+
+    expect(result.current).toBeUndefined();
   });
 });

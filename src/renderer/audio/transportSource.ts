@@ -160,6 +160,28 @@ const readLastOwner = (): TPlaybackOwner | undefined => {
 
 let lastOwner: TPlaybackOwner | undefined = readLastOwner();
 
+/**
+ * Who most recently reported `isPlaying: true`, kept alive across the pause
+ * that follows.
+ *
+ * Distinct from `lastOwner` above in both directions: that one deliberately
+ * excludes `system` (the bar has no resume button for a program outside this
+ * app) and tracks description recency rather than playing recency, so a
+ * player that only ever had something cued still counts. This is for a
+ * recorder rather than a bar — `nowPlayingIdentity.ts`'s `pickPlayingIdentity`
+ * is the only reader — and needs the opposite of both: `system` included,
+ * and only a source that actually played.
+ *
+ * `lastPlayingKey` guards it against a stale identity: a player can describe
+ * a newly cued track without ever pressing play again, and without the
+ * guard that cue would be reported as "paused" on a song it never touched.
+ * Both are reset the moment this owner's own description stops matching
+ * what was last playing, so `useLastPlayingOwner`'s bare owner is always
+ * safe to trust — its consumer never needs the key at all.
+ */
+let lastPlayingOwner: TPlaybackOwner | undefined;
+let lastPlayingKey: string | undefined;
+
 const publish = (next: Partial<Record<TPlaybackOwner, ITransportSource>>) => {
   sources = next;
   listeners.forEach((listener) => listener());
@@ -191,6 +213,19 @@ export const setTransportSource = (next: ITransportSource): void => {
       // did before it was written down at all.
     }
   }
+  if (next.isPlaying) {
+    lastPlayingOwner = next.owner;
+    lastPlayingKey = next.identity?.key;
+  } else if (
+    lastPlayingOwner === next.owner &&
+    next.identity?.key !== lastPlayingKey
+  ) {
+    // This owner has cued something else without playing it. What it was
+    // last actually playing is no longer what it would resume, so there is
+    // nothing left here worth reporting as paused.
+    lastPlayingOwner = undefined;
+    lastPlayingKey = undefined;
+  }
   publish({ ...sources, [next.owner]: next });
 };
 
@@ -205,6 +240,10 @@ export const clearTransportSource = (owner: TPlaybackOwner): void => {
   delete next[owner];
   if (lastOwner === owner) {
     lastOwner = undefined;
+  }
+  if (lastPlayingOwner === owner) {
+    lastPlayingOwner = undefined;
+    lastPlayingKey = undefined;
   }
   publish(next);
 };
@@ -236,10 +275,20 @@ export const useLastTransportOwner = (): TPlaybackOwner | undefined =>
     () => undefined,
   );
 
+/** Who last actually played — see `lastPlayingOwner`'s module comment. */
+export const useLastPlayingOwner = (): TPlaybackOwner | undefined =>
+  useSyncExternalStore(
+    subscribe,
+    () => lastPlayingOwner,
+    () => undefined,
+  );
+
 /** Test seam — module state outlives a render, see `resetPlaybackOwner`. */
 export const resetTransportSource = (): void => {
   sources = {};
   lastOwner = undefined;
+  lastPlayingOwner = undefined;
+  lastPlayingKey = undefined;
   try {
     // Tests share one jsdom, and a remembered owner would leak from one case
     // into the next exactly as the register itself would.
