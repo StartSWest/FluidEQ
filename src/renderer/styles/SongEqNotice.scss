@@ -1,0 +1,67 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+@use 'color' as *;
+@use 'motion' as *;
+@use 'theme' as *;
+
+// Same corner and shape as `speech-memory-notice`, which this shares its
+// whole visual language with: an icon, two lines of text, a row of actions.
+// A higher z-index than that notice's, so the rarer case of both landing at
+// once still leaves this one — the one telling the user something is already
+// audible right now — on top rather than hidden behind it.
+.song-eq-notice {
+  @include animate(slide-in-right, $motion-base);
+  position: fixed;
+  z-index: 1320;
+  right: 18px;
+  bottom: 18px;
+  display: grid;
+  width: min(420px, calc(100vw - 36px));
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 12px;
+  padding: 14px 16px;
+  border: 1px solid rgba($secondary-light, 0.4);
+  border-radius: $radius-m;
+  background: linear-gradient(145deg, rgba(#0d2029, 0.97), rgba(#0a161d, 0.97));
+  box-shadow: 0 16px 40px rgba($black, 0.45);
+}
+
+.song-eq-notice__icon {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+  margin-top: 1px;
+  color: $secondary-light;
+}
+
+.song-eq-notice__text {
+  display: grid;
+  min-width: 0;
+  gap: 4px;
+
+  strong {
+    color: $secondary-light;
+    font-size: 0.78rem;
+  }
+
+  span {
+    color: rgba($primary-lighter, 0.78);
+    font-size: 0.72rem;
+    line-height: 1.45;
+  }
+}
+
+// Aligned under the sentence rather than under the icon, matching
+// `speech-memory-notice__actions` for the same reason: the block of text and
+// the answers to it share one left edge.
+.song-eq-notice__actions {
+  display: flex;
+  grid-column: 2;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}

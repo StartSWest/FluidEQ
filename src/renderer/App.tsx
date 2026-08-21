@@ -108,6 +108,7 @@ import MenuIcon from './icons/MenuIcon';
 import LanguagePicker from './components/LanguagePicker';
 import UpdateNotice from './components/UpdateNotice';
 import SpeechMemoryNotice from './components/SpeechMemoryNotice';
+import SongEqNotice from './components/SongEqNotice';
 import MandatoryUpdateModal from './components/MandatoryUpdateModal';
 import DisclaimerGate from './components/DisclaimerGate';
 import WhatsNewDialog from './components/WhatsNewDialog';
@@ -2025,6 +2026,10 @@ const AppContent = () => {
             asking inside a tab nobody is looking at held the RAM until the
             user happened to come back. */}
         <SpeechMemoryNotice />
+        {/* Here for the same reason: the song that was just matched can start
+            playing while the user is on any tab, and the loaned curve is
+            already audible before this ever draws. */}
+        <SongEqNotice />
         {whatsNewScope && (
           <WhatsNewDialog
             scope={whatsNewScope}
