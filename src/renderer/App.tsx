@@ -322,7 +322,15 @@ const IdleTransportBarSlot = ({
     playingOwner,
     lastOwner,
   );
-  if (owner !== undefined || isFullScreen) {
+  // AND NOT BEFORE ANYTHING HAS EVER PLAYED.
+  //
+  // On a machine where the library is still empty — a fresh install, the
+  // "No music yet" screen — a transport across the whole foot of the window
+  // is the loudest thing on it, and it is for nothing: there is no queue to
+  // resume and no tab that could fill it. `lastOwner` is remembered across
+  // restarts, so this appears the moment something has been played once and
+  // stays from then on, which is the "always a bar" that was asked for.
+  if (owner !== undefined || isFullScreen || lastOwner === undefined) {
     return null;
   }
   return <IdleTransportBar />;

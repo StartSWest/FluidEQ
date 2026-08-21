@@ -262,28 +262,51 @@ const listDirectory = async (
 
   const subdirectories: string[] = [];
   const fileEntries: fs.Dirent[] = [];
-  entries.forEach((entry) => {
+  // A plain loop rather than `forEach`, because one branch has to ask the
+  // filesystem a question — see the cloud placeholders below.
+  // eslint-disable-next-line no-restricted-syntax
+  for (const entry of entries) {
+    const full = path.join(dir, entry.name);
     if (entry.isSymbolicLink()) {
-      // See the module comment above: never followed, and unlike a root
-      // that happens to be a junction, this is a link found partway down a
-      // walk -- worth a line, since it would otherwise vanish with no sign
-      // anything was skipped at all.
-      // eslint-disable-next-line no-console -- this project's one sanctioned console sink; see libraryIndex.ts
-      console.error(`Skipped symlinked entry ${path.join(dir, entry.name)}`);
-      return;
-    }
-    if (entry.isDirectory()) {
-      if (
-        entry.name.startsWith('.') ||
-        SKIPPED_DIRECTORY_NAMES.has(entry.name)
-      ) {
-        return;
+      // A ONEDRIVE PLACEHOLDER IS NOT A SYMLINK, AND THIS API CANNOT SAY SO.
+      //
+      // Files On-Demand leaves an online-only file on disk as a reparse
+      // point, and `readdir` reports every reparse point as a symbolic link;
+      // `Dirent` carries no tag to tell a cloud placeholder from a real
+      // link. So a library kept in OneDrive, on a machine that has not
+      // downloaded it yet, was skipped file by file and the scan finished
+      // having found nothing: a folder added, a root listed, and an empty
+      // library with no explanation anywhere on screen.
+      //
+      // Asking the filesystem settles it. `stat` follows the reparse point
+      // and answers "file" for a placeholder without fetching its contents.
+      // Anything that resolves to a directory goes on being skipped, which
+      // is what the loop protection in this module's comment is about — an
+      // album cross-linked into two genre folders is still a loop, however
+      // it was made.
+      // eslint-disable-next-line no-await-in-loop -- one call per reparse point, and only for those
+      const resolved = await fs.promises.stat(full).catch(() => undefined);
+      if (resolved?.isFile()) {
+        fileEntries.push(entry);
+      } else {
+        // See the module comment above: never followed, and unlike a root
+        // that happens to be a junction, this is a link found partway down a
+        // walk -- worth a line, since it would otherwise vanish with no sign
+        // anything was skipped at all.
+        // eslint-disable-next-line no-console -- this project's one sanctioned console sink; see libraryIndex.ts
+        console.error(`Skipped symlinked entry ${full}`);
       }
-      subdirectories.push(entry.name);
+    } else if (entry.isDirectory()) {
+      if (
+        !entry.name.startsWith('.') &&
+        !SKIPPED_DIRECTORY_NAMES.has(entry.name)
+      ) {
+        subdirectories.push(entry.name);
+      }
     } else if (entry.isFile()) {
       fileEntries.push(entry);
     }
-  });
+  }
   return { subdirectories, fileEntries };
 };
 

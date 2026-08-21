@@ -61,6 +61,43 @@ describe('scanning a folder', () => {
     ).toEqual(['a.mp3', 'b.flac', 'c.m4a']);
   });
 
+  it('reads a cloud placeholder, which Windows reports as a symlink', async () => {
+    // Files On-Demand leaves an online-only file as a reparse point, and
+    // `readdir` reports every reparse point as a symbolic link — `Dirent`
+    // carries no tag to tell the two apart. Skipping them all meant a library
+    // kept in OneDrive scanned to nothing on a machine that had not
+    // downloaded it, which is what "I added the folder and nothing happened"
+    // was. `stat` follows the point and says what it really is.
+    const dir = folder({ 'cloud.mp3': 'x', 'real/b.mp3': 'x' });
+    const actualReaddir = fs.promises.readdir;
+    const readdir = jest.spyOn(fs.promises, 'readdir');
+    readdir.mockImplementation((async (target: never, options: never) => {
+      const entries = (await actualReaddir(
+        target,
+        options,
+      )) as unknown as fs.Dirent[];
+      return entries.map((entry) =>
+        entry.name === 'cloud.mp3'
+          ? ({
+              name: entry.name,
+              isFile: () => false,
+              isDirectory: () => false,
+              isSymbolicLink: () => true,
+            } as fs.Dirent)
+          : entry,
+      );
+    }) as unknown as typeof fs.promises.readdir);
+
+    try {
+      const result = await scan(dir);
+      expect(
+        result.tracks.map((entry) => path.basename(entry.path)).sort(),
+      ).toEqual(['b.mp3', 'cloud.mp3']);
+    } finally {
+      readdir.mockRestore();
+    }
+  });
+
   it('excludes a song that has a lyric file beside it, and counts it', async () => {
     const dir = folder({ 'Song.mp3': 'x', 'Song.lrc': '[00:01.00]hi' });
     const result = await scan(dir);
