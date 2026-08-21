@@ -820,8 +820,40 @@ export const LibraryPlayerProvider = ({
         // list — picking a new album should not silently turn Repeat off.
         return current ? { ...next, repeat: current.repeat } : next;
       });
+
+      // ASKING FOR THE TRACK THAT IS ALREADY CUED IS STILL ASKING FOR IT.
+      //
+      // Everything that starts sound hangs off the loader effect, and that
+      // effect is keyed on `trackId` CHANGING — deliberately, so a rescan
+      // refreshing this track's tags cannot restart it. The cost is the case
+      // where the queue is already sitting on the very track being asked for,
+      // and then a press did nothing at all:
+      //
+      //   - after a restart, where the session is restored cued and paused
+      //     with no source fetched (see `pendingRestore` in that effect), so
+      //     the album's Play looked broken while the bar's Play worked;
+      //   - after Stop, where the same album is chosen again.
+      //
+      // Only the audio element is given a source here. A video belongs to
+      // `LibraryVideoStage`, which loads it itself — see `videoTrackId`.
+      const cued = queueRef.current
+        ? currentTrackId(queueRef.current)
+        : undefined;
+      if (cued !== startTrackId) {
+        return;
+      }
+      const element = activeElement();
+      if (!element) {
+        return;
+      }
+      pendingRestore.current = undefined;
+      if (element === audioElementRef.current && !element.getAttribute('src')) {
+        element.preload = 'auto';
+        element.src = libraryMediaUrl('track', startTrackId);
+      }
+      element.play().catch(() => undefined);
     },
-    [],
+    [activeElement],
   );
 
   const toggle = useCallback(() => {
