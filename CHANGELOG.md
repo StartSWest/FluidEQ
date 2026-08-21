@@ -44,7 +44,9 @@ scratch, and the title bar's visualiser brought to the response graph.
   follows the tab you are on — the Library, Karaoke, the Media tab — and when
   none of them is playing it shows what the rest of the computer is: a desktop
   player, a browser tab. Play, pause, skip and seek reach it from there. Windows
-  only.
+  only. The bar is always drawn, quiet and empty before anything is chosen,
+  rather than appearing on the first press and taking sixty pixels off the
+  workspace as it arrives — and which player it belongs to survives a restart.
 - **One player at a time.** Starting a song in the Library stops the Karaoke
   stage, and starting either stops the Media tab. Optionally it stops players
   outside FluidEQ too, which is off unless you ask for it.
@@ -62,15 +64,16 @@ scratch, and the title bar's visualiser brought to the response graph.
 - **A clip indicator that watches the real ceiling.** It reads where the output
   actually clips rather than where the chain could in theory, and floats clear
   of the controls beneath it.
-- **Smart auto-normalize.** Auto-normalize gains a third position. _Off_ hands
-  the preamp to you and _On_ reserves the chain's own peak, exactly as before.
-  _Smart_ reserves what the music actually asks for, measured from the output:
-  a chain that boosts 6 dB at 10 kHz no longer takes 6 dB of volume away when
-  the music up there is 30 dB down. It can only ever be louder than _On_ and
-  never louder than no chain at all, a sample-peak supervisor pulls it back if
-  the output approaches the ceiling, and a measurement that is wholly wrong
-  degrades to today's behaviour rather than to distortion. It measures only the
-  session it is in, and it is off unless you turn it on.
+- **Auto-normalize gives back the volume it used to waste.** It is the same
+  single switch it always was, and off still hands the preamp to you. What
+  changed is what "on" reserves. It used to assume the music has full-scale
+  energy at the exact frequency where your chain peaks, so a 6 dB boost at
+  10 kHz cost 6 dB of volume — while the music up there is typically 30 dB
+  down. It now measures what is actually coming out and reserves what the
+  programme asks for instead. The arithmetic is still underneath as a floor, so
+  a cold start, a silent room or a measurement that is wholly wrong behaves
+  exactly like the auto-normalize that shipped, and it can never be louder than
+  no chain at all. Measurement lasts the session; nothing about it is stored.
 - **The preamp is a dial.** A turned metal knob with a cut notch, which reads at
   a glance in a way a slider on an even range never did.
 - **A tray icon.** FluidEQ keeps running when the window is closed, so the
@@ -123,6 +126,37 @@ scratch, and the title bar's visualiser brought to the response graph.
 - Seeking in the Library player lands where you let go of the thumb, instead of
   resetting the song to the start. Audio is held as a blob and byte ranges are
   served for video, which is the whole of what seeking needed.
+- **Pressing Play on the album already cued now plays it.** After a restart, or
+  after Stop, an album's own Play did nothing while the bar's Play worked.
+- **Searching the library searches the library.** Typing in the box steps out of
+  whatever folder you are standing in, instead of returning the four matches in
+  that one directory and looking like an empty library. On the folder shelf a
+  search lists every folder holding a match with its path underneath, rather
+  than the single root they all live under.
+- **Play in an opened album plays the list in front of you**, which is a
+  different record the moment you have typed a filter or sorted a column.
+- **The folder chip selects the shelf again.** Opening the menu from the chip
+  itself meant the press people make most often cost a second one to dismiss a
+  menu nobody asked for; the arrow beside it is the half that means "which
+  reading".
+- **Auto-normalize no longer walks the preamp down to the floor.** Two faults,
+  both in the first cut of the measured reserve: the ceiling it held the output
+  under was −3 dBFS, which is _below_ ordinary mastered music and so read "too
+  loud" on every track forever — it is −0.3 now, which is the Windows limiter's
+  own documented figure with two tenths of margin. And the automatic preamp
+  shared its floor with a single band at −20 dB, while two bands an octave apart
+  can peak near +26, so it reserved less than the chain took and clipped by
+  construction. The automatic value reaches −60 dB now; the manual control keeps
+  −20, because it is your thumb.
+- **The preamp the config is actually using now reaches the window.** Nothing
+  subscribed to the channel carrying it, so the slider and the final curve
+  showed whatever was true when a switch was last clicked and then froze — the
+  config carried −4.36 dB while the sidebar sat at −20.00 dB. The graph no
+  longer computes a second answer of its own and overwrites the real one, which
+  is what made the mode look like it did nothing.
+- **The preamp dial paints before it writes**, so dragging it no longer waits on
+  a round trip to the config for every pixel, and the number field comes back
+  when auto-normalize is off — a dial is a poor way to ask for −6.5 exactly.
 - **EQ Presets stopped the two layers clearing each other.** A published
   headphone correction and an imported set of bands are separate layers, and
   applying one no longer blanks the other. Both curves are drawn.

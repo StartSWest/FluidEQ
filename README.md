@@ -70,17 +70,24 @@ brings every record to the same tonal balance.
 derived from the real combined response, so adding a voicing or a convolution
 cannot clip you — and removing one gives the headroom back.
 
-That reservation is a worst case: it assumes the music has full-scale energy at
-the exact frequency where your chain peaks, and real music never does. So
-auto-normalize has a third position. **Smart** measures what is actually coming
-out and reserves what the programme asks for instead — a 6 dB boost at 10 kHz
-stops costing 6 dB of volume when the music up there is 30 dB down. It can only
-ever be louder than the ordinary setting and never louder than no chain at all,
-a sample-peak supervisor pulls it back if the output nears the ceiling, and a
-measurement that is wholly wrong falls back to the worst case rather than to
-distortion. It measures only the session it is in, and it is off unless you turn
-it on. A clip indicator watches where the output really clips, not where the
-chain theoretically could.
+Computing it from the response alone is a worst case, though: it assumes the
+music has full-scale energy at the exact frequency where your chain peaks, and
+real music never does. So auto-normalize — still the one switch it always was —
+also measures what is actually coming out, and reserves what the programme asks
+for rather than what the chain could theoretically need. A 6 dB boost at 10 kHz
+stops costing 6 dB of volume when the music up there is 30 dB down.
+
+The two halves answer questions neither can answer alone. The arithmetic is a
+proof about what happens inside Equalizer APO, so it holds whatever plays and
+wherever the volume sits, and it stays underneath as the floor: a cold start, a
+silent room or a measurement that is wholly wrong behaves exactly like the
+worst case, never like distortion. The measurement covers what happens after,
+where Windows applies its own volume and ends the path with a limiter — whether
+that fires depends on a number the main process cannot compute. A sample-peak
+supervisor holds the output under −0.3 dBFS, which is the limiter's own
+documented figure with two tenths of margin. Nothing measured is stored; every
+launch starts at the worst case and works up. A clip indicator watches where
+the output really clips, not where the chain theoretically could.
 
 **Import what you already have.** An Equalizer APO ParametricEQ or GraphicEQ
 file, a FluidEQ profile, or any WAV impulse response.
