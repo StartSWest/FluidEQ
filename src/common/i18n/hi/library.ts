@@ -40,7 +40,7 @@ const library: Partial<Dictionary> = {
   'library.browse.artist': 'कलाकार',
   'library.browse.song': 'गाने',
   'library.browse.folder': 'फ़ोल्डर',
-  'library.browse.directory': 'डायरेक्ट्री',
+  'library.browse.directory': 'ट्री',
   'library.browse.folderHint': 'संगीत वाला हर फ़ोल्डर, एक साथ',
   'library.browse.directoryHint': 'रूट फ़ोल्डर से भीतर की ओर',
   'library.browse.folderReading': 'फ़ोल्डर कैसे पढ़े जाएँ',

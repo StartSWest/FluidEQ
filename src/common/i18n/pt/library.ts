@@ -40,7 +40,7 @@ const library: Partial<Dictionary> = {
   'library.browse.artist': 'Artistas',
   'library.browse.song': 'Músicas',
   'library.browse.folder': 'Pastas',
-  'library.browse.directory': 'Diretórios',
+  'library.browse.directory': 'Árvore',
   'library.browse.folderHint': 'Todas as pastas com música, de uma vez',
   'library.browse.directoryHint': 'Da pasta raiz para dentro',
   'library.browse.folderReading': 'Como as pastas são lidas',

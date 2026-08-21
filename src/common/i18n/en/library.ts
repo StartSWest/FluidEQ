@@ -38,7 +38,7 @@ const library = {
   'library.browse.artist': 'Artists',
   'library.browse.song': 'Songs',
   'library.browse.folder': 'Folders',
-  'library.browse.directory': 'Directories',
+  'library.browse.directory': 'Tree',
   'library.browse.folderHint': 'Every folder with music, all at once',
   'library.browse.directoryHint': 'From the root folder inwards',
   'library.browse.folderReading': 'How folders are read',

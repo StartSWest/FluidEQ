@@ -40,7 +40,7 @@ const library: Partial<Dictionary> = {
   'library.browse.artist': 'Artistas',
   'library.browse.song': 'Canciones',
   'library.browse.folder': 'Carpetas',
-  'library.browse.directory': 'Directorios',
+  'library.browse.directory': 'Árbol',
   'library.browse.folderHint': 'Todas las carpetas con música, de una vez',
   'library.browse.directoryHint': 'Desde la carpeta raíz hacia dentro',
   'library.browse.folderReading': 'Cómo se leen las carpetas',

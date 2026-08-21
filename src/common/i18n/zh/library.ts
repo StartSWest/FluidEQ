@@ -39,7 +39,7 @@ const library: Partial<Dictionary> = {
   'library.browse.artist': '歌手',
   'library.browse.song': '歌曲',
   'library.browse.folder': '文件夹',
-  'library.browse.directory': '目录',
+  'library.browse.directory': '树状',
   'library.browse.folderHint': '一次列出所有含音乐的文件夹',
   'library.browse.directoryHint': '从根文件夹逐层进入',
   'library.browse.folderReading': '文件夹的呈现方式',

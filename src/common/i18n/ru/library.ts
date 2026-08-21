@@ -40,7 +40,7 @@ const library: Partial<Dictionary> = {
   'library.browse.artist': 'Исполнители',
   'library.browse.song': 'Песни',
   'library.browse.folder': 'Папки',
-  'library.browse.directory': 'Каталоги',
+  'library.browse.directory': 'Дерево',
   'library.browse.folderHint': 'Все папки с музыкой сразу',
   'library.browse.directoryHint': 'От корневой папки внутрь',
   'library.browse.folderReading': 'Как показывать папки',

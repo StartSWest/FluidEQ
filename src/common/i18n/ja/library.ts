@@ -40,7 +40,7 @@ const library: Partial<Dictionary> = {
   'library.browse.artist': 'アーティスト',
   'library.browse.song': '曲',
   'library.browse.folder': 'フォルダ',
-  'library.browse.directory': 'ディレクトリ',
+  'library.browse.directory': 'ツリー',
   'library.browse.folderHint': '音楽のあるフォルダーをすべて一度に',
   'library.browse.directoryHint': 'ルートフォルダーから中へ',
   'library.browse.folderReading': 'フォルダーの見せ方',
