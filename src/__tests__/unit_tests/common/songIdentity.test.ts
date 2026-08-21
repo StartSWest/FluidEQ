@@ -65,6 +65,15 @@ describe('normalizeSongAlias', () => {
     // it came off a media page describing a track.
     expect(normalizeSongAlias('Black Dog (Official Video)')).toBeDefined();
   });
+
+  it('reads a typographic apostrophe as the same character as a straight one', () => {
+    // Titles scraped from media pages use U+2019 where a tag file uses '.
+    // Without this the same song aliases two ways depending on where it was
+    // playing, which is the one thing this module exists to prevent.
+    expect(normalizeSongAlias(`Don’t Stop Believin’`, 'Journey')).toBe(
+      normalizeSongAlias("Don't Stop Believin'", 'Journey'),
+    );
+  });
 });
 
 describe('buildSongIdentity', () => {

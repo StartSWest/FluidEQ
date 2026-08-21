@@ -84,7 +84,7 @@ const collapse = (value: string) =>
     // the characters that separate words have to become spaces rather than
     // vanish, or `rock-n-roll` and `rock n roll` stop matching.
     .replace(/[_\-–—/]+/g, ' ')
-    .replace(/["''"".,!?:;]+/g, '')
+    .replace(/["'’“”.,!?:;]+/g, '')
     .replace(/\s+/g, ' ')
     .trim();
 
