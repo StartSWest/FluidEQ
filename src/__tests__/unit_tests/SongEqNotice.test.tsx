@@ -158,6 +158,26 @@ describe('SongEqNotice', () => {
   });
 
   /**
+   * Fails if the guard is written `plays < 1` instead of `plays <= 1`, or
+   * reads `entry.plays` as truthy (`0` is falsy, which a careless `if
+   * (entry.plays)` guard would treat the same as `undefined`) — either would
+   * fall through to the plural key at the one value the singular text exists
+   * for most.
+   */
+  it('uses the singular body at zero plays', () => {
+    mockUseSongEqNotice.mockReturnValue({
+      identity: IDENTITY,
+      entry: entryOf(0),
+    });
+    render(<SongEqNotice />);
+    expect(
+      screen.getByText(
+        translate('en', 'songEq.noticeBodyOnce', { title: 'Black Dog' }),
+      ),
+    ).toBeVisible();
+  });
+
+  /**
    * Fails if the `plays <= 1` branch is missing, or reads `< 1` instead —
    * either leaves a single play rendering the plural key, which is the exact
    * "learned over 1 plays" defect `noticeBodyOnce` exists to avoid.

@@ -5,20 +5,48 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 @use 'color' as *;
+@use 'constant' as *;
 @use 'motion' as *;
 @use 'theme' as *;
 
-// Same corner and shape as `speech-memory-notice`, which this shares its
-// whole visual language with: an icon, two lines of text, a row of actions.
-// A higher z-index than that notice's, so the rarer case of both landing at
-// once still leaves this one — the one telling the user something is already
-// audible right now — on top rather than hidden behind it.
+// Below the titlebar, top-right — deliberately not `speech-memory-notice`'s
+// corner.
+//
+// That notice and this one share nothing but the same visual language: both
+// used to sit at `bottom: 18px`, one `left` and one `right` of it, which
+// looks like two corners until you notice they differ only by z-index. A
+// fixed corner does not stack two boxes at the same coordinates — it only
+// decides which one is drawn on top, and the one covered here would have been
+// `speech-memory-notice`'s own Keep / Free-memory buttons: unlike this
+// notice's own actions, that one is an unanswered question sitting behind a
+// toast the user has no reason to think is hiding anything.
+//
+// So this moves instead of racing for the same pixels. Every other region is
+// already spoken for:
+//   - the now-playing bar is fixed to the foot of the window, full width
+//     (`NowPlayingBar.scss`) — anything anchored to `bottom` shares its strip,
+//     and its height is published as `--now-playing-bar-height` for exactly
+//     that reason. This notice does not need it: it never goes near `bottom`.
+//   - `update-notice` (bottom-left) and `speech-memory-notice` /
+//     `workspace-notice` (bottom-right — `App.scss`'s `.workspace-notice`
+//     already shares that corner with it) account for both bottom corners;
+//   - the titlebar (`window-titlebar`, `top: 0`, height `$title-bar-height`)
+//     is a drag region carrying the brand mark on its left and the window
+//     controls on its right.
+// `top: calc($title-bar-height + 16px)` is not a new idiom here —
+// `Modal.scss`, `GraphTheme.scss` and this app's own `.audio-restart-notice`
+// (`App.scss`) already anchor overlays there for the same reason: the first
+// row clear of the titlebar. Right rather than centred, which is
+// `.audio-restart-notice`'s own spot, so the two do not trade one collision
+// for another.
 .song-eq-notice {
   @include animate(slide-in-right, $motion-base);
   position: fixed;
-  z-index: 1320;
+  // Same tier as `.audio-restart-notice`: above every workspace panel,
+  // including the chain raised for open menus.
+  z-index: 1200;
+  top: calc($title-bar-height + 16px);
   right: 18px;
-  bottom: 18px;
   display: grid;
   width: min(420px, calc(100vw - 36px));
   grid-template-columns: auto minmax(0, 1fr);
