@@ -117,7 +117,7 @@ const useStageBox = () => {
  * through the picture.
  */
 const LibraryStageArt = () => {
-  const { track } = useLibraryPlayer();
+  const { track, videoTrackId } = useLibraryPlayer();
 
   // A marker for the one stylesheet rule this view needs from the graph: its
   // plot lifted over the picture. Scoped to this class rather than written
@@ -131,7 +131,19 @@ const LibraryStageArt = () => {
 
   useStageBox();
 
-  if (!track || typeof document === 'undefined') {
+  /**
+   * No sleeve in front of a video.
+   *
+   * A video's cover is a still frame the record was never about, and drawing
+   * it here put a picture over the thing that is actually moving. The stage
+   * takes the window itself in this mode — see `is-behind-graph` — so what is
+   * behind the plot is the video.
+   *
+   * The marker and the measured box above stay published either way: they are
+   * what lifts the column and pins the plot to the window, and the plot needs
+   * that whichever picture is underneath it.
+   */
+  if (!track || videoTrackId !== undefined || typeof document === 'undefined') {
     return null;
   }
 

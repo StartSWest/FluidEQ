@@ -48,6 +48,7 @@ import BugReportDialog from './components/BugReportDialog';
 import AudioTroubleshooter from './components/AudioTroubleshooter';
 import SideBar from './SideBar';
 import {
+  exitGraphFullScreen,
   onWindowFullScreenChange,
   toggleFullScreenTopBar,
   useGraphFullScreen,
@@ -657,6 +658,33 @@ const AppContent = () => {
     },
     [activeWorkspaceTab],
   );
+
+  /**
+   * Hiding the graph leaves the mode it was being drawn in.
+   *
+   * Expanded and full screen are ways of SHOWING the graph, and switching the
+   * graph off while in one of them left the mode standing over a page with
+   * nothing drawn on it — on Media that is a video with the player's own
+   * chrome suppressed for a spectrum that is not there. There is nothing to
+   * expand once the graph is off, so the view goes back to standard and the
+   * page it was covering is a page again.
+   *
+   * Every tab, not only the two the graph is drawn THROUGH. It is worst on
+   * those — a video with the player's chrome suppressed for a spectrum that
+   * is not there — but the rule is the same wherever it happens: no graph, no
+   * graph mode.
+   *
+   * What that costs, written down because it is not obvious from the code:
+   * the mode is one global setting rather than one per tab, so arriving on a
+   * tab whose graph is closed returns the view to standard too, and going
+   * back does not put it on again. The alternative is a mode left standing on
+   * a page with nothing drawn on it, which is the bug this replaces.
+   */
+  useEffect(() => {
+    if (!showsGraph && graphView !== 'normal') {
+      exitGraphFullScreen();
+    }
+  }, [graphView, showsGraph]);
   /**
    * FULL SCREEN IS FULL SCREEN, ON EVERY TAB INCLUDING THE MAKER.
    *

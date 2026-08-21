@@ -684,13 +684,31 @@ const LibraryWorkspace = ({
         'album',
       ).map((track) => track.id);
     }
+    // The folder that is open, exactly as its panel lists it: its own files,
+    // in path order, and not the ones in the folders below it. Without this
+    // branch a folder drill-in fell through to the shelf, so Next from the
+    // third song of an album went to whatever the shelf happened to hold
+    // next — the one drill-in of the three that did not carry its own queue.
+    if (openFolderPath !== undefined && browseMode === 'folder') {
+      return index.tracks
+        .filter((track) => trackFolderPath(track.path) === openFolderPath)
+        .sort((left, right) => left.path.localeCompare(right.path))
+        .map((track) => track.id);
+    }
     if (browseMode === 'video') {
       return videoFolderGroups(visibleTracks).flatMap((group) =>
         group.tracks.map((track) => track.id),
       );
     }
     return visibleTracks.map((track) => track.id);
-  }, [index.tracks, openAlbumId, openArtistId, browseMode, visibleTracks]);
+  }, [
+    index.tracks,
+    openAlbumId,
+    openArtistId,
+    openFolderPath,
+    browseMode,
+    visibleTracks,
+  ]);
 
   // The one real destination every view's click hands off to. A track this
   // build cannot decode (`isPlayable === false`) is still handed to
