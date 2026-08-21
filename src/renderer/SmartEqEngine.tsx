@@ -888,6 +888,19 @@ const SmartEqEngine = () => {
       return stale;
     }
 
+    /*
+     * The record has dropped an end of its spectrum, so nothing is being heard
+     * — see `fullBandGate`. The estimate has deliberately stopped moving, and
+     * correcting from an estimate that is standing still is spending a config
+     * write on the last thing heard before the drop.
+     *
+     * Checked here rather than left to the checkpoints drying up on their own:
+     * one is usually already due when a hold starts, and that one would act.
+     */
+    if (report.isBandLimited) {
+      return [];
+    }
+
     // Not yet, whatever the measurement says. Checked after the stale clear
     // above rather than before it, because throwing away contaminated frames is
     // housekeeping the quiet window has no business delaying — it is about how

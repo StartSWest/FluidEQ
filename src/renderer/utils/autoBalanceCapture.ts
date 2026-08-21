@@ -55,6 +55,11 @@ import {
   sampleSpectrumAt,
   smoothSpectrum,
 } from './autoBalance';
+import {
+  IFullBandState,
+  advanceFullBandGate,
+  createFullBandState,
+} from './fullBandGate';
 
 /**
  * Listening: turning a stream of live frames into something worth solving.
@@ -244,6 +249,14 @@ export interface IBalanceCaptureState {
    */
   presenceGate?: Float64Array;
   /**
+   * Whether the record is showing its whole spectrum at this moment.
+   *
+   * The presence gate above decides what ONE range may teach and may be given.
+   * This decides whether the frame is worth hearing at all, because a range
+   * dropping out deforms what every other range reads — see `fullBandGate`.
+   */
+  fullBand: IFullBandState;
+  /**
    * What each range TYPICALLY does on this record, on the plot own axis.
    *
    * Where the presence lines place themselves from. Distinct from liveDb, which
@@ -316,6 +329,13 @@ export interface IBalanceReport {
   frames: number;
   isConverged: boolean;
   isStalled: boolean;
+  /**
+   * The record is missing an end of its spectrum and the capture is waiting for
+   * it — see `fullBandGate`. Nothing is being heard while this is true, so a
+   * caller that acts on reports should sit this one out rather than act on an
+   * estimate that has deliberately stopped moving.
+   */
+  isBandLimited: boolean;
   status: BalanceCaptureStatus;
 }
 
@@ -374,6 +394,14 @@ export interface IBalanceProgress {
   isSettling: boolean;
   isSilent: boolean;
   isPaused: boolean;
+  /**
+   * Waiting for the record to show its whole spectrum again.
+   *
+   * Its own flag rather than folded into `isSilent`, because it is the opposite
+   * situation and the difference is the only useful thing to say: there is
+   * plenty of sound, and that is precisely the problem with it.
+   */
+  isBandLimited: boolean;
   listenedMs: number;
   /** Ordered low to high, so the graph can draw them along its x axis. */
   regions: IBalanceProgressRegion[];
@@ -441,6 +469,7 @@ export const createBalanceCaptureState = (
     // otherwise rather than being trusted before it has been heard at all.
     liveDb: new Float64Array(regions.length).fill(PRESENCE_SILENT_DB),
     typicalDb: new Float64Array(regions.length).fill(PRESENCE_SILENT_DB),
+    fullBand: createFullBandState(),
     frames: 0,
     acceptedFrames: 0,
     listenedMs: 0,
@@ -638,6 +667,26 @@ export const accumulateBalanceFrame = (
     return state;
   }
 
+  /*
+   * IS THE WHOLE RECORD PLAYING — asked before anything is believed.
+   *
+   * A frame missing a whole end of the spectrum is a measurement of an effect
+   * rather than of the record, and it is wrong about the ranges that ARE
+   * playing, not merely silent about the one that is not: the reference below
+   * is the frame's own mean power, so a range dropping out lifts everything
+   * left against it. See `fullBandGate` for the five seconds of a breakdown
+   * that this exists to throw away.
+   *
+   * Held frames still drive the level followers below — the gate has to see the
+   * music come back, and it can only see that through them — but they buy no
+   * listened time, age nothing, and teach nothing.
+   */
+  const isLearning = advanceFullBandGate(
+    state.fullBand,
+    state.presenceGate,
+    dt,
+  );
+
   // The frame's own mean-power level is the reference. It is the
   // minimum-variance choice, and the tilt fit plus centring absorb the
   // constant, so using it changes nothing downstream except the noise.
@@ -664,7 +713,7 @@ export const accumulateBalanceFrame = (
   // only the confidence behind it shrinks — which is exactly the claim being
   // made: the estimate still says what it said, it is simply less sure of it
   // than it was a minute ago. See `CONTINUOUS_HALF_LIFE_MS`.
-  if (state.halfLifeMs && dt > 0) {
+  if (isLearning && state.halfLifeMs && dt > 0) {
     const keep = 0.5 ** (dt / state.halfLifeMs);
     for (let index = 0; index < state.power.length; index += 1) {
       state.power[index] *= keep;
@@ -678,8 +727,10 @@ export const accumulateBalanceFrame = (
     });
   }
 
-  state.listenedMs += dt;
-  state.acceptedFrames += 1;
+  if (isLearning) {
+    state.listenedMs += dt;
+    state.acceptedFrames += 1;
+  }
 
   /*
    * IS THIS RANGE PLAYING AT ALL — a different question from every other one
@@ -776,15 +827,29 @@ export const accumulateBalanceFrame = (
        * Silence does not pull it down. A range at the silent floor says nothing
        * about what the record typically does there; it says the instrument
        * stopped, which is the one case this must not learn from.
+       *
+       * And frozen outright while the record is not showing its whole
+       * spectrum, which is not tidiness — it is what stops the gate above
+       * talking itself out of a hold. The presence lines place themselves from
+       * this, so following a range that has just dropped out would walk that
+       * range's floor down to meet it, call it present again, and end the hold
+       * on the strength of the silence that started it. The same loop, slower,
+       * is how a filtered intro became what the record "typically" does.
        */
       const typical = state.typicalDb[regionIndex];
-      if (live > PRESENCE_SILENT_DB) {
+      if (isLearning && live > PRESENCE_SILENT_DB) {
         const step = (dt / 1000) * PRESENCE_TYPICAL_DB_PER_S;
         state.typicalDb[regionIndex] =
           typical <= PRESENCE_SILENT_DB
             ? live
             : typical + clamp(live - typical, -step, step);
       }
+    }
+
+    // Everything above this line is a follower and has to keep running through
+    // a hold. Everything below it is evidence, and a held frame is not any.
+    if (!isLearning) {
+      return;
     }
 
     if (!Number.isFinite(absDb) || absDb < ABS_FLOOR_DBFS) {
@@ -1048,6 +1113,7 @@ export const evaluateBalanceCapture = (
     frames: state.frames,
     isConverged,
     isStalled,
+    isBandLimited: state.fullBand.isHolding,
     status,
   };
 };
@@ -1136,6 +1202,7 @@ export const buildBalanceProgress = (
     isSettling,
     isSilent: flags.isSilent,
     isPaused: flags.isPaused,
+    isBandLimited: report.isBandLimited,
     listenedMs: report.listenedMs,
     regions: report.regions.map((region) => ({
       label: region.label,

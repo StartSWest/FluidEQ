@@ -353,6 +353,8 @@ const eq = {
   'eq.smart.status.pausedResume': 'Paused - resume to finish',
   'eq.smart.status.pausedSilent': 'Paused - no sound playing',
   'eq.smart.status.waitingForSound': 'Waiting for sound',
+  'eq.smart.status.bandLimited':
+    'Filtered passage - waiting for the full range',
   'eq.smart.status.soundChanged': 'Sound changed - measuring again',
   'eq.smart.status.keptChanging': 'The sound kept changing - stopped',
   'eq.smart.status.notEnoughRange': 'Not enough range to measure',

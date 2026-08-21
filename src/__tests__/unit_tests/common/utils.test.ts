@@ -44,10 +44,14 @@ describe('utils', () => {
     });
   });
 
+  // The numbers here are read off the default band set, which is the
+  // 2/3-octave fifteen — 25, 40, 63, 100, 160, 250 … 16000 — rather than the
+  // octave ten it used to be. Only the frequencies moved; what is being
+  // checked is still the mean between one band and the next.
   describe('computeAvgFreq', () => {
     const filters = Object.values(getDefaultState().filters).sort(sortHelper);
     it('should compute average of first filter and min frequency for index 0', () => {
-      expect(computeAvgFreq(null, filters[0])).toBe(6);
+      expect(computeAvgFreq(null, filters[0])).toBe(5);
     });
 
     it('should compute average of last filter and max frequency for last index', () => {
@@ -55,10 +59,10 @@ describe('utils', () => {
     });
 
     it('should compute average of neighbouring filters for intermediary indices', () => {
-      // Compute harmonic mean between 64Hz and 125Hz
-      expect(computeAvgFreq(filters[1], filters[2])).toBe(89);
-      // Compute harmonic mean between 250Hz and 500Hz
-      expect(computeAvgFreq(filters[3], filters[4])).toBe(354);
+      // Between 40 Hz and 63 Hz
+      expect(computeAvgFreq(filters[1], filters[2])).toBe(50);
+      // Between 100 Hz and 160 Hz
+      expect(computeAvgFreq(filters[3], filters[4])).toBe(126);
     });
   });
 

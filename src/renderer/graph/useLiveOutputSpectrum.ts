@@ -138,6 +138,15 @@ interface IBalanceSession {
   lastPercent: number;
   wasSilent: boolean;
   wasPaused: boolean;
+  /**
+   * The last published answer to "is the record showing its whole spectrum".
+   *
+   * Needed here rather than derivable at the checkpoint, because a hold STOPS
+   * the checkpoints: listened time is what they are due on and a held frame buys
+   * none. Without a flip of its own the bubble would freeze on whatever it last
+   * said and the mode would look hung for the length of every breakdown.
+   */
+  wasBandLimited: boolean;
   settled: boolean;
   resolve: (value: IBalanceResult) => void;
   reject: (reason: Error) => void;
@@ -350,18 +359,26 @@ const useLiveOutputSpectrum = () => {
         return;
       }
 
+      const bandLimited = session.state.fullBand.isHolding;
+
       if (!isBalanceCheckDue(session.state)) {
         // Still surface a paused/silent flip immediately, so the status does
         // not sit on a stale "Listening 40%" while nothing is playing.
-        if (silent !== session.wasSilent || paused !== session.wasPaused) {
+        if (
+          silent !== session.wasSilent ||
+          paused !== session.wasPaused ||
+          bandLimited !== session.wasBandLimited
+        ) {
           session.wasSilent = silent;
           session.wasPaused = paused;
+          session.wasBandLimited = bandLimited;
           const flip = {
             percent: session.lastPercent,
             weakestLabel: '',
             isSettling: false,
             isSilent: silent,
             isPaused: paused,
+            isBandLimited: bandLimited,
             listenedMs: session.state.listenedMs,
             regions: [],
           };
@@ -380,6 +397,7 @@ const useLiveOutputSpectrum = () => {
       session.lastPercent = progress.percent;
       session.wasSilent = silent;
       session.wasPaused = paused;
+      session.wasBandLimited = bandLimited;
       setBalanceProgress(progress);
       session.onProgress?.(progress);
 
@@ -977,6 +995,7 @@ const useLiveOutputSpectrum = () => {
           lastPercent: 0,
           wasSilent: false,
           wasPaused: isPausedRef.current,
+          wasBandLimited: false,
           settled: false,
           resolve,
           reject,

@@ -915,8 +915,17 @@ export const getDefaultFilterWithId = (): IFilter => {
   };
 };
 
+/**
+ * The bands an equaliser starts with when nobody has chosen any.
+ *
+ * Fifteen rather than ten: the 2/3-octave series. Ten is the octave series,
+ * a grid wide enough that pulling one band down takes a good part of the
+ * range either side with it — the resolution somebody reaches for a shelf at
+ * is finer than that. Both callers that ask with no size get this: a profile
+ * that has never been tuned, and Clear EQ.
+ */
 export const getDefaultFilters = (
-  size: FixedBandSizeEnum = FixedBandSizeEnum.TEN,
+  size: FixedBandSizeEnum = FixedBandSizeEnum.FIFTEEN,
 ): IFiltersMap => {
   const filters: IFiltersMap = {};
   FIXED_BAND_FREQUENCIES[size].forEach((f) => {

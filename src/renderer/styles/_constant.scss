@@ -18,13 +18,16 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 $preset-bar-width: 340px;
 $sidebar-width: 164px;
-// 78 for as long as the bar held the meter directly: 64px of pane and 7 of
-// padding either side. The meter sits in a wrapper with the app's navigation
-// now, and that wrapper needs room of its own — 4px of margin above and below
-// so the bar shows either side of it, and 4px inside so the spectrum does not
-// run into its outline. Everything positioned under the bar derives from this
-// number, so growing it moves them all together.
-$title-bar-height: 86px;
+// The arithmetic, top to bottom: 2 of the bar's own padding, 4 of the
+// wrapper's margin so the bar shows either side of its outline, 1 of border,
+// 2 inside it so the spectrum does not sit hard against that outline, and a
+// 56px pane — twice over, plus the pane, is 74.
+//
+// It was 86 for a moment, on a 64px pane. The wrapper needs room the bare
+// meter never did, and paying for it by growing the bar spent the window's
+// height on chrome; taking it out of the pane instead leaves the bar where it
+// has always been. Everything positioned under it derives from this number.
+$title-bar-height: 74px;
 
 // Widths at which the workspace shell changes shape. The Electron window
 // cannot go below WINDOW_MIN_WIDTH (720px), so the three-column layout only

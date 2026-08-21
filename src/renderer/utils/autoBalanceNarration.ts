@@ -85,6 +85,14 @@ export const describeContinuousProgress = (
   if (progress.isSilent) {
     return t('eq.smart.status.waitingForSound');
   }
+  // Said before the coverage sentence rather than instead of a percentage,
+  // because the percentage is exactly what has stopped moving: a range has
+  // dropped out and nothing is being counted until the record has it back. A
+  // frozen readout with no reason next to it is what "the mode has hung" looks
+  // like — see `fullBandGate`.
+  if (progress.isBandLimited) {
+    return t('eq.smart.status.bandLimited');
+  }
   // Filling right now — uncovered AND actually being fed. The second half is
   // what stops the sentence going stale: a range with no content never covers,
   // so on the first test alone it stayed named forever and the bubble was frozen
@@ -148,6 +156,9 @@ export const describeBalanceProgress = (
   }
   if (progress.isSilent) {
     return t('eq.smart.status.pausedSilent');
+  }
+  if (progress.isBandLimited) {
+    return t('eq.smart.status.bandLimited');
   }
   if (progress.isSettling) {
     return t('eq.smart.status.settling', { percent: progress.percent });

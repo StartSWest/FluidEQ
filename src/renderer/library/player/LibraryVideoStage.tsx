@@ -19,6 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { libraryMediaUrl } from '../../../common/library/mediaUrl';
 import { useTranslation } from '../../utils/I18nContext';
+import { useGraphFullScreen } from '../../utils/graphStyle';
 import { useLibraryPlayer } from './LibraryPlayerContext';
 import '../../styles/NowPlayingBar.scss';
 
@@ -44,6 +45,16 @@ const LibraryVideoStage = () => {
     useLibraryPlayer();
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const [isFullScreen, setIsFullScreen] = useState(false);
+  /**
+   * The graph is expanded or full screen over this tab, so the picture behind
+   * it should be this video rather than the record sleeve.
+   *
+   * `LibraryStageArt` draws the cover of whatever is playing behind the plot
+   * — which for a video is the still it was never about. It stands down while
+   * this is up (see its own guard) and the stage takes the window instead, so
+   * the graph is drawn over the thing that is actually moving.
+   */
+  const isBehindGraph = useGraphFullScreen();
 
   /**
    * Registration, keyed on the DOM node itself rather than on a `useEffect`.
@@ -133,7 +144,9 @@ const LibraryVideoStage = () => {
 
   return (
     <div
-      className={`library-video-stage${isFullScreen ? ' is-fullscreen' : ''}`}
+      className={`library-video-stage${isFullScreen ? ' is-fullscreen' : ''}${
+        isBehindGraph ? ' is-behind-graph' : ''
+      }`}
     >
       {/* eslint-disable-next-line jsx-a11y/media-has-caption -- a local
           library file carries no caption track to offer; there is nothing to

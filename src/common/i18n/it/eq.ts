@@ -353,6 +353,8 @@ const eq: Partial<Dictionary> = {
   'eq.smart.status.pausedResume': 'In pausa - riprendi per finire',
   'eq.smart.status.pausedSilent': 'In pausa - nessun suono',
   'eq.smart.status.waitingForSound': 'In attesa di suono',
+  'eq.smart.status.bandLimited':
+    'Passaggio filtrato - in attesa della gamma completa',
   'eq.smart.status.soundChanged': 'Il suono è cambiato - nuova misurazione',
   'eq.smart.status.keptChanging': 'Il suono continuava a cambiare - interrotto',
   'eq.smart.status.notEnoughRange': 'Gamma insufficiente per misurare',

@@ -889,6 +889,50 @@ $now-playing-bar-height: 64px;
     inset: 0;
     border-radius: 0;
   }
+
+  // The picture behind an expanded or full-screen graph on this tab.
+  //
+  // The same rectangle the plot is pinned to, taken from the same measured
+  // variables — see `.graph-wrapper` in GraphTheme.scss, which sets exactly
+  // these four for exactly this reason. `inset: 0` is not the answer here:
+  // `.center-workspace` is the containing block for its fixed children, so
+  // that would be the column and not the window, and the card above would be
+  // a different box from the picture below it in expanded mode.
+  //
+  // Its own controls go with it. A Back and a full-screen button floating
+  // over a graph belong to neither of them.
+  &.is-behind-graph:not(.is-fullscreen) {
+    position: fixed;
+    z-index: 0;
+    top: var(--stage-art-shift, 0);
+    right: auto;
+    bottom: auto;
+    left: 0;
+    width: 100%;
+    height: var(--stage-art-height, 100vh);
+    border-radius: 0;
+
+    > .library-video-stage__back,
+    > .library-video-stage__fullscreen {
+      display: none;
+    }
+  }
+}
+
+// What `position: fixed` above needs from the column it sits in.
+//
+// `.center-workspace` carries `will-change: opacity, transform` from its
+// entrance animation, and a will-change of transform makes an element the
+// containing block for every fixed descendant it has. So `inset: 0` resolved
+// against the middle column rather than the window: the window went
+// borderless, the picture filled the space between the two sidebars, and the
+// whole thing read as full screen not working. The graph's own overlay hit
+// this exact wall and answered it by measuring the column; here the picture
+// really does want the window, so the promotion is dropped for as long as it
+// is up. Nothing is animating at that moment — full screen is a mode, not a
+// transition — so there is nothing left for the hint to help.
+.center-workspace:has(.library-video-stage.is-fullscreen) {
+  will-change: auto;
 }
 
 .library-video-stage__video {
