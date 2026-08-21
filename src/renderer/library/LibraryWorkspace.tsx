@@ -604,6 +604,31 @@ const LibraryWorkspace = ({
     (openFolderPath !== undefined && browseMode === 'folder'),
   );
 
+  /**
+   * Searching leaves wherever you were standing.
+   *
+   * This box says "search songs, artists, albums" and means the library, not
+   * the folder somebody happens to be inside — typing in it from three levels
+   * down returned the four matches in that directory and looked like a
+   * library with almost nothing in it. So the first non-empty query steps
+   * back out to the root and closes any drill-in with it, and what comes back
+   * is everything that matched, anywhere.
+   *
+   * It does not put them back when the box is cleared. Coming out of a search
+   * lands at the top of the library, which is where the search itself was
+   * looking from; restoring a place they had left would be a second surprise
+   * after the first.
+   */
+  const handleQuery = useCallback((next: string) => {
+    setQuery(next);
+    if (next.trim().length === 0) {
+      return;
+    }
+    setOpenAlbumId(undefined);
+    setOpenArtistId(undefined);
+    setOpenFolderPath(undefined);
+  }, []);
+
   /** The toolbar's arrow: reverses whatever column is already chosen. The
    * dropdown beside it picks the column and leaves the direction alone, so
    * the two together say the same thing a header click says in one press. */
@@ -780,7 +805,7 @@ const LibraryWorkspace = ({
             // it stays in force: `LibraryDetail` applies it to its table and
             // its own filter narrows what is left. Two searches that compose,
             // rather than one that disappears.
-            onQuery={setQuery}
+            onQuery={handleQuery}
           />
           {/* Only meaningful for a flat run of songs — album and artist rows
               are already groupings, and the video shelf groups by folder

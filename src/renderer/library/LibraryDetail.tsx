@@ -350,7 +350,14 @@ const LibraryDetail = ({
   }
 
   const handlePlay = () => {
-    const first = detailTracks[0];
+    // THE FIRST ROW OF THE TABLE UNDER IT, not the first of the whole album.
+    //
+    // The two differ whenever the reader has typed in the filter or clicked a
+    // column: Play started the record from its first track while the list in
+    // front of them began somewhere else, which reads as a button that
+    // ignored the screen it is on. Falls back to the album's own order for
+    // the one case where the table is empty and the header is still up.
+    const first = listTracks[0] ?? detailTracks[0];
     if (first) {
       onPlayTrack(first.id);
     }

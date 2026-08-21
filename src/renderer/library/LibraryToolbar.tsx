@@ -217,17 +217,12 @@ const LibraryToolbar = ({
                   className={`library-toolbar__chip${
                     browseMode === mode ? ' is-active' : ''
                   }`}
-                  // The shelf and its menu in one press. The two readings are
-                  // what this chip is: pressing it says "folders" and then
-                  // asks which of the two you meant, and pressing outside
-                  // leaves with the one already on — a menu's own manners.
-                  onClick={(event) => {
-                    const trigger = event.currentTarget;
-                    onBrowseMode(mode);
-                    setFolderMenuAnchor((current) =>
-                      current ? null : trigger,
-                    );
-                  }}
+                  // The shelf, and only the shelf. Opening the menu from here
+                  // as well was tried and is worse: the press somebody makes
+                  // most often — go to folders — then costs a second one to
+                  // dismiss a menu nobody asked for. The arrow beside it is
+                  // the half that means "which reading".
+                  onClick={() => onBrowseMode(mode)}
                 >
                   {t(
                     asTree
