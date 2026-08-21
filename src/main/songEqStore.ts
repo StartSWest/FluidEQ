@@ -33,6 +33,18 @@ import {
 const SETTINGS_FILENAME = 'song-eq.json';
 
 /**
+ * An object, and not an array.
+ *
+ * Arrays are objects too, and one reaching the pure store arrives as a record
+ * whose only keys are "0", "1", … — every lookup misses, every write grows it,
+ * and the eviction cap counts positions rather than songs. A hand-edited file
+ * may cost a few remembered songs; it must not put a wrong shape into main's
+ * memory for the rest of the run.
+ */
+const isRecord = (value: unknown): boolean =>
+  typeof value === 'object' && value !== null && !Array.isArray(value);
+
+/**
  * Every output, guaranteed to have both halves.
  *
  * A file that is valid JSON but missing an output's `entries` or `aliases`
@@ -56,14 +68,8 @@ const normalizeOutputs = (
       aliases?: unknown;
     };
     normalized[deviceId] = {
-      entries:
-        typeof entries === 'object' && entries !== null
-          ? (entries as ISongEqOutput['entries'])
-          : {},
-      aliases:
-        typeof aliases === 'object' && aliases !== null
-          ? (aliases as ISongEqOutput['aliases'])
-          : {},
+      entries: isRecord(entries) ? (entries as ISongEqOutput['entries']) : {},
+      aliases: isRecord(aliases) ? (aliases as ISongEqOutput['aliases']) : {},
     };
   });
   return normalized;

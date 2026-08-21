@@ -124,6 +124,68 @@ describe('buildSongIdentity', () => {
     expect(reordered?.key).toBe('media:https://www.youtube.com/watch?v=abc');
   });
 
+  it('gives two tracks of one album page two keys, though the url never moves', () => {
+    // Bandcamp, Suno, YouTube Music radio, the Spotify web player: the queue
+    // advances and the URL does not. Keyed on the URL alone the recorder saw
+    // no identity change at all — one session for the whole album, its
+    // listened time accumulating across every track, filed under the first
+    // one's title, and that curve then applied to all of them.
+    //
+    // Fails if `mediaKey` stops folding the published title in.
+    const album = 'https://artist.bandcamp.com/album/one';
+    const first = buildSongIdentity(
+      'media',
+      album,
+      'Opener',
+      'Artist',
+      'Opener',
+    );
+    const second = buildSongIdentity(
+      'media',
+      album,
+      'Closer',
+      'Artist',
+      'Closer',
+    );
+    expect(first?.key).toBe(
+      'media:https://artist.bandcamp.com/album/one#opener',
+    );
+    expect(first?.key).not.toBe(second?.key);
+  });
+
+  it('keeps one key for one track however its published title is spelled', () => {
+    // The positive control for the split above: the fold is COLLAPSED, so a
+    // republished title with different punctuation or spacing is still the
+    // same track and not a second entry to learn from scratch.
+    const album = 'https://artist.bandcamp.com/album/one';
+    expect(
+      buildSongIdentity('media', album, 'Rock N Roll', 'Artist', 'Rock N Roll')
+        ?.key,
+    ).toBe(
+      buildSongIdentity(
+        'media',
+        album,
+        'Rock-n-Roll',
+        'Artist',
+        '  Rock-n-Roll  ',
+      )?.key,
+    );
+  });
+
+  it('keys a media page on its url alone when the page publishes no track', () => {
+    // Most of the web has no `mediaSession.metadata`, and the title the bar
+    // falls back to is the document's — the site, not the song. Folding that
+    // in would put "youtube" in the key of every page that never published
+    // anything.
+    expect(
+      buildSongIdentity(
+        'media',
+        'https://www.youtube.com/watch?v=abc',
+        'YouTube',
+      )?.key,
+    ).toBe('media:https://www.youtube.com/watch?v=abc');
+  });
+
   it('puts title and artist in a system key, because the app alone is not a song', () => {
     const identity = buildSongIdentity(
       'system',

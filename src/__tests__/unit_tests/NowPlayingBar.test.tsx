@@ -182,6 +182,22 @@ describe('the song-eq badge', () => {
   });
 
   /**
+   * The other half of `SongEqBadge`'s guard, which nothing exercised: every
+   * other test here sets a title, so a regression simplifying the guard to
+   * `if (!isSaveOn) return null;` passed all of them — and put a badge on the
+   * bar in the gap between two songs, claiming to be learning nothing.
+   */
+  it('shows no learning badge while the tick is on but nothing is open to record', () => {
+    mockUseSongEqRecording.mockReturnValue(
+      recording({ isSaveOn: true, title: undefined }),
+    );
+    bar();
+    expect(
+      screen.queryByLabelText(/smart eq is learning this song/i),
+    ).toBeNull();
+  });
+
+  /**
    * Fails if `SourceTransportBar` never mounts `SongEqBadge` — the second of
    * the two bars this task adds it to, and the one a duplicated-markup
    * mistake would most likely leave behind.

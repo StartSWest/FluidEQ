@@ -264,7 +264,7 @@ const performEffects = (effects: TSongEqEffect[]): void => {
         showNotice(effect.identity, effect.entry);
         break;
       case 'forget':
-        forgetSongEq(effect.deviceId, effect.key).catch(() => {
+        forgetSongEq(effect.deviceId, effect.identity).catch(() => {
           // Best-effort: a failed forget leaves the old entry standing,
           // which is the safe direction to fail in — the alternative is
           // claiming it is gone when it is not.
@@ -289,6 +289,25 @@ const dispatchSongEq = (event: TSongEqEvent, at: number): void => {
   recordingSnapshot = computeRecording(state, at);
   performEffects(effects);
   emit();
+};
+
+/**
+ * Announces a Smart EQ layer written by the continuous engine.
+ *
+ * The counterpart to `liveSmartEqSetter` above: that one lets this module
+ * write into the app, this one lets the app tell this module that a write was
+ * the engine's own. Called by `SmartEqEngine.tsx` at the moment it writes a
+ * measured layer, and by nothing else — a caller that has NOT just written to
+ * the chain would be telling the recorder to keep a loan through somebody
+ * else's edit.
+ *
+ * Without it every continuous refinement reached `layerChanged` looking like a
+ * preset load, dropped the loan seconds after each match, and left the
+ * borrowed curve in the chain after the song ended — where the next song
+ * inherited it.
+ */
+export const noteSmartEqWrite = (layer?: ISmartEqSettings): void => {
+  dispatchSongEq({ kind: 'ownWrite', layer }, Date.now());
 };
 
 /* --- the notice toast --- */
@@ -317,16 +336,15 @@ export const undoSongEqLoan = (): void => {
 };
 
 /**
- * Forgets whatever this output remembers about the current song.
+ * Forgets whatever this output remembers about the song the notice names.
  *
- * The precedence between "the session that is open" and "the identity the
- * notice still names" is the reducer's to decide, per its own comment on the
- * `forget` event — this only ever offers the notice's identity as a
- * fallback, never the session's, because the session is the reducer's own
- * state and the reducer can read it directly. The reducer is also what stops
- * the session re-committing this song at track end; the shell has no session
- * interaction to perform here at all beyond the IPC delete its `forget`
- * effect asks for.
+ * The precedence between "the song the notice names" and "the session that is
+ * open" is the reducer's to decide, per its own comment on the `forget`
+ * event — this only ever hands over the notice's identity, never the
+ * session's, because the session is the reducer's own state and the reducer
+ * can read it directly. The reducer is also what stops the session
+ * re-committing this song at track end; the shell has no session interaction
+ * to perform here at all beyond the IPC delete its `forget` effect asks for.
  */
 export const forgetCurrentSongEq = (): void => {
   dispatchSongEq({ kind: 'forget', identity: notice?.identity }, Date.now());

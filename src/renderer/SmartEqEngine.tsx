@@ -44,6 +44,7 @@ import { useTranslation } from './utils/I18nContext';
 import { sortHelper } from './utils/utils';
 import { setSmartEq as setSmartEqApi } from './utils/equalizerApi';
 import { useLiveAudioControl } from './audio/LiveAudioContext';
+import { noteSmartEqWrite } from './audio/songEqSession';
 import { useContinuousEq } from './utils/continuousEq';
 import { isContinuousMode, useSmartEqMode } from './utils/smartEqMode';
 import { buildBalancedGains } from './utils/autoBalance';
@@ -1099,6 +1100,8 @@ const SmartEqEngine = () => {
     // marked as writing, which is precisely the gap a race lives in.
     isApplyingRef.current = true;
     applyStartedAtRef.current = Date.now();
+    // Ours, so the song recorder keeps its loan through this refinement.
+    noteSmartEqWrite(measured);
     setSmartEq(measured);
     setSmartEqApi(measured)
       .catch(() => {

@@ -543,13 +543,18 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
         title: resolvedTitle,
         subtitle: nowPlayingRef.current.artist || undefined,
         artworkUrl: frameRef.current,
-        // The URL, not the title, is the exact key: two pages can share a
-        // title (every unplayed YouTube tab is "YouTube") but never a URL.
+        // The URL is the exact key, plus the track the page published where
+        // it published one: two pages can share a title (every unplayed
+        // YouTube tab is "YouTube") but never a URL — and an album page keeps
+        // one URL across every track on it. `nowPlayingRef` holds ONLY what
+        // `mediaSession.metadata` gave us, which is why the published title is
+        // passed separately from the resolved one the bar draws.
         identity: buildSongIdentity(
           'media',
           view.getURL(),
           resolvedTitle,
           nowPlayingRef.current.artist,
+          nowPlayingRef.current.title,
         ),
         isPlaying,
         positionMs: 0,

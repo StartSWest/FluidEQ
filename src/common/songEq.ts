@@ -81,26 +81,45 @@ export const stripSongEqLayer = (layer: ISmartEqSettings): ISmartEqSettings => {
 const outputOf = (settings: ISongEqSettings, deviceId: string): ISongEqOutput =>
   settings.outputs[deviceId] ?? { entries: {}, aliases: {} };
 
+/**
+ * Which key this output actually holds this song under, if any.
+ *
+ * The one resolution rule, so lookup and forget cannot disagree about it.
+ * They did: a curve learned from a library file was matched from Spotify
+ * through the alias index, and Forget then deleted `system:...` — a key that
+ * was never there. Nothing threw, the reply was a success, the notice
+ * cleared, and the entry stayed on disk to come back on the next play. With
+ * the recording tick off, which §9 explicitly supports, that song could never
+ * be forgotten at all.
+ *
+ * Exact first and always: your own file beats an alias that has drifted to a
+ * rip of the same song.
+ */
+const resolveSongEqKey = (
+  output: ISongEqOutput | undefined,
+  identity: ISongIdentity,
+): string | undefined => {
+  if (!output) {
+    return undefined;
+  }
+  if (output.entries[identity.key]) {
+    return identity.key;
+  }
+  if (!identity.alias) {
+    return undefined;
+  }
+  const aliased = output.aliases[identity.alias];
+  return aliased !== undefined && output.entries[aliased] ? aliased : undefined;
+};
+
 export const lookupSongEq = (
   settings: ISongEqSettings,
   deviceId: string,
   identity: ISongIdentity,
 ): ISongEqEntry | undefined => {
   const output = settings.outputs[deviceId];
-  if (!output) {
-    return undefined;
-  }
-  // Exact first and always: your own file beats an alias that has drifted to a
-  // rip of the same song.
-  const exact = output.entries[identity.key];
-  if (exact) {
-    return exact;
-  }
-  if (!identity.alias) {
-    return undefined;
-  }
-  const aliased = output.aliases[identity.alias];
-  return aliased ? output.entries[aliased] : undefined;
+  const key = resolveSongEqKey(output, identity);
+  return output && key !== undefined ? output.entries[key] : undefined;
 };
 
 /** Drop the lowest `updatedAt` entries until the output is inside the cap,
@@ -184,13 +203,23 @@ export const commitSongEq = (
   now: number,
 ): ISongEqSettings => put(settings, deviceId, identity, layer, now, 1);
 
+/**
+ * Forget one song on one output.
+ *
+ * Takes the identity rather than a key, because the key the caller is holding
+ * is the key of whatever is *playing* and the entry may well be filed under
+ * another one — that is what the alias index is for. Resolved through
+ * `resolveSongEqKey`, so this deletes exactly the entry `lookupSongEq` would
+ * have handed back.
+ */
 export const forgetSongEq = (
   settings: ISongEqSettings,
   deviceId: string,
-  key: string,
+  identity: ISongIdentity,
 ): ISongEqSettings => {
   const output = settings.outputs[deviceId];
-  if (!output?.entries[key]) {
+  const key = resolveSongEqKey(output, identity);
+  if (!output || key === undefined) {
     return settings;
   }
   const entries = { ...output.entries };

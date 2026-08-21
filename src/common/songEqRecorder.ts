@@ -99,21 +99,39 @@ export interface ISongEqRecorderState {
 export type TSongEqEvent =
   | { kind: 'nowPlaying'; identity?: ISongIdentity; isPlaying: boolean }
   | { kind: 'tick' }
+  /** A layer this recorder did not write. Drops the loan — see the case. */
   | { kind: 'layerChanged'; layer?: ISmartEqSettings }
+  /**
+   * A layer the continuous Smart EQ engine has just written, announced by the
+   * writer itself.
+   *
+   * The loan survives it, and that is the entire point. Ticking the switch on
+   * starts a continuous mode, which then writes a fresh measured layer every
+   * few seconds into the same context state `layerChanged` watches; each of
+   * those looked exactly like a preset load, so the loan was dropped within
+   * seconds of every match and the end-of-song restore never ran — leaving
+   * one song's curve equalising the next.
+   *
+   * Announcement rather than comparison, deliberately. An earlier round of
+   * this feature guessed at authorship by comparing layers, and a comparison
+   * cannot recognise one the main process rebuilt or sanitised on the way
+   * back; `isSameLayer` is the backstop for the echo of our own write, not
+   * the mechanism.
+   */
+  | { kind: 'ownWrite'; layer?: ISmartEqSettings }
   | { kind: 'deviceChanged'; deviceId: string }
   | { kind: 'saveToggled'; isSaveOn: boolean }
   | { kind: 'matched'; identity: ISongIdentity; entry?: ISongEqEntry }
   | { kind: 'undo' }
   | { kind: 'closing' }
   /**
-   * Forget whatever this output remembers about the current song.
+   * Forget whatever this output remembers about the song the notice names.
    *
-   * `identity` is the shell's fallback for when nothing is playing but a
-   * notice is still up naming the last one — the session's own identity, when
-   * there is a session, always wins over it. That precedence lives here
-   * rather than in the shell because the shell has no way to know which one
-   * the reducer will actually use, and guessing wrong would forget the wrong
-   * song.
+   * `identity` is the notice's own, and it WINS over the session's: the toast
+   * lingers about six seconds and the next song settles into a session after
+   * two, so for four of those seconds preferring the session would delete a
+   * song the button the user is looking at does not name. The session is only
+   * the fallback for a notice that has already gone.
    */
   | { kind: 'forget'; identity?: ISongIdentity };
 
@@ -133,9 +151,17 @@ export type TSongEqEffect =
       layer: ISmartEqSettings;
     }
   | { kind: 'notice'; identity: ISongIdentity; entry: ISongEqEntry }
-  /** Delete whatever this output has stored under `key` — the storage side
-   * of a 'forget' event, once the reducer has decided whose song it is. */
-  | { kind: 'forget'; deviceId: string; key: string };
+  /**
+   * Delete whatever this output remembers about this song — the storage side
+   * of a 'forget' event, once the reducer has decided whose song it is.
+   *
+   * The whole identity rather than its key, because the entry is very often
+   * filed under a different one: a curve learned from a library file and
+   * matched from Spotify lives under `library:<id>`, and a key-only delete
+   * asked the store to remove a `system:` entry that was never there — and
+   * was answered with a success.
+   */
+  | { kind: 'forget'; deviceId: string; identity: ISongIdentity };
 
 export const getInitialRecorderState = (): ISongEqRecorderState => ({
   deviceId: '',
@@ -190,7 +216,19 @@ const isSameLayer = (
   a: ISmartEqSettings | undefined,
   b: ISmartEqSettings | undefined,
 ): boolean => {
-  if (!a || !b) {
+  // Two absences are the same absence. The continuous engine writes whatever
+  // `buildSmartEqSettings` returns, and a correction that comes out empty is
+  // no layer at all — the echo of that write has to be recognisable as ours
+  // too, or announcing it would achieve nothing in exactly the case where the
+  // engine cleared the borrowed curve.
+  if (!a && !b) {
+    return true;
+  }
+  // `filters` is typed as always present and a hand-edited `song-eq.json` can
+  // still arrive without it. `Object.keys(undefined)` would throw inside the
+  // `useEffect` that dispatches `layerChanged`, and the root ErrorBoundary
+  // would replace the entire app over one malformed stored song.
+  if (!a || !b || !a.filters || !b.filters) {
     return false;
   }
   return (
@@ -233,6 +271,20 @@ export const reduceSongEq = (
           ...next,
           session: { ...session, hasLoan: false, loanLayer: undefined },
         },
+        timed,
+      ];
+    }
+
+    case 'ownWrite': {
+      const next = { ...state, liveLayer: event.layer };
+      if (!session) {
+        return [next, timed];
+      }
+      // `written` moves with it, so the echo of this write coming back
+      // through context is recognised as ours too. The loan is untouched:
+      // refining a borrowed curve is what the loan is FOR.
+      return [
+        { ...next, session: { ...session, written: event.layer } },
         timed,
       ];
     }
@@ -282,19 +334,22 @@ export const reduceSongEq = (
     }
 
     case 'forget': {
-      // The session's own identity always wins: forgetting is about the
-      // song actually open, and the shell's fallback only matters once
-      // there is none to prefer.
-      const target = session?.identity ?? event.identity;
+      // The notice's identity wins — see the event's own comment. The session
+      // is the fallback for a Forget raised with no notice up.
+      const target = event.identity ?? session?.identity;
       if (!target) {
         return [state, timed];
       }
       const forgetEffect: TSongEqEffect = {
         kind: 'forget',
         deviceId: state.deviceId,
-        key: target.key,
+        identity: target,
       };
-      if (!session) {
+      // Only the open session's OWN song hands its loan back and stops being
+      // re-filed at close. Forgetting a song whose notice has outlived it is a
+      // store deletion and nothing more: taking the loan off whatever is
+      // playing now would undo a match nobody asked about.
+      if (!session || session.identity.key !== target.key) {
         return [state, [...timed, forgetEffect]];
       }
       return [

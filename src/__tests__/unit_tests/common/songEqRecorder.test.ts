@@ -254,6 +254,92 @@ describe('songEqRecorder', () => {
     expect(applied).toHaveLength(1);
   });
 
+  it('keeps the loan through a refinement the writer announced as its own', () => {
+    // The counterpart to the test above, and the whole reason `ownWrite`
+    // exists: ticking the switch on starts a continuous mode, which writes a
+    // fresh measured layer every few seconds. Read as foreign — which is what
+    // they were, before the writer announced itself — each one dropped the
+    // loan within seconds of the match, so the restore below never ran and
+    // the borrowed curve stayed in the chain for the next song.
+    //
+    // Fails if the `ownWrite` case drops the loan, or stops advancing
+    // `written` (the echo through `layerChanged` would then be foreign).
+    const entry = {
+      settings: layerOf(9),
+      title: 'Song A',
+      plays: 1,
+      updatedAt: 1,
+    };
+    const refined = layerOf(5);
+    const { effects } = run(armed(), [
+      [0, { kind: 'nowPlaying', identity: songA, isPlaying: true }],
+      [SONG_EQ_SETTLE_MS + 1, { kind: 'tick' }],
+      [SONG_EQ_SETTLE_MS + 2, { kind: 'matched', identity: songA, entry }],
+      [SONG_EQ_SETTLE_MS + 3, { kind: 'ownWrite', layer: refined }],
+      // The engine mirrors its write into context, and it comes back around.
+      [SONG_EQ_SETTLE_MS + 4, { kind: 'layerChanged', layer: refined }],
+      [
+        SONG_EQ_SETTLE_MS + 5,
+        { kind: 'nowPlaying', identity: songB, isPlaying: true },
+      ],
+    ]);
+    const applied = effects.filter((effect) => effect.kind === 'applyLayer');
+    // The lend, then the hand-back — of what was live before the match, not
+    // of the refinement.
+    expect(applied).toHaveLength(2);
+    expect(applied[1]).toMatchObject({ settings: layerOf(2) });
+  });
+
+  it('keeps the loan when the engine announces clearing the layer entirely', () => {
+    // `buildSmartEqSettings` returns nothing for a correction that came out
+    // empty, and the engine writes that nothing. Fails if `isSameLayer` stops
+    // treating two absences as the same absence: the echo of the engine's own
+    // clear would read as a preset load, and the announcement would achieve
+    // nothing in exactly the case where the borrowed curve was cleared.
+    const entry = {
+      settings: layerOf(9),
+      title: 'Song A',
+      plays: 1,
+      updatedAt: 1,
+    };
+    const { effects } = run(armed(), [
+      [0, { kind: 'nowPlaying', identity: songA, isPlaying: true }],
+      [SONG_EQ_SETTLE_MS + 1, { kind: 'tick' }],
+      [SONG_EQ_SETTLE_MS + 2, { kind: 'matched', identity: songA, entry }],
+      [SONG_EQ_SETTLE_MS + 3, { kind: 'ownWrite', layer: undefined }],
+      [SONG_EQ_SETTLE_MS + 4, { kind: 'layerChanged', layer: undefined }],
+      [SONG_EQ_SETTLE_MS + 5, { kind: 'closing' }],
+    ]);
+    const applied = effects.filter((effect) => effect.kind === 'applyLayer');
+    expect(applied).toHaveLength(2);
+    expect(applied[1]).toMatchObject({ settings: layerOf(2) });
+  });
+
+  it('survives a stored entry that carries no filters at all', () => {
+    // Only a hand-edited `song-eq.json` produces one, and the TypeError from
+    // `Object.keys(undefined)` landed inside the `useEffect` that dispatches
+    // `layerChanged` — where the root ErrorBoundary replaces the whole app
+    // over one malformed song. Fails if `isSameLayer` stops guarding
+    // `filters`: the third step below throws instead of returning.
+    const entry = {
+      // The shape TypeScript says cannot exist and the file on disk can hold.
+      settings: {} as ISmartEqSettings,
+      title: 'Song A',
+      plays: 1,
+      updatedAt: 1,
+    };
+    const steps: Array<[number, TSongEqEvent]> = [
+      [0, { kind: 'nowPlaying', identity: songA, isPlaying: true }],
+      [SONG_EQ_SETTLE_MS + 1, { kind: 'tick' }],
+      [SONG_EQ_SETTLE_MS + 2, { kind: 'matched', identity: songA, entry }],
+      [SONG_EQ_SETTLE_MS + 3, { kind: 'layerChanged', layer: layerOf(2) }],
+    ];
+    expect(() => run(armed(), steps)).not.toThrow();
+    // And it answers rather than merely surviving: a layer it cannot compare
+    // is not one it can claim, so the loan goes.
+    expect(run(armed(), steps).state.session?.hasLoan).toBe(false);
+  });
+
   it('still saves a session whose loan was dropped', () => {
     // Dropping the loan stops the restore, not the save. A curve measured by
     // hand over a playing track is a better answer for that song.
@@ -495,27 +581,54 @@ describe('songEqRecorder', () => {
     );
   });
 
-  it("forgets the session's own identity, not whatever the shell offers as a fallback", () => {
-    // The precedence is the reducer's to decide, not the shell's: a session
-    // for song A must forget song A even if the shell's own fallback names
-    // something else.
+  it('forgets the song the notice names, not the session that has moved on', () => {
+    // The notice lingers about six seconds and the next song settles into a
+    // session after two, so for four of those seconds the button the user is
+    // looking at names one song while the session holds another. The toast is
+    // the only caller and it is what is on screen. Fails if the precedence in
+    // the `forget` case is flipped back to `session?.identity ?? …`.
     const { effects } = run(armed(), [
       [0, { kind: 'nowPlaying', identity: songA, isPlaying: true }],
       [1, { kind: 'forget', identity: songB }],
     ]);
     const forgets = effects.filter((effect) => effect.kind === 'forget');
     expect(forgets).toHaveLength(1);
-    expect(forgets[0]).toMatchObject({ key: songA.key });
+    expect(forgets[0]).toMatchObject({ identity: songB });
   });
 
-  it('forgets the fallback identity when nothing is playing to prefer', () => {
-    // No session open — the shell's own notice is all there is to go on.
+  it('leaves the open session recording when the song forgotten is not its own', () => {
+    // Positive control for the precedence above: forgetting the song a stale
+    // notice names must not stop the song actually playing from being filed —
+    // marking that session `forgotten` would silently cancel its save.
+    const { effects } = run(armed(), [
+      [0, { kind: 'nowPlaying', identity: songA, isPlaying: true }],
+      [1, { kind: 'forget', identity: songB }],
+      ...ticksFrom(1000, 130_000),
+      [130_001, { kind: 'nowPlaying', identity: undefined, isPlaying: false }],
+    ]);
+    expect(effects.filter((effect) => effect.kind === 'commit')).toHaveLength(
+      1,
+    );
+  });
+
+  it("forgets the open session's song when no notice names one", () => {
+    // The fallback, for a Forget raised after the toast has already faded.
+    const { effects } = run(armed(), [
+      [0, { kind: 'nowPlaying', identity: songA, isPlaying: true }],
+      [1, { kind: 'forget' }],
+    ]);
+    const forgets = effects.filter((effect) => effect.kind === 'forget');
+    expect(forgets).toHaveLength(1);
+    expect(forgets[0]).toMatchObject({ identity: songA });
+  });
+
+  it('forgets the notice identity when nothing is playing at all', () => {
     const { effects } = run(armed(), [
       [0, { kind: 'forget', identity: songB }],
     ]);
     const forgets = effects.filter((effect) => effect.kind === 'forget');
     expect(forgets).toHaveLength(1);
-    expect(forgets[0]).toMatchObject({ key: songB.key });
+    expect(forgets[0]).toMatchObject({ identity: songB });
   });
 
   it('does nothing to forget when neither a session nor a fallback names anything', () => {

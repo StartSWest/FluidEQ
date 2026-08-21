@@ -90,4 +90,26 @@ describe('songEqStore', () => {
       outputs: { 'device-a': { entries: {}, aliases: {} } },
     });
   });
+
+  it('discards an entries or aliases half that is an array', () => {
+    // `typeof [] === 'object'`, so an array used to pass the shape check
+    // straight through: every lookup then misses, every write grows it, and
+    // the eviction cap counts positions rather than songs. The "reads back
+    // exactly what it wrote" test above is the positive control — it proves a
+    // real record survives, so this cannot pass against a loader that empties
+    // everything. Fails if `isRecord`'s `Array.isArray` guard is dropped.
+    const dir = tempDir();
+    fs.writeFileSync(
+      path.join(dir, 'song-eq.json'),
+      JSON.stringify({
+        version: 1,
+        outputs: { 'device-a': { entries: [], aliases: ['x'] } },
+      }),
+      'utf8',
+    );
+    expect(loadSongEqSettings(dir)).toEqual({
+      version: 1,
+      outputs: { 'device-a': { entries: {}, aliases: {} } },
+    });
+  });
 });

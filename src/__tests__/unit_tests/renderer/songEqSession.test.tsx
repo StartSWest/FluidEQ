@@ -47,6 +47,7 @@ import defaultFluidEqContext from '__tests__/utils/mockFluidEqProvider';
 import {
   forgetCurrentSongEq,
   getSongEqSaveOn,
+  noteSmartEqWrite,
   resetSongEqSession,
   setSongEqSaveOn,
   undoSongEqLoan,
@@ -377,6 +378,67 @@ describe('songEqSession', () => {
     );
   });
 
+  /**
+   * The loan has to survive the continuous engine refining the curve it
+   * loaned, or the end-of-song restore never runs and the borrowed curve
+   * equalises the next song.
+   *
+   * Fails if `noteSmartEqWrite` stops dispatching `ownWrite` (make it a
+   * no-op, or delete the call in `SmartEqEngine.tsx`): the refined layer
+   * arriving through context is then indistinguishable from a preset load,
+   * the loan is dropped, and the close produces no restoring write — the
+   * last `setSmartEq` stays the refinement rather than the pre-match layer.
+   */
+  it('hands the loan back at the end of a song the engine kept refining', async () => {
+    const song = buildSongIdentity(
+      'library',
+      'refined-song',
+      'Refined Song',
+      'Artist',
+    );
+    if (!song) {
+      throw new Error('test fixture produced no identity');
+    }
+    // Distinguishable from every other layer in this test, so the final
+    // assertion can only pass by restoring the actual pre-match value.
+    contextSmartEq = layerOf(1);
+    const entry = entryOf('Refined Song', layerOf(3));
+    (api.lookupSongEq as jest.Mock).mockResolvedValue(entry);
+    mockUseNowPlayingIdentity.mockReturnValue({
+      identity: song,
+      isPlaying: true,
+    });
+
+    const { rerender } = renderHook(() => useSongEqSessionHost(), { wrapper });
+
+    await act(async () => {
+      jest.advanceTimersByTime(SONG_EQ_SETTLE_MS + 1000);
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    rerender();
+
+    // The continuous engine writes a refinement, exactly as `SmartEqEngine`
+    // does: announce it, mirror it into context, then let the host see it.
+    const refined = layerOf(6);
+    act(() => {
+      noteSmartEqWrite(refined);
+    });
+    contextSmartEq = refined;
+    rerender();
+
+    // The song ends.
+    mockUseNowPlayingIdentity.mockReturnValue({
+      identity: undefined,
+      isPlaying: false,
+    });
+    act(() => {
+      rerender();
+    });
+
+    expect(api.setSmartEq).toHaveBeenLastCalledWith(layerOf(1));
+  });
+
   it('forgets the notice-named song over IPC and clears the notice', async () => {
     const song = buildSongIdentity(
       'library',
@@ -413,7 +475,10 @@ describe('songEqSession', () => {
       forgetCurrentSongEq();
     });
 
-    expect(api.forgetSongEq).toHaveBeenCalledWith('device-a', song.key);
+    // The whole identity, so main can resolve it through the alias index the
+    // way a lookup does — a bare key deletes nothing when the curve was
+    // learned from another source.
+    expect(api.forgetSongEq).toHaveBeenCalledWith('device-a', song);
     expect(result.current).toBeUndefined();
   });
 

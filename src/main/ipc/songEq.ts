@@ -117,12 +117,14 @@ export const registerSongEqHandlers = (userDataDir: string): void => {
   ipcMain.on(ChannelEnum.FORGET_SONG_EQ, (event, arg) => {
     const channel = ChannelEnum.FORGET_SONG_EQ;
     const deviceId = arg?.[0];
-    const key = arg?.[1];
-    if (typeof deviceId !== 'string' || typeof key !== 'string') {
+    const identity = arg?.[1];
+    if (typeof deviceId !== 'string' || !isIdentity(identity)) {
       replyInvalidParameter(event, channel);
       return;
     }
-    cached = forgetSongEq(settingsOf(userDataDir), deviceId, key);
+    // The identity, not a key: which entry this actually removes is
+    // `common/songEq.ts`'s decision, exactly as it is for a lookup.
+    cached = forgetSongEq(settingsOf(userDataDir), deviceId, identity);
     saveSongEqSettings(userDataDir, cached);
     const reply: TSuccess<void> = { result: undefined };
     event.reply(channel, reply);

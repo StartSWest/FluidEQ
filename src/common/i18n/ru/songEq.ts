@@ -25,7 +25,10 @@ export default {
   'songEq.listening': 'Учимся — осталось {remaining}',
   'songEq.willSave': 'Будет сохранено — {title}',
   'songEq.noticeTitle': 'Для этой песни используется сохранённый EQ',
-  'songEq.noticeBody': '{title} — изучено за {plays} прослушиваний',
+  // Phrased as a label rather than a count, so the numeral never has to agree
+  // with the noun: `{plays} прослушиваний` is right for 0 and 5+ and wrong for
+  // 2, 3 and 4 — which is the early life of every remembered song.
+  'songEq.noticeBody': '{title} — изучено, прослушиваний: {plays}',
   'songEq.noticeBodyOnce': '{title} — изучено за одно прослушивание',
   'songEq.undo': 'Отменить',
   'songEq.forget': 'Забыть эту песню',

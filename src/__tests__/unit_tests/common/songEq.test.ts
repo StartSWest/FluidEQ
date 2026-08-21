@@ -57,6 +57,22 @@ const mustBuild = (result: ISongIdentity | undefined): ISongIdentity => {
   return result;
 };
 
+const mustAlias = (identity: ISongIdentity): string => {
+  if (!identity.alias) {
+    throw new Error('test fixture produced no alias');
+  }
+  return identity.alias;
+};
+
+/**
+ * A third `Black Dog` that owns neither of the two keys the alias tests save
+ * under, so the only way it can resolve at all is through the alias index.
+ */
+const aliasOnlyTwin = (): ISongIdentity =>
+  mustBuild(
+    buildSongIdentity('system', 'VLC.exe', 'Black Dog', 'Led Zeppelin'),
+  );
+
 describe('songEq store', () => {
   it('finds nothing in an empty store', () => {
     expect(
@@ -210,22 +226,106 @@ describe('songEq store', () => {
       layerOf(3),
       1000,
     );
-    const forgotten = forgetSongEq(saved, DEVICE, identity.key);
+    const forgotten = forgetSongEq(saved, DEVICE, identity);
     expect(lookupSongEq(forgotten, DEVICE, identity)).toBeUndefined();
     expect(Object.keys(forgotten.outputs[DEVICE].aliases)).toHaveLength(0);
+  });
+
+  /**
+   * The cross-source Forget the alias index exists to create, and the one it
+   * used to fail silently.
+   *
+   * Fails if `forgetSongEq` resolves `identity.key` alone instead of going
+   * through `resolveSongEqKey`: the system key was never in `entries`, so the
+   * store came back untouched, main replied success and the library entry was
+   * still on disk for the next play.
+   */
+  it('forgets a library entry reached from another source through its alias', () => {
+    const fromLibrary = identityOf('Black Dog', 'Led Zeppelin');
+    const fromSpotify = mustBuild(
+      buildSongIdentity(
+        'system',
+        'Spotify.exe',
+        'Black Dog (Official Video)',
+        'Led Zeppelin',
+      ),
+    );
+    // Neither key is the other's, and the match can only have come by alias.
+    expect(fromSpotify.key).not.toBe(fromLibrary.key);
+    expect(fromSpotify.alias).toBe(fromLibrary.alias);
+
+    let store = commitSongEq(
+      getDefaultSongEqSettings(),
+      DEVICE,
+      fromLibrary,
+      layerOf(3),
+      1000,
+    );
+    // Positive control: the curve really is reachable from the other source
+    // before Forget is asked to remove it.
+    expect(lookupSongEq(store, DEVICE, fromSpotify)).toBeDefined();
+
+    store = forgetSongEq(store, DEVICE, fromSpotify);
+    expect(lookupSongEq(store, DEVICE, fromSpotify)).toBeUndefined();
+    expect(lookupSongEq(store, DEVICE, fromLibrary)).toBeUndefined();
+    expect(store.outputs[DEVICE].entries[fromLibrary.key]).toBeUndefined();
+  });
+
+  it('prefers the exact key over an alias that points somewhere else', () => {
+    // Spec §7: "Lookup tries the exact key first and always, so your own file
+    // beats an alias that drifted to a YouTube rip of the same song." Fails if
+    // the two branches in `resolveSongEqKey` are swapped — the rip's gain of 9
+    // would come back for the library file's own identity.
+    const fromLibrary = identityOf('Black Dog', 'Led Zeppelin');
+    const rip = mustBuild(
+      buildSongIdentity(
+        'media',
+        'https://example.test/watch?v=rip',
+        'Black Dog',
+        'Led Zeppelin',
+      ),
+    );
+    let store = commitSongEq(
+      getDefaultSongEqSettings(),
+      DEVICE,
+      fromLibrary,
+      layerOf(3),
+      1000,
+    );
+    // Saved last, so the alias now points at the rip rather than at the file.
+    store = commitSongEq(store, DEVICE, rip, layerOf(9), 2000);
+    expect(store.outputs[DEVICE].aliases[mustAlias(fromLibrary)]).toBe(rip.key);
+
+    expect(
+      lookupSongEq(store, DEVICE, fromLibrary)?.settings.filters['smart-1000']
+        .gain,
+    ).toBe(3);
+    // Positive control: the alias itself does resolve, for an identity that
+    // has no entry of its own.
+    expect(
+      lookupSongEq(store, DEVICE, aliasOnlyTwin())?.settings.filters[
+        'smart-1000'
+      ].gain,
+    ).toBe(9);
   });
 
   it('leaves an alias alone when it has moved on to another key', () => {
     // Last save wins the alias. Forgetting the key that no longer owns it must
     // not take the live entry's alias away with it.
+    //
+    // Asserting the alias INDEX, not just that the live entry is still
+    // findable: the entry was reachable by its own exact key regardless, so
+    // this test passed against a `forgetSongEq` that emptied every alias.
     const first = identityOf('Black Dog', 'Led Zeppelin');
-    const second = buildSongIdentity(
-      'media',
-      'https://example.test/watch',
-      'Black Dog',
-      'Led Zeppelin',
+    const second = mustBuild(
+      buildSongIdentity(
+        'media',
+        'https://example.test/watch',
+        'Black Dog',
+        'Led Zeppelin',
+      ),
     );
-    expect(second).toBeDefined();
+    const alias = mustAlias(first);
     let store = commitSongEq(
       getDefaultSongEqSettings(),
       DEVICE,
@@ -233,9 +333,16 @@ describe('songEq store', () => {
       layerOf(3),
       1000,
     );
-    store = commitSongEq(store, DEVICE, mustBuild(second), layerOf(4), 2000);
-    store = forgetSongEq(store, DEVICE, first.key);
-    expect(lookupSongEq(store, DEVICE, mustBuild(second))).toBeDefined();
+    store = commitSongEq(store, DEVICE, second, layerOf(4), 2000);
+    store = forgetSongEq(store, DEVICE, first);
+
+    expect(lookupSongEq(store, DEVICE, second)).toBeDefined();
+    expect(store.outputs[DEVICE].aliases[alias]).toBe(second.key);
+    // And the alias path still resolves, from a third identity that owns
+    // neither key — the thing the exact-key assertion above cannot see.
+    expect(lookupSongEq(store, DEVICE, aliasOnlyTwin())?.title).toBe(
+      'Black Dog',
+    );
   });
 
   it('does not mutate the store it was given', () => {

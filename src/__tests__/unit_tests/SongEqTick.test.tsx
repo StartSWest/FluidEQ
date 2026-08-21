@@ -33,7 +33,11 @@ import {
 } from 'renderer/audio/songEqSession';
 import { formatDuration } from 'renderer/library/player/NowPlayingBar';
 import MainContent from 'renderer/MainContent';
-import { setSmartEqMode } from 'renderer/utils/smartEqMode';
+import {
+  getSmartEqMode,
+  isContinuousMode,
+  setSmartEqMode,
+} from 'renderer/utils/smartEqMode';
 
 /**
  * The tick's own toolbar, rendered the way `SmartEqRun.test.tsx` renders
@@ -173,6 +177,49 @@ describe('the save-for-this-song tick', () => {
     expect(tick).not.toBeChecked();
     fireEvent.click(tick);
     expect(tick).toBeChecked();
+  });
+
+  /**
+   * Spec §3, §10.1 and §13: ticking the switch starts the last continuous
+   * mode, and `detail` where none was ever chosen — a chosen-but-idle state
+   * looks exactly like the thing being broken, and with no engine running
+   * there is no measurement for the tick to promise a save from.
+   *
+   * The side effect was known and unasserted: this file's own `afterEach`
+   * already resets the mode. Fails if `setSongEqSaveOn` stops calling
+   * `setSmartEqMode('detail')` — the mode would stay `smart` and the tick
+   * would appear to do nothing at all: no engine, no measurement, no save,
+   * no error.
+   */
+  it('starts a continuous mode when nothing is measuring yet', () => {
+    render(<MainContent />);
+    // The precondition, asserted rather than assumed: this only proves
+    // anything from a state where no continuous mode is already running.
+    expect(isContinuousMode(getSmartEqMode())).toBe(false);
+
+    fireEvent.click(
+      screen.getByRole('checkbox', {
+        name: translate('en', 'songEq.saveAria'),
+      }),
+    );
+
+    expect(getSmartEqMode()).toBe('detail');
+  });
+
+  /**
+   * Positive control's other half: unticking must NOT stop the engine —
+   * "stopping the engine because somebody stopped saving would be taking away
+   * something they did not ask to lose" (§10.1). Fails if the mode reset is
+   * made symmetric.
+   */
+  it('leaves the mode running when the tick is turned back off', () => {
+    render(<MainContent />);
+    const tick = screen.getByRole('checkbox', {
+      name: translate('en', 'songEq.saveAria'),
+    });
+    fireEvent.click(tick);
+    fireEvent.click(tick);
+    expect(getSmartEqMode()).toBe('detail');
   });
 
   /**

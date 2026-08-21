@@ -175,11 +175,43 @@ const trimMediaUrl = (url: string): string => {
   return keptParams.length > 0 ? `${base}?${keptParams.join('&')}` : base;
 };
 
+/**
+ * A media page's exact key: the trimmed URL, and the track the page says it is
+ * playing where it says one.
+ *
+ * The URL alone is not enough, and the places it is not are the ordinary ones.
+ * A Bandcamp album page, a Suno playlist, a YouTube Music radio queue and the
+ * Spotify web player all advance from track to track without the URL moving —
+ * which is exactly why `VideoBrowser` re-reads `mediaSession.metadata` on
+ * every position sample. Keyed on the URL alone the recorder never saw the
+ * identity change: one session spanned the whole album, its listened time
+ * accumulated across every track so the two-minute floor always passed, the
+ * entry was filed under the FIRST track's title, and one curve was then
+ * applied to all of them. That is the merge §6.1 calls "the wrong curve,
+ * applied to the wrong song, named wrongly in the notice".
+ *
+ * `publishedTitle` is what the page itself published, never the document
+ * title the caller falls back to — a document title is the site, and folding
+ * "YouTube" into the key would split nothing while making every key uglier.
+ *
+ * The cost, taken knowingly: a YouTube pre-roll ad publishes its own title and
+ * churns one extra session. That is the recoverable direction — a re-learn —
+ * and the merge it prevents is not.
+ */
+const mediaKey = (url: string, publishedTitle?: string): string => {
+  const base = `media:${trimMediaUrl(url)}`;
+  const track = collapse(publishedTitle ?? '');
+  return track ? `${base}#${track}` : base;
+};
+
 export const buildSongIdentity = (
   source: TSongSource,
   exact: string,
   title: string,
   artist?: string,
+  /** Media only: the track title the page published through
+   * `mediaSession.metadata`, absent where it published none. */
+  publishedTitle?: string,
 ): ISongIdentity | undefined => {
   const cleanTitle = title.trim();
   if (!cleanTitle) {
@@ -192,7 +224,7 @@ export const buildSongIdentity = (
 
   const key = (() => {
     if (source === 'media') {
-      return `media:${trimMediaUrl(exact)}`;
+      return mediaKey(exact, publishedTitle);
     }
     if (source === 'system') {
       // The app alone is not a song: Spotify is one session playing a
