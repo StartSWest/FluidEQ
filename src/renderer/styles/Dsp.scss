@@ -464,7 +464,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   display: flex;
   flex: 1 1 auto;
   min-width: 0;
-  align-items: flex-end;
+  // Centred on the row, not hung from its floor. The controls are different
+  // heights — a knob carries its name underneath, a button does not — and
+  // lining their bottom edges up makes the short ones read as having sunk.
+  align-items: center;
   justify-content: center;
   gap: 18px;
   padding: 10px 14px;
@@ -474,12 +477,23 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   flex-wrap: wrap;
 }
 
+// Built like a `.labelled-knob` on purpose — control, then name under it, same
+// gap and the same label — because it stands in a row of them.
 .dsp-eq-shape {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  align-self: center;
+  align-items: center;
+  gap: 1px;
   min-width: 168px;
+
+  .dsp-eq-field-label {
+    color: rgba($white, 0.62);
+    font-size: 0.64rem;
+    line-height: 1.2;
+    text-transform: none;
+    letter-spacing: normal;
+    text-align: center;
+  }
 }
 
 .dsp-eq-field-label {

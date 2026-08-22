@@ -25,6 +25,7 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   ReactElement,
   ReactNode,
   CSSProperties,
@@ -89,12 +90,31 @@ const List = ({
     [options],
   );
 
+  /**
+   * Once per opening, and that is the whole point of the ref.
+   *
+   * Focusing an element inside a scroller makes the browser scroll it back
+   * into view, so this effect is a "jump to the selected row" in disguise. Its
+   * dependencies include `options` and the refs derived from them, and callers
+   * build that array inline — a fresh identity on every render. Anything that
+   * re-rendered the open menu therefore re-ran this and dragged the list back
+   * to the selected row, which is exactly what "I pick Clásica, scroll, and it
+   * returns to Clásica" is. The list could not be scrolled away from its own
+   * selection at all.
+   *
+   * Reset when the list closes, so the next opening still lands on the
+   * selected row.
+   */
+  const hasFocusedSelection = useRef(false);
   useEffect(() => {
     if (!focusOnRender) {
+      hasFocusedSelection.current = false;
       return;
     }
-
-    // Focus on the selected item when initially rendered
+    if (hasFocusedSelection.current) {
+      return;
+    }
+    hasFocusedSelection.current = true;
     const index = options.findIndex((entry) => entry.value === value);
     if (index >= 0) {
       inputRefs[index].current?.focus();
