@@ -7,6 +7,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { TEqEngine } from '../../common/dsp/chain';
 import { IBiquadCoefficients, IBiquadState, processBiquad } from './biquad';
 import { IOversamplerState, downsample, upsample } from './oversample';
+import { IBandDynamics, bandDynamicAmount } from './dynamics';
 
 /**
  * How the bands are put against the audio, which is a separate question from
@@ -58,9 +59,18 @@ export const processEqOversampled = (
   doubled: Float32Array,
   dryDoubled: Float32Array,
   wetDoubled: Float32Array,
+  dynamics: readonly IBandDynamics[],
 ): void => {
   upsample(oversampler, target, doubled, factor);
-  processEqBands(states, coefficients, doubled, engine, dryDoubled, wetDoubled);
+  processEqBands(
+    states,
+    coefficients,
+    doubled,
+    engine,
+    dryDoubled,
+    wetDoubled,
+    dynamics,
+  );
   downsample(oversampler, doubled, target, factor);
 };
 
@@ -73,15 +83,40 @@ export const processEqBands = (
    * thread never allocates. */
   dry: Float32Array,
   wet: Float32Array,
+  /** One per band, in the same order. Static bands cost nothing here. */
+  dynamics: readonly IBandDynamics[],
 ): void => {
+  const { length } = target;
+
   if (engine === 'serial') {
     for (let band = 0; band < coefficients.length; band += 1) {
-      processBiquad(states[band], target, coefficients[band]);
+      const dynamic = dynamics[band];
+      if (!dynamic?.active) {
+        // Untouched from before dynamics existed: a static band in a cascade
+        // filters in place, with no copy and no envelope.
+        processBiquad(states[band], target, coefficients[band]);
+      } else {
+        // A dynamic band in a cascade needs its own input kept, because what
+        // is blended is this band's change against what reached it — the
+        // previous band's output, not the signal that entered the rack.
+        for (let i = 0; i < length; i += 1) {
+          dry[i] = target[i];
+          wet[i] = target[i];
+        }
+        processBiquad(states[band], wet, coefficients[band]);
+        let peak = 0;
+        for (let i = 0; i < length; i += 1) {
+          const difference = wet[i] - dry[i];
+          const amount = bandDynamicAmount(dynamic, difference);
+          target[i] = dry[i] + difference * amount;
+          peak = amount > peak ? amount : peak;
+        }
+        dynamic.amount = peak;
+      }
     }
     return;
   }
 
-  const { length } = target;
   for (let i = 0; i < length; i += 1) {
     dry[i] = target[i];
   }
@@ -90,10 +125,26 @@ export const processEqBands = (
       wet[i] = dry[i];
     }
     processBiquad(states[band], wet, coefficients[band]);
-    // Only what this band CHANGED is added. Summing the bands themselves would
-    // stack one copy of the dry signal per band and come out N times too loud.
-    for (let i = 0; i < length; i += 1) {
-      target[i] += wet[i] - dry[i];
+    const dynamic = dynamics[band];
+    if (!dynamic?.active) {
+      // Only what this band CHANGED is added. Summing the bands themselves
+      // would stack one copy of the dry signal per band and come out N times
+      // too loud.
+      for (let i = 0; i < length; i += 1) {
+        target[i] += wet[i] - dry[i];
+      }
+    } else {
+      // The same difference, scaled by how much of the band the material is
+      // currently asking for. Parallel needs no extra buffer for this: the
+      // difference the dynamic stage works on is the one already being summed.
+      let peak = 0;
+      for (let i = 0; i < length; i += 1) {
+        const difference = wet[i] - dry[i];
+        const amount = bandDynamicAmount(dynamic, difference);
+        target[i] += difference * amount;
+        peak = amount > peak ? amount : peak;
+      }
+      dynamic.amount = peak;
     }
   }
 };

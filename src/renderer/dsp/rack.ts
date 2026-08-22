@@ -275,7 +275,20 @@ export const rackMatchingCurveOf = (
 export const eqChainPeakDb = (eq: IEqSettings, sampleRate: number): number => {
   const designRate = sampleRate * Math.max(1, eq.oversample);
   const frequencies = logFrequencies(PEAK_POINTS);
-  const response = curveResponseDb(eq.bands, frequencies, designRate, eq.model);
+  // A dynamic band is measured at its WORST, which is not the same end for a
+  // boost as for a cut. A dynamic boost is worst fully engaged, so it counts in
+  // full. A dynamic cut is worst at rest — it spends most of the record doing
+  // nothing — so counting it would reserve headroom against an attenuation
+  // that is usually absent, and leave the curve clipping whenever it was.
+  const worstCase = eq.bands.map((band) =>
+    band.dynamic ? { ...band, gainDb: Math.max(0, band.gainDb) } : band,
+  );
+  const response = curveResponseDb(
+    worstCase,
+    frequencies,
+    designRate,
+    eq.model,
+  );
   if (eq.subsonicHz > 0) {
     const subsonic = biquadCoefficients(
       {

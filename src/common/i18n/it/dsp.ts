@@ -123,6 +123,10 @@ const dsp = {
   'dsp.eq.monoBelow': 'Mono sotto',
   'dsp.eq.phase': 'Fase',
   'dsp.eq.quality': 'Larghezza',
+  'dsp.eq.threshold': 'Soglia',
+  'dsp.eq.dynamic': 'Dinamico',
+  'dsp.eq.dynamicOn': 'Dinamico ON',
+  'dsp.eq.dynamicHint': 'Agisce solo finché questa banda supera la sua soglia.',
 
   'dsp.exciter.title': 'Exciter',
   'dsp.exciter.description':

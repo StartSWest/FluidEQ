@@ -125,6 +125,11 @@ const dsp = {
   'dsp.eq.monoBelow': 'Mono unter',
   'dsp.eq.phase': 'Phase',
   'dsp.eq.quality': 'Breite',
+  'dsp.eq.threshold': 'Schwelle',
+  'dsp.eq.dynamic': 'Dynamisch',
+  'dsp.eq.dynamicOn': 'Dynamisch AN',
+  'dsp.eq.dynamicHint':
+    'Greift nur, solange dieses Band lauter als seine Schwelle ist.',
 
   'dsp.exciter.title': 'Exciter',
   'dsp.exciter.description':

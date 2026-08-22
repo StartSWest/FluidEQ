@@ -120,6 +120,10 @@ const dsp = {
   'dsp.eq.monoBelow': '以下单声道',
   'dsp.eq.phase': '相位',
   'dsp.eq.quality': '带宽',
+  'dsp.eq.threshold': '阈值',
+  'dsp.eq.dynamic': '动态',
+  'dsp.eq.dynamicOn': '动态 开',
+  'dsp.eq.dynamicHint': '仅在此频段超过阈值时起作用。',
 
   'dsp.exciter.title': '激励器',
   'dsp.exciter.description':

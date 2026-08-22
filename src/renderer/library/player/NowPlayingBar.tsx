@@ -65,6 +65,13 @@ export interface INowPlayingBarProps {
   onSeek: (positionMs: number) => void;
   onShuffle: () => void;
   onRepeat: () => void;
+  /** Whether the playing track is in the Favourites playlist. */
+  isFavorite?: boolean;
+  /** Put the playing track into Favourites, or take it out. Optional, and the
+   * star is not drawn without it: this bar renders in tests and in stories
+   * with no playlist provider above it, and a star that quietly does nothing
+   * is worse than no star. */
+  onFavorite?: () => void;
   onVolume: (value: number) => void;
   /**
    * Called when a volume gesture ends, not while it runs.
@@ -158,6 +165,8 @@ type TTransportIcon =
   | 'repeat'
   | 'back5'
   | 'forward5'
+  | 'favorite'
+  | 'favoriteOn'
   | 'volume'
   | 'volumeOff';
 
@@ -268,6 +277,23 @@ export const TransportIcon = ({ name }: { name: TTransportIcon }) => {
         </text>
       </g>
     );
+  } else if (name === 'favorite' || name === 'favoriteOn') {
+    // The same five-pointed star `MenuIcon.star` draws, on the same 24x24
+    // grid and with the same two states the library already uses for a
+    // favourite: outline for "not in there", filled for "in there". A second
+    // shape here would be a second thing to learn for one meaning.
+    const star =
+      'M12 4l2.3 4.7 5.2.8-3.75 3.65.9 5.15L12 15.9l-4.65 2.4.9-5.15L4.5 9.5l5.2-.8L12 4z';
+    drawing = (
+      <path
+        className={
+          name === 'favoriteOn'
+            ? 'now-playing-bar__icon-fill'
+            : 'now-playing-bar__icon-stroke'
+        }
+        d={star}
+      />
+    );
   } else if (name === 'volume') {
     drawing = (
       <>
@@ -363,6 +389,8 @@ const NowPlayingBar = ({
   onSeek,
   onShuffle,
   onRepeat,
+  isFavorite = false,
+  onFavorite,
   onVolume,
   onVolumeCommit,
   onReveal,
@@ -526,9 +554,33 @@ const NowPlayingBar = ({
     </div>
   );
 
+  const favoriteLabel = t(
+    isFavorite
+      ? 'library.playlist.removeFromFavorites'
+      : 'library.playlist.addToFavorites',
+  );
+
   const secondaryControls = (
     <>
       {isTight && positionRow}
+      {/* First in the group, so the star sits against the clock rather than
+          between shuffle and repeat: it is about the track the bar is
+          showing, and the two beside it are about the queue. */}
+      {onFavorite && (
+        <button
+          type="button"
+          className={`now-playing-bar__toggle now-playing-bar__favorite${
+            isFavorite ? ' is-on' : ''
+          }`}
+          aria-label={favoriteLabel}
+          title={favoriteLabel}
+          aria-pressed={isFavorite}
+          onClick={onFavorite}
+        >
+          <TransportIcon name={isFavorite ? 'favoriteOn' : 'favorite'} />
+          <span className="now-playing-bar__option-label">{favoriteLabel}</span>
+        </button>
+      )}
       <button
         type="button"
         className="now-playing-bar__toggle"

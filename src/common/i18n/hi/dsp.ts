@@ -124,6 +124,11 @@ const dsp = {
   'dsp.eq.monoBelow': 'मोनो नीचे',
   'dsp.eq.phase': 'फेज़',
   'dsp.eq.quality': 'चौड़ाई',
+  'dsp.eq.threshold': 'थ्रेशोल्ड',
+  'dsp.eq.dynamic': 'डायनामिक',
+  'dsp.eq.dynamicOn': 'डायनामिक चालू',
+  'dsp.eq.dynamicHint':
+    'यह बैंड अपने थ्रेशोल्ड से तेज़ होने पर ही काम करता है।',
 
   'dsp.exciter.title': 'एक्साइटर',
   'dsp.exciter.description':

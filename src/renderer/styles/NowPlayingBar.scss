@@ -690,6 +690,25 @@ $now-playing-bar-height: 64px;
   }
 }
 
+// The favourite star says something about the track, not about the player.
+//
+// So it does not take the lit teal pill `[aria-pressed='true']` gives shuffle
+// and repeat: on this bar that treatment means "this mode is switched on",
+// and a track being favourited is not a mode. It wears what the rest of the
+// library already wears for the same fact — a filled `$neon-yellow` star, the
+// colour `.library-list__badge--favorite` and the track menu's own star use —
+// so the row, the menu and the bar all say it the same way.
+.now-playing-bar__favorite {
+  &.is-on,
+  &.is-on:hover,
+  &.is-on:focus-visible {
+    color: $neon-yellow;
+    border-color: rgba($neon-yellow, 0.4);
+    background: rgba($neon-yellow, 0.1);
+    box-shadow: none;
+  }
+}
+
 // One fader, drawn as one of a set.
 //
 // The same recessed pill karaoke gives each of its three, with the same three
@@ -729,10 +748,13 @@ $now-playing-bar-height: 64px;
 // A button now, not a label: it mutes. Sized and coloured exactly as it was,
 // so the change is what it does rather than what it looks like — until it is
 // pressed, when the struck-through cone and the dimmed face say so.
+// Two pixels wider than it was, because the glyph inside it grew by two: at
+// 26 the 17px speaker filled 65% of the disc and its outer wave touched the
+// border.
 .now-playing-bar__volume-icon {
   display: grid;
-  width: 26px;
-  height: 26px;
+  width: 28px;
+  height: 28px;
   flex: 0 0 auto;
   place-items: center;
   padding: 0;
@@ -761,9 +783,17 @@ $now-playing-bar-height: 64px;
 // `__icon-stroke`, so a filled shape and a stroked one can share one 24x24
 // glyph without either fighting the other's paint.
 
+// 17px in a 30-34px disc, not 15.
+//
+// At 15 the glyphs sat in the middle of their circles with a ring of empty
+// space around them and read as small marks rather than as buttons — the
+// stroked ones worst, since a 1.75px stroke scaled down to 62% of the 24x24
+// grid it was drawn on. 17 is the largest that still clears the toggle's
+// 30px border without touching it, and the same figure is used by the
+// karaoke bar so the two transports match.
 .now-playing-bar__icon {
-  width: 15px;
-  height: 15px;
+  width: 17px;
+  height: 17px;
   overflow: visible;
   color: currentcolor;
 }
@@ -782,11 +812,11 @@ $now-playing-bar-height: 64px;
 }
 
 // The "5" inside the two nudge arrows. Filled rather than stroked, and heavy
-// enough to hold together at the 14px these are drawn at.
+// enough to hold together at the 17px these are drawn at.
 .now-playing-bar__icon-step {
   fill: currentcolor;
   stroke: none;
-  font-size: 9px;
+  font-size: 10px;
   font-weight: $weight-bold;
 }
 
@@ -805,8 +835,8 @@ $now-playing-bar-height: 64px;
 }
 
 .now-playing-bar__play .now-playing-bar__icon {
-  width: 21px;
-  height: 21px;
+  width: 23px;
+  height: 23px;
 }
 
 // *** The range inputs *********************************************************

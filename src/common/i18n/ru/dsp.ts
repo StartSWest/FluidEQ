@@ -124,6 +124,11 @@ const dsp = {
   'dsp.eq.monoBelow': 'Моно ниже',
   'dsp.eq.phase': 'Фаза',
   'dsp.eq.quality': 'Ширина',
+  'dsp.eq.threshold': 'Порог',
+  'dsp.eq.dynamic': 'Динамика',
+  'dsp.eq.dynamicOn': 'Динамика ВКЛ',
+  'dsp.eq.dynamicHint':
+    'Работает, только пока эта полоса громче своего порога.',
 
   'dsp.exciter.title': 'Эксайтер',
   'dsp.exciter.description':

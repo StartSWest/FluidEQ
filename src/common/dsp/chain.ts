@@ -87,6 +87,28 @@ export interface IEqBandSettings {
   frequency: number;
   gainDb: number;
   quality: number;
+  /**
+   * Act only when there is something here to act on.
+   *
+   * A static band is honest and blunt: a cut at 6 kHz to tame one singer's
+   * sibilance also dulls every cymbal in the record, because the filter cannot
+   * tell them apart. A dynamic band applies the SAME gain, but only while the
+   * energy in its own passband is above `thresholdDb` — so it takes the
+   * sibilant and leaves the cymbals alone.
+   *
+   * Per band rather than per rack, which is the whole point: a curve is
+   * normally two or three bands that need to react and a dozen that must not.
+   * Off by default, so every rack that existed before this behaves as it did.
+   */
+  dynamic: boolean;
+  /**
+   * Where a dynamic band starts working, in dBFS of its own passband.
+   *
+   * Measured on the band's input rather than its output, so moving the gain
+   * dial does not move the point at which it engages — otherwise the two
+   * controls fight and neither can be set.
+   */
+  thresholdDb: number;
 }
 
 /**
@@ -373,6 +395,10 @@ const RANGES = {
   attackMs: { min: 0.1, max: 200 },
   releaseMs: { min: 5, max: 2_000 },
   makeupDb: { min: 0, max: 24 },
+  // Down to where a quiet passage lives and up to just under full scale.
+  // Below -60 nothing musical ever falls under the threshold, so the band
+  // would be permanently engaged and indistinguishable from a static one.
+  eqThresholdDb: { min: -60, max: 0 },
   ceilingDb: { min: -12, max: 0 },
   lookAheadMs: { min: 0, max: 20 },
   maximizerReleaseMs: { min: 5, max: 1_000 },
@@ -410,21 +436,141 @@ const DEFAULT_BAND: IBandSettings = {
  * moved.
  */
 const DEFAULT_EQ_BANDS: readonly IEqBandSettings[] = [
-  { enabled: true, type: 'LSC', frequency: 32, gainDb: 0, quality: 0.7 },
-  { enabled: true, type: 'PK', frequency: 50, gainDb: 0, quality: 1.4 },
-  { enabled: true, type: 'PK', frequency: 80, gainDb: 0, quality: 1.4 },
-  { enabled: true, type: 'PK', frequency: 125, gainDb: 0, quality: 1.4 },
-  { enabled: true, type: 'PK', frequency: 200, gainDb: 0, quality: 1.4 },
-  { enabled: true, type: 'PK', frequency: 315, gainDb: 0, quality: 1.4 },
-  { enabled: true, type: 'PK', frequency: 500, gainDb: 0, quality: 1.4 },
-  { enabled: true, type: 'PK', frequency: 800, gainDb: 0, quality: 1.4 },
-  { enabled: true, type: 'PK', frequency: 1_250, gainDb: 0, quality: 1.4 },
-  { enabled: true, type: 'PK', frequency: 2_000, gainDb: 0, quality: 1.4 },
-  { enabled: true, type: 'PK', frequency: 3_150, gainDb: 0, quality: 1.4 },
-  { enabled: true, type: 'PK', frequency: 5_000, gainDb: 0, quality: 1.4 },
-  { enabled: true, type: 'PK', frequency: 8_000, gainDb: 0, quality: 1.4 },
-  { enabled: true, type: 'PK', frequency: 12_500, gainDb: 0, quality: 1.4 },
-  { enabled: true, type: 'HSC', frequency: 16_000, gainDb: 0, quality: 0.7 },
+  {
+    enabled: true,
+    type: 'LSC',
+    frequency: 32,
+    gainDb: 0,
+    quality: 0.7,
+    dynamic: false,
+    thresholdDb: -24,
+  },
+  {
+    enabled: true,
+    type: 'PK',
+    frequency: 50,
+    gainDb: 0,
+    quality: 1.4,
+    dynamic: false,
+    thresholdDb: -24,
+  },
+  {
+    enabled: true,
+    type: 'PK',
+    frequency: 80,
+    gainDb: 0,
+    quality: 1.4,
+    dynamic: false,
+    thresholdDb: -24,
+  },
+  {
+    enabled: true,
+    type: 'PK',
+    frequency: 125,
+    gainDb: 0,
+    quality: 1.4,
+    dynamic: false,
+    thresholdDb: -24,
+  },
+  {
+    enabled: true,
+    type: 'PK',
+    frequency: 200,
+    gainDb: 0,
+    quality: 1.4,
+    dynamic: false,
+    thresholdDb: -24,
+  },
+  {
+    enabled: true,
+    type: 'PK',
+    frequency: 315,
+    gainDb: 0,
+    quality: 1.4,
+    dynamic: false,
+    thresholdDb: -24,
+  },
+  {
+    enabled: true,
+    type: 'PK',
+    frequency: 500,
+    gainDb: 0,
+    quality: 1.4,
+    dynamic: false,
+    thresholdDb: -24,
+  },
+  {
+    enabled: true,
+    type: 'PK',
+    frequency: 800,
+    gainDb: 0,
+    quality: 1.4,
+    dynamic: false,
+    thresholdDb: -24,
+  },
+  {
+    enabled: true,
+    type: 'PK',
+    frequency: 1_250,
+    gainDb: 0,
+    quality: 1.4,
+    dynamic: false,
+    thresholdDb: -24,
+  },
+  {
+    enabled: true,
+    type: 'PK',
+    frequency: 2_000,
+    gainDb: 0,
+    quality: 1.4,
+    dynamic: false,
+    thresholdDb: -24,
+  },
+  {
+    enabled: true,
+    type: 'PK',
+    frequency: 3_150,
+    gainDb: 0,
+    quality: 1.4,
+    dynamic: false,
+    thresholdDb: -24,
+  },
+  {
+    enabled: true,
+    type: 'PK',
+    frequency: 5_000,
+    gainDb: 0,
+    quality: 1.4,
+    dynamic: false,
+    thresholdDb: -24,
+  },
+  {
+    enabled: true,
+    type: 'PK',
+    frequency: 8_000,
+    gainDb: 0,
+    quality: 1.4,
+    dynamic: false,
+    thresholdDb: -24,
+  },
+  {
+    enabled: true,
+    type: 'PK',
+    frequency: 12_500,
+    gainDb: 0,
+    quality: 1.4,
+    dynamic: false,
+    thresholdDb: -24,
+  },
+  {
+    enabled: true,
+    type: 'HSC',
+    frequency: 16_000,
+    gainDb: 0,
+    quality: 0.7,
+    dynamic: false,
+    thresholdDb: -24,
+  },
 ];
 
 /**
@@ -492,6 +638,8 @@ export const buildEqRack = (count: number): readonly IEqBandSettings[] => {
   const quality = qForSpacing(octaves);
   return frequencies.map((frequency) => ({
     enabled: true,
+    dynamic: false,
+    thresholdDb: -24,
     type: 'PK',
     frequency,
     gainDb: 0,
@@ -572,6 +720,8 @@ const FALLBACK_EQ_BAND: IEqBandSettings = {
   type: 'PK',
   frequency: 1_000,
   gainDb: 0,
+  dynamic: false,
+  thresholdDb: -24,
   quality: 1.4,
 };
 
@@ -599,6 +749,12 @@ const clampEqBand = (
     ),
     gainDb: clampNumber(value.gainDb, RANGES.eqGainDb, fallback.gainDb),
     quality: clampNumber(value.quality, RANGES.eqQuality, fallback.quality),
+    dynamic: clampBoolean(value.dynamic, fallback.dynamic),
+    thresholdDb: clampNumber(
+      value.thresholdDb,
+      RANGES.eqThresholdDb,
+      fallback.thresholdDb,
+    ),
   };
 };
 

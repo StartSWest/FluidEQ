@@ -96,6 +96,11 @@ const DspEqCard = ({ eq, sampleRate, onChange, onCommit }: IDspEqCardProps) => {
     }
     const inserted: IEqBandSettings = {
       enabled: true,
+      // Static, like the neighbour it was inserted beside. A band that arrived
+      // already reacting to the material would be a surprise rather than a
+      // feature.
+      dynamic: false,
+      thresholdDb: -24,
       type: FilterTypeEnum.PK,
       frequency: Math.round(Math.min(20_000, Math.max(20, frequency))),
       gainDb: 0,
@@ -346,6 +351,22 @@ const DspEqCard = ({ eq, sampleRate, onChange, onCommit }: IDspEqCardProps) => {
             onChange={(quality) => patchBand(active, { quality })}
             onCommit={onCommit}
           />
+          {/* Where this band starts acting, and only meaningful once it is
+              dynamic — greyed rather than hidden, because a control that
+              appears when a switch is thrown moves everything beside it and
+              the row jumps under the pointer. */}
+          <LabelledKnob
+            label={t('dsp.eq.threshold')}
+            value={band.thresholdDb}
+            min={-60}
+            max={0}
+            step={0.5}
+            unit="dB"
+            defaultValue={fallback.thresholdDb}
+            isDisabled={!band.enabled || !band.dynamic}
+            onChange={(thresholdDb) => patchBand(active, { thresholdDb })}
+            onCommit={onCommit}
+          />
 
           {/* Quiet, and beside the band they act on: adding a band is a step
               in building a curve, not the thing this strip is for. */}
@@ -369,6 +390,24 @@ const DspEqCard = ({ eq, sampleRate, onChange, onCommit }: IDspEqCardProps) => {
               ▶ +
             </button>
           </div>
+
+          {/* Quiet whichever way it is set: a band that reacts is not the
+              recommended state, it is a different job from the one beside it.
+              The loud style here would say "turn this on", which is wrong for
+              twelve of the fifteen bands in any rack. */}
+          <button
+            type="button"
+            className="button small subtle"
+            aria-pressed={band.dynamic}
+            disabled={!band.enabled}
+            title={t('dsp.eq.dynamicHint')}
+            onClick={() => {
+              patchBand(active, { dynamic: !band.dynamic });
+              onCommit();
+            }}
+          >
+            {band.dynamic ? t('dsp.eq.dynamicOn') : t('dsp.eq.dynamic')}
+          </button>
 
           <button
             type="button"

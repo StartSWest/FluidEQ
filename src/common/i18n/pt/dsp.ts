@@ -125,6 +125,11 @@ const dsp = {
   'dsp.eq.monoBelow': 'Mono abaixo',
   'dsp.eq.phase': 'Fase',
   'dsp.eq.quality': 'Largura',
+  'dsp.eq.threshold': 'Limiar',
+  'dsp.eq.dynamic': 'Dinâmico',
+  'dsp.eq.dynamicOn': 'Dinâmico ON',
+  'dsp.eq.dynamicHint':
+    'Age apenas enquanto esta banda ultrapassa o seu limiar.',
 
   'dsp.exciter.title': 'Excitador',
   'dsp.exciter.description':

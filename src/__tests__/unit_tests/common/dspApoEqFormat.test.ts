@@ -114,6 +114,10 @@ describe('APO ParametricEQ import', () => {
     expect(bands).toHaveLength(2);
     expect(bands[0]).toEqual({
       enabled: true,
+      // A published file describes a static curve; the format cannot say
+      // otherwise.
+      dynamic: false,
+      thresholdDb: -24,
       type: 'LSC',
       frequency: 105,
       gainDb: 5.5,
@@ -253,6 +257,10 @@ describe('Squiglink exports', () => {
     const { bands } = fromApoText(SQUIGLINK);
     expect(bands[0]).toEqual({
       enabled: true,
+      // A published file describes a static curve; the format cannot say
+      // otherwise.
+      dynamic: false,
+      thresholdDb: -24,
       type: 'LSC',
       frequency: 105,
       gainDb: -2.8,

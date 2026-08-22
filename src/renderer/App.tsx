@@ -71,7 +71,7 @@ import { ILibraryTrack } from '../common/library/types';
 import LibraryWorkspace from './library/LibraryWorkspace';
 import LibraryStageArt from './library/LibraryStageArt';
 import { LibraryProvider } from './library/LibraryContext';
-import { PlaylistProvider } from './library/PlaylistContext';
+import { PlaylistProvider, usePlaylists } from './library/PlaylistContext';
 import { useHasPendingKaraokeFiles } from './library/karaokeHandoff';
 import {
   LibraryPlayerProvider,
@@ -454,6 +454,7 @@ const ConnectedNowPlayingBar = ({
   onReveal: (track: ILibraryTrack) => void;
 }) => {
   const player = useLibraryPlayer();
+  const { isFavorite, toggleFavorite } = usePlaylists();
   const sources = useTransportSources();
   const playingOwner = usePlaybackOwner();
   const lastOwner = useLastTransportOwner();
@@ -489,6 +490,8 @@ const ConnectedNowPlayingBar = ({
       onSeek={player.seek}
       onShuffle={() => player.setShuffle(!player.isShuffled)}
       onRepeat={player.cycleRepeat}
+      isFavorite={track ? isFavorite(track.id) : false}
+      onFavorite={track ? () => toggleFavorite(track.id) : undefined}
       onVolume={player.setVolume}
       onVolumeCommit={player.commitVolume}
       onReveal={track ? () => onReveal(track) : undefined}

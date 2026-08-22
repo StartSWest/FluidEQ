@@ -155,6 +155,11 @@ export const fromApoText = (text: string): IApoImport => {
     }
     bands.push({
       enabled: state.toUpperCase() === 'ON',
+      // A published correction is a static curve by construction: the format
+      // has no way to say otherwise, so inventing a threshold would be reading
+      // something into the file that is not in it.
+      dynamic: false,
+      thresholdDb: -24,
       type,
       frequency: Number(frequency),
       // A missing Gain is 0, not a failure: that is what the grammar means for

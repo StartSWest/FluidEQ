@@ -46,6 +46,8 @@ const run = (
     engine,
     new Float32Array(BLOCK),
     new Float32Array(BLOCK),
+    // Empty: these tests are about topology, and every band here is static.
+    [],
   );
   return target;
 };

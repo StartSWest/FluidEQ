@@ -406,6 +406,49 @@ const DspEqGraph = ({
         return total;
       };
 
+      /**
+       * The curve with the dynamic bands doing nothing.
+       *
+       * A dynamic band is drawn at full strength like any other, which is a lie
+       * for most of the record: it only reaches that shape while its own
+       * passband is over the threshold. Drawing where the curve sits at rest as
+       * well turns one misleading line into a pair the response travels
+       * between, which is the honest picture and the only way the feature is
+       * visible at all when nothing is playing.
+       */
+      const hasDynamic = liveEq.bands.some(
+        (one) => one.enabled && one.dynamic && one.gainDb !== 0,
+      );
+      const restAt = (hz: number): number => {
+        let total = subsonic ? biquadMagnitudeDb(subsonic, hz, rate) : 0;
+        active.forEach((coefficients, index) => {
+          if (coefficients && !liveEq.bands[index]?.dynamic) {
+            total += biquadMagnitudeDb(coefficients, hz, designRate);
+          }
+        });
+        return total;
+      };
+
+      if (hasDynamic) {
+        context.beginPath();
+        for (let i = 0; i <= steps; i += 1) {
+          const hz = MIN_HZ * (MAX_HZ / MIN_HZ) ** (i / steps);
+          const y = Y(restAt(hz));
+          if (i === 0) {
+            context.moveTo(X(hz), y);
+          } else {
+            context.lineTo(X(hz), y);
+          }
+        }
+        // The curve's own colour at a third of its weight, so it reads as the
+        // same line somewhere else rather than as a second, unrelated trace.
+        context.strokeStyle = 'rgba(0,229,207,0.32)';
+        context.lineWidth = 1.5;
+        context.setLineDash([6, 4]);
+        context.stroke();
+        context.setLineDash([]);
+      }
+
       context.beginPath();
       for (let i = 0; i <= steps; i += 1) {
         const hz = MIN_HZ * (MAX_HZ / MIN_HZ) ** (i / steps);

@@ -123,6 +123,11 @@ const dsp = {
   'dsp.eq.monoBelow': 'モノ化',
   'dsp.eq.phase': '位相',
   'dsp.eq.quality': '幅',
+  'dsp.eq.threshold': 'スレッショルド',
+  'dsp.eq.dynamic': 'ダイナミック',
+  'dsp.eq.dynamicOn': 'ダイナミック ON',
+  'dsp.eq.dynamicHint':
+    'このバンドがスレッショルドを超えている間だけ効きます。',
 
   'dsp.exciter.title': 'エキサイター',
   'dsp.exciter.description':

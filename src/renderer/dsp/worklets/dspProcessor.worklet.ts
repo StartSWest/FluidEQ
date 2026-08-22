@@ -30,6 +30,11 @@ import {
 } from '../biquad';
 import { processEqBands, processEqOversampled } from '../eqEngine';
 import {
+  IBandDynamics,
+  createBandDynamics,
+  refreshBandDynamics,
+} from '../dynamics';
+import {
   CONVOLVER_WARMUP,
   IConvolverKernel,
   IConvolverState,
@@ -112,6 +117,16 @@ class DspProcessor extends AudioWorkletProcessor {
    * where it used to jump.
    */
   private eqGainNow = 1;
+
+  /**
+   * One follower per band per channel, outliving every settings message.
+   *
+   * The envelope is the last few milliseconds of audio. Rebuilding these when a
+   * neighbouring band moved would drop that history and open the band from
+   * silence mid-note, which is a click on every drag — so `refreshBandDynamics`
+   * repoints them and the array is only regrown when the rack changes length.
+   */
+  private readonly bandDynamics: IBandDynamics[][] = [];
 
   private convolvers: IConvolverState[] | undefined;
 
@@ -356,6 +371,21 @@ class DspProcessor extends AudioWorkletProcessor {
             sampleRate,
           )
         : undefined;
+    // Kept in step with `eqCoefficients` below, which is why it filters on the
+    // same predicate: a dynamics array indexed differently from the coefficient
+    // array would apply one band's threshold to another band's audio.
+    const live = eq.bands.filter((band) => band.enabled);
+    for (let slot = 0; slot < CHANNELS; slot += 1) {
+      const followers = this.bandDynamics[slot] ?? [];
+      while (followers.length < live.length) {
+        followers.push(createBandDynamics());
+      }
+      followers.length = live.length;
+      live.forEach((band, index) =>
+        refreshBandDynamics(followers[index], band, sampleRate),
+      );
+      this.bandDynamics[slot] = followers;
+    }
     this.eqCoefficients = eq.bands
       .filter((band) => band.enabled)
       .map((band) =>
@@ -466,6 +496,7 @@ class DspProcessor extends AudioWorkletProcessor {
             this.eqWork,
             this.eqDryWork,
             this.eqWetWork,
+            this.bandDynamics[slot],
           );
         } else {
           processEqBands(
@@ -475,6 +506,7 @@ class DspProcessor extends AudioWorkletProcessor {
             eq.engine,
             this.eqDry,
             this.eqWet,
+            this.bandDynamics[slot],
           );
         }
       }

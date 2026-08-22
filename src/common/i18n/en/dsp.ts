@@ -132,6 +132,11 @@ const dsp = {
   'dsp.eq.monoBelow': 'Mono below',
   'dsp.eq.phase': 'Phase',
   'dsp.eq.quality': 'Width',
+  'dsp.eq.threshold': 'Threshold',
+  'dsp.eq.dynamic': 'Dynamic',
+  'dsp.eq.dynamicOn': 'Dynamic ON',
+  'dsp.eq.dynamicHint':
+    'Acts only while this band is louder than its threshold.',
 
   'dsp.exciter.title': 'Exciter',
   'dsp.exciter.description':

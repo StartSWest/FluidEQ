@@ -1886,8 +1886,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 .karaoke-transport__volume-icon {
   display: grid;
-  width: 26px;
-  height: 26px;
+  width: 28px;
+  height: 28px;
   place-items: center;
   color: rgba($secondary-light, 0.76);
   border: 1px solid rgba($secondary-light, 0.1);
@@ -1899,17 +1899,17 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // the browser falls back to the SVG default and the glyph spills out of the
   // channel control.
   > svg {
-    width: 15px;
-    height: 15px;
-    flex: 0 0 15px;
+    width: 17px;
+    height: 17px;
+    flex: 0 0 17px;
     overflow: visible;
   }
 }
 
 .karaoke-transport button.karaoke-transport__volume-toggle,
 .karaoke-transport__mix-popover button.karaoke-transport__volume-toggle {
-  min-width: 26px;
-  min-height: 26px;
+  min-width: 28px;
+  min-height: 28px;
   padding: 0;
   color: rgba($secondary-light, 0.76);
   border: 1px solid rgba($secondary-light, 0.1);
@@ -2117,9 +2117,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   border: 0;
 }
 
+// 17px, the same as `.now-playing-bar__icon` — see its comment for the
+// measurement. The two bars occupy the same strip of window on different
+// tabs, and a glyph that changes size on the way between them is the one
+// thing a shared transport must not do.
 .karaoke-transport__icon {
-  width: 16px;
-  height: 16px;
+  width: 17px;
+  height: 17px;
   overflow: visible;
   color: currentcolor;
   filter: drop-shadow(0 0 5px rgba($secondary-default, 0.2));
