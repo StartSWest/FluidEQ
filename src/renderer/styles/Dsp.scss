@@ -601,7 +601,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   border-radius: 8px;
   background: rgba($black, 0.28);
   color: $white;
-  font-family: ui-monospace, 'Cascadia Mono', 'Consolas', monospace;
+  font-family: $font-mono;
   font-size: 0.74rem;
   line-height: 1.5;
   resize: vertical;
