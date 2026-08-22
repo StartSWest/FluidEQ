@@ -77,6 +77,39 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   font-display: block;
 }
 
+// Cascadia Mono, for the same reason and one more.
+//
+// The monospace stack resolved per machine: Cascadia Mono on Windows, SF Mono
+// on macOS, Consolas where neither was installed — so a config dump and a bug
+// report, which are the text most likely to be pasted somewhere and compared,
+// looked different depending on whose machine produced them. Bundling it is
+// what makes them the same everywhere, and on Windows it changes nothing,
+// because Cascadia Mono is already what was being picked.
+//
+// Mono and not Code: the Code variant is the one with programming ligatures,
+// which turn `!=` and `->` into single glyphs. Ligatures in a config dump are
+// wrong — the point of that text is that it shows the characters that are
+// actually there.
+//
+// The axis runs 200-700; Cascadia ships no weight heavier than Bold. Shipped
+// unmodified, which the licence requires attention to: unlike Inter it carries
+// a Reserved Font Name, so a modified copy could not keep the name.
+@font-face {
+  font-family: 'Cascadia Mono';
+  font-style: normal;
+  font-weight: 200 700;
+  src: url('../../../assets/fonts/CascadiaMono.woff2') format('woff2');
+  font-display: block;
+}
+
+@font-face {
+  font-family: 'Cascadia Mono';
+  font-style: italic;
+  font-weight: 200 700;
+  src: url('../../../assets/fonts/CascadiaMonoItalic.woff2') format('woff2');
+  font-display: block;
+}
+
 // *** Document ***************************************************************
 
 *,
@@ -1721,12 +1754,16 @@ $tab-border: rgba($secondary-light, 0.2);
   background: none;
   color: rgba($primary-lighter, 0.66);
   font-size: 0.74rem;
-  // Bold, not heavy. These are four words of navigation, and the lit pill
-  // behind them is what marks the chosen one — a heavier face only competed
-  // with it. Heavy was also where the old fallback tipped over into
-  // `Segoe UI Black`, which is what made these read as squashed at the larger
-  // titlebar size below.
-  font-weight: $weight-bold;
+  // Heavy, and heavy is not what was wrong with them.
+  //
+  // These read as squashed because 800 was the point where the unbundled stack
+  // fell through to `Segoe UI Black` — a poster face with closed counters, not
+  // a heavier cut of the text face. The weight was blamed for what the typeface
+  // was doing. Inter has a true ExtraBold whose counters stay open at the
+  // 13.76px the titlebar sets these at, so the presence comes back without the
+  // smear, and dropping to bold only made the app's own navigation quieter than
+  // the labels around it.
+  font-weight: $weight-heavy;
   letter-spacing: 0.01em;
   white-space: nowrap;
   cursor: pointer;

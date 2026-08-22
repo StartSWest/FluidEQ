@@ -13,6 +13,7 @@ Four larger components have their own files beside this one:
                                      OPRA-ATTRIBUTION.txt
   AutoEq          MIT                AutoEq-LICENSE.txt
   Inter           OFL-1.1            Inter-LICENSE.txt
+  Cascadia Mono   OFL-1.1            CascadiaMono-LICENSE.txt
 
 Equalizer APO is the audio engine; FluidEQ writes its configuration. Its
 installer ships with FluidEQ, unmodified. The corresponding source for the
@@ -42,6 +43,24 @@ licensed under the SIL Open Font License 1.1, included as Inter-LICENSE.txt
 beside this notice. The OFL permits bundling in and selling of an application;
 it forbids selling the fonts on their own, and reserves no name that would
 restrict this use.
+
+Cascadia Mono is the typeface for text that has to be read a character at a
+time — the configuration inspector, the bug report, version strings. Two
+variable font files ship in the application bundle, in assets/fonts:
+
+  CascadiaMono.woff2        upright, weight axis 200-700
+  CascadiaMonoItalic.woff2  italic, weight axis 200-700
+
+Both are taken unmodified from the Cascadia Code 2407.24 release published by
+Microsoft Corporation at https://github.com/microsoft/cascadia-code, and are
+licensed under the SIL Open Font License 1.1, included as
+CascadiaMono-LICENSE.txt beside this notice.
+
+Unlike Inter, Cascadia carries a Reserved Font Name — "Cascadia Code". FluidEQ
+ships the files unmodified and so may keep the name; a modified copy could not,
+and would have to be renamed before it was redistributed. The Mono variant is
+the one without programming ligatures, which is deliberate: the text it is used
+for is meant to show the characters that are actually present.
 
 
 Karaoke Maker analysis components (Apache-2.0)

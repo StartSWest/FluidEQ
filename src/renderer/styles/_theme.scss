@@ -81,12 +81,16 @@ $weight-display: 900;
 // first — painted in Consolas, so the same kind of text was set in two
 // different faces depending on which panel it appeared in.
 //
-// `ui-monospace` is first for the macOS build, where it is SF Mono. On Windows
-// it does not resolve at all, and on its own it falls all the way through to
-// Times New Roman — a proportional serif. It is only harmless here because
-// Cascadia Mono follows it, which is the argument for never letting it be the
-// last real name in the list.
-$font-mono: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+// Cascadia Mono is bundled (see the `@font-face` pair in App.scss), so it is
+// first and it is what everyone gets. It used to sit behind `ui-monospace`,
+// which resolved to SF Mono on macOS and to nothing at all on Windows — the
+// reason the same text was set differently per machine.
+//
+// The rest of the list is for a load failure rather than for a missing font.
+// `ui-monospace` on its own falls all the way through to Times New Roman here,
+// a proportional serif, which is why Consolas and the generic follow it and
+// why it is never last.
+$font-mono: 'Cascadia Mono', ui-monospace, Consolas, monospace;
 
 // *** Surfaces ***************************************************************
 

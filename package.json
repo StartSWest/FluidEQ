@@ -266,6 +266,7 @@
     },
     "extraResources": [
       "./assets/**",
+      "!./assets/fonts/**",
       {
         "from": "node_modules/regedit/vbs",
         "to": "vbs",
