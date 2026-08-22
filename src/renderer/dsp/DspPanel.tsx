@@ -279,6 +279,7 @@ const DspPanel = ({
               toolbar={
                 <DspEqBar
                   eq={eq}
+                  sampleRate={sampleRate}
                   onChange={(next) => patch({ eq: next })}
                   onCommit={onCommit}
                 />

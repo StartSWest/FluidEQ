@@ -8,6 +8,7 @@ import { useState } from 'react';
 import { FilterTypeEnum } from '../../common/constants';
 import {
   DSP_DEFAULTS,
+  EQ_MAX_BAND_COUNT,
   IEqBandSettings,
   IEqSettings,
 } from '../../common/dsp/chain';
@@ -62,6 +63,56 @@ const DspEqCard = ({ eq, sampleRate, onChange, onCommit }: IDspEqCardProps) => {
   const band = eq.bands[active];
   const fallback = DSP_DEFAULTS.eq.bands[active] ?? band;
   const isFlat = NO_GAIN.has(band.type);
+
+  /**
+   * A new band beside the selected one, on the side asked for.
+   *
+   * Its frequency is the geometric mean of the pair it lands between, which is
+   * the midpoint on a log axis and therefore the midpoint the graph and the ear
+   * both see — halfway between 100 Hz and 1 kHz is 316 Hz, not 550. Past either
+   * end there is no neighbour to average with, so it goes half an octave beyond
+   * the last band rather than on top of it.
+   *
+   * It arrives flat, at the Q of the band it was added next to. A new band that
+   * changed the sound the moment it appeared would be a second edit nobody
+   * asked for.
+   */
+  const addBand = (side: 'left' | 'right') => {
+    if (eq.bands.length >= EQ_MAX_BAND_COUNT) {
+      return;
+    }
+    const at = side === 'left' ? active : active + 1;
+    const before = eq.bands[at - 1];
+    const after = eq.bands[at];
+    let frequency: number;
+    if (before && after) {
+      frequency = Math.sqrt(before.frequency * after.frequency);
+    } else if (after) {
+      frequency = after.frequency / Math.SQRT2;
+    } else {
+      frequency = before.frequency * Math.SQRT2;
+    }
+    const inserted: IEqBandSettings = {
+      enabled: true,
+      type: FilterTypeEnum.PK,
+      frequency: Math.round(Math.min(20_000, Math.max(20, frequency))),
+      gainDb: 0,
+      quality: band.quality,
+    };
+    const bands = [...eq.bands.slice(0, at), inserted, ...eq.bands.slice(at)];
+    onChange({
+      ...eq,
+      presetId: '',
+      bands,
+      // The rack the user is building is now the authored curve, or the next
+      // change of size would fit back to the one they were editing away from.
+      sourceBands: bands,
+    });
+    // Follow the new band. Adding one and leaving the strip on its neighbour
+    // means the next knob turn edits the wrong band.
+    setSelected(at);
+    onCommit();
+  };
 
   const patchBand = (index: number, next: Partial<IEqBandSettings>) => {
     const bands = eq.bands.map((one, at) =>
@@ -204,6 +255,29 @@ const DspEqCard = ({ eq, sampleRate, onChange, onCommit }: IDspEqCardProps) => {
             onChange={(quality) => patchBand(active, { quality })}
             onCommit={onCommit}
           />
+
+          {/* Quiet, and beside the band they act on: adding a band is a step
+              in building a curve, not the thing this strip is for. */}
+          <div className="dsp-eq-insert">
+            <button
+              type="button"
+              className="button small subtle"
+              disabled={eq.bands.length >= EQ_MAX_BAND_COUNT}
+              title={t('dsp.eq.addLeft')}
+              onClick={() => addBand('left')}
+            >
+              + ◀
+            </button>
+            <button
+              type="button"
+              className="button small subtle"
+              disabled={eq.bands.length >= EQ_MAX_BAND_COUNT}
+              title={t('dsp.eq.addRight')}
+              onClick={() => addBand('right')}
+            >
+              ▶ +
+            </button>
+          </div>
 
           <button
             type="button"

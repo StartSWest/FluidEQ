@@ -11,7 +11,6 @@ import {
   IDspSettings,
   buildEqRack,
   clampDspSettings,
-  rackWithCurveOf,
 } from '../../../common/dsp/chain';
 import { DSP_PRESETS } from '../../../common/dsp/presets';
 
@@ -111,43 +110,6 @@ describe('EQ rack sizes', () => {
     // The standard octave relation: Q = 1 / (2^(n/2) - 2^(-n/2)).
     expect(ten).toBeCloseTo(1.41, 1);
     expect(thirtyOne).toBeCloseTo(4.32, 1);
-  });
-
-  it('carries a curve across a size change instead of flattening it', () => {
-    const source = buildEqRack(10).map((band, index) => ({
-      ...band,
-      gainDb: index < 5 ? 6 : -6,
-    }));
-    const wide = rackWithCurveOf(buildEqRack(31), source);
-    // The low half stays lifted and the high half stays cut, which is the
-    // whole point of resampling rather than resetting.
-    expect(wide[2].gainDb).toBeCloseTo(6, 1);
-    expect(wide[28].gainDb).toBeCloseTo(-6, 1);
-  });
-
-  /**
-   * The defect this exists to prevent, stated as a round trip.
-   *
-   * Reading always from the authored curve means the detour through six bands
-   * costs nothing once the rack returns to the size the curve was written at.
-   */
-  it('returns the original curve after a trip through a smaller rack', () => {
-    const source = buildEqRack(31).map((band, index) => ({
-      ...band,
-      gainDb: Math.round(Math.sin(index / 3) * 6 * 100) / 100,
-    }));
-    const throughSix = rackWithCurveOf(buildEqRack(6), source);
-    const backAgain = rackWithCurveOf(buildEqRack(31), source);
-    expect(backAgain.map((band) => band.gainDb)).toEqual(
-      source.map((band) => band.gainDb),
-    );
-    // POSITIVE CONTROL: resampling from the six-band rack instead — which is
-    // what the broken version did — genuinely does lose the curve, so the test
-    // above is not passing for a trivial reason.
-    const compounded = rackWithCurveOf(buildEqRack(31), throughSix);
-    expect(compounded.map((band) => band.gainDb)).not.toEqual(
-      source.map((band) => band.gainDb),
-    );
   });
 
   it('keeps a stored rack at whatever length it was saved with', () => {

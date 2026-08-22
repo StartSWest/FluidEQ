@@ -79,6 +79,8 @@ const dsp = {
   'dsp.eq.bands': '频段',
   'dsp.eq.shape': '频段类型',
   'dsp.eq.bandOff': '关闭',
+  'dsp.eq.addLeft': '在此频段下方添加一个',
+  'dsp.eq.addRight': '在此频段上方添加一个',
   'dsp.eq.type.peak': '钟形',
   'dsp.eq.type.lowShelf': '低频搁架',
   'dsp.eq.type.highShelf': '高频搁架',

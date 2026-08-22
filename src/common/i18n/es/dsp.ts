@@ -81,6 +81,8 @@ const dsp = {
   'dsp.eq.bands': 'Bandas',
   'dsp.eq.shape': 'Tipo de banda',
   'dsp.eq.bandOff': 'Apagada',
+  'dsp.eq.addLeft': 'Añadir una banda por debajo de esta',
+  'dsp.eq.addRight': 'Añadir una banda por encima de esta',
   'dsp.eq.type.peak': 'Campana',
   'dsp.eq.type.lowShelf': 'Shelf grave',
   'dsp.eq.type.highShelf': 'Shelf agudo',

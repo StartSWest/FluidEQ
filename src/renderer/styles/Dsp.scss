@@ -514,6 +514,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   align-self: center;
 }
 
+// The pair reads as one control with two directions, so they sit together
+// rather than being spaced like two unrelated buttons.
+.dsp-eq-insert {
+  display: flex;
+  align-self: center;
+  gap: 4px;
+}
+
 // The preset picker, top-left of the page: it is the fastest way to change
 // everything below it, so it reads first.
 // Lives in the card header now, so it takes the row and leaves the bypass

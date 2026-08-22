@@ -82,6 +82,8 @@ const dsp = {
   'dsp.eq.bands': 'बैंड',
   'dsp.eq.shape': 'बैंड का प्रकार',
   'dsp.eq.bandOff': 'बंद',
+  'dsp.eq.addLeft': 'इसके नीचे एक बैंड जोड़ें',
+  'dsp.eq.addRight': 'इसके ऊपर एक बैंड जोड़ें',
   'dsp.eq.type.peak': 'पीक',
   'dsp.eq.type.lowShelf': 'लो शेल्फ',
   'dsp.eq.type.highShelf': 'हाई शेल्फ',

@@ -11,8 +11,8 @@ import {
   EQ_RACK_SIZES,
   IEqSettings,
   buildEqRack,
-  rackWithCurveOf,
 } from '../../common/dsp/chain';
+import { rackMatchingCurveOf } from './rack';
 import { EQ_PRESETS, isCompleteEqPreset } from '../../common/dsp/eqPresets';
 import { TranslationKey } from '../../common/i18n/en';
 import { useTranslation } from '../utils/I18nContext';
@@ -21,6 +21,8 @@ import DspEqImportDialog from './DspEqImportDialog';
 
 interface IDspEqBarProps {
   eq: IEqSettings;
+  /** The fit is done against real filter responses, which are rate-dependent. */
+  sampleRate: number;
   onChange: (next: IEqSettings) => void;
   onCommit: () => void;
 }
@@ -35,7 +37,7 @@ interface IDspEqBarProps {
  * it — a strip of nothing wide enough to look like a bug, which is exactly how
  * it was reported.
  */
-const DspEqBar = ({ eq, onChange, onCommit }: IDspEqBarProps) => {
+const DspEqBar = ({ eq, sampleRate, onChange, onCommit }: IDspEqBarProps) => {
   const { t } = useTranslation();
   const [notice, setNotice] = useState('');
   const [isImporting, setIsImporting] = useState(false);
@@ -61,7 +63,7 @@ const DspEqBar = ({ eq, onChange, onCommit }: IDspEqBarProps) => {
       // Untouched: the rack size is a resolution, not an edit, so the curve
       // somebody authored stays the reference for every later size.
       sourceBands: source,
-      bands: rackWithCurveOf(buildEqRack(count), source),
+      bands: rackMatchingCurveOf(buildEqRack(count), source, sampleRate),
     });
     onCommit();
   };
@@ -87,7 +89,7 @@ const DspEqBar = ({ eq, onChange, onCommit }: IDspEqBarProps) => {
       // afterwards reads the preset at full detail rather than reading back
       // whatever the current rack could hold of it.
       sourceBands: asFifteen,
-      bands: rackWithCurveOf(eq.bands, asFifteen),
+      bands: rackMatchingCurveOf(eq.bands, asFifteen, sampleRate),
     });
     onCommit();
   };

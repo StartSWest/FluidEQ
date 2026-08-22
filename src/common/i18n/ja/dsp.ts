@@ -81,6 +81,8 @@ const dsp = {
   'dsp.eq.bands': 'バンド',
   'dsp.eq.shape': 'バンドの種類',
   'dsp.eq.bandOff': 'オフ',
+  'dsp.eq.addLeft': 'このバンドの下に追加',
+  'dsp.eq.addRight': 'このバンドの上に追加',
   'dsp.eq.type.peak': 'ピーク',
   'dsp.eq.type.lowShelf': 'ローシェルフ',
   'dsp.eq.type.highShelf': 'ハイシェルフ',

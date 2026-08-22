@@ -308,54 +308,6 @@ export const buildEqRack = (count: number): readonly IEqBandSettings[] => {
   }));
 };
 
-/**
- * One rack's gains, read onto another rack's frequencies.
- *
- * Changing from ten bands to thirty-one used to flatten the curve, because the
- * new rack arrives at 0 dB and there is nothing that says the old shape should
- * survive. It should: the user chose a resolution, not a different sound.
- *
- * Interpolated in log frequency, which is the axis the ear and the graph both
- * use — halfway between 100 Hz and 10 kHz is 1 kHz, not 5,050 Hz. Beyond the
- * source's ends the nearest gain is held rather than extrapolated, so a rack
- * that reaches further than the curve did flattens out instead of inventing a
- * boost nobody asked for.
- *
- * Only the gain travels. Type, frequency and Q belong to the rack being moved
- * to, or it is not that rack any more.
- */
-export const rackWithCurveOf = (
-  target: readonly IEqBandSettings[],
-  source: readonly IEqBandSettings[],
-): readonly IEqBandSettings[] => {
-  if (source.length === 0) {
-    return target;
-  }
-  const points = source
-    .map((band) => ({ hz: Math.log2(band.frequency), gainDb: band.gainDb }))
-    .sort((a, b) => a.hz - b.hz);
-  return target.map((band) => {
-    const hz = Math.log2(band.frequency);
-    if (hz <= points[0].hz) {
-      return { ...band, gainDb: points[0].gainDb };
-    }
-    const last = points[points.length - 1];
-    if (hz >= last.hz) {
-      return { ...band, gainDb: last.gainDb };
-    }
-    const upper = points.findIndex((point) => point.hz >= hz);
-    const a = points[upper - 1];
-    const b = points[upper];
-    const span = b.hz - a.hz;
-    const ratio = span === 0 ? 0 : (hz - a.hz) / span;
-    return {
-      ...band,
-      gainDb:
-        Math.round((a.gainDb + (b.gainDb - a.gainDb) * ratio) * 100) / 100,
-    };
-  });
-};
-
 export const DSP_DEFAULTS: IDspSettings = {
   eq: {
     enabled: false,

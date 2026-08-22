@@ -82,6 +82,8 @@ const dsp = {
   'dsp.eq.bands': 'Полосы',
   'dsp.eq.shape': 'Тип полосы',
   'dsp.eq.bandOff': 'Выкл',
+  'dsp.eq.addLeft': 'Добавить полосу ниже этой',
+  'dsp.eq.addRight': 'Добавить полосу выше этой',
   'dsp.eq.type.peak': 'Колокол',
   'dsp.eq.type.lowShelf': 'Низкий шельф',
   'dsp.eq.type.highShelf': 'Высокий шельф',
