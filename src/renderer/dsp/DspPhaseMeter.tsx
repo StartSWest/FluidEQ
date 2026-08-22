@@ -9,13 +9,19 @@ import { useTranslation } from '../utils/I18nContext';
 import { readDspAnalyser, readDspCorrelation } from './store';
 
 /** Track, ticks, then the reading underneath. */
-const HEIGHT = 54;
+const HEIGHT = 64;
 
-/** Where the scale is marked, and what each mark means at a glance. */
+/**
+ * Where the scale is marked.
+ *
+ * The centre carries no label. The reading is printed under the middle of the
+ * track, so a "0" there collided with it — and the bright line up the centre of
+ * the bar already says where zero is.
+ */
 const TICKS: [number, string][] = [
   [-1, '-1'],
   [-0.5, ''],
-  [0, '0'],
+  [0, ''],
   [0.5, ''],
   [1, '+1'],
 ];
@@ -82,7 +88,9 @@ const DspPhaseMeter = () => {
       // to travel is not a meter. The number goes under the scale instead, where
       // it can be large and the track can have the whole width.
       const trackW = box.width;
-      const trackH = 16;
+      // Tall enough to be a bar rather than a line: this block sits beside the
+      // preamp's dials and a thin strip beside a knob reads as a divider.
+      const trackH = 26;
       const mid = trackW / 2;
       const atX = (value: number) => mid + (value * trackW) / 2;
 
@@ -142,7 +150,7 @@ const DspPhaseMeter = () => {
       // reading, and the track above it is the context for it.
       context.textBaseline = 'top';
       context.font =
-        '600 16px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif';
+        '600 18px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif';
       context.fillStyle = warm
         ? 'rgba(255,140,158,0.95)'
         : 'rgba(255,255,255,0.9)';
@@ -150,7 +158,7 @@ const DspPhaseMeter = () => {
       context.fillText(
         value,
         mid - context.measureText(value).width / 2,
-        trackH + 15,
+        trackH + 17,
       );
 
       schedule();

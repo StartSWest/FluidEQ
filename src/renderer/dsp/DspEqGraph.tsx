@@ -416,8 +416,15 @@ const DspEqGraph = ({
        * playing, and random grain would strobe rather than sit still.
        */
       if (liveEq.fuzzAmount > 0) {
-        const grain = liveEq.fuzzAmount * 2.6;
-        [0.6, -0.9].forEach((phase, pass) => {
+        // Enough to read as texture on the line, and no more. A first attempt
+        // at twice this was a separate scribble beside the curve rather than a
+        // property of it. In the curve's own colours: an orange pass read as a
+        // second, unrelated trace.
+        const grain = 1 + liveEq.fuzzAmount * 2.5;
+        [
+          { phase: 0.6, colour: 'rgba(0,229,207,0.42)', width: 1.2 },
+          { phase: -0.9, colour: 'rgba(156,255,244,0.28)', width: 1 },
+        ].forEach(({ phase, colour, width }) => {
           context.beginPath();
           for (let i = 0; i <= steps; i += 1) {
             const hz = MIN_HZ * (MAX_HZ / MIN_HZ) ** (i / steps);
@@ -430,9 +437,8 @@ const DspEqGraph = ({
               context.lineTo(X(hz), y);
             }
           }
-          context.strokeStyle =
-            pass === 0 ? 'rgba(0,229,207,0.30)' : 'rgba(255,196,120,0.26)';
-          context.lineWidth = 1;
+          context.strokeStyle = colour;
+          context.lineWidth = width;
           context.stroke();
         });
       }
