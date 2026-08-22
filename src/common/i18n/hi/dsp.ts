@@ -70,8 +70,6 @@ const dsp = {
   'dsp.eqModel.clean': 'साफ़',
   'dsp.eqModel.proportional': 'केंद्रित',
   'dsp.eqModel.wide': 'चौड़ा',
-  'dsp.eqModel.warm': 'गर्म',
-  'dsp.eqModel.driven': 'ड्रिवन',
   'dsp.eqEngine.label': 'इंजन',
   'dsp.eqEngine.serial': 'श्रृंखला',
   'dsp.eqEngine.parallel': 'समानांतर',

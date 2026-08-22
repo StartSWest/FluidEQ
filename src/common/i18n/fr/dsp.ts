@@ -68,8 +68,6 @@ const dsp = {
   'dsp.eqModel.clean': 'Net',
   'dsp.eqModel.proportional': 'Focalisé',
   'dsp.eqModel.wide': 'Large',
-  'dsp.eqModel.warm': 'Chaud',
-  'dsp.eqModel.driven': 'Saturé',
   'dsp.eqEngine.label': 'Moteur',
   'dsp.eqEngine.serial': 'Série',
   'dsp.eqEngine.parallel': 'Parallèle',

@@ -103,31 +103,9 @@ export interface IEqBandSettings {
  * sold, and a mode named after somebody's console is a trademark problem
  * rather than a technical one.
  */
-export type TEqModel = 'clean' | 'proportional' | 'wide' | 'warm' | 'driven';
+export type TEqModel = 'clean' | 'proportional' | 'wide';
 
-export const EQ_MODELS: readonly TEqModel[] = [
-  'clean',
-  'proportional',
-  'wide',
-  'warm',
-  'driven',
-];
-
-/**
- * How hard each character drives the saturation stage, or 0 for none.
- *
- * `warm` and `driven` are the only two that put a non-linearity in the path,
- * and that is the difference no arrangement of filters can produce: biquads
- * cannot invent a frequency that was not already there. `warm` is meant to be
- * noticed only when switched off; `driven` is meant to be heard.
- */
-export const EQ_MODEL_DRIVE: Record<TEqModel, number> = {
-  clean: 0,
-  proportional: 0,
-  wide: 0,
-  warm: 2.2,
-  driven: 6,
-};
+export const EQ_MODELS: readonly TEqModel[] = ['clean', 'proportional', 'wide'];
 
 /**
  * How the bands are put against the audio, which is a different question from

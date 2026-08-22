@@ -67,8 +67,6 @@ const dsp = {
   'dsp.eqModel.clean': '纯净',
   'dsp.eqModel.proportional': '聚焦',
   'dsp.eqModel.wide': '宽阔',
-  'dsp.eqModel.warm': '温暖',
-  'dsp.eqModel.driven': '驱动',
   'dsp.eqEngine.label': '引擎',
   'dsp.eqEngine.serial': '串联',
   'dsp.eqEngine.parallel': '并联',
