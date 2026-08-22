@@ -34,6 +34,12 @@ import {
   createBandDynamics,
   refreshBandDynamics,
 } from '../dynamics';
+import { LINEAR_PHASE_LATENCY } from '../linearPhase';
+import {
+  IDelayLineState,
+  createDelayLine,
+  processDelayLine,
+} from '../delayLine';
 import {
   CONVOLVER_WARMUP,
   IConvolverKernel,
@@ -127,6 +133,17 @@ class DspProcessor extends AudioWorkletProcessor {
    * repoints them and the array is only regrown when the rack changes length.
    */
   private readonly bandDynamics: IBandDynamics[][] = [];
+
+  /**
+   * The same latency for the channel that is not being filtered.
+   *
+   * Mid/side filters the middle or the sides and passes the other through, so
+   * with linear phase running one of them arrived 181 ms ahead of the other and
+   * the two were then summed back into left and right. That is not a
+   * colouration, it is the image coming apart. Built once because it is a fixed
+   * 8704 samples and rebuilding it would drop the audio inside it.
+   */
+  private readonly bypassDelays: IDelayLineState[] = [];
 
   private convolvers: IConvolverState[] | undefined;
 
@@ -230,6 +247,7 @@ class DspProcessor extends AudioWorkletProcessor {
       );
       this.eqOversamplers.push(createOversampler());
       this.subsonicStates.push(createBiquadState());
+      this.bypassDelays.push(createDelayLine(LINEAR_PHASE_LATENCY));
       this.fuzz.push(createSaturator(RENDER_QUANTUM));
     }
     this.rebuildLimiters();
@@ -401,6 +419,13 @@ class DspProcessor extends AudioWorkletProcessor {
           eq.modelAmount,
         ),
       );
+  }
+
+  /** Whether a convolver is actually in the signal path right now, which is
+   * the only condition under which anything needs delaying to match it. */
+  private isLinearRunning(): boolean {
+    const { eq } = this.settings;
+    return eq.enabled && eq.phase === 'linear' && this.convolvers !== undefined;
   }
 
   /**
@@ -612,8 +637,16 @@ class DspProcessor extends AudioWorkletProcessor {
         isMidSide &&
         ((stereo === 'mid' && channel === 1) ||
           (stereo === 'side' && channel === 0));
-      if (target.length > 0 && !skip) {
-        this.processChannel(target, Math.min(channel, CHANNELS - 1));
+      const slot = Math.min(channel, CHANNELS - 1);
+      if (target.length === 0) {
+        // Nothing to do either way.
+      } else if (!skip) {
+        this.processChannel(target, slot);
+      } else if (this.isLinearRunning()) {
+        // Untouched, but exactly as late as the half that went through the
+        // convolver. Without this the mid/side decode below recombines two
+        // signals 181 ms apart.
+        processDelayLine(this.bypassDelays[slot], target);
       }
     }
 

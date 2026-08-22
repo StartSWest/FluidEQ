@@ -72,8 +72,10 @@ export const KERNEL_LATENCY = KERNEL_SIZE / 2;
  * quietly puts the sound a fifth of a second behind the transport should say
  * so before it is chosen, not after somebody notices the karaoke drifting.
  */
+export const LINEAR_PHASE_LATENCY = KERNEL_LATENCY + CONVOLVER_LATENCY;
+
 export const linearPhaseLatencyMs = (sampleRate: number): number =>
-  Math.round(((KERNEL_LATENCY + CONVOLVER_LATENCY) / sampleRate) * 1_000);
+  Math.round((LINEAR_PHASE_LATENCY / sampleRate) * 1_000);
 
 /**
  * The rack's own impulse response — the exact thing the bands do, in time.

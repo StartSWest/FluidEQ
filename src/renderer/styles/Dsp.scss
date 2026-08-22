@@ -436,6 +436,24 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   opacity: 0.4;
 }
 
+// Which bands react, readable without selecting each one in turn.
+//
+// A dashed ring rather than a colour: the pick already spends colour on
+// selected and dimming on disabled, and a third colour among fifteen small
+// squares is a code nobody can hold. Dashed matches the dashed at-rest curve
+// on the graph above, so the two say the same thing the same way.
+.dsp-eq-pick.is-dynamic {
+  border-style: dashed;
+  border-color: rgba($secondary-default, 0.75);
+}
+
+// Selected AND dynamic: keep the solid selected ring, and put the dashed mark
+// inside it. Two dashed borders would be indistinguishable from one.
+.dsp-eq-pick.is-dynamic.is-active {
+  border-style: solid;
+  box-shadow: inset 0 0 0 1px rgba($black, 0.55);
+}
+
 // The preamp's block on the left, the selected band's on the right. Two
 // panels rather than one row divided by a rule: they are different scopes —
 // the whole curve's headroom against one band's controls — and a panel each
@@ -574,6 +592,23 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   display: flex;
   align-self: center;
   gap: 4px;
+}
+
+// Its own block inside the strip, the way the preamp has one.
+//
+// Frec, Ganancia and Ancho describe the filter's shape; these two describe
+// when that shape is allowed to happen, which is a different question. Loose in
+// the same row the threshold read as a fourth shape parameter, and the toggle
+// that governs it sat three controls away from what it governed.
+.dsp-eq-dynamic {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 12px;
+  border: 1px solid rgba($white, 0.06);
+  border-radius: 10px;
+  background: rgba($black, 0.18);
 }
 
 // The preset picker, top-left of the page: it is the fastest way to change
