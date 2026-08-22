@@ -365,7 +365,55 @@ class DspProcessor extends AudioWorkletProcessor {
       } else {
         target.set(source);
         this.ensureScratch(target.length);
+      }
+    }
+
+    /**
+     * Mid/side, and why it wraps the whole loop rather than sitting inside it.
+     *
+     * Mid is what both speakers share and side is what they differ by, so
+     * neither exists in one channel: the sum and the difference have to be
+     * taken across the pair before anything is filtered, and undone after.
+     * That is the entire reason this cannot live in `processChannel`.
+     *
+     * What it buys is the thing stereo EQ cannot do at all — brightening a
+     * centred vocal without touching the reverb around it, or clearing the
+     * bass out of the sides while leaving the middle whole.
+     */
+    const { stereo } = this.settings.eq;
+    const isMidSide = stereo !== 'stereo' && output.length >= 2;
+    if (isMidSide) {
+      const [left, right] = output;
+      for (let i = 0; i < left.length; i += 1) {
+        const mid = (left[i] + right[i]) * 0.5;
+        const sideValue = (left[i] - right[i]) * 0.5;
+        left[i] = mid;
+        right[i] = sideValue;
+      }
+    }
+
+    for (let channel = 0; channel < output.length; channel += 1) {
+      const target = output[channel];
+      // In mid/side the two slots are no longer left and right: slot 0 carries
+      // the middle and slot 1 the difference, and only the chosen one is
+      // filtered. The other passes untouched, which is what makes this a tool
+      // rather than a different way of spelling stereo.
+      const skip =
+        isMidSide &&
+        ((stereo === 'mid' && channel === 1) ||
+          (stereo === 'side' && channel === 0));
+      if (target.length > 0 && !skip) {
         this.processChannel(target, Math.min(channel, CHANNELS - 1));
+      }
+    }
+
+    if (isMidSide) {
+      const [left, right] = output;
+      for (let i = 0; i < left.length; i += 1) {
+        const mid = left[i];
+        const sideValue = right[i];
+        left[i] = mid + sideValue;
+        right[i] = mid - sideValue;
       }
     }
     return true;

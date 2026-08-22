@@ -22,6 +22,7 @@ const withBands = (
   model: 'clean',
   modelAmount: 1,
   engine: 'serial',
+  stereo: 'stereo',
   oversample: 1,
   subsonicHz: 0,
   fuzzAmount: 0,

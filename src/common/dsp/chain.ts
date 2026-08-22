@@ -119,6 +119,21 @@ export const EQ_MODELS: readonly TEqModel[] = ['clean', 'proportional', 'wide'];
  */
 export type TEqEngine = 'serial' | 'parallel';
 
+/**
+ * Which part of the stereo image the bands act on.
+ *
+ * `stereo` filters left and right alike, which is what an equaliser normally
+ * does. The other two convert to mid and side first — what both speakers share,
+ * and what they differ by — filter one of them, and convert back.
+ *
+ * That is the thing a stereo equaliser cannot do at all: brightening a centred
+ * vocal without touching the reverb around it, or clearing bass out of the
+ * sides while leaving the middle whole.
+ */
+export type TEqStereo = 'stereo' | 'mid' | 'side';
+
+export const EQ_STEREO_MODES: readonly TEqStereo[] = ['stereo', 'mid', 'side'];
+
 export const EQ_ENGINES: readonly TEqEngine[] = ['serial', 'parallel'];
 
 /** 1 is off. Four is the most the two-stage oversampler is built for. */
@@ -138,6 +153,8 @@ export interface IEqSettings {
   modelAmount: number;
   /** @see TEqEngine */
   engine: TEqEngine;
+  /** @see TEqStereo */
+  stereo: TEqStereo;
   /**
    * Run the bands at twice the rate.
    *
@@ -405,6 +422,7 @@ export const DSP_DEFAULTS: IDspSettings = {
     model: 'clean',
     modelAmount: 1,
     engine: 'serial',
+    stereo: 'stereo',
     oversample: 1,
     subsonicHz: 0,
     fuzzAmount: 0,
@@ -524,6 +542,9 @@ export const clampDspSettings = (value: unknown): IDspSettings => {
       engine: EQ_ENGINES.includes(eq.engine as TEqEngine)
         ? (eq.engine as TEqEngine)
         : 'serial',
+      stereo: EQ_STEREO_MODES.includes(eq.stereo as TEqStereo)
+        ? (eq.stereo as TEqStereo)
+        : 'stereo',
       // A stored `true` predates the factor and meant twice, so it still does.
       oversample: OVERSAMPLE_FACTORS.includes(eq.oversample as number)
         ? (eq.oversample as number)

@@ -11,10 +11,12 @@ import {
   EQ_ENGINES,
   EQ_MODELS,
   EQ_RACK_SIZES,
+  EQ_STEREO_MODES,
   OVERSAMPLE_FACTORS,
   IEqSettings,
   TEqEngine,
   TEqModel,
+  TEqStereo,
   buildEqRack,
 } from '../../common/dsp/chain';
 import { rackMatchingCurveOf } from './rack';
@@ -230,6 +232,26 @@ const DspEqBar = ({ eq, sampleRate, onChange, onCommit }: IDspEqBarProps) => {
           }))}
           handleChange={(next: string) => {
             onChange({ ...eq, oversample: Number(next) });
+            onCommit();
+          }}
+        />
+      </div>
+
+      {/* Which part of the image the bands act on. Mid and side are the one
+          thing a stereo equaliser cannot do at all. */}
+      <div className="dsp-eq-preset dsp-eq-rack">
+        <span className="dsp-eq-preset-label">{t('dsp.eqStereo.label')}</span>
+        <Dropdown
+          name={t('dsp.eqStereo.label')}
+          value={eq.stereo}
+          isDisabled={false}
+          options={EQ_STEREO_MODES.map((mode) => ({
+            value: mode,
+            label: t(`dsp.eqStereo.${mode}` as TranslationKey),
+            display: t(`dsp.eqStereo.${mode}` as TranslationKey),
+          }))}
+          handleChange={(next: string) => {
+            onChange({ ...eq, stereo: next as TEqStereo });
             onCommit();
           }}
         />
