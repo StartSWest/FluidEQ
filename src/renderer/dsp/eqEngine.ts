@@ -6,7 +6,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { TEqEngine } from '../../common/dsp/chain';
 import { IBiquadCoefficients, IBiquadState, processBiquad } from './biquad';
-import { IOversamplerState, downsample2x, upsample2x } from './oversample';
+import { IOversamplerState, downsample, upsample } from './oversample';
 
 /**
  * How the bands are put against the audio, which is a separate question from
@@ -53,14 +53,15 @@ export const processEqOversampled = (
   /** Whichever topology was chosen. This is not a third one. */
   engine: TEqEngine,
   oversampler: IOversamplerState,
-  /** All three are exactly twice `target`'s length. */
+  /** 2 or 4. The three buffers below are exactly this many times as long. */
+  factor: number,
   doubled: Float32Array,
   dryDoubled: Float32Array,
   wetDoubled: Float32Array,
 ): void => {
-  upsample2x(oversampler, target, doubled);
+  upsample(oversampler, target, doubled, factor);
   processEqBands(states, coefficients, doubled, engine, dryDoubled, wetDoubled);
-  downsample2x(oversampler, doubled, target);
+  downsample(oversampler, doubled, target, factor);
 };
 
 export const processEqBands = (

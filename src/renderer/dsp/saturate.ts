@@ -7,8 +7,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import {
   IOversamplerState,
   createOversampler,
-  downsample2x,
-  upsample2x,
+  downsample,
+  upsample,
 } from './oversample';
 
 /**
@@ -60,11 +60,11 @@ export const saturateBlock = (
   if (state.doubled.length !== doubled) {
     state.doubled = new Float32Array(doubled);
   }
-  upsample2x(state.oversampler, target, state.doubled);
+  upsample(state.oversampler, target, state.doubled, 2);
   for (let i = 0; i < doubled; i += 1) {
     state.doubled[i] = saturateSample(state.doubled[i], drive);
   }
-  downsample2x(state.oversampler, state.doubled, target);
+  downsample(state.oversampler, state.doubled, target, 2);
 };
 
 /**

@@ -11,6 +11,7 @@ import {
   EQ_ENGINES,
   EQ_MODELS,
   EQ_RACK_SIZES,
+  OVERSAMPLE_FACTORS,
   IEqSettings,
   TEqEngine,
   TEqModel,
@@ -220,22 +221,15 @@ const DspEqBar = ({ eq, sampleRate, onChange, onCommit }: IDspEqBarProps) => {
         </span>
         <Dropdown
           name={t('dsp.eqOversample.label')}
-          value={eq.oversample ? 'on' : 'off'}
+          value={String(eq.oversample)}
           isDisabled={false}
-          options={[
-            {
-              value: 'off',
-              label: t('dsp.eqOversample.off'),
-              display: t('dsp.eqOversample.off'),
-            },
-            {
-              value: 'on',
-              label: t('dsp.eqOversample.on'),
-              display: t('dsp.eqOversample.on'),
-            },
-          ]}
+          options={OVERSAMPLE_FACTORS.map((factor) => ({
+            value: String(factor),
+            label: factor === 1 ? t('dsp.eqOversample.off') : `${factor}x`,
+            display: factor === 1 ? t('dsp.eqOversample.off') : `${factor}x`,
+          }))}
           handleChange={(next: string) => {
-            onChange({ ...eq, oversample: next === 'on' });
+            onChange({ ...eq, oversample: Number(next) });
             onCommit();
           }}
         />

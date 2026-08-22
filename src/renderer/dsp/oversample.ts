@@ -5,26 +5,24 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 /**
- * 2x oversampling, for putting a non-linearity somewhere it cannot alias.
+ * Oversampling, at two times or four.
  *
- * A non-linearity manufactures harmonics above its input, and everything past
- * Nyquist folds back down as inharmonic content — tones that were never in the
- * music and do not move with it. That folding is what "fuzzy" actually sounds
- * like, and it is why every commercial saturator oversamples.
+ * Four is built as two halvings rather than as one filter with a quarter-rate
+ * cutoff, which is how it is normally done and is cheaper as well as simpler:
+ * each stage only ever has to reject the octave immediately above it, so the
+ * same 63-tap half-band filter serves both. A single 4x filter would need a far
+ * longer kernel for the same stopband.
  *
  * `WaveShaperNode` has this built in and the exciter uses it, but there is no
  * native node inside an `AudioWorkletProcessor`, so the worklet needs its own.
- * The roadmap's block 1 wants this anyway for the true-peak limiter's detector;
- * this is that machinery, at the modest end.
- *
- * Two times rather than four: it puts the fold-back point at 48 kHz for a
- * 48 kHz session, which is far enough above the audible band that what folds is
- * both tiny and inaudible, and it costs half of what 4x would. The filter is
- * the expensive part, not the rate.
+ * The roadmap's block 1 wants this machinery for the true-peak limiter too.
  */
 
 /** Odd, so the filter has an exact centre tap and a whole-sample delay. */
 const TAPS = 63;
+
+/** Two halvings is the most any supported factor needs. */
+const STAGES = 2;
 
 /**
  * A windowed-sinc low pass at a quarter of the doubled rate.
@@ -59,15 +57,17 @@ const designHalfBand = (): Float64Array => {
 const HALF_BAND = designHalfBand();
 
 export interface IOversamplerState {
-  /** History for the interpolating filter, in the doubled domain. */
-  up: Float64Array;
-  /** History for the decimating filter, also doubled. */
-  down: Float64Array;
+  /** One history per halving, per direction. */
+  up: Float64Array[];
+  down: Float64Array[];
+  /** The intermediate buffer a 4x pass needs, at twice the block length. */
+  middle: Float32Array;
 }
 
-export const createOversampler = (): IOversamplerState => ({
-  up: new Float64Array(TAPS),
-  down: new Float64Array(TAPS),
+export const createOversampler = (blockSize = 128): IOversamplerState => ({
+  up: Array.from({ length: STAGES }, () => new Float64Array(TAPS)),
+  down: Array.from({ length: STAGES }, () => new Float64Array(TAPS)),
+  middle: new Float32Array(blockSize * 2),
 });
 
 /** One sample through a filter whose history is kept as a shift register. */
@@ -84,36 +84,85 @@ const push = (history: Float64Array, sample: number): number => {
 };
 
 /**
- * `input` at N samples becomes `output` at 2N.
+ * One halving, doubled: N samples in, 2N out.
  *
  * Zero-stuffing then filtering, which is what interpolation is. The x2 restores
  * the level the inserted zeros halve.
  */
-export const upsample2x = (
-  state: IOversamplerState,
+const upOnce = (
+  history: Float64Array,
   input: Float32Array,
   output: Float32Array,
+  length: number,
 ): void => {
-  for (let i = 0; i < input.length; i += 1) {
-    output[i * 2] = push(state.up, input[i]) * 2;
-    output[i * 2 + 1] = push(state.up, 0) * 2;
+  for (let i = 0; i < length; i += 1) {
+    output[i * 2] = push(history, input[i]) * 2;
+    output[i * 2 + 1] = push(history, 0) * 2;
   }
 };
 
 /**
- * `input` at 2N samples becomes `output` at N.
+ * One halving, back down: 2N in, N out.
  *
  * Filtered before decimating, never after: dropping every other sample of an
  * unfiltered signal is exactly the aliasing this exists to prevent.
  */
-export const downsample2x = (
+const downOnce = (
+  history: Float64Array,
+  input: Float32Array,
+  output: Float32Array,
+  length: number,
+): void => {
+  for (let i = 0; i < length; i += 1) {
+    const kept = push(history, input[i * 2]);
+    push(history, input[i * 2 + 1]);
+    output[i] = kept;
+  }
+};
+
+const ensureMiddle = (state: IOversamplerState, length: number): void => {
+  if (state.middle.length !== length) {
+    state.middle = new Float32Array(length);
+  }
+};
+
+/**
+ * `input` at N samples becomes `output` at N x factor.
+ *
+ * `factor` is 2 or 4; anything else is a copy, because a caller asking for 1x
+ * wants the signal untouched rather than an error.
+ */
+export const upsample = (
   state: IOversamplerState,
   input: Float32Array,
   output: Float32Array,
+  factor: number,
 ): void => {
-  for (let i = 0; i < output.length; i += 1) {
-    const kept = push(state.down, input[i * 2]);
-    push(state.down, input[i * 2 + 1]);
-    output[i] = kept;
+  const { length } = input;
+  if (factor === 2) {
+    upOnce(state.up[0], input, output, length);
+    return;
   }
+  ensureMiddle(state, length * 2);
+  upOnce(state.up[0], input, state.middle, length);
+  upOnce(state.up[1], state.middle, output, length * 2);
+};
+
+/** `input` at N x factor becomes `output` at N. */
+export const downsample = (
+  state: IOversamplerState,
+  input: Float32Array,
+  output: Float32Array,
+  factor: number,
+): void => {
+  const { length } = output;
+  if (factor === 2) {
+    downOnce(state.down[0], input, output, length);
+    return;
+  }
+  ensureMiddle(state, length * 2);
+  // Unwound in the reverse order to the way up, so each stage sees the rate it
+  // was designed for.
+  downOnce(state.down[1], input, state.middle, length * 2);
+  downOnce(state.down[0], state.middle, output, length);
 };

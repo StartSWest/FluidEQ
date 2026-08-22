@@ -121,6 +121,9 @@ export type TEqEngine = 'serial' | 'parallel';
 
 export const EQ_ENGINES: readonly TEqEngine[] = ['serial', 'parallel'];
 
+/** 1 is off. Four is the most the two-stage oversampler is built for. */
+export const OVERSAMPLE_FACTORS: readonly number[] = [1, 2, 4];
+
 export interface IEqSettings {
   enabled: boolean;
   /** @see TEqModel */
@@ -148,7 +151,13 @@ export interface IEqSettings {
    * Off by default, because it costs roughly double the EQ's arithmetic plus a
    * 63-tap filter each way for a difference that lives in the top octave.
    */
-  oversample: boolean;
+  /**
+   * How many times the base rate the bands run at: 1, 2 or 4.
+   *
+   * Four is two halvings rather than one longer filter, so each stage only has
+   * to reject the octave above it.
+   */
+  oversample: number;
   /**
    * A high pass below the audible band, in Hz, or 0 for none.
    *
@@ -396,7 +405,7 @@ export const DSP_DEFAULTS: IDspSettings = {
     model: 'clean',
     modelAmount: 1,
     engine: 'serial',
-    oversample: false,
+    oversample: 1,
     subsonicHz: 0,
     fuzzAmount: 0,
     bands: DEFAULT_EQ_BANDS,
@@ -515,7 +524,10 @@ export const clampDspSettings = (value: unknown): IDspSettings => {
       engine: EQ_ENGINES.includes(eq.engine as TEqEngine)
         ? (eq.engine as TEqEngine)
         : 'serial',
-      oversample: clampBoolean(eq.oversample, false),
+      // A stored `true` predates the factor and meant twice, so it still does.
+      oversample: OVERSAMPLE_FACTORS.includes(eq.oversample as number)
+        ? (eq.oversample as number)
+        : (eq.oversample === true && 2) || 1,
       // Zero means off, and any other value is pulled into a range where a
       // high pass is protective rather than audible.
       subsonicHz:

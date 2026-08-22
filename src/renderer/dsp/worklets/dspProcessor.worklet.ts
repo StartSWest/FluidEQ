@@ -86,11 +86,19 @@ class DspProcessor extends AudioWorkletProcessor {
   private readonly eqOversamplers: IOversamplerState[] = [];
 
   /** Doubled-rate scratch, used only while oversampling is on. */
-  private eqDoubled = new Float32Array(RENDER_QUANTUM * 2);
+  private blockLength = RENDER_QUANTUM;
 
-  private eqDryDoubled = new Float32Array(RENDER_QUANTUM * 2);
+  private eqDoubled = new Float32Array(RENDER_QUANTUM * 4);
 
-  private eqWetDoubled = new Float32Array(RENDER_QUANTUM * 2);
+  private eqWork = new Float32Array(RENDER_QUANTUM);
+
+  private eqDryWork = new Float32Array(RENDER_QUANTUM);
+
+  private eqWetWork = new Float32Array(RENDER_QUANTUM);
+
+  private eqDryDoubled = new Float32Array(RENDER_QUANTUM * 4);
+
+  private eqWetDoubled = new Float32Array(RENDER_QUANTUM * 4);
 
   private eqCoefficients: IBiquadCoefficients[] = [];
 
@@ -163,14 +171,32 @@ class DspProcessor extends AudioWorkletProcessor {
     }
   }
 
+  /**
+   * Views of the oversampling scratch at exactly the current factor's length.
+   *
+   * `subarray` is a view rather than a copy, but it still allocates the view
+   * object — so it happens here, when the factor or the block length changes,
+   * and never inside `process`. Handing the engine a buffer longer than the
+   * work would make it filter the unused tail as though it were audio.
+   */
+  private rebuildOversampleViews(): void {
+    const length = this.blockLength * Math.max(1, this.settings.eq.oversample);
+    this.eqWork = this.eqDoubled.subarray(0, length);
+    this.eqDryWork = this.eqDryDoubled.subarray(0, length);
+    this.eqWetWork = this.eqWetDoubled.subarray(0, length);
+  }
+
   private ensureScratch(length: number): void {
     if (this.low.length === length) {
       return;
     }
+    this.blockLength = length;
     this.eqDry = new Float32Array(length);
-    this.eqDoubled = new Float32Array(length * 2);
-    this.eqDryDoubled = new Float32Array(length * 2);
-    this.eqWetDoubled = new Float32Array(length * 2);
+    // Allocated for the largest factor once, so changing it never allocates.
+    this.eqDoubled = new Float32Array(length * 4);
+    this.eqDryDoubled = new Float32Array(length * 4);
+    this.eqWetDoubled = new Float32Array(length * 4);
+    this.rebuildOversampleViews();
     this.eqWet = new Float32Array(length);
     this.low = new Float32Array(length);
     this.mid = new Float32Array(length);
@@ -191,13 +217,14 @@ class DspProcessor extends AudioWorkletProcessor {
       return;
     }
     this.eqSignature = signature;
+    this.rebuildOversampleViews();
     // Held as a linear multiplier so the sample loop is one multiply rather
     // than a pow per sample.
     this.eqPreampGain = 10 ** (eq.preampDb / 20);
     // Oversampling runs the cascade at twice the rate, so its filters have to
     // be DESIGNED for that rate. Handing it the ordinary set would place every
     // band an octave low — a bug rather than a mode.
-    const designRate = eq.oversample ? sampleRate * 2 : sampleRate;
+    const designRate = sampleRate * eq.oversample;
     // Built at the base rate, because it runs BEFORE the oversampler: a high
     // pass whose job is to keep energy out has nothing to gain from being
     // inside, and doing it first means the oversampler carries less.
@@ -252,16 +279,17 @@ class DspProcessor extends AudioWorkletProcessor {
           this.subsonicCoefficients,
         );
       }
-      if (eq.oversample) {
+      if (eq.oversample > 1) {
         processEqOversampled(
           this.eqStates[slot],
           this.eqCoefficients,
           target,
           eq.engine,
           this.eqOversamplers[slot],
-          this.eqDoubled,
-          this.eqDryDoubled,
-          this.eqWetDoubled,
+          eq.oversample,
+          this.eqWork,
+          this.eqDryWork,
+          this.eqWetWork,
         );
       } else {
         processEqBands(
