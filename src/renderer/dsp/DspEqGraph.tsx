@@ -296,11 +296,42 @@ const DspEqGraph = ({
         context.stroke();
       }
 
+      /**
+       * The rate the filters are actually BUILT at, not the session's.
+       *
+       * With oversampling on, the worklet designs every band for the doubled
+       * or quadrupled rate. Drawing them at the session rate showed a curve
+       * that was not the one being heard — the difference lives near Nyquist,
+       * which is exactly where oversampling is meant to help, so the graph was
+       * hiding the very thing the control does.
+       */
+      const designRate = rate * Math.max(1, liveEq.oversample);
+
       const active = liveEq.bands.map((one) =>
         one.enabled
-          ? biquadCoefficients(toSpec(one), rate, liveEq.model)
+          ? biquadCoefficients(
+              toSpec(one),
+              designRate,
+              liveEq.model,
+              liveEq.modelAmount,
+            )
           : undefined,
       );
+
+      // Audible and, until now, invisible: the subsonic high pass runs ahead of
+      // the bands and shaped the sound without appearing on the curve at all.
+      const subsonic =
+        liveEq.subsonicHz > 0
+          ? biquadCoefficients(
+              {
+                type: FilterTypeEnum.HPQ,
+                frequency: liveEq.subsonicHz,
+                gainDb: 0,
+                quality: 0.707,
+              },
+              rate,
+            )
+          : undefined;
       const steps = Math.max(2, Math.round(plotW(W) / POINT_STEP_PX));
 
       // Each band's own contribution, faint. The sum alone cannot say which
@@ -312,7 +343,7 @@ const DspEqGraph = ({
         context.beginPath();
         for (let i = 0; i <= steps; i += 1) {
           const hz = MIN_HZ * (MAX_HZ / MIN_HZ) ** (i / steps);
-          const y = Y(biquadMagnitudeDb(coefficients, hz, rate));
+          const y = Y(biquadMagnitudeDb(coefficients, hz, designRate));
           if (i === 0) {
             context.moveTo(X(hz), y);
           } else {
@@ -327,16 +358,41 @@ const DspEqGraph = ({
         context.stroke();
       });
 
+      // The cut drawn on its own, in a colder colour than the bands: it is not
+      // a band and cannot be selected or dragged, so it should not look like
+      // one.
+      if (subsonic) {
+        context.beginPath();
+        for (let i = 0; i <= steps; i += 1) {
+          const hz = MIN_HZ * (MAX_HZ / MIN_HZ) ** (i / steps);
+          const y = Y(biquadMagnitudeDb(subsonic, hz, rate));
+          if (i === 0) {
+            context.moveTo(X(hz), y);
+          } else {
+            context.lineTo(X(hz), y);
+          }
+        }
+        context.strokeStyle = 'rgba(120,170,255,0.45)';
+        context.lineWidth = 1.25;
+        context.setLineDash([4, 3]);
+        context.stroke();
+        context.setLineDash([]);
+      }
+
+      const totalAt = (hz: number): number => {
+        let total = subsonic ? biquadMagnitudeDb(subsonic, hz, rate) : 0;
+        active.forEach((coefficients) => {
+          if (coefficients) {
+            total += biquadMagnitudeDb(coefficients, hz, designRate);
+          }
+        });
+        return total;
+      };
+
       context.beginPath();
       for (let i = 0; i <= steps; i += 1) {
         const hz = MIN_HZ * (MAX_HZ / MIN_HZ) ** (i / steps);
-        let total = 0;
-        active.forEach((coefficients) => {
-          if (coefficients) {
-            total += biquadMagnitudeDb(coefficients, hz, rate);
-          }
-        });
-        const y = Y(total);
+        const y = Y(totalAt(hz));
         if (i === 0) {
           context.moveTo(X(hz), y);
         } else {
@@ -347,6 +403,39 @@ const DspEqGraph = ({
       context.lineWidth = 2.5;
       context.lineJoin = 'round';
       context.stroke();
+
+      /**
+       * The fuzz, as grain along the curve.
+       *
+       * Harmonic colour has no magnitude response to plot — it adds frequencies
+       * rather than shaping the ones present — so the honest picture is a
+       * roughening of the line rather than a shape of its own.
+       *
+       * The offsets come from a fixed function of the position, NOT from
+       * `Math.random`: this repaints on every animation frame while audio is
+       * playing, and random grain would strobe rather than sit still.
+       */
+      if (liveEq.fuzzAmount > 0) {
+        const grain = liveEq.fuzzAmount * 2.6;
+        [0.6, -0.9].forEach((phase, pass) => {
+          context.beginPath();
+          for (let i = 0; i <= steps; i += 1) {
+            const hz = MIN_HZ * (MAX_HZ / MIN_HZ) ** (i / steps);
+            const wobble =
+              Math.sin(i * 1.9 + phase * 7) * Math.sin(i * 0.47 + phase);
+            const y = Y(totalAt(hz)) + wobble * grain;
+            if (i === 0) {
+              context.moveTo(X(hz), y);
+            } else {
+              context.lineTo(X(hz), y);
+            }
+          }
+          context.strokeStyle =
+            pass === 0 ? 'rgba(0,229,207,0.30)' : 'rgba(255,196,120,0.26)';
+          context.lineWidth = 1;
+          context.stroke();
+        });
+      }
 
       liveEq.bands.forEach((one, index) => {
         const x = X(one.frequency);
