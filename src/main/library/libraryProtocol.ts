@@ -130,7 +130,34 @@ const webStream = (
  * it, seeking inside a large video re-downloads the file from the start every
  * time. `bypassCSP` is left `false` on purpose: this scheme is admitted by
  * name in `img-src` and `media-src`, not exempted from the policy.
+ *
+ * `corsEnabled` is what lets the DSP hear this audio at all, and its absence
+ * failed in the least obvious way available. This scheme is a different origin
+ * from the renderer's `http://localhost:1212`, so a track served over it was
+ * cross-origin media with no CORS — and Chromium's rule is that a
+ * `MediaElementAudioSourceNode` built on tainted media outputs **silence**
+ * while the element itself goes on decoding perfectly. The transport ran, the
+ * seek bar moved, and nothing came out. Playing a different track appeared to
+ * fix it only because that path had served the file over the same-origin
+ * localhost URL instead.
  */
+/**
+ * What makes the audio audible to Web Audio rather than merely playable.
+ *
+ * The renderer requests these with `crossOrigin="anonymous"`, so the response
+ * has to say the origin is allowed or the media is tainted and every
+ * `MediaElementAudioSourceNode` built on it emits zeros.
+ *
+ * `Range` is a CORS-safelisted request header for media, so no preflight is
+ * involved; the exposed list is what the media stack has to read back off a
+ * 206 to know where in the file it landed.
+ */
+const CORS_HEADERS: Record<string, string> = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Expose-Headers':
+    'Content-Length, Content-Range, Accept-Ranges',
+};
+
 export const registerLibraryMediaScheme = (): void => {
   protocol.registerSchemesAsPrivileged([
     {
@@ -140,6 +167,7 @@ export const registerLibraryMediaScheme = (): void => {
         secure: true,
         supportFetchAPI: true,
         stream: true,
+        corsEnabled: true,
         bypassCSP: false,
       },
     },
@@ -205,6 +233,7 @@ export const handleLibraryMedia = (deps: {
           'Content-Type': type,
           'Content-Length': String(size),
           'Accept-Ranges': 'bytes',
+          ...CORS_HEADERS,
         },
       });
     }
@@ -215,6 +244,7 @@ export const handleLibraryMedia = (deps: {
         'Content-Length': String(range.end - range.start + 1),
         'Content-Range': `bytes ${range.start}-${range.end}/${size}`,
         'Accept-Ranges': 'bytes',
+        ...CORS_HEADERS,
       },
     });
   });

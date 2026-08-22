@@ -73,7 +73,10 @@ import {
   libraryMediaUrl,
 } from '../../../common/library/mediaUrl';
 // eslint-disable-next-line import/first
-import { handleLibraryMedia } from '../../../main/library/libraryProtocol';
+import {
+  handleLibraryMedia,
+  registerLibraryMediaScheme,
+} from '../../../main/library/libraryProtocol';
 // eslint-disable-next-line import/first
 import { trackIdForPath } from '../../../main/library/libraryScanner';
 
@@ -153,6 +156,17 @@ describe('answering a fluideq-media request for an id the index no longer knows 
     expect(response?.headers.get('accept-ranges')).toBe('bytes');
     expect(response?.headers.get('content-length')).toBe(String(FILE_SIZE));
     expect(response?.headers.get('content-type')).toBe('audio/mpeg');
+    /**
+     * What makes the audio audible to Web Audio rather than merely playable.
+     *
+     * This scheme is a different origin from the renderer's page, so without
+     * an allow-origin header the media is tainted — and Chromium's rule for
+     * tainted media is that a `MediaElementAudioSourceNode` built on it emits
+     * silence while the element goes on decoding. Measured in the running
+     * window: the element was `paused: false` at 109.8s of 199s, volume 1,
+     * unmuted, and an analyser on the source node read -Infinity dB.
+     */
+    expect(response?.headers.get('access-control-allow-origin')).toBe('*');
   });
 
   it('answers a Range request with 206 and the window it promised', async () => {
@@ -202,6 +216,13 @@ describe('answering a fluideq-media request for an id the index no longer knows 
     // handler that returned the right headers over the whole file would look
     // correct here and hand the element the wrong audio.
     expect(readRanges).toEqual([{ start: 4096, end: FILE_SIZE - 1 }]);
+    // The 206 needs it as much as the 200: every request after the first is a
+    // range, so allowing only the opening response would taint the media a
+    // second into playback.
+    expect(ranged?.headers.get('access-control-allow-origin')).toBe('*');
+    expect(ranged?.headers.get('access-control-expose-headers')).toContain(
+      'Content-Range',
+    );
 
     // The other half of the discrimination: a request with no Range must get
     // the whole file and a 200. A handler that always answered 206 would
@@ -248,5 +269,31 @@ describe('the Range header grammar', () => {
     expect(parseByteRange('bytes=0-10, 20-30', 1000)).toBeUndefined();
     expect(parseByteRange('items=0-10', 1000)).toBeUndefined();
     expect(parseByteRange('bytes=-', 1000)).toBeUndefined();
+  });
+});
+
+/**
+ * The half of the CORS fix that no response header can show.
+ *
+ * `Access-Control-Allow-Origin` on the body is useless unless the scheme was
+ * declared CORS-enabled before `app.whenReady()`, and a scheme registered
+ * without it fails exactly like the header being absent: the media plays and
+ * Web Audio hears silence. It also cannot be corrected at runtime, so nothing
+ * short of a test catches a regression here before a user does.
+ */
+describe('the scheme privileges', () => {
+  it('declares the scheme CORS-enabled, or Web Audio gets silence', () => {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires, global-require -- the electron mock is only resolvable after the mocks above have run
+    const { protocol } = require('electron');
+    registerLibraryMediaScheme();
+    const [[[registered]]] = (protocol.registerSchemesAsPrivileged as jest.Mock)
+      .mock.calls;
+    expect(registered.scheme).toBe(LIBRARY_MEDIA_SCHEME);
+    expect(registered.privileges.corsEnabled).toBe(true);
+    // The ones that were already load-bearing, so this cannot pass by having
+    // replaced the privileges wholesale.
+    expect(registered.privileges.stream).toBe(true);
+    expect(registered.privileges.supportFetchAPI).toBe(true);
+    expect(registered.privileges.bypassCSP).toBe(false);
   });
 });

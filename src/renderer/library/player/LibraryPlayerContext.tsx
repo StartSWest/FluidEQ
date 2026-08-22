@@ -236,6 +236,18 @@ export const LibraryPlayerProvider = ({
   const audioElementRef = useRef<HTMLAudioElement | undefined>(undefined);
   if (!audioElementRef.current) {
     audioElementRef.current = new Audio();
+    /**
+     * Before any `src`, and that ordering is the whole point.
+     *
+     * Library tracks are served over `fluideq-media://`, which is a different
+     * origin from this page. Without a CORS-mode request the media is tainted,
+     * and Chromium's rule for tainted media is that the
+     * `MediaElementAudioSourceNode` built on it emits SILENCE while the element
+     * carries on decoding — so the transport ran and the seek bar moved with no
+     * sound at all. `crossOrigin` is only consulted when the load starts, so
+     * setting it after a `src` has been assigned does nothing.
+     */
+    audioElementRef.current.crossOrigin = 'anonymous';
     // Set from storage here, not from an effect after the first render. An
     // element built at unity and turned down afterwards is briefly at unity,
     // and someone who left the fader at 17% would get a burst of full-scale
