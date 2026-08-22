@@ -24,6 +24,7 @@ const withBands = (
   engine: 'serial',
   oversample: false,
   subsonicHz: 0,
+  fuzzAmount: 0,
   presetId: '',
   preampDb: 0,
   sourceBands: [],

@@ -104,6 +104,7 @@ const dsp = {
   'dsp.eq.preamp': 'Preamp',
   'dsp.eq.character': 'Carattere',
   'dsp.eq.subsonic': 'Subsonico',
+  'dsp.eq.fuzz': 'Fuzz',
   'dsp.eq.quality': 'Larghezza',
 
   'dsp.exciter.title': 'Exciter',

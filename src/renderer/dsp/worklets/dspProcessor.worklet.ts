@@ -30,6 +30,7 @@ import {
 } from '../biquad';
 import { processEqBands, processEqOversampled } from '../eqEngine';
 import { IOversamplerState, createOversampler } from '../oversample';
+import { ISaturatorState, createSaturator, saturateBlock } from '../saturate';
 import { FilterTypeEnum } from '../../../common/constants';
 
 /** Web Audio always renders 128 frames; the scratch buffers start there. */
@@ -72,6 +73,9 @@ class DspProcessor extends AudioWorkletProcessor {
   private readonly subsonicStates: IBiquadState[] = [];
 
   private subsonicCoefficients: IBiquadCoefficients | undefined;
+
+  /** One per channel: the fuzz stage carries its own oversampler. */
+  private readonly fuzz: ISaturatorState[] = [];
 
   /** One per channel: the oversampler's filters keep history across blocks. */
   private readonly eqOversamplers: IOversamplerState[] = [];
@@ -123,6 +127,7 @@ class DspProcessor extends AudioWorkletProcessor {
       );
       this.eqOversamplers.push(createOversampler());
       this.subsonicStates.push(createBiquadState());
+      this.fuzz.push(createSaturator(RENDER_QUANTUM));
     }
     this.rebuildLimiters();
     this.port.onmessage = (event: MessageEvent<unknown>) => {
@@ -262,6 +267,18 @@ class DspProcessor extends AudioWorkletProcessor {
           this.eqDry,
           this.eqWet,
         );
+      }
+      // After the bands, where an analogue unit's output amplifier sits: it
+      // colours what the curve produced rather than what went into it.
+      //
+      // `saturateBlock` carries its own 2x oversampler whatever the EQ is set
+      // to, because a non-linearity at the session rate folds its harmonics
+      // back down as inharmonic content — the very sound this is meant to be
+      // an alternative to.
+      if (eq.fuzzAmount > 0) {
+        // Low drive is nearly linear and the curve is normalised by it, so the
+        // dial reaches "barely there" rather than starting at obvious.
+        saturateBlock(this.fuzz[slot], target, 0.5 + eq.fuzzAmount * 3.5);
       }
     }
 

@@ -225,6 +225,22 @@ const DspEqCard = ({ eq, sampleRate, onChange, onCommit }: IDspEqCardProps) => {
             }
             onCommit={onCommit}
           />
+          {/* The only colour in the rack that filters cannot make. Zero is off
+              and costs nothing; the stage is skipped entirely. */}
+          <LabelledKnob
+            label={t('dsp.eq.fuzz')}
+            value={Math.round(eq.fuzzAmount * 100)}
+            min={0}
+            max={100}
+            step={1}
+            unit="%"
+            defaultValue={0}
+            isDisabled={false}
+            onChange={(percent) =>
+              onChange({ ...eq, fuzzAmount: percent / 100 })
+            }
+            onCommit={onCommit}
+          />
         </div>
 
         <div className="dsp-eq-strip">

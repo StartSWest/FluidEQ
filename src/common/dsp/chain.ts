@@ -162,6 +162,18 @@ export interface IEqSettings {
    */
   subsonicHz: number;
   /**
+   * A little harmonic colour, 0 to 1, and 0 costs nothing.
+   *
+   * The one thing no arrangement of filters can produce: biquads cannot invent
+   * a frequency that was not already there. A fixed "warm" mode was built and
+   * rejected for being too much of it — an amount is the same idea with the
+   * decision left where it belongs.
+   *
+   * Asymmetric, so it makes EVEN harmonics as well as odd. Even ones read as
+   * warmth; odd alone reads as edge.
+   */
+  fuzzAmount: number;
+  /**
    * `EQ_BAND_COUNT` by default, and as many as an imported file asked for up
    * to `EQ_MAX_BAND_COUNT`.
    */
@@ -386,6 +398,7 @@ export const DSP_DEFAULTS: IDspSettings = {
     engine: 'serial',
     oversample: false,
     subsonicHz: 0,
+    fuzzAmount: 0,
     bands: DEFAULT_EQ_BANDS,
     sourceBands: [],
     presetId: '',
@@ -509,6 +522,7 @@ export const clampDspSettings = (value: unknown): IDspSettings => {
         typeof eq.subsonicHz === 'number' && eq.subsonicHz > 0
           ? Math.min(40, Math.max(10, eq.subsonicHz))
           : 0,
+      fuzzAmount: clampNumber(eq.fuzzAmount, { min: 0, max: 1 }, 0),
       presetId: typeof eq.presetId === 'string' ? eq.presetId : '',
       preampDb: clampNumber(eq.preampDb, RANGES.eqGainDb, 0),
       // The stored rack decides its own length now, so an imported ten-filter
