@@ -80,16 +80,34 @@ export const readDspSettings = (): IDspSettings => {
   return settings;
 };
 
-export const writeDspSettings = (next: IDspSettings): void => {
+/**
+ * Apply settings now. Audible immediately, not written to disk.
+ *
+ * Split from persistence for the same reason the volume fader is: a vertical
+ * slider dragged across its range fires a change per step, and
+ * `localStorage.setItem` is synchronous. The sound has to follow the pointer,
+ * so the saving gets out of its way and happens once, on release.
+ */
+export const applyDspSettings = (next: IDspSettings): void => {
   settings = clampDspSettings(next);
   loaded = true;
+  emit();
+};
+
+/** Write whatever is currently applied. Called when a gesture ends. */
+export const persistDspSettings = (): void => {
   try {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(readDspSettings()));
   } catch {
     // A full or disabled store costs persistence, not the session. The chain
     // keeps running on whatever is in memory.
   }
-  emit();
+};
+
+/** Apply and persist in one step, for a control with no drag to protect. */
+export const writeDspSettings = (next: IDspSettings): void => {
+  applyDspSettings(next);
+  persistDspSettings();
 };
 
 /** Reported by the engine. Only it may move this off `idle`. */

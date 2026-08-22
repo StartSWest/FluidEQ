@@ -105,9 +105,10 @@ import WaveformVisualizer from './WaveformVisualizer';
 import ConvolutionPanel from './ConvolutionPanel';
 import DspPanel from './dsp/DspPanel';
 import {
+  applyDspSettings,
+  persistDspSettings,
   useDspEngineState,
   useDspSettings,
-  writeDspSettings,
 } from './dsp/store';
 import VoicingPanel from './VoicingPanel';
 import MenuIcon from './icons/MenuIcon';
@@ -1821,7 +1822,8 @@ const AppContent = () => {
                 {eqGroupPills}
                 <DspPanel
                   settings={dspSettings}
-                  onChange={writeDspSettings}
+                  onChange={applyDspSettings}
+                  onCommit={persistDspSettings}
                   engineState={dspEngineState}
                 />
               </div>

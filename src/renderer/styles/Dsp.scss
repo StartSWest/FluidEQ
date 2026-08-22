@@ -31,7 +31,18 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   display: flex;
   flex: 0 0 auto;
   flex-direction: column;
-  gap: 4px;
+  gap: 5px;
+}
+
+// Title and presets share a row: the presets are the fastest way to change
+// everything below, so they belong at eye level rather than under a heading
+// that pushes them down a line for nothing.
+.dsp-header-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
 }
 
 .dsp-title {
@@ -47,7 +58,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // text at the top of the panel, not a muted caption at the bottom and not a
 // tooltip nobody hovers.
 .dsp-scope {
-  max-width: 640px;
+  max-width: 680px;
   margin: 0;
   color: rgba($white, 0.72);
   font-size: 0.76rem;
@@ -56,8 +67,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 // Not an error, and it must not look like one. The engine lives in the library
 // player, which does not exist until the Library has been opened — so on a
-// fresh window this is simply the truth, not a fault. It reads as a note.
+// fresh window this is simply the truth, not a fault.
 .dsp-idle {
+  max-width: 680px;
   margin: 2px 0 0;
   color: rgba($white, 0.5);
   font-size: 0.74rem;
@@ -73,99 +85,159 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 .dsp-presets {
   display: flex;
-  flex: 0 0 auto;
   align-items: center;
   gap: 8px;
 }
 
 .dsp-presets-label {
-  color: rgba($white, 0.55);
-  font-size: 0.72rem;
+  color: rgba($white, 0.5);
+  font-size: 0.68rem;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.07em;
 }
 
-.dsp-section {
+.dsp-rack {
   display: flex;
   flex: 0 0 auto;
   flex-direction: column;
-  gap: 10px;
-  padding: 12px 14px;
-  border: 1px solid rgba($white, 0.08);
-  border-radius: 10px;
-  background: rgba($primary-light, 0.28);
+  gap: 12px;
 }
 
-.dsp-section-header {
+// One processor, as a unit you can see the edges of.
+//
+// The border carries the on/off state rather than a separate lamp: a rack
+// where the active module is the one that is lit reads at a glance, and a
+// bypassed one recedes without having to grey out its controls — those stay
+// legible so you can set a module up before switching it in.
+.dsp-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 14px 14px;
+  border: 1px solid rgba($white, 0.07);
+  border-radius: 12px;
+  background: linear-gradient(
+    180deg,
+    rgba($primary-light, 0.34) 0%,
+    rgba($primary-dark, 0.3) 100%
+  );
+  box-shadow: inset 0 1px 0 rgba($white, 0.04);
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.dsp-card.is-active {
+  border-color: rgba($secondary-default, 0.42);
+  box-shadow:
+    inset 0 1px 0 rgba($white, 0.06),
+    0 0 0 1px rgba($secondary-default, 0.12),
+    0 6px 18px -12px rgba($secondary-default, 0.55);
+}
+
+.dsp-card-header {
   display: flex;
   align-items: flex-start;
   gap: 10px;
 }
 
-.dsp-section-titles {
+.dsp-card-titles {
   display: flex;
   flex-direction: column;
   gap: 2px;
+  min-width: 0;
 }
 
-.dsp-section-title {
+.dsp-card-title {
   margin: 0;
-  font-size: 0.94rem;
+  font-size: 0.95rem;
+  letter-spacing: 0.01em;
 }
 
-.dsp-section-description {
-  max-width: 560px;
+.dsp-card-description {
+  max-width: 620px;
   margin: 0;
-  color: rgba($white, 0.5);
+  color: rgba($white, 0.48);
   font-size: 0.7rem;
   line-height: 1.4;
 }
 
-.dsp-controls {
-  display: grid;
+.dsp-card-body {
+  display: flex;
+  align-items: flex-start;
   gap: 10px;
-  // `auto-fit` rather than a fixed count: the compressor carries fifteen
-  // fields and the maximizer three, and pinning a column count would leave
-  // one of them either cramped or half empty.
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  flex-wrap: wrap;
+}
+
+// One fader column: the slider, its readout, and the name under both.
+//
+// A fixed width rather than a flexible one. These are faders, and a fader that
+// changes width with the window stops being somewhere the hand knows to go —
+// the equaliser's own bands are fixed for the same reason.
+.dsp-fader {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: 72px;
+}
+
+.dsp-fader-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: rgba($white, 0.62);
+  font-size: 0.64rem;
+  line-height: 1.25;
+  text-align: center;
+  // Two-word labels wrap rather than widen the column and push the row apart.
+  overflow-wrap: anywhere;
+}
+
+.dsp-fader-unit {
+  color: rgba($white, 0.35);
+  font-size: 0.6rem;
+}
+
+// The compressor's two split points sit apart from the bands they define, with
+// a rule under them: they belong to the whole processor, and putting them in
+// the first band's group would read as settings of that band.
+.dsp-crossovers {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba($white, 0.06);
 }
 
 .dsp-band {
-  display: grid;
-  gap: 8px;
-  // Spans the whole row so a band's five fields stay together rather than
-  // wrapping into the next band's.
-  grid-column: 1 / -1;
-  margin: 0;
-  padding: 8px 10px;
-  border: 1px solid rgba($white, 0.06);
-  border-radius: 8px;
-  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  display: flex;
+  flex: 1 1 260px;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  padding: 8px 10px 4px;
+  border: 1px solid rgba($white, 0.05);
+  border-radius: 9px;
+  background: rgba($black, 0.16);
 }
 
 .dsp-band-title {
-  padding: 0 4px;
-  color: rgba($white, 0.6);
-  font-size: 0.68rem;
+  color: rgba($white, 0.55);
+  font-size: 0.64rem;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.09em;
 }
 
-.dsp-field {
+.dsp-band-faders {
   display: flex;
-  align-items: center;
   gap: 6px;
+  flex-wrap: wrap;
 }
 
-.dsp-field-label {
-  flex: 1 1 auto;
-  color: rgba($white, 0.68);
-  font-size: 0.7rem;
-}
-
-.dsp-field-unit {
-  flex: 0 0 auto;
-  min-width: 20px;
-  color: rgba($white, 0.4);
-  font-size: 0.66rem;
+// Narrower inside a band: five faders have to fit a column that three cards
+// share across the width of the panel.
+.dsp-band .dsp-fader {
+  width: 62px;
 }

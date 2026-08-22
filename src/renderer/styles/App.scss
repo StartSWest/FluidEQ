@@ -1750,6 +1750,7 @@ $tab-border: rgba($secondary-light, 0.2);
 .workspace-tab-panel--eq,
 .workspace-tab-panel--presets,
 .workspace-tab-panel--convolution,
+.workspace-tab-panel--dsp,
 .workspace-tab-panel--config,
 .workspace-tab-panel--video,
 .workspace-tab-panel--karaoke,
@@ -1916,6 +1917,7 @@ $tab-border: rgba($secondary-light, 0.2);
 // sideways as the bar appears.
 .workspace-tab-panel--convolution,
 .workspace-tab-panel--presets,
+.workspace-tab-panel--dsp,
 .workspace-tab-panel--config {
   min-height: 0;
   flex: 1 1 auto;

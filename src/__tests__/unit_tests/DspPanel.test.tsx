@@ -6,24 +6,37 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import '@testing-library/jest-dom';
 import { fireEvent, render, screen } from '@testing-library/react';
+import defaultFluidEqContext from '__tests__/utils/mockFluidEqProvider';
 import { DSP_DEFAULTS, IDspSettings } from '../../common/dsp/chain';
 import { DSP_PRESETS } from '../../common/dsp/presets';
+import { FluidEqProviderWrapper } from '../../renderer/utils/FluidEqContext';
 import DspPanel from '../../renderer/dsp/DspPanel';
 import { TDspEngineState } from '../../renderer/dsp/store';
 
+/**
+ * Wrapped in the FluidEQ provider because the faders are the equaliser's own
+ * `Slider`, which reads `isBlockingError` from it to decide whether it may be
+ * dragged at all.
+ */
 const renderPanel = (
   settings: IDspSettings = DSP_DEFAULTS,
   engineState: TDspEngineState = 'running',
 ) => {
   const onChange = jest.fn();
+  const onCommit = jest.fn();
   render(
-    <DspPanel
-      settings={settings}
-      onChange={onChange}
-      engineState={engineState}
-    />,
+    <FluidEqProviderWrapper
+      value={{ ...defaultFluidEqContext, isEnabled: true }}
+    >
+      <DspPanel
+        settings={settings}
+        onChange={onChange}
+        onCommit={onCommit}
+        engineState={engineState}
+      />
+    </FluidEqProviderWrapper>,
   );
-  return onChange;
+  return { onChange, onCommit };
 };
 
 describe('DspPanel', () => {
@@ -62,14 +75,14 @@ describe('DspPanel', () => {
   });
 
   it('applies a preset whole when one is chosen', () => {
-    const onChange = renderPanel();
+    const { onChange } = renderPanel();
     fireEvent.click(screen.getByRole('button', { name: /Repair compressed/i }));
     const repair = DSP_PRESETS.find((preset) => preset.id === 'lossy-repair');
     expect(onChange).toHaveBeenCalledWith(repair?.settings);
   });
 
   it('toggles a processor without disturbing the others', () => {
-    const onChange = renderPanel();
+    const { onChange } = renderPanel();
     // By role, not by label: the section heading carries the same text, and
     // `getByLabelText` matches both.
     fireEvent.click(screen.getByRole('checkbox', { name: 'Exciter' }));
