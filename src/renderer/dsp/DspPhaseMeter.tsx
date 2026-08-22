@@ -8,20 +8,20 @@ import { useEffect, useRef } from 'react';
 import { useTranslation } from '../utils/I18nContext';
 import { readDspAnalyser, readDspCorrelation } from './store';
 
-/** Track, ticks, then the reading underneath. */
-const HEIGHT = 64;
-
 /**
- * Where the scale is marked.
+ * Track, then ticks and their labels, then the reading below both.
  *
- * The centre carries no label. The reading is printed under the middle of the
- * track, so a "0" there collided with it — and the bright line up the centre of
- * the bar already says where zero is.
+ * The block it sits in is over a hundred pixels tall because the preamp's dials
+ * set that height, so the meter may as well use it — at 64 the canvas left a
+ * third of the box empty and the number had to crowd the scale.
  */
+const HEIGHT = 86;
+
+/** Where the scale is marked. */
 const TICKS: [number, string][] = [
   [-1, '-1'],
   [-0.5, ''],
-  [0, ''],
+  [0, '0'],
   [0.5, ''],
   [1, '+1'],
 ];
@@ -146,8 +146,8 @@ const DspPhaseMeter = () => {
         }
       });
 
-      // Centred under the scale, and the biggest thing in the box: it is the
-      // reading, and the track above it is the context for it.
+      // Below the tick labels rather than among them: the two collided when the
+      // number sat directly under the centre of the track.
       context.textBaseline = 'top';
       context.font =
         '600 18px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif';
@@ -158,7 +158,7 @@ const DspPhaseMeter = () => {
       context.fillText(
         value,
         mid - context.measureText(value).width / 2,
-        trackH + 17,
+        trackH + 30,
       );
 
       schedule();
