@@ -66,7 +66,9 @@ const DspPhaseMeter = () => {
     const paint = () => {
       frame = 0;
       const box = canvas.getBoundingClientRect();
-      if (box.width < 1) {
+      // Nothing to report on, or nowhere to draw it. Either way the loop keeps
+      // turning so the meter starts by itself once the engine does.
+      if (box.width < 1 || !readDspAnalyser()) {
         schedule();
         return;
       }
@@ -165,9 +167,19 @@ const DspPhaseMeter = () => {
     };
 
     function schedule() {
-      // Only while something is playing. A meter animating against silence is
-      // sixty wake-ups a second to draw the same picture.
-      if (frame === 0 && readDspAnalyser()) {
+      /**
+       * Always, and never conditional on the engine existing.
+       *
+       * Stopping the loop when there was no analyser meant the meter died
+       * permanently if it happened to mount before the engine started — which
+       * is the common order, since the DSP page can be opened before anything
+       * is played. Nothing re-armed it, so the meter worked or did not
+       * depending on which mounted first, and that is exactly how it behaved.
+       *
+       * The paint below returns immediately when there is no engine, so an idle
+       * frame costs a function call rather than a redraw.
+       */
+      if (frame === 0) {
         frame = window.requestAnimationFrame(paint);
       }
     }
