@@ -64,7 +64,7 @@ const dsp = {
 
   'dsp.eq.rack': '频段数',
   'dsp.eqModel.label': '音色',
-  'dsp.eqModel.clean': '纯净',
+  'dsp.eqModel.clean': '无',
   'dsp.eqModel.proportional': '聚焦',
   'dsp.eqModel.wide': '宽阔',
   'dsp.eqEngine.label': '引擎',
@@ -101,6 +101,8 @@ const dsp = {
   'dsp.eq.frequency': '频率',
   'dsp.eq.gain': '增益',
   'dsp.eq.preamp': '前置增益',
+  'dsp.eq.character': '音色量',
+  'dsp.eq.subsonic': '超低频',
   'dsp.eq.quality': '带宽',
 
   'dsp.exciter.title': '激励器',

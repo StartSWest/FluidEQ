@@ -124,8 +124,11 @@ const cookbook = (
  * at instead of dragging its neighbours with it. It is the same curve at 1 dB
  * and a different instrument at 12.
  */
-const proportionalQuality = ({ gainDb, quality }: IBandSpec): number =>
-  Math.min(18, quality * (1 + (Math.abs(gainDb) / 24) * 1.6));
+const proportionalQuality = (
+  { gainDb, quality }: IBandSpec,
+  amount: number,
+): number =>
+  Math.min(18, quality * (1 + (Math.abs(gainDb) / 24) * 1.6 * amount));
 
 /**
  * Broad and overlapping, the way a passive tone stack behaves.
@@ -139,9 +142,12 @@ const proportionalQuality = ({ gainDb, quality }: IBandSpec): number =>
  * Shelves get it worse than bells on purpose: a shallow shelf is most of what
  * makes that style of equaliser sound like itself.
  */
-const wideQuality = ({ type, quality }: IBandSpec): number => {
+const wideQuality = ({ type, quality }: IBandSpec, amount: number): number => {
   const isShelf = type === FilterTypeEnum.LSC || type === FilterTypeEnum.HSC;
-  return Math.max(0.25, quality * (isShelf ? 0.4 : 0.45));
+  const full = isShelf ? 0.4 : 0.45;
+  // Interpolated from 1 (untouched) toward the character's own factor, so the
+  // amount dial reaches the cookbook at zero rather than an arbitrary middle.
+  return Math.max(0.25, quality * (1 - amount * (1 - full)));
 };
 
 /**
@@ -160,9 +166,12 @@ export const biquadCoefficients = (
   spec: IBandSpec,
   sampleRate: number,
   model: TEqModel = 'clean',
+  /** 0 collapses every character to the cookbook, which is the off position. */
+  amount = 1,
 ): IBiquadCoefficients => {
   if (
     model === 'clean' ||
+    amount <= 0 ||
     spec.gainDb === 0 ||
     NO_GAIN_FILTER_TYPES.includes(spec.type as never)
   ) {
@@ -173,11 +182,11 @@ export const biquadCoefficients = (
   }
   if (model === 'proportional') {
     return cookbook(
-      { ...spec, quality: proportionalQuality(spec) },
+      { ...spec, quality: proportionalQuality(spec, amount) },
       sampleRate,
     );
   }
-  return cookbook({ ...spec, quality: wideQuality(spec) }, sampleRate);
+  return cookbook({ ...spec, quality: wideQuality(spec, amount) }, sampleRate);
 };
 
 /**

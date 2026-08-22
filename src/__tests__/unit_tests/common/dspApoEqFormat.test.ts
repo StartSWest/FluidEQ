@@ -20,8 +20,10 @@ const withBands = (
 ): IEqSettings => ({
   enabled: true,
   model: 'clean',
+  modelAmount: 1,
   engine: 'serial',
   oversample: false,
+  subsonicHz: 0,
   presetId: '',
   preampDb: 0,
   sourceBands: [],

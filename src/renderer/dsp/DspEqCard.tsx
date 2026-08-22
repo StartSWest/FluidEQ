@@ -190,6 +190,41 @@ const DspEqCard = ({ eq, sampleRate, onChange, onCommit }: IDspEqCardProps) => {
             onChange={(preampDb) => onChange({ ...eq, preampDb })}
             onCommit={onCommit}
           />
+          {/* How much of the chosen character to apply. At zero every one of
+              them collapses to the plain cookbook, so this is the off switch
+              as well as the dial. */}
+          <LabelledKnob
+            label={t('dsp.eq.character')}
+            value={Math.round(eq.modelAmount * 100)}
+            min={0}
+            max={100}
+            step={1}
+            unit="%"
+            defaultValue={100}
+            isDisabled={eq.model === 'clean'}
+            onChange={(percent) =>
+              onChange({ ...eq, modelAmount: percent / 100 })
+            }
+            onCommit={onCommit}
+          />
+          {/* Cone protection, not tone. Rumble below hearing still costs real
+              excursion, and the woofer spends it on nothing. */}
+          <LabelledKnob
+            label={t('dsp.eq.subsonic')}
+            value={eq.subsonicHz}
+            min={0}
+            max={40}
+            step={1}
+            unit="Hz"
+            defaultValue={0}
+            isDisabled={false}
+            // Below the clamp's floor there is no useful filter, so the dial
+            // steps straight from off to the lowest one worth having.
+            onChange={(hz) =>
+              onChange({ ...eq, subsonicHz: hz > 0 && hz < 10 ? 10 : hz })
+            }
+            onCommit={onCommit}
+          />
         </div>
 
         <div className="dsp-eq-strip">

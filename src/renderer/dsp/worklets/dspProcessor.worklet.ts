@@ -26,6 +26,7 @@ import {
   IBiquadState,
   biquadCoefficients,
   createBiquadState,
+  processBiquad,
 } from '../biquad';
 import { processEqBands, processEqOversampled } from '../eqEngine';
 import { IOversamplerState, createOversampler } from '../oversample';
@@ -66,6 +67,11 @@ class DspProcessor extends AudioWorkletProcessor {
 
   /** One filter state per band per channel, so the two never share history. */
   private readonly eqStates: IBiquadState[][] = [];
+
+  /** One per channel, for the subsonic high pass ahead of the bands. */
+  private readonly subsonicStates: IBiquadState[] = [];
+
+  private subsonicCoefficients: IBiquadCoefficients | undefined;
 
   /** One per channel: the oversampler's filters keep history across blocks. */
   private readonly eqOversamplers: IOversamplerState[] = [];
@@ -116,6 +122,7 @@ class DspProcessor extends AudioWorkletProcessor {
         Array.from({ length: EQ_MAX_BAND_COUNT }, () => createBiquadState()),
       );
       this.eqOversamplers.push(createOversampler());
+      this.subsonicStates.push(createBiquadState());
     }
     this.rebuildLimiters();
     this.port.onmessage = (event: MessageEvent<unknown>) => {
@@ -181,6 +188,21 @@ class DspProcessor extends AudioWorkletProcessor {
     // be DESIGNED for that rate. Handing it the ordinary set would place every
     // band an octave low — a bug rather than a mode.
     const designRate = eq.oversample ? sampleRate * 2 : sampleRate;
+    // Built at the base rate, because it runs BEFORE the oversampler: a high
+    // pass whose job is to keep energy out has nothing to gain from being
+    // inside, and doing it first means the oversampler carries less.
+    this.subsonicCoefficients =
+      eq.subsonicHz > 0
+        ? biquadCoefficients(
+            {
+              type: FilterTypeEnum.HPQ,
+              frequency: eq.subsonicHz,
+              gainDb: 0,
+              quality: 0.707,
+            },
+            sampleRate,
+          )
+        : undefined;
     this.eqCoefficients = eq.bands
       .filter((band) => band.enabled)
       .map((band) =>
@@ -193,6 +215,7 @@ class DspProcessor extends AudioWorkletProcessor {
           },
           designRate,
           eq.model,
+          eq.modelAmount,
         ),
       );
   }
@@ -209,6 +232,15 @@ class DspProcessor extends AudioWorkletProcessor {
         for (let i = 0; i < target.length; i += 1) {
           target[i] *= this.eqPreampGain;
         }
+      }
+      // Ahead of everything else: it exists to keep energy out of the chain,
+      // so anything after it would be shaping content this removes.
+      if (this.subsonicCoefficients) {
+        processBiquad(
+          this.subsonicStates[slot],
+          target,
+          this.subsonicCoefficients,
+        );
       }
       if (eq.oversample) {
         processEqOversampled(

@@ -66,7 +66,7 @@ const dsp = {
 
   'dsp.eq.rack': 'バンド数',
   'dsp.eqModel.label': 'キャラクター',
-  'dsp.eqModel.clean': 'クリーン',
+  'dsp.eqModel.clean': 'なし',
   'dsp.eqModel.proportional': 'フォーカス',
   'dsp.eqModel.wide': 'ワイド',
   'dsp.eqEngine.label': 'エンジン',
@@ -103,6 +103,8 @@ const dsp = {
   'dsp.eq.frequency': '周波数',
   'dsp.eq.gain': 'ゲイン',
   'dsp.eq.preamp': 'プリアンプ',
+  'dsp.eq.character': 'キャラ量',
+  'dsp.eq.subsonic': 'サブソニック',
   'dsp.eq.quality': '幅',
 
   'dsp.exciter.title': 'エキサイター',

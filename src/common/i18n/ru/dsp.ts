@@ -67,7 +67,7 @@ const dsp = {
 
   'dsp.eq.rack': 'Полосы',
   'dsp.eqModel.label': 'Характер',
-  'dsp.eqModel.clean': 'Чистый',
+  'dsp.eqModel.clean': 'Нет',
   'dsp.eqModel.proportional': 'Узкий',
   'dsp.eqModel.wide': 'Широкий',
   'dsp.eqEngine.label': 'Движок',
@@ -104,6 +104,8 @@ const dsp = {
   'dsp.eq.frequency': 'Частота',
   'dsp.eq.gain': 'Усиление',
   'dsp.eq.preamp': 'Предус.',
+  'dsp.eq.character': 'Характер',
+  'dsp.eq.subsonic': 'Инфраниз.',
   'dsp.eq.quality': 'Ширина',
 
   'dsp.exciter.title': 'Эксайтер',

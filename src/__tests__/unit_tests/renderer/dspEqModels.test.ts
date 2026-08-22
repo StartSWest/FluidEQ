@@ -176,3 +176,38 @@ describe('every model', () => {
     expect(Math.abs(wide - proportional)).toBeGreaterThan(2);
   });
 });
+
+/**
+ * The amount dial, and the off position it has to reach.
+ *
+ * Each character shipped at one fixed strength, so "a bit focused" was not
+ * something the rack could be asked for.
+ */
+describe('the character amount', () => {
+  it('collapses every character to the cookbook at zero', () => {
+    const spec = bell(12);
+    const plain = biquadCoefficients(spec, RATE, 'clean');
+    expect(biquadCoefficients(spec, RATE, 'proportional', 0)).toEqual(plain);
+    expect(biquadCoefficients(spec, RATE, 'wide', 0)).toEqual(plain);
+  });
+
+  it('reaches the full character at one', () => {
+    const spec = bell(12);
+    expect(biquadCoefficients(spec, RATE, 'proportional', 1)).toEqual(
+      biquadCoefficients(spec, RATE, 'proportional'),
+    );
+  });
+
+  it('lands between the two at a half', () => {
+    // Measured an octave up, where the characters differ most.
+    const plain = responseAt(bell(12), 2_000, 'clean');
+    const full = responseAt(bell(12), 2_000, 'proportional');
+    const half = biquadMagnitudeDb(
+      biquadCoefficients(bell(12), RATE, 'proportional', 0.5),
+      2_000,
+      RATE,
+    );
+    expect(Math.min(plain, full)).toBeLessThan(half);
+    expect(half).toBeLessThan(Math.max(plain, full));
+  });
+});

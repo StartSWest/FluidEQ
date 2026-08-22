@@ -67,7 +67,7 @@ const dsp = {
 
   'dsp.eq.rack': 'बैंड',
   'dsp.eqModel.label': 'चरित्र',
-  'dsp.eqModel.clean': 'साफ़',
+  'dsp.eqModel.clean': 'कोई नहीं',
   'dsp.eqModel.proportional': 'केंद्रित',
   'dsp.eqModel.wide': 'चौड़ा',
   'dsp.eqEngine.label': 'इंजन',
@@ -104,6 +104,8 @@ const dsp = {
   'dsp.eq.frequency': 'आवृत्ति',
   'dsp.eq.gain': 'गेन',
   'dsp.eq.preamp': 'प्रीएम्प',
+  'dsp.eq.character': 'चरित्र',
+  'dsp.eq.subsonic': 'सबसोनिक',
   'dsp.eq.quality': 'चौड़ाई',
 
   'dsp.exciter.title': 'एक्साइटर',

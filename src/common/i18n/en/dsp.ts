@@ -74,7 +74,7 @@ const dsp = {
 
   'dsp.eq.rack': 'Bands',
   'dsp.eqModel.label': 'Character',
-  'dsp.eqModel.clean': 'Clean',
+  'dsp.eqModel.clean': 'None',
   'dsp.eqModel.proportional': 'Focused',
   'dsp.eqModel.wide': 'Broad',
   'dsp.eqEngine.label': 'Engine',
@@ -111,6 +111,8 @@ const dsp = {
   'dsp.eq.frequency': 'Freq',
   'dsp.eq.gain': 'Gain',
   'dsp.eq.preamp': 'Preamp',
+  'dsp.eq.character': 'Character',
+  'dsp.eq.subsonic': 'Subsonic',
   'dsp.eq.quality': 'Width',
 
   'dsp.exciter.title': 'Exciter',

@@ -125,6 +125,14 @@ export interface IEqSettings {
   enabled: boolean;
   /** @see TEqModel */
   model: TEqModel;
+  /**
+   * How much of the chosen character to apply, 0 to 1.
+   *
+   * Each character shipped at one fixed strength, so "a bit focused" was not
+   * something the rack could be asked for. At 0 every character collapses to
+   * the cookbook, which makes this an off switch that costs nothing.
+   */
+  modelAmount: number;
   /** @see TEqEngine */
   engine: TEqEngine;
   /**
@@ -141,6 +149,18 @@ export interface IEqSettings {
    * 63-tap filter each way for a difference that lives in the top octave.
    */
   oversample: boolean;
+  /**
+   * A high pass below the audible band, in Hz, or 0 for none.
+   *
+   * Not tone shaping — cone protection and headroom. Rumble, DC offset and
+   * footfall below about 20 Hz are inaudible on any normal speaker but still
+   * cost real excursion: the woofer is moving that far for content nobody can
+   * hear, and every millimetre spent there is unavailable to the bass that can
+   * be. Removing it makes the same amplifier sound tighter without touching
+   * anything audible, which is why mastering chains and PA processors have had
+   * this switch for decades.
+   */
+  subsonicHz: number;
   /**
    * `EQ_BAND_COUNT` by default, and as many as an imported file asked for up
    * to `EQ_MAX_BAND_COUNT`.
@@ -362,8 +382,10 @@ export const DSP_DEFAULTS: IDspSettings = {
   eq: {
     enabled: false,
     model: 'clean',
+    modelAmount: 1,
     engine: 'serial',
     oversample: false,
+    subsonicHz: 0,
     bands: DEFAULT_EQ_BANDS,
     sourceBands: [],
     presetId: '',
@@ -476,10 +498,17 @@ export const clampDspSettings = (value: unknown): IDspSettings => {
       model: EQ_MODELS.includes(eq.model as TEqModel)
         ? (eq.model as TEqModel)
         : 'clean',
+      modelAmount: clampNumber(eq.modelAmount, { min: 0, max: 1 }, 1),
       engine: EQ_ENGINES.includes(eq.engine as TEqEngine)
         ? (eq.engine as TEqEngine)
         : 'serial',
       oversample: clampBoolean(eq.oversample, false),
+      // Zero means off, and any other value is pulled into a range where a
+      // high pass is protective rather than audible.
+      subsonicHz:
+        typeof eq.subsonicHz === 'number' && eq.subsonicHz > 0
+          ? Math.min(40, Math.max(10, eq.subsonicHz))
+          : 0,
       presetId: typeof eq.presetId === 'string' ? eq.presetId : '',
       preampDb: clampNumber(eq.preampDb, RANGES.eqGainDb, 0),
       // The stored rack decides its own length now, so an imported ten-filter
