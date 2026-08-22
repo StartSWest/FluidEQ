@@ -64,6 +64,9 @@ interface ILibraryListViewProps {
   /** The playlist being read, when the rows below are one. Puts "Remove from
    * this playlist" in the row menu, and nothing else. */
   openPlaylistId?: string;
+  /** Put a song after what is playing, from its own row menu. Optional the
+   * way this view's other outward callbacks are. */
+  onQueueTracks?: (trackIds: readonly string[]) => void;
   onPlayTrack: (trackId: string) => void;
   /** Root ids currently marked `isOffline` — spec §10: kept, never deleted,
    * and dimmed. Optional, matching `NowPlayingBar`'s own `volume` prop: real
@@ -357,6 +360,7 @@ const LibraryListView = ({
   onOpenFolder,
   onOpenPlaylist,
   openPlaylistId,
+  onQueueTracks,
   onPlayTrack,
   offlineRootIds = NO_OFFLINE_ROOTS,
   folderRoots = NO_FOLDER_ROOTS,
@@ -1259,6 +1263,7 @@ const LibraryListView = ({
       // under an open menu, and the menu must act on what the index says now.
       track={tracks.find((track) => track.id === trackMenu?.trackId)}
       openPlaylistId={openPlaylistId}
+      onQueueTracks={onQueueTracks}
       onReveal={reveal}
       onClose={() => setTrackMenu(undefined)}
     />,

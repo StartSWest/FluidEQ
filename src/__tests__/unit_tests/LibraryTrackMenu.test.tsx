@@ -55,6 +55,7 @@ beforeEach(() => {
   removeTracksFromLibraryPlaylist.mockReset().mockResolvedValue(stored);
   createLibraryPlaylist.mockReset().mockResolvedValue(stored);
   libraryTrackBytes.mockReset().mockResolvedValue(undefined);
+  onQueueTracks.mockReset();
   stored = emptyLibraryPlaylists();
   window.electron = {
     ipcRenderer: {
@@ -70,6 +71,8 @@ beforeEach(() => {
   } as unknown as typeof window.electron;
 });
 
+const onQueueTracks = jest.fn();
+
 const renderRows = (tracks: ILibraryTrack[], openPlaylistId?: string) =>
   render(
     <I18nProvider>
@@ -81,6 +84,7 @@ const renderRows = (tracks: ILibraryTrack[], openPlaylistId?: string) =>
           onOpenAlbum={jest.fn()}
           onOpenArtist={jest.fn()}
           onPlayTrack={jest.fn()}
+          onQueueTracks={onQueueTracks}
         />
       </PlaylistProvider>
     </I18nProvider>,
@@ -94,13 +98,44 @@ const openMenuOn = async (title: string) => {
 };
 
 describe('what a song row offers', () => {
-  it('offers all five actions, not just Show in Explorer', async () => {
+  it('offers every action, not just Show in Explorer', async () => {
     renderRows([track({ title: 'Blue' })]);
     await openMenuOn('Blue');
+    expect(screen.getByText('Add to up next')).toBeInTheDocument();
     expect(screen.getByText('Add to Favourites')).toBeInTheDocument();
     expect(screen.getByText('Add to playlist')).toBeInTheDocument();
     expect(screen.getByText('Send to Karaoke')).toBeInTheDocument();
     expect(screen.getByText('Show in Explorer')).toBeInTheDocument();
+  });
+
+  // The queue gained a control on the drill-in header and one in Cover Flow,
+  // and a single row was left with no way into it — the two features were
+  // written at the same time and neither test could see the other's gap.
+  it('puts one song into the queue', async () => {
+    renderRows([track({ title: 'Blue' })]);
+    await openMenuOn('Blue');
+    await userEvent.click(screen.getByText('Add to up next'));
+    expect(onQueueTracks).toHaveBeenCalledWith(['Blue']);
+  });
+
+  // A POSITIVE CONTROL for the item above: with no queue to append to it is
+  // not drawn, so a menu that always rendered it would fail here.
+  it('does not offer the queue where there is none', async () => {
+    render(
+      <I18nProvider>
+        <PlaylistProvider>
+          <LibraryListView
+            tracks={[track({ title: 'Blue' })]}
+            browseMode="song"
+            onOpenAlbum={jest.fn()}
+            onOpenArtist={jest.fn()}
+            onPlayTrack={jest.fn()}
+          />
+        </PlaylistProvider>
+      </I18nProvider>,
+    );
+    await openMenuOn('Blue');
+    expect(screen.queryByText('Add to up next')).toBeNull();
   });
 
   it('adds the song to Favourites', async () => {

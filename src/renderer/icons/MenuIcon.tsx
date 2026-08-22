@@ -101,6 +101,12 @@ const PATHS: Record<string, string> = {
     'M4 6h11M4 11h11M4 16h7M20.5 16.5a2 2 0 1 1-4 0 2 2 0 0 1 4 0M20.5 16.5V7',
   // The same rails with a plus: put this song into one of them.
   playlistAdd: 'M4 6h12M4 11h12M4 16h6M16 18.5h6M19 15.5v6',
+  // Rails with a play head at the end: not "file it somewhere" but "play it
+  // after this one". Deliberately not `playlistAdd` — a playlist and the
+  // queue are different places, and one glyph for both would say they are
+  // the same, which is exactly the confusion these two menu entries sit next
+  // to each other risking.
+  queueAdd: 'M4 7h9M4 12h9M4 17h6M16 8.5l5 3.5-5 3.5V8.5z',
   // Chevron pointing back: the menu's second page returning to its first.
   back: 'M14.5 6L8.5 12l6 6',
   play: 'M9 6l8 6-8 6V6z',

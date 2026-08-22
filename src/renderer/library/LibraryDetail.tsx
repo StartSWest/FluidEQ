@@ -901,6 +901,9 @@ const LibraryDetail = ({
             // here — the same table drawn for an album has no such thing to
             // remove a song from.
             openPlaylistId={playlistId}
+            // The header queues the whole album, folder or playlist; this is
+            // the same action for one song of it.
+            onQueueTracks={onQueueTracks}
             sort={sort}
             sortDirection={sortDirection}
             onSort={handleSort}

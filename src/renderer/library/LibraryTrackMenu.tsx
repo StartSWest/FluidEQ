@@ -41,6 +41,10 @@ interface ILibraryTrackMenuProps {
   /** The playlist being read, when one is open. Adds the one item that only
    * makes sense there, and never appears anywhere else. */
   openPlaylistId?: string;
+  /** Put this song after what is playing. Optional the way the view's other
+   * outward callbacks are: a caller with no player attached has no queue to
+   * append to, and the item is then not drawn at all. */
+  onQueueTracks?: (trackIds: readonly string[]) => void;
   onReveal: (trackId: string) => void;
   onClose: () => void;
 }
@@ -64,6 +68,7 @@ const LibraryTrackMenu = ({
   isOpen,
   track,
   openPlaylistId,
+  onQueueTracks,
   onReveal,
   onClose,
 }: ILibraryTrackMenuProps) => {
@@ -137,6 +142,25 @@ const LibraryTrackMenu = ({
 
   const actionsPage = (
     <>
+      {/* FIRST, and above the two that file the song away.
+          The row's own click plays this song now; this is the other answer to
+          the same question — play it after what is already going. It was the
+          one way into the queue that the row did not have: the drill-in
+          header queues a whole album, folder or playlist and Cover Flow
+          queues a cover, so a single song was the case with no control at
+          all. */}
+      {onQueueTracks && (
+        <button
+          type="button"
+          onClick={() => {
+            onQueueTracks([trackId]);
+            onClose();
+          }}
+        >
+          <MenuIcon name="queueAdd" className="library-list__menu-icon" />
+          <span>{t('library.queueAdd')}</span>
+        </button>
+      )}
       <button
         type="button"
         onClick={() => {

@@ -1335,6 +1335,9 @@ const LibraryWorkspace = ({
             onOpenFolder={handleOpenFolder}
             onOpenPlaylist={handleOpenPlaylist}
             onPlayTrack={handlePlayTrack}
+            // The Songs shelf has no drill-in header to queue from, so the
+            // row menu is the only way into the queue here at all.
+            onQueueTracks={appendToQueue}
             offlineRootIds={offlineRootIds}
             folderRoots={index.roots}
             isSearching={isSearching}
