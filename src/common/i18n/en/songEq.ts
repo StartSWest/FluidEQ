@@ -20,8 +20,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 export default {
   'songEq.save': 'Save for this song',
   'songEq.saveAria': 'Remember the Smart EQ correction for whatever is playing',
-  'songEq.waiting': 'Waiting for something to play',
-  'songEq.listening': 'Learning — {remaining} to go',
+  // Short on purpose: these sit in a fixed-width slot inside the toolbar chip
+  // (see `SongEqSaveSwitch.scss`), and the progress bar beside them already
+  // says "learning" — the word was carrying nothing the bar did not.
+  'songEq.waiting': 'Nothing playing',
+  'songEq.listening': '{remaining} to go',
   'songEq.willSave': 'Will save — {title}',
   'songEq.noticeTitle': 'Using saved EQ for this song',
   'songEq.noticeBody': '{title} — learned over {plays} plays',

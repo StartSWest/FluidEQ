@@ -20,8 +20,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 export default {
   'songEq.save': 'Für diesen Song speichern',
   'songEq.saveAria': 'Die Smart-EQ-Korrektur für das merken, was gerade läuft',
-  'songEq.waiting': 'Wartet darauf, dass etwas läuft',
-  'songEq.listening': 'Lernt — noch {remaining}',
+  'songEq.waiting': 'Nichts läuft',
+  'songEq.listening': 'Noch {remaining}',
   'songEq.willSave': 'Wird gespeichert — {title}',
   'songEq.noticeTitle': 'Gespeicherte EQ für diesen Song wird verwendet',
   'songEq.noticeBody': '{title} — über {plays} Wiedergaben gelernt',

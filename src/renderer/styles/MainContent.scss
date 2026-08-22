@@ -531,37 +531,14 @@ $eq-caret-width: 24px;
   }
 }
 
-// Result of the last auto-balance measurement, shown next to its button.
-.eq-toolbar__status {
-  max-width: 220px;
-  color: rgba($secondary-light, 0.82);
-  font-size: 0.64rem;
-  line-height: 1.3;
-}
-
-// The save-for-this-song tick and its progress line, stacked under it.
-//
-// Not `.eq-toolbar__option` above: that rule reaches every bare `input`
-// descendant to size a native checkbox at 13px, which would override
-// `Switch`'s own `.switch-checkbox` (zero size, hidden behind the pill it
-// draws instead) the moment the switch sat inside it — a real specificity
-// collision (`.eq-toolbar__option input` beats `.switch-checkbox`), not a
-// hypothetical one.
-.eq-toolbar__save {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 3px;
-}
-
-.eq-toolbar__save-row {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  color: $text-muted;
-  font-size: 0.66rem;
-  font-weight: 650;
-}
+// The save-for-this-song control has its own stylesheet
+// (`SongEqSaveSwitch.scss`), and deliberately does not reuse
+// `.eq-toolbar__option` above: that rule reaches every bare `input` descendant
+// to size a native checkbox at 13px, which would override `Switch`'s own
+// `.switch-checkbox` (zero size, hidden behind the pill it draws instead) the
+// moment the switch sat inside it — a real specificity collision
+// (`.eq-toolbar__option input` beats `.switch-checkbox`), not a hypothetical
+// one.
 
 // *** Equalizer grid *********************************************************
 

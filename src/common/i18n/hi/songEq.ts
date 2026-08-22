@@ -20,8 +20,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 export default {
   'songEq.save': 'इस गाने के लिए सहेजें',
   'songEq.saveAria': 'जो भी बज रहा है, उसके लिए स्मार्ट EQ सुधार याद रखें',
-  'songEq.waiting': 'कुछ बजने का इंतज़ार',
-  'songEq.listening': 'सीख रहा है — {remaining} बाकी',
+  'songEq.waiting': 'कुछ नहीं बज रहा',
+  'songEq.listening': '{remaining} बाकी',
   'songEq.willSave': 'सहेजा जाएगा — {title}',
   'songEq.noticeTitle': 'इस गाने के लिए सहेजा गया EQ इस्तेमाल हो रहा है',
   'songEq.noticeBody': '{title} — {plays} बार सुनकर सीखा गया',

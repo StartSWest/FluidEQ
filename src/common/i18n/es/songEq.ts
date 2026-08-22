@@ -21,8 +21,8 @@ export default {
   'songEq.save': 'Guardar para esta canción',
   'songEq.saveAria':
     'Recordar la corrección de EQ inteligente para lo que esté sonando',
-  'songEq.waiting': 'Esperando a que suene algo',
-  'songEq.listening': 'Aprendiendo — quedan {remaining}',
+  'songEq.waiting': 'Nada sonando',
+  'songEq.listening': 'Quedan {remaining}',
   'songEq.willSave': 'Se guardará — {title}',
   'songEq.noticeTitle': 'Usando el EQ guardado para esta canción',
   'songEq.noticeBody': '{title} — aprendido en {plays} reproducciones',

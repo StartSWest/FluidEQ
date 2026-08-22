@@ -21,8 +21,8 @@ export default {
   'songEq.save': 'Enregistrer pour cette chanson',
   'songEq.saveAria':
     'Mémoriser la correction d’égalisation auto pour ce qui est en train de jouer',
-  'songEq.waiting': 'En attente de lecture',
-  'songEq.listening': 'Apprentissage — encore {remaining}',
+  'songEq.waiting': 'Rien en lecture',
+  'songEq.listening': 'Encore {remaining}',
   'songEq.willSave': 'Sera enregistré — {title}',
   'songEq.noticeTitle':
     'Utilisation de l’égalisation enregistrée pour cette chanson',

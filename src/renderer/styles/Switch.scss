@@ -27,7 +27,19 @@ $switch-thumb: 18px;
 $switch-inset: 4px;
 
 // Structure taken from https://upmostly.com/tutorials/build-a-react-switch-toggle-component
+//
+// Every measurement below reads from these four custom properties rather than
+// from the Sass values directly, so a caller sitting somewhere that cannot
+// take a 50x28 control — the EQ toolbar, whose buttons are 32px tall and whose
+// labels are 0.72rem — overrides four numbers instead of restating the whole
+// geometry, and the thumb travel stays correct because it is derived from them.
+// The defaults are the sizes every existing caller already had.
 .switch {
+  --switch-width: #{$switch-width};
+  --switch-height: #{$switch-height};
+  --switch-thumb: #{$switch-thumb};
+  --switch-inset: #{$switch-inset};
+
   display: inline-flex;
   width: min-content;
   height: min-content;
@@ -36,8 +48,8 @@ $switch-inset: 4px;
 .switch-label {
   position: relative;
   display: flex;
-  width: $switch-width;
-  height: $switch-height;
+  width: var(--switch-width);
+  height: var(--switch-height);
   align-items: center;
   justify-content: space-between;
   border: 1px solid rgba($primary-lighter, 0.16);
@@ -52,10 +64,10 @@ $switch-inset: 4px;
 
   .switch-button {
     position: absolute;
-    top: $switch-inset;
-    left: $switch-inset;
-    width: $switch-thumb;
-    height: $switch-thumb;
+    top: var(--switch-inset);
+    left: var(--switch-inset);
+    width: var(--switch-thumb);
+    height: var(--switch-thumb);
     border-radius: 50%;
     background: rgba($primary-lighter, 0.9);
     box-shadow: 0 3px 9px rgba($black, 0.38);
@@ -86,7 +98,7 @@ $switch-inset: 4px;
       0 0 18px rgba($secondary-default, 0.13);
 
     .switch-button {
-      left: calc(100% - $switch-thumb - $switch-inset);
+      left: calc(100% - var(--switch-thumb) - var(--switch-inset));
       background: #d9fffa;
     }
   }

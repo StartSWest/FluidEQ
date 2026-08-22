@@ -20,8 +20,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 export default {
   'songEq.save': 'この曲用に保存',
   'songEq.saveAria': '今流れているものへのスマート EQ 補正を記憶する',
-  'songEq.waiting': '何か再生されるのを待っています',
-  'songEq.listening': '学習中 — 残り {remaining}',
+  'songEq.waiting': '再生なし',
+  'songEq.listening': '残り {remaining}',
   'songEq.willSave': '保存されます — {title}',
   'songEq.noticeTitle': 'この曲の保存済み EQ を使用中',
   'songEq.noticeBody': '{title} — {plays} 回の再生で学習',

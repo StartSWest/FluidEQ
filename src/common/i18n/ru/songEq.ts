@@ -21,8 +21,8 @@ export default {
   'songEq.save': 'Сохранять для этой песни',
   'songEq.saveAria':
     'Запоминать коррекцию умного EQ для того, что сейчас играет',
-  'songEq.waiting': 'Ждём, когда что-нибудь заиграет',
-  'songEq.listening': 'Учимся — осталось {remaining}',
+  'songEq.waiting': 'Ничего не играет',
+  'songEq.listening': 'Осталось {remaining}',
   'songEq.willSave': 'Будет сохранено — {title}',
   'songEq.noticeTitle': 'Для этой песни используется сохранённый EQ',
   // Phrased as a label rather than a count, so the numeral never has to agree

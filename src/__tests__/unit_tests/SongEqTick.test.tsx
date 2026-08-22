@@ -318,4 +318,74 @@ describe('the save-for-this-song tick', () => {
       ),
     ).toBeVisible();
   });
+
+  /**
+   * The chip's progress bar, which is the only part of the two-minute wait
+   * that can be seen without reading a number.
+   *
+   * Queried by class rather than by role on purpose: the bar is `aria-hidden`
+   * because the countdown beside it is already a live region saying the same
+   * thing in words, so there is no role to find it by — see the component's
+   * own comment on that.
+   *
+   * Fails if the fraction is inverted (a bar that empties as the song plays),
+   * if it is left at zero because `listenedMs` was never read, or if it is
+   * written as a fraction of something other than the floor.
+   */
+  it('fills the progress bar in step with the countdown', async () => {
+    const song = buildSongIdentity(
+      'library',
+      'tick-progress-song',
+      'Tick Progress Song',
+      'Artist',
+    );
+    if (!song) {
+      throw new Error('test fixture produced no identity');
+    }
+    mockUseNowPlayingIdentity.mockReturnValue({
+      identity: song,
+      isPlaying: true,
+    });
+
+    const { container } = render(<Harness />);
+
+    const fill = container.querySelector('.song-eq-save__fill');
+    if (!(fill instanceof HTMLElement)) {
+      throw new Error('the chip rendered no progress fill');
+    }
+    // The positive control the null test needs: empty before any of the floor
+    // has passed, so a bar that is simply always full cannot pass this.
+    expect(fill.style.width).toBe('0%');
+
+    // Half the floor exactly, and the settle window is deliberately NOT added
+    // on top: `listenedMs` runs from the moment the session opens, settle
+    // included — the countdown test above leans on the same fact — so adding
+    // it would put the bar at 51.7% and make the expected figure a restatement
+    // of the component's own arithmetic rather than a round number to check it
+    // against. Half the floor is still far past settle.
+    await act(async () => {
+      jest.advanceTimersByTime(SONG_EQ_MIN_LISTENED_MS / 2);
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(fill.style.width).toBe('50%');
+  });
+
+  /**
+   * Fails if the label stops pointing at the checkbox — the chip is about two
+   * hundred pixels wide and only the thirty the switch occupies used to do
+   * anything, so the words it is named by were dead to the pointer.
+   */
+  it('toggles when the words beside the switch are clicked', () => {
+    render(<MainContent />);
+    const tick = screen.getByRole('checkbox', {
+      name: translate('en', 'songEq.saveAria'),
+    });
+    expect(tick).not.toBeChecked();
+
+    fireEvent.click(screen.getByText(translate('en', 'songEq.save')));
+
+    expect(tick).toBeChecked();
+  });
 });

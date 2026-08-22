@@ -26,6 +26,7 @@ import {
 import { formatDuration } from '../library/player/NowPlayingBar';
 import { useTranslation } from '../utils/I18nContext';
 import Switch from '../widgets/Switch';
+import '../styles/SongEqSaveSwitch.scss';
 
 interface ISongEqSaveSwitchProps {
   id: string;
@@ -69,9 +70,24 @@ export default function SongEqSaveSwitch({ id }: ISongEqSaveSwitchProps) {
     });
   }
 
+  // How much of the two-minute floor is behind us, drawn rather than only
+  // counted down. It measures the wait and nothing else — the same subtraction
+  // the countdown above already does, normalised.
+  //
+  // A full bar therefore means the floor is behind us, NOT that the song is
+  // going to be saved: `willSongEqSave` wants a live Smart EQ layer too, so a
+  // song can sit at a finished bar and still save nothing. Saying which of the
+  // two it is belongs to `willSave`, which lights the whole chip — reading it
+  // here as well would be the second opinion this component must not grow.
+  const progress = Math.min(1, recording.listenedMs / SONG_EQ_MIN_LISTENED_MS);
+
   return (
-    <span className="eq-toolbar__save">
-      <span className="eq-toolbar__save-row">
+    <span
+      className={`song-eq-save${isSaveOn ? ' is-on' : ''}${
+        recording.willSave ? ' is-will-save' : ''
+      }`}
+    >
+      <span className="song-eq-save__row">
         <Switch
           id={id}
           isOn={isSaveOn}
@@ -79,13 +95,35 @@ export default function SongEqSaveSwitch({ id }: ISongEqSaveSwitchProps) {
           handleToggle={handleToggle}
           ariaLabel={t('songEq.saveAria')}
         />
-        <span>{t('songEq.save')}</span>
+        {/* A label rather than a span, pointed at the same checkbox: the chip
+            is about two hundred pixels wide and only the thirty of them the
+            switch occupies used to do anything, so a press on the words it is
+            named by did nothing at all. The checkbox carries its own
+            `aria-label`, which is what assistive tech reads — this text does
+            not become a second accessible name. */}
+        <label className="song-eq-save__label" htmlFor={id}>
+          {t('songEq.save')}
+        </label>
       </span>
-      {/* A live region for the same reason the mode button's own bubble is
-          one: the sentence changes underneath a user who is not looking at
-          it, and a badge nobody is told changed is a badge nobody reads. */}
-      <span className="eq-toolbar__status" role="status">
-        {readout}
+      <span className="song-eq-save__row">
+        {/* Silent to assistive tech: the sentence beside it is a live region
+            already saying the same thing in words, and a progress bar
+            announcing a second percentage over the top of it would be the
+            same fact read twice. */}
+        <span className="song-eq-save__track" aria-hidden>
+          <span
+            className="song-eq-save__fill"
+            style={{ width: `${progress * 100}%` }}
+          />
+        </span>
+        {/* A live region for the same reason the mode button's own bubble is
+            one: the sentence changes underneath a user who is not looking at
+            it, and a badge nobody is told changed is a badge nobody reads.
+            The `title` carries whatever the fixed-width slot has to clip —
+            a long song title, most often. */}
+        <span className="song-eq-save__status" role="status" title={readout}>
+          {readout}
+        </span>
       </span>
     </span>
   );
