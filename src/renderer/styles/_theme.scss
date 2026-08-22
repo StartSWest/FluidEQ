@@ -56,15 +56,21 @@ $field-padding-inline: 11px;
 // and everything from 800 up was `Segoe UI Black`, a poster face whose closed
 // counters are what made the titlebar tabs look flattened.
 //
-// Inter ships now (see the `@font-face` pair in App.scss) and its axis is
-// continuous, so a value like 730 would finally render as 730 — which is the
-// argument for a fixed scale rather than against it. Nobody can see 20 points
-// of weight difference on a 13px label, and a free numeric axis invites the
-// same drift back one nudge at a time.
+// A variable webfont with a continuous axis would have made all eighteen real.
+// One was bundled and taken out again: it was measurably softer than Segoe UI
+// on screen, because Windows leans on hinting at 9-15px and Segoe UI is hinted
+// for exactly that while an unhinted variable file is not. Sharpness won.
 //
-// `$weight-heavy` is the ceiling on purpose. 900 exists in Inter and reads as
-// deliberate at display sizes, so it stays available for the karaoke lyric
-// screens, but it has no business on a control.
+// So the four faces are the real budget, and the scale names them rather than
+// pretending there are eighteen. Nobody can see 20 points of weight difference
+// on a 13px label, and a free numeric value invites the same drift back one
+// nudge at a time.
+//
+// Read `$weight-heavy` and `$weight-display` as display-size-only. In the
+// system font both land on `Segoe UI Black`, which is a poster face: fine on a
+// karaoke lyric at 40px, wrong on a 13px control, where its counters close up.
+// Anything small and heavy wants $weight-bold, or a bundled display face of
+// its own.
 $weight-regular: 400;
 $weight-medium: 500;
 $weight-semibold: 600;
@@ -81,15 +87,21 @@ $weight-display: 900;
 // first — painted in Consolas, so the same kind of text was set in two
 // different faces depending on which panel it appeared in.
 //
-// Cascadia Mono is bundled (see the `@font-face` pair in App.scss), so it is
-// first and it is what everyone gets. It used to sit behind `ui-monospace`,
-// which resolved to SF Mono on macOS and to nothing at all on Windows — the
-// reason the same text was set differently per machine.
+// One list, in one place. It had drifted into three: twelve declarations named
+// Cascadia Mono and painted in it, while two outliers — one naming macOS's
+// SFMono-Regular, one naming Consolas first — painted in Consolas, so a config
+// dump and a bug report were set in different faces depending on which panel
+// they appeared in.
 //
-// The rest of the list is for a load failure rather than for a missing font.
-// `ui-monospace` on its own falls all the way through to Times New Roman here,
-// a proportional serif, which is why Consolas and the generic follow it and
-// why it is never last.
+// Cascadia Mono leads because it is the sharper face on Windows and is present
+// on every supported version. It was briefly bundled as a webfont to make the
+// result identical across machines; that came back out for the same reason
+// Inter did — the system copy is hinted for this screen and the bundled one is
+// not, and sharpness at 10px beat cross-machine uniformity.
+//
+// `ui-monospace` is here for macOS, where it is SF Mono. It is never last:
+// on its own it does not resolve on Windows at all and falls through to Times
+// New Roman, a proportional serif.
 $font-mono: 'Cascadia Mono', ui-monospace, Consolas, monospace;
 
 // *** Surfaces ***************************************************************

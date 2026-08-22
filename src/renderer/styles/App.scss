@@ -38,78 +38,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 @use 'spacing' as *;
 @use 'theme' as *;
 
-// *** Fonts ******************************************************************
-
-// Inter, shipped rather than merely asked for.
-//
-// The stack below has named Inter first since this file was written and nothing
-// ever bundled it, so every glyph in the app fell through to Segoe UI. Measured
-// in the running window: Segoe UI sets the same string 13.4% wider than Inter
-// (566.75px against 499.95px for "Multimedia" at 100px), which made every
-// padding and letter-spacing value here a measurement taken against a font that
-// was never on screen.
-//
-// It is the variable file and not the static cuts because of what the weights
-// do otherwise. Segoe UI offers four usable cuts, and CSS weight matching snaps
-// 800 and above onto `Segoe UI Black` — a separate poster design with closed
-// counters, not a heavier cut of the text face. Measured the same way: the
-// eighteen distinct weights this app declares rendered as exactly four faces,
-// and every declaration at 800+ got Black, which is what made the titlebar tabs
-// look flattened. A continuous 100–900 axis makes the numbers mean what they
-// say.
-//
-// `block` rather than `swap`: the file is in the bundle with no network to wait
-// on, and swapping would flash Segoe UI's wider metrics on first paint for no
-// benefit.
-@font-face {
-  font-family: 'Inter';
-  font-style: normal;
-  font-weight: 100 900;
-  src: url('../../../assets/fonts/InterVariable.woff2') format('woff2');
-  font-display: block;
-}
-
-@font-face {
-  font-family: 'Inter';
-  font-style: italic;
-  font-weight: 100 900;
-  src: url('../../../assets/fonts/InterVariable-Italic.woff2') format('woff2');
-  font-display: block;
-}
-
-// Cascadia Mono, for the same reason and one more.
-//
-// The monospace stack resolved per machine: Cascadia Mono on Windows, SF Mono
-// on macOS, Consolas where neither was installed — so a config dump and a bug
-// report, which are the text most likely to be pasted somewhere and compared,
-// looked different depending on whose machine produced them. Bundling it is
-// what makes them the same everywhere, and on Windows it changes nothing,
-// because Cascadia Mono is already what was being picked.
-//
-// Mono and not Code: the Code variant is the one with programming ligatures,
-// which turn `!=` and `->` into single glyphs. Ligatures in a config dump are
-// wrong — the point of that text is that it shows the characters that are
-// actually there.
-//
-// The axis runs 200-700; Cascadia ships no weight heavier than Bold. Shipped
-// unmodified, which the licence requires attention to: unlike Inter it carries
-// a Reserved Font Name, so a modified copy could not keep the name.
-@font-face {
-  font-family: 'Cascadia Mono';
-  font-style: normal;
-  font-weight: 200 700;
-  src: url('../../../assets/fonts/CascadiaMono.woff2') format('woff2');
-  font-display: block;
-}
-
-@font-face {
-  font-family: 'Cascadia Mono';
-  font-style: italic;
-  font-weight: 200 700;
-  src: url('../../../assets/fonts/CascadiaMonoItalic.woff2') format('woff2');
-  font-display: block;
-}
-
 // *** Document ***************************************************************
 
 *,
@@ -176,26 +104,39 @@ body {
     linear-gradient(145deg, #04090f 0%, #061019 48%, #04090f 100%);
   isolation: isolate;
   font-family:
-    Inter,
+    // The system UI font, deliberately, and no bundled webfont.
+    //
+    // Inter was bundled here and then taken out again. It is the better-drawn
+    // face and it measured level with Segoe UI on a canvas, but canvas is not
+    // the path DOM text takes, and on screen at 1x it was plainly softer — most
+    // visibly on bold headings, where there is more stem area to blur. Segoe UI
+    // carries hand-tuned hinting that snaps stems onto whole pixels at exactly
+    // the 9-15px this UI lives at; an unhinted variable webfont has nothing to
+    // compete with that, and Inter ships hinting only as static instances.
+    //
+    // `Inter` used to be first in this list while never being bundled, which is
+    // what hid the real bug for so long: the list resolved to Segoe UI anyway,
+    // so every size and spacing here was tuned against a font nobody had named.
+    // A family that is not shipped does not belong in the stack.
     ui-sans-serif,
     -apple-system,
     BlinkMacSystemFont,
     'Segoe UI',
     sans-serif;
   font-size: 1em;
-  // Tabular figures everywhere, because Inter's are proportional and Segoe
-  // UI's were not.
+  // Tabular figures, stated rather than inherited by luck.
   //
-  // Measured at 40px: Segoe UI sets "111" and "000" at the same 64.688px
-  // whether tabular figures are asked for or not — it has no proportional set
-  // — so every number this app has ever shown has been tabular by accident of
-  // the fallback. Inter sets "111" at 43.48 and "000" at 73.59, a 30px spread,
-  // and only matches widths when `tabular-nums` is asked for.
+  // Measured at 40px: Segoe UI draws "111" and "000" at the same 64.688px
+  // whether tabular figures are asked for or not, because it carries no
+  // proportional set at all. Every number this app shows is therefore already
+  // tabular — but by accident of which font the stack lands on, not by request.
   //
-  // A dozen readouts already ask for it. The ones that never had to are the
-  // problem: a gain that counts through 1.1 -> 8.8 would start shifting its
-  // neighbours on every frame, in an app whose numbers move while you drag. So
-  // the default is restored here rather than chased element by element.
+  // A dozen readouts ask for it explicitly and were getting for free what they
+  // asked for. The ones that never had to ask are the reason this line stays:
+  // any future font with proportional digits — Inter's spread "111" against
+  // "000" by 30px at that size — would set a gain counting 1.1 -> 8.8 shoving
+  // its neighbours on every frame, in an app whose numbers move while a band is
+  // dragged. Nothing in the test suite can see that.
   font-variant-numeric: tabular-nums;
 
   // Soft bloom behind the whole shell. Purely decorative, and weighted to the
@@ -1754,16 +1695,19 @@ $tab-border: rgba($secondary-light, 0.2);
   background: none;
   color: rgba($primary-lighter, 0.66);
   font-size: 0.74rem;
-  // Heavy, and heavy is not what was wrong with them.
+  // Bold, and it has to be bold rather than heavier.
   //
-  // These read as squashed because 800 was the point where the unbundled stack
-  // fell through to `Segoe UI Black` — a poster face with closed counters, not
-  // a heavier cut of the text face. The weight was blamed for what the typeface
-  // was doing. Inter has a true ExtraBold whose counters stay open at the
-  // 13.76px the titlebar sets these at, so the presence comes back without the
-  // smear, and dropping to bold only made the app's own navigation quieter than
-  // the labels around it.
-  font-weight: $weight-heavy;
+  // 800 is exactly where Segoe UI stops being Segoe UI: CSS weight matching
+  // snaps it onto `Segoe UI Black`, a poster face with closed counters, which
+  // is what made these look flattened at the 13.76px the titlebar sets them at.
+  // Measured with getPlatformFontsForNode, not guessed — 790 comes back as
+  // Segoe UI, 800 as Segoe UI Black.
+  //
+  // So the ceiling for anything set in the system font is $weight-bold. If
+  // these ever want real extra-bold presence, that needs a bundled display face
+  // for the tabs alone, not a heavier number against a family that has no
+  // heavier text cut to give.
+  font-weight: $weight-bold;
   letter-spacing: 0.01em;
   white-space: nowrap;
   cursor: pointer;
