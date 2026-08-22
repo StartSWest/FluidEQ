@@ -25,6 +25,7 @@ import look from './look';
 import video from './video';
 import library from './library';
 import songEq from './songEq';
+import dsp from './dsp';
 
 const zh: Partial<Dictionary> = {
   ...karaoke,
@@ -34,6 +35,7 @@ const zh: Partial<Dictionary> = {
   ...video,
   ...library,
   ...songEq,
+  ...dsp,
 };
 
 export default zh;
