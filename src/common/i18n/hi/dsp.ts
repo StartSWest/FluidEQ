@@ -33,6 +33,8 @@ const dsp = {
 
   'dsp.eqPreset.custom': 'कस्टम',
   'dsp.eqPreset.label': 'प्रीसेट',
+  'dsp.eqPreset.default': 'डिफ़ॉल्ट',
+  'dsp.eqPreset.reset': 'रीसेट',
   'dsp.eqPreset.flat': 'सपाट',
   'dsp.eqPreset.vShape': 'V आकार',
   'dsp.eqPreset.rock': 'रॉक',
@@ -63,7 +65,8 @@ const dsp = {
   'dsp.eqPreset.importEmpty':
     'इस इक्वलाइज़र को उसमें कोई फ़िल्टर नहीं मिला जिसे वह पढ़ सके।',
   'dsp.eqPreset.importFailed': 'वह फ़ाइल पढ़ी नहीं जा सकी।',
-  'dsp.eqPreset.importPreamp': 'प्रीएम्प {gain} dB पर सेट किया गया।',
+  'dsp.eqPreset.importPreamp':
+    'इसकी {gain} dB गुंजाइश यहाँ स्वयं मापी जाती है।',
 
   'dsp.eq.rack': 'बैंड',
   'dsp.eqModel.label': 'चरित्र',
@@ -71,6 +74,10 @@ const dsp = {
   'dsp.eqModel.proportional': 'केंद्रित',
   'dsp.eqModel.wide': 'चौड़ा',
   'dsp.eqEngine.label': 'इंजन',
+  'dsp.eqPhase.label': 'फेज़',
+  'dsp.eqPhase.minimum': 'न्यूनतम',
+  'dsp.eqPhase.linear': 'रैखिक',
+  'dsp.eqPhase.linearLatency': 'रैखिक (+{ms} ms)',
   'dsp.eqEngine.serial': 'श्रृंखला',
   'dsp.eqEngine.parallel': 'समानांतर',
   'dsp.eqStereo.label': 'लागू',
@@ -108,6 +115,9 @@ const dsp = {
   'dsp.eq.frequency': 'आवृत्ति',
   'dsp.eq.gain': 'गेन',
   'dsp.eq.preamp': 'प्रीएम्प',
+  'dsp.eq.trim': 'स्वतः समायोजन',
+  'dsp.eq.trimHint': 'बैंड से पहले रखी गई गुंजाइश, ताकि यह वक्र क्लिप न हो।',
+  'dsp.eq.overUnity': '{gain} dB अधिक',
   'dsp.eq.character': 'चरित्र',
   'dsp.eq.subsonic': 'सबसोनिक',
   'dsp.eq.fuzz': 'फ़ज़',
@@ -142,8 +152,6 @@ const dsp = {
   'dsp.maximizer.ceiling': 'सीमा',
   'dsp.maximizer.lookAhead': 'लुक-अहेड',
   'dsp.maximizer.release': 'रिलीज़',
-  'dsp.maximizer.headroomHint':
-    'सीमा उन {gain} dB के लिए जगह छोड़ती है जो आपका आउटपुट प्रोफ़ाइल इसके बाद जोड़ता है।',
 
   'tabs.dsp': 'DSP',
 };

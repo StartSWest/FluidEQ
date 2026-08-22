@@ -22,6 +22,7 @@ const withBands = (
   model: 'clean',
   modelAmount: 1,
   engine: 'serial',
+  phase: 'minimum',
   stereo: 'stereo',
   monoBelowHz: 0,
   oversample: 1,
@@ -29,6 +30,7 @@ const withBands = (
   fuzzAmount: 0,
   presetId: '',
   preampDb: 0,
+  trimDb: 0,
   sourceBands: [],
   bands: DSP_DEFAULTS.eq.bands.map((band, index) => ({
     ...band,

@@ -6,6 +6,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { IDspSettings } from '../../common/dsp/chain';
 import { buildShaperCurve } from './exciter';
+import { prepareKernel } from './convolver';
+import { buildLinearPhaseKernel } from './linearPhase';
 
 /**
  * The graph, typed against what it needs rather than against Web Audio.
@@ -100,6 +102,59 @@ export const buildDspGraph = (
   let current = settings;
   /** Every node this builder made, so `dispose` can unpick exactly its own. */
   let exciterNodes: IAudioNodeLike[] = [];
+  /**
+   * What the last posted linear-phase kernel was built from.
+   *
+   * The same idea as only rebuilding the exciter when its switch flips, and for
+   * a sharper reason: a kernel costs about two milliseconds, settings arrive on
+   * every pixel of a drag, and rebuilding one per pixel would spend a sixth of
+   * every frame on a filter that had not changed. Empty means none has been
+   * sent, which is also what the worklet has to be told when the mode leaves
+   * linear so it can drop the convolvers.
+   */
+  let kernelKey = '';
+
+  /**
+   * Everything the kernel depends on, and nothing else.
+   *
+   * Deliberately not the whole EQ: the preamp, the engine, the stereo mode and
+   * the fuzz all change the sound without changing the filter the kernel IS,
+   * and including them would rebuild it for a knob it does not use.
+   */
+  const kernelKeyOf = (eq: IDspSettings['eq']): string =>
+    eq.phase !== 'linear' || !eq.enabled
+      ? ''
+      : [
+          eq.model,
+          eq.modelAmount,
+          eq.subsonicHz,
+          eq.bands
+            .map((band) =>
+              [
+                band.enabled ? 1 : 0,
+                band.type,
+                band.frequency,
+                band.gainDb,
+                band.quality,
+              ].join(','),
+            )
+            .join('|'),
+        ].join('/');
+
+  /** Build and send only when what it is made of actually moved. */
+  const refreshKernel = (next: IDspSettings): void => {
+    const key = kernelKeyOf(next.eq);
+    if (key === kernelKey) {
+      return;
+    }
+    kernelKey = key;
+    worklet.port.postMessage({
+      eqKernel:
+        key === ''
+          ? undefined
+          : prepareKernel(buildLinearPhaseKernel(next.eq, context.sampleRate)),
+    });
+  };
   let highpass: IFilterNodeLike | undefined;
   let shaper: IShaperNodeLike | undefined;
   let wetGain: IGainNodeLike | undefined;
@@ -175,6 +230,7 @@ export const buildDspGraph = (
   worklet.connect(destination);
   worklet.connect(analyser);
   worklet.port.postMessage(current);
+  refreshKernel(current);
   connectSource();
 
   return {
@@ -183,6 +239,7 @@ export const buildDspGraph = (
       const wasEnabled = current.exciter.enabled;
       current = next;
       worklet.port.postMessage(next);
+      refreshKernel(next);
       if (wasEnabled !== next.exciter.enabled) {
         source.disconnect();
         teardownExciter();

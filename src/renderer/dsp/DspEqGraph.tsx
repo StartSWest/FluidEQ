@@ -5,6 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { PointerEvent, useEffect, useRef } from 'react';
+import { useTranslation } from '../utils/I18nContext';
 import { FilterTypeEnum } from '../../common/constants';
 import { IEqBandSettings, IEqSettings } from '../../common/dsp/chain';
 import { biquadCoefficients, biquadMagnitudeDb } from './biquad';
@@ -131,6 +132,7 @@ const DspEqGraph = ({
   onChange,
   onCommit,
 }: IDspEqGraphProps) => {
+  const { t } = useTranslation();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const dragging = useRef<number | null>(null);
   /**
@@ -144,13 +146,17 @@ const DspEqGraph = ({
     eq: IEqSettings;
     sampleRate: number;
     selected: number;
+    /** The one string the canvas draws. Through the ref like everything else,
+     * so switching language repaints without rebuilding the observer. */
+    t: (key: 'dsp.eq.overUnity', values: { gain: string }) => string;
     redraw?: () => void;
-  }>({ eq, sampleRate, selected });
+  }>({ eq, sampleRate, selected, t });
   // Assigned field by field: replacing the object would drop `redraw`, which
   // the paint effect installs once and every later render depends on.
   view.current.eq = eq;
   view.current.sampleRate = sampleRate;
   view.current.selected = selected;
+  view.current.t = t;
 
   /** CSS pixels of the drawing area, read from the element each paint. */
   const boxRef = useRef({ width: 0, height: HEIGHT });
@@ -193,7 +199,12 @@ const DspEqGraph = ({
       context.clearRect(0, 0, canvas.width, canvas.height);
       context.setTransform(ratio, 0, 0, ratio, 0, 0);
 
-      const { eq: liveEq, sampleRate: rate, selected: pick } = view.current;
+      const {
+        eq: liveEq,
+        sampleRate: rate,
+        selected: pick,
+        t: translate,
+      } = view.current;
       // Local to the paint, from the box just measured: the module-scope maths
       // takes the size rather than closing over it.
       const W = boxRef.current.width;
@@ -305,7 +316,13 @@ const DspEqGraph = ({
        * which is exactly where oversampling is meant to help, so the graph was
        * hiding the very thing the control does.
        */
-      const designRate = rate * Math.max(1, liveEq.oversample);
+      // Linear phase is designed at the base rate whatever the oversampling
+      // control says, so the curve has to be drawn there too — otherwise the
+      // graph shows a rack nobody is listening to.
+      const designRate =
+        liveEq.phase === 'linear'
+          ? rate
+          : rate * Math.max(1, liveEq.oversample);
 
       const active = liveEq.bands.map((one) =>
         one.enabled
@@ -420,24 +437,61 @@ const DspEqGraph = ({
        * show what it is for.
        */
       context.beginPath();
-      let masked = false;
+      let worst = 0;
       for (let i = 0; i <= steps; i += 1) {
         const hz = MIN_HZ * (MAX_HZ / MIN_HZ) ** (i / steps);
-        const over = totalAt(hz) + liveEq.preampDb;
+        // Both gains, because both are in front of the bands by the time a
+        // sample arrives: what the regulator took out and what the user put
+        // back. Showing only one of them would shade an area that is not there.
+        const over = totalAt(hz) + liveEq.preampDb + liveEq.trimDb;
         const y = over > 0 ? Y(over) : Y(0);
-        masked = masked || over > 0;
+        worst = Math.max(worst, over);
         if (i === 0) {
           context.moveTo(X(hz), y);
         } else {
           context.lineTo(X(hz), y);
         }
       }
-      if (masked) {
+      // Half of the tenth the readout is written to. Below that the figure
+      // rounds to "0.0 dB over", which says a thing and its opposite in one
+      // line — and there is nothing there to warn about anyway.
+      if (worst >= 0.05) {
         context.lineTo(X(MAX_HZ), Y(0));
         context.lineTo(X(MIN_HZ), Y(0));
         context.closePath();
-        context.fillStyle = 'rgba(255,100,124,0.16)';
+        // Nearly twice the alpha it shipped at, and it needed to be. The shade
+        // sits ON TOP of the spectrum's own fill, so at 0.16 a boost of twelve
+        // decibels was a pink tint over a bright green area and read as part of
+        // the spectrum — the mask was drawing correctly and could not be seen,
+        // which is worse than not drawing at all.
+        context.fillStyle = 'rgba(255,100,124,0.3)';
         context.fill();
+        context.strokeStyle = 'rgba(255,140,158,0.85)';
+        context.lineWidth = 1.25;
+        context.stroke();
+
+        // The ceiling itself, drawn across the whole plot. The shaded area says
+        // how far past unity the curve goes; without a line at unity there is
+        // nothing to read that distance against.
+        context.beginPath();
+        context.moveTo(PAD_L, Y(0));
+        context.lineTo(PAD_L + plotW(W), Y(0));
+        context.strokeStyle = 'rgba(255,140,158,0.55)';
+        context.setLineDash([5, 4]);
+        context.stroke();
+        context.setLineDash([]);
+
+        // And the number, because "some pink" is not a measurement. This is the
+        // figure the automatic trim would remove.
+        context.font =
+          '600 12px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif';
+        context.textBaseline = 'top';
+        context.fillStyle = 'rgba(255,140,158,0.95)';
+        context.fillText(
+          translate('dsp.eq.overUnity', { gain: worst.toFixed(1) }),
+          PAD_L + 8,
+          PAD_T + 6,
+        );
       }
 
       // And whether it is ACTUALLY clipping, which depends on the material as

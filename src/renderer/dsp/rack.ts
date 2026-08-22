@@ -5,7 +5,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { FilterTypeEnum, NO_GAIN_FILTER_TYPES } from '../../common/constants';
-import { IEqBandSettings, TEqModel } from '../../common/dsp/chain';
+import {
+  IDspSettings,
+  IEqBandSettings,
+  IEqSettings,
+  TEqModel,
+} from '../../common/dsp/chain';
 import { biquadCoefficients, biquadMagnitudeDb } from './biquad';
 
 /**
@@ -32,11 +37,25 @@ const FIT_POINTS = 256;
 const FIT_LOW_HZ = 20;
 const FIT_HIGH_HZ = 20_000;
 
-const fitFrequencies = (): number[] => {
+/**
+ * Eight times the fit's grid, for finding a peak rather than matching a shape.
+ *
+ * A fit is judged everywhere at once and 256 points is ample for it. A maximum
+ * is a single point, and whatever falls between two samples is simply not seen:
+ * the graph lays its own grid down at one point per few pixels, so on a wide
+ * window it was sampling places the trim's 256 never visited and finding the
+ * curve a few hundredths higher there. Small, and enough to paint a warning
+ * that read "0.0 dB over" — a contradiction the user had to look at.
+ */
+const PEAK_POINTS = 2_048;
+
+const logFrequencies = (points: number): number[] => {
   const low = Math.log2(FIT_LOW_HZ);
-  const step = (Math.log2(FIT_HIGH_HZ) - low) / (FIT_POINTS - 1);
-  return Array.from({ length: FIT_POINTS }, (_, i) => 2 ** (low + i * step));
+  const step = (Math.log2(FIT_HIGH_HZ) - low) / (points - 1);
+  return Array.from({ length: points }, (_, i) => 2 ** (low + i * step));
 };
+
+const fitFrequencies = (): number[] => logFrequencies(FIT_POINTS);
 
 const canCarryGain = (band: IEqBandSettings): boolean =>
   band.enabled && !NO_GAIN_FILTER_TYPES.includes(band.type as never);
@@ -242,4 +261,105 @@ export const rackMatchingCurveOf = (
     next += 1;
     return { ...band, gainDb: Math.round(gain * 100) / 100 };
   });
+};
+
+/**
+ * The loudest point of the whole rack, in dB, preamp excluded.
+ *
+ * Measured on the same terms the graph draws on — the subsonic filter at the
+ * base rate, the bands at the design rate — so the figure the trim uses and the
+ * shape on screen can never disagree about where the curve peaks.
+ *
+ * Zero when nothing boosts: a rack that only cuts needs no room made for it.
+ */
+export const eqChainPeakDb = (eq: IEqSettings, sampleRate: number): number => {
+  const designRate = sampleRate * Math.max(1, eq.oversample);
+  const frequencies = logFrequencies(PEAK_POINTS);
+  const response = curveResponseDb(eq.bands, frequencies, designRate, eq.model);
+  if (eq.subsonicHz > 0) {
+    const subsonic = biquadCoefficients(
+      {
+        type: FilterTypeEnum.HPQ,
+        frequency: eq.subsonicHz,
+        gainDb: 0,
+        quality: 0.707,
+      },
+      sampleRate,
+      eq.model,
+    );
+    frequencies.forEach((frequency, index) => {
+      response[index] += biquadMagnitudeDb(subsonic, frequency, sampleRate);
+    });
+  }
+  return Math.max(0, ...response);
+};
+
+/**
+ * The loudest the WHOLE chain can get, in dB, above what came in.
+ *
+ * The EQ is not the only stage with gain in it, and the preamp is in front of
+ * all of them, so regulating for the bands alone left the other two to clip
+ * past it. Signal order decides what counts:
+ *
+ *  - **The exciter runs BEFORE the worklet** — `source → exciter → worklet` —
+ *    so its boost arrives at the preamp already applied. It is parallel, dry
+ *    plus `mix` times the shaped highs, and the shaper is normalised to span
+ *    exactly ±1 at every drive, so the worst case in its band is the two at
+ *    full agreement: `1 + mix`.
+ *  - **The compressor's makeup runs after the bands**, so trimming the input
+ *    is what buys it room. The crossover splits the spectrum, so at any one
+ *    frequency a single band is in charge — the worst case is the largest
+ *    makeup, not the sum of the three.
+ *  - **The maximizer is excluded on purpose.** It only ever reduces, and its
+ *    ceiling is the chain's output guarantee rather than another thing to make
+ *    room for.
+ *
+ * The three are added rather than combined per frequency, which is worse than
+ * the truth whenever their peaks land in different places — conservative by
+ * construction, which is the right direction for a safety trim and the wrong
+ * one for a loudness control. It costs at most a decibel or two of level in
+ * the case where all three stages are running at once.
+ */
+export const chainPeakDb = (
+  settings: IDspSettings,
+  sampleRate: number,
+): number => {
+  const bands = eqChainPeakDb(settings.eq, sampleRate);
+  const exciter = settings.exciter.enabled
+    ? 20 * Math.log10(1 + settings.exciter.mix)
+    : 0;
+  const makeup = settings.compressor.enabled
+    ? Math.max(0, ...settings.compressor.bands.map((band) => band.makeupDb))
+    : 0;
+  return Math.max(0, bands + exciter + makeup);
+};
+
+/**
+ * The chain with its input regulated to whatever it needs, end to end.
+ *
+ * Applied where every change passes through rather than in each control that
+ * could move the figure — a band drag, a preset, an import, a change of
+ * character or of oversampling, the exciter's mix, a compressor makeup — and
+ * any of them left out would be a setting that silently clips.
+ *
+ * Only `trimDb` moves. The preamp beside it is the user's offset and is never
+ * written from here, so their zero keeps meaning "exactly what the chain needs
+ * and not a decibel more".
+ *
+ * Rounded to a tenth because that is what gets displayed: a regulator reading
+ * -6.1 while holding -6.0837 invites the question of which one is true. UP to
+ * the next tenth, never to the nearest one — rounding to nearest left as much
+ * as 0.05 dB of the peak uncovered, so the curve still finished fractionally
+ * past unity and the graph dutifully shaded it. A twentieth of a decibel of
+ * level is worth nothing; a warning that fires when nothing is wrong costs the
+ * warning.
+ */
+export const withInputTrim = (
+  settings: IDspSettings,
+  sampleRate: number,
+): IDspSettings => {
+  const trim = -Math.ceil(chainPeakDb(settings, sampleRate) * 10) / 10;
+  return trim === settings.eq.trimDb
+    ? settings
+    : { ...settings, eq: { ...settings.eq, trimDb: trim } };
 };

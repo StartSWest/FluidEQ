@@ -16,6 +16,7 @@ import { TranslationKey } from '../../common/i18n/en';
 import LabelledKnob from '../components/LabelledKnob';
 import DspEqBar from './DspEqBar';
 import DspEqCard from './DspEqCard';
+import { withInputTrim } from './rack';
 import DspSideTabs from './DspSideTabs';
 import { TDspSection } from './sections';
 import { useTranslation } from '../utils/I18nContext';
@@ -207,8 +208,18 @@ const DspPanel = ({
   // looking, not part of the chain, and nothing outside this panel needs it.
   const [section, setSection] = useState<TDspSection>('eq');
 
+  /**
+   * Every change to the chain, with the input regulated for what it now is.
+   *
+   * Here rather than on the EQ's own handlers, which is where it started: the
+   * exciter's mix and a compressor's makeup move the chain's peak just as a
+   * band drag does, and a trim that only watched the bands would be correct
+   * until somebody opened another tab.
+   */
   const patch = (next: Partial<IDspSettings>) =>
-    onChange(clampDspSettings({ ...settings, ...next }));
+    onChange(
+      withInputTrim(clampDspSettings({ ...settings, ...next }), sampleRate),
+    );
 
   const patchBand = (index: number, next: Partial<IBandSettings>) =>
     patch({

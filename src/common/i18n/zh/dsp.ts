@@ -32,6 +32,8 @@ const dsp = {
 
   'dsp.eqPreset.custom': '自定义',
   'dsp.eqPreset.label': '预设',
+  'dsp.eqPreset.default': '默认',
+  'dsp.eqPreset.reset': '重置',
   'dsp.eqPreset.flat': '平直',
   'dsp.eqPreset.vShape': 'V 形',
   'dsp.eqPreset.rock': '摇滚',
@@ -60,7 +62,7 @@ const dsp = {
   'dsp.eqPreset.importSkipped': '已加载 {count} 个滤波器，跳过 {skipped} 个。',
   'dsp.eqPreset.importEmpty': '此均衡器无法从中读取任何滤波器。',
   'dsp.eqPreset.importFailed': '无法读取该文件。',
-  'dsp.eqPreset.importPreamp': '前置增益已设为 {gain} dB。',
+  'dsp.eqPreset.importPreamp': '文件的 {gain} dB 余量改由此处实测。',
 
   'dsp.eq.rack': '频段数',
   'dsp.eqModel.label': '音色',
@@ -68,6 +70,10 @@ const dsp = {
   'dsp.eqModel.proportional': '聚焦',
   'dsp.eqModel.wide': '宽阔',
   'dsp.eqEngine.label': '引擎',
+  'dsp.eqPhase.label': '相位',
+  'dsp.eqPhase.minimum': '最小相位',
+  'dsp.eqPhase.linear': '线性相位',
+  'dsp.eqPhase.linearLatency': '线性相位 (+{ms} 毫秒)',
   'dsp.eqEngine.serial': '串联',
   'dsp.eqEngine.parallel': '并联',
   'dsp.eqStereo.label': '作用于',
@@ -105,6 +111,9 @@ const dsp = {
   'dsp.eq.frequency': '频率',
   'dsp.eq.gain': '增益',
   'dsp.eq.preamp': '前置增益',
+  'dsp.eq.trim': '自动调整',
+  'dsp.eq.trimHint': '在频段之前预留的余量，使此曲线不会削波。',
+  'dsp.eq.overUnity': '超出 {gain} dB',
   'dsp.eq.character': '音色量',
   'dsp.eq.subsonic': '超低频',
   'dsp.eq.fuzz': '失真',
@@ -137,8 +146,6 @@ const dsp = {
   'dsp.maximizer.ceiling': '上限',
   'dsp.maximizer.lookAhead': '前瞻',
   'dsp.maximizer.release': '释放时间',
-  'dsp.maximizer.headroomHint':
-    '上限为输出配置随后添加的 {gain} dB 预留了余量。',
 
   'tabs.dsp': 'DSP',
 };

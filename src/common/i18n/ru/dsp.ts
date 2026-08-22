@@ -33,6 +33,8 @@ const dsp = {
 
   'dsp.eqPreset.custom': 'Свой',
   'dsp.eqPreset.label': 'Пресет',
+  'dsp.eqPreset.default': 'По умолчанию',
+  'dsp.eqPreset.reset': 'Сбросить',
   'dsp.eqPreset.flat': 'Ровно',
   'dsp.eqPreset.vShape': 'V-образная',
   'dsp.eqPreset.rock': 'Рок',
@@ -63,7 +65,8 @@ const dsp = {
   'dsp.eqPreset.importEmpty':
     'Этот эквалайзер не смог прочитать ни одного фильтра.',
   'dsp.eqPreset.importFailed': 'Не удалось прочитать этот файл.',
-  'dsp.eqPreset.importPreamp': 'Предусиление установлено на {gain} дБ.',
+  'dsp.eqPreset.importPreamp':
+    'Его запас в {gain} дБ измеряется здесь самостоятельно.',
 
   'dsp.eq.rack': 'Полосы',
   'dsp.eqModel.label': 'Характер',
@@ -71,6 +74,10 @@ const dsp = {
   'dsp.eqModel.proportional': 'Узкий',
   'dsp.eqModel.wide': 'Широкий',
   'dsp.eqEngine.label': 'Движок',
+  'dsp.eqPhase.label': 'Фаза',
+  'dsp.eqPhase.minimum': 'Минимальная',
+  'dsp.eqPhase.linear': 'Линейная',
+  'dsp.eqPhase.linearLatency': 'Линейная (+{ms} мс)',
   'dsp.eqEngine.serial': 'Последов.',
   'dsp.eqEngine.parallel': 'Параллельн.',
   'dsp.eqStereo.label': 'Действует на',
@@ -108,6 +115,9 @@ const dsp = {
   'dsp.eq.frequency': 'Частота',
   'dsp.eq.gain': 'Усиление',
   'dsp.eq.preamp': 'Предус.',
+  'dsp.eq.trim': 'Авторегулировка',
+  'dsp.eq.trimHint': 'Запас перед полосами, чтобы эта кривая не перегружалась.',
+  'dsp.eq.overUnity': 'превышение {gain} дБ',
   'dsp.eq.character': 'Характер',
   'dsp.eq.subsonic': 'Инфраниз.',
   'dsp.eq.fuzz': 'Фузз',
@@ -142,8 +152,6 @@ const dsp = {
   'dsp.maximizer.ceiling': 'Потолок',
   'dsp.maximizer.lookAhead': 'Упреждение',
   'dsp.maximizer.release': 'Восстановление',
-  'dsp.maximizer.headroomHint':
-    'Потолок оставляет запас под {gain} дБ, которые ваш профиль вывода добавляет после этого.',
 
   'tabs.dsp': 'DSP',
 };

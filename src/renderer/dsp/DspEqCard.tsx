@@ -11,6 +11,7 @@ import {
   EQ_MAX_BAND_COUNT,
   IEqBandSettings,
   IEqSettings,
+  eqEdited,
 } from '../../common/dsp/chain';
 import { TranslationKey } from '../../common/i18n/en';
 import LabelledKnob from '../components/LabelledKnob';
@@ -188,9 +189,23 @@ const DspEqCard = ({ eq, sampleRate, onChange, onCommit }: IDspEqCardProps) => {
             // Deliberately does NOT clear `presetId`: the preamp is headroom,
             // not part of the curve a preset describes, so trimming it must
             // not make the picker claim the preset was abandoned.
+            //
+            // Nor does it switch the regulator off. The two are separate gains:
+            // the regulator makes exactly the room the curve needs and this
+            // says how much of it to spend, so zero here means the rack sits at
+            // unity and turning it up is a decision rather than an accident.
             onChange={(preampDb) => onChange({ ...eq, preampDb })}
             onCommit={onCommit}
           />
+          {/* A readout, not a control: what the regulator is taking out in
+              front of the bands so the preamp beside it can start from zero.
+              Written in the dials' own grammar — figure over caption — because
+              it stands in a row of them and anything else reads as a control
+              that has lost its knob. */}
+          <span className="dsp-eq-trim" title={t('dsp.eq.trimHint')}>
+            <span className="dsp-eq-trim-value">{eq.trimDb.toFixed(1)} dB</span>
+            <span className="dsp-eq-trim-label">{t('dsp.eq.trim')}</span>
+          </span>
           {/* How much of the chosen character to apply. At zero every one of
               them collapses to the plain cookbook, so this is the off switch
               as well as the dial. */}
@@ -204,7 +219,7 @@ const DspEqCard = ({ eq, sampleRate, onChange, onCommit }: IDspEqCardProps) => {
             defaultValue={100}
             isDisabled={eq.model === 'clean'}
             onChange={(percent) =>
-              onChange({ ...eq, modelAmount: percent / 100 })
+              onChange(eqEdited(eq, { modelAmount: percent / 100 }))
             }
             onCommit={onCommit}
           />
@@ -222,7 +237,9 @@ const DspEqCard = ({ eq, sampleRate, onChange, onCommit }: IDspEqCardProps) => {
             // Below the clamp's floor there is no useful filter, so the dial
             // steps straight from off to the lowest one worth having.
             onChange={(hz) =>
-              onChange({ ...eq, subsonicHz: hz > 0 && hz < 10 ? 10 : hz })
+              onChange(
+                eqEdited(eq, { subsonicHz: hz > 0 && hz < 10 ? 10 : hz }),
+              )
             }
             onCommit={onCommit}
           />
@@ -238,7 +255,7 @@ const DspEqCard = ({ eq, sampleRate, onChange, onCommit }: IDspEqCardProps) => {
             defaultValue={0}
             isDisabled={false}
             onChange={(percent) =>
-              onChange({ ...eq, fuzzAmount: percent / 100 })
+              onChange(eqEdited(eq, { fuzzAmount: percent / 100 }))
             }
             onCommit={onCommit}
           />
@@ -256,7 +273,9 @@ const DspEqCard = ({ eq, sampleRate, onChange, onCommit }: IDspEqCardProps) => {
             defaultValue={0}
             isDisabled={false}
             onChange={(hz) =>
-              onChange({ ...eq, monoBelowHz: hz > 0 && hz < 40 ? 40 : hz })
+              onChange(
+                eqEdited(eq, { monoBelowHz: hz > 0 && hz < 40 ? 40 : hz }),
+              )
             }
             onCommit={onCommit}
           />

@@ -42,6 +42,8 @@ const dsp = {
 
   'dsp.eqPreset.custom': 'Custom',
   'dsp.eqPreset.label': 'Preset',
+  'dsp.eqPreset.default': 'Default',
+  'dsp.eqPreset.reset': 'Reset',
   'dsp.eqPreset.flat': 'Flat',
   'dsp.eqPreset.vShape': 'V-shape',
   'dsp.eqPreset.rock': 'Rock',
@@ -70,7 +72,8 @@ const dsp = {
   'dsp.eqPreset.importSkipped': 'Loaded {count} filters, {skipped} skipped.',
   'dsp.eqPreset.importEmpty': 'No filters this equaliser could read.',
   'dsp.eqPreset.importFailed': 'That file could not be read.',
-  'dsp.eqPreset.importPreamp': 'Preamp set to {gain} dB.',
+  'dsp.eqPreset.importPreamp':
+    'Its {gain} dB of headroom is measured here instead.',
 
   'dsp.eq.rack': 'Bands',
   'dsp.eqModel.label': 'Character',
@@ -78,6 +81,10 @@ const dsp = {
   'dsp.eqModel.proportional': 'Focused',
   'dsp.eqModel.wide': 'Broad',
   'dsp.eqEngine.label': 'Engine',
+  'dsp.eqPhase.label': 'Phase',
+  'dsp.eqPhase.minimum': 'Minimum',
+  'dsp.eqPhase.linear': 'Linear',
+  'dsp.eqPhase.linearLatency': 'Linear (+{ms} ms)',
   'dsp.eqEngine.serial': 'Serial',
   'dsp.eqEngine.parallel': 'Parallel',
   'dsp.eqStereo.label': 'Applies to',
@@ -115,6 +122,10 @@ const dsp = {
   'dsp.eq.frequency': 'Freq',
   'dsp.eq.gain': 'Gain',
   'dsp.eq.preamp': 'Preamp',
+  'dsp.eq.trim': 'Auto trim',
+  'dsp.eq.trimHint':
+    'Room made in front of the bands so this curve cannot clip.',
+  'dsp.eq.overUnity': '{gain} dB over',
   'dsp.eq.character': 'Character',
   'dsp.eq.subsonic': 'Subsonic',
   'dsp.eq.fuzz': 'Fuzz',
@@ -149,8 +160,6 @@ const dsp = {
   'dsp.maximizer.ceiling': 'Ceiling',
   'dsp.maximizer.lookAhead': 'Look-ahead',
   'dsp.maximizer.release': 'Release',
-  'dsp.maximizer.headroomHint':
-    'The ceiling leaves room for the {gain} dB your output profile adds after this.',
 
   'tabs.dsp': 'DSP',
 };

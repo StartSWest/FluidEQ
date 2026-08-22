@@ -33,6 +33,8 @@ const dsp = {
 
   'dsp.eqPreset.custom': 'Personalizado',
   'dsp.eqPreset.label': 'Ajuste',
+  'dsp.eqPreset.default': 'Por defecto',
+  'dsp.eqPreset.reset': 'Restablecer',
   'dsp.eqPreset.flat': 'Plano',
   'dsp.eqPreset.vShape': 'Forma en V',
   'dsp.eqPreset.rock': 'Rock',
@@ -62,7 +64,8 @@ const dsp = {
     'Se cargaron {count} filtros, {skipped} omitidos.',
   'dsp.eqPreset.importEmpty': 'Este ecualizador no pudo leer ningún filtro.',
   'dsp.eqPreset.importFailed': 'No se pudo leer ese archivo.',
-  'dsp.eqPreset.importPreamp': 'Preamplificación ajustada a {gain} dB.',
+  'dsp.eqPreset.importPreamp':
+    'Sus {gain} dB de margen se miden aquí en su lugar.',
 
   'dsp.eq.rack': 'Bandas',
   'dsp.eqModel.label': 'Carácter',
@@ -70,6 +73,10 @@ const dsp = {
   'dsp.eqModel.proportional': 'Enfocado',
   'dsp.eqModel.wide': 'Amplio',
   'dsp.eqEngine.label': 'Motor',
+  'dsp.eqPhase.label': 'Fase',
+  'dsp.eqPhase.minimum': 'Mínima',
+  'dsp.eqPhase.linear': 'Lineal',
+  'dsp.eqPhase.linearLatency': 'Lineal (+{ms} ms)',
   'dsp.eqEngine.serial': 'En serie',
   'dsp.eqEngine.parallel': 'En paralelo',
   'dsp.eqStereo.label': 'Aplica a',
@@ -107,6 +114,10 @@ const dsp = {
   'dsp.eq.frequency': 'Frec',
   'dsp.eq.gain': 'Ganancia',
   'dsp.eq.preamp': 'Preamp',
+  'dsp.eq.trim': 'Ajuste auto',
+  'dsp.eq.trimHint':
+    'Espacio reservado antes de las bandas para que esta curva no sature.',
+  'dsp.eq.overUnity': '{gain} dB de más',
   'dsp.eq.character': 'Carácter',
   'dsp.eq.subsonic': 'Subgraves',
   'dsp.eq.fuzz': 'Fuzz',
@@ -141,8 +152,6 @@ const dsp = {
   'dsp.maximizer.ceiling': 'Techo',
   'dsp.maximizer.lookAhead': 'Anticipación',
   'dsp.maximizer.release': 'Relajación',
-  'dsp.maximizer.headroomHint':
-    'El techo deja margen para los {gain} dB que tu perfil de salida añade después.',
 
   'tabs.dsp': 'DSP',
 };

@@ -33,6 +33,8 @@ const dsp = {
 
   'dsp.eqPreset.custom': 'Eigen',
   'dsp.eqPreset.label': 'Voreinstellung',
+  'dsp.eqPreset.default': 'Standard',
+  'dsp.eqPreset.reset': 'Zurücksetzen',
   'dsp.eqPreset.flat': 'Neutral',
   'dsp.eqPreset.vShape': 'V-Form',
   'dsp.eqPreset.rock': 'Rock',
@@ -63,7 +65,8 @@ const dsp = {
   'dsp.eqPreset.importEmpty':
     'Dieser Equalizer konnte keine Filter darin lesen.',
   'dsp.eqPreset.importFailed': 'Diese Datei konnte nicht gelesen werden.',
-  'dsp.eqPreset.importPreamp': 'Vorverstärkung auf {gain} dB gesetzt.',
+  'dsp.eqPreset.importPreamp':
+    'Seine {gain} dB Reserve werden hier stattdessen gemessen.',
 
   'dsp.eq.rack': 'Bänder',
   'dsp.eqModel.label': 'Charakter',
@@ -71,6 +74,10 @@ const dsp = {
   'dsp.eqModel.proportional': 'Fokussiert',
   'dsp.eqModel.wide': 'Breit',
   'dsp.eqEngine.label': 'Engine',
+  'dsp.eqPhase.label': 'Phase',
+  'dsp.eqPhase.minimum': 'Minimal',
+  'dsp.eqPhase.linear': 'Linear',
+  'dsp.eqPhase.linearLatency': 'Linear (+{ms} ms)',
   'dsp.eqEngine.serial': 'Seriell',
   'dsp.eqEngine.parallel': 'Parallel',
   'dsp.eqStereo.label': 'Wirkt auf',
@@ -108,6 +115,10 @@ const dsp = {
   'dsp.eq.frequency': 'Freq',
   'dsp.eq.gain': 'Pegel',
   'dsp.eq.preamp': 'Vorverst.',
+  'dsp.eq.trim': 'Auto-Trim',
+  'dsp.eq.trimHint':
+    'Reserve vor den Bändern, damit diese Kurve nicht übersteuert.',
+  'dsp.eq.overUnity': '{gain} dB darüber',
   'dsp.eq.character': 'Charakter',
   'dsp.eq.subsonic': 'Subsonic',
   'dsp.eq.fuzz': 'Fuzz',
@@ -142,8 +153,6 @@ const dsp = {
   'dsp.maximizer.ceiling': 'Obergrenze',
   'dsp.maximizer.lookAhead': 'Vorausschau',
   'dsp.maximizer.release': 'Release',
-  'dsp.maximizer.headroomHint':
-    'Die Obergrenze lässt Platz für die {gain} dB, die dein Ausgabeprofil danach hinzufügt.',
 
   'tabs.dsp': 'DSP',
 };

@@ -10,17 +10,26 @@ import {
   DSP_DEFAULTS,
   EQ_ENGINES,
   EQ_MODELS,
+  EQ_PHASE_MODES,
   EQ_RACK_SIZES,
   EQ_STEREO_MODES,
   OVERSAMPLE_FACTORS,
   IEqSettings,
   TEqEngine,
   TEqModel,
+  TEqPhase,
   TEqStereo,
   buildEqRack,
+  eqEdited,
 } from '../../common/dsp/chain';
 import { rackMatchingCurveOf } from './rack';
-import { EQ_PRESETS, isCompleteEqPreset } from '../../common/dsp/eqPresets';
+import { linearPhaseLatencyMs } from './linearPhase';
+import {
+  EQ_DEFAULT_PRESET_ID,
+  EQ_PRESETS,
+  eqPresetSetup,
+  isCompleteEqPreset,
+} from '../../common/dsp/eqPresets';
 import { TranslationKey } from '../../common/i18n/en';
 import { useTranslation } from '../utils/I18nContext';
 import Dropdown from '../widgets/Dropdown';
@@ -80,12 +89,29 @@ const DspEqBar = ({ eq, sampleRate, onChange, onCommit }: IDspEqBarProps) => {
     onCommit();
   };
 
+  /**
+   * A preset is its curve AND the rack it was voiced on.
+   *
+   * Applying only the fifteen gains left the character, the topology and the
+   * protective filters wherever the previous preset put them, so the same entry
+   * sounded different depending on what had been auditioned before it — which
+   * is the one thing a preset exists to rule out.
+   */
   const applyPreset = (id: string) => {
     const chosen = EQ_PRESETS.find((one) => one.id === id);
     if (!chosen || !isCompleteEqPreset(chosen)) {
       return;
     }
     setNotice('');
+    if (id === EQ_DEFAULT_PRESET_ID) {
+      // Everything, and deliberately more than the other entries touch: the
+      // rack size, the source curve and the preamp all move on an import, and a
+      // reset that leaves those behind is the kind that reads as half-working.
+      // The bypass switch is the user's, not the preset's.
+      onChange({ ...DSP_DEFAULTS.eq, enabled: eq.enabled, presetId: id });
+      onCommit();
+      return;
+    }
     // The presets are fifteen gains written against the fifteen-band rack, so
     // they are built there and then read onto whatever rack is loaded. The
     // alternative — snapping the rack back to fifteen — would throw away a
@@ -94,14 +120,19 @@ const DspEqBar = ({ eq, sampleRate, onChange, onCommit }: IDspEqBarProps) => {
       ...band,
       gainDb: chosen.gains[index],
     }));
+    const setup = eqPresetSetup(chosen);
     onChange({
       ...eq,
+      ...setup,
       presetId: id,
       // The preset's own fifteen are the reference, so moving to 31 bands
       // afterwards reads the preset at full detail rather than reading back
       // whatever the current rack could hold of it.
       sourceBands: asFifteen,
-      bands: rackMatchingCurveOf(eq.bands, asFifteen, sampleRate, eq.model),
+      // Fitted through the INCOMING character, not the outgoing one. The fit
+      // solves for gains that reproduce the curve through a given filter shape,
+      // so reading it through the shape being replaced misfits every band.
+      bands: rackMatchingCurveOf(eq.bands, asFifteen, sampleRate, setup.model),
     });
     onCommit();
   };
@@ -150,7 +181,6 @@ const DspEqBar = ({ eq, sampleRate, onChange, onCommit }: IDspEqBarProps) => {
       // is read from the file rather than from the last size that was on
       // screen.
       sourceBands: bands,
-      preampDb,
     });
     onCommit();
     const notes = [
@@ -159,6 +189,15 @@ const DspEqBar = ({ eq, sampleRate, onChange, onCommit }: IDspEqBarProps) => {
         : t('dsp.eqPreset.imported', { count: bands.length }),
     ];
     if (preampDb !== 0) {
+      // Deliberately NOT applied. A file's `Preamp` line and this rack's
+      // regulator are the same quantity — room for the curve's own boosts —
+      // and applying both counts it twice: a headphone correction asking for
+      // -5.6 dB alongside a measured -5.7 arrived 11.3 dB quiet, which reads
+      // as the import having killed the bass rather than as double headroom.
+      //
+      // The regulator wins because it measures THESE filters at THIS rate,
+      // while the file's figure was computed by whoever published it, against
+      // a rack that may not have been the one it ends up in.
       notes.push(t('dsp.eqPreset.importPreamp', { gain: preampDb }));
     }
     setNotice(notes.join(' '));
@@ -176,6 +215,37 @@ const DspEqBar = ({ eq, sampleRate, onChange, onCommit }: IDspEqBarProps) => {
 
   return (
     <div className="dsp-eq-bar">
+      {/* First in the row, because it is what the rest of the row is a
+          consequence of: every entry sets the character, the topology and the
+          protective filters as well as the curve. */}
+      <div className="dsp-eq-preset dsp-eq-preset-first">
+        <span className="dsp-eq-preset-label">{t('dsp.eqPreset.label')}</span>
+        <Dropdown
+          name={t('dsp.eqPreset.label')}
+          value={eq.presetId}
+          isDisabled={false}
+          noSelectionPlaceholder={t('dsp.eqPreset.custom')}
+          options={EQ_PRESETS.map((one) => ({
+            value: one.id,
+            label: t(one.labelKey as TranslationKey),
+            display: t(one.labelKey as TranslationKey),
+          }))}
+          handleChange={applyPreset}
+        />
+      </div>
+
+      {/* Quiet, and next to the picker rather than by the import buttons:
+          it is the same control — "Default" chosen without opening the list. */}
+      <div className="dsp-eq-transfer dsp-eq-reset">
+        <button
+          type="button"
+          className="button small subtle"
+          onClick={() => applyPreset(EQ_DEFAULT_PRESET_ID)}
+        >
+          {t('dsp.eqPreset.reset')}
+        </button>
+      </div>
+
       {/* Labels sit BESIDE their fields, not stacked over them. Above, each
           pair stood two rows tall inside a row that is one control high, and
           the header grew a band of empty space to fit a word. */}
@@ -209,7 +279,7 @@ const DspEqBar = ({ eq, sampleRate, onChange, onCommit }: IDspEqBarProps) => {
             display: t(`dsp.eqModel.${model}` as TranslationKey),
           }))}
           handleChange={(next: string) => {
-            onChange({ ...eq, model: next as TEqModel });
+            onChange(eqEdited(eq, { model: next as TEqModel }));
             onCommit();
           }}
         />
@@ -224,14 +294,18 @@ const DspEqBar = ({ eq, sampleRate, onChange, onCommit }: IDspEqBarProps) => {
         <Dropdown
           name={t('dsp.eqOversample.label')}
           value={String(eq.oversample)}
-          isDisabled={false}
+          // Nothing to offer linear phase, and saying so is better than leaving
+          // a live control that does nothing: oversampling exists to move a
+          // band away from where the bilinear transform squeezes it, and an FIR
+          // built from an impulse response has no bilinear transform in it.
+          isDisabled={eq.phase === 'linear'}
           options={OVERSAMPLE_FACTORS.map((factor) => ({
             value: String(factor),
             label: factor === 1 ? t('dsp.eqOversample.off') : `${factor}x`,
             display: factor === 1 ? t('dsp.eqOversample.off') : `${factor}x`,
           }))}
           handleChange={(next: string) => {
-            onChange({ ...eq, oversample: Number(next) });
+            onChange(eqEdited(eq, { oversample: Number(next) }));
             onCommit();
           }}
         />
@@ -251,7 +325,7 @@ const DspEqBar = ({ eq, sampleRate, onChange, onCommit }: IDspEqBarProps) => {
             display: t(`dsp.eqStereo.${mode}` as TranslationKey),
           }))}
           handleChange={(next: string) => {
-            onChange({ ...eq, stereo: next as TEqStereo });
+            onChange(eqEdited(eq, { stereo: next as TEqStereo }));
             onCommit();
           }}
         />
@@ -271,25 +345,36 @@ const DspEqBar = ({ eq, sampleRate, onChange, onCommit }: IDspEqBarProps) => {
             display: t(`dsp.eqEngine.${engine}` as TranslationKey),
           }))}
           handleChange={(next: string) => {
-            onChange({ ...eq, engine: next as TEqEngine });
+            onChange(eqEdited(eq, { engine: next as TEqEngine }));
             onCommit();
           }}
         />
       </div>
 
-      <div className="dsp-eq-preset">
-        <span className="dsp-eq-preset-label">{t('dsp.eqPreset.label')}</span>
+      {/* Beside the engine, because the two answer the same question at
+          different depths: one is how the bands are put against the audio, this
+          is whether they are allowed to shift its phase at all. */}
+      <div className="dsp-eq-preset dsp-eq-model">
+        <span className="dsp-eq-preset-label">{t('dsp.eqPhase.label')}</span>
         <Dropdown
-          name={t('dsp.eqPreset.label')}
-          value={eq.presetId}
+          name={t('dsp.eqPhase.label')}
+          value={eq.phase}
           isDisabled={false}
-          noSelectionPlaceholder={t('dsp.eqPreset.custom')}
-          options={EQ_PRESETS.map((one) => ({
-            value: one.id,
-            label: t(one.labelKey as TranslationKey),
-            display: t(one.labelKey as TranslationKey),
-          }))}
-          handleChange={applyPreset}
+          options={EQ_PHASE_MODES.map((phase) => {
+            // The delay is the entire cost of the mode, so it is named on the
+            // option rather than discovered afterwards.
+            const label =
+              phase === 'linear'
+                ? t('dsp.eqPhase.linearLatency', {
+                    ms: linearPhaseLatencyMs(sampleRate),
+                  })
+                : t(`dsp.eqPhase.${phase}` as TranslationKey);
+            return { value: phase, label, display: label };
+          })}
+          handleChange={(next: string) => {
+            onChange(eqEdited(eq, { phase: next as TEqPhase }));
+            onCommit();
+          }}
         />
       </div>
 

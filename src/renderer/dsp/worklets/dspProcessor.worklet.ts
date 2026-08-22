@@ -29,6 +29,14 @@ import {
   processBiquad,
 } from '../biquad';
 import { processEqBands, processEqOversampled } from '../eqEngine';
+import {
+  CONVOLVER_WARMUP,
+  IConvolverKernel,
+  IConvolverState,
+  convolve,
+  convolveBlend,
+  createConvolver,
+} from '../convolver';
 import { IOversamplerState, createOversampler } from '../oversample';
 import {
   ISaturatorState,
@@ -84,6 +92,48 @@ class DspProcessor extends AudioWorkletProcessor {
 
   /** One per channel, for the subsonic high pass ahead of the bands. */
   private readonly subsonicStates: IBiquadState[] = [];
+
+  /**
+   * One per channel, and only while the phase mode is linear.
+   *
+   * Undefined rather than idle when the mode is minimum: a convolver holds a
+   * ring of input spectra, and keeping one fed through material it is not
+   * filtering would cost the whole partitioned transform per block for output
+   * nobody reads.
+   */
+  /**
+   * Where the input gain actually is, as opposed to where it is being asked to
+   * be.
+   *
+   * The regulator moves the trim on every change to the curve, so dragging a
+   * band walks this in tenths of a decibel — and a gain applied as a step is a
+   * discontinuity in the waveform, which is a click per step and a drag's worth
+   * of them in a row. Ramped across the block instead, so the level slides
+   * where it used to jump.
+   */
+  private eqGainNow = 1;
+
+  private convolvers: IConvolverState[] | undefined;
+
+  /**
+   * The replacement, fed in parallel until it is worth listening to.
+   *
+   * A fresh convolver's ring is empty, so its first partition of output is
+   * silence with nothing to do with the audio. Swapping to it outright is a
+   * 10 ms hole on every kernel change — a drag's worth of them is exactly what
+   * "the EQ micro-cuts when I move it" sounds like.
+   */
+  private convolversNext: IConvolverState[] | undefined;
+
+  /** Samples of warm-up left before the handover may begin. */
+  private convolverWarmup = 0;
+
+  /** How much of the replacement is being heard, 0 to 1. Per channel, because
+   * the two run their own states and must arrive together. */
+  private convolverBlend: number[] = [];
+
+  /** Somewhere to run the second convolver without allocating per block. */
+  private readonly convolverScratch = new Float32Array(RENDER_QUANTUM);
 
   private subsonicCoefficients: IBiquadCoefficients | undefined;
 
@@ -169,7 +219,33 @@ class DspProcessor extends AudioWorkletProcessor {
     }
     this.rebuildLimiters();
     this.port.onmessage = (event: MessageEvent<unknown>) => {
-      this.settings = clampDspSettings(event.data);
+      const { data } = event;
+      // The linear-phase kernel arrives on its own message, not folded into the
+      // settings. It is built in the renderer because it costs about two
+      // milliseconds — fine inside a frame, fatal inside a 2.7 ms callback —
+      // and it changes only when the curve does, while settings arrive on every
+      // pixel of a drag.
+      if (data instanceof Object && 'eqKernel' in data) {
+        const { eqKernel } = data as { eqKernel: IConvolverKernel | undefined };
+        if (!eqKernel) {
+          this.convolvers = undefined;
+          this.convolversNext = undefined;
+          return;
+        }
+        const built = Array.from({ length: CHANNELS }, () =>
+          createConvolver(eqKernel),
+        );
+        if (!this.convolvers) {
+          // Nothing playing through one yet, so there is nothing to fade from.
+          this.convolvers = built;
+          return;
+        }
+        this.convolversNext = built;
+        this.convolverWarmup = CONVOLVER_WARMUP;
+        this.convolverBlend = new Array(CHANNELS).fill(0);
+        return;
+      }
+      this.settings = clampDspSettings(data);
       this.rebuildLimiters();
       this.refreshEq();
     };
@@ -245,7 +321,10 @@ class DspProcessor extends AudioWorkletProcessor {
     this.rebuildOversampleViews();
     // Held as a linear multiplier so the sample loop is one multiply rather
     // than a pow per sample.
-    this.eqPreampGain = 10 ** (eq.preampDb / 20);
+    // The regulator and the user's offset are one gain by the time they reach
+    // a sample: the first makes exactly as much room as the curve needs, the
+    // second is however much of it the user decided to spend.
+    this.eqPreampGain = 10 ** ((eq.preampDb + eq.trimDb) / 20);
     // Oversampling runs the cascade at twice the rate, so its filters have to
     // be DESIGNED for that rate. Handing it the ordinary set would place every
     // band an octave low — a bug rather than a mode.
@@ -294,6 +373,28 @@ class DspProcessor extends AudioWorkletProcessor {
       );
   }
 
+  /**
+   * Advance the replacement convolver's warm-up, and retire the old one.
+   *
+   * Kept out of `processChannel` because it is a decision about the pair: a
+   * handover that completed for the left channel and not the right would put
+   * the two on different filters, which is a collapsed image rather than a
+   * click.
+   */
+  private settleConvolvers(samples: number): void {
+    if (!this.convolversNext) {
+      return;
+    }
+    if (this.convolverWarmup > 0) {
+      this.convolverWarmup -= samples;
+      return;
+    }
+    if (this.convolverBlend.every((blend) => blend >= 1)) {
+      this.convolvers = this.convolversNext;
+      this.convolversNext = undefined;
+    }
+  }
+
   /** One channel, in place in `target`, which already holds the input. */
   private processChannel(target: Float32Array, slot: number): void {
     const { eq, compressor, maximizer } = this.settings;
@@ -302,41 +403,80 @@ class DspProcessor extends AudioWorkletProcessor {
       // Ahead of the bands, which is where the format puts it and the only
       // place it works: the preamp exists to make room for the boosts that
       // follow, and applying it after them is applying it too late.
-      if (this.eqPreampGain !== 1) {
+      if (this.eqPreampGain !== 1 || this.eqGainNow !== this.eqPreampGain) {
+        // The same ramp for every channel: `eqGainNow` is only committed once
+        // all of them have run, so slot 1 starts where slot 0 started rather
+        // than where it finished. Sliding the two channels differently is a
+        // moving image, which is worse than the click this replaces.
+        const from = this.eqGainNow;
+        const step = (this.eqPreampGain - from) / Math.max(1, target.length);
         for (let i = 0; i < target.length; i += 1) {
-          target[i] *= this.eqPreampGain;
+          target[i] *= from + step * (i + 1);
         }
       }
-      // Ahead of everything else: it exists to keep energy out of the chain,
-      // so anything after it would be shaping content this removes.
-      if (this.subsonicCoefficients) {
-        processBiquad(
-          this.subsonicStates[slot],
-          target,
-          this.subsonicCoefficients,
-        );
-      }
-      if (eq.oversample > 1) {
-        processEqOversampled(
-          this.eqStates[slot],
-          this.eqCoefficients,
-          target,
-          eq.engine,
-          this.eqOversamplers[slot],
-          eq.oversample,
-          this.eqWork,
-          this.eqDryWork,
-          this.eqWetWork,
-        );
+      // Linear phase replaces the whole filter section rather than sitting
+      // beside it. The kernel already contains the bands AND the subsonic high
+      // pass, so running either of them here would apply both twice — and the
+      // second application would be the minimum-phase one, which is the thing
+      // this mode exists to avoid.
+      //
+      // Falls through to the cascade when no kernel has arrived yet. That
+      // window is real: the mode can be chosen before the first kernel is
+      // posted, and a block of silence there would be an audible gap where a
+      // dropdown was used.
+      if (eq.phase === 'linear' && this.convolvers) {
+        if (this.convolversNext && this.convolverWarmup <= 0) {
+          // Over about 21 ms: long enough that no step in the response is a
+          // click, short enough that letting go of a band and hearing the
+          // change still feels immediate.
+          this.convolverBlend[slot] = convolveBlend(
+            this.convolvers[slot],
+            this.convolversNext[slot],
+            target,
+            this.convolverScratch,
+            this.convolverBlend[slot],
+            1 / 1_024,
+          );
+        } else if (this.convolversNext) {
+          // Warming: both are fed, only the old one is heard.
+          this.convolverScratch.set(target);
+          convolve(this.convolvers[slot], target);
+          convolve(this.convolversNext[slot], this.convolverScratch);
+        } else {
+          convolve(this.convolvers[slot], target);
+        }
       } else {
-        processEqBands(
-          this.eqStates[slot],
-          this.eqCoefficients,
-          target,
-          eq.engine,
-          this.eqDry,
-          this.eqWet,
-        );
+        // Ahead of everything else: it exists to keep energy out of the chain,
+        // so anything after it would be shaping content this removes.
+        if (this.subsonicCoefficients) {
+          processBiquad(
+            this.subsonicStates[slot],
+            target,
+            this.subsonicCoefficients,
+          );
+        }
+        if (eq.oversample > 1) {
+          processEqOversampled(
+            this.eqStates[slot],
+            this.eqCoefficients,
+            target,
+            eq.engine,
+            this.eqOversamplers[slot],
+            eq.oversample,
+            this.eqWork,
+            this.eqDryWork,
+            this.eqWetWork,
+          );
+        } else {
+          processEqBands(
+            this.eqStates[slot],
+            this.eqCoefficients,
+            target,
+            eq.engine,
+            this.eqDry,
+            this.eqWet,
+          );
+        }
       }
       // After the bands, where an analogue unit's output amplifier sits: it
       // colours what the curve produced rather than what went into it.
@@ -444,6 +584,10 @@ class DspProcessor extends AudioWorkletProcessor {
         this.processChannel(target, Math.min(channel, CHANNELS - 1));
       }
     }
+
+    // Committed once the channels agree, never inside the loop.
+    this.eqGainNow = this.eqPreampGain;
+    this.settleConvolvers(output[0]?.length ?? 0);
 
     /**
      * The phase-cancellation fix, applied to the side channel only.

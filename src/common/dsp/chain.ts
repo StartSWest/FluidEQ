@@ -136,6 +136,20 @@ export const EQ_STEREO_MODES: readonly TEqStereo[] = ['stereo', 'mid', 'side'];
 
 export const EQ_ENGINES: readonly TEqEngine[] = ['serial', 'parallel'];
 
+/**
+ * Whether the bands are allowed to shift phase where they change amplitude.
+ *
+ * `minimum` is every biquad equaliser there has ever been, and the shift is
+ * not a defect: it is what makes a causal filter causal, which is why the two
+ * cannot be had at once. `linear` replaces the cascade with a symmetric FIR of
+ * the same magnitude, so no frequency is delayed relative to another — at the
+ * cost of latency, and of ringing symmetrically about a transient instead of
+ * behind it. Neither is the better one; they are two different trades.
+ */
+export type TEqPhase = 'minimum' | 'linear';
+
+export const EQ_PHASE_MODES: readonly TEqPhase[] = ['minimum', 'linear'];
+
 /** 1 is off. Four is the most the two-stage oversampler is built for. */
 export const OVERSAMPLE_FACTORS: readonly number[] = [1, 2, 4];
 
@@ -153,6 +167,8 @@ export interface IEqSettings {
   modelAmount: number;
   /** @see TEqEngine */
   engine: TEqEngine;
+  /** @see TEqPhase */
+  phase: TEqPhase;
   /** @see TEqStereo */
   stereo: TEqStereo;
   /**
@@ -238,13 +254,48 @@ export interface IEqSettings {
    */
   sourceBands: readonly IEqBandSettings[];
   /**
-   * Applied ahead of the bands, in dB.
+   * The user's own offset at the input, in dB, on top of the regulator.
    *
-   * Every published correction curve carries one, and it is not decoration: a
-   * curve with a +4.7 dB boost in it clips without the -5.4 dB the file asks
-   * for in front. Dropping it made imported curves both too loud and wrong.
+   * Every published correction curve carries a preamp, and it is not
+   * decoration: a curve with a +4.7 dB boost in it clips without the -5.4 dB
+   * the file asks for in front. An import still sets this, because the figure
+   * in the file is the author's judgement of their own curve.
+   *
+   * With `autoPreamp` on, the headroom the curve needs is already taken care
+   * of by `trimDb`, so zero here is the neutral position rather than a
+   * gamble — and turning it up is a deliberate decision to run hot rather than
+   * an accident of which preset was chosen.
    */
   preampDb: number;
+  /**
+   * The input regulator's gain, in dB. Derived, never edited, always on.
+   *
+   * The bands sit a third of an octave apart at the bottom, so their skirts
+   * overlap and adjacent gains ADD: "Bass boost", whose largest band was +5 dB,
+   * measured +12.15 dB summed at 69 Hz. Nothing in the rack was wrong — the
+   * number on the dial was simply never the number leaving the stage, and with
+   * nothing in front of it that was twelve decibels past full scale on the
+   * loudest part of the material, which is the distortion the presets were
+   * reported for.
+   *
+   * Held at minus the curve's own measured peak, so the loudest point of the
+   * rack lands exactly at unity and no arrangement of boosts can clip by
+   * itself. There is no switch: an "off" position is a position that clips, and
+   * the control that answers "I want it hotter than that" already exists one
+   * dial along.
+   *
+   * Kept separate from `preampDb` rather than written into it, because the two
+   * answer different questions and one number cannot hold both. Folding them
+   * together meant every recomputation overwrote whatever had been dialled in,
+   * so the automatic half fought the manual half and the dial's zero meant
+   * nothing in particular. Apart, zero on the preamp is the sweet spot by
+   * construction: the rack at unity, nothing given away.
+   *
+   * Stored because the worklet only ever sees this object, and it is a cache of
+   * a pure function of the bands — anything that changes them passes through
+   * `withInputTrim`, which is where it is refreshed.
+   */
+  trimDb: number;
   /**
    * The factory preset last applied, or empty for a hand-made curve.
    *
@@ -271,6 +322,23 @@ export interface IEqSettings {
  * chain the way it would in a 32-bit fixed-point cascade.
  */
 export const EQ_BAND_COUNT = 15;
+
+/**
+ * One setting changed, and the preset picker told the truth about it.
+ *
+ * A preset carries the character, the topology, the oversampling and the
+ * protective filters as well as the fifteen gains, so touching any of them
+ * means the rack is no longer the preset it is still labelled with. Only a band
+ * edit used to clear the label, which was right while a preset was nothing but
+ * gains and became a lie the moment it was more.
+ *
+ * Not for the preamp: that is headroom rather than part of the curve, and
+ * trimming it must not make the picker claim the preset was abandoned.
+ */
+export const eqEdited = (
+  eq: IEqSettings,
+  next: Partial<IEqSettings>,
+): IEqSettings => ({ ...eq, ...next, presetId: '' });
 
 /**
  * The ceiling an import cannot cross.
@@ -437,6 +505,7 @@ export const DSP_DEFAULTS: IDspSettings = {
     model: 'clean',
     modelAmount: 1,
     engine: 'serial',
+    phase: 'minimum',
     stereo: 'stereo',
     monoBelowHz: 0,
     oversample: 1,
@@ -446,6 +515,7 @@ export const DSP_DEFAULTS: IDspSettings = {
     sourceBands: [],
     presetId: '',
     preampDb: 0,
+    trimDb: 0,
   },
   exciter: { enabled: false, crossoverHz: 6_000, drive: 3, mix: 0.3 },
   compressor: {
@@ -558,6 +628,9 @@ export const clampDspSettings = (value: unknown): IDspSettings => {
       engine: EQ_ENGINES.includes(eq.engine as TEqEngine)
         ? (eq.engine as TEqEngine)
         : 'serial',
+      phase: EQ_PHASE_MODES.includes(eq.phase as TEqPhase)
+        ? (eq.phase as TEqPhase)
+        : 'minimum',
       stereo: EQ_STEREO_MODES.includes(eq.stereo as TEqStereo)
         ? (eq.stereo as TEqStereo)
         : 'stereo',
@@ -580,6 +653,10 @@ export const clampDspSettings = (value: unknown): IDspSettings => {
       fuzzAmount: clampNumber(eq.fuzzAmount, { min: 0, max: 1 }, 0),
       presetId: typeof eq.presetId === 'string' ? eq.presetId : '',
       preampDb: clampNumber(eq.preampDb, RANGES.eqGainDb, 0),
+      // Zero for a setting written before this existed — those are the
+      // sessions that have been clipping — and recomputed on the next change
+      // either way.
+      trimDb: clampNumber(eq.trimDb, RANGES.eqGainDb, 0),
       // The stored rack decides its own length now, so an imported ten-filter
       // curve comes back as ten bands rather than being padded out to fifteen
       // with silent ones. A band past the default rack has no fallback of its

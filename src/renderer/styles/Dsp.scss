@@ -458,6 +458,37 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   background: rgba($black, 0.18);
 }
 
+// The regulator's readout, between the preamp dial and the rest. Figure over
+// caption, the same grammar the dials beside it use, so a row of controls does
+// not appear to contain one that has lost its knob.
+.dsp-eq-trim {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  // Wide enough for "-12.2 dB" so the row does not reflow every time the curve
+  // moves and shift the dials out from under the pointer.
+  min-width: 76px;
+  margin: 0 12px 0 2px;
+}
+
+.dsp-eq-trim-value {
+  color: rgba($white, 0.86);
+  font-size: 0.82rem;
+  font-weight: $weight-semibold;
+  font-variant-numeric: tabular-nums;
+}
+
+// Measured against `.labelled-knob__label`, not guessed at: this stands in a
+// row of dials wearing their own captions, and a second size or a second grey
+// here would read as a second kind of thing.
+.dsp-eq-trim-label {
+  color: rgba($white, 0.62);
+  font-size: 0.64rem;
+  line-height: 1.2;
+}
+
 // One row, centred: the selected band's controls and nothing else. Centring
 // is the point — the strip belongs to the graph above it, not to an edge.
 .dsp-eq-strip {
@@ -579,6 +610,22 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 .dsp-eq-preset .dropdown {
   min-width: 170px;
+}
+
+// The widest field in the row, and it has to be: the entries carry real names
+// — "Small speakers", "Treble boost" — and at the 170px the rest of the row
+// shares they truncated into each other.
+.dsp-eq-preset-first .dropdown {
+  min-width: 210px;
+}
+
+// A rule after the picker and its reset, because the row is otherwise eight
+// controls of equal weight and the one that sets the other seven has to read
+// as the head of it rather than as the first of eight.
+.dsp-eq-reset {
+  margin-right: 4px;
+  padding-right: 12px;
+  border-right: 1px solid rgba($white, 0.1);
 }
 
 // A band count is two characters. Given the preset field's width it read as a

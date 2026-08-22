@@ -32,6 +32,8 @@ const dsp = {
 
   'dsp.eqPreset.custom': 'カスタム',
   'dsp.eqPreset.label': 'プリセット',
+  'dsp.eqPreset.default': 'デフォルト',
+  'dsp.eqPreset.reset': 'リセット',
   'dsp.eqPreset.flat': 'フラット',
   'dsp.eqPreset.vShape': 'V字',
   'dsp.eqPreset.rock': 'ロック',
@@ -62,7 +64,8 @@ const dsp = {
   'dsp.eqPreset.importEmpty':
     'このイコライザーが読み取れるフィルターはありませんでした。',
   'dsp.eqPreset.importFailed': 'そのファイルを読み取れませんでした。',
-  'dsp.eqPreset.importPreamp': 'プリアンプを {gain} dB に設定しました。',
+  'dsp.eqPreset.importPreamp':
+    'ファイルの {gain} dB の余裕は、ここで実測した値に置き換えます。',
 
   'dsp.eq.rack': 'バンド数',
   'dsp.eqModel.label': 'キャラクター',
@@ -70,6 +73,10 @@ const dsp = {
   'dsp.eqModel.proportional': 'フォーカス',
   'dsp.eqModel.wide': 'ワイド',
   'dsp.eqEngine.label': 'エンジン',
+  'dsp.eqPhase.label': '位相',
+  'dsp.eqPhase.minimum': '最小位相',
+  'dsp.eqPhase.linear': '直線位相',
+  'dsp.eqPhase.linearLatency': '直線位相 (+{ms} ms)',
   'dsp.eqEngine.serial': '直列',
   'dsp.eqEngine.parallel': '並列',
   'dsp.eqStereo.label': '適用先',
@@ -107,6 +114,9 @@ const dsp = {
   'dsp.eq.frequency': '周波数',
   'dsp.eq.gain': 'ゲイン',
   'dsp.eq.preamp': 'プリアンプ',
+  'dsp.eq.trim': '自動調整',
+  'dsp.eq.trimHint': 'このカーブがクリップしないようバンドの前に確保した余裕。',
+  'dsp.eq.overUnity': '{gain} dB 超過',
   'dsp.eq.character': 'キャラ量',
   'dsp.eq.subsonic': 'サブソニック',
   'dsp.eq.fuzz': 'ファズ',
@@ -140,8 +150,6 @@ const dsp = {
   'dsp.maximizer.ceiling': '上限',
   'dsp.maximizer.lookAhead': '先読み',
   'dsp.maximizer.release': 'リリース',
-  'dsp.maximizer.headroomHint':
-    '上限は、この後に出力プロファイルが加える {gain} dB 分の余裕を残しています。',
 
   'tabs.dsp': 'DSP',
 };
