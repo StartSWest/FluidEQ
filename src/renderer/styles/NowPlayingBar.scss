@@ -682,7 +682,7 @@ $now-playing-bar-height: 64px;
     place-items: center;
     color: #bafff7;
     font-size: 0.62rem;
-    font-weight: $weight-heavy;
+    font-weight: $weight-bold;
     line-height: 1;
     background: #0a3846;
     border: 1px solid rgba(105, 246, 233, 0.38);
@@ -787,7 +787,7 @@ $now-playing-bar-height: 64px;
   fill: currentcolor;
   stroke: none;
   font-size: 9px;
-  font-weight: $weight-heavy;
+  font-weight: $weight-bold;
 }
 
 // Half a step quieter than Play and the skips: these are conveniences beside

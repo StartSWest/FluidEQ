@@ -66,16 +66,28 @@ $field-padding-inline: 11px;
 // on a 13px label, and a free numeric value invites the same drift back one
 // nudge at a time.
 //
-// Read `$weight-heavy` and `$weight-display` as display-size-only. In the
-// system font both land on `Segoe UI Black`, which is a poster face: fine on a
-// karaoke lyric at 40px, wrong on a 13px control, where its counters close up.
-// Anything small and heavy wants $weight-bold, or a bundled display face of
-// its own.
+// $weight-bold is the ceiling for anything at a UI size, on every platform.
+//
+// This app ships on Windows, macOS and Ubuntu, and it uses each one's system
+// font, so the weights available differ underneath the same number. Windows is
+// the constraint: Segoe UI has no cut between Bold and Black, so 800 and 900
+// both land on `Segoe UI Black` — a poster face whose counters close up below
+// roughly 20px. That is what "apastadas" described about the titlebar tabs, and
+// it was true of seventy-four other declarations at 8-16px that had never been
+// looked at. They are all bold now.
+//
+// macOS could afford more — SF has real cuts across the range — and taking it
+// would mean the same panel looking heavier on one machine than another for no
+// reason a user could name. One ceiling everywhere is worth more than the extra
+// step macOS alone could render.
+//
+// $weight-display is 900 and belongs only above ~20px: six declarations use it,
+// all karaoke lyric and score text. There is deliberately no 800 token, because
+// on Windows it is not a distinct face — it is Black, arriving early.
 $weight-regular: 400;
 $weight-medium: 500;
 $weight-semibold: 600;
 $weight-bold: 700;
-$weight-heavy: 800;
 $weight-display: 900;
 
 // The one monospace stack, for the places that read as evidence rather than as
@@ -93,16 +105,24 @@ $weight-display: 900;
 // dump and a bug report were set in different faces depending on which panel
 // they appeared in.
 //
-// Cascadia Mono leads because it is the sharper face on Windows and is present
-// on every supported version. It was briefly bundled as a webfont to make the
-// result identical across machines; that came back out for the same reason
-// Inter did — the system copy is hinted for this screen and the bundled one is
-// not, and sharpness at 10px beat cross-machine uniformity.
+// It was briefly bundled as a webfont so the result would be identical on every
+// machine. That came back out for the same reason Inter did: the system copy is
+// hinted for the screen it is drawn on and a bundled woff2 is not, and
+// sharpness at 10px beat cross-machine uniformity.
 //
-// `ui-monospace` is here for macOS, where it is SF Mono. It is never last:
-// on its own it does not resolve on Windows at all and falls through to Times
-// New Roman, a proportional serif.
-$font-mono: 'Cascadia Mono', ui-monospace, Consolas, monospace;
+// So this is one native face per platform, same as the sans stack. macOS
+// answers `ui-monospace` with SF Mono. Windows does not resolve that token at
+// all — measured, not assumed — and answers `Cascadia Mono`, with Consolas
+// behind it for Windows 10. Linux skips all of those: Ubuntu Mono first because
+// this ships for Ubuntu, then the two that are always installed somewhere.
+//
+// `ui-monospace` must never be the last real name. On its own it does not
+// resolve on Windows and the declaration falls through to Times New Roman — a
+// proportional serif, in the one place where fixed width is the entire point,
+// since `ch` only means a character while the font is monospaced.
+$font-mono:
+  ui-monospace, 'Cascadia Mono', Consolas, 'Ubuntu Mono', 'Noto Sans Mono',
+  'DejaVu Sans Mono', monospace;
 
 // *** Surfaces ***************************************************************
 

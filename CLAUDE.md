@@ -70,6 +70,69 @@ placement or taste. Therefore:
 - **Emphasis follows recommendation**: the suggested action wears the loud
   style, the decline wears the quiet one.
 
+## Typography
+
+FluidEQ ships on Windows, macOS and Ubuntu and uses each one's system font, so
+the same CSS renders in three different families with three different sets of
+cuts. All of these were earned the expensive way.
+
+- **Never name a font family that is not shipped.** `Inter` sat at the front of
+  the stack for the life of this project without ever being bundled. The list
+  resolved to Segoe UI anyway, so every size, padding and letter-spacing in the
+  app was tuned against a font that was never on screen — and nobody noticed,
+  because the failure is silent by construction.
+- **No raw `font-weight` numbers. Use the `$weight-*` scale in `_theme.scss`.**
+  The app had grown eighteen distinct literals — 650, 680, 720, 730, 750, 760,
+  780, 820, 840, 850, 880, 950 among them — which measured as exactly four
+  faces in the running window. `check-styles.ts` now rejects a raw value; it
+  has to keep letting `font-weight: 100 900` through, which is a variable axis
+  range in `@font-face` and not a weight.
+- **`$weight-bold` is the ceiling at UI sizes, on every platform.** Segoe UI has
+  no cut between Bold and Black, so 800 and 900 both land on `Segoe UI Black` —
+  a poster face whose counters close up below roughly 20px. That is what the
+  titlebar tabs looked like when this was reported as the fonts being
+  _apastadas_, and 74 other declarations at 8-16px had the same bug unnoticed.
+  macOS could render more steps; taking them would make the same panel heavier
+  on one machine than another for no reason a user could name.
+- **`$weight-display` is 900 and belongs above ~20px only** — karaoke lyric and
+  score text. There is deliberately no 800 token.
+- **A stack names one native family per platform**, in resolution order:
+  `-apple-system` for macOS, `Segoe UI` for Windows, then `Ubuntu`, `Cantarell`,
+  `Noto Sans`, `DejaVu Sans` for Linux. Without the Linux names the stack ran
+  out and fell to generic `sans-serif`, which fontconfig answers with DejaVu
+  Sans. `ui-sans-serif` is deliberately absent: Chromium does not resolve it on
+  Windows, and on Linux it answers from fontconfig ahead of the named families,
+  which is the opposite of choosing them.
+- **Monospace goes through `$font-mono`,** and `ui-monospace` is never the last
+  real name in it: alone on Windows it falls through to Times New Roman, a
+  proportional serif, in the one place where fixed width is the whole point.
+  Three separate stacks had drifted apart here and painted the same kind of
+  evidence text in two different faces.
+- **Do not bundle a webfont for UI text.** Inter and Cascadia Mono were both
+  bundled and both taken back out. Windows leans on TrueType hinting at the
+  9-15px this UI lives at and the system fonts are hinted for exactly that; an
+  unhinted variable woff2 has nothing to compete with, and it was visibly softer
+  on screen — worst on bold text, where there is more stem area to blur. A
+  bundled display face for headings alone is still open; UI text is settled.
+- **Any font swap must keep `font-variant-numeric: tabular-nums` on the shell.**
+  Segoe UI carries no proportional figures at all, so every readout in this app
+  has been tabular by accident of the fallback. A font with proportional digits
+  — Inter spreads "111" against "000" by 30px at 40px — makes a gain counting
+  1.1 → 8.8 shove its neighbours every frame while a band is dragged. No test
+  can see it.
+
+Two ways of checking that are worth the keystrokes, because both caught things
+reasoning did not:
+
+- **`CSS.getPlatformFontsForNode` over the CDP socket says which real file
+  painted a node**, including `isCustomFont`. Computed style only says what was
+  asked for. That is what proved the tabs were being drawn in Segoe UI Black
+  while every control beside them was Segoe UI.
+- **Measure DOM text, never canvas text.** Chromium rasterises them on
+  different paths. A canvas-based sharpness comparison reported Inter as level
+  with Segoe UI at 400 and 600; on screen it plainly was not, and the wrong
+  conclusion survived until Ivan looked at the window.
+
 ## Verification discipline
 
 - A null test needs a positive control beside it, or "found nothing" is

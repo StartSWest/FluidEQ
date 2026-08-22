@@ -757,7 +757,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   margin-top: $spacing-s;
   gap: 7px;
   font-size: 0.72rem;
-  font-weight: $weight-heavy;
+  font-weight: $weight-bold;
 }
 
 .library-empty__add-icon {
@@ -842,7 +842,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   display: grid;
   place-items: center;
   color: $text-primary;
-  font-weight: $weight-heavy;
+  font-weight: $weight-bold;
   letter-spacing: 0.02em;
 
   .library-cover-art--row & {
@@ -1430,7 +1430,7 @@ $library-row-height: 46px;
   margin: 0;
   color: $text-faint;
   font-size: 0.62rem;
-  font-weight: $weight-heavy;
+  font-weight: $weight-bold;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -3218,7 +3218,7 @@ $library-wave-step: 4ms;
   margin: 0;
   color: rgba($primary-lighter, 0.5);
   font-size: 0.58rem;
-  font-weight: $weight-heavy;
+  font-weight: $weight-bold;
   letter-spacing: 0.14em;
   text-transform: uppercase;
 }

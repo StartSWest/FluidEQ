@@ -35,7 +35,22 @@ export const WHEEL_STEP_THRESHOLD = 24;
 export const LYRIC_MOTION_TIME_MS = 105;
 export const SONG_LYRIC_ENTRANCE_TIME_MS = 560;
 export const EUPHORIA_SWEEP_TIME_MS = 3_600;
-export const LYRIC_FONT_FAMILY = 'Inter, system-ui, -apple-system, sans-serif';
+/**
+ * The lyric canvas draws its own text, so it needs the font stack as a string
+ * rather than inheriting it. This must mirror the `body` stack in App.scss —
+ * one native family per platform, in the order each resolves.
+ *
+ * It said `Inter, system-ui, -apple-system, sans-serif` until now, and both
+ * halves of that were wrong. Inter has never been bundled, so it resolved to
+ * nothing. And nothing here named Segoe UI or any Linux family, so the lyrics
+ * were picking their font by a different route than every other string in the
+ * app — invisibly, because `system-ui` happens to land on Segoe UI too.
+ *
+ * A canvas is where this kind of drift hides: `check-styles.ts` reads
+ * stylesheets and cannot see a font named in TypeScript.
+ */
+export const LYRIC_FONT_FAMILY =
+  '-apple-system, BlinkMacSystemFont, "Segoe UI", Ubuntu, Cantarell, "Noto Sans", "DejaVu Sans", sans-serif';
 export const LYRIC_TEXT_SIZE_KEY = 'fluideq-karaoke-lyric-text-size';
 export const DEFAULT_LYRIC_TEXT_SIZE = 100;
 export const MIN_LYRIC_TEXT_SIZE = 75;

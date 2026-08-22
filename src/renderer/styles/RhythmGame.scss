@@ -102,7 +102,7 @@ it under the terms of the GNU General Public License version 3 or later.
   position: relative;
   color: $white;
   font-size: 3.2rem;
-  font-weight: $weight-heavy;
+  font-weight: $weight-display;
   font-variant-numeric: tabular-nums;
   line-height: 1;
 }
@@ -129,7 +129,7 @@ it under the terms of the GNU General Public License version 3 or later.
   border-radius: $radius-pill;
   background: rgba($neon-lime, 0.12);
   font-size: 1rem;
-  font-weight: $weight-heavy;
+  font-weight: $weight-bold;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }

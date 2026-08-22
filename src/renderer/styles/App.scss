@@ -118,11 +118,24 @@ body {
     // what hid the real bug for so long: the list resolved to Segoe UI anyway,
     // so every size and spacing here was tuned against a font nobody had named.
     // A family that is not shipped does not belong in the stack.
-    ui-sans-serif,
-    -apple-system,
-    BlinkMacSystemFont,
-    'Segoe UI',
-    sans-serif;
+    //
+    // One native font per platform, named explicitly, in the order each one
+    // resolves. macOS answers `-apple-system` and nothing else here, Windows
+    // skips those two and answers `Segoe UI`, and Linux skips all three.
+    //
+    // The Linux names are the point of this list. Without them the stack ran
+    // out and landed on generic `sans-serif`, which fontconfig usually answers
+    // with DejaVu Sans — wider, older, and nobody's idea of a UI font. Ubuntu
+    // ships Ubuntu, GNOME ships Cantarell, and Noto and DejaVu are the two that
+    // are always somewhere, in that order of preference.
+    //
+    // `ui-sans-serif` was dropped rather than kept first: it is the tidy
+    // spelling of "system UI font", but Chromium does not resolve it on Windows
+    // and on Linux it would answer from fontconfig ahead of the named families
+    // below, which is the opposite of choosing them.
+
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', Ubuntu, Cantarell,
+    'Noto Sans', 'DejaVu Sans', sans-serif;
   font-size: 1em;
   // Tabular figures, stated rather than inherited by luck.
   //
@@ -2493,7 +2506,7 @@ button.graph-legend {
   border-radius: $radius-pill;
   background: rgba($red, 0.22);
   font-size: 0.58rem;
-  font-weight: $weight-heavy;
+  font-weight: $weight-bold;
   letter-spacing: 0.08em;
   white-space: nowrap;
   animation: clip-pulse 900ms ease-in-out infinite;

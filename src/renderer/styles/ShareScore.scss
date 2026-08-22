@@ -249,7 +249,7 @@ it under the terms of the GNU General Public License version 3 or later.
     color: #06131d;
     border-color: transparent;
     background: hsl(var(--euphoria-hue, 160deg) 95% 62%);
-    font-weight: $weight-heavy;
+    font-weight: $weight-bold;
     box-shadow: 0 0 14px hsl(var(--euphoria-hue, 160deg) 95% 62% / 55%);
 
     &:hover {
