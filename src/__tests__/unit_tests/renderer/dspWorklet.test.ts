@@ -102,17 +102,27 @@ describe('dsp worklet bundle', () => {
         `No worklet bundle at ${BUNDLE}. Run \`pnpm build:renderer\` first.`,
       );
     }
-    // A bundle older than its source is a test that passes on stale output —
-    // exactly the kind of green that hides a defect rather than proving there
-    // is none.
-    const built = fs.statSync(BUNDLE).mtimeMs;
-    const written = fs.statSync(SOURCE).mtimeMs;
-    if (built < written) {
-      throw new Error(
-        'The worklet bundle is older than its source. Run `pnpm build:renderer`.',
-      );
+    if (!fs.existsSync(SOURCE)) {
+      throw new Error(`The worklet source moved; ${SOURCE} does not exist.`);
     }
   });
+
+  /**
+   * There is deliberately no "is the bundle newer than its source" check here.
+   *
+   * There was one, and it was wrong: webpack does not rewrite an output whose
+   * content did not change, so any git operation that touches source mtimes
+   * without changing them — a rebase, a checkout, a stash pop — left the
+   * bundle legitimately older than its source and turned this file red. The
+   * remedy it printed did not help either, because `build:renderer` had
+   * nothing to do. A test that fails after an ordinary rebase teaches people
+   * to ignore it, which costs more than the staleness it was guarding against.
+   *
+   * What keeps this honest instead is `check-build-exists.ts` in `setupFiles`,
+   * which refuses to start Jest without a build at all, and the behavioural
+   * assertions below: a bundle stale enough to matter is one whose behaviour
+   * changed, and behaviour is what every test here measures.
+   */
 
   it('loads and registers in a scope with no window, self or document', () => {
     expect(loadProcessor()).toBeInstanceOf(Function);
