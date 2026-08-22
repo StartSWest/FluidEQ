@@ -117,13 +117,9 @@ export const EQ_MODELS: readonly TEqModel[] = ['clean', 'proportional', 'wide'];
  * each one changed, so no band hears another's phase and order stops
  * mattering. Same curve on the dials, a different thing done to the audio.
  */
-export type TEqEngine = 'serial' | 'parallel' | 'precise';
+export type TEqEngine = 'serial' | 'parallel';
 
-export const EQ_ENGINES: readonly TEqEngine[] = [
-  'serial',
-  'parallel',
-  'precise',
-];
+export const EQ_ENGINES: readonly TEqEngine[] = ['serial', 'parallel'];
 
 export interface IEqSettings {
   enabled: boolean;
@@ -131,6 +127,20 @@ export interface IEqSettings {
   model: TEqModel;
   /** @see TEqEngine */
   engine: TEqEngine;
+  /**
+   * Run the bands at twice the rate.
+   *
+   * Orthogonal to the engine on purpose: it is not a third topology, it is the
+   * same topology given room. A biquad is linear and cannot alias, so this buys
+   * no headroom — it buys distance from Nyquist, where the bilinear transform
+   * squeezes a high band's upper skirt flat. Measured at 44.1 kHz, a 16 kHz
+   * bell asked for +6 dB carries 0.6 dB an octave below and 0.03 above; at
+   * double rate those come back together.
+   *
+   * Off by default, because it costs roughly double the EQ's arithmetic plus a
+   * 63-tap filter each way for a difference that lives in the top octave.
+   */
+  oversample: boolean;
   /**
    * `EQ_BAND_COUNT` by default, and as many as an imported file asked for up
    * to `EQ_MAX_BAND_COUNT`.
@@ -353,6 +363,7 @@ export const DSP_DEFAULTS: IDspSettings = {
     enabled: false,
     model: 'clean',
     engine: 'serial',
+    oversample: false,
     bands: DEFAULT_EQ_BANDS,
     sourceBands: [],
     presetId: '',
@@ -468,6 +479,7 @@ export const clampDspSettings = (value: unknown): IDspSettings => {
       engine: EQ_ENGINES.includes(eq.engine as TEqEngine)
         ? (eq.engine as TEqEngine)
         : 'serial',
+      oversample: clampBoolean(eq.oversample, false),
       presetId: typeof eq.presetId === 'string' ? eq.presetId : '',
       preampDb: clampNumber(eq.preampDb, RANGES.eqGainDb, 0),
       // The stored rack decides its own length now, so an imported ten-filter

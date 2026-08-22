@@ -73,7 +73,9 @@ const dsp = {
   'dsp.eqEngine.label': 'इंजन',
   'dsp.eqEngine.serial': 'श्रृंखला',
   'dsp.eqEngine.parallel': 'समानांतर',
-  'dsp.eqEngine.precise': 'सटीक',
+  'dsp.eqOversample.label': 'ओवरसैंपलिंग',
+  'dsp.eqOversample.off': 'बंद',
+  'dsp.eqOversample.on': '2x',
   'dsp.eqImport.title': 'EQ कर्व आयात करें',
   'dsp.eqImport.hint':
     'Squiglink, AutoEq या Equalizer APO से कर्व चिपकाएँ — या उसकी फ़ाइल चुनें।',

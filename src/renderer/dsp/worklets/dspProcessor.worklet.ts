@@ -67,11 +67,15 @@ class DspProcessor extends AudioWorkletProcessor {
   /** One filter state per band per channel, so the two never share history. */
   private readonly eqStates: IBiquadState[][] = [];
 
-  /** One per channel: the precise engine's filters keep history across blocks. */
+  /** One per channel: the oversampler's filters keep history across blocks. */
   private readonly eqOversamplers: IOversamplerState[] = [];
 
-  /** Doubled-rate scratch for the precise engine. */
+  /** Doubled-rate scratch, used only while oversampling is on. */
   private eqDoubled = new Float32Array(RENDER_QUANTUM * 2);
+
+  private eqDryDoubled = new Float32Array(RENDER_QUANTUM * 2);
+
+  private eqWetDoubled = new Float32Array(RENDER_QUANTUM * 2);
 
   private eqCoefficients: IBiquadCoefficients[] = [];
 
@@ -148,6 +152,8 @@ class DspProcessor extends AudioWorkletProcessor {
     }
     this.eqDry = new Float32Array(length);
     this.eqDoubled = new Float32Array(length * 2);
+    this.eqDryDoubled = new Float32Array(length * 2);
+    this.eqWetDoubled = new Float32Array(length * 2);
     this.eqWet = new Float32Array(length);
     this.low = new Float32Array(length);
     this.mid = new Float32Array(length);
@@ -171,10 +177,10 @@ class DspProcessor extends AudioWorkletProcessor {
     // Held as a linear multiplier so the sample loop is one multiply rather
     // than a pow per sample.
     this.eqPreampGain = 10 ** (eq.preampDb / 20);
-    // The precise engine runs the cascade at twice the rate, so its filters
-    // have to be DESIGNED for that rate. Handing it the ordinary set would
-    // place every band an octave low — a bug rather than a mode.
-    const designRate = eq.engine === 'precise' ? sampleRate * 2 : sampleRate;
+    // Oversampling runs the cascade at twice the rate, so its filters have to
+    // be DESIGNED for that rate. Handing it the ordinary set would place every
+    // band an octave low — a bug rather than a mode.
+    const designRate = eq.oversample ? sampleRate * 2 : sampleRate;
     this.eqCoefficients = eq.bands
       .filter((band) => band.enabled)
       .map((band) =>
@@ -204,13 +210,16 @@ class DspProcessor extends AudioWorkletProcessor {
           target[i] *= this.eqPreampGain;
         }
       }
-      if (eq.engine === 'precise') {
+      if (eq.oversample) {
         processEqOversampled(
           this.eqStates[slot],
           this.eqCoefficients,
           target,
+          eq.engine,
           this.eqOversamplers[slot],
           this.eqDoubled,
+          this.eqDryDoubled,
+          this.eqWetDoubled,
         );
       } else {
         processEqBands(

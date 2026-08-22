@@ -21,6 +21,7 @@ const withBands = (
   enabled: true,
   model: 'clean',
   engine: 'serial',
+  oversample: false,
   presetId: '',
   preampDb: 0,
   sourceBands: [],

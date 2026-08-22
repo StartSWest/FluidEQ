@@ -50,14 +50,16 @@ export const processEqOversampled = (
   states: IBiquadState[],
   coefficients: readonly IBiquadCoefficients[],
   target: Float32Array,
+  /** Whichever topology was chosen. This is not a third one. */
+  engine: TEqEngine,
   oversampler: IOversamplerState,
-  /** Scratch of exactly twice `target`'s length. */
+  /** All three are exactly twice `target`'s length. */
   doubled: Float32Array,
+  dryDoubled: Float32Array,
+  wetDoubled: Float32Array,
 ): void => {
   upsample2x(oversampler, target, doubled);
-  for (let band = 0; band < coefficients.length; band += 1) {
-    processBiquad(states[band], doubled, coefficients[band]);
-  }
+  processEqBands(states, coefficients, doubled, engine, dryDoubled, wetDoubled);
   downsample2x(oversampler, doubled, target);
 };
 

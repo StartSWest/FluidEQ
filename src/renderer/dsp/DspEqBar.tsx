@@ -212,6 +212,35 @@ const DspEqBar = ({ eq, sampleRate, onChange, onCommit }: IDspEqBarProps) => {
         />
       </div>
 
+      {/* Orthogonal to both of the others, which is why it is its own control
+          rather than a third engine: it is the same topology given room. */}
+      <div className="dsp-eq-preset dsp-eq-rack">
+        <span className="dsp-eq-preset-label">
+          {t('dsp.eqOversample.label')}
+        </span>
+        <Dropdown
+          name={t('dsp.eqOversample.label')}
+          value={eq.oversample ? 'on' : 'off'}
+          isDisabled={false}
+          options={[
+            {
+              value: 'off',
+              label: t('dsp.eqOversample.off'),
+              display: t('dsp.eqOversample.off'),
+            },
+            {
+              value: 'on',
+              label: t('dsp.eqOversample.on'),
+              display: t('dsp.eqOversample.on'),
+            },
+          ]}
+          handleChange={(next: string) => {
+            onChange({ ...eq, oversample: next === 'on' });
+            onCommit();
+          }}
+        />
+      </div>
+
       {/* A different question from the character: not what shape each band is,
           but how the bands are put against the audio. */}
       <div className="dsp-eq-preset dsp-eq-model">

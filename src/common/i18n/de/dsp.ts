@@ -73,7 +73,9 @@ const dsp = {
   'dsp.eqEngine.label': 'Engine',
   'dsp.eqEngine.serial': 'Seriell',
   'dsp.eqEngine.parallel': 'Parallel',
-  'dsp.eqEngine.precise': 'Präzise',
+  'dsp.eqOversample.label': 'Oversampling',
+  'dsp.eqOversample.off': 'Aus',
+  'dsp.eqOversample.on': '2x',
   'dsp.eqImport.title': 'EQ-Kurve importieren',
   'dsp.eqImport.hint':
     'Füge eine Kurve aus Squiglink, AutoEq oder Equalizer APO ein – oder wähle die Datei, in der sie steht.',
