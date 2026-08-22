@@ -792,19 +792,40 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
-// The phase meter, between the band picker and the controls: it reports on the
-// whole chain, so it belongs with neither one band nor the toolbar.
+// Its own panel, built like the preamp's. The meter reports on the whole chain
+// rather than on one band or on the toolbar, and a bare canvas wedged between
+// two blocks read as an afterthought rather than as a reading.
 .dsp-eq-phase {
   display: flex;
   flex: 0 0 auto;
-  align-items: center;
-  gap: 10px;
+  flex-direction: column;
+  gap: 3px;
+  // Enough width for the scale to be worth reading: below about this the
+  // needle cannot travel far enough to show the difference between a wide mix
+  // and one that is about to cancel.
+  min-width: 132px;
+  padding: 8px 12px 4px;
+  border: 1px solid rgba($white, 0.06);
+  border-radius: 10px;
+  background: rgba($black, 0.18);
 }
 
 .dsp-eq-phase-canvas {
-  flex: 1 1 auto;
+  width: 100%;
   min-width: 0;
-  border: 1px solid rgba($white, 0.06);
-  border-radius: 8px;
-  background: rgba($black, 0.18);
+}
+
+// A DEFINITE height, sized to the window, and never `auto` with `flex-grow`.
+//
+// That combination is a feedback loop rather than a layout: the paint sets the
+// canvas backing store from its measured box, the backing store is the element's
+// intrinsic height, so the box grows, so the backing store grows — the graph
+// walked down the page on its own until it filled thousands of pixels. The
+// original fixed 300px existed to prevent exactly this.
+//
+// Viewport units rather than a flex chain reaching the window, because
+// `.dsp-panel` is deliberately content-height: the workspace around it is what
+// scrolls, so nothing above here has a height to divide up.
+.dsp-eq .dsp-eq-graph {
+  height: clamp(260px, 52vh, 620px);
 }

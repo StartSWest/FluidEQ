@@ -8,7 +8,17 @@ import { useEffect, useRef } from 'react';
 import { useTranslation } from '../utils/I18nContext';
 import { readDspAnalyser, readDspCorrelation } from './store';
 
-const HEIGHT = 34;
+/** Track, ticks, then the reading underneath. */
+const HEIGHT = 54;
+
+/** Where the scale is marked, and what each mark means at a glance. */
+const TICKS: [number, string][] = [
+  [-1, '-1'],
+  [-0.5, ''],
+  [0, '0'],
+  [0.5, ''],
+  [1, '+1'],
+];
 
 /**
  * Phase correlation of what actually leaves the chain.
@@ -67,41 +77,81 @@ const DspPhaseMeter = () => {
       const target = readDspCorrelation();
       shown += (target - shown) * 0.18;
 
-      const W = box.width;
-      const H = box.height;
-      const mid = W / 2;
-      const track = H - 16;
+      // Stacked, not side by side. The box is narrow, and giving the number its
+      // own column left the scale about sixty pixels wide — a meter with no room
+      // to travel is not a meter. The number goes under the scale instead, where
+      // it can be large and the track can have the whole width.
+      const trackW = box.width;
+      const trackH = 16;
+      const mid = trackW / 2;
+      const atX = (value: number) => mid + (value * trackW) / 2;
 
       // The negative half, marked before anything is drawn over it: it is the
       // region the meter exists to warn about.
-      context.fillStyle = 'rgba(255,100,124,0.10)';
-      context.fillRect(0, 0, mid, track);
+      context.fillStyle = 'rgba(255,100,124,0.12)';
+      context.fillRect(0, 0, mid, trackH);
+      context.fillStyle = 'rgba(255,255,255,0.05)';
+      context.fillRect(mid, 0, mid, trackH);
 
-      context.fillStyle = 'rgba(255,255,255,0.06)';
-      context.fillRect(mid, 0, mid, track);
+      const x = atX(shown);
+      const bar = Math.abs(x - mid);
+      const warm = shown < 0;
+      const fill = context.createLinearGradient(mid, 0, x, 0);
+      fill.addColorStop(
+        0,
+        warm ? 'rgba(255,100,124,0.35)' : 'rgba(0,229,207,0.35)',
+      );
+      fill.addColorStop(
+        1,
+        warm ? 'rgba(255,100,124,0.95)' : 'rgba(0,229,207,0.95)',
+      );
+      context.fillStyle = fill;
+      context.fillRect(warm ? mid - bar : mid, 0, bar, trackH);
 
-      // Centre line at zero, where summing starts losing the difference.
-      context.fillStyle = 'rgba(255,255,255,0.22)';
-      context.fillRect(Math.round(mid), 0, 1, track);
-
-      const x = mid + (shown * W) / 2;
-      const bar = Math.min(mid, Math.abs(x - mid));
-      context.fillStyle =
-        shown < 0 ? 'rgba(255,100,124,0.85)' : 'rgba(0,229,207,0.85)';
-      context.fillRect(shown < 0 ? mid - bar : mid, 0, bar, track);
+      // Zero, where summing starts losing the difference between the channels.
+      context.fillStyle = 'rgba(255,255,255,0.3)';
+      context.fillRect(Math.round(mid), 0, 1, trackH);
 
       context.fillStyle = '#ffffff';
-      context.fillRect(Math.round(x) - 1, 0, 2, track);
+      context.fillRect(Math.round(x) - 1, -1, 2, trackH + 2);
 
       context.font =
         '10px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif';
-      context.textBaseline = 'alphabetic';
-      context.fillStyle = 'rgba(255,255,255,0.45)';
-      context.fillText('-1', 1, H - 3);
-      context.fillStyle = 'rgba(255,255,255,0.62)';
-      context.fillText(shown.toFixed(2), mid - 11, H - 3);
-      context.fillStyle = 'rgba(255,255,255,0.45)';
-      context.fillText('+1', W - 15, H - 3);
+      context.textBaseline = 'top';
+      TICKS.forEach(([value, label]) => {
+        const tickX = Math.round(atX(value));
+        context.fillStyle = 'rgba(255,255,255,0.18)';
+        context.fillRect(
+          Math.min(trackW - 1, Math.max(0, tickX)),
+          trackH + 2,
+          1,
+          label === '' ? 3 : 5,
+        );
+        if (label !== '') {
+          context.fillStyle = 'rgba(255,255,255,0.42)';
+          const { width } = context.measureText(label);
+          context.fillText(
+            label,
+            Math.min(trackW - width, Math.max(0, tickX - width / 2)),
+            trackH + 9,
+          );
+        }
+      });
+
+      // Centred under the scale, and the biggest thing in the box: it is the
+      // reading, and the track above it is the context for it.
+      context.textBaseline = 'top';
+      context.font =
+        '600 16px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif';
+      context.fillStyle = warm
+        ? 'rgba(255,140,158,0.95)'
+        : 'rgba(255,255,255,0.9)';
+      const value = shown.toFixed(2);
+      context.fillText(
+        value,
+        mid - context.measureText(value).width / 2,
+        trackH + 15,
+      );
 
       schedule();
     };
@@ -125,7 +175,7 @@ const DspPhaseMeter = () => {
 
   return (
     <div className="dsp-eq-phase">
-      <span className="dsp-eq-field-label">{t('dsp.eq.phase')}</span>
+      <span className="dsp-eq-preset-label">{t('dsp.eq.phase')}</span>
       <canvas
         ref={canvasRef}
         className="dsp-eq-phase-canvas"
