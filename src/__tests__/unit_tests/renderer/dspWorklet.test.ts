@@ -7,21 +7,25 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import fs from 'fs';
 import path from 'path';
 import vm from 'vm';
+import Server from 'webpack-dev-server';
 import { DSP_DEFAULTS, IDspSettings } from '../../../common/dsp/chain';
 import { DSP_PRESETS } from '../../../common/dsp/presets';
 
 /**
- * The build definition both webpack configs use.
+ * The worklet's own webpack config, asserted as configuration rather than run.
  *
- * Asserted directly, because this file can only ever execute the PRODUCTION
- * bundle — the development one is served from webpack-dev-server's memory and
- * never touches disk — and the development build is precisely where the last
- * defect lived. Production worked, this file was green, and a real window
- * threw `ReferenceError: self is not defined` from the jsonp chunk-loading
- * runtime that only development adds. Sharing one definition is the fix;
- * checking it here is what stops the two drifting apart again.
+ * This file can only ever EXECUTE the production bundle: the development one
+ * is served from webpack-dev-server's memory and never reaches disk. And
+ * development is exactly where both packaging defects lived — production
+ * worked and this file was green while a real window threw
+ * `ReferenceError: self is not defined`, first from webpack's jsonp chunk
+ * runtime and then from the dev server's own injected client.
+ *
+ * So the settings that make a worklet loadable are checked as values, and the
+ * one that cannot be checked that way — whether the dev server would inject
+ * into this compiler at all — is asked of the server's own function.
  */
-import { DSP_WORKLET_ENTRY } from '../../../../.erb/configs/webpack.dspWorklet';
+import { dspWorkletConfig } from '../../../../.erb/configs/webpack.dspWorklet';
 
 /**
  * Runs the BUILT worklet bundle, not the TypeScript source.
@@ -151,10 +155,62 @@ describe('dsp worklet bundle', () => {
    * report a throw inside the module — and the failure surfaced two steps
    * later as "the node name 'fluideq-dsp' is not defined".
    */
-  it('is built with the three settings a worklet scope needs', () => {
-    expect(DSP_WORKLET_ENTRY.library.type).toBe('var');
-    expect(DSP_WORKLET_ENTRY.chunkLoading).toBe(false);
-    expect(DSP_WORKLET_ENTRY.wasmLoading).toBe(false);
+  it('is built with the three output settings a worklet scope needs', () => {
+    [true, false].forEach((isDevelopment) => {
+      const { output } = dspWorkletConfig(isDevelopment);
+      expect(output?.library).toEqual({
+        type: 'var',
+        name: 'fluidEqDspWorklet',
+      });
+      expect(output?.chunkLoading).toBe(false);
+      expect(output?.wasmLoading).toBe(false);
+    });
+  });
+
+  /**
+   * Asked of `webpack-dev-server` itself, not of a copy of its rules.
+   *
+   * `Server.addAdditionalEntries` injects the dev client and react-refresh
+   * into every entry of a compiler this returns `true` for, and there is no
+   * per-entry opt-out — which is why the worklet has its own compiler at all.
+   * An injected client reads `self` at module scope, throws before
+   * `registerProcessor`, and surfaces as "the node name 'fluideq-dsp' is not
+   * defined" two steps later.
+   *
+   * Checking the real function means a change to its target list in a future
+   * webpack-dev-server fails here rather than in a user's audio thread.
+   */
+  it('is not a target the dev server would inject its client into', () => {
+    const { target, resolve } = dspWorkletConfig(true);
+    const fakeCompiler = {
+      options: { target, resolve: resolve ?? {}, externalsPresets: {} },
+    };
+    expect(
+      (
+        Server as unknown as { isWebTarget(compiler: unknown): boolean }
+      ).isWebTarget(fakeCompiler),
+    ).toBe(false);
+  });
+
+  /**
+   * POSITIVE CONTROL for the check above.
+   *
+   * Without it, an `isWebTarget` that had been renamed or that returned
+   * `undefined` for everything would satisfy the test while proving nothing.
+   */
+  it('POSITIVE CONTROL: the renderer’s own target IS one it injects into', () => {
+    const rendererLike = {
+      options: {
+        target: ['web', 'electron-renderer'],
+        resolve: {},
+        externalsPresets: {},
+      },
+    };
+    expect(
+      (
+        Server as unknown as { isWebTarget(compiler: unknown): boolean }
+      ).isWebTarget(rendererLike),
+    ).toBe(true);
   });
 
   it('emits no top-level reference to a global a worklet does not have', () => {

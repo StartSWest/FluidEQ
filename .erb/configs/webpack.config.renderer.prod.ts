@@ -12,7 +12,7 @@ import { merge } from 'webpack-merge';
 import TerserPlugin from 'terser-webpack-plugin';
 import baseConfig from './webpack.config.base';
 import webpackPaths from './webpack.paths';
-import DSP_WORKLET_ENTRY from './webpack.dspWorklet';
+import { dspWorkletConfig } from './webpack.dspWorklet';
 import checkNodeEnv from '../scripts/check-node-env';
 import deleteSourceMaps from '../scripts/delete-source-maps';
 import PUBLIC_ENV_DEFAULTS from './public-env';
@@ -56,9 +56,6 @@ const configuration: webpack.Configuration = {
       webpackPaths.srcRendererPath,
       'karaoke/whisper.worker.ts',
     ),
-    // Defined in one place so dev and prod cannot diverge; see that file for
-    // the three non-default settings a worklet build needs.
-    'dsp-worklet': DSP_WORKLET_ENTRY,
   },
 
   output: {
@@ -200,4 +197,12 @@ const configuration: webpack.Configuration = {
   ],
 };
 
-export default merge(baseConfig, configuration);
+/**
+ * The same two compilers development uses, for the same reason.
+ *
+ * Production has no dev-server client to keep out, but building the worklet
+ * the same way in both is the point: the last defect existed only in
+ * development precisely because the two builds were configured separately and
+ * only one of them was ever executed by a test.
+ */
+export default [merge(baseConfig, configuration), dspWorkletConfig(false)];

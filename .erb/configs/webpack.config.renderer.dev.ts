@@ -14,7 +14,7 @@ import {
 import ReactRefreshWebpackPlugin from '@pmmmwh/react-refresh-webpack-plugin';
 import baseConfig from './webpack.config.base';
 import webpackPaths from './webpack.paths';
-import DSP_WORKLET_ENTRY from './webpack.dspWorklet';
+import { dspWorkletConfig } from './webpack.dspWorklet';
 import checkNodeEnv from '../scripts/check-node-env';
 import PUBLIC_ENV_DEFAULTS from './public-env';
 
@@ -88,9 +88,6 @@ const configuration: webpack.Configuration = {
       webpackPaths.srcRendererPath,
       'karaoke/whisper.worker.ts',
     ),
-    // Defined in one place so dev and prod cannot diverge; see that file for
-    // the three non-default settings a worklet build needs.
-    'dsp-worklet': DSP_WORKLET_ENTRY,
   },
 
   output: {
@@ -324,4 +321,28 @@ const configuration: webpack.Configuration = {
   },
 };
 
-export default merge(baseConfig, configuration);
+/**
+ * Two compilers, and the second one is not a convenience.
+ *
+ * `webpack-dev-server` injects its own client and react-refresh into every
+ * entry of a compiler it considers a web target, and it decides that PER
+ * COMPILER — `Server.addAdditionalEntries` calls `Server.isWebTarget`, which
+ * reads `compiler.options.target`. There is no per-entry opt-out. An
+ * AudioWorklet scope has no `self`, so an injected client throws before
+ * `registerProcessor` runs and the node fails to construct two steps later.
+ *
+ * The worklet therefore gets its own compiler with a target the server does
+ * not count as web. `webpack serve` handles an array and serves the output of
+ * both from memory, so nothing about the workflow changes.
+ */
+/**
+ * The renderer's own config, named because two other files reach into it.
+ *
+ * `webpack.config.eslint.ts` uses it whole and `webpack.config.renderer.dev.dll.ts`
+ * takes its `module` rules. Both used to read `.default`, which is now the
+ * array below — and `.default.module` on an array is `undefined`, so the DLL
+ * would have been built with no loader rules at all and said nothing about it.
+ */
+export const rendererDevConfig = merge(baseConfig, configuration);
+
+export default [rendererDevConfig, dspWorkletConfig(true)];

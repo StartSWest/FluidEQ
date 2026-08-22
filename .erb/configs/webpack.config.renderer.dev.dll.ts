@@ -36,7 +36,10 @@ const configuration: webpack.Configuration = {
   /**
    * Use `module` from `webpack.config.renderer.dev.js`
    */
-  module: require('./webpack.config.renderer.dev').default.module,
+  // The named export: the default is an array of two compilers now, and
+  // `.module` on an array is undefined — which would build the DLL with no
+  // loader rules and report nothing.
+  module: require('./webpack.config.renderer.dev').rendererDevConfig.module,
 
   entry: {
     renderer: Object.keys(dependencies || {}).filter(
