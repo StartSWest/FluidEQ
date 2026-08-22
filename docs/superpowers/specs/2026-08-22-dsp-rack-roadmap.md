@@ -65,10 +65,21 @@ FluidEQ has the most reason to get right.
 
 - **Biquads by RBJ's cookbook** for the shapes, which is what APO itself uses,
   so an EQ curve reads the same on both paths.
-- **Matched-Z / Orfanidis correction** near Nyquist. A plain bilinear-transform
-  biquad warps: a 16 kHz bell at 44.1 kHz lands measurably narrow and low. This
-  is the difference between an EQ that is accurate and one that is only
-  accurate below 10 kHz.
+- **Matched-Z / Orfanidis correction** near Nyquist — and the size of the
+  problem is now measured rather than assumed, which changes how urgent it is.
+  `dspBiquad.test.ts` records what the plain cookbook actually does at 44.1 kHz:
+
+  | Case                                                  | Drift               |
+  | ----------------------------------------------------- | ------------------- |
+  | 1 kHz bell, symmetry an octave either side            | 0.01 dB             |
+  | 16 kHz bell, same measure                             | **0.60 dB**         |
+  | 16 kHz high shelf asked for +6 dB, measured at 20 kHz | **delivers 3–6 dB** |
+
+  The bell is off by well under a decibel — real, and smaller than this
+  document first claimed. **The shelf is the case that hurts**, because the
+  cookbook forces the response flat at Nyquist and a shelf placed high has
+  nowhere left to rise. Correction should be aimed there first.
+
 - **Optional linear phase** via FFT convolution, using the machinery already in
   `src/main/convolution.ts`. Pre-ringing is the trade and the UI must say so.
 - Bands: high/low pass, low/high shelf, bell, notch, band pass.
