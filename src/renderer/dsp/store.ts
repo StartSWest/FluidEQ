@@ -192,6 +192,24 @@ export const setDspCorrelation = (next: number): void => {
 
 export const readDspCorrelation = (): number => correlation;
 
+/**
+ * Largest sample leaving the chain since the last report, full scale = 1.
+ *
+ * Above 1 the output is clipping, and that is the one form of distortion the
+ * curve itself causes: a boost the graph draws happily is still broken once the
+ * sum runs out of headroom. Measured rather than predicted, because what clips
+ * depends on the material as much as on the settings.
+ */
+let peak = 0;
+
+export const setDspPeak = (next: number): void => {
+  if (Number.isFinite(next) && next >= 0) {
+    peak = next;
+  }
+};
+
+export const readDspPeak = (): number => peak;
+
 export const useDspSettings = (): IDspSettings =>
   useSyncExternalStore(subscribe, readDspSettings, readDspSettings);
 

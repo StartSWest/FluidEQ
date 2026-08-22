@@ -132,6 +132,9 @@ class DspProcessor extends AudioWorkletProcessor {
 
   private blocksSinceReport = 0;
 
+  /** Largest sample seen since the last report, in linear full-scale units. */
+  private peak = 0;
+
   /** Scratch for the parallel engine, so the audio thread never allocates. */
   private eqDry = new Float32Array(RENDER_QUANTUM);
 
@@ -503,6 +506,13 @@ class DspProcessor extends AudioWorkletProcessor {
       this.sumLeftRight += left[i] * right[i];
       this.sumLeftSquared += left[i] * left[i];
       this.sumRightSquared += right[i] * right[i];
+      // The peak of what LEAVES the chain, which is the only number that can
+      // say whether the curve is driving the output past full scale. A boost
+      // the graph draws happily is still distortion once the sum clips.
+      const loudest = Math.max(Math.abs(left[i]), Math.abs(right[i]));
+      if (loudest > this.peak) {
+        this.peak = loudest;
+      }
     }
     this.blocksSinceReport += 1;
     if (this.blocksSinceReport < METER_BLOCKS) {
@@ -513,8 +523,9 @@ class DspProcessor extends AudioWorkletProcessor {
     // channels disagree" when nothing is playing at all.
     const correlation =
       denominator > 1e-12 ? this.sumLeftRight / denominator : 1;
-    this.port.postMessage({ correlation });
+    this.port.postMessage({ correlation, peak: this.peak });
     this.blocksSinceReport = 0;
+    this.peak = 0;
     this.sumLeftRight = 0;
     this.sumLeftSquared = 0;
     this.sumRightSquared = 0;

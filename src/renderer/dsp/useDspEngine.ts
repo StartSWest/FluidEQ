@@ -19,6 +19,7 @@ import {
   setDspAnalyser,
   setDspCorrelation,
   setDspEngineState,
+  setDspPeak,
   setDspSampleRate,
 } from './store';
 
@@ -153,9 +154,15 @@ export const useDspEngine = (
       // receives settings. Assigned before the graph is built so the very
       // first block's reading is not dropped on the floor.
       worklet.port.onmessage = (message: MessageEvent<unknown>) => {
-        const data = message.data as { correlation?: unknown } | null;
+        const data = message.data as {
+          correlation?: unknown;
+          peak?: unknown;
+        } | null;
         if (data && typeof data.correlation === 'number') {
           setDspCorrelation(data.correlation);
+        }
+        if (data && typeof data.peak === 'number') {
+          setDspPeak(data.peak);
         }
       };
       // The point of no return. Cached because a second call throws.

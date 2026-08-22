@@ -8,7 +8,7 @@ import { PointerEvent, useEffect, useRef } from 'react';
 import { FilterTypeEnum } from '../../common/constants';
 import { IEqBandSettings, IEqSettings } from '../../common/dsp/chain';
 import { biquadCoefficients, biquadMagnitudeDb } from './biquad';
-import { readDspAnalyser } from './store';
+import { readDspAnalyser, readDspPeak } from './store';
 
 const MIN_HZ = 20;
 const MAX_HZ = 20_000;
@@ -403,6 +403,51 @@ const DspEqGraph = ({
       context.lineWidth = 2.5;
       context.lineJoin = 'round';
       context.stroke();
+
+      /**
+       * Where the curve is spending headroom it may not have.
+       *
+       * The one kind of distortion an equaliser causes by itself is running the
+       * output past full scale, and the magnitude plot hides it completely: a
+       * +9 dB boost is drawn exactly as happily as a -9 dB cut. Anywhere the
+       * summed curve plus the preamp comes out above unity, the material only
+       * survives because it was not already loud there — which is luck rather
+       * than headroom.
+       *
+       * Shaded rather than flagged, so it says WHERE as well as whether. The
+       * preamp is included because that is the control that buys the room back,
+       * and the mask retreating as it is turned down is the clearest way to
+       * show what it is for.
+       */
+      context.beginPath();
+      let masked = false;
+      for (let i = 0; i <= steps; i += 1) {
+        const hz = MIN_HZ * (MAX_HZ / MIN_HZ) ** (i / steps);
+        const over = totalAt(hz) + liveEq.preampDb;
+        const y = over > 0 ? Y(over) : Y(0);
+        masked = masked || over > 0;
+        if (i === 0) {
+          context.moveTo(X(hz), y);
+        } else {
+          context.lineTo(X(hz), y);
+        }
+      }
+      if (masked) {
+        context.lineTo(X(MAX_HZ), Y(0));
+        context.lineTo(X(MIN_HZ), Y(0));
+        context.closePath();
+        context.fillStyle = 'rgba(255,100,124,0.16)';
+        context.fill();
+      }
+
+      // And whether it is ACTUALLY clipping, which depends on the material as
+      // much as on the curve: a stripe along the top while the measured output
+      // is past full scale. The mask says where the risk is, this says it has
+      // stopped being a risk.
+      if (readDspPeak() > 1) {
+        context.fillStyle = 'rgba(255,100,124,0.5)';
+        context.fillRect(PAD_L, PAD_T, plotW(W), 3);
+      }
 
       /**
        * The fuzz, as grain along the curve.
