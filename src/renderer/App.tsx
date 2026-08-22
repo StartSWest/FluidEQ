@@ -484,6 +484,7 @@ const ConnectedNowPlayingBar = ({
       onShuffle={() => player.setShuffle(!player.isShuffled)}
       onRepeat={player.cycleRepeat}
       onVolume={player.setVolume}
+      onVolumeCommit={player.commitVolume}
       onReveal={track ? () => onReveal(track) : undefined}
     />
   );

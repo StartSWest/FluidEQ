@@ -73,19 +73,16 @@ import { useDspSettings } from '../../dsp/store';
 import { useLibrary } from '../LibraryContext';
 import {
   readPlaybackMemory,
+  readStoredVolume,
   restorablePositionMs,
   writePlaybackMemory,
+  writeStoredVolume,
 } from './playbackMemory';
 
 const REPEAT_CYCLE: readonly TLibraryRepeat[] = ['off', 'all', 'one'];
 
 const nextRepeat = (repeat: TLibraryRepeat): TLibraryRepeat =>
   REPEAT_CYCLE[(REPEAT_CYCLE.indexOf(repeat) + 1) % REPEAT_CYCLE.length];
-
-/** Where every session's volume slider starts — the loudest a fresh
- * `HTMLAudioElement` already opens at, so this changes nothing until someone
- * touches the slider. */
-const DEFAULT_VOLUME = 1;
 
 const clampVolume = (value: number): number => Math.min(1, Math.max(0, value));
 
@@ -197,7 +194,16 @@ export interface ILibraryPlayerContextValue {
   seek: (positionMs: number) => void;
   setShuffle: (isShuffled: boolean) => void;
   cycleRepeat: () => void;
+  /** Audible at once. Does not persist — see `commitVolume`. */
   setVolume: (value: number) => void;
+  /**
+   * Persist wherever the fader was left, at the end of a gesture.
+   *
+   * Separate from `setVolume` so dragging stays smooth: the sound follows the
+   * pointer on every change, while the synchronous `localStorage` write
+   * happens once, on release.
+   */
+  commitVolume: () => void;
   /**
    * `LibraryVideoStage`'s own registration hook: hand it the `<video>` it
    * just mounted and get back the cleanup that un-registers it. While
@@ -230,7 +236,11 @@ export const LibraryPlayerProvider = ({
   const audioElementRef = useRef<HTMLAudioElement | undefined>(undefined);
   if (!audioElementRef.current) {
     audioElementRef.current = new Audio();
-    audioElementRef.current.volume = DEFAULT_VOLUME;
+    // Set from storage here, not from an effect after the first render. An
+    // element built at unity and turned down afterwards is briefly at unity,
+    // and someone who left the fader at 17% would get a burst of full-scale
+    // audio on launch — the opposite of what remembering it is for.
+    audioElementRef.current.volume = readStoredVolume();
   }
   // The DSP chain attaches here rather than in the panel that configures it,
   // because `createMediaElementSource` binds to THIS element and may be called
@@ -280,7 +290,10 @@ export const LibraryPlayerProvider = ({
   const [isPlaying, setIsPlaying] = useState(false);
   const [positionMs, setPositionMs] = useState(0);
   const [durationMs, setDurationMs] = useState(0);
-  const [volume, setVolumeState] = useState(DEFAULT_VOLUME);
+  // Initialised from storage rather than defaulted and corrected later: the
+  // element above was built at the stored level, and a state that disagreed
+  // with it for one render would have the effect below undo that.
+  const [volume, setVolumeState] = useState(readStoredVolume);
   const [isUnplayable, setIsUnplayable] = useState(false);
 
   // The `ended` handler is attached once per media element and must never go
@@ -1268,8 +1281,28 @@ export const LibraryPlayerProvider = ({
     );
   }, []);
 
+  /**
+   * Move the fader. Audible immediately, not written to disk.
+   *
+   * The split is what keeps a drag smooth. The effect on `volume` above sets
+   * the element on every change, so the sound tracks the pointer with nothing
+   * in between; what does NOT happen per change is the `localStorage` write,
+   * which is synchronous and would land on the main thread a hundred times
+   * across one drag of a `step={0.01}` slider.
+   */
   const setVolume = useCallback((value: number) => {
     setVolumeState(clampVolume(value));
+  }, []);
+
+  /**
+   * Remember where the fader was left.
+   *
+   * Called when a gesture ends — pointer released, key lifted, mute toggled —
+   * rather than on every value. Reads from the ref instead of taking an
+   * argument so a caller cannot commit a value the player is not actually at.
+   */
+  const commitVolume = useCallback(() => {
+    writeStoredVolume(volumeRef.current);
   }, []);
 
   /**
@@ -1343,6 +1376,7 @@ export const LibraryPlayerProvider = ({
       setShuffle,
       cycleRepeat,
       setVolume,
+      commitVolume,
       registerVideoElement,
     }),
     [
@@ -1368,6 +1402,7 @@ export const LibraryPlayerProvider = ({
       setShuffle,
       cycleRepeat,
       setVolume,
+      commitVolume,
       registerVideoElement,
     ],
   );
