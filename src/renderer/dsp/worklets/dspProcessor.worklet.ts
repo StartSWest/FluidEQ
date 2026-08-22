@@ -9,6 +9,7 @@ import {
   IDspSettings,
   clampDspSettings,
   EQ_MAX_BAND_COUNT,
+  EQ_MODEL_DRIVE,
 } from '../../../common/dsp/chain';
 import {
   ICrossoverState,
@@ -28,6 +29,7 @@ import {
   createBiquadState,
 } from '../biquad';
 import { processEqBands } from '../eqEngine';
+import { ISaturatorState, createSaturator, saturateBlock } from '../saturate';
 import { FilterTypeEnum } from '../../../common/constants';
 
 /** Web Audio always renders 128 frames; the scratch buffers start there. */
@@ -65,6 +67,9 @@ class DspProcessor extends AudioWorkletProcessor {
 
   /** One filter state per band per channel, so the two never share history. */
   private readonly eqStates: IBiquadState[][] = [];
+
+  /** One per channel: the saturator keeps filter history across blocks. */
+  private readonly saturators: ISaturatorState[] = [];
 
   private eqCoefficients: IBiquadCoefficients[] = [];
 
@@ -104,6 +109,7 @@ class DspProcessor extends AudioWorkletProcessor {
       this.eqStates.push(
         Array.from({ length: EQ_MAX_BAND_COUNT }, () => createBiquadState()),
       );
+      this.saturators.push(createSaturator(RENDER_QUANTUM));
     }
     this.rebuildLimiters();
     this.port.onmessage = (event: MessageEvent<unknown>) => {
@@ -199,6 +205,13 @@ class DspProcessor extends AudioWorkletProcessor {
         this.eqDry,
         this.eqWet,
       );
+      // After the bands, because saturation belongs where an analogue unit's
+      // amplifier is — at the output of the filter section, colouring what the
+      // curve produced rather than what went into it.
+      const drive = EQ_MODEL_DRIVE[eq.model];
+      if (drive > 0) {
+        saturateBlock(this.saturators[slot], target, drive);
+      }
     }
 
     if (compressor.enabled) {

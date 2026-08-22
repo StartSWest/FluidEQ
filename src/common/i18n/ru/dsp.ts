@@ -70,6 +70,8 @@ const dsp = {
   'dsp.eqModel.clean': 'Чистый',
   'dsp.eqModel.proportional': 'Узкий',
   'dsp.eqModel.wide': 'Широкий',
+  'dsp.eqModel.warm': 'Тёплый',
+  'dsp.eqModel.driven': 'Насыщ.',
   'dsp.eqEngine.label': 'Движок',
   'dsp.eqEngine.serial': 'Последов.',
   'dsp.eqEngine.parallel': 'Параллельн.',

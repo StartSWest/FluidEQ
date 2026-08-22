@@ -70,6 +70,8 @@ const dsp = {
   'dsp.eqModel.clean': 'Klar',
   'dsp.eqModel.proportional': 'Fokussiert',
   'dsp.eqModel.wide': 'Breit',
+  'dsp.eqModel.warm': 'Warm',
+  'dsp.eqModel.driven': 'Angezerrt',
   'dsp.eqEngine.label': 'Engine',
   'dsp.eqEngine.serial': 'Seriell',
   'dsp.eqEngine.parallel': 'Parallel',

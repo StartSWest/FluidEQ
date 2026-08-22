@@ -69,6 +69,8 @@ const dsp = {
   'dsp.eqModel.clean': 'クリーン',
   'dsp.eqModel.proportional': 'フォーカス',
   'dsp.eqModel.wide': 'ワイド',
+  'dsp.eqModel.warm': 'ウォーム',
+  'dsp.eqModel.driven': 'ドライブ',
   'dsp.eqEngine.label': 'エンジン',
   'dsp.eqEngine.serial': '直列',
   'dsp.eqEngine.parallel': '並列',
