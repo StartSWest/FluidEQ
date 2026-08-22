@@ -30,6 +30,15 @@ const dsp = {
   'dsp.preset.loud': 'Laut',
   'dsp.enabled': 'Ein',
 
+  'dsp.eq.title': 'Equalizer',
+  'dsp.eq.description':
+    'Sechs parametrische Bänder, gezeichnet wie die Filter tatsächlich reagieren und nicht wie sie angefordert wurden.',
+  'dsp.eq.shape': 'Bandform',
+  'dsp.eq.bandOff': 'Aus',
+  'dsp.eq.frequency': 'Freq',
+  'dsp.eq.gain': 'Pegel',
+  'dsp.eq.quality': 'Breite',
+
   'dsp.exciter.title': 'Exciter',
   'dsp.exciter.description':
     'Erzeugt hohe Obertöne, die ein verlustbehafteter Encoder verworfen hat. Er erfindet sie, er stellt sie nicht wieder her.',

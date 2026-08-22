@@ -29,6 +29,15 @@ const dsp = {
   'dsp.preset.loud': 'ラウド',
   'dsp.enabled': 'オン',
 
+  'dsp.eq.title': 'イコライザー',
+  'dsp.eq.description':
+    '6 バンドのパラメトリック EQ。設定値ではなく、フィルターの実際の応答を描いています。',
+  'dsp.eq.shape': 'バンドの種類',
+  'dsp.eq.bandOff': 'オフ',
+  'dsp.eq.frequency': '周波数',
+  'dsp.eq.gain': 'ゲイン',
+  'dsp.eq.quality': '幅',
+
   'dsp.exciter.title': 'エキサイター',
   'dsp.exciter.description':
     '非可逆エンコーダーが捨てた高域倍音を生成します。復元ではなく、作り出しています。',

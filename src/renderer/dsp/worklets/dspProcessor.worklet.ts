@@ -8,6 +8,7 @@ import {
   DSP_DEFAULTS,
   IDspSettings,
   clampDspSettings,
+  EQ_BAND_COUNT,
 } from '../../../common/dsp/chain';
 import {
   ICrossoverState,
@@ -20,6 +21,14 @@ import {
   processBand,
 } from '../compressor';
 import { ILimiterState, createLimiterState, processLimiter } from '../limiter';
+import {
+  IBiquadCoefficients,
+  IBiquadState,
+  biquadCoefficients,
+  createBiquadState,
+  processBiquad,
+} from '../biquad';
+import { FilterTypeEnum } from '../../../common/constants';
 
 /** Web Audio always renders 128 frames; the scratch buffers start there. */
 const RENDER_QUANTUM = 128;
@@ -54,6 +63,14 @@ class DspProcessor extends AudioWorkletProcessor {
 
   private limiters: ILimiterState[] = [];
 
+  /** One filter state per band per channel, so the two never share history. */
+  private readonly eqStates: IBiquadState[][] = [];
+
+  private eqCoefficients: IBiquadCoefficients[] = [];
+
+  /** What the coefficients were built from, so they rebuild only on a change. */
+  private eqSignature = '';
+
   private lookAheadSamples = 0;
 
   private low = new Float32Array(RENDER_QUANTUM);
@@ -71,11 +88,15 @@ class DspProcessor extends AudioWorkletProcessor {
         createCompressorState(),
         createCompressorState(),
       ]);
+      this.eqStates.push(
+        Array.from({ length: EQ_BAND_COUNT }, () => createBiquadState()),
+      );
     }
     this.rebuildLimiters();
     this.port.onmessage = (event: MessageEvent<unknown>) => {
       this.settings = clampDspSettings(event.data);
       this.rebuildLimiters();
+      this.refreshEq();
     };
   }
 
@@ -109,9 +130,45 @@ class DspProcessor extends AudioWorkletProcessor {
     this.high = new Float32Array(length);
   }
 
+  /**
+   * Rebuild the EQ's coefficients, only when something they depend on moved.
+   *
+   * Recomputing six sets of biquad coefficients per render quantum would be
+   * 2,800 times a second for values that change when a user turns a knob. The
+   * signature is what a change looks like, cheaply.
+   */
+  private refreshEq(): void {
+    const { eq } = this.settings;
+    const signature = JSON.stringify(eq);
+    if (signature === this.eqSignature) {
+      return;
+    }
+    this.eqSignature = signature;
+    this.eqCoefficients = eq.bands
+      .filter((band) => band.enabled)
+      .map((band) =>
+        biquadCoefficients(
+          {
+            type: band.type as FilterTypeEnum,
+            frequency: band.frequency,
+            gainDb: band.gainDb,
+            quality: band.quality,
+          },
+          sampleRate,
+        ),
+      );
+  }
+
   /** One channel, in place in `target`, which already holds the input. */
   private processChannel(target: Float32Array, slot: number): void {
-    const { compressor, maximizer } = this.settings;
+    const { eq, compressor, maximizer } = this.settings;
+
+    if (eq.enabled) {
+      const states = this.eqStates[slot];
+      for (let band = 0; band < this.eqCoefficients.length; band += 1) {
+        processBiquad(states[band], target, this.eqCoefficients[band]);
+      }
+    }
 
     if (compressor.enabled) {
       splitBands(

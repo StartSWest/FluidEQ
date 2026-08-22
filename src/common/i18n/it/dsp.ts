@@ -30,6 +30,15 @@ const dsp = {
   'dsp.preset.loud': 'Forte',
   'dsp.enabled': 'Attivo',
 
+  'dsp.eq.title': 'Equalizzatore',
+  'dsp.eq.description':
+    'Sei bande parametriche, disegnate come rispondono davvero i filtri e non come sono state richieste.',
+  'dsp.eq.shape': 'Tipo di banda',
+  'dsp.eq.bandOff': 'Spenta',
+  'dsp.eq.frequency': 'Freq',
+  'dsp.eq.gain': 'Guadagno',
+  'dsp.eq.quality': 'Larghezza',
+
   'dsp.exciter.title': 'Exciter',
   'dsp.exciter.description':
     'Genera le armoniche acute che un codec con perdita ha scartato. Le inventa, non le recupera.',

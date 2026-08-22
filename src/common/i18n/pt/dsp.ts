@@ -30,6 +30,15 @@ const dsp = {
   'dsp.preset.loud': 'Alto',
   'dsp.enabled': 'Ligado',
 
+  'dsp.eq.title': 'Equalizador',
+  'dsp.eq.description':
+    'Seis bandas paramétricas, desenhadas como os filtros realmente respondem e não como foram pedidos.',
+  'dsp.eq.shape': 'Tipo de banda',
+  'dsp.eq.bandOff': 'Desligada',
+  'dsp.eq.frequency': 'Freq',
+  'dsp.eq.gain': 'Ganho',
+  'dsp.eq.quality': 'Largura',
+
   'dsp.exciter.title': 'Excitador',
   'dsp.exciter.description':
     'Gera os harmônicos agudos que um codec com perdas descartou. Ele os inventa; não os recupera.',

@@ -14,7 +14,7 @@ import {
   IWorkletNodeLike,
   buildDspGraph,
 } from './graph';
-import { TDspEngineState, setDspEngineState } from './store';
+import { TDspEngineState, setDspEngineState, setDspSampleRate } from './store';
 
 /** Registered by `dspProcessor.worklet.ts`. */
 const PROCESSOR_NAME = 'fluideq-dsp';
@@ -110,6 +110,9 @@ export const useDspEngine = (
     const start = async () => {
       const context = contextRef.current ?? new window.AudioContext();
       contextRef.current = context;
+      // Told early: the EQ curve is drawn from coefficients built at this
+      // rate, so the panel is wrong until it knows.
+      setDspSampleRate(context.sampleRate);
       // Both of these can fail, and neither has touched the element yet.
       await context.audioWorklet.addModule(workletUrl().href);
       await context.resume();

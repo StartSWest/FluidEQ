@@ -39,6 +39,15 @@ const dsp = {
   'dsp.preset.loud': 'Loud',
   'dsp.enabled': 'On',
 
+  'dsp.eq.title': 'Equaliser',
+  'dsp.eq.description':
+    'Six parametric bands, drawn as the filters actually respond rather than as they were asked to.',
+  'dsp.eq.shape': 'Band shape',
+  'dsp.eq.bandOff': 'Off',
+  'dsp.eq.frequency': 'Freq',
+  'dsp.eq.gain': 'Gain',
+  'dsp.eq.quality': 'Width',
+
   'dsp.exciter.title': 'Exciter',
   'dsp.exciter.description':
     'Generates high harmonics a lossy encoder discarded. It invents them; it does not recover them.',

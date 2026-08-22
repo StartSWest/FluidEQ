@@ -30,6 +30,15 @@ const dsp = {
   'dsp.preset.loud': 'Alto',
   'dsp.enabled': 'Activado',
 
+  'dsp.eq.title': 'Ecualizador',
+  'dsp.eq.description':
+    'Seis bandas paramétricas, dibujadas como responden los filtros de verdad y no como se les pidió.',
+  'dsp.eq.shape': 'Tipo de banda',
+  'dsp.eq.bandOff': 'Apagada',
+  'dsp.eq.frequency': 'Frec',
+  'dsp.eq.gain': 'Ganancia',
+  'dsp.eq.quality': 'Ancho',
+
   'dsp.exciter.title': 'Excitador',
   'dsp.exciter.description':
     'Genera armónicos agudos que el códec descartó. Los inventa; no los recupera.',

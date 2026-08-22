@@ -49,6 +49,9 @@ export const DSP_PRESETS: IDspPreset[] = [
     id: 'lossy-repair',
     labelKey: 'dsp.preset.lossyRepair',
     settings: {
+      // Left flat: this preset repairs a codec, and a tone curve on top of
+      // that is a second opinion the user did not ask for.
+      eq: DSP_DEFAULTS.eq,
       exciter: { enabled: true, crossoverHz: 7_000, drive: 4, mix: 0.35 },
       compressor: {
         enabled: true,
@@ -89,6 +92,7 @@ export const DSP_PRESETS: IDspPreset[] = [
     id: 'loud',
     labelKey: 'dsp.preset.loud',
     settings: {
+      eq: DSP_DEFAULTS.eq,
       exciter: { enabled: true, crossoverHz: 5_000, drive: 5, mix: 0.4 },
       compressor: {
         enabled: true,

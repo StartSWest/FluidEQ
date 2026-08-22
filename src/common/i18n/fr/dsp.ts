@@ -30,6 +30,15 @@ const dsp = {
   'dsp.preset.loud': 'Fort',
   'dsp.enabled': 'Activé',
 
+  'dsp.eq.title': 'Égaliseur',
+  'dsp.eq.description':
+    'Six bandes paramétriques, tracées comme les filtres répondent réellement et non comme on les a demandés.',
+  'dsp.eq.shape': 'Forme de bande',
+  'dsp.eq.bandOff': 'Désactivée',
+  'dsp.eq.frequency': 'Fréq',
+  'dsp.eq.gain': 'Gain',
+  'dsp.eq.quality': 'Largeur',
+
   'dsp.exciter.title': 'Exciteur',
   'dsp.exciter.description':
     "Génère les harmoniques aiguës qu'un encodeur avec perte a supprimées. Il les invente, il ne les restaure pas.",

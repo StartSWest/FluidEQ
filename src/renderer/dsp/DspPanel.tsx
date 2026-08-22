@@ -14,9 +14,10 @@ import {
 import { DSP_PRESETS } from '../../common/dsp/presets';
 import { TranslationKey } from '../../common/i18n/en';
 import LabelledKnob from '../components/LabelledKnob';
+import DspEqCard from './DspEqCard';
 import { useTranslation } from '../utils/I18nContext';
 import Switch from '../widgets/Switch';
-import { TDspEngineState } from './store';
+import { TDspEngineState, useDspSampleRate } from './store';
 import '../styles/Dsp.scss';
 
 interface IDspPanelProps {
@@ -145,7 +146,16 @@ const DspPanel = ({
   engineState,
 }: IDspPanelProps) => {
   const { t } = useTranslation();
-  const { exciter, compressor, maximizer } = settings;
+  const { eq, exciter, compressor, maximizer } = settings;
+  /**
+   * The rate the filters will actually run at, from the engine.
+   *
+   * Not a nominal 48 kHz: the same shelf placed at 16 kHz behaves differently
+   * at 44.1 than at 48, and that difference is precisely what a curve drawn
+   * from coefficients exists to show. Drawing at a rate the audio is not using
+   * would hide the one error the display is for.
+   */
+  const sampleRate = useDspSampleRate();
 
   const patch = (next: Partial<IDspSettings>) =>
     onChange(clampDspSettings({ ...settings, ...next }));
@@ -198,6 +208,21 @@ const DspPanel = ({
       </header>
 
       <div className="dsp-rack">
+        <ProcessorCard
+          id="dsp-eq"
+          titleKey="dsp.eq.title"
+          descriptionKey="dsp.eq.description"
+          isEnabled={eq.enabled}
+          onToggle={() => patch({ eq: { ...eq, enabled: !eq.enabled } })}
+        >
+          <DspEqCard
+            eq={eq}
+            sampleRate={sampleRate}
+            onChange={(next) => patch({ eq: next })}
+            onCommit={onCommit}
+          />
+        </ProcessorCard>
+
         <ProcessorCard
           id="dsp-exciter"
           titleKey="dsp.exciter.title"

@@ -51,9 +51,21 @@ const readStored = (): IDspSettings => {
  */
 export type TDspEngineState = 'idle' | 'running' | 'failed';
 
+/**
+ * The rate the audio graph runs at, once there is one.
+ *
+ * 48 kHz until the engine says otherwise, because that is what Windows shared
+ * mode almost always gives and it has to be *something* for the EQ curve to be
+ * drawn against before playback has begun. The curve is drawn from filter
+ * coefficients, and coefficients depend on this — so a wrong value here shows
+ * up as a response that does not match what will be heard.
+ */
+const ASSUMED_SAMPLE_RATE = 48_000;
+
 let settings: IDspSettings = DSP_DEFAULTS;
 let loaded = false;
 let engineState: TDspEngineState = 'idle';
+let sampleRate = ASSUMED_SAMPLE_RATE;
 const listeners = new Set<() => void>();
 
 const emit = () => listeners.forEach((listener) => listener());
@@ -120,6 +132,20 @@ export const setDspEngineState = (next: TDspEngineState): void => {
 };
 
 export const readDspEngineState = (): TDspEngineState => engineState;
+
+/** Reported by the engine once its context exists. */
+export const setDspSampleRate = (next: number): void => {
+  if (!Number.isFinite(next) || next <= 0 || next === sampleRate) {
+    return;
+  }
+  sampleRate = next;
+  emit();
+};
+
+export const readDspSampleRate = (): number => sampleRate;
+
+export const useDspSampleRate = (): number =>
+  useSyncExternalStore(subscribe, readDspSampleRate, readDspSampleRate);
 
 export const useDspSettings = (): IDspSettings =>
   useSyncExternalStore(subscribe, readDspSettings, readDspSettings);

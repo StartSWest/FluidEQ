@@ -30,6 +30,15 @@ const dsp = {
   'dsp.preset.loud': 'तेज़',
   'dsp.enabled': 'चालू',
 
+  'dsp.eq.title': 'इक्वलाइज़र',
+  'dsp.eq.description':
+    'छह पैरामीट्रिक बैंड, जैसा फ़िल्टर वास्तव में प्रतिक्रिया देते हैं वैसा खींचा गया, न कि जैसा माँगा गया था।',
+  'dsp.eq.shape': 'बैंड का प्रकार',
+  'dsp.eq.bandOff': 'बंद',
+  'dsp.eq.frequency': 'आवृत्ति',
+  'dsp.eq.gain': 'गेन',
+  'dsp.eq.quality': 'चौड़ाई',
+
   'dsp.exciter.title': 'एक्साइटर',
   'dsp.exciter.description':
     'लॉसी एनकोडर द्वारा हटाए गए ऊँचे हार्मोनिक्स बनाता है। यह उन्हें गढ़ता है, वापस नहीं लाता।',

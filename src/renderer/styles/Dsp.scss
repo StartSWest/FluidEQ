@@ -204,3 +204,105 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   gap: 2px;
   flex-wrap: wrap;
 }
+
+// The EQ card: the response above, the six bands under it.
+.dsp-eq {
+  display: flex;
+  flex: 1 1 100%;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+// Drawn from the coefficients, so what is on screen is what the filters do —
+// including the drift near Nyquist that `dspBiquad.test.ts` measures. A display
+// that drew the request instead would be flattering exactly where the filter
+// is least accurate.
+.dsp-eq-curve {
+  width: 100%;
+  height: 132px;
+  border: 1px solid rgba($white, 0.06);
+  border-radius: 8px;
+  background: rgba($black, 0.22);
+}
+
+.dsp-eq-curve__zero {
+  stroke: rgba($white, 0.16);
+  stroke-width: 1;
+}
+
+.dsp-eq-curve__grid {
+  stroke: rgba($white, 0.07);
+  stroke-width: 1;
+}
+
+.dsp-eq-curve__path {
+  fill: none;
+  stroke: $secondary-default;
+  stroke-width: 2;
+  // The viewBox is stretched to the card's width, which would stretch the
+  // stroke with it. This keeps the line the same weight at every panel size.
+  vector-effect: non-scaling-stroke;
+}
+
+.dsp-eq-bands {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.dsp-eq-band {
+  display: flex;
+  flex: 1 1 250px;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  padding: 8px 8px 4px;
+  border: 1px solid rgba($white, 0.05);
+  border-radius: 9px;
+  background: rgba($black, 0.16);
+}
+
+// A disabled band recedes but keeps its controls readable: it has to be
+// possible to set a band up before switching it in.
+.dsp-eq-band.is-off {
+  opacity: 0.55;
+}
+
+.dsp-eq-band-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.dsp-eq-band-type {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+
+  select {
+    min-width: 0;
+    padding: 2px 4px;
+    border: 1px solid rgba($white, 0.1);
+    border-radius: 5px;
+    background: rgba($primary-dark, 0.6);
+    color: rgba($white, 0.82);
+    font-size: 0.68rem;
+  }
+}
+
+.dsp-eq-band-index {
+  flex: 0 0 auto;
+  width: 16px;
+  color: rgba($white, 0.4);
+  font-size: 0.66rem;
+  text-align: center;
+}
+
+.dsp-eq-band-dials {
+  display: flex;
+  gap: 2px;
+  justify-content: center;
+}

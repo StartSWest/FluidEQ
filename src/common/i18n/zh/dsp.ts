@@ -29,6 +29,15 @@ const dsp = {
   'dsp.preset.loud': '响亮',
   'dsp.enabled': '开启',
 
+  'dsp.eq.title': '均衡器',
+  'dsp.eq.description':
+    '六段参量均衡，曲线按滤波器的实际响应绘制，而非按设定值。',
+  'dsp.eq.shape': '频段类型',
+  'dsp.eq.bandOff': '关闭',
+  'dsp.eq.frequency': '频率',
+  'dsp.eq.gain': '增益',
+  'dsp.eq.quality': '带宽',
+
   'dsp.exciter.title': '激励器',
   'dsp.exciter.description':
     '生成有损编码器丢弃的高频谐波。它是凭空生成的，不是还原出来的。',

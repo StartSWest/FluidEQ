@@ -73,7 +73,39 @@ export interface IMaximizerSettings {
   releaseMs: number;
 }
 
+/**
+ * One EQ band.
+ *
+ * `type` is `FilterTypeEnum`'s string, not the enum itself — this shape is
+ * JSON in `localStorage` and crosses a worklet port, and a stored string that
+ * no longer names a member has to survive being read by a later build.
+ * `clampEqBand` is what turns it back into something trusted.
+ */
+export interface IEqBandSettings {
+  enabled: boolean;
+  type: string;
+  frequency: number;
+  gainDb: number;
+  quality: number;
+}
+
+export interface IEqSettings {
+  enabled: boolean;
+  /** Always `EQ_BAND_COUNT` of them, whatever was stored. */
+  bands: readonly IEqBandSettings[];
+}
+
+/**
+ * Six, fixed.
+ *
+ * Not a list the user can grow: a fixed rack of bands is what every hardware
+ * EQ worth copying does, it keeps the card a predictable size, and it means
+ * the stored shape never has to describe how many there were.
+ */
+export const EQ_BAND_COUNT = 6;
+
 export interface IDspSettings {
+  eq: IEqSettings;
   exciter: IExciterSettings;
   compressor: ICompressorSettings;
   maximizer: IMaximizerSettings;
@@ -98,6 +130,9 @@ const RANGES = {
   ceilingDb: { min: -12, max: 0 },
   lookAheadMs: { min: 0, max: 20 },
   maximizerReleaseMs: { min: 5, max: 1_000 },
+  eqFrequency: { min: 20, max: 20_000 },
+  eqGainDb: { min: -24, max: 24 },
+  eqQuality: { min: 0.1, max: 18 },
 } as const satisfies Record<string, IRange>;
 
 const clampNumber = (
@@ -120,7 +155,25 @@ const DEFAULT_BAND: IBandSettings = {
   makeupDb: 0,
 };
 
+/**
+ * The six bands, spread the way a mixing desk lays them out.
+ *
+ * Shelves at the ends and bells between, spaced roughly two octaves apart so
+ * every band starts somewhere useful and none of them start on top of each
+ * other. All at 0 dB, so opening the EQ changes nothing until something is
+ * moved.
+ */
+const DEFAULT_EQ_BANDS: readonly IEqBandSettings[] = [
+  { enabled: true, type: 'LSC', frequency: 80, gainDb: 0, quality: 0.7 },
+  { enabled: true, type: 'PK', frequency: 200, gainDb: 0, quality: 1 },
+  { enabled: true, type: 'PK', frequency: 800, gainDb: 0, quality: 1 },
+  { enabled: true, type: 'PK', frequency: 2_500, gainDb: 0, quality: 1 },
+  { enabled: true, type: 'PK', frequency: 6_000, gainDb: 0, quality: 1 },
+  { enabled: true, type: 'HSC', frequency: 12_000, gainDb: 0, quality: 0.7 },
+];
+
 export const DSP_DEFAULTS: IDspSettings = {
+  eq: { enabled: false, bands: DEFAULT_EQ_BANDS },
   exciter: { enabled: false, crossoverHz: 6_000, drive: 3, mix: 0.3 },
   compressor: {
     enabled: false,
@@ -167,10 +220,42 @@ const clampBand = (value: unknown, fallback: IBandSettings): IBandSettings => {
  * does not understand should cost the user that value, not every other
  * setting sitting beside it.
  */
+/** The filter shapes an EQ band may claim to be. */
+const EQ_TYPES = ['PK', 'NO', 'LSC', 'HSC', 'LPQ', 'HPQ', 'BP'] as const;
+
+const clampEqBand = (
+  value: unknown,
+  fallback: IEqBandSettings,
+): IEqBandSettings => {
+  if (!isRecord(value)) {
+    return fallback;
+  }
+  return {
+    enabled: clampBoolean(value.enabled, fallback.enabled),
+    // A stored string that no longer names a shape falls back rather than
+    // reaching the coefficient maths, where an unknown type would silently
+    // become a high shelf.
+    type:
+      typeof value.type === 'string' &&
+      (EQ_TYPES as readonly string[]).includes(value.type)
+        ? value.type
+        : fallback.type,
+    frequency: clampNumber(
+      value.frequency,
+      RANGES.eqFrequency,
+      fallback.frequency,
+    ),
+    gainDb: clampNumber(value.gainDb, RANGES.eqGainDb, fallback.gainDb),
+    quality: clampNumber(value.quality, RANGES.eqQuality, fallback.quality),
+  };
+};
+
 export const clampDspSettings = (value: unknown): IDspSettings => {
   if (!isRecord(value)) {
     return DSP_DEFAULTS;
   }
+  const eq = isRecord(value.eq) ? value.eq : {};
+  const storedEqBands = Array.isArray(eq.bands) ? eq.bands : [];
   const exciter = isRecord(value.exciter) ? value.exciter : {};
   const compressor = isRecord(value.compressor) ? value.compressor : {};
   const maximizer = isRecord(value.maximizer) ? value.maximizer : {};
@@ -179,6 +264,12 @@ export const clampDspSettings = (value: unknown): IDspSettings => {
     ? compressor.crossoverHz
     : [];
   return {
+    eq: {
+      enabled: clampBoolean(eq.enabled, DSP_DEFAULTS.eq.enabled),
+      bands: DSP_DEFAULTS.eq.bands.map((fallback, index) =>
+        clampEqBand(storedEqBands[index], fallback),
+      ),
+    },
     exciter: {
       enabled: clampBoolean(exciter.enabled, DSP_DEFAULTS.exciter.enabled),
       crossoverHz: clampNumber(
