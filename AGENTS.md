@@ -27,10 +27,10 @@ cuts. Every rule below was earned by shipping the mistake first.
   which is a variable axis range in `@font-face` and not a weight at all.
 
 - **`$weight-bold` (700) is the ceiling at UI sizes, on every platform.** Segoe
-  UI has no cut between Bold and Black, so 800 and 900 both land on `Segoe UI
-Black` — a poster face whose counters close up below roughly 20px. That is
-  what the titlebar tabs looked like when this was reported as the fonts being
-  _apastadas_, and 74 further declarations at 8-16px carried the same bug
+  UI has no cut between Bold and Black, so 800 and 900 both land on
+  `Segoe UI Black` — a poster face whose counters close up below roughly 20px.
+  That is what the titlebar tabs looked like when this was reported as the fonts
+  being _apastadas_, and 74 further declarations at 8-16px carried the same bug
   unnoticed. macOS could render more steps, and taking them would make the same
   panel heavier on one machine than another for no reason a user could name.
 

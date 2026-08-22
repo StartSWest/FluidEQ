@@ -93,12 +93,6 @@ $weight-display: 900;
 // The one monospace stack, for the places that read as evidence rather than as
 // prose: version strings, config dumps, the bug report, a log.
 //
-// It had drifted into three. Measured in the running window, the twelve places
-// using this order painted in Cascadia Mono while two outliers — one that had
-// picked up macOS's SFMono-Regular from somewhere, one that named Consolas
-// first — painted in Consolas, so the same kind of text was set in two
-// different faces depending on which panel it appeared in.
-//
 // One list, in one place. It had drifted into three: twelve declarations named
 // Cascadia Mono and painted in it, while two outliers — one naming macOS's
 // SFMono-Regular, one naming Consolas first — painted in Consolas, so a config
