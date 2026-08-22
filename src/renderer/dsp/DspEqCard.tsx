@@ -241,6 +241,24 @@ const DspEqCard = ({ eq, sampleRate, onChange, onCommit }: IDspEqCardProps) => {
             }
             onCommit={onCommit}
           />
+          {/* The phase-cancellation fix. Bass out of phase between the two
+              channels vanishes the moment they are summed, which is what a
+              phone speaker does — this removes the part that can cancel and
+              leaves the middle whole. */}
+          <LabelledKnob
+            label={t('dsp.eq.monoBelow')}
+            value={eq.monoBelowHz}
+            min={0}
+            max={300}
+            step={5}
+            unit="Hz"
+            defaultValue={0}
+            isDisabled={false}
+            onChange={(hz) =>
+              onChange({ ...eq, monoBelowHz: hz > 0 && hz < 40 ? 40 : hz })
+            }
+            onCommit={onCommit}
+          />
         </div>
 
         <div className="dsp-eq-strip">

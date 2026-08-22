@@ -75,18 +75,24 @@ export const saturateBlock = (
  * fundamental:
  *
  *     drive 0.05   2nd 0.22%   3rd 0.005%
- *     drive 0.30   2nd 1.32%   3rd 0.17%
  *     drive 0.50   2nd 2.17%   3rd 0.47%
+ *     drive 1.00   2nd 4.04%   3rd 1.79%
+ *     drive 1.50   2nd 5.42%   3rd 3.81%
  *     drive 4.00   2nd 6.52%   3rd 16.38%
  *
  * The last row is why the first attempt sounded like distortion rather than
  * warmth, and the reason is the RATIO rather than the amount: by drive 4 the
  * ODD harmonics have overtaken the even ones, and odd is what the ear reads as
- * grit. Below about 0.5 the balance stays roughly eight to one in favour of the
- * even ones, which is the analogue character people mean.
+ * grit.
  *
- * Squared so the bottom of the dial is genuinely fine — the first quarter of
- * the travel stays under a tenth of a percent — instead of arriving already
- * audible.
+ * The ceiling is 1.0. A previous attempt stopped at 0.5 and that was
+ * over-corrected the other way — 2.17% second harmonic is about -33 dB, which
+ * sits at the edge of audibility on music and reads as a dial that does
+ * nothing. At 1.0 the second harmonic is 4.04% and the balance is still 2.2 to
+ * 1 in favour of the even ones, so it is heard without becoming grit.
+ *
+ * The 1.6 power keeps the bottom of the travel fine — a quarter turn measures
+ * half a percent — without leaving the whole middle of the dial inaudible,
+ * which is what squaring it did.
  */
-export const fuzzDrive = (amount: number): number => 0.5 * amount ** 2;
+export const fuzzDrive = (amount: number): number => amount ** 1.6;

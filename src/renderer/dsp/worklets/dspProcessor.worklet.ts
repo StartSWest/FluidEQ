@@ -79,6 +79,11 @@ class DspProcessor extends AudioWorkletProcessor {
 
   private subsonicCoefficients: IBiquadCoefficients | undefined;
 
+  /** The side channel's high pass, for the mono-below control. */
+  private readonly sideHighpassState: IBiquadState = createBiquadState();
+
+  private monoBelowCoefficients: IBiquadCoefficients | undefined;
+
   /** One per channel: the fuzz stage carries its own oversampler. */
   private readonly fuzz: ISaturatorState[] = [];
 
@@ -228,6 +233,18 @@ class DspProcessor extends AudioWorkletProcessor {
     // Built at the base rate, because it runs BEFORE the oversampler: a high
     // pass whose job is to keep energy out has nothing to gain from being
     // inside, and doing it first means the oversampler carries less.
+    this.monoBelowCoefficients =
+      eq.monoBelowHz > 0
+        ? biquadCoefficients(
+            {
+              type: FilterTypeEnum.HPQ,
+              frequency: eq.monoBelowHz,
+              gainDb: 0,
+              quality: 0.707,
+            },
+            sampleRate,
+          )
+        : undefined;
     this.subsonicCoefficients =
       eq.subsonicHz > 0
         ? biquadCoefficients(
@@ -380,8 +397,9 @@ class DspProcessor extends AudioWorkletProcessor {
      * centred vocal without touching the reverb around it, or clearing the
      * bass out of the sides while leaving the middle whole.
      */
-    const { stereo } = this.settings.eq;
-    const isMidSide = stereo !== 'stereo' && output.length >= 2;
+    const { stereo, monoBelowHz } = this.settings.eq;
+    const isMidSide =
+      (stereo !== 'stereo' || monoBelowHz > 0) && output.length >= 2;
     if (isMidSide) {
       const [left, right] = output;
       for (let i = 0; i < left.length; i += 1) {
@@ -405,6 +423,27 @@ class DspProcessor extends AudioWorkletProcessor {
       if (target.length > 0 && !skip) {
         this.processChannel(target, Math.min(channel, CHANNELS - 1));
       }
+    }
+
+    /**
+     * The phase-cancellation fix, applied to the side channel only.
+     *
+     * Bass that is out of phase between the two channels vanishes the moment
+     * they are summed — which is what a phone speaker, a mono PA and most
+     * Bluetooth speakers do — so a mix can sound enormous on headphones and
+     * gutless everywhere else. High-passing the SIDE removes the part that can
+     * cancel and leaves the middle whole, so the low end stops depending on the
+     * two channels agreeing.
+     *
+     * Above the corner the image is untouched: width is worth keeping wherever
+     * it cannot cancel.
+     */
+    if (isMidSide && this.monoBelowCoefficients) {
+      processBiquad(
+        this.sideHighpassState,
+        output[1],
+        this.monoBelowCoefficients,
+      );
     }
 
     if (isMidSide) {

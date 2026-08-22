@@ -156,6 +156,21 @@ export interface IEqSettings {
   /** @see TEqStereo */
   stereo: TEqStereo;
   /**
+   * Sum everything below this frequency to mono, in Hz, or 0 for off.
+   *
+   * The fix for phase cancellation, and the one place it actually bites. Bass
+   * recorded or widened out of phase disappears the moment the two channels are
+   * summed — which is what a phone speaker, a mono PA and most Bluetooth
+   * speakers do — so a mix can sound enormous on headphones and gutless
+   * everywhere else.
+   *
+   * Removing the SIDE content below the corner leaves the middle untouched, so
+   * the bass stops depending on the two channels agreeing. Above the corner the
+   * stereo image is left exactly as it was: width is worth keeping where it
+   * cannot cancel.
+   */
+  monoBelowHz: number;
+  /**
    * Run the bands at twice the rate.
    *
    * Orthogonal to the engine on purpose: it is not a third topology, it is the
@@ -423,6 +438,7 @@ export const DSP_DEFAULTS: IDspSettings = {
     modelAmount: 1,
     engine: 'serial',
     stereo: 'stereo',
+    monoBelowHz: 0,
     oversample: 1,
     subsonicHz: 0,
     fuzzAmount: 0,
@@ -545,6 +561,12 @@ export const clampDspSettings = (value: unknown): IDspSettings => {
       stereo: EQ_STEREO_MODES.includes(eq.stereo as TEqStereo)
         ? (eq.stereo as TEqStereo)
         : 'stereo',
+      // Zero is off. Above 300 Hz this stops being a safety measure and starts
+      // collapsing the image somewhere people can hear it.
+      monoBelowHz:
+        typeof eq.monoBelowHz === 'number' && eq.monoBelowHz > 0
+          ? Math.min(300, Math.max(40, eq.monoBelowHz))
+          : 0,
       // A stored `true` predates the factor and meant twice, so it still does.
       oversample: OVERSAMPLE_FACTORS.includes(eq.oversample as number)
         ? (eq.oversample as number)

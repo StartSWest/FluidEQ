@@ -108,6 +108,7 @@ const dsp = {
   'dsp.eq.character': '音色量',
   'dsp.eq.subsonic': '超低频',
   'dsp.eq.fuzz': '失真',
+  'dsp.eq.monoBelow': '以下单声道',
   'dsp.eq.quality': '带宽',
 
   'dsp.exciter.title': '激励器',

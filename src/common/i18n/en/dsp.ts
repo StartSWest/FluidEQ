@@ -118,6 +118,7 @@ const dsp = {
   'dsp.eq.character': 'Character',
   'dsp.eq.subsonic': 'Subsonic',
   'dsp.eq.fuzz': 'Fuzz',
+  'dsp.eq.monoBelow': 'Mono below',
   'dsp.eq.quality': 'Width',
 
   'dsp.exciter.title': 'Exciter',

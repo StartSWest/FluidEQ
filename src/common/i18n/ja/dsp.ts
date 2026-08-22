@@ -110,6 +110,7 @@ const dsp = {
   'dsp.eq.character': 'キャラ量',
   'dsp.eq.subsonic': 'サブソニック',
   'dsp.eq.fuzz': 'ファズ',
+  'dsp.eq.monoBelow': 'モノ化',
   'dsp.eq.quality': '幅',
 
   'dsp.exciter.title': 'エキサイター',

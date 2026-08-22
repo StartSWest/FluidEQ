@@ -111,6 +111,7 @@ const dsp = {
   'dsp.eq.character': 'Характер',
   'dsp.eq.subsonic': 'Инфраниз.',
   'dsp.eq.fuzz': 'Фузз',
+  'dsp.eq.monoBelow': 'Моно ниже',
   'dsp.eq.quality': 'Ширина',
 
   'dsp.exciter.title': 'Эксайтер',
