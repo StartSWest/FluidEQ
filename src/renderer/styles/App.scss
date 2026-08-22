@@ -1788,6 +1788,61 @@ $tab-border: rgba($secondary-light, 0.2);
   border-top-color: $tab-border;
 }
 
+// The five EQ pages start with the section rail, and it sits on the card's own
+// top edge rather than 10px inside it.
+//
+// That 10px is the panel's air above its first *control*, and the rail is not
+// one — it is a rule labelling the page, with its own 9px above the letters.
+// Stacked, the two read as a band of empty card above the only row that says
+// which of the five you are looking at.
+//
+// The scroll moves off this element and onto the wrapper below the rail, which
+// is the only arrangement in which the rail can have no colour of its own.
+// It was `position: sticky` inside the scroller, and anything sticky over
+// scrolling content has to hide it: a blur left the page heading legible
+// through the letters, and an opaque fill cannot match the card, because the
+// card is 86% over the shell's radial washes and its own conic bloom — so
+// whatever is painted on the rail differs by the 14% showing through beside
+// it. Outside the scroller there is nothing behind the rail but the card, and
+// the match is exact because it is the same surface.
+.workspace-tab-panel:has(> .workspace-tab-group) {
+  padding-top: 0;
+  overflow: hidden;
+  // The gutter belongs to the box that actually scrolls.
+  scrollbar-gutter: auto;
+  // Rail and scroller meet on the rule. What used to separate the rail from
+  // the heading is inside the scroller now, so it scrolls away with the
+  // heading instead of holding a permanent band of empty card under the rule.
+  gap: 0;
+}
+
+// Everything on an EQ page except the rail — and the only box on it that
+// scrolls.
+//
+// It carries the container the panel used to declare, because the queries in
+// here ask how wide the content is and that is this box, one scrollbar
+// narrower than the card.
+.workspace-tab-panel__scroll {
+  display: flex;
+  min-width: 0;
+  // A flex item's floor is its own content, which for a scroller is a refusal
+  // to scroll: it would grow to its content's height and push the card's
+  // bottom edge past the pane instead of moving a bar.
+  min-height: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+  gap: 10px;
+  // The air the panel's own `padding-top` used to hold, moved inside the
+  // scroller so the first row sits where it always did and later rows still
+  // travel right up to the rule.
+  padding-top: 10px;
+  container-name: autoeq-workspace eq-panel;
+  container-type: inline-size;
+}
+
 // The player is a tab like the others, and was the only one without the card.
 //
 // The tab strip is drawn to butt onto a panel — the active tab shares its top
@@ -1836,14 +1891,14 @@ $tab-border: rgba($secondary-light, 0.2);
   min-height: 0;
   gap: 10px;
 
-  > .main-content-title {
+  .workspace-tab-panel__scroll > .main-content-title {
     flex: 0 0 auto;
   }
 
   // Content-sized. It used to absorb every spare pixel in the panel, which
   // with a page that scrolls now just centred the sliders in a tall empty box
   // and left a lake of nothing between them and the toolbar.
-  > .main-content {
+  .workspace-tab-panel__scroll > .main-content {
     flex: 0 0 auto;
   }
 }
@@ -1877,18 +1932,20 @@ $tab-border: rgba($secondary-light, 0.2);
   // either of them ever showed up there. The automatic floor is `min-content`,
   // and that is the honest one: grow into the panel, never shrink out of your
   // own contents.
-  > .convolution-panel,
-  > .voicing-panel,
-  > .autoeq-panel,
-  > .config-inspector {
+  .workspace-tab-panel__scroll > .convolution-panel,
+  .workspace-tab-panel__scroll > .voicing-panel,
+  .workspace-tab-panel__scroll > .autoeq-panel,
+  .workspace-tab-panel__scroll > .config-inspector {
     flex: 1 1 auto;
   }
 }
 
 // Sections that fill a workspace card sit directly on it instead of painting
 // a second card on top: one surface, not a stack of nested boxes.
-.workspace-tab-panel--eq > .main-content,
-.workspace-tab-panel--convolution > .convolution-panel,
+.workspace-tab-panel--eq .workspace-tab-panel__scroll > .main-content,
+.workspace-tab-panel--convolution
+  .workspace-tab-panel__scroll
+  > .convolution-panel,
 .right-content > .device-profiles,
 .right-content > .presets-bar {
   border: 0;
@@ -3069,27 +3126,32 @@ button.graph-legend {
   // The panel below is the scroll surface, and a section rail that scrolls out
   // of it takes the only thing on screen saying which of the five you are in.
   //
-  // Blur and nothing else — no fill of its own. The panel's own gradient is
-  // translucent and anchored to the viewport, so any colour painted here is a
-  // second layer over the same ramp and shows as a band across the top of
-  // every page. The blur alone takes the scrolled content out from under the
-  // letters, and the page keeps one surface.
-  position: sticky;
+  // No colour of its own, and none needed: it is outside the scroller, so the
+  // card is the only thing behind it and the match is exact by construction.
+  //
+  // It was `position: sticky` inside the scroller, which forces it to hide
+  // whatever passes under it, and neither way of doing that works here. A
+  // 10px blur left the page heading plainly legible through the letters — "EQ
+  // paramétrico" smeared across BANDAS. An opaque fill cannot be the right
+  // colour at all: the card is 86% over the shell's radial washes and its own
+  // conic bloom, so any solid painted here differs from the card beside it by
+  // the 14% showing through, which on a flat dark surface reads as a block.
+  position: relative;
   z-index: 5;
-  top: 0;
   display: flex;
   flex: 0 0 auto;
   flex-wrap: wrap;
   align-items: center;
   justify-content: center;
-  backdrop-filter: blur(10px);
-  // The first thing on the page, with nothing overlapping it: the four places
-  // moved up into the titlebar, and the clearance this row used to hold for
-  // the capsule that hung over the card went with them. The panel's own 10px
-  // row gap already separates it from the heading below, so what is set here
-  // is only what that gap is short of — on a 1080-tall screen the difference
-  // between this and the 16 it started at is a band of the parametric editor.
-  padding: 0;
+  // Air above the letters only, and only what the card's own edge asks for.
+  //
+  // The rail sits on the top border now rather than 10px inside it, which put
+  // the words against the edge of the card: the pill's own 9px reads as room
+  // around a label, not as the inset a page keeps from its frame. Six is what
+  // squares the 15px above the letters with the 11 plus the rule below them.
+  // Nothing at the sides — the row centres itself — and nothing at the foot,
+  // where the rule is the boundary.
+  padding: 6px 0 0;
   border-bottom: 1px solid rgba($secondary-light, 0.1);
   margin-bottom: $spacing-xs;
   gap: 6px;

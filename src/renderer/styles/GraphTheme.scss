@@ -370,13 +370,17 @@ it under the terms of the GNU General Public License version 3 or later.
   cursor: not-allowed;
 }
 
-.workspace-tab-panel--eq.is-engine-disabled > .main-content-title,
-.workspace-tab-panel--eq.is-engine-disabled > .main-content,
+// Descendants, not children: the section rail is outside the scroll box now
+// and everything else on the page is inside it, so a child combinator here
+// stopped matching the moment that wrapper appeared — silently, which is the
+// whole reason the note further down this rule exists.
+.workspace-tab-panel--eq.is-engine-disabled .main-content-title,
+.workspace-tab-panel--eq.is-engine-disabled .main-content,
 // AutoEQ, voicing and convolution each own their whole panel, so the whole
 // panel is what goes inert.
-.workspace-tab-panel--presets.is-engine-disabled > .autoeq-panel,
-.workspace-tab-panel--convolution.is-engine-disabled > .voicing-panel,
-.workspace-tab-panel--convolution.is-engine-disabled > .convolution-panel,
+.workspace-tab-panel--presets.is-engine-disabled .autoeq-panel,
+.workspace-tab-panel--convolution.is-engine-disabled .voicing-panel,
+.workspace-tab-panel--convolution.is-engine-disabled .convolution-panel,
 // A descendant, not a child.
 //
 // This was `> svg`, and it was right when the plot was a direct child of the

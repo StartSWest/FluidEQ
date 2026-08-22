@@ -1727,7 +1727,9 @@ const AppContent = () => {
                 aria-disabled={!isEngineUsable}
               >
                 {eqGroupPills}
-                <MainContent />
+                <div className="workspace-tab-panel__scroll">
+                  <MainContent />
+                </div>
               </div>
             )}
             {/* Its own page rather than a strip above the bands, which is
@@ -1744,7 +1746,9 @@ const AppContent = () => {
                 aria-disabled={!isEngineUsable}
               >
                 {eqGroupPills}
-                <EqPresetsPanel />
+                <div className="workspace-tab-panel__scroll">
+                  <EqPresetsPanel />
+                </div>
               </div>
             )}
             {(activeWorkspaceTab === 'voicing' ||
@@ -1760,11 +1764,13 @@ const AppContent = () => {
                 aria-disabled={!isEngineUsable}
               >
                 {eqGroupPills}
-                {activeWorkspaceTab === 'voicing' ? (
-                  <VoicingPanel />
-                ) : (
-                  <ConvolutionPanel />
-                )}
+                <div className="workspace-tab-panel__scroll">
+                  {activeWorkspaceTab === 'voicing' ? (
+                    <VoicingPanel />
+                  ) : (
+                    <ConvolutionPanel />
+                  )}
+                </div>
               </div>
             )}
             {/* No engine-disabled state, unlike every panel above it.
@@ -1779,7 +1785,9 @@ const AppContent = () => {
                 className="workspace-tab-panel workspace-tab-panel--config"
               >
                 {eqGroupPills}
-                <ConfigInspector />
+                <div className="workspace-tab-panel__scroll">
+                  <ConfigInspector />
+                </div>
               </div>
             )}
             {/* Outside the tab switch above, and deliberately: this one is
