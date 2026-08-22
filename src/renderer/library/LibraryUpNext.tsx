@@ -16,7 +16,14 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { DragEvent, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import {
+  DragEvent,
+  useCallback,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { ILibraryTrack } from '../../common/library/types';
 import { useTranslation } from '../utils/I18nContext';
 import { useLibrary } from './LibraryContext';
@@ -59,15 +66,31 @@ export const LibraryUpNextChip = ({
   className,
   count,
   onExpand,
+  onMeasure,
 }: {
   className?: string;
   count: number;
   onExpand: () => void;
+  /** How wide it came out, for a caller that has to keep a row clear of it —
+   * see `has-up-next-chip`. A count is one digit or five and the word is a
+   * different length in every locale, so this is measured, not assumed. */
+  onMeasure?: (width: number) => void;
 }) => {
   const { t } = useTranslation();
+  // A callback ref rather than an effect: it fires when the node arrives, and
+  // again with the new node whenever the label or the count re-renders it.
+  const measure = useCallback(
+    (node: HTMLButtonElement | null) => {
+      if (node && onMeasure) {
+        onMeasure(Math.ceil(node.getBoundingClientRect().width));
+      }
+    },
+    [onMeasure],
+  );
   return (
     <button
       type="button"
+      ref={measure}
       className={`library-toolbar__chip library-up-next__chip${
         className ? ` ${className}` : ''
       }`}

@@ -184,6 +184,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // stacking context and the covers came out on top of it.
   position: relative;
   z-index: 5;
+  // THE BOX THE TOOLBAR'S OWN BREAKPOINTS ASK ABOUT.
+  //
+  // Not the card, which is what `library` measures. The card does not change
+  // width when the queue opens — the queue takes its strip out of the views
+  // by margin — so a card query saw 1370px and kept every label while the bar
+  // beside a 420px queue actually had 900 and had already wrapped. This row
+  // carries that margin, so its width IS what the controls have to fit in.
+  container: library-bar / inline-size;
   display: flex;
   flex: 0 0 auto;
   // NOT `wrap`, and the toolbar below is why it can afford not to.
@@ -433,9 +441,23 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   @include animate(rise-in, $motion-fast, $ease-out, 182ms);
   // The frame the recent-searches list positions itself against.
   position: relative;
+  // A SMALL BASIS AND A HARD CAP, and both halves are load-bearing.
+  //
+  // The basis is what a flex line breaks on — not how far an item could shrink
+  // afterwards. At 340 the line reserved 340 for this box and sent the view
+  // glyphs to a second row, while the box itself sat there with room to spare
+  // it never gave up. At 170 the line counts 170, the glyphs fit beside it,
+  // and the grow puts the width back.
+  //
+  // The cap is what stops the grow being state-dependent. Left uncapped it ate
+  // whatever the row had spare, and what the row has spare depends on what is
+  // open: the Sort control is withheld inside a drill-in, so opening an album
+  // handed the box 168px it did not have a moment earlier and it visibly grew
+  // under the pointer. Capped, it is already at 340 in every case that has the
+  // room, and the slack simply stays slack.
   min-width: 170px;
-  flex: 1 1 240px;
-  max-width: 460px;
+  flex: 1 1 170px;
+  max-width: 340px;
   // The bar wraps to two lines and this does not, so without an anchor it
   // would sit centred against a box twice its height.
   align-self: flex-start;
@@ -461,6 +483,24 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   align-items: center;
   align-self: flex-start;
   gap: 8px;
+
+  // The same rule the sort control draws, for the same reason. Left of it are
+  // controls that steer what the shelf SHOWS; right of it are actions that
+  // change what is IN the library. Two kinds of thing butted together with
+  // only a gap between them read as one long run of buttons.
+  //
+  // A pseudo-element rather than an element of its own, so it belongs to this
+  // cluster's left edge and travels with it — a loose `<span>` would be a flex
+  // item of the row that could end a line on its own, which is the bug the
+  // cluster exists to prevent.
+  &::before {
+    width: 1px;
+    height: 18px;
+    flex: 0 0 auto;
+    margin-inline-end: $spacing-xxs;
+    background: rgba($secondary-light, 0.16);
+    content: '';
+  }
 }
 
 .library-toolbar__actions {
@@ -2612,7 +2652,9 @@ $library-wave-step: 4ms;
 // The card keeps its own 12px padding-right underneath, so the total clearance
 // is the same as when this was `padding-right: calc(width + 12 + inset)`.
 .library-workspace.has-up-next
-  > *:not(.library-up-next):not(.library-up-next__splitter) {
+  > *:not(.library-up-next):not(.library-up-next__splitter):not(
+    .library-toolbar-row
+  ) {
   margin-right: calc(var(--up-next-width, 260px) + var(--up-next-inset));
 }
 
@@ -2629,12 +2671,21 @@ $library-wave-step: 4ms;
   // An absolutely placed child resolves against the padding BOX, which starts
   // inside the border and takes no notice of the padding itself — so `top: 0`
   // put this hard against the card's edge while every other thing in the tab
-  // stood 10px in from it. These three are the tab panel's own
+  // stood 10px in from it. These are the tab panel's own
   // `padding: 10px 12px 12px`, so the queue stands off the card by what the
   // shelf stands off it, on every side it touches — the right included, which
   // used to be flush and so read as 16px once the reserved scrollbar gutter
   // was counted.
-  top: 10px;
+  //
+  // IT STARTS BELOW THE TOOLBAR, not beside it. The strip used to run the full
+  // height of the tab, which meant the bar had to fit its six shelf chips, a
+  // search, three view chips and a sort control into whatever the queue left —
+  // about 900px of a Full HD card with the panel opened out to 420. Below the
+  // bar instead, the toolbar keeps the whole width at every queue size and the
+  // queue costs the list nothing it was using. The row's height is measured
+  // rather than assumed: it is one line or two depending on what has
+  // collapsed. The 8px is the gap the card already leaves under that row.
+  top: calc(var(--library-chrome-height, 0px) + 10px + 8px);
   right: var(--up-next-inset);
   bottom: 12px;
   display: flex;
@@ -2642,6 +2693,14 @@ $library-wave-step: 4ms;
   flex-direction: column;
   padding: 6px 4px 8px 10px;
   gap: 4px;
+  // OPAQUE, overriding `panel-surface`'s translucent one.
+  //
+  // That mixin lets the shell show through, which is right for a card sitting
+  // in the window and wrong for a list of rows: the queue's own titles were
+  // competing with whatever was behind them, and floating over the shelf it
+  // was two lists in the same rectangle. The same two colours the mixin ends
+  // on, without the alpha.
+  background: linear-gradient(160deg, #18293e, #111c2c);
 }
 
 // *** The queue over a video **************************************************
@@ -2692,14 +2751,36 @@ $library-wave-step: 4ms;
   }
 }
 
-// Folded over a picture there is no folder row to keep the chip in, so it
-// stands in the corner the panel came out of — the one place it cannot cover
-// the video's own controls, which hold the two top corners.
+// Folded over a picture there is no toolbar to keep the chip below, so it
+// stands clear of the video's own Back and full-screen buttons, which hold the
+// two top corners.
 .library-up-next__chip--over-video {
   position: absolute;
   z-index: 1160;
   top: 52px;
   right: 12px;
+}
+
+// FOLDED, IN THE PANEL'S OWN SLOT.
+//
+// The same top and the same right edge `.library-up-next` takes, so opening
+// the queue replaces the chip with the panel exactly where the chip was. It
+// used to live in the toolbar's right-hand cluster, which meant opening the
+// queue removed an item from that cluster and re-laid out the whole bar —
+// controls moving because something elsewhere had been opened.
+.library-up-next__chip--docked {
+  position: absolute;
+  z-index: 4;
+  top: calc(var(--library-chrome-height, 0px) + 10px + 8px);
+  right: var(--up-next-inset);
+}
+
+// And the row under the toolbar stops short of it, or a long folder path runs
+// underneath a control. Measured from the chip itself rather than guessed at:
+// its width is a glyph, a word and a count, and the count is one digit or five.
+.library-workspace.has-up-next-chip
+  > *:not(.library-up-next__chip--docked):not(.library-toolbar-row) {
+  margin-right: calc(var(--up-next-chip-width, 0px) + var(--up-next-inset));
 }
 
 // Folded, the panel is not drawn at all — the way back in is a chip in the
@@ -2744,10 +2825,12 @@ $library-wave-step: 4ms;
 .library-up-next__splitter {
   position: absolute;
   z-index: 4;
-  top: 10px;
-  // Immediately left of the panel, which now stands its own inset off the
-  // card — so the splitter has to carry that inset too or it lands under the
-  // queue's left edge.
+  // The panel's own top, for the same reason: it divides the queue from the
+  // list, and the list starts under the toolbar.
+  top: calc(var(--library-chrome-height, 0px) + 10px + 8px);
+  // Immediately left of the panel, which stands its own inset off the card —
+  // so the splitter has to carry that inset too or it lands under the queue's
+  // left edge.
   right: calc(var(--up-next-width, 260px) + var(--up-next-inset));
   bottom: 12px;
   display: flex;
@@ -3126,25 +3209,50 @@ $library-wave-step: 4ms;
   border-bottom-color: rgba($secondary-light, 0.3);
 }
 
-// *** The toolbar at a Full HD width, with the queue open ********************
+// *** Two groups that are always their glyphs ********************************
 //
-// The row holds a lot: five browse chips, three view chips, a sort control, a
-// search field, "group by folder", "add folder", rescan, force rescan, the
-// folders menu, and the queue. With the panel taking a quarter of the tab
-// there is not room for all of it, so it wrapped — and what dropped to the
-// second line was the queue, the one thing that was supposed to be always in
-// reach.
+// Not a breakpoint, because measuring said it should not be one. The row holds
+// six browse chips, three view chips, a sort control, a search field, add
+// folder, rescan, force rescan, the folders menu and the queue — and with the
+// labels on, that does not fit one line at ANY width this app is used at. At a
+// 1370px card it came to 1414px of controls and wrapped; the second line then
+// held two items and a great deal of nothing.
 //
-// The words go before the row does. Every one of these buttons carries an
-// icon AND a label; below this width the labels stand down and the icons are
-// the control, which is the same information in a fifth of the space. The
-// queue keeps its words: it is the one whose count has to be read.
-// Measured, not chosen: at a 1264px card the labels were still on, which kept
-// the right-hand cluster at 353px, which left the bar 592 — enough for the
-// browse chips on one line and the view chips plus Sort on a second, but not
-// enough for the search box, which went to a third. With the labels off the
-// cluster is 145 and the bar is 800, and the same four items fit on two.
-@container library (max-width: 1300px) {
+// These two groups are the ones that lose least. A view mode is a choice among
+// three pictures — a table, a grid, a carousel — so a picture says it as well
+// as the word does. The folder controls are four actions that each already
+// carry a glyph. Between them that is 348px back, which is what puts the whole
+// bar on one line at Full HD.
+//
+// The view modes are the exception that stays an exception: a choice among
+// three pictures — a table, a grid, a carousel — where the picture says it as
+// well as the word does and takes a third of the room. Everything else keeps
+// its words for as long as the row can hold them; see the ladder below.
+.library-toolbar__view-modes .library-toolbar__chip > span {
+  display: none;
+}
+
+.library-toolbar__view-modes .library-toolbar__chip {
+  padding-inline: 9px;
+}
+
+// ONE LINE FOR AS LONG AS ONE LINE IS POSSIBLE, and each rung is arithmetic
+// rather than taste. Everything labelled comes to about 1414px: 392 of browse
+// chips, a 340 search, 121 of view glyphs, a 168 sort, 353 of folder controls
+// and five 8px gaps. Each rung takes the next-cheapest words off and states
+// what the row then needs.
+//
+// This is why the row had to become the container rather than the card. With
+// the queue open at its full 420 a Full HD card used to leave the bar about
+// 900 — the case the reference screenshot was of, and one a card query could
+// not see. The queue starts below the bar now, so the row is the card's full
+// width; the container is still the honest thing to ask, because it is the
+// box the controls actually live in.
+
+// Rung one, and 1206 is what is left: the folder controls are four actions
+// that each already carry a glyph, so they lose least. Their tooltips carry
+// the words.
+@container library-bar (max-width: 1420px) {
   .library-toolbar__actions .library-toolbar__chip > span:not([class]) {
     display: none;
   }
@@ -3152,73 +3260,11 @@ $library-wave-step: 4ms;
   .library-toolbar__actions .library-toolbar__chip {
     padding-inline: 8px;
   }
-
-  // Except this one. A count with no word beside it is a number floating in a
-  // toolbar, and this is the control that has to stay findable.
-  .library-up-next__chip > span {
-    display: inline;
-  }
-
-  // The three shelves become their glyphs, at the same width the folder
-  // controls above do. They are a choice among three pictures — a table, a
-  // grid, a carousel — so a picture says it as well as the word and takes a
-  // third of the room; the tooltip carries the word.
-  //
-  // Measured at a 1091px card: with the labels the bar was three rows deep
-  // (browse / views + sort / search), and the view chips were the 261px that
-  // made the third one necessary.
-  .library-toolbar__view-modes .library-toolbar__chip > span {
-    display: none;
-  }
-
-  .library-toolbar__view-modes .library-toolbar__chip {
-    padding-inline: 9px;
-  }
-
-  // Takes the slack on whatever line it lands on instead of holding a fixed
-  // 460 and wrapping when 460 will not fit. It is the one control here that is
-  // better for being wider and still usable at 200, so it is the one that
-  // gives and takes; the cap stops it becoming a search box the width of the
-  // window when it ends up on a line by itself.
-  // Narrow, the search gives up most of its width rather than pushing the
-  // folder controls off the line — it is still a usable box at 170, and they
-  // are already down to their glyphs with nothing left to give.
-  .library-toolbar__search {
-    max-width: 320px;
-    flex: 1 1 170px;
-  }
 }
 
-// Narrower still, and the two things that are left take their own turn.
-//
-// Measured at a 700px card: the right-hand cluster was 306px of a 674px row —
-// nearly half of it — because the queue chip is the one control that kept its
-// word at 1200. It earned that then, next to four bare glyphs; here it is the
-// difference between the browse chips fitting on one line and wrapping onto
-// two. The count stays, which is the part that was worth keeping: a queue
-// glyph with a number on it is still a queue with things in it.
-@container library (max-width: 850px) {
-  .library-up-next__chip > span:not([class]) {
-    display: none;
-  }
-
-  .library-toolbar__browse-modes .library-toolbar__chip {
-    padding-inline: 9px;
-    font-size: 0.64rem;
-  }
-}
-
-// THE LAST RUNG, and the order of the ladder is the point.
-//
-// The right-hand controls go to glyphs first (1300), then the queue chip's
-// word (850), and the shelf chips last — because they are the tab's
-// navigation, they are what a reader looks for by name, and a row of six
-// unlabelled glyphs is only better than a row that has wrapped onto three
-// lines. Under 720 it is: six labelled chips need more than the card has.
-//
-// The tooltips carry the words, and the active chip keeps its lit state, which
-// is what still says which shelf you are on.
-@container library (max-width: 720px) {
+// Rung two, leaving 1064. The shelf chips are the tab's navigation and what a
+// reader looks for by name, so they go after everything else has.
+@container library-bar (max-width: 1200px) {
   .library-toolbar__browse-modes .library-toolbar__chip > span {
     display: none;
   }
@@ -3228,19 +3274,27 @@ $library-wave-step: 4ms;
   }
 }
 
+// Tighter chips once the words are off them: 9px of padding either side of a
+// glyph, rather than the room a word needed.
+@container library-bar (max-width: 850px) {
+  .library-toolbar__browse-modes .library-toolbar__chip {
+    font-size: 0.64rem;
+  }
+}
+
 // PAST THE POINT WHERE A TOP RIGHT MEANS ANYTHING.
 //
 // The row is `nowrap` so the right-hand cluster cannot be separated from the
-// top line — which is right down to about 560px of card, and wrong below it.
-// The cluster does not shrink, so at 300% zoom (a 720px window is ~240px of
-// CSS width there) it took what it needed and left the bar beside it under
-// 90px: the shelf glyphs came out one per line, and the three view glyphs
-// stacked into a column. Nine rows of chrome over a list.
+// top line — which is right down to about 560px, and wrong below it. The
+// cluster does not shrink, so at 300% zoom (a 720px window is ~240px of CSS
+// width there) it took what it needed and left the bar beside it under 90px:
+// the shelf glyphs came out one per line, and the three view glyphs stacked
+// into a column. Nine rows of chrome over a list.
 //
 // Let go, and the cluster takes a line of its own with the bar above it at
 // full width. Still the right-hand end of that line — `margin-left: auto`
 // keeps it there — so it is the same cluster in the same corner, one row down.
-@container library (max-width: 560px) {
+@container library-bar (max-width: 560px) {
   .library-toolbar-row {
     flex-wrap: wrap;
   }
@@ -3280,35 +3334,16 @@ $library-wave-step: 4ms;
   }
 
   .library-up-next {
-    // IT COVERS THE LIST. IT DOES NOT COVER THE CONTROLS.
+    // IT COVERS THE LIST. IT DOES NOT COVER THE CONTROLS — which the shared
+    // `top` above already arranges; all this state adds is being drawn over
+    // what it now overlaps rather than beside.
     //
-    // At `z-index: 6` and the card's own `top: 10px` it started at the very
-    // top of the tab and drew over the toolbar — which took the search box and
-    // the folder controls with it, and left no way to reach them without
-    // closing the queue first. Starting below the row is what makes it a
-    // drawer over the shelf rather than a sheet over the tab.
-    //
-    // The row's height is measured rather than guessed: it is one line or two
-    // depending on what has collapsed, and `LibraryWorkspace` publishes it as
-    // `--library-chrome-height`. The 8px is the gap the card already leaves
-    // between the row and the shelf under it.
+    // No `backdrop-filter` and nothing to see through: the panel is opaque in
+    // both states (see the base rule), so a drawer over the shelf is a surface
+    // in front of it rather than a frosted pane with rows swimming underneath.
+    // The shadow is what says it is in front — that is the whole job, and it
+    // does it without costing a full-size blur every frame the list scrolls.
     z-index: 6;
-    top: calc(var(--library-chrome-height, 0px) + 10px + 8px);
-    // Blurs what is behind ITS OWN BOX — not a scrim over the tab. The rows
-    // under the drawer stay visible as texture, which is what says the shelf
-    // is still there and the queue is only in front of it, while the titles
-    // stop competing with the queue's own.
-    //
-    // The fill goes up with it. A translucent surface over a blur is still
-    // readable text on unreadable text; carrying the panel's own colour most
-    // of the way to opaque is what makes the drawer a surface rather than a
-    // smear.
-    backdrop-filter: blur(18px) saturate(120%);
-    background: linear-gradient(
-      160deg,
-      rgba(#18293e, 0.93),
-      rgba(#111c2c, 0.95)
-    );
     box-shadow:
       0 18px 44px rgba($black, 0.55),
       0 0 0 1px rgba($secondary-light, 0.16);

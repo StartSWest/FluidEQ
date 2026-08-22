@@ -330,22 +330,41 @@ const LibraryWorkspace = ({
    * is not a constant: it is one line or two depending on what has collapsed,
    * so it is measured rather than guessed at.
    */
-  const chromeRef = useRef<HTMLDivElement | null>(null);
   const [chromeHeight, setChromeHeight] = useState(0);
-  useEffect(() => {
-    const chrome = chromeRef.current;
-    if (!chrome || typeof ResizeObserver === 'undefined') {
-      return undefined;
+  /** How much room the folded queue chip needs kept clear on its own line. */
+  const [chipWidth, setChipWidth] = useState(0);
+  const chromeObserverRef = useRef<ResizeObserver | undefined>(undefined);
+  /**
+   * A CALLBACK REF, not an effect over a `useRef`.
+   *
+   * The row is only rendered once the library has something in it, so on the
+   * first pass there is no element to observe — and an effect with no
+   * dependencies runs exactly once, before it exists. The height stayed at
+   * zero, and the queue opened over the toolbar it was supposed to start
+   * below. A callback ref fires when the node arrives, whenever that is.
+   */
+  const chromeRef = useCallback((node: HTMLDivElement | null) => {
+    chromeObserverRef.current?.disconnect();
+    chromeObserverRef.current = undefined;
+    if (!node || typeof ResizeObserver === 'undefined') {
+      return;
     }
+    setChromeHeight(Math.round(node.getBoundingClientRect().height));
     const observer = new ResizeObserver((entries) => {
       const height = entries[entries.length - 1]?.contentRect.height;
       if (height !== undefined && height > 0) {
         setChromeHeight(Math.round(height));
       }
     });
-    observer.observe(chrome);
-    return () => observer.disconnect();
+    observer.observe(node);
+    chromeObserverRef.current = observer;
   }, []);
+  useEffect(
+    () => () => {
+      chromeObserverRef.current?.disconnect();
+    },
+    [],
+  );
   useEffect(() => {
     const card = cardRef.current;
     if (!card || typeof ResizeObserver === 'undefined') {
@@ -1195,6 +1214,11 @@ const LibraryWorkspace = ({
         !isUpNextOverVideo && !isUpNextCollapsed ? ' has-up-next' : ''
       }${isUpNextOverVideo ? ' has-video' : ''}${
         isUpNextFloating ? ' has-up-next-floating' : ''
+      }${
+        // Folded, the chip still stands in the content's top-right corner, so
+        // the row under the toolbar has to stop short of it — otherwise a long
+        // folder path runs underneath a control.
+        !isUpNextOverVideo && isUpNextCollapsed ? ' has-up-next-chip' : ''
       }`}
       ref={cardRef}
       aria-label={t('tabs.library')}
@@ -1208,6 +1232,7 @@ const LibraryWorkspace = ({
           // What the drawer has to clear. Zero until the row is measured,
           // which only matters for the first frame of a floating queue.
           '--library-chrome-height': `${chromeHeight}px`,
+          '--up-next-chip-width': `${chipWidth}px`,
         } as CSSProperties
       }
       onDragOver={onDragOver}
@@ -1285,12 +1310,11 @@ const LibraryWorkspace = ({
             query={query}
             onQuery={handleQuery}
           />
-          {/* ONE CLUSTER, AND IT NEVER BREAKS UP.
-              The folder controls, the grouping toggle and the folded queue
-              were separate children of this row, so when the bar ran out of
-              width they wrapped one at a time and turned up on lines of their
-              own under the search box. Bound together they travel as a unit
-              and stay where the eye goes looking for them: the top right. */}
+          {/* ONE CLUSTER, AND IT NEVER BREAKS UP. The folder controls were
+              separate children of this row, so when the bar ran out of width
+              they wrapped one at a time and turned up on lines of their own
+              under the search box. Bound together they travel as a unit and
+              stay where the eye goes looking for them: the top right. */}
           <div className="library-toolbar__tail">
             <LibraryFolderActions
               roots={index.roots}
@@ -1300,20 +1324,6 @@ const LibraryWorkspace = ({
               onForceRescan={handleForceRescan}
               onRemoveRoot={handleRemoveRoot}
             />
-            {/* Folded, the queue lives here — in the row with the folder
-                controls, after a rule, rather than floating in a corner of
-                the shelf. A pill pinned to the tab drew over whatever
-                happened to be under it; a chip in the row it belongs to
-                cannot. */}
-            {!isUpNextOverVideo && isUpNextCollapsed && (
-              <>
-                <span className="library-folder-actions__divider" />
-                <LibraryUpNextChip
-                  count={upNextTotal(upNext, upNextRestTotal)}
-                  onExpand={() => setIsUpNextCollapsed(false)}
-                />
-              </>
-            )}
           </div>
         </div>
       )}
@@ -1498,13 +1508,26 @@ const LibraryWorkspace = ({
           restTotal={upNextRestTotal}
         />
       )}
-      {/* Folded over the picture, the chip has nowhere else to be: the folder
-          row it normally sits in is not drawn while a video owns the tab. */}
-      {isUpNextOverVideo && isUpNextCollapsed && (
+      {/* FOLDED, IT STANDS EXACTLY WHERE THE PANEL'S OWN HEAD WOULD BE.
+          It used to ride in the toolbar's right-hand cluster, which meant
+          opening the queue took it out of that cluster and every control
+          beside it shifted — the bar re-laid itself out because a panel
+          somewhere else had been opened. Down here it swaps in and out of the
+          panel's own slot, so the press that opens the queue moves nothing
+          but the queue.
+
+          Over a video it is the same chip a little lower, clear of the
+          picture's own Back and full-screen buttons. */}
+      {isUpNextCollapsed && (
         <LibraryUpNextChip
-          className="library-up-next__chip--over-video"
+          className={
+            isUpNextOverVideo
+              ? 'library-up-next__chip--over-video'
+              : 'library-up-next__chip--docked'
+          }
           count={upNextTotal(upNext, upNextRestTotal)}
           onExpand={() => setIsUpNextCollapsed(false)}
+          onMeasure={setChipWidth}
         />
       )}
       {/* The same splitter the karaoke panes are divided by, not a strip of
