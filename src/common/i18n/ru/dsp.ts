@@ -28,7 +28,43 @@ const dsp = {
   'dsp.preset.flat': 'Выключено',
   'dsp.preset.lossyRepair': 'Восстановить сжатое',
   'dsp.preset.loud': 'Громко',
+  'dsp.bypassed': 'Обход',
   'dsp.enabled': 'Включено',
+
+  'dsp.eqPreset.custom': 'Свой',
+  'dsp.eqPreset.label': 'Пресет',
+  'dsp.eqPreset.flat': 'Ровно',
+  'dsp.eqPreset.vShape': 'V-образная',
+  'dsp.eqPreset.rock': 'Рок',
+  'dsp.eqPreset.pop': 'Поп',
+  'dsp.eqPreset.jazz': 'Джаз',
+  'dsp.eqPreset.classical': 'Классика',
+  'dsp.eqPreset.electronic': 'Электроника',
+  'dsp.eqPreset.hiphop': 'Хип-хоп',
+  'dsp.eqPreset.acoustic': 'Акустика',
+  'dsp.eqPreset.vocal': 'Голос',
+  'dsp.eqPreset.podcast': 'Подкаст',
+  'dsp.eqPreset.bassBoost': 'Больше баса',
+  'dsp.eqPreset.trebleBoost': 'Больше верхов',
+  'dsp.eqPreset.loudness': 'Тонкомпенсация',
+  'dsp.eqPreset.lateNight': 'Поздний вечер',
+  'dsp.eqPreset.smallSpeakers': 'Малые колонки',
+  'dsp.eqPreset.car': 'Авто',
+  'dsp.eqPreset.gaming': 'Игры',
+  'dsp.eqPreset.movie': 'Кино',
+  'dsp.eqPreset.warm': 'Тёплый',
+  'dsp.eqPreset.air': 'Воздух',
+
+  'dsp.eqPreset.import': 'Импорт',
+  'dsp.eqPreset.export': 'Экспорт',
+  'dsp.eqPreset.imported': 'Загружено фильтров: {count}.',
+  'dsp.eqPreset.importSkipped':
+    'Загружено фильтров: {count}, пропущено: {skipped}.',
+  'dsp.eqPreset.importEmpty':
+    'Этот эквалайзер не смог прочитать ни одного фильтра.',
+  'dsp.eqPreset.importFailed': 'Не удалось прочитать этот файл.',
+  'dsp.eqPreset.importPreamp':
+    'Предусиление {gain} дБ проигнорировано — у этого эквалайзера его нет.',
 
   'dsp.eq.title': 'Эквалайзер',
   'dsp.eq.description':

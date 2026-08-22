@@ -27,7 +27,43 @@ const dsp = {
   'dsp.preset.flat': 'オフ',
   'dsp.preset.lossyRepair': '圧縮音源を補修',
   'dsp.preset.loud': 'ラウド',
+  'dsp.bypassed': 'バイパス',
   'dsp.enabled': 'オン',
+
+  'dsp.eqPreset.custom': 'カスタム',
+  'dsp.eqPreset.label': 'プリセット',
+  'dsp.eqPreset.flat': 'フラット',
+  'dsp.eqPreset.vShape': 'V字',
+  'dsp.eqPreset.rock': 'ロック',
+  'dsp.eqPreset.pop': 'ポップ',
+  'dsp.eqPreset.jazz': 'ジャズ',
+  'dsp.eqPreset.classical': 'クラシック',
+  'dsp.eqPreset.electronic': 'エレクトロニック',
+  'dsp.eqPreset.hiphop': 'ヒップホップ',
+  'dsp.eqPreset.acoustic': 'アコースティック',
+  'dsp.eqPreset.vocal': 'ボーカル',
+  'dsp.eqPreset.podcast': 'ポッドキャスト',
+  'dsp.eqPreset.bassBoost': '低音ブースト',
+  'dsp.eqPreset.trebleBoost': '高音ブースト',
+  'dsp.eqPreset.loudness': 'ラウドネス',
+  'dsp.eqPreset.lateNight': '深夜',
+  'dsp.eqPreset.smallSpeakers': '小型スピーカー',
+  'dsp.eqPreset.car': 'カー',
+  'dsp.eqPreset.gaming': 'ゲーム',
+  'dsp.eqPreset.movie': '映画',
+  'dsp.eqPreset.warm': 'ウォーム',
+  'dsp.eqPreset.air': 'エア',
+
+  'dsp.eqPreset.import': 'インポート',
+  'dsp.eqPreset.export': 'エクスポート',
+  'dsp.eqPreset.imported': '{count} 個のフィルターを読み込みました。',
+  'dsp.eqPreset.importSkipped':
+    '{count} 個のフィルターを読み込み、{skipped} 個をスキップしました。',
+  'dsp.eqPreset.importEmpty':
+    'このイコライザーが読み取れるフィルターはありませんでした。',
+  'dsp.eqPreset.importFailed': 'そのファイルを読み取れませんでした。',
+  'dsp.eqPreset.importPreamp':
+    '{gain} dB のプリアンプは無視されました。このイコライザーにはありません。',
 
   'dsp.eq.title': 'イコライザー',
   'dsp.eq.description':

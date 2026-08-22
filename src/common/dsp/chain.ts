@@ -93,6 +93,15 @@ export interface IEqSettings {
   enabled: boolean;
   /** Always `EQ_BAND_COUNT` of them, whatever was stored. */
   bands: readonly IEqBandSettings[];
+  /**
+   * The factory preset last applied, or empty for a hand-made curve.
+   *
+   * Stored rather than derived so it survives a reload: the bands alone cannot
+   * say whether a curve came from "Rock" or was dialled in by hand, and coming
+   * back to a session with the picker blank makes the app look like it forgot.
+   * Cleared the moment a band is touched, because at that point it did.
+   */
+  presetId: string;
 }
 
 /**
@@ -188,7 +197,7 @@ const DEFAULT_EQ_BANDS: readonly IEqBandSettings[] = [
 ];
 
 export const DSP_DEFAULTS: IDspSettings = {
-  eq: { enabled: false, bands: DEFAULT_EQ_BANDS },
+  eq: { enabled: false, bands: DEFAULT_EQ_BANDS, presetId: '' },
   exciter: { enabled: false, crossoverHz: 6_000, drive: 3, mix: 0.3 },
   compressor: {
     enabled: false,
@@ -281,6 +290,7 @@ export const clampDspSettings = (value: unknown): IDspSettings => {
   return {
     eq: {
       enabled: clampBoolean(eq.enabled, DSP_DEFAULTS.eq.enabled),
+      presetId: typeof eq.presetId === 'string' ? eq.presetId : '',
       bands: DSP_DEFAULTS.eq.bands.map((fallback, index) =>
         clampEqBand(storedEqBands[index], fallback),
       ),

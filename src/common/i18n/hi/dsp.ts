@@ -28,7 +28,43 @@ const dsp = {
   'dsp.preset.flat': 'बंद',
   'dsp.preset.lossyRepair': 'संपीड़ित को सुधारें',
   'dsp.preset.loud': 'तेज़',
+  'dsp.bypassed': 'बायपास',
   'dsp.enabled': 'चालू',
+
+  'dsp.eqPreset.custom': 'कस्टम',
+  'dsp.eqPreset.label': 'प्रीसेट',
+  'dsp.eqPreset.flat': 'सपाट',
+  'dsp.eqPreset.vShape': 'V आकार',
+  'dsp.eqPreset.rock': 'रॉक',
+  'dsp.eqPreset.pop': 'पॉप',
+  'dsp.eqPreset.jazz': 'जैज़',
+  'dsp.eqPreset.classical': 'शास्त्रीय',
+  'dsp.eqPreset.electronic': 'इलेक्ट्रॉनिक',
+  'dsp.eqPreset.hiphop': 'हिप-हॉप',
+  'dsp.eqPreset.acoustic': 'ध्वनिक',
+  'dsp.eqPreset.vocal': 'आवाज़',
+  'dsp.eqPreset.podcast': 'पॉडकास्ट',
+  'dsp.eqPreset.bassBoost': 'बास बूस्ट',
+  'dsp.eqPreset.trebleBoost': 'ट्रेबल बूस्ट',
+  'dsp.eqPreset.loudness': 'लाउडनेस',
+  'dsp.eqPreset.lateNight': 'देर रात',
+  'dsp.eqPreset.smallSpeakers': 'छोटे स्पीकर',
+  'dsp.eqPreset.car': 'कार',
+  'dsp.eqPreset.gaming': 'गेमिंग',
+  'dsp.eqPreset.movie': 'फ़िल्म',
+  'dsp.eqPreset.warm': 'गर्म',
+  'dsp.eqPreset.air': 'एयर',
+
+  'dsp.eqPreset.import': 'आयात करें',
+  'dsp.eqPreset.export': 'निर्यात करें',
+  'dsp.eqPreset.imported': '{count} फ़िल्टर लोड किए गए।',
+  'dsp.eqPreset.importSkipped':
+    '{count} फ़िल्टर लोड किए गए, {skipped} छोड़े गए।',
+  'dsp.eqPreset.importEmpty':
+    'इस इक्वलाइज़र को उसमें कोई फ़िल्टर नहीं मिला जिसे वह पढ़ सके।',
+  'dsp.eqPreset.importFailed': 'वह फ़ाइल पढ़ी नहीं जा सकी।',
+  'dsp.eqPreset.importPreamp':
+    '{gain} dB का प्रीएम्प अनदेखा किया गया — इस इक्वलाइज़र में वह नहीं है।',
 
   'dsp.eq.title': 'इक्वलाइज़र',
   'dsp.eq.description':

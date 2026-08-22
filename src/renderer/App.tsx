@@ -37,6 +37,9 @@ import { resetRhythmRun } from './utils/rhythmRun';
 import ConfigInspector from './components/ConfigInspector';
 import { resetEuphoriaMode } from './utils/euphoriaMode';
 import './styles/App.scss';
+// After App.scss: these are the accents in their rainbow form, and they have to
+// win against the cyan ones they replace without reaching for `!important`.
+import './styles/Rainbow.scss';
 import MainContent from './MainContent';
 import SmartEqEngine from './SmartEqEngine';
 import SmartHeadroomEngine from './SmartHeadroomEngine';
@@ -52,6 +55,7 @@ import {
   onWindowFullScreenChange,
   toggleFullScreenTopBar,
   useGraphFullScreen,
+  useGraphLook,
   useGraphView,
   useFullScreenTopBar,
 } from './utils/graphStyle';
@@ -503,6 +507,23 @@ const AppContent = () => {
     setGlobalError,
   } = useFluidEqContext();
   const { t } = useTranslation();
+  const graphLook = useGraphLook();
+
+  /**
+   * Rainbow reaches the rest of the app, not just the graph it was chosen for.
+   *
+   * On `document.body` rather than on the workspace because the menus are
+   * portalled straight to the body and would otherwise sit outside whatever
+   * element carried the class — the one part of the UI most likely to be open
+   * when somebody is admiring the colours.
+   */
+  useEffect(() => {
+    document.body.classList.toggle(
+      'is-rainbow',
+      graphLook.palette === 'rainbow',
+    );
+  }, [graphLook.palette]);
+
   // The sound panel drawer, meaningful only under the three-column breakpoint.
   const [rightPaneOpen, setRightPaneOpen] = useState(false);
   // The same, for the panel that becomes a drawer at the top of the window.

@@ -28,7 +28,43 @@ const dsp = {
   'dsp.preset.flat': 'Aus',
   'dsp.preset.lossyRepair': 'Komprimiertes reparieren',
   'dsp.preset.loud': 'Laut',
+  'dsp.bypassed': 'Umgangen',
   'dsp.enabled': 'Ein',
+
+  'dsp.eqPreset.custom': 'Eigen',
+  'dsp.eqPreset.label': 'Voreinstellung',
+  'dsp.eqPreset.flat': 'Neutral',
+  'dsp.eqPreset.vShape': 'V-Form',
+  'dsp.eqPreset.rock': 'Rock',
+  'dsp.eqPreset.pop': 'Pop',
+  'dsp.eqPreset.jazz': 'Jazz',
+  'dsp.eqPreset.classical': 'Klassik',
+  'dsp.eqPreset.electronic': 'Elektronisch',
+  'dsp.eqPreset.hiphop': 'Hip-Hop',
+  'dsp.eqPreset.acoustic': 'Akustisch',
+  'dsp.eqPreset.vocal': 'Stimme',
+  'dsp.eqPreset.podcast': 'Podcast',
+  'dsp.eqPreset.bassBoost': 'Bass-Anhebung',
+  'dsp.eqPreset.trebleBoost': 'Höhen-Anhebung',
+  'dsp.eqPreset.loudness': 'Loudness',
+  'dsp.eqPreset.lateNight': 'Spät abends',
+  'dsp.eqPreset.smallSpeakers': 'Kleine Lautsprecher',
+  'dsp.eqPreset.car': 'Auto',
+  'dsp.eqPreset.gaming': 'Gaming',
+  'dsp.eqPreset.movie': 'Film',
+  'dsp.eqPreset.warm': 'Warm',
+  'dsp.eqPreset.air': 'Luft',
+
+  'dsp.eqPreset.import': 'Importieren',
+  'dsp.eqPreset.export': 'Exportieren',
+  'dsp.eqPreset.imported': '{count} Filter geladen.',
+  'dsp.eqPreset.importSkipped':
+    '{count} Filter geladen, {skipped} übersprungen.',
+  'dsp.eqPreset.importEmpty':
+    'Dieser Equalizer konnte keine Filter darin lesen.',
+  'dsp.eqPreset.importFailed': 'Diese Datei konnte nicht gelesen werden.',
+  'dsp.eqPreset.importPreamp':
+    'Vorverstärkung von {gain} dB ignoriert – dieser Equalizer hat keine.',
 
   'dsp.eq.title': 'Equalizer',
   'dsp.eq.description':

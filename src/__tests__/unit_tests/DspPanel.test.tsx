@@ -83,9 +83,15 @@ describe('DspPanel', () => {
     );
   });
 
+  /**
+   * Identified by its band picker rather than by a description.
+   *
+   * The EQ page carries no description line: a graph you drag explains itself,
+   * and a paragraph above it was only taking the room the graph wanted.
+   */
   it('opens on the equaliser', () => {
     renderPanel();
-    expect(screen.getByText(/Fifteen parametric bands/i)).toBeInTheDocument();
+    expect(screen.getByRole('tablist', { name: /bands/i })).toBeInTheDocument();
     expect(screen.queryByText(/invents them/i)).not.toBeInTheDocument();
   });
 

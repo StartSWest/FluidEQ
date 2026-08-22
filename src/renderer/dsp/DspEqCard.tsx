@@ -58,13 +58,17 @@ const DspEqCard = ({ eq, sampleRate, onChange, onCommit }: IDspEqCardProps) => {
   const fallback = DSP_DEFAULTS.eq.bands[selected] ?? DSP_DEFAULTS.eq.bands[0];
   const isFlat = NO_GAIN.has(band.type);
 
-  const patchBand = (index: number, next: Partial<IEqBandSettings>) =>
+  const patchBand = (index: number, next: Partial<IEqBandSettings>) => {
     onChange({
       ...eq,
+      // Any hand-made change means the curve is no longer the preset it came
+      // from, and the picker must stop claiming otherwise.
+      presetId: '',
       bands: eq.bands.map((one, at) =>
         at === index ? { ...one, ...next } : one,
       ),
     });
+  };
 
   return (
     <div className="dsp-eq">

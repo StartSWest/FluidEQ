@@ -1,0 +1,156 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+@use 'color' as *;
+
+/*
+ * Rainbow mode, everywhere the graph is not.
+ *
+ * The palette is a graph setting and it used to stop at the graph, which made
+ * choosing it feel like it had half worked: the figure changed and the app
+ * around it stayed the same cyan it always was.
+ *
+ * What it does NOT do is repaint the interface. Six hues spread over every
+ * surface is a toy, and this app is sold. It takes the accents only — the marks
+ * that were already saying "this one, here" — and lets them say it in spectrum
+ * instead: the bar under the open tab, the edge of the open processor, the
+ * lamps, and one hairline across the top. Everything else stays exactly as it
+ * was.
+ *
+ * The order is the spectrum's own, low to high, because that is what the
+ * `rainbow` palette means on the graph — a bar's colour says where in the
+ * frequency range it sits. The rail happens to run in signal order too, so its
+ * lamps land in the same order the graph would have drawn them.
+ */
+body.is-rainbow {
+  --rainbow-sweep: linear-gradient(
+    90deg,
+    #ff4d6d,
+    #ff9f45,
+    #ffd93d,
+    #6bcb77,
+    #36c9d6,
+    #5b8cff,
+    #b06ab3,
+    #ff4d6d
+  );
+}
+
+// Doubled width and swept, so the gradient reads as moving light rather than as
+// a painted stripe. One pass is twelve seconds: slow enough to notice only when
+// looked at, which is the whole brief for something behind the actual work.
+@keyframes rainbow-drift {
+  from {
+    background-position: 0% 50%;
+  }
+
+  to {
+    background-position: 200% 50%;
+  }
+}
+
+// The hairline, across the very top of the window.
+//
+// Fixed to the body rather than drawn inside the workspace on purpose: the
+// workspace is `position: static`, and giving it a positioning context to hang
+// this off would make it a stacking context too — which is the sort of change
+// that moves a full-screen graph and would be blamed on something else weeks
+// later. Nothing here is in the layout, so switching the mode on cannot resize
+// a pane. `pointer-events: none` keeps the titlebar's drag region underneath
+// it working.
+body.is-rainbow::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 2000;
+  height: 2px;
+  background: var(--rainbow-sweep);
+  background-size: 200% 100%;
+  animation: rainbow-drift 12s linear infinite;
+  pointer-events: none;
+}
+
+// The bar under the open tab, which was the accent doing this job already.
+body.is-rainbow .workspace-tab-group__bar {
+  background: var(--rainbow-sweep);
+  background-size: 200% 100%;
+  animation: rainbow-drift 12s linear infinite;
+}
+
+body.is-rainbow .dsp-rail-tab.is-active {
+  border-color: transparent;
+  background:
+    linear-gradient(rgba($primary-light, 0.28), rgba($primary-light, 0.28))
+      padding-box,
+    var(--rainbow-sweep) border-box;
+  background-size:
+    auto,
+    200% 100%;
+  animation: rainbow-drift 12s linear infinite;
+}
+
+// One hue each, in the order they sit in the chain. A single colour repeated
+// four times would say nothing the solid cyan did not already say.
+body.is-rainbow .dsp-rail-tab:nth-child(1).is-on .dsp-rail-lamp {
+  background: #ff4d6d;
+  box-shadow: 0 0 6px rgba(255, 77, 109, 0.75);
+}
+
+body.is-rainbow .dsp-rail-tab:nth-child(2).is-on .dsp-rail-lamp {
+  background: #ffd93d;
+  box-shadow: 0 0 6px rgba(255, 217, 61, 0.75);
+}
+
+body.is-rainbow .dsp-rail-tab:nth-child(3).is-on .dsp-rail-lamp {
+  background: #36c9d6;
+  box-shadow: 0 0 6px rgba(54, 201, 214, 0.75);
+}
+
+body.is-rainbow .dsp-rail-tab:nth-child(4).is-on .dsp-rail-lamp {
+  background: #b06ab3;
+  box-shadow: 0 0 6px rgba(176, 106, 179, 0.75);
+}
+
+// The glyphs follow their own lamps rather than staying grey beside them.
+body.is-rainbow .dsp-rail-tab:nth-child(1) .dsp-section-icon__accent {
+  color: #ff4d6d;
+}
+
+body.is-rainbow .dsp-rail-tab:nth-child(2) .dsp-section-icon__accent {
+  color: #ffd93d;
+}
+
+body.is-rainbow .dsp-rail-tab:nth-child(3) .dsp-section-icon__accent {
+  color: #36c9d6;
+}
+
+body.is-rainbow .dsp-rail-tab:nth-child(4) .dsp-section-icon__accent {
+  color: #b06ab3;
+}
+
+// A moving gradient behind text is exactly the thing this setting is for
+// people who cannot have. The colours stay; only the travel stops.
+@media (prefers-reduced-motion: reduce) {
+  body.is-rainbow::before,
+  body.is-rainbow .workspace-tab-group__bar,
+  body.is-rainbow .dsp-rail-tab.is-active {
+    animation: none;
+  }
+}

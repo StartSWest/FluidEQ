@@ -17,6 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 @use 'color' as *;
+@use 'theme' as *;
 
 // Does not scroll itself: the workspace panel around it does, the same as
 // `.voicing-panel`. A scroller here would nest inside that one and leave the
@@ -138,7 +139,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .dsp-card-header {
   display: flex;
   align-items: flex-start;
-  gap: 10px;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+// A description is a paragraph and hangs from the top of the row; a toolbar is
+// a line of controls and has to sit level with the switch across from it.
+.dsp-card-header.has-toolbar {
+  align-items: center;
+  gap: 12px;
 }
 
 .dsp-card-titles {
@@ -252,12 +261,34 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   color: $white;
 }
 
-.dsp-rail-step {
+// The glyph carries the processor's identity, and on a narrow window it is the
+// only thing left in the button — so it keeps its size rather than shrinking
+// with the text beside it.
+.dsp-section-icon {
   flex: 0 0 auto;
-  width: 17px;
-  color: rgba($white, 0.32);
-  font-size: 0.66rem;
-  text-align: center;
+  width: 20px;
+  height: 20px;
+
+  path {
+    fill: none;
+    stroke: currentcolor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .dsp-section-icon__frame {
+    stroke-width: 1.3;
+    opacity: 0.42;
+  }
+
+  .dsp-section-icon__accent {
+    stroke-width: 1.7;
+    opacity: 0.92;
+  }
+}
+
+.dsp-rail-tab.is-active .dsp-section-icon .dsp-section-icon__frame {
+  opacity: 0.6;
 }
 
 .dsp-rail-name {
@@ -448,4 +479,165 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 .dsp-eq-strip .button.small {
   align-self: center;
+}
+
+// The preset picker, top-left of the page: it is the fastest way to change
+// everything below it, so it reads first.
+// Lives in the card header now, so it takes the row and leaves the bypass
+// switch its place at the end. `center` rather than `flex-end`: everything in
+// here is one control tall since the label moved beside its field.
+.dsp-eq-bar {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.dsp-eq-preset {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+}
+
+// Beside the field rather than stacked over it. Above it, the pair stood two
+// rows tall inside a row that is one control high, and the header grew a band
+// of empty space to fit a single word.
+.dsp-eq-preset-label {
+  flex: 0 0 auto;
+  color: rgba($white, 0.42);
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+
+.dsp-eq-preset .dropdown {
+  min-width: 170px;
+}
+
+.dsp-eq-transfer {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 8px;
+}
+
+// Takes the whole row so the message never squeezes the picker beside it, and
+// so a long one wraps downward rather than pushing the buttons off the edge.
+.dsp-eq-notice {
+  flex: 1 0 100%;
+  margin: 0;
+  color: rgba($white, 0.62);
+  font-size: 0.72rem;
+  line-height: 1.35;
+}
+
+// Nothing on the left means nothing to make room for. Without this the empty
+// title box still claimed a line and left a band of dead space above the
+// controls.
+.dsp-card-header.is-bare {
+  align-items: center;
+  min-height: 0;
+}
+
+// The switch says which state it is IN. A bare toggle leaves the user reading
+// a colour, and across four processors behind four pages that is a guess every
+// time.
+.dsp-card-power {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 9px;
+  margin-left: auto;
+}
+
+.dsp-card-power-label {
+  color: rgba($white, 0.4);
+  font-size: 0.66rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  transition: color 140ms ease;
+}
+
+.dsp-card-power-label.is-on {
+  color: $secondary-default;
+}
+
+// A 200px rail beside a graph is most of a narrow window. Below this the chain
+// reads left to right across the top instead, which costs one row and gives the
+// graph back the width it needs to still be an EQ curve rather than a stripe.
+@media (max-width: 900px) {
+  .dsp-body {
+    flex-direction: column;
+  }
+
+  .dsp-rail {
+    flex-direction: row;
+    width: auto;
+    gap: 6px;
+    overflow-x: auto;
+    padding-bottom: 2px;
+    @include slim-scrollbar;
+  }
+
+  .dsp-rail-tab {
+    flex: 1 1 0;
+    justify-content: center;
+    min-width: 0;
+    padding: 8px 10px;
+  }
+
+  // The lamp is the one thing that must survive the squeeze: it is the only
+  // way to read which processors are doing something without visiting each.
+  .dsp-rail-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .dsp-eq-bar {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .dsp-eq-strip {
+    gap: 12px;
+    padding: 10px;
+  }
+
+  .dsp-eq-shape {
+    min-width: 140px;
+  }
+}
+
+// Icons alone. Four names plus four lamps do not fit a phone-width row without
+// each becoming an ellipsis, and an ellipsis names nothing — the glyph does.
+// The name stays on the button's `title` so it is still announced and still
+// appears on hover.
+@media (max-width: 620px) {
+  .dsp-rail-tab {
+    gap: 6px;
+    padding: 8px 6px;
+  }
+
+  .dsp-rail-name {
+    display: none;
+  }
+
+  .dsp-eq-shape,
+  .dsp-eq-preset {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .dsp-eq-strip {
+    gap: 10px;
+  }
+
+  .dsp-band-dials,
+  .dsp-crossovers {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
 }
