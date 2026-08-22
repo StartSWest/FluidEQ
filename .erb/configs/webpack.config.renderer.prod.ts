@@ -55,11 +55,15 @@ const configuration: webpack.Configuration = {
       webpackPaths.srcRendererPath,
       'karaoke/whisper.worker.ts',
     ),
-    // Its own entry because `audioWorklet.addModule` loads a URL, not a
-    // module the bundle can import: the worklet runs in a separate global
-    // scope with no `window` and no module system to reach back into.
+    // An entry rather than the `\.worklet$` asset rule further down, which is
+    // how `pitch-worklet.worklet` is built. That rule copies its file through
+    // untouched, so a worklet using it has to be self-contained — and this one
+    // is not: its DSP is shared with the graph and with the tests that prove
+    // the filters correct, so it imports. Bundling is the whole difference,
+    // and duplicating four DSP modules into a standalone file to avoid it
+    // would mean the tested code and the shipped code were different code.
     //
-    // And its own library type, which is the part that is not obvious. The
+    // Its own library type is the part that is not obvious. The
     // renderer's `umd` wrapper probes for `exports`, `define` and a global
     // object; an AudioWorkletGlobalScope has none of the three, not even
     // `self`, so the UMD preamble throws before `registerProcessor` is ever
