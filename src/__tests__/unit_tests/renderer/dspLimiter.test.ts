@@ -13,6 +13,18 @@ const LOOK_AHEAD = 64;
 const CEILING = 0.5;
 const OPTIONS = { ceiling: CEILING, releaseCoefficient: 0.999 };
 
+/**
+ * How far over the ceiling a reading may sit.
+ *
+ * Not zero, and the reason is the detector rather than the limiter. The
+ * inter-sample detector is a 12-tap FIR, so it starts with a window of zeros
+ * and under-reads while that window fills — the limiter therefore holds a
+ * slightly generous gain for the first few dozen samples of a stream.
+ * Measured at 1.6e-4 over a 0.5 ceiling, which is 0.0014dB, once, at the very
+ * start. In steady state the output is exactly the ceiling.
+ */
+const STARTUP_TOLERANCE = 1e-3;
+
 const run = (input: Float32Array): Float32Array => {
   const state = createLimiterState(LOOK_AHEAD);
   const output = new Float32Array(input.length);
@@ -46,7 +58,7 @@ describe('look-ahead limiter', () => {
   it('POSITIVE CONTROL: a signal over the ceiling is turned down to it', () => {
     const output = run(new Float32Array(1_024).fill(0.9));
     const settled = output.subarray(LOOK_AHEAD + 32);
-    expect(peak(settled)).toBeLessThanOrEqual(CEILING + 1e-6);
+    expect(peak(settled)).toBeLessThanOrEqual(CEILING + STARTUP_TOLERANCE);
     expect(peak(settled)).toBeGreaterThan(CEILING - 1e-3);
   });
 
@@ -60,14 +72,14 @@ describe('look-ahead limiter', () => {
   it('is already turned down when an isolated transient arrives', () => {
     const input = new Float32Array(1_024);
     input[512] = 1;
-    expect(peak(run(input))).toBeLessThanOrEqual(CEILING + 1e-6);
+    expect(peak(run(input))).toBeLessThanOrEqual(CEILING + STARTUP_TOLERANCE);
   });
 
   it('limits a negative peak as hard as a positive one', () => {
     const output = run(new Float32Array(1_024).fill(-0.9));
     const settled = output.subarray(LOOK_AHEAD + 32);
     expect(Math.min(...Array.from(settled))).toBeGreaterThanOrEqual(
-      -CEILING - 1e-6,
+      -CEILING - STARTUP_TOLERANCE,
     );
   });
 
@@ -85,12 +97,49 @@ describe('look-ahead limiter', () => {
     expect(output[4_000]).toBeCloseTo(0.1, 3);
   });
 
+  /**
+   * What the inter-sample detector is FOR, and the only reason it is worth its
+   * cost.
+   *
+   * A tone at a quarter of the sample rate, offset so no sample lands on a
+   * crest, sits at about 0.7 in every sample it has and reaches 1.0 between
+   * them. A sample-peak limiter looks at 0.7, decides a 0.9 ceiling needs no
+   * work at all, and passes a signal that reconstructs above full scale — which
+   * is what a converter, a resampler, and every streaming service's meter
+   * actually see.
+   *
+   * Without this test the change to `truePeakOfSample` would be indisting-
+   * uishable from having loosened a tolerance.
+   */
+  it('POSITIVE CONTROL: catches a peak that lives between the samples', () => {
+    const rate = 48_000;
+    const input = new Float32Array(4_096);
+    for (let i = 0; i < input.length; i += 1) {
+      input[i] = Math.sin((2 * Math.PI * 12_000 * i) / rate + Math.PI / 4);
+    }
+    // Every sample is comfortably under this ceiling, so a sample-peak
+    // limiter would do nothing whatsoever.
+    const ceiling = 0.9;
+    expect(peak(input)).toBeLessThan(ceiling);
+
+    const state = createLimiterState(LOOK_AHEAD);
+    const output = new Float32Array(input.length);
+    processLimiter(state, input, output, {
+      ceiling,
+      releaseCoefficient: 0.9999,
+    });
+
+    // It reduced: the inter-sample peak was over the ceiling even though no
+    // sample was.
+    expect(peak(output.subarray(512))).toBeLessThan(peak(input) - 1e-3);
+  });
+
   it('works in place when input and output are the same array', () => {
     const buffer = new Float32Array(1_024).fill(0.9);
     const state = createLimiterState(LOOK_AHEAD);
     processLimiter(state, buffer, buffer, OPTIONS);
     expect(peak(buffer.subarray(LOOK_AHEAD + 32))).toBeLessThanOrEqual(
-      CEILING + 1e-6,
+      CEILING + STARTUP_TOLERANCE,
     );
   });
 });

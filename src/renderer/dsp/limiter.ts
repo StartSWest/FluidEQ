@@ -4,7 +4,15 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
+import {
+  ITruePeakState,
+  createTruePeakState,
+  truePeakOfSample,
+} from './truePeak';
+
 export interface ILimiterState {
+  /** The inter-sample detector's own filter history. */
+  truePeak: ITruePeakState;
   /** Circular audio delay line, `lookAhead + 1` long. See `processLimiter`. */
   delay: Float32Array;
   /** |sample| for each slot of `delay`, indexed the same way. */
@@ -39,6 +47,7 @@ export const createLimiterState = (lookAheadSamples: number): ILimiterState => {
     delay: new Float32Array(capacity),
     magnitude: new Float32Array(capacity),
     window: new Int32Array(capacity),
+    truePeak: createTruePeakState(),
     head: 0,
     tail: 0,
     position: 0,
@@ -88,7 +97,16 @@ export const processLimiter = (
   for (let i = 0; i < input.length; i += 1) {
     const { position } = state;
     const incoming = input[i];
-    const incomingMagnitude = Math.abs(incoming);
+    /**
+     * The inter-sample magnitude, not `Math.abs(incoming)`.
+     *
+     * A signal can sit below the ceiling in every sample it has and still
+     * reconstruct above it in the gaps between them — and the gaps are what a
+     * converter, a resampler and every streaming service's meter actually see.
+     * A limiter that answers only to the samples it was handed will let that
+     * through and report a ceiling it is not holding.
+     */
+    const incomingMagnitude = truePeakOfSample(state.truePeak, incoming);
 
     // The sample that has just fallen out of the window, if it was the peak.
     if (
