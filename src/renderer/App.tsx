@@ -103,6 +103,12 @@ import ExtraOutputs from './ExtraOutputs';
 import DriverPicker from './components/DriverPicker';
 import WaveformVisualizer from './WaveformVisualizer';
 import ConvolutionPanel from './ConvolutionPanel';
+import DspPanel from './dsp/DspPanel';
+import {
+  useDspEngineActive,
+  useDspSettings,
+  writeDspSettings,
+} from './dsp/store';
 import VoicingPanel from './VoicingPanel';
 import MenuIcon from './icons/MenuIcon';
 import LanguagePicker from './components/LanguagePicker';
@@ -154,6 +160,7 @@ type TWorkspaceTab =
   | 'presets'
   | 'voicing'
   | 'convolution'
+  | 'dsp'
   | 'video'
   | 'library'
   | 'karaoke'
@@ -189,6 +196,7 @@ const WORKSPACE_TABS: TWorkspaceTab[] = [
   'presets',
   'voicing',
   'convolution',
+  'dsp',
   'video',
   'library',
   'karaoke',
@@ -206,6 +214,10 @@ const WORKSPACE_TABS: TWorkspaceTab[] = [
  * tab, with a row of pills inside it, and the strip is left with the four
  * things that are genuinely different places: EQ, Media, Library, Karaoke.
  *
+ * Six now rather than five, DSP being the sixth — see the note on
+ * `EQ_GROUP_LABEL_KEYS` for why it belongs here despite not writing APO
+ * config at all.
+ *
  * Config last among them, for the reason it was last in the strip: it is the
  * only one that changes nothing, so it is where you go when something is
  * wrong rather than somewhere you pass through on the way to a tuning.
@@ -215,14 +227,27 @@ const EQ_GROUP_TABS: readonly TWorkspaceTab[] = [
   'presets',
   'voicing',
   'convolution',
+  'dsp',
   'config',
 ];
 
+/**
+ * DSP is the odd one in this group and the panel has to admit it.
+ *
+ * Every other pill here writes Equalizer APO's config and therefore changes
+ * all system audio. DSP is a Web Audio graph on FluidEQ's own player: it
+ * cannot touch Spotify, and it keeps working with the equaliser switched off,
+ * because APO is not involved either way. It sits here anyway because this is
+ * where someone looks to change how their music sounds — but `dsp.scopeNotice`
+ * is visible text at the top of the panel for exactly this reason, and a user
+ * who misses it reports the feature as broken rather than as misunderstood.
+ */
 const EQ_GROUP_LABEL_KEYS = {
   eq: 'tabs.eqMain',
   presets: 'tabs.presets',
   voicing: 'tabs.voicing',
   convolution: 'tabs.convolution',
+  dsp: 'tabs.dsp',
   config: 'tabs.config',
 } as const;
 
@@ -507,11 +532,20 @@ const AppContent = () => {
   /**
    * The equaliser's five, drawn at the top of whichever of them is open.
    *
+   * Read from the DSP store rather than held here: the engine that consumes
+   * them runs inside `LibraryPlayerContext`, where the `<audio>` element it
+   * has to attach to lives. Lifting the state to this component would
+   * re-render the whole player tree on every knob turn.
+   */
+  const dspSettings = useDspSettings();
+  const isDspActive = useDspEngineActive();
+
+  /**
    * Inside the page rather than above it, and pills rather than tabs: the
    * strip is where the app's four places are chosen, and a second row of
    * tab-shaped things under it would read as eight tabs in two rows — which
    * is the arrangement this split exists to undo. Built once here and placed
-   * by each panel, because they are five separate pages and a row that is
+   * by each panel, because they are six separate pages and a row that is
    * part of the page has to be inside it.
    */
   const eqGroupPills = (
@@ -1771,6 +1805,24 @@ const AppContent = () => {
                     <ConvolutionPanel />
                   )}
                 </div>
+              </div>
+            )}
+            {/* No engine-disabled state, and that is not an oversight. The
+                panels above are inert with the equaliser off because they only
+                write APO's config. This one is a Web Audio graph on FluidEQ's
+                own player — APO is not in its path at all, so it works exactly
+                the same either way, and greying it out would be a lie. */}
+            {activeWorkspaceTab === 'dsp' && (
+              <div
+                key={activeWorkspaceTab}
+                className="workspace-tab-panel workspace-tab-panel--dsp"
+              >
+                {eqGroupPills}
+                <DspPanel
+                  settings={dspSettings}
+                  onChange={writeDspSettings}
+                  isActive={isDspActive}
+                />
               </div>
             )}
             {/* No engine-disabled state, unlike every panel above it.

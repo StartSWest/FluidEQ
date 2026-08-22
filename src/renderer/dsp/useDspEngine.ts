@@ -14,6 +14,7 @@ import {
   IWorkletNodeLike,
   buildDspGraph,
 } from './graph';
+import { setDspEngineActive } from './store';
 
 /** Registered by `dspProcessor.worklet.ts`. */
 const PROCESSOR_NAME = 'fluideq-dsp';
@@ -95,6 +96,7 @@ export const useDspEngine = (
       graphRef.current = undefined;
       fallBackToDirectOutput();
       setActive(false);
+      setDspEngineActive(false);
     };
 
     const start = async () => {
@@ -123,6 +125,7 @@ export const useDspEngine = (
         settingsRef.current,
       );
       setActive(true);
+      setDspEngineActive(true);
     };
 
     start().catch((error: unknown) => {

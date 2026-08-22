@@ -68,6 +68,8 @@ import {
   setTransportSource,
 } from '../../audio/transportSource';
 import { ILibraryTrack } from '../../../common/library/types';
+import { useDspEngine } from '../../dsp/useDspEngine';
+import { useDspSettings } from '../../dsp/store';
 import { useLibrary } from '../LibraryContext';
 import {
   readPlaybackMemory,
@@ -230,6 +232,15 @@ export const LibraryPlayerProvider = ({
     audioElementRef.current = new Audio();
     audioElementRef.current.volume = DEFAULT_VOLUME;
   }
+  // The DSP chain attaches here rather than in the panel that configures it,
+  // because `createMediaElementSource` binds to THIS element and may be called
+  // for it exactly once, ever. The panel writes settings into a store; the
+  // engine reads them. Nothing about the chain is rebuilt when they change.
+  //
+  // Only the audio element. The video element below keeps its direct path —
+  // routing it through Web Audio as well would mean a second source node and a
+  // second chain for a track type the DSP was never asked to colour.
+  useDspEngine(audioElementRef.current, useDspSettings());
   // Non-null while `LibraryVideoStage` has a `<video>` registered — the
   // element every transport command reaches instead, for exactly as long as
   // the current track is a video.

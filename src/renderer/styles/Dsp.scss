@@ -1,0 +1,160 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+@use 'color' as *;
+
+// Does not scroll itself: the workspace panel around it does, the same as
+// `.voicing-panel`. A scroller here would nest inside that one and leave the
+// content floating clear of the panel's own padding.
+.dsp-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.dsp-header {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.dsp-title {
+  margin: 1px 0 0;
+  font-size: 1.22rem;
+}
+
+// The scope notice, and it is not a footnote.
+//
+// Every other pill in the EQ group configures Equalizer APO and therefore all
+// system audio. This one does not, and a user who assumes otherwise reports
+// the feature as broken rather than as misunderstood — so it is readable body
+// text at the top of the panel, not a muted caption at the bottom and not a
+// tooltip nobody hovers.
+.dsp-scope {
+  max-width: 640px;
+  margin: 0;
+  color: rgba($white, 0.72);
+  font-size: 0.76rem;
+  line-height: 1.45;
+}
+
+.dsp-unavailable {
+  margin: 2px 0 0;
+  color: $red;
+  font-size: 0.74rem;
+}
+
+.dsp-presets {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.dsp-presets-label {
+  color: rgba($white, 0.55);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.dsp-section {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid rgba($white, 0.08);
+  border-radius: 10px;
+  background: rgba($primary-light, 0.28);
+}
+
+.dsp-section-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.dsp-section-titles {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.dsp-section-title {
+  margin: 0;
+  font-size: 0.94rem;
+}
+
+.dsp-section-description {
+  max-width: 560px;
+  margin: 0;
+  color: rgba($white, 0.5);
+  font-size: 0.7rem;
+  line-height: 1.4;
+}
+
+.dsp-controls {
+  display: grid;
+  gap: 10px;
+  // `auto-fit` rather than a fixed count: the compressor carries fifteen
+  // fields and the maximizer three, and pinning a column count would leave
+  // one of them either cramped or half empty.
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+}
+
+.dsp-band {
+  display: grid;
+  gap: 8px;
+  // Spans the whole row so a band's five fields stay together rather than
+  // wrapping into the next band's.
+  grid-column: 1 / -1;
+  margin: 0;
+  padding: 8px 10px;
+  border: 1px solid rgba($white, 0.06);
+  border-radius: 8px;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+}
+
+.dsp-band-title {
+  padding: 0 4px;
+  color: rgba($white, 0.6);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.dsp-field {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dsp-field-label {
+  flex: 1 1 auto;
+  color: rgba($white, 0.68);
+  font-size: 0.7rem;
+}
+
+.dsp-field-unit {
+  flex: 0 0 auto;
+  min-width: 20px;
+  color: rgba($white, 0.4);
+  font-size: 0.66rem;
+}
