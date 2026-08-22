@@ -55,6 +55,17 @@ const dsp = {
   'dsp.eqPreset.warm': 'गर्म',
   'dsp.eqPreset.air': 'एयर',
 
+  'dsp.eqPreset.import': 'आयात करें',
+  'dsp.eqPreset.export': 'निर्यात करें',
+  'dsp.eqPreset.imported': '{count} फ़िल्टर लोड किए गए।',
+  'dsp.eqPreset.importSkipped':
+    '{count} फ़िल्टर लोड किए गए, {skipped} छोड़े गए।',
+  'dsp.eqPreset.importEmpty':
+    'इस इक्वलाइज़र को उसमें कोई फ़िल्टर नहीं मिला जिसे वह पढ़ सके।',
+  'dsp.eqPreset.importFailed': 'वह फ़ाइल पढ़ी नहीं जा सकी।',
+  'dsp.eqPreset.importPreamp':
+    '{gain} dB का प्रीएम्प अनदेखा किया गया — इस इक्वलाइज़र में वह नहीं है।',
+
   'dsp.eq.title': 'इक्वलाइज़र',
   'dsp.eq.description':
     'पंद्रह पैरामीट्रिक बैंड, जैसा फ़िल्टर वास्तव में प्रतिक्रिया देते हैं वैसा खींचा गया, न कि जैसा माँगा गया था।',

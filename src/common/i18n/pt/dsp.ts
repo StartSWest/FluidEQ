@@ -55,6 +55,17 @@ const dsp = {
   'dsp.eqPreset.warm': 'Quente',
   'dsp.eqPreset.air': 'Ar',
 
+  'dsp.eqPreset.import': 'Importar',
+  'dsp.eqPreset.export': 'Exportar',
+  'dsp.eqPreset.imported': '{count} filtros carregados.',
+  'dsp.eqPreset.importSkipped':
+    '{count} filtros carregados, {skipped} ignorados.',
+  'dsp.eqPreset.importEmpty':
+    'Este equalizador não conseguiu ler nenhum filtro.',
+  'dsp.eqPreset.importFailed': 'Não foi possível ler esse ficheiro.',
+  'dsp.eqPreset.importPreamp':
+    'Pré-amplificação de {gain} dB ignorada: este equalizador não a tem.',
+
   'dsp.eq.title': 'Equalizador',
   'dsp.eq.description':
     'Quinze bandas paramétricas, desenhadas como os filtros realmente respondem e não como foram pedidos.',

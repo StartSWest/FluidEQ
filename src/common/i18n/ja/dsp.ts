@@ -54,6 +54,17 @@ const dsp = {
   'dsp.eqPreset.warm': 'ウォーム',
   'dsp.eqPreset.air': 'エア',
 
+  'dsp.eqPreset.import': 'インポート',
+  'dsp.eqPreset.export': 'エクスポート',
+  'dsp.eqPreset.imported': '{count} 個のフィルターを読み込みました。',
+  'dsp.eqPreset.importSkipped':
+    '{count} 個のフィルターを読み込み、{skipped} 個をスキップしました。',
+  'dsp.eqPreset.importEmpty':
+    'このイコライザーが読み取れるフィルターはありませんでした。',
+  'dsp.eqPreset.importFailed': 'そのファイルを読み取れませんでした。',
+  'dsp.eqPreset.importPreamp':
+    '{gain} dB のプリアンプは無視されました。このイコライザーにはありません。',
+
   'dsp.eq.title': 'イコライザー',
   'dsp.eq.description':
     '15 バンドのパラメトリック EQ。設定値ではなく、フィルターの実際の応答を描いています。',

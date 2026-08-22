@@ -55,6 +55,17 @@ const dsp = {
   'dsp.eqPreset.warm': 'Тёплый',
   'dsp.eqPreset.air': 'Воздух',
 
+  'dsp.eqPreset.import': 'Импорт',
+  'dsp.eqPreset.export': 'Экспорт',
+  'dsp.eqPreset.imported': 'Загружено фильтров: {count}.',
+  'dsp.eqPreset.importSkipped':
+    'Загружено фильтров: {count}, пропущено: {skipped}.',
+  'dsp.eqPreset.importEmpty':
+    'Этот эквалайзер не смог прочитать ни одного фильтра.',
+  'dsp.eqPreset.importFailed': 'Не удалось прочитать этот файл.',
+  'dsp.eqPreset.importPreamp':
+    'Предусиление {gain} дБ проигнорировано — у этого эквалайзера его нет.',
+
   'dsp.eq.title': 'Эквалайзер',
   'dsp.eq.description':
     'Пятнадцать параметрических полос, нарисованных так, как фильтры отвечают на самом деле, а не как их просили.',

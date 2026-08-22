@@ -54,6 +54,15 @@ const dsp = {
   'dsp.eqPreset.warm': '温暖',
   'dsp.eqPreset.air': '空气感',
 
+  'dsp.eqPreset.import': '导入',
+  'dsp.eqPreset.export': '导出',
+  'dsp.eqPreset.imported': '已加载 {count} 个滤波器。',
+  'dsp.eqPreset.importSkipped': '已加载 {count} 个滤波器，跳过 {skipped} 个。',
+  'dsp.eqPreset.importEmpty': '此均衡器无法从中读取任何滤波器。',
+  'dsp.eqPreset.importFailed': '无法读取该文件。',
+  'dsp.eqPreset.importPreamp':
+    '已忽略 {gain} dB 的前置增益——此均衡器没有该功能。',
+
   'dsp.eq.title': '均衡器',
   'dsp.eq.description':
     '十五段参量均衡，曲线按滤波器的实际响应绘制，而非按设定值。',

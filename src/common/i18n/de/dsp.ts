@@ -55,6 +55,17 @@ const dsp = {
   'dsp.eqPreset.warm': 'Warm',
   'dsp.eqPreset.air': 'Luft',
 
+  'dsp.eqPreset.import': 'Importieren',
+  'dsp.eqPreset.export': 'Exportieren',
+  'dsp.eqPreset.imported': '{count} Filter geladen.',
+  'dsp.eqPreset.importSkipped':
+    '{count} Filter geladen, {skipped} übersprungen.',
+  'dsp.eqPreset.importEmpty':
+    'Dieser Equalizer konnte keine Filter darin lesen.',
+  'dsp.eqPreset.importFailed': 'Diese Datei konnte nicht gelesen werden.',
+  'dsp.eqPreset.importPreamp':
+    'Vorverstärkung von {gain} dB ignoriert – dieser Equalizer hat keine.',
+
   'dsp.eq.title': 'Equalizer',
   'dsp.eq.description':
     'Fünfzehn parametrische Bänder, gezeichnet wie die Filter tatsächlich reagieren und nicht wie sie angefordert wurden.',
