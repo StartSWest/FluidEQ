@@ -49,7 +49,6 @@ const library: Partial<Dictionary> = {
   'library.coverflow.next': 'Portada siguiente',
   'library.folderCount': '{count} carpetas',
   'library.filterHere': 'Filtrar estas canciones',
-  'library.groupByFolder': 'Agrupar por carpeta',
   'library.view.list': 'Lista',
   'library.view.grid': 'Cuadrícula',
   'library.view.coverflow': 'Cover Flow',
@@ -90,7 +89,10 @@ const library: Partial<Dictionary> = {
   'library.roots': 'Carpetas',
   'library.root.remove': 'Quitar esta carpeta',
   'library.root.offline': 'Esta carpeta no está disponible en este momento',
-  'library.reveal': 'Mostrar en el Explorador de archivos',
+  // Sin "de archivos": es como lo llama Windows, y la fila del menú mide
+  // 232px — el nombre largo se cortaba con puntos suspensivos.
+  'library.reveal': 'Mostrar en el Explorador',
+  'library.trackMenu': 'Más acciones',
 
   'library.unplayable': 'FluidEQ no puede reproducir este formato',
   'library.metadataError':

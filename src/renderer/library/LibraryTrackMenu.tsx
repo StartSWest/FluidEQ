@@ -18,26 +18,30 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { useEffect, useState } from 'react';
 import { ILibraryTrack } from '../../common/library/types';
-import {
-  FAVORITES_PLAYLIST_ID,
-  MAX_PLAYLIST_NAME_LENGTH,
-  isTrackInPlaylist,
-} from '../../common/library/playlists';
+import { FAVORITES_PLAYLIST_ID } from '../../common/library/playlists';
 import AnchoredMenu from '../widgets/AnchoredMenu';
-import TextInput from '../widgets/TextInput';
 import MenuIcon from '../icons/MenuIcon';
 import { useTranslation } from '../utils/I18nContext';
 import { usePlaylists } from './PlaylistContext';
+import LibraryPlaylistPicker from './LibraryPlaylistPicker';
 import { canSendTrackToKaraoke, trackAsKaraokeFile } from './libraryToKaraoke';
 import { sendFilesToKaraoke } from './karaokeHandoff';
 
 interface ILibraryTrackMenuProps {
   anchor: HTMLElement | null;
   isOpen: boolean;
-  /** Resolved by the caller, which already holds the list this row came
-   * from. Undefined for an id the index stopped knowing between the right
-   * click and this render — a rescan finishing under the pointer. */
-  track: ILibraryTrack | undefined;
+  /**
+   * Everything the menu acts on, resolved by the caller — which already holds
+   * the list these came from.
+   *
+   * One song from a row, several from a lit selection, a whole record from a
+   * drill-in header. The count is the only difference, so it is the only
+   * thing this takes: a set-of-one is not a special case, it is the ordinary
+   * one. Empty for ids the index stopped knowing between the click and this
+   * render — a rescan finishing under the pointer — and the menu then draws
+   * nothing rather than acting on a song that is gone.
+   */
+  tracks: readonly ILibraryTrack[];
   /** The playlist being read, when one is open. Adds the one item that only
    * makes sense there, and never appears anywhere else. */
   openPlaylistId?: string;
@@ -54,7 +58,7 @@ interface ILibraryTrackMenuProps {
  * submenu hanging off a portalled menu is a positioning problem with no good
  * answer at the edge of the window. A page swap has no edge cases and is one
  * press either way. */
-type TMenuPage = 'actions' | 'playlists' | 'new';
+type TMenuPage = 'actions' | 'playlists';
 
 /**
  * What a song row offers besides being played.
@@ -66,23 +70,15 @@ type TMenuPage = 'actions' | 'playlists' | 'new';
 const LibraryTrackMenu = ({
   anchor,
   isOpen,
-  track,
+  tracks,
   openPlaylistId,
   onQueueTracks,
   onReveal,
   onClose,
 }: ILibraryTrackMenuProps) => {
   const { t } = useTranslation();
-  const {
-    playlists,
-    isFavorite,
-    toggleFavorite,
-    addTracks,
-    removeTracks,
-    createPlaylist,
-  } = usePlaylists();
+  const { isFavorite, addTracks, removeTracks } = usePlaylists();
   const [page, setPage] = useState<TMenuPage>('actions');
-  const [newName, setNewName] = useState('');
   // The karaoke handoff reads the whole file through main. Small for a song
   // and not instant for a long lossless one, and a menu item that sits there
   // looking unpressed for two seconds is the failure this state exists to
@@ -90,28 +86,37 @@ const LibraryTrackMenu = ({
   const [isSending, setIsSending] = useState(false);
   const [didSendFail, setDidSendFail] = useState(false);
 
-  // Every open starts at the front page, on a clean field, with no stale
-  // error from the last row. Keyed on the track as well as on `isOpen`
-  // because right-clicking a second row while the first row's menu is up
-  // moves the menu rather than closing it.
+  // Every open starts at the front page with no stale error from the last
+  // row. Keyed on what is being acted on as well as on `isOpen`, because
+  // right-clicking a second row while the first row's menu is up moves the
+  // menu rather than closing it.
+  const subject = tracks.map((entry) => entry.id).join('|');
   useEffect(() => {
     setPage('actions');
-    setNewName('');
     setDidSendFail(false);
-  }, [isOpen, track?.id]);
+  }, [isOpen, subject]);
 
-  if (!track) {
+  const [single] = tracks;
+  if (!single) {
     return null;
   }
 
-  const trackId = track.id;
-  const isFavorited = isFavorite(trackId);
-  const canSendToKaraoke = canSendTrackToKaraoke(track);
+  const trackIds = tracks.map((entry) => entry.id);
+  const isOne = tracks.length === 1;
+  // ALL of them, so the label says what the press will do. A record where
+  // four of twelve are starred is not "in Favourites", and offering to remove
+  // it would take away the eight that are not there while leaving the four
+  // that are — the opposite of both readings.
+  const areAllFavorited = trackIds.every((id) => isFavorite(id));
+  // One song at a time. The handoff reads whole files through main, and
+  // "send" on a fifty-track record would be fifty of those at once — a
+  // different feature, and not one anybody asked for by pressing this.
+  const canSendToKaraoke = isOne && canSendTrackToKaraoke(single);
 
   const sendToKaraoke = () => {
     setIsSending(true);
     setDidSendFail(false);
-    trackAsKaraokeFile(track)
+    trackAsKaraokeFile(single)
       .then((file) => {
         setIsSending(false);
         if (!file) {
@@ -131,17 +136,17 @@ const LibraryTrackMenu = ({
       });
   };
 
-  const submitNewPlaylist = (name: string) => {
-    const trimmed = name.trim();
-    if (!trimmed) {
-      return;
-    }
-    createPlaylist(trimmed, [trackId]);
-    onClose();
-  };
-
   const actionsPage = (
     <>
+      {/* How many this menu is about, when it is about more than one. Without
+          it a menu opened over a lit selection is indistinguishable from one
+          opened over the row under the pointer, and the two do very different
+          things to a library. */}
+      {!isOne && (
+        <p className="library-list__menu-subject">
+          {t('library.trackCount', { count: tracks.length })}
+        </p>
+      )}
       {/* FIRST, and above the two that file the song away.
           The row's own click plays this song now; this is the other answer to
           the same question — play it after what is already going. It was the
@@ -153,7 +158,7 @@ const LibraryTrackMenu = ({
         <button
           type="button"
           onClick={() => {
-            onQueueTracks([trackId]);
+            onQueueTracks(trackIds);
             onClose();
           }}
         >
@@ -161,22 +166,34 @@ const LibraryTrackMenu = ({
           <span>{t('library.queueAdd')}</span>
         </button>
       )}
+      {/* THREE GROUPS, and the rules are what say so: what to play, where to
+          keep it, where to send it. Presentational, so `role="none"` keeps
+          them out of what a screen reader walks — the grouping is a reading
+          aid for the eye, and a menu that announces two extra separators is
+          slower to hear, not clearer. */}
+      {onQueueTracks && <div className="library-list__menu-rule" role="none" />}
       <button
         type="button"
         onClick={() => {
-          toggleFavorite(trackId);
+          // `addTracks` skips what is already there, so a part-starred record
+          // adds its remainder rather than double-filing anything.
+          if (areAllFavorited) {
+            removeTracks(FAVORITES_PLAYLIST_ID, trackIds);
+          } else {
+            addTracks(FAVORITES_PLAYLIST_ID, trackIds);
+          }
           onClose();
         }}
       >
         <MenuIcon
           name="star"
           className={`library-list__menu-icon${
-            isFavorited ? ' library-list__menu-icon--on' : ''
+            areAllFavorited ? ' library-list__menu-icon--on' : ''
           }`}
         />
         <span>
           {t(
-            isFavorited
+            areAllFavorited
               ? 'library.playlist.removeFromFavorites'
               : 'library.playlist.addToFavorites',
           )}
@@ -200,7 +217,7 @@ const LibraryTrackMenu = ({
         <button
           type="button"
           onClick={() => {
-            removeTracks(openPlaylistId, [trackId]);
+            removeTracks(openPlaylistId, trackIds);
             onClose();
           }}
         >
@@ -208,6 +225,10 @@ const LibraryTrackMenu = ({
           <span>{t('library.playlist.removeFrom')}</span>
         </button>
       )}
+      {/* Filing done; what follows leaves the library — and neither of them
+          means anything for a set, so for a set there is nothing below the
+          rule and the rule itself would be a line under the last item. */}
+      {isOne && <div className="library-list__menu-rule" role="none" />}
       {/* Absent for video and for containers the Karaoke tab has no decoder
           for, rather than disabled: those are not songs it declined, they are
           songs it was never going to be offered. */}
@@ -234,99 +255,15 @@ const LibraryTrackMenu = ({
           {t('library.karaoke.failed')}
         </p>
       )}
-      <button type="button" onClick={() => onReveal(trackId)}>
-        <MenuIcon name="external" className="library-list__menu-icon" />
-        <span>{t('library.reveal')}</span>
-      </button>
-    </>
-  );
-
-  const playlistsPage = (
-    <>
-      <button
-        type="button"
-        className="library-list__menu-back"
-        onClick={() => setPage('actions')}
-      >
-        <MenuIcon name="back" className="library-list__menu-icon" />
-        <span>{t('library.playlist.addTo')}</span>
-      </button>
-      {playlists.map((playlist) => {
-        const has = isTrackInPlaylist(playlist, trackId);
-        return (
-          <button
-            key={playlist.id}
-            type="button"
-            // Shown and disabled rather than hidden: a list that quietly
-            // omits the playlist you were looking for reads as the playlist
-            // having been lost, and the tick is the answer to "did I already
-            // put it there".
-            disabled={has}
-            title={has ? t('library.playlist.alreadyIn') : undefined}
-            onClick={() => {
-              addTracks(playlist.id, [trackId]);
-              onClose();
-            }}
-          >
-            <MenuIcon
-              name={playlist.id === FAVORITES_PLAYLIST_ID ? 'star' : 'playlist'}
-              className="library-list__menu-icon"
-            />
-            <span>
-              {playlist.id === FAVORITES_PLAYLIST_ID
-                ? t('library.playlist.favorites')
-                : playlist.name}
-            </span>
-            {has && (
-              <span className="library-list__menu-tick" aria-hidden="true">
-                ✓
-              </span>
-            )}
-          </button>
-        );
-      })}
-      <button
-        type="button"
-        className="library-list__menu-new"
-        onClick={() => setPage('new')}
-      >
-        <MenuIcon name="plus" className="library-list__menu-icon" />
-        <span>{t('library.playlist.new')}</span>
-      </button>
-    </>
-  );
-
-  const newPage = (
-    <>
-      <button
-        type="button"
-        className="library-list__menu-back"
-        onClick={() => setPage('playlists')}
-      >
-        <MenuIcon name="back" className="library-list__menu-icon" />
-        <span>{t('library.playlist.new')}</span>
-      </button>
-      <div className="library-list__menu-field">
-        <TextInput
-          value={newName}
-          ariaLabel={t('library.playlist.newName')}
-          placeholder={t('library.playlist.newName')}
-          isDisabled={false}
-          errorMessage=""
-          formatInput={(value) => value.slice(0, MAX_PLAYLIST_NAME_LENGTH)}
-          handleChange={setNewName}
-          handleSubmit={submitNewPlaylist}
-          handleEscape={() => setPage('playlists')}
-        />
-        <button
-          type="button"
-          className="button small"
-          disabled={newName.trim().length === 0}
-          onClick={() => submitNewPlaylist(newName)}
-        >
-          {t('library.playlist.create')}
+      {/* One file has a place on disk. A selection spanning four folders does
+          not, and picking one of them to open would be answering a question
+          nobody asked. */}
+      {isOne && (
+        <button type="button" onClick={() => onReveal(single.id)}>
+          <MenuIcon name="external" className="library-list__menu-icon" />
+          <span>{t('library.reveal')}</span>
         </button>
-      </div>
+      )}
     </>
   );
 
@@ -338,8 +275,13 @@ const LibraryTrackMenu = ({
       ariaLabel={t('library.trackActions')}
     >
       {page === 'actions' && actionsPage}
-      {page === 'playlists' && playlistsPage}
-      {page === 'new' && newPage}
+      {page === 'playlists' && (
+        <LibraryPlaylistPicker
+          trackIds={trackIds}
+          onBack={() => setPage('actions')}
+          onClose={onClose}
+        />
+      )}
     </AnchoredMenu>
   );
 };

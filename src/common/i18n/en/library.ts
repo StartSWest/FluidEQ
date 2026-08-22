@@ -47,7 +47,6 @@ const library = {
   'library.coverflow.next': 'Next cover',
   'library.folderCount': '{count} folders',
   'library.filterHere': 'Filter these songs',
-  'library.groupByFolder': 'Group by folder',
   'library.view.list': 'List',
   'library.view.grid': 'Grid',
   'library.view.coverflow': 'Cover Flow',
@@ -89,6 +88,7 @@ const library = {
   'library.root.remove': 'Remove this folder',
   'library.root.offline': 'This folder is not available right now',
   'library.reveal': 'Show in Explorer',
+  'library.trackMenu': 'More actions',
 
   'library.unplayable': 'FluidEQ cannot play this format',
   'library.metadataError': "FluidEQ could not read this file's tags.",

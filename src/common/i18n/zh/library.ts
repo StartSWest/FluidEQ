@@ -48,7 +48,6 @@ const library: Partial<Dictionary> = {
   'library.coverflow.next': '下一张封面',
   'library.folderCount': '{count} 个文件夹',
   'library.filterHere': '筛选这些歌曲',
-  'library.groupByFolder': '按文件夹分组',
   'library.view.list': '列表',
   'library.view.grid': '网格',
   'library.view.coverflow': 'Cover Flow',
@@ -90,6 +89,7 @@ const library: Partial<Dictionary> = {
   'library.root.remove': '移除此文件夹',
   'library.root.offline': '此文件夹当前不可用',
   'library.reveal': '在资源管理器中显示',
+  'library.trackMenu': '更多操作',
 
   'library.unplayable': 'FluidEQ 无法播放此格式',
   'library.metadataError': 'FluidEQ 无法读取此文件的标签。',

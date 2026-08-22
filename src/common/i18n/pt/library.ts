@@ -49,7 +49,6 @@ const library: Partial<Dictionary> = {
   'library.coverflow.next': 'Próxima capa',
   'library.folderCount': '{count} pastas',
   'library.filterHere': 'Filtrar estas músicas',
-  'library.groupByFolder': 'Agrupar por pasta',
   'library.view.list': 'Lista',
   'library.view.grid': 'Grade',
   'library.view.coverflow': 'Cover Flow',
@@ -90,7 +89,9 @@ const library: Partial<Dictionary> = {
   'library.roots': 'Pastas',
   'library.root.remove': 'Remover esta pasta',
   'library.root.offline': 'Esta pasta não está disponível no momento',
-  'library.reveal': 'Mostrar no Explorador de Arquivos',
+  // Sem "de Arquivos": a linha do menu tem 232px e o nome longo era cortado.
+  'library.reveal': 'Mostrar no Explorador',
+  'library.trackMenu': 'Mais ações',
 
   'library.unplayable': 'O FluidEQ não consegue reproduzir este formato',
   'library.metadataError': 'O FluidEQ não conseguiu ler as tags deste arquivo.',

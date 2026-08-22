@@ -49,7 +49,6 @@ const library: Partial<Dictionary> = {
   'library.coverflow.next': '次のジャケット',
   'library.folderCount': '{count} 個のフォルダ',
   'library.filterHere': 'この中の曲を絞り込む',
-  'library.groupByFolder': 'フォルダーごとにグループ化',
   'library.view.list': 'リスト',
   'library.view.grid': 'グリッド',
   'library.view.coverflow': 'Cover Flow',
@@ -91,6 +90,7 @@ const library: Partial<Dictionary> = {
   'library.root.remove': 'このフォルダーを削除',
   'library.root.offline': 'このフォルダーは現在利用できません',
   'library.reveal': 'エクスプローラーで表示',
+  'library.trackMenu': 'その他の操作',
 
   'library.unplayable': 'FluidEQ はこの形式を再生できません',
   'library.metadataError':

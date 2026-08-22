@@ -112,6 +112,21 @@ const PATHS: Record<string, string> = {
   play: 'M9 6l8 6-8 6V6z',
   pause: 'M9 6v12M15 6v12',
   volume: 'M5 10v4h3l4 3V7l-4 3H5M15 9a4 4 0 0 1 0 6',
+  // The library's shelves, each drawn as the thing it lists rather than as a
+  // generic list glyph: a record, a person, a note, a screen. Folders and
+  // playlists already had theirs above.
+  album:
+    'M12 4a8 8 0 1 0 0 16 8 8 0 0 0 0-16zM12 10.4a1.6 1.6 0 1 0 0 3.2 1.6 1.6 0 0 0 0-3.2z',
+  artist: 'M12 5a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM5.5 19.5a6.5 6.5 0 0 1 13 0',
+  song: 'M9 16.5V5.5l9-2v11M9 16.5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0zM18 14.5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z',
+  video: 'M3.5 6.5h17v11h-17zM10 9.75l4.5 2.25L10 14.25z',
+  // The library's three shelves, for when the tab is too narrow to name them.
+  // Rows with a leading mark for the table, four panes for the grid, and a
+  // sleeve standing between two turned neighbours for cover flow — which is
+  // the one thing that view looks like and nothing else does.
+  viewList: 'M4 7h2M9 7h11M4 12h2M9 12h11M4 17h2M9 17h11',
+  viewGrid: 'M5 5h5v5H5zM14 5h5v5h-5zM5 14h5v5H5zM14 14h5v5h-5z',
+  viewCoverFlow: 'M9.5 6.5h5v11h-5zM6.5 8.5v7M17.5 8.5v7',
 };
 
 export type MenuIconName = keyof typeof PATHS;

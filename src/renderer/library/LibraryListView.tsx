@@ -480,6 +480,23 @@ const LibraryListView = ({
     return entries;
   }, [tracks, groupByFolder, browseMode]);
 
+  /**
+   * The song ids in the order they are drawn, for a Shift range to slice.
+   *
+   * A ref rather than a dependency of `pickRow`: the array is rebuilt on every
+   * scan batch, and a callback that changed with it would hand every memoised
+   * row a new prop several times a second during a scan — which is the cost
+   * the row's `memo` exists to avoid.
+   */
+  const songRowsRef = useRef<readonly string[]>([]);
+  songRowsRef.current = useMemo(
+    () =>
+      songRows
+        .filter((entry) => entry.heading === undefined)
+        .map((entry) => entry.track.id),
+    [songRows],
+  );
+
   // Which folders this shelf holds, under whichever reading is on — the tree's
   // roots or every directory at once. Above the branch that draws them because
   // that branch is a return, and a hook cannot live under one.
@@ -533,6 +550,25 @@ const LibraryListView = ({
   const [activeId, setActiveId] = useState<string | undefined>(
     () => rememberedListState.get(resetKey)?.activeId,
   );
+
+  /**
+   * Rows lit for a menu to act on all at once.
+   *
+   * Deliberately NOT `activeId`, which marks the one row the reader last
+   * opened and has to survive a drill-in and come back. This is a working set
+   * that lives as long as the reader is looking at this list and no longer —
+   * carrying it across a navigation would mean coming back to a page with
+   * twelve songs lit and no memory of why.
+   *
+   * Empty is the ordinary state, and it means "whatever the pointer is on":
+   * the row menu falls back to its own row, which is what every press did
+   * before any of this existed.
+   */
+  const [selectedIds, setSelectedIds] = useState<ReadonlySet<string>>(
+    () => new Set(),
+  );
+  /** Where a Shift range measures from — the last row taken on its own. */
+  const selectionAnchorRef = useRef<string | undefined>(undefined);
 
   /** Records the row being opened before the view is torn down for the
    * drill-in — the scroll position alone puts the reader back on the right
@@ -629,6 +665,10 @@ const LibraryListView = ({
     // would need mocking in every test that renders this view.
     isRestoringRef.current = true;
     setActiveId(remembered?.activeId);
+    // A different list is a different set of rows, and a selection made on
+    // the last one would light rows the reader never chose — see `selectedIds`.
+    setSelectedIds(new Set());
+    selectionAnchorRef.current = undefined;
     element.scrollTop = remembered?.scrollTop ?? 0;
     applyWindow(windowFor(element));
     isRestoringRef.current = false;
@@ -698,13 +738,91 @@ const LibraryListView = ({
     };
   }, [trackMenu]);
 
+  /**
+   * Ctrl/Cmd-click and Shift-click, which are what build a selection.
+   *
+   * A plain click is left alone entirely: a row in a track list is a thing
+   * you press to hear, and that has to keep being true. So the modifiers are
+   * the whole gesture — Ctrl adds or drops one row, Shift takes everything
+   * between the last single pick and this one — and the row reports them
+   * rather than deciding, because only this view knows the order the rows are
+   * actually in.
+   *
+   * Returns true when it consumed the press, which is the row's signal not to
+   * play the song as well.
+   */
+  const pickRow = useCallback(
+    (trackId: string, modifiers: { toggle: boolean; range: boolean }) => {
+      if (!modifiers.toggle && !modifiers.range) {
+        // A plain press ends the selection: the reader is listening again, not
+        // still choosing. Cheap to check, and skipping the set when it is
+        // already empty keeps the ordinary click from re-rendering the list.
+        setSelectedIds((current) => (current.size === 0 ? current : new Set()));
+        selectionAnchorRef.current = trackId;
+        return false;
+      }
+      const order = songRowsRef.current;
+      if (modifiers.range && selectionAnchorRef.current) {
+        const from = order.indexOf(selectionAnchorRef.current);
+        const to = order.indexOf(trackId);
+        if (from !== -1 && to !== -1) {
+          const [low, high] = from <= to ? [from, to] : [to, from];
+          setSelectedIds(new Set(order.slice(low, high + 1)));
+          return true;
+        }
+      }
+      setSelectedIds((current) => {
+        const next = new Set(current);
+        if (next.has(trackId)) {
+          next.delete(trackId);
+        } else {
+          next.add(trackId);
+        }
+        return next;
+      });
+      selectionAnchorRef.current = trackId;
+      return true;
+    },
+    [],
+  );
+
   /** Shared by the right-click handler and the keyboard one below — both
    * just need an element to anchor the menu to and the row's track id. */
   // Stable, like the row's other callbacks: a fresh identity here would make
   // every memoised row re-render on any state change this view has.
   const openTrackMenu = useCallback((anchor: HTMLElement, trackId: string) => {
     setTrackMenu({ trackId, anchor });
+    // Opening the menu on a row OUTSIDE the selection is the reader changing
+    // their mind about what they meant — the row under the pointer wins, and
+    // the lit rows are dropped. Inside it, the selection stands and the menu
+    // acts on all of it. Same rule every file manager uses, and the one that
+    // makes "menu on a lit row" mean the lit rows rather than one of them.
+    setSelectedIds((current) =>
+      current.has(trackId) ? current : new Set<string>(),
+    );
   }, []);
+
+  /**
+   * What the open menu is about: the lit rows, or the one it was opened on.
+   *
+   * Resolved from the list this view is already holding rather than stored
+   * alongside the anchor — a rescan can replace a track object under an open
+   * menu, and the menu must act on what the index says now.
+   *
+   * In the order the LIST has them, not the order they were clicked in. This
+   * is what a queue is built from, and a selection added to the queue should
+   * play down the page the way it reads.
+   */
+  const menuTracks = useMemo(() => {
+    if (!trackMenu) {
+      return [];
+    }
+    if (selectedIds.has(trackMenu.trackId) && selectedIds.size > 1) {
+      return tracks.filter((track) => selectedIds.has(track.id));
+    }
+    const one = tracks.find((track) => track.id === trackMenu.trackId);
+    return one ? [one] : [];
+  }, [tracks, trackMenu, selectedIds]);
 
   const reveal = (trackId: string) => {
     window.electron.ipcRenderer
@@ -1244,12 +1362,15 @@ const LibraryListView = ({
             isOffline={offlineRootIds.has(entry.track.rootId)}
             isFolderOnly={folderOnlyIds.has(entry.track.id)}
             isSearchMatch={matchedIds.has(entry.track.id)}
-            isSelected={activeId === entry.track.id}
+            isSelected={
+              activeId === entry.track.id || selectedIds.has(entry.track.id)
+            }
             isPlaying={playingTrackId === entry.track.id}
             isFavorite={isFavorite(entry.track.id)}
             duration={formatDuration(entry.track.durationMs)}
             onPlay={onPlayTrack}
             onSelect={rememberActive}
+            onPick={pickRow}
             onKeyDown={onTrackRowKeyDown}
             onContextMenu={openTrackMenu}
           />
@@ -1258,10 +1379,7 @@ const LibraryListView = ({
     <LibraryTrackMenu
       anchor={trackMenu?.anchor ?? null}
       isOpen={Boolean(trackMenu)}
-      // Resolved from the list this view is already holding rather than
-      // stored alongside the anchor: a rescan can replace the track object
-      // under an open menu, and the menu must act on what the index says now.
-      track={tracks.find((track) => track.id === trackMenu?.trackId)}
+      tracks={menuTracks}
       openPlaylistId={openPlaylistId}
       onQueueTracks={onQueueTracks}
       onReveal={reveal}

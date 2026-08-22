@@ -58,7 +58,6 @@ import LibraryListView from './LibraryListView';
 import LibraryScanProgress from './LibraryScanProgress';
 import LibraryUpNext, { LibraryUpNextChip, upNextTotal } from './LibraryUpNext';
 import KaraokePaneSplitter from '../karaoke/KaraokePaneSplitter';
-import MenuIcon from '../icons/MenuIcon';
 import LibraryToolbar from './LibraryToolbar';
 import { isFolderTree } from './folderTree';
 import LibraryVideoSection, { videoFolderGroups } from './LibraryVideoSection';
@@ -102,6 +101,16 @@ const windowedQueueIds = (
   return ids.slice(start, start + QUEUE_WINDOW);
 };
 
+/**
+ * The card width below which the queue floats over the shelf instead of taking
+ * a strip beside it.
+ *
+ * 900 because the panel is 273 of it: below this the shelf is left under 600px,
+ * which is where the track table starts losing Album and most of Artist. The
+ * queue is worth a fifth of a wide card and not a third of a narrow one.
+ */
+const UP_NEXT_FLOAT_WIDTH = 900;
+
 /** The Up Next panel's width, dragged from its own edge. */
 const UP_NEXT_WIDTH_KEY = 'fluideq.library.upNextWidth';
 const UP_NEXT_MIN = 190;
@@ -111,7 +120,6 @@ const BROWSE_MODE_KEY = 'fluideq.library.browseMode';
 const VIEW_MODE_KEY = 'fluideq.library.viewMode';
 const SORT_KEY = 'fluideq.library.sort';
 const SORT_DIRECTION_KEY = 'fluideq.library.sortDirection';
-const GROUP_BY_FOLDER_KEY = 'fluideq.library.groupByFolder';
 const OPEN_ALBUM_KEY = 'fluideq.library.openAlbum';
 const OPEN_ARTIST_KEY = 'fluideq.library.openArtist';
 const OPEN_FOLDER_KEY = 'fluideq.library.openFolder';
@@ -296,6 +304,100 @@ const LibraryWorkspace = ({
   const isUpNextOverVideo = videoTrackId !== undefined;
 
   /**
+   * Narrow enough that the queue stops taking a strip and stands over the
+   * shelf instead — a drawer.
+   *
+   * Measured in JS rather than left to the container query that used to own
+   * this, because the drawer is not only a layout: it draws over the toolbar,
+   * it blurs what is behind it, and a press outside it puts it away. The last
+   * of those needs a listener, and a listener cannot read a container query.
+   * One source of truth, and CSS follows the class.
+   *
+   * A `ResizeObserver`, which is what the queue panel already watches its own
+   * scrollport with. The card is what is asked, not the window: the queue
+   * takes a fifth of the card, so the two disagree by exactly the amount that
+   * decides this.
+   */
+  const cardRef = useRef<HTMLElement | null>(null);
+  const [isCardNarrow, setIsCardNarrow] = useState(false);
+  /**
+   * How tall the controls above the shelf are, so the drawer can start below
+   * them.
+   *
+   * A drawer that covers the list is the point; one that covers the toolbar is
+   * a bug — it took the search box and the folder controls with it, and there
+   * was no way to reach them without closing the queue first. The row's height
+   * is not a constant: it is one line or two depending on what has collapsed,
+   * so it is measured rather than guessed at.
+   */
+  const chromeRef = useRef<HTMLDivElement | null>(null);
+  const [chromeHeight, setChromeHeight] = useState(0);
+  useEffect(() => {
+    const chrome = chromeRef.current;
+    if (!chrome || typeof ResizeObserver === 'undefined') {
+      return undefined;
+    }
+    const observer = new ResizeObserver((entries) => {
+      const height = entries[entries.length - 1]?.contentRect.height;
+      if (height !== undefined && height > 0) {
+        setChromeHeight(Math.round(height));
+      }
+    });
+    observer.observe(chrome);
+    return () => observer.disconnect();
+  }, []);
+  useEffect(() => {
+    const card = cardRef.current;
+    if (!card || typeof ResizeObserver === 'undefined') {
+      return undefined;
+    }
+    const observer = new ResizeObserver((entries) => {
+      const width = entries[entries.length - 1]?.contentRect.width;
+      // A HIDDEN CARD HAS NO WIDTH TO JUDGE, and zero is not narrow.
+      //
+      // This tab is hidden rather than unmounted, so leaving it reports a
+      // width of 0 — which read as "very narrow", turned the drawer on, and
+      // armed the press-outside listener. The next click anywhere in the app,
+      // on any other tab, then folded the queue away for no reason the reader
+      // could see. Nothing measurable means nothing to reconsider.
+      if (width !== undefined && width > 0) {
+        setIsCardNarrow(width < UP_NEXT_FLOAT_WIDTH);
+      }
+    });
+    observer.observe(card);
+    return () => observer.disconnect();
+  }, []);
+
+  const isUpNextFloating =
+    isCardNarrow && !isUpNextOverVideo && !isUpNextCollapsed;
+
+  /**
+   * A press anywhere else puts the drawer away.
+   *
+   * Only while it IS a drawer. In the strip layout the shelf beside it is not
+   * "outside" anything — the two stand side by side — and folding the queue
+   * because somebody clicked a song would be the worst kind of surprise.
+   */
+  useEffect(() => {
+    if (!isUpNextFloating) {
+      return undefined;
+    }
+    const onPointerDown = ({ target }: globalThis.MouseEvent) => {
+      // The chip that opens it counts as inside: a press on it while the
+      // drawer is up would otherwise close and reopen in one gesture, and the
+      // drawer would look like it never went away.
+      if (
+        target instanceof Element &&
+        !target.closest('.library-up-next, .library-up-next__chip')
+      ) {
+        setIsUpNextCollapsed(true);
+      }
+    };
+    window.addEventListener('mousedown', onPointerDown);
+    return () => window.removeEventListener('mousedown', onPointerDown);
+  }, [isUpNextFloating]);
+
+  /**
    * The mark on the row, which is not the same as the track that is loaded.
    *
    * A paused song is the selected row and nothing more — the animated meter
@@ -327,15 +429,6 @@ const LibraryWorkspace = ({
   );
   const [sortDirection, setSortDirection] = useState<TLibrarySortDirection>(
     () => readPersistedMode(SORT_DIRECTION_KEY, SORT_DIRECTIONS, 'asc'),
-  );
-  // Labels each run of rows with the folder it came from. Off by default:
-  // most browsing is by album, where the folder is noise.
-  const [groupByFolder, setGroupByFolder] = useState<boolean>(
-    () => readPersistedMode(GROUP_BY_FOLDER_KEY, ['on', 'off'], 'off') === 'on',
-  );
-  useEffect(
-    () => writePersistedMode(GROUP_BY_FOLDER_KEY, groupByFolder ? 'on' : 'off'),
-    [groupByFolder],
   );
   const [sort, setSort] = useState<TLibrarySort>(() =>
     readPersistedMode(SORT_KEY, SORTS, 'title'),
@@ -1100,13 +1193,23 @@ const LibraryWorkspace = ({
         // video there is no strip either: the picture keeps the whole tab and
         // the panel floats on top of it.
         !isUpNextOverVideo && !isUpNextCollapsed ? ' has-up-next' : ''
-      }${isUpNextOverVideo ? ' has-video' : ''}`}
+      }${isUpNextOverVideo ? ' has-video' : ''}${
+        isUpNextFloating ? ' has-up-next-floating' : ''
+      }`}
+      ref={cardRef}
       aria-label={t('tabs.library')}
       aria-hidden={isHidden}
       // The one number both the panel and the strip it stands in are sized
       // from, so the two cannot disagree about how much of the tab is spoken
       // for.
-      style={{ '--up-next-width': `${upNextWidth}px` } as CSSProperties}
+      style={
+        {
+          '--up-next-width': `${upNextWidth}px`,
+          // What the drawer has to clear. Zero until the row is measured,
+          // which only matters for the first frame of a floating queue.
+          '--library-chrome-height': `${chromeHeight}px`,
+        } as CSSProperties
+      }
       onDragOver={onDragOver}
       onDragLeave={onDragLeave}
       onDrop={onDrop}
@@ -1153,7 +1256,7 @@ const LibraryWorkspace = ({
           something to steer and something else worth adding, so the row
           appears from then on. */}
       {index.roots.length > 0 && (
-        <div className="library-toolbar-row">
+        <div className="library-toolbar-row" ref={chromeRef}>
           <LibraryToolbar
             browseMode={browseMode}
             viewMode={viewMode}
@@ -1179,62 +1282,39 @@ const LibraryWorkspace = ({
                 ? undefined
                 : handleSortDirection
             }
-            // Never withheld. This box was taken off the bar inside a
-            // drill-in, back when a query here narrowed a list that was not
-            // on screen and so appeared to do nothing — but a search that
-            // vanishes is worse than one that is merely narrow.
-            //
-            // It stays, and it stops at the shelf. It is how a record is
-            // FOUND; carrying it into the panel meant opening a fourteen-track
-            // album and seeing the two whose titles contained what was typed,
-            // under a heading reading "2 songs". Inside a drill-in the panel's
-            // own "filter these songs" is the only thing that narrows.
             query={query}
             onQuery={handleQuery}
           />
-          {/* Only meaningful for a flat run of songs — album and artist rows
-              are already groupings, and the video shelf groups by folder
-              inherently. Rendered beside the toolbar rather than inside it so
-              `LibraryToolbar` keeps the pure prop contract its own test
-              pins. */}
-          {viewMode === 'list' && browseMode === 'song' && (
-            <button
-              type="button"
-              className={`library-toolbar__chip${
-                groupByFolder ? ' is-active' : ''
-              }`}
-              aria-pressed={groupByFolder}
-              title={t('library.groupByFolder')}
-              onClick={() => setGroupByFolder((current) => !current)}
-            >
-              <MenuIcon
-                name="folder"
-                className="library-toolbar__action-icon"
-              />
-              <span>{t('library.groupByFolder')}</span>
-            </button>
-          )}
-          <LibraryFolderActions
-            roots={index.roots}
-            isScanning={isScanning}
-            onAddFolder={handleAddFolder}
-            onRescan={handleRescan}
-            onForceRescan={handleForceRescan}
-            onRemoveRoot={handleRemoveRoot}
-          />
-          {/* Folded, the queue lives here — in the row with the folder
-              controls, after a rule, rather than floating in a corner of the
-              shelf. A pill pinned to the tab drew over whatever happened to
-              be under it; a chip in the row it belongs to cannot. */}
-          {!isUpNextOverVideo && isUpNextCollapsed && (
-            <>
-              <span className="library-folder-actions__divider" />
-              <LibraryUpNextChip
-                count={upNextTotal(upNext, upNextRestTotal)}
-                onExpand={() => setIsUpNextCollapsed(false)}
-              />
-            </>
-          )}
+          {/* ONE CLUSTER, AND IT NEVER BREAKS UP.
+              The folder controls, the grouping toggle and the folded queue
+              were separate children of this row, so when the bar ran out of
+              width they wrapped one at a time and turned up on lines of their
+              own under the search box. Bound together they travel as a unit
+              and stay where the eye goes looking for them: the top right. */}
+          <div className="library-toolbar__tail">
+            <LibraryFolderActions
+              roots={index.roots}
+              isScanning={isScanning}
+              onAddFolder={handleAddFolder}
+              onRescan={handleRescan}
+              onForceRescan={handleForceRescan}
+              onRemoveRoot={handleRemoveRoot}
+            />
+            {/* Folded, the queue lives here — in the row with the folder
+                controls, after a rule, rather than floating in a corner of
+                the shelf. A pill pinned to the tab drew over whatever
+                happened to be under it; a chip in the row it belongs to
+                cannot. */}
+            {!isUpNextOverVideo && isUpNextCollapsed && (
+              <>
+                <span className="library-folder-actions__divider" />
+                <LibraryUpNextChip
+                  count={upNextTotal(upNext, upNextRestTotal)}
+                  onExpand={() => setIsUpNextCollapsed(false)}
+                />
+              </>
+            )}
+          </div>
         </div>
       )}
       {/* Pinned under the toolbar rather than a modal: the scan is
@@ -1344,7 +1424,14 @@ const LibraryWorkspace = ({
             sort={viewSort}
             sortDirection={sortDirection}
             onSort={handleSort}
-            groupByFolder={groupByFolder}
+            // The Songs shelf is a flat run of everything, and the folder a
+            // file came from is the only structure it has left — so it is
+            // always shown here. It was a toggle, which meant the shelf
+            // shipped without its structure and the reader had to know to ask
+            // for it. The drill-in's own track list does NOT get this: an
+            // album is one folder, and a heading over its twelve songs names
+            // what the header above them already says.
+            groupByFolder
             playingTrackId={playingMarkId}
             revealTrack={revealTrack}
             resetKey={listResetKey}

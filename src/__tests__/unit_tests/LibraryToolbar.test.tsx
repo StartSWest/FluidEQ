@@ -40,7 +40,6 @@ describe('the library toolbar', () => {
         onViewMode={jest.fn()}
         onSort={jest.fn()}
         onSortDirection={jest.fn()}
-        onQuery={jest.fn()}
       />,
     );
     expect(screen.getByRole('tab', { name: 'Albums' })).toHaveAttribute(
@@ -64,7 +63,6 @@ describe('the library toolbar', () => {
         onViewMode={jest.fn()}
         onSort={jest.fn()}
         onSortDirection={jest.fn()}
-        onQuery={jest.fn()}
       />,
     );
     // Every browse mode the library has, named rather than counted and in
@@ -111,6 +109,34 @@ describe('the library toolbar', () => {
     );
     await userEvent.type(screen.getByRole('searchbox'), 'blue');
     expect(onQuery).toHaveBeenCalled();
+  });
+
+  it('draws the search box straight after the shelf chips', () => {
+    // Its POSITION is the fix, so its position is what this pins. The bar
+    // wraps, and last in the order meant the box changed lines whenever
+    // anything beside it collapsed — first line, second, or third depending
+    // on the width. Second in the order, it shares the shelf chips' line at
+    // every width instead of moving under the reader.
+    wrap(
+      <LibraryToolbar
+        browseMode="song"
+        viewMode="list"
+        sort="title"
+        sortDirection="asc"
+        query=""
+        onBrowseMode={jest.fn()}
+        onViewMode={jest.fn()}
+        onSort={jest.fn()}
+        onSortDirection={jest.fn()}
+        onQuery={jest.fn()}
+      />,
+    );
+    const bar = document.querySelector('.library-toolbar');
+    const groups = [...(bar?.children ?? [])]
+      .map((el) => el.className.toString())
+      .filter((name) => name.startsWith('library-toolbar__'));
+    expect(groups[0]).toContain('browse-modes');
+    expect(groups[1]).toContain('search');
   });
 });
 

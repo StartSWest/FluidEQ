@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ILibraryFolder,
   artistKey,
@@ -49,6 +49,8 @@ import {
   findPlaylist,
 } from '../../common/library/playlists';
 import { usePlaylists } from './PlaylistContext';
+import LibraryTrackMenu from './LibraryTrackMenu';
+import { isInsideAnchoredMenu } from '../widgets/AnchoredMenu';
 import { useFolderTree } from './folderTree';
 
 interface ILibraryDetailProps {
@@ -143,6 +145,38 @@ const LibraryDetail = ({
    * asked of the text. */
   const [draftName, setDraftName] = useState<string | undefined>(undefined);
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
+  // The header's own "more" menu — the row menu, handed the whole record.
+  const containerMenuRef = useRef<HTMLButtonElement | null>(null);
+  const [isContainerMenuOpen, setIsContainerMenuOpen] = useState(false);
+
+  // Closes on a click elsewhere and on Escape, the same pattern every other
+  // `AnchoredMenu` here uses — the portalled menu has to be asked about
+  // separately from the trigger, or pressing an item inside it dismisses the
+  // menu before the press lands.
+  useEffect(() => {
+    if (!isContainerMenuOpen) {
+      return undefined;
+    }
+    const onPointerDown = (event: globalThis.MouseEvent) => {
+      if (
+        !isInsideAnchoredMenu(event.target) &&
+        event.target !== containerMenuRef.current
+      ) {
+        setIsContainerMenuOpen(false);
+      }
+    };
+    const onKeyDown = (event: globalThis.KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsContainerMenuOpen(false);
+      }
+    };
+    window.addEventListener('mousedown', onPointerDown);
+    window.addEventListener('keydown', onKeyDown);
+    return () => {
+      window.removeEventListener('mousedown', onPointerDown);
+      window.removeEventListener('keydown', onKeyDown);
+    };
+  }, [isContainerMenuOpen]);
 
   /**
    * WITHIN A SEARCH, THE TREE IS THE WAY TO THE MATCHES.
@@ -728,6 +762,49 @@ const LibraryDetail = ({
                 >
                   {t('library.queueAdd')}
                 </button>
+              )}
+              {/* THE WHOLE RECORD, filed in one press.
+                  Favouriting an album a song at a time is twelve trips
+                  through a row menu, and there was no other way to do it. The
+                  same menu a row opens, handed every track on the page —
+                  which is why it is the same component: the count is the only
+                  difference between filing one song and filing a folder. */}
+              {detailTracks.length > 0 && (
+                <>
+                  <button
+                    type="button"
+                    ref={containerMenuRef}
+                    className="button small subtle library-detail__more"
+                    aria-label={t('library.trackMenu')}
+                    title={t('library.trackMenu')}
+                    aria-haspopup="menu"
+                    aria-expanded={isContainerMenuOpen}
+                    onClick={() => setIsContainerMenuOpen((open) => !open)}
+                  >
+                    <svg viewBox="0 0 16 16" aria-hidden="true">
+                      <circle cx="3" cy="8" r="1.4" />
+                      <circle cx="8" cy="8" r="1.4" />
+                      <circle cx="13" cy="8" r="1.4" />
+                    </svg>
+                  </button>
+                  <LibraryTrackMenu
+                    anchor={containerMenuRef.current}
+                    isOpen={isContainerMenuOpen}
+                    tracks={listTracks}
+                    openPlaylistId={playlistId}
+                    onQueueTracks={onQueueTracks}
+                    // Never reached: `LibraryTrackMenu` withholds Show in
+                    // Explorer for anything but a single track, and a record
+                    // of one is the only way this could fire.
+                    onReveal={(trackId) => {
+                      window.electron.ipcRenderer
+                        .revealLibraryTrack(trackId)
+                        .catch(() => undefined);
+                      setIsContainerMenuOpen(false);
+                    }}
+                    onClose={() => setIsContainerMenuOpen(false)}
+                  />
+                </>
               )}
               {/* Absent for Favourites rather than disabled: it is not a
                 thing you may not do to it today, it is a thing that is never

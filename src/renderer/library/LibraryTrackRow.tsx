@@ -45,6 +45,20 @@ interface ILibraryTrackRowProps {
   /** Marks the row as the one the reader is on. Called alongside `onPlay`,
    * not instead of it — see the click handler below. */
   onSelect: (trackId: string) => void;
+  /**
+   * Reports a press and the modifiers it came with, and answers whether the
+   * press was spent on choosing rather than on listening.
+   *
+   * The row does not decide what Ctrl or Shift mean — only the list knows what
+   * order its rows are in — so it forwards them and obeys the answer. `true`
+   * means the press built a selection and this row must NOT also start
+   * playing: a Ctrl-click that lit a row and started the song would be two
+   * answers to one press.
+   */
+  onPick: (
+    trackId: string,
+    modifiers: { toggle: boolean; range: boolean },
+  ) => boolean;
   onKeyDown: (
     event: KeyboardEvent<HTMLDivElement>,
     track: ILibraryTrack,
@@ -72,6 +86,7 @@ const LibraryTrackRow = ({
   isFolderOnly,
   isSearchMatch = false,
   isSelected,
+  onPick,
   isPlaying,
   isFavorite,
   duration,
@@ -120,7 +135,18 @@ const LibraryTrackRow = ({
       // nowhere else to go. A row in a track list is a thing you press to
       // hear; `onDoubleClick` is gone with it rather than firing `onPlay`
       // a second time on the way past.
-      onClick={() => {
+      onClick={(event) => {
+        // Choosing rows and playing one are the same gesture with and without
+        // a modifier, so the list is asked first and its answer decides
+        // whether this press was about listening at all.
+        if (
+          onPick(track.id, {
+            toggle: event.ctrlKey || event.metaKey,
+            range: event.shiftKey,
+          })
+        ) {
+          return;
+        }
         onSelect(track.id);
         activate();
       }}
@@ -257,6 +283,31 @@ const LibraryTrackRow = ({
       </span>
       <span role="cell" className="library-list__col library-list__col--length">
         {duration}
+        {/* The same menu the right-click opens, on a control that can be
+            found without knowing it is there. Right-click is not discoverable
+            and does not exist on a touchpad tap, so everything behind it —
+            queue, favourite, playlist, karaoke — was reachable only by
+            somebody who already guessed. Inside the duration cell rather than
+            a column of its own: a column would take width from every row for
+            something only ever wanted on the row under the pointer. */}
+        <button
+          type="button"
+          className="library-list__row-menu"
+          aria-label={t('library.trackMenu')}
+          title={t('library.trackMenu')}
+          aria-haspopup="menu"
+          onClick={(event) => {
+            // The row plays the song. This does not.
+            event.stopPropagation();
+            onContextMenu(event.currentTarget, track.id);
+          }}
+        >
+          <svg viewBox="0 0 16 16" aria-hidden="true">
+            <circle cx="8" cy="3" r="1.4" />
+            <circle cx="8" cy="8" r="1.4" />
+            <circle cx="8" cy="13" r="1.4" />
+          </svg>
+        </button>
       </span>
     </div>
   );

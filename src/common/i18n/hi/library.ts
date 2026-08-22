@@ -49,7 +49,6 @@ const library: Partial<Dictionary> = {
   'library.coverflow.next': 'अगला कवर',
   'library.folderCount': '{count} फ़ोल्डर',
   'library.filterHere': 'इन गानों को फ़िल्टर करें',
-  'library.groupByFolder': 'फ़ोल्डर के अनुसार समूहित करें',
   'library.view.list': 'सूची',
   'library.view.grid': 'ग्रिड',
   'library.view.coverflow': 'Cover Flow',
@@ -91,6 +90,7 @@ const library: Partial<Dictionary> = {
   'library.root.remove': 'यह फ़ोल्डर हटाएँ',
   'library.root.offline': 'यह फ़ोल्डर अभी उपलब्ध नहीं है',
   'library.reveal': 'एक्सप्लोरर में दिखाएँ',
+  'library.trackMenu': 'और क्रियाएँ',
 
   'library.unplayable': 'FluidEQ यह प्रारूप नहीं चला सकता',
   'library.metadataError': 'FluidEQ इस फ़ाइल के टैग नहीं पढ़ सका।',

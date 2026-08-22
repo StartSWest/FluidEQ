@@ -49,7 +49,6 @@ const library: Partial<Dictionary> = {
   'library.coverflow.next': 'Nächstes Cover',
   'library.folderCount': '{count} Ordner',
   'library.filterHere': 'Diese Songs filtern',
-  'library.groupByFolder': 'Nach Ordner gruppieren',
   'library.view.list': 'Liste',
   'library.view.grid': 'Raster',
   'library.view.coverflow': 'Cover Flow',
@@ -91,6 +90,7 @@ const library: Partial<Dictionary> = {
   'library.root.remove': 'Diesen Ordner entfernen',
   'library.root.offline': 'Dieser Ordner ist gerade nicht verfügbar',
   'library.reveal': 'Im Explorer anzeigen',
+  'library.trackMenu': 'Weitere Aktionen',
 
   'library.unplayable': 'FluidEQ kann dieses Format nicht wiedergeben',
   'library.metadataError': 'FluidEQ konnte die Tags dieser Datei nicht lesen.',

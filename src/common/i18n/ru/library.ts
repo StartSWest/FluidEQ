@@ -49,7 +49,6 @@ const library: Partial<Dictionary> = {
   'library.coverflow.next': 'Следующая обложка',
   'library.folderCount': 'Папок: {count}',
   'library.filterHere': 'Фильтр по этим песням',
-  'library.groupByFolder': 'Группировать по папке',
   'library.view.list': 'Список',
   'library.view.grid': 'Сетка',
   'library.view.coverflow': 'Cover Flow',
@@ -91,6 +90,7 @@ const library: Partial<Dictionary> = {
   'library.root.remove': 'Удалить эту папку',
   'library.root.offline': 'Эта папка сейчас недоступна',
   'library.reveal': 'Показать в проводнике',
+  'library.trackMenu': 'Другие действия',
 
   'library.unplayable': 'FluidEQ не может воспроизвести этот формат',
   'library.metadataError': 'FluidEQ не смог прочитать теги этого файла.',

@@ -25,19 +25,19 @@ import type {
 } from '../../common/library/types';
 import { useTranslation } from '../utils/I18nContext';
 import ArrowIcon from '../icons/ArrowIcon';
+import MenuIcon from '../icons/MenuIcon';
 import AnchoredMenu, { isInsideAnchoredMenu } from '../widgets/AnchoredMenu';
 import Dropdown from '../widgets/Dropdown';
 import { setFolderTree, useFolderTree } from './folderTree';
 import LibrarySearchField from './LibrarySearchField';
-import { IOptionEntry } from '../widgets/List';
 import { librarySearchHistory } from '../utils/librarySearchHistory';
+import { IOptionEntry } from '../widgets/List';
 
 interface ILibraryToolbarProps {
   browseMode: TLibraryBrowseMode;
   viewMode: TLibraryViewMode;
   sort: TLibrarySort;
   sortDirection: TLibrarySortDirection;
-  query: string;
   onBrowseMode: (mode: TLibraryBrowseMode) => void;
   onViewMode: (mode: TLibraryViewMode) => void;
   /** Omitted while a drill-in is open, which is what takes the sort control
@@ -47,6 +47,7 @@ interface ILibraryToolbarProps {
    * `LibraryListView` uses for its own headers. */
   onSort?: (sort: TLibrarySort) => void;
   onSortDirection?: () => void;
+  query: string;
   /** Always supplied by `LibraryWorkspace`, unlike the sort handlers beside
    * it. This box was withheld inside a drill-in once and that was wrong: a
    * search control that comes and goes is worse than a narrow one. Optional
@@ -85,10 +86,29 @@ const BROWSE_LABEL_KEYS = {
   playlist: 'library.browse.playlist',
 } as const;
 
+/** What each shelf holds, for when the tab is too narrow to name it. Folders
+ * is absent: its chip draws whichever of the two readings is on, so it picks
+ * its own glyph where it is drawn. */
+const BROWSE_ICONS = {
+  album: 'album',
+  artist: 'artist',
+  song: 'song',
+  folder: 'folder',
+  video: 'video',
+  playlist: 'playlist',
+} as const;
+
 const VIEW_LABEL_KEYS = {
   list: 'library.view.list',
   grid: 'library.view.grid',
   coverflow: 'library.view.coverflow',
+} as const;
+
+/** What each view looks like, for when the tab is too narrow to say it. */
+const VIEW_ICONS = {
+  list: 'viewList',
+  grid: 'viewGrid',
+  coverflow: 'viewCoverFlow',
 } as const;
 
 /** The two readings of the same shelf, in the order the menu offers them. */
@@ -122,11 +142,11 @@ const LibraryToolbar = ({
   viewMode,
   sort,
   sortDirection,
-  query,
   onBrowseMode,
   onViewMode,
   onSort,
   onSortDirection,
+  query,
   onQuery,
 }: ILibraryToolbarProps) => {
   const { t } = useTranslation();
@@ -230,13 +250,24 @@ const LibraryToolbar = ({
                   // most often — go to folders — then costs a second one to
                   // dismiss a menu nobody asked for. The arrow beside it is
                   // the half that means "which reading".
-                  onClick={() => onBrowseMode(mode)}
-                >
-                  {t(
+                  title={t(
                     asTree
                       ? 'library.browse.directory'
                       : BROWSE_LABEL_KEYS[mode],
                   )}
+                  onClick={() => onBrowseMode(mode)}
+                >
+                  <MenuIcon
+                    name={asTree ? 'folderTree' : 'folder'}
+                    className="library-toolbar__action-icon"
+                  />
+                  <span>
+                    {t(
+                      asTree
+                        ? 'library.browse.directory'
+                        : BROWSE_LABEL_KEYS[mode],
+                    )}
+                  </span>
                 </button>
                 <button
                   type="button"
@@ -268,9 +299,16 @@ const LibraryToolbar = ({
               className={`library-toolbar__chip${
                 browseMode === mode ? ' is-active' : ''
               }`}
+              // The glyph is all that is left once the tab is narrow enough,
+              // so the tooltip is what the word falls back to.
+              title={t(BROWSE_LABEL_KEYS[mode])}
               onClick={() => onBrowseMode(mode)}
             >
-              {t(BROWSE_LABEL_KEYS[mode])}
+              <MenuIcon
+                name={BROWSE_ICONS[mode]}
+                className="library-toolbar__action-icon"
+              />
+              <span>{t(BROWSE_LABEL_KEYS[mode])}</span>
             </button>
           );
         })}
@@ -307,6 +345,29 @@ const LibraryToolbar = ({
           </button>
         ))}
       </AnchoredMenu>
+      {/* SECOND, so it holds the top line at every width.
+          It used to be last, and this bar wraps — so the box sat on the first
+          line, the second or the third depending on what had collapsed beside
+          it, and moved under the reader whenever the window changed. Directly
+          after the shelf chips it shares their line at every width this tab is
+          used at, and the view and sort controls take the line below.
+
+          Never withheld, including inside a drill-in. It was, once, because a
+          query here narrowed a list that was not on screen and so appeared to
+          do nothing — but a search that vanishes is worse than one that is
+          merely narrow. It stops at the shelf: carrying it into the panel
+          meant opening a fourteen-track album and seeing the two whose titles
+          matched, under a heading reading "2 songs". */}
+      {onQuery && (
+        <div className="library-toolbar__search">
+          <LibrarySearchField
+            value={query}
+            onChange={onQuery}
+            label={t('library.searchPlaceholder')}
+            history={librarySearchHistory}
+          />
+        </div>
+      )}
       <div
         className="library-toolbar__view-modes"
         role="group"
@@ -320,9 +381,17 @@ const LibraryToolbar = ({
             className={`library-toolbar__chip${
               viewMode === mode ? ' is-active' : ''
             }`}
+            // The label goes at narrow widths and the glyph is all that is
+            // left, so the tooltip is what the word falls back to — the same
+            // lesson the folder controls beside it already learned.
+            title={t(VIEW_LABEL_KEYS[mode])}
             onClick={() => onViewMode(mode)}
           >
-            {t(VIEW_LABEL_KEYS[mode])}
+            <MenuIcon
+              name={VIEW_ICONS[mode]}
+              className="library-toolbar__action-icon"
+            />
+            <span>{t(VIEW_LABEL_KEYS[mode])}</span>
           </button>
         ))}
       </div>
@@ -358,21 +427,6 @@ const LibraryToolbar = ({
               {sortDirection === 'desc' ? '▾' : '▴'}
             </span>
           </button>
-        </div>
-      )}
-      {/* Never withheld, including inside a drill-in. It was, once, because a
-          query here narrowed a list that was not on screen and so looked
-          broken — but the answer to that is to make it count, not to take it
-          away: the drill-in applies this to its table and its own filter
-          narrows what is left. Two searches that compose. */}
-      {onQuery && (
-        <div className="library-toolbar__search">
-          <LibrarySearchField
-            value={query}
-            onChange={onQuery}
-            label={t('library.searchPlaceholder')}
-            history={librarySearchHistory}
-          />
         </div>
       )}
     </div>

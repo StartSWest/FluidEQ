@@ -50,7 +50,6 @@ const library: Partial<Dictionary> = {
   'library.coverflow.next': 'Pochette suivante',
   'library.folderCount': '{count} dossiers',
   'library.filterHere': 'Filtrer ces chansons',
-  'library.groupByFolder': 'Grouper par dossier',
   'library.view.list': 'Liste',
   'library.view.grid': 'Grille',
   'library.view.coverflow': 'Cover Flow',
@@ -93,6 +92,7 @@ const library: Partial<Dictionary> = {
   'library.root.remove': 'Retirer ce dossier',
   'library.root.offline': 'Ce dossier n’est pas disponible pour le moment',
   'library.reveal': 'Afficher dans l’Explorateur',
+  'library.trackMenu': 'Plus d’actions',
 
   'library.unplayable': 'FluidEQ ne peut pas lire ce format',
   'library.metadataError': 'FluidEQ n’a pas pu lire les tags de ce fichier.',

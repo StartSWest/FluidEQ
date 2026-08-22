@@ -49,7 +49,6 @@ const library: Partial<Dictionary> = {
   'library.coverflow.next': 'Copertina successiva',
   'library.folderCount': '{count} cartelle',
   'library.filterHere': 'Filtra questi brani',
-  'library.groupByFolder': 'Raggruppa per cartella',
   'library.view.list': 'Elenco',
   'library.view.grid': 'Griglia',
   'library.view.coverflow': 'Cover Flow',
@@ -91,6 +90,7 @@ const library: Partial<Dictionary> = {
   'library.root.remove': 'Rimuovi questa cartella',
   'library.root.offline': 'Questa cartella non è disponibile al momento',
   'library.reveal': 'Mostra in Esplora file',
+  'library.trackMenu': 'Altre azioni',
 
   'library.unplayable': 'FluidEQ non può riprodurre questo formato',
   'library.metadataError':

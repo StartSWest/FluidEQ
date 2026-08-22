@@ -968,7 +968,32 @@ const KaraokeWorkspace = ({
       const nextSelected = selectedPlaylistId
         ? nextById.get(selectedPlaylistId)
         : undefined;
-      if (!nextSelected) {
+      /**
+       * A SONG THAT WAS NOT HERE A MOMENT AGO IS THE ONE THAT WAS JUST ASKED
+       * FOR.
+       *
+       * The selection used to be left exactly where it was whenever it
+       * survived the merge, so "Send to Karaoke" on a tab that already had
+       * songs added a row to the list and changed nothing else — the reader
+       * pressed it, arrived, and found the previous song still loaded and
+       * their own nowhere in sight.
+       *
+       * Only a genuinely NEW entry counts. A lyrics file dropped to pair with
+       * audio already in the list produces no new id, and moving the
+       * selection for that would be taking the reader off the song they are
+       * singing to announce a file they only wanted attached to it.
+       *
+       * Gated on the list having existed: on the launch restore every item is
+       * new by this test, and the selection put back from disk is the right
+       * one to keep.
+       */
+      const arrived =
+        playlist.length > 0
+          ? ordered.find((item) => !playlist.some((was) => was.id === item.id))
+          : undefined;
+      if (arrived) {
+        await loadPlaylistItem(arrived);
+      } else if (!nextSelected) {
         await loadPlaylistItem(ordered[0]);
       } else if (
         previousSelected?.audio !== nextSelected.audio ||
@@ -999,6 +1024,16 @@ const KaraokeWorkspace = ({
     }
     const taken = drainKaraokeFiles();
     if (taken.length > 0) {
+      // AND THE PLAYER IS WHAT THIS TAB SHOWS WHEN IT ARRIVES.
+      //
+      // `isMakerOpen` is restored from disk, so whoever last left this tab in
+      // the Maker comes back to it — which is right on a plain visit and
+      // wrong here. "Send to Karaoke" asks to SING the song; it landed
+      // underneath the editor instead, and read as the command having opened
+      // the wrong thing. The Maker is reached by asking for it, and the draft
+      // is not discarded — only put away.
+      setIsMakerOpen(false);
+      setRestoreMakerDraft(false);
       addFiles([...taken]).catch(() => undefined);
     }
   }, [pendingKaraokeFiles, addFiles]);

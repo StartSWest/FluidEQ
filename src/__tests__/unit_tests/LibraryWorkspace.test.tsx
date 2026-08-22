@@ -229,6 +229,39 @@ describe('a drill-in whose album disappears underneath it', () => {
   });
 });
 
+describe('the search box, wired to the shelf below it', () => {
+  it('narrows the shelf to what was typed', async () => {
+    // `LibraryToolbar`'s own test proves the box reports what was typed and
+    // where it sits in the bar. This is the other half: that what it reports
+    // actually reaches the list.
+    initialIndex = {
+      version: 1,
+      roots: [
+        {
+          id: 'r1',
+          path: 'C:\\Music',
+          addedAt: 1,
+          trackCount: 2,
+          karaokeSkipped: 0,
+        },
+      ],
+      tracks: [
+        track({ title: 'Blue', album: 'Kind', artist: 'Miles' }),
+        track({ title: 'Red', album: 'Scarlet', artist: 'Otis' }),
+      ],
+    };
+    renderWorkspace();
+
+    expect(await screen.findByText('Kind')).toBeInTheDocument();
+    expect(screen.getByText('Scarlet')).toBeInTheDocument();
+
+    await userEvent.type(screen.getByRole('searchbox'), 'scarlet');
+
+    expect(await screen.findByText('Scarlet')).toBeInTheDocument();
+    expect(screen.queryByText('Kind')).not.toBeInTheDocument();
+  });
+});
+
 describe('a browse mode remembered from last time', () => {
   it('honours a stored "video" mode instead of falling back to the default', async () => {
     // The exact hazard widening `TLibraryBrowseMode` created: a value that
