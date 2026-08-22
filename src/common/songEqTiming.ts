@@ -16,11 +16,14 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+// From `songEqEvents.ts` rather than `songEqRecorder.ts`, which re-exports
+// them: importing them from the recorder would put these two files in a cycle,
+// since the recorder imports this one's functions.
 import type {
   ISongEqRecorderState,
   ISongEqSession,
   TSongEqEffect,
-} from './songEqRecorder';
+} from './songEqEvents';
 
 /**
  * When a session settles, checkpoints, times out on the suspend grace, and

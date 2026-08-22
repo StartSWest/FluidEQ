@@ -36,6 +36,12 @@ interface ISongEqSaveSwitchProps {
  * The only place this whole feature turns on, and the only place the
  * two-minute floor is ever visible.
  *
+ * Rendered only while one of the automatic modes is running — see
+ * `useIsAutoEqRunning` at the call site in `MainContent`. That is not a
+ * cosmetic condition: the thing a save files is the Smart EQ layer that mode
+ * refines, so drawn without one this offered a save nothing could complete.
+ * `saveToggled` in the reducer refuses it from the other side.
+ *
  * Every rule about whether a song is worth saving already lives behind
  * `willSave` (see `songEqSession.ts`'s own comment on it, and
  * `songEqTiming.ts`'s `willSongEqSave` underneath): the floor, whether a

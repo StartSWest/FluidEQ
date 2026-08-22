@@ -134,15 +134,34 @@ const Harness = () => {
   return <MainContent />;
 };
 
+/**
+ * Switch an automatic mode on, the way the toolbar's own menu does — picking
+ * one starts it, see `setSmartEqMode`.
+ *
+ * The tick is not rendered without one, and the reducer will not turn saving
+ * on without one either, so almost every test here begins with this. `'smart'`
+ * is the one-shot measurement, which is how these tests say "no automatic mode
+ * running".
+ */
+const startAutoEq = () => setSmartEqMode('detail');
+
+/** The tick itself, or `null` where the toolbar is not offering one. */
+const findTick = () =>
+  screen.queryByRole('checkbox', {
+    name: translate('en', 'songEq.saveAria'),
+  });
+
+/** The tick, insisting it is there — for the tests that are about what it
+ * says rather than about whether it is offered. */
+const getTick = () =>
+  screen.getByRole('checkbox', {
+    name: translate('en', 'songEq.saveAria'),
+  });
+
 describe('the save-for-this-song tick', () => {
   beforeEach(() => {
     jest.useFakeTimers();
     jest.setSystemTime(0);
-    try {
-      window.localStorage.removeItem('fluideq.songEq.save');
-    } catch {
-      // Nothing was stored; nothing to clear.
-    }
     resetSongEqSession();
     setSmartEqMode('smart');
     mockLive.smartEq = undefined;
@@ -170,56 +189,79 @@ describe('the save-for-this-song tick', () => {
    * click, since nothing would then flip `state.isSaveOn`.
    */
   it('is off by default and turns on when pressed', () => {
-    render(<MainContent />);
-    const tick = screen.getByRole('checkbox', {
-      name: translate('en', 'songEq.saveAria'),
-    });
+    startAutoEq();
+    render(<Harness />);
+    const tick = getTick();
     expect(tick).not.toBeChecked();
     fireEvent.click(tick);
     expect(tick).toBeChecked();
   });
 
   /**
-   * Spec §3, §10.1 and §13: ticking the switch starts the last continuous
-   * mode, and `detail` where none was ever chosen — a chosen-but-idle state
-   * looks exactly like the thing being broken, and with no engine running
-   * there is no measurement for the tick to promise a save from.
+   * The null test and its positive control in one, because a toolbar that
+   * simply never draws the tick would pass either half alone.
    *
-   * The side effect was known and unasserted: this file's own `afterEach`
-   * already resets the mode. Fails if `setSongEqSaveOn` stops calling
-   * `setSmartEqMode('detail')` — the mode would stay `smart` and the tick
-   * would appear to do nothing at all: no engine, no measurement, no save,
-   * no error.
+   * This is the reported defect. The tick used to be rendered
+   * unconditionally, so it could be ticked on over a stopped loop — and
+   * nothing but a running automatic mode ever writes the Smart EQ layer a
+   * save is made of, which is why it then counted out its two minutes and
+   * committed nothing.
    */
-  it('starts a continuous mode when nothing is measuring yet', () => {
-    render(<MainContent />);
-    // The precondition, asserted rather than assumed: this only proves
-    // anything from a state where no continuous mode is already running.
+  it('is offered only while an automatic mode is measuring', () => {
+    render(<Harness />);
+    // The precondition, asserted rather than assumed.
     expect(isContinuousMode(getSmartEqMode())).toBe(false);
+    expect(findTick()).toBeNull();
 
-    fireEvent.click(
-      screen.getByRole('checkbox', {
-        name: translate('en', 'songEq.saveAria'),
-      }),
-    );
+    act(() => {
+      startAutoEq();
+    });
+    expect(findTick()).toBeInTheDocument();
 
-    expect(getSmartEqMode()).toBe('detail');
+    act(() => {
+      setSmartEqMode('smart');
+    });
+    expect(findTick()).toBeNull();
   });
 
   /**
-   * Positive control's other half: unticking must NOT stop the engine —
-   * "stopping the engine because somebody stopped saving would be taking away
-   * something they did not ask to lose" (§10.1). Fails if the mode reset is
-   * made symmetric.
+   * Request in its own words: "when turning any auto eq on the auto save
+   * starts off". A mode that has just started has measured nothing yet, so a
+   * tick found already on would file whatever curve was left in the chain
+   * under the first song that plays.
+   *
+   * Fails if saving is persisted again, or if the host stops reporting the
+   * mode going off and on.
+   */
+  it('starts off again each time an automatic mode is switched on', () => {
+    startAutoEq();
+    render(<Harness />);
+    fireEvent.click(getTick());
+    expect(getTick()).toBeChecked();
+
+    act(() => {
+      setSmartEqMode('smart');
+    });
+    act(() => {
+      startAutoEq();
+    });
+
+    expect(getTick()).not.toBeChecked();
+  });
+
+  /**
+   * Unticking must NOT stop the engine — "stopping the engine because
+   * somebody stopped saving would be taking away something they did not ask
+   * to lose" (§10.1). Fails if the coupling is made symmetric.
    */
   it('leaves the mode running when the tick is turned back off', () => {
-    render(<MainContent />);
-    const tick = screen.getByRole('checkbox', {
-      name: translate('en', 'songEq.saveAria'),
-    });
+    startAutoEq();
+    render(<Harness />);
+    const tick = getTick();
     fireEvent.click(tick);
     fireEvent.click(tick);
     expect(getSmartEqMode()).toBe('detail');
+    expect(tick).toBeInTheDocument();
   });
 
   /**
@@ -229,7 +271,8 @@ describe('the save-for-this-song tick', () => {
    * missing waiting-state check would leave this text absent.
    */
   it('says what it is waiting for when nothing is playing', () => {
-    render(<MainContent />);
+    startAutoEq();
+    render(<Harness />);
     expect(screen.getByText(translate('en', 'songEq.waiting'))).toBeVisible();
   });
 
@@ -254,6 +297,7 @@ describe('the save-for-this-song tick', () => {
       isPlaying: true,
     });
 
+    startAutoEq();
     render(<Harness />);
 
     // Past the settle window and well under the two-minute floor. Landing on
@@ -284,7 +328,6 @@ describe('the save-for-this-song tick', () => {
    * `true`.
    */
   it('says the song will save once willSave is true', async () => {
-    setSongEqSaveOn(true);
     const song = buildSongIdentity(
       'library',
       'tick-willsave-song',
@@ -302,7 +345,13 @@ describe('the save-for-this-song tick', () => {
       isPlaying: true,
     });
 
+    startAutoEq();
     render(<Harness />);
+    // After the mount, not before: the reducer only accepts saving once the
+    // host has reported an automatic mode running.
+    act(() => {
+      setSongEqSaveOn(true);
+    });
 
     await act(async () => {
       jest.advanceTimersByTime(
@@ -347,6 +396,7 @@ describe('the save-for-this-song tick', () => {
       isPlaying: true,
     });
 
+    startAutoEq();
     const { container } = render(<Harness />);
 
     const fill = container.querySelector('.song-eq-save__fill');
@@ -378,10 +428,9 @@ describe('the save-for-this-song tick', () => {
    * anything, so the words it is named by were dead to the pointer.
    */
   it('toggles when the words beside the switch are clicked', () => {
-    render(<MainContent />);
-    const tick = screen.getByRole('checkbox', {
-      name: translate('en', 'songEq.saveAria'),
-    });
+    startAutoEq();
+    render(<Harness />);
+    const tick = getTick();
     expect(tick).not.toBeChecked();
 
     fireEvent.click(screen.getByText(translate('en', 'songEq.save')));

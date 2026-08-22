@@ -76,10 +76,21 @@ const ticksFrom = (
   return steps;
 };
 
+/**
+ * Everything in place for a song to be saved: an output, an automatic mode
+ * running, saving on, and a layer for it to be refining.
+ *
+ * `isAutoEqRunning` is part of "armed" rather than a detail — saving is a
+ * property of the automatic run that measures the layer, and `saveToggled`
+ * will not turn on without one. Set directly here because these tests are
+ * about what happens once saving is on, not about how it got there; the two
+ * cases below are the ones about that.
+ */
 const armed = (): ISongEqRecorderState => ({
   ...getInitialRecorderState(),
   deviceId: 'device-a',
   isSaveOn: true,
+  isAutoEqRunning: true,
   liveLayer: layerOf(2),
 });
 
@@ -350,6 +361,75 @@ describe('songEqRecorder', () => {
     ]);
     expect(effects.filter((effect) => effect.kind === 'commit')).toHaveLength(
       1,
+    );
+  });
+
+  /**
+   * The structural half of "the switch is not even drawn without a mode
+   * running": with no automatic mode there is no measurement, and saving a
+   * song means filing the layer that measurement refines.
+   *
+   * The bug this replaces went the other way round — `setSongEqSaveOn` tried
+   * to START a mode, which was silently a no-op whenever a continuous mode
+   * was already the one CHOSEN but switched off. Saving then sat on with no
+   * loop behind it, counted out its two minutes and committed nothing.
+   */
+  it('refuses to turn saving on with no automatic mode running', () => {
+    const { state } = run(getInitialRecorderState(), [
+      [0, { kind: 'saveToggled', isSaveOn: true }],
+    ]);
+    expect(state.isSaveOn).toBe(false);
+  });
+
+  /** The positive control beside it: the refusal above has to be about the
+   * missing mode, not about `saveToggled` having stopped working. */
+  it('turns saving on when an automatic mode is running', () => {
+    const { state } = run(getInitialRecorderState(), [
+      [0, { kind: 'autoEqChanged', isRunning: true }],
+      [1, { kind: 'saveToggled', isSaveOn: true }],
+    ]);
+    expect(state.isSaveOn).toBe(true);
+  });
+
+  /**
+   * Switching a mode ON starts saving from off, every time.
+   *
+   * A mode that has just started has measured nothing yet, so a switch found
+   * already ticked would file whatever curve happened to be left in the chain
+   * under the first song that plays.
+   */
+  it('starts saving from off each time an automatic mode is switched on', () => {
+    const { state } = run(getInitialRecorderState(), [
+      [0, { kind: 'autoEqChanged', isRunning: true }],
+      [1, { kind: 'saveToggled', isSaveOn: true }],
+      [2, { kind: 'autoEqChanged', isRunning: false }],
+      [3, { kind: 'autoEqChanged', isRunning: true }],
+    ]);
+    expect(state.isSaveOn).toBe(false);
+    // The run itself is still on, so this is saving having been reset and not
+    // the reducer having lost track of the mode.
+    expect(state.isAutoEqRunning).toBe(true);
+  });
+
+  /**
+   * And switching one OFF takes saving with it: nothing refines the layer any
+   * more, so an on switch would go on promising a save behind a control that
+   * is no longer on screen — and commit a layer nothing has touched since.
+   */
+  it('stops saving when the automatic mode is switched off mid-song', () => {
+    const { effects } = run(armed(), [
+      ...play(songA, 130_000),
+      [130_001, { kind: 'autoEqChanged', isRunning: false }],
+      [130_002, { kind: 'nowPlaying', identity: songB, isPlaying: true }],
+    ]);
+    // The checkpoint at two minutes already went out while the mode was
+    // running, and that is right — it was measured. The commit at the end of
+    // the song is the one that must not.
+    expect(
+      effects.filter((effect) => effect.kind === 'checkpoint'),
+    ).toHaveLength(1);
+    expect(effects.filter((effect) => effect.kind === 'commit')).toHaveLength(
+      0,
     );
   });
 

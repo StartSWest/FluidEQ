@@ -36,11 +36,7 @@ import {
   setSmartEq as setSmartEqApi,
 } from 'renderer/utils/equalizerApi';
 import { useFluidEqContext } from 'renderer/utils/FluidEqContext';
-import {
-  getSmartEqMode,
-  isContinuousMode,
-  setSmartEqMode,
-} from 'renderer/utils/smartEqMode';
+import { useIsAutoEqRunning } from 'renderer/utils/autoEqRunning';
 import { useNowPlayingIdentity } from './nowPlayingIdentity';
 
 /**
@@ -87,8 +83,6 @@ import { useNowPlayingIdentity } from './nowPlayingIdentity';
  * mirroring the status bubble's own linger window in `SmartEqEngine`. */
 const SONG_EQ_NOTICE_LINGER_MS = 6000;
 
-const SONG_EQ_SAVE_STORAGE_KEY = 'fluideq.songEq.save';
-
 export interface ISongEqRecordingStatus {
   isSaveOn: boolean;
   /** Wall-clock ms accumulated on the song now open, including the run in
@@ -116,40 +110,26 @@ const subscribe = (listener: () => void): (() => void) => {
   };
 };
 
-/* --- whether saving is on, persisted exactly like smartEqMode.ts --- */
-
-const readSongEqSaveOn = (): boolean => {
-  try {
-    return window.localStorage.getItem(SONG_EQ_SAVE_STORAGE_KEY) === 'true';
-  } catch {
-    // Storage can be unavailable. Off is the safe default for a switch that
-    // writes music history to disk.
-    return false;
-  }
-};
-
 /* --- the recorder itself --- */
 
 /**
  * One source of truth for whether saving is on, not two.
  *
  * A second, module-level `saveOn` variable used to sit beside this and feed
- * `getSongEqSaveOn`/`useSongEqSaveOn` directly, seeded from storage at
- * import time — while `state.isSaveOn`, the value the reducer actually
- * gates every checkpoint and commit on, started at `getInitialRecorderState`'s
- * hard-coded `false` and only ever changed on a `saveToggled` dispatch, which
- * nothing fired until the switch was next pressed. So a launch where the
- * stored preference was already on reported "on" everywhere the badge read
- * it and stayed silently `false` in the one place that mattered: no
- * checkpoint, no commit, ever, until toggled off and back on. Seeding
- * `state.isSaveOn` itself here, and reading it back through
- * `getSongEqSaveOn`, is what makes the two impossible to disagree — there is
- * only the one value left to ask.
+ * `getSongEqSaveOn`/`useSongEqSaveOn` directly, while `state.isSaveOn` — the
+ * value the reducer actually gates every checkpoint and commit on — only ever
+ * changed on a `saveToggled` dispatch. The two could disagree, and did:
+ * everything the badge read said "on" while the one place that mattered
+ * stayed `false`, so no checkpoint and no commit ever happened. There is only
+ * the one value left to ask.
+ *
+ * Not persisted, and that is the rule rather than an omission: saving belongs
+ * to the run of automatic EQ it is measured by, and every one of those starts
+ * with it off (see `autoEqChanged` in the reducer). A preference restored at
+ * launch would be a promise made before there was any measurement to keep it
+ * with — and would be refused the moment it was asked for anyway.
  */
-let state: ISongEqRecorderState = {
-  ...getInitialRecorderState(),
-  isSaveOn: readSongEqSaveOn(),
-};
+let state: ISongEqRecorderState = getInitialRecorderState();
 let notice: TSongEqNotice | undefined;
 let noticeTimer: ReturnType<typeof setTimeout> | undefined;
 
@@ -362,23 +342,19 @@ export const useSongEqRecording = (): ISongEqRecordingStatus =>
 
 export const getSongEqSaveOn = (): boolean => state.isSaveOn;
 
+/**
+ * The switch, and nothing more than the switch.
+ *
+ * Whether the request is honoured is the reducer's — `saveToggled` refuses it
+ * without an automatic mode running. This used to START one instead, calling
+ * `setSmartEqMode('detail')`, which was silently a no-op whenever a continuous
+ * mode was already the one CHOSEN but switched off: saving then sat on with no
+ * loop behind it, counted out its two minutes and committed nothing, which is
+ * the "it will not save" this feature was reported for.
+ */
 export const setSongEqSaveOn = (isSaveOn: boolean): void => {
   if (isSaveOn === state.isSaveOn) {
     return;
-  }
-  try {
-    window.localStorage.setItem(SONG_EQ_SAVE_STORAGE_KEY, String(isSaveOn));
-  } catch {
-    // Not worth failing the toggle over; the choice still applies this
-    // session, and will simply not be remembered into the next one.
-  }
-  // Ticking this on with nothing continuous running would leave the badge
-  // promising a save with no ongoing measurement behind it to save one from.
-  // 'detail' is the same mode `smartEqMode.ts` already migrates the old
-  // single continuous setting to. Ticking off leaves whatever mode is running
-  // running — this switch is about saving, not about Smart EQ itself.
-  if (isSaveOn && !isContinuousMode(getSmartEqMode())) {
-    setSmartEqMode('detail');
   }
   dispatchSongEq({ kind: 'saveToggled', isSaveOn }, Date.now());
 };
@@ -389,13 +365,13 @@ export const useSongEqSaveOn = (): boolean =>
 /**
  * Test seam. Module state outlives a render the same way `playbackOwner.ts`'s
  * and `transportSource.ts`'s stores do — see `resetPlaybackOwner` — so a
- * suite that opens a session, or seeds the stored save preference, would
- * otherwise leak both into whichever test runs next.
+ * suite that opens a session would otherwise leak it into whichever test runs
+ * next.
  */
 export const resetSongEqSession = (): void => {
   clearNoticeTimer();
   notice = undefined;
-  state = { ...getInitialRecorderState(), isSaveOn: readSongEqSaveOn() };
+  state = getInitialRecorderState();
   recordingSnapshot = computeRecording(state, Date.now());
   emit();
 };
@@ -409,6 +385,7 @@ export const useSongEqSessionHost = (): void => {
     setSmartEq: setLiveSmartEq,
   } = useFluidEqContext();
   const { identity, isPlaying } = useNowPlayingIdentity();
+  const isAutoEqRunning = useIsAutoEqRunning();
 
   // Registered once: `setSmartEq` from context is a plain useState setter and
   // is stable for the life of the provider, so there is nothing to re-run
@@ -436,6 +413,17 @@ export const useSongEqSessionHost = (): void => {
   useEffect(() => {
     dispatchSongEq({ kind: 'layerChanged', layer: smartEq }, Date.now());
   }, [smartEq]);
+
+  // What it means is the reducer's, per this file's own rule — see
+  // `autoEqChanged`. The dependency is the running state itself rather than
+  // the three switches behind it, so this reports once per real change and
+  // not once per press of something that did not change the answer.
+  useEffect(() => {
+    dispatchSongEq(
+      { kind: 'autoEqChanged', isRunning: isAutoEqRunning },
+      Date.now(),
+    );
+  }, [isAutoEqRunning]);
 
   useEffect(() => {
     const interval = window.setInterval(() => {

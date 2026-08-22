@@ -17,8 +17,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { IFilter, IFiltersMap, ISmartEqSettings } from './constants';
-import { ISongEqEntry } from './songEq';
 import { ISongIdentity } from './songIdentity';
+import {
+  ISongEqRecorderState,
+  ISongEqSession,
+  TSongEqEffect,
+  TSongEqEvent,
+  getInitialRecorderState,
+} from './songEqEvents';
 import {
   SONG_EQ_MIN_LISTENED_MS,
   SONG_EQ_SETTLE_MS,
@@ -28,11 +34,19 @@ import {
   listenedAt,
 } from './songEqTiming';
 
-// Re-exported: the three constants are part of this module's public surface —
-// the shell and the tests import them from here — even though the settle,
-// checkpoint and suspend-grace logic that uses them now lives in
-// `songEqTiming.ts`, split out to keep this file under its line ceiling.
+// Re-exported: this module is the public face of the feature — the shell and
+// the tests import all of it from here — even though the passage-of-time rules
+// live in `songEqTiming.ts` and the vocabulary in `songEqEvents.ts`, both
+// split out to keep this file under its line ceiling.
 export { SONG_EQ_MIN_LISTENED_MS, SONG_EQ_SETTLE_MS, SONG_EQ_SUSPEND_GRACE_MS };
+export { getInitialRecorderState };
+export type {
+  ISongEqRecorderState,
+  ISongEqSession,
+  TSongEqEffect,
+  TSongEqEvent,
+  TSongEqPhase,
+} from './songEqEvents';
 
 /**
  * When a song starts being recorded, when it stops, and what happens in between.
@@ -44,129 +58,13 @@ export { SONG_EQ_MIN_LISTENED_MS, SONG_EQ_SETTLE_MS, SONG_EQ_SUSPEND_GRACE_MS };
  * audio element or a real timer without the test becoming slower than the
  * behaviour it checks. `songEqTiming.ts` holds the passage-of-time half of
  * those rules — the settle, the checkpoint and the suspend grace, plus what
- * closing a session means; the event vocabulary and the match/undo/
- * layerChanged decisions live here.
+ * closing a session means — and `songEqEvents.ts` the vocabulary they are all
+ * written in; the match/undo/layerChanged decisions and whether saving is
+ * permitted at all live here.
  *
  * `songEqSession.ts` in the renderer owns the subscriptions, the interval and
  * the performing of effects. It holds no rules.
  */
-
-export type TSongEqPhase = 'settling' | 'recording' | 'suspended';
-
-export interface ISongEqSession {
-  phase: TSongEqPhase;
-  identity: ISongIdentity;
-  /** Wall-clock ms accumulated while playing. Never derived from a reported
-   * position: players republish those erratically and a seek would inflate it. */
-  listenedMs: number;
-  /** When the current playing run began; absent while not playing. */
-  playingSince?: number;
-  /** When `settling` began. */
-  settlingSince: number;
-  /** When `suspended` began. */
-  suspendedSince?: number;
-  /** Whether the two-minute checkpoint has already been written. */
-  hasCheckpointed: boolean;
-  /**
-   * Set by a 'forget' event. The session keeps timing — the badge stays
-   * honest about a song still playing — but `close` in `songEqTiming.ts`
-   * must never commit one marked this way, however long it plays afterwards,
-   * or "forget" would just be a way to re-file the same curve a moment
-   * later.
-   */
-  forgotten?: boolean;
-  /**
-   * What the layer held before a match was applied, and whether there is one.
-   *
-   * `hasLoan` is separate from `loanLayer` because "there was no layer" is a
-   * value worth restoring and is indistinguishable from "no loan" otherwise.
-   */
-  hasLoan: boolean;
-  loanLayer?: ISmartEqSettings;
-  /** The exact layer this recorder last put into the chain, so a write from
-   * anywhere else is recognisable. */
-  written?: ISmartEqSettings;
-}
-
-export interface ISongEqRecorderState {
-  session?: ISongEqSession;
-  deviceId: string;
-  isSaveOn: boolean;
-  /** The Smart EQ layer as it currently stands. */
-  liveLayer?: ISmartEqSettings;
-}
-
-export type TSongEqEvent =
-  | { kind: 'nowPlaying'; identity?: ISongIdentity; isPlaying: boolean }
-  | { kind: 'tick' }
-  /** A layer this recorder did not write. Drops the loan — see the case. */
-  | { kind: 'layerChanged'; layer?: ISmartEqSettings }
-  /**
-   * A layer the continuous Smart EQ engine has just written, announced by the
-   * writer itself.
-   *
-   * The loan survives it, and that is the entire point. Ticking the switch on
-   * starts a continuous mode, which then writes a fresh measured layer every
-   * few seconds into the same context state `layerChanged` watches; each of
-   * those looked exactly like a preset load, so the loan was dropped within
-   * seconds of every match and the end-of-song restore never ran — leaving
-   * one song's curve equalising the next.
-   *
-   * Announcement rather than comparison, deliberately. An earlier round of
-   * this feature guessed at authorship by comparing layers, and a comparison
-   * cannot recognise one the main process rebuilt or sanitised on the way
-   * back; `isSameLayer` is the backstop for the echo of our own write, not
-   * the mechanism.
-   */
-  | { kind: 'ownWrite'; layer?: ISmartEqSettings }
-  | { kind: 'deviceChanged'; deviceId: string }
-  | { kind: 'saveToggled'; isSaveOn: boolean }
-  | { kind: 'matched'; identity: ISongIdentity; entry?: ISongEqEntry }
-  | { kind: 'undo' }
-  | { kind: 'closing' }
-  /**
-   * Forget whatever this output remembers about the song the notice names.
-   *
-   * `identity` is the notice's own, and it WINS over the session's: the toast
-   * lingers about six seconds and the next song settles into a session after
-   * two, so for four of those seconds preferring the session would delete a
-   * song the button the user is looking at does not name. The session is only
-   * the fallback for a notice that has already gone.
-   */
-  | { kind: 'forget'; identity?: ISongIdentity };
-
-export type TSongEqEffect =
-  | { kind: 'lookup'; identity: ISongIdentity; deviceId: string }
-  | { kind: 'applyLayer'; settings?: ISmartEqSettings }
-  | {
-      kind: 'checkpoint';
-      identity: ISongIdentity;
-      deviceId: string;
-      layer: ISmartEqSettings;
-    }
-  | {
-      kind: 'commit';
-      identity: ISongIdentity;
-      deviceId: string;
-      layer: ISmartEqSettings;
-    }
-  | { kind: 'notice'; identity: ISongIdentity; entry: ISongEqEntry }
-  /**
-   * Delete whatever this output remembers about this song — the storage side
-   * of a 'forget' event, once the reducer has decided whose song it is.
-   *
-   * The whole identity rather than its key, because the entry is very often
-   * filed under a different one: a curve learned from a library file and
-   * matched from Spotify lives under `library:<id>`, and a key-only delete
-   * asked the store to remove a `system:` entry that was never there — and
-   * was answered with a success.
-   */
-  | { kind: 'forget'; deviceId: string; identity: ISongIdentity };
-
-export const getInitialRecorderState = (): ISongEqRecorderState => ({
-  deviceId: '',
-  isSaveOn: false,
-});
 
 const open = (identity: ISongIdentity, now: number): ISongEqSession => ({
   phase: 'settling',
@@ -253,7 +151,28 @@ export const reduceSongEq = (
       return [state, timed];
 
     case 'saveToggled':
-      return [{ ...state, isSaveOn: event.isSaveOn }, timed];
+      // Never on without an automatic mode behind it. The switch is not even
+      // drawn without one, so this is the structural half of the same rule
+      // rather than a second opinion on it: saving is filing the layer that
+      // mode refines, and with no mode running the two minutes would count
+      // themselves out and commit nothing at the end.
+      return [
+        { ...state, isSaveOn: event.isSaveOn && state.isAutoEqRunning },
+        timed,
+      ];
+
+    case 'autoEqChanged':
+      // Off in both directions, and neither is an oversight.
+      //
+      // Switched ON: a mode that has just started has measured nothing yet,
+      // and saving found already ticked would file whatever curve happened to
+      // be left in the chain under the first song that plays. Switched OFF:
+      // nothing refines the layer any more, so an on switch would go on
+      // promising a save behind a control that is no longer on screen.
+      return [
+        { ...state, isAutoEqRunning: event.isRunning, isSaveOn: false },
+        timed,
+      ];
 
     case 'layerChanged': {
       const next = { ...state, liveLayer: event.layer };

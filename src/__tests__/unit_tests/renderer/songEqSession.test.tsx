@@ -22,8 +22,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * Every rule about when a song is recorded, saved or restored is already
  * covered by `songEqRecorder.test.ts`'s reducer cases. Nothing here re-proves
  * those. What only this file can catch is the wiring itself: that the host
- * actually dispatches what the reducer expects, that the persisted save
- * preference actually reaches the reducer at launch, and that a matched
+ * actually dispatches what the reducer expects — including the automatic
+ * mode going on and off, which nothing else reports — and that a matched
  * layer mirrored into `FluidEqContext` survives its own round trip rather
  * than being mistaken for somebody else's edit.
  */
@@ -55,13 +55,23 @@ import {
   useSongEqRecording,
   useSongEqSessionHost,
 } from 'renderer/audio/songEqSession';
+import { setSmartEqMode } from 'renderer/utils/smartEqMode';
 
 jest.mock('renderer/utils/equalizerApi');
 jest.mock('renderer/audio/nowPlayingIdentity');
 
-const SAVE_STORAGE_KEY = 'fluideq.songEq.save';
-
 const mockUseNowPlayingIdentity = useNowPlayingIdentity as jest.Mock;
+
+/**
+ * Switch an automatic mode on, the way the toolbar's own menu does — picking
+ * one starts it, see `setSmartEqMode`.
+ *
+ * Every test that expects saving to be possible needs this: saving files the
+ * layer an automatic mode refines, so the reducer refuses to turn it on
+ * without one. `'smart'` is the one-shot, which is how these tests say "no
+ * automatic mode running".
+ */
+const startAutoEq = () => setSmartEqMode('detail');
 
 const layerOf = (gain: number): ISmartEqSettings => ({
   filters: {
@@ -106,11 +116,10 @@ describe('songEqSession', () => {
 
   beforeEach(() => {
     jest.useFakeTimers();
-    try {
-      window.localStorage.removeItem(SAVE_STORAGE_KEY);
-    } catch {
-      // Nothing was stored; nothing to clear.
-    }
+    // The mode is module state too, and it is remembered — a test that left
+    // an automatic mode running would hand the next one a save switch the
+    // reducer accepts, which is precisely the condition under test.
+    setSmartEqMode('smart');
     // Module state outlives a render — see `resetSongEqSession`'s own
     // comment — so every test starts from a session-free, notice-free,
     // save-off module rather than whatever the previous test left behind.
@@ -134,39 +143,78 @@ describe('songEqSession', () => {
 
   afterEach(() => {
     jest.useRealTimers();
+    setSmartEqMode('smart');
   });
 
-  it('remembers the save toggle without a component mounted', () => {
+  /**
+   * The null half and its positive control in one test, because apart they
+   * are indistinguishable: a refusal proves nothing unless the same call
+   * succeeds once the missing condition is supplied.
+   *
+   * What it guards is the reported bug. `setSongEqSaveOn` used to START a
+   * continuous mode when ticked on — which was silently a no-op whenever a
+   * continuous mode was already the one CHOSEN but switched off, exactly the
+   * state a real window was found in (`smartEqMode` = `balance`,
+   * `continuousEq` = `false`). Saving went on, no loop ran, and nothing was
+   * ever committed.
+   */
+  it('turns saving on only while an automatic mode is running', () => {
     setSongEqSaveOn(true);
+    expect(getSongEqSaveOn()).toBe(false);
+
+    startAutoEq();
+    renderHook(() => useSongEqSessionHost(), { wrapper });
+    act(() => {
+      setSongEqSaveOn(true);
+    });
     expect(getSongEqSaveOn()).toBe(true);
-    setSongEqSaveOn(false);
+
+    act(() => {
+      setSongEqSaveOn(false);
+    });
     expect(getSongEqSaveOn()).toBe(false);
   });
 
   /**
-   * Two variables holding the same fact is what let this bug through: a
-   * module-level `saveOn` read from storage at import time fed the getter
-   * and the hook, while `state.isSaveOn` — what the reducer actually gates
-   * every checkpoint and commit on — started at `false` regardless and only
-   * ever changed on a `saveToggled` dispatch nothing fired until the switch
-   * was next pressed. A launch where the stored preference was already on
-   * reported "on" everywhere the badge looked and stayed silently inert in
-   * the one place that mattered.
+   * Fails if the shell stops reporting `autoEqChanged`, or reports it only in
+   * one direction: saving would then survive an automatic mode being switched
+   * on again and promise a save for the first song of a run that has measured
+   * nothing yet.
    */
-  it('records from launch when the stored preference is already on, with no toggle pressed', async () => {
-    window.localStorage.setItem(SAVE_STORAGE_KEY, 'true');
-    resetSongEqSession();
+  it('starts saving from off each time an automatic mode is switched on', () => {
+    startAutoEq();
+    renderHook(() => useSongEqSessionHost(), { wrapper });
+    act(() => {
+      setSongEqSaveOn(true);
+    });
+    // The positive control: without this the assertion below would pass
+    // against a store where saving simply never turns on at all.
     expect(getSongEqSaveOn()).toBe(true);
 
-    const song = buildSongIdentity(
-      'library',
-      'seeded-song',
-      'Seeded Song',
-      'Artist',
-    );
+    act(() => {
+      setSmartEqMode('smart');
+    });
+    expect(getSongEqSaveOn()).toBe(false);
+
+    act(() => {
+      startAutoEq();
+    });
+    expect(getSongEqSaveOn()).toBe(false);
+  });
+
+  /**
+   * The end-to-end the whole report was about: with an automatic mode running
+   * and the switch on, a song past the two-minute floor is checkpointed while
+   * it plays and committed when it ends.
+   *
+   * Fails on any break in the chain — the switch being refused, the layer
+   * never reaching `liveLayer`, or the commit at close being skipped.
+   */
+  it('checkpoints and commits a song once saving is on behind a running mode', async () => {
+    const song = buildSongIdentity('library', 'saved-song', 'Saved', 'Artist');
     const nextSong = buildSongIdentity(
       'library',
-      'seeded-song-next',
+      'saved-song-next',
       'Next Song',
       'Artist',
     );
@@ -182,7 +230,11 @@ describe('songEqSession', () => {
       isPlaying: true,
     });
 
+    startAutoEq();
     const { rerender } = renderHook(() => useSongEqSessionHost(), { wrapper });
+    act(() => {
+      setSongEqSaveOn(true);
+    });
 
     await act(async () => {
       jest.advanceTimersByTime(
@@ -192,7 +244,6 @@ describe('songEqSession', () => {
       await Promise.resolve();
     });
 
-    // The two-minute checkpoint, with nobody having touched the switch.
     expect(api.checkpointSongEq).toHaveBeenCalled();
 
     // A different song closes the first, which is when the commit that
@@ -489,7 +540,6 @@ describe('songEqSession', () => {
    * by finding 6 (`forget`) the moment the two lived apart again.
    */
   it('stops promising a save once the current song has been forgotten', async () => {
-    setSongEqSaveOn(true);
     const song = buildSongIdentity(
       'library',
       'forgotten-badge-song',
@@ -508,6 +558,7 @@ describe('songEqSession', () => {
       isPlaying: true,
     });
 
+    startAutoEq();
     const { result } = renderHook(
       () => {
         useSongEqSessionHost();
@@ -515,6 +566,11 @@ describe('songEqSession', () => {
       },
       { wrapper },
     );
+    // After the host is mounted, not before: the reducer only accepts saving
+    // once the host has reported the mode running.
+    act(() => {
+      setSongEqSaveOn(true);
+    });
 
     await act(async () => {
       jest.advanceTimersByTime(
@@ -532,46 +588,5 @@ describe('songEqSession', () => {
     });
 
     expect(result.current.willSave).toBe(false);
-  });
-});
-
-/**
- * Critical 1's actual production seam, as opposed to the test-only reset
- * `resetSongEqSession` provides.
- *
- * Every test above seeds `localStorage` and then calls `resetSongEqSession`
- * to get a clean module — which is the right seam for those tests, but it is
- * not the path the running app takes. The app only ever seeds
- * `state.isSaveOn` once, at the module-level initialiser in
- * `songEqSession.ts`, the moment the module is first imported. Nothing above
- * exercises that line: this loads a genuinely fresh instance of the module
- * with `jest.isolateModules`, the same seam `graphViewSettings.test.ts` and
- * `euphoriaMode.test.ts` already use for exactly this reason, so the
- * initialiser itself runs under test rather than being stood in for.
- */
-describe("the module-load path Critical 1's fix depends on", () => {
-  afterEach(() => {
-    jest.resetModules();
-  });
-
-  it('seeds state.isSaveOn from storage the moment the module loads, not only on a later reset', () => {
-    try {
-      window.localStorage.setItem(SAVE_STORAGE_KEY, 'true');
-    } catch {
-      // Nothing stored means the assertion below fails honestly rather than
-      // this test silently passing for the wrong reason.
-    }
-
-    let freshGetSongEqSaveOn: (() => boolean) | undefined;
-    jest.isolateModules(() => {
-      const fresh =
-        require('renderer/audio/songEqSession') as typeof import('renderer/audio/songEqSession'); // eslint-disable-line global-require -- the whole point is a fresh, uncached require
-      freshGetSongEqSaveOn = fresh.getSongEqSaveOn;
-    });
-
-    if (!freshGetSongEqSaveOn) {
-      throw new Error('module did not load inside isolateModules');
-    }
-    expect(freshGetSongEqSaveOn()).toBe(true);
   });
 });

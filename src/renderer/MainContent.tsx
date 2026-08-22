@@ -75,6 +75,7 @@ import {
   useSmartEqMode,
 } from './utils/smartEqMode';
 import { cancelSmartEq, runSmartEq, useSmartEqRun } from './utils/smartEqRun';
+import { useIsAutoEqRunning } from './utils/autoEqRunning';
 import { useCorrectionFlash } from './utils/correctionFlash';
 import VoicingQuickPick from './components/VoicingQuickPick';
 import ActiveLayers from './components/ActiveLayers';
@@ -130,7 +131,6 @@ const MainContent = () => {
     isRunning: isBalancing,
   } = useSmartEqRun();
   const isContinuousOn = useContinuousEq();
-  const isSmartBypassed = bypassed.includes('smart');
   const smartEqMode = useSmartEqMode();
   const [isModeMenuOpen, setIsModeMenuOpen] = useState(false);
   const modeMenuHolder = useRef<HTMLSpanElement>(null);
@@ -142,9 +142,13 @@ const MainContent = () => {
    * The mode staying on through a bypass is right — it is a preference, and the
    * layer comes back — but a lit button over a stopped loop is the app claiming
    * to be doing something it is not.
+   *
+   * Read from `useIsAutoEqRunning` rather than restated here: the save switch
+   * below and the song recorder behind it stand or fall on the same three
+   * conditions, and three copies of them is how the switch came to be offered
+   * over a stopped loop.
    */
-  const isContinuousRunning =
-    isContinuousMode(smartEqMode) && isContinuousOn && !isSmartBypassed;
+  const isContinuousRunning = useIsAutoEqRunning();
   const smartLabel = isBalancing
     ? t('eq.smart.cancelAria')
     : t('eq.smart.aria');
@@ -920,7 +924,13 @@ const MainContent = () => {
               </span>
             )}
           </span>
-          <SongEqSaveSwitch id="songEqSave" />
+          {/* Only while an automatic mode is actually measuring. Saving a song
+              means filing the Smart EQ layer being refined for it, and nothing
+              but that measurement ever writes one — so with the loop stopped
+              the switch was a promise the app had no way to keep: it could be
+              ticked on, it counted out the two minutes, and it committed
+              nothing at the end of them. */}
+          {isContinuousRunning && <SongEqSaveSwitch id="songEqSave" />}
           <Button
             ariaLabel={t('eq.clear')}
             isDisabled={false}
