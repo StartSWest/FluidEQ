@@ -117,7 +117,7 @@ $name-column: 34ch;
 
 .config-inspector__path {
   color: $text-faint;
-  font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+  font-family: $font-mono;
   font-size: 0.66rem;
   // A long install path must not stretch the panel; it wraps rather than
   // pushing every card wider than the pane.
@@ -318,7 +318,7 @@ $name-column: 34ch;
 
 .config-device__pattern {
   color: $text-faint;
-  font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+  font-family: $font-mono;
   font-size: 0.64rem;
   word-break: break-all;
 }
@@ -656,7 +656,7 @@ $name-column: 34ch;
   background: transparent;
   color: $text-primary;
   cursor: pointer;
-  font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+  font-family: $font-mono;
   font-size: 0.68rem;
   gap: 6px;
   text-align: left;
@@ -800,7 +800,7 @@ $name-column: 34ch;
   border-radius: $radius-s;
   background: rgba(0, 0, 0, 0.35);
   color: $text-primary;
-  font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+  font-family: $font-mono;
   font-size: 0.64rem;
   line-height: 1.5;
   resize: vertical;
@@ -852,7 +852,7 @@ $name-column: 34ch;
 
 .config-node--missing .config-node__name {
   color: #ef6a6a;
-  font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+  font-family: $font-mono;
   font-size: 0.68rem;
   text-decoration: line-through;
 }
@@ -871,7 +871,7 @@ $name-column: 34ch;
 // character while the font is fixed-width.
 .config-node--unwritten .config-node__name {
   color: $text-faint;
-  font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+  font-family: $font-mono;
   font-size: 0.66rem;
   font-style: italic;
 }
@@ -892,7 +892,7 @@ $name-column: 34ch;
   margin: 2px 0 0;
   background: rgba(0, 0, 0, 0.28);
   color: $text-muted;
-  font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+  font-family: $font-mono;
   font-size: 0.64rem;
   line-height: 1.5;
   // Copied out of a file and often copied back into one, so this is one of the

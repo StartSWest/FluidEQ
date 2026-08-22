@@ -413,7 +413,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     border: 1px solid rgba($secondary-light, 0.18);
     border-radius: $radius-xs;
     background: rgba($secondary-default, 0.08);
-    font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+    font-family: $font-mono;
     font-size: 0.66rem;
     font-variant-numeric: tabular-nums;
     text-align: center;

@@ -52,7 +52,7 @@ it under the terms of the GNU General Public License version 3 or later.
   border: 1px solid rgba($red, 0.28);
   border-radius: $radius-xs;
   background: rgba(#0a0508, 0.8);
-  font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+  font-family: $font-mono;
   font-size: 0.72rem;
   line-height: 1.5;
   overflow: auto;

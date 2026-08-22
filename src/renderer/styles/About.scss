@@ -129,7 +129,7 @@ it under the terms of the GNU General Public License version 3 or later.
     color: $secondary-light;
     border-radius: $radius-xs;
     background: rgba($secondary-default, 0.1);
-    font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+    font-family: $font-mono;
     font-size: 0.72rem;
     word-break: break-all;
   }

@@ -104,7 +104,7 @@ it under the terms of the GNU General Public License version 3 or later.
 // The report itself reads as evidence rather than as prose, so it is set in
 // the same face a log is written in.
 .bug-report__body {
-  font-family: Consolas, 'Courier New', monospace !important;
+  font-family: $font-mono !important;
   font-size: 0.72rem !important;
   white-space: pre;
   overflow-wrap: normal;

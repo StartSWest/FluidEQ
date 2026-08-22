@@ -171,7 +171,7 @@
     border-radius: $radius-s;
     outline: 0;
     background: rgba($black, 0.2);
-    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    font-family: $font-mono;
     font-size: 0.66rem;
     line-height: 1.45;
     transition:

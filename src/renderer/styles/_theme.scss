@@ -72,6 +72,22 @@ $weight-bold: 700;
 $weight-heavy: 800;
 $weight-display: 900;
 
+// The one monospace stack, for the places that read as evidence rather than as
+// prose: version strings, config dumps, the bug report, a log.
+//
+// It had drifted into three. Measured in the running window, the twelve places
+// using this order painted in Cascadia Mono while two outliers — one that had
+// picked up macOS's SFMono-Regular from somewhere, one that named Consolas
+// first — painted in Consolas, so the same kind of text was set in two
+// different faces depending on which panel it appeared in.
+//
+// `ui-monospace` is first for the macOS build, where it is SF Mono. On Windows
+// it does not resolve at all, and on its own it falls all the way through to
+// Times New Roman — a proportional serif. It is only harmless here because
+// Cascadia Mono follows it, which is the argument for never letting it be the
+// last real name in the list.
+$font-mono: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+
 // *** Surfaces ***************************************************************
 
 // Deep navy the whole shell sits on.

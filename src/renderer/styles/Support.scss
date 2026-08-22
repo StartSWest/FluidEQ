@@ -308,7 +308,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     border: 1px solid rgba($secondary-light, 0.2);
     border-radius: $radius-xs;
     background: rgba(#050b12, 0.7);
-    font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+    font-family: $font-mono;
     font-size: 0.82rem;
     line-height: 1.5;
     overflow-wrap: anywhere;
