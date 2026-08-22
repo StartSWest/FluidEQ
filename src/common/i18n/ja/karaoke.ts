@@ -191,6 +191,8 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.dialog': 'カラオケメーカー',
   'karaoke.maker.eyebrow': 'FLUIDEQ カラオケメーカー',
   'karaoke.maker.close': 'メーカーを閉じる',
+  'karaoke.maker.exitBusy':
+    'ローカルモデルの処理が実行中です。エディターを離れる前に、キャンセルするか完了までお待ちください。',
   'karaoke.maker.songTitle': '曲名',
   'karaoke.maker.untitled': '無題のカラオケ',
   'karaoke.maker.undo': '元に戻す',

@@ -140,6 +140,14 @@ interface IKaraokeMakerProps {
   onPause: () => void;
   onApply: (project: IKaraokeMakerProject) => void;
   onClose: () => void;
+  /**
+   * Told whenever a local model starts or stops running here.
+   *
+   * The workspace owns the other doors out of this editor — importing a song
+   * from the Library tab closes the Maker — and it cannot see this hook state
+   * from outside. One answer, reported up, rather than two guesses.
+   */
+  onModelWorkChange: (working: boolean) => void;
   isFullScreen: boolean;
   onToggleFullScreen: () => void;
 }
@@ -164,6 +172,7 @@ const KaraokeMaker = ({
   onPause,
   onApply,
   onClose,
+  onModelWorkChange,
   isFullScreen,
   onToggleFullScreen,
 }: IKaraokeMakerProps) => {
@@ -1592,6 +1601,47 @@ const KaraokeMaker = ({
     cancelAnalysis();
   };
 
+  /*
+   * LEAVING MID-RUN LANDED ONE SONG'S STEMS ON ANOTHER SONG.
+   *
+   * The models outlive the component that starts them: separation resolves
+   * into `onStems`, which writes the voice and the backing onto the song this
+   * editor was opened for and saves them under that song's id. Close the
+   * Maker while it runs and that closure keeps its old song while the
+   * workspace moves on, so the split finished into a song nobody was looking
+   * at — and the editor, reopened on the new song, was keyed to different
+   * audio and showed none of it. Transcription and melody detection have the
+   * same shape: they commit into `project`, which unmounts with the editor.
+   *
+   * So the doors are shut while any of them runs, rather than the results
+   * being redirected afterwards. Every one of these jobs is cancellable from
+   * the progress panel that is already on screen, and that is the way out.
+   *
+   * `analysisProgress` covers transcription and melody detection — both report
+   * through it — and `isSeparating` covers the split from the call, before its
+   * first progress tick. Every model download happens inside one of those
+   * runs, so `downloadProgress` is deliberately NOT read here: it is a
+   * description of a fetch, not of a run, and this lock has to end when the
+   * run does.
+   */
+  const isModelWorking = isSeparating || analysisProgress !== undefined;
+  useEffect(() => {
+    onModelWorkChange(isModelWorking);
+  }, [isModelWorking, onModelWorkChange]);
+  useEffect(
+    () => () => {
+      onModelWorkChange(false);
+    },
+    [onModelWorkChange],
+  );
+
+  // Not the guard above doing its job twice. The editor can still go away
+  // without anyone clicking a way out of it — the song is removed, the
+  // playlist is cleared — and a split left running then resolves into a
+  // closure whose song has gone. `analysisAbortRef` has always been aborted on
+  // unmount for transcription; separation was the one job that kept going.
+  useEffect(() => () => cancelSeparation(), [cancelSeparation]);
+
   const editTools = (
     <KaraokeMakerEditTools
       isRecordingLines={lineEntryMode}
@@ -1864,6 +1914,7 @@ const KaraokeMaker = ({
         canUndo={canUndo}
         commit={commit}
         isFullScreen={isFullScreen}
+        isModelWorking={isModelWorking}
         issues={issues}
         onApply={onApply}
         onClose={onClose}

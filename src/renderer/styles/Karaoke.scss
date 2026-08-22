@@ -3701,6 +3701,37 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   transform: translateY(0);
 }
 
+// Same reason as the two above, mirrored. The back arrow's tooltip is one word
+// most of the time and a sentence while a model is running; centred on a
+// button that sits against the left edge, that sentence left the window.
+.karaoke-maker__header-back::after {
+  left: 0;
+  width: max-content;
+  max-width: min(310px, calc(100vw - 24px));
+  line-height: 1.35;
+  white-space: normal;
+  transform: translateY(-3px);
+}
+
+.karaoke-maker__header-back:hover::after,
+.karaoke-maker__header-back:focus-visible::after {
+  transform: translateY(0);
+}
+
+// A HEADER BUTTON THAT IS OFF HAS TO LOOK OFF.
+//
+// Nothing here had a disabled appearance: `.karaoke-maker__header-icon` only
+// withholds its hover, so Undo with no history looked exactly like Undo with
+// history. That was survivable for Undo and is not for these two — the back
+// arrow and Apply are shut while a local model runs, and an unchanged button
+// that ignores the click is the bug this rule exists to prevent. The tooltip
+// on each says why; this is what makes anyone stop and read it.
+.karaoke-maker__header-icon:disabled,
+.karaoke-maker__header-action:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 .karaoke-maker__header-icon {
   width: 32px;
   min-width: 32px !important;

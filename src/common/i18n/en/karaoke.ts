@@ -191,6 +191,8 @@ const karaoke = {
   'karaoke.maker.dialog': 'Karaoke Maker',
   'karaoke.maker.eyebrow': 'FLUIDEQ KARAOKE MAKER',
   'karaoke.maker.close': 'Close maker',
+  'karaoke.maker.exitBusy':
+    'A local model is still running. Cancel it, or wait for it to finish, before leaving the editor.',
   'karaoke.maker.songTitle': 'Song title',
   'karaoke.maker.untitled': 'Untitled karaoke',
   'karaoke.maker.undo': 'Undo',

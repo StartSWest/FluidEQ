@@ -199,6 +199,8 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.dialog': 'Créateur de karaoké',
   'karaoke.maker.eyebrow': 'CRÉATEUR DE KARAOKÉ FLUIDEQ',
   'karaoke.maker.close': 'Fermer le créateur',
+  'karaoke.maker.exitBusy':
+    'Un modèle local est encore en cours. Annulez-le ou attendez la fin avant de quitter l’éditeur.',
   'karaoke.maker.songTitle': 'Titre de la chanson',
   'karaoke.maker.untitled': 'Karaoké sans titre',
   'karaoke.maker.undo': 'Annuler',

@@ -322,6 +322,15 @@ export const useMakerAnalysisRun = ({
       if (analysisAbortRef.current === controller) {
         setAnalysisProgress(undefined);
         setAnalysisMessage(undefined);
+        // The download outlived the run that owned it. SwiftF0 reports the
+        // RMVPE fetch through `setDownloadProgress` and has no later stage to
+        // clear it with — unlike Whisper, which clears on its first non-
+        // download stage — so a summary set here survived until the NEXT run
+        // wiped it at the top. Invisible while the only reader was a panel
+        // that draws during a run, and a lie the moment anything else asks
+        // whether a model is working.
+        setDownloadProgress(undefined);
+        downloadSampleRef.current = undefined;
         analysisAbortRef.current = undefined;
       }
     }

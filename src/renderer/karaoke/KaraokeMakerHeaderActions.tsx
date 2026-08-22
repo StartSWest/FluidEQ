@@ -34,6 +34,13 @@ interface IKaraokeMakerHeaderActionsProps {
    * be a button.
    */
   onApply: () => void;
+  /**
+   * A local model is running, so this row must not leave the editor.
+   *
+   * Apply hands the project to the player and then closes the Maker, which
+   * unmounts the component the running job belongs to. See `KaraokeMaker`.
+   */
+  isModelWorking: boolean;
   isFullScreen: boolean;
   onToggleFullScreen: () => void;
 }
@@ -54,6 +61,7 @@ const KaraokeMakerHeaderActions = ({
   canRedo,
   onRestore,
   onApply,
+  isModelWorking,
   isFullScreen,
   onToggleFullScreen,
 }: IKaraokeMakerHeaderActionsProps) => {
@@ -96,8 +104,14 @@ const KaraokeMakerHeaderActions = ({
       <button
         className="is-primary karaoke-maker__header-action"
         type="button"
-        aria-label={t('karaoke.maker.applyHint')}
-        data-tooltip={t('karaoke.maker.applyHint')}
+        disabled={isModelWorking}
+        aria-disabled={isModelWorking}
+        aria-label={t(
+          isModelWorking ? 'karaoke.maker.exitBusy' : 'karaoke.maker.applyHint',
+        )}
+        data-tooltip={t(
+          isModelWorking ? 'karaoke.maker.exitBusy' : 'karaoke.maker.applyHint',
+        )}
         onClick={onApply}
       >
         <KaraokeMakerToolIcon name="apply" />

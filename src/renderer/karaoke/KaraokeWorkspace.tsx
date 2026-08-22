@@ -258,6 +258,14 @@ const KaraokeWorkspace = ({
   const [isDragging, setIsDragging] = useState(false);
   const [isMicrophoneMenuOpen, setIsMicrophoneMenuOpen] = useState(false);
   const [isMakerOpen, setIsMakerOpen] = useState(readKaraokeMakerOpen);
+  /**
+   * The Maker is running a local model, so nothing here may take it away.
+   *
+   * Reported by the editor rather than inferred: the jobs and their progress
+   * live inside it. Deliberately not persisted — a run cannot survive a
+   * reload, so a stored `true` would be a lock with nothing behind it.
+   */
+  const [isMakerWorking, setIsMakerWorking] = useState(false);
   const [restoreMakerDraft, setRestoreMakerDraft] =
     useState(readKaraokeMakerOpen);
   const whisperSession = useSyncExternalStore(
@@ -1022,6 +1030,15 @@ const KaraokeWorkspace = ({
     if (pendingKaraokeFiles.length === 0) {
       return;
     }
+    // Left in the queue, not dropped, while the Maker has a model running.
+    // The drain below closes the Maker on purpose — see the note on it — and
+    // that is the same exit the editor's own guard exists to prevent, reached
+    // from the Library tab instead of from a button in the header.
+    // `isMakerWorking` is a dependency, so the song lands the moment the run
+    // ends or is cancelled.
+    if (isMakerWorking) {
+      return;
+    }
     const taken = drainKaraokeFiles();
     if (taken.length > 0) {
       // AND THE PLAYER IS WHAT THIS TAB SHOWS WHEN IT ARRIVES.
@@ -1036,7 +1053,7 @@ const KaraokeWorkspace = ({
       setRestoreMakerDraft(false);
       addFiles([...taken]).catch(() => undefined);
     }
-  }, [pendingKaraokeFiles, addFiles]);
+  }, [pendingKaraokeFiles, addFiles, isMakerWorking]);
 
   const loadSelectedFiles = (files: FileList | null) => {
     if (files?.length) {
@@ -1176,6 +1193,18 @@ const KaraokeWorkspace = ({
       autoAdvancedSongRef.current = undefined;
       return;
     }
+    // The one exit from the editor that opens by itself. Preview playback runs
+    // through the player, so a song left running while a model works reaches
+    // its end and the playlist walks on to the next entry — which swaps the
+    // audio the Maker is keyed to and remounts it on a different song, with
+    // the split still running against the old one. This end is marked handled
+    // rather than deferred: releasing it when the model finishes would jump to
+    // the next song at the exact moment the stems appear, which is the one
+    // moment the user is looking at the editor.
+    if (isMakerWorking) {
+      autoAdvancedSongRef.current = selectedPlaylistId;
+      return;
+    }
     if (autoAdvancedSongRef.current === selectedPlaylistId) {
       return;
     }
@@ -1187,7 +1216,7 @@ const KaraokeWorkspace = ({
     if (next) {
       loadPlaylistItem(next, true);
     }
-  }, [loadPlaylistItem, playlist, selectedPlaylistId, status]);
+  }, [isMakerWorking, loadPlaylistItem, playlist, selectedPlaylistId, status]);
 
   useEffect(() => {
     if (isHidden) {
@@ -2077,6 +2106,7 @@ const KaraokeWorkspace = ({
             onSeek={session.seek}
             onPlay={handleEditorPlay}
             onPause={handleEditorPause}
+            onModelWorkChange={setIsMakerWorking}
             onStems={({ vocals, instrumental }) => {
               // Both stems join the song as their own roles; the audio asset
               // stays exactly as imported — the Maker is keyed on it, and an

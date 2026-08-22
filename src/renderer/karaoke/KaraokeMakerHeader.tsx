@@ -33,6 +33,12 @@ export interface IKaraokeMakerHeaderProps extends Pick<
   /** What the Maker was handed, and what it hands back. */
   onApply: (project: IKaraokeMakerProject) => void;
   onClose: () => void;
+  /**
+   * A local model is running: separation, transcription, melody detection or
+   * the download in front of one. Both ways out of the editor are shut while
+   * it is true — see `KaraokeMaker` for what leaving mid-run did to the song.
+   */
+  isModelWorking: boolean;
   isFullScreen: boolean;
   onToggleFullScreen: () => void;
   tools: ReactNode;
@@ -49,6 +55,7 @@ const KaraokeMakerHeader = ({
   canUndo,
   commit,
   isFullScreen,
+  isModelWorking,
   issues,
   onApply,
   onClose,
@@ -68,8 +75,14 @@ const KaraokeMakerHeader = ({
           className="karaoke-maker__header-icon karaoke-maker__header-back"
           type="button"
           onClick={onClose}
-          aria-label={t('karaoke.maker.close')}
-          data-tooltip={t('karaoke.maker.close')}
+          disabled={isModelWorking}
+          aria-disabled={isModelWorking}
+          aria-label={t(
+            isModelWorking ? 'karaoke.maker.exitBusy' : 'karaoke.maker.close',
+          )}
+          data-tooltip={t(
+            isModelWorking ? 'karaoke.maker.exitBusy' : 'karaoke.maker.close',
+          )}
         >
           <KaraokeMakerToolIcon name="back" />
         </button>
@@ -108,6 +121,7 @@ const KaraokeMakerHeader = ({
           onApply(project);
           onClose();
         }}
+        isModelWorking={isModelWorking}
         isFullScreen={isFullScreen}
         onToggleFullScreen={onToggleFullScreen}
       />

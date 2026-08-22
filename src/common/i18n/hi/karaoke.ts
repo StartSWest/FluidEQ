@@ -187,6 +187,8 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.dialog': 'कराओके मेकर',
   'karaoke.maker.eyebrow': 'FLUIDEQ कराओके मेकर',
   'karaoke.maker.close': 'मेकर बंद करें',
+  'karaoke.maker.exitBusy':
+    'एक लोकल मॉडल अभी भी चल रहा है। एडिटर से बाहर जाने से पहले उसे रद्द करें या पूरा होने तक प्रतीक्षा करें।',
   'karaoke.maker.songTitle': 'गीत का शीर्षक',
   'karaoke.maker.untitled': 'बिना शीर्षक का कराओके',
   'karaoke.maker.undo': 'पूर्ववत',

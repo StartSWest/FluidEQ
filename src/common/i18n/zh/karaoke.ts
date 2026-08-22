@@ -176,6 +176,8 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.dialog': '卡拉 OK 制作器',
   'karaoke.maker.eyebrow': 'FLUIDEQ 卡拉 OK 制作器',
   'karaoke.maker.close': '关闭制作器',
+  'karaoke.maker.exitBusy':
+    '本地模型仍在运行。请先取消或等待其完成，然后再离开编辑器。',
   'karaoke.maker.songTitle': '歌曲标题',
   'karaoke.maker.untitled': '未命名卡拉 OK',
   'karaoke.maker.undo': '撤销',
