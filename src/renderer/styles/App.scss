@@ -150,6 +150,20 @@ body {
     'Segoe UI',
     sans-serif;
   font-size: 1em;
+  // Tabular figures everywhere, because Inter's are proportional and Segoe
+  // UI's were not.
+  //
+  // Measured at 40px: Segoe UI sets "111" and "000" at the same 64.688px
+  // whether tabular figures are asked for or not — it has no proportional set
+  // — so every number this app has ever shown has been tabular by accident of
+  // the fallback. Inter sets "111" at 43.48 and "000" at 73.59, a 30px spread,
+  // and only matches widths when `tabular-nums` is asked for.
+  //
+  // A dozen readouts already ask for it. The ones that never had to are the
+  // problem: a gain that counts through 1.1 -> 8.8 would start shifting its
+  // neighbours on every frame, in an app whose numbers move while you drag. So
+  // the default is restored here rather than chased element by element.
+  font-variant-numeric: tabular-nums;
 
   // Soft bloom behind the whole shell. Purely decorative, and weighted to the
   // cyan/teal end of the spectrum palette.
