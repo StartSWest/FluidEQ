@@ -121,6 +121,55 @@ describe('the now playing bar', () => {
     expect(container).toBeEmptyDOMElement();
   });
 
+  it('draws no favourite star for a caller that cannot answer one', () => {
+    // The bar is mounted in tests and by `SourceTransportBar`'s neighbours
+    // without a playlist provider above them. A star drawn there would be a
+    // control that quietly does nothing, which is worse than no star.
+    bar({ onFavorite: undefined });
+    expect(
+      screen.queryByRole('button', { name: 'Add to Favourites' }),
+    ).toBeNull();
+  });
+
+  it('offers the star as a toggle, and says which way it goes', async () => {
+    const onFavorite = jest.fn();
+    const { rerender } = bar({ onFavorite, isFavorite: false });
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Add to Favourites' }),
+    );
+    expect(onFavorite).toHaveBeenCalledTimes(1);
+
+    // Favourited, the same button offers the way back out rather than a
+    // second way in — the label is the only thing that says which of the two
+    // a press will do.
+    rerender(
+      <I18nProvider>
+        <NowPlayingBar
+          track={track}
+          isPlaying
+          positionMs={0}
+          durationMs={92000}
+          repeat="off"
+          isShuffled={false}
+          isFavorite
+          onFavorite={onFavorite}
+          onToggle={jest.fn()}
+          onSkip={jest.fn()}
+          onStop={jest.fn()}
+          onSeek={jest.fn()}
+          onShuffle={jest.fn()}
+          onRepeat={jest.fn()}
+          onVolume={jest.fn()}
+          onVolumeCommit={jest.fn()}
+        />
+      </I18nProvider>,
+    );
+    const star = screen.getByRole('button', {
+      name: 'Remove from Favourites',
+    });
+    expect(star.getAttribute('aria-pressed')).toBe('true');
+  });
+
   it('offers a Stop that clears the queue entirely (blocker 1)', async () => {
     // The state-machine bug this guards: a video queue that reaches either
     // end with `repeat: 'off'` has nothing that ever clears `videoTrackId`

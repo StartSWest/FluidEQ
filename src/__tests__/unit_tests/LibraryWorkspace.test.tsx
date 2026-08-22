@@ -262,6 +262,39 @@ describe('the search box, wired to the shelf below it', () => {
   });
 });
 
+describe('the folded queue chip', () => {
+  it('rides in the toolbar row rather than floating under it', async () => {
+    // It used to be absolutely placed in the slot the panel opens into, and
+    // two rules elsewhere made room for it: a `padding-right` on the
+    // drill-in's path row and a 23px drop on every shelf. In the row it
+    // needs neither, and this is the assertion that says so — a chip that
+    // slid back out of the cluster would leave the shelf sitting under it
+    // again with nothing to catch it.
+    initialIndex = {
+      version: 1,
+      roots: [
+        {
+          id: 'r1',
+          path: 'C:\\Music',
+          addedAt: 1,
+          trackCount: 1,
+          karaokeSkipped: 0,
+        },
+      ],
+      tracks: [track({ title: 'Blue', album: 'Kind', artist: 'Miles' })],
+    };
+    renderWorkspace();
+
+    // By pattern, not by exact name: the chip carries its count inside the
+    // button, so its accessible name is the label and the number together.
+    const chip = await screen.findByRole('button', { name: /Up next/ });
+    expect(chip.closest('.library-toolbar__tail')).not.toBeNull();
+    // Folded, and the chip is what says so — it is drawn in both states, so
+    // opening the queue cannot re-lay the cluster out around it.
+    expect(chip.getAttribute('aria-expanded')).toBe('false');
+  });
+});
+
 describe('a browse mode remembered from last time', () => {
   it('honours a stored "video" mode instead of falling back to the default', async () => {
     // The exact hazard widening `TLibraryBrowseMode` created: a value that
