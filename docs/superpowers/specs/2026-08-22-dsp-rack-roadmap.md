@@ -32,14 +32,20 @@ The exciter is the worst case because it is deliberately harmonic-rich and
 deliberately aimed at the top octaves, where there is least room before
 Nyquist.
 
-**This is the first task, and it is infrastructure the rest depends on.** A 4×
-oversampled block — polyphase FIR up, process, FIR down — serves the exciter,
-the compressor's detector and the limiter alike.
+**DONE for the exciter, and it needed no FIR of our own.** `WaveShaperNode`
+carries an `oversample` property — `'none' | '2x' | '4x'` — and Chromium
+resamples, applies the curve and filters back down in C++. The default is
+`'none'`, which was the whole bug. The graph now sets `'4x'`.
 
-A test can prove it: a pure tone through the shaper, FFT the result, and assert
-there is no energy at the _fold-back_ frequency. With a positive control that
-shows the un-oversampled path does produce it, because otherwise "no aliasing"
-and "no signal" read identically.
+Measured rather than assumed: the property was probed in a running window
+before the code was written, and `dspExciter.test.ts` demonstrates the folding
+on the un-oversampled path — a 3rd harmonic landing at `SIZE - 3*BIN` — with an
+identity curve beside it proving a linear path folds nothing.
+
+**Still needed, for the worklet.** There is no native node inside an
+`AudioWorkletProcessor`, so the true-peak limiter (block 5) still needs a
+polyphase FIR interpolator of our own. Only its detector runs oversampled; the
+audio path does not, which is what a true-peak limiter actually requires.
 
 ## The blocks
 

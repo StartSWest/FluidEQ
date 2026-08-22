@@ -105,3 +105,55 @@ describe('exciter shaper curve', () => {
     });
   });
 });
+
+/**
+ * Why the graph sets `oversample = '4x'` on the shaper.
+ *
+ * This curve is a non-linearity, so it manufactures harmonics above its input.
+ * Run at the session rate, every harmonic past Nyquist has nowhere to go and
+ * FOLDS BACK DOWN — a 3rd harmonic of a tone above SIZE/6 lands at
+ * `SIZE - 3*BIN` instead of at `3*BIN`, as an inharmonic tone that was never
+ * in the music and does not move with it.
+ *
+ * These tests measure that folding on the un-oversampled path, because a claim
+ * about aliasing is worth nothing without a demonstration that the aliasing is
+ * real. Chromium does the actual prevention in C++ and cannot be exercised
+ * from jsdom; `dspGraph.test.ts` asserts it is asked to.
+ */
+describe('shaper aliasing, unmitigated', () => {
+  /** High enough that its third harmonic lands past Nyquist. */
+  const HIGH_BIN = 420;
+
+  const highSine = (): Float64Array => {
+    const out = new Float64Array(SIZE);
+    for (let i = 0; i < SIZE; i += 1) {
+      out[i] = Math.sin((2 * Math.PI * HIGH_BIN * i) / SIZE) * 0.5;
+    }
+    return out;
+  };
+
+  it('folds a harmonic back below Nyquist when run at the session rate', () => {
+    const input = highSine();
+    // The third harmonic of 420 is 1260, past the 1024-bin Nyquist of a
+    // 2048-point transform, so it reflects to 2048 - 1260 = 788.
+    const folded = SIZE - HIGH_BIN * 3;
+    expect(folded).toBeLessThan(SIZE / 2);
+    expect(magnitudeAt(input, folded)).toBeLessThan(1e-9);
+
+    const output = shape(input, buildShaperCurve(8));
+    expect(magnitudeAt(output, folded)).toBeGreaterThan(1e-3);
+  });
+
+  /**
+   * POSITIVE CONTROL: the fold is the shaper's doing, not the harness's.
+   *
+   * An identity curve is linear and cannot create a frequency that was not
+   * already there, so it must leave that bin as empty as the input did. If
+   * this ever fails, the measurement is wrong and the test above proves
+   * nothing.
+   */
+  it('POSITIVE CONTROL: a linear curve folds nothing', () => {
+    const output = shape(highSine(), identityCurve());
+    expect(magnitudeAt(output, SIZE - HIGH_BIN * 3)).toBeLessThan(1e-6);
+  });
+});

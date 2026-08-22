@@ -21,6 +21,7 @@ const fakeContext = () => ({
   sampleRate: 48_000,
   createGain: jest.fn(() => ({ ...fakeNode(), gain: { value: 1 } })),
   createWaveShaper: jest.fn(() => ({
+    oversample: 'none',
     ...fakeNode(),
     curve: null as Float32Array | null,
   })),
@@ -90,6 +91,22 @@ describe('dsp graph', () => {
     const filter = context.createBiquadFilter.mock.results[0].value;
     expect(filter.type).toBe('highpass');
     expect(filter.frequency.value).toBe(7_000);
+  });
+
+  /**
+   * Without this the exciter aliases, and the default is the broken value.
+   *
+   * `WaveShaperNode.oversample` defaults to `'none'`, so a shaper left alone
+   * folds its own harmonics back down as inharmonic tones — exactly where the
+   * stage is meant to be adding air. `dspExciter.test.ts` measures the folding
+   * itself; this asserts the graph asks Chromium to prevent it.
+   */
+  it('runs the shaper at 4x so its harmonics cannot fold back', () => {
+    const context = fakeContext();
+    buildDspGraph(context, fakeNode(), fakeWorklet(), fakeNode(), excited());
+    expect(context.createWaveShaper.mock.results[0].value.oversample).toBe(
+      '4x',
+    );
   });
 
   it('gives the shaper a curve rather than leaving it linear', () => {

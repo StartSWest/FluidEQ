@@ -31,6 +31,13 @@ export interface IGainNodeLike extends IAudioNodeLike {
 
 export interface IShaperNodeLike extends IAudioNodeLike {
   curve: Float32Array | null;
+  /**
+   * `'none' | '2x' | '4x'`, and the default is `'none'`, which is a bug.
+   *
+   * Typed as a plain string so a fake in a test does not have to import Web
+   * Audio's union — jsdom has none of it. `graph.ts` only ever writes `'4x'`.
+   */
+  oversample: string;
 }
 
 export interface IFilterNodeLike extends IAudioNodeLike {
@@ -95,6 +102,21 @@ export const buildDspGraph = (
     highpass.frequency.value = current.exciter.crossoverHz;
     shaper = context.createWaveShaper();
     shaper.curve = buildShaperCurve(current.exciter.drive);
+    /**
+     * Without this the exciter aliases, audibly and by design.
+     *
+     * A shaper is a non-linearity, so it manufactures harmonics above its
+     * input: a 7kHz tone fed through this curve produces 21kHz, 35kHz and
+     * 49kHz. At a 48kHz session everything past 24kHz has nowhere to go and
+     * folds back down as inharmonic content — tones that were never in the
+     * music and do not move with it, sitting exactly where this stage is
+     * supposed to be adding air.
+     *
+     * Chromium resamples to 4×, applies the curve, and filters on the way back
+     * down, all in C++. That is the same thing every commercial saturator does
+     * and there is no reason to hand-roll it. The default is `'none'`.
+     */
+    shaper.oversample = '4x';
     wetGain = context.createGain();
     wetGain.gain.value = current.exciter.mix;
 
