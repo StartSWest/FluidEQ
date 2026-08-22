@@ -395,7 +395,7 @@ $eq-caret-width: 24px;
   min-width: 0;
   color: $secondary-light;
   font-size: 0.68rem;
-  font-weight: 700;
+  font-weight: $weight-bold;
   line-height: 1.3;
 }
 
@@ -454,14 +454,14 @@ $eq-caret-width: 24px;
 .eq-mode__menu-name {
   grid-area: name;
   font-size: 0.72rem;
-  font-weight: 700;
+  font-weight: $weight-bold;
 }
 
 .eq-mode__menu-note {
   grid-area: note;
   color: rgba($primary-lighter, 0.72);
   font-size: 0.63rem;
-  font-weight: 400;
+  font-weight: $weight-regular;
   line-height: 1.3;
 }
 
@@ -510,7 +510,7 @@ $eq-caret-width: 24px;
   gap: 5px;
   color: $text-muted;
   font-size: 0.66rem;
-  font-weight: 650;
+  font-weight: $weight-semibold;
   white-space: nowrap;
   cursor: pointer;
 
@@ -647,7 +647,7 @@ $eq-caret-width: 24px;
   // a fourth entry.
   span:nth-child(2) {
     color: rgba($primary-lighter, 0.85);
-    font-weight: 700;
+    font-weight: $weight-bold;
   }
 }
 
@@ -914,7 +914,7 @@ $eq-caret-width: 24px;
     min-height: 14px;
     color: rgba($white, 0.8);
     font-size: 0.55rem;
-    font-weight: 700;
+    font-weight: $weight-bold;
     letter-spacing: 0.08em;
     line-height: 14px;
     text-transform: uppercase;

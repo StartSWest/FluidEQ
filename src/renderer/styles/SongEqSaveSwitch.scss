@@ -87,7 +87,7 @@ $song-eq-lead: 30px;
   // read as a caption for the button beside it rather than as this control's
   // own name.
   font-size: 0.72rem;
-  font-weight: 650;
+  font-weight: $weight-semibold;
   white-space: nowrap;
   cursor: pointer;
   transition: color $motion-fast ease;

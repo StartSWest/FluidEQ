@@ -6,12 +6,13 @@ see LICENSE.txt. It is built on the work below, which is not, and which carries
 its own terms. Each of these licences requires that its copyright notice travel
 with the software, which is what this file is for.
 
-Three larger components have their own files beside this one:
+Four larger components have their own files beside this one:
 
   Equalizer APO   GPL-2.0-or-later   EqualizerAPO-LICENSE.txt
   OPRA            CC-BY-SA-4.0       CC-BY-SA-4.0-LICENSE.txt
                                      OPRA-ATTRIBUTION.txt
   AutoEq          MIT                AutoEq-LICENSE.txt
+  Inter           OFL-1.1            Inter-LICENSE.txt
 
 Equalizer APO is the audio engine; FluidEQ writes its configuration. Its
 installer ships with FluidEQ, unmodified. The corresponding source for the
@@ -27,6 +28,20 @@ CC BY-SA 4.0. OPRA-ATTRIBUTION.txt records what was adapted and how.
 
 AutoEq provides the impulse responses behind the convolution layer, and is the
 origin of much of the data OPRA redistributes.
+
+Inter is the interface typeface. Two variable font files ship inside the
+application bundle, in assets/fonts:
+
+  InterVariable.woff2         upright, weight axis 100-900
+  InterVariable-Italic.woff2  italic, weight axis 100-900
+
+Both are taken unmodified from the Inter 4.1 release published by the Inter
+Project Authors at https://github.com/rsms/inter (Inter-4.1.zip, SHA-256
+9883fdd4a49d4fb66bd8177ba6625ef9a64aa45899767dde3d36aa425756b11e), and are
+licensed under the SIL Open Font License 1.1, included as Inter-LICENSE.txt
+beside this notice. The OFL permits bundling in and selling of an application;
+it forbids selling the fonts on their own, and reserves no name that would
+restrict this use.
 
 
 Karaoke Maker analysis components (Apache-2.0)

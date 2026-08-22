@@ -105,7 +105,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     margin: 0;
     color: $white;
     font-size: clamp(1.1rem, 2.6vh, 1.8rem);
-    font-weight: 800;
+    font-weight: $weight-heavy;
     text-shadow: 0 2px 18px rgba($black, 0.65);
   }
 
@@ -113,7 +113,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     margin: 2px 0 0;
     color: rgba($secondary-light, 0.92);
     font-size: clamp(0.8rem, 1.7vh, 1.05rem);
-    font-weight: 650;
+    font-weight: $weight-semibold;
   }
 
   small {

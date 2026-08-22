@@ -221,7 +221,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     min-height: $control-height-sm;
     gap: 6px;
     font-size: 0.68rem;
-    font-weight: 800;
+    font-weight: $weight-heavy;
 
     &:disabled {
       color: rgba($primary-lighter, 0.6);
@@ -579,7 +579,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   border-radius: $radius-pill;
   background: rgba($primary-dark, 0.24);
   font-size: 0.68rem;
-  font-weight: 700;
+  font-weight: $weight-bold;
 
   span {
     display: grid;
@@ -590,7 +590,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     border-radius: 50%;
     background: $secondary-default;
     font-size: 0.6rem;
-    font-weight: 950;
+    font-weight: $weight-display;
   }
 }
 
@@ -825,7 +825,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   span {
     overflow: hidden;
     font-size: 0.58rem;
-    font-weight: 820;
+    font-weight: $weight-heavy;
     letter-spacing: 0.025em;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -857,7 +857,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     border: 1px solid rgba($secondary-default, 0.25);
     border-radius: $radius-pill;
     font-size: 0.58rem;
-    font-weight: 850;
+    font-weight: $weight-heavy;
   }
 }
 
@@ -953,7 +953,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   span {
     font-size: 0.6rem;
-    font-weight: 820;
+    font-weight: $weight-heavy;
     letter-spacing: 0.035em;
     text-transform: uppercase;
   }
@@ -993,7 +993,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     overflow: hidden;
     color: inherit;
     font-size: 0.65rem;
-    font-weight: 760;
+    font-weight: $weight-bold;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
@@ -1001,7 +1001,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   small {
     color: $text-faint;
     font-size: 0.52rem;
-    font-weight: 780;
+    font-weight: $weight-heavy;
     letter-spacing: 0.06em;
     text-transform: uppercase;
   }
@@ -1124,7 +1124,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   background: rgba($surface-base, 0.9);
   backdrop-filter: blur(10px);
   font-size: 0.9rem;
-  font-weight: 850;
+  font-weight: $weight-heavy;
   letter-spacing: 0.03em;
   pointer-events: none;
 }
@@ -1200,7 +1200,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     margin-top: 18px;
     gap: 7px;
     font-size: 0.72rem;
-    font-weight: 850;
+    font-weight: $weight-heavy;
   }
 
   small {
@@ -1279,7 +1279,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     rgba($surface-base, 0.54);
   box-shadow: inset 0 1px 0 rgba($white, 0.05);
   font-size: 0.56rem;
-  font-weight: 850;
+  font-weight: $weight-heavy;
   letter-spacing: 0.035em;
   line-height: 1.2;
   text-align: center;
@@ -1344,7 +1344,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     padding: 0 13px;
     color: rgba($primary-lighter, 0.76);
     font-size: 0.62rem;
-    font-weight: 720;
+    font-weight: $weight-bold;
   }
 }
 
@@ -1371,7 +1371,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   small {
     color: rgba($primary-lighter, 0.5);
     font-size: 0.52rem;
-    font-weight: 760;
+    font-weight: $weight-bold;
     letter-spacing: 0.055em;
     line-height: 1.1;
     text-transform: uppercase;
@@ -1486,19 +1486,19 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   .is-small {
     font-size: 0.58rem;
-    font-weight: 720;
+    font-weight: $weight-bold;
   }
 
   .is-large {
     color: $secondary-light;
     font-size: 0.84rem;
-    font-weight: 840;
+    font-weight: $weight-heavy;
   }
 
   .karaoke-song__text-value {
     color: rgba($primary-lighter, 0.72);
     font-size: 0.57rem;
-    font-weight: 780;
+    font-weight: $weight-heavy;
     text-align: right;
     font-variant-numeric: tabular-nums;
   }
@@ -1734,7 +1734,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       place-items: center;
       color: #bafff7;
       font-size: 0.72rem;
-      font-weight: 850;
+      font-weight: $weight-heavy;
       line-height: 1;
       background: #0a3846;
       border: 1px solid rgba(105, 246, 233, 0.38);
@@ -1749,7 +1749,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       padding: 6px 8px;
       color: #dcfffb;
       font-size: 0.8rem;
-      font-weight: 750;
+      font-weight: $weight-bold;
       line-height: 1;
       white-space: nowrap;
       pointer-events: none;
@@ -2060,7 +2060,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .karaoke-transport__mix-title {
   color: $text-primary;
   font-size: 0.7rem;
-  font-weight: 850;
+  font-weight: $weight-heavy;
   letter-spacing: 0.02em;
 }
 
@@ -2089,7 +2089,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     overflow: hidden;
     color: $text-muted;
     font-size: 0.62rem;
-    font-weight: 760;
+    font-weight: $weight-bold;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
@@ -2434,7 +2434,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     > span {
       color: $text-faint;
       font-size: 0.58rem;
-      font-weight: 750;
+      font-weight: $weight-bold;
       letter-spacing: 0.08em;
       text-transform: uppercase;
     }
@@ -2456,7 +2456,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     gap: 6px;
     padding: 7px 12px;
     font-size: 0.66rem;
-    font-weight: 850;
+    font-weight: $weight-heavy;
     white-space: nowrap;
 
     &:disabled {
@@ -2481,7 +2481,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   gap: 10px;
   color: $text-faint;
   font-size: 0.58rem;
-  font-weight: 760;
+  font-weight: $weight-bold;
   letter-spacing: 0.04em;
 
   strong {
@@ -2527,7 +2527,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   border-radius: $radius-s;
   background: rgba(#071321, 0.36);
   font-size: 0.6rem;
-  font-weight: 760;
+  font-weight: $weight-bold;
 
   input[type='range'] {
     --karaoke-gain-position: 50%;
@@ -2748,7 +2748,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     border-radius: $radius-pill;
     background: rgba($secondary-default, 0.065);
     font-size: 0.52rem;
-    font-weight: 800;
+    font-weight: $weight-heavy;
     letter-spacing: 0.04em;
     text-overflow: ellipsis;
     text-transform: uppercase;
@@ -2861,7 +2861,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   strong {
     color: $secondary-light;
     font-size: clamp(2.5rem, 7vh, 4.8rem);
-    font-weight: 950;
+    font-weight: $weight-display;
     line-height: 1;
     text-shadow: 0 0 28px rgba($secondary-default, 0.55);
     animation: karaoke-count-in-cue 550ms cubic-bezier(0.22, 1, 0.36, 1);
@@ -2871,7 +2871,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     margin-top: 8px;
     color: $text-muted;
     font-size: 0.66rem;
-    font-weight: 720;
+    font-weight: $weight-bold;
   }
 }
 
@@ -2928,7 +2928,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     border: 1px solid rgba($primary-lighter, 0.12);
     border-radius: $radius-pill;
     font-size: 0.58rem;
-    font-weight: 800;
+    font-weight: $weight-heavy;
     letter-spacing: 0.08em;
     text-transform: uppercase;
 
@@ -3350,7 +3350,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     &.is-primary,
     &.is-active {
       color: #041f25;
-      font-weight: 700;
+      font-weight: $weight-bold;
       background: linear-gradient(135deg, #64fff0, #10d7c7 72%);
       border-color: rgba(137, 255, 246, 0.82);
     }
@@ -3601,7 +3601,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .karaoke-maker__eyebrow {
   color: #2fe4d2;
   font-size: 0.76rem;
-  font-weight: 800;
+  font-weight: $weight-heavy;
   letter-spacing: 0.14em;
 }
 
@@ -3611,7 +3611,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   padding: 2px 0;
   color: #f1fbff;
   font-size: 15px;
-  font-weight: 750;
+  font-weight: $weight-bold;
   background: transparent;
   border: 0;
   outline: 0;
@@ -3658,7 +3658,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     padding: 5px 7px;
     color: #e4fffc;
     font-size: 0.76rem;
-    font-weight: 700;
+    font-weight: $weight-bold;
     white-space: nowrap;
     pointer-events: none;
     visibility: hidden;
@@ -3879,7 +3879,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     padding: 6px 8px;
     color: #dffcfb;
     font-size: 0.8rem;
-    font-weight: 700;
+    font-weight: $weight-bold;
     line-height: 1.2;
     white-space: nowrap;
     pointer-events: none;
@@ -4046,7 +4046,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     overflow: hidden;
     color: #dcf4f2;
     font-size: 0.78rem;
-    font-weight: 600;
+    font-weight: $weight-semibold;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
@@ -4113,7 +4113,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     padding: 0 8px;
     color: #89f5e8;
     font-size: 0.76rem;
-    font-weight: 800;
+    font-weight: $weight-heavy;
     background: rgba(24, 96, 103, 0.24);
     border: 1px solid rgba(64, 219, 205, 0.26);
     border-radius: 8px;
@@ -4128,7 +4128,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     padding: 0 8px;
     color: #aef8f1;
     font-size: 0.76rem;
-    font-weight: 760;
+    font-weight: $weight-bold;
     background: rgba(15, 65, 77, 0.55);
     border: 1px solid rgba(67, 194, 190, 0.27);
     border-radius: 7px;
@@ -4169,7 +4169,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .karaoke-maker__memory-delay > span {
   color: rgba(156, 193, 204, 0.72);
   font-size: 0.72rem;
-  font-weight: 700;
+  font-weight: $weight-bold;
   letter-spacing: 0.05em;
   text-transform: uppercase;
 }
@@ -4186,7 +4186,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     padding: 0 9px;
     color: rgba(185, 220, 226, 0.78);
     font-size: 0.76rem;
-    font-weight: 650;
+    font-weight: $weight-semibold;
     background: rgba(4, 23, 36, 0.55);
     border: 1px solid rgba(97, 157, 174, 0.16);
     border-radius: 7px;
@@ -4237,7 +4237,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   padding: 1px 3px;
   color: rgba(210, 234, 240, 0.8);
   font-size: 0.84rem;
-  font-weight: 800;
+  font-weight: $weight-heavy;
 
   svg {
     width: 15px;
@@ -4556,7 +4556,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   place-items: center;
   color: #eafffb;
   font-size: clamp(56px, 10vw, 150px);
-  font-weight: 900;
+  font-weight: $weight-display;
   text-shadow:
     0 0 12px #16d9c7,
     0 0 46px rgba(27, 235, 215, 0.7);
@@ -4592,7 +4592,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   span {
     color: rgba(135, 178, 195, 0.54);
     font-size: 0.72rem;
-    font-weight: 800;
+    font-weight: $weight-heavy;
     letter-spacing: 0.11em;
     text-transform: uppercase;
   }
@@ -4718,7 +4718,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   min-width: max-content;
   color: #d9fffb !important;
   font-size: 0.76rem;
-  font-weight: 760;
+  font-weight: $weight-bold;
   text-shadow: 0 0 9px rgba($secondary-default, 0.22);
 
   span {
@@ -4787,7 +4787,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     padding: 3px 5px 3px 10px;
     color: rgba(204, 235, 241, 0.82);
     font-size: 0.8rem;
-    font-weight: 760;
+    font-weight: $weight-bold;
     letter-spacing: 0.04em;
     text-transform: uppercase;
 
@@ -4873,7 +4873,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   > span {
     font-size: 0.48rem;
-    font-weight: 760;
+    font-weight: $weight-bold;
   }
 
   > strong {
@@ -4902,7 +4902,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   padding: 0 9px !important;
   color: rgba($secondary-light, 0.84) !important;
   font-size: 0.76rem !important;
-  font-weight: 730;
+  font-weight: $weight-bold;
   letter-spacing: 0 !important;
   text-transform: none;
   background: linear-gradient(
@@ -5087,7 +5087,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     color: #032925;
     font-family: inherit;
     font-size: 12px;
-    font-weight: 950;
+    font-weight: $weight-display;
     letter-spacing: 0.02em;
     background: linear-gradient(145deg, #8cfff5, #28dfcf);
     border: 1px solid rgba($white, 0.82);
@@ -5116,7 +5116,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   > span {
     color: rgba($secondary-light, 0.65);
     font-size: 0.76rem;
-    font-weight: 900;
+    font-weight: $weight-display;
     letter-spacing: 0.1em;
     text-transform: uppercase;
   }
@@ -5142,7 +5142,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   > small {
     color: rgba($primary-lighter, 0.94);
     font-size: 12px;
-    font-weight: 820;
+    font-weight: $weight-heavy;
   }
 
   > em {
@@ -5161,7 +5161,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     padding: 5px 8px;
     color: rgba($primary-lighter, 0.42);
     font-size: 0.76rem;
-    font-weight: 900;
+    font-weight: $weight-display;
     letter-spacing: 0.07em;
     background: rgba(#031522, 0.68);
     border: 1px solid rgba($secondary-light, 0.13);
@@ -5206,7 +5206,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     gap: 4px;
     color: rgba($primary-lighter, 0.72);
     font-size: 0.8rem;
-    font-weight: 760;
+    font-weight: $weight-bold;
     white-space: nowrap;
   }
 
@@ -5220,7 +5220,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     color: rgba($primary-lighter, 0.82);
     font-family: inherit;
     font-size: 0.76rem;
-    font-weight: 900;
+    font-weight: $weight-display;
     background: rgba(#051a2a, 0.88);
     border: 1px solid rgba($secondary-light, 0.2);
     border-radius: 6px;
@@ -5292,7 +5292,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   > span {
     color: rgba($secondary-light, 0.7);
     font-size: 0.76rem;
-    font-weight: 900;
+    font-weight: $weight-display;
     letter-spacing: 0.12em;
     text-transform: uppercase;
   }
@@ -5316,7 +5316,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     color: #a9fff6;
     font-size: 11px;
     font-style: normal;
-    font-weight: 850;
+    font-weight: $weight-heavy;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
@@ -5332,7 +5332,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   padding: 0 17px;
   color: #032a27;
   font-size: 11px;
-  font-weight: 950;
+  font-weight: $weight-display;
   background: linear-gradient(145deg, #8efff5, #25ddcd);
   border: 1px solid rgba($white, 0.78);
   border-radius: 13px;
@@ -5375,7 +5375,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   > strong {
     font-size: clamp(64px, 12vw, 138px);
-    font-weight: 950;
+    font-weight: $weight-display;
     line-height: 0.9;
     text-shadow:
       0 0 16px rgba($secondary-light, 0.95),
@@ -5385,7 +5385,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   > span {
     color: rgba($primary-lighter, 0.82);
     font-size: 12px;
-    font-weight: 850;
+    font-weight: $weight-heavy;
     letter-spacing: 0.04em;
   }
 }
@@ -5650,7 +5650,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     padding: 0 10px;
     color: #b9fbf5;
     font-size: 0.84rem;
-    font-weight: 760;
+    font-weight: $weight-bold;
     background: linear-gradient(
       180deg,
       rgba(21, 80, 94, 0.68),
@@ -5695,7 +5695,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   > span {
     color: rgba($secondary-light, 0.74);
     font-size: 0.76rem;
-    font-weight: 950;
+    font-weight: $weight-display;
     letter-spacing: 0.12em;
     text-transform: uppercase;
   }
@@ -5726,7 +5726,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   padding: 4px 10px;
   color: #eafffd;
   font-size: 22px;
-  font-weight: 850;
+  font-weight: $weight-heavy;
   background: rgba(3, 20, 31, 0.74);
   border: 1px solid rgba(74, 188, 194, 0.2);
   border-radius: 11px;
@@ -5785,7 +5785,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     flex: 0 0 auto;
     color: rgba($primary-lighter, 0.52);
     font-size: 0.76rem;
-    font-weight: 850;
+    font-weight: $weight-heavy;
     text-transform: uppercase;
   }
 
@@ -5980,7 +5980,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   > span {
     color: rgba($secondary-light, 0.78);
     font-size: 0.84rem;
-    font-weight: 950;
+    font-weight: $weight-display;
     letter-spacing: 0.12em;
     text-transform: uppercase;
   }
@@ -6015,13 +6015,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     color: #affff8;
     font-size: 13px;
     font-style: normal;
-    font-weight: 900;
+    font-weight: $weight-display;
   }
 
   > small {
     color: rgba($primary-lighter, 0.54);
     font-size: 11px;
-    font-weight: 720;
+    font-weight: $weight-bold;
   }
 }
 
@@ -6034,7 +6034,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   padding: 0 20px;
   color: #032a27;
   font-size: 13px;
-  font-weight: 950;
+  font-weight: $weight-display;
   background: linear-gradient(145deg, #9bfff7, #27dfcf);
   border: 1px solid rgba($white, 0.82);
   border-radius: 14px;
@@ -6065,7 +6065,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     color: rgba(#032a27, 0.86);
     font-family: inherit;
     font-size: 0.8rem;
-    font-weight: 950;
+    font-weight: $weight-display;
     background: rgba($white, 0.28);
     border: 1px solid rgba(#064d47, 0.22);
     border-radius: 7px;
@@ -6088,7 +6088,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   color: #dffffc;
   font-family: inherit;
   font-size: 11px;
-  font-weight: 950;
+  font-weight: $weight-display;
   background: linear-gradient(180deg, rgba(#175b5a, 0.88), rgba(#073331, 0.92));
   border: 1px solid rgba($secondary-light, 0.48);
   border-radius: 9px;
@@ -6118,7 +6118,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     gap: 7px;
     padding-inline: 11px;
     font-size: 11px;
-    font-weight: 880;
+    font-weight: $weight-display;
 
     svg {
       width: 17px;
@@ -6193,7 +6193,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       overflow: hidden;
       color: rgba($primary-lighter, 0.72);
       font-size: 0.8rem;
-      font-weight: 780;
+      font-weight: $weight-heavy;
       line-height: 1.2;
       text-overflow: ellipsis;
     }
@@ -6208,7 +6208,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     color: $white;
     font-family: inherit;
     font-size: 0.84rem;
-    font-weight: 950;
+    font-weight: $weight-display;
     background: linear-gradient(
       180deg,
       rgba(#19495c, 0.92),
@@ -6234,7 +6234,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     padding: 7px 10px;
     color: rgba($primary-lighter, 0.48);
     font-size: 0.8rem;
-    font-weight: 950;
+    font-weight: $weight-display;
     letter-spacing: 0.07em;
     background: rgba(#031522, 0.68);
     border: 1px solid rgba($secondary-light, 0.16);
@@ -6282,7 +6282,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   > span {
     color: rgba($primary-lighter, 0.78);
     font-size: 12px;
-    font-weight: 850;
+    font-weight: $weight-heavy;
   }
 }
 
@@ -6404,13 +6404,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     max-width: 34%;
     color: rgba($primary-lighter, 0.5);
     font-size: 0.52rem;
-    font-weight: 650;
+    font-weight: $weight-semibold;
   }
 
   strong {
     color: rgba($primary-lighter, 0.7);
     font-size: 0.57rem;
-    font-weight: 760;
+    font-weight: $weight-bold;
   }
 }
 
@@ -6526,7 +6526,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     > span {
       color: rgba($secondary-light, 0.68);
       font-size: 0.76rem;
-      font-weight: 900;
+      font-weight: $weight-display;
       letter-spacing: 0.08em;
       text-transform: uppercase;
     }
@@ -6570,7 +6570,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     > span {
       color: rgba(169, 203, 215, 0.58);
       font-size: 0.72rem;
-      font-weight: 800;
+      font-weight: $weight-heavy;
       letter-spacing: 0.05em;
       text-transform: uppercase;
     }
@@ -6800,7 +6800,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   margin: 0;
   color: rgba(223, 252, 249, 0.72);
   font-size: 0.78rem;
-  font-weight: 700;
+  font-weight: $weight-bold;
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
@@ -7032,7 +7032,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 .karaoke-maker__wizard-step-done {
   color: $secondary-light;
-  font-weight: 700;
+  font-weight: $weight-bold;
 }
 
 @keyframes karaoke-wizard-spin {
@@ -7302,7 +7302,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   span {
     color: $secondary-light;
     font-size: 0.84rem;
-    font-weight: 800;
+    font-weight: $weight-heavy;
     font-variant-numeric: tabular-nums;
   }
 }
@@ -7326,7 +7326,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   span {
     color: inherit;
     font-size: inherit;
-    font-weight: 650;
+    font-weight: $weight-semibold;
   }
 }
 
@@ -7391,7 +7391,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       place-items: center;
       color: rgba(178, 213, 222, 0.55);
       font-size: 0.76rem;
-      font-weight: 850;
+      font-weight: $weight-heavy;
       background: rgba(92, 139, 158, 0.11);
       border: 1px solid rgba(112, 166, 183, 0.2);
       border-radius: 50%;
@@ -7401,7 +7401,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       overflow: hidden;
       font-size: 0.76rem;
       font-style: normal;
-      font-weight: 700;
+      font-weight: $weight-bold;
       text-overflow: ellipsis;
       white-space: nowrap;
     }
@@ -7496,7 +7496,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   place-items: center;
   color: #fff;
   font-size: 15px;
-  font-weight: 900;
+  font-weight: $weight-display;
   background: rgba(255, 74, 101, 0.2);
   border: 1px solid rgba(255, 117, 137, 0.5);
   border-radius: 50%;
@@ -7566,7 +7566,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   padding: 7px 11px;
   color: rgba($white, 0.92);
   font-size: 0.8rem;
-  font-weight: 680;
+  font-weight: $weight-bold;
   pointer-events: none;
   background: rgba(5, 31, 44, 0.92);
   border: 1px solid rgba($secondary-light, 0.32);
@@ -7780,7 +7780,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     padding: 0 8px;
     color: #b9f8f2;
     font-size: 0.76rem;
-    font-weight: 800;
+    font-weight: $weight-heavy;
     background: rgba(14, 61, 76, 0.62);
     border: 1px solid rgba(62, 213, 199, 0.3);
     border-radius: 8px;
@@ -7847,7 +7847,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
     &.is-selected {
       color: #041b25;
-      font-weight: 800;
+      font-weight: $weight-heavy;
       background: linear-gradient(135deg, #67fff1, #28d7c7);
       border-color: rgba(201, 255, 249, 0.72);
     }
@@ -7857,7 +7857,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     min-height: 27px;
     color: #7cebe1;
     font-size: 0.8rem;
-    font-weight: 800;
+    font-weight: $weight-heavy;
     letter-spacing: 0.08em;
     text-transform: uppercase;
   }
@@ -7922,7 +7922,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     span {
       color: rgba(169, 203, 215, 0.58);
       font-size: 0.8rem;
-      font-weight: 800;
+      font-weight: $weight-heavy;
       letter-spacing: 0.07em;
       text-transform: uppercase;
     }
@@ -7964,7 +7964,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       min-width: 62px;
       color: rgba(210, 235, 240, 0.82);
       font-size: 0.84rem;
-      font-weight: 750;
+      font-weight: $weight-bold;
       text-align: center;
     }
   }
@@ -7982,7 +7982,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     span {
       color: rgba(169, 203, 215, 0.58);
       font-size: 0.8rem;
-      font-weight: 800;
+      font-weight: $weight-heavy;
       text-transform: uppercase;
     }
   }
@@ -8019,7 +8019,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     padding: 0 11px;
     color: #acf9f2;
     font-size: 0.84rem;
-    font-weight: 750;
+    font-weight: $weight-bold;
     background: rgba(14, 67, 76, 0.66);
     border: 1px solid rgba(56, 199, 189, 0.26);
     border-radius: 8px;
@@ -8032,7 +8032,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   button.is-primary {
     color: #022421;
-    font-weight: 900;
+    font-weight: $weight-display;
     background: linear-gradient(135deg, #66fff2, #1edac9);
     border-color: rgba(126, 255, 244, 0.84);
     box-shadow: 0 0 14px rgba(35, 228, 211, 0.14);
@@ -8042,7 +8042,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     margin-left: auto;
     color: rgba(181, 216, 225, 0.65);
     font-size: 0.84rem;
-    font-weight: 700;
+    font-weight: $weight-bold;
 
     &.is-untimed {
       color: #ffbd7b;
@@ -8557,7 +8557,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       gap: 8px;
       color: rgba(171, 211, 220, 0.68);
       font-size: 0.76rem;
-      font-weight: 850;
+      font-weight: $weight-heavy;
       letter-spacing: 0.05em;
       text-transform: uppercase;
     }

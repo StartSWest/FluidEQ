@@ -80,7 +80,7 @@ it under the terms of the GNU General Public License version 3 or later.
     margin: 0;
     color: $white;
     font-size: 0.74rem;
-    font-weight: 700;
+    font-weight: $weight-bold;
     letter-spacing: 0.02em;
   }
 }
@@ -161,7 +161,7 @@ it under the terms of the GNU General Public License version 3 or later.
   margin: 4px 0 0;
   color: #ffcc4d;
   font-size: 0.58rem;
-  font-weight: 700;
+  font-weight: $weight-bold;
   letter-spacing: 0.09em;
   text-transform: uppercase;
 }
@@ -182,7 +182,7 @@ it under the terms of the GNU General Public License version 3 or later.
   gap: 8px;
   color: rgba($primary-lighter, 0.78);
   font-size: 0.64rem;
-  font-weight: 600;
+  font-weight: $weight-semibold;
   letter-spacing: 0.02em;
 }
 
@@ -193,7 +193,7 @@ it under the terms of the GNU General Public License version 3 or later.
 .look-designer__value {
   color: $white;
   font-variant-numeric: tabular-nums;
-  font-weight: 700;
+  font-weight: $weight-bold;
 }
 
 .look-designer__hint {
@@ -272,7 +272,7 @@ it under the terms of the GNU General Public License version 3 or later.
   height: 24px;
   padding-inline: 8px;
   font-size: 0.62rem;
-  font-weight: 650;
+  font-weight: $weight-semibold;
 
   &.is-on {
     color: $white;
@@ -452,7 +452,7 @@ it under the terms of the GNU General Public License version 3 or later.
   color: rgba($secondary-light, 0.85);
   font: inherit;
   font-size: 0.58rem;
-  font-weight: 600;
+  font-weight: $weight-semibold;
   text-decoration: underline;
   text-underline-offset: 3px;
   cursor: pointer;
@@ -557,7 +557,7 @@ it under the terms of the GNU General Public License version 3 or later.
   height: 26px;
   padding-inline: 8px;
   font-size: 0.62rem;
-  font-weight: 650;
+  font-weight: $weight-semibold;
   white-space: nowrap;
 
   &--primary {

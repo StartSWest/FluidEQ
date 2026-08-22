@@ -95,7 +95,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   gap: 10px;
   color: $text-muted;
   font-size: 0.66rem;
-  font-weight: 700;
+  font-weight: $weight-bold;
   grid-column: 1 / -1;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -279,14 +279,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     justify-content: space-between;
     color: rgba($primary-lighter, 0.82);
     font-size: 0.74rem;
-    font-weight: 700;
+    font-weight: $weight-bold;
   }
 
   output {
     color: $secondary-light;
     font-size: 0.98rem;
     font-variant-numeric: tabular-nums;
-    font-weight: 800;
+    font-weight: $weight-heavy;
   }
 
   // A plain horizontal slider: this is not one of the vertical band rails, so

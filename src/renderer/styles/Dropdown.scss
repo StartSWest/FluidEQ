@@ -208,7 +208,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   gap: $spacing-s;
   color: rgba($primary-lighter, 0.62);
   font-size: 0.58rem;
-  font-weight: 700;
+  font-weight: $weight-bold;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 

@@ -35,7 +35,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   box-shadow:
     0 8px 22px rgba($secondary-default, 0.12),
     inset 0 1px 0 rgba($white, 0.36);
-  font-weight: 700;
+  font-weight: $weight-bold;
   line-height: 1.15;
   white-space: nowrap;
   cursor: pointer;

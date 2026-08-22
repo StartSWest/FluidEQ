@@ -281,14 +281,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     gap: 7px;
     color: $white;
     font-size: 1.12rem;
-    font-weight: 700;
+    font-weight: $weight-bold;
 
     // Ticker, so a donor can match the chain at a glance.
     em {
       color: rgba($secondary-light, 0.7);
       font-size: 0.62rem;
       font-style: normal;
-      font-weight: 800;
+      font-weight: $weight-heavy;
       letter-spacing: 0.06em;
     }
   }
@@ -336,7 +336,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     padding: 6px 12px;
     border-radius: $radius-xs;
     font-size: 0.8rem;
-    font-weight: 700;
+    font-weight: $weight-bold;
     text-decoration: none;
   }
 }
@@ -448,7 +448,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   border-radius: $radius-xs;
   border-style: dashed;
   font-size: 0.82rem;
-  font-weight: 700;
+  font-weight: $weight-bold;
 }
 
 // A status, not a control. Centred inside a full-width bordered box it read
@@ -470,7 +470,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     rgba($neon-yellow, 0.03)
   );
   font-size: 0.86rem;
-  font-weight: 700;
+  font-weight: $weight-bold;
   line-height: 1.45;
 
   &::before {
@@ -491,7 +491,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   border: 0;
   background: transparent;
   font-size: 0.82rem;
-  font-weight: 700;
+  font-weight: $weight-bold;
   text-align: left;
   cursor: pointer;
 
@@ -868,7 +868,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   margin-bottom: 2px;
   color: rgba($primary-lighter, 0.72);
   font-size: 0.82rem;
-  font-weight: 700;
+  font-weight: $weight-bold;
   gap: 9px;
   letter-spacing: 0.02em;
 
@@ -898,5 +898,5 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   margin-left: 6px;
   color: rgba($primary-lighter, 0.45);
   font-size: 0.68rem;
-  font-weight: 500;
+  font-weight: $weight-medium;
 }

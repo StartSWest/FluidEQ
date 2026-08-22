@@ -32,7 +32,7 @@ it under the terms of the GNU General Public License version 3 or later.
     @include truncate;
     color: rgba($white, 0.92);
     font-size: 0.76rem;
-    font-weight: 650;
+    font-weight: $weight-semibold;
   }
 
   small {
@@ -54,14 +54,14 @@ it under the terms of the GNU General Public License version 3 or later.
     justify-content: space-between;
     color: rgba($primary-lighter, 0.82);
     font-size: 0.7rem;
-    font-weight: 700;
+    font-weight: $weight-bold;
   }
 
   output {
     color: $secondary-light;
     font-size: 0.88rem;
     font-variant-numeric: tabular-nums;
-    font-weight: 800;
+    font-weight: $weight-heavy;
   }
 
   // Same hand-painted track as the voicing slider, so the two controls that do
@@ -218,7 +218,7 @@ it under the terms of the GNU General Public License version 3 or later.
   color: rgba($white, 0.86);
   font-size: 0.66rem;
   font-variant-numeric: tabular-nums;
-  font-weight: 700;
+  font-weight: $weight-bold;
 }
 
 .driver-filter__gain {
@@ -232,7 +232,7 @@ it under the terms of the GNU General Public License version 3 or later.
   background: rgba($secondary-default, 0.12);
   font-size: 0.6rem;
   font-variant-numeric: tabular-nums;
-  font-weight: 700;
+  font-weight: $weight-bold;
   white-space: nowrap;
 
   // Cuts and boosts should be distinguishable without reading the sign.

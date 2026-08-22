@@ -515,7 +515,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // Scales with the cover, within reason: a fixed 0.76rem under a 420px
   // sleeve reads as a caption that lost its picture.
   font-size: clamp(0.78rem, calc(var(--cover-flow-size) * 0.052), 1.15rem);
-  font-weight: 750;
+  font-weight: $weight-bold;
   text-align: center;
 }
 
@@ -600,7 +600,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   background: none;
   color: rgba($primary-lighter, 0.62);
   font-size: 0.64rem;
-  font-weight: 700;
+  font-weight: $weight-bold;
   line-height: 1.4;
   cursor: pointer;
   transition:

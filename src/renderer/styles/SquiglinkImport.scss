@@ -68,7 +68,7 @@
   border-radius: $radius-pill;
   background: rgba($secondary-default, 0.11);
   font-size: 0.68rem;
-  font-weight: 700;
+  font-weight: $weight-bold;
   text-decoration: none;
   transition:
     background 120ms ease,
@@ -124,7 +124,7 @@
     border-radius: $radius-pill;
     background: $secondary-light;
     font-size: 0.61rem;
-    font-weight: 800;
+    font-weight: $weight-heavy;
   }
 }
 
@@ -157,7 +157,7 @@
   label {
     color: rgba($white, 0.84);
     font-size: 0.7rem;
-    font-weight: 700;
+    font-weight: $weight-bold;
   }
 
   textarea {
@@ -208,7 +208,7 @@
     box-shadow: none;
     font: inherit;
     font-size: 0.66rem;
-    font-weight: 700;
+    font-weight: $weight-bold;
     transition: $transition-control;
 
     .menu-icon {
@@ -282,7 +282,7 @@
   gap: 5px;
   color: $secondary-light;
   font-size: 0.61rem;
-  font-weight: 800;
+  font-weight: $weight-heavy;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 

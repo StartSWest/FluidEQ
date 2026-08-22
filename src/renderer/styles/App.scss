@@ -38,6 +38,45 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 @use 'spacing' as *;
 @use 'theme' as *;
 
+// *** Fonts ******************************************************************
+
+// Inter, shipped rather than merely asked for.
+//
+// The stack below has named Inter first since this file was written and nothing
+// ever bundled it, so every glyph in the app fell through to Segoe UI. Measured
+// in the running window: Segoe UI sets the same string 13.4% wider than Inter
+// (566.75px against 499.95px for "Multimedia" at 100px), which made every
+// padding and letter-spacing value here a measurement taken against a font that
+// was never on screen.
+//
+// It is the variable file and not the static cuts because of what the weights
+// do otherwise. Segoe UI offers four usable cuts, and CSS weight matching snaps
+// 800 and above onto `Segoe UI Black` — a separate poster design with closed
+// counters, not a heavier cut of the text face. Measured the same way: the
+// eighteen distinct weights this app declares rendered as exactly four faces,
+// and every declaration at 800+ got Black, which is what made the titlebar tabs
+// look flattened. A continuous 100–900 axis makes the numbers mean what they
+// say.
+//
+// `block` rather than `swap`: the file is in the bundle with no network to wait
+// on, and swapping would flash Segoe UI's wider metrics on first paint for no
+// benefit.
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 100 900;
+  src: url('../../../assets/fonts/InterVariable.woff2') format('woff2');
+  font-display: block;
+}
+
+@font-face {
+  font-family: 'Inter';
+  font-style: italic;
+  font-weight: 100 900;
+  src: url('../../../assets/fonts/InterVariable-Italic.woff2') format('woff2');
+  font-display: block;
+}
+
 // *** Document ***************************************************************
 
 *,
@@ -232,7 +271,7 @@ select option {
 .control-kicker {
   color: $secondary-light;
   font-size: 0.58rem;
-  font-weight: 750;
+  font-weight: $weight-bold;
   letter-spacing: 0.16em;
   text-shadow: 0 0 16px rgba($secondary-default, 0.35);
 }
@@ -861,7 +900,7 @@ select option {
   align-items: baseline;
   gap: 7px;
   font-size: 1.2rem;
-  font-weight: 750;
+  font-weight: $weight-bold;
   letter-spacing: -0.02em;
 }
 
@@ -968,7 +1007,7 @@ select option {
   background: rgba($secondary-default, 0.1);
   font-size: 0.58rem;
   font-variant-numeric: tabular-nums;
-  font-weight: 700;
+  font-weight: $weight-bold;
   letter-spacing: 0.02em;
 }
 
@@ -1234,7 +1273,7 @@ select option {
   border: 1px solid rgba($red, 0.45);
   border-radius: $radius-pill;
   font-size: 0.6rem;
-  font-weight: 700;
+  font-weight: $weight-bold;
   letter-spacing: 0.04em;
   white-space: nowrap;
 }
@@ -1668,7 +1707,12 @@ $tab-border: rgba($secondary-light, 0.2);
   background: none;
   color: rgba($primary-lighter, 0.66);
   font-size: 0.74rem;
-  font-weight: 800;
+  // Bold, not heavy. These are four words of navigation, and the lit pill
+  // behind them is what marks the chosen one — a heavier face only competed
+  // with it. Heavy was also where the old fallback tipped over into
+  // `Segoe UI Black`, which is what made these read as squashed at the larger
+  // titlebar size below.
+  font-weight: $weight-bold;
   letter-spacing: 0.01em;
   white-space: nowrap;
   cursor: pointer;
@@ -2454,7 +2498,7 @@ button.graph-legend {
   border-radius: $radius-pill;
   background: rgba($red, 0.22);
   font-size: 0.58rem;
-  font-weight: 800;
+  font-weight: $weight-heavy;
   letter-spacing: 0.08em;
   white-space: nowrap;
   animation: clip-pulse 900ms ease-in-out infinite;
@@ -3080,7 +3124,7 @@ button.graph-legend {
   padding-inline: 6px;
   color: rgba($primary-lighter, 0.5);
   font-size: 0.58rem;
-  font-weight: 700;
+  font-weight: $weight-bold;
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
@@ -3199,7 +3243,7 @@ button.graph-legend {
   background: none;
   color: rgba($primary-lighter, 0.5);
   font-size: 0.64rem;
-  font-weight: 700;
+  font-weight: $weight-bold;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   white-space: nowrap;

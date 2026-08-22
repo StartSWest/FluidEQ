@@ -334,7 +334,7 @@ $now-playing-bar-height: 64px;
   @include truncate;
   color: $text-primary;
   font-size: 0.78rem;
-  font-weight: 750;
+  font-weight: $weight-bold;
 }
 
 .now-playing-bar__artist {
@@ -361,7 +361,7 @@ $now-playing-bar-height: 64px;
 // artist and must not outrank either.
 .now-playing-bar__measure {
   color: rgba($secondary-light, 0.92);
-  font-weight: 500;
+  font-weight: $weight-medium;
 }
 
 // The tab's name, on the line the library spends on the codec, and in the
@@ -370,7 +370,7 @@ $now-playing-bar-height: 64px;
 // which is worth reading once and then recognising by its colour.
 .now-playing-bar__context {
   color: rgba($secondary-light, 0.92);
-  font-weight: 600;
+  font-weight: $weight-semibold;
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
@@ -379,7 +379,7 @@ $now-playing-bar-height: 64px;
   flex: 0 0 auto;
   color: $red;
   font-size: 0.6rem;
-  font-weight: 700;
+  font-weight: $weight-bold;
   white-space: nowrap;
 }
 
@@ -682,7 +682,7 @@ $now-playing-bar-height: 64px;
     place-items: center;
     color: #bafff7;
     font-size: 0.62rem;
-    font-weight: 850;
+    font-weight: $weight-heavy;
     line-height: 1;
     background: #0a3846;
     border: 1px solid rgba(105, 246, 233, 0.38);
@@ -787,7 +787,7 @@ $now-playing-bar-height: 64px;
   fill: currentcolor;
   stroke: none;
   font-size: 9px;
-  font-weight: 800;
+  font-weight: $weight-heavy;
 }
 
 // Half a step quieter than Play and the skips: these are conveniences beside

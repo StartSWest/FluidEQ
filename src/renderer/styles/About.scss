@@ -152,13 +152,13 @@ it under the terms of the GNU General Public License version 3 or later.
   gap: $spacing-xs;
   color: rgba($white, 0.95);
   font-size: 1rem;
-  font-weight: 700;
+  font-weight: $weight-bold;
 }
 
 .about__version {
   color: rgba($primary-lighter, 0.62);
   font-size: 0.68rem;
-  font-weight: 600;
+  font-weight: $weight-semibold;
   letter-spacing: 0.04em;
 }
 
@@ -175,7 +175,7 @@ it under the terms of the GNU General Public License version 3 or later.
     margin: 0 0 4px;
     color: rgba($white, 0.9);
     font-size: 0.7rem;
-    font-weight: 750;
+    font-weight: $weight-bold;
     letter-spacing: 0.12em;
     text-transform: uppercase;
   }

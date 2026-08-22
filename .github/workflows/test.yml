@@ -25,6 +25,12 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      # Ahead of the build because it is seconds and the build is minutes, and
+      # a stylesheet that does not compile is thrown away silently rather than
+      # failing the bundle.
+      - name: Check the stylesheets
+        run: pnpm typecheck:styles
+
       - name: Build production bundles
         run: pnpm build
 

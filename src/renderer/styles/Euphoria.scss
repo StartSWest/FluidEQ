@@ -419,7 +419,7 @@ it under the terms of the GNU General Public License version 3 or later.
   border-radius: $radius-pill;
   background: hsl(var(--euphoria-hue, 160deg) 95% 62%);
   font-size: 0.55rem;
-  font-weight: 800;
+  font-weight: $weight-heavy;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   white-space: nowrap;

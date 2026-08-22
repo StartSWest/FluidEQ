@@ -74,7 +74,7 @@ it under the terms of the GNU General Public License version 3 or later.
   margin-right: 2px;
   color: rgba($primary-lighter, 0.6);
   font-size: 0.6rem;
-  font-weight: 750;
+  font-weight: $weight-bold;
   letter-spacing: 0.14em;
   text-transform: uppercase;
 }
@@ -193,7 +193,7 @@ it under the terms of the GNU General Public License version 3 or later.
 .active-layer__label {
   flex: 0 0 auto;
   color: rgba($secondary-light, 0.85);
-  font-weight: 700;
+  font-weight: $weight-bold;
 }
 
 // The only part allowed to shorten: a convolution name can be very long, and

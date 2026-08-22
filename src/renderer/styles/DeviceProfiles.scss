@@ -62,7 +62,7 @@ it under the terms of the GNU General Public License version 3 or later.
   margin-top: 3px;
   color: rgba($primary-lighter, 0.74);
   font-size: 0.67rem;
-  font-weight: 650;
+  font-weight: $weight-semibold;
 }
 
 .device-profiles__mapping {
@@ -106,7 +106,7 @@ it under the terms of the GNU General Public License version 3 or later.
   background: $analogous-2;
   box-shadow: 0 0 16px rgba($secondary-default, 0.18);
   font-size: 0.62rem;
-  font-weight: 700;
+  font-weight: $weight-bold;
 }
 
 .link-button {

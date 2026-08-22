@@ -161,7 +161,7 @@ $filter-dropdown-width: 56px;
   overflow: hidden;
   color: rgba($primary-lighter, 0.82);
   font-size: 0.61rem;
-  font-weight: 700;
+  font-weight: $weight-bold;
   font-variant-numeric: tabular-nums;
   line-height: 18px;
   text-overflow: clip;

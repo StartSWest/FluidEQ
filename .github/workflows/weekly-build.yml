@@ -58,6 +58,14 @@ jobs:
       - name: Type-check the end-to-end suite
         run: pnpm typecheck:e2e
 
+      # Sass is the one language nothing else here checks: tsc does not see it,
+      # jest does not import it, and prettier will format a file that cannot
+      # compile. The script has existed for a while and nothing ever called it,
+      # so it caught nothing — it also now rejects raw font-weight literals,
+      # which is how eighteen of them accumulated unnoticed.
+      - name: Check the stylesheets
+        run: pnpm typecheck:styles
+
       # Before the tests, because jest's setup refuses to start without one —
       # it checks that the main and renderer bundles exist and throws if they
       # do not. On a developer's machine there is always a build lying around

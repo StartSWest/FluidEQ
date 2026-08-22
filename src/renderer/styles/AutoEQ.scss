@@ -328,7 +328,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     @include truncate;
     color: rgba($white, 0.86);
     font-size: 0.68rem;
-    font-weight: 650;
+    font-weight: $weight-semibold;
     letter-spacing: 0.02em;
     line-height: 18px;
   }

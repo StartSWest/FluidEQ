@@ -133,7 +133,7 @@ it under the terms of the GNU General Public License version 3 or later.
   background: linear-gradient(135deg, #64fff0, #10d7c7 72%);
   cursor: pointer;
   font-size: 0.78rem;
-  font-weight: 700;
+  font-weight: $weight-bold;
   transition: $transition-control;
 
   &:hover,
@@ -178,7 +178,7 @@ it under the terms of the GNU General Public License version 3 or later.
     margin: 16px 0 4px;
     color: rgba($white, 0.9);
     font-size: 0.7rem;
-    font-weight: 750;
+    font-weight: $weight-bold;
     letter-spacing: 0.12em;
     text-transform: uppercase;
   }

@@ -757,7 +757,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   margin-top: $spacing-s;
   gap: 7px;
   font-size: 0.72rem;
-  font-weight: 850;
+  font-weight: $weight-heavy;
 }
 
 .library-empty__add-icon {
@@ -842,7 +842,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   display: grid;
   place-items: center;
   color: $text-primary;
-  font-weight: 800;
+  font-weight: $weight-heavy;
   letter-spacing: 0.02em;
 
   .library-cover-art--row & {
@@ -1030,7 +1030,7 @@ $library-row-height: 46px;
   border-bottom: 1px solid rgba($secondary-light, 0.16);
   color: $text-faint;
   font-size: 0.6rem;
-  font-weight: 750;
+  font-weight: $weight-bold;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -1230,7 +1230,7 @@ $library-row-height: 46px;
   align-items: center;
   gap: 5px;
   color: $text-primary;
-  font-weight: 700;
+  font-weight: $weight-bold;
 }
 
 // The app's own curve over bars, in miniature, in front of the playing
@@ -1401,7 +1401,7 @@ $library-row-height: 46px;
     color: $secondary-light;
     font: inherit;
     font-size: 0.72rem;
-    font-weight: 700;
+    font-weight: $weight-bold;
     text-align: left;
     cursor: pointer;
     transition: $transition-control;
@@ -1430,7 +1430,7 @@ $library-row-height: 46px;
   margin: 0;
   color: $text-faint;
   font-size: 0.62rem;
-  font-weight: 800;
+  font-weight: $weight-heavy;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -1688,7 +1688,7 @@ $library-row-height: 46px;
   @include truncate;
   color: $text-primary;
   font-size: 0.76rem;
-  font-weight: 700;
+  font-weight: $weight-bold;
 }
 
 .library-grid__subtitle {
@@ -2127,7 +2127,7 @@ $library-row-height: 46px;
   padding: 0 $spacing-s;
   color: $text-faint;
   font-size: 0.64rem;
-  font-weight: 700;
+  font-weight: $weight-bold;
   letter-spacing: 0.06em;
   text-transform: uppercase;
 
@@ -2574,7 +2574,7 @@ $library-wave-step: 4ms;
 
 .library-toolbar__folder-option-name {
   font-size: 0.78rem;
-  font-weight: 600;
+  font-weight: $weight-semibold;
 }
 
 .library-toolbar__folder-option-hint {
@@ -2964,7 +2964,7 @@ $library-wave-step: 4ms;
 .library-up-next__title {
   color: rgba($primary-lighter, 0.72);
   font-size: 0.62rem;
-  font-weight: 700;
+  font-weight: $weight-bold;
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
@@ -2986,7 +2986,7 @@ $library-wave-step: 4ms;
 
 .library-up-next__count-picked {
   color: $secondary-light;
-  font-weight: 700;
+  font-weight: $weight-bold;
 }
 
 // A BLOCK, not a flex column, and this is the whole of the scroll bug.
@@ -3044,7 +3044,7 @@ $library-wave-step: 4ms;
   margin: 0;
   color: rgba($secondary-light, 0.62);
   font-size: 0.6rem;
-  font-weight: 700;
+  font-weight: $weight-bold;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -3218,7 +3218,7 @@ $library-wave-step: 4ms;
   margin: 0;
   color: rgba($primary-lighter, 0.5);
   font-size: 0.58rem;
-  font-weight: 800;
+  font-weight: $weight-heavy;
   letter-spacing: 0.14em;
   text-transform: uppercase;
 }

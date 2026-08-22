@@ -151,7 +151,7 @@ $name-column: 34ch;
   color: $secondary-light;
   cursor: pointer;
   font-size: 0.68rem;
-  font-weight: 700;
+  font-weight: $weight-bold;
   gap: 6px;
   letter-spacing: 0.06em;
   transition: $transition-control;
@@ -185,7 +185,7 @@ $name-column: 34ch;
   border-radius: $radius-s;
   margin: 0;
   font-size: 0.7rem;
-  font-weight: 600;
+  font-weight: $weight-semibold;
   gap: 8px;
 
   &::before {
@@ -263,7 +263,7 @@ $name-column: 34ch;
   @include truncate;
   color: $text-primary;
   font-size: 0.74rem;
-  font-weight: 700;
+  font-weight: $weight-bold;
 }
 
 .config-card__profile {
@@ -286,7 +286,7 @@ $name-column: 34ch;
   background: rgba($neon-lime, 0.18);
   color: $neon-lime;
   font-size: 0.55rem;
-  font-weight: 800;
+  font-weight: $weight-heavy;
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
@@ -390,7 +390,7 @@ $name-column: 34ch;
   // contrast, so the pill can be identified at a glance and still be read.
   color: $text-primary;
   font-size: 0.6rem;
-  font-weight: 700;
+  font-weight: $weight-bold;
   gap: 5px;
   letter-spacing: 0.05em;
 
@@ -492,7 +492,7 @@ $name-column: 34ch;
     color: $secondary-light;
     font: inherit;
     font-size: 0.68rem;
-    font-weight: 700;
+    font-weight: $weight-bold;
     cursor: pointer;
     transition: $transition-control;
 
@@ -784,7 +784,7 @@ $name-column: 34ch;
   color: $secondary-light;
   cursor: pointer;
   font-size: 0.62rem;
-  font-weight: 700;
+  font-weight: $weight-bold;
   transition: $transition-control;
 
   &:hover {

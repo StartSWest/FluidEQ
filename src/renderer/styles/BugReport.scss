@@ -43,7 +43,7 @@ it under the terms of the GNU General Public License version 3 or later.
   h2 {
     margin: 0;
     font-size: 1rem;
-    font-weight: 700;
+    font-weight: $weight-bold;
   }
 
   button {
@@ -142,7 +142,7 @@ it under the terms of the GNU General Public License version 3 or later.
     border-radius: $radius-s;
     background: transparent;
     font-size: 0.8rem;
-    font-weight: 650;
+    font-weight: $weight-semibold;
     cursor: pointer;
     transition: $transition-control;
 

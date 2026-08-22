@@ -44,6 +44,34 @@ $radius-pill: 999px;
 
 $field-padding-inline: 11px;
 
+// *** Typography *************************************************************
+
+// Five weights, because five is how many the eye can tell apart at UI sizes.
+//
+// This app had grown eighteen distinct font-weight values — 650, 680, 720,
+// 730, 750, 760, 780, 820, 840, 850, 880, 950 among them — and measuring them
+// in the running window showed all eighteen rendering as four faces, because
+// Inter was named in the stack and never bundled and Segoe UI has only four
+// usable cuts. The ramp was decoration: 650 through 790 were pixel-identical,
+// and everything from 800 up was `Segoe UI Black`, a poster face whose closed
+// counters are what made the titlebar tabs look flattened.
+//
+// Inter ships now (see the `@font-face` pair in App.scss) and its axis is
+// continuous, so a value like 730 would finally render as 730 — which is the
+// argument for a fixed scale rather than against it. Nobody can see 20 points
+// of weight difference on a 13px label, and a free numeric axis invites the
+// same drift back one nudge at a time.
+//
+// `$weight-heavy` is the ceiling on purpose. 900 exists in Inter and reads as
+// deliberate at display sizes, so it stays available for the karaoke lyric
+// screens, but it has no business on a control.
+$weight-regular: 400;
+$weight-medium: 500;
+$weight-semibold: 600;
+$weight-bold: 700;
+$weight-heavy: 800;
+$weight-display: 900;
+
 // *** Surfaces ***************************************************************
 
 // Deep navy the whole shell sits on.

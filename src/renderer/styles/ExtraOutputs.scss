@@ -108,7 +108,7 @@ it under the terms of the GNU General Public License version 3 or later.
     gap: 8px;
     color: $text-muted;
     font-size: 0.68rem;
-    font-weight: 700;
+    font-weight: $weight-bold;
   }
 
   .device-dot {
@@ -174,7 +174,7 @@ it under the terms of the GNU General Public License version 3 or later.
   border: 1px solid rgba($secondary-default, 0.35);
   border-radius: $radius-pill;
   font-size: 0.58rem;
-  font-weight: 700;
+  font-weight: $weight-bold;
 }
 
 // Why the chosen output cannot be used, and what to do about it. Warmer than

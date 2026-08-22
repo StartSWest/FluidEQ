@@ -69,7 +69,7 @@ it under the terms of the GNU General Public License version 3 or later.
 .chart-limit__label {
   fill: #ffd24a;
   font-size: 0.62rem;
-  font-weight: 700;
+  font-weight: $weight-bold;
   letter-spacing: 0.02em;
   opacity: 0;
   pointer-events: none;
@@ -106,7 +106,7 @@ it under the terms of the GNU General Public License version 3 or later.
 .chart-coverage__countdown {
   fill: #ffd24a;
   font-size: 0.6rem;
-  font-weight: 700;
+  font-weight: $weight-bold;
   letter-spacing: 0.02em;
   pointer-events: none;
 }
@@ -269,7 +269,7 @@ it under the terms of the GNU General Public License version 3 or later.
   text {
     fill: $primary-lighter;
     font-size: 0.7rem;
-    font-weight: 700;
+    font-weight: $weight-bold;
     pointer-events: none;
   }
 
@@ -283,7 +283,7 @@ it under the terms of the GNU General Public License version 3 or later.
 .chart-presence__label {
   fill: #ff8a97;
   font-size: 0.62rem;
-  font-weight: 700;
+  font-weight: $weight-bold;
   letter-spacing: 0.02em;
   opacity: 0;
   pointer-events: none;
@@ -446,7 +446,7 @@ it under the terms of the GNU General Public License version 3 or later.
   background: rgba(#0c1a26, 0.82);
   color: $primary-lighter;
   font-size: 0.78rem;
-  font-weight: 700;
+  font-weight: $weight-bold;
   letter-spacing: 0.04em;
   white-space: nowrap;
   pointer-events: none;
@@ -574,7 +574,7 @@ it under the terms of the GNU General Public License version 3 or later.
     background: none;
     color: rgba($primary-lighter, 0.72);
     font: inherit;
-    font-weight: 400;
+    font-weight: $weight-regular;
     cursor: pointer;
     transition: $transition-control;
 
@@ -916,7 +916,7 @@ it under the terms of the GNU General Public License version 3 or later.
   border-radius: 4px;
   background: rgba($panel-bottom, 0.78);
   font-size: 0.56rem;
-  font-weight: 700;
+  font-weight: $weight-bold;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   white-space: nowrap;
@@ -1303,7 +1303,7 @@ it under the terms of the GNU General Public License version 3 or later.
   background: none;
   color: rgba($primary-lighter, 0.75);
   font-size: 0.62rem;
-  font-weight: 650;
+  font-weight: $weight-semibold;
   gap: 5px;
   letter-spacing: 0.03em;
   line-height: 1;

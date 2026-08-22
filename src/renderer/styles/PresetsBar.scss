@@ -153,7 +153,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   .preset-confirm-prompt {
     flex: none;
     color: $red;
-    font-weight: 600;
+    font-weight: $weight-semibold;
   }
 
   .icons {
@@ -242,7 +242,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     border-radius: $radius-pill;
     background: $analogous-2;
     font-size: 0.54rem;
-    font-weight: 800;
+    font-weight: $weight-heavy;
     letter-spacing: 0.08em;
   }
 

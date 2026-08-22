@@ -46,7 +46,7 @@ it under the terms of the GNU General Public License version 3 or later.
   margin: 0 auto;
   color: $neon-yellow;
   font-size: 0.92rem;
-  font-weight: 600;
+  font-weight: $weight-semibold;
   line-height: 1.55;
   text-align: center;
   text-shadow: 0 0 14px rgba($neon-yellow, 0.28);
@@ -102,7 +102,7 @@ it under the terms of the GNU General Public License version 3 or later.
   position: relative;
   color: $white;
   font-size: 3.2rem;
-  font-weight: 800;
+  font-weight: $weight-heavy;
   font-variant-numeric: tabular-nums;
   line-height: 1;
 }
@@ -129,7 +129,7 @@ it under the terms of the GNU General Public License version 3 or later.
   border-radius: $radius-pill;
   background: rgba($neon-lime, 0.12);
   font-size: 1rem;
-  font-weight: 800;
+  font-weight: $weight-heavy;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
@@ -215,7 +215,7 @@ it under the terms of the GNU General Public License version 3 or later.
     left: 12px;
     color: $neon-yellow;
     font-size: 0.82rem;
-    font-weight: 600;
+    font-weight: $weight-semibold;
     text-align: center;
     text-shadow: 0 0 12px rgba($neon-yellow, 0.35);
     translate: 0 -50%;
@@ -283,7 +283,7 @@ it under the terms of the GNU General Public License version 3 or later.
   gap: 8px;
   margin: 0;
   font-size: 0.64rem;
-  font-weight: 700;
+  font-weight: $weight-bold;
   letter-spacing: 0.1em;
   text-align: center;
   text-transform: uppercase;
@@ -344,7 +344,7 @@ it under the terms of the GNU General Public License version 3 or later.
   &--idle {
     color: rgba($primary-lighter, 0.45);
     animation: none;
-    font-weight: 400;
+    font-weight: $weight-regular;
     letter-spacing: 0.06em;
     text-transform: none;
   }

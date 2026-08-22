@@ -83,14 +83,14 @@ it under the terms of the GNU General Public License version 3 or later.
   &__number {
     fill: $white;
     font-size: 10px;
-    font-weight: 750;
+    font-weight: $weight-bold;
     font-variant-numeric: tabular-nums;
   }
 
   &__label {
     fill: rgba($primary-lighter, 0.68);
     font-size: 7px;
-    font-weight: 700;
+    font-weight: $weight-bold;
     letter-spacing: 0.08em;
   }
 

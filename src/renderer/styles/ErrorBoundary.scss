@@ -75,7 +75,7 @@ it under the terms of the GNU General Public License version 3 or later.
   padding: 9px 16px;
   border-radius: $radius-xs;
   font-size: 0.8rem;
-  font-weight: 700;
+  font-weight: $weight-bold;
 
   &--primary {
     color: $secondary-light;

@@ -63,7 +63,7 @@ it under the terms of the GNU General Public License version 3 or later.
   h3 {
     margin: 0;
     font-size: 0.95rem;
-    font-weight: 700;
+    font-weight: $weight-bold;
   }
 }
 
@@ -119,7 +119,7 @@ it under the terms of the GNU General Public License version 3 or later.
   border-radius: $radius-s;
   background: rgba($neon-lime, 0.07);
   font-size: 0.8rem;
-  font-weight: 600;
+  font-weight: $weight-semibold;
   line-height: 1.5;
   text-align: center;
   text-wrap: balance;
@@ -146,7 +146,7 @@ it under the terms of the GNU General Public License version 3 or later.
   padding-inline: 14px;
   border-radius: $radius-s;
   font-size: 0.82rem;
-  font-weight: 650;
+  font-weight: $weight-semibold;
   white-space: nowrap;
   cursor: pointer;
   transition: $transition-control;
@@ -211,7 +211,7 @@ it under the terms of the GNU General Public License version 3 or later.
   border-radius: $radius-pill;
   background: transparent;
   font-size: 0.74rem;
-  font-weight: 700;
+  font-weight: $weight-bold;
   letter-spacing: 0.04em;
   cursor: pointer;
   transition: $transition-control;
@@ -249,7 +249,7 @@ it under the terms of the GNU General Public License version 3 or later.
     color: #06131d;
     border-color: transparent;
     background: hsl(var(--euphoria-hue, 160deg) 95% 62%);
-    font-weight: 800;
+    font-weight: $weight-heavy;
     box-shadow: 0 0 14px hsl(var(--euphoria-hue, 160deg) 95% 62% / 55%);
 
     &:hover {
