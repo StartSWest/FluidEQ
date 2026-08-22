@@ -17,6 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import {
+  CSSProperties,
   DragEvent,
   useCallback,
   useEffect,
@@ -55,11 +56,56 @@ import LibraryFolderActions from './LibraryFolderActions';
 import LibraryGridView from './LibraryGridView';
 import LibraryListView from './LibraryListView';
 import LibraryScanProgress from './LibraryScanProgress';
+import LibraryUpNext, { LibraryUpNextChip, upNextTotal } from './LibraryUpNext';
+import KaraokePaneSplitter from '../karaoke/KaraokePaneSplitter';
 import MenuIcon from '../icons/MenuIcon';
 import LibraryToolbar from './LibraryToolbar';
 import { isFolderTree } from './folderTree';
 import LibraryVideoSection, { videoFolderGroups } from './LibraryVideoSection';
 import '../styles/Library.scss';
+
+/**
+ * The most tracks a queue ever holds.
+ *
+ * The Songs shelf of a real collection is tens of thousands of rows, and a
+ * queue is not a copy of the library: handing all of them over means an id
+ * array and an index array of that size rebuilt on every view change, and an
+ * Up Next panel that answers "what is next" with everything you own.
+ *
+ * Two hundred is a hundred either side of what is playing — some ten hours
+ * ahead, further than anybody listens in a sitting — and it refills itself
+ * for free: the effect that re-aims the queue runs on every track change as
+ * well as every view change, so the hundred ahead are replenished from the
+ * full list as they are used.
+ */
+const QUEUE_WINDOW = 200;
+
+/**
+ * `ids` narrowed to a window around `aroundId`, or `ids` itself when it is
+ * already small enough to hold entirely.
+ */
+const windowedQueueIds = (
+  ids: readonly string[],
+  aroundId: string | undefined,
+): readonly string[] => {
+  if (ids.length <= QUEUE_WINDOW) {
+    return ids;
+  }
+  const index = aroundId === undefined ? -1 : ids.indexOf(aroundId);
+  if (index === -1) {
+    return ids.slice(0, QUEUE_WINDOW);
+  }
+  const start = Math.max(
+    0,
+    Math.min(index - Math.floor(QUEUE_WINDOW / 2), ids.length - QUEUE_WINDOW),
+  );
+  return ids.slice(start, start + QUEUE_WINDOW);
+};
+
+/** The Up Next panel's width, dragged from its own edge. */
+const UP_NEXT_WIDTH_KEY = 'fluideq.library.upNextWidth';
+const UP_NEXT_MIN = 190;
+const UP_NEXT_MAX = 420;
 
 const BROWSE_MODE_KEY = 'fluideq.library.browseMode';
 const VIEW_MODE_KEY = 'fluideq.library.viewMode';
@@ -82,12 +128,16 @@ const BROWSE_MODES: readonly TLibraryBrowseMode[] = [
 const VIEW_MODES: readonly TLibraryViewMode[] = ['list', 'grid', 'coverflow'];
 const SORT_DIRECTIONS: readonly TLibrarySortDirection[] = ['asc', 'desc'];
 
+// Every value `TLibrarySort` has, because this list is what a stored sort is
+// validated against — a name missing here is a sort that cannot survive a
+// restart, silently falling back to Title.
 const SORTS: readonly TLibrarySort[] = [
   'title',
   'artist',
   'album',
   'year',
   'added',
+  'track',
 ];
 
 /**
@@ -190,10 +240,60 @@ const LibraryWorkspace = ({
   const { playlists, wasReset: playlistsWereReset } = usePlaylists();
   const {
     playTracks,
+    retargetQueue,
+    appendToQueue,
+    upNext,
     videoTrackId,
     track: playingTrack,
     isPlaying,
   } = useLibraryPlayer();
+
+  /**
+   * The Up Next panel's fold, and the width it takes when open.
+   *
+   * FOLDED WHEN THERE IS NOTHING IN IT, OPEN THE MOMENT THERE IS. A launch
+   * with an empty list should not spend a fifth of the tab on saying so, and
+   * a list that has just been added to should not have to be found. After
+   * that it is the reader's: folding it by hand sticks until the list next
+   * goes from empty to not.
+   */
+  const [isUpNextCollapsed, setIsUpNextCollapsed] = useState(true);
+  const hadUpNextRef = useRef(false);
+  useEffect(() => {
+    const has = upNext.length > 0;
+    if (has && !hadUpNextRef.current) {
+      setIsUpNextCollapsed(false);
+    }
+    hadUpNextRef.current = has;
+  }, [upNext.length]);
+
+  /** Dragged from the panel's own edge; remembered for the next session. */
+  const [upNextWidth, setUpNextWidth] = useState(() => {
+    const stored = Number(readPersistedText(UP_NEXT_WIDTH_KEY));
+    return Number.isFinite(stored) && stored > 0
+      ? Math.min(UP_NEXT_MAX, Math.max(UP_NEXT_MIN, stored))
+      : 260;
+  });
+  useEffect(
+    () => writePersistedText(UP_NEXT_WIDTH_KEY, String(upNextWidth)),
+    [upNextWidth],
+  );
+  /** The width the drag started from — the splitter reports a delta, not a
+   * position, exactly as the karaoke panes' does. */
+  const upNextResizeStartRef = useRef(upNextWidth);
+
+  /** Not over a video: there the picture is the whole surface. */
+  /**
+   * The queue is drawn on every surface this tab has, the picture included.
+   *
+   * It was withheld while a video played, on the reasoning that the picture
+   * is the whole surface — but a video is a queue entry like any other, and
+   * "what is next" is exactly the question a listener has while one is
+   * playing. Karaoke keeps its playlist beside the stage in full screen for
+   * the same reason. Over the picture it floats rather than taking a strip of
+   * its own: see `is-over-video`.
+   */
+  const isUpNextOverVideo = videoTrackId !== undefined;
 
   /**
    * The mark on the row, which is not the same as the track that is loaded.
@@ -241,6 +341,10 @@ const LibraryWorkspace = ({
     readPersistedMode(SORT_KEY, SORTS, 'title'),
   );
   const [query, setQuery] = useState('');
+  // Whether the order on screen was asked for or merely inherited. See
+  // `viewSort`: it is the difference between "these are your matches, best
+  // first" and "these are your matches, by year".
+  const [isSortChosen, setIsSortChosen] = useState(false);
 
   // The drill-in behind a grid tile or a list row, kept across restarts along
   // with the browse and view modes: coming back and finding the album you
@@ -444,13 +548,52 @@ const LibraryWorkspace = ({
 
   const visibleTracks = useMemo(() => {
     const matches = searchTracks(scopedTracks, query);
-    return isSearching ? matches : sortTracks(matches, sort, sortDirection);
-  }, [scopedTracks, query, isSearching, sort, sortDirection]);
+    if (!isSearching) {
+      return sortTracks(matches, sort, sortDirection);
+    }
+    // A SHELF OF CONTAINERS SHOWS WHOLE CONTAINERS.
+    //
+    // The album and artist shelves group whatever they are handed, so handing
+    // them the matches alone described every record by the part of it that
+    // matched: a five-hundred-track compilation holding two songs by the band
+    // searched for was drawn as "Baladas · 2 songs", which is not an album
+    // that exists. The same query on an album whose own artist matched showed
+    // it whole, so two rows of one shelf were counting different things.
+    //
+    // Every container with a hit in it is listed, and listed entire. Which
+    // songs actually matched is said inside, where `LibraryDetail` lifts them
+    // to the head of the table and lights them — the honest division of
+    // labour between "what is this" and "why is it here".
+    //
+    // Songs and videos are not containers and keep the matches themselves.
+    if (browseMode === 'song' || browseMode === 'video') {
+      return matches;
+    }
+    // What "the same container" means on each shelf.
+    const containerKeys: Partial<
+      Record<TLibraryBrowseMode, (track: ILibraryTrack) => string>
+    > = {
+      artist: artistKey,
+      folder: (track) => trackFolderPath(track.path),
+    };
+    const keyOf = containerKeys[browseMode] ?? albumKey;
+    const hit = new Set(matches.map(keyOf));
+    return scopedTracks.filter((track) => hit.has(keyOf(track)));
+  }, [scopedTracks, query, isSearching, sort, sortDirection, browseMode]);
 
-  /** The order to hand the views: nothing while searching, which every one of
-   * them already reads as "leave this order alone" — the same meaning
-   * `LibraryDetail` gives an unset sort for an album's own track listing. */
-  const viewSort = isSearching ? undefined : sort;
+  /**
+   * The order to hand the views: nothing while searching, which every one of
+   * them reads as "leave this order alone" — the same meaning `LibraryDetail`
+   * gives an unset sort for an album's own track listing.
+   *
+   * Until the reader asks for an order themselves. Relevance is the DEFAULT
+   * under a search, not a lock on it: with a query in the box every column
+   * header and the bar's own control went dead, on all five shelves, because
+   * an unset sort tells the views to sort nothing. Pressing a header IS the
+   * decision to stop ranking by relevance, so it takes effect; a new query
+   * hands the ranking back.
+   */
+  const viewSort = isSearching && !isSortChosen ? undefined : sort;
 
   // What makes the list a DIFFERENT list, as opposed to the same list with
   // more in it. A scan republishes the whole index every batch, so the track
@@ -467,6 +610,8 @@ const LibraryWorkspace = ({
    * newly chosen column gives an order nobody asked for.
    */
   const handleSort = useCallback((key: TLibrarySort) => {
+    // Asking for an order is what ends relevance ranking — see `viewSort`.
+    setIsSortChosen(true);
     setSort((currentSort) => {
       setSortDirection((currentDirection) =>
         currentSort === key && currentDirection === 'asc' ? 'desc' : 'asc',
@@ -662,6 +807,8 @@ const LibraryWorkspace = ({
    */
   const handleQuery = useCallback((next: string) => {
     setQuery(next);
+    // A new search hands the ranking back to relevance — see `viewSort`.
+    setIsSortChosen(false);
     if (next.trim().length === 0) {
       return;
     }
@@ -675,7 +822,16 @@ const LibraryWorkspace = ({
    * dropdown beside it picks the column and leaves the direction alone, so
    * the two together say the same thing a header click says in one press. */
   const handleSortDirection = useCallback(() => {
+    setIsSortChosen(true);
     setSortDirection((current) => (current === 'asc' ? 'desc' : 'asc'));
+  }, []);
+
+  /** The bar's dropdown: names a column and nothing else. Direction is the
+   * arrow beside it, which is why this does not toggle one — unlike
+   * `handleSort`, where the header press IS both. */
+  const handlePickSort = useCallback((key: TLibrarySort) => {
+    setIsSortChosen(true);
+    setSort(key);
   }, []);
 
   // Opening one closes the other — only one drill-in is ever on screen.
@@ -773,14 +929,123 @@ const LibraryWorkspace = ({
   // marks it unplayable and `NowPlayingBar` says so with a disabled Play
   // button, which is the honest answer to a click that cannot do anything:
   // visible feedback, not a silent no-op.
+  /**
+   * A QUEUE OF ONE IS NOT A QUEUE, AND IT FAILS SILENTLY.
+   *
+   * `advanceQueue` clamps at both ends, so a queue holding a single track
+   * answers Next and Previous with nothing at all — no stumble, no message —
+   * and the end of that track is the end of the queue, which arrives as "it
+   * does not play the next song". One bug, both reports.
+   *
+   * Two ways in, and the album shelf is the one that survived the first fix.
+   * The obvious one is the fallback below: `queueTrackIds` follows what is
+   * OPEN rather than where the click came from, so a drill-in left open from
+   * the last session made the guard fail for a row clicked anywhere else, and
+   * the old code went straight to `[trackId]`.
+   *
+   * The other is an open drill-in that really does hold one track, which is
+   * ordinary rather than exotic: `groupIntoAlbums` keys on the tags, so a
+   * folder of loose or inconsistently tagged files is a shelf of one-track
+   * albums. The clicked song IS in that list, the guard passes, and the queue
+   * is one long anyway. So the test is not "is it in there" but "is there
+   * anything to move to" — and where there is not, what is on screen is a
+   * real queue and a better answer.
+   *
+   * `[trackId]` is left for what it was written for: a song that is in no
+   * list here at all.
+   */
+  /** What is on screen, as ids — the fallback queue, and what a view change
+   * re-aims the player at. */
+  const visibleTrackIds = useMemo(
+    () => visibleTracks.map((track) => track.id),
+    [visibleTracks],
+  );
+
+  /**
+   * The list Next should walk from wherever the reader is standing now.
+   *
+   * The drill-in's own list when it has somewhere to go, and what is on
+   * screen otherwise — a one-entry album is not a queue, whatever the tags
+   * say about it.
+   */
+  const viewQueueIds = useMemo(
+    () => (queueTrackIds.length > 1 ? queueTrackIds : visibleTrackIds),
+    [queueTrackIds, visibleTrackIds],
+  );
+
+  /**
+   * Changing the view changes what plays next.
+   *
+   * The same files group differently on every shelf, so the album that
+   * follows this song is not the folder that follows it and neither is what
+   * the Songs list has next. Leaving the queue frozen at whatever was open
+   * when Play was pressed made Next answer for a screen the reader had left.
+   *
+   * Nothing restarts: `retargetQueue` keeps the playing track and its place,
+   * and does nothing at all when that track is not in the new list.
+   *
+   * Gated on something being loaded, which is what keeps this cheap on a big
+   * library. The Songs shelf of a ten-thousand-track collection rebuilds a
+   * ten-thousand-entry order, and `visibleTracks` changes on every keystroke
+   * of a search — so with nothing playing there is nothing to re-aim and the
+   * work is skipped outright. What the queue holds is ids and indices rather
+   * than tracks, and `retargetQueue` returns the existing queue untouched
+   * when the list comes back the same, so the only real rebuild is a view
+   * that actually changed under a song that is actually playing.
+   */
+  useEffect(() => {
+    if (!playingTrack) {
+      return;
+    }
+    retargetQueue(windowedQueueIds(viewQueueIds, playingTrack.id));
+  }, [playingTrack, retargetQueue, viewQueueIds]);
+
+  /**
+   * How much of the shelf is still to come that the queue has NOT got.
+   *
+   * The queue never holds more than `QUEUE_WINDOW`, and the effect above
+   * slides that window along on every track change, so a shelf far longer
+   * than the window still plays through to its end. The panel counts the rows
+   * it has, which is the window; this is the rest, and `upNextTotal` adds the
+   * two.
+   *
+   * Which is why what the queue already holds is subtracted here rather than
+   * counted twice. Adding a thirteen-song folder to the picks promotes those
+   * files into the queue — they are still on the shelf, so a plain
+   * "everything after the playhead" counted each of them once as a pick and
+   * again as the folder's remainder, and thirteen songs read as "13 / 25".
+   *
+   * `undefined` when the playing track is not on this shelf at all — then the
+   * queue is its own list and its rows are the whole honest count.
+   */
+  const upNextRestTotal = useMemo(() => {
+    if (!playingTrack) {
+      return undefined;
+    }
+    const at = viewQueueIds.indexOf(playingTrack.id);
+    if (at === -1) {
+      return undefined;
+    }
+    const held = new Set(upNext.map((entry) => entry.trackId));
+    let rest = 0;
+    for (let index = at + 1; index < viewQueueIds.length; index += 1) {
+      if (!held.has(viewQueueIds[index])) {
+        rest += 1;
+      }
+    }
+    return rest;
+  }, [playingTrack, viewQueueIds, upNext]);
+
   const handlePlayTrack = useCallback(
     (trackId: string) => {
       playTracks(
-        queueTrackIds.includes(trackId) ? queueTrackIds : [trackId],
+        viewQueueIds.includes(trackId)
+          ? windowedQueueIds(viewQueueIds, trackId)
+          : [trackId],
         trackId,
       );
     },
-    [queueTrackIds, playTracks],
+    [viewQueueIds, playTracks],
   );
 
   const handleAddFolder = () => {
@@ -827,9 +1092,21 @@ const LibraryWorkspace = ({
     <section
       className={`library-workspace workspace-tab-panel workspace-tab-panel--library${
         isHidden ? ' is-hidden' : ''
-      }${isDragOver ? ' is-drag-over' : ''}`}
+      }${isDragOver ? ' is-drag-over' : ''}${
+        // Only while the panel is actually drawn, and only where it takes a
+        // strip. The class reserves the column the panel stands in — folded
+        // there is no panel and no strip, and leaving it on left a third of
+        // the tab empty with the shelf squeezed into what was left. Over a
+        // video there is no strip either: the picture keeps the whole tab and
+        // the panel floats on top of it.
+        !isUpNextOverVideo && !isUpNextCollapsed ? ' has-up-next' : ''
+      }${isUpNextOverVideo ? ' has-video' : ''}`}
       aria-label={t('tabs.library')}
       aria-hidden={isHidden}
+      // The one number both the panel and the strip it stands in are sized
+      // from, so the two cannot disagree about how much of the tab is spoken
+      // for.
+      style={{ '--up-next-width': `${upNextWidth}px` } as CSSProperties}
       onDragOver={onDragOver}
       onDragLeave={onDragLeave}
       onDrop={onDrop}
@@ -882,21 +1159,37 @@ const LibraryWorkspace = ({
             viewMode={viewMode}
             sort={sort}
             sortDirection={sortDirection}
-            query={query}
             onBrowseMode={handleBrowseMode}
             onViewMode={setViewMode}
-            // Withheld while a drill-in is open — see the toolbar's own prop
-            // comment. Inside an album the order is that table's, not this
-            // bar's.
-            onSort={isDrilledIn ? undefined : setSort}
-            onSortDirection={isDrilledIn ? undefined : handleSortDirection}
+            // Withheld while a drill-in is open, because this control orders
+            // the SHELF and a drill-in replaces the shelf — the bar would be
+            // steering a list that is not on screen, and the panel's own
+            // headers order the panel.
+            //
+            // Cover flow is the exception, and the reason is literal: its
+            // panel opens UNDER the row rather than instead of it, so the
+            // carousel this reorders is still there to watch reorder.
+            onSort={
+              isDrilledIn && viewMode !== 'coverflow'
+                ? undefined
+                : handlePickSort
+            }
+            onSortDirection={
+              isDrilledIn && viewMode !== 'coverflow'
+                ? undefined
+                : handleSortDirection
+            }
             // Never withheld. This box was taken off the bar inside a
             // drill-in, back when a query here narrowed a list that was not
             // on screen and so appeared to do nothing — but a search that
-            // vanishes is worse than one that is merely narrow. It stays, and
-            // it stays in force: `LibraryDetail` applies it to its table and
-            // its own filter narrows what is left. Two searches that compose,
-            // rather than one that disappears.
+            // vanishes is worse than one that is merely narrow.
+            //
+            // It stays, and it stops at the shelf. It is how a record is
+            // FOUND; carrying it into the panel meant opening a fourteen-track
+            // album and seeing the two whose titles contained what was typed,
+            // under a heading reading "2 songs". Inside a drill-in the panel's
+            // own "filter these songs" is the only thing that narrows.
+            query={query}
             onQuery={handleQuery}
           />
           {/* Only meaningful for a flat run of songs — album and artist rows
@@ -929,6 +1222,19 @@ const LibraryWorkspace = ({
             onForceRescan={handleForceRescan}
             onRemoveRoot={handleRemoveRoot}
           />
+          {/* Folded, the queue lives here — in the row with the folder
+              controls, after a rule, rather than floating in a corner of the
+              shelf. A pill pinned to the tab drew over whatever happened to
+              be under it; a chip in the row it belongs to cannot. */}
+          {!isUpNextOverVideo && isUpNextCollapsed && (
+            <>
+              <span className="library-folder-actions__divider" />
+              <LibraryUpNextChip
+                count={upNextTotal(upNext, upNextRestTotal)}
+                onExpand={() => setIsUpNextCollapsed(false)}
+              />
+            </>
+          )}
         </div>
       )}
       {/* Pinned under the toolbar rather than a modal: the scan is
@@ -1006,6 +1312,7 @@ const LibraryWorkspace = ({
             playlistId={browseMode === 'playlist' ? openPlaylistId : undefined}
             onBack={handleBack}
             onPlayTrack={handlePlayTrack}
+            onQueueTracks={appendToQueue}
             offlineRootIds={offlineRootIds}
             folderRoots={index.roots}
             onOpenFolder={handleOpenFolder}
@@ -1082,13 +1389,61 @@ const LibraryWorkspace = ({
             isSearching={isSearching}
             playingTrackId={playingMarkId}
             revealTrack={revealTrack}
-            query={query}
             openId={
               openAlbumId ?? openArtistId ?? openPlaylistId ?? openFolderPath
             }
             onOpenChange={handleCoverFlowOpen}
+            onQueueTracks={appendToQueue}
+            query={query}
           />
         )}
+      {/* Last, and outside every view above: the queue belongs to the tab
+          rather than to whichever shelf is drawing it. On a shelf it stands
+          in the strip `has-up-next` reserves; over a video it floats on the
+          picture, full screen included — `has-video` is what moves it. */}
+      {!isUpNextCollapsed && (
+        <LibraryUpNext
+          isCollapsed={isUpNextCollapsed}
+          onCollapsedChange={setIsUpNextCollapsed}
+          restTotal={upNextRestTotal}
+        />
+      )}
+      {/* Folded over the picture, the chip has nowhere else to be: the folder
+          row it normally sits in is not drawn while a video owns the tab. */}
+      {isUpNextOverVideo && isUpNextCollapsed && (
+        <LibraryUpNextChip
+          className="library-up-next__chip--over-video"
+          count={upNextTotal(upNext, upNextRestTotal)}
+          onExpand={() => setIsUpNextCollapsed(false)}
+        />
+      )}
+      {/* The same splitter the karaoke panes are divided by, not a strip of
+          this tab's own. Dragging left widens the queue, which is why the
+          delta is subtracted: the panel is anchored to the right edge and
+          grows towards the pointer. */}
+      {!isUpNextCollapsed && (
+        <div className="library-up-next__splitter">
+          <KaraokePaneSplitter
+            orientation="vertical"
+            ariaLabel={t('library.upNext')}
+            valuePercent={
+              ((upNextWidth - UP_NEXT_MIN) / (UP_NEXT_MAX - UP_NEXT_MIN)) * 100
+            }
+            onStart={() => {
+              upNextResizeStartRef.current = upNextWidth;
+            }}
+            onDrag={(delta) =>
+              setUpNextWidth(
+                Math.min(
+                  UP_NEXT_MAX,
+                  Math.max(UP_NEXT_MIN, upNextResizeStartRef.current - delta),
+                ),
+              )
+            }
+            onEnd={() => undefined}
+          />
+        </div>
+      )}
     </section>
   );
 };

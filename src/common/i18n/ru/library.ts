@@ -64,12 +64,14 @@ const library: Partial<Dictionary> = {
   'library.sort.album': 'Альбом',
   'library.sort.year': 'Год',
   'library.sort.added': 'Недавно добавленные',
+  'library.sort.track': 'Порядок на диске',
 
   'library.column.title': 'Название',
   'library.column.artist': 'Исполнитель',
   'library.column.album': 'Альбом',
   'library.column.year': 'Год',
   'library.column.length': 'Длительность',
+  'library.column.trackNo': 'Номер трека',
 
   'library.unknownAlbum': 'Неизвестный альбом',
   'library.unknownArtist': 'Неизвестный исполнитель',
@@ -97,6 +99,12 @@ const library: Partial<Dictionary> = {
     'Индекс библиотеки не удалось прочитать, и он был перестроен.',
 
   'library.back': 'Назад',
+
+  'library.upNext': 'Далее',
+  'library.upNext.empty': 'В очереди пока пусто',
+  'library.upNext.added': 'Ваш выбор',
+  'library.upNext.rest': 'Затем',
+  'library.queueAdd': 'Добавить в очередь',
 
   'library.alsoInFolder': 'В этой папке, но не в этом альбоме',
   'library.play': 'Воспроизвести',

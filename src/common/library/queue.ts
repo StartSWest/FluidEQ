@@ -60,13 +60,36 @@ const unshuffle = (queue: ILibraryQueue): ILibraryQueue => {
   return { ...queue, order, position, isShuffled: false };
 };
 
+/**
+ * The playing track goes to the FRONT, and the rest is shuffled behind it.
+ *
+ * It used to shuffle the whole run and then look up where the playing track
+ * had landed, which is a different thing entirely: on a seven-track album the
+ * playhead came to rest at a random point in the new order, so what was left
+ * ahead of it was six entries, or three, or none, at random — and pressing
+ * play on the same record again dealt a different hand every time. Reported
+ * as the queue behaving "like a timer going crazy", which is exactly what a
+ * number that changes by itself looks like.
+ *
+ * Everything before the playhead is what has already been heard, and no
+ * shuffle can put songs there after the fact. Turning shuffle on means "a
+ * fresh random run from here" — so here is the front, and `position` is 0.
+ */
 const shuffle = (queue: ILibraryQueue): ILibraryQueue => {
   const playing = currentTrackId(queue);
-  const order = shuffleIndices(identityOrder(queue.trackIds.length));
   const playingIndex =
     playing === undefined ? -1 : queue.trackIds.indexOf(playing);
-  const position = playingIndex === -1 ? 0 : order.indexOf(playingIndex);
-  return { ...queue, order, position, isShuffled: true };
+  const rest = shuffleIndices(
+    identityOrder(queue.trackIds.length).filter(
+      (index) => index !== playingIndex,
+    ),
+  );
+  return {
+    ...queue,
+    order: playingIndex === -1 ? rest : [playingIndex, ...rest],
+    position: 0,
+    isShuffled: true,
+  };
 };
 
 /**

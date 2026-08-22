@@ -64,12 +64,14 @@ const library: Partial<Dictionary> = {
   'library.sort.album': 'アルバム',
   'library.sort.year': '年',
   'library.sort.added': '最近追加した項目',
+  'library.sort.track': 'アルバムの曲順',
 
   'library.column.title': '曲名',
   'library.column.artist': 'アーティスト',
   'library.column.album': 'アルバム',
   'library.column.year': '年',
   'library.column.length': '長さ',
+  'library.column.trackNo': 'トラック番号',
 
   'library.unknownAlbum': '不明なアルバム',
   'library.unknownArtist': '不明なアーティスト',
@@ -99,6 +101,12 @@ const library: Partial<Dictionary> = {
     'ライブラリの索引を読み込めなかったため、再構築しました。',
 
   'library.back': '戻る',
+
+  'library.upNext': '次に再生',
+  'library.upNext.empty': 'キューは空です',
+  'library.upNext.added': 'あなたの選曲',
+  'library.upNext.rest': 'そのあと',
+  'library.queueAdd': 'キューに追加',
 
   'library.alsoInFolder':
     'このフォルダー内にありますが、このアルバムには含まれません',

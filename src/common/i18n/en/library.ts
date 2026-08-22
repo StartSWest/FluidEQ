@@ -62,12 +62,14 @@ const library = {
   'library.sort.album': 'Album',
   'library.sort.year': 'Year',
   'library.sort.added': 'Recently added',
+  'library.sort.track': 'Track order',
 
   'library.column.title': 'Title',
   'library.column.artist': 'Artist',
   'library.column.album': 'Album',
   'library.column.year': 'Year',
   'library.column.length': 'Length',
+  'library.column.trackNo': 'Track number',
 
   'library.unknownAlbum': 'Unknown album',
   'library.unknownArtist': 'Unknown artist',
@@ -96,6 +98,12 @@ const library = {
     'The library index could not be read and has been rebuilt.',
 
   'library.back': 'Back',
+
+  'library.upNext': 'Up next',
+  'library.upNext.empty': 'Nothing queued yet',
+  'library.upNext.added': 'Your picks',
+  'library.upNext.rest': 'Then',
+  'library.queueAdd': 'Add to up next',
 
   'library.alsoInFolder': 'In this folder, not in this album',
   'library.play': 'Play',

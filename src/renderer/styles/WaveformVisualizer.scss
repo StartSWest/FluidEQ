@@ -10,6 +10,24 @@ it under the terms of the GNU General Public License version 3 or later.
 @use 'theme' as *;
 
 .waveform-visualizer {
+  // WHERE THE LABEL ROW ENDS AND THE WAVE BEGINS — one pair, stated once.
+  //
+  // They were 5px and 18px, written independently, and 18 was the right
+  // number for a 62px pane: eleven for the row and a little air. In the
+  // titlebar the pane is 56px, and eighteen of those went to a row of 8px
+  // text — the wave was left 36px, its peaks flattened along the top of the
+  // clip, and the band above the label read as wasted. Thirteen is the row
+  // itself with a pixel either side and nothing spare, which hands five back
+  // to the drawing. They are variables because the second must always clear
+  // the first: the moment they drift, the label sits on the wave or the wave
+  // starts halfway down the pane.
+  //
+  // 14 is 3 plus the row's measured 11 — exactly touching, no overlap and no
+  // spare. At 13 the clip started one pixel inside the label and the wave
+  // could show through the gaps in the text.
+  --meter-meta-top: 3px;
+  --meter-meta-room: 14px;
+
   position: relative;
   // The canvas fills the whole pane now — labels and readouts are painted
   // on the bitmap alongside the wave. No grid rows, no gap: one child,
@@ -120,7 +138,7 @@ it under the terms of the GNU General Public License version 3 or later.
 .waveform-visualizer__meta {
   position: absolute;
   z-index: 2;
-  top: 5px;
+  top: var(--meter-meta-top);
   right: 0;
   left: 0;
   display: flex;
@@ -227,7 +245,7 @@ it under the terms of the GNU General Public License version 3 or later.
   // Top clears the meta row; two pixels on the other three sides is the
   // least that keeps the drawing off the pane's own edge without eating
   // into the width the wave has to span.
-  inset: 18px 2px 2px;
+  inset: var(--meter-meta-room) 2px 2px;
   display: block;
   overflow: hidden;
   // Two pixels inside an eighteen-pixel outer curve leaves sixteen. The

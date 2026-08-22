@@ -63,6 +63,41 @@ describe('the play queue', () => {
     expect([...shuffled.order].sort()).toEqual([0, 1, 2, 3]);
   });
 
+  it('leaves the whole rest of the list ahead of a shuffled playhead', () => {
+    // THE BUG THIS EXISTS FOR: shuffle used to permute the entire run and
+    // then look up where the playing track had landed, so the playhead came
+    // to rest at a random point and what was left ahead of it was three
+    // entries, or one, or none, at random. Up Next reported a different
+    // length every time the same record was started, and it was reported as
+    // the queue running on a timer.
+    //
+    // Twenty draws, because one shuffle landing at the front proves nothing:
+    // the old code did that too, one time in four.
+    for (let attempt = 0; attempt < 20; attempt += 1) {
+      const shuffled = setShuffle(buildQueue(ids, 'c', false), true);
+      expect(currentTrackId(shuffled)).toBe('c');
+      expect(shuffled.position).toBe(0);
+      expect(shuffled.order).toHaveLength(ids.length);
+      // Every other track is still to come, each exactly once.
+      const ahead = shuffled.order
+        .slice(shuffled.position + 1)
+        .map((index) => shuffled.trackIds[index]);
+      expect([...ahead].sort()).toEqual(['a', 'b', 'd']);
+    }
+  });
+
+  it('starts a shuffled queue on the track that was asked for', () => {
+    // `buildQueue(..., true)` is the path pressing play on a record takes
+    // with shuffle already on. The chosen song plays first and the rest
+    // follows it; it is not dealt into the middle of its own album.
+    for (let attempt = 0; attempt < 20; attempt += 1) {
+      const queue = buildQueue(ids, 'b', true);
+      expect(currentTrackId(queue)).toBe('b');
+      expect(queue.position).toBe(0);
+      expect(queue.order.length - queue.position - 1).toBe(ids.length - 1);
+    }
+  });
+
   it('drops a removed track without losing its place', () => {
     const queue = buildQueue(ids, 'c', false);
     const shorter = removeFromQueue(queue, 'a');

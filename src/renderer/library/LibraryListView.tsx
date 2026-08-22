@@ -103,6 +103,10 @@ interface ILibraryListViewProps {
    * Listed in the same run rather than a table of their own, tagged so the
    * distinction is visible without splitting the screen in two. */
   folderOnlyIds?: ReadonlySet<string>;
+  /** Rows the toolbar's search named, in a panel the search did NOT name —
+   * drawn at the head of the table and lit, so a compilation that came up for
+   * two of its five hundred songs says which two. */
+  matchedIds?: ReadonlySet<string>;
   /** Break the song list into a heading per folder. Off by default: a library
    * browsed by album has no use for it, and a folder heading above every row
    * would be noise rather than structure. */
@@ -130,7 +134,7 @@ const folderLabel = (filePath: string): string => {
   return parts.length > 1 ? parts[parts.length - 2] : normalised;
 };
 
-/** The five column headers this view ever shows, keyed by the existing
+/** The column headers this view ever shows, keyed by the existing
  * `library.column.*` translation each draws from — never a computed key,
  * which `Translate`'s literal `TranslationKey` union would reject anyway. */
 const COLUMN_LABEL_KEYS = {
@@ -139,6 +143,7 @@ const COLUMN_LABEL_KEYS = {
   album: 'library.column.album',
   year: 'library.column.year',
   length: 'library.column.length',
+  trackNo: 'library.column.trackNo',
 } as const;
 
 type TListColumn = keyof typeof COLUMN_LABEL_KEYS;
@@ -363,6 +368,7 @@ const LibraryListView = ({
   playingTrackId,
   revealTrack,
   folderOnlyIds = NO_FOLDER_ONLY,
+  matchedIds = NO_FOLDER_ONLY,
   groupByFolder = false,
   resetKey = '',
 }: ILibraryListViewProps) => {
@@ -747,10 +753,39 @@ const LibraryListView = ({
    * plain everywhere is `length` — no comparator sorts by duration yet, and
    * a control that does nothing is worse than no control.
    */
+  /**
+   * The track-number header, which lives *inside* the title cell because the
+   * number itself does — see `LibraryTrackRow`, where it is drawn at the head
+   * of the title so twelve of them make a column the eye can run down. A
+   * column header of its own would have to sit before the title cell and
+   * would then stand 18px left of every number under it.
+   *
+   * Marked `aria-hidden`: the cell it sits in is already the title's
+   * `columnheader`, and a second control inside one cell is noise read out.
+   * The order it sets is announced by the title cell's own `aria-sort`, and
+   * the sort control on the bar offers the same order in a labelled form.
+   */
+  const trackNoSort = () =>
+    onSort ? (
+      <button
+        type="button"
+        className={`library-list__sort library-list__sort--no${
+          sort === 'track' ? ' is-active' : ''
+        }`}
+        onClick={() => onSort('track')}
+        title={t(COLUMN_LABEL_KEYS.trackNo)}
+        aria-hidden="true"
+        tabIndex={-1}
+      >
+        #
+      </button>
+    ) : null;
+
   const sortableHeader = (
     column: TListColumn,
     key: TLibrarySort,
-    extraClass = '',
+    extraClass?: string,
+    lead?: ReactNode,
   ) => {
     const isActive = onSort !== undefined && sort === key;
     return (
@@ -761,6 +796,7 @@ const LibraryListView = ({
           column === 'length' ? ' library-list__col--length' : ''
         }${extraClass ? ` ${extraClass}` : ''}`}
       >
+        {lead}
         {onSort ? (
           <button
             type="button"
@@ -1170,7 +1206,7 @@ const LibraryListView = ({
   // the doc comment above for why that fallback is deliberate.
   return renderTable(
     <>
-      {sortableHeader('title', 'title')}
+      {sortableHeader('title', 'title', undefined, trackNoSort())}
       {sortableHeader('artist', 'artist')}
       {sortableHeader('album', 'album')}
       {/* No `length` sort: `sortTracks` has no duration comparator, and the
@@ -1203,6 +1239,7 @@ const LibraryListView = ({
             track={entry.track}
             isOffline={offlineRootIds.has(entry.track.rootId)}
             isFolderOnly={folderOnlyIds.has(entry.track.id)}
+            isSearchMatch={matchedIds.has(entry.track.id)}
             isSelected={activeId === entry.track.id}
             isPlaying={playingTrackId === entry.track.id}
             isFavorite={isFavorite(entry.track.id)}

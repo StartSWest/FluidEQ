@@ -26,6 +26,8 @@ interface ILibraryTrackRowProps {
   track: ILibraryTrack;
   isOffline: boolean;
   isFolderOnly: boolean;
+  /** The toolbar's search named this row, in a panel it did not name. */
+  isSearchMatch?: boolean;
   /** The row the reader last clicked. A primitive rather than the selected
    * id, for the reason the two booleans above are: the parent resolves it so
    * the memo still holds for every row that did not change. */
@@ -68,6 +70,7 @@ const LibraryTrackRow = ({
   track,
   isOffline,
   isFolderOnly,
+  isSearchMatch = false,
   isSelected,
   isPlaying,
   isFavorite,
@@ -85,6 +88,16 @@ const LibraryTrackRow = ({
     track.isPending ? 'library-list__row--pending' : '',
     isSelected ? 'library-list__row--selected' : '',
     isPlaying ? 'library-list__row--playing' : '',
+    // In the folder but not on the record. The badge beside the title says so
+    // too, and says it precisely — but one small glyph among fifteen rows is
+    // something you find after wondering why the count looks wrong. The
+    // colour is what separates the two groups at a glance; the badge is what
+    // names the difference once you look.
+    isFolderOnly ? 'library-list__row--folder-only' : '',
+    // Why this panel is on screen. Drawn at the head of the table by
+    // `LibraryDetail`, and lit here so the boundary between the songs that
+    // were asked for and the rest of the record needs no heading.
+    isSearchMatch ? 'library-list__row--matched' : '',
   ]
     .filter(Boolean)
     .join(' ');
@@ -170,6 +183,13 @@ const LibraryTrackRow = ({
                 </g>
               </svg>
             </span>
+          )}
+          {/* The number the record was pressed with, where the tags carry
+              one. Quiet and fixed-width so twelve of them make a column the
+              eye can run down rather than twelve numbers of differing widths
+              pushing the titles about. */}
+          {track.trackNo !== undefined && (
+            <span className="library-list__track-no">{track.trackNo}</span>
           )}
           <span className="library-list__title-label">{track.title}</span>
           {/* A filled star, before the warning badges rather than among

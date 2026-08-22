@@ -68,6 +68,7 @@ const BROWSE_MODES: readonly TLibraryBrowseMode[] = [
 ];
 const VIEW_MODES: readonly TLibraryViewMode[] = ['list', 'grid', 'coverflow'];
 const SORTS: readonly TLibrarySort[] = [
+  'track',
   'title',
   'artist',
   'album',
@@ -105,6 +106,7 @@ const FOLDER_READINGS = [
 ] as const;
 
 const SORT_LABEL_KEYS = {
+  track: 'library.sort.track',
   title: 'library.sort.title',
   artist: 'library.sort.artist',
   album: 'library.sort.album',
@@ -324,10 +326,14 @@ const LibraryToolbar = ({
           </button>
         ))}
       </div>
-      {/* Kept alongside the sortable column headers, not instead of them: the
-          grid and cover flow have no columns to click, and this is the only
-          way to reorder them. The arrow beside it is the direction, which a
-          header click toggles in the list and nothing else could here. */}
+      {/* On every view, the list included. It was withheld there for a while
+          on the grounds that the columns already steer that list — but the
+          columns are Title, Artist, Album and Year, and this offers an order
+          none of them can: recently added. A control that disappears on one
+          view, taking an option with it, is worse than one that repeats four.
+
+          The arrow beside it is the direction, which a header click toggles
+          in the list and nothing else could here. */}
       {onSort && onSortDirection && (
         <div className="library-toolbar__sort">
           <Dropdown

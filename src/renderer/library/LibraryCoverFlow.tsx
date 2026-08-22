@@ -183,11 +183,15 @@ interface ILibraryCoverFlowProps {
   /** A track to scroll to and select inside the panel this opens, forwarded
    * to the same-named prop on `LibraryDetail`. */
   revealTrack?: { trackId: string; nonce: number };
-  /** The toolbar's search, forwarded to the panel this opens so its table is
-   * narrowed by it — see `LibraryDetail`'s own prop of the same name. The
-   * covers themselves are already built from tracks the workspace has
-   * searched. */
+  /** The toolbar's search, forwarded to the panel this opens — which decides
+   * for itself whether the query found the container or found tracks inside
+   * it. See `LibraryDetail`'s `isQueryTheContainer`. */
   query?: string;
+  /** Add-to-queue, forwarded to the panel this opens. `LibraryDetail` draws
+   * that button only when it is given somewhere to send the tracks, so
+   * leaving it out is what made this the one view where a record could be
+   * started but not queued. */
+  onQueueTracks?: (trackIds: readonly string[]) => void;
 }
 
 /** One cover's worth of what this view draws — the same split
@@ -257,6 +261,7 @@ const LibraryCoverFlow = ({
   playingTrackId,
   revealTrack,
   query,
+  onQueueTracks,
 }: ILibraryCoverFlowProps) => {
   const { t } = useTranslation();
   const { playlists } = usePlaylists();
@@ -1086,6 +1091,7 @@ const LibraryCoverFlow = ({
               )
             }
             onPlayTrack={(trackId) => onPlayTrack?.(trackId)}
+            onQueueTracks={onQueueTracks}
             playingTrackId={playingTrackId}
             revealTrack={revealTrack}
             query={query}

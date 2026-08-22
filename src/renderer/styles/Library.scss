@@ -24,6 +24,22 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .library-workspace {
   // The frame the floating scan pane positions itself against.
   position: relative;
+  // And the box the toolbar measures itself against.
+  //
+  // What crowds that row is not the window — it is this card, which gives a
+  // quarter of itself to the queue when that is open. A media query asks the
+  // wrong question: at 1920 it sees plenty of room while the shelf is down to
+  // 909px, the toolbar has already wrapped, and the queue has dropped onto a
+  // second line by itself.
+  //
+  // It has a cost, and it is not obvious: `inline-size` containment makes this
+  // element the containing block for every FIXED descendant it has, exactly
+  // the way `will-change: transform` does on `.center-workspace`. Measured
+  // here, a `position: fixed; inset: 0` child came out at 192,90 1370x858 —
+  // the card — rather than the window. The full-screen video is such a child.
+  // See the `:has()` rule below, which takes the containment away for as long
+  // as one is up.
+  container: library / inline-size;
   display: flex;
   min-width: 0;
   min-height: 0;
@@ -43,9 +59,41 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // are what knows how much room a cover and a few rows need.
   overflow-x: hidden;
   overflow-y: auto;
+  // The Media tab's choice, for the Media tab's reason: something other than
+  // this box's own scrollbar owns the right-hand edge.
+  //
+  // `.workspace-tab-panel` reserves a stable gutter so text does not jump when
+  // a scrollbar arrives. Here it reserved 15px for a scrollbar that never
+  // comes — measured, `scrollHeight` and `clientHeight` are the same number —
+  // and the queue, which is placed against the PADDING box, was pushed in by
+  // it. That is the right-hand side standing 16px off the card while the left
+  // stood 12: the difference was a gutter, not a padding.
+  //
+  // Nothing scrolls on this box anyway. Every list in this tab has its own
+  // scrolling body, which is where the rows actually move.
+  scrollbar-gutter: auto;
+  // What the queue stands in from the card's edge, and the one number the
+  // strip, the panel and the splitter are all measured from — the same 12 the
+  // card pads its left with, so the two sides match by construction rather
+  // than by three numbers agreeing.
+  --up-next-inset: 12px;
 
   &.is-hidden {
     display: none;
+  }
+
+  // What the containment above costs, given back for as long as a video is
+  // full screen.
+  //
+  // `container-type: inline-size` makes this element the containing block for
+  // every fixed descendant, and the full-screen stage is one: `inset: 0`
+  // resolved against this card and the picture filled the middle column
+  // between the two sidebars instead of the window — the same failure
+  // `.center-workspace`'s `will-change` caused, from a different direction,
+  // and the same answer. Nothing queries the container while a video owns the
+  // tab: the toolbar that measures itself against it is not on screen.
+  &:has(.library-video-stage.is-fullscreen) {
+    container-type: normal;
   }
 
   // The empty state is the one thing that advertises the drop; the whole
@@ -799,6 +847,17 @@ $library-row-height: 46px;
   }
 }
 
+// Sits over the numbers rather than beside the word "Title": the same 18px
+// box and right edge `.library-list__track-no` gives every number under it,
+// and the 5px is `.library-list__title-text`'s own gap, so the header lines
+// up with the column it sorts instead of merely being near it.
+.library-list__sort--no {
+  min-width: 18px;
+  margin-right: 5px;
+  justify-content: flex-end;
+  font-variant-numeric: tabular-nums;
+}
+
 .library-list__sort-arrow {
   opacity: 0;
   font-size: 0.7em;
@@ -899,7 +958,10 @@ $library-row-height: 46px;
   // went with it. Measured in the running window before this was removed: a
   // row read 32px at the top of the list and 0px anywhere else.
   color: $text-muted;
-  border-radius: $radius-xs;
+  // Square. A row is a full-width band of a table, not a card: rounded ends
+  // on a highlight that runs edge to edge read as a pill dropped into a list,
+  // and a run of them reads as a stack of loose objects rather than as rows.
+  border-radius: 0;
   cursor: pointer;
   transition: $transition-control;
 
@@ -1608,10 +1670,15 @@ $library-row-height: 46px;
 }
 
 .library-detail__header {
-  // The cover and the titles read left to right; the filter sits at the far
-  // right of the same line, which is where the toolbar's own search is and so
-  // the only place the eye already looks for one.
+  // The cover and the titles read left to right; the filter is the third
+  // item, pushed to the far right and dropped to the sleeve's foot.
+  //
+  // Above the rows, so the filter's recent-searches list hangs over the table
+  // rather than behind it. Same note `.library-toolbar-row` carries — and it
+  // has to live here now rather than on `__top`, which is the row the field
+  // used to be in.
   position: relative;
+  z-index: 4;
   display: flex;
   flex: 0 0 auto;
   align-items: flex-start;
@@ -1621,17 +1688,18 @@ $library-row-height: 46px;
 .library-detail__info {
   display: grid;
   min-width: 0;
+  // Takes the room the cover and the filter leave rather than sizing to its
+  // own text: the title is the longest thing on this line and was the one
+  // being cut, and a column that only asks for what fits gives it away to
+  // the whitespace beside it.
+  flex: 1 1 auto;
   align-content: start;
   gap: $spacing-xxs;
 }
 
-// Back on the left, the filter on the right, one line — the filter reads as
-// belonging to this screen rather than floating beside the album's title.
+// Back on the left, the path beside it, one line.
 .library-detail__top {
-  // Above the header, so the filter's recent-searches list hangs over the
-  // cover rather than behind it. Same note `.library-toolbar-row` carries.
   position: relative;
-  z-index: 4;
   display: flex;
   flex: 0 0 auto;
   align-items: center;
@@ -1641,15 +1709,35 @@ $library-row-height: 46px;
 
 // Filters this album, folder or artist and nothing else — see the comment in
 // `LibraryDetail` on why the toolbar's own box is withheld here entirely.
+//
+// An `auto` cross-axis margin beats `align-items` and eats the line's spare
+// height, which is what drops the field to the foot of the line rather than
+// the top the other two items are aligned to. The sleeve is the tallest thing
+// on that line — a fixed square against a title, a subtitle, a count and a
+// button row — so the line's foot is the cover's foot.
 .library-detail__search {
   position: relative;
   width: clamp(160px, 30%, 340px);
+  // `auto` on both, so it bottoms out and stays at the right-hand edge.
+  margin-top: auto;
+  margin-left: auto;
 }
 
 // Sizing copied from `.karaoke-workspace__header h2` in Karaoke.scss.
+//
+// Two lines before it gives up, not one. A single nowrap line cut "No Strings
+// Attached" down to "No Strings Attac…" the moment the queue panel took the
+// width — and the name of the record you are looking at is the one string on
+// this screen that has to survive. Still clamped rather than unbounded: the
+// header is a fixed row above a table, and a title free to grow to four lines
+// pushes that table down the page.
 .library-detail__title {
-  @include truncate;
+  display: -webkit-box;
+  overflow: hidden;
+  min-width: 0;
   margin: 0;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
   color: $text-primary;
   font-size: clamp(1.15rem, 1.8vw, 1.5rem);
   line-height: 1.2;
@@ -1838,7 +1926,24 @@ $library-row-height: 46px;
 // the album. Same quiet treatment as the pending badge — information, not a
 // problem.
 .library-list__badge--folder {
-  color: $text-faint;
+  color: rgba($neon-yellow, 0.85);
+}
+
+// In this folder, not on this record.
+//
+// The badge beside the title has always said so, and one glyph among fifteen
+// rows is something a reader finds after wondering why the count looks wrong.
+// A colour on the title separates the two groups before anything is read —
+// and the badge, kept, is what names the difference once they look.
+//
+// A warm one, and not the app's cyan: cyan is what a row uses to say "this is
+// playing", and a second cyan meaning "this is a different sort of row" would
+// be two answers in one colour. Not a red or a pink either — those read as
+// something being wrong, and there is nothing wrong with a file sitting in a
+// folder. The title alone carries it; the artist and the length stay as they
+// are, because the row is not disabled and dimming it would say it was.
+.library-list__row--folder-only .library-list__title-label {
+  color: rgba($neon-yellow, 0.85);
 }
 
 // The tail of a list that has more to show. Not a spinner: nothing is being
@@ -1951,12 +2056,14 @@ $library-wave-step: 4ms;
     background: rgba($secondary-light, 0.08);
   }
 
-  // Squared off at the bottom while the recent-searches list hangs under it,
-  // so the two read as one control rather than a pill with a card beneath.
-  &.is-open {
-    border-bottom-right-radius: $radius-s;
-    border-bottom-left-radius: $radius-s;
-  }
+  // A pill, open or shut.
+  //
+  // The bottom corners used to square off while the list was showing, on the
+  // reasoning that the two would read as one control — but the list hangs
+  // 4px BELOW the field rather than joining it, so what that produced was a
+  // pill with two flattened corners floating over a separate card: a shape
+  // that belongs to neither of them. A capsule that keeps its shape while it
+  // is being typed into is the quieter answer.
 }
 
 // *** Recent searches **********************************************************
@@ -1967,7 +2074,14 @@ $library-wave-step: 4ms;
 
 .library-search__suggestions {
   position: absolute;
-  z-index: 20;
+  // Above everything else in the toolbar, not merely above the field.
+  //
+  // At 20 it cleared the field it hangs from and the rows under it, but the
+  // folder controls sit in the same row and carry marks of their own — and
+  // where the two overlapped, those were drawn through the list, which reads
+  // as glyphs printed across "recent searches". The panel is the frontmost
+  // thing in this bar while it is open; nothing in the row outranks it.
+  z-index: 60;
   top: calc(100% + 4px);
   right: 0;
   left: 0;
@@ -2293,4 +2407,608 @@ $library-wave-step: 4ms;
   text-align: left;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+// *** Up next *****************************************************************
+//
+// The queue, said out loud. It is assembled from whatever list is on screen
+// and re-aimed whenever the view changes, and until now the only way to learn
+// what it held was to wait and hear.
+//
+// Absolutely placed against the tab rather than laid out as a column beside
+// it: this section is already the positioning frame for the floating scan
+// pane, and `has-up-next` reserves the strip on the right so nothing runs
+// underneath. A wrapper element around every other child would be a large
+// edit for the same picture.
+// The strip it stands in, plus the gap between it and the shelf. Folded it
+// gives all of that back but the width of its own tab.
+// The panel's width plus the splitter's, and nothing else.
+//
+// 12px is the graph divider's rule taken sideways: `.pane-resizer` is exactly
+// as thick as the gap the workspace already leaves between two cards, so it
+// sits IN that gap rather than adding to it. Here the same — the splitter is
+// the space between the shelf and the queue, not a third thing between them.
+// The panel, the gap between it and the shelf, and the panel's own inset from
+// the card — the three things that stand to the right of the last column.
+.library-workspace.has-up-next {
+  padding-right: calc(
+    var(--up-next-width, 260px) + 12px + var(--up-next-inset)
+  );
+}
+
+// Folded there is no panel to reserve for: `has-up-next` comes off the
+// section entirely and the shelf has the whole width back. The chip in the
+// folder row is the way in.
+
+.library-up-next {
+  @include panel-surface;
+  position: absolute;
+  z-index: 3;
+  // The card's own padding, restated.
+  //
+  // An absolutely placed child resolves against the padding BOX, which starts
+  // inside the border and takes no notice of the padding itself — so `top: 0`
+  // put this hard against the card's edge while every other thing in the tab
+  // stood 10px in from it. These three are the tab panel's own
+  // `padding: 10px 12px 12px`, so the queue stands off the card by what the
+  // shelf stands off it, on every side it touches — the right included, which
+  // used to be flush and so read as 16px once the reserved scrollbar gutter
+  // was counted.
+  top: 10px;
+  right: var(--up-next-inset);
+  bottom: 12px;
+  display: flex;
+  width: var(--up-next-width, 260px);
+  flex-direction: column;
+  padding: 6px 4px 8px 10px;
+  gap: 4px;
+}
+
+// *** The queue over a video **************************************************
+//
+// A video is a queue entry like any other, and "what is next" is the question
+// a listener has WHILE one plays — so the panel is drawn there too, the way
+// karaoke keeps its playlist beside the stage. It floats on the picture rather
+// than taking a strip out of it: `has-up-next` is withheld in this case (see
+// `LibraryWorkspace`), so the stage keeps the whole tab and the queue stands
+// on top of its right-hand edge.
+//
+// Full screen is the same panel, moved from the card to the window. The stage
+// goes `position: fixed; z-index: 1150` there, so anything meant to stay
+// legible over it has to be fixed too and stand above it — hence `1160`, and
+// hence the containment released on `.library-workspace` above, without which
+// "fixed" would mean the card and the panel would land in the middle of the
+// picture.
+.library-workspace.has-video {
+  .library-up-next,
+  .library-up-next__splitter {
+    // Clear of the video's own Back and full-screen buttons, which sit at
+    // `$spacing-s` from the top corners.
+    top: 52px;
+  }
+
+  &:has(.library-video-stage.is-fullscreen) {
+    .library-up-next {
+      position: fixed;
+      z-index: 1160;
+      right: 0;
+      bottom: 0;
+      border-radius: 0;
+    }
+
+    // No inset in full screen: the panel runs to the window's own edge, so
+    // the splitter sits directly on the panel's width.
+    .library-up-next__splitter {
+      position: fixed;
+      z-index: 1161;
+      right: var(--up-next-width, 260px);
+      bottom: 0;
+    }
+
+    .library-up-next__chip--over-video {
+      position: fixed;
+      z-index: 1160;
+    }
+  }
+}
+
+// Folded over a picture there is no folder row to keep the chip in, so it
+// stands in the corner the panel came out of — the one place it cannot cover
+// the video's own controls, which hold the two top corners.
+.library-up-next__chip--over-video {
+  position: absolute;
+  z-index: 1160;
+  top: 52px;
+  right: 12px;
+}
+
+// Folded, the panel is not drawn at all — the way back in is a chip in the
+// folder row, drawn by `LibraryWorkspace` after a rule. A full-height column
+// with nothing in it costs the width of the panel and shows none of its use,
+// and a pill floating over a corner of the shelf covers whatever is under it.
+.library-up-next__chip {
+  gap: 6px;
+
+  .library-up-next__count {
+    margin-left: 0;
+  }
+
+  svg {
+    width: 13px;
+    height: 13px;
+    flex: 0 0 auto;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-width: 1.6;
+  }
+
+  // The triangle is solid where the lines are drawn: it is the play mark, not
+  // a fourth line of the list.
+  svg .is-filled {
+    fill: currentColor;
+    stroke: none;
+  }
+}
+
+// The rule between the folder controls and it.
+.library-folder-actions__divider {
+  width: 1px;
+  height: 18px;
+  flex: 0 0 auto;
+  background: rgba($secondary-light, 0.16);
+}
+
+// The edge between the two. `KaraokePaneSplitter` draws itself — this only
+// stands it where the boundary is, and goes with the panel when that folds.
+.library-up-next__splitter {
+  position: absolute;
+  z-index: 4;
+  top: 10px;
+  // Immediately left of the panel, which now stands its own inset off the
+  // card — so the splitter has to carry that inset too or it lands under the
+  // queue's left edge.
+  right: calc(var(--up-next-width, 260px) + var(--up-next-inset));
+  bottom: 12px;
+  display: flex;
+  width: 12px;
+
+  // The splitter's own vertical form is 18px wide, and its grip centres
+  // inside that rather than inside the 12px this reserves — so left alone the
+  // grip sat 3px off the middle of the gap. It takes the gap's width instead;
+  // the grip is the same 3px bar either way.
+  .karaoke-pane-splitter.is-vertical {
+    width: 100%;
+  }
+}
+
+// It slides in from the edge it lives on rather than appearing there.
+//
+// Only the entrance is animated. A panel that also animated out would have to
+// stay mounted while it went, and the strip the shelf gives up comes back the
+// instant it is folded — so the two would disagree for the length of the
+// animation and the list would be seen sliding away over content already
+// laid out underneath it.
+@keyframes up-next-in {
+  from {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.library-up-next,
+.library-up-next__splitter {
+  animation: up-next-in $motion-base $ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .library-up-next,
+  .library-up-next__splitter {
+    animation: none;
+  }
+}
+
+.library-up-next__empty {
+  padding: 14px 8px;
+  margin: 0;
+  color: rgba($primary-lighter, 0.4);
+  font-size: 0.66rem;
+  text-align: center;
+}
+
+// The header is the fold, so it is a control and has to read as one.
+.library-up-next__head {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  padding: 4px 6px 8px 0;
+  border: 0;
+  border-bottom: 1px solid rgba($secondary-light, 0.1);
+  background: none;
+  gap: 8px;
+  cursor: pointer;
+
+  &:hover .library-up-next__title {
+    color: rgba($primary-lighter, 0.95);
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+    outline: none;
+  }
+}
+
+.library-up-next__caret {
+  width: 12px;
+  height: 12px;
+  flex: 0 0 auto;
+  fill: none;
+  stroke: rgba($secondary-light, 0.7);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+  transition: transform $motion-fast $ease-out;
+}
+
+// Folded, the caret points at what opening it would give back, and the count
+// stays on screen so the tab still says how much is waiting.
+.library-up-next.is-collapsed .library-up-next__caret {
+  transform: rotate(-90deg);
+}
+
+.library-up-next.is-collapsed .library-up-next__head {
+  padding: 6px 12px;
+  border: 0;
+  border-radius: $radius-pill;
+}
+
+.library-up-next.is-collapsed .library-up-next__count {
+  margin-left: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .library-up-next,
+  .library-up-next__caret {
+    transition: none;
+  }
+}
+
+.library-up-next__title {
+  color: rgba($primary-lighter, 0.72);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+// Two numbers, because either alone lies: what was chosen, lit, and what is
+// coming altogether, quiet. The whole queue on its own is mostly the record
+// already playing; the picks on their own read as nine over a panel holding
+// fifty. The slash is for the eye and hidden from anything reading the row
+// aloud.
+.library-up-next__count {
+  display: inline-flex;
+  align-items: baseline;
+  margin-left: auto;
+  color: rgba($primary-lighter, 0.4);
+  font-size: 0.62rem;
+  font-variant-numeric: tabular-nums;
+  gap: 2px;
+}
+
+.library-up-next__count-picked {
+  color: $secondary-light;
+  font-weight: 700;
+}
+
+// A BLOCK, not a flex column, and this is the whole of the scroll bug.
+//
+// The two spacers standing in for the unmounted entries carry their height
+// inline. As flex items in a column that overflows they are free to shrink,
+// and they did — so the drawn height moved every time the window changed, the
+// scrollbar was describing a different list from one frame to the next, and
+// scrolling near the end was pulled back on every one of them. Measured: the
+// scroll height went 1672 to 1698 for a single entry mounting.
+//
+// In normal flow a height is a height. Nothing here needs flex: the rows lay
+// themselves out and the panel above is still the column that gives this box
+// its own share.
+.library-up-next__list {
+  display: block;
+  min-height: 0;
+  flex: 1 1 auto;
+  padding: 0;
+  margin: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  @include slim-scrollbar;
+}
+
+// The whole row is the control, because every part of it means the same
+// thing: play this one now rather than waiting for it.
+// The record a run of rows came from, named once above them. Twelve songs
+// from one album drawn as twelve loose rows read as twelve unrelated
+// decisions, which is not what adding an album to this list was.
+//
+// 26px tall, and `LibraryUpNext` says so in a constant of its own: the offset
+// table that decides which entries are mounted is built from these two
+// heights, so they have to agree with the stylesheet.
+// NO MARGIN, and that is arithmetic rather than taste.
+//
+// `LibraryUpNext` builds an offset table from this height and the row's, and
+// mounts only the entries over the scrollport with two spacers standing in
+// for the rest. A margin is height the table cannot see: at 6px a piece and
+// fifteen groups in view the drawn list ran 90px longer than the spacers
+// claimed, the scrollbar and the content disagreed by that much, and
+// scrolling near the end was pulled back on every frame. The air above a
+// group is inside its 26px instead.
+.library-up-next__group {
+  @include truncate;
+  display: flex;
+  // Never shrinks. The list is a flex column that overflows, so a child whose
+  // content is shorter than its height gives that height up — one line of
+  // 0.6rem text put these at 9px against the 26 the offset table assumes, and
+  // the spacers then described a list a third longer than the one drawn.
+  height: 26px;
+  flex: 0 0 auto;
+  align-items: flex-end;
+  padding: 6px 6px 3px;
+  margin: 0;
+  color: rgba($secondary-light, 0.62);
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+// 42px tall, and `LibraryUpNext` says so in a constant: the window that
+// decides which rows are mounted is arithmetic on this number, so the two
+// have to agree. 30px of picture, 6px of padding either side.
+.library-up-next__row {
+  display: flex;
+  width: 100%;
+  height: 42px;
+  align-items: center;
+  padding: 5px 6px;
+  border: 0;
+  border-radius: $radius-s;
+  background: none;
+  gap: 8px;
+  text-align: start;
+  cursor: pointer;
+  transition: $transition-control;
+
+  &:hover {
+    background: rgba($white, 0.06);
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+    outline: none;
+  }
+
+  .library-cover-art--row {
+    width: 30px;
+    height: 30px;
+    flex: 0 0 auto;
+  }
+}
+
+.library-up-next__text {
+  display: grid;
+  min-width: 0;
+  gap: 1px;
+}
+
+.library-up-next__track {
+  @include truncate;
+  color: rgba($white, 0.88);
+  font-size: 0.7rem;
+}
+
+.library-up-next__artist {
+  @include truncate;
+  color: $text-faint;
+  font-size: 0.62rem;
+}
+
+// No room for a fifth of the width on a narrow window: the list is a comfort,
+// the shelf is the tab.
+@media (max-width: 1080px) {
+  .library-workspace.has-up-next {
+    padding-right: 0;
+  }
+
+  .library-up-next {
+    display: none;
+  }
+}
+
+// A row and the way to take it out of the list, on one line. The entry is
+// the draggable thing rather than the button inside it: a draggable button
+// swallows its own click on some pointer sequences, and the click here is
+// what plays the song.
+.library-up-next__entry {
+  display: flex;
+  // 42px and not a pixel less, for the same reason the heading holds its 26:
+  // the offset table behind the windowing is arithmetic on these two numbers,
+  // and a row that gave ground would put the scrollbar out of step with what
+  // is drawn.
+  height: 42px;
+  flex: 0 0 auto;
+  align-items: center;
+  border-radius: $radius-s;
+  gap: 2px;
+
+  &:hover {
+    background: rgba($white, 0.06);
+  }
+
+  &.is-dragging {
+    opacity: 0.4;
+  }
+
+  &:hover .library-up-next__remove {
+    opacity: 1;
+  }
+}
+
+.library-up-next__entry .library-up-next__row {
+  min-width: 0;
+  flex: 1 1 auto;
+
+  &:hover {
+    background: none;
+  }
+}
+
+// Quiet until the row is under the pointer: it is the destructive half of a
+// row whose main verb is "play this", and a cross on every line reads as a
+// list of things to delete.
+.library-up-next__remove {
+  display: grid;
+  width: 22px;
+  height: 22px;
+  flex: 0 0 auto;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  margin-right: 4px;
+  background: none;
+  color: rgba($primary-lighter, 0.55);
+  cursor: pointer;
+  opacity: 0;
+  transition: $transition-control;
+
+  &:hover {
+    color: $white;
+    background: rgba($white, 0.1);
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+    outline: none;
+    opacity: 1;
+  }
+
+  svg {
+    width: 9px;
+    height: 9px;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-width: 1.8;
+  }
+}
+
+// Play and "add to up next" are two answers to the same question, so they sit
+// on one line rather than stacked like two unrelated decisions.
+.library-detail__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $spacing-s;
+}
+
+// The two halves of the list, named.
+//
+// Above the rule is what the listener chose; below it is the record they
+// happen to be playing through. Showing both is what keeps the panel from
+// being empty the moment somebody presses play on an album — naming them is
+// what stops the two reading as one undifferentiated ninety-nine.
+//
+// 32px, and `LibraryUpNext` says so in a constant of its own: the offset
+// table the windowing is built from counts this height, so the two have to
+// agree or the scrollbar describes a different list from the one drawn.
+.library-up-next__section {
+  @include truncate;
+  display: flex;
+  height: 32px;
+  flex: 0 0 auto;
+  align-items: flex-end;
+  padding: 10px 6px 4px;
+  border-bottom: 1px solid rgba($secondary-light, 0.12);
+  margin: 0;
+  color: rgba($primary-lighter, 0.5);
+  font-size: 0.58rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+// The listener's own half wears the accent; what merely follows does not.
+.library-up-next__section.is-added {
+  color: $secondary-light;
+  border-bottom-color: rgba($secondary-light, 0.3);
+}
+
+// *** The toolbar at a Full HD width, with the queue open ********************
+//
+// The row holds a lot: five browse chips, three view chips, a sort control, a
+// search field, "group by folder", "add folder", rescan, force rescan, the
+// folders menu, and the queue. With the panel taking a quarter of the tab
+// there is not room for all of it, so it wrapped — and what dropped to the
+// second line was the queue, the one thing that was supposed to be always in
+// reach.
+//
+// The words go before the row does. Every one of these buttons carries an
+// icon AND a label; below this width the labels stand down and the icons are
+// the control, which is the same information in a fifth of the space. The
+// queue keeps its words: it is the one whose count has to be read.
+@container library (max-width: 1200px) {
+  .library-toolbar__actions .library-toolbar__chip > span:not([class]) {
+    display: none;
+  }
+
+  .library-toolbar__actions .library-toolbar__chip {
+    padding-inline: 8px;
+  }
+
+  // Except this one. A count with no word beside it is a number floating in a
+  // toolbar, and this is the control that has to stay findable.
+  .library-up-next__chip > span {
+    display: inline;
+  }
+}
+
+// The track number the record was pressed with. Quiet, and a fixed width so a
+// column of them reads as a column rather than pushing every title to a
+// different left edge.
+.library-list__track-no {
+  min-width: 18px;
+  flex: 0 0 auto;
+  color: $text-faint;
+  font-size: 0.66rem;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+// Why this panel is on screen.
+//
+// A compilation that came up because two of its five hundred songs are by the
+// band searched for is still a compilation: the whole record is drawn, those
+// two are lifted to the head of the table, and the accent is what separates
+// the group that was asked for from the group that merely came with it. No
+// heading — the change of colour is the heading.
+//
+// The app's cyan, deliberately, because this is the same "you are looking for
+// this" the search box itself wears; the folder-only rows take the warm
+// yellow, and the two never appear on the same row for the same reason.
+// The title alone. A tint across the whole row competes with the mark that
+// says which row is PLAYING and with the one that says which is selected —
+// three washes in one table and none of them reads. The word is enough.
+.library-list__row--matched .library-list__title-label {
+  color: $secondary-light;
+}
+
+// The count of those matches, in the header beside the total.
+.library-detail__matched {
+  color: $secondary-light;
+  font-variant-numeric: tabular-nums;
 }

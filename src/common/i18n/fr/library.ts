@@ -65,12 +65,14 @@ const library: Partial<Dictionary> = {
   'library.sort.album': 'Album',
   'library.sort.year': 'Année',
   'library.sort.added': 'Ajoutés récemment',
+  'library.sort.track': 'Ordre du disque',
 
   'library.column.title': 'Titre',
   'library.column.artist': 'Artiste',
   'library.column.album': 'Album',
   'library.column.year': 'Année',
   'library.column.length': 'Durée',
+  'library.column.trackNo': 'Numéro de piste',
 
   'library.unknownAlbum': 'Album inconnu',
   'library.unknownArtist': 'Artiste inconnu',
@@ -100,6 +102,12 @@ const library: Partial<Dictionary> = {
     'L’index de la bibliothèque n’a pas pu être lu et a été reconstruit.',
 
   'library.back': 'Retour',
+
+  'library.upNext': 'À suivre',
+  'library.upNext.empty': 'Rien dans la file',
+  'library.upNext.added': 'Vos choix',
+  'library.upNext.rest': 'Ensuite',
+  'library.queueAdd': 'Ajouter à la file',
 
   'library.alsoInFolder': 'Dans ce dossier, pas dans cet album',
   'library.play': 'Lire',

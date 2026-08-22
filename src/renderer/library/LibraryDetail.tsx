@@ -22,6 +22,7 @@ import {
   artistKey,
   folderChildren,
   folderDisplayName,
+  normalizeForGrouping,
   groupIntoAlbums,
   groupIntoArtists,
   searchTracks,
@@ -62,6 +63,10 @@ interface ILibraryDetailProps {
   playlistId?: string;
   onBack: () => void;
   onPlayTrack: (trackId: string) => void;
+  /** Put this panel's whole list at the end of what is already queued.
+   * Optional the way the other display-only props here are: a caller with no
+   * player behind it simply does not draw the button. */
+  onQueueTracks?: (trackIds: readonly string[]) => void;
   /** Forwarded straight to the `LibraryListView` this renders — see that
    * component's own doc comment for why it stays optional. */
   offlineRootIds?: ReadonlySet<string>;
@@ -83,10 +88,10 @@ interface ILibraryDetailProps {
   /** A row to scroll to and mark — forwarded straight through. See
    * `LibraryListView`'s own prop of the same name. */
   revealTrack?: { trackId: string; nonce: number };
-  /** The toolbar's search, still in force in here. The panel's own filter
-   * narrows what this leaves rather than searching the library a second time
-   * — see `listTracks`. Only the table is narrowed; which album this is
-   * remains a question about the whole library. */
+  /**
+   * The toolbar's search, applied here ONLY when it is not what found this
+   * panel — see `listTracks` for the rule and why it has to be a rule.
+   */
   query?: string;
 }
 
@@ -121,6 +126,7 @@ const LibraryDetail = ({
   playlistId,
   onBack,
   onPlayTrack,
+  onQueueTracks,
   offlineRootIds,
   folderRoots = NO_FOLDER_ROOTS,
   onOpenFolder,
@@ -138,13 +144,40 @@ const LibraryDetail = ({
   const [draftName, setDraftName] = useState<string | undefined>(undefined);
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
 
+  /**
+   * WITHIN A SEARCH, THE TREE IS THE WAY TO THE MATCHES.
+   *
+   * The folders under this one are computed from whatever track list they are
+   * handed, and handing them the whole library drew every subdirectory
+   * regardless of the query — so walking into a folder and pressing Back came
+   * back to an unfiltered tree, and the search appeared to have been dropped
+   * on the way.
+   *
+   * Narrowed unless the folder standing here is itself what was searched for,
+   * which is the same rule the table below uses: name the container and you
+   * get all of it, name something inside it and you get the way there.
+   */
+  const treeTracks = useMemo(() => {
+    const needle = normalizeForGrouping(query);
+    if (needle === '') {
+      return tracks;
+    }
+    if (
+      folderPath &&
+      normalizeForGrouping(folderDisplayName(folderPath)).includes(needle)
+    ) {
+      return tracks;
+    }
+    return searchTracks(tracks, query);
+  }, [folderPath, query, tracks]);
+
   /** The folders inside this one, and only in the reading that has them. */
   const childFolders = useMemo(
     () =>
       asTree && folderPath
-        ? folderChildren(tracks, folderPath)
+        ? folderChildren(treeTracks, folderPath)
         : EMPTY_CHILDREN,
-    [asTree, folderPath, tracks],
+    [asTree, folderPath, treeTracks],
   );
 
   /**
@@ -322,8 +355,23 @@ const LibraryDetail = ({
     if (playlistId) {
       return undefined;
     }
+    // AND OTHERWISE ONLY WHEN THERE IS ONE ANSWER.
+    //
+    // A folder drill-in knows its directory. An album usually has one too.
+    // An artist very often does not — Nsync is two records in two folders —
+    // and taking the first track's folder named one of them over a list
+    // holding both, which is a path that is wrong for most of what is under
+    // it. Where the tracks disagree the line simply is not drawn: no path is
+    // better than a path that points at a third of the table. Same reasoning
+    // the playlist case above reaches by a shorter route.
     const [first] = detailTracks;
-    return first ? trackFolder(first.path) : undefined;
+    if (!first) {
+      return undefined;
+    }
+    const folder = trackFolder(first.path);
+    return detailTracks.every((track) => trackFolder(track.path) === folder)
+      ? folder
+      : undefined;
   }, [detailTracks, folderPath, playlistId]);
 
   /**
@@ -362,22 +410,97 @@ const LibraryDetail = ({
     );
   }, [tracks, detailTracks, albumId]);
 
-  // One list: the album's own tracks, then its folder-mates behind them.
-  //
-  // Two searches, and they compose in the order the reader typed them. The
-  // toolbar's search narrows the library; this panel's filter narrows what
-  // that left, not the library again — which is the whole point of having
-  // both. Deliberately applied to the *listing* only: `album`, `artist` and
-  // `folderTracks` above are still resolved from the full library, so a
-  // toolbar query that happens to exclude everything in here empties the
-  // table rather than orphaning the panel and throwing the reader out of it.
-  const listTracks = useMemo(() => {
-    const narrowed = searchTracks([...detailTracks, ...strayTracks], query);
-    const combined = searchTracks(narrowed, filter);
+  /**
+   * WHY THIS PANEL CAME UP DECIDES WHAT IT SHOWS.
+   *
+   * Both readings of the toolbar's search are right, and which one applies
+   * depends on what matched:
+   *
+   *   Searching "nsync" and opening CELEBRITY — the record itself is what the
+   *   query named. Narrowing it then showed two of its fourteen tracks under
+   *   a heading reading "2 songs", with the album sitting right there on disk.
+   *   The whole record is what was asked for.
+   *
+   *   Searching "nsync" and opening VARIOS — a five-hundred-track compilation
+   *   that came up because two songs on it are by that band. Showing all five
+   *   hundred answers a question nobody asked; the two are the reason it is
+   *   on screen at all.
+   *
+   * So: if the query names this album, artist or folder, it found the
+   * container and the container is shown whole. If it does not, it found
+   * tracks inside, and those tracks are what is drawn.
+   */
+  const isQueryTheContainer = useMemo(() => {
+    // Folded the way GROUPING folds, not the way searching does.
+    //
+    // The search box keeps punctuation on purpose — somebody who types an
+    // apostrophe means it — but this question is "is the thing I am looking
+    // at the thing that was asked for", and that is the same question
+    // `albumKey` answers. With the search normaliser, typing "nsync" over a
+    // record whose artist reads `N'Sync` came out as no match, the panel
+    // narrowed itself to the two tracks tagged without the apostrophe, and
+    // fourteen songs read as two all over again.
+    const needle = normalizeForGrouping(query);
+    if (needle === '') {
+      return true;
+    }
+    return [
+      album?.title,
+      album?.artist,
+      artist?.name,
+      folderPath ? folderDisplayName(folderPath) : undefined,
+    ].some(
+      (value) =>
+        value !== undefined && normalizeForGrouping(value).includes(needle),
+    );
+  }, [album, artist, folderPath, query]);
+
+  // One list: the album's own tracks, then its folder-mates behind them. The
+  // panel's own "filter these songs" is the only thing that ever removes a
+  // row from it.
+  const baseTracks = useMemo(() => {
+    const combined = searchTracks([...detailTracks, ...strayTracks], filter);
     // Untouched until a header is pressed — see `sort`'s own comment on why
     // an album's default order is not a column.
     return sort ? sortTracks(combined, sort, sortDirection) : combined;
-  }, [detailTracks, strayTracks, sort, sortDirection, filter, query]);
+  }, [detailTracks, strayTracks, sort, sortDirection, filter]);
+
+  /**
+   * The tracks the toolbar's search actually named, when it was not this
+   * container it named.
+   *
+   * MARKED, NOT FILTERED. Hiding the rest was the first answer and it lied by
+   * omission: a five-hundred-track compilation that came up because two songs
+   * on it are by the band searched for is still a five-hundred-track
+   * compilation, and showing two rows under its name says it is an N'Sync
+   * record. The whole thing is drawn, the two are lit, and the header says
+   * how many of how many — which is the honest answer to "why is this here".
+   */
+  const matchedIds = useMemo(() => {
+    if (isQueryTheContainer || normalizeForGrouping(query) === '') {
+      return new Set<string>();
+    }
+    return new Set(searchTracks(baseTracks, query).map((track) => track.id));
+  }, [baseTracks, isQueryTheContainer, query]);
+
+  /**
+   * The matches first, then everything else in the order it was already in.
+   *
+   * A reader who searched for a band and opened a compilation is looking for
+   * the two songs, not for row four hundred and six. Putting them at the head
+   * of the table is what makes the panel answer the question that opened it,
+   * and the colour on those rows is where one group ends and the other
+   * begins — no heading needed, because the change of colour IS the heading.
+   */
+  const listTracks = useMemo(() => {
+    if (matchedIds.size === 0) {
+      return baseTracks;
+    }
+    return [
+      ...baseTracks.filter((track) => matchedIds.has(track.id)),
+      ...baseTracks.filter((track) => !matchedIds.has(track.id)),
+    ];
+  }, [baseTracks, matchedIds]);
   const folderOnlyIds = useMemo(
     () => new Set(strayTracks.map((track) => track.id)),
     [strayTracks],
@@ -438,7 +561,14 @@ const LibraryDetail = ({
     { count: artist?.trackCount ?? detailTracks.length },
   )}`;
   if (isAlbum || isFolder) {
-    counts = t('library.trackCount', { count: detailTracks.length });
+    // What is in the table, not what the tags agree on.
+    //
+    // An album's own tracks are the ones tagged for it; the rows below them
+    // are the folder-mates the record does not account for — a bonus disc,
+    // loose singles, anything tagged differently — and they are drawn in this
+    // very table, marked, on purpose. Counting only the tagged ones put "2
+    // songs" over a list of fourteen.
+    counts = t('library.trackCount', { count: listTracks.length });
   }
   if (isPlaylist) {
     // What the playlist holds, including the songs the library cannot see
@@ -480,11 +610,13 @@ const LibraryDetail = ({
 
   return (
     <div className="library-detail">
-      {/* Back on the left, the filter on the right, one line. The filter
-          narrows this album, folder or artist and nothing else — the
-          toolbar's own box searches the whole library and is withheld
-          entirely while a drill-in is open, so there is exactly one search on
-          screen and it does what the screen it is on suggests. */}
+      {/* Back on the left, the path beside it, one line. The filter used to
+          end this row and sat a whole header away from the table it narrows,
+          up on the line with the toolbar's own library-wide box — two search
+          fields stacked one above the other, neither saying which was which.
+          It now stands directly over the list it filters (see the header
+          below), which is the only place a filter reads as belonging to
+          something. */}
       <div className="library-detail__top">
         <button
           type="button"
@@ -500,16 +632,6 @@ const LibraryDetail = ({
           <span className="library-detail__folder" title={detailFolder}>
             {detailFolder}
           </span>
-        )}
-        {!isWayThrough && (
-          <div className="library-detail__search">
-            <LibrarySearchField
-              value={filter}
-              onChange={setFilter}
-              label={t('library.filterHere')}
-              history={libraryFilterHistory}
-            />
-          </div>
         )}
       </div>
       {!isWayThrough && (
@@ -563,7 +685,18 @@ const LibraryDetail = ({
               <h2 className="library-detail__title">{title}</h2>
             )}
             {subtitle && <p className="library-detail__subtitle">{subtitle}</p>}
-            <p className="library-detail__counts">{counts}</p>
+            <p className="library-detail__counts">
+              {/* How many of how many, when the search named tracks inside
+                  rather than this record: the honest answer to "why is this
+                  compilation on screen at all". */}
+              {matchedIds.size > 0 && (
+                <>
+                  <b className="library-detail__matched">{matchedIds.size}</b>
+                  <span aria-hidden="true"> / </span>
+                </>
+              )}
+              {counts}
+            </p>
             <div className="library-detail__actions">
               {/* Emphasis follows recommendation: this is the one filled
                 button on the screen, Back above is the quiet one. Withheld
@@ -577,6 +710,23 @@ const LibraryDetail = ({
                 >
                   <MenuIcon name="play" className="library-detail__play-icon" />
                   <span>{t('library.play')}</span>
+                </button>
+              )}
+              {/* The quiet one beside it, because it is the second answer to
+                  the same question: play this now, or play it after what is
+                  already going. With nothing playing the two do the same
+                  thing, and `appendToQueue` says so by starting the list.
+                  Withheld when there is nothing to queue, for the reason Play
+                  above is. */}
+              {onQueueTracks && detailTracks.length > 0 && (
+                <button
+                  type="button"
+                  className="button small subtle library-detail__queue"
+                  onClick={() =>
+                    onQueueTracks(listTracks.map((track) => track.id))
+                  }
+                >
+                  {t('library.queueAdd')}
                 </button>
               )}
               {/* Absent for Favourites rather than disabled: it is not a
@@ -641,6 +791,21 @@ const LibraryDetail = ({
               )}
             </div>
           </div>
+          {/* Over the table it narrows, and standing on the same line the
+              sleeve ends on — the header is as tall as the cover, so an auto
+              cross-axis margin is what puts the box's foot exactly there.
+              It filters this album, folder or artist and nothing else; the
+              toolbar's own box, which searches the whole library, is
+              withheld while a drill-in is open, so there is one search on
+              screen and it does what the screen it is on suggests. */}
+          <div className="library-detail__search">
+            <LibrarySearchField
+              value={filter}
+              onChange={setFilter}
+              label={t('library.filterHere')}
+              history={libraryFilterHistory}
+            />
+          </div>
         </div>
       )}
       {/* What is inside this folder, above what is loose in it.
@@ -663,7 +828,7 @@ const LibraryDetail = ({
               handed to it, and this call site never handed one over. */}
           {viewMode === 'grid' ? (
             <LibraryGridView
-              tracks={tracks}
+              tracks={treeTracks}
               browseMode="folder"
               folderRoots={folderRoots}
               folderParent={folderPath}
@@ -678,7 +843,7 @@ const LibraryDetail = ({
             />
           ) : (
             <LibraryListView
-              tracks={tracks}
+              tracks={treeTracks}
               browseMode="folder"
               folderRoots={folderRoots}
               folderParent={folderPath}
@@ -729,6 +894,7 @@ const LibraryDetail = ({
             onPlayTrack={onPlayTrack}
             offlineRootIds={offlineRootIds}
             folderOnlyIds={folderOnlyIds}
+            matchedIds={matchedIds}
             playingTrackId={playingTrackId}
             revealTrack={revealTrack}
             // Puts "Remove from this playlist" in each row's menu, and only

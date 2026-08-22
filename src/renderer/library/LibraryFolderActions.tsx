@@ -97,10 +97,16 @@ const LibraryFolderActions = ({
       {/* The Media tab's chips, same as the browse and view rows — see
           `.library-toolbar__chip`. Emphasis still follows recommendation:
           adding music is the recommendation and wears the accent, rescanning
-          what is already there is the fallback and wears the plain chip. */}
+          what is already there is the fallback and wears the plain chip.
+
+          Every one of them carries its `title`, not only the icon-only one
+          below: the bar drops these labels itself when the tab is too narrow
+          to hold them, and a row of four unexplained glyphs is what that
+          left behind. The tooltip is what the label falls back to. */}
       <button
         type="button"
         className="library-toolbar__chip library-toolbar__chip--accent"
+        title={t('library.add')}
         onClick={onAddFolder}
       >
         <MenuIcon name="folder" className="library-toolbar__action-icon" />
@@ -110,6 +116,7 @@ const LibraryFolderActions = ({
         type="button"
         className="library-toolbar__chip"
         disabled={isScanning}
+        title={t('library.rescan')}
         onClick={onRescan}
       >
         <MenuIcon name="restart" className="library-toolbar__action-icon" />
@@ -140,6 +147,7 @@ const LibraryFolderActions = ({
               isFoldersMenuOpen ? ' is-active' : ''
             }`}
             aria-expanded={isFoldersMenuOpen}
+            title={t('library.roots')}
             onClick={() => setIsFoldersMenuOpen((open) => !open)}
           >
             <MenuIcon

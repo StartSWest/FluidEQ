@@ -402,11 +402,11 @@ select option {
   // padding here shows as a crescent of empty ground in the corner, which is
   // what it looked like at 12 and still at 4.
   //
-  // Above and below it, 2px and no more. The pane has no fill of its own any
-  // more, so what sits there is the wrapper's own ground — and the pane
-  // already carries its own inset above the readout and below the bars, so
-  // anything generous here is a second margin stacked on a first.
-  padding: 2px 12px 2px 0;
+  // Nothing above or below it either — a trial, to see the spectrum run to
+  // the outline on all three sides. The pane already carries its own inset
+  // above the readout and below the bars, so any padding here is a second
+  // margin stacked on a first.
+  padding: 0 12px 0 0;
   // The bar it sits in, showing. 4 here plus the bar's own 2 of padding puts
   // 6px of titlebar above and below the outline, which is the difference
   // between a control set into the bar and a control that is the bar. The
@@ -502,6 +502,11 @@ select option {
     0 0 18px hsl(var(--euphoria-hue) 95% 60% / 30%);
 }
 
+// The lit place keeps the app's own cyan, rainbow mode or not. Sweeping it
+// with the rest was tried and taken back out: the pill is where you ARE, and
+// a mark that changes colour on its own is a mark that reads as something
+// happening rather than as a statement of fact.
+
 @media (prefers-reduced-motion: reduce) {
   .is-euphoric .titlebar-nav {
     animation: none;
@@ -512,9 +517,25 @@ select option {
 // across the top of the window now and it belongs to the wrapper; a second one
 // inside it reads as a control inside a control.
 .titlebar-nav .workspace-tabs-shell {
+  position: relative;
   z-index: auto;
   max-width: none;
   margin: 0;
+
+  // A rule down the middle of the gap, so the two halves of the wrapper read
+  // as two things sharing an outline rather than as a spectrum with words
+  // trailing off the end of it. Short of full height on purpose: a line that
+  // runs edge to edge cuts the capsule in two, where one that stops short
+  // divides what is inside it.
+  &::before {
+    position: absolute;
+    top: 10px;
+    bottom: 10px;
+    left: -12px;
+    width: 1px;
+    background: rgba($secondary-light, 0.18);
+    content: '';
+  }
 }
 
 .titlebar-nav .workspace-tabs {
@@ -524,6 +545,33 @@ select option {
   box-shadow: none;
   flex-wrap: nowrap;
   gap: 6px;
+
+  // A hairline between each pair, the same rule that divides the meter from
+  // the menu — so the four read as a row of places rather than as four words
+  // that happen to be near each other. Fainter than that one and shorter:
+  // this divides items inside a group, where the other divides the two
+  // halves of the whole capsule.
+  //
+  // Every gap gets one, the lit one's included. Suppressing them either side
+  // of the pill was tried and it left two gaps of the four looking like a
+  // mistake — the row wants the same rhythm all the way across, and the pill
+  // is 6px clear of the line at either end so nothing runs into its edge.
+  // `-3px` is half the 6px gap, which is the whole point: the line sits dead
+  // centre between one tab's right edge and the next one's left, so the pill
+  // — which is exactly the lit tab's own box — clears it by the same 3px on
+  // both sides. At -4 it stood 2px from the tab before it and 4px from the
+  // one after, and the pill looked crowded on one side and adrift on the
+  // other depending on which place was chosen.
+  .workspace-tab + .workspace-tab::before {
+    position: absolute;
+    z-index: 2;
+    top: 9px;
+    bottom: 9px;
+    left: -3px;
+    width: 1px;
+    background: rgba($secondary-light, 0.12);
+    content: '';
+  }
 }
 
 // Read at a glance, not squinted at.

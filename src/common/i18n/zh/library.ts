@@ -63,12 +63,14 @@ const library: Partial<Dictionary> = {
   'library.sort.album': '专辑',
   'library.sort.year': '年份',
   'library.sort.added': '最近添加',
+  'library.sort.track': '专辑曲序',
 
   'library.column.title': '标题',
   'library.column.artist': '歌手',
   'library.column.album': '专辑',
   'library.column.year': '年份',
   'library.column.length': '长度',
+  'library.column.trackNo': '曲目编号',
 
   'library.unknownAlbum': '未知专辑',
   'library.unknownArtist': '未知歌手',
@@ -95,6 +97,12 @@ const library: Partial<Dictionary> = {
   'library.indexReset': '媒体库索引无法读取，已重新建立。',
 
   'library.back': '返回',
+
+  'library.upNext': '接下来播放',
+  'library.upNext.empty': '队列暂时为空',
+  'library.upNext.added': '你选的',
+  'library.upNext.rest': '之后',
+  'library.queueAdd': '加入播放队列',
 
   'library.alsoInFolder': '在此文件夹中，但不属于此专辑',
   'library.play': '播放',

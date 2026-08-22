@@ -81,6 +81,37 @@ placement or taste. Therefore:
 - Model/weight licences are verified at the author's own repository, never a
   mirror's tag. Undocumented is not permissive; this app is sold.
 
+## Fix the cause. Never the symptom, and never with a timer
+
+A fix that makes the symptom go away without naming what caused it is not a
+fix — it is the bug, rescheduled. Ivan calls these crappy solutions and he is
+right: every one of them costs a second debugging session on the same defect,
+later, with less context.
+
+- **No `setTimeout` or `setInterval` to make a race behave.** Not to "let
+  state settle", not to retry until something is ready, not to defer work
+  until after a render. A delay that fixes a race only means the race now
+  loses more often, and it will start winning again on a slower machine or a
+  bigger library. Timers are legitimate for exactly what they name — a
+  debounce the user can feel, a real IPC deadline, an animation's own
+  duration. `src/renderer/library` and `src/common/library` contain none, and
+  the queue bug reported as "a timer going crazy" turned out to be
+  `shuffle()` putting the playhead at a random index. That is the pattern:
+  what looks timed is almost always something recomputing itself.
+- **Read the function that is wrong before patching the one that calls it.**
+  The same queue bug got a real but secondary fix in `retargetQueue` first —
+  it did re-shuffle on every track change and that needed fixing — while the
+  actual cause sat in `shuffle()`, four lines that contradicted the doc
+  comment directly above them. When a function's comment and its body
+  disagree, the body is the bug; do not work around it from outside.
+- **A fix you cannot explain is not finished.** State the cause in one
+  sentence — "the playhead landed at a random index because the whole run was
+  shuffled and then searched" — and put it in the code as a comment. If that
+  sentence cannot be written, the cause has not been found yet.
+- **Do not narrow a request to the part that is easy to fix.** Reporting the
+  symptom gone while the cause is untouched is the same failure as ending a
+  turn on four of six requests.
+
 ## Coding standards (the generic core)
 
 - Strict TS: no `any` (use `unknown` + guards), no `!` non-null, no

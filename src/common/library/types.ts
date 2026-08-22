@@ -74,7 +74,16 @@ export interface ILibraryTrack {
 export type TLibraryBrowseMode =
   'album' | 'artist' | 'song' | 'folder' | 'video' | 'playlist';
 export type TLibraryViewMode = 'list' | 'grid' | 'coverflow';
-export type TLibrarySort = 'title' | 'artist' | 'album' | 'year' | 'added';
+export type TLibrarySort =
+  | 'title'
+  | 'artist'
+  | 'album'
+  | 'year'
+  | 'added'
+  // The order the record itself puts them in — disc, then track number, off
+  // the tags. The one order an album is actually meant to be heard in, and
+  // until it was a sort of its own the only way to get it was not to sort.
+  | 'track';
 export type TLibrarySortDirection = 'asc' | 'desc';
 
 export interface ILibraryScanProgress {

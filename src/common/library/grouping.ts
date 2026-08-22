@@ -81,9 +81,40 @@ export const normalizeForSearch = (value: string): string =>
  * together: every track on it has a different `artist`, and keying on that
  * shatters one album into fifteen.
  */
+/**
+ * ONE RULE FOR WHAT COUNTS AS THE SAME NAME.
+ *
+ * GROUPING FOLDS PUNCTUATION; SEARCHING DOES NOT. `normalizeForSearch` folds
+ * case and accents and stops there, which is right for a search box —
+ * somebody who types an apostrophe means it. It is the wrong question for
+ * deciding what one record IS, and tags are written by hand: one folder here
+ * holds `Nsync`, `N'Sync` and `*NSYNC`, which is three bands as far as a
+ * literal comparison is concerned and one band as far as anybody listening is
+ * concerned.
+ *
+ * So: everything that is not a letter, a digit or a space goes, and runs of
+ * space collapse to one. Asterisks, apostrophes of every shape, brackets,
+ * ampersands, dashes, dots — a named list of them is a list that is always
+ * one character short of the tag somebody actually wrote, which is exactly
+ * how `*NSYNC` survived the first attempt at this.
+ *
+ * SPACES ARE KEPT, and that is the line. `[^\p{L}\p{N}]` — dropping them too
+ * — makes "Baladas Vol 1" and "Bala Dasvol1" the same record, and if the
+ * escaping is ever mangled on the way into this file it collapses the entire
+ * library into one album. That has happened here once already.
+ */
+const GROUPING_NOISE = /[^\p{L}\p{N}\s]+/gu;
+const GROUPING_SPACES = /\s+/g;
+
+export const normalizeForGrouping = (value: string): string =>
+  normalizeForSearch(value)
+    .replace(GROUPING_NOISE, '')
+    .replace(GROUPING_SPACES, ' ')
+    .trim();
+
 export const albumKey = (track: ILibraryTrack): string => {
   const artist = track.albumArtist ?? track.artist ?? '';
-  return `${normalizeForSearch(album(track))}\u0000${normalizeForSearch(artist)}`;
+  return `${normalizeForGrouping(album(track))}\u0000${normalizeForGrouping(artist)}`;
 };
 
 const album = (track: ILibraryTrack): string => track.album ?? '';
@@ -444,7 +475,12 @@ const scoreField = (
   if (!value) {
     return 0;
   }
-  const folded = normalizeForSearch(value);
+  // The same fold the grouping uses — see `normalizeForGrouping`. One rule
+  // for what counts as the same name, wherever the question is asked: a
+  // library holding `Nsync`, `N'Sync` and `*NSYNC` should answer all three to
+  // any of them, and a reader typing the plain spelling should not have to
+  // know which punctuation the tagger reached for.
+  const folded = normalizeForGrouping(value);
   if (folded === needle) {
     return exact;
   }
@@ -501,7 +537,10 @@ export const searchTracks = (
   tracks: readonly ILibraryTrack[],
   query: string,
 ): ILibraryTrack[] => {
-  const needle = normalizeForSearch(query);
+  // Folded the same way the fields it is compared against are — see
+  // `scoreField`. A needle folded differently from the haystack is a search
+  // that misses whatever the tagger punctuated.
+  const needle = normalizeForGrouping(query);
   if (!needle) {
     return [...tracks];
   }
@@ -548,6 +587,16 @@ export const sortTracks = (
     }
     if (sort === 'added') {
       return right.addedAt - left.addedAt;
+    }
+    if (sort === 'track') {
+      // Across records as well as inside one: a shelf holding four albums
+      // sorted by number would otherwise interleave all four's track ones.
+      // The album comes first, and `compareTracksInAlbum` is the same
+      // disc-then-number rule `groupIntoAlbums` puts a record in.
+      return (
+        (left.album ?? '').localeCompare(right.album ?? '') ||
+        compareTracksInAlbum(left, right)
+      );
     }
     return left.title.localeCompare(right.title);
   };

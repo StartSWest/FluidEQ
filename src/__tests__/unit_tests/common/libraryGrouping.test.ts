@@ -184,6 +184,50 @@ describe('sorting', () => {
     sortTracks(tracks, 'title');
     expect(tracks.map((entry) => entry.title)).toEqual(['B', 'A']);
   });
+
+  it('puts a record back in the order it was pressed in', () => {
+    // The order off the tags, which is the one an album is meant to be heard
+    // in and the only one no other column can give.
+    const tracks = [
+      track({ title: 'Third', album: 'One', trackNo: 3 }),
+      track({ title: 'First', album: 'One', trackNo: 1 }),
+      track({ title: 'Second', album: 'One', trackNo: 2 }),
+    ];
+    expect(sortTracks(tracks, 'track').map((entry) => entry.title)).toEqual([
+      'First',
+      'Second',
+      'Third',
+    ]);
+  });
+
+  it('keeps two records apart when sorting by track number', () => {
+    // Number alone would interleave every album's track one, then every
+    // album's track two — a shelf of first tracks, which is nobody's idea of
+    // "sort by number". The album comes first and the number orders within it.
+    const tracks = [
+      track({ title: 'B1', album: 'Beta', trackNo: 1 }),
+      track({ title: 'A2', album: 'Alpha', trackNo: 2 }),
+      track({ title: 'B2', album: 'Beta', trackNo: 2 }),
+      track({ title: 'A1', album: 'Alpha', trackNo: 1 }),
+    ];
+    expect(sortTracks(tracks, 'track').map((entry) => entry.title)).toEqual([
+      'A1',
+      'A2',
+      'B1',
+      'B2',
+    ]);
+  });
+
+  it('orders by disc before track number', () => {
+    const tracks = [
+      track({ title: 'Two-one', album: 'One', discNo: 2, trackNo: 1 }),
+      track({ title: 'One-two', album: 'One', discNo: 1, trackNo: 2 }),
+    ];
+    expect(sortTracks(tracks, 'track').map((entry) => entry.title)).toEqual([
+      'One-two',
+      'Two-one',
+    ]);
+  });
 });
 
 describe('sorting what a grouping shows', () => {

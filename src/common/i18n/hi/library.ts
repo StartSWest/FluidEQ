@@ -64,12 +64,14 @@ const library: Partial<Dictionary> = {
   'library.sort.album': 'एल्बम',
   'library.sort.year': 'वर्ष',
   'library.sort.added': 'हाल ही में जोड़ा गया',
+  'library.sort.track': 'एल्बम क्रम',
 
   'library.column.title': 'शीर्षक',
   'library.column.artist': 'कलाकार',
   'library.column.album': 'एल्बम',
   'library.column.year': 'वर्ष',
   'library.column.length': 'लंबाई',
+  'library.column.trackNo': 'ट्रैक संख्या',
 
   'library.unknownAlbum': 'अज्ञात एल्बम',
   'library.unknownArtist': 'अज्ञात कलाकार',
@@ -97,6 +99,12 @@ const library: Partial<Dictionary> = {
     'लाइब्रेरी इंडेक्स पढ़ा नहीं जा सका और उसे फिर से बनाया गया है।',
 
   'library.back': 'वापस',
+
+  'library.upNext': 'आगे',
+  'library.upNext.empty': 'कतार अभी खाली है',
+  'library.upNext.added': 'आपकी पसंद',
+  'library.upNext.rest': 'उसके बाद',
+  'library.queueAdd': 'कतार में जोड़ें',
 
   'library.alsoInFolder': 'इसी फ़ोल्डर में है, इस एल्बम में नहीं',
   'library.play': 'चलाएँ',

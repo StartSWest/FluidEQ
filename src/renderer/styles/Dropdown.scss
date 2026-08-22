@@ -212,7 +212,21 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   letter-spacing: 0.08em;
   text-transform: uppercase;
 
+  // Neither half may run into the other.
+  //
+  // Two pieces of text in a `space-between` row, both at their own
+  // `min-content` width: in a locale where "recent searches" and "clear" are
+  // long enough that the two together exceed the field's width, the row
+  // overflows and the second is drawn across the first. A floor of zero lets
+  // the label give ground and an ellipsis says it did; the button keeps its
+  // size, because a clear control that is half a word is not a control.
+  > span {
+    @include truncate;
+    min-width: 0;
+  }
+
   button {
+    flex: 0 0 auto;
     padding: 0;
     color: rgba($primary-lighter, 0.62);
     border: 0;
