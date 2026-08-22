@@ -526,11 +526,25 @@ export const LibraryPlayerProvider = ({
       memory.positionMs,
       trackById.get(restoreTrackId)?.durationMs,
     );
+    /**
+     * Cued, never started — and that is unconditional.
+     *
+     * These are two separate questions and they were answered by one `if`.
+     * `restorablePositionMs` decides whether the PLAYHEAD is worth putting
+     * back, and it declines under five seconds; but the loader reads this same
+     * ref to decide whether to cue the track or call `play()` on it. So a
+     * session that ended two seconds into a song set nothing here, fell through
+     * to the play branch, and the app started making noise on its own at
+     * launch.
+     *
+     * Whether to resume a position is a judgement. Whether to start playing
+     * unasked is not.
+     */
+    pendingRestore.current = {
+      trackId: restoreTrackId,
+      positionMs: restoreMs ?? 0,
+    };
     if (restoreMs !== undefined) {
-      pendingRestore.current = {
-        trackId: restoreTrackId,
-        positionMs: restoreMs,
-      };
       setPositionMs(restoreMs);
     }
     setQueue({

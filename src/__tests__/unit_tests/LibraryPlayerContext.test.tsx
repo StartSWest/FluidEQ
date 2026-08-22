@@ -395,3 +395,77 @@ describe('a track whose file will not load (blocker 4)', () => {
     expect(latestPlayer?.isPlaying).toBe(false);
   });
 });
+
+/**
+ * Coming back to the app must never start making noise.
+ *
+ * The line between "where you were" and "what you asked for": the last track
+ * is cued with its playhead where it was, and it waits for Play.
+ */
+describe('restoring the last session', () => {
+  const seedMemory = (positionMs: number) => {
+    window.localStorage.setItem(
+      'fluideq.library.playback',
+      JSON.stringify({
+        trackIds: [audioTrack.id],
+        order: [0],
+        position: 0,
+        repeat: 'off',
+        isShuffled: false,
+        positionMs,
+      }),
+    );
+  };
+
+  afterEach(() => {
+    window.localStorage.removeItem('fluideq.library.playback');
+  });
+
+  it('cues the last track without playing it', async () => {
+    seedMemory(90_000);
+    renderHarness();
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(latestPlayer?.track?.id).toBe(audioTrack.id);
+    expect(mediaPlay).not.toHaveBeenCalled();
+  });
+
+  /**
+   * The gap this test exists for.
+   *
+   * `restorablePositionMs` declines to restore a playhead under five seconds,
+   * and the loader read that same absence as "this is not a restore" — so a
+   * session that ended two seconds into a track fell through to `play()` and
+   * the app started playing on its own at launch. Whether to resume a POSITION
+   * is a judgement; whether to start playing unasked is not.
+   */
+  it('still refuses to play when the position was too early to restore', async () => {
+    seedMemory(2_000);
+    renderHarness();
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(latestPlayer?.track?.id).toBe(audioTrack.id);
+    expect(mediaPlay).not.toHaveBeenCalled();
+  });
+
+  /**
+   * POSITIVE CONTROL. Without it, both assertions above would pass just as
+   * well if nothing in this harness could ever reach `play()`.
+   */
+  it('POSITIVE CONTROL: a track the user picks does play', async () => {
+    renderHarness();
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    act(() => {
+      latestPlayer?.playTracks([audioTrack.id], audioTrack.id);
+    });
+
+    expect(mediaPlay).toHaveBeenCalled();
+  });
+});
