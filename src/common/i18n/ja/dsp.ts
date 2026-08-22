@@ -72,6 +72,7 @@ const dsp = {
   'dsp.eqEngine.label': 'エンジン',
   'dsp.eqEngine.serial': '直列',
   'dsp.eqEngine.parallel': '並列',
+  'dsp.eqEngine.precise': '高精度',
   'dsp.eqImport.title': 'EQ カーブを読み込む',
   'dsp.eqImport.hint':
     'Squiglink、AutoEq、Equalizer APO のカーブを貼り付けるか、そのファイルを選んでください。',

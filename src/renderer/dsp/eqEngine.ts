@@ -6,6 +6,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { TEqEngine } from '../../common/dsp/chain';
 import { IBiquadCoefficients, IBiquadState, processBiquad } from './biquad';
+import { IOversamplerState, downsample2x, upsample2x } from './oversample';
 
 /**
  * How the bands are put against the audio, which is a separate question from
@@ -30,6 +31,36 @@ import { IBiquadCoefficients, IBiquadState, processBiquad } from './biquad';
  * differently than they multiply — and the phase behaviour is entirely
  * different. That difference is the whole reason to offer the choice.
  */
+/**
+ * The bands cascaded at twice the rate.
+ *
+ * What this buys is real but specific. A biquad is linear, so it cannot alias
+ * and gains nothing from headroom — what it gains is ROOM. The bilinear
+ * transform squeezes the frequency axis as it approaches Nyquist, and a band
+ * placed high loses its upper skirt against that wall: measured at 44.1 kHz, a
+ * 16 kHz bell asked for +6 dB carries 0.6 dB an octave below its centre and
+ * 0.03 an octave above. Run at 88.2 kHz the wall is an octave further away and
+ * the band keeps its shape.
+ *
+ * The coefficients MUST be built for the doubled rate — that is the whole
+ * mechanism, not a detail. Handing this the ordinary set would place every band
+ * an octave low and be a bug rather than a mode.
+ */
+export const processEqOversampled = (
+  states: IBiquadState[],
+  coefficients: readonly IBiquadCoefficients[],
+  target: Float32Array,
+  oversampler: IOversamplerState,
+  /** Scratch of exactly twice `target`'s length. */
+  doubled: Float32Array,
+): void => {
+  upsample2x(oversampler, target, doubled);
+  for (let band = 0; band < coefficients.length; band += 1) {
+    processBiquad(states[band], doubled, coefficients[band]);
+  }
+  downsample2x(oversampler, doubled, target);
+};
+
 export const processEqBands = (
   states: IBiquadState[],
   coefficients: readonly IBiquadCoefficients[],

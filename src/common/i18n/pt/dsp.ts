@@ -73,6 +73,7 @@ const dsp = {
   'dsp.eqEngine.label': 'Motor',
   'dsp.eqEngine.serial': 'Em série',
   'dsp.eqEngine.parallel': 'Em paralelo',
+  'dsp.eqEngine.precise': 'Preciso',
   'dsp.eqImport.title': 'Importar uma curva de EQ',
   'dsp.eqImport.hint':
     'Cola uma curva do Squiglink, AutoEq ou Equalizer APO — ou escolhe o ficheiro que a contém.',

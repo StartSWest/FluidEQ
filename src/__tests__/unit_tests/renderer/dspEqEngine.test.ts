@@ -8,6 +8,7 @@ import { FilterTypeEnum } from '../../../common/constants';
 import { TEqEngine } from '../../../common/dsp/chain';
 import {
   biquadCoefficients,
+  biquadMagnitudeDb,
   createBiquadState,
 } from '../../../renderer/dsp/biquad';
 import { processEqBands } from '../../../renderer/dsp/eqEngine';
@@ -122,6 +123,62 @@ describe('the EQ engines', () => {
     const untouched = impulseTrain();
     expect(worstDifference(run(flat, 'parallel'), untouched)).toBeLessThan(
       1e-9,
+    );
+  });
+});
+
+/**
+ * What running the cascade at twice the rate is actually for.
+ *
+ * A biquad is linear and cannot alias, so oversampling buys it no headroom —
+ * it buys ROOM. The bilinear transform squeezes the frequency axis approaching
+ * Nyquist, and a band placed high loses its upper skirt against that wall. At
+ * double rate the wall is an octave further off and the band keeps its shape.
+ */
+describe('the precise engine', () => {
+  const RATE_44 = 44_100;
+
+  const asymmetry = (designRate: number): number => {
+    const spec = {
+      type: FilterTypeEnum.PK,
+      frequency: 16_000,
+      gainDb: 6,
+      quality: 1,
+    };
+    const coefficients = biquadCoefficients(spec, designRate);
+    const below = biquadMagnitudeDb(coefficients, 8_000, designRate);
+    const above = biquadMagnitudeDb(coefficients, 21_609, designRate);
+    return below - above;
+  };
+
+  it('lets a band near Nyquist keep the skirt the session rate takes', () => {
+    // At the session rate the octave below carries 0.6 dB and the octave above
+    // 0.03 — the band is pressed flat on one side. At the doubled rate both
+    // sides are far from the wall and the two skirts come back together.
+    const atRate = asymmetry(RATE_44);
+    const doubled = asymmetry(RATE_44 * 2);
+    expect(atRate).toBeGreaterThan(0.4);
+    expect(doubled).toBeLessThan(atRate / 2);
+  });
+
+  /**
+   * The bug the design rate exists to prevent.
+   *
+   * Running the cascade at twice the rate with coefficients built for the
+   * ordinary one places every band an octave low. This states the relationship
+   * so that wiring can never be quietly lost.
+   */
+  it('CONTROL: coefficients built for the wrong rate move the band', () => {
+    const spec = {
+      type: FilterTypeEnum.PK,
+      frequency: 1_000,
+      gainDb: 6,
+      quality: 1,
+    };
+    const wrong = biquadCoefficients(spec, RATE_44);
+    // Played back at the doubled rate, the peak lands at 2 kHz instead of 1.
+    expect(biquadMagnitudeDb(wrong, 2_000, RATE_44 * 2)).toBeGreaterThan(
+      biquadMagnitudeDb(wrong, 1_000, RATE_44 * 2),
     );
   });
 });

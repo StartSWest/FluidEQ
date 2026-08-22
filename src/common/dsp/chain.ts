@@ -117,9 +117,13 @@ export const EQ_MODELS: readonly TEqModel[] = ['clean', 'proportional', 'wide'];
  * each one changed, so no band hears another's phase and order stops
  * mattering. Same curve on the dials, a different thing done to the audio.
  */
-export type TEqEngine = 'serial' | 'parallel';
+export type TEqEngine = 'serial' | 'parallel' | 'precise';
 
-export const EQ_ENGINES: readonly TEqEngine[] = ['serial', 'parallel'];
+export const EQ_ENGINES: readonly TEqEngine[] = [
+  'serial',
+  'parallel',
+  'precise',
+];
 
 export interface IEqSettings {
   enabled: boolean;

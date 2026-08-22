@@ -27,7 +27,8 @@ import {
   biquadCoefficients,
   createBiquadState,
 } from '../biquad';
-import { processEqBands } from '../eqEngine';
+import { processEqBands, processEqOversampled } from '../eqEngine';
+import { IOversamplerState, createOversampler } from '../oversample';
 import { FilterTypeEnum } from '../../../common/constants';
 
 /** Web Audio always renders 128 frames; the scratch buffers start there. */
@@ -65,6 +66,12 @@ class DspProcessor extends AudioWorkletProcessor {
 
   /** One filter state per band per channel, so the two never share history. */
   private readonly eqStates: IBiquadState[][] = [];
+
+  /** One per channel: the precise engine's filters keep history across blocks. */
+  private readonly eqOversamplers: IOversamplerState[] = [];
+
+  /** Doubled-rate scratch for the precise engine. */
+  private eqDoubled = new Float32Array(RENDER_QUANTUM * 2);
 
   private eqCoefficients: IBiquadCoefficients[] = [];
 
@@ -104,6 +111,7 @@ class DspProcessor extends AudioWorkletProcessor {
       this.eqStates.push(
         Array.from({ length: EQ_MAX_BAND_COUNT }, () => createBiquadState()),
       );
+      this.eqOversamplers.push(createOversampler());
     }
     this.rebuildLimiters();
     this.port.onmessage = (event: MessageEvent<unknown>) => {
@@ -139,6 +147,7 @@ class DspProcessor extends AudioWorkletProcessor {
       return;
     }
     this.eqDry = new Float32Array(length);
+    this.eqDoubled = new Float32Array(length * 2);
     this.eqWet = new Float32Array(length);
     this.low = new Float32Array(length);
     this.mid = new Float32Array(length);
@@ -162,6 +171,10 @@ class DspProcessor extends AudioWorkletProcessor {
     // Held as a linear multiplier so the sample loop is one multiply rather
     // than a pow per sample.
     this.eqPreampGain = 10 ** (eq.preampDb / 20);
+    // The precise engine runs the cascade at twice the rate, so its filters
+    // have to be DESIGNED for that rate. Handing it the ordinary set would
+    // place every band an octave low — a bug rather than a mode.
+    const designRate = eq.engine === 'precise' ? sampleRate * 2 : sampleRate;
     this.eqCoefficients = eq.bands
       .filter((band) => band.enabled)
       .map((band) =>
@@ -172,7 +185,7 @@ class DspProcessor extends AudioWorkletProcessor {
             gainDb: band.gainDb,
             quality: band.quality,
           },
-          sampleRate,
+          designRate,
           eq.model,
         ),
       );
@@ -191,14 +204,24 @@ class DspProcessor extends AudioWorkletProcessor {
           target[i] *= this.eqPreampGain;
         }
       }
-      processEqBands(
-        this.eqStates[slot],
-        this.eqCoefficients,
-        target,
-        eq.engine,
-        this.eqDry,
-        this.eqWet,
-      );
+      if (eq.engine === 'precise') {
+        processEqOversampled(
+          this.eqStates[slot],
+          this.eqCoefficients,
+          target,
+          this.eqOversamplers[slot],
+          this.eqDoubled,
+        );
+      } else {
+        processEqBands(
+          this.eqStates[slot],
+          this.eqCoefficients,
+          target,
+          eq.engine,
+          this.eqDry,
+          this.eqWet,
+        );
+      }
     }
 
     if (compressor.enabled) {

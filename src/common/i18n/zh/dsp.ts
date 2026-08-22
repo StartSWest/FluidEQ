@@ -70,6 +70,7 @@ const dsp = {
   'dsp.eqEngine.label': '引擎',
   'dsp.eqEngine.serial': '串联',
   'dsp.eqEngine.parallel': '并联',
+  'dsp.eqEngine.precise': '高精度',
   'dsp.eqImport.title': '导入均衡曲线',
   'dsp.eqImport.hint':
     '粘贴来自 Squiglink、AutoEq 或 Equalizer APO 的曲线，或选择包含它的文件。',
