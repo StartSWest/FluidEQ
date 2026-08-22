@@ -5,7 +5,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { DSP_DEFAULTS, IEqSettings } from '../../../common/dsp/chain';
-import { EQ_PRESETS, eqPresetSetup } from '../../../common/dsp/eqPresets';
+import {
+  EQ_PRESETS,
+  eqPresetSetup,
+  isCompleteEqPreset,
+} from '../../../common/dsp/eqPresets';
 import {
   chainPeakDb,
   eqChainPeakDb,
@@ -25,10 +29,15 @@ const rackFor = (preset: (typeof EQ_PRESETS)[number]): IEqSettings => {
   return {
     ...DSP_DEFAULTS.eq,
     ...setup,
-    bands: DSP_DEFAULTS.eq.bands.map((band, index) => ({
-      ...band,
-      gainDb: preset.gains[index],
-    })),
+    bands: DSP_DEFAULTS.eq.bands.map((band, index) => {
+      const threshold = preset.dynamic?.[index] ?? null;
+      return {
+        ...band,
+        gainDb: preset.gains[index],
+        dynamic: threshold !== null,
+        thresholdDb: threshold ?? band.thresholdDb,
+      };
+    }),
   };
 };
 
@@ -166,5 +175,58 @@ describe('the EQ input regulator', () => {
       },
     };
     expect(chainPeakDb(off, RATE)).toBe(0);
+  });
+});
+
+describe('presets that react', () => {
+  /**
+   * A thresholds array shorter than the gains it accompanies would leave the
+   * last bands static while their gains were applied in full — a de-esser that
+   * had quietly become a dull EQ, with nothing to show for it on screen.
+   */
+  it('gives every band a threshold or none at all', () => {
+    EQ_PRESETS.forEach((preset) => {
+      expect(`${preset.id}: ${isCompleteEqPreset(preset)}`).toBe(
+        `${preset.id}: true`,
+      );
+    });
+  });
+
+  /**
+   * The two that earn it, named rather than counted.
+   *
+   * Pinned because the temptation with a new capability is to sprinkle it: a
+   * tone curve is meant to hold still, and a preset that reacts when the user
+   * did not ask for reaction is a preset that sounds different every time it is
+   * auditioned. If a third one appears, somebody should have to justify it here.
+   */
+  it('reacts only where the problem is intermittent', () => {
+    const reacting = EQ_PRESETS.filter((preset) =>
+      preset.dynamic?.some((threshold) => threshold !== null),
+    ).map((preset) => preset.id);
+    expect(reacting).toEqual(['podcast', 'lateNight']);
+  });
+
+  /**
+   * A dynamic cut must not buy headroom the rack does not have.
+   *
+   * At rest it is absent, so the regulator measures it as absent. This is the
+   * assertion that says so: podcast's -6 dB de-ess bands cannot be counted
+   * towards its trim, or the curve clips on every sibilant they were added for.
+   */
+  it('does not let a dynamic cut reserve headroom it will not hold', () => {
+    const podcast = EQ_PRESETS.find((one) => one.id === 'podcast');
+    if (!podcast) {
+      throw new Error('podcast preset is missing');
+    }
+    const rack = rackFor(podcast);
+    const asStatic = {
+      ...rack,
+      bands: rack.bands.map((band) => ({ ...band, dynamic: false })),
+    };
+    // The de-ess bands are cuts, so ignoring them can only raise the peak.
+    expect(eqChainPeakDb(rack, RATE)).toBeGreaterThanOrEqual(
+      eqChainPeakDb(asStatic, RATE),
+    );
   });
 });

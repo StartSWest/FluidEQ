@@ -116,10 +116,16 @@ const DspEqBar = ({ eq, sampleRate, onChange, onCommit }: IDspEqBarProps) => {
     // they are built there and then read onto whatever rack is loaded. The
     // alternative — snapping the rack back to fifteen — would throw away a
     // size the user chose on purpose every time they auditioned a preset.
-    const asFifteen = DSP_DEFAULTS.eq.bands.map((band, index) => ({
-      ...band,
-      gainDb: chosen.gains[index],
-    }));
+    const asFifteen = DSP_DEFAULTS.eq.bands.map((band, index) => {
+      // Absent for almost every preset, which is what a tone curve should be.
+      const threshold = chosen.dynamic?.[index] ?? null;
+      return {
+        ...band,
+        gainDb: chosen.gains[index],
+        dynamic: threshold !== null,
+        thresholdDb: threshold ?? band.thresholdDb,
+      };
+    });
     const setup = eqPresetSetup(chosen);
     onChange({
       ...eq,

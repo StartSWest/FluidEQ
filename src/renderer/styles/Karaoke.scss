@@ -2142,6 +2142,16 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   stroke-linejoin: round;
 }
 
+// The step written inside the two seek arrows — the library bar's
+// `.now-playing-bar__icon-step` under karaoke's name, at the same size, so
+// one glyph is not heavier on one tab than on the other.
+.karaoke-transport__icon-step {
+  fill: currentcolor !important;
+  stroke: none !important;
+  font-size: 10px;
+  font-weight: $weight-bold;
+}
+
 .karaoke-transport input[type='range'],
 .karaoke-transport__mix-popover input[type='range'] {
   appearance: none;

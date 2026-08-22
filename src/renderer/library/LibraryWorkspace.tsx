@@ -331,9 +331,6 @@ const LibraryWorkspace = ({
    * so it is measured rather than guessed at.
    */
   const [chromeHeight, setChromeHeight] = useState(0);
-  /** How wide the folded queue chip came out, so the row it sits beside can
-   * stop short of it. */
-  const [chipWidth, setChipWidth] = useState(0);
   const chromeObserverRef = useRef<ResizeObserver | undefined>(undefined);
   /**
    * A CALLBACK REF, not an effect over a `useRef`.
@@ -1215,12 +1212,6 @@ const LibraryWorkspace = ({
         !isUpNextOverVideo && !isUpNextCollapsed ? ' has-up-next' : ''
       }${isUpNextOverVideo ? ' has-video' : ''}${
         isUpNextFloating ? ' has-up-next-floating' : ''
-      }${
-        // Folded, the chip stands in the content's top-right corner, so the
-        // one row it sits level with has to stop short of it. Only that row —
-        // reserving a whole column for a 23px chip left a strip of nothing
-        // down the length of the page.
-        !isUpNextOverVideo && isUpNextCollapsed ? ' has-up-next-chip' : ''
       }`}
       ref={cardRef}
       aria-label={t('tabs.library')}
@@ -1234,7 +1225,6 @@ const LibraryWorkspace = ({
           // What the drawer has to clear. Zero until the row is measured,
           // which only matters for the first frame of a floating queue.
           '--library-chrome-height': `${chromeHeight}px`,
-          '--up-next-chip-width': `${chipWidth}px`,
         } as CSSProperties
       }
       onDragOver={onDragOver}
@@ -1326,6 +1316,28 @@ const LibraryWorkspace = ({
               onForceRescan={handleForceRescan}
               onRemoveRoot={handleRemoveRoot}
             />
+            {/* IN THE ROW, AND IN BOTH STATES.
+                It stood under the row before, in the slot the panel opens
+                into, to stop the cluster re-laying itself out when the queue
+                opened. Mounted here in both states there is nothing to
+                re-lay: the chip keeps its place and only lights up, and the
+                panel starts below this row at every width — see
+                `.library-workspace.has-up-next`, which exempts
+                `.library-toolbar-row` from the strip the queue takes. What
+                the old position cost was a shelf pushed down 23px and a
+                folder path truncated early to clear a chip floating over
+                them both.
+
+                Not over a video: there the picture takes the whole tab and
+                this row is not drawn at all, so the chip floats — see
+                `library-up-next__chip--over-video` below. */}
+            {!isUpNextOverVideo && (
+              <LibraryUpNextChip
+                isOpen={!isUpNextCollapsed}
+                count={upNextTotal(upNext, upNextRestTotal)}
+                onToggle={() => setIsUpNextCollapsed((open) => !open)}
+              />
+            )}
           </div>
         </div>
       )}
@@ -1510,33 +1522,16 @@ const LibraryWorkspace = ({
           restTotal={upNextRestTotal}
         />
       )}
-      {/* FOLDED, IT STANDS EXACTLY WHERE THE PANEL'S OWN HEAD WOULD BE.
-          It used to ride in the toolbar's right-hand cluster, which meant
-          opening the queue took it out of that cluster and every control
-          beside it shifted — the bar re-laid itself out because a panel
-          somewhere else had been opened. Down here it swaps in and out of the
-          panel's own slot, so the press that opens the queue moves nothing
-          but the queue.
-
-          Over a video it is the same chip a little lower, clear of the
-          picture's own Back and full-screen buttons. */}
-      {/* BELOW THE BAR, in the slot the panel itself opens into — the same top
-          and the same right edge, so opening the queue puts the panel exactly
-          where the chip was and the toolbar above does not move at all.
-
-          Over a video it is the same chip a little lower, clear of the
-          picture's own Back and full-screen buttons. */}
-      {isUpNextCollapsed && (
+      {/* OVER A VIDEO ONLY. The picture takes the whole tab and the toolbar
+          row that holds the chip everywhere else is not drawn, so here it
+          floats — a little below the top, clear of the picture's own Back and
+          full-screen buttons, which hold the two corners. */}
+      {isUpNextCollapsed && isUpNextOverVideo && (
         <LibraryUpNextChip
-          className={
-            isUpNextOverVideo
-              ? 'library-up-next__chip--over-video'
-              : 'library-up-next__chip--docked'
-          }
+          className="library-up-next__chip--over-video"
           isOpen={false}
           count={upNextTotal(upNext, upNextRestTotal)}
           onToggle={() => setIsUpNextCollapsed(false)}
-          onMeasure={setChipWidth}
         />
       )}
       {/* The same splitter the karaoke panes are divided by, not a strip of

@@ -16,14 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import {
-  DragEvent,
-  useCallback,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import { DragEvent, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { ILibraryTrack } from '../../common/library/types';
 import { useTranslation } from '../utils/I18nContext';
 import { useLibrary } from './LibraryContext';
@@ -67,7 +60,6 @@ export const LibraryUpNextChip = ({
   isOpen,
   count,
   onToggle,
-  onMeasure,
 }: {
   className?: string;
   /** Lit while the queue is showing. The chip is drawn in both states — that
@@ -76,26 +68,11 @@ export const LibraryUpNextChip = ({
   isOpen: boolean;
   count: number;
   onToggle: () => void;
-  /** How wide it came out, for the caller that has to keep the row beside it
-   * clear. A count is one digit or five and the word is a different length in
-   * every locale, so this is measured, not assumed. */
-  onMeasure?: (width: number) => void;
 }) => {
   const { t } = useTranslation();
-  // A callback ref rather than an effect: it fires when the node arrives, and
-  // again whenever the label or the count re-renders it.
-  const measure = useCallback(
-    (node: HTMLButtonElement | null) => {
-      if (node && onMeasure) {
-        onMeasure(Math.ceil(node.getBoundingClientRect().width));
-      }
-    },
-    [onMeasure],
-  );
   return (
     <button
       type="button"
-      ref={measure}
       className={`library-toolbar__chip library-up-next__chip${
         isOpen ? ' is-active' : ''
       }${className ? ` ${className}` : ''}`}

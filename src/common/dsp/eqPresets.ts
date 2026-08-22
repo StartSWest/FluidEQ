@@ -36,6 +36,15 @@ export interface IEqPreset {
   labelKey: string;
   /** One gain in dB per band, low to high. Always `EQ_BAND_COUNT` long. */
   gains: readonly number[];
+  /**
+   * Per band: the level its gain should wait for, or `null` to always apply.
+   *
+   * Parallel to `gains` and the same length when present. Almost every preset
+   * omits it, and that is the point rather than an oversight — a tone curve is
+   * meant to hold still. Only a curve whose problem is intermittent has any
+   * business reacting, and there are two of those here.
+   */
+  dynamic?: readonly (number | null)[];
   /** @see IEqPresetSetup */
   setup?: IEqPresetSetup;
 }
@@ -204,8 +213,29 @@ export const EQ_PRESETS: readonly IEqPreset[] = [
     // Podcast, and the sibilance cut at 5-8k is the point: a spoken voice
     // boosted for clarity gets harsh there long before it gets clear.
     id: 'podcast',
+    // The 5k and 8k cuts are deeper than a static curve could carry, because
+    // they are not always applied: -6 dB across a whole episode is a dull
+    // episode, while -6 dB on the sibilants alone is a de-esser. That is the
+    // trade dynamics buy, and this is the preset that most wants it.
+    gains: [-8, -6, -3, 0, 0.5, 1, 2, 2.5, 3, 2.5, 1.5, -6, -6, -1, -1],
     labelKey: 'dsp.eqPreset.podcast',
-    gains: [-8, -6, -3, 0, 0.5, 1, 2, 2.5, 3, 2.5, 1.5, -1, -1.5, -1, -1],
+    dynamic: [
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      -26,
+      -26,
+      null,
+      null,
+    ],
     // Speech has nothing below 40 Hz except the room.
     setup: { model: 'proportional', subsonicHz: 40, monoBelowHz: 0 },
   },
@@ -239,6 +269,26 @@ export const EQ_PRESETS: readonly IEqPreset[] = [
     labelKey: 'dsp.eqPreset.lateNight',
     gains: [
       -6.8, -6, -4.3, -2.6, -0.9, 0, 0.9, 1.7, 2.1, 2.1, 1.7, 0.9, 0.4, 0, 0,
+    ],
+    // What travels through a wall is the loud bass, not all of it. Static, the
+    // bass is gone all evening; waiting for a threshold means a quiet passage
+    // keeps its bottom end and only the hits that would carry get held down.
+    dynamic: [
+      -32,
+      -32,
+      -32,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
     ],
     setup: { ...PROTECTED, model: 'wide' },
   },
@@ -307,4 +357,8 @@ export const EQ_PRESETS: readonly IEqPreset[] = [
  * worse than one that does not exist.
  */
 export const isCompleteEqPreset = (preset: IEqPreset): boolean =>
-  preset.gains.length === EQ_BAND_COUNT;
+  preset.gains.length === EQ_BAND_COUNT &&
+  // Checked on the same terms: a short thresholds array would leave the last
+  // bands static while the gains that need them were applied in full, which is
+  // a de-esser that quietly became a dull EQ.
+  (preset.dynamic === undefined || preset.dynamic.length === EQ_BAND_COUNT);

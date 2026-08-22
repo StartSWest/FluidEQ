@@ -48,6 +48,26 @@ const PATHS = {
 
 export type TKaraokeMakerToolIcon = keyof typeof PATHS;
 
+/**
+ * Glyphs whose ink does not sit on the middle of the 24x24 grid, and the
+ * shift that puts it there.
+ *
+ * Measured with `getBBox` in the running window, not judged by eye: `stem`
+ * draws between x=1 and x=16, which is 3.5 units left of centre — about 2.5px
+ * at the size the transport draws it — and `melody` is 1.5 the other way.
+ * Inside a square toolbar button that reads as a wonky icon; inside the
+ * round fader button beside a row of centred transport keys it is obvious.
+ * Every other glyph here is within half a unit and is left alone.
+ *
+ * A transform rather than rewritten path data: these paths mix absolute and
+ * relative commands, so shifting them by hand is a dozen chances to move one
+ * coordinate and not its neighbour.
+ */
+const NUDGES: Partial<Record<TKaraokeMakerToolIcon, string>> = {
+  melody: 'translate(-1.5 -0.5)',
+  stem: 'translate(3.5 -0.5)',
+};
+
 interface IKaraokeMakerToolIconProps {
   name: TKaraokeMakerToolIcon;
 }
@@ -63,7 +83,7 @@ const KaraokeMakerToolIcon = ({ name }: IKaraokeMakerToolIconProps) => (
     aria-hidden="true"
     focusable="false"
   >
-    <path d={PATHS[name]} />
+    <path d={PATHS[name]} transform={NUDGES[name]} />
   </svg>
 );
 

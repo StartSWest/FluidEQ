@@ -69,17 +69,29 @@ interface IKaraokeTransportProps {
 }
 
 export type TKaraokeTransportIcon =
-  'restart' | 'previous' | 'play' | 'pause' | 'next' | 'volume';
+  | 'restart'
+  | 'previous'
+  | 'play'
+  | 'pause'
+  | 'next'
+  | 'seekBack'
+  | 'seekForward'
+  | 'volume';
 
 /**
  * Transport glyphs have their own compact geometry. The general MenuIcon is a
  * stroked menu language, while play/skip controls need solid, balanced shapes
  * that remain obvious inside a 34px circular button.
+ *
+ * `step` is only read by the two seek glyphs, which write the number of
+ * seconds they move inside the arrow.
  */
 export const KaraokeTransportIcon = ({
   name,
+  step = 5,
 }: {
   name: TKaraokeTransportIcon;
+  step?: number;
 }) => {
   let drawing = (
     <path
@@ -148,6 +160,35 @@ export const KaraokeTransportIcon = ({
           rx="1"
         />
       </>
+    );
+  } else if (name === 'seekBack' || name === 'seekForward') {
+    // The library bar's nudge glyph, drawn here in karaoke's own three
+    // classes: a circular arrow with the step written inside it. It replaces
+    // a skip arrow with a badge stuck to its corner, which said "next track,
+    // and also a 5" — this says how far it goes and nothing else.
+    //
+    // The path data is a copy rather than an import for the same reason
+    // every other shape in this file is: the two icon sets are deliberately
+    // independent components, and reaching into `NowPlayingBar` for one path
+    // would pull the library bar and its stylesheet into karaoke's bundle.
+    const back = name === 'seekBack';
+    drawing = (
+      <g transform={back ? undefined : 'translate(24 0) scale(-1 1)'}>
+        <path
+          className="karaoke-transport__icon-stroke"
+          d="M4.6 12a7.4 7.4 0 1 0 2.2-5.2"
+        />
+        <path className="karaoke-transport__icon-fill" d="M3.4 3.9v5h5l-5-5z" />
+        <text
+          className="karaoke-transport__icon-step"
+          x="12"
+          y="15.4"
+          textAnchor="middle"
+          transform={back ? undefined : 'translate(24 0) scale(-1 1)'}
+        >
+          {step}
+        </text>
+      </g>
     );
   } else if (name === 'volume') {
     drawing = (
@@ -448,8 +489,7 @@ const KaraokeTransport = ({
               seconds: seekStepMs / 1_000,
             })}
           >
-            <KaraokeTransportIcon name="previous" />
-            <small>{seekStepMs / 1_000}</small>
+            <KaraokeTransportIcon name="seekBack" step={seekStepMs / 1_000} />
           </button>
           <button
             type="button"
@@ -489,8 +529,10 @@ const KaraokeTransport = ({
               seconds: seekStepMs / 1_000,
             })}
           >
-            <KaraokeTransportIcon name="next" />
-            <small>{seekStepMs / 1_000}</small>
+            <KaraokeTransportIcon
+              name="seekForward"
+              step={seekStepMs / 1_000}
+            />
           </button>
           <button
             type="button"

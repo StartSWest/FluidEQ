@@ -2771,42 +2771,11 @@ $library-wave-step: 4ms;
   right: 12px;
 }
 
-// FOLDED, IN THE PANEL'S OWN SLOT — the same top and the same right edge
-// `.library-up-next` takes, so opening the queue puts the panel exactly where
-// the chip was and the toolbar above it does not move.
-.library-up-next__chip--docked {
-  position: absolute;
-  z-index: 4;
-  top: calc(var(--library-chrome-height, 0px) + 10px + 8px);
-  right: var(--up-next-inset);
-}
-
-// ONE ROW STOPS SHORT OF IT, not one column.
-//
-// Reserving the chip's width off every view left a 145px strip of nothing down
-// the whole page for the sake of a chip 23px tall. Only the row the chip is
-// level with can collide with it: in a drill-in that is Back and the folder
-// path, whose text is the only thing that reaches the right-hand edge.
-//
-// `padding-right` rather than a margin, so the path simply truncates a little
-// earlier — it already truncates — instead of the row itself getting shorter.
-.library-workspace.has-up-next-chip .library-detail__top {
-  padding-right: calc(var(--up-next-chip-width, 0px) + var(--up-next-inset));
-}
-
-// On a shelf there is no such row: the chip is level with the table's own
-// header, whose last column is hard right. A table cannot give ground on one
-// row without its columns leaving the rows below, so the shelf drops by the
-// chip's height instead — 23px of space once, rather than 145 of it forever.
-.library-workspace.has-up-next-chip
-  > :is(.library-list, .library-grid, .library-coverflow) {
-  margin-top: 23px;
-}
-
-// Folded, the panel is not drawn at all — the way back in is a chip in the
-// folder row, drawn by `LibraryWorkspace` after a rule. A full-height column
-// with nothing in it costs the width of the panel and shows none of its use,
-// and a pill floating over a corner of the shelf covers whatever is under it.
+// On a shelf the chip rides in the toolbar's right-hand cluster, in the flow
+// of that row, so it needs no placement of its own here and the views below
+// need no room made for it. The two rules that used to make that room — a
+// `padding-right` on the drill-in's path row and a 23px drop on every shelf —
+// went with it: they existed only because the chip floated over both.
 .library-up-next__chip {
   gap: 6px;
 
