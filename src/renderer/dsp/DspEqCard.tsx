@@ -18,6 +18,7 @@ import { useTranslation } from '../utils/I18nContext';
 import Dropdown from '../widgets/Dropdown';
 import DspEqGraph from './DspEqGraph';
 import DspFilterShapeIcon from './DspFilterShapeIcon';
+import DspPhaseMeter from './DspPhaseMeter';
 
 const BAND_TYPES: { type: FilterTypeEnum; labelKey: TranslationKey }[] = [
   { type: FilterTypeEnum.PK, labelKey: 'dsp.eq.type.peak' },
@@ -260,6 +261,8 @@ const DspEqCard = ({ eq, sampleRate, onChange, onCommit }: IDspEqCardProps) => {
             onCommit={onCommit}
           />
         </div>
+
+        <DspPhaseMeter />
 
         <div className="dsp-eq-strip">
           <div className="dsp-eq-shape">

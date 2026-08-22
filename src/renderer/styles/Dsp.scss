@@ -791,3 +791,20 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     padding: 8px 12px;
   }
 }
+
+// The phase meter, between the band picker and the controls: it reports on the
+// whole chain, so it belongs with neither one band nor the toolbar.
+.dsp-eq-phase {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 10px;
+}
+
+.dsp-eq-phase-canvas {
+  flex: 1 1 auto;
+  min-width: 0;
+  border: 1px solid rgba($white, 0.06);
+  border-radius: 8px;
+  background: rgba($black, 0.18);
+}

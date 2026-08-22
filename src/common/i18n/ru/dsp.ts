@@ -112,6 +112,7 @@ const dsp = {
   'dsp.eq.subsonic': 'Инфраниз.',
   'dsp.eq.fuzz': 'Фузз',
   'dsp.eq.monoBelow': 'Моно ниже',
+  'dsp.eq.phase': 'Фаза',
   'dsp.eq.quality': 'Ширина',
 
   'dsp.exciter.title': 'Эксайтер',

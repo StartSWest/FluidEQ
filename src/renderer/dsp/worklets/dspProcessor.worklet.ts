@@ -45,6 +45,14 @@ const RENDER_QUANTUM = 128;
 const CHANNELS = 2;
 
 /**
+ * Blocks between correlation reports.
+ *
+ * Sixteen at 128 frames is about every 43 ms, which is fast enough to watch and
+ * slow enough that the meter is not posting a message 375 times a second.
+ */
+const METER_BLOCKS = 16;
+
+/**
  * The compressor and the maximizer, in one processor.
  *
  * One node rather than eleven, and that is a correctness decision before it is
@@ -114,6 +122,15 @@ class DspProcessor extends AudioWorkletProcessor {
   private eqPreampGain = 1;
 
   private lookAheadSamples = 0;
+
+  /** Correlation accumulators, reset each time the meter reports. */
+  private sumLeftRight = 0;
+
+  private sumLeftSquared = 0;
+
+  private sumRightSquared = 0;
+
+  private blocksSinceReport = 0;
 
   /** Scratch for the parallel engine, so the audio thread never allocates. */
   private eqDry = new Float32Array(RENDER_QUANTUM);
@@ -455,7 +472,52 @@ class DspProcessor extends AudioWorkletProcessor {
         right[i] = mid - sideValue;
       }
     }
+
+    this.measure(output);
     return true;
+  }
+
+  /**
+   * The phase correlation of what actually leaves the chain.
+   *
+   * Measured here rather than in the renderer because this is the only place
+   * both channels exist as samples after every filter has run — an
+   * `AnalyserNode` downstream sums them to mono, which destroys the very thing
+   * being measured.
+   *
+   * +1 means the two channels are identical and sum with no loss. 0 means they
+   * are unrelated. NEGATIVE means content that will partly cancel the moment
+   * anything sums them to mono, which is a phone speaker, a mono PA and most
+   * Bluetooth speakers — so it is the number that predicts a mix falling apart
+   * somewhere the listener is not.
+   *
+   * The standard normalised form, so it answers with a ratio rather than
+   * something that also moves with the volume.
+   */
+  private measure(output: Float32Array[]): void {
+    if (output.length < 2 || output[0].length === 0) {
+      return;
+    }
+    const [left, right] = output;
+    for (let i = 0; i < left.length; i += 1) {
+      this.sumLeftRight += left[i] * right[i];
+      this.sumLeftSquared += left[i] * left[i];
+      this.sumRightSquared += right[i] * right[i];
+    }
+    this.blocksSinceReport += 1;
+    if (this.blocksSinceReport < METER_BLOCKS) {
+      return;
+    }
+    const denominator = Math.sqrt(this.sumLeftSquared * this.sumRightSquared);
+    // Silence has no correlation to report. Answering 0 would read as "these
+    // channels disagree" when nothing is playing at all.
+    const correlation =
+      denominator > 1e-12 ? this.sumLeftRight / denominator : 1;
+    this.port.postMessage({ correlation });
+    this.blocksSinceReport = 0;
+    this.sumLeftRight = 0;
+    this.sumLeftSquared = 0;
+    this.sumRightSquared = 0;
   }
 }
 

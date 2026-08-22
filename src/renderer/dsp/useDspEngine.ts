@@ -17,6 +17,7 @@ import {
 import {
   TDspEngineState,
   setDspAnalyser,
+  setDspCorrelation,
   setDspEngineState,
   setDspSampleRate,
 } from './store';
@@ -148,6 +149,15 @@ export const useDspEngine = (
         numberOfOutputs: 1,
         outputChannelCount: [2],
       });
+      // The worklet reports its correlation measurement back the same way it
+      // receives settings. Assigned before the graph is built so the very
+      // first block's reading is not dropped on the floor.
+      worklet.port.onmessage = (message: MessageEvent<unknown>) => {
+        const data = message.data as { correlation?: unknown } | null;
+        if (data && typeof data.correlation === 'number') {
+          setDspCorrelation(data.correlation);
+        }
+      };
       // The point of no return. Cached because a second call throws.
       const source =
         sourceRef.current ?? context.createMediaElementSource(element);

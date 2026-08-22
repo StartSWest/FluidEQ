@@ -111,6 +111,7 @@ const dsp = {
   'dsp.eq.subsonic': 'サブソニック',
   'dsp.eq.fuzz': 'ファズ',
   'dsp.eq.monoBelow': 'モノ化',
+  'dsp.eq.phase': '位相',
   'dsp.eq.quality': '幅',
 
   'dsp.exciter.title': 'エキサイター',

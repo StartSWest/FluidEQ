@@ -112,6 +112,7 @@ const dsp = {
   'dsp.eq.subsonic': 'सबसोनिक',
   'dsp.eq.fuzz': 'फ़ज़',
   'dsp.eq.monoBelow': 'मोनो नीचे',
+  'dsp.eq.phase': 'फेज़',
   'dsp.eq.quality': 'चौड़ाई',
 
   'dsp.exciter.title': 'एक्साइटर',

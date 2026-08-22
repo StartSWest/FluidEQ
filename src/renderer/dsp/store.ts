@@ -170,6 +170,28 @@ export const setDspAnalyser = (next: IDspAnalyser | undefined): void => {
 
 export const readDspAnalyser = (): IDspAnalyser | undefined => analyser;
 
+/**
+ * Phase correlation of what leaves the chain, reported by the worklet.
+ *
+ * A plain module value read inside the meter's own animation frame, for the
+ * same reason the analyser is: it arrives about twenty-three times a second and
+ * routing it through React state would be that many renders for something that
+ * paints itself.
+ *
+ * +1 is identical channels, 0 unrelated, negative is content that will partly
+ * cancel the moment anything sums to mono. Starts at 1 because silence has no
+ * correlation to report and 0 would read as a warning about nothing.
+ */
+let correlation = 1;
+
+export const setDspCorrelation = (next: number): void => {
+  if (Number.isFinite(next)) {
+    correlation = Math.max(-1, Math.min(1, next));
+  }
+};
+
+export const readDspCorrelation = (): number => correlation;
+
 export const useDspSettings = (): IDspSettings =>
   useSyncExternalStore(subscribe, readDspSettings, readDspSettings);
 

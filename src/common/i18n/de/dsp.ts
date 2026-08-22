@@ -112,6 +112,7 @@ const dsp = {
   'dsp.eq.subsonic': 'Subsonic',
   'dsp.eq.fuzz': 'Fuzz',
   'dsp.eq.monoBelow': 'Mono unter',
+  'dsp.eq.phase': 'Phase',
   'dsp.eq.quality': 'Breite',
 
   'dsp.exciter.title': 'Exciter',
