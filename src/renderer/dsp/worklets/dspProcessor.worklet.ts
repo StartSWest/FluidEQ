@@ -8,7 +8,7 @@ import {
   DSP_DEFAULTS,
   IDspSettings,
   clampDspSettings,
-  EQ_BAND_COUNT,
+  EQ_MAX_BAND_COUNT,
 } from '../../../common/dsp/chain';
 import {
   ICrossoverState,
@@ -71,6 +71,9 @@ class DspProcessor extends AudioWorkletProcessor {
   /** What the coefficients were built from, so they rebuild only on a change. */
   private eqSignature = '';
 
+  /** Linear, not dB: this is multiplied per sample. */
+  private eqPreampGain = 1;
+
   private lookAheadSamples = 0;
 
   private low = new Float32Array(RENDER_QUANTUM);
@@ -88,8 +91,13 @@ class DspProcessor extends AudioWorkletProcessor {
         createCompressorState(),
         createCompressorState(),
       ]);
+      // Allocated to the ceiling once, here, rather than grown when a rack
+      // changes size: this runs on the audio thread, and allocating inside
+      // `process` is what produces a dropout at the exact moment the user
+      // touches the control. Sixty-four idle states per channel is a few
+      // kilobytes of numbers.
       this.eqStates.push(
-        Array.from({ length: EQ_BAND_COUNT }, () => createBiquadState()),
+        Array.from({ length: EQ_MAX_BAND_COUNT }, () => createBiquadState()),
       );
     }
     this.rebuildLimiters();
@@ -144,6 +152,9 @@ class DspProcessor extends AudioWorkletProcessor {
       return;
     }
     this.eqSignature = signature;
+    // Held as a linear multiplier so the sample loop is one multiply rather
+    // than a pow per sample.
+    this.eqPreampGain = 10 ** (eq.preampDb / 20);
     this.eqCoefficients = eq.bands
       .filter((band) => band.enabled)
       .map((band) =>
@@ -164,6 +175,14 @@ class DspProcessor extends AudioWorkletProcessor {
     const { eq, compressor, maximizer } = this.settings;
 
     if (eq.enabled) {
+      // Ahead of the bands, which is where the format puts it and the only
+      // place it works: the preamp exists to make room for the boosts that
+      // follow, and applying it after them is applying it too late.
+      if (this.eqPreampGain !== 1) {
+        for (let i = 0; i < target.length; i += 1) {
+          target[i] *= this.eqPreampGain;
+        }
+      }
       const states = this.eqStates[slot];
       for (let band = 0; band < this.eqCoefficients.length; band += 1) {
         processBiquad(states[band], target, this.eqCoefficients[band]);

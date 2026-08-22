@@ -5,7 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { NO_GAIN_FILTER_TYPES } from '../constants';
-import { EQ_BAND_COUNT, IEqBandSettings, IEqSettings } from './chain';
+import { EQ_MAX_BAND_COUNT, IEqBandSettings, IEqSettings } from './chain';
 
 /**
  * Equalizer APO's ParametricEQ text, read and written.
@@ -41,9 +41,13 @@ export const toApoText = (eq: IEqSettings): string => {
         ? `${head} ${q}`
         : `${head} Gain ${round(band.gainDb)} dB ${q}`;
     });
-  // A preamp line even at 0: every tool that reads this format expects one,
-  // and its absence has been read as "this file is not a ParametricEQ export".
-  return [`Preamp: ${round(preampFor(eq))} dB`, ...lines].join('\n');
+  // The preamp actually in force, or the headroom this curve would need if
+  // nobody has set one — exporting 0 in front of a +6 dB band hands APO a file
+  // that clips. A preamp line even at 0: every tool that reads this format
+  // expects one, and its absence has been read as "this is not a ParametricEQ
+  // export".
+  const preamp = eq.preampDb !== 0 ? eq.preampDb : preampFor(eq);
+  return [`Preamp: ${round(preamp)} dB`, ...lines].join('\n');
 };
 
 /**
@@ -60,9 +64,36 @@ export const preampFor = (eq: IEqSettings): number => {
   return peak > 0 ? -peak : 0;
 };
 
-/** `ON PK Fc 1200 Hz Gain -2.1 dB Q 1.41`, in one expression. */
+/**
+ * `ON PK Fc 1200 Hz Gain -2.1 dB Q 1.41`, numbered or not.
+ *
+ * The index is OPTIONAL, and that is not a nicety. AutoEq writes `Filter 1:`;
+ * Squiglink writes a bare `Filter:` on every line. Requiring the number matched
+ * zero of ten lines in a real Squiglink export — the import reported an empty
+ * file and looked like it had simply failed.
+ */
 const FILTER_LINE =
-  /^\s*Filter\s+\d+\s*:\s*(ON|OFF)\s+([A-Z]+)\s+Fc\s+([\d.]+)\s*Hz(?:\s+Gain\s+(-?[\d.]+)\s*dB)?(?:\s+Q\s+([\d.]+))?/i;
+  /^\s*Filter\s*(?:\d+\s*)?:\s*(ON|OFF)\s+([A-Za-z]+)\s+Fc\s+([\d.]+)\s*Hz(?:\s+Gain\s+(-?[\d.]+)\s*dB)?(?:\s+Q\s+([\d.]+))?/i;
+
+/**
+ * What the publishers write, against what this equaliser calls it.
+ *
+ * The same filter has two spellings in the wild: APO's own config uses `LSC`
+ * and `HSC`, while Squiglink, AutoEq and oratory1990 all publish `LS` and `HS`.
+ * A file using the short form used to import as an unknown type and be dropped
+ * on the floor by `clampEqBand`, which is a silent way to lose the two bands
+ * that shape the ends of the curve.
+ */
+const TYPE_ALIASES: Record<string, string> = {
+  LS: 'LSC',
+  HS: 'HSC',
+  PEQ: 'PK',
+  LP: 'LPQ',
+  HP: 'HPQ',
+  NOTCH: 'NO',
+};
+
+const KNOWN_TYPES = ['PK', 'NO', 'LSC', 'HSC', 'LPQ', 'HPQ', 'BP'];
 
 export interface IApoImport {
   bands: IEqBandSettings[];
@@ -82,8 +113,11 @@ export interface IApoImport {
  * because one odd line in a forty-line file should not cost the other
  * thirty-nine.
  *
- * Never returns more than `EQ_BAND_COUNT` bands — this EQ has a fixed rack, so
- * a longer file is truncated and the caller is told how many were dropped.
+ * The rack takes the file's own band count rather than the file being cut to
+ * the rack's. Truncating a published curve to fifteen filters threw away the
+ * ones the author put at the top and produced a curve that was not the one on
+ * the page. `EQ_MAX_BAND_COUNT` is the only ceiling, and it is a CPU budget
+ * rather than a format limit.
  */
 export const fromApoText = (text: string): IApoImport => {
   const bands: IEqBandSettings[] = [];
@@ -105,14 +139,23 @@ export const fromApoText = (text: string): IApoImport => {
       skipped += 1;
       return;
     }
-    if (bands.length >= EQ_BAND_COUNT) {
+    if (bands.length >= EQ_MAX_BAND_COUNT) {
       skipped += 1;
       return;
     }
-    const [, state, type, frequency, gain, quality] = match;
+    const [, state, rawType, frequency, gain, quality] = match;
+    const spelled = rawType.toUpperCase();
+    const type = TYPE_ALIASES[spelled] ?? spelled;
+    // A shape this equaliser has no coefficients for — APO's `AP`, or a
+    // `None` placeholder. Counted rather than coerced: turning an unknown
+    // filter into a bell invents a curve the file did not describe.
+    if (!KNOWN_TYPES.includes(type)) {
+      skipped += 1;
+      return;
+    }
     bands.push({
       enabled: state.toUpperCase() === 'ON',
-      type: type.toUpperCase(),
+      type,
       frequency: Number(frequency),
       // A missing Gain is 0, not a failure: that is what the grammar means for
       // a notch or a pass, and some tools omit it on shelves too.

@@ -63,8 +63,17 @@ const dsp = {
   'dsp.eqPreset.importEmpty':
     'Este equalizador não conseguiu ler nenhum filtro.',
   'dsp.eqPreset.importFailed': 'Não foi possível ler esse ficheiro.',
-  'dsp.eqPreset.importPreamp':
-    'Pré-amplificação de {gain} dB ignorada: este equalizador não a tem.',
+  'dsp.eqPreset.importPreamp': 'Pré-amplificação definida para {gain} dB.',
+
+  'dsp.eq.rack': 'Bandas',
+  'dsp.eqImport.title': 'Importar uma curva de EQ',
+  'dsp.eqImport.hint':
+    'Cola uma curva do Squiglink, AutoEq ou Equalizer APO — ou escolhe o ficheiro que a contém.',
+  'dsp.eqImport.placeholder':
+    'Preamp: -5.4 dB\nFilter: ON PK Fc 1200 Hz Gain -2.1 dB Q 1.41',
+  'dsp.eqImport.chooseFile': 'Escolher ficheiro',
+  'dsp.eqImport.apply': 'Importar',
+  'dsp.eqImport.cancel': 'Cancelar',
 
   'dsp.eq.title': 'Equalizador',
   'dsp.eq.description':
@@ -82,6 +91,7 @@ const dsp = {
   'dsp.eq.type.bandPass': 'Passa-banda',
   'dsp.eq.frequency': 'Freq',
   'dsp.eq.gain': 'Ganho',
+  'dsp.eq.preamp': 'Pré-amp',
   'dsp.eq.quality': 'Largura',
 
   'dsp.exciter.title': 'Excitador',

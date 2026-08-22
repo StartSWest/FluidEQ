@@ -62,8 +62,17 @@ const dsp = {
   'dsp.eqPreset.importEmpty':
     'このイコライザーが読み取れるフィルターはありませんでした。',
   'dsp.eqPreset.importFailed': 'そのファイルを読み取れませんでした。',
-  'dsp.eqPreset.importPreamp':
-    '{gain} dB のプリアンプは無視されました。このイコライザーにはありません。',
+  'dsp.eqPreset.importPreamp': 'プリアンプを {gain} dB に設定しました。',
+
+  'dsp.eq.rack': 'バンド数',
+  'dsp.eqImport.title': 'EQ カーブを読み込む',
+  'dsp.eqImport.hint':
+    'Squiglink、AutoEq、Equalizer APO のカーブを貼り付けるか、そのファイルを選んでください。',
+  'dsp.eqImport.placeholder':
+    'Preamp: -5.4 dB\nFilter: ON PK Fc 1200 Hz Gain -2.1 dB Q 1.41',
+  'dsp.eqImport.chooseFile': 'ファイルを選ぶ',
+  'dsp.eqImport.apply': '読み込む',
+  'dsp.eqImport.cancel': 'キャンセル',
 
   'dsp.eq.title': 'イコライザー',
   'dsp.eq.description':
@@ -81,6 +90,7 @@ const dsp = {
   'dsp.eq.type.bandPass': 'バンドパス',
   'dsp.eq.frequency': '周波数',
   'dsp.eq.gain': 'ゲイン',
+  'dsp.eq.preamp': 'プリアンプ',
   'dsp.eq.quality': '幅',
 
   'dsp.exciter.title': 'エキサイター',

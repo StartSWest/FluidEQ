@@ -9,13 +9,19 @@ import {
   preampFor,
   toApoText,
 } from '../../../common/dsp/apoEqFormat';
-import { DSP_DEFAULTS, IEqSettings } from '../../../common/dsp/chain';
+import {
+  DSP_DEFAULTS,
+  EQ_MAX_BAND_COUNT,
+  IEqSettings,
+} from '../../../common/dsp/chain';
 
 const withBands = (
   bands: Partial<IEqSettings['bands'][number]>[],
 ): IEqSettings => ({
   enabled: true,
   presetId: '',
+  preampDb: 0,
+  sourceBands: [],
   bands: DSP_DEFAULTS.eq.bands.map((band, index) => ({
     ...band,
     ...(bands[index] ?? {}),
@@ -158,10 +164,12 @@ describe('APO ParametricEQ import', () => {
   });
 
   /**
-   * The rack is fixed at fifteen, so a longer file has to lose something —
-   * and the caller has to be told, or bands vanish silently.
+   * The rack takes the file's count, not the other way round.
+   *
+   * Cutting a twenty-filter curve to fifteen threw away the filters its author
+   * put at the top and produced a curve that was not the published one.
    */
-  it('truncates past the band count and counts what it dropped', () => {
+  it('keeps every filter past the default rack size', () => {
     const lines: string[] = [];
     for (let index = 0; index < 20; index += 1) {
       lines.push(
@@ -169,7 +177,93 @@ describe('APO ParametricEQ import', () => {
       );
     }
     const { bands, skipped } = fromApoText(lines.join('\n'));
-    expect(bands).toHaveLength(15);
+    expect(bands).toHaveLength(20);
+    expect(skipped).toBe(0);
+  });
+
+  it('POSITIVE CONTROL: still stops at the CPU ceiling', () => {
+    const lines: string[] = [];
+    for (let index = 0; index < EQ_MAX_BAND_COUNT + 5; index += 1) {
+      lines.push(`Filter: ON PK Fc 1000 Hz Gain 1 dB Q 1`);
+    }
+    const { bands, skipped } = fromApoText(lines.join('\n'));
+    expect(bands).toHaveLength(EQ_MAX_BAND_COUNT);
     expect(skipped).toBe(5);
+  });
+});
+
+/**
+ * The exact file the user pasted, which imported NOTHING before this.
+ *
+ * Two independent reasons, both silent: the lines carry no filter index, and
+ * the shelves are spelled `LS`/`HS` rather than APO's own `LSC`/`HSC`. The
+ * first dropped all ten lines at the regex; the second would have dropped the
+ * two shelves at `clampEqBand`, which is how a curve loses the bands that
+ * shape its ends and still looks like it worked.
+ */
+describe('Squiglink exports', () => {
+  const SQUIGLINK = [
+    'Preamp: -5.4 dB',
+    'Filter: ON LS Fc 105.0 Hz Gain -2.8 dB Q 0.70',
+    'Filter: ON PK Fc 7164 Hz Gain 4.7 dB Q 1.27',
+    'Filter: ON PK Fc 1555 Hz Gain -2.9 dB Q 1.63',
+    'Filter: ON PK Fc 155.0 Hz Gain -1.5 dB Q 1.49',
+    'Filter: ON PK Fc 3115 Hz Gain 2.3 dB Q 2.70',
+    'Filter: ON HS Fc 10000 Hz Gain -5.3 dB Q 0.70',
+    'Filter: ON PK Fc 63.00 Hz Gain 0.4 dB Q 1.75',
+    'Filter: ON PK Fc 722.0 Hz Gain 0.4 dB Q 2.07',
+    'Filter: ON PK Fc 6471 Hz Gain 1.7 dB Q 5.99',
+    'Filter: ON PK Fc 4424 Hz Gain -1.0 dB Q 6.00',
+  ].join('\n');
+
+  it('reads every filter from an unnumbered file', () => {
+    const { bands, skipped } = fromApoText(SQUIGLINK);
+    expect(bands).toHaveLength(10);
+    expect(skipped).toBe(0);
+  });
+
+  it('translates the short shelf spellings this app does not use', () => {
+    const { bands } = fromApoText(SQUIGLINK);
+    expect(bands[0].type).toBe('LSC');
+    expect(bands[5].type).toBe('HSC');
+    // Every type has to be one `clampEqBand` will keep, or the band is dropped
+    // after a clean-looking import.
+    bands.forEach((band) => {
+      expect(['PK', 'NO', 'LSC', 'HSC', 'LPQ', 'HPQ', 'BP']).toContain(
+        band.type,
+      );
+    });
+  });
+
+  it('carries the preamp out, since the curve clips without it', () => {
+    expect(fromApoText(SQUIGLINK).preampDb).toBeCloseTo(-5.4, 5);
+  });
+
+  it('reads the values off the line it was given', () => {
+    const { bands } = fromApoText(SQUIGLINK);
+    expect(bands[0]).toEqual({
+      enabled: true,
+      type: 'LSC',
+      frequency: 105,
+      gainDb: -2.8,
+      quality: 0.7,
+    });
+    expect(bands[9].frequency).toBe(4424);
+    expect(bands[9].gainDb).toBe(-1);
+  });
+
+  /**
+   * A shape with no coefficients here must not become a bell.
+   *
+   * Coercing it would invent a filter the file never described, which is worse
+   * than saying one line could not be used.
+   */
+  it('counts a shape it cannot build rather than guessing at one', () => {
+    const { bands, skipped } = fromApoText(
+      'Filter: ON AP Fc 500 Hz Gain 0 dB Q 1\nFilter: ON PK Fc 900 Hz Gain 1 dB Q 1',
+    );
+    expect(bands).toHaveLength(1);
+    expect(bands[0].frequency).toBe(900);
+    expect(skipped).toBe(1);
   });
 });

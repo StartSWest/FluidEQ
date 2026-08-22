@@ -60,8 +60,17 @@ const dsp = {
   'dsp.eqPreset.importSkipped': '已加载 {count} 个滤波器，跳过 {skipped} 个。',
   'dsp.eqPreset.importEmpty': '此均衡器无法从中读取任何滤波器。',
   'dsp.eqPreset.importFailed': '无法读取该文件。',
-  'dsp.eqPreset.importPreamp':
-    '已忽略 {gain} dB 的前置增益——此均衡器没有该功能。',
+  'dsp.eqPreset.importPreamp': '前置增益已设为 {gain} dB。',
+
+  'dsp.eq.rack': '频段数',
+  'dsp.eqImport.title': '导入均衡曲线',
+  'dsp.eqImport.hint':
+    '粘贴来自 Squiglink、AutoEq 或 Equalizer APO 的曲线，或选择包含它的文件。',
+  'dsp.eqImport.placeholder':
+    'Preamp: -5.4 dB\nFilter: ON PK Fc 1200 Hz Gain -2.1 dB Q 1.41',
+  'dsp.eqImport.chooseFile': '选择文件',
+  'dsp.eqImport.apply': '导入',
+  'dsp.eqImport.cancel': '取消',
 
   'dsp.eq.title': '均衡器',
   'dsp.eq.description':
@@ -79,6 +88,7 @@ const dsp = {
   'dsp.eq.type.bandPass': '带通',
   'dsp.eq.frequency': '频率',
   'dsp.eq.gain': '增益',
+  'dsp.eq.preamp': '前置增益',
   'dsp.eq.quality': '带宽',
 
   'dsp.exciter.title': '激励器',

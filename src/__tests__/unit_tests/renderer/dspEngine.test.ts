@@ -55,6 +55,9 @@ const installAudio = (
       sampleRate: 48_000,
       destination,
       audioWorklet: { addModule },
+      // What Chrome hands back for a context built without a user gesture,
+      // which is exactly the case the resume-on-play listener exists for.
+      state: 'suspended',
       resume,
       createMediaElementSource,
       createGain: () => ({ ...node(), gain: { value: 1 } }),
@@ -82,7 +85,34 @@ const installAudio = (
   return { source, destination, createMediaElementSource, addModule, resume };
 };
 
-const element = () => ({}) as HTMLAudioElement;
+/**
+ * Enough of an audio element to be listened to.
+ *
+ * `fire` replays whatever the hook registered, which is how the resume-on-play
+ * behaviour is tested without a real media element or a real gesture.
+ */
+const element = () => {
+  const listeners = new Map<string, (() => void)[]>();
+  const fake = {
+    addEventListener: (type: string, handler: () => void) => {
+      listeners.set(type, [...(listeners.get(type) ?? []), handler]);
+    },
+    removeEventListener: (type: string, handler: () => void) => {
+      listeners.set(
+        type,
+        (listeners.get(type) ?? []).filter((one) => one !== handler),
+      );
+    },
+    fire: (type: string) => {
+      (listeners.get(type) ?? []).forEach((handler) => handler());
+    },
+    listenerCount: (type: string) => (listeners.get(type) ?? []).length,
+  };
+  return fake as unknown as HTMLAudioElement & {
+    fire: (type: string) => void;
+    listenerCount: (type: string) => number;
+  };
+};
 
 describe('useDspEngine', () => {
   let consoleError: jest.SpyInstance;
@@ -173,5 +203,44 @@ describe('useDspEngine', () => {
       },
     });
     expect(harness.createMediaElementSource).toHaveBeenCalledTimes(1);
+  });
+
+  /**
+   * The restart bug.
+   *
+   * Reported as: after restarting the app, pressing play on the track that was
+   * already loaded gave no sound and a transport that did not move, while
+   * choosing a different track worked and returning to the first one then
+   * worked too.
+   *
+   * The context is built during mount, before any user gesture exists, so
+   * Chrome leaves it suspended and the `resume()` inside `start` has nothing
+   * to act on. `createMediaElementSource` has by then captured the element,
+   * and a captured element's only route to the speakers is the graph — so a
+   * suspended graph stalls the element itself, which is why the seek froze
+   * rather than simply running silently.
+   */
+  it('resumes a suspended context when playback starts', async () => {
+    const harness = installAudio();
+    const target = element();
+    const { result } = renderHook(() => useDspEngine(target, DSP_DEFAULTS));
+    await waitFor(() => expect(result.current.active).toBe(true));
+    const beforePlay = harness.resume.mock.calls.length;
+
+    act(() => target.fire('play'));
+
+    expect(harness.resume.mock.calls.length).toBeGreaterThan(beforePlay);
+  });
+
+  it('stops listening for play once the engine is torn down', async () => {
+    installAudio();
+    const target = element();
+    const { result, unmount } = renderHook(() =>
+      useDspEngine(target, DSP_DEFAULTS),
+    );
+    await waitFor(() => expect(result.current.active).toBe(true));
+    expect(target.listenerCount('play')).toBe(1);
+    act(() => unmount());
+    expect(target.listenerCount('play')).toBe(0);
   });
 });

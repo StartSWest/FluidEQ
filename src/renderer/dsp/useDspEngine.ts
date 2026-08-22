@@ -164,6 +164,37 @@ export const useDspEngine = (
       setDspEngineState('running');
     };
 
+    /**
+     * Resume on every play, not once at startup.
+     *
+     * The bug this fixes: after a restart, pressing play on the track that was
+     * already loaded produced no sound AND a transport that did not move —
+     * while picking a different track worked, and coming back to the first one
+     * then worked too.
+     *
+     * The context is built during mount, which is before any user gesture
+     * exists, so Chrome leaves it `suspended` and the `resume()` in `start`
+     * has nothing to act on. That alone would be harmless — except
+     * `createMediaElementSource` has by then captured the element, and a
+     * captured element's ONLY route to the speakers is the graph. A suspended
+     * graph therefore stalls the element itself, which is why the seek froze
+     * rather than running silently. Choosing another track remounted the
+     * player, and by then a gesture had happened.
+     *
+     * `play` is the right event because it is raised inside the gesture that
+     * started playback, which is exactly when a resume is permitted.
+     */
+    const resumeForPlayback = () => {
+      const context = contextRef.current;
+      if (!context || context.state !== 'suspended') {
+        return;
+      }
+      context.resume().catch((error: unknown) => {
+        log.error('[dsp] could not resume the context on play', error);
+      });
+    };
+    element.addEventListener('play', resumeForPlayback);
+
     start().catch((error: unknown) => {
       // Context-rich before it is flattened: the message alone does not say
       // whether the module load, the resume or the graph failed, and the
@@ -176,6 +207,7 @@ export const useDspEngine = (
 
     return () => {
       cancelled = true;
+      element.removeEventListener('play', resumeForPlayback);
       teardown('idle');
     };
   }, [element]);

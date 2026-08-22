@@ -54,19 +54,29 @@ interface IDspEqCardProps {
 const DspEqCard = ({ eq, sampleRate, onChange, onCommit }: IDspEqCardProps) => {
   const { t } = useTranslation();
   const [selected, setSelected] = useState(0);
-  const band = eq.bands[selected] ?? eq.bands[0];
-  const fallback = DSP_DEFAULTS.eq.bands[selected] ?? DSP_DEFAULTS.eq.bands[0];
+  // Clamped rather than stored clamped: the rack can shrink under the
+  // selection — going from thirty-one bands to six, or importing a ten-filter
+  // curve — and an index left pointing past the end edits a band that is not
+  // there, so the knobs move and nothing happens.
+  const active = Math.min(selected, eq.bands.length - 1);
+  const band = eq.bands[active];
+  const fallback = DSP_DEFAULTS.eq.bands[active] ?? band;
   const isFlat = NO_GAIN.has(band.type);
 
   const patchBand = (index: number, next: Partial<IEqBandSettings>) => {
+    const bands = eq.bands.map((one, at) =>
+      at === index ? { ...one, ...next } : one,
+    );
     onChange({
       ...eq,
       // Any hand-made change means the curve is no longer the preset it came
       // from, and the picker must stop claiming otherwise.
       presetId: '',
-      bands: eq.bands.map((one, at) =>
-        at === index ? { ...one, ...next } : one,
-      ),
+      bands,
+      // A hand edit makes THIS rack the authored curve, so a later change of
+      // size reads from what is on screen rather than from a file the user has
+      // since moved away from.
+      sourceBands: bands,
     });
   };
 
@@ -75,15 +85,16 @@ const DspEqCard = ({ eq, sampleRate, onChange, onCommit }: IDspEqCardProps) => {
       <DspEqGraph
         eq={eq}
         sampleRate={sampleRate}
-        selected={selected}
+        selected={active}
         onSelect={setSelected}
         onChange={patchBand}
         onCommit={onCommit}
       />
 
       {/* Numbered by their place in the chain, low to high, so the strip reads
-          like the graph above it. Fifteen of them fit one row at any panel
-          width because each is a fixed 24px. */}
+          like the graph above it. Thirty-one will not fit a narrow window, so
+          the row scrolls rather than wrapping into a block that moves the graph
+          up and down as the rack changes size. */}
       <div
         className="dsp-eq-picker"
         role="tablist"
@@ -91,12 +102,13 @@ const DspEqCard = ({ eq, sampleRate, onChange, onCommit }: IDspEqCardProps) => {
       >
         {eq.bands.map((one, index) => (
           <button
-            key={`pick-${DSP_DEFAULTS.eq.bands[index].frequency}`}
+            // eslint-disable-next-line react/no-array-index-key -- the rack is positional and never reorders, so the slot IS the identity; keying by frequency instead collides the moment an imported file puts two filters on one centre.
+            key={`pick-${index}`}
             type="button"
             role="tab"
-            aria-selected={index === selected}
+            aria-selected={index === active}
             aria-label={`${t('dsp.eq.band')} ${index + 1}`}
-            className={`dsp-eq-pick${index === selected ? ' is-active' : ''}${
+            className={`dsp-eq-pick${index === active ? ' is-active' : ''}${
               one.enabled ? '' : ' is-off'
             }`}
             onClick={() => setSelected(index)}
@@ -106,81 +118,105 @@ const DspEqCard = ({ eq, sampleRate, onChange, onCommit }: IDspEqCardProps) => {
         ))}
       </div>
 
-      <div className="dsp-eq-strip">
-        <div className="dsp-eq-shape">
-          <span className="dsp-eq-field-label">{t('dsp.eq.shape')}</span>
-          <Dropdown
-            name={t('dsp.eq.shape')}
-            value={band.type}
-            isDisabled={!band.enabled}
-            options={BAND_TYPES.map(({ type, labelKey }) => ({
-              value: type,
-              label: t(labelKey),
-              display: (
-                <span className="dsp-shape-option">
-                  <DspFilterShapeIcon type={type} />
-                  {t(labelKey)}
-                </span>
-              ),
-            }))}
-            handleChange={(next: string) => {
-              patchBand(selected, { type: next });
-              onCommit();
-            }}
+      {/* Two blocks, not one row with a rule down it. The preamp is the whole
+          curve's headroom and the strip is one band's controls — they are
+          different scopes, and giving each its own panel says so without a
+          label having to. */}
+      <div className="dsp-eq-bottom">
+        <div className="dsp-eq-preamp">
+          <LabelledKnob
+            label={t('dsp.eq.preamp')}
+            value={eq.preampDb}
+            min={-24}
+            max={24}
+            step={0.1}
+            unit="dB"
+            defaultValue={0}
+            isDisabled={false}
+            // Deliberately does NOT clear `presetId`: the preamp is headroom,
+            // not part of the curve a preset describes, so trimming it must
+            // not make the picker claim the preset was abandoned.
+            onChange={(preampDb) => onChange({ ...eq, preampDb })}
+            onCommit={onCommit}
           />
         </div>
 
-        <LabelledKnob
-          label={t('dsp.eq.frequency')}
-          value={band.frequency}
-          min={20}
-          max={20_000}
-          step={1}
-          unit="Hz"
-          defaultValue={fallback.frequency}
-          isDisabled={!band.enabled}
-          onChange={(frequency) => patchBand(selected, { frequency })}
-          onCommit={onCommit}
-        />
-        <LabelledKnob
-          label={t('dsp.eq.gain')}
-          value={band.gainDb}
-          min={-24}
-          max={24}
-          step={0.1}
-          unit="dB"
-          defaultValue={0}
-          // Shown and inert rather than removed for a notch or a pass: a strip
-          // whose controls appear and vanish as the shape changes is one that
-          // jumps under the hand.
-          isDisabled={!band.enabled || isFlat}
-          onChange={(gainDb) => patchBand(selected, { gainDb })}
-          onCommit={onCommit}
-        />
-        <LabelledKnob
-          label={t('dsp.eq.quality')}
-          value={band.quality}
-          min={0.1}
-          max={18}
-          step={0.01}
-          unit="Q"
-          defaultValue={fallback.quality}
-          isDisabled={!band.enabled}
-          onChange={(quality) => patchBand(selected, { quality })}
-          onCommit={onCommit}
-        />
+        <div className="dsp-eq-strip">
+          <div className="dsp-eq-shape">
+            <span className="dsp-eq-field-label">{t('dsp.eq.shape')}</span>
+            <Dropdown
+              name={t('dsp.eq.shape')}
+              value={band.type}
+              isDisabled={!band.enabled}
+              options={BAND_TYPES.map(({ type, labelKey }) => ({
+                value: type,
+                label: t(labelKey),
+                display: (
+                  <span className="dsp-shape-option">
+                    <DspFilterShapeIcon type={type} />
+                    {t(labelKey)}
+                  </span>
+                ),
+              }))}
+              handleChange={(next: string) => {
+                patchBand(active, { type: next });
+                onCommit();
+              }}
+            />
+          </div>
 
-        <button
-          type="button"
-          className={`button small${band.enabled ? '' : ' subtle'}`}
-          aria-pressed={band.enabled}
-          onClick={() => {
-            patchBand(selected, { enabled: !band.enabled });
-            onCommit();
-          }}
-        >
-          {band.enabled ? t('dsp.enabled') : t('dsp.eq.bandOff')}
-        </button>
+          <LabelledKnob
+            label={t('dsp.eq.frequency')}
+            value={band.frequency}
+            min={20}
+            max={20_000}
+            step={1}
+            unit="Hz"
+            defaultValue={fallback.frequency}
+            isDisabled={!band.enabled}
+            onChange={(frequency) => patchBand(active, { frequency })}
+            onCommit={onCommit}
+          />
+          <LabelledKnob
+            label={t('dsp.eq.gain')}
+            value={band.gainDb}
+            min={-24}
+            max={24}
+            step={0.1}
+            unit="dB"
+            defaultValue={0}
+            // Shown and inert rather than removed for a notch or a pass: a strip
+            // whose controls appear and vanish as the shape changes is one that
+            // jumps under the hand.
+            isDisabled={!band.enabled || isFlat}
+            onChange={(gainDb) => patchBand(active, { gainDb })}
+            onCommit={onCommit}
+          />
+          <LabelledKnob
+            label={t('dsp.eq.quality')}
+            value={band.quality}
+            min={0.1}
+            max={18}
+            step={0.01}
+            unit="Q"
+            defaultValue={fallback.quality}
+            isDisabled={!band.enabled}
+            onChange={(quality) => patchBand(active, { quality })}
+            onCommit={onCommit}
+          />
+
+          <button
+            type="button"
+            className={`button small${band.enabled ? '' : ' subtle'}`}
+            aria-pressed={band.enabled}
+            onClick={() => {
+              patchBand(active, { enabled: !band.enabled });
+              onCommit();
+            }}
+          >
+            {band.enabled ? t('dsp.enabled') : t('dsp.eq.bandOff')}
+          </button>
+        </div>
       </div>
     </div>
   );

@@ -84,6 +84,7 @@ import { usePlaybackOwner, type TPlaybackOwner } from './audio/playbackOwner';
 import { useSystemMediaSource } from './audio/useSystemMediaSource';
 import { useSongEqSessionHost } from './audio/songEqSession';
 import {
+  readRememberedTransportOwner,
   useLastTransportOwner,
   useTransportSources,
 } from './audio/transportSource';
@@ -907,15 +908,45 @@ const AppContent = () => {
   const [isCaptureNoticeHidden, setIsCaptureNoticeHidden] = useState(false);
   // A new failure is worth showing again even if the last one was dismissed.
   useEffect(() => setIsCaptureNoticeHidden(false), [captureError]);
+  /**
+   * The player somebody was using when the window last closed.
+   *
+   * Each of the three below is mounted on first visit to its tab and then
+   * never unmounted, which is the right lifetime for a session and the wrong
+   * one for a restart. The tab is remembered but the player is not, so coming
+   * back on the EQ, DSP or Config tab — which is most restarts — left every
+   * player unmounted, nothing describing itself to the bar, and the foot of
+   * the window reading "Nothing playing" over a queue that was sitting in
+   * storage waiting to be resumed. What was missing was not the memory: the
+   * library's queue, the karaoke session and the Media tab's page each restore
+   * themselves perfectly well the moment they exist. Nobody was mounting them.
+   *
+   * One of them, not all three: this is "what was I last listening to", and
+   * bringing up a browser engine and a karaoke session alongside the queue
+   * somebody actually left would be three players restored to answer a
+   * question about one. Each restores paused — the point is the transport
+   * being there to press, not sound arriving unasked at launch.
+   *
+   * Held in state purely to be read once. This component re-renders several
+   * times a second while anything is playing, and the answer is a fact about
+   * how the window opened — re-reading storage for it on every frame would be
+   * both wasted work and a value that could change under flags which have
+   * already gone true.
+   */
+  const [restoredOwner] = useState(readRememberedTransportOwner);
   // The player is mounted on first visit and never unmounted, because its page
   // is destroyed the moment the element leaves the DOM — switching to the EQ
   // to move a band would otherwise stop whatever was playing. Until somebody
   // opens the tab, though, there is no reason to have a browser engine running
   // at all, so it does not exist.
-  const [hasOpenedVideo, setHasOpenedVideo] = useState(false);
+  const [hasOpenedVideo, setHasOpenedVideo] = useState(
+    () => restoredOwner === 'media',
+  );
   // Library follows the same lifetime rule: a scan started on this tab must
   // not be abandoned by switching away from it.
-  const [hasOpenedLibrary, setHasOpenedLibrary] = useState(false);
+  const [hasOpenedLibrary, setHasOpenedLibrary] = useState(
+    () => restoredOwner === 'library',
+  );
   // What the now-playing bar asked the Library to show. The nonce is what
   // makes pressing it twice for the same album work: an id alone would look
   // unchanged after the user had navigated away, and do nothing.
@@ -936,7 +967,9 @@ const AppContent = () => {
   }, []);
   // Karaoke follows the same lifetime rule. Once audio and microphone capture
   // land here, leaving the tab must not tear either pipeline down.
-  const [hasOpenedKaraoke, setHasOpenedKaraoke] = useState(false);
+  const [hasOpenedKaraoke, setHasOpenedKaraoke] = useState(
+    () => restoredOwner === 'karaoke',
+  );
 
   /**
    * A song was sent over from the Library tab.

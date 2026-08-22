@@ -149,7 +149,17 @@ const OWNERS: readonly TPlaybackOwner[] = [
   'system',
 ];
 
-const readLastOwner = (): TPlaybackOwner | undefined => {
+/**
+ * Who was using this app when it last closed, straight from storage.
+ *
+ * Distinct from `useLastTransportOwner` and deliberately so: that one reads
+ * the module's copy below, which `clearTransportSource` empties when a player
+ * unmounts, and which therefore answers "who is registered right now". The
+ * question a startup has to ask is the other one — who was using this last
+ * time — and it has to be answerable before any player exists, because the
+ * answer is what decides whether one is mounted at all. See `App.tsx`.
+ */
+export const readRememberedTransportOwner = (): TPlaybackOwner | undefined => {
   try {
     const stored = window.localStorage.getItem(LAST_OWNER_KEY);
     return OWNERS.find((owner) => owner === stored);
@@ -158,7 +168,7 @@ const readLastOwner = (): TPlaybackOwner | undefined => {
   }
 };
 
-let lastOwner: TPlaybackOwner | undefined = readLastOwner();
+let lastOwner: TPlaybackOwner | undefined = readRememberedTransportOwner();
 
 /**
  * Who most recently reported `isPlaying: true`, kept alive across the pause

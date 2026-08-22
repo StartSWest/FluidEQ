@@ -4,13 +4,20 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import { fromApoText, toApoText } from '../../common/dsp/apoEqFormat';
-import { IEqSettings } from '../../common/dsp/chain';
+import {
+  DSP_DEFAULTS,
+  EQ_RACK_SIZES,
+  IEqSettings,
+  buildEqRack,
+  rackWithCurveOf,
+} from '../../common/dsp/chain';
 import { EQ_PRESETS, isCompleteEqPreset } from '../../common/dsp/eqPresets';
 import { TranslationKey } from '../../common/i18n/en';
 import { useTranslation } from '../utils/I18nContext';
 import Dropdown from '../widgets/Dropdown';
+import DspEqImportDialog from './DspEqImportDialog';
 
 interface IDspEqBarProps {
   eq: IEqSettings;
@@ -19,36 +26,68 @@ interface IDspEqBarProps {
 }
 
 /**
- * The equaliser's toolbar: the preset, and the two ways a curve gets in or out.
+ * The equaliser's toolbar: the rack size, the preset, and the way curves get
+ * in and out.
  *
  * Lives in the card's header rather than above the graph, and that is the whole
  * reason it is its own component. The EQ page has no description line, so the
  * header was an empty band with the bypass switch stranded at the far right of
  * it — a strip of nothing wide enough to look like a bug, which is exactly how
- * it was reported. Putting this in the header fills that row with the controls
- * that were sitting underneath it, and the page starts at the graph.
+ * it was reported.
  */
 const DspEqBar = ({ eq, onChange, onCommit }: IDspEqBarProps) => {
   const { t } = useTranslation();
   const [notice, setNotice] = useState('');
-  const fileRef = useRef<HTMLInputElement>(null);
+  const [isImporting, setIsImporting] = useState(false);
+
+  /**
+   * A different resolution of the same curve, not a different curve.
+   *
+   * Read from `sourceBands` and NOT from the live rack. Resampling the rack
+   * each time compounds its own loss — ten bands read down to six and back up
+   * to thirty-one cannot recover what the six could not hold — so a trip
+   * through a smaller size used to flatten an imported curve for good. Coming
+   * back to the size it arrived at now returns the curve that arrived.
+   */
+  const applyRack = (size: string) => {
+    const count = Number(size);
+    if (!Number.isFinite(count) || count === eq.bands.length) {
+      return;
+    }
+    setNotice('');
+    const source = eq.sourceBands.length > 0 ? eq.sourceBands : eq.bands;
+    onChange({
+      ...eq,
+      // Untouched: the rack size is a resolution, not an edit, so the curve
+      // somebody authored stays the reference for every later size.
+      sourceBands: source,
+      bands: rackWithCurveOf(buildEqRack(count), source),
+    });
+    onCommit();
+  };
 
   const applyPreset = (id: string) => {
     const chosen = EQ_PRESETS.find((one) => one.id === id);
     if (!chosen || !isCompleteEqPreset(chosen)) {
       return;
     }
-    // Whatever the last import had to say was about a curve this replaces.
     setNotice('');
+    // The presets are fifteen gains written against the fifteen-band rack, so
+    // they are built there and then read onto whatever rack is loaded. The
+    // alternative — snapping the rack back to fifteen — would throw away a
+    // size the user chose on purpose every time they auditioned a preset.
+    const asFifteen = DSP_DEFAULTS.eq.bands.map((band, index) => ({
+      ...band,
+      gainDb: chosen.gains[index],
+    }));
     onChange({
       ...eq,
       presetId: id,
-      // Gains only. A preset that also reset frequency, Q and shape would
-      // silently throw away a band the user had moved somewhere on purpose.
-      bands: eq.bands.map((one, index) => ({
-        ...one,
-        gainDb: chosen.gains[index],
-      })),
+      // The preset's own fifteen are the reference, so moving to 31 bands
+      // afterwards reads the preset at full detail rather than reading back
+      // whatever the current rack could hold of it.
+      sourceBands: asFifteen,
+      bands: rackWithCurveOf(eq.bands, asFifteen),
     });
     onCommit();
   };
@@ -75,65 +114,74 @@ const DspEqBar = ({ eq, onChange, onCommit }: IDspEqBarProps) => {
     URL.revokeObjectURL(url);
   };
 
-  const handleImport = (file: File | undefined) => {
-    if (!file) {
+  const handleImport = (text: string) => {
+    const { bands, preampDb, skipped } = fromApoText(text);
+    if (!bands.length) {
+      // Says nothing was read rather than nothing at all. The likeliest reason
+      // is that this is not a ParametricEQ file, and silence from a button
+      // that was just pressed reads as a bug.
+      setNotice(t('dsp.eqPreset.importEmpty'));
       return;
     }
-    // Cleared first: the previous file's verdict standing beside a new one is
-    // read as this file's.
-    setNotice('');
-    file
-      .text()
-      .then((text) => {
-        const { bands, preampDb, skipped } = fromApoText(text);
-        if (!bands.length) {
-          // Says nothing was read rather than nothing at all. The likeliest
-          // reason is that this is not a ParametricEQ file, and silence from a
-          // button that was just pressed reads as a bug.
-          setNotice(t('dsp.eqPreset.importEmpty'));
-          return false;
-        }
-        onChange({
-          ...eq,
-          // An imported curve is nobody's preset, whatever it was made from.
-          presetId: '',
-          // Bands the file did not reach are switched off rather than left
-          // holding whatever the previous curve had in them — otherwise a
-          // four-filter import inherits eleven bands nobody asked for.
-          bands: eq.bands.map((one, index) =>
-            index < bands.length ? bands[index] : { ...one, enabled: false },
-          ),
-        });
-        onCommit();
-        const notes = [
-          skipped > 0
-            ? t('dsp.eqPreset.importSkipped', {
-                count: bands.length,
-                skipped,
-              })
-            : t('dsp.eqPreset.imported', { count: bands.length }),
-        ];
-        // This equaliser has no preamp of its own, so a file asking for one
-        // loses it. Saying so beats letting the curve come out louder than
-        // whoever published it intended.
-        if (preampDb !== 0) {
-          notes.push(t('dsp.eqPreset.importPreamp', { gain: preampDb }));
-        }
-        setNotice(notes.join(' '));
-        return true;
-      })
-      .catch(() => setNotice(t('dsp.eqPreset.importFailed')));
+    setIsImporting(false);
+    onChange({
+      ...eq,
+      // An imported curve is nobody's preset, whatever it was made from.
+      presetId: '',
+      // The file decides the rack size. Padding it out to fifteen left silent
+      // bands behind, and cutting it to fifteen threw away filters the author
+      // put there.
+      bands,
+      // The published curve is the reference from here on, so every rack size
+      // is read from the file rather than from the last size that was on
+      // screen.
+      sourceBands: bands,
+      preampDb,
+    });
+    onCommit();
+    const notes = [
+      skipped > 0
+        ? t('dsp.eqPreset.importSkipped', { count: bands.length, skipped })
+        : t('dsp.eqPreset.imported', { count: bands.length }),
+    ];
+    if (preampDb !== 0) {
+      notes.push(t('dsp.eqPreset.importPreamp', { gain: preampDb }));
+    }
+    setNotice(notes.join(' '));
   };
+
+  // Whatever an import left behind, so a rack of ten reads as ten rather than
+  // as the picker having lost its value.
+  const rackOptions = EQ_RACK_SIZES.map(String).includes(
+    String(eq.bands.length),
+  )
+    ? EQ_RACK_SIZES.map(String)
+    : [...EQ_RACK_SIZES.map(String), String(eq.bands.length)].sort(
+        (a, b) => Number(a) - Number(b),
+      );
 
   return (
     <div className="dsp-eq-bar">
-      {/* The label sits BESIDE the field, not stacked over it. Above it, the
-          pair was two rows tall in a row that is one control high, and the
-          header grew to fit a word. */}
+      {/* Labels sit BESIDE their fields, not stacked over them. Above, each
+          pair stood two rows tall inside a row that is one control high, and
+          the header grew a band of empty space to fit a word. */}
+      <div className="dsp-eq-preset dsp-eq-rack">
+        <span className="dsp-eq-preset-label">{t('dsp.eq.rack')}</span>
+        <Dropdown
+          name={t('dsp.eq.rack')}
+          value={String(eq.bands.length)}
+          isDisabled={false}
+          options={rackOptions.map((size) => ({
+            value: size,
+            label: size,
+            display: size,
+          }))}
+          handleChange={applyRack}
+        />
+      </div>
+
       <div className="dsp-eq-preset">
-        <span className="dsp-eq-preset-label" id="dsp-eq-preset-label">
-          {t('dsp.eqPreset.label')}
-        </span>
+        <span className="dsp-eq-preset-label">{t('dsp.eqPreset.label')}</span>
         <Dropdown
           name={t('dsp.eqPreset.label')}
           value={eq.presetId}
@@ -154,7 +202,10 @@ const DspEqBar = ({ eq, onChange, onCommit }: IDspEqBarProps) => {
         <button
           type="button"
           className="button small subtle"
-          onClick={() => fileRef.current?.click()}
+          onClick={() => {
+            setNotice('');
+            setIsImporting(true);
+          }}
         >
           {t('dsp.eqPreset.import')}
         </button>
@@ -167,23 +218,17 @@ const DspEqBar = ({ eq, onChange, onCommit }: IDspEqBarProps) => {
         </button>
       </div>
 
-      <input
-        ref={fileRef}
-        type="file"
-        accept=".txt,text/plain"
-        hidden
-        onChange={(event) => {
-          handleImport(event.target.files?.[0]);
-          // Cleared so choosing the same file twice fires again — without
-          // this, re-importing a file the user has just edited does nothing.
-          event.target.value = '';
-        }}
-      />
-
       {notice !== '' && (
         <p className="dsp-eq-notice" role="status">
           {notice}
         </p>
+      )}
+
+      {isImporting && (
+        <DspEqImportDialog
+          onImport={handleImport}
+          onClose={() => setIsImporting(false)}
+        />
       )}
     </div>
   );

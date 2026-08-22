@@ -91,8 +91,37 @@ export interface IEqBandSettings {
 
 export interface IEqSettings {
   enabled: boolean;
-  /** Always `EQ_BAND_COUNT` of them, whatever was stored. */
+  /**
+   * `EQ_BAND_COUNT` by default, and as many as an imported file asked for up
+   * to `EQ_MAX_BAND_COUNT`.
+   */
   bands: readonly IEqBandSettings[];
+  /**
+   * The curve the rack sizes are resampled FROM, rather than from each other.
+   *
+   * Resampling the live rack each time compounds its own error: ten bands read
+   * down to six lose the detail between them, and reading those six back up to
+   * thirty-one cannot invent it again — so a round trip through a smaller rack
+   * quietly flattened an imported curve, and going back to the size it came in
+   * at did not restore it.
+   *
+   * This holds the last curve somebody actually authored — what was imported,
+   * what a preset supplied, or what they dialled in by hand — and every rack
+   * change interpolates from here. Switching 10 → 6 → 31 → 10 now ends where
+   * it started.
+   *
+   * Empty means "the bands are the source", which is what a stored setting
+   * from before this existed looks like.
+   */
+  sourceBands: readonly IEqBandSettings[];
+  /**
+   * Applied ahead of the bands, in dB.
+   *
+   * Every published correction curve carries one, and it is not decoration: a
+   * curve with a +4.7 dB boost in it clips without the -5.4 dB the file asks
+   * for in front. Dropping it made imported curves both too loud and wrong.
+   */
+  preampDb: number;
   /**
    * The factory preset last applied, or empty for a hand-made curve.
    *
@@ -105,11 +134,12 @@ export interface IEqSettings {
 }
 
 /**
- * Fifteen, fixed.
+ * Fifteen is what the rack starts with.
  *
- * Not a list the user can grow: a fixed rack is what every hardware EQ worth
- * copying does, it keeps the page a predictable size, and the stored shape
- * never has to describe how many there were.
+ * A mixing-desk spread that gives every band somewhere useful to start. It is
+ * no longer a ceiling: a published correction file decides its own band count,
+ * and truncating one to fifteen threw away filters the author put there — the
+ * curve that came out was not the curve on the page.
  *
  * Fifteen cascaded biquads is well within budget — 15 × 2 channels × 5
  * multiply-adds is about 7 million operations a second at 48 kHz, against a
@@ -118,6 +148,16 @@ export interface IEqSettings {
  * chain the way it would in a 32-bit fixed-point cascade.
  */
 export const EQ_BAND_COUNT = 15;
+
+/**
+ * The ceiling an import cannot cross.
+ *
+ * Not a format limit — it is a budget. Published curves run to about twenty
+ * filters and the longest seen is in the thirties, so sixty-four leaves room
+ * without letting a malformed file allocate a biquad per line and stall the
+ * audio thread.
+ */
+export const EQ_MAX_BAND_COUNT = 64;
 
 export interface IDspSettings {
   eq: IEqSettings;
@@ -196,8 +236,134 @@ const DEFAULT_EQ_BANDS: readonly IEqBandSettings[] = [
   { enabled: true, type: 'HSC', frequency: 16_000, gainDb: 0, quality: 0.7 },
 ];
 
+/**
+ * The rack sizes offered, and the ISO centres each one lands on.
+ *
+ * Not arbitrary counts with the range divided up: these are the frequencies
+ * graphic equalisers have used for fifty years, so a curve set here looks the
+ * same as the same curve set anywhere else. Ten is the ISO octave series,
+ * thirty-one the third-octave series, and fifteen is the two-thirds-octave
+ * spread the rack already shipped with — left exactly as it was, because the
+ * factory presets are fifteen gains written against these frequencies.
+ */
+const RACK_FREQUENCIES: Record<number, readonly number[]> = {
+  6: [63, 160, 400, 1_000, 4_000, 12_000],
+  10: [31.5, 63, 125, 250, 500, 1_000, 2_000, 4_000, 8_000, 16_000],
+  15: DEFAULT_EQ_BANDS.map((band) => band.frequency),
+  31: [
+    20, 25, 31.5, 40, 50, 63, 80, 100, 125, 160, 200, 250, 315, 400, 500, 630,
+    800, 1_000, 1_250, 1_600, 2_000, 2_500, 3_150, 4_000, 5_000, 6_300, 8_000,
+    10_000, 12_500, 16_000, 20_000,
+  ],
+};
+
+export const EQ_RACK_SIZES = [6, 10, 15, 31] as const;
+
+/**
+ * Q for a rack whose bands sit `octaves` apart.
+ *
+ * The standard relation, Q = 1 / (2^(n/2) - 2^(-n/2)). It is what makes a
+ * graphic EQ's bands meet at their skirts instead of leaving holes between
+ * them (Q too high) or piling three bands onto one frequency (Q too low), and
+ * it is why a 31-band rack wants Q≈4.3 where a 10-band wants Q≈1.4.
+ */
+const qForSpacing = (octaves: number): number =>
+  Math.round((1 / (2 ** (octaves / 2) - 2 ** (-octaves / 2))) * 100) / 100;
+
+/**
+ * A full rack at one of the offered sizes.
+ *
+ * Bells throughout, which is both what a real graphic equaliser is and what
+ * the measurements in the roadmap force. A rack ending in a high shelf would
+ * put that shelf at 16 kHz on the ten-band and 20 kHz on the thirty-one, and
+ * `dspBiquad.test.ts` records what the cookbook does there: a 16 kHz shelf
+ * asked for +6 dB delivers between 3 and 6, because the response is forced
+ * flat at Nyquist and a shelf that high has nowhere left to rise. At 20 kHz
+ * against a 44.1 kHz rate it would deliver almost nothing at all — a control
+ * that visibly moves and inaudibly does nothing.
+ *
+ * The fifteen-band rack keeps its shelves and is not built here: its
+ * frequencies are what the factory presets are written against, and its top
+ * shelf is a known cost recorded in the roadmap rather than a new one.
+ */
+export const buildEqRack = (count: number): readonly IEqBandSettings[] => {
+  const frequencies = RACK_FREQUENCIES[count];
+  if (!frequencies) {
+    return DEFAULT_EQ_BANDS;
+  }
+  if (count === EQ_BAND_COUNT) {
+    return DEFAULT_EQ_BANDS;
+  }
+  // Total span in octaves divided by the gaps between bands.
+  const octaves =
+    Math.log2(frequencies[frequencies.length - 1] / frequencies[0]) /
+    Math.max(1, frequencies.length - 1);
+  const quality = qForSpacing(octaves);
+  return frequencies.map((frequency) => ({
+    enabled: true,
+    type: 'PK',
+    frequency,
+    gainDb: 0,
+    quality,
+  }));
+};
+
+/**
+ * One rack's gains, read onto another rack's frequencies.
+ *
+ * Changing from ten bands to thirty-one used to flatten the curve, because the
+ * new rack arrives at 0 dB and there is nothing that says the old shape should
+ * survive. It should: the user chose a resolution, not a different sound.
+ *
+ * Interpolated in log frequency, which is the axis the ear and the graph both
+ * use — halfway between 100 Hz and 10 kHz is 1 kHz, not 5,050 Hz. Beyond the
+ * source's ends the nearest gain is held rather than extrapolated, so a rack
+ * that reaches further than the curve did flattens out instead of inventing a
+ * boost nobody asked for.
+ *
+ * Only the gain travels. Type, frequency and Q belong to the rack being moved
+ * to, or it is not that rack any more.
+ */
+export const rackWithCurveOf = (
+  target: readonly IEqBandSettings[],
+  source: readonly IEqBandSettings[],
+): readonly IEqBandSettings[] => {
+  if (source.length === 0) {
+    return target;
+  }
+  const points = source
+    .map((band) => ({ hz: Math.log2(band.frequency), gainDb: band.gainDb }))
+    .sort((a, b) => a.hz - b.hz);
+  return target.map((band) => {
+    const hz = Math.log2(band.frequency);
+    if (hz <= points[0].hz) {
+      return { ...band, gainDb: points[0].gainDb };
+    }
+    const last = points[points.length - 1];
+    if (hz >= last.hz) {
+      return { ...band, gainDb: last.gainDb };
+    }
+    const upper = points.findIndex((point) => point.hz >= hz);
+    const a = points[upper - 1];
+    const b = points[upper];
+    const span = b.hz - a.hz;
+    const ratio = span === 0 ? 0 : (hz - a.hz) / span;
+    return {
+      ...band,
+      gainDb:
+        Math.round((a.gainDb + (b.gainDb - a.gainDb) * ratio) * 100) / 100,
+    };
+  });
+};
+
 export const DSP_DEFAULTS: IDspSettings = {
-  eq: { enabled: false, bands: DEFAULT_EQ_BANDS, presetId: '' },
+  eq: {
+    enabled: false,
+    bands: DEFAULT_EQ_BANDS,
+    sourceBands: [],
+    presetId: '',
+    preampDb: 0,
+  },
   exciter: { enabled: false, crossoverHz: 6_000, drive: 3, mix: 0.3 },
   compressor: {
     enabled: false,
@@ -247,6 +413,15 @@ const clampBand = (value: unknown, fallback: IBandSettings): IBandSettings => {
 /** The filter shapes an EQ band may claim to be. */
 const EQ_TYPES = ['PK', 'NO', 'LSC', 'HSC', 'LPQ', 'HPQ', 'BP'] as const;
 
+/** For a stored band past the default rack, which has no counterpart there. */
+const FALLBACK_EQ_BAND: IEqBandSettings = {
+  enabled: true,
+  type: 'PK',
+  frequency: 1_000,
+  gainDb: 0,
+  quality: 1.4,
+};
+
 const clampEqBand = (
   value: unknown,
   fallback: IEqBandSettings,
@@ -291,9 +466,28 @@ export const clampDspSettings = (value: unknown): IDspSettings => {
     eq: {
       enabled: clampBoolean(eq.enabled, DSP_DEFAULTS.eq.enabled),
       presetId: typeof eq.presetId === 'string' ? eq.presetId : '',
-      bands: DSP_DEFAULTS.eq.bands.map((fallback, index) =>
-        clampEqBand(storedEqBands[index], fallback),
+      preampDb: clampNumber(eq.preampDb, RANGES.eqGainDb, 0),
+      // The stored rack decides its own length now, so an imported ten-filter
+      // curve comes back as ten bands rather than being padded out to fifteen
+      // with silent ones. A band past the default rack has no fallback of its
+      // own, so it borrows the generic bell — reached only when a stored entry
+      // is corrupt, since a sound one supplies every field itself.
+      bands: Array.from(
+        {
+          length: Math.min(
+            EQ_MAX_BAND_COUNT,
+            Math.max(1, storedEqBands.length || DSP_DEFAULTS.eq.bands.length),
+          ),
+        },
+        (_, index) =>
+          clampEqBand(
+            storedEqBands[index],
+            DSP_DEFAULTS.eq.bands[index] ?? FALLBACK_EQ_BAND,
+          ),
       ),
+      sourceBands: (Array.isArray(eq.sourceBands) ? eq.sourceBands : [])
+        .slice(0, EQ_MAX_BAND_COUNT)
+        .map((band) => clampEqBand(band, FALLBACK_EQ_BAND)),
     },
     exciter: {
       enabled: clampBoolean(exciter.enabled, DSP_DEFAULTS.exciter.enabled),

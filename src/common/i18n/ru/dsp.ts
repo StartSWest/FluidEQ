@@ -63,8 +63,17 @@ const dsp = {
   'dsp.eqPreset.importEmpty':
     'Этот эквалайзер не смог прочитать ни одного фильтра.',
   'dsp.eqPreset.importFailed': 'Не удалось прочитать этот файл.',
-  'dsp.eqPreset.importPreamp':
-    'Предусиление {gain} дБ проигнорировано — у этого эквалайзера его нет.',
+  'dsp.eqPreset.importPreamp': 'Предусиление установлено на {gain} дБ.',
+
+  'dsp.eq.rack': 'Полосы',
+  'dsp.eqImport.title': 'Импорт кривой эквалайзера',
+  'dsp.eqImport.hint':
+    'Вставьте кривую из Squiglink, AutoEq или Equalizer APO — либо выберите файл с ней.',
+  'dsp.eqImport.placeholder':
+    'Preamp: -5.4 dB\nFilter: ON PK Fc 1200 Hz Gain -2.1 dB Q 1.41',
+  'dsp.eqImport.chooseFile': 'Выбрать файл',
+  'dsp.eqImport.apply': 'Импортировать',
+  'dsp.eqImport.cancel': 'Отмена',
 
   'dsp.eq.title': 'Эквалайзер',
   'dsp.eq.description':
@@ -82,6 +91,7 @@ const dsp = {
   'dsp.eq.type.bandPass': 'Полосовой',
   'dsp.eq.frequency': 'Частота',
   'dsp.eq.gain': 'Усиление',
+  'dsp.eq.preamp': 'Предус.',
   'dsp.eq.quality': 'Ширина',
 
   'dsp.exciter.title': 'Эксайтер',

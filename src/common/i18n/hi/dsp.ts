@@ -63,8 +63,17 @@ const dsp = {
   'dsp.eqPreset.importEmpty':
     'इस इक्वलाइज़र को उसमें कोई फ़िल्टर नहीं मिला जिसे वह पढ़ सके।',
   'dsp.eqPreset.importFailed': 'वह फ़ाइल पढ़ी नहीं जा सकी।',
-  'dsp.eqPreset.importPreamp':
-    '{gain} dB का प्रीएम्प अनदेखा किया गया — इस इक्वलाइज़र में वह नहीं है।',
+  'dsp.eqPreset.importPreamp': 'प्रीएम्प {gain} dB पर सेट किया गया।',
+
+  'dsp.eq.rack': 'बैंड',
+  'dsp.eqImport.title': 'EQ कर्व आयात करें',
+  'dsp.eqImport.hint':
+    'Squiglink, AutoEq या Equalizer APO से कर्व चिपकाएँ — या उसकी फ़ाइल चुनें।',
+  'dsp.eqImport.placeholder':
+    'Preamp: -5.4 dB\nFilter: ON PK Fc 1200 Hz Gain -2.1 dB Q 1.41',
+  'dsp.eqImport.chooseFile': 'फ़ाइल चुनें',
+  'dsp.eqImport.apply': 'आयात करें',
+  'dsp.eqImport.cancel': 'रद्द करें',
 
   'dsp.eq.title': 'इक्वलाइज़र',
   'dsp.eq.description':
@@ -82,6 +91,7 @@ const dsp = {
   'dsp.eq.type.bandPass': 'बैंड पास',
   'dsp.eq.frequency': 'आवृत्ति',
   'dsp.eq.gain': 'गेन',
+  'dsp.eq.preamp': 'प्रीएम्प',
   'dsp.eq.quality': 'चौड़ाई',
 
   'dsp.exciter.title': 'एक्साइटर',

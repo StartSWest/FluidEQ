@@ -6,8 +6,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import {
   DSP_DEFAULTS,
+  EQ_MAX_BAND_COUNT,
+  EQ_RACK_SIZES,
   IDspSettings,
+  buildEqRack,
   clampDspSettings,
+  rackWithCurveOf,
 } from '../../../common/dsp/chain';
 import { DSP_PRESETS } from '../../../common/dsp/presets';
 
@@ -70,5 +74,104 @@ describe('dsp chain settings', () => {
       compressor: { ...DSP_DEFAULTS.compressor, bands: [] },
     });
     expect(clamped.compressor.bands).toHaveLength(3);
+  });
+});
+
+/**
+ * The rack sizes, and the guarantee that moving between them is lossless.
+ *
+ * Reported as "switching bands loses the imported curve", and it was: each
+ * change resampled the live rack, so every trip through a smaller size threw
+ * away detail that the next larger size could not invent again.
+ */
+describe('EQ rack sizes', () => {
+  it('offers the four sizes at their ISO centres', () => {
+    expect(EQ_RACK_SIZES).toEqual([6, 10, 15, 31]);
+    EQ_RACK_SIZES.forEach((size) => {
+      expect(buildEqRack(size)).toHaveLength(size);
+    });
+  });
+
+  /**
+   * A shelf at 16 kHz delivers 3-6 dB of a requested 6, and one at 20 kHz
+   * against a 44.1 kHz rate delivers almost nothing — the cookbook forces the
+   * response flat at Nyquist. The graphic racks are bells throughout so no
+   * control on them is a dial that moves and does nothing.
+   */
+  it('puts no shelf at the top of a graphic rack', () => {
+    [6, 10, 31].forEach((size) => {
+      expect(buildEqRack(size).every((band) => band.type === 'PK')).toBe(true);
+    });
+  });
+
+  it('gives a denser rack a higher Q, as the spacing demands', () => {
+    const ten = buildEqRack(10)[5].quality;
+    const thirtyOne = buildEqRack(31)[15].quality;
+    expect(thirtyOne).toBeGreaterThan(ten);
+    // The standard octave relation: Q = 1 / (2^(n/2) - 2^(-n/2)).
+    expect(ten).toBeCloseTo(1.41, 1);
+    expect(thirtyOne).toBeCloseTo(4.32, 1);
+  });
+
+  it('carries a curve across a size change instead of flattening it', () => {
+    const source = buildEqRack(10).map((band, index) => ({
+      ...band,
+      gainDb: index < 5 ? 6 : -6,
+    }));
+    const wide = rackWithCurveOf(buildEqRack(31), source);
+    // The low half stays lifted and the high half stays cut, which is the
+    // whole point of resampling rather than resetting.
+    expect(wide[2].gainDb).toBeCloseTo(6, 1);
+    expect(wide[28].gainDb).toBeCloseTo(-6, 1);
+  });
+
+  /**
+   * The defect this exists to prevent, stated as a round trip.
+   *
+   * Reading always from the authored curve means the detour through six bands
+   * costs nothing once the rack returns to the size the curve was written at.
+   */
+  it('returns the original curve after a trip through a smaller rack', () => {
+    const source = buildEqRack(31).map((band, index) => ({
+      ...band,
+      gainDb: Math.round(Math.sin(index / 3) * 6 * 100) / 100,
+    }));
+    const throughSix = rackWithCurveOf(buildEqRack(6), source);
+    const backAgain = rackWithCurveOf(buildEqRack(31), source);
+    expect(backAgain.map((band) => band.gainDb)).toEqual(
+      source.map((band) => band.gainDb),
+    );
+    // POSITIVE CONTROL: resampling from the six-band rack instead — which is
+    // what the broken version did — genuinely does lose the curve, so the test
+    // above is not passing for a trivial reason.
+    const compounded = rackWithCurveOf(buildEqRack(31), throughSix);
+    expect(compounded.map((band) => band.gainDb)).not.toEqual(
+      source.map((band) => band.gainDb),
+    );
+  });
+
+  it('keeps a stored rack at whatever length it was saved with', () => {
+    const clamped = clampDspSettings({
+      ...DSP_DEFAULTS,
+      eq: { ...DSP_DEFAULTS.eq, bands: buildEqRack(31) },
+    });
+    expect(clamped.eq.bands).toHaveLength(31);
+  });
+
+  it('refuses to allocate past the CPU ceiling', () => {
+    const clamped = clampDspSettings({
+      ...DSP_DEFAULTS,
+      eq: {
+        ...DSP_DEFAULTS.eq,
+        bands: Array.from({ length: EQ_MAX_BAND_COUNT + 40 }, () => ({
+          enabled: true,
+          type: 'PK',
+          frequency: 1000,
+          gainDb: 0,
+          quality: 1,
+        })),
+      },
+    });
+    expect(clamped.eq.bands).toHaveLength(EQ_MAX_BAND_COUNT);
   });
 });

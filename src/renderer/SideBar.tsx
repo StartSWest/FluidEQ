@@ -114,6 +114,11 @@ const SideBar = ({
               value={preAmp}
               step={0.01}
               unit="dB"
+              // Ctrl-click returns it to unity. Without a default the reset is
+              // not merely absent — the gesture works everywhere else in the
+              // app, so on the one knob that ignored it the feature read as
+              // broken rather than unimplemented.
+              defaultValue={0}
               isDisabled={isAutoPreAmpOn}
               handleChange={setGain}
             />

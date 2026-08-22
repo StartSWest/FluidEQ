@@ -384,16 +384,26 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 // The band numbers, centred under the graph and reading left to right in the
-// same order the bands sit on it. Fifteen fixed-width cells fit one row at any
-// panel width, so the strip never wraps into a block.
+// same order the bands sit on it. One row always — it scrolls rather than
+// wrapping, because a rack of thirty-one that wrapped into two rows would move
+// the graph up and down every time the size changed.
+//
+// `safe center` and not plain `center`: a centred flex row that overflows
+// spills equally past BOTH ends, and the overflow past the start cannot be
+// scrolled back to — bands 1 to 4 of a 31-band rack were unreachable. `safe`
+// falls back to flex-start exactly when it would otherwise overflow.
 .dsp-eq-picker {
   display: flex;
   flex: 0 0 auto;
   gap: 5px;
-  justify-content: center;
+  justify-content: safe center;
+  overflow-x: auto;
+  padding-bottom: 2px;
+  @include slim-scrollbar;
 }
 
 .dsp-eq-pick {
+  flex: 0 0 auto;
   width: 26px;
   height: 26px;
   padding: 0;
@@ -426,11 +436,34 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   opacity: 0.4;
 }
 
+// The preamp's block on the left, the selected band's on the right. Two
+// panels rather than one row divided by a rule: they are different scopes —
+// the whole curve's headroom against one band's controls — and a panel each
+// says so without a heading having to.
+.dsp-eq-bottom {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: stretch;
+  gap: 10px;
+}
+
+.dsp-eq-preamp {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 18px;
+  border: 1px solid rgba($white, 0.06);
+  border-radius: 10px;
+  background: rgba($black, 0.18);
+}
+
 // One row, centred: the selected band's controls and nothing else. Centring
 // is the point — the strip belongs to the graph above it, not to an edge.
 .dsp-eq-strip {
   display: flex;
-  flex: 0 0 auto;
+  flex: 1 1 auto;
+  min-width: 0;
   align-items: flex-end;
   justify-content: center;
   gap: 18px;
@@ -515,6 +548,82 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 .dsp-eq-preset .dropdown {
   min-width: 170px;
+}
+
+// A band count is two characters. Given the preset field's width it read as a
+// second preset picker that had lost its label.
+.dsp-eq-rack .dropdown {
+  min-width: 78px;
+}
+
+.dsp-import-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 2400;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba($black, 0.62);
+}
+
+.dsp-import {
+  display: flex;
+  width: min(560px, 100%);
+  max-height: 100%;
+  flex-direction: column;
+  gap: 10px;
+  padding: 20px;
+  border: 1px solid rgba($white, 0.09);
+  border-radius: 12px;
+  background: $primary-default;
+  box-shadow: 0 18px 48px rgba($black, 0.5);
+}
+
+.dsp-import__title {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.dsp-import__hint {
+  margin: 0;
+  color: rgba($white, 0.48);
+  font-size: 0.72rem;
+  line-height: 1.4;
+}
+
+// Monospace because it is a config file: the columns of a ParametricEQ export
+// line up, and that is how a person spots the line they mistyped.
+.dsp-import__body {
+  min-height: 190px;
+  padding: 10px 12px;
+  border: 1px solid rgba($white, 0.1);
+  border-radius: 8px;
+  background: rgba($black, 0.28);
+  color: $white;
+  font-family: ui-monospace, 'Cascadia Mono', 'Consolas', monospace;
+  font-size: 0.74rem;
+  line-height: 1.5;
+  resize: vertical;
+  white-space: pre;
+  overflow: auto;
+  @include slim-scrollbar;
+}
+
+.dsp-import__error {
+  margin: 0;
+  color: $red;
+  font-size: 0.72rem;
+}
+
+.dsp-import__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dsp-import__spacer {
+  flex: 1 1 auto;
 }
 
 .dsp-eq-transfer {
@@ -639,5 +748,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   .dsp-crossovers {
     flex-wrap: wrap;
     justify-content: center;
+  }
+
+  // Side by side, the preamp block leaves the band strip too little to hold
+  // three dials and a dropdown without each one wrapping onto its own line.
+  .dsp-eq-bottom {
+    flex-direction: column;
+  }
+
+  .dsp-eq-preamp {
+    padding: 8px 12px;
   }
 }
