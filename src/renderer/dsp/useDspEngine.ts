@@ -14,7 +14,7 @@ import {
   IWorkletNodeLike,
   buildDspGraph,
 } from './graph';
-import { setDspEngineActive } from './store';
+import { TDspEngineState, setDspEngineState } from './store';
 
 /** Registered by `dspProcessor.worklet.ts`. */
 const PROCESSOR_NAME = 'fluideq-dsp';
@@ -91,12 +91,20 @@ export const useDspEngine = (
       source.connect(context.destination);
     };
 
-    const teardown = () => {
+    /**
+     * Take the chain down and route the element straight out.
+     *
+     * `next` is the state to report, and the two callers want different ones:
+     * a rejected `start` is a genuine failure the panel should warn about,
+     * while unmounting is not — reporting `failed` there would leave a red
+     * notice behind for a chain that was simply put away.
+     */
+    const teardown = (next: TDspEngineState) => {
       graphRef.current?.dispose();
       graphRef.current = undefined;
       fallBackToDirectOutput();
       setActive(false);
-      setDspEngineActive(false);
+      setDspEngineState(next);
     };
 
     const start = async () => {
@@ -125,7 +133,7 @@ export const useDspEngine = (
         settingsRef.current,
       );
       setActive(true);
-      setDspEngineActive(true);
+      setDspEngineState('running');
     };
 
     start().catch((error: unknown) => {
@@ -135,12 +143,12 @@ export const useDspEngine = (
       // eslint-disable-next-line no-console -- the one exception the standards allow
       console.error('[dsp] engine failed to start', error);
       log.error('[dsp] engine failed to start', error);
-      teardown();
+      teardown('failed');
     });
 
     return () => {
       cancelled = true;
-      teardown();
+      teardown('idle');
     };
   }, [element]);
 

@@ -12,6 +12,7 @@ import {
 } from '../../common/dsp/chain';
 import { DSP_PRESETS } from '../../common/dsp/presets';
 import { TranslationKey } from '../../common/i18n/en';
+import { TDspEngineState } from './store';
 import { useTranslation } from '../utils/I18nContext';
 import NumberInput from '../widgets/NumberInput';
 import Switch from '../widgets/Switch';
@@ -20,8 +21,16 @@ import '../styles/Dsp.scss';
 interface IDspPanelProps {
   settings: IDspSettings;
   onChange: (next: IDspSettings) => void;
-  /** False when the audio engine could not start; the panel says so. */
-  isActive: boolean;
+  /**
+   * What the engine is doing, in three states rather than two.
+   *
+   * `idle` is not a failure and must not read as one: the engine lives in
+   * `LibraryPlayerProvider`, which does not mount until the Library has been
+   * opened, so opening this tab first leaves it genuinely unstarted. The
+   * two-state version of this shipped and told people audio processing could
+   * not start on their machine while their machine was fine.
+   */
+  engineState: TDspEngineState;
 }
 
 interface IFieldProps {
@@ -117,7 +126,7 @@ const Section = ({
  * FluidEQ itself plays. A user who assumes otherwise does not report a
  * misunderstanding — they report the feature as broken.
  */
-const DspPanel = ({ settings, onChange, isActive }: IDspPanelProps) => {
+const DspPanel = ({ settings, onChange, engineState }: IDspPanelProps) => {
   const { t } = useTranslation();
   const { exciter, compressor, maximizer } = settings;
 
@@ -145,9 +154,12 @@ const DspPanel = ({ settings, onChange, isActive }: IDspPanelProps) => {
       <header className="dsp-header">
         <h2 className="dsp-title">{t('dsp.title')}</h2>
         <p className="dsp-scope">{t('dsp.scopeNotice')}</p>
-        {isActive ? undefined : (
+        {engineState === 'idle' ? (
+          <p className="dsp-idle">{t('dsp.idle')}</p>
+        ) : undefined}
+        {engineState === 'failed' ? (
           <p className="dsp-unavailable">{t('dsp.unavailable')}</p>
-        )}
+        ) : undefined}
       </header>
 
       <div className="dsp-presets">

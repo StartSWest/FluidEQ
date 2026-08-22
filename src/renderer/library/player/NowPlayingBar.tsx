@@ -66,6 +66,13 @@ export interface INowPlayingBarProps {
   onShuffle: () => void;
   onRepeat: () => void;
   onVolume: (value: number) => void;
+  /**
+   * Called when a volume gesture ends, not while it runs.
+   *
+   * `onVolume` fires on every step of a `0.01` slider and must stay cheap so
+   * the sound tracks the pointer; this is where the value is written down.
+   */
+  onVolumeCommit: () => void;
   /** Show the playing track where it lives — switches to the Library tab and
    * opens the album it belongs to. Optional so the bar can be rendered on its
    * own in a test without one. */
@@ -357,6 +364,7 @@ const NowPlayingBar = ({
   onShuffle,
   onRepeat,
   onVolume,
+  onVolumeCommit,
   onReveal,
   volume = 1,
   isUnplayable = false,
@@ -565,9 +573,12 @@ const NowPlayingBar = ({
             if (volume > 0) {
               restoreVolumeRef.current = volume;
               onVolume(0);
-              return;
+            } else {
+              onVolume(restoreVolumeRef.current);
             }
-            onVolume(restoreVolumeRef.current);
+            // A click is a whole gesture on its own, so it commits at once.
+            // Only the slider has a middle to stay out of.
+            onVolumeCommit();
           }}
         >
           <TransportIcon name={volume > 0 ? 'volume' : 'volumeOff'} />
@@ -586,6 +597,17 @@ const NowPlayingBar = ({
           }
           aria-label={t('library.volume')}
           onChange={(event) => onVolume(Number(event.target.value))}
+          // Written down when the gesture ends, never during it. `onChange`
+          // fires on every 0.01 step, and a synchronous localStorage write per
+          // step is a hundred of them across one drag — the sound has to
+          // follow the pointer, so the saving gets out of its way.
+          //
+          // Three enders because a range input has three: the pointer (which
+          // it captures, so this arrives even if you release outside it), the
+          // arrow keys, and losing focus mid-drag to something else.
+          onPointerUp={onVolumeCommit}
+          onKeyUp={onVolumeCommit}
+          onBlur={onVolumeCommit}
         />
         <span className="now-playing-bar__volume-value" aria-hidden="true">
           {Math.round(volume * 100)}%

@@ -14,6 +14,7 @@ import {
 import ReactRefreshWebpackPlugin from '@pmmmwh/react-refresh-webpack-plugin';
 import baseConfig from './webpack.config.base';
 import webpackPaths from './webpack.paths';
+import DSP_WORKLET_ENTRY from './webpack.dspWorklet';
 import checkNodeEnv from '../scripts/check-node-env';
 import PUBLIC_ENV_DEFAULTS from './public-env';
 
@@ -87,28 +88,9 @@ const configuration: webpack.Configuration = {
       webpackPaths.srcRendererPath,
       'karaoke/whisper.worker.ts',
     ),
-    // An entry rather than the `\.worklet$` asset rule further down, which is
-    // how `pitch-worklet.worklet` is built. That rule copies its file through
-    // untouched, so a worklet using it has to be self-contained — and this one
-    // is not: its DSP is shared with the graph and with the tests that prove
-    // the filters correct, so it imports. Bundling is the whole difference,
-    // and duplicating four DSP modules into a standalone file to avoid it
-    // would mean the tested code and the shipped code were different code.
-    //
-    // Its own library type is the part that is not obvious. The
-    // renderer's `umd` wrapper probes for `exports`, `define` and a global
-    // object; an AudioWorkletGlobalScope has none of the three, not even
-    // `self`, so the UMD preamble throws before `registerProcessor` is ever
-    // reached and `addModule` rejects with nothing useful in it. `var` emits
-    // a plain assignment that runs in any scope. The worklet exports nothing
-    // anyway — it registers a processor by side effect.
-    'dsp-worklet': {
-      import: path.join(
-        webpackPaths.srcRendererPath,
-        'dsp/worklets/dspProcessor.worklet.ts',
-      ),
-      library: { type: 'var', name: 'fluidEqDspWorklet' },
-    },
+    // Defined in one place so dev and prod cannot diverge; see that file for
+    // the three non-default settings a worklet build needs.
+    'dsp-worklet': DSP_WORKLET_ENTRY,
   },
 
   output: {

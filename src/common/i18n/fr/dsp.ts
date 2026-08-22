@@ -20,8 +20,10 @@ const dsp = {
   'dsp.title': 'DSP',
   'dsp.scopeNotice':
     "S'applique à la musique lue dans FluidEQ. Cela ne change rien à Spotify, YouTube ni aux autres applications.",
+  'dsp.idle':
+    "Démarre quand vous lisez quelque chose depuis la Bibliothèque. Il traite le lecteur de FluidEQ, il n'a donc rien à faire tant qu'aucun morceau n'est chargé.",
   'dsp.unavailable':
-    "Le traitement audio n'a pas pu démarrer sur cette machine.",
+    "Le traitement audio n'a pas pu démarrer. La lecture n'est pas affectée.",
   'dsp.presets': 'Préréglages',
   'dsp.preset.flat': 'Désactivé',
   'dsp.preset.lossyRepair': 'Réparer le compressé',

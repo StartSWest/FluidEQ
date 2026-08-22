@@ -38,9 +38,22 @@ const readStored = (): IDspSettings => {
   }
 };
 
+/**
+ * Whether the chain is running, and — crucially — whether it ever tried.
+ *
+ * Three states rather than a boolean, because the boolean version shipped and
+ * lied. `LibraryPlayerProvider` only mounts once the user has opened the
+ * Library (`hasOpenedLibrary` in `App.tsx`), and the engine lives inside it,
+ * so opening the DSP tab first means the engine has not run at all. With one
+ * flag that is indistinguishable from a failure, and the panel told people
+ * audio processing "could not start on this machine" when nothing had been
+ * attempted and the machine was fine.
+ */
+export type TDspEngineState = 'idle' | 'running' | 'failed';
+
 let settings: IDspSettings = DSP_DEFAULTS;
 let loaded = false;
-let engineActive = false;
+let engineState: TDspEngineState = 'idle';
 const listeners = new Set<() => void>();
 
 const emit = () => listeners.forEach((listener) => listener());
@@ -79,19 +92,19 @@ export const writeDspSettings = (next: IDspSettings): void => {
   emit();
 };
 
-/** Reported by the engine so the panel can say when it could not start. */
-export const setDspEngineActive = (active: boolean): void => {
-  if (active === engineActive) {
+/** Reported by the engine. Only it may move this off `idle`. */
+export const setDspEngineState = (next: TDspEngineState): void => {
+  if (next === engineState) {
     return;
   }
-  engineActive = active;
+  engineState = next;
   emit();
 };
 
-export const readDspEngineActive = (): boolean => engineActive;
+export const readDspEngineState = (): TDspEngineState => engineState;
 
 export const useDspSettings = (): IDspSettings =>
   useSyncExternalStore(subscribe, readDspSettings, readDspSettings);
 
-export const useDspEngineActive = (): boolean =>
-  useSyncExternalStore(subscribe, readDspEngineActive, readDspEngineActive);
+export const useDspEngineState = (): TDspEngineState =>
+  useSyncExternalStore(subscribe, readDspEngineState, readDspEngineState);

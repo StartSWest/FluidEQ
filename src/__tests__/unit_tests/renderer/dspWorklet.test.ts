@@ -11,6 +11,19 @@ import { DSP_DEFAULTS, IDspSettings } from '../../../common/dsp/chain';
 import { DSP_PRESETS } from '../../../common/dsp/presets';
 
 /**
+ * The build definition both webpack configs use.
+ *
+ * Asserted directly, because this file can only ever execute the PRODUCTION
+ * bundle — the development one is served from webpack-dev-server's memory and
+ * never touches disk — and the development build is precisely where the last
+ * defect lived. Production worked, this file was green, and a real window
+ * threw `ReferenceError: self is not defined` from the jsonp chunk-loading
+ * runtime that only development adds. Sharing one definition is the fix;
+ * checking it here is what stops the two drifting apart again.
+ */
+import { DSP_WORKLET_ENTRY } from '../../../../.erb/configs/webpack.dspWorklet';
+
+/**
  * Runs the BUILT worklet bundle, not the TypeScript source.
  *
  * That distinction is the whole reason this file exists. The renderer bundles
@@ -126,6 +139,30 @@ describe('dsp worklet bundle', () => {
 
   it('loads and registers in a scope with no window, self or document', () => {
     expect(loadProcessor()).toBeInstanceOf(Function);
+  });
+
+  /**
+   * Every one of these is a default webpack would otherwise apply, and each
+   * one broke a real window when it was missing.
+   *
+   * `chunkLoading` is the one that only failed in development: the jsonp
+   * runtime added for HMR touches `self` at module scope, so the script threw
+   * before `registerProcessor` ran. `addModule` still resolved — it does not
+   * report a throw inside the module — and the failure surfaced two steps
+   * later as "the node name 'fluideq-dsp' is not defined".
+   */
+  it('is built with the three settings a worklet scope needs', () => {
+    expect(DSP_WORKLET_ENTRY.library.type).toBe('var');
+    expect(DSP_WORKLET_ENTRY.chunkLoading).toBe(false);
+    expect(DSP_WORKLET_ENTRY.wasmLoading).toBe(false);
+  });
+
+  it('emits no top-level reference to a global a worklet does not have', () => {
+    const bundle = fs.readFileSync(BUNDLE, 'utf8');
+    // `self` as a bare identifier. The limiter has a `window` PROPERTY, so
+    // that name is checked as a global read rather than by bare occurrence.
+    expect(/(^|[^.\w$])self\s*[.[,)=;]/.test(bundle)).toBe(false);
+    expect(/(^|[^.\w$])document\s*\./.test(bundle)).toBe(false);
   });
 
   it('NULL TEST: passes audio through untouched with everything bypassed', () => {
