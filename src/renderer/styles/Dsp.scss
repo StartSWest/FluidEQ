@@ -169,29 +169,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   flex-wrap: wrap;
 }
 
-// One dial: the knob and the name under it.
-//
-// Width matches `.knob`'s own 78px rather than being flexible. These are
-// knobs, and one that changes size with the window stops being somewhere the
-// hand knows to reach — the same reason the equaliser's bands are fixed.
-.dsp-dial {
-  display: flex;
-  flex: 0 0 auto;
-  flex-direction: column;
-  align-items: center;
-  gap: 1px;
-  width: 78px;
-}
-
-.dsp-dial-label {
-  color: rgba($white, 0.62);
-  font-size: 0.64rem;
-  line-height: 1.2;
-  text-align: center;
-  // Two-word labels wrap rather than widen the column and push the row apart.
-  overflow-wrap: anywhere;
-}
-
 // The compressor's two split points sit apart from the bands they define, with
 // a rule under them: they belong to the whole processor, and putting them in
 // the first band's group would read as settings of that band.

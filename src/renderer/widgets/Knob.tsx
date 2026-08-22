@@ -41,6 +41,17 @@ interface IKnobProps {
   /** The caption under the number, and what assistive tech hears before it —
    * `Q` for a filter's width, `dB` for the preamp. */
   unit: string;
+  /**
+   * Where Ctrl+click puts the dial back to.
+   *
+   * Optional because not every knob has a meaningful home: a filter's Q has a
+   * neutral 0.7 to return to, a preamp has 0, and a value with no such
+   * position is better off with the gesture doing nothing than with it
+   * inventing one. Omitting it disables the gesture rather than defaulting to
+   * `min`, which would be a trapdoor to silence on anything measured in
+   * decibels.
+   */
+  defaultValue?: number;
   handleChange: (newValue: number) => Promise<void>;
 }
 
@@ -52,6 +63,7 @@ const Knob = ({
   step,
   isDisabled,
   unit,
+  defaultValue,
   handleChange,
 }: IKnobProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -124,6 +136,19 @@ const Knob = ({
 
   const onPointerDown = (event: PointerEvent<HTMLDivElement>) => {
     if (isDisabled || event.button !== 0) {
+      return;
+    }
+    /**
+     * Ctrl+click puts the dial home — the gesture every DAW uses for it.
+     *
+     * Handled before the drag is armed, so a control-click that moves a pixel
+     * cannot also drag the value away from the home it was just sent to.
+     * `metaKey` because on a Mac keyboard that is the same finger.
+     */
+    if ((event.ctrlKey || event.metaKey) && defaultValue !== undefined) {
+      updateValue(defaultValue);
+      inputRef.current?.focus();
+      event.preventDefault();
       return;
     }
     drag.current = { y: event.clientY, position };

@@ -6,14 +6,15 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { ReactNode } from 'react';
 import {
+  DSP_DEFAULTS,
   IBandSettings,
   IDspSettings,
   clampDspSettings,
 } from '../../common/dsp/chain';
 import { DSP_PRESETS } from '../../common/dsp/presets';
 import { TranslationKey } from '../../common/i18n/en';
+import LabelledKnob from '../components/LabelledKnob';
 import { useTranslation } from '../utils/I18nContext';
-import Knob from '../widgets/Knob';
 import Switch from '../widgets/Switch';
 import { TDspEngineState } from './store';
 import '../styles/Dsp.scss';
@@ -39,20 +40,22 @@ interface IDialProps {
   value: number;
   min: number;
   max: number;
-  /** Shown under the number and read out by assistive tech, as on the preamp. */
   unit: string;
   step: number;
+  /** Where Ctrl+click returns this dial to. */
+  defaultValue: number;
   isDisabled: boolean;
   onChange: (next: number) => void;
   onCommit: () => void;
 }
 
 /**
- * One parameter, as the round knob the preamp and the band inspector use.
+ * One parameter of the chain, as `LabelledKnob`.
  *
- * The same `Knob` widget, not a copy of it: a rack of dials that behaved even
- * slightly differently from the one already in the sidebar would be a second
- * control to learn for no reason.
+ * A thin wrapper and deliberately so: all it adds is translating the label key
+ * and making `defaultValue` required, because every parameter here HAS a
+ * factory value in `DSP_DEFAULTS` and a dial in this rack that ignored
+ * Ctrl+click would be the odd one out.
  */
 const Dial = ({
   labelKey,
@@ -61,33 +64,25 @@ const Dial = ({
   max,
   unit,
   step,
+  defaultValue,
   isDisabled,
   onChange,
   onCommit,
 }: IDialProps) => {
   const { t } = useTranslation();
   return (
-    // The commit rides on the container: `Knob` reports every value as it
-    // turns and has no separate release callback to hand out. `pointerup`
-    // bubbles from the dial, and `keyup` covers the arrow keys.
-    //
-    // Not interactive itself — a layout box that happens to be where two
-    // events surface — so no role and no tab stop. The knob inside is the
-    // control and already has both.
-    // eslint-disable-next-line jsx-a11y/no-static-element-interactions
-    <div className="dsp-dial" onPointerUp={onCommit} onKeyUp={onCommit}>
-      <Knob
-        name={t(labelKey)}
-        value={value}
-        min={min}
-        max={max}
-        step={step}
-        unit={unit}
-        isDisabled={isDisabled}
-        handleChange={async (next: number) => onChange(next)}
-      />
-      <span className="dsp-dial-label">{t(labelKey)}</span>
-    </div>
+    <LabelledKnob
+      label={t(labelKey)}
+      value={value}
+      min={min}
+      max={max}
+      unit={unit}
+      step={step}
+      defaultValue={defaultValue}
+      isDisabled={isDisabled}
+      onChange={onChange}
+      onCommit={onCommit}
+    />
   );
 };
 
@@ -215,6 +210,7 @@ const DspPanel = ({
           <Dial
             labelKey="dsp.exciter.crossover"
             value={exciter.crossoverHz}
+            defaultValue={DSP_DEFAULTS.exciter.crossoverHz}
             min={1_000}
             max={12_000}
             unit="Hz"
@@ -228,6 +224,7 @@ const DspPanel = ({
           <Dial
             labelKey="dsp.exciter.drive"
             value={exciter.drive}
+            defaultValue={DSP_DEFAULTS.exciter.drive}
             min={1}
             max={10}
             unit=""
@@ -239,6 +236,7 @@ const DspPanel = ({
           <Dial
             labelKey="dsp.exciter.mix"
             value={exciter.mix}
+            defaultValue={DSP_DEFAULTS.exciter.mix}
             min={0}
             max={1}
             unit=""
@@ -264,6 +262,7 @@ const DspPanel = ({
             <Dial
               labelKey="dsp.compressor.crossoverLow"
               value={compressor.crossoverHz[0]}
+              defaultValue={DSP_DEFAULTS.compressor.crossoverHz[0]}
               min={60}
               max={600}
               unit="Hz"
@@ -282,6 +281,7 @@ const DspPanel = ({
             <Dial
               labelKey="dsp.compressor.crossoverHigh"
               value={compressor.crossoverHz[1]}
+              defaultValue={DSP_DEFAULTS.compressor.crossoverHz[1]}
               min={1_000}
               max={10_000}
               unit="Hz"
@@ -305,6 +305,9 @@ const DspPanel = ({
                 <Dial
                   labelKey="dsp.compressor.threshold"
                   value={band.thresholdDb}
+                  defaultValue={
+                    DSP_DEFAULTS.compressor.bands[index].thresholdDb
+                  }
                   min={-60}
                   max={0}
                   unit="dB"
@@ -316,6 +319,7 @@ const DspPanel = ({
                 <Dial
                   labelKey="dsp.compressor.ratio"
                   value={band.ratio}
+                  defaultValue={DSP_DEFAULTS.compressor.bands[index].ratio}
                   min={1}
                   max={20}
                   unit=":1"
@@ -327,6 +331,7 @@ const DspPanel = ({
                 <Dial
                   labelKey="dsp.compressor.attack"
                   value={band.attackMs}
+                  defaultValue={DSP_DEFAULTS.compressor.bands[index].attackMs}
                   min={0.1}
                   max={200}
                   unit="ms"
@@ -338,6 +343,7 @@ const DspPanel = ({
                 <Dial
                   labelKey="dsp.compressor.release"
                   value={band.releaseMs}
+                  defaultValue={DSP_DEFAULTS.compressor.bands[index].releaseMs}
                   min={5}
                   max={2_000}
                   unit="ms"
@@ -349,6 +355,7 @@ const DspPanel = ({
                 <Dial
                   labelKey="dsp.compressor.makeup"
                   value={band.makeupDb}
+                  defaultValue={DSP_DEFAULTS.compressor.bands[index].makeupDb}
                   min={0}
                   max={24}
                   unit="dB"
@@ -374,6 +381,7 @@ const DspPanel = ({
           <Dial
             labelKey="dsp.maximizer.ceiling"
             value={maximizer.ceilingDb}
+            defaultValue={DSP_DEFAULTS.maximizer.ceilingDb}
             min={-12}
             max={0}
             unit="dB"
@@ -387,6 +395,7 @@ const DspPanel = ({
           <Dial
             labelKey="dsp.maximizer.lookAhead"
             value={maximizer.lookAheadMs}
+            defaultValue={DSP_DEFAULTS.maximizer.lookAheadMs}
             min={0}
             max={20}
             unit="ms"
@@ -400,6 +409,7 @@ const DspPanel = ({
           <Dial
             labelKey="dsp.maximizer.release"
             value={maximizer.releaseMs}
+            defaultValue={DSP_DEFAULTS.maximizer.releaseMs}
             min={5}
             max={1_000}
             unit="ms"
