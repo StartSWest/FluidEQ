@@ -30,7 +30,12 @@ import {
 } from '../biquad';
 import { processEqBands, processEqOversampled } from '../eqEngine';
 import { IOversamplerState, createOversampler } from '../oversample';
-import { ISaturatorState, createSaturator, saturateBlock } from '../saturate';
+import {
+  ISaturatorState,
+  createSaturator,
+  fuzzDrive,
+  saturateBlock,
+} from '../saturate';
 import { FilterTypeEnum } from '../../../common/constants';
 
 /** Web Audio always renders 128 frames; the scratch buffers start there. */
@@ -276,9 +281,7 @@ class DspProcessor extends AudioWorkletProcessor {
       // back down as inharmonic content — the very sound this is meant to be
       // an alternative to.
       if (eq.fuzzAmount > 0) {
-        // Low drive is nearly linear and the curve is normalised by it, so the
-        // dial reaches "barely there" rather than starting at obvious.
-        saturateBlock(this.fuzz[slot], target, 0.5 + eq.fuzzAmount * 3.5);
+        saturateBlock(this.fuzz[slot], target, fuzzDrive(eq.fuzzAmount));
       }
     }
 

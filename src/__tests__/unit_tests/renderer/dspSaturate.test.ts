@@ -6,6 +6,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import {
   createSaturator,
+  fuzzDrive,
   saturateBlock,
   saturateSample,
 } from '../../../renderer/dsp/saturate';
@@ -113,5 +114,54 @@ describe('the saturation stage', () => {
         magnitudeAt(naive, foldedBin) / 8,
       );
     });
+  });
+});
+
+/**
+ * The dial has to stay colour and never become distortion.
+ *
+ * Reported as "it sounds like distortion, I want it fine". The cause was the
+ * mapping rather than the curve: full scale drove it to 4, where the measured
+ * third harmonic is 16.4% against a second of 6.5%. ODD harmonics overtaking
+ * even ones is what the ear reads as grit, so the fix is a range where the
+ * balance stays even-dominant throughout.
+ */
+describe('the fuzz dial', () => {
+  const harmonics = (amount: number) => {
+    const drive = fuzzDrive(amount);
+    const input = sine(BIN);
+    const out = Float32Array.from(input, (value) =>
+      saturateSample(value, drive),
+    );
+    const fundamental = magnitudeAt(out, BIN);
+    return {
+      second: (magnitudeAt(out, BIN * 2) / fundamental) * 100,
+      third: (magnitudeAt(out, BIN * 3) / fundamental) * 100,
+    };
+  };
+
+  it('stays inside colour at full scale', () => {
+    const { second, third } = harmonics(1);
+    // Roughly 2.2% and 0.5% — the top of what analogue equipment adds, and an
+    // order below the 16% the first attempt reached.
+    expect(second).toBeLessThan(3);
+    expect(third).toBeLessThan(1);
+  });
+
+  it('keeps the even harmonics dominant, which is what warmth is', () => {
+    [0.25, 0.5, 1].forEach((amount) => {
+      const { second, third } = harmonics(amount);
+      expect(second).toBeGreaterThan(third * 3);
+    });
+  });
+
+  it('is genuinely fine at the bottom of its travel', () => {
+    // A quarter turn is under a tenth of a percent — present but not audible
+    // as an effect, which is the whole point of the squared curve.
+    expect(harmonics(0.25).second).toBeLessThan(0.2);
+  });
+
+  it('NULL TEST: zero is silence-clean', () => {
+    expect(fuzzDrive(0)).toBe(0);
   });
 });

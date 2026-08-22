@@ -66,3 +66,27 @@ export const saturateBlock = (
   }
   downsample2x(state.oversampler, state.doubled, target);
 };
+
+/**
+ * The dial's position, mapped to a drive that stays colour rather than becoming
+ * distortion.
+ *
+ * Measured on a 0.5-amplitude sine, harmonics as a percentage of the
+ * fundamental:
+ *
+ *     drive 0.05   2nd 0.22%   3rd 0.005%
+ *     drive 0.30   2nd 1.32%   3rd 0.17%
+ *     drive 0.50   2nd 2.17%   3rd 0.47%
+ *     drive 4.00   2nd 6.52%   3rd 16.38%
+ *
+ * The last row is why the first attempt sounded like distortion rather than
+ * warmth, and the reason is the RATIO rather than the amount: by drive 4 the
+ * ODD harmonics have overtaken the even ones, and odd is what the ear reads as
+ * grit. Below about 0.5 the balance stays roughly eight to one in favour of the
+ * even ones, which is the analogue character people mean.
+ *
+ * Squared so the bottom of the dial is genuinely fine — the first quarter of
+ * the travel stays under a tenth of a percent — instead of arriving already
+ * audible.
+ */
+export const fuzzDrive = (amount: number): number => 0.5 * amount ** 2;
