@@ -455,8 +455,18 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // handed the box 168px it did not have a moment earlier and it visibly grew
   // under the pointer. Capped, it is already at 340 in every case that has the
   // room, and the slack simply stays slack.
+  // It is LAST in the bar, so it is what drops when the row runs short — see
+  // `LibraryToolbar`. A wide basis is therefore safe and wanted: it stays on
+  // the top line while it fits there, and takes the line below at a comfortable
+  // width when it does not, rather than squeezing to a stub to stay up.
+  //
+  // The cap is what keeps the grow from being state-dependent. Uncapped it ate
+  // whatever the row had spare, and what the row has spare depends on what is
+  // open: the Sort control is withheld inside a drill-in, so opening an album
+  // handed the box 168px it did not have a moment earlier and it visibly grew
+  // under the pointer.
   min-width: 170px;
-  flex: 1 1 170px;
+  flex: 1 1 240px;
   max-width: 340px;
   // The bar wraps to two lines and this does not, so without an anchor it
   // would sit centred against a box twice its height.
@@ -2761,13 +2771,9 @@ $library-wave-step: 4ms;
   right: 12px;
 }
 
-// FOLDED, IN THE PANEL'S OWN SLOT.
-//
-// The same top and the same right edge `.library-up-next` takes, so opening
-// the queue replaces the chip with the panel exactly where the chip was. It
-// used to live in the toolbar's right-hand cluster, which meant opening the
-// queue removed an item from that cluster and re-laid out the whole bar —
-// controls moving because something elsewhere had been opened.
+// FOLDED, IN THE PANEL'S OWN SLOT — the same top and the same right edge
+// `.library-up-next` takes, so opening the queue puts the panel exactly where
+// the chip was and the toolbar above it does not move.
 .library-up-next__chip--docked {
   position: absolute;
   z-index: 4;
@@ -2775,12 +2781,26 @@ $library-wave-step: 4ms;
   right: var(--up-next-inset);
 }
 
-// And the row under the toolbar stops short of it, or a long folder path runs
-// underneath a control. Measured from the chip itself rather than guessed at:
-// its width is a glyph, a word and a count, and the count is one digit or five.
+// ONE ROW STOPS SHORT OF IT, not one column.
+//
+// Reserving the chip's width off every view left a 145px strip of nothing down
+// the whole page for the sake of a chip 23px tall. Only the row the chip is
+// level with can collide with it: in a drill-in that is Back and the folder
+// path, whose text is the only thing that reaches the right-hand edge.
+//
+// `padding-right` rather than a margin, so the path simply truncates a little
+// earlier — it already truncates — instead of the row itself getting shorter.
+.library-workspace.has-up-next-chip .library-detail__top {
+  padding-right: calc(var(--up-next-chip-width, 0px) + var(--up-next-inset));
+}
+
+// On a shelf there is no such row: the chip is level with the table's own
+// header, whose last column is hard right. A table cannot give ground on one
+// row without its columns leaving the rows below, so the shelf drops by the
+// chip's height instead — 23px of space once, rather than 145 of it forever.
 .library-workspace.has-up-next-chip
-  > *:not(.library-up-next__chip--docked):not(.library-toolbar-row) {
-  margin-right: calc(var(--up-next-chip-width, 0px) + var(--up-next-inset));
+  > :is(.library-list, .library-grid, .library-coverflow) {
+  margin-top: 23px;
 }
 
 // Folded, the panel is not drawn at all — the way back in is a chip in the

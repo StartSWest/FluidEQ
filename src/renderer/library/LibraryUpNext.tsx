@@ -64,21 +64,26 @@ export const upNextTotal = (
  */
 export const LibraryUpNextChip = ({
   className,
+  isOpen,
   count,
-  onExpand,
+  onToggle,
   onMeasure,
 }: {
   className?: string;
+  /** Lit while the queue is showing. The chip is drawn in both states — that
+   * is what keeps the toolbar from re-laying itself out when the queue opens
+   * — so it has to say which state it is in. */
+  isOpen: boolean;
   count: number;
-  onExpand: () => void;
-  /** How wide it came out, for a caller that has to keep a row clear of it —
-   * see `has-up-next-chip`. A count is one digit or five and the word is a
-   * different length in every locale, so this is measured, not assumed. */
+  onToggle: () => void;
+  /** How wide it came out, for the caller that has to keep the row beside it
+   * clear. A count is one digit or five and the word is a different length in
+   * every locale, so this is measured, not assumed. */
   onMeasure?: (width: number) => void;
 }) => {
   const { t } = useTranslation();
   // A callback ref rather than an effect: it fires when the node arrives, and
-  // again with the new node whenever the label or the count re-renders it.
+  // again whenever the label or the count re-renders it.
   const measure = useCallback(
     (node: HTMLButtonElement | null) => {
       if (node && onMeasure) {
@@ -92,11 +97,11 @@ export const LibraryUpNextChip = ({
       type="button"
       ref={measure}
       className={`library-toolbar__chip library-up-next__chip${
-        className ? ` ${className}` : ''
-      }`}
-      aria-expanded={false}
+        isOpen ? ' is-active' : ''
+      }${className ? ` ${className}` : ''}`}
+      aria-expanded={isOpen}
       title={t('library.upNext')}
-      onClick={onExpand}
+      onClick={onToggle}
     >
       {/* A stack of lines with a play triangle at its head: the queue glyph
           every player uses, so the chip is findable without reading the two

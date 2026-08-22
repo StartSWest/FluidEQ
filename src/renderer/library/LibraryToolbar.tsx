@@ -345,29 +345,6 @@ const LibraryToolbar = ({
           </button>
         ))}
       </AnchoredMenu>
-      {/* SECOND, so it holds the top line at every width.
-          It used to be last, and this bar wraps — so the box sat on the first
-          line, the second or the third depending on what had collapsed beside
-          it, and moved under the reader whenever the window changed. Directly
-          after the shelf chips it shares their line at every width this tab is
-          used at, and the view and sort controls take the line below.
-
-          Never withheld, including inside a drill-in. It was, once, because a
-          query here narrowed a list that was not on screen and so appeared to
-          do nothing — but a search that vanishes is worse than one that is
-          merely narrow. It stops at the shelf: carrying it into the panel
-          meant opening a fourteen-track album and seeing the two whose titles
-          matched, under a heading reading "2 songs". */}
-      {onQuery && (
-        <div className="library-toolbar__search">
-          <LibrarySearchField
-            value={query}
-            onChange={onQuery}
-            label={t('library.searchPlaceholder')}
-            history={librarySearchHistory}
-          />
-        </div>
-      )}
       <div
         className="library-toolbar__view-modes"
         role="group"
@@ -427,6 +404,32 @@ const LibraryToolbar = ({
               {sortDirection === 'desc' ? '▾' : '▴'}
             </span>
           </button>
+        </div>
+      )}
+      {/* LAST, AND THAT IS THE POINT — it is the one thing here allowed to
+          take a line of its own.
+          A flex line breaks in order, so whatever comes last is what drops
+          when the row runs short. With the search second the shelf chips and
+          the search filled line one and the three view glyphs were pushed onto
+          a row by themselves: a wide search box and three homeless buttons.
+          Last, the glyphs stay up with the chips they belong beside and the
+          search takes the line below, full width, which is a shape it is
+          perfectly good in.
+
+          Never withheld, including inside a drill-in. It was, once, because a
+          query here narrowed a list that was not on screen and so appeared to
+          do nothing — but a search that vanishes is worse than one that is
+          merely narrow. It stops at the shelf: carrying it into the panel
+          meant opening a fourteen-track album and seeing the two whose titles
+          matched, under a heading reading "2 songs". */}
+      {onQuery && (
+        <div className="library-toolbar__search">
+          <LibrarySearchField
+            value={query}
+            onChange={onQuery}
+            label={t('library.searchPlaceholder')}
+            history={librarySearchHistory}
+          />
         </div>
       )}
     </div>

@@ -111,12 +111,15 @@ describe('the library toolbar', () => {
     expect(onQuery).toHaveBeenCalled();
   });
 
-  it('draws the search box straight after the shelf chips', () => {
-    // Its POSITION is the fix, so its position is what this pins. The bar
-    // wraps, and last in the order meant the box changed lines whenever
-    // anything beside it collapsed — first line, second, or third depending
-    // on the width. Second in the order, it shares the shelf chips' line at
-    // every width instead of moving under the reader.
+  it('draws the search box last, so it is what wraps', () => {
+    // ORDER IS THE BEHAVIOUR HERE, so order is what this pins.
+    //
+    // This bar wraps, and a flex line breaks in order: whatever is last is
+    // what drops when the row runs short. The search box is the one control
+    // that is still perfectly good on a line of its own — every other item is
+    // a glyph, and three glyphs stranded on their own row is the layout this
+    // ordering exists to prevent. So the shelf chips come first, the view
+    // glyphs stay beside them, and the search goes last.
     wrap(
       <LibraryToolbar
         browseMode="song"
@@ -136,7 +139,12 @@ describe('the library toolbar', () => {
       .map((el) => el.className.toString())
       .filter((name) => name.startsWith('library-toolbar__'));
     expect(groups[0]).toContain('browse-modes');
-    expect(groups[1]).toContain('search');
+    expect(groups[groups.length - 1]).toContain('search');
+    // And the glyphs are ahead of it rather than behind, which is the half
+    // that actually keeps them off a row of their own.
+    expect(groups.indexOf('library-toolbar__view-modes')).toBeLessThan(
+      groups.length - 1,
+    );
   });
 });
 

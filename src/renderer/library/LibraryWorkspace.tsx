@@ -331,7 +331,8 @@ const LibraryWorkspace = ({
    * so it is measured rather than guessed at.
    */
   const [chromeHeight, setChromeHeight] = useState(0);
-  /** How much room the folded queue chip needs kept clear on its own line. */
+  /** How wide the folded queue chip came out, so the row it sits beside can
+   * stop short of it. */
   const [chipWidth, setChipWidth] = useState(0);
   const chromeObserverRef = useRef<ResizeObserver | undefined>(undefined);
   /**
@@ -1215,9 +1216,10 @@ const LibraryWorkspace = ({
       }${isUpNextOverVideo ? ' has-video' : ''}${
         isUpNextFloating ? ' has-up-next-floating' : ''
       }${
-        // Folded, the chip still stands in the content's top-right corner, so
-        // the row under the toolbar has to stop short of it — otherwise a long
-        // folder path runs underneath a control.
+        // Folded, the chip stands in the content's top-right corner, so the
+        // one row it sits level with has to stop short of it. Only that row —
+        // reserving a whole column for a 23px chip left a strip of nothing
+        // down the length of the page.
         !isUpNextOverVideo && isUpNextCollapsed ? ' has-up-next-chip' : ''
       }`}
       ref={cardRef}
@@ -1518,6 +1520,12 @@ const LibraryWorkspace = ({
 
           Over a video it is the same chip a little lower, clear of the
           picture's own Back and full-screen buttons. */}
+      {/* BELOW THE BAR, in the slot the panel itself opens into — the same top
+          and the same right edge, so opening the queue puts the panel exactly
+          where the chip was and the toolbar above does not move at all.
+
+          Over a video it is the same chip a little lower, clear of the
+          picture's own Back and full-screen buttons. */}
       {isUpNextCollapsed && (
         <LibraryUpNextChip
           className={
@@ -1525,8 +1533,9 @@ const LibraryWorkspace = ({
               ? 'library-up-next__chip--over-video'
               : 'library-up-next__chip--docked'
           }
+          isOpen={false}
           count={upNextTotal(upNext, upNextRestTotal)}
-          onExpand={() => setIsUpNextCollapsed(false)}
+          onToggle={() => setIsUpNextCollapsed(false)}
           onMeasure={setChipWidth}
         />
       )}
