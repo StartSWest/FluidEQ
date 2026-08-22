@@ -26,7 +26,7 @@ import {
 } from 'react';
 import { TranslationKey } from '../../common/i18n';
 import { formatKaraokeTime } from '../../common/karaoke/clock';
-import { karaokeLeadNoteArticulation } from '../../common/karaoke/melodyArticulation';
+import { karaokeLeadNoteShape } from '../../common/karaoke/melodyArticulation';
 import {
   easeKaraokePitchViewport,
   IKaraokePitchViewport,
@@ -41,6 +41,7 @@ import MenuIcon from '../icons/MenuIcon';
 import {
   IKaraokePitchIssue,
   IKaraokePitchPoint,
+  IKaraokeTraceAxis,
   ISSUE_KEYS,
   LIVE_WINDOW_MS,
   MATCH_FRESHNESS_MS,
@@ -66,8 +67,12 @@ import {
   attachKaraokePitchToNote,
   karaokeNoteTimingState,
   karaokePitchScrubTime,
+  karaokePitchSongTimeX,
   karaokePitchWordProgress,
+  karaokeTraceBehindPlayhead,
+  karaokeTraceSampleX,
   roundedRectPath,
+  singerTargetAtTime,
   targetAtTime,
   traceColor,
 } from './karaokePitchGeometry';
@@ -149,6 +154,10 @@ const KaraokePitchLane = ({
     IKaraokePitchIssue[]
   >([]);
   const hasTargets = target?.kind === 'notes';
+  // A loaded song is the only thing that gives this lane a cursor. Without one
+  // it is a bare microphone monitor: there is no playhead, no ruler, and
+  // nothing for the trace to trail behind.
+  const hasSongClock = durationMs > 0;
   const isMicrophoneLive = microphoneStatus === 'live';
   const isMicrophoneBusy = microphoneStatus === 'requesting';
   const isMicrophoneUnavailable = microphoneStatus === 'unavailable';
@@ -247,7 +256,7 @@ const KaraokePitchLane = ({
       const yForMidi = (midi: number) =>
         PLOT_TOP + (topMidi - midi) * semitoneHeight;
       const xForSongTime = (timeMs: number) =>
-        PLOT_LEFT + ((timeMs - windowStartMs) / LIVE_WINDOW_MS) * plotWidth;
+        karaokePitchSongTimeX(timeMs, synchronizedPlayheadMs, plotWidth);
 
       // Keep a stable lane derived from the word's global index. Words then
       // glide horizontally with the song clock without jumping vertically as
@@ -416,22 +425,27 @@ const KaraokePitchLane = ({
         context.stroke();
       }
 
-      const firstTickMs = Math.ceil(windowStartMs / 1_000) * 1_000;
-      context.textAlign = 'center';
-      context.textBaseline = 'bottom';
-      for (let tickMs = firstTickMs; tickMs <= windowEndMs; tickMs += 1_000) {
-        const x = xForSongTime(tickMs);
-        context.strokeStyle = 'rgba(225, 231, 244, 0.055)';
-        context.beginPath();
-        context.moveTo(x, PLOT_TOP);
-        context.lineTo(x, PLOT_TOP + plotHeight);
-        context.stroke();
-        context.fillStyle = 'rgba(167, 181, 205, 0.54)';
-        context.fillText(
-          formatKaraokeTime(tickMs),
-          x,
-          PLOT_TOP + plotHeight + 15,
-        );
+      // A second ruler belongs to a song. Drawn with no song loaded it counted
+      // out the first seconds of a track that was never opened, under a cursor
+      // for a playhead that could not move.
+      if (hasSongClock) {
+        const firstTickMs = Math.ceil(windowStartMs / 1_000) * 1_000;
+        context.textAlign = 'center';
+        context.textBaseline = 'bottom';
+        for (let tickMs = firstTickMs; tickMs <= windowEndMs; tickMs += 1_000) {
+          const x = xForSongTime(tickMs);
+          context.strokeStyle = 'rgba(225, 231, 244, 0.055)';
+          context.beginPath();
+          context.moveTo(x, PLOT_TOP);
+          context.lineTo(x, PLOT_TOP + plotHeight);
+          context.stroke();
+          context.fillStyle = 'rgba(167, 181, 205, 0.54)';
+          context.fillText(
+            formatKaraokeTime(tickMs),
+            x,
+            PLOT_TOP + plotHeight + 15,
+          );
+        }
       }
 
       // 30ms, down from 45. The curve is drawn through the points this
@@ -496,19 +510,23 @@ const KaraokePitchLane = ({
         }
         lastTraceSampleRef.current = now;
       }
+      // Only as far back as the lane can actually show. With the trace trailing
+      // the cursor rather than the right-hand edge, the visible past is the
+      // 1.6 seconds behind the playhead; keeping six seconds of it meant three
+      // quarters of every frame's curve was drawn off the left of the plot.
+      const traceHistoryMs = hasSongClock ? WINDOW_PAST_MS : TRACE_HISTORY_MS;
       const liveTrace = traceRef.current.filter((point) =>
         hasTargets
-          ? point.songTimeMs >= windowStartMs && point.songTimeMs <= windowEndMs
-          : now - point.wallTimeMs <= TRACE_HISTORY_MS,
+          ? point.songTimeMs >= windowStartMs &&
+            point.songTimeMs <= synchronizedPlayheadMs
+          : now - point.wallTimeMs <= traceHistoryMs,
       );
       const trace = hasTargets
-        ? Array.from(performanceTraceRef.current.values())
-            .filter(
-              (point) =>
-                point.songTimeMs >= windowStartMs &&
-                point.songTimeMs <= windowEndMs,
-            )
-            .sort((left, right) => left.songTimeMs - right.songTimeMs)
+        ? karaokeTraceBehindPlayhead(
+            Array.from(performanceTraceRef.current.values()),
+            windowStartMs,
+            synchronizedPlayheadMs,
+          )
         : liveTrace;
       const latestVoicedPoint = [...liveTrace]
         .reverse()
@@ -520,7 +538,7 @@ const KaraokePitchLane = ({
       const floatingLabelRightByPitch = new Map<number, number>();
       visibleNotes.forEach((note) => {
         const startMs = note.startMs as number;
-        const { endMs } = karaokeLeadNoteArticulation({
+        const { endMs } = karaokeLeadNoteShape({
           startMs,
           endMs: note.endMs as number,
           targetMidi: note.targetMidi,
@@ -715,35 +733,40 @@ const KaraokePitchLane = ({
       context.setLineDash([]);
 
       const playheadX = xForSongTime(synchronizedPlayheadMs);
-      context.strokeStyle = 'rgba(48, 145, 255, 0.92)';
-      context.lineWidth = 2;
-      context.shadowColor = 'rgba(48, 145, 255, 0.45)';
-      context.shadowBlur = 8;
-      context.beginPath();
-      context.moveTo(playheadX, PLOT_TOP - 3);
-      context.lineTo(playheadX, PLOT_TOP + plotHeight);
-      context.stroke();
-      context.fillStyle = '#3091ff';
-      context.beginPath();
-      context.arc(playheadX, PLOT_TOP, 3.5, 0, Math.PI * 2);
-      context.fill();
-      context.shadowBlur = 0;
+      if (hasSongClock) {
+        context.strokeStyle = 'rgba(48, 145, 255, 0.92)';
+        context.lineWidth = 2;
+        context.shadowColor = 'rgba(48, 145, 255, 0.45)';
+        context.shadowBlur = 8;
+        context.beginPath();
+        context.moveTo(playheadX, PLOT_TOP - 3);
+        context.lineTo(playheadX, PLOT_TOP + plotHeight);
+        context.stroke();
+        context.fillStyle = '#3091ff';
+        context.beginPath();
+        context.arc(playheadX, PLOT_TOP, 3.5, 0, Math.PI * 2);
+        context.fill();
+        context.shadowBlur = 0;
+      }
 
       if (trace.length > 0) {
-        const xForTracePoint = (point: IKaraokePitchPoint) => {
-          if (hasTargets) {
-            return xForSongTime(point.songTimeMs);
-          }
-          return (
-            PLOT_LEFT +
-            (1 - (now - point.wallTimeMs) / LIVE_WINDOW_MS) * plotWidth
-          );
+        // See `karaokeTraceSampleX`: the newest sample lands on the cursor.
+        const traceAxis: IKaraokeTraceAxis = {
+          playheadMs: synchronizedPlayheadMs,
+          nowMs: now,
+          plotWidth,
+          hasSongClock,
+          usesSongTime: hasTargets,
         };
+        const xForTracePoint = (point: IKaraokePitchPoint) =>
+          karaokeTraceSampleX(point, traceAxis);
         const visualPitchSamples = trace.map((point) => {
-          const noteMidi =
-            target?.kind === 'notes'
-              ? targetAtTime(target.notes, point.songTimeMs)
-              : undefined;
+          // `visibleNotes`, not the whole chart: every point drawn here is
+          // inside the window those notes were selected for, and searching a
+          // three-minute song's worth of syllables per sample per frame was
+          // paying for several thousand lookups a second to answer with one
+          // of the forty notes on screen.
+          const noteMidi = singerTargetAtTime(visibleNotes, point.songTimeMs);
           return {
             // Three steps, in this order, and each undoes a different kind of
             // wrongness. The octave projection decides whether a bass singing
@@ -784,7 +807,7 @@ const KaraokePitchLane = ({
         const headColor = traceColor(
           last,
           previous,
-          target?.kind === 'notes' ? target.notes : [],
+          visibleNotes,
           octavePolicy,
         );
         const tracePath = () => {
@@ -805,6 +828,14 @@ const KaraokePitchLane = ({
 
         context.lineJoin = 'round';
         context.lineCap = 'round';
+        // The curve is the one thing on this canvas whose extent is decided by
+        // a microphone rather than by the layout, so it is the one thing that
+        // can run off the plot and paint over the semitone labels in the left
+        // gutter. Held to the plot rectangle it simply leaves at the edge.
+        context.save();
+        context.beginPath();
+        context.rect(PLOT_LEFT, PLOT_TOP - 6, plotWidth, plotHeight + 12);
+        context.clip();
 
         // The microphone is one continuous pitch curve over the song blocks.
         // Input energy changes its glow; the presentation-only pitch easing
@@ -822,7 +853,7 @@ const KaraokePitchLane = ({
             traceColor(
               point,
               plottedTrace[index - 1],
-              target?.kind === 'notes' ? target.notes : [],
+              visibleNotes,
               octavePolicy,
             ),
           );
@@ -863,6 +894,7 @@ const KaraokePitchLane = ({
         context.beginPath();
         context.arc(last.x, last.y, 1.8, 0, Math.PI * 2);
         context.fill();
+        context.restore();
       }
 
       if (target?.kind === 'notes') {
@@ -1157,6 +1189,7 @@ const KaraokePitchLane = ({
       observer.disconnect();
     };
   }, [
+    hasSongClock,
     hasTargets,
     isActive,
     isMicrophoneLive,

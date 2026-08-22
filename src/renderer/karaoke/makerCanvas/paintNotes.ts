@@ -17,7 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { IKaraokeMakerProject } from '../../../common/karaoke/makerProject';
-import { karaokeLeadNoteArticulation } from '../../../common/karaoke/melodyArticulation';
+import { karaokeLeadNoteShape } from '../../../common/karaoke/melodyArticulation';
 import {
   karaokeMakerNoteIsActive,
   karaokeMakerNoteProgress,
@@ -97,7 +97,7 @@ export const paintNotes = (
   );
   orderedNotes.slice(1).forEach((note, index) => {
     const previousNote = orderedNotes[index];
-    const previousArticulation = karaokeLeadNoteArticulation(previousNote);
+    const previousShape = karaokeLeadNoteShape(previousNote);
     const previousWordId = previousNote.tokenId
       ? lyricWordIdByTokenId.get(previousNote.tokenId)
       : undefined;
@@ -113,7 +113,7 @@ export const paintNotes = (
     ) {
       return;
     }
-    const startX = Math.max(plotLeft, timeX(previousArticulation.endMs));
+    const startX = Math.max(plotLeft, timeX(previousShape.endMs));
     const endX = Math.min(plotRight, timeX(note.startMs));
     const startY = noteY(previousNote.targetMidi);
     const endY = noteY(note.targetMidi);
@@ -138,12 +138,13 @@ export const paintNotes = (
     ) {
       return;
     }
-    const articulation = karaokeLeadNoteArticulation(note);
-    const left = Math.max(plotLeft, timeX(articulation.startMs));
-    const right = Math.min(
-      plotRight,
-      Math.max(left + 5, timeX(articulation.endMs)),
-    );
+    // The drawn extent, not the audible cue's: the cue caps itself at 1.45
+    // seconds so a synth tone cannot drone, and a block that inherited that
+    // ceiling showed a four-second held note as a short one. An editor whose
+    // blocks disagree with the timing it is editing is the wrong tool.
+    const shape = karaokeLeadNoteShape(note);
+    const left = Math.max(plotLeft, timeX(shape.startMs));
+    const right = Math.min(plotRight, Math.max(left + 5, timeX(shape.endMs)));
     const noteHeight = Math.max(
       8,
       (plotHeight / (MAX_NOTE_MIDI - MIN_NOTE_MIDI)) * 0.8,
@@ -174,17 +175,15 @@ export const paintNotes = (
       Math.min(plotBottom - noteHeight / 2, noteY(note.targetMidi)),
     );
     const selected = selectedNoteIds.has(note.id);
+    // The same extent the block is drawn with, so the fill reaches the right
+    // edge exactly as the playhead does instead of finishing early.
     const active = karaokeMakerNoteIsActive(
-      articulation.startMs,
-      articulation.endMs,
+      shape.startMs,
+      shape.endMs,
       visualPlayheadMs,
     );
     const noteProgress = active
-      ? karaokeMakerNoteProgress(
-          articulation.startMs,
-          articulation.endMs,
-          visualPlayheadMs,
-        )
+      ? karaokeMakerNoteProgress(shape.startMs, shape.endMs, visualPlayheadMs)
       : 0;
     let noteShadowColor = 'rgba(43, 216, 255, .54)';
     let noteShadowBlur = 4;

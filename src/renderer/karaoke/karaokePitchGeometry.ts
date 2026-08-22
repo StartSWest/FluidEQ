@@ -17,7 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { TranslationKey } from '../../common/i18n';
-import { karaokeLeadNoteArticulation } from '../../common/karaoke/melodyArticulation';
+import { karaokeLeadNoteShape } from '../../common/karaoke/melodyArticulation';
 import {
   KARAOKE_CANONICAL_CENTER_MIDI,
   projectSingerPitchToTarget,
@@ -115,6 +115,83 @@ export const karaokePitchScrubTime = (
     Math.max(0, durationMs),
   );
 
+/** Where a song time sits along the lane: the axis the ruler and notes use. */
+export const karaokePitchSongTimeX = (
+  timeMs: number,
+  playheadMs: number,
+  plotWidth: number,
+): number =>
+  PLOT_LEFT +
+  ((timeMs - (playheadMs - WINDOW_PAST_MS)) / LIVE_WINDOW_MS) * plotWidth;
+
+export interface IKaraokeTraceAxis {
+  /** The playhead this frame, read from the audio clock. */
+  playheadMs: number;
+  /** `performance.now()` for this frame. */
+  nowMs: number;
+  plotWidth: number;
+  /** False when no song is loaded and the lane is a bare microphone monitor. */
+  hasSongClock: boolean;
+  /** True when the drawn trace is the attempt persisted against the song. */
+  usesSongTime: boolean;
+}
+
+/**
+ * Where one sample of the singer's trace is drawn along the lane.
+ *
+ * THE NEWEST SAMPLE BELONGS ON THE CURSOR. It used to be anchored to the right
+ * edge of the plot whenever the song carried no note track, which is most
+ * songs — only an imported UltraStar chart supplies notes. The ruler, the
+ * blocks and the playhead were all on the song clock with the cursor a fifth
+ * of the way in, and the singer's own line was on a wall clock pinned to the
+ * far edge: on a thousand-pixel plot the head of the curve sat eight hundred
+ * pixels from the cursor and moved to a different beat. There is no reading of
+ * that picture in which it lines up with the song.
+ *
+ * One anchor and one age. While the song plays the two clocks are the same
+ * number — both run at one second per second — so which one measures the age
+ * only matters at the edges: the wall clock keeps the curve trailing while the
+ * transport is paused, and the song clock is the only one that survives a
+ * rewind, which is why the persisted attempt is measured with it.
+ *
+ * With no song there is no cursor to trail, so the bare monitor keeps its own
+ * right-anchored scroll and uses the full width.
+ */
+export const karaokeTraceSampleX = (
+  sample: Pick<IKaraokePitchPoint, 'songTimeMs' | 'wallTimeMs'>,
+  axis: IKaraokeTraceAxis,
+): number => {
+  const ageMs = axis.usesSongTime
+    ? axis.playheadMs - sample.songTimeMs
+    : axis.nowMs - sample.wallTimeMs;
+  const anchorX = axis.hasSongClock
+    ? karaokePitchSongTimeX(axis.playheadMs, axis.playheadMs, axis.plotWidth)
+    : PLOT_LEFT + axis.plotWidth;
+  return anchorX - (ageMs / LIVE_WINDOW_MS) * axis.plotWidth;
+};
+
+/**
+ * The part of a recorded attempt that is behind the cursor, in order.
+ *
+ * The upper bound is the playhead and not the end of the window. A rewind
+ * leaves the previous attempt's samples in the map at song times the singer
+ * has not reached again, and drawing those put a curve up to six seconds ahead
+ * of the cursor — the trace looked like it had come loose from the song. What
+ * was sung before the cursor is still worth seeing; what was sung after it is
+ * not yet.
+ */
+export const karaokeTraceBehindPlayhead = (
+  points: readonly IKaraokePitchPoint[],
+  windowStartMs: number,
+  playheadMs: number,
+): IKaraokePitchPoint[] =>
+  points
+    .filter(
+      (point) =>
+        point.songTimeMs >= windowStartMs && point.songTimeMs <= playheadMs,
+    )
+    .sort((left, right) => left.songTimeMs - right.songTimeMs);
+
 export const ISSUE_KEYS: Record<TKaraokePitchIssueKind, TranslationKey> = {
   high: 'karaoke.pitch.issueHigh',
   low: 'karaoke.pitch.issueLow',
@@ -132,6 +209,7 @@ export const isTimedTarget = (
   note.endMs !== undefined &&
   note.targetMidi !== undefined;
 
+/** Where the melody guide is at a moment, on the note's drawn shape. */
 export const targetAtTime = (
   notes: readonly IKaraokeToken[],
   timeMs: number,
@@ -140,9 +218,64 @@ export const targetAtTime = (
     if (!isTimedTarget(note)) {
       return false;
     }
-    const articulation = karaokeLeadNoteArticulation(note);
-    return articulation.startMs <= timeMs && articulation.endMs >= timeMs;
+    const shape = karaokeLeadNoteShape(note);
+    return shape.startMs <= timeMs && shape.endMs >= timeMs;
   })?.targetMidi;
+
+/**
+ * How far outside a note the singer still counts as being on it.
+ *
+ * Measured elsewhere in this app and reused here: a gap of 220ms between
+ * notes is where a human hears one karaoke line end and the next begin. A
+ * hold just inside that lets the trace stay on the note across every join
+ * within a phrase — singers arrive early and let go late on all of them —
+ * while a real line break still releases it, because at a line break there is
+ * no note to be near and pretending otherwise would be a lie about pitch.
+ */
+export const NOTE_ATTACH_HOLD_MS = 200;
+
+/**
+ * The note the singer is on at a moment, by the timing they were given.
+ *
+ * `targetAtTime` above answers a different question and must not be used for
+ * this one. It reports where the *guide* is, on a window that is deliberately
+ * short — the gate ends each note before its syllable does so that consecutive
+ * blocks read as separate. Asked instead which note a singer is on, it was
+ * wrong on every note in the song: the trace came unstuck for the last fifth
+ * of each syllable and drifted at absolute pitch until the next one began, and
+ * while the cue was also capped at 1.45 seconds it came unstuck two and a half
+ * seconds into a four-second held vowel. The attachment that is the whole
+ * point of this lane was therefore off most of the time it was needed.
+ *
+ * The authored range is the syllable the singer was asked to sing, so that,
+ * widened by the hold above, is what they are on.
+ *
+ * Freestyle notes are excluded. UltraStar's `F` marks a passage with no pitch
+ * requirement and its written pitch is filler; attaching to it would draw the
+ * singer as sharp or flat against a number nobody chose.
+ */
+export const singerTargetAtTime = (
+  notes: readonly IKaraokeToken[],
+  timeMs: number,
+  holdMs = NOTE_ATTACH_HOLD_MS,
+): number | undefined => {
+  let nearestMidi: number | undefined;
+  let nearestDistanceMs = Number.POSITIVE_INFINITY;
+  notes.forEach((note) => {
+    if (!isTimedTarget(note) || note.kind === 'free') {
+      return;
+    }
+    const distanceMs =
+      timeMs < note.startMs
+        ? note.startMs - timeMs
+        : Math.max(0, timeMs - note.endMs);
+    if (distanceMs <= holdMs && distanceMs < nearestDistanceMs) {
+      nearestDistanceMs = distanceMs;
+      nearestMidi = note.targetMidi;
+    }
+  });
+  return nearestMidi;
+};
 
 const smoothStep = (value: number): number => {
   const clamped = Math.max(0, Math.min(1, value));
@@ -316,8 +449,7 @@ export const buildKaraokeMelodyGuide = (
       return false;
     }
     const authoredGapMs = right.startMs - left.endMs;
-    const articulatedGapMs =
-      right.startMs - karaokeLeadNoteArticulation(left).endMs;
+    const articulatedGapMs = right.startMs - karaokeLeadNoteShape(left).endMs;
     const continuesSameWord = right.startsWord === false;
     return continuesSameWord
       ? authoredGapMs <= MELODY_GUIDE_MAX_GAP_MS
@@ -332,9 +464,9 @@ export const buildKaraokeMelodyGuide = (
     const next = timedNotes[noteIndex + 1];
     const connectsPrevious = connects(previous, note);
     const connectsNext = connects(note, next);
-    const articulation = karaokeLeadNoteArticulation(note);
-    const noteEndMs = articulation.endMs;
-    const duration = articulation.durationMs;
+    const shape = karaokeLeadNoteShape(note);
+    const noteEndMs = shape.endMs;
+    const duration = shape.durationMs;
     const transitionMs = Math.min(MELODY_GUIDE_TRANSITION_MS, duration * 0.36);
     const sampleTimes: number[] = [note.startMs];
     for (
@@ -394,9 +526,19 @@ export const findKaraokePitchIssues = (
   toleranceSemitones = MATCH_TOLERANCE_SEMITONES,
 ): IKaraokePitchIssue[] => {
   const issues: IKaraokePitchIssue[] = [];
-  const timedNotes = notes.filter(isTimedTarget).sort((left, right) => {
-    return left.startMs - right.startMs;
-  });
+  // Freestyle is excluded here for the same reason `singerTargetAtTime`
+  // excludes it: UltraStar's `F` marks a passage with no pitch requirement and
+  // its written pitch is filler. Scored against that number, a rap line came
+  // back as flat, and staying quiet through one came back as a missed note —
+  // the review told the singer to fix a passage the chart never asked them to
+  // sing. It also left the strip disagreeing with the curve above it, which
+  // floats free there rather than attaching.
+  const timedNotes = notes
+    .filter(isTimedTarget)
+    .filter((note) => note.kind !== 'free')
+    .sort((left, right) => {
+      return left.startMs - right.startMs;
+    });
   let noteIndex = 0;
   let current:
     | (IKaraokePitchIssue & {
@@ -604,7 +746,9 @@ export const traceColor = (
   if (!current.voiced) {
     return 'rgba(34, 224, 214, 0.38)';
   }
-  const targetMidi = targetAtTime(notes, current.songTimeMs);
+  // The same note the curve is drawn against, so the colour and the position
+  // can never disagree about whether the singer is sharp.
+  const targetMidi = singerTargetAtTime(notes, current.songTimeMs);
   const movement =
     targetMidi === undefined
       ? current.midi - (previous?.midi ?? current.midi)

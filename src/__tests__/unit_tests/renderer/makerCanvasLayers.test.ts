@@ -17,6 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { createKaraokeMakerProject } from 'common/karaoke/makerProject';
+import { karaokeLeadNoteArticulation } from 'common/karaoke/melodyArticulation';
 import { IKaraokeSong } from 'common/karaoke/types';
 import { makerPlot } from 'renderer/karaoke/makerCanvasGeometry';
 import { paintBackdrop } from 'renderer/karaoke/makerCanvas/paintBackdrop';
@@ -266,5 +267,61 @@ describe('the Maker canvas layers', () => {
 
     // A box in progress is strictly more drawing than none.
     expect(dragging.calls.length).toBeGreaterThan(idle.calls.length);
+  });
+
+  it('draws a held note at its held length, not at the cue ceiling', () => {
+    // The audible cue caps itself at 1.45 seconds so a synth tone cannot
+    // drone. Drawing borrowed that ceiling, and a four-second note appeared in
+    // the editor as a short block — an editor whose blocks disagree with the
+    // timing it is editing. The region is what the pointer handlers hit-test,
+    // so it is also exactly what the user can grab.
+    const base = createKaraokeMakerProject(song());
+    const context = recordingContext();
+    const activePlot = plot();
+    const regions = paintNotes(context, {
+      plot: activePlot,
+      project: {
+        ...base,
+        melody: {
+          ...base.melody,
+          notes: [
+            {
+              id: 'held',
+              startMs: 1_000,
+              endMs: 5_000,
+              targetMidi: 62,
+              kind: 'normal',
+              source: 'manual',
+            },
+          ],
+        },
+      },
+      canvasLyricWords: [],
+      selectedNoteIds: new Set(),
+      controlLinkMode: false,
+      hoveredEditHandle: undefined,
+      viewStartMs: 0,
+      visibleViewDurationMs: 12_000,
+      visualPlayheadMs: 0,
+    });
+
+    const held = regions.find((region) => region.id === 'held');
+    expect(held).toBeDefined();
+    const drawnMs =
+      activePlot.xTime(held?.right ?? 0) - activePlot.xTime(held?.left ?? 0);
+    // Measured against the cue itself rather than against the literal 1450:
+    // the pixel arithmetic lands a floating-point hair over that number, and a
+    // threshold that tight passed the very defect it was written to catch.
+    const cueMs = karaokeLeadNoteArticulation({
+      startMs: 1_000,
+      endMs: 5_000,
+      targetMidi: 62,
+      kind: 'normal',
+    }).durationMs;
+
+    expect(cueMs).toBeLessThanOrEqual(1_450);
+    expect(drawnMs).toBeGreaterThan(cueMs + 500);
+    // Still short of the authored end, so the next note stays separated.
+    expect(drawnMs).toBeLessThan(4_000);
   });
 });

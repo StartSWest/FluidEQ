@@ -26,9 +26,15 @@ const MAXIMUM_LEAD_NOTE_MS = 1_450;
  * Give a timed karaoke note musical articulation without changing its authored
  * word/syllable range. The shortened copy is only for guide presentation and
  * audition; editing and export continue to use the original timing.
+ *
+ * `maximumSoundedMs` is a property of the *cue*, not of the note. A synth tone
+ * holding one pitch for four seconds is a drone nobody wants under a lyric, so
+ * the audible guide caps itself — see `karaokeLeadNoteShape` for why anything
+ * that draws must not inherit that cap.
  */
 export const karaokeLeadNoteArticulation = (
   note: IKaraokeLeadNoteTiming,
+  maximumSoundedMs = MAXIMUM_LEAD_NOTE_MS,
 ): IKaraokeLeadNoteArticulation => {
   const startMs = Number.isFinite(note.startMs) ? note.startMs : 0;
   const authoredDurationMs = Math.max(1, note.endMs - startMs);
@@ -54,7 +60,7 @@ export const karaokeLeadNoteArticulation = (
   );
   const maximumDurationMs = Math.max(
     1,
-    Math.min(authoredDurationMs - minimumRestMs, MAXIMUM_LEAD_NOTE_MS),
+    Math.min(authoredDurationMs - minimumRestMs, maximumSoundedMs),
   );
   const minimumDurationMs = Math.min(
     maximumDurationMs,
@@ -75,3 +81,21 @@ export const karaokeLeadNoteArticulation = (
     gate: durationMs / authoredDurationMs,
   };
 };
+
+/**
+ * The drawn extent of a note: separated from its neighbour, never cut short.
+ *
+ * Drawing borrowed the audible cue's articulation whole, including its 1.45
+ * second ceiling, and so a four-second held vowel was painted as a block
+ * ending after 1.45 seconds — with the guide curve above it stopping there
+ * too. The picture told the singer to let go two and a half seconds before
+ * the song does, on the exact notes where holding is the difficulty.
+ *
+ * The gate is kept, because that is what separates one syllable's block from
+ * the next and reads as rhythm. Only the ceiling goes: a long note is drawn
+ * long, with the same proportional rest after it that a short note gets.
+ */
+export const karaokeLeadNoteShape = (
+  note: IKaraokeLeadNoteTiming,
+): IKaraokeLeadNoteArticulation =>
+  karaokeLeadNoteArticulation(note, Number.POSITIVE_INFINITY);
