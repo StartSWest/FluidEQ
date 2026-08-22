@@ -20,7 +20,9 @@ const dsp = {
   'dsp.title': 'DSP',
   'dsp.scopeNotice':
     'FluidEQ 内で再生する音楽にのみ適用されます。Spotify や YouTube など他のアプリは変わりません。',
-  'dsp.unavailable': 'このマシンでは音声処理を開始できませんでした。',
+  'dsp.idle':
+    'ライブラリから再生すると起動します。FluidEQ 自身のプレーヤーを処理するため、曲を読み込むまでは何もしません。',
+  'dsp.unavailable': '音声処理を開始できませんでした。再生には影響しません。',
   'dsp.presets': 'プリセット',
   'dsp.preset.flat': 'オフ',
   'dsp.preset.lossyRepair': '圧縮音源を補修',

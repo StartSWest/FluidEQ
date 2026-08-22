@@ -20,7 +20,9 @@ const dsp = {
   'dsp.title': 'DSP',
   'dsp.scopeNotice':
     '仅作用于在 FluidEQ 内播放的音乐，不会改变 Spotify、YouTube 或其他应用。',
-  'dsp.unavailable': '此设备上无法启动音频处理。',
+  'dsp.idle':
+    '从音乐库播放时自动启动。它处理的是 FluidEQ 自带的播放器，因此在加载曲目前无事可做。',
+  'dsp.unavailable': '音频处理未能启动，播放不受影响。',
   'dsp.presets': '预设',
   'dsp.preset.flat': '关闭',
   'dsp.preset.lossyRepair': '修复压缩音频',

@@ -9,14 +9,19 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { DSP_DEFAULTS, IDspSettings } from '../../common/dsp/chain';
 import { DSP_PRESETS } from '../../common/dsp/presets';
 import DspPanel from '../../renderer/dsp/DspPanel';
+import { TDspEngineState } from '../../renderer/dsp/store';
 
 const renderPanel = (
   settings: IDspSettings = DSP_DEFAULTS,
-  isActive = true,
+  engineState: TDspEngineState = 'running',
 ) => {
   const onChange = jest.fn();
   render(
-    <DspPanel settings={settings} onChange={onChange} isActive={isActive} />,
+    <DspPanel
+      settings={settings}
+      onChange={onChange}
+      engineState={engineState}
+    />,
   );
   return onChange;
 };
@@ -79,9 +84,25 @@ describe('DspPanel', () => {
     expect(screen.queryByText(/could not start/i)).not.toBeInTheDocument();
   });
 
-  it('POSITIVE CONTROL: says so when the engine could not start', () => {
-    renderPanel(DSP_DEFAULTS, false);
+  it('POSITIVE CONTROL: says so when the engine genuinely failed', () => {
+    renderPanel(DSP_DEFAULTS, 'failed');
     expect(screen.getByText(/could not start/i)).toBeInTheDocument();
+  });
+
+  /**
+   * The bug this whole distinction exists for.
+   *
+   * The engine lives in LibraryPlayerProvider, which does not mount until the
+   * Library has been opened. Opening the DSP tab first left it genuinely
+   * unstarted — and the two-state version reported that as a failure, telling
+   * people audio processing could not start on a machine that was fine.
+   */
+  it('does NOT claim a failure when the engine has simply not started', () => {
+    renderPanel(DSP_DEFAULTS, 'idle');
+    expect(screen.queryByText(/could not start/i)).not.toBeInTheDocument();
+    expect(
+      screen.getByText(/play something from the Library/i),
+    ).toBeInTheDocument();
   });
 
   it('shows the three compressor bands', () => {

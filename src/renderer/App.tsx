@@ -105,7 +105,7 @@ import WaveformVisualizer from './WaveformVisualizer';
 import ConvolutionPanel from './ConvolutionPanel';
 import DspPanel from './dsp/DspPanel';
 import {
-  useDspEngineActive,
+  useDspEngineState,
   useDspSettings,
   writeDspSettings,
 } from './dsp/store';
@@ -538,7 +538,7 @@ const AppContent = () => {
    * re-render the whole player tree on every knob turn.
    */
   const dspSettings = useDspSettings();
-  const isDspActive = useDspEngineActive();
+  const dspEngineState = useDspEngineState();
 
   /**
    * Inside the page rather than above it, and pills rather than tabs: the
@@ -1821,7 +1821,7 @@ const AppContent = () => {
                 <DspPanel
                   settings={dspSettings}
                   onChange={writeDspSettings}
-                  isActive={isDspActive}
+                  engineState={dspEngineState}
                 />
               </div>
             )}

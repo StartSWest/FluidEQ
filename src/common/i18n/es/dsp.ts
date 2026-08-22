@@ -20,7 +20,10 @@ const dsp = {
   'dsp.title': 'DSP',
   'dsp.scopeNotice':
     'Se aplica a la música reproducida dentro de FluidEQ. No cambia Spotify, YouTube ni otras aplicaciones.',
-  'dsp.unavailable': 'El procesado de audio no pudo iniciarse en este equipo.',
+  'dsp.idle':
+    'Se activa cuando reproduces algo desde la Biblioteca. Procesa el reproductor de FluidEQ, así que no tiene nada que hacer hasta que cargues una pista.',
+  'dsp.unavailable':
+    'El procesado de audio no pudo iniciarse. La reproducción no se ve afectada.',
   'dsp.presets': 'Ajustes',
   'dsp.preset.flat': 'Apagado',
   'dsp.preset.lossyRepair': 'Reparar comprimido',

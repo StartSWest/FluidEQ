@@ -54,10 +54,21 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   line-height: 1.45;
 }
 
+// Not an error, and it must not look like one. The engine lives in the library
+// player, which does not exist until the Library has been opened — so on a
+// fresh window this is simply the truth, not a fault. It reads as a note.
+.dsp-idle {
+  margin: 2px 0 0;
+  color: rgba($white, 0.5);
+  font-size: 0.74rem;
+  line-height: 1.4;
+}
+
 .dsp-unavailable {
   margin: 2px 0 0;
   color: $red;
   font-size: 0.74rem;
+  line-height: 1.4;
 }
 
 .dsp-presets {

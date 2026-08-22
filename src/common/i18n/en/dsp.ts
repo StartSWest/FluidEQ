@@ -29,7 +29,10 @@ const dsp = {
   'dsp.title': 'DSP',
   'dsp.scopeNotice':
     'Applies to music played inside FluidEQ. It does not change Spotify, YouTube or other apps.',
-  'dsp.unavailable': 'Audio processing could not start on this machine.',
+  'dsp.idle':
+    'Starts when you play something from the Library. It processes the FluidEQ player itself, so there is nothing for it to do until a track is loaded.',
+  'dsp.unavailable':
+    'Audio processing could not start. Playback is unaffected.',
   'dsp.presets': 'Presets',
   'dsp.preset.flat': 'Off',
   'dsp.preset.lossyRepair': 'Repair compressed',
