@@ -14,6 +14,7 @@ import {
 import { DSP_PRESETS } from '../../common/dsp/presets';
 import { TranslationKey } from '../../common/i18n/en';
 import LabelledKnob from '../components/LabelledKnob';
+import DspEqBar from './DspEqBar';
 import DspEqCard from './DspEqCard';
 import DspSideTabs from './DspSideTabs';
 import { TDspSection } from './sections';
@@ -93,6 +94,15 @@ interface IProcessorCardProps {
   titleKey: TranslationKey;
   /** Omitted where the page speaks for itself — the EQ's graph does. */
   descriptionKey?: TranslationKey;
+  /**
+   * Controls that lead the header instead of a description.
+   *
+   * The header holds the bypass switch at its right end whatever else is in
+   * it, so a page with no description left that row empty — a band of nothing
+   * with a lone toggle stranded across from it. A page that has a toolbar puts
+   * it here and the row carries its weight.
+   */
+  toolbar?: ReactNode;
   id: string;
   isEnabled: boolean;
   onToggle: () => void;
@@ -102,6 +112,7 @@ interface IProcessorCardProps {
 const ProcessorCard = ({
   titleKey,
   descriptionKey,
+  toolbar,
   id,
   isEnabled,
   onToggle,
@@ -123,15 +134,24 @@ const ProcessorCard = ({
 
           The name itself lives on the rail, which is where it is chosen; the
           heading stays for `aria-labelledby` and is visually hidden. */}
-      <header className={`dsp-card-header${descriptionKey ? '' : ' is-bare'}`}>
-        <div className="dsp-card-titles">
-          <h3 className="dsp-card-title is-visually-hidden" id={`${id}-title`}>
-            {t(titleKey)}
-          </h3>
-          {descriptionKey ? (
+      <header
+        className={`dsp-card-header${toolbar ? ' has-toolbar' : ''}${
+          descriptionKey || toolbar ? '' : ' is-bare'
+        }`}
+      >
+        {/* Out of the titles block and straight into the header: it is
+            visually hidden and exists for `aria-labelledby`, so a wrapper
+            around it is a flex item claiming a share of a row it never
+            draws in. */}
+        <h3 className="dsp-card-title is-visually-hidden" id={`${id}-title`}>
+          {t(titleKey)}
+        </h3>
+        {descriptionKey ? (
+          <div className="dsp-card-titles">
             <p className="dsp-card-description">{t(descriptionKey)}</p>
-          ) : undefined}
-        </div>
+          </div>
+        ) : undefined}
+        {toolbar}
         {/* The switch says which state it is IN, not what pressing it does.
             A bare toggle with no word beside it leaves the user reading a
             colour, and on a rack where four of these sit behind four pages
@@ -256,6 +276,13 @@ const DspPanel = ({
               titleKey="dsp.eq.title"
               isEnabled={eq.enabled}
               onToggle={() => patch({ eq: { ...eq, enabled: !eq.enabled } })}
+              toolbar={
+                <DspEqBar
+                  eq={eq}
+                  onChange={(next) => patch({ eq: next })}
+                  onCommit={onCommit}
+                />
+              }
             >
               <DspEqCard
                 eq={eq}

@@ -143,6 +143,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   gap: 16px;
 }
 
+// A description is a paragraph and hangs from the top of the row; a toolbar is
+// a line of controls and has to sit level with the switch across from it.
+.dsp-card-header.has-toolbar {
+  align-items: center;
+  gap: 12px;
+}
+
 .dsp-card-titles {
   display: flex;
   flex-direction: column;
@@ -476,19 +483,38 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 // The preset picker, top-left of the page: it is the fastest way to change
 // everything below it, so it reads first.
+// Lives in the card header now, so it takes the row and leaves the bypass
+// switch its place at the end. `center` rather than `flex-end`: everything in
+// here is one control tall since the label moved beside its field.
 .dsp-eq-bar {
   display: flex;
-  flex: 0 0 auto;
-  align-items: flex-end;
-  gap: 14px;
+  flex: 1 1 auto;
+  align-items: center;
+  gap: 12px;
   flex-wrap: wrap;
+  min-width: 0;
 }
 
 .dsp-eq-preset {
   display: flex;
-  flex-direction: column;
-  gap: 4px;
-  min-width: 190px;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+}
+
+// Beside the field rather than stacked over it. Above it, the pair stood two
+// rows tall inside a row that is one control high, and the header grew a band
+// of empty space to fit a single word.
+.dsp-eq-preset-label {
+  flex: 0 0 auto;
+  color: rgba($white, 0.42);
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+
+.dsp-eq-preset .dropdown {
+  min-width: 170px;
 }
 
 .dsp-eq-transfer {
@@ -513,10 +539,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .dsp-card-header.is-bare {
   align-items: center;
   min-height: 0;
-}
-
-.dsp-card-header.is-bare .dsp-card-titles {
-  display: none;
 }
 
 // The switch says which state it is IN. A bare toggle leaves the user reading
