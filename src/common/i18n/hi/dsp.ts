@@ -70,6 +70,9 @@ const dsp = {
   'dsp.eqModel.clean': 'साफ़',
   'dsp.eqModel.proportional': 'केंद्रित',
   'dsp.eqModel.wide': 'चौड़ा',
+  'dsp.eqEngine.label': 'इंजन',
+  'dsp.eqEngine.serial': 'श्रृंखला',
+  'dsp.eqEngine.parallel': 'समानांतर',
   'dsp.eqImport.title': 'EQ कर्व आयात करें',
   'dsp.eqImport.hint':
     'Squiglink, AutoEq या Equalizer APO से कर्व चिपकाएँ — या उसकी फ़ाइल चुनें।',

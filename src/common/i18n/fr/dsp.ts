@@ -68,6 +68,9 @@ const dsp = {
   'dsp.eqModel.clean': 'Net',
   'dsp.eqModel.proportional': 'Focalisé',
   'dsp.eqModel.wide': 'Large',
+  'dsp.eqEngine.label': 'Moteur',
+  'dsp.eqEngine.serial': 'Série',
+  'dsp.eqEngine.parallel': 'Parallèle',
   'dsp.eqImport.title': 'Importer une courbe d’égalisation',
   'dsp.eqImport.hint':
     'Collez une courbe de Squiglink, AutoEq ou Equalizer APO — ou choisissez le fichier qui la contient.',

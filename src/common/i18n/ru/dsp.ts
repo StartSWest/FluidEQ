@@ -70,6 +70,9 @@ const dsp = {
   'dsp.eqModel.clean': 'Чистый',
   'dsp.eqModel.proportional': 'Узкий',
   'dsp.eqModel.wide': 'Широкий',
+  'dsp.eqEngine.label': 'Движок',
+  'dsp.eqEngine.serial': 'Последов.',
+  'dsp.eqEngine.parallel': 'Параллельн.',
   'dsp.eqImport.title': 'Импорт кривой эквалайзера',
   'dsp.eqImport.hint':
     'Вставьте кривую из Squiglink, AutoEq или Equalizer APO — либо выберите файл с ней.',

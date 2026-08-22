@@ -8,9 +8,11 @@ import { useState } from 'react';
 import { fromApoText, toApoText } from '../../common/dsp/apoEqFormat';
 import {
   DSP_DEFAULTS,
+  EQ_ENGINES,
   EQ_MODELS,
   EQ_RACK_SIZES,
   IEqSettings,
+  TEqEngine,
   TEqModel,
   buildEqRack,
 } from '../../common/dsp/chain';
@@ -205,6 +207,26 @@ const DspEqBar = ({ eq, sampleRate, onChange, onCommit }: IDspEqBarProps) => {
           }))}
           handleChange={(next: string) => {
             onChange({ ...eq, model: next as TEqModel });
+            onCommit();
+          }}
+        />
+      </div>
+
+      {/* A different question from the character: not what shape each band is,
+          but how the bands are put against the audio. */}
+      <div className="dsp-eq-preset dsp-eq-model">
+        <span className="dsp-eq-preset-label">{t('dsp.eqEngine.label')}</span>
+        <Dropdown
+          name={t('dsp.eqEngine.label')}
+          value={eq.engine}
+          isDisabled={false}
+          options={EQ_ENGINES.map((engine) => ({
+            value: engine,
+            label: t(`dsp.eqEngine.${engine}` as TranslationKey),
+            display: t(`dsp.eqEngine.${engine}` as TranslationKey),
+          }))}
+          handleChange={(next: string) => {
+            onChange({ ...eq, engine: next as TEqEngine });
             onCommit();
           }}
         />

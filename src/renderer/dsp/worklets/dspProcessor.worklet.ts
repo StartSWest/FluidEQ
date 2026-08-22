@@ -26,8 +26,8 @@ import {
   IBiquadState,
   biquadCoefficients,
   createBiquadState,
-  processBiquad,
 } from '../biquad';
+import { processEqBands } from '../eqEngine';
 import { FilterTypeEnum } from '../../../common/constants';
 
 /** Web Audio always renders 128 frames; the scratch buffers start there. */
@@ -75,6 +75,11 @@ class DspProcessor extends AudioWorkletProcessor {
   private eqPreampGain = 1;
 
   private lookAheadSamples = 0;
+
+  /** Scratch for the parallel engine, so the audio thread never allocates. */
+  private eqDry = new Float32Array(RENDER_QUANTUM);
+
+  private eqWet = new Float32Array(RENDER_QUANTUM);
 
   private low = new Float32Array(RENDER_QUANTUM);
 
@@ -133,6 +138,8 @@ class DspProcessor extends AudioWorkletProcessor {
     if (this.low.length === length) {
       return;
     }
+    this.eqDry = new Float32Array(length);
+    this.eqWet = new Float32Array(length);
     this.low = new Float32Array(length);
     this.mid = new Float32Array(length);
     this.high = new Float32Array(length);
@@ -184,10 +191,14 @@ class DspProcessor extends AudioWorkletProcessor {
           target[i] *= this.eqPreampGain;
         }
       }
-      const states = this.eqStates[slot];
-      for (let band = 0; band < this.eqCoefficients.length; band += 1) {
-        processBiquad(states[band], target, this.eqCoefficients[band]);
-      }
+      processEqBands(
+        this.eqStates[slot],
+        this.eqCoefficients,
+        target,
+        eq.engine,
+        this.eqDry,
+        this.eqWet,
+      );
     }
 
     if (compressor.enabled) {
