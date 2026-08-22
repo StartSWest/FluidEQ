@@ -55,6 +55,24 @@ const configuration: webpack.Configuration = {
       webpackPaths.srcRendererPath,
       'karaoke/whisper.worker.ts',
     ),
+    // Its own entry because `audioWorklet.addModule` loads a URL, not a
+    // module the bundle can import: the worklet runs in a separate global
+    // scope with no `window` and no module system to reach back into.
+    //
+    // And its own library type, which is the part that is not obvious. The
+    // renderer's `umd` wrapper probes for `exports`, `define` and a global
+    // object; an AudioWorkletGlobalScope has none of the three, not even
+    // `self`, so the UMD preamble throws before `registerProcessor` is ever
+    // reached and `addModule` rejects with nothing useful in it. `var` emits
+    // a plain assignment that runs in any scope. The worklet exports nothing
+    // anyway — it registers a processor by side effect.
+    'dsp-worklet': {
+      import: path.join(
+        webpackPaths.srcRendererPath,
+        'dsp/worklets/dspProcessor.worklet.ts',
+      ),
+      library: { type: 'var', name: 'fluidEqDspWorklet' },
+    },
   },
 
   output: {
