@@ -166,6 +166,7 @@ class DspProcessor extends AudioWorkletProcessor {
             quality: band.quality,
           },
           sampleRate,
+          eq.model,
         ),
       );
   }

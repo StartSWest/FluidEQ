@@ -5,7 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { FilterTypeEnum, NO_GAIN_FILTER_TYPES } from '../../common/constants';
-import { IEqBandSettings } from '../../common/dsp/chain';
+import { IEqBandSettings, TEqModel } from '../../common/dsp/chain';
 import { biquadCoefficients, biquadMagnitudeDb } from './biquad';
 
 /**
@@ -51,6 +51,7 @@ export const curveResponseDb = (
   bands: readonly IEqBandSettings[],
   frequencies: readonly number[],
   sampleRate: number,
+  model: TEqModel = 'clean',
 ): number[] => {
   const response = new Array<number>(frequencies.length).fill(0);
   bands
@@ -64,6 +65,7 @@ export const curveResponseDb = (
           quality: band.quality,
         },
         sampleRate,
+        model,
       );
       frequencies.forEach((frequency, index) => {
         response[index] += biquadMagnitudeDb(
@@ -148,13 +150,17 @@ export const rackMatchingCurveOf = (
   target: readonly IEqBandSettings[],
   source: readonly IEqBandSettings[],
   sampleRate: number,
+  // Fitted through the same processing the rack will be heard through: the
+  // models have different shapes, so a fit done against the cookbook would be
+  // solving for a curve nobody is listening to.
+  model: TEqModel = 'clean',
 ): readonly IEqBandSettings[] => {
   const movable = target.filter(canCarryGain);
   if (source.length === 0 || movable.length === 0) {
     return target;
   }
   const frequencies = fitFrequencies();
-  const wanted = curveResponseDb(source, frequencies, sampleRate);
+  const wanted = curveResponseDb(source, frequencies, sampleRate, model);
 
   const bandResponse = (band: IEqBandSettings, gainDb: number): number[] => {
     const coefficients = biquadCoefficients(
@@ -165,6 +171,7 @@ export const rackMatchingCurveOf = (
         quality: band.quality,
       },
       sampleRate,
+      model,
     );
     return frequencies.map((frequency) =>
       biquadMagnitudeDb(coefficients, frequency, sampleRate),
@@ -200,7 +207,12 @@ export const rackMatchingCurveOf = (
   };
 
   for (let pass = 0; pass < 5; pass += 1) {
-    const current = curveResponseDb(withGains(), frequencies, sampleRate);
+    const current = curveResponseDb(
+      withGains(),
+      frequencies,
+      sampleRate,
+      model,
+    );
     const residual = wanted.map((value, index) => value - current[index]);
     const columns = movable.map((band, index) => {
       const base = bandResponse(band, gains[index]);

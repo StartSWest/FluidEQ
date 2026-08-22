@@ -19,6 +19,7 @@ const withBands = (
   bands: Partial<IEqSettings['bands'][number]>[],
 ): IEqSettings => ({
   enabled: true,
+  model: 'clean',
   presetId: '',
   preampDb: 0,
   sourceBands: [],

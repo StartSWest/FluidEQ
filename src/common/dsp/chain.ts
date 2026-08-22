@@ -89,8 +89,28 @@ export interface IEqBandSettings {
   quality: number;
 }
 
+/**
+ * Which processing renders the bands.
+ *
+ * The same curve through different machinery, which is the whole point: dials
+ * set identically sound like a different equaliser. `clean` is RBJ's cookbook
+ * and is what Equalizer APO renders, so it stays the default and an exported
+ * curve behaves the same on both paths. `proportional` narrows each band as it
+ * is driven — the focused console character. `wide` spreads them so they
+ * overlap into a tilt rather than a row of bumps.
+ *
+ * Named for what they do, not for the equipment they resemble: this app is
+ * sold, and a mode named after somebody's console is a trademark problem
+ * rather than a technical one.
+ */
+export type TEqModel = 'clean' | 'proportional' | 'wide';
+
+export const EQ_MODELS: readonly TEqModel[] = ['clean', 'proportional', 'wide'];
+
 export interface IEqSettings {
   enabled: boolean;
+  /** @see TEqModel */
+  model: TEqModel;
   /**
    * `EQ_BAND_COUNT` by default, and as many as an imported file asked for up
    * to `EQ_MAX_BAND_COUNT`.
@@ -311,6 +331,7 @@ export const buildEqRack = (count: number): readonly IEqBandSettings[] => {
 export const DSP_DEFAULTS: IDspSettings = {
   eq: {
     enabled: false,
+    model: 'clean',
     bands: DEFAULT_EQ_BANDS,
     sourceBands: [],
     presetId: '',
@@ -417,6 +438,12 @@ export const clampDspSettings = (value: unknown): IDspSettings => {
   return {
     eq: {
       enabled: clampBoolean(eq.enabled, DSP_DEFAULTS.eq.enabled),
+      // A stored name that no longer exists falls back rather than reaching
+      // the coefficient maths, where an unknown model would silently become
+      // whichever branch happens to be last.
+      model: EQ_MODELS.includes(eq.model as TEqModel)
+        ? (eq.model as TEqModel)
+        : 'clean',
       presetId: typeof eq.presetId === 'string' ? eq.presetId : '',
       preampDb: clampNumber(eq.preampDb, RANGES.eqGainDb, 0),
       // The stored rack decides its own length now, so an imported ten-filter

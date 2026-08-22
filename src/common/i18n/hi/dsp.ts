@@ -66,6 +66,10 @@ const dsp = {
   'dsp.eqPreset.importPreamp': 'प्रीएम्प {gain} dB पर सेट किया गया।',
 
   'dsp.eq.rack': 'बैंड',
+  'dsp.eqModel.label': 'चरित्र',
+  'dsp.eqModel.clean': 'साफ़',
+  'dsp.eqModel.proportional': 'केंद्रित',
+  'dsp.eqModel.wide': 'चौड़ा',
   'dsp.eqImport.title': 'EQ कर्व आयात करें',
   'dsp.eqImport.hint':
     'Squiglink, AutoEq या Equalizer APO से कर्व चिपकाएँ — या उसकी फ़ाइल चुनें।',

@@ -297,7 +297,9 @@ const DspEqGraph = ({
       }
 
       const active = liveEq.bands.map((one) =>
-        one.enabled ? biquadCoefficients(toSpec(one), rate) : undefined,
+        one.enabled
+          ? biquadCoefficients(toSpec(one), rate, liveEq.model)
+          : undefined,
       );
       const steps = Math.max(2, Math.round(plotW(W) / POINT_STEP_PX));
 

@@ -66,6 +66,10 @@ const dsp = {
   'dsp.eqPreset.importPreamp': 'Pré-amplificação definida para {gain} dB.',
 
   'dsp.eq.rack': 'Bandas',
+  'dsp.eqModel.label': 'Caráter',
+  'dsp.eqModel.clean': 'Limpo',
+  'dsp.eqModel.proportional': 'Focado',
+  'dsp.eqModel.wide': 'Amplo',
   'dsp.eqImport.title': 'Importar uma curva de EQ',
   'dsp.eqImport.hint':
     'Cola uma curva do Squiglink, AutoEq ou Equalizer APO — ou escolhe o ficheiro que a contém.',

@@ -4,7 +4,8 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { FilterTypeEnum } from '../../common/constants';
+import { FilterTypeEnum, NO_GAIN_FILTER_TYPES } from '../../common/constants';
+import { TEqModel } from '../../common/dsp/chain';
 
 export interface IBiquadCoefficients {
   b0: number;
@@ -114,10 +115,70 @@ const cookbook = (
   );
 };
 
+/**
+ * How much the Q tightens as a band is driven harder.
+ *
+ * At full boost the band ends up about twice as narrow as its dial says. That
+ * is the behaviour of the classic wide-and-punchy console equalisers: a small
+ * move is broad and gentle, a large one focuses on the frequency it was aimed
+ * at instead of dragging its neighbours with it. It is the same curve at 1 dB
+ * and a different instrument at 12.
+ */
+const proportionalQuality = ({ gainDb, quality }: IBandSpec): number =>
+  Math.min(18, quality * (1 + (Math.abs(gainDb) / 24) * 1.6));
+
+/**
+ * Broad and overlapping, the way a passive tone stack behaves.
+ *
+ * The opposite character to proportional: instead of focusing as it is driven,
+ * a band here always reaches well past its own centre, so neighbouring bands
+ * blend into one another and the result is a tilt rather than a set of bumps.
+ * It is the gentler, rounder sound, and it is the one that flatters a whole
+ * mix where a narrow band would sound like a repair.
+ *
+ * Shelves get it worse than bells on purpose: a shallow shelf is most of what
+ * makes that style of equaliser sound like itself.
+ */
+const wideQuality = ({ type, quality }: IBandSpec): number => {
+  const isShelf = type === FilterTypeEnum.LSC || type === FilterTypeEnum.HSC;
+  return Math.max(0.25, quality * (isShelf ? 0.4 : 0.45));
+};
+
+/**
+ * A fourth model was built here and removed, which is worth recording.
+ *
+ * "Analog matched" was to undo the bilinear transform's cramping near Nyquist.
+ * Measured at 44.1 kHz, a 16 kHz shelf asked for +6 dB already delivers 5.92 at
+ * 20 kHz and a full 6 at Nyquist, so the correction moved it by hundredths of a
+ * decibel. The roadmap's claim that it "delivers 3-6 dB" was reading the
+ * shelf's own corner — half gain at the corner is what a shelf IS — as a
+ * shortfall. What the cookbook genuinely does squeeze is a bell's upper skirt
+ * near Nyquist, and that is a refinement rather than a character.
+ */
+
 export const biquadCoefficients = (
   spec: IBandSpec,
   sampleRate: number,
-): IBiquadCoefficients => cookbook(spec, sampleRate);
+  model: TEqModel = 'clean',
+): IBiquadCoefficients => {
+  if (
+    model === 'clean' ||
+    spec.gainDb === 0 ||
+    NO_GAIN_FILTER_TYPES.includes(spec.type as never)
+  ) {
+    // Nothing to model when there is no gain to shape: every design collapses
+    // to the same filter, and a notch has no gain to correct in the first
+    // place.
+    return cookbook(spec, sampleRate);
+  }
+  if (model === 'proportional') {
+    return cookbook(
+      { ...spec, quality: proportionalQuality(spec) },
+      sampleRate,
+    );
+  }
+  return cookbook({ ...spec, quality: wideQuality(spec) }, sampleRate);
+};
 
 /**
  * What the filter actually does at one frequency, in dB.

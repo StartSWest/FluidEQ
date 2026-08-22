@@ -63,6 +63,10 @@ const dsp = {
   'dsp.eqPreset.importPreamp': '前置增益已设为 {gain} dB。',
 
   'dsp.eq.rack': '频段数',
+  'dsp.eqModel.label': '音色',
+  'dsp.eqModel.clean': '纯净',
+  'dsp.eqModel.proportional': '聚焦',
+  'dsp.eqModel.wide': '宽阔',
   'dsp.eqImport.title': '导入均衡曲线',
   'dsp.eqImport.hint':
     '粘贴来自 Squiglink、AutoEq 或 Equalizer APO 的曲线，或选择包含它的文件。',

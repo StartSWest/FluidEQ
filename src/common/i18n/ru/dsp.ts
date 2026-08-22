@@ -66,6 +66,10 @@ const dsp = {
   'dsp.eqPreset.importPreamp': 'Предусиление установлено на {gain} дБ.',
 
   'dsp.eq.rack': 'Полосы',
+  'dsp.eqModel.label': 'Характер',
+  'dsp.eqModel.clean': 'Чистый',
+  'dsp.eqModel.proportional': 'Узкий',
+  'dsp.eqModel.wide': 'Широкий',
   'dsp.eqImport.title': 'Импорт кривой эквалайзера',
   'dsp.eqImport.hint':
     'Вставьте кривую из Squiglink, AutoEq или Equalizer APO — либо выберите файл с ней.',

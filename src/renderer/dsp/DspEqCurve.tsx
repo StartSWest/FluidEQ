@@ -57,6 +57,7 @@ const DspEqCurve = ({ eq, sampleRate }: IDspEqCurveProps) => {
             quality: band.quality,
           },
           sampleRate,
+          eq.model,
         ),
       );
     const steps: string[] = [];

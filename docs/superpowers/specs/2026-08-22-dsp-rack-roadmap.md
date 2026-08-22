@@ -69,16 +69,23 @@ FluidEQ has the most reason to get right.
   problem is now measured rather than assumed, which changes how urgent it is.
   `dspBiquad.test.ts` records what the plain cookbook actually does at 44.1 kHz:
 
-  | Case                                                  | Drift               |
-  | ----------------------------------------------------- | ------------------- |
-  | 1 kHz bell, symmetry an octave either side            | 0.01 dB             |
-  | 16 kHz bell, same measure                             | **0.60 dB**         |
-  | 16 kHz high shelf asked for +6 dB, measured at 20 kHz | **delivers 3–6 dB** |
+  | Case                                                  | Drift          |
+  | ----------------------------------------------------- | -------------- |
+  | 1 kHz bell, symmetry an octave either side            | 0.01 dB        |
+  | 16 kHz bell, symmetry an octave either side           | **0.60 dB**    |
+  | 16 kHz high shelf asked for +6 dB, measured at 20 kHz | 5.92 dB — fine |
 
-  The bell is off by well under a decibel — real, and smaller than this
-  document first claimed. **The shelf is the case that hurts**, because the
-  cookbook forces the response flat at Nyquist and a shelf placed high has
-  nowhere left to rise. Correction should be aimed there first.
+  **The shelf row used to read "delivers 3–6 dB" and that was wrong.** It was
+  reading the shelf's own corner frequency — where a shelf is _defined_ to be
+  half its gain — as a shortfall. Measured again directly: at 44.1 kHz a 16 kHz
+  shelf asked for +6 dB delivers 5.92 at 20 kHz and a full 6 at Nyquist, and
+  48 kHz behaves the same. There is nothing there to correct.
+
+  What genuinely is squeezed is the **bell's upper skirt**: at 16 kHz the octave
+  below carries 0.6 dB of a +6 boost while the octave above carries 0.03. That
+  asymmetry is what cramping means here. An "analog matched" model was written
+  against the old claim, measured, and deleted rather than shipped as a placebo
+  — the correction moved the result by hundredths of a decibel.
 
 - **Optional linear phase** via FFT convolution, using the machinery already in
   `src/main/convolution.ts`. Pre-ringing is the trade and the UI must say so.

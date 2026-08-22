@@ -65,6 +65,10 @@ const dsp = {
   'dsp.eqPreset.importPreamp': 'プリアンプを {gain} dB に設定しました。',
 
   'dsp.eq.rack': 'バンド数',
+  'dsp.eqModel.label': 'キャラクター',
+  'dsp.eqModel.clean': 'クリーン',
+  'dsp.eqModel.proportional': 'フォーカス',
+  'dsp.eqModel.wide': 'ワイド',
   'dsp.eqImport.title': 'EQ カーブを読み込む',
   'dsp.eqImport.hint':
     'Squiglink、AutoEq、Equalizer APO のカーブを貼り付けるか、そのファイルを選んでください。',

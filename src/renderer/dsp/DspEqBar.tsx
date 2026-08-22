@@ -8,8 +8,10 @@ import { useState } from 'react';
 import { fromApoText, toApoText } from '../../common/dsp/apoEqFormat';
 import {
   DSP_DEFAULTS,
+  EQ_MODELS,
   EQ_RACK_SIZES,
   IEqSettings,
+  TEqModel,
   buildEqRack,
 } from '../../common/dsp/chain';
 import { rackMatchingCurveOf } from './rack';
@@ -63,7 +65,12 @@ const DspEqBar = ({ eq, sampleRate, onChange, onCommit }: IDspEqBarProps) => {
       // Untouched: the rack size is a resolution, not an edit, so the curve
       // somebody authored stays the reference for every later size.
       sourceBands: source,
-      bands: rackMatchingCurveOf(buildEqRack(count), source, sampleRate),
+      bands: rackMatchingCurveOf(
+        buildEqRack(count),
+        source,
+        sampleRate,
+        eq.model,
+      ),
     });
     onCommit();
   };
@@ -89,7 +96,7 @@ const DspEqBar = ({ eq, sampleRate, onChange, onCommit }: IDspEqBarProps) => {
       // afterwards reads the preset at full detail rather than reading back
       // whatever the current rack could hold of it.
       sourceBands: asFifteen,
-      bands: rackMatchingCurveOf(eq.bands, asFifteen, sampleRate),
+      bands: rackMatchingCurveOf(eq.bands, asFifteen, sampleRate, eq.model),
     });
     onCommit();
   };
@@ -179,6 +186,27 @@ const DspEqBar = ({ eq, sampleRate, onChange, onCommit }: IDspEqBarProps) => {
             display: size,
           }))}
           handleChange={applyRack}
+        />
+      </div>
+
+      {/* The same curve through different machinery. Sits beside the rack size
+          because both change how the dials below are rendered rather than what
+          they are set to. */}
+      <div className="dsp-eq-preset dsp-eq-model">
+        <span className="dsp-eq-preset-label">{t('dsp.eqModel.label')}</span>
+        <Dropdown
+          name={t('dsp.eqModel.label')}
+          value={eq.model}
+          isDisabled={false}
+          options={EQ_MODELS.map((model) => ({
+            value: model,
+            label: t(`dsp.eqModel.${model}` as TranslationKey),
+            display: t(`dsp.eqModel.${model}` as TranslationKey),
+          }))}
+          handleChange={(next: string) => {
+            onChange({ ...eq, model: next as TEqModel });
+            onCommit();
+          }}
         />
       </div>
 
