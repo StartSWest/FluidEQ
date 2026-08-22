@@ -90,7 +90,8 @@ const Dial = ({
 
 interface IProcessorCardProps {
   titleKey: TranslationKey;
-  descriptionKey: TranslationKey;
+  /** Omitted where the page speaks for itself — the EQ's graph does. */
+  descriptionKey?: TranslationKey;
   id: string;
   isEnabled: boolean;
   onToggle: () => void;
@@ -111,23 +112,43 @@ const ProcessorCard = ({
       className={`dsp-card${isEnabled ? ' is-active' : ''}`}
       aria-labelledby={`${id}-title`}
     >
-      <header className="dsp-card-header">
-        <Switch
-          id={id}
-          isOn={isEnabled}
-          isDisabled={false}
-          handleToggle={onToggle}
-          ariaLabel={t(titleKey)}
-        />
-        {/* The name lives on the rail, which is where it is chosen. Repeating
-            it here said the same word twice in one glance and spent the row
-            that the description now has to itself. The heading stays for
-            `aria-labelledby`, visually hidden. */}
+      {/* The description on the left, the on/off on the RIGHT.
+
+          The switch used to lead the row, which put the least-used control in
+          the position the eye reads first and left the page starting with a
+          toggle rather than with what the page is. Reading order now runs
+          description → controls → switch, and the switch sits at the end of
+          the header where a plugin's bypass button lives.
+
+          The name itself lives on the rail, which is where it is chosen; the
+          heading stays for `aria-labelledby` and is visually hidden. */}
+      <header className={`dsp-card-header${descriptionKey ? '' : ' is-bare'}`}>
         <div className="dsp-card-titles">
           <h3 className="dsp-card-title is-visually-hidden" id={`${id}-title`}>
             {t(titleKey)}
           </h3>
-          <p className="dsp-card-description">{t(descriptionKey)}</p>
+          {descriptionKey ? (
+            <p className="dsp-card-description">{t(descriptionKey)}</p>
+          ) : undefined}
+        </div>
+        {/* The switch says which state it is IN, not what pressing it does.
+            A bare toggle with no word beside it leaves the user reading a
+            colour, and on a rack where four of these sit behind four pages
+            that is a guess every time. */}
+        <div className="dsp-card-power">
+          <span
+            className={`dsp-card-power-label${isEnabled ? ' is-on' : ''}`}
+            aria-hidden="true"
+          >
+            {isEnabled ? t('dsp.enabled') : t('dsp.bypassed')}
+          </span>
+          <Switch
+            id={id}
+            isOn={isEnabled}
+            isDisabled={false}
+            handleToggle={onToggle}
+            ariaLabel={t(titleKey)}
+          />
         </div>
       </header>
       <div className="dsp-card-body">{children}</div>
@@ -232,7 +253,6 @@ const DspPanel = ({
             <ProcessorCard
               id="dsp-eq"
               titleKey="dsp.eq.title"
-              descriptionKey="dsp.eq.description"
               isEnabled={eq.enabled}
               onToggle={() => patch({ eq: { ...eq, enabled: !eq.enabled } })}
             >

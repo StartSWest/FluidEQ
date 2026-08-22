@@ -138,7 +138,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .dsp-card-header {
   display: flex;
   align-items: flex-start;
-  gap: 10px;
+  justify-content: space-between;
+  gap: 16px;
 }
 
 .dsp-card-titles {
@@ -448,4 +449,55 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 .dsp-eq-strip .button.small {
   align-self: center;
+}
+
+// The preset picker, top-left of the page: it is the fastest way to change
+// everything below it, so it reads first.
+.dsp-eq-bar {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: flex-end;
+  gap: 14px;
+}
+
+.dsp-eq-preset {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 190px;
+}
+
+// Nothing on the left means nothing to make room for. Without this the empty
+// title box still claimed a line and left a band of dead space above the
+// controls.
+.dsp-card-header.is-bare {
+  align-items: center;
+  min-height: 0;
+}
+
+.dsp-card-header.is-bare .dsp-card-titles {
+  display: none;
+}
+
+// The switch says which state it is IN. A bare toggle leaves the user reading
+// a colour, and across four processors behind four pages that is a guess every
+// time.
+.dsp-card-power {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 9px;
+  margin-left: auto;
+}
+
+.dsp-card-power-label {
+  color: rgba($white, 0.4);
+  font-size: 0.66rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  transition: color 140ms ease;
+}
+
+.dsp-card-power-label.is-on {
+  color: $secondary-default;
 }

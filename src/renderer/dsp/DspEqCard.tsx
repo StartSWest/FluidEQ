@@ -17,6 +17,7 @@ import { useTranslation } from '../utils/I18nContext';
 import Dropdown from '../widgets/Dropdown';
 import DspEqGraph from './DspEqGraph';
 import DspFilterShapeIcon from './DspFilterShapeIcon';
+import { EQ_PRESETS, isCompleteEqPreset } from '../../common/dsp/eqPresets';
 
 const BAND_TYPES: { type: FilterTypeEnum; labelKey: TranslationKey }[] = [
   { type: FilterTypeEnum.PK, labelKey: 'dsp.eq.type.peak' },
@@ -58,16 +59,62 @@ const DspEqCard = ({ eq, sampleRate, onChange, onCommit }: IDspEqCardProps) => {
   const fallback = DSP_DEFAULTS.eq.bands[selected] ?? DSP_DEFAULTS.eq.bands[0];
   const isFlat = NO_GAIN.has(band.type);
 
-  const patchBand = (index: number, next: Partial<IEqBandSettings>) =>
+  const patchBand = (index: number, next: Partial<IEqBandSettings>) => {
+    // Any hand-made change means the curve is no longer the preset it came
+    // from, and the dropdown must stop claiming otherwise.
+
     onChange({
       ...eq,
+      // Any hand-made change means the curve is no longer the preset it came
+      // from, and the picker must stop claiming otherwise.
+      presetId: '',
       bands: eq.bands.map((one, at) =>
         at === index ? { ...one, ...next } : one,
       ),
     });
+  };
+
+  const applyPreset = (id: string) => {
+    const chosen = EQ_PRESETS.find((one) => one.id === id);
+    if (!chosen || !isCompleteEqPreset(chosen)) {
+      return;
+    }
+
+    // Gains only. A preset that also reset frequency, Q and shape would
+    // silently throw away a band the user had moved somewhere on purpose.
+    onChange({
+      ...eq,
+      presetId: id,
+      // Gains only. A preset that also reset frequency, Q and shape would
+      // silently throw away a band the user had moved somewhere on purpose.
+      bands: eq.bands.map((one, index) => ({
+        ...one,
+        gainDb: chosen.gains[index],
+      })),
+    });
+    onCommit();
+  };
 
   return (
     <div className="dsp-eq">
+      <div className="dsp-eq-bar">
+        <div className="dsp-eq-preset">
+          <span className="dsp-eq-field-label">{t('dsp.eqPreset.label')}</span>
+          <Dropdown
+            name={t('dsp.eqPreset.label')}
+            value={eq.presetId}
+            isDisabled={false}
+            noSelectionPlaceholder={t('dsp.eqPreset.custom')}
+            options={EQ_PRESETS.map((one) => ({
+              value: one.id,
+              label: t(one.labelKey as TranslationKey),
+              display: t(one.labelKey as TranslationKey),
+            }))}
+            handleChange={applyPreset}
+          />
+        </div>
+      </div>
+
       <DspEqGraph
         eq={eq}
         sampleRate={sampleRate}
