@@ -193,14 +193,8 @@ const DspEqCard = ({ eq, sampleRate, onChange, onCommit }: IDspEqCardProps) => {
         </div>
 
         <div className="dsp-eq-strip">
-          {/* Label UNDER the control, because every knob beside it puts its
-              name under the dial. With the name on top this one box was built
-              upside down relative to its neighbours, so no amount of aligning
-              the row could line them up: centring matched the boxes and left
-              the controls staggered, and bottom-aligning matched the floor and
-              left the short ones looking dropped. Same order, and they line up
-              on both. */}
           <div className="dsp-eq-shape">
+            <span className="dsp-eq-field-label">{t('dsp.eq.shape')}</span>
             <Dropdown
               name={t('dsp.eq.shape')}
               value={band.type}
@@ -220,7 +214,6 @@ const DspEqCard = ({ eq, sampleRate, onChange, onCommit }: IDspEqCardProps) => {
                 onCommit();
               }}
             />
-            <span className="dsp-eq-field-label">{t('dsp.eq.shape')}</span>
           </div>
 
           <LabelledKnob

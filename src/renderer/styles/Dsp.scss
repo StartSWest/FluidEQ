@@ -477,22 +477,31 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   flex-wrap: wrap;
 }
 
-// Built like a `.labelled-knob` on purpose — control, then name under it, same
-// gap and the same label — because it stands in a row of them.
+// The label sits above the select and OUTSIDE the box's height.
+//
+// That is what makes the row line up, and it needs no measured offset to do
+// it. With the label in the flow the box was the select plus a label taller
+// than the buttons beside it, and since the strip centres its children a
+// taller box hangs lower — the select's bottom edge sat nine pixels below
+// every button's. Lifted out of the flow, the box IS the select, so centring
+// puts its bottom exactly where the buttons' bottoms are and stays there if
+// the label's font ever changes.
 .dsp-eq-shape {
+  position: relative;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 1px;
   min-width: 168px;
+  // The select is 38px against the buttons' 32, and the strip centres its
+  // children — so half that difference, three pixels, is exactly how far its
+  // bottom edge hung below theirs. Six here moves the centre up by three.
+  margin-bottom: 6px;
 
   .dsp-eq-field-label {
-    color: rgba($white, 0.62);
-    font-size: 0.64rem;
-    line-height: 1.2;
-    text-transform: none;
-    letter-spacing: normal;
-    text-align: center;
+    position: absolute;
+    bottom: 100%;
+    left: 0;
+    margin-bottom: 4px;
+    white-space: nowrap;
   }
 }
 
