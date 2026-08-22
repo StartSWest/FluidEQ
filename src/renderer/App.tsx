@@ -1820,12 +1820,19 @@ const AppContent = () => {
                 className="workspace-tab-panel workspace-tab-panel--dsp"
               >
                 {eqGroupPills}
-                <DspPanel
-                  settings={dspSettings}
-                  onChange={applyDspSettings}
-                  onCommit={persistDspSettings}
-                  engineState={dspEngineState}
-                />
+                {/* The scroll wrapper every other tab in this group has, and
+                    the reason this one had no scrollbar: the pills are a
+                    sibling of the page, so without a box around the page
+                    itself the panel had two children and grew past its column
+                    instead of scrolling one of them. */}
+                <div className="workspace-tab-panel__scroll">
+                  <DspPanel
+                    settings={dspSettings}
+                    onChange={applyDspSettings}
+                    onCommit={persistDspSettings}
+                    engineState={dspEngineState}
+                  />
+                </div>
               </div>
             )}
             {/* No engine-disabled state, unlike every panel above it.

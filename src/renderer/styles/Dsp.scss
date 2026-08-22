@@ -169,35 +169,27 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   flex-wrap: wrap;
 }
 
-// One fader column: the slider, its readout, and the name under both.
+// One dial: the knob and the name under it.
 //
-// A fixed width rather than a flexible one. These are faders, and a fader that
-// changes width with the window stops being somewhere the hand knows to go —
-// the equaliser's own bands are fixed for the same reason.
-.dsp-fader {
+// Width matches `.knob`'s own 78px rather than being flexible. These are
+// knobs, and one that changes size with the window stops being somewhere the
+// hand knows to reach — the same reason the equaliser's bands are fixed.
+.dsp-dial {
   display: flex;
   flex: 0 0 auto;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
-  width: 72px;
+  gap: 1px;
+  width: 78px;
 }
 
-.dsp-fader-label {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+.dsp-dial-label {
   color: rgba($white, 0.62);
   font-size: 0.64rem;
-  line-height: 1.25;
+  line-height: 1.2;
   text-align: center;
   // Two-word labels wrap rather than widen the column and push the row apart.
   overflow-wrap: anywhere;
-}
-
-.dsp-fader-unit {
-  color: rgba($white, 0.35);
-  font-size: 0.6rem;
 }
 
 // The compressor's two split points sit apart from the bands they define, with
@@ -213,7 +205,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 .dsp-band {
   display: flex;
-  flex: 1 1 260px;
+  flex: 1 1 420px;
   flex-direction: column;
   gap: 6px;
   min-width: 0;
@@ -230,14 +222,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   letter-spacing: 0.09em;
 }
 
-.dsp-band-faders {
+.dsp-band-dials {
   display: flex;
-  gap: 6px;
+  gap: 2px;
   flex-wrap: wrap;
-}
-
-// Narrower inside a band: five faders have to fit a column that three cards
-// share across the width of the panel.
-.dsp-band .dsp-fader {
-  width: 62px;
 }
