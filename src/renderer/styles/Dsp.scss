@@ -205,104 +205,247 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   flex-wrap: wrap;
 }
 
-// The EQ card: the response above, the six bands under it.
-.dsp-eq {
+// One processor gets the page; the rail down the side chooses which.
+.dsp-body {
   display: flex;
-  flex: 1 1 100%;
-  flex-direction: column;
-  gap: 10px;
-  min-width: 0;
+  flex: 1 1 auto;
+  gap: 14px;
+  min-height: 0;
 }
 
-// Drawn from the coefficients, so what is on screen is what the filters do —
-// including the drift near Nyquist that `dspBiquad.test.ts` measures. A display
-// that drew the request instead would be flattering exactly where the filter
-// is least accurate.
-.dsp-eq-curve {
-  width: 100%;
-  height: 132px;
-  border: 1px solid rgba($white, 0.06);
-  border-radius: 8px;
-  background: rgba($black, 0.22);
-}
-
-.dsp-eq-curve__zero {
-  stroke: rgba($white, 0.16);
-  stroke-width: 1;
-}
-
-.dsp-eq-curve__grid {
-  stroke: rgba($white, 0.07);
-  stroke-width: 1;
-}
-
-.dsp-eq-curve__path {
-  fill: none;
-  stroke: $secondary-default;
-  stroke-width: 2;
-  // The viewBox is stretched to the card's width, which would stretch the
-  // stroke with it. This keeps the line the same weight at every panel size.
-  vector-effect: non-scaling-stroke;
-}
-
-.dsp-eq-bands {
+// In signal order, top to bottom, and not reorderable: the rail reads as the
+// chain rather than as a menu.
+.dsp-rail {
   display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.dsp-eq-band {
-  display: flex;
-  flex: 1 1 250px;
+  flex: 0 0 auto;
   flex-direction: column;
   gap: 4px;
-  min-width: 0;
-  padding: 8px 8px 4px;
-  border: 1px solid rgba($white, 0.05);
+  width: 168px;
+}
+
+.dsp-rail-tab {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 9px 11px;
+  border: 1px solid transparent;
   border-radius: 9px;
-  background: rgba($black, 0.16);
-}
+  background: rgba($primary-light, 0.2);
+  color: rgba($white, 0.62);
+  font-size: 0.78rem;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background 140ms ease,
+    color 140ms ease,
+    border-color 140ms ease;
 
-// A disabled band recedes but keeps its controls readable: it has to be
-// possible to set a band up before switching it in.
-.dsp-eq-band.is-off {
-  opacity: 0.55;
-}
-
-.dsp-eq-band-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 6px;
-}
-
-.dsp-eq-band-type {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  min-width: 0;
-
-  select {
-    min-width: 0;
-    padding: 2px 4px;
-    border: 1px solid rgba($white, 0.1);
-    border-radius: 5px;
-    background: rgba($primary-dark, 0.6);
-    color: rgba($white, 0.82);
-    font-size: 0.68rem;
+  &:hover {
+    background: rgba($primary-light, 0.34);
+    color: rgba($white, 0.86);
   }
 }
 
-.dsp-eq-band-index {
+.dsp-rail-tab.is-active {
+  border-color: rgba($secondary-default, 0.4);
+  background: rgba($secondary-default, 0.12);
+  color: $white;
+}
+
+.dsp-rail-step {
   flex: 0 0 auto;
-  width: 16px;
-  color: rgba($white, 0.4);
+  width: 17px;
+  color: rgba($white, 0.32);
   font-size: 0.66rem;
   text-align: center;
 }
 
-.dsp-eq-band-dials {
+.dsp-rail-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// The processor's own on/off, not the selection. Reading which of these are
+// doing something has to be possible without visiting each one.
+.dsp-rail-lamp {
+  flex: 0 0 auto;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: rgba($white, 0.14);
+  transition: background 140ms ease;
+}
+
+.dsp-rail-tab.is-on .dsp-rail-lamp {
+  background: $secondary-default;
+  box-shadow: 0 0 6px rgba($secondary-default, 0.75);
+}
+
+.dsp-stage {
   display: flex;
-  gap: 2px;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.dsp-stage .dsp-card {
+  flex: 1 1 auto;
+}
+
+.dsp-eq {
+  display: flex;
+  flex: 1 1 100%;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+// The control, not a picture beside one. Handles are dragged directly, which
+// is the gesture every parametric EQ uses.
+//
+// A canvas, not an SVG: one DOM node instead of twenty-odd rebuilt on every
+// pixel of a drag, and sized in real pixels so a circle stays a circle. The
+// SVG version stretched a fixed viewBox to the panel and every handle came
+// out an ellipse with the labels squashed to match.
+.dsp-eq-graph {
+  display: block;
+  width: 100%;
+  height: 300px;
+  border: 1px solid rgba($white, 0.07);
+  border-radius: 10px;
+  background:
+    radial-gradient(
+      120% 100% at 50% 0%,
+      rgba($secondary-darker, 0.12) 0%,
+      transparent 70%
+    ),
+    rgba($black, 0.26);
+  touch-action: none;
+}
+
+// Present for `aria-labelledby` and gone from the page: the rail already
+// names the processor, and saying it twice in one glance wasted the row the
+// description now has.
+.dsp-card-title.is-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+// Wide enough for the longest processor name in every locale — German's
+// "Multiband-Kompressor" is the one that sets it — so the rail never ends in
+// an ellipsis the user has to guess at.
+.dsp-rail {
+  width: 200px;
+}
+
+.dsp-rail-name {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+  line-height: 1.2;
+}
+
+// The band numbers, centred under the graph and reading left to right in the
+// same order the bands sit on it. Fifteen fixed-width cells fit one row at any
+// panel width, so the strip never wraps into a block.
+.dsp-eq-picker {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 5px;
   justify-content: center;
+}
+
+.dsp-eq-pick {
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 1px solid rgba($white, 0.09);
+  border-radius: 7px;
+  background: rgba($primary-light, 0.28);
+  color: rgba($white, 0.55);
+  font-size: 0.7rem;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    background 130ms ease,
+    color 130ms ease,
+    border-color 130ms ease;
+
+  &:hover {
+    background: rgba($primary-light, 0.45);
+    color: rgba($white, 0.85);
+  }
+}
+
+.dsp-eq-pick.is-active {
+  border-color: rgba($secondary-default, 0.65);
+  background: rgba($secondary-default, 0.22);
+  color: $white;
+}
+
+.dsp-eq-pick.is-off {
+  opacity: 0.4;
+}
+
+// One row, centred: the selected band's controls and nothing else. Centring
+// is the point — the strip belongs to the graph above it, not to an edge.
+.dsp-eq-strip {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 18px;
+  padding: 10px 14px;
+  border: 1px solid rgba($white, 0.06);
+  border-radius: 10px;
+  background: rgba($black, 0.18);
+  flex-wrap: wrap;
+}
+
+.dsp-eq-shape {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-self: center;
+  min-width: 168px;
+}
+
+.dsp-eq-field-label {
+  color: rgba($white, 0.42);
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+
+// The shape drawn beside its name: for anyone who has used an EQ the picture
+// IS the name, and the word is for everyone else.
+.dsp-shape-option {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.dsp-shape-icon {
+  flex: 0 0 auto;
+
+  path {
+    fill: none;
+    stroke: currentcolor;
+    stroke-width: 1.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    opacity: 0.85;
+  }
+}
+
+.dsp-eq-strip .button.small {
+  align-self: center;
 }

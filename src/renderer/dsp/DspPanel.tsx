@@ -4,7 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { ReactNode } from 'react';
+import { ReactNode, useState } from 'react';
 import {
   DSP_DEFAULTS,
   IBandSettings,
@@ -15,6 +15,7 @@ import { DSP_PRESETS } from '../../common/dsp/presets';
 import { TranslationKey } from '../../common/i18n/en';
 import LabelledKnob from '../components/LabelledKnob';
 import DspEqCard from './DspEqCard';
+import DspSideTabs, { TDspSection } from './DspSideTabs';
 import { useTranslation } from '../utils/I18nContext';
 import Switch from '../widgets/Switch';
 import { TDspEngineState, useDspSampleRate } from './store';
@@ -118,8 +119,12 @@ const ProcessorCard = ({
           handleToggle={onToggle}
           ariaLabel={t(titleKey)}
         />
+        {/* The name lives on the rail, which is where it is chosen. Repeating
+            it here said the same word twice in one glance and spent the row
+            that the description now has to itself. The heading stays for
+            `aria-labelledby`, visually hidden. */}
         <div className="dsp-card-titles">
-          <h3 className="dsp-card-title" id={`${id}-title`}>
+          <h3 className="dsp-card-title is-visually-hidden" id={`${id}-title`}>
             {t(titleKey)}
           </h3>
           <p className="dsp-card-description">{t(descriptionKey)}</p>
@@ -156,6 +161,9 @@ const DspPanel = ({
    * would hide the one error the display is for.
    */
   const sampleRate = useDspSampleRate();
+  // Which processor has the page. Local state: it is where the user is
+  // looking, not part of the chain, and nothing outside this panel needs it.
+  const [section, setSection] = useState<TDspSection>('eq');
 
   const patch = (next: Partial<IDspSettings>) =>
     onChange(clampDspSettings({ ...settings, ...next }));
@@ -207,245 +215,276 @@ const DspPanel = ({
         ) : undefined}
       </header>
 
-      <div className="dsp-rack">
-        <ProcessorCard
-          id="dsp-eq"
-          titleKey="dsp.eq.title"
-          descriptionKey="dsp.eq.description"
-          isEnabled={eq.enabled}
-          onToggle={() => patch({ eq: { ...eq, enabled: !eq.enabled } })}
-        >
-          <DspEqCard
-            eq={eq}
-            sampleRate={sampleRate}
-            onChange={(next) => patch({ eq: next })}
-            onCommit={onCommit}
-          />
-        </ProcessorCard>
+      <div className="dsp-body">
+        <DspSideTabs
+          active={section}
+          onSelect={setSection}
+          enabled={{
+            eq: eq.enabled,
+            exciter: exciter.enabled,
+            compressor: compressor.enabled,
+            maximizer: maximizer.enabled,
+          }}
+        />
 
-        <ProcessorCard
-          id="dsp-exciter"
-          titleKey="dsp.exciter.title"
-          descriptionKey="dsp.exciter.description"
-          isEnabled={exciter.enabled}
-          onToggle={() =>
-            patch({ exciter: { ...exciter, enabled: !exciter.enabled } })
-          }
-        >
-          <Dial
-            labelKey="dsp.exciter.crossover"
-            value={exciter.crossoverHz}
-            defaultValue={DSP_DEFAULTS.exciter.crossoverHz}
-            min={1_000}
-            max={12_000}
-            unit="Hz"
-            step={100}
-            isDisabled={!exciter.enabled}
-            onCommit={onCommit}
-            onChange={(crossoverHz) =>
-              patch({ exciter: { ...exciter, crossoverHz } })
-            }
-          />
-          <Dial
-            labelKey="dsp.exciter.drive"
-            value={exciter.drive}
-            defaultValue={DSP_DEFAULTS.exciter.drive}
-            min={1}
-            max={10}
-            unit=""
-            step={0.1}
-            isDisabled={!exciter.enabled}
-            onCommit={onCommit}
-            onChange={(drive) => patch({ exciter: { ...exciter, drive } })}
-          />
-          <Dial
-            labelKey="dsp.exciter.mix"
-            value={exciter.mix}
-            defaultValue={DSP_DEFAULTS.exciter.mix}
-            min={0}
-            max={1}
-            unit=""
-            step={0.01}
-            isDisabled={!exciter.enabled}
-            onCommit={onCommit}
-            onChange={(mix) => patch({ exciter: { ...exciter, mix } })}
-          />
-        </ProcessorCard>
+        <div className="dsp-stage">
+          {section === 'eq' && (
+            <ProcessorCard
+              id="dsp-eq"
+              titleKey="dsp.eq.title"
+              descriptionKey="dsp.eq.description"
+              isEnabled={eq.enabled}
+              onToggle={() => patch({ eq: { ...eq, enabled: !eq.enabled } })}
+            >
+              <DspEqCard
+                eq={eq}
+                sampleRate={sampleRate}
+                onChange={(next) => patch({ eq: next })}
+                onCommit={onCommit}
+              />
+            </ProcessorCard>
+          )}
 
-        <ProcessorCard
-          id="dsp-compressor"
-          titleKey="dsp.compressor.title"
-          descriptionKey="dsp.compressor.description"
-          isEnabled={compressor.enabled}
-          onToggle={() =>
-            patch({
-              compressor: { ...compressor, enabled: !compressor.enabled },
-            })
-          }
-        >
-          <div className="dsp-crossovers">
-            <Dial
-              labelKey="dsp.compressor.crossoverLow"
-              value={compressor.crossoverHz[0]}
-              defaultValue={DSP_DEFAULTS.compressor.crossoverHz[0]}
-              min={60}
-              max={600}
-              unit="Hz"
-              step={10}
-              isDisabled={!compressor.enabled}
-              onCommit={onCommit}
-              onChange={(low) =>
+          {section === 'exciter' && (
+            <ProcessorCard
+              id="dsp-exciter"
+              titleKey="dsp.exciter.title"
+              descriptionKey="dsp.exciter.description"
+              isEnabled={exciter.enabled}
+              onToggle={() =>
+                patch({ exciter: { ...exciter, enabled: !exciter.enabled } })
+              }
+            >
+              <Dial
+                labelKey="dsp.exciter.crossover"
+                value={exciter.crossoverHz}
+                defaultValue={DSP_DEFAULTS.exciter.crossoverHz}
+                min={1_000}
+                max={12_000}
+                unit="Hz"
+                step={100}
+                isDisabled={!exciter.enabled}
+                onCommit={onCommit}
+                onChange={(crossoverHz) =>
+                  patch({ exciter: { ...exciter, crossoverHz } })
+                }
+              />
+              <Dial
+                labelKey="dsp.exciter.drive"
+                value={exciter.drive}
+                defaultValue={DSP_DEFAULTS.exciter.drive}
+                min={1}
+                max={10}
+                unit=""
+                step={0.1}
+                isDisabled={!exciter.enabled}
+                onCommit={onCommit}
+                onChange={(drive) => patch({ exciter: { ...exciter, drive } })}
+              />
+              <Dial
+                labelKey="dsp.exciter.mix"
+                value={exciter.mix}
+                defaultValue={DSP_DEFAULTS.exciter.mix}
+                min={0}
+                max={1}
+                unit=""
+                step={0.01}
+                isDisabled={!exciter.enabled}
+                onCommit={onCommit}
+                onChange={(mix) => patch({ exciter: { ...exciter, mix } })}
+              />
+            </ProcessorCard>
+          )}
+
+          {section === 'compressor' && (
+            <ProcessorCard
+              id="dsp-compressor"
+              titleKey="dsp.compressor.title"
+              descriptionKey="dsp.compressor.description"
+              isEnabled={compressor.enabled}
+              onToggle={() =>
                 patch({
-                  compressor: {
-                    ...compressor,
-                    crossoverHz: [low, compressor.crossoverHz[1]],
-                  },
+                  compressor: { ...compressor, enabled: !compressor.enabled },
                 })
               }
-            />
-            <Dial
-              labelKey="dsp.compressor.crossoverHigh"
-              value={compressor.crossoverHz[1]}
-              defaultValue={DSP_DEFAULTS.compressor.crossoverHz[1]}
-              min={1_000}
-              max={10_000}
-              unit="Hz"
-              step={100}
-              isDisabled={!compressor.enabled}
-              onCommit={onCommit}
-              onChange={(high) =>
-                patch({
-                  compressor: {
-                    ...compressor,
-                    crossoverHz: [compressor.crossoverHz[0], high],
-                  },
-                })
-              }
-            />
-          </div>
-          {compressor.bands.map((band, index) => (
-            <div className="dsp-band" key={bandLabels[index]}>
-              <span className="dsp-band-title">{t(bandLabels[index])}</span>
-              <div className="dsp-band-dials">
+            >
+              <div className="dsp-crossovers">
                 <Dial
-                  labelKey="dsp.compressor.threshold"
-                  value={band.thresholdDb}
-                  defaultValue={
-                    DSP_DEFAULTS.compressor.bands[index].thresholdDb
+                  labelKey="dsp.compressor.crossoverLow"
+                  value={compressor.crossoverHz[0]}
+                  defaultValue={DSP_DEFAULTS.compressor.crossoverHz[0]}
+                  min={60}
+                  max={600}
+                  unit="Hz"
+                  step={10}
+                  isDisabled={!compressor.enabled}
+                  onCommit={onCommit}
+                  onChange={(low) =>
+                    patch({
+                      compressor: {
+                        ...compressor,
+                        crossoverHz: [low, compressor.crossoverHz[1]],
+                      },
+                    })
                   }
-                  min={-60}
-                  max={0}
-                  unit="dB"
-                  step={0.5}
-                  isDisabled={!compressor.enabled}
-                  onCommit={onCommit}
-                  onChange={(thresholdDb) => patchBand(index, { thresholdDb })}
                 />
                 <Dial
-                  labelKey="dsp.compressor.ratio"
-                  value={band.ratio}
-                  defaultValue={DSP_DEFAULTS.compressor.bands[index].ratio}
-                  min={1}
-                  max={20}
-                  unit=":1"
-                  step={0.1}
+                  labelKey="dsp.compressor.crossoverHigh"
+                  value={compressor.crossoverHz[1]}
+                  defaultValue={DSP_DEFAULTS.compressor.crossoverHz[1]}
+                  min={1_000}
+                  max={10_000}
+                  unit="Hz"
+                  step={100}
                   isDisabled={!compressor.enabled}
                   onCommit={onCommit}
-                  onChange={(ratio) => patchBand(index, { ratio })}
-                />
-                <Dial
-                  labelKey="dsp.compressor.attack"
-                  value={band.attackMs}
-                  defaultValue={DSP_DEFAULTS.compressor.bands[index].attackMs}
-                  min={0.1}
-                  max={200}
-                  unit="ms"
-                  step={0.1}
-                  isDisabled={!compressor.enabled}
-                  onCommit={onCommit}
-                  onChange={(attackMs) => patchBand(index, { attackMs })}
-                />
-                <Dial
-                  labelKey="dsp.compressor.release"
-                  value={band.releaseMs}
-                  defaultValue={DSP_DEFAULTS.compressor.bands[index].releaseMs}
-                  min={5}
-                  max={2_000}
-                  unit="ms"
-                  step={5}
-                  isDisabled={!compressor.enabled}
-                  onCommit={onCommit}
-                  onChange={(releaseMs) => patchBand(index, { releaseMs })}
-                />
-                <Dial
-                  labelKey="dsp.compressor.makeup"
-                  value={band.makeupDb}
-                  defaultValue={DSP_DEFAULTS.compressor.bands[index].makeupDb}
-                  min={0}
-                  max={24}
-                  unit="dB"
-                  step={0.1}
-                  isDisabled={!compressor.enabled}
-                  onCommit={onCommit}
-                  onChange={(makeupDb) => patchBand(index, { makeupDb })}
+                  onChange={(high) =>
+                    patch({
+                      compressor: {
+                        ...compressor,
+                        crossoverHz: [compressor.crossoverHz[0], high],
+                      },
+                    })
+                  }
                 />
               </div>
-            </div>
-          ))}
-        </ProcessorCard>
+              {compressor.bands.map((band, index) => (
+                <div className="dsp-band" key={bandLabels[index]}>
+                  <span className="dsp-band-title">{t(bandLabels[index])}</span>
+                  <div className="dsp-band-dials">
+                    <Dial
+                      labelKey="dsp.compressor.threshold"
+                      value={band.thresholdDb}
+                      defaultValue={
+                        DSP_DEFAULTS.compressor.bands[index].thresholdDb
+                      }
+                      min={-60}
+                      max={0}
+                      unit="dB"
+                      step={0.5}
+                      isDisabled={!compressor.enabled}
+                      onCommit={onCommit}
+                      onChange={(thresholdDb) =>
+                        patchBand(index, { thresholdDb })
+                      }
+                    />
+                    <Dial
+                      labelKey="dsp.compressor.ratio"
+                      value={band.ratio}
+                      defaultValue={DSP_DEFAULTS.compressor.bands[index].ratio}
+                      min={1}
+                      max={20}
+                      unit=":1"
+                      step={0.1}
+                      isDisabled={!compressor.enabled}
+                      onCommit={onCommit}
+                      onChange={(ratio) => patchBand(index, { ratio })}
+                    />
+                    <Dial
+                      labelKey="dsp.compressor.attack"
+                      value={band.attackMs}
+                      defaultValue={
+                        DSP_DEFAULTS.compressor.bands[index].attackMs
+                      }
+                      min={0.1}
+                      max={200}
+                      unit="ms"
+                      step={0.1}
+                      isDisabled={!compressor.enabled}
+                      onCommit={onCommit}
+                      onChange={(attackMs) => patchBand(index, { attackMs })}
+                    />
+                    <Dial
+                      labelKey="dsp.compressor.release"
+                      value={band.releaseMs}
+                      defaultValue={
+                        DSP_DEFAULTS.compressor.bands[index].releaseMs
+                      }
+                      min={5}
+                      max={2_000}
+                      unit="ms"
+                      step={5}
+                      isDisabled={!compressor.enabled}
+                      onCommit={onCommit}
+                      onChange={(releaseMs) => patchBand(index, { releaseMs })}
+                    />
+                    <Dial
+                      labelKey="dsp.compressor.makeup"
+                      value={band.makeupDb}
+                      defaultValue={
+                        DSP_DEFAULTS.compressor.bands[index].makeupDb
+                      }
+                      min={0}
+                      max={24}
+                      unit="dB"
+                      step={0.1}
+                      isDisabled={!compressor.enabled}
+                      onCommit={onCommit}
+                      onChange={(makeupDb) => patchBand(index, { makeupDb })}
+                    />
+                  </div>
+                </div>
+              ))}
+            </ProcessorCard>
+          )}
 
-        <ProcessorCard
-          id="dsp-maximizer"
-          titleKey="dsp.maximizer.title"
-          descriptionKey="dsp.maximizer.description"
-          isEnabled={maximizer.enabled}
-          onToggle={() =>
-            patch({ maximizer: { ...maximizer, enabled: !maximizer.enabled } })
-          }
-        >
-          <Dial
-            labelKey="dsp.maximizer.ceiling"
-            value={maximizer.ceilingDb}
-            defaultValue={DSP_DEFAULTS.maximizer.ceilingDb}
-            min={-12}
-            max={0}
-            unit="dB"
-            step={0.1}
-            isDisabled={!maximizer.enabled}
-            onCommit={onCommit}
-            onChange={(ceilingDb) =>
-              patch({ maximizer: { ...maximizer, ceilingDb } })
-            }
-          />
-          <Dial
-            labelKey="dsp.maximizer.lookAhead"
-            value={maximizer.lookAheadMs}
-            defaultValue={DSP_DEFAULTS.maximizer.lookAheadMs}
-            min={0}
-            max={20}
-            unit="ms"
-            step={0.1}
-            isDisabled={!maximizer.enabled}
-            onCommit={onCommit}
-            onChange={(lookAheadMs) =>
-              patch({ maximizer: { ...maximizer, lookAheadMs } })
-            }
-          />
-          <Dial
-            labelKey="dsp.maximizer.release"
-            value={maximizer.releaseMs}
-            defaultValue={DSP_DEFAULTS.maximizer.releaseMs}
-            min={5}
-            max={1_000}
-            unit="ms"
-            step={5}
-            isDisabled={!maximizer.enabled}
-            onCommit={onCommit}
-            onChange={(releaseMs) =>
-              patch({ maximizer: { ...maximizer, releaseMs } })
-            }
-          />
-        </ProcessorCard>
+          {section === 'maximizer' && (
+            <ProcessorCard
+              id="dsp-maximizer"
+              titleKey="dsp.maximizer.title"
+              descriptionKey="dsp.maximizer.description"
+              isEnabled={maximizer.enabled}
+              onToggle={() =>
+                patch({
+                  maximizer: { ...maximizer, enabled: !maximizer.enabled },
+                })
+              }
+            >
+              <Dial
+                labelKey="dsp.maximizer.ceiling"
+                value={maximizer.ceilingDb}
+                defaultValue={DSP_DEFAULTS.maximizer.ceilingDb}
+                min={-12}
+                max={0}
+                unit="dB"
+                step={0.1}
+                isDisabled={!maximizer.enabled}
+                onCommit={onCommit}
+                onChange={(ceilingDb) =>
+                  patch({ maximizer: { ...maximizer, ceilingDb } })
+                }
+              />
+              <Dial
+                labelKey="dsp.maximizer.lookAhead"
+                value={maximizer.lookAheadMs}
+                defaultValue={DSP_DEFAULTS.maximizer.lookAheadMs}
+                min={0}
+                max={20}
+                unit="ms"
+                step={0.1}
+                isDisabled={!maximizer.enabled}
+                onCommit={onCommit}
+                onChange={(lookAheadMs) =>
+                  patch({ maximizer: { ...maximizer, lookAheadMs } })
+                }
+              />
+              <Dial
+                labelKey="dsp.maximizer.release"
+                value={maximizer.releaseMs}
+                defaultValue={DSP_DEFAULTS.maximizer.releaseMs}
+                min={5}
+                max={1_000}
+                unit="ms"
+                step={5}
+                isDisabled={!maximizer.enabled}
+                onCommit={onCommit}
+                onChange={(releaseMs) =>
+                  patch({ maximizer: { ...maximizer, releaseMs } })
+                }
+              />
+            </ProcessorCard>
+          )}
+        </div>
       </div>
     </div>
   );

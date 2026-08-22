@@ -49,14 +49,24 @@ export interface IWorkletNodeLike extends IAudioNodeLike {
   port: { postMessage(value: unknown): void };
 }
 
+export interface IAnalyserNodeLike extends IAudioNodeLike {
+  fftSize: number;
+  smoothingTimeConstant: number;
+  frequencyBinCount: number;
+  getFloatFrequencyData(target: Float32Array): void;
+}
+
 export interface IAudioGraphContext {
   sampleRate: number;
   createGain(): IGainNodeLike;
   createWaveShaper(): IShaperNodeLike;
   createBiquadFilter(): IFilterNodeLike;
+  createAnalyser(): IAnalyserNodeLike;
 }
 
 export interface IDspGraph {
+  /** The post-chain tap the EQ page draws its spectrum from. */
+  analyser: IAnalyserNodeLike;
   update(settings: IDspSettings): void;
   dispose(): void;
 }
@@ -145,11 +155,30 @@ export const buildDspGraph = (
     }
   };
 
+  /**
+   * The spectrum the EQ page draws behind its curve.
+   *
+   * Tapped AFTER the chain, so what is shown is what is heard — move a band
+   * and the spectrum moves with it. Tapping before would show the source and
+   * leave the user guessing whether their cut did anything.
+   *
+   * It is a tap, not a stage: the analyser is connected from the worklet and
+   * goes nowhere, so it observes without being in the path to the speakers.
+   */
+  const analyser = context.createAnalyser();
+  // 2048 bins across 20Hz-20kHz is about a fifth of an octave at the bottom
+  // and far finer at the top, which is plenty for a backdrop and cheap.
+  analyser.fftSize = 2_048;
+  // Fast enough to feel live, slow enough that the display is not a strobe.
+  analyser.smoothingTimeConstant = 0.8;
+
   worklet.connect(destination);
+  worklet.connect(analyser);
   worklet.port.postMessage(current);
   connectSource();
 
   return {
+    analyser,
     update(next: IDspSettings) {
       const wasEnabled = current.exciter.enabled;
       current = next;
@@ -170,6 +199,7 @@ export const buildDspGraph = (
       source.disconnect();
       teardownExciter();
       worklet.disconnect();
+      analyser.disconnect();
     },
   };
 };

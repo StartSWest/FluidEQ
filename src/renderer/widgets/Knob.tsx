@@ -97,7 +97,28 @@ const Knob = ({
 
   const position = toPosition(value);
   const clampedProgress = Math.min(100, Math.max(0, position * 100));
-  const displayValue = value < 1 ? value.toFixed(2) : value.toFixed(1);
+  /**
+   * As many digits as fit inside the dial, and no more.
+   *
+   * The face is about 40px across, which is roughly six characters of the
+   * readout's type. `toFixed(1)` on everything overflowed it the moment a
+   * value reached four digits — the EQ's Freq knob shipped reading "3778.0"
+   * with the text running out past the metal.
+   *
+   * Kilohertz above 10k, whole numbers from 1,000 up, and decimals only where
+   * the value is small enough for them to be worth reading. Nothing here is
+   * frequency-specific: a knob does not know what it is turning.
+   */
+  const displayValue = (() => {
+    const magnitude = Math.abs(value);
+    if (magnitude >= 10_000) {
+      return `${(value / 1_000).toFixed(1)}k`;
+    }
+    if (magnitude >= 1_000) {
+      return value.toFixed(0);
+    }
+    return magnitude < 1 ? value.toFixed(2) : value.toFixed(1);
+  })();
 
   const updateValue = (nextValue: number) => {
     const precision = step < 1 ? Math.ceil(-Math.log10(step)) : 0;

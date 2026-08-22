@@ -14,7 +14,12 @@ import {
   IWorkletNodeLike,
   buildDspGraph,
 } from './graph';
-import { TDspEngineState, setDspEngineState, setDspSampleRate } from './store';
+import {
+  TDspEngineState,
+  setDspAnalyser,
+  setDspEngineState,
+  setDspSampleRate,
+} from './store';
 
 /** Registered by `dspProcessor.worklet.ts`. */
 const PROCESSOR_NAME = 'fluideq-dsp';
@@ -100,9 +105,28 @@ export const useDspEngine = (
      * notice behind for a chain that was simply put away.
      */
     const teardown = (next: TDspEngineState) => {
-      graphRef.current?.dispose();
+      /**
+       * Restoring the audio comes FIRST, and everything after it is guarded.
+       *
+       * This shipped in the wrong order and cost a silent player: a typo made
+       * `setDspAnalyser` undefined, teardown threw on its very first line, and
+       * `fallBackToDirectOutput` — the one call that puts sound back after
+       * `createMediaElementSource` has captured the element — was never
+       * reached. Playback stopped dead and the transport froze with it.
+       *
+       * The lesson is the ordering, not the typo: teardown runs precisely when
+       * something has already gone wrong, so the step that rescues the audio
+       * cannot sit behind any step that might fail.
+       */
+      try {
+        graphRef.current?.dispose();
+      } catch {
+        // A half-built graph may refuse to come apart. The element still has
+        // to reach the speakers, so this is not allowed to stop that.
+      }
       graphRef.current = undefined;
       fallBackToDirectOutput();
+      setDspAnalyser(undefined);
       setActive(false);
       setDspEngineState(next);
     };
@@ -135,6 +159,7 @@ export const useDspEngine = (
         context.destination as unknown as IAudioNodeLike,
         settingsRef.current,
       );
+      setDspAnalyser(graphRef.current.analyser);
       setActive(true);
       setDspEngineState('running');
     };

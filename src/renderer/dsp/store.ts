@@ -147,6 +147,29 @@ export const readDspSampleRate = (): number => sampleRate;
 export const useDspSampleRate = (): number =>
   useSyncExternalStore(subscribe, readDspSampleRate, readDspSampleRate);
 
+/**
+ * The post-chain analyser the EQ page draws its spectrum from.
+ *
+ * A plain module value, not React state: the graph reads it inside an
+ * animation frame sixty times a second, and routing that through a render
+ * would be sixty renders a second for a canvas that repaints itself anyway.
+ *
+ * Typed loosely so nothing outside the engine imports Web Audio — jsdom has
+ * none of it, which is why the graph builder is structural too.
+ */
+export interface IDspAnalyser {
+  frequencyBinCount: number;
+  getFloatFrequencyData(target: Float32Array): void;
+}
+
+let analyser: IDspAnalyser | undefined;
+
+export const setDspAnalyser = (next: IDspAnalyser | undefined): void => {
+  analyser = next;
+};
+
+export const readDspAnalyser = (): IDspAnalyser | undefined => analyser;
+
 export const useDspSettings = (): IDspSettings =>
   useSyncExternalStore(subscribe, readDspSettings, readDspSettings);
 

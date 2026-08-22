@@ -5,7 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import '@testing-library/jest-dom';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import defaultFluidEqContext from '__tests__/utils/mockFluidEqProvider';
 import { DSP_DEFAULTS, IDspSettings } from '../../common/dsp/chain';
 import { DSP_PRESETS } from '../../common/dsp/presets';
@@ -62,15 +62,36 @@ describe('DspPanel', () => {
     expect(DSP_PRESETS).toHaveLength(3);
   });
 
-  it('names all three processors', () => {
+  /**
+   * The rail names every processor even though only one is on screen.
+   *
+   * Stacking them put four cards and forty-one knobs in front of someone who
+   * wanted to move one. The chain still has to be readable as a chain, so the
+   * rail carries all four names whichever page is open.
+   */
+  it('names every processor on the rail', () => {
     renderPanel();
-    expect(screen.getByText('Exciter')).toBeInTheDocument();
-    expect(screen.getByText('Multiband compressor')).toBeInTheDocument();
-    expect(screen.getByText('Maximizer')).toBeInTheDocument();
+    // Scoped to the rail: the band picker inside the EQ page is also labelled
+    // "Equaliser", and a document-wide query matches both.
+    const rail = within(screen.getByRole('navigation', { name: 'DSP' }));
+    ['Equaliser', 'Exciter', 'Multiband compressor', 'Maximizer'].forEach(
+      (name) => {
+        expect(
+          rail.getByRole('button', { name: new RegExp(name, 'i') }),
+        ).toBeInTheDocument();
+      },
+    );
   });
 
-  it('says the exciter invents its harmonics rather than recovering them', () => {
+  it('opens on the equaliser', () => {
     renderPanel();
+    expect(screen.getByText(/Fifteen parametric bands/i)).toBeInTheDocument();
+    expect(screen.queryByText(/invents them/i)).not.toBeInTheDocument();
+  });
+
+  it('says the exciter invents its harmonics once its page is open', () => {
+    renderPanel();
+    fireEvent.click(screen.getByRole('button', { name: /Exciter/i }));
     expect(screen.getByText(/invents them/i)).toBeInTheDocument();
   });
 
@@ -83,11 +104,11 @@ describe('DspPanel', () => {
 
   it('toggles a processor without disturbing the others', () => {
     const { onChange } = renderPanel();
-    // By role, not by label: the section heading carries the same text, and
-    // `getByLabelText` matches both.
+    fireEvent.click(screen.getByRole('button', { name: /Exciter/i }));
     fireEvent.click(screen.getByRole('checkbox', { name: 'Exciter' }));
     const next = onChange.mock.calls[0][0] as IDspSettings;
     expect(next.exciter.enabled).toBe(true);
+    expect(next.eq.enabled).toBe(false);
     expect(next.compressor.enabled).toBe(false);
     expect(next.maximizer.enabled).toBe(false);
   });
@@ -118,10 +139,29 @@ describe('DspPanel', () => {
     ).toBeInTheDocument();
   });
 
-  it('shows the three compressor bands', () => {
+  it('shows the three compressor bands on the compressor page', () => {
     renderPanel();
+    fireEvent.click(
+      screen.getByRole('button', { name: /Multiband compressor/i }),
+    );
     expect(screen.getByText('Low')).toBeInTheDocument();
     expect(screen.getByText('Mid')).toBeInTheDocument();
     expect(screen.getByText('High')).toBeInTheDocument();
+  });
+
+  /**
+   * One page at a time is the whole point of the rail.
+   *
+   * If two processors could be on screen together the stacking is back, and
+   * with it the wall of dials this replaced.
+   */
+  it('shows one processor at a time', () => {
+    renderPanel();
+    fireEvent.click(
+      screen.getByRole('button', { name: /Multiband compressor/i }),
+    );
+    expect(screen.getByText('Low')).toBeInTheDocument();
+    expect(screen.queryByText(/invents them/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Six parametric bands/i)).not.toBeInTheDocument();
   });
 });

@@ -30,6 +30,13 @@ const fakeContext = () => ({
     type: 'allpass',
     frequency: { value: 0 },
   })),
+  createAnalyser: jest.fn(() => ({
+    ...fakeNode(),
+    fftSize: 0,
+    smoothingTimeConstant: 0,
+    frequencyBinCount: 1_024,
+    getFloatFrequencyData: jest.fn(),
+  })),
 });
 
 const excited = (

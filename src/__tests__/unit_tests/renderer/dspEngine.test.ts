@@ -64,6 +64,13 @@ const installAudio = (
         type: 'allpass',
         frequency: { value: 0 },
       }),
+      createAnalyser: () => ({
+        ...node(),
+        fftSize: 0,
+        smoothingTimeConstant: 0,
+        frequencyBinCount: 1_024,
+        getFloatFrequencyData: () => undefined,
+      }),
     })),
   });
   Object.defineProperty(window, 'AudioWorkletNode', {

@@ -96,13 +96,19 @@ export interface IEqSettings {
 }
 
 /**
- * Six, fixed.
+ * Fifteen, fixed.
  *
- * Not a list the user can grow: a fixed rack of bands is what every hardware
- * EQ worth copying does, it keeps the card a predictable size, and it means
- * the stored shape never has to describe how many there were.
+ * Not a list the user can grow: a fixed rack is what every hardware EQ worth
+ * copying does, it keeps the page a predictable size, and the stored shape
+ * never has to describe how many there were.
+ *
+ * Fifteen cascaded biquads is well within budget — 15 × 2 channels × 5
+ * multiply-adds is about 7 million operations a second at 48 kHz, against a
+ * render quantum's budget of far more — and each one keeps its state in a
+ * JavaScript number, which is float64. Precision does not degrade down the
+ * chain the way it would in a 32-bit fixed-point cascade.
  */
-export const EQ_BAND_COUNT = 6;
+export const EQ_BAND_COUNT = 15;
 
 export interface IDspSettings {
   eq: IEqSettings;
@@ -164,12 +170,21 @@ const DEFAULT_BAND: IBandSettings = {
  * moved.
  */
 const DEFAULT_EQ_BANDS: readonly IEqBandSettings[] = [
-  { enabled: true, type: 'LSC', frequency: 80, gainDb: 0, quality: 0.7 },
-  { enabled: true, type: 'PK', frequency: 200, gainDb: 0, quality: 1 },
-  { enabled: true, type: 'PK', frequency: 800, gainDb: 0, quality: 1 },
-  { enabled: true, type: 'PK', frequency: 2_500, gainDb: 0, quality: 1 },
-  { enabled: true, type: 'PK', frequency: 6_000, gainDb: 0, quality: 1 },
-  { enabled: true, type: 'HSC', frequency: 12_000, gainDb: 0, quality: 0.7 },
+  { enabled: true, type: 'LSC', frequency: 32, gainDb: 0, quality: 0.7 },
+  { enabled: true, type: 'PK', frequency: 50, gainDb: 0, quality: 1.4 },
+  { enabled: true, type: 'PK', frequency: 80, gainDb: 0, quality: 1.4 },
+  { enabled: true, type: 'PK', frequency: 125, gainDb: 0, quality: 1.4 },
+  { enabled: true, type: 'PK', frequency: 200, gainDb: 0, quality: 1.4 },
+  { enabled: true, type: 'PK', frequency: 315, gainDb: 0, quality: 1.4 },
+  { enabled: true, type: 'PK', frequency: 500, gainDb: 0, quality: 1.4 },
+  { enabled: true, type: 'PK', frequency: 800, gainDb: 0, quality: 1.4 },
+  { enabled: true, type: 'PK', frequency: 1_250, gainDb: 0, quality: 1.4 },
+  { enabled: true, type: 'PK', frequency: 2_000, gainDb: 0, quality: 1.4 },
+  { enabled: true, type: 'PK', frequency: 3_150, gainDb: 0, quality: 1.4 },
+  { enabled: true, type: 'PK', frequency: 5_000, gainDb: 0, quality: 1.4 },
+  { enabled: true, type: 'PK', frequency: 8_000, gainDb: 0, quality: 1.4 },
+  { enabled: true, type: 'PK', frequency: 12_500, gainDb: 0, quality: 1.4 },
+  { enabled: true, type: 'HSC', frequency: 16_000, gainDb: 0, quality: 0.7 },
 ];
 
 export const DSP_DEFAULTS: IDspSettings = {
