@@ -210,6 +210,26 @@ export const setDspPeak = (next: number): void => {
 
 export const readDspPeak = (): number => peak;
 
+/**
+ * How much of each band is currently being applied, 0 to 1, by band index.
+ *
+ * Only dynamic bands ever report anything but 1: a static band is always fully
+ * applied, which is what makes it static. Reported rather than predicted for
+ * the same reason the phase meter is — what a dynamic band is doing depends on
+ * the material, and the settings cannot say.
+ *
+ * Without this the threshold dial had no visible effect at all. The graph drew
+ * the curve at full strength and its at-rest twin at zero, and neither of those
+ * moves when the threshold does, so the control looked broken while working.
+ */
+let bandAmounts: readonly number[] = [];
+
+export const setDspBandAmounts = (next: readonly number[]): void => {
+  bandAmounts = next;
+};
+
+export const readDspBandAmounts = (): readonly number[] => bandAmounts;
+
 export const useDspSettings = (): IDspSettings =>
   useSyncExternalStore(subscribe, readDspSettings, readDspSettings);
 

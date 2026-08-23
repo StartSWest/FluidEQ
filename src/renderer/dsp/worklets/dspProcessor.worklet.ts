@@ -134,6 +134,13 @@ class DspProcessor extends AudioWorkletProcessor {
    */
   private readonly bandDynamics: IBandDynamics[][] = [];
 
+  /** Rack positions of the enabled bands, so a report can be indexed the way
+   * the graph is rather than the way the coefficients are. */
+  private liveBandIndex: number[] = [];
+
+  /** What each band is applying, by rack position. 1 for a static band. */
+  private bandAmounts: number[] = [];
+
   /**
    * The same latency for the channel that is not being filtered.
    *
@@ -393,6 +400,13 @@ class DspProcessor extends AudioWorkletProcessor {
     // same predicate: a dynamics array indexed differently from the coefficient
     // array would apply one band's threshold to another band's audio.
     const live = eq.bands.filter((band) => band.enabled);
+    // Where each live band sits in the rack the user is looking at. The
+    // coefficient array is the enabled bands only, and the graph draws all of
+    // them, so a report indexed the first way would light up the wrong bands.
+    this.liveBandIndex = eq.bands
+      .map((band, index) => (band.enabled ? index : -1))
+      .filter((index) => index >= 0);
+    this.bandAmounts = new Array(eq.bands.length).fill(1);
     for (let slot = 0; slot < CHANNELS; slot += 1) {
       const followers = this.bandDynamics[slot] ?? [];
       while (followers.length < live.length) {
@@ -732,7 +746,21 @@ class DspProcessor extends AudioWorkletProcessor {
     // channels disagree" when nothing is playing at all.
     const correlation =
       denominator > 1e-12 ? this.sumLeftRight / denominator : 1;
-    this.port.postMessage({ correlation, peak: this.peak });
+    // The louder of the two channels: a dynamic band that engaged on one side
+    // is engaged, and reporting the average would draw it half-open when it is
+    // fully open on the side that mattered.
+    this.liveBandIndex.forEach((at, index) => {
+      const left = this.bandDynamics[0]?.[index];
+      const right = this.bandDynamics[1]?.[index];
+      this.bandAmounts[at] = left?.active
+        ? Math.max(left.amount, right?.amount ?? 0)
+        : 1;
+    });
+    this.port.postMessage({
+      correlation,
+      peak: this.peak,
+      bandAmounts: this.bandAmounts,
+    });
     this.blocksSinceReport = 0;
     this.peak = 0;
     this.sumLeftRight = 0;

@@ -17,6 +17,7 @@ import {
 import {
   TDspEngineState,
   setDspAnalyser,
+  setDspBandAmounts,
   setDspCorrelation,
   setDspEngineState,
   setDspPeak,
@@ -157,12 +158,16 @@ export const useDspEngine = (
         const data = message.data as {
           correlation?: unknown;
           peak?: unknown;
+          bandAmounts?: unknown;
         } | null;
         if (data && typeof data.correlation === 'number') {
           setDspCorrelation(data.correlation);
         }
         if (data && typeof data.peak === 'number') {
           setDspPeak(data.peak);
+        }
+        if (data && Array.isArray(data.bandAmounts)) {
+          setDspBandAmounts(data.bandAmounts as number[]);
         }
       };
       // The point of no return. Cached because a second call throws.

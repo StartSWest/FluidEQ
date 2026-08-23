@@ -9,7 +9,7 @@ import { useTranslation } from '../utils/I18nContext';
 import { FilterTypeEnum } from '../../common/constants';
 import { IEqBandSettings, IEqSettings } from '../../common/dsp/chain';
 import { biquadCoefficients, biquadMagnitudeDb } from './biquad';
-import { readDspAnalyser, readDspPeak } from './store';
+import { readDspAnalyser, readDspBandAmounts, readDspPeak } from './store';
 
 const MIN_HZ = 20;
 const MAX_HZ = 20_000;
@@ -396,11 +396,25 @@ const DspEqGraph = ({
         context.setLineDash([]);
       }
 
+      /**
+       * What each band is applying right now, as the worklet measured it.
+       *
+       * A static band is always 1. A dynamic one is somewhere between 0 and 1
+       * and moves with the material, which is the only way the threshold dial
+       * has any visible effect: the full-strength curve and the at-rest curve
+       * are both fixed, so drawing either of them alone made the control look
+       * broken while it was working.
+       */
+      const amounts = readDspBandAmounts();
+      const amountOf = (index: number): number =>
+        liveEq.bands[index]?.dynamic ? (amounts[index] ?? 0) : 1;
+
       const totalAt = (hz: number): number => {
         let total = subsonic ? biquadMagnitudeDb(subsonic, hz, rate) : 0;
-        active.forEach((coefficients) => {
+        active.forEach((coefficients, index) => {
           if (coefficients) {
-            total += biquadMagnitudeDb(coefficients, hz, designRate);
+            total +=
+              biquadMagnitudeDb(coefficients, hz, designRate) * amountOf(index);
           }
         });
         return total;
