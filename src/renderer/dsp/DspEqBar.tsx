@@ -5,7 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { useState } from 'react';
-import { fromApoText, toApoText } from '../../common/dsp/apoEqFormat';
+import { fromApoText } from '../../common/dsp/apoEqFormat';
 import {
   DSP_DEFAULTS,
   EQ_ENGINES,
@@ -37,6 +37,7 @@ import { useTranslation } from '../utils/I18nContext';
 import Dropdown from '../widgets/Dropdown';
 import SegmentedControl from '../widgets/SegmentedControl';
 import DspEqImportDialog from './DspEqImportDialog';
+import DspBarIcon from './DspBarIcon';
 import DspPresetSaveDialog from './DspPresetSaveDialog';
 import { fromPresetFile, toPresetFile } from '../../common/dsp/presetFile';
 import {
@@ -266,28 +267,6 @@ const DspEqBar = ({ eq, sampleRate, onChange, onCommit }: IDspEqBarProps) => {
   };
 
   /**
-   * Written as Equalizer APO's ParametricEQ text, which is what AutoEq,
-   * oratory1990 and every headphone correction database publishes in — so a
-   * curve made here pastes into `config.txt` and behaves identically.
-   *
-   * A blob and an anchor rather than an IPC round trip: this is a few hundred
-   * bytes the renderer already has in hand, and routing it through main would
-   * add a channel and a handler to something the platform does in three lines.
-   */
-  const handleExport = () => {
-    const url = URL.createObjectURL(
-      new Blob([toApoText(eq)], { type: 'text/plain' }),
-    );
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = 'fluideq-eq.txt';
-    link.click();
-    // The blob is held alive by the URL until it is let go, and a session of
-    // exporting would keep every one of them.
-    URL.revokeObjectURL(url);
-  };
-
-  /**
    * The rack as a file somebody else can open.
    *
    * Separate from the APO export beside it, and both are worth having: APO
@@ -488,16 +467,17 @@ const DspEqBar = ({ eq, sampleRate, onChange, onCommit }: IDspEqBarProps) => {
         </button>
       </div>
 
-      {/* Everything that acts on the preset itself, next to the picker rather
-          than by the import buttons: reset is the same control — "Default"
-          chosen without opening the list — and save, share and delete all
-          answer "what about this one". */}
+      {/* Everything that acts on the preset itself, in one group beside the
+          picker. Reset is the same control — "Default" chosen without opening
+          the list — and save, share, import and delete all answer "what about
+          this one". */}
       <div className="dsp-eq-transfer dsp-eq-reset">
         <button
           type="button"
           className="button small subtle"
           onClick={() => applyPreset(EQ_DEFAULT_PRESET_ID)}
         >
+          <DspBarIcon name="reset" />
           {t('dsp.eqPreset.reset')}
         </button>
         <button
@@ -506,6 +486,7 @@ const DspEqBar = ({ eq, sampleRate, onChange, onCommit }: IDspEqBarProps) => {
           title={t('dsp.eqSave.hint')}
           onClick={() => setIsNaming(true)}
         >
+          <DspBarIcon name="save" />
           {t('dsp.eqSave.save')}
         </button>
         <button
@@ -514,7 +495,22 @@ const DspEqBar = ({ eq, sampleRate, onChange, onCommit }: IDspEqBarProps) => {
           title={t('dsp.eqShare.hint')}
           onClick={handleShare}
         >
+          <DspBarIcon name="share" />
           {t('dsp.eqShare.share')}
+        </button>
+        {/* The other half of the same door as the button above it: one takes
+            a rack out as a file and this brings one in, and it reads either a
+            shared preset or a published APO curve. */}
+        <button
+          type="button"
+          className="button small subtle"
+          onClick={() => {
+            setNotice('');
+            setIsImporting(true);
+          }}
+        >
+          <DspBarIcon name="import" />
+          {t('dsp.eqPreset.import')}
         </button>
         {/* Only for a saved one: there is nothing to delete about a factory
             curve, and a button that is present but refuses is worse than one
@@ -525,6 +521,7 @@ const DspEqBar = ({ eq, sampleRate, onChange, onCommit }: IDspEqBarProps) => {
             className="button small subtle"
             onClick={handleDeletePreset}
           >
+            <DspBarIcon name="delete" />
             {t('dsp.eqSave.delete')}
           </button>
         )}
@@ -548,9 +545,15 @@ const DspEqBar = ({ eq, sampleRate, onChange, onCommit }: IDspEqBarProps) => {
         />
       </div>
 
-      {/* The same curve through different machinery. Sits beside the rack size
-          because both change how the dials below are rendered rather than what
-          they are set to. */}
+      {/* A deliberate break rather than wherever the width happens to run out.
+          The row above is what acts on the preset; everything below is what the
+          rack is set to, and letting those two wrap into each other made the
+          line read as one long strip of unrelated controls. */}
+      <div className="dsp-eq-bar-break" aria-hidden="true" />
+
+      {/* The same curve through different machinery. First of the settings row
+          because the character decides how every dial below is rendered rather
+          than what it is set to. */}
       <div className="dsp-eq-preset">
         <span className="dsp-eq-preset-label">{t('dsp.eqModel.label')}</span>
         <SegmentedControl
@@ -631,50 +634,30 @@ const DspEqBar = ({ eq, sampleRate, onChange, onCommit }: IDspEqBarProps) => {
       {/* Beside the engine, because the two answer the same question at
           different depths: one is how the bands are put against the audio, this
           is whether they are allowed to shift its phase at all. */}
-      <div className="dsp-eq-preset dsp-eq-model">
+      <div className="dsp-eq-preset">
         <span className="dsp-eq-preset-label">{t('dsp.eqPhase.label')}</span>
-        <Dropdown
+        <SegmentedControl
           name={t('dsp.eqPhase.label')}
           value={eq.phase}
-          isDisabled={false}
-          options={EQ_PHASE_MODES.map((phase) => {
-            // The delay is the entire cost of the mode, so it is named on the
-            // option rather than discovered afterwards.
-            const label =
+          options={EQ_PHASE_MODES.map((phase) => ({
+            value: phase,
+            label: t(`dsp.eqPhase.${phase}` as TranslationKey),
+            // The latency moved into the tooltip when this stopped being a
+            // dropdown: "Lineal (+181 ms)" is twice the width of every other
+            // segment on the row, and a row of segments that are not the same
+            // size stops reading as one control.
+            title:
               phase === 'linear'
                 ? t('dsp.eqPhase.linearLatency', {
                     ms: linearPhaseLatencyMs(sampleRate),
                   })
-                : t(`dsp.eqPhase.${phase}` as TranslationKey);
-            return { value: phase, label, display: label };
-          })}
-          handleChange={(next: string) => {
+                : undefined,
+          }))}
+          onChange={(next: string) => {
             onChange(eqEdited(eq, { phase: next as TEqPhase }));
             onCommit();
           }}
         />
-      </div>
-
-      {/* Both quiet: neither is the recommended action, they are the two
-          halves of the same door. */}
-      <div className="dsp-eq-transfer">
-        <button
-          type="button"
-          className="button small subtle"
-          onClick={() => {
-            setNotice('');
-            setIsImporting(true);
-          }}
-        >
-          {t('dsp.eqPreset.import')}
-        </button>
-        <button
-          type="button"
-          className="button small subtle"
-          onClick={handleExport}
-        >
-          {t('dsp.eqPreset.export')}
-        </button>
       </div>
 
       {notice !== '' && (

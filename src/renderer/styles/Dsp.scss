@@ -775,6 +775,38 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   min-width: 0;
 }
 
+// The glyph on a preset-row button. Sized to the text beside it rather than to
+// a grid, so the pair reads as one word with a picture in front of it.
+.dsp-bar-icon {
+  flex: 0 0 auto;
+  width: 13px;
+  height: 13px;
+  margin-right: 5px;
+
+  path {
+    fill: none;
+    stroke: currentcolor;
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+}
+
+// A button carrying a glyph has to lay its two children out; the plain ones
+// never had to.
+.dsp-eq-transfer .button.small {
+  display: inline-flex;
+  align-items: center;
+}
+
+// Forces the settings onto their own line, whatever the window width. A flex
+// item at full width fills the row it is on, so everything after it starts the
+// next one — which is the only way to say "break here" in a wrapping row.
+.dsp-eq-bar-break {
+  flex: 1 0 100%;
+  height: 0;
+}
+
 .dsp-eq-preset {
   display: flex;
   align-items: center;
@@ -820,8 +852,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   flex: 0 0 auto;
   align-items: center;
   justify-content: center;
-  width: 26px;
-  height: 30px;
+  // Full control height, so the pair sits level with the field between them
+  // rather than floating short of it.
+  width: 30px;
+  height: $control-height;
   padding: 0;
   border: 1px solid rgba($white, 0.09);
   border-radius: 7px;
