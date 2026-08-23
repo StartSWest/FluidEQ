@@ -137,6 +137,7 @@ const dsp = {
   'dsp.eq.phase': 'Phase',
   'dsp.eq.quality': 'Width',
   'dsp.eq.threshold': 'Threshold',
+  'dsp.eq.thresholdMark': 'threshold {level} dBFS',
   'dsp.eq.dynamic': 'Dynamic',
   'dsp.eq.dynamicOn': 'Dynamic ON',
   'dsp.eq.dynamicHint':

@@ -128,6 +128,7 @@ const dsp = {
   'dsp.eq.phase': '位相',
   'dsp.eq.quality': '幅',
   'dsp.eq.threshold': 'スレッショルド',
+  'dsp.eq.thresholdMark': 'しきい値 {level} dBFS',
   'dsp.eq.dynamic': 'ダイナミック',
   'dsp.eq.dynamicOn': 'ダイナミック ON',
   'dsp.eq.dynamicHint':

@@ -130,6 +130,7 @@ const dsp = {
   'dsp.eq.phase': 'Phase',
   'dsp.eq.quality': 'Breite',
   'dsp.eq.threshold': 'Schwelle',
+  'dsp.eq.thresholdMark': 'Schwelle {level} dBFS',
   'dsp.eq.dynamic': 'Dynamisch',
   'dsp.eq.dynamicOn': 'Dynamisch AN',
   'dsp.eq.dynamicHint':

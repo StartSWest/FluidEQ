@@ -11,6 +11,7 @@ import {
   isCompleteEqPreset,
 } from '../../../common/dsp/eqPresets';
 import {
+  TRIM_MARGIN_DB,
   chainPeakDb,
   eqChainPeakDb,
   withInputTrim,
@@ -94,16 +95,33 @@ describe('the EQ input regulator', () => {
     ).toBeLessThan(-6);
   });
 
-  /** A rack that only cuts needs no room made for it, and must not be trimmed
-   * up: the regulator is protection, never a loudness control. */
+  /**
+   * A rack that only cuts asks for no room in its magnitude response, and
+   * must never be trimmed UP — the regulator is protection, not a loudness
+   * control. It still carries the margin, because a filter rings whichever
+   * direction its gain points and a cut is still a filter.
+   */
   it('does not trim a curve that never boosts', () => {
     const cutOnly: IEqSettings = {
       ...DSP_DEFAULTS.eq,
       bands: DSP_DEFAULTS.eq.bands.map((band) => ({ ...band, gainDb: -4 })),
     };
+    expect(eqChainPeakDb(cutOnly, RATE)).toBe(0);
     expect(
       withInputTrim({ ...DSP_DEFAULTS, eq: cutOnly }, RATE).eq.trimDb,
-    ).toBe(0);
+    ).toBe(-TRIM_MARGIN_DB);
+  });
+
+  /**
+   * And a rack shaping nothing at all is left at exactly unity.
+   *
+   * The margin is for what filtering does to a transient, so a chain with no
+   * filtering in it has nothing to reserve against. Without this, switching
+   * the whole stage on would be audibly quieter than switching it off, which
+   * is the one thing a transparent setting must never be.
+   */
+  it('leaves a rack that shapes nothing at unity', () => {
+    expect(withInputTrim(DSP_DEFAULTS, RATE).eq.trimDb).toBe(0);
   });
 
   /**
@@ -156,7 +174,10 @@ describe('the EQ input regulator', () => {
       },
     };
     expect(chainPeakDb(compressed, RATE)).toBeCloseTo(5, 6);
-    expect(withInputTrim(compressed, RATE).eq.trimDb).toBe(-5);
+    // Five of response plus the margin, which is not part of the response.
+    expect(withInputTrim(compressed, RATE).eq.trimDb).toBe(
+      -(5 + TRIM_MARGIN_DB),
+    );
   });
 
   /** Disabled stages contribute nothing: a trim that made room for a processor

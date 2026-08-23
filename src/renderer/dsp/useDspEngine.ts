@@ -12,7 +12,7 @@ import {
   createAdaptiveHeadroom,
   excessDb,
 } from './adaptiveHeadroom';
-import { curveResponseDb } from './rack';
+import { TRIM_MARGIN_DB, curveResponseDb } from './rack';
 import {
   IAudioGraphContext,
   IAudioNodeLike,
@@ -196,7 +196,13 @@ export const useDspEngine = (
         }
         const input = graphRef.current?.inputAnalyser;
         const { eq } = settingsRef.current;
-        const reserve = -eq.trimDb;
+        // Only the part of the reserve that answers the magnitude response
+        // may be handed back. The margin above it is there for transients
+        // and for reconstruction, neither of which this measurement can see
+        // — a spectrum has no transients in it by construction — so giving
+        // it away on spectral evidence would be spending it on a promise the
+        // evidence cannot make.
+        const reserve = Math.max(0, -eq.trimDb - TRIM_MARGIN_DB);
         if (!input || !eq.enabled || !eq.adaptiveTrim || reserve <= 0) {
           // Nothing reserved is nothing to hand back, a disabled rack has no
           // curve to measure against, and a pinned one is being asked to hold

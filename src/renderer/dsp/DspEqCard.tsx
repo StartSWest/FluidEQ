@@ -20,6 +20,7 @@ import Dropdown from '../widgets/Dropdown';
 import DspEqGraph from './DspEqGraph';
 import DspFilterShapeIcon from './DspFilterShapeIcon';
 import DspPhaseMeter from './DspPhaseMeter';
+import DspDynamicReadout from './DspDynamicReadout';
 import DspTrimReadout from './DspTrimReadout';
 
 const BAND_TYPES: { type: FilterTypeEnum; labelKey: TranslationKey }[] = [
@@ -183,39 +184,47 @@ const DspEqCard = ({ eq, sampleRate, onChange, onCommit }: IDspEqCardProps) => {
           label having to. */}
       <div className="dsp-eq-bottom">
         <div className="dsp-eq-preamp">
-          <LabelledKnob
-            label={t('dsp.eq.preamp')}
-            value={eq.preampDb}
-            min={-24}
-            max={24}
-            step={0.1}
-            unit="dB"
-            defaultValue={0}
-            isDisabled={false}
-            // Deliberately does NOT clear `presetId`: the preamp is headroom,
-            // not part of the curve a preset describes, so trimming it must
-            // not make the picker claim the preset was abandoned.
-            //
-            // Nor does it switch the regulator off. The two are separate gains:
-            // the regulator makes exactly the room the curve needs and this
-            // says how much of it to spend, so zero here means the rack sits at
-            // unity and turning it up is a decision rather than an accident.
-            onChange={(preampDb) => onChange({ ...eq, preampDb })}
-            onCommit={onCommit}
-          />
-          {/* A readout, not a control: what the regulator is taking out in
-              front of the bands so the preamp beside it can start from zero.
-              Written in the dials' own grammar — figure over caption — because
-              it stands in a row of them and anything else reads as a control
-              that has lost its knob. */}
-          <DspTrimReadout
-            reservedDb={eq.trimDb}
-            isAdaptive={eq.adaptiveTrim}
-            onToggleAdaptive={() => {
-              onChange({ ...eq, adaptiveTrim: !eq.adaptiveTrim });
-              onCommit();
-            }}
-          />
+          {/* The two halves of the input gain, boxed together the way the
+              dynamic pair is. What the regulator takes and what the user
+              spends of it are one question with two dials; the four beside
+              them shape the sound and answer another. */}
+          <div className="dsp-eq-headroom">
+            <LabelledKnob
+              label={t('dsp.eq.preamp')}
+              value={eq.preampDb}
+              min={-24}
+              max={24}
+              step={0.1}
+              unit="dB"
+              defaultValue={0}
+              isDisabled={false}
+              // Deliberately does NOT clear `presetId`: the preamp is
+              // headroom, not part of the curve a preset describes, so
+              // trimming it must not make the picker claim the preset was
+              // abandoned.
+              //
+              // Nor does it switch the regulator off. The two are separate
+              // gains: the regulator makes exactly the room the curve needs
+              // and this says how much of it to spend, so zero here means the
+              // rack sits at unity and turning it up is a decision rather
+              // than an accident.
+              onChange={(preampDb) => onChange({ ...eq, preampDb })}
+              onCommit={onCommit}
+            />
+            {/* A readout, not a control: what the regulator is taking out in
+                front of the bands so the preamp beside it can start from
+                zero. Written in the dials' own grammar — figure over caption
+                — because it stands in a row of them and anything else reads
+                as a control that has lost its knob. */}
+            <DspTrimReadout
+              reservedDb={eq.trimDb}
+              isAdaptive={eq.adaptiveTrim}
+              onToggleAdaptive={() => {
+                onChange({ ...eq, adaptiveTrim: !eq.adaptiveTrim });
+                onCommit();
+              }}
+            />
+          </div>
           {/* How much of the chosen character to apply. At zero every one of
               them collapses to the plain cookbook, so this is the off switch
               as well as the dial. */}
@@ -380,22 +389,20 @@ const DspEqCard = ({ eq, sampleRate, onChange, onCommit }: IDspEqCardProps) => {
               onChange={(thresholdDb) => patchBand(active, { thresholdDb })}
               onCommit={onCommit}
             />
-            {/* Quiet whichever way it is set: reacting is not the recommended
-                state, it is a different job. The loud style would say "turn
-                this on", which is wrong for twelve of the fifteen bands. */}
-            <button
-              type="button"
-              className="button small subtle"
-              aria-pressed={band.dynamic}
-              disabled={!band.enabled}
-              title={t('dsp.eq.dynamicHint')}
-              onClick={() => {
+            {/* A live figure over the caption that decides how it is arrived
+                at, the same shape the input regulator uses — because it is the
+                same kind of question. A dynamic band is otherwise invisible:
+                the threshold sets a level nothing on screen reports, so the
+                only way to know it is set right is to watch the band. */}
+            <DspDynamicReadout
+              bandIndex={active}
+              isDynamic={band.dynamic}
+              isDisabled={!band.enabled}
+              onToggle={() => {
                 patchBand(active, { dynamic: !band.dynamic });
                 onCommit();
               }}
-            >
-              {band.dynamic ? t('dsp.eq.dynamicOn') : t('dsp.eq.dynamic')}
-            </button>
+            />
           </div>
 
           <div className="dsp-eq-insert">

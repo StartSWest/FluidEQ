@@ -124,6 +124,7 @@ const dsp = {
   'dsp.eq.phase': '相位',
   'dsp.eq.quality': '带宽',
   'dsp.eq.threshold': '阈值',
+  'dsp.eq.thresholdMark': '阈值 {level} dBFS',
   'dsp.eq.dynamic': '动态',
   'dsp.eq.dynamicOn': '动态 开',
   'dsp.eq.dynamicHint': '仅在此频段超过阈值时起作用。',

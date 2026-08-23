@@ -129,6 +129,7 @@ const dsp = {
   'dsp.eq.phase': 'Фаза',
   'dsp.eq.quality': 'Ширина',
   'dsp.eq.threshold': 'Порог',
+  'dsp.eq.thresholdMark': 'порог {level} дБFS',
   'dsp.eq.dynamic': 'Динамика',
   'dsp.eq.dynamicOn': 'Динамика ВКЛ',
   'dsp.eq.dynamicHint':

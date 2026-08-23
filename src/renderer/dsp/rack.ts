@@ -333,6 +333,32 @@ export const eqChainPeakDb = (eq: IEqSettings, sampleRate: number): number => {
  * one for a loudness control. It costs at most a decibel or two of level in
  * the case where all three stages are running at once.
  */
+/**
+ * Room beyond what the magnitude response asks for, in dB, whenever the rack
+ * is shaping at all.
+ *
+ * The response peak is a STEADY-STATE guarantee: it says no continuous tone
+ * comes out louder than it went in. It does not bound a transient. A filter
+ * rings, and a sharp edge through a bank of them can leave a sample peak above
+ * anything the magnitude plot predicts — worst in the treble, where the edges
+ * are. On top of that sits the reconstruction: a signal legal at every sample
+ * can still reconstruct above full scale between them, which is why broadcast
+ * has used a decibel of true-peak margin for decades.
+ *
+ * 1.5 dB covers both. Not applied to a rack that is not shaping anything: a
+ * flat EQ must be transparent, and taking a decibel and a half from it would
+ * make switching the whole stage on audibly quieter for no reason.
+ */
+export const TRIM_MARGIN_DB = 1.5;
+
+/** Whether anything in the chain is actually altering the signal. */
+const isShaping = (settings: IDspSettings): boolean =>
+  settings.eq.bands.some((band) => band.enabled && band.gainDb !== 0) ||
+  settings.eq.subsonicHz > 0 ||
+  settings.eq.fuzzAmount > 0 ||
+  settings.exciter.enabled ||
+  settings.compressor.enabled;
+
 export const chainPeakDb = (
   settings: IDspSettings,
   sampleRate: number,
@@ -371,7 +397,9 @@ export const withInputTrim = (
   settings: IDspSettings,
   sampleRate: number,
 ): IDspSettings => {
-  const trim = -Math.ceil(chainPeakDb(settings, sampleRate) * 10) / 10;
+  const margin = isShaping(settings) ? TRIM_MARGIN_DB : 0;
+  const trim =
+    -Math.ceil((chainPeakDb(settings, sampleRate) + margin) * 10) / 10;
   return trim === settings.eq.trimDb
     ? settings
     : { ...settings, eq: { ...settings.eq, trimDb: trim } };

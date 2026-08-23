@@ -26,7 +26,17 @@ const RANGE_DB = 18;
 const HEIGHT = 300;
 /** Insets: room for the dB scale on the left and the frequencies underneath. */
 const PAD_L = 46;
-const PAD_R = 12;
+/**
+ * Wide enough for "-90" on the right.
+ *
+ * This plot carries two scales, and only labelling one of them was a trap:
+ * the curve is in dB of GAIN and the spectrum behind it is in dBFS of LEVEL,
+ * so a threshold drawn at -60 dBFS lands where about -4 dB of gain would be
+ * and gets read as -4. Two quantities cannot share one axis — they are not
+ * the same kind of number — so the answer is the second axis, not a
+ * compromise between them.
+ */
+const PAD_R = 40;
 const PAD_T = 14;
 const PAD_B = 26;
 
@@ -55,6 +65,10 @@ const HANDLE_R = 8;
  */
 const SPECTRUM_FLOOR_DB = -96;
 const SPECTRUM_TOP_DB = -6;
+
+/** Where the level scale is marked, in dBFS. Four is enough to read a
+ * position against and few enough not to compete with the gain grid. */
+const GRID_DBFS = [-12, -36, -60, -84];
 
 /**
  * The plot's coordinate maths, at module scope.
@@ -148,7 +162,10 @@ const DspEqGraph = ({
     selected: number;
     /** The one string the canvas draws. Through the ref like everything else,
      * so switching language repaints without rebuilding the observer. */
-    t: (key: 'dsp.eq.overUnity', values: { gain: string }) => string;
+    t: (
+      key: 'dsp.eq.overUnity' | 'dsp.eq.thresholdMark',
+      values: Record<string, string>,
+    ) => string;
     redraw?: () => void;
   }>({ eq, sampleRate, selected, t });
   // Assigned field by field: replacing the object would drop `redraw`, which
@@ -169,6 +186,19 @@ const DspEqGraph = ({
   const toDb = (y: number) => yToDb(y, boxRef.current.height);
 
   useEffect(() => {
+    /**
+     * The drawn engagement of each band, eased toward what was reported.
+     *
+     * The worklet reports the PEAK engagement over its block, which is the
+     * right number for deciding anything and the wrong one for drawing: it
+     * slams between nothing and everything twenty times a second, and the
+     * curve strobed. Eased here rather than in the worklet because the audio
+     * thread must act on the peak, and only the picture wants the average.
+     *
+     * Lives in the effect, which is armed once, so it survives every frame
+     * without a ref and without allocating.
+     */
+    const drawnAmounts: number[] = [];
     const canvas = canvasRef.current;
     const context = canvas?.getContext('2d');
     if (!canvas || !context) {
@@ -228,6 +258,18 @@ const DspEqGraph = ({
         context.fillStyle = 'rgba(255,255,255,0.38)';
         context.textAlign = 'right';
         context.fillText(db > 0 ? `+${db}` : `${db}`, PAD_L - 8, y);
+      });
+
+      // The level scale, on the right and deliberately dimmer than the gain
+      // scale: the curve is what this page is for, and the spectrum is the
+      // backdrop it is being read against.
+      context.textAlign = 'left';
+      context.fillStyle = 'rgba(255,255,255,0.26)';
+      GRID_DBFS.forEach((dbfs) => {
+        const level =
+          (dbfs - SPECTRUM_FLOOR_DB) / (SPECTRUM_TOP_DB - SPECTRUM_FLOOR_DB);
+        const y = Math.round(PAD_T + plotH(H) - level * plotH(H)) + 0.5;
+        context.fillText(`${dbfs}`, PAD_L + plotW(W) + 7, y);
       });
 
       context.textAlign = 'center';
@@ -406,8 +448,16 @@ const DspEqGraph = ({
        * broken while it was working.
        */
       const amounts = readDspBandAmounts();
-      const amountOf = (index: number): number =>
-        liveEq.bands[index]?.dynamic ? (amounts[index] ?? 0) : 1;
+      liveEq.bands.forEach((one, index) => {
+        const target = one.dynamic ? (amounts[index] ?? 0) : 1;
+        const shown = drawnAmounts[index] ?? target;
+        // Opening faster than it closes, for the same reason the band itself
+        // does: arriving late on a transient reads as the feature missing it,
+        // while letting go slowly reads as the curve settling.
+        const ease = target > shown ? 0.35 : 0.12;
+        drawnAmounts[index] = shown + (target - shown) * ease;
+      });
+      const amountOf = (index: number): number => drawnAmounts[index] ?? 1;
 
       const totalAt = (hz: number): number => {
         let total = subsonic ? biquadMagnitudeDb(subsonic, hz, rate) : 0;
@@ -548,6 +598,64 @@ const DspEqGraph = ({
           translate('dsp.eq.overUnity', { gain: worst.toFixed(1) }),
           PAD_L + 8,
           PAD_T + 6,
+        );
+      }
+
+      /**
+       * The selected band’s threshold, on the spectrum’s own scale.
+       *
+       * The dial sets a level in dBFS and the curve is drawn in dB of gain,
+       * so there was nowhere on this plot for the number to appear and
+       * turning it moved nothing. The spectrum behind the curve IS in dBFS,
+       * though, and it is exactly what the detector measures — so the line
+       * belongs on that scale, against the material it is being compared to.
+       *
+       * Only as wide as the band it belongs to. Drawn across the whole plot
+       * it would claim to be a threshold for everything, and it is not: each
+       * dynamic band listens to its own passband and nothing else.
+       */
+      const picked = liveEq.bands[pick];
+      if (picked?.dynamic && picked.enabled) {
+        const level =
+          (Math.max(SPECTRUM_FLOOR_DB, picked.thresholdDb) -
+            SPECTRUM_FLOOR_DB) /
+          (SPECTRUM_TOP_DB - SPECTRUM_FLOOR_DB);
+        const y = PAD_T + plotH(H) - level * plotH(H);
+        // The half-power edges: the octave span either side of centre that a
+        // bell of this Q actually hears.
+        const spread = 2 ** (1 / (2 * Math.max(0.1, picked.quality)));
+        const from = X(Math.max(MIN_HZ, picked.frequency / spread));
+        const to = X(Math.min(MAX_HZ, picked.frequency * spread));
+        context.beginPath();
+        context.moveTo(from, y);
+        context.lineTo(to, y);
+        context.strokeStyle = 'rgba(255,196,92,0.85)';
+        context.lineWidth = 1.75;
+        context.setLineDash([5, 3]);
+        context.stroke();
+        context.setLineDash([]);
+
+        /**
+         * Labelled, and it is not decoration.
+         *
+         * This line is on the SPECTRUM’s scale — dBFS, the thing the
+         * detector measures — while the curve above it is on the gain axis.
+         * Two scales share the plot, so an unlabelled line at -60 dBFS sits
+         * where about -4 dB of gain would be and gets read as -4. That is
+         * exactly how it was reported, and the number is the whole fix.
+         */
+        context.font =
+          '600 11px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif';
+        context.textBaseline = 'bottom';
+        context.fillStyle = 'rgba(255,196,92,0.95)';
+        const caption = translate('dsp.eq.thresholdMark', {
+          level: picked.thresholdDb.toFixed(0),
+        });
+        const captionWidth = context.measureText(caption).width;
+        context.fillText(
+          caption,
+          Math.min(PAD_L + plotW(W) - captionWidth, Math.max(PAD_L, from)),
+          y - 3,
         );
       }
 

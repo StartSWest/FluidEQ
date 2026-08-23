@@ -128,6 +128,7 @@ const dsp = {
   'dsp.eq.phase': 'Fase',
   'dsp.eq.quality': 'Larghezza',
   'dsp.eq.threshold': 'Soglia',
+  'dsp.eq.thresholdMark': 'soglia {level} dBFS',
   'dsp.eq.dynamic': 'Dinamico',
   'dsp.eq.dynamicOn': 'Dinamico ON',
   'dsp.eq.dynamicHint': 'Agisce solo finché questa banda supera la sua soglia.',

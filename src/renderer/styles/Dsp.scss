@@ -436,15 +436,29 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   opacity: 0.4;
 }
 
-// Which bands react, readable without selecting each one in turn.
+// Which bands react, readable across the whole row without selecting each one.
 //
-// A dashed ring rather than a colour: the pick already spends colour on
-// selected and dimming on disabled, and a third colour among fifteen small
-// squares is a code nobody can hold. Dashed matches the dashed at-rest curve
-// on the graph above, so the two say the same thing the same way.
+// A dashed ring alone was too quiet to find at 26px among fifteen of them, so
+// it carries a tint and a dot as well. Three weak signals that agree beat one
+// strong one that has to be learned: the ring matches the dashed at-rest curve
+// on the graph, the tint says "not like its neighbours", and the dot survives
+// being scanned past at speed.
 .dsp-eq-pick.is-dynamic {
+  position: relative;
   border-style: dashed;
-  border-color: rgba($secondary-default, 0.75);
+  border-color: rgba($secondary-default, 0.9);
+  background: rgba($secondary-default, 0.16);
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: $secondary-default;
+  }
 }
 
 // Selected AND dynamic: keep the solid selected ring, and put the dashed mark
@@ -628,6 +642,22 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // when that shape is allowed to happen, which is a different question. Loose in
 // the same row the threshold read as a fourth shape parameter, and the toggle
 // that governs it sat three controls away from what it governed.
+// The input gain's two halves, boxed inside the preamp panel the way the
+// dynamic pair is boxed inside the strip. What the regulator takes and what
+// the user spends of it are one question; the four dials beside them shape the
+// sound and answer another.
+.dsp-eq-headroom {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 10px;
+  margin-right: 14px;
+  padding: 6px 12px;
+  border: 1px solid rgba($white, 0.06);
+  border-radius: 10px;
+  background: rgba($black, 0.18);
+}
+
 .dsp-eq-dynamic {
   display: flex;
   flex: 0 0 auto;

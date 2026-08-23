@@ -129,6 +129,7 @@ const dsp = {
   'dsp.eq.phase': 'फेज़',
   'dsp.eq.quality': 'चौड़ाई',
   'dsp.eq.threshold': 'थ्रेशोल्ड',
+  'dsp.eq.thresholdMark': 'थ्रेशोल्ड {level} dBFS',
   'dsp.eq.dynamic': 'डायनामिक',
   'dsp.eq.dynamicOn': 'डायनामिक चालू',
   'dsp.eq.dynamicHint':

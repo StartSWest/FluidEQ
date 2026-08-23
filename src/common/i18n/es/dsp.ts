@@ -129,6 +129,7 @@ const dsp = {
   'dsp.eq.phase': 'Fase',
   'dsp.eq.quality': 'Ancho',
   'dsp.eq.threshold': 'Umbral',
+  'dsp.eq.thresholdMark': 'umbral {level} dBFS',
   'dsp.eq.dynamic': 'Dinámico',
   'dsp.eq.dynamicOn': 'Dinámico SÍ',
   'dsp.eq.dynamicHint': 'Actúa solo mientras esta banda supera su umbral.',

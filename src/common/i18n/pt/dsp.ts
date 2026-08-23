@@ -130,6 +130,7 @@ const dsp = {
   'dsp.eq.phase': 'Fase',
   'dsp.eq.quality': 'Largura',
   'dsp.eq.threshold': 'Limiar',
+  'dsp.eq.thresholdMark': 'limiar {level} dBFS',
   'dsp.eq.dynamic': 'Dinâmico',
   'dsp.eq.dynamicOn': 'Dinâmico ON',
   'dsp.eq.dynamicHint':
