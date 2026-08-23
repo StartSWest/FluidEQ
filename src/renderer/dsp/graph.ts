@@ -140,6 +140,11 @@ export const buildDspGraph = (
             .map((band) =>
               [
                 band.enabled ? 1 : 0,
+                // The kernel now carries the STATIC bands only, so whether a band
+                // reacts decides whether it is in the kernel at all. Left out of
+                // this key, toggling one would leave it baked in and running
+                // again afterwards: the band applied twice, once for good.
+                band.dynamic ? 1 : 0,
                 band.type,
                 band.frequency,
                 band.gainDb,

@@ -142,6 +142,20 @@ class DspProcessor extends AudioWorkletProcessor {
    * the graph is rather than the way the coefficients are. */
   private liveBandIndex: number[] = [];
 
+  /**
+   * The reacting bands on their own, for the linear-phase path.
+   *
+   * The kernel carries the static curve and cannot carry these — a fixed
+   * filter cannot change what it does from what it hears — so they run after
+   * the convolution as biquads. Held separately rather than filtered per
+   * block, because that would allocate on the audio thread every 128 samples.
+   */
+  private dynamicCoefficients: IBiquadCoefficients[] = [];
+
+  /** Where each of those sits in the full band list, so its follower and its
+   * coefficients stay together. */
+  private dynamicSlots: number[] = [];
+
   /** What each band is applying, by rack position. 1 for a static band. */
   private bandAmounts: number[] = [];
 
@@ -435,6 +449,9 @@ class DspProcessor extends AudioWorkletProcessor {
       );
       this.bandDynamics[slot] = followers;
     }
+    this.dynamicSlots = live
+      .map((band, index) => (band.dynamic ? index : -1))
+      .filter((index) => index >= 0);
     this.eqCoefficients = eq.bands
       .filter((band) => band.enabled)
       .map((band) =>
@@ -450,6 +467,21 @@ class DspProcessor extends AudioWorkletProcessor {
           eq.modelAmount,
         ),
       );
+    // Built at the base rate, not the design rate: these run after the
+    // convolution, which is base rate, and never inside the oversampler.
+    this.dynamicCoefficients = this.dynamicSlots.map((slot) =>
+      biquadCoefficients(
+        {
+          type: live[slot].type as FilterTypeEnum,
+          frequency: live[slot].frequency,
+          gainDb: live[slot].gainDb,
+          quality: live[slot].quality,
+        },
+        sampleRate,
+        eq.model,
+        eq.modelAmount,
+      ),
+    );
   }
 
   /**
@@ -543,6 +575,20 @@ class DspProcessor extends AudioWorkletProcessor {
           convolve(this.convolversNext[slot], this.convolverScratch);
         } else {
           convolve(this.convolvers[slot], target);
+        }
+        // The reacting bands, after the kernel that could not hold them.
+        // Serial, because they are being applied to what the convolution
+        // produced rather than summed alongside it.
+        if (this.dynamicCoefficients.length > 0) {
+          processEqBands(
+            this.dynamicSlots.map((at) => this.eqStates[slot][at]),
+            this.dynamicCoefficients,
+            target,
+            'serial',
+            this.eqDry,
+            this.eqWet,
+            this.dynamicSlots.map((at) => this.bandDynamics[slot][at]),
+          );
         }
       } else {
         // Ahead of everything else: it exists to keep energy out of the chain,

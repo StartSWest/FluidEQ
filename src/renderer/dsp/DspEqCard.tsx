@@ -4,7 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { FilterTypeEnum } from '../../common/constants';
 import {
   DSP_DEFAULTS,
@@ -60,12 +60,31 @@ interface IDspEqCardProps {
 const DspEqCard = ({ eq, sampleRate, onChange, onCommit }: IDspEqCardProps) => {
   const { t } = useTranslation();
   const [selected, setSelected] = useState(0);
+  /** Survives a deselection, so the strip has something to show. */
+  const lastPicked = useRef(0);
   // Clamped rather than stored clamped: the rack can shrink under the
   // selection — going from thirty-one bands to six, or importing a ten-filter
   // curve — and an index left pointing past the end edits a band that is not
   // there, so the knobs move and nothing happens.
-  const active = Math.min(selected, eq.bands.length - 1);
-  const band = eq.bands[active];
+  /**
+   * Which band the strip edits, and -1 for none.
+   *
+   * Deselected is a real state rather than a decoration: clicking the plot
+   * away from every handle lets go, which is how the threshold line is put
+   * away without switching the band off.
+   */
+  const active = selected < 0 ? -1 : Math.min(selected, eq.bands.length - 1);
+  /**
+   * The strip keeps showing the last band it had, disabled.
+   *
+   * Emptying it would take a block of controls out of the layout and move
+   * everything under it, so the row jumps every time the plot is clicked. A
+   * frozen strip says "nothing is selected" without rearranging the page.
+   */
+  const band = eq.bands[active < 0 ? lastPicked.current : active];
+  if (active >= 0) {
+    lastPicked.current = active;
+  }
   const fallback = DSP_DEFAULTS.eq.bands[active] ?? band;
   const isFlat = NO_GAIN.has(band.type);
 
@@ -324,7 +343,7 @@ const DspEqCard = ({ eq, sampleRate, onChange, onCommit }: IDspEqCardProps) => {
             <Dropdown
               name={t('dsp.eq.shape')}
               value={band.type}
-              isDisabled={!band.enabled}
+              isDisabled={active < 0 || !band.enabled}
               options={BAND_TYPES.map(({ type, labelKey }) => ({
                 value: type,
                 label: t(labelKey),
@@ -350,7 +369,7 @@ const DspEqCard = ({ eq, sampleRate, onChange, onCommit }: IDspEqCardProps) => {
             step={1}
             unit="Hz"
             defaultValue={fallback.frequency}
-            isDisabled={!band.enabled}
+            isDisabled={active < 0 || !band.enabled}
             onChange={(frequency) => patchBand(active, { frequency })}
             onCommit={onCommit}
           />
@@ -377,7 +396,7 @@ const DspEqCard = ({ eq, sampleRate, onChange, onCommit }: IDspEqCardProps) => {
             step={0.01}
             unit="Q"
             defaultValue={fallback.quality}
-            isDisabled={!band.enabled}
+            isDisabled={active < 0 || !band.enabled}
             onChange={(quality) => patchBand(active, { quality })}
             onCommit={onCommit}
           />
@@ -401,7 +420,7 @@ const DspEqCard = ({ eq, sampleRate, onChange, onCommit }: IDspEqCardProps) => {
               // Greyed rather than hidden: a control that appears when a switch
               // is thrown moves everything beside it, and the row jumps under
               // the pointer that just threw it.
-              isDisabled={!band.enabled || !band.dynamic}
+              isDisabled={active < 0 || !band.enabled || !band.dynamic}
               onChange={(thresholdDb) => patchBand(active, { thresholdDb })}
               onCommit={onCommit}
             />
@@ -413,7 +432,7 @@ const DspEqCard = ({ eq, sampleRate, onChange, onCommit }: IDspEqCardProps) => {
             <DspDynamicReadout
               bandIndex={active}
               isDynamic={band.dynamic}
-              isDisabled={!band.enabled}
+              isDisabled={active < 0 || !band.enabled}
               onToggle={() => {
                 patchBand(active, { dynamic: !band.dynamic });
                 onCommit();

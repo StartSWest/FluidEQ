@@ -95,7 +95,23 @@ const impulseResponse = (eq: IEqSettings, sampleRate: number): Float32Array => {
   const buffer = new Float32Array(KERNEL_SIZE);
   buffer[0] = 1;
   eq.bands
-    .filter((band) => band.enabled)
+    /**
+     * Static bands only, and the reacting ones are handled elsewhere.
+     *
+     * A kernel is a fixed filter: it is computed once from the settings and
+     * convolved with everything after. A dynamic band changes what it does
+     * per sample from what it hears, and no fixed kernel can express that —
+     * baking one in at full strength would leave a band that was permanently
+     * engaged, which is a static band with extra steps and the opposite of
+     * what was asked for.
+     *
+     * They run after the convolution as ordinary biquads instead. That means
+     * a reacting band is minimum phase while the curve around it is linear,
+     * which is the trade every linear-phase equaliser with a dynamics section
+     * makes: one or two bands carry a phase shift, and the shape the other
+     * thirteen make does not.
+     */
+    .filter((band) => band.enabled && !band.dynamic)
     .forEach((band) => {
       processBiquad(
         createBiquadState(),

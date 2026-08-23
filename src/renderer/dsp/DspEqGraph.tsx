@@ -954,10 +954,14 @@ const DspEqGraph = ({
         bestDistance = distance;
       }
     });
+    // Empty space deselects. A band stays picked for as long as it is being
+    // worked on and lets go when the pointer says so, which is what every
+    // other canvas of handles does — and it is the only way to put the
+    // threshold line away without switching the band off.
+    onSelect(best);
     if (best < 0) {
       return;
     }
-    onSelect(best);
     dragging.current = best;
     event.currentTarget.setPointerCapture(event.pointerId);
     event.preventDefault();
