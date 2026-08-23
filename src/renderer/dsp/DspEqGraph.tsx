@@ -97,6 +97,28 @@ const xToHz = (x: number, width: number) => {
   return MIN_HZ * (MAX_HZ / MIN_HZ) ** (across / plotW(width));
 };
 
+/**
+ * The level scale, both ways, beside the gain scale rather than inside the
+ * paint loop — the threshold is dragged as well as drawn, and a pointer
+ * working from a second copy of this arithmetic would land somewhere the
+ * line is not.
+ */
+const dbfsToY = (dbfs: number, height: number) =>
+  PAD_T +
+  plotH(height) -
+  ((Math.max(SPECTRUM_FLOOR_DB, Math.min(SPECTRUM_TOP_DB, dbfs)) -
+    SPECTRUM_FLOOR_DB) /
+    (SPECTRUM_TOP_DB - SPECTRUM_FLOOR_DB)) *
+    plotH(height);
+
+const yToDbfs = (y: number, height: number) => {
+  const span = plotH(height);
+  const from = Math.min(PAD_T + span, Math.max(PAD_T, y)) - PAD_T;
+  return (
+    SPECTRUM_TOP_DB - (from / span) * (SPECTRUM_TOP_DB - SPECTRUM_FLOOR_DB)
+  );
+};
+
 const dbToY = (db: number, height: number) =>
   PAD_T + plotH(height) / 2 - (db / RANGE_DB) * (plotH(height) / 2);
 
@@ -157,6 +179,8 @@ const DspEqGraph = ({
   const { t } = useTranslation();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const dragging = useRef<number | null>(null);
+  /** A threshold drag, which is a different gesture from moving a band. */
+  const draggingThreshold = useRef(false);
   /**
    * The live props, for the draw loop.
    *
@@ -636,13 +660,7 @@ const DspEqGraph = ({
          * beside it and the two are read against each other; the spectrum is
          * the shape behind them, not the thing they are compared to.
          */
-        const toY = (dbfs: number) =>
-          PAD_T +
-          plotH(H) -
-          ((Math.max(SPECTRUM_FLOOR_DB, Math.min(SPECTRUM_TOP_DB, dbfs)) -
-            SPECTRUM_FLOOR_DB) /
-            (SPECTRUM_TOP_DB - SPECTRUM_FLOOR_DB)) *
-            plotH(H);
+        const toY = (dbfs: number) => dbfsToY(dbfs, H);
         const y = toY(picked.thresholdDb);
         // The half-power edges: the octave span either side of centre that a
         // bell of this Q actually hears.
@@ -824,6 +842,33 @@ const DspEqGraph = ({
     if (!point) {
       return;
     }
+    /**
+     * The threshold line first, when there is one and the pointer is on it.
+     *
+     * Before the band handles rather than after: the line is thin and the
+     * handles are large, so a handle whose grab radius happens to overlap it
+     * would win every contest and the line could never be taken. It is only
+     * offered inside its own frequency span, which is where it is drawn — a
+     * threshold grabbed from the far side of the plot would be a mystery.
+     */
+    const picked = eq.bands[selected];
+    if (picked?.dynamic && picked.enabled) {
+      const spread = 2 ** (1 / (2 * Math.max(0.1, picked.quality)));
+      const withinBand =
+        point.x >= toX(picked.frequency / spread) - GRAB_RADIUS &&
+        point.x <= toX(picked.frequency * spread) + GRAB_RADIUS;
+      const onLine =
+        Math.abs(
+          point.y - dbfsToY(picked.thresholdDb, boxRef.current.height),
+        ) <= GRAB_RADIUS;
+      if (withinBand && onLine) {
+        draggingThreshold.current = true;
+        event.currentTarget.setPointerCapture(event.pointerId);
+        event.preventDefault();
+        return;
+      }
+    }
+
     // Nearest handle within reach, so a click near two of them takes the one
     // actually aimed at rather than the first in the array.
     let best = -1;
@@ -848,6 +893,18 @@ const DspEqGraph = ({
   };
 
   const onMove = (event: PointerEvent<HTMLCanvasElement>) => {
+    if (draggingThreshold.current) {
+      const at = localPoint(event);
+      if (at) {
+        // Clamped to the dial’s own range, so dragging past the top of the
+        // plot cannot set a value the knob beside it could not show.
+        const dbfs = yToDbfs(at.y, boxRef.current.height);
+        onChange(selected, {
+          thresholdDb: Number(Math.min(0, Math.max(-60, dbfs)).toFixed(1)),
+        });
+      }
+      return;
+    }
     const index = dragging.current;
     const point = index === null ? undefined : localPoint(event);
     if (index === null || !point) {
@@ -860,6 +917,11 @@ const DspEqGraph = ({
   };
 
   const endDrag = () => {
+    if (draggingThreshold.current) {
+      draggingThreshold.current = false;
+      onCommit();
+      return;
+    }
     if (dragging.current === null) {
       return;
     }
