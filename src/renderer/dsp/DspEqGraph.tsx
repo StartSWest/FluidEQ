@@ -260,6 +260,8 @@ const DspEqGraph = ({
      * holds steady.
      */
     let clipGlow = 0;
+    /** How far past full scale it went, in dB, eased for the same reason. */
+    let clipOver = 0;
     /**
      * The response at each plotted point, worked out once a frame.
      *
@@ -540,7 +542,11 @@ const DspEqGraph = ({
          * settles back afterwards reads as cause and effect, while one that
          * moves at the same rate both ways reads as drift.
          */
-        const ease = target > shown ? 0.1 : 0.04;
+        // Slower again. At a tenth and a twenty-fifth the curve still chased
+        // the music closely enough to read as motion rather than as shape;
+        // these are about a quarter of a second to open and most of a second
+        // to settle, which is the pace an eye follows without being pulled.
+        const ease = target > shown ? 0.05 : 0.02;
         drawnAmounts[index] = shown + (target - shown) * ease;
       });
       const amountOf = (index: number): number => drawnAmounts[index] ?? 1;
@@ -777,7 +783,23 @@ const DspEqGraph = ({
           drawnLevels[pick] = settled + (heard - settled) * 0.12;
         }
         const restingAt = drawnLevels[pick] ?? picked.thresholdDb;
-        const lit = audible ? 0.34 + amountOf(pick) * 0.61 : 0;
+        /**
+         * Brightness from the line’s own position, not from the engagement.
+         *
+         * Keyed to how much of the band is being applied, it barely moved:
+         * that figure is smoothed, arrives from another thread, and is zero
+         * whenever the rack is not actually running — so the line stayed dim
+         * while visibly sitting above its threshold, which is the one moment
+         * it is supposed to announce.
+         *
+         * Measured against the dashed line right beside it instead. Over the
+         * threshold it lights, and it goes on lighting for the twelve
+         * decibels the band takes to reach full strength, so the brightness
+         * says how hard rather than merely whether.
+         */
+        const over = drawnLevels[pick] - picked.thresholdDb;
+        const past = Math.max(0, Math.min(1, over / 12));
+        const lit = audible ? 0.3 + past * 0.68 : 0;
         drawnLit += (lit - drawnLit) * 0.08;
         if (drawnLit > 0.02) {
           const heardY = toY(restingAt);
@@ -865,13 +887,36 @@ const DspEqGraph = ({
       // much as on the curve: a stripe along the top while the measured output
       // is past full scale. The mask says where the risk is, this says it has
       // stopped being a risk.
-      // Straight to full on a clipped block, then a slow fade: fast up so a
-      // single one is not missed, slow down so a run of them does not blink.
-      const clipping = readDspPeak() > 1;
+      /**
+       * How badly, not merely whether.
+       *
+       * A fixed bar said the same thing for a hundredth of a decibel over as
+       * for six, which are not the same situation: one is a rounding on one
+       * transient and the other is audible on everything. The band grows with
+       * the overshoot and fades downward into the plot, so the eye reads the
+       * depth without a number having to be found.
+       *
+       * Straight to full on a clipped block and a slow fade after, so one
+       * clipped block is not missed and a run of them does not blink.
+       */
+      const peak = readDspPeak();
+      const clipping = peak > 1;
+      const overNow = clipping ? 20 * Math.log10(peak) : 0;
       clipGlow = clipping ? 1 : Math.max(0, clipGlow - 0.016);
+      clipOver = Math.max(overNow, clipOver + (overNow - clipOver) * 0.05);
       if (clipGlow > 0.01) {
-        context.fillStyle = `rgba(255,100,124,${(clipGlow * 0.5).toFixed(3)})`;
-        context.fillRect(PAD_L, PAD_T, plotW(W), 3);
+        // Six decibels of overshoot fills the band. Past that it is as loud a
+        // warning as the plot can make without covering the curve it is
+        // warning about.
+        const depth = 3 + Math.min(1, clipOver / 6) * 21;
+        const bleed = context.createLinearGradient(0, PAD_T, 0, PAD_T + depth);
+        bleed.addColorStop(
+          0,
+          `rgba(255,100,124,${(clipGlow * 0.62).toFixed(3)})`,
+        );
+        bleed.addColorStop(1, 'rgba(255,100,124,0)');
+        context.fillStyle = bleed;
+        context.fillRect(PAD_L, PAD_T, plotW(W), depth);
       }
 
       /**
