@@ -134,7 +134,7 @@ const dsp = {
   'dsp.eq.legend.threshold': 'Seuil',
   'dsp.eq.legend.subsonic': 'Subsonique',
   'dsp.eq.legend.gain': 'gain',
-  'dsp.eq.legend.level': 'niveau',
+  'dsp.eq.legend.level': 'niveau par bande',
   'dsp.eq.thresholdMark': 'seuil {level} dBFS',
   'dsp.eq.dynamic': 'Dynamique',
   'dsp.eq.dynamicOn': 'Dynamique ON',

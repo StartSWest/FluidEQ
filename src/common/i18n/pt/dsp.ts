@@ -136,7 +136,7 @@ const dsp = {
   'dsp.eq.legend.threshold': 'Limiar',
   'dsp.eq.legend.subsonic': 'Subgraves',
   'dsp.eq.legend.gain': 'ganho',
-  'dsp.eq.legend.level': 'nível',
+  'dsp.eq.legend.level': 'nível por banda',
   'dsp.eq.thresholdMark': 'limiar {level} dBFS',
   'dsp.eq.dynamic': 'Dinâmico',
   'dsp.eq.dynamicOn': 'Dinâmico ON',

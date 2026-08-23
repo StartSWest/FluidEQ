@@ -130,7 +130,7 @@ const dsp = {
   'dsp.eq.legend.threshold': '阈值',
   'dsp.eq.legend.subsonic': '超低频',
   'dsp.eq.legend.gain': '增益',
-  'dsp.eq.legend.level': '电平',
+  'dsp.eq.legend.level': '各频段电平',
   'dsp.eq.thresholdMark': '阈值 {level} dBFS',
   'dsp.eq.dynamic': '动态',
   'dsp.eq.dynamicOn': '动态 开',

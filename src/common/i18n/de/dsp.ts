@@ -136,7 +136,7 @@ const dsp = {
   'dsp.eq.legend.threshold': 'Schwelle',
   'dsp.eq.legend.subsonic': 'Subsonic',
   'dsp.eq.legend.gain': 'Pegel',
-  'dsp.eq.legend.level': 'Level',
+  'dsp.eq.legend.level': 'Pegel pro Band',
   'dsp.eq.thresholdMark': 'Schwelle {level} dBFS',
   'dsp.eq.dynamic': 'Dynamisch',
   'dsp.eq.dynamicOn': 'Dynamisch AN',

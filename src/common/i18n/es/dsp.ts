@@ -135,7 +135,7 @@ const dsp = {
   'dsp.eq.legend.threshold': 'Umbral',
   'dsp.eq.legend.subsonic': 'Subgraves',
   'dsp.eq.legend.gain': 'ganancia',
-  'dsp.eq.legend.level': 'nivel',
+  'dsp.eq.legend.level': 'nivel por banda',
   'dsp.eq.thresholdMark': 'umbral {level} dBFS',
   'dsp.eq.dynamic': 'Dinámico',
   'dsp.eq.dynamicOn': 'Dinámico SÍ',

@@ -24,6 +24,7 @@ import {
   TDspEngineState,
   setDspAnalyser,
   setDspBandAmounts,
+  setDspBandLevels,
   setDspCorrelation,
   setDspHeadroomGiveBack,
   setDspEngineState,
@@ -184,6 +185,7 @@ export const useDspEngine = (
           correlation?: unknown;
           peak?: unknown;
           bandAmounts?: unknown;
+          bandLevels?: unknown;
         } | null;
         if (data && typeof data.correlation === 'number') {
           setDspCorrelation(data.correlation);
@@ -193,6 +195,9 @@ export const useDspEngine = (
         }
         if (data && Array.isArray(data.bandAmounts)) {
           setDspBandAmounts(data.bandAmounts as number[]);
+        }
+        if (data && Array.isArray(data.bandLevels)) {
+          setDspBandLevels(data.bandLevels as number[]);
         }
         const input = graphRef.current?.inputAnalyser;
         const { eq } = settingsRef.current;

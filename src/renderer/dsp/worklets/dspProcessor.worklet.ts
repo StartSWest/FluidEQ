@@ -145,6 +145,10 @@ class DspProcessor extends AudioWorkletProcessor {
   /** What each band is applying, by rack position. 1 for a static band. */
   private bandAmounts: number[] = [];
 
+  /** Each band's detected level in dBFS, by rack position. Silent below the
+   * floor, so a band with nothing in it does not report a finite number. */
+  private bandLevels: number[] = [];
+
   /**
    * The same latency for the channel that is not being filtered.
    *
@@ -419,6 +423,7 @@ class DspProcessor extends AudioWorkletProcessor {
       .map((band, index) => (band.enabled ? index : -1))
       .filter((index) => index >= 0);
     this.bandAmounts = new Array(eq.bands.length).fill(1);
+    this.bandLevels = new Array(eq.bands.length).fill(-120);
     for (let slot = 0; slot < CHANNELS; slot += 1) {
       const followers = this.bandDynamics[slot] ?? [];
       while (followers.length < live.length) {
@@ -780,11 +785,16 @@ class DspProcessor extends AudioWorkletProcessor {
       this.bandAmounts[at] = left?.active
         ? Math.max(left.amount, right?.amount ?? 0)
         : 1;
+      const envelope = Math.max(left?.envelope ?? 0, right?.envelope ?? 0);
+      // -120 rather than -Infinity: the graph does arithmetic with this and
+      // an infinity propagates through every position it is used in.
+      this.bandLevels[at] = envelope > 1e-6 ? 20 * Math.log10(envelope) : -120;
     });
     this.port.postMessage({
       correlation,
       peak: this.peak,
       bandAmounts: this.bandAmounts,
+      bandLevels: this.bandLevels,
     });
     this.blocksSinceReport = 0;
     this.peak = 0;

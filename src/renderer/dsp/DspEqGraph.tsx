@@ -9,7 +9,12 @@ import { useTranslation } from '../utils/I18nContext';
 import { FilterTypeEnum } from '../../common/constants';
 import { IEqBandSettings, IEqSettings } from '../../common/dsp/chain';
 import { biquadCoefficients, biquadMagnitudeDb } from './biquad';
-import { readDspAnalyser, readDspBandAmounts, readDspPeak } from './store';
+import {
+  readDspAnalyser,
+  readDspBandAmounts,
+  readDspBandLevels,
+  readDspPeak,
+} from './store';
 
 const MIN_HZ = 20;
 const MAX_HZ = 20_000;
@@ -619,11 +624,26 @@ const DspEqGraph = ({
        */
       const picked = liveEq.bands[pick];
       if (picked?.dynamic && picked.enabled) {
-        const level =
-          (Math.max(SPECTRUM_FLOOR_DB, picked.thresholdDb) -
+        /**
+         * Both of these are true dBFS, and the spectrum behind them is not.
+         *
+         * The threshold and the detector both measure the signal itself,
+         * where 1.0 is full scale. The spectrum measures one FFT bin out of a
+         * thousand, and broadband music spread across all of them leaves every
+         * bin twenty to thirty decibels under the level of the whole — which
+         * is why the output meters can sit at 0 while nothing on this display
+         * comes near it. So the threshold is drawn with the band’s OWN level
+         * beside it and the two are read against each other; the spectrum is
+         * the shape behind them, not the thing they are compared to.
+         */
+        const toY = (dbfs: number) =>
+          PAD_T +
+          plotH(H) -
+          ((Math.max(SPECTRUM_FLOOR_DB, Math.min(SPECTRUM_TOP_DB, dbfs)) -
             SPECTRUM_FLOOR_DB) /
-          (SPECTRUM_TOP_DB - SPECTRUM_FLOOR_DB);
-        const y = PAD_T + plotH(H) - level * plotH(H);
+            (SPECTRUM_TOP_DB - SPECTRUM_FLOOR_DB)) *
+            plotH(H);
+        const y = toY(picked.thresholdDb);
         // The half-power edges: the octave span either side of centre that a
         // bell of this Q actually hears.
         const spread = 2 ** (1 / (2 * Math.max(0.1, picked.quality)));
@@ -637,6 +657,24 @@ const DspEqGraph = ({
         context.setLineDash([5, 3]);
         context.stroke();
         context.setLineDash([]);
+
+        // What the band is hearing right now, solid, against the dashed line
+        // it is being compared to. Where the solid one rises above the dashed
+        // one, the band is working — which is the whole of the feature, in
+        // one picture, on a scale where both numbers mean the same thing.
+        const heard = readDspBandLevels()[pick];
+        if (typeof heard === 'number' && heard > SPECTRUM_FLOOR_DB) {
+          const heardY = toY(heard);
+          context.beginPath();
+          context.moveTo(from, heardY);
+          context.lineTo(to, heardY);
+          context.strokeStyle =
+            heard > picked.thresholdDb
+              ? 'rgba(255,196,92,0.95)'
+              : 'rgba(255,196,92,0.4)';
+          context.lineWidth = 2.5;
+          context.stroke();
+        }
 
         /**
          * Labelled, and it is not decoration.

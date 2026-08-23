@@ -134,7 +134,7 @@ const dsp = {
   'dsp.eq.legend.threshold': 'Soglia',
   'dsp.eq.legend.subsonic': 'Subsonico',
   'dsp.eq.legend.gain': 'guadagno',
-  'dsp.eq.legend.level': 'livello',
+  'dsp.eq.legend.level': 'livello per banda',
   'dsp.eq.thresholdMark': 'soglia {level} dBFS',
   'dsp.eq.dynamic': 'Dinamico',
   'dsp.eq.dynamicOn': 'Dinamico ON',

@@ -135,7 +135,7 @@ const dsp = {
   'dsp.eq.legend.threshold': 'Порог',
   'dsp.eq.legend.subsonic': 'Инфраниз',
   'dsp.eq.legend.gain': 'усиление',
-  'dsp.eq.legend.level': 'уровень',
+  'dsp.eq.legend.level': 'уровень по полосам',
   'dsp.eq.thresholdMark': 'порог {level} дБFS',
   'dsp.eq.dynamic': 'Динамика',
   'dsp.eq.dynamicOn': 'Динамика ВКЛ',

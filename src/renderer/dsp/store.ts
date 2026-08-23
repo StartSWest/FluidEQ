@@ -231,6 +231,28 @@ export const setDspBandAmounts = (next: readonly number[]): void => {
 export const readDspBandAmounts = (): readonly number[] => bandAmounts;
 
 /**
+ * Each dynamic band's own detected level, in dBFS, by band index.
+ *
+ * The quantity the threshold is compared against, and NOT the same thing as
+ * the spectrum behind the curve. The spectrum is per-FFT-bin, and broadband
+ * music spreads its energy across a thousand of them, so every bin reads far
+ * below the level of the signal itself — a full-scale track never approaches
+ * the top of that display and is not meant to.
+ *
+ * This is a time-domain envelope where 1.0 is full scale, which is the same
+ * reference the threshold dial uses. Reporting it is what makes the threshold
+ * readable: the two are drawn on the same axis and compared to each other,
+ * rather than to a spectrum that answers a different question.
+ */
+let bandLevels: readonly number[] = [];
+
+export const setDspBandLevels = (next: readonly number[]): void => {
+  bandLevels = next;
+};
+
+export const readDspBandLevels = (): readonly number[] => bandLevels;
+
+/**
  * Headroom the adaptive stage has handed back for the current material, in dB.
  *
  * Never negative, and never more than the regulator reserved. Kept out of the

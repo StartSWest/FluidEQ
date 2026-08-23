@@ -134,7 +134,7 @@ const dsp = {
   'dsp.eq.legend.threshold': 'しきい値',
   'dsp.eq.legend.subsonic': '超低域',
   'dsp.eq.legend.gain': 'ゲイン',
-  'dsp.eq.legend.level': 'レベル',
+  'dsp.eq.legend.level': '帯域ごとのレベル',
   'dsp.eq.thresholdMark': 'しきい値 {level} dBFS',
   'dsp.eq.dynamic': 'ダイナミック',
   'dsp.eq.dynamicOn': 'ダイナミック ON',

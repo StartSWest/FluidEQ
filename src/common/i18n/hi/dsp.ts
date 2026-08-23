@@ -135,7 +135,7 @@ const dsp = {
   'dsp.eq.legend.threshold': 'थ्रेशोल्ड',
   'dsp.eq.legend.subsonic': 'सबसोनिक',
   'dsp.eq.legend.gain': 'गेन',
-  'dsp.eq.legend.level': 'स्तर',
+  'dsp.eq.legend.level': 'प्रति बैंड स्तर',
   'dsp.eq.thresholdMark': 'थ्रेशोल्ड {level} dBFS',
   'dsp.eq.dynamic': 'डायनामिक',
   'dsp.eq.dynamicOn': 'डायनामिक चालू',
