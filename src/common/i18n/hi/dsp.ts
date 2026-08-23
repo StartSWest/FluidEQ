@@ -134,6 +134,8 @@ const dsp = {
   'dsp.eq.legend.atRest': 'निष्क्रिय',
   'dsp.eq.legend.threshold': 'थ्रेशोल्ड',
   'dsp.eq.legend.subsonic': 'सबसोनिक',
+  'dsp.eq.legend.input': 'इनपुट',
+  'dsp.eq.inputMark': 'इनपुट {gain} dB',
   'dsp.eq.legend.gain': 'गेन',
   'dsp.eq.legend.level': 'प्रति बैंड स्तर',
   'dsp.eq.thresholdMark': 'थ्रेशोल्ड {level} dBFS',

@@ -133,6 +133,8 @@ const dsp = {
   'dsp.eq.legend.atRest': '待機時',
   'dsp.eq.legend.threshold': 'しきい値',
   'dsp.eq.legend.subsonic': '超低域',
+  'dsp.eq.legend.input': '入力',
+  'dsp.eq.inputMark': '入力 {gain} dB',
   'dsp.eq.legend.gain': 'ゲイン',
   'dsp.eq.legend.level': '帯域ごとのレベル',
   'dsp.eq.thresholdMark': 'しきい値 {level} dBFS',

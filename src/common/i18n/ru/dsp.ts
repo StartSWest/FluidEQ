@@ -134,6 +134,8 @@ const dsp = {
   'dsp.eq.legend.atRest': 'В покое',
   'dsp.eq.legend.threshold': 'Порог',
   'dsp.eq.legend.subsonic': 'Инфраниз',
+  'dsp.eq.legend.input': 'Вход',
+  'dsp.eq.inputMark': 'вход {gain} дБ',
   'dsp.eq.legend.gain': 'усиление',
   'dsp.eq.legend.level': 'уровень по полосам',
   'dsp.eq.thresholdMark': 'порог {level} дБFS',

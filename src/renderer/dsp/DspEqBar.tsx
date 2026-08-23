@@ -14,6 +14,7 @@ import {
   EQ_RACK_SIZES,
   EQ_STEREO_MODES,
   OVERSAMPLE_FACTORS,
+  IEqBandSettings,
   IEqSettings,
   TEqEngine,
   TEqModel,
@@ -27,6 +28,7 @@ import { linearPhaseLatencyMs } from './linearPhase';
 import {
   EQ_DEFAULT_PRESET_ID,
   EQ_PRESETS,
+  IEqPreset,
   eqPresetSetup,
   isCompleteEqPreset,
 } from '../../common/dsp/eqPresets';
@@ -97,6 +99,51 @@ const DspEqBar = ({ eq, sampleRate, onChange, onCommit }: IDspEqBarProps) => {
    * sounded different depending on what had been auditioned before it — which
    * is the one thing a preset exists to rule out.
    */
+  /**
+   * The preset decides which bands react, and no band it is silent about does.
+   *
+   * The fit solves gains onto the CURRENT rack and carries everything else
+   * about those bands across, so a de-esser left over from the last preset
+   * survived into the next one and kept ducking a frequency the new curve
+   * never asked about. A preset owns this the way it owns the character and
+   * the topology: stated or reset, never inherited.
+   *
+   * Matched by frequency rather than by index, because the fitted rack is
+   * whatever size the user chose and the preset's list is always fifteen. The
+   * nearest band in log space is the one covering the same ground.
+   */
+  const withPresetDynamics = (
+    fitted: readonly IEqBandSettings[],
+    preset: IEqPreset,
+  ): IEqBandSettings[] => {
+    const cleared = fitted.map((one) => ({
+      ...one,
+      dynamic: false,
+      thresholdDb: DSP_DEFAULTS.eq.bands[0].thresholdDb,
+    }));
+    preset.dynamic?.forEach((threshold, index) => {
+      const wanted = DSP_DEFAULTS.eq.bands[index]?.frequency;
+      if (threshold === null || threshold === undefined || !wanted) {
+        return;
+      }
+      let nearest = 0;
+      let closest = Infinity;
+      cleared.forEach((one, at) => {
+        const distance = Math.abs(Math.log2(one.frequency / wanted));
+        if (distance < closest) {
+          closest = distance;
+          nearest = at;
+        }
+      });
+      cleared[nearest] = {
+        ...cleared[nearest],
+        dynamic: true,
+        thresholdDb: threshold,
+      };
+    });
+    return cleared;
+  };
+
   const applyPreset = (id: string) => {
     const chosen = EQ_PRESETS.find((one) => one.id === id);
     if (!chosen || !isCompleteEqPreset(chosen)) {
@@ -138,7 +185,10 @@ const DspEqBar = ({ eq, sampleRate, onChange, onCommit }: IDspEqBarProps) => {
       // Fitted through the INCOMING character, not the outgoing one. The fit
       // solves for gains that reproduce the curve through a given filter shape,
       // so reading it through the shape being replaced misfits every band.
-      bands: rackMatchingCurveOf(eq.bands, asFifteen, sampleRate, setup.model),
+      bands: withPresetDynamics(
+        rackMatchingCurveOf(eq.bands, asFifteen, sampleRate, setup.model),
+        chosen,
+      ),
     });
     onCommit();
   };

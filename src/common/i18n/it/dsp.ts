@@ -133,6 +133,8 @@ const dsp = {
   'dsp.eq.legend.atRest': 'A riposo',
   'dsp.eq.legend.threshold': 'Soglia',
   'dsp.eq.legend.subsonic': 'Subsonico',
+  'dsp.eq.legend.input': 'Ingresso',
+  'dsp.eq.inputMark': 'ingresso {gain} dB',
   'dsp.eq.legend.gain': 'guadagno',
   'dsp.eq.legend.level': 'livello per banda',
   'dsp.eq.thresholdMark': 'soglia {level} dBFS',

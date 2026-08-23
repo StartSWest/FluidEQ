@@ -129,6 +129,8 @@ const dsp = {
   'dsp.eq.legend.atRest': '静止',
   'dsp.eq.legend.threshold': '阈值',
   'dsp.eq.legend.subsonic': '超低频',
+  'dsp.eq.legend.input': '输入',
+  'dsp.eq.inputMark': '输入 {gain} dB',
   'dsp.eq.legend.gain': '增益',
   'dsp.eq.legend.level': '各频段电平',
   'dsp.eq.thresholdMark': '阈值 {level} dBFS',

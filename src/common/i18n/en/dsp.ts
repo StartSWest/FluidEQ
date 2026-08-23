@@ -142,6 +142,8 @@ const dsp = {
   'dsp.eq.legend.atRest': 'At rest',
   'dsp.eq.legend.threshold': 'Threshold',
   'dsp.eq.legend.subsonic': 'Subsonic',
+  'dsp.eq.legend.input': 'Input',
+  'dsp.eq.inputMark': 'input {gain} dB',
   'dsp.eq.legend.gain': 'gain',
   'dsp.eq.legend.level': 'level per band',
   'dsp.eq.thresholdMark': 'threshold {level} dBFS',

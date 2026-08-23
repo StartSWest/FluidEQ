@@ -135,6 +135,8 @@ const dsp = {
   'dsp.eq.legend.atRest': 'In Ruhe',
   'dsp.eq.legend.threshold': 'Schwelle',
   'dsp.eq.legend.subsonic': 'Subsonic',
+  'dsp.eq.legend.input': 'Eingang',
+  'dsp.eq.inputMark': 'Eingang {gain} dB',
   'dsp.eq.legend.gain': 'Pegel',
   'dsp.eq.legend.level': 'Pegel pro Band',
   'dsp.eq.thresholdMark': 'Schwelle {level} dBFS',

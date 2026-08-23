@@ -13,6 +13,7 @@ import {
   readDspAnalyser,
   readDspBandAmounts,
   readDspBandLevels,
+  readDspHeadroomGiveBack,
   readDspPeak,
 } from './store';
 
@@ -195,7 +196,7 @@ const DspEqGraph = ({
     /** The one string the canvas draws. Through the ref like everything else,
      * so switching language repaints without rebuilding the observer. */
     t: (
-      key: 'dsp.eq.overUnity' | 'dsp.eq.thresholdMark',
+      key: 'dsp.eq.overUnity' | 'dsp.eq.thresholdMark' | 'dsp.eq.inputMark',
       values: Record<string, string>,
     ) => string;
     redraw?: () => void;
@@ -706,14 +707,59 @@ const DspEqGraph = ({
         context.font =
           '600 11px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif';
         context.textBaseline = 'bottom';
+        // Set explicitly rather than inherited: the grid labels leave this as
+        // 'right' and the axis labels as 'left', so whichever ran last decided
+        // where this landed.
+        context.textAlign = 'left';
         context.fillStyle = 'rgba(255,196,92,0.95)';
         const caption = translate('dsp.eq.thresholdMark', {
           level: picked.thresholdDb.toFixed(0),
         });
         const captionWidth = context.measureText(caption).width;
+        // Centred over the segment it belongs to, then held inside the plot:
+        // a band near either edge has its line clipped, and a caption centred
+        // on the part that was cut off ends up outside the box.
+        const captionX = (from + to) / 2 - captionWidth / 2;
         context.fillText(
           caption,
-          Math.min(PAD_L + plotW(W) - captionWidth, Math.max(PAD_L, from)),
+          Math.min(PAD_L + plotW(W) - captionWidth, Math.max(PAD_L, captionX)),
+          y - 3,
+        );
+      }
+
+      /**
+       * Where the input gain has put the whole rack, on the gain axis.
+       *
+       * Flat by nature — the regulator, the give-back and the preamp are one
+       * multiply in front of everything, applied equally at every frequency —
+       * so it is a line rather than a curve, and that is the honest shape for
+       * it. Drawn because the adaptive half MOVES: without it the only sign
+       * that the trim is working is a number in the corner, and the thing it
+       * is trading against is the curve right here.
+       */
+      const appliedInput =
+        liveEq.preampDb + liveEq.trimDb + readDspHeadroomGiveBack();
+      if (Math.abs(appliedInput) >= 0.05) {
+        const y = Y(Math.max(-RANGE_DB, Math.min(RANGE_DB, appliedInput)));
+        context.beginPath();
+        context.moveTo(PAD_L, y);
+        context.lineTo(PAD_L + plotW(W), y);
+        context.strokeStyle = 'rgba(178,190,255,0.55)';
+        context.lineWidth = 1.25;
+        context.setLineDash([2, 4]);
+        context.stroke();
+        context.setLineDash([]);
+
+        context.font =
+          '600 11px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif';
+        context.textBaseline = 'bottom';
+        context.textAlign = 'left';
+        context.fillStyle = 'rgba(178,190,255,0.85)';
+        context.fillText(
+          translate('dsp.eq.inputMark', {
+            gain: appliedInput.toFixed(1),
+          }),
+          PAD_L + 8,
           y - 3,
         );
       }
@@ -771,6 +817,31 @@ const DspEqGraph = ({
         const y = Y(one.gainDb);
         const isPick = index === pick;
         context.globalAlpha = one.enabled ? 1 : 0.32;
+
+        /**
+         * A ring outside the handle for a band that reacts.
+         *
+         * The picker below already marks them, but the picker is a row of
+         * numbers and the graph is where the bands are actually looked at —
+         * having to translate "band 12" into a position on the curve is the
+         * kind of small tax that gets paid on every glance.
+         *
+         * Outside rather than a change of fill: the fill already carries
+         * selection and the alpha carries enabled, and a third meaning loaded
+         * onto the same pixels is a code rather than a picture. Dashed, like
+         * the at-rest curve and the picker’s own ring, so all three say the
+         * same thing the same way.
+         */
+        if (one.dynamic) {
+          context.beginPath();
+          context.arc(x, y, HANDLE_R + 4, 0, Math.PI * 2);
+          context.strokeStyle = 'rgba(255,196,92,0.85)';
+          context.lineWidth = 1.5;
+          context.setLineDash([3, 3]);
+          context.stroke();
+          context.setLineDash([]);
+        }
+
         context.beginPath();
         context.arc(x, y, HANDLE_R, 0, Math.PI * 2);
         context.fillStyle = isPick ? '#00e5cf' : 'rgba(7,5,18,0.85)';

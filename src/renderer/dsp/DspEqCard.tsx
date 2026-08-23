@@ -162,6 +162,7 @@ const DspEqCard = ({ eq, sampleRate, onChange, onCommit }: IDspEqCardProps) => {
           )}
           showsThreshold={band.dynamic && band.enabled}
           showsSubsonic={eq.subsonicHz > 0}
+          showsInput={Math.abs(eq.preampDb + eq.trimDb) >= 0.05}
         />
       </div>
 
