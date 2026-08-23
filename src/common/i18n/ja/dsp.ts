@@ -195,10 +195,22 @@ const dsp = {
 
   'dsp.exciter.title': 'エキサイター',
   'dsp.exciter.description':
-    '非可逆エンコーダーが捨てた高域倍音を生成します。復元ではなく、作り出しています。',
-  'dsp.exciter.crossover': 'この周波数より上',
+    '元の信号になかった倍音を生成します。3 つの帯域がそれぞれ偶数次で厚みを、奇数次で空気感を選べます。さらにイコライザーでは作れない密度のための「オーガニック」。',
   'dsp.exciter.drive': 'ドライブ',
   'dsp.exciter.mix': '量',
+  'dsp.exciter.band.low': '低域',
+  'dsp.exciter.band.mid': '中域',
+  'dsp.exciter.band.high': '高域',
+  'dsp.exciter.crossoverLow': '低域の分割',
+  'dsp.exciter.crossoverHigh': '高域の分割',
+  'dsp.exciter.texture': '質感',
+  'dsp.exciter.threshold': 'しきい値',
+  'dsp.exciter.dynamic': 'ダイナミック',
+  'dsp.exciter.organic': 'オーガニック',
+  'dsp.exciter.organicHint':
+    '測定は正常なのに薄く聞こえる中域に厚みを。音楽に追従しながら揺らぐ偶数次倍音で、止まらずに呼吸します。',
+  'dsp.exciter.organicAmount': '厚み',
+  'dsp.exciter.organicFocus': 'フォーカス',
 
   'dsp.compressor.title': 'マルチバンドコンプレッサー',
   'dsp.compressor.description': '3 つの帯域それぞれで音量を均します。',

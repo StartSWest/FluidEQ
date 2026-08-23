@@ -364,8 +364,23 @@ export const chainPeakDb = (
   sampleRate: number,
 ): number => {
   const bands = eqChainPeakDb(settings.eq, sampleRate);
+  // Every band that is switched on, plus the organic stage. They are parallel
+  // and each adds on top of the dry signal, so the reserve owes the SUM rather
+  // than the largest: three bands at 0.3 add more than one band at 0.5, and a
+  // reserve that took the maximum would be short by exactly the amount that
+  // goes on to clip.
   const exciter = settings.exciter.enabled
-    ? 20 * Math.log10(1 + settings.exciter.mix)
+    ? 20 *
+      Math.log10(
+        1 +
+          settings.exciter.bands.reduce(
+            (total, band) => total + (band.enabled ? band.mix : 0),
+            0,
+          ) +
+          (settings.exciter.organic.enabled
+            ? settings.exciter.organic.amount
+            : 0),
+      )
     : 0;
   const makeup = settings.compressor.enabled
     ? Math.max(0, ...settings.compressor.bands.map((band) => band.makeupDb))

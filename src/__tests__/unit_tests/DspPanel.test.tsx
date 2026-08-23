@@ -95,10 +95,18 @@ describe('DspPanel', () => {
     expect(screen.queryByText(/invents them/i)).not.toBeInTheDocument();
   });
 
+  /**
+   * The page has to say the harmonics were never there.
+   *
+   * It is the one claim in this rack a user cannot check by listening —
+   * everything else shapes what arrived, and this makes something up. The
+   * wording moved when the page grew three bands and the organic stage, so
+   * this asks for the CLAIM rather than for the old sentence.
+   */
   it('says the exciter invents its harmonics once its page is open', () => {
     renderPanel();
     fireEvent.click(screen.getByRole('button', { name: /Exciter/i }));
-    expect(screen.getByText(/invents them/i)).toBeInTheDocument();
+    expect(screen.getByText(/never in the signal/i)).toBeInTheDocument();
   });
 
   it('applies a preset whole when one is chosen', () => {

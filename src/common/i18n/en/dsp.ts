@@ -205,10 +205,22 @@ const dsp = {
 
   'dsp.exciter.title': 'Exciter',
   'dsp.exciter.description':
-    'Generates high harmonics a lossy encoder discarded. It invents them; it does not recover them.',
-  'dsp.exciter.crossover': 'Above',
+    'Generates harmonics that were never in the signal. Three bands, each choosing even orders for body or odd for air — plus Organic, for the density an equaliser cannot add.',
   'dsp.exciter.drive': 'Drive',
   'dsp.exciter.mix': 'Amount',
+  'dsp.exciter.band.low': 'Low',
+  'dsp.exciter.band.mid': 'Mid',
+  'dsp.exciter.band.high': 'High',
+  'dsp.exciter.crossoverLow': 'Low split',
+  'dsp.exciter.crossoverHigh': 'High split',
+  'dsp.exciter.texture': 'Texture',
+  'dsp.exciter.threshold': 'Threshold',
+  'dsp.exciter.dynamic': 'Dynamic',
+  'dsp.exciter.organic': 'Organic',
+  'dsp.exciter.organicHint':
+    'Body for a midrange that measures fine and sounds thin. Even harmonics that follow the music and drift as they go, so it breathes instead of sitting still.',
+  'dsp.exciter.organicAmount': 'Body',
+  'dsp.exciter.organicFocus': 'Focus',
 
   'dsp.compressor.title': 'Multiband compressor',
   'dsp.compressor.description':

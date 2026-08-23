@@ -190,10 +190,22 @@ const dsp = {
 
   'dsp.exciter.title': '激励器',
   'dsp.exciter.description':
-    '生成有损编码器丢弃的高频谐波。它是凭空生成的，不是还原出来的。',
-  'dsp.exciter.crossover': '高于',
+    '生成信号中原本没有的谐波。三个频段各自选择偶次谐波增添厚度，或奇次谐波增添空气感——外加「有机」，提供均衡器无法添加的密度。',
   'dsp.exciter.drive': '强度',
   'dsp.exciter.mix': '混合量',
+  'dsp.exciter.band.low': '低频',
+  'dsp.exciter.band.mid': '中频',
+  'dsp.exciter.band.high': '高频',
+  'dsp.exciter.crossoverLow': '低频分割',
+  'dsp.exciter.crossoverHigh': '高频分割',
+  'dsp.exciter.texture': '质感',
+  'dsp.exciter.threshold': '阈值',
+  'dsp.exciter.dynamic': '动态',
+  'dsp.exciter.organic': '有机',
+  'dsp.exciter.organicHint':
+    '为测量正常却听感单薄的中频增添厚度。偶次谐波跟随音乐并随之漂移，因此它会呼吸而不是静止不动。',
+  'dsp.exciter.organicAmount': '厚度',
+  'dsp.exciter.organicFocus': '焦点',
 
   'dsp.compressor.title': '多段压缩器',
   'dsp.compressor.description': '在三个频段中分别平衡音量。',

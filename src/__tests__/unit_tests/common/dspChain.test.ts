@@ -24,9 +24,15 @@ describe('dsp chain settings', () => {
   it('clamps out-of-range values rather than rejecting them', () => {
     const clamped = clampDspSettings({
       ...DSP_DEFAULTS,
-      exciter: { ...DSP_DEFAULTS.exciter, drive: 999 },
+      exciter: {
+        ...DSP_DEFAULTS.exciter,
+        bands: [
+          { ...DSP_DEFAULTS.exciter.bands[0], drive: 999 },
+          ...DSP_DEFAULTS.exciter.bands.slice(1),
+        ],
+      },
     });
-    expect(clamped.exciter.drive).toBe(10);
+    expect(clamped.exciter.bands[0].drive).toBe(10);
   });
 
   it('replaces an unreadable blob with the defaults', () => {

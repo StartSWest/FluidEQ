@@ -196,10 +196,22 @@ const dsp = {
 
   'dsp.exciter.title': 'Excitador',
   'dsp.exciter.description':
-    'Genera armónicos agudos que el códec descartó. Los inventa; no los recupera.',
-  'dsp.exciter.crossover': 'Por encima de',
+    'Genera armónicos que nunca estuvieron en la señal. Tres bandas, cada una eligiendo órdenes pares para cuerpo o impares para aire — más Orgánico, para la densidad que un ecualizador no puede añadir.',
   'dsp.exciter.drive': 'Intensidad',
   'dsp.exciter.mix': 'Cantidad',
+  'dsp.exciter.band.low': 'Graves',
+  'dsp.exciter.band.mid': 'Medios',
+  'dsp.exciter.band.high': 'Agudos',
+  'dsp.exciter.crossoverLow': 'Corte grave',
+  'dsp.exciter.crossoverHigh': 'Corte agudo',
+  'dsp.exciter.texture': 'Textura',
+  'dsp.exciter.threshold': 'Umbral',
+  'dsp.exciter.dynamic': 'Dinámico',
+  'dsp.exciter.organic': 'Orgánico',
+  'dsp.exciter.organicHint':
+    'Cuerpo para unos medios que miden bien y suenan delgados. Armónicos pares que siguen a la música y derivan con ella, para que respire en vez de quedarse quieto.',
+  'dsp.exciter.organicAmount': 'Cuerpo',
+  'dsp.exciter.organicFocus': 'Foco',
 
   'dsp.compressor.title': 'Compresor multibanda',
   'dsp.compressor.description':

@@ -195,10 +195,22 @@ const dsp = {
 
   'dsp.exciter.title': 'Exciter',
   'dsp.exciter.description':
-    'Genera le armoniche acute che un codec con perdita ha scartato. Le inventa, non le recupera.',
-  'dsp.exciter.crossover': 'Sopra',
+    'Genera armoniche che non erano nel segnale. Tre bande, ognuna sceglie ordini pari per corpo o dispari per aria — più Organico, per la densità che un equalizzatore non può aggiungere.',
   'dsp.exciter.drive': 'Intensità',
   'dsp.exciter.mix': 'Quantità',
+  'dsp.exciter.band.low': 'Bassi',
+  'dsp.exciter.band.mid': 'Medi',
+  'dsp.exciter.band.high': 'Alti',
+  'dsp.exciter.crossoverLow': 'Taglio basso',
+  'dsp.exciter.crossoverHigh': 'Taglio alto',
+  'dsp.exciter.texture': 'Trama',
+  'dsp.exciter.threshold': 'Soglia',
+  'dsp.exciter.dynamic': 'Dinamico',
+  'dsp.exciter.organic': 'Organico',
+  'dsp.exciter.organicHint':
+    'Corpo per medi che misurano bene e suonano sottili. Armoniche pari che seguono la musica e derivano con essa, così respira invece di restare ferma.',
+  'dsp.exciter.organicAmount': 'Corpo',
+  'dsp.exciter.organicFocus': 'Fuoco',
 
   'dsp.compressor.title': 'Compressore multibanda',
   'dsp.compressor.description':

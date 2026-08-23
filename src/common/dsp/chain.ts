@@ -33,14 +33,52 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * moment it is opened is one the user did not ask for.
  */
 
-export interface IExciterSettings {
+export interface IExciterBandSettings {
   enabled: boolean;
-  /** Corner above which harmonics are generated, Hz. */
-  crossoverHz: number;
   /** Shaper drive. 1 is nearly linear, 10 is obvious. */
   drive: number;
   /** How much of the shaped band is mixed back, 0-1. */
   mix: number;
+  /**
+   * Which harmonics this band makes: 0 is all even, 1 is all odd.
+   *
+   * The axis the single-band exciter never had, and the one that decides what
+   * a band is FOR. Even orders sit an octave above the fundamental and read as
+   * body, which is what a low or mid band wants. Odd orders read as edge and
+   * air, which is what a high band wants — and is what the old exciter did
+   * everywhere, because its curve was symmetric and a symmetric curve has no
+   * choice.
+   */
+  texture: number;
+  /**
+   * Whether this band's harmonics wait for a level, and which level.
+   *
+   * The EQ's dynamic bands brought over, with the same two fields for the same
+   * reason: a flag rather than a sentinel threshold, so "off" is a state
+   * rather than a magic number at the bottom of the range. A quiet passage
+   * given the same excitement as a loud one ends up sounding processed,
+   * because the effect is the only thing that did not change.
+   */
+  dynamic: boolean;
+  thresholdDb: number;
+}
+
+export interface IOrganicSettings {
+  enabled: boolean;
+  /** How much body, 0-1. Drives asymmetry and level together. */
+  amount: number;
+  /** Centre of the band it works on, Hz. */
+  focusHz: number;
+}
+
+export interface IExciterSettings {
+  enabled: boolean;
+  /** The two corners that make three bands, Hz, ascending. */
+  crossoverHz: readonly [number, number];
+  /** Per band, low to high. Always three. */
+  bands: readonly IExciterBandSettings[];
+  /** @see IOrganicSettings */
+  organic: IOrganicSettings;
 }
 
 export interface IBandSettings {
@@ -423,9 +461,15 @@ interface IRange {
 }
 
 const RANGES = {
-  exciterCrossoverHz: { min: 1_000, max: 12_000 },
+  exciterCrossoverHz: { min: 120, max: 12_000 },
   exciterDrive: { min: 1, max: 10 },
   exciterMix: { min: 0, max: 1 },
+  exciterTexture: { min: 0, max: 1 },
+  organicAmount: { min: 0, max: 1 },
+  // The range a thin midrange actually lives in. Below 150 is body the driver
+  // usually has too much of already, and above 2.5k is presence rather than
+  // density — which is the exciter's high band, not this.
+  organicFocusHz: { min: 150, max: 2_500 },
   compressorLowHz: { min: 60, max: 600 },
   compressorHighHz: { min: 1_000, max: 10_000 },
   thresholdDb: { min: -60, max: 0 },
@@ -704,7 +748,44 @@ export const DSP_DEFAULTS: IDspSettings = {
     trimDb: 0,
     trimMode: 'fixed',
   },
-  exciter: { enabled: false, crossoverHz: 6_000, drive: 3, mix: 0.3 },
+  exciter: {
+    enabled: false,
+    // 300 Hz and 3 kHz: the classic body / presence / air split, and the same
+    // three regions a listener describes without being taught them.
+    crossoverHz: [300, 3_000],
+    bands: [
+      // Low: even orders only. Odd harmonics down here are the definition of
+      // a muddy bottom end, and the low band exists to add weight, not edge.
+      {
+        enabled: false,
+        drive: 2,
+        mix: 0.2,
+        texture: 0,
+        dynamic: false,
+        thresholdDb: -24,
+      },
+      // Mid: mostly even, which is where body lives.
+      {
+        enabled: false,
+        drive: 2.5,
+        mix: 0.25,
+        texture: 0.25,
+        dynamic: false,
+        thresholdDb: -24,
+      },
+      // High: mostly odd, which is what the old single-band exciter was, and
+      // it was right about this band — odd orders up here read as air.
+      {
+        enabled: true,
+        drive: 3,
+        mix: 0.3,
+        texture: 0.85,
+        dynamic: false,
+        thresholdDb: -24,
+      },
+    ],
+    organic: { enabled: false, amount: 0.4, focusHz: 700 },
+  },
   compressor: {
     enabled: false,
     crossoverHz: [200, 3_000],
@@ -739,6 +820,31 @@ const clampBand = (value: unknown, fallback: IBandSettings): IBandSettings => {
       fallback.releaseMs,
     ),
     makeupDb: clampNumber(value.makeupDb, RANGES.makeupDb, fallback.makeupDb),
+  };
+};
+
+const clampExciterBand = (
+  value: unknown,
+  fallback: IExciterBandSettings,
+): IExciterBandSettings => {
+  if (!isRecord(value)) {
+    return fallback;
+  }
+  return {
+    enabled: clampBoolean(value.enabled, fallback.enabled),
+    drive: clampNumber(value.drive, RANGES.exciterDrive, fallback.drive),
+    mix: clampNumber(value.mix, RANGES.exciterMix, fallback.mix),
+    texture: clampNumber(
+      value.texture,
+      RANGES.exciterTexture,
+      fallback.texture,
+    ),
+    dynamic: clampBoolean(value.dynamic, fallback.dynamic),
+    thresholdDb: clampNumber(
+      value.thresholdDb,
+      RANGES.thresholdDb,
+      fallback.thresholdDb,
+    ),
   };
 };
 
@@ -810,6 +916,44 @@ export const clampDspSettings = (value: unknown): IDspSettings => {
   const storedCorners = Array.isArray(compressor.crossoverHz)
     ? compressor.crossoverHz
     : [];
+  const storedOrganic = isRecord(exciter.organic) ? exciter.organic : {};
+
+  /**
+   * A stored single-band exciter becomes this one's high band.
+   *
+   * The exciter was one crossover, one drive and one mix, and every one of
+   * those still exists here — they are the third band. Falling back to the
+   * defaults instead would silently discard a setting somebody had tuned by
+   * ear, and would do it on upgrade, where nobody is watching for it.
+   *
+   * The old corner was the frequency ABOVE which harmonics were generated,
+   * which is exactly what the upper of two corners means, so it carries across
+   * without reinterpretation. Its old range started at 1 kHz and this one
+   * starts at 120, so no stored value can fall outside.
+   */
+  const isLegacyExciter = typeof exciter.crossoverHz === 'number';
+  const storedExciterCorners = Array.isArray(exciter.crossoverHz)
+    ? exciter.crossoverHz
+    : [
+        DSP_DEFAULTS.exciter.crossoverHz[0],
+        isLegacyExciter
+          ? exciter.crossoverHz
+          : DSP_DEFAULTS.exciter.crossoverHz[1],
+      ];
+  const storedExciterBands = Array.isArray(exciter.bands)
+    ? exciter.bands
+    : [
+        undefined,
+        undefined,
+        isLegacyExciter
+          ? {
+              ...DSP_DEFAULTS.exciter.bands[2],
+              drive: exciter.drive,
+              mix: exciter.mix,
+            }
+          : undefined,
+      ];
+
   return {
     eq: {
       enabled: clampBoolean(eq.enabled, DSP_DEFAULTS.eq.enabled),
@@ -882,21 +1026,37 @@ export const clampDspSettings = (value: unknown): IDspSettings => {
     },
     exciter: {
       enabled: clampBoolean(exciter.enabled, DSP_DEFAULTS.exciter.enabled),
-      crossoverHz: clampNumber(
-        exciter.crossoverHz,
-        RANGES.exciterCrossoverHz,
-        DSP_DEFAULTS.exciter.crossoverHz,
+      crossoverHz: [
+        clampNumber(
+          storedExciterCorners[0],
+          RANGES.exciterCrossoverHz,
+          DSP_DEFAULTS.exciter.crossoverHz[0],
+        ),
+        clampNumber(
+          storedExciterCorners[1],
+          RANGES.exciterCrossoverHz,
+          DSP_DEFAULTS.exciter.crossoverHz[1],
+        ),
+      ],
+      bands: DSP_DEFAULTS.exciter.bands.map((fallback, index) =>
+        clampExciterBand(storedExciterBands[index], fallback),
       ),
-      drive: clampNumber(
-        exciter.drive,
-        RANGES.exciterDrive,
-        DSP_DEFAULTS.exciter.drive,
-      ),
-      mix: clampNumber(
-        exciter.mix,
-        RANGES.exciterMix,
-        DSP_DEFAULTS.exciter.mix,
-      ),
+      organic: {
+        enabled: clampBoolean(
+          storedOrganic.enabled,
+          DSP_DEFAULTS.exciter.organic.enabled,
+        ),
+        amount: clampNumber(
+          storedOrganic.amount,
+          RANGES.organicAmount,
+          DSP_DEFAULTS.exciter.organic.amount,
+        ),
+        focusHz: clampNumber(
+          storedOrganic.focusHz,
+          RANGES.organicFocusHz,
+          DSP_DEFAULTS.exciter.organic.focusHz,
+        ),
+      },
     },
     compressor: {
       enabled: clampBoolean(

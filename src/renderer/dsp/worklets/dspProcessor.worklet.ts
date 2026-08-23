@@ -22,6 +22,11 @@ import {
 } from '../compressor';
 import { ILimiterState, createLimiterState, processLimiter } from '../limiter';
 import {
+  IExciterChannelState,
+  createExciterChannel,
+  runExciterChannel,
+} from '../exciterStage';
+import {
   IBiquadCoefficients,
   IBiquadState,
   biquadCoefficients,
@@ -211,6 +216,20 @@ class DspProcessor extends AudioWorkletProcessor {
 
   /** One per channel: the fuzz stage carries its own oversampler. */
   private readonly fuzz: ISaturatorState[] = [];
+
+  /**
+   * One per channel: the exciter's crossover, shapers and followers.
+   *
+   * Per channel rather than shared, and that matters for more than filter
+   * history — the organic stage's wander is deliberately independent on each
+   * side, and the independence is what is heard as space rather than as width.
+   */
+  private readonly exciters: IExciterChannelState[] = [];
+
+  /** What the exciter last actually contributed, for the card to draw. */
+  private exciterBands: number[] = [0, 0, 0];
+
+  private exciterOrganic = 0;
 
   /** One per channel: the oversampler's filters keep history across blocks. */
   private readonly eqOversamplers: IOversamplerState[] = [];
@@ -721,6 +740,47 @@ class DspProcessor extends AudioWorkletProcessor {
     }
 
     /**
+     * The exciter, first, because that is where it has always been.
+     *
+     * It used to be a parallel subgraph of native nodes ahead of this
+     * processor — `source -> [dry + highpass -> shaper -> mix] -> worklet` —
+     * and moving it inside changed its home, not its position: it still runs
+     * before the equaliser, so the EQ shapes the harmonics this makes rather
+     * than the other way round, and the input regulator downstream still
+     * measures a signal this has already added to.
+     *
+     * Ahead of the mid/side transform as well, which is the same ordering the
+     * graph gave it for free by being outside. Exciting mid and side
+     * separately would put different harmonics in the sum and the difference,
+     * and the sides of a mix are mostly reverb — harmonics generated from
+     * reverb are the one place this kind of stage reliably sounds artificial.
+     */
+    if (this.settings.exciter.enabled) {
+      for (let channel = 0; channel < output.length; channel += 1) {
+        if (!this.exciters[channel]) {
+          this.exciters[channel] = createExciterChannel(output[channel].length);
+        }
+        const report = runExciterChannel(
+          this.exciters[channel],
+          output[channel],
+          this.settings.exciter,
+          sampleRate,
+        );
+        // The first channel's reading is the one reported. They differ only by
+        // the organic wander, which is per channel on purpose, and a display
+        // averaging two independent wanders would show a steadier number than
+        // either side actually has.
+        if (channel === 0) {
+          this.exciterBands = report.bands;
+          this.exciterOrganic = report.organic;
+        }
+      }
+    } else if (this.exciterOrganic !== 0 || this.exciterBands[2] !== 0) {
+      this.exciterBands = [0, 0, 0];
+      this.exciterOrganic = 0;
+    }
+
+    /**
      * Mid/side, and why it wraps the whole loop rather than sitting inside it.
      *
      * Mid is what both speakers share and side is what they differ by, so
@@ -879,6 +939,8 @@ class DspProcessor extends AudioWorkletProcessor {
       peak: this.peak,
       bandAmounts: this.bandAmounts,
       bandLevels: this.bandLevels,
+      exciterBands: this.exciterBands,
+      exciterOrganic: this.exciterOrganic,
       // Sliced rather than sent whole: a partly filled buffer would draw its
       // unused tail as a cluster of pairs at the origin, which reads as a
       // mono signal that is not there.

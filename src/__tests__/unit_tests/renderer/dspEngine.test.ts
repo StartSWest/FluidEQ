@@ -199,7 +199,7 @@ describe('useDspEngine', () => {
     rerender({
       settings: {
         ...DSP_DEFAULTS,
-        exciter: { ...DSP_DEFAULTS.exciter, drive: 8 },
+        exciter: { ...DSP_DEFAULTS.exciter, enabled: true },
       },
     });
     expect(harness.createMediaElementSource).toHaveBeenCalledTimes(1);

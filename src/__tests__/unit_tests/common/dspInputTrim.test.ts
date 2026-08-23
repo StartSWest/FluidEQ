@@ -154,11 +154,44 @@ describe('the EQ input regulator', () => {
     expect(chainPeakDb(flat, RATE)).toBe(0);
 
     // 1 + mix at full agreement, the shaper spanning exactly ±1 either way.
+    // One band on, so this is still the single-band arithmetic it always was.
     const excited = {
       ...flat,
-      exciter: { ...flat.exciter, enabled: true, mix: 0.5 },
+      exciter: {
+        ...flat.exciter,
+        enabled: true,
+        bands: flat.exciter.bands.map((band, index) => ({
+          ...band,
+          enabled: index === 2,
+          mix: 0.5,
+        })),
+      },
     };
     expect(chainPeakDb(excited, RATE)).toBeCloseTo(20 * Math.log10(1.5), 6);
+
+    /**
+     * Three bands SUM, and the reserve has to owe all of them.
+     *
+     * Unlike the compressor below, where the crossover means one band is in
+     * charge at any frequency and the largest makeup is what counts, the
+     * exciter's bands are parallel additions onto the dry signal — they arrive
+     * together. A reserve that took the largest would be short by exactly the
+     * amount that goes on to clip, which is the failure this whole regulator
+     * exists to prevent.
+     */
+    const allThree = {
+      ...flat,
+      exciter: {
+        ...flat.exciter,
+        enabled: true,
+        bands: flat.exciter.bands.map((band) => ({
+          ...band,
+          enabled: true,
+          mix: 0.2,
+        })),
+      },
+    };
+    expect(chainPeakDb(allThree, RATE)).toBeCloseTo(20 * Math.log10(1.6), 6);
 
     // The crossover means one band is in charge at any frequency, so the
     // largest makeup counts and the three do not add up.

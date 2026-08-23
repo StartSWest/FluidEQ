@@ -231,6 +231,33 @@ export const setDspBandAmounts = (next: readonly number[]): void => {
 export const readDspBandAmounts = (): readonly number[] => bandAmounts;
 
 /**
+ * What the exciter's three bands and its organic stage actually contributed.
+ *
+ * Reported by the worklet rather than derived from the settings, and that
+ * difference is the whole reason the display is worth having. Two of these
+ * numbers move on their own: a dynamic band's amount depends on how loud its
+ * own passband is this instant, and the organic stage's drive wanders by
+ * design. A display drawn from the settings would show what was ASKED for and
+ * hold perfectly still — which would make the stage's central claim, that it
+ * breathes with the music, the one thing a user could not see.
+ */
+let exciterBands: readonly number[] = [0, 0, 0];
+
+let exciterOrganic = 0;
+
+export const setDspExciterActivity = (
+  bands: readonly number[],
+  organic: number,
+): void => {
+  exciterBands = bands;
+  exciterOrganic = organic;
+};
+
+export const readDspExciterBands = (): readonly number[] => exciterBands;
+
+export const readDspExciterOrganic = (): number => exciterOrganic;
+
+/**
  * Each dynamic band's own detected level, in dBFS, by band index.
  *
  * The quantity the threshold is compared against, and NOT the same thing as

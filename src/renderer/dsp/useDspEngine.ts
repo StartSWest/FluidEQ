@@ -24,6 +24,7 @@ import {
   TDspEngineState,
   setDspAnalyser,
   setDspBandAmounts,
+  setDspExciterActivity,
   setDspBandLevels,
   setDspCorrelation,
   setDspHeadroomGiveBack,
@@ -187,6 +188,8 @@ export const useDspEngine = (
           peak?: unknown;
           bandAmounts?: unknown;
           bandLevels?: unknown;
+          exciterBands?: unknown;
+          exciterOrganic?: unknown;
           scatter?: unknown;
         } | null;
         if (data && typeof data.correlation === 'number') {
@@ -200,6 +203,16 @@ export const useDspEngine = (
         }
         if (data && Array.isArray(data.bandLevels)) {
           setDspBandLevels(data.bandLevels as number[]);
+        }
+        if (
+          data &&
+          Array.isArray(data.exciterBands) &&
+          typeof data.exciterOrganic === 'number'
+        ) {
+          setDspExciterActivity(
+            data.exciterBands as number[],
+            data.exciterOrganic,
+          );
         }
         if (data?.scatter instanceof Float32Array) {
           setDspScatter(data.scatter);

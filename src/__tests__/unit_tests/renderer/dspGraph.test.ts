@@ -66,64 +66,49 @@ describe('dsp graph', () => {
     expect(worklet.port.postMessage).toHaveBeenCalledWith(DSP_DEFAULTS);
   });
 
-  it('builds no shaper while the exciter is off', () => {
-    const context = fakeContext();
-    buildDspGraph(context, fakeNode(), fakeWorklet(), fakeNode(), DSP_DEFAULTS);
-    expect(context.createWaveShaper).not.toHaveBeenCalled();
+  /**
+   * The exciter left this graph, and these assert that it stayed gone.
+   *
+   * It was a parallel subgraph of native nodes — a gain, a highpass, a shaper
+   * and a wet gain — and it moved into the worklet when it grew three bands,
+   * a level-dependent gate and a drive that wanders, none of which a
+   * `WaveShaperNode` can express. `exciterStage.ts` holds it now, and
+   * `dspExciterStage.test.ts` measures what it does.
+   *
+   * Asserting that NO shaper and NO filter is ever built is the sharp version
+   * of that claim. A stray one would mean the signal was being excited twice —
+   * once here and once in the worklet — which is a doubling nobody would find
+   * by listening, because it would simply sound like a stage that was too
+   * strong.
+   */
+  it('builds no shaper, whether the exciter is on or off', () => {
+    const off = fakeContext();
+    buildDspGraph(off, fakeNode(), fakeWorklet(), fakeNode(), DSP_DEFAULTS);
+    expect(off.createWaveShaper).not.toHaveBeenCalled();
+
+    const on = fakeContext();
+    buildDspGraph(on, fakeNode(), fakeWorklet(), fakeNode(), excited());
+    expect(on.createWaveShaper).not.toHaveBeenCalled();
+    expect(on.createBiquadFilter).not.toHaveBeenCalled();
   });
 
-  it('POSITIVE CONTROL: builds exactly one shaper once the exciter is on', () => {
-    const context = fakeContext();
-    buildDspGraph(context, fakeNode(), fakeWorklet(), fakeNode(), excited());
-    expect(context.createWaveShaper).toHaveBeenCalledTimes(1);
-    expect(context.createBiquadFilter).toHaveBeenCalledTimes(1);
+  it('connects the source straight to the worklet', () => {
+    const source = fakeNode();
+    const worklet = fakeWorklet();
+    buildDspGraph(fakeContext(), source, worklet, fakeNode(), excited());
+    expect(source.connect).toHaveBeenCalledWith(worklet);
   });
 
   /**
-   * The shaper must never see a low frequency.
+   * One message, and nothing to keep in step with it.
    *
-   * A non-linearity is most audible and least wanted on bass; putting the
-   * shaper in series rather than behind a highpass is the difference between
-   * added air and a muddy, buzzing low end.
+   * While the exciter was native, a settings change had to update the worklet
+   * AND write onto three nodes, and a change to its enabled flag had to tear
+   * the subgraph down and build another. Every stage lives behind the port
+   * now, so there is one path for a setting to travel and no second copy of
+   * the truth to drift.
    */
-  it('puts a highpass at the corner in front of the shaper', () => {
-    const context = fakeContext();
-    buildDspGraph(
-      context,
-      fakeNode(),
-      fakeWorklet(),
-      fakeNode(),
-      excited({ crossoverHz: 7_000 }),
-    );
-    const filter = context.createBiquadFilter.mock.results[0].value;
-    expect(filter.type).toBe('highpass');
-    expect(filter.frequency.value).toBe(7_000);
-  });
-
-  /**
-   * Without this the exciter aliases, and the default is the broken value.
-   *
-   * `WaveShaperNode.oversample` defaults to `'none'`, so a shaper left alone
-   * folds its own harmonics back down as inharmonic tones — exactly where the
-   * stage is meant to be adding air. `dspExciter.test.ts` measures the folding
-   * itself; this asserts the graph asks Chromium to prevent it.
-   */
-  it('runs the shaper at 4x so its harmonics cannot fold back', () => {
-    const context = fakeContext();
-    buildDspGraph(context, fakeNode(), fakeWorklet(), fakeNode(), excited());
-    expect(context.createWaveShaper.mock.results[0].value.oversample).toBe(
-      '4x',
-    );
-  });
-
-  it('gives the shaper a curve rather than leaving it linear', () => {
-    const context = fakeContext();
-    buildDspGraph(context, fakeNode(), fakeWorklet(), fakeNode(), excited());
-    const { curve } = context.createWaveShaper.mock.results[0].value;
-    expect(curve).toBeInstanceOf(Float32Array);
-  });
-
-  it('forwards a settings change to the worklet without rebuilding', () => {
+  it('forwards a settings change as a single message, with no rebuild', () => {
     const context = fakeContext();
     const worklet = fakeWorklet();
     const graph = buildDspGraph(
@@ -133,25 +118,33 @@ describe('dsp graph', () => {
       fakeNode(),
       excited(),
     );
-    const next = excited({ drive: 9 });
+    const next = excited({
+      organic: { enabled: true, amount: 0.5, focusHz: 800 },
+    });
     graph.update(next);
     expect(worklet.port.postMessage).toHaveBeenLastCalledWith(next);
-    // Still one shaper: a rebuild on every knob turn would click.
-    expect(context.createWaveShaper).toHaveBeenCalledTimes(1);
+    expect(context.createWaveShaper).not.toHaveBeenCalled();
   });
 
-  it('rebuilds only when the exciter is switched on or off', () => {
+  /**
+   * Switching the exciter on used to rebuild the graph, which is exactly when
+   * a click happens. There is nothing left to rebuild, so there is nothing
+   * left to click.
+   */
+  it('does not rebuild when the exciter is switched on', () => {
     const context = fakeContext();
+    const source = fakeNode();
     const graph = buildDspGraph(
       context,
-      fakeNode(),
+      source,
       fakeWorklet(),
       fakeNode(),
       DSP_DEFAULTS,
     );
-    expect(context.createWaveShaper).not.toHaveBeenCalled();
+    const connectsBefore = source.connect.mock.calls.length;
     graph.update(excited());
-    expect(context.createWaveShaper).toHaveBeenCalledTimes(1);
+    expect(source.connect.mock.calls).toHaveLength(connectsBefore);
+    expect(source.disconnect).not.toHaveBeenCalled();
   });
 
   it('disconnects the source and the worklet when disposed', () => {
@@ -167,26 +160,5 @@ describe('dsp graph', () => {
     graph.dispose();
     expect(source.disconnect).toHaveBeenCalled();
     expect(worklet.disconnect).toHaveBeenCalled();
-  });
-
-  it('disconnects every exciter node it created when disposed', () => {
-    const context = fakeContext();
-    const graph = buildDspGraph(
-      context,
-      fakeNode(),
-      fakeWorklet(),
-      fakeNode(),
-      excited(),
-    );
-    graph.dispose();
-    const made = [
-      ...context.createGain.mock.results,
-      ...context.createWaveShaper.mock.results,
-      ...context.createBiquadFilter.mock.results,
-    ];
-    expect(made).toHaveLength(4);
-    made.forEach(({ value }) => {
-      expect(value.disconnect).toHaveBeenCalled();
-    });
   });
 });

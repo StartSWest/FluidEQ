@@ -196,10 +196,22 @@ const dsp = {
 
   'dsp.exciter.title': 'Эксайтер',
   'dsp.exciter.description':
-    'Создаёт высокие гармоники, отброшенные кодеком с потерями. Он их придумывает, а не восстанавливает.',
-  'dsp.exciter.crossover': 'Выше',
+    'Создаёт гармоники, которых в сигнале не было. Три полосы, каждая выбирает чётные порядки для плотности или нечётные для воздуха — плюс «Органика» для той насыщенности, которую эквалайзер дать не может.',
   'dsp.exciter.drive': 'Интенсивность',
   'dsp.exciter.mix': 'Количество',
+  'dsp.exciter.band.low': 'Низкие',
+  'dsp.exciter.band.mid': 'Средние',
+  'dsp.exciter.band.high': 'Высокие',
+  'dsp.exciter.crossoverLow': 'Нижний раздел',
+  'dsp.exciter.crossoverHigh': 'Верхний раздел',
+  'dsp.exciter.texture': 'Текстура',
+  'dsp.exciter.threshold': 'Порог',
+  'dsp.exciter.dynamic': 'Динамика',
+  'dsp.exciter.organic': 'Органика',
+  'dsp.exciter.organicHint':
+    'Плотность для середины, которая хорошо измеряется и звучит тонко. Чётные гармоники следуют за музыкой и плывут вместе с ней, поэтому звук дышит, а не стоит на месте.',
+  'dsp.exciter.organicAmount': 'Плотность',
+  'dsp.exciter.organicFocus': 'Фокус',
 
   'dsp.compressor.title': 'Многополосный компрессор',
   'dsp.compressor.description':

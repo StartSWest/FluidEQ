@@ -142,23 +142,36 @@ describe('the fuzz dial', () => {
 
   it('stays inside colour at full scale', () => {
     const { second, third } = harmonics(1);
-    // Measured 4.04% and 1.79%: heard on music, and far from the 16% third
-    // harmonic the first attempt reached.
-    expect(second).toBeLessThan(5);
+    // The THIRD is the number that has to stay down, because the third is what
+    // is heard as grit. The second is free to be large — large is what warmth
+    // IS — so a ceiling on it was guarding the wrong quantity, and that
+    // ceiling is what failed when the curve got better rather than worse.
+    // Measured 0.98% third against 9.83% second.
     expect(third).toBeLessThan(2.5);
+    expect(second).toBeGreaterThan(third * 5);
   });
 
-  it('keeps the even harmonics dominant, which is what warmth is', () => {
-    [0.25, 0.5, 1].forEach((amount) => {
+  /**
+   * The balance must not collapse as the dial is turned up.
+   *
+   * This is the defect the curve change fixed, and this is the test that would
+   * have caught it. With the asymmetry held at a fixed 0.18 the ratio fell
+   * 11.8 : 1 -> 8.5 -> 4.6 -> 3.1 -> 2.3 across the travel, so the top of the
+   * dial was arriving at the grit the whole design exists to avoid. Checking a
+   * floor at every step fails on the old curve at 0.5 and above; the previous
+   * version of this test asked only for 2 : 1 and passed it all the way down
+   * to 2.3, which is why nobody noticed.
+   */
+  it('keeps the even harmonics dominant at EVERY step, not just at the ends', () => {
+    [0.05, 0.25, 0.5, 0.75, 1].forEach((amount) => {
       const { second, third } = harmonics(amount);
-      // 2.2 to 1 at the very top, wider everywhere below it.
-      expect(second).toBeGreaterThan(third * 2);
+      expect(second).toBeGreaterThan(third * 5);
     });
   });
 
   it('is genuinely fine at the bottom of its travel', () => {
-    // A quarter turn measures about half a percent: present, not an effect.
-    expect(harmonics(0.25).second).toBeLessThan(0.8);
+    // A quarter turn measures about 1.5%: present, not an effect.
+    expect(harmonics(0.25).second).toBeLessThan(2.5);
   });
 
   it('NULL TEST: zero is silence-clean', () => {

@@ -5,7 +5,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { IDspSettings } from '../../common/dsp/chain';
-import { buildShaperCurve } from './exciter';
 import { prepareKernel } from './convolver';
 import { buildLinearPhaseKernel } from './linearPhase';
 
@@ -82,23 +81,23 @@ export interface IDspGraph {
 }
 
 /**
- * Wire source → [exciter] → worklet → destination.
+ * Wire source → worklet → destination.
  *
  * The worklet node is passed in rather than created here because
  * `audioWorklet.addModule` is asynchronous and a builder that returned a
  * promise could not be called from a render. `useDspEngine` awaits the module
  * and hands the node over.
  *
- * The exciter is the only stage built from native nodes. It is parallel, not
- * serial: the dry path carries the whole signal at unity and the wet path
- * carries only the band above the corner, shaped and scaled by `mix`. Putting
- * the shaper in series instead would distort the bass — which is where a
- * non-linearity is most audible and least wanted — and the highpass in front
- * of it exists precisely so the shaper never sees a low frequency.
+ * The exciter used to live here, as a parallel subgraph of native nodes, and
+ * it moved into the worklet when it grew from one band of odd harmonics into
+ * three bands that each choose their own — plus a stage that waits for a level
+ * and a drive that wanders. A `WaveShaperNode` can do none of those, so each
+ * would have been another node on another parallel path, and differing latency
+ * between parallel native paths is exactly the class of bug the worklet's own
+ * header exists to rule out. See `exciterStage.ts`.
  *
- * Rebuilding the exciter subgraph on every settings change would click, so
- * `update` only rebuilds when its enabled flag flips; drive, corner and mix
- * are written straight onto the existing nodes.
+ * What is left is a single connection, which is the whole benefit: there is no
+ * subgraph to rebuild when a switch flips, so there is nothing to click.
  */
 export const buildDspGraph = (
   context: IAudioGraphContext,
@@ -108,8 +107,6 @@ export const buildDspGraph = (
   settings: IDspSettings,
 ): IDspGraph => {
   let current = settings;
-  /** Every node this builder made, so `dispose` can unpick exactly its own. */
-  let exciterNodes: IAudioNodeLike[] = [];
   /**
    * What the last posted linear-phase kernel was built from.
    *
@@ -169,60 +166,6 @@ export const buildDspGraph = (
           : prepareKernel(buildLinearPhaseKernel(next.eq, context.sampleRate)),
     });
   };
-  let highpass: IFilterNodeLike | undefined;
-  let shaper: IShaperNodeLike | undefined;
-  let wetGain: IGainNodeLike | undefined;
-
-  const buildExciter = () => {
-    const dry = context.createGain();
-    dry.gain.value = 1;
-    highpass = context.createBiquadFilter();
-    highpass.type = 'highpass';
-    highpass.frequency.value = current.exciter.crossoverHz;
-    shaper = context.createWaveShaper();
-    shaper.curve = buildShaperCurve(current.exciter.drive);
-    /**
-     * Without this the exciter aliases, audibly and by design.
-     *
-     * A shaper is a non-linearity, so it manufactures harmonics above its
-     * input: a 7kHz tone fed through this curve produces 21kHz, 35kHz and
-     * 49kHz. At a 48kHz session everything past 24kHz has nowhere to go and
-     * folds back down as inharmonic content — tones that were never in the
-     * music and do not move with it, sitting exactly where this stage is
-     * supposed to be adding air.
-     *
-     * Chromium resamples to 4×, applies the curve, and filters on the way back
-     * down, all in C++. That is the same thing every commercial saturator does
-     * and there is no reason to hand-roll it. The default is `'none'`.
-     */
-    shaper.oversample = '4x';
-    wetGain = context.createGain();
-    wetGain.gain.value = current.exciter.mix;
-
-    source.connect(dry);
-    dry.connect(worklet);
-    source.connect(highpass);
-    highpass.connect(shaper);
-    shaper.connect(wetGain);
-    wetGain.connect(worklet);
-    exciterNodes = [dry, highpass, shaper, wetGain];
-  };
-
-  const teardownExciter = () => {
-    exciterNodes.forEach((node) => node.disconnect());
-    exciterNodes = [];
-    highpass = undefined;
-    shaper = undefined;
-    wetGain = undefined;
-  };
-
-  const connectSource = () => {
-    if (current.exciter.enabled) {
-      buildExciter();
-    } else {
-      source.connect(worklet);
-    }
-  };
 
   /**
    * The spectrum the EQ page draws behind its curve.
@@ -241,8 +184,8 @@ export const buildDspGraph = (
   // Fast enough to feel live, slow enough that the display is not a strobe.
   analyser.smoothingTimeConstant = 0.8;
 
-  // Tapped off the source rather than off the exciter's output: the exciter
-  // is parallel and its own gain is already accounted for in the reserve, so
+  // Tapped off the source rather than off the chain's output: the exciter is
+  // parallel and its own gain is already accounted for in the reserve, so
   // measuring after it would count that boost twice.
   const inputAnalyser = context.createAnalyser();
   inputAnalyser.fftSize = 2_048;
@@ -256,31 +199,20 @@ export const buildDspGraph = (
   worklet.connect(analyser);
   worklet.port.postMessage(current);
   refreshKernel(current);
-  connectSource();
+  source.connect(worklet);
 
   return {
     analyser,
     inputAnalyser,
     update(next: IDspSettings) {
-      const wasEnabled = current.exciter.enabled;
+      // Every stage the settings touch now lives behind the port, so this is
+      // one message rather than a message and a subgraph to keep in step.
       current = next;
       worklet.port.postMessage(next);
       refreshKernel(next);
-      if (wasEnabled !== next.exciter.enabled) {
-        source.disconnect();
-        teardownExciter();
-        connectSource();
-        return;
-      }
-      if (highpass && shaper && wetGain) {
-        highpass.frequency.value = next.exciter.crossoverHz;
-        shaper.curve = buildShaperCurve(next.exciter.drive);
-        wetGain.gain.value = next.exciter.mix;
-      }
     },
     dispose() {
       source.disconnect();
-      teardownExciter();
       worklet.disconnect();
       analyser.disconnect();
       inputAnalyser.disconnect();

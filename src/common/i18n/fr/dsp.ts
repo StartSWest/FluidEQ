@@ -196,10 +196,22 @@ const dsp = {
 
   'dsp.exciter.title': 'Exciteur',
   'dsp.exciter.description':
-    "Génère les harmoniques aiguës qu'un encodeur avec perte a supprimées. Il les invente, il ne les restaure pas.",
-  'dsp.exciter.crossover': 'Au-dessus de',
+    "Génère des harmoniques qui n'ont jamais été dans le signal. Trois bandes, chacune choisissant les rangs pairs pour le corps ou impairs pour l'air — plus Organique, pour la densité qu'un égaliseur ne peut pas ajouter.",
   'dsp.exciter.drive': 'Intensité',
   'dsp.exciter.mix': 'Quantité',
+  'dsp.exciter.band.low': 'Graves',
+  'dsp.exciter.band.mid': 'Médiums',
+  'dsp.exciter.band.high': 'Aigus',
+  'dsp.exciter.crossoverLow': 'Coupure grave',
+  'dsp.exciter.crossoverHigh': 'Coupure aiguë',
+  'dsp.exciter.texture': 'Texture',
+  'dsp.exciter.threshold': 'Seuil',
+  'dsp.exciter.dynamic': 'Dynamique',
+  'dsp.exciter.organic': 'Organique',
+  'dsp.exciter.organicHint':
+    'Du corps pour un médium qui se mesure bien et sonne maigre. Des harmoniques paires qui suivent la musique et dérivent avec elle, pour que ça respire au lieu de rester figé.',
+  'dsp.exciter.organicAmount': 'Corps',
+  'dsp.exciter.organicFocus': 'Focus',
 
   'dsp.compressor.title': 'Compresseur multibande',
   'dsp.compressor.description':

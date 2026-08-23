@@ -199,10 +199,22 @@ const dsp = {
 
   'dsp.exciter.title': 'Exciter',
   'dsp.exciter.description':
-    'Erzeugt hohe Obertöne, die ein verlustbehafteter Encoder verworfen hat. Er erfindet sie, er stellt sie nicht wieder her.',
-  'dsp.exciter.crossover': 'Oberhalb von',
+    'Erzeugt Obertöne, die nie im Signal waren. Drei Bänder, jedes mit geraden Ordnungen für Fülle oder ungeraden für Luft — dazu Organisch, für die Dichte, die ein Equalizer nicht liefern kann.',
   'dsp.exciter.drive': 'Intensität',
   'dsp.exciter.mix': 'Anteil',
+  'dsp.exciter.band.low': 'Tiefen',
+  'dsp.exciter.band.mid': 'Mitten',
+  'dsp.exciter.band.high': 'Höhen',
+  'dsp.exciter.crossoverLow': 'Untere Trennung',
+  'dsp.exciter.crossoverHigh': 'Obere Trennung',
+  'dsp.exciter.texture': 'Textur',
+  'dsp.exciter.threshold': 'Schwelle',
+  'dsp.exciter.dynamic': 'Dynamisch',
+  'dsp.exciter.organic': 'Organisch',
+  'dsp.exciter.organicHint':
+    'Fülle für Mitten, die sich gut messen und dünn klingen. Gerade Obertöne, die der Musik folgen und dabei driften, damit es atmet statt still zu stehen.',
+  'dsp.exciter.organicAmount': 'Fülle',
+  'dsp.exciter.organicFocus': 'Fokus',
 
   'dsp.compressor.title': 'Multiband-Kompressor',
   'dsp.compressor.description':

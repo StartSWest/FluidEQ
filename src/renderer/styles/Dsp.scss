@@ -219,6 +219,88 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   letter-spacing: 0.09em;
 }
 
+// The band's name and its own switch share a line, so a band that is off says
+// so at its top edge rather than through a mix dial that happens to read zero.
+// Three bands of which two are usually silent is this processor's normal
+// state, and the page has to answer "which two" without being read closely.
+.dsp-band-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+// Under the dials rather than among them: it qualifies the threshold above it,
+// and a switch sitting in the row of knobs would read as a fourth parameter.
+.dsp-band-dynamic {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 2px;
+  color: rgba($white, 0.55);
+  cursor: pointer;
+  font-size: 0.64rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+// The one block on this page that earns a sentence. Everything else here is a
+// word and a number; this is an effect the user has no name for yet, so it
+// says what it is for.
+.dsp-band-hint {
+  margin: 0 0 2px;
+  color: rgba($white, 0.44);
+  font-size: 0.68rem;
+  line-height: 1.4;
+}
+
+// Warm rather than the rack's cyan, matching the bar the display gives it. It
+// is not a fourth band and must not read as one: a different effect, its own
+// bandpass, its own colour.
+.dsp-band-organic {
+  border-color: rgba(255, 176, 89, 0.28);
+  background: rgba(255, 176, 89, 0.05);
+}
+
+// Full width above the bands, because it reports on all of them at once.
+.dsp-exciter-display {
+  display: flex;
+  flex: 1 1 100%;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 10px 6px;
+  border: 1px solid rgba($white, 0.06);
+  border-radius: 10px;
+  background: rgba($black, 0.22);
+}
+
+// A DEFINITE height, never `auto` — the same rule the EQ graph and the phase
+// meter carry, for the same reason. The paint sizes the backing store from the
+// measured box and the backing store is the element's intrinsic size, so an
+// automatic height is a loop that walks down the page.
+.dsp-exciter-canvas {
+  display: block;
+  width: 100%;
+  height: 84px;
+}
+
+.dsp-exciter-legend {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  gap: 0;
+  grid-template-columns: repeat(4, 1fr);
+  list-style: none;
+
+  li {
+    color: rgba($white, 0.45);
+    font-size: 0.6rem;
+    letter-spacing: 0.06em;
+    text-align: center;
+    text-transform: uppercase;
+  }
+}
+
 .dsp-band-dials {
   display: flex;
   gap: 2px;

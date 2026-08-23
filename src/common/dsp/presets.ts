@@ -52,7 +52,25 @@ export const DSP_PRESETS: IDspPreset[] = [
       // Left flat: this preset repairs a codec, and a tone curve on top of
       // that is a second opinion the user did not ask for.
       eq: DSP_DEFAULTS.eq,
-      exciter: { enabled: true, crossoverHz: 7_000, drive: 4, mix: 0.35 },
+      exciter: {
+        ...DSP_DEFAULTS.exciter,
+        enabled: true,
+        crossoverHz: [300, 7_000],
+        bands: [
+          { ...DSP_DEFAULTS.exciter.bands[0], enabled: false },
+          { ...DSP_DEFAULTS.exciter.bands[1], enabled: false },
+          // What this preset was before it had bands: the same corner, drive
+          // and mix, in the band those three now name. Codec damage is a
+          // top-octave problem, so the two below stay off rather than being
+          // invented to fill the new shape.
+          {
+            ...DSP_DEFAULTS.exciter.bands[2],
+            enabled: true,
+            drive: 4,
+            mix: 0.35,
+          },
+        ],
+      },
       compressor: {
         enabled: true,
         crossoverHz: [200, 3_000],
@@ -93,7 +111,25 @@ export const DSP_PRESETS: IDspPreset[] = [
     labelKey: 'dsp.preset.loud',
     settings: {
       eq: DSP_DEFAULTS.eq,
-      exciter: { enabled: true, crossoverHz: 5_000, drive: 5, mix: 0.4 },
+      exciter: {
+        ...DSP_DEFAULTS.exciter,
+        enabled: true,
+        crossoverHz: [300, 5_000],
+        bands: [
+          { ...DSP_DEFAULTS.exciter.bands[0], enabled: false },
+          { ...DSP_DEFAULTS.exciter.bands[1], enabled: false },
+          {
+            ...DSP_DEFAULTS.exciter.bands[2],
+            enabled: true,
+            drive: 5,
+            mix: 0.4,
+          },
+        ],
+        // The one preset here whose job is to sound BIGGER, which is what the
+        // organic stage is for. Modest, because it is arriving on top of a
+        // compressor that is already working.
+        organic: { enabled: true, amount: 0.3, focusHz: 650 },
+      },
       compressor: {
         enabled: true,
         crossoverHz: [150, 2_500],

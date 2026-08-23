@@ -196,10 +196,22 @@ const dsp = {
 
   'dsp.exciter.title': 'एक्साइटर',
   'dsp.exciter.description':
-    'लॉसी एनकोडर द्वारा हटाए गए ऊँचे हार्मोनिक्स बनाता है। यह उन्हें गढ़ता है, वापस नहीं लाता।',
-  'dsp.exciter.crossover': 'इससे ऊपर',
+    'ऐसे हार्मोनिक्स बनाता है जो सिग्नल में कभी थे ही नहीं। तीन बैंड, हर एक बॉडी के लिए सम क्रम या एयर के लिए विषम क्रम चुनता है — साथ में ऑर्गेनिक, उस घनत्व के लिए जो इक्वलाइज़र नहीं दे सकता।',
   'dsp.exciter.drive': 'ड्राइव',
   'dsp.exciter.mix': 'मात्रा',
+  'dsp.exciter.band.low': 'लो',
+  'dsp.exciter.band.mid': 'मिड',
+  'dsp.exciter.band.high': 'हाई',
+  'dsp.exciter.crossoverLow': 'निचला विभाजन',
+  'dsp.exciter.crossoverHigh': 'ऊपरी विभाजन',
+  'dsp.exciter.texture': 'बनावट',
+  'dsp.exciter.threshold': 'थ्रेशोल्ड',
+  'dsp.exciter.dynamic': 'डायनामिक',
+  'dsp.exciter.organic': 'ऑर्गेनिक',
+  'dsp.exciter.organicHint':
+    'उन मिड्स को बॉडी दें जो मापने में ठीक हैं पर पतले सुनाई देते हैं। सम हार्मोनिक्स जो संगीत के साथ चलते और बहते हैं, ताकि यह ठहरे नहीं बल्कि साँस ले।',
+  'dsp.exciter.organicAmount': 'बॉडी',
+  'dsp.exciter.organicFocus': 'फ़ोकस',
 
   'dsp.compressor.title': 'मल्टीबैंड कंप्रेसर',
   'dsp.compressor.description':
