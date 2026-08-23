@@ -212,6 +212,12 @@ const dsp = {
   'dsp.exciter.organicAmount': 'Corpo',
   'dsp.exciter.organicFocus': 'Fuoco',
   'dsp.exciter.organicRange': 'Estensione',
+  'dsp.exciter.align': 'Allineamento',
+  'dsp.exciter.alignHint':
+    'Ritarda le bande basse rispetto alle alte, come fa un BBE. Non aggiunge nulla: cambia solo quando arriva ogni parte.',
+  'dsp.exciter.alignAmount': 'Profondità',
+  'dsp.exciter.alignLow': 'Taglio basso',
+  'dsp.exciter.alignHigh': 'Taglio alto',
   'dsp.exciter.isolate': 'Isola',
   'dsp.exciter.isolateHint':
     'Ascolta solo le armoniche che questo stadio aggiunge.',

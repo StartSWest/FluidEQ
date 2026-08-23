@@ -1428,3 +1428,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     height: clamp(220px, 38vh, 340px);
   }
 }
+
+// The alignment block, in its own colour because it is the only stage on this
+// page that adds nothing at all — no harmonics, no level, no signal. It changes
+// when each part of the sound arrives and nothing else, so it must not read as
+// another flavour of the generators above it.
+.dsp-band-align {
+  border-color: rgba(132, 168, 255, 0.28);
+  background: rgba(132, 168, 255, 0.05);
+}

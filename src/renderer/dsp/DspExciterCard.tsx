@@ -236,6 +236,86 @@ const DspExciterCard = ({
         </div>
       ))}
 
+      {/* First on the page under the graph, because it is the only stage here
+          that adds nothing — no harmonics, no level, no signal of its own —
+          and is therefore the one to try before reaching for anything that
+          does. @see phaseAlign.ts */}
+      <div className="dsp-band dsp-band-align">
+        <div className="dsp-band-head">
+          <span className="dsp-band-title">{t('dsp.exciter.align')}</span>
+          <Switch
+            id="dsp-exciter-align"
+            isOn={exciter.align.enabled}
+            isDisabled={!exciter.enabled}
+            handleToggle={() => {
+              onPatch({
+                ...exciter,
+                align: { ...exciter.align, enabled: !exciter.align.enabled },
+              });
+              onCommit();
+            }}
+            ariaLabel={t('dsp.exciter.align')}
+          />
+        </div>
+        <p className="dsp-band-hint">{t('dsp.exciter.alignHint')}</p>
+        <div className="dsp-band-dials">
+          <Dial
+            labelKey="dsp.exciter.alignAmount"
+            value={exciter.align.amount}
+            defaultValue={DSP_DEFAULTS.exciter.align.amount}
+            min={0}
+            max={1}
+            unit=""
+            step={0.01}
+            isDisabled={!exciter.enabled || !exciter.align.enabled}
+            onCommit={onCommit}
+            onChange={(amount) =>
+              onPatch({ ...exciter, align: { ...exciter.align, amount } })
+            }
+          />
+          <Dial
+            labelKey="dsp.exciter.alignLow"
+            value={exciter.align.crossoverHz[0]}
+            defaultValue={DSP_DEFAULTS.exciter.align.crossoverHz[0]}
+            min={60}
+            max={400}
+            unit="Hz"
+            step={5}
+            isDisabled={!exciter.enabled || !exciter.align.enabled}
+            onCommit={onCommit}
+            onChange={(low) =>
+              onPatch({
+                ...exciter,
+                align: {
+                  ...exciter.align,
+                  crossoverHz: [low, exciter.align.crossoverHz[1]],
+                },
+              })
+            }
+          />
+          <Dial
+            labelKey="dsp.exciter.alignHigh"
+            value={exciter.align.crossoverHz[1]}
+            defaultValue={DSP_DEFAULTS.exciter.align.crossoverHz[1]}
+            min={600}
+            max={4_000}
+            unit="Hz"
+            step={20}
+            isDisabled={!exciter.enabled || !exciter.align.enabled}
+            onCommit={onCommit}
+            onChange={(high) =>
+              onPatch({
+                ...exciter,
+                align: {
+                  ...exciter.align,
+                  crossoverHz: [exciter.align.crossoverHz[0], high],
+                },
+              })
+            }
+          />
+        </div>
+      </div>
+
       {/* Its own block rather than a fourth band, because it is not one: it
           works on its own bandpass, at a frequency the user chooses, and what
           it adds is body rather than excitement. Two dials, and the reason

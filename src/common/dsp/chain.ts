@@ -128,6 +128,22 @@ export interface IOrganicSettings {
   range: number;
 }
 
+/**
+ * The stage that adds nothing and changes everything. @see phaseAlign.ts
+ *
+ * No harmonics, no level, no signal of its own — it delays the lower bands
+ * against the higher ones, which is the whole of what a BBE Sonic Maximizer
+ * does. Because it is a time relationship rather than a sound, it has no
+ * edges, no period and nothing to repeat.
+ */
+export interface IPhaseAlignSettings {
+  enabled: boolean;
+  /** 0 is off exactly, 1 is 2.5 ms on the low band. */
+  amount: number;
+  /** The two corners, Hz. The 482i splits near 150 and 1.2k. */
+  crossoverHz: readonly [number, number];
+}
+
 export interface IExciterSettings {
   enabled: boolean;
   /**
@@ -136,6 +152,8 @@ export interface IExciterSettings {
   bands: readonly IExciterBandSettings[];
   /** @see IOrganicSettings */
   organic: IOrganicSettings;
+  /** @see IPhaseAlignSettings */
+  align: IPhaseAlignSettings;
   /**
    * Hear ONLY what this stage made, with the dry signal dropped.
    *
@@ -536,6 +554,9 @@ const RANGES = {
   // crossover corners that had to stay between the bands.
   exciterBandHz: { min: 20, max: 20_000 },
   exciterBandRange: { min: 0, max: 1 },
+  alignAmount: { min: 0, max: 1 },
+  alignLowHz: { min: 60, max: 400 },
+  alignHighHz: { min: 600, max: 4_000 },
   exciterDrive: { min: 1, max: 10 },
   exciterMix: { min: 0, max: 1 },
   exciterTexture: { min: 0, max: 1 },
@@ -880,6 +901,7 @@ export const DSP_DEFAULTS: IDspSettings = {
     // audibly working on one narrow slice reads as a resonance rather than as
     // body, and body is the point.
     organic: { enabled: false, amount: 0.4, focusHz: 700, range: 0.35 },
+    align: { enabled: false, amount: 0.6, crossoverHz: [150, 1_200] },
     isolate: false,
   },
   compressor: {
@@ -1015,6 +1037,10 @@ export const clampDspSettings = (value: unknown): IDspSettings => {
     ? compressor.crossoverHz
     : [];
   const storedOrganic = isRecord(exciter.organic) ? exciter.organic : {};
+  const storedAlign = isRecord(exciter.align) ? exciter.align : {};
+  const storedAlignCorners = Array.isArray(storedAlign.crossoverHz)
+    ? storedAlign.crossoverHz
+    : [];
 
   /**
    * Two shapes of stored exciter get carried forward rather than discarded.
@@ -1188,6 +1214,29 @@ export const clampDspSettings = (value: unknown): IDspSettings => {
           RANGES.organicRange,
           DSP_DEFAULTS.exciter.organic.range,
         ),
+      },
+      align: {
+        enabled: clampBoolean(
+          storedAlign.enabled,
+          DSP_DEFAULTS.exciter.align.enabled,
+        ),
+        amount: clampNumber(
+          storedAlign.amount,
+          RANGES.alignAmount,
+          DSP_DEFAULTS.exciter.align.amount,
+        ),
+        crossoverHz: [
+          clampNumber(
+            storedAlignCorners[0],
+            RANGES.alignLowHz,
+            DSP_DEFAULTS.exciter.align.crossoverHz[0],
+          ),
+          clampNumber(
+            storedAlignCorners[1],
+            RANGES.alignHighHz,
+            DSP_DEFAULTS.exciter.align.crossoverHz[1],
+          ),
+        ],
       },
       // Clamped like any other flag, and NOT forced false here.
       //

@@ -213,6 +213,12 @@ const dsp = {
   'dsp.exciter.organicAmount': 'Плотность',
   'dsp.exciter.organicFocus': 'Фокус',
   'dsp.exciter.organicRange': 'Охват',
+  'dsp.exciter.align': 'Выравнивание',
+  'dsp.exciter.alignHint':
+    'Задерживает нижние полосы относительно верхних, как это делает BBE. Ничего не добавляет — меняет только момент прихода.',
+  'dsp.exciter.alignAmount': 'Глубина',
+  'dsp.exciter.alignLow': 'Нижний раздел',
+  'dsp.exciter.alignHigh': 'Верхний раздел',
   'dsp.exciter.isolate': 'Изолировать',
   'dsp.exciter.isolateHint':
     'Слышать только гармоники, которые добавляет этот блок.',

@@ -213,6 +213,12 @@ const dsp = {
   'dsp.exciter.organicAmount': 'बॉडी',
   'dsp.exciter.organicFocus': 'फ़ोकस',
   'dsp.exciter.organicRange': 'रेंज',
+  'dsp.exciter.align': 'संरेखण',
+  'dsp.exciter.alignHint':
+    'BBE की तरह निचले बैंड को ऊपरी बैंड के सापेक्ष विलंबित करता है। कुछ जोड़ता नहीं — केवल बदलता है कि हर हिस्सा कब पहुँचे।',
+  'dsp.exciter.alignAmount': 'गहराई',
+  'dsp.exciter.alignLow': 'निचला विभाजन',
+  'dsp.exciter.alignHigh': 'ऊपरी विभाजन',
   'dsp.exciter.isolate': 'अलग करें',
   'dsp.exciter.isolateHint': 'केवल वे हार्मोनिक्स सुनें जो यह चरण जोड़ रहा है।',
   'dsp.exciter.isolateOn':

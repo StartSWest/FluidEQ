@@ -27,6 +27,11 @@ import {
   runExciterChannel,
 } from '../exciterStage';
 import {
+  IPhaseAlignState,
+  alignChannel,
+  createPhaseAlign,
+} from '../phaseAlign';
+import {
   IBiquadCoefficients,
   IBiquadState,
   biquadCoefficients,
@@ -225,6 +230,9 @@ class DspProcessor extends AudioWorkletProcessor {
    * side, and the independence is what is heard as space rather than as width.
    */
   private readonly exciters: IExciterChannelState[] = [];
+
+  /** One aligner per channel; its delay lines carry history. */
+  private readonly aligners: IPhaseAlignState[] = [];
 
   /** What the exciter last actually contributed, for the card to draw. */
   private exciterBands: number[] = [0, 0, 0];
@@ -755,6 +763,33 @@ class DspProcessor extends AudioWorkletProcessor {
      * and the sides of a mix are mostly reverb — harmonics generated from
      * reverb are the one place this kind of stage reliably sounds artificial.
      */
+    /**
+     * Alignment runs BEFORE the harmonics, and before everything else.
+     *
+     * It is the only stage here that is about WHEN rather than what, so it
+     * belongs where the signal is still what arrived: shifting bands after
+     * something has added content to them shifts the added content too, which
+     * is not what a mirror of a loudspeaker's own smear means.
+     */
+    const { align } = this.settings.exciter;
+    if (this.settings.exciter.enabled && align.enabled && align.amount > 0) {
+      for (let channel = 0; channel < output.length; channel += 1) {
+        if (!this.aligners[channel]) {
+          this.aligners[channel] = createPhaseAlign(
+            output[channel].length,
+            sampleRate,
+          );
+        }
+        alignChannel(
+          this.aligners[channel],
+          output[channel],
+          align.amount,
+          align.crossoverHz,
+          sampleRate,
+        );
+      }
+    }
+
     if (this.settings.exciter.enabled) {
       for (let channel = 0; channel < output.length; channel += 1) {
         if (!this.exciters[channel]) {

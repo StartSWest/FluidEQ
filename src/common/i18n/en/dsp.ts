@@ -222,6 +222,12 @@ const dsp = {
   'dsp.exciter.organicAmount': 'Body',
   'dsp.exciter.organicFocus': 'Focus',
   'dsp.exciter.organicRange': 'Range',
+  'dsp.exciter.align': 'Alignment',
+  'dsp.exciter.alignHint':
+    'Delays the lower bands against the higher ones, the way a BBE does. Adds nothing — it only changes when each part arrives.',
+  'dsp.exciter.alignAmount': 'Depth',
+  'dsp.exciter.alignLow': 'Low split',
+  'dsp.exciter.alignHigh': 'High split',
   'dsp.exciter.isolate': 'Isolate',
   'dsp.exciter.isolateHint': 'Hear only the harmonics this stage is adding.',
   'dsp.exciter.isolateOn':

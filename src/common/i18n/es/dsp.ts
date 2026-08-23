@@ -213,6 +213,12 @@ const dsp = {
   'dsp.exciter.organicAmount': 'Cuerpo',
   'dsp.exciter.organicFocus': 'Foco',
   'dsp.exciter.organicRange': 'Alcance',
+  'dsp.exciter.align': 'Alineación',
+  'dsp.exciter.alignHint':
+    'Retrasa las bandas graves respecto a las agudas, como hace un BBE. No añade nada: solo cambia cuándo llega cada parte.',
+  'dsp.exciter.alignAmount': 'Profundidad',
+  'dsp.exciter.alignLow': 'Corte grave',
+  'dsp.exciter.alignHigh': 'Corte agudo',
   'dsp.exciter.isolate': 'Aislar',
   'dsp.exciter.isolateHint': 'Escucha solo los armónicos que añade esta etapa.',
   'dsp.exciter.isolateOn':

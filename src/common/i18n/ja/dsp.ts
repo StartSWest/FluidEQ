@@ -212,6 +212,12 @@ const dsp = {
   'dsp.exciter.organicAmount': '厚み',
   'dsp.exciter.organicFocus': 'フォーカス',
   'dsp.exciter.organicRange': '範囲',
+  'dsp.exciter.align': '整列',
+  'dsp.exciter.alignHint':
+    'BBE と同じく、低域を高域に対して遅らせます。何も足さず、届くタイミングだけを変えます。',
+  'dsp.exciter.alignAmount': '深さ',
+  'dsp.exciter.alignLow': '低域の分割',
+  'dsp.exciter.alignHigh': '高域の分割',
   'dsp.exciter.isolate': 'アイソレート',
   'dsp.exciter.isolateHint': 'この段が加えている倍音だけを聴きます。',
   'dsp.exciter.isolateOn': 'ドライ信号をオフ — 加えた分だけが聞こえています。',

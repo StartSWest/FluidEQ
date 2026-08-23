@@ -207,6 +207,12 @@ const dsp = {
   'dsp.exciter.organicAmount': '厚度',
   'dsp.exciter.organicFocus': '焦点',
   'dsp.exciter.organicRange': '范围',
+  'dsp.exciter.align': '对齐',
+  'dsp.exciter.alignHint':
+    '像 BBE 那样，把低频相对高频延迟。它不添加任何东西，只改变各部分到达的时间。',
+  'dsp.exciter.alignAmount': '深度',
+  'dsp.exciter.alignLow': '低频分割',
+  'dsp.exciter.alignHigh': '高频分割',
   'dsp.exciter.isolate': '独听',
   'dsp.exciter.isolateHint': '只听这一级所添加的谐波。',
   'dsp.exciter.isolateOn': '已关闭干信号——你听到的只有它添加的部分。',

@@ -216,6 +216,12 @@ const dsp = {
   'dsp.exciter.organicAmount': 'Fülle',
   'dsp.exciter.organicFocus': 'Fokus',
   'dsp.exciter.organicRange': 'Umfang',
+  'dsp.exciter.align': 'Ausrichtung',
+  'dsp.exciter.alignHint':
+    'Verzögert die tiefen Bänder gegenüber den hohen, wie ein BBE. Fügt nichts hinzu — es ändert nur, wann jeder Teil ankommt.',
+  'dsp.exciter.alignAmount': 'Tiefe',
+  'dsp.exciter.alignLow': 'Untere Trennung',
+  'dsp.exciter.alignHigh': 'Obere Trennung',
   'dsp.exciter.isolate': 'Isolieren',
   'dsp.exciter.isolateHint':
     'Nur die Obertöne hören, die diese Stufe hinzufügt.',

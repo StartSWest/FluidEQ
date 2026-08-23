@@ -213,6 +213,12 @@ const dsp = {
   'dsp.exciter.organicAmount': 'Corps',
   'dsp.exciter.organicFocus': 'Focus',
   'dsp.exciter.organicRange': 'Étendue',
+  'dsp.exciter.align': 'Alignement',
+  'dsp.exciter.alignHint':
+    "Retarde les bandes graves par rapport aux aiguës, comme un BBE. N'ajoute rien : change seulement quand chaque partie arrive.",
+  'dsp.exciter.alignAmount': 'Profondeur',
+  'dsp.exciter.alignLow': 'Coupure grave',
+  'dsp.exciter.alignHigh': 'Coupure aiguë',
   'dsp.exciter.isolate': 'Isoler',
   'dsp.exciter.isolateHint':
     "N'entendre que les harmoniques ajoutées par cet étage.",
