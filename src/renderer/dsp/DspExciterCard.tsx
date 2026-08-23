@@ -13,7 +13,7 @@ import { TranslationKey } from '../../common/i18n/en';
 import { useTranslation } from '../utils/I18nContext';
 import Switch from '../widgets/Switch';
 import { Dial, ProcessorCard } from './DspControls';
-import DspExciterDisplay from './DspExciterDisplay';
+import DspExciterGraph from './DspExciterGraph';
 
 interface IDspExciterCardProps {
   exciter: IExciterSettings;
@@ -85,7 +85,7 @@ const DspExciterCard = ({
         </span>
       </div>
 
-      <DspExciterDisplay settings={exciter} />
+      <DspExciterGraph settings={exciter} />
 
       <div className="dsp-crossovers">
         <Dial
