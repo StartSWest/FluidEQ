@@ -77,47 +77,28 @@ const GATE_ATTACK_MS = 8;
 const GATE_RELEASE_MS = 140;
 
 /**
- * TRANSIENT DISCRIMINATION, which is what separates an exciter from a fuzz box.
+ * WHY THERE IS NO TRANSIENT ENVELOPE HERE ANY MORE.
  *
- * This stage generated harmonics continuously and in proportion to the signal,
- * which is a constant fizz laid over the music. Aphex's patent describes the
- * opposite and describes it exactly: a "transient discriminate harmonics
- * generator" that recognises transients and generates harmonics ON them,
- * modelled on a struck brass gong, "where initial harmonic content is rich but
- * decays faster than the fundamental".
+ * There was one, taken from Aphex patent US4150253: a "transient discriminate
+ * harmonics generator" that recognises transients and generates harmonics on
+ * them. It swung the harmonic amount over a six to one range while chasing the
+ * ratio of a fast follower to a slow one.
  *
- * That is the whole character. Harmonics burst on an attack and are gone before
- * the note is, so what the ear gets is articulation and detail — the leading
- * edge of every sound drawn more sharply — rather than a layer of grit sitting
- * on the sustain. A continuous generator cannot sound like that at any setting,
- * because the thing being described is a time envelope rather than an amount.
+ * Two things were wrong with putting it here. It is violent — a six to one
+ * gain swing tracking a ratio that moves on every hit is a stutter, and it was
+ * reported as the effect sounding granular right up until it was taken out,
+ * through per-block ramping and then through per-sample envelopes that made it
+ * mathematically smooth and no less choppy. Smooth is not the same as gentle.
  *
- * Measured as the ratio of a fast follower to a slow one: on steady material
- * the two agree and the ratio is 1, so nothing is added; on an attack the fast
- * one leaps ahead and the ratio spikes. Both followers watch the BAND, not the
- * whole signal, so a cymbal opens the high band without the kick opening it
- * too.
+ * And it is the wrong generation. Transient discrimination is a LATER Aphex
+ * design; the Type C this is modelled on does not have it. Its sidechain is a
+ * highpass, a one-sided clipper and a mix, running continuously — which is
+ * exactly the "fluid rather than separated" behaviour that was being asked
+ * for, and it was sitting in the patent the whole time.
+ *
+ * The dynamics gate below is kept, because that is a control somebody asks
+ * for deliberately and it is off by default.
  */
-const FAST_ATTACK_MS = 0.6;
-const FAST_RELEASE_MS = 45;
-const SLOW_ATTACK_MS = 22;
-const SLOW_RELEASE_MS = 320;
-
-/**
- * What the harmonics get when nothing is happening.
- *
- * Not zero. Pure transient discrimination is right for percussion and wrong for
- * a pad or a held vocal, which have almost no transients and would receive
- * nothing at all — and a stage that switches itself off during the sustained
- * parts of a mix is one that sounds broken rather than tasteful. This floor
- * keeps a quiet layer under everything and lets the transients rise well above
- * it.
- */
-const TRANSIENT_FLOOR = 0.3;
-
-/** How far above the floor a full transient reaches. */
-const TRANSIENT_RANGE = 1.5;
-
 /**
  * How fast the energy-matching gain is allowed to follow the programme.
  *
@@ -164,14 +145,24 @@ const ONE_SIDED = 0.45;
 /**
  * What a mix of 1 means, as a linear gain on the sidechain.
  *
- * The sidechain carries the band's whole content now rather than only the
- * harmonics, so unity would be a level control for that band and nothing more.
- * The Type C's useful region sits near -20 dB, which is 0.1 — so a mix of 0.3
- * lands there and the rest of the dial is headroom for material that wants
- * more. Past about 0.35 it stops being an enhancer and becomes a second,
- * distorted copy of the band.
+ * It was 0.35, on the reasoning that the sidechain now carries the band's whole
+ * content rather than only its harmonics — so unity would be a level control
+ * for that band — and that the Type C's useful region sits near -20 dB anyway,
+ * which is 0.1 on this scale.
+ *
+ * Both of those are true, and together they made the control useless. At 0.35,
+ * multiplied by a transient envelope averaging about a half, the TOP of the
+ * dial added seventeen percent of a highpassed band to a full mix. That is
+ * inaudible, and was reported as precisely that: no difference at full amount.
+ * A control whose maximum cannot be heard is not a conservative control, it is
+ * a broken one.
+ *
+ * Unity, so the dial reaches something unmistakable, with the useful region
+ * near the bottom of its travel where the hardware's is. Mix is what somebody
+ * reaches for to find out whether the stage is doing anything at all, and it
+ * has to be able to answer that.
  */
-const MIX_SCALE = 0.35;
+const MIX_SCALE = 1;
 
 /** One Butterworth stage; two cascaded make 24 dB/octave. */
 const BUTTERWORTH_Q = Math.SQRT1_2;
@@ -179,9 +170,6 @@ const BUTTERWORTH_Q = Math.SQRT1_2;
 /** Edges at or past these are not filtered at all. @see runExciterChannel */
 const BAND_EDGE_MIN_HZ = 21;
 const BAND_EDGE_MAX_HZ = 19_900;
-
-/** Below this a band is treated as silent, so noise cannot open its gate. */
-const SILENCE = 1e-5;
 
 export interface IExciterChannelState {
   /**
@@ -218,10 +206,6 @@ export interface IExciterChannelState {
   matchGain: number[];
   /** One DC blocker per band plus one for the organic stage. @see DC_POLE */
   dcState: { x: number; y: number }[];
-  /** Fast and slow followers per band, whose ratio IS the transient.
-   *  @see TRANSIENT_FLOOR */
-  fastEnv: number[];
-  slowEnv: number[];
   /** The per-sample gain curve, filled fresh for each band each block. */
   envGain: Float32Array;
   /** The block as it arrived, before any stage added to it. @see runExciterChannel */
@@ -253,8 +237,6 @@ export const createExciterChannel = (
   gates: [0, 0, 0],
   matchGain: [0, 0, 0],
   dcState: [0, 1, 2, 3].map(() => ({ x: 0, y: 0 })),
-  fastEnv: [0, 0, 0],
-  slowEnv: [0, 0, 0],
   envGain: new Float32Array(blockSize),
   dry: new Float32Array(blockSize),
   organic: createOrganicState(blockSize),
@@ -325,7 +307,8 @@ const blockDc = (
  * Fill a gain curve for the block, ONE VALUE PER SAMPLE.
  *
  * It used to return a single number per block, worked out from that block's
- * peak. Two things were wrong with that and only the first was obvious.
+ * peak, which meant the dynamics gate could not resolve anything faster than
+ * a block.
  *
  * A value held across 128 samples and then changed is a staircase, which is
  * what was heard as the effect being separated and digital. Ramping between
@@ -353,31 +336,20 @@ const fillTransientGain = (
 ): number => {
   const coefficient = (ms: number) =>
     Math.exp(-1 / ((ms / 1_000) * sampleRate));
-  const fastAttack = coefficient(FAST_ATTACK_MS);
-  const fastRelease = coefficient(FAST_RELEASE_MS);
-  const slowAttack = coefficient(SLOW_ATTACK_MS);
-  const slowRelease = coefficient(SLOW_RELEASE_MS);
   const gateAttack = coefficient(GATE_ATTACK_MS);
   const gateRelease = coefficient(GATE_RELEASE_MS);
   const threshold = 10 ** (thresholdDb / 20);
 
-  let fast = state.fastEnv[band];
-  let slow = state.slowEnv[band];
   let gate = state.gates[band];
   let mean = 0;
 
   for (let i = 0; i < source.length; i += 1) {
     const level = Math.abs(source[i]);
-    fast = level + (fast - level) * (level > fast ? fastAttack : fastRelease);
-    slow = level + (slow - level) * (level > slow ? slowAttack : slowRelease);
     gate = level + (gate - level) * (level > gate ? gateAttack : gateRelease);
 
-    // The ratio of the two followers IS the transient: one on steady
-    // material, leaping where the signal arrives suddenly. A ratio does not
-    // care how loud the passage is, so a quiet snare is excited as much as a
-    // loud one.
-    const excess = slow < SILENCE ? 0 : Math.max(0, fast / slow - 1);
-    let value = TRANSIENT_FLOOR + Math.min(1, excess) * TRANSIENT_RANGE;
+    // Unity unless the user asked for a gate. The sidechain runs
+    // continuously, the way the hardware does.
+    let value = 1;
 
     if (isGated) {
       // Opening over a factor of two above the threshold rather than at the
@@ -390,8 +362,6 @@ const fillTransientGain = (
     mean += value;
   }
 
-  state.fastEnv[band] = fast;
-  state.slowEnv[band] = slow;
   state.gates[band] = gate;
   return source.length > 0 ? mean / source.length : 0;
 };
