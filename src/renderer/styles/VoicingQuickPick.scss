@@ -58,6 +58,22 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   text-align: right;
 }
 
+// Below this the label is dropped and only the glyph remains.
+//
+// Scoped to voicing rather than to the shape it wears, because it is a fact
+// about THIS toolbar: eleven controls in a row, of which this is one. The DSP
+// preset picker wears the same pill in a row of eight and must keep its name —
+// it is the widest control there and the one the rest are a consequence of.
+@media (max-width: 940px) {
+  .voicing-pick .rich-pick__trigger span {
+    display: none;
+  }
+
+  .voicing-pick .rich-pick__trigger {
+    padding-inline: 8px;
+  }
+}
+
 // Under the trigger, out of the flow, so a toolbar of eleven controls does not
 // reflow the moment a switch is refused.
 .voicing-pick__refused {

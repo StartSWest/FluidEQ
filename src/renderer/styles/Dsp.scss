@@ -832,7 +832,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // The widest field in the row, and it has to be: the entries carry real names
 // — "Small speakers", "Treble boost" — and at the 170px the rest of the row
 // shares they truncated into each other.
-.dsp-eq-preset-first .dropdown {
+//
+// A floor rather than a fixed width, and it is not decoration. The pill sizes
+// itself to whatever is chosen, so without one the control changed width on
+// every step of the prev/next arrows and shoved the seven controls beside it
+// along the row — while the arrows being pressed were two of the seven. The
+// same failure the voicing strength figure has its own reserved cell for.
+.dsp-eq-preset-first .dropdown,
+.dsp-eq-preset-first .rich-pick__trigger {
   min-width: 210px;
 }
 
@@ -885,22 +892,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
-// The preset menu is wider than its trigger.
-//
-// The trigger is one control in a crowded row and the list under it holds
-// twenty-two factory names plus every saved one; sized to the trigger, half of
-// them were truncated.
-//
-// It is NOT user-resizable, and that was tried. Letting it size itself makes
-// it able to change its own size, and the dropdown positions itself by
-// measuring the rendered menu and re-measuring on every scroll and resize — so
-// a menu that resizes itself feeds its own placement, which took the whole page
-// with it. Giving it a drag handle needs the placement to stop depending on the
+// The preset menu's own width moved to `RichPick.scss` when the picker stopped
+// being a Dropdown, and its resizing history moved with it: it is NOT
+// user-resizable, and that was tried. A menu that can size itself feeds the
+// measurement its own placement is computed from, which took the whole page
+// with it. A drag handle needs the placement to stop depending on the
 // measurement, not a CSS property.
-.dsp-preset-menu .list-wrapper {
-  width: max(var(--dropdown-trigger-width), min(420px, 32vw));
-  max-height: min(70vh, 620px);
-}
 
 // A closed set of choices with all of them showing.
 //

@@ -21,6 +21,26 @@ import {
  * was a curve wearing somebody else's settings. Anything omitted here is
  * deliberately left alone.
  */
+/**
+ * The sections the picker files presets under, in the order it shows them.
+ *
+ * Ordered from the ones somebody reaches for first: the way back to nothing,
+ * then what they are listening to, then who is talking, then where they are,
+ * then what they are listening on, then colour, then the four that fix a
+ * specific fault.
+ */
+export const EQ_PRESET_GROUPS = [
+  'basic',
+  'genre',
+  'voice',
+  'scene',
+  'device',
+  'character',
+  'repair',
+] as const;
+
+export type TEqPresetGroup = (typeof EQ_PRESET_GROUPS)[number];
+
 export interface IEqPresetSetup {
   model?: TEqModel;
   modelAmount?: number;
@@ -50,6 +70,15 @@ export interface IEqPresetSetup {
 export interface IEqPreset {
   id: string;
   labelKey: string;
+  /**
+   * Which heading it files under in the picker.
+   *
+   * Here rather than in the picker because both menus that show these read it,
+   * and a list of forty-seven with no sections is a list nobody reads to the
+   * bottom of. Adding a preset without one is a type error, which is the point:
+   * an ungrouped entry would silently land under whatever heading came before.
+   */
+  group: TEqPresetGroup;
   /** One gain in dB per band, low to high. Always `EQ_BAND_COUNT` long. */
   gains: readonly number[];
   /**
@@ -136,12 +165,14 @@ export const EQ_PRESETS: readonly IEqPreset[] = [
     // whatever the others set.
     id: EQ_DEFAULT_PRESET_ID,
     labelKey: 'dsp.eqPreset.default',
+    group: 'basic',
     gains: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     setup: DEFAULT_SETUP,
   },
   {
     id: 'flat',
     labelKey: 'dsp.eqPreset.flat',
+    group: 'basic',
     gains: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     setup: PROTECTED,
   },
@@ -151,6 +182,7 @@ export const EQ_PRESETS: readonly IEqPreset[] = [
     // one, which is why it is here and not the default.
     id: 'v-shape',
     labelKey: 'dsp.eqPreset.vShape',
+    group: 'basic',
     gains: [
       2.7, 2.7, 2, 1.4, 0, -0.7, -1.4, -1.4, -0.7, 0, 0.7, 1.4, 2, 2.4, 2,
     ],
@@ -162,6 +194,7 @@ export const EQ_PRESETS: readonly IEqPreset[] = [
     // of distorted guitar turns to mud.
     id: 'rock',
     labelKey: 'dsp.eqPreset.rock',
+    group: 'genre',
     gains: [3, 3, 2, 1, 0, -1.5, -1, 0, 1, 1.5, 2, 2, 2.5, 2, 1],
     setup: { ...PROTECTED, model: 'proportional' },
   },
@@ -170,6 +203,7 @@ export const EQ_PRESETS: readonly IEqPreset[] = [
     // that hides a lead voice.
     id: 'pop',
     labelKey: 'dsp.eqPreset.pop',
+    group: 'genre',
     gains: [2, 2, 1, 0, -1, -1, 0, 1, 2, 2.5, 2.5, 2, 1.5, 1, 0.5],
     setup: { ...PROTECTED, model: 'proportional' },
   },
@@ -178,6 +212,7 @@ export const EQ_PRESETS: readonly IEqPreset[] = [
     // the midrange left alone because that is where the playing is.
     id: 'jazz',
     labelKey: 'dsp.eqPreset.jazz',
+    group: 'genre',
     gains: [2, 2, 1.5, 0.5, 0, 0, 0.5, 1, 0.5, 0, 0.5, 1, 1.5, 1.5, 1],
     setup: { ...PROTECTED, model: 'wide' },
   },
@@ -186,6 +221,7 @@ export const EQ_PRESETS: readonly IEqPreset[] = [
     // already balanced. Only a touch of hall at the bottom and air at the top.
     id: 'classical',
     labelKey: 'dsp.eqPreset.classical',
+    group: 'genre',
     gains: [1.5, 1.5, 1, 0.5, 0, 0, 0, 0, 0, 0, 0.5, 1, 1.5, 2, 2],
     // No mono-below: the hall IS the recording, and summing its bottom end
     // throws away the space it was captured in.
@@ -196,6 +232,7 @@ export const EQ_PRESETS: readonly IEqPreset[] = [
     // so a four-on-the-floor kick has room.
     id: 'electronic',
     labelKey: 'dsp.eqPreset.electronic',
+    group: 'genre',
     gains: [
       3.4, 3, 2, 0.7, -0.7, -1.3, -1.3, -0.7, 0, 0.7, 1.3, 1.7, 2, 2.4, 2,
     ],
@@ -205,6 +242,7 @@ export const EQ_PRESETS: readonly IEqPreset[] = [
     // 50-80 is where an 808 lives. The 3k lift keeps the vocal on top of it.
     id: 'hiphop',
     labelKey: 'dsp.eqPreset.hiphop',
+    group: 'genre',
     gains: [
       2.5, 2.8, 2.2, 1.1, 0, -0.6, -0.6, 0, 0.6, 1.1, 1.4, 0.8, 0.6, 0.6, 0.3,
     ],
@@ -216,6 +254,7 @@ export const EQ_PRESETS: readonly IEqPreset[] = [
     // Body at 125-250 for the guitar's soundboard, and string detail up top.
     id: 'acoustic',
     labelKey: 'dsp.eqPreset.acoustic',
+    group: 'genre',
     gains: [
       0.9, 1.4, 1.7, 1.7, 0.9, 0, 0.5, 0.9, 1.4, 1.4, 1.7, 1.7, 2.2, 1.7, 1.4,
     ],
@@ -226,6 +265,7 @@ export const EQ_PRESETS: readonly IEqPreset[] = [
     // The 3k lift is consonants — it is what makes speech legible, not loud.
     id: 'vocal',
     labelKey: 'dsp.eqPreset.vocal',
+    group: 'voice',
     gains: [-6, -5, -3, -1, 0, 0.5, 1.5, 2.5, 3, 3.5, 3, 2, 1, 0, -0.5],
     // The presence lift is at 2-3k and a lot of music is not there. What
     // the song does not use comes back.
@@ -245,6 +285,7 @@ export const EQ_PRESETS: readonly IEqPreset[] = [
     // trade dynamics buy, and this is the preset that most wants it.
     gains: [-8, -6, -3, 0, 0.5, 1, 2, 2.5, 3, 2.5, 1.5, -6, -6, -1, -1],
     labelKey: 'dsp.eqPreset.podcast',
+    group: 'voice',
     dynamic: [
       null,
       null,
@@ -276,12 +317,14 @@ export const EQ_PRESETS: readonly IEqPreset[] = [
   {
     id: 'bassBoost',
     labelKey: 'dsp.eqPreset.bassBoost',
+    group: 'character',
     gains: [2.5, 2.5, 2, 1.5, 0.7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     setup: { model: 'wide', subsonicHz: 30, monoBelowHz: 100 },
   },
   {
     id: 'trebleBoost',
     labelKey: 'dsp.eqPreset.trebleBoost',
+    group: 'character',
     gains: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0.5, 1.5, 2.5, 3.5, 4, 4],
     // Doubled rate: this is the one curve whose work is all in the octave
     // where the cookbook squeezes a band against Nyquist.
@@ -293,6 +336,7 @@ export const EQ_PRESETS: readonly IEqPreset[] = [
     // been. Only worth using when playing quietly.
     id: 'loudness',
     labelKey: 'dsp.eqPreset.loudness',
+    group: 'scene',
     gains: [2.9, 2.6, 2, 1.2, 0.3, 0, 0, 0, 0, 0, 0.3, 0.9, 1.7, 2.3, 2.6],
     setup: { model: 'wide', subsonicHz: 25, monoBelowHz: 70 },
   },
@@ -301,6 +345,7 @@ export const EQ_PRESETS: readonly IEqPreset[] = [
     // presence lifted so quiet dialogue still lands.
     id: 'lateNight',
     labelKey: 'dsp.eqPreset.lateNight',
+    group: 'scene',
     gains: [-6.8, -6, -4.3, -2.6, -0.9, 0, 0.9, 1.6, 2, 2, 1.6, 0.9, 0.4, 0, 0],
     // What travels through a wall is the loud bass, not all of it. Static, the
     // bass is gone all evening; waiting for a threshold means a quiet passage
@@ -335,6 +380,7 @@ export const EQ_PRESETS: readonly IEqPreset[] = [
     // boosting it only wastes excursion. The warmth is faked at 250 instead.
     id: 'smallSpeakers',
     labelKey: 'dsp.eqPreset.smallSpeakers',
+    group: 'device',
     gains: [-10, -8, -4, 1, 2.5, 2, 1, 0.5, 1, 1.5, 2, 2, 1.5, 0, -1],
     // A small cone cannot use anything under 40 Hz and cannot survive bass
     // that cancels, so both filters sit high.
@@ -344,6 +390,7 @@ export const EQ_PRESETS: readonly IEqPreset[] = [
     // A car's cabin adds its own bass and eats the top. This answers both.
     id: 'car',
     labelKey: 'dsp.eqPreset.car',
+    group: 'device',
     gains: [
       1.3, 0.7, -0.7, -1.3, -1, 0, 0.3, 0.7, 1, 1.3, 1.6, 1.9, 2.2, 1.9, 1.3,
     ],
@@ -354,6 +401,7 @@ export const EQ_PRESETS: readonly IEqPreset[] = [
     // physical without burying them.
     id: 'gaming',
     labelKey: 'dsp.eqPreset.gaming',
+    group: 'scene',
     gains: [2.9, 2.5, 1, 0, -1, -1, 0, 1.5, 2.5, 3.4, 3.9, 2.9, 2, 1.5, 1],
     // The most intermittent material there is: minutes of near-silence with
     // a footstep in it, then an explosion. A fixed reserve spends level on
@@ -370,6 +418,7 @@ export const EQ_PRESETS: readonly IEqPreset[] = [
     // pulls back the 100-250 that a film mix is generous with.
     id: 'movie',
     labelKey: 'dsp.eqPreset.movie',
+    group: 'scene',
     gains: [
       1.4, 1.1, 0, -1.1, -1.4, -0.7, 0.4, 1.4, 2.1, 2.1, 1.8, 1.1, 0.7, 0.7,
       0.4,
@@ -388,6 +437,7 @@ export const EQ_PRESETS: readonly IEqPreset[] = [
     // the low mids, ease the upper mids that make a mix sound like glass.
     id: 'warm',
     labelKey: 'dsp.eqPreset.warm',
+    group: 'character',
     gains: [
       0.7, 1.1, 1.9, 2.2, 1.9, 1.1, 0.4, 0, -0.4, -1.1, -1.5, -1.1, -0.4, 0, 0,
     ],
@@ -399,6 +449,7 @@ export const EQ_PRESETS: readonly IEqPreset[] = [
     // lift what survived — it cannot put back what the encoder discarded.
     id: 'air',
     labelKey: 'dsp.eqPreset.air',
+    group: 'character',
     gains: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.5, 1.5, 3, 4, 4.5],
     setup: { ...PROTECTED, model: 'proportional', oversample: 2 },
   },
@@ -409,6 +460,7 @@ export const EQ_PRESETS: readonly IEqPreset[] = [
     // dynamic one it is a de-esser.
     id: 'deEss',
     labelKey: 'dsp.eqPreset.deEss',
+    group: 'repair',
     gains: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -8, -8, 0, 0],
     dynamic: [
       null,
@@ -434,6 +486,7 @@ export const EQ_PRESETS: readonly IEqPreset[] = [
     // does. A static cut here thins every note to fix the one that booms.
     id: 'tameBoom',
     labelKey: 'dsp.eqPreset.tameBoom',
+    group: 'repair',
     gains: [0, 0, 0, -7, -6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     dynamic: [
       null,
@@ -460,6 +513,7 @@ export const EQ_PRESETS: readonly IEqPreset[] = [
     // what it does that no arrangement of bands could.
     id: 'tape',
     labelKey: 'dsp.eqPreset.tape',
+    group: 'character',
     gains: [
       0.8, 1.2, 1.8, 2.2, 1.8, 0.9, 0, -0.4, -0.8, -1.2, -1.6, -2, -2.6, -3.2,
       -3.8,
@@ -472,6 +526,7 @@ export const EQ_PRESETS: readonly IEqPreset[] = [
     // end that gives up gently rather than at a wall.
     id: 'vinyl',
     labelKey: 'dsp.eqPreset.vinyl',
+    group: 'character',
     gains: [
       0, 0.4, 0.9, 1.3, 0.9, 0.4, 0, 0, -0.4, -0.9, -1.3, -1.8, -2.4, -3.2,
       -4.2,
@@ -491,6 +546,7 @@ export const EQ_PRESETS: readonly IEqPreset[] = [
     // it does not. The static version of this preset is a harsh one.
     id: 'liveVocal',
     labelKey: 'dsp.eqPreset.liveVocal',
+    group: 'voice',
     gains: [-6, -5, -3, -1, 0, 0.5, 1, 1.5, 2, 2, 3, -6, -6, 0, -0.5],
     dynamic: [
       null,
@@ -524,6 +580,7 @@ export const EQ_PRESETS: readonly IEqPreset[] = [
     // balanced — the mistake here is always doing too much.
     id: 'orchestra',
     labelKey: 'dsp.eqPreset.orchestra',
+    group: 'genre',
     gains: [1, 1.2, 1.4, 1.6, 1.4, 0.8, 0.3, 0, 0, 0.3, 0.8, 1.2, 1.6, 2, 2],
     setup: { subsonicHz: 20, monoBelowHz: 0, model: 'clean' },
   },
@@ -533,6 +590,7 @@ export const EQ_PRESETS: readonly IEqPreset[] = [
     // rather than merely loud. Kick and snare keep their fundamentals.
     id: 'metal',
     labelKey: 'dsp.eqPreset.metal',
+    group: 'genre',
     gains: [3, 3, 2, 0.5, -1, -2.5, -1.5, 0, 1, 2, 2.5, 2.5, 2, 1.5, 1],
     setup: { ...PROTECTED, model: 'proportional' },
   },
@@ -541,6 +599,7 @@ export const EQ_PRESETS: readonly IEqPreset[] = [
     // 4k, so the ends come down rather than the middle going up.
     id: 'punk',
     labelKey: 'dsp.eqPreset.punk',
+    group: 'genre',
     gains: [1, 1.5, 2, 2, 0.5, -1, -0.5, 0.5, 1.5, 2, 2, 1, 0, -1, -2],
     setup: { ...PROTECTED, model: 'proportional' },
   },
@@ -550,6 +609,7 @@ export const EQ_PRESETS: readonly IEqPreset[] = [
     // keeps the skank guitar from crowding it.
     id: 'reggae',
     labelKey: 'dsp.eqPreset.reggae',
+    group: 'genre',
     gains: [2.6, 2.9, 2.2, 1, 0, -1.5, -0.5, 0.3, 0.6, 0.6, 1, 1, 0.6, 0.3, 0],
     setup: { model: 'wide', subsonicHz: 25, monoBelowHz: 80 },
   },
@@ -559,6 +619,7 @@ export const EQ_PRESETS: readonly IEqPreset[] = [
     // music that is mixed to be heard whole.
     id: 'country',
     labelKey: 'dsp.eqPreset.country',
+    group: 'genre',
     gains: [
       0.9, 1.1, 1.7, 1.8, 1.1, 0.3, 0.5, 0.9, 1.4, 1.8, 1.8, 1.7, 1.8, 1.8, 1.4,
     ],
@@ -570,6 +631,7 @@ export const EQ_PRESETS: readonly IEqPreset[] = [
     // blues playback sound polite.
     id: 'blues',
     labelKey: 'dsp.eqPreset.blues',
+    group: 'genre',
     gains: [1.5, 2, 2, 1.5, 0.5, 0, 0.8, 1.8, 2, 1.5, 1, 0.8, 0.8, 0.5, 0],
     setup: { ...PROTECTED, model: 'wide' },
   },
@@ -579,6 +641,7 @@ export const EQ_PRESETS: readonly IEqPreset[] = [
     // The fuzz is the part no filter could produce.
     id: 'lofi',
     labelKey: 'dsp.eqPreset.lofi',
+    group: 'genre',
     gains: [-2, -1, 0.5, 2, 2, 1.2, 0.5, 0.5, 0.5, 0, -1, -2.5, -4, -5.5, -7],
     setup: { ...PROTECTED, model: 'wide', fuzzAmount: 0.3 },
   },
@@ -587,6 +650,7 @@ export const EQ_PRESETS: readonly IEqPreset[] = [
     // and the midrange left exactly alone so the pads keep their shape.
     id: 'ambient',
     labelKey: 'dsp.eqPreset.ambient',
+    group: 'genre',
     gains: [2.5, 2.5, 1.8, 1, 0.3, 0, 0, 0, 0, 0, 0.3, 1, 1.8, 2.5, 3],
     setup: { model: 'wide', subsonicHz: 20, monoBelowHz: 40 },
   },
@@ -595,6 +659,7 @@ export const EQ_PRESETS: readonly IEqPreset[] = [
     // speakers stop. The 250-500 cut is the room the hi-hats need.
     id: 'trap',
     labelKey: 'dsp.eqPreset.trap',
+    group: 'genre',
     gains: [
       3.5, 3.1, 2.1, 0.7, -1, -2, -1.5, -0.5, 0.3, 1, 1.4, 1.4, 1.7, 1.4, 0.7,
     ],
@@ -606,6 +671,7 @@ export const EQ_PRESETS: readonly IEqPreset[] = [
     // two fighting.
     id: 'drumBass',
     labelKey: 'dsp.eqPreset.drumBass',
+    group: 'genre',
     gains: [3.6, 3.2, 2, 0.4, -1.5, -2, -1, 0, 0.8, 1.6, 2, 2, 1.6, 1.2, 0.8],
     setup: { model: 'wide', subsonicHz: 25, monoBelowHz: 90 },
   },
@@ -615,6 +681,7 @@ export const EQ_PRESETS: readonly IEqPreset[] = [
     // the 8k lift is hammer felt rather than brightness.
     id: 'piano',
     labelKey: 'dsp.eqPreset.piano',
+    group: 'genre',
     gains: [1, 1.2, 1.4, 1, -0.5, -1, 0, 0.5, 1, 1.2, 1.4, 1.6, 2, 1.8, 1.2],
     setup: { ...PROTECTED, model: 'clean' },
   },
@@ -623,6 +690,7 @@ export const EQ_PRESETS: readonly IEqPreset[] = [
     // this lifts either side of that and not through it.
     id: 'strings',
     labelKey: 'dsp.eqPreset.strings',
+    group: 'genre',
     gains: [
       0.5, 1, 1.5, 2, 1.5, 0.8, 0.5, 0.5, 0, -0.8, -1, 0.5, 1.5, 2.2, 2.5,
     ],
@@ -634,6 +702,7 @@ export const EQ_PRESETS: readonly IEqPreset[] = [
     // and cheap converters all turn hard.
     id: 'sibilance',
     labelKey: 'dsp.eqPreset.sibilance',
+    group: 'repair',
     gains: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -4, -7, -7, 0, 0],
     dynamic: [
       null,
@@ -660,6 +729,7 @@ export const EQ_PRESETS: readonly IEqPreset[] = [
     // the same low mid at once. Static, this is a thin record.
     id: 'mudCut',
     labelKey: 'dsp.eqPreset.mudCut',
+    group: 'repair',
     gains: [0, 0, 0, -4, -5, -4, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     dynamic: [
       null,
@@ -686,6 +756,7 @@ export const EQ_PRESETS: readonly IEqPreset[] = [
     // presence that makes them legible.
     id: 'harshTamer',
     labelKey: 'dsp.eqPreset.harshTamer',
+    group: 'repair',
     gains: [0, 0, 0, 0, 0, 0, 0, 0, -3, -5, -5, 0, 0, 0, 0],
     dynamic: [
       null,
@@ -712,6 +783,7 @@ export const EQ_PRESETS: readonly IEqPreset[] = [
     // broken its seal cancels below it.
     id: 'earbuds',
     labelKey: 'dsp.eqPreset.earbuds',
+    group: 'device',
     gains: [-3, -2.5, -1.5, 0, 1, 1.2, 0.8, 0.5, 1, 1.5, 2, 2, 2.5, 3, 3],
     setup: { model: 'proportional', subsonicHz: 30, monoBelowHz: 100 },
   },
@@ -721,6 +793,7 @@ export const EQ_PRESETS: readonly IEqPreset[] = [
     // instead, and the presence lift is what makes speech survive a fan.
     id: 'laptop',
     labelKey: 'dsp.eqPreset.laptop',
+    group: 'device',
     gains: [-10, -9, -6, -2, 1.5, 2.5, 1.5, 1, 1.5, 2, 2.5, 2, 1.5, 0, -1],
     setup: { model: 'proportional', subsonicHz: 40, monoBelowHz: 200 },
   },
@@ -730,6 +803,7 @@ export const EQ_PRESETS: readonly IEqPreset[] = [
     // up top — that is the one thing these do not need.
     id: 'openBack',
     labelKey: 'dsp.eqPreset.openBack',
+    group: 'device',
     gains: [3.1, 2.7, 1.9, 0.9, 0.2, 0, 0, 0, 0, 0.2, 0.4, 0.2, 0, -0.5, -1],
     setup: { model: 'wide', subsonicHz: 20, monoBelowHz: 40 },
   },
@@ -739,6 +813,7 @@ export const EQ_PRESETS: readonly IEqPreset[] = [
     // session bearable without dulling the words.
     id: 'audiobook',
     labelKey: 'dsp.eqPreset.audiobook',
+    group: 'voice',
     gains: [-9, -7, -4, 0, 1, 1.5, 2.5, 3, 3, 2.5, 1.5, -5, -5, -2, -2],
     dynamic: [
       null,
@@ -773,6 +848,7 @@ export const EQ_PRESETS: readonly IEqPreset[] = [
     // film at night and a film with no bass.
     id: 'nightMovie',
     labelKey: 'dsp.eqPreset.nightMovie',
+    group: 'scene',
     gains: [-6, -6, -4, -2, -0.5, 0.3, 1.3, 1.9, 2.2, 1.9, 1.3, 0.6, 0.3, 0, 0],
     dynamic: [
       -30,

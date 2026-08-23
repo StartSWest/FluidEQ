@@ -34,8 +34,11 @@ import {
 } from '../../common/dsp/eqPresets';
 import { TranslationKey } from '../../common/i18n/en';
 import { useTranslation } from '../utils/I18nContext';
+import VoicingIcon from '../icons/VoicingIcon';
 import Dropdown from '../widgets/Dropdown';
+import RichPick from '../widgets/RichPick';
 import SegmentedControl from '../widgets/SegmentedControl';
+import { eqPresetEntries, eqPresetGroupLabel } from './presetPickEntries';
 import DspEqImportDialog from './DspEqImportDialog';
 import DspBarIcon from './DspBarIcon';
 import DspPresetSaveDialog from './DspPresetSaveDialog';
@@ -181,16 +184,14 @@ const DspEqBar = ({ eq, sampleRate, onChange, onCommit }: IDspEqBarProps) => {
   };
 
   /**
-   * Every preset in the order the picker shows them, saved ones first.
+   * Every preset as the picker shows it: saved first, then group by group.
    *
-   * Built once here rather than twice, because the arrows and the menu have
-   * to agree about what "next" means — two lists in two places is how a
-   * button and a list end up disagreeing about the same order.
+   * Built once and read by both the menu and the arrows, because the two have
+   * to agree about what "next" means. Two lists in two places is how a button
+   * and a list end up disagreeing about the same order.
    */
-  const ordered = [
-    ...userPresets.map((one) => one.id),
-    ...EQ_PRESETS.map((one) => one.id),
-  ];
+  const entries = eqPresetEntries(userPresets, t);
+  const ordered = entries.map((one) => one.id);
 
   const applyPreset = (id: string) => {
     if (id.startsWith(USER_PRESET_PREFIX)) {
@@ -415,31 +416,19 @@ const DspEqBar = ({ eq, sampleRate, onChange, onCommit }: IDspEqBarProps) => {
           protective filters as well as the curve. */}
       <div className="dsp-eq-preset dsp-eq-preset-first">
         <span className="dsp-eq-preset-label">{t('dsp.eqPreset.label')}</span>
-        <Dropdown
-          name={t('dsp.eqPreset.label')}
-          value={eq.presetId}
-          isDisabled={false}
-          noSelectionPlaceholder={t('dsp.eqPreset.custom')}
-          // Twenty-two factory entries and however many saved ones is past
-          // what anybody scans: typing two letters beats reading a list.
-          isFilterable
-          menuClassName="dsp-preset-menu"
-          options={[
-            // Saved ones first. They are the ones somebody made on purpose,
-            // and a list that puts them under twenty-two factory curves is a
-            // list that hides them.
-            ...userPresets.map((one) => ({
-              value: one.id,
-              label: one.name,
-              display: one.name,
-            })),
-            ...EQ_PRESETS.map((one) => ({
-              value: one.id,
-              label: t(one.labelKey as TranslationKey),
-              display: t(one.labelKey as TranslationKey),
-            })),
-          ]}
-          handleChange={applyPreset}
+        {/* The same menu the Band tab's voicing pick opens, because it is the
+            same errand: a long list where every entry needs a glyph, a name
+            and a line saying what it does, searched by typing rather than
+            scanned. What each side DOES with the chosen id is its own. */}
+        <RichPick
+          entries={entries}
+          groupLabel={(group) => eqPresetGroupLabel(group, t)}
+          activeId={eq.presetId}
+          onPick={applyPreset}
+          placeholder={t('dsp.eqPreset.custom')}
+          placeholderIcon={<VoicingIcon className="rich-pick__glyph" />}
+          triggerAriaLabel={t('dsp.eqPreset.label')}
+          triggerTitle={t('dsp.eqPreset.label')}
         />
         {/* Either side of the field, pointing the way they move through the
             list, so auditioning is one click rather than open-aim-click. */}

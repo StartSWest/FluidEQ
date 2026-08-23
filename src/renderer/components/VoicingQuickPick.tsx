@@ -16,12 +16,12 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { Fragment, useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { VOICING_PROFILES, getVoicingProfile } from 'common/voicing';
 import VoicingIcon from '../icons/VoicingIcon';
 import { useFluidEqContext } from '../utils/FluidEqContext';
 import { useTranslation } from '../utils/I18nContext';
-import AnchoredMenu, { isInsideAnchoredMenu } from '../widgets/AnchoredMenu';
+import RichPick, { IRichPickEntry } from '../widgets/RichPick';
 import {
   setLayerBypass,
   setVoicing as setVoicingApi,
@@ -47,10 +47,8 @@ const VoicingQuickPick = () => {
     refreshState,
   } = useFluidEqContext();
   const { t } = useTranslation();
-  const [isOpen, setIsOpen] = useState(false);
   /** A switch the engine refused, shown until the next attempt. */
   const [isRefused, setRefused] = useState(false);
-  const rootRef = useRef<HTMLDivElement>(null);
 
   const activeId = voicing?.profileId ?? '';
   const activeProfile = getVoicingProfile(activeId);
@@ -65,35 +63,7 @@ const VoicingQuickPick = () => {
    */
   const isVoicingBypassed = bypassed.includes('voicing');
 
-  useEffect(() => {
-    if (!isOpen) {
-      return undefined;
-    }
-    const close = (event: Event) => {
-      // The menu is portalled out of the panel that clips, so it is no longer
-      // inside the trigger and has to be asked about separately.
-      if (
-        !rootRef.current?.contains(event.target as Node) &&
-        !isInsideAnchoredMenu(event.target)
-      ) {
-        setIsOpen(false);
-      }
-    };
-    const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        setIsOpen(false);
-      }
-    };
-    document.addEventListener('pointerdown', close);
-    document.addEventListener('keydown', closeOnEscape);
-    return () => {
-      document.removeEventListener('pointerdown', close);
-      document.removeEventListener('keydown', closeOnEscape);
-    };
-  }, [isOpen]);
-
   const apply = async (profileId: string) => {
-    setIsOpen(false);
     // A new voicing arrives at full strength, always.
     //
     // Strength used to carry over from whatever was chosen before, which is
@@ -137,53 +107,66 @@ const VoicingQuickPick = () => {
     }
   };
 
-  return (
-    <div className="rich-pick voicing-pick" ref={rootRef}>
-      <button
-        type="button"
-        className={`rich-pick__trigger${activeProfile ? ' is-active' : ''}${
-          activeProfile && isVoicingBypassed ? ' is-bypassed' : ''
-        }`}
-        aria-haspopup="menu"
-        aria-expanded={isOpen}
-        aria-label={
-          activeProfile
-            ? t('voicing.quickAria', {
-                name: `${activeProfile.name} ${strengthPercent}%`,
-              })
-            : t('voicing.quickNone')
-        }
-        title={
-          activeProfile
-            ? `${activeProfile.name} · ${strengthPercent}% — ${activeProfile.tagline}`
-            : t('voicing.quickTitle')
-        }
-        disabled={isBlockingError || !isEnabled}
-        onClick={() => setIsOpen((current) => !current)}
-      >
-        <VoicingIcon
-          profileId={activeProfile?.id}
-          className="rich-pick__glyph"
-        />
-        <span>
-          {activeProfile ? activeProfile.name : t('voicing.quickLabel')}
-          {/* In a cell of a reserved width, which is the only reason it can be
-              here at all. Appended as plain text it changed this button's width
-              on every step of a drag, and this button sits in a row of eleven —
-              so the whole toolbar shuffled sideways while you were aiming at
-              one of them. */}
-          {activeProfile && (
-            <small className="voicing-pick__strength">{strengthPercent}%</small>
-          )}
-        </span>
-        {/* It opens a menu, and nothing on it said so — it read as a button
-            that does something, in a row of buttons that do. The same chevron
-            the mode picker carries, turning over when it is open. */}
-        <svg className="rich-pick__caret" viewBox="0 0 16 16" aria-hidden>
-          <path d="M4 6.5l4 4 4-4" />
-        </svg>
-      </button>
+  const entries: IRichPickEntry[] = [
+    {
+      // Pickable, and never what the pill reports — see RichPick. Choosing it
+      // is how somebody turns voicing off from the same control they turned it
+      // on with, which is where they look for it.
+      id: '',
+      name: t('voicing.none'),
+      hint: t('voicing.quickNoneHint'),
+      group: '',
+      icon: <VoicingIcon profileId="none" className="rich-pick__glyph" />,
+    },
+    ...VOICING_PROFILES.map((profile) => ({
+      id: profile.id,
+      name: profile.name,
+      hint: profile.tagline,
+      group: profile.group,
+      icon: <VoicingIcon profileId={profile.id} className="rich-pick__glyph" />,
+    })),
+  ];
 
+  return (
+    <RichPick
+      className="voicing-pick"
+      entries={entries}
+      groupLabel={(group) => {
+        if (group === 'genre') {
+          return t('voicing.groupGenre');
+        }
+        return group === 'purpose' ? t('voicing.groupPurpose') : '';
+      }}
+      activeId={activeId}
+      onPick={apply}
+      placeholder={t('voicing.quickLabel')}
+      placeholderIcon={<VoicingIcon className="rich-pick__glyph" />}
+      triggerAriaLabel={
+        activeProfile
+          ? t('voicing.quickAria', {
+              name: `${activeProfile.name} ${strengthPercent}%`,
+            })
+          : t('voicing.quickNone')
+      }
+      triggerTitle={
+        activeProfile
+          ? `${activeProfile.name} · ${strengthPercent}% — ${activeProfile.tagline}`
+          : t('voicing.quickTitle')
+      }
+      triggerClassName={
+        activeProfile && isVoicingBypassed ? 'is-bypassed' : undefined
+      }
+      /* In a cell of a reserved width, which is the only reason it can be here
+         at all. Appended as plain text it changed this button's width on every
+         step of a drag, and this button sits in a row of eleven — so the whole
+         toolbar shuffled sideways while you were aiming at one of them. */
+      triggerExtra={
+        activeProfile ? (
+          <small className="voicing-pick__strength">{strengthPercent}%</small>
+        ) : undefined
+      }
+      disabled={isBlockingError || !isEnabled}
+    >
       {/* On the control, not over the workspace. It stays until the next
           attempt rather than fading, because the thing it is reporting is that
           nothing changed — and a message about nothing having happened that
@@ -194,63 +177,7 @@ const VoicingQuickPick = () => {
           {t('voicing.refused')}
         </span>
       )}
-
-      {/* Out of the panel, because the panel clips — see AnchoredMenu. This one
-          is as tall as the profile list, so near the bottom of a scrolled
-          editor it was losing its last entries entirely. */}
-      <AnchoredMenu
-        anchor={rootRef.current}
-        isOpen={isOpen}
-        className="rich-pick__menu"
-      >
-        <button
-          type="button"
-          role="menuitemradio"
-          aria-checked={activeId === ''}
-          className={`rich-pick__item${activeId === '' ? ' is-active' : ''}`}
-          onClick={() => apply('')}
-        >
-          <VoicingIcon profileId="none" className="rich-pick__glyph" />
-          <span>
-            <strong>{t('voicing.none')}</strong>
-            <small>{t('voicing.quickNoneHint')}</small>
-          </span>
-        </button>
-
-        {VOICING_PROFILES.map((profile, index) => (
-          <Fragment key={profile.id}>
-            {/* A heading at each change of group, rather than a fixed pair of
-                sections, so adding a profile to either one cannot leave it
-                filed under the wrong header. */}
-            {profile.group !== VOICING_PROFILES[index - 1]?.group && (
-              <span className="rich-pick__group" role="presentation">
-                {profile.group === 'genre'
-                  ? t('voicing.groupGenre')
-                  : t('voicing.groupPurpose')}
-              </span>
-            )}
-            <button
-              type="button"
-              role="menuitemradio"
-              aria-checked={activeId === profile.id}
-              className={`rich-pick__item${
-                activeId === profile.id ? ' is-active' : ''
-              }`}
-              onClick={() => apply(profile.id)}
-            >
-              <VoicingIcon
-                profileId={profile.id}
-                className="rich-pick__glyph"
-              />
-              <span>
-                <strong>{profile.name}</strong>
-                <small>{profile.tagline}</small>
-              </span>
-            </button>
-          </Fragment>
-        ))}
-      </AnchoredMenu>
-    </div>
+    </RichPick>
   );
 };
 

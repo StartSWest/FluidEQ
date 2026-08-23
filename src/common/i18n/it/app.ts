@@ -91,6 +91,7 @@ const app: Partial<Dictionary> = {
   'common.recentSearches': 'Ricerche recenti',
   'common.clearRecentSearches': 'Cancella ricerche recenti',
   'common.clearSearch': 'Cancella la ricerca',
+  'common.noMatches': 'Nessun risultato',
   'common.filterOptions': 'Filtra opzioni',
   'common.increase': 'Aumenta {item}',
   'common.decrease': 'Riduci {item}',
