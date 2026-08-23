@@ -35,6 +35,7 @@ import {
 import { TranslationKey } from '../../common/i18n/en';
 import { useTranslation } from '../utils/I18nContext';
 import Dropdown from '../widgets/Dropdown';
+import SegmentedControl from '../widgets/SegmentedControl';
 import DspEqImportDialog from './DspEqImportDialog';
 
 interface IDspEqBarProps {
@@ -323,18 +324,16 @@ const DspEqBar = ({ eq, sampleRate, onChange, onCommit }: IDspEqBarProps) => {
       {/* The same curve through different machinery. Sits beside the rack size
           because both change how the dials below are rendered rather than what
           they are set to. */}
-      <div className="dsp-eq-preset dsp-eq-model">
+      <div className="dsp-eq-preset">
         <span className="dsp-eq-preset-label">{t('dsp.eqModel.label')}</span>
-        <Dropdown
+        <SegmentedControl
           name={t('dsp.eqModel.label')}
           value={eq.model}
-          isDisabled={false}
           options={EQ_MODELS.map((model) => ({
             value: model,
             label: t(`dsp.eqModel.${model}` as TranslationKey),
-            display: t(`dsp.eqModel.${model}` as TranslationKey),
           }))}
-          handleChange={(next: string) => {
+          onChange={(next: string) => {
             onChange(eqEdited(eq, { model: next as TEqModel }));
             onCommit();
           }}
@@ -343,11 +342,11 @@ const DspEqBar = ({ eq, sampleRate, onChange, onCommit }: IDspEqBarProps) => {
 
       {/* Orthogonal to both of the others, which is why it is its own control
           rather than a third engine: it is the same topology given room. */}
-      <div className="dsp-eq-preset dsp-eq-rack">
+      <div className="dsp-eq-preset">
         <span className="dsp-eq-preset-label">
           {t('dsp.eqOversample.label')}
         </span>
-        <Dropdown
+        <SegmentedControl
           name={t('dsp.eqOversample.label')}
           value={String(eq.oversample)}
           // Nothing to offer linear phase, and saying so is better than leaving
@@ -358,9 +357,8 @@ const DspEqBar = ({ eq, sampleRate, onChange, onCommit }: IDspEqBarProps) => {
           options={OVERSAMPLE_FACTORS.map((factor) => ({
             value: String(factor),
             label: factor === 1 ? t('dsp.eqOversample.off') : `${factor}x`,
-            display: factor === 1 ? t('dsp.eqOversample.off') : `${factor}x`,
           }))}
-          handleChange={(next: string) => {
+          onChange={(next: string) => {
             onChange(eqEdited(eq, { oversample: Number(next) }));
             onCommit();
           }}
@@ -369,18 +367,16 @@ const DspEqBar = ({ eq, sampleRate, onChange, onCommit }: IDspEqBarProps) => {
 
       {/* Which part of the image the bands act on. Mid and side are the one
           thing a stereo equaliser cannot do at all. */}
-      <div className="dsp-eq-preset dsp-eq-rack">
+      <div className="dsp-eq-preset">
         <span className="dsp-eq-preset-label">{t('dsp.eqStereo.label')}</span>
-        <Dropdown
+        <SegmentedControl
           name={t('dsp.eqStereo.label')}
           value={eq.stereo}
-          isDisabled={false}
           options={EQ_STEREO_MODES.map((mode) => ({
             value: mode,
             label: t(`dsp.eqStereo.${mode}` as TranslationKey),
-            display: t(`dsp.eqStereo.${mode}` as TranslationKey),
           }))}
-          handleChange={(next: string) => {
+          onChange={(next: string) => {
             onChange(eqEdited(eq, { stereo: next as TEqStereo }));
             onCommit();
           }}
@@ -389,18 +385,16 @@ const DspEqBar = ({ eq, sampleRate, onChange, onCommit }: IDspEqBarProps) => {
 
       {/* A different question from the character: not what shape each band is,
           but how the bands are put against the audio. */}
-      <div className="dsp-eq-preset dsp-eq-model">
+      <div className="dsp-eq-preset">
         <span className="dsp-eq-preset-label">{t('dsp.eqEngine.label')}</span>
-        <Dropdown
+        <SegmentedControl
           name={t('dsp.eqEngine.label')}
           value={eq.engine}
-          isDisabled={false}
           options={EQ_ENGINES.map((engine) => ({
             value: engine,
             label: t(`dsp.eqEngine.${engine}` as TranslationKey),
-            display: t(`dsp.eqEngine.${engine}` as TranslationKey),
           }))}
-          handleChange={(next: string) => {
+          onChange={(next: string) => {
             onChange(eqEdited(eq, { engine: next as TEqEngine }));
             onCommit();
           }}

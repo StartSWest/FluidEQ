@@ -802,6 +802,49 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   border-right: 1px solid rgba($white, 0.1);
 }
 
+// A closed set of choices with all of them showing.
+//
+// The toolbar had seven dropdowns in a row and four of those were binary or
+// ternary: you could not see what you were choosing between without opening a
+// menu to find out. The three that stayed are the ones with long lists or long
+// labels, where a menu is still the right shape.
+.segmented {
+  display: flex;
+  flex: 0 0 auto;
+  padding: 2px;
+  border: 1px solid rgba($white, 0.09);
+  border-radius: 8px;
+  background: rgba($black, 0.24);
+}
+
+.segmented__option {
+  padding: 4px 10px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: rgba($white, 0.55);
+  font-size: 0.72rem;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background 130ms ease,
+    color 130ms ease;
+
+  &:hover:not(:disabled) {
+    color: rgba($white, 0.88);
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+
+  &.is-selected {
+    background: rgba($secondary-default, 0.2);
+    color: $white;
+  }
+}
+
 // A band count is two characters. Given the preset field's width it read as a
 // second preset picker that had lost its label.
 .dsp-eq-rack .dropdown {
