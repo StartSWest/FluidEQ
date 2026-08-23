@@ -582,7 +582,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 .dsp-eq-preamp {
   display: flex;
-  flex: 0 0 auto;
+  // Takes whatever the line has left over, because it is the only block on the
+  // row whose natural width is honest — five dials and a readout, no canvas.
+  // Its contents stay centred, so growing it fills the row rather than
+  // stranding the dials at one end.
+  flex: 1 1 auto;
   align-items: center;
   justify-content: center;
   padding: 10px 18px;
@@ -1198,18 +1202,29 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // two blocks read as an afterthought rather than as a reading.
 .dsp-eq-phase {
   display: flex;
-  // Takes the slack on its line rather than leaving a hole. Once the strip
-  // wraps away, the preamp and this share a row with room to spare, and a
-  // goniometer is one of the few readouts that is simply better wider — the
-  // trace has more room to separate a wide mix from one about to cancel.
-  flex: 1 1 auto;
+  // A DEFINITE width, for the same reason the graph below has a definite
+  // height — this block holds a canvas, and a canvas is not allowed to be the
+  // thing that decides how wide it is.
+  //
+  // The canvas is `width: 100%`. Against an indefinite container that
+  // percentage cannot resolve, so it falls back to the backing store, and the
+  // paint sets the backing store from the box it last measured. The block's
+  // natural width therefore becomes however wide it happened to be last time,
+  // which is a memory rather than a measurement — and a sticky one: once it
+  // read 1237px it kept reporting 1237px, claimed a whole row to itself, and
+  // drew a 200px goniometer in the middle of a black field. `flex: 0 0 auto`
+  // does not help, because `auto` is exactly that lie.
+  //
+  // 260px is wide enough for the needle to travel a readable arc and for the
+  // scope to be square-ish. The preamp beside it takes the slack: five dials,
+  // no canvas, and an intrinsic width that means what it says.
+  flex: 0 0 260px;
   flex-direction: column;
   gap: 3px;
-  // Enough width for the scale to be worth reading: below about this the
-  // needle cannot travel far enough to show the difference between a wide mix
-  // and one that is about to cancel.
-  // Wide enough for the dial to be a dial. The height is set by the preamp
-  // block beside it and must not move; width is free.
+  // A floor under the 260px basis above, which is what actually sets the
+  // width. Kept because it is the number that matters if the basis ever has to
+  // shrink: below about this the needle cannot travel far enough to show the
+  // difference between a wide mix and one that is about to cancel.
   min-width: 168px;
   padding: 8px 12px 4px;
   border: 1px solid rgba($white, 0.06);
@@ -1291,4 +1306,21 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // scrolls, so nothing above here has a height to divide up.
 .dsp-eq .dsp-eq-graph {
   height: clamp(260px, 52vh, 620px);
+}
+
+// On a short display the graph gives some height back.
+//
+// 52vh is the right share of a tall window and the wrong share of a short one:
+// the rest of this tab — toolbar, band buttons, the three panels underneath —
+// costs about 470px no matter how short the screen is, so at 852px the graph
+// was taking 443 of the 852 and everything below it lived past the fold. The
+// fraction has to fall as the window does, and a clamp cannot bend.
+//
+// 38vh is 324px at 852, which is still taller than the 300px this graph shipped
+// at for its whole life. Nothing is lost; it stops being the reason the panel
+// does not fit.
+@media (max-height: 900px) {
+  .dsp-eq .dsp-eq-graph {
+    height: clamp(220px, 38vh, 340px);
+  }
 }
