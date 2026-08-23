@@ -9,15 +9,15 @@ import { useTranslation } from '../utils/I18nContext';
 import { readDspAnalyser, readDspCorrelation } from './store';
 
 /**
- * Track, then ticks and their labels, then the reading below both.
+ * The height the block had before the meter was redrawn, and it keeps it.
  *
- * The block it sits in is over a hundred pixels tall because the preamp's dials
- * set that height, so the meter may as well use it — at 64 the canvas left a
- * third of the box empty and the number had to crowd the scale.
+ * The panel around this is sized by the preamp's dials, so growing the canvas
+ * grew the whole row and pushed everything under it down. A meter earns its
+ * space by using what it has.
  */
 const HEIGHT = 86;
 
-/** Where the scale is marked. */
+/** Where the arc is marked, and what to write there. */
 const TICKS: [number, string][] = [
   [-1, '-1'],
   [-0.5, ''],
@@ -26,13 +26,26 @@ const TICKS: [number, string][] = [
   [1, '+1'],
 ];
 
+/** The sweep, in radians: a half circle, needle pivoting at the bottom. */
+const START = Math.PI;
+const SWEEP = Math.PI;
+
+/** Correlation to the angle its needle points at. */
+const angleOf = (value: number) => START + ((value + 1) / 2) * SWEEP;
+
 /**
- * Phase correlation of what actually leaves the chain.
+ * Phase correlation of what actually leaves the chain, on a swinging needle.
  *
  * Not a prediction from the settings — the worklet measures the samples after
  * every filter has run and reports the figure back, so this shows the result of
  * the curve, the engine, the mid/side mode and the fuzz together rather than
  * what any one of them was asked for.
+ *
+ * A needle rather than a bar, because a correlation meter IS a needle: this is
+ * the one reading in the rack that lives on a signed scale with a meaningful
+ * centre, and a moving pointer against a fixed arc shows "where between two
+ * extremes" in a way a bar growing from the middle never quite does. It is also
+ * the shape anybody who has seen a mixing desk already knows how to read.
  *
  * The scale runs -1 to +1 and the interesting half is the left one:
  *
@@ -42,8 +55,8 @@ const TICKS: [number, string][] = [
  *  - **BELOW 0** content that partly cancels the moment anything sums to mono,
  *    which is a phone speaker, a mono PA and most Bluetooth speakers. This is
  *    the reading that predicts a mix falling apart somewhere the listener is
- *    not, and it is why the negative half is drawn in warning colour rather
- *    than in the same ink as the rest.
+ *    not, and it is why the negative half of the arc is drawn in warning colour
+ *    rather than in the same ink as the rest.
  *
  * Canvas rather than DOM for the same reason as the curve: it updates about
  * twenty-three times a second and a re-render each time would be pointless
@@ -60,7 +73,7 @@ const DspPhaseMeter = () => {
       return undefined;
     }
     let frame = 0;
-    /** Eased toward the reading so the needle does not twitch per report. */
+    /** Eased toward the reading, so the needle swings rather than jumping. */
     let shown = 1;
 
     const paint = () => {
@@ -85,83 +98,82 @@ const DspPhaseMeter = () => {
       const target = readDspCorrelation();
       shown += (target - shown) * 0.18;
 
-      // Stacked, not side by side. The box is narrow, and giving the number its
-      // own column left the scale about sixty pixels wide — a meter with no room
-      // to travel is not a meter. The number goes under the scale instead, where
-      // it can be large and the track can have the whole width.
-      const trackW = box.width;
-      // Tall enough to be a bar rather than a line: this block sits beside the
-      // preamp's dials and a thin strip beside a knob reads as a divider.
-      const trackH = 26;
-      const mid = trackW / 2;
-      const atX = (value: number) => mid + (value * trackW) / 2;
+      // Centred in whatever the box turns out to be, rather than hung from its
+      // top: the panel beside it is a row of dials and a meter sitting high in
+      // its own block reads as having come loose from the row.
+      const radius = Math.min(box.width / 2 - 10, box.height - 30);
+      const pivotX = box.width / 2;
+      const pivotY = (box.height + radius) / 2 + 4;
 
-      // The negative half, marked before anything is drawn over it: it is the
-      // region the meter exists to warn about.
-      context.fillStyle = 'rgba(255,100,124,0.12)';
-      context.fillRect(0, 0, mid, trackH);
-      context.fillStyle = 'rgba(255,255,255,0.05)';
-      context.fillRect(mid, 0, mid, trackH);
-
-      const x = atX(shown);
-      const bar = Math.abs(x - mid);
-      const warm = shown < 0;
-      const fill = context.createLinearGradient(mid, 0, x, 0);
-      fill.addColorStop(
-        0,
-        warm ? 'rgba(255,100,124,0.35)' : 'rgba(0,229,207,0.35)',
-      );
-      fill.addColorStop(
-        1,
-        warm ? 'rgba(255,100,124,0.95)' : 'rgba(0,229,207,0.95)',
-      );
-      context.fillStyle = fill;
-      context.fillRect(warm ? mid - bar : mid, 0, bar, trackH);
-
-      // Zero, where summing starts losing the difference between the channels.
-      context.fillStyle = 'rgba(255,255,255,0.3)';
-      context.fillRect(Math.round(mid), 0, 1, trackH);
-
-      context.fillStyle = '#ffffff';
-      context.fillRect(Math.round(x) - 1, -1, 2, trackH + 2);
+      // The arc, in two halves. The left one is what this meter exists to warn
+      // about, so it is warm before anything is drawn over it.
+      context.lineWidth = 7;
+      context.lineCap = 'butt';
+      context.beginPath();
+      context.arc(pivotX, pivotY, radius, START, START + SWEEP / 2);
+      context.strokeStyle = 'rgba(255,100,124,0.3)';
+      context.stroke();
+      context.beginPath();
+      context.arc(pivotX, pivotY, radius, START + SWEEP / 2, START + SWEEP);
+      context.strokeStyle = 'rgba(0,229,207,0.28)';
+      context.stroke();
 
       context.font =
         '10px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif';
-      context.textBaseline = 'top';
+      context.textAlign = 'center';
+      context.textBaseline = 'middle';
       TICKS.forEach(([value, label]) => {
-        const tickX = Math.round(atX(value));
-        context.fillStyle = 'rgba(255,255,255,0.18)';
-        context.fillRect(
-          Math.min(trackW - 1, Math.max(0, tickX)),
-          trackH + 2,
-          1,
-          label === '' ? 3 : 5,
+        const angle = angleOf(value);
+        const cos = Math.cos(angle);
+        const sin = Math.sin(angle);
+        context.beginPath();
+        context.moveTo(
+          pivotX + cos * (radius - 5),
+          pivotY + sin * (radius - 5),
         );
+        context.lineTo(
+          pivotX + cos * (radius + (label === '' ? 3 : 5)),
+          pivotY + sin * (radius + (label === '' ? 3 : 5)),
+        );
+        context.strokeStyle = 'rgba(255,255,255,0.3)';
+        context.lineWidth = 1;
+        context.stroke();
         if (label !== '') {
-          context.fillStyle = 'rgba(255,255,255,0.42)';
-          const { width } = context.measureText(label);
+          context.fillStyle = 'rgba(255,255,255,0.45)';
           context.fillText(
             label,
-            Math.min(trackW - width, Math.max(0, tickX - width / 2)),
-            trackH + 9,
+            pivotX + cos * (radius - 15),
+            pivotY + sin * (radius - 15),
           );
         }
       });
 
-      // Below the tick labels rather than among them: the two collided when the
-      // number sat directly under the centre of the track.
-      context.textBaseline = 'top';
+      // The reading, inside the arc above the pivot, where a meter's own label
+      // has always gone.
+      const warm = shown < 0;
       context.font =
-        '600 18px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif';
+        '600 17px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif';
       context.fillStyle = warm
         ? 'rgba(255,140,158,0.95)'
         : 'rgba(255,255,255,0.9)';
-      const value = shown.toFixed(2);
-      context.fillText(
-        value,
-        mid - context.measureText(value).width / 2,
-        trackH + 30,
+      context.fillText(shown.toFixed(2), pivotX, pivotY - 13);
+
+      // The needle last, over everything, with a hub to sit on.
+      const angle = angleOf(Math.max(-1, Math.min(1, shown)));
+      context.beginPath();
+      context.moveTo(pivotX, pivotY);
+      context.lineTo(
+        pivotX + Math.cos(angle) * (radius - 3),
+        pivotY + Math.sin(angle) * (radius - 3),
       );
+      context.strokeStyle = warm ? 'rgba(255,140,158,0.95)' : '#ffffff';
+      context.lineWidth = 2;
+      context.lineCap = 'round';
+      context.stroke();
+      context.beginPath();
+      context.arc(pivotX, pivotY, 4, 0, Math.PI * 2);
+      context.fillStyle = warm ? 'rgba(255,140,158,0.95)' : '#ffffff';
+      context.fill();
 
       schedule();
     };

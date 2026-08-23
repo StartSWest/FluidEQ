@@ -70,7 +70,7 @@ const run = (
     ),
   ];
   const dynamics = [createBandDynamics()];
-  refreshBandDynamics(dynamics[0], band, RATE);
+  refreshBandDynamics(dynamics[0], band, RATE, true);
   processEqBands(
     [createBiquadState()],
     coefficients,
@@ -143,8 +143,27 @@ describe('a dynamic band', () => {
    * detector divides by that swing, so this is also a division by zero. */
   it('is inert when the band has no gain', () => {
     const state = createBandDynamics();
-    refreshBandDynamics(state, bandAt(1_000, 0, { dynamic: true }), RATE);
+    refreshBandDynamics(state, bandAt(1_000, 0, { dynamic: true }), RATE, true);
     expect(state.active).toBe(false);
     expect(Number.isFinite(state.normalise)).toBe(true);
+  });
+});
+
+/**
+ * A bypassed equaliser has no bands doing anything, and a follower still
+ * reporting its last engagement makes the graph draw a partly-applied curve
+ * and the readout show a percentage for a rack that is switched off.
+ */
+describe('a bypassed rack', () => {
+  it('leaves no band reacting', () => {
+    const state = createBandDynamics();
+    const band = bandAt(6_000, -12, { dynamic: true, thresholdDb: -40 });
+
+    refreshBandDynamics(state, band, RATE, true);
+    expect(state.active).toBe(true);
+
+    refreshBandDynamics(state, band, RATE, false);
+    expect(state.active).toBe(false);
+    expect(state.amount).toBe(0);
   });
 });

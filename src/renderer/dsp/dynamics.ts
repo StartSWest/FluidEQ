@@ -87,11 +87,15 @@ export const refreshBandDynamics = (
   state: IBandDynamics,
   band: IEqBandSettings,
   sampleRate: number,
+  /** The whole rack. A bypassed equaliser has no bands doing anything, and
+   * a follower still reporting its last engagement makes the graph and the
+   * readout claim otherwise. */
+  isRackEnabled: boolean,
 ): void => {
   const swing = Math.abs(10 ** (band.gainDb / 20) - 1);
   // A band with no gain changes nothing, so there is nothing to detect and
   // nothing to scale. Dividing by that swing would be a division by zero.
-  state.active = band.dynamic && band.enabled && swing > 1e-4;
+  state.active = isRackEnabled && band.dynamic && band.enabled && swing > 1e-4;
   state.threshold = 10 ** (band.thresholdDb / 20);
   state.normalise = state.active ? 1 / swing : 1;
   state.attack = coefficientFor(ATTACK_MS, sampleRate);

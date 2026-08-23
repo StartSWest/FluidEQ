@@ -135,6 +135,7 @@ export const buildDspGraph = (
       : [
           eq.model,
           eq.modelAmount,
+          eq.engine,
           eq.subsonicHz,
           eq.bands
             .map((band) =>

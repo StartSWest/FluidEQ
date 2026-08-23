@@ -60,3 +60,40 @@ describe('linear phase with a dynamic band', () => {
     expect(responseDb(allStatic, 5_000)).toBeCloseTo(6, 1);
   });
 });
+
+describe('linear phase and the topology', () => {
+  /**
+   * An impulse pushed through a cascade IS the serial arrangement, so the
+   * kernel ignored the engine entirely: choosing parallel and linear phase
+   * together built a serial kernel with nothing to say so.
+   *
+   * The two are not interchangeable. Overlapping bands ADD in parallel and
+   * MULTIPLY in serial, so where two bands meet the curves differ — which is
+   * the whole reason the control exists.
+   */
+  it('builds a different kernel for each engine', () => {
+    const overlapping = (engine: 'serial' | 'parallel'): IEqSettings => ({
+      ...DSP_DEFAULTS.eq,
+      phase: 'linear',
+      engine,
+      bands: DSP_DEFAULTS.eq.bands.map((band, index) => ({
+        ...band,
+        // Neighbours at 500 and 800 Hz, so their skirts genuinely overlap.
+        gainDb: index === 6 || index === 7 ? 6 : 0,
+      })),
+    });
+
+    const serial = buildLinearPhaseKernel(overlapping('serial'), RATE);
+    const parallel = buildLinearPhaseKernel(overlapping('parallel'), RATE);
+
+    // Between the two centres is where the arrangement shows.
+    const between = 640;
+    expect(
+      Math.abs(responseDb(serial, between) - responseDb(parallel, between)),
+    ).toBeGreaterThan(0.3);
+
+    // And both still do the job: neither is a broken filter.
+    expect(responseDb(serial, 500)).toBeGreaterThan(5);
+    expect(responseDb(parallel, 500)).toBeGreaterThan(5);
+  });
+});

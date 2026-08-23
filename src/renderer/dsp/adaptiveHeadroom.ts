@@ -38,6 +38,22 @@ SPDX-License-Identifier: GPL-3.0-or-later
  */
 const RISE_PER_STEP_DB = 0.15;
 
+/**
+ * Below this, there is nothing to measure and measuring anyway is worse than
+ * not measuring at all.
+ *
+ * An analyser fed silence does not report silence — it reports the floor, and
+ * a floor is FLAT. A flat programme puts the excess at exactly the chain’s
+ * own peak, which puts the target at zero, which drops the give-back; then
+ * the slow climb starts, and the next reading drops it again. The result is a
+ * sawtooth twenty-three times a second built entirely out of noise, and it is
+ * what "it flashes even with no sound" was.
+ *
+ * -70 dBFS in the loudest bin. Real music at any listening level is far above
+ * it and a paused track is far below.
+ */
+const PROGRAMME_FLOOR_DB = -70;
+
 export interface IAdaptiveHeadroomState {
   /** Headroom handed back, in dB. Zero is the pessimistic reserve, untouched. */
   giveBack: number;
@@ -57,7 +73,7 @@ export const createAdaptiveHeadroom = (): IAdaptiveHeadroomState => ({
 export const excessDb = (
   programmeDb: ArrayLike<number>,
   chainDb: ArrayLike<number>,
-): number => {
+): number | null => {
   let loudest = -Infinity;
   let loudestAfter = -Infinity;
   const bins = Math.min(programmeDb.length, chainDb.length);
@@ -75,8 +91,15 @@ export const excessDb = (
       }
     }
   }
-  if (!Number.isFinite(loudest) || !Number.isFinite(loudestAfter)) {
-    return 0;
+  // Null rather than zero: "nothing playing" and "the chain adds nothing"
+  // are opposite answers, and returning the second for the first is what
+  // made silence hand back the whole reserve and then take it away again.
+  if (
+    !Number.isFinite(loudest) ||
+    !Number.isFinite(loudestAfter) ||
+    loudest < PROGRAMME_FLOOR_DB
+  ) {
+    return null;
   }
   return Math.max(0, loudestAfter - loudest);
 };
@@ -92,12 +115,19 @@ export const excessDb = (
 export const advanceHeadroom = (
   state: IAdaptiveHeadroomState,
   reserveDb: number,
-  excess: number,
+  /** Null when there was nothing loud enough to measure. */
+  excess: number | null,
   clipping: boolean,
 ): number => {
   if (clipping) {
     state.giveBack = 0;
     return 0;
+  }
+  // Held exactly where it was. A gap between tracks is not evidence about
+  // the next one, and moving on no evidence is how a readout starts
+  // flickering at a paused player.
+  if (excess === null) {
+    return state.giveBack;
   }
   const target = Math.max(0, Math.min(reserveDb, reserveDb - excess));
   state.giveBack =

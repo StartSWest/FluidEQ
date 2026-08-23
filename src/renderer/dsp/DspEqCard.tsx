@@ -433,6 +433,7 @@ const DspEqCard = ({ eq, sampleRate, onChange, onCommit }: IDspEqCardProps) => {
               bandIndex={active}
               isDynamic={band.dynamic}
               isDisabled={active < 0 || !band.enabled}
+              isRackEnabled={eq.enabled}
               onToggle={() => {
                 patchBand(active, { dynamic: !band.dynamic });
                 onCommit();

@@ -13,6 +13,9 @@ interface IDspDynamicReadoutProps {
   bandIndex: number;
   isDynamic: boolean;
   isDisabled: boolean;
+  /** The rack itself. Bypassed, no band is doing anything and a percentage
+   * here would be the last one it happened to be showing. */
+  isRackEnabled: boolean;
   onToggle: () => void;
 }
 
@@ -33,12 +36,13 @@ const DspDynamicReadout = ({
   bandIndex,
   isDynamic,
   isDisabled,
+  isRackEnabled,
   onToggle,
 }: IDspDynamicReadoutProps) => {
   const { t } = useTranslation();
   const valueRef = useRef<HTMLSpanElement>(null);
-  const view = useRef({ bandIndex, isDynamic });
-  view.current = { bandIndex, isDynamic };
+  const view = useRef({ bandIndex, isDynamic, isRackEnabled });
+  view.current = { bandIndex, isDynamic, isRackEnabled };
 
   useEffect(() => {
     let frame = 0;
@@ -50,11 +54,12 @@ const DspDynamicReadout = ({
         // A static band is always fully applied — that is what makes it static
         // — so a percentage there would be a live reading of a constant. The
         // dash says "nothing is being decided here", which is the truth.
-        const text = view.current.isDynamic
-          ? `${Math.round(
-              (readDspBandAmounts()[view.current.bandIndex] ?? 0) * 100,
-            )} %`
-          : '—';
+        const text =
+          view.current.isDynamic && view.current.isRackEnabled
+            ? `${Math.round(
+                (readDspBandAmounts()[view.current.bandIndex] ?? 0) * 100,
+              )} %`
+            : '—';
         if (text !== shown) {
           shown = text;
           node.textContent = text;

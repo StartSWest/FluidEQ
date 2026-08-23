@@ -17,7 +17,7 @@ const chainWithBoost = (bins: number, at: number, gainDb: number) => {
   return chain;
 };
 
-/** A programme with all its energy in one bin. */
+/** A programme with all its energy in one bin, loud enough to be measured. */
 const programmeAt = (bins: number, at: number) => {
   const programme = new Float32Array(bins).fill(-90);
   programme[at] = -6;
@@ -34,7 +34,10 @@ describe('the excess', () => {
     const chain = chainWithBoost(64, 10, 6);
     const quiet = programmeAt(64, 10);
     const loud = Float32Array.from(quiet, (value) => value + 37);
-    expect(excessDb(loud, chain)).toBeCloseTo(excessDb(quiet, chain), 6);
+    const quietExcess = excessDb(quiet, chain);
+    const loudExcess = excessDb(loud, chain);
+    expect(quietExcess).not.toBeNull();
+    expect(loudExcess).toBeCloseTo(quietExcess as number, 6);
   });
 
   /**
@@ -64,12 +67,19 @@ describe('the excess', () => {
     expect(excessDb(programmeAt(64, 20), chain)).toBe(0);
   });
 
-  /** Empty bins arrive as -Infinity and, before the first block, as NaN.
-   * Either one poisons a maximum and would make the trim jump. */
-  it('survives an analyser that has nothing to report', () => {
+  /**
+   * Nothing playing is not the same answer as "the chain adds nothing", and
+   * returning the second for the first is what made a paused player hand the
+   * whole reserve back and then take it away again, twenty-three times a
+   * second. Null says there was no evidence.
+   */
+  it('reports nothing when there is nothing to measure', () => {
     const chain = chainWithBoost(8, 4, 6);
-    expect(excessDb(new Float32Array(8).fill(-Infinity), chain)).toBe(0);
-    expect(excessDb(new Float32Array(8).fill(NaN), chain)).toBe(0);
+    expect(excessDb(new Float32Array(8).fill(-Infinity), chain)).toBeNull();
+    expect(excessDb(new Float32Array(8).fill(NaN), chain)).toBeNull();
+    // A flat noise floor, which is exactly what silence looks like to an
+    // analyser and the shape that produced the flicker.
+    expect(excessDb(new Float32Array(8).fill(-95), chain)).toBeNull();
   });
 });
 
@@ -98,6 +108,19 @@ describe('handing headroom back', () => {
     expect(state.giveBack).toBeCloseTo(6, 6);
     // The chorus arrives and now needs the whole reserve.
     expect(advanceHeadroom(state, 6, 6, false)).toBe(0);
+  });
+
+  /** With no evidence it holds still, rather than drifting on noise. */
+  it('does not move when there was nothing to measure', () => {
+    const state = createAdaptiveHeadroom();
+    for (let step = 0; step < 20; step += 1) {
+      advanceHeadroom(state, 6, 0, false);
+    }
+    const held = state.giveBack;
+    expect(held).toBeGreaterThan(0);
+    for (let step = 0; step < 50; step += 1) {
+      expect(advanceHeadroom(state, 6, null, false)).toBe(held);
+    }
   });
 
   /** A measured clip outranks every spectral argument there is. */

@@ -232,6 +232,19 @@ const DspEqGraph = ({
      * without a ref and without allocating.
      */
     const drawnAmounts: number[] = [];
+    /**
+     * The drawn input gain, eased toward what is actually applied.
+     *
+     * The adaptive stage gives headroom back slowly and takes it at once,
+     * which is right for the audio and unwatchable on a line: every loud
+     * passage snapped it down and the climb walked it back up, so it flickered
+     * across the plot. The gain still moves the instant it needs to; only the
+     * picture of it is smoothed.
+     *
+     * NaN until the first frame, so the line starts where it belongs rather
+     * than sliding down from unity every time the page is opened.
+     */
+    let drawnInput = Number.NaN;
     const canvas = canvasRef.current;
     const context = canvas?.getContext('2d');
     if (!canvas || !context) {
@@ -739,8 +752,11 @@ const DspEqGraph = ({
        */
       const appliedInput =
         liveEq.preampDb + liveEq.trimDb + readDspHeadroomGiveBack();
-      if (Math.abs(appliedInput) >= 0.05) {
-        const y = Y(Math.max(-RANGE_DB, Math.min(RANGE_DB, appliedInput)));
+      drawnInput = Number.isNaN(drawnInput)
+        ? appliedInput
+        : drawnInput + (appliedInput - drawnInput) * 0.08;
+      if (Math.abs(drawnInput) >= 0.05) {
+        const y = Y(Math.max(-RANGE_DB, Math.min(RANGE_DB, drawnInput)));
         context.beginPath();
         context.moveTo(PAD_L, y);
         context.lineTo(PAD_L + plotW(W), y);
@@ -757,7 +773,7 @@ const DspEqGraph = ({
         context.fillStyle = 'rgba(178,190,255,0.85)';
         context.fillText(
           translate('dsp.eq.inputMark', {
-            gain: appliedInput.toFixed(1),
+            gain: drawnInput.toFixed(1),
           }),
           PAD_L + 8,
           y - 3,

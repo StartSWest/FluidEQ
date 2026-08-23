@@ -92,8 +92,9 @@ export const linearPhaseLatencyMs = (sampleRate: number): number =>
  * FIR built from an impulse response has no bilinear transform in it.
  */
 const impulseResponse = (eq: IEqSettings, sampleRate: number): Float32Array => {
-  const buffer = new Float32Array(KERNEL_SIZE);
-  buffer[0] = 1;
+  const dry = new Float32Array(KERNEL_SIZE);
+  dry[0] = 1;
+  const buffer = Float32Array.from(dry);
   eq.bands
     /**
      * Static bands only, and the reacting ones are handled elsewhere.
@@ -113,21 +114,38 @@ const impulseResponse = (eq: IEqSettings, sampleRate: number): Float32Array => {
      */
     .filter((band) => band.enabled && !band.dynamic)
     .forEach((band) => {
-      processBiquad(
-        createBiquadState(),
-        buffer,
-        biquadCoefficients(
-          {
-            type: band.type as FilterTypeEnum,
-            frequency: band.frequency,
-            gainDb: band.gainDb,
-            quality: band.quality,
-          },
-          sampleRate,
-          eq.model,
-          eq.modelAmount,
-        ),
+      const coefficients = biquadCoefficients(
+        {
+          type: band.type as FilterTypeEnum,
+          frequency: band.frequency,
+          gainDb: band.gainDb,
+          quality: band.quality,
+        },
+        sampleRate,
+        eq.model,
+        eq.modelAmount,
       );
+      if (eq.engine === 'serial') {
+        processBiquad(createBiquadState(), buffer, coefficients);
+        return;
+      }
+      /**
+       * Parallel has to be built the way it runs, not approximated.
+       *
+       * The topology was silently ignored here: an impulse pushed through a
+       * cascade IS the serial arrangement, so choosing parallel and choosing
+       * linear phase together gave a serial kernel and no sign of it. They do
+       * not produce the same curve — overlapping bands add in one and
+       * multiply in the other — so this was the wrong filter, quietly.
+       *
+       * Every band filters the ORIGINAL impulse and only what it changed is
+       * summed, which is exactly what the sample path does per block.
+       */
+      const wet = Float32Array.from(dry);
+      processBiquad(createBiquadState(), wet, coefficients);
+      for (let i = 0; i < KERNEL_SIZE; i += 1) {
+        buffer[i] += wet[i] - dry[i];
+      }
     });
   if (eq.subsonicHz > 0) {
     processBiquad(

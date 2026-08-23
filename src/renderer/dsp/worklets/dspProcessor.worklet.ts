@@ -445,7 +445,7 @@ class DspProcessor extends AudioWorkletProcessor {
       }
       followers.length = live.length;
       live.forEach((band, index) =>
-        refreshBandDynamics(followers[index], band, sampleRate),
+        refreshBandDynamics(followers[index], band, sampleRate, eq.enabled),
       );
       this.bandDynamics[slot] = followers;
     }
@@ -584,7 +584,9 @@ class DspProcessor extends AudioWorkletProcessor {
             this.dynamicSlots.map((at) => this.eqStates[slot][at]),
             this.dynamicCoefficients,
             target,
-            'serial',
+            // The chosen topology, like every other band: these are not a
+            // special case, they are the ones the kernel could not carry.
+            eq.engine,
             this.eqDry,
             this.eqWet,
             this.dynamicSlots.map((at) => this.bandDynamics[slot][at]),
