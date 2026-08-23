@@ -561,6 +561,23 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   flex: 0 0 auto;
   align-items: stretch;
   gap: 10px;
+  // Wraps, because the three panels do not fit side by side in the width this
+  // card actually gets and the one that lost was the worst one to lose.
+  //
+  // Measured in a 1440x852 window: the card is 969px wide, the preamp block
+  // wants 568 and the phase meter 198, which leaves the band strip 183 — less
+  // than the 168px shape dropdown plus its own padding. So the strip wrapped
+  // its seven controls into a column 567px TALL, which pushed the card to
+  // 1229px inside an 852px window. The panel is content-height by design and
+  // the workspace scrolls, so nothing clipped and nothing complained; it just
+  // became a page you had to scroll through a screen of dead space to read.
+  //
+  // Wrapping puts the preamp and the meter on one line and gives the strip the
+  // full width on the next, where all seven controls fit in a single row. On a
+  // window wide enough for all three (about 1300px of card) they stay on one
+  // line exactly as before, so this costs nothing at the size it was designed
+  // for.
+  flex-wrap: wrap;
 }
 
 .dsp-eq-preamp {
@@ -645,7 +662,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // is the point — the strip belongs to the graph above it, not to an edge.
 .dsp-eq-strip {
   display: flex;
-  flex: 1 1 auto;
+  // 484px is this strip's real minimum for a tidy first row: the 168px shape
+  // dropdown, three 78px dials, three 18px gaps and 28px of padding. Asking
+  // for 520 leaves a little slack and, more importantly, makes it the child
+  // that wraps to its own line rather than the child that gets squeezed to
+  // 183px and stacks — a basis of `auto` said "give me whatever is left",
+  // which is how it ended up with less than one control's width.
+  flex: 1 1 520px;
   min-width: 0;
   // Centred on the row, not hung from its floor. The controls are different
   // heights — a knob carries its name underneath, a button does not — and
@@ -1175,7 +1198,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // two blocks read as an afterthought rather than as a reading.
 .dsp-eq-phase {
   display: flex;
-  flex: 0 0 auto;
+  // Takes the slack on its line rather than leaving a hole. Once the strip
+  // wraps away, the preamp and this share a row with room to spare, and a
+  // goniometer is one of the few readouts that is simply better wider — the
+  // trace has more room to separate a wide mix from one about to cancel.
+  flex: 1 1 auto;
   flex-direction: column;
   gap: 3px;
   // Enough width for the scale to be worth reading: below about this the
