@@ -111,7 +111,6 @@ const DspExciterGraph = ({ settings }: IDspExciterGraphProps) => {
           plotW;
 
       const { current } = settingsRef;
-      const [lowHz, highHz] = current.crossoverHz;
 
       /* ---------------------------------------------------- the spectrum */
       const live = readDspAnalyser();
@@ -166,22 +165,25 @@ const DspExciterGraph = ({ settings }: IDspExciterGraphProps) => {
           now + (target - now) * (target > now ? RISE : FALL);
       });
 
-      const edges: [number, number][] = [
-        [MIN_HZ, lowHz],
-        [lowHz, highHz],
-        [highHz, MAX_HZ],
-      ];
-      edges.forEach(([from, to], index) => {
-        const x0 = toX(from);
-        const x1 = toX(to);
-        const band = current.bands[index];
+      /**
+       * Each band's own span, which may overlap its neighbours'.
+       *
+       * Drawn as three independent regions rather than as slices of one axis,
+       * because that is what they now are. Where two overlap their fills add
+       * up, so the overlap is visible as a brighter stripe — which is exactly
+       * what is happening to the audio there: that octave gets both bands'
+       * harmonics.
+       */
+      current.bands.forEach((band, index) => {
+        const x0 = toX(Math.min(band.lowHz, band.highHz));
+        const x1 = toX(Math.max(band.lowHz, band.highHz));
         const ink = BAND_INK[index];
-        const isOn = current.enabled && band?.enabled;
+        const isOn = current.enabled && band.enabled;
 
         // The region, always drawn. A band that is switched off still has a
-        // span, and seeing that span is how the crossover dials are aimed.
+        // span, and seeing that span is how its edges get aimed.
         context.fillStyle = `rgba(${ink}, ${isOn ? 0.07 : 0.025})`;
-        context.fillRect(x0, PAD_T, x1 - x0, plotH);
+        context.fillRect(x0, PAD_T, Math.max(1, x1 - x0), plotH);
 
         // What it is contributing, as a fill rising from the floor. This is
         // the number reported by the audio thread, not the mix setting: a
@@ -190,23 +192,31 @@ const DspExciterGraph = ({ settings }: IDspExciterGraphProps) => {
         const amount = Math.min(1, drawn.current[index]);
         if (isOn && amount > 0.002) {
           const filled = plotH * amount;
+          const span = Math.max(1, x1 - x0);
           context.fillStyle = `rgba(${ink}, 0.22)`;
-          context.fillRect(x0, floorY - filled, x1 - x0, filled);
+          context.fillRect(x0, floorY - filled, span, filled);
           context.fillStyle = `rgba(${ink}, 0.75)`;
-          context.fillRect(x0, floorY - filled, x1 - x0, 1.5);
+          context.fillRect(x0, floorY - filled, span, 1.5);
         }
       });
 
-      /* -------------------------------------------- the crossover lines */
-      context.setLineDash([3, 3]);
-      context.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+      /* ------------------------------------------------- the band edges */
+      // Each band's own two edges, in its own colour, so an edge belongs to a
+      // band by sight. Six lines rather than two, and only the enabled bands'
+      // are drawn solidly — with three spans free to overlap, drawing all six
+      // at equal weight was a picket fence nobody could read.
       context.lineWidth = 1;
-      [lowHz, highHz].forEach((hz) => {
-        const x = Math.round(toX(hz)) + 0.5;
-        context.beginPath();
-        context.moveTo(x, PAD_T);
-        context.lineTo(x, floorY);
-        context.stroke();
+      current.bands.forEach((band, index) => {
+        const isOn = current.enabled && band.enabled;
+        context.setLineDash(isOn ? [] : [2, 3]);
+        context.strokeStyle = `rgba(${BAND_INK[index]}, ${isOn ? 0.55 : 0.2})`;
+        [band.lowHz, band.highHz].forEach((hz) => {
+          const x = Math.round(toX(hz)) + 0.5;
+          context.beginPath();
+          context.moveTo(x, PAD_T);
+          context.lineTo(x, floorY);
+          context.stroke();
+        });
       });
       context.setLineDash([]);
 
@@ -260,16 +270,24 @@ const DspExciterGraph = ({ settings }: IDspExciterGraphProps) => {
         context.fillText(label, toX(hz), floorY + 4);
       });
 
-      // The crossovers name themselves, because they are the two dials this
-      // picture exists to help aim.
-      context.fillStyle = 'rgba(255, 255, 255, 0.55)';
+      // Enabled bands name their own edges. Only the enabled ones, because
+      // six labels across a narrow plot overlap into a smear and the ones that
+      // matter are the bands actually doing something.
       context.textBaseline = 'bottom';
-      [lowHz, highHz].forEach((hz) => {
-        context.fillText(
-          hz >= 1_000 ? `${(hz / 1_000).toFixed(1)}k` : String(Math.round(hz)),
-          toX(hz),
-          PAD_T - 2,
-        );
+      current.bands.forEach((band, index) => {
+        if (!current.enabled || !band.enabled) {
+          return;
+        }
+        context.fillStyle = `rgba(${BAND_INK[index]}, 0.85)`;
+        [band.lowHz, band.highHz].forEach((hz) => {
+          context.fillText(
+            hz >= 1_000
+              ? `${(hz / 1_000).toFixed(1)}k`
+              : String(Math.round(hz)),
+            toX(hz),
+            PAD_T - 2,
+          );
+        });
       });
 
       frame = requestAnimationFrame(paint);

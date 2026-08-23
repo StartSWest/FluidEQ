@@ -35,6 +35,23 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 export interface IExciterBandSettings {
   enabled: boolean;
+  /**
+   * The span this band works on, Hz. Bands may overlap, and that is the point.
+   *
+   * These were a shared pair of crossover corners, which made the three bands
+   * strictly adjacent: moving one edge moved its neighbour's, and no band could
+   * be widened without narrowing the one beside it. That is right for a
+   * COMPRESSOR, where the bands are taken apart and put back together and any
+   * overlap would be counted twice.
+   *
+   * It is wrong here. These bands are not a decomposition of the signal — the
+   * dry passes through untouched and each band ADDS the harmonics it made. Two
+   * bands over the same octave add two lots of harmonics to it, which is a
+   * perfectly sensible thing to ask for and was simply unreachable. So each
+   * band carries its own edges and nothing stops them crossing.
+   */
+  lowHz: number;
+  highHz: number;
   /** Shaper drive. 1 is nearly linear, 10 is obvious. */
   drive: number;
   /** How much of the shaped band is mixed back, 0-1. */
@@ -83,9 +100,9 @@ export interface IOrganicSettings {
 
 export interface IExciterSettings {
   enabled: boolean;
-  /** The two corners that make three bands, Hz, ascending. */
-  crossoverHz: readonly [number, number];
-  /** Per band, low to high. Always three. */
+  /**
+   * Three bands, each with its own span. Not a crossover. @see lowHz
+   */
   bands: readonly IExciterBandSettings[];
   /** @see IOrganicSettings */
   organic: IOrganicSettings;
@@ -484,7 +501,10 @@ interface IRange {
 }
 
 const RANGES = {
-  exciterCrossoverHz: { min: 120, max: 12_000 },
+  // The whole audible band, because a band's edges are now its own and a
+  // user may put either of them anywhere. The old 120-12k belonged to a
+  // shared pair of crossover corners that had to stay between the bands.
+  exciterBandHz: { min: 20, max: 20_000 },
   exciterDrive: { min: 1, max: 10 },
   exciterMix: { min: 0, max: 1 },
   exciterTexture: { min: 0, max: 1 },
@@ -779,14 +799,17 @@ export const DSP_DEFAULTS: IDspSettings = {
   },
   exciter: {
     enabled: false,
-    // 300 Hz and 3 kHz: the classic body / presence / air split, and the same
-    // three regions a listener describes without being taught them.
-    crossoverHz: [300, 3_000],
+    // They START adjacent at 300 Hz and 3 kHz — the classic body / presence /
+    // air split, and the three regions a listener describes without being
+    // taught them. Adjacent is only where they begin: each edge moves on its
+    // own from here, and two bands may cover the same octave.
     bands: [
       // Low: even orders only. Odd harmonics down here are the definition of
       // a muddy bottom end, and the low band exists to add weight, not edge.
       {
         enabled: false,
+        lowHz: 20,
+        highHz: 300,
         drive: 2,
         mix: 0.2,
         texture: 0,
@@ -796,6 +819,8 @@ export const DSP_DEFAULTS: IDspSettings = {
       // Mid: mostly even, which is where body lives.
       {
         enabled: false,
+        lowHz: 300,
+        highHz: 3_000,
         drive: 2.5,
         mix: 0.25,
         texture: 0.25,
@@ -806,6 +831,8 @@ export const DSP_DEFAULTS: IDspSettings = {
       // it was right about this band — odd orders up here read as air.
       {
         enabled: true,
+        lowHz: 3_000,
+        highHz: 20_000,
         drive: 3,
         mix: 0.3,
         texture: 0.85,
@@ -863,8 +890,18 @@ const clampExciterBand = (
   if (!isRecord(value)) {
     return fallback;
   }
+  const lowHz = clampNumber(value.lowHz, RANGES.exciterBandHz, fallback.lowHz);
   return {
     enabled: clampBoolean(value.enabled, fallback.enabled),
+    lowHz,
+    // Never below its own lower edge. Bands may overlap each OTHER freely —
+    // that is the whole point of them owning their edges — but a band whose
+    // top is under its bottom is a passband with nothing in it, and it would
+    // read as the band being broken rather than as being set oddly.
+    highHz: Math.max(
+      lowHz,
+      clampNumber(value.highHz, RANGES.exciterBandHz, fallback.highHz),
+    ),
     drive: clampNumber(value.drive, RANGES.exciterDrive, fallback.drive),
     mix: clampNumber(value.mix, RANGES.exciterMix, fallback.mix),
     texture: clampNumber(
@@ -952,40 +989,59 @@ export const clampDspSettings = (value: unknown): IDspSettings => {
   const storedOrganic = isRecord(exciter.organic) ? exciter.organic : {};
 
   /**
-   * A stored single-band exciter becomes this one's high band.
+   * Two shapes of stored exciter get carried forward rather than discarded.
    *
-   * The exciter was one crossover, one drive and one mix, and every one of
-   * those still exists here — they are the third band. Falling back to the
-   * defaults instead would silently discard a setting somebody had tuned by
-   * ear, and would do it on upgrade, where nobody is watching for it.
+   * The FIRST was one crossover, one drive and one mix. All three still exist
+   * — they are the high band — and the old corner was "the frequency above
+   * which harmonics are generated", which is exactly what that band's lower
+   * edge means, so it carries across without reinterpretation.
    *
-   * The old corner was the frequency ABOVE which harmonics were generated,
-   * which is exactly what the upper of two corners means, so it carries across
-   * without reinterpretation. Its old range started at 1 kHz and this one
-   * starts at 120, so no stored value can fall outside.
+   * The SECOND had three bands sharing a pair of crossover corners. Those
+   * corners were the boundaries between adjacent bands, so they become the
+   * edges the bands started adjacent AT — the same three spans, now owned
+   * individually and free to move apart or overlap.
+   *
+   * Falling back to the defaults instead would quietly discard settings
+   * somebody tuned by ear, on upgrade, where nobody is watching for it.
    */
-  const isLegacyExciter = typeof exciter.crossoverHz === 'number';
-  const storedExciterCorners = Array.isArray(exciter.crossoverHz)
-    ? exciter.crossoverHz
-    : [
-        DSP_DEFAULTS.exciter.crossoverHz[0],
-        isLegacyExciter
-          ? exciter.crossoverHz
-          : DSP_DEFAULTS.exciter.crossoverHz[1],
-      ];
-  const storedExciterBands = Array.isArray(exciter.bands)
+  const legacyCorner =
+    typeof exciter.crossoverHz === 'number' ? exciter.crossoverHz : undefined;
+  const legacyPair = Array.isArray(exciter.crossoverHz)
+    ? (exciter.crossoverHz as unknown[])
+    : undefined;
+  const asHz = (value: unknown, fallback: number) =>
+    typeof value === 'number' && Number.isFinite(value) ? value : fallback;
+  const splitLow = asHz(legacyPair?.[0], 300);
+  const splitHigh = asHz(legacyPair?.[1], 3_000);
+
+  const storedExciterBands: unknown[] = Array.isArray(exciter.bands)
     ? exciter.bands
-    : [
-        undefined,
-        undefined,
-        isLegacyExciter
-          ? {
-              ...DSP_DEFAULTS.exciter.bands[2],
-              drive: exciter.drive,
-              mix: exciter.mix,
-            }
-          : undefined,
-      ];
+    : [undefined, undefined, undefined];
+
+  /** The edges a stored band should end up with, if it carries none itself. */
+  const inheritedSpan = (index: number): { lowHz: number; highHz: number } => {
+    if (legacyCorner !== undefined && index === 2) {
+      return { lowHz: legacyCorner, highHz: 20_000 };
+    }
+    if (legacyPair) {
+      return [
+        { lowHz: 20, highHz: splitLow },
+        { lowHz: splitLow, highHz: splitHigh },
+        { lowHz: splitHigh, highHz: 20_000 },
+      ][index];
+    }
+    const fallback = DSP_DEFAULTS.exciter.bands[index];
+    return { lowHz: fallback.lowHz, highHz: fallback.highHz };
+  };
+
+  /* A pre-band exciter's drive and mix belong to the high band. */
+  if (legacyCorner !== undefined && !Array.isArray(exciter.bands)) {
+    storedExciterBands[2] = {
+      ...DSP_DEFAULTS.exciter.bands[2],
+      drive: exciter.drive,
+      mix: exciter.mix,
+    };
+  }
 
   return {
     eq: {
@@ -1059,20 +1115,11 @@ export const clampDspSettings = (value: unknown): IDspSettings => {
     },
     exciter: {
       enabled: clampBoolean(exciter.enabled, DSP_DEFAULTS.exciter.enabled),
-      crossoverHz: [
-        clampNumber(
-          storedExciterCorners[0],
-          RANGES.exciterCrossoverHz,
-          DSP_DEFAULTS.exciter.crossoverHz[0],
-        ),
-        clampNumber(
-          storedExciterCorners[1],
-          RANGES.exciterCrossoverHz,
-          DSP_DEFAULTS.exciter.crossoverHz[1],
-        ),
-      ],
       bands: DSP_DEFAULTS.exciter.bands.map((fallback, index) =>
-        clampExciterBand(storedExciterBands[index], fallback),
+        clampExciterBand(storedExciterBands[index], {
+          ...fallback,
+          ...inheritedSpan(index),
+        }),
       ),
       organic: {
         enabled: clampBoolean(

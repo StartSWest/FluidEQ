@@ -177,6 +177,56 @@ describe('the exciter adds rather than cancels', () => {
   });
 });
 
+/**
+ * Bands own their edges, so they can be widened alone and can overlap.
+ *
+ * They used to come off a shared three-way crossover, whose entire nature is
+ * that its outputs are adjacent and sum back to the input — so widening one
+ * narrowed its neighbour and an overlap was unreachable. That is correct for a
+ * compressor, where the bands are taken apart and put back together. It is
+ * wrong here: the dry signal passes through untouched and each band only ADDS
+ * what it made, so two bands over the same octave is a sensible request.
+ */
+describe('overlapping bands', () => {
+  const twoBandsOver = (
+    first: [number, number],
+    second: [number, number],
+  ): IExciterSettings =>
+    settings({
+      organic: { ...DSP_DEFAULTS.exciter.organic, enabled: false },
+      isolate: true,
+      bands: DSP_DEFAULTS.exciter.bands.map((band, index) => ({
+        ...band,
+        enabled: index < 2,
+        mix: 0.4,
+        lowHz: index === 0 ? first[0] : second[0],
+        highHz: index === 0 ? first[1] : second[1],
+      })),
+    });
+
+  it('both bands work on a tone they both cover', () => {
+    // Apart: only the first band contains 400 Hz.
+    const apart = run(twoBandsOver([200, 800], [4_000, 12_000]), 400);
+    // Overlapping: both do, so both add harmonics to it.
+    const over = run(twoBandsOver([200, 800], [300, 1_200]), 400);
+    // Measured 1.38x, not 2x, and the shortfall is real rather than a
+    // shortcoming: the two bands sit behind different filter skirts and are
+    // set to different textures, so their harmonics are only partly
+    // correlated and do not sum in phase. What matters is that the second
+    // band contributes AT ALL, which under a crossover it could not.
+    expect(rms(over)).toBeGreaterThan(rms(apart) * 1.25);
+  });
+
+  it('a band can be widened without touching its neighbour', () => {
+    const narrow = run(twoBandsOver([380, 420], [4_000, 12_000]), 400);
+    const wide = run(twoBandsOver([100, 2_000], [4_000, 12_000]), 400);
+    // The second band's span is identical in both, so any difference is the
+    // first band's alone — which under the old crossover was impossible to
+    // arrange at all.
+    expect(rms(wide)).not.toBeCloseTo(rms(narrow), 4);
+  });
+});
+
 describe('organic range', () => {
   /**
    * Range must actually reach the whole spectrum.

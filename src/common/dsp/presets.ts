@@ -55,7 +55,6 @@ export const DSP_PRESETS: IDspPreset[] = [
       exciter: {
         ...DSP_DEFAULTS.exciter,
         enabled: true,
-        crossoverHz: [300, 7_000],
         bands: [
           { ...DSP_DEFAULTS.exciter.bands[0], enabled: false },
           { ...DSP_DEFAULTS.exciter.bands[1], enabled: false },
@@ -66,6 +65,7 @@ export const DSP_PRESETS: IDspPreset[] = [
           {
             ...DSP_DEFAULTS.exciter.bands[2],
             enabled: true,
+            lowHz: 7_000,
             drive: 4,
             mix: 0.35,
           },
@@ -114,13 +114,13 @@ export const DSP_PRESETS: IDspPreset[] = [
       exciter: {
         ...DSP_DEFAULTS.exciter,
         enabled: true,
-        crossoverHz: [300, 5_000],
         bands: [
           { ...DSP_DEFAULTS.exciter.bands[0], enabled: false },
           { ...DSP_DEFAULTS.exciter.bands[1], enabled: false },
           {
             ...DSP_DEFAULTS.exciter.bands[2],
             enabled: true,
+            lowHz: 5_000,
             drive: 5,
             mix: 0.4,
           },

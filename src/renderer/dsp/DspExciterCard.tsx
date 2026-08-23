@@ -4,6 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
+import { useEffect, useRef } from 'react';
 import {
   DSP_DEFAULTS,
   IExciterBandSettings,
@@ -42,6 +43,34 @@ const DspExciterCard = ({
   onCommit,
 }: IDspExciterCardProps) => {
   const { t } = useTranslation();
+
+  /**
+   * Isolate switches itself off when this page goes away.
+   *
+   * It is a monitoring mode, and the failure it invites is specific: switch it
+   * on, hear the harmonics, click over to the compressor to set something, and
+   * every other page in the rack is now playing harmonics only. Nothing on
+   * those pages says why, because the control that did it is on this one.
+   *
+   * The same reasoning as its never being restored from storage, one scope
+   * smaller — leaving the page is a smaller version of leaving the app.
+   */
+  const latest = useRef({ exciter, onPatch, onCommit });
+  latest.current = { exciter, onPatch, onCommit };
+  useEffect(
+    () => () => {
+      const {
+        exciter: last,
+        onPatch: patch,
+        onCommit: commit,
+      } = latest.current;
+      if (last.isolate) {
+        patch({ ...last, isolate: false });
+        commit();
+      }
+    },
+    [],
+  );
 
   const patchBand = (index: number, patch: Partial<IExciterBandSettings>) => {
     onPatch({
@@ -87,37 +116,6 @@ const DspExciterCard = ({
 
       <DspExciterGraph settings={exciter} />
 
-      <div className="dsp-crossovers">
-        <Dial
-          labelKey="dsp.exciter.crossoverLow"
-          value={exciter.crossoverHz[0]}
-          defaultValue={DSP_DEFAULTS.exciter.crossoverHz[0]}
-          min={120}
-          max={1_000}
-          unit="Hz"
-          step={10}
-          isDisabled={!exciter.enabled}
-          onCommit={onCommit}
-          onChange={(low) =>
-            onPatch({ ...exciter, crossoverHz: [low, exciter.crossoverHz[1]] })
-          }
-        />
-        <Dial
-          labelKey="dsp.exciter.crossoverHigh"
-          value={exciter.crossoverHz[1]}
-          defaultValue={DSP_DEFAULTS.exciter.crossoverHz[1]}
-          min={1_000}
-          max={12_000}
-          unit="Hz"
-          step={100}
-          isDisabled={!exciter.enabled}
-          onCommit={onCommit}
-          onChange={(high) =>
-            onPatch({ ...exciter, crossoverHz: [exciter.crossoverHz[0], high] })
-          }
-        />
-      </div>
-
       {exciter.bands.map((band, index) => (
         <div className="dsp-band" key={BAND_LABELS[index]}>
           {/* The band's own switch sits ON its title row, so a band that is
@@ -139,6 +137,47 @@ const DspExciterCard = ({
             />
           </div>
           <div className="dsp-band-dials">
+            {/* Its own edges, so a band can be widened without narrowing its
+                neighbour and two bands may cover the same octave. Nothing
+                here stops them crossing, which is the point — these bands are
+                parallel additions rather than a decomposition, so an overlap
+                simply means that octave gets both lots of harmonics. */}
+            <Dial
+              labelKey="dsp.exciter.bandLow"
+              value={band.lowHz}
+              defaultValue={DSP_DEFAULTS.exciter.bands[index].lowHz}
+              min={20}
+              max={20_000}
+              unit="Hz"
+              step={10}
+              isDisabled={!exciter.enabled || !band.enabled}
+              onCommit={onCommit}
+              onChange={(lowHz) =>
+                patchBand(index, {
+                  lowHz,
+                  // Pushed rather than refused: dragging the bottom past the
+                  // top should widen from the other end, not stop dead.
+                  highHz: Math.max(lowHz, band.highHz),
+                })
+              }
+            />
+            <Dial
+              labelKey="dsp.exciter.bandHigh"
+              value={band.highHz}
+              defaultValue={DSP_DEFAULTS.exciter.bands[index].highHz}
+              min={20}
+              max={20_000}
+              unit="Hz"
+              step={10}
+              isDisabled={!exciter.enabled || !band.enabled}
+              onCommit={onCommit}
+              onChange={(highHz) =>
+                patchBand(index, {
+                  highHz,
+                  lowHz: Math.min(highHz, band.lowHz),
+                })
+              }
+            />
             <Dial
               labelKey="dsp.exciter.drive"
               value={band.drive}

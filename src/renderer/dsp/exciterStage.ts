@@ -12,7 +12,6 @@ import {
   createBiquadState,
   processBiquad,
 } from './biquad';
-import { ICrossoverState, createCrossoverState, splitBands } from './crossover';
 import {
   IOrganicState,
   createOrganicState,
@@ -77,12 +76,30 @@ const MAX_ASYMMETRY = 0.65;
 const GATE_ATTACK_MS = 8;
 const GATE_RELEASE_MS = 140;
 
+/** One Butterworth stage; two cascaded make 24 dB/octave. */
+const BUTTERWORTH_Q = Math.SQRT1_2;
+
+/** Edges at or past these are not filtered at all. @see runExciterChannel */
+const BAND_EDGE_MIN_HZ = 21;
+const BAND_EDGE_MAX_HZ = 19_900;
+
 /** Below this a band is treated as silent, so noise cannot open its gate. */
 const SILENCE = 1e-5;
 
 export interface IExciterChannelState {
-  crossover: ICrossoverState;
-  /** The three split bands, and a scratch copy to shape without losing them. */
+  /**
+   * Two cascaded stages of highpass and of lowpass, per band.
+   *
+   * A crossover used to do this in one pass and could not any more. A
+   * crossover's whole nature is that its outputs are adjacent and sum back to
+   * the input, so the bands could not be widened independently and could never
+   * overlap. These bands are not a decomposition — the dry signal passes
+   * through untouched and each band only ADDS what it made — so nothing is
+   * owed to reconstruction, and a plain bandpass per band is both simpler and
+   * strictly more capable.
+   */
+  bandFilters: IBiquadState[][];
+  /** The three extracted bands, and a scratch copy to shape without losing them. */
   bands: Float32Array[];
   shaped: Float32Array;
   oversamplers: IOversamplerState[];
@@ -111,7 +128,12 @@ export interface IExciterChannelState {
 export const createExciterChannel = (
   blockSize: number,
 ): IExciterChannelState => ({
-  crossover: createCrossoverState(),
+  bandFilters: [0, 1, 2].map(() => [
+    createBiquadState(),
+    createBiquadState(),
+    createBiquadState(),
+    createBiquadState(),
+  ]),
   bands: [
     new Float32Array(blockSize),
     new Float32Array(blockSize),
@@ -233,17 +255,6 @@ export const runExciterChannel = (
   resize(state, frames);
   const contributed = [0, 0, 0];
 
-  const [low, mid, high] = state.bands;
-  splitBands(
-    state.crossover,
-    target,
-    low,
-    mid,
-    high,
-    settings.crossoverHz,
-    sampleRate,
-  );
-
   /**
    * The input, kept because two things need it after `target` stops being it.
    *
@@ -269,7 +280,46 @@ export const runExciterChannel = (
       // from silence, not from whatever its follower held when it went away.
       state.gates[band] = 0;
     } else {
+      /**
+       * The band, taken with its own pair of filters from the dry signal.
+       *
+       * Butterworth Q on each of two cascaded stages, which is 24 dB/octave
+       * either side — steep enough that a narrow band is genuinely narrow, and
+       * gentle enough that a wide one does not ring. The edges are skipped
+       * when they are at the ends of the range, because a highpass at 20 Hz
+       * and a lowpass at 20 kHz are two filters' worth of phase shift in
+       * exchange for nothing.
+       */
       const source = state.bands[band];
+      source.set(state.dry);
+      const filters = state.bandFilters[band];
+      if (setup.lowHz > BAND_EDGE_MIN_HZ) {
+        const highpass = biquadCoefficients(
+          {
+            type: FilterTypeEnum.HPQ,
+            frequency: setup.lowHz,
+            gainDb: 0,
+            quality: BUTTERWORTH_Q,
+          },
+          sampleRate,
+        );
+        processBiquad(filters[0], source, highpass);
+        processBiquad(filters[1], source, highpass);
+      }
+      if (setup.highHz < BAND_EDGE_MAX_HZ) {
+        const lowpass = biquadCoefficients(
+          {
+            type: FilterTypeEnum.LPQ,
+            frequency: setup.highHz,
+            gainDb: 0,
+            quality: BUTTERWORTH_Q,
+          },
+          sampleRate,
+        );
+        processBiquad(filters[2], source, lowpass);
+        processBiquad(filters[3], source, lowpass);
+      }
+
       const open = setup.dynamic
         ? gateAmount(
             state,
