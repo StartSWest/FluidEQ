@@ -32,7 +32,12 @@ describe('dsp chain settings', () => {
         ],
       },
     });
-    expect(clamped.exciter.bands[0].drive).toBe(10);
+    // 3.5, because that is where the curve stops being a colour and starts
+    // being a clipper. It used to stop at 10, and everything above about 3.5
+    // was intermodulation rather than harmonics — so two thirds of the dial
+    // made distortion, and anybody turning it up to hear what it did found
+    // exactly that.
+    expect(clamped.exciter.bands[0].drive).toBe(3.5);
   });
 
   it('replaces an unreadable blob with the defaults', () => {

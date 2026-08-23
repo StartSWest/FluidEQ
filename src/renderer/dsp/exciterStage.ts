@@ -216,6 +216,15 @@ export interface IExciterChannelState {
   gates: number[];
   /** Last block's energy-matching gain, per band, so the next can ramp from it. */
   matchGain: number[];
+  /**
+   * Last block's final mix amount, per band. @see the ramp in the band loop.
+   *
+   * Every control in this stage is worked out once per block, and a block is
+   * 2.7 ms — so applying any of them flat is a staircase stepping 375 times a
+   * second. Keeping the previous value is what lets the next one be reached
+   * smoothly instead of jumped to.
+   */
+  lastAmount: number[];
   /** One DC blocker per band plus one for the organic stage. @see DC_POLE */
   dcState: { x: number; y: number }[];
   /** Fast and slow followers per band, whose ratio IS the transient.
@@ -250,6 +259,7 @@ export const createExciterChannel = (
   wideDry: new Float32Array(blockSize * OVERSAMPLE),
   gates: [0, 0, 0],
   matchGain: [0, 0, 0],
+  lastAmount: [0, 0, 0],
   dcState: [0, 1, 2, 3].map(() => ({ x: 0, y: 0 })),
   fastEnv: [0, 0, 0],
   slowEnv: [0, 0, 0],
@@ -443,6 +453,7 @@ export const runExciterChannel = (
       // Reset rather than leave running: a band switched back on should start
       // from silence, not from whatever its follower held when it went away.
       state.gates[band] = 0;
+      state.lastAmount[band] = 0;
     } else {
       /**
        * The band, taken with its own pair of filters from the dry signal.
@@ -631,14 +642,36 @@ export const runExciterChannel = (
          * the harmonics alone. Removing the fundamental removed the effect and
          * left only the fizz.
          */
+        /**
+         * RAMPED across the block, never applied flat to it.
+         *
+         * This is the whole of what was heard as the effect being "separated",
+         * and as sounding digital rather than analogue. Every term in this
+         * amount — the transient envelope, the dynamic gate, the mix — is
+         * worked out once per block. A block is 128 samples, 2.7 ms, so a
+         * value held constant across one and then changed is a staircase with
+         * 375 steps a second. On a transient, where the envelope moves most,
+         * the steps are largest and land exactly where the ear is listening
+         * hardest.
+         *
+         * Nothing about the envelopes is wrong; they are smooth functions
+         * sampled coarsely and then held. Interpolating between the previous
+         * block's amount and this one costs one multiply-add per sample and
+         * makes them continuous, which is what they were meant to be. The
+         * energy-matching gain above got this treatment already and it dropped
+         * its artefacts 15 dB; these are the terms actually heard.
+         */
         const amount =
           setup.mix *
           MIX_SCALE *
           open *
           transientAmount(state, band, peakOf(source), frames, sampleRate);
+        const fromAmount = state.lastAmount[band];
+        const amountStep = (amount - fromAmount) / frames;
         for (let i = 0; i < frames; i += 1) {
-          target[i] += state.shaped[i] * amount;
+          target[i] += state.shaped[i] * (fromAmount + amountStep * i);
         }
+        state.lastAmount[band] = amount;
         contributed[band] = amount;
       }
     }

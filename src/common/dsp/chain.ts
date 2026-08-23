@@ -557,9 +557,36 @@ const RANGES = {
   alignAmount: { min: 0, max: 1 },
   alignLowHz: { min: 60, max: 400 },
   alignHighHz: { min: 600, max: 4_000 },
-  exciterDrive: { min: 1, max: 10 },
+  /**
+   * The drive dial cannot reach distortion, and that is the point.
+   *
+   * It used to stop at 10, where `tanh` is a hard clipper. Hard-clipping three
+   * octaves of music does not make harmonics, it makes intermodulation — the
+   * sum and difference of every pair of partials, which is hash. So the top
+   * two thirds of the dial produced distortion, and anybody trying to hear
+   * what the control does turned it up and found exactly that. Reported, at
+   * length, and correctly.
+   *
+   * A Type C cannot be driven there. Its knee belongs to a diode and the
+   * control only moves the signal into it; there is no position of any front
+   * panel control that turns it into a fuzz box. 3.5 is where the curve here
+   * stops being a colour and starts being a clipper, so that is where the dial
+   * stops. Every position of it is now usable, which is the property a control
+   * on a piece of audio equipment is supposed to have.
+   */
+  exciterDrive: { min: 1, max: 3.5 },
   exciterMix: { min: 0, max: 1 },
-  exciterTexture: { min: 0, max: 1 },
+  /**
+   * Texture stops short of fully symmetric, for the same kind of reason.
+   *
+   * At 1 the curve is symmetric and produces ODD harmonics only, and odd
+   * harmonics in the top octaves are the harshness rather than the sparkle —
+   * it is the setting that sounds worst and it sat at the end of the dial
+   * where people naturally try it. The Type C's non-linearity is one-sided and
+   * cannot be made symmetric at all, so 0.7 keeps a real spread of characters
+   * while always leaving some even order in the result.
+   */
+  exciterTexture: { min: 0, max: 0.7 },
   organicAmount: { min: 0, max: 1 },
   organicRange: { min: 0, max: 1 },
   // The whole audible band, not the midrange it was first scoped to.
@@ -892,7 +919,7 @@ export const DSP_DEFAULTS: IDspSettings = {
         range: 0.24,
         drive: 3,
         mix: 0.3,
-        texture: 0.85,
+        texture: 0.6,
         dynamic: false,
         thresholdDb: -24,
       },

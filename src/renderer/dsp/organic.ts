@@ -122,6 +122,8 @@ export interface IOrganicState {
   doubledDry: Float32Array;
   /** Last block's energy-matching gain, so the next can ramp from it. */
   matchGain: number;
+  /** Last block's drive, so this one can reach its own smoothly. */
+  lastDrive: number;
 }
 
 export const createOrganicState = (blockSize: number): IOrganicState => ({
@@ -135,6 +137,7 @@ export const createOrganicState = (blockSize: number): IOrganicState => ({
   doubled: new Float32Array(blockSize * 2),
   doubledDry: new Float32Array(blockSize * 2),
   matchGain: 0,
+  lastDrive: 0,
 });
 
 /**
@@ -295,12 +298,26 @@ export const organicBlock = (
   const asymmetryOutput = Math.tanh(asymmetry);
   upsample(state.oversampler, target, state.doubledDry, 2);
 
+  /**
+   * The drive RAMPS across the block rather than being held across it.
+   *
+   * Both things that move it — the programme follower and the drift — are
+   * smooth by construction and were then sampled once per block and held, which
+   * turns a continuous curve into a staircase with a step every 2.7 ms. That is
+   * what makes an effect sound stepped and digital instead of fluid, and it is
+   * the opposite of what the drift was added to achieve: a wander applied in
+   * 375 discrete jumps a second is not a wander.
+   */
+  const fromDrive = state.lastDrive || drive;
+  const driveStep = (drive - fromDrive) / doubled;
+  state.lastDrive = drive;
+
   let shapedEnergy = 0;
   let dryEnergy = 0;
   for (let i = 0; i < doubled; i += 1) {
     const dry = state.doubledDry[i];
-    const shaped =
-      (Math.tanh(dry * drive + asymmetry) - asymmetryOutput) / drive;
+    const now = fromDrive + driveStep * i;
+    const shaped = (Math.tanh(dry * now + asymmetry) - asymmetryOutput) / now;
     state.doubled[i] = shaped;
     shapedEnergy += shaped * shaped;
     dryEnergy += dry * dry;
