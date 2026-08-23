@@ -37,6 +37,7 @@ const dsp = {
   'dsp.preset.flat': 'Off',
   'dsp.preset.lossyRepair': 'Repair compressed',
   'dsp.preset.loud': 'Loud',
+  'dsp.preset.broadcast': 'Broadcast',
   'dsp.bypassed': 'Bypassed',
   'dsp.enabled': 'On',
 

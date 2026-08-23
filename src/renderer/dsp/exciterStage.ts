@@ -151,6 +151,28 @@ const MATCH_SMOOTHING = 0.08;
  */
 const DC_POLE = 0.9974;
 
+/**
+ * How much softer one polarity is than the other at full asymmetry.
+ *
+ * A diode conducts one way and blocks the other; an audio circuit built from a
+ * pair of them meets its knee on one half of the wave long before the other.
+ * 0.45 is enough for the two halves to be audibly different shapes without the
+ * output becoming a rectified buzz.
+ */
+const ONE_SIDED = 0.45;
+
+/**
+ * What a mix of 1 means, as a linear gain on the sidechain.
+ *
+ * The sidechain carries the band's whole content now rather than only the
+ * harmonics, so unity would be a level control for that band and nothing more.
+ * The Type C's useful region sits near -20 dB, which is 0.1 — so a mix of 0.3
+ * lands there and the rest of the dial is headroom for material that wants
+ * more. Past about 0.35 it stops being an enhancer and becomes a second,
+ * distorted copy of the band.
+ */
+const MIX_SCALE = 0.35;
+
 /** One Butterworth stage; two cascaded make 24 dB/octave. */
 const BUTTERWORTH_Q = Math.SQRT1_2;
 
@@ -200,9 +222,6 @@ export interface IExciterChannelState {
    *  @see TRANSIENT_FLOOR */
   fastEnv: number[];
   slowEnv: number[];
-  /** Removes the source's own fundamental from what the band generated.
-   *  Two stages, so the band it came from is genuinely gone. */
-  liftStages: IBiquadState[][];
   /** The block as it arrived, before any stage added to it. @see runExciterChannel */
   dry: Float32Array;
   organic: IOrganicState;
@@ -234,7 +253,6 @@ export const createExciterChannel = (
   dcState: [0, 1, 2, 3].map(() => ({ x: 0, y: 0 })),
   fastEnv: [0, 0, 0],
   slowEnv: [0, 0, 0],
-  liftStages: [0, 1, 2].map(() => [createBiquadState(), createBiquadState()]),
   dry: new Float32Array(blockSize),
   organic: createOrganicState(blockSize),
   organicBand: new Float32Array(blockSize),
@@ -485,6 +503,9 @@ export const runExciterChannel = (
         state.shaped.set(source);
         const asymmetry = (1 - setup.texture) * MAX_ASYMMETRY;
         const asymmetryOutput = Math.tanh(asymmetry);
+        // How hard the diode's own polarity bends against the other one.
+        // @see ONE_SIDED
+        const sided = (1 - setup.texture) * ONE_SIDED;
         const { drive } = setup;
 
         upsample(
@@ -498,8 +519,25 @@ export const runExciterChannel = (
         let dryEnergy = 0;
         for (let i = 0; i < wide; i += 1) {
           const dry = state.wideDry[i];
+          /**
+           * ONE-SIDED, the way a diode is.
+           *
+           * The Type C's non-linearity is a diode pair with an offset, so one
+           * polarity of the wave meets a knee well before the other does. A
+           * symmetric curve cannot do that at any setting, and symmetric is
+           * what "texture 1" is — pure odd harmonics, which up in the top
+           * octaves is the harshness rather than the sparkle.
+           *
+           * Bending only the negative half gives low-order EVEN and odd
+           * together, which is what the hardware measures and what the ear
+           * reads as sweetness rather than edge. Texture still chooses between
+           * them: at 1 both halves are treated alike and it is the old
+           * symmetric curve, at 0 the asymmetry and the one-sidedness are both
+           * at their fullest.
+           */
+          const bent = dry < 0 ? dry * (1 - sided) : dry;
           const value =
-            (Math.tanh(dry * drive + asymmetry) - asymmetryOutput) / drive;
+            (Math.tanh(bent * drive + asymmetry) - asymmetryOutput) / drive;
           state.wide[i] = value;
           shapedEnergy += value * value;
           dryEnergy += dry * dry;
@@ -538,9 +576,26 @@ export const runExciterChannel = (
         const from = state.matchGain[band] || wanted;
         const to = from + (wanted - from) * MATCH_SMOOTHING;
         state.matchGain[band] = to;
+        /**
+         * The whole sidechain goes back, NOT the difference against the dry.
+         *
+         * Subtracting cancels the fundamental, and cancelling the fundamental
+         * is what made this a harmonic generator rather than an exciter. The
+         * band was taken with a HIGHPASS, so what is in here is a
+         * phase-SHIFTED copy of the fundamental plus the harmonics made from
+         * it. Summed under the unshifted dry path it interferes — reinforcing
+         * at some frequencies and thinning at others — and that gentle,
+         * frequency-dependent interference is what an Aural Exciter actually
+         * does. Aphex's patent describes exactly this: the filtered signal AND
+         * its harmonics, mixed quietly beneath the original.
+         *
+         * Which is why `MIX_SCALE` exists. Adding a whole band back at unity
+         * would be a level control for that band; the hardware's useful region
+         * is around -20 dB and so is this one.
+         */
         const step = (to - from) / wide;
         for (let i = 0; i < wide; i += 1) {
-          state.wide[i] = state.wide[i] * (from + step * i) - state.wideDry[i];
+          state.wide[i] *= from + step * i;
         }
 
         // `shaped` now holds the harmonics themselves, so this is a plain add
@@ -558,35 +613,27 @@ export const runExciterChannel = (
         blockDc(state.dcState[band], state.shaped);
 
         /**
-         * Everything below the SECOND harmonic is thrown away.
+         * The fundamental STAYS IN, and that is the whole effect.
          *
-         * What survives the shaper is the band's own fundamental plus the
-         * harmonics made from it, and the fundamental is not this stage's to
-         * add — the dry signal already carries it. Leaving it in makes the mix
-         * control a level control for the band, and makes isolate play a
-         * distorted copy of the music instead of the thing being added.
+         * It was being filtered out here, on the reasoning that the dry path
+         * already carries it so adding it again is only a level change. That
+         * reasoning is correct about magnitude and misses what an Aural
+         * Exciter is: the band was extracted by a HIGHPASS, and a highpass
+         * shifts phase steeply around its corner. What comes back is therefore
+         * a phase-SHIFTED copy of the fundamental, and summing it against the
+         * unshifted dry one is constructive at some frequencies and
+         * destructive at others — a gentle, frequency-dependent interference
+         * that no equaliser can produce and no harmonic generator can either.
          *
-         * Aphex describe the same filter from the other end: a "Hi Tune"
-         * control setting the point above which enhancement takes place. Here
-         * it is not a control because it is not a choice — the second harmonic
-         * of the band's lowest content is exactly twice its lower edge, and
-         * that is where the new material starts whatever the band is set to.
+         * That interference IS the character people describe as depth, or as
+         * the sound being alive. Aphex's own patent describes the sidechain as
+         * mixing the filtered signal AND its harmonics back under the dry, not
+         * the harmonics alone. Removing the fundamental removed the effect and
+         * left only the fizz.
          */
-        const liftHz = Math.min(BAND_EDGE_MAX_HZ, lowHz * 2);
-        const lift = biquadCoefficients(
-          {
-            type: FilterTypeEnum.HPQ,
-            frequency: liftHz,
-            gainDb: 0,
-            quality: BUTTERWORTH_Q,
-          },
-          sampleRate,
-        );
-        processBiquad(state.liftStages[band][0], state.shaped, lift);
-        processBiquad(state.liftStages[band][1], state.shaped, lift);
-
         const amount =
           setup.mix *
+          MIX_SCALE *
           open *
           transientAmount(state, band, peakOf(source), frames, sampleRate);
         for (let i = 0; i < frames; i += 1) {

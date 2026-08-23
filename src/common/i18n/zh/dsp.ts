@@ -27,6 +27,7 @@ const dsp = {
   'dsp.preset.flat': '关闭',
   'dsp.preset.lossyRepair': '修复压缩音频',
   'dsp.preset.loud': '响亮',
+  'dsp.preset.broadcast': '广播',
   'dsp.bypassed': '旁通',
   'dsp.enabled': '开启',
 

@@ -54,12 +54,17 @@ describe('DspPanel', () => {
     expect(screen.getByText(/does not change Spotify/i)).toBeInTheDocument();
   });
 
+  /**
+   * Every preset gets a button, and the count is asserted so that adding one
+   * without a name in the dictionary fails here rather than shipping a button
+   * labelled with its own key.
+   */
   it('offers every factory preset', () => {
     renderPanel();
-    ['Off', 'Repair compressed', 'Loud'].forEach((name) => {
+    ['Off', 'Repair compressed', 'Loud', 'Broadcast'].forEach((name) => {
       expect(screen.getByRole('button', { name })).toBeInTheDocument();
     });
-    expect(DSP_PRESETS).toHaveLength(3);
+    expect(DSP_PRESETS).toHaveLength(4);
   });
 
   /**

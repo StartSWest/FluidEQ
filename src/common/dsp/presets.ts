@@ -167,4 +167,104 @@ export const DSP_PRESETS: IDspPreset[] = [
       },
     },
   },
+  {
+    /**
+     * The whole rack, wired the way a radio station wires one.
+     *
+     * This exists because of a demonstration video — "Aphex Aural Exciter +
+     * Aphex Dominator II in action" — and because of what watching it made
+     * obvious. Nobody demonstrates an exciter on its own. The Dominator II is a
+     * three-band broadcast peak limiter, and in that pairing it is doing most
+     * of what people hear as the sound being impressive: density. An exciter
+     * adds detail; a multiband limiter makes everything present, all the time,
+     * with no peak left for anything to hide behind.
+     *
+     * Every piece of that already existed here and had never been switched on
+     * together, because each lives behind its own tab and every one of them
+     * defaults to bypassed. Which is how the rack could be correct stage by
+     * stage and still never sound like the record.
+     *
+     * The order below IS the chain: align, excite, compress, limit.
+     *
+     *  1. ALIGNMENT first, because it is about when rather than what, and
+     *     shifting bands after something has added to them shifts the addition
+     *     along with them.
+     *  2. The exciter's high band only, and modestly — 3 kHz across two
+     *     octaves, so its harmonics land between 2.8 and 13 kHz where they are
+     *     heard as air, rather than above hearing where they are made and then
+     *     thrown away.
+     *  3. Three bands of compression with the broadcast asymmetry: the low band
+     *     slow to attack so a kick keeps its front, the high band fast because
+     *     sibilance and cymbals become the loudest thing in a mix the moment
+     *     everything below them is levelled. The makeup on each is where the
+     *     density comes from.
+     *  4. A true-peak ceiling under all of it, which is what makes that makeup
+     *     safe to ask for.
+     *
+     * Loud, and deliberately. This is not a mastering chain and it is not
+     * gentle — it is the sound of a processed broadcast, which is the thing
+     * that was asked for.
+     */
+    id: 'broadcast',
+    labelKey: 'dsp.preset.broadcast',
+    settings: {
+      eq: DSP_DEFAULTS.eq,
+      exciter: {
+        ...DSP_DEFAULTS.exciter,
+        enabled: true,
+        align: { enabled: true, amount: 0.6, crossoverHz: [150, 1_200] },
+        bands: [
+          { ...DSP_DEFAULTS.exciter.bands[0], enabled: false },
+          { ...DSP_DEFAULTS.exciter.bands[1], enabled: false },
+          {
+            ...DSP_DEFAULTS.exciter.bands[2],
+            enabled: true,
+            freqHz: 3_000,
+            range: 0.18,
+            drive: 3,
+            mix: 0.35,
+            texture: 0.6,
+          },
+        ],
+        organic: { enabled: true, amount: 0.35, focusHz: 320, range: 0.3 },
+      },
+      compressor: {
+        enabled: true,
+        crossoverHz: [160, 2_600],
+        bands: [
+          // Low: slow attack, so the front of a kick survives being levelled.
+          {
+            thresholdDb: -20,
+            ratio: 6,
+            attackMs: 18,
+            releaseMs: 220,
+            makeupDb: 5,
+          },
+          // Mid: where voice and density live, and where broadcast works
+          // hardest.
+          {
+            thresholdDb: -22,
+            ratio: 5,
+            attackMs: 6,
+            releaseMs: 130,
+            makeupDb: 6,
+          },
+          // High: fast, for the reason in the note above.
+          {
+            thresholdDb: -24,
+            ratio: 4,
+            attackMs: 1.5,
+            releaseMs: 80,
+            makeupDb: 5,
+          },
+        ],
+      },
+      maximizer: {
+        enabled: true,
+        ceilingDb: -0.8,
+        lookAheadMs: 6,
+        releaseMs: 90,
+      },
+    },
+  },
 ];

@@ -27,6 +27,7 @@ const dsp = {
   'dsp.preset.flat': 'オフ',
   'dsp.preset.lossyRepair': '圧縮音源を補修',
   'dsp.preset.loud': 'ラウド',
+  'dsp.preset.broadcast': '放送',
   'dsp.bypassed': 'バイパス',
   'dsp.enabled': 'オン',
 

@@ -28,6 +28,7 @@ const dsp = {
   'dsp.preset.flat': 'बंद',
   'dsp.preset.lossyRepair': 'संपीड़ित को सुधारें',
   'dsp.preset.loud': 'तेज़',
+  'dsp.preset.broadcast': 'ब्रॉडकास्ट',
   'dsp.bypassed': 'बायपास',
   'dsp.enabled': 'चालू',
 

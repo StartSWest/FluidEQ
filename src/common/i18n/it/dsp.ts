@@ -28,6 +28,7 @@ const dsp = {
   'dsp.preset.flat': 'Spento',
   'dsp.preset.lossyRepair': 'Ripara compresso',
   'dsp.preset.loud': 'Forte',
+  'dsp.preset.broadcast': 'Radiofonico',
   'dsp.bypassed': 'Bypassato',
   'dsp.enabled': 'Attivo',
 

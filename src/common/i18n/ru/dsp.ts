@@ -28,6 +28,7 @@ const dsp = {
   'dsp.preset.flat': 'Выключено',
   'dsp.preset.lossyRepair': 'Восстановить сжатое',
   'dsp.preset.loud': 'Громко',
+  'dsp.preset.broadcast': 'Эфирный',
   'dsp.bypassed': 'Обход',
   'dsp.enabled': 'Включено',
 

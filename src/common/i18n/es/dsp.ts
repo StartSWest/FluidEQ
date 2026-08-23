@@ -28,6 +28,7 @@ const dsp = {
   'dsp.preset.flat': 'Apagado',
   'dsp.preset.lossyRepair': 'Reparar comprimido',
   'dsp.preset.loud': 'Alto',
+  'dsp.preset.broadcast': 'Radiofónico',
   'dsp.bypassed': 'Desactivado',
   'dsp.enabled': 'Activado',
 

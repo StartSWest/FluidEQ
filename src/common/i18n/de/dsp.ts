@@ -28,6 +28,7 @@ const dsp = {
   'dsp.preset.flat': 'Aus',
   'dsp.preset.lossyRepair': 'Komprimiertes reparieren',
   'dsp.preset.loud': 'Laut',
+  'dsp.preset.broadcast': 'Rundfunk',
   'dsp.bypassed': 'Umgangen',
   'dsp.enabled': 'Ein',
 
