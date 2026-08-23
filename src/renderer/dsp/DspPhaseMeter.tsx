@@ -20,9 +20,13 @@ const HEIGHT = 86;
 /** Where the arc is marked, and what to write there. */
 const TICKS: [number, string][] = [
   [-1, '-1'],
+  [-0.75, ''],
   [-0.5, ''],
+  [-0.25, ''],
   [0, '0'],
+  [0.25, ''],
   [0.5, ''],
+  [0.75, ''],
   [1, '+1'],
 ];
 
@@ -101,21 +105,24 @@ const DspPhaseMeter = () => {
       // Centred in whatever the box turns out to be, rather than hung from its
       // top: the panel beside it is a row of dials and a meter sitting high in
       // its own block reads as having come loose from the row.
-      const radius = Math.min(box.width / 2 - 10, box.height - 30);
+      // As large as the box allows once the tick labels are accounted for,
+      // rather than a dial floating inside a margin. The 14 is the label ring
+      // that sits inside the arc; the 6 is the stroke plus its outer ticks.
+      const radius = Math.min(box.width / 2 - 6, box.height - 20);
       const pivotX = box.width / 2;
-      const pivotY = (box.height + radius) / 2 + 4;
+      const pivotY = (box.height + radius) / 2;
 
       // The arc, in two halves. The left one is what this meter exists to warn
       // about, so it is warm before anything is drawn over it.
-      context.lineWidth = 7;
+      context.lineWidth = 9;
       context.lineCap = 'butt';
       context.beginPath();
       context.arc(pivotX, pivotY, radius, START, START + SWEEP / 2);
-      context.strokeStyle = 'rgba(255,100,124,0.3)';
+      context.strokeStyle = 'rgba(255,100,124,0.42)';
       context.stroke();
       context.beginPath();
       context.arc(pivotX, pivotY, radius, START + SWEEP / 2, START + SWEEP);
-      context.strokeStyle = 'rgba(0,229,207,0.28)';
+      context.strokeStyle = 'rgba(0,229,207,0.4)';
       context.stroke();
 
       context.font =
@@ -127,23 +134,25 @@ const DspPhaseMeter = () => {
         const cos = Math.cos(angle);
         const sin = Math.sin(angle);
         context.beginPath();
+        const reach = label === '' ? 4 : 7;
         context.moveTo(
-          pivotX + cos * (radius - 5),
-          pivotY + sin * (radius - 5),
+          pivotX + cos * (radius - 6),
+          pivotY + sin * (radius - 6),
         );
         context.lineTo(
-          pivotX + cos * (radius + (label === '' ? 3 : 5)),
-          pivotY + sin * (radius + (label === '' ? 3 : 5)),
+          pivotX + cos * (radius + reach),
+          pivotY + sin * (radius + reach),
         );
-        context.strokeStyle = 'rgba(255,255,255,0.3)';
-        context.lineWidth = 1;
+        context.strokeStyle =
+          label === '' ? 'rgba(255,255,255,0.26)' : 'rgba(255,255,255,0.5)';
+        context.lineWidth = label === '' ? 1 : 1.5;
         context.stroke();
         if (label !== '') {
           context.fillStyle = 'rgba(255,255,255,0.45)';
           context.fillText(
             label,
-            pivotX + cos * (radius - 15),
-            pivotY + sin * (radius - 15),
+            pivotX + cos * (radius - 17),
+            pivotY + sin * (radius - 17),
           );
         }
       });
@@ -152,11 +161,11 @@ const DspPhaseMeter = () => {
       // has always gone.
       const warm = shown < 0;
       context.font =
-        '600 17px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif';
+        '600 19px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif';
       context.fillStyle = warm
         ? 'rgba(255,140,158,0.95)'
         : 'rgba(255,255,255,0.9)';
-      context.fillText(shown.toFixed(2), pivotX, pivotY - 13);
+      context.fillText(shown.toFixed(2), pivotX, pivotY - 15);
 
       // The needle last, over everything, with a hub to sit on.
       const angle = angleOf(Math.max(-1, Math.min(1, shown)));
@@ -167,11 +176,11 @@ const DspPhaseMeter = () => {
         pivotY + Math.sin(angle) * (radius - 3),
       );
       context.strokeStyle = warm ? 'rgba(255,140,158,0.95)' : '#ffffff';
-      context.lineWidth = 2;
+      context.lineWidth = 2.5;
       context.lineCap = 'round';
       context.stroke();
       context.beginPath();
-      context.arc(pivotX, pivotY, 4, 0, Math.PI * 2);
+      context.arc(pivotX, pivotY, 5, 0, Math.PI * 2);
       context.fillStyle = warm ? 'rgba(255,140,158,0.95)' : '#ffffff';
       context.fill();
 

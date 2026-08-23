@@ -1016,7 +1016,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // Enough width for the scale to be worth reading: below about this the
   // needle cannot travel far enough to show the difference between a wide mix
   // and one that is about to cancel.
-  min-width: 132px;
+  // Wide enough for the dial to be a dial. The height is set by the preamp
+  // block beside it and must not move; width is free.
+  min-width: 168px;
   padding: 8px 12px 4px;
   border: 1px solid rgba($white, 0.06);
   border-radius: 10px;

@@ -117,7 +117,15 @@ const List = ({
     hasFocusedSelection.current = true;
     const index = options.findIndex((entry) => entry.value === value);
     if (index >= 0) {
-      inputRefs[index].current?.focus();
+      // Focus WITHOUT its scroll, then centre deliberately. Focusing a row
+      // inside a scroller brings it to the nearest edge, so a selection near
+      // the bottom of a long list opened flush against the bottom of the menu
+      // with everything after it out of sight and no sign there was more.
+      inputRefs[index].current?.focus({ preventScroll: true });
+      // Not smooth: this runs as the menu appears, and an animated scroll
+      // starting at that moment is something the first flick of the wheel has
+      // to fight.
+      inputRefs[index].current?.scrollIntoView({ block: 'center' });
     }
   }, [focusOnRender, inputRefs, options, value]);
 
