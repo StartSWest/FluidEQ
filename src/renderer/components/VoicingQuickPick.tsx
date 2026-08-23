@@ -26,6 +26,7 @@ import {
   setLayerBypass,
   setVoicing as setVoicingApi,
 } from '../utils/equalizerApi';
+import '../styles/RichPick.scss';
 import '../styles/VoicingQuickPick.scss';
 
 /**
@@ -137,10 +138,10 @@ const VoicingQuickPick = () => {
   };
 
   return (
-    <div className="voicing-pick" ref={rootRef}>
+    <div className="rich-pick voicing-pick" ref={rootRef}>
       <button
         type="button"
-        className={`voicing-pick__trigger${activeProfile ? ' is-active' : ''}${
+        className={`rich-pick__trigger${activeProfile ? ' is-active' : ''}${
           activeProfile && isVoicingBypassed ? ' is-bypassed' : ''
         }`}
         aria-haspopup="menu"
@@ -160,7 +161,10 @@ const VoicingQuickPick = () => {
         disabled={isBlockingError || !isEnabled}
         onClick={() => setIsOpen((current) => !current)}
       >
-        <VoicingIcon profileId={activeProfile?.id} />
+        <VoicingIcon
+          profileId={activeProfile?.id}
+          className="rich-pick__glyph"
+        />
         <span>
           {activeProfile ? activeProfile.name : t('voicing.quickLabel')}
           {/* In a cell of a reserved width, which is the only reason it can be
@@ -175,7 +179,7 @@ const VoicingQuickPick = () => {
         {/* It opens a menu, and nothing on it said so — it read as a button
             that does something, in a row of buttons that do. The same chevron
             the mode picker carries, turning over when it is open. */}
-        <svg className="voicing-pick__caret" viewBox="0 0 16 16" aria-hidden>
+        <svg className="rich-pick__caret" viewBox="0 0 16 16" aria-hidden>
           <path d="M4 6.5l4 4 4-4" />
         </svg>
       </button>
@@ -197,16 +201,16 @@ const VoicingQuickPick = () => {
       <AnchoredMenu
         anchor={rootRef.current}
         isOpen={isOpen}
-        className="voicing-pick__menu"
+        className="rich-pick__menu"
       >
         <button
           type="button"
           role="menuitemradio"
           aria-checked={activeId === ''}
-          className={`voicing-pick__item${activeId === '' ? ' is-active' : ''}`}
+          className={`rich-pick__item${activeId === '' ? ' is-active' : ''}`}
           onClick={() => apply('')}
         >
-          <VoicingIcon profileId="none" />
+          <VoicingIcon profileId="none" className="rich-pick__glyph" />
           <span>
             <strong>{t('voicing.none')}</strong>
             <small>{t('voicing.quickNoneHint')}</small>
@@ -219,7 +223,7 @@ const VoicingQuickPick = () => {
                 sections, so adding a profile to either one cannot leave it
                 filed under the wrong header. */}
             {profile.group !== VOICING_PROFILES[index - 1]?.group && (
-              <span className="voicing-pick__group" role="presentation">
+              <span className="rich-pick__group" role="presentation">
                 {profile.group === 'genre'
                   ? t('voicing.groupGenre')
                   : t('voicing.groupPurpose')}
@@ -229,12 +233,15 @@ const VoicingQuickPick = () => {
               type="button"
               role="menuitemradio"
               aria-checked={activeId === profile.id}
-              className={`voicing-pick__item${
+              className={`rich-pick__item${
                 activeId === profile.id ? ' is-active' : ''
               }`}
               onClick={() => apply(profile.id)}
             >
-              <VoicingIcon profileId={profile.id} />
+              <VoicingIcon
+                profileId={profile.id}
+                className="rich-pick__glyph"
+              />
               <span>
                 <strong>{profile.name}</strong>
                 <small>{profile.tagline}</small>
