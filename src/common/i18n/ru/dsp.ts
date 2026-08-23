@@ -197,8 +197,8 @@ const dsp = {
   'dsp.exciter.title': 'Эксайтер',
   'dsp.exciter.description':
     'Создаёт гармоники, которых в сигнале не было. Три полосы, каждая выбирает чётные порядки для плотности или нечётные для воздуха — плюс «Органика» для той насыщенности, которую эквалайзер дать не может.',
-  'dsp.exciter.bandLow': 'От',
-  'dsp.exciter.bandHigh': 'До',
+  'dsp.exciter.bandFreq': 'Частота',
+  'dsp.exciter.bandRange': 'Охват',
   'dsp.exciter.drive': 'Интенсивность',
   'dsp.exciter.mix': 'Количество',
   'dsp.exciter.band.low': 'Низкие',

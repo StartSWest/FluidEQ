@@ -196,8 +196,8 @@ const dsp = {
   'dsp.exciter.title': 'Exciter',
   'dsp.exciter.description':
     'Genera armoniche che non erano nel segnale. Tre bande, ognuna sceglie ordini pari per corpo o dispari per aria — più Organico, per la densità che un equalizzatore non può aggiungere.',
-  'dsp.exciter.bandLow': 'Da',
-  'dsp.exciter.bandHigh': 'A',
+  'dsp.exciter.bandFreq': 'Freq.',
+  'dsp.exciter.bandRange': 'Estensione',
   'dsp.exciter.drive': 'Intensità',
   'dsp.exciter.mix': 'Quantità',
   'dsp.exciter.band.low': 'Bassi',

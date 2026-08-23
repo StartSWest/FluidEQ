@@ -33,25 +33,55 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * moment it is opened is one the user did not ask for.
  */
 
+/**
+ * What `range` means, in octaves either side of `freqHz`.
+ *
+ * Half an octave at 0 is narrow enough to work on one region without touching
+ * its neighbours; ten at 1 is wider than the audible band, so the top of the
+ * dial genuinely means "everything" rather than "nearly everything". Shared
+ * between the audio, the graph and the migration so all three agree about
+ * where a band actually is.
+ */
+export const EXCITER_MIN_OCTAVES = 0.5;
+
+export const EXCITER_OCTAVE_SPAN = 9.5;
+
+/** The edges a band's centre and width work out to, in Hz. */
+export const exciterBandEdges = (
+  freqHz: number,
+  range: number,
+): { lowHz: number; highHz: number } => {
+  const octaves = EXCITER_MIN_OCTAVES + range * EXCITER_OCTAVE_SPAN;
+  const half = 2 ** (octaves / 2);
+  return {
+    lowHz: Math.max(20, freqHz / half),
+    highHz: Math.min(20_000, freqHz * half),
+  };
+};
+
 export interface IExciterBandSettings {
   enabled: boolean;
   /**
-   * The span this band works on, Hz. Bands may overlap, and that is the point.
+   * Where this band sits and how far it reaches, EITHER SIDE of that centre.
    *
-   * These were a shared pair of crossover corners, which made the three bands
-   * strictly adjacent: moving one edge moved its neighbour's, and no band could
-   * be widened without narrowing the one beside it. That is right for a
-   * COMPRESSOR, where the bands are taken apart and put back together and any
-   * overlap would be counted twice.
+   * A centre and a width rather than two edges, and rather than the shared
+   * crossover corners before them. The corners made the three bands strictly
+   * adjacent — moving one moved its neighbour's, and no band could be widened
+   * without narrowing the one beside it. That is right for a COMPRESSOR, where
+   * the bands are taken apart and put back together and an overlap would be
+   * counted twice.
    *
-   * It is wrong here. These bands are not a decomposition of the signal — the
-   * dry passes through untouched and each band ADDS the harmonics it made. Two
-   * bands over the same octave add two lots of harmonics to it, which is a
-   * perfectly sensible thing to ask for and was simply unreachable. So each
-   * band carries its own edges and nothing stops them crossing.
+   * It is wrong here. These bands are not a decomposition: the dry signal
+   * passes through untouched and each band only ADDS what it made, so two
+   * bands over the same octave simply means that octave gets both lots of
+   * harmonics. Nothing stops them crossing.
+   *
+   * Symmetric in OCTAVES, not in hertz, which is the only way a width dial
+   * behaves the same at 80 Hz and at 8 kHz: range 0.3 is the same musical
+   * interval either side wherever the band is put.
    */
-  lowHz: number;
-  highHz: number;
+  freqHz: number;
+  range: number;
   /** Shaper drive. 1 is nearly linear, 10 is obvious. */
   drive: number;
   /** How much of the shaped band is mixed back, 0-1. */
@@ -501,10 +531,11 @@ interface IRange {
 }
 
 const RANGES = {
-  // The whole audible band, because a band's edges are now its own and a
-  // user may put either of them anywhere. The old 120-12k belonged to a
-  // shared pair of crossover corners that had to stay between the bands.
+  // The whole audible band, because a band's centre is its own and a user
+  // may put it anywhere. The old 120-12k belonged to a shared pair of
+  // crossover corners that had to stay between the bands.
   exciterBandHz: { min: 20, max: 20_000 },
+  exciterBandRange: { min: 0, max: 1 },
   exciterDrive: { min: 1, max: 10 },
   exciterMix: { min: 0, max: 1 },
   exciterTexture: { min: 0, max: 1 },
@@ -808,8 +839,11 @@ export const DSP_DEFAULTS: IDspSettings = {
       // a muddy bottom end, and the low band exists to add weight, not edge.
       {
         enabled: false,
-        lowHz: 20,
-        highHz: 300,
+        // 20-300 Hz, as its geometric centre and its width in octaves — the
+        // same span the crossover gave this band, so nothing about the default
+        // sound moved when the shape of the setting did.
+        freqHz: 77,
+        range: 0.36,
         drive: 2,
         mix: 0.2,
         texture: 0,
@@ -819,8 +853,9 @@ export const DSP_DEFAULTS: IDspSettings = {
       // Mid: mostly even, which is where body lives.
       {
         enabled: false,
-        lowHz: 300,
-        highHz: 3_000,
+        // 300 Hz - 3 kHz.
+        freqHz: 950,
+        range: 0.3,
         drive: 2.5,
         mix: 0.25,
         texture: 0.25,
@@ -831,8 +866,9 @@ export const DSP_DEFAULTS: IDspSettings = {
       // it was right about this band — odd orders up here read as air.
       {
         enabled: true,
-        lowHz: 3_000,
-        highHz: 20_000,
+        // 3 kHz - 20 kHz.
+        freqHz: 7_700,
+        range: 0.24,
         drive: 3,
         mix: 0.3,
         texture: 0.85,
@@ -890,18 +926,10 @@ const clampExciterBand = (
   if (!isRecord(value)) {
     return fallback;
   }
-  const lowHz = clampNumber(value.lowHz, RANGES.exciterBandHz, fallback.lowHz);
   return {
     enabled: clampBoolean(value.enabled, fallback.enabled),
-    lowHz,
-    // Never below its own lower edge. Bands may overlap each OTHER freely —
-    // that is the whole point of them owning their edges — but a band whose
-    // top is under its bottom is a passband with nothing in it, and it would
-    // read as the band being broken rather than as being set oddly.
-    highHz: Math.max(
-      lowHz,
-      clampNumber(value.highHz, RANGES.exciterBandHz, fallback.highHz),
-    ),
+    freqHz: clampNumber(value.freqHz, RANGES.exciterBandHz, fallback.freqHz),
+    range: clampNumber(value.range, RANGES.exciterBandRange, fallback.range),
     drive: clampNumber(value.drive, RANGES.exciterDrive, fallback.drive),
     mix: clampNumber(value.mix, RANGES.exciterMix, fallback.mix),
     texture: clampNumber(
@@ -1018,20 +1046,39 @@ export const clampDspSettings = (value: unknown): IDspSettings => {
     ? exciter.bands
     : [undefined, undefined, undefined];
 
-  /** The edges a stored band should end up with, if it carries none itself. */
-  const inheritedSpan = (index: number): { lowHz: number; highHz: number } => {
+  /**
+   * A stored pair of edges, as the centre and width that now describe it.
+   *
+   * Geometric centre and width in octaves, which is the pair the audio reads,
+   * so a migrated band covers exactly the span it covered before.
+   */
+  const asSpan = (low: number, high: number) => ({
+    freqHz: Math.sqrt(Math.max(20, low) * Math.min(20_000, high)),
+    range: Math.max(
+      0,
+      Math.min(
+        1,
+        (Math.log2(Math.min(20_000, high) / Math.max(20, low)) -
+          EXCITER_MIN_OCTAVES) /
+          EXCITER_OCTAVE_SPAN,
+      ),
+    ),
+  });
+
+  /** The span a stored band should end up with, if it carries none itself. */
+  const inheritedSpan = (index: number) => {
     if (legacyCorner !== undefined && index === 2) {
-      return { lowHz: legacyCorner, highHz: 20_000 };
+      return asSpan(legacyCorner, 20_000);
     }
     if (legacyPair) {
       return [
-        { lowHz: 20, highHz: splitLow },
-        { lowHz: splitLow, highHz: splitHigh },
-        { lowHz: splitHigh, highHz: 20_000 },
+        asSpan(20, splitLow),
+        asSpan(splitLow, splitHigh),
+        asSpan(splitHigh, 20_000),
       ][index];
     }
     const fallback = DSP_DEFAULTS.exciter.bands[index];
-    return { lowHz: fallback.lowHz, highHz: fallback.highHz };
+    return { freqHz: fallback.freqHz, range: fallback.range };
   };
 
   /* A pre-band exciter's drive and mix belong to the high band. */
@@ -1142,10 +1189,16 @@ export const clampDspSettings = (value: unknown): IDspSettings => {
           DSP_DEFAULTS.exciter.organic.range,
         ),
       },
-      // Never restored, whatever the stored blob says. @see IExciterSettings
-      // — quitting with the monitoring mode on and coming back to a rack that
-      // plays only harmonics is a bug report, not a preference.
-      isolate: false,
+      // Clamped like any other flag, and NOT forced false here.
+      //
+      // Forcing it here is what stopped isolate working at all. This function
+      // is not only a storage reader: it runs on every patch AND on every
+      // settings message the worklet receives, so a value forced false here is
+      // stripped between the button and the audio. Not persisting it is a fact
+      // about STORAGE, and it belongs where storage is read — `readStored` in
+      // `store.ts` drops it there, which is the only place it should be
+      // dropped.
+      isolate: clampBoolean(exciter.isolate, DSP_DEFAULTS.exciter.isolate),
     },
     compressor: {
       enabled: clampBoolean(

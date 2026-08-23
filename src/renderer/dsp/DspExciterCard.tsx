@@ -137,46 +137,34 @@ const DspExciterCard = ({
             />
           </div>
           <div className="dsp-band-dials">
-            {/* Its own edges, so a band can be widened without narrowing its
-                neighbour and two bands may cover the same octave. Nothing
-                here stops them crossing, which is the point — these bands are
-                parallel additions rather than a decomposition, so an overlap
-                simply means that octave gets both lots of harmonics. */}
+            {/* A centre and a width, and the width opens either side of the
+                centre. Nothing stops two bands covering the same octave —
+                these are parallel additions rather than a decomposition, so
+                an overlap simply means that octave gets both lots of
+                harmonics. */}
             <Dial
-              labelKey="dsp.exciter.bandLow"
-              value={band.lowHz}
-              defaultValue={DSP_DEFAULTS.exciter.bands[index].lowHz}
+              labelKey="dsp.exciter.bandFreq"
+              value={band.freqHz}
+              defaultValue={DSP_DEFAULTS.exciter.bands[index].freqHz}
               min={20}
               max={20_000}
               unit="Hz"
               step={10}
               isDisabled={!exciter.enabled || !band.enabled}
               onCommit={onCommit}
-              onChange={(lowHz) =>
-                patchBand(index, {
-                  lowHz,
-                  // Pushed rather than refused: dragging the bottom past the
-                  // top should widen from the other end, not stop dead.
-                  highHz: Math.max(lowHz, band.highHz),
-                })
-              }
+              onChange={(freqHz) => patchBand(index, { freqHz })}
             />
             <Dial
-              labelKey="dsp.exciter.bandHigh"
-              value={band.highHz}
-              defaultValue={DSP_DEFAULTS.exciter.bands[index].highHz}
-              min={20}
-              max={20_000}
-              unit="Hz"
-              step={10}
+              labelKey="dsp.exciter.bandRange"
+              value={band.range}
+              defaultValue={DSP_DEFAULTS.exciter.bands[index].range}
+              min={0}
+              max={1}
+              unit=""
+              step={0.01}
               isDisabled={!exciter.enabled || !band.enabled}
               onCommit={onCommit}
-              onChange={(highHz) =>
-                patchBand(index, {
-                  highHz,
-                  lowHz: Math.min(highHz, band.lowHz),
-                })
-              }
+              onChange={(range) => patchBand(index, { range })}
             />
             <Dial
               labelKey="dsp.exciter.drive"

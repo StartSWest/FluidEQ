@@ -197,8 +197,8 @@ const dsp = {
   'dsp.exciter.title': 'एक्साइटर',
   'dsp.exciter.description':
     'ऐसे हार्मोनिक्स बनाता है जो सिग्नल में कभी थे ही नहीं। तीन बैंड, हर एक बॉडी के लिए सम क्रम या एयर के लिए विषम क्रम चुनता है — साथ में ऑर्गेनिक, उस घनत्व के लिए जो इक्वलाइज़र नहीं दे सकता।',
-  'dsp.exciter.bandLow': 'से',
-  'dsp.exciter.bandHigh': 'तक',
+  'dsp.exciter.bandFreq': 'फ़्रीक्वेंसी',
+  'dsp.exciter.bandRange': 'रेंज',
   'dsp.exciter.drive': 'ड्राइव',
   'dsp.exciter.mix': 'मात्रा',
   'dsp.exciter.band.low': 'लो',

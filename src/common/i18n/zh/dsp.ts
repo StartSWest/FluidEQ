@@ -191,8 +191,8 @@ const dsp = {
   'dsp.exciter.title': '激励器',
   'dsp.exciter.description':
     '生成信号中原本没有的谐波。三个频段各自选择偶次谐波增添厚度，或奇次谐波增添空气感——外加「有机」，提供均衡器无法添加的密度。',
-  'dsp.exciter.bandLow': '起点',
-  'dsp.exciter.bandHigh': '终点',
+  'dsp.exciter.bandFreq': '频率',
+  'dsp.exciter.bandRange': '范围',
   'dsp.exciter.drive': '强度',
   'dsp.exciter.mix': '混合量',
   'dsp.exciter.band.low': '低频',

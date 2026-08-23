@@ -65,7 +65,8 @@ export const DSP_PRESETS: IDspPreset[] = [
           {
             ...DSP_DEFAULTS.exciter.bands[2],
             enabled: true,
-            lowHz: 7_000,
+            freqHz: 11_800,
+            range: 0.06,
             drive: 4,
             mix: 0.35,
           },
@@ -120,7 +121,8 @@ export const DSP_PRESETS: IDspPreset[] = [
           {
             ...DSP_DEFAULTS.exciter.bands[2],
             enabled: true,
-            lowHz: 5_000,
+            freqHz: 10_000,
+            range: 0.1,
             drive: 5,
             mix: 0.4,
           },

@@ -83,6 +83,38 @@ describe('dsp chain settings', () => {
 });
 
 /**
+ * The sanitiser must not eat the exciter's monitoring flag.
+ *
+ * Isolate is not meant to survive a restart, and the first attempt implemented
+ * that by forcing it false inside `clampDspSettings`. That looked like the
+ * right place and was not: this function runs on every patch AND on every
+ * settings message the worklet receives, so the flag was stripped between the
+ * button and the audio. The button lit, the settings object said true one line
+ * earlier, and the mode did nothing whatsoever.
+ *
+ * Not persisting is a fact about STORAGE, so `readStored` drops it and nothing
+ * else does. This is the test that tells those two apart.
+ */
+describe('exciter isolate survives sanitising', () => {
+  it('keeps a true isolate flag', () => {
+    const clamped = clampDspSettings({
+      ...DSP_DEFAULTS,
+      exciter: { ...DSP_DEFAULTS.exciter, isolate: true },
+    });
+    expect(clamped.exciter.isolate).toBe(true);
+  });
+
+  it('still defaults it off, and rejects a non-boolean', () => {
+    expect(clampDspSettings(DSP_DEFAULTS).exciter.isolate).toBe(false);
+    const nonsense = clampDspSettings({
+      ...DSP_DEFAULTS,
+      exciter: { ...DSP_DEFAULTS.exciter, isolate: 'yes' },
+    });
+    expect(nonsense.exciter.isolate).toBe(false);
+  });
+});
+
+/**
  * The rack sizes, and the guarantee that moving between them is lossless.
  *
  * Reported as "switching bands loses the imported curve", and it was: each

@@ -200,8 +200,8 @@ const dsp = {
   'dsp.exciter.title': 'Exciter',
   'dsp.exciter.description':
     'Erzeugt Obertöne, die nie im Signal waren. Drei Bänder, jedes mit geraden Ordnungen für Fülle oder ungeraden für Luft — dazu Organisch, für die Dichte, die ein Equalizer nicht liefern kann.',
-  'dsp.exciter.bandLow': 'Von',
-  'dsp.exciter.bandHigh': 'Bis',
+  'dsp.exciter.bandFreq': 'Freq.',
+  'dsp.exciter.bandRange': 'Umfang',
   'dsp.exciter.drive': 'Intensität',
   'dsp.exciter.mix': 'Anteil',
   'dsp.exciter.band.low': 'Tiefen',

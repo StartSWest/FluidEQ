@@ -5,7 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { useEffect, useRef } from 'react';
-import { IExciterSettings } from '../../common/dsp/chain';
+import { IExciterSettings, exciterBandEdges } from '../../common/dsp/chain';
 import { useTranslation } from '../utils/I18nContext';
 import {
   readDspAnalyser,
@@ -175,8 +175,9 @@ const DspExciterGraph = ({ settings }: IDspExciterGraphProps) => {
        * harmonics.
        */
       current.bands.forEach((band, index) => {
-        const x0 = toX(Math.min(band.lowHz, band.highHz));
-        const x1 = toX(Math.max(band.lowHz, band.highHz));
+        const { lowHz, highHz } = exciterBandEdges(band.freqHz, band.range);
+        const x0 = toX(lowHz);
+        const x1 = toX(highHz);
         const ink = BAND_INK[index];
         const isOn = current.enabled && band.enabled;
 
@@ -208,9 +209,10 @@ const DspExciterGraph = ({ settings }: IDspExciterGraphProps) => {
       context.lineWidth = 1;
       current.bands.forEach((band, index) => {
         const isOn = current.enabled && band.enabled;
+        const { lowHz, highHz } = exciterBandEdges(band.freqHz, band.range);
         context.setLineDash(isOn ? [] : [2, 3]);
         context.strokeStyle = `rgba(${BAND_INK[index]}, ${isOn ? 0.55 : 0.2})`;
-        [band.lowHz, band.highHz].forEach((hz) => {
+        [lowHz, highHz].forEach((hz) => {
           const x = Math.round(toX(hz)) + 0.5;
           context.beginPath();
           context.moveTo(x, PAD_T);
@@ -279,7 +281,8 @@ const DspExciterGraph = ({ settings }: IDspExciterGraphProps) => {
           return;
         }
         context.fillStyle = `rgba(${BAND_INK[index]}, 0.85)`;
-        [band.lowHz, band.highHz].forEach((hz) => {
+        const { lowHz, highHz } = exciterBandEdges(band.freqHz, band.range);
+        [lowHz, highHz].forEach((hz) => {
           context.fillText(
             hz >= 1_000
               ? `${(hz / 1_000).toFixed(1)}k`

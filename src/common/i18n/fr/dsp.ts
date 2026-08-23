@@ -197,8 +197,8 @@ const dsp = {
   'dsp.exciter.title': 'Exciteur',
   'dsp.exciter.description':
     "Génère des harmoniques qui n'ont jamais été dans le signal. Trois bandes, chacune choisissant les rangs pairs pour le corps ou impairs pour l'air — plus Organique, pour la densité qu'un égaliseur ne peut pas ajouter.",
-  'dsp.exciter.bandLow': 'De',
-  'dsp.exciter.bandHigh': 'À',
+  'dsp.exciter.bandFreq': 'Fréq.',
+  'dsp.exciter.bandRange': 'Étendue',
   'dsp.exciter.drive': 'Intensité',
   'dsp.exciter.mix': 'Quantité',
   'dsp.exciter.band.low': 'Graves',

@@ -27,10 +27,31 @@ import {
  */
 const STORAGE_KEY = 'fluideq.dsp.v1';
 
+/**
+ * Isolate is dropped HERE, on the way out of storage, and nowhere else.
+ *
+ * It belongs to this one moment: a monitoring mode that survived a restart
+ * would have the rack playing harmonics only, with the control that did it two
+ * tabs away. But it was first written into `clampDspSettings`, which looked
+ * like the same thing and is not — that runs on every patch AND on every
+ * message to the worklet, so the flag was stripped between the button and the
+ * audio and the mode could never do anything at all.
+ *
+ * The lesson is the one the sanitiser's own name gives: it exists to make an
+ * untrusted blob safe, and "should not persist" is a fact about storage rather
+ * than about validity.
+ */
 const readStored = (): IDspSettings => {
   try {
     const stored = window.localStorage.getItem(STORAGE_KEY);
-    return stored ? clampDspSettings(JSON.parse(stored)) : DSP_DEFAULTS;
+    if (!stored) {
+      return DSP_DEFAULTS;
+    }
+    const settings = clampDspSettings(JSON.parse(stored));
+    return {
+      ...settings,
+      exciter: { ...settings.exciter, isolate: false },
+    };
   } catch {
     // Unreadable or unparseable storage is the same answer as no storage;
     // clamping already covers a blob written by a different build.

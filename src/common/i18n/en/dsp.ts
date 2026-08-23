@@ -206,8 +206,8 @@ const dsp = {
   'dsp.exciter.title': 'Exciter',
   'dsp.exciter.description':
     'Generates harmonics that were never in the signal. Three bands, each choosing even orders for body or odd for air — plus Organic, for the density an equaliser cannot add.',
-  'dsp.exciter.bandLow': 'From',
-  'dsp.exciter.bandHigh': 'To',
+  'dsp.exciter.bandFreq': 'Freq',
+  'dsp.exciter.bandRange': 'Range',
   'dsp.exciter.drive': 'Drive',
   'dsp.exciter.mix': 'Amount',
   'dsp.exciter.band.low': 'Low',

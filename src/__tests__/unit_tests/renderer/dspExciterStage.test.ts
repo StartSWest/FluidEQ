@@ -4,7 +4,12 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { DSP_DEFAULTS, IExciterSettings } from '../../../common/dsp/chain';
+import {
+  DSP_DEFAULTS,
+  EXCITER_MIN_OCTAVES,
+  EXCITER_OCTAVE_SPAN,
+  IExciterSettings,
+} from '../../../common/dsp/chain';
 import {
   createExciterChannel,
   runExciterChannel,
@@ -188,6 +193,18 @@ describe('the exciter adds rather than cancels', () => {
  * what it made, so two bands over the same octave is a sensible request.
  */
 describe('overlapping bands', () => {
+  /**
+   * A span in Hz, as the centre and width the settings now carry.
+   *
+   * The tests are written in edges because edges are what "overlapping" means;
+   * the conversion is the inverse of `exciterBandEdges`, so what the test asks
+   * for is what the audio gets.
+   */
+  const asBand = ([low, high]: [number, number]) => ({
+    freqHz: Math.sqrt(low * high),
+    range: (Math.log2(high / low) - EXCITER_MIN_OCTAVES) / EXCITER_OCTAVE_SPAN,
+  });
+
   const twoBandsOver = (
     first: [number, number],
     second: [number, number],
@@ -199,8 +216,7 @@ describe('overlapping bands', () => {
         ...band,
         enabled: index < 2,
         mix: 0.4,
-        lowHz: index === 0 ? first[0] : second[0],
-        highHz: index === 0 ? first[1] : second[1],
+        ...asBand(index === 0 ? first : second),
       })),
     });
 

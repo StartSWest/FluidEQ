@@ -196,8 +196,8 @@ const dsp = {
   'dsp.exciter.title': 'エキサイター',
   'dsp.exciter.description':
     '元の信号になかった倍音を生成します。3 つの帯域がそれぞれ偶数次で厚みを、奇数次で空気感を選べます。さらにイコライザーでは作れない密度のための「オーガニック」。',
-  'dsp.exciter.bandLow': '下端',
-  'dsp.exciter.bandHigh': '上端',
+  'dsp.exciter.bandFreq': '周波数',
+  'dsp.exciter.bandRange': '範囲',
   'dsp.exciter.drive': 'ドライブ',
   'dsp.exciter.mix': '量',
   'dsp.exciter.band.low': '低域',

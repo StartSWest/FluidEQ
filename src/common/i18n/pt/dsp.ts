@@ -199,8 +199,8 @@ const dsp = {
   'dsp.exciter.title': 'Excitador',
   'dsp.exciter.description':
     'Gera harmónicos que nunca estiveram no sinal. Três bandas, cada uma escolhendo ordens pares para corpo ou ímpares para ar — mais Orgânico, para a densidade que um equalizador não consegue acrescentar.',
-  'dsp.exciter.bandLow': 'De',
-  'dsp.exciter.bandHigh': 'Até',
+  'dsp.exciter.bandFreq': 'Freq.',
+  'dsp.exciter.bandRange': 'Alcance',
   'dsp.exciter.drive': 'Intensidade',
   'dsp.exciter.mix': 'Quantidade',
   'dsp.exciter.band.low': 'Graves',

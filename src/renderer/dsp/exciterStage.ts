@@ -5,7 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { FilterTypeEnum } from '../../common/constants';
-import { IExciterSettings } from '../../common/dsp/chain';
+import { IExciterSettings, exciterBandEdges } from '../../common/dsp/chain';
 import {
   IBiquadState,
   biquadCoefficients,
@@ -293,11 +293,15 @@ export const runExciterChannel = (
       const source = state.bands[band];
       source.set(state.dry);
       const filters = state.bandFilters[band];
-      if (setup.lowHz > BAND_EDGE_MIN_HZ) {
+      // Centre and width, worked out to edges by the same helper the graph
+      // and the migration use — so what is heard and what is drawn cannot
+      // disagree about where a band is.
+      const { lowHz, highHz } = exciterBandEdges(setup.freqHz, setup.range);
+      if (lowHz > BAND_EDGE_MIN_HZ) {
         const highpass = biquadCoefficients(
           {
             type: FilterTypeEnum.HPQ,
-            frequency: setup.lowHz,
+            frequency: lowHz,
             gainDb: 0,
             quality: BUTTERWORTH_Q,
           },
@@ -306,11 +310,11 @@ export const runExciterChannel = (
         processBiquad(filters[0], source, highpass);
         processBiquad(filters[1], source, highpass);
       }
-      if (setup.highHz < BAND_EDGE_MAX_HZ) {
+      if (highHz < BAND_EDGE_MAX_HZ) {
         const lowpass = biquadCoefficients(
           {
             type: FilterTypeEnum.LPQ,
-            frequency: setup.highHz,
+            frequency: highHz,
             gainDb: 0,
             quality: BUTTERWORTH_Q,
           },
