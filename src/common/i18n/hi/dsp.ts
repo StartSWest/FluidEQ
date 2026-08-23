@@ -59,6 +59,17 @@ const dsp = {
 
   'dsp.eqPreset.import': 'आयात करें',
   'dsp.eqPreset.export': 'निर्यात करें',
+  'dsp.eqSave.title': 'प्रीसेट सहेजें',
+  'dsp.eqSave.hint': 'रैक को जैसा है वैसा सहेजें।',
+  'dsp.eqSave.placeholder': 'नाम',
+  'dsp.eqSave.save': 'सहेजें',
+  'dsp.eqSave.delete': 'हटाएँ',
+  'dsp.eqSave.overwrite': 'इस नाम का प्रीसेट पहले से है और बदल दिया जाएगा।',
+  'dsp.eqSave.saved': '{name} के रूप में सहेजा गया।',
+  'dsp.eqSave.deleted': '{name} हटाया गया।',
+  'dsp.eqSave.imported': '{name} आयात किया गया।',
+  'dsp.eqShare.share': 'साझा करें',
+  'dsp.eqShare.hint': 'इस रैक को ऐसी फ़ाइल में सहेजता है जिसे दूसरे खोल सकें।',
   'dsp.eqPreset.imported': '{count} फ़िल्टर लोड किए गए।',
   'dsp.eqPreset.importSkipped':
     '{count} फ़िल्टर लोड किए गए, {skipped} छोड़े गए।',

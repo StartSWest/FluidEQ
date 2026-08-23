@@ -37,6 +37,16 @@ import { useTranslation } from '../utils/I18nContext';
 import Dropdown from '../widgets/Dropdown';
 import SegmentedControl from '../widgets/SegmentedControl';
 import DspEqImportDialog from './DspEqImportDialog';
+import DspPresetSaveDialog from './DspPresetSaveDialog';
+import { fromPresetFile, toPresetFile } from '../../common/dsp/presetFile';
+import {
+  IUserPreset,
+  USER_PRESET_PREFIX,
+  findUserPreset,
+  readUserPresets,
+  removeUserPreset,
+  saveUserPreset,
+} from './userPresets';
 
 interface IDspEqBarProps {
   eq: IEqSettings;
@@ -60,6 +70,16 @@ const DspEqBar = ({ eq, sampleRate, onChange, onCommit }: IDspEqBarProps) => {
   const { t } = useTranslation();
   const [notice, setNotice] = useState('');
   const [isImporting, setIsImporting] = useState(false);
+  const [isNaming, setIsNaming] = useState(false);
+  /**
+   * The saved list, held in state so saving one shows it at once.
+   *
+   * Read from storage rather than subscribed to: nothing else in the app
+   * writes these, so there is no second writer to keep in step with.
+   */
+  const [userPresets, setUserPresets] = useState<IUserPreset[]>(() =>
+    readUserPresets(),
+  );
 
   /**
    * A different resolution of the same curve, not a different curve.
@@ -145,7 +165,28 @@ const DspEqBar = ({ eq, sampleRate, onChange, onCommit }: IDspEqBarProps) => {
     return cleared;
   };
 
+  /**
+   * A saved preset is assigned, not rebuilt.
+   *
+   * The factory curves are fifteen gains read onto whatever rack is loaded,
+   * because that is what they are. A saved one is the rack itself — its band
+   * count, its thresholds, its phase mode — so fitting it to the current
+   * rack would hand back something subtly different from what was saved.
+   */
+  const applyUserPreset = (preset: IUserPreset) => {
+    setNotice('');
+    onChange({ ...preset.eq, enabled: eq.enabled, presetId: preset.id });
+    onCommit();
+  };
+
   const applyPreset = (id: string) => {
+    if (id.startsWith(USER_PRESET_PREFIX)) {
+      const saved = findUserPreset(id);
+      if (saved) {
+        applyUserPreset(saved);
+      }
+      return;
+    }
     const chosen = EQ_PRESETS.find((one) => one.id === id);
     if (!chosen || !isCompleteEqPreset(chosen)) {
       return;
@@ -216,7 +257,71 @@ const DspEqBar = ({ eq, sampleRate, onChange, onCommit }: IDspEqBarProps) => {
     URL.revokeObjectURL(url);
   };
 
+  /**
+   * The rack as a file somebody else can open.
+   *
+   * Separate from the APO export beside it, and both are worth having: APO
+   * text is the universal way to publish a CURVE and every correction
+   * database speaks it, but it cannot say that a band only acts above a
+   * threshold, that the rack runs in parallel, or that the phase is linear.
+   * This carries all of it.
+   */
+  const handleShare = () => {
+    const saved = eq.presetId.startsWith(USER_PRESET_PREFIX)
+      ? findUserPreset(eq.presetId)
+      : undefined;
+    const name = saved?.name ?? t('dsp.eqPreset.custom');
+    const url = URL.createObjectURL(
+      new Blob([toPresetFile(name, eq)], { type: 'application/json' }),
+    );
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${name.replace(/[^\w\- ]+/g, '')}.fluideq.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleSave = (name: string) => {
+    const saved = saveUserPreset(name, eq);
+    setUserPresets(readUserPresets());
+    setIsNaming(false);
+    // Selected straight away, so the picker agrees with what was just saved
+    // rather than still showing whatever it was built from.
+    onChange({ ...eq, presetId: saved.id });
+    onCommit();
+    setNotice(t('dsp.eqSave.saved', { name: saved.name }));
+  };
+
+  const handleDeletePreset = () => {
+    const saved = findUserPreset(eq.presetId);
+    if (!saved) {
+      return;
+    }
+    removeUserPreset(saved.id);
+    setUserPresets(readUserPresets());
+    onChange({ ...eq, presetId: '' });
+    onCommit();
+    setNotice(t('dsp.eqSave.deleted', { name: saved.name }));
+  };
+
   const handleImport = (text: string) => {
+    /**
+     * A shared preset first, then APO text.
+     *
+     * One door for both, because from the outside they are the same errand:
+     * somebody has a file and wants this equaliser to be what is in it. The
+     * JSON is recognised by its own `format` key and answers undefined for
+     * anything else, so this costs a parse attempt and never a wrong guess.
+     */
+    const shared = fromPresetFile(text);
+    if (shared) {
+      const saved = saveUserPreset(shared.name, shared.eq);
+      setUserPresets(readUserPresets());
+      setIsImporting(false);
+      applyUserPreset(saved);
+      setNotice(t('dsp.eqSave.imported', { name: saved.name }));
+      return;
+    }
     const { bands, preampDb, skipped } = fromApoText(text);
     if (!bands.length) {
       // Says nothing was read rather than nothing at all. The likeliest reason
@@ -282,17 +387,33 @@ const DspEqBar = ({ eq, sampleRate, onChange, onCommit }: IDspEqBarProps) => {
           value={eq.presetId}
           isDisabled={false}
           noSelectionPlaceholder={t('dsp.eqPreset.custom')}
-          options={EQ_PRESETS.map((one) => ({
-            value: one.id,
-            label: t(one.labelKey as TranslationKey),
-            display: t(one.labelKey as TranslationKey),
-          }))}
+          // Twenty-two factory entries and however many saved ones is past
+          // what anybody scans: typing two letters beats reading a list.
+          isFilterable
+          menuClassName="dsp-preset-menu"
+          options={[
+            // Saved ones first. They are the ones somebody made on purpose,
+            // and a list that puts them under twenty-two factory curves is a
+            // list that hides them.
+            ...userPresets.map((one) => ({
+              value: one.id,
+              label: one.name,
+              display: one.name,
+            })),
+            ...EQ_PRESETS.map((one) => ({
+              value: one.id,
+              label: t(one.labelKey as TranslationKey),
+              display: t(one.labelKey as TranslationKey),
+            })),
+          ]}
           handleChange={applyPreset}
         />
       </div>
 
-      {/* Quiet, and next to the picker rather than by the import buttons:
-          it is the same control — "Default" chosen without opening the list. */}
+      {/* Everything that acts on the preset itself, next to the picker rather
+          than by the import buttons: reset is the same control — "Default"
+          chosen without opening the list — and save, share and delete all
+          answer "what about this one". */}
       <div className="dsp-eq-transfer dsp-eq-reset">
         <button
           type="button"
@@ -301,6 +422,34 @@ const DspEqBar = ({ eq, sampleRate, onChange, onCommit }: IDspEqBarProps) => {
         >
           {t('dsp.eqPreset.reset')}
         </button>
+        <button
+          type="button"
+          className="button small subtle"
+          title={t('dsp.eqSave.hint')}
+          onClick={() => setIsNaming(true)}
+        >
+          {t('dsp.eqSave.save')}
+        </button>
+        <button
+          type="button"
+          className="button small subtle"
+          title={t('dsp.eqShare.hint')}
+          onClick={handleShare}
+        >
+          {t('dsp.eqShare.share')}
+        </button>
+        {/* Only for a saved one: there is nothing to delete about a factory
+            curve, and a button that is present but refuses is worse than one
+            that is not there. */}
+        {eq.presetId.startsWith(USER_PRESET_PREFIX) && (
+          <button
+            type="button"
+            className="button small subtle"
+            onClick={handleDeletePreset}
+          >
+            {t('dsp.eqSave.delete')}
+          </button>
+        )}
       </div>
 
       {/* Labels sit BESIDE their fields, not stacked over them. Above, each
@@ -460,6 +609,14 @@ const DspEqBar = ({ eq, sampleRate, onChange, onCommit }: IDspEqBarProps) => {
         <DspEqImportDialog
           onImport={handleImport}
           onClose={() => setIsImporting(false)}
+        />
+      )}
+
+      {isNaming && (
+        <DspPresetSaveDialog
+          existing={userPresets.map((one) => one.name)}
+          onSave={handleSave}
+          onClose={() => setIsNaming(false)}
         />
       )}
     </div>

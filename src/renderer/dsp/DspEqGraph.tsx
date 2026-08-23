@@ -43,7 +43,16 @@ const PAD_L = 46;
  * compromise between them.
  */
 const PAD_R = 40;
-const PAD_T = 14;
+/**
+ * Room at the top for the legend, which sits over the canvas.
+ *
+ * 14 was enough while nothing was up there. The legend and the clip band then
+ * both claimed the same strip — and the clip band grows with the overshoot, so
+ * the worse the distortion the more of the legend it covered, which is exactly
+ * backwards. The plot starts below the legend now and the warning has the top
+ * of the plot to itself.
+ */
+const PAD_T = 34;
 const PAD_B = 26;
 
 const GRID_HZ: [number, string][] = [

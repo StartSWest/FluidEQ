@@ -802,6 +802,25 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   border-right: 1px solid rgba($white, 0.1);
 }
 
+// The preset menu: wider than its trigger, and draggable if that is not enough.
+//
+// The trigger is one control in a crowded row, and the list under it holds
+// twenty-two factory names plus every saved one — sized to the trigger, half of
+// them were truncated.  because no fixed number is right for everybody:
+// somebody with forty saved presets wants a taller list than somebody with two,
+// and the browser already knows how to do that.
+.dsp-preset-menu .list-wrapper {
+  width: max(var(--dropdown-trigger-width), min(420px, 32vw));
+  min-width: 240px;
+  min-height: 160px;
+  max-height: min(60vh, 560px);
+  // Both directions, and the handle is the only affordance the browser gives
+  // for it — which is why the min sizes exist: dragged to nothing, a menu
+  // cannot be dragged back.
+  resize: both;
+  overflow: auto;
+}
+
 // A closed set of choices with all of them showing.
 //
 // The toolbar had seven dropdowns in a row and four of those were binary or
@@ -889,6 +908,23 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 // Monospace because it is a config file: the columns of a ParametricEQ export
 // line up, and that is how a person spots the line they mistyped.
+// The name field in the save dialog. Same ground and same border as the paste
+// area it stands in for, so the two dialogs read as one family.
+.dsp-import__name {
+  width: 100%;
+  padding: 9px 11px;
+  border: 1px solid rgba($white, 0.1);
+  border-radius: 8px;
+  background: rgba($black, 0.3);
+  color: $white;
+  font-size: 0.86rem;
+
+  &:focus {
+    border-color: rgba($secondary-default, 0.5);
+    outline: none;
+  }
+}
+
 .dsp-import__body {
   min-height: 190px;
   padding: 10px 12px;

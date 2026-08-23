@@ -35,19 +35,24 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * material has been that way for a while, while taking it back is what stands
  * between a chorus and a clipped chorus.
  *
- * Neither is instant any more. Reports arrive about twenty-three times a
- * second, so the first version — 0.15 up and the whole way down — could give
- * back three and a half decibels a second and take them all in one reading,
- * and on material that hovered near the threshold the level breathed in time
- * with the music. At 0.04 up and 0.35 down it is about a decibel a second
- * back and eight a second away: slow enough not to be heard as movement,
- * fast enough that the whole reserve is recovered inside a second.
+ * Neither is instant any more, and the recovery is deliberately glacial.
+ * Reports arrive about twenty-three times a second, so the first version — 0.15
+ * up and the whole way down — gave back three and a half decibels a second and
+ * took them all in one reading, and on material hovering near the threshold the
+ * level breathed in time with the music.
+ *
+ * At 0.008 up, a six-decibel reserve takes about half a minute to come back.
+ * That is far slower than anything in the music, which is the point: a gain
+ * that moves slower than the material it is riding is not heard as a gain
+ * moving, it is heard as the track being the level it is. Falling stays quick
+ * at 0.35 — under a second for the whole reserve — because that direction is
+ * the one protecting a chorus.
  *
  * A measured clip still drops everything at once, and the margin above the
  * response is never handed back at all, so nothing here trades safety for
  * smoothness.
  */
-const RISE_PER_STEP_DB = 0.04;
+const RISE_PER_STEP_DB = 0.008;
 const FALL_PER_STEP_DB = 0.35;
 
 /**

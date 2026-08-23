@@ -59,6 +59,18 @@ const dsp = {
 
   'dsp.eqPreset.import': 'Importar',
   'dsp.eqPreset.export': 'Exportar',
+  'dsp.eqSave.title': 'Guardar ajuste',
+  'dsp.eqSave.hint': 'Guarda el rack tal y como está.',
+  'dsp.eqSave.placeholder': 'Nombre',
+  'dsp.eqSave.save': 'Guardar',
+  'dsp.eqSave.delete': 'Borrar',
+  'dsp.eqSave.overwrite':
+    'Ya existe un ajuste con ese nombre y se reemplazará.',
+  'dsp.eqSave.saved': 'Guardado como {name}.',
+  'dsp.eqSave.deleted': 'Borrado {name}.',
+  'dsp.eqSave.imported': 'Importado {name}.',
+  'dsp.eqShare.share': 'Compartir',
+  'dsp.eqShare.hint': 'Guarda este rack como archivo que otros pueden abrir.',
   'dsp.eqPreset.imported': 'Se cargaron {count} filtros.',
   'dsp.eqPreset.importSkipped':
     'Se cargaron {count} filtros, {skipped} omitidos.',

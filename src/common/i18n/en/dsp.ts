@@ -68,6 +68,18 @@ const dsp = {
 
   'dsp.eqPreset.import': 'Import',
   'dsp.eqPreset.export': 'Export',
+  'dsp.eqSave.title': 'Save preset',
+  'dsp.eqSave.hint': 'Save the rack as it stands.',
+  'dsp.eqSave.placeholder': 'Name',
+  'dsp.eqSave.save': 'Save',
+  'dsp.eqSave.delete': 'Delete',
+  'dsp.eqSave.overwrite':
+    'A preset with that name already exists and will be replaced.',
+  'dsp.eqSave.saved': 'Saved as {name}.',
+  'dsp.eqSave.deleted': 'Deleted {name}.',
+  'dsp.eqSave.imported': 'Imported {name}.',
+  'dsp.eqShare.share': 'Share',
+  'dsp.eqShare.hint': 'Saves this rack as a file others can open.',
   'dsp.eqPreset.imported': 'Loaded {count} filters.',
   'dsp.eqPreset.importSkipped': 'Loaded {count} filters, {skipped} skipped.',
   'dsp.eqPreset.importEmpty': 'No filters this equaliser could read.',

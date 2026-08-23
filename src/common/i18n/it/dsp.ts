@@ -59,6 +59,18 @@ const dsp = {
 
   'dsp.eqPreset.import': 'Importa',
   'dsp.eqPreset.export': 'Esporta',
+  'dsp.eqSave.title': 'Salva preset',
+  'dsp.eqSave.hint': 'Salva il rack così com’è.',
+  'dsp.eqSave.placeholder': 'Nome',
+  'dsp.eqSave.save': 'Salva',
+  'dsp.eqSave.delete': 'Elimina',
+  'dsp.eqSave.overwrite':
+    'Esiste già un preset con questo nome e verrà sostituito.',
+  'dsp.eqSave.saved': 'Salvato come {name}.',
+  'dsp.eqSave.deleted': 'Eliminato {name}.',
+  'dsp.eqSave.imported': 'Importato {name}.',
+  'dsp.eqShare.share': 'Condividi',
+  'dsp.eqShare.hint': 'Salva questo rack come file che altri possono aprire.',
   'dsp.eqPreset.imported': 'Caricati {count} filtri.',
   'dsp.eqPreset.importSkipped': 'Caricati {count} filtri, {skipped} ignorati.',
   'dsp.eqPreset.importEmpty': 'Questo equalizzatore non ha letto alcun filtro.',

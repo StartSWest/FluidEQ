@@ -89,7 +89,7 @@ describe('handing headroom back', () => {
   it('rises gradually and stops at the reserve', () => {
     const state = createAdaptiveHeadroom();
     let last = 0;
-    for (let step = 0; step < 500; step += 1) {
+    for (let step = 0; step < 3000; step += 1) {
       const now = advanceHeadroom(state, 6, 0, false);
       expect(now).toBeGreaterThanOrEqual(last);
       expect(now).toBeLessThanOrEqual(6);
@@ -104,7 +104,7 @@ describe('handing headroom back', () => {
     const state = createAdaptiveHeadroom();
     // Climbed to the top of the reserve first, however many reports that takes
     // at the current rate: the point of this test is the way down.
-    for (let step = 0; step < 500; step += 1) {
+    for (let step = 0; step < 3000; step += 1) {
       advanceHeadroom(state, 6, 0, false);
     }
     expect(state.giveBack).toBeCloseTo(6, 6);
@@ -135,7 +135,7 @@ describe('handing headroom back', () => {
   /** A measured clip outranks every spectral argument there is. */
   it('drops everything when the output is actually clipping', () => {
     const state = createAdaptiveHeadroom();
-    for (let step = 0; step < 500; step += 1) {
+    for (let step = 0; step < 3000; step += 1) {
       advanceHeadroom(state, 6, 0, false);
     }
     expect(advanceHeadroom(state, 6, 0, true)).toBe(0);

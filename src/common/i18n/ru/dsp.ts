@@ -59,6 +59,17 @@ const dsp = {
 
   'dsp.eqPreset.import': 'Импорт',
   'dsp.eqPreset.export': 'Экспорт',
+  'dsp.eqSave.title': 'Сохранить пресет',
+  'dsp.eqSave.hint': 'Сохраняет рэк как есть.',
+  'dsp.eqSave.placeholder': 'Имя',
+  'dsp.eqSave.save': 'Сохранить',
+  'dsp.eqSave.delete': 'Удалить',
+  'dsp.eqSave.overwrite': 'Пресет с таким именем уже есть и будет заменён.',
+  'dsp.eqSave.saved': 'Сохранено как {name}.',
+  'dsp.eqSave.deleted': 'Удалено {name}.',
+  'dsp.eqSave.imported': 'Импортировано {name}.',
+  'dsp.eqShare.share': 'Поделиться',
+  'dsp.eqShare.hint': 'Сохраняет рэк файлом, который смогут открыть другие.',
   'dsp.eqPreset.imported': 'Загружено фильтров: {count}.',
   'dsp.eqPreset.importSkipped':
     'Загружено фильтров: {count}, пропущено: {skipped}.',

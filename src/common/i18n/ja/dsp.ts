@@ -58,6 +58,17 @@ const dsp = {
 
   'dsp.eqPreset.import': 'インポート',
   'dsp.eqPreset.export': 'エクスポート',
+  'dsp.eqSave.title': 'プリセットを保存',
+  'dsp.eqSave.hint': 'いまのラックをそのまま保存します。',
+  'dsp.eqSave.placeholder': '名前',
+  'dsp.eqSave.save': '保存',
+  'dsp.eqSave.delete': '削除',
+  'dsp.eqSave.overwrite': 'その名前のプリセットは既にあり、置き換えられます。',
+  'dsp.eqSave.saved': '{name} として保存しました。',
+  'dsp.eqSave.deleted': '{name} を削除しました。',
+  'dsp.eqSave.imported': '{name} を読み込みました。',
+  'dsp.eqShare.share': '共有',
+  'dsp.eqShare.hint': '他の人が開けるファイルとしてこのラックを保存します。',
   'dsp.eqPreset.imported': '{count} 個のフィルターを読み込みました。',
   'dsp.eqPreset.importSkipped':
     '{count} 個のフィルターを読み込み、{skipped} 個をスキップしました。',

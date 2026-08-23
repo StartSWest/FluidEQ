@@ -131,7 +131,9 @@ const DspEqImportDialog = ({ onImport, onClose }: IDspEqImportDialogProps) => {
         <input
           ref={fileRef}
           type="file"
-          accept=".txt,text/plain"
+          // Both doors: a published curve is a text file and a shared preset is
+          // JSON, and from the outside they are the same errand.
+          accept=".txt,.json,text/plain,application/json"
           hidden
           onChange={(event) => {
             readFile(event.target.files?.[0]);

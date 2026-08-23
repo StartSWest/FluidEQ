@@ -59,6 +59,18 @@ const dsp = {
 
   'dsp.eqPreset.import': 'Importer',
   'dsp.eqPreset.export': 'Exporter',
+  'dsp.eqSave.title': 'Enregistrer le préréglage',
+  'dsp.eqSave.hint': 'Enregistre le rack tel quel.',
+  'dsp.eqSave.placeholder': 'Nom',
+  'dsp.eqSave.save': 'Enregistrer',
+  'dsp.eqSave.delete': 'Supprimer',
+  'dsp.eqSave.overwrite': 'Un préréglage porte déjà ce nom et sera remplacé.',
+  'dsp.eqSave.saved': 'Enregistré sous {name}.',
+  'dsp.eqSave.deleted': '{name} supprimé.',
+  'dsp.eqSave.imported': '{name} importé.',
+  'dsp.eqShare.share': 'Partager',
+  'dsp.eqShare.hint':
+    'Enregistre ce rack en fichier que d’autres peuvent ouvrir.',
   'dsp.eqPreset.imported': '{count} filtres chargés.',
   'dsp.eqPreset.importSkipped': '{count} filtres chargés, {skipped} ignorés.',
   'dsp.eqPreset.importEmpty': 'Cet égaliseur n’a pu lire aucun filtre.',
