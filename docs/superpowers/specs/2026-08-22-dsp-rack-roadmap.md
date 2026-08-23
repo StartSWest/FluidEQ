@@ -199,9 +199,91 @@ So the sequence for macOS is:
 Step 1 is worth doing on its own merit for the Library player. Step 2 should
 not be started on the assumption that step 1 implies it.
 
+## Taking the rack system-wide — the route, on all three platforms
+
+Investigated 2026-08-22. Still out of scope for this rack; written down because
+the answer turned out to be different from what everyone assumes.
+
+### Loopback cannot do it, and that is topology rather than policy
+
+The obvious idea is to capture the system's own output, process it, and play it
+back. It cannot work anywhere. A loopback capture is a **tap, not an insert**:
+it hands back a copy of what the endpoint has already been sent, so the
+unprocessed audio is on its way to the speakers before you have a sample of it.
+Playing your processed version produces both at once, and your version is then
+captured too.
+
+To replace the audio you have to be _in_ the path before the mix reaches the
+device. Every platform has such a place; none of them is loopback.
+
+### Why the rack is player-only today is a FORMAT limit, not a reach limit
+
+Equalizer APO's config is a list of linear operations — `Filter`, `Preamp`,
+`GraphicEQ`, `Convolution`. Every biquad in this rack fits, and linear phase
+fits as convolution. **Dynamic EQ, fuzz, per-band thresholds and the adaptive
+regulator do not**, because they are code deciding per sample rather than
+filters. That is the whole reason these blocks stop at FluidEQ's own player.
+
+### The insert point on each platform
+
+|             | where the processing goes                                                                                                                                                                                                                                  |
+| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Windows** | An **APO** — a user-mode COM DLL implementing `IAudioProcessingObject`, loaded by the audio engine. No kernel driver. This is what Equalizer APO is.                                                                                                       |
+| **macOS**   | An **Audio Server Plug-In** — a user-space bundle in `/Library/Audio/Plug-Ins/HAL/` presenting a virtual output device, which forwards to the real one. Runs in `coreaudiod`; kernel extensions are not involved. This is what BlackHole and Loopback are. |
+| **Linux**   | A **PipeWire filter node** inserted into the graph. No driver, no device to install, no privileged component at all.                                                                                                                                       |
+
+Linux is by far the easiest of the three and it is worth saying so plainly,
+because the usual assumption is the opposite. macOS is the hardest — not
+because the plug-in is hard, but because the user has to change their output
+device, which Windows and Linux users never do.
+
+### The shape that generalises
+
+One **portable DSP core** in C++ — the same processors this rack already
+defines, ported once — behind three thin host shims: an APO, an Audio Server
+Plug-In, and a PipeWire node. The core is where the work is; the shims are
+adapters. Building any one of them without that split means building the
+processors three times.
+
+### The VST shortcut is real and is probably closed
+
+Equalizer APO added VST plugin support in **1.3**, in mainline, driven from its
+Configuration Editor — and its official configuration reference does not
+document the command at all. The support is **VST2**. Native VST3 has been an
+open request for years (ticket #275) and exists only in a third-party fork.
+
+Steinberg no longer issues VST2 SDK licences, so a new VST2 plugin is very
+likely not a route this project can take. **Verify at Steinberg's own terms
+before anyone writes a line of it** — this was not confirmed, only recalled.
+
+### Ours would coexist with Equalizer APO
+
+APOs chain by design: an endpoint holds lists of them, and Equalizer APO works
+by inserting into those lists. Ours placed after it would process the
+already-EQ'd signal.
+
+The real risk is not Windows. It is that **two components would own the same
+registry list** — Equalizer APO's Configurator writes the endpoint's APO list
+and so would ours, and the last writer wins unless they are designed to
+cooperate. Also worth knowing: a crash in either takes down `audiodg` and drops
+all system audio until it restarts, so two APOs is two chances at that.
+
+### The bigger prize, deliberately not the first step
+
+If a FluidEQ APO exists, it could carry the parametric EQ as well and Equalizer
+APO would stop being needed on Windows at all. The cost is reimplementing what
+the app's EQ path speaks today — the preamp resolution, the layer rendering,
+the auto-normalize, and the import/export compatibility users expect.
+
+Build it as a **second** APO first. That proves the registration and the
+processors against a working system, and absorbing the EQ can be considered
+once it runs.
+
 ## Out of scope
 
 - Replacing Equalizer APO on Windows. It stays.
 - System-wide audio on any platform. The rack processes FluidEQ's own player.
+  The route for taking it further is written down above, and taking it is a
+  separate project rather than a later phase of this one.
 - AI restoration — closed in `2026-08-21-dsp-processor-design.md` and unchanged.
 - Reordering the chain from the UI.
