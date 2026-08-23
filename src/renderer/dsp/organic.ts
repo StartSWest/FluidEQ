@@ -56,11 +56,18 @@ import {
 /**
  * How far the drift moves the drive, as a fraction of it.
  *
- * 0.22 was chosen by ear against the failure at each end. Below about 0.1 the
- * wander is inaudible and the stage is a saturator again. Above about 0.35 a
- * sustained piano note audibly swells, which is a chorus, not an amplifier.
+ * 0.22 was chosen against the failure at each end and was still far too much.
+ * Combined with the programme follower it gave the shaper drive a three and a
+ * half to one swing, and a drive moving that far is heard as the effect
+ * stuttering however smoothly the number itself is computed — the same
+ * mistake, and the same report, as the transient envelope the exciter bands
+ * used to carry. Smooth is not the same as gentle.
+ *
+ * 0.07 is a wander rather than a wobble: enough that no two seconds of a
+ * sustained note are shaped identically, which is the whole purpose, and not
+ * enough to be heard as movement in its own right.
  */
-const DRIFT_DEPTH = 0.22;
+const DRIFT_DEPTH = 0.07;
 
 /**
  * Roughly how often the drift picks somewhere new to head, in Hz.
@@ -91,14 +98,17 @@ const ENV_RELEASE_MS = 260;
  *
  * Never to zero: a stage that vanishes in quiet passages announces itself every
  * time the music drops, and the whole aim is to be noticed only by absence.
+ *
+ * 0.85 rather than the 0.45 this started at. Tracking the programme across a
+ * range of better than two to one is not subtlety, it is an effect switching
+ * itself in and out, and combined with the drift it was most of why this
+ * stage was reported as granular. What is wanted is that the stage LEANS with
+ * the music, not that it follows it.
  */
-const ENV_FLOOR = 0.45;
+const ENV_FLOOR = 0.85;
 
 /** How fast the energy-matching gain follows. @see organicBlock */
 const MATCH_SMOOTHING = 0.08;
-
-/** Below this the follower is treated as silence, so noise cannot drive it. */
-const SILENCE = 1e-5;
 
 export interface IOrganicState {
   /** The programme follower, per channel. */
@@ -124,6 +134,8 @@ export interface IOrganicState {
   matchGain: number;
   /** Last block's drive, so this one can reach its own smoothly. */
   lastDrive: number;
+  /** The per-sample drive curve, one entry per base-rate sample. */
+  driveCurve: Float32Array;
 }
 
 export const createOrganicState = (blockSize: number): IOrganicState => ({
@@ -138,6 +150,7 @@ export const createOrganicState = (blockSize: number): IOrganicState => ({
   doubledDry: new Float32Array(blockSize * 2),
   matchGain: 0,
   lastDrive: 0,
+  driveCurve: new Float32Array(blockSize),
 });
 
 /**
@@ -266,29 +279,33 @@ export const organicBlock = (
   if (state.doubled.length !== doubled) {
     state.doubled = new Float32Array(doubled);
     state.doubledDry = new Float32Array(doubled);
+    state.driveCurve = new Float32Array(frames);
   }
 
-  // Peak of the block, which is what the follower chases. Cheaper than an RMS
-  // and, for deciding how hard a passage is playing, no less honest.
-  let peak = 0;
+  /**
+   * The follower runs PER SAMPLE, and the drive it produces is a curve.
+   *
+   * It used to chase the peak of the whole block, which meant it could not
+   * resolve anything shorter than 2.7 ms however its attack was configured —
+   * and then that one number was applied across every sample in the block.
+   * Ramping between blocks made the joins smooth and left the resolution
+   * exactly where it was. This is the same defect the exciter bands carried
+   * and the same fix: measure it where it is used.
+   */
+  const attack = Math.exp(-1 / ((ENV_ATTACK_MS / 1000) * sampleRate));
+  const release = Math.exp(-1 / ((ENV_RELEASE_MS / 1000) * sampleRate));
+  const nominal = organicDrive(amount);
+  const wander = advanceDrift(state, frames, sampleRate);
+  let { envelope } = state;
+
   for (let i = 0; i < frames; i += 1) {
-    const magnitude = Math.abs(target[i]);
-    if (magnitude > peak) {
-      peak = magnitude;
-    }
+    const level = Math.abs(target[i]);
+    envelope =
+      level + (envelope - level) * (level > envelope ? attack : release);
+    const tracked = ENV_FLOOR + (1 - ENV_FLOOR) * Math.sqrt(envelope);
+    state.driveCurve[i] = nominal * tracked * wander;
   }
-
-  const attack = Math.exp(-frames / ((ENV_ATTACK_MS / 1000) * sampleRate));
-  const release = Math.exp(-frames / ((ENV_RELEASE_MS / 1000) * sampleRate));
-  const coefficient = peak > state.envelope ? attack : release;
-  state.envelope =
-    peak < SILENCE && state.envelope < SILENCE
-      ? 0
-      : peak + (state.envelope - peak) * coefficient;
-
-  const tracked = ENV_FLOOR + (1 - ENV_FLOOR) * Math.sqrt(state.envelope);
-  const drive =
-    organicDrive(amount) * tracked * advanceDrift(state, frames, sampleRate);
+  state.envelope = envelope;
   const asymmetry = organicAsymmetry(amount);
 
   // `organicSample` re-derives `tanh(asymmetry)` on every call and both are
@@ -308,15 +325,14 @@ export const organicBlock = (
    * the opposite of what the drift was added to achieve: a wander applied in
    * 375 discrete jumps a second is not a wander.
    */
-  const fromDrive = state.lastDrive || drive;
-  const driveStep = (drive - fromDrive) / doubled;
-  state.lastDrive = drive;
 
   let shapedEnergy = 0;
   let dryEnergy = 0;
   for (let i = 0; i < doubled; i += 1) {
     const dry = state.doubledDry[i];
-    const now = fromDrive + driveStep * i;
+    // Two oversampled samples per base-rate one, so the curve is read at
+    // half the index. It is already continuous; nothing needs interpolating.
+    const now = state.driveCurve[Math.floor(i / 2)];
     const shaped = (Math.tanh(dry * now + asymmetry) - asymmetryOutput) / now;
     state.doubled[i] = shaped;
     shapedEnergy += shaped * shaped;
@@ -349,5 +365,8 @@ export const organicBlock = (
 
   downsample(state.oversampler, state.doubled, target, 2);
 
-  return drive;
+  // The middle of the curve, which is only for the display. The card draws
+  // how much of what it can do the stage is doing, and one figure a frame is
+  // as much as an eye can read.
+  return state.driveCurve[Math.floor(frames / 2)];
 };
