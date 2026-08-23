@@ -125,7 +125,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // it lives in cannot clip it.
   z-index: 1000;
   display: grid;
-  width: 236px;
+  // Wide enough for a name and the line under it to sit on one row each.
+  // At 236 most descriptions were truncated after four words, which is a
+  // subtitle that costs a row and says nothing.
+  width: 300px;
   padding: 6px;
   gap: 2px;
 }

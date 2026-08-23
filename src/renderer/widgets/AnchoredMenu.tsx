@@ -18,6 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { ReactNode, useLayoutEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { bottomInset } from '../utils/shellInset';
 
 /**
  * A menu that opens over everything, from a control that is inside a box which
@@ -65,7 +66,12 @@ const MARGIN = 8;
 
 const positionFrom = (rect: DOMRect, menuHeight: number, menuWidth: number) => {
   const roomAbove = rect.top - OFFSET - MARGIN;
-  const roomBelow = window.innerHeight - rect.bottom - OFFSET - MARGIN;
+  // The now-playing bar is not room. Without this the menu opened downward
+  // into space the bar is standing in and its last rows sat behind the
+  // transport with nothing to say they were there — the same defect the
+  // dropdown had fixed long ago and this one never learned.
+  const roomBelow =
+    window.innerHeight - rect.bottom - OFFSET - MARGIN - bottomInset();
   // Unmeasured on the first pass — height 0 fits anywhere, so this takes the
   // preferred side and the measured pass corrects it before the frame is
   // painted.

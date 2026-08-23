@@ -39,6 +39,7 @@ import { useClickOutside, useFocusOutside } from '../utils/utils';
 import List, { renderOptionDisplay } from './List';
 import TextInput from './TextInput';
 import { useTranslation } from '../utils/I18nContext';
+import { bottomInset } from '../utils/shellInset';
 
 interface IOptionEntry {
   value: string;
@@ -111,33 +112,6 @@ interface IMenuFrame {
 /** Clearance between the menu and the trigger, above or below it. */
 const MENU_GAP_BLOCK_PX = 5;
 
-/**
- * How much of the bottom of the window a menu may not open into.
- *
- * The now-playing bar is fixed to the window and sits above everything, so
- * `window.innerHeight` counts space the menu cannot actually use: a list
- * opening downward near the bottom of the graph ran under the bar and had its
- * last rows hidden by it, with no indication that there were more.
- *
- * Read from the shell's own variables rather than measured or guessed. The
- * layout already publishes `--now-playing-bar-height` and reserves the same
- * space with it, so this agrees with the padding by construction instead of
- * being a second number to keep in step. Zero when nothing is playing, since
- * the class that carries them is not on the root then.
- */
-const bottomInset = () => {
-  const root = document.getElementById('root');
-  if (!root?.classList.contains('has-now-playing')) {
-    return 0;
-  }
-  const shell = getComputedStyle(root);
-  const height = parseFloat(shell.getPropertyValue('--now-playing-bar-height'));
-  const gutter = parseFloat(shell.getPropertyValue('--shell-gutter-bottom'));
-  return (
-    (Number.isFinite(height) ? height : 86) +
-    (Number.isFinite(gutter) ? gutter : 18)
-  );
-};
 /** Clearance between the menu and the trigger when it opens to a side. */
 const MENU_GAP_INLINE_PX = 8;
 /** Clearance between the menu and the window edges. */
