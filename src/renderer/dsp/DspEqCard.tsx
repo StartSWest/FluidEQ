@@ -424,11 +424,13 @@ const DspEqCard = ({ eq, sampleRate, onChange, onCommit }: IDspEqCardProps) => {
               step={0.5}
               unit="dB"
               defaultValue={fallback.thresholdDb}
-              // Greyed rather than hidden: a control that appears when a switch
-              // is thrown moves everything beside it, and the row jumps under
-              // the pointer that just threw it.
-              isDisabled={active < 0 || !band.enabled || !band.dynamic}
-              onChange={(thresholdDb) => patchBand(active, { thresholdDb })}
+              // Live even while the band is static, because a control you
+              // cannot use to switch the thing on is a dead end: reaching for
+              // the threshold IS asking for the band to react, so it does.
+              isDisabled={active < 0 || !band.enabled}
+              onChange={(thresholdDb) =>
+                patchBand(active, { thresholdDb, dynamic: true })
+              }
               onCommit={onCommit}
             />
             {/* A live figure over the caption that decides how it is arrived

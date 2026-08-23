@@ -193,11 +193,29 @@ const DspEqBar = ({ eq, sampleRate, onChange, onCommit }: IDspEqBarProps) => {
     }
     setNotice('');
     if (id === EQ_DEFAULT_PRESET_ID) {
-      // Everything, and deliberately more than the other entries touch: the
-      // rack size, the source curve and the preamp all move on an import, and a
-      // reset that leaves those behind is the kind that reads as half-working.
-      // The bypass switch is the user's, not the preset's.
-      onChange({ ...DSP_DEFAULTS.eq, enabled: eq.enabled, presetId: id });
+      /**
+       * Everything, and deliberately more than the other entries touch.
+       *
+       * The rack size, the source curve and the preamp all move on an import,
+       * and a reset that leaves those behind is the kind that reads as
+       * half-working. The regulator goes with them: a reset means nothing
+       * applied at all, which is a stronger statement than "the shipped
+       * defaults" and the only one that takes the reading beside the preamp
+       * to zero.
+       *
+       * A fresh install still starts with the fixed reserve, because shipping
+       * the protection is the sensible default — but asking for a reset is
+       * asking for an equaliser doing nothing whatsoever, and an automatic
+       * gain is something.
+       *
+       * The bypass switch stays the user's, not the preset's.
+       */
+      onChange({
+        ...DSP_DEFAULTS.eq,
+        trimMode: 'off',
+        enabled: eq.enabled,
+        presetId: id,
+      });
       onCommit();
       return;
     }
