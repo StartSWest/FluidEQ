@@ -392,6 +392,79 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // spills equally past BOTH ends, and the overflow past the start cannot be
 // scrolled back to — bands 1 to 4 of a 31-band rack were unreachable. `safe`
 // falls back to flex-start exactly when it would otherwise overflow.
+// What each line on the graph is, and which of its two scales it belongs to.
+//
+// Across the top of the plot, where the lines it names are. Under the graph it
+// put the answer a glance away from the question, and the eye had to leave the
+// picture to use it.
+.dsp-eq-plot {
+  position: relative;
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.dsp-eq-legend {
+  position: absolute;
+  top: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  max-width: calc(100% - 96px);
+  margin: 0;
+  padding: 4px 12px;
+  border-radius: 8px;
+  // Just enough ground to stay legible over the spectrum without becoming a
+  // panel: the plot is what the page is for and this sits on top of it.
+  background: rgba($black, 0.42);
+  list-style: none;
+  // The plot beneath is dragged to move bands, and a strip that swallowed the
+  // pointer would make the top of the curve unreachable.
+  pointer-events: none;
+}
+
+.dsp-eq-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: rgba($white, 0.55);
+  font-size: 0.66rem;
+}
+
+// Drawn from the same colours the canvas uses, passed in as  so one
+// rule can serve every entry. A swatch that only approximates the line it
+// names is worse than none: it teaches the wrong pairing.
+.dsp-eq-legend-mark {
+  width: 18px;
+  height: 0;
+  border-top: 2px solid currentcolor;
+
+  &.is-dashed {
+    border-top-style: dashed;
+  }
+
+  // The spectrum is an area, not a line, so its swatch is one too.
+  &.is-filled {
+    height: 9px;
+    border-top-width: 1px;
+    background: currentcolor;
+    opacity: 0.32;
+  }
+}
+
+// Which axis to read it against. Dimmer than the name: it is the answer to a
+// question the name has already raised.
+.dsp-eq-legend-scale {
+  color: rgba($white, 0.32);
+  font-size: 0.6rem;
+}
+
 .dsp-eq-picker {
   display: flex;
   flex: 0 0 auto;

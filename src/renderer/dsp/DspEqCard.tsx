@@ -18,6 +18,7 @@ import LabelledKnob from '../components/LabelledKnob';
 import { useTranslation } from '../utils/I18nContext';
 import Dropdown from '../widgets/Dropdown';
 import DspEqGraph from './DspEqGraph';
+import DspEqLegend from './DspEqLegend';
 import DspFilterShapeIcon from './DspFilterShapeIcon';
 import DspPhaseMeter from './DspPhaseMeter';
 import DspDynamicReadout from './DspDynamicReadout';
@@ -142,19 +143,33 @@ const DspEqCard = ({ eq, sampleRate, onChange, onCommit }: IDspEqCardProps) => {
 
   return (
     <div className="dsp-eq">
-      <DspEqGraph
-        eq={eq}
-        sampleRate={sampleRate}
-        selected={active}
-        onSelect={setSelected}
-        onChange={patchBand}
-        onCommit={onCommit}
-      />
+      {/* The legend rides on the plot rather than under it: it names lines
+          that are on screen right there, and a row beneath the graph put the
+          answer a glance away from the question. It does not take the
+          pointer — the plot under it is dragged to move bands. */}
+      <div className="dsp-eq-plot">
+        <DspEqGraph
+          eq={eq}
+          sampleRate={sampleRate}
+          selected={active}
+          onSelect={setSelected}
+          onChange={patchBand}
+          onCommit={onCommit}
+        />
+        <DspEqLegend
+          hasDynamic={eq.bands.some(
+            (one) => one.enabled && one.dynamic && one.gainDb !== 0,
+          )}
+          showsThreshold={band.dynamic && band.enabled}
+          showsSubsonic={eq.subsonicHz > 0}
+        />
+      </div>
 
       {/* Numbered by their place in the chain, low to high, so the strip reads
           like the graph above it. Thirty-one will not fit a narrow window, so
           the row scrolls rather than wrapping into a block that moves the graph
           up and down as the rack changes size. */}
+
       <div
         className="dsp-eq-picker"
         role="tablist"

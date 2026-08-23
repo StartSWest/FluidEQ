@@ -59,16 +59,19 @@ const HANDLE_R = 8;
 /**
  * The spectrum's vertical range, in dBFS.
  *
- * -96 is below anything audible in a 16-bit source and -6 leaves the loudest
- * material short of the ceiling, so a normal track fills most of the box
- * without a mastered one pinning flat against the top.
+ * -96 is below anything audible in a 16-bit source. The top was -6 for a
+ * while, to keep a mastered track from pinning flat against the ceiling —
+ * which was the right call while the scale was unlabelled scenery and the
+ * wrong one the moment it became an axis somebody reads a threshold against.
+ * Full scale is the number that matters on a level scale, so full scale is
+ * where the top is, and a track that reaches it is telling the truth.
  */
 const SPECTRUM_FLOOR_DB = -96;
-const SPECTRUM_TOP_DB = -6;
+const SPECTRUM_TOP_DB = 0;
 
-/** Where the level scale is marked, in dBFS. Four is enough to read a
- * position against and few enough not to compete with the gain grid. */
-const GRID_DBFS = [-12, -36, -60, -84];
+/** Where the level scale is marked, in dBFS. Evenly spaced across the range
+ * and few enough not to compete with the gain grid beside them. */
+const GRID_DBFS = [0, -24, -48, -72];
 
 /**
  * The plot's coordinate maths, at module scope.
