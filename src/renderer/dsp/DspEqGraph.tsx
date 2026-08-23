@@ -263,6 +263,15 @@ const DspEqGraph = ({
     /** How far past full scale it went, in dB, eased for the same reason. */
     let clipOver = 0;
     /**
+     * How present the input-gain line is, 0 to 1.
+     *
+     * The gain is applied whether or not anything is playing, so the line is
+     * never wrong — but a line describing what is being done to a signal that
+     * does not exist is one more thing moving in the corner of the eye for no
+     * reason. It fades with the signal and comes back with it.
+     */
+    let inputLit = 0;
+    /**
      * The response at each plotted point, worked out once a frame.
      *
      * The curve, the at-rest twin, the headroom shading and the fuzz grain
@@ -858,12 +867,16 @@ const DspEqGraph = ({
       drawnInput = Number.isNaN(drawnInput)
         ? appliedInput
         : drawnInput + (appliedInput - drawnInput) * 0.08;
-      if (Math.abs(drawnInput) >= 0.05) {
+      // About -66 dBFS at the output: below it nothing is playing, whatever
+      // the transport says it is doing.
+      const hasSignal = readDspPeak() > 0.0005;
+      inputLit += ((hasSignal ? 1 : 0) - inputLit) * 0.05;
+      if (Math.abs(drawnInput) >= 0.05 && inputLit > 0.02) {
         const y = Y(Math.max(-RANGE_DB, Math.min(RANGE_DB, drawnInput)));
         context.beginPath();
         context.moveTo(PAD_L, y);
         context.lineTo(PAD_L + plotW(W), y);
-        context.strokeStyle = 'rgba(178,190,255,0.55)';
+        context.strokeStyle = `rgba(178,190,255,${(inputLit * 0.55).toFixed(3)})`;
         context.lineWidth = 1.25;
         context.setLineDash([2, 4]);
         context.stroke();
@@ -873,7 +886,7 @@ const DspEqGraph = ({
           '600 11px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif';
         context.textBaseline = 'bottom';
         context.textAlign = 'left';
-        context.fillStyle = 'rgba(178,190,255,0.85)';
+        context.fillStyle = `rgba(178,190,255,${(inputLit * 0.85).toFixed(3)})`;
         context.fillText(
           translate('dsp.eq.inputMark', {
             gain: drawnInput.toFixed(1),
