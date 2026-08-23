@@ -69,6 +69,14 @@ export interface IAudioGraphContext {
 export interface IDspGraph {
   /** The post-chain tap the EQ page draws its spectrum from. */
   analyser: IAnalyserNodeLike;
+  /**
+   * The PRE-chain tap, which exists for a different question entirely.
+   *
+   * The adaptive trim needs the programme as it arrives, not as it leaves:
+   * what it computes is the difference the chain makes to this material, and
+   * measuring after the chain would be measuring the answer.
+   */
+  inputAnalyser: IAnalyserNodeLike;
   update(settings: IDspSettings): void;
   dispose(): void;
 }
@@ -227,6 +235,17 @@ export const buildDspGraph = (
   // Fast enough to feel live, slow enough that the display is not a strobe.
   analyser.smoothingTimeConstant = 0.8;
 
+  // Tapped off the source rather than off the exciter's output: the exciter
+  // is parallel and its own gain is already accounted for in the reserve, so
+  // measuring after it would count that boost twice.
+  const inputAnalyser = context.createAnalyser();
+  inputAnalyser.fftSize = 2_048;
+  // Barely smoothed, unlike the display's. This feeds a decision about level,
+  // and a reading averaged over half a second arrives after the chorus it was
+  // meant to make room for.
+  inputAnalyser.smoothingTimeConstant = 0.3;
+  source.connect(inputAnalyser);
+
   worklet.connect(destination);
   worklet.connect(analyser);
   worklet.port.postMessage(current);
@@ -235,6 +254,7 @@ export const buildDspGraph = (
 
   return {
     analyser,
+    inputAnalyser,
     update(next: IDspSettings) {
       const wasEnabled = current.exciter.enabled;
       current = next;
@@ -257,6 +277,7 @@ export const buildDspGraph = (
       teardownExciter();
       worklet.disconnect();
       analyser.disconnect();
+      inputAnalyser.disconnect();
     },
   };
 };

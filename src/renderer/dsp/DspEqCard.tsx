@@ -20,6 +20,7 @@ import Dropdown from '../widgets/Dropdown';
 import DspEqGraph from './DspEqGraph';
 import DspFilterShapeIcon from './DspFilterShapeIcon';
 import DspPhaseMeter from './DspPhaseMeter';
+import DspTrimReadout from './DspTrimReadout';
 
 const BAND_TYPES: { type: FilterTypeEnum; labelKey: TranslationKey }[] = [
   { type: FilterTypeEnum.PK, labelKey: 'dsp.eq.type.peak' },
@@ -207,10 +208,7 @@ const DspEqCard = ({ eq, sampleRate, onChange, onCommit }: IDspEqCardProps) => {
               Written in the dials' own grammar — figure over caption — because
               it stands in a row of them and anything else reads as a control
               that has lost its knob. */}
-          <span className="dsp-eq-trim" title={t('dsp.eq.trimHint')}>
-            <span className="dsp-eq-trim-value">{eq.trimDb.toFixed(1)} dB</span>
-            <span className="dsp-eq-trim-label">{t('dsp.eq.trim')}</span>
-          </span>
+          <DspTrimReadout reservedDb={eq.trimDb} />
           {/* How much of the chosen character to apply. At zero every one of
               them collapses to the plain cookbook, so this is the off switch
               as well as the dial. */}

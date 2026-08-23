@@ -8,6 +8,12 @@ import { useEffect, useRef, useState } from 'react';
 import log from 'electron-log/renderer';
 import { IDspSettings } from '../../common/dsp/chain';
 import {
+  advanceHeadroom,
+  createAdaptiveHeadroom,
+  excessDb,
+} from './adaptiveHeadroom';
+import { curveResponseDb } from './rack';
+import {
   IAudioGraphContext,
   IAudioNodeLike,
   IDspGraph,
@@ -19,6 +25,7 @@ import {
   setDspAnalyser,
   setDspBandAmounts,
   setDspCorrelation,
+  setDspHeadroomGiveBack,
   setDspEngineState,
   setDspPeak,
   setDspSampleRate,
@@ -76,6 +83,24 @@ export const useDspEngine = (
   const graphRef = useRef<IDspGraph | undefined>(undefined);
   const settingsRef = useRef(settings);
   settingsRef.current = settings;
+  /**
+   * The adaptive trim's working set, kept across reports.
+   *
+   * Driven by the worklet's own meter messages rather than by a timer: those
+   * arrive every sixteen blocks because audio was processed, so the measurement
+   * cadence is the audio's and there is nothing to keep in step by hand.
+   */
+  const headroom = useRef(createAdaptiveHeadroom());
+  /** The chain's response at each analyser bin, and what it was built from.
+   * Rebuilt only when the curve moves — recomputing fifteen filters across a
+   * thousand bins twenty times a second is most of a core for no new answer. */
+  const chainDb = useRef<{ key: string; response: Float32Array }>({
+    key: '',
+    response: new Float32Array(0),
+  });
+  /** Reused, because a fresh array twenty times a second is garbage twenty
+   * times a second. */
+  const programme = useRef(new Float32Array(0));
 
   useEffect(() => {
     if (!element || typeof window.AudioContext !== 'function') {
@@ -169,6 +194,58 @@ export const useDspEngine = (
         if (data && Array.isArray(data.bandAmounts)) {
           setDspBandAmounts(data.bandAmounts as number[]);
         }
+        const input = graphRef.current?.inputAnalyser;
+        const { eq } = settingsRef.current;
+        const reserve = -eq.trimDb;
+        if (!input || !eq.enabled || reserve <= 0) {
+          // Nothing reserved is nothing to hand back, and a disabled rack
+          // has no curve to measure against.
+          headroom.current.giveBack = 0;
+          setDspHeadroomGiveBack(0);
+          worklet.port.postMessage({ headroomGiveBack: 0 });
+          return;
+        }
+        const bins = input.frequencyBinCount;
+        if (programme.current.length !== bins) {
+          programme.current = new Float32Array(bins);
+        }
+        const key = [
+          bins,
+          context.sampleRate,
+          eq.model,
+          eq.modelAmount,
+          JSON.stringify(eq.bands),
+        ].join('|');
+        if (chainDb.current.key !== key) {
+          // Bin n is centred at n * rate / fftSize, and the bin count is half
+          // the transform, so the spacing is rate / 2 / bins. Bin zero is DC,
+          // where no filter response is defined; nudged up rather than
+          // skipped so the two arrays stay index-aligned.
+          const step = context.sampleRate / 2 / bins;
+          const frequencies = Array.from({ length: bins }, (_, index) =>
+            Math.max(1, index * step),
+          );
+          chainDb.current = {
+            key,
+            response: Float32Array.from(
+              curveResponseDb(
+                eq.bands,
+                frequencies,
+                context.sampleRate,
+                eq.model,
+              ),
+            ),
+          };
+        }
+        input.getFloatFrequencyData(programme.current);
+        const giveBack = advanceHeadroom(
+          headroom.current,
+          reserve,
+          excessDb(programme.current, chainDb.current.response),
+          typeof data?.peak === 'number' && data.peak > 1,
+        );
+        setDspHeadroomGiveBack(giveBack);
+        worklet.port.postMessage({ headroomGiveBack: giveBack });
       };
       // The point of no return. Cached because a second call throws.
       const source =

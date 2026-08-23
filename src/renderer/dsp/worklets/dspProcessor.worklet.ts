@@ -124,6 +124,10 @@ class DspProcessor extends AudioWorkletProcessor {
    */
   private eqGainNow = 1;
 
+  /** Handed back by the adaptive stage, in dB. Zero until it says otherwise,
+   * which is the pessimistic reserve and the safe answer. */
+  private headroomGiveBack = 0;
+
   /**
    * One follower per band per channel, outliving every settings message.
    *
@@ -265,6 +269,17 @@ class DspProcessor extends AudioWorkletProcessor {
       // milliseconds — fine inside a frame, fatal inside a 2.7 ms callback —
       // and it changes only when the curve does, while settings arrive on every
       // pixel of a drag.
+      if (data instanceof Object && 'headroomGiveBack' in data) {
+        // What the adaptive stage decided this material does not need.
+        // Added to the reserve rather than replacing it, so a message that
+        // never arrives leaves the pessimistic figure in place.
+        const { headroomGiveBack } = data as { headroomGiveBack: number };
+        this.headroomGiveBack = Number.isFinite(headroomGiveBack)
+          ? Math.max(0, headroomGiveBack)
+          : 0;
+        this.refreshEqGain();
+        return;
+      }
       if (data instanceof Object && 'eqKernel' in data) {
         const { eqKernel } = data as { eqKernel: IConvolverKernel | undefined };
         if (!eqKernel) {
@@ -361,10 +376,7 @@ class DspProcessor extends AudioWorkletProcessor {
     this.rebuildOversampleViews();
     // Held as a linear multiplier so the sample loop is one multiply rather
     // than a pow per sample.
-    // The regulator and the user's offset are one gain by the time they reach
-    // a sample: the first makes exactly as much room as the curve needs, the
-    // second is however much of it the user decided to spend.
-    this.eqPreampGain = 10 ** ((eq.preampDb + eq.trimDb) / 20);
+    this.refreshEqGain();
     // Oversampling runs the cascade at twice the rate, so its filters have to
     // be DESIGNED for that rate. Handing it the ordinary set would place every
     // band an octave low — a bug rather than a mode.
@@ -433,6 +445,19 @@ class DspProcessor extends AudioWorkletProcessor {
           eq.modelAmount,
         ),
       );
+  }
+
+  /**
+   * The one gain in front of everything, from its three contributions.
+   *
+   * The regulator's reserve, what the adaptive stage handed back of it, and
+   * the user's own offset. Its own method because two different messages can
+   * move it and both have to arrive at the same arithmetic.
+   */
+  private refreshEqGain(): void {
+    const { eq } = this.settings;
+    this.eqPreampGain =
+      10 ** ((eq.preampDb + eq.trimDb + this.headroomGiveBack) / 20);
   }
 
   /** Whether a convolver is actually in the signal path right now, which is
