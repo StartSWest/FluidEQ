@@ -216,21 +216,14 @@ export interface IExciterChannelState {
   gates: number[];
   /** Last block's energy-matching gain, per band, so the next can ramp from it. */
   matchGain: number[];
-  /**
-   * Last block's final mix amount, per band. @see the ramp in the band loop.
-   *
-   * Every control in this stage is worked out once per block, and a block is
-   * 2.7 ms — so applying any of them flat is a staircase stepping 375 times a
-   * second. Keeping the previous value is what lets the next one be reached
-   * smoothly instead of jumped to.
-   */
-  lastAmount: number[];
   /** One DC blocker per band plus one for the organic stage. @see DC_POLE */
   dcState: { x: number; y: number }[];
   /** Fast and slow followers per band, whose ratio IS the transient.
    *  @see TRANSIENT_FLOOR */
   fastEnv: number[];
   slowEnv: number[];
+  /** The per-sample gain curve, filled fresh for each band each block. */
+  envGain: Float32Array;
   /** The block as it arrived, before any stage added to it. @see runExciterChannel */
   dry: Float32Array;
   organic: IOrganicState;
@@ -259,10 +252,10 @@ export const createExciterChannel = (
   wideDry: new Float32Array(blockSize * OVERSAMPLE),
   gates: [0, 0, 0],
   matchGain: [0, 0, 0],
-  lastAmount: [0, 0, 0],
   dcState: [0, 1, 2, 3].map(() => ({ x: 0, y: 0 })),
   fastEnv: [0, 0, 0],
   slowEnv: [0, 0, 0],
+  envGain: new Float32Array(blockSize),
   dry: new Float32Array(blockSize),
   organic: createOrganicState(blockSize),
   organicBand: new Float32Array(blockSize),
@@ -281,6 +274,7 @@ const resize = (state: IExciterChannelState, frames: number): void => {
   state.shaped = new Float32Array(frames);
   state.wide = new Float32Array(frames * OVERSAMPLE);
   state.wideDry = new Float32Array(frames * OVERSAMPLE);
+  state.envGain = new Float32Array(frames);
   state.dry = new Float32Array(frames);
   state.organicBand = new Float32Array(frames);
 };
@@ -328,83 +322,79 @@ const blockDc = (
 };
 
 /**
- * How much harmonic content this block has earned. @see TRANSIENT_FLOOR
+ * Fill a gain curve for the block, ONE VALUE PER SAMPLE.
  *
- * The ratio of a fast follower to a slow one, which is 1 on steady material and
- * leaps on an attack. Subtracting 1 leaves the excess, and the excess is the
- * transient — a measure that does not care how loud the passage is, only how
- * suddenly it got there, so a quiet snare is excited as much as a loud one.
+ * It used to return a single number per block, worked out from that block's
+ * peak. Two things were wrong with that and only the first was obvious.
+ *
+ * A value held across 128 samples and then changed is a staircase, which is
+ * what was heard as the effect being separated and digital. Ramping between
+ * blocks softened that and did not remove it, because of the second problem:
+ * an envelope driven by block PEAKS cannot resolve anything faster than a
+ * block. The fast follower is set to a 0.6 ms attack and a block is 2.7 ms, so
+ * it was never fast at all — a 2.7 ms follower wearing a 0.6 ms label, and the
+ * transient it existed to catch was over before it saw a number.
+ *
+ * Per sample, both followers do what their names say and the curve that comes
+ * out is continuous by construction rather than by interpolation. That is the
+ * difference between an envelope which is smooth and one which has been
+ * smoothed.
+ *
+ * Returns the block's mean, which is only for the display.
  */
-const transientAmount = (
+const fillTransientGain = (
   state: IExciterChannelState,
   band: number,
-  level: number,
-  frames: number,
+  source: Float32Array,
+  gain: Float32Array,
+  thresholdDb: number,
+  isGated: boolean,
   sampleRate: number,
 ): number => {
   const coefficient = (ms: number) =>
-    Math.exp(-frames / ((ms / 1000) * sampleRate));
-  const fast = coefficient(
-    level > state.fastEnv[band] ? FAST_ATTACK_MS : FAST_RELEASE_MS,
-  );
-  const slow = coefficient(
-    level > state.slowEnv[band] ? SLOW_ATTACK_MS : SLOW_RELEASE_MS,
-  );
-  state.fastEnv[band] = level + (state.fastEnv[band] - level) * fast;
-  state.slowEnv[band] = level + (state.slowEnv[band] - level) * slow;
-
-  if (state.slowEnv[band] < SILENCE) {
-    return TRANSIENT_FLOOR;
-  }
-  const excess = Math.max(0, state.fastEnv[band] / state.slowEnv[band] - 1);
-  return TRANSIENT_FLOOR + Math.min(1, excess) * TRANSIENT_RANGE;
-};
-
-/** Peak of a block, which is what both the gate and the follower chase. */
-const peakOf = (buffer: Float32Array): number => {
-  let peak = 0;
-  for (let i = 0; i < buffer.length; i += 1) {
-    const magnitude = Math.abs(buffer[i]);
-    if (magnitude > peak) {
-      peak = magnitude;
-    }
-  }
-  return peak;
-};
-
-/**
- * How much of this band's harmonics to let through, 0-1.
- *
- * The EQ's dynamic bands, in the form this stage needs. A hard gate on a
- * harmonic generator chatters — the harmonics appear and vanish with the
- * threshold crossing and each transition is heard as a click — so the follower
- * is smoothed and the result is a continuous amount rather than a switch.
- */
-const gateAmount = (
-  state: IExciterChannelState,
-  band: number,
-  level: number,
-  thresholdDb: number,
-  frames: number,
-  sampleRate: number,
-): number => {
-  const attack = Math.exp(-frames / ((GATE_ATTACK_MS / 1000) * sampleRate));
-  const release = Math.exp(-frames / ((GATE_RELEASE_MS / 1000) * sampleRate));
-  const coefficient = level > state.gates[band] ? attack : release;
-  state.gates[band] =
-    level < SILENCE && state.gates[band] < SILENCE
-      ? 0
-      : level + (state.gates[band] - level) * coefficient;
-
+    Math.exp(-1 / ((ms / 1_000) * sampleRate));
+  const fastAttack = coefficient(FAST_ATTACK_MS);
+  const fastRelease = coefficient(FAST_RELEASE_MS);
+  const slowAttack = coefficient(SLOW_ATTACK_MS);
+  const slowRelease = coefficient(SLOW_RELEASE_MS);
+  const gateAttack = coefficient(GATE_ATTACK_MS);
+  const gateRelease = coefficient(GATE_RELEASE_MS);
   const threshold = 10 ** (thresholdDb / 20);
-  if (state.gates[band] <= threshold) {
-    return 0;
-  }
-  // Fully open a factor of two above the threshold rather than the instant it
-  // is crossed, so a passage hovering around it fades in instead of flickering.
-  return Math.min(1, (state.gates[band] / threshold - 1) / 1);
-};
 
+  let fast = state.fastEnv[band];
+  let slow = state.slowEnv[band];
+  let gate = state.gates[band];
+  let mean = 0;
+
+  for (let i = 0; i < source.length; i += 1) {
+    const level = Math.abs(source[i]);
+    fast = level + (fast - level) * (level > fast ? fastAttack : fastRelease);
+    slow = level + (slow - level) * (level > slow ? slowAttack : slowRelease);
+    gate = level + (gate - level) * (level > gate ? gateAttack : gateRelease);
+
+    // The ratio of the two followers IS the transient: one on steady
+    // material, leaping where the signal arrives suddenly. A ratio does not
+    // care how loud the passage is, so a quiet snare is excited as much as a
+    // loud one.
+    const excess = slow < SILENCE ? 0 : Math.max(0, fast / slow - 1);
+    let value = TRANSIENT_FLOOR + Math.min(1, excess) * TRANSIENT_RANGE;
+
+    if (isGated) {
+      // Opening over a factor of two above the threshold rather than at the
+      // instant it is crossed, so a passage hovering there fades in rather
+      // than flickering.
+      value *= gate <= threshold ? 0 : Math.min(1, gate / threshold - 1);
+    }
+
+    gain[i] = value;
+    mean += value;
+  }
+
+  state.fastEnv[band] = fast;
+  state.slowEnv[band] = slow;
+  state.gates[band] = gate;
+  return source.length > 0 ? mean / source.length : 0;
+};
 /**
  * Run one channel, in place, adding the wet bands onto the dry signal.
  *
@@ -453,7 +443,6 @@ export const runExciterChannel = (
       // Reset rather than leave running: a band switched back on should start
       // from silence, not from whatever its follower held when it went away.
       state.gates[band] = 0;
-      state.lastAmount[band] = 0;
     } else {
       /**
        * The band, taken with its own pair of filters from the dry signal.
@@ -499,17 +488,15 @@ export const runExciterChannel = (
         processBiquad(filters[3], source, lowpass);
       }
 
-      const open = setup.dynamic
-        ? gateAmount(
-            state,
-            band,
-            peakOf(source),
-            setup.thresholdDb,
-            frames,
-            sampleRate,
-          )
-        : 1;
-
+      const open = fillTransientGain(
+        state,
+        band,
+        source,
+        state.envGain,
+        setup.thresholdDb,
+        setup.dynamic,
+        sampleRate,
+      );
       if (open > 0) {
         state.shaped.set(source);
         const asymmetry = (1 - setup.texture) * MAX_ASYMMETRY;
@@ -556,7 +543,7 @@ export const runExciterChannel = (
 
         // Energy-matched and then differenced, both INSIDE the oversampled
         // domain where the two are still sample-aligned. The comment above
-        // `peakOf` says why the match; the alignment is because the
+        // the energy note above says why the match; the alignment is because the
         // resampler is a 63-tap linear-phase FIR run twice each way, so
         // subtracting after the round trip is subtracting a delayed copy of
         // the fundamental, which is a comb filter rather than a harmonic.
@@ -661,18 +648,15 @@ export const runExciterChannel = (
          * energy-matching gain above got this treatment already and it dropped
          * its artefacts 15 dB; these are the terms actually heard.
          */
-        const amount =
-          setup.mix *
-          MIX_SCALE *
-          open *
-          transientAmount(state, band, peakOf(source), frames, sampleRate);
-        const fromAmount = state.lastAmount[band];
-        const amountStep = (amount - fromAmount) / frames;
+        // Nothing left to ramp: the envelope is continuous where it is
+        // made rather than smoothed afterwards. The only per-block
+        // constant is the mix, and that moves when a knob does rather
+        // than when the music does.
+        const scale = setup.mix * MIX_SCALE;
         for (let i = 0; i < frames; i += 1) {
-          target[i] += state.shaped[i] * (fromAmount + amountStep * i);
+          target[i] += state.shaped[i] * state.envGain[i] * scale;
         }
-        state.lastAmount[band] = amount;
-        contributed[band] = amount;
+        contributed[band] = open * scale;
       }
     }
   }
