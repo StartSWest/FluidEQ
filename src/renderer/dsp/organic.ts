@@ -110,6 +110,13 @@ export interface IOrganicState {
   oversampler: IOversamplerState;
   /** Doubled-rate scratch, sized on first use and reused after. */
   doubled: Float32Array;
+  /**
+   * The doubled-rate signal before shaping, so the difference can be taken
+   * where the two are still aligned.
+   *
+   * @see organicBlock — subtracting across the resampler is a comb filter.
+   */
+  doubledDry: Float32Array;
 }
 
 export const createOrganicState = (blockSize: number): IOrganicState => ({
@@ -121,6 +128,7 @@ export const createOrganicState = (blockSize: number): IOrganicState => ({
   driftSpan: 1,
   oversampler: createOversampler(),
   doubled: new Float32Array(blockSize * 2),
+  doubledDry: new Float32Array(blockSize * 2),
 });
 
 /**
@@ -210,7 +218,23 @@ const advanceDrift = (
 };
 
 /**
- * Generate the harmonics for one block, in place, at twice the rate.
+ * Replace a block with the HARMONICS it generates, at twice the rate.
+ *
+ * The buffer comes back holding what this stage ADDED, not the shaped signal —
+ * so the caller adds it on top of the dry rather than differencing against it.
+ * That is not a convenience, it is the only correct place for the subtraction:
+ * the resampler is a 63-tap linear-phase FIR run twice in each direction, so a
+ * shaped block comes back tens of samples later than the block it was made
+ * from. Subtracting one from the other outside this function is subtracting a
+ * DELAYED copy of the fundamental from the original, which is a comb filter —
+ * measured, it took a 400 Hz tone from 0.354 RMS to 0.090 and read as the
+ * effect gutting the sound. Taken here, before the downsampling, both signals
+ * are sample-aligned and what is left is harmonics.
+ *
+ * The energy is matched first, for the reason `matchLevel` in `exciterStage`
+ * gives at length: these curves are normalised for small signals, so a real
+ * level comes back quieter, and an unmatched difference is mostly an inverted
+ * fundamental with the harmonics riding on it.
  *
  * The oversampling is not a refinement here any more than it is for fuzz. A
  * non-linearity at the session rate folds everything above Nyquist back down as
@@ -232,6 +256,7 @@ export const organicBlock = (
   const doubled = frames * 2;
   if (state.doubled.length !== doubled) {
     state.doubled = new Float32Array(doubled);
+    state.doubledDry = new Float32Array(doubled);
   }
 
   // Peak of the block, which is what the follower chases. Cheaper than an RMS
@@ -262,12 +287,28 @@ export const organicBlock = (
   // audio callback, so the constant is hoisted; the exported function keeps
   // the readable form for tests and for anyone reading the curve.
   const asymmetryOutput = Math.tanh(asymmetry);
-  upsample(state.oversampler, target, state.doubled, 2);
+  upsample(state.oversampler, target, state.doubledDry, 2);
+
+  let shapedEnergy = 0;
+  let dryEnergy = 0;
   for (let i = 0; i < doubled; i += 1) {
-    state.doubled[i] =
-      (Math.tanh(state.doubled[i] * drive + asymmetry) - asymmetryOutput) /
-      drive;
+    const dry = state.doubledDry[i];
+    const shaped =
+      (Math.tanh(dry * drive + asymmetry) - asymmetryOutput) / drive;
+    state.doubled[i] = shaped;
+    shapedEnergy += shaped * shaped;
+    dryEnergy += dry * dry;
   }
+
+  // Energy-matched, then differenced, both while the two are still aligned.
+  const gain =
+    shapedEnergy > 1e-20 && dryEnergy > 1e-20
+      ? Math.sqrt(dryEnergy / shapedEnergy)
+      : 1;
+  for (let i = 0; i < doubled; i += 1) {
+    state.doubled[i] = state.doubled[i] * gain - state.doubledDry[i];
+  }
+
   downsample(state.oversampler, state.doubled, target, 2);
 
   return drive;

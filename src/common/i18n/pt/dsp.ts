@@ -214,6 +214,12 @@ const dsp = {
     'Corpo para médios que medem bem e soam finos. Harmónicos pares que seguem a música e derivam com ela, para respirar em vez de ficar parado.',
   'dsp.exciter.organicAmount': 'Corpo',
   'dsp.exciter.organicFocus': 'Foco',
+  'dsp.exciter.organicRange': 'Alcance',
+  'dsp.exciter.isolate': 'Isolar',
+  'dsp.exciter.isolateHint':
+    'Ouve apenas os harmónicos que esta etapa acrescenta.',
+  'dsp.exciter.isolateOn':
+    'Sinal direto desligado — ouves apenas o que isto acrescenta.',
 
   'dsp.compressor.title': 'Compressor multibanda',
   'dsp.compressor.description':

@@ -119,7 +119,7 @@ describe('dsp graph', () => {
       excited(),
     );
     const next = excited({
-      organic: { enabled: true, amount: 0.5, focusHz: 800 },
+      organic: { enabled: true, amount: 0.5, focusHz: 800, range: 0.4 },
     });
     graph.update(next);
     expect(worklet.port.postMessage).toHaveBeenLastCalledWith(next);

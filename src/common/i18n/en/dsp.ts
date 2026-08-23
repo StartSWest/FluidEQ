@@ -221,6 +221,11 @@ const dsp = {
     'Body for a midrange that measures fine and sounds thin. Even harmonics that follow the music and drift as they go, so it breathes instead of sitting still.',
   'dsp.exciter.organicAmount': 'Body',
   'dsp.exciter.organicFocus': 'Focus',
+  'dsp.exciter.organicRange': 'Range',
+  'dsp.exciter.isolate': 'Isolate',
+  'dsp.exciter.isolateHint': 'Hear only the harmonics this stage is adding.',
+  'dsp.exciter.isolateOn':
+    'Dry signal dropped — you are hearing only what this adds.',
 
   'dsp.compressor.title': 'Multiband compressor',
   'dsp.compressor.description':

@@ -69,6 +69,16 @@ export interface IOrganicSettings {
   amount: number;
   /** Centre of the band it works on, Hz. */
   focusHz: number;
+  /**
+   * How much of the spectrum it works on: 0 is the focus band, 1 is all of it.
+   *
+   * A bandpass alone cannot reach "everything" — drop its Q far enough to span
+   * the audible range and it stops behaving like a filter long before it stops
+   * rolling off at the edges. So this blends towards the unfiltered signal
+   * instead, and at 1 the focus dial stops meaning anything because there is
+   * no longer a band to centre.
+   */
+  range: number;
 }
 
 export interface IExciterSettings {
@@ -79,6 +89,19 @@ export interface IExciterSettings {
   bands: readonly IExciterBandSettings[];
   /** @see IOrganicSettings */
   organic: IOrganicSettings;
+  /**
+   * Hear ONLY what this stage made, with the dry signal dropped.
+   *
+   * A harmonic generator is the hardest stage in a rack to judge, because a
+   * good setting sounds like "slightly bigger" and that is indistinguishable
+   * from expecting it to. This removes the doubt: what is left is exactly what
+   * the stage is adding, and nothing else.
+   *
+   * Deliberately NOT restored from storage — `clampDspSettings` forces it
+   * false. It is a monitoring mode, and quitting with it on and coming back to
+   * a rack that plays only harmonics is a bug report rather than a setting.
+   */
+  isolate: boolean;
 }
 
 export interface IBandSettings {
@@ -466,10 +489,16 @@ const RANGES = {
   exciterMix: { min: 0, max: 1 },
   exciterTexture: { min: 0, max: 1 },
   organicAmount: { min: 0, max: 1 },
-  // The range a thin midrange actually lives in. Below 150 is body the driver
-  // usually has too much of already, and above 2.5k is presence rather than
-  // density — which is the exciter's high band, not this.
-  organicFocusHz: { min: 150, max: 2_500 },
+  organicRange: { min: 0, max: 1 },
+  // The whole audible band, not the midrange it was first scoped to.
+  //
+  // It started at 150-2500 on the reasoning that a thin midrange is what this
+  // stage is for. That reasoning was right about the common case and wrong as
+  // a limit: a driver can be hollow anywhere, and refusing to put body under
+  // 150 Hz or above 2.5k is answering a question the user was asking. Paired
+  // with `range`, which widens the band until the focus stops mattering at
+  // all, this now covers everything.
+  organicFocusHz: { min: 40, max: 16_000 },
   compressorLowHz: { min: 60, max: 600 },
   compressorHighHz: { min: 1_000, max: 10_000 },
   thresholdDb: { min: -60, max: 0 },
@@ -784,7 +813,11 @@ export const DSP_DEFAULTS: IDspSettings = {
         thresholdDb: -24,
       },
     ],
-    organic: { enabled: false, amount: 0.4, focusHz: 700 },
+    // A little wider than the focus band by default: a stage that arrives
+    // audibly working on one narrow slice reads as a resonance rather than as
+    // body, and body is the point.
+    organic: { enabled: false, amount: 0.4, focusHz: 700, range: 0.35 },
+    isolate: false,
   },
   compressor: {
     enabled: false,
@@ -1056,7 +1089,16 @@ export const clampDspSettings = (value: unknown): IDspSettings => {
           RANGES.organicFocusHz,
           DSP_DEFAULTS.exciter.organic.focusHz,
         ),
+        range: clampNumber(
+          storedOrganic.range,
+          RANGES.organicRange,
+          DSP_DEFAULTS.exciter.organic.range,
+        ),
       },
+      // Never restored, whatever the stored blob says. @see IExciterSettings
+      // — quitting with the monitoring mode on and coming back to a rack that
+      // plays only harmonics is a bug report, not a preference.
+      isolate: false,
     },
     compressor: {
       enabled: clampBoolean(

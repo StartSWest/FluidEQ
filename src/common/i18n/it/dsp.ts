@@ -211,6 +211,12 @@ const dsp = {
     'Corpo per medi che misurano bene e suonano sottili. Armoniche pari che seguono la musica e derivano con essa, così respira invece di restare ferma.',
   'dsp.exciter.organicAmount': 'Corpo',
   'dsp.exciter.organicFocus': 'Fuoco',
+  'dsp.exciter.organicRange': 'Estensione',
+  'dsp.exciter.isolate': 'Isola',
+  'dsp.exciter.isolateHint':
+    'Ascolta solo le armoniche che questo stadio aggiunge.',
+  'dsp.exciter.isolateOn':
+    'Segnale diretto escluso: senti solo ciò che viene aggiunto.',
 
   'dsp.compressor.title': 'Compressore multibanda',
   'dsp.compressor.description':

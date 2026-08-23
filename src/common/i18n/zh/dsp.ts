@@ -206,6 +206,10 @@ const dsp = {
     '为测量正常却听感单薄的中频增添厚度。偶次谐波跟随音乐并随之漂移，因此它会呼吸而不是静止不动。',
   'dsp.exciter.organicAmount': '厚度',
   'dsp.exciter.organicFocus': '焦点',
+  'dsp.exciter.organicRange': '范围',
+  'dsp.exciter.isolate': '独听',
+  'dsp.exciter.isolateHint': '只听这一级所添加的谐波。',
+  'dsp.exciter.isolateOn': '已关闭干信号——你听到的只有它添加的部分。',
 
   'dsp.compressor.title': '多段压缩器',
   'dsp.compressor.description': '在三个频段中分别平衡音量。',

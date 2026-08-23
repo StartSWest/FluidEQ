@@ -60,6 +60,31 @@ const DspExciterCard = ({
       isEnabled={exciter.enabled}
       onToggle={() => onPatch({ ...exciter, enabled: !exciter.enabled })}
     >
+      {/* Loud, and at the top, because it changes what comes out of the
+          speakers more than any other control on the page. A monitoring mode
+          that is easy to leave on is one somebody leaves on and then reports
+          as the rack having broken — so it is a lit button rather than a
+          checkbox, and it says what it is doing while it does it. */}
+      <div className="dsp-exciter-monitor">
+        <button
+          type="button"
+          className={`button small${exciter.isolate ? '' : ' subtle'}`}
+          aria-pressed={exciter.isolate}
+          disabled={!exciter.enabled}
+          onClick={() => {
+            onPatch({ ...exciter, isolate: !exciter.isolate });
+            onCommit();
+          }}
+        >
+          {t('dsp.exciter.isolate')}
+        </button>
+        <span className="dsp-exciter-monitor-hint">
+          {exciter.isolate
+            ? t('dsp.exciter.isolateOn')
+            : t('dsp.exciter.isolateHint')}
+        </span>
+      </div>
+
       <DspExciterDisplay settings={exciter} />
 
       <div className="dsp-crossovers">
@@ -229,14 +254,35 @@ const DspExciterCard = ({
             labelKey="dsp.exciter.organicFocus"
             value={exciter.organic.focusHz}
             defaultValue={DSP_DEFAULTS.exciter.organic.focusHz}
-            min={150}
-            max={2_500}
+            min={40}
+            max={16_000}
             unit="Hz"
             step={10}
-            isDisabled={!exciter.enabled || !exciter.organic.enabled}
+            // At full range there is no band left to centre, so the dial that
+            // centres it is telling the truth by being unavailable rather than
+            // by quietly doing nothing.
+            isDisabled={
+              !exciter.enabled ||
+              !exciter.organic.enabled ||
+              exciter.organic.range >= 1
+            }
             onCommit={onCommit}
             onChange={(focusHz) =>
               onPatch({ ...exciter, organic: { ...exciter.organic, focusHz } })
+            }
+          />
+          <Dial
+            labelKey="dsp.exciter.organicRange"
+            value={exciter.organic.range}
+            defaultValue={DSP_DEFAULTS.exciter.organic.range}
+            min={0}
+            max={1}
+            unit=""
+            step={0.01}
+            isDisabled={!exciter.enabled || !exciter.organic.enabled}
+            onCommit={onCommit}
+            onChange={(range) =>
+              onPatch({ ...exciter, organic: { ...exciter.organic, range } })
             }
           />
         </div>

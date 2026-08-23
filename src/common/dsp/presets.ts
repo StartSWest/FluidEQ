@@ -128,7 +128,7 @@ export const DSP_PRESETS: IDspPreset[] = [
         // The one preset here whose job is to sound BIGGER, which is what the
         // organic stage is for. Modest, because it is arriving on top of a
         // compressor that is already working.
-        organic: { enabled: true, amount: 0.3, focusHz: 650 },
+        organic: { enabled: true, amount: 0.3, focusHz: 650, range: 0.4 },
       },
       compressor: {
         enabled: true,

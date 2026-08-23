@@ -215,6 +215,12 @@ const dsp = {
     'Fülle für Mitten, die sich gut messen und dünn klingen. Gerade Obertöne, die der Musik folgen und dabei driften, damit es atmet statt still zu stehen.',
   'dsp.exciter.organicAmount': 'Fülle',
   'dsp.exciter.organicFocus': 'Fokus',
+  'dsp.exciter.organicRange': 'Umfang',
+  'dsp.exciter.isolate': 'Isolieren',
+  'dsp.exciter.isolateHint':
+    'Nur die Obertöne hören, die diese Stufe hinzufügt.',
+  'dsp.exciter.isolateOn':
+    'Direktsignal aus — Sie hören nur, was hier hinzukommt.',
 
   'dsp.compressor.title': 'Multiband-Kompressor',
   'dsp.compressor.description':

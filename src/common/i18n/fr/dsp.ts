@@ -212,6 +212,12 @@ const dsp = {
     'Du corps pour un médium qui se mesure bien et sonne maigre. Des harmoniques paires qui suivent la musique et dérivent avec elle, pour que ça respire au lieu de rester figé.',
   'dsp.exciter.organicAmount': 'Corps',
   'dsp.exciter.organicFocus': 'Focus',
+  'dsp.exciter.organicRange': 'Étendue',
+  'dsp.exciter.isolate': 'Isoler',
+  'dsp.exciter.isolateHint':
+    "N'entendre que les harmoniques ajoutées par cet étage.",
+  'dsp.exciter.isolateOn':
+    "Signal direct coupé — vous n'entendez que ce qui est ajouté.",
 
   'dsp.compressor.title': 'Compresseur multibande',
   'dsp.compressor.description':

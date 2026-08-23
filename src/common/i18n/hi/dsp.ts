@@ -212,6 +212,11 @@ const dsp = {
     'उन मिड्स को बॉडी दें जो मापने में ठीक हैं पर पतले सुनाई देते हैं। सम हार्मोनिक्स जो संगीत के साथ चलते और बहते हैं, ताकि यह ठहरे नहीं बल्कि साँस ले।',
   'dsp.exciter.organicAmount': 'बॉडी',
   'dsp.exciter.organicFocus': 'फ़ोकस',
+  'dsp.exciter.organicRange': 'रेंज',
+  'dsp.exciter.isolate': 'अलग करें',
+  'dsp.exciter.isolateHint': 'केवल वे हार्मोनिक्स सुनें जो यह चरण जोड़ रहा है।',
+  'dsp.exciter.isolateOn':
+    'ड्राई सिग्नल बंद — आप केवल जोड़ा गया हिस्सा सुन रहे हैं।',
 
   'dsp.compressor.title': 'मल्टीबैंड कंप्रेसर',
   'dsp.compressor.description':

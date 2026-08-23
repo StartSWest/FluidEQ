@@ -88,20 +88,22 @@ export interface IExciterChannelState {
   oversamplers: IOversamplerState[];
   /** Oversampled scratch, one shared buffer since bands are done in turn. */
   wide: Float32Array;
-  /** One follower per band, for the dynamic gate. */
-  gates: number[];
-  organic: IOrganicState;
-  organicBand: Float32Array;
   /**
-   * The focus band before it was shaped, so the difference can be taken.
+   * The same block before shaping, so the difference stays aligned.
    *
-   * Preallocated like every other buffer here, and not because it is tidier: a
+   * Preallocated like every buffer here, and not for tidiness: a
    * `new Float32Array` per block runs inside the audio callback, and the
    * garbage it makes is collected on a thread that has 2.7ms to finish. That
-   * shows up as a dropout on somebody else's machine, months later, and looks
+   * surfaces as a dropout on somebody else's machine, months later, looking
    * like anything but an allocation.
    */
-  organicBefore: Float32Array;
+  wideDry: Float32Array;
+  /** One follower per band, for the dynamic gate. */
+  gates: number[];
+  /** The block as it arrived, before any stage added to it. @see runExciterChannel */
+  dry: Float32Array;
+  organic: IOrganicState;
+  organicBand: Float32Array;
   /** Two cascaded bandpass stages, so the focus has skirts worth the name. */
   focusStages: IBiquadState[];
 }
@@ -118,10 +120,11 @@ export const createExciterChannel = (
   shaped: new Float32Array(blockSize),
   oversamplers: [createOversampler(), createOversampler(), createOversampler()],
   wide: new Float32Array(blockSize * OVERSAMPLE),
+  wideDry: new Float32Array(blockSize * OVERSAMPLE),
   gates: [0, 0, 0],
+  dry: new Float32Array(blockSize),
   organic: createOrganicState(blockSize),
   organicBand: new Float32Array(blockSize),
-  organicBefore: new Float32Array(blockSize),
   focusStages: [createBiquadState(), createBiquadState()],
 });
 
@@ -136,9 +139,30 @@ const resize = (state: IExciterChannelState, frames: number): void => {
   ];
   state.shaped = new Float32Array(frames);
   state.wide = new Float32Array(frames * OVERSAMPLE);
+  state.wideDry = new Float32Array(frames * OVERSAMPLE);
+  state.dry = new Float32Array(frames);
   state.organicBand = new Float32Array(frames);
-  state.organicBefore = new Float32Array(frames);
 };
+
+/**
+ * WHY BOTH LOOPS BELOW MATCH ENERGY BEFORE SUBTRACTING.
+ *
+ * Every curve here is normalised for small signals — `tanh(x*d + a) / d` is
+ * very close to `x` when `x` is tiny, which is what keeps a gentle setting
+ * gentle. At a real level it is not: a 0.5 sine through drive 2.5 comes back at
+ * 0.34, so the band is 32% quieter than it went in.
+ *
+ * That matters here and nowhere else in the app, because this stage adds the
+ * DIFFERENCE between shaped and dry. A shaped copy that is quieter makes that
+ * difference a large inverted copy of the fundamental with the harmonics riding
+ * on top — so turning the mix up cancels the band instead of exciting it, and
+ * isolate plays back the fundamental rather than the harmonics.
+ *
+ * It is the same conclusion the old single-band shaper reached by another
+ * route: it normalised its curve by `tanh(drive)` so the output spanned full
+ * scale at every drive, and its comment says why — an un-normalised curve gets
+ * quieter as it is driven, and the user hears the effect doing nothing.
+ */
 
 /** Peak of a block, which is what both the gate and the follower chase. */
 const peakOf = (buffer: Float32Array): number => {
@@ -192,6 +216,12 @@ const gateAmount = (
  * what the card draws. A display fed the SETTINGS would be drawing what was
  * asked for; the whole claim of this stage is that the amounts move on their
  * own, so anything short of the truth would be worse than no display at all.
+ *
+ * ISOLATE drops the dry signal and leaves only what this stage made. It costs
+ * one `fill(0)` and no separate code path, which is not a coincidence — every
+ * stage here adds a DIFFERENCE rather than a processed copy, so what it
+ * contributed is already a signal in its own right. Anything else would need
+ * the whole chain run twice and subtracted.
  */
 export const runExciterChannel = (
   state: IExciterChannelState,
@@ -213,6 +243,24 @@ export const runExciterChannel = (
     settings.crossoverHz,
     sampleRate,
   );
+
+  /**
+   * The input, kept because two things need it after `target` stops being it.
+   *
+   * The organic stage reads from here rather than from `target`, so it and the
+   * three bands are genuinely parallel — all four fed the same signal. Reading
+   * `target` meant its focus bandpass saw whatever the bands had already added,
+   * which made the two stages serial by accident of the order they happen to be
+   * written in.
+   *
+   * And under isolate `target` is about to be zeroed, so without a copy the
+   * organic stage would be handed silence and the mode would appear to switch
+   * it off.
+   */
+  state.dry.set(target);
+  if (settings.isolate) {
+    target.fill(0);
+  }
 
   for (let band = 0; band < 3; band += 1) {
     const setup = settings.bands[band];
@@ -242,15 +290,42 @@ export const runExciterChannel = (
         upsample(
           state.oversamplers[band],
           state.shaped,
-          state.wide,
+          state.wideDry,
           OVERSAMPLE,
         );
         const wide = frames * OVERSAMPLE;
+        let shapedEnergy = 0;
+        let dryEnergy = 0;
         for (let i = 0; i < wide; i += 1) {
-          state.wide[i] =
-            (Math.tanh(state.wide[i] * drive + asymmetry) - asymmetryOutput) /
-            drive;
+          const dry = state.wideDry[i];
+          const value =
+            (Math.tanh(dry * drive + asymmetry) - asymmetryOutput) / drive;
+          state.wide[i] = value;
+          shapedEnergy += value * value;
+          dryEnergy += dry * dry;
         }
+
+        // Energy-matched and then differenced, both INSIDE the oversampled
+        // domain where the two are still sample-aligned. The comment above
+        // `peakOf` says why the match; the alignment is because the
+        // resampler is a 63-tap linear-phase FIR run twice each way, so
+        // subtracting after the round trip is subtracting a delayed copy of
+        // the fundamental, which is a comb filter rather than a harmonic.
+        // Measured before the fix: one band at mix 0.4 took a 400 Hz tone
+        // from 0.354 RMS to 0.090.
+        const gain =
+          shapedEnergy > 1e-20 && dryEnergy > 1e-20
+            ? Math.sqrt(dryEnergy / shapedEnergy)
+            : 1;
+        for (let i = 0; i < wide; i += 1) {
+          state.wide[i] = state.wide[i] * gain - state.wideDry[i];
+        }
+
+        // `shaped` now holds the harmonics themselves, so this is a plain add
+        // rather than a difference. Adding the shaped BAND would have added
+        // its fundamental a second time, which is a level change wearing an
+        // exciter's name — turning the mix up would make it louder rather than
+        // richer, and that is the commonest way this kind of stage is wrong.
         downsample(
           state.oversamplers[band],
           state.wide,
@@ -258,14 +333,9 @@ export const runExciterChannel = (
           OVERSAMPLE,
         );
 
-        // The DIFFERENCE is what gets added, not the shaped band itself.
-        // Adding the shaped band would add the band's own fundamental a second
-        // time, which is a level change wearing an exciter's name — turning
-        // the mix up would make it louder rather than richer, and that is the
-        // single most common way this kind of stage is got wrong.
         const amount = setup.mix * open;
         for (let i = 0; i < frames; i += 1) {
-          target[i] += (state.shaped[i] - source[i]) * amount;
+          target[i] += state.shaped[i] * amount;
         }
         contributed[band] = amount;
       }
@@ -276,9 +346,9 @@ export const runExciterChannel = (
   const { organic } = settings;
   if (organic.enabled && organic.amount > 0) {
     // Its own bandpass rather than one of the three bands above. The stage is
-    // about a specific region of the midrange being thin, and which region
-    // that is depends on the driver — so it is a frequency the user moves,
-    // not whichever slice the exciter's crossovers happen to leave.
+    // about a specific region being thin, and which region that is depends on
+    // the driver — so it is a frequency the user moves, not whichever slice
+    // the exciter's crossovers happen to leave.
     const coefficients = biquadCoefficients(
       {
         type: FilterTypeEnum.BP,
@@ -290,18 +360,39 @@ export const runExciterChannel = (
       },
       sampleRate,
     );
-    state.organicBand.set(target);
+    // Read from the input, not from `target`. The bands above have already
+    // added to `target`, so taking the source from there made this stage feed
+    // on their harmonics — serial by accident of the order the two are written
+    // in, when they are meant to be parallel. It is also what makes isolate
+    // work, since `target` is zeroed there.
+    state.organicBand.set(state.dry);
     processBiquad(state.focusStages[0], state.organicBand, coefficients);
     processBiquad(state.focusStages[1], state.organicBand, coefficients);
 
-    state.organicBefore.set(state.organicBand);
+    /**
+     * How much of the spectrum this works on, from the focus band to all of it.
+     *
+     * A bandpass alone could never reach "everything": drop its Q far enough to
+     * span the audible range and it stops being a filter long before it stops
+     * rolling off at the edges. So range LERPS towards the unfiltered signal
+     * instead. At 0 the stage sees only its focus band; at 1 it sees the whole
+     * signal and the focus dial no longer means anything; in between the focus
+     * is emphasised without being exclusive, which is the useful middle and the
+     * reason this is a dial rather than a switch.
+     */
+    if (organic.range > 0) {
+      for (let i = 0; i < frames; i += 1) {
+        state.organicBand[i] +=
+          (state.dry[i] - state.organicBand[i]) * organic.range;
+      }
+    }
+
+    // Comes back holding the harmonics rather than the shaped band — the
+    // difference is taken inside `organicBlock`, where the signals are still
+    // aligned. So this is a plain add.
     organicBlock(state.organic, state.organicBand, organic.amount, sampleRate);
-    // Again the DIFFERENCE, for the same reason the bands take theirs: what
-    // this stage is adding is the harmonics it made, not a second copy of the
-    // midrange it made them from.
     for (let i = 0; i < frames; i += 1) {
-      target[i] +=
-        (state.organicBand[i] - state.organicBefore[i]) * organic.amount;
+      target[i] += state.organicBand[i] * organic.amount;
     }
     organicAmount = organicAsymmetry(organic.amount);
   }

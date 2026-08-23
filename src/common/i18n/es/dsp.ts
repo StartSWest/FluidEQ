@@ -212,6 +212,11 @@ const dsp = {
     'Cuerpo para unos medios que miden bien y suenan delgados. Armónicos pares que siguen a la música y derivan con ella, para que respire en vez de quedarse quieto.',
   'dsp.exciter.organicAmount': 'Cuerpo',
   'dsp.exciter.organicFocus': 'Foco',
+  'dsp.exciter.organicRange': 'Alcance',
+  'dsp.exciter.isolate': 'Aislar',
+  'dsp.exciter.isolateHint': 'Escucha solo los armónicos que añade esta etapa.',
+  'dsp.exciter.isolateOn':
+    'Señal directa desactivada: solo oyes lo que esto añade.',
 
   'dsp.compressor.title': 'Compresor multibanda',
   'dsp.compressor.description':

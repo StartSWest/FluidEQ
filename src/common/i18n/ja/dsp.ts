@@ -211,6 +211,10 @@ const dsp = {
     '測定は正常なのに薄く聞こえる中域に厚みを。音楽に追従しながら揺らぐ偶数次倍音で、止まらずに呼吸します。',
   'dsp.exciter.organicAmount': '厚み',
   'dsp.exciter.organicFocus': 'フォーカス',
+  'dsp.exciter.organicRange': '範囲',
+  'dsp.exciter.isolate': 'アイソレート',
+  'dsp.exciter.isolateHint': 'この段が加えている倍音だけを聴きます。',
+  'dsp.exciter.isolateOn': 'ドライ信号をオフ — 加えた分だけが聞こえています。',
 
   'dsp.compressor.title': 'マルチバンドコンプレッサー',
   'dsp.compressor.description': '3 つの帯域それぞれで音量を均します。',

@@ -262,6 +262,28 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   background: rgba(255, 176, 89, 0.05);
 }
 
+// Full width, above the display, because it changes what the display is
+// reporting on as well as what the speakers are doing.
+.dsp-exciter-monitor {
+  display: flex;
+  flex: 1 1 100%;
+  align-items: center;
+  gap: 10px;
+}
+
+// Warns while it is on and explains while it is off, in the same place. Two
+// separate elements would leave a gap where one of them was not.
+.dsp-exciter-monitor-hint {
+  min-width: 0;
+  color: rgba($white, 0.46);
+  font-size: 0.68rem;
+  line-height: 1.35;
+}
+
+.dsp-exciter-monitor button[aria-pressed='true'] + .dsp-exciter-monitor-hint {
+  color: rgba($secondary-light, 0.9);
+}
+
 // Full width above the bands, because it reports on all of them at once.
 .dsp-exciter-display {
   display: flex;

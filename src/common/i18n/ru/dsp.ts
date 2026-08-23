@@ -212,6 +212,12 @@ const dsp = {
     'Плотность для середины, которая хорошо измеряется и звучит тонко. Чётные гармоники следуют за музыкой и плывут вместе с ней, поэтому звук дышит, а не стоит на месте.',
   'dsp.exciter.organicAmount': 'Плотность',
   'dsp.exciter.organicFocus': 'Фокус',
+  'dsp.exciter.organicRange': 'Охват',
+  'dsp.exciter.isolate': 'Изолировать',
+  'dsp.exciter.isolateHint':
+    'Слышать только гармоники, которые добавляет этот блок.',
+  'dsp.exciter.isolateOn':
+    'Прямой сигнал выключен — слышно только добавленное.',
 
   'dsp.compressor.title': 'Многополосный компрессор',
   'dsp.compressor.description':
