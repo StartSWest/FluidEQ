@@ -142,44 +142,31 @@ describe('the EQ input regulator', () => {
   });
 
   /**
-   * The other two stages with gain in them, which the trim ignored at first.
+   * The reserve covers the FILTERS, and deliberately nothing else.
    *
-   * The exciter runs before the worklet and arrives at the preamp already
-   * boosted; the compressor's makeup runs after the bands, so trimming the
-   * input is what buys it room. A regulator watching only the EQ was right
-   * until somebody opened another tab.
+   * It used to cover the exciter and the compressor's makeup as well, on the
+   * reasoning that both add gain and the input is where room is bought. The
+   * reasoning is sound and the result was that both stages became inaudible.
+   *
+   * Switching the exciter on with one band at full mix added just over 6 dB to
+   * the reserve, so the regulator pulled the input down 7.5 dB with the margin
+   * and the harmonics landed in the hole it had just made. Reported exactly as
+   * it behaves: clearly audible under isolate, where there is no dry signal to
+   * have been turned down, and gone the moment it was mixed back. A stage that
+   * quiets the programme by the amount it adds is a stage that does nothing.
+   *
+   * The compressor's makeup was worse in kind: a gain the user dialled in on
+   * purpose, which the reserve then quietly took back.
+   *
+   * One regulator for the whole chain is a better idea than either — one gain
+   * in one place ahead of everything, rather than each stage arguing with the
+   * equaliser's. It is not built yet.
    */
-  it('makes room for the exciter and the compressor makeup', () => {
+  it('reserves for the EQ curve and for nothing else', () => {
     const flat = { ...DSP_DEFAULTS, eq: { ...DSP_DEFAULTS.eq } };
     expect(chainPeakDb(flat, RATE)).toBe(0);
 
-    // 1 + mix at full agreement, the shaper spanning exactly ±1 either way.
-    // One band on, so this is still the single-band arithmetic it always was.
     const excited = {
-      ...flat,
-      exciter: {
-        ...flat.exciter,
-        enabled: true,
-        bands: flat.exciter.bands.map((band, index) => ({
-          ...band,
-          enabled: index === 2,
-          mix: 0.5,
-        })),
-      },
-    };
-    expect(chainPeakDb(excited, RATE)).toBeCloseTo(20 * Math.log10(1.5), 6);
-
-    /**
-     * Three bands SUM, and the reserve has to owe all of them.
-     *
-     * Unlike the compressor below, where the crossover means one band is in
-     * charge at any frequency and the largest makeup is what counts, the
-     * exciter's bands are parallel additions onto the dry signal — they arrive
-     * together. A reserve that took the largest would be short by exactly the
-     * amount that goes on to clip, which is the failure this whole regulator
-     * exists to prevent.
-     */
-    const allThree = {
       ...flat,
       exciter: {
         ...flat.exciter,
@@ -187,14 +174,15 @@ describe('the EQ input regulator', () => {
         bands: flat.exciter.bands.map((band) => ({
           ...band,
           enabled: true,
-          mix: 0.2,
+          mix: 1,
         })),
+        organic: { ...flat.exciter.organic, enabled: true, amount: 1 },
       },
     };
-    expect(chainPeakDb(allThree, RATE)).toBeCloseTo(20 * Math.log10(1.6), 6);
+    // Everything the exciter has, at maximum, and the reserve does not move.
+    expect(chainPeakDb(excited, RATE)).toBe(0);
+    expect(withInputTrim(excited, RATE).eq.trimDb).toBe(0);
 
-    // The crossover means one band is in charge at any frequency, so the
-    // largest makeup counts and the three do not add up.
     const compressed = {
       ...flat,
       compressor: {
@@ -206,11 +194,24 @@ describe('the EQ input regulator', () => {
         })),
       },
     };
-    expect(chainPeakDb(compressed, RATE)).toBeCloseTo(5, 6);
-    // Five of response plus the margin, which is not part of the response.
-    expect(withInputTrim(compressed, RATE).eq.trimDb).toBe(
-      -(5 + TRIM_MARGIN_DB),
-    );
+    expect(chainPeakDb(compressed, RATE)).toBe(0);
+
+    /**
+     * POSITIVE CONTROL: the reserve still answers to the EQ.
+     *
+     * Without this, a `chainPeakDb` that had been broken into returning zero
+     * for everything would pass every assertion above.
+     */
+    const boosted = {
+      ...flat,
+      eq: {
+        ...flat.eq,
+        bands: flat.eq.bands.map((band, index) =>
+          index === 5 ? { ...band, enabled: true, gainDb: 6 } : band,
+        ),
+      },
+    };
+    expect(chainPeakDb(boosted, RATE)).toBeGreaterThan(5);
   });
 
   /** Disabled stages contribute nothing: a trim that made room for a processor

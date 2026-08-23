@@ -355,38 +355,36 @@ export const TRIM_MARGIN_DB = 1.5;
 const isShaping = (settings: IDspSettings): boolean =>
   settings.eq.bands.some((band) => band.enabled && band.gainDb !== 0) ||
   settings.eq.subsonicHz > 0 ||
-  settings.eq.fuzzAmount > 0 ||
-  settings.exciter.enabled ||
-  settings.compressor.enabled;
+  settings.eq.fuzzAmount > 0;
 
+/**
+ * The EQ's reserve, and ONLY the EQ's.
+ *
+ * The regulator this feeds belongs to the equaliser: it exists so a curve that
+ * boosts does not clip the rack, and its readout sits on the EQ page beside the
+ * preamp. It used to speak for the whole chain, and that turned out to make the
+ * two stages beyond the EQ inaudible.
+ *
+ * Switching the exciter on with one band at full mix added 20*log10(1 + 1) —
+ * just over 6 dB — to the reserve. So the regulator pulled the input down 7.5 dB
+ * with the margin, and the harmonics the exciter then generated landed in the
+ * hole it had just made. Reported exactly as it behaves: audible under isolate,
+ * where there is no dry signal to have been turned down, and gone the moment it
+ * was mixed back. What a listener actually hears from a stage that quiets the
+ * programme by the amount it adds is a stage that does nothing but get quieter.
+ *
+ * The same reasoning applied to the compressor's makeup, which is a gain the
+ * user dialled in ON PURPOSE and which the reserve was quietly giving back.
+ *
+ * So the reserve now covers the filters, which is what it was built for and
+ * what its label says. A single input regulator for the whole chain is a
+ * different and better idea, and it is Ivan's — it needs one gain in one place
+ * ahead of everything, not each stage arguing with the equaliser's.
+ */
 export const chainPeakDb = (
   settings: IDspSettings,
   sampleRate: number,
-): number => {
-  const bands = eqChainPeakDb(settings.eq, sampleRate);
-  // Every band that is switched on, plus the organic stage. They are parallel
-  // and each adds on top of the dry signal, so the reserve owes the SUM rather
-  // than the largest: three bands at 0.3 add more than one band at 0.5, and a
-  // reserve that took the maximum would be short by exactly the amount that
-  // goes on to clip.
-  const exciter = settings.exciter.enabled
-    ? 20 *
-      Math.log10(
-        1 +
-          settings.exciter.bands.reduce(
-            (total, band) => total + (band.enabled ? band.mix : 0),
-            0,
-          ) +
-          (settings.exciter.organic.enabled
-            ? settings.exciter.organic.amount
-            : 0),
-      )
-    : 0;
-  const makeup = settings.compressor.enabled
-    ? Math.max(0, ...settings.compressor.bands.map((band) => band.makeupDb))
-    : 0;
-  return Math.max(0, bands + exciter + makeup);
-};
+): number => Math.max(0, eqChainPeakDb(settings.eq, sampleRate));
 
 /**
  * The chain with its input regulated to whatever it needs, end to end.
