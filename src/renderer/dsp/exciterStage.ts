@@ -76,6 +76,39 @@ const MAX_ASYMMETRY = 0.65;
 const GATE_ATTACK_MS = 8;
 const GATE_RELEASE_MS = 140;
 
+/**
+ * How fast the energy-matching gain is allowed to follow the programme.
+ *
+ * Slow, because the gain is a correction for the curve's own compression and
+ * that changes with the level rather than with the note. Following it closely
+ * would make the correction itself a level-dependent effect, which is a
+ * compressor nobody asked for. @see the ramp in `runExciterChannel`.
+ */
+const MATCH_SMOOTHING = 0.08;
+
+/**
+ * The DC blocker's pole, and why nothing here works without one.
+ *
+ * An ASYMMETRIC curve does not have zero mean for a zero-mean input. That is
+ * not a flaw in it — asymmetry is precisely what makes the even harmonics this
+ * stage exists for — but it means the shaped signal carries an offset, and the
+ * offset moves with the signal's level. So the output gains a wandering
+ * sub-sonic component, and because the difference is taken against a dry signal
+ * that has no such offset, all of it survives.
+ *
+ * Measured before this existed, on a single tone with the mid band alone: the
+ * LOUDEST component in the isolated output was 0.7 Hz at -3.7 dB, against the
+ * actual second harmonic at -6.9 dB. Twice the energy of the thing the stage is
+ * for, sitting below hearing — wasting headroom, modulating everything above it
+ * (the second harmonic measured smeared across 935-940 Hz rather than sitting
+ * on one line), and contributing nothing but the impression that the effect is
+ * noise.
+ *
+ * 0.9974 puts the corner near 20 Hz at 48 kHz, which is below anything musical
+ * and far above where the wander lives.
+ */
+const DC_POLE = 0.9974;
+
 /** One Butterworth stage; two cascaded make 24 dB/octave. */
 const BUTTERWORTH_Q = Math.SQRT1_2;
 
@@ -117,6 +150,10 @@ export interface IExciterChannelState {
   wideDry: Float32Array;
   /** One follower per band, for the dynamic gate. */
   gates: number[];
+  /** Last block's energy-matching gain, per band, so the next can ramp from it. */
+  matchGain: number[];
+  /** One DC blocker per band plus one for the organic stage. @see DC_POLE */
+  dcState: { x: number; y: number }[];
   /** The block as it arrived, before any stage added to it. @see runExciterChannel */
   dry: Float32Array;
   organic: IOrganicState;
@@ -144,6 +181,8 @@ export const createExciterChannel = (
   wide: new Float32Array(blockSize * OVERSAMPLE),
   wideDry: new Float32Array(blockSize * OVERSAMPLE),
   gates: [0, 0, 0],
+  matchGain: [0, 0, 0],
+  dcState: [0, 1, 2, 3].map(() => ({ x: 0, y: 0 })),
   dry: new Float32Array(blockSize),
   organic: createOrganicState(blockSize),
   organicBand: new Float32Array(blockSize),
@@ -185,6 +224,28 @@ const resize = (state: IExciterChannelState, frames: number): void => {
  * scale at every drive, and its comment says why — an un-normalised curve gets
  * quieter as it is driven, and the user hears the effect doing nothing.
  */
+
+/**
+ * Strip the wandering offset an asymmetric curve leaves behind. @see DC_POLE
+ *
+ * The textbook one-pole, one-zero blocker. Its state is kept per band so a
+ * band's history is its own, and it runs on the DOWNSAMPLED harmonics rather
+ * than inside the oversampled loop — there is nothing below 20 Hz that the
+ * resampler can alias, so doing it four times over would be four times the work
+ * for the same answer.
+ */
+const blockDc = (
+  state: { x: number; y: number },
+  buffer: Float32Array,
+): void => {
+  for (let i = 0; i < buffer.length; i += 1) {
+    const x = buffer[i];
+    const y = x - state.x + DC_POLE * state.y;
+    state.x = x;
+    state.y = y;
+    buffer[i] = y;
+  }
+};
 
 /** Peak of a block, which is what both the gate and the follower chase. */
 const peakOf = (buffer: Float32Array): number => {
@@ -367,12 +428,34 @@ export const runExciterChannel = (
         // the fundamental, which is a comb filter rather than a harmonic.
         // Measured before the fix: one band at mix 0.4 took a 400 Hz tone
         // from 0.354 RMS to 0.090.
-        const gain =
+        /**
+         * The gain is RAMPED across the block, never stepped onto it.
+         *
+         * A gain recomputed per block and applied flat is an amplitude
+         * modulator running at the block rate — 375 Hz at 48 kHz and 128
+         * frames — and it sprays sidebands around every component in the
+         * signal. Measured on a single 400 Hz sine with the step in place:
+         * lines at 375 Hz (-45.5 dB), at 25 Hz and 425 Hz either side of the
+         * tone, and only 31% of the isolated output's energy sitting on
+         * actual harmonics. The other 69% was the buffer boundary. That is
+         * what "it is just noise" sounds like, and no amount of tuning the
+         * curve would have touched it.
+         *
+         * Ramping from the previous block's gain to this one's makes the
+         * envelope continuous across the join. The gain is also smoothed
+         * first, so the ramp has a short distance to travel and the
+         * modulation that remains is far below the audible band.
+         */
+        const wanted =
           shapedEnergy > 1e-20 && dryEnergy > 1e-20
             ? Math.sqrt(dryEnergy / shapedEnergy)
             : 1;
+        const from = state.matchGain[band] || wanted;
+        const to = from + (wanted - from) * MATCH_SMOOTHING;
+        state.matchGain[band] = to;
+        const step = (to - from) / wide;
         for (let i = 0; i < wide; i += 1) {
-          state.wide[i] = state.wide[i] * gain - state.wideDry[i];
+          state.wide[i] = state.wide[i] * (from + step * i) - state.wideDry[i];
         }
 
         // `shaped` now holds the harmonics themselves, so this is a plain add
@@ -386,6 +469,8 @@ export const runExciterChannel = (
           state.shaped,
           OVERSAMPLE,
         );
+
+        blockDc(state.dcState[band], state.shaped);
 
         const amount = setup.mix * open;
         for (let i = 0; i < frames; i += 1) {
@@ -445,6 +530,7 @@ export const runExciterChannel = (
     // difference is taken inside `organicBlock`, where the signals are still
     // aligned. So this is a plain add.
     organicBlock(state.organic, state.organicBand, organic.amount, sampleRate);
+    blockDc(state.dcState[3], state.organicBand);
     for (let i = 0; i < frames; i += 1) {
       target[i] += state.organicBand[i] * organic.amount;
     }
