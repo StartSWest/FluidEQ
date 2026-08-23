@@ -56,6 +56,11 @@ const dsp = {
   'dsp.eqPreset.movie': 'Кино',
   'dsp.eqPreset.warm': 'Тёплый',
   'dsp.eqPreset.air': 'Воздух',
+  'dsp.eqPreset.deEss': 'Де-эссер',
+  'dsp.eqPreset.tameBoom': 'Убрать гул',
+  'dsp.eqPreset.tape': 'Плёнка',
+  'dsp.eqPreset.vinyl': 'Винил',
+  'dsp.eqPreset.liveVocal': 'Живой вокал',
 
   'dsp.eqPreset.import': 'Импорт',
   'dsp.eqPreset.export': 'Экспорт',

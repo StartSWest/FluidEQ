@@ -56,6 +56,11 @@ const dsp = {
   'dsp.eqPreset.movie': 'फ़िल्म',
   'dsp.eqPreset.warm': 'गर्म',
   'dsp.eqPreset.air': 'एयर',
+  'dsp.eqPreset.deEss': 'डी-एसर',
+  'dsp.eqPreset.tameBoom': 'गूँज काबू',
+  'dsp.eqPreset.tape': 'टेप',
+  'dsp.eqPreset.vinyl': 'विनाइल',
+  'dsp.eqPreset.liveVocal': 'लाइव वोकल',
 
   'dsp.eqPreset.import': 'आयात करें',
   'dsp.eqPreset.export': 'निर्यात करें',

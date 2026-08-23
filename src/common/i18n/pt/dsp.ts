@@ -56,6 +56,11 @@ const dsp = {
   'dsp.eqPreset.movie': 'Cinema',
   'dsp.eqPreset.warm': 'Quente',
   'dsp.eqPreset.air': 'Ar',
+  'dsp.eqPreset.deEss': 'De-esser',
+  'dsp.eqPreset.tameBoom': 'Domar o ronco',
+  'dsp.eqPreset.tape': 'Fita',
+  'dsp.eqPreset.vinyl': 'Vinil',
+  'dsp.eqPreset.liveVocal': 'Voz ao vivo',
 
   'dsp.eqPreset.import': 'Importar',
   'dsp.eqPreset.export': 'Exportar',

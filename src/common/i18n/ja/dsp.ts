@@ -55,6 +55,11 @@ const dsp = {
   'dsp.eqPreset.movie': '映画',
   'dsp.eqPreset.warm': 'ウォーム',
   'dsp.eqPreset.air': 'エア',
+  'dsp.eqPreset.deEss': 'ディエッサー',
+  'dsp.eqPreset.tameBoom': 'ブーミー除去',
+  'dsp.eqPreset.tape': 'テープ',
+  'dsp.eqPreset.vinyl': 'レコード',
+  'dsp.eqPreset.liveVocal': 'ライブボーカル',
 
   'dsp.eqPreset.import': 'インポート',
   'dsp.eqPreset.export': 'エクスポート',

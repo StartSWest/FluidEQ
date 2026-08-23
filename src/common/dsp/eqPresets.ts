@@ -347,6 +347,115 @@ export const EQ_PRESETS: readonly IEqPreset[] = [
     gains: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.5, 1.5, 3, 4, 4.5],
     setup: { ...PROTECTED, model: 'proportional', oversample: 2 },
   },
+  {
+    // The tool this whole capability was built for, and the clearest thing to
+    // hear it on. Flat everywhere except two deep cuts that are absent until a
+    // sibilant arrives — as a static curve it would be a dull record, and as a
+    // dynamic one it is a de-esser.
+    id: 'deEss',
+    labelKey: 'dsp.eqPreset.deEss',
+    gains: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -8, -8, 0, 0],
+    dynamic: [
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      -26,
+      -26,
+      null,
+      null,
+    ],
+    setup: { ...PROTECTED, model: 'proportional' },
+  },
+  {
+    // One note on a bass, or one corner of a room, ringing where nothing else
+    // does. A static cut here thins every note to fix the one that booms.
+    id: 'tameBoom',
+    labelKey: 'dsp.eqPreset.tameBoom',
+    gains: [0, 0, 0, -7, -6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    dynamic: [
+      null,
+      null,
+      null,
+      -22,
+      -22,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+    ],
+    setup: { ...PROTECTED, model: 'proportional' },
+  },
+  {
+    // Low mids up, top rolled off, and the one thing filters cannot do added
+    // on the end. The tilt is what tape does to a spectrum; the harmonics are
+    // what it does that no arrangement of bands could.
+    id: 'tape',
+    labelKey: 'dsp.eqPreset.tape',
+    gains: [
+      0.8, 1.2, 1.8, 2.2, 1.8, 0.9, 0, -0.4, -0.8, -1.2, -1.6, -2, -2.6, -3.2,
+      -3.8,
+    ],
+    setup: { ...PROTECTED, model: 'wide', fuzzAmount: 0.35 },
+  },
+  {
+    // What a record player does to a record, minus the wear: nothing below the
+    // groove, the bottom summed the way a cutting lathe demands it, and a top
+    // end that gives up gently rather than at a wall.
+    id: 'vinyl',
+    labelKey: 'dsp.eqPreset.vinyl',
+    gains: [
+      0, 0.4, 0.9, 1.3, 0.9, 0.4, 0, 0, -0.4, -0.9, -1.3, -1.8, -2.4, -3.2,
+      -4.2,
+    ],
+    setup: {
+      model: 'wide',
+      subsonicHz: 30,
+      // A lathe cannot cut bass that differs between the walls of the groove,
+      // so a record never had any. 150 is where that stops being true.
+      monoBelowHz: 150,
+      fuzzAmount: 0.15,
+    },
+  },
+  {
+    // Both directions at once, which is the thing only a dynamic band can do:
+    // presence that arrives when the voice does, and sibilance held down when
+    // it does not. The static version of this preset is a harsh one.
+    id: 'liveVocal',
+    labelKey: 'dsp.eqPreset.liveVocal',
+    gains: [-6, -5, -3, -1, 0, 0.5, 1, 1.5, 2, 2, 3, -6, -6, 0, -0.5],
+    dynamic: [
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      -30,
+      -26,
+      -26,
+      null,
+      null,
+    ],
+    setup: { ...PROTECTED, model: 'proportional' },
+  },
 ];
 
 /**

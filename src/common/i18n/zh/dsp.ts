@@ -55,6 +55,11 @@ const dsp = {
   'dsp.eqPreset.movie': '影院',
   'dsp.eqPreset.warm': '温暖',
   'dsp.eqPreset.air': '空气感',
+  'dsp.eqPreset.deEss': '齿音消除',
+  'dsp.eqPreset.tameBoom': '抑制轰鸣',
+  'dsp.eqPreset.tape': '磁带',
+  'dsp.eqPreset.vinyl': '黑胶',
+  'dsp.eqPreset.liveVocal': '现场人声',
 
   'dsp.eqPreset.import': '导入',
   'dsp.eqPreset.export': '导出',

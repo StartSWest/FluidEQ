@@ -225,7 +225,13 @@ describe('presets that react', () => {
     const reacting = EQ_PRESETS.filter((preset) =>
       preset.dynamic?.some((threshold) => threshold !== null),
     ).map((preset) => preset.id);
-    expect(reacting).toEqual(['podcast', 'lateNight']);
+    expect(reacting).toEqual([
+      'podcast',
+      'lateNight',
+      'deEss',
+      'tameBoom',
+      'liveVocal',
+    ]);
   });
 
   /**
