@@ -331,6 +331,10 @@ export interface IEqSettings {
    *
    * A listening preference rather than a property of the curve, so no preset
    * sets it — the same reasoning that keeps the preamp out of them.
+   *
+   * Off by default. A rack that holds a steady level is what somebody expects
+   * from an equaliser, and a level that moves on its own — however well — is
+   * a thing to opt into rather than to discover.
    */
   adaptiveTrim: boolean;
   /**
@@ -679,7 +683,7 @@ export const DSP_DEFAULTS: IDspSettings = {
     presetId: '',
     preampDb: 0,
     trimDb: 0,
-    adaptiveTrim: true,
+    adaptiveTrim: false,
   },
   exciter: { enabled: false, crossoverHz: 6_000, drive: 3, mix: 0.3 },
   compressor: {
@@ -829,7 +833,7 @@ export const clampDspSettings = (value: unknown): IDspSettings => {
       // sessions that have been clipping — and recomputed on the next change
       // either way.
       trimDb: clampNumber(eq.trimDb, RANGES.eqGainDb, 0),
-      adaptiveTrim: clampBoolean(eq.adaptiveTrim, true),
+      adaptiveTrim: clampBoolean(eq.adaptiveTrim, false),
       // The stored rack decides its own length now, so an imported ten-filter
       // curve comes back as ten bands rather than being padded out to fifteen
       // with silent ones. A band past the default rack has no fallback of its

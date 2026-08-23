@@ -71,6 +71,12 @@ const CHANNELS = 2;
  */
 const METER_BLOCKS = 16;
 
+/** Pairs kept per report. Enough to draw a shape, few enough to post. */
+const SCATTER_PAIRS = 256;
+
+/** One pair kept out of every this many. */
+const SCATTER_STRIDE = 4;
+
 /**
  * The compressor and the maximizer, in one processor.
  *
@@ -242,6 +248,26 @@ class DspProcessor extends AudioWorkletProcessor {
   private sumRightSquared = 0;
 
   private blocksSinceReport = 0;
+
+  /**
+   * A thinned scatter of the pairs leaving the chain, for the goniometer.
+   *
+   * Every fourth pair rather than all of them: a report covers about two
+   * thousand samples per channel and a display three centimetres across
+   * cannot show two thousand dots, so the rest would be copied across a
+   * thread and thrown away. Four still traces the shape of anything periodic
+   * enough to have one.
+   *
+   * Taken here, after the mid/side decode, because that is where the samples
+   * are left and right again — measured before it, the display would show
+   * the middle against the difference, which is a different picture that
+   * happens to look plausible.
+   */
+  private readonly scatter = new Float32Array(SCATTER_PAIRS * 2);
+
+  private scatterAt = 0;
+
+  private scatterSkip = 0;
 
   /** Largest sample seen since the last report, in linear full-scale units. */
   private peak = 0;
@@ -804,6 +830,16 @@ class DspProcessor extends AudioWorkletProcessor {
     }
     const [left, right] = output;
     for (let i = 0; i < left.length; i += 1) {
+      this.scatterSkip += 1;
+      if (
+        this.scatterSkip >= SCATTER_STRIDE &&
+        this.scatterAt < SCATTER_PAIRS
+      ) {
+        this.scatterSkip = 0;
+        this.scatter[this.scatterAt * 2] = left[i];
+        this.scatter[this.scatterAt * 2 + 1] = right[i];
+        this.scatterAt += 1;
+      }
       this.sumLeftRight += left[i] * right[i];
       this.sumLeftSquared += left[i] * left[i];
       this.sumRightSquared += right[i] * right[i];
@@ -843,9 +879,14 @@ class DspProcessor extends AudioWorkletProcessor {
       peak: this.peak,
       bandAmounts: this.bandAmounts,
       bandLevels: this.bandLevels,
+      // Sliced rather than sent whole: a partly filled buffer would draw its
+      // unused tail as a cluster of pairs at the origin, which reads as a
+      // mono signal that is not there.
+      scatter: this.scatter.slice(0, this.scatterAt * 2),
     });
     this.blocksSinceReport = 0;
     this.peak = 0;
+    this.scatterAt = 0;
     this.sumLeftRight = 0;
     this.sumLeftSquared = 0;
     this.sumRightSquared = 0;

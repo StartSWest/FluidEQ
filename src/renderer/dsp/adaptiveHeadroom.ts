@@ -28,15 +28,27 @@ SPDX-License-Identifier: GPL-3.0-or-later
  */
 
 /**
- * Rise slowly, fall at once.
+ * Rise slowly, fall quickly, and neither of them abruptly.
  *
- * These are not symmetric because the two directions are not equally safe.
- * Giving headroom back makes the output louder, so it is done gradually and
- * only once the material has been that way for a while. Taking it back is what
- * stands between a chorus and a clipped chorus, so it happens on the reading
- * that noticed.
+ * The two directions are not equally safe, so they are not equally fast:
+ * giving headroom back makes the output louder and is done only once the
+ * material has been that way for a while, while taking it back is what stands
+ * between a chorus and a clipped chorus.
+ *
+ * Neither is instant any more. Reports arrive about twenty-three times a
+ * second, so the first version — 0.15 up and the whole way down — could give
+ * back three and a half decibels a second and take them all in one reading,
+ * and on material that hovered near the threshold the level breathed in time
+ * with the music. At 0.04 up and 0.35 down it is about a decibel a second
+ * back and eight a second away: slow enough not to be heard as movement,
+ * fast enough that the whole reserve is recovered inside a second.
+ *
+ * A measured clip still drops everything at once, and the margin above the
+ * response is never handed back at all, so nothing here trades safety for
+ * smoothness.
  */
-const RISE_PER_STEP_DB = 0.15;
+const RISE_PER_STEP_DB = 0.04;
+const FALL_PER_STEP_DB = 0.35;
 
 /**
  * Below this, there is nothing to measure and measuring anyway is worse than
@@ -132,7 +144,7 @@ export const advanceHeadroom = (
   const target = Math.max(0, Math.min(reserveDb, reserveDb - excess));
   state.giveBack =
     target < state.giveBack
-      ? target
+      ? Math.max(target, state.giveBack - FALL_PER_STEP_DB)
       : Math.min(target, state.giveBack + RISE_PER_STEP_DB);
   return state.giveBack;
 };

@@ -121,11 +121,17 @@ const List = ({
       // inside a scroller brings it to the nearest edge, so a selection near
       // the bottom of a long list opened flush against the bottom of the menu
       // with everything after it out of sight and no sign there was more.
-      inputRefs[index].current?.focus({ preventScroll: true });
-      // Not smooth: this runs as the menu appears, and an animated scroll
-      // starting at that moment is something the first flick of the wheel has
-      // to fight.
-      inputRefs[index].current?.scrollIntoView({ block: 'center' });
+      const row = inputRefs[index].current;
+      row?.focus({ preventScroll: true });
+      // Checked rather than assumed: jsdom has no layout and therefore no
+      // `scrollIntoView`, so calling it outright turns every dropdown test
+      // into a TypeError for a line that only affects what the eye sees.
+      if (typeof row?.scrollIntoView === 'function') {
+        // Not smooth: this runs as the menu appears, and an animated scroll
+        // starting at that moment is something the first flick of the wheel
+        // has to fight.
+        row.scrollIntoView({ block: 'center' });
+      }
     }
   }, [focusOnRender, inputRefs, options, value]);
 

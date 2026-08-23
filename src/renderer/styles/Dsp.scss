@@ -1025,6 +1025,62 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   background: rgba($black, 0.18);
 }
 
+// The block’s caption and its three mode glyphs share one line, so the icons
+// cost no height at all — the canvas below keeps every pixel it had.
+.dsp-eq-phase-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.dsp-phase-modes {
+  display: flex;
+  gap: 2px;
+}
+
+// Glyph-sized, because words do not fit a block as wide as a dial: the names
+// are off, correlation and goniometer and each shape is a picture of
+// what it switches to rather than a label for it.
+.dsp-phase-mode {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 18px;
+  padding: 0;
+  border: 0;
+  border-radius: 5px;
+  background: none;
+  color: rgba($white, 0.4);
+  cursor: pointer;
+  transition:
+    background 130ms ease,
+    color 130ms ease;
+
+  svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  path {
+    fill: none;
+    stroke: currentcolor;
+    stroke-width: 1.4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  &:hover {
+    color: rgba($white, 0.8);
+  }
+
+  &.is-selected {
+    background: rgba($secondary-default, 0.18);
+    color: $secondary-default;
+  }
+}
+
 .dsp-eq-phase-canvas {
   width: 100%;
   min-width: 0;

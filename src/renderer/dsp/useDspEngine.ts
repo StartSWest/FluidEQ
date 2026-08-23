@@ -27,6 +27,7 @@ import {
   setDspBandLevels,
   setDspCorrelation,
   setDspHeadroomGiveBack,
+  setDspScatter,
   setDspEngineState,
   setDspPeak,
   setDspSampleRate,
@@ -186,6 +187,7 @@ export const useDspEngine = (
           peak?: unknown;
           bandAmounts?: unknown;
           bandLevels?: unknown;
+          scatter?: unknown;
         } | null;
         if (data && typeof data.correlation === 'number') {
           setDspCorrelation(data.correlation);
@@ -198,6 +200,9 @@ export const useDspEngine = (
         }
         if (data && Array.isArray(data.bandLevels)) {
           setDspBandLevels(data.bandLevels as number[]);
+        }
+        if (data?.scatter instanceof Float32Array) {
+          setDspScatter(data.scatter);
         }
         const input = graphRef.current?.inputAnalyser;
         const { eq } = settingsRef.current;

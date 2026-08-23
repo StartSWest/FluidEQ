@@ -253,6 +253,63 @@ export const setDspBandLevels = (next: readonly number[]): void => {
 export const readDspBandLevels = (): readonly number[] => bandLevels;
 
 /**
+ * Recent sample pairs leaving the chain, interleaved left, right.
+ *
+ * What the goniometer draws. The needle answers "how correlated" with one
+ * number; this answers "shaped how" — a vertical trace is mono, a circle is
+ * wide, a horizontal one is out of phase — and no single figure can.
+ */
+let scatter: Float32Array = new Float32Array(0);
+
+export const setDspScatter = (next: Float32Array): void => {
+  scatter = next;
+};
+
+export const readDspScatter = (): Float32Array => scatter;
+
+/**
+ * Which of the phase block’s three views is showing, if any.
+ *
+ * Its own storage key rather than a DSP setting: nothing here reaches the
+ * audio, and putting a display preference in the chain would make choosing a
+ * view rebuild filters.
+ */
+export type TPhaseView = 'off' | 'needle' | 'scope';
+
+const PHASE_VIEW_KEY = 'fluideq.dsp.phaseView';
+
+const readStoredPhaseView = (): TPhaseView => {
+  try {
+    const stored = window.localStorage.getItem(PHASE_VIEW_KEY);
+    return stored === 'off' || stored === 'scope' ? stored : 'needle';
+  } catch {
+    return 'needle';
+  }
+};
+
+let phaseView: TPhaseView | undefined;
+
+export const readDspPhaseView = (): TPhaseView => {
+  if (phaseView === undefined) {
+    phaseView = readStoredPhaseView();
+  }
+  return phaseView;
+};
+
+export const setDspPhaseView = (next: TPhaseView): void => {
+  phaseView = next;
+  try {
+    window.localStorage.setItem(PHASE_VIEW_KEY, next);
+  } catch {
+    // A full or disabled store costs the preference, not the session.
+  }
+  emit();
+};
+
+export const useDspPhaseView = (): TPhaseView =>
+  useSyncExternalStore(subscribe, readDspPhaseView, readDspPhaseView);
+
+/**
  * Headroom the adaptive stage has handed back for the current material, in dB.
  *
  * Never negative, and never more than the regulator reserved. Kept out of the
