@@ -77,6 +77,48 @@ const GATE_ATTACK_MS = 8;
 const GATE_RELEASE_MS = 140;
 
 /**
+ * TRANSIENT DISCRIMINATION, which is what separates an exciter from a fuzz box.
+ *
+ * This stage generated harmonics continuously and in proportion to the signal,
+ * which is a constant fizz laid over the music. Aphex's patent describes the
+ * opposite and describes it exactly: a "transient discriminate harmonics
+ * generator" that recognises transients and generates harmonics ON them,
+ * modelled on a struck brass gong, "where initial harmonic content is rich but
+ * decays faster than the fundamental".
+ *
+ * That is the whole character. Harmonics burst on an attack and are gone before
+ * the note is, so what the ear gets is articulation and detail — the leading
+ * edge of every sound drawn more sharply — rather than a layer of grit sitting
+ * on the sustain. A continuous generator cannot sound like that at any setting,
+ * because the thing being described is a time envelope rather than an amount.
+ *
+ * Measured as the ratio of a fast follower to a slow one: on steady material
+ * the two agree and the ratio is 1, so nothing is added; on an attack the fast
+ * one leaps ahead and the ratio spikes. Both followers watch the BAND, not the
+ * whole signal, so a cymbal opens the high band without the kick opening it
+ * too.
+ */
+const FAST_ATTACK_MS = 0.6;
+const FAST_RELEASE_MS = 45;
+const SLOW_ATTACK_MS = 22;
+const SLOW_RELEASE_MS = 320;
+
+/**
+ * What the harmonics get when nothing is happening.
+ *
+ * Not zero. Pure transient discrimination is right for percussion and wrong for
+ * a pad or a held vocal, which have almost no transients and would receive
+ * nothing at all — and a stage that switches itself off during the sustained
+ * parts of a mix is one that sounds broken rather than tasteful. This floor
+ * keeps a quiet layer under everything and lets the transients rise well above
+ * it.
+ */
+const TRANSIENT_FLOOR = 0.3;
+
+/** How far above the floor a full transient reaches. */
+const TRANSIENT_RANGE = 1.5;
+
+/**
  * How fast the energy-matching gain is allowed to follow the programme.
  *
  * Slow, because the gain is a correction for the curve's own compression and
@@ -154,6 +196,13 @@ export interface IExciterChannelState {
   matchGain: number[];
   /** One DC blocker per band plus one for the organic stage. @see DC_POLE */
   dcState: { x: number; y: number }[];
+  /** Fast and slow followers per band, whose ratio IS the transient.
+   *  @see TRANSIENT_FLOOR */
+  fastEnv: number[];
+  slowEnv: number[];
+  /** Removes the source's own fundamental from what the band generated.
+   *  Two stages, so the band it came from is genuinely gone. */
+  liftStages: IBiquadState[][];
   /** The block as it arrived, before any stage added to it. @see runExciterChannel */
   dry: Float32Array;
   organic: IOrganicState;
@@ -183,6 +232,9 @@ export const createExciterChannel = (
   gates: [0, 0, 0],
   matchGain: [0, 0, 0],
   dcState: [0, 1, 2, 3].map(() => ({ x: 0, y: 0 })),
+  fastEnv: [0, 0, 0],
+  slowEnv: [0, 0, 0],
+  liftStages: [0, 1, 2].map(() => [createBiquadState(), createBiquadState()]),
   dry: new Float32Array(blockSize),
   organic: createOrganicState(blockSize),
   organicBand: new Float32Array(blockSize),
@@ -245,6 +297,39 @@ const blockDc = (
     state.y = y;
     buffer[i] = y;
   }
+};
+
+/**
+ * How much harmonic content this block has earned. @see TRANSIENT_FLOOR
+ *
+ * The ratio of a fast follower to a slow one, which is 1 on steady material and
+ * leaps on an attack. Subtracting 1 leaves the excess, and the excess is the
+ * transient — a measure that does not care how loud the passage is, only how
+ * suddenly it got there, so a quiet snare is excited as much as a loud one.
+ */
+const transientAmount = (
+  state: IExciterChannelState,
+  band: number,
+  level: number,
+  frames: number,
+  sampleRate: number,
+): number => {
+  const coefficient = (ms: number) =>
+    Math.exp(-frames / ((ms / 1000) * sampleRate));
+  const fast = coefficient(
+    level > state.fastEnv[band] ? FAST_ATTACK_MS : FAST_RELEASE_MS,
+  );
+  const slow = coefficient(
+    level > state.slowEnv[band] ? SLOW_ATTACK_MS : SLOW_RELEASE_MS,
+  );
+  state.fastEnv[band] = level + (state.fastEnv[band] - level) * fast;
+  state.slowEnv[band] = level + (state.slowEnv[band] - level) * slow;
+
+  if (state.slowEnv[band] < SILENCE) {
+    return TRANSIENT_FLOOR;
+  }
+  const excess = Math.max(0, state.fastEnv[band] / state.slowEnv[band] - 1);
+  return TRANSIENT_FLOOR + Math.min(1, excess) * TRANSIENT_RANGE;
 };
 
 /** Peak of a block, which is what both the gate and the follower chase. */
@@ -472,7 +557,38 @@ export const runExciterChannel = (
 
         blockDc(state.dcState[band], state.shaped);
 
-        const amount = setup.mix * open;
+        /**
+         * Everything below the SECOND harmonic is thrown away.
+         *
+         * What survives the shaper is the band's own fundamental plus the
+         * harmonics made from it, and the fundamental is not this stage's to
+         * add — the dry signal already carries it. Leaving it in makes the mix
+         * control a level control for the band, and makes isolate play a
+         * distorted copy of the music instead of the thing being added.
+         *
+         * Aphex describe the same filter from the other end: a "Hi Tune"
+         * control setting the point above which enhancement takes place. Here
+         * it is not a control because it is not a choice — the second harmonic
+         * of the band's lowest content is exactly twice its lower edge, and
+         * that is where the new material starts whatever the band is set to.
+         */
+        const liftHz = Math.min(BAND_EDGE_MAX_HZ, lowHz * 2);
+        const lift = biquadCoefficients(
+          {
+            type: FilterTypeEnum.HPQ,
+            frequency: liftHz,
+            gainDb: 0,
+            quality: BUTTERWORTH_Q,
+          },
+          sampleRate,
+        );
+        processBiquad(state.liftStages[band][0], state.shaped, lift);
+        processBiquad(state.liftStages[band][1], state.shaped, lift);
+
+        const amount =
+          setup.mix *
+          open *
+          transientAmount(state, band, peakOf(source), frames, sampleRate);
         for (let i = 0; i < frames; i += 1) {
           target[i] += state.shaped[i] * amount;
         }
