@@ -91,47 +91,49 @@ const List = ({
   );
 
   /**
-   * Once per opening, and that is the whole point of the ref.
+   * Show the current entry when the list appears, exactly once.
    *
-   * Focusing an element inside a scroller makes the browser scroll it back
-   * into view, so this effect is a "jump to the selected row" in disguise. Its
-   * dependencies include `options` and the refs derived from them, and callers
-   * build that array inline — a fresh identity on every render. Anything that
-   * re-rendered the open menu therefore re-ran this and dragged the list back
-   * to the selected row, which is exactly what "I pick Clásica, scroll, and it
-   * returns to Clásica" is. The list could not be scrolled away from its own
-   * selection at all.
+   * Two separate jobs that used to be one, and conflating them broke the
+   * second. FOCUSING the selected row is only right for a menu with no search
+   * field, because a filterable one has to leave focus in the field or typing
+   * goes nowhere — so focus is gated on `focusOnRender`. SCROLLING to it is
+   * right either way: a list that opens at the top with the current entry
+   * twenty rows down has hidden the one thing the reader came to find. Gated
+   * together, adding a search field to the preset picker silently switched off
+   * its scroll.
    *
-   * Reset when the list closes, so the next opening still lands on the
-   * selected row.
+   * Once per opening, and the ref is the whole point of that. The list is
+   * unmounted when the menu closes, so a fresh mount gets a fresh ref; while
+   * it is open, `options` is rebuilt inline by callers on every render, and
+   * without the guard anything that re-rendered the open menu dragged the list
+   * back — "I pick Clásica, scroll, and it returns to Clásica". Filtering
+   * rebuilds those options on every keystroke, which is exactly that case.
    */
-  const hasFocusedSelection = useRef(false);
+  const hasRevealedSelection = useRef(false);
   useEffect(() => {
-    if (!focusOnRender) {
-      hasFocusedSelection.current = false;
+    if (hasRevealedSelection.current) {
       return;
     }
-    if (hasFocusedSelection.current) {
-      return;
-    }
-    hasFocusedSelection.current = true;
     const index = options.findIndex((entry) => entry.value === value);
-    if (index >= 0) {
-      // Focus WITHOUT its scroll, then centre deliberately. Focusing a row
-      // inside a scroller brings it to the nearest edge, so a selection near
-      // the bottom of a long list opened flush against the bottom of the menu
-      // with everything after it out of sight and no sign there was more.
-      const row = inputRefs[index].current;
-      row?.focus({ preventScroll: true });
-      // Checked rather than assumed: jsdom has no layout and therefore no
-      // `scrollIntoView`, so calling it outright turns every dropdown test
-      // into a TypeError for a line that only affects what the eye sees.
-      if (typeof row?.scrollIntoView === 'function') {
-        // Not smooth: this runs as the menu appears, and an animated scroll
-        // starting at that moment is something the first flick of the wheel
-        // has to fight.
-        row.scrollIntoView({ block: 'center' });
-      }
+    const row = index >= 0 ? inputRefs[index].current : undefined;
+    if (!row) {
+      return;
+    }
+    hasRevealedSelection.current = true;
+    if (focusOnRender) {
+      // WITHOUT its scroll: focusing a row inside a scroller brings it to the
+      // nearest edge, so a selection near the bottom opened flush against the
+      // bottom of the menu with everything after it out of sight.
+      row.focus({ preventScroll: true });
+    }
+    // Checked rather than assumed: jsdom has no layout and therefore no
+    // `scrollIntoView`, so calling it outright turns every dropdown test into
+    // a TypeError for a line that only affects what the eye sees.
+    if (typeof row.scrollIntoView === 'function') {
+      // Not smooth: this runs as the menu appears, and an animated scroll
+      // starting at that moment is something the first flick of the wheel has
+      // to fight.
+      row.scrollIntoView({ block: 'center' });
     }
   }, [focusOnRender, inputRefs, options, value]);
 

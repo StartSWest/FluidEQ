@@ -7,6 +7,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import {
   DSP_DEFAULTS,
   EQ_BAND_COUNT,
+  TTrimMode,
   TEqEngine,
   TEqModel,
   TEqStereo,
@@ -29,6 +30,21 @@ export interface IEqPresetSetup {
   subsonicHz?: number;
   fuzzAmount?: number;
   monoBelowHz?: number;
+  /**
+   * Which input regulator a preset asks for. @see TTrimMode
+   *
+   * Every preset asks for the fixed one, and that is the point of it
+   * being here at all: these curves boost, boosts need room, and a preset
+   * that hands somebody a clipping rack and leaves them to notice is a
+   * preset that has done half its job. Fixed rather than adaptive because a
+   * preset is a starting point somebody judges by ear, and a level that moves
+   * while they are judging it makes two curves impossible to compare.
+   *
+   * The user can switch it off afterwards, which is why this is a starting
+   * point rather than a lock. "Default" is the exception: a reset means
+   * nothing applied at all, regulator included.
+   */
+  trimMode?: TTrimMode;
 }
 
 export interface IEqPreset {
@@ -67,6 +83,10 @@ const DEFAULT_SETUP: Required<IEqPresetSetup> = {
   subsonicHz: DSP_DEFAULTS.eq.subsonicHz,
   fuzzAmount: DSP_DEFAULTS.eq.fuzzAmount,
   monoBelowHz: DSP_DEFAULTS.eq.monoBelowHz,
+  // NOT from `DSP_DEFAULTS`, and deliberately so: what a fresh install runs
+  // and what a preset asks for are two different questions. A preset knows
+  // it boosts and asks for the regulator that answers that.
+  trimMode: 'fixed',
 };
 
 export const eqPresetSetup = (preset: IEqPreset): Required<IEqPresetSetup> => ({
@@ -197,7 +217,7 @@ export const EQ_PRESETS: readonly IEqPreset[] = [
     id: 'acoustic',
     labelKey: 'dsp.eqPreset.acoustic',
     gains: [
-      0.9, 1.4, 1.8, 1.8, 0.9, 0, 0.5, 0.9, 1.4, 1.4, 1.8, 1.8, 2.3, 1.8, 1.4,
+      0.9, 1.4, 1.7, 1.7, 0.9, 0, 0.5, 0.9, 1.4, 1.4, 1.7, 1.7, 2.2, 1.7, 1.4,
     ],
     setup: { ...PROTECTED, model: 'wide' },
   },
@@ -207,7 +227,13 @@ export const EQ_PRESETS: readonly IEqPreset[] = [
     id: 'vocal',
     labelKey: 'dsp.eqPreset.vocal',
     gains: [-6, -5, -3, -1, 0, 0.5, 1.5, 2.5, 3, 3.5, 3, 2, 1, 0, -0.5],
-    setup: { ...PROTECTED, model: 'proportional' },
+    // The presence lift is at 2-3k and a lot of music is not there. What
+    // the song does not use comes back.
+    setup: {
+      trimMode: 'adaptive',
+      ...PROTECTED,
+      model: 'proportional',
+    },
   },
   {
     // Podcast, and the sibilance cut at 5-8k is the point: a spoken voice
@@ -237,7 +263,15 @@ export const EQ_PRESETS: readonly IEqPreset[] = [
       null,
     ],
     // Speech has nothing below 40 Hz except the room.
-    setup: { model: 'proportional', subsonicHz: 40, monoBelowHz: 0 },
+    // Speech occupies a narrow band and stops between sentences, so most
+    // of the reserve is held against a boost the material spends most of
+    // its time not reaching.
+    setup: {
+      trimMode: 'adaptive',
+      model: 'proportional',
+      subsonicHz: 40,
+      monoBelowHz: 0,
+    },
   },
   {
     id: 'bassBoost',
@@ -267,9 +301,7 @@ export const EQ_PRESETS: readonly IEqPreset[] = [
     // presence lifted so quiet dialogue still lands.
     id: 'lateNight',
     labelKey: 'dsp.eqPreset.lateNight',
-    gains: [
-      -6.8, -6, -4.3, -2.6, -0.9, 0, 0.9, 1.7, 2.1, 2.1, 1.7, 0.9, 0.4, 0, 0,
-    ],
+    gains: [-6.8, -6, -4.3, -2.6, -0.9, 0, 0.9, 1.6, 2, 2, 1.6, 0.9, 0.4, 0, 0],
     // What travels through a wall is the loud bass, not all of it. Static, the
     // bass is gone all evening; waiting for a threshold means a quiet passage
     // keeps its bottom end and only the hits that would carry get held down.
@@ -290,7 +322,13 @@ export const EQ_PRESETS: readonly IEqPreset[] = [
       null,
       null,
     ],
-    setup: { ...PROTECTED, model: 'wide' },
+    // The entire point is listening quietly, which is exactly when giving
+    // level back matters most.
+    setup: {
+      trimMode: 'adaptive',
+      ...PROTECTED,
+      model: 'wide',
+    },
   },
   {
     // A laptop or phone speaker reproduces nothing under about 150 Hz, so
@@ -306,7 +344,9 @@ export const EQ_PRESETS: readonly IEqPreset[] = [
     // A car's cabin adds its own bass and eats the top. This answers both.
     id: 'car',
     labelKey: 'dsp.eqPreset.car',
-    gains: [1.3, 0.7, -0.7, -1.3, -1, 0, 0.3, 0.7, 1, 1.3, 1.6, 2, 2.3, 2, 1.3],
+    gains: [
+      1.3, 0.7, -0.7, -1.3, -1, 0, 0.3, 0.7, 1, 1.3, 1.6, 1.9, 2.2, 1.9, 1.3,
+    ],
     setup: { model: 'wide', subsonicHz: 30, monoBelowHz: 100 },
   },
   {
@@ -315,7 +355,15 @@ export const EQ_PRESETS: readonly IEqPreset[] = [
     id: 'gaming',
     labelKey: 'dsp.eqPreset.gaming',
     gains: [2.9, 2.5, 1, 0, -1, -1, 0, 1.5, 2.5, 3.4, 3.9, 2.9, 2, 1.5, 1],
-    setup: { ...PROTECTED, model: 'proportional' },
+    // The most intermittent material there is: minutes of near-silence with
+    // a footstep in it, then an explosion. A fixed reserve spends level on
+    // every quiet moment to protect a peak that arrives rarely, and hearing
+    // the quiet moments is the entire reason for this curve.
+    setup: {
+      trimMode: 'adaptive',
+      ...PROTECTED,
+      model: 'proportional',
+    },
   },
   {
     // Dialogue lives at 1-4k and gets buried under a score. This lifts it and
@@ -326,7 +374,14 @@ export const EQ_PRESETS: readonly IEqPreset[] = [
       1.4, 1.1, 0, -1.1, -1.4, -0.7, 0.4, 1.4, 2.1, 2.1, 1.8, 1.1, 0.7, 0.7,
       0.4,
     ],
-    setup: { model: 'wide', subsonicHz: 20, monoBelowHz: 60 },
+    // Dialogue-led with wide dynamics: the reserve is needed on the
+    // explosion and wasted on the conversation.
+    setup: {
+      trimMode: 'adaptive',
+      model: 'wide',
+      subsonicHz: 20,
+      monoBelowHz: 60,
+    },
   },
   {
     // Second-harmonic warmth, done with an EQ rather than distortion: lift
@@ -454,7 +509,295 @@ export const EQ_PRESETS: readonly IEqPreset[] = [
       null,
       null,
     ],
+    // Same as the vocal curve, and it already reacts per band — the
+    // regulator reacting too is the same idea one level up.
+    setup: {
+      trimMode: 'adaptive',
+      ...PROTECTED,
+      model: 'proportional',
+    },
+  },
+  {
+    // A hall recorded from the audience, which is what most orchestral
+    // recordings are. The 200-400 lift is the cellos and the room they are
+    // in, and the reason it is small is that a concert recording is already
+    // balanced — the mistake here is always doing too much.
+    id: 'orchestra',
+    labelKey: 'dsp.eqPreset.orchestra',
+    gains: [1, 1.2, 1.4, 1.6, 1.4, 0.8, 0.3, 0, 0, 0.3, 0.8, 1.2, 1.6, 2, 2],
+    setup: { subsonicHz: 20, monoBelowHz: 0, model: 'clean' },
+  },
+  {
+    // The 315 scoop is where a wall of distorted guitar turns to mud, and
+    // the 3-5k lift is pick attack — the thing that makes a riff readable
+    // rather than merely loud. Kick and snare keep their fundamentals.
+    id: 'metal',
+    labelKey: 'dsp.eqPreset.metal',
+    gains: [3, 3, 2, 0.5, -1, -2.5, -1.5, 0, 1, 2, 2.5, 2.5, 2, 1.5, 1],
     setup: { ...PROTECTED, model: 'proportional' },
+  },
+  {
+    // Recorded fast and mixed faster. Everything it needs is between 100 and
+    // 4k, so the ends come down rather than the middle going up.
+    id: 'punk',
+    labelKey: 'dsp.eqPreset.punk',
+    gains: [1, 1.5, 2, 2, 0.5, -1, -0.5, 0.5, 1.5, 2, 2, 1, 0, -1, -2],
+    setup: { ...PROTECTED, model: 'proportional' },
+  },
+  {
+    // The bass IS the arrangement, and it is a fundamental rather than a
+    // click: 50-80 rather than the 100+ a modern mix leans on. The 315 dip
+    // keeps the skank guitar from crowding it.
+    id: 'reggae',
+    labelKey: 'dsp.eqPreset.reggae',
+    gains: [2.6, 2.9, 2.2, 1, 0, -1.5, -0.5, 0.3, 0.6, 0.6, 1, 1, 0.6, 0.3, 0],
+    setup: { model: 'wide', subsonicHz: 25, monoBelowHz: 80 },
+  },
+  {
+    // Acoustic guitar body at 125-200, vocal presence at 2-3k, and the
+    // string and brush detail that lives above 8k. Nothing scooped: this is
+    // music that is mixed to be heard whole.
+    id: 'country',
+    labelKey: 'dsp.eqPreset.country',
+    gains: [
+      0.9, 1.1, 1.7, 1.8, 1.1, 0.3, 0.5, 0.9, 1.4, 1.8, 1.8, 1.7, 1.8, 1.8, 1.4,
+    ],
+    setup: { ...PROTECTED, model: 'wide' },
+  },
+  {
+    // Valve amplifiers and a voice. The 800-1k25 lift is the honk that makes
+    // a cranked amp sound cranked, and taking it out is what makes most
+    // blues playback sound polite.
+    id: 'blues',
+    labelKey: 'dsp.eqPreset.blues',
+    gains: [1.5, 2, 2, 1.5, 0.5, 0, 0.8, 1.8, 2, 1.5, 1, 0.8, 0.8, 0.5, 0],
+    setup: { ...PROTECTED, model: 'wide' },
+  },
+  {
+    // Deliberately narrowed: the ends give up early and the middle carries
+    // everything, which is what a sampled record through a cheap chain does.
+    // The fuzz is the part no filter could produce.
+    id: 'lofi',
+    labelKey: 'dsp.eqPreset.lofi',
+    gains: [-2, -1, 0.5, 2, 2, 1.2, 0.5, 0.5, 0.5, 0, -1, -2.5, -4, -5.5, -7],
+    setup: { ...PROTECTED, model: 'wide', fuzzAmount: 0.3 },
+  },
+  {
+    // Nothing here is a transient, so nothing needs presence. Sub and air,
+    // and the midrange left exactly alone so the pads keep their shape.
+    id: 'ambient',
+    labelKey: 'dsp.eqPreset.ambient',
+    gains: [2.5, 2.5, 1.8, 1, 0.3, 0, 0, 0, 0, 0, 0.3, 1, 1.8, 2.5, 3],
+    setup: { model: 'wide', subsonicHz: 20, monoBelowHz: 40 },
+  },
+  {
+    // An 808 is a sine wave with a long tail, and it lives below where most
+    // speakers stop. The 250-500 cut is the room the hi-hats need.
+    id: 'trap',
+    labelKey: 'dsp.eqPreset.trap',
+    gains: [
+      3.5, 3.1, 2.1, 0.7, -1, -2, -1.5, -0.5, 0.3, 1, 1.4, 1.4, 1.7, 1.4, 0.7,
+    ],
+    setup: { model: 'wide', subsonicHz: 25, monoBelowHz: 90 },
+  },
+  {
+    // Two things at once: a sub that has to be felt and a break that has to
+    // be heard. The 2-5k lift is the break, the 315 cut is what stops the
+    // two fighting.
+    id: 'drumBass',
+    labelKey: 'dsp.eqPreset.drumBass',
+    gains: [3.6, 3.2, 2, 0.4, -1.5, -2, -1, 0, 0.8, 1.6, 2, 2, 1.6, 1.2, 0.8],
+    setup: { model: 'wide', subsonicHz: 25, monoBelowHz: 90 },
+  },
+  {
+    // A piano covers nearly the whole band, so this is mostly restraint. The
+    // 250-400 dip is the soundboard boom a close mic always picks up, and
+    // the 8k lift is hammer felt rather than brightness.
+    id: 'piano',
+    labelKey: 'dsp.eqPreset.piano',
+    gains: [1, 1.2, 1.4, 1, -0.5, -1, 0, 0.5, 1, 1.2, 1.4, 1.6, 2, 1.8, 1.2],
+    setup: { ...PROTECTED, model: 'clean' },
+  },
+  {
+    // Bowed strings turn harsh at 2-4k before they turn bright, which is why
+    // this lifts either side of that and not through it.
+    id: 'strings',
+    labelKey: 'dsp.eqPreset.strings',
+    gains: [
+      0.5, 1, 1.5, 2, 1.5, 0.8, 0.5, 0.5, 0, -0.8, -1, 0.5, 1.5, 2.2, 2.5,
+    ],
+    setup: { ...PROTECTED, model: 'wide' },
+  },
+  {
+    // The de-esser with a wider reach, for a whole record rather than one
+    // voice: three reacting bands across the range where cymbals, consonants
+    // and cheap converters all turn hard.
+    id: 'sibilance',
+    labelKey: 'dsp.eqPreset.sibilance',
+    gains: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -4, -7, -7, 0, 0],
+    dynamic: [
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      -22,
+      -24,
+      -24,
+      null,
+      null,
+    ],
+    setup: { ...PROTECTED, model: 'proportional' },
+  },
+  {
+    // The single most common problem in a home recording, and it is
+    // intermittent: the boxiness only appears when several instruments hit
+    // the same low mid at once. Static, this is a thin record.
+    id: 'mudCut',
+    labelKey: 'dsp.eqPreset.mudCut',
+    gains: [0, 0, 0, -4, -5, -4, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    dynamic: [
+      null,
+      null,
+      null,
+      -24,
+      -24,
+      -24,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+    ],
+    setup: { ...PROTECTED, model: 'proportional' },
+  },
+  {
+    // 2-4k is where the ear is most sensitive and where a loud master gets
+    // tiring. Reacting rather than static, so quiet passages keep the
+    // presence that makes them legible.
+    id: 'harshTamer',
+    labelKey: 'dsp.eqPreset.harshTamer',
+    gains: [0, 0, 0, 0, 0, 0, 0, 0, -3, -5, -5, 0, 0, 0, 0],
+    dynamic: [
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      -20,
+      -20,
+      -20,
+      null,
+      null,
+      null,
+      null,
+    ],
+    setup: { ...PROTECTED, model: 'proportional' },
+  },
+  {
+    // A sealed tip exaggerates its own bass and loses everything above 10k.
+    // This answers both, and the mono corner is high because a tip that has
+    // broken its seal cancels below it.
+    id: 'earbuds',
+    labelKey: 'dsp.eqPreset.earbuds',
+    gains: [-3, -2.5, -1.5, 0, 1, 1.2, 0.8, 0.5, 1, 1.5, 2, 2, 2.5, 3, 3],
+    setup: { model: 'proportional', subsonicHz: 30, monoBelowHz: 100 },
+  },
+  {
+    // A laptop speaker reproduces almost nothing under 200 Hz, so lifting it
+    // only wastes excursion and adds rattle. The warmth is faked at 315
+    // instead, and the presence lift is what makes speech survive a fan.
+    id: 'laptop',
+    labelKey: 'dsp.eqPreset.laptop',
+    gains: [-10, -9, -6, -2, 1.5, 2.5, 1.5, 1, 1.5, 2, 2.5, 2, 1.5, 0, -1],
+    setup: { model: 'proportional', subsonicHz: 40, monoBelowHz: 200 },
+  },
+  {
+    // An open headphone already has the stage; what it lacks is the bottom
+    // two octaves, because there is no seal to hold them. Nothing is added
+    // up top — that is the one thing these do not need.
+    id: 'openBack',
+    labelKey: 'dsp.eqPreset.openBack',
+    gains: [3.1, 2.7, 1.9, 0.9, 0.2, 0, 0, 0, 0, 0.2, 0.4, 0.2, 0, -0.5, -1],
+    setup: { model: 'wide', subsonicHz: 20, monoBelowHz: 40 },
+  },
+  {
+    // One voice, often recorded badly, listened to for hours. Everything
+    // under 100 is room; the reacting cut at 5-8k is what makes a long
+    // session bearable without dulling the words.
+    id: 'audiobook',
+    labelKey: 'dsp.eqPreset.audiobook',
+    gains: [-9, -7, -4, 0, 1, 1.5, 2.5, 3, 3, 2.5, 1.5, -5, -5, -2, -2],
+    dynamic: [
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      -26,
+      -26,
+      null,
+      null,
+    ],
+    // Hours of one voice. Holding a fixed reserve for the whole session
+    // costs level on every quiet passage to protect a peak that arrives
+    // rarely.
+    setup: {
+      trimMode: 'adaptive',
+      model: 'proportional',
+      subsonicHz: 40,
+      monoBelowHz: 0,
+    },
+  },
+  {
+    // Dialogue kept, explosions held down, and the bass held down only when
+    // it is loud enough to travel — which is the whole difference between a
+    // film at night and a film with no bass.
+    id: 'nightMovie',
+    labelKey: 'dsp.eqPreset.nightMovie',
+    gains: [-6, -6, -4, -2, -0.5, 0.3, 1.3, 1.9, 2.2, 1.9, 1.3, 0.6, 0.3, 0, 0],
+    dynamic: [
+      -30,
+      -30,
+      -30,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+    ],
+    // Both of the above at once, and the preset people reach for when
+    // level matters most.
+    setup: {
+      trimMode: 'adaptive',
+      ...PROTECTED,
+      model: 'wide',
+    },
   },
 ];
 

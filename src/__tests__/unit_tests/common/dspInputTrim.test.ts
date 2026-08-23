@@ -231,6 +231,11 @@ describe('presets that react', () => {
       'deEss',
       'tameBoom',
       'liveVocal',
+      'sibilance',
+      'mudCut',
+      'harshTamer',
+      'audiobook',
+      'nightMovie',
     ]);
   });
 

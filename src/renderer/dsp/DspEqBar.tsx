@@ -179,6 +179,18 @@ const DspEqBar = ({ eq, sampleRate, onChange, onCommit }: IDspEqBarProps) => {
     onCommit();
   };
 
+  /**
+   * Every preset in the order the picker shows them, saved ones first.
+   *
+   * Built once here rather than twice, because the arrows and the menu have
+   * to agree about what "next" means — two lists in two places is how a
+   * button and a list end up disagreeing about the same order.
+   */
+  const ordered = [
+    ...userPresets.map((one) => one.id),
+    ...EQ_PRESETS.map((one) => one.id),
+  ];
+
   const applyPreset = (id: string) => {
     if (id.startsWith(USER_PRESET_PREFIX)) {
       const saved = findUserPreset(id);
@@ -284,6 +296,30 @@ const DspEqBar = ({ eq, sampleRate, onChange, onCommit }: IDspEqBarProps) => {
    * threshold, that the rack runs in parallel, or that the phase is linear.
    * This carries all of it.
    */
+  /**
+   * Step through the list without opening it.
+   *
+   * Auditioning presets is the one thing anybody does with this control
+   * repeatedly, and doing it through a menu means open, aim, click, open,
+   * aim, click. Wrapping rather than stopping at the ends: a list of forty
+   * seven with a dead button at each end is a list somebody has to remember
+   * their place in.
+   *
+   * A hand-made curve has no place in the order, so the first step from one
+   * lands on the first entry rather than nowhere.
+   */
+  const step = (by: number) => {
+    if (ordered.length === 0) {
+      return;
+    }
+    const at = ordered.indexOf(eq.presetId);
+    const next =
+      at < 0
+        ? ordered[by > 0 ? 0 : ordered.length - 1]
+        : ordered[(at + by + ordered.length) % ordered.length];
+    applyPreset(next);
+  };
+
   const handleShare = () => {
     const saved = eq.presetId.startsWith(USER_PRESET_PREFIX)
       ? findUserPreset(eq.presetId)
@@ -426,6 +462,30 @@ const DspEqBar = ({ eq, sampleRate, onChange, onCommit }: IDspEqBarProps) => {
           ]}
           handleChange={applyPreset}
         />
+        {/* Either side of the field, pointing the way they move through the
+            list, so auditioning is one click rather than open-aim-click. */}
+        <button
+          type="button"
+          className="dsp-eq-step"
+          aria-label={t('dsp.eqPreset.previous')}
+          title={t('dsp.eqPreset.previous')}
+          onClick={() => step(-1)}
+        >
+          <svg viewBox="0 0 16 16" aria-hidden="true">
+            <path d="M10 3 5 8l5 5" />
+          </svg>
+        </button>
+        <button
+          type="button"
+          className="dsp-eq-step"
+          aria-label={t('dsp.eqPreset.next')}
+          title={t('dsp.eqPreset.next')}
+          onClick={() => step(1)}
+        >
+          <svg viewBox="0 0 16 16" aria-hidden="true">
+            <path d="m6 3 5 5-5 5" />
+          </svg>
+        </button>
       </div>
 
       {/* Everything that acts on the preset itself, next to the picker rather

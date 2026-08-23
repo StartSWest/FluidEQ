@@ -813,6 +813,44 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   border-right: 1px solid rgba($white, 0.1);
 }
 
+// Step buttons either side of the preset field. Sized to the field rather than
+// to their glyph, so the three read as one control with a middle and two ends.
+.dsp-eq-step {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 30px;
+  padding: 0;
+  border: 1px solid rgba($white, 0.09);
+  border-radius: 7px;
+  background: rgba($black, 0.24);
+  color: rgba($white, 0.55);
+  cursor: pointer;
+  transition:
+    background 130ms ease,
+    color 130ms ease;
+
+  svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  path {
+    fill: none;
+    stroke: currentcolor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  &:hover {
+    background: rgba($secondary-default, 0.16);
+    color: rgba($white, 0.9);
+  }
+}
+
 // The preset menu is wider than its trigger.
 //
 // The trigger is one control in a crowded row and the list under it holds
