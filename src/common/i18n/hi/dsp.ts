@@ -116,6 +116,10 @@ const dsp = {
   'dsp.eq.gain': 'गेन',
   'dsp.eq.preamp': 'प्रीएम्प',
   'dsp.eq.trim': 'स्वतः समायोजन',
+  'dsp.eq.adaptive': 'अनुकूली',
+  'dsp.eq.trimFixed': 'स्थिर',
+  'dsp.eq.adaptiveHint':
+    'गाने को मापकर बिना ज़रूरत की गुंजाइश लौटाता है। बंद करने पर स्तर पूरी तरह स्थिर रहता है।',
   'dsp.eq.trimHint': 'बैंड से पहले रखी गई गुंजाइश, ताकि यह वक्र क्लिप न हो।',
   'dsp.eq.overUnity': '{gain} dB अधिक',
   'dsp.eq.character': 'चरित्र',

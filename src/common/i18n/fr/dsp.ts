@@ -114,6 +114,10 @@ const dsp = {
   'dsp.eq.gain': 'Gain',
   'dsp.eq.preamp': 'Préampli',
   'dsp.eq.trim': 'Réglage auto',
+  'dsp.eq.adaptive': 'Adaptatif',
+  'dsp.eq.trimFixed': 'Fixe',
+  'dsp.eq.adaptiveHint':
+    'Mesure le morceau et rend la marge inutile. Désactivé, le niveau reste parfaitement stable.',
   'dsp.eq.overUnity': '{gain} dB au-dessus',
   'dsp.eq.trimHint':
     'Marge prise avant les bandes pour que cette courbe ne sature pas.',

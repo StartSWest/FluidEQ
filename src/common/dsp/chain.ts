@@ -319,6 +319,21 @@ export interface IEqSettings {
    */
   trimDb: number;
   /**
+   * Let the regulator measure the material instead of assuming the worst.
+   *
+   * Off, the reserve is the curve's whole peak whatever is playing: the level
+   * holds perfectly still for a given rack and some of it is spent on boosts
+   * the record never reaches. On, the reserve is handed back as the song turns
+   * out not to need it, which keeps the level — and moves it, slowly, as the
+   * music changes. That movement is the reason this is a switch: it is an
+   * improvement to some ears and a distraction to others, and neither is
+   * wrong.
+   *
+   * A listening preference rather than a property of the curve, so no preset
+   * sets it — the same reasoning that keeps the preamp out of them.
+   */
+  adaptiveTrim: boolean;
+  /**
    * The factory preset last applied, or empty for a hand-made curve.
    *
    * Stored rather than derived so it survives a reload: the bands alone cannot
@@ -664,6 +679,7 @@ export const DSP_DEFAULTS: IDspSettings = {
     presetId: '',
     preampDb: 0,
     trimDb: 0,
+    adaptiveTrim: true,
   },
   exciter: { enabled: false, crossoverHz: 6_000, drive: 3, mix: 0.3 },
   compressor: {
@@ -813,6 +829,7 @@ export const clampDspSettings = (value: unknown): IDspSettings => {
       // sessions that have been clipping — and recomputed on the next change
       // either way.
       trimDb: clampNumber(eq.trimDb, RANGES.eqGainDb, 0),
+      adaptiveTrim: clampBoolean(eq.adaptiveTrim, true),
       // The stored rack decides its own length now, so an imported ten-filter
       // curve comes back as ten bands rather than being padded out to fifteen
       // with silent ones. A band past the default rack has no fallback of its

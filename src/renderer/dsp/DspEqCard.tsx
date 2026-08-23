@@ -208,7 +208,14 @@ const DspEqCard = ({ eq, sampleRate, onChange, onCommit }: IDspEqCardProps) => {
               Written in the dials' own grammar — figure over caption — because
               it stands in a row of them and anything else reads as a control
               that has lost its knob. */}
-          <DspTrimReadout reservedDb={eq.trimDb} />
+          <DspTrimReadout
+            reservedDb={eq.trimDb}
+            isAdaptive={eq.adaptiveTrim}
+            onToggleAdaptive={() => {
+              onChange({ ...eq, adaptiveTrim: !eq.adaptiveTrim });
+              onCommit();
+            }}
+          />
           {/* How much of the chosen character to apply. At zero every one of
               them collapses to the plain cookbook, so this is the off switch
               as well as the dial. */}

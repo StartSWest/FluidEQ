@@ -11,6 +11,9 @@ import { readDspHeadroomGiveBack } from './store';
 interface IDspTrimReadoutProps {
   /** What the regulator reserved from the curve alone, in dB. Negative. */
   reservedDb: number;
+  /** Whether the reserve is being handed back as the material allows. */
+  isAdaptive: boolean;
+  onToggleAdaptive: () => void;
 }
 
 /**
@@ -26,7 +29,11 @@ interface IDspTrimReadoutProps {
  * renders a second for one number is churn, and this sits inside the EQ card,
  * so each of them would be a render of the card.
  */
-const DspTrimReadout = ({ reservedDb }: IDspTrimReadoutProps) => {
+const DspTrimReadout = ({
+  reservedDb,
+  isAdaptive,
+  onToggleAdaptive,
+}: IDspTrimReadoutProps) => {
   const { t } = useTranslation();
   const valueRef = useRef<HTMLSpanElement>(null);
   const reserved = useRef(reservedDb);
@@ -62,7 +69,20 @@ const DspTrimReadout = ({ reservedDb }: IDspTrimReadoutProps) => {
       <span className="dsp-eq-trim-value" ref={valueRef}>
         {reservedDb.toFixed(1)} dB
       </span>
-      <span className="dsp-eq-trim-label">{t('dsp.eq.trim')}</span>
+      {/* The label is the switch. Everything about this readout is one
+          idea — how much room is being made and on what basis — and a
+          separate button beside it would be a second control for the same
+          number. Quiet either way: pinned is not a worse answer, it is a
+          steadier one. */}
+      <button
+        type="button"
+        className="dsp-eq-trim-mode"
+        aria-pressed={isAdaptive}
+        title={t('dsp.eq.adaptiveHint')}
+        onClick={onToggleAdaptive}
+      >
+        {isAdaptive ? t('dsp.eq.adaptive') : t('dsp.eq.trimFixed')}
+      </button>
     </span>
   );
 };

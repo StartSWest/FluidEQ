@@ -31,6 +31,7 @@ const withBands = (
   presetId: '',
   preampDb: 0,
   trimDb: 0,
+  adaptiveTrim: false,
   sourceBands: [],
   bands: DSP_DEFAULTS.eq.bands.map((band, index) => ({
     ...band,

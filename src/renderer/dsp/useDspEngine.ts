@@ -197,9 +197,10 @@ export const useDspEngine = (
         const input = graphRef.current?.inputAnalyser;
         const { eq } = settingsRef.current;
         const reserve = -eq.trimDb;
-        if (!input || !eq.enabled || reserve <= 0) {
-          // Nothing reserved is nothing to hand back, and a disabled rack
-          // has no curve to measure against.
+        if (!input || !eq.enabled || !eq.adaptiveTrim || reserve <= 0) {
+          // Nothing reserved is nothing to hand back, a disabled rack has no
+          // curve to measure against, and a pinned one is being asked to hold
+          // exactly the reserve it started with.
           headroom.current.giveBack = 0;
           setDspHeadroomGiveBack(0);
           worklet.port.postMessage({ headroomGiveBack: 0 });

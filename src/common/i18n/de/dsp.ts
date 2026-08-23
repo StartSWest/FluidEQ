@@ -116,6 +116,10 @@ const dsp = {
   'dsp.eq.gain': 'Pegel',
   'dsp.eq.preamp': 'Vorverst.',
   'dsp.eq.trim': 'Auto-Trim',
+  'dsp.eq.adaptive': 'Adaptiv',
+  'dsp.eq.trimFixed': 'Fest',
+  'dsp.eq.adaptiveHint':
+    'Misst den Song und gibt die nicht benötigte Reserve zurück. Aus hält den Pegel völlig konstant.',
   'dsp.eq.trimHint':
     'Reserve vor den Bändern, damit diese Kurve nicht übersteuert.',
   'dsp.eq.overUnity': '{gain} dB darüber',

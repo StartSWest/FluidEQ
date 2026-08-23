@@ -116,6 +116,10 @@ const dsp = {
   'dsp.eq.gain': 'Усиление',
   'dsp.eq.preamp': 'Предус.',
   'dsp.eq.trim': 'Авторегулировка',
+  'dsp.eq.adaptive': 'Адаптивно',
+  'dsp.eq.trimFixed': 'Фиксировано',
+  'dsp.eq.adaptiveHint':
+    'Измеряет песню и возвращает ненужный запас. Выключено — уровень стоит совершенно ровно.',
   'dsp.eq.trimHint': 'Запас перед полосами, чтобы эта кривая не перегружалась.',
   'dsp.eq.overUnity': 'превышение {gain} дБ',
   'dsp.eq.character': 'Характер',

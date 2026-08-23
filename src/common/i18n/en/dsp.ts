@@ -123,6 +123,10 @@ const dsp = {
   'dsp.eq.gain': 'Gain',
   'dsp.eq.preamp': 'Preamp',
   'dsp.eq.trim': 'Auto trim',
+  'dsp.eq.adaptive': 'Adaptive',
+  'dsp.eq.trimFixed': 'Fixed',
+  'dsp.eq.adaptiveHint':
+    'Measures the song and gives back the headroom it does not need. Off holds the level perfectly still.',
   'dsp.eq.trimHint':
     'Room made in front of the bands so this curve cannot clip.',
   'dsp.eq.overUnity': '{gain} dB over',

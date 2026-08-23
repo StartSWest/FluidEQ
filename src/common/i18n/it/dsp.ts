@@ -114,6 +114,10 @@ const dsp = {
   'dsp.eq.gain': 'Guadagno',
   'dsp.eq.preamp': 'Preamp',
   'dsp.eq.trim': 'Auto trim',
+  'dsp.eq.adaptive': 'Adattivo',
+  'dsp.eq.trimFixed': 'Fisso',
+  'dsp.eq.adaptiveHint':
+    'Misura il brano e restituisce il margine non necessario. Spento mantiene il livello del tutto fermo.',
   'dsp.eq.overUnity': '{gain} dB in eccesso',
   'dsp.eq.trimHint':
     'Spazio lasciato prima delle bande perché questa curva non distorca.',

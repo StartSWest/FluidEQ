@@ -507,6 +507,34 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   line-height: 1.2;
 }
 
+// The caption doubles as the switch, so it has to read as a caption first and
+// admit to being clickable second. Same size and colour as the label above it;
+// the underline is the whole of the affordance.
+.dsp-eq-trim-mode {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: rgba($white, 0.62);
+  font: inherit;
+  font-size: 0.64rem;
+  line-height: 1.2;
+  text-decoration: underline dotted rgba($white, 0.35);
+  text-underline-offset: 2px;
+  cursor: pointer;
+
+  &:hover {
+    color: rgba($white, 0.9);
+    text-decoration-color: rgba($white, 0.7);
+  }
+
+  // Adaptive is the state that is doing something, so it carries the accent —
+  // the fixed one is deliberately the quieter of the two.
+  &[aria-pressed='true'] {
+    color: rgba($secondary-default, 0.95);
+    text-decoration-color: rgba($secondary-default, 0.6);
+  }
+}
+
 // One row, centred: the selected band's controls and nothing else. Centring
 // is the point — the strip belongs to the graph above it, not to an edge.
 .dsp-eq-strip {
