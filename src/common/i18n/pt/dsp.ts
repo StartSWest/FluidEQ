@@ -118,6 +118,7 @@ const dsp = {
   'dsp.eq.trim': 'Ajuste auto',
   'dsp.eq.adaptive': 'Adaptativo',
   'dsp.eq.trimFixed': 'Fixo',
+  'dsp.eq.trimOff': 'Sem ajuste',
   'dsp.eq.adaptiveHint':
     'Mede a música e devolve a margem que não é precisa. Desligado mantém o nível totalmente estável.',
   'dsp.eq.trimHint':

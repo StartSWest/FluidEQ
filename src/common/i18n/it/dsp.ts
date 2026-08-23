@@ -116,6 +116,7 @@ const dsp = {
   'dsp.eq.trim': 'Auto trim',
   'dsp.eq.adaptive': 'Adattivo',
   'dsp.eq.trimFixed': 'Fisso',
+  'dsp.eq.trimOff': 'Nessun trim',
   'dsp.eq.adaptiveHint':
     'Misura il brano e restituisce il margine non necessario. Spento mantiene il livello del tutto fermo.',
   'dsp.eq.overUnity': '{gain} dB in eccesso',

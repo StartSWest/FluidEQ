@@ -213,7 +213,12 @@ export const useDspEngine = (
         // it away on spectral evidence would be spending it on a promise the
         // evidence cannot make.
         const reserve = Math.max(0, -eq.trimDb - TRIM_MARGIN_DB);
-        if (!input || !eq.enabled || !eq.adaptiveTrim || reserve <= 0) {
+        if (
+          !input ||
+          !eq.enabled ||
+          eq.trimMode !== 'adaptive' ||
+          reserve <= 0
+        ) {
           // Nothing reserved is nothing to hand back, a disabled rack has no
           // curve to measure against, and a pinned one is being asked to hold
           // exactly the reserve it started with.

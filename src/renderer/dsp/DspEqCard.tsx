@@ -11,6 +11,7 @@ import {
   EQ_MAX_BAND_COUNT,
   IEqBandSettings,
   IEqSettings,
+  TRIM_MODES,
   eqEdited,
 } from '../../common/dsp/chain';
 import { TranslationKey } from '../../common/i18n/en';
@@ -253,9 +254,15 @@ const DspEqCard = ({ eq, sampleRate, onChange, onCommit }: IDspEqCardProps) => {
                 as a control that has lost its knob. */}
             <DspTrimReadout
               reservedDb={eq.trimDb}
-              isAdaptive={eq.adaptiveTrim}
-              onToggleAdaptive={() => {
-                onChange({ ...eq, adaptiveTrim: !eq.adaptiveTrim });
+              mode={eq.trimMode}
+              onCycle={() => {
+                // Round the three, in the order they cost the user least to
+                // most: steady, then measured, then nothing at all.
+                const next =
+                  TRIM_MODES[
+                    (TRIM_MODES.indexOf(eq.trimMode) + 1) % TRIM_MODES.length
+                  ];
+                onChange({ ...eq, trimMode: next });
                 onCommit();
               }}
             />

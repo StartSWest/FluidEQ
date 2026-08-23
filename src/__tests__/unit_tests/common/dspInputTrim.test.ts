@@ -251,3 +251,36 @@ describe('presets that react', () => {
     );
   });
 });
+
+describe('the regulator can be switched off entirely', () => {
+  /**
+   * A third position that is not a quieter version of the other two: no
+   * reserve, no margin, no give-back. The rack gets the signal at unity and
+   * what happens to it is between the curve and the preamp, which is the right
+   * answer for anyone driving the level by hand.
+   */
+  it('leaves the input at unity whatever the curve asks for', () => {
+    const hot: IEqSettings = {
+      ...DSP_DEFAULTS.eq,
+      trimMode: 'off',
+      bands: DSP_DEFAULTS.eq.bands.map((band) => ({ ...band, gainDb: 6 })),
+    };
+    const settings = { ...DSP_DEFAULTS, eq: hot };
+    // The curve still wants the room — this is a decision, not a measurement
+    // that came out at zero.
+    expect(chainPeakDb(settings, RATE)).toBeGreaterThan(6);
+    expect(withInputTrim(settings, RATE).eq.trimDb).toBe(0);
+  });
+
+  /** And a stored trim from before it was switched off does not linger. */
+  it('clears a reserve it inherited', () => {
+    const stale: IEqSettings = {
+      ...DSP_DEFAULTS.eq,
+      trimMode: 'off',
+      trimDb: -7.5,
+    };
+    expect(withInputTrim({ ...DSP_DEFAULTS, eq: stale }, RATE).eq.trimDb).toBe(
+      0,
+    );
+  });
+});

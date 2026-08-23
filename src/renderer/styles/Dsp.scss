@@ -614,11 +614,19 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     text-decoration-color: rgba($white, 0.7);
   }
 
-  // Adaptive is the state that is doing something, so it carries the accent —
-  // the fixed one is deliberately the quieter of the two.
+  // Adaptive is the state that is doing something, so it carries the accent.
+  // Fixed is the quiet middle. Off is quieter still and struck through, because
+  // "no trim" is the one position where the figure above it stops meaning
+  // anything and it should not read as just another setting.
   &[aria-pressed='true'] {
     color: rgba($secondary-default, 0.95);
     text-decoration-color: rgba($secondary-default, 0.6);
+  }
+
+  &.is-off {
+    color: rgba($white, 0.38);
+    text-decoration-style: solid;
+    text-decoration-line: underline line-through;
   }
 }
 

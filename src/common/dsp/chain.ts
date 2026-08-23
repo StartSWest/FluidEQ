@@ -172,6 +172,25 @@ export type TEqPhase = 'minimum' | 'linear';
 
 export const EQ_PHASE_MODES: readonly TEqPhase[] = ['minimum', 'linear'];
 
+/**
+ * How much of the input regulator to use.
+ *
+ * `off` is none of it: the rack is handed the signal at unity and whatever
+ * it does with it is between the curve and the preamp. Honest, and the right
+ * answer for anyone driving the level by hand or measuring something.
+ *
+ * `fixed` reserves the curve's whole worst case and holds it there, so the
+ * level is dead steady for a given rack and some of it is spent on boosts
+ * the record may never reach.
+ *
+ * `adaptive` starts from that reserve and hands back what this particular
+ * song turns out not to need, which keeps the level and moves it slowly as
+ * the music changes.
+ */
+export type TTrimMode = 'off' | 'fixed' | 'adaptive';
+
+export const TRIM_MODES: readonly TTrimMode[] = ['off', 'fixed', 'adaptive'];
+
 /** 1 is off. Four is the most the two-stage oversampler is built for. */
 export const OVERSAMPLE_FACTORS: readonly number[] = [1, 2, 4];
 
@@ -319,7 +338,7 @@ export interface IEqSettings {
    */
   trimDb: number;
   /**
-   * Let the regulator measure the material instead of assuming the worst.
+   * How much of the input regulator to use. @see TTrimMode
    *
    * Off, the reserve is the curve's whole peak whatever is playing: the level
    * holds perfectly still for a given rack and some of it is spent on boosts
@@ -336,7 +355,7 @@ export interface IEqSettings {
    * from an equaliser, and a level that moves on its own — however well — is
    * a thing to opt into rather than to discover.
    */
-  adaptiveTrim: boolean;
+  trimMode: TTrimMode;
   /**
    * The factory preset last applied, or empty for a hand-made curve.
    *
@@ -683,7 +702,7 @@ export const DSP_DEFAULTS: IDspSettings = {
     presetId: '',
     preampDb: 0,
     trimDb: 0,
-    adaptiveTrim: false,
+    trimMode: 'fixed',
   },
   exciter: { enabled: false, crossoverHz: 6_000, drive: 3, mix: 0.3 },
   compressor: {
@@ -833,7 +852,12 @@ export const clampDspSettings = (value: unknown): IDspSettings => {
       // sessions that have been clipping — and recomputed on the next change
       // either way.
       trimDb: clampNumber(eq.trimDb, RANGES.eqGainDb, 0),
-      adaptiveTrim: clampBoolean(eq.adaptiveTrim, false),
+      // A stored boolean predates the third position: `true` meant adaptive
+      // and `false` meant the fixed reserve, which is what those two names
+      // still mean.
+      trimMode: TRIM_MODES.includes(eq.trimMode as TTrimMode)
+        ? (eq.trimMode as TTrimMode)
+        : (eq.adaptiveTrim === true && 'adaptive') || 'fixed',
       // The stored rack decides its own length now, so an imported ten-filter
       // curve comes back as ten bands rather than being padded out to fifteen
       // with silent ones. A band past the default rack has no fallback of its

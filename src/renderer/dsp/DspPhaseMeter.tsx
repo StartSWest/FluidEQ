@@ -136,6 +136,17 @@ const drawDial = (
 };
 
 /**
+ * How much of the previous frame survives into this one, as a fade.
+ *
+ * The pairs arrive twenty-three times a second and the loop paints sixty, so
+ * a display cleared every frame showed the same cloud flickering as it was
+ * redrawn. Fading instead of clearing gives the trace a tail, which is both
+ * calmer to look at and what a real one does — the phosphor is the reason a
+ * goniometer draws shapes rather than confetti.
+ */
+const SCOPE_FADE = 0.16;
+
+/**
  * The goniometer: every recent pair plotted, rotated a quarter turn.
  *
  * Left against right, turned 45 degrees so the axes mean something nameable.
@@ -149,6 +160,10 @@ const drawDial = (
  * same one — here they look nothing alike.
  */
 const drawScope = (context: CanvasRenderingContext2D, box: IBox): void => {
+  // Painted over rather than cleared, which is where the tail comes from.
+  context.fillStyle = `rgba(7,5,18,${SCOPE_FADE})`;
+  context.fillRect(0, 0, box.width, box.height);
+
   const size = Math.min(box.width, box.height) - 6;
   const midX = box.width / 2;
   const midY = box.height / 2;
@@ -226,8 +241,14 @@ const DspPhaseMeter = () => {
       return undefined;
     }
 
-    /** Sized from the element, which is the only place the box is decided. */
-    const measure = (): IBox | undefined => {
+    /**
+     * Sized from the element, which is the only place the box is decided.
+     *
+     * `keep` leaves the previous frame in place for the scope to fade over.
+     * A resize still clears: the canvas is reallocated at the new size and
+     * whatever was in it is gone anyway.
+     */
+    const measure = (keep = false): IBox | undefined => {
       const box = canvas.getBoundingClientRect();
       if (box.width < 1) {
         return undefined;
@@ -240,7 +261,9 @@ const DspPhaseMeter = () => {
         canvas.height = height;
       }
       context.setTransform(ratio, 0, 0, ratio, 0, 0);
-      context.clearRect(0, 0, box.width, box.height);
+      if (!keep) {
+        context.clearRect(0, 0, box.width, box.height);
+      }
       return { width: box.width, height: box.height };
     };
 
@@ -267,7 +290,7 @@ const DspPhaseMeter = () => {
 
     const paint = () => {
       frame = 0;
-      const box = measure();
+      const box = measure(view === 'scope');
       // Nothing to report on, or nowhere to draw it. Either way the loop keeps
       // turning so the meter starts by itself once the engine does.
       if (!box || !readDspAnalyser()) {
@@ -277,7 +300,10 @@ const DspPhaseMeter = () => {
       if (view === 'scope') {
         drawScope(context, box);
       } else {
-        shown += (readDspCorrelation() - shown) * 0.18;
+        // Slow enough to be read at a glance. The figure it is drawing moves
+        // twenty-three times a second and a needle that followed it exactly
+        // would be a blur — an analogue meter has mass for the same reason.
+        shown += (readDspCorrelation() - shown) * 0.09;
         drawDial(context, box, shown);
       }
       schedule();

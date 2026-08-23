@@ -397,6 +397,14 @@ export const withInputTrim = (
   settings: IDspSettings,
   sampleRate: number,
 ): IDspSettings => {
+  if (settings.eq.trimMode === 'off') {
+    // No regulator at all. The rack gets the signal at unity and what it
+    // does with it is between the curve and the preamp — which is a real
+    // answer for anyone driving the level themselves.
+    return settings.eq.trimDb === 0
+      ? settings
+      : { ...settings, eq: { ...settings.eq, trimDb: 0 } };
+  }
   const margin = isShaping(settings) ? TRIM_MARGIN_DB : 0;
   const trim =
     -Math.ceil((chainPeakDb(settings, sampleRate) + margin) * 10) / 10;

@@ -116,6 +116,7 @@ const dsp = {
   'dsp.eq.trim': 'Réglage auto',
   'dsp.eq.adaptive': 'Adaptatif',
   'dsp.eq.trimFixed': 'Fixe',
+  'dsp.eq.trimOff': 'Sans réglage',
   'dsp.eq.adaptiveHint':
     'Mesure le morceau et rend la marge inutile. Désactivé, le niveau reste parfaitement stable.',
   'dsp.eq.overUnity': '{gain} dB au-dessus',

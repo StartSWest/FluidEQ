@@ -245,6 +245,36 @@ const DspEqGraph = ({
      * than sliding down from unity every time the page is opened.
      */
     let drawnInput = Number.NaN;
+    /** The drawn level of each band, eased the same way its engagement is. */
+    const drawnLevels: number[] = [];
+    /** How present the band's live level line is, 0 to 1. */
+    let drawnLit = 0;
+    /**
+     * How lit the clip stripe is, 0 to 1.
+     *
+     * The measurement behind it is a yes or no taken twenty-three times a
+     * second, so drawing it directly made a stripe that strobed — which reads
+     * as a rendering fault rather than as a warning, and a warning nobody
+     * believes is worse than none. It lights at once and fades over about a
+     * second, so a single clipped block is still visible and a run of them
+     * holds steady.
+     */
+    let clipGlow = 0;
+    /**
+     * The response at each plotted point, worked out once a frame.
+     *
+     * The curve, the at-rest twin, the headroom shading and the fuzz grain
+     * all walk the same points, and each of them used to re-evaluate every
+     * band there: fifteen filters across four hundred points, four times over,
+     * sixty times a second. Now the whole rack is measured once per point and
+     * the four passes read the answer.
+     *
+     * Kept out here and grown in place, because a pair of fresh arrays per
+     * frame is garbage collected sixty times a second for nothing.
+     */
+    let plotHz = new Float64Array(0);
+    let plotTotal = new Float64Array(0);
+    let plotRest = new Float64Array(0);
     const canvas = canvasRef.current;
     const context = canvas?.getContext('2d');
     if (!canvas || !context) {
@@ -497,10 +527,20 @@ const DspEqGraph = ({
       liveEq.bands.forEach((one, index) => {
         const target = one.dynamic ? (amounts[index] ?? 0) : 1;
         const shown = drawnAmounts[index] ?? target;
-        // Opening faster than it closes, for the same reason the band itself
-        // does: arriving late on a transient reads as the feature missing it,
-        // while letting go slowly reads as the curve settling.
-        const ease = target > shown ? 0.35 : 0.12;
+        /**
+         * Slow on purpose, and slower than the band it is drawing.
+         *
+         * The audio follows the material in milliseconds because that is what
+         * a de-esser is for. The PICTURE of it at that speed is a curve that
+         * darts, which is unreadable and tiring — so the drawn engagement
+         * lags well behind the applied one. Nothing here reaches a sample:
+         * this is the resolution of the animation, not of the filter.
+         *
+         * Still asymmetric, because a curve that rises with the music and
+         * settles back afterwards reads as cause and effect, while one that
+         * moves at the same rate both ways reads as drift.
+         */
+        const ease = target > shown ? 0.1 : 0.04;
         drawnAmounts[index] = shown + (target - shown) * ease;
       });
       const amountOf = (index: number): number => drawnAmounts[index] ?? 1;
@@ -539,11 +579,23 @@ const DspEqGraph = ({
         return total;
       };
 
+      if (plotHz.length !== steps + 1) {
+        plotHz = new Float64Array(steps + 1);
+        plotTotal = new Float64Array(steps + 1);
+        plotRest = new Float64Array(steps + 1);
+      }
+      for (let i = 0; i <= steps; i += 1) {
+        const hz = MIN_HZ * (MAX_HZ / MIN_HZ) ** (i / steps);
+        plotHz[i] = hz;
+        plotTotal[i] = totalAt(hz);
+        plotRest[i] = hasDynamic ? restAt(hz) : plotTotal[i];
+      }
+
       if (hasDynamic) {
         context.beginPath();
         for (let i = 0; i <= steps; i += 1) {
-          const hz = MIN_HZ * (MAX_HZ / MIN_HZ) ** (i / steps);
-          const y = Y(restAt(hz));
+          const hz = plotHz[i];
+          const y = Y(plotRest[i]);
           if (i === 0) {
             context.moveTo(X(hz), y);
           } else {
@@ -561,8 +613,8 @@ const DspEqGraph = ({
 
       context.beginPath();
       for (let i = 0; i <= steps; i += 1) {
-        const hz = MIN_HZ * (MAX_HZ / MIN_HZ) ** (i / steps);
-        const y = Y(totalAt(hz));
+        const hz = plotHz[i];
+        const y = Y(plotTotal[i]);
         if (i === 0) {
           context.moveTo(X(hz), y);
         } else {
@@ -592,11 +644,11 @@ const DspEqGraph = ({
       context.beginPath();
       let worst = 0;
       for (let i = 0; i <= steps; i += 1) {
-        const hz = MIN_HZ * (MAX_HZ / MIN_HZ) ** (i / steps);
+        const hz = plotHz[i];
         // Both gains, because both are in front of the bands by the time a
         // sample arrives: what the regulator took out and what the user put
         // back. Showing only one of them would shade an area that is not there.
-        const over = totalAt(hz) + liveEq.preampDb + liveEq.trimDb;
+        const over = plotTotal[i] + liveEq.preampDb + liveEq.trimDb;
         const y = over > 0 ? Y(over) : Y(0);
         worst = Math.max(worst, over);
         if (i === 0) {
@@ -694,16 +746,45 @@ const DspEqGraph = ({
         // it is being compared to. Where the solid one rises above the dashed
         // one, the band is working — which is the whole of the feature, in
         // one picture, on a scale where both numbers mean the same thing.
+        /**
+         * Always drawn, and brightening rather than switching.
+         *
+         * Two things made this blink. It was only drawn above a floor, so it
+         * vanished and returned between reports; and its colour flipped on a
+         * hard comparison with the threshold, so a level sitting near the line
+         * alternated bright and dim every frame. A line that appears and
+         * disappears is read as a fault, not as a measurement.
+         *
+         * Now it is always there — resting on the floor when there is nothing
+         * to hear — and its weight follows the same eased engagement the
+         * curve uses, so crossing the threshold is a fade rather than a
+         * switch.
+         */
+        /**
+         * The line FADES when there is nothing to hear; it does not sink.
+         *
+         * Sliding it down to the floor was worse than hiding it: the floor is
+         * a real position on the scale, so a band hearing nothing drew a line
+         * that said "about -96 dB" — a measurement, and a wrong one. Holding
+         * the last position and taking the ink away says "no reading", which
+         * is what is true, and it does not travel across the plot to say it.
+         */
         const heard = readDspBandLevels()[pick];
-        if (typeof heard === 'number' && heard > SPECTRUM_FLOOR_DB) {
-          const heardY = toY(heard);
+        const audible =
+          typeof heard === 'number' && heard > SPECTRUM_FLOOR_DB + 6;
+        if (audible) {
+          const settled = drawnLevels[pick] ?? heard;
+          drawnLevels[pick] = settled + (heard - settled) * 0.12;
+        }
+        const restingAt = drawnLevels[pick] ?? picked.thresholdDb;
+        const lit = audible ? 0.34 + amountOf(pick) * 0.61 : 0;
+        drawnLit += (lit - drawnLit) * 0.08;
+        if (drawnLit > 0.02) {
+          const heardY = toY(restingAt);
           context.beginPath();
           context.moveTo(from, heardY);
           context.lineTo(to, heardY);
-          context.strokeStyle =
-            heard > picked.thresholdDb
-              ? 'rgba(255,196,92,0.95)'
-              : 'rgba(255,196,92,0.4)';
+          context.strokeStyle = `rgba(255,196,92,${drawnLit.toFixed(3)})`;
           context.lineWidth = 2.5;
           context.stroke();
         }
@@ -784,8 +865,12 @@ const DspEqGraph = ({
       // much as on the curve: a stripe along the top while the measured output
       // is past full scale. The mask says where the risk is, this says it has
       // stopped being a risk.
-      if (readDspPeak() > 1) {
-        context.fillStyle = 'rgba(255,100,124,0.5)';
+      // Straight to full on a clipped block, then a slow fade: fast up so a
+      // single one is not missed, slow down so a run of them does not blink.
+      const clipping = readDspPeak() > 1;
+      clipGlow = clipping ? 1 : Math.max(0, clipGlow - 0.016);
+      if (clipGlow > 0.01) {
+        context.fillStyle = `rgba(255,100,124,${(clipGlow * 0.5).toFixed(3)})`;
         context.fillRect(PAD_L, PAD_T, plotW(W), 3);
       }
 
@@ -815,7 +900,7 @@ const DspEqGraph = ({
             const hz = MIN_HZ * (MAX_HZ / MIN_HZ) ** (i / steps);
             const wobble =
               Math.sin(i * 1.9 + phase * 7) * Math.sin(i * 0.47 + phase);
-            const y = Y(totalAt(hz)) + wobble * grain;
+            const y = Y(plotTotal[i]) + wobble * grain;
             if (i === 0) {
               context.moveTo(X(hz), y);
             } else {

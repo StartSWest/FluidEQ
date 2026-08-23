@@ -125,6 +125,7 @@ const dsp = {
   'dsp.eq.trim': 'Auto trim',
   'dsp.eq.adaptive': 'Adaptive',
   'dsp.eq.trimFixed': 'Fixed',
+  'dsp.eq.trimOff': 'No trim',
   'dsp.eq.adaptiveHint':
     'Measures the song and gives back the headroom it does not need. Off holds the level perfectly still.',
   'dsp.eq.trimHint':

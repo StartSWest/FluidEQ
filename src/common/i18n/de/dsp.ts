@@ -118,6 +118,7 @@ const dsp = {
   'dsp.eq.trim': 'Auto-Trim',
   'dsp.eq.adaptive': 'Adaptiv',
   'dsp.eq.trimFixed': 'Fest',
+  'dsp.eq.trimOff': 'Kein Trim',
   'dsp.eq.adaptiveHint':
     'Misst den Song und gibt die nicht benötigte Reserve zurück. Aus hält den Pegel völlig konstant.',
   'dsp.eq.trimHint':

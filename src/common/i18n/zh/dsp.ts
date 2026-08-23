@@ -114,6 +114,7 @@ const dsp = {
   'dsp.eq.trim': '自动调整',
   'dsp.eq.adaptive': '自适应',
   'dsp.eq.trimFixed': '固定',
+  'dsp.eq.trimOff': '不调整',
   'dsp.eq.adaptiveHint': '测量歌曲并归还不需要的余量。关闭则电平完全稳定。',
   'dsp.eq.trimHint': '在频段之前预留的余量，使此曲线不会削波。',
   'dsp.eq.overUnity': '超出 {gain} dB',

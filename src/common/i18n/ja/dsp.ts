@@ -117,6 +117,7 @@ const dsp = {
   'dsp.eq.trim': '自動調整',
   'dsp.eq.adaptive': '適応',
   'dsp.eq.trimFixed': '固定',
+  'dsp.eq.trimOff': '調整なし',
   'dsp.eq.adaptiveHint':
     '曲を測り、不要な余裕を戻します。オフでレベルは完全に一定になります。',
   'dsp.eq.trimHint': 'このカーブがクリップしないようバンドの前に確保した余裕。',

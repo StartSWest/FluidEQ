@@ -5,15 +5,17 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { useEffect, useRef } from 'react';
+import { TTrimMode } from '../../common/dsp/chain';
+import { TranslationKey } from '../../common/i18n/en';
 import { useTranslation } from '../utils/I18nContext';
 import { readDspHeadroomGiveBack } from './store';
 
 interface IDspTrimReadoutProps {
   /** What the regulator reserved from the curve alone, in dB. Negative. */
   reservedDb: number;
-  /** Whether the reserve is being handed back as the material allows. */
-  isAdaptive: boolean;
-  onToggleAdaptive: () => void;
+  /** How much of the regulator is in use. @see TTrimMode */
+  mode: TTrimMode;
+  onCycle: () => void;
 }
 
 /**
@@ -29,10 +31,17 @@ interface IDspTrimReadoutProps {
  * renders a second for one number is churn, and this sits inside the EQ card,
  * so each of them would be a render of the card.
  */
+/** What each mode is called, in the order the caption cycles through. */
+const LABELS: Record<TTrimMode, TranslationKey> = {
+  off: 'dsp.eq.trimOff',
+  fixed: 'dsp.eq.trimFixed',
+  adaptive: 'dsp.eq.adaptive',
+};
+
 const DspTrimReadout = ({
   reservedDb,
-  isAdaptive,
-  onToggleAdaptive,
+  mode,
+  onCycle,
 }: IDspTrimReadoutProps) => {
   const { t } = useTranslation();
   const valueRef = useRef<HTMLSpanElement>(null);
@@ -76,12 +85,12 @@ const DspTrimReadout = ({
           steadier one. */}
       <button
         type="button"
-        className="dsp-eq-trim-mode"
-        aria-pressed={isAdaptive}
+        className={`dsp-eq-trim-mode${mode === 'off' ? ' is-off' : ''}`}
+        aria-pressed={mode === 'adaptive'}
         title={t('dsp.eq.adaptiveHint')}
-        onClick={onToggleAdaptive}
+        onClick={onCycle}
       >
-        {isAdaptive ? t('dsp.eq.adaptive') : t('dsp.eq.trimFixed')}
+        {t(LABELS[mode])}
       </button>
     </span>
   );

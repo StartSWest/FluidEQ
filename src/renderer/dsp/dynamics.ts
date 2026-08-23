@@ -46,6 +46,31 @@ const RANGE_RATIO = 10 ** (RANGE_DB / 20);
 const ATTACK_MS = 5;
 const RELEASE_MS = 80;
 
+/**
+ * The smallest change a band has to make before it is worth reacting at all.
+ *
+ * The detector divides the band’s output-minus-input by how much a
+ * full-strength band would change, so the threshold keeps its meaning as the
+ * gain dial moves. That division is also a multiplication of whatever noise
+ * is in the signal: at the old floor of 0.0001 the factor reached ten
+ * thousand, and the residue left in a biquad by a track that has stopped was
+ * enough to cross the threshold and let go again, several times a second.
+ * That is what the curve going wild with nothing playing was.
+ *
+ * 0.02 is a band changing about a sixth of a decibel. Below that there is
+ * nothing to hear whether it reacts or not.
+ */
+const MIN_SWING = 0.02;
+
+/**
+ * And an absolute floor under the detector, in linear amplitude.
+ *
+ * The swing limit bounds how far noise can be amplified; this says what
+ * counts as noise in the first place. -100 dBFS is far below anything a
+ * record contains and far above what a silent filter leaves behind.
+ */
+const SILENCE = 1e-5;
+
 export interface IBandDynamics {
   /** False for a static band: every dynamic path is skipped entirely. */
   active: boolean;
@@ -95,7 +120,8 @@ export const refreshBandDynamics = (
   const swing = Math.abs(10 ** (band.gainDb / 20) - 1);
   // A band with no gain changes nothing, so there is nothing to detect and
   // nothing to scale. Dividing by that swing would be a division by zero.
-  state.active = isRackEnabled && band.dynamic && band.enabled && swing > 1e-4;
+  state.active =
+    isRackEnabled && band.dynamic && band.enabled && swing > MIN_SWING;
   state.threshold = 10 ** (band.thresholdDb / 20);
   state.normalise = state.active ? 1 / swing : 1;
   state.attack = coefficientFor(ATTACK_MS, sampleRate);
@@ -115,7 +141,9 @@ export const bandDynamicAmount = (
   state: IBandDynamics,
   difference: number,
 ): number => {
-  const level = Math.abs(difference) * state.normalise;
+  const raw = Math.abs(difference);
+  // Silence is silence whatever it is multiplied by.
+  const level = raw < SILENCE ? 0 : raw * state.normalise;
   const coefficient = level > state.envelope ? state.attack : state.release;
   state.envelope = level + (state.envelope - level) * coefficient;
   const over = state.envelope - state.threshold;
