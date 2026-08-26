@@ -30,6 +30,7 @@ import {
   IHitRegion,
   IMakerPlot,
   TMakerDragBehavior,
+  WORD_BOUNDARY_HANDLE_REACH,
   drawRoundedRect,
 } from '../makerCanvasGeometry';
 import {
@@ -37,7 +38,7 @@ import {
   IMakerCanvasTranslationRow,
 } from '../makerCanvasTypes';
 import { TSelection } from '../useKaraokeMakerSelection';
-import { paintLyricTranslationLine } from './paintTranslation';
+import { paintLyricTranslationRow } from './paintTranslation';
 
 export interface IPaintLyricsInput {
   plot: IMakerPlot;
@@ -101,6 +102,14 @@ export const paintLyrics = (
   const { left: plotLeft, right: plotRight, width: plotWidth, timeX } = plot;
   const regions: IHitRegion[] = [];
   const wordBoundaryRegions: IHitRegion[] = [];
+  // Every vertical offset below that boxes or clips a word is written as a
+  // fraction of this, not as an absolute pixel count. Before lyricLaneHeight
+  // could vary at the small window size (see useMakerCanvasModel.ts) they
+  // were hardcoded against the old fixed LYRIC_LANE_HEIGHT (26, so
+  // laneHalf === 13) — a box or hit region left at that old absolute size
+  // once the lane shrinks is the identical defect this task exists to
+  // prevent, one layer in from where the budget itself is decided.
+  const laneHalf = lyricLaneHeight / 2;
 
   // Keep a full viewport of labels on both sides in the packing pass. Small
   // pans and follow motion then retain the same neighbours and lane choices
@@ -222,9 +231,9 @@ export const paintLyrics = (
       drawRoundedRect(
         context,
         labelLeft - 3,
-        wordCenterY - 13,
+        wordCenterY - laneHalf,
         labelWidth + 6,
-        26,
+        lyricLaneHeight,
         7,
       );
       context.fill();
@@ -233,27 +242,27 @@ export const paintLyrics = (
         drawRoundedRect(
           context,
           labelLeft - 3,
-          wordCenterY - 13,
+          wordCenterY - laneHalf,
           labelWidth + 6,
-          26,
+          lyricLaneHeight,
           7,
         );
         context.clip();
         context.fillStyle = 'rgba(70, 244, 229, .2)';
         context.fillRect(
           labelLeft - 3,
-          wordCenterY - 13,
+          wordCenterY - laneHalf,
           (labelWidth + 6) * wordProgress,
-          26,
+          lyricLaneHeight,
         );
         context.restore();
       }
       drawRoundedRect(
         context,
         labelLeft - 3,
-        wordCenterY - 13,
+        wordCenterY - laneHalf,
         labelWidth + 6,
-        26,
+        lyricLaneHeight,
         7,
       );
       context.stroke();
@@ -267,8 +276,8 @@ export const paintLyrics = (
       : 'rgba(111, 151, 178, .25)';
     context.lineWidth = 1;
     context.beginPath();
-    context.moveTo(timingLeft, wordCenterY + 12);
-    context.lineTo(timingRight, wordCenterY + 12);
+    context.moveTo(timingLeft, wordCenterY + (laneHalf - 1));
+    context.lineTo(timingRight, wordCenterY + (laneHalf - 1));
     context.stroke();
     word.syllables.forEach(({ token }, syllableIndex) => {
       const syllableRawLeft = timeX(token.startMs as number);
@@ -298,8 +307,8 @@ export const paintLyrics = (
       context.strokeStyle = timingStroke;
       context.lineWidth = syllableSelected ? 2.2 : 1.35;
       context.beginPath();
-      context.moveTo(syllableLeft, wordCenterY + 12);
-      context.lineTo(syllableRight, wordCenterY + 12);
+      context.moveTo(syllableLeft, wordCenterY + (laneHalf - 1));
+      context.lineTo(syllableRight, wordCenterY + (laneHalf - 1));
       context.stroke();
       if (syllableIndex > 0) {
         const junctionX = Math.max(
@@ -310,7 +319,13 @@ export const paintLyrics = (
           ? '#a8fff7'
           : 'rgba(73, 235, 220, .72)';
         context.beginPath();
-        context.arc(junctionX, wordCenterY + 12, 1.8, 0, Math.PI * 2);
+        context.arc(
+          junctionX,
+          wordCenterY + (laneHalf - 1),
+          1.8,
+          0,
+          Math.PI * 2,
+        );
         context.fill();
       }
 
@@ -328,16 +343,16 @@ export const paintLyrics = (
         id: token.id,
         left: labelHitLeft,
         right: Math.max(labelHitLeft + 2, labelHitRight),
-        top: wordCenterY - 14,
-        bottom: wordCenterY + 8,
+        top: wordCenterY - (laneHalf + 1),
+        bottom: wordCenterY + (laneHalf - 5),
       });
       regions.push({
         kind: 'word',
         id: token.id,
         left: syllableLeft,
         right: syllableRight,
-        top: wordCenterY + 8,
-        bottom: wordCenterY + 16,
+        top: wordCenterY + (laneHalf - 5),
+        bottom: wordCenterY + (laneHalf + 3),
       });
       const lineTokens = project.lyrics.lines[word.lineIndex]?.tokens ?? [];
       const tokenIndex = lineTokens.findIndex(
@@ -390,7 +405,10 @@ export const paintLyrics = (
           left: handleX - 7,
           right: handleX + 7,
           top: wordCenterY + 3,
-          bottom: wordCenterY + 21,
+          // Fixed, not laneHalf-derived — see WORD_BOUNDARY_HANDLE_REACH.
+          // paintTranslation.ts's own clearance is computed from this same
+          // constant, so the two stay in agreement if it ever changes.
+          bottom: wordCenterY + WORD_BOUNDARY_HANDLE_REACH,
         });
       };
       const canResizeLeftBoundary =
@@ -436,7 +454,12 @@ export const paintLyrics = (
     context.fillStyle = wordFill;
     context.save();
     context.beginPath();
-    context.rect(labelLeft, wordCenterY - 12, labelWidth, 24);
+    context.rect(
+      labelLeft,
+      wordCenterY - (laneHalf - 1),
+      labelWidth,
+      lyricLaneHeight - 2,
+    );
     context.clip();
     context.fillText(word.text, centerX, wordCenterY);
     if (wordProgress > 0 && !wordComplete) {
@@ -444,9 +467,9 @@ export const paintLyrics = (
       context.beginPath();
       context.rect(
         textLeft,
-        wordCenterY - 14,
+        wordCenterY - (laneHalf + 1),
         measuredWidth * wordProgress,
-        28,
+        lyricLaneHeight + 2,
       );
       context.clip();
       context.fillStyle = '#73fff3';
@@ -457,32 +480,15 @@ export const paintLyrics = (
     context.restore();
   });
 
-  // After the original's tokens, and once per line rather than once per
-  // word: a line's words can zigzag across all three lanes above, but its
-  // translation is one label, so the first word of a line seen here is
-  // enough to draw it and every later word of the same line is skipped.
+  // After the original's tokens. See paintTranslation.ts for why this is
+  // once per line rather than once per word.
   if (translationRow) {
-    const paintedLines = new Set<number>();
-    layoutWords.forEach((word) => {
-      if (paintedLines.has(word.lineIndex)) {
-        return;
-      }
-      paintedLines.add(word.lineIndex);
-      const line = translationRow.lines.get(word.lineIndex);
-      if (!line) {
-        return;
-      }
-      paintLyricTranslationLine(context, {
-        plot,
-        lyricSectionTop,
-        lyricLaneHeight,
-        laneHeight: translationRow.laneHeight,
-        lineStartMs: word.lineStartMs,
-        lineEndMs: word.lineEndMs,
-        text: line.text,
-        fitLabel: line.fitLabel,
-        fitOk: line.fitOk,
-      });
+    paintLyricTranslationRow(context, {
+      plot,
+      lyricSectionTop,
+      lyricLaneHeight,
+      translationRow,
+      layoutWords,
     });
   }
 

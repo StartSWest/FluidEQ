@@ -17,7 +17,28 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { KARAOKE_MAKER_LYRIC_LANE_COUNT } from '../makerCanvasLayout';
-import { IMakerPlot } from '../makerCanvasGeometry';
+import {
+  COMPACT_LYRIC_LANE_HEIGHT,
+  IMakerPlot,
+  WORD_BOUNDARY_HANDLE_REACH,
+} from '../makerCanvasGeometry';
+import {
+  ICanvasLyricWord,
+  IMakerCanvasTranslationRow,
+} from '../makerCanvasTypes';
+
+// The last original lane's boundary-drag hit region is a fixed touch
+// target (WORD_BOUNDARY_HANDLE_REACH, see makerCanvasGeometry.ts) — not a
+// fraction of the lane pitch, so it does not shrink with lyricLaneHeight the
+// way the word box above it does. That means it reaches further past this
+// row's own top edge the shorter the original lane is: REACH - height / 2,
+// which is worst (10px) at COMPACT_LYRIC_LANE_HEIGHT and never worse than
+// that, since that constant is the smallest lyricLaneHeight is ever set to.
+// Reserved always, not recomputed per frame from the actual lyricLaneHeight,
+// so this row's text sits at one fixed position rather than shifting when
+// the window crosses the small-window breakpoint.
+const CLEARANCE_TOP =
+  WORD_BOUNDARY_HANDLE_REACH - COMPACT_LYRIC_LANE_HEIGHT / 2;
 
 // Mirrors `$weight-*` in _theme.scss. A canvas `font` string takes a plain
 // number, not a Sass variable, so these two are the same scale spelled for a
@@ -87,10 +108,14 @@ export const paintLyricTranslationLine = (
   if (rawRight < plotLeft || rawLeft > plotRight) {
     return;
   }
-  const centerY =
-    lyricSectionTop +
-    KARAOKE_MAKER_LYRIC_LANE_COUNT * lyricLaneHeight +
-    laneHeight / 2;
+  const rowTop =
+    lyricSectionTop + KARAOKE_MAKER_LYRIC_LANE_COUNT * lyricLaneHeight;
+  // Centred in the leftover space below CLEARANCE_TOP, not in the row's
+  // full height — the row's own top is reserved, empty, so a click on this
+  // (non-interactive) text never lands on the previous lane's boundary
+  // handle instead. See TRANSLATION_LANE_HEIGHT in makerCanvasGeometry.ts
+  // for why the leftover is enough room for one line of this row's text.
+  const centerY = rowTop + CLEARANCE_TOP + (laneHeight - CLEARANCE_TOP) / 2;
 
   context.save();
   context.textBaseline = 'middle';
@@ -115,4 +140,57 @@ export const paintLyricTranslationLine = (
   );
   context.fillText(fitLabel, fitLeft, centerY);
   context.restore();
+};
+
+export interface IPaintTranslationRowInput {
+  plot: IMakerPlot;
+  lyricSectionTop: number;
+  lyricLaneHeight: number;
+  translationRow: IMakerCanvasTranslationRow;
+  /** The same words paintLyrics.ts just painted, in the same view window. */
+  layoutWords: readonly ICanvasLyricWord[];
+}
+
+/**
+ * Every visible line's translation, once each.
+ *
+ * `layoutWords` is per-word, not per-line — a line's own words can zigzag
+ * across all three original lanes above, but its translation is one label,
+ * so the first word of a line seen here is enough to draw it and every
+ * later word of the same line is skipped. Kept out of paintLyrics.ts, which
+ * already does the per-word painting this reads its input from, so that
+ * file stays under its own line ceiling.
+ */
+export const paintLyricTranslationRow = (
+  context: CanvasRenderingContext2D,
+  {
+    plot,
+    lyricSectionTop,
+    lyricLaneHeight,
+    translationRow,
+    layoutWords,
+  }: IPaintTranslationRowInput,
+): void => {
+  const paintedLines = new Set<number>();
+  layoutWords.forEach((word) => {
+    if (paintedLines.has(word.lineIndex)) {
+      return;
+    }
+    paintedLines.add(word.lineIndex);
+    const line = translationRow.lines.get(word.lineIndex);
+    if (!line) {
+      return;
+    }
+    paintLyricTranslationLine(context, {
+      plot,
+      lyricSectionTop,
+      lyricLaneHeight,
+      laneHeight: translationRow.laneHeight,
+      lineStartMs: word.lineStartMs,
+      lineEndMs: word.lineEndMs,
+      text: line.text,
+      fitLabel: line.fitLabel,
+      fitOk: line.fitOk,
+    });
+  });
 };

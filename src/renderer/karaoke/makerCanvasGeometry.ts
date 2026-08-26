@@ -43,21 +43,48 @@ export const BASE_LYRIC_SECTION_TOP = 97;
 // was the tallest thing on the stage while holding one line of text per lane.
 export const LYRIC_LANE_HEIGHT = 26;
 
+/**
+ * How far a word-boundary drag handle's hit region reaches below its own
+ * lane's centre (`paintLyrics.ts`'s `wordCenterY + WORD_BOUNDARY_HANDLE_
+ * REACH`). Fixed on purpose, not a fraction of `lyricLaneHeight`: a drag
+ * target has to stay grabbable at any lane height, so it does not shrink
+ * with the lane the way the word box and text clip below it do.
+ *
+ * Read here, rather than left as a bare `21` only inside `paintLyrics.ts`,
+ * because `paintTranslation.ts` also needs it: the last original lane's own
+ * handle reaches past that lane's bottom edge into the translation row
+ * beneath it, and the row has to know by how much to stay clear of it.
+ */
+export const WORD_BOUNDARY_HANDLE_REACH = 21;
+
 // Used only at the small window size, and only while a translation row is
-// also showing (see useMakerCanvasModel.ts). Half the 8px this file already
-// gave up once above (34 -> 26) — the original lanes give back exactly that
-// much of a second cut so the translation row never has to give up any of
-// its own height to fit.
+// also showing (see useMakerCanvasModel.ts). Not an arbitrary cut: 22 is the
+// smallest this may go and still leave the translation row's own text clear
+// of the previous lane's boundary handle. That handle reaches
+// `WORD_BOUNDARY_HANDLE_REACH - height / 2` past this lane's own bottom
+// edge — 10px at height 22, worse than at the normal 26px lane (8px) — and
+// TRANSLATION_LANE_HEIGHT below reserves exactly that worst case as dead
+// space, which still leaves that row 16px for its own content. Going
+// smaller than 22 would eat into that 16px.
 export const COMPACT_LYRIC_LANE_HEIGHT = 22;
 
-// One quiet text row. An 11px line needs about 14px of ascender-to-descender
-// room (11 * 1.3, the ratio this file's own 13px word text already keeps
-// inside its 26px lane: 13 * 2 = 26). 5px above clears the previous lane's
-// boundary marks, which already reach 8px past that lane's own centre; 5px
-// below keeps the text off the divider line before the pitch grid.
-// 14 + 5 + 5 = 24. This is the height the budget grows by — never the height
-// that shrinks; only COMPACT_LYRIC_LANE_HEIGHT above does that.
-export const TRANSLATION_LANE_HEIGHT = 24;
+// Reuses LYRIC_LANE_HEIGHT rather than a bespoke number, split in
+// paintTranslation.ts into two pieces that are each independently checked:
+// - 10px of dead space at the top, always reserved regardless of window
+//   size: `WORD_BOUNDARY_HANDLE_REACH - COMPACT_LYRIC_LANE_HEIGHT / 2` =
+//   21 - 11 = 10, the worst-case reach of the previous lane's boundary
+//   handle (see COMPACT_LYRIC_LANE_HEIGHT above) — using the worst case
+//   always, rather than recomputing per frame, keeps the row's own text at
+//   one fixed position instead of shifting when the window crosses the
+//   small-window breakpoint.
+// - 16px left over for the row's own text: an 11px line needs about 14px at
+//   a browser's own default 1.2 line-height (11 * 1.2 = 13.2, rounded up to
+//   14), so 16 leaves a couple of pixels to spare rather than sitting
+//   exactly on the limit.
+// 10 + 16 = 26 = LYRIC_LANE_HEIGHT. This is the height the budget grows
+// by — never the height that shrinks; only COMPACT_LYRIC_LANE_HEIGHT above
+// does that.
+export const TRANSLATION_LANE_HEIGHT = LYRIC_LANE_HEIGHT;
 
 /** Room for the piano keys down the left edge. */
 const PLOT_LEFT = 54;
