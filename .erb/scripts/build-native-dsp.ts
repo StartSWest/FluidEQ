@@ -156,14 +156,19 @@ if (shouldClean) {
   process.exit(0);
 }
 
-spawnSync(
-  process.execPath,
-  [
-    require.resolve('ts-node/dist/bin'),
-    path.join(__dirname, 'generate-native-parameters.ts'),
-  ],
-  { stdio: 'inherit', cwd: ROOT },
-);
+/** Run one of the sibling generator scripts through this same Node. */
+const generate = (script: string) => {
+  const result = spawnSync(
+    process.execPath,
+    [require.resolve('ts-node/dist/bin'), path.join(__dirname, script)],
+    { stdio: 'inherit', cwd: ROOT },
+  );
+  if (result.status !== 0) {
+    fail(`${script} exited with ${result.status}`);
+  }
+};
+
+generate('generate-native-parameters.ts');
 
 mkdirSync(BUILD_DIR, { recursive: true });
 
@@ -180,6 +185,10 @@ run(tools, [
 run(tools, ['--build', BUILD_DIR, '--config', 'Release']);
 
 if (shouldTest) {
+  // After the build, not before: the corpus is a hundred and eighty files and
+  // nothing but the tests reads it, so an ordinary `pnpm build` should not pay
+  // for it. Regenerated every run so the reference cannot go stale.
+  generate('generate-parity-fixtures.ts');
   const ctest = path.join(path.dirname(tools.cmake), isWindows ? 'ctest.exe' : 'ctest');
   const runner = existsSync(ctest) ? ctest : 'ctest';
   const args = ['--test-dir', BUILD_DIR, '--output-on-failure', '-C', 'Release'];

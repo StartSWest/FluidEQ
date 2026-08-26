@@ -55,6 +55,8 @@ endif()
 
 add_library(fluideq-dsp-core STATIC
   dsp-core/src/engine.cpp
+  dsp-core/src/biquad.cpp
+  dsp-core/src/eq.cpp
 )
 target_include_directories(fluideq-dsp-core PUBLIC dsp-core/include)
 target_link_libraries(fluideq-dsp-core PRIVATE feq_strict)
@@ -66,6 +68,16 @@ enable_testing()
 add_executable(fluideq-dsp-core-test dsp-core/tests/engine_test.cpp)
 target_link_libraries(fluideq-dsp-core-test PRIVATE fluideq-dsp-core feq_strict)
 add_test(NAME dsp-core COMMAND fluideq-dsp-core-test)
+
+# Held to what the TypeScript engine already does. The corpus is regenerated
+# from those modules by `generate-parity-fixtures.ts` before this runs, so the
+# reference cannot go stale — see the head of that script for why that is the
+# right direction during a migration, and what it therefore cannot catch.
+add_executable(fluideq-dsp-parity-test dsp-core/tests/parity_test.cpp)
+target_link_libraries(fluideq-dsp-parity-test
+  PRIVATE fluideq-dsp-core feq_strict)
+add_test(NAME dsp-parity
+  COMMAND fluideq-dsp-parity-test "${CMAKE_BINARY_DIR}/fixtures")
 
 add_executable(fluideq-dsp-host
   dsp-host/src/main.cpp
