@@ -512,7 +512,7 @@ const karaoke: Partial<Dictionary> = {
     '正在使用播放器的当前时间。撤销可恢复已保存的草稿。',
 
   'karaoke.translation.picker': '歌词语言',
-  'karaoke.translation.original': '原始语言',
+  'karaoke.translation.original': '录音原样',
   'karaoke.translation.add': '添加语言',
   'karaoke.translation.remove': '移除此语言',
   'karaoke.translation.target': '待粘贴歌词的语言',

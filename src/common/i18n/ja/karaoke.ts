@@ -560,7 +560,7 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.translation.paste':
     'その言語の歌詞を、曲の1行につき1行になるように貼り付けてください。',
   'karaoke.translation.mismatch':
-    'この曲の歌唱行は{expected}行ですが、このテキストは{received}行です。入力欄の横にある番号付きの行に合わせてください。',
+    'この曲の歌詞行は{expected}行ですが、このテキストは{received}行です。入力欄の横にある番号付きの行に合わせてください。',
   'karaoke.translation.fit': '{syllables} 音節、{notes} 音符',
   'karaoke.translation.fitOk': 'メロディーに合っています',
   'karaoke.translation.empty': 'この言語の歌詞はまだありません。',
