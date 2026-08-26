@@ -48,58 +48,9 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
-.is-euphoric .about__header .eyebrow {
-  animation: euphoria-sweep 3.6s linear infinite;
-  color: hsl(var(--euphoria-hue, 160deg) 95% 68%);
-  text-shadow: 0 0 12px hsl(var(--euphoria-hue, 160deg) 95% 60% / 45%);
-}
-
-.about__header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: $spacing-m;
-  padding: 18px 20px 14px;
-  border-bottom: 1px solid rgba($primary-lighter, 0.12);
-
-  h2 {
-    margin: 3px 0 0;
-    color: rgba($white, 0.95);
-    font-size: 1.1rem;
-  }
-}
-
-.about__close {
-  display: grid;
-  width: 28px;
-  height: 28px;
-  flex: 0 0 auto;
-  place-items: center;
-  padding: 0;
-  color: rgba($white, 0.72);
-  border: 1px solid transparent;
-  border-radius: $radius-xs;
-  background: transparent;
-  cursor: pointer;
-  transition: $transition-control;
-
-  svg {
-    width: 12px;
-    height: 12px;
-    fill: none;
-    stroke: currentColor;
-    stroke-linecap: round;
-    stroke-width: 1.5;
-  }
-
-  &:hover,
-  &:focus-visible {
-    color: $white;
-    border-color: rgba($secondary-light, 0.4);
-    background: rgba($secondary-default, 0.16);
-    outline: none;
-  }
-}
+// The header, its close button and the euphoria treatment on its eyebrow all
+// lived here, identical to the copies in `WhatsNew.scss`. They are now in
+// `DialogHeader.scss`, once.
 
 .about__body {
   min-height: 0;
@@ -135,41 +86,20 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
-// The name and the version, once, at the top — the same pairing as the
-// titlebar, so the panel opens onto something already familiar.
-.about__identity {
-  display: flex;
-  align-items: center;
-  gap: $spacing-s;
-  padding-bottom: $spacing-m;
-  border-bottom: 1px solid rgba($primary-lighter, 0.12);
-}
-
-.about__name {
-  display: flex;
-  align-items: baseline;
-  margin: 0;
-  gap: $spacing-xs;
-  color: rgba($white, 0.95);
-  font-size: 1rem;
-  font-weight: $weight-bold;
-}
-
-.about__version {
-  color: rgba($primary-lighter, 0.62);
-  font-size: 0.68rem;
-  font-weight: $weight-semibold;
-  letter-spacing: 0.04em;
-}
-
-.about__tagline {
-  margin: 2px 0 0;
-  color: rgba($primary-lighter, 0.66);
-  font-size: 0.7rem;
-}
+// The identity row that used to open the body — mark, name, version, tagline
+// — is gone. It repeated the name from the header two lines above it, and
+// stated the version as bare grey text in the one app whose own titlebar puts
+// a pill round it. The header carries all three now; see `DialogHeader.scss`.
 
 .about__section {
   margin-top: $spacing-m;
+
+  // The first one starts where the body's own padding puts it. It used to
+  // begin under the identity row's bottom border, which supplied the gap this
+  // margin would otherwise double.
+  &:first-child {
+    margin-top: 0;
+  }
 
   h3 {
     margin: 0 0 4px;

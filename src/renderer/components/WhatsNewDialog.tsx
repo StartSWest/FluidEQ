@@ -24,6 +24,7 @@ import {
   useState,
 } from 'react';
 import { useTranslation } from '../utils/I18nContext';
+import DialogHeader from './DialogHeader';
 import '../styles/WhatsNew.scss';
 
 interface IWhatsNewDialogProps {
@@ -197,22 +198,16 @@ export default function WhatsNewDialog({
         aria-modal="true"
         aria-labelledby="whats-new-title"
       >
-        <div className="whats-new__header">
-          <div>
-            <span className="eyebrow">{t('whatsNew.eyebrow')}</span>
-            <h2 id="whats-new-title">{t('whatsNew.title')}</h2>
-          </div>
-          <button
-            type="button"
-            className="whats-new__close"
-            aria-label={t('support.close')}
-            onClick={onClose}
-          >
-            <svg viewBox="0 0 12 12" aria-hidden="true">
-              <path d="M3 3l6 6M9 3l-6 6" />
-            </svg>
-          </button>
-        </div>
+        {/* No version pill here, unlike About: `scope` can ask for the whole
+            changelog, and one number on a panel covering several releases
+            would name the wrong one. */}
+        <DialogHeader
+          eyebrow={t('whatsNew.eyebrow')}
+          title={t('whatsNew.title')}
+          titleId="whats-new-title"
+          closeLabel={t('support.close')}
+          onClose={onClose}
+        />
 
         <div className="whats-new__body">
           {markdown === undefined && <p>{t('whatsNew.loading')}</p>}
