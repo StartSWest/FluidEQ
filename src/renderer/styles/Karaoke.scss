@@ -4054,7 +4054,25 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // Maker's own `overflow: hidden` would otherwise cut it at the bottom of the
   // window with no way to reach the rest, and a menu whose last item cannot be
   // clicked is the same bug in a different place.
-  max-height: calc(100dvh - var(--karaoke-maker-header-height, 56px) - 34px);
+  //
+  // THE TRANSPORT BAR IS PART OF THAT SUM. This capped itself against the
+  // viewport while the box that actually clips it is `.karaoke-maker`, which
+  // is `inset: 0` inside a `#root` that pads 74px out of its own foot to
+  // reserve the bar's strip. So the popover was ~50px taller than the space it
+  // could be seen in: it never overflowed *itself*, never grew a scrollbar,
+  // and its tail was cut by the Maker's `overflow: hidden` with no way to
+  // reach it. Reported as the panel having no scroll, which is exactly what it
+  // looks like — the last row of "when it is idle" sat under the bar.
+  //
+  // Zero when no bar is up, so a window without one keeps the full height.
+  // `--now-playing-bar-height` is published by `useTransportStrip` and is the
+  // card plus its inset, which is the same strip `#root` reserves.
+  --karaoke-popover-foot: 0px;
+
+  max-height: calc(
+    100dvh - var(--karaoke-maker-header-height, 56px) -
+      34px - var(--karaoke-popover-foot)
+  );
   overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
@@ -4067,6 +4085,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   transform: translateX(-50%);
   backdrop-filter: blur(18px);
   @include slim-scrollbar;
+}
+
+// Both states of the bar, and deliberately not `:not(.is-floating-bar)`. When
+// the strip is reserved the Maker's box stops above the bar and the popover is
+// clipped by it; when the bar floats the Maker reaches the window edge and the
+// bar is drawn on top instead. Cut off and covered up are the same thing to
+// somebody trying to press the last button.
+#root.has-now-playing .karaoke-maker__tool-popover {
+  --karaoke-popover-foot: var(--now-playing-bar-height, 0px);
 }
 
 .karaoke-maker__action-popover {
