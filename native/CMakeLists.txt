@@ -71,6 +71,7 @@ add_library(fluideq-dsp-core STATIC
   dsp-core/src/organic.cpp
   dsp-core/src/organic_stage.cpp
   dsp-core/src/exciter.cpp
+  dsp-core/src/convolver.cpp
 )
 target_include_directories(fluideq-dsp-core PUBLIC dsp-core/include)
 target_link_libraries(fluideq-dsp-core PRIVATE feq_strict)

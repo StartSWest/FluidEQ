@@ -32,6 +32,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "fluideq/phase_align.h"
 #include "fluideq/primitives.h"
 #include "fluideq/compressor.h"
+#include "fluideq/convolver.h"
 #include "fluideq/output_safety.h"
 #include "fluideq/post_filter_normalizer.h"
 #include "fluideq/limiter.h"
@@ -78,7 +79,8 @@ enum ProcessorId : uint32_t {
   kExciterGuard = 19,
   kOrganic = 20,
   kOrganicPath = 21,
-  kExciter = 22
+  kExciter = 22,
+  kConvolver = 23
 };
 
 struct Fixture {
@@ -879,9 +881,54 @@ bool render_exciter(const Fixture& fixture, std::vector<float>& actual) {
   return true;
 }
 
+/**
+ * `[kernelLength, seed]`, with the kernel rebuilt from the seed on both sides.
+ *
+ * The kernel travels as a recipe rather than as data because a 16k impulse
+ * response would be 64 kB per fixture, and the point is to compare the
+ * convolution rather than to ship a table twice.
+ */
+bool render_convolver(const Fixture& fixture, std::vector<float>& actual) {
+  if (fixture.params.size() < 2) {
+    return false;
+  }
+  const auto length = static_cast<uint32_t>(fixture.params[0]);
+  auto seed = static_cast<uint32_t>(fixture.params[1]);
+  std::vector<float> kernel(length);
+  for (uint32_t at = 0; at < length; ++at) {
+    seed = seed * 1664525u + 1013904223u;
+    const double unit = static_cast<double>(seed >> 8) / 16777216.0;
+    // A decaying noise burst: broadband, finite, and nothing like an impulse,
+    // so every partition carries real content.
+    kernel[at] = static_cast<float>((unit * 2.0 - 1.0) *
+                                    std::exp(-3.0 * at / length));
+  }
+
+  FeqConvolverKernel* prepared =
+      feq_convolver_kernel_create(kernel.data(), length);
+  if (prepared == nullptr) {
+    return false;
+  }
+  actual = fixture.input;
+  for (uint32_t channel = 0; channel < fixture.channels; ++channel) {
+    FeqConvolver* convolver = feq_convolver_create(prepared);
+    if (convolver == nullptr) {
+      feq_convolver_kernel_destroy(prepared);
+      return false;
+    }
+    feq_convolve(convolver, channel_at(actual, channel, fixture.frames),
+                 fixture.frames);
+    feq_convolver_destroy(convolver);
+  }
+  feq_convolver_kernel_destroy(prepared);
+  return true;
+}
+
 /** Run one fixture through the native engine, or say it cannot be run yet. */
 bool render(const Fixture& fixture, std::vector<float>& actual) {
   switch (fixture.processor) {
+    case kConvolver:
+      return render_convolver(fixture, actual);
     case kExciter:
       return render_exciter(fixture, actual);
     case kOrganicPath:

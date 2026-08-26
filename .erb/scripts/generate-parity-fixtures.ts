@@ -100,6 +100,11 @@ import {
   runExciterChannel,
 } from '../../src/renderer/dsp/exciterStage';
 import {
+  convolve,
+  createConvolver,
+  prepareKernel,
+} from '../../src/renderer/dsp/convolver';
+import {
   createBandDynamics,
   refreshBandDynamics,
 } from '../../src/renderer/dsp/dynamics';
@@ -166,6 +171,7 @@ enum ProcessorId {
   Organic = 20,
   OrganicPath = 21,
   Exciter = 22,
+  Convolver = 23,
 }
 
 interface IRackBand {
@@ -1382,6 +1388,51 @@ const EXCITER_HOT = EXCITER_BANDS.map((band) => ({ ...band, mix: 0.95 }));
         );
         return target;
       }),
+      maxAbsTolerance: 1e-4,
+      rmsTolerance: 1e-5,
+    });
+  });
+});
+
+/**
+ * Partitioned convolution, at kernel lengths on either side of a partition.
+ *
+ * 512 is exactly one partition, 1500 is not a multiple of one, and 4096 is
+ * eight. The non-multiple is the case that matters: the last partition is
+ * short and zero-padded, and a port that assumed whole partitions would be
+ * wrong only in the tail — where nobody listens.
+ *
+ * The kernel travels as a seed rather than as data, and both sides rebuild it
+ * with the same integer recurrence. A 16k impulse response would be 64 kB per
+ * fixture, and the point is to compare the convolution rather than to ship a
+ * table twice.
+ */
+const convolverKernel = (length: number, seed: number): Float32Array => {
+  let state = seed >>> 0;
+  return Float32Array.from({ length }, (_unused, at) => {
+    state = (Math.imul(state, 1664525) + 1013904223) >>> 0;
+    const unit = (state >>> 8) / 16777216;
+    return (unit * 2 - 1) * Math.exp((-3 * at) / length);
+  });
+};
+
+[512, 1500, 4096].forEach((length) => {
+  parityCorpus(FRAMES, 48000).forEach((signal) => {
+    fixtures.push({
+      name: `convolver/${length}/48000/${signal.name}`,
+      processor: ProcessorId.Convolver,
+      sampleRate: 48000,
+      params: [length, 0x1a2b3c4d],
+      input: processorInput(signal.channels),
+      expected: processorInput(signal.channels).map((channel) => {
+        const prepared = prepareKernel(convolverKernel(length, 0x1a2b3c4d));
+        const target = Float32Array.from(channel);
+        convolve(createConvolver(prepared), target);
+        return target;
+      }),
+      // Two 1024-point transforms per partition, accumulated across every
+      // partition: more rounding than any filter here, and still far below
+      // anything audible.
       maxAbsTolerance: 1e-4,
       rmsTolerance: 1e-5,
     });
