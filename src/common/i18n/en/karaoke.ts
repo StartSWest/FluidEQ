@@ -550,6 +550,7 @@ const karaoke = {
   'karaoke.translation.picker': 'Lyrics language',
   'karaoke.translation.original': 'As recorded',
   'karaoke.translation.add': 'Add a language',
+  'karaoke.translation.addPending': "Pasting a translation isn't built yet.",
   'karaoke.translation.remove': 'Remove this language',
   'karaoke.translation.target': 'Language of the lyrics you are pasting',
   'karaoke.translation.paste':

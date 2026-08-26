@@ -3819,6 +3819,46 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     0 6px 18px rgba(0, 0, 0, 0.1);
 }
 
+// The language Dropdown's trigger wears the tool-button surface, not
+// `field-surface`. Left alone it drew the app's form-field box — bordered,
+// gradient, $control-height (38px) tall — beside the borderless 32px
+// .karaoke-maker__tool-buttons either side of it, which was the one control
+// on this strip that did not look like the strip. `Library.scss`'s
+// `.library-toolbar__sort` documents the identical failure against its own
+// 23px pills and fixes it the same way: give the trigger the surrounding
+// bar's surface instead of the generic field one.
+//
+// Colours are copied from `.karaoke-maker__tool-button` above rather than
+// reached for from `color`/`theme`'s general tokens the way
+// `LanguagePicker.scss` does: this toolbar keeps its own cyan-glow palette as
+// literal rgba() throughout, and matching the app's default field tokens
+// would still have matched the wrong bar. The portalled menu is untouched —
+// it is meant to look like every other Dropdown's menu, the same call
+// `LanguagePicker.scss` makes for its own list.
+.karaoke-maker__translation-group .dropdown > [role='menu'] {
+  min-height: $control-height-sm;
+  padding: 0 10px;
+  color: rgba(186, 217, 228, 0.75);
+  background: transparent;
+  border-color: transparent;
+  // $radius-xs (8px) matches .karaoke-maker__tool-button's own radius
+  // exactly; $radius-s, field-surface's default, is visibly rounder.
+  border-radius: $radius-xs;
+  box-shadow: none;
+  font-size: 0.72rem;
+
+  &:hover:not([aria-disabled='true']),
+  &:focus-visible {
+    color: #7ffff2;
+    background: linear-gradient(
+      180deg,
+      rgba(37, 141, 148, 0.2),
+      rgba(9, 55, 68, 0.32)
+    );
+    border-color: rgba(71, 236, 220, 0.38);
+  }
+}
+
 .karaoke-maker__tool-cluster,
 .karaoke-maker__export-wrap {
   position: relative;

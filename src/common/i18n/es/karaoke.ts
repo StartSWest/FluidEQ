@@ -562,6 +562,7 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.translation.picker': 'Idioma de la letra',
   'karaoke.translation.original': 'Como se grabó',
   'karaoke.translation.add': 'Añadir un idioma',
+  'karaoke.translation.addPending': 'Todavía no se puede pegar una traducción.',
   'karaoke.translation.remove': 'Quitar este idioma',
   'karaoke.translation.target': 'Idioma de la letra que vas a pegar',
   'karaoke.translation.paste':

@@ -62,9 +62,10 @@ export interface IKaraokeMakerToolbarProps {
   handPanMode: boolean;
   toggleHandPanMode: () => void;
 
-  /** Which lyric sheet is showing: the original's tag first, then each
-   * translation's, in the order it was added. */
+  /** Which lyric sheet is showing right now. */
   translationLanguage: string;
+  /** The original's tag first, then each translation's, in the order it was
+   * added. */
   translationLanguages: string[];
   setTranslationLanguage: (language: string) => void;
   /** Removes whichever translation is currently selected; a no-op target of
@@ -120,6 +121,14 @@ const KaraokeMakerToolbar = ({
   wordShiftMs,
 }: IKaraokeMakerToolbarProps) => {
   const { t } = useTranslation();
+  // `karaokeTranslationLanguages` puts this exact expression first in the
+  // list it returns — the sentinel is only the fallback for a project that
+  // never declared a language, and UltraStar imports populate a real tag
+  // from `#LANGUAGE` (ultrastar.ts -> project.ts), so the bare
+  // `KARAOKE_ORIGINAL_LANGUAGE` constant is not a reliable stand-in for "the
+  // original" once a project has one. Every place below that needs to know
+  // whether an entry *is* the original compares against this instead.
+  const originalLanguage = project.lyrics.language ?? KARAOKE_ORIGINAL_LANGUAGE;
   return (
     <div ref={toolsRef} className="karaoke-maker__tools">
       <div className="karaoke-maker__tool-group">
@@ -174,17 +183,17 @@ const KaraokeMakerToolbar = ({
         />
       </div>
 
-      <div className="karaoke-maker__tool-group">
+      <div className="karaoke-maker__tool-group karaoke-maker__translation-group">
         <Dropdown
           name={t('karaoke.translation.picker')}
           options={translationLanguages.map((code) => ({
             value: code,
             label:
-              code === KARAOKE_ORIGINAL_LANGUAGE
+              code === originalLanguage
                 ? t('karaoke.translation.original')
                 : karaokeLanguageName(code),
             display:
-              code === KARAOKE_ORIGINAL_LANGUAGE ? (
+              code === originalLanguage ? (
                 t('karaoke.translation.original')
               ) : (
                 // `lang` so Chromium picks the right face per script: the Han
@@ -201,16 +210,24 @@ const KaraokeMakerToolbar = ({
           icon="remove"
           label={t('karaoke.translation.remove')}
           danger
-          disabled={translationLanguage === KARAOKE_ORIGINAL_LANGUAGE}
+          disabled={translationLanguage === originalLanguage}
           onClick={() => removeTranslation(translationLanguage)}
         />
         {/* Small and subtle: adding a language is not the recommended action
             on a song that already has words, the way opening the lyrics editor
-            or timing a line is. */}
+            or timing a line is.
+
+            Disabled rather than wired to `openLyricsEditor`: that dialog's
+            submit path is `replaceLyrics`, which overwrites the original
+            sheet. A click here promising a new language would land on a
+            pre-seeded "replace the original" form one confirmation away from
+            doing the opposite of what it said. Task 8 gives this its own
+            paste flow and its own handler. */}
         <button
           type="button"
           className="button small subtle"
-          onClick={openLyricsEditor}
+          disabled
+          title={t('karaoke.translation.addPending')}
         >
           {t('karaoke.translation.add')}
         </button>

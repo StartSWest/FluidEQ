@@ -17,15 +17,24 @@ import {
  * Which language the Maker is showing, and the add/remove/mismatch state that
  * goes with switching between them.
  *
- * `KaraokeMaker.tsx` is 2,294 lines and none of this belongs on that pile: the
- * selected language is view state that outlives any one edit, exactly like the
- * editor view and the lyric draft, which already have hooks of their own.
+ * `KaraokeMaker.tsx` is over 2,300 lines and none of this belongs on that
+ * pile: the selected language is view state that outlives any one edit,
+ * exactly like the editor view and the lyric draft, which already have
+ * hooks of their own.
  */
 export const useMakerTranslations = (
   project: IKaraokeMakerProject,
   onProjectChange: (next: IKaraokeMakerProject) => void,
 ) => {
-  const [language, setLanguage] = useState(KARAOKE_ORIGINAL_LANGUAGE);
+  // `karaokeTranslationLanguages` returns this exact expression as its first
+  // entry. The sentinel is only the fallback for a project that never
+  // declared a language — UltraStar imports populate a real tag from
+  // `#LANGUAGE` (ultrastar.ts -> project.ts), and UltraStar is this app's
+  // primary import format — so the bare `KARAOKE_ORIGINAL_LANGUAGE` constant
+  // is not a reliable identity for "the original" and nothing below may
+  // compare against it directly.
+  const originalLanguage = project.lyrics.language ?? KARAOKE_ORIGINAL_LANGUAGE;
+  const [language, setLanguage] = useState(originalLanguage);
   const [mismatch, setMismatch] = useState<
     { expected: number; received: number } | undefined
   >(undefined);
@@ -49,13 +58,13 @@ export const useMakerTranslations = (
 
   // Selecting a language whose sheet was just removed would leave the picker
   // pointing at a translation that no longer exists, so removal always lands
-  // back on the original.
+  // back on the original — the real one, not the sentinel.
   const removeTranslation = useCallback(
     (target: string) => {
       onProjectChange(removeKaraokeTranslation(project, target));
-      setLanguage(KARAOKE_ORIGINAL_LANGUAGE);
+      setLanguage(originalLanguage);
     },
-    [project, onProjectChange],
+    [project, onProjectChange, originalLanguage],
   );
 
   return {
