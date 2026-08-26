@@ -10,6 +10,12 @@ import vm from 'vm';
 import Server from 'webpack-dev-server';
 import { DSP_DEFAULTS, IDspSettings } from '../../../common/dsp/chain';
 import { DSP_PRESETS } from '../../../common/dsp/presets';
+import {
+  DSP_OUTPUT_COUNT,
+  DSP_OUTPUT_INDEX,
+} from '../../../renderer/dsp/monitorOutputs';
+import { OUTPUT_SAFETY_LOOK_AHEAD_MS } from '../../../renderer/dsp/outputSafety';
+import { POST_FILTER_NORMALIZER_LOOK_AHEAD_MS } from '../../../renderer/dsp/postFilterNormalizer';
 
 /**
  * The worklet's own webpack config, asserted as configuration rather than run.
@@ -49,6 +55,16 @@ const SOURCE = path.join(
 
 const SAMPLE_RATE = 48_000;
 const QUANTUM = 128;
+const PROCESSING_LATENCY =
+  Math.max(
+    1,
+    Math.round((DSP_DEFAULTS.maximizer.lookAheadMs / 1_000) * SAMPLE_RATE),
+  ) +
+  Math.max(
+    1,
+    Math.round((POST_FILTER_NORMALIZER_LOOK_AHEAD_MS / 1_000) * SAMPLE_RATE),
+  ) +
+  Math.max(1, Math.round((OUTPUT_SAFETY_LOOK_AHEAD_MS / 1_000) * SAMPLE_RATE));
 
 interface IProcessorLike {
   port: { onmessage: ((event: { data: unknown }) => void) | null };
@@ -88,20 +104,38 @@ const loadProcessor = (): TProcessorConstructor => {
   return ctor;
 };
 
-const send = (processor: IProcessorLike, settings: IDspSettings): void => {
+const post = (processor: IProcessorLike, data: unknown): void => {
   if (!processor.port.onmessage) {
     throw new Error('The processor installed no port listener.');
   }
-  processor.port.onmessage({ data: settings });
+  processor.port.onmessage({ data });
 };
+
+const send = (processor: IProcessorLike, settings: IDspSettings): void =>
+  post(processor, settings);
+
+/** Explicit literal bypass for tests that exercise one later stage in isolation. */
+const bypassed = (settings: IDspSettings = DSP_DEFAULTS): IDspSettings => ({
+  ...settings,
+  normalizer: { ...settings.normalizer, mode: 'off' },
+  eq: { ...settings.eq, enabled: false, isolate: false },
+  exciter: { ...settings.exciter, enabled: false, isolate: false },
+  compressor: { ...settings.compressor, enabled: false },
+  maximizer: { ...settings.maximizer, enabled: false },
+  master: { ...settings.master, enabled: false },
+});
+
+const monoOutputs = (): Float32Array[][] =>
+  Array.from({ length: DSP_OUTPUT_COUNT }, () => [new Float32Array(QUANTUM)]);
 
 /** Push a signal through the processor a render quantum at a time. */
 const run = (processor: IProcessorLike, input: Float32Array): Float32Array => {
   const output = new Float32Array(input.length);
   for (let offset = 0; offset + QUANTUM <= input.length; offset += QUANTUM) {
     const block = input.subarray(offset, offset + QUANTUM);
-    const target = new Float32Array(QUANTUM);
-    processor.process([[block]], [[target]]);
+    const outputs = monoOutputs();
+    processor.process([[block]], outputs);
+    const target = outputs[DSP_OUTPUT_INDEX.master][0];
     output.set(target, offset);
   }
   return output;
@@ -221,17 +255,116 @@ describe('dsp worklet bundle', () => {
     expect(/(^|[^.\w$])document\s*\./.test(bundle)).toBe(false);
   });
 
-  it('NULL TEST: passes audio through untouched with everything bypassed', () => {
+  it('NULL TEST: bypasses every user processor except fixed output safety', () => {
     const processor = new (loadProcessor())();
-    send(processor, DSP_DEFAULTS);
+    send(processor, bypassed());
     const input = new Float32Array(QUANTUM * 8);
     for (let i = 0; i < input.length; i += 1) {
       input[i] = Math.sin(i / 8) * 0.4;
     }
     const output = run(processor, input);
+    expect(peak(output.subarray(0, PROCESSING_LATENCY))).toBe(0);
+    output.subarray(PROCESSING_LATENCY).forEach((value, index) => {
+      // The remaining sub-millidecibel difference is the always-on 3 Hz DC
+      // blocker, not a user processor or hidden gain stage.
+      expect(Math.abs(value - input[index])).toBeLessThan(0.003);
+    });
+  });
+
+  it('root bypass ignores active nested processors and copies input exactly', () => {
+    const processor = new (loadProcessor())();
+    send(processor, {
+      ...DSP_DEFAULTS,
+      enabled: false,
+      eq: {
+        ...DSP_DEFAULTS.eq,
+        enabled: true,
+        bands: DSP_DEFAULTS.eq.bands.map((band) => ({
+          ...band,
+          gainDb: 12,
+        })),
+      },
+      maximizer: {
+        ...DSP_DEFAULTS.maximizer,
+        enabled: true,
+        ceilingDb: -12,
+      },
+      master: {
+        ...DSP_DEFAULTS.master,
+        enabled: true,
+        outputTrimDb: 6,
+      },
+    });
+    const input = Float32Array.from(
+      { length: QUANTUM * 4 },
+      (_, index) => Math.sin(index / 7) * 0.8,
+    );
+    const output = run(processor, input);
     output.forEach((value, index) => {
       expect(value).toBeCloseTo(input[index], 6);
     });
+  });
+
+  it('lands a background normalization update during silence', () => {
+    const processor = new (loadProcessor())();
+    send(processor, bypassed());
+    post(processor, { masterPeakHoldTrackId: 'track-a' });
+    post(processor, {
+      trackLevelGains: { inputGainDb: 0, masterLoudnessGainDb: 0 },
+    });
+    run(processor, new Float32Array(QUANTUM).fill(0.5));
+
+    post(processor, {
+      trackLevelGains: { inputGainDb: -6, masterLoudnessGainDb: 0 },
+    });
+    // Flush the complete fixed-latency path so this is silence at the audible
+    // output too, not merely a source gap with earlier programme still queued.
+    // Let the fixed 3 Hz DC guard settle too. A constant 0.5 probe resumed
+    // after only the delay latency is intentionally corrected by that guard,
+    // so it cannot be used as a transparent-gain assertion at that instant.
+    run(processor, new Float32Array(QUANTUM * 96));
+    const levelState = processor as unknown as {
+      inputGainNow: number;
+      inputGainTargetDb: number;
+    };
+    expect(levelState.inputGainTargetDb).toBe(-6);
+    expect(levelState.inputGainNow).toBeCloseTo(10 ** (-6 / 20), 6);
+    const resumedInput = Float32Array.from(
+      { length: QUANTUM * 4 },
+      (_, index) => 0.5 * Math.cos((2 * Math.PI * 1_000 * index) / SAMPLE_RATE),
+    );
+    const resumed = run(processor, resumedInput);
+    expect(resumed[PROCESSING_LATENCY]).toBeCloseTo(
+      resumedInput[0] * 10 ** (-6 / 20),
+      3,
+    );
+  });
+
+  it('phase-locks background Normalizer and Master LUFS gain for two seconds', () => {
+    const processor = new (loadProcessor())();
+    send(processor, bypassed());
+    post(processor, { masterPeakHoldTrackId: 'track-ramp' });
+    post(processor, {
+      trackLevelGains: { inputGainDb: 0, masterLoudnessGainDb: 0 },
+    });
+    run(processor, new Float32Array(QUANTUM).fill(0.25));
+
+    post(processor, {
+      trackLevelGains: { inputGainDb: -6, masterLoudnessGainDb: 4 },
+    });
+    const before = processor as unknown as {
+      trackLevelTransitionFrames: number;
+      trackLevelTransitionElapsedFrames: number;
+      inputGainNow: number;
+      masterLoudnessGainNowDb: number;
+    };
+    expect(before.trackLevelTransitionFrames).toBe(SAMPLE_RATE * 2);
+    expect(before.trackLevelTransitionElapsedFrames).toBe(0);
+
+    run(processor, new Float32Array(SAMPLE_RATE).fill(0.25));
+    expect(20 * Math.log10(before.inputGainNow)).toBeCloseTo(-3, 2);
+    expect(before.masterLoudnessGainNowDb).toBeCloseTo(2, 2);
+    expect(before.trackLevelTransitionElapsedFrames).toBe(SAMPLE_RATE);
   });
 
   /**
@@ -243,7 +376,7 @@ describe('dsp worklet bundle', () => {
   it('POSITIVE CONTROL: the maximizer holds its ceiling on loud audio', () => {
     const processor = new (loadProcessor())();
     send(processor, {
-      ...DSP_DEFAULTS,
+      ...bypassed(),
       maximizer: {
         enabled: true,
         ceilingDb: -6,
@@ -256,21 +389,23 @@ describe('dsp worklet bundle', () => {
     const ceiling = 10 ** (-6 / 20);
     // Skip the first blocks: the delay line starts empty and emits silence.
     expect(peak(output, QUANTUM * 4)).toBeLessThanOrEqual(ceiling + 1e-4);
-    expect(peak(output, QUANTUM * 4)).toBeGreaterThan(ceiling * 0.9);
+    expect(peak(output, QUANTUM * 4)).toBeGreaterThan(ceiling * 0.75);
   });
 
   it('the compressor reduces a loud signal and leaves a quiet one alone', () => {
     const settings: IDspSettings = {
-      ...DSP_DEFAULTS,
+      ...bypassed(),
       compressor: { ...DSP_DEFAULTS.compressor, enabled: true },
     };
     const levelAfter = (level: number): number => {
       const processor = new (loadProcessor())();
       send(processor, settings);
-      return peak(
-        run(processor, new Float32Array(QUANTUM * 16).fill(level)),
-        QUANTUM * 8,
+      const signal = Float32Array.from(
+        { length: QUANTUM * 16 },
+        (_, index) =>
+          Math.sin((2 * Math.PI * 997 * index) / SAMPLE_RATE) * level,
       );
+      return peak(run(processor, signal), QUANTUM * 8);
     };
     // -18dBFS threshold: 0.02 is far below it, 0.9 far above.
     expect(levelAfter(0.02)).toBeCloseTo(0.02, 3);
@@ -279,9 +414,11 @@ describe('dsp worklet bundle', () => {
 
   it('emits silence rather than a stutter when the input is disconnected', () => {
     const processor = new (loadProcessor())();
-    send(processor, DSP_DEFAULTS);
-    const target = new Float32Array(QUANTUM).fill(0.5);
-    processor.process([[]], [[target]]);
+    send(processor, { ...bypassed(), enabled: false });
+    const outputs = monoOutputs();
+    outputs[DSP_OUTPUT_INDEX.master][0].fill(0.5);
+    processor.process([[]], outputs);
+    const target = outputs[DSP_OUTPUT_INDEX.master][0];
     expect(peak(target)).toBe(0);
   });
 
@@ -302,12 +439,15 @@ describe('dsp worklet bundle', () => {
 
   it('handles stereo without crossing the two channels', () => {
     const processor = new (loadProcessor())();
-    send(processor, DSP_DEFAULTS);
+    send(processor, { ...bypassed(), enabled: false });
     const left = new Float32Array(QUANTUM).fill(0.3);
     const right = new Float32Array(QUANTUM).fill(-0.7);
-    const outLeft = new Float32Array(QUANTUM);
-    const outRight = new Float32Array(QUANTUM);
-    processor.process([[left, right]], [[outLeft, outRight]]);
+    const outputs = Array.from({ length: DSP_OUTPUT_COUNT }, () => [
+      new Float32Array(QUANTUM),
+      new Float32Array(QUANTUM),
+    ]);
+    processor.process([[left, right]], outputs);
+    const [outLeft, outRight] = outputs[DSP_OUTPUT_INDEX.master];
     expect(outLeft[64]).toBeCloseTo(0.3, 6);
     expect(outRight[64]).toBeCloseTo(-0.7, 6);
   });

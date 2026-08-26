@@ -25,7 +25,6 @@ const dsp = {
   'dsp.unavailable':
     'O processamento de áudio não conseguiu iniciar. A reprodução não é afetada.',
   'dsp.presets': 'Predefinições',
-  'dsp.preset.flat': 'Desligado',
   'dsp.preset.lossyRepair': 'Reparar comprimido',
   'dsp.preset.loud': 'Alto',
   'dsp.preset.broadcast': 'Radiofónico',
@@ -295,7 +294,7 @@ const dsp = {
   'dsp.master.release': 'Liberação',
   'dsp.master.loudnessMaximize': 'Maximizar LUFS',
   'dsp.master.loudnessMaximizeHint':
-    'Adiciona {gain} dB com base na medição da faixa completa e mantém o pico real final abaixo do teto. O ganho é constante; apenas os picos são controlados.',
+    'Aplica {gain} dB com base na medição da faixa completa e mantém o pico real final abaixo do teto. O ganho é constante; apenas os picos são controlados.',
   'dsp.master.loudnessTarget': 'Alvo de sonoridade',
   'dsp.master.meter': 'Saída final',
   'dsp.master.safetyHint':

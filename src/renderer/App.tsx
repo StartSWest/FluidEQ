@@ -202,10 +202,10 @@ const WORKSPACE_TABS: TWorkspaceTab[] = [
   'presets',
   'voicing',
   'convolution',
-  'dsp',
   'video',
   'library',
   'karaoke',
+  'dsp',
   'config',
 ];
 
@@ -218,11 +218,9 @@ const WORKSPACE_TABS: TWorkspaceTab[] = [
  * them, the impulse under them — and Config is the one that reports what is
  * on disk when a tuning is not doing what it should. They live behind one
  * tab, with a row of pills inside it, and the strip is left with the four
- * things that are genuinely different places: EQ, Media, Library, Karaoke.
- *
- * Six now rather than five, DSP being the sixth — see the note on
- * `EQ_GROUP_LABEL_KEYS` for why it belongs here despite not writing APO
- * config at all.
+ * things that are genuinely different places: EQ, Media, Library, Karaoke,
+ * and DSP. Everything behind EQ writes or inspects Equalizer APO; DSP has its
+ * own top-level destination because it processes only FluidEQ's player.
  *
  * Config last among them, for the reason it was last in the strip: it is the
  * only one that changes nothing, so it is where you go when something is
@@ -233,27 +231,14 @@ const EQ_GROUP_TABS: readonly TWorkspaceTab[] = [
   'presets',
   'voicing',
   'convolution',
-  'dsp',
   'config',
 ];
 
-/**
- * DSP is the odd one in this group and the panel has to admit it.
- *
- * Every other pill here writes Equalizer APO's config and therefore changes
- * all system audio. DSP is a Web Audio graph on FluidEQ's own player: it
- * cannot touch Spotify, and it keeps working with the equaliser switched off,
- * because APO is not involved either way. It sits here anyway because this is
- * where someone looks to change how their music sounds — but `dsp.scopeNotice`
- * is visible text at the top of the panel for exactly this reason, and a user
- * who misses it reports the feature as broken rather than as misunderstood.
- */
 const EQ_GROUP_LABEL_KEYS = {
   eq: 'tabs.eqMain',
   presets: 'tabs.presets',
   voicing: 'tabs.voicing',
   convolution: 'tabs.convolution',
-  dsp: 'tabs.dsp',
   config: 'tabs.config',
 } as const;
 
@@ -569,10 +554,10 @@ const AppContent = () => {
 
   /**
    * Inside the page rather than above it, and pills rather than tabs: the
-   * strip is where the app's four places are chosen, and a second row of
+   * strip is where the app's five places are chosen, and a second row of
    * tab-shaped things under it would read as eight tabs in two rows — which
    * is the arrangement this split exists to undo. Built once here and placed
-   * by each panel, because they are six separate pages and a row that is
+   * by each panel, because they are five separate pages and a row that is
    * part of the page has to be inside it.
    */
   const eqGroupPills = (
@@ -594,9 +579,10 @@ const AppContent = () => {
   const isVideoTab = activeWorkspaceTab === 'video';
   const isLibraryTab = activeWorkspaceTab === 'library';
   const isKaraokeTab = activeWorkspaceTab === 'karaoke';
+  const isDspTab = activeWorkspaceTab === 'dsp';
 
   /**
-   * The four places, drawn in the titlebar beside the live output meter.
+   * The five places, drawn in the titlebar beside the live output meter.
    *
    * Above the workspace rather than on it. The meter is the one element that
    * makes this window look like itself and it already floats across the top;
@@ -609,7 +595,7 @@ const AppContent = () => {
    */
   const workspaceTabs = (
     <WorkspaceTabStrip label={t('tabs.aria')}>
-      {/* Four places, not eight. The equaliser and everything that sets it
+      {/* Five places, not nine. The equaliser and everything that sets it
           are one tab with a row of pills inside — see EQ_GROUP_TABS. */}
       <button
         type="button"
@@ -648,6 +634,15 @@ const AppContent = () => {
         onClick={() => setActiveWorkspaceTab('karaoke')}
       >
         {t('tabs.karaoke')}
+      </button>
+      <button
+        type="button"
+        role="tab"
+        aria-selected={isDspTab}
+        className={`workspace-tab${isDspTab ? ' is-active' : ''}`}
+        onClick={() => setActiveWorkspaceTab('dsp')}
+      >
+        {t('tabs.dsp')}
       </button>
     </WorkspaceTabStrip>
   );
@@ -1800,7 +1795,7 @@ const AppContent = () => {
                 : undefined
             }
           >
-            {/* The four places are in the titlebar now, beside the meter —
+            {/* The five places are in the titlebar now, beside the meter —
                 see `workspaceTabs` and the wrapper it is drawn in. */}
             {activeWorkspaceTab === 'eq' && (
               <div
@@ -1876,12 +1871,6 @@ const AppContent = () => {
                 key={activeWorkspaceTab}
                 className="workspace-tab-panel workspace-tab-panel--dsp"
               >
-                {eqGroupPills}
-                {/* The scroll wrapper every other tab in this group has, and
-                    the reason this one had no scrollbar: the pills are a
-                    sibling of the page, so without a box around the page
-                    itself the panel had two children and grew past its column
-                    instead of scrolling one of them. */}
                 <div className="workspace-tab-panel__scroll">
                   <DspPanel
                     settings={dspSettings}

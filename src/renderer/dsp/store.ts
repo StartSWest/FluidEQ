@@ -290,6 +290,9 @@ let normalizerMeter: IDspNormalizerMeter = {
   appliedGainDb: 0,
 };
 
+/** Below -120 dBFS there is no programme worth repainting as a new value. */
+const NORMALIZER_METER_SIGNAL_FLOOR = 1e-6;
+
 const subscribeNormalizerMeter = (listener: () => void) => {
   normalizerMeterListeners.add(listener);
   return () => {
@@ -298,7 +301,22 @@ const subscribeNormalizerMeter = (listener: () => void) => {
 };
 
 export const setDspNormalizerMeter = (next: IDspNormalizerMeter): void => {
-  normalizerMeter = next;
+  const nextHasProgramme = [...next.inputPeaks, ...next.outputPeaks].some(
+    (peak) => peak > NORMALIZER_METER_SIGNAL_FLOOR,
+  );
+  const heldHasProgramme = [
+    ...normalizerMeter.inputPeaks,
+    ...normalizerMeter.outputPeaks,
+  ].some((peak) => peak > NORMALIZER_METER_SIGNAL_FLOOR);
+  // Empty decoder quanta and track handoffs report literal zero. Painting
+  // those between valid windows made the bars and numbers flash 0 -> value ->
+  // 0 even though the programme itself was continuous. Hold the last valid
+  // levels through silence; the applied gain remains live because analysis may
+  // legitimately finish while the transport is paused.
+  normalizerMeter =
+    nextHasProgramme || !heldHasProgramme
+      ? next
+      : { ...normalizerMeter, appliedGainDb: next.appliedGainDb };
   normalizerMeterListeners.forEach((listener) => listener());
 };
 

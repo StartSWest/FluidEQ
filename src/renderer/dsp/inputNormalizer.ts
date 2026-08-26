@@ -7,6 +7,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import {
   IMasterSettings,
   IInputNormalizerSettings,
+  MASTER_LOUDNESS_GAIN_MAX_DB,
+  MASTER_LOUDNESS_GAIN_MIN_DB,
 } from '../../common/dsp/chain';
 import { ILibraryNormalizationAnalysis } from '../../common/library/types';
 import { FilterTypeEnum } from '../../common/constants';
@@ -260,9 +262,10 @@ export const normalizerGainDb = (
  * Constant LUFS-referenced makeup for Master.
  *
  * This deliberately never turns quiet passages into a moving target. It uses
- * the whole-track source measurement after input normalization, adds only the
- * amount needed to reach the chosen programme target, and leaves the final
- * linked true-peak limiter to catch peaks introduced by creative processors.
+ * the whole-track source measurement after input normalization, applies the
+ * signed correction needed to reach the chosen programme target, and leaves
+ * the final linked true-peak limiter to catch peaks introduced by creative
+ * processors.
  */
 export const masterLoudnessGainDb = (
   master: IMasterSettings,
@@ -279,6 +282,13 @@ export const masterLoudnessGainDb = (
   if (normalizedLufs <= ABSOLUTE_GATE_LUFS) {
     return 0;
   }
+  const loudnessGain = master.loudnessTargetLufs - normalizedLufs;
+  if (loudnessGain <= 0) {
+    // A target is not merely a boost cap. A track louder than the selected
+    // programme level must receive constant attenuation for the dial to mean
+    // LUFS target rather than "maximum boost target".
+    return Math.max(MASTER_LOUDNESS_GAIN_MIN_DB, loudnessGain);
+  }
   // The cached whole-file true peak is known before playback. Spend only its
   // real remaining room instead of asking a live envelope to discover the
   // answer during a chorus and then undo it during a quiet passage.
@@ -286,10 +296,6 @@ export const masterLoudnessGainDb = (
     master.ceilingDb - normalizedPeak - Math.max(0, master.outputTrimDb);
   return Math.max(
     0,
-    Math.min(
-      MAX_LOUDNESS_GAIN_DB,
-      master.loudnessTargetLufs - normalizedLufs,
-      peakRoom,
-    ),
+    Math.min(MASTER_LOUDNESS_GAIN_MAX_DB, loudnessGain, peakRoom),
   );
 };

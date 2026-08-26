@@ -25,7 +25,6 @@ const dsp = {
   'dsp.unavailable':
     "Le traitement audio n'a pas pu démarrer. La lecture n'est pas affectée.",
   'dsp.presets': 'Préréglages',
-  'dsp.preset.flat': 'Désactivé',
   'dsp.preset.lossyRepair': 'Réparer le compressé',
   'dsp.preset.loud': 'Fort',
   'dsp.preset.broadcast': 'Radio',
@@ -294,7 +293,7 @@ const dsp = {
   'dsp.master.release': 'Relâchement',
   'dsp.master.loudnessMaximize': 'Maximiser les LUFS',
   'dsp.master.loudnessMaximizeHint':
-    'Ajoute {gain} dB selon la mesure du morceau complet, puis maintient la crête vraie finale sous le plafond. Le gain reste constant ; seules les crêtes sont contrôlées.',
+    'Applique {gain} dB selon la mesure du morceau complet, puis maintient la crête vraie finale sous le plafond. Le gain reste constant ; seules les crêtes sont contrôlées.',
   'dsp.master.loudnessTarget': 'Cible de sonie',
   'dsp.master.meter': 'Sortie finale',
   'dsp.master.safetyHint':

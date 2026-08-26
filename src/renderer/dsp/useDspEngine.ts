@@ -5,8 +5,15 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { useEffect, useRef, useState } from 'react';
-import log from 'electron-log/renderer';
-import { IDspSettings } from '../../common/dsp/chain';
+import {
+  IDspSettings,
+  MASTER_LOUDNESS_GAIN_MAX_DB,
+  MASTER_LOUDNESS_GAIN_MIN_DB,
+} from '../../common/dsp/chain';
+import {
+  DSP_DIAGNOSTIC_CODES,
+  DSP_DIAGNOSTIC_SCHEMA_VERSION,
+} from '../../common/dsp/diagnostics';
 import {
   IAudioGraphContext,
   IAudioNodeLike,
@@ -35,6 +42,8 @@ import {
 } from './store';
 import { masterLoudnessGainDb, normalizerGainDb } from './inputNormalizer';
 import { DSP_OUTPUT_COUNT } from './monitorOutputs';
+import { registerDspDeckMixer } from './deckCrossfade';
+import { dspErrorValues, reportDspDiagnostic } from './diagnostics';
 
 /** Registered by `dspProcessor.worklet.ts`. */
 const PROCESSOR_NAME = 'fluideq-dsp';
@@ -53,9 +62,15 @@ let pendingMasterLoudnessGainDb = 0;
 let pendingInputTrackId = '';
 
 /** Flush source-bound delay before a new track's gain can reach the worklet. */
-export const setDspInputTrackId = (trackId: string): void => {
+export const setDspInputTrackId = (
+  trackId: string,
+  preserveTrackLevelGain = false,
+): void => {
   pendingInputTrackId = trackId;
-  inputGainPort?.postMessage({ masterPeakHoldTrackId: pendingInputTrackId });
+  inputGainPort?.postMessage({
+    masterPeakHoldTrackId: pendingInputTrackId,
+    preserveTrackLevelGain,
+  });
 };
 
 /**
@@ -73,7 +88,10 @@ export const setDspTrackLevelGains = (
     ? Math.min(12, Math.max(-48, inputGainDb))
     : 0;
   pendingMasterLoudnessGainDb = Number.isFinite(masterLoudnessGainDb)
-    ? Math.min(12, Math.max(0, masterLoudnessGainDb))
+    ? Math.min(
+        MASTER_LOUDNESS_GAIN_MAX_DB,
+        Math.max(MASTER_LOUDNESS_GAIN_MIN_DB, masterLoudnessGainDb),
+      )
     : 0;
   inputGainPort?.postMessage({
     trackLevelGains: {
@@ -132,6 +150,7 @@ export const useDspEngine = (
   );
   const contextRef = useRef<AudioContext | undefined>(undefined);
   const sourcesRef = useRef<MediaElementAudioSourceNode[]>([]);
+  const deckGainsRef = useRef<GainNode[]>([]);
   const mixerRef = useRef<GainNode | undefined>(undefined);
   const graphRef = useRef<IDspGraph | undefined>(undefined);
   const workletRef = useRef<AudioWorkletNode | undefined>(undefined);
@@ -150,6 +169,7 @@ export const useDspEngine = (
       return undefined;
     }
     let cancelled = false;
+    let unregisterDeckMixer: (() => void) | undefined;
 
     /**
      * Route the captured element straight out, bypassing the chain.
@@ -163,6 +183,7 @@ export const useDspEngine = (
       if (!context || sources.length === 0) {
         return;
       }
+      deckGainsRef.current.forEach((gain) => gain.disconnect());
       mixerRef.current?.disconnect();
       sources.forEach((source) => {
         source.disconnect();
@@ -180,6 +201,12 @@ export const useDspEngine = (
      */
     const teardown = (next: TDspEngineState) => {
       const currentWorklet = workletRef.current;
+      // Once the graph falls back to direct element output, its deck gains are
+      // disconnected. Remove the crossfade registration first so transport can
+      // never schedule a fade against those silent, detached nodes and leave
+      // both directly connected elements audible.
+      unregisterDeckMixer?.();
+      unregisterDeckMixer = undefined;
       /**
        * Restoring the audio comes FIRST, and everything after it is guarded.
        *
@@ -251,7 +278,11 @@ export const useDspEngine = (
           outputSafety?: unknown;
           scatter?: unknown;
           normalizerMeter?: unknown;
+          diagnostic?: unknown;
         } | null;
+        if (data?.diagnostic !== undefined) {
+          reportDspDiagnostic(data.diagnostic);
+        }
         if (data && typeof data.correlation === 'number') {
           setDspCorrelation(data.correlation);
         }
@@ -353,10 +384,23 @@ export const useDspEngine = (
       sourcesRef.current = sources;
       const mixer = mixerRef.current ?? context.createGain();
       mixerRef.current = mixer;
-      sources.forEach((source) => {
+      const deckGains =
+        deckGainsRef.current.length === sources.length
+          ? deckGainsRef.current
+          : sources.map(() => context.createGain());
+      deckGainsRef.current = deckGains;
+      sources.forEach((source, index) => {
+        const deckGain = deckGains[index];
+        if (!deckGain) {
+          return;
+        }
         source.disconnect();
-        source.connect(mixer);
+        deckGain.disconnect();
+        source.connect(deckGain);
+        deckGain.connect(mixer);
+        deckGain.gain.value = index === 0 ? 1 : 0;
       });
+      unregisterDeckMixer = registerDspDeckMixer(context, elements, deckGains);
       if (settingsRef.current.enabled) {
         graphRef.current = buildDspGraph(
           context as unknown as IAudioGraphContext,
@@ -404,7 +448,13 @@ export const useDspEngine = (
         return;
       }
       context.resume().catch((error: unknown) => {
-        log.error('[dsp] could not resume the context on play', error);
+        reportDspDiagnostic({
+          schemaVersion: DSP_DIAGNOSTIC_SCHEMA_VERSION,
+          code: DSP_DIAGNOSTIC_CODES.engineResumeFailed,
+          severity: 'error',
+          origin: 'renderer',
+          values: dspErrorValues(error),
+        });
       });
     };
     elements.forEach((element) =>
@@ -412,12 +462,13 @@ export const useDspEngine = (
     );
 
     start().catch((error: unknown) => {
-      // Context-rich before it is flattened: the message alone does not say
-      // whether the module load, the resume or the graph failed, and the
-      // user-visible symptom of all three is the same.
-      // eslint-disable-next-line no-console -- the one exception the standards allow
-      console.error('[dsp] engine failed to start', error);
-      log.error('[dsp] engine failed to start', error);
+      reportDspDiagnostic({
+        schemaVersion: DSP_DIAGNOSTIC_SCHEMA_VERSION,
+        code: DSP_DIAGNOSTIC_CODES.engineStartFailed,
+        severity: 'error',
+        origin: 'renderer',
+        values: dspErrorValues(error),
+      });
       teardown('failed');
     });
 

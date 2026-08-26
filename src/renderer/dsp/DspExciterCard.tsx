@@ -73,6 +73,7 @@ const DspExciterCard = ({
     <ProcessorCard
       id="dsp-exciter"
       titleKey="dsp.exciter.title"
+      descriptionKey="dsp.exciter.description"
       isEnabled={exciter.enabled}
       onToggle={() => {
         onPatch({

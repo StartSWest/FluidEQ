@@ -24,7 +24,6 @@ const dsp = {
     '从音乐库播放时自动启动。它处理的是 FluidEQ 自带的播放器，因此在加载曲目前无事可做。',
   'dsp.unavailable': '音频处理未能启动，播放不受影响。',
   'dsp.presets': '预设',
-  'dsp.preset.flat': '关闭',
   'dsp.preset.lossyRepair': '修复压缩音频',
   'dsp.preset.loud': '响亮',
   'dsp.preset.broadcast': '广播',
@@ -280,7 +279,7 @@ const dsp = {
   'dsp.master.release': '释放时间',
   'dsp.master.loudnessMaximize': 'LUFS 最大化',
   'dsp.master.loudnessMaximizeHint':
-    '根据整首曲目测量增加 {gain} dB，并将最终真实峰值保持在上限以下。增益恒定，仅控制峰值。',
+    '根据整首曲目测量应用 {gain} dB，并将最终真实峰值保持在上限以下。增益恒定，仅控制峰值。',
   'dsp.master.loudnessTarget': '响度目标',
   'dsp.master.meter': '最终输出',
   'dsp.master.safetyHint':

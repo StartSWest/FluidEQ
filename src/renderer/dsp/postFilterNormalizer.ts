@@ -17,6 +17,10 @@ import {
 export const POST_FILTER_NORMALIZER_LOOK_AHEAD_MS = 0;
 /** Do not recover between peaks belonging to the same musical phrase. */
 export const POST_FILTER_NORMALIZER_RELEASE_HOLD_MS = 1_000;
+/** A deep correction must never leave the finished chain quiet indefinitely. */
+export const POST_FILTER_NORMALIZER_MAX_RECOVERY_MS = 4_000;
+/** The final 2% linear gap is below 0.18 dB and is landed exactly at unity. */
+export const POST_FILTER_NORMALIZER_RELEASE_SNAP_RATIO = 0.02;
 /** 1 dB in 200 ms, 5 dB in one second: bigger moves take longer. */
 export const POST_FILTER_NORMALIZER_ATTACK_DB_PER_SECOND = 5;
 /** Click-free return to unity when Auto Headroom is switched off. */
@@ -89,8 +93,10 @@ export const createPostFilterNormalizer = (
  * trim at 0 dB is literal unity and positive trim cannot force the emergency
  * guard to reshape a hot waveform. The detector sees a new peak immediately,
  * but gain moves at a bounded dB-per-second rate and adds no playback delay.
- * Once established, that track-wide headroom is held until the source changes:
- * a quiet verse must not undo the level chosen by a loud chorus.
+ * Recovery holds through one phrase, then follows the selected release. A
+ * bounded time constant plus an inaudible final snap guarantees that even a
+ * 26 dB correction reaches its new target within four seconds rather than
+ * leaving the chain pinned at the bottom after the signal changes.
  */
 export const processPostFilterNormalizer = (
   state: IPostFilterNormalizerState,
@@ -99,6 +105,7 @@ export const processPostFilterNormalizer = (
     enabled,
     outputCeilingDb,
     followingGainDb,
+    releaseMs,
     sampleRate,
   }: IPostFilterNormalizerOptions,
 ): void => {
@@ -115,20 +122,31 @@ export const processPostFilterNormalizer = (
   const reservedGainDb = Number.isFinite(followingGainDb) ? followingGainDb : 0;
   const normalizedCeilingDb =
     outputCeilingDb - reservedGainDb - POST_FILTER_NORMALIZER_MARGIN_DB;
-  const releaseCoefficient = enabled
-    ? 1
-    : Math.exp(
-        -1 / ((POST_FILTER_NORMALIZER_BYPASS_RELEASE_MS / 1_000) * sampleRate),
-      );
+  const recoveryWindowMs = Math.max(
+    1,
+    POST_FILTER_NORMALIZER_MAX_RECOVERY_MS -
+      POST_FILTER_NORMALIZER_RELEASE_HOLD_MS,
+  );
+  const maximumReleaseTimeConstantMs =
+    recoveryWindowMs / Math.log(1 / POST_FILTER_NORMALIZER_RELEASE_SNAP_RATIO);
+  const selectedReleaseMs = Number.isFinite(releaseMs)
+    ? Math.max(1, releaseMs)
+    : POST_FILTER_NORMALIZER_BYPASS_RELEASE_MS;
+  const effectiveReleaseMs = enabled
+    ? Math.min(selectedReleaseMs, maximumReleaseTimeConstantMs)
+    : POST_FILTER_NORMALIZER_BYPASS_RELEASE_MS;
+  const releaseCoefficient = Math.exp(
+    -1 / ((effectiveReleaseMs / 1_000) * sampleRate),
+  );
   processLinkedLimiter(limiter, channels, {
     ceiling: enabled
       ? 10 ** (normalizedCeilingDb / 20)
       : Number.POSITIVE_INFINITY,
     releaseCoefficient,
-    // A track has one loudness intention. Never recover on quiet passages;
-    // resetting at the next source boundary is the only upward transition.
     limitingReleaseCoefficient: releaseCoefficient,
     attackSlewDbPerSecond: POST_FILTER_NORMALIZER_ATTACK_DB_PER_SECOND,
+    releaseSnapRatio: POST_FILTER_NORMALIZER_RELEASE_SNAP_RATIO,
+    sampleRate,
     kneeDb: 0,
     releaseHoldSamples: enabled
       ? Math.round(

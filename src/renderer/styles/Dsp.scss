@@ -373,6 +373,27 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   vector-effect: non-scaling-stroke;
 }
 
+.dsp-crossfade-playhead {
+  stroke: rgba($white, 0.28);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+  vector-effect: non-scaling-stroke;
+}
+
+.dsp-crossfade-marker {
+  stroke: $surface-base;
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+
+  &.is-outgoing {
+    fill: #ffb059;
+  }
+
+  &.is-incoming {
+    fill: $secondary-default;
+  }
+}
+
 .dsp-crossfade-grid {
   stroke: rgba($white, 0.08);
   stroke-width: 1;
@@ -398,6 +419,33 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   font-size: 0.62rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
+}
+
+.dsp-crossfade-live {
+  position: absolute;
+  bottom: 7px;
+  left: 14px;
+  display: flex;
+  gap: 10px;
+  color: rgba($white, 0.34);
+  font-family: $font-mono;
+  font-size: 0.58rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.03em;
+  opacity: 0;
+  transition: opacity 120ms ease;
+
+  &.is-active {
+    opacity: 1;
+  }
+
+  .is-outgoing {
+    color: #ffb059;
+  }
+
+  .is-incoming {
+    color: $secondary-default;
+  }
 }
 
 .dsp-crossfade-preview-label {
@@ -641,14 +689,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 .dsp-master-status {
   position: absolute;
-  top: 40px;
-  right: 14px;
+  top: 36px;
+  right: 48px;
+  left: 48px;
   z-index: 1;
   display: flex;
-  justify-content: flex-end;
+  justify-content: center;
   gap: 5px;
-  flex-wrap: wrap;
-  max-width: calc(100% - 110px);
+  flex-wrap: nowrap;
   pointer-events: none;
 
   span {
@@ -660,6 +708,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     font-size: 0.58rem;
     letter-spacing: 0.035em;
     text-transform: uppercase;
+    white-space: nowrap;
   }
 
   .is-safe {
@@ -681,6 +730,29 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 .dsp-master-legend {
   z-index: 2;
+  top: 5px;
+  gap: 10px;
+  padding-right: 9px;
+  padding-left: 9px;
+}
+
+@media (max-width: 900px) {
+  .dsp-master-status {
+    right: 18px;
+    left: 18px;
+    gap: 3px;
+
+    span {
+      padding-right: 5px;
+      padding-left: 5px;
+      font-size: 0.52rem;
+      letter-spacing: 0;
+    }
+  }
+
+  .dsp-master-legend {
+    gap: 7px;
+  }
 }
 
 .dsp-rack {
@@ -1126,9 +1198,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 14px;
-  flex-wrap: wrap;
-  max-width: calc(100% - 96px);
+  gap: 12px;
+  flex-wrap: nowrap;
+  width: max-content;
+  max-width: calc(100% - 24px);
   margin: 0;
   padding: 4px 12px;
   border-radius: 8px;
@@ -1139,6 +1212,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // The plot beneath is dragged to move bands, and a strip that swallowed the
   // pointer would make the top of the curve unreachable.
   pointer-events: none;
+  white-space: nowrap;
 }
 
 .dsp-eq-legend-item {
@@ -1825,25 +1899,53 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   .dsp-rail {
     flex-direction: row;
     width: auto;
-    gap: 6px;
-    overflow-x: auto;
+    justify-content: space-around;
+    gap: 2px;
+    overflow-x: hidden;
     padding-bottom: 2px;
-    @include slim-scrollbar;
   }
 
   .dsp-rail-tab {
-    flex: 1 1 0;
+    position: relative;
+    flex: 0 1 48px;
     justify-content: center;
-    min-width: 0;
-    padding: 8px 10px;
+    gap: 5px;
+    min-width: 38px;
+    padding: 8px 6px 10px;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+
+    &::after {
+      position: absolute;
+      right: 8px;
+      bottom: 2px;
+      left: 8px;
+      height: 2px;
+      border-radius: 2px;
+      background: transparent;
+      content: '';
+    }
+
+    &:hover {
+      background: transparent;
+      color: rgba($white, 0.9);
+    }
   }
 
-  // The lamp is the one thing that must survive the squeeze: it is the only
-  // way to read which processors are doing something without visiting each.
+  .dsp-rail-tab.is-active {
+    border: 0;
+    background: transparent;
+    color: $secondary-default;
+
+    &::after {
+      background: $secondary-default;
+      box-shadow: 0 0 7px rgba($secondary-default, 0.7);
+    }
+  }
+
   .dsp-rail-name {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    display: none;
   }
 
   .dsp-eq-bar {
@@ -1869,10 +1971,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   .dsp-rail-tab {
     gap: 6px;
     padding: 8px 6px;
-  }
-
-  .dsp-rail-name {
-    display: none;
   }
 
   .dsp-eq-shape,
@@ -2190,10 +2288,21 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 
   #dsp-eq .dsp-eq-transfer,
-  #dsp-eq .dsp-eq-rack,
   #dsp-eq .dsp-eq-settings,
   #dsp-eq .dsp-eq-notice {
     grid-column: 1 / -1;
+  }
+
+  #dsp-eq .dsp-eq-transfer {
+    grid-row: 2;
+    grid-column: 1;
+    justify-self: start;
+  }
+
+  #dsp-eq .dsp-eq-rack {
+    grid-row: 2;
+    grid-column: 2;
+    justify-self: end;
   }
 
   #dsp-eq .dsp-eq-reset {
@@ -2210,14 +2319,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // rows with a desktop-sized gap between them.
   #dsp-eq .dsp-eq-settings {
     display: grid;
-    grid-template-columns: repeat(2, max-content);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    width: 100%;
     justify-content: center;
-    gap: 8px 18px;
+    gap: 8px;
   }
 
-  #dsp-eq .dsp-eq-settings > .dsp-eq-preset:last-child {
-    grid-column: 1 / -1;
-    justify-self: center;
+  #dsp-eq .dsp-eq-settings > .dsp-eq-preset {
+    min-width: 0;
+    justify-content: center;
   }
 
   // Width, not viewport height, owns the graph on a tall narrow window. A
@@ -2255,18 +2365,22 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 
   #dsp-eq .dsp-eq-global-row {
+    display: grid;
     flex: 0 1 auto;
     width: 100%;
+    grid-template-columns: minmax(330px, 2fr) minmax(190px, 1fr);
     justify-content: center;
     padding: 0;
   }
 
   #dsp-eq .dsp-eq-global-controls {
-    flex-basis: 500px;
+    width: 100%;
+    margin: 0;
     padding: 6px 10px;
   }
 
   #dsp-eq .dsp-eq-phase {
+    width: 100%;
     padding: 6px 10px 3px;
   }
 
@@ -2280,40 +2394,46 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     display: grid;
     order: -1;
     width: 100%;
-    grid-template-columns: repeat(3, minmax(100px, 140px));
+    grid-template-columns: repeat(6, minmax(0, 1fr));
     align-items: center;
-    justify-content: center;
-    gap: 10px 12px;
+    gap: 10px 8px;
     padding: 8px 10px;
   }
 
   #dsp-eq .dsp-eq-dynamic {
     width: 100%;
-    grid-column: 1 / span 2;
+    grid-column: 1 / span 3;
     justify-self: stretch;
+    justify-content: center;
     gap: 8px;
     padding: 4px 8px;
   }
 
   #dsp-eq .dsp-eq-shape {
-    grid-column: 3;
+    width: 100%;
+    grid-column: 4 / span 3;
+    justify-self: stretch;
+  }
+
+  #dsp-eq .dsp-eq-strip > .labelled-knob {
+    grid-column: span 2;
     justify-self: center;
   }
 
   #dsp-eq .dsp-eq-insert {
-    grid-column: 1 / span 2;
+    grid-column: 1 / span 3;
     justify-self: center;
   }
 
   #dsp-eq .dsp-eq-strip > .button.small {
-    grid-column: 3;
+    grid-column: 4 / span 3;
     justify-self: center;
   }
 }
 
 @media (max-width: 520px) {
   #dsp-eq .dsp-card-header.has-toolbar {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr) auto;
   }
 
   #dsp-eq .dsp-eq-preset-first {
@@ -2322,25 +2442,33 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 
   #dsp-eq .dsp-card-power {
-    grid-row: 2;
-    grid-column: 1;
+    grid-row: 1;
+    grid-column: 2;
     justify-self: end;
   }
 
-  #dsp-eq .dsp-eq-settings {
-    grid-template-columns: max-content;
+  #dsp-eq .dsp-eq-transfer {
+    grid-row: 2;
+    grid-column: 1 / -1;
+    justify-self: center;
   }
 
-  #dsp-eq .dsp-eq-settings > .dsp-eq-preset:last-child {
-    grid-column: 1;
+  #dsp-eq .dsp-eq-rack {
+    grid-row: 3;
+    grid-column: 1 / -1;
+    justify-self: center;
+  }
+
+  #dsp-eq .dsp-eq-settings {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  #dsp-eq .dsp-eq-global-row {
+    grid-template-columns: minmax(0, 1fr);
   }
 
   #dsp-eq .dsp-eq-global-controls {
     flex-wrap: wrap;
-  }
-
-  #dsp-eq .dsp-eq-strip {
-    grid-template-columns: repeat(3, minmax(82px, 1fr));
   }
 
   #dsp-eq .dsp-eq-legend-scale {

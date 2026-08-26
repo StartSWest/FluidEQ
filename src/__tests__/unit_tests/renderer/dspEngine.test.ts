@@ -129,21 +129,25 @@ describe('useDspEngine', () => {
 
   it('stays inactive when there is no element', () => {
     installAudio();
-    const { result } = renderHook(() => useDspEngine(undefined, DSP_DEFAULTS));
+    const { result } = renderHook(() => useDspEngine([], DSP_DEFAULTS));
     expect(result.current.active).toBe(false);
   });
 
   it('never touches the element when Web Audio is unavailable', () => {
     const harness = installAudio();
     Reflect.deleteProperty(window, 'AudioContext');
-    const { result } = renderHook(() => useDspEngine(element(), DSP_DEFAULTS));
+    const { result } = renderHook(() =>
+      useDspEngine([element()], DSP_DEFAULTS),
+    );
     expect(result.current.active).toBe(false);
     expect(harness.createMediaElementSource).not.toHaveBeenCalled();
   });
 
   it('POSITIVE CONTROL: becomes active when everything succeeds', async () => {
     installAudio();
-    const { result } = renderHook(() => useDspEngine(element(), DSP_DEFAULTS));
+    const { result } = renderHook(() =>
+      useDspEngine([element()], DSP_DEFAULTS),
+    );
     await waitFor(() => expect(result.current.active).toBe(true));
   });
 
@@ -156,7 +160,9 @@ describe('useDspEngine', () => {
    */
   it('leaves the element alone when the worklet module will not load', async () => {
     const harness = installAudio({ addModuleFails: true });
-    const { result } = renderHook(() => useDspEngine(element(), DSP_DEFAULTS));
+    const { result } = renderHook(() =>
+      useDspEngine([element()], DSP_DEFAULTS),
+    );
     await waitFor(() => expect(harness.addModule).toHaveBeenCalled());
     expect(result.current.active).toBe(false);
     expect(harness.createMediaElementSource).not.toHaveBeenCalled();
@@ -164,7 +170,9 @@ describe('useDspEngine', () => {
 
   it('leaves the element alone when the context will not resume', async () => {
     const harness = installAudio({ resumeFails: true });
-    const { result } = renderHook(() => useDspEngine(element(), DSP_DEFAULTS));
+    const { result } = renderHook(() =>
+      useDspEngine([element()], DSP_DEFAULTS),
+    );
     await waitFor(() => expect(harness.resume).toHaveBeenCalled());
     expect(result.current.active).toBe(false);
     expect(harness.createMediaElementSource).not.toHaveBeenCalled();
@@ -179,7 +187,7 @@ describe('useDspEngine', () => {
   it('routes the captured element straight out when torn down', async () => {
     const harness = installAudio();
     const { result, unmount } = renderHook(() =>
-      useDspEngine(element(), DSP_DEFAULTS),
+      useDspEngine([element()], DSP_DEFAULTS),
     );
     await waitFor(() => expect(result.current.active).toBe(true));
     act(() => unmount());
@@ -192,7 +200,7 @@ describe('useDspEngine', () => {
     const harness = installAudio();
     const target = element();
     const { result, rerender } = renderHook(
-      ({ settings }) => useDspEngine(target, settings),
+      ({ settings }) => useDspEngine([target], settings),
       { initialProps: { settings: DSP_DEFAULTS } },
     );
     await waitFor(() => expect(result.current.active).toBe(true));
@@ -223,7 +231,7 @@ describe('useDspEngine', () => {
   it('resumes a suspended context when playback starts', async () => {
     const harness = installAudio();
     const target = element();
-    const { result } = renderHook(() => useDspEngine(target, DSP_DEFAULTS));
+    const { result } = renderHook(() => useDspEngine([target], DSP_DEFAULTS));
     await waitFor(() => expect(result.current.active).toBe(true));
     const beforePlay = harness.resume.mock.calls.length;
 
@@ -236,7 +244,7 @@ describe('useDspEngine', () => {
     installAudio();
     const target = element();
     const { result, unmount } = renderHook(() =>
-      useDspEngine(target, DSP_DEFAULTS),
+      useDspEngine([target], DSP_DEFAULTS),
     );
     await waitFor(() => expect(result.current.active).toBe(true));
     expect(target.listenerCount('play')).toBe(1);

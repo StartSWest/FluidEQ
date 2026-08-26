@@ -25,7 +25,6 @@ const dsp = {
   'dsp.unavailable':
     'El procesado de audio no pudo iniciarse. La reproducción no se ve afectada.',
   'dsp.presets': 'Ajustes',
-  'dsp.preset.flat': 'Apagado',
   'dsp.preset.lossyRepair': 'Reparar comprimido',
   'dsp.preset.loud': 'Alto',
   'dsp.preset.broadcast': 'Radiofónico',
@@ -293,7 +292,7 @@ const dsp = {
   'dsp.master.release': 'Relajación',
   'dsp.master.loudnessMaximize': 'Maximizar LUFS',
   'dsp.master.loudnessMaximizeHint':
-    'Añade {gain} dB según la medición completa de la pista y mantiene el pico real final bajo el techo. La ganancia es constante; solo se controlan los picos.',
+    'Aplica {gain} dB según la medición completa de la pista y mantiene el pico real final bajo el techo. La ganancia es constante; solo se controlan los picos.',
   'dsp.master.loudnessTarget': 'Objetivo de sonoridad',
   'dsp.master.meter': 'Salida final',
   'dsp.master.safetyHint':

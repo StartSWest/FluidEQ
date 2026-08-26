@@ -9,6 +9,8 @@ import {
   IDspSettings,
   clampDspSettings,
   EQ_MAX_BAND_COUNT,
+  MASTER_LOUDNESS_GAIN_MAX_DB,
+  MASTER_LOUDNESS_GAIN_MIN_DB,
 } from '../../../common/dsp/chain';
 import {
   ICrossoverState,
@@ -112,14 +114,20 @@ import { FilterTypeEnum } from '../../../common/constants';
 const RENDER_QUANTUM = 128;
 const EXCITER_SMOOTHING_MS = 18;
 const EQ_ISOLATE_SMOOTHING_MS = 18;
-/** Track-wide analysis changes level slowly; cached targets start immediately. */
-const TRACK_LEVEL_SLEW_DB_PER_SECOND = 5;
+/** Background analysis settles Normalizer and Master LUFS together over 2 s. */
+const TRACK_LEVEL_ANALYSIS_TRANSITION_MS = 2_000;
 const NORMALIZER_METER_RELEASE_MS = 350;
 const MAXIMIZER_RELEASE_HOLD_MS = 10;
 const MAXIMIZER_SOFT_KNEE_DB = 1.5;
+/** Completes even the slowest 1 s release inside four seconds. */
+const MAXIMIZER_RELEASE_SNAP_RATIO = 0.02;
 
 /** Stereo. A third channel reuses the second one's filter state. */
 const CHANNELS = 2;
+
+/** MessagePort data can originate in a different JavaScript realm. */
+const isMessageObject = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null;
 
 /**
  * Blocks between correlation reports.
@@ -526,7 +534,7 @@ class DspProcessor extends AudioWorkletProcessor {
       // milliseconds — fine inside a frame, fatal inside a 2.7 ms callback —
       // and it changes only when the curve does, while settings arrive on every
       // pixel of a drag.
-      if (data instanceof Object && 'debugOutputSafetyEnabled' in data) {
+      if (isMessageObject(data) && 'debugOutputSafetyEnabled' in data) {
         const requested = (data as { debugOutputSafetyEnabled?: unknown })
           .debugOutputSafetyEnabled;
         const enabled = IS_DEV_BUILD ? requested !== false : true;
@@ -537,13 +545,21 @@ class DspProcessor extends AudioWorkletProcessor {
         }
         return;
       }
-      if (data instanceof Object && 'masterPeakHoldTrackId' in data) {
-        const requested = (data as { masterPeakHoldTrackId?: unknown })
-          .masterPeakHoldTrackId;
+      if (isMessageObject(data) && 'masterPeakHoldTrackId' in data) {
+        const message = data as {
+          masterPeakHoldTrackId?: unknown;
+          preserveTrackLevelGain?: unknown;
+        };
+        const requested = message.masterPeakHoldTrackId;
         const trackId = typeof requested === 'string' ? requested : '';
         if (trackId !== this.peakHoldTrackId) {
           this.peakHoldTrackId = trackId;
-          this.trackLevelGainsNeedSnap = true;
+          // A direct load has no audible predecessor and starts at its cached
+          // gain. A completed two-deck handoff is already audible, so retain
+          // its current pair and let the shared two-second trajectory reach
+          // the incoming track's Normalizer/LUFS values without a level step.
+          this.trackLevelGainsNeedSnap =
+            message.preserveTrackLevelGain !== true;
           resetPostFilterNormalizer(this.postFilterNormalizer);
           // A source boundary is not an A/B toggle. Empty every delayed sample
           // so the previous song cannot play under the next song's gain.
@@ -555,7 +571,7 @@ class DspProcessor extends AudioWorkletProcessor {
         }
         return;
       }
-      if (data instanceof Object && 'trackLevelGains' in data) {
+      if (isMessageObject(data) && 'trackLevelGains' in data) {
         const requested = (
           data as {
             trackLevelGains?: {
@@ -572,7 +588,13 @@ class DspProcessor extends AudioWorkletProcessor {
         const masterLoudnessGainDb =
           typeof requested?.masterLoudnessGainDb === 'number' &&
           Number.isFinite(requested.masterLoudnessGainDb)
-            ? Math.min(12, Math.max(0, requested.masterLoudnessGainDb))
+            ? Math.min(
+                MASTER_LOUDNESS_GAIN_MAX_DB,
+                Math.max(
+                  MASTER_LOUDNESS_GAIN_MIN_DB,
+                  requested.masterLoudnessGainDb,
+                ),
+              )
             : 0;
         // The player publishes immediately and the React store confirms the
         // same pair afterwards. Treat that confirmation as idempotent instead
@@ -604,20 +626,21 @@ class DspProcessor extends AudioWorkletProcessor {
           this.inputGainStartDb =
             20 * Math.log10(Math.max(1e-12, this.inputGainNow));
           this.masterLoudnessGainStartDb = this.masterLoudnessGainNowDb;
-          const maximumMoveDb = Math.max(
-            Math.abs(inputGainDb - this.inputGainStartDb),
-            Math.abs(masterLoudnessGainDb - this.masterLoudnessGainStartDb),
-          );
-          this.trackLevelTransitionFrames = Math.ceil(
-            (maximumMoveDb / TRACK_LEVEL_SLEW_DB_PER_SECOND) * sampleRate,
-          );
+          const hasMove =
+            inputGainDb !== this.inputGainStartDb ||
+            masterLoudnessGainDb !== this.masterLoudnessGainStartDb;
+          this.trackLevelTransitionFrames = hasMove
+            ? Math.ceil(
+                (TRACK_LEVEL_ANALYSIS_TRANSITION_MS / 1_000) * sampleRate,
+              )
+            : 0;
           this.trackLevelTransitionElapsedFrames = 0;
         }
         this.inputGainTargetDb = inputGainDb;
         this.masterLoudnessGainTargetDb = masterLoudnessGainDb;
         return;
       }
-      if (data instanceof Object && 'eqKernel' in data) {
+      if (isMessageObject(data) && 'eqKernel' in data) {
         const { eqKernel } = data as { eqKernel: IConvolverKernel | undefined };
         if (!eqKernel) {
           this.convolvers = undefined;
@@ -1216,6 +1239,7 @@ class DspProcessor extends AudioWorkletProcessor {
         ? Math.exp(-1 / ((maximizer.releaseMs / 1_000) * sampleRate))
         : 0,
       kneeDb: maximizer.enabled ? MAXIMIZER_SOFT_KNEE_DB : 0,
+      releaseSnapRatio: maximizer.enabled ? MAXIMIZER_RELEASE_SNAP_RATIO : 0,
       releaseHoldSamples: maximizer.enabled
         ? Math.round((MAXIMIZER_RELEASE_HOLD_MS / 1_000) * sampleRate)
         : 0,
@@ -1348,6 +1372,31 @@ class DspProcessor extends AudioWorkletProcessor {
   private processInputGain(output: Float32Array[]): void {
     const frames = output[0]?.length ?? 0;
     if (frames === 0) {
+      return;
+    }
+    let hasProgramme = false;
+    for (
+      let channel = 0;
+      channel < output.length && !hasProgramme;
+      channel += 1
+    ) {
+      const samples = output[channel];
+      for (let frame = 0; frame < samples.length; frame += 1) {
+        if (Math.abs(samples[frame]) > 1e-8) {
+          hasProgramme = true;
+          break;
+        }
+      }
+    }
+    if (!hasProgramme) {
+      // There is no waveform to click and no musical time to ride. Advancing a
+      // track-level ramp through digital silence made every Master readout
+      // creep while playback was stopped, then resumed the song from an
+      // arbitrary point in that invisible transition. Land on the analysed
+      // level now so the next non-zero sample starts from the correct value.
+      this.inputGainNow = 10 ** (this.inputGainTargetDb / 20);
+      this.masterLoudnessGainNowDb = this.masterLoudnessGainTargetDb;
+      this.trackLevelTransitionElapsedFrames = this.trackLevelTransitionFrames;
       return;
     }
     const fromDb = 20 * Math.log10(Math.max(1e-12, this.inputGainNow));

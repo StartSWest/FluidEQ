@@ -25,7 +25,6 @@ const dsp = {
   'dsp.unavailable':
     'Не удалось запустить обработку звука. На воспроизведение это не влияет.',
   'dsp.presets': 'Пресеты',
-  'dsp.preset.flat': 'Выключено',
   'dsp.preset.lossyRepair': 'Восстановить сжатое',
   'dsp.preset.loud': 'Громко',
   'dsp.preset.broadcast': 'Эфирный',
@@ -293,7 +292,7 @@ const dsp = {
   'dsp.master.release': 'Восстановление',
   'dsp.master.loudnessMaximize': 'Максимум LUFS',
   'dsp.master.loudnessMaximizeHint':
-    'Добавляет {gain} дБ по измерению всего трека и удерживает итоговый истинный пик ниже предела. Усиление постоянно; регулируются только пики.',
+    'Применяет коррекцию {gain} дБ по измерению всего трека и удерживает итоговый истинный пик ниже предела. Усиление постоянно; регулируются только пики.',
   'dsp.master.loudnessTarget': 'Целевая громкость',
   'dsp.master.meter': 'Финальный выход',
   'dsp.master.safetyHint':

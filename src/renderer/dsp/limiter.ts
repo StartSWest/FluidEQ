@@ -51,6 +51,14 @@ export interface ILimiterOptions {
   releaseHoldSamples?: number;
   /** Optional maximum downward movement, expressed as dB per second. */
   attackSlewDbPerSecond?: number;
+  /** Explicit processing rate for reusable controllers outside the worklet. */
+  sampleRate?: number;
+  /**
+   * Finish an exponential recovery once its remaining linear gap is this
+   * fraction of the target. The final fraction is inaudible, while leaving it
+   * asymptotic can strand a deep reduction for many seconds.
+   */
+  releaseSnapRatio?: number;
 }
 
 /**
@@ -290,6 +298,8 @@ export const processLinkedLimiter = (
     kneeDb,
     releaseHoldSamples = 0,
     attackSlewDbPerSecond,
+    releaseSnapRatio = 0,
+    sampleRate: optionSampleRate,
   }: ILimiterOptions,
 ): void => {
   const frames = channels[0]?.length ?? 0;
@@ -306,8 +316,14 @@ export const processLinkedLimiter = (
 
   const usesSlowAttack =
     attackSlewDbPerSecond !== undefined && attackSlewDbPerSecond > 0;
+  let processingSampleRate = 48_000;
+  if (optionSampleRate !== undefined && optionSampleRate > 0) {
+    processingSampleRate = optionSampleRate;
+  } else if (typeof sampleRate === 'number') {
+    processingSampleRate = sampleRate;
+  }
   const attackStepDb = usesSlowAttack
-    ? attackSlewDbPerSecond / sampleRate
+    ? attackSlewDbPerSecond / processingSampleRate
     : Number.POSITIVE_INFINITY;
 
   for (let i = 0; i < frames; i += 1) {
@@ -358,6 +374,13 @@ export const processLinkedLimiter = (
             : releaseCoefficient;
         state.gain +=
           (state.detectorGain - state.gain) * (1 - recoveryCoefficient);
+        if (
+          state.detectorGain > state.gain &&
+          state.detectorGain - state.gain <=
+            state.detectorGain * Math.max(0, releaseSnapRatio)
+        ) {
+          state.gain = state.detectorGain;
+        }
       }
 
       const writeAt = position % capacity;
@@ -388,6 +411,13 @@ export const processLinkedLimiter = (
           required < 1 ? limitingReleaseCoefficient : releaseCoefficient;
         state.detectorGain +=
           (required - state.detectorGain) * (1 - recoveryCoefficient);
+        if (
+          required > state.detectorGain &&
+          required - state.detectorGain <=
+            required * Math.max(0, releaseSnapRatio)
+        ) {
+          state.detectorGain = required;
+        }
       }
 
       const reductionDb =

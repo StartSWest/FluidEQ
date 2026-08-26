@@ -34,7 +34,6 @@ const dsp = {
   'dsp.unavailable':
     'Audio processing could not start. Playback is unaffected.',
   'dsp.presets': 'Presets',
-  'dsp.preset.flat': 'Off',
   'dsp.preset.lossyRepair': 'Repair compressed',
   'dsp.preset.loud': 'Loud',
   'dsp.preset.broadcast': 'Broadcast',
@@ -301,7 +300,7 @@ const dsp = {
   'dsp.master.release': 'Release',
   'dsp.master.loudnessMaximize': 'LUFS maximize',
   'dsp.master.loudnessMaximizeHint':
-    'Adds {gain} dB from the cached whole-track loudness measurement, then keeps the final true peak below the ceiling. The gain is constant; only peaks are controlled.',
+    'Applies {gain} dB from the cached whole-track loudness measurement, then keeps the final true peak below the ceiling. The gain is constant; only peaks are controlled.',
   'dsp.master.loudnessTarget': 'Loudness target',
   'dsp.master.meter': 'Final output',
   'dsp.master.safetyHint':

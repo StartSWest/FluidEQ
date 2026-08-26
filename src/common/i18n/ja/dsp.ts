@@ -24,7 +24,6 @@ const dsp = {
     'ライブラリから再生すると起動します。FluidEQ 自身のプレーヤーを処理するため、曲を読み込むまでは何もしません。',
   'dsp.unavailable': '音声処理を開始できませんでした。再生には影響しません。',
   'dsp.presets': 'プリセット',
-  'dsp.preset.flat': 'オフ',
   'dsp.preset.lossyRepair': '圧縮音源を補修',
   'dsp.preset.loud': 'ラウド',
   'dsp.preset.broadcast': '放送',
@@ -289,7 +288,7 @@ const dsp = {
   'dsp.master.release': 'リリース',
   'dsp.master.loudnessMaximize': 'LUFS 最大化',
   'dsp.master.loudnessMaximizeHint':
-    '曲全体の測定値から {gain} dB を加え、最終トゥルーピークを上限以下に保ちます。ゲインは一定で、ピークのみを制御します。',
+    '曲全体の測定値から {gain} dB の補正を適用し、最終トゥルーピークを上限以下に保ちます。ゲインは一定で、ピークのみを制御します。',
   'dsp.master.loudnessTarget': 'ラウドネス目標',
   'dsp.master.meter': '最終出力',
   'dsp.master.safetyHint':

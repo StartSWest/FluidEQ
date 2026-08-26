@@ -5,7 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { FilterTypeEnum, NO_GAIN_FILTER_TYPES } from '../../common/constants';
-import { IEqBandSettings, IEqSettings, TEqModel } from '../../common/dsp/chain';
+import { IEqBandSettings, TEqModel } from '../../common/dsp/chain';
 import { biquadCoefficients, biquadMagnitudeDb } from './biquad';
 
 /**

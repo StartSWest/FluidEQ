@@ -25,7 +25,6 @@ const dsp = {
   'dsp.unavailable':
     'Die Audioverarbeitung konnte nicht gestartet werden. Die Wiedergabe ist davon nicht betroffen.',
   'dsp.presets': 'Voreinstellungen',
-  'dsp.preset.flat': 'Aus',
   'dsp.preset.lossyRepair': 'Komprimiertes reparieren',
   'dsp.preset.loud': 'Laut',
   'dsp.preset.broadcast': 'Rundfunk',
@@ -297,7 +296,7 @@ const dsp = {
   'dsp.master.release': 'Release',
   'dsp.master.loudnessMaximize': 'LUFS maximieren',
   'dsp.master.loudnessMaximizeHint':
-    'Fügt anhand der Messung des ganzen Titels {gain} dB hinzu und hält den finalen True Peak unter der Grenze. Die Verstärkung bleibt konstant; nur Peaks werden geregelt.',
+    'Wendet anhand der Messung des ganzen Titels {gain} dB an und hält den finalen True Peak unter der Grenze. Die Verstärkung bleibt konstant; nur Peaks werden geregelt.',
   'dsp.master.loudnessTarget': 'Lautheitsziel',
   'dsp.master.meter': 'Endausgang',
   'dsp.master.safetyHint':

@@ -345,6 +345,10 @@ export interface IMasterSettings {
   releaseMs: number;
 }
 
+/** Signed whole-track correction accepted by the renderer/worklet boundary. */
+export const MASTER_LOUDNESS_GAIN_MIN_DB = -48;
+export const MASTER_LOUDNESS_GAIN_MAX_DB = 12;
+
 /**
  * One EQ band.
  *
@@ -981,7 +985,7 @@ export const DSP_DEFAULTS: IDspSettings = {
         // same span the crossover gave this band, so nothing about the default
         // sound moved when the shape of the setting did.
         freqHz: 77,
-        range: 0.36,
+        range: 0.3568123043805345,
         drive: 1.8,
         mix: 0.1,
         texture: 0.05,
@@ -1002,7 +1006,7 @@ export const DSP_DEFAULTS: IDspSettings = {
         enabled: true,
         // 3 kHz - 20 kHz.
         freqHz: 7_700,
-        range: 0.24,
+        range: 0.23727782085891017,
         drive: 2.6,
         mix: 0.22,
         texture: 0.6,

@@ -70,6 +70,15 @@ import {
 import { ILibraryTrack } from '../../../common/library/types';
 import { TCrossfadeCurve } from '../../../common/dsp/chain';
 import {
+  DSP_DIAGNOSTIC_CODES,
+  DSP_DIAGNOSTIC_SCHEMA_VERSION,
+} from '../../../common/dsp/diagnostics';
+import {
+  scheduleDspDeckCrossfade,
+  selectDspDeck,
+} from '../../dsp/deckCrossfade';
+import { dspErrorValues, reportDspDiagnostic } from '../../dsp/diagnostics';
+import {
   setDspInputTrackId,
   setDspTrackLevelGains,
   useDspEngine,
@@ -79,7 +88,11 @@ import {
   masterLoudnessGainDb,
   normalizerGainDb,
 } from '../../dsp/inputNormalizer';
-import { setDspInputAnalysis, useDspSettings } from '../../dsp/store';
+import {
+  IDspInputAnalysisState,
+  setDspInputAnalysis,
+  useDspSettings,
+} from '../../dsp/store';
 import { useLibrary } from '../LibraryContext';
 import {
   readPlaybackMemory,
@@ -116,24 +129,8 @@ const normalizationChanged = (
 const SEEK_FADE_MS = 70;
 /** Pop-free source handoff; longer than a seek because the decoder is new. */
 const TRACK_FADE_IN_MS = 80;
-
-const crossfadeGain = (
-  curve: TCrossfadeCurve,
-  progress: number,
-  incoming: boolean,
-): number => {
-  const unit = Math.max(0, Math.min(1, progress));
-  if (curve === 'linear') {
-    return incoming ? unit : 1 - unit;
-  }
-  if (curve === 'smooth') {
-    const smooth = unit * unit * (3 - 2 * unit);
-    return incoming ? smooth : 1 - smooth;
-  }
-  return incoming
-    ? Math.sin((unit * Math.PI) / 2)
-    : Math.cos((unit * Math.PI) / 2);
-};
+/** Past this point Previous restarts first; inside it, Previous changes track. */
+const PREVIOUS_RESTART_THRESHOLD_MS = 10_000;
 
 export interface ILibraryPlayerContextValue {
   queue: ILibraryQueue | undefined;
@@ -306,6 +303,10 @@ export const LibraryPlayerProvider = ({
   const audioElementRef = useRef<HTMLAudioElement | undefined>(
     audioElements[0],
   );
+  /** Idempotent ownership handoff for the one transition allowed at a time. */
+  const finishCrossfadeRef = useRef<(() => void) | undefined>(undefined);
+  const crossfadeCompletionRef = useRef<number | undefined>(undefined);
+  const isDisposedRef = useRef(false);
   // The DSP chain attaches here rather than in the panel that configures it,
   // because `createMediaElementSource` binds to THIS element and may be called
   // for it exactly once, ever. The panel writes settings into a store; the
@@ -343,7 +344,10 @@ export const LibraryPlayerProvider = ({
   // packaged build; it fires constantly in development, which is where the
   // overlap was found.
   useEffect(() => {
+    isDisposedRef.current = false;
     return () => {
+      isDisposedRef.current = true;
+      finishCrossfadeRef.current?.();
       audioElements.forEach((audio) => {
         audio.pause();
         audio.removeAttribute('src');
@@ -421,8 +425,6 @@ export const LibraryPlayerProvider = ({
   /** The running fade-in, so a second seek arriving mid-ramp cancels the
    * first rather than fighting it for the volume property. */
   const fadeFrameRef = useRef(0);
-  /** The two-deck transition, separate from the seek fade on the active deck. */
-  const crossfadeFrameRef = useRef(0);
   /** Prevents one track end advancing the queue more than once. */
   const naturalCrossfadeTrackRef = useRef<string | undefined>(undefined);
 
@@ -451,40 +453,6 @@ export const LibraryPlayerProvider = ({
     [],
   );
   fadeInRef.current = fadeIn;
-
-  const startCrossfade = useCallback(
-    (
-      outgoing: HTMLAudioElement,
-      incoming: HTMLAudioElement,
-      durationMs: number,
-      curve: TCrossfadeCurve,
-    ) => {
-      cancelAnimationFrame(crossfadeFrameRef.current);
-      const target = volumeRef.current;
-      const outgoingStart = Math.min(target, outgoing.volume);
-      const started = performance.now();
-      const duration = Math.max(1, durationMs);
-      const step = () => {
-        const progress = Math.min(1, (performance.now() - started) / duration);
-        outgoing.volume = clampVolume(
-          outgoingStart * crossfadeGain(curve, progress, false),
-        );
-        incoming.volume = clampVolume(
-          target * crossfadeGain(curve, progress, true),
-        );
-        if (progress < 1) {
-          crossfadeFrameRef.current = requestAnimationFrame(step);
-          return;
-        }
-        outgoing.pause();
-        outgoing.volume = target;
-        incoming.volume = target;
-        crossfadeFrameRef.current = 0;
-      };
-      crossfadeFrameRef.current = requestAnimationFrame(step);
-    },
-    [],
-  );
 
   /**
    * Drops the level for a jump, and guarantees it comes back.
@@ -536,6 +504,64 @@ export const LibraryPlayerProvider = ({
       blobUrlsRef.current.delete(element);
     }
   }, []);
+
+  const startCrossfade = useCallback(
+    (
+      outgoing: HTMLAudioElement,
+      incoming: HTMLAudioElement,
+      durationMs: number,
+      curve: TCrossfadeCurve,
+      onFinished?: () => void,
+    ) => {
+      finishCrossfadeRef.current?.();
+      const target = volumeRef.current;
+      outgoing.volume = target;
+      incoming.volume = target;
+      const scheduled = scheduleDspDeckCrossfade(
+        outgoing,
+        incoming,
+        durationMs,
+        curve,
+      );
+      let finished = false;
+      const finish = () => {
+        if (finished) {
+          return;
+        }
+        finished = true;
+        if (crossfadeCompletionRef.current !== undefined) {
+          window.clearTimeout(crossfadeCompletionRef.current);
+          crossfadeCompletionRef.current = undefined;
+        }
+        outgoing.pause();
+        releaseBlob(outgoing);
+        outgoing.removeAttribute('src');
+        outgoing.load();
+        outgoing.volume = target;
+        incoming.volume = target;
+        selectDspDeck(incoming);
+        onFinished?.();
+        if (finishCrossfadeRef.current === finish) {
+          finishCrossfadeRef.current = undefined;
+        }
+      };
+      finishCrossfadeRef.current = finish;
+      if (!scheduled) {
+        // An unavailable Web Audio mixer cannot be allowed to create two
+        // direct-output players. Make the switch atomically instead.
+        finish();
+        return;
+      }
+      // This timer owns decoder/resource cleanup, not the fade. The fade is
+      // already scheduled on the audio clock, so throttling this callback can
+      // delay `pause()` but can never leave the outgoing song audible.
+      crossfadeCompletionRef.current = window.setTimeout(
+        finish,
+        Math.max(1, durationMs) + 50,
+      );
+    },
+    [releaseBlob],
+  );
 
   /**
    * Re-points a playing element at the same audio held in memory.
@@ -947,6 +973,10 @@ export const LibraryPlayerProvider = ({
     // alive or letting its result touch the newly selected track.
     analysisJobRef.current?.controller.abort();
     analysisJobRef.current = undefined;
+    // A new queue owner closes the previous handoff before inspecting either
+    // deck. This is what makes rapid Next/Previous deterministic instead of
+    // letting an older completion callback pause the newly active song.
+    finishCrossfadeRef.current?.();
     const outgoing = audioElementRef.current;
     if (!outgoing) {
       return undefined;
@@ -964,24 +994,24 @@ export const LibraryPlayerProvider = ({
       audioElements[0] === outgoing ? audioElements[1] : audioElements[0];
     const audio = isCrossfading && alternate ? alternate : outgoing;
     cancelAnimationFrame(fadeFrameRef.current);
-    cancelAnimationFrame(crossfadeFrameRef.current);
-    crossfadeFrameRef.current = 0;
     if (isCrossfading) {
       audio.pause();
       audio.volume = 0;
       releaseBlob(audio);
-      audioElementRef.current = audio;
     } else {
       audioElements.forEach((element) => {
         element.pause();
         element.volume = 0;
       });
+      selectDspDeck(audio);
     }
     naturalCrossfadeTrackRef.current = undefined;
-    // This message must precede the new normalization gain. React's external
-    // store effect runs later; waiting for it lets delayed audio from the old
-    // source receive the new track's gain and produces the audible level jump.
-    setDspInputTrackId(track?.id ?? '');
+    // On a direct load this must precede the new normalization gain. During a
+    // crossfade both identity and track-level gain stay owned by the outgoing
+    // song until the incoming deck has completed the configured overlap.
+    if (!isCrossfading) {
+      setDspInputTrackId(track?.id ?? '');
+    }
     if (!isCrossfading) {
       releaseBlob(audio);
     }
@@ -1022,15 +1052,88 @@ export const LibraryPlayerProvider = ({
       return undefined;
     }
     let cancelled = false;
+    let transitionStarted = false;
+    let playbackAccepted = pendingRestore.current?.trackId === track.id;
+    let handoffComplete = !isCrossfading;
+    let bufferedForSwap: ArrayBuffer | undefined;
+    /**
+     * Replacing `src` aborts an unsettled `play()` promise in Chromium.
+     * Therefore a fast disk read may prepare the blob immediately, but it may
+     * not install it until playback has started and any two-deck overlap has
+     * finished. This ordering is what keeps Next from silently falling back
+     * to the outgoing song.
+     */
+    const flushBufferedSwap = () => {
+      if (
+        cancelled ||
+        isDisposedRef.current ||
+        !playbackAccepted ||
+        !handoffComplete ||
+        !bufferedForSwap
+      ) {
+        return;
+      }
+      const buffer = bufferedForSwap;
+      bufferedForSwap = undefined;
+      swapBufferToBlob(audio, track.id, buffer);
+    };
     const cachedAnalysis = track.normalization;
     const shouldAnalyze =
       dspSettingsRef.current.enabled &&
-      dspSettingsRef.current.normalizer.mode !== 'off';
+      (dspSettingsRef.current.normalizer.mode !== 'off' ||
+        (dspSettingsRef.current.master.enabled &&
+          dspSettingsRef.current.master.loudnessMaximize));
+    let deferredAnalysis: IDspInputAnalysisState | undefined;
+    let deferredTrackGains: readonly [number, number] | undefined;
+    const publishAnalysis = (next: IDspInputAnalysisState) => {
+      if (isCrossfading && !handoffComplete) {
+        deferredAnalysis = next;
+        return;
+      }
+      setDspInputAnalysis(next);
+    };
+    const publishTrackGains = (analysis: ILibraryTrack['normalization']) => {
+      if (isCrossfading && !handoffComplete && !analysis) {
+        // No measurement means there is no justified incoming-track gain yet.
+        // Keep the outgoing pair through the overlap; when analysis arrives it
+        // will begin one phase-locked transition from the level being heard.
+        return;
+      }
+      const next = [
+        normalizerGainDb(dspSettingsRef.current.normalizer, analysis),
+        masterLoudnessGainDb(
+          dspSettingsRef.current.master,
+          dspSettingsRef.current.normalizer,
+          analysis,
+        ),
+      ] as const;
+      if (isCrossfading && !handoffComplete) {
+        deferredTrackGains = next;
+        return;
+      }
+      setDspTrackLevelGains(next[0], next[1]);
+    };
+    const completeTrackHandoff = () => {
+      handoffComplete = true;
+      if (cancelled) {
+        return;
+      }
+      setDspInputTrackId(track.id, true);
+      if (deferredAnalysis) {
+        setDspInputAnalysis(deferredAnalysis);
+        deferredAnalysis = undefined;
+      }
+      if (deferredTrackGains) {
+        setDspTrackLevelGains(deferredTrackGains[0], deferredTrackGains[1]);
+        deferredTrackGains = undefined;
+      }
+      flushBufferedSwap();
+    };
     const analysisJob = shouldAnalyze
       ? { trackId: track.id, controller: new AbortController() }
       : undefined;
     analysisJobRef.current = analysisJob;
-    setDspInputAnalysis(
+    publishAnalysis(
       cachedAnalysis
         ? {
             trackId: track.id,
@@ -1048,14 +1151,7 @@ export const LibraryPlayerProvider = ({
     // Playback starts before the first await. Analysis is preparation for the
     // cache, never permission to hear the track; an uncached song must switch
     // just as quickly as one the library has already measured.
-    setDspTrackLevelGains(
-      normalizerGainDb(dspSettingsRef.current.normalizer, cachedAnalysis),
-      masterLoudnessGainDb(
-        dspSettingsRef.current.master,
-        dspSettingsRef.current.normalizer,
-        cachedAnalysis,
-      ),
-    );
+    publishTrackGains(cachedAnalysis);
     audio.src = libraryMediaUrl('track', track.id);
     // No `audio.currentTime = 0` here, and this is not tidiness: assigning a
     // position on the same tick as the source is what made seeking
@@ -1100,20 +1196,50 @@ export const LibraryPlayerProvider = ({
         .play()
         .then(() => {
           if (!cancelled) {
+            playbackAccepted = true;
             if (isCrossfading) {
+              // The incoming decoder owns transport only after it has actually
+              // started. Taking ownership before `play()` settled let a slow
+              // or rejected alternate deck capture Next/Previous and made the
+              // working song unreachable.
+              audioElementRef.current = audio;
+              transitionStarted = true;
               startCrossfade(
                 outgoing,
                 audio,
                 transition.durationMs,
                 transition.curve,
+                () => {
+                  completeTrackHandoff();
+                },
               );
             } else {
               fadeIn(audio, TRACK_FADE_IN_MS);
+              flushBufferedSwap();
             }
           }
           return undefined;
         })
-        .catch(() => undefined);
+        .catch((error: unknown) => {
+          if (isCrossfading && !cancelled) {
+            reportDspDiagnostic({
+              schemaVersion: DSP_DIAGNOSTIC_SCHEMA_VERSION,
+              code: DSP_DIAGNOSTIC_CODES.crossfadePlayFailed,
+              severity: 'error',
+              origin: 'renderer',
+              values: {
+                trackId: track.id,
+                ...dspErrorValues(error),
+              },
+            });
+            audio.pause();
+            audio.removeAttribute('src');
+            audio.load();
+            audioElementRef.current = outgoing;
+            selectDspDeck(outgoing);
+          }
+          return undefined;
+        });
     }
 
     const prepareInBackground = async () => {
@@ -1125,7 +1251,7 @@ export const LibraryPlayerProvider = ({
       ]);
       if (!buffer || cancelled) {
         if (shouldAnalyze && !cachedAnalysis && !cancelled) {
-          setDspInputAnalysis({
+          publishAnalysis({
             trackId: track.id,
             status: 'unavailable',
             fraction: 0,
@@ -1133,9 +1259,10 @@ export const LibraryPlayerProvider = ({
         }
         return;
       }
-      // The same read makes seeking exact immediately; analysis gets a copy
-      // internally and continues after the player has switched to the blob.
-      swapBufferToBlob(audio, track.id, buffer);
+      // Keep the bytes ready, but do not replace the media source while its
+      // first `play()` or an active crossfade still owns the decoder.
+      bufferedForSwap = buffer;
+      flushBufferedSwap();
       if (!shouldAnalyze) {
         return;
       }
@@ -1160,7 +1287,7 @@ export const LibraryPlayerProvider = ({
             !cancelled &&
             analysisJobRef.current === analysisJob
           ) {
-            setDspInputAnalysis({
+            publishAnalysis({
               trackId: track.id,
               status: 'analyzing',
               fraction,
@@ -1176,7 +1303,7 @@ export const LibraryPlayerProvider = ({
           analysisJobRef.current === analysisJob &&
           !analysisJob.controller.signal.aborted
         ) {
-          setDspInputAnalysis({
+          publishAnalysis({
             trackId: track.id,
             status: 'unavailable',
             fraction: 0,
@@ -1185,21 +1312,14 @@ export const LibraryPlayerProvider = ({
         return;
       }
       const changed = normalizationChanged(cachedAnalysis, analysis);
-      setDspInputAnalysis({
+      publishAnalysis({
         trackId: track.id,
         status: 'ready',
         fraction: 1,
         analysis,
       });
       if (changed) {
-        setDspTrackLevelGains(
-          normalizerGainDb(dspSettingsRef.current.normalizer, analysis),
-          masterLoudnessGainDb(
-            dspSettingsRef.current.master,
-            dspSettingsRef.current.normalizer,
-            analysis,
-          ),
-        );
+        publishTrackGains(analysis);
         await window.electron.ipcRenderer.setLibraryTrackNormalization(
           track.id,
           analysis,
@@ -1220,7 +1340,7 @@ export const LibraryPlayerProvider = ({
           analysisJobRef.current === analysisJob &&
           !analysisJob?.controller.signal.aborted
         ) {
-          setDspInputAnalysis({
+          publishAnalysis({
             trackId: track.id,
             status: 'unavailable',
             fraction: 0,
@@ -1234,6 +1354,15 @@ export const LibraryPlayerProvider = ({
       });
     return () => {
       cancelled = true;
+      bufferedForSwap = undefined;
+      if (isCrossfading && !transitionStarted) {
+        audio.pause();
+        releaseBlob(audio);
+        audio.removeAttribute('src');
+        audio.load();
+        audioElementRef.current = outgoing;
+        selectDspDeck(outgoing);
+      }
       analysisJob?.controller.abort();
       if (analysisJobRef.current === analysisJob) {
         analysisJobRef.current = undefined;
@@ -1253,7 +1382,9 @@ export const LibraryPlayerProvider = ({
   useEffect(() => {
     if (
       !dspSettings.enabled ||
-      dspSettings.normalizer.mode === 'off' ||
+      (dspSettings.normalizer.mode === 'off' &&
+        (!dspSettings.master.enabled ||
+          !dspSettings.master.loudnessMaximize)) ||
       !track ||
       track.kind !== 'audio' ||
       track.normalization ||
@@ -1364,7 +1495,14 @@ export const LibraryPlayerProvider = ({
         analysisJobRef.current = undefined;
       }
     };
-  }, [dspSettings.enabled, dspSettings.normalizer.mode, track, trackId]);
+  }, [
+    dspSettings.enabled,
+    dspSettings.master.enabled,
+    dspSettings.master.loudnessMaximize,
+    dspSettings.normalizer.mode,
+    track,
+    trackId,
+  ]);
 
   /**
    * Catches the one case the effect above cannot: `trackId` staying exactly
@@ -1747,11 +1885,27 @@ export const LibraryPlayerProvider = ({
     });
   }, []);
 
-  const skip = useCallback((direction: 1 | -1) => {
-    setQueue((current) =>
-      current ? advanceQueue(current, direction) : current,
-    );
-  }, []);
+  const skip = useCallback(
+    (direction: 1 | -1) => {
+      if (direction === -1 && positionMs > PREVIOUS_RESTART_THRESHOLD_MS) {
+        const element = activeElement();
+        if (element) {
+          // Close any overlap before rewinding the deck that now owns the
+          // transport. A second Previous sees position zero and advances to the
+          // actual previous queue item.
+          finishCrossfadeRef.current?.();
+          startSeekFade(element);
+          element.currentTime = 0;
+        }
+        setPositionMs(0);
+        return;
+      }
+      setQueue((current) =>
+        current ? advanceQueue(current, direction) : current,
+      );
+    },
+    [activeElement, positionMs, startSeekFade],
+  );
 
   const seek = useCallback(
     (nextPositionMs: number) => {

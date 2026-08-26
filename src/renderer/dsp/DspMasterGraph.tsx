@@ -18,7 +18,9 @@ const MIN_HZ = 20;
 const MAX_HZ = 20_000;
 const PAD_L = 46;
 const PAD_R = 42;
-const PAD_T = 34;
+// Legend and live status own two fixed rows above the plot. Drawing data under
+// either one made the badges look like they belonged to random spectrum peaks.
+const PAD_T = 72;
 const PAD_B = 26;
 const GAIN_RANGE_DB = 18;
 const SPECTRUM_FLOOR_DB = -96;
@@ -228,8 +230,15 @@ const DspMasterGraph = ({
       appliedGainPaintAtRef.current = now;
       const lineSmooth = 1 - Math.exp(-elapsed / APPLIED_LINE_SMOOTHING_MS);
       const appliedTarget = appliedGainTargetRef.current;
-      appliedGainDisplayRef.current +=
-        (appliedTarget - appliedGainDisplayRef.current) * lineSmooth;
+      if (readDspPeak() <= 1e-6) {
+        // A stopped decoder produces exact zero. There is no audible level to
+        // interpolate, so an animated readout here falsely looks like Master
+        // is still changing the song after playback has ended.
+        appliedGainDisplayRef.current = appliedTarget;
+      } else {
+        appliedGainDisplayRef.current +=
+          (appliedTarget - appliedGainDisplayRef.current) * lineSmooth;
+      }
       if (Math.abs(appliedTarget - appliedGainDisplayRef.current) < 0.005) {
         appliedGainDisplayRef.current = appliedTarget;
       }

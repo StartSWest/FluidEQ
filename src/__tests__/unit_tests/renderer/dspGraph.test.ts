@@ -6,6 +6,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { DSP_DEFAULTS, IDspSettings } from '../../../common/dsp/chain';
 import { buildDspGraph } from '../../../renderer/dsp/graph';
+import { DSP_OUTPUT_INDEX } from '../../../renderer/dsp/monitorOutputs';
 
 const fakeNode = () => ({
   connect: jest.fn(),
@@ -57,7 +58,11 @@ describe('dsp graph', () => {
       destination,
       DSP_DEFAULTS,
     );
-    expect(worklet.connect).toHaveBeenCalledWith(destination);
+    expect(worklet.connect).toHaveBeenCalledWith(
+      destination,
+      DSP_OUTPUT_INDEX.master,
+      0,
+    );
   });
 
   it('sends the settings to the worklet on build', () => {

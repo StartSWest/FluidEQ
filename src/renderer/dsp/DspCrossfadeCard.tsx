@@ -13,6 +13,7 @@ import {
 import { TranslationKey } from '../../common/i18n/en';
 import { useTranslation } from '../utils/I18nContext';
 import { Dial, ProcessorCard } from './DspControls';
+import { useDspCrossfadeMeter } from './deckCrossfade';
 
 interface IDspCrossfadeCardProps {
   crossfade: ICrossfadeSettings;
@@ -46,6 +47,10 @@ const DspCrossfadeCard = ({
   onCommit,
 }: IDspCrossfadeCardProps) => {
   const { t } = useTranslation();
+  const meter = useDspCrossfadeMeter();
+  const markerX = 16 + meter.progress * 168;
+  const outgoingMarkerY = 94 - meter.outgoingGain * 76;
+  const incomingMarkerY = 94 - meter.incomingGain * 76;
 
   const selectCurve = (curve: TCrossfadeCurve) => {
     onPatch({ ...crossfade, curve });
@@ -78,6 +83,29 @@ const DspCrossfadeCard = ({
               className="dsp-crossfade-line is-incoming"
               d={curvePath(crossfade.curve, true)}
             />
+            {meter.active ? (
+              <>
+                <line
+                  className="dsp-crossfade-playhead"
+                  x1={markerX}
+                  y1="12"
+                  x2={markerX}
+                  y2="100"
+                />
+                <circle
+                  className="dsp-crossfade-marker is-outgoing"
+                  cx={markerX}
+                  cy={outgoingMarkerY}
+                  r="4"
+                />
+                <circle
+                  className="dsp-crossfade-marker is-incoming"
+                  cx={markerX}
+                  cy={incomingMarkerY}
+                  r="4"
+                />
+              </>
+            ) : undefined}
           </svg>
           <span className="dsp-crossfade-preview-label is-incoming">
             {t('dsp.crossfade.incoming')}
@@ -89,6 +117,18 @@ const DspCrossfadeCard = ({
               .replace(/\.$/, '')}{' '}
             s
           </span>
+          <div
+            className={`dsp-crossfade-live${meter.active ? ' is-active' : ''}`}
+          >
+            <span className="is-outgoing">
+              {t('dsp.crossfade.outgoing')}{' '}
+              {Math.round(meter.outgoingGain * 100)}%
+            </span>
+            <span className="is-incoming">
+              {t('dsp.crossfade.incoming')}{' '}
+              {Math.round(meter.incomingGain * 100)}%
+            </span>
+          </div>
         </section>
 
         <section className="dsp-crossfade-controls">

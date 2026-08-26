@@ -25,7 +25,6 @@ const dsp = {
   'dsp.unavailable':
     'ऑडियो प्रोसेसिंग शुरू नहीं हो सकी। प्लेबैक पर कोई असर नहीं पड़ता।',
   'dsp.presets': 'प्रीसेट',
-  'dsp.preset.flat': 'बंद',
   'dsp.preset.lossyRepair': 'संपीड़ित को सुधारें',
   'dsp.preset.loud': 'तेज़',
   'dsp.preset.broadcast': 'ब्रॉडकास्ट',
@@ -292,7 +291,7 @@ const dsp = {
   'dsp.master.release': 'रिलीज़',
   'dsp.master.loudnessMaximize': 'LUFS अधिकतम करें',
   'dsp.master.loudnessMaximizeHint':
-    'पूरे ट्रैक की माप से {gain} dB जोड़ता है और अंतिम ट्रू पीक को सीमा के नीचे रखता है। गेन स्थिर रहता है; केवल पीक नियंत्रित होते हैं।',
+    'पूरे ट्रैक की माप से {gain} dB लागू करता है और अंतिम ट्रू पीक को सीमा के नीचे रखता है। गेन स्थिर रहता है; केवल पीक नियंत्रित होते हैं।',
   'dsp.master.loudnessTarget': 'लाउडनेस लक्ष्य',
   'dsp.master.meter': 'अंतिम आउटपुट',
   'dsp.master.safetyHint':

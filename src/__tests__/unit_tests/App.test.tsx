@@ -145,21 +145,25 @@ describe('App', () => {
     expect(screen.getByText('Apoya el proyecto')).toBeVisible();
   });
 
-  it('opens Karaoke after Media and remembers the selected tab', async () => {
+  it('puts DSP after Karaoke and remembers the selected tab', async () => {
     const { container } = render(<App />);
     await act(async () => Promise.resolve());
     const tabs = screen.getAllByRole('tab');
 
-    // The strip itself: four places. The equaliser's five — bands, presets,
+    // The strip itself: five places. The equaliser's five — bands, presets,
     // voicing, convolution, config — are pills inside the EQ page, which is
-    // why they are not in this list and why it is the first four rather than
-    // the last four.
-    expect(tabs.slice(0, 4).map((tab) => tab.textContent)).toEqual([
+    // why DSP is top-level rather than mixed into the APO pages.
+    expect(tabs.slice(0, 5).map((tab) => tab.textContent)).toEqual([
       'EQ',
       'Media',
       'Library',
       'Karaoke',
+      'DSP',
     ]);
+    expect(screen.getByRole('tab', { name: 'DSP' })).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'DSP' }),
+    ).not.toBeInTheDocument();
 
     const karaokeTab = screen.getByRole('tab', { name: 'Karaoke' });
     expect(container.querySelector('.graph-wrapper')).toBeInTheDocument();
@@ -274,6 +278,7 @@ describe('App', () => {
 
   it.each([
     ['karaoke', 'Karaoke'],
+    ['dsp', 'DSP'],
     ['not-a-workspace-tab', 'EQ'],
   ])('restores stored tab %s as %s', async (stored, selected) => {
     window.localStorage.setItem('fluideq.workspaceTab', stored);

@@ -35,9 +35,6 @@ const contaminatedEq = (): IEqSettings => ({
   oversample: 4,
   subsonicHz: 40,
   fuzzAmount: 1,
-  preampDb: 24,
-  trimDb: -24,
-  trimMode: 'off',
   presetId: 'stale-profile',
   bands: buildEqRack(6).map((band, index) => ({
     ...band,
@@ -57,10 +54,7 @@ describe('complete EQ factory presets', () => {
     EQ_PRESETS.forEach((preset) => {
       const result = eqSettingsForPreset(contaminatedEq(), preset);
       const setup = eqPresetSetup(preset);
-      const expected =
-        preset.id === EQ_DEFAULT_PRESET_ID
-          ? { ...setup, trimMode: 'off' as const }
-          : setup;
+      const expected = setup;
 
       expect({
         id: preset.id,
@@ -74,8 +68,6 @@ describe('complete EQ factory presets', () => {
           oversample: result.oversample,
           subsonicHz: result.subsonicHz,
           fuzzAmount: result.fuzzAmount,
-          preampDb: result.preampDb,
-          trimMode: result.trimMode,
         },
       }).toEqual({
         id: preset.id,
@@ -89,13 +81,8 @@ describe('complete EQ factory presets', () => {
           oversample: expected.oversample,
           subsonicHz: expected.subsonicHz,
           fuzzAmount: expected.fuzzAmount,
-          preampDb: expected.preampDb,
-          trimMode: expected.trimMode,
         },
       });
-      expect(`${preset.id}: stale trim cleared`).toBe(
-        `${preset.id}: ${result.trimDb === 0 ? 'stale trim cleared' : 'failed'}`,
-      );
       expect(`${preset.id}: monitor cleared`).toBe(
         `${preset.id}: ${!result.isolate ? 'monitor cleared' : 'failed'}`,
       );
