@@ -635,3 +635,94 @@ describe('joining a translation to the original', () => {
     ]);
   });
 });
+
+describe('choosing a language for the song', () => {
+  const audioAsset: IKaraokeAsset = {
+    id: 'audio-1',
+    role: 'audio',
+    extension: 'mp3',
+    file: new File(['audio'], 'song.mp3', { type: 'audio/mpeg' }),
+  };
+
+  const twoTranslations = (): IKaraokeMakerProject => {
+    const base = createKaraokeMakerProject({
+      id: 'song-choose',
+      title: 'Song',
+      assets: [],
+      timingPrecision: 'syllable',
+      lines: [],
+      pitch: { kind: 'none', reason: 'missing' },
+      meta: { sourceFormat: 'test', gapMs: 0 },
+    });
+    const withLines: IKaraokeMakerProject = {
+      ...base,
+      lyrics: {
+        ...base.lyrics,
+        language: 'en',
+        lines: [lyricLine('l1', 'one', 0, 1_000)],
+      },
+    };
+    const withEs = addKaraokeTranslation(withLines, 'uno', 'es').project;
+    return addKaraokeTranslation(withEs, 'un', 'fr').project;
+  };
+
+  it('lists both translations when the original is playing', () => {
+    const song = karaokeMakerProjectToSong(twoTranslations(), audioAsset);
+
+    expect(song.meta.language).toBe('en');
+    expect(song.translations?.map((entry) => entry.language)).toEqual([
+      'es',
+      'fr',
+    ]);
+    // Restamped onto the original's line ids, which is what the player joins
+    // its second row on.
+    expect(song.translations?.[0].lines.map((line) => line.id)).toEqual(['l1']);
+  });
+
+  it('leaves the chosen language out of the list it is playing as', () => {
+    const song = karaokeMakerProjectToSong(
+      twoTranslations(),
+      audioAsset,
+      [audioAsset],
+      { language: 'es' },
+    );
+
+    expect(song.meta.language).toBe('es');
+    expect(song.lines.map((line) => line.tokens[0].text)).toEqual(['uno']);
+    // Spanish is the sheet on screen; a second copy of it under itself was a
+    // duplicate picker entry and a row keyed to ids song.lines no longer has.
+    expect(song.translations?.map((entry) => entry.language)).toEqual(['fr']);
+  });
+
+  it('reports no translations when the only one is the chosen language', () => {
+    const base = createKaraokeMakerProject({
+      id: 'song-only',
+      title: 'Song',
+      assets: [],
+      timingPrecision: 'syllable',
+      lines: [],
+      pitch: { kind: 'none', reason: 'missing' },
+      meta: { sourceFormat: 'test', gapMs: 0 },
+    });
+    const withEs = addKaraokeTranslation(
+      {
+        ...base,
+        lyrics: {
+          ...base.lyrics,
+          language: 'en',
+          lines: [lyricLine('l1', 'one', 0, 1_000)],
+        },
+      },
+      'uno',
+      'es',
+    ).project;
+
+    const song = karaokeMakerProjectToSong(withEs, audioAsset, [audioAsset], {
+      language: 'es',
+    });
+
+    // Undefined rather than [], because the player's picker reads
+    // `song.translations?.length` to decide whether to show itself at all.
+    expect(song.translations).toBeUndefined();
+  });
+});

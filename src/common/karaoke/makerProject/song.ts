@@ -228,23 +228,39 @@ export const sheetLines = (
  */
 const makePlayableTranslations = (
   project: IKaraokeMakerProject,
+  chosenSheetLines?: readonly IKaraokeMakerLine[],
 ): { language: string; lines: IKaraokeLine[] }[] =>
-  (project.lyrics.translations ?? []).map((sheet) => {
-    const bySourceId = karaokeTranslationLineBySource(
-      project.lyrics.lines,
-      sheet.lines,
-    );
-    return {
-      language: sheet.language,
-      lines: makePlayableLines(
-        project,
-        project.lyrics.lines.flatMap((line): IKaraokeMakerLine[] => {
-          const translated = bySourceId.get(line.id);
-          return translated ? [{ ...translated, id: line.id }] : [];
-        }),
-      ),
-    };
-  });
+  (project.lyrics.translations ?? [])
+    // Compared by reference, not by language tag: `sheetLines` hands back the
+    // very array it selected, so this is exactly "the sheet playing as
+    // `song.lines`" with nothing re-derived and no way for a hand-edited file
+    // whose tags collide to drop the wrong one.
+    .filter((sheet) => sheet.lines !== chosenSheetLines)
+    .map((sheet) => {
+      const bySourceId = karaokeTranslationLineBySource(
+        project.lyrics.lines,
+        sheet.lines,
+      );
+      return {
+        language: sheet.language,
+        // Restamped only against the original, because that is the only sheet
+        // whose ids `song.lines` can be carrying here: with a translation
+        // chosen, `song.lines` holds that sheet's own ids and stamping a
+        // third sheet with the original's would key the player's join to
+        // something not on screen. Left unstamped it simply finds no partner
+        // and paints one row, which is honest; stamped it would paint a
+        // second row under the wrong line.
+        lines: makePlayableLines(
+          project,
+          chosenSheetLines === undefined
+            ? project.lyrics.lines.flatMap((line): IKaraokeMakerLine[] => {
+                const translated = bySourceId.get(line.id);
+                return translated ? [{ ...translated, id: line.id }] : [];
+              })
+            : sheet.lines,
+        ),
+      };
+    });
 
 export const karaokeMakerProjectToSong = (
   project: IKaraokeMakerProject,
@@ -254,6 +270,10 @@ export const karaokeMakerProjectToSong = (
 ): IKaraokeSong => {
   const chosen = sheetLines(project, options.language);
   const lines = makePlayableLines(project, chosen.lines);
+  // Undefined whenever the original is playing, which is every caller today.
+  const chosenSheetLines =
+    chosen.lines === project.lyrics.lines ? undefined : chosen.lines;
+  const otherLanguages = makePlayableTranslations(project, chosenSheetLines);
   // Pitch notes are bound to the original's tokens and stay bound to them
   // regardless of the chosen language: the melody in project.melody is one
   // track shared by every lyric sheet, not per-language data.
@@ -279,15 +299,12 @@ export const karaokeMakerProjectToSong = (
     // and the player's picker reads `song.translations?.length` to decide
     // whether to show itself at all.
     //
-    // Built unconditionally, independent of `options.language` above: the
-    // two are different questions. `options.language` is which single sheet
-    // this song's own `lines` plays as — unset for every real caller today,
-    // per this function's own doc comment — while `translations` is every
-    // *other* sheet available to show alongside whichever one that turned
-    // out to be.
-    translations: project.lyrics.translations?.length
-      ? makePlayableTranslations(project)
-      : undefined,
+    // Every *other* sheet: `options.language` says which one plays as this
+    // song's own `lines`, and a sheet cannot be both. Listing it in both
+    // places put a duplicate entry in the player's picker and, worse, a copy
+    // of the chosen language restamped with ids `song.lines` no longer
+    // carries — so the second row silently vanished.
+    translations: otherLanguages.length ? otherLanguages : undefined,
     pitch: notes.length
       ? {
           kind: 'notes',
