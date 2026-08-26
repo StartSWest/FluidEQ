@@ -25,6 +25,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "fluideq/eq.h"
 #include "fluideq/oversample.h"
 #include "fluideq/primitives.h"
+#include "fluideq/compressor.h"
 #include "fluideq/limiter.h"
 #include "fluideq/saturate.h"
 
@@ -58,7 +59,9 @@ enum ProcessorId : uint32_t {
   kTruePeak = 8,
   kSaturate = 9,
   kLimiter = 10,
-  kLinkedLimiter = 11
+  kLinkedLimiter = 11,
+  kCompressor = 12,
+  kCompressorLinked = 13
 };
 
 struct Fixture {
@@ -581,9 +584,48 @@ bool render_linked_limiter(const Fixture& fixture, std::vector<float>& actual) {
   return true;
 }
 
+/** `[thresholdDb, ratio, attackMs, releaseMs, makeupDb]`. */
+bool render_compressor(const Fixture& fixture, std::vector<float>& actual,
+                       bool linked) {
+  if (fixture.params.size() < 5) {
+    return false;
+  }
+  FeqCompressorBand band;
+  band.threshold_db = fixture.params[0];
+  band.ratio = fixture.params[1];
+  band.attack_ms = fixture.params[2];
+  band.release_ms = fixture.params[3];
+  band.makeup_db = fixture.params[4];
+
+  actual = fixture.input;
+  const double rate = static_cast<double>(fixture.sample_rate);
+  if (linked) {
+    std::vector<float*> targets(fixture.channels);
+    for (uint32_t channel = 0; channel < fixture.channels; ++channel) {
+      targets[channel] = channel_at(actual, channel, fixture.frames);
+    }
+    FeqCompressor state;
+    feq_compressor_reset(&state);
+    feq_compressor_process_linked(&state, targets.data(), fixture.channels,
+                                  fixture.frames, &band, rate);
+    return true;
+  }
+  for (uint32_t channel = 0; channel < fixture.channels; ++channel) {
+    FeqCompressor state;
+    feq_compressor_reset(&state);
+    feq_compressor_process(&state, channel_at(actual, channel, fixture.frames),
+                           fixture.frames, &band, rate);
+  }
+  return true;
+}
+
 /** Run one fixture through the native engine, or say it cannot be run yet. */
 bool render(const Fixture& fixture, std::vector<float>& actual) {
   switch (fixture.processor) {
+    case kCompressor:
+      return render_compressor(fixture, actual, false);
+    case kCompressorLinked:
+      return render_compressor(fixture, actual, true);
     case kLinkedLimiter:
       return render_linked_limiter(fixture, actual);
     case kLimiter:

@@ -62,6 +62,11 @@ import {
   processLinkedLimiter,
 } from '../../src/renderer/dsp/limiter';
 import {
+  createCompressorState,
+  processBand,
+  processBandLinked,
+} from '../../src/renderer/dsp/compressor';
+import {
   createBandDynamics,
   refreshBandDynamics,
 } from '../../src/renderer/dsp/dynamics';
@@ -117,6 +122,8 @@ enum ProcessorId {
   Saturate = 9,
   Limiter = 10,
   LinkedLimiter = 11,
+  Compressor = 12,
+  CompressorLinked = 13,
 }
 
 interface IRackBand {
@@ -951,6 +958,55 @@ RACKS.forEach((rack) => {
             options,
           );
           return targets;
+        })(),
+        maxAbsTolerance: 1e-6,
+        rmsTolerance: 1e-7,
+      });
+    });
+  });
+});
+
+// One compressor band, dual-mono and linked. Ratios span gentle to near-brick,
+// because `over ** (1 / ratio - 1)` behaves differently at each end.
+[
+  { label: 'gentle', thresholdDb: -24, ratio: 2, attackMs: 20, releaseMs: 200 },
+  { label: 'firm', thresholdDb: -30, ratio: 8, attackMs: 1, releaseMs: 60 },
+  { label: 'brick', thresholdDb: -12, ratio: 20, attackMs: 0.1, releaseMs: 500 },
+].forEach((band) => {
+  [ProcessorId.Compressor, ProcessorId.CompressorLinked].forEach((processor) => {
+    const linked = processor === ProcessorId.CompressorLinked;
+    parityCorpus(FRAMES, 48000).forEach((signal) => {
+      fixtures.push({
+        name: `comp${linked ? 'link' : ''}/${band.label}/${signal.name}`,
+        processor,
+        sampleRate: 48000,
+        params: [
+          band.thresholdDb,
+          band.ratio,
+          band.attackMs,
+          band.releaseMs,
+          3,
+        ],
+        input: processorInput(signal.channels),
+        expected: (() => {
+          const settings = { ...band, makeupDb: 3 };
+          if (linked) {
+            const targets = processorInput(signal.channels).map((channel) =>
+              Float32Array.from(channel),
+            );
+            processBandLinked(
+              createCompressorState(),
+              targets,
+              settings,
+              48000,
+            );
+            return targets;
+          }
+          return processorInput(signal.channels).map((channel) => {
+            const target = Float32Array.from(channel);
+            processBand(createCompressorState(), target, settings, 48000);
+            return target;
+          });
         })(),
         maxAbsTolerance: 1e-6,
         rmsTolerance: 1e-7,
