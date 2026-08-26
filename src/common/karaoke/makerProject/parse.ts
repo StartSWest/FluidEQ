@@ -291,7 +291,14 @@ export const parseKaraokeMakerProject = (
                   language,
                   source: safeSource((sheet as { source?: unknown }).source),
                   lines: sanitiseMakerLines(
-                    Array.isArray(rawSheetLines) ? rawSheetLines : [],
+                    // The same 5,000-line cap the original gets. Without it
+                    // this was the one array in the file that reached the UI
+                    // unbounded, which is the single thing this module exists
+                    // to prevent.
+                    (Array.isArray(rawSheetLines) ? rawSheetLines : []).slice(
+                      0,
+                      5_000,
+                    ),
                     legacyWhisperAlignment,
                   ),
                 },

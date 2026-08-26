@@ -4359,4 +4359,61 @@ describe('translated lyric sheets', () => {
   it('treats translation-seed timings as automatic, so the aligner may replace them', () => {
     expect(karaokeMakerSourceIsAutomatic('translation-seed')).toBe(true);
   });
+
+  it("carries a translated line's link to the original through a round trip", () => {
+    const project = createKaraokeMakerProject(song());
+    const linked: IKaraokeMakerLyricSheet = {
+      ...sheet,
+      lines: [{ ...sheet.lines[0], sourceLineId: 'line-1' }],
+    };
+    const withSheet = {
+      ...project,
+      lyrics: { ...project.lyrics, translations: [linked] },
+    };
+
+    const parsed = parseKaraokeMakerProject(
+      serializeKaraokeMakerProject(withSheet),
+    );
+
+    expect(parsed?.lyrics.translations?.[0].lines[0].sourceLineId).toBe(
+      'line-1',
+    );
+    // Positive control: the original's own lines never carry one, so a
+    // parser that invented the field everywhere would be caught here.
+    expect(parsed?.lyrics.lines[0].sourceLineId).toBeUndefined();
+  });
+
+  it("caps a sheet's lines the same way the original's are capped", () => {
+    const project = createKaraokeMakerProject(song());
+    const oversized = {
+      ...JSON.parse(serializeKaraokeMakerProject(project)),
+      lyrics: {
+        ...project.lyrics,
+        translations: [
+          {
+            language: 'es',
+            source: 'translation-seed',
+            lines: Array.from({ length: 5_100 }, (_, index) => ({
+              id: `line-${index}`,
+              kind: 'lyrics',
+              tokens: [
+                {
+                  id: `word-${index}`,
+                  text: 'hola',
+                  startsWord: true,
+                  source: 'translation-seed',
+                },
+              ],
+            })),
+          },
+        ],
+      },
+    };
+
+    const parsed = parseKaraokeMakerProject(JSON.stringify(oversized));
+
+    // 5,000 exactly — the cap `lyrics.lines` has had all along, not a number
+    // this branch chose, and not the 5,100 the file asked for.
+    expect(parsed?.lyrics.translations?.[0].lines).toHaveLength(5_000);
+  });
 });
