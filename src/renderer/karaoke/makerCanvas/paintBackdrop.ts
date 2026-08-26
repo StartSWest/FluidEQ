@@ -24,7 +24,6 @@ import {
 import { formatClock } from '../makerFormat';
 import {
   IMakerPlot,
-  LYRIC_LANE_HEIGHT,
   MAX_NOTE_MIDI,
   MIN_NOTE_MIDI,
   SECTION_GROUP_HEIGHT,
@@ -35,14 +34,16 @@ import {
   midiName,
 } from '../makerCanvasGeometry';
 
-const LYRIC_SECTION_HEIGHT = lyricSectionHeight(KARAOKE_MAKER_LYRIC_LANE_COUNT);
-
 export interface IPaintBackdropInput {
   plot: IMakerPlot;
   width: number;
   height: number;
   headerHeight: number;
   lyricSectionTop: number;
+  /** How tall one original lane is this frame — see useMakerCanvasModel.ts. */
+  lyricLaneHeight: number;
+  /** 0 when no translation row is showing. */
+  translationLaneHeight: number;
   project: IKaraokeMakerProject;
   canvasSectionGroups: IKaraokeMakerSectionGroup[];
   stemWaveforms?: {
@@ -80,6 +81,8 @@ export const paintBackdrop = (
     height,
     headerHeight,
     lyricSectionTop,
+    lyricLaneHeight,
+    translationLaneHeight,
     project,
     canvasSectionGroups,
     stemWaveforms,
@@ -96,6 +99,11 @@ export const paintBackdrop = (
     timeX,
     noteY,
   } = plot;
+  const lyricSectionHeightPx = lyricSectionHeight(
+    KARAOKE_MAKER_LYRIC_LANE_COUNT,
+    lyricLaneHeight,
+    translationLaneHeight,
+  );
 
   const background = context.createLinearGradient(0, 0, width, height);
   background.addColorStop(0, 'rgba(8, 24, 43, .96)');
@@ -116,7 +124,7 @@ export const paintBackdrop = (
     plotLeft,
     lyricSectionTop - 3,
     plotWidth,
-    LYRIC_SECTION_HEIGHT + 6,
+    lyricSectionHeightPx + 6,
   );
   if (canvasSectionGroups.length) {
     context.fillStyle = 'rgba(7, 29, 45, .94)';
@@ -193,11 +201,22 @@ export const paintBackdrop = (
     context.stroke();
   }
   for (let lane = 1; lane < KARAOKE_MAKER_LYRIC_LANE_COUNT; lane += 1) {
-    const laneY = lyricSectionTop + lane * LYRIC_LANE_HEIGHT;
+    const laneY = lyricSectionTop + lane * lyricLaneHeight;
     context.strokeStyle = 'rgba(76, 151, 174, .085)';
     context.beginPath();
     context.moveTo(plotLeft, laneY);
     context.lineTo(plotRight, laneY);
+    context.stroke();
+  }
+  if (translationLaneHeight > 0) {
+    // One more divider, in the same style as the ones above: the boundary
+    // between the last original lane and the translated row underneath it.
+    const translationTop =
+      lyricSectionTop + KARAOKE_MAKER_LYRIC_LANE_COUNT * lyricLaneHeight;
+    context.strokeStyle = 'rgba(76, 151, 174, .085)';
+    context.beginPath();
+    context.moveTo(plotLeft, translationTop);
+    context.lineTo(plotRight, translationTop);
     context.stroke();
   }
   context.strokeStyle = 'rgba(44, 226, 211, .18)';

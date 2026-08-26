@@ -8,14 +8,22 @@ import { MutableRefObject, useMemo } from 'react';
 import {
   IKaraokeMakerProject,
   IKaraokeMakerToken,
+  KARAOKE_ORIGINAL_LANGUAGE,
   karaokeMakerLineIsSection,
+  karaokeMakerNeedsSpaceBetween,
   karaokeMakerTokenWasUserTouched,
+  karaokeTranslationFit,
 } from '../../common/karaoke/makerProject';
+import { Translate } from '../../common/i18n';
 import { TSelection } from './useKaraokeMakerSelection';
 import { DEFAULT_VIEW_MS } from './useKaraokeMakerEditorView';
+import { useMediaQuery } from '../utils/useMediaQuery';
 import {
   BASE_LYRIC_SECTION_TOP,
+  COMPACT_LYRIC_LANE_HEIGHT,
+  LYRIC_LANE_HEIGHT,
   SECTION_GROUP_HEIGHT,
+  TRANSLATION_LANE_HEIGHT,
   lyricSectionHeight,
 } from './makerCanvasGeometry';
 import {
@@ -24,12 +32,23 @@ import {
   karaokeMakerLyricFocus,
   karaokeMakerSectionGroups,
 } from './makerCanvasLayout';
-import { ICanvasLyricToken, ICanvasLyricWord } from './makerCanvasTypes';
+import {
+  ICanvasLyricToken,
+  ICanvasLyricWord,
+  IMakerCanvasTranslationLine,
+  IMakerCanvasTranslationRow,
+} from './makerCanvasTypes';
 
 /** The tightest the view may be zoomed, so a word never fills the screen. */
 const MIN_VIEW_MS = 650;
 
-const LYRIC_SECTION_HEIGHT = lyricSectionHeight(KARAOKE_MAKER_LYRIC_LANE_COUNT);
+// The Maker's own canvas-host row compresses below this height — see
+// `@media (max-height: 760px)` in Karaoke.scss, which drops that row's floor
+// from a desktop-sized ~260px to 132px. Below it there is no room to add a
+// full translation row on top of the three original lanes without repeating
+// the 27px-strip mistake in the pitch grid underneath, so the lane budget
+// stops growing and the original lanes give back the room instead.
+const SMALL_WINDOW_MEDIA_QUERY = '(max-height: 760px)';
 
 /**
  * Everything the canvas draws, derived from the project and the view.
@@ -53,6 +72,9 @@ export interface IMakerCanvasModelParams {
   durationMs: number;
   viewDurationMs: number;
   visualPlayheadMs: number;
+  /** The language the Maker is showing underneath the original (Task 7). */
+  translationLanguage: string;
+  t: Translate;
   /**
    * When the focused word last changed.
    *
@@ -69,7 +91,9 @@ export const useMakerCanvasModel = ({
   durationMs,
   project,
   selection,
+  t,
   tokens,
+  translationLanguage,
   viewDurationMs,
   visualPlayheadMs,
   wordFocusAnimationRef,
@@ -112,10 +136,86 @@ export const useMakerCanvasModel = ({
       ),
     [effectiveDurationMs, project.lyrics.lines],
   );
+  // The sentinel is only the fallback for a project that never declared a
+  // language. UltraStar imports populate a real tag from `#LANGUAGE`, so the
+  // bare constant is not a reliable identity for "the original" — this must
+  // mirror `useMakerTranslations.ts` exactly rather than compare against it.
+  const originalLanguage = project.lyrics.language ?? KARAOKE_ORIGINAL_LANGUAGE;
+  const translationSheet = useMemo(
+    () =>
+      translationLanguage === originalLanguage
+        ? undefined
+        : project.lyrics.translations?.find(
+            (sheet) => sheet.language === translationLanguage,
+          ),
+    [translationLanguage, originalLanguage, project.lyrics.translations],
+  );
+  // Line-level until the user has fitted it: no per-word data is built here,
+  // only one whole-sentence label and the syllable/note delta beside it. Word
+  // order differs between languages, so highlighting the Nth translated word
+  // while the Nth original word plays would be confidently wrong more often
+  // than it is right.
+  const translationRow: IMakerCanvasTranslationRow | undefined = useMemo(() => {
+    if (!translationSheet) {
+      return undefined;
+    }
+    const fitByLineId = new Map(
+      karaokeTranslationFit(translationSheet, project.melody.notes).map(
+        (fit) => [fit.lineId, fit] as const,
+      ),
+    );
+    const lines = new Map<number, IMakerCanvasTranslationLine>();
+    project.lyrics.lines.forEach((line, lineIndex) => {
+      if (karaokeMakerLineIsSection(line)) {
+        return;
+      }
+      const sheetLine = translationSheet.lines[lineIndex];
+      const fit = sheetLine ? fitByLineId.get(sheetLine.id) : undefined;
+      if (!sheetLine || !fit) {
+        return;
+      }
+      const text = sheetLine.tokens.reduce((joined, token) => {
+        const spaced =
+          joined !== '' &&
+          token.startsWord !== false &&
+          karaokeMakerNeedsSpaceBetween(joined, token.text);
+        return `${joined}${spaced ? ' ' : ''}${token.text.trim()}`;
+      }, '');
+      lines.set(lineIndex, {
+        text,
+        fitOk: fit.syllables === fit.notes,
+        fitLabel:
+          fit.syllables === fit.notes
+            ? t('karaoke.translation.fitOk')
+            : t('karaoke.translation.fit', {
+                syllables: fit.syllables,
+                notes: fit.notes,
+              }),
+      });
+    });
+    return { laneHeight: TRANSLATION_LANE_HEIGHT, lines };
+  }, [translationSheet, project.lyrics.lines, project.melody.notes, t]);
+
+  const isCompactWindow = useMediaQuery(SMALL_WINDOW_MEDIA_QUERY);
+  // Growing always would eventually starve the pitch grid the way the old
+  // 27px waveform strip starved three stems; shrinking always would cost
+  // every window the room a translation deserves. So only the small window
+  // gives ground, and only the original lanes give it — the translation
+  // row's own height (TRANSLATION_LANE_HEIGHT) is not a variable here.
+  const lyricLaneHeight =
+    translationRow && isCompactWindow
+      ? COMPACT_LYRIC_LANE_HEIGHT
+      : LYRIC_LANE_HEIGHT;
+  const lyricSectionHeightPx = lyricSectionHeight(
+    KARAOKE_MAKER_LYRIC_LANE_COUNT,
+    lyricLaneHeight,
+    translationRow?.laneHeight,
+  );
+
   const lyricSectionTop =
     BASE_LYRIC_SECTION_TOP +
     (canvasSectionGroups.length ? SECTION_GROUP_HEIGHT : 0);
-  const headerHeight = lyricSectionTop + LYRIC_SECTION_HEIGHT + 10;
+  const headerHeight = lyricSectionTop + lyricSectionHeightPx + 10;
   const lyricLines = useMemo(
     () =>
       project.lyrics.lines.filter(
@@ -278,12 +378,14 @@ export const useMakerCanvasModel = ({
     canvasSectionGroups,
     effectiveDurationMs,
     headerHeight,
+    lyricLaneHeight,
     lyricLines,
     lyricSectionTop,
     maximumViewDurationMs,
     maximumViewStartMs,
     minimumViewDurationMs,
     selectedLyricLineId,
+    translationRow,
     userTouchedWordCount,
     visibleViewDurationMs,
   };

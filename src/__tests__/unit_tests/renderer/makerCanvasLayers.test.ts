@@ -143,6 +143,8 @@ describe('the Maker canvas layers', () => {
       height: 400,
       headerHeight: 40,
       lyricSectionTop: 120,
+      lyricLaneHeight: 26,
+      translationLaneHeight: 0,
       project: createKaraokeMakerProject(song()),
       canvasSectionGroups: [],
       viewStartMs: 0,
@@ -166,6 +168,7 @@ describe('the Maker canvas layers', () => {
     const result = paintLyrics(context, {
       plot: plot(),
       lyricSectionTop: 120,
+      lyricLaneHeight: 26,
       project: createKaraokeMakerProject(song()),
       canvasLyricWords: [word('one', 1_000), word('two', 3_000)],
       selection: undefined,

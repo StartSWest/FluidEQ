@@ -7,7 +7,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { MutableRefObject, RefObject, useCallback, useEffect } from 'react';
 import { IKaraokeMakerProject } from '../../common/karaoke/makerProject';
 import { paintMakerCanvas } from './makerCanvasPaint';
-import { ICanvasLyricWord, IDragState } from './makerCanvasTypes';
+import {
+  ICanvasLyricWord,
+  IDragState,
+  IMakerCanvasTranslationRow,
+} from './makerCanvasTypes';
 import { TSelection } from './useKaraokeMakerSelection';
 import { IMakerCanvasGesture } from './useMakerCanvasGesture';
 import {
@@ -62,6 +66,10 @@ export interface IMakerCanvasRenderParams {
   effectiveDurationMs: number;
   headerHeight: number;
   lyricSectionTop: number;
+  /** How tall one original lane is this frame — see useMakerCanvasModel.ts. */
+  lyricLaneHeight: number;
+  /** Undefined when no translation is selected for this project. */
+  translationRow?: IMakerCanvasTranslationRow;
 
   /**
    * When the focused word last changed, so its highlight can be animated.
@@ -90,11 +98,13 @@ export const useMakerCanvasRender = ({
   gesture,
   headerHeight,
   hoveredEditHandle,
+  lyricLaneHeight,
   lyricSectionTop,
   project,
   renderCanvasRef,
   selectedNoteIds,
   selection,
+  translationRow,
   viewStartMs,
   visibleViewDurationMs,
   visualPlayheadMs,
@@ -133,6 +143,8 @@ export const useMakerCanvasRender = ({
       height,
       headerHeight,
       lyricSectionTop,
+      lyricLaneHeight,
+      translationRow,
       project,
       selection,
       selectedNoteIds,
@@ -169,7 +181,9 @@ export const useMakerCanvasRender = ({
     controlLinkMode,
     effectiveDurationMs,
     headerHeight,
+    lyricLaneHeight,
     lyricSectionTop,
+    translationRow,
     visualPlayheadMs,
     project,
     hoveredEditHandle,

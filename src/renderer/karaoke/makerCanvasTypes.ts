@@ -120,3 +120,24 @@ export interface INoteLinkDragState {
   currentY: number;
   initialNoteIds: Set<string>;
 }
+
+/** One translated line: its whole-sentence text and how it fits the melody. */
+export interface IMakerCanvasTranslationLine {
+  text: string;
+  fitLabel: string;
+  fitOk: boolean;
+}
+
+/**
+ * The translated row drawn under the original lyric lanes, keyed by the
+ * original line's index into `project.lyrics.lines`.
+ *
+ * The index is the only identifier the two sides share: a translation seed
+ * mints its own line ids for the sheet it builds (see `translationSeed.ts`),
+ * so position in the array — not id — is what lines a translated line up
+ * with the original it is drawn underneath.
+ */
+export interface IMakerCanvasTranslationRow {
+  laneHeight: number;
+  lines: Map<number, IMakerCanvasTranslationLine>;
+}

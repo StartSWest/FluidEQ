@@ -30,6 +30,7 @@ import {
 import {
   ICanvasLyricWord,
   ICanvasSelectionBox,
+  IMakerCanvasTranslationRow,
   INoteLinkDragState,
   INotePaintDraft,
 } from './makerCanvasTypes';
@@ -62,6 +63,10 @@ export interface IMakerCanvasPaint {
   height: number;
   headerHeight: number;
   lyricSectionTop: number;
+  /** How tall one original lane is this frame — see useMakerCanvasModel.ts. */
+  lyricLaneHeight: number;
+  /** Undefined when no translation is selected for this project. */
+  translationRow?: IMakerCanvasTranslationRow;
   project: IKaraokeMakerProject;
   selection: TSelection;
   selectedNoteIds: Set<string>;
@@ -112,6 +117,8 @@ export const paintMakerCanvas = ({
   height,
   headerHeight,
   lyricSectionTop,
+  lyricLaneHeight,
+  translationRow,
   project,
   selection,
   selectedNoteIds,
@@ -152,6 +159,8 @@ export const paintMakerCanvas = ({
     height,
     headerHeight,
     lyricSectionTop,
+    lyricLaneHeight,
+    translationLaneHeight: translationRow?.laneHeight ?? 0,
     project,
     canvasSectionGroups,
     stemWaveforms,
@@ -170,6 +179,8 @@ export const paintMakerCanvas = ({
   const lyricPaint = paintLyrics(context, {
     plot,
     lyricSectionTop,
+    lyricLaneHeight,
+    translationRow,
     project,
     canvasLyricWords,
     selection,

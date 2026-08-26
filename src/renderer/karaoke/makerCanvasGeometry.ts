@@ -43,6 +43,22 @@ export const BASE_LYRIC_SECTION_TOP = 97;
 // was the tallest thing on the stage while holding one line of text per lane.
 export const LYRIC_LANE_HEIGHT = 26;
 
+// Used only at the small window size, and only while a translation row is
+// also showing (see useMakerCanvasModel.ts). Half the 8px this file already
+// gave up once above (34 -> 26) — the original lanes give back exactly that
+// much of a second cut so the translation row never has to give up any of
+// its own height to fit.
+export const COMPACT_LYRIC_LANE_HEIGHT = 22;
+
+// One quiet text row. An 11px line needs about 14px of ascender-to-descender
+// room (11 * 1.3, the ratio this file's own 13px word text already keeps
+// inside its 26px lane: 13 * 2 = 26). 5px above clears the previous lane's
+// boundary marks, which already reach 8px past that lane's own centre; 5px
+// below keeps the text off the divider line before the pitch grid.
+// 14 + 5 + 5 = 24. This is the height the budget grows by — never the height
+// that shrinks; only COMPACT_LYRIC_LANE_HEIGHT above does that.
+export const TRANSLATION_LANE_HEIGHT = 24;
+
 /** Room for the piano keys down the left edge. */
 const PLOT_LEFT = 54;
 
@@ -56,9 +72,22 @@ const PLOT_BOTTOM_INSET = 28;
 export const MIN_NOTE_MIDI = 24;
 export const MAX_NOTE_MIDI = 96;
 
-/** How tall the lyric band is, given how many lanes the format allows. */
-export const lyricSectionHeight = (laneCount: number) =>
-  laneCount * LYRIC_LANE_HEIGHT;
+/**
+ * How tall the lyric band is: the original lanes at `laneHeight` each, plus a
+ * translated row underneath when one is showing (0 when it is not).
+ *
+ * `laneHeight` is a parameter rather than always `LYRIC_LANE_HEIGHT` because
+ * it is the value that shrinks at the small window size — see
+ * `COMPACT_LYRIC_LANE_HEIGHT` and `useMakerCanvasModel.ts`. The backdrop and
+ * the model both call this with whatever height is actually in effect that
+ * frame, so the background band and the words painted on it never disagree
+ * about where the lyric section ends.
+ */
+export const lyricSectionHeight = (
+  laneCount: number,
+  laneHeight: number,
+  translationLaneHeight = 0,
+): number => laneCount * laneHeight + translationLaneHeight;
 
 /** What a drag against a hit region is trying to do. */
 export type TMakerDragBehavior = 'move' | 'resize-start' | 'resize-end';

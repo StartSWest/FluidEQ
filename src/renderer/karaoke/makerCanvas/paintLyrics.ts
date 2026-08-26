@@ -29,16 +29,23 @@ import {
 import {
   IHitRegion,
   IMakerPlot,
-  LYRIC_LANE_HEIGHT,
   TMakerDragBehavior,
   drawRoundedRect,
 } from '../makerCanvasGeometry';
-import { ICanvasLyricWord } from '../makerCanvasTypes';
+import {
+  ICanvasLyricWord,
+  IMakerCanvasTranslationRow,
+} from '../makerCanvasTypes';
 import { TSelection } from '../useKaraokeMakerSelection';
+import { paintLyricTranslationLine } from './paintTranslation';
 
 export interface IPaintLyricsInput {
   plot: IMakerPlot;
   lyricSectionTop: number;
+  /** How tall one original lane is this frame — see useMakerCanvasModel.ts. */
+  lyricLaneHeight: number;
+  /** Undefined when no translation is selected for this project. */
+  translationRow?: IMakerCanvasTranslationRow;
   project: IKaraokeMakerProject;
   canvasLyricWords: ICanvasLyricWord[];
   selection: TSelection;
@@ -77,6 +84,8 @@ export const paintLyrics = (
   {
     plot,
     lyricSectionTop,
+    lyricLaneHeight,
+    translationRow,
     project,
     canvasLyricWords,
     selection,
@@ -183,7 +192,7 @@ export const paintLyrics = (
         )
       : labelLeft + labelWidth / 2;
     const wordCenterY =
-      lyricSectionTop + lane * LYRIC_LANE_HEIGHT + LYRIC_LANE_HEIGHT / 2;
+      lyricSectionTop + lane * lyricLaneHeight + lyricLaneHeight / 2;
     // The playback focus owns the single rounded highlight. A selection at
     // another timestamp stays visible through its bright text/underline,
     // but does not compete with the word currently being performed.
@@ -447,6 +456,35 @@ export const paintLyrics = (
     }
     context.restore();
   });
+
+  // After the original's tokens, and once per line rather than once per
+  // word: a line's words can zigzag across all three lanes above, but its
+  // translation is one label, so the first word of a line seen here is
+  // enough to draw it and every later word of the same line is skipped.
+  if (translationRow) {
+    const paintedLines = new Set<number>();
+    layoutWords.forEach((word) => {
+      if (paintedLines.has(word.lineIndex)) {
+        return;
+      }
+      paintedLines.add(word.lineIndex);
+      const line = translationRow.lines.get(word.lineIndex);
+      if (!line) {
+        return;
+      }
+      paintLyricTranslationLine(context, {
+        plot,
+        lyricSectionTop,
+        lyricLaneHeight,
+        laneHeight: translationRow.laneHeight,
+        lineStartMs: word.lineStartMs,
+        lineEndMs: word.lineEndMs,
+        text: line.text,
+        fitLabel: line.fitLabel,
+        fitOk: line.fitOk,
+      });
+    });
+  }
 
   return { regions, wordBoundaryRegions };
 };
