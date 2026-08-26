@@ -21,6 +21,16 @@ export const DSP_DIAGNOSTIC_CODES = {
   crossfadeDeckFallback: 2002,
   crossfadeAutomationFallback: 2003,
   crossfadePlayFailed: 2004,
+  /**
+   * The native host, 3000-up. Appended rather than interleaved: these codes
+   * reach support reports and a renumbering would make an old report describe
+   * a different fault than the one that happened.
+   */
+  hostSpawnFailed: 3001,
+  hostHandshakeRejected: 3002,
+  hostExited: 3003,
+  hostRestartBudgetExhausted: 3004,
+  hostStreamDesynchronised: 3005,
 } as const;
 
 export type TDspDiagnosticCode =

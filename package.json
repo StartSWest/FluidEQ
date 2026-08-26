@@ -35,7 +35,11 @@
   "main": "./src/main/main.ts",
   "scripts": {
     "dev": "node ./.erb/scripts/dev.cjs",
-    "build": "concurrently \"pnpm build:main\" \"pnpm build:renderer\"",
+    "build": "pnpm build:native-dsp && concurrently \"pnpm build:main\" \"pnpm build:renderer\"",
+    "build:native-dsp": "ts-node ./.erb/scripts/build-native-dsp.ts",
+    "build:native-dsp:clean": "ts-node ./.erb/scripts/build-native-dsp.ts --clean",
+    "test:native-dsp": "ts-node ./.erb/scripts/build-native-dsp.ts --test && ts-node ./.erb/scripts/smoke-native-dsp.ts && ts-node ./.erb/scripts/smoke-supervisor.ts",
+    "tone:native-dsp": "ts-node ./.erb/scripts/tone-native-dsp.ts",
     "build:main": "cross-env NODE_ENV=production TS_NODE_TRANSPILE_ONLY=true webpack --config ./.erb/configs/webpack.config.main.prod.cjs",
     "build:renderer": "cross-env NODE_ENV=production TS_NODE_TRANSPILE_ONLY=true webpack --config ./.erb/configs/webpack.config.renderer.prod.cjs",
     "postinstall": "ts-node .erb/scripts/postinstall.ts",
@@ -266,6 +270,13 @@
     },
     "extraResources": [
       "./assets/**",
+      {
+        "from": "native/.build/bin",
+        "to": "native",
+        "filter": [
+          "fluideq-dsp-host*"
+        ]
+      },
       {
         "from": "node_modules/regedit/vbs",
         "to": "vbs",

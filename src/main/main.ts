@@ -125,6 +125,7 @@ import { registerKaraokePitch } from './karaokePitch';
 import { registerProfilesIpc } from './ipc/profiles';
 import { registerUpdatesIpc } from './ipc/updates';
 import { libraryIndexSnapshot, registerLibraryIpc } from './ipc/library';
+import { registerDspHostIpc, shutdownDspHost } from './ipc/dspHost';
 import { registerLibraryPlaylistsIpc } from './ipc/libraryPlaylists';
 import {
   handleLibraryMedia,
@@ -2376,6 +2377,13 @@ registerKaraokeIpc({
   getMainWindow: () => mainWindow,
 });
 
+// Registers the channels; it does not start anything. The host is a process
+// that opens an audio endpoint, and opening one wakes the hardware — so it
+// waits until the renderer asks, which it does when something is about to be
+// heard. A checkout that has never built the native target simply reports the
+// engine unavailable and the TypeScript one carries on.
+registerDspHostIpc({ getMainWindow: () => mainWindow });
+
 registerLibraryIpc({
   userDataDir,
   getMainWindow: () => mainWindow,
@@ -2588,6 +2596,11 @@ app.on('before-quit', () => {
   // window trying to hide itself into the tray.
   beginQuit();
   destroyTray();
+  // Here rather than in `will-quit`, which is already too late to wait for
+  // anything asynchronous. A host left running holds an audio endpoint open,
+  // and an endpoint held by a process whose parent has gone is one Windows
+  // reclaims only when it notices.
+  shutdownDspHost().catch(() => undefined);
   if (apoWatchTimer !== undefined) {
     clearTimeout(apoWatchTimer);
     apoWatchTimer = undefined;

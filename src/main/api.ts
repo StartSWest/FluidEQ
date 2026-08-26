@@ -39,6 +39,7 @@ import type {
   ILibraryTrack,
 } from '../common/library/types';
 import type { ILibraryPlaylists } from '../common/library/playlists';
+import { dspHostBridge } from './dspHost/bridge';
 
 export type Channels = string;
 
@@ -570,5 +571,9 @@ export default {
     addTracksToLibraryPlaylist,
     removeTracksFromLibraryPlaylist,
     onLibraryPlaylistsChanged,
+    // Spread rather than nested, so the native engine's calls sit beside every
+    // other one here. Its own module because this file is already long enough
+    // that a reader has to search it — see the head of `dspHost/bridge.ts`.
+    ...dspHostBridge,
   },
 };
