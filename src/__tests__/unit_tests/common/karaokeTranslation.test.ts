@@ -1,0 +1,157 @@
+/* FluidEQ karaoke translation seeding tests. GPL-3.0-or-later. */
+
+import {
+  IKaraokeMakerLine,
+  seedKaraokeTranslation,
+} from '../../../common/karaoke/makerProject';
+import { splitKaraokeWordSyllables } from '../../../common/karaoke/syllables';
+
+const lyricLine = (
+  id: string,
+  text: string,
+  startMs: number,
+  endMs: number,
+): IKaraokeMakerLine => ({
+  id,
+  kind: 'lyrics',
+  startMs,
+  endMs,
+  tokens: text.split(' ').map((word, index) => ({
+    id: `${id}-w${index}`,
+    text: word,
+    startsWord: true,
+    source: 'manual' as const,
+  })),
+});
+
+describe('seedKaraokeTranslation', () => {
+  it('divides a line span in proportion to syllable count', () => {
+    // Guard the premise before the arithmetic: if the splitter ever disagrees,
+    // the failure must name that rather than look like a distributor bug. If
+    // this guard fails, change the test's WORDS, never the expectations below.
+    expect(splitKaraokeWordSyllables('hola', 'es')).toHaveLength(2);
+    expect(splitKaraokeWordSyllables('mundo', 'es')).toHaveLength(2);
+
+    const result = seedKaraokeTranslation(
+      [lyricLine('l1', 'hello world', 1_000, 3_000)],
+      'hola mundo',
+      'es',
+    );
+
+    const tokens = result.sheet?.lines[0].tokens ?? [];
+    expect(tokens.map((token) => token.text)).toEqual(['hola', 'mundo']);
+    // 2000ms across 4 syllables, 2 each: the boundary lands dead centre.
+    expect(tokens[0].startMs).toBe(1_000);
+    expect(tokens[0].endMs).toBe(2_000);
+    expect(tokens[1].startMs).toBe(2_000);
+    expect(tokens[1].endMs).toBe(3_000);
+  });
+
+  it('gives a longer word proportionally more of the span', () => {
+    expect(splitKaraokeWordSyllables('sol', 'es')).toHaveLength(1);
+    expect(splitKaraokeWordSyllables('cantaba', 'es')).toHaveLength(3);
+
+    const result = seedKaraokeTranslation(
+      [lyricLine('l1', 'sun sang', 0, 4_000)],
+      'sol cantaba',
+      'es',
+    );
+
+    const tokens = result.sheet?.lines[0].tokens ?? [];
+    // 4000ms across 4 syllables: 1000 for `sol`, 3000 for `cantaba`.
+    expect(tokens[0].endMs).toBe(1_000);
+    expect(tokens[1].startMs).toBe(1_000);
+    expect(tokens[1].endMs).toBe(4_000);
+  });
+
+  it('reports a count mismatch and produces no sheet', () => {
+    const result = seedKaraokeTranslation(
+      [
+        lyricLine('l1', 'hello world', 0, 1_000),
+        lyricLine('l2', 'again', 1_000, 2_000),
+      ],
+      'hola mundo',
+      'es',
+    );
+
+    expect(result.sheet).toBeUndefined();
+    expect(result.mismatch).toEqual({ expected: 2, received: 1 });
+  });
+
+  it('copies section lines through and does not spend a pasted line on them', () => {
+    const section: IKaraokeMakerLine = {
+      id: 'sec',
+      kind: 'section',
+      tokens: [
+        { id: 'sec-t', text: '[Chorus]', startsWord: true, source: 'manual' },
+      ],
+    };
+
+    const result = seedKaraokeTranslation(
+      [section, lyricLine('l1', 'hello world', 0, 2_000)],
+      'hola mundo',
+      'es',
+    );
+
+    expect(result.sheet?.lines).toHaveLength(2);
+    expect(result.sheet?.lines[0].kind).toBe('section');
+    expect(result.sheet?.lines[0].tokens[0].text).toBe('[Chorus]');
+    expect(result.sheet?.lines[1].tokens.map((token) => token.text)).toEqual([
+      'hola',
+      'mundo',
+    ]);
+  });
+
+  it('leaves an untimed original line untimed rather than inventing a span', () => {
+    const untimed: IKaraokeMakerLine = {
+      id: 'l1',
+      kind: 'lyrics',
+      tokens: [
+        { id: 'l1-w0', text: 'hello', startsWord: true, source: 'manual' },
+      ],
+    };
+
+    const result = seedKaraokeTranslation([untimed], 'hola', 'es');
+
+    expect(result.sheet?.lines[0].tokens[0].startMs).toBeUndefined();
+  });
+
+  it('divides an unspaced script per character without inventing spaces', () => {
+    // Japanese is one token per character, as makerLinesFromPlainText records.
+    // A target language may be unspaced even when the source is not, which is
+    // the case the original sheet never exercises.
+    const result = seedKaraokeTranslation(
+      [lyricLine('l1', 'hello world', 0, 5_000)],
+      'こんにちは',
+      'ja',
+    );
+
+    const tokens = result.sheet?.lines[0].tokens ?? [];
+    expect(tokens.map((token) => token.text)).toEqual([
+      'こ',
+      'ん',
+      'に',
+      'ち',
+      'は',
+    ]);
+    // Five single-syllable units across 5000ms: 1000ms each, exactly.
+    expect(tokens.map((token) => token.startMs)).toEqual([
+      0, 1_000, 2_000, 3_000, 4_000,
+    ]);
+    expect(tokens[4].endMs).toBe(5_000);
+  });
+
+  it('never marks a seeded timing as user-authored', () => {
+    const result = seedKaraokeTranslation(
+      [lyricLine('l1', 'hello world', 0, 2_000)],
+      'hola mundo',
+      'es',
+    );
+
+    expect(
+      result.sheet?.lines[0].tokens.every(
+        (token) => token.timingLocked !== true,
+      ),
+    ).toBe(true);
+  });
+});

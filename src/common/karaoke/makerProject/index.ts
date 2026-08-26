@@ -43,6 +43,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 export * from './lineTokens';
 export * from './model';
 export * from './syllables';
+export * from './translationSeed';
 export * from './timeline';
 export * from './boundaries';
 export * from './recording';
