@@ -1,12 +1,18 @@
 /* FluidEQ karaoke translation seeding tests. GPL-3.0-or-later. */
 
 import {
+  addKaraokeTranslation,
+  createKaraokeMakerProject,
   IKaraokeMakerLine,
   IKaraokeMakerNote,
+  IKaraokeMakerProject,
   karaokeTranslationFit,
+  karaokeTranslationLanguages,
+  removeKaraokeTranslation,
   seedKaraokeTranslation,
 } from '../../../common/karaoke/makerProject';
 import { splitKaraokeWordSyllables } from '../../../common/karaoke/syllables';
+import { IKaraokeSong } from '../../../common/karaoke/types';
 
 const lyricLine = (
   id: string,
@@ -315,5 +321,107 @@ describe('karaokeTranslationFit', () => {
     }
 
     expect(karaokeTranslationFit(sheet, [note('n1', 0, 500)])[0].notes).toBe(0);
+  });
+});
+
+describe('translations on a project', () => {
+  // createKaraokeMakerProject takes an IKaraokeSong, not the project's own
+  // fields; projectWithLines overwrites lyrics.lines and lyrics.language
+  // right after, so only a minimal, otherwise-empty song is needed here.
+  const song = (): IKaraokeSong => ({
+    id: 'song-1',
+    title: 'Song',
+    assets: [],
+    timingPrecision: 'syllable',
+    lines: [],
+    pitch: { kind: 'none', reason: 'missing' },
+    meta: { sourceFormat: 'test', gapMs: 0 },
+  });
+
+  const projectWithLines = (): IKaraokeMakerProject => {
+    const base = createKaraokeMakerProject(song());
+    return {
+      ...base,
+      lyrics: {
+        ...base.lyrics,
+        language: 'en',
+        lines: [lyricLine('l1', 'hello world', 0, 2_000)],
+      },
+    };
+  };
+
+  it('adds a sheet and leaves the original untouched', () => {
+    const { project } = addKaraokeTranslation(
+      projectWithLines(),
+      'hola mundo',
+      'es',
+    );
+
+    expect(project.lyrics.lines[0].tokens.map((token) => token.text)).toEqual([
+      'hello',
+      'world',
+    ]);
+    expect(project.lyrics.translations?.[0].language).toBe('es');
+  });
+
+  it('replaces a language already present instead of adding it twice', () => {
+    const first = addKaraokeTranslation(
+      projectWithLines(),
+      'hola mundo',
+      'es',
+    ).project;
+    const second = addKaraokeTranslation(first, 'adios mundo', 'es').project;
+
+    expect(second.lyrics.translations).toHaveLength(1);
+    expect(second.lyrics.translations?.[0].lines[0].tokens[0].text).toBe(
+      'adios',
+    );
+  });
+
+  it('refuses the original language and returns the project unchanged', () => {
+    const before = projectWithLines();
+    const { project, mismatch } = addKaraokeTranslation(
+      before,
+      'hello world',
+      'en',
+    );
+
+    expect(project).toBe(before);
+    expect(mismatch).toBeUndefined();
+  });
+
+  it('returns the project unchanged when the counts disagree', () => {
+    const before = projectWithLines();
+    const { project, mismatch } = addKaraokeTranslation(
+      before,
+      'hola\nmundo',
+      'es',
+    );
+
+    expect(project).toBe(before);
+    expect(mismatch).toEqual({ expected: 1, received: 2 });
+  });
+
+  it('removes a sheet, and drops the key entirely when the last one goes', () => {
+    const added = addKaraokeTranslation(
+      projectWithLines(),
+      'hola mundo',
+      'es',
+    ).project;
+
+    const removed = removeKaraokeTranslation(added, 'es');
+
+    expect(removed.lyrics.translations).toBeUndefined();
+  });
+
+  it('lists the original first, then the translations in the order added', () => {
+    const withEs = addKaraokeTranslation(
+      projectWithLines(),
+      'hola mundo',
+      'es',
+    ).project;
+    const withFr = addKaraokeTranslation(withEs, 'bonjour monde', 'fr').project;
+
+    expect(karaokeTranslationLanguages(withFr)).toEqual(['en', 'es', 'fr']);
   });
 });

@@ -21,6 +21,7 @@ import {
   IKaraokeMakerLine,
   IKaraokeMakerLyricSheet,
   IKaraokeMakerNote,
+  IKaraokeMakerProject,
   karaokeMakerId,
   karaokeMakerLineIsSection,
   karaokeMakerTimedLineRange,
@@ -119,6 +120,72 @@ export interface IKaraokeTranslationFit {
  * available before anything is synthesised — and the mismatch is fixable from
  * either side: change the words, or split a held note in two.
  */
+/**
+ * The languages this project can be shown in, original first.
+ *
+ * The original has no sheet of its own — it is `lyrics.lines` — so it is named
+ * here rather than found, and a project whose original language was never
+ * declared answers with the tag the UI uses for "as recorded".
+ */
+export const KARAOKE_ORIGINAL_LANGUAGE = 'original';
+
+export const karaokeTranslationLanguages = (
+  project: IKaraokeMakerProject,
+): string[] => [
+  project.lyrics.language ?? KARAOKE_ORIGINAL_LANGUAGE,
+  ...(project.lyrics.translations ?? []).map((sheet) => sheet.language),
+];
+
+export const addKaraokeTranslation = (
+  project: IKaraokeMakerProject,
+  text: string,
+  language: string,
+): {
+  project: IKaraokeMakerProject;
+  mismatch?: { expected: number; received: number };
+} => {
+  const target = language.trim();
+  if (!target || target === project.lyrics.language) {
+    return { project };
+  }
+  const seeded = seedKaraokeTranslation(project.lyrics.lines, text, target);
+  if (!seeded.sheet) {
+    return { project, mismatch: seeded.mismatch };
+  }
+  const { sheet } = seeded;
+  const existing = project.lyrics.translations ?? [];
+  const replaced = existing.some((entry) => entry.language === target);
+  return {
+    project: {
+      ...project,
+      lyrics: {
+        ...project.lyrics,
+        translations: replaced
+          ? existing.map((entry) => (entry.language === target ? sheet : entry))
+          : [...existing, sheet],
+      },
+    },
+  };
+};
+
+export const removeKaraokeTranslation = (
+  project: IKaraokeMakerProject,
+  language: string,
+): IKaraokeMakerProject => {
+  const remaining = (project.lyrics.translations ?? []).filter(
+    (sheet) => sheet.language !== language,
+  );
+  return {
+    ...project,
+    lyrics: {
+      ...project.lyrics,
+      // Undefined rather than [], so a project that has had its last
+      // translation removed parses identically to one that never had any.
+      translations: remaining.length ? remaining : undefined,
+    },
+  };
+};
+
 export const karaokeTranslationFit = (
   sheet: IKaraokeMakerLyricSheet,
   notes: readonly IKaraokeMakerNote[],
