@@ -221,7 +221,7 @@ describe('karaokeTranslationFit', () => {
 
   it('counts syllables against the notes overlapping the line', () => {
     const seeded = seedKaraokeTranslation(
-      [lyricLine('l1', 'hello world', 0, 2_000)],
+      [lyricLine('l1', 'hello world', 1_000, 3_000)],
       'hola mundo',
       'es',
     );
@@ -231,23 +231,52 @@ describe('karaokeTranslationFit', () => {
     }
 
     const fit = karaokeTranslationFit(sheet, [
-      note('n1', 0, 500),
-      note('n2', 500, 1_000),
-      note('n3', 1_000, 2_000),
+      note('n1', 1_000, 1_500),
+      note('n2', 1_500, 2_000),
+      note('n3', 2_000, 3_000),
       // Outside the line entirely: must not be counted.
-      note('n4', 5_000, 6_000),
-      // Ends exactly at the line's startMs (0): touches but does not overlap,
-      // so a `>=` filter that treats touching as overlap must not count it.
-      note('n5', -500, 0),
-      // Starts exactly at the line's endMs (2000): the mirror case at the
+      note('n4', 6_000, 7_000),
+      // Ends exactly at the line's startMs (1000): touches but does not
+      // overlap, so a `>=` filter that treats touching as overlap must not
+      // count it.
+      note('n5', 500, 1_000),
+      // Starts exactly at the line's endMs (3000): the mirror case at the
       // other edge, catching a `<=` filter the same way.
-      note('n6', 2_000, 2_500),
+      note('n6', 3_000, 3_500),
+      // Starts before the line and ends inside it: overlapping without
+      // being contained, which is ordinary for a note held across a line
+      // break. A containment check (`startMs >= range.startMs && endMs <=
+      // range.endMs`) would wrongly drop this one.
+      note('n7', 700, 1_300),
     ]);
 
     expect(fit).toHaveLength(1);
-    // hola (2) + mundo (2) against three notes: one syllable too many.
+    // hola (2) + mundo (2).
     expect(fit[0].syllables).toBe(4);
-    expect(fit[0].notes).toBe(3);
+    // n1-n3 sit inside the line and n7 overlaps it from before the start;
+    // n4-n6 must not count: outside, and touching either edge exactly.
+    expect(fit[0].notes).toBe(4);
+  });
+
+  it("counts syllables by the sheet's language, not a hardcoded default", () => {
+    // A trailing 'y' is a vowel in English but never in Spanish (see
+    // isVowelAt in src/common/karaoke/syllables.ts), so this word's split
+    // depends on which language is actually passed through.
+    expect(splitKaraokeWordSyllables('baby', 'es')).toHaveLength(1);
+    expect(splitKaraokeWordSyllables('baby', 'en')).toHaveLength(2);
+
+    const seeded = seedKaraokeTranslation(
+      [lyricLine('l1', 'hello', 0, 1_000)],
+      'baby',
+      'es',
+    );
+    const { sheet } = seeded;
+    if (!sheet) {
+      throw new Error('expected a sheet');
+    }
+
+    // A hardcoded 'en' (or a dropped sheet.language) would read 2 here.
+    expect(karaokeTranslationFit(sheet, [])[0].syllables).toBe(1);
   });
 
   it('skips section lines, which are never sung', () => {
