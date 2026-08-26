@@ -236,6 +236,12 @@ describe('karaokeTranslationFit', () => {
       note('n3', 1_000, 2_000),
       // Outside the line entirely: must not be counted.
       note('n4', 5_000, 6_000),
+      // Ends exactly at the line's startMs (0): touches but does not overlap,
+      // so a `>=` filter that treats touching as overlap must not count it.
+      note('n5', -500, 0),
+      // Starts exactly at the line's endMs (2000): the mirror case at the
+      // other edge, catching a `<=` filter the same way.
+      note('n6', 2_000, 2_500),
     ]);
 
     expect(fit).toHaveLength(1);
