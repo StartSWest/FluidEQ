@@ -71,6 +71,10 @@ import {
   processOutputSafety,
 } from '../../src/renderer/dsp/outputSafety';
 import {
+  createPostFilterNormalizer,
+  processPostFilterNormalizer,
+} from '../../src/renderer/dsp/postFilterNormalizer';
+import {
   createBandDynamics,
   refreshBandDynamics,
 } from '../../src/renderer/dsp/dynamics';
@@ -129,6 +133,7 @@ enum ProcessorId {
   Compressor = 12,
   CompressorLinked = 13,
   OutputSafety = 14,
+  AutoHeadroom = 15,
 }
 
 interface IRackBand {
@@ -1057,6 +1062,47 @@ RACKS.forEach((rack) => {
       })(),
       maxAbsTolerance: 1e-6,
       rmsTolerance: 1e-7,
+    });
+  });
+});
+
+/**
+ * Auto Headroom, with the following gain both positive and negative.
+ *
+ * The sign matters and is easy to drop: positive Master gain needs room
+ * reserved ahead of it, negative gain already creates real room and must be
+ * credited. A port that took the magnitude would attenuate twice for the same
+ * decibel and nobody would hear anything except that it was quiet.
+ */
+[0, 1].forEach((enabled) => {
+  [-6, 0, 4].forEach((followingGainDb) => {
+    parityCorpus(FRAMES, 48000).forEach((signal) => {
+      fixtures.push({
+        name: `headroom/${enabled ? 'on' : 'off'}/${followingGainDb}/${signal.name}`,
+        processor: ProcessorId.AutoHeadroom,
+        sampleRate: 48000,
+        params: [enabled, -1, followingGainDb, 1200, 4],
+        input: processorInput(signal.channels),
+        expected: (() => {
+          const targets = processorInput(signal.channels).map((channel) =>
+            Float32Array.from(channel),
+          );
+          processPostFilterNormalizer(
+            createPostFilterNormalizer(targets.length, 48000, 4),
+            targets,
+            {
+              enabled: enabled === 1,
+              outputCeilingDb: -1,
+              followingGainDb,
+              releaseMs: 1200,
+              sampleRate: 48000,
+            },
+          );
+          return targets;
+        })(),
+        maxAbsTolerance: 1e-6,
+        rmsTolerance: 1e-7,
+      });
     });
   });
 });

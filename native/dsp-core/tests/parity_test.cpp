@@ -27,6 +27,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "fluideq/primitives.h"
 #include "fluideq/compressor.h"
 #include "fluideq/output_safety.h"
+#include "fluideq/post_filter_normalizer.h"
 #include "fluideq/limiter.h"
 #include "fluideq/saturate.h"
 
@@ -63,7 +64,8 @@ enum ProcessorId : uint32_t {
   kLinkedLimiter = 11,
   kCompressor = 12,
   kCompressorLinked = 13,
-  kOutputSafety = 14
+  kOutputSafety = 14,
+  kAutoHeadroom = 15
 };
 
 struct Fixture {
@@ -659,9 +661,47 @@ bool render_output_safety(const Fixture& fixture, std::vector<float>& actual) {
   return true;
 }
 
+/** `[enabled, outputCeilingDb, followingGainDb, releaseMs, truePeakFactor]`. */
+bool render_auto_headroom(const Fixture& fixture, std::vector<float>& actual) {
+  if (fixture.params.size() < 5) {
+    return false;
+  }
+  FeqPostFilterNormalizerOptions options{};
+  options.enabled = fixture.params[0] != 0.0 ? 1 : 0;
+  options.output_ceiling_db = fixture.params[1];
+  options.following_gain_db = fixture.params[2];
+  options.release_ms = fixture.params[3];
+  options.sample_rate = static_cast<double>(fixture.sample_rate);
+
+  const uint32_t capacity =
+      feq_post_filter_normalizer_look_ahead(options.sample_rate) + 1;
+  const uint32_t channels = fixture.channels;
+
+  actual = fixture.input;
+  std::vector<FeqTruePeak> detectors(channels);
+  std::vector<std::vector<float>> lines(channels, std::vector<float>(capacity));
+  std::vector<float*> line_pointers(channels);
+  std::vector<float*> targets(channels);
+  for (uint32_t channel = 0; channel < channels; ++channel) {
+    line_pointers[channel] = lines[channel].data();
+    targets[channel] = channel_at(actual, channel, fixture.frames);
+  }
+  std::vector<float> reduction(capacity);
+
+  FeqPostFilterNormalizer state;
+  feq_post_filter_normalizer_init(
+      &state, detectors.data(), line_pointers.data(), reduction.data(),
+      channels, capacity, static_cast<uint32_t>(fixture.params[4]));
+  feq_post_filter_normalizer_process(&state, targets.data(), fixture.frames,
+                                     &options);
+  return true;
+}
+
 /** Run one fixture through the native engine, or say it cannot be run yet. */
 bool render(const Fixture& fixture, std::vector<float>& actual) {
   switch (fixture.processor) {
+    case kAutoHeadroom:
+      return render_auto_headroom(fixture, actual);
     case kOutputSafety:
       return render_output_safety(fixture, actual);
     case kCompressor:
