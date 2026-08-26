@@ -26,6 +26,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
  */
 
 #include "audio_backend.h"
+#include "parent_watch.h"
 #include "fluideq/dsp.h"
 #include "fluideq/parameters.h"
 #include "wire.h"
@@ -34,6 +35,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include <chrono>
 #include <cmath>
 #include <cstdio>
+#include <cstdlib>
 #include <cstring>
 #include <mutex>
 #include <string>
@@ -262,9 +264,35 @@ bool rebuild_engine(HostState& state,
   return true;
 }
 
+/**
+ * The backend, reachable from the parent watch without carrying a context.
+ *
+ * A raw pointer to something `main` owns and outlives: the watch thread only
+ * ever calls `close()` on it, and only while `main` is still blocked in its
+ * read loop. A second `unique_ptr` here would be a second owner.
+ */
+IAudioOutputBackend* g_backend_for_exit = nullptr;
+
+/** Runs on the watch thread when the parent dies. Releases the endpoint. */
+void release_device_on_parent_exit() {
+  if (g_backend_for_exit != nullptr) {
+    g_backend_for_exit->close();
+  }
+}
+
+/** `--parent-pid <n>`, or zero when nobody said. */
+uint32_t parent_pid_from(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::strcmp(argv[index], "--parent-pid") == 0) {
+      return static_cast<uint32_t>(std::strtoul(argv[index + 1], nullptr, 10));
+    }
+  }
+  return 0;
+}
+
 }  // namespace
 
-int main() {
+int main(int argc, char** argv) {
 #ifdef _WIN32
   // Without this the CRT rewrites 0x0A as 0x0D 0x0A on the way out and eats
   // the 0x0D on the way in, which corrupts any frame whose bytes happen to
@@ -277,12 +305,23 @@ int main() {
   state.engine = feq_engine_create(state.sample_rate, state.channels,
                                    state.block_frames);
   if (state.engine == nullptr) {
-    std::fprintf(stderr, "fluideq-dsp-host: engine could not be created\n");
+    std::fprintf(stderr, "FluidEQ-DSP: engine could not be created\n");
     return 1;
   }
 
   std::unique_ptr<IAudioOutputBackend> backend =
       create_audio_backend(&render_bridge, &state);
+  /**
+   * Started before the handshake, so a parent that dies during start-up still
+   * takes this process with it.
+   *
+   * The supervisor's `stop` and the stdin EOF both handle an orderly exit.
+   * This handles the one that strands a process: Electron force-killed, no
+   * shutdown sent, no `kill` called, and this process potentially blocked
+   * inside `fwrite` on a pipe nobody is draining any more.
+   */
+  g_backend_for_exit = backend.get();
+  feq_watch_parent(parent_pid_from(argc, argv), &release_device_on_parent_exit);
   send_handshake(backend->name());
 
   std::vector<double> snapshot(FEQ_PARAMETER_COUNT, 0.0);
@@ -323,7 +362,7 @@ int main() {
         std::string error;
         FeqBackendFormat negotiated{};
         if (!backend->open(negotiated, error)) {
-          std::fprintf(stderr, "fluideq-dsp-host: %s\n", error.c_str());
+          std::fprintf(stderr, "FluidEQ-DSP: %s\n", error.c_str());
           send_ack(frame.request_id, FEQ_WIRE_REJECTED, 0, 0, 0.0);
           break;
         }
@@ -334,7 +373,7 @@ int main() {
         state.block_frames = negotiated.max_block_frames;
         if (!rebuild_engine(state, snapshot, snapshot_revision) ||
             !backend->start(error)) {
-          std::fprintf(stderr, "fluideq-dsp-host: %s\n", error.c_str());
+          std::fprintf(stderr, "FluidEQ-DSP: %s\n", error.c_str());
           backend->close();
           send_ack(frame.request_id, FEQ_WIRE_REJECTED, 0, 0, 0.0);
           break;

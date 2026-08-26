@@ -80,6 +80,7 @@ add_library(fluideq-dsp-core STATIC
   dsp-core/src/chain_exciter.cpp
   dsp-core/src/chain_stages.cpp
   dsp-core/src/chain_linear.cpp
+  dsp-core/src/chain_decode.cpp
   dsp-core/src/resampler.cpp
   dsp-core/src/player.cpp
 )
@@ -115,6 +116,7 @@ add_test(NAME dsp-parity
 add_executable(fluideq-dsp-host
   dsp-host/src/main.cpp
   dsp-host/src/decoders/pcm_decoder.cpp
+  dsp-host/src/parent_watch.cpp
 )
 target_link_libraries(fluideq-dsp-host PRIVATE fluideq-dsp-core feq_strict)
 

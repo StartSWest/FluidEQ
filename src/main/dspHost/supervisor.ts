@@ -263,10 +263,27 @@ export class DspHostSupervisor {
     this.setState('starting');
     let child: ChildProcessWithoutNullStreams;
     try {
-      child = spawn(this.options.executablePath, [], {
-        stdio: ['pipe', 'pipe', 'pipe'],
-        windowsHide: true,
-      });
+      /**
+       * The host is told whose child it is, so it can leave when we do.
+       *
+       * `stop()` asks it to go and kills it if it will not, and stdin closing
+       * is a second net beneath that. Neither covers the case that actually
+       * strands a process: Electron force-killed or crashed, so no shutdown is
+       * sent and no `kill` runs, while the host sits inside a write to a stdout
+       * pipe nobody is draining any more — a call that never returns. It then
+       * holds an audio endpoint, and its memory, owned by nothing.
+       *
+       * With this the host waits on the parent's own process handle and exits
+       * the moment it is signalled, for any reason at all.
+       */
+      child = spawn(
+        this.options.executablePath,
+        ['--parent-pid', String(process.pid)],
+        {
+          stdio: ['pipe', 'pipe', 'pipe'],
+          windowsHide: true,
+        },
+      );
     } catch (error: unknown) {
       this.fail(DSP_DIAGNOSTIC_CODES.hostSpawnFailed, {
         path: this.options.executablePath,

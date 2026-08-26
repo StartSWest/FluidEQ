@@ -146,7 +146,25 @@ typedef struct FeqChainSettings {
   int output_safety_enabled;
 } FeqChainSettings;
 
+/**
+ * The flat-array layout, and the two numbers that define it.
+ *
+ * `chainParams` in `generate-parity-fixtures.ts` and `encodeChainSettings` in
+ * `wire.ts` both write it; `feq_chain_settings_decode` reads it. Everything
+ * before the band array sits at a fixed offset, so adding a scalar cannot
+ * silently re-point sixty-four bands: the decoder asserts the lead rather
+ * than trusting it.
+ */
+#define FEQ_CHAIN_PARAM_LEAD 69
+#define FEQ_CHAIN_BAND_PARAMS 7
+
+/** Non-zero on success. Leaves `out` untouched on a layout it cannot read. */
+int feq_chain_settings_decode(const double* values,
+                              uint32_t count,
+                              FeqChainSettings* out);
+
 typedef struct FeqChain FeqChain;
+
 
 /**
  * Everything the block loop touches is allocated here.
