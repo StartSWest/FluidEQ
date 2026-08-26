@@ -557,10 +557,14 @@ describe('exporting a chosen language', () => {
     file: new File(['audio'], 'Artist - Song.mp3', { type: 'audio/mpeg' }),
   };
 
-  // Two lines of two words each, so 'hola mundo' / 'tres cuatro' lines up
-  // one-for-one with 'One two' / 'Three four'.
+  // Two lines of two words each, so 'hola mundo' / 'sol mar' lines up
+  // one-for-one with 'One two' / 'Three four'. 'sol' and 'mar' (rather than
+  // e.g. 'tres cuatro') are used for line 2 because their syllable counts are
+  // already hand-verified premises elsewhere in this suite
+  // (karaokeTranslation.test.ts), which the overlap arithmetic below depends
+  // on without re-deriving it here.
   const translated = (): IKaraokeMakerProject =>
-    addKaraokeTranslation(project(), 'hola mundo\ntres cuatro', 'es').project;
+    addKaraokeTranslation(project(), 'hola mundo\nsol mar', 'es').project;
 
   const wordsOf = (song: IKaraokeSong): string[] =>
     song.lines.flatMap((line) => line.tokens.map((token) => token.text));
@@ -577,7 +581,7 @@ describe('exporting a chosen language', () => {
       language: 'es',
     });
 
-    expect(wordsOf(song)).toEqual(['hola', 'mundo', 'tres', 'cuatro']);
+    expect(wordsOf(song)).toEqual(['hola', 'mundo', 'sol', 'mar']);
     expect(song.meta.language).toBe('es');
   });
 
@@ -590,34 +594,15 @@ describe('exporting a chosen language', () => {
     expect(song.meta.language).toBe('en');
   });
 
-  it('writes the chosen language into the UltraStar header and swaps the words', () => {
-    const spanish = translated();
-    const sheet = spanish.lyrics.translations?.find(
-      (entry) => entry.language === 'es',
-    );
-    if (!sheet) {
-      throw new Error('expected a Spanish sheet from addKaraokeTranslation');
-    }
-    // A pasted translation is reseeded with its own fresh token ids — it
-    // shares none with the melody, which stays bound to the original by
-    // design (Task 5 leaves makePlayablePitchNotes untouched). Pointing the
-    // notes at the Spanish tokens here is what proves the exporter now reads
-    // the chosen sheet instead of always the original.
-    const spanishTokenIds = sheet.lines.flatMap((line) =>
-      line.tokens.map((token) => token.id),
-    );
-    const withSpanishMelody: IKaraokeMakerProject = {
-      ...spanish,
-      melody: {
-        ...spanish.melody,
-        notes: spanish.melody.notes.map((note, index) => ({
-          ...note,
-          tokenId: spanishTokenIds[index],
-        })),
-      },
-    };
-
-    const text = exportKaraokeMakerUltraStar(withSpanishMelody, {
+  it('writes the chosen language into the UltraStar header and swaps the words, with the melody left exactly as addKaraokeTranslation produced it', () => {
+    // The real path: seed a translation and export it with the melody
+    // untouched — still bound to the ORIGINAL word ids, because nothing
+    // rebinds it and nothing should have to. Before the time-overlap fix
+    // this produced a header that said Spanish over a body of nothing but
+    // "~": a pasted translation is reseeded with fresh ids every time
+    // (makerLinesFromPlainText), so a note's tokenId can never reach a
+    // translated sheet's tokens, only its timing can.
+    const text = exportKaraokeMakerUltraStar(translated(), {
       language: 'es',
     });
 
@@ -627,15 +612,52 @@ describe('exporting a chosen language', () => {
     expect(text).toContain('#LANGUAGE:Spanish');
     expect(text).toContain('hola');
     expect(text).toContain('mundo');
-    expect(text).toContain('tres');
-    expect(text).toContain('cuatro');
+    expect(text).toContain('sol');
+    expect(text).toContain('mar');
+    expect(text).not.toContain('~');
     expect(text).not.toContain('One');
     expect(text).not.toContain('Three');
 
     // Positive control: without the option both the header and the words
     // are the English original's, same as every other test in this file.
-    const original = exportKaraokeMakerUltraStar(spanish);
+    const original = exportKaraokeMakerUltraStar(translated());
     expect(original).toContain('#LANGUAGE:English');
+    expect(original).toContain('One');
+    expect(original).not.toContain('hola');
+  });
+
+  it('exports LRC in the chosen language', () => {
+    // writeLrc walks the chosen sheet's own tokens directly, with no id
+    // lookup — unlike UltraStar it never had the binding problem above — but
+    // the options parameter still needs a test that would fail if
+    // sheetLines were ever hardcoded to the original inside writeLrc.
+    // Enhanced (per-word) LRC is used so parseLrc hands back one token per
+    // word rather than one per whole line — plain LRC has no per-word split
+    // to read back, as the file's other plain-vs-enhanced tests already show.
+    const contents = exportKaraokeMakerLrc(translated(), true, {
+      language: 'es',
+    });
+
+    expect(contents).toContain('hola');
+    expect(contents).toContain('mundo');
+    expect(contents).toContain('sol');
+    expect(contents).toContain('mar');
+    expect(contents).not.toContain('One');
+    expect(contents).not.toContain('Three');
+
+    const { lines } = parseLrc(contents);
+    const words = lines.flatMap((line) =>
+      line.tokens.filter((token) => token.text.trim().length > 0),
+    );
+    expect(words.map((token) => token.text.trim())).toEqual([
+      'hola',
+      'mundo',
+      'sol',
+      'mar',
+    ]);
+
+    // Positive control: without the option, the original's words come back.
+    const original = exportKaraokeMakerLrc(translated(), true);
     expect(original).toContain('One');
     expect(original).not.toContain('hola');
   });

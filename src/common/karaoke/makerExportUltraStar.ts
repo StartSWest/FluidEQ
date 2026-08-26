@@ -15,6 +15,7 @@ import {
   IKaraokeMakerLine,
   IKaraokeMakerNote,
   IKaraokeMakerProject,
+  IKaraokeMakerToken,
   karaokeMakerLineIsSection,
   sheetLines,
 } from './makerProject';
@@ -130,10 +131,59 @@ interface IUltraStarBody {
   writtenTokenIds: Set<string>;
 }
 
+/**
+ * The token whose timed span covers the most of a note's span, for a sheet
+ * whose tokens carry no id the melody knows.
+ *
+ * A pasted translation is reseeded with fresh ids every time (Task 2), so a
+ * note bound to the original by `tokenId` never finds itself in a translated
+ * sheet's token map — that lookup is what produced an UltraStar file of nothing
+ * but `~`. Translated tokens still carry real start/end times, proportioned
+ * across the line by `translationSeed.ts`, and that is the one thing left in
+ * common between a note and the word sung on it.
+ *
+ * Ties keep the earliest candidate: lines and tokens are walked in document
+ * order, which is chronological for every sheet this format ever sees
+ * (`timedTranslatedLine` lays a line's tokens out with strictly increasing
+ * `startMs`), and only a strictly larger overlap replaces the current best.
+ */
+const tokenAtTime = (
+  lines: readonly IKaraokeMakerLine[],
+  note: IKaraokeMakerNote,
+): IKaraokeMakerToken | undefined => {
+  let best: IKaraokeMakerToken | undefined;
+  let bestOverlapMs = 0;
+  lines.forEach((line) => {
+    if (karaokeMakerLineIsSection(line)) {
+      return;
+    }
+    line.tokens.forEach((token) => {
+      if (token.startMs === undefined || token.endMs === undefined) {
+        return;
+      }
+      const overlapMs =
+        Math.min(token.endMs, note.endMs) -
+        Math.max(token.startMs, note.startMs);
+      if (overlapMs > bestOverlapMs) {
+        best = token;
+        bestOverlapMs = overlapMs;
+      }
+    });
+  });
+  return best;
+};
+
+const tokenById = (
+  tokensById: ReadonlyMap<string, IKaraokeMakerToken>,
+  tokenId: string | undefined,
+): IKaraokeMakerToken | undefined =>
+  tokenId === undefined ? undefined : tokensById.get(tokenId);
+
 const ultraStarBody = (
   lines: readonly IKaraokeMakerLine[],
   notes: readonly IKaraokeMakerNote[],
   gapMs: number,
+  resolveByTime: boolean,
 ): IUltraStarBody => {
   const tokensById = new Map(
     lines.flatMap((line) =>
@@ -163,10 +213,15 @@ const ultraStarBody = (
     } else if (note.kind === 'free') {
       marker = 'F';
     }
-    const token =
-      note.tokenId === undefined ? undefined : tokensById.get(note.tokenId);
+    // The original path resolves by id exactly as before — untouched, so its
+    // output stays byte-identical. Only a non-original sheet, whose tokens
+    // the note's id can never reach, falls through to tokenAtTime.
+    const token = resolveByTime
+      ? tokenAtTime(lines, note)
+      : tokenById(tokensById, note.tokenId);
+    const tokenKey = resolveByTime ? token?.id : note.tokenId;
     const isFirstOfToken =
-      note.tokenId !== undefined && !writtenTokenIds.has(note.tokenId);
+      tokenKey !== undefined && !writtenTokenIds.has(tokenKey);
     // Line breaks used to come only from a note's tokenId. Replacing the lyrics
     // clears that binding, and a detected note outside every timed word never
     // gets one, so the whole song exported as a single unbroken line of `~`.
@@ -188,8 +243,8 @@ const ultraStarBody = (
     if (lineIndex !== undefined) {
       previousLineIndex = lineIndex;
     }
-    if (note.tokenId !== undefined) {
-      writtenTokenIds.add(note.tokenId);
+    if (tokenKey !== undefined) {
+      writtenTokenIds.add(tokenKey);
     }
     const lyric =
       token && isFirstOfToken
@@ -212,11 +267,16 @@ export const writeUltraStar = (
     (left, right) => left.startMs - right.startMs,
   );
   const chosen = sheetLines(project, options?.language);
+  // sheetLines hands back project.lyrics.lines itself, unchanged, whenever no
+  // translation was chosen — this reference check is exactly "is this the
+  // sung original" with nothing recomputed.
+  const isOriginal = chosen.lines === project.lyrics.lines;
   const gapMs = ultraStarGapMs(project, notes);
   const { rows: body, writtenTokenIds } = ultraStarBody(
     chosen.lines,
     notes,
     gapMs,
+    !isOriginal,
   );
   const language = ultraStarLanguage(chosen.language);
   const rows = [
