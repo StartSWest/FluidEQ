@@ -514,7 +514,6 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.translation.picker': '歌词语言',
   'karaoke.translation.original': '录音原样',
   'karaoke.translation.add': '添加语言',
-  'karaoke.translation.addPending': '粘贴翻译功能尚未实现。',
   'karaoke.translation.remove': '移除此语言',
   'karaoke.translation.target': '待粘贴歌词的语言',
   'karaoke.translation.paste': '粘贴该语言的歌词，每行对应歌曲的一行。',

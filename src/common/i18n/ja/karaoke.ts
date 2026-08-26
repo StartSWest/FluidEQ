@@ -555,7 +555,6 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.translation.picker': '歌詞の言語',
   'karaoke.translation.original': '収録のまま',
   'karaoke.translation.add': '言語を追加',
-  'karaoke.translation.addPending': '翻訳の貼り付けはまだ実装されていません。',
   'karaoke.translation.remove': 'この言語を削除',
   'karaoke.translation.target': '貼り付ける歌詞の言語',
   'karaoke.translation.paste':

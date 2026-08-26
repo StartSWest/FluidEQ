@@ -544,8 +544,6 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.translation.picker': 'बोल की भाषा',
   'karaoke.translation.original': 'जैसे रिकॉर्ड किए गए',
   'karaoke.translation.add': 'भाषा जोड़ें',
-  'karaoke.translation.addPending':
-    'अनुवाद चिपकाने की सुविधा अभी तैयार नहीं है।',
   'karaoke.translation.remove': 'यह भाषा हटाएँ',
   'karaoke.translation.target': 'चिपकाए जा रहे बोल की भाषा',
   'karaoke.translation.paste':

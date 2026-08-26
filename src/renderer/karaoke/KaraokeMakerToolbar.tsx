@@ -217,17 +217,14 @@ const KaraokeMakerToolbar = ({
             on a song that already has words, the way opening the lyrics editor
             or timing a line is.
 
-            Disabled rather than wired to `openLyricsEditor`: that dialog's
-            submit path is `replaceLyrics`, which overwrites the original
-            sheet. A click here promising a new language would land on a
-            pre-seeded "replace the original" form one confirmation away from
-            doing the opposite of what it said. Task 8 gives this its own
-            paste flow and its own handler. */}
+            Opens the same lyrics dialog as the button beside it: the target-
+            language field inside it is what tells the dialog to seed a
+            translation instead of replacing the original, so there is only
+            one paste surface to wire up rather than a second dialog. */}
         <button
           type="button"
           className="button small subtle"
-          disabled
-          title={t('karaoke.translation.addPending')}
+          onClick={openLyricsEditor}
         >
           {t('karaoke.translation.add')}
         </button>

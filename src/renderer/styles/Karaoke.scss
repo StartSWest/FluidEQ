@@ -7772,7 +7772,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 .karaoke-maker__lyrics-source,
-.karaoke-maker__lyrics-timing-editor {
+.karaoke-maker__lyrics-timing-editor,
+.karaoke-maker__lyrics-reference {
   display: grid;
   min-width: 0;
   min-height: 0;
@@ -7784,11 +7785,52 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 .karaoke-maker__lyrics-source {
-  grid-template-rows: auto minmax(0, 1fr);
+  // Head, the target-language field, then the textarea filling what remains.
+  grid-template-rows: auto auto minmax(0, 1fr);
 }
 
 .karaoke-maker__lyrics-timing-editor {
   grid-template-rows: auto minmax(0, 1fr) auto;
+}
+
+// Own row template rather than sharing the timing editor's three rows: the
+// mismatch banner is conditional, so it is nested inside the head instead of
+// counted as a grid row — a sibling row would have claimed the flexible
+// `1fr` track whenever it appeared, squeezing the scroll list into the
+// leftover `auto` track meant for the word inspector below.
+.karaoke-maker__lyrics-reference {
+  grid-template-rows: auto minmax(0, 1fr);
+}
+
+.karaoke-maker__lyrics-reference-head {
+  display: grid;
+  gap: 9px;
+}
+
+.karaoke-maker__lyrics-target {
+  display: grid;
+  align-items: center;
+  gap: 10px;
+  grid-template-columns: auto minmax(0, 1fr);
+  font-size: 0.84rem;
+  color: rgba(223, 252, 249, 0.8);
+}
+
+.karaoke-maker__translation-mismatch {
+  padding: 8px 10px;
+  color: #d8f8f5;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  background: rgba(9, 40, 54, 0.72);
+  border: 1px solid rgba(45, 215, 200, 0.38);
+  border-radius: 9px;
+}
+
+.karaoke-maker__lyrics-line-number {
+  min-width: 18px;
+  color: rgba(169, 204, 216, 0.58);
+  font-size: 0.76rem;
+  text-align: right;
 }
 
 .karaoke-maker__lyrics-section-head {

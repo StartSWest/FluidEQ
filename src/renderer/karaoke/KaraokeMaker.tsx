@@ -217,7 +217,10 @@ const KaraokeMaker = ({
     language: translationLanguage,
     setLanguage: setTranslationLanguage,
     languages: translationLanguages,
+    addTranslation,
     removeTranslation,
+    mismatch: translationMismatch,
+    clearMismatch: clearTranslationMismatch,
   } = useMakerTranslations(project, commitProject);
   const makerMelodyTarget = useMemo(() => {
     if (!project.melody.notes.length) {
@@ -2271,12 +2274,14 @@ const KaraokeMaker = ({
       {lyricsOpen && (
         <KaraokeMakerLyricsDialog
           activeLyricFocus={activeLyricFocus}
+          addTranslation={addTranslation}
           analysisMessage={analysisMessage}
           analysisProgress={analysisProgress}
           analysisProgressIsIndeterminate={analysisProgressIsIndeterminate}
           // The lyrics workflow can run a split before it transcribes, so the
           // dialog's cancel reaches the same pair as the panel's.
           cancelAnalysis={cancelCurrentWork}
+          clearMismatch={clearTranslationMismatch}
           destructiveAction={destructiveAction}
           displayedAnalysisProgress={displayedAnalysisProgress}
           draftLyricsWordCount={draftLyricsWordCount}
@@ -2285,6 +2290,7 @@ const KaraokeMaker = ({
           lyricsFileName={lyricsFileName}
           lyricsInputRef={lyricsInputRef}
           lyricsProcessing={lyricsProcessing}
+          mismatch={translationMismatch}
           project={project}
           renderLyricsModalWordInspector={renderLyricsModalWordInspector}
           renderWhisperDownloadDetails={renderWhisperDownloadDetails}
