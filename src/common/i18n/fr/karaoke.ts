@@ -561,6 +561,19 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.draftRestored': 'Brouillon restauré',
   'karaoke.maker.playerTimingLoaded':
     'Le minutage actuel du lecteur est utilisé. Annuler restaure le brouillon enregistré.',
+
+  'karaoke.translation.picker': 'Langue des paroles',
+  'karaoke.translation.original': 'Telles qu’enregistrées',
+  'karaoke.translation.add': 'Ajouter une langue',
+  'karaoke.translation.remove': 'Supprimer cette langue',
+  'karaoke.translation.target': 'Langue des paroles que vous collez',
+  'karaoke.translation.paste':
+    'Collez les paroles dans cette langue, une ligne par ligne de la chanson.',
+  'karaoke.translation.mismatch':
+    'La chanson comporte {expected} lignes chantées et ce texte en a {received}. Alignez-les sur les lignes numérotées à côté de la zone de texte.',
+  'karaoke.translation.fit': '{syllables} syllabes, {notes} notes',
+  'karaoke.translation.fitOk': 'Correspond à la mélodie',
+  'karaoke.translation.empty': 'Pas encore de paroles dans cette langue.',
 };
 
 export default karaoke;

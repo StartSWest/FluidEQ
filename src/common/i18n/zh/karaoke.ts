@@ -510,6 +510,18 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.draftRestored': '草稿已恢复',
   'karaoke.maker.playerTimingLoaded':
     '正在使用播放器的当前时间。撤销可恢复已保存的草稿。',
+
+  'karaoke.translation.picker': '歌词语言',
+  'karaoke.translation.original': '原始语言',
+  'karaoke.translation.add': '添加语言',
+  'karaoke.translation.remove': '移除此语言',
+  'karaoke.translation.target': '待粘贴歌词的语言',
+  'karaoke.translation.paste': '粘贴该语言的歌词，每行对应歌曲的一行。',
+  'karaoke.translation.mismatch':
+    '这首歌有 {expected} 行演唱歌词，这段文本有 {received} 行。请参照文本框旁的编号行对齐。',
+  'karaoke.translation.fit': '{syllables} 个音节，{notes} 个音符',
+  'karaoke.translation.fitOk': '符合旋律',
+  'karaoke.translation.empty': '此语言还没有歌词。',
 };
 
 export default karaoke;

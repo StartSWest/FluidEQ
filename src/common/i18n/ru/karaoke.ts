@@ -552,6 +552,19 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.draftRestored': 'Черновик восстановлен',
   'karaoke.maker.playerTimingLoaded':
     'Используется синхронизация из проигрывателя. Отмена восстановит сохранённый черновик.',
+
+  'karaoke.translation.picker': 'Язык текста',
+  'karaoke.translation.original': 'Как в записи',
+  'karaoke.translation.add': 'Добавить язык',
+  'karaoke.translation.remove': 'Удалить этот язык',
+  'karaoke.translation.target': 'Язык вставляемого текста',
+  'karaoke.translation.paste':
+    'Вставьте текст на этом языке, по одной строке на каждую строку песни.',
+  'karaoke.translation.mismatch':
+    'В песне {expected} спетых строк, а в этом тексте — {received}. Совместите их с пронумерованными строками рядом с полем.',
+  'karaoke.translation.fit': '{syllables} слогов, {notes} нот',
+  'karaoke.translation.fitOk': 'Соответствует мелодии',
+  'karaoke.translation.empty': 'На этом языке пока нет текста.',
 };
 
 export default karaoke;

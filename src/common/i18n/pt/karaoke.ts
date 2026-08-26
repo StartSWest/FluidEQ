@@ -558,6 +558,19 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.draftRestored': 'Rascunho restaurado',
   'karaoke.maker.playerTimingLoaded':
     'Usando o tempo atual do player. Desfazer restaura o rascunho salvo.',
+
+  'karaoke.translation.picker': 'Idioma da letra',
+  'karaoke.translation.original': 'Como gravada',
+  'karaoke.translation.add': 'Adicionar um idioma',
+  'karaoke.translation.remove': 'Remover este idioma',
+  'karaoke.translation.target': 'Idioma da letra que você está colando',
+  'karaoke.translation.paste':
+    'Cole a letra nesse idioma, uma linha para cada linha da música.',
+  'karaoke.translation.mismatch':
+    'A música tem {expected} linhas cantadas e este texto tem {received}. Alinhe-as com as linhas numeradas ao lado da caixa.',
+  'karaoke.translation.fit': '{syllables} sílabas, {notes} notas',
+  'karaoke.translation.fitOk': 'Encaixa na melodia',
+  'karaoke.translation.empty': 'Ainda não há letra neste idioma.',
 };
 
 export default karaoke;

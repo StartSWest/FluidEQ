@@ -540,6 +540,19 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.draftRestored': 'ड्राफ़्ट बहाल हुआ',
   'karaoke.maker.playerTimingLoaded':
     'प्लेयर का मौजूदा समय उपयोग हो रहा है। पूर्ववत करने पर सहेजा ड्राफ़्ट वापस आएगा।',
+
+  'karaoke.translation.picker': 'बोल की भाषा',
+  'karaoke.translation.original': 'जैसे रिकॉर्ड किए गए',
+  'karaoke.translation.add': 'भाषा जोड़ें',
+  'karaoke.translation.remove': 'यह भाषा हटाएँ',
+  'karaoke.translation.target': 'चिपकाए जा रहे बोल की भाषा',
+  'karaoke.translation.paste':
+    'उस भाषा में बोल चिपकाएँ, गीत की हर पंक्ति के लिए एक पंक्ति।',
+  'karaoke.translation.mismatch':
+    'गीत में {expected} गाई गई पंक्तियाँ हैं और इस टेक्स्ट में {received} हैं। इन्हें बॉक्स के बगल की क्रमांकित पंक्तियों से मिलाएँ।',
+  'karaoke.translation.fit': '{syllables} अक्षरांश, {notes} सुर',
+  'karaoke.translation.fitOk': 'धुन में फ़िट बैठता है',
+  'karaoke.translation.empty': 'इस भाषा में अभी कोई बोल नहीं हैं।',
 };
 
 export default karaoke;

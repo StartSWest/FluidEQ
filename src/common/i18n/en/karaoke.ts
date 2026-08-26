@@ -546,6 +546,19 @@ const karaoke = {
   'karaoke.maker.draftRestored': 'Draft restored',
   'karaoke.maker.playerTimingLoaded':
     'Using the current player timing. Undo restores your saved draft.',
+
+  'karaoke.translation.picker': 'Lyrics language',
+  'karaoke.translation.original': 'As recorded',
+  'karaoke.translation.add': 'Add a language',
+  'karaoke.translation.remove': 'Remove this language',
+  'karaoke.translation.target': 'Language of the lyrics you are pasting',
+  'karaoke.translation.paste':
+    'Paste the lyrics in that language, one line per line of the song.',
+  'karaoke.translation.mismatch':
+    'The song has {expected} sung lines and this text has {received}. Line them up against the numbered lines beside the box.',
+  'karaoke.translation.fit': '{syllables} syllables, {notes} notes',
+  'karaoke.translation.fitOk': 'Fits the melody',
+  'karaoke.translation.empty': 'No lyrics in this language yet.',
 } as const;
 
 export default karaoke;

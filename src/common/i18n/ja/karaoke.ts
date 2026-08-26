@@ -551,6 +551,19 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.draftRestored': '下書きを復元しました',
   'karaoke.maker.playerTimingLoaded':
     'プレイヤーの現在のタイミングを使用しています。元に戻すと保存済みの下書きを復元します。',
+
+  'karaoke.translation.picker': '歌詞の言語',
+  'karaoke.translation.original': '収録のまま',
+  'karaoke.translation.add': '言語を追加',
+  'karaoke.translation.remove': 'この言語を削除',
+  'karaoke.translation.target': '貼り付ける歌詞の言語',
+  'karaoke.translation.paste':
+    'その言語の歌詞を、曲の1行につき1行になるように貼り付けてください。',
+  'karaoke.translation.mismatch':
+    'この曲の歌唱行は{expected}行ですが、このテキストは{received}行です。入力欄の横にある番号付きの行に合わせてください。',
+  'karaoke.translation.fit': '{syllables} 音節、{notes} 音符',
+  'karaoke.translation.fitOk': 'メロディーに合っています',
+  'karaoke.translation.empty': 'この言語の歌詞はまだありません。',
 };
 
 export default karaoke;
