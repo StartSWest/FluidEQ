@@ -110,6 +110,7 @@ import {
 } from './useMakerLineCapture';
 import { IWhisperRunProfile, useMakerAnalysisRun } from './useMakerAnalysisRun';
 import { readKaraokeMakerEditorView } from './karaokeEditorPersistence';
+import { useMakerTranslations } from './useMakerTranslations';
 
 interface IKaraokeMakerProps {
   song: IKaraokeSong;
@@ -205,6 +206,19 @@ const KaraokeMaker = ({
     // from the project rather than owned alongside it.
     onProjectAdopted: (saved) => setLyricsDraft(plainLyrics(saved)),
   });
+  // Adapts `commit`'s edit-function shape to the plain next-project the
+  // translation hook works with — it already has the whole replacement,
+  // there is nothing left for an editor callback to compute from `current`.
+  const commitProject = useCallback(
+    (next: IKaraokeMakerProject) => commit(() => next),
+    [commit],
+  );
+  const {
+    language: translationLanguage,
+    setLanguage: setTranslationLanguage,
+    languages: translationLanguages,
+    removeTranslation,
+  } = useMakerTranslations(project, commitProject);
   const makerMelodyTarget = useMemo(() => {
     if (!project.melody.notes.length) {
       return undefined;
@@ -1845,11 +1859,13 @@ const KaraokeMaker = ({
       openLyricsEditor={openLyricsEditor}
       project={project}
       projectInputRef={projectInputRef}
+      removeTranslation={removeTranslation}
       selectedToken={selectedToken}
       setDestructiveAction={setDestructiveAction}
       setExportOpen={setExportOpen}
       setTimingScope={setTimingScope}
       setToolPanel={setToolPanel}
+      setTranslationLanguage={setTranslationLanguage}
       shiftTimeline={shiftTimeline}
       timingScope={timingScope}
       toggleHandPanMode={toggleHandPanMode}
@@ -1857,6 +1873,8 @@ const KaraokeMaker = ({
       tokens={tokens}
       toolPanel={toolPanel}
       toolsRef={toolsRef}
+      translationLanguage={translationLanguage}
+      translationLanguages={translationLanguages}
       wordShiftMs={wordShiftMs}
     />
   );

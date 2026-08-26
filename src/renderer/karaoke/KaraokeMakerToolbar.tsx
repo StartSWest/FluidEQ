@@ -8,19 +8,22 @@ import { Dispatch, ReactNode, RefObject, SetStateAction } from 'react';
 import {
   IKaraokeMakerProject,
   IKaraokeMakerToken,
+  KARAOKE_ORIGINAL_LANGUAGE,
 } from '../../common/karaoke/makerProject';
 import { IKaraokeMakerEditorView } from './karaokeEditorPersistence';
 import { TKaraokeMakerExportFormat } from '../../common/karaoke/makerExport';
 import { KARAOKE_AUTOMATIC_DETECTOR_UI_ENABLED } from './makerAi';
 import { TDestructiveMakerAction } from './KaraokeMakerConfirmDialog';
 import { useTranslation } from '../utils/I18nContext';
+import { karaokeLanguageName } from './karaokeLanguageName';
+import Dropdown from '../widgets/Dropdown';
 import KaraokeMakerToolbarButton from './KaraokeMakerToolbarButton';
 import KaraokeMakerTimingPopover from './KaraokeMakerTimingPopover';
 
 /**
  * The tool strip in the header: what the next click will do.
  *
- * A hundred and fifty-nine lines of the return, and the one part of the editor
+ * A hundred and ninety-two lines of the return, and the one part of the editor
  * that is purely modal — every control here arms something rather than doing
  * it. Which panel is open, which tool is held, what the timing nudge applies
  * to: all of it is state the canvas and the pointer handlers read back.
@@ -59,6 +62,16 @@ export interface IKaraokeMakerToolbarProps {
   handPanMode: boolean;
   toggleHandPanMode: () => void;
 
+  /** Which lyric sheet is showing: the original's tag first, then each
+   * translation's, in the order it was added. */
+  translationLanguage: string;
+  translationLanguages: string[];
+  setTranslationLanguage: (language: string) => void;
+  /** Removes whichever translation is currently selected; a no-op target of
+   * the original itself never reaches this, since the button that calls it
+   * is disabled while the original is showing. */
+  removeTranslation: (language: string) => void;
+
   exportOpen: boolean;
   setExportOpen: Dispatch<SetStateAction<boolean>>;
   exportProject: (format: TKaraokeMakerExportFormat) => Promise<void>;
@@ -88,11 +101,13 @@ const KaraokeMakerToolbar = ({
   openLyricsEditor,
   project,
   projectInputRef,
+  removeTranslation,
   selectedToken,
   setDestructiveAction,
   setExportOpen,
   setTimingScope,
   setToolPanel,
+  setTranslationLanguage,
   shiftTimeline,
   timingScope,
   toggleHandPanMode,
@@ -100,6 +115,8 @@ const KaraokeMakerToolbar = ({
   tokens,
   toolPanel,
   toolsRef,
+  translationLanguage,
+  translationLanguages,
   wordShiftMs,
 }: IKaraokeMakerToolbarProps) => {
   const { t } = useTranslation();
@@ -155,6 +172,48 @@ const KaraokeMakerToolbar = ({
           active={handPanMode}
           onClick={toggleHandPanMode}
         />
+      </div>
+
+      <div className="karaoke-maker__tool-group">
+        <Dropdown
+          name={t('karaoke.translation.picker')}
+          options={translationLanguages.map((code) => ({
+            value: code,
+            label:
+              code === KARAOKE_ORIGINAL_LANGUAGE
+                ? t('karaoke.translation.original')
+                : karaokeLanguageName(code),
+            display:
+              code === KARAOKE_ORIGINAL_LANGUAGE ? (
+                t('karaoke.translation.original')
+              ) : (
+                // `lang` so Chromium picks the right face per script: the Han
+                // characters are not the same shapes drawn Chinese or Japanese.
+                <span lang={code}>{karaokeLanguageName(code)}</span>
+              ),
+          }))}
+          value={translationLanguage}
+          isDisabled={false}
+          placement="down"
+          handleChange={setTranslationLanguage}
+        />
+        <KaraokeMakerToolbarButton
+          icon="remove"
+          label={t('karaoke.translation.remove')}
+          danger
+          disabled={translationLanguage === KARAOKE_ORIGINAL_LANGUAGE}
+          onClick={() => removeTranslation(translationLanguage)}
+        />
+        {/* Small and subtle: adding a language is not the recommended action
+            on a song that already has words, the way opening the lyrics editor
+            or timing a line is. */}
+        <button
+          type="button"
+          className="button small subtle"
+          onClick={openLyricsEditor}
+        >
+          {t('karaoke.translation.add')}
+        </button>
       </div>
 
       <div className="karaoke-maker__tool-group karaoke-maker__wide-edit-tools">
