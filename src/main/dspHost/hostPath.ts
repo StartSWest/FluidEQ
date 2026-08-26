@@ -22,7 +22,7 @@ import { existsSync } from 'fs';
 import path from 'path';
 
 export const DSP_HOST_EXECUTABLE =
-  process.platform === 'win32' ? 'fluideq-dsp-host.exe' : 'fluideq-dsp-host';
+  process.platform === 'win32' ? 'FluidEQ-DSP.exe' : 'FluidEQ-DSP';
 
 /**
  * `resourcesPath` is Electron's, not Node's.

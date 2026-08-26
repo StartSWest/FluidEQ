@@ -36,7 +36,7 @@ const HOST = path.join(
   'native',
   '.build',
   'bin',
-  process.platform === 'win32' ? 'fluideq-dsp-host.exe' : 'fluideq-dsp-host',
+  process.platform === 'win32' ? 'FluidEQ-DSP.exe' : 'FluidEQ-DSP',
 );
 
 let failures = 0;

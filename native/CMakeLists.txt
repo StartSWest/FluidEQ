@@ -114,6 +114,7 @@ add_test(NAME dsp-parity
 
 add_executable(fluideq-dsp-host
   dsp-host/src/main.cpp
+  dsp-host/src/decoders/pcm_decoder.cpp
 )
 target_link_libraries(fluideq-dsp-host PRIVATE fluideq-dsp-core feq_strict)
 
@@ -123,7 +124,14 @@ target_link_libraries(fluideq-dsp-host PRIVATE fluideq-dsp-core feq_strict)
 # that fails to link on macOS is a tree nobody notices breaking further.
 if(WIN32)
   target_sources(fluideq-dsp-host PRIVATE
-    dsp-host/src/platform/windows/wasapi_backend.cpp)
+    dsp-host/src/platform/windows/wasapi_backend.cpp
+    # The version resource, which is what Task Manager's Name column reads.
+    # Without it this is one more row saying "FluidEQ" in a tree of eight, and
+    # none of them says which is holding the memory.
+    dsp-host/src/platform/windows/host.rc)
+  set_source_files_properties(dsp-host/src/platform/windows/host.rc
+    PROPERTIES COMPILE_DEFINITIONS
+      "FEQ_HOST_VERSION_STRING=\"${FEQ_CORE_VERSION}\"")
   # Both ship with Windows. WASAPI is a user-mode COM API: no driver, no
   # kernel component, nothing to install and nothing to sign.
   target_link_libraries(fluideq-dsp-host PRIVATE ole32 avrt)
@@ -139,7 +147,14 @@ target_compile_definitions(fluideq-dsp-host PRIVATE
 # One known place for the build to leave the host, so the development runtime
 # and the packaging step both know where to look without either of them
 # guessing at a generator's directory layout.
+#
+# `FluidEQ-DSP` rather than the CMake target's name: this is the one process in
+# the tree that is not Electron, and a machine-readable name in Task Manager is
+# a name nobody reads. Electron's own children cannot be distinguished this way
+# — they are all one binary and share one file description — so this is the
+# only row in that list that can say what it actually is.
 set_target_properties(fluideq-dsp-host PROPERTIES
+  OUTPUT_NAME "FluidEQ-DSP"
   RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
   RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_BINARY_DIR}/bin"
   RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/bin"

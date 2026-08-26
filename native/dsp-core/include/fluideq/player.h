@@ -38,6 +38,16 @@ extern "C" {
 
 typedef struct FeqDecoderInfo {
   uint32_t sample_rate;
+  /**
+   * In AND out: the player fills this in with the count it wants before `open`
+   * is called, and the decoder must produce exactly that many.
+   *
+   * Leaving the fold-down to the player instead would give a different answer
+   * per decoder — a mono file duplicated across both channels is 3 dB louder
+   * than one that leaves the right silent, and both are defensible until two
+   * files in one playlist do different things. Only the decoder can see the
+   * file's own layout, so only the decoder can map it.
+   */
   uint32_t channels;
   /** Zero when the decoder cannot say — a stream rather than a file. */
   uint64_t total_frames;
@@ -58,7 +68,7 @@ typedef struct FeqDecoderOps {
   void* (*open)(void* user, const char* path, FeqDecoderInfo* info);
   void (*close)(void* user, void* handle);
   /**
-   * Planar, at the FILE's rate and channel count, into caller-owned buffers.
+   * Planar, at the FILE's rate and `info.channels` wide, into caller buffers.
    * Returns frames produced; fewer than asked for means end of file.
    */
   uint32_t (*read)(void* user, void* handle, float* const* channels,

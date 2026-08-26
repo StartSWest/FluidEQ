@@ -274,7 +274,7 @@
         "from": "native/.build/bin",
         "to": "native",
         "filter": [
-          "fluideq-dsp-host*"
+          "FluidEQ-DSP*"
         ]
       },
       {

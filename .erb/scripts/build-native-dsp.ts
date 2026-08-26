@@ -212,7 +212,7 @@ if (shouldTest) {
   }
 }
 
-const hostName = isWindows ? 'fluideq-dsp-host.exe' : 'fluideq-dsp-host';
+const hostName = isWindows ? 'FluidEQ-DSP.exe' : 'FluidEQ-DSP';
 const hostPath = path.join(BUILD_DIR, 'bin', hostName);
 if (!existsSync(hostPath)) {
   fail(`the host was not produced at ${hostPath}`);

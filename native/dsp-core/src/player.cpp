@@ -241,6 +241,9 @@ int feq_player_load(FeqPlayer* player, uint32_t deck_index, const char* path) {
   close_deck(player, deck);
 
   FeqDecoderInfo info{};
+  // Set before the call, not patched afterwards: the decoder needs to know
+  // what to produce, and only it can see the file's own layout.
+  info.channels = player->channels;
   void* handle = player->ops.open(player->ops.user, path, &info);
   if (handle == nullptr || info.sample_rate == 0 || info.channels == 0) {
     if (handle != nullptr) {
@@ -248,15 +251,6 @@ int feq_player_load(FeqPlayer* player, uint32_t deck_index, const char* path) {
     }
     return 0;
   }
-  /**
-   * The decoder is asked for the player's channel count, not the file's.
-   *
-   * Anything else pushes the fold-down into every decoder implementation, and
-   * they would not agree: a mono file duplicated to both channels is +3 dB
-   * against one that leaves the right silent, and both are defensible until
-   * two files in one playlist do different things.
-   */
-  info.channels = player->channels;
   deck.info = info;
   deck.handle = handle;
   deck.resampler = feq_resampler_create(
