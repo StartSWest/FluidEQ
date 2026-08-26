@@ -33,6 +33,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "fluideq/primitives.h"
 #include "fluideq/compressor.h"
 #include "fluideq/convolver.h"
+#include "fluideq/linear_phase.h"
 #include "fluideq/output_safety.h"
 #include "fluideq/post_filter_normalizer.h"
 #include "fluideq/limiter.h"
@@ -80,7 +81,8 @@ enum ProcessorId : uint32_t {
   kOrganic = 20,
   kOrganicPath = 21,
   kExciter = 22,
-  kConvolver = 23
+  kConvolver = 23,
+  kLinearPhase = 24
 };
 
 struct Fixture {
@@ -924,9 +926,66 @@ bool render_convolver(const Fixture& fixture, std::vector<float>& actual) {
   return true;
 }
 
+/**
+ * The linear-phase kernel, compared as a signal.
+ *
+ * Nothing is filtered here: the fixture's expectation IS the kernel, one
+ * channel of `FEQ_LINEAR_PHASE_KERNEL_SIZE` samples, and the input block is
+ * ignored. It is the only fixture whose subject is a design rather than a
+ * render, and it is worth having in this shape because the failure it guards
+ * against is a silent one — a kernel that is a few dB shallow, or rotated by
+ * the wrong half, still sounds like an equaliser.
+ *
+ * Layout: engine, model, model amount, subsonic Hz, band count, then one
+ * six-wide block per band matching `parse_rack`'s.
+ */
+bool render_linear_phase(const Fixture& fixture, std::vector<float>& actual) {
+  constexpr size_t kLead = 5;
+  if (fixture.params.size() < kLead) {
+    return false;
+  }
+  const auto band_count = static_cast<uint32_t>(fixture.params[4]);
+  if (fixture.params.size() !=
+      kLead + static_cast<size_t>(band_count) * kBandParams) {
+    return false;
+  }
+  if (fixture.channels != 1 ||
+      fixture.frames != FEQ_LINEAR_PHASE_KERNEL_SIZE) {
+    return false;
+  }
+
+  std::vector<FeqLinearPhaseBand> bands(band_count);
+  for (uint32_t band = 0; band < band_count; ++band) {
+    const size_t base = kLead + static_cast<size_t>(band) * kBandParams;
+    bands[band].enabled = 1;
+    bands[band].dynamic = fixture.params[base + 4] != 0.0 ? 1 : 0;
+    bands[band].type =
+        static_cast<FeqFilterType>(static_cast<int>(fixture.params[base]));
+    bands[band].frequency = fixture.params[base + 1];
+    bands[band].gain_db = fixture.params[base + 2];
+    bands[band].quality = fixture.params[base + 3];
+  }
+
+  FeqLinearPhaseRack rack;
+  rack.bands = bands.data();
+  rack.band_count = band_count;
+  rack.engine =
+      static_cast<FeqEqEngine>(static_cast<int>(fixture.params[0]));
+  rack.model = static_cast<FeqEqModel>(static_cast<int>(fixture.params[1]));
+  rack.model_amount = fixture.params[2];
+  rack.subsonic_hz = fixture.params[3];
+
+  actual.assign(FEQ_LINEAR_PHASE_KERNEL_SIZE, 0.0f);
+  feq_build_linear_phase_kernel(&rack, static_cast<double>(fixture.sample_rate),
+                                actual.data());
+  return true;
+}
+
 /** Run one fixture through the native engine, or say it cannot be run yet. */
 bool render(const Fixture& fixture, std::vector<float>& actual) {
   switch (fixture.processor) {
+    case kLinearPhase:
+      return render_linear_phase(fixture, actual);
     case kConvolver:
       return render_convolver(fixture, actual);
     case kExciter:

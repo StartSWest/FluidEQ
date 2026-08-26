@@ -119,6 +119,44 @@ FeqBiquadCoefficients feq_biquad_coefficients(FeqFilterType type,
   return out;
 }
 
+FeqBiquadCoefficients feq_biquad_coefficients_modelled(FeqFilterType type,
+                                                       double frequency,
+                                                       double gain_db,
+                                                       double quality,
+                                                       double sample_rate,
+                                                       FeqEqModel model,
+                                                       double amount) {
+  /**
+   * Nothing to model when there is no gain to shape.
+   *
+   * Every design collapses to the same filter at zero gain, and a notch has no
+   * gain to correct in the first place — the types listed here are the ones
+   * whose gain term is unused.
+   */
+  const bool no_gain = type == FEQ_FILTER_BP || type == FEQ_FILTER_LPQ ||
+                       type == FEQ_FILTER_HPQ || type == FEQ_FILTER_NO;
+  if (model == FEQ_EQ_MODEL_CLEAN || amount <= 0.0 || gain_db == 0.0 ||
+      no_gain) {
+    return feq_biquad_coefficients(type, frequency, gain_db, quality,
+                                   sample_rate);
+  }
+
+  if (model == FEQ_EQ_MODEL_PROPORTIONAL) {
+    const double narrowed =
+        quality * (1.0 + (std::fabs(gain_db) / 24.0) * 1.6 * amount);
+    return feq_biquad_coefficients(type, frequency, gain_db,
+                                   narrowed < 18.0 ? narrowed : 18.0,
+                                   sample_rate);
+  }
+
+  const bool is_shelf = type == FEQ_FILTER_LSC || type == FEQ_FILTER_HSC;
+  const double full = is_shelf ? 0.4 : 0.45;
+  const double broadened = quality * (1.0 - amount * (1.0 - full));
+  return feq_biquad_coefficients(type, frequency, gain_db,
+                                 broadened > 0.25 ? broadened : 0.25,
+                                 sample_rate);
+}
+
 void feq_biquad_reset(FeqBiquadState* state) {
   if (state == nullptr) {
     return;

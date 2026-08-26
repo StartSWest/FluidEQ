@@ -66,11 +66,39 @@ typedef struct FeqBiquadState {
   double y2;
 } FeqBiquadState;
 
+/**
+ * The EQ's character models, which reshape a band's Q rather than its curve.
+ *
+ * Matches `EQ_MODELS` in `chain.ts`. `clean` is the cookbook untouched;
+ * `proportional` narrows a band as it is driven, the way an active console EQ
+ * does; `wide` broadens it so neighbours blend into a tilt, the way a passive
+ * tone stack does. Shelves get `wide` harder than bells on purpose — a shallow
+ * shelf is most of what makes that style sound like itself.
+ */
+typedef enum FeqEqModel {
+  FEQ_EQ_MODEL_CLEAN = 0,
+  FEQ_EQ_MODEL_PROPORTIONAL = 1,
+  FEQ_EQ_MODEL_WIDE = 2
+} FeqEqModel;
+
+/** The cookbook, with no character model applied. */
 FeqBiquadCoefficients feq_biquad_coefficients(FeqFilterType type,
                                               double frequency,
                                               double gain_db,
                                               double quality,
                                               double sample_rate);
+
+/**
+ * With a character model. `amount` of zero collapses every model to the
+ * cookbook, so the dial reaches it at zero rather than at an arbitrary middle.
+ */
+FeqBiquadCoefficients feq_biquad_coefficients_modelled(FeqFilterType type,
+                                                       double frequency,
+                                                       double gain_db,
+                                                       double quality,
+                                                       double sample_rate,
+                                                       FeqEqModel model,
+                                                       double amount);
 
 void feq_biquad_reset(FeqBiquadState* state);
 

@@ -108,7 +108,17 @@ import {
   createBandDynamics,
   refreshBandDynamics,
 } from '../../src/renderer/dsp/dynamics';
-import type { TEqEngine } from '../../src/common/dsp/chain';
+import {
+  buildLinearPhaseKernel,
+  KERNEL_SIZE,
+} from '../../src/renderer/dsp/linearPhase';
+import { DSP_DEFAULTS, EQ_MODELS } from '../../src/common/dsp/chain';
+import type {
+  IEqSettings,
+  TEqEngine,
+  TEqModel,
+} from '../../src/common/dsp/chain';
+
 
 /**
  * The AudioWorklet global several of these modules fall back to.
@@ -172,6 +182,7 @@ enum ProcessorId {
   OrganicPath = 21,
   Exciter = 22,
   Convolver = 23,
+  LinearPhase = 24,
 }
 
 interface IRackBand {
@@ -1438,6 +1449,129 @@ const convolverKernel = (length: number, seed: number): Float32Array => {
     });
   });
 });
+
+/**
+ * The linear-phase kernel itself, compared sample for sample.
+ *
+ * Not a render: the input block is unused and the expectation IS the 16384-tap
+ * kernel. Every other fixture here would still pass if the kernel were a few dB
+ * shallow or rotated to the wrong half, because a wrong kernel still sounds
+ * like an equaliser — this is the only case that can tell.
+ *
+ * The Q-8 band at 50 Hz is deliberately present: it rings for about 51 ms and
+ * is the band that made 8192 taps return +6.12 dB where +9 was asked for, so it
+ * is where truncation shows up first. Both topologies are covered because
+ * parallel was once silently built as serial here, and both character models
+ * because they reshape Q before the impulse is ever run.
+ */
+const LINEAR_PHASE_RACKS: {
+  label: string;
+  model: TEqModel;
+  modelAmount: number;
+  subsonicHz: number;
+  bands: IRackBand[];
+}[] = [
+  {
+    label: 'three-band',
+    model: 'clean',
+    modelAmount: 1,
+    subsonicHz: 0,
+    bands: RACKS[0].bands,
+  },
+  {
+    label: 'ten-band-subsonic',
+    model: 'clean',
+    modelAmount: 1,
+    subsonicHz: 30,
+    bands: RACKS[1].bands,
+  },
+  {
+    // A dynamic band beside a static one: the dynamic band must be left OUT of
+    // the kernel and the static one kept, and a port that filtered on the
+    // wrong side of that predicate would produce a plausible kernel with one
+    // band too many.
+    label: 'dynamic-excluded',
+    model: 'clean',
+    modelAmount: 1,
+    subsonicHz: 0,
+    bands: RACKS[2].bands,
+  },
+  {
+    label: 'narrow-low-proportional',
+    model: 'proportional',
+    modelAmount: 0.75,
+    subsonicHz: 20,
+    bands: [
+      { type: FilterTypeEnum.PK, frequency: 50, gainDb: 9, quality: 8 },
+      { type: FilterTypeEnum.HSC, frequency: 8000, gainDb: -4, quality: 0.707 },
+    ],
+  },
+  {
+    label: 'wide',
+    model: 'wide',
+    modelAmount: 1,
+    subsonicHz: 0,
+    bands: [
+      { type: FilterTypeEnum.LSC, frequency: 120, gainDb: 6, quality: 0.9 },
+      { type: FilterTypeEnum.PK, frequency: 2500, gainDb: -5, quality: 2 },
+    ],
+  },
+];
+
+LINEAR_PHASE_RACKS.forEach((rack) => {
+  ENGINES.forEach((engine) => {
+    const eq: IEqSettings = {
+      ...DSP_DEFAULTS.eq,
+      engine,
+      model: rack.model,
+      modelAmount: rack.modelAmount,
+      subsonicHz: rack.subsonicHz,
+      phase: 'linear',
+      bands: rack.bands.map((band) => ({
+        enabled: true,
+        dynamic: band.dynamic === true,
+        thresholdDb: band.thresholdDb ?? -24,
+        type: band.type,
+        frequency: band.frequency,
+        gainDb: band.gainDb,
+        quality: band.quality,
+      })) as IEqSettings['bands'],
+    };
+    [44100, 48000].forEach((sampleRate) => {
+      fixtures.push({
+        name: `linear-phase/${rack.label}/${engine}/${sampleRate}`,
+        processor: ProcessorId.LinearPhase,
+        sampleRate,
+        params: [
+          ENGINES.indexOf(engine),
+          EQ_MODELS.indexOf(rack.model),
+          rack.modelAmount,
+          rack.subsonicHz,
+          rack.bands.length,
+          ...rack.bands.flatMap((band) => [
+            FILTER_TYPE_ORDER.indexOf(band.type),
+            band.frequency,
+            band.gainDb,
+            band.quality,
+            band.dynamic === true ? 1 : 0,
+            band.thresholdDb ?? -24,
+          ]),
+        ],
+        // Unused by the runner, and zero rather than noise so that a port which
+        // accidentally read it would produce silence instead of something that
+        // happened to correlate.
+        input: [new Float32Array(KERNEL_SIZE)],
+        expected: [buildLinearPhaseKernel(eq, sampleRate)],
+        // Two 16384-point transforms, and a tap's magnitude out at the skirts
+        // is around 1e-5. Tighter than the convolver's because nothing is
+        // accumulated across blocks here.
+        maxAbsTolerance: 2e-6,
+        rmsTolerance: 2e-8,
+      });
+    });
+  });
+});
+
 
 rmSync(OUTPUT, { recursive: true, force: true });
 mkdirSync(OUTPUT, { recursive: true });
