@@ -208,6 +208,33 @@ export const sheetLines = (
     : { lines: project.lyrics.lines, language: project.lyrics.language };
 };
 
+/**
+ * Every other language's lines, restamped with the original's own line ids.
+ *
+ * `project.lyrics.translations` sheets are built by `seedKaraokeTranslation`
+ * as a 1:1 map over `project.lyrics.lines` — same count, same order, section
+ * markers included — but each translated line gets a freshly generated id of
+ * its own, minted from the paste it was seeded from. Copying the original
+ * line's id onto the translated line at the same position is what lets the
+ * player find "the Spanish line that goes under this English line" with a
+ * single Map lookup by id, rather than assuming the two playable-line arrays
+ * stay the same length after `makePlayableLines` independently drops
+ * whichever ones came out empty on either side.
+ */
+const makePlayableTranslations = (
+  project: IKaraokeMakerProject,
+): { language: string; lines: IKaraokeLine[] }[] =>
+  (project.lyrics.translations ?? []).map((sheet) => ({
+    language: sheet.language,
+    lines: makePlayableLines(
+      project,
+      sheet.lines.map((line, index) => ({
+        ...line,
+        id: project.lyrics.lines[index]?.id ?? line.id,
+      })),
+    ),
+  }));
+
 export const karaokeMakerProjectToSong = (
   project: IKaraokeMakerProject,
   audioAsset: IKaraokeAsset,
@@ -235,6 +262,21 @@ export const karaokeMakerProjectToSong = (
     assets,
     timingPrecision: notes.length ? 'syllable' : 'word',
     lines,
+    // Undefined rather than [] for a project with none, matching
+    // `removeKaraokeTranslation`'s own convention: a song that never had a
+    // translation and one that just lost its last both parse the same way,
+    // and the player's picker reads `song.translations?.length` to decide
+    // whether to show itself at all.
+    //
+    // Built unconditionally, independent of `options.language` above: the
+    // two are different questions. `options.language` is which single sheet
+    // this song's own `lines` plays as — unset for every real caller today,
+    // per this function's own doc comment — while `translations` is every
+    // *other* sheet available to show alongside whichever one that turned
+    // out to be.
+    translations: project.lyrics.translations?.length
+      ? makePlayableTranslations(project)
+      : undefined,
     pitch: notes.length
       ? {
           kind: 'notes',

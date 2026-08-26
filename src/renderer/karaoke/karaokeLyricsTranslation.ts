@@ -1,0 +1,203 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+import { IKaraokeLine } from '../../common/karaoke/types';
+import {
+  clamp,
+  groupKaraokeTokensIntoWords,
+  karaokeVisualWordDisplayText,
+  LYRIC_FONT_FAMILY,
+} from './karaokeLyricText';
+
+/**
+ * The player's second lyric row: one quiet, line-level label under whichever
+ * language is currently focused, painted without the original's per-word
+ * highlight.
+ *
+ * No highlight, ever, on purpose. `KaraokeLyrics.tsx` times its progress fill
+ * to the Nth *original* word, and a translation's word order is not the
+ * original's — the third Spanish word is routinely not what is being sung
+ * when the third English word lights up. A wrong highlight reads as
+ * confident and is worse than none, so this row paints static text only, the
+ * same rule Task 9 wrote into the Maker's own
+ * `makerCanvas/paintTranslation.ts`.
+ *
+ * The other half of that task's lesson is what this module exists to keep out
+ * of `KaraokeLyrics.tsx`'s own draw loop: a second row of text is a budgeted
+ * addition to the lane it sits under, never whatever height that lane
+ * happened to have left over. `karaokeLyricsTranslationBudget` is the budget;
+ * the caller adds its `rowHeight` to `rowSpacing` once per frame, before any
+ * line is measured or placed, so every visible line's slot grows by the same
+ * fixed amount regardless of which one is actually focused that frame.
+ */
+
+/**
+ * Mirrors `$weight-regular` (400) in `_theme.scss`. A canvas `font` string
+ * takes a plain number, not a Sass variable, so this is the same scale
+ * spelled for a context that cannot import it — and never past
+ * `$weight-bold`, the ceiling this project measured at UI sizes before 800
+ * and 900 turned into `Segoe UI Black`. The original row already reaches for
+ * 720-900; staying at the scale's lightest weight is what makes this one read
+ * as quieter rather than merely smaller.
+ */
+const TRANSLATION_FONT_WEIGHT = 400;
+
+/**
+ * Reused, not invented: the same quiet secondary tone
+ * `.karaoke-maker__lyrics-line-number` in Karaoke.scss already uses for a
+ * line's own metadata, and the exact value the Maker's own
+ * `makerCanvas/paintTranslation.ts` reused for the same reason.
+ */
+const TRANSLATION_TEXT_COLOR = 'rgba(169, 204, 216, 0.58)';
+
+export interface IKaraokeLyricsTranslationBudget {
+  /** This row's own font size, fixed for the frame — see the module doc. */
+  fontSize: number;
+  /** Clearance between the original line's own bottom edge and this row. */
+  gap: number;
+  /**
+   * How much this frame's `rowSpacing` must grow by. Added once, outside the
+   * per-line loop, so it is the same for every visible line regardless of
+   * which one is focused — see the module doc comment.
+   */
+  rowHeight: number;
+}
+
+/**
+ * Budgeted off the same `width`/`rowSpacing` the original lyric geometry
+ * already scales by, never a literal painted for one particular pitch: a
+ * resized window, or the reader's own text-size slider, changes this exactly
+ * as it changes everything else in `KaraokeLyrics.tsx`.
+ */
+export const karaokeLyricsTranslationBudget = (
+  width: number,
+  rowSpacing: number,
+  textScale: number,
+): IKaraokeLyricsTranslationBudget => {
+  // 10-13px: close to the original row's own smallest resting size
+  // (12-17px, see KaraokeLyrics.tsx), which is what "as quiet as a line
+  // already at rest" looks like. Always well under the original's focused
+  // range (22-38px), so the two rows never compete for attention.
+  const fontSize = clamp(width * 0.0105, 10, 13) * textScale;
+  // 3-8px, a fraction of the row the lines already scale by — grows and
+  // shrinks with the same 38-96px range `rowSpacing` is clamped to.
+  const gap = clamp(rowSpacing * 0.08, 3, 8);
+  return { fontSize, gap, rowHeight: gap + fontSize * 1.2 };
+};
+
+/**
+ * Every translatable line's plain text, keyed by the id the original line at
+ * the same position was stamped with — see `song.ts`'s
+ * `karaokeMakerProjectToSong` for why the ids match.
+ *
+ * Built once per selected sheet rather than once per frame: sixty times a
+ * second across up to seven visible lines is a lot of token-joining for text
+ * that only changes when the picker does.
+ *
+ * Section markers are excluded. They carry the same bracketed label in every
+ * sheet, so a second copy of "[Chorus]" under the first would be noise, not a
+ * translation.
+ */
+export const karaokeLyricsTranslationTextById = (
+  lines: readonly IKaraokeLine[],
+): Map<string, string> => {
+  const textById = new Map<string, string>();
+  lines.forEach((line) => {
+    if (line.kind === 'section') {
+      return;
+    }
+    const words = groupKaraokeTokensIntoWords(line.tokens);
+    let text = '';
+    words.forEach((word, index) => {
+      text += karaokeVisualWordDisplayText(word, index, words[index - 1]);
+    });
+    if (text) {
+      textById.set(line.id, text);
+    }
+  });
+  return textById;
+};
+
+export interface IKaraokeLyricsTranslationLineInput {
+  context: CanvasRenderingContext2D;
+  /** Canvas width in CSS pixels, for centring and the overflow fit below. */
+  width: number;
+  /** The original line's own vertical centre this frame. */
+  y: number;
+  /**
+   * The original line's own rendered font size this frame, after its
+   * overflow fit — where this row starts is relative to what is actually on
+   * screen above it, not to the budget's worst case.
+   */
+  originalFontSize: number;
+  budget: IKaraokeLyricsTranslationBudget;
+  /**
+   * The original line's own fade — distance-from-centre, entrance, both —
+   * reused so the translation dims and enters with the line it belongs to.
+   */
+  alpha: number;
+  text: string;
+}
+
+/**
+ * One translated line, line-level and unhighlighted — see the module doc for
+ * why. Horizontally centred on its own measured width, independent of where
+ * the original text starts: a translation is routinely a different length
+ * than the words above it, and anchoring it to the original's own left edge
+ * would put it off-centre under its own line.
+ */
+export const paintKaraokeLyricsTranslationLine = ({
+  context,
+  width,
+  y,
+  originalFontSize,
+  budget,
+  alpha,
+  text,
+}: IKaraokeLyricsTranslationLineInput): void => {
+  if (!text || alpha <= 0) {
+    return;
+  }
+  context.save();
+  context.globalAlpha = alpha;
+  context.textAlign = 'center';
+  context.textBaseline = 'middle';
+  context.fillStyle = TRANSLATION_TEXT_COLOR;
+  let { fontSize } = budget;
+  context.font = `${TRANSLATION_FONT_WEIGHT} ${fontSize}px ${LYRIC_FONT_FAMILY}`;
+  const textWidth = context.measureText(text).width;
+  // Matches the original line's own overflow fit in KaraokeLyrics.tsx: shrink
+  // to the available width rather than clip mid-word. The vertical placement
+  // below stays keyed to `budget.fontSize`, not this shrunk value, so a long
+  // translation never nudges this row's own height and drifts it against the
+  // next line.
+  const availableWidth = Math.max(1, width - 40);
+  if (textWidth > availableWidth) {
+    fontSize = Math.max(1, fontSize * (availableWidth / textWidth));
+    context.font = `${TRANSLATION_FONT_WEIGHT} ${fontSize}px ${LYRIC_FONT_FAMILY}`;
+  }
+  // 0.68 is the original line's own half-height, the same fraction
+  // KaraokeLyrics.tsx already uses to size that line's hit region
+  // (`y - fontSize * 0.68` / `y + fontSize * 0.68`) -- reused here rather
+  // than re-derived, so this row starts exactly where that hit region ends.
+  // 0.6 is this row's own half-height, at `textBaseline: 'middle'`.
+  const translationY =
+    y + originalFontSize * 0.68 + budget.gap + budget.fontSize * 0.6;
+  context.fillText(text, width / 2, translationY);
+  context.restore();
+};

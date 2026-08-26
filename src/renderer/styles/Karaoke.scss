@@ -1589,6 +1589,66 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
+// Anchored at the lyrics canvas's own bottom-right corner rather than beside
+// the header controls in KaraokeWorkspace.tsx: KaraokeLyrics.tsx owns this
+// picker entirely -- it reads song.translations off its own `song` prop, so
+// the control lives everywhere the canvas does. Bottom-right, opposite the
+// centred follow button below and clear of the top edge, where the Maker's
+// own compact preview draws its capture-guide overlay
+// (.karaoke-maker-preview__capture-guide) across nearly the full width.
+.karaoke-lyrics__translation-picker {
+  position: absolute;
+  z-index: 5;
+  right: 8px;
+  bottom: 8px;
+  display: grid;
+  justify-items: end;
+  gap: 4px;
+}
+
+// Same failure LanguagePicker.scss and KaraokeMakerToolbar's own translation
+// picker already document: left alone, the trigger draws the app's
+// field-surface box at $control-height (38px), taller than every other
+// floating chip on this canvas -- the follow button beside it is 28px. Colours
+// and sizing are copied from `.karaoke-lyrics__follow` rather than reached for
+// from the generic field tokens, so the two chips read as one family. The
+// portalled menu is untouched: it is meant to look like every other
+// Dropdown's menu.
+.karaoke-lyrics__translation-picker .dropdown > [role='menu'] {
+  min-height: 28px;
+  padding: 4px 9px;
+  color: rgba($primary-lighter, 0.78);
+  border: 1px solid rgba($secondary-default, 0.34);
+  border-radius: $radius-xs;
+  background: rgba(#071522, 0.9);
+  box-shadow:
+    0 5px 16px rgba($black, 0.3),
+    0 0 14px rgba($secondary-default, 0.08);
+  backdrop-filter: blur(8px);
+  font-size: 0.6rem;
+
+  &:hover:not([aria-disabled='true']),
+  &:focus-visible {
+    color: $secondary-light;
+    border-color: rgba($secondary-default, 0.65);
+    background: rgba(#0d2635, 0.96);
+  }
+}
+
+// A selected language whose sheet has no lines yet must say so rather than
+// paint nothing on the canvas below -- this is that sentence.
+.karaoke-lyrics__translation-empty {
+  max-width: 200px;
+  margin: 0;
+  padding: 3px 8px;
+  color: rgba($primary-lighter, 0.6);
+  border-radius: $radius-xs;
+  background: rgba(#071522, 0.82);
+  font-size: 0.56rem;
+  text-align: right;
+  backdrop-filter: blur(6px);
+}
+
 .karaoke-lyrics--empty {
   display: flex;
   width: 100%;

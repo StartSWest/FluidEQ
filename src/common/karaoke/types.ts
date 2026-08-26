@@ -95,6 +95,18 @@ export interface IKaraokeSong {
   assets: IKaraokeAsset[];
   timingPrecision: TKaraokeTimingPrecision;
   lines: IKaraokeLine[];
+  /**
+   * Every other language's lines, alongside `lines` rather than instead of it.
+   *
+   * The player shows two languages at once — the original being sung and a
+   * translation underneath it — so one flat `lines` array cannot hold what it
+   * needs; `meta.language` is already a single tag, not a list. The
+   * alternative was calling `karaokeMakerProjectToSong` a second time, once
+   * per language, but that hands the player two independent songs it would
+   * then have to keep in step by hand — same duration, same pitch track, same
+   * assets — rather than one song that already knows its own alternates.
+   */
+  translations?: { language: string; lines: IKaraokeLine[] }[];
   pitch: TKaraokePitchTarget;
   meta: {
     /** Open provider id. Import adapters must not require a renderer change. */

@@ -20,13 +20,17 @@ import {
   KeyboardEvent as ReactKeyboardEvent,
   PointerEvent as ReactPointerEvent,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from 'react';
 import { findActiveKaraokeLine } from '../../common/karaoke/clock';
 import { IKaraokeSong } from '../../common/karaoke/types';
+import { KARAOKE_ORIGINAL_LANGUAGE } from '../../common/karaoke/makerProject';
 import MenuIcon from '../icons/MenuIcon';
+import Dropdown from '../widgets/Dropdown';
 import { useTranslation } from '../utils/I18nContext';
+import { karaokeLanguageName } from './karaokeLanguageName';
 import {
   DEFAULT_LYRIC_TEXT_SIZE,
   EUPHORIA_SWEEP_TIME_MS,
@@ -39,6 +43,11 @@ import {
   karaokeVisualWordDisplayText,
   karaokeVisualWordProgressWidth,
 } from './karaokeLyricText';
+import {
+  karaokeLyricsTranslationBudget,
+  karaokeLyricsTranslationTextById,
+  paintKaraokeLyricsTranslationLine,
+} from './karaokeLyricsTranslation';
 
 interface IKaraokeLyricsProps {
   song: IKaraokeSong;
@@ -95,6 +104,9 @@ interface ILyricDrawState {
   waitStartMs?: number;
   /** The word under the last beat of the count, in the reader's language. */
   singLabel: string;
+  /** Undefined means "no translation row this frame" -- either the song has
+   * none or the picker is on "as recorded". */
+  translationTextById?: Map<string, string>;
 }
 
 interface ILyricMotionState {
@@ -169,6 +181,40 @@ const KaraokeLyrics = ({
   }
   const textSizeRef = useRef(textSize);
   textSizeRef.current = textSize;
+  // Never compared against directly to detect the original: a project that
+  // declares a language (every UltraStar import does) uses that real tag
+  // instead, and this sentinel is only the fallback for one that never did.
+  // Mirrors `KaraokeMakerToolbar.tsx`'s own `originalLanguage`.
+  const originalLanguage = song.meta.language ?? KARAOKE_ORIGINAL_LANGUAGE;
+  const translations = song.translations ?? [];
+  const hasTranslations = translations.length > 0;
+  const [translationLanguage, setTranslationLanguage] =
+    useState(originalLanguage);
+  // Reset synchronously with the incoming song, same as entranceStateRef
+  // above: a stale language tag left over from the previous song would
+  // either paint the wrong translation for one frame or fail to find a sheet
+  // at all before this could otherwise run as an effect.
+  const translationSongIdRef = useRef(song.id);
+  if (translationSongIdRef.current !== song.id) {
+    translationSongIdRef.current = song.id;
+    setTranslationLanguage(originalLanguage);
+  }
+  const activeTranslationSheet =
+    translationLanguage === originalLanguage
+      ? undefined
+      : translations.find((entry) => entry.language === translationLanguage);
+  const isTranslationRowActive = activeTranslationSheet !== undefined;
+  const isSelectedTranslationEmpty =
+    isTranslationRowActive && activeTranslationSheet.lines.length === 0;
+  // Rebuilt only when the selected sheet itself changes, not every frame —
+  // see karaokeLyricsTranslation.ts's own doc comment on why.
+  const translationTextById = useMemo(
+    () =>
+      activeTranslationSheet
+        ? karaokeLyricsTranslationTextById(activeTranslationSheet.lines)
+        : undefined,
+    [activeTranslationSheet],
+  );
   const detectedActiveIndex = findActiveKaraokeLine(song.lines, playheadMs);
   const requestedActiveIndex = activeLineId
     ? song.lines.findIndex((line) => line.id === activeLineId)
@@ -246,6 +292,7 @@ const KaraokeLyrics = ({
     activeIndex,
     centerIndex,
     singLabel: t('karaoke.countdown.sing'),
+    translationTextById,
   });
   drawStateRef.current = {
     song,
@@ -255,6 +302,7 @@ const KaraokeLyrics = ({
     nextStartMs: isSinging ? undefined : nextLyric?.startMs,
     waitStartMs,
     singLabel: t('karaoke.countdown.sing'),
+    translationTextById,
   };
 
   useEffect(() => {
@@ -286,6 +334,7 @@ const KaraokeLyrics = ({
         playheadMs: currentPlayheadMs,
         activeIndex: currentActiveIndex,
         centerIndex: targetCenterIndex,
+        translationTextById: currentTranslationTextById,
       } = drawStateRef.current;
       const bounds = canvas.getBoundingClientRect();
       const width = Math.max(1, bounds.width);
@@ -350,7 +399,7 @@ const KaraokeLyrics = ({
 
       const centerY = height * 0.5;
       const textScale = textSizeRef.current / 100;
-      const rowSpacing = clamp(
+      const baseRowSpacing = clamp(
         Math.max(height * 0.155, 38) * textScale,
         38,
         96,
@@ -359,6 +408,17 @@ const KaraokeLyrics = ({
       // drew a visible box across the stage, which fought the artwork behind
       // it and framed a line that already stands out by being the only bright
       // one. Emphasis here is the lyric's own colour and glow, not a plate.
+
+      // Budgeted once per frame, outside the per-line loop below, so every
+      // visible line's slot grows by the same fixed amount regardless of
+      // which one is focused this frame -- never the leftover space between
+      // two lines sized only for the original, which is the "three waveforms
+      // in a 27px strip" bug this project already shipped once. See
+      // karaokeLyricsTranslation.ts's own doc comment.
+      const translationBudget = currentTranslationTextById
+        ? karaokeLyricsTranslationBudget(width, baseRowSpacing, textScale)
+        : undefined;
+      const rowSpacing = baseRowSpacing + (translationBudget?.rowHeight ?? 0);
 
       const first = Math.max(0, Math.floor(animatedCenter) - 3);
       const last = Math.min(
@@ -590,6 +650,25 @@ const KaraokeLyrics = ({
         }
         context.restore();
 
+        // Line-level, unhighlighted, budgeted rather than squeezed into
+        // whatever this row had left over -- see karaokeLyricsTranslation.ts's
+        // module doc. Sections carry the same bracketed label in every sheet,
+        // so they never get a second row of their own.
+        const translationText = isSection
+          ? undefined
+          : currentTranslationTextById?.get(line.id);
+        if (translationBudget && translationText) {
+          paintKaraokeLyricsTranslationLine({
+            context,
+            width,
+            y,
+            originalFontSize: fontSize,
+            budget: translationBudget,
+            alpha,
+            text: translationText,
+          });
+        }
+
         let hitRegion = hitRegions[hitRegionCount];
         if (!hitRegion) {
           hitRegion = {
@@ -608,7 +687,11 @@ const KaraokeLyrics = ({
         hitRegion.left = textLeft;
         hitRegion.right = textLeft + textWidth;
         hitRegion.top = y - fontSize * 0.68;
-        hitRegion.bottom = y + fontSize * 0.68;
+        // Extended by the same budget the translation row reserved below this
+        // line: that dead space still belongs to this line, not to whichever
+        // neighbour happens to be closest under the pointer.
+        hitRegion.bottom =
+          y + fontSize * 0.68 + (translationBudget?.rowHeight ?? 0);
         hitRegionCount += 1;
       }
       hitRegions.length = hitRegionCount;
@@ -787,6 +870,36 @@ const KaraokeLyrics = ({
     );
   }
 
+  // A language switched while singing cannot be two clicks deep, so this
+  // lives beside the canvas rather than in the transport menu. Gated on
+  // `showFollowButton`, the same flag `KaraokeMakerPreview.tsx` already
+  // passes `false` to keep its compact live-preview stage free of floating
+  // chrome -- and during a capture guide that stage draws its own overlay
+  // across nearly the full top edge (`.karaoke-maker-preview__capture-guide`
+  // in Karaoke.scss), which a second corner control would otherwise fight
+  // for room with.
+  const showTranslationPicker = showFollowButton && hasTranslations;
+  const translationPickerOptions = hasTranslations
+    ? [
+        {
+          value: originalLanguage,
+          label: t('karaoke.translation.original'),
+          display: t('karaoke.translation.original'),
+        },
+        ...translations.map((entry) => ({
+          value: entry.language,
+          label: karaokeLanguageName(entry.language),
+          // `lang` so Chromium picks the right face per script: the Han
+          // characters are not the same shapes drawn Chinese or Japanese.
+          display: (
+            <span lang={entry.language}>
+              {karaokeLanguageName(entry.language)}
+            </span>
+          ),
+        })),
+      ]
+    : [];
+
   return (
     <div
       className={`karaoke-lyrics-shell${isFollowing ? '' : ' is-browsing'}`}
@@ -806,6 +919,23 @@ const KaraokeLyrics = ({
         onPointerDown={onCanvasPointerDown}
         onKeyDown={onCanvasKeyDown}
       />
+      {showTranslationPicker && (
+        <div className="karaoke-lyrics__translation-picker">
+          <Dropdown
+            name={t('karaoke.translation.picker')}
+            options={translationPickerOptions}
+            value={translationLanguage}
+            isDisabled={false}
+            placement="up"
+            handleChange={setTranslationLanguage}
+          />
+          {isSelectedTranslationEmpty && (
+            <p className="karaoke-lyrics__translation-empty">
+              {t('karaoke.translation.empty')}
+            </p>
+          )}
+        </div>
+      )}
       {showFollowButton && !isFollowing && (
         <button
           type="button"
