@@ -26,6 +26,14 @@ import {
   ICanvasLyricWord,
   IMakerCanvasTranslationRow,
 } from '../makerCanvasTypes';
+// The corrected stack, not the one the painters around this file still carry:
+// Inter has never been bundled, so naming it resolves to nothing and every
+// size here would have been tuned against a font that was never on screen.
+// `check-styles.ts` reads stylesheets and cannot see a font named in
+// TypeScript, which is why this went unnoticed there for the life of the
+// project. The sibling that paints this same row in the player
+// (`karaokeLyricsTranslation.tsx`) already reaches for exactly this.
+import { LYRIC_FONT_FAMILY } from '../karaokeLyricText';
 
 // The last original lane's boundary-drag hit region is a fixed touch
 // target (WORD_BOUNDARY_HANDLE_REACH, see makerCanvasGeometry.ts) — not a
@@ -119,7 +127,7 @@ export const paintLyricTranslationLine = (
 
   context.save();
   context.textBaseline = 'middle';
-  context.font = `${CANVAS_WEIGHT_REGULAR} 11px Inter, system-ui, sans-serif`;
+  context.font = `${CANVAS_WEIGHT_REGULAR} 11px ${LYRIC_FONT_FAMILY}`;
   const measuredWidth = context.measureText(text).width;
   const naturalCenterX = (rawLeft + rawRight) / 2;
   const centerX = Math.max(
@@ -130,7 +138,7 @@ export const paintLyricTranslationLine = (
   context.fillStyle = TRANSLATION_TEXT_COLOR;
   context.fillText(text, centerX, centerY);
 
-  context.font = `${CANVAS_WEIGHT_SEMIBOLD} 10px Inter, system-ui, sans-serif`;
+  context.font = `${CANVAS_WEIGHT_SEMIBOLD} 10px ${LYRIC_FONT_FAMILY}`;
   const fitWidth = context.measureText(fitLabel).width;
   context.textAlign = 'left';
   context.fillStyle = fitOk ? FIT_OK_COLOR : FIT_MISMATCH_COLOR;
