@@ -35,7 +35,8 @@ const GRID_HZ: [number, string][] = [
   [3_000, '3k'],
   [10_000, '10k'],
 ];
-const PEAK_EVENT_HOLD_MS = 900;
+const PEAK_EVENT_HOLD_MS = 2_500;
+const DC_EVENT_HOLD_MS = 2_500;
 const APPLIED_LINE_SMOOTHING_MS = 160;
 
 interface IPeakEvent {
@@ -67,12 +68,13 @@ const DspMasterGraph = ({
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const binsRef = useRef(new Float32Array(0));
   const peakEventTimerRef = useRef<number | undefined>(undefined);
+  const dcEventTimerRef = useRef<number | undefined>(undefined);
   const appliedGainTargetRef = useRef(0);
   const appliedGainDisplayRef = useRef(0);
   const appliedGainPaintAtRef = useRef(0);
   const [heldPeakEvent, setHeldPeakEvent] = useState<IPeakEvent | undefined>();
-  const autoHeadroomActive =
-    master.enabled && (master.autoHeadroom || master.loudnessMaximize);
+  const [heldDcCorrectionDb, setHeldDcCorrectionDb] = useState(-120);
+  const autoHeadroomActive = master.enabled && master.loudnessMaximize;
   const effectiveCeiling = autoHeadroomActive ? master.ceilingDb : 0;
   const trimDb = master.enabled ? master.outputTrimDb + loudnessGainDb : 0;
   const autoGainReductionDb = meter.postFilterNormalizer.gainReductionDb;
@@ -93,7 +95,7 @@ const DspMasterGraph = ({
   const autoReducing = autoGainReductionDb < -0.05;
   const safetyReducing = safetyGainReductionDb < -0.05;
   const reducing = autoReducing || safetyReducing;
-  const dcFixed = meter.dcCorrectionDb > DC_REPORT_THRESHOLD_DB;
+  const dcFixed = heldDcCorrectionDb > DC_REPORT_THRESHOLD_DB;
   const faults = meter.repairedSamples;
   let currentPeakEvent: IPeakEvent | undefined;
   if (autoReducing) {
@@ -151,9 +153,28 @@ const DspMasterGraph = ({
       if (peakEventTimerRef.current !== undefined) {
         window.clearTimeout(peakEventTimerRef.current);
       }
+      if (dcEventTimerRef.current !== undefined) {
+        window.clearTimeout(dcEventTimerRef.current);
+      }
     },
     [],
   );
+
+  useEffect(() => {
+    if (meter.dcCorrectionDb <= DC_REPORT_THRESHOLD_DB) {
+      return;
+    }
+    setHeldDcCorrectionDb((previous) =>
+      Math.max(previous, meter.dcCorrectionDb),
+    );
+    if (dcEventTimerRef.current !== undefined) {
+      window.clearTimeout(dcEventTimerRef.current);
+    }
+    dcEventTimerRef.current = window.setTimeout(() => {
+      setHeldDcCorrectionDb(-120);
+      dcEventTimerRef.current = undefined;
+    }, DC_EVENT_HOLD_MS);
+  }, [meter.dcCorrectionDb]);
 
   const displayedPeakEvent = heldPeakEvent ?? currentPeakEvent;
   let peakStatusClass = 'is-safe';
@@ -408,7 +429,7 @@ const DspMasterGraph = ({
         <span className={dcFixed ? 'is-fixed' : 'is-safe'}>
           {dcFixed
             ? t('dsp.master.graph.dcFixed', {
-                amount: displayDbfs(meter.dcCorrectionDb),
+                amount: displayDbfs(heldDcCorrectionDb),
               })
             : t('dsp.master.graph.dcClean')}
         </span>

@@ -8,12 +8,6 @@ import { useEffect, useRef, useState } from 'react';
 import log from 'electron-log/renderer';
 import { IDspSettings } from '../../common/dsp/chain';
 import {
-  advanceHeadroom,
-  createAdaptiveHeadroom,
-  excessDb,
-} from './adaptiveHeadroom';
-import { TRIM_MARGIN_DB, curveResponseDb } from './rack';
-import {
   IAudioGraphContext,
   IAudioNodeLike,
   IDspGraph,
@@ -30,7 +24,6 @@ import {
   setDspBandLevels,
   setDspChannelPeaks,
   setDspCorrelation,
-  setDspHeadroomGiveBack,
   setDspScatter,
   setDspEngineState,
   setDspPeak,
@@ -57,21 +50,36 @@ const workletUrl = (): URL =>
 let inputGainPort: MessagePort | undefined;
 let pendingInputGainDb = 0;
 let pendingMasterLoudnessGainDb = 0;
+let pendingInputTrackId = '';
 
-/** Queue the next track's gain before its media element is allowed to play. */
-export const setDspInputGainDb = (gainDb: number): void => {
-  pendingInputGainDb = Number.isFinite(gainDb)
-    ? Math.min(12, Math.max(-48, gainDb))
-    : 0;
-  inputGainPort?.postMessage({ inputGainDb: pendingInputGainDb });
+/** Flush source-bound delay before a new track's gain can reach the worklet. */
+export const setDspInputTrackId = (trackId: string): void => {
+  pendingInputTrackId = trackId;
+  inputGainPort?.postMessage({ masterPeakHoldTrackId: pendingInputTrackId });
 };
 
-export const setDspMasterLoudnessGainDb = (gainDb: number): void => {
-  pendingMasterLoudnessGainDb = Number.isFinite(gainDb)
-    ? Math.min(12, Math.max(0, gainDb))
+/**
+ * Update the source normalizer and its final LUFS compensation atomically.
+ *
+ * They describe one track-level decision. Sending them independently lets an
+ * audio quantum observe only half of that decision and, more importantly,
+ * gives two different-size dB ramps different finish times.
+ */
+export const setDspTrackLevelGains = (
+  inputGainDb: number,
+  masterLoudnessGainDb: number,
+): void => {
+  pendingInputGainDb = Number.isFinite(inputGainDb)
+    ? Math.min(12, Math.max(-48, inputGainDb))
+    : 0;
+  pendingMasterLoudnessGainDb = Number.isFinite(masterLoudnessGainDb)
+    ? Math.min(12, Math.max(0, masterLoudnessGainDb))
     : 0;
   inputGainPort?.postMessage({
-    masterLoudnessGainDb: pendingMasterLoudnessGainDb,
+    trackLevelGains: {
+      inputGainDb: pendingInputGainDb,
+      masterLoudnessGainDb: pendingMasterLoudnessGainDb,
+    },
   });
 };
 
@@ -107,7 +115,7 @@ interface IEngineState {
  * one. Past that point, `fallBackToDirectOutput` is the safety net.
  */
 export const useDspEngine = (
-  element: HTMLAudioElement | undefined,
+  elements: readonly HTMLAudioElement[],
   settings: IDspSettings,
 ): IEngineState => {
   const [active, setActive] = useState(false);
@@ -123,7 +131,8 @@ export const useDspEngine = (
     inputAnalysis.analysis,
   );
   const contextRef = useRef<AudioContext | undefined>(undefined);
-  const sourceRef = useRef<MediaElementAudioSourceNode | undefined>(undefined);
+  const sourcesRef = useRef<MediaElementAudioSourceNode[]>([]);
+  const mixerRef = useRef<GainNode | undefined>(undefined);
   const graphRef = useRef<IDspGraph | undefined>(undefined);
   const workletRef = useRef<AudioWorkletNode | undefined>(undefined);
   const settingsRef = useRef(settings);
@@ -136,27 +145,8 @@ export const useDspEngine = (
   inputGainDbRef.current = inputGainDb;
   loudnessGainDbRef.current = loudnessGainDb;
   inputTrackIdRef.current = inputAnalysis.trackId ?? '';
-  /**
-   * The adaptive trim's working set, kept across reports.
-   *
-   * Driven by the worklet's own meter messages rather than by a timer: those
-   * arrive every sixteen blocks because audio was processed, so the measurement
-   * cadence is the audio's and there is nothing to keep in step by hand.
-   */
-  const headroom = useRef(createAdaptiveHeadroom());
-  /** The chain's response at each analyser bin, and what it was built from.
-   * Rebuilt only when the curve moves — recomputing fifteen filters across a
-   * thousand bins twenty times a second is most of a core for no new answer. */
-  const chainDb = useRef<{ key: string; response: Float32Array }>({
-    key: '',
-    response: new Float32Array(0),
-  });
-  /** Reused, because a fresh array twenty times a second is garbage twenty
-   * times a second. */
-  const programme = useRef(new Float32Array(0));
-
   useEffect(() => {
-    if (!element || typeof window.AudioContext !== 'function') {
+    if (elements.length === 0 || typeof window.AudioContext !== 'function') {
       return undefined;
     }
     let cancelled = false;
@@ -169,12 +159,15 @@ export const useDspEngine = (
      */
     const fallBackToDirectOutput = () => {
       const context = contextRef.current;
-      const source = sourceRef.current;
-      if (!context || !source) {
+      const sources = sourcesRef.current;
+      if (!context || sources.length === 0) {
         return;
       }
-      source.disconnect();
-      source.connect(context.destination);
+      mixerRef.current?.disconnect();
+      sources.forEach((source) => {
+        source.disconnect();
+        source.connect(context.destination);
+      });
     };
 
     /**
@@ -241,11 +234,8 @@ export const useDspEngine = (
       worklet.port.postMessage({
         debugOutputSafetyEnabled: outputSafetyEnabledRef.current,
       });
-      worklet.port.postMessage({
-        masterPeakHoldTrackId: inputTrackIdRef.current,
-      });
-      setDspInputGainDb(inputGainDbRef.current);
-      setDspMasterLoudnessGainDb(loudnessGainDbRef.current);
+      setDspInputTrackId(inputTrackIdRef.current);
+      setDspTrackLevelGains(inputGainDbRef.current, loudnessGainDbRef.current);
       // The worklet reports its correlation measurement back the same way it
       // receives settings. Assigned before the graph is built so the very
       // first block's reading is not dropped on the floor.
@@ -350,88 +340,40 @@ export const useDspEngine = (
             });
           }
         }
-        const input = graphRef.current?.inputAnalyser;
-        const { eq } = settingsRef.current;
-        // Only the part of the reserve that answers the magnitude response
-        // may be handed back. The margin above it is there for transients
-        // and for reconstruction, neither of which this measurement can see
-        // — a spectrum has no transients in it by construction — so giving
-        // it away on spectral evidence would be spending it on a promise the
-        // evidence cannot make.
-        const reserve = Math.max(0, -eq.trimDb - TRIM_MARGIN_DB);
-        if (
-          !input ||
-          !eq.enabled ||
-          eq.trimMode !== 'adaptive' ||
-          reserve <= 0
-        ) {
-          // Nothing reserved is nothing to hand back, a disabled rack has no
-          // curve to measure against, and a pinned one is being asked to hold
-          // exactly the reserve it started with.
-          headroom.current.giveBack = 0;
-          setDspHeadroomGiveBack(0);
-          worklet.port.postMessage({ headroomGiveBack: 0 });
-          return;
-        }
-        const bins = input.frequencyBinCount;
-        if (programme.current.length !== bins) {
-          programme.current = new Float32Array(bins);
-        }
-        const key = [
-          bins,
-          context.sampleRate,
-          eq.model,
-          eq.modelAmount,
-          JSON.stringify(eq.bands),
-        ].join('|');
-        if (chainDb.current.key !== key) {
-          // Bin n is centred at n * rate / fftSize, and the bin count is half
-          // the transform, so the spacing is rate / 2 / bins. Bin zero is DC,
-          // where no filter response is defined; nudged up rather than
-          // skipped so the two arrays stay index-aligned.
-          const step = context.sampleRate / 2 / bins;
-          const frequencies = Array.from({ length: bins }, (_, index) =>
-            Math.max(1, index * step),
-          );
-          chainDb.current = {
-            key,
-            response: Float32Array.from(
-              curveResponseDb(
-                eq.bands,
-                frequencies,
-                context.sampleRate,
-                eq.model,
-              ),
-            ),
-          };
-        }
-        input.getFloatFrequencyData(programme.current);
-        const giveBack = advanceHeadroom(
-          headroom.current,
-          reserve,
-          excessDb(programme.current, chainDb.current.response),
-          typeof data?.peak === 'number' && data.peak > 1,
-        );
-        setDspHeadroomGiveBack(giveBack);
-        worklet.port.postMessage({ headroomGiveBack: giveBack });
       };
-      // The point of no return. Cached because a second call throws.
-      const source =
-        sourceRef.current ?? context.createMediaElementSource(element);
-      sourceRef.current = source;
-      graphRef.current = buildDspGraph(
-        context as unknown as IAudioGraphContext,
-        source as unknown as IAudioNodeLike,
-        worklet as unknown as IWorkletNodeLike,
-        context.destination as unknown as IAudioNodeLike,
-        settingsRef.current,
-      );
-      setDspAnalyser('normalizer', graphRef.current.analysers.normalizer);
-      setDspAnalyser('exciter', graphRef.current.analysers.exciter);
-      setDspAnalyser('eq', graphRef.current.analysers.eq);
-      setDspAnalyser('compressor', graphRef.current.analysers.compressor);
-      setDspAnalyser('maximizer', graphRef.current.analysers.maximizer);
-      setDspAnalyser('master', graphRef.current.analysers.master);
+      // The point of no return. Both stable decks are captured once and mixed
+      // before the worklet, so a transition is two real decoders overlapping
+      // through the same DSP chain rather than a fade to silence and back.
+      const sources =
+        sourcesRef.current.length === elements.length
+          ? sourcesRef.current
+          : elements.map((element) =>
+              context.createMediaElementSource(element),
+            );
+      sourcesRef.current = sources;
+      const mixer = mixerRef.current ?? context.createGain();
+      mixerRef.current = mixer;
+      sources.forEach((source) => {
+        source.disconnect();
+        source.connect(mixer);
+      });
+      if (settingsRef.current.enabled) {
+        graphRef.current = buildDspGraph(
+          context as unknown as IAudioGraphContext,
+          mixer as unknown as IAudioNodeLike,
+          worklet as unknown as IWorkletNodeLike,
+          context.destination as unknown as IAudioNodeLike,
+          settingsRef.current,
+        );
+        setDspAnalyser('normalizer', graphRef.current.analysers.normalizer);
+        setDspAnalyser('exciter', graphRef.current.analysers.exciter);
+        setDspAnalyser('eq', graphRef.current.analysers.eq);
+        setDspAnalyser('compressor', graphRef.current.analysers.compressor);
+        setDspAnalyser('maximizer', graphRef.current.analysers.maximizer);
+        setDspAnalyser('master', graphRef.current.analysers.master);
+      } else {
+        mixer.connect(context.destination);
+      }
       setActive(true);
       setDspEngineState('running');
     };
@@ -465,7 +407,9 @@ export const useDspEngine = (
         log.error('[dsp] could not resume the context on play', error);
       });
     };
-    element.addEventListener('play', resumeForPlayback);
+    elements.forEach((element) =>
+      element.addEventListener('play', resumeForPlayback),
+    );
 
     start().catch((error: unknown) => {
       // Context-rich before it is flattened: the message alone does not say
@@ -479,13 +423,47 @@ export const useDspEngine = (
 
     return () => {
       cancelled = true;
-      element.removeEventListener('play', resumeForPlayback);
+      elements.forEach((element) =>
+        element.removeEventListener('play', resumeForPlayback),
+      );
       teardown('idle');
     };
-  }, [element]);
+  }, [elements]);
 
   useEffect(() => {
-    graphRef.current?.update(settings);
+    const context = contextRef.current;
+    const mixer = mixerRef.current;
+    const worklet = workletRef.current;
+    if (!context || !mixer || !worklet) {
+      return;
+    }
+    if (!settings.enabled) {
+      if (graphRef.current) {
+        graphRef.current.dispose();
+        graphRef.current = undefined;
+        mixer.connect(context.destination);
+        clearDspAnalysers();
+      }
+      return;
+    }
+    if (!graphRef.current) {
+      mixer.disconnect();
+      graphRef.current = buildDspGraph(
+        context as unknown as IAudioGraphContext,
+        mixer as unknown as IAudioNodeLike,
+        worklet as unknown as IWorkletNodeLike,
+        context.destination as unknown as IAudioNodeLike,
+        settings,
+      );
+      setDspAnalyser('normalizer', graphRef.current.analysers.normalizer);
+      setDspAnalyser('exciter', graphRef.current.analysers.exciter);
+      setDspAnalyser('eq', graphRef.current.analysers.eq);
+      setDspAnalyser('compressor', graphRef.current.analysers.compressor);
+      setDspAnalyser('maximizer', graphRef.current.analysers.maximizer);
+      setDspAnalyser('master', graphRef.current.analysers.master);
+      return;
+    }
+    graphRef.current.update(settings);
   }, [settings]);
 
   useEffect(() => {
@@ -495,18 +473,12 @@ export const useDspEngine = (
   }, [outputSafetyEnabled]);
 
   useEffect(() => {
-    workletRef.current?.port.postMessage({
-      masterPeakHoldTrackId: inputAnalysis.trackId ?? '',
-    });
+    setDspInputTrackId(inputAnalysis.trackId ?? '');
   }, [inputAnalysis.trackId]);
 
   useEffect(() => {
-    setDspInputGainDb(inputGainDb);
-  }, [inputGainDb]);
-
-  useEffect(() => {
-    setDspMasterLoudnessGainDb(loudnessGainDb);
-  }, [loudnessGainDb]);
+    setDspTrackLevelGains(inputGainDb, loudnessGainDb);
+  }, [inputGainDb, loudnessGainDb]);
 
   return { active };
 };

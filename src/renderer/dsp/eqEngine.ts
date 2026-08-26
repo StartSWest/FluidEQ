@@ -232,32 +232,35 @@ export const processEqBandsLinked = (
             coefficients[band],
           );
         }
-        continue;
-      }
-
-      for (let channel = 0; channel < channels; channel += 1) {
-        dry[channel].set(targets[channel]);
-        wet[channel].set(targets[channel]);
-        processBiquad(states[channel][band], wet[channel], coefficients[band]);
-      }
-      let peak = 0;
-      for (let frame = 0; frame < length; frame += 1) {
-        let detectorDifference = 0;
+      } else {
         for (let channel = 0; channel < channels; channel += 1) {
-          const difference = wet[channel][frame] - dry[channel][frame];
-          if (Math.abs(difference) > Math.abs(detectorDifference)) {
-            detectorDifference = difference;
+          dry[channel].set(targets[channel]);
+          wet[channel].set(targets[channel]);
+          processBiquad(
+            states[channel][band],
+            wet[channel],
+            coefficients[band],
+          );
+        }
+        let peak = 0;
+        for (let frame = 0; frame < length; frame += 1) {
+          let detectorDifference = 0;
+          for (let channel = 0; channel < channels; channel += 1) {
+            const difference = wet[channel][frame] - dry[channel][frame];
+            if (Math.abs(difference) > Math.abs(detectorDifference)) {
+              detectorDifference = difference;
+            }
           }
+          const amount = bandDynamicAmount(dynamic, detectorDifference);
+          for (let channel = 0; channel < channels; channel += 1) {
+            targets[channel][frame] =
+              dry[channel][frame] +
+              (wet[channel][frame] - dry[channel][frame]) * amount;
+          }
+          peak = amount > peak ? amount : peak;
         }
-        const amount = bandDynamicAmount(dynamic, detectorDifference);
-        for (let channel = 0; channel < channels; channel += 1) {
-          targets[channel][frame] =
-            dry[channel][frame] +
-            (wet[channel][frame] - dry[channel][frame]) * amount;
-        }
-        peak = amount > peak ? amount : peak;
+        dynamic.amount = peak;
       }
-      dynamic.amount = peak;
     }
     return;
   }
@@ -277,25 +280,24 @@ export const processEqBandsLinked = (
           targets[channel][frame] += wet[channel][frame] - dry[channel][frame];
         }
       }
-      continue;
-    }
-
-    let peak = 0;
-    for (let frame = 0; frame < length; frame += 1) {
-      let detectorDifference = 0;
-      for (let channel = 0; channel < channels; channel += 1) {
-        const difference = wet[channel][frame] - dry[channel][frame];
-        if (Math.abs(difference) > Math.abs(detectorDifference)) {
-          detectorDifference = difference;
+    } else {
+      let peak = 0;
+      for (let frame = 0; frame < length; frame += 1) {
+        let detectorDifference = 0;
+        for (let channel = 0; channel < channels; channel += 1) {
+          const difference = wet[channel][frame] - dry[channel][frame];
+          if (Math.abs(difference) > Math.abs(detectorDifference)) {
+            detectorDifference = difference;
+          }
         }
+        const amount = bandDynamicAmount(dynamic, detectorDifference);
+        for (let channel = 0; channel < channels; channel += 1) {
+          targets[channel][frame] +=
+            (wet[channel][frame] - dry[channel][frame]) * amount;
+        }
+        peak = amount > peak ? amount : peak;
       }
-      const amount = bandDynamicAmount(dynamic, detectorDifference);
-      for (let channel = 0; channel < channels; channel += 1) {
-        targets[channel][frame] +=
-          (wet[channel][frame] - dry[channel][frame]) * amount;
-      }
-      peak = amount > peak ? amount : peak;
+      dynamic.amount = peak;
     }
-    dynamic.amount = peak;
   }
 };

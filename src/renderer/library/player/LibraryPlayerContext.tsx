@@ -68,9 +68,10 @@ import {
   setTransportSource,
 } from '../../audio/transportSource';
 import { ILibraryTrack } from '../../../common/library/types';
+import { TCrossfadeCurve } from '../../../common/dsp/chain';
 import {
-  setDspInputGainDb,
-  setDspMasterLoudnessGainDb,
+  setDspInputTrackId,
+  setDspTrackLevelGains,
   useDspEngine,
 } from '../../dsp/useDspEngine';
 import {
@@ -95,6 +96,15 @@ const nextRepeat = (repeat: TLibraryRepeat): TLibraryRepeat =>
 
 const clampVolume = (value: number): number => Math.min(1, Math.max(0, value));
 
+const normalizationChanged = (
+  previous: ILibraryTrack['normalization'],
+  next: NonNullable<ILibraryTrack['normalization']>,
+): boolean =>
+  !previous ||
+  previous.version !== next.version ||
+  Math.abs(previous.truePeakDbtp - next.truePeakDbtp) >= 0.01 ||
+  Math.abs(previous.integratedLufs - next.integratedLufs) >= 0.01;
+
 /**
  * How long the level takes to come back after a seek.
  *
@@ -104,6 +114,26 @@ const clampVolume = (value: number): number => Math.min(1, Math.max(0, value));
  * its own, and this has to run in step with what is already being painted.
  */
 const SEEK_FADE_MS = 70;
+/** Pop-free source handoff; longer than a seek because the decoder is new. */
+const TRACK_FADE_IN_MS = 80;
+
+const crossfadeGain = (
+  curve: TCrossfadeCurve,
+  progress: number,
+  incoming: boolean,
+): number => {
+  const unit = Math.max(0, Math.min(1, progress));
+  if (curve === 'linear') {
+    return incoming ? unit : 1 - unit;
+  }
+  if (curve === 'smooth') {
+    const smooth = unit * unit * (3 - 2 * unit);
+    return incoming ? smooth : 1 - smooth;
+  }
+  return incoming
+    ? Math.sin((unit * Math.PI) / 2)
+    : Math.cos((unit * Math.PI) / 2);
+};
 
 export interface ILibraryPlayerContextValue {
   queue: ILibraryQueue | undefined;
@@ -241,28 +271,41 @@ export const LibraryPlayerProvider = ({
     [index.tracks],
   );
 
-  // Created once, lazily, and never rendered — see the module doc comment.
-  const audioElementRef = useRef<HTMLAudioElement | undefined>(undefined);
-  if (!audioElementRef.current) {
-    audioElementRef.current = new Audio();
-    /**
-     * Before any `src`, and that ordering is the whole point.
-     *
-     * Library tracks are served over `fluideq-media://`, which is a different
-     * origin from this page. Without a CORS-mode request the media is tainted,
-     * and Chromium's rule for tainted media is that the
-     * `MediaElementAudioSourceNode` built on it emits SILENCE while the element
-     * carries on decoding — so the transport ran and the seek bar moved with no
-     * sound at all. `crossOrigin` is only consulted when the load starts, so
-     * setting it after a `src` has been assigned does nothing.
-     */
-    audioElementRef.current.crossOrigin = 'anonymous';
-    // Set from storage here, not from an effect after the first render. An
-    // element built at unity and turned down afterwards is briefly at unity,
-    // and someone who left the fader at 17% would get a burst of full-scale
-    // audio on launch — the opposite of what remembering it is for.
-    audioElementRef.current.volume = readStoredVolume();
+  // Two stable, hidden decks make a real overlap possible. Replacing one
+  // element's source cannot crossfade: the old decoder is already gone by the
+  // time the new source starts.
+  const audioElementsRef = useRef<
+    readonly [HTMLAudioElement, HTMLAudioElement] | undefined
+  >(undefined);
+  if (!audioElementsRef.current) {
+    const storedVolume = readStoredVolume();
+    const first = new Audio();
+    const second = new Audio();
+    [first, second].forEach((element) => {
+      /**
+       * Before any `src`, and that ordering is the whole point.
+       *
+       * Library tracks are served over `fluideq-media://`, which is a different
+       * origin from this page. Without a CORS-mode request the media is tainted,
+       * and Chromium's rule for tainted media is that the
+       * `MediaElementAudioSourceNode` built on it emits SILENCE while the element
+       * carries on decoding — so the transport ran and the seek bar moved with no
+       * sound at all. `crossOrigin` is only consulted when the load starts, so
+       * setting it after a `src` has been assigned does nothing.
+       */
+      element.crossOrigin = 'anonymous';
+      // Set from storage here, not from an effect after the first render. An
+      // element built at unity and turned down afterwards is briefly at unity,
+      // and someone who left the fader at 17% would get a burst of full-scale
+      // audio on launch — the opposite of what remembering it is for.
+      element.volume = storedVolume;
+    });
+    audioElementsRef.current = [first, second];
   }
+  const audioElements = audioElementsRef.current;
+  const audioElementRef = useRef<HTMLAudioElement | undefined>(
+    audioElements[0],
+  );
   // The DSP chain attaches here rather than in the panel that configures it,
   // because `createMediaElementSource` binds to THIS element and may be called
   // for it exactly once, ever. The panel writes settings into a store; the
@@ -272,7 +315,7 @@ export const LibraryPlayerProvider = ({
   // routing it through Web Audio as well would mean a second source node and a
   // second chain for a track type the DSP was never asked to colour.
   const dspSettings = useDspSettings();
-  useDspEngine(audioElementRef.current, dspSettings);
+  useDspEngine(audioElements, dspSettings);
   const dspSettingsRef = useRef(dspSettings);
   dspSettingsRef.current = dspSettings;
   // Non-null while `LibraryVideoStage` has a `<video>` registered — the
@@ -300,15 +343,14 @@ export const LibraryPlayerProvider = ({
   // packaged build; it fires constantly in development, which is where the
   // overlap was found.
   useEffect(() => {
-    const audio = audioElementRef.current;
     return () => {
-      if (audio) {
+      audioElements.forEach((audio) => {
         audio.pause();
         audio.removeAttribute('src');
         audio.load();
-      }
+      });
     };
-  }, []);
+  }, [audioElements]);
 
   const [queue, setQueue] = useState<ILibraryQueue | undefined>(undefined);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -353,13 +395,13 @@ export const LibraryPlayerProvider = ({
   const volumeRef = useRef(volume);
   useEffect(() => {
     volumeRef.current = volume;
-    if (audioElementRef.current) {
-      audioElementRef.current.volume = volume;
-    }
+    audioElements.forEach((audio) => {
+      audio.volume = volume;
+    });
     if (videoElementRef.current) {
       videoElementRef.current.volume = volume;
     }
-  }, [volume]);
+  }, [audioElements, volume]);
 
   const trackId = queue ? currentTrackId(queue) : undefined;
   const track = trackId ? trackById.get(trackId) : undefined;
@@ -367,7 +409,7 @@ export const LibraryPlayerProvider = ({
   /** The object URL currently backing the element, so it can be revoked when
    * the next track replaces it. A blob URL that is never revoked pins its
    * whole buffer for the life of the window. */
-  const blobUrlRef = useRef<string | undefined>(undefined);
+  const blobUrlsRef = useRef(new Map<HTMLAudioElement, string>());
   const analysisJobRef = useRef<
     | {
         trackId: string;
@@ -379,29 +421,70 @@ export const LibraryPlayerProvider = ({
   /** The running fade-in, so a second seek arriving mid-ramp cancels the
    * first rather than fighting it for the volume property. */
   const fadeFrameRef = useRef(0);
+  /** The two-deck transition, separate from the seek fade on the active deck. */
+  const crossfadeFrameRef = useRef(0);
+  /** Prevents one track end advancing the queue more than once. */
+  const naturalCrossfadeTrackRef = useRef<string | undefined>(undefined);
 
-  const fadeIn = useCallback((element: HTMLMediaElement) => {
-    cancelAnimationFrame(fadeFrameRef.current);
-    const target = volumeRef.current;
-    const started = performance.now();
-    const step = () => {
-      const progress = Math.min(
-        1,
-        (performance.now() - started) / SEEK_FADE_MS,
-      );
-      element.volume = clampVolume(target * progress);
-      if (progress < 1) {
-        fadeFrameRef.current = requestAnimationFrame(step);
-        return;
-      }
-      // Land exactly on the user's level rather than on whatever the last
-      // frame's arithmetic produced.
-      element.volume = target;
-      fadeFrameRef.current = 0;
-    };
-    fadeFrameRef.current = requestAnimationFrame(step);
-  }, []);
+  const fadeIn = useCallback(
+    (element: HTMLMediaElement, durationMs = SEEK_FADE_MS) => {
+      cancelAnimationFrame(fadeFrameRef.current);
+      const target = volumeRef.current;
+      const started = performance.now();
+      const step = () => {
+        const progress = Math.min(
+          1,
+          (performance.now() - started) / durationMs,
+        );
+        element.volume = clampVolume(target * progress);
+        if (progress < 1) {
+          fadeFrameRef.current = requestAnimationFrame(step);
+          return;
+        }
+        // Land exactly on the user's level rather than on whatever the last
+        // frame's arithmetic produced.
+        element.volume = target;
+        fadeFrameRef.current = 0;
+      };
+      fadeFrameRef.current = requestAnimationFrame(step);
+    },
+    [],
+  );
   fadeInRef.current = fadeIn;
+
+  const startCrossfade = useCallback(
+    (
+      outgoing: HTMLAudioElement,
+      incoming: HTMLAudioElement,
+      durationMs: number,
+      curve: TCrossfadeCurve,
+    ) => {
+      cancelAnimationFrame(crossfadeFrameRef.current);
+      const target = volumeRef.current;
+      const outgoingStart = Math.min(target, outgoing.volume);
+      const started = performance.now();
+      const duration = Math.max(1, durationMs);
+      const step = () => {
+        const progress = Math.min(1, (performance.now() - started) / duration);
+        outgoing.volume = clampVolume(
+          outgoingStart * crossfadeGain(curve, progress, false),
+        );
+        incoming.volume = clampVolume(
+          target * crossfadeGain(curve, progress, true),
+        );
+        if (progress < 1) {
+          crossfadeFrameRef.current = requestAnimationFrame(step);
+          return;
+        }
+        outgoing.pause();
+        outgoing.volume = target;
+        incoming.volume = target;
+        crossfadeFrameRef.current = 0;
+      };
+      crossfadeFrameRef.current = requestAnimationFrame(step);
+    },
+    [],
+  );
 
   /**
    * Drops the level for a jump, and guarantees it comes back.
@@ -443,13 +526,14 @@ export const LibraryPlayerProvider = ({
    * one's playhead, and start playing if the previous one had been. One
    * stale listener per abandoned swap, and each one wrong.
    */
-  const cancelPendingSwap = useRef<(() => void) | undefined>(undefined);
+  const pendingSwapsRef = useRef(new Map<HTMLAudioElement, () => void>());
 
-  const releaseBlob = useCallback(() => {
-    cancelPendingSwap.current?.();
-    if (blobUrlRef.current) {
-      URL.revokeObjectURL(blobUrlRef.current);
-      blobUrlRef.current = undefined;
+  const releaseBlob = useCallback((element: HTMLAudioElement) => {
+    pendingSwapsRef.current.get(element)?.();
+    const blobUrl = blobUrlsRef.current.get(element);
+    if (blobUrl) {
+      URL.revokeObjectURL(blobUrl);
+      blobUrlsRef.current.delete(element);
     }
   }, []);
 
@@ -475,9 +559,10 @@ export const LibraryPlayerProvider = ({
       }
       const wasPlaying = !element.paused;
       const at = element.currentTime;
-      releaseBlob();
-      blobUrlRef.current = URL.createObjectURL(new Blob([buffer]));
-      element.src = blobUrlRef.current;
+      releaseBlob(element);
+      const blobUrl = URL.createObjectURL(new Blob([buffer]));
+      blobUrlsRef.current.set(element, blobUrl);
+      element.src = blobUrl;
       // Putting the playhead back is what makes the swap invisible; without
       // it the track would jump to its beginning a second in.
       //
@@ -485,17 +570,17 @@ export const LibraryPlayerProvider = ({
       // that fires, and this one has to survive being abandoned — see
       // `cancelPendingSwap`.
       const onSwapped = () => {
-        cancelPendingSwap.current = undefined;
+        pendingSwapsRef.current.delete(element);
         element.currentTime = at;
         if (wasPlaying) {
           element.play().catch(() => undefined);
         }
       };
       element.addEventListener('loadedmetadata', onSwapped, { once: true });
-      cancelPendingSwap.current = () => {
+      pendingSwapsRef.current.set(element, () => {
         element.removeEventListener('loadedmetadata', onSwapped);
-        cancelPendingSwap.current = undefined;
-      };
+        pendingSwapsRef.current.delete(element);
+      });
       element.load();
     },
     [releaseBlob],
@@ -648,16 +733,47 @@ export const LibraryPlayerProvider = ({
 
   const bindMediaEvents = useCallback(
     (element: HTMLMediaElement): (() => void) => {
+      const isActive = () =>
+        element === (videoElementRef.current ?? audioElementRef.current);
       // `timeupdate` fires about four times a second — the right cadence for
       // a number that changes once a second on screen, and no reason to add
       // a `requestAnimationFrame` loop on top of it.
-      const onTimeUpdate = () => setPositionMs(element.currentTime * 1000);
+      const onTimeUpdate = () => {
+        if (!isActive()) {
+          return;
+        }
+        setPositionMs(element.currentTime * 1000);
+        const { current } = queueRef;
+        const transition = dspSettingsRef.current.crossfade;
+        const playingId = current ? currentTrackId(current) : undefined;
+        const { duration } = element;
+        const remainingMs = (duration - element.currentTime) * 1_000;
+        if (
+          element === audioElementRef.current &&
+          dspSettingsRef.current.enabled &&
+          transition.enabled &&
+          current &&
+          current.repeat !== 'one' &&
+          playingId &&
+          naturalCrossfadeTrackRef.current !== playingId &&
+          Number.isFinite(duration) &&
+          remainingMs > 0 &&
+          remainingMs <= transition.durationMs &&
+          (!queueAtEnd(current) || current.repeat === 'all')
+        ) {
+          naturalCrossfadeTrackRef.current = playingId;
+          setQueue(advanceQueue(current, 1));
+        }
+      };
       // `seeked` as well, exactly as `useKaraokeSession` does it: the element
       // is the authority on where it actually landed, and `timeupdate` can
       // still report the old position for a tick or two after a seek is
       // asked for. Without this the thumb was dragged, released, and then
       // pulled back by a stale tick before the next one caught up.
       const onSeeked = () => {
+        if (!isActive()) {
+          return;
+        }
         setPositionMs(element.currentTime * 1000);
         // Bring the level back after the jump — see `startSeekFade`. Reached
         // through a ref because this listener is bound once for the life of
@@ -676,6 +792,9 @@ export const LibraryPlayerProvider = ({
       // (see `libraryProtocol`); this is what stops the same symptom from
       // surviving anything else that makes a first read look unbounded.
       const onDuration = () => {
+        if (!isActive()) {
+          return;
+        }
         // A length is only ever learned, never unlearned.
         //
         // `durationchange` does not only fire once with the answer: it fires
@@ -707,14 +826,24 @@ export const LibraryPlayerProvider = ({
       // request would have silenced the karaoke tab for a track that never
       // began. See `playbackOwner`.
       const onPlay = () => {
+        if (!isActive()) {
+          return;
+        }
         claimPlayback('library');
         setIsPlaying(true);
       };
       const onPause = () => {
+        if (!isActive()) {
+          return;
+        }
         releasePlayback('library');
         setIsPlaying(false);
       };
-      const onEnded = () => handleEnded(element);
+      const onEnded = () => {
+        if (isActive()) {
+          handleEnded(element);
+        }
+      };
       // A track whose file the element cannot actually load — the drive it
       // lives on unplugged after the scan that found it, a permissions
       // error, a 404 from the protocol handler — fires `error`, never
@@ -726,6 +855,9 @@ export const LibraryPlayerProvider = ({
       // — from here, a missing file and an undecodable one look the same to
       // the person looking at the bar.
       const onError = () => {
+        if (!isActive()) {
+          return;
+        }
         setIsUnplayable(true);
         setIsPlaying(false);
       };
@@ -751,15 +883,12 @@ export const LibraryPlayerProvider = ({
     [handleEnded],
   );
 
-  // Bound once, for the life of the app — `bindMediaEvents` is stable because
-  // `handleEnded` only ever reads the queue through the ref above.
+  // Bound once to both decks. Only the active deck writes transport state;
+  // the outgoing deck stays audible during overlap without fighting the UI.
   useEffect(() => {
-    const element = audioElementRef.current;
-    if (!element) {
-      return undefined;
-    }
-    return bindMediaEvents(element);
-  }, [bindMediaEvents]);
+    const unbind = audioElements.map((element) => bindMediaEvents(element));
+    return () => unbind.forEach((one) => one());
+  }, [audioElements, bindMediaEvents]);
 
   // How the rest of the app silences this player when it takes over. Pausing
   // rather than clearing the queue: the reader gets their album back where
@@ -768,10 +897,10 @@ export const LibraryPlayerProvider = ({
   useEffect(
     () =>
       registerPlayer('library', () => {
-        audioElementRef.current?.pause();
+        audioElements.forEach((audio) => audio.pause());
         videoElementRef.current?.pause();
       }),
-    [],
+    [audioElements],
   );
 
   const registerVideoElement = useCallback(
@@ -818,14 +947,46 @@ export const LibraryPlayerProvider = ({
     // alive or letting its result touch the newly selected track.
     analysisJobRef.current?.controller.abort();
     analysisJobRef.current = undefined;
-    const audio = audioElementRef.current;
-    if (!audio) {
+    const outgoing = audioElementRef.current;
+    if (!outgoing) {
       return undefined;
     }
-    audio.pause();
-    releaseBlob();
+    const transition = dspSettingsRef.current.crossfade;
+    const isCrossfading =
+      dspSettingsRef.current.enabled &&
+      transition.enabled &&
+      track?.kind === 'audio' &&
+      track.isPlayable &&
+      !outgoing.paused &&
+      outgoing.getAttribute('src') !== null &&
+      pendingRestore.current?.trackId !== track.id;
+    const alternate =
+      audioElements[0] === outgoing ? audioElements[1] : audioElements[0];
+    const audio = isCrossfading && alternate ? alternate : outgoing;
+    cancelAnimationFrame(fadeFrameRef.current);
+    cancelAnimationFrame(crossfadeFrameRef.current);
+    crossfadeFrameRef.current = 0;
+    if (isCrossfading) {
+      audio.pause();
+      audio.volume = 0;
+      releaseBlob(audio);
+      audioElementRef.current = audio;
+    } else {
+      audioElements.forEach((element) => {
+        element.pause();
+        element.volume = 0;
+      });
+    }
+    naturalCrossfadeTrackRef.current = undefined;
+    // This message must precede the new normalization gain. React's external
+    // store effect runs later; waiting for it lets delayed audio from the old
+    // source receive the new track's gain and produces the audible level jump.
+    setDspInputTrackId(track?.id ?? '');
+    if (!isCrossfading) {
+      releaseBlob(audio);
+    }
     if (!trackId || !track) {
-      audio.removeAttribute('src');
+      audioElements.forEach((element) => element.removeAttribute('src'));
       setDspInputAnalysis({ status: 'idle', fraction: 0 });
       setIsUnplayable(false);
       setDurationMs(0);
@@ -851,7 +1012,7 @@ export const LibraryPlayerProvider = ({
     if (track.kind === 'video') {
       // Handed to `LibraryVideoStage` instead — never fed to the hidden
       // element, so the two can never sound at once.
-      audio.removeAttribute('src');
+      audioElements.forEach((element) => element.removeAttribute('src'));
       setDspInputAnalysis({
         trackId: track.id,
         status: 'unavailable',
@@ -863,7 +1024,8 @@ export const LibraryPlayerProvider = ({
     let cancelled = false;
     const cachedAnalysis = track.normalization;
     const shouldAnalyze =
-      !cachedAnalysis && dspSettingsRef.current.normalizer.mode !== 'off';
+      dspSettingsRef.current.enabled &&
+      dspSettingsRef.current.normalizer.mode !== 'off';
     const analysisJob = shouldAnalyze
       ? { trackId: track.id, controller: new AbortController() }
       : undefined;
@@ -886,10 +1048,8 @@ export const LibraryPlayerProvider = ({
     // Playback starts before the first await. Analysis is preparation for the
     // cache, never permission to hear the track; an uncached song must switch
     // just as quickly as one the library has already measured.
-    setDspInputGainDb(
+    setDspTrackLevelGains(
       normalizerGainDb(dspSettingsRef.current.normalizer, cachedAnalysis),
-    );
-    setDspMasterLoudnessGainDb(
       masterLoudnessGainDb(
         dspSettingsRef.current.master,
         dspSettingsRef.current.normalizer,
@@ -929,20 +1089,42 @@ export const LibraryPlayerProvider = ({
       // `loadedmetadata` — where the restored position is applied — would
       // never fire.
       audio.preload = 'metadata';
+      audio.volume = volumeRef.current;
       audio.load();
       setIsPlaying(false);
     } else {
       pendingRestore.current = undefined;
       audio.preload = 'auto';
-      audio.play().catch(() => undefined);
+      audio.volume = 0;
+      audio
+        .play()
+        .then(() => {
+          if (!cancelled) {
+            if (isCrossfading) {
+              startCrossfade(
+                outgoing,
+                audio,
+                transition.durationMs,
+                transition.curve,
+              );
+            } else {
+              fadeIn(audio, TRACK_FADE_IN_MS);
+            }
+          }
+          return undefined;
+        })
+        .catch(() => undefined);
     }
 
     const prepareInBackground = async () => {
-      const buffer = await window.electron.ipcRenderer.libraryTrackBytes(
-        track.id,
-      );
+      const [buffer, signature] = await Promise.all([
+        window.electron.ipcRenderer.libraryTrackBytes(track.id),
+        shouldAnalyze
+          ? window.electron.ipcRenderer.libraryTrackSignature(track.id)
+          : Promise.resolve(undefined),
+      ]);
       if (!buffer || cancelled) {
-        if (shouldAnalyze && !cancelled) {
+        if (shouldAnalyze && !cachedAnalysis && !cancelled) {
           setDspInputAnalysis({
             trackId: track.id,
             status: 'unavailable',
@@ -957,6 +1139,14 @@ export const LibraryPlayerProvider = ({
       if (!shouldAnalyze) {
         return;
       }
+      const needsFreshAnalysis =
+        !cachedAnalysis ||
+        !signature ||
+        signature.sizeBytes !== track.sizeBytes ||
+        signature.mtimeMs !== track.mtimeMs;
+      if (!needsFreshAnalysis) {
+        return;
+      }
       if (!analysisJob) {
         return;
       }
@@ -965,7 +1155,11 @@ export const LibraryPlayerProvider = ({
         signal: analysisJob.controller.signal,
         isCancelled: () => cancelled || analysisJobRef.current !== analysisJob,
         onProgress: ({ fraction }) => {
-          if (!cancelled && analysisJobRef.current === analysisJob) {
+          if (
+            !cachedAnalysis &&
+            !cancelled &&
+            analysisJobRef.current === analysisJob
+          ) {
             setDspInputAnalysis({
               trackId: track.id,
               status: 'analyzing',
@@ -977,6 +1171,7 @@ export const LibraryPlayerProvider = ({
       if (!analysis || cancelled || analysisJobRef.current !== analysisJob) {
         if (
           !analysis &&
+          !cachedAnalysis &&
           !cancelled &&
           analysisJobRef.current === analysisJob &&
           !analysisJob.controller.signal.aborted
@@ -989,32 +1184,38 @@ export const LibraryPlayerProvider = ({
         }
         return;
       }
+      const changed = normalizationChanged(cachedAnalysis, analysis);
       setDspInputAnalysis({
         trackId: track.id,
         status: 'ready',
         fraction: 1,
         analysis,
       });
-      setDspInputGainDb(
-        normalizerGainDb(dspSettingsRef.current.normalizer, analysis),
-      );
-      setDspMasterLoudnessGainDb(
-        masterLoudnessGainDb(
-          dspSettingsRef.current.master,
-          dspSettingsRef.current.normalizer,
+      if (changed) {
+        setDspTrackLevelGains(
+          normalizerGainDb(dspSettingsRef.current.normalizer, analysis),
+          masterLoudnessGainDb(
+            dspSettingsRef.current.master,
+            dspSettingsRef.current.normalizer,
+            analysis,
+          ),
+        );
+        await window.electron.ipcRenderer.setLibraryTrackNormalization(
+          track.id,
           analysis,
-        ),
-      );
-      await window.electron.ipcRenderer.setLibraryTrackNormalization(
-        track.id,
-        analysis,
-      );
+          signature ?? {
+            sizeBytes: track.sizeBytes,
+            mtimeMs: track.mtimeMs,
+          },
+        );
+      }
     };
 
     prepareInBackground()
       .catch(() => {
         if (
           shouldAnalyze &&
+          !cachedAnalysis &&
           !cancelled &&
           analysisJobRef.current === analysisJob &&
           !analysisJob?.controller.signal.aborted
@@ -1051,6 +1252,7 @@ export const LibraryPlayerProvider = ({
    */
   useEffect(() => {
     if (
+      !dspSettings.enabled ||
       dspSettings.normalizer.mode === 'off' ||
       !track ||
       track.kind !== 'audio' ||
@@ -1072,9 +1274,10 @@ export const LibraryPlayerProvider = ({
       fraction: 0,
     });
     const analyze = async () => {
-      const buffer = await window.electron.ipcRenderer.libraryTrackBytes(
-        track.id,
-      );
+      const [buffer, signature] = await Promise.all([
+        window.electron.ipcRenderer.libraryTrackBytes(track.id),
+        window.electron.ipcRenderer.libraryTrackSignature(track.id),
+      ]);
       if (!buffer || cancelled) {
         return;
       }
@@ -1118,10 +1321,8 @@ export const LibraryPlayerProvider = ({
         fraction: 1,
         analysis,
       });
-      setDspInputGainDb(
+      setDspTrackLevelGains(
         normalizerGainDb(dspSettingsRef.current.normalizer, analysis),
-      );
-      setDspMasterLoudnessGainDb(
         masterLoudnessGainDb(
           dspSettingsRef.current.master,
           dspSettingsRef.current.normalizer,
@@ -1131,6 +1332,10 @@ export const LibraryPlayerProvider = ({
       await window.electron.ipcRenderer.setLibraryTrackNormalization(
         track.id,
         analysis,
+        signature ?? {
+          sizeBytes: track.sizeBytes,
+          mtimeMs: track.mtimeMs,
+        },
       );
     };
     analyze()
@@ -1159,7 +1364,7 @@ export const LibraryPlayerProvider = ({
         analysisJobRef.current = undefined;
       }
     };
-  }, [dspSettings.normalizer.mode, track, trackId]);
+  }, [dspSettings.enabled, dspSettings.normalizer.mode, track, trackId]);
 
   /**
    * Catches the one case the effect above cannot: `trackId` staying exactly

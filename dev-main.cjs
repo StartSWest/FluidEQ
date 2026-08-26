@@ -2,6 +2,11 @@ const { app } = require('electron');
 
 app.setName('FluidEQ');
 require('ts-node/register/transpile-only');
+const {
+  exitDevSessionOnAppQuit,
+} = require('./.erb/scripts/exit-dev-session-on-app-quit');
+
+exitDevSessionOnAppQuit(app);
 
 // The renderer gets the public values from webpack, and the packaged main
 // process now gets them from EnvironmentPlugin. Development main got them from

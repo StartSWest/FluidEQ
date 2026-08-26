@@ -42,18 +42,12 @@ export interface IDspPreset {
  */
 export const DSP_PRESETS: IDspPreset[] = [
   {
-    id: 'flat',
-    labelKey: 'dsp.preset.flat',
-    settings: {
-      ...DSP_DEFAULTS,
-      normalizer: { ...DSP_DEFAULTS.normalizer, mode: 'off' },
-    },
-  },
-  {
     id: 'lossy-repair',
     labelKey: 'dsp.preset.lossyRepair',
     settings: {
+      enabled: true,
       normalizer: DSP_DEFAULTS.normalizer,
+      crossfade: DSP_DEFAULTS.crossfade,
       // Left flat: this preset repairs a codec, and a tone curve on top of
       // that is a second opinion the user did not ask for.
       eq: DSP_DEFAULTS.eq,
@@ -100,7 +94,9 @@ export const DSP_PRESETS: IDspPreset[] = [
     id: 'loud',
     labelKey: 'dsp.preset.loud',
     settings: {
+      enabled: true,
       normalizer: DSP_DEFAULTS.normalizer,
+      crossfade: DSP_DEFAULTS.crossfade,
       eq: DSP_DEFAULTS.eq,
       exciter: exciterPresetSettings('loud', true),
       compressor: {
@@ -180,7 +176,9 @@ export const DSP_PRESETS: IDspPreset[] = [
     id: 'broadcast',
     labelKey: 'dsp.preset.broadcast',
     settings: {
+      enabled: true,
       normalizer: DSP_DEFAULTS.normalizer,
+      crossfade: DSP_DEFAULTS.crossfade,
       eq: DSP_DEFAULTS.eq,
       exciter: exciterPresetSettings('broadcast', true),
       compressor: {

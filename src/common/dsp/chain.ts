@@ -311,23 +311,36 @@ export interface IInputNormalizerSettings {
   targetLufs: number;
 }
 
+export type TCrossfadeCurve = 'equalPower' | 'smooth' | 'linear';
+
+export const CROSSFADE_CURVES: readonly TCrossfadeCurve[] = [
+  'equalPower',
+  'smooth',
+  'linear',
+];
+
+/** A source transition after per-track normalization and before Exciter. */
+export interface ICrossfadeSettings {
+  enabled: boolean;
+  durationMs: number;
+  curve: TCrossfadeCurve;
+}
+
 /**
  * The transparent output stage after every creative processor.
  *
  * `outputTrimDb` is deliberately not called a preamp: it changes the finished
- * chain rather than the level that drives a nonlinear stage. Auto headroom
- * lowers the final true-peak boundary only when a reconstructed peak needs it.
- * With Auto headroom off the gain is literal: an overload remains an overload
- * so the meter can show it and the control cannot silently cancel itself.
+ * chain rather than the level that drives a nonlinear stage. LUFS maximize
+ * owns the final true-peak boundary: average-loudness makeup cannot be safe
+ * without peak control, and disabling it returns the complete stage to unity.
  */
 export interface IMasterSettings {
   enabled: boolean;
   outputTrimDb: number;
-  autoHeadroom: boolean;
-  /** Constant source-LUFS gain, with final true-peak control still last. */
+  /** Constant source-LUFS gain with its required true-peak control last. */
   loudnessMaximize: boolean;
   loudnessTargetLufs: number;
-  /** User ceiling in dBTP, applied only while Auto headroom is enabled. */
+  /** User ceiling in dBTP, applied only while LUFS maximize is enabled. */
   ceilingDb: number;
   releaseMs: number;
 }
@@ -430,25 +443,6 @@ export const EQ_ENGINES: readonly TEqEngine[] = ['serial', 'parallel'];
 export type TEqPhase = 'minimum' | 'linear';
 
 export const EQ_PHASE_MODES: readonly TEqPhase[] = ['minimum', 'linear'];
-
-/**
- * How much of the input regulator to use.
- *
- * `off` is none of it: the rack is handed the signal at unity and whatever
- * it does with it is between the curve and the preamp. Honest, and the right
- * answer for anyone driving the level by hand or measuring something.
- *
- * `fixed` reserves the curve's whole worst case and holds it there, so the
- * level is dead steady for a given rack and some of it is spent on boosts
- * the record may never reach.
- *
- * `adaptive` starts from that reserve and hands back what this particular
- * song turns out not to need, which keeps the level and moves it slowly as
- * the music changes.
- */
-export type TTrimMode = 'off' | 'fixed' | 'adaptive';
-
-export const TRIM_MODES: readonly TTrimMode[] = ['off', 'fixed', 'adaptive'];
 
 /** 1 is off. Four is the most the two-stage oversampler is built for. */
 export const OVERSAMPLE_FACTORS: readonly number[] = [1, 2, 4];
@@ -562,68 +556,6 @@ export interface IEqSettings {
    */
   sourceBands: readonly IEqBandSettings[];
   /**
-   * The user's own offset at the input, in dB, on top of the regulator.
-   *
-   * Every published correction curve carries a preamp, and it is not
-   * decoration: a curve with a +4.7 dB boost in it clips without the -5.4 dB
-   * the file asks for in front. An import still sets this, because the figure
-   * in the file is the author's judgement of their own curve.
-   *
-   * With `autoPreamp` on, the headroom the curve needs is already taken care
-   * of by `trimDb`, so zero here is the neutral position rather than a
-   * gamble — and turning it up is a deliberate decision to run hot rather than
-   * an accident of which preset was chosen.
-   */
-  preampDb: number;
-  /**
-   * The input regulator's gain, in dB. Derived, never edited, always on.
-   *
-   * The bands sit a third of an octave apart at the bottom, so their skirts
-   * overlap and adjacent gains ADD: "Bass boost", whose largest band was +5 dB,
-   * measured +12.15 dB summed at 69 Hz. Nothing in the rack was wrong — the
-   * number on the dial was simply never the number leaving the stage, and with
-   * nothing in front of it that was twelve decibels past full scale on the
-   * loudest part of the material, which is the distortion the presets were
-   * reported for.
-   *
-   * Held at minus the curve's own measured peak, so the loudest point of the
-   * rack lands exactly at unity and no arrangement of boosts can clip by
-   * itself. There is no switch: an "off" position is a position that clips, and
-   * the control that answers "I want it hotter than that" already exists one
-   * dial along.
-   *
-   * Kept separate from `preampDb` rather than written into it, because the two
-   * answer different questions and one number cannot hold both. Folding them
-   * together meant every recomputation overwrote whatever had been dialled in,
-   * so the automatic half fought the manual half and the dial's zero meant
-   * nothing in particular. Apart, zero on the preamp is the sweet spot by
-   * construction: the rack at unity, nothing given away.
-   *
-   * Stored because the worklet only ever sees this object, and it is a cache of
-   * a pure function of the bands — anything that changes them passes through
-   * `withInputTrim`, which is where it is refreshed.
-   */
-  trimDb: number;
-  /**
-   * How much of the input regulator to use. @see TTrimMode
-   *
-   * Off, the reserve is the curve's whole peak whatever is playing: the level
-   * holds perfectly still for a given rack and some of it is spent on boosts
-   * the record never reaches. On, the reserve is handed back as the song turns
-   * out not to need it, which keeps the level — and moves it, slowly, as the
-   * music changes. That movement is the reason this is a switch: it is an
-   * improvement to some ears and a distraction to others, and neither is
-   * wrong.
-   *
-   * A listening preference rather than a property of the curve, so no preset
-   * sets it — the same reasoning that keeps the preamp out of them.
-   *
-   * Off by default. A rack that holds a steady level is what somebody expects
-   * from an equaliser, and a level that moves on its own — however well — is
-   * a thing to opt into rather than to discover.
-   */
-  trimMode: TTrimMode;
-  /**
    * The factory preset last applied, or empty for a hand-made curve.
    *
    * Stored rather than derived so it survives a reload: the bands alone cannot
@@ -678,7 +610,10 @@ export const eqEdited = (
 export const EQ_MAX_BAND_COUNT = 64;
 
 export interface IDspSettings {
+  /** Root bypass. Individual processor states remain untouched underneath. */
+  enabled: boolean;
   normalizer: IInputNormalizerSettings;
+  crossfade: ICrossfadeSettings;
   eq: IEqSettings;
   exciter: IExciterSettings;
   compressor: ICompressorSettings;
@@ -692,6 +627,7 @@ interface IRange {
 }
 
 const RANGES = {
+  crossfadeDurationMs: { min: 250, max: 12_000 },
   exciterBandRange: { min: 0, max: 1 },
   alignAmount: { min: 0, max: 1 },
   /**
@@ -752,9 +688,7 @@ const RANGES = {
   maximizerReleaseMs: { min: MAXIMIZER_MIN_RELEASE_MS, max: 1_000 },
   masterOutputTrimDb: { min: -24, max: 6 },
   masterCeilingDb: { min: -12, max: -0.1 },
-  // Auto Headroom is a slow level rider, not a loudness compressor. Keeping
-  // its entire range above four seconds prevents inverse pumping between hits.
-  masterReleaseMs: { min: 4_000, max: 12_000 },
+  masterReleaseMs: { min: 1_000, max: 5_000 },
   masterLoudnessTargetLufs: { min: -18, max: -6 },
   normalizerTruePeakDbtp: { min: -12, max: -0.1 },
   normalizerTargetLufs: { min: -24, max: -5 },
@@ -1004,10 +938,16 @@ export const buildEqRack = (count: number): readonly IEqBandSettings[] => {
 };
 
 export const DSP_DEFAULTS: IDspSettings = {
+  enabled: true,
   normalizer: {
     mode: 'truePeak',
     truePeakDbtp: -1,
     targetLufs: -14,
+  },
+  crossfade: {
+    enabled: false,
+    durationMs: 2_000,
+    curve: 'equalPower',
   },
   eq: {
     enabled: false,
@@ -1024,9 +964,6 @@ export const DSP_DEFAULTS: IDspSettings = {
     bands: DEFAULT_EQ_BANDS,
     sourceBands: [],
     presetId: '',
-    preampDb: 0,
-    trimDb: 0,
-    trimMode: 'fixed',
   },
   exciter: {
     enabled: false,
@@ -1099,11 +1036,10 @@ export const DSP_DEFAULTS: IDspSettings = {
   master: {
     enabled: false,
     outputTrimDb: 0,
-    autoHeadroom: true,
     loudnessMaximize: false,
     loudnessTargetLufs: -9,
     ceilingDb: -1,
-    releaseMs: 6_000,
+    releaseMs: 2_000,
   },
 };
 
@@ -1220,6 +1156,7 @@ export const clampDspSettings = (value: unknown): IDspSettings => {
     return DSP_DEFAULTS;
   }
   const normalizer = isRecord(value.normalizer) ? value.normalizer : {};
+  const crossfade = isRecord(value.crossfade) ? value.crossfade : {};
   const eq = isRecord(value.eq) ? value.eq : {};
   const storedEqBands = Array.isArray(eq.bands) ? eq.bands : [];
   const exciter = isRecord(value.exciter) ? value.exciter : {};
@@ -1315,6 +1252,7 @@ export const clampDspSettings = (value: unknown): IDspSettings => {
   }
 
   return {
+    enabled: clampBoolean(value.enabled, DSP_DEFAULTS.enabled),
     normalizer: {
       mode: NORMALIZER_MODES.includes(normalizer.mode as TNormalizerMode)
         ? (normalizer.mode as TNormalizerMode)
@@ -1329,6 +1267,17 @@ export const clampDspSettings = (value: unknown): IDspSettings => {
         RANGES.normalizerTargetLufs,
         DSP_DEFAULTS.normalizer.targetLufs,
       ),
+    },
+    crossfade: {
+      enabled: clampBoolean(crossfade.enabled, DSP_DEFAULTS.crossfade.enabled),
+      durationMs: clampNumber(
+        crossfade.durationMs,
+        RANGES.crossfadeDurationMs,
+        DSP_DEFAULTS.crossfade.durationMs,
+      ),
+      curve: CROSSFADE_CURVES.includes(crossfade.curve as TCrossfadeCurve)
+        ? (crossfade.curve as TCrossfadeCurve)
+        : DSP_DEFAULTS.crossfade.curve,
     },
     eq: {
       enabled: clampBoolean(eq.enabled, DSP_DEFAULTS.eq.enabled),
@@ -1367,17 +1316,6 @@ export const clampDspSettings = (value: unknown): IDspSettings => {
           : 0,
       fuzzAmount: clampNumber(eq.fuzzAmount, { min: 0, max: 1 }, 0),
       presetId: typeof eq.presetId === 'string' ? eq.presetId : '',
-      preampDb: clampNumber(eq.preampDb, RANGES.eqGainDb, 0),
-      // Zero for a setting written before this existed — those are the
-      // sessions that have been clipping — and recomputed on the next change
-      // either way.
-      trimDb: clampNumber(eq.trimDb, RANGES.eqGainDb, 0),
-      // A stored boolean predates the third position: `true` meant adaptive
-      // and `false` meant the fixed reserve, which is what those two names
-      // still mean.
-      trimMode: TRIM_MODES.includes(eq.trimMode as TTrimMode)
-        ? (eq.trimMode as TTrimMode)
-        : (eq.adaptiveTrim === true && 'adaptive') || 'fixed',
       // The stored rack decides its own length now, so an imported ten-filter
       // curve comes back as ten bands rather than being padded out to fifteen
       // with silent ones. A band past the default rack has no fallback of its
@@ -1504,10 +1442,6 @@ export const clampDspSettings = (value: unknown): IDspSettings => {
         master.outputTrimDb,
         RANGES.masterOutputTrimDb,
         DSP_DEFAULTS.master.outputTrimDb,
-      ),
-      autoHeadroom: clampBoolean(
-        master.autoHeadroom,
-        DSP_DEFAULTS.master.autoHeadroom,
       ),
       loudnessMaximize: clampBoolean(
         master.loudnessMaximize,

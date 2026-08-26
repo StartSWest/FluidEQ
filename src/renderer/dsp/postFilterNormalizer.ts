@@ -10,14 +10,15 @@ import {
   createLinkedLimiterState,
   processLinkedLimiter,
   resetLinkedLimiterControl,
+  resetLinkedLimiterState,
 } from './limiter';
 
-/** Give attenuation enough future audio to arrive as a slow level movement. */
-export const POST_FILTER_NORMALIZER_LOOK_AHEAD_MS = 180;
+/** No programme delay: seeking and Next must remain sample-immediate. */
+export const POST_FILTER_NORMALIZER_LOOK_AHEAD_MS = 0;
 /** Do not recover between peaks belonging to the same musical phrase. */
 export const POST_FILTER_NORMALIZER_RELEASE_HOLD_MS = 1_000;
-/** Auto Headroom must never chase individual hits in either direction. */
-export const POST_FILTER_NORMALIZER_MIN_RELEASE_MS = 4_000;
+/** 1 dB in 200 ms, 5 dB in one second: bigger moves take longer. */
+export const POST_FILTER_NORMALIZER_ATTACK_DB_PER_SECOND = 5;
 /** Click-free return to unity when Auto Headroom is switched off. */
 export const POST_FILTER_NORMALIZER_BYPASS_RELEASE_MS = 1_000;
 /** Keeps the emergency boundary idle after reconstruction and the DC blocker. */
@@ -43,6 +44,20 @@ export interface IPostFilterNormalizerOptions {
 }
 
 export const resetPostFilterNormalizer = (
+  state: IPostFilterNormalizerState,
+): void => {
+  resetLinkedLimiterState(state.limiter);
+  state.minimumGain = 1;
+  state.inputTruePeak = 0;
+};
+
+/**
+ * Forget headroom learned before whole-track normalization became available.
+ *
+ * The audio delay remains continuous, unlike a source-boundary reset, so a
+ * background analysis result cannot manufacture a one-sample hole or pop.
+ */
+export const rebasePostFilterNormalizer = (
   state: IPostFilterNormalizerState,
 ): void => {
   resetLinkedLimiterControl(state.limiter);
@@ -72,9 +87,10 @@ export const createPostFilterNormalizer = (
  *
  * The target already reserves any positive Master gain. Consequently Output
  * trim at 0 dB is literal unity and positive trim cannot force the emergency
- * guard to reshape a hot waveform. A 180-millisecond look-ahead makes new
- * attenuation a deliberate level move. After a one-second hold, recovery
- * follows newer peaks with the same slow envelope used on the path to unity.
+ * guard to reshape a hot waveform. The detector sees a new peak immediately,
+ * but gain moves at a bounded dB-per-second rate and adds no playback delay.
+ * Once established, that track-wide headroom is held until the source changes:
+ * a quiet verse must not undo the level chosen by a loud chorus.
  */
 export const processPostFilterNormalizer = (
   state: IPostFilterNormalizerState,
@@ -83,7 +99,6 @@ export const processPostFilterNormalizer = (
     enabled,
     outputCeilingDb,
     followingGainDb,
-    releaseMs,
     sampleRate,
   }: IPostFilterNormalizerOptions,
 ): void => {
@@ -100,21 +115,20 @@ export const processPostFilterNormalizer = (
   const reservedGainDb = Number.isFinite(followingGainDb) ? followingGainDb : 0;
   const normalizedCeilingDb =
     outputCeilingDb - reservedGainDb - POST_FILTER_NORMALIZER_MARGIN_DB;
-  const effectiveReleaseMs = enabled
-    ? Math.max(POST_FILTER_NORMALIZER_MIN_RELEASE_MS, releaseMs)
-    : POST_FILTER_NORMALIZER_BYPASS_RELEASE_MS;
-  const releaseCoefficient = Math.exp(
-    -1 / ((effectiveReleaseMs / 1_000) * sampleRate),
-  );
+  const releaseCoefficient = enabled
+    ? 1
+    : Math.exp(
+        -1 / ((POST_FILTER_NORMALIZER_BYPASS_RELEASE_MS / 1_000) * sampleRate),
+      );
   processLinkedLimiter(limiter, channels, {
     ceiling: enabled
       ? 10 ** (normalizedCeilingDb / 20)
       : Number.POSITIVE_INFINITY,
     releaseCoefficient,
-    // There is deliberately no faster "while limiting" recovery. That was
-    // inverse pumping: gain rose between successive peaks and fell on the next.
-    // Both upward paths now use the same slow envelope.
+    // A track has one loudness intention. Never recover on quiet passages;
+    // resetting at the next source boundary is the only upward transition.
     limitingReleaseCoefficient: releaseCoefficient,
+    attackSlewDbPerSecond: POST_FILTER_NORMALIZER_ATTACK_DB_PER_SECOND,
     kneeDb: 0,
     releaseHoldSamples: enabled
       ? Math.round(

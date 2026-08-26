@@ -57,6 +57,19 @@ const dsp = {
   'dsp.normalizer.honesty':
     'Evita sobrecarga posterior; não pode reconstruir distorção já gravada no arquivo.',
 
+  'dsp.crossfade.title': 'Transição cruzada',
+  'dsp.crossfade.description':
+    'Sobrepõe as faixas de saída e entrada após a normalização, antes do Exciter e EQ.',
+  'dsp.crossfade.outgoing': 'Saindo',
+  'dsp.crossfade.incoming': 'Entrando',
+  'dsp.crossfade.duration': 'Duração',
+  'dsp.crossfade.curve': 'Curva da transição',
+  'dsp.crossfade.equalPower': 'Potência igual',
+  'dsp.crossfade.smooth': 'Suave',
+  'dsp.crossfade.linear': 'Linear',
+  'dsp.crossfade.hint':
+    'Aplica-se ao Próximo manual e aos finais naturais. A busca continua imediata.',
+
   'dsp.eqPreset.custom': 'Personalizado',
   'dsp.eqPreset.label': 'Predefinição',
   'dsp.eqPreset.saved': 'Os teus',
@@ -144,9 +157,6 @@ const dsp = {
   'dsp.eqPreset.importEmpty':
     'Este equalizador não conseguiu ler nenhum filtro.',
   'dsp.eqPreset.importFailed': 'Não foi possível ler esse ficheiro.',
-  'dsp.eqPreset.importPreamp':
-    'Os seus {gain} dB de margem são medidos aqui em vez disso.',
-
   'dsp.eq.rack': 'Bandas',
   'dsp.eqModel.label': 'Caráter',
   'dsp.eqModel.clean': 'Nenhum',
@@ -169,8 +179,7 @@ const dsp = {
   'dsp.eqImport.title': 'Importar uma curva de EQ',
   'dsp.eqImport.hint':
     'Cola uma curva do Squiglink, AutoEq ou Equalizer APO — ou escolhe o ficheiro que a contém.',
-  'dsp.eqImport.placeholder':
-    'Preamp: -5.4 dB\nFilter: ON PK Fc 1200 Hz Gain -2.1 dB Q 1.41',
+  'dsp.eqImport.placeholder': 'Filter: ON PK Fc 1200 Hz Gain -2.1 dB Q 1.41',
   'dsp.eqImport.chooseFile': 'Escolher ficheiro',
   'dsp.eqImport.apply': 'Importar',
   'dsp.eqImport.cancel': 'Cancelar',
@@ -193,7 +202,6 @@ const dsp = {
   'dsp.eq.type.bandPass': 'Passa-banda',
   'dsp.eq.frequency': 'Freq',
   'dsp.eq.gain': 'Ganho',
-  'dsp.eq.preamp': 'Pré-amp',
   'dsp.eq.trim': 'Ajuste auto',
   'dsp.eq.adaptive': 'Adaptativo',
   'dsp.eq.trimFixed': 'Fixo',

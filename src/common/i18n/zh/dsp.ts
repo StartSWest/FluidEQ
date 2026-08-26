@@ -54,6 +54,18 @@ const dsp = {
     '在标准化器前后直接测得的真实采样峰值。零标记表示 0 dBFS。',
   'dsp.normalizer.honesty': '可防止后级过载，但无法重建文件中已经存在的失真。',
 
+  'dsp.crossfade.title': '交叉淡化',
+  'dsp.crossfade.description':
+    '在标准化之后、激励器和 EQ 之前重叠淡出与淡入曲目。',
+  'dsp.crossfade.outgoing': '淡出',
+  'dsp.crossfade.incoming': '淡入',
+  'dsp.crossfade.duration': '时长',
+  'dsp.crossfade.curve': '淡化曲线',
+  'dsp.crossfade.equalPower': '等功率',
+  'dsp.crossfade.smooth': '平滑',
+  'dsp.crossfade.linear': '线性',
+  'dsp.crossfade.hint': '适用于手动下一曲和自然结束。拖动进度仍保持即时。',
+
   'dsp.eqPreset.custom': '自定义',
   'dsp.eqPreset.label': '预设',
   'dsp.eqPreset.saved': '我的',
@@ -137,8 +149,6 @@ const dsp = {
   'dsp.eqPreset.importSkipped': '已加载 {count} 个滤波器，跳过 {skipped} 个。',
   'dsp.eqPreset.importEmpty': '此均衡器无法从中读取任何滤波器。',
   'dsp.eqPreset.importFailed': '无法读取该文件。',
-  'dsp.eqPreset.importPreamp': '文件的 {gain} dB 余量改由此处实测。',
-
   'dsp.eq.rack': '频段数',
   'dsp.eqModel.label': '音色',
   'dsp.eqModel.clean': '无',
@@ -161,8 +171,7 @@ const dsp = {
   'dsp.eqImport.title': '导入均衡曲线',
   'dsp.eqImport.hint':
     '粘贴来自 Squiglink、AutoEq 或 Equalizer APO 的曲线，或选择包含它的文件。',
-  'dsp.eqImport.placeholder':
-    'Preamp: -5.4 dB\nFilter: ON PK Fc 1200 Hz Gain -2.1 dB Q 1.41',
+  'dsp.eqImport.placeholder': 'Filter: ON PK Fc 1200 Hz Gain -2.1 dB Q 1.41',
   'dsp.eqImport.chooseFile': '选择文件',
   'dsp.eqImport.apply': '导入',
   'dsp.eqImport.cancel': '取消',
@@ -185,7 +194,6 @@ const dsp = {
   'dsp.eq.type.bandPass': '带通',
   'dsp.eq.frequency': '频率',
   'dsp.eq.gain': '增益',
-  'dsp.eq.preamp': '前置增益',
   'dsp.eq.trim': '自动调整',
   'dsp.eq.adaptive': '自适应',
   'dsp.eq.trimFixed': '固定',

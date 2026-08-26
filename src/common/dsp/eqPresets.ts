@@ -9,7 +9,6 @@ import {
   EQ_BAND_COUNT,
   IEqBandSettings,
   IEqSettings,
-  TTrimMode,
   TEqEngine,
   TEqModel,
   TEqPhase,
@@ -55,22 +54,6 @@ export interface IEqPresetSetup {
   subsonicHz?: number;
   fuzzAmount?: number;
   monoBelowHz?: number;
-  preampDb?: number;
-  /**
-   * Which input regulator a preset asks for. @see TTrimMode
-   *
-   * Every preset asks for the fixed one, and that is the point of it
-   * being here at all: these curves boost, boosts need room, and a preset
-   * that hands somebody a clipping rack and leaves them to notice is a
-   * preset that has done half its job. Fixed rather than adaptive because a
-   * preset is a starting point somebody judges by ear, and a level that moves
-   * while they are judging it makes two curves impossible to compare.
-   *
-   * The user can switch it off afterwards, which is why this is a starting
-   * point rather than a lock. "Default" is the exception: a reset means
-   * nothing applied at all, regulator included.
-   */
-  trimMode?: TTrimMode;
 }
 
 export interface IEqPreset {
@@ -119,11 +102,6 @@ const DEFAULT_SETUP: Required<IEqPresetSetup> = {
   subsonicHz: DSP_DEFAULTS.eq.subsonicHz,
   fuzzAmount: DSP_DEFAULTS.eq.fuzzAmount,
   monoBelowHz: DSP_DEFAULTS.eq.monoBelowHz,
-  preampDb: DSP_DEFAULTS.eq.preampDb,
-  // NOT from `DSP_DEFAULTS`, and deliberately so: what a fresh install runs
-  // and what a preset asks for are two different questions. A preset knows
-  // it boosts and asks for the regulator that answers that.
-  trimMode: 'fixed',
 };
 
 export const eqPresetSetup = (preset: IEqPreset): Required<IEqPresetSetup> => ({
@@ -275,10 +253,7 @@ export const EQ_PRESETS: readonly IEqPreset[] = [
     labelKey: 'dsp.eqPreset.vocal',
     group: 'voice',
     gains: [-6, -5, -3, -1, 0, 0.5, 1.5, 2.5, 3, 3.5, 3, 2, 1, 0, -0.5],
-    // The presence lift is at 2-3k and a lot of music is not there. What
-    // the song does not use comes back.
     setup: {
-      trimMode: 'adaptive',
       ...PROTECTED,
       model: 'proportional',
     },
@@ -312,11 +287,7 @@ export const EQ_PRESETS: readonly IEqPreset[] = [
       null,
     ],
     // Speech has nothing below 40 Hz except the room.
-    // Speech occupies a narrow band and stops between sentences, so most
-    // of the reserve is held against a boost the material spends most of
-    // its time not reaching.
     setup: {
-      trimMode: 'adaptive',
       model: 'proportional',
       subsonicHz: 40,
       monoBelowHz: 0,
@@ -375,10 +346,7 @@ export const EQ_PRESETS: readonly IEqPreset[] = [
       null,
       null,
     ],
-    // The entire point is listening quietly, which is exactly when giving
-    // level back matters most.
     setup: {
-      trimMode: 'adaptive',
       ...PROTECTED,
       model: 'wide',
     },
@@ -411,12 +379,7 @@ export const EQ_PRESETS: readonly IEqPreset[] = [
     labelKey: 'dsp.eqPreset.gaming',
     group: 'scene',
     gains: [2.9, 2.5, 1, 0, -1, -1, 0, 1.5, 2.5, 3.4, 3.9, 2.9, 2, 1.5, 1],
-    // The most intermittent material there is: minutes of near-silence with
-    // a footstep in it, then an explosion. A fixed reserve spends level on
-    // every quiet moment to protect a peak that arrives rarely, and hearing
-    // the quiet moments is the entire reason for this curve.
     setup: {
-      trimMode: 'adaptive',
       ...PROTECTED,
       model: 'proportional',
     },
@@ -431,10 +394,7 @@ export const EQ_PRESETS: readonly IEqPreset[] = [
       1.4, 1.1, 0, -1.1, -1.4, -0.7, 0.4, 1.4, 2.1, 2.1, 1.8, 1.1, 0.7, 0.7,
       0.4,
     ],
-    // Dialogue-led with wide dynamics: the reserve is needed on the
-    // explosion and wasted on the conversation.
     setup: {
-      trimMode: 'adaptive',
       model: 'wide',
       subsonicHz: 20,
       monoBelowHz: 60,
@@ -573,10 +533,7 @@ export const EQ_PRESETS: readonly IEqPreset[] = [
       null,
       null,
     ],
-    // Same as the vocal curve, and it already reacts per band — the
-    // regulator reacting too is the same idea one level up.
     setup: {
-      trimMode: 'adaptive',
       ...PROTECTED,
       model: 'proportional',
     },
@@ -840,11 +797,7 @@ export const EQ_PRESETS: readonly IEqPreset[] = [
       null,
       null,
     ],
-    // Hours of one voice. Holding a fixed reserve for the whole session
-    // costs level on every quiet passage to protect a peak that arrives
-    // rarely.
     setup: {
-      trimMode: 'adaptive',
       model: 'proportional',
       subsonicHz: 40,
       monoBelowHz: 0,
@@ -875,10 +828,7 @@ export const EQ_PRESETS: readonly IEqPreset[] = [
       null,
       null,
     ],
-    // Both of the above at once, and the preset people reach for when
-    // level matters most.
     setup: {
-      trimMode: 'adaptive',
       ...PROTECTED,
       model: 'wide',
     },
@@ -922,7 +872,6 @@ export const eqSettingsForPreset = (
       ...DSP_DEFAULTS.eq,
       enabled: current.enabled,
       isolate: false,
-      trimMode: 'off',
       presetId: preset.id,
       bands: DSP_DEFAULTS.eq.bands.map((band) => ({ ...band })),
     };

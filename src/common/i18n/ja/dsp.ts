@@ -56,6 +56,19 @@ const dsp = {
   'dsp.normalizer.honesty':
     '後段の過負荷を防ぎますが、ファイルに既に含まれる歪みは復元できません。',
 
+  'dsp.crossfade.title': 'クロスフェード',
+  'dsp.crossfade.description':
+    'ノーマライズ後、Exciter と EQ の前で前後のトラックを重ねます。',
+  'dsp.crossfade.outgoing': 'フェードアウト',
+  'dsp.crossfade.incoming': 'フェードイン',
+  'dsp.crossfade.duration': '時間',
+  'dsp.crossfade.curve': 'フェードカーブ',
+  'dsp.crossfade.equalPower': '等電力',
+  'dsp.crossfade.smooth': 'スムーズ',
+  'dsp.crossfade.linear': 'リニア',
+  'dsp.crossfade.hint':
+    '手動の次へ操作と自然な曲末に適用します。シークは即時のままです。',
+
   'dsp.eqPreset.custom': 'カスタム',
   'dsp.eqPreset.label': 'プリセット',
   'dsp.eqPreset.saved': '自分の',
@@ -142,9 +155,6 @@ const dsp = {
   'dsp.eqPreset.importEmpty':
     'このイコライザーが読み取れるフィルターはありませんでした。',
   'dsp.eqPreset.importFailed': 'そのファイルを読み取れませんでした。',
-  'dsp.eqPreset.importPreamp':
-    'ファイルの {gain} dB の余裕は、ここで実測した値に置き換えます。',
-
   'dsp.eq.rack': 'バンド数',
   'dsp.eqModel.label': 'キャラクター',
   'dsp.eqModel.clean': 'なし',
@@ -167,8 +177,7 @@ const dsp = {
   'dsp.eqImport.title': 'EQ カーブを読み込む',
   'dsp.eqImport.hint':
     'Squiglink、AutoEq、Equalizer APO のカーブを貼り付けるか、そのファイルを選んでください。',
-  'dsp.eqImport.placeholder':
-    'Preamp: -5.4 dB\nFilter: ON PK Fc 1200 Hz Gain -2.1 dB Q 1.41',
+  'dsp.eqImport.placeholder': 'Filter: ON PK Fc 1200 Hz Gain -2.1 dB Q 1.41',
   'dsp.eqImport.chooseFile': 'ファイルを選ぶ',
   'dsp.eqImport.apply': '読み込む',
   'dsp.eqImport.cancel': 'キャンセル',
@@ -191,7 +200,6 @@ const dsp = {
   'dsp.eq.type.bandPass': 'バンドパス',
   'dsp.eq.frequency': '周波数',
   'dsp.eq.gain': 'ゲイン',
-  'dsp.eq.preamp': 'プリアンプ',
   'dsp.eq.trim': '自動調整',
   'dsp.eq.adaptive': '適応',
   'dsp.eq.trimFixed': '固定',

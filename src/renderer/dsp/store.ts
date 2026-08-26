@@ -512,25 +512,6 @@ export const setDspPhaseView = (next: TPhaseView): void => {
 export const useDspPhaseView = (): TPhaseView =>
   useSyncExternalStore(subscribe, readDspPhaseView, readDspPhaseView);
 
-/**
- * Headroom the adaptive stage has handed back for the current material, in dB.
- *
- * Never negative, and never more than the regulator reserved. Kept out of the
- * settings on purpose: it changes several times a second with the music, and
- * settings are persisted — writing this into them would be a disk write per
- * chorus and a React render per reading, for a number nothing needs to
- * remember. The readout beside the preamp reads it here instead.
- */
-let headroomGiveBack = 0;
-
-export const setDspHeadroomGiveBack = (next: number): void => {
-  if (Number.isFinite(next) && next >= 0) {
-    headroomGiveBack = next;
-  }
-};
-
-export const readDspHeadroomGiveBack = (): number => headroomGiveBack;
-
 export const useDspSettings = (): IDspSettings =>
   useSyncExternalStore(subscribe, readDspSettings, readDspSettings);
 

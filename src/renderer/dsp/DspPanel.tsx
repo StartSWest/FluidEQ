@@ -19,10 +19,10 @@ import { TranslationKey } from '../../common/i18n/en';
 import { Dial, ProcessorCard } from './DspControls';
 import DspEqBar from './DspEqBar';
 import DspEqCard from './DspEqCard';
+import DspCrossfadeCard from './DspCrossfadeCard';
 import DspExciterCard from './DspExciterCard';
 import DspMasterCard from './DspMasterCard';
 import DspNormalizerCard from './DspNormalizerCard';
-import { withInputTrim } from './rack';
 import DspSideTabs from './DspSideTabs';
 import { TDspSection } from './sections';
 import { useTranslation } from '../utils/I18nContext';
@@ -70,7 +70,8 @@ const DspPanel = ({
   engineState,
 }: IDspPanelProps) => {
   const { t } = useTranslation();
-  const { normalizer, eq, exciter, compressor, maximizer, master } = settings;
+  const { normalizer, crossfade, eq, exciter, compressor, maximizer, master } =
+    settings;
   /**
    * The rate the filters will actually run at, from the engine.
    *
@@ -121,17 +122,9 @@ const DspPanel = ({
     [],
   );
 
-  /**
-   * Every change to the chain passes the same trust and EQ-headroom boundary.
-   *
-   * `withInputTrim` intentionally regulates only the EQ curve. Calling it from
-   * the shared patch path keeps preset and import changes from bypassing that
-   * calculation without making another processor borrow the EQ's preamp.
-   */
+  /** Every change passes through the shared settings trust boundary. */
   const patch = (next: Partial<IDspSettings>) =>
-    onChange(
-      withInputTrim(clampDspSettings({ ...settings, ...next }), sampleRate),
-    );
+    onChange(clampDspSettings({ ...settings, ...next }));
 
   const patchBand = (index: number, next: Partial<IBandSettings>) =>
     patch({
@@ -187,6 +180,7 @@ const DspPanel = ({
                 key={preset.id}
                 type="button"
                 className="button small subtle"
+                disabled={!settings.enabled}
                 onClick={() => {
                   onChange(preset.settings);
                   onCommit();
@@ -195,6 +189,26 @@ const DspPanel = ({
                 {t(preset.labelKey as TranslationKey)}
               </button>
             ))}
+          </div>
+          <div className="dsp-global-power">
+            <span
+              className={`dsp-global-power-state${
+                settings.enabled ? ' is-on' : ''
+              }`}
+              aria-hidden="true"
+            >
+              {settings.enabled ? t('dsp.enabled') : t('dsp.bypassed')}
+            </span>
+            <Switch
+              id="dsp-global-toggle"
+              isOn={settings.enabled}
+              isDisabled={false}
+              handleToggle={() => {
+                patch({ enabled: !settings.enabled });
+                onCommit();
+              }}
+              ariaLabel={t('dsp.title')}
+            />
           </div>
         </div>
         <p className="dsp-scope">{t('dsp.scopeNotice')}</p>
@@ -206,12 +220,17 @@ const DspPanel = ({
         ) : undefined}
       </header>
 
-      <div className="dsp-body">
+      <div
+        className={`dsp-body${settings.enabled ? '' : ' is-disabled'}`}
+        inert={settings.enabled ? undefined : true}
+        aria-disabled={!settings.enabled}
+      >
         <DspSideTabs
           active={section}
           onSelect={selectSection}
           enabled={{
             normalizer: normalizer.mode !== 'off',
+            crossfade: crossfade.enabled,
             eq: eq.enabled,
             exciter: exciter.enabled,
             compressor: compressor.enabled,
@@ -226,6 +245,14 @@ const DspPanel = ({
               normalizer={normalizer}
               analysisState={inputAnalysis}
               onPatch={(next) => patch({ normalizer: next })}
+              onCommit={onCommit}
+            />
+          )}
+
+          {section === 'crossfade' && (
+            <DspCrossfadeCard
+              crossfade={crossfade}
+              onPatch={(next) => patch({ crossfade: next })}
               onCommit={onCommit}
             />
           )}

@@ -296,24 +296,24 @@ const configuration: webpack.Configuration = {
       );
 
       console.log('Starting preload.js builder...');
-      const preloadProcess = spawnNode(
+      spawnNode(
         'webpack-cli/bin/cli.js',
         ['--config', path.join(__dirname, 'webpack.config.preload.dev.cjs')],
         { NODE_ENV: 'development', TS_NODE_TRANSPILE_ONLY: 'true' },
       )
-        .on('close', (code: number) => {
-          if (!shuttingDown) process.exit(code!);
+        .on('close', () => {
+          if (!shuttingDown) shutdown();
         })
         .on('error', (spawnError) => console.error(spawnError));
 
       console.log('Starting Main Process...');
       spawnNode('electronmon/bin/cli.js', ['dev-main.cjs', '--no-sandbox'], {
         NODE_ENV: 'development',
+        FLUIDEQ_EXIT_DEV_SESSION_ON_QUIT: '1',
       })
-        .on('close', (code: number) => {
+        .on('close', () => {
           if (shuttingDown) return;
-          preloadProcess.kill();
-          process.exit(code!);
+          shutdown();
         })
         .on('error', (spawnError) => console.error(spawnError));
       return middlewares;

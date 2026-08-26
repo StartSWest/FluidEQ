@@ -626,11 +626,41 @@ export const registerLibraryIpc = (deps: ILibraryIpcDeps): void => {
   });
 
   ipcMain.handle(
+    'library-track-signature',
+    async (_event, rawTrackId: unknown) => {
+      if (typeof rawTrackId !== 'string') {
+        return undefined;
+      }
+      const trackPath = trackPathById(currentIndex, rawTrackId);
+      if (trackPath === undefined) {
+        return undefined;
+      }
+      try {
+        const stats = await fs.promises.stat(trackPath);
+        return { sizeBytes: stats.size, mtimeMs: stats.mtimeMs };
+      } catch {
+        return undefined;
+      }
+    },
+  );
+
+  ipcMain.handle(
     'library-track-normalization-set',
-    (_event, rawTrackId: unknown, rawAnalysis: unknown) => {
+    async (
+      _event,
+      rawTrackId: unknown,
+      rawAnalysis: unknown,
+      rawSignature: unknown,
+    ) => {
       if (
         typeof rawTrackId !== 'string' ||
-        !isNormalizationAnalysis(rawAnalysis)
+        !isNormalizationAnalysis(rawAnalysis) ||
+        !rawSignature ||
+        typeof rawSignature !== 'object' ||
+        !('sizeBytes' in rawSignature) ||
+        !('mtimeMs' in rawSignature) ||
+        typeof rawSignature.sizeBytes !== 'number' ||
+        typeof rawSignature.mtimeMs !== 'number'
       ) {
         return false;
       }
@@ -640,8 +670,25 @@ export const registerLibraryIpc = (deps: ILibraryIpcDeps): void => {
       if (at < 0) {
         return false;
       }
+      const trackPath = trackPathById(currentIndex, rawTrackId);
+      if (!trackPath) {
+        return false;
+      }
+      try {
+        const stats = await fs.promises.stat(trackPath);
+        if (
+          stats.size !== rawSignature.sizeBytes ||
+          stats.mtimeMs !== rawSignature.mtimeMs
+        ) {
+          return false;
+        }
+      } catch {
+        return false;
+      }
       const updated = {
         ...currentIndex.tracks[at],
+        sizeBytes: rawSignature.sizeBytes,
+        mtimeMs: rawSignature.mtimeMs,
         normalization: rawAnalysis,
       };
       currentIndex = {

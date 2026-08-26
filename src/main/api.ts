@@ -416,15 +416,23 @@ const libraryTrackBytes = (trackId: string) =>
     ArrayBuffer | undefined
   >;
 
+/** One cheap stat; unlike normalization this never decodes the audio. */
+const libraryTrackSignature = (trackId: string) =>
+  ipcRenderer.invoke('library-track-signature', trackId) as Promise<
+    { sizeBytes: number; mtimeMs: number } | undefined
+  >;
+
 /** Persists a renderer measurement against the exact indexed file identity. */
 const setLibraryTrackNormalization = (
   trackId: string,
   analysis: ILibraryNormalizationAnalysis,
+  signature: { sizeBytes: number; mtimeMs: number },
 ) =>
   ipcRenderer.invoke(
     'library-track-normalization-set',
     trackId,
     analysis,
+    signature,
   ) as Promise<boolean>;
 
 /**
@@ -553,6 +561,7 @@ export default {
     onLibraryTracksAdded,
     revealLibraryTrack,
     libraryTrackBytes,
+    libraryTrackSignature,
     setLibraryTrackNormalization,
     getLibraryPlaylists,
     createLibraryPlaylist,

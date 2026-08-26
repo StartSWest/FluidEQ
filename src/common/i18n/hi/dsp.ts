@@ -57,6 +57,19 @@ const dsp = {
   'dsp.normalizer.honesty':
     'आगे की ओवरलोडिंग रोकता है; फ़ाइल में पहले से मौजूद डिस्टॉर्शन को दोबारा नहीं बना सकता।',
 
+  'dsp.crossfade.title': 'क्रॉसफ़ेड',
+  'dsp.crossfade.description':
+    'नॉर्मलाइज़ेशन के बाद, Exciter और EQ से पहले आउटगोइंग और इनकमिंग ट्रैक को ओवरलैप करता है।',
+  'dsp.crossfade.outgoing': 'आउटगोइंग',
+  'dsp.crossfade.incoming': 'इनकमिंग',
+  'dsp.crossfade.duration': 'अवधि',
+  'dsp.crossfade.curve': 'फ़ेड कर्व',
+  'dsp.crossfade.equalPower': 'समान पावर',
+  'dsp.crossfade.smooth': 'स्मूद',
+  'dsp.crossfade.linear': 'लीनियर',
+  'dsp.crossfade.hint':
+    'मैनुअल अगला और ट्रैक के स्वाभाविक अंत पर लागू होता है। सीक तुरंत रहता है।',
+
   'dsp.eqPreset.custom': 'कस्टम',
   'dsp.eqPreset.label': 'प्रीसेट',
   'dsp.eqPreset.saved': 'आपके',
@@ -143,9 +156,6 @@ const dsp = {
   'dsp.eqPreset.importEmpty':
     'इस इक्वलाइज़र को उसमें कोई फ़िल्टर नहीं मिला जिसे वह पढ़ सके।',
   'dsp.eqPreset.importFailed': 'वह फ़ाइल पढ़ी नहीं जा सकी।',
-  'dsp.eqPreset.importPreamp':
-    'इसकी {gain} dB गुंजाइश यहाँ स्वयं मापी जाती है।',
-
   'dsp.eq.rack': 'बैंड',
   'dsp.eqModel.label': 'चरित्र',
   'dsp.eqModel.clean': 'कोई नहीं',
@@ -168,8 +178,7 @@ const dsp = {
   'dsp.eqImport.title': 'EQ कर्व आयात करें',
   'dsp.eqImport.hint':
     'Squiglink, AutoEq या Equalizer APO से कर्व चिपकाएँ — या उसकी फ़ाइल चुनें।',
-  'dsp.eqImport.placeholder':
-    'Preamp: -5.4 dB\nFilter: ON PK Fc 1200 Hz Gain -2.1 dB Q 1.41',
+  'dsp.eqImport.placeholder': 'Filter: ON PK Fc 1200 Hz Gain -2.1 dB Q 1.41',
   'dsp.eqImport.chooseFile': 'फ़ाइल चुनें',
   'dsp.eqImport.apply': 'आयात करें',
   'dsp.eqImport.cancel': 'रद्द करें',
@@ -192,7 +201,6 @@ const dsp = {
   'dsp.eq.type.bandPass': 'बैंड पास',
   'dsp.eq.frequency': 'आवृत्ति',
   'dsp.eq.gain': 'गेन',
-  'dsp.eq.preamp': 'प्रीएम्प',
   'dsp.eq.trim': 'स्वतः समायोजन',
   'dsp.eq.adaptive': 'अनुकूली',
   'dsp.eq.trimFixed': 'स्थिर',

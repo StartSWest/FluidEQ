@@ -24,7 +24,6 @@ import {
   ILinkedLimiterState,
   createLinkedLimiterState,
   processLinkedLimiter,
-  resetLinkedLimiterControl,
 } from '../limiter';
 import {
   IExciterChannelState,
@@ -102,6 +101,7 @@ import {
   IPostFilterNormalizerState,
   createPostFilterNormalizer,
   processPostFilterNormalizer,
+  rebasePostFilterNormalizer,
   resetPostFilterNormalizer,
   takePostFilterNormalizerTelemetry,
 } from '../postFilterNormalizer';
@@ -112,7 +112,9 @@ import { FilterTypeEnum } from '../../../common/constants';
 const RENDER_QUANTUM = 128;
 const EXCITER_SMOOTHING_MS = 18;
 const EQ_ISOLATE_SMOOTHING_MS = 18;
-const INPUT_GAIN_SMOOTHING_MS = 20;
+/** Track-wide analysis changes level slowly; cached targets start immediately. */
+const TRACK_LEVEL_SLEW_DB_PER_SECOND = 5;
+const NORMALIZER_METER_RELEASE_MS = 350;
 const MAXIMIZER_RELEASE_HOLD_MS = 10;
 const MAXIMIZER_SOFT_KNEE_DB = 1.5;
 
@@ -183,13 +185,27 @@ class DspProcessor extends AudioWorkletProcessor {
   /** Shared across channels so a trim gesture cannot pull the image sideways. */
   private masterGainNow = 1;
 
-  /** Renderer-derived from the cached whole-track LUFS measurement. */
-  private masterLoudnessGainDb = 0;
+  /** Renderer-derived from one cached whole-track LUFS measurement. */
+  private masterLoudnessGainTargetDb = 0;
+
+  private masterLoudnessGainNowDb = 0;
+
+  private masterLoudnessGainStartDb = 0;
 
   /** Constant per track, ramped only when a track or mode changes. */
   private inputGainNow = 1;
 
-  private inputGainTarget = 1;
+  private inputGainTargetDb = 0;
+
+  private inputGainStartDb = 0;
+
+  /** One progress clock keeps normalization and LUFS makeup phase-locked. */
+  private trackLevelTransitionFrames = 0;
+
+  private trackLevelTransitionElapsedFrames = 0;
+
+  /** The first gain pair after a source boundary belongs to the new track. */
+  private trackLevelGainsNeedSnap = false;
 
   /** One filter state per band per channel, so the two never share history. */
   private readonly eqStates: IBiquadState[][] = [];
@@ -205,22 +221,6 @@ class DspProcessor extends AudioWorkletProcessor {
    * filtering would cost the whole partitioned transform per block for output
    * nobody reads.
    */
-  /**
-   * Where the input gain actually is, as opposed to where it is being asked to
-   * be.
-   *
-   * The regulator moves the trim on every change to the curve, so dragging a
-   * band walks this in tenths of a decibel — and a gain applied as a step is a
-   * discontinuity in the waveform, which is a click per step and a drag's worth
-   * of them in a row. Ramped across the block instead, so the level slides
-   * where it used to jump.
-   */
-  private eqGainNow = 1;
-
-  /** Handed back by the adaptive stage, in dB. Zero until it says otherwise,
-   * which is the pessimistic reserve and the safe answer. */
-  private headroomGiveBack = 0;
-
   /**
    * One follower per band per channel, outliving every settings message.
    *
@@ -402,9 +402,6 @@ class DspProcessor extends AudioWorkletProcessor {
   /** What the coefficients were built from, so they rebuild only on a change. */
   private eqSignature = '';
 
-  /** Linear, not dB: this is multiplied per sample. */
-  private eqPreampGain = 1;
-
   private lookAheadSamples = 0;
 
   /** Correlation accumulators, reset each time the meter reports. */
@@ -462,7 +459,7 @@ class DspProcessor extends AudioWorkletProcessor {
     () => new Float32Array(RENDER_QUANTUM),
   );
 
-  /** Original signal at the EQ boundary, before its preamp and filters. */
+  /** Original signal at the EQ boundary, before its filters. */
   private eqInput: Float32Array[] = Array.from(
     { length: CHANNELS },
     () => new Float32Array(RENDER_QUANTUM),
@@ -529,17 +526,6 @@ class DspProcessor extends AudioWorkletProcessor {
       // milliseconds — fine inside a frame, fatal inside a 2.7 ms callback —
       // and it changes only when the curve does, while settings arrive on every
       // pixel of a drag.
-      if (data instanceof Object && 'headroomGiveBack' in data) {
-        // What the adaptive stage decided this material does not need.
-        // Added to the reserve rather than replacing it, so a message that
-        // never arrives leaves the pessimistic figure in place.
-        const { headroomGiveBack } = data as { headroomGiveBack: number };
-        this.headroomGiveBack = Number.isFinite(headroomGiveBack)
-          ? Math.max(0, headroomGiveBack)
-          : 0;
-        this.refreshEqGain();
-        return;
-      }
       if (data instanceof Object && 'debugOutputSafetyEnabled' in data) {
         const requested = (data as { debugOutputSafetyEnabled?: unknown })
           .debugOutputSafetyEnabled;
@@ -557,29 +543,78 @@ class DspProcessor extends AudioWorkletProcessor {
         const trackId = typeof requested === 'string' ? requested : '';
         if (trackId !== this.peakHoldTrackId) {
           this.peakHoldTrackId = trackId;
+          this.trackLevelGainsNeedSnap = true;
           resetPostFilterNormalizer(this.postFilterNormalizer);
-          resetLinkedLimiterControl(this.outputSafety.limiter);
-          this.outputSafety.minimumLimiterGain = 1;
-          this.outputSafety.inputTruePeak = 0;
+          // A source boundary is not an A/B toggle. Empty every delayed sample
+          // so the previous song cannot play under the next song's gain.
+          this.outputSafety = createOutputSafety(CHANNELS, sampleRate);
+          this.normalizerInputPeaks[0] = 0;
+          this.normalizerInputPeaks[1] = 0;
+          this.normalizerOutputPeaks[0] = 0;
+          this.normalizerOutputPeaks[1] = 0;
         }
         return;
       }
-      if (data instanceof Object && 'inputGainDb' in data) {
-        const requested = (data as { inputGainDb?: unknown }).inputGainDb;
-        const gainDb =
-          typeof requested === 'number' && Number.isFinite(requested)
-            ? Math.min(12, Math.max(-48, requested))
+      if (data instanceof Object && 'trackLevelGains' in data) {
+        const requested = (
+          data as {
+            trackLevelGains?: {
+              inputGainDb?: unknown;
+              masterLoudnessGainDb?: unknown;
+            };
+          }
+        ).trackLevelGains;
+        const inputGainDb =
+          typeof requested?.inputGainDb === 'number' &&
+          Number.isFinite(requested.inputGainDb)
+            ? Math.min(12, Math.max(-48, requested.inputGainDb))
             : 0;
-        this.inputGainTarget = 10 ** (gainDb / 20);
-        return;
-      }
-      if (data instanceof Object && 'masterLoudnessGainDb' in data) {
-        const requested = (data as { masterLoudnessGainDb?: unknown })
-          .masterLoudnessGainDb;
-        this.masterLoudnessGainDb =
-          typeof requested === 'number' && Number.isFinite(requested)
-            ? Math.min(12, Math.max(0, requested))
+        const masterLoudnessGainDb =
+          typeof requested?.masterLoudnessGainDb === 'number' &&
+          Number.isFinite(requested.masterLoudnessGainDb)
+            ? Math.min(12, Math.max(0, requested.masterLoudnessGainDb))
             : 0;
+        // The player publishes immediately and the React store confirms the
+        // same pair afterwards. Treat that confirmation as idempotent instead
+        // of restarting an in-flight transition and stretching its duration.
+        if (
+          !this.trackLevelGainsNeedSnap &&
+          inputGainDb === this.inputGainTargetDb &&
+          masterLoudnessGainDb === this.masterLoudnessGainTargetDb
+        ) {
+          return;
+        }
+        if (
+          !this.trackLevelGainsNeedSnap &&
+          inputGainDb !== this.inputGainTargetDb
+        ) {
+          // Any attenuation learned while an uncached song was still at raw
+          // unity describes the wrong input level. Keep the delay continuous,
+          // but discard that obsolete held decision so first play and replay
+          // converge on the same analysed result.
+          rebasePostFilterNormalizer(this.postFilterNormalizer);
+        }
+        if (this.trackLevelGainsNeedSnap) {
+          this.inputGainNow = 10 ** (inputGainDb / 20);
+          this.masterLoudnessGainNowDb = masterLoudnessGainDb;
+          this.trackLevelGainsNeedSnap = false;
+          this.trackLevelTransitionFrames = 0;
+          this.trackLevelTransitionElapsedFrames = 0;
+        } else {
+          this.inputGainStartDb =
+            20 * Math.log10(Math.max(1e-12, this.inputGainNow));
+          this.masterLoudnessGainStartDb = this.masterLoudnessGainNowDb;
+          const maximumMoveDb = Math.max(
+            Math.abs(inputGainDb - this.inputGainStartDb),
+            Math.abs(masterLoudnessGainDb - this.masterLoudnessGainStartDb),
+          );
+          this.trackLevelTransitionFrames = Math.ceil(
+            (maximumMoveDb / TRACK_LEVEL_SLEW_DB_PER_SECOND) * sampleRate,
+          );
+          this.trackLevelTransitionElapsedFrames = 0;
+        }
+        this.inputGainTargetDb = inputGainDb;
+        this.masterLoudnessGainTargetDb = masterLoudnessGainDb;
         return;
       }
       if (data instanceof Object && 'eqKernel' in data) {
@@ -725,9 +760,6 @@ class DspProcessor extends AudioWorkletProcessor {
     }
     this.eqSignature = signature;
     this.rebuildOversampleViews();
-    // Held as a linear multiplier so the sample loop is one multiply rather
-    // than a pow per sample.
-    this.refreshEqGain();
     // Oversampling runs the cascade at twice the rate, so its filters have to
     // be DESIGNED for that rate. Handing it the ordinary set would place every
     // band an octave low — a bug rather than a mode.
@@ -825,19 +857,6 @@ class DspProcessor extends AudioWorkletProcessor {
     }
   }
 
-  /**
-   * The one gain in front of everything, from its three contributions.
-   *
-   * The regulator's reserve, what the adaptive stage handed back of it, and
-   * the user's own offset. Its own method because two different messages can
-   * move it and both have to arrive at the same arithmetic.
-   */
-  private refreshEqGain(): void {
-    const { eq } = this.settings;
-    this.eqPreampGain =
-      10 ** ((eq.preampDb + eq.trimDb + this.headroomGiveBack) / 20);
-  }
-
   /** Whether a convolver is actually in the signal path right now, which is
    * the only condition under which anything needs delaying to match it. */
   private isLinearRunning(): boolean {
@@ -857,7 +876,7 @@ class DspProcessor extends AudioWorkletProcessor {
    * Running the same filters is the only sample-for-sample reference for what
    * reaches the processed path.
    */
-  private matchOversampling(
+  private static matchOversampling(
     target: Float32Array,
     state: IOversamplerState,
     factor: number,
@@ -891,18 +910,11 @@ class DspProcessor extends AudioWorkletProcessor {
     }
   }
 
-  /** Apply the shared EQ gain and capture this domain's isolate references. */
+  /** Capture this EQ domain's isolate references at exact unity input. */
   private prepareEqChannel(target: Float32Array, slot: number): boolean {
     const { eq } = this.settings;
     if (!eq.enabled) {
       return false;
-    }
-    if (this.eqPreampGain !== 1 || this.eqGainNow !== this.eqPreampGain) {
-      const from = this.eqGainNow;
-      const step = (this.eqPreampGain - from) / Math.max(1, target.length);
-      for (let frame = 0; frame < target.length; frame += 1) {
-        target[frame] *= from + step * (frame + 1);
-      }
     }
     this.eqInput[slot].set(target);
     this.eqDelayedInput[slot].set(target);
@@ -967,7 +979,7 @@ class DspProcessor extends AudioWorkletProcessor {
       ? this.eqDelayedInput[slot]
       : this.eqInput[slot];
     if (!this.isLinearRunning() && eq.oversample > 1) {
-      this.matchOversampling(
+      DspProcessor.matchOversampling(
         dryReference,
         this.eqIsolateOversamplers[slot],
         eq.oversample,
@@ -975,7 +987,7 @@ class DspProcessor extends AudioWorkletProcessor {
       );
     }
     if (eq.fuzzAmount > 0) {
-      this.matchOversampling(
+      DspProcessor.matchOversampling(
         dryReference,
         this.eqIsolateColourOversamplers[slot],
         4,
@@ -1311,10 +1323,10 @@ class DspProcessor extends AudioWorkletProcessor {
    */
   private processMasterOutput(output: Float32Array[]): void {
     const { master } = this.settings;
-    const totalGainDb = master.outputTrimDb + this.masterLoudnessGainDb;
+    const frames = output[0]?.length ?? 0;
+    const totalGainDb = master.outputTrimDb + this.masterLoudnessGainNowDb;
     const targetGain = master.enabled ? 10 ** (totalGainDb / 20) : 1;
     const from = this.masterGainNow;
-    const frames = output[0]?.length ?? 0;
     const step = (targetGain - from) / Math.max(1, frames);
     if (from !== 1 || targetGain !== 1) {
       output.forEach((channel) => {
@@ -1334,25 +1346,36 @@ class DspProcessor extends AudioWorkletProcessor {
    * discontinuity when a new track's cached value replaces the previous one.
    */
   private processInputGain(output: Float32Array[]): void {
-    const from = this.inputGainNow;
-    const target = this.inputGainTarget;
     const frames = output[0]?.length ?? 0;
     if (frames === 0) {
       return;
     }
-    const smoothing =
-      1 - Math.exp(-1 / ((INPUT_GAIN_SMOOTHING_MS / 1_000) * sampleRate));
+    const fromDb = 20 * Math.log10(Math.max(1e-12, this.inputGainNow));
+    this.trackLevelTransitionElapsedFrames = Math.min(
+      this.trackLevelTransitionFrames,
+      this.trackLevelTransitionElapsedFrames + frames,
+    );
+    const progress =
+      this.trackLevelTransitionFrames > 0
+        ? this.trackLevelTransitionElapsedFrames /
+          this.trackLevelTransitionFrames
+        : 1;
+    const nextDb =
+      this.inputGainStartDb +
+      (this.inputGainTargetDb - this.inputGainStartDb) * progress;
+    this.masterLoudnessGainNowDb =
+      this.masterLoudnessGainStartDb +
+      (this.masterLoudnessGainTargetDb - this.masterLoudnessGainStartDb) *
+        progress;
+    const stepGain = 10 ** ((nextDb - fromDb) / Math.max(1, frames) / 20);
     output.forEach((channel) => {
-      let gain = from;
+      let gain = this.inputGainNow;
       for (let frame = 0; frame < channel.length; frame += 1) {
-        gain += (target - gain) * smoothing;
+        gain *= stepGain;
         channel[frame] *= gain;
       }
     });
-    this.inputGainNow = target + (from - target) * (1 - smoothing) ** frames;
-    if (Math.abs(this.inputGainNow - target) < 0.000001) {
-      this.inputGainNow = target;
-    }
+    this.inputGainNow = 10 ** (nextDb / 20);
   }
 
   private static measureNormalizer(
@@ -1409,6 +1432,10 @@ class DspProcessor extends AudioWorkletProcessor {
         target.set(source);
         this.ensureScratch(target.length);
       }
+    }
+
+    if (!this.settings.enabled) {
+      return true;
     }
 
     DspProcessor.measureNormalizer(output, this.normalizerInputPeaks);
@@ -1567,8 +1594,6 @@ class DspProcessor extends AudioWorkletProcessor {
       }
     }
 
-    // Committed once the channels agree, never inside the loop.
-    this.eqGainNow = this.eqPreampGain;
     this.settleConvolvers(output[0]?.length ?? 0);
 
     /**
@@ -1613,12 +1638,14 @@ class DspProcessor extends AudioWorkletProcessor {
     DspProcessor.copyMonitorOutput(outputs, DSP_OUTPUT_INDEX.maximizer, output);
 
     const { master } = this.settings;
-    const usesSelectedHeadroom =
-      master.enabled && (master.autoHeadroom || master.loudnessMaximize);
+    const usesSelectedHeadroom = master.enabled && master.loudnessMaximize;
     processPostFilterNormalizer(this.postFilterNormalizer, output, {
       enabled: usesSelectedHeadroom,
       outputCeilingDb: master.ceilingDb,
-      followingGainDb: master.outputTrimDb + this.masterLoudnessGainDb,
+      // Reserve only gain that is actually present in this quantum. Reserving
+      // the future target made Auto Headroom latch attenuation while the LUFS
+      // makeup was still ramping, so uncached and cached playback disagreed.
+      followingGainDb: master.outputTrimDb + this.masterLoudnessGainNowDb,
       releaseMs: master.releaseMs,
       sampleRate,
     });
@@ -1758,10 +1785,14 @@ class DspProcessor extends AudioWorkletProcessor {
     this.peak = 0;
     this.channelPeaks[0] = 0;
     this.channelPeaks[1] = 0;
-    this.normalizerInputPeaks[0] = 0;
-    this.normalizerInputPeaks[1] = 0;
-    this.normalizerOutputPeaks[0] = 0;
-    this.normalizerOutputPeaks[1] = 0;
+    const normalizerMeterDecay = Math.exp(
+      -(METER_BLOCKS * RENDER_QUANTUM) /
+        ((NORMALIZER_METER_RELEASE_MS / 1_000) * sampleRate),
+    );
+    this.normalizerInputPeaks[0] *= normalizerMeterDecay;
+    this.normalizerInputPeaks[1] *= normalizerMeterDecay;
+    this.normalizerOutputPeaks[0] *= normalizerMeterDecay;
+    this.normalizerOutputPeaks[1] *= normalizerMeterDecay;
     this.scatterAt = 0;
     this.sumLeftRight = 0;
     this.sumLeftSquared = 0;

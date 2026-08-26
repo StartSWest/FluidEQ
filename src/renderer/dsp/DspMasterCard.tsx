@@ -41,7 +41,7 @@ const DspMasterCard = ({
   onCommit,
 }: IDspMasterCardProps) => {
   const { t } = useTranslation();
-  const usesSelectedHeadroom = master.autoHeadroom || master.loudnessMaximize;
+  const usesSelectedHeadroom = master.loudnessMaximize;
   const effectiveCeiling = usesSelectedHeadroom ? master.ceilingDb : 0;
   const effectiveKnee = usesSelectedHeadroom ? OUTPUT_SAFETY_SOFT_KNEE_DB : 0;
   const autoGainReductionDb = meter.postFilterNormalizer.gainReductionDb;
@@ -96,21 +96,9 @@ const DspMasterCard = ({
           max={-0.1}
           unit="dBTP"
           step={0.1}
-          isDisabled={!master.enabled || !master.autoHeadroom}
+          isDisabled={!master.enabled || !master.loudnessMaximize}
           onCommit={onCommit}
           onChange={(ceilingDb) => onPatch({ ...master, ceilingDb })}
-        />
-        <Dial
-          labelKey="dsp.master.release"
-          value={master.releaseMs}
-          defaultValue={DSP_DEFAULTS.master.releaseMs}
-          min={4_000}
-          max={12_000}
-          unit="ms"
-          step={500}
-          isDisabled={!master.enabled || !usesSelectedHeadroom}
-          onCommit={onCommit}
-          onChange={(releaseMs) => onPatch({ ...master, releaseMs })}
         />
         <Dial
           labelKey="dsp.master.loudnessTarget"
@@ -141,9 +129,6 @@ const DspMasterCard = ({
               onPatch({
                 ...master,
                 loudnessMaximize: !master.loudnessMaximize,
-                autoHeadroom: master.loudnessMaximize
-                  ? master.autoHeadroom
-                  : true,
               });
               onCommit();
             }}
@@ -155,23 +140,6 @@ const DspMasterCard = ({
             gain: loudnessGainDb.toFixed(1),
           })}
         </p>
-      </div>
-
-      <div className="dsp-band">
-        <div className="dsp-band-head">
-          <span className="dsp-band-title">{t('dsp.master.autoHeadroom')}</span>
-          <Switch
-            id="dsp-master-auto-headroom"
-            isOn={master.autoHeadroom || master.loudnessMaximize}
-            isDisabled={!master.enabled || master.loudnessMaximize}
-            handleToggle={() => {
-              onPatch({ ...master, autoHeadroom: !master.autoHeadroom });
-              onCommit();
-            }}
-            ariaLabel={t('dsp.master.autoHeadroom')}
-          />
-        </div>
-        <p className="dsp-band-hint">{t('dsp.master.autoHeadroomHint')}</p>
       </div>
 
       <div className="dsp-band">

@@ -14,7 +14,13 @@ import { TranslationKey } from '../../common/i18n/en';
  * only ever agreed on a four-word union.
  */
 export type TDspSection =
-  'normalizer' | 'eq' | 'exciter' | 'compressor' | 'maximizer' | 'master';
+  | 'normalizer'
+  | 'crossfade'
+  | 'eq'
+  | 'exciter'
+  | 'compressor'
+  | 'maximizer'
+  | 'master';
 
 /**
  * The rack's visible workflow, with the output boundary fixed last.
@@ -25,6 +31,7 @@ export type TDspSection =
  */
 export const DSP_SECTIONS: { id: TDspSection; labelKey: TranslationKey }[] = [
   { id: 'normalizer', labelKey: 'dsp.normalizer.title' },
+  { id: 'crossfade', labelKey: 'dsp.crossfade.title' },
   { id: 'exciter', labelKey: 'dsp.exciter.title' },
   { id: 'eq', labelKey: 'dsp.eq.title' },
   // Keep the processor in the DSP chain, but hide its editor until it is ready.

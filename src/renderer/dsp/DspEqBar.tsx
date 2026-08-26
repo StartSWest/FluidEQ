@@ -281,7 +281,7 @@ const DspEqBar = ({ eq, sampleRate, onChange, onCommit }: IDspEqBarProps) => {
       setNotice(t('dsp.eqSave.imported', { name: saved.name }));
       return;
     }
-    const { bands, preampDb, skipped } = fromApoText(text);
+    const { bands, skipped } = fromApoText(text);
     if (!bands.length) {
       // Says nothing was read rather than nothing at all. The likeliest reason
       // is that this is not a ParametricEQ file, and silence from a button
@@ -309,18 +309,6 @@ const DspEqBar = ({ eq, sampleRate, onChange, onCommit }: IDspEqBarProps) => {
         ? t('dsp.eqPreset.importSkipped', { count: bands.length, skipped })
         : t('dsp.eqPreset.imported', { count: bands.length }),
     ];
-    if (preampDb !== 0) {
-      // Deliberately NOT applied. A file's `Preamp` line and this rack's
-      // regulator are the same quantity — room for the curve's own boosts —
-      // and applying both counts it twice: a headphone correction asking for
-      // -5.6 dB alongside a measured -5.7 arrived 11.3 dB quiet, which reads
-      // as the import having killed the bass rather than as double headroom.
-      //
-      // The regulator wins because it measures THESE filters at THIS rate,
-      // while the file's figure was computed by whoever published it, against
-      // a rack that may not have been the one it ends up in.
-      notes.push(t('dsp.eqPreset.importPreamp', { gain: preampDb }));
-    }
     setNotice(notes.join(' '));
   };
 

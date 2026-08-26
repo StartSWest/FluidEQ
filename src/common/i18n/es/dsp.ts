@@ -58,6 +58,19 @@ const dsp = {
   'dsp.normalizer.honesty':
     'Evita sobrecargas posteriores; no puede reconstruir distorsión ya grabada en el archivo.',
 
+  'dsp.crossfade.title': 'Fundido cruzado',
+  'dsp.crossfade.description':
+    'Superpone la pista saliente y la entrante después de normalizar, antes del Excitador y el EQ.',
+  'dsp.crossfade.outgoing': 'Saliente',
+  'dsp.crossfade.incoming': 'Entrante',
+  'dsp.crossfade.duration': 'Duración',
+  'dsp.crossfade.curve': 'Curva de fundido',
+  'dsp.crossfade.equalPower': 'Potencia igual',
+  'dsp.crossfade.smooth': 'Suave',
+  'dsp.crossfade.linear': 'Lineal',
+  'dsp.crossfade.hint':
+    'Se aplica a Siguiente manual y al final natural de la pista. Buscar sigue siendo inmediato.',
+
   'dsp.eqPreset.custom': 'Personalizado',
   'dsp.eqPreset.label': 'Ajuste',
   'dsp.eqPreset.saved': 'Tuyos',
@@ -144,9 +157,6 @@ const dsp = {
     'Se cargaron {count} filtros, {skipped} omitidos.',
   'dsp.eqPreset.importEmpty': 'Este ecualizador no pudo leer ningún filtro.',
   'dsp.eqPreset.importFailed': 'No se pudo leer ese archivo.',
-  'dsp.eqPreset.importPreamp':
-    'Sus {gain} dB de margen se miden aquí en su lugar.',
-
   'dsp.eq.rack': 'Bandas',
   'dsp.eqModel.label': 'Carácter',
   'dsp.eqModel.clean': 'Ninguno',
@@ -169,8 +179,7 @@ const dsp = {
   'dsp.eqImport.title': 'Importar una curva de EQ',
   'dsp.eqImport.hint':
     'Pega una curva de Squiglink, AutoEq o Equalizer APO, o elige el archivo que la contiene.',
-  'dsp.eqImport.placeholder':
-    'Preamp: -5.4 dB\nFilter: ON PK Fc 1200 Hz Gain -2.1 dB Q 1.41',
+  'dsp.eqImport.placeholder': 'Filter: ON PK Fc 1200 Hz Gain -2.1 dB Q 1.41',
   'dsp.eqImport.chooseFile': 'Elegir archivo',
   'dsp.eqImport.apply': 'Importar',
   'dsp.eqImport.cancel': 'Cancelar',
@@ -193,7 +202,6 @@ const dsp = {
   'dsp.eq.type.bandPass': 'Paso banda',
   'dsp.eq.frequency': 'Frec',
   'dsp.eq.gain': 'Ganancia',
-  'dsp.eq.preamp': 'Preamp',
   'dsp.eq.trim': 'Ajuste auto',
   'dsp.eq.adaptive': 'Adaptativo',
   'dsp.eq.trimFixed': 'Fijo',

@@ -74,11 +74,7 @@ export interface IDspGraph {
   /** Real output boundaries, ordered down the chain rather than compensated. */
   analysers: Record<TDspAnalyserStage, IAnalyserNodeLike>;
   /**
-   * The PRE-chain tap, which exists for a different question entirely.
-   *
-   * The adaptive trim needs the programme as it arrives, not as it leaves:
-   * what it computes is the difference the chain makes to this material, and
-   * measuring after the chain would be measuring the answer.
+   * The pre-chain tap used by the Normalizer display.
    */
   inputAnalyser: IAnalyserNodeLike;
   update(settings: IDspSettings): void;
@@ -127,7 +123,7 @@ export const buildDspGraph = (
   /**
    * Everything the kernel depends on, and nothing else.
    *
-   * Deliberately not the whole EQ: the preamp, the engine, the stereo mode and
+   * Deliberately not the whole EQ: the engine, stereo mode and
    * the fuzz all change the sound without changing the filter the kernel IS,
    * and including them would rebuild it for a knob it does not use.
    */

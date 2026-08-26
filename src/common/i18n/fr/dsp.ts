@@ -58,6 +58,19 @@ const dsp = {
   'dsp.normalizer.honesty':
     'Évite la surcharge en aval ; il ne peut pas reconstruire une distorsion déjà inscrite dans le fichier.',
 
+  'dsp.crossfade.title': 'Fondu enchaîné',
+  'dsp.crossfade.description':
+    'Superpose les pistes sortante et entrante après la normalisation, avant l’Exciter et l’EQ.',
+  'dsp.crossfade.outgoing': 'Sortante',
+  'dsp.crossfade.incoming': 'Entrante',
+  'dsp.crossfade.duration': 'Durée',
+  'dsp.crossfade.curve': 'Courbe de fondu',
+  'dsp.crossfade.equalPower': 'Puissance égale',
+  'dsp.crossfade.smooth': 'Doux',
+  'dsp.crossfade.linear': 'Linéaire',
+  'dsp.crossfade.hint':
+    'S’applique au bouton Suivant et aux fins naturelles. La recherche reste immédiate.',
+
   'dsp.eqPreset.custom': 'Personnalisé',
   'dsp.eqPreset.label': 'Préréglage',
   'dsp.eqPreset.saved': 'Les vôtres',
@@ -143,9 +156,6 @@ const dsp = {
   'dsp.eqPreset.importSkipped': '{count} filtres chargés, {skipped} ignorés.',
   'dsp.eqPreset.importEmpty': 'Cet égaliseur n’a pu lire aucun filtre.',
   'dsp.eqPreset.importFailed': 'Ce fichier n’a pas pu être lu.',
-  'dsp.eqPreset.importPreamp':
-    'Ses {gain} dB de marge sont mesurés ici à la place.',
-
   'dsp.eq.rack': 'Bandes',
   'dsp.eqModel.label': 'Caractère',
   'dsp.eqModel.clean': 'Aucun',
@@ -168,8 +178,7 @@ const dsp = {
   'dsp.eqImport.title': 'Importer une courbe d’égalisation',
   'dsp.eqImport.hint':
     'Collez une courbe de Squiglink, AutoEq ou Equalizer APO — ou choisissez le fichier qui la contient.',
-  'dsp.eqImport.placeholder':
-    'Preamp: -5.4 dB\nFilter: ON PK Fc 1200 Hz Gain -2.1 dB Q 1.41',
+  'dsp.eqImport.placeholder': 'Filter: ON PK Fc 1200 Hz Gain -2.1 dB Q 1.41',
   'dsp.eqImport.chooseFile': 'Choisir un fichier',
   'dsp.eqImport.apply': 'Importer',
   'dsp.eqImport.cancel': 'Annuler',
@@ -192,7 +201,6 @@ const dsp = {
   'dsp.eq.type.bandPass': 'Passe-bande',
   'dsp.eq.frequency': 'Fréq',
   'dsp.eq.gain': 'Gain',
-  'dsp.eq.preamp': 'Préampli',
   'dsp.eq.trim': 'Réglage auto',
   'dsp.eq.adaptive': 'Adaptatif',
   'dsp.eq.trimFixed': 'Fixe',

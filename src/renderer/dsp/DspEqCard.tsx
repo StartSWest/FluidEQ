@@ -11,7 +11,6 @@ import {
   EQ_MAX_BAND_COUNT,
   IEqBandSettings,
   IEqSettings,
-  TRIM_MODES,
   eqEdited,
 } from '../../common/dsp/chain';
 import { TranslationKey } from '../../common/i18n/en';
@@ -23,7 +22,6 @@ import DspEqLegend from './DspEqLegend';
 import DspFilterShapeIcon from './DspFilterShapeIcon';
 import DspPhaseMeter from './DspPhaseMeter';
 import DspDynamicReadout from './DspDynamicReadout';
-import DspTrimReadout from './DspTrimReadout';
 
 const BAND_TYPES: { type: FilterTypeEnum; labelKey: TranslationKey }[] = [
   { type: FilterTypeEnum.PK, labelKey: 'dsp.eq.type.peak' },
@@ -182,7 +180,6 @@ const DspEqCard = ({ eq, sampleRate, onChange, onCommit }: IDspEqCardProps) => {
           )}
           showsThreshold={band.dynamic && band.enabled}
           showsSubsonic={eq.subsonicHz > 0}
-          showsInput={Math.abs(eq.preampDb + eq.trimDb) >= 0.05}
         />
       </div>
 
@@ -218,54 +215,7 @@ const DspEqCard = ({ eq, sampleRate, onChange, onCommit }: IDspEqCardProps) => {
           above, then the selected band's controls below. */}
       <div className="dsp-eq-bottom">
         <div className="dsp-eq-global-row">
-          <div className="dsp-eq-preamp">
-            {/* The two halves of the input gain, boxed together the way the
-              dynamic pair is. What the regulator takes and what the user
-              spends of it are one question with two dials; the four beside
-              them shape the sound and answer another. */}
-            <div className="dsp-eq-headroom">
-              <LabelledKnob
-                label={t('dsp.eq.preamp')}
-                value={eq.preampDb}
-                min={-24}
-                max={24}
-                step={0.1}
-                unit="dB"
-                defaultValue={0}
-                isDisabled={false}
-                // Deliberately does NOT clear `presetId`: the preamp is
-                // headroom, not part of the curve a preset describes, so
-                // trimming it must not make the picker claim the preset was
-                // abandoned.
-                //
-                // Nor does it switch the regulator off. The two are separate
-                // gains: the regulator makes exactly the room the curve needs
-                // and this says how much of it to spend, so zero here means the
-                // rack sits at unity and turning it up is a decision rather
-                // than an accident.
-                onChange={(preampDb) => onChange({ ...eq, preampDb })}
-                onCommit={onCommit}
-              />
-              {/* A readout, not a control: what the regulator is taking out in
-                front of the bands so the preamp beside it can start from
-                zero. Written in the dials' own grammar — figure over caption
-                — because it stands in a row of them and anything else reads
-                as a control that has lost its knob. */}
-              <DspTrimReadout
-                reservedDb={eq.trimDb}
-                mode={eq.trimMode}
-                onCycle={() => {
-                  // Round the three, in the order they cost the user least to
-                  // most: steady, then measured, then nothing at all.
-                  const next =
-                    TRIM_MODES[
-                      (TRIM_MODES.indexOf(eq.trimMode) + 1) % TRIM_MODES.length
-                    ];
-                  onChange({ ...eq, trimMode: next });
-                  onCommit();
-                }}
-              />
-            </div>
+          <div className="dsp-eq-global-controls">
             {/* How much of the chosen character to apply. At zero every one of
               them collapses to the plain cookbook, so this is the off switch
               as well as the dial. */}
@@ -346,7 +296,7 @@ const DspEqCard = ({ eq, sampleRate, onChange, onCommit }: IDspEqCardProps) => {
 
         <div className="dsp-eq-strip">
           {/* Dynamics belongs to the selected band, so it leads that band's
-              controls instead of appearing under the global preamp. */}
+              controls instead of appearing with the global tone controls. */}
           <div className="dsp-eq-dynamic">
             <LabelledKnob
               label={t('dsp.eq.threshold')}

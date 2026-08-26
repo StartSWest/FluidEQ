@@ -274,11 +274,22 @@ export const masterLoudnessGainDb = (
   }
   const normalizedLufs =
     analysis.integratedLufs + normalizerGainDb(normalizer, analysis);
+  const normalizedPeak =
+    analysis.truePeakDbtp + normalizerGainDb(normalizer, analysis);
   if (normalizedLufs <= ABSOLUTE_GATE_LUFS) {
     return 0;
   }
+  // The cached whole-file true peak is known before playback. Spend only its
+  // real remaining room instead of asking a live envelope to discover the
+  // answer during a chorus and then undo it during a quiet passage.
+  const peakRoom =
+    master.ceilingDb - normalizedPeak - Math.max(0, master.outputTrimDb);
   return Math.max(
     0,
-    Math.min(MAX_LOUDNESS_GAIN_DB, master.loudnessTargetLufs - normalizedLufs),
+    Math.min(
+      MAX_LOUDNESS_GAIN_DB,
+      master.loudnessTargetLufs - normalizedLufs,
+      peakRoom,
+    ),
   );
 };

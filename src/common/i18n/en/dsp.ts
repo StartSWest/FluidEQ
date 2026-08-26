@@ -66,6 +66,19 @@ const dsp = {
   'dsp.normalizer.honesty':
     'Prevents overload downstream; it cannot reconstruct distortion already baked into a file.',
 
+  'dsp.crossfade.title': 'Crossfade',
+  'dsp.crossfade.description':
+    'Overlaps outgoing and incoming tracks after normalization, before the Exciter and EQ.',
+  'dsp.crossfade.outgoing': 'Outgoing',
+  'dsp.crossfade.incoming': 'Incoming',
+  'dsp.crossfade.duration': 'Duration',
+  'dsp.crossfade.curve': 'Fade curve',
+  'dsp.crossfade.equalPower': 'Equal power',
+  'dsp.crossfade.smooth': 'Smooth',
+  'dsp.crossfade.linear': 'Linear',
+  'dsp.crossfade.hint':
+    'Applies to manual Next and natural track endings. Seeking stays immediate.',
+
   'dsp.eqPreset.custom': 'Custom',
   'dsp.eqPreset.label': 'Preset',
   'dsp.eqPreset.saved': 'Yours',
@@ -151,9 +164,6 @@ const dsp = {
   'dsp.eqPreset.importSkipped': 'Loaded {count} filters, {skipped} skipped.',
   'dsp.eqPreset.importEmpty': 'No filters this equaliser could read.',
   'dsp.eqPreset.importFailed': 'That file could not be read.',
-  'dsp.eqPreset.importPreamp':
-    'Its {gain} dB of headroom is measured here instead.',
-
   'dsp.eq.rack': 'Bands',
   'dsp.eqModel.label': 'Character',
   'dsp.eqModel.clean': 'None',
@@ -176,8 +186,7 @@ const dsp = {
   'dsp.eqImport.title': 'Import an EQ curve',
   'dsp.eqImport.hint':
     'Paste a curve from Squiglink, AutoEq or Equalizer APO — or choose the file it is in.',
-  'dsp.eqImport.placeholder':
-    'Preamp: -5.4 dB\nFilter: ON PK Fc 1200 Hz Gain -2.1 dB Q 1.41',
+  'dsp.eqImport.placeholder': 'Filter: ON PK Fc 1200 Hz Gain -2.1 dB Q 1.41',
   'dsp.eqImport.chooseFile': 'Choose file',
   'dsp.eqImport.apply': 'Import',
   'dsp.eqImport.cancel': 'Cancel',
@@ -200,7 +209,6 @@ const dsp = {
   'dsp.eq.type.bandPass': 'Band pass',
   'dsp.eq.frequency': 'Freq',
   'dsp.eq.gain': 'Gain',
-  'dsp.eq.preamp': 'Preamp',
   'dsp.eq.trim': 'Auto trim',
   'dsp.eq.adaptive': 'Adaptive',
   'dsp.eq.trimFixed': 'Fixed',

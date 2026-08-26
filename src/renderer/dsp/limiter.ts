@@ -49,6 +49,8 @@ export interface ILimiterOptions {
   kneeDb?: number;
   /** Samples to keep a linked envelope down before release may recover. */
   releaseHoldSamples?: number;
+  /** Optional maximum downward movement, expressed as dB per second. */
+  attackSlewDbPerSecond?: number;
 }
 
 /**
@@ -152,6 +154,18 @@ export const resetLinkedLimiterControl = (state: ILinkedLimiterState): void => {
   state.gain = 1;
   state.releaseHoldRemaining = 0;
   state.gainReductionDb.fill(0);
+};
+
+/** Clear both control and delayed programme when the source itself changes. */
+export const resetLinkedLimiterState = (state: ILinkedLimiterState): void => {
+  resetLinkedLimiterControl(state);
+  state.position = 0;
+  state.blockPeak = 0;
+  state.delay.forEach((channel) => channel.fill(0));
+  state.truePeak.forEach((detector) => {
+    detector.history.fill(0);
+    detector.position = 0;
+  });
 };
 
 /**
@@ -275,6 +289,7 @@ export const processLinkedLimiter = (
     limitingReleaseCoefficient = releaseCoefficient,
     kneeDb,
     releaseHoldSamples = 0,
+    attackSlewDbPerSecond,
   }: ILimiterOptions,
 ): void => {
   const frames = channels[0]?.length ?? 0;
@@ -288,6 +303,12 @@ export const processLinkedLimiter = (
     state.truePeak[0]?.factor === 1 ? 0 : TRUE_PEAK_LATENCY_SAMPLES;
   const attackSamples = Math.max(0, lookAhead - detectorLatency);
   state.blockPeak = 0;
+
+  const usesSlowAttack =
+    attackSlewDbPerSecond !== undefined && attackSlewDbPerSecond > 0;
+  const attackStepDb = usesSlowAttack
+    ? attackSlewDbPerSecond / sampleRate
+    : Number.POSITIVE_INFINITY;
 
   for (let i = 0; i < frames; i += 1) {
     const { position } = state;
@@ -309,56 +330,100 @@ export const processLinkedLimiter = (
       incomingMagnitude >= activationThreshold
         ? requiredLimiterGain(incomingMagnitude, ceiling, kneeDb)
         : 1;
-    if (required <= state.detectorGain) {
-      state.detectorGain = required;
-      state.releaseHoldRemaining = Math.max(0, Math.floor(releaseHoldSamples));
-    } else if (state.releaseHoldRemaining > 0) {
-      state.releaseHoldRemaining -= 1;
-    } else {
-      // Follow the gain the current peak actually needs. A controller reduced
-      // to -10 dB therefore rises toward -5 dB while +5 dB peaks remain, then
-      // continues toward unity only once no peak asks for reduction. Releasing
-      // blindly toward one creates a sawtooth: overshoot the needed gain, snap
-      // down again on the next peak, repeat.
-      const recoveryCoefficient =
-        required < 1 ? limitingReleaseCoefficient : releaseCoefficient;
-      state.detectorGain +=
-        (required - state.detectorGain) * (1 - recoveryCoefficient);
-    }
-
-    const reductionDb =
-      state.detectorGain > 0 ? 20 * Math.log10(state.detectorGain) : -120;
-    const controlPosition = position - detectorLatency;
-    const controlAt = ((controlPosition % capacity) + capacity) % capacity;
-    gainReductionDb[controlAt] = reductionDb;
-
-    // Delaying audio while stepping its gain instantly is not look-ahead; it
-    // merely chops the waveform earlier. Back-fill the buffered control signal
-    // with a linear-in-dB fade that reaches the exact reduction at the peak.
-    // An existing deeper ramp wins, so overlapping peaks stay protected.
-    if (attackSamples > 0 && reductionDb < 0) {
-      const stepDb = -reductionDb / attackSamples;
-      let rampDb = reductionDb + stepDb;
-      for (let back = 1; back <= attackSamples; back += 1) {
-        const at =
-          (((controlPosition - back) % capacity) + capacity) % capacity;
-        if (gainReductionDb[at] <= rampDb) {
-          break;
-        }
-        gainReductionDb[at] = rampDb;
-        rampDb += stepDb;
+    if (usesSlowAttack) {
+      // Detection is immediate, but a large gain move is not. The fixed dB/s
+      // slew means a 1 dB correction completes sooner than a 5 dB correction
+      // instead of every peak causing the same abrupt volume dip. Keep the
+      // target through the look-ahead interval so it is still in force when
+      // the peak that selected it reaches the output.
+      if (required < state.detectorGain) {
+        state.detectorGain = required;
+        state.releaseHoldRemaining =
+          lookAhead + Math.max(0, Math.floor(releaseHoldSamples));
+      } else if (state.releaseHoldRemaining > 0) {
+        state.releaseHoldRemaining -= 1;
+      } else {
+        state.detectorGain = required;
       }
-    }
 
-    const writeAt = position % capacity;
-    const readAt = lookAhead === 0 ? writeAt : (position + 1) % capacity;
-    state.gain = 10 ** (gainReductionDb[readAt] / 20);
-    for (let channel = 0; channel < channels.length; channel += 1) {
-      const line = delay[channel];
-      const emitted = lookAhead === 0 ? channels[channel][i] : line[readAt];
-      line[writeAt] = channels[channel][i];
-      channels[channel][i] = emitted * state.gain;
+      const currentDb = state.gain > 0 ? 20 * Math.log10(state.gain) : -120;
+      const targetDb =
+        state.detectorGain > 0 ? 20 * Math.log10(state.detectorGain) : -120;
+      if (targetDb < currentDb) {
+        state.gain = 10 ** (Math.max(targetDb, currentDb - attackStepDb) / 20);
+      } else {
+        const recoveryCoefficient =
+          state.detectorGain < 1
+            ? limitingReleaseCoefficient
+            : releaseCoefficient;
+        state.gain +=
+          (state.detectorGain - state.gain) * (1 - recoveryCoefficient);
+      }
+
+      const writeAt = position % capacity;
+      const readAt = lookAhead === 0 ? writeAt : (position + 1) % capacity;
+      for (let channel = 0; channel < channels.length; channel += 1) {
+        const line = delay[channel];
+        const emitted = lookAhead === 0 ? channels[channel][i] : line[readAt];
+        line[writeAt] = channels[channel][i];
+        channels[channel][i] = emitted * state.gain;
+      }
+      state.position = position + 1;
+    } else {
+      if (required <= state.detectorGain) {
+        state.detectorGain = required;
+        state.releaseHoldRemaining = Math.max(
+          0,
+          Math.floor(releaseHoldSamples),
+        );
+      } else if (state.releaseHoldRemaining > 0) {
+        state.releaseHoldRemaining -= 1;
+      } else {
+        // Follow the gain the current peak actually needs. A controller reduced
+        // to -10 dB therefore rises toward -5 dB while +5 dB peaks remain, then
+        // continues toward unity only once no peak asks for reduction. Releasing
+        // blindly toward one creates a sawtooth: overshoot the needed gain, snap
+        // down again on the next peak, repeat.
+        const recoveryCoefficient =
+          required < 1 ? limitingReleaseCoefficient : releaseCoefficient;
+        state.detectorGain +=
+          (required - state.detectorGain) * (1 - recoveryCoefficient);
+      }
+
+      const reductionDb =
+        state.detectorGain > 0 ? 20 * Math.log10(state.detectorGain) : -120;
+      const controlPosition = position - detectorLatency;
+      const controlAt = ((controlPosition % capacity) + capacity) % capacity;
+      gainReductionDb[controlAt] = reductionDb;
+
+      // Delaying audio while stepping its gain instantly is not look-ahead; it
+      // merely chops the waveform earlier. Back-fill the buffered control signal
+      // with a linear-in-dB fade that reaches the exact reduction at the peak.
+      // An existing deeper ramp wins, so overlapping peaks stay protected.
+      if (attackSamples > 0 && reductionDb < 0) {
+        const stepDb = -reductionDb / attackSamples;
+        let rampDb = reductionDb + stepDb;
+        for (let back = 1; back <= attackSamples; back += 1) {
+          const at =
+            (((controlPosition - back) % capacity) + capacity) % capacity;
+          if (gainReductionDb[at] <= rampDb) {
+            break;
+          }
+          gainReductionDb[at] = rampDb;
+          rampDb += stepDb;
+        }
+      }
+
+      const writeAt = position % capacity;
+      const readAt = lookAhead === 0 ? writeAt : (position + 1) % capacity;
+      state.gain = 10 ** (gainReductionDb[readAt] / 20);
+      for (let channel = 0; channel < channels.length; channel += 1) {
+        const line = delay[channel];
+        const emitted = lookAhead === 0 ? channels[channel][i] : line[readAt];
+        line[writeAt] = channels[channel][i];
+        channels[channel][i] = emitted * state.gain;
+      }
+      state.position = position + 1;
     }
-    state.position = position + 1;
   }
 };

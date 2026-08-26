@@ -26,6 +26,10 @@ const GLYPHS: Record<TDspSection, { frame: string; accent: string }> = {
     frame: 'M3 5 H17 M3 15 H17',
     accent: 'M5 10 H8 L10 7 L12 13 L14 10 H17',
   },
+  crossfade: {
+    frame: 'M2 6 H6 C9 6 11 14 14 14 H18 M2 14 H6 C9 14 11 6 14 6 H18',
+    accent: 'M8 10 H12',
+  },
   eq: {
     frame: 'M4 3 V17 M10 3 V17 M16 3 V17',
     accent: 'M1.8 12.5 H6.2 M7.8 6.5 H12.2 M13.8 14.5 H18.2',

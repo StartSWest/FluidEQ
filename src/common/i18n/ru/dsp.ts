@@ -57,6 +57,19 @@ const dsp = {
   'dsp.normalizer.honesty':
     'Предотвращает последующую перегрузку, но не восстанавливает искажения, уже записанные в файл.',
 
+  'dsp.crossfade.title': 'Кроссфейд',
+  'dsp.crossfade.description':
+    'Накладывает уходящий и входящий треки после нормализации, перед эксайтером и EQ.',
+  'dsp.crossfade.outgoing': 'Уходящий',
+  'dsp.crossfade.incoming': 'Входящий',
+  'dsp.crossfade.duration': 'Длительность',
+  'dsp.crossfade.curve': 'Кривая перехода',
+  'dsp.crossfade.equalPower': 'Равная мощность',
+  'dsp.crossfade.smooth': 'Плавная',
+  'dsp.crossfade.linear': 'Линейная',
+  'dsp.crossfade.hint':
+    'Работает для ручного перехода и естественного конца трека. Перемотка остаётся мгновенной.',
+
   'dsp.eqPreset.custom': 'Свой',
   'dsp.eqPreset.label': 'Пресет',
   'dsp.eqPreset.saved': 'Свои',
@@ -143,9 +156,6 @@ const dsp = {
   'dsp.eqPreset.importEmpty':
     'Этот эквалайзер не смог прочитать ни одного фильтра.',
   'dsp.eqPreset.importFailed': 'Не удалось прочитать этот файл.',
-  'dsp.eqPreset.importPreamp':
-    'Его запас в {gain} дБ измеряется здесь самостоятельно.',
-
   'dsp.eq.rack': 'Полосы',
   'dsp.eqModel.label': 'Характер',
   'dsp.eqModel.clean': 'Нет',
@@ -168,8 +178,7 @@ const dsp = {
   'dsp.eqImport.title': 'Импорт кривой эквалайзера',
   'dsp.eqImport.hint':
     'Вставьте кривую из Squiglink, AutoEq или Equalizer APO — либо выберите файл с ней.',
-  'dsp.eqImport.placeholder':
-    'Preamp: -5.4 dB\nFilter: ON PK Fc 1200 Hz Gain -2.1 dB Q 1.41',
+  'dsp.eqImport.placeholder': 'Filter: ON PK Fc 1200 Hz Gain -2.1 dB Q 1.41',
   'dsp.eqImport.chooseFile': 'Выбрать файл',
   'dsp.eqImport.apply': 'Импортировать',
   'dsp.eqImport.cancel': 'Отмена',
@@ -192,7 +201,6 @@ const dsp = {
   'dsp.eq.type.bandPass': 'Полосовой',
   'dsp.eq.frequency': 'Частота',
   'dsp.eq.gain': 'Усиление',
-  'dsp.eq.preamp': 'Предус.',
   'dsp.eq.trim': 'Авторегулировка',
   'dsp.eq.adaptive': 'Адаптивно',
   'dsp.eq.trimFixed': 'Фиксировано',

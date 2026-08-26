@@ -58,6 +58,19 @@ const dsp = {
   'dsp.normalizer.honesty':
     'Verhindert nachfolgende Übersteuerung; bereits in der Datei enthaltene Verzerrung kann nicht rekonstruiert werden.',
 
+  'dsp.crossfade.title': 'Überblendung',
+  'dsp.crossfade.description':
+    'Überblendet ausgehende und eingehende Titel nach der Normalisierung und vor Exciter und EQ.',
+  'dsp.crossfade.outgoing': 'Ausgehend',
+  'dsp.crossfade.incoming': 'Eingehend',
+  'dsp.crossfade.duration': 'Dauer',
+  'dsp.crossfade.curve': 'Überblendkurve',
+  'dsp.crossfade.equalPower': 'Gleiche Leistung',
+  'dsp.crossfade.smooth': 'Weich',
+  'dsp.crossfade.linear': 'Linear',
+  'dsp.crossfade.hint':
+    'Gilt für manuelles Weiter und natürliche Titelenden. Suchen bleibt sofort.',
+
   'dsp.eqPreset.custom': 'Eigen',
   'dsp.eqPreset.label': 'Voreinstellung',
   'dsp.eqPreset.saved': 'Eigene',
@@ -146,9 +159,6 @@ const dsp = {
   'dsp.eqPreset.importEmpty':
     'Dieser Equalizer konnte keine Filter darin lesen.',
   'dsp.eqPreset.importFailed': 'Diese Datei konnte nicht gelesen werden.',
-  'dsp.eqPreset.importPreamp':
-    'Seine {gain} dB Reserve werden hier stattdessen gemessen.',
-
   'dsp.eq.rack': 'Bänder',
   'dsp.eqModel.label': 'Charakter',
   'dsp.eqModel.clean': 'Keiner',
@@ -171,8 +181,7 @@ const dsp = {
   'dsp.eqImport.title': 'EQ-Kurve importieren',
   'dsp.eqImport.hint':
     'Füge eine Kurve aus Squiglink, AutoEq oder Equalizer APO ein – oder wähle die Datei, in der sie steht.',
-  'dsp.eqImport.placeholder':
-    'Preamp: -5.4 dB\nFilter: ON PK Fc 1200 Hz Gain -2.1 dB Q 1.41',
+  'dsp.eqImport.placeholder': 'Filter: ON PK Fc 1200 Hz Gain -2.1 dB Q 1.41',
   'dsp.eqImport.chooseFile': 'Datei wählen',
   'dsp.eqImport.apply': 'Importieren',
   'dsp.eqImport.cancel': 'Abbrechen',
@@ -195,7 +204,6 @@ const dsp = {
   'dsp.eq.type.bandPass': 'Bandpass',
   'dsp.eq.frequency': 'Freq',
   'dsp.eq.gain': 'Pegel',
-  'dsp.eq.preamp': 'Vorverst.',
   'dsp.eq.trim': 'Auto-Trim',
   'dsp.eq.adaptive': 'Adaptiv',
   'dsp.eq.trimFixed': 'Fest',
