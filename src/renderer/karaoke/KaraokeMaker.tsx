@@ -110,6 +110,7 @@ import {
 } from './useMakerLineCapture';
 import { IWhisperRunProfile, useMakerAnalysisRun } from './useMakerAnalysisRun';
 import { readKaraokeMakerEditorView } from './karaokeEditorPersistence';
+import { reconcileKaraokeMakerLyrics } from './makerLyricsReconcile';
 
 interface IKaraokeMakerProps {
   song: IKaraokeSong;
@@ -344,7 +345,7 @@ const KaraokeMaker = ({
   >();
   const [analysisError, setAnalysisError] = useState<string>();
   const [analysisRetry, setAnalysisRetry] = useState<
-    'whisper' | 'whisper-runtime'
+    'whisper' | 'whisper-runtime' | 'pitch'
   >();
   const [analysisResult, setAnalysisResult] =
     useState<IKaraokeMakerAnalysisResult>();
@@ -993,17 +994,27 @@ const KaraokeMaker = ({
     detectTimingAndMelody = false,
     recordLinesAfter = false,
   ) => {
-    const nextLines = makerLinesFromPlainText(lyricsDraft);
+    const { current } = projectRef;
+    const reconciliation = reconcileKaraokeMakerLyrics(current, lyricsDraft);
+    const nextLines = reconciliation.project.lyrics.lines;
     if (!nextLines.some((line) => !karaokeMakerLineIsSection(line))) {
       setNotice(t('karaoke.maker.lyricsRequired'));
       return;
     }
     const textChanged =
       normalizedLyricsText(lyricsDraft) !==
-      normalizedLyricsText(plainLyrics(projectRef.current));
+      normalizedLyricsText(plainLyrics(current));
+    const comparableWordCount = Math.min(
+      reconciliation.existingWordCount,
+      reconciliation.nextWordCount,
+    );
+    const canTrackEdit =
+      comparableWordCount > 0 &&
+      reconciliation.preservedWordCount / comparableWordCount >= 0.5;
     if (
       textChanged &&
-      flattenTokens(projectRef.current).length > 0 &&
+      reconciliation.existingWordCount > 0 &&
+      !canTrackEdit &&
       destructiveAction !== 'replace-lyrics'
     ) {
       setDestructiveAction('replace-lyrics');
@@ -1016,11 +1027,34 @@ const KaraokeMaker = ({
         lyricsWorkflowActiveRef.current = true;
         setLyricsWorkflowActive(true);
         prepareAfterWhisperRef.current = true;
-        requestWhisper(true).catch(() => undefined);
+        requestWhisper(true, true).catch(() => undefined);
       } else if (recordLinesAfter) {
         startLineRecordingForProject(projectRef.current);
       } else {
         setLyricsOpen(false);
+      }
+      return;
+    }
+    if (canTrackEdit) {
+      const next = touchKaraokeMakerProject(reconciliation.project);
+      projectRef.current = next;
+      pushHistory(current);
+      setProject(next);
+      setSelection(undefined);
+      if (detectTimingAndMelody) {
+        lyricsWorkflowActiveRef.current = true;
+        setLyricsWorkflowActive(true);
+        prepareAfterWhisperRef.current = true;
+        requestWhisper(true, true).catch(() => undefined);
+        return;
+      }
+      if (recordLinesAfter) {
+        startLineRecordingForProject(next);
+      } else {
+        setLyricsOpen(false);
+      }
+      if (reconciliation.untimedWordCount > 0) {
+        setNotice(t('karaoke.maker.lyricsNeedPreparation'));
       }
       return;
     }
@@ -1033,7 +1067,6 @@ const KaraokeMaker = ({
         ? analysisResult.notes
         : karaokeMakerAnalysisNotesFromMelody(project);
     }
-    const { current } = projectRef;
     const rebuildingEmptyTimeline =
       detectTimingAndMelody &&
       flattenTokens(current).length === 0 &&
@@ -1043,7 +1076,11 @@ const KaraokeMaker = ({
       meta: rebuildingEmptyTimeline
         ? { ...current.meta, gapMs: 0 }
         : current.meta,
-      lyrics: { ...current.lyrics, source: 'manual', lines: nextLines },
+      lyrics: {
+        ...current.lyrics,
+        source: 'manual',
+        lines: makerLinesFromPlainText(lyricsDraft),
+      },
       analysis: {
         ...current.analysis,
         whisperPasses: 0,
@@ -1435,6 +1472,7 @@ const KaraokeMaker = ({
   const {
     auditionLyricsToken,
     moveLyricsEditorSelection,
+    moveLyricsEditorWord,
     noteKindLabel,
     selectLyricsEditorToken,
     updateSelectedTokenTiming,
@@ -1601,6 +1639,15 @@ const KaraokeMaker = ({
     cancelAnalysis();
   };
 
+  const dismissAnalysisError = () => {
+    setAnalysisError(undefined);
+    setAnalysisRetry(undefined);
+  };
+
+  const retryAnalysis = (
+    retry: 'whisper' | 'whisper-runtime' | 'pitch',
+  ): Promise<void> => (retry === 'pitch' ? runBasicPitch() : runWhisper());
+
   /*
    * LEAVING MID-RUN LANDED ONE SONG'S STEMS ON ANOTHER SONG.
    *
@@ -1694,7 +1741,9 @@ const KaraokeMaker = ({
       />
       <KaraokeMakerAnalysisTools
         isAnalysing={analysisProgress !== undefined || isSeparating}
-        onDetectLyrics={() => requestWhisper(false).catch(() => undefined)}
+        onDetectLyrics={() =>
+          requestWhisper(false, true).catch(() => undefined)
+        }
         onDetectMelody={() => runBasicPitch().catch(() => undefined)}
         onRebuild={() => requestWhisper(true).catch(() => undefined)}
         isUsingSongAudio={analysisFile === audioFile}
@@ -2216,11 +2265,10 @@ const KaraokeMaker = ({
         // Both jobs report through this panel, so its button has to stop both.
         cancelAnalysis={cancelCurrentWork}
         displayedAnalysisProgress={displayedAnalysisProgress}
+        dismissAnalysisError={dismissAnalysisError}
         lyricsOpen={lyricsOpen}
         renderWhisperDownloadDetails={renderWhisperDownloadDetails}
-        runWhisper={runWhisper}
-        setAnalysisError={setAnalysisError}
-        setAnalysisRetry={setAnalysisRetry}
+        retryAnalysis={retryAnalysis}
         visibleWhisperStages={visibleWhisperStages}
         whisperStage={whisperStage}
       />
@@ -2253,29 +2301,33 @@ const KaraokeMaker = ({
       {lyricsOpen && (
         <KaraokeMakerLyricsDialog
           activeLyricFocus={activeLyricFocus}
+          analysisError={analysisError}
           analysisMessage={analysisMessage}
           analysisProgress={analysisProgress}
           analysisProgressIsIndeterminate={analysisProgressIsIndeterminate}
+          analysisRetry={analysisRetry}
           // The lyrics workflow can run a split before it transcribes, so the
           // dialog's cancel reaches the same pair as the panel's.
           cancelAnalysis={cancelCurrentWork}
           destructiveAction={destructiveAction}
           displayedAnalysisProgress={displayedAnalysisProgress}
+          dismissAnalysisError={dismissAnalysisError}
           draftLyricsWordCount={draftLyricsWordCount}
           lyricsDraft={lyricsDraft}
           lyricsDraftChanged={lyricsDraftChanged}
           lyricsFileName={lyricsFileName}
           lyricsInputRef={lyricsInputRef}
           lyricsProcessing={lyricsProcessing}
+          moveLyricsEditorWord={moveLyricsEditorWord}
           project={project}
           renderLyricsModalWordInspector={renderLyricsModalWordInspector}
           renderWhisperDownloadDetails={renderWhisperDownloadDetails}
           replaceLyrics={replaceLyrics}
+          retryAnalysis={retryAnalysis}
           selectLyricsEditorToken={selectLyricsEditorToken}
           selection={selection}
           setLyricsDraft={setLyricsDraft}
           setLyricsOpen={setLyricsOpen}
-          tokens={tokens}
         />
       )}
       {KARAOKE_AUTOMATIC_DETECTOR_UI_ENABLED && whisperConsentOpen && (

@@ -68,8 +68,17 @@ import {
   setTransportSource,
 } from '../../audio/transportSource';
 import { ILibraryTrack } from '../../../common/library/types';
-import { useDspEngine } from '../../dsp/useDspEngine';
-import { useDspSettings } from '../../dsp/store';
+import {
+  setDspInputGainDb,
+  setDspMasterLoudnessGainDb,
+  useDspEngine,
+} from '../../dsp/useDspEngine';
+import {
+  analyzeInputTrack,
+  masterLoudnessGainDb,
+  normalizerGainDb,
+} from '../../dsp/inputNormalizer';
+import { setDspInputAnalysis, useDspSettings } from '../../dsp/store';
 import { useLibrary } from '../LibraryContext';
 import {
   readPlaybackMemory,
@@ -262,7 +271,10 @@ export const LibraryPlayerProvider = ({
   // Only the audio element. The video element below keeps its direct path —
   // routing it through Web Audio as well would mean a second source node and a
   // second chain for a track type the DSP was never asked to colour.
-  useDspEngine(audioElementRef.current, useDspSettings());
+  const dspSettings = useDspSettings();
+  useDspEngine(audioElementRef.current, dspSettings);
+  const dspSettingsRef = useRef(dspSettings);
+  dspSettingsRef.current = dspSettings;
   // Non-null while `LibraryVideoStage` has a `<video>` registered — the
   // element every transport command reaches instead, for exactly as long as
   // the current track is a video.
@@ -307,6 +319,10 @@ export const LibraryPlayerProvider = ({
   // with it for one render would have the effect below undo that.
   const [volume, setVolumeState] = useState(readStoredVolume);
   const [isUnplayable, setIsUnplayable] = useState(false);
+  // Re-runs the loader when Play targets the already-cued track after Stop or
+  // session restore. A direct src assignment here used to bypass every piece
+  // of preparation the normal track loader owns.
+  const [loadRequest, setLoadRequest] = useState(0);
 
   // The `ended` handler is attached once per media element and must never go
   // stale, so it reads the queue through a ref rather than closing over the
@@ -352,6 +368,13 @@ export const LibraryPlayerProvider = ({
    * the next track replaces it. A blob URL that is never revoked pins its
    * whole buffer for the life of the window. */
   const blobUrlRef = useRef<string | undefined>(undefined);
+  const analysisJobRef = useRef<
+    | {
+        trackId: string;
+        controller: AbortController;
+      }
+    | undefined
+  >(undefined);
 
   /** The running fade-in, so a second seek arriving mid-ramp cancels the
    * first rather than fighting it for the volume property. */
@@ -411,7 +434,7 @@ export const LibraryPlayerProvider = ({
 
   /**
    * Undoes the half-finished `loadedmetadata` handler of a swap that has been
-   * superseded — see `swapToBlob`, where it is set.
+   * superseded — see `swapBufferToBlob`, where it is set.
    *
    * A `{ once: true }` listener that never fires is never removed either. The
    * element outlives every track, so an abandoned swap left its handler
@@ -445,22 +468,9 @@ export const LibraryPlayerProvider = ({
    * happens underneath, keeps the playhead where it was, and is abandoned if
    * the track changed while the bytes were in flight.
    */
-  const swapToBlob = useCallback(
-    async (element: HTMLAudioElement, forTrackId: string) => {
-      const bytes = window.electron?.ipcRenderer?.libraryTrackBytes;
-      if (!bytes) {
-        return;
-      }
-      let buffer: ArrayBuffer | undefined;
-      try {
-        buffer = await bytes(forTrackId);
-      } catch {
-        // Main could not read it. The stream is already playing and is fine.
-        return;
-      }
-      // The queue moved on while this was in flight, or main declined it —
-      // either way there is nothing to swap to and nothing wrong.
-      if (!buffer || trackIdRef.current !== forTrackId) {
+  const swapBufferToBlob = useCallback(
+    (element: HTMLAudioElement, forTrackId: string, buffer: ArrayBuffer) => {
+      if (trackIdRef.current !== forTrackId) {
         return;
       }
       const wasPlaying = !element.paused;
@@ -491,7 +501,7 @@ export const LibraryPlayerProvider = ({
     [releaseBlob],
   );
 
-  /** Read inside `swapToBlob`'s async continuation, where the `trackId` it
+  /** Read inside `swapBufferToBlob`'s continuation, where the `trackId` it
    * closed over would be the one from the render that started the read. */
   const trackIdRef = useRef(trackId);
   trackIdRef.current = trackId;
@@ -803,18 +813,24 @@ export const LibraryPlayerProvider = ({
   // playing, which is exactly what would happen if `track`/`trackById` were
   // dependencies too.
   useEffect(() => {
+    // A track load owns exactly one analysis job. Aborting before every early
+    // return prevents rapid next/previous actions from leaving an old decoder
+    // alive or letting its result touch the newly selected track.
+    analysisJobRef.current?.controller.abort();
+    analysisJobRef.current = undefined;
     const audio = audioElementRef.current;
     if (!audio) {
-      return;
+      return undefined;
     }
     audio.pause();
     releaseBlob();
     if (!trackId || !track) {
       audio.removeAttribute('src');
+      setDspInputAnalysis({ status: 'idle', fraction: 0 });
       setIsUnplayable(false);
       setDurationMs(0);
       setPositionMs(0);
-      return;
+      return undefined;
     }
     // The tag's own duration first, so the bar shows a real number before the
     // element has read the file — overwritten by `loadedmetadata` once it has.
@@ -822,21 +838,64 @@ export const LibraryPlayerProvider = ({
     setPositionMs(0);
     if (!track.isPlayable) {
       audio.removeAttribute('src');
+      setDspInputAnalysis({
+        trackId: track.id,
+        status: 'unavailable',
+        fraction: 0,
+      });
       setIsUnplayable(true);
       setIsPlaying(false);
-      return;
+      return undefined;
     }
     setIsUnplayable(false);
     if (track.kind === 'video') {
       // Handed to `LibraryVideoStage` instead — never fed to the hidden
       // element, so the two can never sound at once.
       audio.removeAttribute('src');
+      setDspInputAnalysis({
+        trackId: track.id,
+        status: 'unavailable',
+        fraction: 0,
+      });
       setIsPlaying(true);
-      return;
+      return undefined;
     }
-    // The streaming URL first, so sound starts immediately, then the same
-    // file again as a blob once main has handed the bytes over — see
-    // `swapToBlob` for why the second one is worth the first one's trouble.
+    let cancelled = false;
+    const cachedAnalysis = track.normalization;
+    const shouldAnalyze =
+      !cachedAnalysis && dspSettingsRef.current.normalizer.mode !== 'off';
+    const analysisJob = shouldAnalyze
+      ? { trackId: track.id, controller: new AbortController() }
+      : undefined;
+    analysisJobRef.current = analysisJob;
+    setDspInputAnalysis(
+      cachedAnalysis
+        ? {
+            trackId: track.id,
+            status: 'ready',
+            fraction: 1,
+            analysis: cachedAnalysis,
+          }
+        : {
+            trackId: track.id,
+            status: shouldAnalyze ? 'analyzing' : 'idle',
+            fraction: 0,
+          },
+    );
+
+    // Playback starts before the first await. Analysis is preparation for the
+    // cache, never permission to hear the track; an uncached song must switch
+    // just as quickly as one the library has already measured.
+    setDspInputGainDb(
+      normalizerGainDb(dspSettingsRef.current.normalizer, cachedAnalysis),
+    );
+    setDspMasterLoudnessGainDb(
+      masterLoudnessGainDb(
+        dspSettingsRef.current.master,
+        dspSettingsRef.current.normalizer,
+        cachedAnalysis,
+      ),
+    );
     audio.src = libraryMediaUrl('track', track.id);
     // No `audio.currentTime = 0` here, and this is not tidiness: assigning a
     // position on the same tick as the source is what made seeking
@@ -872,16 +931,235 @@ export const LibraryPlayerProvider = ({
       audio.preload = 'metadata';
       audio.load();
       setIsPlaying(false);
-      return;
+    } else {
+      pendingRestore.current = undefined;
+      audio.preload = 'auto';
+      audio.play().catch(() => undefined);
     }
-    pendingRestore.current = undefined;
-    audio.preload = 'auto';
-    audio.play().catch(() => undefined);
-    // Deliberately not awaited: the stream is already playing, and this only
-    // improves how the next seek feels. It never rejects — see its own body.
-    swapToBlob(audio, track.id).catch(() => undefined);
+
+    const prepareInBackground = async () => {
+      const buffer = await window.electron.ipcRenderer.libraryTrackBytes(
+        track.id,
+      );
+      if (!buffer || cancelled) {
+        if (shouldAnalyze && !cancelled) {
+          setDspInputAnalysis({
+            trackId: track.id,
+            status: 'unavailable',
+            fraction: 0,
+          });
+        }
+        return;
+      }
+      // The same read makes seeking exact immediately; analysis gets a copy
+      // internally and continues after the player has switched to the blob.
+      swapBufferToBlob(audio, track.id, buffer);
+      if (!shouldAnalyze) {
+        return;
+      }
+      if (!analysisJob) {
+        return;
+      }
+      const analysis = await analyzeInputTrack(buffer, {
+        sampleRateHint: track.sampleRate,
+        signal: analysisJob.controller.signal,
+        isCancelled: () => cancelled || analysisJobRef.current !== analysisJob,
+        onProgress: ({ fraction }) => {
+          if (!cancelled && analysisJobRef.current === analysisJob) {
+            setDspInputAnalysis({
+              trackId: track.id,
+              status: 'analyzing',
+              fraction,
+            });
+          }
+        },
+      });
+      if (!analysis || cancelled || analysisJobRef.current !== analysisJob) {
+        if (
+          !analysis &&
+          !cancelled &&
+          analysisJobRef.current === analysisJob &&
+          !analysisJob.controller.signal.aborted
+        ) {
+          setDspInputAnalysis({
+            trackId: track.id,
+            status: 'unavailable',
+            fraction: 0,
+          });
+        }
+        return;
+      }
+      setDspInputAnalysis({
+        trackId: track.id,
+        status: 'ready',
+        fraction: 1,
+        analysis,
+      });
+      setDspInputGainDb(
+        normalizerGainDb(dspSettingsRef.current.normalizer, analysis),
+      );
+      setDspMasterLoudnessGainDb(
+        masterLoudnessGainDb(
+          dspSettingsRef.current.master,
+          dspSettingsRef.current.normalizer,
+          analysis,
+        ),
+      );
+      await window.electron.ipcRenderer.setLibraryTrackNormalization(
+        track.id,
+        analysis,
+      );
+    };
+
+    prepareInBackground()
+      .catch(() => {
+        if (
+          shouldAnalyze &&
+          !cancelled &&
+          analysisJobRef.current === analysisJob &&
+          !analysisJob?.controller.signal.aborted
+        ) {
+          setDspInputAnalysis({
+            trackId: track.id,
+            status: 'unavailable',
+            fraction: 0,
+          });
+        }
+      })
+      .finally(() => {
+        if (analysisJobRef.current === analysisJob) {
+          analysisJobRef.current = undefined;
+        }
+      });
+    return () => {
+      cancelled = true;
+      analysisJob?.controller.abort();
+      if (analysisJobRef.current === analysisJob) {
+        analysisJobRef.current = undefined;
+      }
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- deliberate, see the comment above this effect.
-  }, [trackId]);
+  }, [trackId, loadRequest]);
+
+  /**
+   * Enabling normalization while an already-playing uncached track is active.
+   *
+   * The ordinary loader already measures in the background. This path exists
+   * for the one situation where it deliberately did not: the track was
+   * started while the mode was Off. The linked gain ramps once when analysis
+   * completes; it never follows short-term level afterwards.
+   */
+  useEffect(() => {
+    if (
+      dspSettings.normalizer.mode === 'off' ||
+      !track ||
+      track.kind !== 'audio' ||
+      track.normalization ||
+      analysisJobRef.current?.trackId === track.id
+    ) {
+      return undefined;
+    }
+    let cancelled = false;
+    analysisJobRef.current?.controller.abort();
+    const analysisJob = {
+      trackId: track.id,
+      controller: new AbortController(),
+    };
+    analysisJobRef.current = analysisJob;
+    setDspInputAnalysis({
+      trackId: track.id,
+      status: 'analyzing',
+      fraction: 0,
+    });
+    const analyze = async () => {
+      const buffer = await window.electron.ipcRenderer.libraryTrackBytes(
+        track.id,
+      );
+      if (!buffer || cancelled) {
+        return;
+      }
+      const analysis = await analyzeInputTrack(buffer, {
+        sampleRateHint: track.sampleRate,
+        signal: analysisJob.controller.signal,
+        isCancelled: () => cancelled || analysisJobRef.current !== analysisJob,
+        onProgress: ({ fraction }) => {
+          if (!cancelled && analysisJobRef.current === analysisJob) {
+            setDspInputAnalysis({
+              trackId: track.id,
+              status: 'analyzing',
+              fraction,
+            });
+          }
+        },
+      });
+      if (
+        !analysis ||
+        cancelled ||
+        analysisJobRef.current !== analysisJob ||
+        trackIdRef.current !== track.id
+      ) {
+        if (
+          !analysis &&
+          !cancelled &&
+          analysisJobRef.current === analysisJob &&
+          !analysisJob.controller.signal.aborted
+        ) {
+          setDspInputAnalysis({
+            trackId: track.id,
+            status: 'unavailable',
+            fraction: 0,
+          });
+        }
+        return;
+      }
+      setDspInputAnalysis({
+        trackId: track.id,
+        status: 'ready',
+        fraction: 1,
+        analysis,
+      });
+      setDspInputGainDb(
+        normalizerGainDb(dspSettingsRef.current.normalizer, analysis),
+      );
+      setDspMasterLoudnessGainDb(
+        masterLoudnessGainDb(
+          dspSettingsRef.current.master,
+          dspSettingsRef.current.normalizer,
+          analysis,
+        ),
+      );
+      await window.electron.ipcRenderer.setLibraryTrackNormalization(
+        track.id,
+        analysis,
+      );
+    };
+    analyze()
+      .catch(() => {
+        if (
+          !cancelled &&
+          analysisJobRef.current === analysisJob &&
+          !analysisJob.controller.signal.aborted
+        ) {
+          setDspInputAnalysis({
+            trackId: track.id,
+            status: 'unavailable',
+            fraction: 0,
+          });
+        }
+      })
+      .finally(() => {
+        if (analysisJobRef.current === analysisJob) {
+          analysisJobRef.current = undefined;
+        }
+      });
+    return () => {
+      cancelled = true;
+      analysisJob.controller.abort();
+      if (analysisJobRef.current === analysisJob) {
+        analysisJobRef.current = undefined;
+      }
+    };
+  }, [dspSettings.normalizer.mode, track, trackId]);
 
   /**
    * Catches the one case the effect above cannot: `trackId` staying exactly
@@ -963,8 +1241,8 @@ export const LibraryPlayerProvider = ({
       }
       pendingRestore.current = undefined;
       if (element === audioElementRef.current && !element.getAttribute('src')) {
-        element.preload = 'auto';
-        element.src = libraryMediaUrl('track', startTrackId);
+        setLoadRequest((current) => current + 1);
+        return;
       }
       element.play().catch(() => undefined);
     },

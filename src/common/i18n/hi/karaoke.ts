@@ -528,6 +528,9 @@ const karaoke: Partial<Dictionary> = {
     'FluidEQ यह कराओके या प्रोजेक्ट आयात नहीं कर सका।',
   'karaoke.maker.errorParse': 'चुनी गई बोल या कराओके फ़ाइल पढ़ी नहीं जा सकी।',
   'karaoke.maker.downloadFailed': 'Whisper मॉडल डाउनलोड विफल',
+  'karaoke.maker.pitchDownloadFailed': 'पिच मॉडल डाउनलोड विफल',
+  'karaoke.maker.pitchDownloadError':
+    'FluidEQ अधिक सटीक मेलोडी मॉडल डाउनलोड नहीं कर सका। पहचान शामिल ऑफ़लाइन मॉडल से जारी रही। इंटरनेट या फ़ायरवॉल जाँचें और फिर प्रयास करें।',
   'karaoke.maker.localAnalysisFailed': 'स्थानीय विश्लेषण विफल',
   'karaoke.maker.whisperDownloadError':
     'FluidEQ Hugging Face से मॉडल डाउनलोड नहीं कर सका। इंटरनेट या फ़ायरवॉल जाँचें और फिर प्रयास करें।',

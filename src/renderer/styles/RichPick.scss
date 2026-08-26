@@ -124,12 +124,17 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // Positioned by AnchoredMenu, which renders it into the body so the panel
   // it lives in cannot clip it.
   z-index: 1000;
+  // Keep the sticky search row in a local stacking context. Without this,
+  // scrolling rows can be composited above it while the menu animates.
+  isolation: isolate;
   display: grid;
   // Wide enough for a name and the line under it to sit on one row each.
   // At 236 most descriptions were truncated after four words, which is a
   // subtitle that costs a row and says nothing.
   width: 300px;
-  padding: 6px;
+  // The search row owns the top edge. Leaving menu padding above a sticky row
+  // creates a strip where scrolled entries can remain visible.
+  padding: 0 6px 6px;
   gap: 2px;
 }
 
@@ -145,7 +150,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // rendering fault rather than as scrolling.
 .rich-pick__search {
   position: sticky;
-  z-index: 1;
+  z-index: 2;
   top: 0;
   display: grid;
   align-items: center;
@@ -153,7 +158,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   grid-template-columns: 13px minmax(0, 1fr);
   // Out to the menu's own padding, so the rule under it spans the full width
   // rather than floating with a gap at each end.
-  margin: -6px -6px 4px;
+  margin: 0 -6px 4px;
   padding: 9px 12px;
   border-bottom: 1px solid rgba($white, 0.07);
   background: #18293e;
@@ -170,7 +175,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   input {
     width: 100%;
-    padding: 0;
+    padding: 0 0 0 5px;
     border: 0;
     background: none;
     color: rgba($white, 0.92);

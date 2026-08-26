@@ -41,6 +41,7 @@ import {
   serializeChainBundle,
 } from '../../common/chainBundle';
 import { parseEqText } from '../../common/apoText';
+import { fromPresetFile } from '../../common/dsp/presetFile';
 import { fetchPreset, savePreset, savePresetBaseline } from '../flush';
 import { getCustomFileNameForDevice } from '../deviceProfiles';
 import { getConfigPath } from '../registry';
@@ -150,6 +151,62 @@ export const registerTransferIpc = ({
         });
     return result.canceled ? undefined : result.filePaths[0];
   };
+
+  /**
+   * A shared DSP rack, through a real desktop save dialog.
+   *
+   * The renderer used to create an `<a download>` element. Electron accepted
+   * it as a silent browser download, so pressing Share opened no window and
+   * gave no clue where the file went. Keeping the dialog and write here also
+   * preserves the bridge's existing rule: renderers may supply contents, but
+   * they never receive or choose filesystem paths themselves.
+   */
+  ipcMain.on(ChannelEnum.EXPORT_EQ_PRESET, async (event, arg) => {
+    const channel = ChannelEnum.EXPORT_EQ_PRESET;
+    try {
+      const suggestedName = arg?.[0];
+      const contents = arg?.[1];
+      if (
+        typeof suggestedName !== 'string' ||
+        typeof contents !== 'string' ||
+        suggestedName.length > 200 ||
+        contents.length > 1_000_000 ||
+        !fromPresetFile(contents)
+      ) {
+        handleError(event, channel, ErrorCode.INVALID_PARAMETER);
+        return;
+      }
+
+      const baseName =
+        suggestedName.replace(/[^\w\- ]+/g, '').trim() || 'Custom';
+      const saveOptions = {
+        title: 'Share EQ preset',
+        defaultPath: `${baseName}.fluideq.json`,
+        filters: [
+          {
+            name: `${PRODUCT_NAME} EQ preset`,
+            extensions: ['fluideq.json'],
+          },
+        ],
+      };
+      const parent = getMainWindow();
+      const target = parent
+        ? await dialog.showSaveDialog(parent, saveOptions)
+        : await dialog.showSaveDialog(saveOptions);
+
+      if (target.canceled || !target.filePath) {
+        const reply: TSuccess<boolean> = { result: false };
+        event.reply(channel, reply);
+        return;
+      }
+
+      fs.writeFileSync(target.filePath, contents, 'utf8');
+      const reply: TSuccess<boolean> = { result: true };
+      event.reply(channel, reply);
+    } catch (e) {
+      handleError(event, channel, ErrorCode.FAILURE, (e as Error).message);
+    }
+  });
 
   ipcMain.on(ChannelEnum.IMPORT_EQ_FILE, async (event) => {
     const channel = ChannelEnum.IMPORT_EQ_FILE;

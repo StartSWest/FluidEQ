@@ -106,6 +106,20 @@ body.is-rainbow .dsp-rail-tab.is-active {
   animation: rainbow-drift 12s linear infinite;
 }
 
+// Import and Save Preset are the same modal surface, so the rainbow edge is
+// applied to their shared class. Keeping the fill on the padding box leaves the
+// dialog readable while the one-pixel border carries the moving spectrum.
+body.is-rainbow .dsp-import {
+  border-color: transparent;
+  background:
+    linear-gradient($primary-default, $primary-default) padding-box,
+    var(--rainbow-sweep) border-box;
+  background-size:
+    auto,
+    200% 100%;
+  animation: rainbow-drift 12s linear infinite;
+}
+
 // One hue each, in the order they sit in the chain. A single colour repeated
 // four times would say nothing the solid cyan did not already say.
 body.is-rainbow .dsp-rail-tab:nth-child(1).is-on .dsp-rail-lamp {
@@ -150,7 +164,8 @@ body.is-rainbow .dsp-rail-tab:nth-child(4) .dsp-section-icon__accent {
 @media (prefers-reduced-motion: reduce) {
   body.is-rainbow::before,
   body.is-rainbow .workspace-tab-group__bar,
-  body.is-rainbow .dsp-rail-tab.is-active {
+  body.is-rainbow .dsp-rail-tab.is-active,
+  body.is-rainbow .dsp-import {
     animation: none;
   }
 }

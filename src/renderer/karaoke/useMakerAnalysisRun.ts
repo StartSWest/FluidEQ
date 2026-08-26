@@ -44,6 +44,10 @@ import {
   analyzeKaraokeWithSwiftF0,
   SWIFT_F0_PROVENANCE,
 } from './makerAi/swiftF0Notes';
+import {
+  mergeKaraokeMakerDetectionRepair,
+  protectKaraokeMakerTimedWordsForDetection,
+} from './makerDetectionRepair';
 
 /** Whether this Whisper run has to fetch the model, load it, or neither. */
 export interface IWhisperRunProfile {
@@ -105,7 +109,7 @@ export interface IMakerAnalysisRunParams extends Pick<
   setAnalysisMessage: Dispatch<SetStateAction<string | undefined>>;
   setAnalysisError: Dispatch<SetStateAction<string | undefined>>;
   setAnalysisRetry: Dispatch<
-    SetStateAction<'whisper' | 'whisper-runtime' | undefined>
+    SetStateAction<'whisper' | 'whisper-runtime' | 'pitch' | undefined>
   >;
   setAnalysisResult: Dispatch<
     SetStateAction<IKaraokeMakerAnalysisResult | undefined>
@@ -171,8 +175,22 @@ export const useMakerAnalysisRun = ({
       }
     | undefined
   >(undefined);
+  /**
+   * A normal Detect run is a repair pass once the user has usable timing.
+   *
+   * Keep this beside the run state instead of in React state: accepting the
+   * model-download prompt and retrying Whisper both resume the same requested
+   * operation later, without needing to render this implementation detail.
+   */
+  const repairMissingTimingRef = useRef(false);
+  /** Original project kept until a combined repair's melody pass succeeds. */
+  const detectionRepairBaselineRef = useRef<IKaraokeMakerProject | undefined>(
+    undefined,
+  );
 
   const cancelAnalysis = () => {
+    repairMissingTimingRef.current = false;
+    detectionRepairBaselineRef.current = undefined;
     const controller = analysisAbortRef.current;
     if (!controller) {
       return;
@@ -232,14 +250,37 @@ export const useMakerAnalysisRun = ({
           controller.signal,
           karaokeMakerVocalAnalysisWindows(baseProject ?? projectRef.current),
           setDownloadProgress,
+          () => {
+            setAnalysisError(t('karaoke.maker.pitchDownloadError'));
+            setAnalysisRetry('pitch');
+          },
         );
         const publishBase = baseProject ?? projectRef.current;
+        const repairBaseline = baseProject
+          ? undefined
+          : detectionRepairBaselineRef.current;
         const next = touchKaraokeMakerProject(
-          applyBasicPitchMelody(publishBase, notes, true, SWIFT_F0_PROVENANCE),
+          repairBaseline
+            ? mergeKaraokeMakerDetectionRepair(
+                repairBaseline,
+                applyBasicPitchMelody(
+                  publishBase,
+                  notes,
+                  true,
+                  SWIFT_F0_PROVENANCE,
+                ),
+              )
+            : applyBasicPitchMelody(
+                publishBase,
+                notes,
+                true,
+                SWIFT_F0_PROVENANCE,
+              ),
         );
         projectRef.current = next;
         pushHistory(publishBase);
         setProject(next);
+        detectionRepairBaselineRef.current = undefined;
         const generatedNoteCount = next.melody.notes.filter(
           (note) => note.source !== 'manual',
         ).length;
@@ -274,24 +315,51 @@ export const useMakerAnalysisRun = ({
         );
         setAnalysisResult(fallback);
         const publishBase = baseProject ?? projectRef.current;
+        const repairBaseline = baseProject
+          ? undefined
+          : detectionRepairBaselineRef.current;
         const next = touchKaraokeMakerProject(
-          applyDetectedPitchMelody(
-            {
-              ...publishBase,
-              audio: { ...publishBase.audio, durationMs: fallback.durationMs },
-              analysis: {
-                ...publishBase.analysis,
-                waveform: fallback.waveform,
-                lastRunAt: new Date().toISOString(),
-              },
-            },
-            fallback.notes,
-            true,
-          ),
+          repairBaseline
+            ? mergeKaraokeMakerDetectionRepair(
+                repairBaseline,
+                applyDetectedPitchMelody(
+                  {
+                    ...publishBase,
+                    audio: {
+                      ...publishBase.audio,
+                      durationMs: fallback.durationMs,
+                    },
+                    analysis: {
+                      ...publishBase.analysis,
+                      waveform: fallback.waveform,
+                      lastRunAt: new Date().toISOString(),
+                    },
+                  },
+                  fallback.notes,
+                  true,
+                ),
+              )
+            : applyDetectedPitchMelody(
+                {
+                  ...publishBase,
+                  audio: {
+                    ...publishBase.audio,
+                    durationMs: fallback.durationMs,
+                  },
+                  analysis: {
+                    ...publishBase.analysis,
+                    waveform: fallback.waveform,
+                    lastRunAt: new Date().toISOString(),
+                  },
+                },
+                fallback.notes,
+                true,
+              ),
         );
         projectRef.current = next;
         pushHistory(publishBase);
         setProject(next);
+        detectionRepairBaselineRef.current = undefined;
         const generatedNoteCount = next.melody.notes.filter(
           (note) => note.source !== 'manual',
         ).length;
@@ -336,7 +404,10 @@ export const useMakerAnalysisRun = ({
     }
   };
 
-  const requestWhisper = async (continueWithMelody: boolean) => {
+  const requestWhisper = async (
+    continueWithMelody: boolean,
+    repairMissingTiming = false,
+  ) => {
     // This guard is intentionally redundant with the hidden controls. It keeps
     // stale callbacks, restored UI state, or future callers from launching the
     // disabled detector while its alignment quality is under review.
@@ -348,10 +419,15 @@ export const useMakerAnalysisRun = ({
     // word by word. Reference text still gives the better result — alignment
     // cannot hallucinate — so it remains the preferred path when present.
     prepareAfterWhisperRef.current = continueWithMelody;
+    repairMissingTimingRef.current = repairMissingTiming;
+    if (!repairMissingTiming) {
+      detectionRepairBaselineRef.current = undefined;
+    }
     setToolPanel(undefined);
-    const downloaded =
-      getKaraokeWhisperSessionSnapshot().downloaded ||
-      (await refreshKaraokeWhisperDownloaded());
+    // The cache is the evidence. The session flag describes what was present
+    // earlier and must not short-circuit this check after eviction or a manual
+    // model reset.
+    const downloaded = await refreshKaraokeWhisperDownloaded();
     if (downloaded) {
       await runWhisper();
       return;
@@ -419,6 +495,11 @@ export const useMakerAnalysisRun = ({
     setAnalysisRetry(undefined);
     setNotice(undefined);
     const includeMelody = prepareAfterWhisperRef.current;
+    const repairMissingTiming = repairMissingTimingRef.current;
+    const beforeTranscript = projectRef.current;
+    detectionRepairBaselineRef.current = repairMissingTiming
+      ? beforeTranscript
+      : undefined;
     const whisperProgressShare = includeMelody ? 0.72 : 1;
     try {
       const transcript = await transcribeKaraokeWithWhisper(
@@ -531,7 +612,6 @@ export const useMakerAnalysisRun = ({
         // second decode that reveals them.
         !flattenTokens(projectRef.current).length,
       );
-      const beforeTranscript = projectRef.current;
       // Where the singer actually stops, read from the isolated voice. The
       // decode is the one Whisper already paid for — `decodeMono` caches per
       // file — so this costs a pass over the samples and nothing else.
@@ -556,20 +636,29 @@ export const useMakerAnalysisRun = ({
       // and said so. On an ordinary song it is imperceptible; on one that
       // repeats a line a hundred times it was the only thing still running.
       setAnalysisMessage(t('karaoke.maker.whisperAligning'));
-      let completedProject = flattenTokens(beforeTranscript).length
+      const alignmentProject = repairMissingTiming
+        ? protectKaraokeMakerTimedWordsForDetection(beforeTranscript)
+        : beforeTranscript;
+      let completedProject = flattenTokens(alignmentProject).length
         ? applyWhisperTranscript(
-            beforeTranscript,
+            alignmentProject,
             transcript,
             vocalRests,
             voiceOnsets,
           )
         : applyTranscriptAsLyrics(
-            beforeTranscript,
+            alignmentProject,
             transcript,
             vocalRests,
             transcript.segments ?? [],
             voiceOnsets,
           );
+      if (repairMissingTiming) {
+        completedProject = mergeKaraokeMakerDetectionRepair(
+          beforeTranscript,
+          completedProject,
+        );
+      }
       let generatedNoteCount: number | undefined;
       let melodyError: unknown;
       if (includeMelody) {
@@ -587,6 +676,10 @@ export const useMakerAnalysisRun = ({
             controller.signal,
             windows,
             setDownloadProgress,
+            () => {
+              setAnalysisError(t('karaoke.maker.pitchDownloadError'));
+              setAnalysisRetry('pitch');
+            },
           );
           // The notes were detected from this same take, so a word Whisper
           // left unplaced can be put on the pitch that was actually sung
@@ -600,6 +693,14 @@ export const useMakerAnalysisRun = ({
               SWIFT_F0_PROVENANCE,
             ),
           );
+          if (repairMissingTiming) {
+            completedProject = touchKaraokeMakerProject(
+              mergeKaraokeMakerDetectionRepair(
+                beforeTranscript,
+                completedProject,
+              ),
+            );
+          }
           generatedNoteCount = completedProject.melody.notes.filter(
             (note) => note.source !== 'manual',
           ).length;
@@ -618,6 +719,10 @@ export const useMakerAnalysisRun = ({
       pushHistory(beforeTranscript);
       setLyricsDraft(plainLyrics(completedProject));
       setProject(completedProject);
+      repairMissingTimingRef.current = false;
+      if (!includeMelody || !melodyError) {
+        detectionRepairBaselineRef.current = undefined;
+      }
       if (melodyError) {
         setAnalysisError(localizeMakerError(melodyError, 'analysis'));
       }

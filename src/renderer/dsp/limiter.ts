@@ -6,9 +6,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import {
   ITruePeakState,
+  TRUE_PEAK_LATENCY_SAMPLES,
   createTruePeakState,
   truePeakOfSample,
 } from './truePeak';
+import { TOversampleFactor } from './oversample';
 
 export interface ILimiterState {
   /** The inter-sample detector's own filter history. */
@@ -37,22 +39,119 @@ export interface ILimiterState {
 export interface ILimiterOptions {
   /** Linear amplitude, not dB. */
   ceiling: number;
+  /** Stay at unity below this pathological input level. Defaults to ceiling. */
+  activationThreshold?: number;
   /** Per-sample gain recovery, 0-1. Closer to 1 releases more slowly. */
   releaseCoefficient: number;
+  /** Optional faster recovery while the signal still needs some reduction. */
+  limitingReleaseCoefficient?: number;
+  /** Width of the continuous transition into limiting, in dB. */
+  kneeDb?: number;
+  /** Samples to keep a linked envelope down before release may recover. */
+  releaseHoldSamples?: number;
 }
 
-export const createLimiterState = (lookAheadSamples: number): ILimiterState => {
+/**
+ * Continuous limiting curve: unity below the knee, exact ceiling above it.
+ *
+ * The quadratic is the infinite-ratio form of a conventional soft knee. It is
+ * value- and slope-continuous at both edges, so a peak approaching the ceiling
+ * does not make the gain law snap from unity to reduction. The upper branch is
+ * still an exact ceiling; smoothness must never be bought with overshoot.
+ */
+const requiredLimiterGain = (
+  peak: number,
+  ceiling: number,
+  kneeDb = 0,
+): number => {
+  if (!(peak > 0) || !(ceiling > 0) || !Number.isFinite(ceiling)) {
+    return 1;
+  }
+  const knee = Math.max(0, kneeDb);
+  if (knee === 0) {
+    return peak > ceiling ? ceiling / peak : 1;
+  }
+  const halfKnee = knee * 0.5;
+  const lower = ceiling * 10 ** (-halfKnee / 20);
+  if (peak <= lower) {
+    return 1;
+  }
+  const upper = ceiling * 10 ** (halfKnee / 20);
+  if (peak >= upper) {
+    return ceiling / peak;
+  }
+  const relativeDb = 20 * Math.log10(peak / ceiling);
+  const kneePosition = relativeDb + halfKnee;
+  const reductionDb = -(kneePosition * kneePosition) / (2 * knee);
+  return 10 ** (reductionDb / 20);
+};
+
+/**
+ * One detector and gain law shared by every output channel.
+ *
+ * Independent final limiters can turn the left side down without the right and
+ * move the stereo image on every peak. The linked form delays channels
+ * separately but makes one decision from the loudest reconstructed peak.
+ */
+export interface ILinkedLimiterState {
+  truePeak: ITruePeakState[];
+  delay: Float32Array[];
+  /** Smoothed reduction in dB, delayed in lockstep with the audio. */
+  gainReductionDb: Float32Array;
+  position: number;
+  /** Fast detector with instantaneous attack and held exponential release. */
+  detectorGain: number;
+  /** Gain applied to the most recently emitted frame, for telemetry. */
+  gain: number;
+  /** Prevents recovery between closely spaced peaks from becoming tremolo. */
+  releaseHoldRemaining: number;
+  /** Loudest reconstructed input peak seen in the most recent block. */
+  blockPeak: number;
+}
+
+export const createLimiterState = (
+  lookAheadSamples: number,
+  truePeakFactor: TOversampleFactor = 4,
+): ILimiterState => {
   const capacity = Math.max(1, Math.floor(lookAheadSamples)) + 1;
   return {
     delay: new Float32Array(capacity),
     magnitude: new Float32Array(capacity),
     window: new Int32Array(capacity),
-    truePeak: createTruePeakState(),
+    truePeak: createTruePeakState(truePeakFactor),
     head: 0,
     tail: 0,
     position: 0,
     gain: 1,
   };
+};
+
+export const createLinkedLimiterState = (
+  channels: number,
+  lookAheadSamples: number,
+  truePeakFactor: TOversampleFactor = 4,
+): ILinkedLimiterState => {
+  const capacity = Math.max(1, Math.floor(lookAheadSamples)) + 1;
+  return {
+    truePeak: Array.from({ length: channels }, () =>
+      createTruePeakState(truePeakFactor),
+    ),
+    delay: Array.from({ length: channels }, () => new Float32Array(capacity)),
+    gainReductionDb: new Float32Array(capacity),
+    position: 0,
+    detectorGain: 1,
+    gain: 1,
+    releaseHoldRemaining: 0,
+    blockPeak: 0,
+  };
+};
+
+/** Clear gain control without emptying the continuously running audio delay. */
+export const resetLinkedLimiterControl = (state: ILinkedLimiterState): void => {
+  state.detectorGain = 1;
+  state.gain = 1;
+  state.releaseHoldRemaining = 0;
+  state.gainReductionDb.fill(0);
 };
 
 /**
@@ -88,7 +187,13 @@ export const processLimiter = (
   state: ILimiterState,
   input: Float32Array,
   output: Float32Array,
-  { ceiling, releaseCoefficient }: ILimiterOptions,
+  {
+    ceiling,
+    activationThreshold = ceiling,
+    releaseCoefficient,
+    limitingReleaseCoefficient = releaseCoefficient,
+    kneeDb,
+  }: ILimiterOptions,
 ): void => {
   const { delay, magnitude, window } = state;
   const capacity = delay.length;
@@ -137,12 +242,123 @@ export const processLimiter = (
     state.position = position + 1;
 
     const peak = magnitude[window[state.head % capacity] % capacity];
-    const required = peak > ceiling ? ceiling / peak : 1;
+    const required =
+      peak >= activationThreshold
+        ? requiredLimiterGain(peak, ceiling, kneeDb)
+        : 1;
     state.gain =
       required <= state.gain
         ? required
-        : state.gain + (1 - state.gain) * (1 - releaseCoefficient);
+        : state.gain +
+          (required - state.gain) *
+            (1 -
+              (required < 1 ? limitingReleaseCoefficient : releaseCoefficient));
 
     output[i] = emitted * state.gain;
+  }
+};
+
+/**
+ * Limit an interleaved moment across separate channel buffers in place.
+ *
+ * All channels must have the same frame count, as AudioWorklet outputs do.
+ * The detector is true-peak rather than sample-peak, and the common gain keeps
+ * stereo and mid/side relationships unchanged while the safety ceiling works.
+ */
+export const processLinkedLimiter = (
+  state: ILinkedLimiterState,
+  channels: Float32Array[],
+  {
+    ceiling,
+    activationThreshold = ceiling,
+    releaseCoefficient,
+    limitingReleaseCoefficient = releaseCoefficient,
+    kneeDb,
+    releaseHoldSamples = 0,
+  }: ILimiterOptions,
+): void => {
+  const frames = channels[0]?.length ?? 0;
+  if (frames === 0) {
+    return;
+  }
+  const { delay, gainReductionDb } = state;
+  const capacity = gainReductionDb.length;
+  const lookAhead = capacity - 1;
+  const detectorLatency =
+    state.truePeak[0]?.factor === 1 ? 0 : TRUE_PEAK_LATENCY_SAMPLES;
+  const attackSamples = Math.max(0, lookAhead - detectorLatency);
+  state.blockPeak = 0;
+
+  for (let i = 0; i < frames; i += 1) {
+    const { position } = state;
+    let incomingMagnitude = 0;
+    for (let channel = 0; channel < channels.length; channel += 1) {
+      const detected = truePeakOfSample(
+        state.truePeak[channel],
+        channels[channel][i],
+      );
+      if (detected > incomingMagnitude) {
+        incomingMagnitude = detected;
+      }
+    }
+    if (incomingMagnitude > state.blockPeak) {
+      state.blockPeak = incomingMagnitude;
+    }
+
+    const required =
+      incomingMagnitude >= activationThreshold
+        ? requiredLimiterGain(incomingMagnitude, ceiling, kneeDb)
+        : 1;
+    if (required <= state.detectorGain) {
+      state.detectorGain = required;
+      state.releaseHoldRemaining = Math.max(0, Math.floor(releaseHoldSamples));
+    } else if (state.releaseHoldRemaining > 0) {
+      state.releaseHoldRemaining -= 1;
+    } else {
+      // Follow the gain the current peak actually needs. A controller reduced
+      // to -10 dB therefore rises toward -5 dB while +5 dB peaks remain, then
+      // continues toward unity only once no peak asks for reduction. Releasing
+      // blindly toward one creates a sawtooth: overshoot the needed gain, snap
+      // down again on the next peak, repeat.
+      const recoveryCoefficient =
+        required < 1 ? limitingReleaseCoefficient : releaseCoefficient;
+      state.detectorGain +=
+        (required - state.detectorGain) * (1 - recoveryCoefficient);
+    }
+
+    const reductionDb =
+      state.detectorGain > 0 ? 20 * Math.log10(state.detectorGain) : -120;
+    const controlPosition = position - detectorLatency;
+    const controlAt = ((controlPosition % capacity) + capacity) % capacity;
+    gainReductionDb[controlAt] = reductionDb;
+
+    // Delaying audio while stepping its gain instantly is not look-ahead; it
+    // merely chops the waveform earlier. Back-fill the buffered control signal
+    // with a linear-in-dB fade that reaches the exact reduction at the peak.
+    // An existing deeper ramp wins, so overlapping peaks stay protected.
+    if (attackSamples > 0 && reductionDb < 0) {
+      const stepDb = -reductionDb / attackSamples;
+      let rampDb = reductionDb + stepDb;
+      for (let back = 1; back <= attackSamples; back += 1) {
+        const at =
+          (((controlPosition - back) % capacity) + capacity) % capacity;
+        if (gainReductionDb[at] <= rampDb) {
+          break;
+        }
+        gainReductionDb[at] = rampDb;
+        rampDb += stepDb;
+      }
+    }
+
+    const writeAt = position % capacity;
+    const readAt = lookAhead === 0 ? writeAt : (position + 1) % capacity;
+    state.gain = 10 ** (gainReductionDb[readAt] / 20);
+    for (let channel = 0; channel < channels.length; channel += 1) {
+      const line = delay[channel];
+      const emitted = lookAhead === 0 ? channels[channel][i] : line[readAt];
+      line[writeAt] = channels[channel][i];
+      channels[channel][i] = emitted * state.gain;
+    }
+    state.position = position + 1;
   }
 };

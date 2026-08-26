@@ -5,295 +5,158 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { FilterTypeEnum } from '../../common/constants';
-import { IExciterSettings, exciterBandEdges } from '../../common/dsp/chain';
 import {
+  IExciterBandSettings,
+  IExciterSettings,
+  exciterBandEdgesForIndex,
+} from '../../common/dsp/chain';
+import {
+  IBiquadCoefficients,
   IBiquadState,
   biquadCoefficients,
   createBiquadState,
   processBiquad,
 } from './biquad';
 import {
-  IOrganicState,
-  createOrganicState,
-  organicAsymmetry,
-  organicBlock,
-} from './organic';
+  ANALOG_DIODE_MAX_CHARACTER,
+  IExciterTransientState,
+  analogDiodeExcitedSample,
+  createExciterTransientState,
+  exciterTransientSample,
+  limitExciterCurrent,
+  resetExciterTransientState,
+} from './analogDiode';
 import {
   IOversamplerState,
   createOversampler,
   downsample,
+  oversampleFactorForSampleRate,
   upsample,
 } from './oversample';
+import {
+  IExciterGuardState,
+  bandExciterReturnGain,
+  createExciterGuard,
+  guardExciterReturn,
+} from './exciterGuard';
 
 /**
- * The exciter, as three bands that each choose their own harmonics.
+ * Three parallel Aural Exciter sidechains.
  *
- * WHY THIS LEFT THE AUDIO GRAPH. It was a `WaveShaperNode` — a highpass, a
- * curve and a mix, in parallel with the dry signal — and as a single band of
- * odd harmonics that was the right shape for it. None of what it grew into
- * fits in a shaper: a shaper cannot be told to wait for a level, cannot have
- * its drive wander, and cannot be three of itself with different characters.
- * Each of those would have been another node and another parallel path, and
- * parallel paths through native nodes is precisely the class of bug the
- * worklet's own header warns about — any difference in latency between them
- * misaligns the bands when they are summed.
- *
- * The topology it had is kept exactly: PARALLEL, not serial. The dry signal
- * passes at unity and the shaped bands are added on top, scaled by each band's
- * mix. Running a non-linearity in series would distort everything including
- * the bass, which is where distortion is most audible and least wanted.
- *
- * Anti-aliasing is now ours rather than Chromium's. The old node set
- * `oversample = '4x'` and got it in C++; this does the same 4x by hand for the
- * same reason, and the reason has not softened — a 7 kHz tone through this
- * curve makes 21 kHz, 35 kHz and 49 kHz, and at a 48 kHz session everything
- * past 24 kHz folds back down as tones that were never in the music and do not
- * move with it. 4x rather than the 2x the fuzz stage uses, because fuzz runs
- * on a whole-band signal dominated by low frequencies and this one deliberately
- * works where the harmonics have furthest to travel.
+ * Each path is a phase-shifting band filter followed by a smooth, driven
+ * harmonic creator. As in US 4,150,253, the excited return contains both the
+ * filtered fundamentals and their low-order harmonics. That complete return is
+ * attenuated beneath untouched dry, and Isolate plays the same return alone.
  */
-
-/** What Chromium's shaper used, and what the high band needs. @see above */
-const OVERSAMPLE = 4;
-
-/**
- * Texture, as one number on one curve.
- *
- * Even and odd are not two curves to crossfade between — they are the same
- * tanh at two asymmetries, which is a far better control because everything in
- * between is a real filter rather than a blend of two. At texture 1 the
- * asymmetry is zero, the curve is symmetric, and a symmetric curve produces
- * odd harmonics ONLY: measured 0.01% second against 6.69% third. At texture 0
- * it is fully asymmetric and even-dominant by better than five to one.
- *
- * That is the axis the old exciter did not have. Its curve was symmetric and
- * therefore odd-only everywhere, which is right for a high band and wrong for
- * any band below it — odd harmonics in the bass are the definition of mud.
- */
-const MAX_ASYMMETRY = 0.65;
-
-/** Attack and release of the gate that makes a band wait for a level, ms. */
-const GATE_ATTACK_MS = 8;
-const GATE_RELEASE_MS = 140;
-
-/**
- * WHY THERE IS NO TRANSIENT ENVELOPE HERE ANY MORE.
- *
- * There was one, taken from Aphex patent US4150253: a "transient discriminate
- * harmonics generator" that recognises transients and generates harmonics on
- * them. It swung the harmonic amount over a six to one range while chasing the
- * ratio of a fast follower to a slow one.
- *
- * Two things were wrong with putting it here. It is violent — a six to one
- * gain swing tracking a ratio that moves on every hit is a stutter, and it was
- * reported as the effect sounding granular right up until it was taken out,
- * through per-block ramping and then through per-sample envelopes that made it
- * mathematically smooth and no less choppy. Smooth is not the same as gentle.
- *
- * And it is the wrong generation. Transient discrimination is a LATER Aphex
- * design; the Type C this is modelled on does not have it. Its sidechain is a
- * highpass, a one-sided clipper and a mix, running continuously — which is
- * exactly the "fluid rather than separated" behaviour that was being asked
- * for, and it was sitting in the patent the whole time.
- *
- * The dynamics gate below is kept, because that is a control somebody asks
- * for deliberately and it is off by default.
- */
-/**
- * How fast the energy-matching gain is allowed to follow the programme.
- *
- * Slow, because the gain is a correction for the curve's own compression and
- * that changes with the level rather than with the note. Following it closely
- * would make the correction itself a level-dependent effect, which is a
- * compressor nobody asked for. @see the ramp in `runExciterChannel`.
- */
-const MATCH_SMOOTHING = 0.08;
-
-/**
- * The DC blocker's pole, and why nothing here works without one.
- *
- * An ASYMMETRIC curve does not have zero mean for a zero-mean input. That is
- * not a flaw in it — asymmetry is precisely what makes the even harmonics this
- * stage exists for — but it means the shaped signal carries an offset, and the
- * offset moves with the signal's level. So the output gains a wandering
- * sub-sonic component, and because the difference is taken against a dry signal
- * that has no such offset, all of it survives.
- *
- * Measured before this existed, on a single tone with the mid band alone: the
- * LOUDEST component in the isolated output was 0.7 Hz at -3.7 dB, against the
- * actual second harmonic at -6.9 dB. Twice the energy of the thing the stage is
- * for, sitting below hearing — wasting headroom, modulating everything above it
- * (the second harmonic measured smeared across 935-940 Hz rather than sitting
- * on one line), and contributing nothing but the impression that the effect is
- * noise.
- *
- * 0.9974 puts the corner near 20 Hz at 48 kHz, which is below anything musical
- * and far above where the wander lives.
- */
-const DC_POLE = 0.9974;
-
-/**
- * How much softer one polarity is than the other at full asymmetry.
- *
- * A diode conducts one way and blocks the other; an audio circuit built from a
- * pair of them meets its knee on one half of the wave long before the other.
- * 0.45 is enough for the two halves to be audibly different shapes without the
- * output becoming a rectified buzz.
- */
-const ONE_SIDED = 0.45;
-
-/**
- * What a mix of 1 means, as a linear gain on the sidechain.
- *
- * It was 0.35, on the reasoning that the sidechain now carries the band's whole
- * content rather than only its harmonics — so unity would be a level control
- * for that band — and that the Type C's useful region sits near -20 dB anyway,
- * which is 0.1 on this scale.
- *
- * Both of those are true, and together they made the control useless. At 0.35,
- * multiplied by a transient envelope averaging about a half, the TOP of the
- * dial added seventeen percent of a highpassed band to a full mix. That is
- * inaudible, and was reported as precisely that: no difference at full amount.
- * A control whose maximum cannot be heard is not a conservative control, it is
- * a broken one.
- *
- * Unity, so the dial reaches something unmistakable, with the useful region
- * near the bottom of its travel where the hardware's is. Mix is what somebody
- * reaches for to find out whether the stage is doing anything at all, and it
- * has to be able to answer that.
- */
-const MIX_SCALE = 1;
-
-/** One Butterworth stage; two cascaded make 24 dB/octave. */
-const BUTTERWORTH_Q = Math.SQRT1_2;
-
-/** Edges at or past these are not filtered at all. @see runExciterChannel */
+const MAX_OVERSAMPLE = 4;
+const FILTER_Q = Math.SQRT1_2;
 const BAND_EDGE_MIN_HZ = 21;
 const BAND_EDGE_MAX_HZ = 19_900;
+const PARAMETER_SMOOTHING_MS = 18;
+const DC_POLE = 0.9974;
+const SIDECHAIN_LEVEL = 1;
+const BAND_HARMONIC_GAIN = [1.8, 2.4] as const;
+const LOW_TRANSIENT_HARMONIC_LIFT = 0.35;
+const MID_TRANSIENT_HARMONIC_LIFT = 0.3;
+const HIGH_TRANSIENT_HARMONIC_LIFT = 0.22;
+/** High keeps a quiet carrier for continuity; the residue supplies the air. */
+const HIGH_FOUNDATION_LEVEL = 0.18;
+const HIGH_HARMONIC_GAIN = 1.65;
+const HIGH_MIN_CHARACTER = 0.28;
+const HIGH_MAX_EFFECTIVE_DRIVE = 2.85;
+
+const IDENTITY_COEFFICIENTS: IBiquadCoefficients = {
+  b0: 1,
+  b1: 0,
+  b2: 0,
+  a1: 0,
+  a2: 0,
+};
+
+interface IDcState {
+  x: number;
+  y: number;
+}
+
+interface IBandCoefficientCache {
+  lowHz: number;
+  highHz: number;
+  sampleRate: number;
+  highpass: IBiquadCoefficients;
+  lowpass: IBiquadCoefficients;
+}
 
 export interface IExciterChannelState {
-  /**
-   * Two cascaded stages of highpass and of lowpass, per band.
-   *
-   * A crossover used to do this in one pass and could not any more. A
-   * crossover's whole nature is that its outputs are adjacent and sum back to
-   * the input, so the bands could not be widened independently and could never
-   * overlap. These bands are not a decomposition — the dry signal passes
-   * through untouched and each band only ADDS what it made — so nothing is
-   * owed to reconstruction, and a plain bandpass per band is both simpler and
-   * strictly more capable.
-   */
+  /** One two-pole highpass and lowpass per independently movable band. */
   bandFilters: IBiquadState[][];
-  /** The three extracted bands, and a scratch copy to shape without losing them. */
+  bandCoefficients: IBandCoefficientCache[];
   bands: Float32Array[];
-  shaped: Float32Array;
+  wetReturn: Float32Array;
   oversamplers: IOversamplerState[];
-  /** Oversampled scratch, one shared buffer since bands are done in turn. */
+  highGuard: IExciterGuardState;
+  highHarmonicFilter: IBiquadState;
+  highHarmonicCoefficients: IBiquadCoefficients;
+  highHarmonicHz: number;
+  highHarmonicSampleRate: number;
   wide: Float32Array;
-  /**
-   * The same block before shaping, so the difference stays aligned.
-   *
-   * Preallocated like every buffer here, and not for tidiness: a
-   * `new Float32Array` per block runs inside the audio callback, and the
-   * garbage it makes is collected on a thread that has 2.7ms to finish. That
-   * surfaces as a dropout on somebody else's machine, months later, looking
-   * like anything but an allocation.
-   */
   wideDry: Float32Array;
-  /** One follower per band, for the dynamic gate. */
-  gates: number[];
-  /** Last block's energy-matching gain, per band, so the next can ramp from it. */
-  matchGain: number[];
-  /** One DC blocker per band plus one for the organic stage. @see DC_POLE */
-  dcState: { x: number; y: number }[];
-  /** The per-sample gain curve, filled fresh for each band each block. */
-  envGain: Float32Array;
-  /** The block as it arrived, before any stage added to it. @see runExciterChannel */
+  drive: number[];
+  texture: number[];
+  mix: number[];
+  transients: IExciterTransientState[];
+  /** Unity normally; smoothly reaches zero for the Isolate monitor. */
+  dryMix: number;
+  dcState: IDcState[];
   dry: Float32Array;
-  organic: IOrganicState;
-  organicBand: Float32Array;
-  /** Two cascaded bandpass stages, so the focus has skirts worth the name. */
-  focusStages: IBiquadState[];
+  report: { bands: number[] };
 }
 
 export const createExciterChannel = (
   blockSize: number,
 ): IExciterChannelState => ({
-  bandFilters: [0, 1, 2].map(() => [
-    createBiquadState(),
-    createBiquadState(),
-    createBiquadState(),
-    createBiquadState(),
-  ]),
-  bands: [
-    new Float32Array(blockSize),
-    new Float32Array(blockSize),
-    new Float32Array(blockSize),
-  ],
-  shaped: new Float32Array(blockSize),
-  oversamplers: [createOversampler(), createOversampler(), createOversampler()],
-  wide: new Float32Array(blockSize * OVERSAMPLE),
-  wideDry: new Float32Array(blockSize * OVERSAMPLE),
-  gates: [0, 0, 0],
-  matchGain: [0, 0, 0],
-  dcState: [0, 1, 2, 3].map(() => ({ x: 0, y: 0 })),
-  envGain: new Float32Array(blockSize),
+  bandFilters: [0, 1, 2].map(() => [createBiquadState(), createBiquadState()]),
+  bandCoefficients: [0, 1, 2].map(() => ({
+    lowHz: 0,
+    highHz: 0,
+    sampleRate: 0,
+    highpass: IDENTITY_COEFFICIENTS,
+    lowpass: IDENTITY_COEFFICIENTS,
+  })),
+  bands: [0, 1, 2].map(() => new Float32Array(blockSize)),
+  wetReturn: new Float32Array(blockSize),
+  oversamplers: [0, 1, 2].map(() => createOversampler(blockSize)),
+  highGuard: createExciterGuard(),
+  highHarmonicFilter: createBiquadState(),
+  highHarmonicCoefficients: IDENTITY_COEFFICIENTS,
+  highHarmonicHz: 0,
+  highHarmonicSampleRate: 0,
+  wide: new Float32Array(blockSize * MAX_OVERSAMPLE),
+  wideDry: new Float32Array(blockSize * MAX_OVERSAMPLE),
+  drive: [0, 0, 0],
+  texture: [0, 0, 0],
+  mix: [0, 0, 0],
+  transients: [0, 1, 2].map(() => createExciterTransientState()),
+  dryMix: 1,
+  dcState: [0, 1, 2].map(() => ({ x: 0, y: 0 })),
   dry: new Float32Array(blockSize),
-  organic: createOrganicState(blockSize),
-  organicBand: new Float32Array(blockSize),
-  focusStages: [createBiquadState(), createBiquadState()],
+  report: { bands: [0, 0, 0] },
 });
 
 const resize = (state: IExciterChannelState, frames: number): void => {
-  if (state.shaped.length === frames) {
+  if (state.wetReturn.length === frames) {
     return;
   }
-  state.bands = [
-    new Float32Array(frames),
-    new Float32Array(frames),
-    new Float32Array(frames),
-  ];
-  state.shaped = new Float32Array(frames);
-  state.wide = new Float32Array(frames * OVERSAMPLE);
-  state.wideDry = new Float32Array(frames * OVERSAMPLE);
-  state.envGain = new Float32Array(frames);
+  state.bands = [0, 1, 2].map(() => new Float32Array(frames));
+  state.wetReturn = new Float32Array(frames);
+  state.wide = new Float32Array(frames * MAX_OVERSAMPLE);
+  state.wideDry = new Float32Array(frames * MAX_OVERSAMPLE);
   state.dry = new Float32Array(frames);
-  state.organicBand = new Float32Array(frames);
 };
 
-/**
- * WHY BOTH LOOPS BELOW MATCH ENERGY BEFORE SUBTRACTING.
- *
- * Every curve here is normalised for small signals — `tanh(x*d + a) / d` is
- * very close to `x` when `x` is tiny, which is what keeps a gentle setting
- * gentle. At a real level it is not: a 0.5 sine through drive 2.5 comes back at
- * 0.34, so the band is 32% quieter than it went in.
- *
- * That matters here and nowhere else in the app, because this stage adds the
- * DIFFERENCE between shaped and dry. A shaped copy that is quieter makes that
- * difference a large inverted copy of the fundamental with the harmonics riding
- * on top — so turning the mix up cancels the band instead of exciting it, and
- * isolate plays back the fundamental rather than the harmonics.
- *
- * It is the same conclusion the old single-band shaper reached by another
- * route: it normalised its curve by `tanh(drive)` so the output spanned full
- * scale at every drive, and its comment says why — an un-normalised curve gets
- * quieter as it is driven, and the user hears the effect doing nothing.
- */
+const smoothing = (milliseconds: number, sampleRate: number): number =>
+  1 - Math.exp(-1 / ((milliseconds / 1_000) * sampleRate));
 
-/**
- * Strip the wandering offset an asymmetric curve leaves behind. @see DC_POLE
- *
- * The textbook one-pole, one-zero blocker. Its state is kept per band so a
- * band's history is its own, and it runs on the DOWNSAMPLED harmonics rather
- * than inside the oversampled loop — there is nothing below 20 Hz that the
- * resampler can alias, so doing it four times over would be four times the work
- * for the same answer.
- */
-const blockDc = (
-  state: { x: number; y: number },
-  buffer: Float32Array,
-): void => {
+const blockDc = (state: IDcState, buffer: Float32Array): void => {
   for (let i = 0; i < buffer.length; i += 1) {
     const x = buffer[i];
     const y = x - state.x + DC_POLE * state.y;
@@ -304,388 +167,336 @@ const blockDc = (
 };
 
 /**
- * Fill a gain curve for the block, ONE VALUE PER SAMPLE.
+ * Excited sidechain made by a biased soft diode pair.
  *
- * It used to return a single number per block, worked out from that block's
- * peak, which meant the dynamics gate could not resolve anything faster than
- * a block.
- *
- * A value held across 128 samples and then changed is a staircase, which is
- * what was heard as the effect being separated and digital. Ramping between
- * blocks softened that and did not remove it, because of the second problem:
- * an envelope driven by block PEAKS cannot resolve anything faster than a
- * block. The fast follower is set to a 0.6 ms attack and a block is 2.7 ms, so
- * it was never fast at all — a 2.7 ms follower wearing a 0.6 ms label, and the
- * transient it existed to catch was over before it saw a number.
- *
- * Per sample, both followers do what their names say and the curve that comes
- * out is continuous by construction rather than by interpolation. That is the
- * difference between an envelope which is smooth and one which has been
- * smoothed.
- *
- * Returns the block's mean, which is only for the display.
+ * Its tangent is normalised rather than removed: the phase-shaped filtered
+ * fundamental is the smooth foundation, and the curvature adds low-order
+ * harmonics around it. Texture changes richness without a gate or block
+ * measurement moving the waveform beneath the user's hands. The internal
+ * transient detector can scale the curvature separately, leaving the
+ * foundation and wet amount fixed.
  */
-const fillTransientGain = (
+export const exciterSidechainSample = (
+  sample: number,
+  drive: number,
+  texture: number,
+  harmonicGain = 1,
+  baseHarmonicGain: number = BAND_HARMONIC_GAIN[1],
+): number =>
+  analogDiodeExcitedSample(
+    sample,
+    drive,
+    texture,
+    SIDECHAIN_LEVEL,
+    harmonicGain * baseHarmonicGain,
+  );
+
+const normaliseHighDrive = (drive: number): number => {
+  const normalised = Math.max(0, Math.min(1, (drive - 1) / 2.5));
+  // High harmonics become brittle before Low/Mid do. Give the first half of
+  // the dial useful travel, then compress its last half into a protected 2.85x
+  // ceiling rather than allowing a manual setting to become fuzz.
+  return 1 + normalised ** 0.85 * (HIGH_MAX_EFFECTIVE_DRIVE - 1);
+};
+
+const highCharacter = (texture: number): number => {
+  const normalised = Math.max(
+    0,
+    Math.min(1, texture / ANALOG_DIODE_MAX_CHARACTER),
+  );
+  // A High band must remain an air/presence generator at the warm end. Low
+  // and Mid can lean fully into even body; High starts mixed and travels to
+  // the odd-rich edge without crossing into a second body control.
+  return (
+    HIGH_MIN_CHARACTER +
+    normalised ** 0.9 * (ANALOG_DIODE_MAX_CHARACTER - HIGH_MIN_CHARACTER)
+  );
+};
+
+/**
+ * High-specific excited return.
+ *
+ * Limiting the complete waveform made Drive erase the filtered foundation:
+ * measured at 4.5 kHz, the old maximum Drive left only 11% of the fundamental
+ * present at minimum Drive. Keep the quiet foundation explicit and protect
+ * only the nonlinear residue. Drive can then increase harmonic density,
+ * Texture can change its family, and neither control secretly becomes Amount.
+ */
+export const highExciterSample = (
+  sample: number,
+  drive: number,
+  texture: number,
+  transientHarmonicGain = 1,
+): number => {
+  return (
+    sample * HIGH_FOUNDATION_LEVEL +
+    highExciterHarmonicSample(sample, drive, texture, transientHarmonicGain)
+  );
+};
+
+const highExciterHarmonicSample = (
+  sample: number,
+  drive: number,
+  texture: number,
+  transientHarmonicGain: number,
+): number => {
+  const normalisedTexture = Math.max(
+    0,
+    Math.min(1, texture / ANALOG_DIODE_MAX_CHARACTER),
+  );
+  const complete = analogDiodeExcitedSample(
+    sample,
+    normaliseHighDrive(drive),
+    highCharacter(texture),
+    SIDECHAIN_LEVEL,
+  );
+  // As odd harmonics move upward, more of them leave the audible band. A
+  // modest static lift keeps Texture's airy end present without following the
+  // programme or changing the user-authored Amount.
+  const textureCompensation = 0.9 + normalisedTexture * 0.25;
+  const residue =
+    (complete - sample * SIDECHAIN_LEVEL) *
+    HIGH_HARMONIC_GAIN *
+    textureCompensation *
+    transientHarmonicGain;
+  return limitExciterCurrent(residue);
+};
+
+const transientHarmonicLift = (band: number): number => {
+  if (band === 2) {
+    return HIGH_TRANSIENT_HARMONIC_LIFT;
+  }
+  return band === 1 ? MID_TRANSIENT_HARMONIC_LIFT : LOW_TRANSIENT_HARMONIC_LIFT;
+};
+
+const extractBand = (
+  state: IExciterChannelState,
+  band: number,
+  setup: IExciterBandSettings,
+  sampleRate: number,
+): Float32Array => {
+  const source = state.bands[band];
+  source.set(state.dry);
+  const filters = state.bandFilters[band];
+  const { lowHz, highHz } = exciterBandEdgesForIndex(
+    band,
+    setup.freqHz,
+    setup.range,
+  );
+  const cached = state.bandCoefficients[band];
+  if (
+    cached.lowHz !== lowHz ||
+    cached.highHz !== highHz ||
+    cached.sampleRate !== sampleRate
+  ) {
+    cached.lowHz = lowHz;
+    cached.highHz = highHz;
+    cached.sampleRate = sampleRate;
+    cached.highpass =
+      lowHz > BAND_EDGE_MIN_HZ
+        ? biquadCoefficients(
+            {
+              type: FilterTypeEnum.HPQ,
+              frequency: lowHz,
+              gainDb: 0,
+              quality: FILTER_Q,
+            },
+            sampleRate,
+          )
+        : IDENTITY_COEFFICIENTS;
+    cached.lowpass =
+      highHz < BAND_EDGE_MAX_HZ
+        ? biquadCoefficients(
+            {
+              type: FilterTypeEnum.LPQ,
+              frequency: highHz,
+              gainDb: 0,
+              quality: FILTER_Q,
+            },
+            sampleRate,
+          )
+        : IDENTITY_COEFFICIENTS;
+  }
+  processBiquad(filters[0], source, cached.highpass);
+  processBiquad(filters[1], source, cached.lowpass);
+  return source;
+};
+
+const shapeBand = (
   state: IExciterChannelState,
   band: number,
   source: Float32Array,
-  gain: Float32Array,
-  thresholdDb: number,
-  isGated: boolean,
+  setup: IExciterBandSettings,
   sampleRate: number,
-): number => {
-  const coefficient = (ms: number) =>
-    Math.exp(-1 / ((ms / 1_000) * sampleRate));
-  const gateAttack = coefficient(GATE_ATTACK_MS);
-  const gateRelease = coefficient(GATE_RELEASE_MS);
-  const threshold = 10 ** (thresholdDb / 20);
-
-  let gate = state.gates[band];
-  let mean = 0;
-
-  for (let i = 0; i < source.length; i += 1) {
-    const level = Math.abs(source[i]);
-    gate = level + (gate - level) * (level > gate ? gateAttack : gateRelease);
-
-    // Unity unless the user asked for a gate. The sidechain runs
-    // continuously, the way the hardware does.
-    let value = 1;
-
-    if (isGated) {
-      // Opening over a factor of two above the threshold rather than at the
-      // instant it is crossed, so a passage hovering there fades in rather
-      // than flickering.
-      value *= gate <= threshold ? 0 : Math.min(1, gate / threshold - 1);
-    }
-
-    gain[i] = value;
-    mean += value;
+): void => {
+  const oversample = oversampleFactorForSampleRate(sampleRate);
+  const wideLength = source.length * oversample;
+  upsample(state.oversamplers[band], source, state.wideDry, oversample);
+  const wideRate = sampleRate * oversample;
+  const smooth = smoothing(PARAMETER_SMOOTHING_MS, wideRate);
+  const transientLift = transientHarmonicLift(band);
+  if (state.drive[band] === 0) {
+    state.drive[band] = setup.drive;
+    state.texture[band] = setup.texture;
   }
 
-  state.gates[band] = gate;
-  return source.length > 0 ? mean / source.length : 0;
+  for (let i = 0; i < wideLength; i += 1) {
+    state.drive[band] += (setup.drive - state.drive[band]) * smooth;
+    state.texture[band] += (setup.texture - state.texture[band]) * smooth;
+    const filteredSample = state.wideDry[i];
+    const transient = exciterTransientSample(
+      state.transients[band],
+      filteredSample,
+      wideRate,
+    );
+    const transientHarmonicGain = 1 + transient * transientLift;
+    const protectedCurrent =
+      band === 2
+        ? highExciterHarmonicSample(
+            filteredSample,
+            state.drive[band],
+            state.texture[band],
+            transientHarmonicGain,
+          )
+        : exciterSidechainSample(
+            filteredSample,
+            state.drive[band],
+            state.texture[band],
+            transientHarmonicGain,
+            BAND_HARMONIC_GAIN[band],
+          );
+    // The fixed curve returns the whole excited sidechain. Keeping it in one
+    // buffer guarantees Isolate cannot present a different signal from the one
+    // that is added beneath the dry programme.
+    state.wide[i] = protectedCurrent;
+  }
+  downsample(state.oversamplers[band], state.wide, state.wetReturn, oversample);
+  blockDc(state.dcState[band], state.wetReturn);
+  if (band === 2) {
+    if (
+      state.highHarmonicHz !== setup.freqHz ||
+      state.highHarmonicSampleRate !== sampleRate
+    ) {
+      state.highHarmonicHz = setup.freqHz;
+      state.highHarmonicSampleRate = sampleRate;
+      state.highHarmonicCoefficients = biquadCoefficients(
+        {
+          type: FilterTypeEnum.HPQ,
+          frequency: setup.freqHz,
+          gainDb: 0,
+          quality: FILTER_Q,
+        },
+        sampleRate,
+      );
+    }
+    // High is an upper-harmonic return, not a louder copy of its source band.
+    // The region centre separates the extracted presence from the air it
+    // creates, so generated orders pass while source-frequency carrier falls.
+    processBiquad(
+      state.highHarmonicFilter,
+      state.wetReturn,
+      state.highHarmonicCoefficients,
+    );
+    // The foundation is linear and does not need oversampling. Restoring it
+    // from the already-filtered source keeps it aligned with dry; sending it
+    // through the FIR round trip made this additive return comb-filter the mix.
+    for (let sample = 0; sample < state.wetReturn.length; sample += 1) {
+      state.wetReturn[sample] += source[sample] * HIGH_FOUNDATION_LEVEL;
+    }
+    guardExciterReturn(state.highGuard, state.wetReturn, sampleRate);
+  }
 };
-/**
- * Run one channel, in place, adding the wet bands onto the dry signal.
- *
- * Returns what each band and the organic stage actually contributed, which is
- * what the card draws. A display fed the SETTINGS would be drawing what was
- * asked for; the whole claim of this stage is that the amounts move on their
- * own, so anything short of the truth would be worse than no display at all.
- *
- * ISOLATE drops the dry signal and leaves only what this stage made. It costs
- * one `fill(0)` and no separate code path, which is not a coincidence — every
- * stage here adds a DIFFERENCE rather than a processed copy, so what it
- * contributed is already a signal in its own right. Anything else would need
- * the whole chain run twice and subtracted.
- */
+
+const addBand = (
+  state: IExciterChannelState,
+  band: number,
+  target: Float32Array,
+  source: Float32Array,
+  setup: IExciterBandSettings,
+  returnScale: number,
+  processorEnabled: boolean,
+  sampleRate: number,
+): number => {
+  const enabledMix = bandExciterReturnGain(setup.mix, band) * returnScale;
+  const targetMix = processorEnabled && setup.enabled ? enabledMix : 0;
+  if (targetMix <= 0 && state.mix[band] <= 0.0001) {
+    state.mix[band] = 0;
+    resetExciterTransientState(state.transients[band]);
+    return 0;
+  }
+
+  shapeBand(state, band, source, setup, sampleRate);
+  const smooth = smoothing(PARAMETER_SMOOTHING_MS, sampleRate);
+  let meanMix = 0;
+  for (let i = 0; i < target.length; i += 1) {
+    state.mix[band] += (targetMix - state.mix[band]) * smooth;
+    // This is the complete excited return Isolate plays: the quiet filtered
+    // foundation and the low-order harmonics created around it.
+    target[i] += state.wetReturn[i] * state.mix[band];
+    meanMix += state.mix[band];
+  }
+  return target.length > 0 ? meanMix / target.length : 0;
+};
+
+export const exciterChannelIsActive = (state: IExciterChannelState): boolean =>
+  state.mix[0] > 0.0001 ||
+  state.mix[1] > 0.0001 ||
+  state.mix[2] > 0.0001 ||
+  Math.abs(1 - state.dryMix) > 0.0001;
+
+/** Run one channel in place and report the contribution meters. */
 export const runExciterChannel = (
   state: IExciterChannelState,
   target: Float32Array,
   settings: IExciterSettings,
   sampleRate: number,
-): { bands: number[]; organic: number } => {
-  const frames = target.length;
-  resize(state, frames);
-  const contributed = [0, 0, 0];
-
-  /**
-   * The input, kept because two things need it after `target` stops being it.
-   *
-   * The organic stage reads from here rather than from `target`, so it and the
-   * three bands are genuinely parallel — all four fed the same signal. Reading
-   * `target` meant its focus bandpass saw whatever the bands had already added,
-   * which made the two stages serial by accident of the order they happen to be
-   * written in.
-   *
-   * And under isolate `target` is about to be zeroed, so without a copy the
-   * organic stage would be handed silence and the mode would appear to switch
-   * it off.
-   */
+): { bands: number[] } => {
+  resize(state, target.length);
+  const { report } = state;
+  report.bands.fill(0);
   state.dry.set(target);
-  if (settings.isolate) {
-    target.fill(0);
+  if (!settings.enabled && !exciterChannelIsActive(state)) {
+    return report;
   }
+
+  const targetDryMix = settings.enabled && settings.isolate ? 0 : 1;
+  const drySmooth = smoothing(PARAMETER_SMOOTHING_MS, sampleRate);
+  for (let i = 0; i < target.length; i += 1) {
+    state.dryMix += (targetDryMix - state.dryMix) * drySmooth;
+    target[i] = state.dry[i] * state.dryMix;
+  }
+
+  // The three independently movable bands may overlap. Each processed path
+  // needs enough return to be audible, but their foundations must never add up
+  // to several full copies of the filtered programme. Preserve every authored
+  // balance and normalise only when the requested parallel returns exceed
+  // unity together. Adjacent/default bands are unaffected.
+  const requestedReturn = settings.bands.reduce(
+    (total, band, index) =>
+      total +
+      (settings.enabled && band.enabled
+        ? bandExciterReturnGain(band.mix, index)
+        : 0),
+    0,
+  );
+  const returnScale = requestedReturn > 1 ? 1 / requestedReturn : 1;
 
   for (let band = 0; band < 3; band += 1) {
     const setup = settings.bands[band];
-    if (!setup?.enabled || setup.mix <= 0) {
-      // Reset rather than leave running: a band switched back on should start
-      // from silence, not from whatever its follower held when it went away.
-      state.gates[band] = 0;
-    } else {
-      /**
-       * The band, taken with its own pair of filters from the dry signal.
-       *
-       * Butterworth Q on each of two cascaded stages, which is 24 dB/octave
-       * either side — steep enough that a narrow band is genuinely narrow, and
-       * gentle enough that a wide one does not ring. The edges are skipped
-       * when they are at the ends of the range, because a highpass at 20 Hz
-       * and a lowpass at 20 kHz are two filters' worth of phase shift in
-       * exchange for nothing.
-       */
-      const source = state.bands[band];
-      source.set(state.dry);
-      const filters = state.bandFilters[band];
-      // Centre and width, worked out to edges by the same helper the graph
-      // and the migration use — so what is heard and what is drawn cannot
-      // disagree about where a band is.
-      const { lowHz, highHz } = exciterBandEdges(setup.freqHz, setup.range);
-      if (lowHz > BAND_EDGE_MIN_HZ) {
-        const highpass = biquadCoefficients(
-          {
-            type: FilterTypeEnum.HPQ,
-            frequency: lowHz,
-            gainDb: 0,
-            quality: BUTTERWORTH_Q,
-          },
-          sampleRate,
-        );
-        processBiquad(filters[0], source, highpass);
-        processBiquad(filters[1], source, highpass);
-      }
-      if (highHz < BAND_EDGE_MAX_HZ) {
-        const lowpass = biquadCoefficients(
-          {
-            type: FilterTypeEnum.LPQ,
-            frequency: highHz,
-            gainDb: 0,
-            quality: BUTTERWORTH_Q,
-          },
-          sampleRate,
-        );
-        processBiquad(filters[2], source, lowpass);
-        processBiquad(filters[3], source, lowpass);
-      }
-
-      const open = fillTransientGain(
+    if (setup) {
+      const source = extractBand(state, band, setup, sampleRate);
+      report.bands[band] = addBand(
         state,
         band,
+        target,
         source,
-        state.envGain,
-        setup.thresholdDb,
-        setup.dynamic,
+        setup,
+        returnScale,
+        settings.enabled,
         sampleRate,
       );
-      if (open > 0) {
-        state.shaped.set(source);
-        const asymmetry = (1 - setup.texture) * MAX_ASYMMETRY;
-        const asymmetryOutput = Math.tanh(asymmetry);
-        // How hard the diode's own polarity bends against the other one.
-        // @see ONE_SIDED
-        const sided = (1 - setup.texture) * ONE_SIDED;
-        const { drive } = setup;
-
-        upsample(
-          state.oversamplers[band],
-          state.shaped,
-          state.wideDry,
-          OVERSAMPLE,
-        );
-        const wide = frames * OVERSAMPLE;
-        let shapedEnergy = 0;
-        let dryEnergy = 0;
-        for (let i = 0; i < wide; i += 1) {
-          const dry = state.wideDry[i];
-          /**
-           * ONE-SIDED, the way a diode is.
-           *
-           * The Type C's non-linearity is a diode pair with an offset, so one
-           * polarity of the wave meets a knee well before the other does. A
-           * symmetric curve cannot do that at any setting, and symmetric is
-           * what "texture 1" is — pure odd harmonics, which up in the top
-           * octaves is the harshness rather than the sparkle.
-           *
-           * Bending only the negative half gives low-order EVEN and odd
-           * together, which is what the hardware measures and what the ear
-           * reads as sweetness rather than edge. Texture still chooses between
-           * them: at 1 both halves are treated alike and it is the old
-           * symmetric curve, at 0 the asymmetry and the one-sidedness are both
-           * at their fullest.
-           */
-          const bent = dry < 0 ? dry * (1 - sided) : dry;
-          const value =
-            (Math.tanh(bent * drive + asymmetry) - asymmetryOutput) / drive;
-          state.wide[i] = value;
-          shapedEnergy += value * value;
-          dryEnergy += dry * dry;
-        }
-
-        // Energy-matched and then differenced, both INSIDE the oversampled
-        // domain where the two are still sample-aligned. The comment above
-        // the energy note above says why the match; the alignment is because the
-        // resampler is a 63-tap linear-phase FIR run twice each way, so
-        // subtracting after the round trip is subtracting a delayed copy of
-        // the fundamental, which is a comb filter rather than a harmonic.
-        // Measured before the fix: one band at mix 0.4 took a 400 Hz tone
-        // from 0.354 RMS to 0.090.
-        /**
-         * The gain is RAMPED across the block, never stepped onto it.
-         *
-         * A gain recomputed per block and applied flat is an amplitude
-         * modulator running at the block rate — 375 Hz at 48 kHz and 128
-         * frames — and it sprays sidebands around every component in the
-         * signal. Measured on a single 400 Hz sine with the step in place:
-         * lines at 375 Hz (-45.5 dB), at 25 Hz and 425 Hz either side of the
-         * tone, and only 31% of the isolated output's energy sitting on
-         * actual harmonics. The other 69% was the buffer boundary. That is
-         * what "it is just noise" sounds like, and no amount of tuning the
-         * curve would have touched it.
-         *
-         * Ramping from the previous block's gain to this one's makes the
-         * envelope continuous across the join. The gain is also smoothed
-         * first, so the ramp has a short distance to travel and the
-         * modulation that remains is far below the audible band.
-         */
-        const wanted =
-          shapedEnergy > 1e-20 && dryEnergy > 1e-20
-            ? Math.sqrt(dryEnergy / shapedEnergy)
-            : 1;
-        const from = state.matchGain[band] || wanted;
-        const to = from + (wanted - from) * MATCH_SMOOTHING;
-        state.matchGain[band] = to;
-        /**
-         * The whole sidechain goes back, NOT the difference against the dry.
-         *
-         * Subtracting cancels the fundamental, and cancelling the fundamental
-         * is what made this a harmonic generator rather than an exciter. The
-         * band was taken with a HIGHPASS, so what is in here is a
-         * phase-SHIFTED copy of the fundamental plus the harmonics made from
-         * it. Summed under the unshifted dry path it interferes — reinforcing
-         * at some frequencies and thinning at others — and that gentle,
-         * frequency-dependent interference is what an Aural Exciter actually
-         * does. Aphex's patent describes exactly this: the filtered signal AND
-         * its harmonics, mixed quietly beneath the original.
-         *
-         * Which is why `MIX_SCALE` exists. Adding a whole band back at unity
-         * would be a level control for that band; the hardware's useful region
-         * is around -20 dB and so is this one.
-         */
-        const step = (to - from) / wide;
-        for (let i = 0; i < wide; i += 1) {
-          state.wide[i] *= from + step * i;
-        }
-
-        // `shaped` now holds the harmonics themselves, so this is a plain add
-        // rather than a difference. Adding the shaped BAND would have added
-        // its fundamental a second time, which is a level change wearing an
-        // exciter's name — turning the mix up would make it louder rather than
-        // richer, and that is the commonest way this kind of stage is wrong.
-        downsample(
-          state.oversamplers[band],
-          state.wide,
-          state.shaped,
-          OVERSAMPLE,
-        );
-
-        blockDc(state.dcState[band], state.shaped);
-
-        /**
-         * The fundamental STAYS IN, and that is the whole effect.
-         *
-         * It was being filtered out here, on the reasoning that the dry path
-         * already carries it so adding it again is only a level change. That
-         * reasoning is correct about magnitude and misses what an Aural
-         * Exciter is: the band was extracted by a HIGHPASS, and a highpass
-         * shifts phase steeply around its corner. What comes back is therefore
-         * a phase-SHIFTED copy of the fundamental, and summing it against the
-         * unshifted dry one is constructive at some frequencies and
-         * destructive at others — a gentle, frequency-dependent interference
-         * that no equaliser can produce and no harmonic generator can either.
-         *
-         * That interference IS the character people describe as depth, or as
-         * the sound being alive. Aphex's own patent describes the sidechain as
-         * mixing the filtered signal AND its harmonics back under the dry, not
-         * the harmonics alone. Removing the fundamental removed the effect and
-         * left only the fizz.
-         */
-        /**
-         * RAMPED across the block, never applied flat to it.
-         *
-         * This is the whole of what was heard as the effect being "separated",
-         * and as sounding digital rather than analogue. Every term in this
-         * amount — the transient envelope, the dynamic gate, the mix — is
-         * worked out once per block. A block is 128 samples, 2.7 ms, so a
-         * value held constant across one and then changed is a staircase with
-         * 375 steps a second. On a transient, where the envelope moves most,
-         * the steps are largest and land exactly where the ear is listening
-         * hardest.
-         *
-         * Nothing about the envelopes is wrong; they are smooth functions
-         * sampled coarsely and then held. Interpolating between the previous
-         * block's amount and this one costs one multiply-add per sample and
-         * makes them continuous, which is what they were meant to be. The
-         * energy-matching gain above got this treatment already and it dropped
-         * its artefacts 15 dB; these are the terms actually heard.
-         */
-        // Nothing left to ramp: the envelope is continuous where it is
-        // made rather than smoothed afterwards. The only per-block
-        // constant is the mix, and that moves when a knob does rather
-        // than when the music does.
-        const scale = setup.mix * MIX_SCALE;
-        for (let i = 0; i < frames; i += 1) {
-          target[i] += state.shaped[i] * state.envGain[i] * scale;
-        }
-        contributed[band] = open * scale;
-      }
     }
   }
 
-  let organicAmount = 0;
-  const { organic } = settings;
-  if (organic.enabled && organic.amount > 0) {
-    // Its own bandpass rather than one of the three bands above. The stage is
-    // about a specific region being thin, and which region that is depends on
-    // the driver — so it is a frequency the user moves, not whichever slice
-    // the exciter's crossovers happen to leave.
-    const coefficients = biquadCoefficients(
-      {
-        type: FilterTypeEnum.BP,
-        frequency: organic.focusHz,
-        gainDb: 0,
-        // Broad on purpose. Body is not a resonance, and a narrow band here
-        // adds a note rather than a texture.
-        quality: 0.7,
-      },
-      sampleRate,
-    );
-    // Read from the input, not from `target`. The bands above have already
-    // added to `target`, so taking the source from there made this stage feed
-    // on their harmonics — serial by accident of the order the two are written
-    // in, when they are meant to be parallel. It is also what makes isolate
-    // work, since `target` is zeroed there.
-    state.organicBand.set(state.dry);
-    processBiquad(state.focusStages[0], state.organicBand, coefficients);
-    processBiquad(state.focusStages[1], state.organicBand, coefficients);
-
-    /**
-     * How much of the spectrum this works on, from the focus band to all of it.
-     *
-     * A bandpass alone could never reach "everything": drop its Q far enough to
-     * span the audible range and it stops being a filter long before it stops
-     * rolling off at the edges. So range LERPS towards the unfiltered signal
-     * instead. At 0 the stage sees only its focus band; at 1 it sees the whole
-     * signal and the focus dial no longer means anything; in between the focus
-     * is emphasised without being exclusive, which is the useful middle and the
-     * reason this is a dial rather than a switch.
-     */
-    if (organic.range > 0) {
-      for (let i = 0; i < frames; i += 1) {
-        state.organicBand[i] +=
-          (state.dry[i] - state.organicBand[i]) * organic.range;
-      }
-    }
-
-    // Comes back holding the harmonics rather than the shaped band — the
-    // difference is taken inside `organicBlock`, where the signals are still
-    // aligned. So this is a plain add.
-    organicBlock(state.organic, state.organicBand, organic.amount, sampleRate);
-    blockDc(state.dcState[3], state.organicBand);
-    for (let i = 0; i < frames; i += 1) {
-      target[i] += state.organicBand[i] * organic.amount;
-    }
-    organicAmount = organicAsymmetry(organic.amount);
-  }
-
-  return { bands: contributed, organic: organicAmount };
+  return report;
 };

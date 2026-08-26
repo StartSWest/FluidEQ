@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   IKaraokeMakerProject,
   karaokeMakerLineIsSection,
@@ -74,10 +74,27 @@ export const normalizedLyricsText = (value: string): string =>
  * comparison would offer that far too often.
  */
 export const useKaraokeMakerLyricsDraft = (project: IKaraokeMakerProject) => {
+  const projectText = plainLyrics(project);
+  const previousProjectTextRef = useRef(projectText);
   const [isOpen, setOpen] = useState(false);
-  const [draft, setDraft] = useState(() => plainLyrics(project));
+  const [draft, setDraft] = useState(projectText);
   const [fileName, setFileName] = useState<string>();
   const [workflowActive, setWorkflowActive] = useState(false);
+
+  useEffect(() => {
+    const previousProjectText = previousProjectTextRef.current;
+    previousProjectTextRef.current = projectText;
+    // A structured word edit owns the draft only while the textarea still
+    // mirrors the project. If the user has typed a new lyric sheet, preserve
+    // that unsaved text; otherwise keep the two views synchronized so moving
+    // one timed word never turns into a destructive whole-lyrics replacement.
+    setDraft((current) =>
+      normalizedLyricsText(current) ===
+      normalizedLyricsText(previousProjectText)
+        ? projectText
+        : current,
+    );
+  }, [projectText]);
 
   const draftWordCount = useMemo(
     () =>
@@ -88,7 +105,7 @@ export const useKaraokeMakerLyricsDraft = (project: IKaraokeMakerProject) => {
   );
 
   const draftChanged =
-    normalizedLyricsText(draft) !== normalizedLyricsText(plainLyrics(project));
+    normalizedLyricsText(draft) !== normalizedLyricsText(projectText);
 
   /**
    * Re-seed from the project and open.

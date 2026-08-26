@@ -4,7 +4,14 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { Dispatch, ReactNode, RefObject, SetStateAction } from 'react';
+import {
+  Dispatch,
+  ReactNode,
+  RefObject,
+  SetStateAction,
+  useMemo,
+  useState,
+} from 'react';
 import {
   IKaraokeMakerProject,
   IKaraokeMakerToken,
@@ -17,6 +24,11 @@ import { TSelection } from './useKaraokeMakerSelection';
 import { useTranslation } from '../utils/I18nContext';
 import { formatClock } from './makerFormat';
 import KaraokeMakerToolIcon from './KaraokeMakerToolIcon';
+import KaraokeMakerAnalysisError, {
+  TKaraokeMakerAnalysisRetry,
+} from './KaraokeMakerAnalysisError';
+import { reconcileKaraokeMakerLyrics } from './makerLyricsReconcile';
+import KaraokeMakerLyricsSourceEditor from './KaraokeMakerLyricsSourceEditor';
 
 /**
  * The lyrics dialog: paste words in, then see how they landed.
@@ -33,7 +45,6 @@ import KaraokeMakerToolIcon from './KaraokeMakerToolIcon';
  */
 export interface IKaraokeMakerLyricsDialogProps {
   project: IKaraokeMakerProject;
-  tokens: IKaraokeMakerToken[];
   selection: TSelection;
   activeLyricFocus: ReturnType<typeof karaokeMakerLyricFocus>;
 
@@ -52,7 +63,11 @@ export interface IKaraokeMakerLyricsDialogProps {
   analysisMessage: string | undefined;
   displayedAnalysisProgress: number;
   analysisProgressIsIndeterminate: boolean;
+  analysisError: string | undefined;
+  analysisRetry: TKaraokeMakerAnalysisRetry | undefined;
   cancelAnalysis: () => void;
+  retryAnalysis: (retry: TKaraokeMakerAnalysisRetry) => Promise<void>;
+  dismissAnalysisError: () => void;
 
   /**
    * What replacing the lyrics is about to destroy, if anything.
@@ -66,6 +81,11 @@ export interface IKaraokeMakerLyricsDialogProps {
     recordLinesAfter?: boolean,
   ) => void;
   selectLyricsEditorToken: (token: IKaraokeMakerToken) => void;
+  moveLyricsEditorWord: (
+    tokenId: string,
+    targetLineId: string,
+    beforeTokenId?: string | null,
+  ) => void;
 
   /** Passed in, because both also appear outside this dialog. */
   renderLyricsModalWordInspector: () => ReactNode;
@@ -74,12 +94,15 @@ export interface IKaraokeMakerLyricsDialogProps {
 
 const KaraokeMakerLyricsDialog = ({
   activeLyricFocus,
+  analysisError,
   analysisMessage,
   analysisProgress,
   analysisProgressIsIndeterminate,
+  analysisRetry,
   cancelAnalysis,
   destructiveAction,
   displayedAnalysisProgress,
+  dismissAnalysisError,
   draftLyricsWordCount,
   lyricsDraft,
   lyricsDraftChanged,
@@ -87,16 +110,34 @@ const KaraokeMakerLyricsDialog = ({
   lyricsInputRef,
   lyricsProcessing,
   project,
+  moveLyricsEditorWord,
   renderLyricsModalWordInspector,
   renderWhisperDownloadDetails,
   replaceLyrics,
+  retryAnalysis,
   selectLyricsEditorToken,
   selection,
   setLyricsDraft,
   setLyricsOpen,
-  tokens,
 }: IKaraokeMakerLyricsDialogProps) => {
   const { t } = useTranslation();
+  const [draggedWordId, setDraggedWordId] = useState<string>();
+  const [dropLineId, setDropLineId] = useState<string>();
+  const previewProject = useMemo(
+    () =>
+      lyricsDraftChanged
+        ? reconcileKaraokeMakerLyrics(project, lyricsDraft).project
+        : project,
+    [lyricsDraft, lyricsDraftChanged, project],
+  );
+  const previewTokens = useMemo(
+    () =>
+      previewProject.lyrics.lines
+        .filter((line) => !karaokeMakerLineIsSection(line))
+        .flatMap((line) => line.tokens),
+    [previewProject],
+  );
+  const timingEditingLocked = lyricsProcessing || lyricsDraftChanged;
   return (
     <div
       className={`karaoke-maker__modal-backdrop${
@@ -150,12 +191,12 @@ const KaraokeMakerLyricsDialog = ({
                 </button>
               </div>
             </div>
-            <textarea
+            <KaraokeMakerLyricsSourceEditor
               value={lyricsDraft}
               disabled={lyricsProcessing}
-              onChange={(event) => setLyricsDraft(event.target.value)}
+              project={previewProject}
+              onChange={setLyricsDraft}
               placeholder={t('karaoke.maker.lyricsPlaceholder')}
-              spellCheck
             />
           </section>
           <section className="karaoke-maker__lyrics-timing-editor">
@@ -163,78 +204,177 @@ const KaraokeMakerLyricsDialog = ({
               <strong>{t('karaoke.maker.wordTiming')}</strong>
               <span>
                 {t('karaoke.maker.lyricsTimedCount', {
-                  timed: tokens.filter((token) => token.startMs !== undefined)
-                    .length,
-                  total: tokens.length,
+                  timed: previewTokens.filter(
+                    (token) =>
+                      token.startMs !== undefined && token.endMs !== undefined,
+                  ).length,
+                  total: previewTokens.length,
                 })}
               </span>
             </div>
-            {lyricsDraftChanged || !tokens.length ? (
+            {!previewTokens.length ? (
               <div className="karaoke-maker__lyrics-timing-placeholder">
                 <KaraokeMakerToolIcon name="timing" />
-                <strong>
-                  {t(
-                    lyricsDraftChanged
-                      ? 'karaoke.maker.lyricsApplyBeforeTiming'
-                      : 'karaoke.maker.lyricsNoTimedWords',
-                  )}
-                </strong>
+                <strong>{t('karaoke.maker.lyricsNoTimedWords')}</strong>
                 <p>{t('karaoke.maker.lyricsTimingEditorHint')}</p>
               </div>
             ) : (
-              <div className="karaoke-maker__lyrics-token-scroll">
-                {project.lyrics.lines.map((line) => {
-                  const isSection = karaokeMakerLineIsSection(line);
-                  return (
-                    <div
-                      key={line.id}
-                      className={`karaoke-maker__lyrics-token-line${
-                        isSection ? ' is-section' : ''
-                      }`}
-                    >
-                      {line.tokens.map((token) =>
-                        isSection ? (
-                          <span key={token.id}>{token.text}</span>
-                        ) : (
-                          <button
-                            key={token.id}
-                            type="button"
-                            className={`${
-                              selection?.kind === 'word' &&
-                              selection.id === token.id
-                                ? 'is-selected '
-                                : ''
-                            }${
-                              token.id === activeLyricFocus?.tokenId
-                                ? 'is-current '
-                                : ''
-                            }${
-                              token.startMs === undefined ? 'is-untimed ' : ''
-                            }${
-                              karaokeMakerTokenWasUserTouched(token)
-                                ? 'is-adjusted'
-                                : ''
-                            }`}
-                            onClick={() => selectLyricsEditorToken(token)}
-                            title={
-                              token.startMs === undefined
-                                ? t('karaoke.maker.untimed')
-                                : `${formatClock(token.startMs)} → ${formatClock(
-                                    token.endMs ?? token.startMs,
-                                  )}`
-                            }
-                          >
-                            {token.text}
-                          </button>
-                        ),
-                      )}
-                    </div>
-                  );
-                })}
+              <div className="karaoke-maker__lyrics-token-preview">
+                {lyricsDraftChanged && (
+                  <div
+                    className="karaoke-maker__lyrics-draft-preview-note"
+                    role="status"
+                  >
+                    <KaraokeMakerToolIcon name="apply" />
+                    <span>{t('karaoke.maker.lyricsApplyBeforeTiming')}</span>
+                  </div>
+                )}
+                <div
+                  className={`karaoke-maker__lyrics-token-scroll${
+                    lyricsDraftChanged ? ' is-preview' : ''
+                  }`}
+                >
+                  {previewProject.lyrics.lines.map((line) => {
+                    const isSection = karaokeMakerLineIsSection(line);
+                    return (
+                      <div
+                        key={line.id}
+                        className={`karaoke-maker__lyrics-token-line${
+                          isSection ? ' is-section' : ''
+                        }${dropLineId === line.id ? ' is-drop-target' : ''}`}
+                        onDragOver={
+                          isSection || timingEditingLocked
+                            ? undefined
+                            : (event) => {
+                                event.preventDefault();
+                                event.dataTransfer.dropEffect = 'move';
+                                setDropLineId(line.id);
+                              }
+                        }
+                        onDragLeave={(event) => {
+                          const nextTarget = event.relatedTarget;
+                          if (
+                            !(nextTarget instanceof Node) ||
+                            !event.currentTarget.contains(nextTarget)
+                          ) {
+                            setDropLineId(undefined);
+                          }
+                        }}
+                        onDrop={
+                          isSection || timingEditingLocked
+                            ? undefined
+                            : (event) => {
+                                event.preventDefault();
+                                const tokenId =
+                                  draggedWordId ||
+                                  event.dataTransfer.getData('text/plain');
+                                if (tokenId) {
+                                  moveLyricsEditorWord(tokenId, line.id, null);
+                                }
+                                setDraggedWordId(undefined);
+                                setDropLineId(undefined);
+                              }
+                        }
+                      >
+                        {line.tokens.map((token) =>
+                          isSection ? (
+                            <span key={token.id}>{token.text}</span>
+                          ) : (
+                            <button
+                              key={token.id}
+                              type="button"
+                              draggable={!timingEditingLocked}
+                              aria-disabled={timingEditingLocked}
+                              className={`${
+                                selection?.kind === 'word' &&
+                                selection.id === token.id
+                                  ? 'is-selected '
+                                  : ''
+                              }${
+                                token.id === activeLyricFocus?.tokenId
+                                  ? 'is-current '
+                                  : ''
+                              }${
+                                token.startMs === undefined ||
+                                token.endMs === undefined
+                                  ? 'is-untimed '
+                                  : ''
+                              }${
+                                karaokeMakerTokenWasUserTouched(token)
+                                  ? 'is-adjusted'
+                                  : ''
+                              }`}
+                              onClick={
+                                timingEditingLocked
+                                  ? undefined
+                                  : () => selectLyricsEditorToken(token)
+                              }
+                              onDragStart={(event) => {
+                                event.dataTransfer.effectAllowed = 'move';
+                                event.dataTransfer.setData(
+                                  'text/plain',
+                                  token.id,
+                                );
+                                setDraggedWordId(token.id);
+                              }}
+                              onDragEnd={() => {
+                                setDraggedWordId(undefined);
+                                setDropLineId(undefined);
+                              }}
+                              onDragOver={
+                                timingEditingLocked
+                                  ? undefined
+                                  : (event) => {
+                                      event.preventDefault();
+                                      event.stopPropagation();
+                                      event.dataTransfer.dropEffect = 'move';
+                                      setDropLineId(line.id);
+                                    }
+                              }
+                              onDrop={
+                                timingEditingLocked
+                                  ? undefined
+                                  : (event) => {
+                                      event.preventDefault();
+                                      event.stopPropagation();
+                                      const tokenId =
+                                        draggedWordId ||
+                                        event.dataTransfer.getData(
+                                          'text/plain',
+                                        );
+                                      if (tokenId) {
+                                        moveLyricsEditorWord(
+                                          tokenId,
+                                          line.id,
+                                          token.id,
+                                        );
+                                      }
+                                      setDraggedWordId(undefined);
+                                      setDropLineId(undefined);
+                                    }
+                              }
+                              title={
+                                token.startMs === undefined
+                                  ? t('karaoke.maker.untimed')
+                                  : `${formatClock(
+                                      token.startMs,
+                                    )} → ${formatClock(
+                                      token.endMs ?? token.startMs,
+                                    )}`
+                              }
+                            >
+                              {token.text}
+                            </button>
+                          ),
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             )}
             {!lyricsDraftChanged &&
-              tokens.length > 0 &&
+              previewTokens.length > 0 &&
               renderLyricsModalWordInspector()}
           </section>
         </div>
@@ -278,6 +418,15 @@ const KaraokeMakerLyricsDialog = ({
               />
             </div>
           </div>
+        )}
+        {analysisProgress === undefined && analysisError && (
+          <KaraokeMakerAnalysisError
+            error={analysisError}
+            retry={analysisRetry}
+            onRetry={retryAnalysis}
+            onDismiss={dismissAnalysisError}
+            inline
+          />
         )}
         <div className="karaoke-maker__modal-actions karaoke-maker__lyrics-actions">
           {destructiveAction === 'replace-lyrics' && (

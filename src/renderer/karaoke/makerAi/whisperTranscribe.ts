@@ -138,9 +138,10 @@ export const transcribeKaraokeWithWhisper = async (
     throw new DOMException('Transcription cancelled.', 'AbortError');
   }
   const audioDurationSeconds = samples.length / WHISPER_SAMPLE_RATE;
-  const downloadedAtStart =
-    readWhisperSessionSnapshot().downloaded ||
-    (await refreshKaraokeWhisperDownloaded());
+  // Ask the cache every run. The remembered flag can outlive an eviction or a
+  // deliberate test reset; trusting it here mislabeled a fresh fetch as a
+  // cached load and hid the download details.
+  const downloadedAtStart = await refreshKaraokeWhisperDownloaded();
   const workerWasReady =
     readWhisperSessionSnapshot().inMemory && getWhisperWorker();
   let workerStatusMessage = 'Checking speech model files';

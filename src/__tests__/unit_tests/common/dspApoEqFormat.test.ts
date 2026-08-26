@@ -19,6 +19,7 @@ const withBands = (
   bands: Partial<IEqSettings['bands'][number]>[],
 ): IEqSettings => ({
   enabled: true,
+  isolate: false,
   model: 'clean',
   modelAmount: 1,
   engine: 'serial',

@@ -4,7 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { Dispatch, ReactNode, SetStateAction } from 'react';
+import { ReactNode } from 'react';
 import {
   KARAOKE_AUTOMATIC_DETECTOR_UI_ENABLED,
   TKaraokeMakerWhisperStage,
@@ -12,6 +12,9 @@ import {
 import { karaokeMakerAnalysisProgress } from './makerAnalysisProgress';
 import { useTranslation } from '../utils/I18nContext';
 import KaraokeMakerToolIcon from './KaraokeMakerToolIcon';
+import KaraokeMakerAnalysisError, {
+  TKaraokeMakerAnalysisRetry,
+} from './KaraokeMakerAnalysisError';
 
 /**
  * What a run looks like while it is happening, and after it fails.
@@ -39,12 +42,9 @@ export interface IKaraokeMakerAnalysisPanelsProps {
 
   /** What went wrong, and which retry to offer for it. */
   analysisError: string | undefined;
-  setAnalysisError: Dispatch<SetStateAction<string | undefined>>;
-  analysisRetry: 'whisper' | 'whisper-runtime' | undefined;
-  setAnalysisRetry: Dispatch<
-    SetStateAction<'whisper' | 'whisper-runtime' | undefined>
-  >;
-  runWhisper: () => Promise<void>;
+  analysisRetry: TKaraokeMakerAnalysisRetry | undefined;
+  retryAnalysis: (retry: TKaraokeMakerAnalysisRetry) => Promise<void>;
+  dismissAnalysisError: () => void;
 
   /** Suppressed while the dialog shows the same run inline. */
   lyricsOpen: boolean;
@@ -59,11 +59,10 @@ const KaraokeMakerAnalysisPanels = ({
   analysisRetry,
   cancelAnalysis,
   displayedAnalysisProgress,
+  dismissAnalysisError,
   lyricsOpen,
   renderWhisperDownloadDetails,
-  runWhisper,
-  setAnalysisError,
-  setAnalysisRetry,
+  retryAnalysis,
   visibleWhisperStages,
   whisperStage,
 }: IKaraokeMakerAnalysisPanelsProps) => {
@@ -164,49 +163,14 @@ const KaraokeMakerAnalysisPanels = ({
         )}
       {KARAOKE_AUTOMATIC_DETECTOR_UI_ENABLED &&
         analysisProgress === undefined &&
-        analysisError && (
-          <div
-            className="karaoke-maker__analysis-error"
-            role="alert"
-            aria-live="assertive"
-          >
-            <div
-              className="karaoke-maker__analysis-error-icon"
-              aria-hidden="true"
-            >
-              !
-            </div>
-            <div>
-              <strong>
-                {analysisRetry === 'whisper'
-                  ? t('karaoke.maker.downloadFailed')
-                  : t('karaoke.maker.localAnalysisFailed')}
-              </strong>
-              <span>{analysisError}</span>
-            </div>
-            <div className="karaoke-maker__analysis-error-actions">
-              {analysisRetry !== undefined && (
-                <button
-                  type="button"
-                  className="karaoke-maker__analysis-error-retry"
-                  onClick={() => runWhisper().catch(() => undefined)}
-                >
-                  {t('karaoke.maker.tryAgain')}
-                </button>
-              )}
-              <button
-                type="button"
-                className="karaoke-maker__analysis-error-close"
-                onClick={() => {
-                  setAnalysisError(undefined);
-                  setAnalysisRetry(undefined);
-                }}
-                aria-label={t('karaoke.maker.dismiss')}
-              >
-                ×
-              </button>
-            </div>
-          </div>
+        analysisError &&
+        !lyricsOpen && (
+          <KaraokeMakerAnalysisError
+            error={analysisError}
+            retry={analysisRetry}
+            onRetry={retryAnalysis}
+            onDismiss={dismissAnalysisError}
+          />
         )}
     </>
   );

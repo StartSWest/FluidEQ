@@ -22,6 +22,10 @@ import { TDspSection } from './sections';
  * input.
  */
 const GLYPHS: Record<TDspSection, { frame: string; accent: string }> = {
+  normalizer: {
+    frame: 'M3 5 H17 M3 15 H17',
+    accent: 'M5 10 H8 L10 7 L12 13 L14 10 H17',
+  },
   eq: {
     frame: 'M4 3 V17 M10 3 V17 M16 3 V17',
     accent: 'M1.8 12.5 H6.2 M7.8 6.5 H12.2 M13.8 14.5 H18.2',
@@ -37,6 +41,10 @@ const GLYPHS: Record<TDspSection, { frame: string; accent: string }> = {
   maximizer: {
     frame: 'M3 4.5 H17',
     accent: 'M10 17 V8 M6.6 11.4 L10 8 L13.4 11.4',
+  },
+  master: {
+    frame: 'M3 4.5 H17 M3 15.5 H17',
+    accent: 'M6 10 H14 M11 7 L14 10 L11 13',
   },
 };
 

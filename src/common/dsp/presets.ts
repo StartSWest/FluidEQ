@@ -17,6 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { DSP_DEFAULTS, IDspSettings } from './chain';
+import { exciterPresetSettings } from './exciterPresets';
 
 export interface IDspPreset {
   id: string;
@@ -43,35 +44,22 @@ export const DSP_PRESETS: IDspPreset[] = [
   {
     id: 'flat',
     labelKey: 'dsp.preset.flat',
-    settings: DSP_DEFAULTS,
+    settings: {
+      ...DSP_DEFAULTS,
+      normalizer: { ...DSP_DEFAULTS.normalizer, mode: 'off' },
+    },
   },
   {
     id: 'lossy-repair',
     labelKey: 'dsp.preset.lossyRepair',
     settings: {
+      normalizer: DSP_DEFAULTS.normalizer,
       // Left flat: this preset repairs a codec, and a tone curve on top of
       // that is a second opinion the user did not ask for.
       eq: DSP_DEFAULTS.eq,
-      exciter: {
-        ...DSP_DEFAULTS.exciter,
-        enabled: true,
-        bands: [
-          { ...DSP_DEFAULTS.exciter.bands[0], enabled: false },
-          { ...DSP_DEFAULTS.exciter.bands[1], enabled: false },
-          // What this preset was before it had bands: the same corner, drive
-          // and mix, in the band those three now name. Codec damage is a
-          // top-octave problem, so the two below stay off rather than being
-          // invented to fill the new shape.
-          {
-            ...DSP_DEFAULTS.exciter.bands[2],
-            enabled: true,
-            freqHz: 11_800,
-            range: 0.06,
-            drive: 2.6,
-            mix: 0.35,
-          },
-        ],
-      },
+      // A chain consumes the processor profile by id; it does not carry a
+      // second copy that can drift away from the Exciter picker.
+      exciter: exciterPresetSettings('lossy-repair', true),
       compressor: {
         enabled: true,
         crossoverHz: [200, 3_000],
@@ -105,33 +93,16 @@ export const DSP_PRESETS: IDspPreset[] = [
         lookAheadMs: 5,
         releaseMs: 100,
       },
+      master: DSP_DEFAULTS.master,
     },
   },
   {
     id: 'loud',
     labelKey: 'dsp.preset.loud',
     settings: {
+      normalizer: DSP_DEFAULTS.normalizer,
       eq: DSP_DEFAULTS.eq,
-      exciter: {
-        ...DSP_DEFAULTS.exciter,
-        enabled: true,
-        bands: [
-          { ...DSP_DEFAULTS.exciter.bands[0], enabled: false },
-          { ...DSP_DEFAULTS.exciter.bands[1], enabled: false },
-          {
-            ...DSP_DEFAULTS.exciter.bands[2],
-            enabled: true,
-            freqHz: 10_000,
-            range: 0.1,
-            drive: 3,
-            mix: 0.4,
-          },
-        ],
-        // The one preset here whose job is to sound BIGGER, which is what the
-        // organic stage is for. Modest, because it is arriving on top of a
-        // compressor that is already working.
-        organic: { enabled: true, amount: 0.3, focusHz: 650, range: 0.4 },
-      },
+      exciter: exciterPresetSettings('loud', true),
       compressor: {
         enabled: true,
         crossoverHz: [150, 2_500],
@@ -165,6 +136,7 @@ export const DSP_PRESETS: IDspPreset[] = [
         lookAheadMs: 8,
         releaseMs: 60,
       },
+      master: DSP_DEFAULTS.master,
     },
   },
   {
@@ -208,26 +180,9 @@ export const DSP_PRESETS: IDspPreset[] = [
     id: 'broadcast',
     labelKey: 'dsp.preset.broadcast',
     settings: {
+      normalizer: DSP_DEFAULTS.normalizer,
       eq: DSP_DEFAULTS.eq,
-      exciter: {
-        ...DSP_DEFAULTS.exciter,
-        enabled: true,
-        align: { enabled: true, amount: 0.6, crossoverHz: [150, 1_200] },
-        bands: [
-          { ...DSP_DEFAULTS.exciter.bands[0], enabled: false },
-          { ...DSP_DEFAULTS.exciter.bands[1], enabled: false },
-          {
-            ...DSP_DEFAULTS.exciter.bands[2],
-            enabled: true,
-            freqHz: 3_000,
-            range: 0.18,
-            drive: 3,
-            mix: 0.35,
-            texture: 0.6,
-          },
-        ],
-        organic: { enabled: true, amount: 0.35, focusHz: 320, range: 0.3 },
-      },
+      exciter: exciterPresetSettings('broadcast', true),
       compressor: {
         enabled: true,
         crossoverHz: [160, 2_600],
@@ -265,6 +220,7 @@ export const DSP_PRESETS: IDspPreset[] = [
         lookAheadMs: 6,
         releaseMs: 90,
       },
+      master: DSP_DEFAULTS.master,
     },
   },
 ];

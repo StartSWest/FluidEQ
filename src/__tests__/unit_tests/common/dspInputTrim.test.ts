@@ -7,7 +7,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { DSP_DEFAULTS, IEqSettings } from '../../../common/dsp/chain';
 import {
   EQ_PRESETS,
-  eqPresetSetup,
+  eqSettingsForPreset,
   isCompleteEqPreset,
 } from '../../../common/dsp/eqPresets';
 import {
@@ -25,22 +25,8 @@ const RATE = 48_000;
  */
 const CEILING_DB = 6.1;
 
-const rackFor = (preset: (typeof EQ_PRESETS)[number]): IEqSettings => {
-  const setup = eqPresetSetup(preset);
-  return {
-    ...DSP_DEFAULTS.eq,
-    ...setup,
-    bands: DSP_DEFAULTS.eq.bands.map((band, index) => {
-      const threshold = preset.dynamic?.[index] ?? null;
-      return {
-        ...band,
-        gainDb: preset.gains[index],
-        dynamic: threshold !== null,
-        thresholdDb: threshold ?? band.thresholdDb,
-      };
-    }),
-  };
-};
+const rackFor = (preset: (typeof EQ_PRESETS)[number]): IEqSettings =>
+  eqSettingsForPreset(DSP_DEFAULTS.eq, preset);
 
 describe('the EQ input regulator', () => {
   /**

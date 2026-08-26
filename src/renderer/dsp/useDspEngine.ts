@@ -22,17 +22,26 @@ import {
 } from './graph';
 import {
   TDspEngineState,
+  IDspOutputSafetyMeter,
+  clearDspAnalysers,
   setDspAnalyser,
   setDspBandAmounts,
   setDspExciterActivity,
   setDspBandLevels,
+  setDspChannelPeaks,
   setDspCorrelation,
   setDspHeadroomGiveBack,
   setDspScatter,
   setDspEngineState,
   setDspPeak,
   setDspSampleRate,
+  setDspOutputSafetyMeter,
+  setDspNormalizerMeter,
+  useDspOutputSafetyEnabled,
+  useDspInputAnalysis,
 } from './store';
+import { masterLoudnessGainDb, normalizerGainDb } from './inputNormalizer';
+import { DSP_OUTPUT_COUNT } from './monitorOutputs';
 
 /** Registered by `dspProcessor.worklet.ts`. */
 const PROCESSOR_NAME = 'fluideq-dsp';
@@ -44,6 +53,27 @@ const workletUrl = (): URL =>
       : '/dsp-worklet.dev.js',
     window.location.href,
   );
+
+let inputGainPort: MessagePort | undefined;
+let pendingInputGainDb = 0;
+let pendingMasterLoudnessGainDb = 0;
+
+/** Queue the next track's gain before its media element is allowed to play. */
+export const setDspInputGainDb = (gainDb: number): void => {
+  pendingInputGainDb = Number.isFinite(gainDb)
+    ? Math.min(12, Math.max(-48, gainDb))
+    : 0;
+  inputGainPort?.postMessage({ inputGainDb: pendingInputGainDb });
+};
+
+export const setDspMasterLoudnessGainDb = (gainDb: number): void => {
+  pendingMasterLoudnessGainDb = Number.isFinite(gainDb)
+    ? Math.min(12, Math.max(0, gainDb))
+    : 0;
+  inputGainPort?.postMessage({
+    masterLoudnessGainDb: pendingMasterLoudnessGainDb,
+  });
+};
 
 interface IEngineState {
   /** True only while the graph is built and audio is flowing through it. */
@@ -81,11 +111,31 @@ export const useDspEngine = (
   settings: IDspSettings,
 ): IEngineState => {
   const [active, setActive] = useState(false);
+  const outputSafetyEnabled = useDspOutputSafetyEnabled();
+  const inputAnalysis = useDspInputAnalysis();
+  const inputGainDb = normalizerGainDb(
+    settings.normalizer,
+    inputAnalysis.analysis,
+  );
+  const loudnessGainDb = masterLoudnessGainDb(
+    settings.master,
+    settings.normalizer,
+    inputAnalysis.analysis,
+  );
   const contextRef = useRef<AudioContext | undefined>(undefined);
   const sourceRef = useRef<MediaElementAudioSourceNode | undefined>(undefined);
   const graphRef = useRef<IDspGraph | undefined>(undefined);
+  const workletRef = useRef<AudioWorkletNode | undefined>(undefined);
   const settingsRef = useRef(settings);
+  const outputSafetyEnabledRef = useRef(outputSafetyEnabled);
+  const inputGainDbRef = useRef(inputGainDb);
+  const loudnessGainDbRef = useRef(loudnessGainDb);
+  const inputTrackIdRef = useRef(inputAnalysis.trackId ?? '');
   settingsRef.current = settings;
+  outputSafetyEnabledRef.current = outputSafetyEnabled;
+  inputGainDbRef.current = inputGainDb;
+  loudnessGainDbRef.current = loudnessGainDb;
+  inputTrackIdRef.current = inputAnalysis.trackId ?? '';
   /**
    * The adaptive trim's working set, kept across reports.
    *
@@ -136,6 +186,7 @@ export const useDspEngine = (
      * notice behind for a chain that was simply put away.
      */
     const teardown = (next: TDspEngineState) => {
+      const currentWorklet = workletRef.current;
       /**
        * Restoring the audio comes FIRST, and everything after it is guarded.
        *
@@ -156,14 +207,20 @@ export const useDspEngine = (
         // to reach the speakers, so this is not allowed to stop that.
       }
       graphRef.current = undefined;
+      if (inputGainPort === currentWorklet?.port) {
+        inputGainPort = undefined;
+      }
+      workletRef.current = undefined;
       fallBackToDirectOutput();
-      setDspAnalyser(undefined);
+      clearDspAnalysers();
       setActive(false);
       setDspEngineState(next);
     };
 
     const start = async () => {
-      const context = contextRef.current ?? new window.AudioContext();
+      const context =
+        contextRef.current ??
+        new window.AudioContext({ latencyHint: 'playback' });
       contextRef.current = context;
       // Told early: the EQ curve is drawn from coefficients built at this
       // rate, so the panel is wrong until it knows.
@@ -176,9 +233,19 @@ export const useDspEngine = (
       }
       const worklet = new AudioWorkletNode(context, PROCESSOR_NAME, {
         numberOfInputs: 1,
-        numberOfOutputs: 1,
-        outputChannelCount: [2],
+        numberOfOutputs: DSP_OUTPUT_COUNT,
+        outputChannelCount: Array.from({ length: DSP_OUTPUT_COUNT }, () => 2),
       });
+      workletRef.current = worklet;
+      inputGainPort = worklet.port;
+      worklet.port.postMessage({
+        debugOutputSafetyEnabled: outputSafetyEnabledRef.current,
+      });
+      worklet.port.postMessage({
+        masterPeakHoldTrackId: inputTrackIdRef.current,
+      });
+      setDspInputGainDb(inputGainDbRef.current);
+      setDspMasterLoudnessGainDb(loudnessGainDbRef.current);
       // The worklet reports its correlation measurement back the same way it
       // receives settings. Assigned before the graph is built so the very
       // first block's reading is not dropped on the floor.
@@ -186,17 +253,29 @@ export const useDspEngine = (
         const data = message.data as {
           correlation?: unknown;
           peak?: unknown;
+          channelPeaks?: unknown;
           bandAmounts?: unknown;
           bandLevels?: unknown;
           exciterBands?: unknown;
           exciterOrganic?: unknown;
+          outputSafety?: unknown;
           scatter?: unknown;
+          normalizerMeter?: unknown;
         } | null;
         if (data && typeof data.correlation === 'number') {
           setDspCorrelation(data.correlation);
         }
         if (data && typeof data.peak === 'number') {
           setDspPeak(data.peak);
+        }
+        if (
+          data &&
+          Array.isArray(data.channelPeaks) &&
+          data.channelPeaks.every(
+            (value) => typeof value === 'number' && Number.isFinite(value),
+          )
+        ) {
+          setDspChannelPeaks(data.channelPeaks as number[]);
         }
         if (data && Array.isArray(data.bandAmounts)) {
           setDspBandAmounts(data.bandAmounts as number[]);
@@ -214,8 +293,62 @@ export const useDspEngine = (
             data.exciterOrganic,
           );
         }
+        if (
+          data?.outputSafety instanceof Object &&
+          typeof (data.outputSafety as { enabled?: unknown }).enabled ===
+            'boolean'
+        ) {
+          const safety = data.outputSafety as IDspOutputSafetyMeter;
+          if (
+            safety.postFilterNormalizer instanceof Object &&
+            Number.isFinite(safety.postFilterNormalizer.gainReductionDb) &&
+            Number.isFinite(safety.postFilterNormalizer.inputTruePeakDb) &&
+            Number.isFinite(safety.gainReductionDb) &&
+            Number.isFinite(safety.inputTruePeakDb) &&
+            Number.isFinite(safety.dcCorrectionDb) &&
+            Number.isFinite(safety.repairedSamples) &&
+            (safety.truePeakFactor === 1 ||
+              safety.truePeakFactor === 2 ||
+              safety.truePeakFactor === 4)
+          ) {
+            setDspOutputSafetyMeter(safety);
+          }
+        }
         if (data?.scatter instanceof Float32Array) {
           setDspScatter(data.scatter);
+        }
+        if (
+          data?.normalizerMeter instanceof Object &&
+          Array.isArray(
+            (data.normalizerMeter as { inputPeaks?: unknown }).inputPeaks,
+          ) &&
+          Array.isArray(
+            (data.normalizerMeter as { outputPeaks?: unknown }).outputPeaks,
+          )
+        ) {
+          const meter = data.normalizerMeter as {
+            inputPeaks: unknown[];
+            outputPeaks: unknown[];
+            appliedGainDb?: unknown;
+          };
+          if (
+            meter.inputPeaks.length === 2 &&
+            meter.outputPeaks.length === 2 &&
+            meter.inputPeaks.every(
+              (value) => typeof value === 'number' && Number.isFinite(value),
+            ) &&
+            meter.outputPeaks.every(
+              (value) => typeof value === 'number' && Number.isFinite(value),
+            ) &&
+            typeof meter.appliedGainDb === 'number' &&
+            Number.isFinite(meter.appliedGainDb)
+          ) {
+            setDspNormalizerMeter({
+              inputPeaks: meter.inputPeaks as [number, number],
+              outputPeaks: meter.outputPeaks as [number, number],
+              appliedGainDb: meter.appliedGainDb,
+            });
+          }
         }
         const input = graphRef.current?.inputAnalyser;
         const { eq } = settingsRef.current;
@@ -293,7 +426,12 @@ export const useDspEngine = (
         context.destination as unknown as IAudioNodeLike,
         settingsRef.current,
       );
-      setDspAnalyser(graphRef.current.analyser);
+      setDspAnalyser('normalizer', graphRef.current.analysers.normalizer);
+      setDspAnalyser('exciter', graphRef.current.analysers.exciter);
+      setDspAnalyser('eq', graphRef.current.analysers.eq);
+      setDspAnalyser('compressor', graphRef.current.analysers.compressor);
+      setDspAnalyser('maximizer', graphRef.current.analysers.maximizer);
+      setDspAnalyser('master', graphRef.current.analysers.master);
       setActive(true);
       setDspEngineState('running');
     };
@@ -349,6 +487,26 @@ export const useDspEngine = (
   useEffect(() => {
     graphRef.current?.update(settings);
   }, [settings]);
+
+  useEffect(() => {
+    workletRef.current?.port.postMessage({
+      debugOutputSafetyEnabled: outputSafetyEnabled,
+    });
+  }, [outputSafetyEnabled]);
+
+  useEffect(() => {
+    workletRef.current?.port.postMessage({
+      masterPeakHoldTrackId: inputAnalysis.trackId ?? '',
+    });
+  }, [inputAnalysis.trackId]);
+
+  useEffect(() => {
+    setDspInputGainDb(inputGainDb);
+  }, [inputGainDb]);
+
+  useEffect(() => {
+    setDspMasterLoudnessGainDb(loudnessGainDb);
+  }, [loudnessGainDb]);
 
   return { active };
 };

@@ -20,6 +20,7 @@ import fs from 'fs';
 import path from 'path';
 import {
   ILibraryIndex,
+  ILibraryNormalizationAnalysis,
   ILibraryRoot,
   ILibraryTrack,
 } from '../../common/library/types';
@@ -37,6 +38,23 @@ const isOptionalNumber = (value: unknown): boolean =>
 
 const isOptionalBoolean = (value: unknown): boolean =>
   value === undefined || typeof value === 'boolean';
+
+const isNormalizationAnalysis = (
+  value: unknown,
+): value is ILibraryNormalizationAnalysis =>
+  isObject(value) &&
+  value.version === 1 &&
+  typeof value.truePeakDbtp === 'number' &&
+  Number.isFinite(value.truePeakDbtp) &&
+  value.truePeakDbtp >= -120 &&
+  value.truePeakDbtp <= 24 &&
+  typeof value.integratedLufs === 'number' &&
+  Number.isFinite(value.integratedLufs) &&
+  value.integratedLufs >= -120 &&
+  value.integratedLufs <= 24;
+
+const isOptionalNormalizationAnalysis = (value: unknown): boolean =>
+  value === undefined || isNormalizationAnalysis(value);
 
 const isLibraryRoot = (value: unknown): value is ILibraryRoot =>
   isObject(value) &&
@@ -72,7 +90,8 @@ const isLibraryTrack = (value: unknown): value is ILibraryTrack =>
   typeof value.sizeBytes === 'number' &&
   typeof value.mtimeMs === 'number' &&
   typeof value.addedAt === 'number' &&
-  isOptionalBoolean(value.hasMetadataError);
+  isOptionalBoolean(value.hasMetadataError) &&
+  isOptionalNormalizationAnalysis(value.normalization);
 
 export const emptyLibraryIndex = (): ILibraryIndex => ({
   version: 1,

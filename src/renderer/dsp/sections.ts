@@ -13,15 +13,21 @@ import { TranslationKey } from '../../common/i18n/en';
  * it, and having either import the other put a cycle between two modules that
  * only ever agreed on a four-word union.
  */
-export type TDspSection = 'eq' | 'exciter' | 'compressor' | 'maximizer';
+export type TDspSection =
+  'normalizer' | 'eq' | 'exciter' | 'compressor' | 'maximizer' | 'master';
 
 /**
- * In signal order, and NOT reorderable: the order is an audio decision, so the
- * rail reads as the chain rather than as a menu.
+ * The rack's visible workflow, with the output boundary fixed last.
+ *
+ * This list chooses pages; it does not schedule samples. The worklet owns the
+ * approved processor topology independently, so moving a tab can never change
+ * the sound by accident.
  */
 export const DSP_SECTIONS: { id: TDspSection; labelKey: TranslationKey }[] = [
-  { id: 'eq', labelKey: 'dsp.eq.title' },
+  { id: 'normalizer', labelKey: 'dsp.normalizer.title' },
   { id: 'exciter', labelKey: 'dsp.exciter.title' },
-  { id: 'compressor', labelKey: 'dsp.compressor.title' },
+  { id: 'eq', labelKey: 'dsp.eq.title' },
+  // Keep the processor in the DSP chain, but hide its editor until it is ready.
   { id: 'maximizer', labelKey: 'dsp.maximizer.title' },
+  { id: 'master', labelKey: 'dsp.master.title' },
 ];

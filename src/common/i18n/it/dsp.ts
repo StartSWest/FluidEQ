@@ -32,6 +32,31 @@ const dsp = {
   'dsp.bypassed': 'Bypassato',
   'dsp.enabled': 'Attivo',
 
+  'dsp.normalizer.title': 'Normalizzatore',
+  'dsp.normalizer.description':
+    "Misura una volta l'intera sorgente e applica un unico guadagno stereo collegato prima di Exciter ed EQ. Nessun pompaggio o inseguitore RMS mobile.",
+  'dsp.normalizer.mode': 'Modalità di normalizzazione',
+  'dsp.normalizer.off': 'Spento',
+  'dsp.normalizer.truePeak': 'Picco reale',
+  'dsp.normalizer.loudness': 'Sonorità',
+  'dsp.normalizer.ceiling': 'Limite di picco',
+  'dsp.normalizer.target': 'Obiettivo di sonorità',
+  'dsp.normalizer.analysis': 'Analisi sorgente',
+  'dsp.normalizer.analyzing': "Analisi dell'intero brano · {progress}%",
+  'dsp.normalizer.unavailable':
+    'Impossibile analizzare questa sorgente. Viene riprodotta al livello originale.',
+  'dsp.normalizer.waiting': 'Riproduci un brano dalla Libreria per misurarlo.',
+  'dsp.normalizer.measuredPeak': 'Picco misurato',
+  'dsp.normalizer.measuredLoudness': 'Sonorità integrata',
+  'dsp.normalizer.appliedGain': 'Guadagno applicato',
+  'dsp.normalizer.liveMeter': 'Prima / dopo dal vivo',
+  'dsp.normalizer.before': 'Prima',
+  'dsp.normalizer.after': 'Dopo',
+  'dsp.normalizer.liveMeterHint':
+    'Picchi campione reali misurati direttamente prima e dopo il Normalizzatore. Il segno zero indica 0 dBFS.',
+  'dsp.normalizer.honesty':
+    'Previene il sovraccarico a valle; non può ricostruire la distorsione già presente nel file.',
+
   'dsp.eqPreset.custom': 'Personalizzato',
   'dsp.eqPreset.label': 'Preimpostazione',
   'dsp.eqPreset.saved': 'I tuoi',
@@ -107,6 +132,12 @@ const dsp = {
   'dsp.eqSave.imported': 'Importato {name}.',
   'dsp.eqShare.share': 'Condividi',
   'dsp.eqShare.hint': 'Salva questo rack come file che altri possono aprire.',
+  'dsp.eqShare.saved': 'File del preset salvato.',
+  'dsp.eqShare.failed': 'Impossibile salvare il file del preset.',
+  'dsp.eq.isolate': 'Isola',
+  'dsp.eq.isolateHint': 'Ascolta solo ciò che modifica l’EQ.',
+  'dsp.eq.isolateOn':
+    'Il segnale dry è rimosso: si sentono solo le modifiche dell’EQ.',
   'dsp.eqPreset.imported': 'Caricati {count} filtri.',
   'dsp.eqPreset.importSkipped': 'Caricati {count} filtri, {skipped} ignorati.',
   'dsp.eqPreset.importEmpty': 'Questo equalizzatore non ha letto alcun filtro.',
@@ -205,20 +236,16 @@ const dsp = {
   'dsp.exciter.band.mid': 'Medi',
   'dsp.exciter.band.high': 'Alti',
   'dsp.exciter.texture': 'Trama',
-  'dsp.exciter.threshold': 'Soglia',
-  'dsp.exciter.dynamic': 'Dinamico',
   'dsp.exciter.organic': 'Organico',
   'dsp.exciter.organicHint':
-    'Corpo per medi che misurano bene e suonano sottili. Armoniche pari che seguono la musica e derivano con essa, così respira invece di restare ferma.',
+    'Aggiunge un corpo morbido di armoniche pari nella zona scelta. Ideale per rendere una resa pulita e metallica, anche con driver in titanio, più calda e organica senza perdere dettaglio.',
   'dsp.exciter.organicAmount': 'Corpo',
   'dsp.exciter.organicFocus': 'Fuoco',
   'dsp.exciter.organicRange': 'Estensione',
-  'dsp.exciter.align': 'Allineamento',
+  'dsp.exciter.align': 'Timing',
   'dsp.exciter.alignHint':
-    'Ritarda le bande basse rispetto alle alte, come fa un BBE. Non aggiunge nulla: cambia solo quando arriva ogni parte.',
-  'dsp.exciter.alignAmount': 'Profondità',
-  'dsp.exciter.alignLow': 'Taglio basso',
-  'dsp.exciter.alignHigh': 'Taglio alto',
+    'Lascia arrivare prima gli alti e ritarda dolcemente medi e bassi per attacchi chiari e un impatto rotondo. Non aggiunge armoniche.',
+  'dsp.exciter.alignAmount': 'Quantità',
   'dsp.exciter.isolate': 'Isola',
   'dsp.exciter.isolateHint':
     'Ascolta solo le armoniche che questo stadio aggiunge.',
@@ -245,6 +272,53 @@ const dsp = {
   'dsp.maximizer.ceiling': 'Tetto',
   'dsp.maximizer.lookAhead': 'Anticipo',
   'dsp.maximizer.release': 'Rilascio',
+
+  'dsp.master.title': 'Master',
+  'dsp.master.description':
+    'Controllo trasparente dell’uscita finale dopo tutti i processori. Non cambia il livello con cui vengono pilotati EQ, Exciter o gli altri stadi.',
+  'dsp.master.outputTrim': 'Guadagno uscita',
+  'dsp.master.autoHeadroom': 'Headroom automatico',
+  'dsp.master.autoHeadroomHint':
+    'Riduce dolcemente solo i picchi che si avvicinano al tetto true peak stereo selezionato.',
+  'dsp.master.ceiling': 'Tetto',
+  'dsp.master.release': 'Rilascio',
+  'dsp.master.loudnessMaximize': 'Massimizza LUFS',
+  'dsp.master.loudnessMaximizeHint':
+    'Aggiunge {gain} dB dalla misura del brano completo e mantiene il picco reale finale sotto il limite. Il guadagno è costante; vengono controllati solo i picchi.',
+  'dsp.master.loudnessTarget': 'Obiettivo di sonorità',
+  'dsp.master.meter': 'Uscita finale',
+  'dsp.master.safetyHint':
+    'Rilevamento true peak {factor}× · tetto {ceiling} dBTP · ginocchio morbido {knee} dB · collegamento stereo.',
+  'dsp.master.manualHint':
+    'Uscita manuale: nessuna riduzione dei picchi. I livelli oltre 0 dBFS satureranno.',
+  'dsp.master.truePeak': 'TP ingresso',
+  'dsp.master.gainReduction': 'Riduzione guadagno',
+  'dsp.master.devSafety': 'Sicurezza A/B',
+  'dsp.master.devSafetyHint':
+    'Solo sviluppo: esclude tutta la protezione finale per ascoltare esattamente cosa cambia.',
+  'dsp.master.devSafetySpec':
+    'Protezione di emergenza sopra +10 dBTP · anticipo 2 ms · correzione senza rilascio · protezione DC 3 Hz · riparazione campioni non validi',
+  'dsp.master.dcCorrection': 'Offset DC',
+  'dsp.master.faults': 'Guasti',
+  'dsp.master.graph.spectrum': 'Spettro finale',
+  'dsp.master.graph.trim': 'Guadagno uscita',
+  'dsp.master.graph.applied': 'Guadagno applicato',
+  'dsp.master.graph.trimLine': 'Guadagno {gain} dB',
+  'dsp.master.graph.appliedLine': 'Applicato {gain} dB',
+  'dsp.master.graph.dcGuard': 'Protezione DC',
+  'dsp.master.graph.peakWarning':
+    'Avviso · uscita a {peak} dBTP oltre il tetto',
+  'dsp.master.graph.peakFixed': 'Picco controllato · {gain} dB di riduzione',
+  'dsp.master.graph.peakSafe': 'True peak entro il tetto',
+  'dsp.master.graph.dcFixed': 'Offset DC rimosso · {amount}',
+  'dsp.master.graph.dcClean': 'Offset DC pulito',
+  'dsp.master.graph.faultFixed':
+    'Riparati {count} campioni non validi o guasti',
+  'dsp.master.graph.faultClean': 'Campioni validi',
+  'dsp.master.graph.safetyActive': 'Protezioni attive',
+  'dsp.master.graph.safetyBypassed': 'Avviso · protezioni escluse',
+  'dsp.master.graph.loudnessActive':
+    'Massimizza LUFS · +{gain} dB verso {target} LUFS',
 
   'tabs.dsp': 'DSP',
 };

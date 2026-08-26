@@ -190,6 +190,10 @@ const ensureRmvpe = async (
     return target;
   }
   fs.mkdirSync(modelDir(), { recursive: true });
+  // Announce the fetch before waiting on DNS, TLS, or the first response byte.
+  // Without this, a slow connection left the Maker on a generic analysis bar
+  // and the model appeared not to be downloading at all.
+  onBytes(0, 0);
   const response = await fetch(RMVPE_URL);
   if (!response.ok || !response.body) {
     throw new Error(`RMVPE download failed (${response.status}).`);
@@ -320,18 +324,40 @@ export const registerKaraokePitch = () => {
       }
     };
     try {
-      await ensureRmvpe((received, total) =>
-        report('download', total > 0 ? received / total : 0, {
-          loadedBytes: received,
-          totalBytes: total,
-          file: 'rmvpe.onnx',
-        }),
-      );
-      return await runRmvpe(samples, (fraction) => report('detect', fraction));
+      try {
+        await ensureRmvpe((received, total) =>
+          report('download', total > 0 ? received / total : 0, {
+            loadedBytes: received,
+            totalBytes: total,
+            file: 'rmvpe.onnx',
+          }),
+        );
+      } catch (error) {
+        // The bundled tracker still produces a melody, but the failed optional
+        // download must reach the renderer. Swallowing it here made an offline
+        // run look completely successful and gave the user nothing to retry.
+        log.warn(
+          '[karaoke][pitch] RMVPE download failed, using SwiftF0',
+          error,
+        );
+        return {
+          ...(await runSwift(samples)),
+          rmvpeDownloadFailed: true,
+        };
+      }
+      try {
+        return await runRmvpe(samples, (fraction) =>
+          report('detect', fraction),
+        );
+      } catch (error) {
+        // A downloaded model can still be unsupported by the available ONNX
+        // backend. That is a runtime fallback, not a failed download.
+        log.warn('[karaoke][pitch] RMVPE unavailable, using SwiftF0', error);
+        return runSwift(samples);
+      }
     } catch (error) {
-      // Offline, refused, out of disk — the bundled tracker answers instead.
-      log.warn('[karaoke][pitch] RMVPE unavailable, using SwiftF0', error);
-      return runSwift(samples);
+      log.warn('[karaoke][pitch] pitch detection failed', error);
+      throw error;
     }
   });
   // What is actually sitting in RAM right now, for the memory panel's

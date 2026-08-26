@@ -32,6 +32,31 @@ const dsp = {
   'dsp.bypassed': 'Обход',
   'dsp.enabled': 'Включено',
 
+  'dsp.normalizer.title': 'Нормализация',
+  'dsp.normalizer.description':
+    'Один раз измеряет весь источник и применяет единое связанное стереоусиление перед Exciter и EQ. Без пампинга и подвижного RMS-слежения.',
+  'dsp.normalizer.mode': 'Режим нормализации',
+  'dsp.normalizer.off': 'Выкл.',
+  'dsp.normalizer.truePeak': 'Истинный пик',
+  'dsp.normalizer.loudness': 'Громкость',
+  'dsp.normalizer.ceiling': 'Предел пика',
+  'dsp.normalizer.target': 'Целевая громкость',
+  'dsp.normalizer.analysis': 'Анализ источника',
+  'dsp.normalizer.analyzing': 'Анализ всего трека · {progress}%',
+  'dsp.normalizer.unavailable':
+    'Не удалось проанализировать источник. Он воспроизводится с исходным уровнем.',
+  'dsp.normalizer.waiting': 'Включите трек из Библиотеки для измерения.',
+  'dsp.normalizer.measuredPeak': 'Измеренный пик',
+  'dsp.normalizer.measuredLoudness': 'Интегральная громкость',
+  'dsp.normalizer.appliedGain': 'Применённое усиление',
+  'dsp.normalizer.liveMeter': 'До / после в реальном времени',
+  'dsp.normalizer.before': 'До',
+  'dsp.normalizer.after': 'После',
+  'dsp.normalizer.liveMeterHint':
+    'Фактические пики сэмплов непосредственно до и после нормализатора. Нулевая метка — 0 dBFS.',
+  'dsp.normalizer.honesty':
+    'Предотвращает последующую перегрузку, но не восстанавливает искажения, уже записанные в файл.',
+
   'dsp.eqPreset.custom': 'Свой',
   'dsp.eqPreset.label': 'Пресет',
   'dsp.eqPreset.saved': 'Свои',
@@ -106,6 +131,12 @@ const dsp = {
   'dsp.eqSave.imported': 'Импортировано {name}.',
   'dsp.eqShare.share': 'Поделиться',
   'dsp.eqShare.hint': 'Сохраняет рэк файлом, который смогут открыть другие.',
+  'dsp.eqShare.saved': 'Файл пресета сохранён.',
+  'dsp.eqShare.failed': 'Не удалось сохранить файл пресета.',
+  'dsp.eq.isolate': 'Изолировать',
+  'dsp.eq.isolateHint': 'Слушать только то, что изменяет эквалайзер.',
+  'dsp.eq.isolateOn':
+    'Сухой сигнал убран — слышны только изменения эквалайзера.',
   'dsp.eqPreset.imported': 'Загружено фильтров: {count}.',
   'dsp.eqPreset.importSkipped':
     'Загружено фильтров: {count}, пропущено: {skipped}.',
@@ -206,20 +237,16 @@ const dsp = {
   'dsp.exciter.band.mid': 'Средние',
   'dsp.exciter.band.high': 'Высокие',
   'dsp.exciter.texture': 'Текстура',
-  'dsp.exciter.threshold': 'Порог',
-  'dsp.exciter.dynamic': 'Динамика',
   'dsp.exciter.organic': 'Органика',
   'dsp.exciter.organicHint':
-    'Плотность для середины, которая хорошо измеряется и звучит тонко. Чётные гармоники следуют за музыкой и плывут вместе с ней, поэтому звук дышит, а не стоит на месте.',
+    'Добавляет мягкую плотность чётных гармоник в выбранной области. Идеально, чтобы сделать чистую металлическую подачу или титановые драйверы теплее и органичнее без потери деталей.',
   'dsp.exciter.organicAmount': 'Плотность',
   'dsp.exciter.organicFocus': 'Фокус',
   'dsp.exciter.organicRange': 'Охват',
-  'dsp.exciter.align': 'Выравнивание',
+  'dsp.exciter.align': 'Тайминг',
   'dsp.exciter.alignHint':
-    'Задерживает нижние полосы относительно верхних, как это делает BBE. Ничего не добавляет — меняет только момент прихода.',
-  'dsp.exciter.alignAmount': 'Глубина',
-  'dsp.exciter.alignLow': 'Нижний раздел',
-  'dsp.exciter.alignHigh': 'Верхний раздел',
+    'Пропускает высокие вперёд и мягко задерживает середину и низ для ясной атаки и округлого удара. Не добавляет гармоник.',
+  'dsp.exciter.alignAmount': 'Величина',
   'dsp.exciter.isolate': 'Изолировать',
   'dsp.exciter.isolateHint':
     'Слышать только гармоники, которые добавляет этот блок.',
@@ -246,6 +273,53 @@ const dsp = {
   'dsp.maximizer.ceiling': 'Потолок',
   'dsp.maximizer.lookAhead': 'Упреждение',
   'dsp.maximizer.release': 'Восстановление',
+
+  'dsp.master.title': 'Мастер',
+  'dsp.master.description':
+    'Прозрачное управление финальным выходом после всех процессоров. Не меняет уровень сигнала, поступающего в EQ, Exciter и другие каскады.',
+  'dsp.master.outputTrim': 'Выходной уровень',
+  'dsp.master.autoHeadroom': 'Автозапас',
+  'dsp.master.autoHeadroomHint':
+    'Плавно ослабляет только пики, приближающиеся к выбранному стереосвязанному true-peak потолку.',
+  'dsp.master.ceiling': 'Потолок',
+  'dsp.master.release': 'Восстановление',
+  'dsp.master.loudnessMaximize': 'Максимум LUFS',
+  'dsp.master.loudnessMaximizeHint':
+    'Добавляет {gain} дБ по измерению всего трека и удерживает итоговый истинный пик ниже предела. Усиление постоянно; регулируются только пики.',
+  'dsp.master.loudnessTarget': 'Целевая громкость',
+  'dsp.master.meter': 'Финальный выход',
+  'dsp.master.safetyHint':
+    'True-peak детектор {factor}× · потолок {ceiling} dBTP · мягкое колено {knee} дБ · стереосвязь.',
+  'dsp.master.manualHint':
+    'Ручной выход: без ослабления пиков. Уровни выше 0 dBFS будут перегружены.',
+  'dsp.master.truePeak': 'TP вход',
+  'dsp.master.gainReduction': 'Ослабление',
+  'dsp.master.devSafety': 'Защита A/B',
+  'dsp.master.devSafetyHint':
+    'Только для разработки: обходит всю финальную защиту, чтобы её влияние можно было услышать напрямую.',
+  'dsp.master.devSafetySpec':
+    'Аварийная защита выше +10 dBTP · упреждение 2 мс · коррекция без восстановления · DC-защита 3 Гц · исправление неверных отсчётов',
+  'dsp.master.dcCorrection': 'DC-смещение',
+  'dsp.master.faults': 'Сбои',
+  'dsp.master.graph.spectrum': 'Финальный спектр',
+  'dsp.master.graph.trim': 'Выходной уровень',
+  'dsp.master.graph.applied': 'Применённый уровень',
+  'dsp.master.graph.trimLine': 'Уровень {gain} дБ',
+  'dsp.master.graph.appliedLine': 'Применено {gain} дБ',
+  'dsp.master.graph.dcGuard': 'DC-защита',
+  'dsp.master.graph.peakWarning':
+    'Предупреждение · выход {peak} dBTP выше потолка',
+  'dsp.master.graph.peakFixed': 'Пик ограничен · ослабление {gain} дБ',
+  'dsp.master.graph.peakSafe': 'True peak в пределах потолка',
+  'dsp.master.graph.dcFixed': 'DC-смещение удалено · {amount}',
+  'dsp.master.graph.dcClean': 'DC-смещение в норме',
+  'dsp.master.graph.faultFixed':
+    'Исправлено неверных или аварийных отсчётов: {count}',
+  'dsp.master.graph.faultClean': 'Отсчёты исправны',
+  'dsp.master.graph.safetyActive': 'Защита активна',
+  'dsp.master.graph.safetyBypassed': 'Предупреждение · защита обойдена',
+  'dsp.master.graph.loudnessActive':
+    'Максимум LUFS · +{gain} дБ к {target} LUFS',
 
   'tabs.dsp': 'DSP',
 };

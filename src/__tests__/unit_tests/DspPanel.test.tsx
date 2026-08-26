@@ -11,7 +11,12 @@ import { DSP_DEFAULTS, IDspSettings } from '../../common/dsp/chain';
 import { DSP_PRESETS } from '../../common/dsp/presets';
 import { FluidEqProviderWrapper } from '../../renderer/utils/FluidEqContext';
 import DspPanel from '../../renderer/dsp/DspPanel';
-import { TDspEngineState } from '../../renderer/dsp/store';
+import {
+  TDspEngineState,
+  readDspOutputSafetyEnabled,
+  setDspOutputSafetyEnabled,
+  setDspSampleRate,
+} from '../../renderer/dsp/store';
 
 /**
  * Wrapped in the FluidEQ provider because the faders are the equaliser's own
@@ -24,7 +29,7 @@ const renderPanel = (
 ) => {
   const onChange = jest.fn();
   const onCommit = jest.fn();
-  render(
+  const view = render(
     <FluidEqProviderWrapper
       value={{ ...defaultFluidEqContext, isEnabled: true }}
     >
@@ -36,7 +41,7 @@ const renderPanel = (
       />
     </FluidEqProviderWrapper>,
   );
-  return { onChange, onCommit };
+  return { ...view, onChange, onCommit };
 };
 
 describe('DspPanel', () => {
@@ -52,6 +57,28 @@ describe('DspPanel', () => {
   it('states its scope in visible text', () => {
     renderPanel();
     expect(screen.getByText(/does not change Spotify/i)).toBeInTheDocument();
+  });
+
+  it('offers an ephemeral final-safety A/B in development', () => {
+    setDspOutputSafetyEnabled(true);
+    renderPanel();
+    const toggle = screen.getByRole('checkbox', {
+      name: 'Final output safety',
+    });
+    expect(toggle).toBeChecked();
+    fireEvent.click(toggle);
+    expect(readDspOutputSafetyEnabled()).toBe(false);
+    expect(screen.getByText('OFF')).toBeInTheDocument();
+    setDspOutputSafetyEnabled(true);
+  });
+
+  it('shows the automatic system rate compactly in the DSP title', () => {
+    setDspSampleRate(48_000);
+    renderPanel();
+    expect(
+      screen.getByRole('heading', { name: /48 kHz/i }),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/device bits/i)).not.toBeInTheDocument();
   });
 
   /**
@@ -130,6 +157,72 @@ describe('DspPanel', () => {
     expect(next.eq.enabled).toBe(false);
     expect(next.compressor.enabled).toBe(false);
     expect(next.maximizer.enabled).toBe(false);
+  });
+
+  it('turns EQ Isolate off before bypassing the EQ', () => {
+    const active: IDspSettings = {
+      ...DSP_DEFAULTS,
+      eq: { ...DSP_DEFAULTS.eq, enabled: true, isolate: true },
+    };
+    const { onChange, onCommit } = renderPanel(active);
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Equaliser' }));
+    const next = onChange.mock.calls[0][0] as IDspSettings;
+    expect(next.eq.enabled).toBe(false);
+    expect(next.eq.isolate).toBe(false);
+    expect(onCommit).toHaveBeenCalled();
+  });
+
+  it('turns Exciter Isolate off before bypassing the Exciter', () => {
+    const active: IDspSettings = {
+      ...DSP_DEFAULTS,
+      exciter: { ...DSP_DEFAULTS.exciter, enabled: true, isolate: true },
+    };
+    const { onChange, onCommit } = renderPanel(active);
+    fireEvent.click(screen.getByRole('button', { name: /Exciter/i }));
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Exciter' }));
+    const next = onChange.mock.calls[0][0] as IDspSettings;
+    expect(next.exciter.enabled).toBe(false);
+    expect(next.exciter.isolate).toBe(false);
+    expect(onCommit).toHaveBeenCalled();
+  });
+
+  it('turns EQ Isolate off before leaving the EQ view', () => {
+    const active: IDspSettings = {
+      ...DSP_DEFAULTS,
+      eq: { ...DSP_DEFAULTS.eq, enabled: true, isolate: true },
+    };
+    const { onChange, onCommit } = renderPanel(active);
+    fireEvent.click(screen.getByRole('button', { name: /Exciter/i }));
+    const next = onChange.mock.calls[0][0] as IDspSettings;
+    expect(next.eq.isolate).toBe(false);
+    expect(onCommit).toHaveBeenCalled();
+  });
+
+  it('turns Exciter Isolate off before leaving the Exciter view', () => {
+    const active: IDspSettings = {
+      ...DSP_DEFAULTS,
+      exciter: { ...DSP_DEFAULTS.exciter, enabled: true, isolate: true },
+    };
+    const { onChange, onCommit } = renderPanel(active);
+    fireEvent.click(screen.getByRole('button', { name: /Exciter/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Maximizer/i }));
+    const next = onChange.mock.calls[0][0] as IDspSettings;
+    expect(next.exciter.isolate).toBe(false);
+    expect(onCommit).toHaveBeenCalled();
+  });
+
+  it('turns both monitor flags off when the DSP workspace closes', () => {
+    const active: IDspSettings = {
+      ...DSP_DEFAULTS,
+      eq: { ...DSP_DEFAULTS.eq, enabled: true, isolate: true },
+      exciter: { ...DSP_DEFAULTS.exciter, enabled: true, isolate: true },
+    };
+    const { unmount, onChange, onCommit } = renderPanel(active);
+    unmount();
+    const next = onChange.mock.calls[0][0] as IDspSettings;
+    expect(next.eq.isolate).toBe(false);
+    expect(next.exciter.isolate).toBe(false);
+    expect(onCommit).toHaveBeenCalled();
   });
 
   it('stays quiet about the engine while it is running', () => {

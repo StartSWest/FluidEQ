@@ -34,6 +34,20 @@ export interface ILibraryRoot {
   karaokeSkipped: number;
 }
 
+/**
+ * Whole-file measurements used by the input normalizer.
+ *
+ * Versioned independently from the library index so a future improvement to
+ * either meter invalidates only these cached numbers, not the user's roots or
+ * metadata. LUFS is ITU-R BS.1770 integrated programme loudness; dBTP includes
+ * inter-sample peaks.
+ */
+export interface ILibraryNormalizationAnalysis {
+  version: 1;
+  truePeakDbtp: number;
+  integratedLufs: number;
+}
+
 export interface ILibraryTrack {
   id: string; // stable hash of the absolute path
   rootId: string;
@@ -61,6 +75,8 @@ export interface ILibraryTrack {
   addedAt: number;
   /** Tags could not be read; the row still exists and still plays. */
   hasMetadataError?: boolean;
+  /** Cached whole-track analysis; invalidated when size or mtime changes. */
+  normalization?: ILibraryNormalizationAnalysis;
   /** This file has been found by a directory walk but its tags have not been
    * read yet -- `title` is a cleaned file name rather than a tag, `album` (if
    * set at all) is a folder-name guess rather than a fact, and every other

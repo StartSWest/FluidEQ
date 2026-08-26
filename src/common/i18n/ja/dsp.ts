@@ -31,6 +31,31 @@ const dsp = {
   'dsp.bypassed': 'バイパス',
   'dsp.enabled': 'オン',
 
+  'dsp.normalizer.title': 'ノーマライザー',
+  'dsp.normalizer.description':
+    'ソース全体を一度測定し、Exciter と EQ の前で左右共通の一定ゲインを適用します。ポンピングや追従する RMS はありません。',
+  'dsp.normalizer.mode': 'ノーマライズモード',
+  'dsp.normalizer.off': 'オフ',
+  'dsp.normalizer.truePeak': 'トゥルーピーク',
+  'dsp.normalizer.loudness': 'ラウドネス',
+  'dsp.normalizer.ceiling': 'ピーク上限',
+  'dsp.normalizer.target': 'ラウドネス目標',
+  'dsp.normalizer.analysis': 'ソース解析',
+  'dsp.normalizer.analyzing': '曲全体を解析中 · {progress}%',
+  'dsp.normalizer.unavailable':
+    'このソースは解析できませんでした。元のレベルで再生します。',
+  'dsp.normalizer.waiting': 'ライブラリの曲を再生すると測定します。',
+  'dsp.normalizer.measuredPeak': '測定ピーク',
+  'dsp.normalizer.measuredLoudness': '統合ラウドネス',
+  'dsp.normalizer.appliedGain': '適用ゲイン',
+  'dsp.normalizer.liveMeter': 'ライブ比較',
+  'dsp.normalizer.before': '前',
+  'dsp.normalizer.after': '後',
+  'dsp.normalizer.liveMeterHint':
+    'ノーマライザーの直前と直後で測定した実際のサンプルピークです。ゼロ線は 0 dBFS です。',
+  'dsp.normalizer.honesty':
+    '後段の過負荷を防ぎますが、ファイルに既に含まれる歪みは復元できません。',
+
   'dsp.eqPreset.custom': 'カスタム',
   'dsp.eqPreset.label': 'プリセット',
   'dsp.eqPreset.saved': '自分の',
@@ -105,6 +130,12 @@ const dsp = {
   'dsp.eqSave.imported': '{name} を読み込みました。',
   'dsp.eqShare.share': '共有',
   'dsp.eqShare.hint': '他の人が開けるファイルとしてこのラックを保存します。',
+  'dsp.eqShare.saved': 'プリセットファイルを保存しました。',
+  'dsp.eqShare.failed': 'プリセットファイルを保存できませんでした。',
+  'dsp.eq.isolate': 'アイソレート',
+  'dsp.eq.isolateHint': 'EQ が変化させた成分だけを聴きます。',
+  'dsp.eq.isolateOn':
+    'ドライ信号を除去 — EQ が変化させた成分だけが聞こえます。',
   'dsp.eqPreset.imported': '{count} 個のフィルターを読み込みました。',
   'dsp.eqPreset.importSkipped':
     '{count} 個のフィルターを読み込み、{skipped} 個をスキップしました。',
@@ -205,20 +236,16 @@ const dsp = {
   'dsp.exciter.band.mid': '中域',
   'dsp.exciter.band.high': '高域',
   'dsp.exciter.texture': '質感',
-  'dsp.exciter.threshold': 'しきい値',
-  'dsp.exciter.dynamic': 'ダイナミック',
   'dsp.exciter.organic': 'オーガニック',
   'dsp.exciter.organicHint':
-    '測定は正常なのに薄く聞こえる中域に厚みを。音楽に追従しながら揺らぐ偶数次倍音で、止まらずに呼吸します。',
+    '選んだ帯域に滑らかな偶数次倍音の厚みを加えます。クリーンで金属的な音やチタン製ドライバーを、細部を失わず暖かく有機的に聴かせるのに最適です。',
   'dsp.exciter.organicAmount': '厚み',
   'dsp.exciter.organicFocus': 'フォーカス',
   'dsp.exciter.organicRange': '範囲',
-  'dsp.exciter.align': '整列',
+  'dsp.exciter.align': 'タイミング',
   'dsp.exciter.alignHint':
-    'BBE と同じく、低域を高域に対して遅らせます。何も足さず、届くタイミングだけを変えます。',
-  'dsp.exciter.alignAmount': '深さ',
-  'dsp.exciter.alignLow': '低域の分割',
-  'dsp.exciter.alignHigh': '高域の分割',
+    '高域を先行させ、中低域を穏やかに遅らせて、明瞭なアタックと丸いパンチを作ります。倍音は加えません。',
+  'dsp.exciter.alignAmount': '量',
   'dsp.exciter.isolate': 'アイソレート',
   'dsp.exciter.isolateHint': 'この段が加えている倍音だけを聴きます。',
   'dsp.exciter.isolateOn': 'ドライ信号をオフ — 加えた分だけが聞こえています。',
@@ -242,6 +269,51 @@ const dsp = {
   'dsp.maximizer.ceiling': '上限',
   'dsp.maximizer.lookAhead': '先読み',
   'dsp.maximizer.release': 'リリース',
+
+  'dsp.master.title': 'マスター',
+  'dsp.master.description':
+    'すべてのプロセッサーの後に置く透明な最終出力コントロールです。EQ、エキサイターなど前段への入力レベルは変えません。',
+  'dsp.master.outputTrim': '出力ゲイン',
+  'dsp.master.autoHeadroom': '自動ヘッドルーム',
+  'dsp.master.autoHeadroomHint':
+    '選択したステレオリンクのトゥルーピーク上限に近づくピークだけを滑らかに下げます。',
+  'dsp.master.ceiling': '上限',
+  'dsp.master.release': 'リリース',
+  'dsp.master.loudnessMaximize': 'LUFS 最大化',
+  'dsp.master.loudnessMaximizeHint':
+    '曲全体の測定値から {gain} dB を加え、最終トゥルーピークを上限以下に保ちます。ゲインは一定で、ピークのみを制御します。',
+  'dsp.master.loudnessTarget': 'ラウドネス目標',
+  'dsp.master.meter': '最終出力',
+  'dsp.master.safetyHint':
+    '{factor}×トゥルーピーク検出 · 上限{ceiling} dBTP · {knee} dBソフトニー · ステレオリンク。',
+  'dsp.master.manualHint':
+    '手動出力：ピーク低減なし。0 dBFSを超えるレベルはクリップします。',
+  'dsp.master.truePeak': 'TP入力',
+  'dsp.master.gainReduction': 'ゲインリダクション',
+  'dsp.master.devSafety': 'セーフティA/B',
+  'dsp.master.devSafetyHint':
+    '開発環境のみ：最終保護をすべてバイパスし、変化をそのまま確認できます。',
+  'dsp.master.devSafetySpec':
+    '+10 dBTP超の緊急保護 · 2 ms先読み · 復帰しない補正 · 3 Hz DC保護 · 無効サンプル修復',
+  'dsp.master.dcCorrection': 'DCオフセット',
+  'dsp.master.faults': '障害',
+  'dsp.master.graph.spectrum': '最終スペクトラム',
+  'dsp.master.graph.trim': '出力ゲイン',
+  'dsp.master.graph.applied': '適用ゲイン',
+  'dsp.master.graph.trimLine': 'ゲイン {gain} dB',
+  'dsp.master.graph.appliedLine': '適用 {gain} dB',
+  'dsp.master.graph.dcGuard': 'DC保護',
+  'dsp.master.graph.peakWarning': '警告 · 出力{peak} dBTP、上限超過',
+  'dsp.master.graph.peakFixed': 'ピーク制御 · {gain} dBゲインリダクション',
+  'dsp.master.graph.peakSafe': 'トゥルーピークは上限内',
+  'dsp.master.graph.dcFixed': 'DCオフセット除去 · {amount}',
+  'dsp.master.graph.dcClean': 'DCオフセット正常',
+  'dsp.master.graph.faultFixed': '無効または障害サンプルを{count}件修復',
+  'dsp.master.graph.faultClean': 'サンプル正常',
+  'dsp.master.graph.safetyActive': '保護機能有効',
+  'dsp.master.graph.safetyBypassed': '警告 · 保護機能バイパス',
+  'dsp.master.graph.loudnessActive':
+    'LUFS 最大化 · {target} LUFS へ +{gain} dB',
 
   'tabs.dsp': 'DSP',
 };

@@ -546,6 +546,9 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.errorParse':
     'Não foi possível interpretar o arquivo de letra ou karaokê selecionado.',
   'karaoke.maker.downloadFailed': 'Falha ao baixar o modelo Whisper',
+  'karaoke.maker.pitchDownloadFailed': 'Falha ao baixar o modelo de afinação',
+  'karaoke.maker.pitchDownloadError':
+    'O FluidEQ não conseguiu baixar o modelo de melodia de maior precisão. A detecção continuou com o modelo offline incluído. Verifique a conexão ou o firewall e tente novamente.',
   'karaoke.maker.localAnalysisFailed': 'Falha na análise local',
   'karaoke.maker.whisperDownloadError':
     'O FluidEQ não conseguiu baixar o modelo do Hugging Face. Verifique a conexão ou o firewall e tente novamente.',

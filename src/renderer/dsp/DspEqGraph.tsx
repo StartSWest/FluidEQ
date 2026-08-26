@@ -392,7 +392,7 @@ const DspEqGraph = ({
        * bottom octaves have fewer bins than columns and repeat, which is
        * honest — the resolution genuinely is not there.
        */
-      const live = readDspAnalyser();
+      const live = readDspAnalyser('eq');
       if (live) {
         if (binsRef.current.length !== live.frequencyBinCount) {
           binsRef.current = new Float32Array(live.frequencyBinCount);
@@ -1040,7 +1040,7 @@ const DspEqGraph = ({
     function tick() {
       frame = 0;
       paint();
-      if (readDspAnalyser()) {
+      if (readDspAnalyser('eq')) {
         schedule();
       }
     }

@@ -25,7 +25,7 @@ interface IDspSideTabsProps {
  *
  * The lamp is the processor's own enabled state, not the selection. Reading
  * "which of these are doing something" has to be possible without visiting
- * each one, or the rail is just four words.
+ * each one, or the rail is just a list of names.
  */
 const DspSideTabs = ({ active, onSelect, enabled }: IDspSideTabsProps) => {
   const { t } = useTranslation();

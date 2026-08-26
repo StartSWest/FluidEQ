@@ -8,265 +8,100 @@ import {
   IOversamplerState,
   createOversampler,
   downsample,
+  oversampleFactorForSampleRate,
   upsample,
 } from './oversample';
+import {
+  ANALOG_DIODE_MAX_CHARACTER,
+  IExciterTransientState,
+  analogDiodeExcitedSample,
+  createExciterTransientState,
+  exciterTransientSample,
+  limitExciterCurrent,
+  resetExciterTransientState,
+} from './analogDiode';
 
 /**
- * Density in the midrange, which is the one thing an equaliser cannot give you.
+ * Material voicing for a clean, metallic presentation.
  *
- * THE PROBLEM THIS EXISTS FOR. A stiff metal driver — titanium, beryllium,
- * aluminium — is fast and detailed and reads as "metallic": plenty of top,
- * plenty of bottom, and a middle that sounds thin however you set the curve.
- * Reaching for an EQ makes it worse, and the reason is not taste. The middle is
- * not too QUIET, it is too EMPTY: there is not enough correlated material in
- * roughly 300 Hz - 3 kHz for the ear to read as body. A filter can only scale
- * what is already there, so boosting thin mids produces loud thin mids, which
- * is heard as honk. `saturate.ts` states the same law from the other side: no
- * arrangement of biquads invents a frequency that was not in the input.
- *
- * So this generates the material instead, and it does it three ways at once.
- * Any one of them alone is a saturator, and saturators are exactly what this
- * was asked not to be.
- *
- *  1. EVEN harmonics, from the mids. The second harmonic of 400 Hz lands at
- *     800 Hz — energy an octave up, locked to the fundamental, which is what
- *     "body" physically is. Asymmetry is what produces even orders; a symmetric
- *     curve gives odd ones only, and odd reads as edge. That is the whole
- *     difference between this and the exciter's shaper, which is symmetric on
- *     purpose because it works on the top octaves.
- *
- *  2. An amount that FOLLOWS the programme, so it breathes with the music
- *     rather than sitting on it. Real valve and transformer stages saturate
- *     harder when driven harder; a fixed amount is the giveaway that something
- *     is a plug-in.
- *
- *  3. DRIFT — a slow, arrhythmic wander on the drive, independent per channel.
- *     This is the ingredient nobody exposes and the reason the other two still
- *     sound synthetic without it. A constant non-linearity adds a constant ring
- *     to every sustained note; ears find constants and stop hearing them as
- *     part of the music. Wandering keeps it alive, and per-channel wandering
- *     decorrelates the two sides slightly, which is heard as space rather than
- *     as width.
- *
- * NOT a loudness effect and not a substitute for the driver being better. What
- * it produces is plausible, not true — the same honest caveat the exciter
- * carries.
+ * Its even-dominant body makes a titanium-style driver feel warmer and more
+ * cellulose-like without removing the original detail. It is not a second
+ * High exciter, a broadband saturator, or a random LFO.
  */
-
-/**
- * How far the drift moves the drive, as a fraction of it.
- *
- * 0.22 was chosen against the failure at each end and was still far too much.
- * Combined with the programme follower it gave the shaper drive a three and a
- * half to one swing, and a drive moving that far is heard as the effect
- * stuttering however smoothly the number itself is computed — the same
- * mistake, and the same report, as the transient envelope the exciter bands
- * used to carry. Smooth is not the same as gentle.
- *
- * 0.07 is a wander rather than a wobble: enough that no two seconds of a
- * sustained note are shaped identically, which is the whole purpose, and not
- * enough to be heard as movement in its own right.
- */
-const DRIFT_DEPTH = 0.07;
-
-/**
- * Roughly how often the drift picks somewhere new to head, in Hz.
- *
- * Deliberately not a rate and deliberately not periodic. An LFO at any fixed
- * speed becomes a rhythm, and once the ear has the rhythm the effect is a
- * tremolo it is waiting for. Each target is held for a randomised span around
- * this figure and approached smoothly, so there is nothing to lock onto — the
- * same conclusion the analogue-drift literature reaches by the same route.
- */
-const DRIFT_HZ = 0.28;
-
-/** Attack of the follower that makes the amount track the music, ms. */
-const ENV_ATTACK_MS = 12;
-
-/**
- * Release of that follower, ms.
- *
- * Long, and that is the point. A fast release makes the harmonics pump in and
- * out between notes, which is a compressor artefact wearing a different name.
- * 260ms is slower than a note and faster than a phrase, so it follows how hard
- * the passage is playing rather than each hit inside it.
- */
-const ENV_RELEASE_MS = 260;
-
-/**
- * What the follower is allowed to scale the drive between.
- *
- * Never to zero: a stage that vanishes in quiet passages announces itself every
- * time the music drops, and the whole aim is to be noticed only by absence.
- *
- * 0.85 rather than the 0.45 this started at. Tracking the programme across a
- * range of better than two to one is not subtlety, it is an effect switching
- * itself in and out, and combined with the drift it was most of why this
- * stage was reported as granular. What is wanted is that the stage LEANS with
- * the music, not that it follows it.
- */
-const ENV_FLOOR = 0.85;
-
-/** How fast the energy-matching gain follows. @see organicBlock */
-const MATCH_SMOOTHING = 0.08;
+const MAX_OVERSAMPLE = 4;
+const PARAMETER_SMOOTHING_MS = 18;
+const ORGANIC_LEVEL = 0.65;
+/** Keep enough carrier to bind the return to the note, without duplicating it. */
+const ORGANIC_FOUNDATION_MIX = 0.8;
+export const ORGANIC_FOUNDATION_GAIN = ORGANIC_LEVEL * ORGANIC_FOUNDATION_MIX;
+const ORGANIC_HARMONIC_GAIN = 2.4;
+const ORGANIC_TRANSIENT_HARMONIC_LIFT = 0.35;
 
 export interface IOrganicState {
-  /** The programme follower, per channel. */
-  envelope: number;
-  /** Where the wander is now, and where it is heading. */
-  drift: number;
-  driftFrom: number;
-  driftTo: number;
-  /** Samples until a new target is chosen, and the span of the current leg. */
-  driftLeft: number;
-  driftSpan: number;
   oversampler: IOversamplerState;
-  /** Doubled-rate scratch, sized on first use and reused after. */
-  doubled: Float32Array;
-  /**
-   * The doubled-rate signal before shaping, so the difference can be taken
-   * where the two are still aligned.
-   *
-   * @see organicBlock — subtracting across the resampler is a comb filter.
-   */
-  doubledDry: Float32Array;
-  /** Last block's energy-matching gain, so the next can ramp from it. */
-  matchGain: number;
-  /** Last block's drive, so this one can reach its own smoothly. */
-  lastDrive: number;
-  /** The per-sample drive curve, one entry per base-rate sample. */
-  driveCurve: Float32Array;
+  wide: Float32Array;
+  wideDry: Float32Array;
+  drive: number;
+  asymmetry: number;
+  transient: IExciterTransientState;
 }
 
 export const createOrganicState = (blockSize: number): IOrganicState => ({
-  envelope: 0,
-  drift: 0,
-  driftFrom: 0,
-  driftTo: 0,
-  driftLeft: 0,
-  driftSpan: 1,
-  oversampler: createOversampler(),
-  doubled: new Float32Array(blockSize * 2),
-  doubledDry: new Float32Array(blockSize * 2),
-  matchGain: 0,
-  lastDrive: 0,
-  driveCurve: new Float32Array(blockSize),
+  oversampler: createOversampler(blockSize),
+  wide: new Float32Array(blockSize * MAX_OVERSAMPLE),
+  wideDry: new Float32Array(blockSize * MAX_OVERSAMPLE),
+  drive: 0,
+  asymmetry: 0,
+  transient: createExciterTransientState(),
 });
 
+/** The amount dial reaches a broad useful range without becoming fuzz. */
+export const organicDrive = (amount: number): number => 0.8 + amount * 2.2;
+
+/** Organic stays even-dominant; the upper travel only adds a little density. */
+export const organicAsymmetry = (amount: number): number =>
+  0.78 + amount * 0.17;
+
 /**
- * The transfer curve: asymmetric, so the harmonics it adds are mostly even.
+ * The same soft-diode current used by the approved Low/Mid/High bands.
  *
- * The same shape `saturate.ts` uses for fuzz, with the asymmetry opened up.
- * Fuzz sits at a fixed 0.18 because it runs broadband and has to stay out of
- * the way; this runs on one band and is asked for warmth specifically, so it
- * pushes the second harmonic much harder relative to the third.
- *
- * Subtracting the curve's value at the offset is what keeps DC out. A
- * non-linearity handed silence must return silence, and an offset curve does
- * not do that on its own — it returns the offset, which is a battery in the
- * signal path.
+ * Organic keeps the curve strongly even-dominant for body. Its focused,
+ * phase-shaped fundamental supplies the continuous foundation and its curvature
+ * supplies density. Its transient detector only leans on that curvature; there
+ * is no hard gate, random drift, block-rate gain, or hidden carrier.
  */
 export const organicSample = (
   sample: number,
   drive: number,
   asymmetry: number,
-): number =>
-  (Math.tanh(sample * drive + asymmetry) - Math.tanh(asymmetry)) / drive;
-
-/**
- * The dial's position, mapped to drive and asymmetry together.
- *
- * One knob moves both because they are not independently useful: asymmetry
- * with no drive is a curve nothing reaches the bend of, and drive with no
- * asymmetry is the exciter. What the user is choosing is how much body, and
- * body is the pair.
- *
- * Measured on a 400 Hz sine at 0.5 — a real midrange fundamental, since that
- * is what this stage is for — as a percentage of the fundamental:
- *
- *     amount  drive  asym    2nd     3rd     4th    even:odd
- *      0.15    0.52  0.27   3.31%   0.45%   0.04%    7.3 : 1
- *      0.25    0.69  0.31   5.02%   0.73%   0.09%    6.9 : 1
- *      0.50    1.26  0.43  10.98%   1.77%   0.54%    6.4 : 1
- *      0.75    1.95  0.54  17.77%   3.08%   1.78%    6.3 : 1
- *      1.00    2.75  0.65  23.50%   4.61%   3.94%    5.6 : 1
- *
- * The RATIO is the number that matters, and it is why this is a different
- * stage rather than fuzz with a bigger number. Fuzz at its own ceiling manages
- * 4.05% second against 1.80% third — 2.3 to 1. This holds better than 5.6 to 1
- * everywhere on its travel, so it goes on getting thicker where fuzz would
- * have started getting gritty. That is the entire design goal expressed as a
- * measurement.
- *
- * The travel is meant to be used end to end: a quarter turn is subtle, half is
- * the sweet spot, and the top is deliberately heavy rather than reserved.
- *
- * A symmetric curve measured the same way returns 0.01% second and 6.69%
- * third. That is the positive control for this whole table — without it, a
- * bug that produced no even harmonics at all would look exactly like a stage
- * that was working.
- */
-export const organicDrive = (amount: number): number =>
-  0.35 + amount ** 1.4 * 2.4;
-
-export const organicAsymmetry = (amount: number): number => 0.2 + amount * 0.45;
-
-/**
- * Advance the wander by one block and return the multiplier for it.
- *
- * A sample-and-hold random walk rather than an oscillator: pick a target, take
- * a smooth ride to it over a randomised span, pick another. `smoothstep` on the
- * way, so there is no corner at either end for the ear to hear as a click.
- */
-const advanceDrift = (
-  state: IOrganicState,
-  frames: number,
-  sampleRate: number,
+  harmonicGain = 1,
 ): number => {
-  if (state.driftLeft <= 0) {
-    // Half to one and a half times the nominal span, so successive legs are
-    // never the same length and the wander never becomes a period.
-    const nominal = sampleRate / DRIFT_HZ;
-    state.driftSpan = Math.max(1, nominal * (0.5 + Math.random()));
-    state.driftLeft = state.driftSpan;
-    state.driftFrom = state.drift;
-    state.driftTo = Math.random() * 2 - 1;
-  }
-  state.driftLeft -= frames;
-  const done = 1 - Math.max(0, state.driftLeft) / state.driftSpan;
-  const eased = done * done * (3 - 2 * done);
-  state.drift = state.driftFrom + (state.driftTo - state.driftFrom) * eased;
-  return 1 + state.drift * DRIFT_DEPTH;
+  const character = (1 - asymmetry) * ANALOG_DIODE_MAX_CHARACTER;
+  const foundation = sample * ORGANIC_LEVEL;
+  const complete = analogDiodeExcitedSample(
+    sample,
+    drive,
+    character,
+    ORGANIC_LEVEL,
+    harmonicGain * ORGANIC_HARMONIC_GAIN,
+  );
+  return limitExciterCurrent(
+    foundation * ORGANIC_FOUNDATION_MIX + (complete - foundation),
+  );
 };
 
+export const resetOrganicTransient = (state: IOrganicState): void =>
+  resetExciterTransientState(state.transient);
+
 /**
- * Replace a block with the HARMONICS it generates, at twice the rate.
+ * Replace a band with only its generated harmonic residue.
  *
- * The buffer comes back holding what this stage ADDED, not the shaped signal —
- * so the caller adds it on top of the dry rather than differencing against it.
- * That is not a convenience, it is the only correct place for the subtraction:
- * the resampler is a 63-tap linear-phase FIR run twice in each direction, so a
- * shaped block comes back tens of samples later than the block it was made
- * from. Subtracting one from the other outside this function is subtracting a
- * DELAYED copy of the fundamental from the original, which is a comb filter —
- * measured, it took a 400 Hz tone from 0.354 RMS to 0.090 and read as the
- * effect gutting the sound. Taken here, before the downsampling, both signals
- * are sample-aligned and what is left is harmonics.
- *
- * The energy is matched first, for the reason `matchLevel` in `exciterStage`
- * gives at length: these curves are normalised for small signals, so a real
- * level comes back quieter, and an unmatched difference is mostly an inverted
- * fundamental with the harmonics riding on it.
- *
- * The oversampling is not a refinement here any more than it is for fuzz. A
- * non-linearity at the session rate folds everything above Nyquist back down as
- * content that does not move with the music, and inharmonic rubbish in the
- * midrange is far more audible than the same rubbish up where the exciter
- * works.
- *
- * Returns the drive it actually used, which is what the display draws — the
- * stage's whole claim is that the number moves, so a meter reading a setting
- * rather than the truth would be worse than no meter.
+ * User controls and the bounded transient emphasis both move per sample. There
+ * is no random drift, waveform replacement, block energy match, or block-rate
+ * gain. Processing targets a 176.4/192 kHz ceiling: 4x at 44.1/48, 2x at
+ * 88.2/96, and no redundant interpolation once the session itself is higher.
+ * The caller restores the known linear foundation after downsampling, so that
+ * carrier stays time-aligned with dry instead of comb-filtering the final mix.
  */
 export const organicBlock = (
   state: IOrganicState,
@@ -274,99 +109,46 @@ export const organicBlock = (
   amount: number,
   sampleRate: number,
 ): number => {
-  const frames = target.length;
-  const doubled = frames * 2;
-  if (state.doubled.length !== doubled) {
-    state.doubled = new Float32Array(doubled);
-    state.doubledDry = new Float32Array(doubled);
-    state.driveCurve = new Float32Array(frames);
+  const oversample = oversampleFactorForSampleRate(sampleRate);
+  const wideLength = target.length * oversample;
+  const maximumLength = target.length * MAX_OVERSAMPLE;
+  if (state.wide.length !== maximumLength) {
+    state.wide = new Float32Array(maximumLength);
+    state.wideDry = new Float32Array(maximumLength);
   }
 
-  /**
-   * The follower runs PER SAMPLE, and the drive it produces is a curve.
-   *
-   * It used to chase the peak of the whole block, which meant it could not
-   * resolve anything shorter than 2.7 ms however its attack was configured —
-   * and then that one number was applied across every sample in the block.
-   * Ramping between blocks made the joins smooth and left the resolution
-   * exactly where it was. This is the same defect the exciter bands carried
-   * and the same fix: measure it where it is used.
-   */
-  const attack = Math.exp(-1 / ((ENV_ATTACK_MS / 1000) * sampleRate));
-  const release = Math.exp(-1 / ((ENV_RELEASE_MS / 1000) * sampleRate));
-  const nominal = organicDrive(amount);
-  const wander = advanceDrift(state, frames, sampleRate);
-  let { envelope } = state;
+  upsample(state.oversampler, target, state.wideDry, oversample);
 
-  for (let i = 0; i < frames; i += 1) {
-    const level = Math.abs(target[i]);
-    envelope =
-      level + (envelope - level) * (level > envelope ? attack : release);
-    const tracked = ENV_FLOOR + (1 - ENV_FLOOR) * Math.sqrt(envelope);
-    state.driveCurve[i] = nominal * tracked * wander;
-  }
-  state.envelope = envelope;
-  const asymmetry = organicAsymmetry(amount);
+  const wideRate = sampleRate * oversample;
+  const smooth =
+    1 - Math.exp(-1 / ((PARAMETER_SMOOTHING_MS / 1_000) * wideRate));
+  const targetDrive = organicDrive(amount);
+  const targetAsymmetry = organicAsymmetry(amount);
 
-  // `organicSample` re-derives `tanh(asymmetry)` on every call and both are
-  // constant for the block. This loop runs at twice the sample rate inside an
-  // audio callback, so the constant is hoisted; the exported function keeps
-  // the readable form for tests and for anyone reading the curve.
-  const asymmetryOutput = Math.tanh(asymmetry);
-  upsample(state.oversampler, target, state.doubledDry, 2);
-
-  /**
-   * The drive RAMPS across the block rather than being held across it.
-   *
-   * Both things that move it — the programme follower and the drift — are
-   * smooth by construction and were then sampled once per block and held, which
-   * turns a continuous curve into a staircase with a step every 2.7 ms. That is
-   * what makes an effect sound stepped and digital instead of fluid, and it is
-   * the opposite of what the drift was added to achieve: a wander applied in
-   * 375 discrete jumps a second is not a wander.
-   */
-
-  let shapedEnergy = 0;
-  let dryEnergy = 0;
-  for (let i = 0; i < doubled; i += 1) {
-    const dry = state.doubledDry[i];
-    // Two oversampled samples per base-rate one, so the curve is read at
-    // half the index. It is already continuous; nothing needs interpolating.
-    const now = state.driveCurve[Math.floor(i / 2)];
-    const shaped = (Math.tanh(dry * now + asymmetry) - asymmetryOutput) / now;
-    state.doubled[i] = shaped;
-    shapedEnergy += shaped * shaped;
-    dryEnergy += dry * dry;
+  if (state.drive === 0) {
+    state.drive = targetDrive;
+    state.asymmetry = targetAsymmetry;
   }
 
-  /**
-   * Energy-matched, then differenced, both while the two are still aligned —
-   * and the gain is RAMPED across the block rather than stepped onto it.
-   *
-   * A gain recomputed per block and applied flat is an amplitude modulator
-   * running at the block rate: 375 Hz at 48 kHz and 128 frames, with sidebands
-   * around every component in the signal. Measured with the step in place, on
-   * a single sine, only 31% of the output's energy landed on actual harmonics
-   * — the rest was the buffer boundary, and it is exactly what "it is just
-   * noise" sounds like.
-   */
-  const wanted =
-    shapedEnergy > 1e-20 && dryEnergy > 1e-20
-      ? Math.sqrt(dryEnergy / shapedEnergy)
-      : 1;
-  const from = state.matchGain || wanted;
-  const to = from + (wanted - from) * MATCH_SMOOTHING;
-  state.matchGain = to;
-  const step = (to - from) / doubled;
-  for (let i = 0; i < doubled; i += 1) {
-    state.doubled[i] =
-      state.doubled[i] * (from + step * i) - state.doubledDry[i];
+  for (let i = 0; i < wideLength; i += 1) {
+    state.drive += (targetDrive - state.drive) * smooth;
+    state.asymmetry += (targetAsymmetry - state.asymmetry) * smooth;
+    const transient = exciterTransientSample(
+      state.transient,
+      state.wideDry[i],
+      wideRate,
+    );
+    const dry = state.wideDry[i];
+    state.wide[i] =
+      organicSample(
+        dry,
+        state.drive,
+        state.asymmetry,
+        1 + transient * ORGANIC_TRANSIENT_HARMONIC_LIFT,
+      ) -
+      dry * ORGANIC_FOUNDATION_GAIN;
   }
 
-  downsample(state.oversampler, state.doubled, target, 2);
-
-  // The middle of the curve, which is only for the display. The card draws
-  // how much of what it can do the stage is doing, and one figure a frame is
-  // as much as an eye can read.
-  return state.driveCurve[Math.floor(frames / 2)];
+  downsample(state.oversampler, state.wide, target, oversample);
+  return state.drive;
 };

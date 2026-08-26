@@ -7,9 +7,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import {
   DSP_DEFAULTS,
   EQ_BAND_COUNT,
+  IEqBandSettings,
+  IEqSettings,
   TTrimMode,
   TEqEngine,
   TEqModel,
+  TEqPhase,
   TEqStereo,
 } from './chain';
 
@@ -18,8 +21,9 @@ import {
  *
  * A preset that moved fifteen gains and left the character, the topology and
  * the protective filters wherever the last one put them was not a preset — it
- * was a curve wearing somebody else's settings. Anything omitted here is
- * deliberately left alone.
+ * was a curve wearing somebody else's settings. Optional authoring stays terse,
+ * but `eqPresetSetup` resolves every omitted field to a deliberate baseline;
+ * nothing is inherited from the previously selected profile.
  */
 /**
  * The sections the picker files presets under, in the order it shows them.
@@ -45,11 +49,13 @@ export interface IEqPresetSetup {
   model?: TEqModel;
   modelAmount?: number;
   engine?: TEqEngine;
+  phase?: TEqPhase;
   oversample?: number;
   stereo?: TEqStereo;
   subsonicHz?: number;
   fuzzAmount?: number;
   monoBelowHz?: number;
+  preampDb?: number;
   /**
    * Which input regulator a preset asks for. @see TTrimMode
    *
@@ -107,11 +113,13 @@ const DEFAULT_SETUP: Required<IEqPresetSetup> = {
   model: DSP_DEFAULTS.eq.model,
   modelAmount: DSP_DEFAULTS.eq.modelAmount,
   engine: DSP_DEFAULTS.eq.engine,
+  phase: DSP_DEFAULTS.eq.phase,
   oversample: DSP_DEFAULTS.eq.oversample,
   stereo: DSP_DEFAULTS.eq.stereo,
   subsonicHz: DSP_DEFAULTS.eq.subsonicHz,
   fuzzAmount: DSP_DEFAULTS.eq.fuzzAmount,
   monoBelowHz: DSP_DEFAULTS.eq.monoBelowHz,
+  preampDb: DSP_DEFAULTS.eq.preampDb,
   // NOT from `DSP_DEFAULTS`, and deliberately so: what a fresh install runs
   // and what a preset asks for are two different questions. A preset knows
   // it boosts and asks for the regulator that answers that.
@@ -890,3 +898,54 @@ export const isCompleteEqPreset = (preset: IEqPreset): boolean =>
   // bands static while the gains that need them were applied in full, which is
   // a de-esser that quietly became a dull EQ.
   (preset.dynamic === undefined || preset.dynamic.length === EQ_BAND_COUNT);
+
+/**
+ * Materialise one factory preset into the complete EQ state it owns.
+ *
+ * Factory profiles are voiced on the canonical fifteen-band rack. Fitting the
+ * gains onto whatever rack happened to be open preserved that rack's types,
+ * Qs, enabled flags and dynamic state, so the same preset could sound different
+ * depending on the edit made immediately before it. A preset is deterministic:
+ * every audible value is assigned here, while only the processor's power state
+ * remains the user's decision.
+ */
+export const eqSettingsForPreset = (
+  current: IEqSettings,
+  preset: IEqPreset,
+): IEqSettings => {
+  if (!isCompleteEqPreset(preset)) {
+    return current;
+  }
+
+  if (preset.id === EQ_DEFAULT_PRESET_ID) {
+    return {
+      ...DSP_DEFAULTS.eq,
+      enabled: current.enabled,
+      isolate: false,
+      trimMode: 'off',
+      presetId: preset.id,
+      bands: DSP_DEFAULTS.eq.bands.map((band) => ({ ...band })),
+    };
+  }
+
+  const setup = eqPresetSetup(preset);
+  const bands: IEqBandSettings[] = DSP_DEFAULTS.eq.bands.map((band, index) => {
+    const threshold = preset.dynamic?.[index] ?? null;
+    return {
+      ...band,
+      gainDb: preset.gains[index],
+      dynamic: threshold !== null,
+      thresholdDb: threshold ?? band.thresholdDb,
+    };
+  });
+
+  return {
+    ...DSP_DEFAULTS.eq,
+    ...setup,
+    enabled: current.enabled,
+    isolate: false,
+    presetId: preset.id,
+    bands,
+    sourceBands: bands.map((band) => ({ ...band })),
+  };
+};

@@ -4,11 +4,14 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   DSP_DEFAULTS,
   IBandSettings,
   IDspSettings,
+  MAXIMIZER_MAX_CEILING_DB,
+  MAXIMIZER_MIN_LOOK_AHEAD_MS,
+  MAXIMIZER_MIN_RELEASE_MS,
   clampDspSettings,
 } from '../../common/dsp/chain';
 import { DSP_PRESETS } from '../../common/dsp/presets';
@@ -17,12 +20,23 @@ import { Dial, ProcessorCard } from './DspControls';
 import DspEqBar from './DspEqBar';
 import DspEqCard from './DspEqCard';
 import DspExciterCard from './DspExciterCard';
+import DspMasterCard from './DspMasterCard';
+import DspNormalizerCard from './DspNormalizerCard';
 import { withInputTrim } from './rack';
 import DspSideTabs from './DspSideTabs';
 import { TDspSection } from './sections';
 import { useTranslation } from '../utils/I18nContext';
-import { TDspEngineState, useDspSampleRate } from './store';
+import Switch from '../widgets/Switch';
+import {
+  TDspEngineState,
+  setDspOutputSafetyEnabled,
+  useDspOutputSafetyEnabled,
+  useDspOutputSafetyMeter,
+  useDspSampleRate,
+  useDspInputAnalysis,
+} from './store';
 import '../styles/Dsp.scss';
+import { masterLoudnessGainDb } from './inputNormalizer';
 
 interface IDspPanelProps {
   settings: IDspSettings;
@@ -56,7 +70,7 @@ const DspPanel = ({
   engineState,
 }: IDspPanelProps) => {
   const { t } = useTranslation();
-  const { eq, exciter, compressor, maximizer } = settings;
+  const { normalizer, eq, exciter, compressor, maximizer, master } = settings;
   /**
    * The rate the filters will actually run at, from the engine.
    *
@@ -66,17 +80,53 @@ const DspPanel = ({
    * would hide the one error the display is for.
    */
   const sampleRate = useDspSampleRate();
+  const outputSafetyEnabled = useDspOutputSafetyEnabled();
+  const outputSafetyMeter = useDspOutputSafetyMeter();
+  const inputAnalysis = useDspInputAnalysis();
+  const loudnessGainDb = masterLoudnessGainDb(
+    master,
+    normalizer,
+    inputAnalysis.analysis,
+  );
   // Which processor has the page. Local state: it is where the user is
   // looking, not part of the chain, and nothing outside this panel needs it.
-  const [section, setSection] = useState<TDspSection>('eq');
+  const [section, setSection] = useState<TDspSection>('normalizer');
 
   /**
-   * Every change to the chain, with the input regulated for what it now is.
+   * Isolate is an audition state owned by the page that exposes its switch.
    *
-   * Here rather than on the EQ's own handlers, which is where it started: the
-   * exciter's mix and a compressor's makeup move the chain's peak just as a
-   * band drag does, and a trim that only watched the bands would be correct
-   * until somebody opened another tab.
+   * Keep the latest external-store snapshot for the panel-unmount cleanup. A
+   * user can leave the whole DSP workspace without first changing the local
+   * section, and ordinary playback must be restored in that path too.
+   */
+  const latest = useRef({ settings, onChange, onCommit });
+  latest.current = { settings, onChange, onCommit };
+  useEffect(
+    () => () => {
+      const {
+        settings: last,
+        onChange: change,
+        onCommit: commit,
+      } = latest.current;
+      if (!last.eq.isolate && !last.exciter.isolate) {
+        return;
+      }
+      change({
+        ...last,
+        eq: { ...last.eq, isolate: false },
+        exciter: { ...last.exciter, isolate: false },
+      });
+      commit();
+    },
+    [],
+  );
+
+  /**
+   * Every change to the chain passes the same trust and EQ-headroom boundary.
+   *
+   * `withInputTrim` intentionally regulates only the EQ curve. Calling it from
+   * the shared patch path keeps preset and import changes from bypassing that
+   * calculation without making another processor borrow the EQ's preamp.
    */
   const patch = (next: Partial<IDspSettings>) =>
     onChange(
@@ -93,6 +143,25 @@ const DspPanel = ({
       },
     });
 
+  /** Clear the monitor before its control disappears behind another page. */
+  const selectSection = (next: TDspSection) => {
+    if (next === section) {
+      return;
+    }
+    let clearedIsolate = false;
+    if (section === 'eq' && eq.isolate) {
+      patch({ eq: { ...eq, isolate: false } });
+      clearedIsolate = true;
+    } else if (section === 'exciter' && exciter.isolate) {
+      patch({ exciter: { ...exciter, isolate: false } });
+      clearedIsolate = true;
+    }
+    if (clearedIsolate) {
+      onCommit();
+    }
+    setSection(next);
+  };
+
   const bandLabels: TranslationKey[] = [
     'dsp.compressor.band.low',
     'dsp.compressor.band.mid',
@@ -103,7 +172,14 @@ const DspPanel = ({
     <div className="dsp-panel">
       <header className="dsp-header">
         <div className="dsp-header-line">
-          <h2 className="dsp-title">{t('dsp.title')}</h2>
+          <h2 className="dsp-title">
+            {t('dsp.title')}
+            {engineState === 'running' ? (
+              <span className="dsp-title-rate">
+                {(sampleRate / 1_000).toFixed(1).replace('.0', '')} kHz
+              </span>
+            ) : undefined}
+          </h2>
           <div className="dsp-presets">
             <span className="dsp-presets-label">{t('dsp.presets')}</span>
             {DSP_PRESETS.map((preset) => (
@@ -133,22 +209,65 @@ const DspPanel = ({
       <div className="dsp-body">
         <DspSideTabs
           active={section}
-          onSelect={setSection}
+          onSelect={selectSection}
           enabled={{
+            normalizer: normalizer.mode !== 'off',
             eq: eq.enabled,
             exciter: exciter.enabled,
             compressor: compressor.enabled,
             maximizer: maximizer.enabled,
+            master: master.enabled,
           }}
         />
 
         <div className="dsp-stage">
+          {section === 'normalizer' && (
+            <DspNormalizerCard
+              normalizer={normalizer}
+              analysisState={inputAnalysis}
+              onPatch={(next) => patch({ normalizer: next })}
+              onCommit={onCommit}
+            />
+          )}
+
           {section === 'eq' && (
             <ProcessorCard
               id="dsp-eq"
               titleKey="dsp.eq.title"
               isEnabled={eq.enabled}
-              onToggle={() => patch({ eq: { ...eq, enabled: !eq.enabled } })}
+              onToggle={() => {
+                patch({
+                  eq: { ...eq, enabled: !eq.enabled, isolate: false },
+                });
+                onCommit();
+              }}
+              beforePower={
+                <div
+                  className="dsp-monitor-isolate"
+                  title={
+                    eq.isolate ? t('dsp.eq.isolateOn') : t('dsp.eq.isolateHint')
+                  }
+                >
+                  <span
+                    className={`dsp-monitor-isolate-label${
+                      eq.isolate ? ' is-on' : ''
+                    }`}
+                    aria-hidden="true"
+                  >
+                    {t('dsp.eq.isolate')}
+                  </span>
+                  <Switch
+                    id="dsp-eq-isolate"
+                    isOn={eq.isolate}
+                    isDisabled={!eq.enabled}
+                    handleToggle={() => {
+                      patch({ eq: { ...eq, isolate: !eq.isolate } });
+                      onCommit();
+                    }}
+                    ariaLabel={t('dsp.eq.isolate')}
+                  />
+                </div>
+              }
               toolbar={
                 <DspEqBar
                   eq={eq}
@@ -324,8 +443,8 @@ const DspPanel = ({
                 value={maximizer.ceilingDb}
                 defaultValue={DSP_DEFAULTS.maximizer.ceilingDb}
                 min={-12}
-                max={0}
-                unit="dB"
+                max={MAXIMIZER_MAX_CEILING_DB}
+                unit="dBTP"
                 step={0.1}
                 isDisabled={!maximizer.enabled}
                 onCommit={onCommit}
@@ -337,7 +456,7 @@ const DspPanel = ({
                 labelKey="dsp.maximizer.lookAhead"
                 value={maximizer.lookAheadMs}
                 defaultValue={DSP_DEFAULTS.maximizer.lookAheadMs}
-                min={0}
+                min={MAXIMIZER_MIN_LOOK_AHEAD_MS}
                 max={20}
                 unit="ms"
                 step={0.1}
@@ -351,7 +470,7 @@ const DspPanel = ({
                 labelKey="dsp.maximizer.release"
                 value={maximizer.releaseMs}
                 defaultValue={DSP_DEFAULTS.maximizer.releaseMs}
-                min={5}
+                min={MAXIMIZER_MIN_RELEASE_MS}
                 max={1_000}
                 unit="ms"
                 step={5}
@@ -362,6 +481,20 @@ const DspPanel = ({
                 }
               />
             </ProcessorCard>
+          )}
+
+          {section === 'master' && (
+            <DspMasterCard
+              master={master}
+              meter={outputSafetyMeter}
+              safetyEnabled={outputSafetyEnabled}
+              loudnessGainDb={loudnessGainDb}
+              onSafetyToggle={() =>
+                setDspOutputSafetyEnabled(!outputSafetyEnabled)
+              }
+              onPatch={(next) => patch({ master: next })}
+              onCommit={onCommit}
+            />
           )}
         </div>
       </div>

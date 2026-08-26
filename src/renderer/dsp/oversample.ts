@@ -5,7 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 /**
- * Oversampling, at two times or four.
+ * Oversampling, at one, two, or four times.
  *
  * Four is built as two halvings rather than as one filter with a quarter-rate
  * cutoff, which is how it is normally done and is cheaper as well as simpler:
@@ -23,6 +23,28 @@ const TAPS = 63;
 
 /** Two halvings is the most any supported factor needs. */
 const STAGES = 2;
+
+export type TOversampleFactor = 1 | 2 | 4;
+
+/**
+ * Highest power-of-two factor that keeps nonlinear processing at or below
+ * 192 kHz. The session rate itself is never changed or truncated: a 192 kHz
+ * context already has the resolution that 48 kHz reaches at 4x, so it needs
+ * no additional interpolation.
+ *
+ * Calculating from the actual rate also handles uncommon device rates without
+ * a table whose gaps silently fall back to the wrong factor.
+ */
+export const oversampleFactorForSampleRate = (
+  sampleRate: number,
+): TOversampleFactor => {
+  const rate =
+    Number.isFinite(sampleRate) && sampleRate > 0 ? sampleRate : 48_000;
+  if (rate * 4 <= 192_000) {
+    return 4;
+  }
+  return rate * 2 <= 192_000 ? 2 : 1;
+};
 
 /**
  * A windowed-sinc low pass at a quarter of the doubled rate.
@@ -60,6 +82,9 @@ export interface IOversamplerState {
   /** One history per halving, per direction. */
   up: Float64Array[];
   down: Float64Array[];
+  /** Next write slot in each circular FIR history. */
+  upPosition: number[];
+  downPosition: number[];
   /** The intermediate buffer a 4x pass needs, at twice the block length. */
   middle: Float32Array;
 }
@@ -67,19 +92,31 @@ export interface IOversamplerState {
 export const createOversampler = (blockSize = 128): IOversamplerState => ({
   up: Array.from({ length: STAGES }, () => new Float64Array(TAPS)),
   down: Array.from({ length: STAGES }, () => new Float64Array(TAPS)),
+  upPosition: new Array(STAGES).fill(0),
+  downPosition: new Array(STAGES).fill(0),
   middle: new Float32Array(blockSize * 2),
 });
 
-/** One sample through a filter whose history is kept as a shift register. */
-const push = (history: Float64Array, sample: number): number => {
-  for (let i = TAPS - 1; i > 0; i -= 1) {
-    history[i] = history[i - 1];
-  }
-  history[0] = sample;
+/** One sample through the same FIR without shifting 63 values per sample. */
+const push = (
+  history: Float64Array,
+  positions: number[],
+  stage: number,
+  sample: number,
+): number => {
+  const newest = positions[stage];
+  history[newest] = sample;
   let sum = 0;
-  for (let i = 0; i < TAPS; i += 1) {
-    sum += history[i] * HALF_BAND[i];
+  let tap = 0;
+  for (let read = newest; read >= 0; read -= 1) {
+    sum += history[read] * HALF_BAND[tap];
+    tap += 1;
   }
+  for (let read = TAPS - 1; tap < TAPS; read -= 1) {
+    sum += history[read] * HALF_BAND[tap];
+    tap += 1;
+  }
+  positions[stage] = newest + 1 === TAPS ? 0 : newest + 1;
   return sum;
 };
 
@@ -91,13 +128,15 @@ const push = (history: Float64Array, sample: number): number => {
  */
 const upOnce = (
   history: Float64Array,
+  positions: number[],
+  stage: number,
   input: Float32Array,
   output: Float32Array,
   length: number,
 ): void => {
   for (let i = 0; i < length; i += 1) {
-    output[i * 2] = push(history, input[i]) * 2;
-    output[i * 2 + 1] = push(history, 0) * 2;
+    output[i * 2] = push(history, positions, stage, input[i]) * 2;
+    output[i * 2 + 1] = push(history, positions, stage, 0) * 2;
   }
 };
 
@@ -109,13 +148,15 @@ const upOnce = (
  */
 const downOnce = (
   history: Float64Array,
+  positions: number[],
+  stage: number,
   input: Float32Array,
   output: Float32Array,
   length: number,
 ): void => {
   for (let i = 0; i < length; i += 1) {
-    const kept = push(history, input[i * 2]);
-    push(history, input[i * 2 + 1]);
+    const kept = push(history, positions, stage, input[i * 2]);
+    push(history, positions, stage, input[i * 2 + 1]);
     output[i] = kept;
   }
 };
@@ -139,13 +180,17 @@ export const upsample = (
   factor: number,
 ): void => {
   const { length } = input;
+  if (factor !== 2 && factor !== 4) {
+    output.set(input.subarray(0, output.length));
+    return;
+  }
   if (factor === 2) {
-    upOnce(state.up[0], input, output, length);
+    upOnce(state.up[0], state.upPosition, 0, input, output, length);
     return;
   }
   ensureMiddle(state, length * 2);
-  upOnce(state.up[0], input, state.middle, length);
-  upOnce(state.up[1], state.middle, output, length * 2);
+  upOnce(state.up[0], state.upPosition, 0, input, state.middle, length);
+  upOnce(state.up[1], state.upPosition, 1, state.middle, output, length * 2);
 };
 
 /** `input` at N x factor becomes `output` at N. */
@@ -156,13 +201,24 @@ export const downsample = (
   factor: number,
 ): void => {
   const { length } = output;
+  if (factor !== 2 && factor !== 4) {
+    output.set(input.subarray(0, length));
+    return;
+  }
   if (factor === 2) {
-    downOnce(state.down[0], input, output, length);
+    downOnce(state.down[0], state.downPosition, 0, input, output, length);
     return;
   }
   ensureMiddle(state, length * 2);
   // Unwound in the reverse order to the way up, so each stage sees the rate it
   // was designed for.
-  downOnce(state.down[1], input, state.middle, length * 2);
-  downOnce(state.down[0], state.middle, output, length);
+  downOnce(
+    state.down[1],
+    state.downPosition,
+    1,
+    input,
+    state.middle,
+    length * 2,
+  );
+  downOnce(state.down[0], state.downPosition, 0, state.middle, output, length);
 };

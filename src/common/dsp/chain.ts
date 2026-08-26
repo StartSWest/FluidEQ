@@ -82,12 +82,12 @@ export interface IExciterBandSettings {
    */
   freqHz: number;
   range: number;
-  /** Shaper drive. 1 is nearly linear, 10 is obvious. */
+  /** Soft-diode drive. 1 is gentle; 3.5 is deliberately obvious. */
   drive: number;
   /** How much of the shaped band is mixed back, 0-1. */
   mix: number;
   /**
-   * Which harmonics this band makes: 0 is all even, 1 is all odd.
+   * Which harmonics this band favours: 0 is warm/even, 0.7 is airy/odd.
    *
    * The axis the single-band exciter never had, and the one that decides what
    * a band is FOR. Even orders sit an octave above the fundamental and read as
@@ -97,18 +97,84 @@ export interface IExciterBandSettings {
    * choice.
    */
   texture: number;
-  /**
-   * Whether this band's harmonics wait for a level, and which level.
-   *
-   * The EQ's dynamic bands brought over, with the same two fields for the same
-   * reason: a flag rather than a sentinel threshold, so "off" is a state
-   * rather than a magic number at the bottom of the range. A quiet passage
-   * given the same excitement as a loud one ends up sounding processed,
-   * because the effect is the only thing that did not change.
-   */
-  dynamic: boolean;
-  thresholdDb: number;
 }
+
+/**
+ * Absolute regions the named Exciter bands are allowed to cover.
+ *
+ * They deliberately overlap, but Low cannot become an air band and High
+ * cannot be dragged over the sub-bass. Range is reduced as needed near an edge
+ * so resizing cannot escape through a centre that is still technically valid.
+ */
+export const EXCITER_BAND_LIMITS = [
+  { minHz: 20, maxHz: 700 },
+  { minHz: 150, maxHz: 7_000 },
+  { minHz: 2_500, maxHz: 20_000 },
+] as const;
+
+/** Largest valid symmetric width at this band's current centre. */
+export const maximumExciterBandRangeAtFrequency = (
+  bandIndex: number,
+  freqHz: number,
+): number => {
+  const limits = EXCITER_BAND_LIMITS[bandIndex] ?? {
+    minHz: 20,
+    maxHz: 20_000,
+  };
+  const minimumHalf = 2 ** (EXCITER_MIN_OCTAVES / 2);
+  const safeFrequency = Math.max(
+    limits.minHz * minimumHalf,
+    Math.min(limits.maxHz / minimumHalf, freqHz),
+  );
+  const availableOctaves = Math.max(
+    EXCITER_MIN_OCTAVES,
+    Math.min(
+      2 * Math.log2(safeFrequency / limits.minHz),
+      2 * Math.log2(limits.maxHz / safeFrequency),
+    ),
+  );
+  return Math.max(
+    0,
+    Math.min(1, (availableOctaves - EXCITER_MIN_OCTAVES) / EXCITER_OCTAVE_SPAN),
+  );
+};
+
+export const constrainExciterBandPosition = (
+  bandIndex: number,
+  freqHz: number,
+  range: number,
+): { freqHz: number; range: number } => {
+  const limits = EXCITER_BAND_LIMITS[bandIndex] ?? {
+    minHz: 20,
+    maxHz: 20_000,
+  };
+  const minimumHalf = 2 ** (EXCITER_MIN_OCTAVES / 2);
+  const minimumCentre = limits.minHz * minimumHalf;
+  const maximumCentre = limits.maxHz / minimumHalf;
+  const safeFrequency = Math.max(
+    minimumCentre,
+    Math.min(maximumCentre, freqHz),
+  );
+  return {
+    freqHz: safeFrequency,
+    range: Math.max(
+      0,
+      Math.min(
+        Math.min(1, range),
+        maximumExciterBandRangeAtFrequency(bandIndex, safeFrequency),
+      ),
+    ),
+  };
+};
+
+export const exciterBandEdgesForIndex = (
+  bandIndex: number,
+  freqHz: number,
+  range: number,
+): { lowHz: number; highHz: number } => {
+  const position = constrainExciterBandPosition(bandIndex, freqHz, range);
+  return exciterBandEdges(position.freqHz, position.range);
+};
 
 export interface IOrganicSettings {
   enabled: boolean;
@@ -117,35 +183,53 @@ export interface IOrganicSettings {
   /** Centre of the band it works on, Hz. */
   focusHz: number;
   /**
-   * How much of the spectrum it works on: 0 is the focus band, 1 is all of it.
+   * Width of the focused body band: 0 is tight, 1 is several octaves wide.
    *
-   * A bandpass alone cannot reach "everything" — drop its Q far enough to span
-   * the audible range and it stops behaving like a filter long before it stops
-   * rolling off at the edges. So this blends towards the unfiltered signal
-   * instead, and at 1 the focus dial stops meaning anything because there is
-   * no longer a band to centre.
+   * It deliberately never blends in the unfiltered full-range signal. Applying
+   * one non-linearity to bass, mids and cymbals together creates difference
+   * products between them, which is heard as grain rather than body.
    */
   range: number;
 }
 
+/** Range mapped to a musical bandpass width without reaching broadband. */
+export const organicRangeQ = (range: number): number =>
+  1.2 - Math.max(0, Math.min(1, range)) * 1.02;
+
+/** Approximate half-power edges of the Organic band, shared with its graph. */
+export const organicBandEdges = (
+  focusHz: number,
+  range: number,
+): { lowHz: number; highHz: number } => {
+  const quality = organicRangeQ(range);
+  const inverseQ = 1 / quality;
+  const ratio = (Math.sqrt(4 + inverseQ * inverseQ) + inverseQ) / 2;
+  return {
+    lowHz: Math.max(20, focusHz / ratio),
+    highHz: Math.min(20_000, focusHz * ratio),
+  };
+};
+
 /**
  * The stage that adds nothing and changes everything. @see phaseAlign.ts
  *
- * No harmonics, no level, no signal of its own — it delays the lower bands
- * against the higher ones, which is the whole of what a BBE Sonic Maximizer
- * does. Because it is a time relationship rather than a sound, it has no
- * edges, no period and nothing to repeat.
+ * No harmonics and no generated signal — it delays the lower bands against
+ * the higher ones, following the timing half of the classic three-way enhancer
+ * topology. Because it is a time relationship rather than a tone control, the
+ * UI exposes one depth control and keeps the hardware-style split points fixed.
  */
 export interface IPhaseAlignSettings {
   enabled: boolean;
   /** 0 is off exactly, 1 is 2.5 ms on the low band. */
   amount: number;
-  /** The two corners, Hz. The 482i splits near 150 and 1.2k. */
-  crossoverHz: readonly [number, number];
 }
 
 export interface IExciterSettings {
   enabled: boolean;
+  /** Stable processor-local profile id, or empty after a hand edit. */
+  presetId: string;
+  /** Which part of the stereo image the entire Exciter processes. */
+  stereo: TEqStereo;
   /**
    * Three bands, each with its own span. Not a crossover. @see lowHz
    */
@@ -187,7 +271,7 @@ export interface ICompressorSettings {
 
 export interface IMaximizerSettings {
   enabled: boolean;
-  /** Output ceiling in dBFS. Never above 0. */
+  /** Reconstructed output ceiling in dBTP. Never reaches digital full scale. */
   ceilingDb: number;
   /**
    * Look-ahead in milliseconds.
@@ -196,6 +280,55 @@ export interface IMaximizerSettings {
    * already turned down when the transient arrives and one that clips it.
    */
   lookAheadMs: number;
+  releaseMs: number;
+}
+
+/** Below these, limiting becomes clipping or audible low-rate modulation. */
+export const MAXIMIZER_MIN_LOOK_AHEAD_MS = 1;
+export const MAXIMIZER_MIN_RELEASE_MS = 40;
+export const MAXIMIZER_MAX_CEILING_DB = -0.1;
+
+/** The library source's constant, track-wide gain policy. */
+export type TNormalizerMode = 'off' | 'truePeak' | 'loudness';
+
+export const NORMALIZER_MODES: readonly TNormalizerMode[] = [
+  'off',
+  'truePeak',
+  'loudness',
+];
+
+/**
+ * Prevention before the first creative processor, never restoration.
+ *
+ * True Peak only attenuates a hot source. Loudness may raise or lower the
+ * whole track toward its integrated target, but the same constant gain is
+ * capped by the true-peak ceiling. No follower lives here, so the stage
+ * cannot pump or change the balance between left and right.
+ */
+export interface IInputNormalizerSettings {
+  mode: TNormalizerMode;
+  truePeakDbtp: number;
+  targetLufs: number;
+}
+
+/**
+ * The transparent output stage after every creative processor.
+ *
+ * `outputTrimDb` is deliberately not called a preamp: it changes the finished
+ * chain rather than the level that drives a nonlinear stage. Auto headroom
+ * lowers the final true-peak boundary only when a reconstructed peak needs it.
+ * With Auto headroom off the gain is literal: an overload remains an overload
+ * so the meter can show it and the control cannot silently cancel itself.
+ */
+export interface IMasterSettings {
+  enabled: boolean;
+  outputTrimDb: number;
+  autoHeadroom: boolean;
+  /** Constant source-LUFS gain, with final true-peak control still last. */
+  loudnessMaximize: boolean;
+  loudnessTargetLufs: number;
+  /** User ceiling in dBTP, applied only while Auto headroom is enabled. */
+  ceilingDb: number;
   releaseMs: number;
 }
 
@@ -322,6 +455,14 @@ export const OVERSAMPLE_FACTORS: readonly number[] = [1, 2, 4];
 
 export interface IEqSettings {
   enabled: boolean;
+  /**
+   * Hear only the curve and colour this EQ changes.
+   *
+   * The monitor is magnitude-matched across phase modes and its dry reference
+   * carries the same input gain, so phase rotation and preset headroom cannot
+   * masquerade as a copy of the song.
+   */
+  isolate: boolean;
   /** @see TEqModel */
   model: TEqModel;
   /**
@@ -537,10 +678,12 @@ export const eqEdited = (
 export const EQ_MAX_BAND_COUNT = 64;
 
 export interface IDspSettings {
+  normalizer: IInputNormalizerSettings;
   eq: IEqSettings;
   exciter: IExciterSettings;
   compressor: ICompressorSettings;
   maximizer: IMaximizerSettings;
+  master: IMasterSettings;
 }
 
 interface IRange {
@@ -549,14 +692,8 @@ interface IRange {
 }
 
 const RANGES = {
-  // The whole audible band, because a band's centre is its own and a user
-  // may put it anywhere. The old 120-12k belonged to a shared pair of
-  // crossover corners that had to stay between the bands.
-  exciterBandHz: { min: 20, max: 20_000 },
   exciterBandRange: { min: 0, max: 1 },
   alignAmount: { min: 0, max: 1 },
-  alignLowHz: { min: 60, max: 400 },
-  alignHighHz: { min: 600, max: 4_000 },
   /**
    * The drive dial cannot reach distortion, and that is the point.
    *
@@ -589,14 +726,15 @@ const RANGES = {
   exciterTexture: { min: 0, max: 0.7 },
   organicAmount: { min: 0, max: 1 },
   organicRange: { min: 0, max: 1 },
-  // The whole audible band, not the midrange it was first scoped to.
+  // The focus can sit anywhere in the audible band, even though the processing
+  // around that focus deliberately remains band-limited.
   //
   // It started at 150-2500 on the reasoning that a thin midrange is what this
   // stage is for. That reasoning was right about the common case and wrong as
   // a limit: a driver can be hollow anywhere, and refusing to put body under
-  // 150 Hz or above 2.5k is answering a question the user was asking. Paired
-  // with `range`, which widens the band until the focus stops mattering at
-  // all, this now covers everything.
+  // 150 Hz or above 2.5k is answering a question the user was asking. Range
+  // widens the chosen region without combining unrelated ends of the spectrum
+  // inside one non-linearity.
   organicFocusHz: { min: 40, max: 16_000 },
   compressorLowHz: { min: 60, max: 600 },
   compressorHighHz: { min: 1_000, max: 10_000 },
@@ -609,9 +747,17 @@ const RANGES = {
   // Below -60 nothing musical ever falls under the threshold, so the band
   // would be permanently engaged and indistinguishable from a static one.
   eqThresholdDb: { min: -60, max: 0 },
-  ceilingDb: { min: -12, max: 0 },
-  lookAheadMs: { min: 0, max: 20 },
-  maximizerReleaseMs: { min: 5, max: 1_000 },
+  ceilingDb: { min: -12, max: MAXIMIZER_MAX_CEILING_DB },
+  lookAheadMs: { min: MAXIMIZER_MIN_LOOK_AHEAD_MS, max: 20 },
+  maximizerReleaseMs: { min: MAXIMIZER_MIN_RELEASE_MS, max: 1_000 },
+  masterOutputTrimDb: { min: -24, max: 6 },
+  masterCeilingDb: { min: -12, max: -0.1 },
+  // Auto Headroom is a slow level rider, not a loudness compressor. Keeping
+  // its entire range above four seconds prevents inverse pumping between hits.
+  masterReleaseMs: { min: 4_000, max: 12_000 },
+  masterLoudnessTargetLufs: { min: -18, max: -6 },
+  normalizerTruePeakDbtp: { min: -12, max: -0.1 },
+  normalizerTargetLufs: { min: -24, max: -5 },
   eqFrequency: { min: 20, max: 20_000 },
   eqGainDb: { min: -24, max: 24 },
   eqQuality: { min: 0.1, max: 18 },
@@ -858,8 +1004,14 @@ export const buildEqRack = (count: number): readonly IEqBandSettings[] => {
 };
 
 export const DSP_DEFAULTS: IDspSettings = {
+  normalizer: {
+    mode: 'truePeak',
+    truePeakDbtp: -1,
+    targetLufs: -14,
+  },
   eq: {
     enabled: false,
+    isolate: false,
     model: 'clean',
     modelAmount: 1,
     engine: 'serial',
@@ -878,37 +1030,34 @@ export const DSP_DEFAULTS: IDspSettings = {
   },
   exciter: {
     enabled: false,
+    presetId: '',
+    stereo: 'stereo',
     // They START adjacent at 300 Hz and 3 kHz — the classic body / presence /
     // air split, and the three regions a listener describes without being
     // taught them. Adjacent is only where they begin: each edge moves on its
     // own from here, and two bands may cover the same octave.
     bands: [
-      // Low: even orders only. Odd harmonics down here are the definition of
-      // a muddy bottom end, and the low band exists to add weight, not edge.
+      // Low: a small, even-dominant return for rounded impact rather than grit.
       {
-        enabled: false,
+        enabled: true,
         // 20-300 Hz, as its geometric centre and its width in octaves — the
         // same span the crossover gave this band, so nothing about the default
         // sound moved when the shape of the setting did.
         freqHz: 77,
         range: 0.36,
-        drive: 2,
-        mix: 0.2,
-        texture: 0,
-        dynamic: false,
-        thresholdDb: -24,
+        drive: 1.8,
+        mix: 0.1,
+        texture: 0.05,
       },
-      // Mid: mostly even, which is where body lives.
+      // Mid: soft second-harmonic body, deliberately below the high return.
       {
-        enabled: false,
+        enabled: true,
         // 300 Hz - 3 kHz.
         freqHz: 950,
         range: 0.3,
-        drive: 2.5,
-        mix: 0.25,
-        texture: 0.25,
-        dynamic: false,
-        thresholdDb: -24,
+        drive: 2,
+        mix: 0.1,
+        texture: 0.18,
       },
       // High: mostly odd, which is what the old single-band exciter was, and
       // it was right about this band — odd orders up here read as air.
@@ -917,18 +1066,21 @@ export const DSP_DEFAULTS: IDspSettings = {
         // 3 kHz - 20 kHz.
         freqHz: 7_700,
         range: 0.24,
-        drive: 3,
-        mix: 0.3,
+        drive: 2.6,
+        mix: 0.22,
         texture: 0.6,
-        dynamic: false,
-        thresholdDb: -24,
       },
     ],
     // A little wider than the focus band by default: a stage that arrives
     // audibly working on one narrow slice reads as a resonance rather than as
     // body, and body is the point.
-    organic: { enabled: false, amount: 0.4, focusHz: 700, range: 0.35 },
-    align: { enabled: false, amount: 0.6, crossoverHz: [150, 1_200] },
+    organic: {
+      enabled: false,
+      amount: 0.35,
+      focusHz: 700,
+      range: 0.3,
+    },
+    align: { enabled: false, amount: 0.45 },
     isolate: false,
   },
   compressor: {
@@ -941,6 +1093,17 @@ export const DSP_DEFAULTS: IDspSettings = {
     ceilingDb: -1,
     lookAheadMs: 5,
     releaseMs: 100,
+  },
+  // Disabled and exactly unity by default: adding this stage cannot change a
+  // saved chain until its owner deliberately switches it in.
+  master: {
+    enabled: false,
+    outputTrimDb: 0,
+    autoHeadroom: true,
+    loudnessMaximize: false,
+    loudnessTargetLufs: -9,
+    ceilingDb: -1,
+    releaseMs: 6_000,
   },
 };
 
@@ -971,13 +1134,17 @@ const clampBand = (value: unknown, fallback: IBandSettings): IBandSettings => {
 const clampExciterBand = (
   value: unknown,
   fallback: IExciterBandSettings,
+  bandIndex: number,
 ): IExciterBandSettings => {
   if (!isRecord(value)) {
     return fallback;
   }
-  return {
+  const band = {
     enabled: clampBoolean(value.enabled, fallback.enabled),
-    freqHz: clampNumber(value.freqHz, RANGES.exciterBandHz, fallback.freqHz),
+    freqHz:
+      typeof value.freqHz === 'number' && Number.isFinite(value.freqHz)
+        ? value.freqHz
+        : fallback.freqHz,
     range: clampNumber(value.range, RANGES.exciterBandRange, fallback.range),
     drive: clampNumber(value.drive, RANGES.exciterDrive, fallback.drive),
     mix: clampNumber(value.mix, RANGES.exciterMix, fallback.mix),
@@ -986,12 +1153,10 @@ const clampExciterBand = (
       RANGES.exciterTexture,
       fallback.texture,
     ),
-    dynamic: clampBoolean(value.dynamic, fallback.dynamic),
-    thresholdDb: clampNumber(
-      value.thresholdDb,
-      RANGES.thresholdDb,
-      fallback.thresholdDb,
-    ),
+  };
+  return {
+    ...band,
+    ...constrainExciterBandPosition(bandIndex, band.freqHz, band.range),
   };
 };
 
@@ -1054,20 +1219,26 @@ export const clampDspSettings = (value: unknown): IDspSettings => {
   if (!isRecord(value)) {
     return DSP_DEFAULTS;
   }
+  const normalizer = isRecord(value.normalizer) ? value.normalizer : {};
   const eq = isRecord(value.eq) ? value.eq : {};
   const storedEqBands = Array.isArray(eq.bands) ? eq.bands : [];
   const exciter = isRecord(value.exciter) ? value.exciter : {};
   const compressor = isRecord(value.compressor) ? value.compressor : {};
   const maximizer = isRecord(value.maximizer) ? value.maximizer : {};
+  const master = isRecord(value.master) ? value.master : {};
   const storedBands = Array.isArray(compressor.bands) ? compressor.bands : [];
   const storedCorners = Array.isArray(compressor.crossoverHz)
     ? compressor.crossoverHz
     : [];
   const storedOrganic = isRecord(exciter.organic) ? exciter.organic : {};
   const storedAlign = isRecord(exciter.align) ? exciter.align : {};
-  const storedAlignCorners = Array.isArray(storedAlign.crossoverHz)
-    ? storedAlign.crossoverHz
-    : [];
+  let exciterStereo = DSP_DEFAULTS.exciter.stereo;
+  if (EQ_STEREO_MODES.includes(storedOrganic.stereo as TEqStereo)) {
+    exciterStereo = storedOrganic.stereo as TEqStereo;
+  }
+  if (EQ_STEREO_MODES.includes(exciter.stereo as TEqStereo)) {
+    exciterStereo = exciter.stereo as TEqStereo;
+  }
 
   /**
    * Two shapes of stored exciter get carried forward rather than discarded.
@@ -1144,8 +1315,24 @@ export const clampDspSettings = (value: unknown): IDspSettings => {
   }
 
   return {
+    normalizer: {
+      mode: NORMALIZER_MODES.includes(normalizer.mode as TNormalizerMode)
+        ? (normalizer.mode as TNormalizerMode)
+        : DSP_DEFAULTS.normalizer.mode,
+      truePeakDbtp: clampNumber(
+        normalizer.truePeakDbtp,
+        RANGES.normalizerTruePeakDbtp,
+        DSP_DEFAULTS.normalizer.truePeakDbtp,
+      ),
+      targetLufs: clampNumber(
+        normalizer.targetLufs,
+        RANGES.normalizerTargetLufs,
+        DSP_DEFAULTS.normalizer.targetLufs,
+      ),
+    },
     eq: {
       enabled: clampBoolean(eq.enabled, DSP_DEFAULTS.eq.enabled),
+      isolate: clampBoolean(eq.isolate, DSP_DEFAULTS.eq.isolate),
       // A stored name that no longer exists falls back rather than reaching
       // the coefficient maths, where an unknown model would silently become
       // whichever branch happens to be last.
@@ -1215,11 +1402,19 @@ export const clampDspSettings = (value: unknown): IDspSettings => {
     },
     exciter: {
       enabled: clampBoolean(exciter.enabled, DSP_DEFAULTS.exciter.enabled),
+      presetId: typeof exciter.presetId === 'string' ? exciter.presetId : '',
+      // An Organic-only mode from the previous build becomes the whole-stage
+      // mode rather than being discarded during migration.
+      stereo: exciterStereo,
       bands: DSP_DEFAULTS.exciter.bands.map((fallback, index) =>
-        clampExciterBand(storedExciterBands[index], {
-          ...fallback,
-          ...inheritedSpan(index),
-        }),
+        clampExciterBand(
+          storedExciterBands[index],
+          {
+            ...fallback,
+            ...inheritedSpan(index),
+          },
+          index,
+        ),
       ),
       organic: {
         enabled: clampBoolean(
@@ -1252,18 +1447,6 @@ export const clampDspSettings = (value: unknown): IDspSettings => {
           RANGES.alignAmount,
           DSP_DEFAULTS.exciter.align.amount,
         ),
-        crossoverHz: [
-          clampNumber(
-            storedAlignCorners[0],
-            RANGES.alignLowHz,
-            DSP_DEFAULTS.exciter.align.crossoverHz[0],
-          ),
-          clampNumber(
-            storedAlignCorners[1],
-            RANGES.alignHighHz,
-            DSP_DEFAULTS.exciter.align.crossoverHz[1],
-          ),
-        ],
       },
       // Clamped like any other flag, and NOT forced false here.
       //
@@ -1313,6 +1496,37 @@ export const clampDspSettings = (value: unknown): IDspSettings => {
         maximizer.releaseMs,
         RANGES.maximizerReleaseMs,
         DSP_DEFAULTS.maximizer.releaseMs,
+      ),
+    },
+    master: {
+      enabled: clampBoolean(master.enabled, DSP_DEFAULTS.master.enabled),
+      outputTrimDb: clampNumber(
+        master.outputTrimDb,
+        RANGES.masterOutputTrimDb,
+        DSP_DEFAULTS.master.outputTrimDb,
+      ),
+      autoHeadroom: clampBoolean(
+        master.autoHeadroom,
+        DSP_DEFAULTS.master.autoHeadroom,
+      ),
+      loudnessMaximize: clampBoolean(
+        master.loudnessMaximize,
+        DSP_DEFAULTS.master.loudnessMaximize,
+      ),
+      loudnessTargetLufs: clampNumber(
+        master.loudnessTargetLufs,
+        RANGES.masterLoudnessTargetLufs,
+        DSP_DEFAULTS.master.loudnessTargetLufs,
+      ),
+      ceilingDb: clampNumber(
+        master.ceilingDb,
+        RANGES.masterCeilingDb,
+        DSP_DEFAULTS.master.ceilingDb,
+      ),
+      releaseMs: clampNumber(
+        master.releaseMs,
+        RANGES.masterReleaseMs,
+        DSP_DEFAULTS.master.releaseMs,
       ),
     },
   };

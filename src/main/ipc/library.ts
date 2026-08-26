@@ -34,8 +34,10 @@ import fs from 'fs';
 import { setTimeout as scheduleTimeout } from 'timers';
 import {
   ILibraryIndex,
+  ILibraryNormalizationAnalysis,
   ILibraryRoot,
   ILibraryScanProgress,
+  ILibraryTrack,
 } from '../../common/library/types';
 import {
   emptyLibraryIndex,
@@ -55,6 +57,26 @@ import { scanLibraryRootOffThread } from '../library/scanHost';
  * byte ranges.
  */
 const MAX_PLAYBACK_BLOB_BYTES = 96 * 1024 * 1024;
+
+const isNormalizationAnalysis = (
+  value: unknown,
+): value is ILibraryNormalizationAnalysis => {
+  if (typeof value !== 'object' || value === null) {
+    return false;
+  }
+  const candidate = value as Record<string, unknown>;
+  return (
+    candidate.version === 1 &&
+    typeof candidate.truePeakDbtp === 'number' &&
+    Number.isFinite(candidate.truePeakDbtp) &&
+    candidate.truePeakDbtp >= -120 &&
+    candidate.truePeakDbtp <= 24 &&
+    typeof candidate.integratedLufs === 'number' &&
+    Number.isFinite(candidate.integratedLufs) &&
+    candidate.integratedLufs >= -120 &&
+    candidate.integratedLufs <= 24
+  );
+};
 
 /**
  * What these handlers need from the process around them.
@@ -93,6 +115,31 @@ let currentIndex: ILibraryIndex = emptyLibraryIndex();
 let indexWasReset = false;
 let isScanning = false;
 let cancelRequested = false;
+
+/**
+ * Preserve a measurement that finishes while an older scan is still walking.
+ * Size and mtime make this safe: a changed file must be analyzed again rather
+ * than inheriting the result cached for its previous bytes.
+ */
+const preserveCurrentNormalization = (
+  tracks: readonly ILibraryTrack[],
+): ILibraryTrack[] => {
+  const currentById = new Map(
+    currentIndex.tracks.map((track) => [track.id, track]),
+  );
+  return tracks.map((track) => {
+    const current = currentById.get(track.id);
+    if (
+      track.normalization ||
+      !current?.normalization ||
+      current.sizeBytes !== track.sizeBytes ||
+      current.mtimeMs !== track.mtimeMs
+    ) {
+      return track;
+    }
+    return { ...track, normalization: current.normalization };
+  });
+};
 
 /**
  * Roots that asked to be scanned while a walk was already running.
@@ -193,12 +240,13 @@ const scanOneRoot = async (
         // mention (not yet reached, or on another root entirely) is left
         // exactly as it was. Only the wholesale replace below, which runs
         // once the whole root has been walked, is allowed to remove one.
-        const batchIds = new Set(tracks.map((track) => track.id));
+        const mergedTracks = preserveCurrentNormalization(tracks);
+        const batchIds = new Set(mergedTracks.map((track) => track.id));
         currentIndex = {
           ...currentIndex,
           tracks: [
             ...currentIndex.tracks.filter((track) => !batchIds.has(track.id)),
-            ...tracks,
+            ...mergedTracks,
           ],
         };
         // The batch, and not the index it was just merged into.
@@ -216,7 +264,9 @@ const scanOneRoot = async (
         // authoritative for anything that asks for it later, and gives the
         // renderer the same information for three orders of magnitude less
         // work. It merges them itself; see `LibraryContext`.
-        deps.getMainWindow()?.webContents.send('library-tracks-added', tracks);
+        deps
+          .getMainWindow()
+          ?.webContents.send('library-tracks-added', mergedTracks);
       },
       isCancelled: () => cancelRequested,
     });
@@ -224,11 +274,12 @@ const scanOneRoot = async (
     // flight; dropping the result here rather than writing it back avoids
     // resurrecting a root nobody asked to keep any more.
     if (currentIndex.roots.some((candidate) => candidate.id === rootId)) {
+      const mergedTracks = preserveCurrentNormalization(result.tracks);
       currentIndex = {
         ...currentIndex,
         tracks: [
           ...currentIndex.tracks.filter((track) => track.rootId !== rootId),
-          ...result.tracks,
+          ...mergedTracks,
         ],
       };
       setRoot(rootId, {
@@ -573,6 +624,37 @@ export const registerLibraryIpc = (deps: ILibraryIpcDeps): void => {
       return undefined;
     }
   });
+
+  ipcMain.handle(
+    'library-track-normalization-set',
+    (_event, rawTrackId: unknown, rawAnalysis: unknown) => {
+      if (
+        typeof rawTrackId !== 'string' ||
+        !isNormalizationAnalysis(rawAnalysis)
+      ) {
+        return false;
+      }
+      const at = currentIndex.tracks.findIndex(
+        (track) => track.id === rawTrackId && track.kind === 'audio',
+      );
+      if (at < 0) {
+        return false;
+      }
+      const updated = {
+        ...currentIndex.tracks[at],
+        normalization: rawAnalysis,
+      };
+      currentIndex = {
+        ...currentIndex,
+        tracks: currentIndex.tracks.map((track, index) =>
+          index === at ? updated : track,
+        ),
+      };
+      saveLibraryIndex(userDataDir, currentIndex);
+      getMainWindow()?.webContents.send('library-tracks-added', [updated]);
+      return true;
+    },
+  );
 
   ipcMain.handle('library-reveal', (_event, rawTrackId: unknown) => {
     if (typeof rawTrackId !== 'string') {

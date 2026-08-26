@@ -499,6 +499,9 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.errorImport': 'FluidEQ 无法导入此卡拉 OK 或项目文件。',
   'karaoke.maker.errorParse': '无法解析所选歌词或卡拉 OK 文件。',
   'karaoke.maker.downloadFailed': 'Whisper 模型下载失败',
+  'karaoke.maker.pitchDownloadFailed': '音高模型下载失败',
+  'karaoke.maker.pitchDownloadError':
+    'FluidEQ 无法下载精度更高的旋律模型。旋律检测已使用内置离线模型继续完成。请检查网络连接或防火墙，然后重试。',
   'karaoke.maker.localAnalysisFailed': '本地分析失败',
   'karaoke.maker.whisperDownloadError':
     'FluidEQ 无法从 Hugging Face 下载模型。请检查网络连接或防火墙，然后重试。',
