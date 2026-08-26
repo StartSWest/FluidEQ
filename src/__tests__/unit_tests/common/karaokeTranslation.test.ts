@@ -64,6 +64,53 @@ describe('seedKaraokeTranslation', () => {
     expect(tokens[1].endMs).toBe(4_000);
   });
 
+  it('divides three tokens by a ratio where the middle boundary is wrong under equal division too', () => {
+    expect(splitKaraokeWordSyllables('sol', 'es')).toHaveLength(1);
+    expect(splitKaraokeWordSyllables('mundo', 'es')).toHaveLength(2);
+    expect(splitKaraokeWordSyllables('cantaba', 'es')).toHaveLength(3);
+
+    const result = seedKaraokeTranslation(
+      [lyricLine('l1', 'sun sings brightly', 0, 6_000)],
+      'sol mundo cantaba',
+      'es',
+    );
+
+    const tokens = result.sheet?.lines[0].tokens ?? [];
+    // 6000ms across weights 1:2:3 (6 total): 1000 / 2000 / 3000. Equal
+    // thirds would put every edge at 2000/4000 — wrong at the shared
+    // boundary too, not only at the ends, which is what a two-token
+    // 1-vs-3 case cannot tell apart from a three-way equal split.
+    expect(tokens[0].startMs).toBe(0);
+    expect(tokens[0].endMs).toBe(1_000);
+    expect(tokens[1].startMs).toBe(1_000);
+    expect(tokens[1].endMs).toBe(3_000);
+    expect(tokens[2].startMs).toBe(3_000);
+    expect(tokens[2].endMs).toBe(6_000);
+  });
+
+  it('keeps a fractional division exact instead of accumulating rounded steps', () => {
+    expect(splitKaraokeWordSyllables('sol', 'es')).toHaveLength(1);
+    expect(splitKaraokeWordSyllables('mar', 'es')).toHaveLength(1);
+    expect(splitKaraokeWordSyllables('luz', 'es')).toHaveLength(1);
+
+    const result = seedKaraokeTranslation(
+      [lyricLine('l1', 'a b c', 0, 1_000)],
+      'sol mar luz',
+      'es',
+    );
+
+    const tokens = result.sheet?.lines[0].tokens ?? [];
+    // Three equal-weight tokens over 1000ms, which does not divide evenly:
+    // 0 / 333 / 667 / 1000. This guards against the common wrong refactor
+    // that accumulates Math.round(span / total) per step instead of
+    // recomputing each boundary from the running total — that version
+    // drifts to 0 / 333 / 666 / 999, a millisecond short of the line's
+    // real end. A distributor that is merely "close" here is the bug this
+    // test exists to catch; the literal numbers are the point.
+    expect(tokens.map((token) => token.startMs)).toEqual([0, 333, 667]);
+    expect(tokens.map((token) => token.endMs)).toEqual([333, 667, 1_000]);
+  });
+
   it('reports a count mismatch and produces no sheet', () => {
     const result = seedKaraokeTranslation(
       [
