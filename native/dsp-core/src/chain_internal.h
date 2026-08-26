@@ -206,10 +206,31 @@ struct FeqChain {
   float* pointers_d[FEQ_CHAIN_CHANNELS] = {nullptr, nullptr};
 };
 
+/** The four stages that are one loop each, from `chain_stages.cpp`. */
+void chain_process_input_gain(FeqChain* chain, float* const* channels,
+                              uint32_t frames);
+void chain_process_compressor(FeqChain* chain, float* const* channels,
+                              uint32_t frames);
+void chain_process_maximizer(FeqChain* chain, float* const* channels,
+                             uint32_t frames);
+void chain_process_master_output(FeqChain* chain, float* const* channels,
+                                 uint32_t frames);
+
 void chain_encode_mid_side(float* const* channels, uint32_t frames);
+
 void chain_decode_mid_side(float* const* channels, uint32_t frames);
 
+/* --- chain_linear.cpp: the convolver, its handover and its kernel --------- */
+
+/** One already-prepared channel through the convolver that is running now. */
+void chain_process_eq_convolver_channel(FeqChain* chain, float* target,
+                                        uint32_t frames, uint32_t slot_index);
+
+/** Advance the replacement's warm-up and retire the old one, as a pair. */
+void chain_settle_convolvers(FeqChain* chain, uint32_t frames);
+
 /** Whether a convolver is actually in the path, which is what needs matching. */
+
 int chain_linear_running(const FeqChain* chain);
 
 /** Rebuild the EQ's coefficients and dynamics from the current settings. */
