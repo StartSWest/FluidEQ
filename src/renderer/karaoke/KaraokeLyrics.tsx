@@ -20,17 +20,14 @@ import {
   KeyboardEvent as ReactKeyboardEvent,
   PointerEvent as ReactPointerEvent,
   useEffect,
-  useMemo,
   useRef,
   useState,
 } from 'react';
 import { findActiveKaraokeLine } from '../../common/karaoke/clock';
 import { IKaraokeSong } from '../../common/karaoke/types';
-import { KARAOKE_ORIGINAL_LANGUAGE } from '../../common/karaoke/makerProject';
 import MenuIcon from '../icons/MenuIcon';
 import Dropdown from '../widgets/Dropdown';
 import { useTranslation } from '../utils/I18nContext';
-import { karaokeLanguageName } from './karaokeLanguageName';
 import {
   DEFAULT_LYRIC_TEXT_SIZE,
   EUPHORIA_SWEEP_TIME_MS,
@@ -45,8 +42,9 @@ import {
 } from './karaokeLyricText';
 import {
   karaokeLyricsTranslationBudget,
-  karaokeLyricsTranslationTextById,
+  karaokeLyricsTranslationOptions,
   paintKaraokeLyricsTranslationLine,
+  useKaraokeLyricsTranslationSelection,
 } from './karaokeLyricsTranslation';
 
 interface IKaraokeLyricsProps {
@@ -63,6 +61,28 @@ interface IKaraokeLyricsProps {
   /** Current macro-capture line and its explicit START/END state. */
   captureLineId?: string;
   captureLineState?: 'pending' | 'started' | 'complete';
+  /**
+   * Whether this instance renders its own language picker. Default true.
+   *
+   * False for an embedded preview whose own surrounding chrome already owns
+   * the choice of language -- `KaraokeMakerPreview.tsx` passes `false` and
+   * its own `translationLanguage` prop instead, so a second, independently
+   * scoped picker never appears stacked against the Maker toolbar's one.
+   * Independent of `translationLanguage` below: hiding the picker never
+   * hides the row it controls.
+   */
+  showTranslationPicker?: boolean;
+  /**
+   * Which language paints as the second row, chosen by something other than
+   * this instance's own picker.
+   *
+   * Undefined (the player's own usage) means this instance's internal picker
+   * state decides. Supplied (the Maker preview's usage) overrides it
+   * entirely, so an instance with its picker hidden still paints the row for
+   * whatever an *external* picker selected -- the row is not the picker's
+   * to withhold.
+   */
+  translationLanguage?: string;
 }
 
 export interface ILyricHitRegion {
@@ -155,6 +175,8 @@ const KaraokeLyrics = ({
   activeLineId,
   captureLineId,
   captureLineState,
+  showTranslationPicker = true,
+  translationLanguage: externalTranslationLanguage,
 }: IKaraokeLyricsProps) => {
   const { t } = useTranslation();
   const [isFollowing, setIsFollowing] = useState(true);
@@ -181,40 +203,15 @@ const KaraokeLyrics = ({
   }
   const textSizeRef = useRef(textSize);
   textSizeRef.current = textSize;
-  // Never compared against directly to detect the original: a project that
-  // declares a language (every UltraStar import does) uses that real tag
-  // instead, and this sentinel is only the fallback for one that never did.
-  // Mirrors `KaraokeMakerToolbar.tsx`'s own `originalLanguage`.
-  const originalLanguage = song.meta.language ?? KARAOKE_ORIGINAL_LANGUAGE;
-  const translations = song.translations ?? [];
-  const hasTranslations = translations.length > 0;
-  const [translationLanguage, setTranslationLanguage] =
-    useState(originalLanguage);
-  // Reset synchronously with the incoming song, same as entranceStateRef
-  // above: a stale language tag left over from the previous song would
-  // either paint the wrong translation for one frame or fail to find a sheet
-  // at all before this could otherwise run as an effect.
-  const translationSongIdRef = useRef(song.id);
-  if (translationSongIdRef.current !== song.id) {
-    translationSongIdRef.current = song.id;
-    setTranslationLanguage(originalLanguage);
-  }
-  const activeTranslationSheet =
-    translationLanguage === originalLanguage
-      ? undefined
-      : translations.find((entry) => entry.language === translationLanguage);
-  const isTranslationRowActive = activeTranslationSheet !== undefined;
-  const isSelectedTranslationEmpty =
-    isTranslationRowActive && activeTranslationSheet.lines.length === 0;
-  // Rebuilt only when the selected sheet itself changes, not every frame —
-  // see karaokeLyricsTranslation.ts's own doc comment on why.
-  const translationTextById = useMemo(
-    () =>
-      activeTranslationSheet
-        ? karaokeLyricsTranslationTextById(activeTranslationSheet.lines)
-        : undefined,
-    [activeTranslationSheet],
-  );
+  const {
+    hasTranslations,
+    isSelectedTranslationEmpty,
+    originalLanguage,
+    setTranslationLanguage,
+    translationLanguage,
+    translations,
+    translationTextById,
+  } = useKaraokeLyricsTranslationSelection(song, externalTranslationLanguage);
   const detectedActiveIndex = findActiveKaraokeLine(song.lines, playheadMs);
   const requestedActiveIndex = activeLineId
     ? song.lines.findIndex((line) => line.id === activeLineId)
@@ -871,33 +868,22 @@ const KaraokeLyrics = ({
   }
 
   // A language switched while singing cannot be two clicks deep, so this
-  // lives beside the canvas rather than in the transport menu. Gated on
-  // `showFollowButton`, the same flag `KaraokeMakerPreview.tsx` already
-  // passes `false` to keep its compact live-preview stage free of floating
-  // chrome -- and during a capture guide that stage draws its own overlay
-  // across nearly the full top edge (`.karaoke-maker-preview__capture-guide`
-  // in Karaoke.scss), which a second corner control would otherwise fight
-  // for room with.
-  const showTranslationPicker = showFollowButton && hasTranslations;
-  const translationPickerOptions = hasTranslations
-    ? [
-        {
-          value: originalLanguage,
-          label: t('karaoke.translation.original'),
-          display: t('karaoke.translation.original'),
-        },
-        ...translations.map((entry) => ({
-          value: entry.language,
-          label: karaokeLanguageName(entry.language),
-          // `lang` so Chromium picks the right face per script: the Han
-          // characters are not the same shapes drawn Chinese or Japanese.
-          display: (
-            <span lang={entry.language}>
-              {karaokeLanguageName(entry.language)}
-            </span>
-          ),
-        })),
-      ]
+  // lives beside the canvas rather than in the transport menu. Whether *this
+  // instance* draws the picker is `showTranslationPicker` (a prop, default
+  // true) -- deliberately independent of whether the row itself paints
+  // (`translationTextById`, from the hook above): `KaraokeMakerPreview.tsx`
+  // hides its own picker, because the Maker toolbar's own translation picker
+  // already owns that choice for the same screen, but still passes its own
+  // `translationLanguage` through so the row keeps painting -- a translation
+  // editor whose preview cannot show translations would be the feature
+  // failing at the one place it matters most.
+  const translationPickerVisible = showTranslationPicker && hasTranslations;
+  const translationPickerOptions = translationPickerVisible
+    ? karaokeLyricsTranslationOptions(
+        originalLanguage,
+        translations,
+        t('karaoke.translation.original'),
+      )
     : [];
 
   return (
@@ -919,16 +905,18 @@ const KaraokeLyrics = ({
         onPointerDown={onCanvasPointerDown}
         onKeyDown={onCanvasKeyDown}
       />
-      {showTranslationPicker && (
+      {(translationPickerVisible || isSelectedTranslationEmpty) && (
         <div className="karaoke-lyrics__translation-picker">
-          <Dropdown
-            name={t('karaoke.translation.picker')}
-            options={translationPickerOptions}
-            value={translationLanguage}
-            isDisabled={false}
-            placement="up"
-            handleChange={setTranslationLanguage}
-          />
+          {translationPickerVisible && (
+            <Dropdown
+              name={t('karaoke.translation.picker')}
+              options={translationPickerOptions}
+              value={translationLanguage}
+              isDisabled={false}
+              placement="up"
+              handleChange={setTranslationLanguage}
+            />
+          )}
           {isSelectedTranslationEmpty && (
             <p className="karaoke-lyrics__translation-empty">
               {t('karaoke.translation.empty')}

@@ -2162,6 +2162,10 @@ const KaraokeMaker = ({
             ? captureGuideVisualState
             : undefined
         }
+        // The toolbar's own translation picker, so the preview's row shows
+        // exactly the sheet the toolbar has selected -- see
+        // KaraokeMakerPreview.tsx's own doc comment.
+        translationLanguage={translationLanguage}
         onSeek={onSeek}
         onTextSize={setPreviewTextSize}
         onHeight={setPreviewHeight}

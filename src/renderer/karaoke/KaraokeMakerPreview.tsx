@@ -27,6 +27,11 @@ interface IKaraokeMakerPreviewProps {
   activeLineId?: string;
   captureState?: 'armed' | 'ready';
   captureLineState?: 'pending' | 'started' | 'complete';
+  /** Whichever sheet the Maker's own toolbar picker currently has selected
+   * (`useMakerTranslations`'s `language`) -- see the component doc comment
+   * for why this is threaded through rather than left to KaraokeLyrics's own
+   * picker. */
+  translationLanguage?: string;
   onTextSize: (textSize: number) => void;
   onHeight: (height: number) => void;
   onSeek: (timeMs: number) => void;
@@ -147,7 +152,18 @@ const KaraokeMakerPreviewNotes = ({
  * The Maker deliberately uses the production lyric renderer here instead of
  * maintaining a visually similar preview. Typography, timing fills, motion,
  * readability treatment and Rainbow mode therefore remain exactly in sync
- * with the Karaoke stage.
+ * with the Karaoke stage -- translations included: `KaraokeLyrics`'s own
+ * picker is suppressed below (`showTranslationPicker={false}`) because this
+ * screen's toolbar already has one, scoped to choosing which sheet is being
+ * *edited* -- a second, differently-scoped picker stacked on this small a
+ * stage would just be confusing. But the toolbar's choice is still passed
+ * through as `translationLanguage`, so the row itself keeps painting
+ * whatever language is selected there: a translation editor whose own
+ * preview could never show a translation would fail at the one place this
+ * feature matters most. If a future change repurposes
+ * `showTranslationPicker` for something else, the row will still show
+ * whatever `translationLanguage` names -- the two are intentionally
+ * independent props for exactly this reason.
  */
 const KaraokeMakerPreview = ({
   song,
@@ -165,6 +181,7 @@ const KaraokeMakerPreview = ({
   activeLineId,
   captureState,
   captureLineState,
+  translationLanguage,
   onTextSize,
   onHeight,
   onSeek,
@@ -294,6 +311,12 @@ const KaraokeMakerPreview = ({
             onSeek={onSeek}
             followRequestKey={followRequestKey}
             showFollowButton={false}
+            // The toolbar above already has its own translation picker,
+            // scoped to which sheet is being *edited* -- see this
+            // component's own doc comment for why a second one is
+            // suppressed here rather than left to duplicate it.
+            showTranslationPicker={false}
+            translationLanguage={translationLanguage}
             textSize={textSize}
             centerLineId={centerLineId}
             activeLineId={activeLineId}

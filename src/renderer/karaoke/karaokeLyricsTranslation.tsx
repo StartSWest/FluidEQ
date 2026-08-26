@@ -16,7 +16,10 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { IKaraokeLine } from '../../common/karaoke/types';
+import { ReactNode, useMemo, useRef, useState } from 'react';
+import { IKaraokeLine, IKaraokeSong } from '../../common/karaoke/types';
+import { KARAOKE_ORIGINAL_LANGUAGE } from '../../common/karaoke/makerProject';
+import { karaokeLanguageName } from './karaokeLanguageName';
 import {
   clamp,
   groupKaraokeTokensIntoWords,
@@ -25,7 +28,17 @@ import {
 } from './karaokeLyricText';
 
 /**
- * The player's second lyric row: one quiet, line-level label under whichever
+ * The player's second lyric row: which language it shows, and how it is
+ * painted.
+ *
+ * `useKaraokeLyricsTranslationSelection` and `karaokeLyricsTranslationOptions`
+ * are the pure-derivation half — which sheet is selected, whether its row is
+ * empty, the picker's own option list — pulled out of `KaraokeLyrics.tsx` so
+ * that render component holds only the JSX and the draw loop, not the state
+ * arithmetic behind them.
+ *
+ * `karaokeLyricsTranslationBudget` and `paintKaraokeLyricsTranslationLine`
+ * below are the paint half: one quiet, line-level label under whichever
  * language is currently focused, painted without the original's per-word
  * highlight.
  *
@@ -45,6 +58,119 @@ import {
  * line is measured or placed, so every visible line's slot grows by the same
  * fixed amount regardless of which one is actually focused that frame.
  */
+
+export interface IKaraokeLyricsTranslationSelection {
+  /** `song.meta.language`, or the sentinel for a project that never declared
+   * one. Never compared against directly elsewhere -- see the field's own
+   * use below. */
+  originalLanguage: string;
+  translations: readonly { language: string; lines: IKaraokeLine[] }[];
+  hasTranslations: boolean;
+  /** The language currently showing as the second row -- `originalLanguage`
+   * means "no row". Either this instance's own picker state, or, when
+   * `externalLanguage` was supplied, exactly that value. */
+  translationLanguage: string;
+  /** Drives this instance's own picker. Harmless to call when an
+   * `externalLanguage` is in effect -- nothing reads the state it would set. */
+  setTranslationLanguage: (language: string) => void;
+  /** The selected sheet exists but has no playable lines: the row must say
+   * so rather than paint nothing. */
+  isSelectedTranslationEmpty: boolean;
+  /** Undefined means no row this frame. Rebuilt only when the selected sheet
+   * itself changes, not every frame: sixty times a second across up to seven
+   * visible lines is a lot of token-joining for text that only changes when
+   * the picker does. */
+  translationTextById?: Map<string, string>;
+}
+
+/**
+ * Which translation is showing, and everything derived from that choice.
+ *
+ * `externalLanguage`, when supplied, overrides this instance's own picker
+ * state entirely -- see `KaraokeLyrics.tsx`'s `translationLanguage` prop for
+ * why an embedded preview needs this: its own picker is hidden, but the row
+ * still has to paint whatever an *external* picker (the Maker's toolbar)
+ * selected.
+ */
+export const useKaraokeLyricsTranslationSelection = (
+  song: IKaraokeSong,
+  externalLanguage?: string,
+): IKaraokeLyricsTranslationSelection => {
+  // Never compared against directly to detect the original: a project that
+  // declares a language (every UltraStar import does) uses that real tag
+  // instead, and this sentinel is only the fallback for one that never did.
+  // Mirrors `KaraokeMakerToolbar.tsx`'s own `originalLanguage`.
+  const originalLanguage = song.meta.language ?? KARAOKE_ORIGINAL_LANGUAGE;
+  const translations = song.translations ?? [];
+  const hasTranslations = translations.length > 0;
+  const [pickedLanguage, setPickedLanguage] = useState(originalLanguage);
+  // Reset synchronously with the incoming song, same as KaraokeLyrics.tsx's
+  // own entranceStateRef: a stale language tag left over from the previous
+  // song would either paint the wrong translation for one frame or fail to
+  // find a sheet at all before this could otherwise run as an effect.
+  const songIdRef = useRef(song.id);
+  if (songIdRef.current !== song.id) {
+    songIdRef.current = song.id;
+    setPickedLanguage(originalLanguage);
+  }
+  const translationLanguage = externalLanguage ?? pickedLanguage;
+  const activeTranslationSheet =
+    translationLanguage === originalLanguage
+      ? undefined
+      : translations.find((entry) => entry.language === translationLanguage);
+  const isSelectedTranslationEmpty =
+    activeTranslationSheet !== undefined &&
+    activeTranslationSheet.lines.length === 0;
+  const translationTextById = useMemo(
+    () =>
+      activeTranslationSheet
+        ? karaokeLyricsTranslationTextById(activeTranslationSheet.lines)
+        : undefined,
+    [activeTranslationSheet],
+  );
+
+  return {
+    originalLanguage,
+    translations,
+    hasTranslations,
+    translationLanguage,
+    setTranslationLanguage: setPickedLanguage,
+    isSelectedTranslationEmpty,
+    translationTextById,
+  };
+};
+
+export interface IKaraokeLyricsTranslationOption {
+  value: string;
+  label: string;
+  display: ReactNode;
+}
+
+/**
+ * The picker's own option list: the original first, named by `originalLabel`
+ * (the caller's own translated "As recorded" string, since this module has
+ * no `t()` of its own), then every translation named by its endonym.
+ */
+export const karaokeLyricsTranslationOptions = (
+  originalLanguage: string,
+  translations: readonly { language: string; lines: IKaraokeLine[] }[],
+  originalLabel: string,
+): IKaraokeLyricsTranslationOption[] => [
+  {
+    value: originalLanguage,
+    label: originalLabel,
+    display: originalLabel,
+  },
+  ...translations.map((entry) => ({
+    value: entry.language,
+    label: karaokeLanguageName(entry.language),
+    // `lang` so Chromium picks the right face per script: the Han characters
+    // are not the same shapes drawn Chinese or Japanese.
+    display: (
+      <span lang={entry.language}>{karaokeLanguageName(entry.language)}</span>
+    ),
+  })),
+];
 
 /**
  * Mirrors `$weight-regular` (400) in `_theme.scss`. A canvas `font` string
@@ -104,10 +230,6 @@ export const karaokeLyricsTranslationBudget = (
  * Every translatable line's plain text, keyed by the id the original line at
  * the same position was stamped with — see `song.ts`'s
  * `karaokeMakerProjectToSong` for why the ids match.
- *
- * Built once per selected sheet rather than once per frame: sixty times a
- * second across up to seven visible lines is a lot of token-joining for text
- * that only changes when the picker does.
  *
  * Section markers are excluded. They carry the same bracketed label in every
  * sheet, so a second copy of "[Chorus]" under the first would be noise, not a
