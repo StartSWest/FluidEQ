@@ -39,6 +39,7 @@ import { isKaraokeSectionText } from '../sections';
 type TRawKaraokeMakerLine = {
   id?: unknown;
   kind?: unknown;
+  sourceLineId?: unknown;
   startMs?: unknown;
   endMs?: unknown;
   tokens?: unknown;
@@ -88,6 +89,14 @@ const sanitiseMakerLines = (
         )
           ? 'section'
           : 'lyrics',
+      // A translated line's link to the original it was seeded from. Same
+      // 256-character cap as an id, because that is what it holds; absent on
+      // the original's own lines and on any sheet written before the field
+      // existed, both of which fall back to the positional join.
+      sourceLineId:
+        typeof line?.sourceLineId === 'string' && line.sourceLineId
+          ? line.sourceLineId.slice(0, 256)
+          : undefined,
       startMs: finiteOrUndefined(line?.startMs),
       endMs: finiteOrUndefined(line?.endMs),
       tokens: (Array.isArray(line?.tokens) ? line.tokens : [])

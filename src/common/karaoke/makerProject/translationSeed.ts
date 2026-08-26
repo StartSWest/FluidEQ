@@ -45,7 +45,12 @@ const timedTranslatedLine = (
 ): IKaraokeMakerLine => {
   const range = karaokeMakerTimedLineRange(original);
   if (!range) {
-    return { ...translated, startMs: undefined, endMs: undefined };
+    return {
+      ...translated,
+      sourceLineId: original.id,
+      startMs: undefined,
+      endMs: undefined,
+    };
   }
   const weights = translated.tokens.map((token) =>
     syllableWeight(token.text, language),
@@ -62,7 +67,13 @@ const timedTranslatedLine = (
       endMs: Math.round(range.startMs + (span * consumed) / total),
     };
   });
-  return { ...translated, startMs: range.startMs, endMs: range.endMs, tokens };
+  return {
+    ...translated,
+    sourceLineId: original.id,
+    startMs: range.startMs,
+    endMs: range.endMs,
+    tokens,
+  };
 };
 
 /**
@@ -94,6 +105,7 @@ export const seedKaraokeTranslation = (
       return {
         ...line,
         id: karaokeMakerId('line'),
+        sourceLineId: line.id,
         tokens: line.tokens.map((token) => ({
           ...token,
           id: karaokeMakerId('word'),
@@ -105,6 +117,58 @@ export const seedKaraokeTranslation = (
     return timedTranslatedLine(line, translated, language);
   });
   return { sheet: { language, source: 'translation-seed', lines } };
+};
+
+/**
+ * Which translated line belongs under which original line, keyed by the
+ * original's own id.
+ *
+ * The one place that answer is decided, because it used to be decided twice —
+ * `song.ts` for the player and `useMakerCanvasModel.ts` for the Maker canvas —
+ * and both decided it by array position. Position is not identity: nothing
+ * stops `lyrics.lines` being replaced under a sheet that survives the
+ * replacement, so one line inserted into the original re-pointed every later
+ * translated line at a different partner without a word to the user.
+ *
+ * A sheet seeded before `sourceLineId` existed declares none, and joins by
+ * position exactly as it does today — the fallback is the old behaviour, so
+ * an existing draft cannot regress. A sheet that declares any is joined by id
+ * alone: a translated line whose source has been deleted pairs with nothing
+ * and simply does not paint, and an original line that gained no translation
+ * pairs with nothing and paints alone.
+ */
+export const karaokeTranslationLineBySource = (
+  original: readonly IKaraokeMakerLine[],
+  sheet: readonly IKaraokeMakerLine[],
+): Map<string, IKaraokeMakerLine> => {
+  const bySourceId = new Map<string, IKaraokeMakerLine>();
+  const identified = sheet.filter((line) => line.sourceLineId !== undefined);
+  if (!identified.length) {
+    original.forEach((line, index) => {
+      const paired = sheet[index];
+      if (paired) {
+        bySourceId.set(line.id, paired);
+      }
+    });
+    return bySourceId;
+  }
+  // Only sources that are still there, so the map is the pairing itself
+  // rather than the pairing plus whatever the sheet remembers about lines
+  // the original no longer has.
+  const originalIds = new Set(original.map((line) => line.id));
+  identified.forEach((line) => {
+    const sourceId = line.sourceLineId;
+    // First writer wins, so a duplicated source id in a hand-edited file
+    // cannot make the later copy silently replace the earlier one.
+    if (
+      sourceId !== undefined &&
+      originalIds.has(sourceId) &&
+      !bySourceId.has(sourceId)
+    ) {
+      bySourceId.set(sourceId, line);
+    }
+  });
+  return bySourceId;
 };
 
 export interface IKaraokeTranslationFit {

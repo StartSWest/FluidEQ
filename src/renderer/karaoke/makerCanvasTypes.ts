@@ -132,10 +132,12 @@ export interface IMakerCanvasTranslationLine {
  * The translated row drawn under the original lyric lanes, keyed by the
  * original line's index into `project.lyrics.lines`.
  *
- * The index is the only identifier the two sides share: a translation seed
- * mints its own line ids for the sheet it builds (see `translationSeed.ts`),
- * so position in the array — not id — is what lines a translated line up
- * with the original it is drawn underneath.
+ * The index keys the painter, not the join: `paintTranslation.ts` is handed
+ * per-word layout that names the original line by index, so that is what it
+ * can look a row up by. Which translated line ended up in that row is decided
+ * one layer earlier by `karaokeTranslationLineBySource`, on the translated
+ * line's own `sourceLineId` — a sheet's positions stop meaning anything the
+ * moment `lyrics.lines` is replaced under it.
  */
 export interface IMakerCanvasTranslationRow {
   laneHeight: number;

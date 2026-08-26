@@ -13,6 +13,7 @@ import {
   karaokeMakerNeedsSpaceBetween,
   karaokeMakerTokenWasUserTouched,
   karaokeTranslationFit,
+  karaokeTranslationLineBySource,
 } from '../../common/karaoke/makerProject';
 import { Translate } from '../../common/i18n';
 import { TSelection } from './useKaraokeMakerSelection';
@@ -164,12 +165,20 @@ export const useMakerCanvasModel = ({
         (fit) => [fit.lineId, fit] as const,
       ),
     );
+    // Keyed by the original's own id, never by position: the sheet outlives a
+    // wholesale replacement of `lyrics.lines`, so one line inserted into the
+    // original used to slide every later translation under a different line
+    // and have the fit indicator compare two unrelated ones.
+    const sheetLineBySourceId = karaokeTranslationLineBySource(
+      project.lyrics.lines,
+      translationSheet.lines,
+    );
     const lines = new Map<number, IMakerCanvasTranslationLine>();
     project.lyrics.lines.forEach((line, lineIndex) => {
       if (karaokeMakerLineIsSection(line)) {
         return;
       }
-      const sheetLine = translationSheet.lines[lineIndex];
+      const sheetLine = sheetLineBySourceId.get(line.id);
       const fit = sheetLine ? fitByLineId.get(sheetLine.id) : undefined;
       if (!sheetLine || !fit) {
         return;

@@ -227,9 +227,9 @@ export const karaokeLyricsTranslationBudget = (
 };
 
 /**
- * Every translatable line's plain text, keyed by the id the original line at
- * the same position was stamped with — see `song.ts`'s
- * `karaokeMakerProjectToSong` for why the ids match.
+ * Every translatable line's plain text, keyed by the id of the original line
+ * it was seeded from — `song.ts` restamps each translated line with its
+ * source's id on the way out, so a lookup here is the join.
  *
  * Section markers are excluded. They carry the same bracketed label in every
  * sheet, so a second copy of "[Chorus]" under the first would be noise, not a

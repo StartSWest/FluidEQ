@@ -28,6 +28,7 @@ import {
   karaokeMakerLineIsSection,
   karaokeMakerWordDurationIsPlausible,
 } from './model';
+import { karaokeTranslationLineBySource } from './translationSeed';
 
 const playableWordWeight = (word: string): number =>
   Math.max(
@@ -211,29 +212,39 @@ export const sheetLines = (
 /**
  * Every other language's lines, restamped with the original's own line ids.
  *
- * `project.lyrics.translations` sheets are built by `seedKaraokeTranslation`
- * as a 1:1 map over `project.lyrics.lines` — same count, same order, section
- * markers included — but each translated line gets a freshly generated id of
- * its own, minted from the paste it was seeded from. Copying the original
- * line's id onto the translated line at the same position is what lets the
- * player find "the Spanish line that goes under this English line" with a
- * single Map lookup by id, rather than assuming the two playable-line arrays
- * stay the same length after `makePlayableLines` independently drops
- * whichever ones came out empty on either side.
+ * Each translated line gets a freshly generated id of its own, minted from the
+ * paste it was seeded from, so copying the original line's id onto its partner
+ * is what lets the player find "the Spanish line that goes under this English
+ * line" with a single Map lookup by id — rather than assuming the two
+ * playable-line arrays stay the same length after `makePlayableLines`
+ * independently drops whichever ones came out empty on either side.
+ *
+ * Which line is whose partner is `karaokeTranslationLineBySource`'s decision
+ * and not this function's: it used to be "the sheet line at the same index",
+ * which stopped being true the moment `lyrics.lines` was replaced under a
+ * sheet that outlived the replacement. Walking the original rather than the
+ * sheet is what drops a translated line whose source is gone instead of
+ * parking it under an unrelated one.
  */
 const makePlayableTranslations = (
   project: IKaraokeMakerProject,
 ): { language: string; lines: IKaraokeLine[] }[] =>
-  (project.lyrics.translations ?? []).map((sheet) => ({
-    language: sheet.language,
-    lines: makePlayableLines(
-      project,
-      sheet.lines.map((line, index) => ({
-        ...line,
-        id: project.lyrics.lines[index]?.id ?? line.id,
-      })),
-    ),
-  }));
+  (project.lyrics.translations ?? []).map((sheet) => {
+    const bySourceId = karaokeTranslationLineBySource(
+      project.lyrics.lines,
+      sheet.lines,
+    );
+    return {
+      language: sheet.language,
+      lines: makePlayableLines(
+        project,
+        project.lyrics.lines.flatMap((line): IKaraokeMakerLine[] => {
+          const translated = bySourceId.get(line.id);
+          return translated ? [{ ...translated, id: line.id }] : [];
+        }),
+      ),
+    };
+  });
 
 export const karaokeMakerProjectToSong = (
   project: IKaraokeMakerProject,

@@ -6,13 +6,15 @@ import {
   IKaraokeMakerLine,
   IKaraokeMakerNote,
   IKaraokeMakerProject,
+  karaokeMakerProjectToSong,
   karaokeTranslationFit,
   karaokeTranslationLanguages,
+  karaokeTranslationLineBySource,
   removeKaraokeTranslation,
   seedKaraokeTranslation,
 } from '../../../common/karaoke/makerProject';
 import { splitKaraokeWordSyllables } from '../../../common/karaoke/syllables';
-import { IKaraokeSong } from '../../../common/karaoke/types';
+import { IKaraokeAsset, IKaraokeSong } from '../../../common/karaoke/types';
 
 const lyricLine = (
   id: string,
@@ -490,5 +492,146 @@ describe('translations on a project', () => {
 
     expect(withEs.lyrics.translations).toBe(before);
     expect(withEs.lyrics.translations).toHaveLength(1);
+  });
+});
+
+describe('joining a translation to the original', () => {
+  const threeLineSong = (): IKaraokeSong => ({
+    id: 'song-join',
+    title: 'Song',
+    assets: [],
+    timingPrecision: 'syllable',
+    lines: [],
+    pitch: { kind: 'none', reason: 'missing' },
+    meta: { sourceFormat: 'test', gapMs: 0 },
+  });
+
+  const audioAsset: IKaraokeAsset = {
+    id: 'audio-1',
+    role: 'audio',
+    extension: 'mp3',
+    file: new File(['audio'], 'song.mp3', { type: 'audio/mpeg' }),
+  };
+
+  /** Three timed originals with a Spanish sheet seeded over them. */
+  const seededProject = (): IKaraokeMakerProject => {
+    const base = createKaraokeMakerProject(threeLineSong());
+    const withLines: IKaraokeMakerProject = {
+      ...base,
+      lyrics: {
+        ...base.lyrics,
+        language: 'en',
+        lines: [
+          lyricLine('l1', 'one', 0, 1_000),
+          lyricLine('l2', 'two', 1_000, 2_000),
+          lyricLine('l3', 'three', 2_000, 3_000),
+        ],
+      },
+    };
+    return addKaraokeTranslation(withLines, 'uno\ndos\ntres', 'es').project;
+  };
+
+  /** The same project after a line is inserted ahead of every existing one. */
+  const withLineInserted = (
+    project: IKaraokeMakerProject,
+  ): IKaraokeMakerProject => ({
+    ...project,
+    lyrics: {
+      ...project.lyrics,
+      lines: [lyricLine('l0', 'zero', 0, 500), ...project.lyrics.lines],
+    },
+  });
+
+  const lineText = (line: IKaraokeMakerLine | undefined): string | undefined =>
+    line?.tokens.map((token) => token.text).join(' ');
+
+  it('records the original line each translated line was seeded from', () => {
+    const sheet = seededProject().lyrics.translations?.[0];
+
+    expect(sheet?.lines.map((line) => line.sourceLineId)).toEqual([
+      'l1',
+      'l2',
+      'l3',
+    ]);
+    // Its own id, not the original's: two sheets and the original must stay
+    // separately addressable.
+    expect(sheet?.lines.map((line) => line.id)).not.toEqual(['l1', 'l2', 'l3']);
+  });
+
+  it('keeps each pairing after a line is inserted into the original', () => {
+    const seeded = seededProject();
+    const sheet = seededProject().lyrics.translations?.[0];
+    const edited = withLineInserted(seeded);
+
+    const paired = karaokeTranslationLineBySource(
+      edited.lyrics.lines,
+      sheet?.lines ?? [],
+    );
+
+    // Under a positional join these would read 'uno', 'dos', 'tres',
+    // undefined — every translation one line late, silently.
+    expect(lineText(paired.get('l0'))).toBeUndefined();
+    expect(lineText(paired.get('l1'))).toBe('uno');
+    expect(lineText(paired.get('l2'))).toBe('dos');
+    expect(lineText(paired.get('l3'))).toBe('tres');
+  });
+
+  it('drops a translated line whose original was deleted', () => {
+    const seeded = seededProject();
+    const sheet = seeded.lyrics.translations?.[0];
+    const withoutSecond = seeded.lyrics.lines.filter(
+      (line) => line.id !== 'l2',
+    );
+
+    const paired = karaokeTranslationLineBySource(
+      withoutSecond,
+      sheet?.lines ?? [],
+    );
+
+    expect([...paired.keys()].sort()).toEqual(['l1', 'l3']);
+    expect(lineText(paired.get('l3'))).toBe('tres');
+  });
+
+  it('joins by position when the sheet declares no source at all', () => {
+    const seeded = seededProject();
+    const legacySheetLines = (seeded.lyrics.translations?.[0].lines ?? []).map(
+      ({ sourceLineId, ...line }) => {
+        // The field is destructured off deliberately; a sheet written before
+        // it existed is exactly this shape.
+        expect(sourceLineId).toBeDefined();
+        return line;
+      },
+    );
+    const edited = withLineInserted(seeded);
+
+    const paired = karaokeTranslationLineBySource(
+      edited.lyrics.lines,
+      legacySheetLines,
+    );
+
+    // The old behaviour, unchanged, so an existing draft cannot regress.
+    expect(lineText(paired.get('l0'))).toBe('uno');
+    expect(lineText(paired.get('l1'))).toBe('dos');
+    expect(lineText(paired.get('l2'))).toBe('tres');
+    expect(lineText(paired.get('l3'))).toBeUndefined();
+  });
+
+  it('paints the player rows under the right originals after an insertion', () => {
+    const edited = withLineInserted(seededProject());
+
+    const song = karaokeMakerProjectToSong(edited, audioAsset);
+    const spanish = song.translations?.[0];
+
+    expect(spanish?.language).toBe('es');
+    expect(
+      spanish?.lines.map((line) => [
+        line.id,
+        line.tokens.map((token) => token.text).join(' '),
+      ]),
+    ).toEqual([
+      ['l1', 'uno'],
+      ['l2', 'dos'],
+      ['l3', 'tres'],
+    ]);
   });
 });
