@@ -74,21 +74,11 @@ export interface IKaraokeMakerLine {
   endMs?: number;
   tokens: IKaraokeMakerToken[];
   /**
-   * On a translated sheet's line only: the id of the `lyrics.lines` line this
-   * one was seeded from. Never set on `lyrics.lines` itself, which is the
-   * spine every sheet is identified against.
-   *
-   * The two sides used to be joined by array position, and nothing owned that
-   * invariant: `replaceLyrics` and `clearLyrics` replace `lyrics.lines`
-   * wholesale while `translations` survives, so re-pasting the lyrics with one
-   * line added slid every later translated line under a different original —
-   * silently, in the Maker canvas and in the player alike, with the fit
-   * indicator doing arithmetic about two unrelated lines. Position is not
-   * identity; this is.
-   *
-   * Optional because a sheet seeded before this field existed carries none,
-   * and those still join by position — see
-   * `karaokeTranslationLineBySource`.
+   * On a translated sheet's line only: the id of the `lyrics.lines` line it
+   * was seeded from — position was the only join the two sides had, and
+   * nothing kept them the same shape. Optional, because a sheet seeded before
+   * this field existed carries none; `karaokeTranslationLineBySource` owns
+   * both cases.
    */
   sourceLineId?: string;
 }
