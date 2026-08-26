@@ -84,6 +84,10 @@ import {
   createPhaseAlign,
 } from '../../src/renderer/dsp/phaseAlign';
 import {
+  createExciterGuard,
+  guardExciterReturn,
+} from '../../src/renderer/dsp/exciterGuard';
+import {
   createBandDynamics,
   refreshBandDynamics,
 } from '../../src/renderer/dsp/dynamics';
@@ -146,6 +150,7 @@ enum ProcessorId {
   ExciterTransient = 16,
   AnalogDiode = 17,
   PhaseAlign = 18,
+  ExciterGuard = 19,
 }
 
 interface IRackBand {
@@ -1195,6 +1200,26 @@ parityCorpus(FRAMES, 48000).forEach((signal) => {
           amount,
           48000,
         );
+        return target;
+      }),
+      maxAbsTolerance: 1e-6,
+      rmsTolerance: 1e-7,
+    });
+  });
+});
+
+// The sibilance guard on the return path, at three blend amounts.
+[0, 0.5, 1].forEach((amount) => {
+  parityCorpus(FRAMES, 48000).forEach((signal) => {
+    fixtures.push({
+      name: `guard/${amount}/48000/${signal.name}`,
+      processor: ProcessorId.ExciterGuard,
+      sampleRate: 48000,
+      params: [amount],
+      input: processorInput(signal.channels),
+      expected: processorInput(signal.channels).map((channel) => {
+        const target = Float32Array.from(channel);
+        guardExciterReturn(createExciterGuard(), target, 48000, amount);
         return target;
       }),
       maxAbsTolerance: 1e-6,

@@ -24,6 +24,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "fluideq/dsp.h"
 #include "fluideq/dynamics.h"
 #include "fluideq/eq.h"
+#include "fluideq/exciter_guard.h"
 #include "fluideq/oversample.h"
 #include "fluideq/phase_align.h"
 #include "fluideq/primitives.h"
@@ -70,7 +71,8 @@ enum ProcessorId : uint32_t {
   kAutoHeadroom = 15,
   kExciterTransient = 16,
   kAnalogDiode = 17,
-  kPhaseAlign = 18
+  kPhaseAlign = 18,
+  kExciterGuard = 19
 };
 
 struct Fixture {
@@ -759,9 +761,28 @@ bool render_phase_align(const Fixture& fixture, std::vector<float>& actual) {
   return true;
 }
 
+/** `[amount]`. */
+bool render_exciter_guard(const Fixture& fixture, std::vector<float>& actual) {
+  if (fixture.params.empty()) {
+    return false;
+  }
+  actual = fixture.input;
+  for (uint32_t channel = 0; channel < fixture.channels; ++channel) {
+    std::vector<float> filtered(fixture.frames);
+    FeqExciterGuard state;
+    feq_exciter_guard_init(&state, filtered.data());
+    feq_exciter_guard_process(
+        &state, channel_at(actual, channel, fixture.frames), fixture.frames,
+        static_cast<double>(fixture.sample_rate), fixture.params[0]);
+  }
+  return true;
+}
+
 /** Run one fixture through the native engine, or say it cannot be run yet. */
 bool render(const Fixture& fixture, std::vector<float>& actual) {
   switch (fixture.processor) {
+    case kExciterGuard:
+      return render_exciter_guard(fixture, actual);
     case kPhaseAlign:
       return render_phase_align(fixture, actual);
     case kExciterTransient:
