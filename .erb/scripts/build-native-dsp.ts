@@ -161,7 +161,16 @@ const generate = (script: string) => {
   const result = spawnSync(
     process.execPath,
     [require.resolve('ts-node/dist/bin'), path.join(__dirname, script)],
-    { stdio: 'inherit', cwd: ROOT },
+    {
+      stdio: 'inherit',
+      cwd: ROOT,
+      // Transpile only, because the fixture generator imports processors that
+      // are written against `AudioWorkletGlobalScope`. Their `sampleRate`
+      // fallback has no declaration outside a worklet, and type-checking a
+      // module here would fail on a global the app's own tsconfig supplies.
+      // `pnpm typecheck` still covers all of it in the right context.
+      env: { ...process.env, TS_NODE_TRANSPILE_ONLY: 'true' },
+    },
   );
   if (result.status !== 0) {
     fail(`${script} exited with ${result.status}`);

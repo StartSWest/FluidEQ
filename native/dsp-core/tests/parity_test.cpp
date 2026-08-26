@@ -25,6 +25,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "fluideq/eq.h"
 #include "fluideq/oversample.h"
 #include "fluideq/primitives.h"
+#include "fluideq/limiter.h"
+#include "fluideq/saturate.h"
 
 #include <algorithm>
 #include <cmath>
@@ -53,7 +55,9 @@ enum ProcessorId : uint32_t {
   kEqOversampledLinked = 5,
   kDelayLine = 6,
   kCrossover = 7,
-  kTruePeak = 8
+  kTruePeak = 8,
+  kSaturate = 9,
+  kLimiter = 10
 };
 
 struct Fixture {
@@ -476,9 +480,71 @@ bool render_true_peak(const Fixture& fixture, std::vector<float>& actual) {
   return true;
 }
 
+bool render_saturate(const Fixture& fixture, std::vector<float>& actual) {
+  if (fixture.params.size() < 2) {
+    return false;
+  }
+  actual = fixture.input;
+  std::vector<float> oversampled(static_cast<size_t>(fixture.frames) *
+                                 FEQ_SATURATE_MAX_OVERSAMPLE);
+  std::vector<float> middle(static_cast<size_t>(fixture.frames) * 2);
+  for (uint32_t channel = 0; channel < fixture.channels; ++channel) {
+    FeqSaturator state;
+    feq_saturator_reset(&state);
+    feq_saturate_block(&state, channel_at(actual, channel, fixture.frames),
+                       fixture.frames, fixture.params[0], fixture.params[1],
+                       static_cast<double>(fixture.sample_rate),
+                       oversampled.data(), middle.data());
+  }
+  return true;
+}
+
+/** `[lookAhead, ceiling, release, limitingRelease, kneeDb, activation]`. */
+bool render_limiter(const Fixture& fixture, std::vector<float>& actual) {
+  if (fixture.params.size() < 6) {
+    return false;
+  }
+  /**
+   * `max(1, lookAhead) + 1`, which is what `createLimiterState` computes.
+   *
+   * Not `lookAhead + 1`. At a look-ahead of zero the reference still allocates
+   * two slots, so its effective look-ahead is one sample and the emitted value
+   * comes from the delay rather than straight from the input. Written the
+   * obvious way this port took the other branch entirely, and every
+   * zero-look-ahead fixture failed by up to full scale — which is exactly the
+   * branch a corpus without a zero case would never have exercised.
+   */
+  const auto requested = static_cast<uint32_t>(fixture.params[0]);
+  const uint32_t capacity = (requested < 1 ? 1 : requested) + 1;
+  FeqLimiterOptions options;
+  options.ceiling = fixture.params[1];
+  options.release_coefficient = fixture.params[2];
+  options.limiting_release_coefficient = fixture.params[3];
+  options.knee_db = fixture.params[4];
+  options.activation_threshold = fixture.params[5];
+
+  actual = fixture.input;
+  for (uint32_t channel = 0; channel < fixture.channels; ++channel) {
+    std::vector<float> delay(capacity);
+    std::vector<float> magnitude(capacity);
+    std::vector<int64_t> window(capacity);
+    FeqLimiter state;
+    feq_limiter_init(&state, delay.data(), magnitude.data(), window.data(),
+                     capacity, FEQ_TRUE_PEAK_FACTOR);
+    float* channel_data = channel_at(actual, channel, fixture.frames);
+    feq_limiter_process(&state, channel_data, channel_data, fixture.frames,
+                        &options);
+  }
+  return true;
+}
+
 /** Run one fixture through the native engine, or say it cannot be run yet. */
 bool render(const Fixture& fixture, std::vector<float>& actual) {
   switch (fixture.processor) {
+    case kLimiter:
+      return render_limiter(fixture, actual);
+    case kSaturate:
+      return render_saturate(fixture, actual);
     case kDelayLine:
       return render_delay(fixture, actual);
     case kCrossover:

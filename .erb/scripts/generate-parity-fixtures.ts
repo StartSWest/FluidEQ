@@ -50,10 +50,34 @@ import {
   truePeakOfSample,
 } from '../../src/renderer/dsp/truePeak';
 import {
+  createSaturator,
+  fuzzBlend,
+  fuzzDrive,
+  saturateBlock,
+} from '../../src/renderer/dsp/saturate';
+import {
+  createLimiterState,
+  processLimiter,
+} from '../../src/renderer/dsp/limiter';
+import {
   createBandDynamics,
   refreshBandDynamics,
 } from '../../src/renderer/dsp/dynamics';
 import type { TEqEngine } from '../../src/common/dsp/chain';
+
+/**
+ * The AudioWorklet global several of these modules fall back to.
+ *
+ * `sampleRate` is defined by `AudioWorkletGlobalScope` and by nothing else, so
+ * importing a processor that reads it into plain Node fails at load. Every
+ * fixture supplies an explicit rate and the fallback is never the value used —
+ * but the module still has to load, so the global is provided.
+ *
+ * That fallback is itself the reason these modules cannot be unit-tested
+ * outside a worklet today, and it is one of the things the port removes: the
+ * C++ side takes its rate as an argument, always.
+ */
+(globalThis as { sampleRate?: number }).sampleRate = 48_000;
 
 const OUTPUT = path.join(
   __dirname,
@@ -88,6 +112,8 @@ enum ProcessorId {
   DelayLine = 6,
   Crossover = 7,
   TruePeak = 8,
+  Saturate = 9,
+  Limiter = 10,
 }
 
 interface IRackBand {
@@ -793,6 +819,80 @@ RACKS.forEach((rack) => {
       }),
       maxAbsTolerance: 1e-6,
       rmsTolerance: 1e-7,
+    });
+  });
+});
+
+/**
+ * The colour curve, raw and blended, at the drives the dial actually reaches.
+ *
+ * A negative blend means the raw shaper — the form measurement uses. Zero to
+ * one is the parallel path the EQ runs, where the carrier is preserved and
+ * only the difference is scaled.
+ */
+[0.05, 0.5, 0.72].forEach((amount) => {
+  const drive = amount === 0.72 ? fuzzDrive(1) : fuzzDrive(amount);
+  [-1, fuzzBlend(amount)].forEach((blend) => {
+    parityCorpus(FRAMES, 48000).forEach((signal) => {
+      fixtures.push({
+        name: `saturate/${drive.toFixed(3)}/${blend < 0 ? 'raw' : 'blend'}/${signal.name}`,
+        processor: ProcessorId.Saturate,
+        sampleRate: 48000,
+        params: [drive, blend],
+        input: processorInput(signal.channels),
+        expected: processorInput(signal.channels).map((channel) => {
+          const target = Float32Array.from(channel);
+          saturateBlock(
+            createSaturator(target.length),
+            target,
+            drive,
+            blend < 0 ? undefined : blend,
+            48000,
+          );
+          return target;
+        }),
+        // A tanh through a 4x resampler both ways: the FIR rounding dominates,
+        // as it does for the oversampled EQ.
+        maxAbsTolerance: 1e-4,
+        rmsTolerance: 1e-5,
+      });
+    });
+  });
+});
+
+/**
+ * Look-ahead limiting, at the look-aheads and ceilings the app offers.
+ *
+ * A zero look-ahead is included on purpose: it takes a different branch — the
+ * emitted sample is the incoming one rather than a delayed slot — and it is
+ * the branch a port is most likely to get wrong, because it is the one the
+ * ordinary case never exercises.
+ */
+[0, 8, 64, 480].forEach((lookAhead) => {
+  [0.5, 0.891].forEach((ceiling) => {
+    [0, 3].forEach((kneeDb) => {
+      parityCorpus(FRAMES, 48000).forEach((signal) => {
+        fixtures.push({
+          name: `limiter/${lookAhead}/${ceiling}/k${kneeDb}/${signal.name}`,
+          processor: ProcessorId.Limiter,
+          sampleRate: 48000,
+          params: [lookAhead, ceiling, 0.9995, 0.998, kneeDb, ceiling],
+          input: processorInput(signal.channels),
+          expected: processorInput(signal.channels).map((channel) => {
+            const output = new Float32Array(channel.length);
+            processLimiter(createLimiterState(lookAhead), channel, output, {
+              ceiling,
+              activationThreshold: ceiling,
+              releaseCoefficient: 0.9995,
+              limitingReleaseCoefficient: 0.998,
+              kneeDb,
+            });
+            return output;
+          }),
+          maxAbsTolerance: 1e-6,
+          rmsTolerance: 1e-7,
+        });
+      });
     });
   });
 });

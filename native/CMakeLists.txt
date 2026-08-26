@@ -60,6 +60,8 @@ add_library(fluideq-dsp-core STATIC
   dsp-core/src/dynamics.cpp
   dsp-core/src/oversample.cpp
   dsp-core/src/primitives.cpp
+  dsp-core/src/saturate.cpp
+  dsp-core/src/limiter.cpp
 )
 target_include_directories(fluideq-dsp-core PUBLIC dsp-core/include)
 target_link_libraries(fluideq-dsp-core PRIVATE feq_strict)
