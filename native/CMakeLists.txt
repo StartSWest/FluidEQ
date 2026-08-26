@@ -81,6 +81,7 @@ add_library(fluideq-dsp-core STATIC
   dsp-core/src/chain_stages.cpp
   dsp-core/src/chain_linear.cpp
   dsp-core/src/resampler.cpp
+  dsp-core/src/player.cpp
 )
 target_include_directories(fluideq-dsp-core PUBLIC dsp-core/include)
 target_link_libraries(fluideq-dsp-core PRIVATE feq_strict)
@@ -100,6 +101,10 @@ add_test(NAME dsp-core COMMAND fluideq-dsp-core-test)
 add_executable(fluideq-resampler-test dsp-core/tests/resampler_test.cpp)
 target_link_libraries(fluideq-resampler-test PRIVATE fluideq-dsp-core feq_strict)
 add_test(NAME resampler COMMAND fluideq-resampler-test)
+
+add_executable(fluideq-player-test dsp-core/tests/player_test.cpp)
+target_link_libraries(fluideq-player-test PRIVATE fluideq-dsp-core feq_strict)
+add_test(NAME player COMMAND fluideq-player-test)
 
 add_executable(fluideq-dsp-parity-test dsp-core/tests/parity_test.cpp)
 target_link_libraries(fluideq-dsp-parity-test

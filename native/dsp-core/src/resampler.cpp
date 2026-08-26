@@ -59,6 +59,18 @@ struct FeqResampler {
   double phase = 0.0;
   /** Input frames still owed before the first output is centred. */
   uint32_t primed = 0;
+  /**
+   * Silent frames already pushed by `flush`, and it lives HERE rather than
+   * inside `flush` because the tail spans calls.
+   *
+   * As a local it reset to zero on every call, so a caller looping until the
+   * converter stopped producing looped forever: each call pushed another half
+   * window of silence and returned frames for it. A deck fed by that never
+   * reached the end of its file — it played the track and then an endless,
+   * silent, buffered nothing, which is what the player's rate-conversion test
+   * reported as ten seconds of audio taking twelve.
+   */
+  uint32_t flushed = 0;
 };
 
 extern "C" {
@@ -114,6 +126,7 @@ FeqResampler* feq_resampler_create(double input_rate,
   state->history.assign(
       static_cast<size_t>(channels) * FEQ_RESAMPLER_TAPS, 0.0f);
   state->primed = kHalf;
+  state->flushed = 0;
   return state;
 }
 
@@ -129,6 +142,7 @@ void feq_resampler_reset(FeqResampler* state) {
   state->history_at = 0;
   state->phase = 0.0;
   state->primed = kHalf;
+  state->flushed = 0;
 }
 
 uint32_t feq_resampler_input_for(const FeqResampler* state,
@@ -265,11 +279,10 @@ uint32_t feq_resampler_flush(FeqResampler* state,
     return 0;
   }
   uint32_t written = 0;
-  uint32_t pushed = 0;
-  while (written < output_frames && pushed < kHalf) {
-    while (state->phase >= 1.0 && pushed < kHalf) {
+  while (written < output_frames && state->flushed < kHalf) {
+    while (state->phase >= 1.0 && state->flushed < kHalf) {
       push_silence(state);
-      ++pushed;
+      ++state->flushed;
       state->phase -= 1.0;
     }
     if (state->phase >= 1.0) {
