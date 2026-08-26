@@ -67,6 +67,10 @@ import {
   processBandLinked,
 } from '../../src/renderer/dsp/compressor';
 import {
+  createOutputSafety,
+  processOutputSafety,
+} from '../../src/renderer/dsp/outputSafety';
+import {
   createBandDynamics,
   refreshBandDynamics,
 } from '../../src/renderer/dsp/dynamics';
@@ -124,6 +128,7 @@ enum ProcessorId {
   LinkedLimiter = 11,
   Compressor = 12,
   CompressorLinked = 13,
+  OutputSafety = 14,
 }
 
 interface IRackBand {
@@ -1011,6 +1016,47 @@ RACKS.forEach((rack) => {
         maxAbsTolerance: 1e-6,
         rmsTolerance: 1e-7,
       });
+    });
+  });
+});
+
+/**
+ * The always-on guard, bypassed and engaged.
+ *
+ * Bypassed is not a no-op and that is the point: the DC blocker still runs and
+ * the delay line still advances, so toggling Safety cannot change latency or
+ * replay stale audio. A fixture that only covered the engaged path would let a
+ * port skip the whole stage when disabled and still pass.
+ */
+[0, 1].forEach((enabled) => {
+  parityCorpus(FRAMES, 48000).forEach((signal) => {
+    fixtures.push({
+      name: `safety/${enabled ? 'on' : 'bypassed'}/${signal.name}`,
+      processor: ProcessorId.OutputSafety,
+      sampleRate: 48000,
+      params: [enabled, 10 ** (-0.1 / 20), 10 ** (-0.1 / 20), 1, 0, 0],
+      // Raw, and the only fixture that is. This stage IS the repair — every
+      // other processor is handed input the engine has already cleaned, but
+      // feeding this one clean input would skip the branch that clears the DC
+      // history, which is the only thing stopping one NaN from making every
+      // later sample NaN.
+      input: signal.channels,
+      expected: (() => {
+        const targets = signal.channels.map((channel) =>
+          Float32Array.from(channel),
+        );
+        processOutputSafety(createOutputSafety(targets.length, 48000), targets, {
+          limiterEnabled: enabled === 1,
+          ceiling: 10 ** (-0.1 / 20),
+          activationThreshold: 10 ** (-0.1 / 20),
+          releaseCoefficient: 1,
+          kneeDb: 0,
+          releaseHoldSamples: 0,
+        });
+        return targets;
+      })(),
+      maxAbsTolerance: 1e-6,
+      rmsTolerance: 1e-7,
     });
   });
 });

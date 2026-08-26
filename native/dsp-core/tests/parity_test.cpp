@@ -26,6 +26,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "fluideq/oversample.h"
 #include "fluideq/primitives.h"
 #include "fluideq/compressor.h"
+#include "fluideq/output_safety.h"
 #include "fluideq/limiter.h"
 #include "fluideq/saturate.h"
 
@@ -61,7 +62,8 @@ enum ProcessorId : uint32_t {
   kLimiter = 10,
   kLinkedLimiter = 11,
   kCompressor = 12,
-  kCompressorLinked = 13
+  kCompressorLinked = 13,
+  kOutputSafety = 14
 };
 
 struct Fixture {
@@ -619,9 +621,49 @@ bool render_compressor(const Fixture& fixture, std::vector<float>& actual,
   return true;
 }
 
+/** `[limiterEnabled, ceiling, activation, releaseCoefficient, kneeDb, hold]`. */
+bool render_output_safety(const Fixture& fixture, std::vector<float>& actual) {
+  if (fixture.params.size() < 6) {
+    return false;
+  }
+  FeqOutputSafetyOptions options{};
+  options.limiter_enabled = fixture.params[0] != 0.0 ? 1 : 0;
+  options.ceiling = fixture.params[1];
+  options.activation_threshold = fixture.params[2];
+  options.release_coefficient = fixture.params[3];
+  options.knee_db = fixture.params[4];
+  options.release_hold_samples = fixture.params[5];
+
+  const double rate = static_cast<double>(fixture.sample_rate);
+  const uint32_t look_ahead = feq_output_safety_look_ahead(rate);
+  const uint32_t capacity = look_ahead + 1;
+  const uint32_t channels = fixture.channels;
+
+  actual = fixture.input;
+  std::vector<FeqDcBlock> dc(channels);
+  std::vector<FeqTruePeak> detectors(channels);
+  std::vector<std::vector<float>> lines(channels, std::vector<float>(capacity));
+  std::vector<float*> line_pointers(channels);
+  std::vector<float*> targets(channels);
+  for (uint32_t channel = 0; channel < channels; ++channel) {
+    line_pointers[channel] = lines[channel].data();
+    targets[channel] = channel_at(actual, channel, fixture.frames);
+  }
+  std::vector<float> reduction(capacity);
+
+  FeqOutputSafety state;
+  feq_output_safety_init(&state, dc.data(), detectors.data(),
+                         line_pointers.data(), reduction.data(), channels,
+                         capacity, rate);
+  feq_output_safety_process(&state, targets.data(), fixture.frames, &options);
+  return true;
+}
+
 /** Run one fixture through the native engine, or say it cannot be run yet. */
 bool render(const Fixture& fixture, std::vector<float>& actual) {
   switch (fixture.processor) {
+    case kOutputSafety:
+      return render_output_safety(fixture, actual);
     case kCompressor:
       return render_compressor(fixture, actual, false);
     case kCompressorLinked:
