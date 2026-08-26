@@ -73,13 +73,15 @@ export interface IKaraokeLyricsTranslationSelection {
   /** Drives this instance's own picker. Harmless to call when an
    * `externalLanguage` is in effect -- nothing reads the state it would set. */
   setTranslationLanguage: (language: string) => void;
-  /** The selected sheet exists but has no playable lines: the row must say
-   * so rather than paint nothing. */
+  /** The selected sheet exists but has nothing paintable in it — no lines, or
+   * only section markers and blanks: the row must say so rather than paint
+   * nothing. */
   isSelectedTranslationEmpty: boolean;
-  /** Undefined means no row this frame. Rebuilt only when the selected sheet
-   * itself changes, not every frame: sixty times a second across up to seven
-   * visible lines is a lot of token-joining for text that only changes when
-   * the picker does. */
+  /** Undefined means no row this frame, and an empty sheet counts as none —
+   * the caller reserves this row's height on the field being defined. Rebuilt
+   * only when the selected sheet itself changes, not every frame: sixty times
+   * a second across up to seven visible lines is a lot of token-joining for
+   * text that only changes when the picker does. */
   translationTextById?: Map<string, string>;
 }
 
@@ -118,16 +120,25 @@ export const useKaraokeLyricsTranslationSelection = (
     translationLanguage === originalLanguage
       ? undefined
       : translations.find((entry) => entry.language === translationLanguage);
+  const translationTextById = useMemo(() => {
+    if (!activeTranslationSheet) {
+      return undefined;
+    }
+    const textById = karaokeLyricsTranslationTextById(
+      activeTranslationSheet.lines,
+    );
+    // Undefined rather than an empty Map. `KaraokeLyrics.tsx` budgets this
+    // row's height on the map being *defined*, so a sheet whose lines are all
+    // section markers, or all blank, grew every visible line's slot by a full
+    // row with nothing painted in it — an emptier stage for no reason a reader
+    // could name.
+    return textById.size ? textById : undefined;
+  }, [activeTranslationSheet]);
+  // A sheet with no lines at all and a sheet with nothing paintable in them
+  // are the same thing to a reader: both need the row to say so rather than
+  // silently show nothing.
   const isSelectedTranslationEmpty =
-    activeTranslationSheet !== undefined &&
-    activeTranslationSheet.lines.length === 0;
-  const translationTextById = useMemo(
-    () =>
-      activeTranslationSheet
-        ? karaokeLyricsTranslationTextById(activeTranslationSheet.lines)
-        : undefined,
-    [activeTranslationSheet],
-  );
+    activeTranslationSheet !== undefined && translationTextById === undefined;
 
   return {
     originalLanguage,
