@@ -726,3 +726,80 @@ describe('choosing a language for the song', () => {
     expect(song.translations).toBeUndefined();
   });
 });
+
+describe('refusing the original language', () => {
+  const projectTagged = (tag: string): IKaraokeMakerProject => {
+    const base = createKaraokeMakerProject({
+      id: 'song-tagged',
+      title: 'Song',
+      assets: [],
+      timingPrecision: 'syllable',
+      lines: [],
+      pitch: { kind: 'none', reason: 'missing' },
+      meta: { sourceFormat: 'test', gapMs: 0 },
+    });
+    return {
+      ...base,
+      lyrics: {
+        ...base.lyrics,
+        language: tag,
+        lines: [lyricLine('l1', 'hello world', 0, 2_000)],
+      },
+    };
+  };
+
+  it('refuses the code when the project was tagged with the English name', () => {
+    // Guard the premise: if Intl ever stops answering this, the failure must
+    // name that rather than look like a guard bug.
+    expect(new Intl.DisplayNames(['en'], { type: 'language' }).of('es')).toBe(
+      'Spanish',
+    );
+
+    // What an UltraStar import stores: `#LANGUAGE` is a display name, and
+    // ultrastar.ts keeps the header verbatim.
+    const { project } = addKaraokeTranslation(
+      projectTagged('Spanish'),
+      'hola mundo',
+      'es',
+    );
+
+    expect(project.lyrics.translations).toBeUndefined();
+  });
+
+  it('refuses the code when the project was tagged with the endonym', () => {
+    expect(new Intl.DisplayNames(['es'], { type: 'language' }).of('es')).toBe(
+      'español',
+    );
+
+    const { project } = addKaraokeTranslation(
+      projectTagged('Español'),
+      'hola mundo',
+      'es',
+    );
+
+    expect(project.lyrics.translations).toBeUndefined();
+  });
+
+  it('still accepts a genuinely different language on the same song', () => {
+    // The positive control the two above need: a guard that refused
+    // everything would pass them both and be useless.
+    const { project } = addKaraokeTranslation(
+      projectTagged('Spanish'),
+      'bonjour monde',
+      'fr',
+    );
+
+    expect(project.lyrics.translations).toHaveLength(1);
+    expect(project.lyrics.translations?.[0].language).toBe('fr');
+  });
+
+  it('refuses a region tag against the base code it belongs to', () => {
+    const { project } = addKaraokeTranslation(
+      projectTagged('pt-BR'),
+      'olá mundo',
+      'pt',
+    );
+
+    expect(project.lyrics.translations).toBeUndefined();
+  });
+});

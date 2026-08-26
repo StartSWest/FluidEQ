@@ -216,6 +216,61 @@ export const karaokeTranslationFit = (
  */
 export const KARAOKE_ORIGINAL_LANGUAGE = 'original';
 
+/** The name a tag answers to in one locale, or nothing for a tag Intl refuses. */
+const languageDisplayName = (
+  tag: string,
+  locale: string,
+): string | undefined => {
+  try {
+    return new Intl.DisplayNames([locale], { type: 'language' }).of(tag);
+  } catch {
+    // A structurally invalid tag — "Español" reaches here — has no display
+    // name to offer. The raw string is already in the alias set.
+    return undefined;
+  }
+};
+
+/**
+ * Every string a language tag answers to: itself, its base subtag, and the
+ * names that subtag is written with.
+ *
+ * `#LANGUAGE` in an UltraStar file is a display name, not a code — "Spanish"
+ * in one file and "Español" in the next, because those files come from every
+ * locale there is — while the picker only ever offers BCP-47 codes. English
+ * because that is what the format conventionally carries; the language's own
+ * because a sheet written where it is spoken carries the endonym.
+ */
+const languageAliases = (value: string): Set<string> => {
+  const normalised = value.trim().toLowerCase();
+  const [base] = normalised.split(/[-_]/);
+  const aliases = new Set([normalised, base]);
+  ['en', base].forEach((locale) => {
+    const name = languageDisplayName(base, locale);
+    if (name) {
+      aliases.add(name.toLowerCase());
+    }
+  });
+  return aliases;
+};
+
+/**
+ * Whether two language tags name the same language.
+ *
+ * A raw `===` let a Spanish translation be added to a song whose `#LANGUAGE`
+ * header said "Spanish", because the picker had offered `es` — a rejection
+ * §14 of the spec requires, defeated by the app's own primary import format.
+ */
+export const karaokeLanguageTagsMatch = (
+  left: string | undefined,
+  right: string | undefined,
+): boolean => {
+  if (!left?.trim() || !right?.trim()) {
+    return false;
+  }
+  const rightAliases = languageAliases(right);
+  return [...languageAliases(left)].some((alias) => rightAliases.has(alias));
+};
+
 export const karaokeTranslationLanguages = (
   project: IKaraokeMakerProject,
 ): string[] => [
@@ -232,7 +287,7 @@ export const addKaraokeTranslation = (
   mismatch?: { expected: number; received: number };
 } => {
   const target = language.trim();
-  if (!target || target === project.lyrics.language) {
+  if (!target || karaokeLanguageTagsMatch(target, project.lyrics.language)) {
     return { project };
   }
   const seeded = seedKaraokeTranslation(project.lyrics.lines, text, target);
