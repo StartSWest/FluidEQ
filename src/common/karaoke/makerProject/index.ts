@@ -36,7 +36,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * - `timeline`   moving the whole performance, or one line's tail
  * - `boundaries` dragging one token edge, and the cascade that follows
  * - `recording`  timing lines by ear against playback
- * - `project`    creating, importing, serialising and parsing
+ * - `project`    creating, importing and serialising
+ * - `parse`      reading one back from untrusted JSON
  * - `song`       turning a project into something playable
  */
 export * from './lineTokens';
@@ -46,4 +47,5 @@ export * from './timeline';
 export * from './boundaries';
 export * from './recording';
 export * from './project';
+export * from './parse';
 export * from './song';

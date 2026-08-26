@@ -20,7 +20,7 @@ import { parseLrc } from '../../../common/karaoke/lrc';
  * and 3043/3086 ms — 43 ms apart, which the old 125 ms beat merged.
  */
 const project = (): IKaraokeMakerProject => ({
-  version: 1,
+  version: 2,
   id: 'project-1',
   title: 'Song',
   artist: 'Artist',

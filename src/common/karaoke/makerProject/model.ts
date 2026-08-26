@@ -26,7 +26,10 @@ import { splitKaraokeWordSyllables } from '../syllables';
  */
 import { isKaraokeSectionText } from '../sections';
 
-export const KARAOKE_MAKER_PROJECT_VERSION = 1 as const;
+// 2 adds `lyrics.translations`. The parse guard rejects any other version, so
+// an older build refuses a newer draft out loud rather than silently dropping
+// the translations on its next save.
+export const KARAOKE_MAKER_PROJECT_VERSION = 2 as const;
 export const KARAOKE_MAKER_EXTENSION = 'fluideq-karaoke.json';
 /**
  * Incremented when automatic Whisper timing semantics change. This is kept
@@ -41,7 +44,11 @@ export type TKaraokeMakerSource =
   | 'pitch-analysis'
   | 'basic-pitch'
   | 'whisper'
-  | 'auto-align';
+  | 'auto-align'
+  // The words are the user's, but the timings were derived from the original
+  // language's line spans. Derived timings must stay replaceable by the fit
+  // tools, which is what marking them automatic buys.
+  | 'translation-seed';
 
 export interface IKaraokeMakerToken {
   id: string;
@@ -66,6 +73,19 @@ export interface IKaraokeMakerLine {
   startMs?: number;
   endMs?: number;
   tokens: IKaraokeMakerToken[];
+}
+
+/**
+ * One language's words for a song.
+ *
+ * No notes here. The melody is shared across every language and already lives
+ * in `project.melody`; languages differ only in the words and in where the
+ * word boundaries fall, so a sheet carries tokens and nothing else.
+ */
+export interface IKaraokeMakerLyricSheet {
+  language: string;
+  source: TKaraokeMakerSource;
+  lines: IKaraokeMakerLine[];
 }
 
 export type TKaraokeMakerLineCaptureIntent = 'start' | 'end';
@@ -165,7 +185,13 @@ export const karaokeMakerMaximumAutomaticWordDurationMs = (
 export const karaokeMakerSourceIsAutomatic = (
   source: TKaraokeMakerSource,
 ): boolean =>
-  ['whisper', 'auto-align', 'pitch-analysis', 'basic-pitch'].includes(source);
+  [
+    'whisper',
+    'auto-align',
+    'pitch-analysis',
+    'basic-pitch',
+    'translation-seed',
+  ].includes(source);
 
 export const karaokeMakerWordDurationIsPlausible = (
   text: string,
@@ -372,6 +398,7 @@ export interface IKaraokeMakerProject {
     language?: string;
     source: TKaraokeMakerSource;
     lines: IKaraokeMakerLine[];
+    translations?: IKaraokeMakerLyricSheet[];
   };
   melody: {
     source: TKaraokeMakerSource;
@@ -427,6 +454,7 @@ export const safeSource = (value: unknown): TKaraokeMakerSource =>
     'basic-pitch',
     'whisper',
     'auto-align',
+    'translation-seed',
   ].includes(String(value))
     ? (value as TKaraokeMakerSource)
     : 'manual';

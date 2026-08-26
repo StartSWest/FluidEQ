@@ -12,7 +12,7 @@ import {
 import { IKaraokeMakerProject } from '../../../common/karaoke/makerProject';
 
 const project = (): IKaraokeMakerProject => ({
-  version: 1,
+  version: 2,
   id: '../../cannot-escape',
   title: 'Draft',
   createdAt: '2026-01-01T00:00:00.000Z',

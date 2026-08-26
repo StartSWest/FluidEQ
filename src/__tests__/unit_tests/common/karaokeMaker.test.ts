@@ -2,10 +2,12 @@
 
 import {
   createKaraokeMakerProject,
+  IKaraokeMakerLyricSheet,
   IKaraokeMakerProject,
   importLyricsIntoKaraokeMakerProject,
   karaokeMakerProjectToSong,
   karaokeMakerRecordedLineContainsTime,
+  karaokeMakerSourceIsAutomatic,
   karaokeMakerTokenWasUserTouched,
   karaokeMakerLineIsSection,
   synchronizeKaraokeMakerSections,
@@ -701,7 +703,7 @@ describe('Karaoke Maker canonical project and exports', () => {
     );
 
     expect(restored).toMatchObject({
-      version: 1,
+      version: 2,
       id: 'maker-song-1',
       title: 'Song',
       audio: { name: 'Artist - Song.mp3' },
@@ -4292,5 +4294,69 @@ describe('Karaoke Maker sung asides are not section labels', () => {
     expect(karaokeMakerWordDurationIsPlausible('Ohhh', 24_000, 'whisper')).toBe(
       false,
     );
+  });
+});
+
+describe('translated lyric sheets', () => {
+  const sheet: IKaraokeMakerLyricSheet = {
+    language: 'es',
+    source: 'translation-seed',
+    lines: [
+      {
+        id: 'line-es-1',
+        kind: 'lyrics',
+        startMs: 1_000,
+        endMs: 3_000,
+        tokens: [
+          {
+            id: 'word-es-1',
+            text: 'hola',
+            startsWord: true,
+            source: 'translation-seed',
+            startMs: 1_000,
+            endMs: 2_000,
+          },
+        ],
+      },
+    ],
+  };
+
+  it('round-trips translations through serialize and parse', () => {
+    const project = createKaraokeMakerProject(song());
+    const withSheet = {
+      ...project,
+      lyrics: { ...project.lyrics, translations: [sheet] },
+    };
+
+    const parsed = parseKaraokeMakerProject(
+      serializeKaraokeMakerProject(withSheet),
+    );
+
+    expect(parsed?.lyrics.translations).toHaveLength(1);
+    expect(parsed?.lyrics.translations?.[0].language).toBe('es');
+    expect(parsed?.lyrics.translations?.[0].lines[0].tokens[0].text).toBe(
+      'hola',
+    );
+    expect(parsed?.lyrics.translations?.[0].lines[0].tokens[0].startMs).toBe(
+      1_000,
+    );
+  });
+
+  it('loads a version 1 draft with no translations rather than rejecting it', () => {
+    const project = createKaraokeMakerProject(song());
+    const legacy = JSON.parse(serializeKaraokeMakerProject(project)) as Record<
+      string,
+      unknown
+    >;
+    legacy.version = 1;
+
+    const parsed = parseKaraokeMakerProject(JSON.stringify(legacy));
+
+    expect(parsed).not.toBeNull();
+    expect(parsed?.lyrics.translations).toBeUndefined();
+  });
+
+  it('treats translation-seed timings as automatic, so the aligner may replace them', () => {
+    expect(karaokeMakerSourceIsAutomatic('translation-seed')).toBe(true);
   });
 });
