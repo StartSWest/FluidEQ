@@ -75,6 +75,9 @@ add_library(fluideq-dsp-core STATIC
   dsp-core/src/linear_phase.cpp
   dsp-core/src/loudness.cpp
   dsp-core/src/crossfade.cpp
+  dsp-core/src/chain.cpp
+  dsp-core/src/chain_eq.cpp
+  dsp-core/src/chain_exciter.cpp
 )
 target_include_directories(fluideq-dsp-core PUBLIC dsp-core/include)
 target_link_libraries(fluideq-dsp-core PRIVATE feq_strict)

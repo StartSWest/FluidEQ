@@ -114,7 +114,13 @@ import {
 } from '../../src/renderer/dsp/linearPhase';
 import { createLoudnessAnalyzer } from '../../src/renderer/dsp/loudnessAnalysis';
 import { crossfadeGain } from '../../src/renderer/dsp/deckCrossfade';
-import { CROSSFADE_CURVES } from '../../src/common/dsp/chain';
+import {
+  CROSSFADE_CURVES,
+  EQ_ENGINES,
+  EQ_PHASE_MODES,
+  EQ_STEREO_MODES,
+} from '../../src/common/dsp/chain';
+import { createWorkletHarness } from './lib/workletHarness';
 import { DSP_DEFAULTS, EQ_MODELS } from '../../src/common/dsp/chain';
 import type {
   IEqSettings,
@@ -180,6 +186,7 @@ enum ProcessorId {
   LinearPhase = 24,
   Loudness = 25,
   Crossfade = 26,
+  Chain = 27,
 }
 
 interface IRackBand {
@@ -1681,6 +1688,324 @@ CROSSFADE_CURVES.forEach((curve) => {
       // division that normalises them.
       maxAbsTolerance: 1e-7,
       rmsTolerance: 1e-8,
+    });
+  });
+});
+
+/**
+ * The whole chain as a flat parameter block, and the layout is the contract.
+ *
+ * `render_chain` in `parity_test.cpp` reads it back field for field. The
+ * variable-length part — the EQ's bands — is last on purpose: everything
+ * before it sits at a fixed offset, so adding a scalar cannot silently
+ * re-point sixty-four bands.
+ */
+const CHAIN_PARAM_LEAD = 69;
+const chainParams = (settings: IDspSettings): number[] => {
+  const { exciter, eq, compressor, maximizer, master } = settings;
+  const values: number[] = [
+    settings.enabled ? 1 : 0,
+    1, // output safety, which the worklet leaves on unless told otherwise
+    exciter.enabled ? 1 : 0,
+    exciter.isolate ? 1 : 0,
+    EQ_STEREO_MODES.indexOf(exciter.stereo),
+    exciter.align.enabled ? 1 : 0,
+    exciter.align.amount,
+    exciter.organic.enabled ? 1 : 0,
+    exciter.organic.amount,
+    exciter.organic.focusHz,
+    exciter.organic.range,
+  ];
+  for (let band = 0; band < 3; band += 1) {
+    const source = exciter.bands[band];
+    values.push(
+      source.enabled ? 1 : 0,
+      source.freqHz,
+      source.range,
+      source.drive,
+      source.mix,
+      source.texture,
+    );
+  }
+  values.push(
+    eq.enabled ? 1 : 0,
+    eq.isolate ? 1 : 0,
+    EQ_MODELS.indexOf(eq.model),
+    eq.modelAmount,
+    EQ_ENGINES.indexOf(eq.engine),
+    EQ_PHASE_MODES.indexOf(eq.phase),
+    EQ_STEREO_MODES.indexOf(eq.stereo),
+    eq.monoBelowHz,
+    eq.oversample,
+    eq.subsonicHz,
+    eq.fuzzAmount,
+    compressor.enabled ? 1 : 0,
+    compressor.crossoverHz[0],
+    compressor.crossoverHz[1],
+  );
+  for (let band = 0; band < 3; band += 1) {
+    const source = compressor.bands[band];
+    values.push(
+      source.thresholdDb,
+      source.ratio,
+      source.attackMs,
+      source.releaseMs,
+      source.makeupDb,
+    );
+  }
+  values.push(
+    maximizer.enabled ? 1 : 0,
+    maximizer.ceilingDb,
+    maximizer.lookAheadMs,
+    maximizer.releaseMs,
+    master.enabled ? 1 : 0,
+    master.outputTrimDb,
+    master.loudnessMaximize ? 1 : 0,
+    master.loudnessTargetLufs,
+    master.ceilingDb,
+    master.releaseMs,
+    eq.bands.length,
+  );
+  if (values.length !== CHAIN_PARAM_LEAD) {
+    // The lead is a constant on both sides of the comparison. A field added
+    // above and not here would push every band along by one and still decode
+    // into something plausible.
+    throw new Error(
+      `chain params: lead is ${values.length}, expected ${CHAIN_PARAM_LEAD}`,
+    );
+  }
+  eq.bands.forEach((band) => {
+    values.push(
+      band.enabled ? 1 : 0,
+      FILTER_TYPE_ORDER.indexOf(band.type as FilterTypeEnum),
+      band.frequency,
+      band.gainDb,
+      band.quality,
+      band.dynamic ? 1 : 0,
+      band.thresholdDb,
+    );
+  });
+  return values;
+};
+
+/**
+ * The whole chain, held to the worklet that is being replaced.
+ *
+ * Every stage below already has its own fixtures. What those cannot see is the
+ * orchestration: a stage in the wrong order, a mid/side encode wrapping the
+ * wrong span, a smoothing ramp that starts a block late, an isolate reference
+ * taken before a gain instead of after. So the reference here is the real
+ * `dspProcessor.worklet` running under `workletHarness.ts`, fed in 128-frame
+ * render quanta exactly as a browser would.
+ *
+ * Linear phase is deliberately absent from these presets. Its kernel arrives
+ * on a separate message and its 8192-sample latency would dominate every
+ * comparison; `linear-phase/*` already holds the kernel itself to the
+ * reference, and the convolution to `convolver/*`.
+ */
+const CHAIN_FRAMES = 12_288;
+const CHAIN_PRESETS: { label: string; settings: IDspSettings }[] = [
+  {
+    // Everything off but the master switch: proves the chain is a wire before
+    // it is asked to be anything else. A port that leaked one stage's default
+    // into the signal fails here and nowhere else.
+    label: 'bypass',
+    settings: DSP_DEFAULTS,
+  },
+  {
+    label: 'eq-stereo',
+    settings: {
+      ...DSP_DEFAULTS,
+      eq: {
+        ...DSP_DEFAULTS.eq,
+        enabled: true,
+        subsonicHz: 30,
+        bands: RACKS[0].bands.map((band) => ({
+          enabled: true,
+          dynamic: false,
+          thresholdDb: -24,
+          type: band.type,
+          frequency: band.frequency,
+          gainDb: band.gainDb,
+          quality: band.quality,
+        })) as IEqSettings['bands'],
+      },
+    },
+  },
+  {
+    // Mid/side plus the mono-below high pass, which is the one configuration
+    // where the encode wraps a different span from the filtering.
+    label: 'eq-mid-side',
+    settings: {
+      ...DSP_DEFAULTS,
+      eq: {
+        ...DSP_DEFAULTS.eq,
+        enabled: true,
+        stereo: 'mid',
+        monoBelowHz: 120,
+        model: 'proportional',
+        modelAmount: 0.6,
+        bands: RACKS[1].bands.map((band) => ({
+          enabled: true,
+          dynamic: false,
+          thresholdDb: -24,
+          type: band.type,
+          frequency: band.frequency,
+          gainDb: band.gainDb,
+          quality: band.quality,
+        })) as IEqSettings['bands'],
+      },
+    },
+  },
+  {
+    // Oversampled, parallel, with fuzz: three things that each add their own
+    // scratch buffers and their own latency-matched dry reference.
+    label: 'eq-oversampled-fuzz',
+    settings: {
+      ...DSP_DEFAULTS,
+      eq: {
+        ...DSP_DEFAULTS.eq,
+        enabled: true,
+        engine: 'parallel',
+        oversample: 2,
+        fuzzAmount: 0.4,
+        bands: RACKS[0].bands.map((band) => ({
+          enabled: true,
+          dynamic: false,
+          thresholdDb: -24,
+          type: band.type,
+          frequency: band.frequency,
+          gainDb: band.gainDb,
+          quality: band.quality,
+        })) as IEqSettings['bands'],
+      },
+    },
+  },
+  {
+    // Dynamic bands, where an envelope can diverge and never come back.
+    label: 'eq-dynamic',
+    settings: {
+      ...DSP_DEFAULTS,
+      eq: {
+        ...DSP_DEFAULTS.eq,
+        enabled: true,
+        bands: RACKS[2].bands.map((band) => ({
+          enabled: true,
+          dynamic: band.dynamic === true,
+          thresholdDb: band.thresholdDb ?? -24,
+          type: band.type,
+          frequency: band.frequency,
+          gainDb: band.gainDb,
+          quality: band.quality,
+        })) as IEqSettings['bands'],
+      },
+    },
+  },
+  {
+    label: 'compressor-maximizer',
+    settings: {
+      ...DSP_DEFAULTS,
+      compressor: { ...DSP_DEFAULTS.compressor, enabled: true },
+      maximizer: { ...DSP_DEFAULTS.maximizer, enabled: true, ceilingDb: -3 },
+    },
+  },
+  {
+    // Master gain and Auto Headroom, which is the pair that reserves room for
+    // a gain that has not been applied yet.
+    label: 'master-headroom',
+    settings: {
+      ...DSP_DEFAULTS,
+      master: {
+        ...DSP_DEFAULTS.master,
+        enabled: true,
+        outputTrimDb: -3,
+        loudnessMaximize: true,
+      },
+    },
+  },
+  {
+    label: 'exciter',
+    settings: {
+      ...DSP_DEFAULTS,
+      exciter: { ...DSP_DEFAULTS.exciter, enabled: true },
+    },
+  },
+  {
+    // Everything at once, which is the only case that can catch two stages
+    // interacting through a buffer neither of them owns.
+    label: 'everything',
+    settings: {
+      ...DSP_DEFAULTS,
+      eq: {
+        ...DSP_DEFAULTS.eq,
+        enabled: true,
+        subsonicHz: 25,
+        fuzzAmount: 0.2,
+        bands: RACKS[0].bands.map((band) => ({
+          enabled: true,
+          dynamic: false,
+          thresholdDb: -24,
+          type: band.type,
+          frequency: band.frequency,
+          gainDb: band.gainDb,
+          quality: band.quality,
+        })) as IEqSettings['bands'],
+      },
+      exciter: { ...DSP_DEFAULTS.exciter, enabled: true },
+      compressor: { ...DSP_DEFAULTS.compressor, enabled: true },
+      maximizer: { ...DSP_DEFAULTS.maximizer, enabled: true },
+      master: { ...DSP_DEFAULTS.master, enabled: true, outputTrimDb: -2 },
+    },
+  },
+];
+
+const CHAIN_SIGNALS = ['sweep', 'white-noise', 'transient-then-silence'];
+
+CHAIN_PRESETS.forEach((preset) => {
+  const chosen = parityCorpus(CHAIN_FRAMES, 48000).filter((signal) =>
+    CHAIN_SIGNALS.includes(signal.name),
+  );
+  if (chosen.length !== CHAIN_SIGNALS.length) {
+    throw new Error(
+      `chain corpus: asked for ${CHAIN_SIGNALS.length} signals, matched ${chosen.length}`,
+    );
+  }
+  chosen.forEach((signal) => {
+    const harness = createWorkletHarness(48000, preset.settings);
+    const rendered = harness.render(signal.channels);
+    /**
+     * The positive control this corpus needs.
+     *
+     * A chain that did nothing would produce its input, and a native chain
+     * that also did nothing would match it perfectly â a whole suite of
+     * green for an engine that is a wire. Every preset except `bypass` has to
+     * change the audio measurably before its fixture is worth writing.
+     */
+    if (preset.label !== 'bypass') {
+      let moved = 0;
+      rendered.forEach((channel, index) => {
+        channel.forEach((value, at) => {
+          moved = Math.max(moved, Math.abs(value - signal.channels[index][at]));
+        });
+      });
+      if (moved <= 1e-3) {
+        throw new Error(
+          `chain/${preset.label}/${signal.name}: the chain changed nothing (max ${moved})`,
+        );
+      }
+    }
+    fixtures.push({
+      name: `chain/${preset.label}/${signal.name}`,
+      processor: ProcessorId.Chain,
+      sampleRate: 48000,
+      params: chainParams(preset.settings),
+      input: signal.channels,
+      expected: rendered,
+      // Wider than a single stage's, and deliberately so: this is nine stages
+      // deep and the tolerances compound. A wrong stage order is off by
+      // decibels, not by 1e-5, so nothing this is here to catch hides under it.
+      maxAbsTolerance: 2e-4,
+      rmsTolerance: 2e-5,
     });
   });
 });

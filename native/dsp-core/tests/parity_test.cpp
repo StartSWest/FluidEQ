@@ -34,6 +34,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "fluideq/compressor.h"
 #include "fluideq/convolver.h"
 #include "fluideq/linear_phase.h"
+#include "fluideq/chain.h"
 #include "fluideq/crossfade.h"
 #include "fluideq/loudness.h"
 #include "fluideq/output_safety.h"
@@ -86,7 +87,8 @@ enum ProcessorId : uint32_t {
   kConvolver = 23,
   kLinearPhase = 24,
   kLoudness = 25,
-  kCrossfade = 26
+  kCrossfade = 26,
+  kChain = 27
 };
 
 struct Fixture {
@@ -1041,9 +1043,142 @@ bool render_crossfade(const Fixture& fixture, std::vector<float>& actual) {
   return true;
 }
 
+/**
+ * The whole chain, decoded from the flat block `chainParams` writes.
+ *
+ * Field for field and in the same order. The variable-length part — the EQ's
+ * bands — is last, so everything before it sits at a fixed offset and adding a
+ * scalar cannot silently re-point sixty-four bands.
+ */
+constexpr size_t kChainParamLead = 69;
+constexpr size_t kChainBandParams = 7;
+
+bool render_chain(const Fixture& fixture, std::vector<float>& actual) {
+  if (fixture.params.size() < kChainParamLead || fixture.channels == 0) {
+    return false;
+  }
+  const auto band_count =
+      static_cast<uint32_t>(fixture.params[kChainParamLead - 1]);
+  if (fixture.params.size() !=
+      kChainParamLead + static_cast<size_t>(band_count) * kChainBandParams) {
+    return false;
+  }
+
+  FeqChainSettings settings;
+  feq_chain_settings_defaults(&settings);
+  size_t at = 0;
+  const auto next = [&fixture, &at]() { return fixture.params[at++]; };
+  const auto flag = [&next]() { return next() != 0.0 ? 1 : 0; };
+
+  settings.enabled = flag();
+  settings.output_safety_enabled = flag();
+  settings.exciter.enabled = flag();
+  settings.exciter.isolate = flag();
+  settings.exciter.stereo = static_cast<FeqStereoMode>(
+      static_cast<int>(next()));
+  settings.exciter.align_enabled = flag();
+  settings.exciter.align_amount = next();
+  settings.exciter.organic_enabled = flag();
+  settings.exciter.organic_amount = next();
+  settings.exciter.organic_focus_hz = next();
+  settings.exciter.organic_range = next();
+  for (auto& band : settings.exciter.bands) {
+    band.enabled = flag();
+    band.freq_hz = next();
+    band.range = next();
+    band.drive = next();
+    band.mix = next();
+    band.texture = next();
+  }
+
+  settings.eq.enabled = flag();
+  settings.eq.isolate = flag();
+  settings.eq.model = static_cast<FeqEqModel>(static_cast<int>(next()));
+  settings.eq.model_amount = next();
+  settings.eq.engine = static_cast<FeqEqEngine>(static_cast<int>(next()));
+  settings.eq.phase = static_cast<FeqPhaseMode>(static_cast<int>(next()));
+  settings.eq.stereo = static_cast<FeqStereoMode>(static_cast<int>(next()));
+  settings.eq.mono_below_hz = next();
+  settings.eq.oversample = static_cast<uint32_t>(next());
+  settings.eq.subsonic_hz = next();
+  settings.eq.fuzz_amount = next();
+
+  settings.compressor.enabled = flag();
+  settings.compressor.crossover_hz[0] = next();
+  settings.compressor.crossover_hz[1] = next();
+  for (auto& band : settings.compressor.bands) {
+    band.threshold_db = next();
+    band.ratio = next();
+    band.attack_ms = next();
+    band.release_ms = next();
+    band.makeup_db = next();
+  }
+
+  settings.maximizer.enabled = flag();
+  settings.maximizer.ceiling_db = next();
+  settings.maximizer.look_ahead_ms = next();
+  settings.maximizer.release_ms = next();
+
+  settings.master.enabled = flag();
+  settings.master.output_trim_db = next();
+  settings.master.loudness_maximize = flag();
+  settings.master.loudness_target_lufs = next();
+  settings.master.ceiling_db = next();
+  settings.master.release_ms = next();
+
+  settings.eq.band_count = static_cast<uint32_t>(next());
+  if (at != kChainParamLead) {
+    // Asserted rather than assumed: a layout the generator and the runner
+    // disagree about would read a Q as a threshold and still sound plausible.
+    return false;
+  }
+  for (uint32_t band = 0; band < settings.eq.band_count &&
+                          band < FEQ_CHAIN_MAX_EQ_BANDS;
+       ++band) {
+    settings.eq.bands[band].enabled = flag();
+    settings.eq.bands[band].type =
+        static_cast<FeqFilterType>(static_cast<int>(next()));
+    settings.eq.bands[band].frequency = next();
+    settings.eq.bands[band].gain_db = next();
+    settings.eq.bands[band].quality = next();
+    settings.eq.bands[band].dynamic = flag();
+    settings.eq.bands[band].threshold_db = next();
+  }
+
+  /**
+   * Fed in 128-frame render quanta, because that is what the reference sees.
+   *
+   * Handing the whole track over in one call would be a legitimate thing to
+   * ask of the chain, and would not compare: every smoothing ramp in it is
+   * per-block, so a block of 12288 reaches its target 96 times more slowly.
+   * That difference is the orchestration, which is what this fixture is for.
+   */
+  FeqChain* chain = feq_chain_create(static_cast<double>(fixture.sample_rate),
+                                     fixture.channels, 128);
+  if (chain == nullptr) {
+    return false;
+  }
+  feq_chain_configure(chain, &settings);
+
+  actual = fixture.input;
+  std::vector<float*> pointers(fixture.channels);
+  for (uint32_t offset = 0; offset < fixture.frames; offset += 128) {
+    const uint32_t span = std::min(128u, fixture.frames - offset);
+    for (uint32_t channel = 0; channel < fixture.channels; ++channel) {
+      pointers[channel] =
+          channel_at(actual, channel, fixture.frames) + offset;
+    }
+    feq_chain_process(chain, pointers.data(), span);
+  }
+  feq_chain_destroy(chain);
+  return true;
+}
+
 /** Run one fixture through the native engine, or say it cannot be run yet. */
 bool render(const Fixture& fixture, std::vector<float>& actual) {
   switch (fixture.processor) {
+    case kChain:
+      return render_chain(fixture, actual);
     case kCrossfade:
       return render_crossfade(fixture, actual);
     case kLoudness:
