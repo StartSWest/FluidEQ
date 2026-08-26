@@ -150,6 +150,88 @@ describe('reading tags off a file', () => {
     // error just for having little left to report.
     expect(facts.readFailed).toBeUndefined();
   });
+
+  /**
+   * Chart-rip MP3s whose tail defeats the APEv2 parser.
+   *
+   * `music-metadata` goes to the END of a file for APEv2 and ID3v1 after it
+   * has read the front. On real rips that trailer is encoder leftovers, and
+   * enough of it resembles an APE footer to be parsed as one — at which point
+   * `APEv2Parser.parseTags` subtracts an unvalidated item size from its
+   * remaining byte count, goes hugely negative, and hands that straight to
+   * `FileHandle.read` as a length. Node rejects it: `ERR_OUT_OF_RANGE`.
+   *
+   * The item size below is the one from the report, and this fixture
+   * reproduces the reported error to within the 24 bytes of framing that
+   * differ. The whole point is that nothing is actually wrong with the file:
+   * the ID3v2 tags at the front were read before the walk to the tail, so a
+   * second pass without the trailing tags returns the complete track.
+   */
+  const apeTrailerMp3 = (): Buffer => {
+    const front = taggedMp3({ TIT2: 'Someone', TPE1: 'Lewis' });
+    const itemHeader = Buffer.alloc(8);
+    itemHeader.writeUInt32LE(1162229480, 0); // the item size, as reported
+    itemHeader.writeUInt32LE(0, 4); // flags
+    const items = Buffer.concat([itemHeader, Buffer.alloc(24, 0x41)]);
+    const footer = Buffer.alloc(32);
+    footer.write('APETAGEX', 0, 'ascii');
+    footer.writeUInt32LE(2000, 8); // version
+    footer.writeUInt32LE(items.length + footer.length, 12); // seeks back into the items
+    footer.writeUInt32LE(3, 16); // fields
+    footer.writeUInt32LE(0, 20); // flags: a footer, not a header
+    return Buffer.concat([front, items, footer]);
+  };
+
+  it('is reading a file that genuinely breaks the parser', async () => {
+    // POSITIVE CONTROL, and the reason the next test means anything: without
+    // it, "the tags came back" passes just as well on a fixture that never
+    // broke, which would leave the fallback below untested for good.
+    const { parseFile } = await import('music-metadata');
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fluideq-tags-'));
+    const file = path.join(dir, 'trailer.mp3');
+    fs.writeFileSync(file, apeTrailerMp3());
+    await expect(parseFile(file)).rejects.toMatchObject({
+      code: 'ERR_OUT_OF_RANGE',
+    });
+  });
+
+  it('recovers the front tags when trailing tags defeat the parser', async () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fluideq-tags-'));
+    const file = path.join(dir, 'trailer.mp3');
+    fs.writeFileSync(file, apeTrailerMp3());
+
+    // Silent, and asserted rather than assumed. The recovery used to print a
+    // full RangeError stack per file at error level, which on one chart-rip
+    // folder is dozens of them mid-scan describing a condition that had
+    // already been handled correctly.
+    const logged = jest.spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      await expect(readLibraryTags(file)).resolves.toMatchObject({
+        title: 'Someone',
+        artist: 'Lewis',
+      });
+      expect(logged).not.toHaveBeenCalled();
+    } finally {
+      logged.mockRestore();
+    }
+  });
+
+  it('still reports a file that neither pass can read', async () => {
+    // The other half of the fallback: skipping the trailer must not turn a
+    // genuinely unreadable file into a silent success.
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fluideq-tags-'));
+    const file = path.join(dir, 'broken.flac');
+    fs.writeFileSync(file, Buffer.from('OggSnot really a flac file at all'));
+    const logged = jest.spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      await expect(readLibraryTags(file)).resolves.toEqual({
+        readFailed: true,
+      });
+      expect(logged).toHaveBeenCalled();
+    } finally {
+      logged.mockRestore();
+    }
+  });
 });
 
 describe('finding a cover beside the music', () => {
