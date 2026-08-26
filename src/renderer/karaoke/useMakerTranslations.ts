@@ -4,7 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import {
   addKaraokeTranslation,
   IKaraokeMakerProject,
@@ -43,6 +43,26 @@ export const useMakerTranslations = (
     () => karaokeTranslationLanguages(project),
     [project],
   );
+
+  // Reconciled synchronously during render, the same way the player's twin
+  // does it (`karaokeLyricsTranslation.tsx`): a tag that is no longer offered
+  // must never reach the Dropdown even for one frame, because the Dropdown
+  // finds no entry for it and renders its trigger blank — and the remove
+  // button's `disabled` guard, which compares against the original, goes
+  // false, so a click commits a removal of nothing and spends an undo slot.
+  //
+  // Keyed on the offered list rather than on a project id, because neither
+  // live path that invalidates the held tag changes an id reliably: the
+  // wizard's `onLanguage` edits `lyrics.language` under the same project, and
+  // opening a project replaces the whole thing while this hook stays mounted
+  // — the Maker is keyed on the audio file, not on the project.
+  const offeredRef = useRef(languages);
+  if (offeredRef.current !== languages) {
+    offeredRef.current = languages;
+    if (!languages.includes(language)) {
+      setLanguage(originalLanguage);
+    }
+  }
 
   // Returns the mismatch instead of leaving the caller to re-read `mismatch`
   // state a render later: `addKaraokeTranslation` already has the answer the
