@@ -12,6 +12,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * now. What these tests need is an assert and an exit code.
  */
 
+#include "fluideq/crossfade.h"
 #include "fluideq/dsp.h"
 #include "fluideq/parameters.h"
 
@@ -242,6 +243,101 @@ void test_rejects_impossible_engines() {
         "the built core reports the ABI this test compiled against");
 }
 
+/**
+ * The mixer, which has no TypeScript counterpart to compare against.
+ *
+ * `deckCrossfade.ts` hands a curve to two `GainNode`s, so the only shared
+ * arithmetic is the curve itself and the parity corpus covers that. Everything
+ * below is behaviour the sample-accurate mixer has and the automation did not.
+ */
+void test_crossfade_mixer() {
+  std::printf("crossfade\n");
+
+  FeqCrossfader fader;
+  feq_crossfader_init(&fader);
+
+  constexpr uint32_t kFrames = 512;
+  std::vector<float> a(kFrames, 1.0f);
+  std::vector<float> b(kFrames, -1.0f);
+  std::vector<float> left(kFrames, 0.0f);
+  std::vector<float> right(kFrames, 0.0f);
+  const float* outgoing[2] = {a.data(), a.data()};
+  const float* incoming[2] = {b.data(), b.data()};
+  float* out[2] = {left.data(), right.data()};
+
+  // An unconfigured fader is a wire: the outgoing deck alone, untouched.
+  feq_crossfader_mix(&fader, outgoing, incoming, out, 2, kFrames);
+  bool copied = true;
+  for (uint32_t at = 0; at < kFrames; ++at) {
+    copied = copied && left[at] == 1.0f && right[at] == 1.0f;
+  }
+  check(copied, "an unconfigured fader passes the outgoing deck through");
+
+  /**
+   * Equal power sums to exactly one at every point, which is why it is the
+   * default. An unnormalised sin/cos pair peaks at 1.414 in the middle — a
+   * 3 dB bulge halfway through every fade.
+   */
+  double worst_sum = 0.0;
+  for (int step = 0; step <= 1000; ++step) {
+    const double progress = static_cast<double>(step) / 1000.0;
+    const double sum =
+        feq_crossfade_gain(FEQ_CROSSFADE_EQUAL_POWER, progress, 0) +
+        feq_crossfade_gain(FEQ_CROSSFADE_EQUAL_POWER, progress, 1);
+    const double error = std::fabs(sum - 1.0);
+    worst_sum = error > worst_sum ? error : worst_sum;
+  }
+  check(worst_sum < 1e-12, "the equal-power pair sums to unity throughout");
+
+  // The counter advances once per frame across both channels. Advancing inside
+  // the channel loop would run a stereo fade at twice the speed and put the
+  // two channels on different points of the curve.
+  feq_crossfader_start(&fader, FEQ_CROSSFADE_LINEAR, kFrames);
+  feq_crossfader_mix(&fader, outgoing, incoming, out, 2, kFrames);
+  bool channels_agree = true;
+  for (uint32_t at = 0; at < kFrames; ++at) {
+    channels_agree = channels_agree && std::fabs(left[at] - right[at]) < 1e-7f;
+  }
+  check(channels_agree, "both channels sit at the same point on the curve");
+
+  const float expected_last =
+      static_cast<float>(1.0 * (1.0 - 511.0 / 512.0) + -1.0 * (511.0 / 512.0));
+  check(std::fabs(left[kFrames - 1] - expected_last) < 1e-6f,
+        "a linear fade of exactly one block lands one frame from the end");
+  check(feq_crossfader_progress(&fader) == 1.0,
+        "a completed fade reports full progress");
+
+  /**
+   * A finished fade keeps mixing at pure incoming rather than reverting.
+   *
+   * Falling back to the copy-through path here would swap the audible deck
+   * back to the track that just faded out, for however many blocks passed
+   * before the player promoted the incoming one.
+   */
+  feq_crossfader_mix(&fader, outgoing, incoming, out, 2, kFrames);
+  bool latched = true;
+  for (uint32_t at = 0; at < kFrames; ++at) {
+    latched = latched && std::fabs(left[at] + 1.0f) < 1e-6f;
+  }
+  check(latched, "a finished fade stays on the incoming deck");
+
+  // Skipping twice inside one overlap must not step the level back to unity.
+  FeqCrossfader restart;
+  feq_crossfader_init(&restart);
+  feq_crossfader_start(&restart, FEQ_CROSSFADE_LINEAR, kFrames);
+  feq_crossfader_mix(&restart, outgoing, incoming, out, 2, kFrames / 2);
+  const float before = left[kFrames / 2 - 1];
+  feq_crossfader_start(&restart, FEQ_CROSSFADE_LINEAR, kFrames);
+  feq_crossfader_mix(&restart, outgoing, incoming, out, 2, 1);
+  check(std::fabs(left[0] - before) < 0.01f,
+        "restarting mid-fade keeps its place instead of jumping to unity");
+
+  // A NaN progress must land on a gain, not propagate into the audio.
+  check(std::isfinite(
+            feq_crossfade_gain(FEQ_CROSSFADE_EQUAL_POWER, std::nan(""), 1)),
+        "a non-finite progress still produces a finite gain");
+}
+
 }  // namespace
 
 int main() {
@@ -253,6 +349,7 @@ int main() {
   test_parameters();
   test_snapshot_commit();
   test_rejects_impossible_engines();
+  test_crossfade_mixer();
   if (g_failures == 0) {
     std::printf("\nall checks passed\n");
     return 0;

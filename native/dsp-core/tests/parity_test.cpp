@@ -34,6 +34,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "fluideq/compressor.h"
 #include "fluideq/convolver.h"
 #include "fluideq/linear_phase.h"
+#include "fluideq/crossfade.h"
 #include "fluideq/loudness.h"
 #include "fluideq/output_safety.h"
 #include "fluideq/post_filter_normalizer.h"
@@ -84,7 +85,8 @@ enum ProcessorId : uint32_t {
   kExciter = 22,
   kConvolver = 23,
   kLinearPhase = 24,
-  kLoudness = 25
+  kLoudness = 25,
+  kCrossfade = 26
 };
 
 struct Fixture {
@@ -1018,9 +1020,32 @@ bool render_loudness(const Fixture& fixture, std::vector<float>& actual) {
   return true;
 }
 
+/**
+ * The crossfade curve, evaluated at whatever progress the fixture carries.
+ *
+ * The input is not audio: each sample is a point on the fade, deliberately
+ * running past both ends so the clamp is covered on both sides.
+ */
+bool render_crossfade(const Fixture& fixture, std::vector<float>& actual) {
+  if (fixture.params.size() < 2 || fixture.channels != 1) {
+    return false;
+  }
+  const auto curve = static_cast<FeqCrossfadeCurve>(
+      static_cast<int>(fixture.params[0]));
+  const int incoming = fixture.params[1] != 0.0 ? 1 : 0;
+  actual.resize(fixture.input.size());
+  for (size_t at = 0; at < fixture.input.size(); ++at) {
+    actual[at] = static_cast<float>(feq_crossfade_gain(
+        curve, static_cast<double>(fixture.input[at]), incoming));
+  }
+  return true;
+}
+
 /** Run one fixture through the native engine, or say it cannot be run yet. */
 bool render(const Fixture& fixture, std::vector<float>& actual) {
   switch (fixture.processor) {
+    case kCrossfade:
+      return render_crossfade(fixture, actual);
     case kLoudness:
       return render_loudness(fixture, actual);
     case kLinearPhase:

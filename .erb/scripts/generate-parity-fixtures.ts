@@ -113,6 +113,8 @@ import {
   KERNEL_SIZE,
 } from '../../src/renderer/dsp/linearPhase';
 import { createLoudnessAnalyzer } from '../../src/renderer/dsp/loudnessAnalysis';
+import { crossfadeGain } from '../../src/renderer/dsp/deckCrossfade';
+import { CROSSFADE_CURVES } from '../../src/common/dsp/chain';
 import { DSP_DEFAULTS, EQ_MODELS } from '../../src/common/dsp/chain';
 import type {
   IEqSettings,
@@ -177,6 +179,7 @@ enum ProcessorId {
   Convolver = 23,
   LinearPhase = 24,
   Loudness = 25,
+  Crossfade = 26,
 }
 
 interface IRackBand {
@@ -1636,6 +1639,48 @@ const LOUDNESS_SIGNALS = [
       // is the last ULP of a log10, multiplied by ten or twenty.
       maxAbsTolerance: 1e-4,
       rmsTolerance: 1e-6,
+    });
+  });
+});
+
+/**
+ * The crossfade curve, compared point by point.
+ *
+ * Only the curve: the TypeScript side has no sample-accurate mixer to compare
+ * a mix against, because it schedules the shape onto two `GainNode`s and lets
+ * the browser interpolate. That is the thing being replaced, so the fixture
+ * holds the one piece both implementations must agree on — what gain each deck
+ * has at a given point — and the native mixer's own behaviour is covered by
+ * `engine_test.cpp` instead.
+ *
+ * The ramp deliberately runs past both ends. A progress below zero or above
+ * one arrives whenever a fade is restarted or a block overruns the end, and
+ * both sides must clamp rather than continue the curve into a negative gain.
+ */
+const CROSSFADE_POINTS = 1_024;
+CROSSFADE_CURVES.forEach((curve) => {
+  [0, 1].forEach((incoming) => {
+    const progress = new Float32Array(CROSSFADE_POINTS);
+    const gains = new Float32Array(CROSSFADE_POINTS);
+    for (let at = 0; at < CROSSFADE_POINTS; at += 1) {
+      progress[at] = -0.25 + (1.5 * at) / (CROSSFADE_POINTS - 1);
+      // Read back rather than reused: the fixture carries the progress as a
+      // float and the native side sees only that, so computing the gain from
+      // the unrounded double would put the two sides one ULP apart by
+      // construction and call it a porting error.
+      gains[at] = crossfadeGain(curve, progress[at], incoming === 1);
+    }
+    fixtures.push({
+      name: `crossfade/${curve}/${incoming === 1 ? 'incoming' : 'outgoing'}`,
+      processor: ProcessorId.Crossfade,
+      sampleRate: 48000,
+      params: [CROSSFADE_CURVES.indexOf(curve), incoming],
+      input: [progress],
+      expected: [gains],
+      // A gain, not a sample: the only rounding is one sin, one cos and the
+      // division that normalises them.
+      maxAbsTolerance: 1e-7,
+      rmsTolerance: 1e-8,
     });
   });
 });
