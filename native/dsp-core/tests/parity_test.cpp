@@ -57,7 +57,8 @@ enum ProcessorId : uint32_t {
   kCrossover = 7,
   kTruePeak = 8,
   kSaturate = 9,
-  kLimiter = 10
+  kLimiter = 10,
+  kLinkedLimiter = 11
 };
 
 struct Fixture {
@@ -538,9 +539,53 @@ bool render_limiter(const Fixture& fixture, std::vector<float>& actual) {
   return true;
 }
 
+/**
+ * `[lookAhead, ceiling, release, limitingRelease, kneeDb, activation,
+ *   releaseHold, attackSlewDbPerSecond, snapRatio, sampleRate]`.
+ */
+bool render_linked_limiter(const Fixture& fixture, std::vector<float>& actual) {
+  if (fixture.params.size() < 10) {
+    return false;
+  }
+  const auto requested = static_cast<uint32_t>(fixture.params[0]);
+  const uint32_t capacity = (requested < 1 ? 1 : requested) + 1;
+
+  FeqLimiterOptions options;
+  options.ceiling = fixture.params[1];
+  options.release_coefficient = fixture.params[2];
+  options.limiting_release_coefficient = fixture.params[3];
+  options.knee_db = fixture.params[4];
+  options.activation_threshold = fixture.params[5];
+  options.release_hold_samples = fixture.params[6];
+  options.attack_slew_db_per_second = fixture.params[7];
+  options.release_snap_ratio = fixture.params[8];
+  options.sample_rate = fixture.params[9];
+
+  actual = fixture.input;
+  const uint32_t channels = fixture.channels;
+  std::vector<FeqTruePeak> detectors(channels);
+  std::vector<std::vector<float>> lines(channels, std::vector<float>(capacity));
+  std::vector<float*> line_pointers(channels);
+  std::vector<float*> targets(channels);
+  for (uint32_t channel = 0; channel < channels; ++channel) {
+    line_pointers[channel] = lines[channel].data();
+    targets[channel] = channel_at(actual, channel, fixture.frames);
+  }
+  std::vector<float> reduction(capacity);
+
+  FeqLinkedLimiter state;
+  feq_linked_limiter_init(&state, detectors.data(), line_pointers.data(),
+                          reduction.data(), channels, capacity,
+                          FEQ_TRUE_PEAK_FACTOR);
+  feq_linked_limiter_process(&state, targets.data(), fixture.frames, &options);
+  return true;
+}
+
 /** Run one fixture through the native engine, or say it cannot be run yet. */
 bool render(const Fixture& fixture, std::vector<float>& actual) {
   switch (fixture.processor) {
+    case kLinkedLimiter:
+      return render_linked_limiter(fixture, actual);
     case kLimiter:
       return render_limiter(fixture, actual);
     case kSaturate:

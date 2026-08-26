@@ -64,7 +64,70 @@ typedef struct FeqLimiterOptions {
   double limiting_release_coefficient;
   /** Width of the continuous transition into limiting, in dB. */
   double knee_db;
+  /** Samples to hold a linked envelope down before release may recover. */
+  double release_hold_samples;
+  /** Maximum downward movement in dB per second. Zero or less disables it. */
+  double attack_slew_db_per_second;
+  /**
+   * Finish an exponential recovery once its remaining gap is this fraction of
+   * the target. The final fraction is inaudible, and leaving it asymptotic can
+   * strand a deep reduction for many seconds.
+   */
+  double release_snap_ratio;
+  /** The processing rate, which the linked form needs for its slew. */
+  double sample_rate;
 } FeqLimiterOptions;
+
+/**
+ * One detector and gain law shared by every output channel.
+ *
+ * Independent final limiters can turn the left side down without the right and
+ * move the stereo image on every peak. The linked form delays channels
+ * separately but makes one decision from the loudest reconstructed peak.
+ */
+typedef struct FeqLinkedLimiter {
+  /** One detector per channel; the decision is still shared. */
+  FeqTruePeak* true_peak;
+  /** `channels` pointers, each `capacity` floats. Caller-owned. */
+  float** delay;
+  /** Smoothed reduction in dB, delayed in lockstep with the audio. */
+  float* gain_reduction_db;
+  uint32_t channels;
+  uint32_t capacity;
+  int64_t position;
+  /** Fast detector with instantaneous attack and held exponential release. */
+  double detector_gain;
+  /** Gain applied to the most recently emitted frame, for telemetry. */
+  double gain;
+  /** Prevents recovery between closely spaced peaks becoming tremolo. */
+  int64_t release_hold_remaining;
+  /** Loudest reconstructed input peak seen in the most recent block. */
+  double block_peak;
+} FeqLinkedLimiter;
+
+void feq_linked_limiter_init(FeqLinkedLimiter* state,
+                             FeqTruePeak* detectors,
+                             float** delay,
+                             float* gain_reduction_db,
+                             uint32_t channels,
+                             uint32_t capacity,
+                             uint32_t true_peak_factor);
+
+/** Clear gain control without emptying the continuously running audio delay. */
+void feq_linked_limiter_reset_control(FeqLinkedLimiter* state);
+
+/**
+ * Limit every channel in place from one shared decision.
+ *
+ * Delaying audio while stepping its gain instantly is not look-ahead; it
+ * merely chops the waveform earlier. The buffered control signal is
+ * back-filled with a linear-in-dB fade that reaches the exact reduction at the
+ * peak, and an existing deeper ramp wins so overlapping peaks stay protected.
+ */
+void feq_linked_limiter_process(FeqLinkedLimiter* state,
+                                float* const* channels,
+                                uint32_t frames,
+                                const FeqLimiterOptions* options);
 
 /**
  * `delay` and `magnitude` hold `look_ahead + 1` floats, `window` the same many

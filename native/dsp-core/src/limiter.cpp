@@ -7,6 +7,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "fluideq/limiter.h"
 
 #include <cmath>
+#include <limits>
 
 namespace {
 
@@ -148,6 +149,201 @@ void feq_limiter_process(FeqLimiter* state,
                                   : options->release_coefficient));
 
     output[at] = static_cast<float>(emitted * state->gain);
+  }
+}
+
+void feq_linked_limiter_init(FeqLinkedLimiter* state,
+                             FeqTruePeak* detectors,
+                             float** delay,
+                             float* gain_reduction_db,
+                             uint32_t channels,
+                             uint32_t capacity,
+                             uint32_t true_peak_factor) {
+  if (state == nullptr || detectors == nullptr || delay == nullptr ||
+      gain_reduction_db == nullptr || channels == 0 || capacity == 0) {
+    return;
+  }
+  state->true_peak = detectors;
+  state->delay = delay;
+  state->gain_reduction_db = gain_reduction_db;
+  state->channels = channels;
+  state->capacity = capacity;
+  state->position = 0;
+  state->detector_gain = 1.0;
+  state->gain = 1.0;
+  state->release_hold_remaining = 0;
+  state->block_peak = 0.0;
+  for (uint32_t channel = 0; channel < channels; ++channel) {
+    feq_true_peak_init(&detectors[channel], true_peak_factor);
+    for (uint32_t at = 0; at < capacity; ++at) {
+      delay[channel][at] = 0.0f;
+    }
+  }
+  for (uint32_t at = 0; at < capacity; ++at) {
+    gain_reduction_db[at] = 0.0f;
+  }
+}
+
+void feq_linked_limiter_reset_control(FeqLinkedLimiter* state) {
+  if (state == nullptr) {
+    return;
+  }
+  state->detector_gain = 1.0;
+  state->gain = 1.0;
+  state->release_hold_remaining = 0;
+  for (uint32_t at = 0; at < state->capacity; ++at) {
+    state->gain_reduction_db[at] = 0.0f;
+  }
+}
+
+void feq_linked_limiter_process(FeqLinkedLimiter* state,
+                                float* const* channels,
+                                uint32_t frames,
+                                const FeqLimiterOptions* options) {
+  if (state == nullptr || channels == nullptr || options == nullptr ||
+      frames == 0 || state->capacity == 0) {
+    return;
+  }
+  const uint32_t capacity = state->capacity;
+  const int64_t look_ahead = static_cast<int64_t>(capacity) - 1;
+  const int64_t detector_latency =
+      state->true_peak[0].factor == 1 ? 0 : FEQ_TRUE_PEAK_LATENCY;
+  const int64_t attack_samples =
+      look_ahead - detector_latency > 0 ? look_ahead - detector_latency : 0;
+  state->block_peak = 0.0;
+
+  const bool uses_slow_attack = options->attack_slew_db_per_second > 0.0;
+  const double processing_rate =
+      options->sample_rate > 0.0 ? options->sample_rate : 48000.0;
+  const double attack_step_db =
+      uses_slow_attack ? options->attack_slew_db_per_second / processing_rate
+                       : std::numeric_limits<double>::infinity();
+  const int64_t hold_samples =
+      options->release_hold_samples > 0.0
+          ? static_cast<int64_t>(options->release_hold_samples)
+          : 0;
+  const double snap_ratio =
+      options->release_snap_ratio > 0.0 ? options->release_snap_ratio : 0.0;
+
+  for (uint32_t at = 0; at < frames; ++at) {
+    const int64_t position = state->position;
+    double incoming_magnitude = 0.0;
+    for (uint32_t channel = 0; channel < state->channels; ++channel) {
+      const double detected = feq_true_peak_sample(
+          &state->true_peak[channel],
+          static_cast<double>(channels[channel][at]));
+      if (detected > incoming_magnitude) {
+        incoming_magnitude = detected;
+      }
+    }
+    if (incoming_magnitude > state->block_peak) {
+      state->block_peak = incoming_magnitude;
+    }
+
+    const double required =
+        incoming_magnitude >= options->activation_threshold
+            ? feq_limiter_required_gain(incoming_magnitude, options->ceiling,
+                                        options->knee_db)
+            : 1.0;
+
+    const int64_t write_at = slot(position, capacity);
+    const int64_t read_at =
+        look_ahead == 0 ? write_at : slot(position + 1, capacity);
+
+    if (uses_slow_attack) {
+      // Detection is immediate, a large gain move is not. A fixed dB/s slew
+      // means a 1 dB correction completes sooner than a 5 dB one, instead of
+      // every peak causing the same abrupt dip. The target is held through the
+      // look-ahead so it is still in force when the peak that chose it lands.
+      if (required < state->detector_gain) {
+        state->detector_gain = required;
+        state->release_hold_remaining = look_ahead + hold_samples;
+      } else if (state->release_hold_remaining > 0) {
+        state->release_hold_remaining -= 1;
+      } else {
+        state->detector_gain = required;
+      }
+
+      const double current_db =
+          state->gain > 0.0 ? 20.0 * std::log10(state->gain) : -120.0;
+      const double target_db =
+          state->detector_gain > 0.0
+              ? 20.0 * std::log10(state->detector_gain)
+              : -120.0;
+      if (target_db < current_db) {
+        const double floor_db = current_db - attack_step_db;
+        state->gain =
+            std::pow(10.0, (target_db > floor_db ? target_db : floor_db) / 20.0);
+      } else {
+        const double recovery = state->detector_gain < 1.0
+                                    ? options->limiting_release_coefficient
+                                    : options->release_coefficient;
+        state->gain += (state->detector_gain - state->gain) * (1.0 - recovery);
+        if (state->detector_gain > state->gain &&
+            state->detector_gain - state->gain <=
+                state->detector_gain * snap_ratio) {
+          state->gain = state->detector_gain;
+        }
+      }
+    } else {
+      if (required <= state->detector_gain) {
+        state->detector_gain = required;
+        state->release_hold_remaining = hold_samples;
+      } else if (state->release_hold_remaining > 0) {
+        state->release_hold_remaining -= 1;
+      } else {
+        // Follow the gain the CURRENT peak needs, not unity. A controller at
+        // -10 dB rises toward -5 while +5 dB peaks remain, and continues to
+        // unity only once nothing asks for reduction. Releasing blindly
+        // toward one makes a sawtooth: overshoot, snap down on the next peak,
+        // repeat.
+        const double recovery = required < 1.0
+                                    ? options->limiting_release_coefficient
+                                    : options->release_coefficient;
+        state->detector_gain +=
+            (required - state->detector_gain) * (1.0 - recovery);
+        if (required > state->detector_gain &&
+            required - state->detector_gain <= required * snap_ratio) {
+          state->detector_gain = required;
+        }
+      }
+
+      const double reduction_db =
+          state->detector_gain > 0.0
+              ? 20.0 * std::log10(state->detector_gain)
+              : -120.0;
+      const int64_t control_position = position - detector_latency;
+      state->gain_reduction_db[slot(control_position, capacity)] =
+          static_cast<float>(reduction_db);
+
+      // Back-fill a linear-in-dB fade that reaches the exact reduction at the
+      // peak. A deeper existing ramp wins, so overlapping peaks stay covered.
+      if (attack_samples > 0 && reduction_db < 0.0) {
+        const double step_db = -reduction_db / static_cast<double>(attack_samples);
+        double ramp_db = reduction_db + step_db;
+        for (int64_t back = 1; back <= attack_samples; ++back) {
+          const int64_t index = slot(control_position - back, capacity);
+          if (static_cast<double>(state->gain_reduction_db[index]) <= ramp_db) {
+            break;
+          }
+          state->gain_reduction_db[index] = static_cast<float>(ramp_db);
+          ramp_db += step_db;
+        }
+      }
+
+      state->gain = std::pow(
+          10.0, static_cast<double>(state->gain_reduction_db[read_at]) / 20.0);
+    }
+
+    for (uint32_t channel = 0; channel < state->channels; ++channel) {
+      float* line = state->delay[channel];
+      const double emitted = look_ahead == 0
+                                 ? static_cast<double>(channels[channel][at])
+                                 : static_cast<double>(line[read_at]);
+      line[write_at] = channels[channel][at];
+      channels[channel][at] = static_cast<float>(emitted * state->gain);
+    }
+    state->position = position + 1;
   }
 }
 

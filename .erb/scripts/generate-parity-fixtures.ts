@@ -58,6 +58,8 @@ import {
 import {
   createLimiterState,
   processLimiter,
+  createLinkedLimiterState,
+  processLinkedLimiter,
 } from '../../src/renderer/dsp/limiter';
 import {
   createBandDynamics,
@@ -114,6 +116,7 @@ enum ProcessorId {
   TruePeak = 8,
   Saturate = 9,
   Limiter = 10,
+  LinkedLimiter = 11,
 }
 
 interface IRackBand {
@@ -892,6 +895,65 @@ RACKS.forEach((rack) => {
           maxAbsTolerance: 1e-6,
           rmsTolerance: 1e-7,
         });
+      });
+    });
+  });
+});
+
+/**
+ * The linked limiter, in both of its two quite different modes.
+ *
+ * Without a slew it back-fills a delayed control signal with a linear-in-dB
+ * ramp; with one it moves the gain at a fixed rate and holds the target across
+ * the look-ahead. They share almost no code path, so both are generated.
+ */
+[
+  { label: 'ramped', slew: 0, hold: 0 },
+  { label: 'slewed', slew: 300, hold: 64 },
+].forEach((mode) => {
+  [8, 480].forEach((lookAhead) => {
+    parityCorpus(FRAMES, 48000).forEach((signal) => {
+      const options = {
+        ceiling: 0.891,
+        activationThreshold: 0.891,
+        releaseCoefficient: 0.9995,
+        limitingReleaseCoefficient: 0.998,
+        kneeDb: 2,
+        releaseHoldSamples: mode.hold,
+        attackSlewDbPerSecond: mode.slew > 0 ? mode.slew : undefined,
+        releaseSnapRatio: 0.01,
+        sampleRate: 48000,
+      };
+      fixtures.push({
+        name: `linklim/${mode.label}/${lookAhead}/${signal.name}`,
+        processor: ProcessorId.LinkedLimiter,
+        sampleRate: 48000,
+        params: [
+          lookAhead,
+          options.ceiling,
+          options.releaseCoefficient,
+          options.limitingReleaseCoefficient,
+          options.kneeDb,
+          options.activationThreshold,
+          options.releaseHoldSamples,
+          mode.slew,
+          options.releaseSnapRatio,
+          48000,
+        ],
+        input: processorInput(signal.channels),
+        expected: (() => {
+          const targets = processorInput(signal.channels).map((channel) =>
+            Float32Array.from(channel),
+          );
+          processLinkedLimiter(
+            createLinkedLimiterState(targets.length, lookAhead),
+            targets,
+            options,
+          );
+          return targets;
+        })(),
+        maxAbsTolerance: 1e-6,
+        rmsTolerance: 1e-7,
       });
     });
   });
