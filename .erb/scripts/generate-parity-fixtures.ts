@@ -38,6 +38,18 @@ import {
 } from '../../src/renderer/dsp/eqEngine';
 import { createOversampler } from '../../src/renderer/dsp/oversample';
 import {
+  createDelayLine,
+  processDelayLine,
+} from '../../src/renderer/dsp/delayLine';
+import {
+  createCrossoverState,
+  splitBands,
+} from '../../src/renderer/dsp/crossover';
+import {
+  createTruePeakState,
+  truePeakOfSample,
+} from '../../src/renderer/dsp/truePeak';
+import {
   createBandDynamics,
   refreshBandDynamics,
 } from '../../src/renderer/dsp/dynamics';
@@ -73,6 +85,9 @@ enum ProcessorId {
   EqLinked = 3,
   EqOversampled = 4,
   EqOversampledLinked = 5,
+  DelayLine = 6,
+  Crossover = 7,
+  TruePeak = 8,
 }
 
 interface IRackBand {
@@ -701,6 +716,83 @@ RACKS.forEach((rack) => {
         maxAbsTolerance: 1e-4,
         rmsTolerance: 1e-5,
       });
+    });
+  });
+});
+
+// The primitives the dynamics processors are built from. Each is small, and
+// each is somewhere a port goes wrong in its own way: a delay line by one
+// sample, a crossover by not summing back to its input, a true-peak detector
+// by reporting the sample peak and calling it true.
+[1, 12, 64, 511].forEach((delay) => {
+  parityCorpus(FRAMES, 48000).forEach((signal) => {
+    fixtures.push({
+      name: `delay/${delay}/48000/${signal.name}`,
+      processor: ProcessorId.DelayLine,
+      sampleRate: 48000,
+      params: [delay],
+      input: processorInput(signal.channels),
+      expected: processorInput(signal.channels).map((channel) => {
+        const target = Float32Array.from(channel);
+        processDelayLine(createDelayLine(delay), target);
+        return target;
+      }),
+      // A delay moves samples; it does not change them.
+      maxAbsTolerance: 0,
+      rmsTolerance: 0,
+    });
+  });
+});
+
+// One fixture per band, so each is compared on its own rather than averaged
+// into a sum that could hide two errors cancelling.
+(['low', 'mid', 'high'] as const).forEach((band, bandIndex) => {
+  parityCorpus(FRAMES, 48000).forEach((signal) => {
+    fixtures.push({
+      name: `crossover/${band}/48000/${signal.name}`,
+      processor: ProcessorId.Crossover,
+      sampleRate: 48000,
+      params: [bandIndex, 250, 3000],
+      input: processorInput(signal.channels),
+      expected: processorInput(signal.channels).map((channel) => {
+        const low = new Float32Array(channel.length);
+        const mid = new Float32Array(channel.length);
+        const high = new Float32Array(channel.length);
+        splitBands(
+          createCrossoverState(),
+          channel,
+          low,
+          mid,
+          high,
+          [250, 3000],
+          48000,
+        );
+        return [low, mid, high][bandIndex];
+      }),
+      maxAbsTolerance: 1e-6,
+      rmsTolerance: 1e-7,
+    });
+  });
+});
+
+// The magnitude per sample, written out as a signal so the same comparison
+// machinery applies. A limiter reads exactly this, one sample at a time.
+[1, 2, 4].forEach((factor) => {
+  parityCorpus(FRAMES, 48000).forEach((signal) => {
+    fixtures.push({
+      name: `truepeak/${factor}x/48000/${signal.name}`,
+      processor: ProcessorId.TruePeak,
+      sampleRate: 48000,
+      params: [factor],
+      input: processorInput(signal.channels),
+      expected: processorInput(signal.channels).map((channel) => {
+        const state = createTruePeakState(factor as 1 | 2 | 4);
+        return Float32Array.from(channel, (value) =>
+          truePeakOfSample(state, value),
+        );
+      }),
+      maxAbsTolerance: 1e-6,
+      rmsTolerance: 1e-7,
     });
   });
 });

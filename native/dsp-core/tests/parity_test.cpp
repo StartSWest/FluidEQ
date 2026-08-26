@@ -24,6 +24,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "fluideq/dynamics.h"
 #include "fluideq/eq.h"
 #include "fluideq/oversample.h"
+#include "fluideq/primitives.h"
 
 #include <algorithm>
 #include <cmath>
@@ -49,7 +50,10 @@ enum ProcessorId : uint32_t {
   kEqBands = 2,
   kEqLinked = 3,
   kEqOversampled = 4,
-  kEqOversampledLinked = 5
+  kEqOversampledLinked = 5,
+  kDelayLine = 6,
+  kCrossover = 7,
+  kTruePeak = 8
 };
 
 struct Fixture {
@@ -413,9 +417,74 @@ bool render_eq_oversampled(const Fixture& fixture, std::vector<float>& actual,
   return true;
 }
 
+bool render_delay(const Fixture& fixture, std::vector<float>& actual) {
+  if (fixture.params.empty()) {
+    return false;
+  }
+  const auto delay = static_cast<uint32_t>(fixture.params[0]);
+  actual = fixture.input;
+  for (uint32_t channel = 0; channel < fixture.channels; ++channel) {
+    std::vector<float> line(delay + 1);
+    FeqDelayLine state;
+    feq_delay_line_init(&state, line.data(), delay + 1, delay);
+    feq_delay_line_process(&state, channel_at(actual, channel, fixture.frames),
+                           fixture.frames);
+  }
+  return true;
+}
+
+bool render_crossover(const Fixture& fixture, std::vector<float>& actual) {
+  if (fixture.params.size() < 3) {
+    return false;
+  }
+  const auto band = static_cast<int>(fixture.params[0]);
+  actual.assign(fixture.input.size(), 0.0f);
+  std::vector<float> low(fixture.frames);
+  std::vector<float> mid(fixture.frames);
+  std::vector<float> high(fixture.frames);
+  for (uint32_t channel = 0; channel < fixture.channels; ++channel) {
+    FeqCrossover state;
+    feq_crossover_reset(&state);
+    feq_crossover_split(
+        &state,
+        fixture.input.data() + static_cast<size_t>(channel) * fixture.frames,
+        low.data(), mid.data(), high.data(), fixture.frames,
+        fixture.params[1], fixture.params[2],
+        static_cast<double>(fixture.sample_rate));
+    const std::vector<float>& chosen = band == 0 ? low : (band == 1 ? mid : high);
+    std::copy(chosen.begin(), chosen.end(),
+              actual.begin() + static_cast<size_t>(channel) * fixture.frames);
+  }
+  return true;
+}
+
+bool render_true_peak(const Fixture& fixture, std::vector<float>& actual) {
+  if (fixture.params.empty()) {
+    return false;
+  }
+  const auto factor = static_cast<uint32_t>(fixture.params[0]);
+  actual.assign(fixture.input.size(), 0.0f);
+  for (uint32_t channel = 0; channel < fixture.channels; ++channel) {
+    FeqTruePeak state;
+    feq_true_peak_init(&state, factor);
+    const size_t base = static_cast<size_t>(channel) * fixture.frames;
+    for (uint32_t at = 0; at < fixture.frames; ++at) {
+      actual[base + at] = static_cast<float>(feq_true_peak_sample(
+          &state, static_cast<double>(fixture.input[base + at])));
+    }
+  }
+  return true;
+}
+
 /** Run one fixture through the native engine, or say it cannot be run yet. */
 bool render(const Fixture& fixture, std::vector<float>& actual) {
   switch (fixture.processor) {
+    case kDelayLine:
+      return render_delay(fixture, actual);
+    case kCrossover:
+      return render_crossover(fixture, actual);
+    case kTruePeak:
+      return render_true_peak(fixture, actual);
     case kBiquad:
       return render_biquad(fixture, actual);
     case kEqBands:
