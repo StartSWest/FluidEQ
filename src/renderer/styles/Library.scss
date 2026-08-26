@@ -2873,6 +2873,32 @@ $library-wave-step: 4ms;
   text-align: center;
 }
 
+// The keep-playing switch, directly over the list it fills.
+//
+// `flex: 0 0 auto` for the reason the header above it carries the same: the
+// list below is the only thing in this column allowed to take the slack, and
+// a row that could shrink would be squeezed out of existence by a long queue.
+.library-up-next__keep {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-bottom: 1px solid rgba($secondary-light, 0.12);
+}
+
+// Same recipe as `.song-eq-save__label`, which is the app's other switch with
+// its name beside it — including the pointer, without which the words look
+// like a caption rather than half the control.
+.library-up-next__keep-label {
+  color: $text-muted;
+  font-size: 0.72rem;
+  font-weight: $weight-semibold;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color $motion-fast ease;
+}
+
 // The header is the fold, so it is a control and has to read as one.
 .library-up-next__head {
   display: flex;
@@ -3196,6 +3222,14 @@ $library-wave-step: 4ms;
 .library-up-next__section.is-added {
   color: $secondary-light;
   border-bottom-color: rgba($secondary-light, 0.3);
+}
+
+// And what the player chose for itself is quieter still than "then": a dashed
+// rule, because everything under it is a guess rather than a list anybody
+// asked for, and the heading has to be able to say so without a sentence.
+.library-up-next__section.is-continued {
+  color: rgba($primary-lighter, 0.38);
+  border-bottom-style: dashed;
 }
 
 // *** Two groups that are always their glyphs ********************************

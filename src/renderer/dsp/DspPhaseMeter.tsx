@@ -15,15 +15,6 @@ import {
   useDspPhaseView,
 } from './store';
 
-/**
- * The height the block had before the meter was redrawn, and it keeps it.
- *
- * The panel around this is sized by the preamp's dials, so growing the canvas
- * grew the whole row and pushed everything under it down. A meter earns its
- * space by using what it has.
- */
-const HEIGHT = 86;
-
 /** Where the arc is marked, and what to write there. */
 const TICKS: [number, string][] = [
   [-1, '-1'],
@@ -293,7 +284,7 @@ const DspPhaseMeter = () => {
       const box = measure(view === 'scope');
       // Nothing to report on, or nowhere to draw it. Either way the loop keeps
       // turning so the meter starts by itself once the engine does.
-      if (!box || !readDspAnalyser()) {
+      if (!box || !readDspAnalyser('eq')) {
         schedule();
         return;
       }
@@ -342,11 +333,7 @@ const DspPhaseMeter = () => {
         <span className="dsp-eq-preset-label">{t('dsp.eq.phase')}</span>
         <DspPhaseModes view={view} onChange={setDspPhaseView} />
       </div>
-      <canvas
-        ref={canvasRef}
-        className="dsp-eq-phase-canvas"
-        style={{ height: HEIGHT }}
-      />
+      <canvas ref={canvasRef} className="dsp-eq-phase-canvas" />
     </div>
   );
 };

@@ -4,16 +4,20 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { useEffect, useRef } from 'react';
 import {
   DSP_DEFAULTS,
+  EXCITER_BAND_LIMITS,
+  EXCITER_MIN_OCTAVES,
   IExciterBandSettings,
   IExciterSettings,
+  constrainExciterBandPosition,
+  maximumExciterBandRangeAtFrequency,
 } from '../../common/dsp/chain';
 import { TranslationKey } from '../../common/i18n/en';
 import { useTranslation } from '../utils/I18nContext';
 import Switch from '../widgets/Switch';
 import { Dial, ProcessorCard } from './DspControls';
+import DspExciterBar from './DspExciterBar';
 import DspExciterGraph from './DspExciterGraph';
 
 interface IDspExciterCardProps {
@@ -44,42 +48,26 @@ const DspExciterCard = ({
 }: IDspExciterCardProps) => {
   const { t } = useTranslation();
 
-  /**
-   * Isolate switches itself off when this page goes away.
-   *
-   * It is a monitoring mode, and the failure it invites is specific: switch it
-   * on, hear the harmonics, click over to the compressor to set something, and
-   * every other page in the rack is now playing harmonics only. Nothing on
-   * those pages says why, because the control that did it is on this one.
-   *
-   * The same reasoning as its never being restored from storage, one scope
-   * smaller — leaving the page is a smaller version of leaving the app.
-   */
-  const latest = useRef({ exciter, onPatch, onCommit });
-  latest.current = { exciter, onPatch, onCommit };
-  useEffect(
-    () => () => {
-      const {
-        exciter: last,
-        onPatch: patch,
-        onCommit: commit,
-      } = latest.current;
-      if (last.isolate) {
-        patch({ ...last, isolate: false });
-        commit();
-      }
-    },
-    [],
-  );
-
   const patchBand = (index: number, patch: Partial<IExciterBandSettings>) => {
     onPatch({
       ...exciter,
-      bands: exciter.bands.map((band, at) =>
-        at === index ? { ...band, ...patch } : band,
-      ),
+      presetId: '',
+      bands: exciter.bands.map((band, at) => {
+        if (at !== index) {
+          return band;
+        }
+        const next = { ...band, ...patch };
+        return {
+          ...next,
+          ...constrainExciterBandPosition(index, next.freqHz, next.range),
+        };
+      }),
     });
   };
+
+  /** Any sound edit makes the result Custom; bypass and Isolate do not. */
+  const patchProfileSettings = (patch: Partial<IExciterSettings>) =>
+    onPatch({ ...exciter, ...patch, presetId: '' });
 
   return (
     <ProcessorCard
@@ -87,311 +75,289 @@ const DspExciterCard = ({
       titleKey="dsp.exciter.title"
       descriptionKey="dsp.exciter.description"
       isEnabled={exciter.enabled}
-      onToggle={() => onPatch({ ...exciter, enabled: !exciter.enabled })}
-    >
-      {/* Loud, and at the top, because it changes what comes out of the
-          speakers more than any other control on the page. A monitoring mode
-          that is easy to leave on is one somebody leaves on and then reports
-          as the rack having broken — so it is a lit button rather than a
-          checkbox, and it says what it is doing while it does it. */}
-      <div className="dsp-exciter-monitor">
-        <button
-          type="button"
-          className={`button small${exciter.isolate ? '' : ' subtle'}`}
-          aria-pressed={exciter.isolate}
-          disabled={!exciter.enabled}
-          onClick={() => {
-            onPatch({ ...exciter, isolate: !exciter.isolate });
-            onCommit();
-          }}
+      onToggle={() => {
+        onPatch({
+          ...exciter,
+          enabled: !exciter.enabled,
+          isolate: false,
+        });
+        onCommit();
+      }}
+      beforePower={
+        <div
+          className="dsp-exciter-isolate"
+          title={
+            exciter.isolate
+              ? t('dsp.exciter.isolateOn')
+              : t('dsp.exciter.isolateHint')
+          }
         >
-          {t('dsp.exciter.isolate')}
-        </button>
-        <span className="dsp-exciter-monitor-hint">
-          {exciter.isolate
-            ? t('dsp.exciter.isolateOn')
-            : t('dsp.exciter.isolateHint')}
-        </span>
-      </div>
+          <span
+            className={`dsp-exciter-isolate-label${
+              exciter.isolate ? ' is-on' : ''
+            }`}
+            aria-hidden="true"
+          >
+            {t('dsp.exciter.isolate')}
+          </span>
+          <Switch
+            id="dsp-exciter-isolate"
+            isOn={exciter.isolate}
+            isDisabled={!exciter.enabled}
+            handleToggle={() => {
+              onPatch({ ...exciter, isolate: !exciter.isolate });
+              onCommit();
+            }}
+            ariaLabel={t('dsp.exciter.isolate')}
+          />
+        </div>
+      }
+      toolbar={
+        <DspExciterBar
+          exciter={exciter}
+          onChange={onPatch}
+          onCommit={onCommit}
+        />
+      }
+    >
+      <DspExciterGraph
+        settings={exciter}
+        onChange={onPatch}
+        onCommit={onCommit}
+      />
 
-      <DspExciterGraph settings={exciter} />
-
-      {exciter.bands.map((band, index) => (
-        <div className="dsp-band" key={BAND_LABELS[index]}>
-          {/* The band's own switch sits ON its title row, so a band that is
+      <div className="dsp-exciter-controls">
+        <div className="dsp-exciter-band-row">
+          {exciter.bands.map((band, index) => (
+            <div className="dsp-band" key={BAND_LABELS[index]}>
+              {/* The band's own switch sits ON its title row, so a band that is
               off reads as off from across the page rather than from a mix dial
               that happens to be at zero. Three bands where two are silent is
               the normal state of this processor, and the page has to say which
               two without being read closely. */}
-          <div className="dsp-band-head">
-            <span className="dsp-band-title">{t(BAND_LABELS[index])}</span>
-            <Switch
-              id={`dsp-exciter-band-${index}`}
-              isOn={band.enabled}
-              isDisabled={!exciter.enabled}
-              handleToggle={() => {
-                patchBand(index, { enabled: !band.enabled });
-                onCommit();
-              }}
-              ariaLabel={t(BAND_LABELS[index])}
-            />
-          </div>
-          <div className="dsp-band-dials">
-            {/* A centre and a width, and the width opens either side of the
+              <div className="dsp-band-head">
+                <span className="dsp-band-title">{t(BAND_LABELS[index])}</span>
+                <Switch
+                  id={`dsp-exciter-band-${index}`}
+                  isOn={band.enabled}
+                  isDisabled={!exciter.enabled}
+                  handleToggle={() => {
+                    patchBand(index, { enabled: !band.enabled });
+                    onCommit();
+                  }}
+                  ariaLabel={t(BAND_LABELS[index])}
+                />
+              </div>
+              <div className="dsp-band-dials">
+                {/* A centre and a width, and the width opens either side of the
                 centre. Nothing stops two bands covering the same octave —
                 these are parallel additions rather than a decomposition, so
                 an overlap simply means that octave gets both lots of
                 harmonics. */}
-            <Dial
-              labelKey="dsp.exciter.bandFreq"
-              value={band.freqHz}
-              defaultValue={DSP_DEFAULTS.exciter.bands[index].freqHz}
-              min={20}
-              max={20_000}
-              unit="Hz"
-              step={10}
-              isDisabled={!exciter.enabled || !band.enabled}
-              onCommit={onCommit}
-              onChange={(freqHz) => patchBand(index, { freqHz })}
-            />
-            <Dial
-              labelKey="dsp.exciter.bandRange"
-              value={band.range}
-              defaultValue={DSP_DEFAULTS.exciter.bands[index].range}
-              min={0}
-              max={1}
-              unit=""
-              step={0.01}
-              isDisabled={!exciter.enabled || !band.enabled}
-              onCommit={onCommit}
-              onChange={(range) => patchBand(index, { range })}
-            />
-            <Dial
-              labelKey="dsp.exciter.drive"
-              value={band.drive}
-              defaultValue={DSP_DEFAULTS.exciter.bands[index].drive}
-              min={1}
-              max={3.5}
-              unit=""
-              step={0.05}
-              isDisabled={!exciter.enabled || !band.enabled}
-              onCommit={onCommit}
-              onChange={(drive) => patchBand(index, { drive })}
-            />
-            <Dial
-              labelKey="dsp.exciter.mix"
-              value={band.mix}
-              defaultValue={DSP_DEFAULTS.exciter.bands[index].mix}
-              min={0}
-              max={1}
-              unit=""
-              step={0.01}
-              isDisabled={!exciter.enabled || !band.enabled}
-              onCommit={onCommit}
-              onChange={(mix) => patchBand(index, { mix })}
-            />
-            {/* 0 is all even, 1 is all odd — one dial, because they are the
-                same curve at two asymmetries rather than two effects. */}
-            <Dial
-              labelKey="dsp.exciter.texture"
-              value={band.texture}
-              defaultValue={DSP_DEFAULTS.exciter.bands[index].texture}
-              min={0}
-              max={0.7}
-              unit=""
-              step={0.01}
-              isDisabled={!exciter.enabled || !band.enabled}
-              onCommit={onCommit}
-              onChange={(texture) => patchBand(index, { texture })}
-            />
-            <Dial
-              labelKey="dsp.exciter.threshold"
-              value={band.thresholdDb}
-              defaultValue={DSP_DEFAULTS.exciter.bands[index].thresholdDb}
-              min={-60}
-              max={0}
-              unit="dB"
-              step={0.5}
-              isDisabled={!exciter.enabled || !band.enabled || !band.dynamic}
-              onCommit={onCommit}
-              onChange={(thresholdDb) => patchBand(index, { thresholdDb })}
-            />
+                <Dial
+                  labelKey="dsp.exciter.bandFreq"
+                  value={band.freqHz}
+                  defaultValue={DSP_DEFAULTS.exciter.bands[index].freqHz}
+                  min={
+                    EXCITER_BAND_LIMITS[index].minHz *
+                    2 ** (EXCITER_MIN_OCTAVES / 2)
+                  }
+                  max={
+                    EXCITER_BAND_LIMITS[index].maxHz /
+                    2 ** (EXCITER_MIN_OCTAVES / 2)
+                  }
+                  unit="Hz"
+                  step={10}
+                  isDisabled={!exciter.enabled || !band.enabled}
+                  onCommit={onCommit}
+                  onChange={(freqHz) => patchBand(index, { freqHz })}
+                />
+                <Dial
+                  labelKey="dsp.exciter.bandRange"
+                  value={band.range}
+                  defaultValue={DSP_DEFAULTS.exciter.bands[index].range}
+                  min={0}
+                  // High's legal region is only three octaves wide. Giving
+                  // it the generic ten-octave maximum left three quarters of
+                  // the physical dial clamped and apparently broken.
+                  max={
+                    index === 2
+                      ? maximumExciterBandRangeAtFrequency(index, band.freqHz)
+                      : 1
+                  }
+                  unit=""
+                  step={0.01}
+                  isDisabled={!exciter.enabled || !band.enabled}
+                  onCommit={onCommit}
+                  onChange={(range) => patchBand(index, { range })}
+                />
+                <Dial
+                  labelKey="dsp.exciter.drive"
+                  value={band.drive}
+                  defaultValue={DSP_DEFAULTS.exciter.bands[index].drive}
+                  min={1}
+                  max={3.5}
+                  unit=""
+                  step={0.05}
+                  isDisabled={!exciter.enabled || !band.enabled}
+                  onCommit={onCommit}
+                  onChange={(drive) => patchBand(index, { drive })}
+                />
+                <Dial
+                  labelKey="dsp.exciter.mix"
+                  value={band.mix}
+                  defaultValue={DSP_DEFAULTS.exciter.bands[index].mix}
+                  min={0}
+                  max={1}
+                  unit=""
+                  step={0.01}
+                  isDisabled={!exciter.enabled || !band.enabled}
+                  onCommit={onCommit}
+                  onChange={(mix) => patchBand(index, { mix })}
+                />
+                {/* One asymmetry control. Low/Mid can reach body-heavy even
+                current; High maps the same travel from presence toward airy
+                odd current so its warm end never becomes another Mid band. */}
+                <Dial
+                  labelKey="dsp.exciter.texture"
+                  value={band.texture}
+                  defaultValue={DSP_DEFAULTS.exciter.bands[index].texture}
+                  min={0}
+                  max={0.7}
+                  unit=""
+                  step={0.01}
+                  isDisabled={!exciter.enabled || !band.enabled}
+                  onCommit={onCommit}
+                  onChange={(texture) => patchBand(index, { texture })}
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* These affect the whole Exciter rather than one selected band. They
+            lead the single wide row, but move below the band row whenever the
+            layout has to split. That keeps the same scope-first hierarchy as
+            the EQ without changing the controls' reading order in the DOM. */}
+        <div className="dsp-exciter-global-row">
+          {/* Timing is intentionally one control. Its hardware-style crossover
+              points are fixed in the DSP; exposing them made a simple punch
+              and clarity tool look like another multiband EQ. */}
+          <div className="dsp-band dsp-band-align">
+            <div className="dsp-band-head">
+              <span className="dsp-band-title">{t('dsp.exciter.align')}</span>
+              <Switch
+                id="dsp-exciter-align"
+                isOn={exciter.align.enabled}
+                isDisabled={!exciter.enabled}
+                handleToggle={() => {
+                  patchProfileSettings({
+                    align: {
+                      ...exciter.align,
+                      enabled: !exciter.align.enabled,
+                    },
+                  });
+                  onCommit();
+                }}
+                ariaLabel={t('dsp.exciter.align')}
+              />
+            </div>
+            <p className="dsp-band-hint">{t('dsp.exciter.alignHint')}</p>
+            <div className="dsp-band-dials">
+              <Dial
+                labelKey="dsp.exciter.alignAmount"
+                value={exciter.align.amount}
+                defaultValue={DSP_DEFAULTS.exciter.align.amount}
+                min={0}
+                max={1}
+                unit=""
+                step={0.01}
+                isDisabled={!exciter.enabled || !exciter.align.enabled}
+                onCommit={onCommit}
+                onChange={(amount) =>
+                  patchProfileSettings({
+                    align: { ...exciter.align, amount },
+                  })
+                }
+              />
+            </div>
           </div>
-          <label
-            className="dsp-band-dynamic"
-            htmlFor={`dsp-exciter-dyn-${index}`}
-          >
-            <Switch
-              id={`dsp-exciter-dyn-${index}`}
-              isOn={band.dynamic}
-              isDisabled={!exciter.enabled || !band.enabled}
-              handleToggle={() => {
-                patchBand(index, { dynamic: !band.dynamic });
-                onCommit();
-              }}
-              ariaLabel={t('dsp.exciter.dynamic')}
-            />
-            <span>{t('dsp.exciter.dynamic')}</span>
-          </label>
-        </div>
-      ))}
 
-      {/* First on the page under the graph, because it is the only stage here
-          that adds nothing — no harmonics, no level, no signal of its own —
-          and is therefore the one to try before reaching for anything that
-          does. @see phaseAlign.ts */}
-      <div className="dsp-band dsp-band-align">
-        <div className="dsp-band-head">
-          <span className="dsp-band-title">{t('dsp.exciter.align')}</span>
-          <Switch
-            id="dsp-exciter-align"
-            isOn={exciter.align.enabled}
-            isDisabled={!exciter.enabled}
-            handleToggle={() => {
-              onPatch({
-                ...exciter,
-                align: { ...exciter.align, enabled: !exciter.align.enabled },
-              });
-              onCommit();
-            }}
-            ariaLabel={t('dsp.exciter.align')}
-          />
-        </div>
-        <p className="dsp-band-hint">{t('dsp.exciter.alignHint')}</p>
-        <div className="dsp-band-dials">
-          <Dial
-            labelKey="dsp.exciter.alignAmount"
-            value={exciter.align.amount}
-            defaultValue={DSP_DEFAULTS.exciter.align.amount}
-            min={0}
-            max={1}
-            unit=""
-            step={0.01}
-            isDisabled={!exciter.enabled || !exciter.align.enabled}
-            onCommit={onCommit}
-            onChange={(amount) =>
-              onPatch({ ...exciter, align: { ...exciter.align, amount } })
-            }
-          />
-          <Dial
-            labelKey="dsp.exciter.alignLow"
-            value={exciter.align.crossoverHz[0]}
-            defaultValue={DSP_DEFAULTS.exciter.align.crossoverHz[0]}
-            min={60}
-            max={400}
-            unit="Hz"
-            step={5}
-            isDisabled={!exciter.enabled || !exciter.align.enabled}
-            onCommit={onCommit}
-            onChange={(low) =>
-              onPatch({
-                ...exciter,
-                align: {
-                  ...exciter.align,
-                  crossoverHz: [low, exciter.align.crossoverHz[1]],
-                },
-              })
-            }
-          />
-          <Dial
-            labelKey="dsp.exciter.alignHigh"
-            value={exciter.align.crossoverHz[1]}
-            defaultValue={DSP_DEFAULTS.exciter.align.crossoverHz[1]}
-            min={600}
-            max={4_000}
-            unit="Hz"
-            step={20}
-            isDisabled={!exciter.enabled || !exciter.align.enabled}
-            onCommit={onCommit}
-            onChange={(high) =>
-              onPatch({
-                ...exciter,
-                align: {
-                  ...exciter.align,
-                  crossoverHz: [exciter.align.crossoverHz[0], high],
-                },
-              })
-            }
-          />
-        </div>
-      </div>
-
-      {/* Its own block rather than a fourth band, because it is not one: it
-          works on its own bandpass, at a frequency the user chooses, and what
-          it adds is body rather than excitement. Two dials, and the reason
-          there are only two is in `organic.ts` — the drift and the tracking
-          are the effect, not settings on top of it. */}
-      <div className="dsp-band dsp-band-organic">
-        <div className="dsp-band-head">
-          <span className="dsp-band-title">{t('dsp.exciter.organic')}</span>
-          <Switch
-            id="dsp-exciter-organic"
-            isOn={exciter.organic.enabled}
-            isDisabled={!exciter.enabled}
-            handleToggle={() => {
-              onPatch({
-                ...exciter,
-                organic: {
-                  ...exciter.organic,
-                  enabled: !exciter.organic.enabled,
-                },
-              });
-              onCommit();
-            }}
-            ariaLabel={t('dsp.exciter.organic')}
-          />
-        </div>
-        <p className="dsp-band-hint">{t('dsp.exciter.organicHint')}</p>
-        <div className="dsp-band-dials">
-          <Dial
-            labelKey="dsp.exciter.organicAmount"
-            value={exciter.organic.amount}
-            defaultValue={DSP_DEFAULTS.exciter.organic.amount}
-            min={0}
-            max={1}
-            unit=""
-            step={0.01}
-            isDisabled={!exciter.enabled || !exciter.organic.enabled}
-            onCommit={onCommit}
-            onChange={(amount) =>
-              onPatch({ ...exciter, organic: { ...exciter.organic, amount } })
-            }
-          />
-          <Dial
-            labelKey="dsp.exciter.organicFocus"
-            value={exciter.organic.focusHz}
-            defaultValue={DSP_DEFAULTS.exciter.organic.focusHz}
-            min={40}
-            max={16_000}
-            unit="Hz"
-            step={10}
-            // At full range there is no band left to centre, so the dial that
-            // centres it is telling the truth by being unavailable rather than
-            // by quietly doing nothing.
-            isDisabled={
-              !exciter.enabled ||
-              !exciter.organic.enabled ||
-              exciter.organic.range >= 1
-            }
-            onCommit={onCommit}
-            onChange={(focusHz) =>
-              onPatch({ ...exciter, organic: { ...exciter.organic, focusHz } })
-            }
-          />
-          <Dial
-            labelKey="dsp.exciter.organicRange"
-            value={exciter.organic.range}
-            defaultValue={DSP_DEFAULTS.exciter.organic.range}
-            min={0}
-            max={1}
-            unit=""
-            step={0.01}
-            isDisabled={!exciter.enabled || !exciter.organic.enabled}
-            onCommit={onCommit}
-            onChange={(range) =>
-              onPatch({ ...exciter, organic: { ...exciter.organic, range } })
-            }
-          />
+          {/* Its own block rather than a fourth exciter band: it generates a
+              soft, even-dominant body layer around the chosen region. It uses
+              the same continuously conducting diode curve as the three
+              exciter bands. */}
+          <div className="dsp-band dsp-band-organic">
+            <div className="dsp-band-head">
+              <span className="dsp-band-title">{t('dsp.exciter.organic')}</span>
+              <Switch
+                id="dsp-exciter-organic"
+                isOn={exciter.organic.enabled}
+                isDisabled={!exciter.enabled}
+                handleToggle={() => {
+                  patchProfileSettings({
+                    organic: {
+                      ...exciter.organic,
+                      enabled: !exciter.organic.enabled,
+                    },
+                  });
+                  onCommit();
+                }}
+                ariaLabel={t('dsp.exciter.organic')}
+              />
+            </div>
+            <p className="dsp-band-hint">{t('dsp.exciter.organicHint')}</p>
+            <div className="dsp-band-dials">
+              <Dial
+                labelKey="dsp.exciter.organicAmount"
+                value={exciter.organic.amount}
+                defaultValue={DSP_DEFAULTS.exciter.organic.amount}
+                min={0}
+                max={1}
+                unit=""
+                step={0.01}
+                isDisabled={!exciter.enabled || !exciter.organic.enabled}
+                onCommit={onCommit}
+                onChange={(amount) =>
+                  patchProfileSettings({
+                    organic: { ...exciter.organic, amount },
+                  })
+                }
+              />
+              <Dial
+                labelKey="dsp.exciter.organicFocus"
+                value={exciter.organic.focusHz}
+                defaultValue={DSP_DEFAULTS.exciter.organic.focusHz}
+                min={40}
+                max={16_000}
+                unit="Hz"
+                step={10}
+                isDisabled={!exciter.enabled || !exciter.organic.enabled}
+                onCommit={onCommit}
+                onChange={(focusHz) =>
+                  patchProfileSettings({
+                    organic: { ...exciter.organic, focusHz },
+                  })
+                }
+              />
+              <Dial
+                labelKey="dsp.exciter.organicRange"
+                value={exciter.organic.range}
+                defaultValue={DSP_DEFAULTS.exciter.organic.range}
+                min={0}
+                max={1}
+                unit=""
+                step={0.01}
+                isDisabled={!exciter.enabled || !exciter.organic.enabled}
+                onCommit={onCommit}
+                onChange={(range) =>
+                  patchProfileSettings({
+                    organic: { ...exciter.organic, range },
+                  })
+                }
+              />
+            </div>
+          </div>
         </div>
       </div>
     </ProcessorCard>

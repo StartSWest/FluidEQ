@@ -55,6 +55,8 @@ import { useGraphMeterHidden } from '../utils/graphStyle';
 import { useRhythmRun } from '../utils/rhythmRun';
 import { useIsEuphoric } from '../utils/euphoriaMode';
 import { useSmoothFrames } from '../utils/useSmoothFrames';
+import { readDspChannelPeaks } from '../dsp/store';
+import { CLIP_HOLD_MS } from './liveSpectrumFrames';
 import {
   LEVEL_FLOOR_DB,
   LEVEL_HOT_DB,
@@ -95,23 +97,6 @@ const LEVEL_ATTACK_MS = 35;
 const LEVEL_RELEASE_MS = 200;
 const PEAK_RELEASE_MS = 900;
 
-/**
- * The ceiling this capture can actually reach, in dBFS.
- *
- * Not zero, and the difference is measured rather than chosen. Equalizer APO's
- * documentation is explicit that since Vista the Windows audio engine will not
- * let audio clip — it runs a Limiter APO that lowers the overall volume instead
- * of letting the signal rail. So nothing arriving here is ever allowed to touch
- * full scale: sampled at +20 dB of preamp with the audio audibly breaking up,
- * not one sample in 143,360 reached it, and the peak sat between −0.1 and −1 dB.
- *
- * Minus one is therefore where the top of the scale is from this vantage point,
- * and reaching it is the only signature of an overdriven chain that survives
- * the limiter.
- */
-const METER_CEILING_DB = -1;
-
-/** How wide a single channel column is on the canvas. */
 /** How thick the brightened reading edge is, on the styles that have one. */
 const BAR_TIP_HEIGHT = 2;
 
@@ -176,7 +161,10 @@ const RAINBOW_STOPS: ReadonlyArray<{ offset: number; colour: string }> = [
 const ZONE_COLOURS = {
   safe: '#54ff8a',
   hot: '#ffd24a',
-  over: '#ff5a6e',
+  // Near the ceiling is caution, not proof of clipped samples. Keeping this
+  // distinct from `clip` prevents a correctly limited -1 dBTP master from
+  // wearing the same red fault colour as a signal pinned to the digital rail.
+  over: '#ff9d4a',
   clip: '#ff5a6e',
 } as const;
 
@@ -192,7 +180,7 @@ const READING_COLOURS: Record<'safe' | 'hot' | 'over' | 'clip', string> = {
   safe: '#c8fff8',
   hot: ZONE_COLOURS.hot,
   over: ZONE_COLOURS.over,
-  clip: ZONE_COLOURS.over,
+  clip: ZONE_COLOURS.clip,
 };
 
 interface IChannelLevel {
@@ -1595,8 +1583,9 @@ const OutputLevelMeter = () => {
   const isEuphoric = useIsEuphoric(getStreakJoy(useRhythmRun().streak) >= 1);
   const isEuphoricRef = useRef(isEuphoric);
   isEuphoricRef.current = isEuphoric;
-  const isClippingRef = useRef(isClipping);
-  isClippingRef.current = isClipping;
+  const internalClipUntilRef = useRef<number[]>([0, 0]);
+  const internalClippingRef = useRef(false);
+  const [isInternallyClipping, setIsInternallyClipping] = useState(false);
 
   // Remembered across launches: which one somebody likes is a preference,
   // and being handed back a different meter every morning is not charming.
@@ -1647,42 +1636,39 @@ const OutputLevelMeter = () => {
     const isIdle = outputLevels.length === 0;
     const channels = isIdle
       ? [
-          { levelDb: LEVEL_FLOOR_DB, peakDb: LEVEL_FLOOR_DB },
-          { levelDb: LEVEL_FLOOR_DB, peakDb: LEVEL_FLOOR_DB },
+          {
+            levelDb: LEVEL_FLOOR_DB,
+            peakDb: LEVEL_FLOOR_DB,
+            isClipping: false,
+          },
+          {
+            levelDb: LEVEL_FLOOR_DB,
+            peakDb: LEVEL_FLOOR_DB,
+            isClipping: false,
+          },
         ]
       : outputLevels;
-    targetsRef.current = channels.map((channel) => {
+    const dspChannelPeaks = readDspChannelPeaks();
+    const nowMs = performance.now();
+    let anyInternalClipping = false;
+    targetsRef.current = channels.map((channel, index) => {
       const level = levelFraction(channel.levelDb);
       const peak = levelFraction(channel.peakDb);
       /**
-       * This channel's own measured peak, against the ceiling the capture
-       * can actually reach.
+       * Only measured samples at a digital rail say CLIP.
        *
-       * MEASURED, AND ONLY MEASURED. No preamp, no chain gain, no
-       * prediction — the loudest sample this channel produced and nothing
-       * else. Two calculated approaches were tried before this and both
-       * were wrong in ways worth not repeating: judging by the chain's gain
-       * alone assumed the input reached full scale, so a +2 dB preamp lit
-       * the meter over a quiet passage; and combining the gain with the
-       * measurement needed a figure computed by the response chart, which
-       * is unmounted whenever another tab is open — so the meter went
-       * silent everywhere except the EQ tab.
-       *
-       * WHY THE LINE IS HERE AND NOT AT ZERO. Equalizer APO's own
-       * documentation is explicit that since Vista the Windows audio engine
-       * will not let audio clip: it runs a Limiter APO that lowers the
-       * overall volume rather than letting the signal rail. Nothing
-       * reaching this capture is ever allowed to touch full scale —
-       * measured at +20 dB of preamp with the audio audibly breaking up,
-       * not one sample in 143,360 got there, and the peak sat between −0.1
-       * and −1 dB. So −1 dBFS is where the ceiling actually is from here,
-       * and arriving at it is the only signature of an overdriven chain
-       * that survives the limiter.
-       *
-       * `isClipping` stays alongside as the capture's own verdict from
-       * railed samples, for anything clipping outside our own chain.
+       * The loopback supplies each endpoint channel; FluidEQ's worklet supplies
+       * each channel before Windows gets a chance to limit or clamp it. Neither
+       * path consults settings or predicts a ceiling. Orange remains measured
+       * near-ceiling level; red is evidence in samples from either path.
        */
-      const isRailed = isClipping || channel.peakDb > METER_CEILING_DB;
+      if ((dspChannelPeaks[index] ?? 0) >= 1) {
+        internalClipUntilRef.current[index] = nowMs + CLIP_HOLD_MS;
+      }
+      const internalClipping =
+        nowMs < (internalClipUntilRef.current[index] ?? 0);
+      anyInternalClipping ||= internalClipping;
+      const isRailed = channel.isClipping || internalClipping;
       return {
         level,
         peak,
@@ -1697,7 +1683,13 @@ const OutputLevelMeter = () => {
     if (easedRef.current.length !== targetsRef.current.length) {
       easedRef.current = targetsRef.current.map((channel) => ({ ...channel }));
     }
-  }, [isClipping, outputLevels]);
+    if (anyInternalClipping !== internalClippingRef.current) {
+      internalClippingRef.current = anyInternalClipping;
+      setIsInternallyClipping(anyInternalClipping);
+    }
+  }, [outputLevels]);
+
+  const isDisplayedClipping = isClipping || isInternallyClipping;
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const contextRef = useRef<CanvasRenderingContext2D | null>(null);
@@ -1958,7 +1950,7 @@ const OutputLevelMeter = () => {
   // Kick the loop on new frames and on state that changes the drawing.
   useEffect(() => {
     kickFrames();
-  }, [isClipping, isEuphoric, kickFrames, outputLevels, style]);
+  }, [isDisplayedClipping, isEuphoric, kickFrames, outputLevels, style]);
 
   if (isHidden) {
     return null;
@@ -1968,7 +1960,7 @@ const OutputLevelMeter = () => {
   return (
     <button
       type="button"
-      className={`output-meter${isClipping ? ' is-clipping' : ''}${
+      className={`output-meter${isDisplayedClipping ? ' is-clipping' : ''}${
         isIdle ? ' is-idle' : ''
       }`}
       aria-label={`${t('graph.meter.aria')} — ${style}`}

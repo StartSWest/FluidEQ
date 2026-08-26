@@ -52,7 +52,12 @@ export const toPresetFile = (name: string, eq: IEqSettings): string =>
       // The bypass switch and which preset was showing are not part of a
       // curve, and shipping them would make somebody else's rack turn itself
       // off on import.
-      eq: { ...eq, enabled: DSP_DEFAULTS.eq.enabled, presetId: '' },
+      eq: {
+        ...eq,
+        enabled: DSP_DEFAULTS.eq.enabled,
+        isolate: DSP_DEFAULTS.eq.isolate,
+        presetId: '',
+      },
     } satisfies IPresetFile,
     null,
     2,

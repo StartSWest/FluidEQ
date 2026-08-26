@@ -25,12 +25,49 @@ const dsp = {
   'dsp.unavailable':
     'ऑडियो प्रोसेसिंग शुरू नहीं हो सकी। प्लेबैक पर कोई असर नहीं पड़ता।',
   'dsp.presets': 'प्रीसेट',
-  'dsp.preset.flat': 'बंद',
   'dsp.preset.lossyRepair': 'संपीड़ित को सुधारें',
   'dsp.preset.loud': 'तेज़',
   'dsp.preset.broadcast': 'ब्रॉडकास्ट',
   'dsp.bypassed': 'बायपास',
   'dsp.enabled': 'चालू',
+
+  'dsp.normalizer.title': 'नॉर्मलाइज़र',
+  'dsp.normalizer.description':
+    'पूरे स्रोत को एक बार मापकर Exciter और EQ से पहले एक स्थिर, स्टीरियो-लिंक्ड गेन लगाता है। कोई पंपिंग या चलता RMS फ़ॉलोअर नहीं।',
+  'dsp.normalizer.mode': 'नॉर्मलाइज़ेशन मोड',
+  'dsp.normalizer.off': 'बंद',
+  'dsp.normalizer.truePeak': 'ट्रू पीक',
+  'dsp.normalizer.loudness': 'लाउडनेस',
+  'dsp.normalizer.ceiling': 'पीक सीमा',
+  'dsp.normalizer.target': 'लाउडनेस लक्ष्य',
+  'dsp.normalizer.analysis': 'स्रोत विश्लेषण',
+  'dsp.normalizer.analyzing': 'पूरा ट्रैक विश्लेषित हो रहा है · {progress}%',
+  'dsp.normalizer.unavailable':
+    'इस स्रोत का विश्लेषण नहीं हो सका। यह अपने मूल स्तर पर चलेगा।',
+  'dsp.normalizer.waiting': 'मापने के लिए लाइब्रेरी से कोई ट्रैक चलाएँ।',
+  'dsp.normalizer.measuredPeak': 'मापा गया पीक',
+  'dsp.normalizer.measuredLoudness': 'इंटीग्रेटेड लाउडनेस',
+  'dsp.normalizer.appliedGain': 'लागू गेन',
+  'dsp.normalizer.liveMeter': 'लाइव पहले / बाद में',
+  'dsp.normalizer.before': 'पहले',
+  'dsp.normalizer.after': 'बाद में',
+  'dsp.normalizer.liveMeterHint':
+    'नॉर्मलाइज़र के ठीक पहले और बाद में मापे गए वास्तविक सैंपल पीक। शून्य निशान 0 dBFS है।',
+  'dsp.normalizer.honesty':
+    'आगे की ओवरलोडिंग रोकता है; फ़ाइल में पहले से मौजूद डिस्टॉर्शन को दोबारा नहीं बना सकता।',
+
+  'dsp.crossfade.title': 'क्रॉसफ़ेड',
+  'dsp.crossfade.description':
+    'नॉर्मलाइज़ेशन के बाद, Exciter और EQ से पहले आउटगोइंग और इनकमिंग ट्रैक को ओवरलैप करता है।',
+  'dsp.crossfade.outgoing': 'आउटगोइंग',
+  'dsp.crossfade.incoming': 'इनकमिंग',
+  'dsp.crossfade.duration': 'अवधि',
+  'dsp.crossfade.curve': 'फ़ेड कर्व',
+  'dsp.crossfade.equalPower': 'समान पावर',
+  'dsp.crossfade.smooth': 'स्मूद',
+  'dsp.crossfade.linear': 'लीनियर',
+  'dsp.crossfade.hint':
+    'मैनुअल अगला और ट्रैक के स्वाभाविक अंत पर लागू होता है। सीक तुरंत रहता है।',
 
   'dsp.eqPreset.custom': 'कस्टम',
   'dsp.eqPreset.label': 'प्रीसेट',
@@ -106,15 +143,18 @@ const dsp = {
   'dsp.eqSave.imported': '{name} आयात किया गया।',
   'dsp.eqShare.share': 'साझा करें',
   'dsp.eqShare.hint': 'इस रैक को ऐसी फ़ाइल में सहेजता है जिसे दूसरे खोल सकें।',
+  'dsp.eqShare.saved': 'प्रीसेट फ़ाइल सहेजी गई।',
+  'dsp.eqShare.failed': 'प्रीसेट फ़ाइल सहेजी नहीं जा सकी।',
+  'dsp.eq.isolate': 'अलग करें',
+  'dsp.eq.isolateHint': 'केवल EQ द्वारा किए गए बदलाव सुनें।',
+  'dsp.eq.isolateOn':
+    'ड्राई सिग्नल हटा दिया गया है — केवल EQ के बदलाव सुनाई दे रहे हैं।',
   'dsp.eqPreset.imported': '{count} फ़िल्टर लोड किए गए।',
   'dsp.eqPreset.importSkipped':
     '{count} फ़िल्टर लोड किए गए, {skipped} छोड़े गए।',
   'dsp.eqPreset.importEmpty':
     'इस इक्वलाइज़र को उसमें कोई फ़िल्टर नहीं मिला जिसे वह पढ़ सके।',
   'dsp.eqPreset.importFailed': 'वह फ़ाइल पढ़ी नहीं जा सकी।',
-  'dsp.eqPreset.importPreamp':
-    'इसकी {gain} dB गुंजाइश यहाँ स्वयं मापी जाती है।',
-
   'dsp.eq.rack': 'बैंड',
   'dsp.eqModel.label': 'चरित्र',
   'dsp.eqModel.clean': 'कोई नहीं',
@@ -137,8 +177,7 @@ const dsp = {
   'dsp.eqImport.title': 'EQ कर्व आयात करें',
   'dsp.eqImport.hint':
     'Squiglink, AutoEq या Equalizer APO से कर्व चिपकाएँ — या उसकी फ़ाइल चुनें।',
-  'dsp.eqImport.placeholder':
-    'Preamp: -5.4 dB\nFilter: ON PK Fc 1200 Hz Gain -2.1 dB Q 1.41',
+  'dsp.eqImport.placeholder': 'Filter: ON PK Fc 1200 Hz Gain -2.1 dB Q 1.41',
   'dsp.eqImport.chooseFile': 'फ़ाइल चुनें',
   'dsp.eqImport.apply': 'आयात करें',
   'dsp.eqImport.cancel': 'रद्द करें',
@@ -161,7 +200,6 @@ const dsp = {
   'dsp.eq.type.bandPass': 'बैंड पास',
   'dsp.eq.frequency': 'आवृत्ति',
   'dsp.eq.gain': 'गेन',
-  'dsp.eq.preamp': 'प्रीएम्प',
   'dsp.eq.trim': 'स्वतः समायोजन',
   'dsp.eq.adaptive': 'अनुकूली',
   'dsp.eq.trimFixed': 'स्थिर',
@@ -206,20 +244,16 @@ const dsp = {
   'dsp.exciter.band.mid': 'मिड',
   'dsp.exciter.band.high': 'हाई',
   'dsp.exciter.texture': 'बनावट',
-  'dsp.exciter.threshold': 'थ्रेशोल्ड',
-  'dsp.exciter.dynamic': 'डायनामिक',
   'dsp.exciter.organic': 'ऑर्गेनिक',
   'dsp.exciter.organicHint':
-    'उन मिड्स को बॉडी दें जो मापने में ठीक हैं पर पतले सुनाई देते हैं। सम हार्मोनिक्स जो संगीत के साथ चलते और बहते हैं, ताकि यह ठहरे नहीं बल्कि साँस ले।',
+    'चुनी हुई रेंज में सम हार्मोनिक्स वाली मुलायम बॉडी जोड़ता है। साफ़, मेटैलिक या टाइटेनियम-ड्राइवर प्रस्तुति को बिना डिटेल खोए अधिक गर्म और ऑर्गेनिक बनाने के लिए आदर्श है।',
   'dsp.exciter.organicAmount': 'बॉडी',
   'dsp.exciter.organicFocus': 'फ़ोकस',
   'dsp.exciter.organicRange': 'रेंज',
-  'dsp.exciter.align': 'संरेखण',
+  'dsp.exciter.align': 'टाइमिंग',
   'dsp.exciter.alignHint':
-    'BBE की तरह निचले बैंड को ऊपरी बैंड के सापेक्ष विलंबित करता है। कुछ जोड़ता नहीं — केवल बदलता है कि हर हिस्सा कब पहुँचे।',
-  'dsp.exciter.alignAmount': 'गहराई',
-  'dsp.exciter.alignLow': 'निचला विभाजन',
-  'dsp.exciter.alignHigh': 'ऊपरी विभाजन',
+    'हाई को पहले आने देता है और साफ अटैक व गोल पंच के लिए मिड और लो को हल्का विलंबित करता है। कोई हार्मोनिक्स नहीं जोड़ता।',
+  'dsp.exciter.alignAmount': 'मात्रा',
   'dsp.exciter.isolate': 'अलग करें',
   'dsp.exciter.isolateHint': 'केवल वे हार्मोनिक्स सुनें जो यह चरण जोड़ रहा है।',
   'dsp.exciter.isolateOn':
@@ -245,6 +279,51 @@ const dsp = {
   'dsp.maximizer.ceiling': 'सीमा',
   'dsp.maximizer.lookAhead': 'लुक-अहेड',
   'dsp.maximizer.release': 'रिलीज़',
+
+  'dsp.master.title': 'मास्टर',
+  'dsp.master.description':
+    'सभी प्रोसेसरों के बाद पारदर्शी अंतिम आउटपुट नियंत्रण। यह EQ, एक्साइटर या दूसरी स्टेजों के ड्राइव स्तर को नहीं बदलता।',
+  'dsp.master.outputTrim': 'आउटपुट गेन',
+  'dsp.master.autoHeadroom': 'ऑटो हेडरूम',
+  'dsp.master.autoHeadroomHint':
+    'चुनी गई स्टीरियो-लिंक्ड ट्रू-पीक सीमा के पास आने वाले पीक को ही सहजता से कम करता है।',
+  'dsp.master.ceiling': 'सीमा',
+  'dsp.master.release': 'रिलीज़',
+  'dsp.master.loudnessMaximize': 'LUFS अधिकतम करें',
+  'dsp.master.loudnessMaximizeHint':
+    'पूरे ट्रैक की माप से {gain} dB लागू करता है और अंतिम ट्रू पीक को सीमा के नीचे रखता है। गेन स्थिर रहता है; केवल पीक नियंत्रित होते हैं।',
+  'dsp.master.loudnessTarget': 'लाउडनेस लक्ष्य',
+  'dsp.master.meter': 'अंतिम आउटपुट',
+  'dsp.master.safetyHint':
+    '{factor}× ट्रू-पीक डिटेक्शन · {ceiling} dBTP सीमा · {knee} dB सॉफ्ट नी · स्टीरियो-लिंक्ड।',
+  'dsp.master.manualHint':
+    'मैनुअल आउटपुट: कोई पीक कटौती नहीं। 0 dBFS से ऊपर के स्तर क्लिप होंगे।',
+  'dsp.master.truePeak': 'TP इन',
+  'dsp.master.gainReduction': 'गेन रिडक्शन',
+  'dsp.master.devSafety': 'सुरक्षा A/B',
+  'dsp.master.devSafetyHint':
+    'केवल डेवलपमेंट: पूरी अंतिम सुरक्षा को बायपास करता है ताकि उसका सटीक प्रभाव सुना जा सके।',
+  'dsp.master.devSafetySpec':
+    '+10 dBTP से ऊपर आपात सुरक्षा · 2 ms लुक-अहेड · बिना रिलीज़ सुधार · 3 Hz DC सुरक्षा · अमान्य सैम्पल सुधार',
+  'dsp.master.dcCorrection': 'DC ऑफसेट',
+  'dsp.master.faults': 'फॉल्ट',
+  'dsp.master.graph.spectrum': 'अंतिम स्पेक्ट्रम',
+  'dsp.master.graph.trim': 'आउटपुट गेन',
+  'dsp.master.graph.applied': 'लागू गेन',
+  'dsp.master.graph.trimLine': 'गेन {gain} dB',
+  'dsp.master.graph.appliedLine': 'लागू {gain} dB',
+  'dsp.master.graph.dcGuard': 'DC सुरक्षा',
+  'dsp.master.graph.peakWarning': 'चेतावनी · आउटपुट {peak} dBTP सीमा से ऊपर',
+  'dsp.master.graph.peakFixed': 'पीक नियंत्रित · {gain} dB गेन रिडक्शन',
+  'dsp.master.graph.peakSafe': 'ट्रू पीक सीमा के भीतर',
+  'dsp.master.graph.dcFixed': 'DC ऑफसेट हटाया · {amount}',
+  'dsp.master.graph.dcClean': 'DC ऑफसेट साफ़',
+  'dsp.master.graph.faultFixed': '{count} अमान्य या खराब सैम्पल सुधारे गए',
+  'dsp.master.graph.faultClean': 'सैम्पल मान्य',
+  'dsp.master.graph.safetyActive': 'सुरक्षा सक्रिय',
+  'dsp.master.graph.safetyBypassed': 'चेतावनी · सुरक्षा बायपास',
+  'dsp.master.graph.loudnessActive':
+    'LUFS अधिकतम · {target} LUFS की ओर +{gain} dB',
 
   'tabs.dsp': 'DSP',
 };

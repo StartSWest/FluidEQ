@@ -9,12 +9,14 @@ import {
   ReactNode,
   RefObject,
   SetStateAction,
+  useMemo,
   useState,
 } from 'react';
 import {
   IKaraokeMakerProject,
   IKaraokeMakerToken,
   KARAOKE_ORIGINAL_LANGUAGE,
+  karaokeMakerLineIsSection,
 } from '../../common/karaoke/makerProject';
 import { KARAOKE_AUTOMATIC_DETECTOR_UI_ENABLED } from './makerAi';
 import { karaokeMakerLyricFocus } from './makerCanvasLayout';
@@ -24,6 +26,10 @@ import KaraokeMakerToolIcon from './KaraokeMakerToolIcon';
 import KaraokeMakerLyricsPasteView from './KaraokeMakerLyricsPasteView';
 import KaraokeMakerLyricsWordList from './KaraokeMakerLyricsWordList';
 import KaraokeMakerLyricsReferenceView from './KaraokeMakerLyricsReferenceView';
+import KaraokeMakerAnalysisError, {
+  TKaraokeMakerAnalysisRetry,
+} from './KaraokeMakerAnalysisError';
+import { reconcileKaraokeMakerLyrics } from './makerLyricsReconcile';
 
 /**
  * The lyrics dialog: paste words in, then see how they landed.
@@ -52,7 +58,6 @@ import KaraokeMakerLyricsReferenceView from './KaraokeMakerLyricsReferenceView';
  */
 export interface IKaraokeMakerLyricsDialogProps {
   project: IKaraokeMakerProject;
-  tokens: IKaraokeMakerToken[];
   selection: TSelection;
   activeLyricFocus: ReturnType<typeof karaokeMakerLyricFocus>;
 
@@ -79,7 +84,11 @@ export interface IKaraokeMakerLyricsDialogProps {
   analysisMessage: string | undefined;
   displayedAnalysisProgress: number;
   analysisProgressIsIndeterminate: boolean;
+  analysisError: string | undefined;
+  analysisRetry: TKaraokeMakerAnalysisRetry | undefined;
   cancelAnalysis: () => void;
+  retryAnalysis: (retry: TKaraokeMakerAnalysisRetry) => Promise<void>;
+  dismissAnalysisError: () => void;
 
   /**
    * What replacing the lyrics is about to destroy, if anything.
@@ -93,6 +102,11 @@ export interface IKaraokeMakerLyricsDialogProps {
     recordLinesAfter?: boolean,
   ) => void;
   selectLyricsEditorToken: (token: IKaraokeMakerToken) => void;
+  moveLyricsEditorWord: (
+    tokenId: string,
+    targetLineId: string,
+    beforeTokenId?: string | null,
+  ) => void;
 
   /**
    * Seed a translated sheet from the pasted text, returning how many lines
@@ -115,12 +129,15 @@ export interface IKaraokeMakerLyricsDialogProps {
 const KaraokeMakerLyricsDialog = ({
   activeLyricFocus,
   addTranslation,
+  analysisError,
   analysisMessage,
   analysisProgress,
   analysisProgressIsIndeterminate,
+  analysisRetry,
   cancelAnalysis,
   destructiveAction,
   displayedAnalysisProgress,
+  dismissAnalysisError,
   draftLyricsWordCount,
   initialTranslationTarget,
   lyricsDraft,
@@ -130,14 +147,15 @@ const KaraokeMakerLyricsDialog = ({
   lyricsProcessing,
   mismatch,
   project,
+  moveLyricsEditorWord,
   renderLyricsModalWordInspector,
   renderWhisperDownloadDetails,
   replaceLyrics,
+  retryAnalysis,
   selectLyricsEditorToken,
   selection,
   setLyricsDraft,
   setLyricsOpen,
-  tokens,
 }: IKaraokeMakerLyricsDialogProps) => {
   const { t } = useTranslation();
   // `karaokeTranslationLanguages` and `useMakerTranslations` use this exact
@@ -244,6 +262,23 @@ const KaraokeMakerLyricsDialog = ({
     );
   }
 
+  const [draggedWordId, setDraggedWordId] = useState<string>();
+  const [dropLineId, setDropLineId] = useState<string>();
+  const previewProject = useMemo(
+    () =>
+      lyricsDraftChanged
+        ? reconcileKaraokeMakerLyrics(project, lyricsDraft).project
+        : project,
+    [lyricsDraft, lyricsDraftChanged, project],
+  );
+  const previewTokens = useMemo(
+    () =>
+      previewProject.lyrics.lines
+        .filter((line) => !karaokeMakerLineIsSection(line))
+        .flatMap((line) => line.tokens),
+    [previewProject],
+  );
+  const timingEditingLocked = lyricsProcessing || lyricsDraftChanged;
   return (
     <div
       className={`karaoke-maker__modal-backdrop${
@@ -286,6 +321,7 @@ const KaraokeMakerLyricsDialog = ({
             onDraftChange={setLyricsDraft}
             onTargetLanguageChange={setPasteTarget}
             originalLanguage={originalLanguage}
+            previewProject={previewProject}
             targetLanguage={pasteTarget}
           />
           {isTranslationTarget ? (
@@ -296,12 +332,18 @@ const KaraokeMakerLyricsDialog = ({
           ) : (
             <KaraokeMakerLyricsWordList
               activeLyricFocus={activeLyricFocus}
+              draggedWordId={draggedWordId}
+              dropLineId={dropLineId}
               lyricsDraftChanged={lyricsDraftChanged}
-              project={project}
+              moveLyricsEditorWord={moveLyricsEditorWord}
+              previewProject={previewProject}
+              previewTokens={previewTokens}
               renderLyricsModalWordInspector={renderLyricsModalWordInspector}
               selectLyricsEditorToken={selectLyricsEditorToken}
               selection={selection}
-              tokens={tokens}
+              setDraggedWordId={setDraggedWordId}
+              setDropLineId={setDropLineId}
+              timingEditingLocked={timingEditingLocked}
             />
           )}
         </div>
@@ -345,6 +387,15 @@ const KaraokeMakerLyricsDialog = ({
               />
             </div>
           </div>
+        )}
+        {analysisProgress === undefined && analysisError && (
+          <KaraokeMakerAnalysisError
+            error={analysisError}
+            retry={analysisRetry}
+            onRetry={retryAnalysis}
+            onDismiss={dismissAnalysisError}
+            inline
+          />
         )}
         <div className="karaoke-maker__modal-actions karaoke-maker__lyrics-actions">
           {destructiveAction === 'replace-lyrics' && (

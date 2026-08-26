@@ -73,8 +73,13 @@ export const WAVEFORM_AMPLITUDE_MAX = WAVEFORM_HEIGHT / 2 - 2;
 export const WAVEFORM_BLEED = 10;
 
 /**
- * Below this a frame is silence, and normalising it would stretch the noise
- * floor into a full-height trace of nothing.
+ * Below this the normalising gain stops increasing. Quiet music must still
+ * taper continuously toward rest; switching normalisation off at this point
+ * made frames either fill the header or collapse to their raw few-percent
+ * height whenever a low-volume passage crossed the boundary.
+ *
+ * A fixed maximum gain keeps the capture noise near the baseline without
+ * introducing that gate: below the floor, half the signal draws half as tall.
  */
 export const NORMALISE_FLOOR = 0.02;
 
@@ -83,8 +88,9 @@ export const WAVEFORM_STYLE_KEY = 'fluideq-waveform-style';
 
 /**
  * Scale a frame by its own peak, so the shape fills the pane whatever the
- * volume is set to. Guarded by a floor, or a silent frame divides by almost
- * nothing and the noise floor arrives at full height.
+ * volume is set to. The denominator is floored rather than the operation being
+ * skipped: that caps the gain on capture noise while keeping the response
+ * continuous through quiet passages.
  *
  * Written into a buffer the caller owns rather than returning a new array. This
  * runs only in euphoria, which is exactly the mode that draws at the display's
@@ -100,10 +106,7 @@ export const normalise = (samples: number[], into: number[]): number[] => {
       peak = magnitude;
     }
   }
-  if (peak <= NORMALISE_FLOOR) {
-    return samples;
-  }
-  const gain = 1 / peak;
+  const gain = 1 / Math.max(peak, NORMALISE_FLOOR);
   if (into.length !== samples.length) {
     into.length = samples.length;
   }

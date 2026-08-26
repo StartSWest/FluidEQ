@@ -47,8 +47,19 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 .dsp-title {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
   margin: 1px 0 0;
   font-size: 1.22rem;
+}
+
+.dsp-title-rate {
+  color: rgba($white, 0.48);
+  font-family: $font-mono;
+  font-size: 0.66rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
 }
 
 // The scope notice, and it is not a footnote.
@@ -88,6 +99,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   display: flex;
   align-items: center;
   gap: 8px;
+  margin-left: auto;
 }
 
 .dsp-presets-label {
@@ -95,6 +107,652 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   font-size: 0.68rem;
   text-transform: uppercase;
   letter-spacing: 0.07em;
+}
+
+.dsp-global-power {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding-left: 14px;
+  border-left: 1px solid rgba($white, 0.1);
+}
+
+.dsp-global-power-state {
+  color: rgba($white, 0.42);
+  font-size: 0.66rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+
+  &.is-on {
+    color: $secondary-default;
+  }
+}
+
+.dsp-body.is-disabled {
+  opacity: 0.44;
+  filter: saturate(0.25);
+  pointer-events: none;
+  user-select: none;
+}
+
+// Development-only A/B lives inside Master because that is the output boundary
+// it bypasses. Production never renders this control and the worklet
+// independently refuses to bypass the guard in a production bundle.
+.dsp-dev-safety {
+  min-height: 30px;
+  border-color: rgba($secondary-default, 0.24);
+  background: rgba($secondary-default, 0.045);
+  color: rgba($white, 0.56);
+}
+
+.dsp-dev-safety-control {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex: 0 0 auto;
+}
+
+.dsp-dev-safety-details {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  max-width: 600px;
+}
+
+.dsp-dev-safety-spec {
+  color: rgba($white, 0.42);
+  font-size: 0.58rem;
+  line-height: 1.2;
+  letter-spacing: 0.025em;
+  text-transform: uppercase;
+}
+
+.dsp-level-meters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  color: rgba($white, 0.72);
+  font-family: $font-mono;
+  font-size: 0.61rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.dsp-normalizer-dashboard {
+  display: grid;
+  width: 100%;
+  grid-template-columns: minmax(280px, 0.8fr) minmax(420px, 1.4fr);
+  align-items: stretch;
+  gap: 10px;
+}
+
+.dsp-normalizer-control-surface,
+.dsp-normalizer-analysis,
+.dsp-normalizer-live {
+  min-width: 0;
+  border: 1px solid rgba($white, 0.06);
+  border-radius: 10px;
+  background: rgba($black, 0.18);
+}
+
+.dsp-normalizer-control-surface {
+  display: flex;
+  min-height: 128px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 6px;
+  padding: 9px 12px 7px;
+
+  .segmented {
+    width: min(100%, 366px);
+    margin-right: auto;
+    margin-left: auto;
+  }
+
+  .segmented__option {
+    flex: 1 1 0;
+    justify-content: center;
+    text-align: center;
+  }
+
+  > .dsp-band-title {
+    width: 100%;
+    text-align: center;
+  }
+}
+
+.dsp-normalizer-dials {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.dsp-normalizer-analysis {
+  display: flex;
+  min-height: 128px;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 14px;
+}
+
+.dsp-normalizer-status {
+  display: block;
+  overflow: hidden;
+  width: 240px;
+  min-height: 16px;
+  color: rgba($white, 0.52);
+  font-size: 0.64rem;
+  line-height: 16px;
+  text-align: right;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  &.is-ready {
+    color: $secondary-default;
+  }
+
+  &.is-unavailable {
+    color: rgba($white, 0.42);
+  }
+}
+
+.dsp-normalizer-progress {
+  position: relative;
+  overflow: hidden;
+  height: 6px;
+  flex: 0 0 6px;
+  border-radius: 999px;
+  background: rgba($white, 0.07);
+
+  span {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(
+      90deg,
+      rgba($secondary-default, 0.5),
+      $secondary-default
+    );
+    transition: width 160ms ease-out;
+  }
+}
+
+.dsp-normalizer-stats {
+  display: grid;
+  min-height: 62px;
+  margin: 0;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+
+  div {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    justify-content: center;
+    gap: 5px;
+    padding: 6px 10px;
+    border: 1px solid rgba($white, 0.05);
+    border-radius: 8px;
+    background: rgba($black, 0.18);
+  }
+
+  dt,
+  dd {
+    overflow: hidden;
+    margin: 0;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  dt {
+    color: rgba($white, 0.42);
+    font-size: 0.6rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  dd {
+    min-height: 20px;
+    color: rgba($white, 0.82);
+    font-family: $font-mono;
+    font-size: 0.78rem;
+    font-variant-numeric: tabular-nums;
+    line-height: 20px;
+  }
+}
+
+.dsp-normalizer-live {
+  display: flex;
+  width: 100%;
+  min-height: 142px;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px;
+}
+
+.dsp-normalizer-honesty {
+  width: 100%;
+  min-height: 16px;
+  padding: 0 2px;
+}
+
+.dsp-crossfade-layout {
+  display: grid;
+  width: 100%;
+  grid-template-columns: minmax(300px, 1.1fr) minmax(360px, 0.9fr);
+  align-items: stretch;
+  gap: 10px;
+}
+
+.dsp-crossfade-preview,
+.dsp-crossfade-controls {
+  min-width: 0;
+  height: 150px;
+  border: 1px solid rgba($white, 0.06);
+  border-radius: 10px;
+  background: rgba($black, 0.18);
+}
+
+.dsp-crossfade-preview {
+  position: relative;
+  overflow: hidden;
+  padding: 18px 16px 20px;
+
+  svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+}
+
+.dsp-crossfade-grid,
+.dsp-crossfade-line {
+  fill: none;
+  vector-effect: non-scaling-stroke;
+}
+
+.dsp-crossfade-playhead {
+  stroke: rgba($white, 0.28);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+  vector-effect: non-scaling-stroke;
+}
+
+.dsp-crossfade-marker {
+  stroke: $surface-base;
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+
+  &.is-outgoing {
+    fill: #ffb059;
+  }
+
+  &.is-incoming {
+    fill: $secondary-default;
+  }
+}
+
+.dsp-crossfade-grid {
+  stroke: rgba($white, 0.08);
+  stroke-width: 1;
+}
+
+.dsp-crossfade-line {
+  stroke-width: 2;
+  stroke-linecap: round;
+
+  &.is-outgoing {
+    stroke: #ffb059;
+  }
+
+  &.is-incoming {
+    stroke: $secondary-default;
+  }
+}
+
+.dsp-crossfade-preview-label,
+.dsp-crossfade-time {
+  position: absolute;
+  color: rgba($white, 0.48);
+  font-size: 0.62rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.dsp-crossfade-live {
+  position: absolute;
+  bottom: 7px;
+  left: 14px;
+  display: flex;
+  gap: 10px;
+  color: rgba($white, 0.34);
+  font-family: $font-mono;
+  font-size: 0.58rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.03em;
+  opacity: 0;
+  transition: opacity 120ms ease;
+
+  &.is-active {
+    opacity: 1;
+  }
+
+  .is-outgoing {
+    color: #ffb059;
+  }
+
+  .is-incoming {
+    color: $secondary-default;
+  }
+}
+
+.dsp-crossfade-preview-label {
+  top: 8px;
+
+  &.is-outgoing {
+    left: 14px;
+    color: rgba(255, 176, 89, 0.82);
+  }
+
+  &.is-incoming {
+    right: 14px;
+    color: rgba($secondary-default, 0.82);
+  }
+}
+
+.dsp-crossfade-time {
+  right: 14px;
+  bottom: 7px;
+  font-family: $font-mono;
+  font-variant-numeric: tabular-nums;
+}
+
+.dsp-crossfade-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  padding: 12px 16px;
+}
+
+.dsp-crossfade-curve-control {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+
+  .segmented {
+    width: min(100%, 360px);
+  }
+
+  .segmented__option {
+    flex: 1 1 0;
+    justify-content: center;
+    text-align: center;
+  }
+}
+
+.dsp-crossfade-hint {
+  width: 100%;
+  min-height: 16px;
+  text-align: center;
+}
+
+@media (max-width: 980px) {
+  .dsp-crossfade-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 620px) {
+  .dsp-crossfade-preview,
+  .dsp-crossfade-controls {
+    height: 136px;
+  }
+
+  .dsp-crossfade-controls {
+    gap: 10px;
+    padding: 8px 10px;
+  }
+}
+
+.dsp-normalizer-meter {
+  display: grid;
+  gap: 9px;
+  width: 100%;
+}
+
+.dsp-normalizer-meter-channel {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr);
+  align-items: center;
+  gap: 4px 8px;
+}
+
+.dsp-normalizer-meter-channel-name {
+  grid-row: 1 / 3;
+  color: rgba($white, 0.72);
+  font-family: $font-mono;
+  font-size: 0.7rem;
+  text-align: center;
+}
+
+.dsp-normalizer-meter-pair {
+  display: grid;
+  grid-template-columns: 48px minmax(120px, 1fr) 72px;
+  align-items: center;
+  gap: 8px;
+}
+
+.dsp-normalizer-meter-name,
+.dsp-normalizer-meter-value {
+  color: rgba($white, 0.52);
+  font-size: 0.62rem;
+}
+
+.dsp-normalizer-meter-value {
+  min-width: 72px;
+  font-family: $font-mono;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+@media (max-width: 980px) {
+  .dsp-normalizer-dashboard {
+    grid-template-columns: 1fr;
+  }
+
+  .dsp-normalizer-control-surface,
+  .dsp-normalizer-analysis {
+    min-height: 128px;
+  }
+}
+
+@media (max-width: 620px) {
+  .dsp-normalizer-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .dsp-normalizer-analysis {
+    min-height: 282px;
+  }
+
+  .dsp-normalizer-status {
+    width: 150px;
+  }
+
+  .dsp-normalizer-meter-pair {
+    grid-template-columns: 42px minmax(90px, 1fr) 66px;
+  }
+}
+
+.dsp-normalizer-meter-track {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  height: 8px;
+  border: 1px solid rgba($white, 0.08);
+  border-radius: 999px;
+  background: rgba($black, 0.34);
+}
+
+.dsp-normalizer-meter-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: inherit;
+  transition: width 70ms linear;
+
+  &.is-before {
+    background: linear-gradient(90deg, rgba(255, 176, 89, 0.46), #ffb059);
+  }
+
+  &.is-after {
+    background: linear-gradient(
+      90deg,
+      rgba($secondary-default, 0.42),
+      $secondary-default
+    );
+  }
+
+  &.is-over {
+    background: $red;
+  }
+}
+
+// The meter spans -60 to +6 dBFS, so zero sits at 60 / 66 of its width.
+.dsp-normalizer-meter-zero {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 90.909%;
+  width: 1px;
+  background: rgba($white, 0.48);
+}
+
+.dsp-dev-safety-label,
+.dsp-dev-safety-state {
+  font-size: 0.66rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.dsp-dev-safety-state {
+  min-width: 22px;
+  color: $red;
+  font-weight: $weight-semibold;
+}
+
+.dsp-dev-safety.is-on .dsp-dev-safety-state {
+  color: $secondary-default;
+}
+
+.dsp-dev-safety.is-off {
+  border-color: rgba($red, 0.28);
+  background: rgba($red, 0.045);
+}
+
+.dsp-dev-safety.is-reducing .dsp-level-meters {
+  color: $secondary-default;
+}
+
+.dsp-dev-safety.is-off .dsp-dev-safety-details {
+  opacity: 0.42;
+}
+
+// Three equal Master scopes: automatic ceiling, final meter, and the
+// development-only safety A/B. They stay one clean row when the card is wide
+// and wrap as complete surfaces instead of breaking their contents apart.
+#dsp-master .dsp-crossovers {
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+#dsp-master .dsp-band {
+  flex-basis: 280px;
+}
+
+.dsp-master-display {
+  flex: 1 1 100%;
+  width: 100%;
+  min-width: 0;
+}
+
+// Definite for the same reason as every DSP canvas: its backing store follows
+// this box, so an intrinsic height would feed the measurement back into itself.
+.dsp-master-canvas {
+  height: 300px;
+}
+
+.dsp-master-status {
+  position: absolute;
+  top: 36px;
+  right: 48px;
+  left: 48px;
+  z-index: 1;
+  display: flex;
+  justify-content: center;
+  gap: 5px;
+  flex-wrap: nowrap;
+  pointer-events: none;
+
+  span {
+    padding: 3px 7px;
+    border: 1px solid rgba($white, 0.08);
+    border-radius: 7px;
+    background: rgba($black, 0.58);
+    color: rgba($white, 0.58);
+    font-size: 0.58rem;
+    letter-spacing: 0.035em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .is-safe {
+    border-color: rgba($secondary-default, 0.2);
+    color: rgba($secondary-default, 0.78);
+  }
+
+  .is-fixed {
+    border-color: rgba(255, 176, 89, 0.3);
+    color: rgb(255, 196, 126);
+  }
+
+  .is-warning {
+    border-color: rgba($red, 0.42);
+    background: rgba($red, 0.1);
+    color: $red;
+  }
+}
+
+.dsp-master-legend {
+  z-index: 2;
+  top: 5px;
+  gap: 10px;
+  padding-right: 9px;
+  padding-left: 9px;
+}
+
+@media (max-width: 900px) {
+  .dsp-master-status {
+    right: 18px;
+    left: 18px;
+    gap: 3px;
+
+    span {
+      padding-right: 5px;
+      padding-left: 5px;
+      font-size: 0.52rem;
+      letter-spacing: 0;
+    }
+  }
+
+  .dsp-master-legend {
+    gap: 7px;
+  }
 }
 
 .dsp-rack {
@@ -230,20 +888,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   gap: 10px;
 }
 
-// Under the dials rather than among them: it qualifies the threshold above it,
-// and a switch sitting in the row of knobs would read as a fourth parameter.
-.dsp-band-dynamic {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  margin-top: 2px;
-  color: rgba($white, 0.55);
-  cursor: pointer;
-  font-size: 0.64rem;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
-}
-
 // The one block on this page that earns a sentence. Everything else here is a
 // word and a number; this is an effect the user has no name for yet, so it
 // says what it is for.
@@ -260,28 +904,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .dsp-band-organic {
   border-color: rgba(255, 176, 89, 0.28);
   background: rgba(255, 176, 89, 0.05);
-}
-
-// Full width, above the display, because it changes what the display is
-// reporting on as well as what the speakers are doing.
-.dsp-exciter-monitor {
-  display: flex;
-  flex: 1 1 100%;
-  align-items: center;
-  gap: 10px;
-}
-
-// Warns while it is on and explains while it is off, in the same place. Two
-// separate elements would leave a gap where one of them was not.
-.dsp-exciter-monitor-hint {
-  min-width: 0;
-  color: rgba($white, 0.46);
-  font-size: 0.68rem;
-  line-height: 1.35;
-}
-
-.dsp-exciter-monitor button[aria-pressed='true'] + .dsp-exciter-monitor-hint {
-  color: rgba($secondary-light, 0.9);
 }
 
 // Full width above the bands, because it reports on all of them at once.
@@ -304,6 +926,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   display: block;
   width: 100%;
   height: 132px;
+  touch-action: none;
+  user-select: none;
 }
 
 .dsp-exciter-legend {
@@ -327,6 +951,51 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   display: flex;
   gap: 2px;
   flex-wrap: wrap;
+}
+
+// Exciter has two scopes under its display: Align and Organic affect the whole
+// processor, while the three generator cards affect one band each. At 2K both
+// scopes fit on one horizontal line with the global pair first. Shorter
+// windows split that line and deliberately put the band controls first; the
+// responsive rules below make that switch instead of relying on flex wrapping.
+.dsp-exciter-controls {
+  display: grid;
+  flex: 1 1 100%;
+  width: 100%;
+  min-width: 0;
+  grid-template-columns: minmax(430px, 5fr) minmax(0, 14fr);
+  align-items: stretch;
+  gap: 10px;
+}
+
+.dsp-exciter-band-row,
+.dsp-exciter-global-row {
+  display: grid;
+  min-width: 0;
+  align-items: stretch;
+  gap: 10px;
+}
+
+.dsp-exciter-band-row {
+  grid-row: 1;
+  grid-column: 2;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.dsp-exciter-global-row {
+  grid-row: 1;
+  grid-column: 1;
+  grid-template-columns: minmax(140px, 1fr) minmax(270px, 2fr);
+}
+
+.dsp-exciter-controls .dsp-band {
+  flex: none;
+  height: 100%;
+}
+
+.dsp-exciter-controls .dsp-band-dials {
+  justify-content: center;
+  flex-wrap: nowrap;
 }
 
 // One processor gets the page; the rail down the side chooses which.
@@ -529,9 +1198,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 14px;
-  flex-wrap: wrap;
-  max-width: calc(100% - 96px);
+  gap: 12px;
+  flex-wrap: nowrap;
+  width: max-content;
+  max-width: calc(100% - 24px);
   margin: 0;
   padding: 4px 12px;
   border-radius: 8px;
@@ -542,6 +1212,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // The plot beneath is dragged to move bands, and a strip that swallowed the
   // pointer would make the top of the curve unreachable.
   pointer-events: none;
+  white-space: nowrap;
 }
 
 .dsp-eq-legend-item {
@@ -656,127 +1327,52 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   box-shadow: inset 0 0 0 1px rgba($black, 0.55);
 }
 
-// The preamp's block on the left, the selected band's on the right. Two
-// panels rather than one row divided by a rule: they are different scopes —
-// the whole curve's headroom against one band's controls — and a panel each
-// says so without a heading having to.
+// At 2K all three groups fit in one row. Full HD switches this container to the
+// aligned two-row layout in the height query below.
 .dsp-eq-bottom {
   display: flex;
   flex: 0 0 auto;
+  align-self: stretch;
   align-items: stretch;
-  gap: 10px;
-  // Wraps, because the three panels do not fit side by side in the width this
-  // card actually gets and the one that lost was the worst one to lose.
-  //
-  // Measured in a 1440x852 window: the card is 969px wide, the preamp block
-  // wants 568 and the phase meter 198, which leaves the band strip 183 — less
-  // than the 168px shape dropdown plus its own padding. So the strip wrapped
-  // its seven controls into a column 567px TALL, which pushed the card to
-  // 1229px inside an 852px window. The panel is content-height by design and
-  // the workspace scrolls, so nothing clipped and nothing complained; it just
-  // became a page you had to scroll through a screen of dead space to read.
-  //
-  // Wrapping puts the preamp and the meter on one line and gives the strip the
-  // full width on the next, where all seven controls fit in a single row. On a
-  // window wide enough for all three (about 1300px of card) they stay on one
-  // line exactly as before, so this costs nothing at the size it was designed
-  // for.
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  max-width: 100%;
+}
+
+.dsp-eq-global-row {
+  display: flex;
+  flex: 0 1 818px;
+  min-width: 0;
+  align-items: stretch;
+  justify-content: center;
+  gap: 8px;
   flex-wrap: wrap;
 }
 
-.dsp-eq-preamp {
+.dsp-eq-global-controls {
   display: flex;
-  // Takes whatever the line has left over, because it is the only block on the
-  // row whose natural width is honest — five dials and a readout, no canvas.
-  // Its contents stay centred, so growing it fills the row rather than
-  // stranding the dials at one end.
-  flex: 1 1 auto;
+  // Capped so a 2K card gives its spare width to the selected-band strip.
+  // Before this, the first block grew to about 746px and made the strip wrap.
+  // 440px holds the four tonal controls while leaving enough room for every
+  // band control, including its power button, to remain on one line.
+  flex: 0 1 440px;
+  min-width: 0;
+  margin-right: auto;
+  margin-left: auto;
   align-items: center;
   justify-content: center;
-  padding: 10px 18px;
+  padding: 10px 12px;
   border: 1px solid rgba($white, 0.06);
   border-radius: 10px;
   background: rgba($black, 0.18);
-}
-
-// The regulator's readout, between the preamp dial and the rest. Figure over
-// caption, the same grammar the dials beside it use, so a row of controls does
-// not appear to contain one that has lost its knob.
-.dsp-eq-trim {
-  display: flex;
-  flex: 0 0 auto;
-  flex-direction: column;
-  align-items: center;
-  gap: 3px;
-  // Wide enough for "-12.2 dB" so the row does not reflow every time the curve
-  // moves and shift the dials out from under the pointer.
-  min-width: 76px;
-  margin: 0 12px 0 2px;
-}
-
-.dsp-eq-trim-value {
-  color: rgba($white, 0.86);
-  font-size: 0.82rem;
-  font-weight: $weight-semibold;
-  font-variant-numeric: tabular-nums;
-}
-
-// Measured against `.labelled-knob__label`, not guessed at: this stands in a
-// row of dials wearing their own captions, and a second size or a second grey
-// here would read as a second kind of thing.
-.dsp-eq-trim-label {
-  color: rgba($white, 0.62);
-  font-size: 0.64rem;
-  line-height: 1.2;
-}
-
-// The caption doubles as the switch, so it has to read as a caption first and
-// admit to being clickable second. Same size and colour as the label above it;
-// the underline is the whole of the affordance.
-.dsp-eq-trim-mode {
-  padding: 0;
-  border: 0;
-  background: none;
-  color: rgba($white, 0.62);
-  font: inherit;
-  font-size: 0.64rem;
-  line-height: 1.2;
-  text-decoration: underline dotted rgba($white, 0.35);
-  text-underline-offset: 2px;
-  cursor: pointer;
-
-  &:hover {
-    color: rgba($white, 0.9);
-    text-decoration-color: rgba($white, 0.7);
-  }
-
-  // Adaptive is the state that is doing something, so it carries the accent.
-  // Fixed is the quiet middle. Off is quieter still and struck through, because
-  // "no trim" is the one position where the figure above it stops meaning
-  // anything and it should not read as just another setting.
-  &[aria-pressed='true'] {
-    color: rgba($secondary-default, 0.95);
-    text-decoration-color: rgba($secondary-default, 0.6);
-  }
-
-  &.is-off {
-    color: rgba($white, 0.38);
-    text-decoration-style: solid;
-    text-decoration-line: underline line-through;
-  }
 }
 
 // One row, centred: the selected band's controls and nothing else. Centring
 // is the point — the strip belongs to the graph above it, not to an edge.
 .dsp-eq-strip {
   display: flex;
-  // 484px is this strip's real minimum for a tidy first row: the 168px shape
-  // dropdown, three 78px dials, three 18px gaps and 28px of padding. Asking
-  // for 520 leaves a little slack and, more importantly, makes it the child
-  // that wraps to its own line rather than the child that gets squeezed to
-  // 183px and stacks — a basis of `auto` said "give me whatever is left",
-  // which is how it ended up with less than one control's width.
-  flex: 1 1 520px;
+  flex: 1 1 860px;
   min-width: 0;
   // Centred on the row, not hung from its floor. The controls are different
   // heights — a knob carries its name underneath, a button does not — and
@@ -859,37 +1455,30 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   gap: 4px;
 }
 
-// Its own block inside the strip, the way the preamp has one.
-//
-// Frec, Ganancia and Ancho describe the filter's shape; these two describe
-// when that shape is allowed to happen, which is a different question. Loose in
-// the same row the threshold read as a fourth shape parameter, and the toggle
-// that governs it sat three controls away from what it governed.
-// The input gain's two halves, boxed inside the preamp panel the way the
-// dynamic pair is boxed inside the strip. What the regulator takes and what
-// the user spends of it are one question; the four dials beside them shape the
-// sound and answer another.
-.dsp-eq-headroom {
+.dsp-eq-dynamic {
   display: flex;
   flex: 0 0 auto;
   align-items: center;
+  align-self: center;
+  justify-content: center;
   gap: 10px;
-  margin-right: 14px;
   padding: 6px 12px;
   border: 1px solid rgba($white, 0.06);
   border-radius: 10px;
   background: rgba($black, 0.18);
 }
 
-.dsp-eq-dynamic {
+.dsp-eq-dynamic-readout {
   display: flex;
-  flex: 0 0 auto;
+  min-width: 92px;
   align-items: center;
-  gap: 10px;
-  padding: 6px 12px;
-  border: 1px solid rgba($white, 0.06);
-  border-radius: 10px;
-  background: rgba($black, 0.18);
+  align-self: stretch;
+  justify-content: center;
+  gap: 8px;
+  color: rgba($white, 0.5);
+  font-size: 0.68rem;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
 }
 
 // The preset picker, top-left of the page: it is the fastest way to change
@@ -930,12 +1519,16 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   align-items: center;
 }
 
-// Forces the settings onto their own line, whatever the window width. A flex
-// item at full width fills the row it is on, so everything after it starts the
-// next one — which is the only way to say "break here" in a wrapping row.
-.dsp-eq-bar-break {
+// The complete second line of the EQ header. Keeping it in one full-width
+// group makes its centring independent from the preset actions above it and
+// prevents the last setting from dropping onto a third line.
+.dsp-eq-settings {
+  display: flex;
   flex: 1 0 100%;
-  height: 0;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
 .dsp-eq-preset {
@@ -943,6 +1536,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   align-items: center;
   gap: 9px;
   min-width: 0;
+}
+
+// Preset and stereo are separate decisions. The divider lets the compact
+// Exciter header keep them on one row without reading as one long control.
+.dsp-exciter-bar > .dsp-eq-preset + .dsp-eq-preset {
+  padding-left: 12px;
+  border-left: 1px solid rgba($white, 0.1);
 }
 
 // Beside the field rather than stacked over it. Above it, the pair stood two
@@ -1023,6 +1623,19 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
+// In the EQ preset picker the field already supplies the shared surface. The
+// previous/next controls are directions, so drawing another box around each
+// arrow made three controls out of one picker.
+.dsp-eq-bar .dsp-eq-step {
+  width: 24px;
+  border: 0;
+  background: transparent;
+
+  &:hover {
+    background: transparent;
+  }
+}
+
 // The preset menu's own width moved to `RichPick.scss` when the picker stopped
 // being a Dropdown, and its resizing history moved with it: it is NOT
 // user-resizable, and that was tried. A menu that can size itself feeds the
@@ -1046,6 +1659,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 .segmented__option {
+  position: relative;
   padding: 4px 10px;
   border: 0;
   border-radius: 6px;
@@ -1073,10 +1687,19 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
-// A band count is two characters. Given the preset field's width it read as a
-// second preset picker that had lost its label.
-.dsp-eq-rack .dropdown {
-  min-width: 78px;
+// Keep the choices readable as separate targets even when neither neighbour
+// is selected. The one-pixel divider does not add another outer border or a
+// second capsule; it only marks the seam between adjacent DSP options.
+.dsp-card .segmented__option + .segmented__option {
+  &::before {
+    position: absolute;
+    top: 4px;
+    bottom: 4px;
+    left: 0;
+    width: 1px;
+    background: rgba($white, 0.1);
+    content: '';
+  }
 }
 
 .dsp-import-backdrop {
@@ -1201,6 +1824,58 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   margin-left: auto;
 }
 
+// Exciter's monitoring action belongs beside its power switch, but it is not
+// the switch. A divider on each side preserves all four header groups:
+// preset | stereo | isolate | power.
+#dsp-exciter .dsp-card-power,
+#dsp-eq .dsp-card-power {
+  padding-left: 12px;
+  border-left: 1px solid rgba($white, 0.1);
+}
+
+.dsp-card-before-power {
+  display: flex;
+  align-items: center;
+  padding-right: 12px;
+  border-right: 1px solid rgba($white, 0.1);
+}
+
+.dsp-exciter-isolate {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.dsp-monitor-isolate {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.dsp-exciter-isolate-label {
+  color: rgba($white, 0.4);
+  font-size: 0.66rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transition: color 140ms ease;
+
+  &.is-on {
+    color: $secondary-default;
+  }
+}
+
+.dsp-monitor-isolate-label {
+  color: rgba($white, 0.4);
+  font-size: 0.66rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transition: color 140ms ease;
+
+  &.is-on {
+    color: $secondary-default;
+  }
+}
+
 .dsp-card-power-label {
   color: rgba($white, 0.4);
   font-size: 0.66rem;
@@ -1224,25 +1899,53 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   .dsp-rail {
     flex-direction: row;
     width: auto;
-    gap: 6px;
-    overflow-x: auto;
+    justify-content: space-around;
+    gap: 2px;
+    overflow-x: hidden;
     padding-bottom: 2px;
-    @include slim-scrollbar;
   }
 
   .dsp-rail-tab {
-    flex: 1 1 0;
+    position: relative;
+    flex: 0 1 48px;
     justify-content: center;
-    min-width: 0;
-    padding: 8px 10px;
+    gap: 5px;
+    min-width: 38px;
+    padding: 8px 6px 10px;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+
+    &::after {
+      position: absolute;
+      right: 8px;
+      bottom: 2px;
+      left: 8px;
+      height: 2px;
+      border-radius: 2px;
+      background: transparent;
+      content: '';
+    }
+
+    &:hover {
+      background: transparent;
+      color: rgba($white, 0.9);
+    }
   }
 
-  // The lamp is the one thing that must survive the squeeze: it is the only
-  // way to read which processors are doing something without visiting each.
+  .dsp-rail-tab.is-active {
+    border: 0;
+    background: transparent;
+    color: $secondary-default;
+
+    &::after {
+      background: $secondary-default;
+      box-shadow: 0 0 7px rgba($secondary-default, 0.7);
+    }
+  }
+
   .dsp-rail-name {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    display: none;
   }
 
   .dsp-eq-bar {
@@ -1270,10 +1973,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     padding: 8px 6px;
   }
 
-  .dsp-rail-name {
-    display: none;
-  }
-
   .dsp-eq-shape,
   .dsp-eq-preset {
     min-width: 0;
@@ -1296,7 +1995,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     flex-direction: column;
   }
 
-  .dsp-eq-preamp {
+  .dsp-eq-global-controls {
     padding: 8px 12px;
   }
 }
@@ -1330,6 +2029,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // shrink: below about this the needle cannot travel far enough to show the
   // difference between a wide mix and one that is about to cancel.
   min-width: 168px;
+  margin-right: auto;
+  margin-left: auto;
   padding: 8px 12px 4px;
   border: 1px solid rgba($white, 0.06);
   border-radius: 10px;
@@ -1394,6 +2095,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 .dsp-eq-phase-canvas {
   width: 100%;
+  height: 86px;
   min-width: 0;
 }
 
@@ -1412,20 +2114,365 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   height: clamp(260px, 52vh, 620px);
 }
 
-// On a short display the graph gives some height back.
+// On a Full HD display the chrome around the graph becomes denser so the whole
+// EQ card stays inside the tab page without turning the graph into a strip.
 //
-// 52vh is the right share of a tall window and the wrong share of a short one:
-// the rest of this tab — toolbar, band buttons, the three panels underneath —
-// costs about 470px no matter how short the screen is, so at 852px the graph
-// was taking 443 of the 852 and everything below it lived past the fold. The
-// fraction has to fall as the window does, and a clamp cannot bend.
+// Electron's 1920x1080 window exposes a 1032px renderer viewport. The old
+// 900px breakpoint therefore never fired: 52vh made the graph 537px tall and
+// pushed 297px of the controls underneath it past the tab's viewport. The
+// toolbar also wrapped its five settings onto two lines after its deliberate
+// break. Narrowing only that toolbar's spacing keeps all five on one line;
+// scaling only this page's dials then removes dead height from both lower
+// panels. A 2K window stays on the tall rules above.
 //
-// 38vh is 324px at 852, which is still taller than the 300px this graph shipped
-// at for its whole life. Nothing is lost; it stops being the reason the panel
-// does not fit.
-@media (max-height: 900px) {
+// This remains a definite canvas height; see the feedback-loop constraint
+// above.
+@media (max-height: 1100px) {
+  .dsp-eq-bar {
+    column-gap: 8px;
+    row-gap: 8px;
+  }
+
+  .dsp-eq-settings {
+    gap: 4px;
+  }
+
+  .dsp-eq-bar .dsp-eq-preset {
+    gap: 3px;
+  }
+
+  .dsp-eq-bar .segmented__option {
+    padding-right: 5px;
+    padding-left: 5px;
+  }
+
+  // Fixed within this viewport mode: pointer travel is read from the measured
+  // dial box, so the control remains accurate at the smaller rendered size.
+  .dsp-eq .knob {
+    width: 64px;
+    height: 64px;
+    flex-basis: 64px;
+  }
+
+  .dsp-eq .labelled-knob {
+    width: 64px;
+  }
+
+  .dsp-eq-bottom {
+    --dsp-eq-row-width: 800px;
+
+    flex-direction: column;
+    align-self: center;
+    gap: 6px;
+    width: min(100%, var(--dsp-eq-row-width));
+  }
+
+  .dsp-eq-global-row {
+    flex: 0 1 auto;
+    width: 100%;
+    justify-content: flex-start;
+    padding-right: 12px;
+    padding-left: 12px;
+  }
+
+  .dsp-eq-global-controls {
+    flex-basis: 500px;
+    padding: 6px 10px;
+  }
+
+  .dsp-eq-strip {
+    flex: 0 1 auto;
+    order: -1;
+    width: 100%;
+    gap: 14px;
+    padding: 6px 12px;
+  }
+
+  .dsp-eq-dynamic {
+    gap: 8px;
+    padding: 4px 8px;
+  }
+
+  .dsp-eq-phase {
+    padding: 6px 10px 3px;
+  }
+
+  .dsp-eq-phase-canvas {
+    height: 72px;
+  }
+
   .dsp-eq .dsp-eq-graph {
-    height: clamp(220px, 38vh, 340px);
+    height: clamp(220px, 30vh, 320px);
+  }
+}
+
+// The toolbar and power cluster are siblings, so a flex header makes the
+// settings inherit the first line's reduced width. Flatten only the toolbar
+// wrapper into this grid: the action groups stay on row one while settings own
+// the complete second row beneath the power controls.
+@media (min-width: 901px) and (max-height: 1100px) {
+  #dsp-eq .dsp-card-header.has-toolbar {
+    display: grid;
+    grid-template-columns: auto auto auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 8px;
+  }
+
+  #dsp-eq .dsp-eq-bar {
+    display: contents;
+  }
+
+  #dsp-eq .dsp-eq-preset-first {
+    grid-row: 1;
+    grid-column: 1;
+  }
+
+  #dsp-eq .dsp-eq-transfer {
+    grid-row: 1;
+    grid-column: 2;
+  }
+
+  #dsp-eq .dsp-eq-rack {
+    grid-row: 1;
+    grid-column: 3;
+  }
+
+  #dsp-eq .dsp-eq-settings {
+    grid-row: 2;
+    grid-column: 1 / -1;
+    width: auto;
+    margin-right: 0;
+  }
+
+  #dsp-eq .dsp-card-power {
+    grid-row: 1;
+    grid-column: 5;
+  }
+
+  #dsp-eq .dsp-eq-notice {
+    grid-column: 1 / -1;
+  }
+}
+
+// The DSP rail has already moved above the card at this width, so the EQ card
+// owns the whole narrow viewport. Give each section an intentional mobile
+// layout instead of letting the desktop flex rows wrap wherever they run out.
+@media (max-width: 900px) {
+  #dsp-eq {
+    gap: 8px;
+    padding: 10px;
+  }
+
+  // `display: contents` lets the toolbar's groups and the power controls share
+  // one grid. Preset and power keep the first row; every wider group then gets
+  // the full card width below it.
+  #dsp-eq .dsp-card-header.has-toolbar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 8px 12px;
+  }
+
+  #dsp-eq .dsp-eq-bar {
+    display: contents;
+  }
+
+  #dsp-eq .dsp-eq-preset-first {
+    grid-column: 1;
+    min-width: 0;
+  }
+
+  #dsp-eq .dsp-card-power {
+    grid-row: 1;
+    grid-column: 2;
+  }
+
+  #dsp-eq .dsp-eq-transfer,
+  #dsp-eq .dsp-eq-settings,
+  #dsp-eq .dsp-eq-notice {
+    grid-column: 1 / -1;
+  }
+
+  #dsp-eq .dsp-eq-transfer {
+    grid-row: 2;
+    grid-column: 1;
+    justify-self: start;
+  }
+
+  #dsp-eq .dsp-eq-rack {
+    grid-row: 2;
+    grid-column: 2;
+    justify-self: end;
+  }
+
+  #dsp-eq .dsp-eq-reset {
+    margin-right: 0;
+    padding-right: 0;
+    border-right: 0;
+  }
+
+  #dsp-eq .dsp-eq-transfer {
+    flex-wrap: wrap;
+  }
+
+  // Five settings become three compact rows instead of five label/control
+  // rows with a desktop-sized gap between them.
+  #dsp-eq .dsp-eq-settings {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    width: 100%;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  #dsp-eq .dsp-eq-settings > .dsp-eq-preset {
+    min-width: 0;
+    justify-content: center;
+  }
+
+  // Width, not viewport height, owns the graph on a tall narrow window. A
+  // portrait display previously took 52vh and made the plot over 600px tall.
+  #dsp-eq .dsp-eq-graph {
+    height: clamp(230px, 50vw, 340px);
+  }
+
+  #dsp-eq .dsp-eq-legend {
+    width: max-content;
+    max-width: calc(100% - 24px);
+    gap: 10px;
+    flex-wrap: nowrap;
+    padding-right: 8px;
+    padding-left: 8px;
+  }
+
+  #dsp-eq .knob {
+    width: 64px;
+    height: 64px;
+    flex-basis: 64px;
+  }
+
+  #dsp-eq .labelled-knob {
+    width: 64px;
+  }
+
+  // Global controls and band controls are separate full-width rows on mobile.
+  // The global cards may wrap, but each wrapped card centres independently.
+  #dsp-eq .dsp-eq-bottom {
+    flex-direction: column;
+    align-self: stretch;
+    gap: 8px;
+    width: 100%;
+  }
+
+  #dsp-eq .dsp-eq-global-row {
+    display: grid;
+    flex: 0 1 auto;
+    width: 100%;
+    grid-template-columns: minmax(330px, 2fr) minmax(190px, 1fr);
+    justify-content: center;
+    padding: 0;
+  }
+
+  #dsp-eq .dsp-eq-global-controls {
+    width: 100%;
+    margin: 0;
+    padding: 6px 10px;
+  }
+
+  #dsp-eq .dsp-eq-phase {
+    width: 100%;
+    padding: 6px 10px 3px;
+  }
+
+  #dsp-eq .dsp-eq-phase-canvas {
+    height: 72px;
+  }
+
+  // Three explicit band rows: Dynamics + Shape, the three filter dials, then
+  // insertion + power. This keeps every relationship visible at phone width.
+  #dsp-eq .dsp-eq-strip {
+    display: grid;
+    order: -1;
+    width: 100%;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    align-items: center;
+    gap: 10px 8px;
+    padding: 8px 10px;
+  }
+
+  #dsp-eq .dsp-eq-dynamic {
+    width: 100%;
+    grid-column: 1 / span 3;
+    justify-self: stretch;
+    justify-content: center;
+    gap: 8px;
+    padding: 4px 8px;
+  }
+
+  #dsp-eq .dsp-eq-shape {
+    width: 100%;
+    grid-column: 4 / span 3;
+    justify-self: stretch;
+  }
+
+  #dsp-eq .dsp-eq-strip > .labelled-knob {
+    grid-column: span 2;
+    justify-self: center;
+  }
+
+  #dsp-eq .dsp-eq-insert {
+    grid-column: 1 / span 3;
+    justify-self: center;
+  }
+
+  #dsp-eq .dsp-eq-strip > .button.small {
+    grid-column: 4 / span 3;
+    justify-self: center;
+  }
+}
+
+@media (max-width: 520px) {
+  #dsp-eq .dsp-card-header.has-toolbar {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  #dsp-eq .dsp-eq-preset-first {
+    grid-row: 1;
+    grid-column: 1;
+  }
+
+  #dsp-eq .dsp-card-power {
+    grid-row: 1;
+    grid-column: 2;
+    justify-self: end;
+  }
+
+  #dsp-eq .dsp-eq-transfer {
+    grid-row: 2;
+    grid-column: 1 / -1;
+    justify-self: center;
+  }
+
+  #dsp-eq .dsp-eq-rack {
+    grid-row: 3;
+    grid-column: 1 / -1;
+    justify-self: center;
+  }
+
+  #dsp-eq .dsp-eq-settings {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  #dsp-eq .dsp-eq-global-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  #dsp-eq .dsp-eq-global-controls {
+    flex-wrap: wrap;
+  }
+
+  #dsp-eq .dsp-eq-legend-scale {
+    display: none;
   }
 }
 
@@ -1436,4 +2483,139 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .dsp-band-align {
   border-color: rgba(132, 168, 255, 0.28);
   background: rgba(132, 168, 255, 0.05);
+}
+
+// Full HD: one dense row of three band cards, then one aligned global row.
+// The band row leads only in the split layout; the 2K rule above keeps the
+// global controls first while all five cards fit across the page.
+@media (max-height: 1100px) {
+  #dsp-exciter .dsp-exciter-controls {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+  }
+
+  #dsp-exciter .dsp-exciter-band-row {
+    grid-row: 1;
+    grid-column: 1;
+  }
+
+  #dsp-exciter .dsp-exciter-global-row {
+    grid-row: 2;
+    grid-column: 1;
+    grid-template-columns: minmax(180px, 1fr) minmax(360px, 2fr);
+  }
+
+  #dsp-exciter .dsp-band {
+    gap: 4px;
+    padding: 6px 8px 3px;
+  }
+
+  #dsp-exciter .knob {
+    width: 64px;
+    height: 64px;
+    flex-basis: 64px;
+  }
+
+  #dsp-exciter .labelled-knob {
+    width: 64px;
+  }
+}
+
+// Narrow windows use the same scope order as Full HD, but each band gets a
+// complete row so its five dials never wrap into an accidental second tier.
+@media (max-width: 900px) {
+  #dsp-exciter {
+    gap: 8px;
+    padding: 10px;
+  }
+
+  #dsp-exciter .dsp-card-header.has-toolbar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 8px 12px;
+  }
+
+  #dsp-exciter .dsp-exciter-bar {
+    display: contents;
+  }
+
+  #dsp-exciter .dsp-eq-preset-first {
+    grid-row: 1;
+    grid-column: 1;
+    min-width: 0;
+  }
+
+  #dsp-exciter .dsp-card-power {
+    grid-row: 1;
+    grid-column: 2;
+  }
+
+  #dsp-exciter .dsp-exciter-bar > .dsp-eq-preset:last-child {
+    grid-row: 2;
+    grid-column: 1 / -1;
+    justify-self: center;
+    padding-left: 0;
+    border-left: 0;
+  }
+
+  #dsp-exciter .dsp-exciter-canvas {
+    height: clamp(104px, 28vw, 132px);
+  }
+
+  #dsp-exciter .dsp-exciter-band-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  #dsp-exciter .dsp-exciter-global-row {
+    grid-template-columns: minmax(150px, 1fr) minmax(280px, 2fr);
+  }
+}
+
+@media (max-width: 520px) {
+  #dsp-exciter .dsp-card-header.has-toolbar {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  #dsp-exciter .dsp-eq-preset-first {
+    display: grid;
+    grid-row: 1;
+    grid-column: 1;
+    width: 100%;
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  #dsp-exciter .dsp-eq-preset-first .dsp-eq-preset-label {
+    grid-column: 1 / -1;
+  }
+
+  #dsp-exciter .dsp-card-power {
+    grid-row: 2;
+    grid-column: 1;
+    justify-self: end;
+  }
+
+  #dsp-exciter .dsp-exciter-bar > .dsp-eq-preset:last-child {
+    grid-row: 3;
+    grid-column: 1;
+  }
+
+  #dsp-exciter .dsp-exciter-global-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  #dsp-exciter .knob {
+    width: 56px;
+    height: 56px;
+    flex-basis: 56px;
+  }
+
+  #dsp-exciter .labelled-knob {
+    width: 56px;
+  }
+
+  #dsp-exciter .dsp-exciter-legend {
+    grid-template-columns: repeat(2, 1fr);
+    row-gap: 2px;
+  }
 }

@@ -10,6 +10,8 @@ import {
   IDspSettings,
   clampDspSettings,
 } from '../../common/dsp/chain';
+import { TDspAnalyserStage } from './monitorOutputs';
+import { ILibraryNormalizationAnalysis } from '../../common/library/types';
 
 /**
  * Where the DSP settings live, and why they live outside React state.
@@ -50,6 +52,7 @@ const readStored = (): IDspSettings => {
     const settings = clampDspSettings(JSON.parse(stored));
     return {
       ...settings,
+      eq: { ...settings.eq, isolate: false },
       exciter: { ...settings.exciter, isolate: false },
     };
   } catch {
@@ -82,12 +85,18 @@ export type TDspEngineState = 'idle' | 'running' | 'failed';
  * up as a response that does not match what will be heard.
  */
 const ASSUMED_SAMPLE_RATE = 48_000;
+const IS_DEV = process.env.NODE_ENV !== 'production';
 
 let settings: IDspSettings = DSP_DEFAULTS;
 let loaded = false;
 let engineState: TDspEngineState = 'idle';
 let sampleRate = ASSUMED_SAMPLE_RATE;
+/** Ephemeral A/B control. Production is hard-wired to the safe path. */
+let outputSafetyEnabled = true;
 const listeners = new Set<() => void>();
+const outputSafetyListeners = new Set<() => void>();
+const inputAnalysisListeners = new Set<() => void>();
+const normalizerMeterListeners = new Set<() => void>();
 
 const emit = () => listeners.forEach((listener) => listener());
 
@@ -168,28 +177,183 @@ export const readDspSampleRate = (): number => sampleRate;
 export const useDspSampleRate = (): number =>
   useSyncExternalStore(subscribe, readDspSampleRate, readDspSampleRate);
 
-/**
- * The post-chain analyser the EQ page draws its spectrum from.
- *
- * A plain module value, not React state: the graph reads it inside an
- * animation frame sixty times a second, and routing that through a render
- * would be sixty renders a second for a canvas that repaints itself anyway.
- *
- * Typed loosely so nothing outside the engine imports Web Audio — jsdom has
- * none of it, which is why the graph builder is structural too.
- */
+export const readDspOutputSafetyEnabled = (): boolean => outputSafetyEnabled;
+
+export const setDspOutputSafetyEnabled = (next: boolean): void => {
+  if (!IS_DEV || next === outputSafetyEnabled) {
+    return;
+  }
+  outputSafetyEnabled = next;
+  emit();
+};
+
+export const useDspOutputSafetyEnabled = (): boolean =>
+  useSyncExternalStore(
+    subscribe,
+    readDspOutputSafetyEnabled,
+    readDspOutputSafetyEnabled,
+  );
+
+export interface IDspOutputSafetyMeter {
+  enabled: boolean;
+  truePeakFactor: 1 | 2 | 4;
+  postFilterNormalizer: {
+    gainReductionDb: number;
+    inputTruePeakDb: number;
+  };
+  gainReductionDb: number;
+  inputTruePeakDb: number;
+  dcCorrectionDb: number;
+  repairedSamples: number;
+}
+
+let outputSafetyMeter: IDspOutputSafetyMeter = {
+  enabled: true,
+  truePeakFactor: 4,
+  postFilterNormalizer: {
+    gainReductionDb: 0,
+    inputTruePeakDb: -120,
+  },
+  gainReductionDb: 0,
+  inputTruePeakDb: -120,
+  dcCorrectionDb: -120,
+  repairedSamples: 0,
+};
+
+const subscribeOutputSafety = (listener: () => void) => {
+  outputSafetyListeners.add(listener);
+  return () => {
+    outputSafetyListeners.delete(listener);
+  };
+};
+
+export const setDspOutputSafetyMeter = (next: IDspOutputSafetyMeter): void => {
+  outputSafetyMeter = next;
+  outputSafetyListeners.forEach((listener) => listener());
+};
+
+export const readDspOutputSafetyMeter = (): IDspOutputSafetyMeter =>
+  outputSafetyMeter;
+
+export const useDspOutputSafetyMeter = (): IDspOutputSafetyMeter =>
+  useSyncExternalStore(
+    subscribeOutputSafety,
+    readDspOutputSafetyMeter,
+    readDspOutputSafetyMeter,
+  );
+
+export type TInputAnalysisStatus =
+  'idle' | 'analyzing' | 'ready' | 'unavailable';
+
+export interface IDspInputAnalysisState {
+  trackId?: string;
+  status: TInputAnalysisStatus;
+  fraction: number;
+  analysis?: ILibraryNormalizationAnalysis;
+}
+
+let inputAnalysis: IDspInputAnalysisState = {
+  status: 'idle',
+  fraction: 0,
+};
+
+const subscribeInputAnalysis = (listener: () => void) => {
+  inputAnalysisListeners.add(listener);
+  return () => {
+    inputAnalysisListeners.delete(listener);
+  };
+};
+
+export const setDspInputAnalysis = (next: IDspInputAnalysisState): void => {
+  inputAnalysis = next;
+  inputAnalysisListeners.forEach((listener) => listener());
+};
+
+export const readDspInputAnalysis = (): IDspInputAnalysisState => inputAnalysis;
+
+export const useDspInputAnalysis = (): IDspInputAnalysisState =>
+  useSyncExternalStore(
+    subscribeInputAnalysis,
+    readDspInputAnalysis,
+    readDspInputAnalysis,
+  );
+
+export interface IDspNormalizerMeter {
+  inputPeaks: readonly [number, number];
+  outputPeaks: readonly [number, number];
+  appliedGainDb: number;
+}
+
+let normalizerMeter: IDspNormalizerMeter = {
+  inputPeaks: [0, 0],
+  outputPeaks: [0, 0],
+  appliedGainDb: 0,
+};
+
+/** Below -120 dBFS there is no programme worth repainting as a new value. */
+const NORMALIZER_METER_SIGNAL_FLOOR = 1e-6;
+
+const subscribeNormalizerMeter = (listener: () => void) => {
+  normalizerMeterListeners.add(listener);
+  return () => {
+    normalizerMeterListeners.delete(listener);
+  };
+};
+
+export const setDspNormalizerMeter = (next: IDspNormalizerMeter): void => {
+  const nextHasProgramme = [...next.inputPeaks, ...next.outputPeaks].some(
+    (peak) => peak > NORMALIZER_METER_SIGNAL_FLOOR,
+  );
+  const heldHasProgramme = [
+    ...normalizerMeter.inputPeaks,
+    ...normalizerMeter.outputPeaks,
+  ].some((peak) => peak > NORMALIZER_METER_SIGNAL_FLOOR);
+  // Empty decoder quanta and track handoffs report literal zero. Painting
+  // those between valid windows made the bars and numbers flash 0 -> value ->
+  // 0 even though the programme itself was continuous. Hold the last valid
+  // levels through silence; the applied gain remains live because analysis may
+  // legitimately finish while the transport is paused.
+  normalizerMeter =
+    nextHasProgramme || !heldHasProgramme
+      ? next
+      : { ...normalizerMeter, appliedGainDb: next.appliedGainDb };
+  normalizerMeterListeners.forEach((listener) => listener());
+};
+
+export const readDspNormalizerMeter = (): IDspNormalizerMeter =>
+  normalizerMeter;
+
+export const useDspNormalizerMeter = (): IDspNormalizerMeter =>
+  useSyncExternalStore(
+    subscribeNormalizerMeter,
+    readDspNormalizerMeter,
+    readDspNormalizerMeter,
+  );
+
+/** Real chain-boundary analysers, read directly inside each canvas frame. */
 export interface IDspAnalyser {
   frequencyBinCount: number;
   getFloatFrequencyData(target: Float32Array): void;
 }
 
-let analyser: IDspAnalyser | undefined;
+const analysers: Partial<Record<TDspAnalyserStage, IDspAnalyser>> = {};
 
-export const setDspAnalyser = (next: IDspAnalyser | undefined): void => {
-  analyser = next;
+export const setDspAnalyser = (
+  stage: TDspAnalyserStage,
+  next: IDspAnalyser | undefined,
+): void => {
+  analysers[stage] = next;
 };
 
-export const readDspAnalyser = (): IDspAnalyser | undefined => analyser;
+export const clearDspAnalysers = (): void => {
+  (Object.keys(analysers) as TDspAnalyserStage[]).forEach((stage) => {
+    delete analysers[stage];
+  });
+};
+
+export const readDspAnalyser = (
+  stage: TDspAnalyserStage,
+): IDspAnalyser | undefined => analysers[stage];
 
 /**
  * Phase correlation of what leaves the chain, reported by the worklet.
@@ -231,6 +395,17 @@ export const setDspPeak = (next: number): void => {
 
 export const readDspPeak = (): number => peak;
 
+/** Per-channel version of `readDspPeak`, used by the independent output meter. */
+let channelPeaks: readonly number[] = [0, 0];
+
+export const setDspChannelPeaks = (next: readonly number[]): void => {
+  if (next.every((value) => Number.isFinite(value) && value >= 0)) {
+    channelPeaks = next;
+  }
+};
+
+export const readDspChannelPeaks = (): readonly number[] => channelPeaks;
+
 /**
  * How much of each band is currently being applied, 0 to 1, by band index.
  *
@@ -255,12 +430,10 @@ export const readDspBandAmounts = (): readonly number[] => bandAmounts;
  * What the exciter's three bands and its organic stage actually contributed.
  *
  * Reported by the worklet rather than derived from the settings, and that
- * difference is the whole reason the display is worth having. Two of these
- * numbers move on their own: a dynamic band's amount depends on how loud its
- * own passband is this instant, and the organic stage's drive wanders by
- * design. A display drawn from the settings would show what was ASKED for and
- * hold perfectly still — which would make the stage's central claim, that it
- * breathes with the music, the one thing a user could not see.
+ * difference is the whole reason the display is worth having. A dynamic
+ * band's amount depends on how loud its own passband is this instant, while
+ * the smoothed activity values show switch and control transitions without
+ * pretending that the nonlinear stage has a fixed EQ transfer curve.
  */
 let exciterBands: readonly number[] = [0, 0, 0];
 
@@ -356,25 +529,6 @@ export const setDspPhaseView = (next: TPhaseView): void => {
 
 export const useDspPhaseView = (): TPhaseView =>
   useSyncExternalStore(subscribe, readDspPhaseView, readDspPhaseView);
-
-/**
- * Headroom the adaptive stage has handed back for the current material, in dB.
- *
- * Never negative, and never more than the regulator reserved. Kept out of the
- * settings on purpose: it changes several times a second with the music, and
- * settings are persisted — writing this into them would be a disk write per
- * chorus and a React render per reading, for a number nothing needs to
- * remember. The readout beside the preamp reads it here instead.
- */
-let headroomGiveBack = 0;
-
-export const setDspHeadroomGiveBack = (next: number): void => {
-  if (Number.isFinite(next) && next >= 0) {
-    headroomGiveBack = next;
-  }
-};
-
-export const readDspHeadroomGiveBack = (): number => headroomGiveBack;
 
 export const useDspSettings = (): IDspSettings =>
   useSyncExternalStore(subscribe, readDspSettings, readDspSettings);

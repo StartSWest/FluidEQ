@@ -103,16 +103,18 @@ describe('the shareable preset file', () => {
     expect(Math.abs(read.eq.bands[0].gainDb)).toBeLessThan(400);
   });
 
-  /** The bypass switch and which preset was showing are not part of a curve,
-   * and shipping them would turn somebody else's rack off on import. */
-  it('does not carry the bypass or the selection', () => {
+  /** Bypass, monitor state and the picker selection are not part of a curve;
+   * shipping them would change somebody else's listening state on import. */
+  it('does not carry bypass, isolate or the selection', () => {
     const file = toPresetFile('Anything', {
       ...richRack(),
       enabled: true,
+      isolate: true,
       presetId: 'rock',
     });
     const read = fromPresetFile(file);
     expect(read?.eq.enabled).toBe(DSP_DEFAULTS.eq.enabled);
+    expect(read?.eq.isolate).toBe(DSP_DEFAULTS.eq.isolate);
     expect(read?.eq.presetId).toBe('');
   });
 });

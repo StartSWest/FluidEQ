@@ -37,6 +37,7 @@ const library: Partial<Dictionary> = {
 
   'library.browse.album': '专辑',
   'library.browse.artist': '歌手',
+  'library.browse.genre': '流派',
   'library.browse.song': '歌曲',
   'library.browse.folder': '文件夹',
   'library.browse.directory': '树状',
@@ -73,8 +74,10 @@ const library: Partial<Dictionary> = {
 
   'library.unknownAlbum': '未知专辑',
   'library.unknownArtist': '未知歌手',
+  'library.genre.unknown': '未知流派',
   'library.trackCount': '{count} 首歌曲',
   'library.albumCount': '{count} 张专辑',
+  'library.artistCount': '{count} 位歌手',
 
   'library.videos': '视频',
   'library.videos.empty': '已添加的文件夹中没有视频。',
@@ -102,6 +105,9 @@ const library: Partial<Dictionary> = {
   'library.upNext.empty': '队列暂时为空',
   'library.upNext.added': '你选的',
   'library.upNext.rest': '之后',
+  'library.upNext.continued': '相似音乐',
+  'library.upNext.keepPlaying': '继续播放',
+  'library.upNext.keepPlayingHint': '列表播完后，继续播放同一流派的音乐',
   'library.queueAdd': '加入播放队列',
 
   'library.alsoInFolder': '在此文件夹中，但不属于此专辑',

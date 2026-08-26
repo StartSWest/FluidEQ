@@ -25,12 +25,50 @@ const dsp = {
   'dsp.unavailable':
     'Die Audioverarbeitung konnte nicht gestartet werden. Die Wiedergabe ist davon nicht betroffen.',
   'dsp.presets': 'Voreinstellungen',
-  'dsp.preset.flat': 'Aus',
   'dsp.preset.lossyRepair': 'Komprimiertes reparieren',
   'dsp.preset.loud': 'Laut',
   'dsp.preset.broadcast': 'Rundfunk',
   'dsp.bypassed': 'Umgangen',
   'dsp.enabled': 'Ein',
+
+  'dsp.normalizer.title': 'Normalisierung',
+  'dsp.normalizer.description':
+    'Misst die komplette Quelle einmal und wendet vor Exciter und EQ eine feste, stereogekoppelte Verstärkung an. Kein Pumpen, kein beweglicher RMS-Folger.',
+  'dsp.normalizer.mode': 'Normalisierungsmodus',
+  'dsp.normalizer.off': 'Aus',
+  'dsp.normalizer.truePeak': 'True Peak',
+  'dsp.normalizer.loudness': 'Lautheit',
+  'dsp.normalizer.ceiling': 'Peak-Grenze',
+  'dsp.normalizer.target': 'Lautheitsziel',
+  'dsp.normalizer.analysis': 'Quellenanalyse',
+  'dsp.normalizer.analyzing': 'Kompletter Titel wird analysiert · {progress}%',
+  'dsp.normalizer.unavailable':
+    'Diese Quelle konnte nicht analysiert werden. Sie wird mit Originalpegel abgespielt.',
+  'dsp.normalizer.waiting':
+    'Einen Bibliothekstitel abspielen, um ihn zu messen.',
+  'dsp.normalizer.measuredPeak': 'Gemessener Peak',
+  'dsp.normalizer.measuredLoudness': 'Integrierte Lautheit',
+  'dsp.normalizer.appliedGain': 'Angewandte Verstärkung',
+  'dsp.normalizer.liveMeter': 'Live vorher / nachher',
+  'dsp.normalizer.before': 'Vorher',
+  'dsp.normalizer.after': 'Nachher',
+  'dsp.normalizer.liveMeterHint':
+    'Tatsächliche Sample-Peaks direkt vor und nach der Normalisierung. Die Nullmarke entspricht 0 dBFS.',
+  'dsp.normalizer.honesty':
+    'Verhindert nachfolgende Übersteuerung; bereits in der Datei enthaltene Verzerrung kann nicht rekonstruiert werden.',
+
+  'dsp.crossfade.title': 'Überblendung',
+  'dsp.crossfade.description':
+    'Überblendet ausgehende und eingehende Titel nach der Normalisierung und vor Exciter und EQ.',
+  'dsp.crossfade.outgoing': 'Ausgehend',
+  'dsp.crossfade.incoming': 'Eingehend',
+  'dsp.crossfade.duration': 'Dauer',
+  'dsp.crossfade.curve': 'Überblendkurve',
+  'dsp.crossfade.equalPower': 'Gleiche Leistung',
+  'dsp.crossfade.smooth': 'Weich',
+  'dsp.crossfade.linear': 'Linear',
+  'dsp.crossfade.hint':
+    'Gilt für manuelles Weiter und natürliche Titelenden. Suchen bleibt sofort.',
 
   'dsp.eqPreset.custom': 'Eigen',
   'dsp.eqPreset.label': 'Voreinstellung',
@@ -108,15 +146,18 @@ const dsp = {
   'dsp.eqShare.share': 'Teilen',
   'dsp.eqShare.hint':
     'Speichert dieses Rack als Datei, die andere öffnen können.',
+  'dsp.eqShare.saved': 'Preset-Datei gespeichert.',
+  'dsp.eqShare.failed': 'Die Preset-Datei konnte nicht gespeichert werden.',
+  'dsp.eq.isolate': 'Isolieren',
+  'dsp.eq.isolateHint': 'Nur hören, was der EQ verändert.',
+  'dsp.eq.isolateOn':
+    'Das trockene Signal ist entfernt — nur die Änderungen des EQ sind hörbar.',
   'dsp.eqPreset.imported': '{count} Filter geladen.',
   'dsp.eqPreset.importSkipped':
     '{count} Filter geladen, {skipped} übersprungen.',
   'dsp.eqPreset.importEmpty':
     'Dieser Equalizer konnte keine Filter darin lesen.',
   'dsp.eqPreset.importFailed': 'Diese Datei konnte nicht gelesen werden.',
-  'dsp.eqPreset.importPreamp':
-    'Seine {gain} dB Reserve werden hier stattdessen gemessen.',
-
   'dsp.eq.rack': 'Bänder',
   'dsp.eqModel.label': 'Charakter',
   'dsp.eqModel.clean': 'Keiner',
@@ -139,8 +180,7 @@ const dsp = {
   'dsp.eqImport.title': 'EQ-Kurve importieren',
   'dsp.eqImport.hint':
     'Füge eine Kurve aus Squiglink, AutoEq oder Equalizer APO ein – oder wähle die Datei, in der sie steht.',
-  'dsp.eqImport.placeholder':
-    'Preamp: -5.4 dB\nFilter: ON PK Fc 1200 Hz Gain -2.1 dB Q 1.41',
+  'dsp.eqImport.placeholder': 'Filter: ON PK Fc 1200 Hz Gain -2.1 dB Q 1.41',
   'dsp.eqImport.chooseFile': 'Datei wählen',
   'dsp.eqImport.apply': 'Importieren',
   'dsp.eqImport.cancel': 'Abbrechen',
@@ -163,7 +203,6 @@ const dsp = {
   'dsp.eq.type.bandPass': 'Bandpass',
   'dsp.eq.frequency': 'Freq',
   'dsp.eq.gain': 'Pegel',
-  'dsp.eq.preamp': 'Vorverst.',
   'dsp.eq.trim': 'Auto-Trim',
   'dsp.eq.adaptive': 'Adaptiv',
   'dsp.eq.trimFixed': 'Fest',
@@ -209,20 +248,16 @@ const dsp = {
   'dsp.exciter.band.mid': 'Mitten',
   'dsp.exciter.band.high': 'Höhen',
   'dsp.exciter.texture': 'Textur',
-  'dsp.exciter.threshold': 'Schwelle',
-  'dsp.exciter.dynamic': 'Dynamisch',
   'dsp.exciter.organic': 'Organisch',
   'dsp.exciter.organicHint':
-    'Fülle für Mitten, die sich gut messen und dünn klingen. Gerade Obertöne, die der Musik folgen und dabei driften, damit es atmet statt still zu stehen.',
+    'Fügt im gewählten Bereich weiche Fülle aus geraden Obertönen hinzu. Ideal, um eine saubere, metallische Wiedergabe oder Titantreiber wärmer und organischer wirken zu lassen, ohne Details zu verlieren.',
   'dsp.exciter.organicAmount': 'Fülle',
   'dsp.exciter.organicFocus': 'Fokus',
   'dsp.exciter.organicRange': 'Umfang',
-  'dsp.exciter.align': 'Ausrichtung',
+  'dsp.exciter.align': 'Timing',
   'dsp.exciter.alignHint':
-    'Verzögert die tiefen Bänder gegenüber den hohen, wie ein BBE. Fügt nichts hinzu — es ändert nur, wann jeder Teil ankommt.',
-  'dsp.exciter.alignAmount': 'Tiefe',
-  'dsp.exciter.alignLow': 'Untere Trennung',
-  'dsp.exciter.alignHigh': 'Obere Trennung',
+    'Lässt Höhen vorangehen und verzögert Mitten und Bässe sanft für klare Attacken und runden Druck. Fügt keine Obertöne hinzu.',
+  'dsp.exciter.alignAmount': 'Stärke',
   'dsp.exciter.isolate': 'Isolieren',
   'dsp.exciter.isolateHint':
     'Nur die Obertöne hören, die diese Stufe hinzufügt.',
@@ -249,6 +284,54 @@ const dsp = {
   'dsp.maximizer.ceiling': 'Obergrenze',
   'dsp.maximizer.lookAhead': 'Vorausschau',
   'dsp.maximizer.release': 'Release',
+
+  'dsp.master.title': 'Master',
+  'dsp.master.description':
+    'Transparente Ausgangskontrolle nach allen Prozessoren. Sie verändert nicht, wie stark EQ, Exciter oder andere Stufen angesteuert werden.',
+  'dsp.master.outputTrim': 'Ausgangsverstärkung',
+  'dsp.master.autoHeadroom': 'Auto-Headroom',
+  'dsp.master.autoHeadroomHint':
+    'Reduziert nur Spitzen nahe der gewählten stereo-gekoppelten True-Peak-Grenze weich.',
+  'dsp.master.ceiling': 'Obergrenze',
+  'dsp.master.release': 'Release',
+  'dsp.master.loudnessMaximize': 'LUFS maximieren',
+  'dsp.master.loudnessMaximizeHint':
+    'Wendet anhand der Messung des ganzen Titels {gain} dB an und hält den finalen True Peak unter der Grenze. Die Verstärkung bleibt konstant; nur Peaks werden geregelt.',
+  'dsp.master.loudnessTarget': 'Lautheitsziel',
+  'dsp.master.meter': 'Endausgang',
+  'dsp.master.safetyHint':
+    '{factor}× True-Peak-Erkennung · {ceiling} dBTP Obergrenze · {knee} dB Soft Knee · stereo-gekoppelt.',
+  'dsp.master.manualHint':
+    'Manueller Ausgang: keine Spitzenabsenkung. Pegel über 0 dBFS übersteuern.',
+  'dsp.master.truePeak': 'TP Eingang',
+  'dsp.master.gainReduction': 'Pegelreduktion',
+  'dsp.master.devSafety': 'Sicherheit A/B',
+  'dsp.master.devSafetyHint':
+    'Nur Entwicklung: Umgeht den vollständigen Endschutz, damit seine Wirkung direkt hörbar wird.',
+  'dsp.master.devSafetySpec':
+    'Notfallschutz über +10 dBTP · 2 ms Vorausschau · Korrektur ohne Erholung · 3 Hz DC-Schutz · Reparatur ungültiger Samples',
+  'dsp.master.dcCorrection': 'DC-Offset',
+  'dsp.master.faults': 'Fehler',
+  'dsp.master.graph.spectrum': 'Ausgangsspektrum',
+  'dsp.master.graph.trim': 'Ausgangsverstärkung',
+  'dsp.master.graph.applied': 'Angewandter Pegel',
+  'dsp.master.graph.trimLine': 'Verstärkung {gain} dB',
+  'dsp.master.graph.appliedLine': 'Angewendet {gain} dB',
+  'dsp.master.graph.dcGuard': 'DC-Schutz',
+  'dsp.master.graph.peakWarning':
+    'Warnung · Ausgang {peak} dBTP über der Grenze',
+  'dsp.master.graph.peakFixed':
+    'Spitze kontrolliert · {gain} dB Pegelreduktion',
+  'dsp.master.graph.peakSafe': 'True Peak innerhalb der Grenze',
+  'dsp.master.graph.dcFixed': 'DC-Offset entfernt · {amount}',
+  'dsp.master.graph.dcClean': 'DC-Offset sauber',
+  'dsp.master.graph.faultFixed':
+    '{count} ungültige oder fehlerhafte Samples repariert',
+  'dsp.master.graph.faultClean': 'Samples gültig',
+  'dsp.master.graph.safetyActive': 'Schutz aktiv',
+  'dsp.master.graph.safetyBypassed': 'Warnung · Schutz umgangen',
+  'dsp.master.graph.loudnessActive':
+    'LUFS maximieren · +{gain} dB Richtung {target} LUFS',
 
   'tabs.dsp': 'DSP',
 };

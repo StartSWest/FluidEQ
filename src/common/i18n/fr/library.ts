@@ -38,6 +38,7 @@ const library: Partial<Dictionary> = {
 
   'library.browse.album': 'Albums',
   'library.browse.artist': 'Artistes',
+  'library.browse.genre': 'Genres',
   'library.browse.song': 'Chansons',
   'library.browse.folder': 'Dossiers',
   'library.browse.directory': 'Arborescence',
@@ -75,8 +76,10 @@ const library: Partial<Dictionary> = {
 
   'library.unknownAlbum': 'Album inconnu',
   'library.unknownArtist': 'Artiste inconnu',
+  'library.genre.unknown': 'Genre inconnu',
   'library.trackCount': '{count} chansons',
   'library.albumCount': '{count} albums',
+  'library.artistCount': '{count} artistes',
 
   'library.videos': 'Vidéos',
   'library.videos.empty':
@@ -107,6 +110,10 @@ const library: Partial<Dictionary> = {
   'library.upNext.empty': 'Rien dans la file',
   'library.upNext.added': 'Vos choix',
   'library.upNext.rest': 'Ensuite',
+  'library.upNext.continued': 'Dans le même genre',
+  'library.upNext.keepPlaying': 'Continuer la lecture',
+  'library.upNext.keepPlayingHint':
+    'Quand la liste est épuisée, poursuivre avec d’autres titres du même genre',
   'library.queueAdd': 'Ajouter à la file',
 
   'library.alsoInFolder': 'Dans ce dossier, pas dans cet album',

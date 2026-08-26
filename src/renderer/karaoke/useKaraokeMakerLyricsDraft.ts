@@ -20,7 +20,9 @@ import {
   Dispatch,
   SetStateAction,
   useCallback,
+  useEffect,
   useMemo,
+  useRef,
   useState,
 } from 'react';
 import {
@@ -91,8 +93,10 @@ export const useKaraokeMakerLyricsDraft = (
   project: IKaraokeMakerProject,
   onDraftChange?: () => void,
 ) => {
+  const projectText = plainLyrics(project);
+  const previousProjectTextRef = useRef(projectText);
   const [isOpen, setOpen] = useState(false);
-  const [draft, setDraftValue] = useState(() => plainLyrics(project));
+  const [draft, setDraftValue] = useState(projectText);
   const [fileName, setFileName] = useState<string>();
   const [workflowActive, setWorkflowActive] = useState(false);
   // Which language a fresh open should seed the paste view toward.
@@ -110,6 +114,25 @@ export const useKaraokeMakerLyricsDraft = (
     [onDraftChange],
   );
 
+  useEffect(() => {
+    const previousProjectText = previousProjectTextRef.current;
+    previousProjectTextRef.current = projectText;
+    // A structured word edit owns the draft only while the textarea still
+    // mirrors the project. If the user has typed a new lyric sheet, preserve
+    // that unsaved text; otherwise keep the two views synchronized so moving
+    // one timed word never turns into a destructive whole-lyrics replacement.
+    setDraft((current) =>
+      normalizedLyricsText(current) ===
+      normalizedLyricsText(previousProjectText)
+        ? projectText
+        : current,
+    );
+    // `setDraft` is a callback, not the raw state setter, so it is a real
+    // dependency here — syncing the draft to a changed project is a text
+    // change like any other, and has to clear a stale line-count mismatch
+    // with it. Stable in practice: its own dependency is memoized upstream.
+  }, [projectText, setDraft]);
+
   const draftWordCount = useMemo(
     () =>
       makerLinesFromPlainText(draft)
@@ -119,7 +142,7 @@ export const useKaraokeMakerLyricsDraft = (
   );
 
   const draftChanged =
-    normalizedLyricsText(draft) !== normalizedLyricsText(plainLyrics(project));
+    normalizedLyricsText(draft) !== normalizedLyricsText(projectText);
 
   /**
    * Re-seed from the project and open.

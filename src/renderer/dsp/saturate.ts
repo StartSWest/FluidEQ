@@ -8,8 +8,11 @@ import {
   IOversamplerState,
   createOversampler,
   downsample,
+  oversampleFactorForSampleRate,
   upsample,
 } from './oversample';
+
+const MAX_OVERSAMPLE = 4;
 
 /**
  * The harmonic colour an analogue equaliser adds and a digital one does not.
@@ -77,31 +80,40 @@ export const saturateSample = (sample: number, drive: number): number => {
 
 export interface ISaturatorState {
   oversampler: IOversamplerState;
-  /** Doubled-rate scratch, sized on first use and reused after. */
-  doubled: Float32Array;
+  /** Maximum four-times-rate scratch, sized on first use and reused after. */
+  oversampled: Float32Array;
 }
 
 export const createSaturator = (blockSize: number): ISaturatorState => ({
   oversampler: createOversampler(),
-  doubled: new Float32Array(blockSize * 2),
+  oversampled: new Float32Array(blockSize * MAX_OVERSAMPLE),
 });
 
 /**
- * Saturate a block in place, at twice the rate.
+ * Saturate a block in place at a rate-aware resolution.
  *
- * The oversampling is not optional and not a refinement. A non-linearity run at
- * the session rate folds every harmonic above Nyquist back down as inharmonic
- * content that does not move with the music — which is the sound this feature
- * is supposed to be an alternative to, not an example of.
+ * Four times at 44.1/48 moves the folding boundary far enough away for the
+ * generated harmonics. A 96 kHz session already supplies one of those octaves,
+ * and a 192 kHz session supplies both, so adding another 4x there spends the
+ * audio deadline without improving the anti-aliasing target.
  */
 export const saturateBlock = (
   state: ISaturatorState,
   target: Float32Array,
   drive: number,
+  /**
+   * Undefined keeps the raw shaper for measurement and reuse. A number makes
+   * this the EQ's parallel colour path: zero is the resampled carrier and one
+   * is the level-normalised curve.
+   */
+  blend?: number,
+  sampleRate = 48_000,
 ): void => {
-  const doubled = target.length * 2;
-  if (state.doubled.length !== doubled) {
-    state.doubled = new Float32Array(doubled);
+  const oversample = oversampleFactorForSampleRate(sampleRate);
+  const oversampledLength = target.length * oversample;
+  const maximumLength = target.length * MAX_OVERSAMPLE;
+  if (state.oversampled.length !== maximumLength) {
+    state.oversampled = new Float32Array(maximumLength);
   }
   // The offset and its output are hoisted rather than read from
   // `saturateSample`, which recomputes both. They depend only on the drive,
@@ -111,12 +123,23 @@ export const saturateBlock = (
   // else's slower machine.
   const offset = offsetFor(drive);
   const offsetOutput = Math.tanh(offset);
-  upsample(state.oversampler, target, state.doubled, 2);
-  for (let i = 0; i < doubled; i += 1) {
-    state.doubled[i] =
-      (Math.tanh(state.doubled[i] * drive + offset) - offsetOutput) / drive;
+  const smallSignalGain = 1 - offsetOutput * offsetOutput;
+  upsample(state.oversampler, target, state.oversampled, oversample);
+  for (let i = 0; i < oversampledLength; i += 1) {
+    const carrier = state.oversampled[i];
+    const shaped =
+      (Math.tanh(state.oversampled[i] * drive + offset) - offsetOutput) / drive;
+    // The raw curve compresses the fundamental as it adds colour. That made
+    // the control replace the waveform rather than enrich it, and on a full
+    // mix the dense difference was heard as grain. Restore the tangent at
+    // silence to unity, then blend in parallel at the oversampled rate so the
+    // carrier and the harmonics are sample-aligned before decimation.
+    state.oversampled[i] =
+      blend === undefined
+        ? shaped
+        : carrier + (shaped / smallSignalGain - carrier) * blend;
   }
-  downsample(state.oversampler, state.doubled, target, 2);
+  downsample(state.oversampler, state.oversampled, target, oversample);
 };
 
 /**
@@ -137,14 +160,23 @@ export const saturateBlock = (
  * ODD harmonics have overtaken the even ones, and odd is what the ear reads as
  * grit.
  *
- * The ceiling is 1.0. A previous attempt stopped at 0.5 and that was
- * over-corrected the other way — 2.17% second harmonic is about -33 dB, which
- * sits at the edge of audibility on music and reads as a dial that does
- * nothing. At 1.0 the second harmonic is 4.04% and the balance is still 2.2 to
- * 1 in favour of the even ones, so it is heard without becoming grit.
+ * The raw ceiling is 0.72. At 1 the curve was still even-dominant on a sine,
+ * but a sine does not expose intermodulation: broadband music made every
+ * partial bend every other partial and the top of the control sounded grainy.
+ * 0.72 keeps enough second harmonic to hear while reducing that dense product
+ * before the parallel blend below reduces it once more.
  *
  * The 1.6 power keeps the bottom of the travel fine — a quarter turn measures
  * half a percent — without leaving the whole middle of the dial inaudible,
  * which is what squaring it did.
  */
-export const fuzzDrive = (amount: number): number => amount ** 1.6;
+export const fuzzDrive = (amount: number): number => 0.72 * amount ** 1.6;
+
+/**
+ * Preserve most of the carrier even at the top of the dial.
+ *
+ * Drive already controls how nonlinear the curve is, so this is deliberately
+ * narrow: 45% at the bottom to 60% at the top. Full replacement is what made a
+ * broadband EQ colour stage read as fuzz rather than warmth.
+ */
+export const fuzzBlend = (amount: number): number => 0.45 + amount * 0.15;

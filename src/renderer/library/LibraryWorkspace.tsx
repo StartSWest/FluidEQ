@@ -35,6 +35,7 @@ import {
   parentFolderPath,
   trackFolderPath,
 } from '../../common/library/grouping';
+import { trackGenreIds } from '../../common/library/genres';
 import type {
   ILibraryTrack,
   TLibraryBrowseMode,
@@ -122,12 +123,14 @@ const SORT_KEY = 'fluideq.library.sort';
 const SORT_DIRECTION_KEY = 'fluideq.library.sortDirection';
 const OPEN_ALBUM_KEY = 'fluideq.library.openAlbum';
 const OPEN_ARTIST_KEY = 'fluideq.library.openArtist';
+const OPEN_GENRE_KEY = 'fluideq.library.openGenre';
 const OPEN_FOLDER_KEY = 'fluideq.library.openFolder';
 const OPEN_PLAYLIST_KEY = 'fluideq.library.openPlaylist';
 
 const BROWSE_MODES: readonly TLibraryBrowseMode[] = [
   'album',
   'artist',
+  'genre',
   'song',
   'folder',
   'video',
@@ -474,6 +477,9 @@ const LibraryWorkspace = ({
   const [openArtistId, setOpenArtistId] = useState<string | undefined>(() =>
     readPersistedText(OPEN_ARTIST_KEY),
   );
+  const [openGenreId, setOpenGenreId] = useState<string | undefined>(() =>
+    readPersistedText(OPEN_GENRE_KEY),
+  );
   const [openPlaylistId, setOpenPlaylistId] = useState<string | undefined>(() =>
     readPersistedText(OPEN_PLAYLIST_KEY),
   );
@@ -489,6 +495,10 @@ const LibraryWorkspace = ({
   useEffect(
     () => writePersistedText(OPEN_ARTIST_KEY, openArtistId),
     [openArtistId],
+  );
+  useEffect(
+    () => writePersistedText(OPEN_GENRE_KEY, openGenreId),
+    [openGenreId],
   );
   useEffect(
     () => writePersistedText(OPEN_FOLDER_KEY, openFolderPath),
@@ -587,6 +597,7 @@ const LibraryWorkspace = ({
     }
     setOpenAlbumId(undefined);
     setOpenArtistId(undefined);
+    setOpenGenreId(undefined);
     // The open playlist goes with them, and unlike the folder below it has
     // no second reading: a playlist is a thing that was opened, never a
     // place the reader is standing, so it means nothing at all on a shelf of
@@ -678,6 +689,16 @@ const LibraryWorkspace = ({
     // Songs and videos are not containers and keep the matches themselves.
     if (browseMode === 'song' || browseMode === 'video') {
       return matches;
+    }
+    // The one shelf whose containers are many-to-many, so it cannot be a
+    // single key per track like the others below: a file tagged "Rock; Pop"
+    // is in two of them, and keying on the first would drop the whole Pop
+    // shelf out of a search that matched a Pop record.
+    if (browseMode === 'genre') {
+      const hit = new Set(matches.flatMap(trackGenreIds));
+      return scopedTracks.filter((track) =>
+        trackGenreIds(track).some((id) => hit.has(id)),
+      );
     }
     // What "the same container" means on each shelf.
     const containerKeys: Partial<
@@ -849,12 +870,14 @@ const LibraryWorkspace = ({
   const handleOpenFolder = useCallback((folderPath: string) => {
     setOpenAlbumId(undefined);
     setOpenArtistId(undefined);
+    setOpenGenreId(undefined);
     setOpenFolderPath(folderPath);
   }, []);
 
   const handleOpenPlaylist = useCallback((playlistId: string) => {
     setOpenAlbumId(undefined);
     setOpenArtistId(undefined);
+    setOpenGenreId(undefined);
     setOpenPlaylistId(playlistId);
   }, []);
 
@@ -865,6 +888,10 @@ const LibraryWorkspace = ({
     (openId: string | undefined) => {
       if (browseMode === 'artist') {
         setOpenArtistId(openId);
+        return;
+      }
+      if (browseMode === 'genre') {
+        setOpenGenreId(openId);
         return;
       }
       if (browseMode === 'folder') {
@@ -891,6 +918,10 @@ const LibraryWorkspace = ({
   const isDrilledIn = Boolean(
     openAlbumId ||
     openArtistId ||
+    // Gated on its own shelf for the same reason the playlist below is: the
+    // two ids are restored from storage independently at launch, and a stale
+    // genre would otherwise open over the Albums shelf.
+    (openGenreId !== undefined && browseMode === 'genre') ||
     // Gated on its own shelf, the way the folder below is. Nothing should be
     // able to leave a playlist open while albums are being browsed — both the
     // chip handler and the mode effect clear it — but the two values are
@@ -924,6 +955,7 @@ const LibraryWorkspace = ({
     }
     setOpenAlbumId(undefined);
     setOpenArtistId(undefined);
+    setOpenGenreId(undefined);
     setOpenPlaylistId(undefined);
     setOpenFolderPath(undefined);
   }, []);
@@ -951,15 +983,23 @@ const LibraryWorkspace = ({
   // during a scan is several times a second.
   const handleOpenAlbum = useCallback((albumId: string) => {
     setOpenArtistId(undefined);
+    setOpenGenreId(undefined);
     setOpenAlbumId(albumId);
   }, []);
   const handleOpenArtist = useCallback((artistId: string) => {
     setOpenAlbumId(undefined);
+    setOpenGenreId(undefined);
     setOpenArtistId(artistId);
+  }, []);
+  const handleOpenGenre = useCallback((genreId: string) => {
+    setOpenAlbumId(undefined);
+    setOpenArtistId(undefined);
+    setOpenGenreId(genreId);
   }, []);
   const handleBack = useCallback(() => {
     setOpenAlbumId(undefined);
     setOpenArtistId(undefined);
+    setOpenGenreId(undefined);
     setOpenPlaylistId(undefined);
     // Up one level, where there is one above and the tree is what is being
     // walked: back out of `Artist/Album` in a file manager is `Artist`, not
@@ -1005,6 +1045,18 @@ const LibraryWorkspace = ({
         'album',
       ).map((track) => track.id);
     }
+    // The genre shelf's own list, by album — the same order and the same
+    // membership rule `LibraryDetail` lists it with. `trackGenreIds` rather
+    // than a compare on `track.genre`: a file tagged "Rock; Pop" is on both
+    // shelves, and a queue built by string equality would play neither.
+    if (openGenreId !== undefined && browseMode === 'genre') {
+      return sortTracks(
+        index.tracks.filter((track) =>
+          trackGenreIds(track).includes(openGenreId),
+        ),
+        'album',
+      ).map((track) => track.id);
+    }
     // The folder that is open, exactly as its panel lists it: its own files,
     // in path order, and not the ones in the folders below it. Without this
     // branch a folder drill-in fell through to the shelf, so Next from the
@@ -1026,6 +1078,7 @@ const LibraryWorkspace = ({
     index.tracks,
     openAlbumId,
     openArtistId,
+    openGenreId,
     openPlaylistId,
     playlists,
     openFolderPath,
@@ -1408,6 +1461,7 @@ const LibraryWorkspace = ({
             tracks={index.tracks}
             albumId={openAlbumId}
             artistId={openArtistId}
+            genreId={browseMode === 'genre' ? openGenreId : undefined}
             // Only the Folders shelf draws a folder as a panel. On the other
             // three the same folder is the place the shelf is being read in,
             // and the panel would be a second answer to a question the list
@@ -1436,6 +1490,7 @@ const LibraryWorkspace = ({
             browseMode={browseMode}
             onOpenAlbum={handleOpenAlbum}
             onOpenArtist={handleOpenArtist}
+            onOpenGenre={handleOpenGenre}
             onOpenFolder={handleOpenFolder}
             onOpenPlaylist={handleOpenPlaylist}
             onPlayTrack={handlePlayTrack}
@@ -1471,6 +1526,7 @@ const LibraryWorkspace = ({
             browseMode={browseMode}
             onOpenAlbum={handleOpenAlbum}
             onOpenArtist={handleOpenArtist}
+            onOpenGenre={handleOpenGenre}
             onOpenFolder={handleOpenFolder}
             onOpenPlaylist={handleOpenPlaylist}
             onPlayTrack={handlePlayTrack}
@@ -1504,7 +1560,11 @@ const LibraryWorkspace = ({
             playingTrackId={playingMarkId}
             revealTrack={revealTrack}
             openId={
-              openAlbumId ?? openArtistId ?? openPlaylistId ?? openFolderPath
+              openAlbumId ??
+              openArtistId ??
+              openGenreId ??
+              openPlaylistId ??
+              openFolderPath
             }
             onOpenChange={handleCoverFlowOpen}
             onQueueTracks={appendToQueue}

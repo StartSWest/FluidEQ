@@ -83,6 +83,8 @@ interface IProcessorCardProps {
    * it here and the row carries its weight.
    */
   toolbar?: ReactNode;
+  /** Processor-local action placed immediately before the bypass state. */
+  beforePower?: ReactNode;
   id: string;
   isEnabled: boolean;
   onToggle: () => void;
@@ -93,6 +95,7 @@ export const ProcessorCard = ({
   titleKey,
   descriptionKey,
   toolbar,
+  beforePower,
   id,
   isEnabled,
   onToggle,
@@ -101,6 +104,7 @@ export const ProcessorCard = ({
   const { t } = useTranslation();
   return (
     <section
+      id={id}
       className={`dsp-card${isEnabled ? ' is-active' : ''}`}
       aria-labelledby={`${id}-title`}
     >
@@ -137,6 +141,9 @@ export const ProcessorCard = ({
             colour, and on a rack where four of these sit behind four pages
             that is a guess every time. */}
         <div className="dsp-card-power">
+          {beforePower ? (
+            <div className="dsp-card-before-power">{beforePower}</div>
+          ) : undefined}
           <span
             className={`dsp-card-power-label${isEnabled ? ' is-on' : ''}`}
             aria-hidden="true"
@@ -144,7 +151,7 @@ export const ProcessorCard = ({
             {isEnabled ? t('dsp.enabled') : t('dsp.bypassed')}
           </span>
           <Switch
-            id={id}
+            id={`${id}-toggle`}
             isOn={isEnabled}
             isDisabled={false}
             handleToggle={onToggle}

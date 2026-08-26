@@ -18,10 +18,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { DragEvent, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { ILibraryTrack } from '../../common/library/types';
+import { TranslationKey } from '../../common/i18n';
 import { useTranslation } from '../utils/I18nContext';
 import { useLibrary } from './LibraryContext';
 import { useLibraryPlayer } from './player/LibraryPlayerContext';
 import LibraryCoverArt from './LibraryCoverArt';
+import Switch from '../widgets/Switch';
 
 /**
  * How long the queue really is, as the header and the folded chip both say it.
@@ -111,8 +113,22 @@ const OVERSCAN = 6;
 /** A section heading: one small line and the rule under it. */
 const SECTION_HEIGHT = 32;
 
+/**
+ * Which of the three runs an entry belongs to: a decision the listener made,
+ * the record they happen to be playing through, or what continuation drew
+ * once that record ran short. Three rather than the two this started with,
+ * because a guess headed "then" claims to be the rest of something.
+ */
+type TSection = 'added' | 'rest' | 'continued';
+
+const SECTION_LABEL_KEYS: Record<TSection, TranslationKey> = {
+  added: 'library.upNext.added',
+  rest: 'library.upNext.rest',
+  continued: 'library.upNext.continued',
+};
+
 type TEntry =
-  | { kind: 'section'; key: string; isAdded: boolean }
+  | { kind: 'section'; key: string; section: TSection }
   | { kind: 'heading'; key: string; label: string }
   | { kind: 'track'; key: string; position: number; track: ILibraryTrack };
 
@@ -129,15 +145,15 @@ const buildEntries = (
   queued: readonly {
     position: number;
     track: ILibraryTrack;
-    isAdded: boolean;
+    section: TSection;
   }[],
 ): TEntry[] => {
   const entries: TEntry[] = [];
-  let section: boolean | undefined;
+  let section: TSection | undefined;
   let heading: string | undefined;
-  queued.forEach(({ position, track, isAdded }) => {
-    if (section !== isAdded) {
-      section = isAdded;
+  queued.forEach(({ position, track, section: entrySection }) => {
+    if (section !== entrySection) {
+      section = entrySection;
       // A new section starts its grouping over: the record above the rule and
       // the record below it are two different answers even when they are the
       // same record.
@@ -145,7 +161,7 @@ const buildEntries = (
       entries.push({
         kind: 'section',
         key: `section|${position}`,
-        isAdded,
+        section: entrySection,
       });
     }
     const label = track.album ?? track.albumArtist ?? track.artist ?? '';
@@ -202,8 +218,14 @@ const LibraryUpNext = ({
 }) => {
   const { t } = useTranslation();
   const { index } = useLibrary();
-  const { upNext, jumpToQueuePosition, removeUpNextAt, moveUpNext } =
-    useLibraryPlayer();
+  const {
+    upNext,
+    jumpToQueuePosition,
+    removeUpNextAt,
+    moveUpNext,
+    isContinuationOn,
+    setIsContinuationOn,
+  } = useLibraryPlayer();
 
   const listRef = useRef<HTMLDivElement | null>(null);
   const [scrollTop, setScrollTop] = useState(0);
@@ -263,7 +285,15 @@ const LibraryUpNext = ({
         upNext
           .map((entry) => ({
             position: entry.position,
-            isAdded: entry.isAdded,
+            // A pick wins over a continuation draw: choosing a song that
+            // continuation had already queued makes it a decision, and the
+            // panel has to say the same thing the queue does.
+            section: ((): TSection => {
+              if (entry.isAdded) {
+                return 'added';
+              }
+              return entry.isContinued ? 'continued' : 'rest';
+            })(),
             track: byId.get(entry.trackId),
           }))
           .filter(
@@ -271,7 +301,7 @@ const LibraryUpNext = ({
               entry,
             ): entry is {
               position: number;
-              isAdded: boolean;
+              section: TSection;
               track: ILibraryTrack;
             } => entry.track !== undefined,
           ),
@@ -386,6 +416,34 @@ const LibraryUpNext = ({
           {listCount}
         </span>
       </button>
+      {/* ON THE SURFACE THE LIST IS, not in a menu.
+          What this switch does is add rows to the panel directly beneath it,
+          so it belongs beside them: a queue that refills itself with nothing
+          on screen to say why reads as the player having a mind of its own,
+          and a switch buried in settings is found only by somebody who
+          already suspects it exists. Outside the fold button rather than
+          inside it — a control cannot be nested in another control. */}
+      {!isCollapsed && (
+        <span className="library-up-next__keep">
+          <Switch
+            id="library-up-next-keep-playing"
+            isOn={isContinuationOn}
+            isDisabled={false}
+            handleToggle={() => setIsContinuationOn(!isContinuationOn)}
+            ariaLabel={t('library.upNext.keepPlaying')}
+          />
+          {/* A label pointed at the same checkbox, for the reason
+              `SongEqSaveSwitch` gives: without it only the switch itself
+              answers a press and the words beside it are dead. */}
+          <label
+            className="library-up-next__keep-label"
+            htmlFor="library-up-next-keep-playing"
+            title={t('library.upNext.keepPlayingHint')}
+          >
+            {t('library.upNext.keepPlaying')}
+          </label>
+        </span>
+      )}
       {!isCollapsed && trackCount === 0 && (
         <p className="library-up-next__empty">{t('library.upNext.empty')}</p>
       )}
@@ -407,14 +465,10 @@ const LibraryUpNext = ({
                 <p
                   key={entry.key}
                   className={`library-up-next__section${
-                    entry.isAdded ? ' is-added' : ''
-                  }`}
+                    entry.section === 'added' ? ' is-added' : ''
+                  }${entry.section === 'continued' ? ' is-continued' : ''}`}
                 >
-                  {t(
-                    entry.isAdded
-                      ? 'library.upNext.added'
-                      : 'library.upNext.rest',
-                  )}
+                  {t(SECTION_LABEL_KEYS[entry.section])}
                 </p>
               );
             }

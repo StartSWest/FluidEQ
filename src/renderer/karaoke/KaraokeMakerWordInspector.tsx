@@ -111,21 +111,6 @@ const KaraokeMakerWordInspector = ({
           </button>
         </nav>
       </div>
-      <div className="karaoke-maker__lyrics-word-fields">
-        <label htmlFor={`${controlId}-lyrics-word-text`}>
-          <span>{t('karaoke.maker.wordText')}</span>
-          <input
-            id={`${controlId}-lyrics-word-text`}
-            key={`${selectedToken.id}-modal-text`}
-            defaultValue={selectedToken.text}
-            onBlur={(event) => {
-              if (event.target.value.trim() !== selectedToken.text) {
-                onTimingChange({ text: event.target.value });
-              }
-            }}
-          />
-        </label>
-      </div>
       {renderTimingSliders(`${controlId}-lyrics-word-${selectedToken.id}`)}
       <div className="karaoke-maker__lyrics-word-actions">
         <button

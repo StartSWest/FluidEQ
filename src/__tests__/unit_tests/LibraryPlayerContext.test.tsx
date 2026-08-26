@@ -19,6 +19,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import '@testing-library/jest-dom';
 import { act, render } from '@testing-library/react';
 import type { ILibraryIndex, ILibraryTrack } from '../../common/library/types';
+import { DSP_DEFAULTS } from '../../common/dsp/chain';
+import {
+  applyDspSettings,
+  readDspInputAnalysis,
+} from '../../renderer/dsp/store';
 import { LibraryProvider } from '../../renderer/library/LibraryContext';
 import {
   ILibraryPlayerContextValue,
@@ -50,6 +55,14 @@ const audioTrack: ILibraryTrack = {
   sizeBytes: 1,
   mtimeMs: 2,
   addedAt: 2,
+};
+
+const secondAudioTrack: ILibraryTrack = {
+  ...audioTrack,
+  id: 'a2',
+  path: 'C:\\Music\\next-song.mp3',
+  title: 'Next song',
+  mtimeMs: 3,
 };
 
 // jsdom's `HTMLMediaElement.prototype.play` returns `undefined` rather than
@@ -133,11 +146,18 @@ beforeEach(() => {
         indexChangedHandler = handler;
         return () => undefined;
       },
+      libraryTrackBytes: () => Promise.resolve(undefined),
+      libraryTrackSignature: () => Promise.resolve(undefined),
+      setLibraryTrackNormalization: () => Promise.resolve(false),
       // `LibraryVideoStage` listens for 'window-state-changed' the moment it
       // mounts.
       on: (_channel: string, _func: (...args: unknown[]) => void) => () => {},
     },
   } as unknown as typeof window.electron;
+});
+
+afterEach(() => {
+  applyDspSettings(DSP_DEFAULTS);
 });
 
 const renderHarness = () =>
@@ -315,6 +335,251 @@ describe('loading a track', () => {
       latestPlayer?.seek(101_700);
     });
     expect(currentTimeSets).toEqual([101.7]);
+  });
+});
+
+describe('crossfade transport ownership', () => {
+  it('keeps navigation on the working deck until the incoming song is playing', async () => {
+    const createdAudio: HTMLAudioElement[] = [];
+    const audioConstructor = jest
+      .spyOn(window, 'Audio')
+      .mockImplementation((source?: string) => {
+        const element = document.createElement('audio');
+        if (source) {
+          element.src = source;
+        }
+        createdAudio.push(element);
+        return element;
+      });
+    applyDspSettings({
+      ...DSP_DEFAULTS,
+      normalizer: { ...DSP_DEFAULTS.normalizer, mode: 'off' },
+      crossfade: { ...DSP_DEFAULTS.crossfade, enabled: true },
+    });
+
+    try {
+      renderHarness();
+      await act(async () => {
+        await Promise.resolve();
+      });
+      act(() => {
+        indexChangedHandler?.({
+          version: 1,
+          roots: [
+            {
+              id: 'r1',
+              path: 'C:\\Media',
+              addedAt: 1,
+              trackCount: 3,
+              karaokeSkipped: 0,
+            },
+          ],
+          tracks: [videoTrack, audioTrack, secondAudioTrack],
+        });
+      });
+      act(() => {
+        latestPlayer?.playTracks(
+          [audioTrack.id, secondAudioTrack.id],
+          audioTrack.id,
+        );
+      });
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      const [outgoing, incoming] = createdAudio;
+      expect(outgoing).toBeDefined();
+      expect(incoming).toBeDefined();
+      Object.defineProperty(outgoing, 'paused', {
+        configurable: true,
+        get: () => false,
+      });
+      const outgoingPause = jest.fn();
+      Object.defineProperty(outgoing, 'pause', {
+        configurable: true,
+        value: outgoingPause,
+      });
+      const trackBytes = jest
+        .fn<Promise<ArrayBuffer | undefined>, [string]>()
+        .mockResolvedValue(new ArrayBuffer(8));
+      window.electron.ipcRenderer.libraryTrackBytes = trackBytes;
+      const outgoingSeeks: number[] = [];
+      const incomingSeeks: number[] = [];
+      Object.defineProperty(outgoing, 'currentTime', {
+        configurable: true,
+        get: () => outgoingSeeks[outgoingSeeks.length - 1] ?? 0,
+        set: (value: number) => {
+          outgoingSeeks.push(value);
+        },
+      });
+      Object.defineProperty(incoming, 'currentTime', {
+        configurable: true,
+        get: () => incomingSeeks[incomingSeeks.length - 1] ?? 0,
+        set: (value: number) => {
+          incomingSeeks.push(value);
+        },
+      });
+
+      let startIncoming: (() => void) | undefined;
+      mediaPlay.mockImplementationOnce(
+        () =>
+          new Promise<void>((resolve) => {
+            startIncoming = resolve;
+          }),
+      );
+      act(() => {
+        latestPlayer?.skip(1);
+      });
+      expect(latestPlayer?.track?.id).toBe(secondAudioTrack.id);
+      expect(mediaPlay.mock.instances).toContain(incoming);
+
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+      // A fast byte-cache read must not replace the source while the incoming
+      // deck's first play promise is pending. Chromium rejects that promise as
+      // AbortError, which was why Next left the old song playing forever.
+      expect(incoming.src).toContain(secondAudioTrack.id);
+      expect(incoming.src).not.toMatch(/^blob:/);
+      expect(outgoingPause).not.toHaveBeenCalled();
+
+      act(() => {
+        latestPlayer?.seek(5_000);
+      });
+      expect(outgoingSeeks).toEqual([5]);
+      expect(incomingSeeks).toEqual([]);
+
+      await act(async () => {
+        startIncoming?.();
+        await Promise.resolve();
+      });
+      expect(outgoing.getAttribute('src')).not.toBeNull();
+      expect(incoming.getAttribute('src')).not.toBeNull();
+      expect(outgoingPause).not.toHaveBeenCalled();
+      act(() => {
+        latestPlayer?.seek(7_000);
+      });
+      expect(incomingSeeks).toEqual([7]);
+    } finally {
+      audioConstructor.mockRestore();
+    }
+  });
+
+  it('keeps the outgoing track-level gain until the overlap is finished', async () => {
+    jest.useFakeTimers();
+    const createdAudio: HTMLAudioElement[] = [];
+    const audioConstructor = jest
+      .spyOn(window, 'Audio')
+      .mockImplementation((source?: string) => {
+        const element = document.createElement('audio');
+        if (source) {
+          element.src = source;
+        }
+        createdAudio.push(element);
+        return element;
+      });
+    const first = {
+      ...audioTrack,
+      normalization: {
+        version: 1 as const,
+        truePeakDbtp: -2,
+        integratedLufs: -18,
+      },
+    };
+    const next = {
+      ...secondAudioTrack,
+      normalization: {
+        version: 1 as const,
+        truePeakDbtp: -0.5,
+        integratedLufs: -8,
+      },
+    };
+    applyDspSettings({
+      ...DSP_DEFAULTS,
+      crossfade: {
+        ...DSP_DEFAULTS.crossfade,
+        enabled: true,
+        durationMs: 250,
+      },
+    });
+
+    try {
+      renderHarness();
+      await act(async () => {
+        await Promise.resolve();
+      });
+      act(() => {
+        indexChangedHandler?.({
+          version: 1,
+          roots: [
+            {
+              id: 'r1',
+              path: 'C:\\Media',
+              addedAt: 1,
+              trackCount: 2,
+              karaokeSkipped: 0,
+            },
+          ],
+          tracks: [first, next],
+        });
+        latestPlayer?.playTracks([first.id, next.id], first.id);
+      });
+      await act(async () => {
+        await Promise.resolve();
+      });
+      expect(readDspInputAnalysis().trackId).toBe(first.id);
+
+      const outgoing = createdAudio[0];
+      expect(outgoing).toBeDefined();
+      Object.defineProperty(outgoing, 'paused', {
+        configurable: true,
+        get: () => false,
+      });
+      act(() => {
+        latestPlayer?.skip(1);
+      });
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      expect(latestPlayer?.track?.id).toBe(next.id);
+      expect(readDspInputAnalysis().trackId).toBe(first.id);
+
+      act(() => {
+        jest.advanceTimersByTime(301);
+      });
+      expect(readDspInputAnalysis().trackId).toBe(next.id);
+    } finally {
+      audioConstructor.mockRestore();
+      jest.useRealTimers();
+    }
+  });
+});
+
+describe('Previous button behavior', () => {
+  it('restarts after ten seconds, then changes to the previous song', async () => {
+    renderHarness();
+    await act(async () => {
+      await Promise.resolve();
+    });
+    act(() => {
+      latestPlayer?.playTracks([videoTrack.id, audioTrack.id], audioTrack.id);
+    });
+    act(() => {
+      latestPlayer?.seek(15_000);
+    });
+
+    act(() => {
+      latestPlayer?.skip(-1);
+    });
+    expect(latestPlayer?.track?.id).toBe(audioTrack.id);
+    expect(latestPlayer?.positionMs).toBe(0);
+
+    act(() => {
+      latestPlayer?.skip(-1);
+    });
+    expect(latestPlayer?.track?.id).toBe(videoTrack.id);
   });
 });
 

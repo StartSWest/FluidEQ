@@ -71,6 +71,10 @@ describe('the library toolbar', () => {
     expect(screen.getAllByRole('tab').map((tab) => tab.textContent)).toEqual([
       'Albums',
       'Artists',
+      // Beside Artists rather than out at the end: both answer "who or what
+      // kind of music is this", and the three shelves that read the tags
+      // belong together before the ones that read the disk.
+      'Genres',
       'Songs',
       // The folder shelf has two readings and its chip says which one is on.
       // The tree is what it opens with — named after its shape, because

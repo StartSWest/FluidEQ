@@ -57,11 +57,12 @@ const harmonics = (amount: number) => {
 /**
  * The stage's claim is a RATIO, not an amount.
  *
- * Body is even harmonics; grit is odd ones. Anything can make harmonics — the
- * reason this is a separate stage from fuzz is that it keeps the even ones
- * ahead by better than five to one all the way up its travel, where fuzz
- * arrives at roughly ten to one and the old fixed-asymmetry fuzz collapsed to
- * 2.3 to 1.
+ * Body is even harmonics; grit is odd ones. The material-voicing target is a
+ * warmer, cellulose-like presentation from an otherwise clean, metallic
+ * source. Anything can make harmonics — the reason this is a separate stage
+ * from fuzz is that it keeps the even ones at least twice as strong all the
+ * way up its travel. That leaves enough third harmonic for definition without
+ * letting the odd family become the grain.
  */
 describe('the organic curve', () => {
   it('keeps even harmonics dominant across the whole travel', () => {
@@ -69,16 +70,50 @@ describe('the organic curve', () => {
       const { second, third, fourth, fifth } = harmonics(amount);
       const even = second + fourth;
       const odd = third + fifth;
-      expect(even).toBeGreaterThan(odd * 5);
+      expect(even).toBeGreaterThan(odd * 2);
     });
   });
 
   it('goes on getting thicker rather than levelling off', () => {
-    // Measured 3.31% at a sixth of the dial and 23.50% at the top. A stage
+    // The second harmonic rises on every step. A stage
     // whose second harmonic stopped rising would be a dial with a dead half.
     expect(harmonics(0.15).second).toBeGreaterThan(2);
     expect(harmonics(1).second).toBeGreaterThan(harmonics(0.5).second);
     expect(harmonics(0.5).second).toBeGreaterThan(harmonics(0.25).second);
+  });
+
+  it('keeps the foundation subordinate to the harmonic return', () => {
+    const amount = 0.35;
+    const drive = organicDrive(amount);
+    const asymmetry = organicAsymmetry(amount);
+    const smallSignal = 0.01;
+    const foundationOnly = organicSample(smallSignal, drive, asymmetry, 0);
+    // The former full foundation was 0.65 * input. Organic now retains only
+    // 80% of it, enough continuity to avoid detached fizz without presenting a
+    // second filtered copy of the programme.
+    expect(foundationOnly).toBeCloseTo(smallSignal * 0.65 * 0.8, 3);
+    // At the default amount the added octave is deliberately a major part of
+    // the return, which is the audible definition this revision is for.
+    expect(harmonics(amount).second).toBeGreaterThan(40);
+  });
+
+  /**
+   * Regression lock for the version Ivan approved by ear.
+   *
+   * A lower bound alone would allow Organic to drift all the way back into
+   * fuzz. These windows preserve both sides of the decision: enough second
+   * harmonic to feel sharp, a restrained third so it stays fluid, and a clear
+   * even-family lead so the return never becomes granular.
+   */
+  it('locks the approved sharp-but-fluid harmonic balance', () => {
+    const { second, third, fourth, fifth } = harmonics(0.35);
+    const evenToOdd = (second + fourth) / (third + fifth);
+    expect(second).toBeGreaterThan(45);
+    expect(second).toBeLessThan(52);
+    expect(third).toBeGreaterThan(12);
+    expect(third).toBeLessThan(18);
+    expect(evenToOdd).toBeGreaterThan(3.2);
+    expect(evenToOdd).toBeLessThan(3.8);
   });
 
   /**
@@ -134,31 +169,29 @@ describe('the organic stage in motion', () => {
   };
 
   /**
-   * The drive must not sit still. A constant non-linearity adds a constant
-   * ring to every sustained note, and ears find constants and stop hearing
-   * them as part of the music — which is the whole reason this stage exists
-   * rather than a saturator with a nicer name.
+   * Random or programme-level drive modulation was the source of the granular
+   * version Ivan rejected. The authored amount must settle and stay still;
+   * transient discrimination moves only the harmonic residue per sample.
    */
-  it('wanders: the drive is never the same twice for a steady input', () => {
+  it('holds the authored drive steady on a sustained signal', () => {
     const drives = runBlocks(400, 0.5);
-    // Settled blocks only, so the follower's own rise is not read as wander.
     const settled = drives.slice(200);
     const spread = Math.max(...settled) - Math.min(...settled);
-    expect(spread).toBeGreaterThan(0);
-    expect(new Set(settled).size).toBeGreaterThan(settled.length / 2);
+    expect(spread).toBe(0);
+    expect(settled[0]).toBeCloseTo(organicDrive(0.6), 8);
   });
 
   /**
-   * And it must follow the programme. Real valve and transformer stages
-   * saturate harder when driven harder; a fixed amount is the giveaway that
-   * something is a plug-in.
+   * Loudness must not secretly rewrite the Amount dial. That block-rate
+   * behaviour made sustained music pump and grain; the per-sample transient
+   * path supplies motion without moving the foundation or the authored drive.
    */
-  it('follows the programme: a louder passage is driven harder', () => {
+  it('does not modulate drive from programme level', () => {
     const quiet = runBlocks(400, 0.05).slice(200);
     const loud = runBlocks(400, 0.9).slice(200);
     const mean = (values: number[]) =>
       values.reduce((total, value) => total + value, 0) / values.length;
-    expect(mean(loud)).toBeGreaterThan(mean(quiet));
+    expect(mean(loud)).toBeCloseTo(mean(quiet), 8);
   });
 
   it('leaves a silent block silent', () => {

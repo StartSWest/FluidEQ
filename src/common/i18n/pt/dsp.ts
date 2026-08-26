@@ -25,12 +25,49 @@ const dsp = {
   'dsp.unavailable':
     'O processamento de áudio não conseguiu iniciar. A reprodução não é afetada.',
   'dsp.presets': 'Predefinições',
-  'dsp.preset.flat': 'Desligado',
   'dsp.preset.lossyRepair': 'Reparar comprimido',
   'dsp.preset.loud': 'Alto',
   'dsp.preset.broadcast': 'Radiofónico',
   'dsp.bypassed': 'Ignorado',
   'dsp.enabled': 'Ligado',
+
+  'dsp.normalizer.title': 'Normalizador',
+  'dsp.normalizer.description':
+    'Mede uma vez a fonte completa e aplica um único ganho estéreo ligado antes do Exciter e do EQ. Sem bombeamento nem seguidor RMS móvel.',
+  'dsp.normalizer.mode': 'Modo de normalização',
+  'dsp.normalizer.off': 'Desligado',
+  'dsp.normalizer.truePeak': 'Pico real',
+  'dsp.normalizer.loudness': 'Sonoridade',
+  'dsp.normalizer.ceiling': 'Teto de pico',
+  'dsp.normalizer.target': 'Alvo de sonoridade',
+  'dsp.normalizer.analysis': 'Análise da fonte',
+  'dsp.normalizer.analyzing': 'Analisando a faixa completa · {progress}%',
+  'dsp.normalizer.unavailable':
+    'Não foi possível analisar esta fonte. Ela será reproduzida no nível original.',
+  'dsp.normalizer.waiting': 'Reproduza uma faixa da Biblioteca para medi-la.',
+  'dsp.normalizer.measuredPeak': 'Pico medido',
+  'dsp.normalizer.measuredLoudness': 'Sonoridade integrada',
+  'dsp.normalizer.appliedGain': 'Ganho aplicado',
+  'dsp.normalizer.liveMeter': 'Antes / depois ao vivo',
+  'dsp.normalizer.before': 'Antes',
+  'dsp.normalizer.after': 'Depois',
+  'dsp.normalizer.liveMeterHint':
+    'Picos de amostra reais medidos diretamente antes e depois do Normalizador. A marca zero é 0 dBFS.',
+  'dsp.normalizer.honesty':
+    'Evita sobrecarga posterior; não pode reconstruir distorção já gravada no arquivo.',
+
+  'dsp.crossfade.title': 'Transição cruzada',
+  'dsp.crossfade.description':
+    'Sobrepõe as faixas de saída e entrada após a normalização, antes do Exciter e EQ.',
+  'dsp.crossfade.outgoing': 'Saindo',
+  'dsp.crossfade.incoming': 'Entrando',
+  'dsp.crossfade.duration': 'Duração',
+  'dsp.crossfade.curve': 'Curva da transição',
+  'dsp.crossfade.equalPower': 'Potência igual',
+  'dsp.crossfade.smooth': 'Suave',
+  'dsp.crossfade.linear': 'Linear',
+  'dsp.crossfade.hint':
+    'Aplica-se ao Próximo manual e aos finais naturais. A busca continua imediata.',
 
   'dsp.eqPreset.custom': 'Personalizado',
   'dsp.eqPreset.label': 'Predefinição',
@@ -107,15 +144,18 @@ const dsp = {
   'dsp.eqSave.imported': 'Importado {name}.',
   'dsp.eqShare.share': 'Partilhar',
   'dsp.eqShare.hint': 'Guarda este rack como ficheiro que outros podem abrir.',
+  'dsp.eqShare.saved': 'Ficheiro de predefinição guardado.',
+  'dsp.eqShare.failed': 'Não foi possível guardar o ficheiro de predefinição.',
+  'dsp.eq.isolate': 'Isolar',
+  'dsp.eq.isolateHint': 'Ouvir apenas o que o EQ altera.',
+  'dsp.eq.isolateOn':
+    'O sinal seco foi removido — apenas as alterações do EQ são audíveis.',
   'dsp.eqPreset.imported': '{count} filtros carregados.',
   'dsp.eqPreset.importSkipped':
     '{count} filtros carregados, {skipped} ignorados.',
   'dsp.eqPreset.importEmpty':
     'Este equalizador não conseguiu ler nenhum filtro.',
   'dsp.eqPreset.importFailed': 'Não foi possível ler esse ficheiro.',
-  'dsp.eqPreset.importPreamp':
-    'Os seus {gain} dB de margem são medidos aqui em vez disso.',
-
   'dsp.eq.rack': 'Bandas',
   'dsp.eqModel.label': 'Caráter',
   'dsp.eqModel.clean': 'Nenhum',
@@ -138,8 +178,7 @@ const dsp = {
   'dsp.eqImport.title': 'Importar uma curva de EQ',
   'dsp.eqImport.hint':
     'Cola uma curva do Squiglink, AutoEq ou Equalizer APO — ou escolhe o ficheiro que a contém.',
-  'dsp.eqImport.placeholder':
-    'Preamp: -5.4 dB\nFilter: ON PK Fc 1200 Hz Gain -2.1 dB Q 1.41',
+  'dsp.eqImport.placeholder': 'Filter: ON PK Fc 1200 Hz Gain -2.1 dB Q 1.41',
   'dsp.eqImport.chooseFile': 'Escolher ficheiro',
   'dsp.eqImport.apply': 'Importar',
   'dsp.eqImport.cancel': 'Cancelar',
@@ -162,7 +201,6 @@ const dsp = {
   'dsp.eq.type.bandPass': 'Passa-banda',
   'dsp.eq.frequency': 'Freq',
   'dsp.eq.gain': 'Ganho',
-  'dsp.eq.preamp': 'Pré-amp',
   'dsp.eq.trim': 'Ajuste auto',
   'dsp.eq.adaptive': 'Adaptativo',
   'dsp.eq.trimFixed': 'Fixo',
@@ -208,20 +246,16 @@ const dsp = {
   'dsp.exciter.band.mid': 'Médios',
   'dsp.exciter.band.high': 'Agudos',
   'dsp.exciter.texture': 'Textura',
-  'dsp.exciter.threshold': 'Limiar',
-  'dsp.exciter.dynamic': 'Dinâmico',
   'dsp.exciter.organic': 'Orgânico',
   'dsp.exciter.organicHint':
-    'Corpo para médios que medem bem e soam finos. Harmónicos pares que seguem a música e derivam com ela, para respirar em vez de ficar parado.',
+    'Adiciona corpo suave de harmónicos pares na região escolhida. Ideal para tornar uma apresentação limpa e metálica, inclusive com drivers de titânio, mais quente e orgânica sem perder detalhe.',
   'dsp.exciter.organicAmount': 'Corpo',
   'dsp.exciter.organicFocus': 'Foco',
   'dsp.exciter.organicRange': 'Alcance',
-  'dsp.exciter.align': 'Alinhamento',
+  'dsp.exciter.align': 'Tempo',
   'dsp.exciter.alignHint':
-    'Atrasa as bandas graves em relação às agudas, como faz um BBE. Não acrescenta nada: só muda quando cada parte chega.',
-  'dsp.exciter.alignAmount': 'Profundidade',
-  'dsp.exciter.alignLow': 'Corte grave',
-  'dsp.exciter.alignHigh': 'Corte agudo',
+    'Deixa os agudos chegarem primeiro e atrasa suavemente médios e graves para ataques claros e impacto redondo. Não adiciona harmónicos.',
+  'dsp.exciter.alignAmount': 'Quantidade',
   'dsp.exciter.isolate': 'Isolar',
   'dsp.exciter.isolateHint':
     'Ouve apenas os harmónicos que esta etapa acrescenta.',
@@ -248,6 +282,52 @@ const dsp = {
   'dsp.maximizer.ceiling': 'Teto',
   'dsp.maximizer.lookAhead': 'Antecipação',
   'dsp.maximizer.release': 'Liberação',
+
+  'dsp.master.title': 'Master',
+  'dsp.master.description':
+    'Controlo transparente da saída final após todos os processadores. Não altera o nível que alimenta o EQ, o Exciter ou as outras etapas.',
+  'dsp.master.outputTrim': 'Ganho de saída',
+  'dsp.master.autoHeadroom': 'Margem automática',
+  'dsp.master.autoHeadroomHint':
+    'Reduz suavemente apenas os picos que se aproximam do teto de pico verdadeiro estéreo escolhido.',
+  'dsp.master.ceiling': 'Teto',
+  'dsp.master.release': 'Liberação',
+  'dsp.master.loudnessMaximize': 'Maximizar LUFS',
+  'dsp.master.loudnessMaximizeHint':
+    'Aplica {gain} dB com base na medição da faixa completa e mantém o pico real final abaixo do teto. O ganho é constante; apenas os picos são controlados.',
+  'dsp.master.loudnessTarget': 'Alvo de sonoridade',
+  'dsp.master.meter': 'Saída final',
+  'dsp.master.safetyHint':
+    'Deteção de pico verdadeiro {factor}× · teto de {ceiling} dBTP · joelho suave de {knee} dB · ligação estéreo.',
+  'dsp.master.manualHint':
+    'Saída manual: sem redução de picos. Níveis acima de 0 dBFS irão saturar.',
+  'dsp.master.truePeak': 'TP entrada',
+  'dsp.master.gainReduction': 'Redução de ganho',
+  'dsp.master.devSafety': 'Segurança A/B',
+  'dsp.master.devSafetyHint':
+    'Apenas desenvolvimento: ignora toda a proteção final para ouvir exatamente o que ela altera.',
+  'dsp.master.devSafetySpec':
+    'Proteção de emergência acima de +10 dBTP · 2 ms de antecipação · correção sem liberação · proteção DC a 3 Hz · reparação de amostras inválidas',
+  'dsp.master.dcCorrection': 'Deslocamento DC',
+  'dsp.master.faults': 'Falhas',
+  'dsp.master.graph.spectrum': 'Espectro final',
+  'dsp.master.graph.trim': 'Ganho de saída',
+  'dsp.master.graph.applied': 'Ganho aplicado',
+  'dsp.master.graph.trimLine': 'Ganho {gain} dB',
+  'dsp.master.graph.appliedLine': 'Aplicado {gain} dB',
+  'dsp.master.graph.dcGuard': 'Proteção DC',
+  'dsp.master.graph.peakWarning': 'Aviso · saída a {peak} dBTP acima do teto',
+  'dsp.master.graph.peakFixed': 'Pico controlado · {gain} dB de redução',
+  'dsp.master.graph.peakSafe': 'Pico verdadeiro dentro do teto',
+  'dsp.master.graph.dcFixed': 'Deslocamento DC removido · {amount}',
+  'dsp.master.graph.dcClean': 'Deslocamento DC limpo',
+  'dsp.master.graph.faultFixed':
+    'Reparadas {count} amostras inválidas ou com falha',
+  'dsp.master.graph.faultClean': 'Amostras válidas',
+  'dsp.master.graph.safetyActive': 'Proteções ativas',
+  'dsp.master.graph.safetyBypassed': 'Aviso · proteções ignoradas',
+  'dsp.master.graph.loudnessActive':
+    'Maximizar LUFS · +{gain} dB rumo a {target} LUFS',
 
   'tabs.dsp': 'DSP',
 };

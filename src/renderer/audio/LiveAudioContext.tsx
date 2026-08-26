@@ -16,8 +16,9 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { createContext, ReactNode, useContext } from 'react';
+import { createContext, ReactNode, useContext, useEffect, useRef } from 'react';
 import useLiveOutputSpectrum from '../graph/useLiveOutputSpectrum';
+import { useFluidEqContext } from '../utils/FluidEqContext';
 
 type LiveAudioValue = ReturnType<typeof useLiveOutputSpectrum>;
 
@@ -41,6 +42,24 @@ const LiveAudioControlContext = createContext<
 
 export const LiveAudioProvider = ({ children }: { children: ReactNode }) => {
   const { control, frame } = useLiveOutputSpectrum();
+  const { isEnabled } = useFluidEqContext();
+  const wasEngineEnabledRef = useRef(isEnabled);
+
+  useEffect(() => {
+    const wasEngineEnabled = wasEngineEnabledRef.current;
+    wasEngineEnabledRef.current = isEnabled;
+
+    if (!wasEngineEnabled && isEnabled) {
+      // Equalizer APO changing state can invalidate or mute Windows' loopback
+      // stream. The analyser retries while that happens, but those attempts can
+      // all be spent before the engine comes back. Re-enabling it is fresh
+      // evidence that capture can work again, so restore the attempts and start
+      // immediately. `retry` is harmless when the old stream survived: `start`
+      // sees that stream and returns without opening a second capture.
+      control.retry().catch(() => undefined);
+    }
+  }, [control, isEnabled]);
+
   return (
     <LiveAudioControlContext.Provider value={control}>
       {/* `children` keeps its identity across the provider's own re-renders,

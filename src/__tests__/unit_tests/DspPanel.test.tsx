@@ -11,7 +11,12 @@ import { DSP_DEFAULTS, IDspSettings } from '../../common/dsp/chain';
 import { DSP_PRESETS } from '../../common/dsp/presets';
 import { FluidEqProviderWrapper } from '../../renderer/utils/FluidEqContext';
 import DspPanel from '../../renderer/dsp/DspPanel';
-import { TDspEngineState } from '../../renderer/dsp/store';
+import {
+  TDspEngineState,
+  readDspOutputSafetyEnabled,
+  setDspOutputSafetyEnabled,
+  setDspSampleRate,
+} from '../../renderer/dsp/store';
 
 /**
  * Wrapped in the FluidEQ provider because the faders are the equaliser's own
@@ -24,7 +29,7 @@ const renderPanel = (
 ) => {
   const onChange = jest.fn();
   const onCommit = jest.fn();
-  render(
+  const view = render(
     <FluidEqProviderWrapper
       value={{ ...defaultFluidEqContext, isEnabled: true }}
     >
@@ -36,7 +41,7 @@ const renderPanel = (
       />
     </FluidEqProviderWrapper>,
   );
-  return { onChange, onCommit };
+  return { ...view, onChange, onCommit };
 };
 
 describe('DspPanel', () => {
@@ -54,17 +59,44 @@ describe('DspPanel', () => {
     expect(screen.getByText(/does not change Spotify/i)).toBeInTheDocument();
   });
 
+  it('offers an ephemeral final-safety A/B in development', () => {
+    setDspOutputSafetyEnabled(true);
+    renderPanel();
+    fireEvent.click(screen.getByRole('button', { name: /Master/i }));
+    const toggle = screen.getByRole('checkbox', { name: 'Safety A/B' });
+    expect(toggle).toBeChecked();
+    fireEvent.click(toggle);
+    expect(readDspOutputSafetyEnabled()).toBe(false);
+    expect(toggle).not.toBeChecked();
+    setDspOutputSafetyEnabled(true);
+  });
+
+  it('shows the automatic system rate compactly in the DSP title', () => {
+    setDspSampleRate(48_000);
+    renderPanel();
+    expect(
+      screen.getByRole('heading', { name: /48 kHz/i }),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/device bits/i)).not.toBeInTheDocument();
+  });
+
   /**
    * Every preset gets a button, and the count is asserted so that adding one
    * without a name in the dictionary fails here rather than shipping a button
    * labelled with its own key.
    */
   it('offers every factory preset', () => {
-    renderPanel();
-    ['Off', 'Repair compressed', 'Loud', 'Broadcast'].forEach((name) => {
-      expect(screen.getByRole('button', { name })).toBeInTheDocument();
+    const { container } = renderPanel();
+    const presets = within(
+      container.querySelector('.dsp-presets') as HTMLElement,
+    );
+    ['Repair compressed', 'Loud', 'Broadcast'].forEach((name) => {
+      expect(presets.getByRole('button', { name })).toBeInTheDocument();
     });
-    expect(DSP_PRESETS).toHaveLength(4);
+    expect(
+      presets.queryByRole('button', { name: 'Off' }),
+    ).not.toBeInTheDocument();
+    expect(DSP_PRESETS).toHaveLength(3);
   });
 
   /**
@@ -79,13 +111,21 @@ describe('DspPanel', () => {
     // Scoped to the rail: the band picker inside the EQ page is also labelled
     // "Equaliser", and a document-wide query matches both.
     const rail = within(screen.getByRole('navigation', { name: 'DSP' }));
-    ['Equaliser', 'Exciter', 'Multiband compressor', 'Maximizer'].forEach(
-      (name) => {
-        expect(
-          rail.getByRole('button', { name: new RegExp(name, 'i') }),
-        ).toBeInTheDocument();
-      },
-    );
+    [
+      'Normalizer',
+      'Crossfade',
+      'Exciter',
+      'Equaliser',
+      'Maximizer',
+      'Master',
+    ].forEach((name) => {
+      expect(
+        rail.getByRole('button', { name: new RegExp(name, 'i') }),
+      ).toBeInTheDocument();
+    });
+    expect(
+      rail.queryByRole('button', { name: /Multiband compressor/i }),
+    ).not.toBeInTheDocument();
   });
 
   /**
@@ -94,9 +134,14 @@ describe('DspPanel', () => {
    * The EQ page carries no description line: a graph you drag explains itself,
    * and a paragraph above it was only taking the room the graph wanted.
    */
-  it('opens on the equaliser', () => {
+  it('opens on the normalizer at the start of the processing chain', () => {
     renderPanel();
-    expect(screen.getByRole('tablist', { name: /bands/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole('region', { name: /Normalizer/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('tablist', { name: /bands/i }),
+    ).not.toBeInTheDocument();
     expect(screen.queryByText(/invents them/i)).not.toBeInTheDocument();
   });
 
@@ -132,6 +177,74 @@ describe('DspPanel', () => {
     expect(next.maximizer.enabled).toBe(false);
   });
 
+  it('turns EQ Isolate off before bypassing the EQ', () => {
+    const active: IDspSettings = {
+      ...DSP_DEFAULTS,
+      eq: { ...DSP_DEFAULTS.eq, enabled: true, isolate: true },
+    };
+    const { onChange, onCommit } = renderPanel(active);
+    fireEvent.click(screen.getByRole('button', { name: /Equaliser/i }));
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Equaliser' }));
+    const next = onChange.mock.calls[0][0] as IDspSettings;
+    expect(next.eq.enabled).toBe(false);
+    expect(next.eq.isolate).toBe(false);
+    expect(onCommit).toHaveBeenCalled();
+  });
+
+  it('turns Exciter Isolate off before bypassing the Exciter', () => {
+    const active: IDspSettings = {
+      ...DSP_DEFAULTS,
+      exciter: { ...DSP_DEFAULTS.exciter, enabled: true, isolate: true },
+    };
+    const { onChange, onCommit } = renderPanel(active);
+    fireEvent.click(screen.getByRole('button', { name: /Exciter/i }));
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Exciter' }));
+    const next = onChange.mock.calls[0][0] as IDspSettings;
+    expect(next.exciter.enabled).toBe(false);
+    expect(next.exciter.isolate).toBe(false);
+    expect(onCommit).toHaveBeenCalled();
+  });
+
+  it('turns EQ Isolate off before leaving the EQ view', () => {
+    const active: IDspSettings = {
+      ...DSP_DEFAULTS,
+      eq: { ...DSP_DEFAULTS.eq, enabled: true, isolate: true },
+    };
+    const { onChange, onCommit } = renderPanel(active);
+    fireEvent.click(screen.getByRole('button', { name: /Equaliser/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Exciter/i }));
+    const next = onChange.mock.calls[0][0] as IDspSettings;
+    expect(next.eq.isolate).toBe(false);
+    expect(onCommit).toHaveBeenCalled();
+  });
+
+  it('turns Exciter Isolate off before leaving the Exciter view', () => {
+    const active: IDspSettings = {
+      ...DSP_DEFAULTS,
+      exciter: { ...DSP_DEFAULTS.exciter, enabled: true, isolate: true },
+    };
+    const { onChange, onCommit } = renderPanel(active);
+    fireEvent.click(screen.getByRole('button', { name: /Exciter/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Maximizer/i }));
+    const next = onChange.mock.calls[0][0] as IDspSettings;
+    expect(next.exciter.isolate).toBe(false);
+    expect(onCommit).toHaveBeenCalled();
+  });
+
+  it('turns both monitor flags off when the DSP workspace closes', () => {
+    const active: IDspSettings = {
+      ...DSP_DEFAULTS,
+      eq: { ...DSP_DEFAULTS.eq, enabled: true, isolate: true },
+      exciter: { ...DSP_DEFAULTS.exciter, enabled: true, isolate: true },
+    };
+    const { unmount, onChange, onCommit } = renderPanel(active);
+    unmount();
+    const next = onChange.mock.calls[0][0] as IDspSettings;
+    expect(next.eq.isolate).toBe(false);
+    expect(next.exciter.isolate).toBe(false);
+    expect(onCommit).toHaveBeenCalled();
+  });
+
   it('stays quiet about the engine while it is running', () => {
     renderPanel();
     expect(screen.queryByText(/could not start/i)).not.toBeInTheDocument();
@@ -158,16 +271,6 @@ describe('DspPanel', () => {
     ).toBeInTheDocument();
   });
 
-  it('shows the three compressor bands on the compressor page', () => {
-    renderPanel();
-    fireEvent.click(
-      screen.getByRole('button', { name: /Multiband compressor/i }),
-    );
-    expect(screen.getByText('Low')).toBeInTheDocument();
-    expect(screen.getByText('Mid')).toBeInTheDocument();
-    expect(screen.getByText('High')).toBeInTheDocument();
-  });
-
   /**
    * One page at a time is the whole point of the rail.
    *
@@ -176,11 +279,32 @@ describe('DspPanel', () => {
    */
   it('shows one processor at a time', () => {
     renderPanel();
-    fireEvent.click(
-      screen.getByRole('button', { name: /Multiband compressor/i }),
-    );
-    expect(screen.getByText('Low')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /Maximizer/i }));
+    expect(screen.getByText(/Raises the overall level/i)).toBeInTheDocument();
     expect(screen.queryByText(/invents them/i)).not.toBeInTheDocument();
-    expect(screen.queryByText(/Six parametric bands/i)).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('tablist', { name: /bands/i }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('root-bypasses the chain without changing any processor state', () => {
+    const active: IDspSettings = {
+      ...DSP_DEFAULTS,
+      eq: { ...DSP_DEFAULTS.eq, enabled: true },
+      exciter: { ...DSP_DEFAULTS.exciter, enabled: true },
+    };
+    const { onChange, onCommit, unmount } = renderPanel(active);
+    fireEvent.click(screen.getByRole('checkbox', { name: 'DSP' }));
+    const next = onChange.mock.calls[0][0] as IDspSettings;
+    expect(next.enabled).toBe(false);
+    expect(next.eq.enabled).toBe(true);
+    expect(next.exciter.enabled).toBe(true);
+    expect(onCommit).toHaveBeenCalled();
+    unmount();
+    const { container } = renderPanel(next);
+    expect(container.querySelector('.dsp-body')).toHaveAttribute(
+      'aria-disabled',
+      'true',
+    );
   });
 });

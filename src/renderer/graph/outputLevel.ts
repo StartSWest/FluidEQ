@@ -114,10 +114,14 @@ export interface IOutputLevel {
   levelDb: number;
   /** The slow one: the loudest thing recently, held and then let go. */
   peakDb: number;
+  /** True only when this channel's captured samples reached a digital rail. */
+  isClipping: boolean;
 }
 
 /** A channel's readings plus what the hold still owes it. */
-export interface ILevelFollower extends IOutputLevel {
+export interface ILevelFollower {
+  levelDb: number;
+  peakDb: number;
   holdRemainingMs: number;
 }
 

@@ -5,6 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { createTruePeakState, truePeak } from '../../../renderer/dsp/truePeak';
+import { oversampleFactorForSampleRate } from '../../../renderer/dsp/oversample';
 
 const RATE = 48_000;
 
@@ -23,6 +24,14 @@ const measure = (signal: Float32Array): number =>
   truePeak(createTruePeakState(), signal);
 
 describe('true peak', () => {
+  it('caps internal interpolation at 192 kHz without changing the session rate', () => {
+    expect(
+      [44_100, 48_000, 88_200, 96_000, 176_400, 192_000].map(
+        oversampleFactorForSampleRate,
+      ),
+    ).toEqual([4, 4, 2, 2, 1, 1]);
+  });
+
   /**
    * The measurement this whole file exists for.
    *

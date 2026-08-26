@@ -7,6 +7,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { IDspSettings } from '../../common/dsp/chain';
 import { prepareKernel } from './convolver';
 import { buildLinearPhaseKernel } from './linearPhase';
+import { DSP_OUTPUT_INDEX, TDspAnalyserStage } from './monitorOutputs';
 
 /**
  * The graph, typed against what it needs rather than against Web Audio.
@@ -18,7 +19,11 @@ import { buildLinearPhaseKernel } from './linearPhase';
  * actually used, and a fake satisfies it.
  */
 export interface IAudioNodeLike {
-  connect(destination: IAudioNodeLike): unknown;
+  connect(
+    destination: IAudioNodeLike,
+    output?: number,
+    input?: number,
+  ): unknown;
   disconnect(): void;
 }
 
@@ -66,14 +71,10 @@ export interface IAudioGraphContext {
 }
 
 export interface IDspGraph {
-  /** The post-chain tap the EQ page draws its spectrum from. */
-  analyser: IAnalyserNodeLike;
+  /** Real output boundaries, ordered down the chain rather than compensated. */
+  analysers: Record<TDspAnalyserStage, IAnalyserNodeLike>;
   /**
-   * The PRE-chain tap, which exists for a different question entirely.
-   *
-   * The adaptive trim needs the programme as it arrives, not as it leaves:
-   * what it computes is the difference the chain makes to this material, and
-   * measuring after the chain would be measuring the answer.
+   * The pre-chain tap used by the Normalizer display.
    */
   inputAnalyser: IAnalyserNodeLike;
   update(settings: IDspSettings): void;
@@ -90,10 +91,10 @@ export interface IDspGraph {
  *
  * The exciter used to live here, as a parallel subgraph of native nodes, and
  * it moved into the worklet when it grew from one band of odd harmonics into
- * three bands that each choose their own — plus a stage that waits for a level
- * and a drive that wanders. A `WaveShaperNode` can do none of those, so each
- * would have been another node on another parallel path, and differing latency
- * between parallel native paths is exactly the class of bug the worklet's own
+ * three bands that each choose their own — plus per-band thresholds and a
+ * focused body stage. A `WaveShaperNode` can do none of those, so each
+ * would have been another node on another parallel path, and differing
+ * latency between native paths is exactly the class of bug the worklet's own
  * header exists to rule out. See `exciterStage.ts`.
  *
  * What is left is a single connection, which is the whole benefit: there is no
@@ -122,12 +123,12 @@ export const buildDspGraph = (
   /**
    * Everything the kernel depends on, and nothing else.
    *
-   * Deliberately not the whole EQ: the preamp, the engine, the stereo mode and
+   * Deliberately not the whole EQ: the engine, stereo mode and
    * the fuzz all change the sound without changing the filter the kernel IS,
    * and including them would rebuild it for a knob it does not use.
    */
   const kernelKeyOf = (eq: IDspSettings['eq']): string =>
-    eq.phase !== 'linear' || !eq.enabled
+    !eq.enabled || (eq.phase !== 'linear' && !eq.isolate)
       ? ''
       : [
           eq.model,
@@ -168,21 +169,21 @@ export const buildDspGraph = (
   };
 
   /**
-   * The spectrum the EQ page draws behind its curve.
-   *
-   * Tapped AFTER the chain, so what is shown is what is heard — move a band
-   * and the spectrum moves with it. Tapping before would show the source and
-   * leave the user guessing whether their cut did anything.
-   *
-   * It is a tap, not a stage: the analyser is connected from the worklet and
-   * goes nowhere, so it observes without being in the path to the speakers.
+   * A real spectrum tap after each stage. None is derived by subtracting a
+   * later gain value: doing that would fail as soon as a nonlinear filter or
+   * true-peak controller changed the waveform rather than only its level.
    */
-  const analyser = context.createAnalyser();
-  // 2048 bins across 20Hz-20kHz is about a fifth of an octave at the bottom
-  // and far finer at the top, which is plenty for a backdrop and cheap.
-  analyser.fftSize = 2_048;
-  // Fast enough to feel live, slow enough that the display is not a strobe.
-  analyser.smoothingTimeConstant = 0.8;
+  const analysers = Object.fromEntries(
+    (Object.keys(DSP_OUTPUT_INDEX) as TDspAnalyserStage[]).map((stage) => {
+      const analyser = context.createAnalyser();
+      // 2048 bins across 20Hz-20kHz is about a fifth of an octave at the bottom
+      // and far finer at the top, which is plenty for a backdrop and cheap.
+      analyser.fftSize = 2_048;
+      // Fast enough to feel live, slow enough that the display is not a strobe.
+      analyser.smoothingTimeConstant = 0.8;
+      return [stage, analyser];
+    }),
+  ) as Record<TDspAnalyserStage, IAnalyserNodeLike>;
 
   // Tapped off the source rather than off the chain's output: the exciter is
   // parallel and its own gain is already accounted for in the reserve, so
@@ -195,14 +196,16 @@ export const buildDspGraph = (
   inputAnalyser.smoothingTimeConstant = 0.3;
   source.connect(inputAnalyser);
 
-  worklet.connect(destination);
-  worklet.connect(analyser);
+  worklet.connect(destination, DSP_OUTPUT_INDEX.master, 0);
+  (Object.keys(analysers) as TDspAnalyserStage[]).forEach((stage) => {
+    worklet.connect(analysers[stage], DSP_OUTPUT_INDEX[stage], 0);
+  });
   worklet.port.postMessage(current);
   refreshKernel(current);
   source.connect(worklet);
 
   return {
-    analyser,
+    analysers,
     inputAnalyser,
     update(next: IDspSettings) {
       // Every stage the settings touch now lives behind the port, so this is
@@ -214,7 +217,9 @@ export const buildDspGraph = (
     dispose() {
       source.disconnect();
       worklet.disconnect();
-      analyser.disconnect();
+      (Object.keys(analysers) as TDspAnalyserStage[]).forEach((stage) => {
+        analysers[stage].disconnect();
+      });
       inputAnalyser.disconnect();
     },
   };

@@ -52,6 +52,8 @@ export const analyzeKaraokeWithSwiftF0 = async (
    * the file and its size.
    */
   onDownload?: (summary: IKaraokeMakerDownloadSummary) => void,
+  /** The bundled detector completed the run after the optional fetch failed. */
+  onDownloadError?: () => void,
 ): Promise<IKaraokeMakerAnalysisNote[]> => {
   onProgress(0.02);
   const samples = await decodeMono(file, 16_000);
@@ -95,6 +97,9 @@ export const analyzeKaraokeWithSwiftF0 = async (
     reply = await window.electron.ipcRenderer.detectKaraokePitch(samples);
   } finally {
     unsubscribe();
+  }
+  if (reply.rmvpeDownloadFailed) {
+    onDownloadError?.();
   }
   const { pitchHz, confidence, hopSeconds, voicedThreshold } = reply;
   if (signal?.aborted) {

@@ -5,11 +5,13 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { RefObject } from 'react';
+import { IKaraokeMakerProject } from '../../common/karaoke/makerProject';
 import { useTranslation } from '../utils/I18nContext';
 import { karaokeLanguageName } from './karaokeLanguageName';
 import { KARAOKE_LANGUAGE_CODES } from './karaokeLanguageCodes';
 import Dropdown from '../widgets/Dropdown';
 import KaraokeMakerToolIcon from './KaraokeMakerToolIcon';
+import KaraokeMakerLyricsSourceEditor from './KaraokeMakerLyricsSourceEditor';
 
 /**
  * The paste view: the textarea you paste words into, and — since Task 8 —
@@ -26,6 +28,8 @@ export interface IKaraokeMakerLyricsPasteViewProps {
   lyricsFileName: string | undefined;
   draftLyricsWordCount: number;
   lyricsInputRef: RefObject<HTMLInputElement | null>;
+  /** The draft reconciled against the project: the editor highlights against it. */
+  previewProject: IKaraokeMakerProject;
 
   /** The project's own language tag, or the sentinel for "never declared". */
   originalLanguage: string;
@@ -42,6 +46,7 @@ const KaraokeMakerLyricsPasteView = ({
   onDraftChange,
   onTargetLanguageChange,
   originalLanguage,
+  previewProject,
   targetLanguage,
 }: IKaraokeMakerLyricsPasteViewProps) => {
   const { t } = useTranslation();
@@ -98,16 +103,16 @@ const KaraokeMakerLyricsPasteView = ({
           handleChange={onTargetLanguageChange}
         />
       </div>
-      <textarea
+      <KaraokeMakerLyricsSourceEditor
         value={lyricsDraft}
         disabled={lyricsProcessing}
-        onChange={(event) => onDraftChange(event.target.value)}
+        project={previewProject}
+        onChange={onDraftChange}
         placeholder={
           isTranslationTarget
             ? t('karaoke.translation.paste')
             : t('karaoke.maker.lyricsPlaceholder')
         }
-        spellCheck
       />
     </section>
   );

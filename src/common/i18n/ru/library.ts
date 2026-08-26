@@ -38,6 +38,7 @@ const library: Partial<Dictionary> = {
 
   'library.browse.album': 'Альбомы',
   'library.browse.artist': 'Исполнители',
+  'library.browse.genre': 'Жанры',
   'library.browse.song': 'Песни',
   'library.browse.folder': 'Папки',
   'library.browse.directory': 'Дерево',
@@ -74,8 +75,10 @@ const library: Partial<Dictionary> = {
 
   'library.unknownAlbum': 'Неизвестный альбом',
   'library.unknownArtist': 'Неизвестный исполнитель',
+  'library.genre.unknown': 'Неизвестный жанр',
   'library.trackCount': '{count} песен',
   'library.albumCount': '{count} альбомов',
+  'library.artistCount': '{count} исполнителей',
 
   'library.videos': 'Видео',
   'library.videos.empty': 'В добавленных папках нет видео.',
@@ -104,6 +107,10 @@ const library: Partial<Dictionary> = {
   'library.upNext.empty': 'В очереди пока пусто',
   'library.upNext.added': 'Ваш выбор',
   'library.upNext.rest': 'Затем',
+  'library.upNext.continued': 'Похожее',
+  'library.upNext.keepPlaying': 'Продолжать воспроизведение',
+  'library.upNext.keepPlayingHint':
+    'Когда очередь закончится, продолжить музыкой того же жанра',
   'library.queueAdd': 'Добавить в очередь',
 
   'library.alsoInFolder': 'В этой папке, но не в этом альбоме',

@@ -228,6 +228,21 @@ export const writeApoConfigFile = (
 };
 
 /**
+ * Show the desktop Save As dialog for a shareable DSP rack.
+ *
+ * The result is false only when the dialog was cancelled. Main owns the path
+ * and validates the serialised preset before writing it.
+ */
+export const exportEqPreset = (
+  suggestedName: string,
+  contents: string,
+): Promise<boolean> => {
+  const channel = ChannelEnum.EXPORT_EQ_PRESET;
+  window.electron.ipcRenderer.sendMessage(channel, [suggestedName, contents]);
+  return promisifyResult(simpleResponseHandler<boolean>(), channel);
+};
+
+/**
  * One output's whole chain, out to a file.
  *
  * Named by the `Device:` pattern rather than by endpoint id, because that is

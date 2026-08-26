@@ -74,6 +74,48 @@ export const processEqOversampled = (
   downsample(oversampler, doubled, target, factor);
 };
 
+/** Oversampled EQ with one dynamic amount applied to every stereo channel. */
+export const processEqOversampledLinked = (
+  states: readonly IBiquadState[][],
+  coefficients: readonly IBiquadCoefficients[],
+  targets: readonly Float32Array[],
+  engine: TEqEngine,
+  oversamplers: readonly IOversamplerState[],
+  factor: number,
+  doubled: readonly Float32Array[],
+  dryDoubled: readonly Float32Array[],
+  wetDoubled: readonly Float32Array[],
+  dynamics: readonly IBandDynamics[],
+): void => {
+  const channels = Math.min(
+    states.length,
+    targets.length,
+    oversamplers.length,
+    doubled.length,
+  );
+  for (let channel = 0; channel < channels; channel += 1) {
+    upsample(oversamplers[channel], targets[channel], doubled[channel], factor);
+  }
+  processEqBandsLinked(
+    states,
+    coefficients,
+    doubled,
+    engine,
+    dryDoubled,
+    wetDoubled,
+    dynamics,
+    channels,
+  );
+  for (let channel = 0; channel < channels; channel += 1) {
+    downsample(
+      oversamplers[channel],
+      doubled[channel],
+      targets[channel],
+      factor,
+    );
+  }
+};
+
 export const processEqBands = (
   states: IBiquadState[],
   coefficients: readonly IBiquadCoefficients[],
@@ -142,6 +184,117 @@ export const processEqBands = (
         const difference = wet[i] - dry[i];
         const amount = bandDynamicAmount(dynamic, difference);
         target[i] += difference * amount;
+        peak = amount > peak ? amount : peak;
+      }
+      dynamic.amount = peak;
+    }
+  }
+};
+
+/**
+ * Process a stereo-domain EQ with one exact dynamic trajectory per band.
+ *
+ * Filter histories remain channel-local, but each dynamic detector listens to
+ * the loudest channel and its amount is applied to every channel at the same
+ * sample. Static bands remain ordinary matched L/R filters. This prevents a
+ * dynamic cut or boost from pulling a centred source sideways.
+ */
+export const processEqBandsLinked = (
+  states: readonly IBiquadState[][],
+  coefficients: readonly IBiquadCoefficients[],
+  targets: readonly Float32Array[],
+  engine: TEqEngine,
+  dry: readonly Float32Array[],
+  wet: readonly Float32Array[],
+  dynamics: readonly IBandDynamics[],
+  requestedChannels: number = targets.length,
+): void => {
+  const channels = Math.min(
+    requestedChannels,
+    states.length,
+    targets.length,
+    dry.length,
+    wet.length,
+  );
+  const length = targets[0]?.length ?? 0;
+  if (channels === 0 || length === 0) {
+    return;
+  }
+
+  if (engine === 'serial') {
+    for (let band = 0; band < coefficients.length; band += 1) {
+      const dynamic = dynamics[band];
+      if (!dynamic?.active) {
+        for (let channel = 0; channel < channels; channel += 1) {
+          processBiquad(
+            states[channel][band],
+            targets[channel],
+            coefficients[band],
+          );
+        }
+      } else {
+        for (let channel = 0; channel < channels; channel += 1) {
+          dry[channel].set(targets[channel]);
+          wet[channel].set(targets[channel]);
+          processBiquad(
+            states[channel][band],
+            wet[channel],
+            coefficients[band],
+          );
+        }
+        let peak = 0;
+        for (let frame = 0; frame < length; frame += 1) {
+          let detectorDifference = 0;
+          for (let channel = 0; channel < channels; channel += 1) {
+            const difference = wet[channel][frame] - dry[channel][frame];
+            if (Math.abs(difference) > Math.abs(detectorDifference)) {
+              detectorDifference = difference;
+            }
+          }
+          const amount = bandDynamicAmount(dynamic, detectorDifference);
+          for (let channel = 0; channel < channels; channel += 1) {
+            targets[channel][frame] =
+              dry[channel][frame] +
+              (wet[channel][frame] - dry[channel][frame]) * amount;
+          }
+          peak = amount > peak ? amount : peak;
+        }
+        dynamic.amount = peak;
+      }
+    }
+    return;
+  }
+
+  for (let channel = 0; channel < channels; channel += 1) {
+    dry[channel].set(targets[channel]);
+  }
+  for (let band = 0; band < coefficients.length; band += 1) {
+    for (let channel = 0; channel < channels; channel += 1) {
+      wet[channel].set(dry[channel]);
+      processBiquad(states[channel][band], wet[channel], coefficients[band]);
+    }
+    const dynamic = dynamics[band];
+    if (!dynamic?.active) {
+      for (let channel = 0; channel < channels; channel += 1) {
+        for (let frame = 0; frame < length; frame += 1) {
+          targets[channel][frame] += wet[channel][frame] - dry[channel][frame];
+        }
+      }
+    } else {
+      let peak = 0;
+      for (let frame = 0; frame < length; frame += 1) {
+        let detectorDifference = 0;
+        for (let channel = 0; channel < channels; channel += 1) {
+          const difference = wet[channel][frame] - dry[channel][frame];
+          if (Math.abs(difference) > Math.abs(detectorDifference)) {
+            detectorDifference = difference;
+          }
+        }
+        const amount = bandDynamicAmount(dynamic, detectorDifference);
+        for (let channel = 0; channel < channels; channel += 1) {
+          targets[channel][frame] +=
+            (wet[channel][frame] - dry[channel][frame]) * amount;
+        }
         peak = amount > peak ? amount : peak;
       }
       dynamic.amount = peak;

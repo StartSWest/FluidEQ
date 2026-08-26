@@ -4,11 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import {
-  fromApoText,
-  preampFor,
-  toApoText,
-} from '../../../common/dsp/apoEqFormat';
+import { fromApoText, toApoText } from '../../../common/dsp/apoEqFormat';
 import {
   DSP_DEFAULTS,
   EQ_MAX_BAND_COUNT,
@@ -19,6 +15,7 @@ const withBands = (
   bands: Partial<IEqSettings['bands'][number]>[],
 ): IEqSettings => ({
   enabled: true,
+  isolate: false,
   model: 'clean',
   modelAmount: 1,
   engine: 'serial',
@@ -29,9 +26,6 @@ const withBands = (
   subsonicHz: 0,
   fuzzAmount: 0,
   presetId: '',
-  preampDb: 0,
-  trimDb: 0,
-  trimMode: 'fixed',
   sourceBands: [],
   bands: DSP_DEFAULTS.eq.bands.map((band, index) => ({
     ...band,
@@ -72,24 +66,10 @@ describe('APO ParametricEQ export', () => {
     expect(text).toContain('Gain 6 dB');
   });
 
-  it('leads with a preamp line even when it is zero', () => {
-    expect(toApoText(DSP_DEFAULTS.eq).split('\n')[0]).toBe('Preamp: 0 dB');
-  });
-
-  it('sets the preamp against the largest boost', () => {
-    expect(
-      preampFor(withBands([{ gainDb: 6 }, { gainDb: 3 }, { gainDb: -9 }])),
-    ).toBe(-6);
-  });
-
-  /**
-   * A curve that only cuts needs no headroom.
-   *
-   * Attenuating it anyway would make every preset quieter than the source for
-   * no reason, which reads as the EQ being broken.
-   */
-  it('leaves a cut-only curve at unity', () => {
-    expect(preampFor(withBands([{ gainDb: -6 }, { gainDb: -3 }]))).toBe(0);
+  it('exports only filters and never invents DSP preamp metadata', () => {
+    const text = toApoText(withBands([{ gainDb: 6 }]));
+    expect(text).not.toContain('Preamp:');
+    expect(text).toContain('Filter 1:');
   });
 
   it('writes only the bands that are switched on', () => {
@@ -103,14 +83,13 @@ describe('APO ParametricEQ export', () => {
 
 describe('APO ParametricEQ import', () => {
   it('reads a file AutoEq would produce', () => {
-    const { bands, preampDb, skipped } = fromApoText(
+    const { bands, skipped } = fromApoText(
       [
         'Preamp: -6.3 dB',
         'Filter 1: ON LSC Fc 105 Hz Gain 5.5 dB Q 0.70',
         'Filter 2: ON PK Fc 1200 Hz Gain -2.1 dB Q 1.41',
       ].join('\n'),
     );
-    expect(preampDb).toBeCloseTo(-6.3, 5);
     expect(skipped).toBe(0);
     expect(bands).toHaveLength(2);
     expect(bands[0]).toEqual({
@@ -175,7 +154,7 @@ describe('APO ParametricEQ import', () => {
   });
 
   it('NULL TEST: an empty file imports nothing and reports nothing skipped', () => {
-    expect(fromApoText('')).toEqual({ bands: [], preampDb: 0, skipped: 0 });
+    expect(fromApoText('')).toEqual({ bands: [], skipped: 0 });
   });
 
   /**
@@ -250,8 +229,10 @@ describe('Squiglink exports', () => {
     });
   });
 
-  it('carries the preamp out, since the curve clips without it', () => {
-    expect(fromApoText(SQUIGLINK).preampDb).toBeCloseTo(-5.4, 5);
+  it('ignores a source preamp because DSP EQ has no preamp stage', () => {
+    expect(fromApoText(SQUIGLINK)).not.toEqual(
+      expect.objectContaining({ preampDb: -5.4 }),
+    );
   });
 
   it('reads the values off the line it was given', () => {

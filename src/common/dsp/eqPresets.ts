@@ -7,9 +7,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import {
   DSP_DEFAULTS,
   EQ_BAND_COUNT,
-  TTrimMode,
+  IEqBandSettings,
+  IEqSettings,
   TEqEngine,
   TEqModel,
+  TEqPhase,
   TEqStereo,
 } from './chain';
 
@@ -18,8 +20,9 @@ import {
  *
  * A preset that moved fifteen gains and left the character, the topology and
  * the protective filters wherever the last one put them was not a preset — it
- * was a curve wearing somebody else's settings. Anything omitted here is
- * deliberately left alone.
+ * was a curve wearing somebody else's settings. Optional authoring stays terse,
+ * but `eqPresetSetup` resolves every omitted field to a deliberate baseline;
+ * nothing is inherited from the previously selected profile.
  */
 /**
  * The sections the picker files presets under, in the order it shows them.
@@ -45,26 +48,12 @@ export interface IEqPresetSetup {
   model?: TEqModel;
   modelAmount?: number;
   engine?: TEqEngine;
+  phase?: TEqPhase;
   oversample?: number;
   stereo?: TEqStereo;
   subsonicHz?: number;
   fuzzAmount?: number;
   monoBelowHz?: number;
-  /**
-   * Which input regulator a preset asks for. @see TTrimMode
-   *
-   * Every preset asks for the fixed one, and that is the point of it
-   * being here at all: these curves boost, boosts need room, and a preset
-   * that hands somebody a clipping rack and leaves them to notice is a
-   * preset that has done half its job. Fixed rather than adaptive because a
-   * preset is a starting point somebody judges by ear, and a level that moves
-   * while they are judging it makes two curves impossible to compare.
-   *
-   * The user can switch it off afterwards, which is why this is a starting
-   * point rather than a lock. "Default" is the exception: a reset means
-   * nothing applied at all, regulator included.
-   */
-  trimMode?: TTrimMode;
 }
 
 export interface IEqPreset {
@@ -107,15 +96,12 @@ const DEFAULT_SETUP: Required<IEqPresetSetup> = {
   model: DSP_DEFAULTS.eq.model,
   modelAmount: DSP_DEFAULTS.eq.modelAmount,
   engine: DSP_DEFAULTS.eq.engine,
+  phase: DSP_DEFAULTS.eq.phase,
   oversample: DSP_DEFAULTS.eq.oversample,
   stereo: DSP_DEFAULTS.eq.stereo,
   subsonicHz: DSP_DEFAULTS.eq.subsonicHz,
   fuzzAmount: DSP_DEFAULTS.eq.fuzzAmount,
   monoBelowHz: DSP_DEFAULTS.eq.monoBelowHz,
-  // NOT from `DSP_DEFAULTS`, and deliberately so: what a fresh install runs
-  // and what a preset asks for are two different questions. A preset knows
-  // it boosts and asks for the regulator that answers that.
-  trimMode: 'fixed',
 };
 
 export const eqPresetSetup = (preset: IEqPreset): Required<IEqPresetSetup> => ({
@@ -267,10 +253,7 @@ export const EQ_PRESETS: readonly IEqPreset[] = [
     labelKey: 'dsp.eqPreset.vocal',
     group: 'voice',
     gains: [-6, -5, -3, -1, 0, 0.5, 1.5, 2.5, 3, 3.5, 3, 2, 1, 0, -0.5],
-    // The presence lift is at 2-3k and a lot of music is not there. What
-    // the song does not use comes back.
     setup: {
-      trimMode: 'adaptive',
       ...PROTECTED,
       model: 'proportional',
     },
@@ -304,11 +287,7 @@ export const EQ_PRESETS: readonly IEqPreset[] = [
       null,
     ],
     // Speech has nothing below 40 Hz except the room.
-    // Speech occupies a narrow band and stops between sentences, so most
-    // of the reserve is held against a boost the material spends most of
-    // its time not reaching.
     setup: {
-      trimMode: 'adaptive',
       model: 'proportional',
       subsonicHz: 40,
       monoBelowHz: 0,
@@ -367,10 +346,7 @@ export const EQ_PRESETS: readonly IEqPreset[] = [
       null,
       null,
     ],
-    // The entire point is listening quietly, which is exactly when giving
-    // level back matters most.
     setup: {
-      trimMode: 'adaptive',
       ...PROTECTED,
       model: 'wide',
     },
@@ -403,12 +379,7 @@ export const EQ_PRESETS: readonly IEqPreset[] = [
     labelKey: 'dsp.eqPreset.gaming',
     group: 'scene',
     gains: [2.9, 2.5, 1, 0, -1, -1, 0, 1.5, 2.5, 3.4, 3.9, 2.9, 2, 1.5, 1],
-    // The most intermittent material there is: minutes of near-silence with
-    // a footstep in it, then an explosion. A fixed reserve spends level on
-    // every quiet moment to protect a peak that arrives rarely, and hearing
-    // the quiet moments is the entire reason for this curve.
     setup: {
-      trimMode: 'adaptive',
       ...PROTECTED,
       model: 'proportional',
     },
@@ -423,10 +394,7 @@ export const EQ_PRESETS: readonly IEqPreset[] = [
       1.4, 1.1, 0, -1.1, -1.4, -0.7, 0.4, 1.4, 2.1, 2.1, 1.8, 1.1, 0.7, 0.7,
       0.4,
     ],
-    // Dialogue-led with wide dynamics: the reserve is needed on the
-    // explosion and wasted on the conversation.
     setup: {
-      trimMode: 'adaptive',
       model: 'wide',
       subsonicHz: 20,
       monoBelowHz: 60,
@@ -565,10 +533,7 @@ export const EQ_PRESETS: readonly IEqPreset[] = [
       null,
       null,
     ],
-    // Same as the vocal curve, and it already reacts per band — the
-    // regulator reacting too is the same idea one level up.
     setup: {
-      trimMode: 'adaptive',
       ...PROTECTED,
       model: 'proportional',
     },
@@ -832,11 +797,7 @@ export const EQ_PRESETS: readonly IEqPreset[] = [
       null,
       null,
     ],
-    // Hours of one voice. Holding a fixed reserve for the whole session
-    // costs level on every quiet passage to protect a peak that arrives
-    // rarely.
     setup: {
-      trimMode: 'adaptive',
       model: 'proportional',
       subsonicHz: 40,
       monoBelowHz: 0,
@@ -867,10 +828,7 @@ export const EQ_PRESETS: readonly IEqPreset[] = [
       null,
       null,
     ],
-    // Both of the above at once, and the preset people reach for when
-    // level matters most.
     setup: {
-      trimMode: 'adaptive',
       ...PROTECTED,
       model: 'wide',
     },
@@ -890,3 +848,53 @@ export const isCompleteEqPreset = (preset: IEqPreset): boolean =>
   // bands static while the gains that need them were applied in full, which is
   // a de-esser that quietly became a dull EQ.
   (preset.dynamic === undefined || preset.dynamic.length === EQ_BAND_COUNT);
+
+/**
+ * Materialise one factory preset into the complete EQ state it owns.
+ *
+ * Factory profiles are voiced on the canonical fifteen-band rack. Fitting the
+ * gains onto whatever rack happened to be open preserved that rack's types,
+ * Qs, enabled flags and dynamic state, so the same preset could sound different
+ * depending on the edit made immediately before it. A preset is deterministic:
+ * every audible value is assigned here, while only the processor's power state
+ * remains the user's decision.
+ */
+export const eqSettingsForPreset = (
+  current: IEqSettings,
+  preset: IEqPreset,
+): IEqSettings => {
+  if (!isCompleteEqPreset(preset)) {
+    return current;
+  }
+
+  if (preset.id === EQ_DEFAULT_PRESET_ID) {
+    return {
+      ...DSP_DEFAULTS.eq,
+      enabled: current.enabled,
+      isolate: false,
+      presetId: preset.id,
+      bands: DSP_DEFAULTS.eq.bands.map((band) => ({ ...band })),
+    };
+  }
+
+  const setup = eqPresetSetup(preset);
+  const bands: IEqBandSettings[] = DSP_DEFAULTS.eq.bands.map((band, index) => {
+    const threshold = preset.dynamic?.[index] ?? null;
+    return {
+      ...band,
+      gainDb: preset.gains[index],
+      dynamic: threshold !== null,
+      thresholdDb: threshold ?? band.thresholdDb,
+    };
+  });
+
+  return {
+    ...DSP_DEFAULTS.eq,
+    ...setup,
+    enabled: current.enabled,
+    isolate: false,
+    presetId: preset.id,
+    bands,
+    sourceBands: bands.map((band) => ({ ...band })),
+  };
+};

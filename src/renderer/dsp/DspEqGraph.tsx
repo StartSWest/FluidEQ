@@ -13,8 +13,6 @@ import {
   readDspAnalyser,
   readDspBandAmounts,
   readDspBandLevels,
-  readDspHeadroomGiveBack,
-  readDspPeak,
 } from './store';
 
 const MIN_HZ = 20;
@@ -46,11 +44,8 @@ const PAD_R = 40;
 /**
  * Room at the top for the legend, which sits over the canvas.
  *
- * 14 was enough while nothing was up there. The legend and the clip band then
- * both claimed the same strip — and the clip band grows with the overshoot, so
- * the worse the distortion the more of the legend it covered, which is exactly
- * backwards. The plot starts below the legend now and the warning has the top
- * of the plot to itself.
+ * The legend owns this strip; the plot begins below it so labels never cover
+ * the response or its boost shading.
  */
 const PAD_T = 34;
 const PAD_B = 26;
@@ -204,10 +199,7 @@ const DspEqGraph = ({
     selected: number;
     /** The one string the canvas draws. Through the ref like everything else,
      * so switching language repaints without rebuilding the observer. */
-    t: (
-      key: 'dsp.eq.overUnity' | 'dsp.eq.thresholdMark' | 'dsp.eq.inputMark',
-      values: Record<string, string>,
-    ) => string;
+    t: (key: 'dsp.eq.thresholdMark', values: Record<string, string>) => string;
     redraw?: () => void;
   }>({ eq, sampleRate, selected, t });
   // Assigned field by field: replacing the object would drop `redraw`, which
@@ -241,49 +233,14 @@ const DspEqGraph = ({
      * without a ref and without allocating.
      */
     const drawnAmounts: number[] = [];
-    /**
-     * The drawn input gain, eased toward what is actually applied.
-     *
-     * The adaptive stage gives headroom back slowly and takes it at once,
-     * which is right for the audio and unwatchable on a line: every loud
-     * passage snapped it down and the climb walked it back up, so it flickered
-     * across the plot. The gain still moves the instant it needs to; only the
-     * picture of it is smoothed.
-     *
-     * NaN until the first frame, so the line starts where it belongs rather
-     * than sliding down from unity every time the page is opened.
-     */
-    let drawnInput = Number.NaN;
     /** The drawn level of each band, eased the same way its engagement is. */
     const drawnLevels: number[] = [];
     /** How present the band's live level line is, 0 to 1. */
     let drawnLit = 0;
     /**
-     * How lit the clip stripe is, 0 to 1.
-     *
-     * The measurement behind it is a yes or no taken twenty-three times a
-     * second, so drawing it directly made a stripe that strobed — which reads
-     * as a rendering fault rather than as a warning, and a warning nobody
-     * believes is worse than none. It lights at once and fades over about a
-     * second, so a single clipped block is still visible and a run of them
-     * holds steady.
-     */
-    let clipGlow = 0;
-    /** How far past full scale it went, in dB, eased for the same reason. */
-    let clipOver = 0;
-    /**
-     * How present the input-gain line is, 0 to 1.
-     *
-     * The gain is applied whether or not anything is playing, so the line is
-     * never wrong — but a line describing what is being done to a signal that
-     * does not exist is one more thing moving in the corner of the eye for no
-     * reason. It fades with the signal and comes back with it.
-     */
-    let inputLit = 0;
-    /**
      * The response at each plotted point, worked out once a frame.
      *
-     * The curve, the at-rest twin, the headroom shading and the fuzz grain
+     * The curve, the at-rest twin, the boost shading and the fuzz grain
      * all walk the same points, and each of them used to re-evaluate every
      * band there: fifteen filters across four hundred points, four times over,
      * sixty times a second. Now the whole rack is measured once per point and
@@ -392,7 +349,7 @@ const DspEqGraph = ({
        * bottom octaves have fewer bins than columns and repeat, which is
        * honest — the resolution genuinely is not there.
        */
-      const live = readDspAnalyser();
+      const live = readDspAnalyser('eq');
       if (live) {
         if (binsRef.current.length !== live.frequencyBinCount) {
           binsRef.current = new Float32Array(live.frequencyBinCount);
@@ -650,78 +607,26 @@ const DspEqGraph = ({
       context.lineJoin = 'round';
       context.stroke();
 
-      /**
-       * Where the curve is spending headroom it may not have.
-       *
-       * The one kind of distortion an equaliser causes by itself is running the
-       * output past full scale, and the magnitude plot hides it completely: a
-       * +9 dB boost is drawn exactly as happily as a -9 dB cut. Anywhere the
-       * summed curve plus the preamp comes out above unity, the material only
-       * survives because it was not already loud there — which is luck rather
-       * than headroom.
-       *
-       * Shaded rather than flagged, so it says WHERE as well as whether. The
-       * preamp is included because that is the control that buys the room back,
-       * and the mask retreating as it is turned down is the clearest way to
-       * show what it is for.
-       */
+      /** The part of the authored curve that adds energy above unity. */
       context.beginPath();
-      let worst = 0;
       for (let i = 0; i <= steps; i += 1) {
         const hz = plotHz[i];
-        // Both gains, because both are in front of the bands by the time a
-        // sample arrives: what the regulator took out and what the user put
-        // back. Showing only one of them would shade an area that is not there.
-        const over = plotTotal[i] + liveEq.preampDb + liveEq.trimDb;
+        const over = plotTotal[i];
         const y = over > 0 ? Y(over) : Y(0);
-        worst = Math.max(worst, over);
         if (i === 0) {
           context.moveTo(X(hz), y);
         } else {
           context.lineTo(X(hz), y);
         }
       }
-      // Half of the tenth the readout is written to. Below that the figure
-      // rounds to "0.0 dB over", which says a thing and its opposite in one
-      // line — and there is nothing there to warn about anyway.
-      if (worst >= 0.05) {
-        context.lineTo(X(MAX_HZ), Y(0));
-        context.lineTo(X(MIN_HZ), Y(0));
-        context.closePath();
-        // Nearly twice the alpha it shipped at, and it needed to be. The shade
-        // sits ON TOP of the spectrum's own fill, so at 0.16 a boost of twelve
-        // decibels was a pink tint over a bright green area and read as part of
-        // the spectrum — the mask was drawing correctly and could not be seen,
-        // which is worse than not drawing at all.
-        context.fillStyle = 'rgba(255,100,124,0.3)';
-        context.fill();
-        context.strokeStyle = 'rgba(255,140,158,0.85)';
-        context.lineWidth = 1.25;
-        context.stroke();
-
-        // The ceiling itself, drawn across the whole plot. The shaded area says
-        // how far past unity the curve goes; without a line at unity there is
-        // nothing to read that distance against.
-        context.beginPath();
-        context.moveTo(PAD_L, Y(0));
-        context.lineTo(PAD_L + plotW(W), Y(0));
-        context.strokeStyle = 'rgba(255,140,158,0.55)';
-        context.setLineDash([5, 4]);
-        context.stroke();
-        context.setLineDash([]);
-
-        // And the number, because "some pink" is not a measurement. This is the
-        // figure the automatic trim would remove.
-        context.font =
-          '600 12px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif';
-        context.textBaseline = 'top';
-        context.fillStyle = 'rgba(255,140,158,0.95)';
-        context.fillText(
-          translate('dsp.eq.overUnity', { gain: worst.toFixed(1) }),
-          PAD_L + 8,
-          PAD_T + 6,
-        );
-      }
+      context.lineTo(X(MAX_HZ), Y(0));
+      context.lineTo(X(MIN_HZ), Y(0));
+      context.closePath();
+      const boostShade = context.createLinearGradient(0, PAD_T, 0, Y(0));
+      boostShade.addColorStop(0, 'rgba(0,229,207,0.16)');
+      boostShade.addColorStop(1, 'rgba(0,229,207,0.035)');
+      context.fillStyle = boostShade;
+      context.fill();
 
       /**
        * The selected band’s threshold, on the spectrum’s own scale.
@@ -862,86 +767,6 @@ const DspEqGraph = ({
       }
 
       /**
-       * Where the input gain has put the whole rack, on the gain axis.
-       *
-       * Flat by nature — the regulator, the give-back and the preamp are one
-       * multiply in front of everything, applied equally at every frequency —
-       * so it is a line rather than a curve, and that is the honest shape for
-       * it. Drawn because the adaptive half MOVES: without it the only sign
-       * that the trim is working is a number in the corner, and the thing it
-       * is trading against is the curve right here.
-       */
-      const appliedInput =
-        liveEq.preampDb + liveEq.trimDb + readDspHeadroomGiveBack();
-      drawnInput = Number.isNaN(drawnInput)
-        ? appliedInput
-        : drawnInput + (appliedInput - drawnInput) * 0.08;
-      // About -66 dBFS at the output: below it nothing is playing, whatever
-      // the transport says it is doing.
-      const hasSignal = readDspPeak() > 0.0005;
-      inputLit += ((hasSignal ? 1 : 0) - inputLit) * 0.05;
-      if (Math.abs(drawnInput) >= 0.05 && inputLit > 0.02) {
-        const y = Y(Math.max(-RANGE_DB, Math.min(RANGE_DB, drawnInput)));
-        context.beginPath();
-        context.moveTo(PAD_L, y);
-        context.lineTo(PAD_L + plotW(W), y);
-        context.strokeStyle = `rgba(178,190,255,${(inputLit * 0.55).toFixed(3)})`;
-        context.lineWidth = 1.25;
-        context.setLineDash([2, 4]);
-        context.stroke();
-        context.setLineDash([]);
-
-        context.font =
-          '600 11px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif';
-        context.textBaseline = 'bottom';
-        context.textAlign = 'left';
-        context.fillStyle = `rgba(178,190,255,${(inputLit * 0.85).toFixed(3)})`;
-        context.fillText(
-          translate('dsp.eq.inputMark', {
-            gain: drawnInput.toFixed(1),
-          }),
-          PAD_L + 8,
-          y - 3,
-        );
-      }
-
-      // And whether it is ACTUALLY clipping, which depends on the material as
-      // much as on the curve: a stripe along the top while the measured output
-      // is past full scale. The mask says where the risk is, this says it has
-      // stopped being a risk.
-      /**
-       * How badly, not merely whether.
-       *
-       * A fixed bar said the same thing for a hundredth of a decibel over as
-       * for six, which are not the same situation: one is a rounding on one
-       * transient and the other is audible on everything. The band grows with
-       * the overshoot and fades downward into the plot, so the eye reads the
-       * depth without a number having to be found.
-       *
-       * Straight to full on a clipped block and a slow fade after, so one
-       * clipped block is not missed and a run of them does not blink.
-       */
-      const peak = readDspPeak();
-      const clipping = peak > 1;
-      const overNow = clipping ? 20 * Math.log10(peak) : 0;
-      clipGlow = clipping ? 1 : Math.max(0, clipGlow - 0.016);
-      clipOver = Math.max(overNow, clipOver + (overNow - clipOver) * 0.05);
-      if (clipGlow > 0.01) {
-        // Six decibels of overshoot fills the band. Past that it is as loud a
-        // warning as the plot can make without covering the curve it is
-        // warning about.
-        const depth = 3 + Math.min(1, clipOver / 6) * 21;
-        const bleed = context.createLinearGradient(0, PAD_T, 0, PAD_T + depth);
-        bleed.addColorStop(
-          0,
-          `rgba(255,100,124,${(clipGlow * 0.62).toFixed(3)})`,
-        );
-        bleed.addColorStop(1, 'rgba(255,100,124,0)');
-        context.fillStyle = bleed;
-        context.fillRect(PAD_L, PAD_T, plotW(W), depth);
-      }
-
-      /**
        * The fuzz, as grain along the curve.
        *
        * Harmonic colour has no magnitude response to plot — it adds frequencies
@@ -1040,7 +865,7 @@ const DspEqGraph = ({
     function tick() {
       frame = 0;
       paint();
-      if (readDspAnalyser()) {
+      if (readDspAnalyser('eq')) {
         schedule();
       }
     }

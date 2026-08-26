@@ -43,6 +43,20 @@ const saturated = (input: Float32Array, drive: number): Float32Array => {
 };
 
 describe('the saturation stage', () => {
+  it('uses both half-band stages for four-times resolution', () => {
+    const state = createSaturator(SIZE);
+    const target = sine(BIN);
+    saturateBlock(state, target, 1);
+
+    expect(state.oversampled).toHaveLength(SIZE * 4);
+    expect(
+      state.oversampler.up[1].some((value) => Math.abs(value) > 1e-8),
+    ).toBe(true);
+    expect(
+      state.oversampler.down[1].some((value) => Math.abs(value) > 1e-8),
+    ).toBe(true);
+  });
+
   it('adds harmonics that were not in the signal', () => {
     const input = sine(BIN);
     // NULL side: the input genuinely has nothing at the third harmonic, so
@@ -108,8 +122,8 @@ describe('the saturation stage', () => {
       const naive = Float32Array.from(sine(HIGH), (value) =>
         saturateSample(value, 8),
       );
-      // Not zero — 2x cannot remove everything — but far below the naive path,
-      // which is the claim being made.
+      // Not zero — a finite filter cannot remove everything — but far below
+      // the naive path, which is the claim being made.
       expect(magnitudeAt(output, foldedBin)).toBeLessThan(
         magnitudeAt(naive, foldedBin) / 8,
       );

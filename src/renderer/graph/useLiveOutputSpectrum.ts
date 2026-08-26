@@ -216,7 +216,6 @@ const useLiveOutputSpectrum = () => {
     IBalanceProgress | undefined
   >(undefined);
   const isClippingRef = useRef(false);
-  const clipUntilRef = useRef(0);
   const streamRef = useRef<MediaStream | undefined>(undefined);
   const audioContextRef = useRef<AudioContext | undefined>(undefined);
   const pumpRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
@@ -313,7 +312,6 @@ const useLiveOutputSpectrum = () => {
     setIsActive(false);
     isPausedRef.current = false;
     setIsPaused(false);
-    clipUntilRef.current = 0;
     isClippingRef.current = false;
     setIsClipping(false);
     pointsRef.current = NO_POINTS;
@@ -603,12 +601,6 @@ const useLiveOutputSpectrum = () => {
       });
 
       const frequencyData = new Float32Array(analyser.frequencyBinCount);
-      // Float rather than the byte domain, because the clip detector is the
-      // only thing that reads this and it looks for samples ABOVE full scale
-      // — which eight bits cannot represent at all, since they clamp at 255.
-      // See `CLIP_RAIL_AMPLITUDE`. The waveform drawing takes the meter's own
-      // per-channel float samples and never used this buffer.
-      const timeDomainFloat = new Float32Array(analyser.fftSize);
       const axis = createFrequencyAxis(activeAudioContext.sampleRate);
       const cells: IAxisCell[] = createAxisCells(
         axis,
@@ -629,6 +621,11 @@ const useLiveOutputSpectrum = () => {
       const meterFollowers: ILevelFollower[] = meterAnalysers.map(() =>
         createLevelFollower(),
       );
+      // Kept per channel. The spectrum analyser combines the stereo signal,
+      // which can cancel a rail in one side and can never say which side
+      // clipped. The meter already owns discrete float samples, so those are
+      // the only honest source for both the channel warning and the global OR.
+      const meterClipUntilMs = meterAnalysers.map(() => 0);
       // Published in pairs for the same reason the points are: React needs a
       // changed identity to re-render, so the frame it is holding must not be
       // the one being overwritten. Two channels of two numbers is not much to
@@ -637,10 +634,12 @@ const useLiveOutputSpectrum = () => {
         meterAnalysers.map(() => ({
           levelDb: LEVEL_FLOOR_DB,
           peakDb: LEVEL_FLOOR_DB,
+          isClipping: false,
         })),
         meterAnalysers.map(() => ({
           levelDb: LEVEL_FLOOR_DB,
           peakDb: LEVEL_FLOOR_DB,
+          isClipping: false,
         })),
       ];
       // Wall clock rather than a frame count, because the fall rates are per
@@ -668,7 +667,6 @@ const useLiveOutputSpectrum = () => {
         }
 
         analyser.getFloatFrequencyData(frequencyData);
-        analyser.getFloatTimeDomainData(timeDomainFloat);
         readAbsoluteLevels(frequencyData, cells, levelBuffer);
         const peak = getPeakLevel(frequencyData);
 
@@ -706,17 +704,6 @@ const useLiveOutputSpectrum = () => {
             );
             setPoints(pointsRef.current);
           }
-          // Held briefly so a single clipped frame is actually seen: at 45 ms a
-          // flash would be gone before the eye registers it.
-          if (detectClipping(timeDomainFloat)) {
-            clipUntilRef.current = performance.now() + CLIP_HOLD_MS;
-          }
-          const clipping = performance.now() < clipUntilRef.current;
-          if (clipping !== isClippingRef.current) {
-            isClippingRef.current = clipping;
-            setIsClipping(clipping);
-          }
-
           /*
            * The meter, in real decibels below full scale.
            *
@@ -738,9 +725,17 @@ const useLiveOutputSpectrum = () => {
           );
           lastMeterMs = meterNowMs;
           const meterFrame = meterFrames[bufferSlot];
+          let anyChannelClipping = false;
           for (let channel = 0; channel < meterAnalysers.length; channel += 1) {
             const channelSamples = meterSamples[channel];
             meterAnalysers[channel].getFloatTimeDomainData(channelSamples);
+            // A 45 ms clipped frame would disappear before the eye registers
+            // it, but the hold must preserve the channel that actually railed.
+            if (detectClipping(channelSamples)) {
+              meterClipUntilMs[channel] = meterNowMs + CLIP_HOLD_MS;
+            }
+            const channelIsClipping = meterNowMs < meterClipUntilMs[channel];
+            anyChannelClipping ||= channelIsClipping;
             const follower = advanceLevel(
               meterFollowers[channel],
               amplitudeToDb(readPeakAmplitude(channelSamples)),
@@ -748,6 +743,11 @@ const useLiveOutputSpectrum = () => {
             );
             meterFrame[channel].levelDb = follower.levelDb;
             meterFrame[channel].peakDb = follower.peakDb;
+            meterFrame[channel].isClipping = channelIsClipping;
+          }
+          if (anyChannelClipping !== isClippingRef.current) {
+            isClippingRef.current = anyChannelClipping;
+            setIsClipping(anyChannelClipping);
           }
           setWaveform(
             writeChannelWaveformPoints(

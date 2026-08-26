@@ -47,7 +47,7 @@
     "prepare": "husky",
     "rebuild": "electron-rebuild --parallel --types prod,dev,optional --module-dir release/app",
     "start": "node ./.erb/scripts/dev.cjs",
-    "start:main": "cross-env NODE_ENV=development electronmon dev-main.cjs --no-sandbox",
+    "start:main": "cross-env NODE_ENV=development FLUIDEQ_EXIT_DEV_SESSION_ON_QUIT=1 electronmon dev-main.cjs --no-sandbox",
     "start:preload": "cross-env NODE_ENV=development TS_NODE_TRANSPILE_ONLY=true webpack --config ./.erb/configs/webpack.config.preload.dev.cjs",
     "start:renderer": "cross-env NODE_ENV=development TS_NODE_TRANSPILE_ONLY=true webpack serve --config ./.erb/configs/webpack.config.renderer.dev.cjs",
     "test": "jest",

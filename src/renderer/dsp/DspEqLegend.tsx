@@ -14,8 +14,6 @@ interface IDspEqLegendProps {
   showsThreshold: boolean;
   /** The subsonic filter is on, so its skirt is drawn. */
   showsSubsonic: boolean;
-  /** The input gain is somewhere other than unity, so its line is drawn. */
-  showsInput: boolean;
 }
 
 interface ILegendEntry {
@@ -44,7 +42,6 @@ const DspEqLegend = ({
   hasDynamic,
   showsThreshold,
   showsSubsonic,
-  showsInput,
 }: IDspEqLegendProps) => {
   const { t } = useTranslation();
 
@@ -88,15 +85,6 @@ const DspEqLegend = ({
       scale: 'gain',
     });
   }
-  if (showsInput) {
-    entries.push({
-      key: 'dsp.eq.legend.input',
-      colour: 'rgba(178,190,255,0.8)',
-      isDashed: true,
-      scale: 'gain',
-    });
-  }
-
   return (
     <ul className="dsp-eq-legend">
       {entries.map((entry) => (

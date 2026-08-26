@@ -16,9 +16,27 @@ import { DSP_PRESETS } from '../../../common/dsp/presets';
 
 describe('dsp chain settings', () => {
   it('defaults to every module bypassed', () => {
+    expect(DSP_DEFAULTS.enabled).toBe(true);
     expect(DSP_DEFAULTS.exciter.enabled).toBe(false);
     expect(DSP_DEFAULTS.compressor.enabled).toBe(false);
     expect(DSP_DEFAULTS.maximizer.enabled).toBe(false);
+  });
+
+  it('root bypass preserves every nested processor setting', () => {
+    const clamped = clampDspSettings({
+      ...DSP_DEFAULTS,
+      enabled: false,
+      eq: { ...DSP_DEFAULTS.eq, enabled: true },
+      exciter: { ...DSP_DEFAULTS.exciter, enabled: true },
+    });
+    expect(clamped.enabled).toBe(false);
+    expect(clamped.eq.enabled).toBe(true);
+    expect(clamped.exciter.enabled).toBe(true);
+  });
+
+  it('migrates settings written before root bypass to enabled', () => {
+    const { enabled: _removed, ...legacy } = DSP_DEFAULTS;
+    expect(clampDspSettings(legacy).enabled).toBe(true);
   });
 
   it('clamps out-of-range values rather than rejecting them', () => {

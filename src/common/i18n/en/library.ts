@@ -36,6 +36,7 @@ const library = {
 
   'library.browse.album': 'Albums',
   'library.browse.artist': 'Artists',
+  'library.browse.genre': 'Genres',
   'library.browse.song': 'Songs',
   'library.browse.folder': 'Folders',
   'library.browse.directory': 'Tree',
@@ -72,8 +73,10 @@ const library = {
 
   'library.unknownAlbum': 'Unknown album',
   'library.unknownArtist': 'Unknown artist',
+  'library.genre.unknown': 'Unknown genre',
   'library.trackCount': '{count} songs',
   'library.albumCount': '{count} albums',
+  'library.artistCount': '{count} artists',
 
   'library.videos': 'Videos',
   'library.videos.empty': 'No videos in the folders you have added.',
@@ -103,6 +106,10 @@ const library = {
   'library.upNext.empty': 'Nothing queued yet',
   'library.upNext.added': 'Your picks',
   'library.upNext.rest': 'Then',
+  'library.upNext.continued': 'More like this',
+  'library.upNext.keepPlaying': 'Keep playing',
+  'library.upNext.keepPlayingHint':
+    'When the list runs out, keep going with more of the same genre',
   'library.queueAdd': 'Add to up next',
 
   'library.alsoInFolder': 'In this folder, not in this album',

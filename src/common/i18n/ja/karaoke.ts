@@ -539,6 +539,10 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.errorParse':
     '選択した歌詞またはカラオケファイルを解析できませんでした。',
   'karaoke.maker.downloadFailed': 'Whisper モデルのダウンロードに失敗しました',
+  'karaoke.maker.pitchDownloadFailed':
+    'ピッチモデルのダウンロードに失敗しました',
+  'karaoke.maker.pitchDownloadError':
+    '高精度のメロディモデルをダウンロードできませんでした。検出は同梱のオフラインモデルで続行されました。接続またはファイアウォールを確認して再試行してください。',
   'karaoke.maker.localAnalysisFailed': 'ローカル解析に失敗しました',
   'karaoke.maker.whisperDownloadError':
     'Hugging Face からモデルをダウンロードできませんでした。接続またはファイアウォールを確認して再試行してください。',

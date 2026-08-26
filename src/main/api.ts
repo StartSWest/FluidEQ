@@ -34,6 +34,7 @@ import type { IKaraokeMakerProject } from '../common/karaoke/makerProject';
 import { VIDEO_DOWNLOAD_REVEAL } from '../common/videoDownloads';
 import type {
   ILibraryIndex,
+  ILibraryNormalizationAnalysis,
   ILibraryScanProgress,
   ILibraryTrack,
 } from '../common/library/types';
@@ -259,6 +260,8 @@ const detectKaraokePitch = (samples: Float32Array) =>
     /** What counts as a voiced frame differs per model; main says which. */
     voicedThreshold: number;
     model: 'rmvpe' | 'swift-f0';
+    /** The bundled model completed the run after the optional fetch failed. */
+    rmvpeDownloadFailed?: boolean;
   }>;
 
 const onKaraokePitchProgress = (
@@ -413,6 +416,25 @@ const libraryTrackBytes = (trackId: string) =>
     ArrayBuffer | undefined
   >;
 
+/** One cheap stat; unlike normalization this never decodes the audio. */
+const libraryTrackSignature = (trackId: string) =>
+  ipcRenderer.invoke('library-track-signature', trackId) as Promise<
+    { sizeBytes: number; mtimeMs: number } | undefined
+  >;
+
+/** Persists a renderer measurement against the exact indexed file identity. */
+const setLibraryTrackNormalization = (
+  trackId: string,
+  analysis: ILibraryNormalizationAnalysis,
+  signature: { sizeBytes: number; mtimeMs: number },
+) =>
+  ipcRenderer.invoke(
+    'library-track-normalization-set',
+    trackId,
+    analysis,
+    signature,
+  ) as Promise<boolean>;
+
 /**
  * The playlists, and whether the file holding them had to be thrown away.
  *
@@ -539,6 +561,8 @@ export default {
     onLibraryTracksAdded,
     revealLibraryTrack,
     libraryTrackBytes,
+    libraryTrackSignature,
+    setLibraryTrackNormalization,
     getLibraryPlaylists,
     createLibraryPlaylist,
     renameLibraryPlaylist,

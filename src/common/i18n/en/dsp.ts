@@ -34,12 +34,49 @@ const dsp = {
   'dsp.unavailable':
     'Audio processing could not start. Playback is unaffected.',
   'dsp.presets': 'Presets',
-  'dsp.preset.flat': 'Off',
   'dsp.preset.lossyRepair': 'Repair compressed',
   'dsp.preset.loud': 'Loud',
   'dsp.preset.broadcast': 'Broadcast',
   'dsp.bypassed': 'Bypassed',
   'dsp.enabled': 'On',
+
+  'dsp.normalizer.title': 'Normalizer',
+  'dsp.normalizer.description':
+    'Measures the complete source once, then applies one stereo-linked gain before the Exciter and EQ. No pumping and no moving RMS follower.',
+  'dsp.normalizer.mode': 'Normalization mode',
+  'dsp.normalizer.off': 'Off',
+  'dsp.normalizer.truePeak': 'True Peak',
+  'dsp.normalizer.loudness': 'Loudness',
+  'dsp.normalizer.ceiling': 'Peak ceiling',
+  'dsp.normalizer.target': 'Loudness target',
+  'dsp.normalizer.analysis': 'Source analysis',
+  'dsp.normalizer.analyzing': 'Analyzing the complete track · {progress}%',
+  'dsp.normalizer.unavailable':
+    'This source could not be analyzed. It is playing at its original level.',
+  'dsp.normalizer.waiting': 'Play a Library track to measure it.',
+  'dsp.normalizer.measuredPeak': 'Measured peak',
+  'dsp.normalizer.measuredLoudness': 'Integrated loudness',
+  'dsp.normalizer.appliedGain': 'Applied gain',
+  'dsp.normalizer.liveMeter': 'Live before / after',
+  'dsp.normalizer.before': 'Before',
+  'dsp.normalizer.after': 'After',
+  'dsp.normalizer.liveMeterHint':
+    'Actual sample peaks measured directly around the Normalizer. The zero marker is 0 dBFS.',
+  'dsp.normalizer.honesty':
+    'Prevents overload downstream; it cannot reconstruct distortion already baked into a file.',
+
+  'dsp.crossfade.title': 'Crossfade',
+  'dsp.crossfade.description':
+    'Overlaps outgoing and incoming tracks after normalization, before the Exciter and EQ.',
+  'dsp.crossfade.outgoing': 'Outgoing',
+  'dsp.crossfade.incoming': 'Incoming',
+  'dsp.crossfade.duration': 'Duration',
+  'dsp.crossfade.curve': 'Fade curve',
+  'dsp.crossfade.equalPower': 'Equal power',
+  'dsp.crossfade.smooth': 'Smooth',
+  'dsp.crossfade.linear': 'Linear',
+  'dsp.crossfade.hint':
+    'Applies to manual Next and natural track endings. Seeking stays immediate.',
 
   'dsp.eqPreset.custom': 'Custom',
   'dsp.eqPreset.label': 'Preset',
@@ -116,13 +153,16 @@ const dsp = {
   'dsp.eqSave.imported': 'Imported {name}.',
   'dsp.eqShare.share': 'Share',
   'dsp.eqShare.hint': 'Saves this rack as a file others can open.',
+  'dsp.eqShare.saved': 'Preset file saved.',
+  'dsp.eqShare.failed': 'The preset file could not be saved.',
+  'dsp.eq.isolate': 'Isolate',
+  'dsp.eq.isolateHint': 'Hear only what the EQ changes.',
+  'dsp.eq.isolateOn':
+    'The dry signal is removed — only the EQ changes are audible.',
   'dsp.eqPreset.imported': 'Loaded {count} filters.',
   'dsp.eqPreset.importSkipped': 'Loaded {count} filters, {skipped} skipped.',
   'dsp.eqPreset.importEmpty': 'No filters this equaliser could read.',
   'dsp.eqPreset.importFailed': 'That file could not be read.',
-  'dsp.eqPreset.importPreamp':
-    'Its {gain} dB of headroom is measured here instead.',
-
   'dsp.eq.rack': 'Bands',
   'dsp.eqModel.label': 'Character',
   'dsp.eqModel.clean': 'None',
@@ -145,8 +185,7 @@ const dsp = {
   'dsp.eqImport.title': 'Import an EQ curve',
   'dsp.eqImport.hint':
     'Paste a curve from Squiglink, AutoEq or Equalizer APO — or choose the file it is in.',
-  'dsp.eqImport.placeholder':
-    'Preamp: -5.4 dB\nFilter: ON PK Fc 1200 Hz Gain -2.1 dB Q 1.41',
+  'dsp.eqImport.placeholder': 'Filter: ON PK Fc 1200 Hz Gain -2.1 dB Q 1.41',
   'dsp.eqImport.chooseFile': 'Choose file',
   'dsp.eqImport.apply': 'Import',
   'dsp.eqImport.cancel': 'Cancel',
@@ -169,7 +208,6 @@ const dsp = {
   'dsp.eq.type.bandPass': 'Band pass',
   'dsp.eq.frequency': 'Freq',
   'dsp.eq.gain': 'Gain',
-  'dsp.eq.preamp': 'Preamp',
   'dsp.eq.trim': 'Auto trim',
   'dsp.eq.adaptive': 'Adaptive',
   'dsp.eq.trimFixed': 'Fixed',
@@ -215,20 +253,16 @@ const dsp = {
   'dsp.exciter.band.mid': 'Mid',
   'dsp.exciter.band.high': 'High',
   'dsp.exciter.texture': 'Texture',
-  'dsp.exciter.threshold': 'Threshold',
-  'dsp.exciter.dynamic': 'Dynamic',
   'dsp.exciter.organic': 'Organic',
   'dsp.exciter.organicHint':
-    'Body for a midrange that measures fine and sounds thin. Even harmonics that follow the music and drift as they go, so it breathes instead of sitting still.',
+    'Adds smooth, even-harmonic body around the chosen range. Ideal for making a clean, metallic or titanium-driver presentation feel warmer and more organic without losing detail.',
   'dsp.exciter.organicAmount': 'Body',
   'dsp.exciter.organicFocus': 'Focus',
   'dsp.exciter.organicRange': 'Range',
-  'dsp.exciter.align': 'Alignment',
+  'dsp.exciter.align': 'Timing',
   'dsp.exciter.alignHint':
-    'Delays the lower bands against the higher ones, the way a BBE does. Adds nothing — it only changes when each part arrives.',
-  'dsp.exciter.alignAmount': 'Depth',
-  'dsp.exciter.alignLow': 'Low split',
-  'dsp.exciter.alignHigh': 'High split',
+    'Lets highs lead and gently delays mids and lows for clearer attacks and rounder punch. It adds no harmonics.',
+  'dsp.exciter.alignAmount': 'Amount',
   'dsp.exciter.isolate': 'Isolate',
   'dsp.exciter.isolateHint': 'Hear only the harmonics this stage is adding.',
   'dsp.exciter.isolateOn':
@@ -254,6 +288,51 @@ const dsp = {
   'dsp.maximizer.ceiling': 'Ceiling',
   'dsp.maximizer.lookAhead': 'Look-ahead',
   'dsp.maximizer.release': 'Release',
+
+  'dsp.master.title': 'Master',
+  'dsp.master.description':
+    'Transparent final output control after every processor. It does not change how hard the EQ, Exciter or other stages are driven.',
+  'dsp.master.outputTrim': 'Output gain',
+  'dsp.master.autoHeadroom': 'Auto headroom',
+  'dsp.master.autoHeadroomHint':
+    'Smoothly reduces only peaks that approach the selected stereo-linked true-peak ceiling.',
+  'dsp.master.ceiling': 'Ceiling',
+  'dsp.master.release': 'Release',
+  'dsp.master.loudnessMaximize': 'LUFS maximize',
+  'dsp.master.loudnessMaximizeHint':
+    'Applies {gain} dB from the cached whole-track loudness measurement, then keeps the final true peak below the ceiling. The gain is constant; only peaks are controlled.',
+  'dsp.master.loudnessTarget': 'Loudness target',
+  'dsp.master.meter': 'Final output',
+  'dsp.master.safetyHint':
+    '{factor}× true-peak detection · {ceiling} dBTP ceiling · {knee} dB soft knee · stereo-linked.',
+  'dsp.master.manualHint':
+    'Manual output: no peak reduction. Levels above 0 dBFS will clip.',
+  'dsp.master.truePeak': 'TP in',
+  'dsp.master.gainReduction': 'Gain reduction',
+  'dsp.master.devSafety': 'Safety A/B',
+  'dsp.master.devSafetyHint':
+    'Development only: bypasses the complete final protection so you can hear exactly what it changes.',
+  'dsp.master.devSafetySpec':
+    'Emergency guard above +10 dBTP · 2 ms look-ahead · non-recovering correction · 3 Hz DC protection · invalid-sample repair',
+  'dsp.master.dcCorrection': 'DC offset',
+  'dsp.master.faults': 'Faults',
+  'dsp.master.graph.spectrum': 'Final spectrum',
+  'dsp.master.graph.trim': 'Output gain',
+  'dsp.master.graph.applied': 'Applied gain',
+  'dsp.master.graph.trimLine': 'Gain {gain} dB',
+  'dsp.master.graph.appliedLine': 'Applied {gain} dB',
+  'dsp.master.graph.dcGuard': 'DC guard',
+  'dsp.master.graph.peakWarning': 'Warning · output {peak} dBTP above ceiling',
+  'dsp.master.graph.peakFixed': 'Peak controlled · {gain} dB gain reduction',
+  'dsp.master.graph.peakSafe': 'True peak within ceiling',
+  'dsp.master.graph.dcFixed': 'DC offset removed · {amount}',
+  'dsp.master.graph.dcClean': 'DC offset clean',
+  'dsp.master.graph.faultFixed': '{count} invalid or fault samples repaired',
+  'dsp.master.graph.faultClean': 'Samples valid',
+  'dsp.master.graph.safetyActive': 'Safeguards active',
+  'dsp.master.graph.safetyBypassed': 'Warning · safeguards bypassed',
+  'dsp.master.graph.loudnessActive':
+    'LUFS maximize · +{gain} dB toward {target} LUFS',
 
   'tabs.dsp': 'DSP',
 };

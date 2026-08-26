@@ -15,6 +15,18 @@ export const createCompressorState = (): ICompressorState => ({ gain: 1 });
 
 const dbToLinear = (db: number): number => 10 ** (db / 20);
 
+const requiredGain = (
+  magnitude: number,
+  threshold: number,
+  ratio: number,
+): number => {
+  if (magnitude <= threshold) {
+    return 1;
+  }
+  const over = magnitude / threshold;
+  return over ** (1 / ratio - 1);
+};
+
 /**
  * Per-sample smoothing coefficient for a time constant in milliseconds.
  *
@@ -54,15 +66,50 @@ export const processBand = (
   const release = coefficientFor(settings.releaseMs, sampleRate);
   for (let i = 0; i < buffer.length; i += 1) {
     const magnitude = Math.abs(buffer[i]);
-    let target = 1;
-    if (magnitude > threshold) {
-      // Gain that puts the overshoot back by the ratio: a signal `over` times
-      // the threshold should end up `over ** (1 / ratio)` times it.
-      const over = magnitude / threshold;
-      target = over ** (1 / settings.ratio - 1);
-    }
+    // Gain that puts the overshoot back by the ratio: a signal `over` times
+    // the threshold should end up `over ** (1 / ratio)` times it.
+    const target = requiredGain(magnitude, threshold, settings.ratio);
     const coefficient = target < state.gain ? attack : release;
     state.gain = target + (state.gain - target) * coefficient;
     buffer[i] *= state.gain * makeup;
+  }
+};
+
+/**
+ * Compress matching L/R band buffers with one detector and one gain envelope.
+ *
+ * A dual-mono compressor turns whichever channel contains the loudest transient
+ * down by itself, which moves a centred source sideways. The linked detector
+ * listens to the louder channel but applies the exact same gain to both, so the
+ * inter-channel level ratio—and therefore the stereo position—cannot move.
+ */
+export const processBandLinked = (
+  state: ICompressorState,
+  buffers: readonly Float32Array[],
+  settings: IBandSettings,
+  sampleRate: number,
+  channelCount: number = buffers.length,
+): void => {
+  const frames = buffers[0]?.length ?? 0;
+  if (frames === 0) {
+    return;
+  }
+  const channels = Math.min(channelCount, buffers.length);
+  const threshold = dbToLinear(settings.thresholdDb);
+  const makeup = dbToLinear(settings.makeupDb);
+  const attack = coefficientFor(settings.attackMs, sampleRate);
+  const release = coefficientFor(settings.releaseMs, sampleRate);
+  for (let frame = 0; frame < frames; frame += 1) {
+    let magnitude = 0;
+    for (let channel = 0; channel < channels; channel += 1) {
+      magnitude = Math.max(magnitude, Math.abs(buffers[channel][frame]));
+    }
+    const target = requiredGain(magnitude, threshold, settings.ratio);
+    const coefficient = target < state.gain ? attack : release;
+    state.gain = target + (state.gain - target) * coefficient;
+    const gain = state.gain * makeup;
+    for (let channel = 0; channel < channels; channel += 1) {
+      buffers[channel][frame] *= gain;
+    }
   }
 };

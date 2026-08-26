@@ -534,6 +534,9 @@ const karaoke = {
   'karaoke.maker.errorParse':
     'The selected lyric or karaoke file could not be parsed.',
   'karaoke.maker.downloadFailed': 'Whisper model download failed',
+  'karaoke.maker.pitchDownloadFailed': 'Pitch model download failed',
+  'karaoke.maker.pitchDownloadError':
+    'FluidEQ could not download the higher-accuracy melody model. Melody detection continued with the bundled offline model. Check your internet connection or firewall, then try again.',
   'karaoke.maker.localAnalysisFailed': 'Local analysis failed',
   'karaoke.maker.whisperDownloadError':
     'FluidEQ could not download the model from Hugging Face. Check your internet connection or firewall, then try again.',

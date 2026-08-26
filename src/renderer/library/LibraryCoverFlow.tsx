@@ -39,6 +39,12 @@ import {
   trackFolderPath,
 } from '../../common/library/grouping';
 import {
+  UNKNOWN_GENRE_ID,
+  groupIntoGenres,
+  sortGenres,
+  trackGenreIds,
+} from '../../common/library/genres';
+import {
   ILibraryTrack,
   TLibraryBrowseMode,
   TLibrarySort,
@@ -340,6 +346,24 @@ const LibraryCoverFlow = ({
         isPending: folder.isPending,
       }));
     }
+    if (browseMode === 'genre') {
+      const grouped = groupIntoGenres(tracks);
+      return (sort ? sortGenres(grouped, sort, sortDirection) : grouped).map(
+        (genre) => ({
+          id: genre.id,
+          artId: genre.artId,
+          // Named here rather than in `tileTitle`, the way the playlist
+          // branch below names Favourites: `t` is already a dependency of
+          // this memo for exactly that reason.
+          title:
+            genre.id === UNKNOWN_GENRE_ID
+              ? t('library.genre.unknown')
+              : genre.name,
+          artistName: t('library.artistCount', { count: genre.artistCount }),
+          isPending: genre.isPending,
+        }),
+      );
+    }
     if (browseMode === 'playlist') {
       // In `sortPlaylists`' order and not the toolbar's, for the reason the
       // list and grid branches give: Favourites is always the first cover.
@@ -562,6 +586,14 @@ const LibraryCoverFlow = ({
     if (browseMode === 'artist') {
       return artistKey(playing);
     }
+    if (browseMode === 'genre') {
+      // The first of them, where a track claims several. This marks ONE
+      // cover as the one playing and a track tagged "Rock; Pop" is genuinely
+      // on two shelves — highlighting both is not something a single centre
+      // index can express, and picking the first is at least stable across
+      // renders because `trackGenreIds` preserves tag order.
+      return trackGenreIds(playing)[0];
+    }
     if (browseMode === 'folder') {
       return trackFolderPath(playing.path);
     }
@@ -671,6 +703,7 @@ const LibraryCoverFlow = ({
     if (
       browseMode === 'album' ||
       browseMode === 'artist' ||
+      browseMode === 'genre' ||
       browseMode === 'folder' ||
       browseMode === 'playlist'
     ) {
@@ -902,6 +935,7 @@ const LibraryCoverFlow = ({
   const hasDrillIn =
     browseMode === 'album' ||
     browseMode === 'artist' ||
+    browseMode === 'genre' ||
     browseMode === 'folder' ||
     browseMode === 'playlist';
 
@@ -1072,6 +1106,7 @@ const LibraryCoverFlow = ({
             tracks={tracks}
             albumId={browseMode === 'album' ? expandedId : undefined}
             artistId={browseMode === 'artist' ? expandedId : undefined}
+            genreId={browseMode === 'genre' ? expandedId : undefined}
             folderPath={browseMode === 'folder' ? expandedId : undefined}
             playlistId={browseMode === 'playlist' ? expandedId : undefined}
             folderRoots={folderRoots}

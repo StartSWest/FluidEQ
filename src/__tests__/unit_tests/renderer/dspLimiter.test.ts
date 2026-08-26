@@ -5,7 +5,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import {
+  createLinkedLimiterState,
   createLimiterState,
+  processLinkedLimiter,
   processLimiter,
 } from '../../../renderer/dsp/limiter';
 
@@ -59,7 +61,10 @@ describe('look-ahead limiter', () => {
     const output = run(new Float32Array(1_024).fill(0.9));
     const settled = output.subarray(LOOK_AHEAD + 32);
     expect(peak(settled)).toBeLessThanOrEqual(CEILING + STARTUP_TOLERANCE);
-    expect(peak(settled)).toBeGreaterThan(CEILING - 1e-3);
+    // The true-peak detector may reduce sample peaks below the numerical
+    // ceiling when their reconstructed inter-sample peak is higher. It must
+    // still retain useful level rather than muting the programme.
+    expect(peak(settled)).toBeGreaterThan(CEILING * 0.9);
   });
 
   /**
@@ -141,5 +146,25 @@ describe('look-ahead limiter', () => {
     expect(peak(buffer.subarray(LOOK_AHEAD + 32))).toBeLessThanOrEqual(
       CEILING + STARTUP_TOLERANCE,
     );
+  });
+});
+
+describe('linked limiter bounded recovery', () => {
+  it('lands a deep reduction at unity inside the four-second cap', () => {
+    const rate = 1_000;
+    const state = createLinkedLimiterState(1, 1, 1);
+    state.detectorGain = 0.05;
+    state.gain = 0.05;
+    const silence = [new Float32Array(rate * 4)];
+
+    processLinkedLimiter(state, silence, {
+      ceiling: 1,
+      releaseCoefficient: Math.exp(-1 / rate),
+      releaseSnapRatio: 0.02,
+      sampleRate: rate,
+    });
+
+    expect(state.detectorGain).toBe(1);
+    expect(state.gain).toBe(1);
   });
 });

@@ -118,6 +118,12 @@ const PATHS: Record<string, string> = {
   album:
     'M12 4a8 8 0 1 0 0 16 8 8 0 0 0 0-16zM12 10.4a1.6 1.6 0 1 0 0 3.2 1.6 1.6 0 0 0 0-3.2z',
   artist: 'M12 5a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM5.5 19.5a6.5 6.5 0 0 1 13 0',
+  // A luggage tag with its eyelet: what a genre actually is — a label stuck
+  // on the record by whoever tagged it, not a property of the music. The
+  // other shelf glyphs draw the thing they list; this one draws the tag,
+  // because there is nothing a genre looks like.
+  genre:
+    'M4 11.5V5.5A1.5 1.5 0 0 1 5.5 4h6l8.5 8.5-7.5 7.5L4 11.5zM8.4 7.9a.9.9 0 1 1-1.8 0 .9.9 0 0 1 1.8 0',
   song: 'M9 16.5V5.5l9-2v11M9 16.5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0zM18 14.5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z',
   video: 'M3.5 6.5h17v11h-17zM10 9.75l4.5 2.25L10 14.25z',
   // The library's three shelves, for when the tab is too narrow to name them.

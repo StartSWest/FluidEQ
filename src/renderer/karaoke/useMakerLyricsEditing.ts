@@ -14,7 +14,11 @@ import {
 import { useTranslation } from '../utils/I18nContext';
 import { useKaraokeMakerProject } from './useKaraokeMakerProject';
 import { TSelection } from './useKaraokeMakerSelection';
-import { flattenTokens, replaceToken } from './makerProjectEdits';
+import {
+  flattenTokens,
+  moveKaraokeMakerWord,
+  replaceToken,
+} from './makerProjectEdits';
 
 /**
  * Editing one word: its text, its timing, and moving between words.
@@ -238,9 +242,21 @@ export const useMakerLyricsEditing = ({
     }
   };
 
+  const moveLyricsEditorWord = (
+    tokenId: string,
+    targetLineId: string,
+    beforeTokenId?: string | null,
+  ) => {
+    commit((current) =>
+      moveKaraokeMakerWord(current, tokenId, targetLineId, beforeTokenId),
+    );
+    setSelection({ kind: 'word', id: tokenId });
+  };
+
   return {
     auditionLyricsToken,
     moveLyricsEditorSelection,
+    moveLyricsEditorWord,
     noteKindLabel,
     selectLyricsEditorToken,
     updateSelectedTokenTiming,

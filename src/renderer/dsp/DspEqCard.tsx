@@ -11,7 +11,6 @@ import {
   EQ_MAX_BAND_COUNT,
   IEqBandSettings,
   IEqSettings,
-  TRIM_MODES,
   eqEdited,
 } from '../../common/dsp/chain';
 import { TranslationKey } from '../../common/i18n/en';
@@ -23,7 +22,6 @@ import DspEqLegend from './DspEqLegend';
 import DspFilterShapeIcon from './DspFilterShapeIcon';
 import DspPhaseMeter from './DspPhaseMeter';
 import DspDynamicReadout from './DspDynamicReadout';
-import DspTrimReadout from './DspTrimReadout';
 
 const BAND_TYPES: { type: FilterTypeEnum; labelKey: TranslationKey }[] = [
   { type: FilterTypeEnum.PK, labelKey: 'dsp.eq.type.peak' },
@@ -182,7 +180,6 @@ const DspEqCard = ({ eq, sampleRate, onChange, onCommit }: IDspEqCardProps) => {
           )}
           showsThreshold={band.dynamic && band.enabled}
           showsSubsonic={eq.subsonicHz > 0}
-          showsInput={Math.abs(eq.preampDb + eq.trimDb) >= 0.05}
         />
       </div>
 
@@ -214,137 +211,121 @@ const DspEqCard = ({ eq, sampleRate, onChange, onCommit }: IDspEqCardProps) => {
         ))}
       </div>
 
-      {/* Two blocks, not one row with a rule down it. The preamp is the whole
-          curve's headroom and the strip is one band's controls — they are
-          different scopes, and giving each its own panel says so without a
-          label having to. */}
+      {/* Two deliberate rows with one centred axis: global controls and phase
+          above, then the selected band's controls below. */}
       <div className="dsp-eq-bottom">
-        <div className="dsp-eq-preamp">
-          {/* The two halves of the input gain, boxed together the way the
-              dynamic pair is. What the regulator takes and what the user
-              spends of it are one question with two dials; the four beside
-              them shape the sound and answer another. */}
-          <div className="dsp-eq-headroom">
+        <div className="dsp-eq-global-row">
+          <div className="dsp-eq-global-controls">
+            {/* How much of the chosen character to apply. At zero every one of
+              them collapses to the plain cookbook, so this is the off switch
+              as well as the dial. */}
             <LabelledKnob
-              label={t('dsp.eq.preamp')}
-              value={eq.preampDb}
-              min={-24}
-              max={24}
-              step={0.1}
-              unit="dB"
-              defaultValue={0}
-              isDisabled={false}
-              // Deliberately does NOT clear `presetId`: the preamp is
-              // headroom, not part of the curve a preset describes, so
-              // trimming it must not make the picker claim the preset was
-              // abandoned.
-              //
-              // Nor does it switch the regulator off. The two are separate
-              // gains: the regulator makes exactly the room the curve needs
-              // and this says how much of it to spend, so zero here means the
-              // rack sits at unity and turning it up is a decision rather
-              // than an accident.
-              onChange={(preampDb) => onChange({ ...eq, preampDb })}
+              label={t('dsp.eq.character')}
+              value={Math.round(eq.modelAmount * 100)}
+              min={0}
+              max={100}
+              step={1}
+              unit="%"
+              defaultValue={100}
+              isDisabled={eq.model === 'clean'}
+              onChange={(percent) =>
+                onChange(eqEdited(eq, { modelAmount: percent / 100 }))
+              }
               onCommit={onCommit}
             />
-            {/* A readout, not a control: what the regulator is taking out in
-                front of the bands so the preamp beside it can start from
-                zero. Written in the dials' own grammar — figure over caption
-                — because it stands in a row of them and anything else reads
-                as a control that has lost its knob. */}
-            <DspTrimReadout
-              reservedDb={eq.trimDb}
-              mode={eq.trimMode}
-              onCycle={() => {
-                // Round the three, in the order they cost the user least to
-                // most: steady, then measured, then nothing at all.
-                const next =
-                  TRIM_MODES[
-                    (TRIM_MODES.indexOf(eq.trimMode) + 1) % TRIM_MODES.length
-                  ];
-                onChange({ ...eq, trimMode: next });
+            {/* Cone protection, not tone. Rumble below hearing still costs real
+              excursion, and the woofer spends it on nothing. */}
+            <LabelledKnob
+              label={t('dsp.eq.subsonic')}
+              value={eq.subsonicHz}
+              min={0}
+              max={40}
+              step={1}
+              unit="Hz"
+              defaultValue={0}
+              isDisabled={false}
+              // Below the clamp's floor there is no useful filter, so the dial
+              // steps straight from off to the lowest one worth having.
+              onChange={(hz) =>
+                onChange(
+                  eqEdited(eq, { subsonicHz: hz > 0 && hz < 10 ? 10 : hz }),
+                )
+              }
+              onCommit={onCommit}
+            />
+            {/* The only colour in the rack that filters cannot make. Zero is off
+              and costs nothing; the stage is skipped entirely. */}
+            <LabelledKnob
+              label={t('dsp.eq.fuzz')}
+              value={Math.round(eq.fuzzAmount * 100)}
+              min={0}
+              max={100}
+              step={1}
+              unit="%"
+              defaultValue={0}
+              isDisabled={false}
+              onChange={(percent) =>
+                onChange(eqEdited(eq, { fuzzAmount: percent / 100 }))
+              }
+              onCommit={onCommit}
+            />
+            {/* The phase-cancellation fix. Bass out of phase between the two
+              channels vanishes the moment they are summed, which is what a
+              phone speaker does — this removes the part that can cancel and
+              leaves the middle whole. */}
+            <LabelledKnob
+              label={t('dsp.eq.monoBelow')}
+              value={eq.monoBelowHz}
+              min={0}
+              max={300}
+              step={5}
+              unit="Hz"
+              defaultValue={0}
+              isDisabled={false}
+              onChange={(hz) =>
+                onChange(
+                  eqEdited(eq, { monoBelowHz: hz > 0 && hz < 40 ? 40 : hz }),
+                )
+              }
+              onCommit={onCommit}
+            />
+          </div>
+
+          <DspPhaseMeter />
+        </div>
+
+        <div className="dsp-eq-strip">
+          {/* Dynamics belongs to the selected band, so it leads that band's
+              controls instead of appearing with the global tone controls. */}
+          <div className="dsp-eq-dynamic">
+            <LabelledKnob
+              label={t('dsp.eq.threshold')}
+              value={band.thresholdDb}
+              min={-60}
+              max={0}
+              step={0.5}
+              unit="dB"
+              defaultValue={fallback.thresholdDb}
+              // Live even while the band is static, because reaching for the
+              // threshold is asking for the band to react.
+              isDisabled={active < 0 || !band.enabled}
+              onChange={(thresholdDb) =>
+                patchBand(active, { thresholdDb, dynamic: true })
+              }
+              onCommit={onCommit}
+            />
+            <DspDynamicReadout
+              bandIndex={active}
+              isDynamic={band.dynamic}
+              isDisabled={active < 0 || !band.enabled}
+              isRackEnabled={eq.enabled}
+              onToggle={() => {
+                patchBand(active, { dynamic: !band.dynamic });
                 onCommit();
               }}
             />
           </div>
-          {/* How much of the chosen character to apply. At zero every one of
-              them collapses to the plain cookbook, so this is the off switch
-              as well as the dial. */}
-          <LabelledKnob
-            label={t('dsp.eq.character')}
-            value={Math.round(eq.modelAmount * 100)}
-            min={0}
-            max={100}
-            step={1}
-            unit="%"
-            defaultValue={100}
-            isDisabled={eq.model === 'clean'}
-            onChange={(percent) =>
-              onChange(eqEdited(eq, { modelAmount: percent / 100 }))
-            }
-            onCommit={onCommit}
-          />
-          {/* Cone protection, not tone. Rumble below hearing still costs real
-              excursion, and the woofer spends it on nothing. */}
-          <LabelledKnob
-            label={t('dsp.eq.subsonic')}
-            value={eq.subsonicHz}
-            min={0}
-            max={40}
-            step={1}
-            unit="Hz"
-            defaultValue={0}
-            isDisabled={false}
-            // Below the clamp's floor there is no useful filter, so the dial
-            // steps straight from off to the lowest one worth having.
-            onChange={(hz) =>
-              onChange(
-                eqEdited(eq, { subsonicHz: hz > 0 && hz < 10 ? 10 : hz }),
-              )
-            }
-            onCommit={onCommit}
-          />
-          {/* The only colour in the rack that filters cannot make. Zero is off
-              and costs nothing; the stage is skipped entirely. */}
-          <LabelledKnob
-            label={t('dsp.eq.fuzz')}
-            value={Math.round(eq.fuzzAmount * 100)}
-            min={0}
-            max={100}
-            step={1}
-            unit="%"
-            defaultValue={0}
-            isDisabled={false}
-            onChange={(percent) =>
-              onChange(eqEdited(eq, { fuzzAmount: percent / 100 }))
-            }
-            onCommit={onCommit}
-          />
-          {/* The phase-cancellation fix. Bass out of phase between the two
-              channels vanishes the moment they are summed, which is what a
-              phone speaker does — this removes the part that can cancel and
-              leaves the middle whole. */}
-          <LabelledKnob
-            label={t('dsp.eq.monoBelow')}
-            value={eq.monoBelowHz}
-            min={0}
-            max={300}
-            step={5}
-            unit="Hz"
-            defaultValue={0}
-            isDisabled={false}
-            onChange={(hz) =>
-              onChange(
-                eqEdited(eq, { monoBelowHz: hz > 0 && hz < 40 ? 40 : hz }),
-              )
-            }
-            onCommit={onCommit}
-          />
-        </div>
 
-        <DspPhaseMeter />
-
-        <div className="dsp-eq-strip">
           <div className="dsp-eq-shape">
             <span className="dsp-eq-field-label">{t('dsp.eq.shape')}</span>
             <Dropdown
@@ -407,48 +388,6 @@ const DspEqCard = ({ eq, sampleRate, onChange, onCommit }: IDspEqCardProps) => {
             onChange={(quality) => patchBand(active, { quality })}
             onCommit={onCommit}
           />
-
-          {/* Quiet, and beside the band they act on: adding a band is a step
-              in building a curve, not the thing this strip is for. */}
-          {/* Its own block, like the preamp's, because these two are one
-              decision and the dials beside them are another. Loose in the row,
-              the threshold read as a fourth band parameter — which it is not:
-              Frec, Ganancia and Ancho describe the filter's shape, and these
-              describe when that shape is allowed to happen. */}
-          <div className="dsp-eq-dynamic">
-            <LabelledKnob
-              label={t('dsp.eq.threshold')}
-              value={band.thresholdDb}
-              min={-60}
-              max={0}
-              step={0.5}
-              unit="dB"
-              defaultValue={fallback.thresholdDb}
-              // Live even while the band is static, because a control you
-              // cannot use to switch the thing on is a dead end: reaching for
-              // the threshold IS asking for the band to react, so it does.
-              isDisabled={active < 0 || !band.enabled}
-              onChange={(thresholdDb) =>
-                patchBand(active, { thresholdDb, dynamic: true })
-              }
-              onCommit={onCommit}
-            />
-            {/* A live figure over the caption that decides how it is arrived
-                at, the same shape the input regulator uses — because it is the
-                same kind of question. A dynamic band is otherwise invisible:
-                the threshold sets a level nothing on screen reports, so the
-                only way to know it is set right is to watch the band. */}
-            <DspDynamicReadout
-              bandIndex={active}
-              isDynamic={band.dynamic}
-              isDisabled={active < 0 || !band.enabled}
-              isRackEnabled={eq.enabled}
-              onToggle={() => {
-                patchBand(active, { dynamic: !band.dynamic });
-                onCommit();
-              }}
-            />
-          </div>
 
           <div className="dsp-eq-insert">
             <button

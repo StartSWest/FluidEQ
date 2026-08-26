@@ -4,6 +4,8 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
+import { TOversampleFactor } from './oversample';
+
 /**
  * Oversampling factor. Four is what ITU-R BS.1770 specifies for a 48kHz
  * signal, and what every meter calling itself "true peak" uses.
@@ -15,6 +17,7 @@ const TAPS = 12;
 
 /** Half the filter's span, in input samples: the delay it introduces. */
 const HALF = TAPS / 2;
+export const TRUE_PEAK_LATENCY_SAMPLES = HALF;
 
 /**
  * A windowed-sinc interpolator, one phase per fractional offset.
@@ -60,12 +63,19 @@ const buildPhases = (): Float64Array[] => {
 const PHASES = buildPhases();
 
 export interface ITruePeakState {
-  /** The last `TAPS` input samples, oldest first. */
+  /** Session-aware interpolation density: 4x, 2x, or sample peak at 1x. */
+  factor: TOversampleFactor;
+  /** Circular history; `position` points to the oldest/next write slot. */
   history: Float64Array;
+  position: number;
 }
 
-export const createTruePeakState = (): ITruePeakState => ({
+export const createTruePeakState = (
+  factor: TOversampleFactor = TRUE_PEAK_FACTOR,
+): ITruePeakState => ({
+  factor,
   history: new Float64Array(TAPS),
+  position: 0,
 });
 
 /**
@@ -84,16 +94,25 @@ export const truePeakOfSample = (
   state: ITruePeakState,
   sample: number,
 ): number => {
+  if (state.factor === 1) {
+    return Math.abs(sample);
+  }
   const { history } = state;
-  // Shift the window along by one and drop the incoming sample in.
-  history.copyWithin(0, 1);
-  history[TAPS - 1] = sample;
+  history[state.position] = sample;
+  state.position = state.position + 1 === TAPS ? 0 : state.position + 1;
   let peak = 0;
-  for (let phase = 0; phase < TRUE_PEAK_FACTOR; phase += 1) {
+  const phaseStep = TRUE_PEAK_FACTOR / state.factor;
+  for (let phase = 0; phase < TRUE_PEAK_FACTOR; phase += phaseStep) {
     const taps = PHASES[phase];
     let sum = 0;
-    for (let tap = 0; tap < TAPS; tap += 1) {
-      sum += history[tap] * taps[tap];
+    let tap = 0;
+    for (let read = state.position; read < TAPS; read += 1) {
+      sum += history[read] * taps[tap];
+      tap += 1;
+    }
+    for (let read = 0; tap < TAPS; read += 1) {
+      sum += history[read] * taps[tap];
+      tap += 1;
     }
     const magnitude = Math.abs(sum);
     if (magnitude > peak) {

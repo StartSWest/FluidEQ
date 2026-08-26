@@ -4,17 +4,15 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { fromApoText } from '../../common/dsp/apoEqFormat';
 import {
-  DSP_DEFAULTS,
   EQ_ENGINES,
   EQ_MODELS,
   EQ_PHASE_MODES,
   EQ_RACK_SIZES,
   EQ_STEREO_MODES,
   OVERSAMPLE_FACTORS,
-  IEqBandSettings,
   IEqSettings,
   TEqEngine,
   TEqModel,
@@ -28,14 +26,14 @@ import { linearPhaseLatencyMs } from './linearPhase';
 import {
   EQ_DEFAULT_PRESET_ID,
   EQ_PRESETS,
-  IEqPreset,
-  eqPresetSetup,
+  eqSettingsForPreset,
   isCompleteEqPreset,
 } from '../../common/dsp/eqPresets';
 import { TranslationKey } from '../../common/i18n/en';
 import { useTranslation } from '../utils/I18nContext';
+import MenuIcon from '../icons/MenuIcon';
 import VoicingIcon from '../icons/VoicingIcon';
-import Dropdown from '../widgets/Dropdown';
+import AnchoredMenu, { isInsideAnchoredMenu } from '../widgets/AnchoredMenu';
 import RichPick from '../widgets/RichPick';
 import SegmentedControl from '../widgets/SegmentedControl';
 import { eqPresetEntries, eqPresetGroupLabel } from './presetPickEntries';
@@ -43,6 +41,7 @@ import DspEqImportDialog from './DspEqImportDialog';
 import DspBarIcon from './DspBarIcon';
 import DspPresetSaveDialog from './DspPresetSaveDialog';
 import { fromPresetFile, toPresetFile } from '../../common/dsp/presetFile';
+import { exportEqPreset } from '../utils/equalizerApi';
 import {
   IUserPreset,
   USER_PRESET_PREFIX,
@@ -75,6 +74,9 @@ const DspEqBar = ({ eq, sampleRate, onChange, onCommit }: IDspEqBarProps) => {
   const [notice, setNotice] = useState('');
   const [isImporting, setIsImporting] = useState(false);
   const [isNaming, setIsNaming] = useState(false);
+  const [isRackMenuOpen, setIsRackMenuOpen] = useState(false);
+  const [isSharing, setIsSharing] = useState(false);
+  const rackMenuHolder = useRef<HTMLSpanElement>(null);
   /**
    * The saved list, held in state so saving one shows it at once.
    *
@@ -84,6 +86,33 @@ const DspEqBar = ({ eq, sampleRate, onChange, onCommit }: IDspEqBarProps) => {
   const [userPresets, setUserPresets] = useState<IUserPreset[]>(() =>
     readUserPresets(),
   );
+
+  // The menu is portalled out of the clipped DSP card, so its own surface has
+  // to count as inside when deciding whether an outside click closes it.
+  useEffect(() => {
+    if (!isRackMenuOpen) {
+      return undefined;
+    }
+    const onPointerDown = (event: MouseEvent) => {
+      if (
+        !rackMenuHolder.current?.contains(event.target as Node) &&
+        !isInsideAnchoredMenu(event.target)
+      ) {
+        setIsRackMenuOpen(false);
+      }
+    };
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsRackMenuOpen(false);
+      }
+    };
+    window.addEventListener('mousedown', onPointerDown);
+    window.addEventListener('keydown', onKeyDown);
+    return () => {
+      window.removeEventListener('mousedown', onPointerDown);
+      window.removeEventListener('keydown', onKeyDown);
+    };
+  }, [isRackMenuOpen]);
 
   /**
    * A different resolution of the same curve, not a different curve.
@@ -114,59 +143,6 @@ const DspEqBar = ({ eq, sampleRate, onChange, onCommit }: IDspEqBarProps) => {
       ),
     });
     onCommit();
-  };
-
-  /**
-   * A preset is its curve AND the rack it was voiced on.
-   *
-   * Applying only the fifteen gains left the character, the topology and the
-   * protective filters wherever the previous preset put them, so the same entry
-   * sounded different depending on what had been auditioned before it — which
-   * is the one thing a preset exists to rule out.
-   */
-  /**
-   * The preset decides which bands react, and no band it is silent about does.
-   *
-   * The fit solves gains onto the CURRENT rack and carries everything else
-   * about those bands across, so a de-esser left over from the last preset
-   * survived into the next one and kept ducking a frequency the new curve
-   * never asked about. A preset owns this the way it owns the character and
-   * the topology: stated or reset, never inherited.
-   *
-   * Matched by frequency rather than by index, because the fitted rack is
-   * whatever size the user chose and the preset's list is always fifteen. The
-   * nearest band in log space is the one covering the same ground.
-   */
-  const withPresetDynamics = (
-    fitted: readonly IEqBandSettings[],
-    preset: IEqPreset,
-  ): IEqBandSettings[] => {
-    const cleared = fitted.map((one) => ({
-      ...one,
-      dynamic: false,
-      thresholdDb: DSP_DEFAULTS.eq.bands[0].thresholdDb,
-    }));
-    preset.dynamic?.forEach((threshold, index) => {
-      const wanted = DSP_DEFAULTS.eq.bands[index]?.frequency;
-      if (threshold === null || threshold === undefined || !wanted) {
-        return;
-      }
-      let nearest = 0;
-      let closest = Infinity;
-      cleared.forEach((one, at) => {
-        const distance = Math.abs(Math.log2(one.frequency / wanted));
-        if (distance < closest) {
-          closest = distance;
-          nearest = at;
-        }
-      });
-      cleared[nearest] = {
-        ...cleared[nearest],
-        dynamic: true,
-        thresholdDb: threshold,
-      };
-    });
-    return cleared;
   };
 
   /**
@@ -206,64 +182,9 @@ const DspEqBar = ({ eq, sampleRate, onChange, onCommit }: IDspEqBarProps) => {
       return;
     }
     setNotice('');
-    if (id === EQ_DEFAULT_PRESET_ID) {
-      /**
-       * Everything, and deliberately more than the other entries touch.
-       *
-       * The rack size, the source curve and the preamp all move on an import,
-       * and a reset that leaves those behind is the kind that reads as
-       * half-working. The regulator goes with them: a reset means nothing
-       * applied at all, which is a stronger statement than "the shipped
-       * defaults" and the only one that takes the reading beside the preamp
-       * to zero.
-       *
-       * A fresh install still starts with the fixed reserve, because shipping
-       * the protection is the sensible default — but asking for a reset is
-       * asking for an equaliser doing nothing whatsoever, and an automatic
-       * gain is something.
-       *
-       * The bypass switch stays the user's, not the preset's.
-       */
-      onChange({
-        ...DSP_DEFAULTS.eq,
-        trimMode: 'off',
-        enabled: eq.enabled,
-        presetId: id,
-      });
-      onCommit();
-      return;
-    }
-    // The presets are fifteen gains written against the fifteen-band rack, so
-    // they are built there and then read onto whatever rack is loaded. The
-    // alternative — snapping the rack back to fifteen — would throw away a
-    // size the user chose on purpose every time they auditioned a preset.
-    const asFifteen = DSP_DEFAULTS.eq.bands.map((band, index) => {
-      // Absent for almost every preset, which is what a tone curve should be.
-      const threshold = chosen.dynamic?.[index] ?? null;
-      return {
-        ...band,
-        gainDb: chosen.gains[index],
-        dynamic: threshold !== null,
-        thresholdDb: threshold ?? band.thresholdDb,
-      };
-    });
-    const setup = eqPresetSetup(chosen);
-    onChange({
-      ...eq,
-      ...setup,
-      presetId: id,
-      // The preset's own fifteen are the reference, so moving to 31 bands
-      // afterwards reads the preset at full detail rather than reading back
-      // whatever the current rack could hold of it.
-      sourceBands: asFifteen,
-      // Fitted through the INCOMING character, not the outgoing one. The fit
-      // solves for gains that reproduce the curve through a given filter shape,
-      // so reading it through the shape being replaced misfits every band.
-      bands: withPresetDynamics(
-        rackMatchingCurveOf(eq.bands, asFifteen, sampleRate, setup.model),
-        chosen,
-      ),
-    });
+    // One deterministic state, including the canonical band shapes. The only
+    // value retained from the previous rack is whether the processor is on.
+    onChange(eqSettingsForPreset(eq, chosen));
     onCommit();
   };
 
@@ -300,19 +221,23 @@ const DspEqBar = ({ eq, sampleRate, onChange, onCommit }: IDspEqBarProps) => {
     applyPreset(next);
   };
 
-  const handleShare = () => {
+  const handleShare = async () => {
     const saved = eq.presetId.startsWith(USER_PRESET_PREFIX)
       ? findUserPreset(eq.presetId)
       : undefined;
     const name = saved?.name ?? t('dsp.eqPreset.custom');
-    const url = URL.createObjectURL(
-      new Blob([toPresetFile(name, eq)], { type: 'application/json' }),
-    );
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `${name.replace(/[^\w\- ]+/g, '')}.fluideq.json`;
-    link.click();
-    URL.revokeObjectURL(url);
+    setNotice('');
+    setIsSharing(true);
+    try {
+      const exported = await exportEqPreset(name, toPresetFile(name, eq));
+      if (exported) {
+        setNotice(t('dsp.eqShare.saved'));
+      }
+    } catch {
+      setNotice(t('dsp.eqShare.failed'));
+    } finally {
+      setIsSharing(false);
+    }
   };
 
   const handleSave = (name: string) => {
@@ -356,7 +281,7 @@ const DspEqBar = ({ eq, sampleRate, onChange, onCommit }: IDspEqBarProps) => {
       setNotice(t('dsp.eqSave.imported', { name: saved.name }));
       return;
     }
-    const { bands, preampDb, skipped } = fromApoText(text);
+    const { bands, skipped } = fromApoText(text);
     if (!bands.length) {
       // Says nothing was read rather than nothing at all. The likeliest reason
       // is that this is not a ParametricEQ file, and silence from a button
@@ -384,18 +309,6 @@ const DspEqBar = ({ eq, sampleRate, onChange, onCommit }: IDspEqBarProps) => {
         ? t('dsp.eqPreset.importSkipped', { count: bands.length, skipped })
         : t('dsp.eqPreset.imported', { count: bands.length }),
     ];
-    if (preampDb !== 0) {
-      // Deliberately NOT applied. A file's `Preamp` line and this rack's
-      // regulator are the same quantity — room for the curve's own boosts —
-      // and applying both counts it twice: a headphone correction asking for
-      // -5.6 dB alongside a measured -5.7 arrived 11.3 dB quiet, which reads
-      // as the import having killed the bass rather than as double headroom.
-      //
-      // The regulator wins because it measures THESE filters at THIS rate,
-      // while the file's figure was computed by whoever published it, against
-      // a rack that may not have been the one it ends up in.
-      notes.push(t('dsp.eqPreset.importPreamp', { gain: preampDb }));
-    }
     setNotice(notes.join(' '));
   };
 
@@ -480,9 +393,10 @@ const DspEqBar = ({ eq, sampleRate, onChange, onCommit }: IDspEqBarProps) => {
         </button>
         <button
           type="button"
-          className="button small subtle"
+          className="button small subtle dsp-eq-share"
           title={t('dsp.eqShare.hint')}
           onClick={handleShare}
+          disabled={isSharing}
         >
           <DspBarIcon name="share" />
           {t('dsp.eqShare.share')}
@@ -516,137 +430,176 @@ const DspEqBar = ({ eq, sampleRate, onChange, onCommit }: IDspEqBarProps) => {
         )}
       </div>
 
-      {/* Labels sit BESIDE their fields, not stacked over them. Above, each
-          pair stood two rows tall inside a row that is one control high, and
-          the header grew a band of empty space to fit a word. */}
-      <div className="dsp-eq-preset dsp-eq-rack">
-        <span className="dsp-eq-preset-label">{t('dsp.eq.rack')}</span>
-        <Dropdown
-          name={t('dsp.eq.rack')}
-          value={String(eq.bands.length)}
-          isDisabled={false}
-          options={rackOptions.map((size) => ({
-            value: size,
-            label: size,
-            display: size,
-          }))}
-          handleChange={applyRack}
-        />
-      </div>
+      {/* The Bands page already solved this exact question: one quiet split
+          picker that names the active layout and puts every alternative in an
+          anchored menu. Reusing its classes keeps the same control looking and
+          behaving the same in both equalizers. */}
+      <span
+        className={`dsp-eq-rack eq-mode is-subtle quick-layouts${
+          isRackMenuOpen ? ' is-open' : ''
+        }`}
+        ref={rackMenuHolder}
+      >
+        <button
+          type="button"
+          className="button small subtle eq-mode__main"
+          aria-label={t('dsp.eq.rack')}
+          aria-expanded={isRackMenuOpen}
+          aria-haspopup="menu"
+          onClick={() => setIsRackMenuOpen((wasOpen) => !wasOpen)}
+        >
+          <MenuIcon name="layout" className="eq-toolbar__icon" />
+          {t('eq.bandCount', { count: eq.bands.length })}
+        </button>
+        <button
+          type="button"
+          className="eq-mode__caret"
+          aria-label={t('dsp.eq.rack')}
+          aria-expanded={isRackMenuOpen}
+          onClick={() => setIsRackMenuOpen((wasOpen) => !wasOpen)}
+        >
+          <svg viewBox="0 0 16 16" aria-hidden="true">
+            <path d="M4 6.5l4 4 4-4" />
+          </svg>
+        </button>
+        <AnchoredMenu
+          anchor={rackMenuHolder.current}
+          isOpen={isRackMenuOpen}
+          className="eq-mode__menu quick-layouts__menu"
+          ariaLabel={t('dsp.eq.rack')}
+        >
+          {rackOptions
+            .filter((size) => Number(size) !== eq.bands.length)
+            .map((size) => (
+              <button
+                key={`${size}-band`}
+                type="button"
+                onClick={() => {
+                  applyRack(size);
+                  setIsRackMenuOpen(false);
+                }}
+              >
+                <MenuIcon name="layout" className="eq-toolbar__icon" />
+                <span className="eq-mode__menu-name">
+                  {t('eq.bandCount', { count: Number(size) })}
+                </span>
+              </button>
+            ))}
+        </AnchoredMenu>
+      </span>
 
-      {/* A deliberate break rather than wherever the width happens to run out.
-          The row above is what acts on the preset; everything below is what the
-          rack is set to, and letting those two wrap into each other made the
-          line read as one long strip of unrelated controls. */}
-      <div className="dsp-eq-bar-break" aria-hidden="true" />
-
-      {/* The same curve through different machinery. First of the settings row
+      {/* One centred settings row, separate from the preset actions above. A
+          wrapper makes the alignment explicit and prevents one setting from
+          becoming a third header line when the toolbar gets tight. */}
+      <div className="dsp-eq-settings">
+        {/* The same curve through different machinery. First of the settings row
           because the character decides how every dial below is rendered rather
           than what it is set to. */}
-      <div className="dsp-eq-preset">
-        <span className="dsp-eq-preset-label">{t('dsp.eqModel.label')}</span>
-        <SegmentedControl
-          name={t('dsp.eqModel.label')}
-          value={eq.model}
-          options={EQ_MODELS.map((model) => ({
-            value: model,
-            label: t(`dsp.eqModel.${model}` as TranslationKey),
-          }))}
-          onChange={(next: string) => {
-            onChange(eqEdited(eq, { model: next as TEqModel }));
-            onCommit();
-          }}
-        />
-      </div>
+        <div className="dsp-eq-preset">
+          <span className="dsp-eq-preset-label">{t('dsp.eqModel.label')}</span>
+          <SegmentedControl
+            name={t('dsp.eqModel.label')}
+            value={eq.model}
+            options={EQ_MODELS.map((model) => ({
+              value: model,
+              label: t(`dsp.eqModel.${model}` as TranslationKey),
+            }))}
+            onChange={(next: string) => {
+              onChange(eqEdited(eq, { model: next as TEqModel }));
+              onCommit();
+            }}
+          />
+        </div>
 
-      {/* Orthogonal to both of the others, which is why it is its own control
+        {/* Orthogonal to both of the others, which is why it is its own control
           rather than a third engine: it is the same topology given room. */}
-      <div className="dsp-eq-preset">
-        <span className="dsp-eq-preset-label">
-          {t('dsp.eqOversample.label')}
-        </span>
-        <SegmentedControl
-          name={t('dsp.eqOversample.label')}
-          value={String(eq.oversample)}
-          // Nothing to offer linear phase, and saying so is better than leaving
-          // a live control that does nothing: oversampling exists to move a
-          // band away from where the bilinear transform squeezes it, and an FIR
-          // built from an impulse response has no bilinear transform in it.
-          isDisabled={eq.phase === 'linear'}
-          options={OVERSAMPLE_FACTORS.map((factor) => ({
-            value: String(factor),
-            label: factor === 1 ? t('dsp.eqOversample.off') : `${factor}x`,
-          }))}
-          onChange={(next: string) => {
-            onChange(eqEdited(eq, { oversample: Number(next) }));
-            onCommit();
-          }}
-        />
-      </div>
+        <div className="dsp-eq-preset">
+          <span className="dsp-eq-preset-label">
+            {t('dsp.eqOversample.label')}
+          </span>
+          <SegmentedControl
+            name={t('dsp.eqOversample.label')}
+            value={String(eq.oversample)}
+            // Nothing to offer linear phase, and saying so is better than leaving
+            // a live control that does nothing: oversampling exists to move a
+            // band away from where the bilinear transform squeezes it, and an FIR
+            // built from an impulse response has no bilinear transform in it.
+            isDisabled={eq.phase === 'linear'}
+            options={OVERSAMPLE_FACTORS.map((factor) => ({
+              value: String(factor),
+              label: factor === 1 ? t('dsp.eqOversample.off') : `${factor}x`,
+            }))}
+            onChange={(next: string) => {
+              onChange(eqEdited(eq, { oversample: Number(next) }));
+              onCommit();
+            }}
+          />
+        </div>
 
-      {/* Which part of the image the bands act on. Mid and side are the one
+        {/* Which part of the image the bands act on. Mid and side are the one
           thing a stereo equaliser cannot do at all. */}
-      <div className="dsp-eq-preset">
-        <span className="dsp-eq-preset-label">{t('dsp.eqStereo.label')}</span>
-        <SegmentedControl
-          name={t('dsp.eqStereo.label')}
-          value={eq.stereo}
-          options={EQ_STEREO_MODES.map((mode) => ({
-            value: mode,
-            label: t(`dsp.eqStereo.${mode}` as TranslationKey),
-          }))}
-          onChange={(next: string) => {
-            onChange(eqEdited(eq, { stereo: next as TEqStereo }));
-            onCommit();
-          }}
-        />
-      </div>
+        <div className="dsp-eq-preset">
+          <span className="dsp-eq-preset-label">{t('dsp.eqStereo.label')}</span>
+          <SegmentedControl
+            name={t('dsp.eqStereo.label')}
+            value={eq.stereo}
+            options={EQ_STEREO_MODES.map((mode) => ({
+              value: mode,
+              label: t(`dsp.eqStereo.${mode}` as TranslationKey),
+            }))}
+            onChange={(next: string) => {
+              onChange(eqEdited(eq, { stereo: next as TEqStereo }));
+              onCommit();
+            }}
+          />
+        </div>
 
-      {/* A different question from the character: not what shape each band is,
+        {/* A different question from the character: not what shape each band is,
           but how the bands are put against the audio. */}
-      <div className="dsp-eq-preset">
-        <span className="dsp-eq-preset-label">{t('dsp.eqEngine.label')}</span>
-        <SegmentedControl
-          name={t('dsp.eqEngine.label')}
-          value={eq.engine}
-          options={EQ_ENGINES.map((engine) => ({
-            value: engine,
-            label: t(`dsp.eqEngine.${engine}` as TranslationKey),
-          }))}
-          onChange={(next: string) => {
-            onChange(eqEdited(eq, { engine: next as TEqEngine }));
-            onCommit();
-          }}
-        />
-      </div>
+        <div className="dsp-eq-preset">
+          <span className="dsp-eq-preset-label">{t('dsp.eqEngine.label')}</span>
+          <SegmentedControl
+            name={t('dsp.eqEngine.label')}
+            value={eq.engine}
+            options={EQ_ENGINES.map((engine) => ({
+              value: engine,
+              label: t(`dsp.eqEngine.${engine}` as TranslationKey),
+            }))}
+            onChange={(next: string) => {
+              onChange(eqEdited(eq, { engine: next as TEqEngine }));
+              onCommit();
+            }}
+          />
+        </div>
 
-      {/* Beside the engine, because the two answer the same question at
+        {/* Beside the engine, because the two answer the same question at
           different depths: one is how the bands are put against the audio, this
           is whether they are allowed to shift its phase at all. */}
-      <div className="dsp-eq-preset">
-        <span className="dsp-eq-preset-label">{t('dsp.eqPhase.label')}</span>
-        <SegmentedControl
-          name={t('dsp.eqPhase.label')}
-          value={eq.phase}
-          options={EQ_PHASE_MODES.map((phase) => ({
-            value: phase,
-            label: t(`dsp.eqPhase.${phase}` as TranslationKey),
-            // The latency moved into the tooltip when this stopped being a
-            // dropdown: "Lineal (+181 ms)" is twice the width of every other
-            // segment on the row, and a row of segments that are not the same
-            // size stops reading as one control.
-            title:
-              phase === 'linear'
-                ? t('dsp.eqPhase.linearLatency', {
-                    ms: linearPhaseLatencyMs(sampleRate),
-                  })
-                : undefined,
-          }))}
-          onChange={(next: string) => {
-            onChange(eqEdited(eq, { phase: next as TEqPhase }));
-            onCommit();
-          }}
-        />
+        <div className="dsp-eq-preset">
+          <span className="dsp-eq-preset-label">{t('dsp.eqPhase.label')}</span>
+          <SegmentedControl
+            name={t('dsp.eqPhase.label')}
+            value={eq.phase}
+            options={EQ_PHASE_MODES.map((phase) => ({
+              value: phase,
+              label: t(`dsp.eqPhase.${phase}` as TranslationKey),
+              // The latency moved into the tooltip when this stopped being a
+              // dropdown: "Lineal (+181 ms)" is twice the width of every other
+              // segment on the row, and a row of segments that are not the same
+              // size stops reading as one control.
+              title:
+                phase === 'linear'
+                  ? t('dsp.eqPhase.linearLatency', {
+                      ms: linearPhaseLatencyMs(sampleRate),
+                    })
+                  : undefined,
+            }))}
+            onChange={(next: string) => {
+              onChange(eqEdited(eq, { phase: next as TEqPhase }));
+              onCommit();
+            }}
+          />
+        </div>
       </div>
 
       {notice !== '' && (

@@ -58,6 +58,10 @@ interface ILibraryToolbarProps {
 const BROWSE_MODES: readonly TLibraryBrowseMode[] = [
   'album',
   'artist',
+  // Beside Artists rather than out at the end: both answer "who or what kind
+  // of music is this", and the three shelves that read the tags belong
+  // together before the ones that read the disk.
+  'genre',
   'song',
   'folder',
   'video',
@@ -80,6 +84,7 @@ const SORTS: readonly TLibrarySort[] = [
 const BROWSE_LABEL_KEYS = {
   album: 'library.browse.album',
   artist: 'library.browse.artist',
+  genre: 'library.browse.genre',
   song: 'library.browse.song',
   folder: 'library.browse.folder',
   video: 'library.videos',
@@ -92,6 +97,7 @@ const BROWSE_LABEL_KEYS = {
 const BROWSE_ICONS = {
   album: 'album',
   artist: 'artist',
+  genre: 'genre',
   song: 'song',
   folder: 'folder',
   video: 'video',
