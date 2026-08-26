@@ -96,11 +96,17 @@ import {
 import { useLibrary } from '../LibraryContext';
 import {
   readPlaybackMemory,
+  readStoredContinuation,
   readStoredVolume,
   restorablePositionMs,
   writePlaybackMemory,
+  writeStoredContinuation,
   writeStoredVolume,
 } from './playbackMemory';
+import {
+  CONTINUATION_LOW_WATER,
+  pickContinuation,
+} from '../../../common/library/continuation';
 
 const REPEAT_CYCLE: readonly TLibraryRepeat[] = ['off', 'all', 'one'];
 
@@ -197,7 +203,21 @@ export interface ILibraryPlayerContextValue {
     position: number;
     trackId: string;
     isAdded: boolean;
+    /** Drawn by continuation once the shelf ran short — see
+     * `isContinuationOn`. Neither a pick nor the rest of the record. */
+    isContinued: boolean;
   }[];
+  /**
+   * Whether the player keeps going once the queue runs out, with more of the
+   * playing track's genre drawn from the whole library.
+   *
+   * On unless it has been turned off. A player that stops dead at the end of
+   * a record is the surprising one; the toggle lives in the Up Next panel,
+   * beside the list it changes, so what it does is visible from where it is
+   * pressed rather than buried in a settings page.
+   */
+  isContinuationOn: boolean;
+  setIsContinuationOn: (next: boolean) => void;
   /**
    * Straight to a track already in the queue, without rebuilding it.
    *
@@ -1635,13 +1655,29 @@ export const LibraryPlayerProvider = ({
       //
       // So they are lifted out first and put back at the front, and the list
       // underneath is built WITHOUT them so nothing is drawn twice.
-      const pending = current.order
+      const ahead = current.order
         .slice(current.position + 1)
         .map((index) => current.trackIds[index])
-        .filter(
-          (id): id is string => id !== undefined && addedIdsRef.current.has(id),
-        );
-      const pendingSet = new Set(pending);
+        .filter((id): id is string => id !== undefined);
+      const pending = ahead.filter((id) => addedIdsRef.current.has(id));
+      // AND WHAT THE PLAYER DREW FOR ITSELF SURVIVES TOO — AT THE END.
+      //
+      // Continuation is not part of the context either: it exists precisely
+      // because the context ran out. Left to be rebuilt, it was: this
+      // callback runs on every track change, so a seven-track album with
+      // continuation on dropped its ten drawn songs and drew ten different
+      // ones after every single track. The panel then listed a different
+      // "more like this" every three minutes with nothing having been asked
+      // for — the same shape as the re-shuffle bug two comments down, and
+      // the same report: something changing by itself.
+      //
+      // At the END rather than after the playhead, which is the one way this
+      // differs from the picks above: what follows the current track is the
+      // rest of the record, and a guess is what comes after all of it.
+      const continued = ahead.filter(
+        (id) => !addedIdsRef.current.has(id) && continuedIdsRef.current.has(id),
+      );
+      const pendingSet = new Set([...pending, ...continued]);
       const context = trackIds.filter(
         (id) => id === playing || !pendingSet.has(id),
       );
@@ -1674,18 +1710,22 @@ export const LibraryPlayerProvider = ({
         }
       }
       const base = buildQueue([...context], playing, current.isShuffled);
+      const kept = base.trackIds.length;
       const next =
-        pending.length === 0
+        pending.length === 0 && continued.length === 0
           ? base
           : {
               ...base,
-              trackIds: [...base.trackIds, ...pending],
+              trackIds: [...base.trackIds, ...pending, ...continued],
               order: (() => {
                 const order = [...base.order];
                 order.splice(
                   base.position + 1,
                   0,
-                  ...pending.map((_, index) => base.trackIds.length + index),
+                  ...pending.map((_, index) => kept + index),
+                );
+                order.push(
+                  ...continued.map((_, index) => kept + pending.length + index),
                 );
                 return order;
               })(),
@@ -1704,6 +1744,105 @@ export const LibraryPlayerProvider = ({
       return { ...next, repeat: current.repeat };
     });
   }, []);
+
+  /**
+   * KEEP PLAYING WHEN THE LIST RUNS OUT.
+   *
+   * A queue is whatever shelf was being read, and a shelf ends: `advanceQueue`
+   * holds at the last entry and `handleEnded` stops there. That is right for a
+   * player with nothing queued and wrong for somebody who put a record on —
+   * the answer arrives as silence with no explanation, which is the shape of
+   * failure this project's rules are written against.
+   *
+   * So when the run ahead gets short, more of the same genre is drawn from
+   * the whole library and appended. `pickContinuation` owns the choosing and
+   * is pure; this owns only when to ask.
+   *
+   * NOT A TIMER, and it must never become one: the condition is how much is
+   * left ahead of the playhead, which changes exactly when the queue does.
+   */
+  const [isContinuationOn, setIsContinuationOn] = useState<boolean>(
+    readStoredContinuation,
+  );
+  useEffect(() => {
+    writeStoredContinuation(isContinuationOn);
+  }, [isContinuationOn]);
+
+  /** Ids this drew, so the panel can head them as their own run rather than
+   * passing them off as the rest of the record. */
+  const [continuedIds, setContinuedIds] = useState<ReadonlySet<string>>(
+    () => new Set(),
+  );
+  // Read by `retargetQueue` for the same reason `addedIdsRef` is: that
+  // callback has no dependencies and must see the set as it is when the view
+  // changes, not as it was when the callback was made.
+  const continuedIdsRef = useRef(continuedIds);
+  continuedIdsRef.current = continuedIds;
+
+  /**
+   * Everything played this session.
+   *
+   * Kept so continuation never hands back a song that has just been heard —
+   * a genre of forty tracks would otherwise start repeating itself inside an
+   * hour, which reads as the feature being broken rather than as a small
+   * pool. A ref rather than state: nothing renders from it, and a set that
+   * grew by one every three minutes would re-render every consumer of this
+   * context for it.
+   */
+  const playedIds = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    if (trackId !== undefined) {
+      playedIds.current.add(trackId);
+    }
+  }, [trackId]);
+
+  useEffect(() => {
+    // `repeat` other than 'off' means the queue never runs out — 'all' wraps
+    // and 'one' holds — so there is nothing here to answer.
+    if (!isContinuationOn || !queue || queue.repeat !== 'off') {
+      return;
+    }
+    const ahead = queue.order.length - queue.position - 1;
+    if (ahead >= CONTINUATION_LOW_WATER) {
+      return;
+    }
+    const playing = currentTrackId(queue);
+    const seed = playing === undefined ? undefined : trackById.get(playing);
+    // A film ending is not a request for more films. Continuation is about
+    // music carrying on in the background; `pickContinuation` draws audio
+    // only, and seeding it from a video would answer a question nobody asked.
+    if (!seed || seed.kind !== 'audio') {
+      return;
+    }
+    const exclude = new Set([...queue.trackIds, ...playedIds.current]);
+    const picked = pickContinuation(index.tracks, seed, exclude);
+    if (picked.length === 0) {
+      // Nothing left in the genre that has not been heard. The player stops
+      // at the end of the run, which is the honest answer — better than
+      // starting the same forty songs again without being asked.
+      return;
+    }
+    setContinuedIds((current) => {
+      const next = new Set(current);
+      picked.forEach((id) => next.add(id));
+      return next;
+    });
+    // AT THE END, not after the playhead: what sits directly after the
+    // current track is the listener's own picks, and a continuation that
+    // pushed itself in front of them would answer a decision they made with
+    // a guess this made.
+    setQueue((current) => {
+      if (!current) {
+        return current;
+      }
+      const base = current.trackIds.length;
+      return {
+        ...current,
+        trackIds: [...current.trackIds, ...picked],
+        order: [...current.order, ...picked.map((_, index) => base + index)],
+      };
+    });
+  }, [isContinuationOn, queue, index.tracks, trackById]);
 
   /**
    * The ids the listener added by hand, ever.
@@ -1749,15 +1888,23 @@ export const LibraryPlayerProvider = ({
           // draws the two under headings of their own — the whole point of
           // showing both is being able to tell them apart.
           isAdded: trackId !== undefined && addedIds.has(trackId),
+          // Drawn by continuation rather than by the shelf. A third answer to
+          // the same question the two above split, and it has to be its own:
+          // heading a guess as "then" would claim the record does not end.
+          isContinued: trackId !== undefined && continuedIds.has(trackId),
         };
       })
       .filter(
         (
           entry,
-        ): entry is { position: number; trackId: string; isAdded: boolean } =>
-          entry.trackId !== undefined,
+        ): entry is {
+          position: number;
+          trackId: string;
+          isAdded: boolean;
+          isContinued: boolean;
+        } => entry.trackId !== undefined,
       );
-  }, [addedIds, queue]);
+  }, [addedIds, continuedIds, queue]);
 
   const jumpToQueuePosition = useCallback((position: number) => {
     setQueue((current) =>
@@ -2030,6 +2177,8 @@ export const LibraryPlayerProvider = ({
       toggle,
       retargetQueue,
       upNext,
+      isContinuationOn,
+      setIsContinuationOn,
       jumpToQueuePosition,
       appendToQueue,
       removeUpNextAt,
@@ -2056,6 +2205,7 @@ export const LibraryPlayerProvider = ({
       toggle,
       retargetQueue,
       upNext,
+      isContinuationOn,
       jumpToQueuePosition,
       appendToQueue,
       removeUpNextAt,

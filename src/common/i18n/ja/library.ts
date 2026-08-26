@@ -38,6 +38,7 @@ const library: Partial<Dictionary> = {
 
   'library.browse.album': 'アルバム',
   'library.browse.artist': 'アーティスト',
+  'library.browse.genre': 'ジャンル',
   'library.browse.song': '曲',
   'library.browse.folder': 'フォルダ',
   'library.browse.directory': 'ツリー',
@@ -74,8 +75,10 @@ const library: Partial<Dictionary> = {
 
   'library.unknownAlbum': '不明なアルバム',
   'library.unknownArtist': '不明なアーティスト',
+  'library.genre.unknown': '不明なジャンル',
   'library.trackCount': '{count} 曲',
   'library.albumCount': '{count} 枚のアルバム',
+  'library.artistCount': '{count} 組のアーティスト',
 
   'library.videos': '動画',
   'library.videos.empty': '追加したフォルダー内に動画がありません。',
@@ -106,6 +109,10 @@ const library: Partial<Dictionary> = {
   'library.upNext.empty': 'キューは空です',
   'library.upNext.added': 'あなたの選曲',
   'library.upNext.rest': 'そのあと',
+  'library.upNext.continued': '似ている曲',
+  'library.upNext.keepPlaying': '再生を続ける',
+  'library.upNext.keepPlayingHint':
+    'リストが終わったら、同じジャンルの曲を続けて再生します',
   'library.queueAdd': 'キューに追加',
 
   'library.alsoInFolder':

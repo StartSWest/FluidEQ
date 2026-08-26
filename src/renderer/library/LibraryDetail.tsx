@@ -30,6 +30,11 @@ import {
   trackFolderPath,
 } from '../../common/library/grouping';
 import {
+  UNKNOWN_GENRE_ID,
+  groupIntoGenres,
+  trackGenreIds,
+} from '../../common/library/genres';
+import {
   ILibraryTrack,
   TLibrarySort,
   TLibrarySortDirection,
@@ -57,6 +62,9 @@ interface ILibraryDetailProps {
   tracks: readonly ILibraryTrack[];
   albumId?: string;
   artistId?: string;
+  /** A genre bucket, opened from the Genres shelf. Mutually exclusive with
+   * the others the same way they are with each other. */
+  genreId?: string;
   /** A physical directory, opened from the folder browse mode. Mutually
    * exclusive with the other two the same way they are with each other. */
   folderPath?: string;
@@ -124,6 +132,7 @@ const LibraryDetail = ({
   tracks,
   albumId,
   artistId,
+  genreId,
   folderPath,
   playlistId,
   onBack,
@@ -262,6 +271,35 @@ const LibraryDetail = ({
         : undefined,
     [tracks, artistId],
   );
+  const genre = useMemo(
+    () =>
+      genreId
+        ? groupIntoGenres(tracks).find((entry) => entry.id === genreId)
+        : undefined,
+    [tracks, genreId],
+  );
+
+  /**
+   * Everything on this shelf, by album so a genre reads as records rather
+   * than as a thousand loose songs.
+   *
+   * `trackGenreIds` rather than a direct compare on `track.genre`, because a
+   * file tagged "Rock; Pop" belongs to both and a string comparison would
+   * find it under neither. Same rule as `groupIntoGenres` builds the shelf
+   * with — the two have to agree, or the shelf says forty songs and the
+   * panel lists nine, which is the failure `artistKey`'s own comment
+   * records happening once already.
+   */
+  const genreTracks = useMemo(
+    () =>
+      genreId
+        ? sortTracks(
+            tracks.filter((track) => trackGenreIds(track).includes(genreId)),
+            'album',
+          )
+        : [],
+    [tracks, genreId],
+  );
 
   // An id whose album or artist no longer exists — a rescan dropped the
   // folder, or the root itself was removed while this was open. Left alone,
@@ -325,6 +363,7 @@ const LibraryDetail = ({
   const isOrphaned =
     (Boolean(albumId) && !album) ||
     (Boolean(artistId) && !artist) ||
+    (Boolean(genreId) && !genre) ||
     (Boolean(playlistId) && !playlist) ||
     (Boolean(folderPath) &&
       folderTracks.length === 0 &&
@@ -352,6 +391,9 @@ const LibraryDetail = ({
         'album',
       );
     }
+    if (genreId) {
+      return genreTracks;
+    }
     if (playlistId) {
       return playlistTracks;
     }
@@ -361,6 +403,8 @@ const LibraryDetail = ({
     album,
     albumId,
     artistId,
+    genreId,
+    genreTracks,
     playlistId,
     playlistTracks,
     folderTracks,
@@ -482,12 +526,16 @@ const LibraryDetail = ({
       album?.title,
       album?.artist,
       artist?.name,
+      // The genre's own name counts as the container being named: typing
+      // "rock" and opening Rock is the search finding this shelf, not a
+      // reason to light two of its four hundred songs.
+      genre?.name,
       folderPath ? folderDisplayName(folderPath) : undefined,
     ].some(
       (value) =>
         value !== undefined && normalizeForGrouping(value).includes(needle),
     );
-  }, [album, artist, folderPath, query]);
+  }, [album, artist, genre, folderPath, query]);
 
   // One list: the album's own tracks, then its folder-mates behind them. The
   // panel's own "filter these songs" is the only thing that ever removes a
@@ -549,6 +597,7 @@ const LibraryDetail = ({
 
   const isAlbum = Boolean(albumId);
   const isFolder = Boolean(folderPath);
+  const isGenre = Boolean(genreId);
   const isPlaylist = Boolean(playlistId);
   // Favourites is the one playlist that is not the reader's to rename or
   // remove. Checked against what is stored rather than against the id alone,
@@ -571,6 +620,11 @@ const LibraryDetail = ({
     title = album?.title || t('library.unknownAlbum');
   } else if (isFolder) {
     title = folderName;
+  } else if (isGenre) {
+    title =
+      genreId === UNKNOWN_GENRE_ID
+        ? t('library.genre.unknown')
+        : (genre?.name ?? '');
   } else if (isPlaylist) {
     title =
       playlistId === FAVORITES_PLAYLIST_ID
@@ -603,6 +657,16 @@ const LibraryDetail = ({
     // very table, marked, on purpose. Counting only the tagged ones put "2
     // songs" over a list of fourteen.
     counts = t('library.trackCount', { count: listTracks.length });
+  }
+  if (isGenre) {
+    // How many bands and how many songs — the artist shelf's own pair, with
+    // the first count swapped for the one a genre actually has. Albums would
+    // be the wrong number here: a genre spanning forty records says nothing
+    // about how varied it is, and twenty artists says exactly that.
+    counts = `${t('library.artistCount', { count: genre?.artistCount ?? 0 })} · ${t(
+      'library.trackCount',
+      { count: genre?.trackCount ?? detailTracks.length },
+    )}`;
   }
   if (isPlaylist) {
     // What the playlist holds, including the songs the library cannot see

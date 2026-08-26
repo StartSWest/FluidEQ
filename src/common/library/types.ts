@@ -94,7 +94,7 @@ export interface ILibraryTrack {
 }
 
 export type TLibraryBrowseMode =
-  'album' | 'artist' | 'song' | 'folder' | 'video' | 'playlist';
+  'album' | 'artist' | 'genre' | 'song' | 'folder' | 'video' | 'playlist';
 export type TLibraryViewMode = 'list' | 'grid' | 'coverflow';
 export type TLibrarySort =
   | 'title'

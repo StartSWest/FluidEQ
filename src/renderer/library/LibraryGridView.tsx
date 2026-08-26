@@ -35,6 +35,11 @@ import {
   trackFolderPath,
 } from '../../common/library/grouping';
 import {
+  UNKNOWN_GENRE_ID,
+  groupIntoGenres,
+  sortGenres,
+} from '../../common/library/genres';
+import {
   ILibraryTrack,
   TLibraryBrowseMode,
   TLibrarySort,
@@ -52,6 +57,9 @@ interface ILibraryGridViewProps {
   browseMode: TLibraryBrowseMode;
   onOpenAlbum: (albumId: string) => void;
   onOpenArtist: (artistId: string) => void;
+  /** Optional for the reason `onOpenFolder` below is: only the Genres shelf
+   * can ever call it. */
+  onOpenGenre?: (genreId: string) => void;
   /** Only the folder browse mode can call this — optional for the same
    * reason `LibraryListView`'s own is. */
   onOpenFolder?: (folderPath: string) => void;
@@ -212,6 +220,10 @@ interface IGridItem {
   title: string;
   artistName: string;
   albumCount?: number;
+  /** A genre tile: how many distinct artists it covers. Unset everywhere
+   * else, which is why the subtitle asks the browse mode rather than this
+   * field — the same rule `trackCount` below already follows. */
+  artistCount?: number;
   /** Only ever set for a song tile — an album or artist has no single root
    * of its own to dim by. */
   rootId?: string;
@@ -239,6 +251,7 @@ const LibraryGridView = ({
   browseMode,
   onOpenAlbum,
   onOpenArtist,
+  onOpenGenre,
   onOpenFolder,
   onOpenPlaylist,
   onPlayTrack,
@@ -472,6 +485,22 @@ const LibraryGridView = ({
         }),
       );
     }
+    if (browseMode === 'genre') {
+      const grouped = groupIntoGenres(tracks);
+      return (sort ? sortGenres(grouped, sort, sortDirection) : grouped).map(
+        (genre) => ({
+          id: genre.id,
+          artId: genre.artId,
+          // Left empty by `groupIntoGenres` on purpose; named here, in a
+          // locale. `tileTitle` does the substitution for the same reason it
+          // already does for an untitled album.
+          title: genre.name,
+          artistName: '',
+          artistCount: genre.artistCount,
+          isPending: genre.isPending,
+        }),
+      );
+    }
     if (browseMode === 'playlist') {
       // Already in the order every surface shows — Favourites, then by name.
       // The toolbar's sort is not applied for the reason `LibraryListView`'s
@@ -534,6 +563,11 @@ const LibraryGridView = ({
       onOpenArtist(id);
       return;
     }
+    if (browseMode === 'genre') {
+      rememberActive(id);
+      onOpenGenre?.(id);
+      return;
+    }
     if (browseMode === 'folder') {
       rememberActive(id);
       onOpenFolder?.(id);
@@ -564,6 +598,9 @@ const LibraryGridView = ({
     if (browseMode === 'artist') {
       return t('library.albumCount', { count: item.albumCount ?? 0 });
     }
+    if (browseMode === 'genre') {
+      return t('library.artistCount', { count: item.artistCount ?? 0 });
+    }
     if (browseMode === 'album') {
       return item.artistName || t('library.unknownArtist');
     }
@@ -576,6 +613,11 @@ const LibraryGridView = ({
     }
     if (browseMode === 'artist') {
       return item.title || t('library.unknownArtist');
+    }
+    if (browseMode === 'genre') {
+      return item.id === UNKNOWN_GENRE_ID
+        ? t('library.genre.unknown')
+        : item.title;
     }
     return item.title;
   };

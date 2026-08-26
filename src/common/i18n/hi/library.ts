@@ -38,6 +38,7 @@ const library: Partial<Dictionary> = {
 
   'library.browse.album': 'एल्बम',
   'library.browse.artist': 'कलाकार',
+  'library.browse.genre': 'शैलियाँ',
   'library.browse.song': 'गाने',
   'library.browse.folder': 'फ़ोल्डर',
   'library.browse.directory': 'ट्री',
@@ -74,8 +75,10 @@ const library: Partial<Dictionary> = {
 
   'library.unknownAlbum': 'अज्ञात एल्बम',
   'library.unknownArtist': 'अज्ञात कलाकार',
+  'library.genre.unknown': 'अज्ञात शैली',
   'library.trackCount': '{count} गाने',
   'library.albumCount': '{count} एल्बम',
+  'library.artistCount': '{count} कलाकार',
 
   'library.videos': 'वीडियो',
   'library.videos.empty': 'आपके जोड़े गए फ़ोल्डरों में कोई वीडियो नहीं है।',
@@ -104,6 +107,10 @@ const library: Partial<Dictionary> = {
   'library.upNext.empty': 'कतार अभी खाली है',
   'library.upNext.added': 'आपकी पसंद',
   'library.upNext.rest': 'उसके बाद',
+  'library.upNext.continued': 'इससे मिलता-जुलता',
+  'library.upNext.keepPlaying': 'बजाते रहें',
+  'library.upNext.keepPlayingHint':
+    'सूची खत्म होने पर उसी शैली का और संगीत चलता रहेगा',
   'library.queueAdd': 'कतार में जोड़ें',
 
   'library.alsoInFolder': 'इसी फ़ोल्डर में है, इस एल्बम में नहीं',

@@ -34,6 +34,11 @@ import {
   sortFolders,
 } from '../../common/library/grouping';
 import {
+  UNKNOWN_GENRE_ID,
+  groupIntoGenres,
+  sortGenres,
+} from '../../common/library/genres';
+import {
   ILibraryTrack,
   TLibraryBrowseMode,
   TLibrarySort,
@@ -54,6 +59,9 @@ interface ILibraryListViewProps {
   browseMode: TLibraryBrowseMode;
   onOpenAlbum: (albumId: string) => void;
   onOpenArtist: (artistId: string) => void;
+  /** Optional for the reason `onOpenFolder` is: only the Genres shelf can
+   * ever call it, and every other caller has nothing to supply. */
+  onOpenGenre?: (genreId: string) => void;
   /** Only the folder browse mode can ever call this, so it is optional the
    * same way the sort handler is: a caller that never shows folders has
    * nothing to supply. */
@@ -357,6 +365,7 @@ const LibraryListView = ({
   browseMode,
   onOpenAlbum,
   onOpenArtist,
+  onOpenGenre,
   onOpenFolder,
   onOpenPlaylist,
   openPlaylistId,
@@ -455,6 +464,7 @@ const LibraryListView = ({
     if (
       browseMode === 'album' ||
       browseMode === 'artist' ||
+      browseMode === 'genre' ||
       browseMode === 'folder'
     ) {
       return [];
@@ -1229,6 +1239,76 @@ const LibraryListView = ({
                   {`${t('library.albumCount', { count: artist.albumCount })} · ${t(
                     'library.trackCount',
                     { count: artist.trackCount },
+                  )}`}
+                </small>
+              </span>
+            </div>
+          );
+        }),
+    );
+  }
+
+  if (browseMode === 'genre') {
+    const groupedGenres = groupIntoGenres(tracks);
+    const genres = sort
+      ? sortGenres(groupedGenres, sort, sortDirection)
+      : groupedGenres;
+    return renderTable(
+      sortableHeader('title', 'title', 'library-list__col--span'),
+      genres.length,
+      (start, end) =>
+        genres.slice(start, end).map((genre) => {
+          const activate = () => {
+            rememberActive(genre.id);
+            onOpenGenre?.(genre.id);
+          };
+          // The one bucket with no tag behind it — `groupIntoGenres` leaves
+          // it unnamed precisely so the name is chosen here, in a locale.
+          const name =
+            genre.id === UNKNOWN_GENRE_ID
+              ? t('library.genre.unknown')
+              : genre.name;
+          const isSelected = activeId === genre.id;
+          return (
+            <div
+              key={genre.id}
+              role="row"
+              tabIndex={0}
+              aria-selected={isSelected}
+              className={`library-list__row${genre.isPending ? ' library-list__row--pending' : ''}${
+                isSelected ? ' library-list__row--selected' : ''
+              }`}
+              onClick={activate}
+              onKeyDown={(event) => onActivateKeyDown(event, activate)}
+            >
+              <span
+                role="cell"
+                className="library-list__col library-list__col--art"
+              >
+                <LibraryCoverArt artId={genre.artId} label={name} size="row" />
+              </span>
+              <span
+                role="cell"
+                className="library-list__col library-list__col--title library-list__col--span"
+              >
+                <span className="library-list__title-text">
+                  <span className="library-list__title-label">{name}</span>
+                  {genre.isPending && (
+                    <span
+                      className="library-list__badge library-list__badge--pending"
+                      title={t('library.pending')}
+                    >
+                      <MenuIcon
+                        name="pending"
+                        className="library-list__badge-icon"
+                      />
+                    </span>
+                  )}
+                </span>
+                <small className="library-list__subtitle">
+                  {`${t('library.artistCount', { count: genre.artistCount })} · ${t(
+                    'library.trackCount',
+                    { count: genre.trackCount },
                   )}`}
                 </small>
               </span>

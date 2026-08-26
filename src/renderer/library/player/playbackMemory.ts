@@ -84,6 +84,33 @@ export const writeStoredVolume = (value: number): void => {
   }
 };
 
+const CONTINUATION_KEY = 'fluideq.library.keepPlaying';
+
+/**
+ * Whether the player keeps going once the queue runs out.
+ *
+ * ON when nothing has been stored. Music that stops dead at the end of a
+ * record is the surprising behaviour, not the other way round, and anybody
+ * who wants a player that stops has the toggle in the Up Next panel — where
+ * they can see what it did. Only an explicit `'off'` turns it off, so a
+ * truncated or corrupt entry reads as the default rather than as silence.
+ */
+export const readStoredContinuation = (): boolean => {
+  try {
+    return window.localStorage.getItem(CONTINUATION_KEY) !== 'off';
+  } catch {
+    return true;
+  }
+};
+
+export const writeStoredContinuation = (value: boolean): void => {
+  try {
+    window.localStorage.setItem(CONTINUATION_KEY, value ? 'on' : 'off');
+  } catch {
+    // Same as the volume above: it simply will not be there next time.
+  }
+};
+
 /** Positions nearer the start than this are not worth restoring: coming back
  * to a track two seconds in is indistinguishable from coming back to its
  * beginning, and the beginning is the less surprising of the two. */
