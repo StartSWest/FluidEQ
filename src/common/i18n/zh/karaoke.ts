@@ -522,6 +522,7 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.translation.fit': '{syllables} 个音节，{notes} 个音符',
   'karaoke.translation.fitOk': '符合旋律',
   'karaoke.translation.empty': '此语言还没有歌词。',
+  'karaoke.translation.exportLanguage': '歌词文件将以{language}写出。',
 };
 
 export default karaoke;

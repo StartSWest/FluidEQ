@@ -1454,6 +1454,7 @@ const KaraokeMaker = ({
     setViewDurationMs,
     setViewStartMs,
     t,
+    translationLanguage,
   });
 
   const {

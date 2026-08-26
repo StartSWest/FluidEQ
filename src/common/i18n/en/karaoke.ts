@@ -559,6 +559,8 @@ const karaoke = {
   'karaoke.translation.fit': '{syllables} syllables, {notes} notes',
   'karaoke.translation.fitOk': 'Fits the melody',
   'karaoke.translation.empty': 'No lyrics in this language yet.',
+  'karaoke.translation.exportLanguage':
+    'Lyric files will be written in {language}.',
 } as const;
 
 export default karaoke;

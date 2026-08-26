@@ -571,6 +571,8 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.translation.fit': '{syllables} sílabas, {notes} notas',
   'karaoke.translation.fitOk': 'Encaixa na melodia',
   'karaoke.translation.empty': 'Ainda não há letra neste idioma.',
+  'karaoke.translation.exportLanguage':
+    'Os ficheiros de letra serão escritos em {language}.',
 };
 
 export default karaoke;

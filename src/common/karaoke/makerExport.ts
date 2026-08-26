@@ -79,12 +79,24 @@ const safeFileStem = (value: string): string =>
     .trim()
     .slice(0, 160) || 'karaoke';
 
+/**
+ * A per-language export is a separate file, so it needs a separate name.
+ *
+ * LRC carries no language header at all, so without this the Spanish and the
+ * English sheet propose the same filename and the second save quietly offers
+ * to overwrite the first. The tag rather than the endonym: this is a
+ * filename, and `Intl.DisplayNames` lives in the renderer.
+ */
 export const karaokeMakerExportFileName = (
   project: IKaraokeMakerProject,
   format: TKaraokeMakerExportFormat,
+  options?: { language?: string },
 ): string => {
+  const title = options?.language
+    ? `${project.title} (${options.language})`
+    : project.title;
   const stem = safeFileStem(
-    project.artist ? `${project.artist} - ${project.title}` : project.title,
+    project.artist ? `${project.artist} - ${title}` : title,
   );
   let extension: string = format;
   if (format === 'project') {
@@ -215,9 +227,19 @@ export const exportKaraokeMakerLrc = (
   options?: { language?: string },
 ): string => writeLrc(project, enhanced, options).contents;
 
+/**
+ * `options.language` names which lyric sheet is written, and is absent for the
+ * original — the same contract `sheetLines` already has, so an unknown tag
+ * writes the original rather than an empty file.
+ *
+ * It reaches the two lyric writers and stops there. A project file is the
+ * whole project, every language included; asking it for one of them would
+ * mean handing back a draft the Maker could not reopen intact.
+ */
 export const exportKaraokeMaker = (
   project: IKaraokeMakerProject,
   format: TKaraokeMakerExportFormat,
+  options?: { language?: string },
 ): IKaraokeMakerExport => {
   if (format === 'project') {
     return {
@@ -234,13 +256,13 @@ export const exportKaraokeMaker = (
       format,
       extension: 'txt',
       mimeType: 'text/plain',
-      ...writeUltraStar(project),
+      ...writeUltraStar(project, options),
     };
   }
   return {
     format,
     extension: format,
     mimeType: 'text/plain',
-    ...writeLrc(project, format === 'elrc'),
+    ...writeLrc(project, format === 'elrc', options),
   };
 };

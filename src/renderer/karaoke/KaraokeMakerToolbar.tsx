@@ -313,6 +313,20 @@ const KaraokeMakerToolbar = ({
         />
         {exportOpen && (
           <div className="karaoke-maker__export-menu">
+            {/* Which sheet the lyric formats will contain, said before the
+                click rather than discovered in the saved file. The toolbar's
+                own picker is the answer — asking again here would be a second
+                control for a question already on screen — so this reports it
+                instead of offering it, and only when it is not the original.
+                Reuses the timing popover's own hint paragraph: the same quiet
+                caption, in a sibling menu. */}
+            {translationLanguage !== originalLanguage && (
+              <p className="karaoke-maker__timing-hint">
+                {t('karaoke.translation.exportLanguage', {
+                  language: karaokeLanguageName(translationLanguage),
+                })}
+              </p>
+            )}
             <button
               type="button"
               onClick={() => exportProject('project').catch(() => undefined)}

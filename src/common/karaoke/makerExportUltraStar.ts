@@ -132,8 +132,8 @@ interface IUltraStarBody {
 }
 
 /**
- * The token whose timed span covers the most of a note's span, for a sheet
- * whose tokens carry no id the melody knows.
+ * The token in ONE line whose timed span covers the most of a note's span,
+ * for a sheet whose tokens carry no id the melody knows.
  *
  * A pasted translation is reseeded with fresh ids every time (Task 2), so a
  * note bound to the original by `tokenId` never finds itself in a translated
@@ -142,33 +142,38 @@ interface IUltraStarBody {
  * across the line by `translationSeed.ts`, and that is the one thing left in
  * common between a note and the word sung on it.
  *
- * Ties keep the earliest candidate: lines and tokens are walked in document
- * order, which is chronological for every sheet this format ever sees
+ * One line, not the document. Searching every line made "greatest overlap
+ * wins" a contest between words that are not sung anywhere near each other:
+ * a note sitting on a line's last syllable could be answered by the first
+ * word of the next line, which then appeared before the line break that
+ * belongs in front of it. The caller has already decided which line the note
+ * falls in — for the line break it has to write — and that same answer is the
+ * only sensible search space.
+ *
+ * Ties keep the earliest candidate: tokens are walked in document order,
+ * which is chronological for every sheet this format ever sees
  * (`timedTranslatedLine` lays a line's tokens out with strictly increasing
  * `startMs`), and only a strictly larger overlap replaces the current best.
  */
 const tokenAtTime = (
-  lines: readonly IKaraokeMakerLine[],
+  line: IKaraokeMakerLine | undefined,
   note: IKaraokeMakerNote,
 ): IKaraokeMakerToken | undefined => {
+  if (!line || karaokeMakerLineIsSection(line)) {
+    return undefined;
+  }
   let best: IKaraokeMakerToken | undefined;
   let bestOverlapMs = 0;
-  lines.forEach((line) => {
-    if (karaokeMakerLineIsSection(line)) {
+  line.tokens.forEach((token) => {
+    if (token.startMs === undefined || token.endMs === undefined) {
       return;
     }
-    line.tokens.forEach((token) => {
-      if (token.startMs === undefined || token.endMs === undefined) {
-        return;
-      }
-      const overlapMs =
-        Math.min(token.endMs, note.endMs) -
-        Math.max(token.startMs, note.startMs);
-      if (overlapMs > bestOverlapMs) {
-        best = token;
-        bestOverlapMs = overlapMs;
-      }
-    });
+    const overlapMs =
+      Math.min(token.endMs, note.endMs) - Math.max(token.startMs, note.startMs);
+    if (overlapMs > bestOverlapMs) {
+      best = token;
+      bestOverlapMs = overlapMs;
+    }
   });
   return best;
 };
@@ -213,15 +218,6 @@ const ultraStarBody = (
     } else if (note.kind === 'free') {
       marker = 'F';
     }
-    // The original path resolves by id exactly as before — untouched, so its
-    // output stays byte-identical. Only a non-original sheet, whose tokens
-    // the note's id can never reach, falls through to tokenAtTime.
-    const token = resolveByTime
-      ? tokenAtTime(lines, note)
-      : tokenById(tokensById, note.tokenId);
-    const tokenKey = resolveByTime ? token?.id : note.tokenId;
-    const isFirstOfToken =
-      tokenKey !== undefined && !writtenTokenIds.has(tokenKey);
     // Line breaks used to come only from a note's tokenId. Replacing the lyrics
     // clears that binding, and a detected note outside every timed word never
     // gets one, so the whole song exported as a single unbroken line of `~`.
@@ -230,6 +226,21 @@ const ultraStarBody = (
       note.tokenId === undefined ? undefined : lineByToken.get(note.tokenId);
     const lineIndex =
       boundLineIndex ?? lineIndexAtTime(lineStarts, note.startMs);
+    // The original path resolves by id exactly as before — untouched, so its
+    // output stays byte-identical. Only a non-original sheet, whose tokens
+    // the note's id can never reach, falls through to tokenAtTime, and it
+    // searches the line this note was just assigned to rather than the whole
+    // document: a note before every line start belongs to no line, and `~` is
+    // a truer answer for it than a word borrowed from somewhere else.
+    const token = resolveByTime
+      ? tokenAtTime(
+          lineIndex === undefined ? undefined : lines[lineIndex],
+          note,
+        )
+      : tokenById(tokensById, note.tokenId);
+    const tokenKey = resolveByTime ? token?.id : note.tokenId;
+    const isFirstOfToken =
+      tokenKey !== undefined && !writtenTokenIds.has(tokenKey);
     if (
       lineIndex !== undefined &&
       previousLineIndex !== undefined &&

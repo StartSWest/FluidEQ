@@ -715,3 +715,213 @@ describe('exporting a chosen language', () => {
     ).toBe(true);
   });
 });
+
+describe('reaching a per-language export', () => {
+  const translated = (): IKaraokeMakerProject =>
+    addKaraokeTranslation(project(), 'hola mundo\nsol mar', 'es').project;
+
+  it('threads the chosen language through the one dispatcher the UI calls', () => {
+    // Until this was wired, `options.language` on both writers — and the whole
+    // time-overlap resolver behind it — was reachable only from tests.
+    const withEs = translated();
+
+    expect(
+      exportKaraokeMaker(withEs, 'ultrastar', { language: 'es' }).contents,
+    ).toContain('#LANGUAGE:Spanish');
+    expect(
+      exportKaraokeMaker(withEs, 'elrc', { language: 'es' }).contents,
+    ).toContain('hola');
+
+    // Positive control: no language still writes the sung original.
+    expect(exportKaraokeMaker(withEs, 'ultrastar').contents).toContain(
+      '#LANGUAGE:English',
+    );
+    expect(exportKaraokeMaker(withEs, 'lrc').contents).toContain('One');
+  });
+
+  it('writes every language into a project file whatever language was chosen', () => {
+    const saved = exportKaraokeMaker(translated(), 'project', {
+      language: 'es',
+    }).contents;
+
+    // A draft that reopened holding only one of its sheets would have lost
+    // the user's work in the others.
+    expect(saved).toContain('"language": "es"');
+    expect(saved).toContain('"text": "One"');
+    expect(saved).toContain('"text": "hola"');
+  });
+
+  it('gives a per-language export a filename of its own', () => {
+    // LRC carries no language header at all, so without this the Spanish
+    // save proposes the same name as the English one already on disk.
+    expect(karaokeMakerExportFileName(project(), 'lrc')).toBe(
+      'Artist - Song.lrc',
+    );
+    expect(
+      karaokeMakerExportFileName(project(), 'lrc', { language: 'es' }),
+    ).toBe('Artist - Song (es).lrc');
+    expect(
+      karaokeMakerExportFileName(project(), 'ultrastar', { language: 'es' }),
+    ).toBe('Artist - Song (es).txt');
+    expect(
+      karaokeMakerExportFileName(project(), 'lrc', { language: undefined }),
+    ).toBe('Artist - Song.lrc');
+  });
+});
+
+describe('resolving a translated note to a word', () => {
+  /**
+   * A note that starts before its own line does, so the line-break arithmetic
+   * puts it in the line ABOVE while the only word its span overlaps is in the
+   * line below.
+   *
+   * Hand-computed: line one starts at 1000, line two at 2000. The note runs
+   * 1900-2100, so `lineIndexAtTime` answers line one (the last line starting
+   * at or before 1900). Its overlap with 'uno' (1000-1200) is 0 ms and with
+   * 'dos' (2000-2400) is 100 ms.
+   */
+  const straddling = (): IKaraokeMakerProject => ({
+    ...project(),
+    lyrics: {
+      language: 'en',
+      source: 'manual',
+      lines: [
+        {
+          id: 'line-1',
+          tokens: [
+            {
+              id: 'word-1',
+              text: 'One',
+              startsWord: true,
+              startMs: 1_000,
+              endMs: 1_200,
+              source: 'manual',
+            },
+          ],
+        },
+        {
+          id: 'line-2',
+          tokens: [
+            {
+              id: 'word-2',
+              text: 'Two',
+              startsWord: true,
+              startMs: 2_000,
+              endMs: 2_400,
+              source: 'manual',
+            },
+          ],
+        },
+      ],
+      translations: [
+        {
+          language: 'es',
+          source: 'translation-seed',
+          lines: [
+            {
+              id: 'line-1-es',
+              sourceLineId: 'line-1',
+              startMs: 1_000,
+              endMs: 1_200,
+              tokens: [
+                {
+                  id: 'w1-es',
+                  text: 'uno',
+                  startsWord: true,
+                  startMs: 1_000,
+                  endMs: 1_200,
+                  source: 'translation-seed',
+                },
+              ],
+            },
+            {
+              id: 'line-2-es',
+              sourceLineId: 'line-2',
+              startMs: 2_000,
+              endMs: 2_400,
+              tokens: [
+                {
+                  id: 'w2-es',
+                  text: 'dos',
+                  startsWord: true,
+                  startMs: 2_000,
+                  endMs: 2_400,
+                  source: 'translation-seed',
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+    melody: {
+      source: 'manual',
+      octavePolicy: 'absolute',
+      notes: [
+        {
+          id: 'note-a',
+          tokenId: 'word-1',
+          startMs: 1_000,
+          endMs: 1_200,
+          targetMidi: 60,
+          kind: 'normal',
+          source: 'manual',
+        },
+        {
+          id: 'note-b',
+          tokenId: 'word-2',
+          startMs: 1_900,
+          endMs: 2_100,
+          targetMidi: 62,
+          kind: 'normal',
+          source: 'manual',
+        },
+        {
+          id: 'note-c',
+          tokenId: 'word-2',
+          startMs: 2_100,
+          endMs: 2_400,
+          targetMidi: 64,
+          kind: 'normal',
+          source: 'manual',
+        },
+      ],
+    },
+  });
+
+  /** Each body row reduced to the word it writes, breaks marked. */
+  const bodyShape = (contents: string): string[] =>
+    rowsOf(contents)
+      .filter((row) => /^[:*F] /.test(row) || row.startsWith('- '))
+      .map((row) =>
+        row.startsWith('- ')
+          ? 'BREAK'
+          : row.split(' ').slice(4).join(' ').trim(),
+      );
+
+  it('never takes a word from the line the note is not in', () => {
+    const contents = exportKaraokeMakerUltraStar(straddling(), {
+      language: 'es',
+    });
+
+    // Searching every line for the greatest overlap gave note-b 'dos' — a
+    // word from the next line, written before the break that belongs in
+    // front of it — and then left note-c, which is genuinely sung on 'dos',
+    // with nothing but '~': ['uno', 'dos', 'BREAK', '~'].
+    expect(bodyShape(contents)).toEqual(['uno', '~', 'BREAK', 'dos']);
+  });
+
+  it('still resolves the original by id, untouched', () => {
+    // The positive control for the scoping above: the same three notes and
+    // the same two lines, resolved the old way because here the ids do reach.
+    // The shape differs on purpose — note-b's own binding puts it in line two,
+    // so the break comes before it rather than after — which is exactly the
+    // information a translated sheet has lost and has to infer from time.
+    expect(bodyShape(exportKaraokeMakerUltraStar(straddling()))).toEqual([
+      'One',
+      'BREAK',
+      'Two',
+      '~',
+    ]);
+  });
+});

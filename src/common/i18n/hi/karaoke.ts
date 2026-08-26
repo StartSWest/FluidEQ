@@ -553,6 +553,8 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.translation.fit': '{syllables} अक्षरांश, {notes} सुर',
   'karaoke.translation.fitOk': 'धुन में फ़िट बैठता है',
   'karaoke.translation.empty': 'इस भाषा में अभी कोई बोल नहीं हैं।',
+  'karaoke.translation.exportLanguage':
+    'बोल की फ़ाइलें {language} में लिखी जाएँगी।',
 };
 
 export default karaoke;

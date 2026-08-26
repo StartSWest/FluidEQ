@@ -564,6 +564,8 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.translation.fit': '{syllables} 音節、{notes} 音符',
   'karaoke.translation.fitOk': 'メロディーに合っています',
   'karaoke.translation.empty': 'この言語の歌詞はまだありません。',
+  'karaoke.translation.exportLanguage':
+    '歌詞ファイルは{language}で書き出されます。',
 };
 
 export default karaoke;

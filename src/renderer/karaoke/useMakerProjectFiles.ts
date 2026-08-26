@@ -7,6 +7,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { ChangeEvent, Dispatch, SetStateAction } from 'react';
 import {
   IKaraokeMakerProject,
+  KARAOKE_ORIGINAL_LANGUAGE,
   importLyricsIntoKaraokeMakerProject,
   parseKaraokeMakerProject,
 } from '../../common/karaoke/makerProject';
@@ -59,6 +60,16 @@ export interface IMakerProjectFilesParams extends Pick<
     error: unknown,
     context: 'analysis' | 'export' | 'import' | 'whisper',
   ) => string;
+
+  /**
+   * Which lyric sheet the Maker is showing, which is the one an export writes.
+   *
+   * Taken from the toolbar's picker rather than asked a second time inside the
+   * export menu: the user has already said which language they are working on,
+   * and a per-format language prompt would be a second answer to a question
+   * already on screen. The menu says which one it will use.
+   */
+  translationLanguage: string;
 
   /** The audio the models run against — the song, or a stem chosen for it. */
   setAnalysisFile: Dispatch<SetStateAction<File>>;
@@ -127,7 +138,19 @@ export const useMakerProjectFiles = ({
   setViewDurationMs,
   setViewStartMs,
   t,
+  translationLanguage,
 }: IMakerProjectFilesParams) => {
+  // The sentinel is only the fallback for a project that never declared a
+  // language — UltraStar imports populate a real tag from `#LANGUAGE` — so
+  // this mirrors `useMakerTranslations.ts` rather than comparing against the
+  // bare constant. Undefined means "the original", which is what every writer
+  // downstream already treats as no language at all.
+  const exportLanguage =
+    translationLanguage ===
+    (project.lyrics.language ?? KARAOKE_ORIGINAL_LANGUAGE)
+      ? undefined
+      : translationLanguage;
+
   const exportProject = async (format: TKaraokeMakerExportFormat) => {
     setExportOpen(false);
     if (format !== 'project' && !project.meta.rightsConfirmed) {
@@ -135,7 +158,11 @@ export const useMakerProjectFiles = ({
       return;
     }
     try {
-      const output = exportKaraokeMaker(project, format);
+      // A project file holds every language at once, so naming one would be
+      // asking for a draft that reopens missing the others.
+      const languageOptions =
+        format === 'project' ? undefined : { language: exportLanguage };
+      const output = exportKaraokeMaker(project, format, languageOptions);
       let formatName = t('karaoke.maker.exportLrc');
       if (format === 'project') {
         formatName = t('karaoke.maker.exportProject');
@@ -145,7 +172,7 @@ export const useMakerProjectFiles = ({
         formatName = t('karaoke.maker.exportElrc');
       }
       const result = await window.electron.ipcRenderer.exportKaraokeMakerFile({
-        fileName: karaokeMakerExportFileName(project, format),
+        fileName: karaokeMakerExportFileName(project, format, languageOptions),
         contents: output.contents,
         formatName,
         extensions: [output.extension],
