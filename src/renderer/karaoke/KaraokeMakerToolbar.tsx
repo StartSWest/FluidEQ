@@ -16,6 +16,7 @@ import { KARAOKE_AUTOMATIC_DETECTOR_UI_ENABLED } from './makerAi';
 import { TDestructiveMakerAction } from './KaraokeMakerConfirmDialog';
 import { useTranslation } from '../utils/I18nContext';
 import { karaokeLanguageName } from './karaokeLanguageName';
+import { KARAOKE_LANGUAGE_CODES } from './karaokeLanguageCodes';
 import Dropdown from '../widgets/Dropdown';
 import KaraokeMakerToolbarButton from './KaraokeMakerToolbarButton';
 import KaraokeMakerTimingPopover from './KaraokeMakerTimingPopover';
@@ -84,7 +85,9 @@ export interface IKaraokeMakerToolbarProps {
    * row in it invites the question of what is broken.
    */
   onSaveInstrumental?: () => void;
-  openLyricsEditor: () => void;
+  /** A translation target seeds an empty draft toward that language instead
+   * of the original-replace flow every other caller wants. */
+  openLyricsEditor: (translationTarget?: string) => void;
   setDestructiveAction: Dispatch<
     SetStateAction<TDestructiveMakerAction | undefined>
   >;
@@ -129,6 +132,15 @@ const KaraokeMakerToolbar = ({
   // original" once a project has one. Every place below that needs to know
   // whether an entry *is* the original compares against this instead.
   const originalLanguage = project.lyrics.language ?? KARAOKE_ORIGINAL_LANGUAGE;
+  // A concrete first guess for "Add a language", so its own paste view opens
+  // with a real language already selected rather than a blank Dropdown
+  // trigger — the filter field is one keystroke away from the language the
+  // user actually meant. Falls back to the list's own first entry only if
+  // every one of them happened to equal `originalLanguage`, which a 99-entry
+  // list and one tag never does in practice.
+  const defaultTranslationTarget =
+    KARAOKE_LANGUAGE_CODES.find((code) => code !== originalLanguage) ??
+    KARAOKE_LANGUAGE_CODES[0];
   return (
     <div ref={toolsRef} className="karaoke-maker__tools">
       <div className="karaoke-maker__tool-group">
@@ -220,11 +232,14 @@ const KaraokeMakerToolbar = ({
             Opens the same lyrics dialog as the button beside it: the target-
             language field inside it is what tells the dialog to seed a
             translation instead of replacing the original, so there is only
-            one paste surface to wire up rather than a second dialog. */}
+            one paste surface to wire up rather than a second dialog. This
+            entry point passes a real target so that field — and the draft —
+            open already aimed at a translation instead of landing on the
+            same "replace the original" default the other button wants. */}
         <button
           type="button"
           className="button small subtle"
-          onClick={openLyricsEditor}
+          onClick={() => openLyricsEditor(defaultTranslationTarget)}
         >
           {t('karaoke.translation.add')}
         </button>

@@ -79,8 +79,8 @@ export const useMakerLyricsActions = ({
   t,
   tokens,
 }: IMakerLyricsActionsParams) => {
-  const openLyricsEditor = () => {
-    openLyricsDraft(projectRef.current);
+  const openLyricsEditor = (translationTarget?: string) => {
+    openLyricsDraft(projectRef.current, translationTarget);
     setDestructiveAction(undefined);
     const preferredToken =
       tokens.find((token) => token.id === activeLyricFocus?.tokenId) ??

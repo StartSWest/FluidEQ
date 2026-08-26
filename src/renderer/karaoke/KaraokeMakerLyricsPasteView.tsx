@@ -7,30 +7,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { RefObject } from 'react';
 import { useTranslation } from '../utils/I18nContext';
 import { karaokeLanguageName } from './karaokeLanguageName';
+import { KARAOKE_LANGUAGE_CODES } from './karaokeLanguageCodes';
 import Dropdown from '../widgets/Dropdown';
 import KaraokeMakerToolIcon from './KaraokeMakerToolIcon';
-
-/**
- * Every language a translation can target, the app's ten UI locales first.
- *
- * The same set `KaraokeMakerWizard` offers for a transcription's source
- * language — every language Whisper large-v3 was trained on — because
- * `Dropdown` has no "type a code that isn't listed" escape hatch: whatever
- * language someone wants to paste has to already be an option, or the field
- * cannot reach it. Duplicated here rather than imported from the wizard file:
- * that list is about what the local speech model recognizes, this one is
- * about what a lyric sheet can be tagged, and they read the same today only
- * because the model happens to cover what the app also ships UI text in.
- */
-const TARGET_LANGUAGE_CODES = [
-  ...['es', 'en', 'de', 'fr', 'it', 'pt', 'ru', 'ja', 'zh', 'hi'],
-  ...(
-    'af am ar as az ba be bg bn bo br bs ca cs cy da el et eu fa fi fo gl ' +
-    'gu ha haw he hr ht hu hy id is jw ka kk km kn ko la lb ln lo lt lv mg ' +
-    'mi mk ml mn mr ms mt my ne nl nn no oc pa pl ps ro sa sd si sk sl sn ' +
-    'so sq sr su sv sw ta te tg th tk tl tr tt uk ur uz vi yi yo yue'
-  ).split(' '),
-];
 
 /**
  * The paste view: the textarea you paste words into, and — since Task 8 —
@@ -69,7 +48,7 @@ const KaraokeMakerLyricsPasteView = ({
   const isTranslationTarget = targetLanguage !== originalLanguage;
   const targetOptions = [
     originalLanguage,
-    ...TARGET_LANGUAGE_CODES.filter((code) => code !== originalLanguage),
+    ...KARAOKE_LANGUAGE_CODES.filter((code) => code !== originalLanguage),
   ].map((code) => ({
     value: code,
     label:

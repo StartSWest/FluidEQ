@@ -44,6 +44,11 @@ export const useMakerTranslations = (
     [project],
   );
 
+  // Returns the mismatch instead of leaving the caller to re-read `mismatch`
+  // state a render later: `addKaraokeTranslation` already has the answer the
+  // instant it runs, and a caller that needs to act on success (closing the
+  // dialog) would otherwise have no way to tell "just succeeded" from
+  // "never tried" out of state that starts and stays `undefined` either way.
   const addTranslation = useCallback(
     (text: string, target: string) => {
       const result = addKaraokeTranslation(project, text, target);
@@ -52,6 +57,7 @@ export const useMakerTranslations = (
         onProjectChange(result.project);
         setLanguage(target);
       }
+      return result.mismatch;
     },
     [project, onProjectChange],
   );

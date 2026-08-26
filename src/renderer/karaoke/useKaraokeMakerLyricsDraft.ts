@@ -16,7 +16,13 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { useMemo, useState } from 'react';
+import {
+  Dispatch,
+  SetStateAction,
+  useCallback,
+  useMemo,
+  useState,
+} from 'react';
 import {
   IKaraokeMakerProject,
   karaokeMakerLineIsSection,
@@ -72,12 +78,37 @@ export const normalizedLyricsText = (value: string): string =>
  * `draftChanged` is what decides whether the editor offers to re-detect, so it
  * compares normalized text — see `normalizedLyricsText` for why a byte
  * comparison would offer that far too often.
+ *
+ * `onDraftChange` fires on every text change, from any source. `draft` has
+ * exactly one setter here — `setDraft`, which `openEditor` also calls rather
+ * than touching the underlying state directly — so a translation's stale
+ * line-count mismatch can be cleared once, beside that one set, instead of
+ * wrapped again by every caller that changes the text (a textarea's
+ * `onChange`, but just as much a file load or a fresh open): a wrapper
+ * anywhere else is a path that can be added later and forget to call it.
  */
-export const useKaraokeMakerLyricsDraft = (project: IKaraokeMakerProject) => {
+export const useKaraokeMakerLyricsDraft = (
+  project: IKaraokeMakerProject,
+  onDraftChange?: () => void,
+) => {
   const [isOpen, setOpen] = useState(false);
-  const [draft, setDraft] = useState(() => plainLyrics(project));
+  const [draft, setDraftValue] = useState(() => plainLyrics(project));
   const [fileName, setFileName] = useState<string>();
   const [workflowActive, setWorkflowActive] = useState(false);
+  // Which language a fresh open should seed the paste view toward.
+  // Undefined is the original-replace flow every open used before Task 8;
+  // "Add a language" is the one caller that passes a real tag, so its own
+  // click seeds an empty draft aimed at a translation instead of landing on
+  // the same default "replace the original" every other entry point uses.
+  const [target, setTarget] = useState<string>();
+
+  const setDraft = useCallback<Dispatch<SetStateAction<string>>>(
+    (value) => {
+      setDraftValue(value);
+      onDraftChange?.();
+    },
+    [onDraftChange],
+  );
 
   const draftWordCount = useMemo(
     () =>
@@ -96,10 +127,18 @@ export const useKaraokeMakerLyricsDraft = (project: IKaraokeMakerProject) => {
    * Takes the project rather than closing over it because the caller reads it
    * from a ref — the editor can be opened from a keyboard shortcut whose
    * handler was built several renders ago.
+   *
+   * `translationTarget` seeds toward a translation instead of the original:
+   * an empty draft (there is nothing to pre-fill a translation with) and the
+   * target the paste view's field should open on.
    */
-  const openEditor = (current: IKaraokeMakerProject) => {
-    setDraft(plainLyrics(current));
+  const openEditor = (
+    current: IKaraokeMakerProject,
+    translationTarget?: string,
+  ) => {
+    setDraft(translationTarget ? '' : plainLyrics(current));
     setFileName(undefined);
+    setTarget(translationTarget);
     setOpen(true);
   };
 
@@ -114,6 +153,7 @@ export const useKaraokeMakerLyricsDraft = (project: IKaraokeMakerProject) => {
     setWorkflowActive,
     draftWordCount,
     draftChanged,
+    target,
     openEditor,
   };
 };

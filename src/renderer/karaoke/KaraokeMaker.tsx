@@ -318,8 +318,9 @@ const KaraokeMaker = ({
     setWorkflowActive: setLyricsWorkflowActive,
     draftWordCount: draftLyricsWordCount,
     draftChanged: lyricsDraftChanged,
+    target: lyricsDraftTarget,
     openEditor: openLyricsDraft,
-  } = useKaraokeMakerLyricsDraft(project);
+  } = useKaraokeMakerLyricsDraft(project, clearTranslationMismatch);
   const [lyricFollowRequestKey, setLyricFollowRequestKey] = useState(0);
   const [wordShiftMs, setWordShiftMs] = useState(0);
   const [destructiveAction, setDestructiveAction] =
@@ -2281,10 +2282,10 @@ const KaraokeMaker = ({
           // The lyrics workflow can run a split before it transcribes, so the
           // dialog's cancel reaches the same pair as the panel's.
           cancelAnalysis={cancelCurrentWork}
-          clearMismatch={clearTranslationMismatch}
           destructiveAction={destructiveAction}
           displayedAnalysisProgress={displayedAnalysisProgress}
           draftLyricsWordCount={draftLyricsWordCount}
+          initialTranslationTarget={lyricsDraftTarget}
           lyricsDraft={lyricsDraft}
           lyricsDraftChanged={lyricsDraftChanged}
           lyricsFileName={lyricsFileName}

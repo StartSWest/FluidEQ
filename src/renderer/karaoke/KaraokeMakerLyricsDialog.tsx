@@ -9,42 +9,40 @@ import {
   ReactNode,
   RefObject,
   SetStateAction,
-  useEffect,
-  useMemo,
   useState,
 } from 'react';
 import {
   IKaraokeMakerProject,
   IKaraokeMakerToken,
   KARAOKE_ORIGINAL_LANGUAGE,
-  karaokeMakerLineIsSection,
 } from '../../common/karaoke/makerProject';
 import { KARAOKE_AUTOMATIC_DETECTOR_UI_ENABLED } from './makerAi';
 import { karaokeMakerLyricFocus } from './makerCanvasLayout';
 import { TSelection } from './useKaraokeMakerSelection';
 import { useTranslation } from '../utils/I18nContext';
-import { plainLyrics } from './useKaraokeMakerLyricsDraft';
 import KaraokeMakerToolIcon from './KaraokeMakerToolIcon';
 import KaraokeMakerLyricsPasteView from './KaraokeMakerLyricsPasteView';
 import KaraokeMakerLyricsWordList from './KaraokeMakerLyricsWordList';
+import KaraokeMakerLyricsReferenceView from './KaraokeMakerLyricsReferenceView';
 
 /**
  * The lyrics dialog: paste words in, then see how they landed.
  *
- * It is really two views sharing a frame — the textarea you paste into
- * (`KaraokeMakerLyricsPasteView`) and the word list you check afterwards
- * (`KaraokeMakerLyricsWordList`) — which is why the draft and the tokens
- * both arrive here and are handed onward. Splitting them out is what made
- * room for the target-language field without this file becoming the largest
- * thing in the Maker a second time.
+ * It is really three views sharing a frame — the textarea you paste into
+ * (`KaraokeMakerLyricsPasteView`), the word list you check afterwards
+ * (`KaraokeMakerLyricsWordList`), and the read-only original a translation
+ * gets checked against instead (`KaraokeMakerLyricsReferenceView`) — which is
+ * why the draft and the tokens both arrive here and are handed onward.
+ * Splitting them out is what made room for the target-language field without
+ * this file becoming the largest thing in the Maker a second time.
  *
- * The frame itself now also decides which language a confirmed paste lands
- * on: `pasteTarget` at the original tag is the dialog's original job
+ * The frame itself also decides which language a confirmed paste lands on:
+ * `pasteTarget` at the original tag is the dialog's original job
  * (`replaceLyrics`, which overwrites and re-times that sheet); any other tag
  * is a translation, seeded from the original's already-known timing instead
  * of detected fresh, so the three replace/detect buttons and the word-timing
  * panel — both specific to the original — are swapped for a single confirm
- * and a read-only, numbered view of the original to paste alongside.
+ * and the reference view.
  *
  * Nothing here decides what a confirmed paste *means* — that is
  * `replaceLyrics` and `addTranslation`, arriving as callbacks, because each
@@ -58,7 +56,9 @@ export interface IKaraokeMakerLyricsDialogProps {
   selection: TSelection;
   activeLyricFocus: ReturnType<typeof karaokeMakerLyricFocus>;
 
-  /** The pasted text, before it becomes lines. */
+  /** The pasted text, before it becomes lines. Its setter already clears a
+   * stale mismatch on every change — see `useKaraokeMakerLyricsDraft` — so
+   * nothing here needs to wrap it again. */
   lyricsDraft: string;
   setLyricsDraft: Dispatch<SetStateAction<string>>;
   setLyricsOpen: Dispatch<SetStateAction<boolean>>;
@@ -66,6 +66,12 @@ export interface IKaraokeMakerLyricsDialogProps {
   lyricsFileName: string | undefined;
   draftLyricsWordCount: number;
   lyricsInputRef: RefObject<HTMLInputElement | null>;
+
+  /** Which language the entry point that opened this dialog wants: the
+   * original (undefined, every entry point before Task 8) or a translation
+   * seeded toward this tag ("Add a language"). Read once, as the paste
+   * target's initial value — the field is free to change it afterward. */
+  initialTranslationTarget: string | undefined;
 
   /** A run in flight, shown inside the dialog while it works. */
   lyricsProcessing: boolean;
@@ -89,16 +95,17 @@ export interface IKaraokeMakerLyricsDialogProps {
   selectLyricsEditorToken: (token: IKaraokeMakerToken) => void;
 
   /**
-   * Seed a translated sheet from the pasted text, or report back how many
-   * lines it should have had. Refuses and reports rather than throws, since a
-   * mismatched paste is the expected first outcome, not an error state.
+   * Seed a translated sheet from the pasted text, returning how many lines
+   * it should have had if the count disagreed — undefined on success.
+   * Refuses and reports rather than throws, since a mismatched paste is the
+   * expected first outcome, not an error state.
    */
-  addTranslation: (text: string, target: string) => void;
+  addTranslation: (
+    text: string,
+    target: string,
+  ) => { expected: number; received: number } | undefined;
   /** Set when the last `addTranslation` call disagreed on line count. */
   mismatch: { expected: number; received: number } | undefined;
-  /** Must be called whenever the pasted text changes — a stale count sitting
-   * under text the user has already edited would be wrong. */
-  clearMismatch: () => void;
 
   /** Passed in, because both also appear outside this dialog. */
   renderLyricsModalWordInspector: () => ReactNode;
@@ -112,10 +119,10 @@ const KaraokeMakerLyricsDialog = ({
   analysisProgress,
   analysisProgressIsIndeterminate,
   cancelAnalysis,
-  clearMismatch,
   destructiveAction,
   displayedAnalysisProgress,
   draftLyricsWordCount,
+  initialTranslationTarget,
   lyricsDraft,
   lyricsDraftChanged,
   lyricsFileName,
@@ -139,61 +146,24 @@ const KaraokeMakerLyricsDialog = ({
   // the bare constant is not a reliable stand-in for "the original" once a
   // project has one.
   const originalLanguage = project.lyrics.language ?? KARAOKE_ORIGINAL_LANGUAGE;
-  // Resets to the original every time the dialog opens, because the parent
-  // only ever mounts this component fresh (`lyricsOpen && <...>`) — there is
-  // no stale selection to carry across a close.
-  const [pasteTarget, setPasteTarget] = useState(originalLanguage);
+  // Seeded from the entry point, then owned here: the parent only ever
+  // mounts this component fresh (`lyricsOpen && <...>`), so there is no
+  // stale selection to carry across a close and this only needs to be read
+  // once, not kept in sync with a prop that can no longer change under it.
+  const [pasteTarget, setPasteTarget] = useState(
+    initialTranslationTarget ?? originalLanguage,
+  );
   const isTranslationTarget = pasteTarget !== originalLanguage;
 
-  const handleDraftChange = (value: string) => {
-    setLyricsDraft(value);
-    clearMismatch();
-  };
-
-  // `addTranslation` reports success only by leaving `mismatch` unset, and
-  // that field already starts unset before any attempt — so watching it
-  // alone cannot tell "never tried" from "just succeeded". This flag marks
-  // the one render that followed a real submit, and is cleared the instant
-  // it is read, which is what lets the effect below tell the two apart.
-  const [translationSubmitted, setTranslationSubmitted] = useState(false);
-  useEffect(() => {
-    if (!translationSubmitted) {
-      return;
-    }
-    setTranslationSubmitted(false);
-    if (!mismatch) {
+  // `addTranslation` already knows the answer the instant it runs, so the
+  // dialog reads it straight from the call rather than watching state a
+  // render behind — no flag is needed to tell "just succeeded" apart from
+  // "never tried".
+  const confirmTranslation = () => {
+    if (!addTranslation(lyricsDraft, pasteTarget)) {
       setLyricsOpen(false);
     }
-  }, [translationSubmitted, mismatch, setLyricsOpen]);
-
-  const confirmTranslation = () => {
-    setTranslationSubmitted(true);
-    addTranslation(lyricsDraft, pasteTarget);
   };
-
-  // One text entry per `project.lyrics.lines` entry, in the same order:
-  // `plainLyrics` already builds exactly that, newline-joined, so splitting
-  // it back apart recovers each line's words without a second token-join
-  // here. Section headings consume no *pasted* line — `seedKaraokeTranslation`
-  // filters them out before counting — so they carry no number either, or a
-  // user counting rows against the mismatch message would arrive at a
-  // different number than the code did.
-  const originalLineRows = useMemo(() => {
-    const texts = plainLyrics(project).split('\n');
-    let lyricNumber = 0;
-    return project.lyrics.lines.map((line, index) => {
-      const isSection = karaokeMakerLineIsSection(line);
-      if (!isSection) {
-        lyricNumber += 1;
-      }
-      return {
-        id: line.id,
-        text: texts[index] ?? '',
-        isSection,
-        number: isSection ? undefined : lyricNumber,
-      };
-    });
-  }, [project]);
 
   // Built ahead of the return rather than as an inline ternary chain: a third
   // branch (processing / translation / replace-or-detect) made the JSX read
@@ -313,51 +283,16 @@ const KaraokeMakerLyricsDialog = ({
             lyricsFileName={lyricsFileName}
             lyricsInputRef={lyricsInputRef}
             lyricsProcessing={lyricsProcessing}
-            onDraftChange={handleDraftChange}
+            onDraftChange={setLyricsDraft}
             onTargetLanguageChange={setPasteTarget}
             originalLanguage={originalLanguage}
             targetLanguage={pasteTarget}
           />
           {isTranslationTarget ? (
-            <section className="karaoke-maker__lyrics-reference">
-              <div className="karaoke-maker__lyrics-reference-head">
-                <div className="karaoke-maker__lyrics-section-head">
-                  <strong>{t('karaoke.maker.referenceLyrics')}</strong>
-                </div>
-                {mismatch && (
-                  <p
-                    className="karaoke-maker__translation-mismatch"
-                    role="status"
-                  >
-                    {t('karaoke.translation.mismatch', {
-                      expected: mismatch.expected,
-                      received: mismatch.received,
-                    })}
-                  </p>
-                )}
-              </div>
-              <div className="karaoke-maker__lyrics-token-scroll">
-                {originalLineRows.map((row) => (
-                  <div
-                    key={row.id}
-                    className={`karaoke-maker__lyrics-token-line${
-                      row.isSection ? ' is-section' : ''
-                    }`}
-                  >
-                    {row.isSection ? (
-                      <span>{row.text}</span>
-                    ) : (
-                      <>
-                        <span className="karaoke-maker__lyrics-line-number">
-                          {row.number}
-                        </span>
-                        <span>{row.text}</span>
-                      </>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </section>
+            <KaraokeMakerLyricsReferenceView
+              mismatch={mismatch}
+              project={project}
+            />
           ) : (
             <KaraokeMakerLyricsWordList
               activeLyricFocus={activeLyricFocus}

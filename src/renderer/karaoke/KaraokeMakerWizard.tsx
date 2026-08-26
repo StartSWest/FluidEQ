@@ -5,6 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { useTranslation } from '../utils/I18nContext';
+import { KARAOKE_LANGUAGE_CODES } from './karaokeLanguageCodes';
 import Dropdown from '../widgets/Dropdown';
 import KaraokeMakerToolIcon from './KaraokeMakerToolIcon';
 
@@ -34,23 +35,6 @@ interface IKaraokeMakerWizardProps {
   language?: string;
   onLanguage: (language: string | undefined) => void;
 }
-
-/**
- * Every language Whisper large-v3 was trained on, the app's ten first.
- *
- * The model's own set rather than a curation: offering fewer than the model
- * supports would be the dropdown lying about the detector. Labels come from
- * Intl.DisplayNames, so each language names itself in the UI's own words.
- */
-const WIZARD_LANGUAGES = [
-  ...['es', 'en', 'de', 'fr', 'it', 'pt', 'ru', 'ja', 'zh', 'hi'],
-  ...(
-    'af am ar as az ba be bg bn bo br bs ca cs cy da el et eu fa fi fo gl ' +
-    'gu ha haw he hr ht hu hy id is jw ka kk km kn ko la lb ln lo lt lv mg ' +
-    'mi mk ml mn mr ms mt my ne nl nn no oc pa pl ps ro sa sd si sk sl sn ' +
-    'so sq sr su sv sw ta te tg th tk tl tr tt uk ur uz vi yi yo yue'
-  ).split(' '),
-];
 
 /**
  * The offer to set a song up automatically, and the progress once it is running.
@@ -173,7 +157,7 @@ const KaraokeMakerWizard = ({
                   label: t('karaoke.maker.wizardLanguageAuto'),
                   display: t('karaoke.maker.wizardLanguageAuto'),
                 },
-                ...WIZARD_LANGUAGES.map((code) => {
+                ...KARAOKE_LANGUAGE_CODES.map((code) => {
                   const label = languageNames?.of(code) ?? code;
                   return { value: code, label, display: label };
                 }),
