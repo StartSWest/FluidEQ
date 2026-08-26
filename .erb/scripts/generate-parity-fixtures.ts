@@ -88,6 +88,10 @@ import {
   guardExciterReturn,
 } from '../../src/renderer/dsp/exciterGuard';
 import {
+  createOrganicState,
+  organicBlock,
+} from '../../src/renderer/dsp/organic';
+import {
   createBandDynamics,
   refreshBandDynamics,
 } from '../../src/renderer/dsp/dynamics';
@@ -151,6 +155,7 @@ enum ProcessorId {
   AnalogDiode = 17,
   PhaseAlign = 18,
   ExciterGuard = 19,
+  Organic = 20,
 }
 
 interface IRackBand {
@@ -1224,6 +1229,33 @@ parityCorpus(FRAMES, 48000).forEach((signal) => {
       }),
       maxAbsTolerance: 1e-6,
       rmsTolerance: 1e-7,
+    });
+  });
+});
+
+// Organic across its travel. Its parameters are smoothed at the OVERSAMPLED
+// rate, so a port that smoothed at the session rate glides four times too fast
+// and the corpus catches it as a level difference through the whole block.
+[0, 0.5, 1].forEach((amount) => {
+  parityCorpus(FRAMES, 48000).forEach((signal) => {
+    fixtures.push({
+      name: `organic/${amount}/48000/${signal.name}`,
+      processor: ProcessorId.Organic,
+      sampleRate: 48000,
+      params: [amount],
+      input: processorInput(signal.channels),
+      expected: processorInput(signal.channels).map((channel) => {
+        const target = Float32Array.from(channel);
+        organicBlock(
+          createOrganicState(target.length),
+          target,
+          amount,
+          48000,
+        );
+        return target;
+      }),
+      maxAbsTolerance: 1e-4,
+      rmsTolerance: 1e-5,
     });
   });
 });

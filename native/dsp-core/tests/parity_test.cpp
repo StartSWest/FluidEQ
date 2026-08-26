@@ -25,6 +25,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "fluideq/dynamics.h"
 #include "fluideq/eq.h"
 #include "fluideq/exciter_guard.h"
+#include "fluideq/organic.h"
 #include "fluideq/oversample.h"
 #include "fluideq/phase_align.h"
 #include "fluideq/primitives.h"
@@ -72,7 +73,8 @@ enum ProcessorId : uint32_t {
   kExciterTransient = 16,
   kAnalogDiode = 17,
   kPhaseAlign = 18,
-  kExciterGuard = 19
+  kExciterGuard = 19,
+  kOrganic = 20
 };
 
 struct Fixture {
@@ -778,9 +780,33 @@ bool render_exciter_guard(const Fixture& fixture, std::vector<float>& actual) {
   return true;
 }
 
+/** `[amount]`. */
+bool render_organic(const Fixture& fixture, std::vector<float>& actual) {
+  if (fixture.params.empty()) {
+    return false;
+  }
+  const size_t wide = static_cast<size_t>(fixture.frames) *
+                      FEQ_ORGANIC_MAX_OVERSAMPLE;
+  actual = fixture.input;
+  for (uint32_t channel = 0; channel < fixture.channels; ++channel) {
+    std::vector<float> scratch(wide);
+    std::vector<float> dry(wide);
+    std::vector<float> middle(static_cast<size_t>(fixture.frames) * 2);
+    FeqOrganic state;
+    feq_organic_init(&state, scratch.data(), dry.data());
+    feq_organic_block(&state, channel_at(actual, channel, fixture.frames),
+                      fixture.frames, fixture.params[0],
+                      static_cast<double>(fixture.sample_rate),
+                      middle.data());
+  }
+  return true;
+}
+
 /** Run one fixture through the native engine, or say it cannot be run yet. */
 bool render(const Fixture& fixture, std::vector<float>& actual) {
   switch (fixture.processor) {
+    case kOrganic:
+      return render_organic(fixture, actual);
     case kExciterGuard:
       return render_exciter_guard(fixture, actual);
     case kPhaseAlign:
