@@ -25,6 +25,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "fluideq/dynamics.h"
 #include "fluideq/eq.h"
 #include "fluideq/oversample.h"
+#include "fluideq/phase_align.h"
 #include "fluideq/primitives.h"
 #include "fluideq/compressor.h"
 #include "fluideq/output_safety.h"
@@ -68,7 +69,8 @@ enum ProcessorId : uint32_t {
   kOutputSafety = 14,
   kAutoHeadroom = 15,
   kExciterTransient = 16,
-  kAnalogDiode = 17
+  kAnalogDiode = 17,
+  kPhaseAlign = 18
 };
 
 struct Fixture {
@@ -731,9 +733,37 @@ bool render_analog_diode(const Fixture& fixture, std::vector<float>& actual) {
   return true;
 }
 
+/** `[amount]`. */
+bool render_phase_align(const Fixture& fixture, std::vector<float>& actual) {
+  if (fixture.params.empty()) {
+    return false;
+  }
+  const double rate = static_cast<double>(fixture.sample_rate);
+  const uint32_t low_capacity = feq_phase_align_low_capacity(rate);
+  const uint32_t mid_capacity = feq_phase_align_mid_capacity(rate);
+
+  actual = fixture.input;
+  for (uint32_t channel = 0; channel < fixture.channels; ++channel) {
+    std::vector<float> low(fixture.frames);
+    std::vector<float> mid(fixture.frames);
+    std::vector<float> high(fixture.frames);
+    std::vector<float> low_line(low_capacity);
+    std::vector<float> mid_line(mid_capacity);
+    FeqPhaseAlign state;
+    feq_phase_align_init(&state, low.data(), mid.data(), high.data(),
+                         low_line.data(), low_capacity, mid_line.data(),
+                         mid_capacity);
+    feq_phase_align_process(&state, channel_at(actual, channel, fixture.frames),
+                            fixture.frames, fixture.params[0], rate);
+  }
+  return true;
+}
+
 /** Run one fixture through the native engine, or say it cannot be run yet. */
 bool render(const Fixture& fixture, std::vector<float>& actual) {
   switch (fixture.processor) {
+    case kPhaseAlign:
+      return render_phase_align(fixture, actual);
     case kExciterTransient:
       return render_exciter_transient(fixture, actual);
     case kAnalogDiode:

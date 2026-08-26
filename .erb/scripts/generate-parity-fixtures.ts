@@ -80,6 +80,10 @@ import {
   exciterTransientSample,
 } from '../../src/renderer/dsp/analogDiode';
 import {
+  alignChannel,
+  createPhaseAlign,
+} from '../../src/renderer/dsp/phaseAlign';
+import {
   createBandDynamics,
   refreshBandDynamics,
 } from '../../src/renderer/dsp/dynamics';
@@ -141,6 +145,7 @@ enum ProcessorId {
   AutoHeadroom = 15,
   ExciterTransient = 16,
   AnalogDiode = 17,
+  PhaseAlign = 18,
 }
 
 interface IRackBand {
@@ -1160,6 +1165,38 @@ parityCorpus(FRAMES, 48000).forEach((signal) => {
           ),
         ),
       ),
+      maxAbsTolerance: 1e-6,
+      rmsTolerance: 1e-7,
+    });
+  });
+});
+
+/**
+ * Timing, including fully off.
+ *
+ * Off is not simply an early return: the delays are still glided toward zero,
+ * so a block at amount 0 arriving while they are non-zero must keep processing
+ * or the signal steps. A port that returned early on the amount alone would
+ * pass every other fixture here and click on the way down.
+ */
+[0, 0.35, 1].forEach((amount) => {
+  parityCorpus(FRAMES, 48000).forEach((signal) => {
+    fixtures.push({
+      name: `align/${amount}/48000/${signal.name}`,
+      processor: ProcessorId.PhaseAlign,
+      sampleRate: 48000,
+      params: [amount],
+      input: processorInput(signal.channels),
+      expected: processorInput(signal.channels).map((channel) => {
+        const target = Float32Array.from(channel);
+        alignChannel(
+          createPhaseAlign(target.length, 48000),
+          target,
+          amount,
+          48000,
+        );
+        return target;
+      }),
       maxAbsTolerance: 1e-6,
       rmsTolerance: 1e-7,
     });
