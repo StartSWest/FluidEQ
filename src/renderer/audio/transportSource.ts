@@ -152,12 +152,13 @@ const OWNERS: readonly TPlaybackOwner[] = [
 /**
  * Who was using this app when it last closed, straight from storage.
  *
- * Distinct from `useLastTransportOwner` and deliberately so: that one reads
- * the module's copy below, which `clearTransportSource` empties when a player
- * unmounts, and which therefore answers "who is registered right now". The
- * question a startup has to ask is the other one — who was using this last
- * time — and it has to be answerable before any player exists, because the
- * answer is what decides whether one is mounted at all. See `App.tsx`.
+ * Distinct from `useLastTransportOwner` only in when it can be asked: that
+ * one reads the module's copy below, which needs a render and a subscription
+ * to reach. The question a startup has to ask is this same one — who was
+ * using this last time — and it has to be answerable before any player
+ * exists, because the answer is what decides whether one is mounted at all.
+ * See `App.tsx`. The two now agree on the answer; they did not always, and
+ * see `clearTransportSource` for what that cost.
  */
 export const readRememberedTransportOwner = (): TPlaybackOwner | undefined => {
   try {
@@ -241,16 +242,31 @@ export const setTransportSource = (next: ITransportSource): void => {
 
 /** Withdraw a description. Not guarded against another owner's, the way
  * `releasePlayback` has to be — each player has its own entry here, so a tab
- * unmounting can only ever take its own away. */
+ * unmounting can only ever take its own away.
+ *
+ * `lastOwner` SURVIVES THIS. It used to be wiped here whenever the owner
+ * going away was the one it named, and Stop is exactly that: emptying the
+ * queue leaves no track to describe, so the library withdraws itself and the
+ * memory of it went with the description. `IdleTransportBarSlot` reads
+ * `lastOwner` as its proof that something has ever played — the one thing
+ * separating a fresh install, which gets no bar, from a machine where music
+ * has been chosen — so pressing Stop did not fall back to the empty bar, it
+ * took the whole foot of the window away.
+ *
+ * Nothing needed the wipe. `pickTransportOwner` only ever uses `lastOwner` to
+ * index `sources`, and answers `undefined` for a name that is not registered,
+ * so a name outliving its entry cannot put a bar on screen for a player that
+ * is gone. Keeping it also makes this agree with the copy in `localStorage`,
+ * which was never cleared here and therefore already outlived every stop —
+ * the bar came back after a restart and not after a press of Stop, which is
+ * the shape of the bug rather than a design.
+ */
 export const clearTransportSource = (owner: TPlaybackOwner): void => {
   if (sources[owner] === undefined) {
     return;
   }
   const next = { ...sources };
   delete next[owner];
-  if (lastOwner === owner) {
-    lastOwner = undefined;
-  }
   if (lastPlayingOwner === owner) {
     lastPlayingOwner = undefined;
     lastPlayingKey = undefined;

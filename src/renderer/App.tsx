@@ -365,9 +365,11 @@ const TRANSPORT_TAB: Partial<Record<TPlaybackOwner, TWorkspaceTab>> = {
 const IdleTransportBarSlot = ({
   activeTab,
   isFullScreen,
+  onGoToTab,
 }: {
   activeTab: TWorkspaceTab;
   isFullScreen: boolean;
+  onGoToTab: (tab: TWorkspaceTab) => void;
 }) => {
   const sources = useTransportSources();
   const playingOwner = usePlaybackOwner();
@@ -389,7 +391,7 @@ const IdleTransportBarSlot = ({
   if (owner !== undefined || isFullScreen || lastOwner === undefined) {
     return null;
   }
-  return <IdleTransportBar />;
+  return <IdleTransportBar onGoToLibrary={() => onGoToTab('library')} />;
 };
 
 const TabTransportBar = ({
@@ -1913,6 +1915,7 @@ const AppContent = () => {
             <IdleTransportBarSlot
               activeTab={activeWorkspaceTab}
               isFullScreen={isAppFullScreen}
+              onGoToTab={setActiveWorkspaceTab}
             />
             <TabTransportBar
               activeTab={activeWorkspaceTab}

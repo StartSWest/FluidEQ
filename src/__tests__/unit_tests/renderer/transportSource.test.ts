@@ -107,6 +107,31 @@ describe('the register of players', () => {
     expect(result.current.library).toBeUndefined();
   });
 
+  it('still remembers who that player was, so Stop leaves a bar behind', () => {
+    // Stop empties the queue, which leaves no track to describe, which
+    // withdraws the library's entry here. `lastOwner` used to be wiped along
+    // with it — and `IdleTransportBarSlot` reads `lastOwner` as its proof
+    // that something has ever played, the one thing separating a fresh
+    // install (no bar) from a machine where music has been chosen. So a press
+    // of Stop took the whole foot of the window away instead of falling back
+    // to the empty bar.
+    //
+    // The entry going and the memory of it going are two different things:
+    // the first is asserted above, and `pickTransportOwner` reads this only
+    // to index the register, so a name outliving its entry can never put a
+    // bar on screen for a player that is gone.
+    const { result } = renderHook(() => ({
+      last: useLastTransportOwner(),
+      sources: useTransportSources(),
+    }));
+
+    act(() => setTransportSource(source('library')));
+    act(() => clearTransportSource('library'));
+
+    expect(result.current.sources.library).toBeUndefined();
+    expect(result.current.last).toBe('library');
+  });
+
   it('remembers who last actually played, across their own pause', () => {
     const { result } = renderHook(() => useLastPlayingOwner());
 
