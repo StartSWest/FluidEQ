@@ -112,13 +112,13 @@ import {
   buildLinearPhaseKernel,
   KERNEL_SIZE,
 } from '../../src/renderer/dsp/linearPhase';
+import { createLoudnessAnalyzer } from '../../src/renderer/dsp/loudnessAnalysis';
 import { DSP_DEFAULTS, EQ_MODELS } from '../../src/common/dsp/chain';
 import type {
   IEqSettings,
   TEqEngine,
   TEqModel,
 } from '../../src/common/dsp/chain';
-
 
 /**
  * The AudioWorklet global several of these modules fall back to.
@@ -134,14 +134,7 @@ import type {
  */
 (globalThis as { sampleRate?: number }).sampleRate = 48_000;
 
-const OUTPUT = path.join(
-  __dirname,
-  '..',
-  '..',
-  'native',
-  '.build',
-  'fixtures',
-);
+const OUTPUT = path.join(__dirname, '..', '..', 'native', '.build', 'fixtures');
 
 /** Must match `parity_test.cpp`. 'FEQF'. */
 const MAGIC = 0x46514546;
@@ -183,6 +176,7 @@ enum ProcessorId {
   Exciter = 22,
   Convolver = 23,
   LinearPhase = 24,
+  Loudness = 25,
 }
 
 interface IRackBand {
@@ -209,10 +203,13 @@ const write = (fixture: IFixture, index: number): void => {
   const channels = fixture.input.length;
   const frames = fixture.input[0].length;
   const samples = channels * frames;
-  const size =
-    HEADER_BYTES + fixture.params.length * 8 + samples * 4 * 2;
+  const size = HEADER_BYTES + fixture.params.length * 8 + samples * 4 * 2;
   const buffer = Buffer.alloc(size);
-  const view = new DataView(buffer.buffer, buffer.byteOffset, buffer.byteLength);
+  const view = new DataView(
+    buffer.buffer,
+    buffer.byteOffset,
+    buffer.byteLength,
+  );
 
   view.setUint32(0, MAGIC, true);
   view.setUint32(4, VERSION, true);
@@ -1030,48 +1027,56 @@ RACKS.forEach((rack) => {
 [
   { label: 'gentle', thresholdDb: -24, ratio: 2, attackMs: 20, releaseMs: 200 },
   { label: 'firm', thresholdDb: -30, ratio: 8, attackMs: 1, releaseMs: 60 },
-  { label: 'brick', thresholdDb: -12, ratio: 20, attackMs: 0.1, releaseMs: 500 },
+  {
+    label: 'brick',
+    thresholdDb: -12,
+    ratio: 20,
+    attackMs: 0.1,
+    releaseMs: 500,
+  },
 ].forEach((band) => {
-  [ProcessorId.Compressor, ProcessorId.CompressorLinked].forEach((processor) => {
-    const linked = processor === ProcessorId.CompressorLinked;
-    parityCorpus(FRAMES, 48000).forEach((signal) => {
-      fixtures.push({
-        name: `comp${linked ? 'link' : ''}/${band.label}/${signal.name}`,
-        processor,
-        sampleRate: 48000,
-        params: [
-          band.thresholdDb,
-          band.ratio,
-          band.attackMs,
-          band.releaseMs,
-          3,
-        ],
-        input: processorInput(signal.channels),
-        expected: (() => {
-          const settings = { ...band, makeupDb: 3 };
-          if (linked) {
-            const targets = processorInput(signal.channels).map((channel) =>
-              Float32Array.from(channel),
-            );
-            processBandLinked(
-              createCompressorState(),
-              targets,
-              settings,
-              48000,
-            );
-            return targets;
-          }
-          return processorInput(signal.channels).map((channel) => {
-            const target = Float32Array.from(channel);
-            processBand(createCompressorState(), target, settings, 48000);
-            return target;
-          });
-        })(),
-        maxAbsTolerance: 1e-6,
-        rmsTolerance: 1e-7,
+  [ProcessorId.Compressor, ProcessorId.CompressorLinked].forEach(
+    (processor) => {
+      const linked = processor === ProcessorId.CompressorLinked;
+      parityCorpus(FRAMES, 48000).forEach((signal) => {
+        fixtures.push({
+          name: `comp${linked ? 'link' : ''}/${band.label}/${signal.name}`,
+          processor,
+          sampleRate: 48000,
+          params: [
+            band.thresholdDb,
+            band.ratio,
+            band.attackMs,
+            band.releaseMs,
+            3,
+          ],
+          input: processorInput(signal.channels),
+          expected: (() => {
+            const settings = { ...band, makeupDb: 3 };
+            if (linked) {
+              const targets = processorInput(signal.channels).map((channel) =>
+                Float32Array.from(channel),
+              );
+              processBandLinked(
+                createCompressorState(),
+                targets,
+                settings,
+                48000,
+              );
+              return targets;
+            }
+            return processorInput(signal.channels).map((channel) => {
+              const target = Float32Array.from(channel);
+              processBand(createCompressorState(), target, settings, 48000);
+              return target;
+            });
+          })(),
+          maxAbsTolerance: 1e-6,
+          rmsTolerance: 1e-7,
+        });
       });
-    });
-  });
+    },
+  );
 });
 
 /**
@@ -1099,14 +1104,18 @@ RACKS.forEach((rack) => {
         const targets = signal.channels.map((channel) =>
           Float32Array.from(channel),
         );
-        processOutputSafety(createOutputSafety(targets.length, 48000), targets, {
-          limiterEnabled: enabled === 1,
-          ceiling: 10 ** (-0.1 / 20),
-          activationThreshold: 10 ** (-0.1 / 20),
-          releaseCoefficient: 1,
-          kneeDb: 0,
-          releaseHoldSamples: 0,
-        });
+        processOutputSafety(
+          createOutputSafety(targets.length, 48000),
+          targets,
+          {
+            limiterEnabled: enabled === 1,
+            ceiling: 10 ** (-0.1 / 20),
+            activationThreshold: 10 ** (-0.1 / 20),
+            releaseCoefficient: 1,
+            kneeDb: 0,
+            releaseHoldSamples: 0,
+          },
+        );
         return targets;
       })(),
       maxAbsTolerance: 1e-6,
@@ -1273,12 +1282,7 @@ parityCorpus(FRAMES, 48000).forEach((signal) => {
       input: processorInput(signal.channels),
       expected: processorInput(signal.channels).map((channel) => {
         const target = Float32Array.from(channel);
-        organicBlock(
-          createOrganicState(target.length),
-          target,
-          amount,
-          48000,
-        );
+        organicBlock(createOrganicState(target.length), target, amount, 48000);
         return target;
       }),
       maxAbsTolerance: 1e-4,
@@ -1572,6 +1576,69 @@ LINEAR_PHASE_RACKS.forEach((rack) => {
   });
 });
 
+/**
+ * Whole-track loudness and true peak, compared as two numbers.
+ *
+ * These need seconds rather than milliseconds: a 400 ms block with a 100 ms hop
+ * means anything shorter produces no blocks at all and both sides agree on
+ * -120 for the wrong reason. 121500 frames is 2.53 s — several blocks, and a
+ * final partial one, which is where an off-by-one in the hop boundary shows.
+ *
+ * The expectation is the measurement itself, in the first two samples of
+ * channel zero, because there is no output signal to compare: the analyser
+ * consumes audio and produces two dB values.
+ *
+ * `invalid-samples` is deliberately absent. It is the one corpus signal that
+ * carries NaN, nothing repairs it on this path — the analyser measures decoded
+ * audio, which never contains one — and both sides would agree on NaN, which
+ * the comparator correctly refuses to call a pass.
+ */
+const LOUDNESS_FRAMES = 121_500;
+const LOUDNESS_SIGNALS = [
+  'silence',
+  'sweep',
+  'white-noise',
+  'pink-noise',
+  'dc-offset',
+  'intersample-peak',
+  'transient-then-silence',
+];
+
+[48000, 44100].forEach((sampleRate) => {
+  const chosen = parityCorpus(LOUDNESS_FRAMES, sampleRate).filter((signal) =>
+    LOUDNESS_SIGNALS.includes(signal.name),
+  );
+  // A name that no longer matches would silently drop a case, and this file's
+  // own count line would report the smaller number as if it were the intent.
+  // Two of these were misspelled on the first attempt and the suite went green.
+  if (chosen.length !== LOUDNESS_SIGNALS.length) {
+    throw new Error(
+      `loudness corpus: asked for ${LOUDNESS_SIGNALS.length} signals, matched ${chosen.length}`,
+    );
+  }
+  chosen.forEach((signal) => {
+    const analyzer = createLoudnessAnalyzer(sampleRate, signal.channels.length);
+    analyzer.feed(signal.channels, 0, LOUDNESS_FRAMES);
+    const measured = analyzer.finish();
+    const expected = signal.channels.map(
+      () => new Float32Array(LOUDNESS_FRAMES),
+    );
+    expected[0][0] = measured.integratedLufs;
+    expected[0][1] = measured.truePeakDbtp;
+    fixtures.push({
+      name: `loudness/${sampleRate}/${signal.name}`,
+      processor: ProcessorId.Loudness,
+      sampleRate,
+      params: [],
+      input: signal.channels,
+      expected,
+      // A tenth of a thousandth of a LU. The only real source of divergence
+      // is the last ULP of a log10, multiplied by ten or twenty.
+      maxAbsTolerance: 1e-4,
+      rmsTolerance: 1e-6,
+    });
+  });
+});
 
 rmSync(OUTPUT, { recursive: true, force: true });
 mkdirSync(OUTPUT, { recursive: true });
@@ -1589,7 +1656,10 @@ fixtures.forEach((fixture) =>
 // the quiet half of a suite reporting more coverage than it has.
 const breakdown = Object.entries(ProcessorId)
   .filter(([, value]) => typeof value === 'number')
-  .map(([label, value]) => `${label.toLowerCase()} ${byProcessor.get(value as number) ?? 0}`)
+  .map(
+    ([label, value]) =>
+      `${label.toLowerCase()} ${byProcessor.get(value as number) ?? 0}`,
+  )
   .join(', ');
 console.log(
   `parity fixtures: ${fixtures.length} written to ${OUTPUT} (${breakdown})`,

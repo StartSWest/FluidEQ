@@ -482,7 +482,7 @@ describe('crossfade transport ownership', () => {
     const first = {
       ...audioTrack,
       normalization: {
-        version: 1 as const,
+        version: 2 as const,
         truePeakDbtp: -2,
         integratedLufs: -18,
       },
@@ -490,7 +490,7 @@ describe('crossfade transport ownership', () => {
     const next = {
       ...secondAudioTrack,
       normalization: {
-        version: 1 as const,
+        version: 2 as const,
         truePeakDbtp: -0.5,
         integratedLufs: -8,
       },

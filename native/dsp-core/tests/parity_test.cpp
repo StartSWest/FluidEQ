@@ -34,6 +34,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "fluideq/compressor.h"
 #include "fluideq/convolver.h"
 #include "fluideq/linear_phase.h"
+#include "fluideq/loudness.h"
 #include "fluideq/output_safety.h"
 #include "fluideq/post_filter_normalizer.h"
 #include "fluideq/limiter.h"
@@ -82,7 +83,8 @@ enum ProcessorId : uint32_t {
   kOrganicPath = 21,
   kExciter = 22,
   kConvolver = 23,
-  kLinearPhase = 24
+  kLinearPhase = 24,
+  kLoudness = 25
 };
 
 struct Fixture {
@@ -981,9 +983,46 @@ bool render_linear_phase(const Fixture& fixture, std::vector<float>& actual) {
   return true;
 }
 
+/**
+ * Whole-track loudness, compared as two numbers rather than as a signal.
+ *
+ * The analyser consumes audio and produces two dB values, so there is no
+ * output to line up sample for sample. They go in the first two samples of
+ * channel zero and everything else stays silent, which means the comparator's
+ * max-abs check is doing the work here and the RMS check is nearly free.
+ *
+ * Fed in one call. Feeding it in chunks would be bit-identical — all the state
+ * lives in the analyser — but a single call is the shape the decoder will use.
+ */
+bool render_loudness(const Fixture& fixture, std::vector<float>& actual) {
+  if (fixture.channels == 0 || fixture.frames < 2) {
+    return false;
+  }
+  FeqLoudnessAnalyzer* analyzer = feq_loudness_create(
+      static_cast<double>(fixture.sample_rate), fixture.channels);
+  if (analyzer == nullptr) {
+    return false;
+  }
+  std::vector<const float*> inputs(fixture.channels);
+  for (uint32_t channel = 0; channel < fixture.channels; ++channel) {
+    inputs[channel] = fixture.input.data() +
+                      static_cast<size_t>(channel) * fixture.frames;
+  }
+  feq_loudness_feed(analyzer, inputs.data(), fixture.frames);
+  const FeqLoudnessResult result = feq_loudness_finish(analyzer);
+  feq_loudness_destroy(analyzer);
+
+  actual.assign(fixture.input.size(), 0.0f);
+  actual[0] = static_cast<float>(result.integrated_lufs);
+  actual[1] = static_cast<float>(result.true_peak_dbtp);
+  return true;
+}
+
 /** Run one fixture through the native engine, or say it cannot be run yet. */
 bool render(const Fixture& fixture, std::vector<float>& actual) {
   switch (fixture.processor) {
+    case kLoudness:
+      return render_loudness(fixture, actual);
     case kLinearPhase:
       return render_linear_phase(fixture, actual);
     case kConvolver:
