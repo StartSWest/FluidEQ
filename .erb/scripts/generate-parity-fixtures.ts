@@ -75,6 +75,11 @@ import {
   processPostFilterNormalizer,
 } from '../../src/renderer/dsp/postFilterNormalizer';
 import {
+  analogDiodeExcitedSample,
+  createExciterTransientState,
+  exciterTransientSample,
+} from '../../src/renderer/dsp/analogDiode';
+import {
   createBandDynamics,
   refreshBandDynamics,
 } from '../../src/renderer/dsp/dynamics';
@@ -134,6 +139,8 @@ enum ProcessorId {
   CompressorLinked = 13,
   OutputSafety = 14,
   AutoHeadroom = 15,
+  ExciterTransient = 16,
+  AnalogDiode = 17,
 }
 
 interface IRackBand {
@@ -1103,6 +1110,58 @@ RACKS.forEach((rack) => {
         maxAbsTolerance: 1e-6,
         rmsTolerance: 1e-7,
       });
+    });
+  });
+});
+
+// The Exciter's two building blocks. The discriminator's amount is written out
+// as a signal, the same way the true-peak magnitudes are, so the ordinary
+// comparison applies to a control voltage.
+parityCorpus(FRAMES, 48000).forEach((signal) => {
+  fixtures.push({
+    name: `transient/48000/${signal.name}`,
+    processor: ProcessorId.ExciterTransient,
+    sampleRate: 48000,
+    params: [],
+    input: processorInput(signal.channels),
+    expected: processorInput(signal.channels).map((channel) => {
+      const state = createExciterTransientState();
+      return Float32Array.from(channel, (value) =>
+        exciterTransientSample(state, value, 48000),
+      );
+    }),
+    maxAbsTolerance: 1e-6,
+    rmsTolerance: 1e-7,
+  });
+});
+
+// Character spans the full travel: bias moves from warm to air across it, and
+// the two ends produce quite different harmonic balances.
+[
+  { drive: 1.0, character: 0.0, harmonic: 1.0 },
+  { drive: 2.5, character: 0.35, harmonic: 0.5 },
+  { drive: 4.0, character: 0.7, harmonic: 1.0 },
+].forEach((setting) => {
+  parityCorpus(FRAMES, 48000).forEach((signal) => {
+    fixtures.push({
+      name: `diode/${setting.drive}/${setting.character}/${signal.name}`,
+      processor: ProcessorId.AnalogDiode,
+      sampleRate: 48000,
+      params: [setting.drive, setting.character, 0.8, setting.harmonic],
+      input: processorInput(signal.channels),
+      expected: processorInput(signal.channels).map((channel) =>
+        Float32Array.from(channel, (value) =>
+          analogDiodeExcitedSample(
+            value,
+            setting.drive,
+            setting.character,
+            0.8,
+            setting.harmonic,
+          ),
+        ),
+      ),
+      maxAbsTolerance: 1e-6,
+      rmsTolerance: 1e-7,
     });
   });
 });

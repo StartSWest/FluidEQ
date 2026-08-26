@@ -65,6 +65,7 @@ add_library(fluideq-dsp-core STATIC
   dsp-core/src/compressor.cpp
   dsp-core/src/output_safety.cpp
   dsp-core/src/post_filter_normalizer.cpp
+  dsp-core/src/analog_diode.cpp
 )
 target_include_directories(fluideq-dsp-core PUBLIC dsp-core/include)
 target_link_libraries(fluideq-dsp-core PRIVATE feq_strict)

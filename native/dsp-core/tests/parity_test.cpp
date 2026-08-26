@@ -19,6 +19,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * nothing, which is what the positive control at the end exists to prevent.
  */
 
+#include "fluideq/analog_diode.h"
 #include "fluideq/biquad.h"
 #include "fluideq/dsp.h"
 #include "fluideq/dynamics.h"
@@ -65,7 +66,9 @@ enum ProcessorId : uint32_t {
   kCompressor = 12,
   kCompressorLinked = 13,
   kOutputSafety = 14,
-  kAutoHeadroom = 15
+  kAutoHeadroom = 15,
+  kExciterTransient = 16,
+  kAnalogDiode = 17
 };
 
 struct Fixture {
@@ -697,9 +700,44 @@ bool render_auto_headroom(const Fixture& fixture, std::vector<float>& actual) {
   return true;
 }
 
+/** The discriminator's amount per sample, written out as a signal. */
+bool render_exciter_transient(const Fixture& fixture,
+                              std::vector<float>& actual) {
+  actual.assign(fixture.input.size(), 0.0f);
+  for (uint32_t channel = 0; channel < fixture.channels; ++channel) {
+    FeqExciterTransient state;
+    feq_exciter_transient_init(&state);
+    const size_t base = static_cast<size_t>(channel) * fixture.frames;
+    for (uint32_t at = 0; at < fixture.frames; ++at) {
+      actual[base + at] = static_cast<float>(feq_exciter_transient_sample(
+          &state, static_cast<double>(fixture.input[base + at]),
+          static_cast<double>(fixture.sample_rate)));
+    }
+  }
+  return true;
+}
+
+/** `[drive, character, level, harmonicGain]`. */
+bool render_analog_diode(const Fixture& fixture, std::vector<float>& actual) {
+  if (fixture.params.size() < 4) {
+    return false;
+  }
+  actual = fixture.input;
+  for (float& sample : actual) {
+    sample = static_cast<float>(feq_analog_diode_excited_sample(
+        static_cast<double>(sample), fixture.params[0], fixture.params[1],
+        fixture.params[2], fixture.params[3]));
+  }
+  return true;
+}
+
 /** Run one fixture through the native engine, or say it cannot be run yet. */
 bool render(const Fixture& fixture, std::vector<float>& actual) {
   switch (fixture.processor) {
+    case kExciterTransient:
+      return render_exciter_transient(fixture, actual);
+    case kAnalogDiode:
+      return render_analog_diode(fixture, actual);
     case kAutoHeadroom:
       return render_auto_headroom(fixture, actual);
     case kOutputSafety:
