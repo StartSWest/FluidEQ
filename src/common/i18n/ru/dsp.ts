@@ -48,6 +48,14 @@ const dsp = {
   'dsp.normalizer.measuredPeak': 'Измеренный пик',
   'dsp.normalizer.measuredLoudness': 'Интегральная громкость',
   'dsp.normalizer.appliedGain': 'Применённое усиление',
+  'dsp.normalizer.limitedByCeiling':
+    '{{requested}} требуется — ограничено пиковым потолком',
+  'dsp.normalizer.limitedByMaxGain':
+    '{{requested}} требуется — достигнут максимальный подъём',
+  'dsp.normalizer.limitedByMinGain':
+    '{{requested}} требуется — достигнуто максимальное ослабление',
+  'dsp.normalizer.limitedByGate':
+    'Слишком тихо для измерения — усиление не применено',
   'dsp.normalizer.liveMeter': 'До / после в реальном времени',
   'dsp.normalizer.before': 'До',
   'dsp.normalizer.after': 'После',

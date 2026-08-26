@@ -50,7 +50,10 @@ import {
   previousMeterStyle,
 } from 'common/meterStyles';
 import { useTranslation } from '../utils/I18nContext';
-import { useLiveAudioFrame } from '../audio/LiveAudioContext';
+import {
+  useLiveAudioCapture,
+  useLiveAudioFrame,
+} from '../audio/LiveAudioContext';
 import { useGraphMeterHidden } from '../utils/graphStyle';
 import { useRhythmRun } from '../utils/rhythmRun';
 import { useIsEuphoric } from '../utils/euphoriaMode';
@@ -1580,6 +1583,11 @@ const OutputLevelMeter = () => {
   const { isClipping, outputLevels } = useLiveAudioFrame();
   const { t } = useTranslation();
   const isHidden = useGraphMeterHidden();
+  // Claimed alongside the titlebar trace rather than relying on it. The two are
+  // mounted independently, and a meter that draws real dBFS is exactly the kind
+  // of owner the capture exists for — it must not be silently dependent on
+  // another component happening to be on screen.
+  useLiveAudioCapture(!isHidden);
   const isEuphoric = useIsEuphoric(getStreakJoy(useRhythmRun().streak) >= 1);
   const isEuphoricRef = useRef(isEuphoric);
   isEuphoricRef.current = isEuphoric;

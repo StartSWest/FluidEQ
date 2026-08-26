@@ -11,7 +11,7 @@ import {
 } from '../../common/dsp/chain';
 import { useTranslation } from '../utils/I18nContext';
 import { Dial, ProcessorCard } from './DspControls';
-import { normalizerGainDb } from './inputNormalizer';
+import { normalizerGainBreakdown, TNormalizerLimit } from './inputNormalizer';
 import { IDspInputAnalysisState, useDspNormalizerMeter } from './store';
 
 interface IDspNormalizerCardProps {
@@ -33,6 +33,22 @@ const MODES: readonly {
   { mode: 'loudness', label: 'dsp.normalizer.loudness' },
 ];
 
+/**
+ * `as const` and not an annotation: `t` is typed against the literal union of
+ * every shipped key, so widening these to `string` loses the one check that
+ * catches a key that was never added to the locale files.
+ */
+const LIMIT_LABELS = {
+  ceiling: 'dsp.normalizer.limitedByCeiling',
+  maxGain: 'dsp.normalizer.limitedByMaxGain',
+  minGain: 'dsp.normalizer.limitedByMinGain',
+  gate: 'dsp.normalizer.limitedByGate',
+} as const satisfies Record<Exclude<TNormalizerLimit, 'none'>, string>;
+
+/** Signed, because the whole point is that the sign was not what was asked for. */
+const signedDb = (value: number) =>
+  `${value > 0 ? '+' : ''}${value.toFixed(1)} dB`;
+
 const DspNormalizerCard = ({
   normalizer,
   analysisState,
@@ -42,7 +58,7 @@ const DspNormalizerCard = ({
   const { t } = useTranslation();
   const { analysis } = analysisState;
   const liveMeter = useDspNormalizerMeter();
-  const appliedGain = normalizerGainDb(normalizer, analysis);
+  const gain = normalizerGainBreakdown(normalizer, analysis);
   const enabled = normalizer.mode !== 'off';
   const peakDb = (value: number) =>
     value > 0.000001 ? 20 * Math.log10(value) : -120;
@@ -161,9 +177,23 @@ const DspNormalizerCard = ({
             </div>
             <div>
               <dt>{t('dsp.normalizer.appliedGain')}</dt>
-              <dd>{analysisValue(analysis ? appliedGain : undefined, 'dB')}</dd>
+              <dd>
+                {analysisValue(analysis ? gain.appliedDb : undefined, 'dB')}
+              </dd>
             </div>
           </dl>
+          {/* Under all three numbers, because it is the sentence that
+              reconciles them. A loudness target asking for a boost on a track
+              already at the rails is answered with attenuation, and both dials
+              beside it still read as obeyed — so the control that actually won
+              is named rather than left to be inferred. */}
+          {analysis && gain.limitedBy !== 'none' ? (
+            <p className="dsp-band-hint dsp-normalizer-limit">
+              {t(LIMIT_LABELS[gain.limitedBy], {
+                requested: signedDb(gain.requestedDb),
+              })}
+            </p>
+          ) : null}
         </section>
       </div>
 

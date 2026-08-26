@@ -49,6 +49,14 @@ const dsp = {
   'dsp.normalizer.measuredPeak': 'Gemessener Peak',
   'dsp.normalizer.measuredLoudness': 'Integrierte Lautheit',
   'dsp.normalizer.appliedGain': 'Angewandte Verstärkung',
+  'dsp.normalizer.limitedByCeiling':
+    '{{requested}} nötig — durch Peak-Limit begrenzt',
+  'dsp.normalizer.limitedByMaxGain':
+    '{{requested}} nötig — maximale Anhebung erreicht',
+  'dsp.normalizer.limitedByMinGain':
+    '{{requested}} nötig — maximale Absenkung erreicht',
+  'dsp.normalizer.limitedByGate':
+    'Zu leise zum Messen — keine Verstärkung angewendet',
   'dsp.normalizer.liveMeter': 'Live vorher / nachher',
   'dsp.normalizer.before': 'Vorher',
   'dsp.normalizer.after': 'Nachher',

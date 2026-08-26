@@ -236,27 +236,91 @@ export const analyzeInputTrack = async (
   };
 };
 
+/**
+ * Which term produced the gain, when it was not the one the user set.
+ *
+ * `ceiling` is the common and the confusing one: a loudness target asks for a
+ * boost, the track already peaks near or above full scale, and the true-peak
+ * ceiling spends that room first. Reported so the panel can say which control
+ * won instead of showing a number that contradicts the dial beside it.
+ */
+export type TNormalizerLimit =
+  'none' | 'ceiling' | 'maxGain' | 'minGain' | 'gate';
+
+export interface INormalizerGainBreakdown {
+  /** What the selected mode asked for, before any limit was applied. */
+  requestedDb: number;
+  /** Ceiling minus measured true peak: what is left before clipping. */
+  peakRoomDb: number;
+  appliedDb: number;
+  limitedBy: TNormalizerLimit;
+}
+
+/**
+ * The gain and the reason for it, derived together.
+ *
+ * One function rather than a readout that recomputes the explanation beside an
+ * engine that computes the value. Two derivations of the same number drift,
+ * and a meter that disagrees with what is being applied is worse than no meter
+ * at all — it is the audio lying with a straight face.
+ */
+export const normalizerGainBreakdown = (
+  settings: IInputNormalizerSettings,
+  analysis: ILibraryNormalizationAnalysis | undefined,
+): INormalizerGainBreakdown => {
+  if (settings.mode === 'off' || !analysis) {
+    return {
+      requestedDb: 0,
+      peakRoomDb: 0,
+      appliedDb: 0,
+      limitedBy: 'none',
+    };
+  }
+  const peakRoomDb = settings.truePeakDbtp - analysis.truePeakDbtp;
+
+  if (settings.mode === 'truePeak') {
+    // The ceiling IS the target here, and the mode only ever comes down: a
+    // track already under it is left alone rather than lifted to meet it.
+    const requestedDb = Math.min(0, peakRoomDb);
+    const appliedDb = Math.max(MIN_NORMALIZER_GAIN_DB, requestedDb);
+    return {
+      requestedDb,
+      peakRoomDb,
+      appliedDb,
+      limitedBy: appliedDb > requestedDb ? 'minGain' : 'none',
+    };
+  }
+
+  if (analysis.integratedLufs <= ABSOLUTE_GATE_LUFS) {
+    return {
+      requestedDb: 0,
+      peakRoomDb,
+      appliedDb: 0,
+      limitedBy: 'gate',
+    };
+  }
+
+  const requestedDb = settings.targetLufs - analysis.integratedLufs;
+  const bounded = Math.min(MAX_LOUDNESS_GAIN_DB, requestedDb, peakRoomDb);
+  const appliedDb = Math.max(MIN_NORMALIZER_GAIN_DB, bounded);
+
+  let limitedBy: TNormalizerLimit = 'none';
+  if (appliedDb > bounded) {
+    limitedBy = 'minGain';
+  } else if (peakRoomDb < requestedDb && peakRoomDb <= MAX_LOUDNESS_GAIN_DB) {
+    limitedBy = 'ceiling';
+  } else if (MAX_LOUDNESS_GAIN_DB < requestedDb) {
+    limitedBy = 'maxGain';
+  }
+
+  return { requestedDb, peakRoomDb, appliedDb, limitedBy };
+};
+
 /** The one linked gain used from the first sample to the last. */
 export const normalizerGainDb = (
   settings: IInputNormalizerSettings,
   analysis: ILibraryNormalizationAnalysis | undefined,
-): number => {
-  if (settings.mode === 'off' || !analysis) {
-    return 0;
-  }
-  const peakRoom = settings.truePeakDbtp - analysis.truePeakDbtp;
-  if (settings.mode === 'truePeak') {
-    return Math.max(MIN_NORMALIZER_GAIN_DB, Math.min(0, peakRoom));
-  }
-  if (analysis.integratedLufs <= ABSOLUTE_GATE_LUFS) {
-    return 0;
-  }
-  const loudnessGain = settings.targetLufs - analysis.integratedLufs;
-  return Math.max(
-    MIN_NORMALIZER_GAIN_DB,
-    Math.min(MAX_LOUDNESS_GAIN_DB, loudnessGain, peakRoom),
-  );
-};
+): number => normalizerGainBreakdown(settings, analysis).appliedDb;
 
 /**
  * Constant LUFS-referenced makeup for Master.

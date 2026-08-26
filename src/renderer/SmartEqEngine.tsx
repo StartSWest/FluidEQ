@@ -43,7 +43,10 @@ import { useFluidEqContext } from './utils/FluidEqContext';
 import { useTranslation } from './utils/I18nContext';
 import { sortHelper } from './utils/utils';
 import { setSmartEq as setSmartEqApi } from './utils/equalizerApi';
-import { useLiveAudioControl } from './audio/LiveAudioContext';
+import {
+  useLiveAudioCapture,
+  useLiveAudioControl,
+} from './audio/LiveAudioContext';
 import { noteSmartEqWrite } from './audio/songEqSession';
 import { useContinuousEq } from './utils/continuousEq';
 import { isContinuousMode, useSmartEqMode } from './utils/smartEqMode';
@@ -220,6 +223,11 @@ const SmartEqEngine = () => {
   tRef.current = t;
   /** What the page shows, and the flag the loop stands down for. */
   const { status, isRunning } = useSmartEqRun();
+  // A run outlives being looked at. It gathers evidence region by region over
+  // tens of seconds — all evening, in the continuous mode — and `stop()` aborts
+  // the session outright, so letting a minimised window release the capture
+  // would throw away everything the run had heard so far.
+  useLiveAudioCapture(isRunning, 'work');
   const isContinuousOn = useContinuousEq();
   const isSmartBypassed = bypassed.includes('smart');
   const smartEqMode = useSmartEqMode();

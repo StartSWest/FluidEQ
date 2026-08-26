@@ -97,6 +97,7 @@ import {
   setAlpha,
 } from './waveformPaint';
 import {
+  useLiveAudioCapture,
   useLiveAudioControl,
   useLiveAudioFrame,
 } from './audio/LiveAudioContext';
@@ -132,6 +133,13 @@ const WaveformVisualizer = () => {
   // the support panel it used to open in euphoria is still one click away on
   // the creature beside it.
   const { isActive, isPaused } = useLiveAudioControl();
+  // This meter is mounted for the life of the window — see its render site in
+  // `App.tsx` for why it stays put behind the hidden titlebar rather than
+  // unmounting. That makes it the owner whose claim decides what an idle
+  // FluidEQ costs: while the window is on screen the loopback is open and the
+  // trace is live, and the moment the window is minimised the claim releases,
+  // the endpoint is given back and the device may sleep.
+  useLiveAudioCapture();
 
   // Every sample eased toward the new frame instead of jumping to it.
   //

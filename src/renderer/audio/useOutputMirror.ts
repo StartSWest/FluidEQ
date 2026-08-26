@@ -31,7 +31,7 @@ import {
   getDeviceProfileSettings,
 } from '../utils/equalizerApi';
 import { reportInfo } from '../utils/logger';
-import { useLiveAudioControl } from './LiveAudioContext';
+import { useLiveAudioCapture, useLiveAudioControl } from './LiveAudioContext';
 import {
   clampMirrorVolume,
   IOutputMirror,
@@ -183,6 +183,11 @@ const useOutputMirror = () => {
   const [selectedGuids, setSelectedGuids] = useState<string[]>(loadSelection);
   const [volumes, setVolumes] = useState<Record<string, number>>(loadVolumes);
   const [runningGuids, setRunningGuids] = useState<string[]>([]);
+  // A mirror is not a picture of the sound, it is the sound: this capture is
+  // what the second device is being fed. Releasing it because the window was
+  // minimised would silence that device, so a running mirror owns the endpoint
+  // outright.
+  useLiveAudioCapture(runningGuids.length > 0, 'work');
   const [error, setError] = useState('');
   const runningRef = useRef(new Map<string, IRunningMirror>());
   /** Starts in flight, so one effect run cannot launch the same sink twice. */

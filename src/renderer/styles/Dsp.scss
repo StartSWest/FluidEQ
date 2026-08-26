@@ -338,6 +338,17 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   padding: 0 2px;
 }
 
+// Brighter than a plain hint, because it explains a number that contradicts
+// the dial directly above it. Deliberately not `.is-warning`: nothing has gone
+// wrong when the ceiling wins, that is the safety doing precisely its job, and
+// painting it red would teach people to fear a correct result.
+.dsp-normalizer-limit {
+  width: 100%;
+  padding: 0 2px;
+  color: rgba($white, 0.66);
+  font-variant-numeric: tabular-nums;
+}
+
 .dsp-crossfade-layout {
   display: grid;
   width: 100%;

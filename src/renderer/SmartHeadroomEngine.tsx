@@ -27,7 +27,10 @@ import {
   ICombinedResponse,
 } from '../common/response';
 import { IProgrammePoint } from '../common/smartHeadroom';
-import { useLiveAudioControl } from './audio/LiveAudioContext';
+import {
+  useLiveAudioCapture,
+  useLiveAudioControl,
+} from './audio/LiveAudioContext';
 import {
   createAxisCells,
   IAxisCell,
@@ -80,6 +83,12 @@ const SmartHeadroomEngine = () => {
     voicing,
   } = useFluidEqContext();
   const { capture, isActive } = useLiveAudioControl();
+  // Auto Pre-Amp sets the preamp from what the output is actually doing, and
+  // what the output is doing does not stop when the window is put away — the
+  // music playing through it is somebody else's app. So this holds the endpoint
+  // open while the feature is on, and a machine that wants a truly idle device
+  // is a machine with Auto Pre-Amp switched off.
+  useLiveAudioCapture(isAutoPreAmpOn, 'work');
 
   /**
    * The whole applied chain, as a response the shared evaluator understands.

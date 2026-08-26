@@ -37,6 +37,10 @@ jest.mock('renderer/audio/LiveAudioContext', () => ({
     captureBalanceProfile: jest.fn(() => new Promise(() => {})),
     isActive: false,
   }),
+  // The engine claims the capture for the length of a run. Mocked as a no-op
+  // rather than left out: this factory replaces the whole module, so an
+  // unlisted export is `undefined` and calling it throws on render.
+  useLiveAudioCapture: () => undefined,
 }));
 
 const mockedGetEqualizerState = getEqualizerState as jest.Mock;

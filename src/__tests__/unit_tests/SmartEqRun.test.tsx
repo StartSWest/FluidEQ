@@ -116,6 +116,9 @@ jest.mock('renderer/audio/LiveAudioContext', () => ({
     captureBalanceProfile: mockCaptureBalanceProfile,
     isActive: true,
   }),
+  // This factory replaces the whole module, so an export it does not list is
+  // `undefined` — and the engine calls this one on every render.
+  useLiveAudioCapture: () => undefined,
 }));
 
 jest.mock('renderer/utils/equalizerApi', () => ({

@@ -49,6 +49,14 @@ const dsp = {
   'dsp.normalizer.measuredPeak': 'Pico medido',
   'dsp.normalizer.measuredLoudness': 'Sonoridad integrada',
   'dsp.normalizer.appliedGain': 'Ganancia aplicada',
+  'dsp.normalizer.limitedByCeiling':
+    '{{requested}} necesarios — limitado por el techo de pico',
+  'dsp.normalizer.limitedByMaxGain':
+    '{{requested}} necesarios — realce máximo alcanzado',
+  'dsp.normalizer.limitedByMinGain':
+    '{{requested}} necesarios — atenuación máxima alcanzada',
+  'dsp.normalizer.limitedByGate':
+    'Demasiado bajo para medir — sin ganancia aplicada',
   'dsp.normalizer.liveMeter': 'Antes / después en vivo',
   'dsp.normalizer.before': 'Antes',
   'dsp.normalizer.after': 'Después',

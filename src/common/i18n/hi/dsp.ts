@@ -48,6 +48,11 @@ const dsp = {
   'dsp.normalizer.measuredPeak': 'मापा गया पीक',
   'dsp.normalizer.measuredLoudness': 'इंटीग्रेटेड लाउडनेस',
   'dsp.normalizer.appliedGain': 'लागू गेन',
+  'dsp.normalizer.limitedByCeiling':
+    '{{requested}} आवश्यक — पीक सीमा द्वारा सीमित',
+  'dsp.normalizer.limitedByMaxGain': '{{requested}} आवश्यक — अधिकतम बूस्ट पर',
+  'dsp.normalizer.limitedByMinGain': '{{requested}} आवश्यक — अधिकतम क्षीणन पर',
+  'dsp.normalizer.limitedByGate': 'मापने के लिए बहुत शांत — कोई गेन लागू नहीं',
   'dsp.normalizer.liveMeter': 'लाइव पहले / बाद में',
   'dsp.normalizer.before': 'पहले',
   'dsp.normalizer.after': 'बाद में',

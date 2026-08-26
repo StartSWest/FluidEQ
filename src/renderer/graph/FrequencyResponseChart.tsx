@@ -58,7 +58,10 @@ import {
 import { getLineGainAtFrequency } from './utils';
 import { plotTopMargin } from './plotMargins';
 import { ColorEnum } from '../styles/color';
-import { useLiveAudioFrame } from '../audio/LiveAudioContext';
+import {
+  useLiveAudioCapture,
+  useLiveAudioFrame,
+} from '../audio/LiveAudioContext';
 import { getBandColor } from '../utils/bandColors';
 import {
   cycleGraphLook,
@@ -669,6 +672,9 @@ const FrequencyResponseChart = ({
     customFx,
   } = useFluidEqContext();
   const isGraphViewOn = isVisible ?? isGlobalGraphViewOn;
+  // The live trace over the response curve is the plot's whole reason to be
+  // reading frames, so the plot owns the capture for as long as it is drawn.
+  useLiveAudioCapture(isGraphViewOn);
   const isBypassed = (layer: TApoLayer) => bypassed.includes(layer);
   // A boolean rather than the two tests written out at each of the three places
   // that need them — the curve, its legend chip, and the sum they both feed.

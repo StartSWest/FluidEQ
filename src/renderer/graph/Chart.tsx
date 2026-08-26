@@ -62,6 +62,7 @@ import { useTranslation } from '../utils/I18nContext';
 import Curve from './Curve';
 import EditablePoint from './EditablePoint';
 import LiveTraceCanvas from './LiveTraceCanvas';
+import { LIVE_FULL_SCALE_DB } from './liveSpectrumFrames';
 
 export interface ChartDimensions {
   height: number;
@@ -95,7 +96,16 @@ const PRESENCE_GRAB_PX = 9;
 const GRID_AXIS_PADDING: IMarginLike = {
   left: 50,
   top: 10,
-  right: 0,
+  /**
+   * The level scale's gutter, and it was 0 while this plot had only one axis.
+   *
+   * Two quantities were sharing the left-hand numbers: the EQ response is dB
+   * of GAIN, while the live output area behind it is a LEVEL, and nothing on
+   * screen said so. A band of the trace sitting on the 0 dB line was being
+   * read as "0 dB" when it is really 20 dB below the programme's own peak.
+   * Wide enough for "-40 dB" at 0.75rem.
+   */
+  right: 48,
   bottom: 30,
 };
 
@@ -112,6 +122,24 @@ const NO_AXIS_PADDING: IMarginLike = {
 
 export const getAxisPadding = (isGridHidden: boolean): IMarginLike =>
   isGridHidden ? NO_AXIS_PADDING : GRID_AXIS_PADDING;
+
+/**
+ * The right-hand scale: dB below the programme's own peak, not dBFS.
+ *
+ * The difference is the entire reason this is a second axis rather than more
+ * numbers on the first. The live trace is peak-referenced — see
+ * `writeFrequencyPoints`, which plots `level - trackPeak + LIVE_FULL_SCALE_DB`
+ * — so the top gridline IS the loudest bin the track has reached and every
+ * value under it is real dB beneath that peak. Referencing it that way is what
+ * stops the Windows volume slider from flattening the shape; it is equally
+ * what makes an absolute dBFS label on this plot untrue.
+ *
+ * Module scope, and not a `useMemo`, because `Axis` lists `tickFormat` in its
+ * effect dependencies: a function rebuilt each render would restart the axis
+ * transition on every frame the graph moves.
+ */
+const levelTickFormat = (domainValue: NumberValue) =>
+  `${Number(domainValue) - LIVE_FULL_SCALE_DB} dB`;
 
 /**
  * Red at nothing earned, green at everything, blended in between.
@@ -888,9 +916,10 @@ const Chart = ({
   );
 
   // Every one of these gutters exists to hold a label, so with the grid off
-  // there is nothing in any of them — fifty pixels down the left for the decibel
-  // scale and thirty along the bottom for the frequency marks, both empty, both
-  // taken out of the drawing. The wave runs edge to edge instead.
+  // there is nothing in any of them — fifty pixels down the left for the gain
+  // scale, forty-eight down the right for the level scale, thirty along the
+  // bottom for the frequency marks, all empty, all taken out of the drawing.
+  // The wave runs edge to edge instead.
   const isGridHidden = useGraphGridHidden();
 
   const padding = useMemo(() => getAxisPadding(isGridHidden), [isGridHidden]);
@@ -1232,6 +1261,16 @@ const Chart = ({
             transform={`translate(${padding.left}, 0)`}
             tickValues={yAxisTickValues}
             tickFormat={yTickFormat}
+          />
+          {/* Same pixels, second quantity. It shares `yScaleGain` because the
+              trace is plotted against that very scale — reading it off a
+              separate scale would put the labels where the trace is not. */}
+          <Axis
+            type="right"
+            scale={yScaleGain}
+            transform={`translate(${padding.left + plotWidth}, 0)`}
+            tickValues={yAxisTickValues}
+            tickFormat={levelTickFormat}
           />
           <Axis
             type="bottom"

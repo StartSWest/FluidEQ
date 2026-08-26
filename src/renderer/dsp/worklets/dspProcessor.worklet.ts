@@ -422,6 +422,24 @@ class DspProcessor extends AudioWorkletProcessor {
   private blocksSinceReport = 0;
 
   /**
+   * Whether anything is on screen to receive a meter frame.
+   *
+   * Audio keeps playing behind a minimised window, so this report kept firing
+   * into a renderer nobody was looking at — and every frame of it woke ten
+   * store writes and re-rendered every graph subscribed to them, to paint a
+   * window that is not being composited. Switched off at the source rather
+   * than dropped on arrival: the correlation, the per-band envelopes and the
+   * scatter slice are all computed to build the message, and none of that is
+   * worth doing for a message that will be discarded.
+   *
+   * The accumulators are still reset on schedule while this is off — see
+   * `resetMeterAccumulators`. Letting them run would overflow the scatter
+   * buffer and hand back one enormous stale window on the first frame after
+   * the window is restored.
+   */
+  private metersEnabled = true;
+
+  /**
    * A thinned scatter of the pairs leaving the chain, for the goniometer.
    *
    * Every fourth pair rather than all of them: a report covers about two
@@ -543,6 +561,11 @@ class DspProcessor extends AudioWorkletProcessor {
           // Do not reuse a frozen look-ahead buffer after an A/B bypass.
           this.outputSafety = createOutputSafety(CHANNELS, sampleRate);
         }
+        return;
+      }
+      if (isMessageObject(data) && 'metersEnabled' in data) {
+        this.metersEnabled =
+          (data as { metersEnabled?: unknown }).metersEnabled !== false;
         return;
       }
       if (isMessageObject(data) && 'masterPeakHoldTrackId' in data) {
@@ -1776,6 +1799,10 @@ class DspProcessor extends AudioWorkletProcessor {
     if (this.blocksSinceReport < METER_BLOCKS) {
       return;
     }
+    if (!this.metersEnabled) {
+      this.resetMeterAccumulators();
+      return;
+    }
     const denominator = Math.sqrt(this.sumLeftSquared * this.sumRightSquared);
     // Silence has no correlation to report. Answering 0 would read as "these
     // channels disagree" when nothing is playing at all.
@@ -1830,6 +1857,17 @@ class DspProcessor extends AudioWorkletProcessor {
       // mono signal that is not there.
       scatter: this.scatter.slice(0, this.scatterAt * 2),
     });
+    this.resetMeterAccumulators();
+  }
+
+  /**
+   * Close one meter window, whether or not anybody was told about it.
+   *
+   * Runs on the reporting path and on the muted path alike. The scatter cursor
+   * is the reason it cannot simply be skipped while meters are off: it indexes
+   * a fixed buffer, and a window that never ends walks off the end of it.
+   */
+  private resetMeterAccumulators() {
     this.blocksSinceReport = 0;
     this.peak = 0;
     this.channelPeaks[0] = 0;

@@ -17,7 +17,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { createContext, ReactNode, useContext, useEffect, useRef } from 'react';
-import useLiveOutputSpectrum from '../graph/useLiveOutputSpectrum';
+import useLiveOutputSpectrum, {
+  TCaptureClaim,
+} from '../graph/useLiveOutputSpectrum';
 import { useFluidEqContext } from '../utils/FluidEqContext';
 
 type LiveAudioValue = ReturnType<typeof useLiveOutputSpectrum>;
@@ -89,4 +91,40 @@ export const useLiveAudioControl = () => {
     );
   }
   return value;
+};
+
+/**
+ * Hold the system capture open for as long as this component wants frames.
+ *
+ * The capture is a loopback of the output endpoint, so opening one keeps that
+ * endpoint awake — a DAC or a headset stays out of its low-power state and its
+ * noise floor is audible while every meter still reads silence. It therefore
+ * belongs to whatever actually reads it, and it exists only while at least one
+ * such owner does.
+ *
+ * `isWanted` is the owner's own condition, not a mode: a graph that is closed,
+ * a meter on a hidden tab or a job that is not running wants nothing, and
+ * passing `false` is how it says so without unmounting.
+ *
+ * `kind` decides what minimising the window does. The default, `display`, is
+ * for anything drawn — hiding the window releases the endpoint, because nobody
+ * can see the frames. `work` is for a job that must survive being hidden: a
+ * Smart EQ balance run gathers evidence over minutes and stopping the capture
+ * aborts it.
+ *
+ * Components that only report the capture's status must not call this. Reading
+ * `isActive` to draw a badge, or `error` to offer a retry, is not a reason to
+ * hold a device open.
+ */
+export const useLiveAudioCapture = (
+  isWanted = true,
+  kind: TCaptureClaim = 'display',
+) => {
+  const { claim } = useLiveAudioControl();
+  useEffect(() => {
+    if (!isWanted) {
+      return undefined;
+    }
+    return claim(kind);
+  }, [claim, isWanted, kind]);
 };

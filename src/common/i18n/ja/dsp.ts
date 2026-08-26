@@ -47,6 +47,11 @@ const dsp = {
   'dsp.normalizer.measuredPeak': '測定ピーク',
   'dsp.normalizer.measuredLoudness': '統合ラウドネス',
   'dsp.normalizer.appliedGain': '適用ゲイン',
+  'dsp.normalizer.limitedByCeiling':
+    '{{requested}} 必要 — ピーク上限により制限',
+  'dsp.normalizer.limitedByMaxGain': '{{requested}} 必要 — 最大ブースト',
+  'dsp.normalizer.limitedByMinGain': '{{requested}} 必要 — 最大減衰',
+  'dsp.normalizer.limitedByGate': '測定するには静かすぎます — ゲインは未適用',
   'dsp.normalizer.liveMeter': 'ライブ比較',
   'dsp.normalizer.before': '前',
   'dsp.normalizer.after': '後',

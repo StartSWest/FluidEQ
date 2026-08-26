@@ -49,6 +49,14 @@ const dsp = {
   'dsp.normalizer.measuredPeak': 'Crête mesurée',
   'dsp.normalizer.measuredLoudness': 'Sonie intégrée',
   'dsp.normalizer.appliedGain': 'Gain appliqué',
+  'dsp.normalizer.limitedByCeiling':
+    '{{requested}} nécessaires — limité par le plafond de crête',
+  'dsp.normalizer.limitedByMaxGain':
+    '{{requested}} nécessaires — gain maximal atteint',
+  'dsp.normalizer.limitedByMinGain':
+    '{{requested}} nécessaires — atténuation maximale atteinte',
+  'dsp.normalizer.limitedByGate':
+    'Trop faible pour être mesuré — aucun gain appliqué',
   'dsp.normalizer.liveMeter': 'Avant / après en direct',
   'dsp.normalizer.before': 'Avant',
   'dsp.normalizer.after': 'Après',

@@ -247,7 +247,27 @@ export const useDspEngine = (
       setDspSampleRate(context.sampleRate);
       // Both of these can fail, and neither has touched the element yet.
       await context.audioWorklet.addModule(workletUrl().href);
-      await context.resume();
+      /**
+       * Resumed only when a deck is already playing, never merely because the
+       * graph was built.
+       *
+       * A running context is an open output stream, and an open stream holds
+       * the endpoint awake — the device never reaches its low-power state, and
+       * on a DAC or a headset that is an audible analog noise floor in a room
+       * where nothing has been played. This graph is built when the library
+       * mounts, which is long before anybody asks for sound, so resuming here
+       * bought an open device for an app sitting idle.
+       *
+       * Leaving it suspended costs nothing: a captured element cannot be heard
+       * through a suspended graph either way, and `resumeForPlayback` below
+       * opens the stream on `play`, inside the gesture that started playback.
+       * The one thing that event cannot cover is a deck that was already
+       * running when this capture took it over — its `play` fired before the
+       * listener existed — and that is the case this check is here for.
+       */
+      if (elements.some((element) => !element.paused)) {
+        await context.resume();
+      }
       if (cancelled) {
         return;
       }
@@ -522,6 +542,32 @@ export const useDspEngine = (
       debugOutputSafetyEnabled: outputSafetyEnabled,
     });
   }, [outputSafetyEnabled]);
+
+  /**
+   * Meters follow the window; the audio does not.
+   *
+   * Playback carries on behind a minimised window, and so did this telemetry —
+   * a full meter frame every `METER_BLOCKS`, each one landing in ten store
+   * writes and re-rendering every graph subscribed to them, to paint a surface
+   * Chromium is not compositing. The worklet stops building the frame at all
+   * while hidden; see `metersEnabled` there for why it is silenced at the
+   * source rather than dropped on arrival.
+   *
+   * Keyed on `active` so a worklet built after this effect first ran is still
+   * told the current state — the node is replaced whenever the engine
+   * restarts, and a fresh one starts out assuming somebody is watching.
+   */
+  useEffect(() => {
+    const publishMeterVisibility = () => {
+      workletRef.current?.port.postMessage({
+        metersEnabled: !document.hidden,
+      });
+    };
+    publishMeterVisibility();
+    document.addEventListener('visibilitychange', publishMeterVisibility);
+    return () =>
+      document.removeEventListener('visibilitychange', publishMeterVisibility);
+  }, [active]);
 
   useEffect(() => {
     setDspInputTrackId(inputAnalysis.trackId ?? '');

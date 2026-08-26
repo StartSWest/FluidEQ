@@ -25,8 +25,14 @@ import {
   INIT_ANIMATE_DURATION,
 } from './ChartController';
 
+const AXIS_GENERATORS = {
+  bottom: d3.axisBottom,
+  left: d3.axisLeft,
+  right: d3.axisRight,
+};
+
 interface IAxisProps {
-  type: 'bottom' | 'left';
+  type: keyof typeof AXIS_GENERATORS;
   scale: d3.AxisScale<d3.NumberValue>;
   tickValues: number[];
   transform?: string;
@@ -61,7 +67,7 @@ const Axis = ({
   );
   const isFirstRender = useIsFirstRender();
   useEffect(() => {
-    const axisGenerator = type === 'left' ? d3.axisLeft : d3.axisBottom;
+    const axisGenerator = AXIS_GENERATORS[type];
     const axis = tickFormat
       ? axisGenerator(scale).tickValues(tickValues).tickFormat(tickFormat)
       : axisGenerator(scale).tickValues(tickValues);

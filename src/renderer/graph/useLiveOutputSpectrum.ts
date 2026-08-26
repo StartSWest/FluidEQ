@@ -165,6 +165,12 @@ export interface ICaptureGraph {
   source: MediaStreamAudioSourceNode;
 }
 
+/**
+ * What a capture owner is doing with the frames, which is what decides whether
+ * hiding the window may take the stream away. See the claim refs in the hook.
+ */
+export type TCaptureClaim = 'display' | 'work';
+
 const useLiveOutputSpectrum = () => {
   /**
    * The language, on a ref.
@@ -240,6 +246,24 @@ const useLiveOutputSpectrum = () => {
   const isStartingRef = useRef(false);
   const autoStartRef = useRef(true);
   const isPausedRef = useRef(false);
+  /**
+   * Who currently wants the capture, split by whether being on screen matters.
+   *
+   * This hook used to open a loopback the moment the provider mounted, which
+   * is before anything has asked for a frame. A loopback is a capture stream
+   * on the output endpoint, so opening one keeps that endpoint awake: a DAC or
+   * a headset stays out of its low-power state and its analog noise floor is
+   * audible in the room while every digital meter in the app still reads
+   * silence. Nothing on screen was reading a single frame.
+   *
+   * `display` is a meter or a graph — it wants frames only while somebody can
+   * see them, so minimising the window releases it and the device is allowed
+   * to sleep. `work` is a job that outlives being looked at: a Smart EQ
+   * balance run gathers evidence over minutes, and `stop()` aborts it, so
+   * hiding the window mid-run would throw that evidence away.
+   */
+  const displayClaimsRef = useRef(0);
+  const workClaimsRef = useRef(0);
   const scheduleStartRef = useRef<() => void>(() => undefined);
   const sessionRef = useRef<IBalanceSession | undefined>(undefined);
   // Mirrors `points` so the silence branch can avoid publishing a fresh empty
@@ -322,6 +346,59 @@ const useLiveOutputSpectrum = () => {
     // and the strip is taken off the graph to say it.
     setOutputLevels(NO_LEVELS);
   }, [abortBalance]);
+
+  /**
+   * Whether anything currently justifies holding the output endpoint open.
+   *
+   * Read on every path that could start or stop a capture, so that the answer
+   * is derived in one place rather than each caller remembering the rule.
+   */
+  const isCaptureWanted = useCallback(
+    () =>
+      workClaimsRef.current > 0 ||
+      (displayClaimsRef.current > 0 && !isHiddenRef.current),
+    [],
+  );
+
+  /**
+   * Take ownership of the capture until the returned function is called.
+   *
+   * Ownership is what decides whether a stream exists at all — see the claim
+   * refs above for why the alternative kept a device awake for nobody. A
+   * component that only reports the capture's status must NOT claim: reading
+   * `isActive` to draw a badge, or `error` to offer a retry, is not a reason
+   * to hold a stream open.
+   */
+  const claim = useCallback(
+    (kind: TCaptureClaim = 'display') => {
+      const claims = kind === 'work' ? workClaimsRef : displayClaimsRef;
+      claims.current += 1;
+      // A fresh owner is a fresh set of attempts, for the same reason a fresh
+      // mount is: the failures spent before this one arrived say nothing about
+      // whether the machine will allow it now.
+      retriesRef.current = 0;
+      scheduleStartRef.current();
+      let isReleased = false;
+      return () => {
+        // Idempotent, because React may run an effect's cleanup more than the
+        // caller expects and a double release would take the count negative —
+        // at which point the last real owner could never bring it back to zero.
+        if (isReleased) {
+          return;
+        }
+        isReleased = true;
+        claims.current -= 1;
+        if (!isCaptureWanted()) {
+          if (retryTimerRef.current !== undefined) {
+            clearTimeout(retryTimerRef.current);
+            retryTimerRef.current = undefined;
+          }
+          stop();
+        }
+      };
+    },
+    [isCaptureWanted, stop],
+  );
 
   /**
    * Score the running capture, publish progress, and finish it when the
@@ -416,7 +493,12 @@ const useLiveOutputSpectrum = () => {
   );
 
   const start = useCallback(async (): Promise<boolean> => {
-    if (!autoStartRef.current || streamRef.current || isStartingRef.current) {
+    if (
+      !autoStartRef.current ||
+      !isCaptureWanted() ||
+      streamRef.current ||
+      isStartingRef.current
+    ) {
       return Boolean(streamRef.current);
     }
 
@@ -457,7 +539,10 @@ const useLiveOutputSpectrum = () => {
       // frames into a dead hook for as long as the window is open. Once is a
       // leak; in development it is once per hot reload, which is how a renderer
       // reaches several gigabytes in an afternoon.
-      if (!autoStartRef.current) {
+      // The same window covers the last owner leaving: minimising the window
+      // during the negotiation releases the display claim, and carrying on
+      // would install exactly the stream that release was asking to avoid.
+      if (!autoStartRef.current || !isCaptureWanted()) {
         stream.getTracks().forEach((track) => track.stop());
         return false;
       }
@@ -472,7 +557,7 @@ const useLiveOutputSpectrum = () => {
       await activeAudioContext.resume();
       // And again, for the same reason: `resume()` is a second await, and the
       // context it just started is a hardware stream nobody would ever close.
-      if (!autoStartRef.current) {
+      if (!autoStartRef.current || !isCaptureWanted()) {
         stream.getTracks().forEach((track) => track.stop());
         activeAudioContext.close().catch(() => undefined);
         return false;
@@ -931,7 +1016,7 @@ const useLiveOutputSpectrum = () => {
     } finally {
       isStartingRef.current = false;
     }
-  }, [abortBalance, evaluateSession, stop]);
+  }, [abortBalance, evaluateSession, isCaptureWanted, stop]);
 
   /**
    * Listen until every frequency region has been heard well enough to correct,
@@ -1007,10 +1092,18 @@ const useLiveOutputSpectrum = () => {
   const scheduleStart = useCallback(() => {
     if (
       !autoStartRef.current ||
+      !isCaptureWanted() ||
       streamRef.current ||
       isStartingRef.current ||
       retryTimerRef.current !== undefined
     ) {
+      return;
+    }
+    // JSDOM and non-Electron preview environments do not expose media capture.
+    // Checked here rather than at the one call site it used to have, because a
+    // claim can now arrive from any consumer and none of them should be able to
+    // arm a retry loop that can never succeed.
+    if (!navigator.mediaDevices) {
       return;
     }
 
@@ -1019,7 +1112,11 @@ const useLiveOutputSpectrum = () => {
         retriesRef.current = 0;
         return didStart;
       }
-      if (!autoStartRef.current || retriesRef.current >= MAX_START_RETRIES) {
+      if (
+        !autoStartRef.current ||
+        !isCaptureWanted() ||
+        retriesRef.current >= MAX_START_RETRIES
+      ) {
         return didStart;
       }
 
@@ -1033,23 +1130,45 @@ const useLiveOutputSpectrum = () => {
       );
       return didStart;
     });
-  }, [start]);
+  }, [isCaptureWanted, start]);
+
+  /**
+   * Assigned while rendering, not in an effect, because a claim beats it there.
+   *
+   * Effects run children first. Every consumer that claims the capture does so
+   * from its own mount effect, which is below this hook's provider in the tree
+   * and therefore runs before any effect here — so an assignment made in an
+   * effect would still be the initial no-op when the first claim called it, and
+   * the capture would silently never start.
+   */
+  scheduleStartRef.current = scheduleStart;
 
   useEffect(() => {
-    scheduleStartRef.current = scheduleStart;
-  }, [scheduleStart]);
-
-  useEffect(() => {
-    // Minimising or fully occluding the window hides the document. The pump
-    // reads this rather than reacting to it: nothing needs to happen at the
-    // moment of the flip, and the next tick is at most 45 ms away.
+    // Minimising or fully occluding the window hides the document.
+    //
+    // The pump reads `isHiddenRef` to decide how much work a frame deserves.
+    // The capture itself now reacts to the flip as well: a display claim is a
+    // claim on being seen, so hiding the window releases the endpoint and lets
+    // the device sleep, and restoring it opens a fresh one. A `work` claim — a
+    // Smart EQ run — holds the stream through both.
     const trackVisibility = () => {
       isHiddenRef.current = document.hidden;
+      if (isCaptureWanted()) {
+        // A window coming back is somebody asking, exactly as a fresh mount is.
+        retriesRef.current = 0;
+        scheduleStartRef.current();
+        return;
+      }
+      if (retryTimerRef.current !== undefined) {
+        clearTimeout(retryTimerRef.current);
+        retryTimerRef.current = undefined;
+      }
+      stop();
     };
     document.addEventListener('visibilitychange', trackVisibility);
     return () =>
       document.removeEventListener('visibilitychange', trackVisibility);
-  }, []);
+  }, [isCaptureWanted, stop]);
 
   /**
    * Follow the output, because the capture cannot notice that it moved.
@@ -1103,10 +1222,18 @@ const useLiveOutputSpectrum = () => {
     // hopeless capture grinding forever, not a verdict that the machine can
     // never do it — the graph being opened again is somebody asking.
     retriesRef.current = 0;
-    // JSDOM and non-Electron preview environments do not expose media
-    // capture. Avoid scheduling a failing retry loop there; Electron's
-    // renderer always has mediaDevices when the live analyser is available.
-    if (navigator.mediaDevices) {
+    /**
+     * Mounting no longer starts anything. A claim does — but a claim made
+     * before this line ran was refused, so the outstanding ones are honoured
+     * here.
+     *
+     * That is not a corner case. Consumers claim from their own mount effects,
+     * which run before this one, and in StrictMode React mounts, unmounts and
+     * mounts again: the cleanup below clears `autoStartRef`, so on the second
+     * pass every re-claim arrives while starting is still forbidden and the
+     * capture would never open at all.
+     */
+    if (isCaptureWanted()) {
       scheduleStart();
     }
 
@@ -1119,7 +1246,7 @@ const useLiveOutputSpectrum = () => {
       abortBalance(tRef.current('eq.smart.error.closed'));
       stop();
     };
-  }, [abortBalance, scheduleStart, stop]);
+  }, [abortBalance, isCaptureWanted, scheduleStart, stop]);
 
   // Split by publication rate, not by topic. `frame` is replaced ~22 times a
   // second; `control` only when the capture starts, stops, pauses or fails.
@@ -1150,6 +1277,7 @@ const useLiveOutputSpectrum = () => {
     () => ({
       capture,
       captureBalanceProfile,
+      claim,
       error,
       isActive,
       isPaused,
@@ -1171,6 +1299,7 @@ const useLiveOutputSpectrum = () => {
     [
       capture,
       captureBalanceProfile,
+      claim,
       error,
       isActive,
       isPaused,
