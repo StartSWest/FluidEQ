@@ -152,7 +152,13 @@ const KaraokeMakerToolbar = ({
         <KaraokeMakerToolbarButton
           icon="lyrics"
           label={t('karaoke.maker.lyrics')}
-          onClick={openLyricsEditor}
+          // Wrapped, not the bare reference: `openLyricsEditor` now takes an
+          // optional `translationTarget`, and a button's `onClick` is a DOM
+          // event handler — React calls it with the click's `MouseEvent`
+          // regardless of what TypeScript declared, so a bare reference here
+          // would seed the draft empty and open the dialog in translation
+          // mode on every ordinary "Lyrics" click.
+          onClick={() => openLyricsEditor()}
         />
         <KaraokeMakerToolbarButton
           icon="clearLyrics"
