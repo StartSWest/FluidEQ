@@ -92,6 +92,10 @@ import {
   organicBlock,
 } from '../../src/renderer/dsp/organic';
 import {
+  createOrganicPath,
+  runOrganicPath,
+} from '../../src/renderer/dsp/organicStage';
+import {
   createBandDynamics,
   refreshBandDynamics,
 } from '../../src/renderer/dsp/dynamics';
@@ -156,6 +160,7 @@ enum ProcessorId {
   PhaseAlign = 18,
   ExciterGuard = 19,
   Organic = 20,
+  OrganicPath = 21,
 }
 
 interface IRackBand {
@@ -1256,6 +1261,46 @@ parityCorpus(FRAMES, 48000).forEach((signal) => {
       }),
       maxAbsTolerance: 1e-4,
       rmsTolerance: 1e-5,
+    });
+  });
+});
+
+/**
+ * The whole Organic path, at focuses inside and outside the guarded region.
+ *
+ * 800 Hz gets no sibilance protection at all, 7 kHz gets the full amount, and
+ * 10 kHz sits on the upper ramp. A corpus with one focus would exercise one
+ * branch of `organicSibilanceProtection` and leave the other two unverified.
+ */
+[800, 7000, 10000].forEach((focusHz) => {
+  [0.3, 1].forEach((amount) => {
+    parityCorpus(FRAMES, 48000).forEach((signal) => {
+      fixtures.push({
+        name: `organicpath/${focusHz}/${amount}/${signal.name}`,
+        processor: ProcessorId.OrganicPath,
+        sampleRate: 48000,
+        params: [focusHz, 0.5, amount],
+        input: processorInput(signal.channels),
+        expected: processorInput(signal.channels).map((channel) => {
+          const path = createOrganicPath(channel.length);
+          return Float32Array.from(
+            runOrganicPath(
+              path,
+              channel,
+              {
+                enabled: true,
+                amount,
+                focusHz,
+                range: 0.5,
+              },
+              amount,
+              48000,
+            ),
+          );
+        }),
+        maxAbsTolerance: 1e-4,
+        rmsTolerance: 1e-5,
+      });
     });
   });
 });

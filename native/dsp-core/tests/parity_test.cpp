@@ -26,6 +26,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "fluideq/eq.h"
 #include "fluideq/exciter_guard.h"
 #include "fluideq/organic.h"
+#include "fluideq/organic_stage.h"
 #include "fluideq/oversample.h"
 #include "fluideq/phase_align.h"
 #include "fluideq/primitives.h"
@@ -74,7 +75,8 @@ enum ProcessorId : uint32_t {
   kAnalogDiode = 17,
   kPhaseAlign = 18,
   kExciterGuard = 19,
-  kOrganic = 20
+  kOrganic = 20,
+  kOrganicPath = 21
 };
 
 struct Fixture {
@@ -802,9 +804,40 @@ bool render_organic(const Fixture& fixture, std::vector<float>& actual) {
   return true;
 }
 
+/** `[focusHz, range, amount]`. */
+bool render_organic_path(const Fixture& fixture, std::vector<float>& actual) {
+  if (fixture.params.size() < 3) {
+    return false;
+  }
+  const size_t wide =
+      static_cast<size_t>(fixture.frames) * FEQ_ORGANIC_MAX_OVERSAMPLE;
+  actual.assign(fixture.input.size(), 0.0f);
+  for (uint32_t channel = 0; channel < fixture.channels; ++channel) {
+    std::vector<float> band(fixture.frames);
+    std::vector<float> foundation(fixture.frames);
+    std::vector<float> scratch(wide);
+    std::vector<float> dry(wide);
+    std::vector<float> guard(fixture.frames);
+    std::vector<float> middle(static_cast<size_t>(fixture.frames) * 2);
+    FeqOrganicPath state;
+    feq_organic_path_init(&state, band.data(), foundation.data(),
+                          scratch.data(), dry.data(), guard.data());
+    const size_t base = static_cast<size_t>(channel) * fixture.frames;
+    feq_organic_path_process(&state, fixture.input.data() + base,
+                             fixture.frames, fixture.params[0],
+                             fixture.params[1], fixture.params[2],
+                             static_cast<double>(fixture.sample_rate),
+                             middle.data());
+    std::copy(band.begin(), band.end(), actual.begin() + base);
+  }
+  return true;
+}
+
 /** Run one fixture through the native engine, or say it cannot be run yet. */
 bool render(const Fixture& fixture, std::vector<float>& actual) {
   switch (fixture.processor) {
+    case kOrganicPath:
+      return render_organic_path(fixture, actual);
     case kOrganic:
       return render_organic(fixture, actual);
     case kExciterGuard:
