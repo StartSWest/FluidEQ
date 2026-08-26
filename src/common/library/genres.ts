@@ -84,15 +84,35 @@ export const genreNames = (track: ILibraryTrack): string[] =>
     .filter((value) => value.length > 0);
 
 /**
- * What counts as the same genre — `normalizeForGrouping`, so "Hip Hop",
- * "hip-hop" and "Hip  Hop" are one shelf rather than three.
+ * A HYPHEN IS A SPACE IN A GENRE, WHICH IS NOT TRUE ANYWHERE ELSE HERE.
+ *
+ * `normalizeForGrouping` DELETES punctuation rather than replacing it, and
+ * that is right for the names it was written for: `N'Sync` and `NSYNC` are
+ * one band, and folding the apostrophe to a space would make them two.
+ *
+ * Genres are written the other way round. "Hip-Hop" and "Hip Hop" are the
+ * same shelf and every real library holds both spellings, so deleting the
+ * hyphen gives `hiphop` against `hip hop` — two shelves, each holding half
+ * the records, which is the exact failure this whole normalisation exists to
+ * prevent. Same for `Trip-Hop`, `Post-Rock`, `Drum_and_Bass`.
+ *
+ * The slash comes too, so `Hip-Hop/Rap` keys as `hip hop rap`. It stays its
+ * own shelf either way — `genreNames` deliberately does not split on a slash
+ * — this only stops the key being the unreadable `hip hoprap`.
+ */
+const GENRE_WORD_BREAKS = /[-_/]+/g;
+
+/**
+ * What counts as the same genre, so "Hip Hop", "hip-hop" and "Hip  Hop" are
+ * one shelf rather than three.
  *
  * A name made entirely of punctuation normalizes to nothing and lands in the
  * unknown bucket. That is the right answer: a shelf with no name on it is
  * indistinguishable from no shelf.
  */
 export const genreKey = (name: string): string =>
-  normalizeForGrouping(name) || UNKNOWN_GENRE_ID;
+  normalizeForGrouping(name.replace(GENRE_WORD_BREAKS, ' ')) ||
+  UNKNOWN_GENRE_ID;
 
 /** Every genre bucket a track belongs to. Never empty — an untagged file
  * belongs to exactly one, and it is the unknown one. */
