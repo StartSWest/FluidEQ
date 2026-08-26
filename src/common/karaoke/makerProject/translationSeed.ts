@@ -20,6 +20,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import {
   IKaraokeMakerLine,
   IKaraokeMakerLyricSheet,
+  IKaraokeMakerNote,
   karaokeMakerId,
   karaokeMakerLineIsSection,
   karaokeMakerTimedLineRange,
@@ -104,3 +105,39 @@ export const seedKaraokeTranslation = (
   });
   return { sheet: { language, source: 'translation-seed', lines } };
 };
+
+export interface IKaraokeTranslationFit {
+  lineId: string;
+  syllables: number;
+  notes: number;
+}
+
+/**
+ * How a translated line sits against the melody it has to be sung to.
+ *
+ * Not stored. Recomputed as the user types, because it is the only feedback
+ * available before anything is synthesised — and the mismatch is fixable from
+ * either side: change the words, or split a held note in two.
+ */
+export const karaokeTranslationFit = (
+  sheet: IKaraokeMakerLyricSheet,
+  notes: readonly IKaraokeMakerNote[],
+): IKaraokeTranslationFit[] =>
+  sheet.lines
+    .filter((line) => !karaokeMakerLineIsSection(line))
+    .map((line) => {
+      const range = karaokeMakerTimedLineRange(line);
+      return {
+        lineId: line.id,
+        syllables: line.tokens.reduce(
+          (sum, token) => sum + syllableWeight(token.text, sheet.language),
+          0,
+        ),
+        notes: range
+          ? notes.filter(
+              (note) =>
+                note.startMs < range.endMs && note.endMs > range.startMs,
+            ).length
+          : 0,
+      };
+    });

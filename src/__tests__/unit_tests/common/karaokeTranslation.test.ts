@@ -2,6 +2,8 @@
 
 import {
   IKaraokeMakerLine,
+  IKaraokeMakerNote,
+  karaokeTranslationFit,
   seedKaraokeTranslation,
 } from '../../../common/karaoke/makerProject';
 import { splitKaraokeWordSyllables } from '../../../common/karaoke/syllables';
@@ -200,5 +202,83 @@ describe('seedKaraokeTranslation', () => {
         (token) => token.timingLocked !== true,
       ),
     ).toBe(true);
+  });
+});
+
+describe('karaokeTranslationFit', () => {
+  const note = (
+    id: string,
+    startMs: number,
+    endMs: number,
+  ): IKaraokeMakerNote => ({
+    id,
+    startMs,
+    endMs,
+    targetMidi: 60,
+    kind: 'normal',
+    source: 'pitch-analysis',
+  });
+
+  it('counts syllables against the notes overlapping the line', () => {
+    const seeded = seedKaraokeTranslation(
+      [lyricLine('l1', 'hello world', 0, 2_000)],
+      'hola mundo',
+      'es',
+    );
+    const { sheet } = seeded;
+    if (!sheet) {
+      throw new Error('expected a sheet');
+    }
+
+    const fit = karaokeTranslationFit(sheet, [
+      note('n1', 0, 500),
+      note('n2', 500, 1_000),
+      note('n3', 1_000, 2_000),
+      // Outside the line entirely: must not be counted.
+      note('n4', 5_000, 6_000),
+    ]);
+
+    expect(fit).toHaveLength(1);
+    // hola (2) + mundo (2) against three notes: one syllable too many.
+    expect(fit[0].syllables).toBe(4);
+    expect(fit[0].notes).toBe(3);
+  });
+
+  it('skips section lines, which are never sung', () => {
+    const section: IKaraokeMakerLine = {
+      id: 'sec',
+      kind: 'section',
+      tokens: [
+        { id: 'sec-t', text: '[Chorus]', startsWord: true, source: 'manual' },
+      ],
+    };
+    const seeded = seedKaraokeTranslation(
+      [section, lyricLine('l1', 'hello world', 0, 2_000)],
+      'hola mundo',
+      'es',
+    );
+    const { sheet } = seeded;
+    if (!sheet) {
+      throw new Error('expected a sheet');
+    }
+
+    expect(karaokeTranslationFit(sheet, [])).toHaveLength(1);
+  });
+
+  it('reports zero notes for an untimed line rather than counting every note', () => {
+    const untimed: IKaraokeMakerLine = {
+      id: 'l1',
+      kind: 'lyrics',
+      tokens: [
+        { id: 'l1-w0', text: 'hello', startsWord: true, source: 'manual' },
+      ],
+    };
+    const seeded = seedKaraokeTranslation([untimed], 'hola', 'es');
+    const { sheet } = seeded;
+    if (!sheet) {
+      throw new Error('expected a sheet');
+    }
+
+    expect(karaokeTranslationFit(sheet, [note('n1', 0, 500)])[0].notes).toBe(0);
   });
 });
