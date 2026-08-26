@@ -57,6 +57,8 @@ add_library(fluideq-dsp-core STATIC
   dsp-core/src/engine.cpp
   dsp-core/src/biquad.cpp
   dsp-core/src/eq.cpp
+  dsp-core/src/dynamics.cpp
+  dsp-core/src/oversample.cpp
 )
 target_include_directories(fluideq-dsp-core PUBLIC dsp-core/include)
 target_link_libraries(fluideq-dsp-core PRIVATE feq_strict)

@@ -30,7 +30,17 @@ import {
   createBiquadState,
   processBiquad,
 } from '../../src/renderer/dsp/biquad';
-import { processEqBands } from '../../src/renderer/dsp/eqEngine';
+import {
+  processEqBands,
+  processEqBandsLinked,
+  processEqOversampled,
+  processEqOversampledLinked,
+} from '../../src/renderer/dsp/eqEngine';
+import { createOversampler } from '../../src/renderer/dsp/oversample';
+import {
+  createBandDynamics,
+  refreshBandDynamics,
+} from '../../src/renderer/dsp/dynamics';
 import type { TEqEngine } from '../../src/common/dsp/chain';
 
 const OUTPUT = path.join(
@@ -60,6 +70,9 @@ enum ProcessorId {
   Identity = 0,
   Biquad = 1,
   EqBands = 2,
+  EqLinked = 3,
+  EqOversampled = 4,
+  EqOversampledLinked = 5,
 }
 
 interface IRackBand {
@@ -67,6 +80,8 @@ interface IRackBand {
   frequency: number;
   gainDb: number;
   quality: number;
+  dynamic?: boolean;
+  thresholdDb?: number;
 }
 
 interface IFixture {
@@ -187,10 +202,9 @@ const biquadExpectation = (
 /**
  * A whole rack, through the arrangement the user chose.
  *
- * `dynamics` is passed empty on purpose: an absent entry reads as an inactive
- * band, which is the static path. Dynamic bands need `dynamics.ts` ported
- * beside the engine, and until then a fixture that exercised them would be
- * asserting behaviour the native side does not claim to have.
+ * The detector state is rebuilt per channel alongside the filter state,
+ * exactly as the engine does: an envelope is channel-local, and sharing one
+ * between two channels would let the left channel's sibilant duck the right.
  */
 const eqExpectation = (
   input: Float32Array[],
@@ -213,6 +227,24 @@ const eqExpectation = (
     const target = Float32Array.from(channel);
     const dry = new Float32Array(target.length);
     const wet = new Float32Array(target.length);
+    const dynamics = bands.map((band) => {
+      const state = createBandDynamics();
+      refreshBandDynamics(
+        state,
+        {
+          enabled: true,
+          type: band.type,
+          frequency: band.frequency,
+          gainDb: band.gainDb,
+          quality: band.quality,
+          dynamic: band.dynamic === true,
+          thresholdDb: band.thresholdDb ?? -24,
+        },
+        sampleRate,
+        true,
+      );
+      return state;
+    });
     processEqBands(
       bands.map(() => createBiquadState()),
       coefficients,
@@ -220,10 +252,132 @@ const eqExpectation = (
       engine,
       dry,
       wet,
-      [],
+      dynamics,
     );
     return target;
   });
+};
+
+/** The detector states a rack needs, built the way the engine builds them. */
+const rackDynamics = (bands: readonly IRackBand[], sampleRate: number) =>
+  bands.map((band) => {
+    const state = createBandDynamics();
+    refreshBandDynamics(
+      state,
+      {
+        enabled: true,
+        type: band.type,
+        frequency: band.frequency,
+        gainDb: band.gainDb,
+        quality: band.quality,
+        dynamic: band.dynamic === true,
+        thresholdDb: band.thresholdDb ?? -24,
+      },
+      sampleRate,
+      true,
+    );
+    return state;
+  });
+
+const rackCoefficients = (bands: readonly IRackBand[], sampleRate: number) =>
+  bands.map((band) =>
+    biquadCoefficients(
+      {
+        type: band.type,
+        frequency: band.frequency,
+        gainDb: band.gainDb,
+        quality: band.quality,
+      },
+      sampleRate,
+    ),
+  );
+
+/**
+ * The linked rack: one detector for every channel.
+ *
+ * Filter histories stay per channel; the dynamics array does not. That is the
+ * whole point — a shared envelope is what stops a dynamic cut engaging on the
+ * left a few samples before the right and dragging a centred vocal sideways.
+ */
+const eqLinkedExpectation = (
+  input: Float32Array[],
+  sampleRate: number,
+  engine: TEqEngine,
+  bands: readonly IRackBand[],
+): Float32Array[] => {
+  const targets = input.map((channel) => Float32Array.from(channel));
+  const dry = targets.map((channel) => new Float32Array(channel.length));
+  const wet = targets.map((channel) => new Float32Array(channel.length));
+  processEqBandsLinked(
+    targets.map(() => bands.map(() => createBiquadState())),
+    rackCoefficients(bands, sampleRate),
+    targets,
+    engine,
+    dry,
+    wet,
+    rackDynamics(bands, sampleRate),
+  );
+  return targets;
+};
+
+/**
+ * Up, through the rack, and back down.
+ *
+ * The coefficients are built for the OVERSAMPLED rate. Handing this the
+ * ordinary set would place every band an octave low, which is a bug rather
+ * than a mode — so the fixture builds them the same way the engine must.
+ */
+const eqOversampledExpectation = (
+  input: Float32Array[],
+  sampleRate: number,
+  engine: TEqEngine,
+  bands: readonly IRackBand[],
+  factor: number,
+): Float32Array[] => {
+  const coefficients = rackCoefficients(bands, sampleRate * factor);
+  return input.map((channel) => {
+    const target = Float32Array.from(channel);
+    const doubled = new Float32Array(target.length * factor);
+    processEqOversampled(
+      bands.map(() => createBiquadState()),
+      coefficients,
+      target,
+      engine,
+      createOversampler(target.length),
+      factor,
+      doubled,
+      new Float32Array(doubled.length),
+      new Float32Array(doubled.length),
+      rackDynamics(bands, sampleRate * factor),
+    );
+    return target;
+  });
+};
+
+const eqOversampledLinkedExpectation = (
+  input: Float32Array[],
+  sampleRate: number,
+  engine: TEqEngine,
+  bands: readonly IRackBand[],
+  factor: number,
+): Float32Array[] => {
+  const targets = input.map((channel) => Float32Array.from(channel));
+  const doubled = targets.map(
+    (channel) => new Float32Array(channel.length * factor),
+  );
+  processEqOversampledLinked(
+    targets.map(() => bands.map(() => createBiquadState())),
+    rackCoefficients(bands, sampleRate * factor),
+    targets,
+    engine,
+    targets.map((channel) => createOversampler(channel.length)),
+    factor,
+    doubled,
+    doubled.map((channel) => new Float32Array(channel.length)),
+    doubled.map((channel) => new Float32Array(channel.length)),
+    rackDynamics(bands, sampleRate * factor),
+  );
+  return targets;
 };
 
 /**
@@ -266,6 +420,40 @@ const RACKS: { label: string; bands: IRackBand[] }[] = [
         quality: 1.1,
       }),
     ),
+  },
+  {
+    /**
+     * Dynamic bands, which is where an envelope can diverge and never come
+     * back. A one-pole follower has no way to re-converge once two ports
+     * disagree, so any drift here compounds for the rest of the block — the
+     * opposite of a static filter, where an error decays with the impulse
+     * response.
+     *
+     * Thresholds are set low enough that the corpus actually crosses them;
+     * a detector that never opens tests only the branch that returns zero.
+     */
+    label: 'dynamic-mixed',
+    bands: [
+      {
+        type: FilterTypeEnum.PK,
+        frequency: 6000,
+        gainDb: -8,
+        quality: 3,
+        dynamic: true,
+        thresholdDb: -40,
+      },
+      // Static, beside a dynamic one: the ordinary rack is a mixture, and the
+      // serial path takes a different branch per band.
+      { type: FilterTypeEnum.PK, frequency: 200, gainDb: 3, quality: 1 },
+      {
+        type: FilterTypeEnum.HSC,
+        frequency: 10000,
+        gainDb: 5,
+        quality: 0.707,
+        dynamic: true,
+        thresholdDb: -50,
+      },
+    ],
   },
 ];
 
@@ -406,11 +594,15 @@ RACKS.forEach((rack) => {
         params: [
           ENGINES.indexOf(engine),
           rack.bands.length,
+          // Six per band, and the runner asserts that count: a layout the two
+          // sides disagree about would silently read a threshold as a Q.
           ...rack.bands.flatMap((band) => [
             FILTER_TYPE_ORDER.indexOf(band.type),
             band.frequency,
             band.gainDb,
             band.quality,
+            band.dynamic === true ? 1 : 0,
+            band.thresholdDb ?? -24,
           ]),
         ],
         input: processorInput(signal.channels),
@@ -426,6 +618,88 @@ RACKS.forEach((rack) => {
         // millionth of full scale is about -120 dBFS.
         maxAbsTolerance: 1e-5,
         rmsTolerance: 1e-6,
+      });
+    });
+  });
+});
+
+/** `[engine, bandCount, (type, hz, gain, q, dynamic, thresholdDb) * count]`. */
+const rackParams = (engine: TEqEngine, bands: readonly IRackBand[]) => [
+  ENGINES.indexOf(engine),
+  bands.length,
+  ...bands.flatMap((band) => [
+    FILTER_TYPE_ORDER.indexOf(band.type),
+    band.frequency,
+    band.gainDb,
+    band.quality,
+    band.dynamic === true ? 1 : 0,
+    band.thresholdDb ?? -24,
+  ]),
+];
+
+// The linked detector, and the oversampled paths at both factors. The
+// dynamic-mixed rack is the one that matters for linking: a rack with no
+// active detector takes the same branch linked or not.
+RACKS.forEach((rack) => {
+  ENGINES.forEach((engine) => {
+    parityCorpus(FRAMES, 48000).forEach((signal) => {
+      fixtures.push({
+        name: `eqlinked/${rack.label}/${engine}/48000/${signal.name}`,
+        processor: ProcessorId.EqLinked,
+        sampleRate: 48000,
+        params: rackParams(engine, rack.bands),
+        input: processorInput(signal.channels),
+        expected: eqLinkedExpectation(
+          processorInput(signal.channels),
+          48000,
+          engine,
+          rack.bands,
+        ),
+        maxAbsTolerance: 1e-5,
+        rmsTolerance: 1e-6,
+      });
+    });
+
+    [2, 4].forEach((factor) => {
+      parityCorpus(FRAMES, 48000).forEach((signal) => {
+        fixtures.push({
+          name: `eqos${factor}x/${rack.label}/${engine}/48000/${signal.name}`,
+          processor: ProcessorId.EqOversampled,
+          sampleRate: 48000,
+          params: [factor, ...rackParams(engine, rack.bands)],
+          input: processorInput(signal.channels),
+          expected: eqOversampledExpectation(
+            processorInput(signal.channels),
+            48000,
+            engine,
+            rack.bands,
+            factor,
+          ),
+          // A sixty-three tap FIR run twice each way accumulates more
+          // rounding than a biquad does, and 4x runs it four times. Still
+          // around -100 dBFS, which is below the noise floor of any record.
+          maxAbsTolerance: 1e-4,
+          rmsTolerance: 1e-5,
+        });
+      });
+    });
+
+    parityCorpus(FRAMES, 48000).forEach((signal) => {
+      fixtures.push({
+        name: `eqoslinked/${rack.label}/${engine}/48000/${signal.name}`,
+        processor: ProcessorId.EqOversampledLinked,
+        sampleRate: 48000,
+        params: [4, ...rackParams(engine, rack.bands)],
+        input: processorInput(signal.channels),
+        expected: eqOversampledLinkedExpectation(
+          processorInput(signal.channels),
+          48000,
+          engine,
+          rack.bands,
+          4,
+        ),
+        maxAbsTolerance: 1e-4,
+        rmsTolerance: 1e-5,
       });
     });
   });

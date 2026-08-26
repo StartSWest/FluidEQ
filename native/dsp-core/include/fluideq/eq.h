@@ -28,6 +28,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include <stdint.h>
 
 #include "fluideq/biquad.h"
+#include "fluideq/dynamics.h"
+#include "fluideq/oversample.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -42,14 +44,14 @@ typedef enum FeqEqEngine {
 /**
  * Run one channel's rack over one block, in place.
  *
- * `states` and `coefficients` are both `band_count` long and in the same
- * order. `dry` and `wet` are scratch the length of the block, supplied by the
- * caller because the audio thread never allocates — they are untouched by
- * the serial path and are only read by the parallel one.
+ * `states`, `coefficients` and `dynamics` are all `band_count` long and in the
+ * same order. `dry` and `wet` are scratch the length of the block, supplied by
+ * the caller because the audio thread never allocates — the serial path only
+ * touches them for bands whose detector is active.
  *
- * Static bands only for now. Dynamic bands need `dynamics.ts` ported beside
- * this; until then a band whose dynamic detector is active must stay on the
- * TypeScript backend.
+ * `dynamics` may be null, which reads as a rack of static bands. Individual
+ * entries with `active == 0` take the static path, so a rack may mix the two
+ * freely; that is the ordinary case, since most bands are static.
  */
 void feq_eq_process_bands(FeqBiquadState* states,
                           const FeqBiquadCoefficients* coefficients,
@@ -58,7 +60,66 @@ void feq_eq_process_bands(FeqBiquadState* states,
                           uint32_t frames,
                           FeqEqEngine engine,
                           float* dry,
-                          float* wet);
+                          float* wet,
+                          FeqBandDynamics* dynamics);
+
+/**
+ * The same rack, with one dynamic trajectory shared by every channel.
+ *
+ * Filter histories stay channel-local — `states` is `channels * band_count`,
+ * indexed `[channel * band_count + band]` — but each band's detector listens
+ * to whichever channel is changing most at that sample and applies the result
+ * to all of them together. Without that, a dynamic cut engaging on the left a
+ * few samples before the right pulls a centred vocal sideways, which is
+ * audible in a way the magnitude plot cannot show.
+ */
+void feq_eq_process_bands_linked(FeqBiquadState* states,
+                                 const FeqBiquadCoefficients* coefficients,
+                                 uint32_t band_count,
+                                 float* const* targets,
+                                 uint32_t channels,
+                                 uint32_t frames,
+                                 FeqEqEngine engine,
+                                 float* const* dry,
+                                 float* const* wet,
+                                 FeqBandDynamics* dynamics);
+
+/**
+ * Up, through the rack, and back down.
+ *
+ * `factor` is 2 or 4, and every doubled buffer is exactly that many times as
+ * long as the block. The coefficients handed in must already have been built
+ * for the oversampled rate — see the note in `oversample.h`.
+ */
+void feq_eq_process_oversampled(FeqBiquadState* states,
+                                const FeqBiquadCoefficients* coefficients,
+                                uint32_t band_count,
+                                float* target,
+                                uint32_t frames,
+                                FeqEqEngine engine,
+                                FeqOversampler* oversampler,
+                                uint32_t factor,
+                                float* doubled,
+                                float* dry_doubled,
+                                float* wet_doubled,
+                                float* middle,
+                                FeqBandDynamics* dynamics);
+
+/** Oversampled, with one dynamic amount applied to every channel. */
+void feq_eq_process_oversampled_linked(FeqBiquadState* states,
+                                       const FeqBiquadCoefficients* coeffs,
+                                       uint32_t band_count,
+                                       float* const* targets,
+                                       uint32_t channels,
+                                       uint32_t frames,
+                                       FeqEqEngine engine,
+                                       FeqOversampler* oversamplers,
+                                       uint32_t factor,
+                                       float* const* doubled,
+                                       float* const* dry_doubled,
+                                       float* const* wet_doubled,
+                                       float* const* middle,
+                                       FeqBandDynamics* dynamics);
 
 #ifdef __cplusplus
 }
