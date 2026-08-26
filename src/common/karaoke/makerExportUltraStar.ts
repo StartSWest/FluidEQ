@@ -12,9 +12,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * beats, `#GAP`, note types and the line break the format requires.
  */
 import {
+  IKaraokeMakerLine,
   IKaraokeMakerNote,
   IKaraokeMakerProject,
   karaokeMakerLineIsSection,
+  sheetLines,
 } from './makerProject';
 import {
   IWrittenKaraokeFile,
@@ -92,23 +94,21 @@ interface ILyricLineStart {
   startMs: number;
 }
 
-const lyricLineStarts = (project: IKaraokeMakerProject): ILyricLineStart[] => {
-  const starts = project.lyrics.lines.flatMap(
-    (line, index): ILyricLineStart[] => {
-      if (karaokeMakerLineIsSection(line)) {
-        return [];
-      }
-      const timed = line.tokens.flatMap((token) =>
-        token.startMs === undefined ? [] : [token.startMs],
-      );
-      if (timed.length) {
-        return [{ index, startMs: Math.min(...timed) }];
-      }
-      return line.startMs === undefined
-        ? []
-        : [{ index, startMs: line.startMs }];
-    },
-  );
+const lyricLineStarts = (
+  lines: readonly IKaraokeMakerLine[],
+): ILyricLineStart[] => {
+  const starts = lines.flatMap((line, index): ILyricLineStart[] => {
+    if (karaokeMakerLineIsSection(line)) {
+      return [];
+    }
+    const timed = line.tokens.flatMap((token) =>
+      token.startMs === undefined ? [] : [token.startMs],
+    );
+    if (timed.length) {
+      return [{ index, startMs: Math.min(...timed) }];
+    }
+    return line.startMs === undefined ? [] : [{ index, startMs: line.startMs }];
+  });
   return starts.sort((left, right) => left.startMs - right.startMs);
 };
 
@@ -131,21 +131,21 @@ interface IUltraStarBody {
 }
 
 const ultraStarBody = (
-  project: IKaraokeMakerProject,
+  lines: readonly IKaraokeMakerLine[],
   notes: readonly IKaraokeMakerNote[],
   gapMs: number,
 ): IUltraStarBody => {
   const tokensById = new Map(
-    project.lyrics.lines.flatMap((line) =>
+    lines.flatMap((line) =>
       line.tokens.map((token) => [token.id, token] as const),
     ),
   );
   const lineByToken = new Map(
-    project.lyrics.lines.flatMap((line, lineIndex) =>
+    lines.flatMap((line, lineIndex) =>
       line.tokens.map((token) => [token.id, lineIndex] as const),
     ),
   );
-  const lineStarts = lyricLineStarts(project);
+  const lineStarts = lyricLineStarts(lines);
   const writtenTokenIds = new Set<string>();
   const rows: string[] = [];
   let previousLineIndex: number | undefined;
@@ -203,6 +203,7 @@ const ultraStarBody = (
 
 export const writeUltraStar = (
   project: IKaraokeMakerProject,
+  options?: { language?: string },
 ): IWrittenKaraokeFile => {
   if (!project.melody.notes.length) {
     throw new Error('UltraStar export needs at least one melody note.');
@@ -210,9 +211,14 @@ export const writeUltraStar = (
   const notes = [...project.melody.notes].sort(
     (left, right) => left.startMs - right.startMs,
   );
+  const chosen = sheetLines(project, options?.language);
   const gapMs = ultraStarGapMs(project, notes);
-  const { rows: body, writtenTokenIds } = ultraStarBody(project, notes, gapMs);
-  const language = ultraStarLanguage(project.lyrics.language);
+  const { rows: body, writtenTokenIds } = ultraStarBody(
+    chosen.lines,
+    notes,
+    gapMs,
+  );
+  const language = ultraStarLanguage(chosen.language);
   const rows = [
     `#TITLE:${project.title}`,
     // Required by the format even when the Maker never learned one.
@@ -228,7 +234,7 @@ export const writeUltraStar = (
     ...body,
     'E',
   ];
-  const sungLines = project.lyrics.lines.filter(
+  const sungLines = chosen.lines.filter(
     (line) => !karaokeMakerLineIsSection(line),
   );
   // Counted by word rather than by token so the number the user is shown means
@@ -255,4 +261,5 @@ export const writeUltraStar = (
 
 export const exportKaraokeMakerUltraStar = (
   project: IKaraokeMakerProject,
-): string => writeUltraStar(project).contents;
+  options?: { language?: string },
+): string => writeUltraStar(project, options).contents;

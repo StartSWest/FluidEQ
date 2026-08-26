@@ -10,6 +10,7 @@ import {
   KARAOKE_MAKER_EXTENSION,
   karaokeMakerLineIsSection,
   serializeKaraokeMakerProject,
+  sheetLines,
 } from './makerProject';
 import { IWrittenKaraokeFile, countWords } from './makerExportText';
 import {
@@ -159,7 +160,9 @@ const enhancedLineText = (line: IKaraokeMakerLine): string =>
 const writeLrc = (
   project: IKaraokeMakerProject,
   enhanced: boolean,
+  options?: { language?: string },
 ): IWrittenKaraokeFile => {
+  const { lines } = sheetLines(project, options?.language);
   const rows = [
     `[ti:${lrcMetadataValue(project.title)}]`,
     ...(project.artist ? [`[ar:${lrcMetadataValue(project.artist)}]`] : []),
@@ -167,7 +170,7 @@ const writeLrc = (
   ];
   let droppedLines = 0;
   let droppedWords = 0;
-  project.lyrics.lines.forEach((line) => {
+  lines.forEach((line) => {
     if (karaokeMakerLineIsSection(line)) {
       if (line.startMs === undefined) {
         droppedLines += 1;
@@ -209,7 +212,8 @@ const writeLrc = (
 export const exportKaraokeMakerLrc = (
   project: IKaraokeMakerProject,
   enhanced: boolean,
-): string => writeLrc(project, enhanced).contents;
+  options?: { language?: string },
+): string => writeLrc(project, enhanced, options).contents;
 
 export const exportKaraokeMaker = (
   project: IKaraokeMakerProject,

@@ -7,10 +7,13 @@ import {
   karaokeMakerExportFileName,
 } from '../../../common/karaoke/makerExport';
 import {
+  addKaraokeTranslation,
   IKaraokeMakerNote,
   IKaraokeMakerProject,
+  karaokeMakerProjectToSong,
   validateKaraokeMakerProject,
 } from '../../../common/karaoke/makerProject';
+import { IKaraokeAsset, IKaraokeSong } from '../../../common/karaoke/types';
 import { parseUltraStar } from '../../../common/karaoke/ultrastar';
 import { parseLrc } from '../../../common/karaoke/lrc';
 
@@ -541,5 +544,152 @@ describe('export file names', () => {
     latin.artist = undefined;
     latin.title = 'Café Crème';
     expect(karaokeMakerExportFileName(latin, 'lrc')).toBe('Cafe Creme.lrc');
+  });
+});
+
+describe('exporting a chosen language', () => {
+  // IKaraokeAsset takes a File, not a relativePath/fileName pair — copied
+  // from the shape karaokeMaker.test.ts already builds one with.
+  const asset: IKaraokeAsset = {
+    id: 'audio',
+    role: 'audio',
+    extension: 'mp3',
+    file: new File(['audio'], 'Artist - Song.mp3', { type: 'audio/mpeg' }),
+  };
+
+  // Two lines of two words each, so 'hola mundo' / 'tres cuatro' lines up
+  // one-for-one with 'One two' / 'Three four'.
+  const translated = (): IKaraokeMakerProject =>
+    addKaraokeTranslation(project(), 'hola mundo\ntres cuatro', 'es').project;
+
+  const wordsOf = (song: IKaraokeSong): string[] =>
+    song.lines.flatMap((line) => line.tokens.map((token) => token.text));
+
+  it('returns the original when no language is asked for', () => {
+    const song = karaokeMakerProjectToSong(translated(), asset);
+
+    expect(wordsOf(song)).toEqual(['One', 'two', 'Three', 'four']);
+    expect(song.meta.language).toBe('en');
+  });
+
+  it('swaps in the chosen sheet and says which language it is', () => {
+    const song = karaokeMakerProjectToSong(translated(), asset, [asset], {
+      language: 'es',
+    });
+
+    expect(wordsOf(song)).toEqual(['hola', 'mundo', 'tres', 'cuatro']);
+    expect(song.meta.language).toBe('es');
+  });
+
+  it('falls back to the original when the language is not present', () => {
+    const song = karaokeMakerProjectToSong(translated(), asset, [asset], {
+      language: 'de',
+    });
+
+    expect(wordsOf(song)).toEqual(['One', 'two', 'Three', 'four']);
+    expect(song.meta.language).toBe('en');
+  });
+
+  it('writes the chosen language into the UltraStar header and swaps the words', () => {
+    const spanish = translated();
+    const sheet = spanish.lyrics.translations?.find(
+      (entry) => entry.language === 'es',
+    );
+    if (!sheet) {
+      throw new Error('expected a Spanish sheet from addKaraokeTranslation');
+    }
+    // A pasted translation is reseeded with its own fresh token ids — it
+    // shares none with the melody, which stays bound to the original by
+    // design (Task 5 leaves makePlayablePitchNotes untouched). Pointing the
+    // notes at the Spanish tokens here is what proves the exporter now reads
+    // the chosen sheet instead of always the original.
+    const spanishTokenIds = sheet.lines.flatMap((line) =>
+      line.tokens.map((token) => token.id),
+    );
+    const withSpanishMelody: IKaraokeMakerProject = {
+      ...spanish,
+      melody: {
+        ...spanish.melody,
+        notes: spanish.melody.notes.map((note, index) => ({
+          ...note,
+          tokenId: spanishTokenIds[index],
+        })),
+      },
+    };
+
+    const text = exportKaraokeMakerUltraStar(withSpanishMelody, {
+      language: 'es',
+    });
+
+    // 'es' resolves through the same ISO-639 name table the header already
+    // uses for 'en' -> 'English' elsewhere in this file, so 'Spanish' is the
+    // hand-computed value, not 'es' itself.
+    expect(text).toContain('#LANGUAGE:Spanish');
+    expect(text).toContain('hola');
+    expect(text).toContain('mundo');
+    expect(text).toContain('tres');
+    expect(text).toContain('cuatro');
+    expect(text).not.toContain('One');
+    expect(text).not.toContain('Three');
+
+    // Positive control: without the option both the header and the words
+    // are the English original's, same as every other test in this file.
+    const original = exportKaraokeMakerUltraStar(spanish);
+    expect(original).toContain('#LANGUAGE:English');
+    expect(original).toContain('One');
+    expect(original).not.toContain('hola');
+  });
+
+  it('validates clean when a translation is empty or unfinished, and still catches the original', () => {
+    const withRoughTranslation: IKaraokeMakerProject = {
+      ...project(),
+      lyrics: {
+        ...project().lyrics,
+        translations: [
+          {
+            language: 'es',
+            source: 'translation-seed',
+            lines: [
+              {
+                id: 'line-1-es',
+                tokens: [
+                  {
+                    id: 'w-es',
+                    text: 'hola',
+                    startsWord: true,
+                    source: 'translation-seed',
+                    // No startMs/endMs at all: an error if the validator
+                    // judged translations, and it must not.
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    };
+    expect(validateKaraokeMakerProject(withRoughTranslation)).toEqual([]);
+
+    // Positive control: an untimed word in the ORIGINAL is still caught, so
+    // the clean result above is not just validate() ignoring everything.
+    const untimedOriginal: IKaraokeMakerProject = {
+      ...withRoughTranslation,
+      lyrics: {
+        ...withRoughTranslation.lyrics,
+        lines: withRoughTranslation.lyrics.lines.map((line) => ({
+          ...line,
+          tokens: line.tokens.map((token) => ({
+            ...token,
+            startMs: undefined,
+            endMs: undefined,
+          })),
+        })),
+      },
+    };
+    expect(
+      validateKaraokeMakerProject(untimedOriginal).some(
+        (issue) => issue.code === 'untimed-word',
+      ),
+    ).toBe(true);
   });
 });

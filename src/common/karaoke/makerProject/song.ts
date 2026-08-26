@@ -128,8 +128,11 @@ const makePlayableLyricTokens = (line: IKaraokeMakerLine): IKaraokeToken[] => {
   return tokens;
 };
 
-const makePlayableLines = (project: IKaraokeMakerProject): IKaraokeLine[] =>
-  project.lyrics.lines.flatMap((line): IKaraokeLine[] => {
+const makePlayableLines = (
+  project: IKaraokeMakerProject,
+  lines: readonly IKaraokeMakerLine[] = project.lyrics.lines,
+): IKaraokeLine[] =>
+  lines.flatMap((line): IKaraokeLine[] => {
     // Lyric progress must always use the repaired word timestamps. Melody
     // notes have their own pitch track and may cover only part of a word.
     // Replacing lyric tokens with those notes made the editor and preview show
@@ -185,12 +188,37 @@ const makePlayablePitchNotes = (
     });
 };
 
+/**
+ * The lines to play, for a language.
+ *
+ * An absent or unknown language answers with the original rather than with
+ * nothing: a song whose Spanish sheet was removed elsewhere must still play.
+ */
+export const sheetLines = (
+  project: IKaraokeMakerProject,
+  language: string | undefined,
+): { lines: IKaraokeMakerLine[]; language: string | undefined } => {
+  const sheet = language
+    ? (project.lyrics.translations ?? []).find(
+        (entry) => entry.language === language,
+      )
+    : undefined;
+  return sheet
+    ? { lines: sheet.lines, language: sheet.language }
+    : { lines: project.lyrics.lines, language: project.lyrics.language };
+};
+
 export const karaokeMakerProjectToSong = (
   project: IKaraokeMakerProject,
   audioAsset: IKaraokeAsset,
   sourceAssets: readonly IKaraokeAsset[] = [audioAsset],
+  options: { language?: string } = {},
 ): IKaraokeSong => {
-  const lines = makePlayableLines(project);
+  const chosen = sheetLines(project, options.language);
+  const lines = makePlayableLines(project, chosen.lines);
+  // Pitch notes are bound to the original's tokens and stay bound to them
+  // regardless of the chosen language: the melody in project.melody is one
+  // track shared by every lyric sheet, not per-language data.
   const notes = makePlayablePitchNotes(project);
   const assets = sourceAssets.some((asset) => asset.role === 'audio')
     ? Array.from(sourceAssets)
@@ -220,11 +248,13 @@ export const karaokeMakerProjectToSong = (
       sourceFormat: 'fluideq-maker',
       gapMs: project.meta.gapMs,
       bpm: project.meta.bpm,
-      language: project.lyrics.language,
+      language: chosen.language,
     },
   };
 };
 
+// Judges the sung original only. A translation may be empty or half-fitted at
+// any time — that is a normal state of the work, not a defect in the project.
 export const validateKaraokeMakerProject = (
   project: IKaraokeMakerProject,
 ): IKaraokeMakerValidationIssue[] => {
