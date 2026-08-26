@@ -24,6 +24,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "fluideq/dsp.h"
 #include "fluideq/dynamics.h"
 #include "fluideq/eq.h"
+#include "fluideq/exciter.h"
 #include "fluideq/exciter_guard.h"
 #include "fluideq/organic.h"
 #include "fluideq/organic_stage.h"
@@ -76,7 +77,8 @@ enum ProcessorId : uint32_t {
   kPhaseAlign = 18,
   kExciterGuard = 19,
   kOrganic = 20,
-  kOrganicPath = 21
+  kOrganicPath = 21,
+  kExciter = 22
 };
 
 struct Fixture {
@@ -833,9 +835,55 @@ bool render_organic_path(const Fixture& fixture, std::vector<float>& actual) {
   return true;
 }
 
+/** `[enabled, isolate, (enabled, hz, range, drive, mix, texture) * 3]`. */
+bool render_exciter(const Fixture& fixture, std::vector<float>& actual) {
+  constexpr size_t kSetupFields = 6;
+  if (fixture.params.size() != 2 + FEQ_EXCITER_BANDS * kSetupFields) {
+    return false;
+  }
+  FeqExciterSettings settings{};
+  settings.enabled = fixture.params[0] != 0.0 ? 1 : 0;
+  settings.isolate = fixture.params[1] != 0.0 ? 1 : 0;
+  for (uint32_t band = 0; band < FEQ_EXCITER_BANDS; ++band) {
+    const size_t base = 2 + static_cast<size_t>(band) * kSetupFields;
+    settings.bands[band].enabled = fixture.params[base] != 0.0 ? 1 : 0;
+    settings.bands[band].freq_hz = fixture.params[base + 1];
+    settings.bands[band].range = fixture.params[base + 2];
+    settings.bands[band].drive = fixture.params[base + 3];
+    settings.bands[band].mix = fixture.params[base + 4];
+    settings.bands[band].texture = fixture.params[base + 5];
+  }
+
+  const size_t wide =
+      static_cast<size_t>(fixture.frames) * FEQ_EXCITER_MAX_OVERSAMPLE;
+  actual = fixture.input;
+  for (uint32_t channel = 0; channel < fixture.channels; ++channel) {
+    std::vector<std::vector<float>> bands(
+        FEQ_EXCITER_BANDS, std::vector<float>(fixture.frames));
+    std::vector<float> wet(fixture.frames);
+    std::vector<float> scratch(wide);
+    std::vector<float> dry_wide(wide);
+    std::vector<float> middle(static_cast<size_t>(fixture.frames) * 2);
+    std::vector<float> dry(fixture.frames);
+    std::vector<float> guard(fixture.frames);
+    FeqExciterChannel state;
+    feq_exciter_channel_init(&state, bands[0].data(), bands[1].data(),
+                             bands[2].data(), wet.data(), scratch.data(),
+                             dry_wide.data(), middle.data(), dry.data(),
+                             guard.data());
+    double report[FEQ_EXCITER_BANDS] = {0.0, 0.0, 0.0};
+    feq_exciter_channel_process(
+        &state, channel_at(actual, channel, fixture.frames), fixture.frames,
+        &settings, static_cast<double>(fixture.sample_rate), report);
+  }
+  return true;
+}
+
 /** Run one fixture through the native engine, or say it cannot be run yet. */
 bool render(const Fixture& fixture, std::vector<float>& actual) {
   switch (fixture.processor) {
+    case kExciter:
+      return render_exciter(fixture, actual);
     case kOrganicPath:
       return render_organic_path(fixture, actual);
     case kOrganic:

@@ -96,6 +96,10 @@ import {
   runOrganicPath,
 } from '../../src/renderer/dsp/organicStage';
 import {
+  createExciterChannel,
+  runExciterChannel,
+} from '../../src/renderer/dsp/exciterStage';
+import {
   createBandDynamics,
   refreshBandDynamics,
 } from '../../src/renderer/dsp/dynamics';
@@ -161,6 +165,7 @@ enum ProcessorId {
   ExciterGuard = 19,
   Organic = 20,
   OrganicPath = 21,
+  Exciter = 22,
 }
 
 interface IRackBand {
@@ -1301,6 +1306,84 @@ parityCorpus(FRAMES, 48000).forEach((signal) => {
         maxAbsTolerance: 1e-4,
         rmsTolerance: 1e-5,
       });
+    });
+  });
+});
+
+/**
+ * The whole three-band Exciter.
+ *
+ * The overdriven case exists to exercise the return normaliser: three bands
+ * each asking for a large mix sum past unity, and the stage has to scale them
+ * together while preserving their relative balance. A corpus of modest mixes
+ * would never reach that branch, and a port that dropped it would sound louder
+ * rather than wrong.
+ *
+ * Isolate is covered because it is a different signal path, not a mute: the
+ * dry mix glides to zero and what remains is the excited return alone.
+ */
+const EXCITER_BANDS = [
+  { enabled: 1, freqHz: 90, range: 0.4, drive: 2.0, mix: 0.35, texture: 0.3 },
+  { enabled: 1, freqHz: 1200, range: 0.5, drive: 2.4, mix: 0.4, texture: 0.4 },
+  { enabled: 1, freqHz: 8000, range: 0.45, drive: 2.6, mix: 0.5, texture: 0.5 },
+];
+const EXCITER_HOT = EXCITER_BANDS.map((band) => ({ ...band, mix: 0.95 }));
+
+[
+  { label: 'normal', isolate: 0, bands: EXCITER_BANDS },
+  { label: 'isolate', isolate: 1, bands: EXCITER_BANDS },
+  { label: 'overdriven', isolate: 0, bands: EXCITER_HOT },
+].forEach((setting) => {
+  parityCorpus(FRAMES, 48000).forEach((signal) => {
+    fixtures.push({
+      name: `exciter/${setting.label}/48000/${signal.name}`,
+      processor: ProcessorId.Exciter,
+      sampleRate: 48000,
+      params: [
+        1,
+        setting.isolate,
+        ...setting.bands.flatMap((band) => [
+          band.enabled,
+          band.freqHz,
+          band.range,
+          band.drive,
+          band.mix,
+          band.texture,
+        ]),
+      ],
+      input: processorInput(signal.channels),
+      expected: processorInput(signal.channels).map((channel) => {
+        const target = Float32Array.from(channel);
+        runExciterChannel(
+          createExciterChannel(target.length),
+          target,
+          {
+            enabled: true,
+            isolate: setting.isolate === 1,
+            presetId: '',
+            stereo: 'stereo',
+            bands: setting.bands.map((band) => ({
+              enabled: band.enabled === 1,
+              freqHz: band.freqHz,
+              range: band.range,
+              drive: band.drive,
+              mix: band.mix,
+              texture: band.texture,
+            })),
+            organic: {
+              enabled: false,
+              amount: 0,
+              focusHz: 1000,
+              range: 0.5,
+            },
+            align: { enabled: false, amount: 0 },
+          },
+          48000,
+        );
+        return target;
+      }),
+      maxAbsTolerance: 1e-4,
+      rmsTolerance: 1e-5,
     });
   });
 });
