@@ -424,4 +424,71 @@ describe('translations on a project', () => {
 
     expect(karaokeTranslationLanguages(withFr)).toEqual(['en', 'es', 'fr']);
   });
+
+  it('replaces the first of two sheets in place, without moving it to the end', () => {
+    const withEs = addKaraokeTranslation(
+      projectWithLines(),
+      'hola mundo',
+      'es',
+    ).project;
+    const withFr = addKaraokeTranslation(withEs, 'bonjour monde', 'fr').project;
+
+    const replaced = addKaraokeTranslation(withFr, 'adios mundo', 'es').project;
+
+    expect(replaced.lyrics.translations).toHaveLength(2);
+    expect(replaced.lyrics.translations?.[0].language).toBe('es');
+    expect(replaced.lyrics.translations?.[0].lines[0].tokens[0].text).toBe(
+      'adios',
+    );
+    expect(replaced.lyrics.translations?.[1].language).toBe('fr');
+    expect(replaced.lyrics.translations?.[1].lines[0].tokens[0].text).toBe(
+      'bonjour',
+    );
+  });
+
+  it('removes only the named language, leaving the other sheet intact', () => {
+    const withEs = addKaraokeTranslation(
+      projectWithLines(),
+      'hola mundo',
+      'es',
+    ).project;
+    const withFr = addKaraokeTranslation(withEs, 'bonjour monde', 'fr').project;
+
+    const removed = removeKaraokeTranslation(withFr, 'es');
+
+    expect(removed.lyrics.translations).toHaveLength(1);
+    expect(removed.lyrics.translations?.[0].language).toBe('fr');
+    expect(
+      removed.lyrics.translations?.[0].lines[0].tokens.map(
+        (token) => token.text,
+      ),
+    ).toEqual(['bonjour', 'monde']);
+  });
+
+  it("falls back to the tag 'original' when lyrics.language was never set", () => {
+    const project = projectWithLines();
+    const withoutLanguage: IKaraokeMakerProject = {
+      ...project,
+      lyrics: { ...project.lyrics, language: undefined },
+    };
+
+    // Literal 'original', not the exported KARAOKE_ORIGINAL_LANGUAGE constant:
+    // comparing against the same import a broken constant would drag along
+    // with it, hiding the very regression this test exists to catch.
+    expect(karaokeTranslationLanguages(withoutLanguage)[0]).toBe('original');
+  });
+
+  it("does not mutate the input project's translations array when adding another", () => {
+    const withEs = addKaraokeTranslation(
+      projectWithLines(),
+      'hola mundo',
+      'es',
+    ).project;
+    const before = withEs.lyrics.translations;
+
+    addKaraokeTranslation(withEs, 'bonjour monde', 'fr');
+
+    expect(withEs.lyrics.translations).toBe(before);
+    expect(withEs.lyrics.translations).toHaveLength(1);
+  });
 });

@@ -120,6 +120,29 @@ export interface IKaraokeTranslationFit {
  * available before anything is synthesised — and the mismatch is fixable from
  * either side: change the words, or split a held note in two.
  */
+export const karaokeTranslationFit = (
+  sheet: IKaraokeMakerLyricSheet,
+  notes: readonly IKaraokeMakerNote[],
+): IKaraokeTranslationFit[] =>
+  sheet.lines
+    .filter((line) => !karaokeMakerLineIsSection(line))
+    .map((line) => {
+      const range = karaokeMakerTimedLineRange(line);
+      return {
+        lineId: line.id,
+        syllables: line.tokens.reduce(
+          (sum, token) => sum + syllableWeight(token.text, sheet.language),
+          0,
+        ),
+        notes: range
+          ? notes.filter(
+              (note) =>
+                note.startMs < range.endMs && note.endMs > range.startMs,
+            ).length
+          : 0,
+      };
+    });
+
 /**
  * The languages this project can be shown in, original first.
  *
@@ -185,26 +208,3 @@ export const removeKaraokeTranslation = (
     },
   };
 };
-
-export const karaokeTranslationFit = (
-  sheet: IKaraokeMakerLyricSheet,
-  notes: readonly IKaraokeMakerNote[],
-): IKaraokeTranslationFit[] =>
-  sheet.lines
-    .filter((line) => !karaokeMakerLineIsSection(line))
-    .map((line) => {
-      const range = karaokeMakerTimedLineRange(line);
-      return {
-        lineId: line.id,
-        syllables: line.tokens.reduce(
-          (sum, token) => sum + syllableWeight(token.text, sheet.language),
-          0,
-        ),
-        notes: range
-          ? notes.filter(
-              (note) =>
-                note.startMs < range.endMs && note.endMs > range.startMs,
-            ).length
-          : 0,
-      };
-    });
