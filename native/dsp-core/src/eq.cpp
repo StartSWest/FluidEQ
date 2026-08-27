@@ -136,6 +136,7 @@ void feq_eq_process_bands(FeqBiquadState* states,
 }
 
 void feq_eq_process_bands_linked(FeqBiquadState* states,
+                                 uint32_t state_stride,
                                  const FeqBiquadCoefficients* coefficients,
                                  uint32_t band_count,
                                  float* const* targets,
@@ -170,7 +171,7 @@ void feq_eq_process_bands_linked(FeqBiquadState* states,
           dynamics != nullptr ? &dynamics[band] : nullptr;
       if (dynamic == nullptr || dynamic->active == 0) {
         for (uint32_t channel = 0; channel < channels; ++channel) {
-          feq_biquad_process(&states[channel * band_count + band],
+          feq_biquad_process(&states[channel * state_stride + band],
                              targets[channel], frames, &coefficients[band]);
         }
         continue;
@@ -180,7 +181,7 @@ void feq_eq_process_bands_linked(FeqBiquadState* states,
           dry[channel][at] = targets[channel][at];
           wet[channel][at] = targets[channel][at];
         }
-        feq_biquad_process(&states[channel * band_count + band], wet[channel],
+        feq_biquad_process(&states[channel * state_stride + band], wet[channel],
                            frames, &coefficients[band]);
       }
       double peak = 0.0;
@@ -209,7 +210,7 @@ void feq_eq_process_bands_linked(FeqBiquadState* states,
       for (uint32_t at = 0; at < frames; ++at) {
         wet[channel][at] = dry[channel][at];
       }
-      feq_biquad_process(&states[channel * band_count + band], wet[channel],
+      feq_biquad_process(&states[channel * state_stride + band], wet[channel],
                          frames, &coefficients[band]);
     }
     FeqBandDynamics* dynamic = dynamics != nullptr ? &dynamics[band] : nullptr;
@@ -261,6 +262,7 @@ void feq_eq_process_oversampled(FeqBiquadState* states,
 }
 
 void feq_eq_process_oversampled_linked(FeqBiquadState* states,
+                                       uint32_t state_stride,
                                        const FeqBiquadCoefficients* coeffs,
                                        uint32_t band_count,
                                        float* const* targets,
@@ -283,7 +285,8 @@ void feq_eq_process_oversampled_linked(FeqBiquadState* states,
                       doubled[channel], frames, factor,
                       middle != nullptr ? middle[channel] : nullptr);
   }
-  feq_eq_process_bands_linked(states, coeffs, band_count, doubled, channels,
+  feq_eq_process_bands_linked(states, state_stride, coeffs, band_count, doubled,
+                              channels,
                               frames * factor, engine, dry_doubled,
                               wet_doubled, dynamics);
   for (uint32_t channel = 0; channel < channels; ++channel) {

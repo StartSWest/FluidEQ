@@ -74,6 +74,7 @@ void feq_eq_process_bands(FeqBiquadState* states,
  * audible in a way the magnitude plot cannot show.
  */
 void feq_eq_process_bands_linked(FeqBiquadState* states,
+                                 uint32_t state_stride,
                                  const FeqBiquadCoefficients* coefficients,
                                  uint32_t band_count,
                                  float* const* targets,
@@ -107,6 +108,7 @@ void feq_eq_process_oversampled(FeqBiquadState* states,
 
 /** Oversampled, with one dynamic amount applied to every channel. */
 void feq_eq_process_oversampled_linked(FeqBiquadState* states,
+                                       uint32_t state_stride,
                                        const FeqBiquadCoefficients* coeffs,
                                        uint32_t band_count,
                                        float* const* targets,

@@ -331,6 +331,15 @@ export const registerDspHostIpc = ({
  * Called from `before-quit` rather than `will-quit`, because the shutdown is
  * asynchronous and `will-quit` is already too late to wait for anything.
  */
+/**
+ * The running host's process id, or undefined while it is not running.
+ *
+ * For the process list, which shows it alongside Electron's own â it is our
+ * child rather than Electron's, so `getAppMetrics` has never heard of it and
+ * Task Manager files it away from the FluidEQ group entirely.
+ */
+export const dspHostPid = (): number | undefined => supervisor?.getPid();
+
 export const shutdownDspHost = async (): Promise<void> => {
   const host = supervisor;
   supervisor = undefined;

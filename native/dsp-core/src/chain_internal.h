@@ -35,6 +35,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "fluideq/primitives.h"
 #include "fluideq/saturate.h"
 
+#include <atomic>
 #include <vector>
 
 /** L, R, Mid and Side each need their own histories. */
@@ -102,10 +103,39 @@ struct FeqChain {
   ChainExciterPath paths[kExciterPaths];
 
   /* -------------------------------------------------------------- EQ -- */
-  std::vector<FeqBiquadCoefficients> coefficients;
-  std::vector<FeqBiquadCoefficients> dynamic_coefficients;
-  /** Positions within the live-band arrays of the bands marked dynamic. */
-  std::vector<uint32_t> dynamic_slots;
+  /**
+   * One built rack, and there are two of them for a reason.
+   *
+   * `chain_refresh_eq` runs on the CONTROL thread and the callback reads these
+   * on the audio thread. Building in place meant `clear()` and `push_back()`
+   * on a vector another thread was reading â garbage coefficients for a block
+   * on a good day, a read of freed memory when the band count grew past the
+   * capacity. That is a click on every knob turn, and it was audible.
+   *
+   * So the control thread fills whichever set is NOT published and then
+   * publishes it with one atomic store. The audio thread reads the index once
+   * per block. Nothing is ever written to the set the callback is using.
+   */
+  struct ChainCoefficients {
+    std::vector<FeqBiquadCoefficients> bands;
+    std::vector<FeqBiquadCoefficients> dynamic;
+    /** Positions within the live-band arrays of the bands marked dynamic. */
+    std::vector<uint32_t> dynamic_slots;
+    FeqBiquadCoefficients subsonic{};
+    int has_subsonic = 0;
+    FeqBiquadCoefficients mono_below{};
+    int has_mono_below = 0;
+  };
+  ChainCoefficients coefficient_sets[2];
+  std::atomic<uint32_t> published_coefficients{0};
+  /**
+   * Read once at the top of a block and used for the whole of it.
+   *
+   * A set published mid-block would otherwise be adopted by the EQ and not by
+   * the isolate subtraction below it, which is two different racks inside one
+   * buffer.
+   */
+  const ChainCoefficients* active = nullptr;
   /**
    * Flat, `[channel * band_count + band]`, and deliberately one array.
    *
@@ -116,6 +146,15 @@ struct FeqChain {
    */
   std::vector<FeqBiquadState> band_states;
   std::vector<FeqBandDynamics> band_dynamics;
+  /**
+   * Fixed, so the state arrays are allocated once and never resized.
+   *
+   * Striding by the LIVE count meant enabling a band moved every other band's
+   * filter history to a different slot â and, worse, resized a vector the
+   * audio thread was reading. A fixed stride costs four kilobytes and removes
+   * both: a band's history stays with that band whatever its neighbours do.
+   */
+  static constexpr uint32_t kBandStride = FEQ_CHAIN_MAX_EQ_BANDS;
   /**
    * The dynamic bands gathered contiguously, for the path after a convolution.
    *
@@ -128,10 +167,6 @@ struct FeqChain {
   std::vector<FeqBiquadState> dynamic_states;
   std::vector<FeqBandDynamics> dynamic_dynamics;
 
-  FeqBiquadCoefficients subsonic_coefficients{};
-  int has_subsonic = 0;
-  FeqBiquadCoefficients mono_below_coefficients{};
-  int has_mono_below = 0;
   FeqBiquadState side_highpass{};
 
   std::vector<float> eq_dry;

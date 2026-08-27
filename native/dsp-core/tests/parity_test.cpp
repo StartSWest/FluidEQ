@@ -368,7 +368,7 @@ bool render_eq_linked(const Fixture& fixture, std::vector<float>& actual) {
     wet_pointers[channel] = wet[channel].data();
   }
 
-  feq_eq_process_bands_linked(states.data(), rack.coefficients.data(),
+  feq_eq_process_bands_linked(states.data(), rack.band_count, rack.coefficients.data(),
                               rack.band_count, targets.data(), channels,
                               fixture.frames, rack.engine, dry_pointers.data(),
                               wet_pointers.data(), dynamics.data());
@@ -428,7 +428,8 @@ bool render_eq_oversampled(const Fixture& fixture, std::vector<float>& actual,
     auto states = fresh_states(channels * rack.band_count);
     auto dynamics = build_dynamics(rack, filter_rate);
     feq_eq_process_oversampled_linked(
-        states.data(), rack.coefficients.data(), rack.band_count,
+        states.data(), rack.band_count, rack.coefficients.data(),
+        rack.band_count,
         targets.data(), channels, fixture.frames, rack.engine,
         oversamplers.data(), factor, doubled_pointers.data(),
         dry_pointers.data(), wet_pointers.data(), middle_pointers.data(),

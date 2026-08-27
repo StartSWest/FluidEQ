@@ -205,8 +205,37 @@ FeqChain* feq_chain_create(double sample_rate,
                          chain->safety_reduction.data(), channels,
                          safety_capacity, sample_rate);
 
+  /**
+   * Every filter history, sized for the largest rack the app allows, once.
+   *
+   * Sixty-four bands across two channels is four kilobytes, and buying it here
+   * means these vectors are never resized again. That matters because
+   * `chain_refresh_eq` runs on the control thread: a `resize` there is a
+   * reallocation under an audio thread that is mid-read, which is a click at
+   * best and a use-after-free at worst.
+   *
+   * Reset rather than value-initialised. A zeroed `FeqBandDynamics` is not the
+   * same as an initialised one, and a detector that starts from garbage opens
+   * on the first block for no reason.
+   */
+  const size_t histories =
+      static_cast<size_t>(FeqChain::kBandStride) * FEQ_CHAIN_CHANNELS;
+  chain->band_states.resize(histories);
+  chain->band_dynamics.resize(histories);
+  chain->dynamic_states.resize(histories);
+  chain->dynamic_dynamics.resize(histories);
+  for (size_t index = 0; index < histories; ++index) {
+    feq_biquad_reset(&chain->band_states[index]);
+    feq_biquad_reset(&chain->dynamic_states[index]);
+    feq_band_dynamics_init(&chain->band_dynamics[index]);
+    feq_band_dynamics_init(&chain->dynamic_dynamics[index]);
+  }
+  // Both sets, so the first published one is complete and the spare is not a
+  // half-built rack waiting to be swapped in.
+  chain_refresh_eq(chain);
   chain_refresh_eq(chain);
   return chain;
+
 }
 
 void feq_chain_destroy(FeqChain* chain) {
@@ -340,7 +369,19 @@ void feq_chain_process(FeqChain* chain, float* const* channels,
     return;
   }
 
+  /**
+   * The rack for this block, chosen once and used throughout.
+   *
+   * Adopting a newly published set halfway down would put the EQ on one rack
+   * and the isolate subtraction beneath it on another, which is two different
+   * filters inside one buffer rather than a settings change.
+   */
+  chain->active =
+      &chain->coefficient_sets[chain->published_coefficients.load(
+          std::memory_order_acquire)];
+
   chain_process_input_gain(chain, channels, frames);
+
   chain_process_exciter(chain, channels, frames);
   chain_process_eq(chain, channels, frames);
   chain_process_compressor(chain, channels, frames);

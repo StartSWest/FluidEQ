@@ -33,21 +33,20 @@ void match_oversampling(FeqChain* chain,
 }
 
 uint32_t live_band_count(const FeqChain* chain) {
-  return static_cast<uint32_t>(chain->coefficients.size());
+  return static_cast<uint32_t>(chain->active->bands.size());
 }
 
 uint32_t dynamic_band_count(const FeqChain* chain) {
-  return static_cast<uint32_t>(chain->dynamic_coefficients.size());
+  return static_cast<uint32_t>(chain->active->dynamic.size());
 }
 
 /** Copy the dynamic bands' shared state into the contiguous scratch. */
 void gather_dynamic(FeqChain* chain) {
-  const uint32_t live = live_band_count(chain);
   const uint32_t count = dynamic_band_count(chain);
   for (uint32_t channel = 0; channel < FEQ_CHAIN_CHANNELS; ++channel) {
     for (uint32_t index = 0; index < count; ++index) {
-      const size_t from =
-          static_cast<size_t>(channel) * live + chain->dynamic_slots[index];
+      const size_t from = static_cast<size_t>(channel) * FeqChain::kBandStride +
+                          chain->active->dynamic_slots[index];
       const size_t to = static_cast<size_t>(channel) * count + index;
       chain->dynamic_states[to] = chain->band_states[from];
       chain->dynamic_dynamics[to] = chain->band_dynamics[from];
@@ -57,12 +56,11 @@ void gather_dynamic(FeqChain* chain) {
 
 /** And back, so a phase change resumes the envelope rather than restarting it. */
 void scatter_dynamic(FeqChain* chain) {
-  const uint32_t live = live_band_count(chain);
   const uint32_t count = dynamic_band_count(chain);
   for (uint32_t channel = 0; channel < FEQ_CHAIN_CHANNELS; ++channel) {
     for (uint32_t index = 0; index < count; ++index) {
-      const size_t to =
-          static_cast<size_t>(channel) * live + chain->dynamic_slots[index];
+      const size_t to = static_cast<size_t>(channel) * FeqChain::kBandStride +
+                        chain->active->dynamic_slots[index];
       const size_t from = static_cast<size_t>(channel) * count + index;
       chain->band_states[to] = chain->dynamic_states[from];
       chain->band_dynamics[to] = chain->dynamic_dynamics[from];
@@ -155,7 +153,8 @@ void process_eq_channel(FeqChain* chain,
   ChainEqSlot& slot = chain->slots[slot_index];
   const uint32_t live = live_band_count(chain);
   const uint32_t dynamic = dynamic_band_count(chain);
-  const size_t base = static_cast<size_t>(slot_index) * live;
+  const size_t base =
+      static_cast<size_t>(slot_index) * FeqChain::kBandStride;
 
   if (chain_linear_running(chain) != 0) {
     chain_process_eq_convolver_channel(chain, target, frames, slot_index);
@@ -163,27 +162,27 @@ void process_eq_channel(FeqChain* chain,
       gather_dynamic(chain);
       const size_t dynamic_base = static_cast<size_t>(slot_index) * dynamic;
       feq_eq_process_bands(chain->dynamic_states.data() + dynamic_base,
-                           chain->dynamic_coefficients.data(), dynamic, target,
+                           chain->active->dynamic.data(), dynamic, target,
                            frames, eq.engine, chain->eq_dry.data(),
                            chain->eq_wet.data(),
                            chain->dynamic_dynamics.data() + dynamic_base);
       scatter_dynamic(chain);
     }
   } else {
-    if (chain->has_subsonic != 0) {
+    if (chain->active->has_subsonic != 0) {
       feq_biquad_process(&slot.subsonic, target, frames,
-                         &chain->subsonic_coefficients);
+                         &chain->active->subsonic);
     }
     if (eq.oversample > 1) {
       feq_eq_process_oversampled(
-          chain->band_states.data() + base, chain->coefficients.data(), live,
+          chain->band_states.data() + base, chain->active->bands.data(), live,
           target, frames, eq.engine, &slot.eq_oversampler, eq.oversample,
           chain->eq_doubled.data(), chain->eq_dry_doubled.data(),
           chain->eq_wet_doubled.data(), chain->eq_middle.data(),
           live == 0 ? nullptr : chain->band_dynamics.data() + base);
     } else {
       feq_eq_process_bands(
-          chain->band_states.data() + base, chain->coefficients.data(), live,
+          chain->band_states.data() + base, chain->active->bands.data(), live,
           target, frames, eq.engine, chain->eq_dry.data(),
           chain->eq_wet.data(),
           live == 0 ? nullptr : chain->band_dynamics.data() + base);
@@ -224,17 +223,17 @@ void process_eq_stereo(FeqChain* chain, float* const* channels,
         chain->pointers_b[channel] = chain->linked_wet[channel].data();
       }
       feq_eq_process_bands_linked(
-          chain->dynamic_states.data(), chain->dynamic_coefficients.data(),
+          chain->dynamic_states.data(), dynamic, chain->active->dynamic.data(),
           dynamic, channels, channel_count, frames, eq.engine,
           chain->pointers_a, chain->pointers_b,
           chain->dynamic_dynamics.data());
       scatter_dynamic(chain);
     }
   } else {
-    if (chain->has_subsonic != 0) {
+    if (chain->active->has_subsonic != 0) {
       for (uint32_t channel = 0; channel < channel_count; ++channel) {
         feq_biquad_process(&chain->slots[channel].subsonic, channels[channel],
-                           frames, &chain->subsonic_coefficients);
+                           frames, &chain->active->subsonic);
       }
     }
     if (eq.oversample > 1) {
@@ -247,7 +246,8 @@ void process_eq_stereo(FeqChain* chain, float* const* channels,
       FeqOversampler oversamplers[FEQ_CHAIN_CHANNELS] = {
           chain->slots[0].eq_oversampler, chain->slots[1].eq_oversampler};
       feq_eq_process_oversampled_linked(
-          chain->band_states.data(), chain->coefficients.data(), live, channels,
+          chain->band_states.data(), FeqChain::kBandStride,
+          chain->active->bands.data(), live, channels,
           channel_count, frames, eq.engine, oversamplers, eq.oversample,
           chain->pointers_a, chain->pointers_b, chain->pointers_c,
           chain->pointers_d,
@@ -260,7 +260,8 @@ void process_eq_stereo(FeqChain* chain, float* const* channels,
         chain->pointers_b[channel] = chain->linked_wet[channel].data();
       }
       feq_eq_process_bands_linked(
-          chain->band_states.data(), chain->coefficients.data(), live, channels,
+          chain->band_states.data(), FeqChain::kBandStride,
+          chain->active->bands.data(), live, channels,
           channel_count, frames, eq.engine, chain->pointers_a,
           chain->pointers_b,
           live == 0 ? nullptr : chain->band_dynamics.data());
@@ -289,23 +290,37 @@ void chain_refresh_eq(FeqChain* chain) {
   // an octave low — a bug rather than a mode.
   const double design_rate = chain->sample_rate * eq.oversample;
 
+  /**
+   * Built into the set the callback is NOT reading, and published at the end.
+   *
+   * This function runs on the control thread. Filling the live set in place
+   * meant `clear()` and `push_back()` on vectors the audio thread was reading
+   * — garbage coefficients for a block on a good day, and a read of freed
+   * memory once the band count grew past the capacity. That is a click on
+   * every knob turn, and it was audible before it was understood.
+   */
+  const uint32_t live_index =
+      chain->published_coefficients.load(std::memory_order_acquire);
+  const uint32_t next_index = live_index == 0 ? 1u : 0u;
+  FeqChain::ChainCoefficients& built = chain->coefficient_sets[next_index];
+
   // Built at the base rate, because they run BEFORE the oversampler: a high
   // pass whose job is to keep energy out has nothing to gain from being
   // inside, and doing it first means the oversampler carries less.
-  chain->has_mono_below = eq.mono_below_hz > 0.0 ? 1 : 0;
-  if (chain->has_mono_below != 0) {
-    chain->mono_below_coefficients = feq_biquad_coefficients(
+  built.has_mono_below = eq.mono_below_hz > 0.0 ? 1 : 0;
+  if (built.has_mono_below != 0) {
+    built.mono_below = feq_biquad_coefficients(
         FEQ_FILTER_HPQ, eq.mono_below_hz, 0.0, 0.707, chain->sample_rate);
   }
-  chain->has_subsonic = eq.subsonic_hz > 0.0 ? 1 : 0;
-  if (chain->has_subsonic != 0) {
-    chain->subsonic_coefficients = feq_biquad_coefficients(
+  built.has_subsonic = eq.subsonic_hz > 0.0 ? 1 : 0;
+  if (built.has_subsonic != 0) {
+    built.subsonic = feq_biquad_coefficients(
         FEQ_FILTER_HPQ, eq.subsonic_hz, 0.0, 0.707, chain->sample_rate);
   }
 
-  chain->coefficients.clear();
-  chain->dynamic_slots.clear();
-  chain->dynamic_coefficients.clear();
+  built.bands.clear();
+  built.dynamic_slots.clear();
+  built.dynamic.clear();
   std::vector<const FeqChainEqBand*> live;
   for (uint32_t index = 0; index < eq.band_count; ++index) {
     const FeqChainEqBand& band = eq.bands[index];
@@ -313,56 +328,47 @@ void chain_refresh_eq(FeqChain* chain) {
       continue;
     }
     live.push_back(&band);
-    chain->coefficients.push_back(feq_biquad_coefficients_modelled(
+    built.bands.push_back(feq_biquad_coefficients_modelled(
         band.type, band.frequency, band.gain_db, band.quality, design_rate,
         eq.model, eq.model_amount));
   }
   for (uint32_t index = 0; index < live.size(); ++index) {
     if (live[index]->dynamic != 0) {
-      chain->dynamic_slots.push_back(index);
+      built.dynamic_slots.push_back(index);
       const FeqChainEqBand& band = *live[index];
       // Built at the base rate, not the design rate: these run after the
       // convolution, which is base rate, and never inside the oversampler.
-      chain->dynamic_coefficients.push_back(feq_biquad_coefficients_modelled(
+      built.dynamic.push_back(feq_biquad_coefficients_modelled(
           band.type, band.frequency, band.gain_db, band.quality,
           chain->sample_rate, eq.model, eq.model_amount));
     }
   }
 
+  /**
+   * The detectors are refreshed in place, and that is safe where the
+   * coefficients were not.
+   *
+   * `feq_band_dynamics_refresh` writes scalars into an element that already
+   * exists — no allocation, no resize, and the array itself was sized to the
+   * maximum rack at `create`. A torn read of one threshold for one block is a
+   * band opening a hair early; a torn read of a vector's data pointer is a
+   * segfault. Those are not the same hazard and do not need the same cure.
+   */
   const size_t count = live.size();
-  const size_t total = count * FEQ_CHAIN_CHANNELS;
-  // Grown rather than rebuilt: the filter history IS the last few milliseconds
-  // of audio, and clearing it because a neighbouring band moved is a click on
-  // every drag.
-  while (chain->band_states.size() < total) {
-    FeqBiquadState state;
-    feq_biquad_reset(&state);
-    chain->band_states.push_back(state);
-    FeqBandDynamics dynamics;
-    feq_band_dynamics_init(&dynamics);
-    chain->band_dynamics.push_back(dynamics);
-  }
-  chain->band_states.resize(total);
-  chain->band_dynamics.resize(total);
   for (uint32_t channel = 0; channel < FEQ_CHAIN_CHANNELS; ++channel) {
     for (size_t index = 0; index < count; ++index) {
       feq_band_dynamics_refresh(
-          &chain->band_dynamics[static_cast<size_t>(channel) * count + index],
+          &chain->band_dynamics[static_cast<size_t>(channel) *
+                                    FeqChain::kBandStride +
+                                index],
           eq.enabled, live[index]->enabled, live[index]->dynamic,
           live[index]->gain_db, live[index]->threshold_db, chain->sample_rate);
     }
   }
 
-  const size_t dynamic_total =
-      chain->dynamic_coefficients.size() * FEQ_CHAIN_CHANNELS;
-  chain->dynamic_states.assign(dynamic_total, FeqBiquadState{});
-  chain->dynamic_dynamics.assign(dynamic_total, FeqBandDynamics{});
-  for (auto& state : chain->dynamic_states) {
-    feq_biquad_reset(&state);
-  }
-  for (auto& dynamics : chain->dynamic_dynamics) {
-    feq_band_dynamics_init(&dynamics);
-  }
+  // The one store the audio thread is waiting on. Everything above is already
+  // written, and `release` is what guarantees it is visible before the index.
+  chain->published_coefficients.store(next_index, std::memory_order_release);
 }
 
 void chain_process_eq(FeqChain* chain, float* const* channels,
@@ -453,9 +459,9 @@ void chain_process_eq(FeqChain* chain, float* const* channels,
    * the middle whole. Above the corner the image is untouched: width is worth
    * keeping wherever it cannot cancel.
    */
-  if (mid_side && chain->has_mono_below != 0) {
+  if (mid_side && chain->active->has_mono_below != 0) {
     feq_biquad_process(&chain->side_highpass, channels[1], frames,
-                       &chain->mono_below_coefficients);
+                       &chain->active->mono_below);
   }
   if (mid_side) {
     chain_decode_mid_side(channels, frames);

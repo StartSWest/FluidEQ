@@ -1,0 +1,79 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+// The card, backdrop and header are About's — this dialog is the same shape
+// and reusing them is what keeps it looking like part of the app rather than
+// like a debugging tool that wandered in.
+@use 'About';
+
+// Narrower than About, which holds prose. Four columns of numbers read worse
+// the wider they are: the eye has further to travel from a name to its value.
+.processes {
+  width: min(520px, 100%);
+}
+
+.processes__hint {
+  margin: 0 0 $spacing-s;
+  color: rgba($primary-lighter, 0.62);
+  font-size: 0.72rem;
+  line-height: 1.5;
+}
+
+.processes__table {
+  width: 100%;
+  margin-bottom: $spacing-m;
+  border-collapse: collapse;
+  font-size: 0.74rem;
+
+  th {
+    padding-bottom: 6px;
+    border-bottom: 1px solid rgba($secondary-light, 0.2);
+    color: rgba($primary-lighter, 0.5);
+    font-weight: $weight-medium;
+    text-align: left;
+  }
+
+  td {
+    padding: 6px 0;
+    border-bottom: 1px solid rgba($secondary-light, 0.08);
+  }
+}
+
+/*
+ * Tabular figures, because this table is read by scanning a column.
+ *
+ * The shell already sets `font-variant-numeric: tabular-nums`, but a number
+ * column is exactly where losing it would show — a 1 narrower than a 0 makes
+ * "1024" and "9024" different widths and the column stops lining up.
+ */
+.processes__number {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+// The one row somebody is usually looking for. Marked rather than sorted to
+// the top: the sort is by memory, and moving it would break that.
+.processes tr.is-this-window td {
+  color: $primary-lighter;
+}
+
+.processes__tag {
+  margin-left: 8px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: rgba($secondary-default, 0.16);
+  color: $secondary-light;
+  font-size: 0.62rem;
+  font-weight: $weight-medium;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}

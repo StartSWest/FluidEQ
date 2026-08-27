@@ -156,7 +156,20 @@ const setDspHostTrackGains = (
   masterLoudnessGainDb: number,
 ): Promise<boolean> => transport('gains', 0, inputGainDb, masterLoudnessGainDb);
 
+/**
+ * Every process this app is running, labelled by what it does.
+ *
+ * Lives beside the DSP host's bridge because the host is one of the rows: it
+ * is our own child rather than Electron's, so nothing else in the app knows
+ * it exists. Development only â the handler answers with an empty list in a
+ * production build.
+ */
+const appProcesses = (): Promise<unknown[]> =>
+  ipcRenderer.invoke('app-processes');
+
 export const dspHostBridge = {
+  appProcesses,
+
   getDspHostStatus,
   startDspHost,
   stopDspHost,
