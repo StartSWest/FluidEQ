@@ -10,7 +10,7 @@ import Switch from '../widgets/Switch';
 import { Dial, ProcessorCard } from './DspControls';
 import DspMasterGraph from './DspMasterGraph';
 import { OUTPUT_SAFETY_SOFT_KNEE_DB } from './outputSafety';
-import { IDspOutputSafetyMeter } from './store';
+import { IDspOutputSafetyMeter, TDspBackend } from './store';
 
 const IS_DEV = process.env.NODE_ENV !== 'production';
 
@@ -24,8 +24,11 @@ interface IDspMasterCardProps {
   master: IMasterSettings;
   meter: IDspOutputSafetyMeter;
   safetyEnabled: boolean;
+  /** Which engine is audible. Development only; see `store.ts`. */
+  backend: TDspBackend;
   loudnessGainDb: number;
   onSafetyToggle: () => void;
+  onBackendToggle: () => void;
   onPatch: (next: IMasterSettings) => void;
   onCommit: () => void;
 }
@@ -35,8 +38,10 @@ const DspMasterCard = ({
   master,
   meter,
   safetyEnabled,
+  backend,
   loudnessGainDb,
   onSafetyToggle,
+  onBackendToggle,
   onPatch,
   onCommit,
 }: IDspMasterCardProps) => {
@@ -212,6 +217,35 @@ const DspMasterCard = ({
               {t('dsp.master.faults')} {meter.repairedSamples}
             </span>
           </span>
+        </div>
+      ) : undefined}
+
+      {IS_DEV ? (
+        <div
+          className={`dsp-band dsp-dev-safety${
+            backend === 'native' ? ' is-on' : ' is-off'
+          }`}
+        >
+          <div className="dsp-band-head">
+            <div className="dsp-dev-safety-control">
+              <span className="dsp-band-title">
+                {t('dsp.master.devBackend')}
+              </span>
+              <span className="dsp-dev-safety-state">
+                {backend === 'native'
+                  ? t('dsp.master.devBackendNative')
+                  : t('dsp.master.devBackendTypescript')}
+              </span>
+            </div>
+            <Switch
+              id="dsp-dev-backend"
+              isOn={backend === 'native'}
+              isDisabled={false}
+              handleToggle={onBackendToggle}
+              ariaLabel={t('dsp.master.devBackend')}
+            />
+          </div>
+          <p className="dsp-band-hint">{t('dsp.master.devBackendHint')}</p>
         </div>
       ) : undefined}
     </ProcessorCard>

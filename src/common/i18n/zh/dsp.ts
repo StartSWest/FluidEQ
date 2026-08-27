@@ -291,6 +291,11 @@ const dsp = {
   'dsp.master.manualHint': '手动输出：不衰减峰值。高于 0 dBFS 的电平将削波。',
   'dsp.master.truePeak': 'TP 输入',
   'dsp.master.gainReduction': '增益衰减',
+  'dsp.master.devBackend': '引擎 A/B',
+  'dsp.master.devBackendNative': '原生 (C++)',
+  'dsp.master.devBackendTypescript': 'TypeScript',
+  'dsp.master.devBackendHint':
+    '仅开发使用：在 TypeScript worklet 与原生引擎之间切换整条 DSP 链，以便用同一首曲目对比两者。',
   'dsp.master.devSafety': '安全 A/B',
   'dsp.master.devSafetyHint':
     '仅开发环境：旁路全部最终保护，让你直接听到它带来的变化。',

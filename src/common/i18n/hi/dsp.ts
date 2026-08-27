@@ -305,6 +305,11 @@ const dsp = {
     'मैनुअल आउटपुट: कोई पीक कटौती नहीं। 0 dBFS से ऊपर के स्तर क्लिप होंगे।',
   'dsp.master.truePeak': 'TP इन',
   'dsp.master.gainReduction': 'गेन रिडक्शन',
+  'dsp.master.devBackend': 'इंजन A/B',
+  'dsp.master.devBackendNative': 'नेटिव (C++)',
+  'dsp.master.devBackendTypescript': 'TypeScript',
+  'dsp.master.devBackendHint':
+    'केवल डेवलपमेंट: पूरी DSP शृंखला को TypeScript वर्कलेट और नेटिव इंजन के बीच बदलता है, ताकि दोनों की तुलना एक ही ट्रैक पर की जा सके।',
   'dsp.master.devSafety': 'सुरक्षा A/B',
   'dsp.master.devSafetyHint':
     'केवल डेवलपमेंट: पूरी अंतिम सुरक्षा को बायपास करता है ताकि उसका सटीक प्रभाव सुना जा सके।',

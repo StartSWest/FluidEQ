@@ -93,6 +93,24 @@ let engineState: TDspEngineState = 'idle';
 let sampleRate = ASSUMED_SAMPLE_RATE;
 /** Ephemeral A/B control. Production is hard-wired to the safe path. */
 let outputSafetyEnabled = true;
+
+/**
+ * Which engine is doing the work, for as long as there are two of them.
+ *
+ * The TypeScript chain stays in the tree through the migration and this is why:
+ * a port is only believable if the two can be compared on the same audio, and
+ * a comparison that needs a rebuild between the halves is one nobody runs. The
+ * parity fixtures hold the native chain to the worklet sample for sample, but
+ * they cannot hear it â this is what lets a person switch mid-track and listen.
+ *
+ * Development only. In a production build the getter is pinned, because the
+ * fallback exists to be measured against rather than to be shipped as a
+ * setting the user has to understand.
+ */
+export type TDspBackend = 'typescript' | 'native';
+
+let dspBackend: TDspBackend = 'typescript';
+
 const listeners = new Set<() => void>();
 const outputSafetyListeners = new Set<() => void>();
 const inputAnalysisListeners = new Set<() => void>();
@@ -186,6 +204,20 @@ export const setDspOutputSafetyEnabled = (next: boolean): void => {
   outputSafetyEnabled = next;
   emit();
 };
+
+export const readDspBackend = (): TDspBackend =>
+  IS_DEV ? dspBackend : 'typescript';
+
+export const setDspBackend = (next: TDspBackend): void => {
+  if (!IS_DEV || next === dspBackend) {
+    return;
+  }
+  dspBackend = next;
+  emit();
+};
+
+export const useDspBackend = (): TDspBackend =>
+  useSyncExternalStore(subscribe, readDspBackend, readDspBackend);
 
 export const useDspOutputSafetyEnabled = (): boolean =>
   useSyncExternalStore(
