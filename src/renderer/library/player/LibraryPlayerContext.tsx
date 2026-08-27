@@ -435,8 +435,8 @@ export const LibraryPlayerProvider = ({
    * The native engine, shadowing this player while the dev switch selects it.
    *
    * Development only, and deliberately a SHADOW rather than a replacement: the
-   * elements above keep every job they have â position, events, the queue's
-   * advance, the crossfade's cue point â and are muted, while the host is told
+   * elements above keep every job they have — position, events, the queue's
+   * advance, the crossfade's cue point — and are muted, while the host is told
    * the same file at the same position. Flipping the switch changes which of
    * two engines is audible and nothing else, which is the only way the two are
    * comparable at all.

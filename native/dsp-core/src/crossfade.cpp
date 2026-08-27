@@ -62,7 +62,7 @@ void feq_crossfader_start(FeqCrossfader* state,
    * A fade started while one is running keeps its place on the curve.
    *
    * Zeroing the counter would put the outgoing deck back to unity, which is a
-   * step up to full level in the middle of a fade â audible as a thump every
+   * step up to full level in the middle of a fade — audible as a thump every
    * time the queue is skipped twice inside one overlap. The elapsed FRACTION
    * carries over instead, so the gain is continuous when the curve is
    * unchanged and close to continuous when it is not, all three curves being

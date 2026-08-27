@@ -101,7 +101,7 @@ let outputSafetyEnabled = true;
  * a port is only believable if the two can be compared on the same audio, and
  * a comparison that needs a rebuild between the halves is one nobody runs. The
  * parity fixtures hold the native chain to the worklet sample for sample, but
- * they cannot hear it â this is what lets a person switch mid-track and listen.
+ * they cannot hear it — this is what lets a person switch mid-track and listen.
  *
  * Development only. In a production build the getter is pinned, because the
  * fallback exists to be measured against rather than to be shipped as a

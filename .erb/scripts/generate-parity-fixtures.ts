@@ -1698,7 +1698,7 @@ CROSSFADE_CURVES.forEach((curve) => {
  *
  * These fixtures hold the native chain to the TypeScript worklet, and the
  * layout they push through `feq_chain_settings_decode` is the same one the
- * renderer sends at runtime â so a field added to the encoder and forgotten in
+ * renderer sends at runtime — so a field added to the encoder and forgotten in
  * the C++ fails here rather than in somebody's headphones.
  */
 const chainParams = (settings: IDspSettings): number[] =>
@@ -1893,7 +1893,7 @@ CHAIN_PRESETS.forEach((preset) => {
      * The positive control this corpus needs.
      *
      * A chain that did nothing would produce its input, and a native chain
-     * that also did nothing would match it perfectly â a whole suite of
+     * that also did nothing would match it perfectly — a whole suite of
      * green for an engine that is a wire. Every preset except `bypass` has to
      * change the audio measurably before its fixture is worth writing.
      */

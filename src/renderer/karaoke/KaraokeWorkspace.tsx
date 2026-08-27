@@ -1893,7 +1893,7 @@ const KaraokeWorkspace = ({
                         aria-valuetext={`${lyricTextSize}%`}
                         title={`${t(
                           'karaoke.lyrics.textSize',
-                        )} Â· ${lyricTextSize}%`}
+                        )} · ${lyricTextSize}%`}
                         style={
                           {
                             '--karaoke-lyric-size-progress': `${

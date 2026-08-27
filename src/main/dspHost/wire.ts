@@ -158,7 +158,7 @@ export const encodeSnapshotPayload = (values: readonly number[]): Buffer => {
  * encoder that agrees with the first until a field is added to one of them.
  *
  * Everything before the bands sits at a fixed offset, which is why the lead is
- * asserted rather than assumed â a scalar added above and forgotten here would
+ * asserted rather than assumed — a scalar added above and forgotten here would
  * push every band along by one and still decode into something plausible.
  */
 export const CHAIN_PARAM_LEAD = 69;

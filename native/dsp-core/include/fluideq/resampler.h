@@ -41,7 +41,7 @@ extern "C" {
  * A Kaiser window's transition band is about `(A - 8) / (2.285 * N)` radians
  * per sample, so halving the width means doubling the taps. At 32 the stopband
  * for a 2:1 downsample did not begin until 31 kHz, which left a 30 kHz tone
- * inside the transition and folded it back at -60 dB â quiet, and exactly the
+ * inside the transition and folded it back at -60 dB — quiet, and exactly the
  * added shimmer a listener would call the converter "bright" for. At 64 the
  * stopband starts at 27 kHz and the same tone is rejected by more than 90.
  */

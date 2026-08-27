@@ -108,7 +108,7 @@ const onDspHostDiagnostic = (
 /**
  * The whole chain, arrays included, built by `encodeChainSettings`.
  *
- * The renderer never assembles this by hand â there is one encoder and it
+ * The renderer never assembles this by hand — there is one encoder and it
  * lives in `common/dsp/chainWire.ts`, which is also what the parity fixtures
  * push through the native decoder.
  */
@@ -122,9 +122,9 @@ const loadDspHostDeck = (deck: number, mediaPath: string): Promise<boolean> =>
 /**
  * The transport, as one call with a verb.
  *
- * `value` and `extra` mean different things per verb â seconds for a seek,
+ * `value` and `extra` mean different things per verb — seconds for a seek,
  * milliseconds and a curve index for a crossfade, two gains in dB for `gains`
- * â which is why the wrappers below exist rather than callers passing three
+ * — which is why the wrappers below exist rather than callers passing three
  * positional numbers and hoping.
  */
 type TDspTransportVerb =
