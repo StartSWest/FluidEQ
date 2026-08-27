@@ -121,6 +121,7 @@ import {
   EQ_STEREO_MODES,
 } from '../../src/common/dsp/chain';
 import { createWorkletHarness } from './lib/workletHarness';
+import { encodeChainSettings } from '../../src/common/dsp/chainWire';
 import { DSP_DEFAULTS, EQ_MODELS } from '../../src/common/dsp/chain';
 import type {
   IEqSettings,
@@ -1693,100 +1694,15 @@ CROSSFADE_CURVES.forEach((curve) => {
 });
 
 /**
- * The whole chain as a flat parameter block, and the layout is the contract.
+ * The wire encoder the app itself uses, not a copy of it.
  *
- * `render_chain` in `parity_test.cpp` reads it back field for field. The
- * variable-length part — the EQ's bands — is last on purpose: everything
- * before it sits at a fixed offset, so adding a scalar cannot silently
- * re-point sixty-four bands.
+ * These fixtures hold the native chain to the TypeScript worklet, and the
+ * layout they push through `feq_chain_settings_decode` is the same one the
+ * renderer sends at runtime â so a field added to the encoder and forgotten in
+ * the C++ fails here rather than in somebody's headphones.
  */
-const CHAIN_PARAM_LEAD = 69;
-const chainParams = (settings: IDspSettings): number[] => {
-  const { exciter, eq, compressor, maximizer, master } = settings;
-  const values: number[] = [
-    settings.enabled ? 1 : 0,
-    1, // output safety, which the worklet leaves on unless told otherwise
-    exciter.enabled ? 1 : 0,
-    exciter.isolate ? 1 : 0,
-    EQ_STEREO_MODES.indexOf(exciter.stereo),
-    exciter.align.enabled ? 1 : 0,
-    exciter.align.amount,
-    exciter.organic.enabled ? 1 : 0,
-    exciter.organic.amount,
-    exciter.organic.focusHz,
-    exciter.organic.range,
-  ];
-  for (let band = 0; band < 3; band += 1) {
-    const source = exciter.bands[band];
-    values.push(
-      source.enabled ? 1 : 0,
-      source.freqHz,
-      source.range,
-      source.drive,
-      source.mix,
-      source.texture,
-    );
-  }
-  values.push(
-    eq.enabled ? 1 : 0,
-    eq.isolate ? 1 : 0,
-    EQ_MODELS.indexOf(eq.model),
-    eq.modelAmount,
-    EQ_ENGINES.indexOf(eq.engine),
-    EQ_PHASE_MODES.indexOf(eq.phase),
-    EQ_STEREO_MODES.indexOf(eq.stereo),
-    eq.monoBelowHz,
-    eq.oversample,
-    eq.subsonicHz,
-    eq.fuzzAmount,
-    compressor.enabled ? 1 : 0,
-    compressor.crossoverHz[0],
-    compressor.crossoverHz[1],
-  );
-  for (let band = 0; band < 3; band += 1) {
-    const source = compressor.bands[band];
-    values.push(
-      source.thresholdDb,
-      source.ratio,
-      source.attackMs,
-      source.releaseMs,
-      source.makeupDb,
-    );
-  }
-  values.push(
-    maximizer.enabled ? 1 : 0,
-    maximizer.ceilingDb,
-    maximizer.lookAheadMs,
-    maximizer.releaseMs,
-    master.enabled ? 1 : 0,
-    master.outputTrimDb,
-    master.loudnessMaximize ? 1 : 0,
-    master.loudnessTargetLufs,
-    master.ceilingDb,
-    master.releaseMs,
-    eq.bands.length,
-  );
-  if (values.length !== CHAIN_PARAM_LEAD) {
-    // The lead is a constant on both sides of the comparison. A field added
-    // above and not here would push every band along by one and still decode
-    // into something plausible.
-    throw new Error(
-      `chain params: lead is ${values.length}, expected ${CHAIN_PARAM_LEAD}`,
-    );
-  }
-  eq.bands.forEach((band) => {
-    values.push(
-      band.enabled ? 1 : 0,
-      FILTER_TYPE_ORDER.indexOf(band.type as FilterTypeEnum),
-      band.frequency,
-      band.gainDb,
-      band.quality,
-      band.dynamic ? 1 : 0,
-      band.thresholdDb,
-    );
-  });
-  return values;
-};
+const chainParams = (settings: IDspSettings): number[] =>
+  encodeChainSettings(settings);
 
 /**
  * The whole chain, held to the worklet that is being replaced.
