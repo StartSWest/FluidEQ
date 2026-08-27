@@ -66,6 +66,13 @@ jobs:
       - name: Check the stylesheets
         run: pnpm typecheck:styles
 
+      # The same argument as the stylesheets: nothing else here can see it.
+      # tsc, eslint, prettier and jest all accept a double-encoded em-dash
+      # without a word, because the damage lands in comments — until the day it
+      # lands in a string and a user reads it.
+      - name: Check the file encodings
+        run: pnpm typecheck:encoding
+
       # Before the tests, because jest's setup refuses to start without one —
       # it checks that the main and renderer bundles exist and throws if they
       # do not. On a developer's machine there is always a build lying around

@@ -31,6 +31,14 @@ jobs:
       - name: Check the stylesheets
         run: pnpm typecheck:styles
 
+      # Seconds, and it catches something every other check is blind to: a file
+      # written back through a shell rather than an editor arrives with its
+      # em-dashes double-encoded, and then compiles, lints and passes the whole
+      # suite. Nine of them reached main that way, plus one inside a `title`
+      # attribute that users could read on screen.
+      - name: Check the file encodings
+        run: pnpm typecheck:encoding
+
       - name: Build production bundles
         run: pnpm build
 

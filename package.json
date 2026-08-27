@@ -62,6 +62,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "typecheck:e2e": "tsc --noEmit -p tsconfig.e2e.json",
     "typecheck:styles": "ts-node ./.erb/scripts/check-styles.ts",
+    "typecheck:encoding": "ts-node ./.erb/scripts/check-encoding.ts",
     "package:signed": "ts-node ./.erb/scripts/package-signed.ts"
   },
   "lint-staged": {
