@@ -16,7 +16,14 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { useMemo } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { ILibraryTrack } from '../../common/library/types';
 import { useTranslation } from '../utils/I18nContext';
 import MenuIcon from '../icons/MenuIcon';
@@ -26,6 +33,139 @@ export interface IVideoFolderGroup {
   folder: string;
   tracks: ILibraryTrack[];
 }
+
+/** How far beyond the viewport stays mounted, each way, in viewports — the
+ * list view's own constant, and everything its comment says applies here. */
+const OVERSCAN_VIEWPORTS = 3;
+
+/**
+ * Starting guesses only; every one is measured off the real shelf on layout.
+ *
+ * The column count especially: `.library-video-section__grid` is
+ * `repeat(auto-fill, minmax(150px, 1fr))`, so there is no right number to
+ * write down — it comes from the pane's width, exactly as in `LibraryGridView`.
+ */
+const TILE_HEIGHT = 196;
+const HEADER_HEIGHT = 40;
+const ROW_GAP = 16;
+const COLUMNS = 6;
+
+/** Rows mounted before anything has been measured, as a height rather than a
+ * count: the rows here are two different sizes, so a count means nothing. */
+const FIRST_WINDOW_HEIGHT = 1_400;
+
+/**
+ * The most rows this view will mount, whatever it is told about the pane.
+ *
+ * `LibraryListView`'s `MAX_WINDOW_ROWS` and its comment word for word: a
+ * ceiling made of arithmetic cannot be wrong the way one made of a
+ * measurement can, and a measurement of a scroll container really can come
+ * back as the height of its own content.
+ */
+const MAX_WINDOW_ROWS = 400;
+
+/** A folder heading, or one row of tiles under one. */
+export type TVideoRow =
+  | { kind: 'header'; key: string; folder: string }
+  | { kind: 'tiles'; key: string; tracks: readonly ILibraryTrack[] };
+
+export interface IVideoShelfMetrics {
+  headerHeight: number;
+  tileHeight: number;
+  gap: number;
+  columns: number;
+}
+
+/**
+ * The shelf as a flat list of rows, which is what makes it windowable.
+ *
+ * Nested folders each holding their own grid cannot be windowed without
+ * measuring every folder, so the nesting is flattened here instead: one
+ * heading row, then a row per `columns` videos under it. The folder a row
+ * belongs to survives in its key, so React never reuses a row of one folder's
+ * tiles for another's.
+ */
+export const videoShelfRows = (
+  groups: readonly IVideoFolderGroup[],
+  columns: number,
+): TVideoRow[] => {
+  const rows: TVideoRow[] = [];
+  const width = Math.max(1, columns);
+  groups.forEach((group) => {
+    rows.push({
+      kind: 'header',
+      key: `h:${group.folder}`,
+      folder: group.folder,
+    });
+    for (let at = 0; at < group.tracks.length; at += width) {
+      rows.push({
+        kind: 'tiles',
+        key: `t:${group.folder}:${at}`,
+        tracks: group.tracks.slice(at, at + width),
+      });
+    }
+  });
+  return rows;
+};
+
+/**
+ * Where every row starts, and where the last one ends.
+ *
+ * One entry longer than `rows`, so the end of row `i` is always `offsets[i+1]`
+ * and no caller has to special-case the last one.
+ */
+export const videoShelfOffsets = (
+  rows: readonly TVideoRow[],
+  metrics: IVideoShelfMetrics,
+): number[] => {
+  const offsets: number[] = [0];
+  rows.forEach((row, index) => {
+    const height =
+      row.kind === 'header' ? metrics.headerHeight : metrics.tileHeight;
+    offsets.push(offsets[index] + height + metrics.gap);
+  });
+  return offsets;
+};
+
+/**
+ * Which rows belong on screen, from numbers alone.
+ *
+ * Pure, exported and tested for the reason `rowWindowFor` is: `paneHeight` is
+ * a measurement, and a measurement can be absurd. Two ceilings answer that —
+ * `screenHeight`, because nobody can read more than a screenful so a taller
+ * scroll container is a layout fault, and `MAX_WINDOW_ROWS` regardless.
+ */
+export const videoRowWindowFor = ({
+  scrollTop,
+  paneHeight,
+  screenHeight,
+  offsets,
+}: {
+  scrollTop: number;
+  /** The shelf's own `clientHeight`. Zero before it is laid out. */
+  paneHeight: number;
+  screenHeight: number;
+  offsets: readonly number[];
+}): { start: number; end: number } => {
+  const count = Math.max(0, offsets.length - 1);
+  const viewport = Math.min(paneHeight || FIRST_WINDOW_HEIGHT, screenHeight);
+  const overscan = viewport * OVERSCAN_VIEWPORTS;
+  const top = Math.max(0, scrollTop - overscan);
+  const bottom = scrollTop + viewport + overscan;
+  let start = 0;
+  while (start < count && offsets[start + 1] <= top) {
+    start += 1;
+  }
+  let end = start;
+  while (
+    end < count &&
+    offsets[end] < bottom &&
+    end - start < MAX_WINDOW_ROWS
+  ) {
+    end += 1;
+  }
+  return { start, end };
+};
 
 /**
  * The last path segment before the file name — `C:\V\Live\a.mp4` reports
@@ -120,6 +260,117 @@ const LibraryVideoSection = ({
   // `LibraryWorkspace` hands down a fresh `onPlayTrack` closure every render.
   const groups = useMemo(() => videoFolderGroups(tracks), [tracks]);
 
+  const shelfRef = useRef<HTMLDivElement | null>(null);
+  /**
+   * What the shelf actually laid out. All measured, none assumed — see
+   * `IVideoShelfMetrics`.
+   *
+   * State rather than a ref, because the row model and every offset are built
+   * from it: a measurement kept in a ref would move without rebuilding either,
+   * and the shelf would reserve space for rows of a height it no longer draws.
+   * It only ever changes when a number genuinely differs, so this costs one
+   * render on layout and one per resize that moves something.
+   */
+  const [metrics, setMetrics] = useState<IVideoShelfMetrics>({
+    headerHeight: HEADER_HEIGHT,
+    tileHeight: TILE_HEIGHT,
+    gap: ROW_GAP,
+    columns: COLUMNS,
+  });
+
+  const rows = useMemo(
+    () => videoShelfRows(groups, metrics.columns),
+    [groups, metrics.columns],
+  );
+  const offsets = useMemo(
+    () => videoShelfOffsets(rows, metrics),
+    [rows, metrics],
+  );
+  /**
+   * Rows mounted before anything has been measured — enough to fill the
+   * tallest pane this app is usable in plus its overscan, so the first paint
+   * is never short and the layout effect below always has a real heading and a
+   * real tile to take its numbers from.
+   */
+  const [rowWindow, setRowWindow] = useState({ start: 0, end: 60 });
+
+  /** Applies a window, and re-renders only when it is genuinely different. */
+  const applyWindow = useCallback((next: { start: number; end: number }) => {
+    setRowWindow((was) =>
+      was.start === next.start && was.end === next.end ? was : next,
+    );
+  }, []);
+
+  const windowFor = useCallback(
+    (element: HTMLElement) =>
+      videoRowWindowFor({
+        scrollTop: element.scrollTop,
+        paneHeight: element.clientHeight,
+        screenHeight: window.innerHeight,
+        offsets,
+      }),
+    [offsets],
+  );
+
+  /**
+   * Read the real numbers off a mounted row.
+   *
+   * A first paint always mounts something — `FIRST_WINDOW_HEIGHT` of guessed
+   * rows — so there is a real heading and a real grid to measure by the time
+   * this runs, and `auto-fill` has already chosen the column count.
+   */
+  useLayoutEffect(() => {
+    const element = shelfRef.current;
+    if (!element) {
+      return;
+    }
+    const grid = element.querySelector<HTMLElement>(
+      '.library-video-section__grid',
+    );
+    const header = element.querySelector<HTMLElement>(
+      '.library-video-section__folder-title',
+    );
+    const shelf = getComputedStyle(element);
+    const measured: IVideoShelfMetrics = {
+      headerHeight: header?.offsetHeight || HEADER_HEIGHT,
+      tileHeight:
+        grid?.querySelector<HTMLElement>('.library-grid__tile')?.offsetHeight ||
+        TILE_HEIGHT,
+      gap: parseFloat(shelf.rowGap) || ROW_GAP,
+      columns: grid
+        ? getComputedStyle(grid).gridTemplateColumns.split(' ').filter(Boolean)
+            .length || COLUMNS
+        : COLUMNS,
+    };
+    // Only when something actually moved: `setMetrics` rebuilds the rows and
+    // every offset, and this effect runs after each of those renders. Writing
+    // an equal object here would be a loop that never settles.
+    setMetrics((was) =>
+      was.headerHeight === measured.headerHeight &&
+      was.tileHeight === measured.tileHeight &&
+      was.gap === measured.gap &&
+      was.columns === measured.columns
+        ? was
+        : measured,
+    );
+    applyWindow(windowFor(element));
+    // `rows` rather than nothing: a folder appearing or the shelf being
+    // re-entered has to re-measure, since the pane may be a different size.
+  }, [rows, applyWindow, windowFor]);
+
+  /** A pane that changes size changes how many rows belong on screen. */
+  useEffect(() => {
+    const element = shelfRef.current;
+    if (!element || typeof ResizeObserver !== 'function') {
+      return undefined;
+    }
+    const observer = new ResizeObserver(() => {
+      applyWindow(windowFor(element));
+    });
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [applyWindow, windowFor]);
+
   if (groups.length === 0) {
     return (
       <div
@@ -133,15 +384,30 @@ const LibraryVideoSection = ({
     );
   }
 
+  const start = Math.min(rowWindow.start, rows.length);
+  const end = Math.min(Math.max(rowWindow.end, start), rows.length);
+  // The rows that are not mounted, as one empty block above and one below.
+  // Taken off the offsets rather than recomputed, so the space reserved is by
+  // construction the space the rows would have taken.
+  const above = offsets[start] ?? 0;
+  const below = Math.max(0, (offsets[rows.length] ?? 0) - (offsets[end] ?? 0));
+
   return (
-    <div className="library-video-section" aria-label={t('library.videos')}>
-      {groups.map((group) => (
-        <div key={group.folder} className="library-video-section__folder">
-          <h3 className="library-video-section__folder-title">
-            {group.folder}
+    <div
+      className="library-video-section"
+      aria-label={t('library.videos')}
+      ref={shelfRef}
+      onScroll={(event) => applyWindow(windowFor(event.currentTarget))}
+    >
+      {above > 0 && <div aria-hidden="true" style={{ height: above }} />}
+      {rows.slice(start, end).map((row) =>
+        row.kind === 'header' ? (
+          <h3 key={row.key} className="library-video-section__folder-title">
+            {row.folder}
           </h3>
-          <div className="library-video-section__grid">
-            {group.tracks.map((track) => {
+        ) : (
+          <div key={row.key} className="library-video-section__grid">
+            {row.tracks.map((track) => {
               // Spec §10: a root missing at rescan is marked offline and its
               // tracks are "kept and dimmed — never deleted", not silently
               // unplayable.
@@ -205,8 +471,9 @@ const LibraryVideoSection = ({
               );
             })}
           </div>
-        </div>
-      ))}
+        ),
+      )}
+      {below > 0 && <div aria-hidden="true" style={{ height: below }} />}
     </div>
   );
 };

@@ -608,6 +608,19 @@ const AppContent = () => {
       >
         {t('tabs.eq')}
       </button>
+      {/* Beside the equaliser, because that is what it belongs with: the rack
+          is the rest of the signal chain the EQ tab starts, and a user who
+          has just set a curve looks for the compressor next — not past Media,
+          Library and Karaoke to the far end of the strip. */}
+      <button
+        type="button"
+        role="tab"
+        aria-selected={isDspTab}
+        className={`workspace-tab${isDspTab ? ' is-active' : ''}`}
+        onClick={() => setActiveWorkspaceTab('dsp')}
+      >
+        {t('tabs.dsp')}
+      </button>
       <button
         type="button"
         role="tab"
@@ -634,15 +647,6 @@ const AppContent = () => {
         onClick={() => setActiveWorkspaceTab('karaoke')}
       >
         {t('tabs.karaoke')}
-      </button>
-      <button
-        type="button"
-        role="tab"
-        aria-selected={isDspTab}
-        className={`workspace-tab${isDspTab ? ' is-active' : ''}`}
-        onClick={() => setActiveWorkspaceTab('dsp')}
-      >
-        {t('tabs.dsp')}
       </button>
     </WorkspaceTabStrip>
   );

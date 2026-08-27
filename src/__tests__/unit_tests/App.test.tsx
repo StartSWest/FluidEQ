@@ -145,7 +145,7 @@ describe('App', () => {
     expect(screen.getByText('Apoya el proyecto')).toBeVisible();
   });
 
-  it('puts DSP after Karaoke and remembers the selected tab', async () => {
+  it('puts DSP beside EQ and remembers the selected tab', async () => {
     const { container } = render(<App />);
     await act(async () => Promise.resolve());
     const tabs = screen.getAllByRole('tab');
@@ -153,12 +153,16 @@ describe('App', () => {
     // The strip itself: five places. The equaliser's five — bands, presets,
     // voicing, convolution, config — are pills inside the EQ page, which is
     // why DSP is top-level rather than mixed into the APO pages.
+    //
+    // DSP sits second, next to EQ, because the rack is the rest of the signal
+    // chain the EQ tab starts: someone who has just set a curve reaches for the
+    // compressor, not past Media, Library and Karaoke to the end of the strip.
     expect(tabs.slice(0, 5).map((tab) => tab.textContent)).toEqual([
       'EQ',
+      'DSP',
       'Media',
       'Library',
       'Karaoke',
-      'DSP',
     ]);
     expect(screen.getByRole('tab', { name: 'DSP' })).toBeInTheDocument();
     expect(

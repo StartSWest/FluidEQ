@@ -1711,9 +1711,19 @@ $library-row-height: 46px;
   @include slim-scrollbar;
   display: flex;
   min-height: 0;
-  flex: 1 1 auto;
+  // `flex-basis: 0` for the reason `.library-grid` gives at length: this
+  // reserves the height of every row it has not mounted, and from `auto` that
+  // reservation is its own content size — one narrow window and the shelf
+  // grows to the height of the whole collection.
+  flex: 1 1 0;
   flex-direction: column;
-  gap: $spacing-l;
+  // The gap between EVERY row, heading or tiles alike, because the shelf is
+  // now one flat list of rows rather than a folder per grid — `videoShelfRows`
+  // says why. A single uniform gap is what lets `videoShelfOffsets` reserve
+  // the right space for a row it is not drawing; the folder separation that
+  // used to come from a larger gap here is padding on the heading instead,
+  // where `offsetHeight` can see it.
+  gap: $spacing-m;
   padding: $spacing-m;
   overflow-y: auto;
 
@@ -1736,15 +1746,16 @@ $library-row-height: 46px;
   text-align: center;
 }
 
-.library-video-section__folder {
-  display: grid;
-  gap: $spacing-s;
-}
-
 // Same heading recipe as `.karaoke-playlist__heading h3`: uppercase, the
 // same size and letter-spacing, sat on the same faint rule.
 .library-video-section__folder-title {
   margin: 0;
+  // Padding, never margin, and this is load-bearing: the shelf reserves space
+  // for headings it has not mounted from a measured `offsetHeight`, which
+  // includes padding and does not include margin. As a margin this separation
+  // would be invisible to the measurement and every folder would sit eight
+  // pixels out of step with the scrollbar.
+  padding-top: $spacing-s;
   padding-bottom: 7px;
   border-bottom: 1px solid rgba($primary-lighter, 0.09);
   color: $text-primary;

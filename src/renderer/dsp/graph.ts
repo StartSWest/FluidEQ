@@ -109,7 +109,7 @@ export const buildDspGraph = (
 ): IDspGraph => {
   let current = settings;
   /**
-   * What the last posted linear-phase kernel was built from.
+   * What the worklet actually holds, as opposed to what has been asked for.
    *
    * The same idea as only rebuilding the exciter when its switch flips, and for
    * a sharper reason: a kernel costs about two milliseconds, settings arrive on
@@ -117,8 +117,36 @@ export const buildDspGraph = (
    * every frame on a filter that had not changed. Empty means none has been
    * sent, which is also what the worklet has to be told when the mode leaves
    * linear so it can drop the convolvers.
+   *
+   * Distinct from `pendingKernel` below because a build is now deferred by a
+   * frame: between the ask and the build the two genuinely differ, and a drag
+   * that returns to where it started inside one frame must send nothing at all.
    */
-  let kernelKey = '';
+  let sentKernelKey = '';
+
+  /**
+   * The newest settings a coalesced build is waiting on, and their key.
+   *
+   * MEASURED, and the reason this exists: one kernel is 32 partitions of two
+   * `Float64Array(1024)` — 512KB to prepare, 512KB again as the structured
+   * clone crosses into the worklet, and about 1.1MB more once `createConvolver`
+   * gives each of the two channels its own history rings. Roughly 2.1MB per
+   * change. `useDspEngine` calls `update` from an effect on `settings`, so a
+   * knob drag on a 1000Hz mouse produced up to a thousand of those a second,
+   * and the worklet-side share of them accumulates in the AudioWorklet's own
+   * V8 isolate — a real-time thread that collects almost nothing. A renderer
+   * observed going from 677MB to 8.4GB in six and a half minutes of this was
+   * 10.4GB of `partition_alloc/partitions/buffer` in a memory-infra dump,
+   * while the window's own heap and DOM sat flat and a critical memory-pressure
+   * purge gave back 112MB of it.
+   *
+   * One frame is the right grain because that is how often the result can be
+   * seen or heard; everything in between is a kernel nobody ever listened to.
+   */
+  let pendingKernel: { settings: IDspSettings; key: string } | undefined;
+
+  /** The scheduled build, so it can be replaced and so `dispose` can drop it. */
+  let kernelFrame: number | undefined;
 
   /**
    * Everything the kernel depends on, and nothing else.
@@ -153,19 +181,58 @@ export const buildDspGraph = (
             .join('|'),
         ].join('/');
 
-  /** Build and send only when what it is made of actually moved. */
-  const refreshKernel = (next: IDspSettings): void => {
-    const key = kernelKeyOf(next.eq);
-    if (key === kernelKey) {
+  /**
+   * Build whatever is waiting, and hand it over.
+   *
+   * The equality check is against what the worklet HOLDS, not against what was
+   * last asked for: a band nudged and put back inside one frame ends here with
+   * a key the worklet already has, and the right answer then is to build
+   * nothing rather than to spend 2.1MB arriving where we already were.
+   */
+  const flushKernel = (): void => {
+    if (kernelFrame !== undefined) {
+      cancelAnimationFrame(kernelFrame);
+      kernelFrame = undefined;
+    }
+    const pending = pendingKernel;
+    pendingKernel = undefined;
+    if (!pending || pending.key === sentKernelKey) {
       return;
     }
-    kernelKey = key;
+    sentKernelKey = pending.key;
     worklet.port.postMessage({
       eqKernel:
-        key === ''
+        pending.key === ''
           ? undefined
-          : prepareKernel(buildLinearPhaseKernel(next.eq, context.sampleRate)),
+          : prepareKernel(
+              buildLinearPhaseKernel(pending.settings.eq, context.sampleRate),
+            ),
     });
+  };
+
+  /** Note what the kernel should become; build it at most once a frame. */
+  const refreshKernel = (next: IDspSettings): void => {
+    const key = kernelKeyOf(next.eq);
+    if (key === sentKernelKey && pendingKernel === undefined) {
+      return;
+    }
+    pendingKernel = { settings: next, key };
+    // A hidden window is handed no animation frames at all, and settings still
+    // arrive there — a preset loaded from the tray, a device profile switched,
+    // auto-EQ answering. Deferred, those would wait for a frame that comes
+    // when the window is looked at again, and until then the EQ would go on
+    // applying the curve before them: wrong, silently, which is the one
+    // failure a coalescer must not introduce.
+    if (
+      typeof requestAnimationFrame !== 'function' ||
+      document.visibilityState === 'hidden'
+    ) {
+      flushKernel();
+      return;
+    }
+    if (kernelFrame === undefined) {
+      kernelFrame = requestAnimationFrame(flushKernel);
+    }
   };
 
   /**
@@ -202,6 +269,10 @@ export const buildDspGraph = (
   });
   worklet.port.postMessage(current);
   refreshKernel(current);
+  // Built now rather than next frame: there is no drag to coalesce at
+  // construction, and a frame spent without the kernel is a frame of the wrong
+  // curve on the first sound the user hears.
+  flushKernel();
   source.connect(worklet);
 
   return {
@@ -215,6 +286,13 @@ export const buildDspGraph = (
       refreshKernel(next);
     },
     dispose() {
+      // A build scheduled for a frame that will arrive after this one would
+      // post a kernel into a worklet that has been taken out of the graph.
+      if (kernelFrame !== undefined) {
+        cancelAnimationFrame(kernelFrame);
+        kernelFrame = undefined;
+      }
+      pendingKernel = undefined;
       source.disconnect();
       worklet.disconnect();
       (Object.keys(analysers) as TDspAnalyserStage[]).forEach((stage) => {
