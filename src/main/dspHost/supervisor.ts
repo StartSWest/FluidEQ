@@ -30,6 +30,8 @@ import {
 import { FrameReader } from './transport';
 import {
   HOST_COMMANDS,
+  encodeChainPayload,
+  encodeTrackGainsPayload,
   HOST_STATUS,
   HOST_WIRE_PROTOCOL_VERSION,
   IHostAck,
@@ -100,6 +102,9 @@ export class DspHostSupervisor {
   private lastSnapshot: readonly number[] | undefined;
 
   private lastRevision = 0;
+
+  /** The whole chain, restored after a restart alongside the snapshot. */
+  private lastChain: readonly number[] | undefined;
 
   private deviceWanted = false;
 
@@ -223,6 +228,111 @@ export class DspHostSupervisor {
       parameterIndex: index,
       value,
     });
+  }
+
+  /**
+   * The whole chain, bands included, held so a restart can restore it.
+   *
+   * Separate from `applySnapshot` because they carry different things. The
+   * snapshot is the flat parameter table: scalars addressed by a permanent
+   * id, which is what one dragged control needs. This is the arrays too, and
+   * a flat list of scalars cannot hold sixty-four bands without inventing an
+   * indexing scheme both sides would then have to agree about forever.
+   */
+  async applyChain(values: readonly number[]): Promise<boolean> {
+    this.lastChain = values;
+    const ack = await this.send(HOST_COMMANDS.applyChain, {
+      parameterId: values.length,
+      payload: encodeChainPayload(values),
+    });
+    return ack.status === HOST_STATUS.applied;
+  }
+
+  async loadDeck(deck: number, path: string): Promise<boolean> {
+    const payload = Buffer.from(path, 'utf8');
+    const ack = await this.send(HOST_COMMANDS.loadDeck, {
+      parameterIndex: deck,
+      // Byte length, not character count: a path with an accent in it is
+      // longer in UTF-8 than in JavaScript, and the host reads bytes.
+      parameterId: payload.byteLength,
+      payload,
+    });
+    return ack.status === HOST_STATUS.applied;
+  }
+
+  /**
+   * Drive the render callback without a device, `blocks` times.
+   *
+   * The same path a device would drive, which is what makes it worth having:
+   * an offline export and the end-to-end smoke test both need the whole chain
+   * to run somewhere a machine with its headphones unplugged still counts.
+   */
+  async runOfflineBlocks(blocks: number): Promise<boolean> {
+    const ack = await this.send(HOST_COMMANDS.runOfflineBlocks, {
+      parameterId: blocks,
+    });
+    return ack.status === HOST_STATUS.applied;
+  }
+
+  async unloadDeck(deck: number): Promise<boolean> {
+    const ack = await this.send(HOST_COMMANDS.unloadDeck, {
+      parameterIndex: deck,
+    });
+    return ack.status === HOST_STATUS.applied;
+  }
+
+  async setPlaying(playing: boolean): Promise<boolean> {
+    const ack = await this.send(HOST_COMMANDS.setPlaying, {
+      parameterId: playing ? 1 : 0,
+    });
+    return ack.status === HOST_STATUS.applied;
+  }
+
+  async seekDeck(deck: number, seconds: number): Promise<boolean> {
+    const ack = await this.send(HOST_COMMANDS.seekDeck, {
+      parameterIndex: deck,
+      value: seconds,
+    });
+    return ack.status === HOST_STATUS.applied;
+  }
+
+  async selectDeck(deck: number): Promise<boolean> {
+    const ack = await this.send(HOST_COMMANDS.selectDeck, {
+      parameterIndex: deck,
+    });
+    return ack.status === HOST_STATUS.applied;
+  }
+
+  async crossfade(
+    toDeck: number,
+    durationMs: number,
+    curveIndex: number,
+  ): Promise<boolean> {
+    const ack = await this.send(HOST_COMMANDS.crossfade, {
+      parameterIndex: toDeck,
+      parameterId: curveIndex,
+      value: durationMs,
+    });
+    return ack.status === HOST_STATUS.applied;
+  }
+
+  /**
+   * The whole-track gains from analysis, both at once.
+   *
+   * `snap` lands on them; without it they glide over two seconds. A direct
+   * load has no audible predecessor and should snap; a completed deck handoff
+   * is already audible and a step would be heard.
+   */
+  async setTrackGains(
+    inputGainDb: number,
+    masterLoudnessGainDb: number,
+    snap: boolean,
+  ): Promise<boolean> {
+    const ack = await this.send(HOST_COMMANDS.setTrackGains, {
+      parameterId: snap ? 1 : 0,
+      payload: encodeTrackGainsPayload(inputGainDb, masterLoudnessGainDb),
+    });
+    return ack.status === HOST_STATUS.applied;
   }
 
   private setState(next: TDspHostState): void {
@@ -424,13 +534,25 @@ export class DspHostSupervisor {
     this.restore().catch(() => undefined);
   }
 
-  /** Bring a replacement host back to where the last one was. */
+  /**
+   * Bring a replacement host back to where the last one was.
+   *
+   * Settings, yes. The transport, deliberately not: a crash mid-song should
+   * not resume playback on its own. The decks come back empty and stopped, and
+   * the renderer decides what happens next — it is the only side that knows
+   * whether the user is still sitting there.
+   */
   private async restore(): Promise<void> {
     if (!(await this.spawnAndHandshake())) {
       return;
     }
     if (this.lastSnapshot) {
       await this.applySnapshot(this.lastSnapshot, this.lastRevision);
+    }
+    // Before the device opens, so the first callback runs against the chain the
+    // user is looking at rather than against defaults.
+    if (this.lastChain) {
+      await this.applyChain(this.lastChain);
     }
     if (this.deviceWanted) {
       await this.openDevice();

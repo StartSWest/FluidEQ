@@ -39,6 +39,15 @@ export const HOST_COMMANDS = {
   runOfflineBlocks: 6,
   shutdown: 7,
   setDiagnosticSignal: 8,
+  /** The whole chain, bands included. See `encodeChainSettings`. */
+  applyChain: 9,
+  loadDeck: 10,
+  unloadDeck: 11,
+  setPlaying: 12,
+  seekDeck: 13,
+  selectDeck: 14,
+  crossfade: 15,
+  setTrackGains: 16,
 } as const;
 
 /** `parameterId` for `setDiagnosticSignal`; `value` carries the frequency. */
@@ -138,6 +147,36 @@ export const encodeSnapshotPayload = (values: readonly number[]): Buffer => {
   values.forEach((value, at) => view.setFloat64(at * 8, value, true));
   return payload;
 };
+
+/**
+ * The whole chain as a flat array of doubles, bands last.
+ *
+ * The same layout `chainParams` writes for the parity fixtures and
+ * `feq_chain_settings_decode` reads at runtime. One layout rather than two: the
+ * twenty-seven whole-chain fixtures push settings through that decoder against
+ * the real worklet, so this is exercised by them rather than being a second
+ * encoder that agrees with the first until a field is added to one of them.
+ *
+ * Everything before the bands sits at a fixed offset, which is why the lead is
+ * asserted rather than assumed â a scalar added above and forgotten here would
+ * push every band along by one and still decode into something plausible.
+ */
+export const CHAIN_PARAM_LEAD = 69;
+
+export const encodeChainPayload = (values: readonly number[]): Buffer => {
+  if (values.length < CHAIN_PARAM_LEAD) {
+    throw new Error(
+      `chain payload: ${values.length} values, expected at least ${CHAIN_PARAM_LEAD}`,
+    );
+  }
+  return encodeSnapshotPayload(values);
+};
+
+/** Two doubles: the input gain and the master loudness gain, both in dB. */
+export const encodeTrackGainsPayload = (
+  inputGainDb: number,
+  masterLoudnessGainDb: number,
+): Buffer => encodeSnapshotPayload([inputGainDb, masterLoudnessGainDb]);
 
 export const decodeHandshake = (frame: Buffer): IHostHandshake | undefined => {
   if (frame.length < HANDSHAKE_BYTES) {

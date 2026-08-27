@@ -26,8 +26,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
  */
 
 #include "audio_backend.h"
+#include "decoders/pcm_decoder.h"
 #include "parent_watch.h"
+#include "fluideq/chain.h"
 #include "fluideq/dsp.h"
+#include "fluideq/player.h"
 #include "fluideq/parameters.h"
 #include "wire.h"
 
@@ -110,10 +113,33 @@ class SignalSource {
 
 struct HostState {
   FeqEngine* engine = nullptr;
+  /** The whole signal path. Null until a device has told us its rate. */
+  FeqChain* chain = nullptr;
+  FeqPlayer* player = nullptr;
   uint32_t sample_rate = kFallbackSampleRate;
   uint32_t channels = kEngineChannels;
   uint32_t block_frames = kFallbackBlockFrames;
   SignalSource source;
+  /**
+   * The last chain a renderer sent, kept so a device change can re-apply it.
+   *
+   * A device deciding it wants 44.1 kHz is not the user asking for their
+   * settings back at defaults, and a rebuild that silently flattened the chain
+   * would look exactly like the engine ignoring the panel.
+   */
+  FeqChainSettings chain_settings{};
+  /** True once a deck holds audio, which is what silences the generator. */
+  std::atomic<bool> player_has_source{false};
+  /**
+   * Guards the decoder against its two writers.
+   *
+   * The decoder thread pumps; the control thread loads and seeks. Both touch
+   * the same decoder handle, so both take this. The AUDIO thread never does —
+   * it only reads the rings, which are lock-free by construction, and a
+   * callback waiting on a mutex the decoder thread holds is a dropout with no
+   * bug in it.
+   */
+  std::mutex decoder_mutex;
 };
 
 std::mutex g_stdout_mutex;
@@ -227,7 +253,45 @@ void render_bridge(void* context, float* const* planar, uint32_t frames) {
   if (state == nullptr || state->engine == nullptr) {
     return;
   }
-  state->source.render(planar, state->channels, frames);
+
+  /**
+   * The player first, the generator only when there is nothing to play.
+   *
+   * Not "either/or by a mode flag": a deck with audio in it always wins, and
+   * the generator fills the silence so that the output path can be proved
+   * alive with no file loaded. Both write into `planar`, which the backend
+   * pre-zeroes, so a source that writes nothing produces silence rather than
+   * the previous period again.
+   */
+  if (state->player != nullptr &&
+      state->player_has_source.load(std::memory_order_acquire)) {
+    feq_player_render(state->player, planar, frames);
+  } else {
+    state->source.render(planar, state->channels, frames);
+  }
+
+  /**
+   * A guard at the chain's input, which is a different job from the one below.
+   *
+   * The engine at the end repairs and COUNTS, and its count is what telemetry
+   * reports. This one repairs and says nothing, because it is protecting the
+   * filters rather than reporting on them: one non-finite sample entering a
+   * biquad makes every subsequent sample non-finite, so a single bad frame
+   * from a decoder silences the rest of the track and looks like the engine
+   * died. Catching it after the chain would be catching it too late.
+   */
+  for (uint32_t channel = 0; channel < state->channels; ++channel) {
+    for (uint32_t at = 0; at < frames; ++at) {
+      if (!std::isfinite(planar[channel][at])) {
+        planar[channel][at] = 0.0f;
+      }
+    }
+  }
+
+  if (state->chain != nullptr) {
+    feq_chain_process(state->chain, planar, frames);
+  }
+
   // On the stack, so nothing is allocated: adding const to a pointer array is
   // not an implicit conversion in C++, and the alternative is a cast that
   // hides what it is doing.
@@ -261,6 +325,50 @@ bool rebuild_engine(HostState& state,
   state.engine = replacement;
   feq_engine_destroy(previous);
   state.source.set_sample_rate(state.sample_rate);
+  return true;
+}
+
+/**
+ * Rebuild the chain and the player around the rate the device agreed to.
+ *
+ * Both are torn down and remade rather than retuned, because both size every
+ * buffer they own from the rate and the block: a look-ahead in samples, a
+ * resampler's phase table, sixty-four sets of coefficients. Retuning them in
+ * place would be the same allocations with more ways to get half of it done.
+ *
+ * The device is not running while this happens — `open` negotiates, this
+ * rebuilds, and only then does `start` let a callback in. That ordering is the
+ * whole reason `open` and `start` are separate calls.
+ */
+bool rebuild_chain_and_player(HostState& state, const FeqDecoderOps& ops) {
+  FeqChain* chain = feq_chain_create(static_cast<double>(state.sample_rate),
+                                     state.channels, state.block_frames);
+  if (chain == nullptr) {
+    return false;
+  }
+  feq_chain_configure(chain, &state.chain_settings);
+
+  // Two seconds of read-ahead per deck. Long enough that a decoder thread
+  // descheduled for a moment cannot starve the callback, short enough that a
+  // seek throws away almost nothing.
+  const uint32_t read_ahead = state.sample_rate * 2;
+  FeqPlayer* player = feq_player_create(
+      static_cast<double>(state.sample_rate), state.channels,
+      state.block_frames, read_ahead, &ops);
+  if (player == nullptr) {
+    feq_chain_destroy(chain);
+    return false;
+  }
+
+  FeqChain* old_chain = state.chain;
+  FeqPlayer* old_player = state.player;
+  state.chain = chain;
+  state.player = player;
+  // Anything a deck held is gone with the old player, so the generator takes
+  // over again until something is loaded into the new one.
+  state.player_has_source.store(false, std::memory_order_release);
+  feq_chain_destroy(old_chain);
+  feq_player_destroy(old_player);
   return true;
 }
 
@@ -324,6 +432,21 @@ int main(int argc, char** argv) {
   feq_watch_parent(parent_pid_from(argc, argv), &release_device_on_parent_exit);
   send_handshake(backend->name());
 
+  // Built once and handed to every player: the decoder is stateless and the
+  // per-file state lives behind the handle it returns.
+  const FeqDecoderOps decoder_ops = feq_decoder_ops();
+  feq_chain_settings_defaults(&state.chain_settings);
+  /**
+   * Built before any device exists, at the fallback rate.
+   *
+   * `START` rebuilds both around whatever the endpoint actually agreed to, so
+   * this pair is not the one that plays. It is what makes the host usable with
+   * no device at all: an offline render is a real capability the parity harness
+   * and any future export both need, and until it works end to end there is
+   * nothing worth attaching a device to.
+   */
+  rebuild_chain_and_player(state, decoder_ops);
+
   std::vector<double> snapshot(FEQ_PARAMETER_COUNT, 0.0);
   uint32_t snapshot_revision = 0;
 
@@ -335,6 +458,37 @@ int main(int argc, char** argv) {
           std::chrono::milliseconds(kTelemetryIntervalMs));
     }
     drain_telemetry(state, *backend);
+  });
+
+  /**
+   * The decoder thread: the only one that may touch a file.
+   *
+   * It fills whatever room the decks have and then waits. The wait is not a
+   * race being papered over — a ring that is full has nothing to be done about
+   * until the audio thread takes some, and there is no useful signal to block
+   * on that would not cost a lock the callback might contend for. Five
+   * milliseconds against a two-second read-ahead is four hundred times more
+   * often than it needs to be, which is the margin.
+   *
+   * `load` and `seek` are handled on the control thread, which is a second
+   * writer to the same decoder. That is safe only because the control thread
+   * takes `decoder_mutex` and this thread does too — a mutex the AUDIO thread
+   * never touches, which is the rule that matters.
+   */
+  std::atomic<bool> decoding{true};
+  std::thread decoder([&] {
+    while (decoding.load(std::memory_order_acquire)) {
+      uint32_t produced = 0;
+      {
+        const std::lock_guard<std::mutex> held(state.decoder_mutex);
+        if (state.player != nullptr) {
+          produced = feq_player_pump(state.player);
+        }
+      }
+      if (produced == 0) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(5));
+      }
+    }
   });
 
   bool running = true;
@@ -372,6 +526,7 @@ int main(int argc, char** argv) {
                                                   : kEngineChannels;
         state.block_frames = negotiated.max_block_frames;
         if (!rebuild_engine(state, snapshot, snapshot_revision) ||
+            !rebuild_chain_and_player(state, decoder_ops) ||
             !backend->start(error)) {
           std::fprintf(stderr, "FluidEQ-DSP: %s\n", error.c_str());
           backend->close();
@@ -457,6 +612,139 @@ int main(int argc, char** argv) {
         break;
       }
 
+      case FEQ_CMD_APPLY_CHAIN: {
+        std::vector<double> values(frame.parameter_id, 0.0);
+        if (frame.parameter_id > 0 &&
+            !read_exact(values.data(), values.size() * sizeof(double))) {
+          running = false;
+          break;
+        }
+        FeqChainSettings settings{};
+        if (feq_chain_settings_decode(values.data(), frame.parameter_id,
+                                      &settings) == 0) {
+          // Refused whole rather than applied partially: half a chain is a
+          // signal path nobody chose, and the layout is versioned by its own
+          // length so a mismatch is knowable rather than guessable.
+          send_ack(frame.request_id, FEQ_WIRE_REJECTED, 0, 0, 0.0);
+          break;
+        }
+        state.chain_settings = settings;
+        if (state.chain != nullptr) {
+          feq_chain_configure(state.chain, &state.chain_settings);
+        }
+        send_ack(frame.request_id, FEQ_WIRE_APPLIED, frame.settings_revision, 0,
+                 0.0);
+        break;
+      }
+
+      case FEQ_CMD_LOAD_DECK: {
+        std::string path(frame.parameter_id, '\0');
+        if (frame.parameter_id > 0 &&
+            !read_exact(path.data(), path.size())) {
+          running = false;
+          break;
+        }
+        const auto deck = static_cast<uint32_t>(frame.parameter_index);
+        bool loaded = false;
+        {
+          const std::lock_guard<std::mutex> held(state.decoder_mutex);
+          if (state.player != nullptr) {
+            loaded = feq_player_load(state.player, deck, path.c_str()) != 0;
+          }
+        }
+        if (loaded) {
+          state.player_has_source.store(true, std::memory_order_release);
+          // A new source, not an A/B toggle: every delayed sample belongs to
+          // the previous track and would play on under this one's gain.
+          if (state.chain != nullptr) {
+            feq_chain_reset(state.chain, FEQ_CHAIN_RESET_SOURCE_CHANGE);
+          }
+        }
+        send_ack(frame.request_id,
+                 loaded ? FEQ_WIRE_APPLIED : FEQ_WIRE_REJECTED,
+                 frame.settings_revision, 0, 0.0);
+        break;
+      }
+
+      case FEQ_CMD_UNLOAD_DECK: {
+        const std::lock_guard<std::mutex> held(state.decoder_mutex);
+        if (state.player != nullptr) {
+          feq_player_unload(state.player,
+                            static_cast<uint32_t>(frame.parameter_index));
+        }
+        send_ack(frame.request_id, FEQ_WIRE_APPLIED, frame.settings_revision, 0,
+                 0.0);
+        break;
+      }
+
+      case FEQ_CMD_SET_PLAYING:
+        if (state.player != nullptr) {
+          feq_player_set_playing(state.player,
+                                 frame.parameter_id != 0 ? 1 : 0);
+        }
+        send_ack(frame.request_id, FEQ_WIRE_APPLIED, frame.settings_revision, 0,
+                 0.0);
+        break;
+
+      case FEQ_CMD_SEEK_DECK: {
+        bool sought = false;
+        {
+          const std::lock_guard<std::mutex> held(state.decoder_mutex);
+          if (state.player != nullptr) {
+            sought = feq_player_seek(state.player,
+                                     static_cast<uint32_t>(
+                                         frame.parameter_index),
+                                     frame.value) != 0;
+          }
+        }
+        if (sought && state.chain != nullptr) {
+          feq_chain_reset(state.chain, FEQ_CHAIN_RESET_SEEK);
+        }
+        send_ack(frame.request_id,
+                 sought ? FEQ_WIRE_APPLIED : FEQ_WIRE_REJECTED,
+                 frame.settings_revision, 0, frame.value);
+        break;
+      }
+
+      case FEQ_CMD_SELECT_DECK:
+        if (state.player != nullptr) {
+          feq_player_select(state.player,
+                            static_cast<uint32_t>(frame.parameter_index));
+        }
+        send_ack(frame.request_id, FEQ_WIRE_APPLIED, frame.settings_revision, 0,
+                 0.0);
+        break;
+
+      case FEQ_CMD_CROSSFADE:
+        if (state.player != nullptr) {
+          feq_player_start_crossfade(
+              state.player, static_cast<uint32_t>(frame.parameter_index),
+              frame.value,
+              static_cast<FeqCrossfadeCurve>(
+                  static_cast<int>(frame.parameter_id)));
+        }
+        send_ack(frame.request_id, FEQ_WIRE_APPLIED, frame.settings_revision, 0,
+                 frame.value);
+        break;
+
+      case FEQ_CMD_SET_TRACK_GAINS: {
+        // Two doubles, because they always arrive together: split across two
+        // commands a track would play for a block with one applied and not
+        // the other, which is the level step the ramp exists to prevent.
+        double gains[2] = {0.0, 0.0};
+        if (!read_exact(gains, sizeof(gains))) {
+          running = false;
+          break;
+        }
+        if (state.chain != nullptr) {
+          feq_chain_set_track_level_gains(state.chain, gains[0], gains[1],
+                                          frame.parameter_id != 0 ? 1 : 0);
+        }
+        send_ack(frame.request_id, FEQ_WIRE_APPLIED, frame.settings_revision, 0,
+                 gains[0]);
+        break;
+      }
+
       case FEQ_CMD_SHUTDOWN:
         send_ack(frame.request_id, FEQ_WIRE_APPLIED, frame.settings_revision, 0,
                  0.0);
@@ -472,8 +760,15 @@ int main(int argc, char** argv) {
   // Device first: the real-time thread reads the engine, so the engine must
   // outlive it by the whole of this shutdown.
   backend->close();
+  decoding.store(false, std::memory_order_release);
+  decoder.join();
   publishing.store(false, std::memory_order_release);
   telemetry.join();
+  // The player before the chain before the engine, which is the reverse of the
+  // order they are read in: nothing may be destroyed while a thread above it
+  // could still be holding a pointer into it.
+  feq_player_destroy(state.player);
+  feq_chain_destroy(state.chain);
   feq_engine_destroy(state.engine);
   return 0;
 }
