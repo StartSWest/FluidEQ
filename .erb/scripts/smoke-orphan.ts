@@ -75,6 +75,23 @@ const hardKill = (pid: number): void => {
 };
 
 /**
+ * A marker the control host carries and nothing else does.
+ *
+ * The control is DESIGNED to outlive its parent, which means an interrupted
+ * run leaves one behind — and a leftover host holds the executable open, so
+ * the next build fails to link with an error about a file in use rather than
+ * anything to do with the code. That cost two builds before it was understood.
+ *
+ * The sweep below therefore matches on this rather than on the process name.
+ * Killing every `FluidEQ-DSP` would also kill the one serving audio to a
+ * running FluidEQ, which is a test that silences the developer's music.
+ *
+ * The host ignores arguments it does not know, so this changes nothing about
+ * what is being measured.
+ */
+const CONTROL_MARKER = '--orphan-test-control';
+
+/**
  * A parent that spawns the host, sets it working, and then never listens.
  *
  * Detached, so killing the launcher does not take the host down for us — the
@@ -85,7 +102,9 @@ const launcherSource = (withParentPid: boolean): string =>
   [
     "const { spawn } = require('child_process');",
     `const args = ${
-      withParentPid ? "['--parent-pid', String(process.pid)]" : '[]'
+      withParentPid
+        ? "['--parent-pid', String(process.pid)]"
+        : `['${CONTROL_MARKER}']`
     };`,
     'const child = spawn(process.argv[2], args, {',
     '  detached: true,',
@@ -97,6 +116,39 @@ const launcherSource = (withParentPid: boolean): string =>
     '// full pipe is what turns an unwatched host into a stuck one.',
     'setInterval(() => {}, 1000);',
   ].join('\n');
+
+/** Clear controls left by a run that was interrupted before it tidied up. */
+const sweepStrandedControls = (): void => {
+  if (process.platform === 'win32') {
+    /**
+     * Matched on the command line, never on the process name.
+     *
+     * `taskkill /IM` cannot filter that way and would take out the host
+     * serving audio to a running FluidEQ — a test that silences the
+     * developer's music is worse than the leftover it is cleaning up.
+     *
+     * PowerShell rather than `wmic`, which is deprecated and absent on a
+     * current Windows 11. Every string inside is single-quoted so the whole
+     * script survives as one argument without a shell.
+     */
+    spawnSync(
+      'powershell',
+      [
+        '-NoProfile',
+        '-NonInteractive',
+        '-Command',
+        'Get-CimInstance Win32_Process | Where-Object { $_.Name -eq ' +
+          "'FluidEQ-DSP.exe' -and $_.CommandLine -like " +
+          `'*${CONTROL_MARKER}*' } | ForEach-Object ` +
+          '{ Stop-Process -Id $_.ProcessId -Force }',
+      ],
+      { windowsHide: true, stdio: 'ignore' },
+    );
+    return;
+  }
+  // `-f` matches the full command line, which is where the marker is.
+  spawnSync('pkill', ['-f', CONTROL_MARKER], { stdio: 'ignore' });
+};
 
 /** Returns the host pid, and the launcher, both still running. */
 const startPair = async (
@@ -162,6 +214,9 @@ const main = async (): Promise<void> => {
     console.error('orphan smoke: no host executable; run pnpm build first');
     process.exit(2);
   }
+  // Before anything else: a previous run killed mid-test leaves its control
+  // host alive by design, and that host holds the executable open.
+  sweepStrandedControls();
   const scratch = mkdtempSync(path.join(tmpdir(), 'fluideq-orphan-'));
 
   console.log('the failure this guards against');
