@@ -70,7 +70,7 @@ export default function DialogHeader({
   return (
     <div className="dialog-header">
       <div className="dialog-header__identity">
-        <BrandMark className="dialog-header__mark" />
+        <BrandMark />
         <div className="dialog-header__text">
           <span className="eyebrow">{eyebrow}</span>
           {/* The pill is a sibling of the heading, not a child of it.

@@ -29,25 +29,35 @@ it under the terms of the GNU General Public License version 3 or later.
   min-width: 0;
   align-items: center;
   gap: $spacing-s;
+
+  // NESTED, so it outranks `.brand-mark` rather than racing it.
+  //
+  // `.brand-mark` in `App.scss` sets 44px, and a flat `.dialog-header__mark`
+  // is the same specificity — which means the winner is whichever stylesheet
+  // webpack emits last, which is decided by the order of two imports in
+  // `App.tsx`. It happens to be this one today. Move `AboutDialog`'s import
+  // above `./styles/App.scss` and the mark silently goes back to 44px, with
+  // nothing to catch it. `Support.scss` nests its own copy for the same
+  // reason.
+  //
+  // Smaller than the titlebar's 44px and larger than the support panel's
+  // 26px: the two lines beside it — the eyebrow and a 1.1rem title — come to
+  // about this, and a mark taller than the text it introduces stops being a
+  // signature and becomes a picture.
+  .brand-mark {
+    width: 36px;
+    height: 36px;
+    border-radius: 12px;
+
+    svg {
+      width: 24px;
+      height: 24px;
+    }
+  }
 }
 
 .dialog-header__text {
   min-width: 0;
-}
-
-// Smaller than the titlebar's 44px and larger than the support panel's 26px.
-// The two lines beside it — the eyebrow and a 1.1rem title — come to about
-// this, and a mark taller than the text it introduces stops being a signature
-// and becomes a picture.
-.dialog-header__mark {
-  width: 36px;
-  height: 36px;
-  border-radius: 12px;
-
-  svg {
-    width: 24px;
-    height: 24px;
-  }
 }
 
 // `align-items: baseline` so the pill sits on the name's baseline rather than
