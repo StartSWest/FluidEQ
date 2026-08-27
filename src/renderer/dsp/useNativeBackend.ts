@@ -18,6 +18,11 @@ import {
   INativeBackendController,
   createNativeBackendController,
 } from './nativeBackend';
+import {
+  INativeMirror,
+  INativeMirrorState,
+  createNativeMirror,
+} from './nativeMirror';
 import { useDspBackend, useDspOutputSafetyEnabled } from './store';
 
 /**
@@ -99,4 +104,41 @@ export const useNativeBackend = (
   }, [settings, outputSafetyEnabled]);
 
   return backend === 'native' ? controllerRef.current : undefined;
+};
+
+/**
+ * Keep the native engine in step with the player, and mute the elements.
+ *
+ * The element keeps every job it has — position, events, the queue's advance,
+ * the crossfade's cue — and only the sound moves. That is what makes this an
+ * A/B rather than two players: everything except the audio path is identical,
+ * so the difference being listened for is not buried under a dozen others.
+ */
+export const useNativeMirror = (
+  controller: INativeBackendController | undefined,
+  elements: readonly HTMLMediaElement[],
+  state: INativeMirrorState,
+): void => {
+  const mirrorRef = useRef<INativeMirror | undefined>(undefined);
+  const stateRef = useRef(state);
+  stateRef.current = state;
+
+  useEffect(() => {
+    if (!controller) {
+      return undefined;
+    }
+    const mirror = createNativeMirror(controller, elements);
+    mirrorRef.current = mirror;
+    // Immediately, not on the next tick: the switch can be flipped mid-track
+    // and the host should pick up where the element already is.
+    mirror.sync(stateRef.current);
+    return () => {
+      mirrorRef.current = undefined;
+      mirror.release();
+    };
+  }, [controller, elements]);
+
+  useEffect(() => {
+    mirrorRef.current?.sync(state);
+  }, [state.mediaPath, state.isPlaying, state.positionMs, state]);
 };
