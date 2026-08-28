@@ -148,12 +148,22 @@ if(WIN32)
   set_source_files_properties(dsp-host/src/platform/windows/host.rc
     PROPERTIES COMPILE_DEFINITIONS
       "FEQ_HOST_VERSION_STRING=\"${FEQ_CORE_VERSION}\"")
+  # The platform decoder: AAC since Windows 7, WMA since Vista, and the MPEG-4
+  # and ASF containers around them. Microsoft licenses those codecs for the
+  # operating system, so this is the one route to m4a and wma that costs
+  # nothing to link and carries no patent question into a binary that is sold.
+  target_sources(fluideq-dsp-host PRIVATE
+    dsp-host/src/decoders/platform/windows/media_foundation_decoder.cpp)
   # Both ship with Windows. WASAPI is a user-mode COM API: no driver, no
-  # kernel component, nothing to install and nothing to sign.
-  target_link_libraries(fluideq-dsp-host PRIVATE ole32 avrt)
+  # kernel component, nothing to install and nothing to sign â and the Media
+  # Foundation libraries below are the same kind of thing.
+  target_link_libraries(fluideq-dsp-host PRIVATE
+    ole32 avrt mfplat mfreadwrite mfuuid propsys)
+
 else()
   target_sources(fluideq-dsp-host PRIVATE
-    dsp-host/src/platform/unsupported_backend.cpp)
+    dsp-host/src/platform/unsupported_backend.cpp
+    dsp-host/src/decoders/platform/unsupported_media_decoder.cpp)
   find_package(Threads REQUIRED)
   target_link_libraries(fluideq-dsp-host PRIVATE Threads::Threads)
 endif()

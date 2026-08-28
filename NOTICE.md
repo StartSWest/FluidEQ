@@ -143,6 +143,20 @@ application is sold, "no attribution required" is a permission rather than an
 instruction to stay quiet, and somebody auditing what is inside a binary they
 paid for is entitled to a straight answer.
 
+The remaining containers â the MPEG-4 family, WMA and Opus â are decoded by
+Windows itself, through Media Foundation. Nothing is bundled for them and
+nothing is licensed for them: those codecs belong to the operating system, and
+Microsoft licenses them for it.
+
+That is deliberate rather than convenient. The only AAC decoders that could be
+vendored are either GPL-incompatible or a library rather than a header, and AAC
+is patented â shipping a decoder inside a binary that is sold is a different
+question from compiling one at home. Asking the operating system, which already
+holds a licence for the machine it is running on, avoids both.
+
+On a platform whose own decoder has not been written yet, those formats fall
+back to the browser engine that has always played them.
+
 ## Third-party websites reached from the Video tab
 
 FluidEQ includes a Video tab, which opens a small fixed set of music and video

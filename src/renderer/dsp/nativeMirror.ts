@@ -123,9 +123,14 @@ export const createNativeMirror = (
       /**
        * A format the native decoder cannot read.
        *
-       * WAV, AIFF, MP3, FLAC and Ogg Vorbis all open. What does not is the
-       * MP4 family — m4a, m4b, ALAC, AAC — along with Opus and WMA, which
-       * need a demuxer or a codec this build does not carry.
+       * Every container the library accepts opens on Windows: WAV and AIFF
+       * are parsed here, MP3, FLAC and Ogg Vorbis by vendored decoders, and
+       * the MP4 family, WMA and Opus by Media Foundation. So this path is now
+       * for a corrupt file, or for a platform whose own decoder has not been
+       * written yet — macOS and Linux, today.
+       *
+       * It stays either way. A native engine that went silent on a file it
+       * could not read would be worse than one that hands the sound back.
        *
        * The element is still playing it, muted. Sitting in silence while
        * claiming to be the native engine is the worst of the three options;

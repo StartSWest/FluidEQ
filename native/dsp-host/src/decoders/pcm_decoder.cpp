@@ -7,6 +7,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "pcm_decoder.h"
 
 #include "compressed_decoder.h"
+#include "media_decoder.h"
 
 #include <cmath>
 #include <cstdint>
@@ -452,7 +453,27 @@ void* any_open(void* /*user*/, const char* path, FeqDecoderInfo* info) {
   if (handle != nullptr) {
     return new AnyDecoder{compressed, handle};
   }
+
+  /**
+   * Last, because it is the only one that can be absent.
+   *
+   * The platform decoder covers what no vendored library could without a
+   * licence or a patent problem â the MPEG-4 family and WMA â but it exists
+   * only where the operating system provides it, and its `open` is null
+   * everywhere else. Asking it after the two that are always compiled in means
+   * a machine without one behaves exactly like a file none of them can read.
+   */
+  *info = asked;
+  const FeqDecoderOps platform = feq_media_decoder_ops();
+  if (platform.open == nullptr) {
+    return nullptr;
+  }
+  handle = platform.open(platform.user, path, info);
+  if (handle != nullptr) {
+    return new AnyDecoder{platform, handle};
+  }
   return nullptr;
+
 }
 
 void any_close(void* /*user*/, void* handle) {
