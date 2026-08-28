@@ -1,0 +1,27 @@
+diff --git a/lib/apev2/APEv2Parser.js b/lib/apev2/APEv2Parser.js
+index 9e4cf4f..1e36905 100644
+--- a/lib/apev2/APEv2Parser.js
++++ b/lib/apev2/APEv2Parser.js
+@@ -112,6 +112,22 @@ export class APEv2Parser extends BasicParser {
+             // Only APEv2 tag has tag item headers
+             const tagItemHeader = await this.tokenizer.readToken(TagItemHeader);
+             bytesRemaining -= TagItemHeader.len + tagItemHeader.size;
++            // The guard above runs BEFORE this subtraction, and `size` is read
++            // straight out of the file without validation. A junk trailer -- an
++            // encoder's leftovers that happen to look like an APE footer -- can
++            // declare an item of ~1.1GB in a 9MB file, which takes this
++            // negative in one step and reaches `peekBuffer` as a negative
++            // length: `RangeError [ERR_OUT_OF_RANGE]`, thrown out of
++            // `FileHandle.read` and past every caller.
++            //
++            // Same condition the loop already handles, one line later than it
++            // was being checked: the items do not fit the tag, so there is no
++            // more tag data to read. Warn and stop, which keeps every valid
++            // item read before this one instead of losing the whole tag.
++            if (bytesRemaining < 0) {
++                this.metadata.addWarning(`APEv2 Tag-header: item ${i} declares ${tagItemHeader.size} bytes, more than the tag has left.`);
++                break;
++            }
+             await this.tokenizer.peekBuffer(keyBuffer, { length: Math.min(keyBuffer.length, bytesRemaining) });
+             let zero = util.findZero(keyBuffer);
+             const key = await this.tokenizer.readToken(new StringType(zero, 'ascii'));

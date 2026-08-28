@@ -11,6 +11,7 @@ overrides:
 
 patchedDependencies:
   '@huggingface/transformers@3.7.6': 4ba113edbe267abe76a580169922d01d263fff5f3c0651caaafb85a481399275
+  music-metadata@11.14.0: d567109416a7d222612223404d6dd8d3d75092dd86d940b50b8ec2e144bea214
 
 importers:
 
@@ -39,7 +40,7 @@ importers:
         version: 6.8.9
       music-metadata:
         specifier: ^11.14.0
-        version: 11.14.0
+        version: 11.14.0(patch_hash=d567109416a7d222612223404d6dd8d3d75092dd86d940b50b8ec2e144bea214)
       onnxruntime-common:
         specifier: 1.22.0-dev.20250409-89f8206ba4
         version: 1.22.0-dev.20250409-89f8206ba4
@@ -13090,7 +13091,7 @@ snapshots:
       dns-packet: 5.6.1
       thunky: 1.1.0
 
-  music-metadata@11.14.0:
+  music-metadata@11.14.0(patch_hash=d567109416a7d222612223404d6dd8d3d75092dd86d940b50b8ec2e144bea214):
     dependencies:
       '@borewit/text-codec': 0.2.2
       '@tokenizer/token': 0.3.0

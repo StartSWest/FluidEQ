@@ -107,49 +107,33 @@ const finiteOrUndefined = (
  * can set `hasMetadataError` on the track for a real failure without
  * guessing one onto a file that simply has no tags to read.
  */
-/**
- * Read a file, and if its trailing tags defeat the parser, read it again
- * without them.
+/*
+ * There is no retry here, and there must not be one.
  *
- * `music-metadata` looks for APEv2 and ID3v1 at the END of a file, after it
- * has read what is at the front. On real chart-rip MP3s that trailer is often
- * junk, and the APEv2 parser turns it into a negative length that reaches
- * `FileHandle.read` as `RangeError: The value of "length" is out of range ...
- * Received -1162229480`. That is an upstream crash on ordinary data, not a
- * broken file: the ID3v2 tags at the front had already been read by then and
- * are the ones that matter, so a second pass with `skipPostHeaders` recovers
- * the whole track.
+ * A junk trailer on a chart-rip MP3 used to crash `music-metadata` outright:
+ * `APEv2Parser.parseTags` subtracts an item size read straight out of the file
+ * from its remaining byte count, and a footer that is really encoder leftovers
+ * can declare ~1.1GB in a 9MB file. That reached `FileHandle.read` as a
+ * negative length and threw `RangeError [ERR_OUT_OF_RANGE]` past every caller.
  *
- * Only on failure, never by default — APEv2 and ID3v1 are genuine fallbacks
- * for files carrying no ID3v2 at all, and skipping them always would lose
- * every tag those files have.
+ * This file answered that by catching the throw and parsing a second time with
+ * `skipPostHeaders`. That was a workaround wearing a fix's clothes: it never
+ * named the cause, it read every affected file twice, and it threw away the
+ * APEv2 and ID3v1 tags of any file it touched -- including files whose only
+ * tags live in that trailer.
  *
- * A recovered file is not logged. Every track on a chart rip carries the same
- * junk trailer, so announcing each one printed a full `RangeError` stack per
- * file — dozens of them mid-scan, at error level, for a condition this
- * function had already handled correctly. Nothing in that output describes a
- * problem anybody can act on: the tags come back complete either way.
+ * The cause is one missing bounds check, and it is fixed where it lives:
+ * `patches/music-metadata@11.14.0.patch` adds the `bytesRemaining < 0` guard
+ * the loop already implies, so a bad item ends the tag with a warning and
+ * every valid item before it is kept. `parseFile` is called once, plainly,
+ * and a file that throws here is a file that is genuinely unreadable.
  */
-const parseWithTrailerFallback = async (filePath: string) => {
-  try {
-    return await parseFile(filePath);
-  } catch (trailerError) {
-    try {
-      return await parseFile(filePath, { skipPostHeaders: true });
-    } catch {
-      // Both passes failing means the trailer was never what broke this file.
-      // The first error read it as it actually is, so it is the one worth
-      // reporting; the second only describes a file already known to be bad.
-      throw trailerError;
-    }
-  }
-};
 
 export const readLibraryTags = async (
   filePath: string,
 ): Promise<ILibraryFileFacts> => {
   try {
-    const { common, format } = await parseWithTrailerFallback(filePath);
+    const { common, format } = await parseFile(filePath);
     const picture = common.picture?.[0];
     return {
       title: sanitizeText(common.title),

@@ -26,3 +26,4 @@ storeDir: .pnpm-store
 confirmModulesPurge: false
 patchedDependencies:
   '@huggingface/transformers@3.7.6': patches/@huggingface__transformers@3.7.6.patch
+  music-metadata@11.14.0: patches/music-metadata@11.14.0.patch
