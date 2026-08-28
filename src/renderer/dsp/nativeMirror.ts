@@ -121,7 +121,11 @@ export const createNativeMirror = (
   ): Promise<void> => {
     if (!(await controller.transport.load(0, mediaPath))) {
       /**
-       * A format the native decoder cannot read yet — every compressed one.
+       * A format the native decoder cannot read.
+       *
+       * WAV, AIFF, MP3, FLAC and Ogg Vorbis all open. What does not is the
+       * MP4 family — m4a, m4b, ALAC, AAC — along with Opus and WMA, which
+       * need a demuxer or a codec this build does not carry.
        *
        * The element is still playing it, muted. Sitting in silence while
        * claiming to be the native engine is the worst of the three options;
