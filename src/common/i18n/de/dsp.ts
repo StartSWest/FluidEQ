@@ -313,6 +313,11 @@ const dsp = {
     'Manueller Ausgang: keine Spitzenabsenkung. Pegel über 0 dBFS übersteuern.',
   'dsp.master.truePeak': 'TP Eingang',
   'dsp.master.gainReduction': 'Pegelreduktion',
+  'dsp.master.devBackend': 'Engine A/B',
+  'dsp.master.devBackendNative': 'Nativ (C++)',
+  'dsp.master.devBackendTypescript': 'TypeScript',
+  'dsp.master.devBackendHint':
+    'Nur in der Entwicklung: schaltet die gesamte DSP-Kette zwischen dem TypeScript-Worklet und der nativen Engine um, damit beide am selben Titel verglichen werden können.',
   'dsp.master.devSafety': 'Sicherheit A/B',
   'dsp.master.devSafetyHint':
     'Nur Entwicklung: Umgeht den vollständigen Endschutz, damit seine Wirkung direkt hörbar wird.',

@@ -83,6 +83,7 @@ import {
   setDspTrackLevelGains,
   useDspEngine,
 } from '../../dsp/useDspEngine';
+import { useNativeBackend, useNativeMirror } from '../../dsp/useNativeBackend';
 import {
   analyzeInputTrack,
   masterLoudnessGainDb,
@@ -429,6 +430,26 @@ export const LibraryPlayerProvider = ({
 
   const trackId = queue ? currentTrackId(queue) : undefined;
   const track = trackId ? trackById.get(trackId) : undefined;
+
+  /**
+   * The native engine, shadowing this player while the dev switch selects it.
+   *
+   * Development only, and deliberately a SHADOW rather than a replacement: the
+   * elements above keep every job they have — position, events, the queue's
+   * advance, the crossfade's cue point — and are muted, while the host is told
+   * the same file at the same position. Flipping the switch changes which of
+   * two engines is audible and nothing else, which is the only way the two are
+   * comparable at all.
+   *
+   * `useNativeBackend` answers `undefined` unless the switch is on native, so
+   * there is nothing here to call by accident in a production build.
+   */
+  const nativeBackend = useNativeBackend(dspSettings);
+  useNativeMirror(nativeBackend, audioElements, {
+    mediaPath: track?.path,
+    isPlaying,
+    positionMs,
+  });
 
   /** The object URL currently backing the element, so it can be revoked when
    * the next track replaces it. A blob URL that is never revoked pins its

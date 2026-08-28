@@ -55,6 +55,34 @@ endif()
 
 add_library(fluideq-dsp-core STATIC
   dsp-core/src/engine.cpp
+  dsp-core/src/biquad.cpp
+  dsp-core/src/eq.cpp
+  dsp-core/src/dynamics.cpp
+  dsp-core/src/oversample.cpp
+  dsp-core/src/primitives.cpp
+  dsp-core/src/saturate.cpp
+  dsp-core/src/limiter.cpp
+  dsp-core/src/compressor.cpp
+  dsp-core/src/output_safety.cpp
+  dsp-core/src/post_filter_normalizer.cpp
+  dsp-core/src/analog_diode.cpp
+  dsp-core/src/phase_align.cpp
+  dsp-core/src/exciter_guard.cpp
+  dsp-core/src/organic.cpp
+  dsp-core/src/organic_stage.cpp
+  dsp-core/src/exciter.cpp
+  dsp-core/src/convolver.cpp
+  dsp-core/src/linear_phase.cpp
+  dsp-core/src/loudness.cpp
+  dsp-core/src/crossfade.cpp
+  dsp-core/src/chain.cpp
+  dsp-core/src/chain_eq.cpp
+  dsp-core/src/chain_exciter.cpp
+  dsp-core/src/chain_stages.cpp
+  dsp-core/src/chain_linear.cpp
+  dsp-core/src/chain_decode.cpp
+  dsp-core/src/resampler.cpp
+  dsp-core/src/player.cpp
 )
 target_include_directories(fluideq-dsp-core PUBLIC dsp-core/include)
 target_link_libraries(fluideq-dsp-core PRIVATE feq_strict)
@@ -67,8 +95,28 @@ add_executable(fluideq-dsp-core-test dsp-core/tests/engine_test.cpp)
 target_link_libraries(fluideq-dsp-core-test PRIVATE fluideq-dsp-core feq_strict)
 add_test(NAME dsp-core COMMAND fluideq-dsp-core-test)
 
+# Held to what the TypeScript engine already does. The corpus is regenerated
+# from those modules by `generate-parity-fixtures.ts` before this runs, so the
+# reference cannot go stale — see the head of that script for why that is the
+# right direction during a migration, and what it therefore cannot catch.
+add_executable(fluideq-resampler-test dsp-core/tests/resampler_test.cpp)
+target_link_libraries(fluideq-resampler-test PRIVATE fluideq-dsp-core feq_strict)
+add_test(NAME resampler COMMAND fluideq-resampler-test)
+
+add_executable(fluideq-player-test dsp-core/tests/player_test.cpp)
+target_link_libraries(fluideq-player-test PRIVATE fluideq-dsp-core feq_strict)
+add_test(NAME player COMMAND fluideq-player-test)
+
+add_executable(fluideq-dsp-parity-test dsp-core/tests/parity_test.cpp)
+target_link_libraries(fluideq-dsp-parity-test
+  PRIVATE fluideq-dsp-core feq_strict)
+add_test(NAME dsp-parity
+  COMMAND fluideq-dsp-parity-test "${CMAKE_BINARY_DIR}/fixtures")
+
 add_executable(fluideq-dsp-host
   dsp-host/src/main.cpp
+  dsp-host/src/decoders/pcm_decoder.cpp
+  dsp-host/src/parent_watch.cpp
 )
 target_link_libraries(fluideq-dsp-host PRIVATE fluideq-dsp-core feq_strict)
 
@@ -78,7 +126,14 @@ target_link_libraries(fluideq-dsp-host PRIVATE fluideq-dsp-core feq_strict)
 # that fails to link on macOS is a tree nobody notices breaking further.
 if(WIN32)
   target_sources(fluideq-dsp-host PRIVATE
-    dsp-host/src/platform/windows/wasapi_backend.cpp)
+    dsp-host/src/platform/windows/wasapi_backend.cpp
+    # The version resource, which is what Task Manager's Name column reads.
+    # Without it this is one more row saying "FluidEQ" in a tree of eight, and
+    # none of them says which is holding the memory.
+    dsp-host/src/platform/windows/host.rc)
+  set_source_files_properties(dsp-host/src/platform/windows/host.rc
+    PROPERTIES COMPILE_DEFINITIONS
+      "FEQ_HOST_VERSION_STRING=\"${FEQ_CORE_VERSION}\"")
   # Both ship with Windows. WASAPI is a user-mode COM API: no driver, no
   # kernel component, nothing to install and nothing to sign.
   target_link_libraries(fluideq-dsp-host PRIVATE ole32 avrt)
@@ -94,7 +149,14 @@ target_compile_definitions(fluideq-dsp-host PRIVATE
 # One known place for the build to leave the host, so the development runtime
 # and the packaging step both know where to look without either of them
 # guessing at a generator's directory layout.
+#
+# `FluidEQ-DSP` rather than the CMake target's name: this is the one process in
+# the tree that is not Electron, and a machine-readable name in Task Manager is
+# a name nobody reads. Electron's own children cannot be distinguished this way
+# — they are all one binary and share one file description — so this is the
+# only row in that list that can say what it actually is.
 set_target_properties(fluideq-dsp-host PROPERTIES
+  OUTPUT_NAME "FluidEQ-DSP"
   RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
   RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_BINARY_DIR}/bin"
   RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/bin"

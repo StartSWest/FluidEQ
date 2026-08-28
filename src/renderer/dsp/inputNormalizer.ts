@@ -11,21 +11,17 @@ import {
   MASTER_LOUDNESS_GAIN_MIN_DB,
 } from '../../common/dsp/chain';
 import { ILibraryNormalizationAnalysis } from '../../common/library/types';
-import { FilterTypeEnum } from '../../common/constants';
-import {
-  IBiquadCoefficients,
-  IBiquadState,
-  biquadCoefficients,
-  createBiquadState,
-} from './biquad';
-import { oversampleFactorForSampleRate } from './oversample';
-import { createTruePeakState, truePeakOfSample } from './truePeak';
+import { ABSOLUTE_GATE_LUFS, createLoudnessAnalyzer } from './loudnessAnalysis';
 
-const ANALYSIS_VERSION = 1;
-const SILENCE_DB = -120;
-const ABSOLUTE_GATE_LUFS = -70;
-const RELATIVE_GATE_LU = -10;
-const LOUDNESS_OFFSET = -0.691;
+/**
+ * Bumped to 2 when the K-weighting stopped being the RBJ cookbook.
+ *
+ * The old filter under-weighted the presence region by up to a third of a dB,
+ * so every cached number was slightly optimistic. The guards on both sides of
+ * the IPC reject version 1, which re-measures a library rather than mixing two
+ * meters' readings in one normalized playlist.
+ */
+const ANALYSIS_VERSION = 2;
 const MAX_LOUDNESS_GAIN_DB = 12;
 const MIN_NORMALIZER_GAIN_DB = -48;
 
@@ -40,69 +36,6 @@ export interface IAnalyzeInputOptions {
   onProgress: (progress: IInputAnalysisProgress) => void;
 }
 
-const dbFromMagnitude = (magnitude: number): number =>
-  magnitude > 0 ? 20 * Math.log10(magnitude) : SILENCE_DB;
-
-const loudnessFromEnergy = (energy: number): number =>
-  energy > 0 ? LOUDNESS_OFFSET + 10 * Math.log10(energy) : SILENCE_DB;
-
-const processOne = (
-  state: IBiquadState,
-  sample: number,
-  { b0, b1, b2, a1, a2 }: IBiquadCoefficients,
-): number => {
-  const output =
-    b0 * sample + b1 * state.x1 + b2 * state.x2 - a1 * state.y1 - a2 * state.y2;
-  state.x2 = state.x1;
-  state.x1 = sample;
-  state.y2 = state.y1;
-  state.y1 = output;
-  return output;
-};
-
-/** The two cascaded filters that BS.1770 calls K-weighting. */
-const kWeighting = (sampleRate: number) => ({
-  shelf: biquadCoefficients(
-    {
-      type: FilterTypeEnum.HSC,
-      frequency: 1_681.974450955533,
-      gainDb: 3.999843853973347,
-      quality: Math.SQRT1_2,
-    },
-    sampleRate,
-  ),
-  highpass: biquadCoefficients(
-    {
-      type: FilterTypeEnum.HPQ,
-      frequency: 38.13547087602444,
-      gainDb: 0,
-      quality: 0.5003270373238773,
-    },
-    sampleRate,
-  ),
-});
-
-const meanAbove = (energies: readonly number[], threshold: number): number => {
-  let total = 0;
-  let count = 0;
-  energies.forEach((energy) => {
-    if (loudnessFromEnergy(energy) > threshold) {
-      total += energy;
-      count += 1;
-    }
-  });
-  return count > 0 ? total / count : 0;
-};
-
-const integratedLoudness = (blockEnergies: readonly number[]): number => {
-  const absolute = meanAbove(blockEnergies, ABSOLUTE_GATE_LUFS);
-  if (absolute <= 0) {
-    return SILENCE_DB;
-  }
-  const relativeGate = loudnessFromEnergy(absolute) + RELATIVE_GATE_LU;
-  return loudnessFromEnergy(meanAbove(blockEnergies, relativeGate));
-};
-
 const nextFrame = (): Promise<void> =>
   new Promise((resolve) => {
     requestAnimationFrame(() => resolve());
@@ -111,11 +44,11 @@ const nextFrame = (): Promise<void> =>
 /**
  * Decode and measure one complete file before its constant gain is chosen.
  *
- * Four-hundred-millisecond blocks overlap by 75%, then pass the absolute and
- * relative gates from BS.1770. The raw samples are measured for true peak in
- * the same pass. Yielding once per second of programme keeps a large lossless
- * file from turning the analysis into a frozen renderer, and cancellation is
- * checked at that same boundary when the queue moves on.
+ * The measurement itself is `loudnessAnalysis.ts` — BS.1770 blocks and gates,
+ * with the true peak taken in the same pass. What stays here is the part that
+ * needs a renderer: decoding, and yielding once per second of programme so a
+ * large lossless file does not freeze the window. Cancellation is checked at
+ * that same boundary when the queue moves on.
  */
 export const analyzeInputTrack = async (
   bytes: ArrayBuffer,
@@ -156,83 +89,34 @@ export const analyzeInputTrack = async (
     return undefined;
   }
 
-  const channelCount = Math.min(2, decoded.numberOfChannels);
-  if (channelCount === 0 || decoded.length === 0) {
+  const source = decoded;
+  const channelCount = Math.min(2, source.numberOfChannels);
+  if (channelCount === 0 || source.length === 0) {
     return undefined;
   }
-  const channels = Array.from({ length: channelCount }, (_, channel) =>
-    decoded.getChannelData(channel),
+  const channels = Array.from({ length: channelCount }, (_unused, channel) =>
+    source.getChannelData(channel),
   );
-  const truePeakStates = Array.from({ length: channelCount }, () =>
-    createTruePeakState(oversampleFactorForSampleRate(decoded.sampleRate)),
-  );
-  const shelfStates = Array.from({ length: channelCount }, () =>
-    createBiquadState(),
-  );
-  const highpassStates = Array.from({ length: channelCount }, () =>
-    createBiquadState(),
-  );
-  const filters = kWeighting(decoded.sampleRate);
-  const blockFrames = Math.max(1, Math.round(decoded.sampleRate * 0.4));
-  const hopFrames = Math.max(1, Math.round(decoded.sampleRate * 0.1));
-  const yieldFrames = Math.max(1, Math.round(decoded.sampleRate));
-  const energyWindow = new Float64Array(blockFrames);
-  const blockEnergies: number[] = [];
-  let energySum = 0;
-  let truePeakMagnitude = 0;
+  const analyzer = createLoudnessAnalyzer(source.sampleRate, channelCount);
+  const yieldFrames = Math.max(1, Math.round(source.sampleRate));
 
-  for (let frame = 0; frame < decoded.length; frame += 1) {
-    let combinedEnergy = 0;
-    for (let channel = 0; channel < channelCount; channel += 1) {
-      const sample = channels[channel][frame];
-      truePeakMagnitude = Math.max(
-        truePeakMagnitude,
-        truePeakOfSample(truePeakStates[channel], sample),
-      );
-      const shelf = processOne(shelfStates[channel], sample, filters.shelf);
-      const weighted = processOne(
-        highpassStates[channel],
-        shelf,
-        filters.highpass,
-      );
-      combinedEnergy += weighted * weighted;
-    }
-
-    const windowAt = frame % blockFrames;
-    energySum += combinedEnergy - energyWindow[windowAt];
-    energyWindow[windowAt] = combinedEnergy;
-    const completed = frame + 1;
-    if (
-      completed >= blockFrames &&
-      (completed - blockFrames) % hopFrames === 0
-    ) {
-      blockEnergies.push(energySum / blockFrames);
-    }
-    if (completed % yieldFrames === 0) {
-      options.onProgress({ fraction: completed / decoded.length });
-      // eslint-disable-next-line no-await-in-loop -- deliberate renderer yield; see function comment.
-      await nextFrame();
-      if (options.signal.aborted || options.isCancelled()) {
-        return undefined;
-      }
+  for (let from = 0; from < source.length; from += yieldFrames) {
+    const to = Math.min(source.length, from + yieldFrames);
+    analyzer.feed(channels, from, to);
+    options.onProgress({ fraction: to / source.length });
+    // eslint-disable-next-line no-await-in-loop -- deliberate renderer yield; see function comment.
+    await nextFrame();
+    if (options.signal.aborted || options.isCancelled()) {
+      return undefined;
     }
   }
 
-  // Complete the interpolation window at EOF; otherwise a last-sample peak
-  // can sit in the half-window the true-peak FIR has not observed yet.
-  for (let flush = 0; flush < 12; flush += 1) {
-    for (let channel = 0; channel < truePeakStates.length; channel += 1) {
-      truePeakMagnitude = Math.max(
-        truePeakMagnitude,
-        truePeakOfSample(truePeakStates[channel], 0),
-      );
-    }
-  }
+  const measurement = analyzer.finish();
   options.onProgress({ fraction: 1 });
   return {
     version: ANALYSIS_VERSION,
-    truePeakDbtp: Math.max(SILENCE_DB, dbFromMagnitude(truePeakMagnitude)),
-    integratedLufs: Math.max(SILENCE_DB, integratedLoudness(blockEnergies)),
+    truePeakDbtp: measurement.truePeakDbtp,
+    integratedLufs: measurement.integratedLufs,
   };
 };
 
@@ -263,6 +147,10 @@ export interface INormalizerGainBreakdown {
  * engine that computes the value. Two derivations of the same number drift,
  * and a meter that disagrees with what is being applied is worse than no meter
  * at all — it is the audio lying with a straight face.
+ *
+ * This deliberately stays in TypeScript while the measurement goes native. The
+ * panel and the engine have to agree on which control won, and that agreement
+ * only holds while one function answers both.
  */
 export const normalizerGainBreakdown = (
   settings: IInputNormalizerSettings,

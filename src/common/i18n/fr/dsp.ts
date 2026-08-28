@@ -310,6 +310,11 @@ const dsp = {
     'Sortie manuelle : aucune réduction de crête. Les niveaux au-dessus de 0 dBFS satureront.',
   'dsp.master.truePeak': 'TP entrée',
   'dsp.master.gainReduction': 'Réduction de gain',
+  'dsp.master.devBackend': 'Moteur A/B',
+  'dsp.master.devBackendNative': 'Natif (C++)',
+  'dsp.master.devBackendTypescript': 'TypeScript',
+  'dsp.master.devBackendHint':
+    'Développement uniquement : bascule toute la chaîne DSP entre le worklet TypeScript et le moteur natif, pour comparer les deux sur le même morceau.',
   'dsp.master.devSafety': 'Sécurité A/B',
   'dsp.master.devSafetyHint':
     'Développement uniquement : contourne toute la protection finale pour entendre exactement son effet.',

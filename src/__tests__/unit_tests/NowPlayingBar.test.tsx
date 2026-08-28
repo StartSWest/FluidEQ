@@ -284,11 +284,43 @@ describe('the song-eq badge', () => {
     mockUseSongEqRecording.mockReturnValue(recording({ isSaveOn: true }));
     render(
       <I18nProvider>
-        <IdleTransportBar />
+        <IdleTransportBar onGoToLibrary={() => {}} />
       </I18nProvider>,
     );
     expect(
       screen.queryByLabelText(/smart eq is learning this song/i),
     ).toBeNull();
+  });
+});
+
+// No `useSongEqRecording` fixture here, unlike every describe above: this bar
+// is specified never to draw the badge, so it never asks.
+describe('the idle bar', () => {
+  it('sends the press on "pick something to play" to the library', async () => {
+    // The second line of this bar is an instruction, so it has to be the way
+    // to carry it out — a line telling somebody to choose that does nothing
+    // when pressed is the app declining to answer its own sentence.
+    const goToLibrary = jest.fn();
+    render(
+      <I18nProvider>
+        <IdleTransportBar onGoToLibrary={goToLibrary} />
+      </I18nProvider>,
+    );
+    await userEvent.click(
+      screen.getByRole('button', { name: /pick something to play/i }),
+    );
+    expect(goToLibrary).toHaveBeenCalledTimes(1);
+  });
+
+  it('leaves its own transport switched off rather than hidden', () => {
+    // Present and quiet reads as waiting; missing reads as broken. It also
+    // must not be the thing that answers the press above — the play button
+    // has no queue to start.
+    render(
+      <I18nProvider>
+        <IdleTransportBar onGoToLibrary={jest.fn()} />
+      </I18nProvider>,
+    );
+    expect(screen.getByRole('button', { name: /^play$/i })).toBeDisabled();
   });
 });

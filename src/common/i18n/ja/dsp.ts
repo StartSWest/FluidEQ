@@ -302,6 +302,11 @@ const dsp = {
     '手動出力：ピーク低減なし。0 dBFSを超えるレベルはクリップします。',
   'dsp.master.truePeak': 'TP入力',
   'dsp.master.gainReduction': 'ゲインリダクション',
+  'dsp.master.devBackend': 'エンジン A/B',
+  'dsp.master.devBackendNative': 'ネイティブ (C++)',
+  'dsp.master.devBackendTypescript': 'TypeScript',
+  'dsp.master.devBackendHint':
+    '開発専用: DSP チェーン全体を TypeScript ワークレットとネイティブエンジンで切り替え、同じ曲で両者を比較できるようにします。',
   'dsp.master.devSafety': 'セーフティA/B',
   'dsp.master.devSafetyHint':
     '開発環境のみ：最終保護をすべてバイパスし、変化をそのまま確認できます。',

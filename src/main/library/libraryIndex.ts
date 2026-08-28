@@ -43,7 +43,7 @@ const isNormalizationAnalysis = (
   value: unknown,
 ): value is ILibraryNormalizationAnalysis =>
   isObject(value) &&
-  value.version === 1 &&
+  value.version === 2 &&
   typeof value.truePeakDbtp === 'number' &&
   Number.isFinite(value.truePeakDbtp) &&
   value.truePeakDbtp >= -120 &&

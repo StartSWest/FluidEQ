@@ -309,6 +309,11 @@ const dsp = {
     'Ручной выход: без ослабления пиков. Уровни выше 0 dBFS будут перегружены.',
   'dsp.master.truePeak': 'TP вход',
   'dsp.master.gainReduction': 'Ослабление',
+  'dsp.master.devBackend': 'Движок A/B',
+  'dsp.master.devBackendNative': 'Нативный (C++)',
+  'dsp.master.devBackendTypescript': 'TypeScript',
+  'dsp.master.devBackendHint':
+    'Только для разработки: переключает всю цепочку DSP между worklet на TypeScript и нативным движком, чтобы сравнить их на одном и том же треке.',
   'dsp.master.devSafety': 'Защита A/B',
   'dsp.master.devSafetyHint':
     'Только для разработки: обходит всю финальную защиту, чтобы её влияние можно было услышать напрямую.',

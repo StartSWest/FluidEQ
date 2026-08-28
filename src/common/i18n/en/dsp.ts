@@ -315,6 +315,11 @@ const dsp = {
     'Manual output: no peak reduction. Levels above 0 dBFS will clip.',
   'dsp.master.truePeak': 'TP in',
   'dsp.master.gainReduction': 'Gain reduction',
+  'dsp.master.devBackend': 'Engine A/B',
+  'dsp.master.devBackendNative': 'Native (C++)',
+  'dsp.master.devBackendTypescript': 'TypeScript',
+  'dsp.master.devBackendHint':
+    'Development only: switches the whole DSP chain between the TypeScript worklet and the native engine, so the two can be compared on the same track.',
   'dsp.master.devSafety': 'Safety A/B',
   'dsp.master.devSafetyHint':
     'Development only: bypasses the complete final protection so you can hear exactly what it changes.',

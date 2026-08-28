@@ -66,7 +66,7 @@ const isNormalizationAnalysis = (
   }
   const candidate = value as Record<string, unknown>;
   return (
-    candidate.version === 1 &&
+    candidate.version === 2 &&
     typeof candidate.truePeakDbtp === 'number' &&
     Number.isFinite(candidate.truePeakDbtp) &&
     candidate.truePeakDbtp >= -120 &&

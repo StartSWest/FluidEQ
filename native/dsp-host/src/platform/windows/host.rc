@@ -1,0 +1,51 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+/*
+ * The version resource, which is what Task Manager reads for its Name column.
+ *
+ * Without it every process in the tree reads "FluidEQ", because Windows falls
+ * back to the parent's group label and eight identical rows say nothing about
+ * which one is holding the memory. Electron's own children cannot be told
+ * apart this way — they are all one binary, so they share one FileDescription
+ * — but the DSP host is a separate executable and can say what it is.
+ */
+
+#include <winver.h>
+
+#ifndef FEQ_HOST_VERSION_STRING
+#define FEQ_HOST_VERSION_STRING "0.0.0"
+#endif
+
+VS_VERSION_INFO VERSIONINFO
+FILEVERSION 1, 0, 0, 0
+PRODUCTVERSION 1, 0, 0, 0
+FILEFLAGSMASK VS_FFI_FILEFLAGSMASK
+FILEFLAGS 0
+FILEOS VOS_NT_WINDOWS32
+FILETYPE VFT_APP
+FILESUBTYPE VFT2_UNKNOWN
+BEGIN
+  BLOCK "StringFileInfo"
+  BEGIN
+    BLOCK "040904B0"
+    BEGIN
+      VALUE "CompanyName", "Ivan Carmenates Garcia"
+      /* Task Manager's Name column, and the whole point of this file. */
+      VALUE "FileDescription", "FluidEQ DSP Engine"
+      VALUE "FileVersion", FEQ_HOST_VERSION_STRING
+      VALUE "InternalName", "FluidEQ-DSP"
+      VALUE "LegalCopyright", "Copyright (C) 2026 Ivan Carmenates Garcia. GPL-3.0-or-later."
+      VALUE "OriginalFilename", "FluidEQ-DSP.exe"
+      VALUE "ProductName", "FluidEQ"
+      VALUE "ProductVersion", FEQ_HOST_VERSION_STRING
+    END
+  END
+  BLOCK "VarFileInfo"
+  BEGIN
+    VALUE "Translation", 0x409, 1200
+  END
+END

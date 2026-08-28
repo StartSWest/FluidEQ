@@ -125,7 +125,8 @@ import { registerKaraokePitch } from './karaokePitch';
 import { registerProfilesIpc } from './ipc/profiles';
 import { registerUpdatesIpc } from './ipc/updates';
 import { libraryIndexSnapshot, registerLibraryIpc } from './ipc/library';
-import { registerDspHostIpc, shutdownDspHost } from './ipc/dspHost';
+import { dspHostPid, registerDspHostIpc, shutdownDspHost } from './ipc/dspHost';
+import { registerProcessIpc } from './ipc/processes';
 import { registerLibraryPlaylistsIpc } from './ipc/libraryPlaylists';
 import {
   handleLibraryMedia,
@@ -2383,6 +2384,13 @@ registerKaraokeIpc({
 // heard. A checkout that has never built the native target simply reports the
 // engine unavailable and the TypeScript one carries on.
 registerDspHostIpc({ getMainWindow: () => mainWindow });
+// The process list, which needs the host's pid to include it as a row â the
+// DSP engine is our own child rather than Electron's, so `getAppMetrics` has
+// never heard of it.
+registerProcessIpc({
+  getMainWindow: () => mainWindow,
+  getNativeHostPid: dspHostPid,
+});
 
 registerLibraryIpc({
   userDataDir,

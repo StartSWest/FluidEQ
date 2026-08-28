@@ -105,7 +105,71 @@ const onDspHostDiagnostic = (
   };
 };
 
+/**
+ * The whole chain, arrays included, built by `encodeChainSettings`.
+ *
+ * The renderer never assembles this by hand — there is one encoder and it
+ * lives in `common/dsp/chainWire.ts`, which is also what the parity fixtures
+ * push through the native decoder.
+ */
+const applyDspHostChain = (values: readonly number[]): Promise<boolean> =>
+  ipcRenderer.invoke('dsp-host-chain', values);
+
+/** A media file into a deck. Refused if the host cannot decode it. */
+const loadDspHostDeck = (deck: number, mediaPath: string): Promise<boolean> =>
+  ipcRenderer.invoke('dsp-host-load', deck, mediaPath);
+
+/**
+ * The transport, as one call with a verb.
+ *
+ * `value` and `extra` mean different things per verb — seconds for a seek,
+ * milliseconds and a curve index for a crossfade, two gains in dB for `gains`
+ * — which is why the wrappers below exist rather than callers passing three
+ * positional numbers and hoping.
+ */
+type TDspTransportVerb =
+  'play' | 'pause' | 'select' | 'unload' | 'seek' | 'crossfade' | 'gains';
+
+const transport = (
+  verb: TDspTransportVerb,
+  deck: number,
+  value?: number,
+  extra?: number,
+): Promise<boolean> =>
+  ipcRenderer.invoke('dsp-host-transport', verb, deck, value, extra);
+
+const playDspHost = (): Promise<boolean> => transport('play', 0);
+const pauseDspHost = (): Promise<boolean> => transport('pause', 0);
+const selectDspHostDeck = (deck: number): Promise<boolean> =>
+  transport('select', deck);
+const unloadDspHostDeck = (deck: number): Promise<boolean> =>
+  transport('unload', deck);
+const seekDspHostDeck = (deck: number, seconds: number): Promise<boolean> =>
+  transport('seek', deck, seconds);
+const crossfadeDspHost = (
+  toDeck: number,
+  durationMs: number,
+  curveIndex: number,
+): Promise<boolean> => transport('crossfade', toDeck, durationMs, curveIndex);
+const setDspHostTrackGains = (
+  inputGainDb: number,
+  masterLoudnessGainDb: number,
+): Promise<boolean> => transport('gains', 0, inputGainDb, masterLoudnessGainDb);
+
+/**
+ * Every process this app is running, labelled by what it does.
+ *
+ * Lives beside the DSP host's bridge because the host is one of the rows: it
+ * is our own child rather than Electron's, so nothing else in the app knows
+ * it exists. Development only â the handler answers with an empty list in a
+ * production build.
+ */
+const appProcesses = (): Promise<unknown[]> =>
+  ipcRenderer.invoke('app-processes');
+
 export const dspHostBridge = {
+  appProcesses,
+
   getDspHostStatus,
   startDspHost,
   stopDspHost,
@@ -113,6 +177,15 @@ export const dspHostBridge = {
   closeDspHostDevice,
   applyDspHostSnapshot,
   setDspHostParameter,
+  applyDspHostChain,
+  loadDspHostDeck,
+  playDspHost,
+  pauseDspHost,
+  selectDspHostDeck,
+  unloadDspHostDeck,
+  seekDspHostDeck,
+  crossfadeDspHost,
+  setDspHostTrackGains,
   onDspHostTelemetry,
   onDspHostState,
   onDspHostDiagnostic,

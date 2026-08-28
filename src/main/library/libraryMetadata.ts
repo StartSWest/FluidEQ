@@ -123,17 +123,25 @@ const finiteOrUndefined = (
  * Only on failure, never by default — APEv2 and ID3v1 are genuine fallbacks
  * for files carrying no ID3v2 at all, and skipping them always would lose
  * every tag those files have.
+ *
+ * A recovered file is not logged. Every track on a chart rip carries the same
+ * junk trailer, so announcing each one printed a full `RangeError` stack per
+ * file — dozens of them mid-scan, at error level, for a condition this
+ * function had already handled correctly. Nothing in that output describes a
+ * problem anybody can act on: the tags come back complete either way.
  */
 const parseWithTrailerFallback = async (filePath: string) => {
   try {
     return await parseFile(filePath);
-  } catch (error) {
-    // eslint-disable-next-line no-console -- this project's one sanctioned console sink; see libraryIndex.ts
-    console.error(
-      `Trailing tags defeated the parser for ${filePath}; retrying without them`,
-      error,
-    );
-    return parseFile(filePath, { skipPostHeaders: true });
+  } catch (trailerError) {
+    try {
+      return await parseFile(filePath, { skipPostHeaders: true });
+    } catch {
+      // Both passes failing means the trailer was never what broke this file.
+      // The first error read it as it actually is, so it is the one worth
+      // reporting; the second only describes a file already known to be bad.
+      throw trailerError;
+    }
   }
 };
 

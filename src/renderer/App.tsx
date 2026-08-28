@@ -44,6 +44,8 @@ import MainContent from './MainContent';
 import SmartEqEngine from './SmartEqEngine';
 import SmartHeadroomEngine from './SmartHeadroomEngine';
 import SupportDialog from './SupportDialog';
+import ProcessesDialog from './components/ProcessesDialog';
+
 import SupportPet from './SupportPet';
 import { FluidEqProvider, useFluidEqContext } from './utils/FluidEqContext';
 import PrereqMissingModal from './PrereqMissingModal';
@@ -142,6 +144,9 @@ import {
   savePreset,
 } from './utils/equalizerApi';
 import { startEqualizerApoInstall } from './utils/apoInstall';
+
+/** Matches the DSP panel's own dev gate: tooling, not a shipped feature. */
+const IS_DEV_BUILD = process.env.NODE_ENV !== 'production';
 
 const APO_RESTART_RECOMMENDED_KEY = 'fluideq.apoRestartRecommended';
 /** The version whose notes have already been shown. */
@@ -365,9 +370,11 @@ const TRANSPORT_TAB: Partial<Record<TPlaybackOwner, TWorkspaceTab>> = {
 const IdleTransportBarSlot = ({
   activeTab,
   isFullScreen,
+  onGoToTab,
 }: {
   activeTab: TWorkspaceTab;
   isFullScreen: boolean;
+  onGoToTab: (tab: TWorkspaceTab) => void;
 }) => {
   const sources = useTransportSources();
   const playingOwner = usePlaybackOwner();
@@ -389,7 +396,7 @@ const IdleTransportBarSlot = ({
   if (owner !== undefined || isFullScreen || lastOwner === undefined) {
     return null;
   }
-  return <IdleTransportBar />;
+  return <IdleTransportBar onGoToLibrary={() => onGoToTab('library')} />;
 };
 
 const TabTransportBar = ({
@@ -658,6 +665,7 @@ const AppContent = () => {
   const [isWindowMaximized, setIsWindowMaximized] = useState(false);
   const [showAudioToolsMenu, setShowAudioToolsMenu] = useState(false);
   const [showSupportDialog, setShowSupportDialog] = useState(false);
+  const [showProcessesDialog, setShowProcessesDialog] = useState(false);
   // What the last import did. Reported the same way as a recoverable failure —
   // in the corner, dismissable — rather than as a modal alert, because there
   // is nothing to decide and the result is already audible.
@@ -1633,6 +1641,24 @@ const AppContent = () => {
                     </div>
                   </>
                 )}
+                {/* Development only, and a full row rather than a column
+                    entry: it is the answer to "which of these six identical
+                    FluidEQ rows is eating my memory", and somebody asking that
+                    is not browsing the menu. */}
+                {IS_DEV_BUILD ? (
+                  <button
+                    type="button"
+                    role="menuitem"
+                    className="workspace-header__menu-support"
+                    onClick={() => {
+                      setShowAudioToolsMenu(false);
+                      setShowProcessesDialog(true);
+                    }}
+                  >
+                    <MenuIcon name="restart" />
+                    {t('app.processes.menu')}
+                  </button>
+                ) : undefined}
                 <button
                   type="button"
                   role="menuitem"
@@ -1917,6 +1943,7 @@ const AppContent = () => {
             <IdleTransportBarSlot
               activeTab={activeWorkspaceTab}
               isFullScreen={isAppFullScreen}
+              onGoToTab={setActiveWorkspaceTab}
             />
             <TabTransportBar
               activeTab={activeWorkspaceTab}
@@ -2163,6 +2190,10 @@ const AppContent = () => {
             }}
           />
         )}
+        {showProcessesDialog && (
+          <ProcessesDialog onClose={() => setShowProcessesDialog(false)} />
+        )}
+
         {showSupportDialog && (
           <SupportDialog
             // Opens on top rather than replacing this one. Reading the

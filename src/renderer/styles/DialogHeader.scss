@@ -1,0 +1,137 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+// The header About and the release notes both draw, from one place.
+//
+// Both stylesheets carried this block and `__close` verbatim, down to the
+// 18px/20px/14px padding, and neither knew the other existed. See
+// `DialogHeader.tsx` for why the mark now sits in it.
+.dialog-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: $spacing-m;
+  padding: 18px 20px 14px;
+  border-bottom: 1px solid rgba($primary-lighter, 0.12);
+}
+
+.dialog-header__identity {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: $spacing-s;
+
+  // NESTED, so it outranks `.brand-mark` rather than racing it.
+  //
+  // `.brand-mark` in `App.scss` sets 44px, and a flat `.dialog-header__mark`
+  // is the same specificity — which means the winner is whichever stylesheet
+  // webpack emits last, which is decided by the order of two imports in
+  // `App.tsx`. It happens to be this one today. Move `AboutDialog`'s import
+  // above `./styles/App.scss` and the mark silently goes back to 44px, with
+  // nothing to catch it. `Support.scss` nests its own copy for the same
+  // reason.
+  //
+  // Smaller than the titlebar's 44px and larger than the support panel's
+  // 26px: the two lines beside it — the eyebrow and a 1.1rem title — come to
+  // about this, and a mark taller than the text it introduces stops being a
+  // signature and becomes a picture.
+  .brand-mark {
+    width: 36px;
+    height: 36px;
+    border-radius: 12px;
+
+    svg {
+      width: 24px;
+      height: 24px;
+    }
+  }
+}
+
+.dialog-header__text {
+  min-width: 0;
+}
+
+// `align-items: baseline` so the pill sits on the name's baseline rather than
+// its centre: the two have very different cap heights, and centred it reads
+// as having slipped.
+.dialog-header__heading {
+  display: flex;
+  min-width: 0;
+  align-items: baseline;
+  gap: $spacing-xs;
+}
+
+.dialog-header__title {
+  @include truncate;
+  margin: 3px 0 0;
+  color: rgba($white, 0.95);
+  font-size: 1.1rem;
+}
+
+// The titlebar's version tag, to the declaration. It is the same fact in the
+// same relationship to the same name, and the About panel stating it as bare
+// grey text was the one place in the app where a build number was not a pill.
+// `tabular-nums` because the shell's figures are tabular by fallback and a
+// version that changed width between builds would shift the title beside it.
+.dialog-header__version {
+  flex: 0 0 auto;
+  padding: 1px 6px;
+  color: rgba($secondary-light, 0.78);
+  border: 1px solid rgba($secondary-light, 0.24);
+  border-radius: $radius-pill;
+  background: rgba($secondary-default, 0.1);
+  font-size: 0.58rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: $weight-bold;
+  letter-spacing: 0.02em;
+}
+
+.dialog-header__close {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  flex: 0 0 auto;
+  place-items: center;
+  padding: 0;
+  color: rgba($white, 0.72);
+  border: 1px solid transparent;
+  border-radius: $radius-xs;
+  background: transparent;
+  cursor: pointer;
+  transition: $transition-control;
+
+  svg {
+    width: 12px;
+    height: 12px;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-width: 1.5;
+  }
+
+  &:hover,
+  &:focus-visible {
+    color: $white;
+    border-color: rgba($secondary-light, 0.4);
+    background: rgba($secondary-default, 0.16);
+    outline: none;
+  }
+}
+
+// Euphoria, which both panels spelled out separately for their own copy of
+// this header. The eyebrow is already the small all-caps line the euphoria
+// pill is shaped like, so the mode marks itself without a second element.
+.is-euphoric .dialog-header .eyebrow {
+  animation: euphoria-sweep 3.6s linear infinite;
+  color: hsl(var(--euphoria-hue, 160deg) 95% 68%);
+  text-shadow: 0 0 12px hsl(var(--euphoria-hue, 160deg) 95% 60% / 45%);
+}

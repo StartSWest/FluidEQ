@@ -85,8 +85,19 @@ export const scanLibraryRootOffThread = (
 
     let child: ReturnType<typeof utilityProcess.fork>;
     try {
+      /**
+       * Written for a human reading a process list, not for a grep.
+       *
+       * Chromium reports this name in its own process listing and in a crash
+       * report. Windows Task Manager cannot use it — every Electron child is
+       * the same binary and they all share one file description — so the way
+       * to tell them apart there is the Details tab's Command line column,
+       * where this one arrives as `--utility-sub-type`. The DSP host is the
+       * one process in the tree that IS a separate binary, and it names
+       * itself: see `OUTPUT_NAME` in `native/CMakeLists.txt`.
+       */
       child = utilityProcess.fork(entry, [], {
-        serviceName: 'fluideq-library-scan',
+        serviceName: 'FluidEQ Library Scan',
       });
     } catch (error) {
       workerUnavailable = true;

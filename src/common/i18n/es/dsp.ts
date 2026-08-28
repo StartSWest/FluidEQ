@@ -309,6 +309,11 @@ const dsp = {
     'Salida manual: sin reducción de picos. Los niveles superiores a 0 dBFS saturarán.',
   'dsp.master.truePeak': 'TP entrada',
   'dsp.master.gainReduction': 'Reducción de ganancia',
+  'dsp.master.devBackend': 'Motor A/B',
+  'dsp.master.devBackendNative': 'Nativo (C++)',
+  'dsp.master.devBackendTypescript': 'TypeScript',
+  'dsp.master.devBackendHint':
+    'Solo en desarrollo: cambia toda la cadena DSP entre el worklet de TypeScript y el motor nativo, para poder comparar ambos con la misma pista.',
   'dsp.master.devSafety': 'Seguridad A/B',
   'dsp.master.devSafetyHint':
     'Solo desarrollo: omite toda la protección final para que puedas escuchar exactamente lo que cambia.',

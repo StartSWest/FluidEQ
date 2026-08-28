@@ -35,7 +35,7 @@ import {
   DISCLAIMER_PARAGRAPH_KEYS,
 } from 'common/disclaimer';
 import { useTranslation } from '../utils/I18nContext';
-import BrandMark from '../icons/BrandMark';
+import DialogHeader from './DialogHeader';
 import '../styles/About.scss';
 
 interface IAboutDialogProps {
@@ -100,42 +100,23 @@ export default function AboutDialog({ onClose }: IAboutDialogProps) {
         aria-modal="true"
         aria-labelledby="about-title"
       >
-        <div className="about__header">
-          <div>
-            <span className="eyebrow">About</span>
-            <h2 id="about-title">{PRODUCT_NAME}</h2>
-          </div>
-          <button
-            ref={closeRef}
-            type="button"
-            className="about__close"
-            aria-label={t('support.close')}
-            onClick={onClose}
-          >
-            <svg viewBox="0 0 12 12" aria-hidden="true">
-              <path d="M3 3l6 6M9 3l-6 6" />
-            </svg>
-          </button>
-        </div>
+        {/* The version is the shipped one, not a literal: it comes from the
+            same place the installer takes its own version number from, so what
+            this panel claims and what a user actually has cannot disagree. It
+            used to sit in a second identity row below this header, which said
+            the app's name twice on one card and left the tagline stranded a
+            line away from it. */}
+        <DialogHeader
+          eyebrow="About"
+          title={PRODUCT_NAME}
+          titleId="about-title"
+          version={PRODUCT_VERSION}
+          closeLabel={t('support.close')}
+          onClose={onClose}
+          closeRef={closeRef}
+        />
 
         <div className="about__body">
-          {/* The version is the shipped one, not a literal: it comes from the
-              same place the installer takes its own version number from, so
-              what this panel claims and what a user actually has cannot
-              disagree. */}
-          <div className="about__identity">
-            <BrandMark />
-            <div>
-              <p className="about__name">
-                {PRODUCT_NAME}
-                {PRODUCT_VERSION && (
-                  <span className="about__version">v{PRODUCT_VERSION}</span>
-                )}
-              </p>
-              <p className="about__tagline">{t('app.tagline')}</p>
-            </div>
-          </div>
-
           <section className="about__section">
             <h3>License</h3>
             <p>

@@ -24,6 +24,7 @@ import {
   NATIVE_DSP_PARAMETERS,
   isNativeParameterId,
 } from '../../common/dsp/nativeParameters';
+import { isChainWirePayload } from '../../common/dsp/chainWire';
 import { findDspHostExecutable } from '../dspHost/hostPath';
 import { DspHostSupervisor, TDspHostState } from '../dspHost/supervisor';
 import { IHostTelemetry } from '../dspHost/wire';
@@ -178,6 +179,114 @@ export const registerDspHostIpc = ({
     },
   );
 
+  /**
+   * The whole chain, arrays included.
+   *
+   * Separate from `dsp-host-snapshot` because they carry different shapes: the
+   * snapshot is the flat parameter table, and this is the one that can hold
+   * sixty-four EQ bands. `isChainWirePayload` checks the length against the
+   * band count the payload itself declares, so a truncated message is refused
+   * rather than decoded into a shorter rack.
+   */
+  ipcMain.handle(
+    'dsp-host-chain',
+    async (_event, values: unknown): Promise<boolean> => {
+      if (!supervisor || supervisor.getState() !== 'ready') {
+        return false;
+      }
+      if (!isChainWirePayload(values)) {
+        return false;
+      }
+      try {
+        return await supervisor.applyChain(values);
+      } catch {
+        return false;
+      }
+    },
+  );
+
+  /**
+   * The transport, as one channel with a verb rather than eight channels.
+   *
+   * Eight would each need their own validation and their own name in the
+   * preload, for messages that differ only in which of two numbers matters.
+   * The verb is checked against a closed list, so an unknown one is refused
+   * here rather than reaching the host as a command it would have to reject.
+   */
+  ipcMain.handle(
+    'dsp-host-transport',
+    async (
+      _event,
+      verb: unknown,
+      deck: unknown,
+      value: unknown,
+      extra: unknown,
+    ): Promise<boolean> => {
+      if (!supervisor || supervisor.getState() !== 'ready') {
+        return false;
+      }
+      const slot = Number.isInteger(deck) ? (deck as number) : -1;
+      if (slot < 0 || slot > 1) {
+        return false;
+      }
+      try {
+        switch (verb) {
+          case 'play':
+            return await supervisor.setPlaying(true);
+          case 'pause':
+            return await supervisor.setPlaying(false);
+          case 'select':
+            return await supervisor.selectDeck(slot);
+          case 'unload':
+            return await supervisor.unloadDeck(slot);
+          case 'seek':
+            return isFiniteNumber(value)
+              ? await supervisor.seekDeck(slot, value)
+              : false;
+          case 'crossfade':
+            return isFiniteNumber(value) && Number.isInteger(extra)
+              ? await supervisor.crossfade(slot, value, extra as number)
+              : false;
+          case 'gains':
+            return isFiniteNumber(value) && isFiniteNumber(extra)
+              ? await supervisor.setTrackGains(value, extra, true)
+              : false;
+          default:
+            return false;
+        }
+      } catch {
+        return false;
+      }
+    },
+  );
+
+  /**
+   * A path, and the one channel that takes one.
+   *
+   * Main owns the executable and never accepts a path for it; this accepts a
+   * path for a MEDIA file, which is a different thing and still needs saying:
+   * the host opens it read-only through a decoder that knows two container
+   * formats, and anything it cannot parse is refused rather than played as
+   * silence.
+   */
+  ipcMain.handle(
+    'dsp-host-load',
+    async (_event, deck: unknown, mediaPath: unknown): Promise<boolean> => {
+      if (!supervisor || supervisor.getState() !== 'ready') {
+        return false;
+      }
+      const slot = Number.isInteger(deck) ? (deck as number) : -1;
+      if (slot < 0 || slot > 1 || typeof mediaPath !== 'string' || !mediaPath) {
+        return false;
+      }
+      try {
+        return await supervisor.loadDeck(slot, mediaPath);
+      } catch {
+        return false;
+      }
+    },
+  );
+
   ipcMain.handle(
     'dsp-host-parameter',
     async (
@@ -222,6 +331,15 @@ export const registerDspHostIpc = ({
  * Called from `before-quit` rather than `will-quit`, because the shutdown is
  * asynchronous and `will-quit` is already too late to wait for anything.
  */
+/**
+ * The running host's process id, or undefined while it is not running.
+ *
+ * For the process list, which shows it alongside Electron's own â it is our
+ * child rather than Electron's, so `getAppMetrics` has never heard of it and
+ * Task Manager files it away from the FluidEQ group entirely.
+ */
+export const dspHostPid = (): number | undefined => supervisor?.getPid();
+
 export const shutdownDspHost = async (): Promise<void> => {
   const host = supervisor;
   supervisor = undefined;

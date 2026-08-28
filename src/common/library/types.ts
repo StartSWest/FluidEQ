@@ -43,7 +43,7 @@ export interface ILibraryRoot {
  * inter-sample peaks.
  */
 export interface ILibraryNormalizationAnalysis {
-  version: 1;
+  version: 2;
   truePeakDbtp: number;
   integratedLufs: number;
 }

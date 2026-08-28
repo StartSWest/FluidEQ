@@ -55,61 +55,9 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
-// The eyebrow becomes the badge, because it is already the small
-// all-caps line the euphoria pill is shaped like — so the panel gains the
-// mode's marker without gaining an element.
-.is-euphoric .whats-new__header .eyebrow {
-  animation: euphoria-sweep 3.6s linear infinite;
-  color: hsl(var(--euphoria-hue, 160deg) 95% 68%);
-  text-shadow: 0 0 12px hsl(var(--euphoria-hue, 160deg) 95% 60% / 45%);
-}
-
-.whats-new__header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: $spacing-m;
-  padding: 18px 20px 14px;
-  border-bottom: 1px solid rgba($primary-lighter, 0.12);
-
-  h2 {
-    margin: 3px 0 0;
-    color: rgba($white, 0.95);
-    font-size: 1.1rem;
-  }
-}
-
-.whats-new__close {
-  display: grid;
-  width: 28px;
-  height: 28px;
-  flex: 0 0 auto;
-  place-items: center;
-  padding: 0;
-  color: rgba($white, 0.72);
-  border: 1px solid transparent;
-  border-radius: $radius-xs;
-  background: transparent;
-  cursor: pointer;
-  transition: $transition-control;
-
-  svg {
-    width: 12px;
-    height: 12px;
-    fill: none;
-    stroke: currentColor;
-    stroke-linecap: round;
-    stroke-width: 1.5;
-  }
-
-  &:hover,
-  &:focus-visible {
-    color: $white;
-    border-color: rgba($secondary-light, 0.4);
-    background: rgba($secondary-default, 0.16);
-    outline: none;
-  }
-}
+// The header, its close button and the euphoria treatment on its eyebrow all
+// lived here, identical to the copies in `About.scss`. They are now in
+// `DialogHeader.scss`, once.
 
 // The way out that is where a reader's eye ends up.
 //

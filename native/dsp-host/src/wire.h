@@ -61,7 +61,52 @@ enum FeqWireCommand {
    * put a known waveform through the whole chain and hear whether what comes
    * back is what went in, and that stays true after decoding exists.
    */
-  FEQ_CMD_SET_DIAGNOSTIC_SIGNAL = 8
+  FEQ_CMD_SET_DIAGNOSTIC_SIGNAL = 8,
+  /**
+   * The whole chain, as `parameter_id` doubles of payload.
+   *
+   * Separate from `APPLY_SNAPSHOT` because they answer different questions.
+   * The snapshot is the flat parameter table: sixty-odd scalars addressed by a
+   * permanent id, which is what one dragged control needs. A chain also has
+   * arrays — up to sixty-four EQ bands — and a flat list of scalars cannot
+   * carry those without inventing an indexing scheme both sides would then
+   * have to agree about forever. The layout here is the one `chainParams`
+   * already writes for the parity fixtures, so the decoder the app depends on
+   * at runtime is the decoder those twenty-seven whole-chain cases exercise.
+   */
+  FEQ_CMD_APPLY_CHAIN = 9,
+  /**
+   * Load a file into a deck. `parameter_index` is the deck, `parameter_id` the
+   * byte length of the UTF-8 path that follows.
+   *
+   * A length and bytes rather than a fixed field: a path is not bounded by
+   * anything useful, and truncating one produces a file-not-found for a file
+   * that exists.
+   */
+  FEQ_CMD_LOAD_DECK = 10,
+  FEQ_CMD_UNLOAD_DECK = 11,
+  /** `parameter_id` non-zero to play. */
+  FEQ_CMD_SET_PLAYING = 12,
+  /** `parameter_index` is the deck, `value` the position in seconds. */
+  FEQ_CMD_SEEK_DECK = 13,
+  /** `parameter_index` is the deck to become audible, with no fade. */
+  FEQ_CMD_SELECT_DECK = 14,
+  /**
+   * `parameter_index` is the deck to fade to, `value` the duration in ms and
+   * `parameter_id` the curve's index in `CROSSFADE_CURVES`.
+   */
+  FEQ_CMD_CROSSFADE = 15,
+  /**
+   * The whole-track gains from analysis, as two doubles of payload: the input
+   * gain and the master loudness gain, both in dB. `parameter_id` non-zero
+   * lands on them rather than gliding.
+   *
+   * Both in one command because they always arrive together. Split across two,
+   * a track would play for a block with one applied and not the other — which
+   * is a level step on every track change rather than the ramp that exists to
+   * prevent exactly that.
+   */
+  FEQ_CMD_SET_TRACK_GAINS = 16
 };
 
 enum FeqWireStatus {
