@@ -1737,6 +1737,18 @@ $library-row-height: 46px;
   }
 }
 
+// The empty block standing in for rows that are not mounted.
+//
+// `flex-shrink: 0` is the whole point of it having a class at all. The shelf is
+// a flex column, and a flex item shrinks past its stated height unless told not
+// to — a real row survives that because `min-height: auto` floors it at its own
+// content, and a spacer has no content to be floored by. Without this it
+// collapses to nothing, the reserved height disappears and the scrollbar
+// describes a shelf far shorter than the one being scrolled.
+.library-video-section__spacer {
+  flex: 0 0 auto;
+}
+
 .library-video-section__empty {
   max-width: 320px;
   margin: 0;

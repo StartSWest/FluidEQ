@@ -387,10 +387,18 @@ const LibraryVideoSection = ({
   const start = Math.min(rowWindow.start, rows.length);
   const end = Math.min(Math.max(rowWindow.end, start), rows.length);
   // The rows that are not mounted, as one empty block above and one below.
+  //
   // Taken off the offsets rather than recomputed, so the space reserved is by
-  // construction the space the rows would have taken.
-  const above = offsets[start] ?? 0;
-  const below = Math.max(0, (offsets[rows.length] ?? 0) - (offsets[end] ?? 0));
+  // construction the space the rows would have taken — minus one gap each,
+  // because a spacer is itself a flex child and the shelf puts a gap after it.
+  // Without that subtraction every unmounted stretch would reserve sixteen
+  // pixels too many and the content would drift out of step with its own
+  // scrollbar, further with every folder scrolled past.
+  const above = Math.max(0, (offsets[start] ?? 0) - metrics.gap);
+  const below = Math.max(
+    0,
+    (offsets[rows.length] ?? 0) - (offsets[end] ?? 0) - metrics.gap,
+  );
 
   return (
     <div
@@ -399,7 +407,13 @@ const LibraryVideoSection = ({
       ref={shelfRef}
       onScroll={(event) => applyWindow(windowFor(event.currentTarget))}
     >
-      {above > 0 && <div aria-hidden="true" style={{ height: above }} />}
+      {above > 0 && (
+        <div
+          className="library-video-section__spacer"
+          aria-hidden="true"
+          style={{ height: above }}
+        />
+      )}
       {rows.slice(start, end).map((row) =>
         row.kind === 'header' ? (
           <h3 key={row.key} className="library-video-section__folder-title">
@@ -473,7 +487,13 @@ const LibraryVideoSection = ({
           </div>
         ),
       )}
-      {below > 0 && <div aria-hidden="true" style={{ height: below }} />}
+      {below > 0 && (
+        <div
+          className="library-video-section__spacer"
+          aria-hidden="true"
+          style={{ height: below }}
+        />
+      )}
     </div>
   );
 };
