@@ -86,6 +86,19 @@ export const createNativeMirror = (
   let playing = false;
   /** What the host was last told, so a tick that changed nothing sends nothing. */
   let toldPositionMs = 0;
+  /**
+   * When that reading was taken, which is what makes the next one meaningful.
+   *
+   * Without it, "drift" was the gap between two syncs rather than the gap
+   * between two clocks — so a render that arrived half a second late looked
+   * exactly like a listener dragging the scrubber, and the answer to that is a
+   * seek. A seek empties the read-ahead ring, which is a hole in the audio.
+   *
+   * Under load the renders get further apart, so it seeks more often, so it
+   * drops out more: the stutter fed itself, and it was worst on exactly the
+   * machine that could least afford it.
+   */
+  let toldAt = 0;
 
   /** Give the element its sound back, at whatever it was before the switch. */
   const unmute = () => {
@@ -133,7 +146,11 @@ export const createNativeMirror = (
     sync: ({ mediaPath, isPlaying, positionMs }) => {
       if (mediaPath !== loadedPath) {
         loadedPath = mediaPath;
+        // Both halves, always together: a position without the moment it was
+        // read is a reading the next tick cannot use, and it would compute an
+        // elapsed time reaching back to the previous track.
         toldPositionMs = positionMs;
+        toldAt = performance.now();
         if (!mediaPath) {
           controller.transport.unload(0).catch(() => undefined);
           return;
@@ -150,14 +167,24 @@ export const createNativeMirror = (
         command.catch(() => undefined);
       }
 
-      // A jump the listener made, not the drift of two clocks.
-      const drift = Math.abs(positionMs - toldPositionMs);
-      if (drift > SEEK_THRESHOLD_MS) {
-        toldPositionMs = positionMs;
-        controller.transport.seek(0, positionMs / 1000).catch(() => undefined);
-        return;
-      }
+      /**
+       * A jump the listener made, not the time this tick took to arrive.
+       *
+       * Compared against where the element SHOULD be by now — the last reading
+       * plus the wall time since it, while playing — rather than against the
+       * last reading itself. The difference is the whole bug: measured the
+       * second way, every render that came half a second late was
+       * indistinguishable from a drag of the scrubber, and each one cost a
+       * seek and the read-ahead ring with it.
+       */
+      const now = performance.now();
+      const elapsed = playing && toldAt > 0 ? now - toldAt : 0;
+      const expected = toldPositionMs + elapsed;
       toldPositionMs = positionMs;
+      toldAt = now;
+      if (Math.abs(positionMs - expected) > SEEK_THRESHOLD_MS) {
+        controller.transport.seek(0, positionMs / 1000).catch(() => undefined);
+      }
     },
 
     release: () => {

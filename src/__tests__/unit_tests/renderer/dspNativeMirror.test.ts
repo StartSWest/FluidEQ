@@ -163,6 +163,85 @@ describe('the native mirror', () => {
       expect(calls).toEqual([]);
     });
 
+    /**
+     * The bug this file exists to keep out, and it was shipped once.
+     *
+     * "Drift" used to be measured against the PREVIOUS reading rather than
+     * against where the element should be by now â so it was really measuring
+     * how long the render took to arrive. A renderer that stalled for six
+     * hundred milliseconds looked exactly like a listener dragging the
+     * scrubber, and the answer to that is a seek, and a seek empties the
+     * read-ahead ring.
+     *
+     * Which made it feed itself: under load the renders come further apart,
+     * so it seeks more often, so it drops out more. It crackled worst on the
+     * machine that could least afford it, which is also the machine somebody
+     * would blame the native engine for.
+     */
+    /**
+     * The bug this file exists to keep out, and it was shipped once.
+     *
+     * "Drift" used to be measured against the PREVIOUS reading rather than
+     * against where the element should be by now â so it really measured how
+     * long the render took to arrive. A renderer that stalled for six hundred
+     * milliseconds looked exactly like a listener dragging the scrubber, and
+     * the answer to that is a seek, and a seek empties the read-ahead ring.
+     *
+     * Which made it feed itself: under load the renders come further apart, so
+     * it seeks more often, so it drops out more. It crackled worst on the
+     * machine that could least afford it â which is also the machine somebody
+     * would blame the native engine for.
+     */
+    it('says nothing when a render arrives late', async () => {
+      // Installed before the mirror starts, so the baseline recorded at cue
+      // time sits on the same clock the assertions move.
+      const clock = jest.spyOn(performance, 'now');
+      clock.mockReturnValue(1_000);
+      const { calls, mirror } = await running();
+
+      // Six hundred milliseconds of real time, and the element advanced by
+      // exactly that much. Nothing jumped; the tick was simply late.
+      clock.mockReturnValue(1_600);
+      mirror.sync({
+        mediaPath: 'C:/music/one.wav',
+        isPlaying: true,
+        positionMs: 600,
+      });
+      await settle();
+
+      expect(calls).toEqual([]);
+      clock.mockRestore();
+    });
+
+    /**
+     * Paused, the element's position does not advance â so neither should the
+     * expectation. Crediting elapsed wall time while stopped would make every
+     * resume after a long pause look like a jump backwards.
+     */
+    it('does not credit elapsed time while paused', async () => {
+      const clock = jest.spyOn(performance, 'now');
+      clock.mockReturnValue(1_000);
+      const { calls, mirror } = await running();
+
+      mirror.sync({
+        mediaPath: 'C:/music/one.wav',
+        isPlaying: false,
+        positionMs: 0,
+      });
+      calls.length = 0;
+
+      clock.mockReturnValue(31_000);
+      mirror.sync({
+        mediaPath: 'C:/music/one.wav',
+        isPlaying: false,
+        positionMs: 0,
+      });
+      await settle();
+
+      expect(calls).toEqual([]);
+      clock.mockRestore();
+    });
+
     it('seeks when the listener jumps', async () => {
       const { calls, mirror } = await running();
 

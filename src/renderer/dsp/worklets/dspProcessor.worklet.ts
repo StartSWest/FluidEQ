@@ -440,6 +440,20 @@ class DspProcessor extends AudioWorkletProcessor {
   private metersEnabled = true;
 
   /**
+   * Stand down: the native engine is the one being heard.
+   *
+   * While the A/B switch is on native, the element is muted and this chain's
+   * output goes nowhere â but every filter in it still ran, once per quantum,
+   * for audio no one could hear. Two complete DSP chains on one machine is
+   * how an A/B ends up measuring the CPU rather than the code.
+   *
+   * A separate flag from `settings.enabled`, which is the user's own bypass
+   * and belongs to the panel. Overloading it would make the switch fight the
+   * control beside it.
+   */
+  private standingDown = false;
+
+  /**
    * A thinned scatter of the pairs leaving the chain, for the goniometer.
    *
    * Every fourth pair rather than all of them: a report covers about two
@@ -561,6 +575,11 @@ class DspProcessor extends AudioWorkletProcessor {
           // Do not reuse a frozen look-ahead buffer after an A/B bypass.
           this.outputSafety = createOutputSafety(CHANNELS, sampleRate);
         }
+        return;
+      }
+      if (isMessageObject(data) && 'standDown' in data) {
+        this.standingDown =
+          (data as { standDown?: unknown }).standDown === true;
         return;
       }
       if (isMessageObject(data) && 'metersEnabled' in data) {
@@ -1506,7 +1525,9 @@ class DspProcessor extends AudioWorkletProcessor {
       }
     }
 
-    if (!this.settings.enabled) {
+    if (!this.settings.enabled || this.standingDown) {
+      // The copy above already happened, so the graph downstream still sees a
+      // block. Everything expensive below is skipped.
       return true;
     }
 
