@@ -300,7 +300,62 @@ void render_bridge(void* context, float* const* planar, uint32_t frames) {
   feq_engine_process_planar(state->engine, inputs, planar, frames);
 }
 
+/**
+ * A 32-bit float WAV, written by hand.
+ *
+ * Float rather than 16-bit because the point of this file is comparison: the
+ * chain works in float end to end and quantising on the way out would put a
+ * dither-sized difference between two engines that actually agree.
+ */
+bool write_float_wav(const std::string& path,
+                     const std::vector<float>& interleaved,
+                     uint32_t sample_rate,
+                     uint32_t channels) {
+  std::FILE* file = nullptr;
+#ifdef _WIN32
+  if (fopen_s(&file, path.c_str(), "wb") != 0) {
+    file = nullptr;
+  }
+#else
+  file = std::fopen(path.c_str(), "wb");
+#endif
+  if (file == nullptr) {
+    return false;
+  }
+  const auto data_bytes =
+      static_cast<uint32_t>(interleaved.size() * sizeof(float));
+  const uint32_t byte_rate = sample_rate * channels * 4;
+  unsigned char header[44];
+  std::memcpy(header, "RIFF", 4);
+  const uint32_t riff = 36 + data_bytes;
+  std::memcpy(header + 4, &riff, 4);
+  std::memcpy(header + 8, "WAVEfmt ", 8);
+  const uint32_t fmt_size = 16;
+  std::memcpy(header + 16, &fmt_size, 4);
+  // Format 3 is IEEE float, which is what the samples below actually are.
+  const uint16_t format = 3;
+  std::memcpy(header + 20, &format, 2);
+  const auto channel_count = static_cast<uint16_t>(channels);
+  std::memcpy(header + 22, &channel_count, 2);
+  std::memcpy(header + 24, &sample_rate, 4);
+  std::memcpy(header + 28, &byte_rate, 4);
+  const auto block_align = static_cast<uint16_t>(channels * 4);
+  std::memcpy(header + 32, &block_align, 2);
+  const uint16_t bits = 32;
+  std::memcpy(header + 34, &bits, 2);
+  std::memcpy(header + 36, "data", 4);
+  std::memcpy(header + 40, &data_bytes, 4);
+
+  const bool ok =
+      std::fwrite(header, 1, sizeof(header), file) == sizeof(header) &&
+      std::fwrite(interleaved.data(), sizeof(float), interleaved.size(),
+                  file) == interleaved.size();
+  std::fclose(file);
+  return ok;
+}
+
 /** Rebuild the engine around a device that has told us what it wants. */
+
 bool rebuild_engine(HostState& state,
                     const std::vector<double>& snapshot,
                     uint32_t revision) {
@@ -745,7 +800,51 @@ int main(int argc, char** argv) {
         break;
       }
 
+      case FEQ_CMD_RENDER_TO_FILE: {
+        if (backend->is_running()) {
+          // Two producers into one chain interleave their blocks and both
+          // results are wrong. Offline rendering is for a device that is not
+          // running, which is exactly when it is useful.
+          send_ack(frame.request_id, FEQ_WIRE_REJECTED, 0, 0, 0.0);
+          break;
+        }
+        std::string path(static_cast<size_t>(frame.value), '\0');
+        if (!path.empty() && !read_exact(path.data(), path.size())) {
+          running = false;
+          break;
+        }
+
+        const uint32_t total = frame.parameter_id;
+        std::vector<float> left(state.block_frames, 0.0f);
+        std::vector<float> right(state.block_frames, 0.0f);
+        float* planar[2] = {left.data(), right.data()};
+        std::vector<float> out;
+        out.reserve(static_cast<size_t>(total) * state.channels);
+
+        for (uint32_t at = 0; at < total; at += state.block_frames) {
+          const uint32_t span = total - at < state.block_frames
+                                    ? total - at
+                                    : state.block_frames;
+          render_bridge(&state, planar, span);
+          // Interleaved on the way out, which is what a WAV holds and what
+          // every reader on the other side expects.
+          for (uint32_t frame_at = 0; frame_at < span; ++frame_at) {
+            for (uint32_t channel = 0; channel < state.channels; ++channel) {
+              out.push_back(planar[channel][frame_at]);
+            }
+          }
+        }
+
+        const bool written =
+            write_float_wav(path, out, state.sample_rate, state.channels);
+        send_ack(frame.request_id,
+                 written ? FEQ_WIRE_APPLIED : FEQ_WIRE_REJECTED,
+                 frame.settings_revision, total, 0.0);
+        break;
+      }
+
       case FEQ_CMD_SHUTDOWN:
+
         send_ack(frame.request_id, FEQ_WIRE_APPLIED, frame.settings_revision, 0,
                  0.0);
         running = false;

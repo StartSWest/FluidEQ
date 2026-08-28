@@ -106,8 +106,23 @@ enum FeqWireCommand {
    * is a level step on every track change rather than the ramp that exists to
    * prevent exactly that.
    */
-  FEQ_CMD_SET_TRACK_GAINS = 16
+  FEQ_CMD_SET_TRACK_GAINS = 16,
+  /**
+   * Render `parameter_id` frames from the loaded deck to a 32-bit float WAV.
+   *
+   * `parameter_index` is the deck and the path follows the frame as UTF-8
+   * bytes, `value` carrying their length. Refused while the device is running,
+   * for the same reason an offline block render is: two producers into one
+   * chain interleave their blocks and both results are wrong.
+   *
+   * Not a test hook. Offline rendering is the export path, and it is also the
+   * only way to ask "do the two engines agree on this actual song" and get an
+   * answer in samples rather than in somebody's opinion, which is what the
+   * whole migration turns on.
+   */
+  FEQ_CMD_RENDER_TO_FILE = 17
 };
+
 
 enum FeqWireStatus {
   FEQ_WIRE_APPLIED = 0,

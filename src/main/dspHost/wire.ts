@@ -48,6 +48,7 @@ export const HOST_COMMANDS = {
   selectDeck: 14,
   crossfade: 15,
   setTrackGains: 16,
+  renderToFile: 17,
 } as const;
 
 /** `parameterId` for `setDiagnosticSignal`; `value` carries the frequency. */

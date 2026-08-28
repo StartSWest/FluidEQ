@@ -274,6 +274,25 @@ export class DspHostSupervisor {
     return ack.status === HOST_STATUS.applied;
   }
 
+  /**
+   * Render `frames` from the loaded deck to a 32-bit float WAV.
+   *
+   * The export path, and the only way to ask whether the two engines agree on
+   * a real song and get an answer in samples rather than in an opinion.
+   */
+  async renderToFile(frames: number, target: string): Promise<boolean> {
+    const payload = Buffer.from(target, 'utf8');
+    const ack = await this.send(HOST_COMMANDS.renderToFile, {
+      parameterIndex: 0,
+      parameterId: frames,
+      // Byte length, not character count: the host reads bytes, and a path
+      // with an accent in it is longer in UTF-8 than in JavaScript.
+      value: payload.byteLength,
+      payload,
+    });
+    return ack.status === HOST_STATUS.applied;
+  }
+
   async unloadDeck(deck: number): Promise<boolean> {
     const ack = await this.send(HOST_COMMANDS.unloadDeck, {
       parameterIndex: deck,
