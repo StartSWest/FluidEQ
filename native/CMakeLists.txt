@@ -116,9 +116,23 @@ add_test(NAME dsp-parity
 add_executable(fluideq-dsp-host
   dsp-host/src/main.cpp
   dsp-host/src/decoders/pcm_decoder.cpp
+  dsp-host/src/decoders/compressed_decoder.cpp
+  dsp-host/src/decoders/vendor/vendor.cpp
   dsp-host/src/parent_watch.cpp
 )
 target_link_libraries(fluideq-dsp-host PRIVATE fluideq-dsp-core feq_strict)
+
+# Warnings-as-errors, off for the vendored decoders and nowhere else.
+#
+# `#pragma warning(push, 0)` inside the file silences the warnings but /WX has
+# already promoted them, so the pragma has nothing left to suppress. The flag
+# has to come off at the compiler invocation, and it comes off for this ONE
+# source: twenty-three thousand lines of somebody else's public domain code
+# cannot be held to this project's standard without patching every release,
+# and dropping /WX for the whole target would take our own code with it.
+set_source_files_properties(dsp-host/src/decoders/vendor/vendor.cpp
+  PROPERTIES COMPILE_OPTIONS "$<IF:$<BOOL:${MSVC}>,/WX-,-Wno-error>")
+
 
 # The device backend, which is the only platform-specific code in the project.
 # Every platform gets one, and the two that have no real implementation get a

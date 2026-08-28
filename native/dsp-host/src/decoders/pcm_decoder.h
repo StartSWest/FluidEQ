@@ -28,6 +28,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
  */
 FeqDecoderOps feq_decoder_ops(void);
 
+/** WAV and AIFF alone. `feq_decoder_ops` chains this with the compressed one. */
+FeqDecoderOps feq_pcm_decoder_ops(void);
+
 /** Non-zero when this build can decode the file at `path` without help. */
 int feq_decoder_handles(const char* path);
 

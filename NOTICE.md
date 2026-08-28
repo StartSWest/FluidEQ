@@ -128,6 +128,21 @@ and the combined work is conveyed under GPL-3.0-or-later as LGPL-3.0 section 2
 permits. The third-party notices acknowledge LAME and link to its project, which
 is what the LAME authors ask of anyone shipping it.
 
+The native audio engine compiles three more in, as source rather than as
+packages: `dr_mp3.h` and `dr_flac.h` by David Reid, and `stb_vorbis.c` by Sean
+Barrett. They decode MP3, FLAC and Ogg Vorbis for the native player. Each is
+offered under a choice of public domain dedication or a permissive licence â
+Unlicense or MIT-0 for the first two, public domain or MIT for the third â and
+`dr_mp3` derives from `minimp3` by lieff, which is CC0 1.0. Every one of those
+was read at its author's own repository rather than at a mirror or a package
+index, and each file carries its licence in its own text where it sits in the
+tree.
+
+None of the three requires attribution. They are named here anyway: this
+application is sold, "no attribution required" is a permission rather than an
+instruction to stay quiet, and somebody auditing what is inside a binary they
+paid for is entitled to a straight answer.
+
 ## Third-party websites reached from the Video tab
 
 FluidEQ includes a Video tab, which opens a small fixed set of music and video

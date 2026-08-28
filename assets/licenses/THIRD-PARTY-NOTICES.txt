@@ -154,3 +154,24 @@ FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
 COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
 IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+--------------------------------------------------------------------------
+dr_mp3.h, dr_flac.h
+David Reid — https://github.com/mackron/dr_libs
+Choice of: Unlicense (public domain) OR MIT No Attribution.
+
+dr_mp3 is derived from minimp3 by lieff (https://github.com/lieff/minimp3),
+which is released under CC0 1.0 Universal. A derivative cannot be more
+permissive than what it came from, so that licence was checked separately.
+
+--------------------------------------------------------------------------
+stb_vorbis.c
+Sean Barrett — https://github.com/nothings/stb
+Choice of: MIT OR public domain (Unlicense).
+
+--------------------------------------------------------------------------
+The three files above decode MP3, FLAC and Ogg Vorbis in the native audio
+engine. Each carries its full licence text at the end of its own source file,
+which ships in the FluidEQ source repository. None of the three requires
+attribution; they are listed because this application is sold and somebody
+auditing what is inside it is entitled to a straight answer.

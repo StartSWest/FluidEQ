@@ -221,6 +221,21 @@ const main = async (): Promise<void> => {
     process.exit(1);
   }
   console.log('\nall checks passed');
+  /**
+   * Explicit, because `stop()` does not close the loop behind it.
+   *
+   * The supervisor kills the host and forgets it, but the stdio it was spawned
+   * with is still holding active handles afterwards — measured: two
+   * ChildProcess and six Socket handles remain once every check has run. Node
+   * then sits there with nothing left to do, and inside `test:native-dsp` that
+   * is not a slow script, it is a suite that never reaches the next one. It
+   * cost a full run before it was noticed, because a `timeout` in front of the
+   * pipeline reported the exit code of the `grep` at the end of it.
+   *
+   * `smoke-supervisor.ts` has ended this way from the start, for the same
+   * reason. Everything this script owns is already torn down above.
+   */
+  process.exit(0);
 };
 
 main().catch((error: unknown) => {

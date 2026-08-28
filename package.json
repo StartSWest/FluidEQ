@@ -38,7 +38,7 @@
     "build": "pnpm build:native-dsp && concurrently \"pnpm build:main\" \"pnpm build:renderer\"",
     "build:native-dsp": "ts-node ./.erb/scripts/build-native-dsp.ts",
     "build:native-dsp:clean": "ts-node ./.erb/scripts/build-native-dsp.ts --clean",
-    "test:native-dsp": "ts-node ./.erb/scripts/build-native-dsp.ts --test && ts-node ./.erb/scripts/smoke-native-dsp.ts && ts-node ./.erb/scripts/smoke-supervisor.ts && ts-node ./.erb/scripts/smoke-orphan.ts && ts-node ./.erb/scripts/smoke-playback.ts",
+    "test:native-dsp": "ts-node ./.erb/scripts/build-native-dsp.ts --test && ts-node ./.erb/scripts/smoke-native-dsp.ts && ts-node ./.erb/scripts/smoke-supervisor.ts && ts-node ./.erb/scripts/smoke-orphan.ts && ts-node ./.erb/scripts/smoke-playback.ts && ts-node ./.erb/scripts/smoke-decoders.ts",
     "tone:native-dsp": "ts-node ./.erb/scripts/tone-native-dsp.ts",
     "build:main": "cross-env NODE_ENV=production TS_NODE_TRANSPILE_ONLY=true webpack --config ./.erb/configs/webpack.config.main.prod.cjs",
     "build:renderer": "cross-env NODE_ENV=production TS_NODE_TRANSPILE_ONLY=true webpack --config ./.erb/configs/webpack.config.renderer.prod.cjs",

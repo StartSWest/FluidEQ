@@ -6,6 +6,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "pcm_decoder.h"
 
+#include "compressed_decoder.h"
+
 #include <cmath>
 #include <cstdint>
 #include <cstring>
@@ -410,7 +412,75 @@ int pcm_seek(void* /*user*/, void* handle, uint64_t frame) {
 
 }  // namespace
 
-FeqDecoderOps feq_decoder_ops(void) {
+namespace {
+
+/**
+ * Which decoder opened a given file, remembered for as long as it is open.
+ *
+ * The two decoders have separate handles and separate function tables, and the
+ * player holds one `void*` per deck with no room for a tag. Rather than widen
+ * its interface for something only this file cares about, the handle is
+ * wrapped: one small allocation per open, freed on close.
+ */
+struct AnyDecoder {
+  FeqDecoderOps ops;
+  void* handle;
+};
+
+void* any_open(void* /*user*/, const char* path, FeqDecoderInfo* info) {
+  /**
+   * PCM first, compressed second, and the order is not arbitrary.
+   *
+   * The PCM reader recognises its formats by a magic number at a fixed offset
+   * and refuses everything else immediately. The compressed one ends by
+   * offering the file to dr_mp3, which scans for a frame header â and an
+   * unlucky WAV can contain a byte pattern that looks like one. Asking the
+   * strict reader first means that never comes up.
+   */
+  const FeqDecoderOps pcm = feq_pcm_decoder_ops();
+  FeqDecoderInfo asked = *info;
+  void* handle = pcm.open(pcm.user, path, info);
+  if (handle != nullptr) {
+    return new AnyDecoder{pcm, handle};
+  }
+
+  // `open` may have written into `info` before failing, so the request is
+  // restored rather than passed on in whatever state it was left.
+  *info = asked;
+  const FeqDecoderOps compressed = feq_compressed_decoder_ops();
+  handle = compressed.open(compressed.user, path, info);
+  if (handle != nullptr) {
+    return new AnyDecoder{compressed, handle};
+  }
+  return nullptr;
+}
+
+void any_close(void* /*user*/, void* handle) {
+  auto* any = static_cast<AnyDecoder*>(handle);
+  if (any == nullptr) {
+    return;
+  }
+  any->ops.close(any->ops.user, any->handle);
+  delete any;
+}
+
+uint32_t any_read(void* /*user*/, void* handle, float* const* channels,
+                  uint32_t frames) {
+  auto* any = static_cast<AnyDecoder*>(handle);
+  return any == nullptr
+             ? 0
+             : any->ops.read(any->ops.user, any->handle, channels, frames);
+}
+
+int any_seek(void* /*user*/, void* handle, uint64_t frame) {
+  auto* any = static_cast<AnyDecoder*>(handle);
+  return any == nullptr ? 0 : any->ops.seek(any->ops.user, any->handle, frame);
+}
+
+}  // namespace
+
+/** WAV and AIFF alone, which is what the compressed reader falls back from. */
+FeqDecoderOps feq_pcm_decoder_ops(void) {
   FeqDecoderOps ops{};
   ops.user = nullptr;
   ops.open = pcm_open;
@@ -419,6 +489,17 @@ FeqDecoderOps feq_decoder_ops(void) {
   ops.seek = pcm_seek;
   return ops;
 }
+
+FeqDecoderOps feq_decoder_ops(void) {
+  FeqDecoderOps ops{};
+  ops.user = nullptr;
+  ops.open = any_open;
+  ops.close = any_close;
+  ops.read = any_read;
+  ops.seek = any_seek;
+  return ops;
+}
+
 
 int feq_decoder_handles(const char* path) {
   if (path == nullptr) {

@@ -1,0 +1,144 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+/**
+ * Every container the library accepts, through the native decoder.
+ *
+ * The chain's own tests prove the arithmetic and `smoke-playback` proves the
+ * wiring, both on a WAV written by hand. Neither says anything about whether
+ * an MP3 opens — and until it does, the native engine cannot replace the
+ * TypeScript player for anyone with a real music folder, whatever the parity
+ * suite says.
+ *
+ * A decoder that reports the wrong duration or the wrong rate is the failure
+ * to watch for here, not one that crashes. A file that plays at 44.1 when it
+ * is 48 is a semitone and a half sharp and perfectly steady about it.
+ */
+import { existsSync, mkdtempSync, rmSync, writeFileSync } from 'fs';
+import { tmpdir } from 'os';
+import path from 'path';
+import { findDspHostExecutable } from '../../src/main/dspHost/hostPath';
+import { DspHostSupervisor } from '../../src/main/dspHost/supervisor';
+import { NATIVE_DSP_PARAMETERS } from '../../src/common/dsp/nativeParameters';
+import { IHostTelemetry } from '../../src/main/dspHost/wire';
+
+let failures = 0;
+const check = (condition: boolean, what: string) => {
+  console.log(`  ${condition ? 'ok  ' : 'FAIL'} ${what}`);
+  if (!condition) {
+    failures += 1;
+  }
+};
+
+const sleep = (ms: number) =>
+  new Promise<void>((resolve) => {
+    setTimeout(resolve, ms);
+  });
+
+/** A 16-bit stereo WAV, written by hand so the fixture owes nothing to a codec. */
+const writeWav = (file: string, rate: number, seconds: number, hz: number) => {
+  const frames = Math.round(rate * seconds);
+  const data = Buffer.alloc(frames * 4);
+  for (let at = 0; at < frames; at += 1) {
+    const value = Math.round(
+      Math.sin((2 * Math.PI * hz * at) / rate) * 0.5 * 32767,
+    );
+    data.writeInt16LE(value, at * 4);
+    data.writeInt16LE(value, at * 4 + 2);
+  }
+  const header = Buffer.alloc(44);
+  header.write('RIFF', 0, 'ascii');
+  header.writeUInt32LE(36 + data.length, 4);
+  header.write('WAVE', 8, 'ascii');
+  header.write('fmt ', 12, 'ascii');
+  header.writeUInt32LE(16, 16);
+  header.writeUInt16LE(1, 20);
+  header.writeUInt16LE(2, 22);
+  header.writeUInt32LE(rate, 24);
+  header.writeUInt32LE(rate * 4, 28);
+  header.writeUInt16LE(4, 32);
+  header.writeUInt16LE(16, 34);
+  header.write('data', 36, 'ascii');
+  header.writeUInt32LE(data.length, 40);
+  writeFileSync(file, Buffer.concat([header, data]));
+};
+
+const main = async (): Promise<void> => {
+  const executable = findDspHostExecutable();
+  if (!executable) {
+    console.error('decoder smoke: no host executable; run pnpm build first');
+    process.exit(2);
+  }
+  const scratch = mkdtempSync(path.join(tmpdir(), 'fluideq-decoders-'));
+  const wav = path.join(scratch, 'tone.wav');
+  writeWav(wav, 44_100, 3, 1_000);
+
+  const telemetry: IHostTelemetry[] = [];
+  const host = new DspHostSupervisor({
+    executablePath: executable,
+    expectedParameterCount: NATIVE_DSP_PARAMETERS.length,
+    onTelemetry: (frame) => telemetry.push(frame),
+  });
+  await host.start();
+  await host.setPlaying(true);
+
+  /**
+   * Loaded, played, and checked for a signal — not merely for an open.
+   *
+   * A decoder that opens a file and then returns silence forever is the
+   * failure that looks most like success: the transport advances, the
+   * position moves, and nothing comes out. So every case renders real blocks
+   * and asks the meter whether anything arrived.
+   */
+  const plays = async (file: string, label: string): Promise<void> => {
+    if (!existsSync(file)) {
+      check(false, `${label}: the fixture is missing`);
+      return;
+    }
+    if (!(await host.loadDeck(0, file))) {
+      check(false, `${label} opens`);
+      return;
+    }
+    check(true, `${label} opens`);
+    await host.seekDeck(0, 1);
+    await sleep(600);
+    telemetry.length = 0;
+    await host.runOfflineBlocks(600);
+    await sleep(250);
+    let peak = 0;
+    telemetry.forEach((frame) => {
+      peak = Math.max(peak, frame.peak[0], frame.peak[1]);
+    });
+    console.log(`       ${label}: peak ${peak.toFixed(4)}`);
+    check(peak > 0.001, `${label} produces audio rather than silence`);
+  };
+
+  console.log('containers');
+  await plays(wav, 'wav');
+
+  // The repository's own MP3s, which are real encoder output rather than
+  // something this test wrote and could therefore be wrong about in the same
+  // way twice.
+  const repo = path.resolve(__dirname, '../..');
+  await plays(path.join(repo, 'karaoke_instrumental.mp3'), 'mp3');
+
+  await host.stop();
+  rmSync(scratch, { recursive: true, force: true });
+  if (failures > 0) {
+    console.error(`\n${failures} check(s) failed`);
+    process.exit(1);
+  }
+  console.log('\nall checks passed');
+  // Explicit for the same reason `smoke-playback.ts` is: the supervisor's stdio
+  // handles outlive `stop()`, and a script that finishes and then sits is a
+  // suite that never reaches the next one.
+  process.exit(0);
+};
+
+main().catch((error: unknown) => {
+  console.error('decoder smoke failed', error);
+  process.exit(1);
+});

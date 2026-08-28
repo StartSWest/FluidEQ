@@ -31,3 +31,8 @@ npm-debug.log.*
 # Build tooling is transpiled and verified by the production build. It is not
 # part of the application TypeScript project used by ESLint.
 .erb
+
+# Vendored decoder sources. Somebody else's public domain code: it is not
+# ours to reformat, and a prettier pass on it would make every upstream update
+# a merge conflict against our own whitespace.
+native/dsp-host/src/decoders/vendor
