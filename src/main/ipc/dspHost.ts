@@ -256,6 +256,12 @@ export const registerDspHostIpc = ({
             return isFiniteNumber(value) && Number.isInteger(extra)
               ? await supervisor.crossfade(slot, value, extra as number)
               : false;
+          case 'volume':
+            // Clamped again in the host; a renderer is the half of this app
+            // that loads remote content.
+            return isFiniteNumber(value)
+              ? await supervisor.setVolume(Math.min(1, Math.max(0, value)))
+              : false;
           case 'analysis':
             // The panel mounting and unmounting, which is the only caller.
             return await supervisor.setAnalysis(value !== 0);

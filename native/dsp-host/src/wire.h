@@ -130,7 +130,18 @@ enum FeqWireCommand {
    * block is real work to do for a picture nobody is looking at, and the whole
    * reason the engine moved to C++ was to stop spending cycles like that.
    */
-  FEQ_CMD_SET_ANALYSIS = 18
+  FEQ_CMD_SET_ANALYSIS = 18,
+  /**
+   * The listener's volume, 0 to 1, in `value`.
+   *
+   * Needed at all because the elements are muted while the native engine is
+   * audible, so the fader on the player reached nothing: it moved and the sound
+   * did not change. Applied before the chain, which is where the element path
+   * has always applied it — an element routed through Web Audio hands its
+   * volume to the graph, so the dynamics stages have always responded to it and
+   * the two engines would part company here if this went after them.
+   */
+  FEQ_CMD_SET_VOLUME = 19
 };
 
 

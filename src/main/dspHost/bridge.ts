@@ -138,7 +138,8 @@ type TDspTransportVerb =
   // Not transport in the strict sense, but it belongs on this channel: it is a
   // one-word instruction to the same host with the same validation in front of
   // it, and a channel of its own would be ceremony around a boolean.
-  | 'analysis';
+  | 'analysis'
+  | 'volume';
 
 const transport = (
   verb: TDspTransportVerb,
@@ -165,6 +166,16 @@ const setDspHostTrackGains = (
   inputGainDb: number,
   masterLoudnessGainDb: number,
 ): Promise<boolean> => transport('gains', 0, inputGainDb, masterLoudnessGainDb);
+
+/**
+ * The listener's fader, 0 to 1.
+ *
+ * Mirrored because the elements are muted while the native engine is audible,
+ * so the volume control on the player reached nothing at all: it moved, and the
+ * sound did not change.
+ */
+const setDspHostVolume = (volume: number): Promise<boolean> =>
+  transport('volume', 0, volume);
 
 /**
  * Ask the host to measure what the panel draws, or to stop.
@@ -215,6 +226,7 @@ export const dspHostBridge = {
   seekDspHostDeck,
   crossfadeDspHost,
   setDspHostTrackGains,
+  setDspHostVolume,
   setDspHostAnalysis,
   onDspHostAnalysis,
   onDspHostTelemetry,

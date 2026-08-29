@@ -36,6 +36,7 @@ const controllerSpy = (overrides: Record<string, unknown> = {}) => {
         return Promise.resolve(true);
       },
       select: ok('select'),
+      setVolume: ok('setVolume'),
       crossfade: ok('crossfade'),
       setTrackGains: ok('gains'),
       ...overrides,
@@ -102,10 +103,18 @@ describe('the native mirror', () => {
       mediaPath: 'C:/music/one.wav',
       isPlaying: true,
       positionMs: 0,
+      volume: 1,
     });
     await settle();
 
-    expect(calls).toEqual(['load(0)', 'select(0)', 'play']);
+    // The fader is sent first and is not part of the ordering under test; what
+    // matters is that the deck is loaded before it is selected and only then
+    // played, because a select or a play against an empty deck is silence.
+    expect(calls.filter((call) => !call.startsWith('setVolume'))).toEqual([
+      'load(0)',
+      'select(0)',
+      'play',
+    ]);
   });
 
   it('resumes at the position the element was already at', async () => {
@@ -118,6 +127,7 @@ describe('the native mirror', () => {
       mediaPath: 'C:/music/one.wav',
       isPlaying: true,
       positionMs: 92_000,
+      volume: 1,
     });
     await settle();
 
@@ -132,6 +142,7 @@ describe('the native mirror', () => {
         mediaPath: 'C:/music/one.wav',
         isPlaying: true,
         positionMs: 0,
+        volume: 1,
       });
       await settle();
       spy.calls.length = 0;
@@ -152,11 +163,13 @@ describe('the native mirror', () => {
         mediaPath: 'C:/music/one.wav',
         isPlaying: true,
         positionMs: 250,
+        volume: 1,
       });
       mirror.sync({
         mediaPath: 'C:/music/one.wav',
         isPlaying: true,
         positionMs: 500,
+        volume: 1,
       });
       await settle();
 
@@ -206,6 +219,7 @@ describe('the native mirror', () => {
         mediaPath: 'C:/music/one.wav',
         isPlaying: true,
         positionMs: 600,
+        volume: 1,
       });
       await settle();
 
@@ -227,6 +241,7 @@ describe('the native mirror', () => {
         mediaPath: 'C:/music/one.wav',
         isPlaying: false,
         positionMs: 0,
+        volume: 1,
       });
       calls.length = 0;
 
@@ -235,6 +250,7 @@ describe('the native mirror', () => {
         mediaPath: 'C:/music/one.wav',
         isPlaying: false,
         positionMs: 0,
+        volume: 1,
       });
       await settle();
 
@@ -249,6 +265,7 @@ describe('the native mirror', () => {
         mediaPath: 'C:/music/one.wav',
         isPlaying: true,
         positionMs: 120_000,
+        volume: 1,
       });
       await settle();
 
@@ -262,11 +279,13 @@ describe('the native mirror', () => {
         mediaPath: 'C:/music/one.wav',
         isPlaying: false,
         positionMs: 100,
+        volume: 1,
       });
       mirror.sync({
         mediaPath: 'C:/music/one.wav',
         isPlaying: true,
         positionMs: 200,
+        volume: 1,
       });
       await settle();
 
@@ -280,6 +299,7 @@ describe('the native mirror', () => {
         mediaPath: 'C:/music/two.wav',
         isPlaying: true,
         positionMs: 0,
+        volume: 1,
       });
       await settle();
 
@@ -289,7 +309,12 @@ describe('the native mirror', () => {
     it('unloads when the queue empties', async () => {
       const { calls, mirror } = await running();
 
-      mirror.sync({ mediaPath: undefined, isPlaying: false, positionMs: 0 });
+      mirror.sync({
+        mediaPath: undefined,
+        isPlaying: false,
+        positionMs: 0,
+        volume: 1,
+      });
       await settle();
 
       expect(calls).toEqual(['unload(0)']);
@@ -314,6 +339,7 @@ describe('the native mirror', () => {
       mediaPath: 'C:/music/song.mp3',
       isPlaying: true,
       positionMs: 0,
+      volume: 1,
     });
     await settle();
 

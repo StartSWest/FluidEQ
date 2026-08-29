@@ -58,6 +58,29 @@ const workletUrl = (): URL =>
   );
 
 let inputGainPort: MessagePort | undefined;
+/**
+ * Where the same gains go when the native engine is the audible one.
+ *
+ * A registration rather than an import, because this module must not know
+ * about the host: it is loaded by tests that have no preload and by the worklet
+ * harness that has no Electron. The native side registers on engage and clears
+ * on release, so a gain computed while nothing is engaged simply has nowhere to
+ * go, which is correct.
+ *
+ * It exists at all because this function is the ONE funnel every track-level
+ * gain passes through, and until it forwarded, auto-normalize and the LUFS
+ * makeup reached the worklet and nothing else — so on the native engine both
+ * features were silently inert.
+ */
+let nativeTrackGainSink:
+  ((inputGainDb: number, masterLoudnessGainDb: number) => void) | undefined;
+
+export const setDspNativeTrackGainSink = (
+  sink:
+    ((inputGainDb: number, masterLoudnessGainDb: number) => void) | undefined,
+): void => {
+  nativeTrackGainSink = sink;
+};
 let pendingInputGainDb = 0;
 let pendingMasterLoudnessGainDb = 0;
 let pendingInputTrackId = '';
@@ -100,6 +123,7 @@ export const setDspTrackLevelGains = (
       masterLoudnessGainDb: pendingMasterLoudnessGainDb,
     },
   });
+  nativeTrackGainSink?.(pendingInputGainDb, pendingMasterLoudnessGainDb);
 };
 
 interface IEngineState {

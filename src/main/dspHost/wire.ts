@@ -75,6 +75,7 @@ export const HOST_COMMANDS = {
   setTrackGains: 16,
   renderToFile: 17,
   setAnalysis: 18,
+  setVolume: 19,
 } as const;
 
 /** `parameterId` for `setDiagnosticSignal`; `value` carries the frequency. */

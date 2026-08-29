@@ -46,6 +46,7 @@ const controllerSpy = (overrides: Record<string, unknown> = {}) => {
         return Promise.resolve(true);
       },
       select: ok('select'),
+      setVolume: ok('setVolume'),
       crossfade: ok('crossfade'),
       setTrackGains: ok('gains'),
       ...overrides,
@@ -71,7 +72,12 @@ const withTrackCued = async (overrides: Record<string, unknown> = {}) => {
   const { controller, calls } = controllerSpy(overrides);
   const element = fakeElement();
   const mirror = createNativeMirror(controller, [element]);
-  mirror.sync({ mediaPath: 'C:/a.mp3', isPlaying: true, positionMs: 0 });
+  mirror.sync({
+    mediaPath: 'C:/a.mp3',
+    isPlaying: true,
+    positionMs: 0,
+    volume: 1,
+  });
   await settle();
   calls.length = 0;
   return { mirror, calls, element };
@@ -119,7 +125,12 @@ describe('the mirrored crossfade', () => {
     const fading = mirror.crossfade('C:/b.mp3', 4000, 'equalPower');
     // Exactly the tick the player emits here: the new track, still carrying
     // the old position, before the fade has resolved.
-    mirror.sync({ mediaPath: 'C:/b.mp3', isPlaying: true, positionMs: 120 });
+    mirror.sync({
+      mediaPath: 'C:/b.mp3',
+      isPlaying: true,
+      positionMs: 120,
+      volume: 1,
+    });
     await fading;
     await settle();
 
@@ -139,7 +150,12 @@ describe('the mirrored crossfade', () => {
   it('does cue a track change that is not a handoff, so that check means something', async () => {
     const { mirror, calls } = await withTrackCued();
 
-    mirror.sync({ mediaPath: 'C:/b.mp3', isPlaying: true, positionMs: 0 });
+    mirror.sync({
+      mediaPath: 'C:/b.mp3',
+      isPlaying: true,
+      positionMs: 0,
+      volume: 1,
+    });
     await settle();
 
     expect(calls).toContain('load(0)');
@@ -217,9 +233,96 @@ describe('the mirrored crossfade', () => {
     calls.length = 0;
 
     // A jump far past the drift threshold, which is what makes it a seek.
-    mirror.sync({ mediaPath: 'C:/b.mp3', isPlaying: true, positionMs: 90_000 });
+    mirror.sync({
+      mediaPath: 'C:/b.mp3',
+      isPlaying: true,
+      positionMs: 90_000,
+      volume: 1,
+    });
     await settle();
 
     expect(calls.some((call) => call.startsWith('seek(1,'))).toBe(true);
+  });
+});
+
+/**
+ * The listener's fader, which reached nothing at all until it was mirrored.
+ *
+ * The elements are muted while the native engine is audible, and volume lives
+ * on the element — so the control moved and the sound did not change. Not a
+ * subtlety: the whole feature was missing on the engine that is now the
+ * default.
+ */
+describe('the mirrored volume', () => {
+  it('tells the host the fader position on the first sync', async () => {
+    const { controller, calls } = controllerSpy();
+    const mirror = createNativeMirror(controller, [fakeElement()]);
+
+    mirror.sync({
+      mediaPath: 'C:/a.mp3',
+      isPlaying: true,
+      positionMs: 0,
+      volume: 0.4,
+    });
+    await settle();
+
+    expect(calls).toContain('setVolume(0.4)');
+  });
+
+  it('sends it again when it moves', async () => {
+    const { mirror, calls } = await withTrackCued();
+
+    mirror.sync({
+      mediaPath: 'C:/a.mp3',
+      isPlaying: true,
+      positionMs: 10,
+      volume: 0.25,
+    });
+    await settle();
+
+    expect(calls).toContain('setVolume(0.25)');
+  });
+
+  /**
+   * And stays quiet when it has not, because this runs on every position tick —
+   * four times a second, for the life of the track.
+   */
+  it('says nothing on a tick where the fader did not move', async () => {
+    const { mirror, calls } = await withTrackCued();
+
+    mirror.sync({
+      mediaPath: 'C:/a.mp3',
+      isPlaying: true,
+      positionMs: 10,
+      volume: 1,
+    });
+    await settle();
+    calls.length = 0;
+    mirror.sync({
+      mediaPath: 'C:/a.mp3',
+      isPlaying: true,
+      positionMs: 20,
+      volume: 1,
+    });
+    await settle();
+
+    expect(calls.filter((call) => call.startsWith('setVolume'))).toHaveLength(
+      0,
+    );
+  });
+
+  /** A track change must not swallow a fader move made in the same tick. */
+  it('sends the fader even on the tick that changes track', async () => {
+    const { mirror, calls } = await withTrackCued();
+
+    mirror.sync({
+      mediaPath: 'C:/b.mp3',
+      isPlaying: true,
+      positionMs: 0,
+      volume: 0.6,
+    });
+    await settle();
+
+    expect(calls).toContain('setVolume(0.6)');
   });
 });

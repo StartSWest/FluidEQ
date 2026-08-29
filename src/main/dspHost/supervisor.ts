@@ -372,6 +372,17 @@ export class DspHostSupervisor {
     return ack.status === HOST_STATUS.applied;
   }
 
+  /**
+   * The listener volume, 0 to 1.
+   *
+   * Mirrored at all because the elements are muted while the native engine is
+   * audible: without it the fader moved and nothing happened.
+   */
+  async setVolume(volume: number): Promise<boolean> {
+    const ack = await this.send(HOST_COMMANDS.setVolume, { value: volume });
+    return ack.status === HOST_STATUS.applied;
+  }
+
   private setState(next: TDspHostState): void {
     if (this.state === next) {
       return;

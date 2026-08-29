@@ -25,6 +25,7 @@ import {
 } from './nativeMirror';
 import { INativeMetersBridge, createNativeMeters } from './nativeMeters';
 import { ANALYSIS_BINS } from '../../common/dsp/analysisWire';
+import { setDspNativeTrackGainSink } from './useDspEngine';
 import {
   setDspNativeState,
   useDspBackend,
@@ -131,6 +132,32 @@ export const useNativeBackend = (
       ?.update(settings, outputSafetyEnabled)
       .catch(() => undefined);
   }, [settings, outputSafetyEnabled]);
+
+  /**
+   * The track-level gains, routed to the host for as long as it is audible.
+   *
+   * `setDspTrackLevelGains` is the single funnel every one of them passes
+   * through, and it reached the worklet and nothing else — so auto-normalize
+   * and the LUFS makeup were both silently inert on the native engine. Loud
+   * tracks stayed loud and quiet ones stayed quiet, with the panel showing the
+   * gain it had calculated and no engine applying it.
+   *
+   * Registered against the controller so it lives exactly as long as the engine
+   * does, and cleared on release rather than left pointing at a host that has
+   * gone.
+   */
+  const controller = controllerRef.current;
+  useEffect(() => {
+    if (!controller) {
+      return undefined;
+    }
+    setDspNativeTrackGainSink((inputGainDb, masterLoudnessGainDb) => {
+      controller.transport
+        .setTrackGains(inputGainDb, masterLoudnessGainDb)
+        .catch(() => undefined);
+    });
+    return () => setDspNativeTrackGainSink(undefined);
+  }, [controller]);
 
   /**
    * Handed over only once the host has FINISHED engaging, never before.

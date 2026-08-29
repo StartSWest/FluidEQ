@@ -137,6 +137,14 @@ struct HostState {
    * would look exactly like the engine ignoring the panel.
    */
   FeqChainSettings chain_settings{};
+  /**
+   * The listener's fader, 0 to 1, and where the ramp has reached.
+   *
+   * `volume` is written by the control thread and read by the audio thread;
+   * `volume_now` belongs to the audio thread alone and needs no atomic.
+   */
+  std::atomic<float> volume{1.0f};
+  float volume_now = 1.0f;
   /** True once a deck holds audio, which is what silences the generator. */
   std::atomic<bool> player_has_source{false};
   /**
@@ -373,6 +381,41 @@ void render_bridge(void* context, float* const* planar, uint32_t frames) {
     feq_player_render(state->player, planar, frames);
   } else {
     state->source.render(planar, state->channels, frames);
+  }
+
+  /**
+   * The listener's volume, applied here — before the chain, on purpose.
+   *
+   * On the element path the volume lives on the `<audio>` element, and an
+   * element routed through `createMediaElementSource` applies it to what
+   * reaches the graph. So the chain has always seen post-volume audio, and the
+   * compressor and limiter have always responded to it. Applying it after the
+   * chain instead would be a defensible design and a different one, and the two
+   * engines would stop matching the moment a dynamics stage was armed.
+   *
+   * Mirrored at all because the elements are MUTED while the native engine is
+   * audible: without this the fader moved and nothing happened, which is the
+   * whole feature missing rather than a subtlety.
+   *
+   * Ramped across the block rather than stepped. A fader dragged across its
+   * range sends a change every few milliseconds and a step per block is a click
+   * per block — audible as a zip up the side of the sound. This is the
+   * animation's own duration, not a timer standing in for a race.
+   */
+  const float target = state->volume.load(std::memory_order_relaxed);
+  const float from = state->volume_now;
+  if (from != target || target != 1.0f) {
+    const float step =
+        frames > 0 ? (target - from) / static_cast<float>(frames) : 0.0f;
+    for (uint32_t channel = 0; channel < state->channels; ++channel) {
+      float running = from;
+      float* samples = planar[channel];
+      for (uint32_t at = 0; at < frames; ++at) {
+        running += step;
+        samples[at] *= running;
+      }
+    }
+    state->volume_now = target;
   }
 
   /**
@@ -928,6 +971,19 @@ int main(int argc, char** argv) {
         }
         send_ack(frame.request_id, FEQ_WIRE_APPLIED, frame.settings_revision, 0,
                  gains[0]);
+        break;
+      }
+
+      case FEQ_CMD_SET_VOLUME: {
+        // Clamped here as well as in the renderer. A gain above one is a
+        // listener asking to clip, and a non-finite one silences the track for
+        // as long as it takes somebody to notice.
+        const double wanted = frame.value;
+        const float clamped = static_cast<float>(
+            !(wanted >= 0.0) ? 0.0 : (wanted > 1.0 ? 1.0 : wanted));
+        state.volume.store(clamped, std::memory_order_relaxed);
+        send_ack(frame.request_id, FEQ_WIRE_APPLIED, frame.settings_revision, 0,
+                 static_cast<double>(clamped));
         break;
       }
 

@@ -457,6 +457,7 @@ export const LibraryPlayerProvider = ({
     mediaPath: track?.path,
     isPlaying,
     positionMs,
+    volume,
   });
 
   /** The object URL currently backing the element, so it can be revoked when

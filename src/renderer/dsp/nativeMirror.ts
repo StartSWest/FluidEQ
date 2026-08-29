@@ -42,6 +42,15 @@ export interface INativeMirrorState {
   mediaPath: string | undefined;
   isPlaying: boolean;
   positionMs: number;
+  /**
+   * The listener's fader, 0 to 1.
+   *
+   * Belongs here for the same reason muting does: it is a property of the
+   * element that the host has to take over while the element is silent. Without
+   * it the fader moved and the sound did not change — the control was simply
+   * not connected to the engine making the noise.
+   */
+  volume: number;
 }
 
 export interface INativeMirror {
@@ -116,6 +125,15 @@ export const createNativeMirror = (
    * that had just faded out.
    */
   let activeDeck = 0;
+  /**
+   * The last volume the host was told, so a tick that changed nothing is silent.
+   *
+   * Starts at a value no fader can hold, so the first sync always sends one:
+   * the host defaults to unity and the element may not be there, and a mirror
+   * that only spoke up on a CHANGE would leave that mismatch until the listener
+   * happened to touch the control.
+   */
+  let toldVolume = -1;
   /** What the host was last told, so a tick that changed nothing sends nothing. */
   let toldPositionMs = 0;
   /**
@@ -184,7 +202,14 @@ export const createNativeMirror = (
   };
 
   return {
-    sync: ({ mediaPath, isPlaying, positionMs }) => {
+    sync: ({ mediaPath, isPlaying, positionMs, volume }) => {
+      // Before the track checks below, because a track change returns early and
+      // the fader must still reach the host on the tick that changed it.
+      if (volume !== toldVolume) {
+        toldVolume = volume;
+        controller.transport.setVolume(volume).catch(() => undefined);
+      }
+
       if (mediaPath !== loadedPath) {
         loadedPath = mediaPath;
         // Both halves, always together: a position without the moment it was

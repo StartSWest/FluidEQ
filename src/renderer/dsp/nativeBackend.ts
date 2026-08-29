@@ -49,6 +49,7 @@ export interface INativeBackendBridge {
     inputGainDb: number,
     masterLoudnessGainDb: number,
   ) => Promise<boolean>;
+  setDspHostVolume: (volume: number) => Promise<boolean>;
 }
 
 export interface INativeBackendController {
@@ -98,6 +99,13 @@ export interface INativeTransport {
     inputGainDb: number,
     masterLoudnessGainDb: number,
   ) => Promise<boolean>;
+  /**
+   * The listener volume, 0 to 1.
+   *
+   * Part of the transport rather than the chain: it is the player fader, not a
+   * DSP setting, and it belongs to the same object that owns play and seek.
+   */
+  setVolume: (volume: number) => Promise<boolean>;
 }
 
 export const createNativeBackendController = (
@@ -164,6 +172,7 @@ export const createNativeBackendController = (
       pause: () => bridge.pauseDspHost(),
       seek: (deck, seconds) => bridge.seekDspHostDeck(deck, seconds),
       select: (deck) => bridge.selectDspHostDeck(deck),
+      setVolume: (volume) => bridge.setDspHostVolume(volume),
       crossfade: (toDeck, durationMs, curveIndex) =>
         bridge.crossfadeDspHost(toDeck, durationMs, curveIndex),
       setTrackGains: (inputGainDb, masterLoudnessGainDb) =>
