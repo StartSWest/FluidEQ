@@ -170,14 +170,33 @@ void test_plays_what_was_loaded() {
   check(silent, "a stopped player emits silence, not the buffer");
 
   feq_player_set_playing(player, 1);
+
+  /**
+   * Past the soft start before the samples are compared.
+   *
+   * Playback now enters over eighty milliseconds — 3840 frames — so the opening
+   * blocks are deliberately scaled and comparing them to the file would be
+   * comparing against the ramp. Eight blocks clears it, and checking the block
+   * AFTER that is a stronger claim than the original anyway: it says the frames
+   * are still in order once playback is properly under way, rather than only at
+   * the first sample.
+   */
+  constexpr uint32_t kRampBlocks = 8;
+  for (uint32_t index = 0; index < kRampBlocks; ++index) {
+    feq_player_pump(player);
+    feq_player_render(player, block.pointers.data(), 512);
+  }
+  feq_player_pump(player);
   feq_player_render(player, block.pointers.data(), 512);
+
   bool in_order = true;
   for (uint32_t at = 0; at < 512; ++at) {
-    const double expected = static_cast<double>(at) / 1000000.0;
+    const double expected =
+        static_cast<double>(kRampBlocks * 512 + at) / 1000000.0;
     in_order = in_order && std::fabs(static_cast<double>(block.storage[at]) -
                                      expected) < 1e-7;
   }
-  check(in_order, "the first block is the file's first frames, in order");
+  check(in_order, "the file's frames arrive in order once playing");
 
   feq_player_destroy(player);
 }
@@ -201,15 +220,30 @@ void test_seek_drops_what_was_read_ahead() {
    * second and then jump, which is the shape of the bug this checks for.
    */
   check(feq_player_seek(player, 0, 5.0) != 0, "a seek is accepted");
+
+  /**
+   * Read past the soft start, which a seek arms for the same reason play does.
+   *
+   * A seek lands the playhead on a sample that is almost never zero, so the
+   * output would step to it in one frame — a click, and the element path fades
+   * over 70 ms to avoid exactly that. The first blocks after a seek are
+   * therefore scaled, and the position has to be read once the ramp is done.
+   */
+  constexpr uint32_t kRampBlocks = 8;
+  for (uint32_t index = 0; index < kRampBlocks; ++index) {
+    feq_player_pump(player);
+    feq_player_render(player, block.pointers.data(), 512);
+  }
   feq_player_pump(player);
   feq_player_render(player, block.pointers.data(), 512);
 
-  const double expected = 5.0 * 48000.0 / 1000000.0;
+  const double expected =
+      (5.0 * 48000.0 + kRampBlocks * 512) / 1000000.0;
   const double landed = static_cast<double>(block.storage[0]);
   std::printf("       landed at frame %.0f, wanted %.0f\n", landed * 1000000.0,
               expected * 1000000.0);
   check(std::fabs(landed - expected) < 1e-6,
-        "the next block starts where the seek asked, not a second later");
+        "playback continues from where the seek asked, not a second later");
   check(feq_player_position_seconds(player, 0) > 4.9 &&
             feq_player_position_seconds(player, 0) < 5.2,
         "and the reported position agrees");
@@ -333,10 +367,73 @@ void test_rate_conversion_in_the_deck() {
   feq_player_destroy(player);
 }
 
+/**
+ * Playback enters softly rather than stepping straight to mid-waveform.
+ *
+ * A decoder handed a file starts at whatever sample the playhead landed on, and
+ * that sample is almost never zero — so without a ramp the output goes from
+ * silence to full in one frame, which is a click. The element path has always
+ * covered this by fading `element.volume` over eighty milliseconds; on the
+ * native engine the element is muted, so that ramp reached nothing and the
+ * click was audible on every track change and every scrub.
+ */
+void test_soft_start() {
+  std::printf("entering softly\n");
+  const FeqDecoderOps ops = generating_ops();
+  FeqPlayer* player = feq_player_create(48000.0, 2, 512, 96000, &ops);
+  // A tone that begins at its own peak, so an unramped entry is the worst case
+  // rather than an accident of where the waveform happened to be.
+  feq_player_load(player, 0, "tone:48000:480000:1000");
+  feq_player_set_playing(player, 1);
+  feq_player_pump(player);
+
+  Block block(512);
+  feq_player_render(player, block.pointers.data(), 512);
+
+  /**
+   * The first sample must be near zero and the block must grow.
+   *
+   * Both halves matter: a player that had simply gone silent would satisfy the
+   * first on its own, so the level a little later has to be higher.
+   */
+  const float first = std::fabs(block.pointers[0][0]);
+  float early = 0.0f;
+  for (uint32_t at = 0; at < 64; ++at) {
+    early = std::fmax(early, std::fabs(block.pointers[0][at]));
+  }
+  std::printf("       first sample %.5f, first 64 peak %.5f\n",
+              static_cast<double>(first), static_cast<double>(early));
+  check(first < 0.01f, "the very first sample is close to silence");
+
+  // Eighty milliseconds is 3840 frames, so the ramp is still climbing here.
+  float late = 0.0f;
+  for (uint32_t block_index = 0; block_index < 12; ++block_index) {
+    feq_player_pump(player);
+    feq_player_render(player, block.pointers.data(), 512);
+    for (uint32_t at = 0; at < 512; ++at) {
+      late = std::fmax(late, std::fabs(block.pointers[0][at]));
+    }
+  }
+  std::printf("       peak after the ramp %.5f\n", static_cast<double>(late));
+  check(late > early * 4.0f, "and the level climbs rather than staying down");
+
+  /**
+   * The positive control for the check above.
+   *
+   * "Quiet at the start" is also what a broken player produces, so the tone has
+   * to reach a real level once the ramp is done — otherwise both checks pass on
+   * a player that outputs nothing at all.
+   */
+  check(late > 0.2f, "reaching a real level, so this is a ramp not a fault");
+
+  feq_player_destroy(player);
+}
+
 }  // namespace
 
 int main() {
   std::printf("fluideq player\n");
+  test_soft_start();
   test_plays_what_was_loaded();
   test_seek_drops_what_was_read_ahead();
   test_crossfade_between_decks();

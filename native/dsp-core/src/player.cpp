@@ -70,6 +70,26 @@ struct FeqPlayer {
   /** The deck the running fade is heading for. */
   std::atomic<uint32_t> incoming{0};
 
+  /**
+   * A soft entry when playback begins somewhere other than silence.
+   *
+   * A decoder handed a file starts at whatever sample the playhead landed on,
+   * and that sample is almost never zero — so the output steps from silence to
+   * mid-waveform in one frame, which is a click. The element path has always
+   * covered this by ramping `element.volume` over 70-80 ms on start and after a
+   * seek; on the native engine the element is muted and that ramp reached
+   * nothing, so the click was audible on every track change and every scrub.
+   *
+   * Armed by the control thread on play and on seek, and counted down by the
+   * audio thread. Request-and-seen counters rather than a flag, which is the
+   * idiom the deck flush already uses here: a flag can be set and cleared
+   * between two blocks and the ramp would simply never happen.
+   */
+  std::atomic<uint64_t> soft_start_request{0};
+  uint64_t soft_start_seen = 0;
+  uint32_t soft_start_remaining = 0;
+  uint32_t soft_start_frames = 0;
+
   /** Audio-thread scratch for the two decks, allocated once. */
   std::vector<float> mix_storage[FEQ_PLAYER_DECKS];
   std::vector<float*> mix_pointers[FEQ_PLAYER_DECKS];
@@ -169,6 +189,38 @@ uint32_t fill_deck(FeqPlayer* player, Deck& deck) {
 }
 
 /** Consumer side, on the audio thread. Applies any pending seek first. */
+/**
+ * Ramp the block up from wherever the entry left off, if one is running.
+ *
+ * Linear over roughly eighty milliseconds, which is what the element path uses
+ * and long enough that a step at any waveform position is inaudible. Nothing at
+ * all when no entry is armed, which is every block but a handful per track.
+ *
+ * Applied to the finished output, so during a crossfade it attenuates the mix
+ * rather than one deck of it — otherwise a fade that began at the same moment
+ * as a seek would have the two curves multiplied on one side only.
+ */
+void apply_soft_start(FeqPlayer* player, float* const* channels,
+                      uint32_t frames) {
+  if (player->soft_start_remaining == 0 || player->soft_start_frames == 0) {
+    return;
+  }
+  const auto total = static_cast<double>(player->soft_start_frames);
+  const uint32_t span =
+      frames < player->soft_start_remaining ? frames : player->soft_start_remaining;
+  for (uint32_t at = 0; at < span; ++at) {
+    // Where this sample sits in the ramp, counted from the end so that a block
+    // boundary cannot restart it.
+    const double done =
+        total - static_cast<double>(player->soft_start_remaining - at);
+    const auto gain = static_cast<float>(done / total);
+    for (uint32_t channel = 0; channel < player->channels; ++channel) {
+      channels[channel][at] *= gain;
+    }
+  }
+  player->soft_start_remaining -= span;
+}
+
 void read_deck(Deck& deck, float* const* output, uint32_t frames) {
   const uint64_t request = deck.flush_request.load(std::memory_order_acquire);
   if (request != deck.flush_seen) {
@@ -205,6 +257,14 @@ FeqPlayer* feq_player_create(double output_rate,
                            ? maximum_block_frames * 4
                            : read_ahead_frames;
   player->ops = *ops;
+  /**
+   * Eighty milliseconds, matching `TRACK_FADE_IN_MS` on the element path.
+   *
+   * The same number rather than a rounder one, because the two engines are
+   * compared by ear and an entry that is visibly softer or sharper on one of
+   * them is a difference a listener would attribute to the DSP.
+   */
+  player->soft_start_frames = static_cast<uint32_t>(output_rate * 0.08);
   feq_crossfader_init(&player->fader);
 
   for (uint32_t index = 0; index < FEQ_PLAYER_DECKS; ++index) {
@@ -301,6 +361,9 @@ int feq_player_seek(FeqPlayer* player, uint32_t deck_index, double seconds) {
   // exactly what was decoded for the old position and keeps what follows.
   deck.flush_to.store(deck.ring.write_cursor(), std::memory_order_release);
   deck.flush_request.fetch_add(1, std::memory_order_acq_rel);
+  // The playhead has moved to a sample that is almost certainly not zero, and
+  // the block after this one would step straight to it.
+  player->soft_start_request.fetch_add(1, std::memory_order_acq_rel);
   return 1;
 }
 
@@ -322,8 +385,16 @@ uint32_t feq_player_pump(FeqPlayer* player) {
 }
 
 void feq_player_set_playing(FeqPlayer* player, int playing) {
-  if (player != nullptr) {
-    player->playing.store(playing != 0 ? 1 : 0, std::memory_order_release);
+  if (player == nullptr) {
+    return;
+  }
+  const int wanted = playing != 0 ? 1 : 0;
+  const int before = player->playing.exchange(wanted, std::memory_order_acq_rel);
+  if (wanted != 0 && before == 0) {
+    // Entering playback, which is the other moment output arrives mid-waveform.
+    // Only on the transition: a redundant "play" while already playing would
+    // otherwise duck the sound for no reason a listener could name.
+    player->soft_start_request.fetch_add(1, std::memory_order_acq_rel);
   }
 }
 
@@ -441,8 +512,24 @@ void feq_player_render(FeqPlayer* player, float* const* channels,
     return;
   }
 
+  /**
+   * The soft entry, armed by `set_playing` and by `seek`.
+   *
+   * Taken before the output is produced rather than after, so the countdown
+   * below covers this block's own samples — and applied at the very end of the
+   * function to whatever was produced, mixed or not, because a fade running
+   * during a crossfade must attenuate the RESULT rather than one side of it.
+   */
+  const uint64_t soft_request =
+      player->soft_start_request.load(std::memory_order_acquire);
+  if (soft_request != player->soft_start_seen) {
+    player->soft_start_seen = soft_request;
+    player->soft_start_remaining = player->soft_start_frames;
+  }
+
   if (!fading) {
     read_deck(player->decks[active], channels, frames);
+    apply_soft_start(player, channels, frames);
     return;
   }
 
@@ -496,6 +583,8 @@ void feq_player_render(FeqPlayer* player, float* const* channels,
       reinterpret_cast<const float* const*>(player->mix_pointers[1].data());
   feq_crossfader_mix(&player->fader, outgoing, arriving, channels,
                      player->channels, frames);
+
+  apply_soft_start(player, channels, frames);
 
   if (player->fader.active == 0) {
     // Promoted here rather than by the caller. An index swap costs nothing,
