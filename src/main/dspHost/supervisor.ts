@@ -25,6 +25,7 @@ import {
   DSP_DIAGNOSTIC_CODES,
   DSP_DIAGNOSTIC_SCHEMA_VERSION,
   IDspDiagnosticEvent,
+  TDspDiagnosticSeverity,
   TDspDiagnosticCode,
 } from '../../common/dsp/diagnostics';
 import { FrameReader } from './transport';
@@ -36,6 +37,7 @@ import {
   HOST_WIRE_PROTOCOL_VERSION,
   IHostAck,
   IHostHandshake,
+  IHostAnalysis,
   IHostTelemetry,
   THostCommand,
   encodeCommand,
@@ -49,6 +51,8 @@ export interface IDspHostOptions {
   /** How many parameters this build of the renderer knows about. */
   expectedParameterCount: number;
   onTelemetry?: (telemetry: IHostTelemetry) => void;
+  /** Only ever set while a renderer has the DSP panel open. */
+  onAnalysis?: (analysis: IHostAnalysis) => void;
   onDiagnostic?: (event: IDspDiagnosticEvent) => void;
   onStateChange?: (state: TDspHostState) => void;
 }
@@ -354,6 +358,20 @@ export class DspHostSupervisor {
     return ack.status === HOST_STATUS.applied;
   }
 
+  /**
+   * Ask the host to measure what the panel draws, or to stop.
+   *
+   * Off is the default and the usual state. Three transforms and a scope window
+   * per block is real work, and the DSP tab is one of several — a user who
+   * never opens it should not pay for the graphs in it.
+   */
+  async setAnalysis(enabled: boolean): Promise<boolean> {
+    const ack = await this.send(HOST_COMMANDS.setAnalysis, {
+      parameterId: enabled ? 1 : 0,
+    });
+    return ack.status === HOST_STATUS.applied;
+  }
+
   private setState(next: TDspHostState): void {
     if (this.state === next) {
       return;
@@ -362,16 +380,40 @@ export class DspHostSupervisor {
     this.options.onStateChange?.(next);
   }
 
+  /**
+   * The host's own last words, for any diagnostic that needs a reason.
+   *
+   * The C++ side already writes real sentences — "the output device does not
+   * mix in 32-bit float", "no default output device" — and they already reach
+   * this process on stderr. They simply never travelled with the event, so a
+   * support report arrived as `code: 3003, values: { code: 0 }`, which says
+   * that something failed and nothing whatever about what.
+   *
+   * Trimmed and joined rather than sent as an array, because this ends up in a
+   * log line and a nested array renders as `[Object]` in most of them.
+   */
+  private stderrDetail(): string {
+    return this.stderrTail
+      .map((line) => line.trim())
+      .filter((line) => line.length > 0)
+      .join(' | ');
+  }
+
   private report(
     code: TDspDiagnosticCode,
     values: Record<string, string | number | boolean | null>,
+    severity: TDspDiagnosticSeverity = 'error',
   ): void {
+    const detail = this.stderrDetail();
     this.options.onDiagnostic?.({
       schemaVersion: DSP_DIAGNOSTIC_SCHEMA_VERSION,
       code,
-      severity: 'error',
+      severity,
       origin: 'native',
-      values,
+      // The host's own message, whenever it left one. Absent rather than an
+      // empty string when it did not, so a log line does not carry a field
+      // that says nothing.
+      values: detail ? { ...values, detail } : values,
     });
   }
 
@@ -435,6 +477,7 @@ export class DspHostSupervisor {
           },
           onAck: (ack) => this.settle(ack),
           onTelemetry: (telemetry) => this.options.onTelemetry?.(telemetry),
+          onAnalysis: (analysis) => this.options.onAnalysis?.(analysis),
           onDesynchronised: (magic) => {
             clearTimeout(timer);
             this.fail(DSP_DIAGNOSTIC_CODES.hostStreamDesynchronised, {
@@ -533,7 +576,23 @@ export class DspHostSupervisor {
       return;
     }
 
-    this.report(DSP_DIAGNOSTIC_CODES.hostExited, { code });
+    /**
+     * A clean exit is not a fault, and reporting it as one was misleading.
+     *
+     * Zero is what the host returns when its stdin closes, which is exactly
+     * what happens every time the main process is replaced — an `electronmon`
+     * restart in development, or an ordinary quit. That was arriving as
+     * `severity: 'error'` with `code: 0`, so the panel showed its "the native
+     * engine could not start" notice for a host that had shut down correctly.
+     *
+     * Non-zero still means the host died on its own, which is a real fault and
+     * keeps its severity.
+     */
+    this.report(
+      DSP_DIAGNOSTIC_CODES.hostExited,
+      { code },
+      code === 0 ? 'info' : 'error',
+    );
 
     const now = Date.now();
     this.restartTimes = this.restartTimes.filter(

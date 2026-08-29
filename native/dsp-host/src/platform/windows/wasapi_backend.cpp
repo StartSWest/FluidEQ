@@ -22,6 +22,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "../../audio_backend.h"
 
 #include <atomic>
+#include <cstdio>
+#include <string>
 #include <thread>
 #include <vector>
 
@@ -37,6 +39,25 @@ SPDX-License-Identifier: GPL-3.0-or-later
 using Microsoft::WRL::ComPtr;
 
 namespace {
+
+/**
+ * The failure, and the code the system gave for it.
+ *
+ * "the output device refused to activate" says which call failed; `0x8889000A`
+ * says the device is already in exclusive use by another application, and
+ * `0x88890004` says it was unplugged. Those are different problems with
+ * different answers, and without the code a support report cannot tell them
+ * apart — the message alone sends everybody down the same wrong path.
+ *
+ * Hex because every Microsoft page documenting an `AUDCLNT_E_` value writes it
+ * that way, so the number can be pasted into a search and found.
+ */
+std::string with_code(const char* what, HRESULT result) {
+  char buffer[160];
+  std::snprintf(buffer, sizeof(buffer), "%s (0x%08lX)", what,
+                static_cast<unsigned long>(result));
+  return std::string(buffer);
+}
 
 /**
  * How much buffer to ask the engine for, in 100-nanosecond units.
@@ -152,19 +173,23 @@ class WasapiBackend final : public IAudioOutputBackend {
     }
 
     ComPtr<IMMDeviceEnumerator> enumerator;
-    if (FAILED(CoCreateInstance(__uuidof(MMDeviceEnumerator), nullptr,
-                                CLSCTX_ALL, IID_PPV_ARGS(&enumerator)))) {
-      error = "no audio endpoint enumerator";
+    const HRESULT created = CoCreateInstance(
+        __uuidof(MMDeviceEnumerator), nullptr, CLSCTX_ALL,
+        IID_PPV_ARGS(&enumerator));
+    if (FAILED(created)) {
+      error = with_code("no audio endpoint enumerator", created);
       return false;
     }
-    if (FAILED(enumerator->GetDefaultAudioEndpoint(eRender, eConsole,
-                                                   &device_))) {
-      error = "no default output device";
+    const HRESULT endpoint =
+        enumerator->GetDefaultAudioEndpoint(eRender, eConsole, &device_);
+    if (FAILED(endpoint)) {
+      error = with_code("no default output device", endpoint);
       return false;
     }
-    if (FAILED(device_->Activate(__uuidof(IAudioClient), CLSCTX_ALL, nullptr,
-                                 &client_))) {
-      error = "the output device refused to activate";
+    const HRESULT activated = device_->Activate(
+        __uuidof(IAudioClient), CLSCTX_ALL, nullptr, &client_);
+    if (FAILED(activated)) {
+      error = with_code("the output device refused to activate", activated);
       return false;
     }
 
@@ -192,7 +217,9 @@ class WasapiBackend final : public IAudioOutputBackend {
       return false;
     }
     if (FAILED(initialised)) {
-      error = "the output device refused the shared-mode format";
+      error =
+          with_code("the output device refused the shared-mode format",
+                    initialised);
       return false;
     }
 

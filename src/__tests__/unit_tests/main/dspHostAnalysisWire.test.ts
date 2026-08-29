@@ -1,0 +1,280 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+/**
+ * The one frame in this protocol whose length lives inside itself.
+ *
+ * Every other frame the host sends is a fixed struct with a fixed size, which
+ * is what makes a desynchronised stream obvious rather than merely wrong. The
+ * analysis frame cannot be: three spectra are twelve kilobytes and a frame
+ * padded to hold them would make every silent moment cost what a loud one does.
+ *
+ * That buys a real hazard. If the reader computes the length wrongly by even
+ * one byte it does not drop a frame — it takes the next frame's first bytes as
+ * spectrum, and every frame after that is misread. A pipe hands over whatever
+ * the OS felt like giving, so the arithmetic has to hold when a frame arrives
+ * in one chunk, in two, or a byte at a time.
+ */
+import { FrameReader } from '../../../main/dspHost/transport';
+import {
+  ANALYSIS_BINS,
+  ANALYSIS_HEADER_BYTES,
+  ANALYSIS_SCOPE_PAIRS,
+  ANALYSIS_STAGES,
+  IHostAnalysis,
+  MAGIC_ANALYSIS,
+  MAGIC_TELEMETRY,
+  TELEMETRY_BYTES,
+  analysisFrameLength,
+  decodeAnalysis,
+} from '../../../main/dspHost/wire';
+
+/** An analysis frame exactly as the host lays one out. */
+const buildAnalysis = (options: {
+  stages: readonly (typeof ANALYSIS_STAGES)[number][];
+  withScope: boolean;
+  sequence?: number;
+  correlation?: number;
+  peaks?: readonly [number, number];
+  fill?: (stageIndex: number, bin: number) => number;
+}): Buffer => {
+  const stageMask = options.stages.reduce(
+    // The wire field IS a bit mask; the arithmetic spelling is less readable.
+    // eslint-disable-next-line no-bitwise
+    (mask, stage) => mask | (1 << ANALYSIS_STAGES.indexOf(stage)),
+    0,
+  );
+  const pairs = options.withScope ? ANALYSIS_SCOPE_PAIRS : 0;
+  const bytes =
+    ANALYSIS_HEADER_BYTES +
+    options.stages.length * ANALYSIS_BINS * 4 +
+    pairs * 2 * 4;
+  const frame = Buffer.alloc(bytes);
+  frame.writeUInt32LE(MAGIC_ANALYSIS, 0);
+  frame.writeUInt32LE(options.sequence ?? 1, 4);
+  frame.writeUInt32LE(stageMask, 8);
+  frame.writeUInt32LE(ANALYSIS_BINS, 12);
+  frame.writeUInt32LE(pairs, 16);
+  frame.writeUInt32LE(0, 20);
+  frame.writeDoubleLE(options.correlation ?? 0.5, 24);
+  frame.writeFloatLE(options.peaks?.[0] ?? 0.25, 32);
+  frame.writeFloatLE(options.peaks?.[1] ?? 0.75, 36);
+
+  let at = ANALYSIS_HEADER_BYTES;
+  options.stages.forEach((_stage, index) => {
+    for (let bin = 0; bin < ANALYSIS_BINS; bin += 1) {
+      frame.writeFloatLE(options.fill ? options.fill(index, bin) : -60, at);
+      at += 4;
+    }
+  });
+  for (let sample = 0; sample < pairs * 2; sample += 1) {
+    frame.writeFloatLE(sample / 1000, at);
+    at += 4;
+  }
+  return frame;
+};
+
+const telemetryFrame = (): Buffer => {
+  const frame = Buffer.alloc(TELEMETRY_BYTES);
+  frame.writeUInt32LE(MAGIC_TELEMETRY, 0);
+  return frame;
+};
+
+const collectingReader = () => {
+  const analyses: IHostAnalysis[] = [];
+  const desynchronised: number[] = [];
+  let telemetry = 0;
+  const reader = new FrameReader({
+    onHandshake: () => undefined,
+    onAck: () => undefined,
+    onTelemetry: () => {
+      telemetry += 1;
+    },
+    onAnalysis: (analysis) => analyses.push(analysis),
+    onDesynchronised: (magic) => desynchronised.push(magic),
+  });
+  return {
+    reader,
+    analyses,
+    desynchronised,
+    telemetryCount: () => telemetry,
+  };
+};
+
+describe('the analysis frame length', () => {
+  it('counts one stage and no scope', () => {
+    const frame = buildAnalysis({ stages: ['eq'], withScope: false });
+    expect(analysisFrameLength(frame)).toBe(
+      ANALYSIS_HEADER_BYTES + ANALYSIS_BINS * 4,
+    );
+    expect(frame.length).toBe(analysisFrameLength(frame));
+  });
+
+  it('counts all three stages and the scope', () => {
+    const frame = buildAnalysis({
+      stages: [...ANALYSIS_STAGES],
+      withScope: true,
+    });
+    expect(analysisFrameLength(frame)).toBe(
+      ANALYSIS_HEADER_BYTES + 3 * ANALYSIS_BINS * 4 + ANALYSIS_SCOPE_PAIRS * 8,
+    );
+    expect(frame.length).toBe(analysisFrameLength(frame));
+  });
+
+  /**
+   * A header this build cannot read refuses the stream rather than guessing.
+   *
+   * The length is how the next frame is found at all, so a header that cannot
+   * be trusted has already lost the stream. Skipping "just this frame" would
+   * resume reading in the middle of one and misread every frame after it.
+   */
+  it('refuses a bin count it does not recognise', () => {
+    const frame = buildAnalysis({ stages: ['eq'], withScope: false });
+    frame.writeUInt32LE(777, 12);
+    expect(analysisFrameLength(frame)).toBe(0);
+  });
+
+  it('refuses a stage bit that names no stage', () => {
+    const frame = buildAnalysis({ stages: ['eq'], withScope: false });
+    frame.writeUInt32LE(0xffff, 8);
+    expect(analysisFrameLength(frame)).toBe(0);
+  });
+
+  it('refuses a scope size that is neither absent nor the agreed one', () => {
+    const frame = buildAnalysis({ stages: ['eq'], withScope: true });
+    frame.writeUInt32LE(7, 16);
+    expect(analysisFrameLength(frame)).toBe(0);
+  });
+});
+
+describe('decoding an analysis frame', () => {
+  it('reads back the stages that were written, and only those', () => {
+    const frame = buildAnalysis({
+      stages: ['exciter', 'master'],
+      withScope: false,
+      fill: (stageIndex, bin) => stageIndex * 1000 + bin,
+    });
+    const decoded = decodeAnalysis(frame);
+    expect(decoded).toBeDefined();
+    expect(Object.keys(decoded?.spectra ?? {}).sort()).toEqual([
+      'exciter',
+      'master',
+    ]);
+    // Written in stage order, so the second stage present is `master` and its
+    // values must be the second block — not the first read twice.
+    expect(decoded?.spectra.exciter?.[5]).toBeCloseTo(5, 5);
+    expect(decoded?.spectra.master?.[5]).toBeCloseTo(1005, 5);
+    expect(decoded?.scatter).toBeUndefined();
+  });
+
+  it('reads the scope, the correlation and the peaks', () => {
+    const frame = buildAnalysis({
+      stages: ['eq'],
+      withScope: true,
+      correlation: -0.25,
+      peaks: [0.5, 0.125],
+    });
+    const decoded = decodeAnalysis(frame);
+    expect(decoded?.correlation).toBeCloseTo(-0.25, 6);
+    expect(decoded?.peaks[0]).toBeCloseTo(0.5, 6);
+    expect(decoded?.peaks[1]).toBeCloseTo(0.125, 6);
+    expect(decoded?.scatter?.length).toBe(ANALYSIS_SCOPE_PAIRS * 2);
+  });
+
+  /**
+   * Copied out of the transport's buffer, not viewed into it.
+   *
+   * `frame` is a subarray of a buffer the reader reassigns as the next chunk
+   * arrives, so a view would be a window onto bytes that are about to become a
+   * different frame — values changing under the renderer between one animation
+   * frame and the next, which reads as noise in the spectrum.
+   */
+  it('does not alias the buffer it was decoded from', () => {
+    const frame = buildAnalysis({
+      stages: ['eq'],
+      withScope: false,
+      fill: () => 1,
+    });
+    const decoded = decodeAnalysis(frame);
+    frame.fill(0, ANALYSIS_HEADER_BYTES);
+    expect(decoded?.spectra.eq?.[0]).toBeCloseTo(1, 6);
+  });
+
+  it('refuses a frame whose payload is short of its own header', () => {
+    const frame = buildAnalysis({ stages: ['eq'], withScope: false });
+    expect(decodeAnalysis(frame.subarray(0, frame.length - 4))).toBeUndefined();
+  });
+});
+
+describe('reading analysis frames off a pipe', () => {
+  it('takes one delivered whole', () => {
+    const { reader, analyses } = collectingReader();
+    reader.push(buildAnalysis({ stages: ['eq'], withScope: true }));
+    expect(analyses).toHaveLength(1);
+  });
+
+  /**
+   * The case the fixed-length reader could not have handled.
+   *
+   * Twelve kilobytes will not arrive in one chunk on any real pipe, so this is
+   * the ordinary path rather than an edge case.
+   */
+  it('reassembles one split across many chunks', () => {
+    const { reader, analyses } = collectingReader();
+    const frame = buildAnalysis({
+      stages: [...ANALYSIS_STAGES],
+      withScope: true,
+    });
+    for (let at = 0; at < frame.length; at += 1500) {
+      reader.push(frame.subarray(at, Math.min(at + 1500, frame.length)));
+    }
+    expect(analyses).toHaveLength(1);
+    expect(Object.keys(analyses[0].spectra)).toHaveLength(3);
+  });
+
+  /** Including a split that lands inside the header itself. */
+  it('reassembles one split inside its own header', () => {
+    const { reader, analyses } = collectingReader();
+    const frame = buildAnalysis({ stages: ['master'], withScope: false });
+    reader.push(frame.subarray(0, 6));
+    expect(analyses).toHaveLength(0);
+    reader.push(frame.subarray(6));
+    expect(analyses).toHaveLength(1);
+  });
+
+  /**
+   * The arithmetic that matters: the frame after it must still be found.
+   *
+   * A length wrong by one byte does not lose one frame, it loses every frame
+   * after it — so a fixed-size frame following a variable one is the assertion
+   * that actually proves the size was right.
+   */
+  it('finds the next frame exactly where the analysis frame ends', () => {
+    const { reader, analyses, telemetryCount, desynchronised } =
+      collectingReader();
+    reader.push(
+      Buffer.concat([
+        buildAnalysis({ stages: ['eq', 'master'], withScope: true }),
+        telemetryFrame(),
+        buildAnalysis({ stages: ['exciter'], withScope: false }),
+        telemetryFrame(),
+      ]),
+    );
+    expect(analyses).toHaveLength(2);
+    expect(telemetryCount()).toBe(2);
+    expect(desynchronised).toEqual([]);
+  });
+
+  /** A header that cannot be trusted stops the reader rather than guessing. */
+  it('reports a desynchronised stream on an unreadable header', () => {
+    const { reader, analyses, desynchronised } = collectingReader();
+    const frame = buildAnalysis({ stages: ['eq'], withScope: false });
+    frame.writeUInt32LE(4242, 12);
+    reader.push(frame);
+    expect(analyses).toHaveLength(0);
+    expect(desynchronised).toEqual([MAGIC_ANALYSIS]);
+  });
+});

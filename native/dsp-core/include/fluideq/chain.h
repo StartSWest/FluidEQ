@@ -31,6 +31,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "fluideq/biquad.h"
 #include "fluideq/crossfade.h"
 #include "fluideq/eq.h"
+#include "fluideq/meters.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -235,6 +236,19 @@ void feq_chain_process(FeqChain* chain, float* const* channels,
 
 /** The chain's total added delay in samples, which linear phase dominates. */
 uint32_t feq_chain_latency_frames(const FeqChain* chain);
+
+/**
+ * Hand the chain somewhere to report what the panel draws, or null for none.
+ *
+ * Borrowed, not owned: the host outlives the chain and keeps the meters across
+ * a rebuild, so a display does not blank every time a band is added. The chain
+ * taps three points into it — after the exciter, after the EQ, and at the very
+ * end — because those are the three the renderer actually reads.
+ *
+ * Null is the ordinary state. Nothing in `feq_chain_process` costs anything
+ * when the panel is closed, which is most of the time.
+ */
+void feq_chain_set_meters(FeqChain* chain, FeqMeters* meters);
 
 #ifdef __cplusplus
 }

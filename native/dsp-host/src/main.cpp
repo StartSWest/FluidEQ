@@ -116,6 +116,15 @@ struct HostState {
   /** The whole signal path. Null until a device has told us its rate. */
   FeqChain* chain = nullptr;
   FeqPlayer* player = nullptr;
+  /**
+   * What the panel draws, owned here rather than by the chain.
+   *
+   * Outlives every chain rebuild on purpose. A device that renegotiates its
+   * rate, or a band being added, destroys and rebuilds the chain — and meters
+   * owned by the chain would take the spectrum's smoothing history with them,
+   * so every display in the panel would blank and refill on a settings change.
+   */
+  FeqMeters* meters = nullptr;
   uint32_t sample_rate = kFallbackSampleRate;
   uint32_t channels = kEngineChannels;
   uint32_t block_frames = kFallbackBlockFrames;
@@ -215,6 +224,96 @@ void send_ack(uint32_t request_id,
   ack.applied_at_sample_frame = applied_at;
   ack.sanitized_value = sanitized;
   write_frame(&ack, sizeof(ack));
+}
+
+/**
+ * Send the panel one frame of what the chain just did, if there is any.
+ *
+ * Called from the telemetry thread, which is the whole point: the transforms
+ * happen here rather than in the audio callback. Three 2048-point FFTs is tens
+ * of microseconds of work, and a meter that can cost a dropout is a worse
+ * defect than a meter that does not move.
+ *
+ * Sends nothing at all when no stage has published a new window and the scope
+ * has not either — a repeated frame would be twelve kilobytes down the pipe to
+ * repaint an identical picture.
+ */
+void drain_analysis(HostState& state) {
+  if (state.meters == nullptr || feq_meters_enabled(state.meters) == 0) {
+    return;
+  }
+
+  static thread_local std::vector<float> spectra;
+  static thread_local std::vector<float> scope;
+  spectra.resize(static_cast<size_t>(FEQ_METER_BINS) * FEQ_METER_STAGE_COUNT);
+  scope.resize(static_cast<size_t>(FEQ_METER_SCOPE_PAIRS) * 2);
+
+  uint32_t stage_mask = 0;
+  uint32_t present = 0;
+  for (uint32_t stage = 0; stage < FEQ_METER_STAGE_COUNT; stage += 1) {
+    float* target = spectra.data() + static_cast<size_t>(present) *
+                                         FEQ_METER_BINS;
+    if (feq_meters_read_spectrum(state.meters, stage, target,
+                                 FEQ_METER_BINS) != 0) {
+      stage_mask |= (1u << stage);
+      present += 1;
+    }
+  }
+
+  double correlation = 1.0;
+  float peaks[2] = {0.0f, 0.0f};
+  const int has_scope =
+      feq_meters_read_scope(state.meters, scope.data(), FEQ_METER_SCOPE_PAIRS,
+                            &correlation, peaks);
+
+  if (stage_mask == 0 && has_scope == 0) {
+    return;
+  }
+
+  static uint32_t sequence = 0;
+  sequence += 1;
+
+  FeqWireAnalysisFrame frame{};
+  frame.magic = FEQ_MAGIC_ANALYSIS;
+  frame.sequence = sequence;
+  frame.stage_mask = stage_mask;
+  frame.bins = FEQ_METER_BINS;
+  frame.pairs = has_scope != 0 ? FEQ_METER_SCOPE_PAIRS : 0;
+  frame.correlation = correlation;
+  frame.peak_left = peaks[0];
+  frame.peak_right = peaks[1];
+
+  /**
+   * Assembled whole, then written once, and that is not tidiness.
+   *
+   * `write_frame` locks stdout for the length of one call, so three calls are
+   * three chances for a command acknowledgement from the control thread to land
+   * between this header and its twelve kilobytes of floats. The reader would
+   * take the ack's first bytes as spectrum and never find the stream again —
+   * a desynchronisation that is permanent, not a dropped frame. Every other
+   * frame in this protocol is a single write; this is the only one large enough
+   * to be tempted otherwise.
+   */
+  static thread_local std::vector<unsigned char> packet;
+  const size_t spectrum_bytes =
+      sizeof(float) * static_cast<size_t>(present) * FEQ_METER_BINS;
+  const size_t scope_bytes =
+      has_scope != 0
+          ? sizeof(float) * static_cast<size_t>(FEQ_METER_SCOPE_PAIRS) * 2
+          : 0;
+  packet.resize(sizeof(frame) + spectrum_bytes + scope_bytes);
+
+  size_t at = 0;
+  std::memcpy(packet.data() + at, &frame, sizeof(frame));
+  at += sizeof(frame);
+  if (spectrum_bytes > 0) {
+    std::memcpy(packet.data() + at, spectra.data(), spectrum_bytes);
+    at += spectrum_bytes;
+  }
+  if (scope_bytes > 0) {
+    std::memcpy(packet.data() + at, scope.data(), scope_bytes);
+  }
+  write_frame(packet.data(), packet.size());
 }
 
 void drain_telemetry(HostState& state, const IAudioOutputBackend& backend) {
@@ -408,6 +507,9 @@ bool rebuild_chain_and_player(HostState& state, const FeqDecoderOps& ops) {
     return false;
   }
   feq_chain_configure(chain, &state.chain_settings);
+  // Re-attached rather than recreated, so the panel's displays carry across a
+  // rebuild instead of blanking every time a band moves.
+  feq_chain_set_meters(chain, state.meters);
 
   // Two seconds of read-ahead per deck. Long enough that a decoder thread
   // descheduled for a moment cannot starve the callback, short enough that a
@@ -478,6 +580,20 @@ int main(int argc, char** argv) {
     return 1;
   }
 
+  /**
+   * Allocated once for the life of the process, and switched off.
+   *
+   * Off because the DSP tab is one of several and is usually closed; the
+   * renderer turns it on when the panel mounts. Allocated up front because the
+   * alternative is allocating buffers on the first block after a command,
+   * which is the audio thread's problem and not the control thread's.
+   *
+   * A null result is not fatal. The meters are a display; an engine that
+   * refused to start over a spectrum would be a worse trade than a panel with
+   * still graphs, and `capture` already treats null as "nobody is looking".
+   */
+  state.meters = feq_meters_create(state.channels);
+
   std::unique_ptr<IAudioOutputBackend> backend =
       create_audio_backend(&render_bridge, &state);
   /**
@@ -515,6 +631,10 @@ int main(int argc, char** argv) {
   std::thread telemetry([&] {
     while (publishing.load(std::memory_order_acquire)) {
       drain_telemetry(state, *backend);
+      // Same thread as telemetry, deliberately: this is where the transforms
+      // are allowed to happen, and giving them a thread of their own would add
+      // a second writer to stdout for no gain.
+      drain_analysis(state);
       std::this_thread::sleep_for(
           std::chrono::milliseconds(kTelemetryIntervalMs));
     }
@@ -806,6 +926,14 @@ int main(int argc, char** argv) {
         break;
       }
 
+      case FEQ_CMD_SET_ANALYSIS: {
+        const int wanted = frame.parameter_id != 0 ? 1 : 0;
+        feq_meters_set_enabled(state.meters, wanted);
+        send_ack(frame.request_id, FEQ_WIRE_APPLIED, frame.settings_revision, 0,
+                 static_cast<double>(wanted));
+        break;
+      }
+
       case FEQ_CMD_RENDER_TO_FILE: {
         if (backend->is_running()) {
           // Two producers into one chain interleave their blocks and both
@@ -874,6 +1002,8 @@ int main(int argc, char** argv) {
   // could still be holding a pointer into it.
   feq_player_destroy(state.player);
   feq_chain_destroy(state.chain);
+  // After the chain, which holds a borrowed pointer to it.
+  feq_meters_destroy(state.meters);
   feq_engine_destroy(state.engine);
   return 0;
 }

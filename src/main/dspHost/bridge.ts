@@ -20,7 +20,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { ipcRenderer, IpcRendererEvent } from 'electron';
 import type { IDspDiagnosticEvent } from '../../common/dsp/diagnostics';
 import type { IDspHostStatus } from '../ipc/dspHost';
-import type { IHostTelemetry } from './wire';
+import type { IHostAnalysis, IHostTelemetry } from './wire';
 
 export type { IDspHostStatus };
 
@@ -128,7 +128,17 @@ const loadDspHostDeck = (deck: number, mediaPath: string): Promise<boolean> =>
  * positional numbers and hoping.
  */
 type TDspTransportVerb =
-  'play' | 'pause' | 'select' | 'unload' | 'seek' | 'crossfade' | 'gains';
+  | 'play'
+  | 'pause'
+  | 'select'
+  | 'unload'
+  | 'seek'
+  | 'crossfade'
+  | 'gains'
+  // Not transport in the strict sense, but it belongs on this channel: it is a
+  // one-word instruction to the same host with the same validation in front of
+  // it, and a channel of its own would be ceremony around a boolean.
+  | 'analysis';
 
 const transport = (
   verb: TDspTransportVerb,
@@ -155,6 +165,25 @@ const setDspHostTrackGains = (
   inputGainDb: number,
   masterLoudnessGainDb: number,
 ): Promise<boolean> => transport('gains', 0, inputGainDb, masterLoudnessGainDb);
+
+/**
+ * Ask the host to measure what the panel draws, or to stop.
+ *
+ * Called when the DSP tab mounts and unmounts, and nowhere else. Off is the
+ * default: three transforms and a scope window per block is real work to do for
+ * a picture nobody is looking at.
+ */
+const setDspHostAnalysis = (enabled: boolean): Promise<boolean> =>
+  transport('analysis', 0, enabled ? 1 : 0);
+
+const onDspHostAnalysis = (listener: (frame: IHostAnalysis) => void) => {
+  const wrapped = (_event: IpcRendererEvent, frame: IHostAnalysis) =>
+    listener(frame);
+  ipcRenderer.on('dsp-host-analysis', wrapped);
+  return () => {
+    ipcRenderer.removeListener('dsp-host-analysis', wrapped);
+  };
+};
 
 /**
  * Every process this app is running, labelled by what it does.
@@ -186,6 +215,8 @@ export const dspHostBridge = {
   seekDspHostDeck,
   crossfadeDspHost,
   setDspHostTrackGains,
+  setDspHostAnalysis,
+  onDspHostAnalysis,
   onDspHostTelemetry,
   onDspHostState,
   onDspHostDiagnostic,

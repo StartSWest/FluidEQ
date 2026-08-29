@@ -75,6 +75,7 @@ add_library(fluideq-dsp-core STATIC
   dsp-core/src/linear_phase.cpp
   dsp-core/src/loudness.cpp
   dsp-core/src/crossfade.cpp
+  dsp-core/src/meters.cpp
   dsp-core/src/chain.cpp
   dsp-core/src/chain_eq.cpp
   dsp-core/src/chain_exciter.cpp
@@ -102,6 +103,10 @@ add_test(NAME dsp-core COMMAND fluideq-dsp-core-test)
 add_executable(fluideq-resampler-test dsp-core/tests/resampler_test.cpp)
 target_link_libraries(fluideq-resampler-test PRIVATE fluideq-dsp-core feq_strict)
 add_test(NAME resampler COMMAND fluideq-resampler-test)
+
+add_executable(fluideq-meters-test dsp-core/tests/meters_test.cpp)
+target_link_libraries(fluideq-meters-test PRIVATE fluideq-dsp-core feq_strict)
+add_test(NAME meters COMMAND fluideq-meters-test)
 
 add_executable(fluideq-player-test dsp-core/tests/player_test.cpp)
 target_link_libraries(fluideq-player-test PRIVATE fluideq-dsp-core feq_strict)

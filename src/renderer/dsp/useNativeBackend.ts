@@ -23,6 +23,8 @@ import {
   INativeMirrorState,
   createNativeMirror,
 } from './nativeMirror';
+import { INativeMetersBridge, createNativeMeters } from './nativeMeters';
+import { ANALYSIS_BINS } from '../../common/dsp/analysisWire';
 import {
   setDspNativeState,
   useDspBackend,
@@ -152,6 +154,30 @@ export const useNativeBackend = (
   return backend === 'native' && nativeState === 'engaged'
     ? controllerRef.current
     : undefined;
+};
+
+/**
+ * Point the panel's graphs at the native engine while it is the audible one.
+ *
+ * Keyed on the controller, so it lives exactly as long as the engine it
+ * reports on: the analysers are registered when the host engages and cleared
+ * when it lets go. Any other lifetime leaves the panel drawing a frozen frame
+ * from an engine that has stopped, which is the same defect this fixes.
+ */
+export const useNativeMeters = (
+  controller: INativeBackendController | undefined,
+): void => {
+  useEffect(() => {
+    if (!controller) {
+      return undefined;
+    }
+    const bridge = bridgeOf() as unknown as INativeMetersBridge | undefined;
+    if (typeof bridge?.onDspHostAnalysis !== 'function') {
+      return undefined;
+    }
+    const meters = createNativeMeters(bridge, ANALYSIS_BINS);
+    return () => meters.release();
+  }, [controller]);
 };
 
 /**

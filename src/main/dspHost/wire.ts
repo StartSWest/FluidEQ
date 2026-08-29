@@ -16,6 +16,16 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * and the frames are memcpy'd on the other side; a big-endian port would need
  * a byte-swap on the host, not a second code path here.
  */
+import {
+  ANALYSIS_BINS,
+  ANALYSIS_HEADER_BYTES,
+  ANALYSIS_SCOPE_PAIRS,
+  ANALYSIS_STAGES,
+} from '../../common/dsp/analysisWire';
+import type {
+  IHostAnalysis,
+  TAnalysisStage,
+} from '../../common/dsp/analysisWire';
 
 /** Must match FEQ_WIRE_PROTOCOL_VERSION. */
 export const HOST_WIRE_PROTOCOL_VERSION = 1;
@@ -29,6 +39,21 @@ export const MAGIC_HANDSHAKE = 0x48514546;
 export const MAGIC_COMMAND = 0x43514546;
 export const MAGIC_ACK = 0x41514546;
 export const MAGIC_TELEMETRY = 0x54514546;
+export const MAGIC_ANALYSIS = 0x4e514546;
+
+// The agreement about what these bytes mean lives in src/common, because the
+// renderer needs it too and may not import from src/main. Re-exported so the
+// host-side callers still have one place to look.
+export {
+  ANALYSIS_BINS,
+  ANALYSIS_HEADER_BYTES,
+  ANALYSIS_SCOPE_PAIRS,
+  ANALYSIS_STAGES,
+} from '../../common/dsp/analysisWire';
+export type {
+  IHostAnalysis,
+  TAnalysisStage,
+} from '../../common/dsp/analysisWire';
 
 export const HOST_COMMANDS = {
   hello: 1,
@@ -49,6 +74,7 @@ export const HOST_COMMANDS = {
   crossfade: 15,
   setTrackGains: 16,
   renderToFile: 17,
+  setAnalysis: 18,
 } as const;
 
 /** `parameterId` for `setDiagnosticSignal`; `value` carries the frequency. */
@@ -257,7 +283,116 @@ export const frameLengthFor = (magic: number): number => {
       return ACK_BYTES;
     case MAGIC_TELEMETRY:
       return TELEMETRY_BYTES;
+    case MAGIC_ANALYSIS:
+      // The header only. Its own fields say what follows, so the reader asks
+      // `analysisFrameLength` once it holds this much.
+      return ANALYSIS_HEADER_BYTES;
     default:
       return 0;
   }
+};
+
+/**
+ * The full length of an analysis frame, read from its own header.
+ *
+ * Returns 0 when the header does not describe something this build can read —
+ * a different bin count, an impossible stage bit, a payload beyond any sane
+ * size. Zero means "refuse the stream" rather than "skip this frame", and that
+ * is deliberate: the length is how the reader finds the next frame at all, so
+ * a header that cannot be trusted has already lost the stream. Guessing would
+ * turn one bad frame into every later frame being misread as audio.
+ */
+export const analysisFrameLength = (header: Buffer): number => {
+  if (header.length < ANALYSIS_HEADER_BYTES) {
+    return 0;
+  }
+  const stageMask = header.readUInt32LE(8);
+  const bins = header.readUInt32LE(12);
+  const pairs = header.readUInt32LE(16);
+  if (bins !== ANALYSIS_BINS) {
+    return 0;
+  }
+  if (pairs !== 0 && pairs !== ANALYSIS_SCOPE_PAIRS) {
+    return 0;
+  }
+  // stage_mask IS a bit field on the wire; spelling a mask test as
+  // arithmetic hides what it is.
+  // eslint-disable-next-line no-bitwise
+  if (stageMask >= 1 << ANALYSIS_STAGES.length) {
+    return 0;
+  }
+  let present = 0;
+  for (let stage = 0; stage < ANALYSIS_STAGES.length; stage += 1) {
+    // stage_mask IS a bit field on the wire; spelling a mask test as
+    // arithmetic hides what it is.
+    // eslint-disable-next-line no-bitwise
+    if ((stageMask & (1 << stage)) !== 0) {
+      present += 1;
+    }
+  }
+  return (
+    ANALYSIS_HEADER_BYTES +
+    present * bins * Float32Array.BYTES_PER_ELEMENT +
+    pairs * 2 * Float32Array.BYTES_PER_ELEMENT
+  );
+};
+
+export const decodeAnalysis = (frame: Buffer): IHostAnalysis | undefined => {
+  if (frame.length < ANALYSIS_HEADER_BYTES) {
+    return undefined;
+  }
+  const view = new DataView(frame.buffer, frame.byteOffset, frame.byteLength);
+  if (view.getUint32(0, true) !== MAGIC_ANALYSIS) {
+    return undefined;
+  }
+  const stageMask = view.getUint32(8, true);
+  const bins = view.getUint32(12, true);
+  const pairs = view.getUint32(16, true);
+  if (frame.length !== analysisFrameLength(frame)) {
+    return undefined;
+  }
+
+  const spectra: Partial<Record<TAnalysisStage, Float32Array>> = {};
+  let at = ANALYSIS_HEADER_BYTES;
+  ANALYSIS_STAGES.forEach((stage, index) => {
+    // stage_mask IS a bit field on the wire; spelling a mask test as
+    // arithmetic hides what it is.
+    // eslint-disable-next-line no-bitwise
+    if ((stageMask & (1 << index)) === 0) {
+      return;
+    }
+    /**
+     * Copied out rather than viewed in place.
+     *
+     * `frame` is a subarray of the transport's pending buffer, which is
+     * reassigned and concatenated as the next chunk arrives. A `Float32Array`
+     * over it would be a view onto bytes that are about to become a different
+     * frame — the values would change under the renderer between one animation
+     * frame and the next, which reads as noise in the spectrum.
+     */
+    const bytes = bins * Float32Array.BYTES_PER_ELEMENT;
+    const copy = new Float32Array(bins);
+    Buffer.from(frame.subarray(at, at + bytes)).copy(
+      Buffer.from(copy.buffer, copy.byteOffset, bytes),
+    );
+    spectra[stage] = copy;
+    at += bytes;
+  });
+
+  let scatter: Float32Array | undefined;
+  if (pairs > 0) {
+    const bytes = pairs * 2 * Float32Array.BYTES_PER_ELEMENT;
+    scatter = new Float32Array(pairs * 2);
+    Buffer.from(frame.subarray(at, at + bytes)).copy(
+      Buffer.from(scatter.buffer, scatter.byteOffset, bytes),
+    );
+  }
+
+  return {
+    sequence: view.getUint32(4, true),
+    spectra,
+    scatter,
+    correlation: view.getFloat64(24, true),
+    peaks: [view.getFloat32(32, true), view.getFloat32(36, true)] as const,
+  };
 };

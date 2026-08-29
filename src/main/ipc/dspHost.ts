@@ -27,7 +27,7 @@ import {
 import { isChainWirePayload } from '../../common/dsp/chainWire';
 import { findDspHostExecutable } from '../dspHost/hostPath';
 import { DspHostSupervisor, TDspHostState } from '../dspHost/supervisor';
-import { IHostTelemetry } from '../dspHost/wire';
+import { IHostAnalysis, IHostTelemetry } from '../dspHost/wire';
 
 export interface IDspHostIpcDeps {
   getMainWindow: () => BrowserWindow | null;
@@ -102,6 +102,15 @@ export const registerDspHostIpc = ({
       expectedParameterCount: NATIVE_DSP_PARAMETERS.length,
       onTelemetry: (telemetry: IHostTelemetry) =>
         publish('dsp-host-telemetry', telemetry),
+      /**
+       * Forwarded raw, and only sent at all while the panel has asked for it.
+       *
+       * Twelve kilobytes about twenty-three times a second is the largest thing
+       * on this channel by two orders of magnitude, which is exactly why the
+       * host stays silent until `setAnalysis` turns it on.
+       */
+      onAnalysis: (analysis: IHostAnalysis) =>
+        publish('dsp-host-analysis', analysis),
       onStateChange: (state: TDspHostState) => publish('dsp-host-state', state),
       onDiagnostic: (event: IDspDiagnosticEvent) => {
         // Logged as well as forwarded. A window that has already gone is
@@ -247,6 +256,9 @@ export const registerDspHostIpc = ({
             return isFiniteNumber(value) && Number.isInteger(extra)
               ? await supervisor.crossfade(slot, value, extra as number)
               : false;
+          case 'analysis':
+            // The panel mounting and unmounting, which is the only caller.
+            return await supervisor.setAnalysis(value !== 0);
           case 'gains':
             return isFiniteNumber(value) && isFiniteNumber(extra)
               ? await supervisor.setTrackGains(value, extra, true)

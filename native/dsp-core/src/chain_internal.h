@@ -99,6 +99,15 @@ struct FeqChain {
   uint32_t max_frames = 0;
   FeqChainSettings settings{};
 
+  /**
+   * Where the panel's displays are read from, or null when nobody is looking.
+   *
+   * Borrowed. The host owns it and keeps it across a chain rebuild, so adding a
+   * band does not blank every graph for a frame. Null is the ordinary state and
+   * costs one predictable branch per tap.
+   */
+  FeqMeters* meters = nullptr;
+
   ChainEqSlot slots[FEQ_CHAIN_CHANNELS];
   ChainExciterPath paths[kExciterPaths];
 

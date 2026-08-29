@@ -35,6 +35,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #define FEQ_MAGIC_COMMAND 0x43514546u   /* FEQC */
 #define FEQ_MAGIC_ACK 0x41514546u       /* FEQA */
 #define FEQ_MAGIC_TELEMETRY 0x54514546u /* FEQT */
+#define FEQ_MAGIC_ANALYSIS 0x4E514546u  /* FEQN */
 
 enum FeqWireCommand {
   FEQ_CMD_HELLO = 1,
@@ -120,7 +121,16 @@ enum FeqWireCommand {
    * answer in samples rather than in somebody's opinion, which is what the
    * whole migration turns on.
    */
-  FEQ_CMD_RENDER_TO_FILE = 17
+  FEQ_CMD_RENDER_TO_FILE = 17,
+  /**
+   * Turn the panel's measurements on or off. `parameter_id` non-zero to enable.
+   *
+   * A command rather than something always on, because the DSP tab is one of
+   * several and is usually closed. Three transforms and a scope window per
+   * block is real work to do for a picture nobody is looking at, and the whole
+   * reason the engine moved to C++ was to stop spending cycles like that.
+   */
+  FEQ_CMD_SET_ANALYSIS = 18
 };
 
 
@@ -184,6 +194,34 @@ typedef struct FeqWireTelemetryFrame {
   uint32_t channels;
 } FeqWireTelemetryFrame;
 
+/**
+ * What the panel draws, when it is open.
+ *
+ * Followed by its payload: for each stage named in `stage_mask`, ascending,
+ * `bins` floats of dB; then `pairs * 2` floats of interleaved left and right
+ * for the goniometer. Variable length, like `LOAD_DECK` and `APPLY_CHAIN`
+ * before it — a fixed field big enough for three spectra would make every
+ * telemetry frame carry twelve kilobytes it does not need.
+ *
+ * Separate from `FeqWireTelemetryFrame` because they answer to different
+ * clocks. Telemetry reports per callback and must stay small enough to be sent
+ * that often; this is published once per 2048-sample window, about 23 times a
+ * second, and is two orders of magnitude larger.
+ */
+typedef struct FeqWireAnalysisFrame {
+  uint32_t magic;
+  uint32_t sequence;
+  /** Bit per `FeqMeterStage`; a stage absent this frame simply had no window. */
+  uint32_t stage_mask;
+  /** Per stage present, so a reader can skip a frame it disagrees with. */
+  uint32_t bins;
+  uint32_t pairs;
+  uint32_t reserved;
+  double correlation;
+  float peak_left;
+  float peak_right;
+} FeqWireAnalysisFrame;
+
 #ifdef __cplusplus
 /**
  * The frame sizes, asserted rather than commented.
@@ -199,6 +237,7 @@ static_assert(sizeof(FeqWireHandshake) == 104, "handshake frame size");
 static_assert(sizeof(FeqWireCommandFrame) == 32, "command frame size");
 static_assert(sizeof(FeqWireAckFrame) == 32, "ack frame size");
 static_assert(sizeof(FeqWireTelemetryFrame) == 88, "telemetry frame size");
+static_assert(sizeof(FeqWireAnalysisFrame) == 40, "analysis frame size");
 #endif
 
 #endif /* FLUIDEQ_HOST_WIRE_H */

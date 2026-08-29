@@ -398,7 +398,14 @@ void feq_chain_process(FeqChain* chain, float* const* channels,
   chain_process_input_gain(chain, channels, frames);
 
   chain_process_exciter(chain, channels, frames);
+  // Tapped where the visible chain draws its boundary, not where it is
+  // convenient: the exciter graph is showing what the exciter did, so it has to
+  // be read before the EQ has had a turn at the same buffer.
+  feq_meters_capture(chain->meters, FEQ_METER_STAGE_EXCITER, channels, frames);
+
   chain_process_eq(chain, channels, frames);
+  feq_meters_capture(chain->meters, FEQ_METER_STAGE_EQ, channels, frames);
+
   chain_process_compressor(chain, channels, frames);
   chain_process_maximizer(chain, channels, frames);
 
@@ -435,6 +442,17 @@ void feq_chain_process(FeqChain* chain, float* const* channels,
     options.knee_db = 0.0;
     options.release_hold_samples = 0.0;
     feq_output_safety_process(&chain->safety, channels, frames, &options);
+  }
+
+  // Last, after safety, because this is the one tap that has to be what leaves
+  // for the device. A master meter read before the final limiter would show a
+  // peak the listener never hears and miss the reduction that removed it.
+  feq_meters_capture(chain->meters, FEQ_METER_STAGE_MASTER, channels, frames);
+}
+
+void feq_chain_set_meters(FeqChain* chain, FeqMeters* meters) {
+  if (chain != nullptr) {
+    chain->meters = meters;
   }
 }
 

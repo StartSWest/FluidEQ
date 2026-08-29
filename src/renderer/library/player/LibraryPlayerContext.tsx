@@ -83,7 +83,11 @@ import {
   setDspTrackLevelGains,
   useDspEngine,
 } from '../../dsp/useDspEngine';
-import { useNativeBackend, useNativeMirror } from '../../dsp/useNativeBackend';
+import {
+  useNativeBackend,
+  useNativeMeters,
+  useNativeMirror,
+} from '../../dsp/useNativeBackend';
 import {
   analyzeInputTrack,
   masterLoudnessGainDb,
@@ -447,6 +451,8 @@ export const LibraryPlayerProvider = ({
    * selected, so there is nothing here to call by accident on either path.
    */
   const nativeBackend = useNativeBackend(dspSettings);
+  // The panel's graphs read the engine that is audible, not the muted one.
+  useNativeMeters(nativeBackend);
   const nativeMirror = useNativeMirror(nativeBackend, audioElements, {
     mediaPath: track?.path,
     isPlaying,

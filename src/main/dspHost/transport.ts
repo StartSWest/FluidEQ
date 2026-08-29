@@ -16,12 +16,16 @@ SPDX-License-Identifier: GPL-3.0-or-later
  */
 import {
   IHostAck,
+  IHostAnalysis,
   IHostHandshake,
   IHostTelemetry,
   MAGIC_ACK,
+  MAGIC_ANALYSIS,
   MAGIC_HANDSHAKE,
   MAGIC_TELEMETRY,
+  analysisFrameLength,
   decodeAck,
+  decodeAnalysis,
   decodeHandshake,
   decodeTelemetry,
   frameLengthFor,
@@ -31,6 +35,8 @@ export interface IFrameHandlers {
   onHandshake: (handshake: IHostHandshake) => void;
   onAck: (ack: IHostAck) => void;
   onTelemetry: (telemetry: IHostTelemetry) => void;
+  /** Optional: only a renderer with the DSP panel open ever asks for these. */
+  onAnalysis?: (analysis: IHostAnalysis) => void;
   /** The stream no longer begins on a frame. Fatal; the reader stops. */
   onDesynchronised: (magic: number) => void;
 }
@@ -66,11 +72,35 @@ export class FrameReader {
         return;
       }
       const magic = this.pending.readUInt32LE(0);
-      const length = frameLengthFor(magic);
-      if (length === 0) {
+      const header = frameLengthFor(magic);
+      if (header === 0) {
         this.broken = true;
         this.handlers.onDesynchronised(magic);
         return;
+      }
+      if (this.pending.length < header) {
+        return;
+      }
+
+      /**
+       * The one frame whose length lives inside itself.
+       *
+       * Every other frame here is a fixed struct, which is what makes a
+       * desynchronised stream obvious. The analysis frame carries up to twelve
+       * kilobytes of spectrum and cannot be a fixed size without every quiet
+       * moment costing what a loud one does, so its header says how much
+       * follows — and a header that does not describe something this build can
+       * read breaks the stream rather than skipping a frame. The length is how
+       * the next frame is found at all; guessing it would misread all of them.
+       */
+      let length = header;
+      if (magic === MAGIC_ANALYSIS) {
+        length = analysisFrameLength(this.pending.subarray(0, header));
+        if (length === 0) {
+          this.broken = true;
+          this.handlers.onDesynchronised(magic);
+          return;
+        }
       }
       if (this.pending.length < length) {
         return;
@@ -103,6 +133,13 @@ export class FrameReader {
       const telemetry = decodeTelemetry(frame);
       if (telemetry) {
         this.handlers.onTelemetry(telemetry);
+      }
+      return;
+    }
+    if (magic === MAGIC_ANALYSIS) {
+      const analysis = decodeAnalysis(frame);
+      if (analysis) {
+        this.handlers.onAnalysis?.(analysis);
       }
     }
   }
