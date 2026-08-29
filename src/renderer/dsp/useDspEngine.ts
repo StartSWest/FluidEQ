@@ -574,7 +574,7 @@ export const useDspEngine = (
   /**
    * Stand the TypeScript chain down while the native engine is the audible one.
    *
-   * The element is muted either way, so this changes nothing anyone can hear —
+   * The element is muted either way, so this changes nothing anyone can hear —
    * it stops the work. Without it both chains run every quantum and the A/B
    * compares two engines on a machine doing twice the job, which is a
    * measurement of the CPU rather than of the code.

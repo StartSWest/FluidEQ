@@ -434,7 +434,7 @@ void* any_open(void* /*user*/, const char* path, FeqDecoderInfo* info) {
    *
    * The PCM reader recognises its formats by a magic number at a fixed offset
    * and refuses everything else immediately. The compressed one ends by
-   * offering the file to dr_mp3, which scans for a frame header â and an
+   * offering the file to dr_mp3, which scans for a frame header — and an
    * unlucky WAV can contain a byte pattern that looks like one. Asking the
    * strict reader first means that never comes up.
    */
@@ -458,7 +458,7 @@ void* any_open(void* /*user*/, const char* path, FeqDecoderInfo* info) {
    * Last, because it is the only one that can be absent.
    *
    * The platform decoder covers what no vendored library could without a
-   * licence or a patent problem â the MPEG-4 family and WMA â but it exists
+   * licence or a patent problem — the MPEG-4 family and WMA — but it exists
    * only where the operating system provides it, and its `open` is null
    * everywhere else. Asking it after the two that are always compiled in means
    * a machine without one behaves exactly like a file none of them can read.

@@ -131,8 +131,8 @@ is what the LAME authors ask of anyone shipping it.
 The native audio engine compiles three more in, as source rather than as
 packages: `dr_mp3.h` and `dr_flac.h` by David Reid, and `stb_vorbis.c` by Sean
 Barrett. They decode MP3, FLAC and Ogg Vorbis for the native player. Each is
-offered under a choice of public domain dedication or a permissive licence â
-Unlicense or MIT-0 for the first two, public domain or MIT for the third â and
+offered under a choice of public domain dedication or a permissive licence —
+Unlicense or MIT-0 for the first two, public domain or MIT for the third — and
 `dr_mp3` derives from `minimp3` by lieff, which is CC0 1.0. Every one of those
 was read at its author's own repository rather than at a mirror or a package
 index, and each file carries its licence in its own text where it sits in the
@@ -143,14 +143,14 @@ application is sold, "no attribution required" is a permission rather than an
 instruction to stay quiet, and somebody auditing what is inside a binary they
 paid for is entitled to a straight answer.
 
-The remaining containers â the MPEG-4 family, WMA and Opus â are decoded by
+The remaining containers — the MPEG-4 family, WMA and Opus — are decoded by
 Windows itself, through Media Foundation. Nothing is bundled for them and
 nothing is licensed for them: those codecs belong to the operating system, and
 Microsoft licenses them for it.
 
 That is deliberate rather than convenient. The only AAC decoders that could be
 vendored are either GPL-incompatible or a library rather than a header, and AAC
-is patented â shipping a decoder inside a binary that is sold is a different
+is patented — shipping a decoder inside a binary that is sold is a different
 question from compiling one at home. Asking the operating system, which already
 holds a licence for the machine it is running on, avoids both.
 

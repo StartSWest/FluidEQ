@@ -334,7 +334,7 @@ export const registerDspHostIpc = ({
 /**
  * The running host's process id, or undefined while it is not running.
  *
- * For the process list, which shows it alongside Electron's own â it is our
+ * For the process list, which shows it alongside Electron's own — it is our
  * child rather than Electron's, so `getAppMetrics` has never heard of it and
  * Task Manager files it away from the FluidEQ group entirely.
  */

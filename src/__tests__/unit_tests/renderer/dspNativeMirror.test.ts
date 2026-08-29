@@ -167,7 +167,7 @@ describe('the native mirror', () => {
      * The bug this file exists to keep out, and it was shipped once.
      *
      * "Drift" used to be measured against the PREVIOUS reading rather than
-     * against where the element should be by now â so it was really measuring
+     * against where the element should be by now — so it was really measuring
      * how long the render took to arrive. A renderer that stalled for six
      * hundred milliseconds looked exactly like a listener dragging the
      * scrubber, and the answer to that is a seek, and a seek empties the
@@ -182,14 +182,14 @@ describe('the native mirror', () => {
      * The bug this file exists to keep out, and it was shipped once.
      *
      * "Drift" used to be measured against the PREVIOUS reading rather than
-     * against where the element should be by now â so it really measured how
+     * against where the element should be by now — so it really measured how
      * long the render took to arrive. A renderer that stalled for six hundred
      * milliseconds looked exactly like a listener dragging the scrubber, and
      * the answer to that is a seek, and a seek empties the read-ahead ring.
      *
      * Which made it feed itself: under load the renders come further apart, so
      * it seeks more often, so it drops out more. It crackled worst on the
-     * machine that could least afford it â which is also the machine somebody
+     * machine that could least afford it — which is also the machine somebody
      * would blame the native engine for.
      */
     it('says nothing when a render arrives late', async () => {
@@ -214,7 +214,7 @@ describe('the native mirror', () => {
     });
 
     /**
-     * Paused, the element's position does not advance â so neither should the
+     * Paused, the element's position does not advance — so neither should the
      * expectation. Crediting elapsed wall time while stopped would make every
      * resume after a long pause look like a jump backwards.
      */
