@@ -36,6 +36,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { IHostAnalysis, TAnalysisStage } from '../../common/dsp/analysisWire';
 import {
   IDspAnalyser,
+  readDspAnalyser,
   setDspAnalyser,
   setDspChannelPeaks,
   setDspCorrelation,
@@ -103,6 +104,21 @@ export const createNativeMeters = (
   binCount: number,
 ): INativeMeters => {
   const analysers: Partial<Record<TAnalysisStage, HostAnalyser>> = {};
+  /**
+   * Whatever held each slot before, so it can have it back.
+   *
+   * The slot is BORROWED, not taken. The worklet registers its `AnalyserNode`s
+   * once, when the audio graph is built, and never again — so clearing the slot
+   * on release does not hand the graphs back to the Web Audio analysers, it
+   * leaves them with nothing at all until the engine happens to restart. That
+   * shipped for one switch: native worked, and switching back to TypeScript gave
+   * sound with dead graphs.
+   *
+   * Recorded per stage at the moment of replacement rather than read again at
+   * release, because by then the slot holds this file's own analyser.
+   */
+  const displaced: Partial<Record<TAnalysisStage, IDspAnalyser | undefined>> =
+    {};
 
   const unsubscribe = bridge.onDspHostAnalysis((frame) => {
     (Object.keys(frame.spectra) as TAnalysisStage[]).forEach((stage) => {
@@ -114,6 +130,8 @@ export const createNativeMeters = (
       if (!analyser) {
         analyser = new HostAnalyser(binCount);
         analysers[stage] = analyser;
+        // Taken note of before it is replaced; see `displaced`.
+        displaced[stage] = readDspAnalyser(stage);
         setDspAnalyser(stage, analyser);
       }
       analyser.accept(bins);
@@ -134,17 +152,20 @@ export const createNativeMeters = (
       unsubscribe();
       bridge.setDspHostAnalysis(false).catch(() => undefined);
       /**
-       * Cleared, not left holding the last frame.
+       * Given back to whatever held it, not cleared.
        *
-       * A stale analyser still answers `getFloatFrequencyData`, so leaving one
-       * registered would freeze every graph on the final native frame — which
-       * is the same symptom this file exists to fix, arrived at from the other
-       * direction. Clearing them lets the worklet's own analysers register on
-       * the next engine start, and until then the graphs draw nothing, which
-       * is honest.
+       * Clearing looks equivalent and is not: the worklet registers its
+       * `AnalyserNode`s once, when the audio graph is built, so a slot emptied
+       * here stays empty until the engine restarts. Switching back to the
+       * TypeScript engine gave sound with dead graphs — the same complaint that
+       * started this work, caused by the fix for it.
+       *
+       * A stale native analyser must not be left in place either: it still
+       * answers `getFloatFrequencyData` and would freeze every graph on the last
+       * frame the host sent. Restoring the previous holder does both jobs.
        */
       (Object.keys(analysers) as TAnalysisStage[]).forEach((stage) => {
-        setDspAnalyser(stage, undefined);
+        setDspAnalyser(stage, displaced[stage]);
       });
     },
   };

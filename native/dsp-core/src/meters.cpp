@@ -16,14 +16,40 @@ SPDX-License-Identifier: GPL-3.0-or-later
 namespace {
 
 /**
- * `AnalyserNode`'s own smoothing constant, and the reason it is not a taste.
+ * `AnalyserNode`'s own smoothing constant — but not at its own rate.
  *
  * Every graph in the panel was drawn against a spectrum smoothed by exactly
- * this much. A different value is not "smoother" or "faster" — it is every
- * display in the app behaving differently on the day the engine changed, which
- * reads as a regression rather than as a port.
+ * this much, so the decay a listener sees has to match. What cannot be copied
+ * is the coefficient on its own, because smoothing is per UPDATE and the two
+ * engines update at different speeds: `AnalyserNode` re-transforms on every
+ * call to `getFloatFrequencyData`, which the graphs make once per animation
+ * frame — sixty a second — while these publish one window per
+ * `FEQ_METER_WINDOW` samples, about twenty-three a second at 48 kHz.
+ *
+ * Copied literally, that is the same decay stretched over two and a half times
+ * as long, and it was noticed immediately: the graphs "have slow release" on
+ * the native engine. `smoothing_for` converts it.
  */
-constexpr double kSmoothing = 0.8;
+constexpr double kReferenceSmoothing = 0.8;
+/** Animation frames a second, which is the rate the reference smooths at. */
+constexpr double kReferenceRate = 60.0;
+
+/**
+ * The coefficient that decays at the reference's speed, at our rate.
+ *
+ * Preserving the time constant means preserving `a^rate`, so
+ * `a_ours = a_reference^(rate_reference / rate_ours)`. At 48 kHz that is
+ * 0.8^(60/23.44) = 0.564; at 44.1 kHz, 0.538. Derived rather than dialled in
+ * by eye, so it stays right on a device this has never run on.
+ */
+double smoothing_for(double sample_rate) {
+  const double windows_per_second =
+      sample_rate / static_cast<double>(FEQ_METER_WINDOW);
+  if (!(windows_per_second > 0.0)) {
+    return kReferenceSmoothing;
+  }
+  return std::pow(kReferenceSmoothing, kReferenceRate / windows_per_second);
+}
 
 /** Below this the display is at its floor anyway, and log10(0) is not. */
 constexpr double kMagnitudeFloor = 1e-10;
@@ -114,6 +140,8 @@ struct FeqMeters {
   /** Where the two channels' magnitudes are summed before smoothing. */
   std::vector<double> magnitudes;
   std::vector<float> snapshot;
+  /** Reader-side only, recomputed when the device rate changes. */
+  double smoothing = smoothing_for(48000.0);
 };
 
 extern "C" {
@@ -128,6 +156,7 @@ FeqMeters* feq_meters_create(uint32_t channels) {
   meters->real.assign(FEQ_METER_WINDOW, 0.0);
   meters->imaginary.assign(FEQ_METER_WINDOW, 0.0);
   meters->magnitudes.assign(FEQ_METER_BINS, 0.0);
+  meters->smoothing = smoothing_for(48000.0);
   meters->snapshot.assign(static_cast<size_t>(FEQ_METER_WINDOW) * 2, 0.0f);
   for (auto& stage : meters->stages) {
     stage.filling.assign(static_cast<size_t>(FEQ_METER_WINDOW) * 2, 0.0f);
@@ -142,6 +171,12 @@ FeqMeters* feq_meters_create(uint32_t channels) {
 }
 
 void feq_meters_destroy(FeqMeters* meters) { delete meters; }
+
+void feq_meters_set_sample_rate(FeqMeters* meters, double sample_rate) {
+  if (meters != nullptr && sample_rate > 0.0) {
+    meters->smoothing = smoothing_for(sample_rate);
+  }
+}
 
 void feq_meters_set_enabled(FeqMeters* meters, int enabled) {
   if (meters != nullptr) {
@@ -319,8 +354,8 @@ int feq_meters_read_spectrum(FeqMeters* meters,
 
     for (uint32_t bin = 0; bin < FEQ_METER_BINS; bin += 1) {
       const double previous = meters->stages[stage].smoothed[bin];
-      const double blended =
-          kSmoothing * previous + (1.0 - kSmoothing) * meters->magnitudes[bin];
+      const double blended = meters->smoothing * previous +
+                             (1.0 - meters->smoothing) * meters->magnitudes[bin];
       meters->stages[stage].smoothed[bin] = blended;
       out_db[bin] = static_cast<float>(
           20.0 * std::log10(std::fmax(blended, kMagnitudeFloor)));

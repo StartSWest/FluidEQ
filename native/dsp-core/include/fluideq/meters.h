@@ -98,6 +98,22 @@ void feq_meters_set_enabled(FeqMeters* meters, int enabled);
 int feq_meters_enabled(const FeqMeters* meters);
 
 /**
+ * Tell the meters how fast their windows will arrive, so decay matches.
+ *
+ * `AnalyserNode` applies its 0.8 smoothing on every call to
+ * `getFloatFrequencyData` — which the graphs make once per animation frame, so
+ * sixty times a second. These publish one window per `FEQ_METER_WINDOW`
+ * samples, about twenty-three times a second at 48 kHz. The same coefficient
+ * at less than half the rate is a decay that takes more than twice as long,
+ * and it is visible: reported as the graphs having "slow release" on the
+ * native engine compared to the TypeScript one.
+ *
+ * So the coefficient is derived from the rate rather than copied. Call it
+ * whenever the device rate changes; until it is called, 48 kHz is assumed.
+ */
+void feq_meters_set_sample_rate(FeqMeters* meters, double sample_rate);
+
+/**
  * Take one block at one stage. **Audio thread.**
  *
  * Real-time safe in the strict sense: no allocation, no lock, no OS call, no

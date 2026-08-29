@@ -240,6 +240,46 @@ int main() {
         "a tone whose channels cancel is still measured");
 
   /**
+   * How fast the display falls, which has to match what it replaces.
+   *
+   * Smoothing is applied per UPDATE, and the two engines update at different
+   * speeds: `AnalyserNode` re-transforms on every animation frame, sixty a
+   * second, while these publish one window per 2048 samples — 23.44 a second at
+   * 48 kHz. The same 0.8 at less than half the rate is a decay stretched over
+   * two and a half times as long, and it was spotted straight away as the
+   * graphs having "slow release" on the native engine.
+   *
+   * The reference falls by `20*log10(0.8)` per frame, so 60 * -1.938 = -116.3
+   * dB in a second. This measures a second of decay here and asks for the same
+   * number, which is what makes the two look alike rather than merely both
+   * being smoothed.
+   */
+  phase = 0.0;
+  for (int attempt = 0; attempt < 96; attempt += 1) {
+    feed_tone(meters, FEQ_METER_STAGE_EXCITER, 3000.0, 0.5, FEQ_METER_WINDOW,
+              &phase);
+    read_spectrum(meters, FEQ_METER_STAGE_EXCITER, spectrum);
+  }
+  const uint32_t decay_bin = bin_for(3000.0);
+  const float settled = spectrum[decay_bin];
+
+  // One second of silence, in windows: 48000 / 2048 = 23.44, so 23 of them.
+  const int windows_per_second =
+      static_cast<int>(kRate / FEQ_METER_WINDOW);
+  for (int attempt = 0; attempt < windows_per_second; attempt += 1) {
+    feed_tone(meters, FEQ_METER_STAGE_EXCITER, 3000.0, 0.0, FEQ_METER_WINDOW,
+              &phase);
+    read_spectrum(meters, FEQ_METER_STAGE_EXCITER, spectrum);
+  }
+  const double fell = static_cast<double>(settled) - spectrum[decay_bin];
+  const double reference =
+      60.0 * 20.0 * std::log10(0.8) * -1.0;  // 116.3 dB in a second
+  std::printf("       fell %.1f dB in a second; the reference falls %.1f\n",
+              fell, reference);
+  check(std::fabs(fell - reference) < 15.0,
+        "the display falls at the speed the panel was built around");
+
+  /**
    * The stages are separate, which is what makes three graphs possible.
    *
    * Capturing into one and reading another has to answer nothing rather than

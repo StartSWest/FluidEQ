@@ -510,6 +510,11 @@ bool rebuild_chain_and_player(HostState& state, const FeqDecoderOps& ops) {
   // Re-attached rather than recreated, so the panel's displays carry across a
   // rebuild instead of blanking every time a band moves.
   feq_chain_set_meters(chain, state.meters);
+  // Told the rate here, because this is the one place it is known to have
+  // changed: a device that renegotiated to 44.1 kHz publishes windows more
+  // slowly, and the spectrum's decay is derived from that rate.
+  feq_meters_set_sample_rate(state.meters,
+                             static_cast<double>(state.sample_rate));
 
   // Two seconds of read-ahead per deck. Long enough that a decoder thread
   // descheduled for a moment cannot starve the callback, short enough that a
