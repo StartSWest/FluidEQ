@@ -683,6 +683,27 @@ export const LibraryPlayerProvider = ({
   trackIdRef.current = trackId;
 
   /**
+   * Which track each element is playing, so only one of them reports position.
+   *
+   * A crossfade runs both elements at once, and for the length of the overlap
+   * the outgoing one is still playing a track that is no longer the current
+   * one. Its `timeupdate` kept writing `positionMs`, so the seek bar was being
+   * driven by three writers at the same time: the reset to zero on the track
+   * change, the outgoing element still reporting the middle of the previous
+   * song, and the incoming element starting from nothing. The thumb jumped to
+   * the start, back out to where the old track was, and to the start again —
+   * reported as the bar "going crazy" on Next, which is a fair description.
+   *
+   * Ownership of TRANSPORT cannot be moved early to fix it — `audioElementRef`
+   * deliberately waits for `play()` to settle, because handing Next and
+   * Previous to a deck that then fails to start makes the working song
+   * unreachable. But position is a different question with a different answer:
+   * it belongs to the track on screen, and only the element playing that track
+   * may report it.
+   */
+  const elementTrackRef = useRef(new Map<HTMLMediaElement, string>());
+
+  /**
    * Puts the last session's queue and playhead back, once.
    *
    * Waits for the index, because a queue is a list of ids and every one of
@@ -826,6 +847,22 @@ export const LibraryPlayerProvider = ({
     (element: HTMLMediaElement): (() => void) => {
       const isActive = () =>
         element === (videoElementRef.current ?? audioElementRef.current);
+      /**
+       * May this element speak for the position readout?
+       *
+       * Only if it is playing the track the rest of the app is showing. During
+       * a crossfade the outgoing element is still running a track that has
+       * already been replaced, and letting it answer here is what threw the
+       * seek bar back to the middle of the previous song.
+       *
+       * Untagged elements are allowed through: everything outside a handoff
+       * has exactly one audible element, and refusing an element that has not
+       * been tagged yet would silence the readout on the very first track.
+       */
+      const ownsPosition = () => {
+        const playing = elementTrackRef.current.get(element);
+        return playing === undefined || playing === trackIdRef.current;
+      };
       // `timeupdate` fires about four times a second — the right cadence for
       // a number that changes once a second on screen, and no reason to add
       // a `requestAnimationFrame` loop on top of it.
@@ -833,7 +870,9 @@ export const LibraryPlayerProvider = ({
         if (!isActive()) {
           return;
         }
-        setPositionMs(element.currentTime * 1000);
+        if (ownsPosition()) {
+          setPositionMs(element.currentTime * 1000);
+        }
         const { current } = queueRef;
         const transition = dspSettingsRef.current.crossfade;
         const playingId = current ? currentTrackId(current) : undefined;
@@ -865,7 +904,9 @@ export const LibraryPlayerProvider = ({
         if (!isActive()) {
           return;
         }
-        setPositionMs(element.currentTime * 1000);
+        if (ownsPosition()) {
+          setPositionMs(element.currentTime * 1000);
+        }
         // Bring the level back after the jump — see `startSeekFade`. Reached
         // through a ref because this listener is bound once for the life of
         // the element and must not take a dependency on anything defined
@@ -1092,6 +1133,9 @@ export const LibraryPlayerProvider = ({
     // element has read the file — overwritten by `loadedmetadata` once it has.
     setDurationMs(track.durationMs ?? 0);
     setPositionMs(0);
+    // Tagged here, before either element can tick again, so the outgoing one
+    // stops answering for a track it is no longer playing.
+    elementTrackRef.current.set(audio, track.id);
     if (!track.isPlayable) {
       audio.removeAttribute('src');
       setDspInputAnalysis({

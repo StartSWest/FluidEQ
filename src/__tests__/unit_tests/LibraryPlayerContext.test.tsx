@@ -466,6 +466,104 @@ describe('crossfade transport ownership', () => {
     }
   });
 
+  /**
+   * The seek bar during a handoff, which had three writers and no owner.
+   *
+   * A crossfade runs both elements at once, so for the length of the overlap
+   * the outgoing one is still playing a track that is no longer current — and
+   * its `timeupdate` kept writing the position. Between the reset to zero on
+   * the track change, the outgoing element reporting the middle of the previous
+   * song, and the incoming one starting from nothing, the thumb jumped to the
+   * start, back out to where the old track was, and to the start again.
+   */
+  it('does not let the outgoing deck drive the seek bar once the track changed', async () => {
+    const createdAudio: HTMLAudioElement[] = [];
+    const audioConstructor = jest
+      .spyOn(window, 'Audio')
+      .mockImplementation((source?: string) => {
+        const element = document.createElement('audio');
+        if (source) {
+          element.src = source;
+        }
+        createdAudio.push(element);
+        return element;
+      });
+    applyDspSettings({
+      ...DSP_DEFAULTS,
+      normalizer: { ...DSP_DEFAULTS.normalizer, mode: 'off' },
+      crossfade: { ...DSP_DEFAULTS.crossfade, enabled: true },
+    });
+
+    try {
+      renderHarness();
+      await act(async () => {
+        await Promise.resolve();
+      });
+      act(() => {
+        indexChangedHandler?.({
+          version: 1,
+          roots: [
+            {
+              id: 'r1',
+              path: 'C:\\Media',
+              addedAt: 1,
+              trackCount: 3,
+              karaokeSkipped: 0,
+            },
+          ],
+          tracks: [videoTrack, audioTrack, secondAudioTrack],
+        });
+      });
+      act(() => {
+        latestPlayer?.playTracks(
+          [audioTrack.id, secondAudioTrack.id],
+          audioTrack.id,
+        );
+      });
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      const outgoing = createdAudio[0];
+      expect(outgoing).toBeDefined();
+      // Playing, so the track change is a crossfade handoff rather than a cut.
+      Object.defineProperty(outgoing, 'paused', {
+        configurable: true,
+        get: () => false,
+      });
+      let outgoingTime = 0;
+      Object.defineProperty(outgoing, 'currentTime', {
+        configurable: true,
+        get: () => outgoingTime,
+        set: (value: number) => {
+          outgoingTime = value;
+        },
+      });
+
+      // The control: while it IS the current track, its ticks must be heard.
+      outgoingTime = 42;
+      act(() => {
+        outgoing.dispatchEvent(new Event('timeupdate'));
+      });
+      expect(latestPlayer?.positionMs).toBe(42_000);
+
+      act(() => {
+        latestPlayer?.skip(1);
+      });
+      expect(latestPlayer?.track?.id).toBe(secondAudioTrack.id);
+      expect(latestPlayer?.positionMs).toBe(0);
+
+      // The overlap: the outgoing element is still playing, still ticking, and
+      // still one hundred and twenty seconds into a song nobody is showing.
+      outgoingTime = 120;
+      act(() => {
+        outgoing.dispatchEvent(new Event('timeupdate'));
+      });
+      expect(latestPlayer?.positionMs).toBe(0);
+    } finally {
+      audioConstructor.mockRestore();
+    }
+  });
   it('keeps the outgoing track-level gain until the overlap is finished', async () => {
     jest.useFakeTimers();
     const createdAudio: HTMLAudioElement[] = [];
