@@ -85,6 +85,7 @@ import {
 } from '../../dsp/useDspEngine';
 import {
   useNativeBackend,
+  useNativeDeviceGeneration,
   useNativeMeters,
   useNativeMirror,
 } from '../../dsp/useNativeBackend';
@@ -453,6 +454,8 @@ export const LibraryPlayerProvider = ({
   const nativeBackend = useNativeBackend(dspSettings);
   // The panel's graphs read the engine that is audible, not the muted one.
   useNativeMeters(nativeBackend);
+  // And the mirror re-cues when the host moves to a different endpoint.
+  useNativeDeviceGeneration(nativeBackend);
   useNativeMirror(nativeBackend, audioElements, {
     mediaPath: track?.path,
     isPlaying,

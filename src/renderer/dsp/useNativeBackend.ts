@@ -27,6 +27,8 @@ import { INativeMetersBridge, createNativeMeters } from './nativeMeters';
 import { ANALYSIS_BINS } from '../../common/dsp/analysisWire';
 import { setDspNativeTrackGainSink } from './useDspEngine';
 import {
+  setDspNativeDeviceGeneration,
+  useDspNativeDeviceGeneration,
   setDspNativeState,
   useDspBackend,
   useDspNativeState,
@@ -184,6 +186,40 @@ export const useNativeBackend = (
 };
 
 /**
+ * Notice when the host has moved to a different endpoint.
+ *
+ * A reopen — following the default output to new headphones, or recovering a
+ * device that went away — rebuilds the chain and the player, and a rebuilt
+ * player has no decks. The endpoint is then correct and every deck is empty, so
+ * changing the output was handled and the music still stopped.
+ *
+ * Only this side knows what was playing and where, so the generation counter in
+ * telemetry is the host asking for it back.
+ */
+export const useNativeDeviceGeneration = (
+  controller: INativeBackendController | undefined,
+): void => {
+  useEffect(() => {
+    if (!controller) {
+      return undefined;
+    }
+    const bridge = bridgeOf() as unknown as
+      | {
+          onDspHostTelemetry?: (
+            listener: (frame: { deviceGeneration: number }) => void,
+          ) => () => void;
+        }
+      | undefined;
+    if (typeof bridge?.onDspHostTelemetry !== 'function') {
+      return undefined;
+    }
+    return bridge.onDspHostTelemetry((frame) =>
+      setDspNativeDeviceGeneration(frame.deviceGeneration),
+    );
+  }, [controller]);
+};
+
+/**
  * Point the panel's graphs at the native engine while it is the audible one.
  *
  * Keyed on the controller, so it lives exactly as long as the engine it
@@ -223,6 +259,16 @@ export const useNativeMirror = (
   const mirrorRef = useRef<INativeMirror | undefined>(undefined);
   const stateRef = useRef(state);
   stateRef.current = state;
+  /**
+   * Rebuilt when the host moves to a different endpoint.
+   *
+   * A reopen leaves every deck empty, and building a mirror is exactly the work
+   * of putting a track back: it mutes the elements, loads the current file,
+   * seeks to where the element already is and plays if the element is playing.
+   * Depending on the generation therefore re-cues without a second code path
+   * that would have to be kept in step with .
+   */
+  const deviceGeneration = useDspNativeDeviceGeneration();
 
   useEffect(() => {
     if (!controller) {
@@ -237,7 +283,7 @@ export const useNativeMirror = (
       mirrorRef.current = undefined;
       mirror.release();
     };
-  }, [controller, elements]);
+  }, [controller, elements, deviceGeneration]);
 
   useEffect(() => {
     mirrorRef.current?.sync(state);

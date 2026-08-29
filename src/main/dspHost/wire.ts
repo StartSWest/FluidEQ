@@ -117,6 +117,14 @@ export interface IHostTelemetry {
   appliedRevision: number;
   framesProcessed: number;
   latencyFrames: number;
+  /**
+   * Which endpoint generation this frame belongs to.
+   *
+   * Changes when the host has reopened the device — following a default-output
+   * change, or recovering one that went away. A reopen rebuilds the player, so
+   * every deck is empty afterwards and only the renderer knows what to put back.
+   */
+  deviceGeneration: number;
   peak: [number, number];
   callbackP50Us: number;
   callbackP99Us: number;
@@ -256,6 +264,9 @@ export const decodeTelemetry = (frame: Buffer): IHostTelemetry | undefined => {
     sequence: Number(view.getBigUint64(8, true)),
     framesProcessed: Number(view.getBigUint64(16, true)),
     latencyFrames: view.getUint32(24, true),
+    // Offset 28, the field that used to be reserved. Bumped by the host on
+    // every endpoint reopen; see `device_generation` in wire.h.
+    deviceGeneration: view.getUint32(28, true),
     peak: [view.getFloat32(32, true), view.getFloat32(36, true)],
     callbackP50Us: view.getFloat64(40, true),
     callbackP99Us: view.getFloat64(48, true),

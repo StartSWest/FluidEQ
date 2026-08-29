@@ -167,6 +167,14 @@ struct HostState {
   std::mutex device_mutex;
   /** What the renderer last asked for, so a reopen knows whether to start. */
   std::atomic<bool> device_wanted{false};
+  /**
+   * Incremented on every endpoint reopen, and reported in telemetry.
+   *
+   * A rebuilt player has no decks, so a reopen leaves a healthy stream playing
+   * nothing. Only the renderer knows what was playing and where, so this is the
+   * signal telling it to cue that again.
+   */
+  std::atomic<uint32_t> device_generation{0};
 };
 
 std::mutex g_stdout_mutex;
@@ -350,6 +358,8 @@ void drain_telemetry(HostState& state, const IAudioOutputBackend& backend) {
     // callback time readable could not be computed from it.
     frame.latency_frames =
         stats.buffer_frames != 0 ? stats.buffer_frames : record.latency_frames;
+    frame.device_generation =
+        state.device_generation.load(std::memory_order_acquire);
     frame.peak_left = record.peak[0];
     frame.peak_right = record.peak[1];
     frame.callback_p50_us = record.callback_p50_us;
@@ -640,7 +650,22 @@ void reopen_if_device_changed(HostState& state, IAudioOutputBackend& backend,
   if (!rebuild_chain_and_player(state, decoder_ops) || !backend.start(error)) {
     std::fprintf(stderr, "FluidEQ-DSP: reopen failed: %s\n", error.c_str());
     backend.close();
+    return;
   }
+
+  /**
+   * Announced last, once there is something to come back to.
+   *
+   * The rebuild above destroyed the player, so every deck is empty and
+   * `player_has_source` is false — the endpoint is correct and the music has
+   * stopped. Bumping this is what tells the renderer to cue what it was playing
+   * again, and it is bumped only on the path where the device really did come
+   * back, so a failed reopen does not ask for a reload into nothing.
+   */
+  state.device_generation.fetch_add(1, std::memory_order_acq_rel);
+  std::fprintf(stderr,
+               "FluidEQ-DSP: output device changed; reopened at %u Hz\n",
+               state.sample_rate);
 }
 
 /**

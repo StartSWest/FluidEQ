@@ -192,7 +192,22 @@ typedef struct FeqWireTelemetryFrame {
   uint64_t sequence;
   uint64_t frames_processed;
   uint32_t latency_frames;
-  uint32_t reserved;
+  /**
+   * Bumped every time the endpoint is reopened, which the renderer must notice.
+   *
+   * Reopening rebuilds the chain and the player, and a rebuilt player has no
+   * decks: whatever was loaded is gone and `player_has_source` is false again.
+   * So following the default output device to a new endpoint, on its own, is a
+   * working stream playing nothing — the device change was handled and the
+   * music still stopped.
+   *
+   * The renderer is the only side that knows which file was playing and where,
+   * so it has to be told to cue it again. This is how: a counter it can compare
+   * with the last one it saw, riding a frame that already arrives forty times a
+   * second, rather than a new frame type for an event that happens when
+   * somebody plugs in headphones.
+   */
+  uint32_t device_generation;
   float peak_left;
   float peak_right;
   double callback_p50_us;

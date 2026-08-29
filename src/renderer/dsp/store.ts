@@ -252,6 +252,38 @@ export const setDspNativeState = (next: TDspNativeState): void => {
 
 export const readDspNativeState = (): TDspNativeState => nativeState;
 
+/**
+ * Which endpoint the host is currently playing to, as a counter.
+ *
+ * Bumped whenever the host reopens the device — following the default output
+ * to a new endpoint, or recovering one that went away. It matters because a
+ * reopen rebuilds the player, and a rebuilt player has no decks: the endpoint
+ * is right and every deck is empty, so the device change is handled and the
+ * music has still stopped.
+ *
+ * The renderer is the only side that knows what was playing and where, so this
+ * is what tells it to cue that again.
+ */
+let nativeDeviceGeneration = 0;
+
+export const setDspNativeDeviceGeneration = (next: number): void => {
+  if (!Number.isInteger(next) || next === nativeDeviceGeneration) {
+    return;
+  }
+  nativeDeviceGeneration = next;
+  emit();
+};
+
+export const readDspNativeDeviceGeneration = (): number =>
+  nativeDeviceGeneration;
+
+export const useDspNativeDeviceGeneration = (): number =>
+  useSyncExternalStore(
+    subscribe,
+    readDspNativeDeviceGeneration,
+    readDspNativeDeviceGeneration,
+  );
+
 export const useDspNativeState = (): TDspNativeState =>
   useSyncExternalStore(subscribe, readDspNativeState, readDspNativeState);
 
