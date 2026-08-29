@@ -157,6 +157,16 @@ struct HostState {
    * bug in it.
    */
   std::mutex decoder_mutex;
+  /**
+   * Serialises anything that opens, closes or rebuilds the device path.
+   *
+   * Taken by the control thread for START and STOP, and by the reopen below.
+   * Never by the audio thread, which only reads what those two have already
+   * finished building.
+   */
+  std::mutex device_mutex;
+  /** What the renderer last asked for, so a reopen knows whether to start. */
+  std::atomic<bool> device_wanted{false};
 };
 
 std::mutex g_stdout_mutex;
@@ -584,6 +594,56 @@ bool rebuild_chain_and_player(HostState& state, const FeqDecoderOps& ops) {
 }
 
 /**
+ * Follow the output the listener is actually using.
+ *
+ * Windows moves the default render endpoint whenever somebody switches from
+ * speakers to headphones, or unplugs a monitor. The old endpoint stays
+ * perfectly valid, so WASAPI reports nothing at all and the stream goes on
+ * playing to a device nobody is listening to. The element path follows the
+ * default on its own, which is why only the native engine went quiet —
+ * reported as changing the output and getting no sound.
+ *
+ * Done here rather than on the notification thread, which is a callback about
+ * the very device this tears down, and rather than on the control thread, which
+ * spends its life blocked reading stdin and would not act until the next
+ * command happened to arrive.
+ *
+ * The sequence is close, open, rebuild, start — the ordering the rebuild has
+ * always required — under the same lock START and STOP take, so a reopen and a
+ * command can never be inside the device path together.
+ */
+void reopen_if_device_changed(HostState& state, IAudioOutputBackend& backend,
+                              const FeqDecoderOps& decoder_ops) {
+  if (!backend.needs_reopen()) {
+    return;
+  }
+  const std::lock_guard<std::mutex> held(state.device_mutex);
+  backend.clear_reopen();
+  if (!state.device_wanted.load(std::memory_order_acquire)) {
+    // Nobody wants a device right now; the flag was about one being taken away.
+    return;
+  }
+
+  backend.close();
+  std::string error;
+  FeqBackendFormat negotiated{};
+  if (!backend.open(negotiated, error)) {
+    std::fprintf(stderr, "FluidEQ-DSP: reopen failed: %s\n", error.c_str());
+    return;
+  }
+  state.sample_rate = negotiated.sample_rate;
+  state.channels = negotiated.channels < kEngineChannels ? negotiated.channels
+                                                         : kEngineChannels;
+  state.block_frames = negotiated.max_block_frames;
+  // The new endpoint may run at a different rate, so everything sized by rate
+  // is rebuilt rather than reused.
+  if (!rebuild_chain_and_player(state, decoder_ops) || !backend.start(error)) {
+    std::fprintf(stderr, "FluidEQ-DSP: reopen failed: %s\n", error.c_str());
+    backend.close();
+  }
+}
+
+/**
  * The backend, reachable from the parent watch without carrying a context.
  *
  * A raw pointer to something `main` owns and outlives: the watch thread only
@@ -678,6 +738,7 @@ int main(int argc, char** argv) {
   std::atomic<bool> publishing{true};
   std::thread telemetry([&] {
     while (publishing.load(std::memory_order_acquire)) {
+      reopen_if_device_changed(state, *backend, decoder_ops);
       drain_telemetry(state, *backend);
       // Same thread as telemetry, deliberately: this is where the transforms
       // are allowed to happen, and giving them a thread of their own would add
@@ -766,6 +827,8 @@ int main(int argc, char** argv) {
          * which closes the endpoint and joins the render thread. That is the
          * ordering the rebuild has always required.
          */
+        state.device_wanted.store(true, std::memory_order_release);
+        const std::lock_guard<std::mutex> device_held(state.device_mutex);
         if (backend->is_running()) {
           send_ack(frame.request_id, FEQ_WIRE_APPLIED, frame.settings_revision,
                    0, static_cast<double>(state.sample_rate));
@@ -796,7 +859,9 @@ int main(int argc, char** argv) {
         break;
       }
 
-      case FEQ_CMD_STOP:
+      case FEQ_CMD_STOP: {
+        state.device_wanted.store(false, std::memory_order_release);
+        const std::lock_guard<std::mutex> device_held(state.device_mutex);
         // The endpoint is released, not paused. A held-open device keeps the
         // hardware awake, which is audible on a DAC as its own noise floor in
         // a room where nothing is playing.
@@ -804,6 +869,7 @@ int main(int argc, char** argv) {
         send_ack(frame.request_id, FEQ_WIRE_APPLIED, frame.settings_revision, 0,
                  0.0);
         break;
+      }
 
       case FEQ_CMD_SET_PARAMETER: {
         const FeqStatus status = feq_engine_set_parameter(

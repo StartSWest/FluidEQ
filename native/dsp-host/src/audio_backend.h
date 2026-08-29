@@ -103,6 +103,24 @@ class IAudioOutputBackend {
 
   virtual FeqBackendStats stats() const = 0;
 
+  /**
+   * Should this endpoint be closed and reopened?
+   *
+   * True once the system has changed which device is the default, or once the
+   * render thread has stopped for a reason nobody asked for. Both leave a
+   * stream that is technically healthy and inaudible: the old endpoint stays
+   * valid, so WASAPI reports nothing and the audio simply goes where the
+   * listener is not.
+   *
+   * Answered false by a backend that cannot tell, which is the honest default —
+   * a platform with no notification API should not claim its device never
+   * changes.
+   */
+  virtual bool needs_reopen() const { return false; }
+
+  /** Acknowledge a reopen, so it is acted on once. */
+  virtual void clear_reopen() {}
+
   /** A human-readable name for the handshake and for support reports. */
   virtual const char* name() const = 0;
 };
