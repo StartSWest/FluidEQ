@@ -51,6 +51,25 @@ export interface INativeMirrorState {
    * not connected to the engine making the noise.
    */
   volume: number;
+  /**
+   * The fade to use if the track changes under us. Absent means cut.
+   *
+   * Handed over as state rather than called as an event, and that is the whole
+   * correctness of the handoff. The player used to call a `crossfade` method at
+   * the moment it started the element fade — but by then it had already set the
+   * new track, React had already re-rendered, and `sync` had already run and
+   * cued that track as a CUT on the audible deck. The fade then found the file
+   * it was asked to fade to already loaded and declined as a no-op. Two
+   * mechanisms raced over one handoff and the cut won every time.
+   *
+   * There is one mechanism now. `mediaPath` changes at exactly the moment the
+   * incoming element starts playing, which is exactly when the fade should
+   * begin, so the track change IS the cue.
+   */
+  transition?: {
+    durationMs: number;
+    curve: TCrossfadeCurve;
+  };
 }
 
 export interface INativeMirror {
@@ -61,25 +80,6 @@ export interface INativeMirror {
    * something it cares about actually moved.
    */
   sync: (state: INativeMirrorState) => void;
-  /**
-   * Fade to `incomingPath` on the other deck, the way the elements are.
-   *
-   * Called by the player at the same moment it schedules the element fade, so
-   * the two run together on their own clocks. The native one is the audible
-   * one; the element fade is running on muted elements and is what keeps the
-   * player's meter, cue point and queue advance behaving identically either
-   * way.
-   *
-   * Resolves false when there was nothing to fade — no controller, no path, or
-   * the incoming track is already the audible one — and the caller carries on
-   * regardless, because the element path has its own handoff and a native
-   * engine that could not fade must not also block the song from changing.
-   */
-  crossfade: (
-    incomingPath: string,
-    durationMs: number,
-    curve: TCrossfadeCurve,
-  ) => Promise<boolean>;
   /** Hand the audio back to the element path. */
   release: () => void;
 }
@@ -201,8 +201,53 @@ export const createNativeMirror = (
     }
   };
 
+  /**
+   * Fade to the incoming track on the other deck.
+   *
+   * Internal, and reached only from `sync`. It used to be a method the player
+   * called at the moment it started the element fade, which lost a race it
+   * could not win: by then the track had already changed, `sync` had already
+   * run, and the file had already been cued as a cut on the audible deck.
+   *
+   * `loadedPath` and `activeDeck` are claimed by the caller BEFORE this is
+   * awaited, so a position tick landing mid-handoff sees no track change and
+   * leaves it alone. `previousPath` is what to put back if the load fails.
+   */
+  const handoff = async (
+    incomingPath: string,
+    durationMs: number,
+    curve: TCrossfadeCurve,
+    previousPath: string,
+  ): Promise<boolean> => {
+    const previousDeck = activeDeck;
+    const toDeck = activeDeck === 0 ? 1 : 0;
+    activeDeck = toDeck;
+    toldPositionMs = 0;
+    toldAt = performance.now();
+
+    if (!(await controller.transport.load(toDeck, incomingPath))) {
+      // A file the native decoder cannot read. Put the claim back rather than
+      // leaving the mirror pointing at a deck holding nothing, and let the
+      // element fade — which is already running — carry the handoff.
+      loadedPath = previousPath;
+      activeDeck = previousDeck;
+      unmute();
+      return false;
+    }
+
+    const index = CROSSFADE_CURVES.indexOf(curve);
+    await controller.transport.crossfade(
+      toDeck,
+      durationMs,
+      // A curve the host does not know is equal power, which is the default the
+      // panel offers, rather than whatever index -1 lands on.
+      index >= 0 ? index : 0,
+    );
+    return true;
+  };
+
   return {
-    sync: ({ mediaPath, isPlaying, positionMs, volume }) => {
+    sync: ({ mediaPath, isPlaying, positionMs, volume, transition }) => {
       // Before the track checks below, because a track change returns early and
       // the fader must still reach the host on the tick that changed it.
       if (volume !== toldVolume) {
@@ -211,6 +256,7 @@ export const createNativeMirror = (
       }
 
       if (mediaPath !== loadedPath) {
+        const previous = loadedPath;
         loadedPath = mediaPath;
         // Both halves, always together: a position without the moment it was
         // read is a reading the next tick cannot use, and it would compute an
@@ -221,6 +267,29 @@ export const createNativeMirror = (
           controller.transport.unload(activeDeck).catch(() => undefined);
           return;
         }
+
+        /**
+         * A handoff, not a cue: one track replacing another while playing.
+         *
+         * This is the branch the player used to try to reach by calling a
+         * separate method, and always lost the race to. Everything needed to
+         * tell a handoff from a cue is already here — there WAS a track, there
+         * IS a new one, the transport is playing, and a fade is configured —
+         * so the decision belongs on this side rather than in a second caller
+         * arriving afterwards to find the work already done wrongly.
+         *
+         * `previous` is captured before the claim above overwrote it.
+         */
+        if (previous !== undefined && isPlaying && transition) {
+          handoff(
+            mediaPath,
+            transition.durationMs,
+            transition.curve,
+            previous,
+          ).catch(() => undefined);
+          return;
+        }
+
         cue(mediaPath, isPlaying, positionMs).catch(() => undefined);
         return;
       }
@@ -253,57 +322,6 @@ export const createNativeMirror = (
           .seek(activeDeck, positionMs / 1000)
           .catch(() => undefined);
       }
-    },
-
-    crossfade: async (incomingPath, durationMs, curve) => {
-      if (!incomingPath || incomingPath === loadedPath) {
-        return false;
-      }
-      const toDeck = activeDeck === 0 ? 1 : 0;
-
-      /**
-       * Claimed BEFORE anything is awaited, and that ordering is the whole
-       * correctness of this function.
-       *
-       * The player calls this at the same moment it starts the element fade,
-       * and its position tick keeps running throughout. That tick calls `sync`,
-       * which compares `mediaPath` against `loadedPath` — and the incoming
-       * track is already the current one by then. Left until after the load
-       * resolved, a tick landing in the gap would see a track change, treat it
-       * as a cue, and reload the OUTGOING deck with the incoming file: a hard
-       * cut, on top of a crossfade, with the two decks holding the same song.
-       *
-       * There is no timer here and there must not be one. The window is real
-       * but it is not a matter of milliseconds — it is a matter of which fact
-       * is published first, and publishing it first closes the window at every
-       * speed.
-       */
-      const previousPath = loadedPath;
-      const previousDeck = activeDeck;
-      loadedPath = incomingPath;
-      activeDeck = toDeck;
-      toldPositionMs = 0;
-      toldAt = performance.now();
-
-      if (!(await controller.transport.load(toDeck, incomingPath))) {
-        // A file the native decoder cannot read. Put the claim back rather
-        // than leaving the mirror pointing at a deck holding nothing, and let
-        // the element fade — which is already running — carry the handoff.
-        loadedPath = previousPath;
-        activeDeck = previousDeck;
-        unmute();
-        return false;
-      }
-
-      const index = CROSSFADE_CURVES.indexOf(curve);
-      await controller.transport.crossfade(
-        toDeck,
-        durationMs,
-        // A curve the host does not know is equal power, which is the default
-        // the panel offers, rather than whatever index -1 lands on.
-        index >= 0 ? index : 0,
-      );
-      return true;
     },
 
     release: () => {

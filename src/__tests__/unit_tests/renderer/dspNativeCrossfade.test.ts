@@ -67,6 +67,30 @@ const settle = async (): Promise<void> => {
   }
 };
 
+/**
+ * A track change, driven the way the app drives one.
+ *
+ * The player does not call a crossfade method — it sets the new track, React
+ * re-renders, and the mirror sees the change on the next sync. Driving these
+ * tests any other way would be testing a path the app does not take, which is
+ * exactly how the previous version passed while the feature was broken.
+ */
+const handoffTo = async (
+  mirror: ReturnType<typeof createNativeMirror>,
+  mediaPath: string,
+  durationMs: number,
+  curve: 'equalPower' | 'smooth' | 'linear',
+) => {
+  mirror.sync({
+    mediaPath,
+    isPlaying: true,
+    positionMs: 0,
+    volume: 1,
+    transition: { durationMs, curve },
+  });
+  await settle();
+};
+
 /** A mirror with a track already cued on deck zero, and the log cleared. */
 const withTrackCued = async (overrides: Record<string, unknown> = {}) => {
   const { controller, calls } = controllerSpy(overrides);
@@ -87,7 +111,7 @@ describe('the mirrored crossfade', () => {
   it('fades to the other deck rather than reloading the one in use', async () => {
     const { mirror, calls } = await withTrackCued();
 
-    expect(await mirror.crossfade('C:/b.mp3', 4000, 'equalPower')).toBe(true);
+    await handoffTo(mirror, 'C:/b.mp3', 4000, 'equalPower');
 
     // Deck one, because deck zero is the one currently audible.
     expect(calls).toContain('load(1)');
@@ -98,9 +122,9 @@ describe('the mirrored crossfade', () => {
   it('alternates decks across successive handoffs', async () => {
     const { mirror, calls } = await withTrackCued();
 
-    await mirror.crossfade('C:/b.mp3', 4000, 'equalPower');
+    await handoffTo(mirror, 'C:/b.mp3', 4000, 'equalPower');
     calls.length = 0;
-    await mirror.crossfade('C:/c.mp3', 4000, 'equalPower');
+    await handoffTo(mirror, 'C:/c.mp3', 4000, 'equalPower');
 
     expect(calls).toContain('load(0)');
     expect(calls).toContain('crossfade(0)');
@@ -122,16 +146,23 @@ describe('the mirrored crossfade', () => {
   it('ignores the position tick that lands mid-handoff', async () => {
     const { mirror, calls } = await withTrackCued();
 
-    const fading = mirror.crossfade('C:/b.mp3', 4000, 'equalPower');
-    // Exactly the tick the player emits here: the new track, still carrying
-    // the old position, before the fade has resolved.
+    // The sync that starts the handoff, not awaited: the load is in flight.
+    mirror.sync({
+      mediaPath: 'C:/b.mp3',
+      isPlaying: true,
+      positionMs: 0,
+      volume: 1,
+      transition: { durationMs: 4000, curve: 'equalPower' },
+    });
+    // And the very next position tick, carrying the same new track, while that
+    // load has not come back yet.
     mirror.sync({
       mediaPath: 'C:/b.mp3',
       isPlaying: true,
       positionMs: 120,
       volume: 1,
+      transition: { durationMs: 4000, curve: 'equalPower' },
     });
-    await fading;
     await settle();
 
     // Reloading the outgoing deck is the whole bug.
@@ -171,9 +202,9 @@ describe('the mirrored crossfade', () => {
       },
     });
 
-    await mirror.crossfade('C:/b.mp3', 1000, 'equalPower');
-    await mirror.crossfade('C:/c.mp3', 1000, 'smooth');
-    await mirror.crossfade('C:/d.mp3', 1000, 'linear');
+    await handoffTo(mirror, 'C:/b.mp3', 1000, 'equalPower');
+    await handoffTo(mirror, 'C:/c.mp3', 1000, 'smooth');
+    await handoffTo(mirror, 'C:/d.mp3', 1000, 'linear');
 
     expect(sent).toEqual([0, 1, 2]);
   });
@@ -194,7 +225,7 @@ describe('the mirrored crossfade', () => {
     });
     expect(element.muted).toBe(true);
 
-    expect(await mirror.crossfade('C:/b.mp3', 4000, 'equalPower')).toBe(false);
+    await handoffTo(mirror, 'C:/b.mp3', 4000, 'equalPower');
     expect(element.muted).toBe(false);
   });
 
@@ -202,7 +233,7 @@ describe('the mirrored crossfade', () => {
   it('refuses a crossfade to the track already on the audible deck', async () => {
     const { mirror, calls } = await withTrackCued();
 
-    expect(await mirror.crossfade('C:/a.mp3', 4000, 'equalPower')).toBe(false);
+    await handoffTo(mirror, 'C:/a.mp3', 4000, 'equalPower');
     expect(calls).toHaveLength(0);
   });
 
@@ -210,7 +241,7 @@ describe('the mirrored crossfade', () => {
   it('unloads both decks on release', async () => {
     const { mirror, calls } = await withTrackCued();
 
-    await mirror.crossfade('C:/b.mp3', 4000, 'equalPower');
+    await handoffTo(mirror, 'C:/b.mp3', 4000, 'equalPower');
     calls.length = 0;
     mirror.release();
     await settle();
@@ -229,7 +260,7 @@ describe('the mirrored crossfade', () => {
   it('addresses a later seek to the deck the fade landed on', async () => {
     const { mirror, calls } = await withTrackCued();
 
-    await mirror.crossfade('C:/b.mp3', 4000, 'equalPower');
+    await handoffTo(mirror, 'C:/b.mp3', 4000, 'equalPower');
     calls.length = 0;
 
     // A jump far past the drift threshold, which is what makes it a seek.

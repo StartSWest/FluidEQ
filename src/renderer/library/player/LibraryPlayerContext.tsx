@@ -453,11 +453,26 @@ export const LibraryPlayerProvider = ({
   const nativeBackend = useNativeBackend(dspSettings);
   // The panel's graphs read the engine that is audible, not the muted one.
   useNativeMeters(nativeBackend);
-  const nativeMirror = useNativeMirror(nativeBackend, audioElements, {
+  useNativeMirror(nativeBackend, audioElements, {
     mediaPath: track?.path,
     isPlaying,
     positionMs,
     volume,
+    /**
+     * The fade the mirror should use if the track changes under it.
+     *
+     * Passed as state rather than called as an event: the player sets the new
+     * track, React re-renders, and the mirror sees the change on the very next
+     * sync — which is exactly when the fade should start. A method called
+     * afterwards always arrived to find the track already cued as a cut.
+     */
+    transition:
+      dspSettings.enabled && dspSettings.crossfade.enabled
+        ? {
+            durationMs: dspSettings.crossfade.durationMs,
+            curve: dspSettings.crossfade.curve,
+          }
+        : undefined,
   });
 
   /** The object URL currently backing the element, so it can be revoked when
@@ -561,7 +576,6 @@ export const LibraryPlayerProvider = ({
       incoming: HTMLAudioElement,
       durationMs: number,
       curve: TCrossfadeCurve,
-      incomingPath?: string,
       onFinished?: () => void,
     ) => {
       finishCrossfadeRef.current?.();
@@ -574,31 +588,6 @@ export const LibraryPlayerProvider = ({
         durationMs,
         curve,
       );
-      /**
-       * The same fade, on the native engine's own two decks.
-       *
-       * Both are started, not one or the other. The element fade above is
-       * running on muted elements while the native engine is audible, and it
-       * is what keeps the meter, the cue point and the queue's advance
-       * behaving identically on either engine — removing it would make the
-       * two paths differ in everything except the sound.
-       *
-       * Not awaited, and its failure is not this function's business: the
-       * mirror hands the audio back to the elements when it cannot load a
-       * file, and a handoff that waited on the native decoder would stall the
-       * song change on every engine for the sake of one.
-       */
-      if (incomingPath) {
-        nativeMirror.crossfade(incomingPath, durationMs, curve).catch(() => {
-          reportDspDiagnostic({
-            schemaVersion: DSP_DIAGNOSTIC_SCHEMA_VERSION,
-            code: DSP_DIAGNOSTIC_CODES.crossfadeDeckFallback,
-            severity: 'warn',
-            origin: 'renderer',
-            values: { durationMs, curve },
-          });
-        });
-      }
       let finished = false;
       const finish = () => {
         if (finished) {
@@ -636,7 +625,7 @@ export const LibraryPlayerProvider = ({
         Math.max(1, durationMs) + 50,
       );
     },
-    [releaseBlob, nativeMirror],
+    [releaseBlob],
   );
 
   /**
@@ -1285,10 +1274,6 @@ export const LibraryPlayerProvider = ({
                 audio,
                 transition.durationMs,
                 transition.curve,
-                // The incoming file, for the native decks. The element beside
-                // it is fed a blob URL, which is not something a native
-                // decoder can open.
-                track.path,
                 () => {
                   completeTrackHandoff();
                 },
