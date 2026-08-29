@@ -12,7 +12,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * now. What these tests need is an assert and an exit code.
  */
 
+#include "fluideq/chain.h"
 #include "fluideq/crossfade.h"
+#include "fluideq/linear_phase.h"
 #include "fluideq/dsp.h"
 #include "fluideq/parameters.h"
 
@@ -340,9 +342,123 @@ void test_crossfade_mixer() {
 
 }  // namespace
 
+/**
+ * Linear phase actually engages, which for a long time it did not.
+ *
+ * `feq_chain_set_eq_kernel` existed, was correct, and was called by nothing:
+ * `convolvers[0]` stayed null for the life of every chain, so
+ * `chain_linear_running` answered 0 to every block and the mode was inert on
+ * the engine that ships. Nothing caught it — the parity fixtures exercise
+ * `feq_build_linear_phase_kernel` directly and never through a chain, so the
+ * builder was proven while the wiring to it did not exist.
+ *
+ * Latency is the assertion because it is the observable: it is derived from
+ * `chain_linear_running`, so a non-zero answer means a convolver really is in
+ * the path rather than merely constructed.
+ */
+void test_linear_phase_engages() {
+  FeqChain* chain = feq_chain_create(48000.0, 2, 512);
+  check(chain != nullptr, "chain is created");
+  if (chain == nullptr) {
+    return;
+  }
+
+  FeqChainSettings settings{};
+  feq_chain_settings_defaults(&settings);
+  settings.enabled = 1;
+  settings.eq.enabled = 1;
+  settings.eq.phase = FEQ_PHASE_LINEAR;
+  settings.eq.band_count = 1;
+  settings.eq.bands[0].enabled = 1;
+  settings.eq.bands[0].type = FEQ_FILTER_PK;
+  settings.eq.bands[0].frequency = 1000.0;
+  settings.eq.bands[0].gain_db = 6.0;
+  settings.eq.bands[0].quality = 1.0;
+  feq_chain_configure(chain, &settings);
+
+  // Still nothing: the kernel is built on the control thread and handed over,
+  // and the audio thread has not been round yet to take delivery.
+  check(feq_chain_latency_frames(chain) == 0,
+        "a kernel in transit is not yet in the path");
+
+  std::vector<float> left(512, 0.0f);
+  std::vector<float> right(512, 0.0f);
+  float* channels[2] = {left.data(), right.data()};
+  feq_chain_process(chain, channels, 512);
+
+  check(feq_chain_latency_frames(chain) == feq_linear_phase_latency(),
+        "linear phase engages once a block has adopted the kernel");
+
+  // And it stands down again, by the same route.
+  settings.eq.phase = FEQ_PHASE_MINIMUM;
+  feq_chain_configure(chain, &settings);
+  feq_chain_process(chain, channels, 512);
+  check(feq_chain_latency_frames(chain) == 0,
+        "and stands down when the mode leaves linear");
+
+  // Isolate wants a kernel too, whatever the phase mode says.
+  settings.eq.isolate = 1;
+  feq_chain_configure(chain, &settings);
+  feq_chain_process(chain, channels, 512);
+  check(feq_chain_latency_frames(chain) == feq_linear_phase_latency(),
+        "Minimum Isolate brings the convolver back on its own");
+
+  feq_chain_destroy(chain);
+}
+
+/**
+ * A drag publishes faster than blocks go by, and nothing is leaked or read
+ * after being freed.
+ *
+ * The handoff slot holds one. Writing it twice between two blocks means the
+ * first was never adopted, and the control thread has to be the one to free
+ * it — which is what the exchange in `publish_handoff` is for. Run under a
+ * leak checker this is the case that would show it.
+ */
+void test_kernel_handoff_survives_a_drag() {
+  FeqChain* chain = feq_chain_create(48000.0, 2, 512);
+  check(chain != nullptr, "chain is created");
+  if (chain == nullptr) {
+    return;
+  }
+  FeqChainSettings settings{};
+  feq_chain_settings_defaults(&settings);
+  settings.enabled = 1;
+  settings.eq.enabled = 1;
+  settings.eq.phase = FEQ_PHASE_LINEAR;
+  settings.eq.band_count = 1;
+  settings.eq.bands[0].enabled = 1;
+  settings.eq.bands[0].type = FEQ_FILTER_PK;
+  settings.eq.bands[0].frequency = 1000.0;
+  settings.eq.bands[0].quality = 1.0;
+
+  std::vector<float> left(512, 0.0f);
+  std::vector<float> right(512, 0.0f);
+  float* channels[2] = {left.data(), right.data()};
+
+  for (int step = 0; step < 32; ++step) {
+    settings.eq.bands[0].gain_db = 0.5 * static_cast<double>(step);
+    feq_chain_configure(chain, &settings);
+  }
+  feq_chain_process(chain, channels, 512);
+  check(feq_chain_latency_frames(chain) == feq_linear_phase_latency(),
+        "the last kernel of a drag is the one that arrives");
+
+  // The same settings again must not rebuild: that guard is the difference
+  // between one kernel a frame and one per settings message.
+  feq_chain_configure(chain, &settings);
+  feq_chain_process(chain, channels, 512);
+  check(feq_chain_latency_frames(chain) == feq_linear_phase_latency(),
+        "and an unchanged rack leaves it alone");
+
+  feq_chain_destroy(chain);
+}
+
 int main() {
   std::printf("fluideq dsp-core, version %s, ABI %u\n", feq_core_version(),
               feq_core_abi_version());
+  test_linear_phase_engages();
+  test_kernel_handoff_survives_a_drag();
   test_identity();
   test_in_place();
   test_invalid_samples_are_repaired();

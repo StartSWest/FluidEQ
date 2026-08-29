@@ -252,6 +252,9 @@ void feq_chain_destroy(FeqChain* chain) {
   }
   feq_convolver_kernel_destroy(chain->kernel);
   feq_convolver_kernel_destroy(chain->kernel_next);
+  // Anything still in transit has no thread left to reach it, and it holds the
+  // largest allocation in the chain.
+  chain_release_kernel_handoff(chain);
   delete chain;
 }
 
@@ -270,6 +273,13 @@ void feq_chain_configure(FeqChain* chain, const FeqChainSettings* settings) {
   }
   rebuild_maximizer(chain);
   chain_refresh_eq(chain);
+  // After the bands, because it is built from the same settings and the guard
+  // inside it decides whether anything is done at all. This is what makes
+  // linear phase and Minimum Isolate work on this engine: without it nothing
+  // ever calls `feq_chain_set_eq_kernel`, `convolvers[0]` stays null for the
+  // life of the chain, and `chain_linear_running` answers 0 to every block
+  // while the panel goes on offering the mode.
+  chain_refresh_eq_kernel(chain);
 }
 
 void feq_chain_set_track_level_gains(FeqChain* chain,
@@ -379,6 +389,11 @@ void feq_chain_process(FeqChain* chain, float* const* channels,
   chain->active =
       &chain->coefficient_sets[chain->published_coefficients.load(
           std::memory_order_acquire)];
+
+  // The kernel arrives the same way and for the same reason, and is taken at
+  // the same point: this is the one moment in a block where swapping a filter
+  // costs nothing, because none of it has been used yet.
+  chain_adopt_kernel_handoff(chain);
 
   chain_process_input_gain(chain, channels, frames);
 

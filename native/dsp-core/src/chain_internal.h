@@ -194,6 +194,50 @@ struct FeqChain {
   int64_t convolver_warmup = 0;
   int64_t convolver_priming = 0;
 
+  /**
+   * A prepared kernel and its convolvers, in transit from control to audio.
+   *
+   * Everything above is owned by the AUDIO thread once published, and this slot
+   * is the only way anything reaches it. The control thread builds a complete
+   * replacement, hands it over with a single atomic exchange, and never touches
+   * the fields above — which is the same discipline the coefficients got, and
+   * for the same reason: `feq_chain_configure` runs on the command thread with
+   * no lock, so a control thread that freed `convolvers_next` would be freeing
+   * a pointer `chain_process_eq_convolver_channel` is dereferencing.
+   *
+   * The exchange is what makes the ownership unambiguous. Whoever the exchange
+   * hands the pointer to owns it: if the control thread gets a stale one back
+   * it frees it, knowing the audio thread never saw it; if the audio thread
+   * takes one, the control thread can no longer reach it.
+   *
+   * A null `kernel` inside a published handoff means tear the convolvers down —
+   * the request still travels this way rather than being acted on directly,
+   * because "stop convolving" frees exactly the same pointers that starting
+   * does.
+   */
+  struct KernelHandoff {
+    FeqConvolverKernel* kernel = nullptr;
+    FeqConvolver* convolvers[FEQ_CHAIN_CHANNELS] = {nullptr, nullptr};
+  };
+  std::atomic<KernelHandoff*> kernel_handoff{nullptr};
+
+  /**
+   * What the last published handoff was built from. Control thread only.
+   *
+   * Without it every settings message rebuilds a 16k kernel: two transforms and
+   * half a megabyte of partitions for a curve that did not move. The renderer's
+   * `kernelKeyOf` in `graph.ts` is the same guard against the same waste, and
+   * carries the same fields — which is not a coincidence to be tidied away, the
+   * two have to agree about what a kernel depends on.
+   */
+  int kernel_wanted = 0;
+  uint32_t kernel_band_count = 0;
+  FeqEqEngine kernel_engine = FEQ_EQ_SERIAL;
+  FeqEqModel kernel_model = FEQ_EQ_MODEL_CLEAN;
+  double kernel_model_amount = 0.0;
+  double kernel_subsonic_hz = 0.0;
+  FeqLinearPhaseBand kernel_bands[FEQ_CHAIN_MAX_EQ_BANDS] = {};
+
   /* -------------------------------------------------------- compressor -- */
   FeqCrossover crossovers[FEQ_CHAIN_CHANNELS];
   FeqCompressor compressors[FEQ_CHAIN_COMPRESSOR_BANDS];
@@ -263,6 +307,28 @@ void chain_process_eq_convolver_channel(FeqChain* chain, float* target,
 
 /** Advance the replacement's warm-up and retire the old one, as a pair. */
 void chain_settle_convolvers(FeqChain* chain, uint32_t frames);
+
+/**
+ * Take delivery of a handed-over kernel, if one is waiting. AUDIO thread.
+ *
+ * Called at the top of a block rather than anywhere inside it: adopting a new
+ * convolver halfway down would put the first half of the buffer through one
+ * filter and the second half through another, which is two filters inside one
+ * block rather than a settings change.
+ */
+void chain_adopt_kernel_handoff(FeqChain* chain);
+
+/**
+ * Build the linear-phase kernel the settings ask for and hand it over.
+ *
+ * CONTROL thread, and not real-time safe on purpose: it runs two 16k
+ * transforms and allocates the partitions. Guarded, so it does that only when
+ * something the kernel is actually made of has moved.
+ */
+void chain_refresh_eq_kernel(FeqChain* chain);
+
+/** Free anything still in transit, once no thread can be looking. */
+void chain_release_kernel_handoff(FeqChain* chain);
 
 /** Whether a convolver is actually in the path, which is what needs matching. */
 
