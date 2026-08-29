@@ -188,3 +188,68 @@ describe('handing the graphs to the native engine', () => {
     expect(target[0]).toBeCloseTo(-20, 5);
   });
 });
+
+/**
+ * Switching the DSP off and on again, which empties the slots underneath.
+ *
+ * `clearDspAnalysers` runs whenever the Web Audio graph is disposed, and that
+ * happens every time the whole DSP is switched off — an ordinary thing to do.
+ * The meters used to claim their slot once, so after that they held a live
+ * analyser nothing was reading: every graph stayed blank while the host went on
+ * measuring and sending, which looked from the outside like the engine never
+ * came back.
+ */
+describe('when the slots are emptied underneath', () => {
+  beforeEach(() => {
+    STAGES.forEach((stage) => setDspAnalyser(stage, undefined));
+  });
+
+  afterEach(() => {
+    STAGES.forEach((stage) => setDspAnalyser(stage, undefined));
+  });
+
+  it('takes its slot back after the graph was torn down', () => {
+    const { bridge, send } = fakeBridge();
+    createNativeMeters(bridge, ANALYSIS_BINS);
+    send(analysisFrame(['eq']));
+    expect(readDspAnalyser('eq')).toBeDefined();
+
+    // Exactly what turning the DSP off does.
+    STAGES.forEach((stage) => setDspAnalyser(stage, undefined));
+    expect(readDspAnalyser('eq')).toBeUndefined();
+
+    // The host has not stopped; the next frame arrives as it always would.
+    send(analysisFrame(['eq'], -18));
+
+    expect(readDspAnalyser('eq')).toBeDefined();
+    const target = new Float32Array(ANALYSIS_BINS);
+    readDspAnalyser('eq')?.getFloatFrequencyData(target);
+    expect(target[0]).toBeCloseTo(-18, 5);
+  });
+
+  /**
+   * And gives back whoever holds it NOW, not whoever held it first.
+   *
+   * The TypeScript graph registers its own analysers when it rebuilds. If the
+   * meters kept the holder they displaced on their very first frame, release
+   * would hand the slot to an analyser two teardowns out of date.
+   */
+  it('returns the slot to the holder it actually displaced', () => {
+    const first = workletAnalyser(-1);
+    setDspAnalyser('eq', first);
+
+    const { bridge, send } = fakeBridge();
+    const meters = createNativeMeters(bridge, ANALYSIS_BINS);
+    send(analysisFrame(['eq']));
+
+    // The graph is torn down and rebuilt, registering a different analyser.
+    const rebuilt = workletAnalyser(-2);
+    setDspAnalyser('eq', rebuilt);
+    send(analysisFrame(['eq']));
+    expect(readDspAnalyser('eq')).not.toBe(rebuilt);
+
+    meters.release();
+
+    expect(readDspAnalyser('eq')).toBe(rebuilt);
+  });
+});

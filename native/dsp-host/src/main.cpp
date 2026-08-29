@@ -742,6 +742,35 @@ int main(int argc, char** argv) {
         break;
 
       case FEQ_CMD_START: {
+        /**
+         * Already serving audio: say so and change nothing.
+         *
+         * Everything below rebuilds the engine, the chain and the player, and
+         * that is only safe while no callback can be inside them. The comment
+         * on `rebuild_chain_and_player` says exactly that, and it was true for
+         * the path it was written for — `open` negotiates, the rebuild happens,
+         * and only then does `start` let a callback in.
+         *
+         * A SECOND start breaks the assumption, because `open` returns early
+         * when the endpoint is already held and never stops the render thread.
+         * The rebuild then destroyed the chain and the player out from under a
+         * callback that was calling `feq_player_render` on them — a
+         * use-after-free, which showed up as the engine going silent after the
+         * renderer reloaded.
+         *
+         * And a reload is precisely when it happens: main owns the supervisor
+         * and does not reload with the window, so the fresh renderer finds a
+         * host that is already up and asks it to start again.
+         *
+         * A caller that genuinely wants a different device sends STOP first,
+         * which closes the endpoint and joins the render thread. That is the
+         * ordering the rebuild has always required.
+         */
+        if (backend->is_running()) {
+          send_ack(frame.request_id, FEQ_WIRE_APPLIED, frame.settings_revision,
+                   0, static_cast<double>(state.sample_rate));
+          break;
+        }
         std::string error;
         FeqBackendFormat negotiated{};
         if (!backend->open(negotiated, error)) {

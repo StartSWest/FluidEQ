@@ -130,11 +130,28 @@ export const createNativeMeters = (
       if (!analyser) {
         analyser = new HostAnalyser(binCount);
         analysers[stage] = analyser;
-        // Taken note of before it is replaced; see `displaced`.
+      }
+      analyser.accept(bins);
+
+      /**
+       * Claimed on every frame, not once, because the slot is taken away.
+       *
+       * `clearDspAnalysers` empties all of them whenever the Web Audio graph is
+       * disposed — and that happens every time the DSP is switched off, which
+       * is an ordinary thing to do. Registering once meant the meters then held
+       * a live analyser nothing was reading: switching the DSP off and back on
+       * left every graph blank while the host went on measuring and sending,
+       * and it looked from the outside as though the engine had not come back.
+       *
+       * Comparing rather than assigning unconditionally, so `displaced` records
+       * the worklet's own analyser when the TypeScript graph has just rebuilt
+       * and put one back — otherwise release would hand the slot to whatever
+       * held it several rebuilds ago.
+       */
+      if (readDspAnalyser(stage) !== analyser) {
         displaced[stage] = readDspAnalyser(stage);
         setDspAnalyser(stage, analyser);
       }
-      analyser.accept(bins);
     });
 
     if (frame.scatter) {

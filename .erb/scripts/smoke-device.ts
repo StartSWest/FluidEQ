@@ -182,6 +182,33 @@ const main = async (): Promise<void> => {
     check(headroom < 50, 'the worst callback fits in half its period');
   }
 
+  /**
+   * Opening an endpoint that is already open, which a reload does every time.
+   *
+   * Main owns the supervisor and does not reload with the window, so a fresh
+   * renderer finds a host that is already up and asks it to start again. That
+   * used to rebuild the engine, the chain and the player — while the render
+   * thread was inside them, because `open` returns early on an endpoint it
+   * already holds and never stops the callback. A use-after-free, and what it
+   * looked like from the window was the native engine going silent after an
+   * app reload with no error anywhere.
+   *
+   * The frames counter is what proves it: a host that had freed its player
+   * would stop advancing, or stop existing.
+   */
+  const beforeRestart = reports.at(-1)?.framesProcessed ?? 0;
+  check(await host.openDevice(), 'opening an already-open endpoint is accepted');
+  await sleep(400);
+  check(host.getState() === 'ready', 'and the host is still alive afterwards');
+  const afterRestart = reports.at(-1)?.framesProcessed ?? 0;
+  console.log(
+    `       frames ${beforeRestart} -> ${afterRestart} across the second open`,
+  );
+  check(
+    afterRestart > beforeRestart,
+    'and still rendering, so nothing was freed under the callback',
+  );
+
   check(await host.closeDevice(), 'the endpoint closes');
   await host.stop();
 
