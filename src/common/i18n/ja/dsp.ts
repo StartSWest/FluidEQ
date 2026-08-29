@@ -303,12 +303,7 @@ const dsp = {
   'dsp.master.truePeak': 'TP入力',
   'dsp.master.gainReduction': 'ゲインリダクション',
   'dsp.master.engineFallback':
-    'ネイティブオーディオエンジンを起動できなかったため、内蔵エンジンがサウンドを処理しています。すべてのエフェクトは有効なままです。',
-  'dsp.master.devBackend': 'エンジン A/B',
-  'dsp.master.devBackendNative': 'ネイティブ (C++)',
-  'dsp.master.devBackendTypescript': 'TypeScript',
-  'dsp.master.devBackendHint':
-    '開発専用: DSP チェーン全体を TypeScript ワークレットとネイティブエンジンで切り替え、同じ曲で両者を比較できるようにします。',
+    'オーディオエンジンを起動できなかったため、音楽は未処理のまま再生されています — EQ もダイナミクスもリミッターもかかりません。通常は FluidEQ を再起動すると復帰します。',
   'dsp.master.devSafety': 'セーフティA/B',
   'dsp.master.devSafetyHint':
     '開発環境のみ：最終保護をすべてバイパスし、変化をそのまま確認できます。',

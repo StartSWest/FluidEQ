@@ -306,12 +306,7 @@ const dsp = {
   'dsp.master.truePeak': 'TP इन',
   'dsp.master.gainReduction': 'गेन रिडक्शन',
   'dsp.master.engineFallback':
-    'नेटिव ऑडियो इंजन शुरू नहीं हो सका, इसलिए अंतर्निहित इंजन आपकी ध्वनि प्रोसेस कर रहा है। सभी प्रभाव अब भी लागू हैं।',
-  'dsp.master.devBackend': 'इंजन A/B',
-  'dsp.master.devBackendNative': 'नेटिव (C++)',
-  'dsp.master.devBackendTypescript': 'TypeScript',
-  'dsp.master.devBackendHint':
-    'केवल डेवलपमेंट: पूरी DSP शृंखला को TypeScript वर्कलेट और नेटिव इंजन के बीच बदलता है, ताकि दोनों की तुलना एक ही ट्रैक पर की जा सके।',
+    'ऑडियो इंजन शुरू नहीं हो सका, इसलिए आपका संगीत बिना प्रोसेसिंग के चल रहा है — न EQ, न डायनामिक्स, न लिमिटर। FluidEQ को फिर से शुरू करने पर आमतौर पर यह ठीक हो जाता है।',
   'dsp.master.devSafety': 'सुरक्षा A/B',
   'dsp.master.devSafetyHint':
     'केवल डेवलपमेंट: पूरी अंतिम सुरक्षा को बायपास करता है ताकि उसका सटीक प्रभाव सुना जा सके।',

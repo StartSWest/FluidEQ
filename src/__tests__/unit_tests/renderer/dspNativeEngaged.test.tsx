@@ -31,7 +31,6 @@ import { useNativeBackend } from '../../../renderer/dsp/useNativeBackend';
 import {
   readDspNativeEngaged,
   readDspNativeState,
-  setDspBackend,
   setDspNativeState,
 } from '../../../renderer/dsp/store';
 import { DSP_DEFAULTS } from '../../../common/dsp/chain';
@@ -79,19 +78,16 @@ const installBridge = (bridge: INativeBackendBridge | undefined): void => {
 describe('what the TypeScript chain stands down for', () => {
   beforeEach(() => {
     setDspNativeState('idle');
-    setDspBackend('typescript');
     installBridge(undefined);
   });
 
   afterEach(() => {
     installBridge(undefined);
-    setDspBackend('typescript');
     setDspNativeState('idle');
   });
 
   it('reports engaged once the host has actually come up', async () => {
     installBridge(bridgeWith(() => Promise.resolve({ state: 'ready' })));
-    setDspBackend('native');
 
     renderHook(() => useNativeBackend(DSP_DEFAULTS));
 
@@ -107,7 +103,6 @@ describe('what the TypeScript chain stands down for', () => {
    */
   it('stays disengaged when the host cannot start, so the rack keeps running', async () => {
     installBridge(bridgeWith(() => Promise.resolve({ state: 'failed' })));
-    setDspBackend('native');
 
     renderHook(() => useNativeBackend(DSP_DEFAULTS));
 
@@ -121,7 +116,6 @@ describe('what the TypeScript chain stands down for', () => {
   /** A rejection is a failure to start by another name. */
   it('stays disengaged when starting the host rejects', async () => {
     installBridge(bridgeWith(() => Promise.reject(new Error('no host'))));
-    setDspBackend('native');
 
     renderHook(() => useNativeBackend(DSP_DEFAULTS));
 
@@ -130,8 +124,6 @@ describe('what the TypeScript chain stands down for', () => {
 
   /** No preload at all — the same answer, by a shorter route. */
   it('stays disengaged when there is no bridge to reach a host through', async () => {
-    setDspBackend('native');
-
     renderHook(() => useNativeBackend(DSP_DEFAULTS));
 
     await waitFor(() => expect(readDspNativeEngaged()).toBe(false));
@@ -156,28 +148,12 @@ describe('what the TypeScript chain stands down for', () => {
   /** Unmounting hands the audio back, whatever it was doing before. */
   it('disengages when the engine is torn down', async () => {
     installBridge(bridgeWith(() => Promise.resolve({ state: 'ready' })));
-    setDspBackend('native');
 
     const view = renderHook(() => useNativeBackend(DSP_DEFAULTS));
     await waitFor(() => expect(readDspNativeEngaged()).toBe(true));
 
     view.unmount();
     expect(readDspNativeEngaged()).toBe(false);
-  });
-
-  /** And so does switching back to the TypeScript engine on purpose. */
-  it('disengages when the backend is switched away', async () => {
-    installBridge(bridgeWith(() => Promise.resolve({ state: 'ready' })));
-    setDspBackend('native');
-
-    const view = renderHook(() => useNativeBackend(DSP_DEFAULTS));
-    await waitFor(() => expect(readDspNativeEngaged()).toBe(true));
-
-    // Inside `act`, because the store notifies a mounted hook synchronously
-    // and React is entitled to complain about a render it did not schedule.
-    act(() => setDspBackend('typescript'));
-    view.rerender();
-    await waitFor(() => expect(readDspNativeEngaged()).toBe(false));
   });
 });
 
@@ -219,13 +195,11 @@ describe('the controller behind it', () => {
 describe('the controller is not handed out early', () => {
   beforeEach(() => {
     setDspNativeState('idle');
-    setDspBackend('typescript');
     installBridge(undefined);
   });
 
   afterEach(() => {
     installBridge(undefined);
-    setDspBackend('typescript');
     setDspNativeState('idle');
   });
 
@@ -235,7 +209,6 @@ describe('the controller is not handed out early', () => {
       release = resolve;
     });
     installBridge(bridgeWith(() => pending));
-    setDspBackend('native');
 
     const view = renderHook(() => useNativeBackend(DSP_DEFAULTS));
 
@@ -268,7 +241,6 @@ describe('the controller is not handed out early', () => {
   /** A host that never becomes ready never gets a mirror at all. */
   it('never hands out a controller for a host that failed', async () => {
     installBridge(bridgeWith(() => Promise.resolve({ state: 'failed' })));
-    setDspBackend('native');
 
     const view = renderHook(() => useNativeBackend(DSP_DEFAULTS));
 
@@ -291,13 +263,11 @@ describe('the controller is not handed out early', () => {
 describe('idle is not the same as failed', () => {
   beforeEach(() => {
     setDspNativeState('idle');
-    setDspBackend('typescript');
     installBridge(undefined);
   });
 
   afterEach(() => {
     installBridge(undefined);
-    setDspBackend('typescript');
     setDspNativeState('idle');
   });
 
@@ -308,7 +278,6 @@ describe('idle is not the same as failed', () => {
   /** The state that earns the notice, and the only one that does. */
   it('reports failed when the host was asked for and did not arrive', async () => {
     installBridge(bridgeWith(() => Promise.resolve({ state: 'failed' })));
-    setDspBackend('native');
 
     renderHook(() => useNativeBackend(DSP_DEFAULTS));
 
@@ -318,7 +287,6 @@ describe('idle is not the same as failed', () => {
   /** A rejection is a host that did not arrive, by another route. */
   it('reports failed when starting the host rejects', async () => {
     installBridge(bridgeWith(() => Promise.reject(new Error('no host'))));
-    setDspBackend('native');
 
     renderHook(() => useNativeBackend(DSP_DEFAULTS));
 
@@ -332,8 +300,6 @@ describe('idle is not the same as failed', () => {
    * renderer or a window still coming up.
    */
   it('stays idle when there is no bridge, rather than crying failure', async () => {
-    setDspBackend('native');
-
     renderHook(() => useNativeBackend(DSP_DEFAULTS));
 
     await waitFor(() => expect(readDspNativeEngaged()).toBe(false));
@@ -343,7 +309,6 @@ describe('idle is not the same as failed', () => {
   /** Engaging then tearing down returns to idle, not to failed. */
   it('returns to idle on teardown, so no notice is left behind', async () => {
     installBridge(bridgeWith(() => Promise.resolve({ state: 'ready' })));
-    setDspBackend('native');
 
     const view = renderHook(() => useNativeBackend(DSP_DEFAULTS));
     await waitFor(() => expect(readDspNativeState()).toBe('engaged'));

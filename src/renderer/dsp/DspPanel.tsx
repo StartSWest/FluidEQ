@@ -29,9 +29,7 @@ import { useTranslation } from '../utils/I18nContext';
 import Switch from '../widgets/Switch';
 import {
   TDspEngineState,
-  setDspBackend,
   setDspOutputSafetyEnabled,
-  useDspBackend,
   useDspNativeState,
   useDspOutputSafetyEnabled,
   useDspOutputSafetyMeter,
@@ -85,7 +83,6 @@ const DspPanel = ({
    */
   const sampleRate = useDspSampleRate();
   const outputSafetyEnabled = useDspOutputSafetyEnabled();
-  const backend = useDspBackend();
   const nativeState = useDspNativeState();
   const outputSafetyMeter = useDspOutputSafetyMeter();
   const inputAnalysis = useDspInputAnalysis();
@@ -520,14 +517,10 @@ const DspPanel = ({
               master={master}
               meter={outputSafetyMeter}
               safetyEnabled={outputSafetyEnabled}
-              backend={backend}
               nativeState={nativeState}
               loudnessGainDb={loudnessGainDb}
               onSafetyToggle={() =>
                 setDspOutputSafetyEnabled(!outputSafetyEnabled)
-              }
-              onBackendToggle={() =>
-                setDspBackend(backend === 'native' ? 'typescript' : 'native')
               }
               onPatch={(next) => patch({ master: next })}
               onCommit={onCommit}

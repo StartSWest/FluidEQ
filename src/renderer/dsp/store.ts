@@ -95,28 +95,25 @@ let sampleRate = ASSUMED_SAMPLE_RATE;
 let outputSafetyEnabled = true;
 
 /**
- * Which engine is doing the work, for as long as there are two of them.
+ * The C++ engine is the only one that processes audio. There is no switch.
  *
- * The TypeScript chain stays in the tree through the migration and this is why:
- * a port is only believable if the two can be compared on the same audio, and
- * a comparison that needs a rebuild between the halves is one nobody runs. The
- * parity fixtures hold the native chain to the worklet sample for sample, but
- * they cannot hear it — this is what lets a person switch mid-track and listen.
+ * The TypeScript chain was kept in the tree through the migration so the two
+ * could be compared on the same material, and it earned that: the parity corpus
+ * held the native chain to it sample for sample, and `smoke-engines` showed the
+ * two agreeing on real music to 0.00e+0 — the same samples, not close ones.
+ * Having been proved, it has no further job at runtime.
  *
- * Development only. In a production build the getter is pinned, because the
- * fallback exists to be measured against rather than to be shipped as a
- * setting the user has to understand.
+ * It is NOT deleted. `generate-parity-fixtures.ts` still builds all 2137
+ * fixtures from those modules, and they are the only thing that holds the C++
+ * to a reference rather than to its own opinion. What has gone is the switch,
+ * the second audible path, and the fallback: nothing TypeScript touches the
+ * audio any more.
  *
- * Pinned to `native`, now that the two have been held to each other sample for
- * sample on real music — worst difference 0.00e+0 over seven seconds — and the
- * C++ chain is the one worth shipping. The TypeScript chain is not dead code:
- * it is still the reference the parity corpus is generated from, still the
- * thing the A/B switch reaches in development, and still what carries the audio
- * on any machine where the host does not come up. See `readDspNativeEngaged`.
+ * No fallback in particular is a decision rather than an omission. A chain that
+ * quietly did something different when the host failed to start is a user
+ * hearing the wrong engine and being told nothing — so a failure is shown
+ * instead. See `readDspNativeState`.
  */
-export type TDspBackend = 'typescript' | 'native';
-
-let dspBackend: TDspBackend = 'native';
 
 const listeners = new Set<() => void>();
 const outputSafetyListeners = new Set<() => void>();
@@ -212,9 +209,6 @@ export const setDspOutputSafetyEnabled = (next: boolean): void => {
   emit();
 };
 
-export const readDspBackend = (): TDspBackend =>
-  IS_DEV ? dspBackend : 'native';
-
 /**
  * Whether the native engine is actually carrying the audio right now.
  *
@@ -292,17 +286,6 @@ export const readDspNativeEngaged = (): boolean => nativeState === 'engaged';
 
 export const useDspNativeEngaged = (): boolean =>
   useSyncExternalStore(subscribe, readDspNativeEngaged, readDspNativeEngaged);
-
-export const setDspBackend = (next: TDspBackend): void => {
-  if (!IS_DEV || next === dspBackend) {
-    return;
-  }
-  dspBackend = next;
-  emit();
-};
-
-export const useDspBackend = (): TDspBackend =>
-  useSyncExternalStore(subscribe, readDspBackend, readDspBackend);
 
 export const useDspOutputSafetyEnabled = (): boolean =>
   useSyncExternalStore(

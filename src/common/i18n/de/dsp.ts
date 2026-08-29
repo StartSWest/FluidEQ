@@ -314,12 +314,7 @@ const dsp = {
   'dsp.master.truePeak': 'TP Eingang',
   'dsp.master.gainReduction': 'Pegelreduktion',
   'dsp.master.engineFallback':
-    'Die native Audio-Engine konnte nicht starten, daher verarbeitet die integrierte Engine deinen Klang. Alle Effekte bleiben aktiv.',
-  'dsp.master.devBackend': 'Engine A/B',
-  'dsp.master.devBackendNative': 'Nativ (C++)',
-  'dsp.master.devBackendTypescript': 'TypeScript',
-  'dsp.master.devBackendHint':
-    'Nur in der Entwicklung: schaltet die gesamte DSP-Kette zwischen dem TypeScript-Worklet und der nativen Engine um, damit beide am selben Titel verglichen werden können.',
+    'Die Audio-Engine konnte nicht starten, daher läuft deine Musik unbearbeitet – ohne EQ, ohne Dynamik und ohne Limiter. Ein Neustart von FluidEQ hilft meist.',
   'dsp.master.devSafety': 'Sicherheit A/B',
   'dsp.master.devSafetyHint':
     'Nur Entwicklung: Umgeht den vollständigen Endschutz, damit seine Wirkung direkt hörbar wird.',

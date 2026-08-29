@@ -310,12 +310,7 @@ const dsp = {
   'dsp.master.truePeak': 'TP вход',
   'dsp.master.gainReduction': 'Ослабление',
   'dsp.master.engineFallback':
-    'Нативный аудиодвижок не запустился, поэтому звук обрабатывает встроенный движок. Все эффекты по-прежнему применяются.',
-  'dsp.master.devBackend': 'Движок A/B',
-  'dsp.master.devBackendNative': 'Нативный (C++)',
-  'dsp.master.devBackendTypescript': 'TypeScript',
-  'dsp.master.devBackendHint':
-    'Только для разработки: переключает всю цепочку DSP между worklet на TypeScript и нативным движком, чтобы сравнить их на одном и том же треке.',
+    'Аудиодвижок не запустился, поэтому музыка воспроизводится без обработки — без эквалайзера, динамики и лимитера. Обычно помогает перезапуск FluidEQ.',
   'dsp.master.devSafety': 'Защита A/B',
   'dsp.master.devSafetyHint':
     'Только для разработки: обходит всю финальную защиту, чтобы её влияние можно было услышать напрямую.',

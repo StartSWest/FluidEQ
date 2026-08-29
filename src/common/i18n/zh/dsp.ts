@@ -292,12 +292,7 @@ const dsp = {
   'dsp.master.truePeak': 'TP 输入',
   'dsp.master.gainReduction': '增益衰减',
   'dsp.master.engineFallback':
-    '原生音频引擎无法启动，因此正在由内置引擎处理声音。所有效果仍然生效。',
-  'dsp.master.devBackend': '引擎 A/B',
-  'dsp.master.devBackendNative': '原生 (C++)',
-  'dsp.master.devBackendTypescript': 'TypeScript',
-  'dsp.master.devBackendHint':
-    '仅开发使用：在 TypeScript worklet 与原生引擎之间切换整条 DSP 链，以便用同一首曲目对比两者。',
+    '音频引擎无法启动，因此音乐正在未经处理地播放——没有均衡器、没有动态处理、没有限制器。重启 FluidEQ 通常可以恢复。',
   'dsp.master.devSafety': '安全 A/B',
   'dsp.master.devSafetyHint':
     '仅开发环境：旁路全部最终保护，让你直接听到它带来的变化。',

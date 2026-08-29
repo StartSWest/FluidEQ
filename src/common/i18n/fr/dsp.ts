@@ -311,12 +311,7 @@ const dsp = {
   'dsp.master.truePeak': 'TP entrée',
   'dsp.master.gainReduction': 'Réduction de gain',
   'dsp.master.engineFallback':
-    "Le moteur audio natif n'a pas pu démarrer, c'est donc le moteur intégré qui traite votre son. Tous les effets restent appliqués.",
-  'dsp.master.devBackend': 'Moteur A/B',
-  'dsp.master.devBackendNative': 'Natif (C++)',
-  'dsp.master.devBackendTypescript': 'TypeScript',
-  'dsp.master.devBackendHint':
-    'Développement uniquement : bascule toute la chaîne DSP entre le worklet TypeScript et le moteur natif, pour comparer les deux sur le même morceau.',
+    "Le moteur audio n'a pas pu démarrer, votre musique est donc lue sans traitement : ni égaliseur, ni dynamique, ni limiteur. Redémarrer FluidEQ suffit généralement.",
   'dsp.master.devSafety': 'Sécurité A/B',
   'dsp.master.devSafetyHint':
     'Développement uniquement : contourne toute la protection finale pour entendre exactement son effet.',

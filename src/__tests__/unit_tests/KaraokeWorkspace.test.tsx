@@ -991,7 +991,21 @@ describe('KaraokeWorkspace', () => {
       barTransport?.querySelector('button[aria-label="Play"]'),
     ).toBeInTheDocument();
     canvasContext.mockRestore();
-  });
+    /**
+     * Twenty seconds, because this one test drives most of the Maker.
+     *
+     * Four hundred lines of it: entering the full-screen surface, the lyrics
+     * dialog, accepting timings, and back out again. Alone it finishes in a
+     * couple of seconds and it has always been the slowest test in the file.
+     *
+     * It began failing when the DSP engine stopped being switchable, because
+     * every mount of the player now attempts to engage the host rather than
+     * skipping it on a `typescript` selection that no longer exists. That is
+     * correct behaviour costing real time in a suite already running twenty
+     * files in parallel, and the answer is a budget that matches what the test
+     * actually does rather than a five-second default it never fitted in.
+     */
+  }, 20_000);
 
   it('offers the detector without taking the manual paths away', async () => {
     const canvasContext = jest

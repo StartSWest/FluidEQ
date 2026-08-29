@@ -30,7 +30,6 @@ import {
   setDspNativeDeviceGeneration,
   useDspNativeDeviceGeneration,
   setDspNativeState,
-  useDspBackend,
   useDspNativeState,
   useDspOutputSafetyEnabled,
 } from './store';
@@ -65,7 +64,6 @@ const bridgeOf = ():
 export const useNativeBackend = (
   settings: IDspSettings,
 ): INativeBackendController | undefined => {
-  const backend = useDspBackend();
   const nativeState = useDspNativeState();
   const outputSafetyEnabled = useDspOutputSafetyEnabled();
   const controllerRef = useRef<INativeBackendController | undefined>(undefined);
@@ -77,13 +75,6 @@ export const useNativeBackend = (
   safetyRef.current = outputSafetyEnabled;
 
   useEffect(() => {
-    if (backend !== 'native') {
-      const running = controllerRef.current;
-      controllerRef.current = undefined;
-      setDspNativeState('idle');
-      running?.disengage().catch(() => undefined);
-      return undefined;
-    }
     const bridge = bridgeOf();
     if (!bridge) {
       /**
@@ -127,7 +118,7 @@ export const useNativeBackend = (
       setDspNativeState('idle');
       controller.disengage().catch(() => undefined);
     };
-  }, [backend]);
+  }, []);
 
   useEffect(() => {
     controllerRef.current
@@ -180,9 +171,7 @@ export const useNativeBackend = (
    * ready to be mirrored, which is the same rule as the chain going in before
    * the device.
    */
-  return backend === 'native' && nativeState === 'engaged'
-    ? controllerRef.current
-    : undefined;
+  return nativeState === 'engaged' ? controllerRef.current : undefined;
 };
 
 /**

@@ -10,7 +10,7 @@ import Switch from '../widgets/Switch';
 import { Dial, ProcessorCard } from './DspControls';
 import DspMasterGraph from './DspMasterGraph';
 import { OUTPUT_SAFETY_SOFT_KNEE_DB } from './outputSafety';
-import { IDspOutputSafetyMeter, TDspBackend, TDspNativeState } from './store';
+import { IDspOutputSafetyMeter, TDspNativeState } from './store';
 
 const IS_DEV = process.env.NODE_ENV !== 'production';
 
@@ -24,21 +24,19 @@ interface IDspMasterCardProps {
   master: IMasterSettings;
   meter: IDspOutputSafetyMeter;
   safetyEnabled: boolean;
-  /** Which engine is SELECTED. Development only; see `store.ts`. */
-  backend: TDspBackend;
   /**
-   * Which engine is actually running, which is a different question.
+   * Whether the one engine there is has started.
    *
-   * Shown on every build rather than in development only. The switch above is
-   * a developer's toy, but a native engine that could not start is the user's
-   * business on any build: their rack is being processed by the fallback, and
-   * without this the only evidence is a switch reading `Native` while the
-   * TypeScript chain does the work.
+   * The C++ engine is the only thing that processes audio, so this is not a
+   * choice being reported — it is whether the rack is running at all. There is
+   * no fallback to hide a failure behind any more, which is precisely why it
+   * has to be visible: a host that did not start means no EQ, no compressor and
+   * no limiter, and the panel would otherwise show a full set of controls doing
+   * nothing.
    */
   nativeState: TDspNativeState;
   loudnessGainDb: number;
   onSafetyToggle: () => void;
-  onBackendToggle: () => void;
   onPatch: (next: IMasterSettings) => void;
   onCommit: () => void;
 }
@@ -48,11 +46,9 @@ const DspMasterCard = ({
   master,
   meter,
   safetyEnabled,
-  backend,
   nativeState,
   loudnessGainDb,
   onSafetyToggle,
-  onBackendToggle,
   onPatch,
   onCommit,
 }: IDspMasterCardProps) => {
@@ -235,35 +231,6 @@ const DspMasterCard = ({
         <p className="dsp-band-hint dsp-engine-fallback" role="status">
           {t('dsp.master.engineFallback')}
         </p>
-      ) : undefined}
-
-      {IS_DEV ? (
-        <div
-          className={`dsp-band dsp-dev-safety${
-            backend === 'native' ? ' is-on' : ' is-off'
-          }`}
-        >
-          <div className="dsp-band-head">
-            <div className="dsp-dev-safety-control">
-              <span className="dsp-band-title">
-                {t('dsp.master.devBackend')}
-              </span>
-              <span className="dsp-dev-safety-state">
-                {backend === 'native'
-                  ? t('dsp.master.devBackendNative')
-                  : t('dsp.master.devBackendTypescript')}
-              </span>
-            </div>
-            <Switch
-              id="dsp-dev-backend"
-              isOn={backend === 'native'}
-              isDisabled={false}
-              handleToggle={onBackendToggle}
-              ariaLabel={t('dsp.master.devBackend')}
-            />
-          </div>
-          <p className="dsp-band-hint">{t('dsp.master.devBackendHint')}</p>
-        </div>
       ) : undefined}
     </ProcessorCard>
   );
