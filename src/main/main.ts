@@ -2384,7 +2384,7 @@ registerKaraokeIpc({
 // heard. A checkout that has never built the native target simply reports the
 // engine unavailable and the TypeScript one carries on.
 registerDspHostIpc({ getMainWindow: () => mainWindow });
-// The process list, which needs the host's pid to include it as a row â the
+// The process list, which needs the host's pid to include it as a row — the
 // DSP engine is our own child rather than Electron's, so `getAppMetrics` has
 // never heard of it.
 registerProcessIpc({

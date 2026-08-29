@@ -443,7 +443,7 @@ class DspProcessor extends AudioWorkletProcessor {
    * Stand down: the native engine is the one being heard.
    *
    * While the A/B switch is on native, the element is muted and this chain's
-   * output goes nowhere â but every filter in it still ran, once per quantum,
+   * output goes nowhere — but every filter in it still ran, once per quantum,
    * for audio no one could hear. Two complete DSP chains on one machine is
    * how an A/B ends up measuring the CPU rather than the code.
    *

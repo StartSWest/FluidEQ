@@ -108,7 +108,7 @@ struct FeqChain {
    *
    * `chain_refresh_eq` runs on the CONTROL thread and the callback reads these
    * on the audio thread. Building in place meant `clear()` and `push_back()`
-   * on a vector another thread was reading â garbage coefficients for a block
+   * on a vector another thread was reading — garbage coefficients for a block
    * on a good day, a read of freed memory when the band count grew past the
    * capacity. That is a click on every knob turn, and it was audible.
    *
@@ -150,7 +150,7 @@ struct FeqChain {
    * Fixed, so the state arrays are allocated once and never resized.
    *
    * Striding by the LIVE count meant enabling a band moved every other band's
-   * filter history to a different slot â and, worse, resized a vector the
+   * filter history to a different slot — and, worse, resized a vector the
    * audio thread was reading. A fixed stride costs four kilobytes and removes
    * both: a band's history stays with that band whatever its neighbours do.
    */
