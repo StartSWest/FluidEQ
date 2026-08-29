@@ -22,6 +22,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <cmath>
 #include <cstdio>
+#include <algorithm>
 #include <vector>
 
 namespace {
@@ -197,6 +198,46 @@ int main() {
     read_spectrum(meters, FEQ_METER_STAGE_EQ, spectrum);
   }
   check(spectrum[tone_bin] < -100.0f, "silence reads at the floor");
+
+  /**
+   * Anti-phase material still reads, and this is not a hypothetical.
+   *
+   * The repository's own karaoke fixture measures a stereo correlation of
+   * exactly -1.000000 with a channel peak of 1.0 and a mono peak of 1.5e-5,
+   * because a vocal removal built from L-R cancels perfectly when summed back.
+   * `AnalyserNode` analyses the mono down-mix, so the panel drew a flat line
+   * for that track on both engines, for the life of the app — the same "graph
+   * is not moving" this whole file exists to remove.
+   *
+   * Averaging the two channels' magnitudes rather than summing their signals
+   * fixes it, and this is the check that would catch a return to the old way.
+   */
+  phase = 0.0;
+  for (int attempt = 0; attempt < 96; attempt += 1) {
+    constexpr uint32_t kBlock = 480;
+    std::vector<float> left(kBlock);
+    std::vector<float> right(kBlock);
+    float* planes[2] = {left.data(), right.data()};
+    uint32_t sent = 0;
+    while (sent < FEQ_METER_WINDOW) {
+      const uint32_t count = std::min(kBlock, FEQ_METER_WINDOW - sent);
+      for (uint32_t at = 0; at < count; at += 1) {
+        const auto value = static_cast<float>(0.5 * std::sin(phase));
+        left[at] = value;
+        // Perfectly inverted, so `0.5 * (L + R)` is exactly zero.
+        right[at] = -value;
+        phase += 2.0 * kPi * 3000.0 / kRate;
+      }
+      feq_meters_capture(meters, FEQ_METER_STAGE_EQ, planes, count);
+      sent += count;
+    }
+    read_spectrum(meters, FEQ_METER_STAGE_EQ, spectrum);
+  }
+  const uint32_t inverted_bin = bin_for(3000.0);
+  std::printf("       anti-phase 3 kHz reads %.1f dB\n",
+              static_cast<double>(spectrum[inverted_bin]));
+  check(spectrum[inverted_bin] > -25.0f,
+        "a tone whose channels cancel is still measured");
 
   /**
    * The stages are separate, which is what makes three graphs possible.

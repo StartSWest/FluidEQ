@@ -40,10 +40,24 @@ constexpr double kMagnitudeFloor = 1e-10;
  */
 struct StageWindow {
   std::atomic<uint32_t> sequence{0};
-  /** Written only by the audio thread. */
+  /**
+   * Both channels, left in the first half and right in the second.
+   *
+   * Kept apart rather than summed to mono, and that is a correctness fix rather
+   * than a refinement. `AnalyserNode` — which this replaces — analyses the mono
+   * down-mix, `0.5 * (L + R)`, and for anti-phase material that is silence: the
+   * repository's own karaoke fixture measures a correlation of exactly -1.000
+   * and a mono peak of 1.5e-5 against a channel peak of 1.0, because a vocal
+   * removal built from L-R cancels perfectly when summed back.
+   *
+   * The panel drew nothing at all for that content while it was playing, on
+   * both engines, and had done for the life of the app. Since a graph that does
+   * not move while music plays is the exact defect this file exists to remove,
+   * it is fixed here rather than reproduced faithfully.
+   */
   std::vector<float> filling;
   uint32_t fill = 0;
-  /** Published, read under the seqlock. */
+  /** Published, read under the seqlock. Same layout. */
   std::vector<float> published;
   /** Bumped on every publish, so a reader can tell "new" from "again". */
   std::atomic<uint64_t> generation{0};
@@ -97,6 +111,8 @@ struct FeqMeters {
   /** Reader-side scratch, so the transform allocates nothing per frame. */
   std::vector<double> real;
   std::vector<double> imaginary;
+  /** Where the two channels' magnitudes are summed before smoothing. */
+  std::vector<double> magnitudes;
   std::vector<float> snapshot;
 };
 
@@ -111,10 +127,11 @@ FeqMeters* feq_meters_create(uint32_t channels) {
   meters->window = blackman_window();
   meters->real.assign(FEQ_METER_WINDOW, 0.0);
   meters->imaginary.assign(FEQ_METER_WINDOW, 0.0);
-  meters->snapshot.assign(FEQ_METER_WINDOW, 0.0f);
+  meters->magnitudes.assign(FEQ_METER_BINS, 0.0);
+  meters->snapshot.assign(static_cast<size_t>(FEQ_METER_WINDOW) * 2, 0.0f);
   for (auto& stage : meters->stages) {
-    stage.filling.assign(FEQ_METER_WINDOW, 0.0f);
-    stage.published.assign(FEQ_METER_WINDOW, 0.0f);
+    stage.filling.assign(static_cast<size_t>(FEQ_METER_WINDOW) * 2, 0.0f);
+    stage.published.assign(static_cast<size_t>(FEQ_METER_WINDOW) * 2, 0.0f);
     stage.smoothed.assign(FEQ_METER_BINS, 0.0);
   }
   meters->scope.filling.assign(
@@ -154,9 +171,11 @@ void feq_meters_capture(FeqMeters* meters,
   }
 
   for (uint32_t at = 0; at < frames; at += 1) {
-    // Down-mixed the way `AnalyserNode` does it, so the spectrum a listener has
-    // been reading for months does not change level when the engine changes.
-    target.filling[target.fill] = 0.5f * (left[at] + right[at]);
+    // Kept as two channels, not summed. See `StageWindow`: the mono down-mix
+    // `AnalyserNode` performs is exactly zero for anti-phase material, and the
+    // panel drew nothing at all while such a track played.
+    target.filling[target.fill] = left[at];
+    target.filling[FEQ_METER_WINDOW + target.fill] = right[at];
     target.fill += 1;
     if (target.fill < FEQ_METER_WINDOW) {
       continue;
@@ -167,7 +186,7 @@ void feq_meters_capture(FeqMeters* meters,
     const uint32_t sequence = target.sequence.load(std::memory_order_relaxed);
     target.sequence.store(sequence + 1, std::memory_order_release);
     std::memcpy(target.published.data(), target.filling.data(),
-                sizeof(float) * FEQ_METER_WINDOW);
+                sizeof(float) * FEQ_METER_WINDOW * 2);
     target.sequence.store(sequence + 2, std::memory_order_release);
     target.generation.fetch_add(1, std::memory_order_release);
   }
@@ -254,29 +273,54 @@ int feq_meters_read_spectrum(FeqMeters* meters,
       continue;
     }
     std::memcpy(meters->snapshot.data(), target.published.data(),
-                sizeof(float) * FEQ_METER_WINDOW);
+                sizeof(float) * FEQ_METER_WINDOW * 2);
     const uint32_t after = target.sequence.load(std::memory_order_acquire);
     if (before != after) {
       continue;
     }
 
-    for (uint32_t at = 0; at < FEQ_METER_WINDOW; at += 1) {
-      meters->real[at] = meters->snapshot[at] * meters->window[at];
-      meters->imaginary[at] = 0.0;
+    /**
+     * Each channel transformed, then their MAGNITUDES averaged.
+     *
+     * Averaging the spectra rather than the signals is the whole point. For
+     * ordinary correlated material the two are the same to within a fraction of
+     * a decibel, so nothing a listener has been reading changes. For anti-phase
+     * material the signal sum is zero and the magnitude average is the true
+     * level — which is the difference between a graph that works on every track
+     * and one that goes blank on some of them.
+     *
+     * Two transforms per stage instead of one. At roughly twenty-three windows
+     * a second on the control thread that is a fraction of a percent of one
+     * core, and it buys a display that is correct rather than merely faithful.
+     */
+    for (uint32_t bin = 0; bin < FEQ_METER_BINS; bin += 1) {
+      meters->magnitudes[bin] = 0.0;
     }
-    feq_fft_in_place(meters->real.data(), meters->imaginary.data(),
-                     FEQ_METER_WINDOW, 0);
+    for (uint32_t channel = 0; channel < 2; channel += 1) {
+      const float* samples =
+          meters->snapshot.data() + static_cast<size_t>(channel) *
+                                        FEQ_METER_WINDOW;
+      for (uint32_t at = 0; at < FEQ_METER_WINDOW; at += 1) {
+        meters->real[at] = samples[at] * meters->window[at];
+        meters->imaginary[at] = 0.0;
+      }
+      feq_fft_in_place(meters->real.data(), meters->imaginary.data(),
+                       FEQ_METER_WINDOW, 0);
+      for (uint32_t bin = 0; bin < FEQ_METER_BINS; bin += 1) {
+        const double re = meters->real[bin];
+        const double im = meters->imaginary[bin];
+        // Divided by the transform size, which is what `AnalyserNode` reports
+        // and therefore what every graph in the panel was scaled against.
+        meters->magnitudes[bin] +=
+            0.5 * std::sqrt(re * re + im * im) /
+            static_cast<double>(FEQ_METER_WINDOW);
+      }
+    }
 
     for (uint32_t bin = 0; bin < FEQ_METER_BINS; bin += 1) {
-      const double re = meters->real[bin];
-      const double im = meters->imaginary[bin];
-      // Divided by the transform size, which is what `AnalyserNode` reports and
-      // therefore what every graph in the panel was scaled against.
-      const double magnitude =
-          std::sqrt(re * re + im * im) / static_cast<double>(FEQ_METER_WINDOW);
       const double previous = meters->stages[stage].smoothed[bin];
       const double blended =
-          kSmoothing * previous + (1.0 - kSmoothing) * magnitude;
+          kSmoothing * previous + (1.0 - kSmoothing) * meters->magnitudes[bin];
       meters->stages[stage].smoothed[bin] = blended;
       out_db[bin] = static_cast<float>(
           20.0 * std::log10(std::fmax(blended, kMagnitudeFloor)));
