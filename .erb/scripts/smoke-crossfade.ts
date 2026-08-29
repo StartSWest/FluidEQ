@@ -163,6 +163,7 @@ const runFade = async (
   highFile: string,
   rendered: string,
   decodeWaitMs: number,
+  renderSeconds: number,
 ): Promise<IFadeResult | undefined> => {
   const host = new DspHostSupervisor({
     executablePath,
@@ -192,7 +193,7 @@ const runFade = async (
     await sleep(decodeWaitMs);
   }
   await host.crossfade(1, FADE_MS, 0);
-  const ok = await host.renderToFile(RATE * 3, rendered);
+  const ok = await host.renderToFile(RATE * renderSeconds, rendered);
   await host.stop();
   if (!ok) {
     return undefined;
@@ -203,7 +204,9 @@ const runFade = async (
   const window = Math.floor(RATE * 0.25);
   const early = Math.floor(RATE * 0.1);
   const middle = Math.floor(RATE * 1.0);
-  const late = Math.floor(RATE * 2.5);
+  // Measured near the end of whatever was rendered, so a longer run looks at
+  // a later moment rather than the same one.
+  const late = Math.floor(RATE * (renderSeconds - 0.5));
   return {
     peak: peakOf(samples),
     lowEarly: amountOf(samples, early, window, LOW_HZ),
@@ -258,7 +261,7 @@ const main = async (): Promise<void> => {
   check(level > 0.01, 'the tones carry signal at all');
 
   const waited = await runFade(
-    executablePath, lowFile, highFile, rendered, 600,
+    executablePath, lowFile, highFile, rendered, 600, 3,
   );
   check(waited !== undefined, 'a fade runs with the incoming deck decoded');
   if (!waited) {
@@ -299,7 +302,17 @@ const main = async (): Promise<void> => {
    * Either answer is worth having; guessing between them is not.
    */
   const immediate = await runFade(
-    executablePath, lowFile, highFile, rendered, 0,
+    /**
+     * Rendered for longer than the decoded run, deliberately.
+     *
+     * The fade is held until the incoming deck can supply a block, and in a
+     * burst render the decoder thread competes with a loop producing audio far
+     * faster than real time — so the wait is longer here than it would ever be
+     * in playback. Three seconds was enough to see the hole was gone and not
+     * always enough to see the fade finish, which made the completion check
+     * flap. Eight gives it room without weakening what it asserts.
+     */
+    executablePath, lowFile, highFile, rendered, 0, 8,
   );
   check(immediate !== undefined, 'a fade runs with no decode pause at all');
   if (immediate) {
