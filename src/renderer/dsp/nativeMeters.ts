@@ -42,6 +42,7 @@ import {
   setDspBandLevels,
   setDspChannelPeaks,
   setDspCorrelation,
+  setDspExciterActivity,
   setDspPeak,
   setDspScatter,
 } from './store';
@@ -176,6 +177,10 @@ export const createNativeMeters = (
       setDspBandAmounts(frame.bandAmounts);
       setDspBandLevels(frame.bandLevels);
     }
+    // The exciter is a nonlinear stage with no transfer curve to draw, so what
+    // it contributed can only be measured. Sent every frame because a light at
+    // zero is a real reading rather than a missing one.
+    setDspExciterActivity(frame.exciterBands, frame.exciterOrganic);
     setDspCorrelation(frame.correlation);
     setDspChannelPeaks(frame.peaks);
     setDspPeak(Math.max(frame.peaks[0], frame.peaks[1]));

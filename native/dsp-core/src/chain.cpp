@@ -405,6 +405,10 @@ void feq_chain_process(FeqChain* chain, float* const* channels,
   // convenient: the exciter graph is showing what the exciter did, so it has to
   // be read before the EQ has had a turn at the same buffer.
   feq_meters_capture(chain->meters, FEQ_METER_STAGE_EXCITER, channels, frames);
+  // And what its three bands and the organic stage contributed, which the
+  // spectrum cannot show: a nonlinear stage has no transfer curve to draw.
+  feq_meters_publish_exciter(chain->meters, chain->exciter_band_report,
+                             chain->exciter_organic_report);
 
   chain_process_eq(chain, channels, frames);
   feq_meters_capture(chain->meters, FEQ_METER_STAGE_EQ, channels, frames);

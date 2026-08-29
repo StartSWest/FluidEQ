@@ -314,6 +314,8 @@ void drain_analysis(HostState& state) {
   frame.bins = FEQ_METER_BINS;
   frame.pairs = has_scope != 0 ? FEQ_METER_SCOPE_PAIRS : 0;
   frame.bands = bands;
+  feq_meters_read_exciter(state.meters, frame.exciter_bands,
+                          &frame.exciter_organic);
   frame.correlation = correlation;
   frame.peak_left = peaks[0];
   frame.peak_right = peaks[1];

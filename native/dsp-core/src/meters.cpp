@@ -148,6 +148,8 @@ struct FeqMeters {
   StageWindow stages[FEQ_METER_STAGE_COUNT];
   ScopeWindow scope;
   BandWindow bands;
+  std::atomic<float> exciter_bands[FEQ_METER_EXCITER_BANDS];
+  std::atomic<float> exciter_organic{0.0f};
   std::vector<double> window;
   /** Reader-side scratch, so the transform allocates nothing per frame. */
   std::vector<double> real;
@@ -177,6 +179,9 @@ FeqMeters* feq_meters_create(uint32_t channels) {
     stage.filling.assign(static_cast<size_t>(FEQ_METER_WINDOW) * 2, 0.0f);
     stage.published.assign(static_cast<size_t>(FEQ_METER_WINDOW) * 2, 0.0f);
     stage.smoothed.assign(FEQ_METER_BINS, 0.0);
+  }
+  for (auto& band : meters->exciter_bands) {
+    band.store(0.0f, std::memory_order_relaxed);
   }
   meters->bands.amounts.assign(FEQ_METER_MAX_BANDS, 0.0f);
   meters->bands.levels.assign(FEQ_METER_MAX_BANDS, 0.0f);
@@ -402,6 +407,43 @@ void feq_meters_publish_bands(FeqMeters* meters,
   }
   target.count.store(span, std::memory_order_relaxed);
   target.sequence.store(sequence + 2, std::memory_order_release);
+}
+
+void feq_meters_publish_exciter(FeqMeters* meters,
+                                const double* bands,
+                                double organic) {
+  if (meters == nullptr || bands == nullptr ||
+      meters->enabled.load(std::memory_order_acquire) == 0) {
+    return;
+  }
+  /**
+   * Four independent atomics, no seqlock.
+   *
+   * Each value is read on its own and drawn as its own light, so a reader that
+   * caught three from one block and one from the next would be showing a
+   * picture that is at worst one block stale in one place — twenty microseconds
+   * of skew on a display that repaints every sixteen milliseconds. A lock to
+   * prevent that would be ceremony around nothing.
+   */
+  for (uint32_t band = 0; band < FEQ_METER_EXCITER_BANDS; band += 1) {
+    meters->exciter_bands[band].store(static_cast<float>(bands[band]),
+                                      std::memory_order_relaxed);
+  }
+  meters->exciter_organic.store(static_cast<float>(organic),
+                                std::memory_order_relaxed);
+}
+
+void feq_meters_read_exciter(FeqMeters* meters,
+                             float* out_bands,
+                             float* out_organic) {
+  if (meters == nullptr || out_bands == nullptr || out_organic == nullptr) {
+    return;
+  }
+  for (uint32_t band = 0; band < FEQ_METER_EXCITER_BANDS; band += 1) {
+    out_bands[band] = meters->exciter_bands[band].load(
+        std::memory_order_relaxed);
+  }
+  *out_organic = meters->exciter_organic.load(std::memory_order_relaxed);
 }
 
 uint32_t feq_meters_read_bands(FeqMeters* meters,

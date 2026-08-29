@@ -426,6 +426,13 @@ export const decodeAnalysis = (frame: Buffer): IHostAnalysis | undefined => {
     scatter,
     correlation: view.getFloat64(24, true),
     peaks: [view.getFloat32(32, true), view.getFloat32(36, true)] as const,
+    // Offsets 40 through 52: three band contributions then the organic mix.
+    exciterBands: [
+      view.getFloat32(40, true),
+      view.getFloat32(44, true),
+      view.getFloat32(48, true),
+    ],
+    exciterOrganic: view.getFloat32(52, true),
     bandAmounts,
     bandLevels,
   };

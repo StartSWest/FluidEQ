@@ -54,6 +54,24 @@ void process_path(FeqChain* chain, float* target, uint32_t frames,
   feq_exciter_channel_process(&state.exciter, target, frames, &setup,
                               chain->sample_rate, report);
 
+  /**
+   * Kept for the panel, from one path only.
+   *
+   * Every path computes the same report and the display shows one set of three,
+   * so taking path zero matches what the worklet did — it reported for a single
+   * channel too. Averaging the paths would be a different number that no
+   * control corresponds to.
+   *
+   * It was computed and discarded before this, which is why the exciter's band
+   * lights sat still: the nonlinear stage has no fixed transfer curve, so what
+   * it contributed cannot be derived from the settings and has to be measured.
+   */
+  if (path == 0) {
+    for (uint32_t band = 0; band < FEQ_CHAIN_EXCITER_BANDS; band += 1) {
+      chain->exciter_band_report[band] = report[band];
+    }
+  }
+
   const double organic_target =
       settings.enabled != 0 && settings.organic_enabled != 0
           ? feq_organic_exciter_return_gain(settings.organic_amount)
@@ -61,6 +79,11 @@ void process_path(FeqChain* chain, float* target, uint32_t frames,
   double organic_mix = state.organic_mix;
   if (organic_target <= 0.0 && organic_mix <= 0.0001) {
     feq_organic_path_reset_transient(&state.organic);
+    if (path == 0) {
+      // Off, and saying so: a stale reading would leave the organic light on
+      // after the stage had been switched out.
+      chain->exciter_organic_report = 0.0;
+    }
     return;
   }
 
@@ -71,11 +94,19 @@ void process_path(FeqChain* chain, float* target, uint32_t frames,
   const double smooth =
       1.0 - std::exp(-1.0 / ((kExciterSmoothingMs / 1000.0) *
                              chain->sample_rate));
+  // The block's mean mix, which is what the worklet reported: a single figure
+  // for a value that ramps across the block rather than its end point.
+  double mean_mix = 0.0;
   for (uint32_t at = 0; at < frames; ++at) {
     organic_mix += (organic_target - organic_mix) * smooth;
     target[at] = static_cast<float>(
         static_cast<double>(target[at]) +
         static_cast<double>(state.organic.band[at]) * organic_mix);
+    mean_mix += organic_mix;
+  }
+  if (path == 0) {
+    chain->exciter_organic_report =
+        frames > 0 ? mean_mix / static_cast<double>(frames) : 0.0;
   }
   if (organic_target == 0.0 && organic_mix < 0.0001) {
     organic_mix = 0.0;

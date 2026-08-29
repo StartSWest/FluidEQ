@@ -255,6 +255,15 @@ typedef struct FeqWireAnalysisFrame {
   double correlation;
   float peak_left;
   float peak_right;
+  /**
+   * The exciter three bands and its organic stage, always present.
+   *
+   * In the header rather than the payload because there are four of them and
+   * they are always available — a length and an offset for sixteen bytes would
+   * be more protocol than the thing it describes.
+   */
+  float exciter_bands[3];
+  float exciter_organic;
 } FeqWireAnalysisFrame;
 
 #ifdef __cplusplus
@@ -272,7 +281,7 @@ static_assert(sizeof(FeqWireHandshake) == 104, "handshake frame size");
 static_assert(sizeof(FeqWireCommandFrame) == 32, "command frame size");
 static_assert(sizeof(FeqWireAckFrame) == 32, "ack frame size");
 static_assert(sizeof(FeqWireTelemetryFrame) == 88, "telemetry frame size");
-static_assert(sizeof(FeqWireAnalysisFrame) == 40, "analysis frame size");
+static_assert(sizeof(FeqWireAnalysisFrame) == 56, "analysis frame size");
 #endif
 
 #endif /* FLUIDEQ_HOST_WIRE_H */

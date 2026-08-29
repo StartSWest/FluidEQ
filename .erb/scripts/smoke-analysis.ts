@@ -159,6 +159,15 @@ const main = async (): Promise<void> => {
           },
         ] as unknown as IEqSettings['bands'],
       },
+      exciter: {
+        ...DSP_DEFAULTS.exciter,
+        enabled: true,
+        organic: {
+          ...DSP_DEFAULTS.exciter.organic,
+          enabled: true,
+          amount: 0.6,
+        },
+      },
     }),
   );
   await host.loadDeck(0, decoded);
@@ -243,6 +252,30 @@ const main = async (): Promise<void> => {
     highest - lowest > 0.01,
     'and it moves with the music rather than sitting at a constant',
   );
+
+  /**
+   * The exciter, which has no transfer curve for the panel to draw.
+   *
+   * A nonlinear stage cannot be shown from its settings — what it did depends
+   * on the material — so the three band contributions and the organic mix are
+   * measured and sent, exactly as the worklet used to send them. Computed in
+   * the C++ and thrown away in a local until now, which is why the exciter's
+   * lights sat still while the stage worked.
+   */
+  const exciterPeak = frames.reduce(
+    (best, frame) => Math.max(best, ...frame.exciterBands),
+    0,
+  );
+  const organicPeak = frames.reduce(
+    (best, frame) => Math.max(best, frame.exciterOrganic),
+    0,
+  );
+  console.log(
+    `       exciter bands peaked at ${exciterPeak.toFixed(4)}, organic at ` +
+      `${organicPeak.toFixed(4)}`,
+  );
+  check(exciterPeak > 0, 'the exciter bands report what they contributed');
+  check(organicPeak > 0, 'and the organic stage reports its mix');
 
   /**
    * The positive control, and the reason every threshold above means anything.

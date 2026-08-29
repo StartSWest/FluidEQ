@@ -165,6 +165,17 @@ struct FeqChain {
    */
   std::vector<double> band_amount_scratch;
   std::vector<double> band_level_scratch;
+
+  /**
+   * What the exciter's three bands and its organic stage actually contributed.
+   *
+   * Written by path zero on the audio thread and read by the control thread
+   * alongside the band activity. Measured rather than derived because the
+   * nonlinear stage has no fixed transfer curve — the settings cannot say what
+   * it did to this particular material, which is exactly why the display exists.
+   */
+  double exciter_band_report[FEQ_CHAIN_EXCITER_BANDS] = {0.0, 0.0, 0.0};
+  double exciter_organic_report = 0.0;
   /**
    * Fixed, so the state arrays are allocated once and never resized.
    *

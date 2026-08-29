@@ -54,6 +54,8 @@ const analysisFrame = (
     peaks: [0.25, 0.5],
     bandAmounts: [],
     bandLevels: [],
+    exciterBands: [0, 0, 0],
+    exciterOrganic: 0,
   };
 };
 

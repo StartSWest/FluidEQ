@@ -87,6 +87,9 @@ typedef enum FeqMeterStage {
  */
 #define FEQ_METER_MAX_BANDS 64
 
+/** The exciter has three bands, and the display shows three lights. */
+#define FEQ_METER_EXCITER_BANDS 3
+
 typedef struct FeqMeters FeqMeters;
 
 FeqMeters* feq_meters_create(uint32_t channels);
@@ -178,6 +181,21 @@ void feq_meters_publish_bands(FeqMeters* meters,
                               const double* amounts,
                               const double* levels,
                               uint32_t count);
+
+/**
+ * The exciter three bands and its organic stage. **Audio thread.**
+ *
+ * Four numbers rather than a window, because that is all the display is: three
+ * band contributions and one organic mix, each already a block mean.
+ */
+void feq_meters_publish_exciter(FeqMeters* meters,
+                                const double* bands,
+                                double organic);
+
+/** The published exciter activity. **Control thread.** */
+void feq_meters_read_exciter(FeqMeters* meters,
+                             float* out_bands,
+                             float* out_organic);
 
 /** The published band activity. **Control thread.** Returns the band count. */
 uint32_t feq_meters_read_bands(FeqMeters* meters,
