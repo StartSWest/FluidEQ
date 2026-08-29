@@ -106,10 +106,17 @@ let outputSafetyEnabled = true;
  * Development only. In a production build the getter is pinned, because the
  * fallback exists to be measured against rather than to be shipped as a
  * setting the user has to understand.
+ *
+ * Pinned to `native`, now that the two have been held to each other sample for
+ * sample on real music — worst difference 0.00e+0 over seven seconds — and the
+ * C++ chain is the one worth shipping. The TypeScript chain is not dead code:
+ * it is still the reference the parity corpus is generated from, still the
+ * thing the A/B switch reaches in development, and still what carries the audio
+ * on any machine where the host does not come up. See `readDspNativeEngaged`.
  */
 export type TDspBackend = 'typescript' | 'native';
 
-let dspBackend: TDspBackend = 'typescript';
+let dspBackend: TDspBackend = 'native';
 
 const listeners = new Set<() => void>();
 const outputSafetyListeners = new Set<() => void>();
@@ -206,7 +213,38 @@ export const setDspOutputSafetyEnabled = (next: boolean): void => {
 };
 
 export const readDspBackend = (): TDspBackend =>
-  IS_DEV ? dspBackend : 'typescript';
+  IS_DEV ? dspBackend : 'native';
+
+/**
+ * Whether the native engine is actually carrying the audio right now.
+ *
+ * Not the same fact as `readDspBackend`, and the difference is the whole reason
+ * this exists. The backend is what was *selected*; this is what is *true*. A
+ * host that fails to spawn, a platform with no device backend compiled in, a
+ * binary missing from the package — each of those leaves the selection at
+ * `native` while nothing native is running.
+ *
+ * The TypeScript chain stands down on this rather than on the selection. Keyed
+ * to the selection it was actively wrong the moment native was made the default:
+ * the host failing meant the worklet stood down for an engine that was not
+ * there, and the user got their track with the entire rack silently bypassed —
+ * no EQ, no compressor, no limiter, and nothing on screen saying so. The
+ * failure is only visible in dev, where there is a switch to flip back.
+ */
+let nativeEngaged = false;
+
+export const setDspNativeEngaged = (next: boolean): void => {
+  if (next === nativeEngaged) {
+    return;
+  }
+  nativeEngaged = next;
+  emit();
+};
+
+export const readDspNativeEngaged = (): boolean => nativeEngaged;
+
+export const useDspNativeEngaged = (): boolean =>
+  useSyncExternalStore(subscribe, readDspNativeEngaged, readDspNativeEngaged);
 
 export const setDspBackend = (next: TDspBackend): void => {
   if (!IS_DEV || next === dspBackend) {

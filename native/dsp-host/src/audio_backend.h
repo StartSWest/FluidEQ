@@ -54,6 +54,21 @@ using FeqRenderFn = void (*)(void* context, float* const* planar,
 struct FeqBackendStats {
   uint64_t underruns = 0;
   uint64_t periods = 0;
+  /**
+   * The endpoint buffer, in frames, which is how long a callback has to return.
+   *
+   * Reported rather than assumed because it is the denominator of the only
+   * question that matters for a dropout: not how long the callback took, but
+   * what share of its budget it used. Ten milliseconds is the usual shared-mode
+   * answer on Windows and it is not a guarantee — a device with a 3 ms period
+   * gives the same work a third of the time, and a figure in microseconds says
+   * nothing about which of those a machine is.
+   *
+   * Zero when no device is open. It reached the telemetry frame as a literal
+   * zero for the life of the host before this, so anything downstream that drew
+   * a latency figure was drawing one.
+   */
+  uint32_t buffer_frames = 0;
 };
 
 class IAudioOutputBackend {

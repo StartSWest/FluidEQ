@@ -226,7 +226,13 @@ void drain_telemetry(HostState& state, const IAudioOutputBackend& backend) {
     frame.applied_revision = record.applied_revision;
     frame.sequence = record.sequence;
     frame.frames_processed = record.frames_processed;
-    frame.latency_frames = record.latency_frames;
+    // The device's buffer, not the engine's idea of one. The engine reports
+    // whatever block it was handed, which for an offline render is the render's
+    // own size and for the device path was never set at all — so this field
+    // shipped as a constant zero, and the share-of-budget figure that makes a
+    // callback time readable could not be computed from it.
+    frame.latency_frames =
+        stats.buffer_frames != 0 ? stats.buffer_frames : record.latency_frames;
     frame.peak_left = record.peak[0];
     frame.peak_right = record.peak[1];
     frame.callback_p50_us = record.callback_p50_us;

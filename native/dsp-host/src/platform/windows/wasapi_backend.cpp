@@ -129,6 +129,7 @@ class WasapiBackend final : public IAudioOutputBackend {
     FeqBackendStats copy;
     copy.underruns = underruns_.load(std::memory_order_relaxed);
     copy.periods = periods_.load(std::memory_order_relaxed);
+    copy.buffer_frames = buffer_frames_;
     return copy;
   }
 

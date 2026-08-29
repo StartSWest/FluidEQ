@@ -38,7 +38,7 @@ import {
   setDspOutputSafetyMeter,
   setDspNormalizerMeter,
   useDspOutputSafetyEnabled,
-  useDspBackend,
+  useDspNativeEngaged,
   useDspInputAnalysis,
 } from './store';
 import { masterLoudnessGainDb, normalizerGainDb } from './inputNormalizer';
@@ -139,7 +139,7 @@ export const useDspEngine = (
 ): IEngineState => {
   const [active, setActive] = useState(false);
   const outputSafetyEnabled = useDspOutputSafetyEnabled();
-  const backend = useDspBackend();
+  const nativeEngaged = useDspNativeEngaged();
   const inputAnalysis = useDspInputAnalysis();
   const inputGainDb = normalizerGainDb(
     settings.normalizer,
@@ -574,17 +574,25 @@ export const useDspEngine = (
   /**
    * Stand the TypeScript chain down while the native engine is the audible one.
    *
-   * The element is muted either way, so this changes nothing anyone can hear â
+   * The element is muted either way, so this changes nothing anyone can hear —
    * it stops the work. Without it both chains run every quantum and the A/B
    * compares two engines on a machine doing twice the job, which is a
    * measurement of the CPU rather than of the code.
    *
    * Keyed on `active` as well, because the worklet is replaced whenever the
    * engine restarts and a fresh one starts out assuming it is the one playing.
+   *
+   * And keyed on whether the native engine actually ENGAGED, not on whether it
+   * was selected. Those are the same thing right up until the host fails to
+   * start, and then standing down on the selection bypasses the entire rack for
+   * an engine that is not running — silently, because the elements are only
+   * muted when there is a controller to mute them for. Audible as "the EQ does
+   * nothing", with nothing on screen to say why. Harmless while the switch was
+   * a development toy; a shipped defect the moment native became the default.
    */
   useEffect(() => {
-    workletRef.current?.port.postMessage({ standDown: backend === 'native' });
-  }, [active, backend]);
+    workletRef.current?.port.postMessage({ standDown: nativeEngaged });
+  }, [active, nativeEngaged]);
 
   useEffect(() => {
     setDspInputTrackId(inputAnalysis.trackId ?? '');

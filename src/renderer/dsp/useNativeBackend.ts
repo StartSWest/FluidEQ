@@ -23,7 +23,11 @@ import {
   INativeMirrorState,
   createNativeMirror,
 } from './nativeMirror';
-import { useDspBackend, useDspOutputSafetyEnabled } from './store';
+import {
+  setDspNativeEngaged,
+  useDspBackend,
+  useDspOutputSafetyEnabled,
+} from './store';
 
 /**
  * The preload bridge, read through a widening rather than declared present.
@@ -69,11 +73,15 @@ export const useNativeBackend = (
     if (backend !== 'native') {
       const running = controllerRef.current;
       controllerRef.current = undefined;
+      setDspNativeEngaged(false);
       running?.disengage().catch(() => undefined);
       return undefined;
     }
     const bridge = bridgeOf();
     if (!bridge) {
+      // No preload, so no host and no way to get one. The TypeScript chain has
+      // to keep processing; saying so is what stops it standing down.
+      setDspNativeEngaged(false);
       return undefined;
     }
     const controller = createNativeBackendController(bridge);
@@ -87,12 +95,20 @@ export const useNativeBackend = (
           // asked again on every settings change.
           controllerRef.current = undefined;
         }
+        // Both outcomes reported, and the failure is the one that matters: it
+        // is what keeps the TypeScript chain processing instead of standing
+        // down for an engine that never started.
+        setDspNativeEngaged(ready);
         return ready;
       })
-      .catch(() => undefined);
+      .catch(() => {
+        controllerRef.current = undefined;
+        setDspNativeEngaged(false);
+      });
 
     return () => {
       controllerRef.current = undefined;
+      setDspNativeEngaged(false);
       controller.disengage().catch(() => undefined);
     };
   }, [backend]);
