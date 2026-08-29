@@ -447,6 +447,40 @@ void feq_player_render(FeqPlayer* player, float* const* channels,
   }
 
   /**
+   * A fade does not begin until the deck it is fading INTO has audio.
+   *
+   * A deck's read-ahead ring is empty the instant it is loaded and the decoder
+   * thread fills it in the background, so a caller that loads and fades in the
+   * same breath is asking to mix toward a deck holding nothing. The fade runs
+   * on schedule and the incoming half is silence until the decoder catches up:
+   * the outgoing track ducks away into a hole, and the new one appears late and
+   * already part-way up its curve. Measured on a fresh deck, the first third of
+   * a two-second fade came out silent — reported from the window as the
+   * crossfade not working, which from a listener's seat it is not.
+   *
+   * Held here rather than waited out by the caller, because a caller cannot
+   * know when a ring it does not own has filled, and anything it did would be a
+   * delay standing in for that knowledge. This is the knowledge: the fade
+   * starts on the first block where there is something to fade to. On an
+   * ordinary handoff the incoming deck has been decoding for seconds and this
+   * costs one comparison.
+   *
+   * Deliberately NOT applied when the deck has ended or was never loaded — a
+   * deck that will never produce audio would hold the fade open forever, and a
+   * transition that never completes is worse than one that starts dry.
+   */
+  Deck& arriving_deck = player->decks[incoming];
+  const int arriving_state = arriving_deck.state.load(std::memory_order_acquire);
+  if (arriving_deck.ring.available() < frames &&
+      arriving_state == FEQ_DECK_READY &&
+      arriving_deck.exhausted.load(std::memory_order_acquire) == 0) {
+    // The outgoing deck alone, and the fader untouched, so no part of the
+    // curve is consumed while there is nothing on the other side of it.
+    read_deck(player->decks[active], channels, frames);
+    return;
+  }
+
+  /**
    * Both decks are pulled every block of a fade, and only during one.
    *
    * A deck that is not being read is a deck whose ring fills and stops, so
