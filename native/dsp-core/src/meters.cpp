@@ -111,6 +111,20 @@ struct ScopeWindow {
   uint64_t drawn = 0;
 };
 
+/**
+ * Per-band activity, on the same seqlock discipline as the windows.
+ *
+ * Small enough to copy whole on every block, which is what keeps it simple:
+ * sixty-four pairs of floats is a quarter of a kilobyte, against a window of
+ * eight. There is no partial update to get wrong.
+ */
+struct BandWindow {
+  std::atomic<uint32_t> sequence{0};
+  std::vector<float> amounts;
+  std::vector<float> levels;
+  std::atomic<uint32_t> count{0};
+};
+
 /** Blackman, which is the window `AnalyserNode` applies before its transform. */
 std::vector<double> blackman_window() {
   std::vector<double> window(FEQ_METER_WINDOW);
@@ -133,6 +147,7 @@ struct FeqMeters {
   std::atomic<int> enabled{0};
   StageWindow stages[FEQ_METER_STAGE_COUNT];
   ScopeWindow scope;
+  BandWindow bands;
   std::vector<double> window;
   /** Reader-side scratch, so the transform allocates nothing per frame. */
   std::vector<double> real;
@@ -163,6 +178,8 @@ FeqMeters* feq_meters_create(uint32_t channels) {
     stage.published.assign(static_cast<size_t>(FEQ_METER_WINDOW) * 2, 0.0f);
     stage.smoothed.assign(FEQ_METER_BINS, 0.0);
   }
+  meters->bands.amounts.assign(FEQ_METER_MAX_BANDS, 0.0f);
+  meters->bands.levels.assign(FEQ_METER_MAX_BANDS, 0.0f);
   meters->scope.filling.assign(
       static_cast<size_t>(FEQ_METER_SCOPE_PAIRS) * 2, 0.0f);
   meters->scope.published.assign(
@@ -362,6 +379,54 @@ int feq_meters_read_spectrum(FeqMeters* meters,
     }
     target.drawn = generation;
     return 1;
+  }
+  return 0;
+}
+
+void feq_meters_publish_bands(FeqMeters* meters,
+                              const double* amounts,
+                              const double* levels,
+                              uint32_t count) {
+  if (meters == nullptr || amounts == nullptr || levels == nullptr ||
+      meters->enabled.load(std::memory_order_acquire) == 0) {
+    return;
+  }
+  const uint32_t span = count > FEQ_METER_MAX_BANDS ? FEQ_METER_MAX_BANDS
+                                                    : count;
+  BandWindow& target = meters->bands;
+  const uint32_t sequence = target.sequence.load(std::memory_order_relaxed);
+  target.sequence.store(sequence + 1, std::memory_order_release);
+  for (uint32_t band = 0; band < span; band += 1) {
+    target.amounts[band] = static_cast<float>(amounts[band]);
+    target.levels[band] = static_cast<float>(levels[band]);
+  }
+  target.count.store(span, std::memory_order_relaxed);
+  target.sequence.store(sequence + 2, std::memory_order_release);
+}
+
+uint32_t feq_meters_read_bands(FeqMeters* meters,
+                               float* out_amounts,
+                               float* out_levels,
+                               uint32_t capacity) {
+  if (meters == nullptr || out_amounts == nullptr || out_levels == nullptr) {
+    return 0;
+  }
+  BandWindow& source = meters->bands;
+  for (int attempt = 0; attempt < 2; attempt += 1) {
+    const uint32_t before = source.sequence.load(std::memory_order_acquire);
+    if ((before & 1u) != 0u) {
+      continue;
+    }
+    const uint32_t count = source.count.load(std::memory_order_relaxed);
+    const uint32_t span = count > capacity ? capacity : count;
+    for (uint32_t band = 0; band < span; band += 1) {
+      out_amounts[band] = source.amounts[band];
+      out_levels[band] = source.levels[band];
+    }
+    if (source.sequence.load(std::memory_order_acquire) != before) {
+      continue;
+    }
+    return span;
   }
   return 0;
 }

@@ -284,9 +284,6 @@ export const useDspNativeState = (): TDspNativeState =>
 /** The one question the worklet asks: is something else making the sound? */
 export const readDspNativeEngaged = (): boolean => nativeState === 'engaged';
 
-export const useDspNativeEngaged = (): boolean =>
-  useSyncExternalStore(subscribe, readDspNativeEngaged, readDspNativeEngaged);
-
 export const useDspOutputSafetyEnabled = (): boolean =>
   useSyncExternalStore(
     subscribe,

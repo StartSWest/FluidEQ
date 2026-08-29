@@ -151,6 +151,23 @@ const SmartHeadroomEngine = () => {
     }
     const { context, source } = capture;
 
+    /**
+     * Nothing may be built on a context that has been closed.
+     *
+     * A closed `AudioContext` accepts `createAnalyser` and `connect` and does
+     * nothing with either — Chromium logs "not useful when context is closed"
+     * for each one and carries on. So the failure is a supervisor that appears
+     * to be running, reads silence for ever, and never says why.
+     *
+     * It happens whenever the engine is torn down while this is still mounted:
+     * a hot reload in development, and an engine restart in a shipped build.
+     * `capture` still holds the old context at that moment, because it is the
+     * capture that is stale rather than this effect.
+     */
+    if (context.state === 'closed') {
+      return undefined;
+    }
+
     const analyser = context.createAnalyser();
     analyser.fftSize = FFT_SIZE;
     analyser.minDecibels = -100;

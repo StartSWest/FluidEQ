@@ -222,6 +222,9 @@ FeqChain* feq_chain_create(double sample_rate,
       static_cast<size_t>(FeqChain::kBandStride) * FEQ_CHAIN_CHANNELS;
   chain->band_states.resize(histories);
   chain->band_dynamics.resize(histories);
+  // Sized with the rack, so publishing activity allocates nothing per block.
+  chain->band_amount_scratch.assign(histories, 1.0);
+  chain->band_level_scratch.assign(histories, 0.0);
   chain->dynamic_states.resize(histories);
   chain->dynamic_dynamics.resize(histories);
   for (size_t index = 0; index < histories; ++index) {
@@ -405,6 +408,35 @@ void feq_chain_process(FeqChain* chain, float* const* channels,
 
   chain_process_eq(chain, channels, frames);
   feq_meters_capture(chain->meters, FEQ_METER_STAGE_EQ, channels, frames);
+
+  /**
+   * What each band did with this block, for the panel to draw.
+   *
+   * Taken here because the dynamics have just run and their envelopes describe
+   * this block rather than the previous one. A dynamic band's effect is the one
+   * thing in the rack that cannot be drawn from its settings — the curve is
+   * drawn at full strength and its at-rest twin at zero, and neither moves when
+   * the threshold does — so without this the threshold dial looks broken while
+   * working perfectly.
+   */
+  if (chain->meters != nullptr) {
+    const size_t bands = chain->band_dynamics.size();
+    for (size_t band = 0; band < bands && band < FEQ_METER_MAX_BANDS;
+         band += 1) {
+      // A static band is always fully applied, which is what makes it static.
+      chain->band_amount_scratch[band] =
+          chain->band_dynamics[band].active != 0
+              ? chain->band_dynamics[band].amount
+              : 1.0;
+      chain->band_level_scratch[band] = chain->band_dynamics[band].envelope;
+    }
+    feq_meters_publish_bands(
+        chain->meters, chain->band_amount_scratch.data(),
+        chain->band_level_scratch.data(),
+        static_cast<uint32_t>(bands < FEQ_METER_MAX_BANDS
+                                  ? bands
+                                  : FEQ_METER_MAX_BANDS));
+  }
 
   chain_process_compressor(chain, channels, frames);
   chain_process_maximizer(chain, channels, frames);

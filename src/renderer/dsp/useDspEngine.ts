@@ -38,7 +38,6 @@ import {
   setDspOutputSafetyMeter,
   setDspNormalizerMeter,
   useDspOutputSafetyEnabled,
-  useDspNativeEngaged,
   useDspInputAnalysis,
 } from './store';
 import { masterLoudnessGainDb, normalizerGainDb } from './inputNormalizer';
@@ -163,7 +162,6 @@ export const useDspEngine = (
 ): IEngineState => {
   const [active, setActive] = useState(false);
   const outputSafetyEnabled = useDspOutputSafetyEnabled();
-  const nativeEngaged = useDspNativeEngaged();
   const inputAnalysis = useDspInputAnalysis();
   const inputGainDb = normalizerGainDb(
     settings.normalizer,
@@ -596,27 +594,27 @@ export const useDspEngine = (
   }, [active]);
 
   /**
-   * Stand the TypeScript chain down while the native engine is the audible one.
+   * The TypeScript chain never processes. Always, not while native is running.
    *
-   * The element is muted either way, so this changes nothing anyone can hear —
-   * it stops the work. Without it both chains run every quantum and the A/B
-   * compares two engines on a machine doing twice the job, which is a
-   * measurement of the CPU rather than of the code.
+   * It used to stand down on `nativeEngaged`, which was right while there were
+   * two engines and a fallback: the worklet took over whenever the host was not
+   * there. There is no fallback now, and leaving that conditional in place made
+   * it a silent one — a host that failed to start would have had the TypeScript
+   * rack quietly processing the audio while the panel displayed a notice saying
+   * the music was playing unprocessed. One of those two would have been a lie,
+   * and the listener could not tell which.
    *
-   * Keyed on `active` as well, because the worklet is replaced whenever the
-   * engine restarts and a fresh one starts out assuming it is the one playing.
+   * So the worklet is a passthrough and nothing else. It still has to EXIST,
+   * because `createMediaElementSource` cannot be undone: from the moment the
+   * element is captured, the graph is the only route to the speakers, and
+   * removing it would take the audio with it. What it must not do is process.
    *
-   * And keyed on whether the native engine actually ENGAGED, not on whether it
-   * was selected. Those are the same thing right up until the host fails to
-   * start, and then standing down on the selection bypasses the entire rack for
-   * an engine that is not running — silently, because the elements are only
-   * muted when there is a controller to mute them for. Audible as "the EQ does
-   * nothing", with nothing on screen to say why. Harmless while the switch was
-   * a development toy; a shipped defect the moment native became the default.
+   * Keyed on `active` because the worklet is replaced whenever the engine
+   * restarts, and a fresh one starts out assuming it is the one playing.
    */
   useEffect(() => {
-    workletRef.current?.port.postMessage({ standDown: nativeEngaged });
-  }, [active, nativeEngaged]);
+    workletRef.current?.port.postMessage({ standDown: true });
+  }, [active]);
 
   useEffect(() => {
     setDspInputTrackId(inputAnalysis.trackId ?? '');

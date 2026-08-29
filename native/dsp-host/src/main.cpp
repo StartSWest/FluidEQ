@@ -271,8 +271,12 @@ void drain_analysis(HostState& state) {
 
   static thread_local std::vector<float> spectra;
   static thread_local std::vector<float> scope;
+  static thread_local std::vector<float> band_amounts;
+  static thread_local std::vector<float> band_levels;
   spectra.resize(static_cast<size_t>(FEQ_METER_BINS) * FEQ_METER_STAGE_COUNT);
   scope.resize(static_cast<size_t>(FEQ_METER_SCOPE_PAIRS) * 2);
+  band_amounts.resize(FEQ_METER_MAX_BANDS);
+  band_levels.resize(FEQ_METER_MAX_BANDS);
 
   uint32_t stage_mask = 0;
   uint32_t present = 0;
@@ -292,7 +296,11 @@ void drain_analysis(HostState& state) {
       feq_meters_read_scope(state.meters, scope.data(), FEQ_METER_SCOPE_PAIRS,
                             &correlation, peaks);
 
-  if (stage_mask == 0 && has_scope == 0) {
+  const uint32_t bands = feq_meters_read_bands(
+      state.meters, band_amounts.data(), band_levels.data(),
+      FEQ_METER_MAX_BANDS);
+
+  if (stage_mask == 0 && has_scope == 0 && bands == 0) {
     return;
   }
 
@@ -305,6 +313,7 @@ void drain_analysis(HostState& state) {
   frame.stage_mask = stage_mask;
   frame.bins = FEQ_METER_BINS;
   frame.pairs = has_scope != 0 ? FEQ_METER_SCOPE_PAIRS : 0;
+  frame.bands = bands;
   frame.correlation = correlation;
   frame.peak_left = peaks[0];
   frame.peak_right = peaks[1];
@@ -323,11 +332,12 @@ void drain_analysis(HostState& state) {
   static thread_local std::vector<unsigned char> packet;
   const size_t spectrum_bytes =
       sizeof(float) * static_cast<size_t>(present) * FEQ_METER_BINS;
+  const size_t band_bytes = sizeof(float) * static_cast<size_t>(bands) * 2;
   const size_t scope_bytes =
       has_scope != 0
           ? sizeof(float) * static_cast<size_t>(FEQ_METER_SCOPE_PAIRS) * 2
           : 0;
-  packet.resize(sizeof(frame) + spectrum_bytes + scope_bytes);
+  packet.resize(sizeof(frame) + spectrum_bytes + scope_bytes + band_bytes);
 
   size_t at = 0;
   std::memcpy(packet.data() + at, &frame, sizeof(frame));
@@ -338,6 +348,14 @@ void drain_analysis(HostState& state) {
   }
   if (scope_bytes > 0) {
     std::memcpy(packet.data() + at, scope.data(), scope_bytes);
+    at += scope_bytes;
+  }
+  if (band_bytes > 0) {
+    // Amounts then levels, each  long, so a reader that knows the count
+    // knows both offsets without a second field.
+    std::memcpy(packet.data() + at, band_amounts.data(), band_bytes / 2);
+    at += band_bytes / 2;
+    std::memcpy(packet.data() + at, band_levels.data(), band_bytes / 2);
   }
   write_frame(packet.data(), packet.size());
 }
@@ -641,15 +659,51 @@ void reopen_if_device_changed(HostState& state, IAudioOutputBackend& backend,
     std::fprintf(stderr, "FluidEQ-DSP: reopen failed: %s\n", error.c_str());
     return;
   }
+
+  const uint32_t channels = negotiated.channels < kEngineChannels
+                                ? negotiated.channels
+                                : kEngineChannels;
+  /**
+   * Rebuilt only if the new endpoint is actually shaped differently.
+   *
+   * Everything the chain and the player own is sized by rate, channel count and
+   * block length, so a change in any of those needs a rebuild. Nothing else
+   * does — and rebuilding anyway is destructive in a way that is easy to miss:
+   * the player goes with it, and a new player has no decks, so the track that
+   * was playing is gone.
+   *
+   * That is what a device change felt like. Speakers to headphones is the same
+   * 48 kHz stereo endpoint by another name, so the rebuild was pure loss: the
+   * output moved correctly and the music stopped, three times in a row on one
+   * machine. Keeping the player when its shape has not changed means the track
+   * simply carries on out of the new device, which is what somebody plugging in
+   * headphones expects to happen.
+   */
+  const bool shape_changed = negotiated.sample_rate != state.sample_rate ||
+                             channels != state.channels ||
+                             negotiated.max_block_frames != state.block_frames;
   state.sample_rate = negotiated.sample_rate;
-  state.channels = negotiated.channels < kEngineChannels ? negotiated.channels
-                                                         : kEngineChannels;
+  state.channels = channels;
   state.block_frames = negotiated.max_block_frames;
-  // The new endpoint may run at a different rate, so everything sized by rate
-  // is rebuilt rather than reused.
-  if (!rebuild_chain_and_player(state, decoder_ops) || !backend.start(error)) {
+
+  if (shape_changed && !rebuild_chain_and_player(state, decoder_ops)) {
+    std::fprintf(stderr, "FluidEQ-DSP: reopen failed to rebuild the chain\n");
+    backend.close();
+    return;
+  }
+  if (!backend.start(error)) {
     std::fprintf(stderr, "FluidEQ-DSP: reopen failed: %s\n", error.c_str());
     backend.close();
+    return;
+  }
+
+  if (!shape_changed) {
+    // The decks survived, so there is nothing for the renderer to put back and
+    // no reason to make it reload a track that never stopped playing.
+    std::fprintf(stderr,
+                 "FluidEQ-DSP: output device changed; same format, kept "
+                 "playing at %u Hz\n",
+                 state.sample_rate);
     return;
   }
 

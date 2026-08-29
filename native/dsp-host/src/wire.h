@@ -242,7 +242,16 @@ typedef struct FeqWireAnalysisFrame {
   /** Per stage present, so a reader can skip a frame it disagrees with. */
   uint32_t bins;
   uint32_t pairs;
-  uint32_t reserved;
+  /**
+   * EQ bands whose activity follows the scope, as amount then level pairs.
+   *
+   * A dynamic band's effect is the one thing in the rack that cannot be drawn
+   * from its settings, so it has to be measured and sent: the curve is drawn at
+   * full strength and its at-rest twin at zero, and neither moves when the
+   * threshold does. The worklet used to report this and no longer processes
+   * anything, which is why the dial went dead.
+   */
+  uint32_t bands;
   double correlation;
   float peak_left;
   float peak_right;

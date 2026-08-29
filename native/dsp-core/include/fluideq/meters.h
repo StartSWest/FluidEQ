@@ -82,6 +82,11 @@ typedef enum FeqMeterStage {
   FEQ_METER_STAGE_COUNT = 3
 } FeqMeterStage;
 
+/**
+ * The most EQ bands whose activity is reported. Matches the rack's ceiling.
+ */
+#define FEQ_METER_MAX_BANDS 64
+
 typedef struct FeqMeters FeqMeters;
 
 FeqMeters* feq_meters_create(uint32_t channels);
@@ -153,6 +158,32 @@ int feq_meters_read_scope(FeqMeters* meters,
                           uint32_t pairs,
                           double* out_correlation,
                           float* out_peaks);
+
+/**
+ * What each EQ band is currently applying, and what it is hearing.
+ * **Audio thread.**
+ *
+ * `amounts` is 0 to 1 per band — always 1 for a static band, which is what
+ * makes it static — and `levels` is each band's own detected envelope as a
+ * linear amplitude, which is the quantity its threshold is compared against.
+ *
+ * Reported at all because a dynamic band is the one control in the rack whose
+ * effect cannot be drawn from its settings. The curve is drawn at full strength
+ * and its at-rest twin at zero, and neither moves when the threshold does — so
+ * without this the threshold dial looks broken while working perfectly. The
+ * worklet used to send these; it no longer processes anything, so the engine
+ * that does has to.
+ */
+void feq_meters_publish_bands(FeqMeters* meters,
+                              const double* amounts,
+                              const double* levels,
+                              uint32_t count);
+
+/** The published band activity. **Control thread.** Returns the band count. */
+uint32_t feq_meters_read_bands(FeqMeters* meters,
+                               float* out_amounts,
+                               float* out_levels,
+                               uint32_t capacity);
 
 #ifdef __cplusplus
 }

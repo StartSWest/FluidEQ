@@ -19,6 +19,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import {
   ANALYSIS_BINS,
   ANALYSIS_HEADER_BYTES,
+  ANALYSIS_MAX_BANDS,
   ANALYSIS_SCOPE_PAIRS,
   ANALYSIS_STAGES,
 } from '../../common/dsp/analysisWire';
@@ -47,6 +48,7 @@ export const MAGIC_ANALYSIS = 0x4e514546;
 export {
   ANALYSIS_BINS,
   ANALYSIS_HEADER_BYTES,
+  ANALYSIS_MAX_BANDS,
   ANALYSIS_SCOPE_PAIRS,
   ANALYSIS_STAGES,
 } from '../../common/dsp/analysisWire';
@@ -321,6 +323,7 @@ export const analysisFrameLength = (header: Buffer): number => {
   const stageMask = header.readUInt32LE(8);
   const bins = header.readUInt32LE(12);
   const pairs = header.readUInt32LE(16);
+  const bands = header.readUInt32LE(20);
   if (bins !== ANALYSIS_BINS) {
     return 0;
   }
@@ -331,6 +334,9 @@ export const analysisFrameLength = (header: Buffer): number => {
   // arithmetic hides what it is.
   // eslint-disable-next-line no-bitwise
   if (stageMask >= 1 << ANALYSIS_STAGES.length) {
+    return 0;
+  }
+  if (bands > ANALYSIS_MAX_BANDS) {
     return 0;
   }
   let present = 0;
@@ -345,7 +351,8 @@ export const analysisFrameLength = (header: Buffer): number => {
   return (
     ANALYSIS_HEADER_BYTES +
     present * bins * Float32Array.BYTES_PER_ELEMENT +
-    pairs * 2 * Float32Array.BYTES_PER_ELEMENT
+    pairs * 2 * Float32Array.BYTES_PER_ELEMENT +
+    bands * 2 * Float32Array.BYTES_PER_ELEMENT
   );
 };
 
@@ -360,6 +367,7 @@ export const decodeAnalysis = (frame: Buffer): IHostAnalysis | undefined => {
   const stageMask = view.getUint32(8, true);
   const bins = view.getUint32(12, true);
   const pairs = view.getUint32(16, true);
+  const bands = view.getUint32(20, true);
   if (frame.length !== analysisFrameLength(frame)) {
     return undefined;
   }
@@ -398,6 +406,18 @@ export const decodeAnalysis = (frame: Buffer): IHostAnalysis | undefined => {
     Buffer.from(frame.subarray(at, at + bytes)).copy(
       Buffer.from(scatter.buffer, scatter.byteOffset, bytes),
     );
+    at += bytes;
+  }
+
+  // Amounts then levels, each  long, in the order the host wrote them.
+  const bandAmounts: number[] = [];
+  const bandLevels: number[] = [];
+  for (let band = 0; band < bands; band += 1) {
+    bandAmounts.push(view.getFloat32(at + band * 4, true));
+  }
+  at += bands * 4;
+  for (let band = 0; band < bands; band += 1) {
+    bandLevels.push(view.getFloat32(at + band * 4, true));
   }
 
   return {
@@ -406,5 +426,7 @@ export const decodeAnalysis = (frame: Buffer): IHostAnalysis | undefined => {
     scatter,
     correlation: view.getFloat64(24, true),
     peaks: [view.getFloat32(32, true), view.getFloat32(36, true)] as const,
+    bandAmounts,
+    bandLevels,
   };
 };

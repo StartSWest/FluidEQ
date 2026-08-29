@@ -156,6 +156,16 @@ struct FeqChain {
   std::vector<FeqBiquadState> band_states;
   std::vector<FeqBandDynamics> band_dynamics;
   /**
+   * Where band activity is gathered before publishing. Allocated with the rack.
+   *
+   * Scratch rather than a local, because this is filled on the audio thread
+   * once a block and a local would be a stack array sized by a runtime band
+   * count — which is either a variable-length array or an allocation, and the
+   * callback may have neither.
+   */
+  std::vector<double> band_amount_scratch;
+  std::vector<double> band_level_scratch;
+  /**
    * Fixed, so the state arrays are allocated once and never resized.
    *
    * Striding by the LIVE count meant enabling a band moved every other band's

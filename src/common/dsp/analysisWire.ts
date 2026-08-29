@@ -36,6 +36,9 @@ export const ANALYSIS_SCOPE_PAIRS = 256;
 /** The fixed header; its own fields say how much payload follows. */
 export const ANALYSIS_HEADER_BYTES = 40;
 
+/** The rack ceiling, matching FEQ_METER_MAX_BANDS. */
+export const ANALYSIS_MAX_BANDS = 64;
+
 /**
  * The taps, in the order their bits sit in `stage_mask`.
  *
@@ -56,4 +59,14 @@ export interface IHostAnalysis {
   scatter?: Float32Array;
   correlation: number;
   peaks: readonly [number, number];
+  /**
+   * What each EQ band is applying, 0 to 1, and what it is hearing.
+   *
+   * Only dynamic bands ever report anything but 1 — a static band is always
+   * fully applied, which is what makes it static. Measured rather than derived,
+   * because what a dynamic band is doing depends on the material and the
+   * settings cannot say.
+   */
+  bandAmounts: readonly number[];
+  bandLevels: readonly number[];
 }

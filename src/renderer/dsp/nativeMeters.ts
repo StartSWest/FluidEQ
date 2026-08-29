@@ -38,6 +38,8 @@ import {
   IDspAnalyser,
   readDspAnalyser,
   setDspAnalyser,
+  setDspBandAmounts,
+  setDspBandLevels,
   setDspChannelPeaks,
   setDspCorrelation,
   setDspPeak,
@@ -156,6 +158,23 @@ export const createNativeMeters = (
 
     if (frame.scatter) {
       setDspScatter(frame.scatter);
+    }
+    /**
+     * What each band is doing, which is the one thing the settings cannot say.
+     *
+     * The curve is drawn at full strength and its at-rest twin at zero, and
+     * neither moves when the threshold does — so a dynamic band with nothing
+     * reporting its amount is a threshold dial that looks broken while working
+     * perfectly. The worklet used to send these and no longer processes
+     * anything, so they come from the engine that does.
+     *
+     * Sent even when empty is avoided: a frame with no bands is a rack with no
+     * bands, and overwriting a good reading with an empty array would blank the
+     * display between frames.
+     */
+    if (frame.bandAmounts.length > 0) {
+      setDspBandAmounts(frame.bandAmounts);
+      setDspBandLevels(frame.bandLevels);
     }
     setDspCorrelation(frame.correlation);
     setDspChannelPeaks(frame.peaks);

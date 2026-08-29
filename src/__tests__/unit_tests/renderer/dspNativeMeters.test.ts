@@ -52,6 +52,8 @@ const analysisFrame = (
     scatter: new Float32Array(8),
     correlation: 0.5,
     peaks: [0.25, 0.5],
+    bandAmounts: [],
+    bandLevels: [],
   };
 };
 

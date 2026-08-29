@@ -27,7 +27,8 @@ import { findDspHostExecutable } from '../../src/main/dspHost/hostPath';
 import { DspHostSupervisor } from '../../src/main/dspHost/supervisor';
 import { IHostAnalysis } from '../../src/common/dsp/analysisWire';
 import { NATIVE_DSP_PARAMETERS } from '../../src/common/dsp/nativeParameters';
-import { DSP_DEFAULTS } from '../../src/common/dsp/chain';
+import { DSP_DEFAULTS, IEqSettings } from '../../src/common/dsp/chain';
+import { FilterTypeEnum } from '../../src/common/constants';
 import { encodeChainSettings } from '../../src/common/dsp/chainWire';
 
 let failures = 0;
@@ -94,11 +95,25 @@ const main = async (): Promise<void> => {
 
   const ffmpeg = spawnSync(
     'ffmpeg',
-        // Longer than the sliced render below consumes: 24 slices of 24000 frames
+    // Longer than the sliced render below consumes: 24 slices of 24000 frames
     // is twelve seconds, and a deck that runs dry mid-test measures the silence
     // after the music rather than the music.
-    ['-y', '-v', 'error', '-i', source, '-t', '20', '-ar', '48000', '-ac', '2',
-      '-c:a', 'pcm_s16le', decoded],
+    [
+      '-y',
+      '-v',
+      'error',
+      '-i',
+      source,
+      '-t',
+      '20',
+      '-ar',
+      '48000',
+      '-ac',
+      '2',
+      '-c:a',
+      'pcm_s16le',
+      decoded,
+    ],
     { windowsHide: true },
   );
   if (ffmpeg.status !== 0 || !existsSync(decoded)) {
@@ -124,7 +139,28 @@ const main = async (): Promise<void> => {
    * and a scope window per block must not be work the app does by default. A
    * frame arriving here would mean every user pays for a panel they never open.
    */
-  await host.applyChain(encodeChainSettings({ ...DSP_DEFAULTS }));
+  // One dynamic band, because a static rack reports 1.0 for everything and
+  // would pass a check that never watched anything move.
+  await host.applyChain(
+    encodeChainSettings({
+      ...DSP_DEFAULTS,
+      eq: {
+        ...DSP_DEFAULTS.eq,
+        enabled: true,
+        bands: [
+          {
+            enabled: true,
+            dynamic: true,
+            thresholdDb: -30,
+            type: FilterTypeEnum.PK,
+            frequency: 1000,
+            gainDb: -8,
+            quality: 1.2,
+          },
+        ] as unknown as IEqSettings['bands'],
+      },
+    }),
+  );
   await host.loadDeck(0, decoded);
   await host.setPlaying(true);
   await host.renderToFile(48_000 * 2, rendered);
@@ -144,7 +180,9 @@ const main = async (): Promise<void> => {
   console.log(`       ${frames.length} frame(s) received`);
 
   const withEq = frames.filter((frame) => frame.spectra.eq !== undefined);
-  const withMaster = frames.filter((frame) => frame.spectra.master !== undefined);
+  const withMaster = frames.filter(
+    (frame) => frame.spectra.master !== undefined,
+  );
   check(withEq.length > 0, 'the EQ tap reports a spectrum');
   check(withMaster.length > 0, 'the master tap reports a spectrum');
 
@@ -157,12 +195,54 @@ const main = async (): Promise<void> => {
 
   const scoped = frames.filter((frame) => frame.scatter !== undefined);
   check(scoped.length > 0, 'the goniometer gets its sample pairs');
-  const peaks = frames.at(-1)?.peaks ?? [0, 0];
+  /**
+   * The loudest frame of the run, not the last one.
+   *
+   * Frames keep arriving for a moment after the render stops, and those carry
+   * the silence that follows it — so reading the final frame was reading the
+   * gap after the music and calling the meter broken.
+   */
+  const loudestFrame = frames.reduce(
+    (best, frame) => (frame.peaks[0] > best.peaks[0] ? frame : best),
+    frames[0],
+  );
+  const peaks = loudestFrame?.peaks ?? [0, 0];
   console.log(
-    `       correlation ${(frames.at(-1)?.correlation ?? 0).toFixed(3)}, ` +
+    `       correlation ${(loudestFrame?.correlation ?? 0).toFixed(3)}, ` +
       `peaks ${peaks[0].toFixed(3)} / ${peaks[1].toFixed(3)}`,
   );
   check(peaks[0] > 0.001, 'and the peaks are the music, not zero');
+
+  /**
+   * The dynamic band's own activity, which nothing else in the panel can infer.
+   *
+   * The curve is drawn at full strength and its at-rest twin at zero, and
+   * neither moves when the threshold does — so this reading IS the display.
+   * Reported by the worklet until the worklet stopped processing, at which
+   * point the threshold dial went dead while the band went on working.
+   */
+  const banded = frames.filter((frame) => frame.bandAmounts.length > 0);
+  check(banded.length > 0, 'the bands report their activity');
+  const amounts = banded.map((frame) => frame.bandAmounts[0]);
+  const lowest = Math.min(...amounts);
+  const highest = Math.max(...amounts);
+  console.log(
+    `       band amount ranged ${lowest.toFixed(3)} to ${highest.toFixed(3)} over ` +
+      `${banded.length} frames`,
+  );
+  check(lowest >= 0 && highest <= 1.0001, 'the amount stays within 0 to 1');
+
+  /**
+   * And it MOVED, which is the whole claim.
+   *
+   * A band reporting a constant would satisfy every bound above — including a
+   * band pinned at 1.0, which is exactly what a static rack reports and exactly
+   * what a broken reading looks like.
+   */
+  check(
+    highest - lowest > 0.01,
+    'and it moves with the music rather than sitting at a constant',
+  );
 
   /**
    * The positive control, and the reason every threshold above means anything.

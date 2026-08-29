@@ -5,14 +5,13 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 /**
- * Driving the native engine, for as long as there are two of them.
+ * Driving the engine, which is now the only one there is.
  *
- * The TypeScript chain stays in the tree through this migration deliberately.
- * A port is only believable if the two can be compared on the same material,
- * and a comparison that needs a rebuild between the halves is one nobody runs.
- * The parity fixtures hold the native chain to the worklet sample for sample —
- * 2137 of them — but a fixture cannot hear anything, so this is what lets a
- * person switch mid-track and listen.
+ * The TypeScript chain was kept beside it through the migration so the two
+ * could be compared on the same material, and having been compared — 2137
+ * parity fixtures, and the same samples on real music — it no longer processes
+ * anything. Those modules survive purely as the reference the fixtures are
+ * generated from.
  *
  * Everything here is a plain function over an injected surface rather than a
  * hook, for one reason: it is testable that way. The hook that uses it is four
@@ -122,9 +121,13 @@ export const createNativeBackendController = (
     engage: async (settings, outputSafetyEnabled) => {
       const status = await bridge.startDspHost();
       if (status.state !== 'ready') {
-        // Reported by the supervisor as a diagnostic already. Returning false
-        // rather than throwing keeps the caller's fallback a branch instead of
-        // a catch — the TypeScript chain is still there and still works.
+        /**
+         * Reported by the supervisor as a diagnostic already, so this says no
+         * rather than throwing — the caller turns it into the notice the user
+         * sees. There is nothing to fall back to: a host that will not start
+         * means the audio plays unprocessed, and saying so is the whole point
+         * of returning a value instead of an exception nobody would catch.
+         */
         return false;
       }
       if (!(await pushChain(settings, outputSafetyEnabled))) {
