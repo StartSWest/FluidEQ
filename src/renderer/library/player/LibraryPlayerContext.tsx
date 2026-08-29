@@ -432,20 +432,22 @@ export const LibraryPlayerProvider = ({
   const track = trackId ? trackById.get(trackId) : undefined;
 
   /**
-   * The native engine, shadowing this player while the dev switch selects it.
+   * The native engine, shadowing this player — and now the default one.
    *
-   * Development only, and deliberately a SHADOW rather than a replacement: the
-   * elements above keep every job they have — position, events, the queue's
-   * advance, the crossfade's cue point — and are muted, while the host is told
-   * the same file at the same position. Flipping the switch changes which of
-   * two engines is audible and nothing else, which is the only way the two are
-   * comparable at all.
+   * Deliberately a SHADOW rather than a replacement, which is what it stays
+   * after becoming the default. The elements above keep every job they have —
+   * position, events, the queue's advance, the crossfade's cue point — and are
+   * muted, while the host is told the same file at the same position. That is
+   * what made the two engines comparable while there was a switch, and it is
+   * what makes the fallback whole now that there is not: a host that cannot
+   * start leaves the elements unmuted and the TypeScript chain processing, and
+   * the only thing the user loses is which engine did the arithmetic.
    *
-   * `useNativeBackend` answers `undefined` unless the switch is on native, so
-   * there is nothing here to call by accident in a production build.
+   * `useNativeBackend` answers `undefined` unless the native engine is
+   * selected, so there is nothing here to call by accident on either path.
    */
   const nativeBackend = useNativeBackend(dspSettings);
-  useNativeMirror(nativeBackend, audioElements, {
+  const nativeMirror = useNativeMirror(nativeBackend, audioElements, {
     mediaPath: track?.path,
     isPlaying,
     positionMs,
@@ -552,6 +554,7 @@ export const LibraryPlayerProvider = ({
       incoming: HTMLAudioElement,
       durationMs: number,
       curve: TCrossfadeCurve,
+      incomingPath?: string,
       onFinished?: () => void,
     ) => {
       finishCrossfadeRef.current?.();
@@ -564,6 +567,31 @@ export const LibraryPlayerProvider = ({
         durationMs,
         curve,
       );
+      /**
+       * The same fade, on the native engine's own two decks.
+       *
+       * Both are started, not one or the other. The element fade above is
+       * running on muted elements while the native engine is audible, and it
+       * is what keeps the meter, the cue point and the queue's advance
+       * behaving identically on either engine — removing it would make the
+       * two paths differ in everything except the sound.
+       *
+       * Not awaited, and its failure is not this function's business: the
+       * mirror hands the audio back to the elements when it cannot load a
+       * file, and a handoff that waited on the native decoder would stall the
+       * song change on every engine for the sake of one.
+       */
+      if (incomingPath) {
+        nativeMirror.crossfade(incomingPath, durationMs, curve).catch(() => {
+          reportDspDiagnostic({
+            schemaVersion: DSP_DIAGNOSTIC_SCHEMA_VERSION,
+            code: DSP_DIAGNOSTIC_CODES.crossfadeDeckFallback,
+            severity: 'warn',
+            origin: 'renderer',
+            values: { durationMs, curve },
+          });
+        });
+      }
       let finished = false;
       const finish = () => {
         if (finished) {
@@ -601,7 +629,7 @@ export const LibraryPlayerProvider = ({
         Math.max(1, durationMs) + 50,
       );
     },
-    [releaseBlob],
+    [releaseBlob, nativeMirror],
   );
 
   /**
@@ -1250,6 +1278,10 @@ export const LibraryPlayerProvider = ({
                 audio,
                 transition.durationMs,
                 transition.curve,
+                // The incoming file, for the native decks. The element beside
+                // it is fed a blob URL, which is not something a native
+                // decoder can open.
+                track.path,
                 () => {
                   completeTrackHandoff();
                 },

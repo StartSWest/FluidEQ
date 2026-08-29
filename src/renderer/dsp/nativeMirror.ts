@@ -25,11 +25,15 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * position and the same play state, and it makes the sound. Flipping the switch
  * changes which of two engines is audible and nothing else at all.
  *
- * What this deliberately does NOT mirror is the crossfade. The player's overlap
- * runs two elements at once and the native side has its own two decks; driving
- * both from here would be two crossfades fighting over one handoff. Deck zero
- * is the only one used until the player's own handoff can hand over a deck.
+ * The crossfade is mirrored too, and it is the one place where "shadow the
+ * element" is not enough. The player's overlap runs two muted elements while
+ * the native side has its own two decks, so a handoff that only synced
+ * `mediaPath` reloaded the single deck in use and cut — the native engine had
+ * no crossfade at all, on an engine whose crossfader was written and tested.
+ * `crossfade` below is what the player calls instead, and it drives the decks
+ * the way the elements are being driven beside it.
  */
+import { TCrossfadeCurve, CROSSFADE_CURVES } from '../../common/dsp/chain';
 import { INativeBackendController } from './nativeBackend';
 
 /** What the mirror needs from the player, and nothing more. */
@@ -48,6 +52,25 @@ export interface INativeMirror {
    * something it cares about actually moved.
    */
   sync: (state: INativeMirrorState) => void;
+  /**
+   * Fade to `incomingPath` on the other deck, the way the elements are.
+   *
+   * Called by the player at the same moment it schedules the element fade, so
+   * the two run together on their own clocks. The native one is the audible
+   * one; the element fade is running on muted elements and is what keeps the
+   * player's meter, cue point and queue advance behaving identically either
+   * way.
+   *
+   * Resolves false when there was nothing to fade — no controller, no path, or
+   * the incoming track is already the audible one — and the caller carries on
+   * regardless, because the element path has its own handoff and a native
+   * engine that could not fade must not also block the song from changing.
+   */
+  crossfade: (
+    incomingPath: string,
+    durationMs: number,
+    curve: TCrossfadeCurve,
+  ) => Promise<boolean>;
   /** Hand the audio back to the element path. */
   release: () => void;
 }
@@ -84,6 +107,15 @@ export const createNativeMirror = (
 
   let loadedPath: string | undefined;
   let playing = false;
+  /**
+   * Which deck is audible. Not always zero, once a crossfade has happened.
+   *
+   * Every load, seek and unload below is addressed to this rather than to a
+   * literal 0 — that constant was correct only while the second deck was
+   * unused, and it would have quietly sent the next track's seek to the deck
+   * that had just faded out.
+   */
+  let activeDeck = 0;
   /** What the host was last told, so a tick that changed nothing sends nothing. */
   let toldPositionMs = 0;
   /**
@@ -119,7 +151,7 @@ export const createNativeMirror = (
     isPlaying: boolean,
     positionMs: number,
   ): Promise<void> => {
-    if (!(await controller.transport.load(0, mediaPath))) {
+    if (!(await controller.transport.load(activeDeck, mediaPath))) {
       /**
        * A format the native decoder cannot read.
        *
@@ -139,11 +171,11 @@ export const createNativeMirror = (
       unmute();
       return;
     }
-    await controller.transport.select(0);
+    await controller.transport.select(activeDeck);
     // The switch can be flipped mid-track. Starting at zero would restart the
     // song, which is the most obvious possible bug.
     if (positionMs > SEEK_THRESHOLD_MS) {
-      await controller.transport.seek(0, positionMs / 1000);
+      await controller.transport.seek(activeDeck, positionMs / 1000);
     }
     if (isPlaying) {
       await controller.transport.play();
@@ -161,7 +193,7 @@ export const createNativeMirror = (
         toldPositionMs = positionMs;
         toldAt = performance.now();
         if (!mediaPath) {
-          controller.transport.unload(0).catch(() => undefined);
+          controller.transport.unload(activeDeck).catch(() => undefined);
           return;
         }
         cue(mediaPath, isPlaying, positionMs).catch(() => undefined);
@@ -192,8 +224,61 @@ export const createNativeMirror = (
       toldPositionMs = positionMs;
       toldAt = now;
       if (Math.abs(positionMs - expected) > SEEK_THRESHOLD_MS) {
-        controller.transport.seek(0, positionMs / 1000).catch(() => undefined);
+        controller.transport
+          .seek(activeDeck, positionMs / 1000)
+          .catch(() => undefined);
       }
+    },
+
+    crossfade: async (incomingPath, durationMs, curve) => {
+      if (!incomingPath || incomingPath === loadedPath) {
+        return false;
+      }
+      const toDeck = activeDeck === 0 ? 1 : 0;
+
+      /**
+       * Claimed BEFORE anything is awaited, and that ordering is the whole
+       * correctness of this function.
+       *
+       * The player calls this at the same moment it starts the element fade,
+       * and its position tick keeps running throughout. That tick calls `sync`,
+       * which compares `mediaPath` against `loadedPath` — and the incoming
+       * track is already the current one by then. Left until after the load
+       * resolved, a tick landing in the gap would see a track change, treat it
+       * as a cue, and reload the OUTGOING deck with the incoming file: a hard
+       * cut, on top of a crossfade, with the two decks holding the same song.
+       *
+       * There is no timer here and there must not be one. The window is real
+       * but it is not a matter of milliseconds — it is a matter of which fact
+       * is published first, and publishing it first closes the window at every
+       * speed.
+       */
+      const previousPath = loadedPath;
+      const previousDeck = activeDeck;
+      loadedPath = incomingPath;
+      activeDeck = toDeck;
+      toldPositionMs = 0;
+      toldAt = performance.now();
+
+      if (!(await controller.transport.load(toDeck, incomingPath))) {
+        // A file the native decoder cannot read. Put the claim back rather
+        // than leaving the mirror pointing at a deck holding nothing, and let
+        // the element fade — which is already running — carry the handoff.
+        loadedPath = previousPath;
+        activeDeck = previousDeck;
+        unmute();
+        return false;
+      }
+
+      const index = CROSSFADE_CURVES.indexOf(curve);
+      await controller.transport.crossfade(
+        toDeck,
+        durationMs,
+        // A curve the host does not know is equal power, which is the default
+        // the panel offers, rather than whatever index -1 lands on.
+        index >= 0 ? index : 0,
+      );
+      return true;
     },
 
     release: () => {
@@ -201,7 +286,12 @@ export const createNativeMirror = (
       loadedPath = undefined;
       playing = false;
       controller.transport.pause().catch(() => undefined);
+      // Both decks, because a crossfade leaves the previous track loaded on the
+      // other one and an unload of only the active deck would leave a whole
+      // decoded read-ahead buffer alive for a track nobody is playing.
       controller.transport.unload(0).catch(() => undefined);
+      controller.transport.unload(1).catch(() => undefined);
+      activeDeck = 0;
     },
   };
 };

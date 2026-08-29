@@ -12,8 +12,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * the chain arrived — is a real defect with a real symptom, and it belongs
  * somewhere a test can reach without a renderer.
  */
-import { useEffect, useRef } from 'react';
-import { IDspSettings } from '../../common/dsp/chain';
+import { useEffect, useMemo, useRef } from 'react';
+import { IDspSettings, TCrossfadeCurve } from '../../common/dsp/chain';
 import {
   INativeBackendController,
   createNativeBackendController,
@@ -123,6 +123,21 @@ export const useNativeBackend = (
 };
 
 /**
+ * What the player may ask of the mirror, beyond it shadowing state on its own.
+ *
+ * One method rather than the whole mirror, because everything else the mirror
+ * does is driven by the state it is handed. A crossfade is the exception: it is
+ * an event with a duration and a curve, and there is no state for it to notice.
+ */
+export interface INativeMirrorHandle {
+  crossfade: (
+    incomingPath: string,
+    durationMs: number,
+    curve: TCrossfadeCurve,
+  ) => Promise<boolean>;
+}
+
+/**
  * Keep the native engine in step with the player, and mute the elements.
  *
  * The element keeps every job it has — position, events, the queue's advance,
@@ -134,7 +149,7 @@ export const useNativeMirror = (
   controller: INativeBackendController | undefined,
   elements: readonly HTMLMediaElement[],
   state: INativeMirrorState,
-): void => {
+): INativeMirrorHandle => {
   const mirrorRef = useRef<INativeMirror | undefined>(undefined);
   const stateRef = useRef(state);
   stateRef.current = state;
@@ -157,4 +172,18 @@ export const useNativeMirror = (
   useEffect(() => {
     mirrorRef.current?.sync(state);
   }, [state.mediaPath, state.isPlaying, state.positionMs, state]);
+
+  /**
+   * Stable across renders, because the player holds it in a callback that its
+   * own handoff depends on. A new identity every render would rebuild that
+   * callback and, through it, the effect that owns the track transition.
+   */
+  return useMemo(
+    () => ({
+      crossfade: (incomingPath, durationMs, curve) =>
+        mirrorRef.current?.crossfade(incomingPath, durationMs, curve) ??
+        Promise.resolve(false),
+    }),
+    [],
+  );
 };
