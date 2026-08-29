@@ -313,6 +313,8 @@ const dsp = {
     'Manueller Ausgang: keine Spitzenabsenkung. Pegel über 0 dBFS übersteuern.',
   'dsp.master.truePeak': 'TP Eingang',
   'dsp.master.gainReduction': 'Pegelreduktion',
+  'dsp.master.engineFallback':
+    'Die native Audio-Engine konnte nicht starten, daher verarbeitet die integrierte Engine deinen Klang. Alle Effekte bleiben aktiv.',
   'dsp.master.devBackend': 'Engine A/B',
   'dsp.master.devBackendNative': 'Nativ (C++)',
   'dsp.master.devBackendTypescript': 'TypeScript',

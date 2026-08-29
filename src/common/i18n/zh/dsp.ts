@@ -291,6 +291,8 @@ const dsp = {
   'dsp.master.manualHint': '手动输出：不衰减峰值。高于 0 dBFS 的电平将削波。',
   'dsp.master.truePeak': 'TP 输入',
   'dsp.master.gainReduction': '增益衰减',
+  'dsp.master.engineFallback':
+    '原生音频引擎无法启动，因此正在由内置引擎处理声音。所有效果仍然生效。',
   'dsp.master.devBackend': '引擎 A/B',
   'dsp.master.devBackendNative': '原生 (C++)',
   'dsp.master.devBackendTypescript': 'TypeScript',

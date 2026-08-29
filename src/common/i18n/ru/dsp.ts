@@ -309,6 +309,8 @@ const dsp = {
     'Ручной выход: без ослабления пиков. Уровни выше 0 dBFS будут перегружены.',
   'dsp.master.truePeak': 'TP вход',
   'dsp.master.gainReduction': 'Ослабление',
+  'dsp.master.engineFallback':
+    'Нативный аудиодвижок не запустился, поэтому звук обрабатывает встроенный движок. Все эффекты по-прежнему применяются.',
   'dsp.master.devBackend': 'Движок A/B',
   'dsp.master.devBackendNative': 'Нативный (C++)',
   'dsp.master.devBackendTypescript': 'TypeScript',

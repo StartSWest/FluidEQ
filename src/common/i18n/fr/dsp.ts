@@ -310,6 +310,8 @@ const dsp = {
     'Sortie manuelle : aucune réduction de crête. Les niveaux au-dessus de 0 dBFS satureront.',
   'dsp.master.truePeak': 'TP entrée',
   'dsp.master.gainReduction': 'Réduction de gain',
+  'dsp.master.engineFallback':
+    "Le moteur audio natif n'a pas pu démarrer, c'est donc le moteur intégré qui traite votre son. Tous les effets restent appliqués.",
   'dsp.master.devBackend': 'Moteur A/B',
   'dsp.master.devBackendNative': 'Natif (C++)',
   'dsp.master.devBackendTypescript': 'TypeScript',

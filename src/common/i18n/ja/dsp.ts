@@ -302,6 +302,8 @@ const dsp = {
     '手動出力：ピーク低減なし。0 dBFSを超えるレベルはクリップします。',
   'dsp.master.truePeak': 'TP入力',
   'dsp.master.gainReduction': 'ゲインリダクション',
+  'dsp.master.engineFallback':
+    'ネイティブオーディオエンジンを起動できなかったため、内蔵エンジンがサウンドを処理しています。すべてのエフェクトは有効なままです。',
   'dsp.master.devBackend': 'エンジン A/B',
   'dsp.master.devBackendNative': 'ネイティブ (C++)',
   'dsp.master.devBackendTypescript': 'TypeScript',

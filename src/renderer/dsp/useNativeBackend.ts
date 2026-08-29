@@ -24,8 +24,9 @@ import {
   createNativeMirror,
 } from './nativeMirror';
 import {
-  setDspNativeEngaged,
+  setDspNativeState,
   useDspBackend,
+  useDspNativeState,
   useDspOutputSafetyEnabled,
 } from './store';
 
@@ -60,6 +61,7 @@ export const useNativeBackend = (
   settings: IDspSettings,
 ): INativeBackendController | undefined => {
   const backend = useDspBackend();
+  const nativeState = useDspNativeState();
   const outputSafetyEnabled = useDspOutputSafetyEnabled();
   const controllerRef = useRef<INativeBackendController | undefined>(undefined);
   const settingsRef = useRef(settings);
@@ -73,15 +75,21 @@ export const useNativeBackend = (
     if (backend !== 'native') {
       const running = controllerRef.current;
       controllerRef.current = undefined;
-      setDspNativeEngaged(false);
+      setDspNativeState('idle');
       running?.disengage().catch(() => undefined);
       return undefined;
     }
     const bridge = bridgeOf();
     if (!bridge) {
-      // No preload, so no host and no way to get one. The TypeScript chain has
-      // to keep processing; saying so is what stops it standing down.
-      setDspNativeEngaged(false);
+      /**
+       * No preload, so no host and no way to get one. The TypeScript chain has
+       * to keep processing; saying so is what stops it standing down.
+       *
+       * `idle` rather than `failed` because nothing was attempted and there is
+       * nothing for a user to act on. A packaged app always has its preload —
+       * this is the harness, a test renderer, or a window still coming up.
+       */
+      setDspNativeState('idle');
       return undefined;
     }
     const controller = createNativeBackendController(bridge);
@@ -98,17 +106,20 @@ export const useNativeBackend = (
         // Both outcomes reported, and the failure is the one that matters: it
         // is what keeps the TypeScript chain processing instead of standing
         // down for an engine that never started.
-        setDspNativeEngaged(ready);
+        setDspNativeState(ready ? 'engaged' : 'failed');
         return ready;
       })
       .catch(() => {
         controllerRef.current = undefined;
-        setDspNativeEngaged(false);
+        // `failed`, not `idle`: a rejected start is a host that was asked for
+        // and did not arrive, which is exactly what the notice is for. Idle
+        // means nothing has been attempted.
+        setDspNativeState('failed');
       });
 
     return () => {
       controllerRef.current = undefined;
-      setDspNativeEngaged(false);
+      setDspNativeState('idle');
       controller.disengage().catch(() => undefined);
     };
   }, [backend]);
@@ -119,7 +130,28 @@ export const useNativeBackend = (
       .catch(() => undefined);
   }, [settings, outputSafetyEnabled]);
 
-  return backend === 'native' ? controllerRef.current : undefined;
+  /**
+   * Handed over only once the host has FINISHED engaging, never before.
+   *
+   * `controllerRef` is assigned synchronously, the moment the effect runs, but
+   * `engage` is asynchronous: it spawns the process, waits for the handshake,
+   * pushes the chain and only then opens the device. Returning the controller
+   * on the strength of the ref alone published it while all of that was still
+   * in flight, and the mirror would immediately mute the elements and start
+   * issuing load, select and play at a host with no open endpoint.
+   *
+   * The audible result was silence, and only on the FIRST switch — because
+   * `disengage` leaves the process running, so every later engage resolves fast
+   * enough to hide it. That is what made it look intermittent: it was a race,
+   * and the second attempt always won.
+   *
+   * Gating on the state means the mirror cannot exist before the engine is
+   * ready to be mirrored, which is the same rule as the chain going in before
+   * the device.
+   */
+  return backend === 'native' && nativeState === 'engaged'
+    ? controllerRef.current
+    : undefined;
 };
 
 /**

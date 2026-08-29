@@ -228,20 +228,35 @@ export const readDspBackend = (): TDspBackend =>
  * to the selection it was actively wrong the moment native was made the default:
  * the host failing meant the worklet stood down for an engine that was not
  * there, and the user got their track with the entire rack silently bypassed —
- * no EQ, no compressor, no limiter, and nothing on screen saying so. The
- * failure is only visible in dev, where there is a switch to flip back.
+ * no EQ, no compressor, no limiter, and nothing on screen saying so.
+ *
+ * Three states rather than a boolean, for exactly the reason `TDspEngineState`
+ * above has three: the boolean version cannot tell "has not tried yet" from
+ * "tried and failed". The engine lives inside `LibraryPlayerProvider`, which
+ * only mounts once the Library has been opened, so before that there is no host
+ * and no failure either — and a warning shown then would be a warning about
+ * nothing, on a machine that is fine. That precise bug has already shipped once
+ * in this file.
  */
-let nativeEngaged = false;
+export type TDspNativeState = 'idle' | 'engaged' | 'failed';
 
-export const setDspNativeEngaged = (next: boolean): void => {
-  if (next === nativeEngaged) {
+let nativeState: TDspNativeState = 'idle';
+
+export const setDspNativeState = (next: TDspNativeState): void => {
+  if (next === nativeState) {
     return;
   }
-  nativeEngaged = next;
+  nativeState = next;
   emit();
 };
 
-export const readDspNativeEngaged = (): boolean => nativeEngaged;
+export const readDspNativeState = (): TDspNativeState => nativeState;
+
+export const useDspNativeState = (): TDspNativeState =>
+  useSyncExternalStore(subscribe, readDspNativeState, readDspNativeState);
+
+/** The one question the worklet asks: is something else making the sound? */
+export const readDspNativeEngaged = (): boolean => nativeState === 'engaged';
 
 export const useDspNativeEngaged = (): boolean =>
   useSyncExternalStore(subscribe, readDspNativeEngaged, readDspNativeEngaged);

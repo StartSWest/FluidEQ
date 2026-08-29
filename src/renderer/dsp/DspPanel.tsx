@@ -32,6 +32,7 @@ import {
   setDspBackend,
   setDspOutputSafetyEnabled,
   useDspBackend,
+  useDspNativeState,
   useDspOutputSafetyEnabled,
   useDspOutputSafetyMeter,
   useDspSampleRate,
@@ -85,6 +86,7 @@ const DspPanel = ({
   const sampleRate = useDspSampleRate();
   const outputSafetyEnabled = useDspOutputSafetyEnabled();
   const backend = useDspBackend();
+  const nativeState = useDspNativeState();
   const outputSafetyMeter = useDspOutputSafetyMeter();
   const inputAnalysis = useDspInputAnalysis();
   const loudnessGainDb = masterLoudnessGainDb(
@@ -519,6 +521,7 @@ const DspPanel = ({
               meter={outputSafetyMeter}
               safetyEnabled={outputSafetyEnabled}
               backend={backend}
+              nativeState={nativeState}
               loudnessGainDb={loudnessGainDb}
               onSafetyToggle={() =>
                 setDspOutputSafetyEnabled(!outputSafetyEnabled)

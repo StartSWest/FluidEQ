@@ -315,6 +315,8 @@ const dsp = {
     'Manual output: no peak reduction. Levels above 0 dBFS will clip.',
   'dsp.master.truePeak': 'TP in',
   'dsp.master.gainReduction': 'Gain reduction',
+  'dsp.master.engineFallback':
+    'The native audio engine could not start, so the built-in engine is processing your sound. Every effect still applies.',
   'dsp.master.devBackend': 'Engine A/B',
   'dsp.master.devBackendNative': 'Native (C++)',
   'dsp.master.devBackendTypescript': 'TypeScript',

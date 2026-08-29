@@ -909,6 +909,19 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   line-height: 1.4;
 }
 
+// Amber, the same attention colour the rack already uses, and deliberately not
+// `$red`: the audio is fine and every effect is still applied. Only the engine
+// doing the arithmetic changed, so this reports a fact rather than a fault.
+// Louder than a plain hint because the alternative — how it behaved before —
+// was no indication at all.
+.dsp-engine-fallback {
+  padding: 7px 10px;
+  border: 1px solid rgba(255, 176, 89, 0.3);
+  border-radius: 6px;
+  background: rgba(255, 176, 89, 0.06);
+  color: rgb(255, 196, 126);
+}
+
 // Warm rather than the rack's cyan, matching the bar the display gives it. It
 // is not a fourth band and must not read as one: a different effect, its own
 // bandpass, its own colour.

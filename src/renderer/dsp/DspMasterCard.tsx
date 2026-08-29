@@ -10,7 +10,7 @@ import Switch from '../widgets/Switch';
 import { Dial, ProcessorCard } from './DspControls';
 import DspMasterGraph from './DspMasterGraph';
 import { OUTPUT_SAFETY_SOFT_KNEE_DB } from './outputSafety';
-import { IDspOutputSafetyMeter, TDspBackend } from './store';
+import { IDspOutputSafetyMeter, TDspBackend, TDspNativeState } from './store';
 
 const IS_DEV = process.env.NODE_ENV !== 'production';
 
@@ -24,8 +24,18 @@ interface IDspMasterCardProps {
   master: IMasterSettings;
   meter: IDspOutputSafetyMeter;
   safetyEnabled: boolean;
-  /** Which engine is audible. Development only; see `store.ts`. */
+  /** Which engine is SELECTED. Development only; see `store.ts`. */
   backend: TDspBackend;
+  /**
+   * Which engine is actually running, which is a different question.
+   *
+   * Shown on every build rather than in development only. The switch above is
+   * a developer's toy, but a native engine that could not start is the user's
+   * business on any build: their rack is being processed by the fallback, and
+   * without this the only evidence is a switch reading `Native` while the
+   * TypeScript chain does the work.
+   */
+  nativeState: TDspNativeState;
   loudnessGainDb: number;
   onSafetyToggle: () => void;
   onBackendToggle: () => void;
@@ -39,6 +49,7 @@ const DspMasterCard = ({
   meter,
   safetyEnabled,
   backend,
+  nativeState,
   loudnessGainDb,
   onSafetyToggle,
   onBackendToggle,
@@ -218,6 +229,12 @@ const DspMasterCard = ({
             </span>
           </span>
         </div>
+      ) : undefined}
+
+      {nativeState === 'failed' ? (
+        <p className="dsp-band-hint dsp-engine-fallback" role="status">
+          {t('dsp.master.engineFallback')}
+        </p>
       ) : undefined}
 
       {IS_DEV ? (

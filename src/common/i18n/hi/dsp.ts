@@ -305,6 +305,8 @@ const dsp = {
     'मैनुअल आउटपुट: कोई पीक कटौती नहीं। 0 dBFS से ऊपर के स्तर क्लिप होंगे।',
   'dsp.master.truePeak': 'TP इन',
   'dsp.master.gainReduction': 'गेन रिडक्शन',
+  'dsp.master.engineFallback':
+    'नेटिव ऑडियो इंजन शुरू नहीं हो सका, इसलिए अंतर्निहित इंजन आपकी ध्वनि प्रोसेस कर रहा है। सभी प्रभाव अब भी लागू हैं।',
   'dsp.master.devBackend': 'इंजन A/B',
   'dsp.master.devBackendNative': 'नेटिव (C++)',
   'dsp.master.devBackendTypescript': 'TypeScript',

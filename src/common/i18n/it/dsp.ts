@@ -308,6 +308,8 @@ const dsp = {
     'Uscita manuale: nessuna riduzione dei picchi. I livelli oltre 0 dBFS satureranno.',
   'dsp.master.truePeak': 'TP ingresso',
   'dsp.master.gainReduction': 'Riduzione guadagno',
+  'dsp.master.engineFallback':
+    'Il motore audio nativo non è riuscito ad avviarsi, quindi il motore integrato sta elaborando il tuo suono. Tutti gli effetti restano attivi.',
   'dsp.master.devBackend': 'Motore A/B',
   'dsp.master.devBackendNative': 'Nativo (C++)',
   'dsp.master.devBackendTypescript': 'TypeScript',

@@ -30,8 +30,9 @@ import {
 import { useNativeBackend } from '../../../renderer/dsp/useNativeBackend';
 import {
   readDspNativeEngaged,
+  readDspNativeState,
   setDspBackend,
-  setDspNativeEngaged,
+  setDspNativeState,
 } from '../../../renderer/dsp/store';
 import { DSP_DEFAULTS } from '../../../common/dsp/chain';
 
@@ -76,7 +77,7 @@ const installBridge = (bridge: INativeBackendBridge | undefined): void => {
 
 describe('what the TypeScript chain stands down for', () => {
   beforeEach(() => {
-    setDspNativeEngaged(false);
+    setDspNativeState('idle');
     setDspBackend('typescript');
     installBridge(undefined);
   });
@@ -84,7 +85,7 @@ describe('what the TypeScript chain stands down for', () => {
   afterEach(() => {
     installBridge(undefined);
     setDspBackend('typescript');
-    setDspNativeEngaged(false);
+    setDspNativeState('idle');
   });
 
   it('reports engaged once the host has actually come up', async () => {
@@ -145,9 +146,9 @@ describe('what the TypeScript chain stands down for', () => {
    */
   it('can be moved at all, so the assertions above mean something', () => {
     expect(readDspNativeEngaged()).toBe(false);
-    setDspNativeEngaged(true);
+    setDspNativeState('engaged');
     expect(readDspNativeEngaged()).toBe(true);
-    setDspNativeEngaged(false);
+    setDspNativeState('idle');
     expect(readDspNativeEngaged()).toBe(false);
   });
 
@@ -196,5 +197,157 @@ describe('the controller behind it', () => {
       bridgeWith(() => Promise.resolve({ state: 'ready' })),
     );
     expect(await controller.engage(DSP_DEFAULTS, true)).toBe(true);
+  });
+});
+
+/**
+ * Nothing may touch the host until it has finished coming up.
+ *
+ * Reported from a real listening session: switching to native went silent, and
+ * only ever on the FIRST switch — after that it worked. That shape is the
+ * signature of a race, not a broken feature.
+ *
+ * The controller was published the instant the effect assigned it, while
+ * `engage` was still spawning the process, waiting for the handshake, pushing
+ * the chain and opening the device. The mirror took that as its cue to mute the
+ * elements and start issuing load, select and play at a host with no endpoint
+ * open. The TypeScript chain had already stood down, so neither engine was
+ * making sound. It only happened once because `disengage` leaves the process
+ * running, so every later engage resolved fast enough to hide the window.
+ */
+describe('the controller is not handed out early', () => {
+  beforeEach(() => {
+    setDspNativeState('idle');
+    setDspBackend('typescript');
+    installBridge(undefined);
+  });
+
+  afterEach(() => {
+    installBridge(undefined);
+    setDspBackend('typescript');
+    setDspNativeState('idle');
+  });
+
+  it('withholds the controller until the host has finished engaging', async () => {
+    let release: (value: { state: string }) => void = () => undefined;
+    const pending = new Promise<{ state: string }>((resolve) => {
+      release = resolve;
+    });
+    installBridge(bridgeWith(() => pending));
+    setDspBackend('native');
+
+    const view = renderHook(() => useNativeBackend(DSP_DEFAULTS));
+
+    /**
+     * The re-render is the whole reproduction, and leaving it out made this
+     * test pass against the bug it was written for.
+     *
+     * `controllerRef` is assigned in the effect, and assigning a ref schedules
+     * no render — so a hook that is never re-rendered keeps reporting the
+     * `undefined` from its first pass whether the gate is there or not. The
+     * defect only becomes visible when something else renders the tree while
+     * `engage` is still in flight, which in the running app is guaranteed:
+     * `LibraryPlayerContext` re-renders on every position tick, four times a
+     * second, and the mirror is built from whatever the hook returns then.
+     */
+    await Promise.resolve();
+    view.rerender();
+    expect(view.result.current).toBeUndefined();
+
+    await act(async () => {
+      release({ state: 'ready' });
+      await pending;
+    });
+
+    // The positive control for the assertion above: if the controller were
+    // never published at all, the first check would pass for the wrong reason.
+    await waitFor(() => expect(view.result.current).toBeDefined());
+  });
+
+  /** A host that never becomes ready never gets a mirror at all. */
+  it('never hands out a controller for a host that failed', async () => {
+    installBridge(bridgeWith(() => Promise.resolve({ state: 'failed' })));
+    setDspBackend('native');
+
+    const view = renderHook(() => useNativeBackend(DSP_DEFAULTS));
+
+    await waitFor(() => expect(readDspNativeState()).toBe('failed'));
+    expect(view.result.current).toBeUndefined();
+  });
+});
+
+/**
+ * Telling "has not tried yet" apart from "tried and failed".
+ *
+ * The boolean above cannot, and that is not a hypothetical: the engine lives
+ * inside `LibraryPlayerProvider`, which only mounts once the Library has been
+ * opened. Before that there is no host and no failure either, so a notice keyed
+ * to `!engaged` would sit on screen announcing a broken audio engine on a
+ * machine where nothing had been asked to start yet. `TDspEngineState` in the
+ * same store carries a comment saying exactly this, because the boolean version
+ * of THAT flag shipped and told users their audio had failed when it had not.
+ */
+describe('idle is not the same as failed', () => {
+  beforeEach(() => {
+    setDspNativeState('idle');
+    setDspBackend('typescript');
+    installBridge(undefined);
+  });
+
+  afterEach(() => {
+    installBridge(undefined);
+    setDspBackend('typescript');
+    setDspNativeState('idle');
+  });
+
+  it('stays idle before anything has been attempted', () => {
+    expect(readDspNativeState()).toBe('idle');
+  });
+
+  /** The state that earns the notice, and the only one that does. */
+  it('reports failed when the host was asked for and did not arrive', async () => {
+    installBridge(bridgeWith(() => Promise.resolve({ state: 'failed' })));
+    setDspBackend('native');
+
+    renderHook(() => useNativeBackend(DSP_DEFAULTS));
+
+    await waitFor(() => expect(readDspNativeState()).toBe('failed'));
+  });
+
+  /** A rejection is a host that did not arrive, by another route. */
+  it('reports failed when starting the host rejects', async () => {
+    installBridge(bridgeWith(() => Promise.reject(new Error('no host'))));
+    setDspBackend('native');
+
+    renderHook(() => useNativeBackend(DSP_DEFAULTS));
+
+    await waitFor(() => expect(readDspNativeState()).toBe('failed'));
+  });
+
+  /**
+   * No preload is NOT a failure, and this is the case the three states exist
+   * for. Nothing was attempted, so there is nothing for a user to act on and no
+   * notice to show — a packaged app always has its preload, so this is a test
+   * renderer or a window still coming up.
+   */
+  it('stays idle when there is no bridge, rather than crying failure', async () => {
+    setDspBackend('native');
+
+    renderHook(() => useNativeBackend(DSP_DEFAULTS));
+
+    await waitFor(() => expect(readDspNativeEngaged()).toBe(false));
+    expect(readDspNativeState()).toBe('idle');
+  });
+
+  /** Engaging then tearing down returns to idle, not to failed. */
+  it('returns to idle on teardown, so no notice is left behind', async () => {
+    installBridge(bridgeWith(() => Promise.resolve({ state: 'ready' })));
+    setDspBackend('native');
+
+    const view = renderHook(() => useNativeBackend(DSP_DEFAULTS));
+    await waitFor(() => expect(readDspNativeState()).toBe('engaged'));
+
+    view.unmount();
+    expect(readDspNativeState()).toBe('idle');
   });
 });
