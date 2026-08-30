@@ -73,28 +73,15 @@ void feq_post_filter_normalizer_process(
   const double normalized_ceiling_db =
       options->output_ceiling_db - reserved_db - FEQ_AUTO_HEADROOM_MARGIN_DB;
 
-  const double recovery_window_ms =
-      FEQ_AUTO_HEADROOM_MAX_RECOVERY_MS - FEQ_AUTO_HEADROOM_RELEASE_HOLD_MS;
-  const double window =
-      recovery_window_ms > 1.0 ? recovery_window_ms : 1.0;
-  /**
-   * The ceiling on the time constant, not on the release the user chose.
-   *
-   * Left unbounded, a slow release plus a deep correction strands the chain at
-   * the bottom for tens of seconds after the signal has already changed. This
-   * is the constant at which the remaining gap reaches the snap ratio exactly
-   * as the recovery window closes.
-   */
-  const double maximum_release_ms =
-      window / std::log(1.0 / FEQ_AUTO_HEADROOM_RELEASE_SNAP_RATIO);
   const double selected_ms = std::isfinite(options->release_ms)
                                  ? (options->release_ms > 1.0
                                         ? options->release_ms
                                         : 1.0)
                                  : FEQ_AUTO_HEADROOM_BYPASS_RELEASE_MS;
   const double effective_ms =
-      enabled ? (selected_ms < maximum_release_ms ? selected_ms
-                                                  : maximum_release_ms)
+      enabled ? (selected_ms < FEQ_AUTO_HEADROOM_MAX_RELEASE_MS
+                     ? selected_ms
+                     : FEQ_AUTO_HEADROOM_MAX_RELEASE_MS)
               : FEQ_AUTO_HEADROOM_BYPASS_RELEASE_MS;
   const double release_coefficient =
       std::exp(-1.0 / ((effective_ms / 1000.0) * options->sample_rate));
@@ -107,12 +94,20 @@ void feq_post_filter_normalizer_process(
   limiter.activation_threshold = limiter.ceiling;
   limiter.release_coefficient = release_coefficient;
   limiter.limiting_release_coefficient = release_coefficient;
-  limiter.knee_db = 0.0;
+  limiter.knee_db = enabled ? FEQ_AUTO_HEADROOM_KNEE_DB : 0.0;
   limiter.release_hold_samples =
       enabled ? std::llround((FEQ_AUTO_HEADROOM_RELEASE_HOLD_MS / 1000.0) *
                              options->sample_rate)
               : 0.0;
-  limiter.attack_slew_db_per_second = FEQ_AUTO_HEADROOM_ATTACK_DB_PER_SECOND;
+  /**
+   * Zero, which selects the look-ahead path rather than the dB-per-second one.
+   *
+   * A slew rate is how a stage with no look-ahead approximates an attack, and
+   * it cannot reduce the peak that asked for it — only the seconds of program
+   * that follow. The back-filled ramp reaches the exact reduction at the peak
+   * itself, so the level between peaks never has to move.
+   */
+  limiter.attack_slew_db_per_second = 0.0;
   limiter.release_snap_ratio = FEQ_AUTO_HEADROOM_RELEASE_SNAP_RATIO;
   limiter.sample_rate = options->sample_rate;
 

@@ -797,7 +797,15 @@ const RANGES = {
   maximizerReleaseMs: { min: MAXIMIZER_MIN_RELEASE_MS, max: 1_000 },
   masterOutputTrimDb: { min: -24, max: 6 },
   masterCeilingDb: { min: -12, max: -0.1 },
-  masterReleaseMs: { min: 1_000, max: 5_000 },
+  /**
+   * A peak limiter's release, not a level rider's.
+   *
+   * Seconds here are what made Auto Headroom duck the whole programme for a
+   * phrase after one transient. The stage looks ahead and catches the peak
+   * now, so recovery belongs between peaks; a stored value from the old range
+   * clamps into this one.
+   */
+  masterReleaseMs: { min: 40, max: 400 },
   masterLoudnessTargetLufs: { min: -18, max: -6 },
   normalizerTruePeakDbtp: { min: -12, max: -0.1 },
   normalizerTargetLufs: { min: -24, max: -5 },
@@ -1181,7 +1189,7 @@ export const DSP_DEFAULTS: IDspSettings = {
     loudnessMaximize: false,
     loudnessTargetLufs: -9,
     ceilingDb: -1,
-    releaseMs: 2_000,
+    releaseMs: 200,
   },
 };
 

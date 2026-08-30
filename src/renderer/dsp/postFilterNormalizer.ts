@@ -13,16 +13,34 @@ import {
   resetLinkedLimiterState,
 } from './limiter';
 
-/** No programme delay: seeking and Next must remain sample-immediate. */
-export const POST_FILTER_NORMALIZER_LOOK_AHEAD_MS = 0;
-/** Do not recover between peaks belonging to the same musical phrase. */
-export const POST_FILTER_NORMALIZER_RELEASE_HOLD_MS = 1_000;
-/** A deep correction must never leave the finished chain quiet indefinitely. */
-export const POST_FILTER_NORMALIZER_MAX_RECOVERY_MS = 4_000;
+/**
+ * The same two milliseconds the safety stage already spends.
+ *
+ * It has to clear the true-peak detector's six samples of lag with enough left
+ * over to be an attack ramp: 96 samples at 48 kHz leaves 90, which is the
+ * ramp. Matching the safety stage keeps one number to reason about for the
+ * whole Master tail.
+ */
+export const POST_FILTER_NORMALIZER_LOOK_AHEAD_MS = 2;
+/** Long enough that two peaks a phrase apart do not each get their own dip. */
+export const POST_FILTER_NORMALIZER_RELEASE_HOLD_MS = 10;
+/**
+ * Hard bound on the release, whatever a stored chain says.
+ *
+ * Nothing clamps `master.releaseMs` between storage and here, and a release
+ * measured in seconds is what turned this stage into a level rider.
+ */
+export const POST_FILTER_NORMALIZER_MAX_RELEASE_MS = 400;
 /** The final 2% linear gap is below 0.18 dB and is landed exactly at unity. */
 export const POST_FILTER_NORMALIZER_RELEASE_SNAP_RATIO = 0.02;
-/** 1 dB in 200 ms, 5 dB in one second: bigger moves take longer. */
-export const POST_FILTER_NORMALIZER_ATTACK_DB_PER_SECOND = 5;
+/**
+ * The Maximizer's knee, for the reason the Maximizer has one.
+ *
+ * A peak arriving at the ceiling must not make the gain law step from unity to
+ * reduction. The upper branch is still an exact ceiling; smoothness is never
+ * bought with overshoot.
+ */
+export const POST_FILTER_NORMALIZER_KNEE_DB = 1.5;
 /** Click-free return to unity when Auto Headroom is switched off. */
 export const POST_FILTER_NORMALIZER_BYPASS_RELEASE_MS = 1_000;
 /** Keeps the emergency boundary idle after reconstruction and the DC blocker. */
@@ -91,12 +109,24 @@ export const createPostFilterNormalizer = (
  *
  * The target already reserves any positive Master gain. Consequently Output
  * trim at 0 dB is literal unity and positive trim cannot force the emergency
- * guard to reshape a hot waveform. The detector sees a new peak immediately,
- * but gain moves at a bounded dB-per-second rate and adds no playback delay.
- * Recovery holds through one phrase, then follows the selected release. A
- * bounded time constant plus an inaudible final snap guarantees that even a
- * 26 dB correction reaches its new target within four seconds rather than
- * leaving the chain pinned at the bottom after the signal changes.
+ * guard to reshape a hot waveform.
+ *
+ * It catches the peak, and that is the whole difference from what it was.
+ * Look-ahead here was zero — one sample of delay — while the true-peak
+ * detector describes the middle of its own window and so lags six. The stage
+ * was five samples BEHIND every peak it answered to and could not attenuate
+ * one. What it did instead was duck the programme at 5 dB/s, hold it down a
+ * full second and release over another: one transient pulled the record down
+ * for two seconds, which is the fluctuation heard on dense material, and the
+ * slew in from unity at the start of a track was distortion until it arrived.
+ * No cached measurement could help, because the stage learned by listening
+ * rather than by looking ahead.
+ *
+ * The mechanism is the Maximizer's now, which is transparent: real look-ahead,
+ * the reduction back-filled as a linear-in-dB ramp that reaches exactly what
+ * the peak needs at the sample the peak lands on, a soft knee so the gain law
+ * does not snap into limiting, and a hold measured in milliseconds rather than
+ * in phrases.
  */
 export const processPostFilterNormalizer = (
   state: IPostFilterNormalizerState,
@@ -122,18 +152,11 @@ export const processPostFilterNormalizer = (
   const reservedGainDb = Number.isFinite(followingGainDb) ? followingGainDb : 0;
   const normalizedCeilingDb =
     outputCeilingDb - reservedGainDb - POST_FILTER_NORMALIZER_MARGIN_DB;
-  const recoveryWindowMs = Math.max(
-    1,
-    POST_FILTER_NORMALIZER_MAX_RECOVERY_MS -
-      POST_FILTER_NORMALIZER_RELEASE_HOLD_MS,
-  );
-  const maximumReleaseTimeConstantMs =
-    recoveryWindowMs / Math.log(1 / POST_FILTER_NORMALIZER_RELEASE_SNAP_RATIO);
   const selectedReleaseMs = Number.isFinite(releaseMs)
     ? Math.max(1, releaseMs)
     : POST_FILTER_NORMALIZER_BYPASS_RELEASE_MS;
   const effectiveReleaseMs = enabled
-    ? Math.min(selectedReleaseMs, maximumReleaseTimeConstantMs)
+    ? Math.min(selectedReleaseMs, POST_FILTER_NORMALIZER_MAX_RELEASE_MS)
     : POST_FILTER_NORMALIZER_BYPASS_RELEASE_MS;
   const releaseCoefficient = Math.exp(
     -1 / ((effectiveReleaseMs / 1_000) * sampleRate),
@@ -144,10 +167,14 @@ export const processPostFilterNormalizer = (
       : Number.POSITIVE_INFINITY,
     releaseCoefficient,
     limitingReleaseCoefficient: releaseCoefficient,
-    attackSlewDbPerSecond: POST_FILTER_NORMALIZER_ATTACK_DB_PER_SECOND,
+    // Zero selects the look-ahead path rather than the dB-per-second one. A
+    // slew rate is how a stage with no look-ahead approximates an attack, and
+    // it cannot reduce the peak that asked for it — only the seconds of
+    // programme that follow.
+    attackSlewDbPerSecond: 0,
     releaseSnapRatio: POST_FILTER_NORMALIZER_RELEASE_SNAP_RATIO,
     sampleRate,
-    kneeDb: 0,
+    kneeDb: enabled ? POST_FILTER_NORMALIZER_KNEE_DB : 0,
     releaseHoldSamples: enabled
       ? Math.round(
           (POST_FILTER_NORMALIZER_RELEASE_HOLD_MS / 1_000) * sampleRate,

@@ -5,19 +5,30 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 /**
- * Auto Headroom, ported from `postFilterNormalizer.ts`.
+ * Auto Headroom: the final true-peak boundary once LUFS maximize is on.
  *
  * Clean, linked headroom established after every creative filter and before
  * gain. The target already reserves any positive Master gain, so Output trim
  * at 0 dB is literal unity and positive trim cannot force the emergency guard
  * to reshape a hot waveform.
  *
- * The detector sees a new peak immediately, but the gain moves at a bounded
- * dB-per-second rate and adds no playback delay. Recovery holds through one
- * phrase and then follows the selected release; a bounded time constant plus
- * an inaudible final snap is what guarantees even a 26 dB correction reaches
- * its new target within four seconds instead of leaving the chain pinned at
- * the bottom after the signal changes.
+ * It catches the peak, and that is the whole difference from what it was.
+ * Look-ahead here was zero — one sample of delay — while the true-peak
+ * detector describes the middle of its own window and so lags six. The stage
+ * was five samples BEHIND every peak it answered to and could not attenuate
+ * one. What it did instead was duck the programme at 5 dB/s, hold it down a
+ * full second and release over another: one transient pulled the record down
+ * for two seconds, which is the fluctuation heard on dense material, and the
+ * slew in from unity at the start of a track was distortion until it arrived.
+ * No cached measurement could help, because the stage learned by listening
+ * rather than by looking ahead.
+ *
+ * The mechanism is now the Maximizer's, which is transparent: real look-ahead,
+ * the reduction back-filled as a linear-in-dB ramp that reaches exactly what
+ * the peak needs at the sample the peak lands on, a soft knee so the gain law
+ * does not snap into limiting, and a hold measured in milliseconds rather than
+ * in phrases. The delay is unconditional and matches the safety stage's, so
+ * enabling and disabling this stage cannot change the chain's latency.
  */
 #ifndef FLUIDEQ_POST_FILTER_NORMALIZER_H
 #define FLUIDEQ_POST_FILTER_NORMALIZER_H
@@ -30,11 +41,33 @@ SPDX-License-Identifier: GPL-3.0-or-later
 extern "C" {
 #endif
 
-#define FEQ_AUTO_HEADROOM_LOOK_AHEAD_MS 0.0
-#define FEQ_AUTO_HEADROOM_RELEASE_HOLD_MS 1000.0
-#define FEQ_AUTO_HEADROOM_MAX_RECOVERY_MS 4000.0
+/**
+ * The same two milliseconds the safety stage already spends.
+ *
+ * It has to clear the true-peak detector's six samples of lag with enough left
+ * over to be an attack ramp: 96 samples at 48 kHz leaves 90, which is the
+ * ramp. Matching the safety stage keeps one number to reason about for the
+ * whole Master tail.
+ */
+#define FEQ_AUTO_HEADROOM_LOOK_AHEAD_MS 2.0
+/** Long enough that two peaks a phrase apart do not each get their own dip. */
+#define FEQ_AUTO_HEADROOM_RELEASE_HOLD_MS 10.0
+/**
+ * Hard bound on the release, whatever a stored chain says.
+ *
+ * Nothing clamps `master.releaseMs` between the renderer and here, and a
+ * release measured in seconds is what turned this stage into a level rider.
+ */
+#define FEQ_AUTO_HEADROOM_MAX_RELEASE_MS 400.0
 #define FEQ_AUTO_HEADROOM_RELEASE_SNAP_RATIO 0.02
-#define FEQ_AUTO_HEADROOM_ATTACK_DB_PER_SECOND 5.0
+/**
+ * The Maximizer's knee, for the reason the Maximizer has one.
+ *
+ * A peak arriving at the ceiling must not make the gain law step from unity to
+ * reduction. The upper branch is still an exact ceiling; smoothness is never
+ * bought with overshoot.
+ */
+#define FEQ_AUTO_HEADROOM_KNEE_DB 1.5
 #define FEQ_AUTO_HEADROOM_BYPASS_RELEASE_MS 1000.0
 #define FEQ_AUTO_HEADROOM_MARGIN_DB 0.2
 
