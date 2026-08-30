@@ -24,6 +24,8 @@ const dsp = {
     'Inicia quando você toca algo da Biblioteca. Ele processa o reprodutor do próprio FluidEQ, então não tem nada a fazer até carregar uma faixa.',
   'dsp.unavailable':
     'O processamento de áudio não conseguiu iniciar. A reprodução não é afetada.',
+  'dsp.engineFallback':
+    'O motor de áudio nativo não conseguiu iniciar, por isso o FluidEQ está a tocar através da sua cadeia de reserva: o equalizador, a dinâmica e o limitador continuam a aplicar-se, mas os estágios que só existem no motor nativo são ignorados. Reiniciar o FluidEQ costuma resolver.',
   'dsp.presets': 'Predefinições',
   'dsp.preset.lossyRepair': 'Reparar comprimido',
   'dsp.preset.loud': 'Alto',
@@ -352,8 +354,6 @@ const dsp = {
     'Saída manual: sem redução de picos. Níveis acima de 0 dBFS irão saturar.',
   'dsp.master.truePeak': 'TP entrada',
   'dsp.master.gainReduction': 'Redução de ganho',
-  'dsp.master.engineFallback':
-    'O motor de áudio não conseguiu iniciar, por isso a tua música está a tocar sem processamento: sem equalizador, sem dinâmica e sem limitador. Reiniciar o FluidEQ costuma resolver.',
   'dsp.master.devSafety': 'Segurança A/B',
   'dsp.master.devSafetyHint':
     'Apenas desenvolvimento: ignora toda a proteção final para ouvir exatamente o que ela altera.',

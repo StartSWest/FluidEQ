@@ -24,6 +24,8 @@ const dsp = {
     'Si avvia quando riproduci qualcosa dalla Libreria. Elabora il lettore di FluidEQ, quindi non ha nulla da fare finché non carichi un brano.',
   'dsp.unavailable':
     "L'elaborazione audio non è riuscita ad avviarsi. La riproduzione non è interessata.",
+  'dsp.engineFallback':
+    'Il motore audio nativo non è riuscito ad avviarsi, quindi FluidEQ riproduce attraverso la sua catena di riserva: equalizzatore, dinamica e limiter continuano ad applicarsi, ma gli stadi che esistono solo nel motore nativo vengono saltati. Di solito basta riavviare FluidEQ.',
   'dsp.presets': 'Preimpostazioni',
   'dsp.preset.lossyRepair': 'Ripara compresso',
   'dsp.preset.loud': 'Forte',
@@ -350,8 +352,6 @@ const dsp = {
     'Uscita manuale: nessuna riduzione dei picchi. I livelli oltre 0 dBFS satureranno.',
   'dsp.master.truePeak': 'TP ingresso',
   'dsp.master.gainReduction': 'Riduzione guadagno',
-  'dsp.master.engineFallback':
-    'Il motore audio non è riuscito ad avviarsi, quindi la musica viene riprodotta senza elaborazione: niente equalizzatore, niente dinamica e niente limiter. Di solito basta riavviare FluidEQ.',
   'dsp.master.devSafety': 'Sicurezza A/B',
   'dsp.master.devSafetyHint':
     'Solo sviluppo: esclude tutta la protezione finale per ascoltare esattamente cosa cambia.',

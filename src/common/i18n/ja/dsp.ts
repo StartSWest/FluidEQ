@@ -23,6 +23,8 @@ const dsp = {
   'dsp.idle':
     'ライブラリから再生すると起動します。FluidEQ 自身のプレーヤーを処理するため、曲を読み込むまでは何もしません。',
   'dsp.unavailable': '音声処理を開始できませんでした。再生には影響しません。',
+  'dsp.engineFallback':
+    'ネイティブのオーディオエンジンを起動できなかったため、FluidEQ はフォールバックチェーンで再生しています。EQ・ダイナミクス・リミッターは引き続きかかりますが、ネイティブエンジンにしかないステージはバイパスされます。通常は FluidEQ を再起動すると復帰します。',
   'dsp.presets': 'プリセット',
   'dsp.preset.lossyRepair': '圧縮音源を補修',
   'dsp.preset.loud': 'ラウド',
@@ -343,8 +345,6 @@ const dsp = {
     '手動出力：ピーク低減なし。0 dBFSを超えるレベルはクリップします。',
   'dsp.master.truePeak': 'TP入力',
   'dsp.master.gainReduction': 'ゲインリダクション',
-  'dsp.master.engineFallback':
-    'オーディオエンジンを起動できなかったため、音楽は未処理のまま再生されています — EQ もダイナミクスもリミッターもかかりません。通常は FluidEQ を再起動すると復帰します。',
   'dsp.master.devSafety': 'セーフティA/B',
   'dsp.master.devSafetyHint':
     '開発環境のみ：最終保護をすべてバイパスし、変化をそのまま確認できます。',

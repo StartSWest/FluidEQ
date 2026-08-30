@@ -24,6 +24,8 @@ const dsp = {
     "Démarre quand vous lisez quelque chose depuis la Bibliothèque. Il traite le lecteur de FluidEQ, il n'a donc rien à faire tant qu'aucun morceau n'est chargé.",
   'dsp.unavailable':
     "Le traitement audio n'a pas pu démarrer. La lecture n'est pas affectée.",
+  'dsp.engineFallback':
+    "Le moteur audio natif n'a pas pu démarrer, FluidEQ lit donc via sa chaîne de secours : l'égaliseur, la dynamique et le limiteur s'appliquent toujours, mais les étages qui n'existent que dans le moteur natif sont contournés. Redémarrer FluidEQ suffit généralement.",
   'dsp.presets': 'Préréglages',
   'dsp.preset.lossyRepair': 'Réparer le compressé',
   'dsp.preset.loud': 'Fort',
@@ -351,8 +353,6 @@ const dsp = {
     'Sortie manuelle : aucune réduction de crête. Les niveaux au-dessus de 0 dBFS satureront.',
   'dsp.master.truePeak': 'TP entrée',
   'dsp.master.gainReduction': 'Réduction de gain',
-  'dsp.master.engineFallback':
-    "Le moteur audio n'a pas pu démarrer, votre musique est donc lue sans traitement : ni égaliseur, ni dynamique, ni limiteur. Redémarrer FluidEQ suffit généralement.",
   'dsp.master.devSafety': 'Sécurité A/B',
   'dsp.master.devSafetyHint':
     'Développement uniquement : contourne toute la protection finale pour entendre exactement son effet.',

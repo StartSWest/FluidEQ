@@ -10,7 +10,7 @@ import Switch from '../widgets/Switch';
 import { Dial, ProcessorCard } from './DspControls';
 import DspMasterGraph from './DspMasterGraph';
 import { OUTPUT_SAFETY_SOFT_KNEE_DB } from './outputSafety';
-import { IDspOutputSafetyMeter, TDspNativeState } from './store';
+import { IDspOutputSafetyMeter } from './store';
 
 const IS_DEV = process.env.NODE_ENV !== 'production';
 
@@ -24,17 +24,6 @@ interface IDspMasterCardProps {
   master: IMasterSettings;
   meter: IDspOutputSafetyMeter;
   safetyEnabled: boolean;
-  /**
-   * Whether the one engine there is has started.
-   *
-   * The C++ engine is the only thing that processes audio, so this is not a
-   * choice being reported — it is whether the rack is running at all. There is
-   * no fallback to hide a failure behind any more, which is precisely why it
-   * has to be visible: a host that did not start means no EQ, no compressor and
-   * no limiter, and the panel would otherwise show a full set of controls doing
-   * nothing.
-   */
-  nativeState: TDspNativeState;
   loudnessGainDb: number;
   onSafetyToggle: () => void;
   onPatch: (next: IMasterSettings) => void;
@@ -46,7 +35,6 @@ const DspMasterCard = ({
   master,
   meter,
   safetyEnabled,
-  nativeState,
   loudnessGainDb,
   onSafetyToggle,
   onPatch,
@@ -225,12 +213,6 @@ const DspMasterCard = ({
             </span>
           </span>
         </div>
-      ) : undefined}
-
-      {nativeState === 'failed' ? (
-        <p className="dsp-band-hint dsp-engine-fallback" role="status">
-          {t('dsp.master.engineFallback')}
-        </p>
       ) : undefined}
     </ProcessorCard>
   );

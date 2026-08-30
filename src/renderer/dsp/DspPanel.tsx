@@ -227,6 +227,20 @@ const DspPanel = ({
         {engineState === 'failed' ? (
           <p className="dsp-unavailable">{t('dsp.unavailable')}</p>
         ) : undefined}
+        {/* In the header rather than in the Master card, where it used to be.
+            The card is one of eight side-tab sections, so the notice was only
+            ever seen by a user who happened to open Master — and a failure the
+            listener cannot see is the failure being silent.
+
+            Suppressed when the worklet chain has failed too, because then this
+            would contradict the line directly above it: there is no fallback
+            carrying the audio, nothing is processing, and `dsp.unavailable` is
+            the true one. */}
+        {nativeState === 'failed' && engineState !== 'failed' ? (
+          <p className="dsp-engine-fallback" role="status">
+            {t('dsp.engineFallback')}
+          </p>
+        ) : undefined}
       </header>
 
       <div
@@ -484,7 +498,6 @@ const DspPanel = ({
               master={master}
               meter={outputSafetyMeter}
               safetyEnabled={outputSafetyEnabled}
-              nativeState={nativeState}
               loudnessGainDb={loudnessGainDb}
               onSafetyToggle={() =>
                 setDspOutputSafetyEnabled(!outputSafetyEnabled)

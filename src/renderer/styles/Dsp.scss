@@ -51,7 +51,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // while the page is open — a line appearing under the heading with no motion
 // at all reads as the layout jumping rather than as news.
 .dsp-idle,
-.dsp-unavailable {
+.dsp-unavailable,
+.dsp-engine-fallback {
   @include animate(rise-in, $motion-base, $ease-out, 85ms);
 }
 
@@ -1171,16 +1172,23 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 // Amber, the same attention colour the rack already uses, and deliberately not
-// `$red`: the audio is fine and every effect is still applied. Only the engine
-// doing the arithmetic changed, so this reports a fact rather than a fault.
-// Louder than a plain hint because the alternative — how it behaved before —
-// was no indication at all.
+// `$red`: the audio is fine and the fallback chain still applies every stage it
+// has. Only the engine doing the arithmetic changed, so this reports a fact
+// rather than a fault. Louder than a plain hint because the alternative — how
+// it behaved before — was no indication at all.
+//
+// Sizes itself now that it sits in the header rather than inside the Master
+// card, where it borrowed `.dsp-band-hint` for everything but the box.
 .dsp-engine-fallback {
+  max-width: 680px;
+  margin: 2px 0 0;
   padding: 7px 10px;
   border: 1px solid rgba(255, 176, 89, 0.3);
   border-radius: 6px;
   background: rgba(255, 176, 89, 0.06);
   color: rgb(255, 196, 126);
+  font-size: 0.74rem;
+  line-height: 1.4;
 }
 
 // Warm rather than the rack's cyan, matching the bar the display gives it. It

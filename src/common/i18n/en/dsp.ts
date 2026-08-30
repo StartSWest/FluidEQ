@@ -33,6 +33,8 @@ const dsp = {
     'Starts when you play something from the Library. It processes the FluidEQ player itself, so there is nothing for it to do until a track is loaded.',
   'dsp.unavailable':
     'Audio processing could not start. Playback is unaffected.',
+  'dsp.engineFallback':
+    'The native audio engine could not start, so FluidEQ is playing through its fallback chain: the EQ, dynamics and limiter still apply, but stages that only exist natively are bypassed. Restarting FluidEQ usually brings it back.',
   'dsp.presets': 'Presets',
   'dsp.preset.lossyRepair': 'Repair compressed',
   'dsp.preset.loud': 'Loud',
@@ -356,8 +358,6 @@ const dsp = {
     'Manual output: no peak reduction. Levels above 0 dBFS will clip.',
   'dsp.master.truePeak': 'TP in',
   'dsp.master.gainReduction': 'Gain reduction',
-  'dsp.master.engineFallback':
-    'The audio engine could not start, so your music is playing unprocessed — no EQ, no dynamics and no limiter. Restarting FluidEQ usually brings it back.',
   'dsp.master.devSafety': 'Safety A/B',
   'dsp.master.devSafetyHint':
     'Development only: bypasses the complete final protection so you can hear exactly what it changes.',

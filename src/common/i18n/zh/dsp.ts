@@ -23,6 +23,8 @@ const dsp = {
   'dsp.idle':
     '从音乐库播放时自动启动。它处理的是 FluidEQ 自带的播放器，因此在加载曲目前无事可做。',
   'dsp.unavailable': '音频处理未能启动，播放不受影响。',
+  'dsp.engineFallback':
+    '原生音频引擎无法启动，因此 FluidEQ 正通过后备链路播放：均衡器、动态处理和限制器仍然生效，但仅存在于原生引擎中的处理级会被跳过。重启 FluidEQ 通常可以恢复。',
   'dsp.presets': '预设',
   'dsp.preset.lossyRepair': '修复压缩音频',
   'dsp.preset.loud': '响亮',
@@ -331,8 +333,6 @@ const dsp = {
   'dsp.master.manualHint': '手动输出：不衰减峰值。高于 0 dBFS 的电平将削波。',
   'dsp.master.truePeak': 'TP 输入',
   'dsp.master.gainReduction': '增益衰减',
-  'dsp.master.engineFallback':
-    '音频引擎无法启动，因此音乐正在未经处理地播放——没有均衡器、没有动态处理、没有限制器。重启 FluidEQ 通常可以恢复。',
   'dsp.master.devSafety': '安全 A/B',
   'dsp.master.devSafetyHint':
     '仅开发环境：旁路全部最终保护，让你直接听到它带来的变化。',

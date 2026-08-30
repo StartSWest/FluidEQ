@@ -24,6 +24,8 @@ const dsp = {
     'Startet, sobald du etwas aus der Bibliothek abspielst. Es verarbeitet FluidEQs eigenen Player und hat daher nichts zu tun, bis ein Titel geladen ist.',
   'dsp.unavailable':
     'Die Audioverarbeitung konnte nicht gestartet werden. Die Wiedergabe ist davon nicht betroffen.',
+  'dsp.engineFallback':
+    'Die native Audio-Engine konnte nicht starten, daher spielt FluidEQ über seine Ersatzkette: EQ, Dynamik und Limiter greifen weiterhin, aber Stufen, die es nur nativ gibt, werden übersprungen. Ein Neustart von FluidEQ hilft meist.',
   'dsp.presets': 'Voreinstellungen',
   'dsp.preset.lossyRepair': 'Komprimiertes reparieren',
   'dsp.preset.loud': 'Laut',
@@ -356,8 +358,6 @@ const dsp = {
     'Manueller Ausgang: keine Spitzenabsenkung. Pegel über 0 dBFS übersteuern.',
   'dsp.master.truePeak': 'TP Eingang',
   'dsp.master.gainReduction': 'Pegelreduktion',
-  'dsp.master.engineFallback':
-    'Die Audio-Engine konnte nicht starten, daher läuft deine Musik unbearbeitet – ohne EQ, ohne Dynamik und ohne Limiter. Ein Neustart von FluidEQ hilft meist.',
   'dsp.master.devSafety': 'Sicherheit A/B',
   'dsp.master.devSafetyHint':
     'Nur Entwicklung: Umgeht den vollständigen Endschutz, damit seine Wirkung direkt hörbar wird.',
