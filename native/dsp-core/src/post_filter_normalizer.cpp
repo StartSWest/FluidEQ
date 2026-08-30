@@ -147,13 +147,27 @@ void feq_post_filter_normalizer_process(
     state->minimum_gain = state->limiter.gain;
   }
 
-  // Counted up while the stage is working and down while it is not, at the
-  // same rate — so a passage broken by a bar of space does not arrive back at
-  // the fast release the instant one peak stops asking for reduction.
-  const double reducing_below =
-      std::pow(10.0, -FEQ_AUTO_HEADROOM_SUSTAIN_THRESHOLD_DB / 20.0);
+  /**
+   * Counted from whether the PROGRAMME is over the ceiling this block.
+   *
+   * Counting the blocks where the gain sat below unity looked equivalent and
+   * was circular. An exponential release stays a tenth of a decibel down for
+   * most of its run, so recovery itself kept feeding the counter, the counter
+   * stretched the release, and the longer release lengthened the recovery:
+   * after one 15 ms transient the bed was still 0.42 dB down half a second
+   * later. That is a milder form of the level-riding this whole stage was
+   * rebuilt to stop, and the reference's transient test caught it.
+   *
+   * The incoming peak against the ceiling is the programme asking for
+   * reduction rather than the stage still giving it back. A snare asks for two
+   * blocks; a dense chorus asks for a thousand, and only the second is what a
+   * slow release is for.
+   *
+   * Down at the same rate it goes up, so a passage broken by a bar of space
+   * does not arrive back at the fast release the instant one peak relents.
+   */
   const double moved = static_cast<double>(frames);
-  if (enabled && state->limiter.gain < reducing_below) {
+  if (enabled && state->limiter.block_peak > limiter.ceiling) {
     state->sustain_samples += moved;
     if (state->sustain_samples > sustain_span) {
       state->sustain_samples = sustain_span;

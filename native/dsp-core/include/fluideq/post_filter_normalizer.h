@@ -90,20 +90,22 @@ extern "C" {
 #define FEQ_AUTO_HEADROOM_SUSTAIN_MS 300.0
 /** What the release is multiplied by once reduction is fully sustained. */
 #define FEQ_AUTO_HEADROOM_SUSTAIN_STRETCH 3.0
-/** Below this much reduction the stage counts as not working. */
-#define FEQ_AUTO_HEADROOM_SUSTAIN_THRESHOLD_DB 0.1
 
 typedef struct FeqPostFilterNormalizer {
   FeqLinkedLimiter limiter;
   double minimum_gain;
   double input_true_peak;
   /**
-   * How long the stage has been reducing, in samples, decaying when it is not.
+   * How long the programme has been over the ceiling, in samples.
    *
-   * Per block rather than per sample deliberately: a block is about ten
-   * milliseconds and the release times this scales are forty to four hundred,
-   * so sampling the state once a block is well inside the quantity it
-   * controls — and it keeps every per-sample path in `limiter.cpp` untouched.
+   * How long the stage has been ASKED for reduction, and deliberately not how
+   * long it has been giving it: see the note at the update site, where
+   * measuring the latter turned the release into a feedback loop on itself.
+   *
+   * Per block rather than per sample: a block is about ten milliseconds and the
+   * release times this scales are forty to four hundred, so sampling once a
+   * block is well inside the quantity it controls — and it keeps every
+   * per-sample path in `limiter.cpp` untouched.
    */
   double sustain_samples;
 } FeqPostFilterNormalizer;
