@@ -145,6 +145,27 @@ const chainValues = (eqEnabled: boolean, gainDb: number): number[] => {
     -1, // ceiling
     2000, // release
     0, // matched listen
+    // Denoise, entirely off. This smoke exists to prove one EQ band survives
+    // the wire, and a repair stage that removes signal would be measuring
+    // something else against the tone it checks.
+    0, // denoise enabled
+    0, // isolate
+    0, // profile source: scanned
+    0, // hiss enabled
+    0.5, // hiss amount
+    -18, // hiss floor
+    3, // hiss sensitivity
+    0.7, // hiss smoothing
+    0, // hum enabled
+    0, // hum mode: auto
+    6, // hum harmonics
+    24, // hum depth
+    30, // hum quality
+    0, // click enabled
+    0.5, // click sensitivity
+    32, // click longest repair
+    0, // voice enabled
+    1, // voice amount
     1, // one EQ band
   );
   // Peaking, 1 kHz, the gain under test, Q 1.
