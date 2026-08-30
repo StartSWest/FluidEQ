@@ -14,10 +14,8 @@ constexpr double kSibilanceCentreHz = 7200.0;
 constexpr double kSibilanceReturnCutDb = -5.5;
 constexpr double kSibilanceQuality = 1.25;
 constexpr double kParameterSmoothingMs = 18.0;
-constexpr double kMaxReturnGain = 0.7;
-constexpr double kReturnTaper = 0.35;
-constexpr double kHighMaxReturnGain = 0.95;
-constexpr double kHighReturnTaper = 0.45;
+constexpr double kMaxReturnGain = 1.0;
+constexpr double kReturnTaper = 0.6;
 constexpr double kOrganicMaxReturnGain = 0.95;
 constexpr double kOrganicReturnTaper = 0.42;
 
@@ -49,21 +47,12 @@ void feq_exciter_guard_init(FeqExciterGuard* state, float* filtered) {
   state->filtered = filtered;
 }
 
-double feq_safe_exciter_return_gain(double amount) {
+double feq_exciter_return_gain(double amount) {
   return kMaxReturnGain * std::pow(clamp01(amount), kReturnTaper);
-}
-
-double feq_high_exciter_return_gain(double amount) {
-  return kHighMaxReturnGain * std::pow(clamp01(amount), kHighReturnTaper);
 }
 
 double feq_organic_exciter_return_gain(double amount) {
   return kOrganicMaxReturnGain * std::pow(clamp01(amount), kOrganicReturnTaper);
-}
-
-double feq_band_exciter_return_gain(double amount, uint32_t band_index) {
-  return band_index == 2 ? feq_high_exciter_return_gain(amount)
-                         : feq_safe_exciter_return_gain(amount);
 }
 
 double feq_organic_sibilance_protection(double focus_hz) {

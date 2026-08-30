@@ -66,6 +66,7 @@ add_library(fluideq-dsp-core STATIC
   dsp-core/src/output_safety.cpp
   dsp-core/src/post_filter_normalizer.cpp
   dsp-core/src/analog_diode.cpp
+  dsp-core/src/harmonics.cpp
   dsp-core/src/phase_align.cpp
   dsp-core/src/exciter_guard.cpp
   dsp-core/src/organic.cpp

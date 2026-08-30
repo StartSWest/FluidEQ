@@ -16,8 +16,6 @@ import {
 } from '../../../common/dsp/chain';
 import {
   createExciterChannel,
-  exciterSidechainSample,
-  highExciterSample,
   runExciterChannel,
 } from '../../../renderer/dsp/exciterStage';
 import {
@@ -25,11 +23,14 @@ import {
   exciterTransientSample,
 } from '../../../renderer/dsp/analogDiode';
 import {
+  createHarmonicState,
+  harmonicSample,
+} from '../../../renderer/dsp/harmonics';
+import {
   createExciterGuard,
+  exciterReturnGain,
   guardExciterReturn,
-  highExciterReturnGain,
   organicExciterReturnGain,
-  safeExciterReturnGain,
 } from '../../../renderer/dsp/exciterGuard';
 import {
   createOrganicPath,
@@ -93,6 +94,7 @@ const ANALYSIS_SETTLE_BLOCKS = 100;
 const renderAnalysis = (
   config: IExciterSettings,
   frequency: number,
+  level = 0.5,
 ): Float64Array => {
   const state = createExciterChannel(FRAMES);
   const output = new Float64Array(ANALYSIS_SAMPLES);
@@ -102,7 +104,7 @@ const renderAnalysis = (
     atBlock < ANALYSIS_SETTLE_BLOCKS + analysisBlocks;
     atBlock += 1
   ) {
-    const target = block(frequency, 0.5, atBlock * FRAMES);
+    const target = block(frequency, level, atBlock * FRAMES);
     runExciterChannel(state, target, config, RATE);
     if (atBlock >= ANALYSIS_SETTLE_BLOCKS) {
       output.set(target, (atBlock - ANALYSIS_SETTLE_BLOCKS) * FRAMES);
@@ -145,39 +147,91 @@ const highOnly = (
     })),
   });
 
+/**
+ * The generator itself, in isolation from the bands that configure it.
+ *
+ * These are the two properties the whole redesign exists for, and neither could
+ * be stated about the shaper this replaced: the amount of harmonic content is a
+ * number the caller sets, and it is the same number whatever the input level.
+ */
+describe('the harmonic generator', () => {
+  /** A settled tone through the generator; returns its 2f and 3f amplitudes. */
+  const orders = (
+    depth: number,
+    evenWeight: number,
+    amplitude: number,
+    hz = 200,
+  ) => {
+    const state = createHarmonicState();
+    const total = 32_768;
+    const settle = RATE;
+    const out = new Float64Array(total);
+    for (let at = 0; at < settle + total; at += 1) {
+      const value = harmonicSample(
+        state,
+        amplitude * Math.sin((2 * Math.PI * hz * at) / RATE),
+        depth,
+        evenWeight,
+        RATE,
+      );
+      if (at >= settle) {
+        out[at - settle] = value;
+      }
+    }
+    return {
+      second: magnitudeAt(out, hz * 2) / amplitude,
+      third: magnitudeAt(out, hz * 3) / amplitude,
+      first: magnitudeAt(out, hz) / amplitude,
+    };
+  };
+
+  /**
+   * The headline fix. The old shaper's second order moved 36 dB across this
+   * same 40 dB span, which is why the effect was inaudible on anything but a
+   * peak.
+   */
+  it('makes the same harmonics at any input level', () => {
+    const loud = orders(0.4, 0.9, 0.5);
+    const quiet = orders(0.4, 0.9, 0.005);
+    expect(quiet.second).toBeCloseTo(loud.second, 3);
+    expect(quiet.third).toBeCloseTo(loud.third, 3);
+  });
+
+  /**
+   * The positive control for the check above.
+   *
+   * Equality across levels would also hold if the generator returned nothing at
+   * all, so there has to be something there to be equal.
+   */
+  it('makes harmonics at all', () => {
+    const made = orders(0.4, 0.9, 0.5);
+    expect(made.second).toBeGreaterThan(0.05);
+  });
+
+  it('Depth sets how much, proportionally', () => {
+    const gentle = orders(0.2, 0.9, 0.5);
+    const hard = orders(0.4, 0.9, 0.5);
+    expect(hard.second / gentle.second).toBeCloseTo(2, 1);
+  });
+
+  it('Texture moves between the octave and the twelfth', () => {
+    const warm = orders(0.4, 1, 0.5);
+    const airy = orders(0.4, 0, 0.5);
+    expect(warm.second).toBeGreaterThan(warm.third * 4);
+    expect(airy.third).toBeGreaterThan(airy.second * 4);
+  });
+
+  /**
+   * What the running projection is for. T3 hands back 0.98 of a normalised
+   * sine, so without the subtraction the odd end of Texture is a 2 dB cut.
+   */
+  it('leaves the note it is exciting alone, at either end of Texture', () => {
+    expect(orders(0.5, 1, 0.5).first).toBeLessThan(0.02);
+    expect(orders(0.5, 0, 0.5).first).toBeLessThan(0.02);
+  });
+});
+
 describe('exciter peak controls', () => {
-  const harmonicResidual = (
-    sample: number,
-    drive: number,
-    texture: number,
-  ): number => exciterSidechainSample(sample, drive, texture) - sample;
-
-  it('Drive materially increases the curvature at a waveform tip', () => {
-    const gentle = Math.abs(harmonicResidual(0.2, 1, 0.7));
-    const hard = Math.abs(harmonicResidual(0.2, 3.5, 0.7));
-    expect(hard).toBeGreaterThan(gentle * 3);
-  });
-
-  it('keeps a continuous small-signal foundation at every Drive', () => {
-    const sample = 0.005;
-    expect(exciterSidechainSample(sample, 1, 0.7)).toBeCloseTo(sample, 4);
-    expect(exciterSidechainSample(sample, 3.5, 0.7)).toBeCloseTo(sample, 4);
-  });
-
-  it('Texture moves from asymmetric even current to symmetric odd current', () => {
-    const warmPositive = harmonicResidual(0.5, 2, 0);
-    const warmNegative = harmonicResidual(-0.5, 2, 0);
-    const airyPositive = harmonicResidual(0.5, 2, 0.7);
-    const airyNegative = harmonicResidual(-0.5, 2, 0.7);
-
-    expect(Math.abs(warmPositive + warmNegative)).toBeGreaterThan(
-      Math.abs(warmPositive) * 0.5,
-    );
-    expect(Math.abs(airyPositive + airyNegative)).toBeLessThan(
-      Math.abs(warmPositive + warmNegative),
-    );
-  });
-
   it('transient emphasis rises on an onset and settles on a sustained signal', () => {
     const transient = createExciterTransientState();
     let onset = 0;
@@ -192,32 +246,69 @@ describe('exciter peak controls', () => {
     expect(sustained).toBeLessThan(onset * 0.2);
   });
 
+  /**
+   * The discriminator multiplies Depth and nothing else.
+   *
+   * It reaches the generator as a factor on the depth argument, so an onset
+   * changes how many harmonics are made and never how loud the return is —
+   * which is what keeps it from being heard as a compressor.
+   */
   it('transient emphasis changes the harmonics without scaling the foundation', () => {
-    const sample = 0.25;
-    const steady = exciterSidechainSample(sample, 2, 0.3);
-    const transient = exciterSidechainSample(sample, 2, 0.3, 1.35);
-    expect(transient - sample).toBeCloseTo((steady - sample) * 1.35, 10);
+    const settle = 4_000;
+    const measure = (depth: number): number => {
+      const state = createHarmonicState();
+      let last = 0;
+      for (let at = 0; at < settle; at += 1) {
+        last = harmonicSample(
+          state,
+          0.25 * Math.sin((2 * Math.PI * 200 * at) / RATE),
+          depth,
+          0.6,
+          RATE,
+        );
+      }
+      return last;
+    };
+    expect(measure(0.4 * 1.35)).toBeCloseTo(measure(0.4) * 1.35, 10);
   });
 });
 
 /** Regression lock for the High sound Ivan approved by ear. */
 describe('the High exciter', () => {
+  /**
+   * The foundation is 18% of the band, and it is 18% for EVERY band now.
+   *
+   * Low and Mid used to return their whole filtered band at unity, which made
+   * the Amount dial a midrange equaliser — measured at +1.28 dB on the shipping
+   * defaults. High was already the quiet-carrier design and was the band nobody
+   * complained about, so it is the one the other two were moved onto.
+   */
   it('keeps a quiet fixed foundation beneath the generated harmonics', () => {
-    const sample = 0.01;
-    expect(highExciterSample(sample, 2.6, 0.6, 0)).toBeCloseTo(
-      sample * 0.18,
-      10,
-    );
+    // 14 kHz deliberately: the sibilance guard is a bell at 7.2 kHz, so a tone
+    // at the band centre has its own carrier pulled several dB down by it and
+    // measures the de-esser rather than the foundation. Up here the guard is
+    // flat and the octave has left the audible band, so what is left is the
+    // foundation alone.
+    const output = renderAnalysis(highOnly({ drive: 1 }), 14_000);
+    const fundamental = magnitudeAt(output, 14_000);
+    expect(fundamental / 0.5).toBeGreaterThan(0.14);
+    expect(fundamental / 0.5).toBeLessThan(0.22);
   });
 
+  /**
+   * The band is an air generator, not a presence boost: what it returns is
+   * mostly what it made, not what it was given. The bounds are wide enough to
+   * survive a taste change to Depth and narrow enough to catch the band
+   * turning back into a copy of its own source.
+   */
   it('makes its default upper harmonics louder than its foundation', () => {
     const output = renderAnalysis(highOnly(), 4_500);
     const fundamental = magnitudeAt(output, 4_500);
     const second = magnitudeAt(output, 9_000);
     const third = magnitudeAt(output, 13_500);
-    expect(second / fundamental).toBeGreaterThan(0.5);
-    expect(second / fundamental).toBeLessThan(0.6);
-    expect(third / fundamental).toBeGreaterThan(1.1);
+    expect(second / fundamental).toBeGreaterThan(0.3);
+    expect(second / fundamental).toBeLessThan(0.9);
+    expect(third / fundamental).toBeGreaterThan(0.5);
     expect(third / fundamental).toBeLessThan(1.3);
     expect(second + third).toBeGreaterThan(fundamental);
   });
@@ -246,10 +337,10 @@ describe('the High exciter', () => {
     );
   });
 
-  it('gives Amount useful High-specific travel', () => {
-    expect(highExciterReturnGain(0)).toBe(0);
-    expect(highExciterReturnGain(0.22)).toBeCloseTo(0.95 * 0.22 ** 0.45, 8);
-    expect(highExciterReturnGain(1)).toBeCloseTo(0.95, 8);
+  it('shares one Amount law with the other two bands', () => {
+    expect(exciterReturnGain(0)).toBe(0);
+    expect(exciterReturnGain(0.22)).toBeCloseTo(0.22 ** 0.6, 8);
+    expect(exciterReturnGain(1)).toBeCloseTo(1, 8);
   });
 
   it('uses the whole Range dial without leaving the High region', () => {
@@ -307,17 +398,24 @@ describe('the High exciter', () => {
 });
 
 describe('exciter return level', () => {
+  /**
+   * The dial is worth 12 dB now rather than 7.
+   *
+   * The old law reached only 70% on a 0.35 taper, because the return it scaled
+   * was mostly a copy of the band and a louder one would have been an equaliser
+   * boost. The return is harmonics over a quiet carrier now, so the knob can
+   * have the range it always looked like it had.
+   */
   it('keeps authored amounts audible beneath the dry programme', () => {
-    expect(safeExciterReturnGain(0)).toBe(0);
-    expect(safeExciterReturnGain(0.2)).toBeCloseTo(0.7 * 0.2 ** 0.35, 8);
-    expect(safeExciterReturnGain(1)).toBeCloseTo(0.7, 8);
+    expect(exciterReturnGain(0)).toBe(0);
+    expect(exciterReturnGain(0.2)).toBeCloseTo(0.2 ** 0.6, 8);
+    expect(exciterReturnGain(1)).toBeCloseTo(1, 8);
   });
 
-  it('keeps Organic forward without changing Low or Mid gain', () => {
+  it('keeps Organic on its own law, untouched by the band redesign', () => {
     expect(organicExciterReturnGain(0)).toBe(0);
     expect(organicExciterReturnGain(0.35)).toBeCloseTo(0.95 * 0.35 ** 0.42, 8);
     expect(organicExciterReturnGain(1)).toBeCloseTo(0.95, 8);
-    expect(safeExciterReturnGain(0.35)).toBeCloseTo(0.7 * 0.35 ** 0.35, 8);
   });
 
   it('normalises overlapping band foundations instead of stacking copies', () => {

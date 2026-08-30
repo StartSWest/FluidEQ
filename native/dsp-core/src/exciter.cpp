@@ -15,24 +15,62 @@ constexpr double kBandEdgeMinHz = 21.0;
 constexpr double kBandEdgeMaxHz = 19900.0;
 constexpr double kParameterSmoothingMs = 18.0;
 constexpr double kDcPole = 0.9974;
-constexpr double kSidechainLevel = 1.0;
-constexpr double kBandHarmonicGain[2] = {1.8, 2.4};
-/**
- * How far the low band leans on the octave, at rest and fully textured.
- *
- * Not 1.0 even at its warmest: a purely even shape is a pure octave doubler
- * and loses the root of the note. Keeping a quarter of the odd shape is what
- * stops it sounding like a different instrument playing along.
- */
-constexpr double kLowEvenWeightWarm = 0.75;
-constexpr double kLowEvenWeightPresent = 0.3;
 constexpr double kLowTransientLift = 0.35;
 constexpr double kMidTransientLift = 0.3;
 constexpr double kHighTransientLift = 0.22;
-constexpr double kHighFoundationLevel = 0.18;
-constexpr double kHighHarmonicGain = 1.65;
-constexpr double kHighMinCharacter = 0.28;
-constexpr double kHighMaxEffectiveDrive = 2.85;
+
+/**
+ * A quiet, phase-shifted copy of the band, under the harmonics it made.
+ *
+ * US 4,150,253's attenuated sidechain carries the filtered fundamentals as well
+ * as their harmonics, and that continuous component is what stops the harmonics
+ * being heard as detached fizz. ATTENUATED is the word that was missing here:
+ * Low and Mid used to return the whole filtered band at unity, so what the
+ * Amount dial mostly did was add a copy of 20 Hz - 3 kHz back on top of itself.
+ * Measured at the shipping defaults that was +1.28 dB across the midrange and
+ * +2.81 dB at full Amount — a veil, from a control that is not supposed to be
+ * an equaliser. High already used 0.18 and was the band nobody complained
+ * about; all three use it now.
+ */
+constexpr double kFoundationLevel = 0.18;
+
+/**
+ * How much harmonic content each band makes, relative to its own level.
+ *
+ * These are ratios rather than gains, which is the whole point of the change:
+ * `depth` survives to the output as the harmonic-to-fundamental amplitude, so
+ * each figure below is a decibel value a test can assert and a listener can
+ * expect to hear at any playback level. Low carries the most because bass
+ * harmonics are integrated by the ear rather than heard as separate tones, and
+ * Mid the least because the midrange is where harmonic content stops being
+ * warmth and becomes harshness.
+ */
+constexpr double kBandDepth[FEQ_EXCITER_BANDS] = {0.85, 0.62, 0.9};
+/** Drive's floor: the gentlest setting still has a character, just a quiet one. */
+constexpr double kMinDepth = 0.18;
+constexpr double kDriveSpan = 2.5;
+
+/**
+ * What Texture actually moves: the interval, not the amount.
+ *
+ * Even orders sit an octave above the root and read as body — and on a speaker
+ * that cannot reach the fundamental, as the fundamental itself. Odd orders sit
+ * a twelfth above and read as edge and definition. Every band sweeps from
+ * mostly-even to more-odd, but none of them reaches either extreme: pure even
+ * is an octave doubler that loses the root, and pure odd is a fuzz box.
+ */
+constexpr double kEvenWeightWarm[FEQ_EXCITER_BANDS] = {0.92, 0.86, 0.85};
+constexpr double kEvenWeightPresent[FEQ_EXCITER_BANDS] = {0.58, 0.34, 0.26};
+
+/**
+ * How far above its own band a band's harmonics may reach.
+ *
+ * The second order of the top of the Mid band lands at 6 kHz and the third at
+ * 9 kHz, which is not body — it is the exact region a mix is usually fighting.
+ * One octave of reach keeps every band's octave intact everywhere and rolls the
+ * twelfth off the top, so each band stays the thing it is named after.
+ */
+constexpr double kResidueReachOctaves = 1.0;
 
 constexpr double kExciterMinOctaves = 0.5;
 constexpr double kExciterOctaveSpan = 9.5;
@@ -98,87 +136,17 @@ void block_dc(FeqExciterDc* state, float* buffer, uint32_t frames) {
   }
 }
 
-/**
- * High harmonics become brittle before Low and Mid do.
- *
- * The first half of the dial gets useful travel; the last half is compressed
- * into a protected ceiling rather than letting a manual setting become fuzz.
- */
-double normalise_high_drive(double drive) {
-  const double normalised = clamp((drive - 1.0) / 2.5, 0.0, 1.0);
-  return 1.0 + std::pow(normalised, 0.85) * (kHighMaxEffectiveDrive - 1.0);
+/** Drive sets the harmonic ratio, which no longer depends on the input level. */
+double band_depth(uint32_t band, double drive) {
+  const double normalised = clamp((drive - 1.0) / kDriveSpan, 0.0, 1.0);
+  return kBandDepth[band] * (kMinDepth + normalised * (1.0 - kMinDepth));
 }
 
-/**
- * A High band must stay an air generator at the warm end.
- *
- * Low and Mid can lean fully into even body; High starts mixed and travels to
- * the odd-rich edge without crossing into a second body control.
- */
-double high_character(double texture) {
+double band_even_weight(uint32_t band, double texture) {
   const double normalised =
       clamp(texture / FEQ_ANALOG_DIODE_MAX_CHARACTER, 0.0, 1.0);
-  return kHighMinCharacter +
-         std::pow(normalised, 0.9) *
-             (FEQ_ANALOG_DIODE_MAX_CHARACTER - kHighMinCharacter);
-}
-
-double high_harmonic_sample(double sample, double drive, double texture,
-                            double transient_harmonic_gain) {
-  const double normalised_texture =
-      clamp(texture / FEQ_ANALOG_DIODE_MAX_CHARACTER, 0.0, 1.0);
-  const double complete = feq_analog_diode_excited_sample(
-      sample, normalise_high_drive(drive), high_character(texture),
-      kSidechainLevel, 1.0);
-  // As odd harmonics move upward more of them leave the audible band. A modest
-  // static lift keeps Texture's airy end present without following the
-  // programme or changing the user-authored Amount.
-  const double compensation = 0.9 + normalised_texture * 0.25;
-  const double residue = (complete - sample * kSidechainLevel) *
-                         kHighHarmonicGain * compensation *
-                         transient_harmonic_gain;
-  return feq_limit_exciter_current(residue);
-}
-
-double sidechain_sample(double sample, double drive, double texture,
-                        double harmonic_gain, double base_harmonic_gain) {
-  return feq_analog_diode_excited_sample(sample, drive, texture,
-                                         kSidechainLevel,
-                                         harmonic_gain * base_harmonic_gain);
-}
-
-/**
- * The low band, weighted toward the octave, with Texture as the lever.
- *
- * Bass is the one range where the harmonic that matters is not a matter of
- * taste. The ear infers a fundamental from its overtones, so a speaker that
- * cannot reproduce 60 Hz still hears "60 Hz" from a strong 120 — which is why a
- * low exciter exists at all. That effect is carried by the EVEN orders, and the
- * odd ones sit a twelfth and a seventeenth above the root where they are heard
- * as hardness rather than weight.
- *
- * The band was leaning odd before this: measured on a 60 Hz tone, the third
- * order came back 5 dB above the second. Warm at rest and firmer as Texture
- * rises, rather than the reverse.
- */
-double low_harmonic_sample(double sample, double drive, double texture,
-                           double harmonic_gain) {
-  const double normalised_texture =
-      clamp(texture / FEQ_ANALOG_DIODE_MAX_CHARACTER, 0.0, 1.0);
-  /**
-   * Texture moves the interval, not just the amount.
-   *
-   * At rest it is nearly all octave: round, and the reason a small speaker
-   * finds the note. Turned up it lets the odd orders back in, which is where
-   * definition and the sense of the bass cutting through a mix come from — so
-   * the control sweeps warmth against presence rather than merely "more".
-   */
-  const double even_weight =
-      kLowEvenWeightWarm +
-      (kLowEvenWeightPresent - kLowEvenWeightWarm) * normalised_texture;
-  return feq_analog_diode_octave_sample(
-      sample, drive, texture, kSidechainLevel,
-      harmonic_gain * kBandHarmonicGain[0], even_weight);
+  return kEvenWeightWarm[band] +
+         (kEvenWeightPresent[band] - kEvenWeightWarm[band]) * normalised;
 }
 
 double transient_lift(uint32_t band) {
@@ -226,6 +194,26 @@ void extract_band(FeqExciterChannel* state, uint32_t band,
     } else {
       identity(&cache.lowpass);
     }
+    /**
+     * Where the harmonics this band makes are allowed to go.
+     *
+     * High is the band whose generated orders are the POINT of it, and whose
+     * carrier is not: cutting at the band centre lets the air through while the
+     * source frequencies fall away, so it is an upper-harmonic return rather
+     * than a louder copy of its own source. Low and Mid are the opposite — they
+     * are named after where they belong, so their harmonics are held to an
+     * octave above their own top edge.
+     */
+    const double reach = std::pow(2.0, kResidueReachOctaves);
+    if (band == 2) {
+      cache.residue = feq_biquad_coefficients(FEQ_FILTER_HPQ, setup.freq_hz,
+                                              0.0, kFilterQ, sample_rate);
+    } else if (high_hz * reach < kBandEdgeMaxHz) {
+      cache.residue = feq_biquad_coefficients(FEQ_FILTER_LPQ, high_hz * reach,
+                                              0.0, kFilterQ, sample_rate);
+    } else {
+      identity(&cache.residue);
+    }
   }
   feq_biquad_process(&state->band_filters[band][0], source, frames,
                      &cache.highpass);
@@ -257,46 +245,34 @@ void shape_band(FeqExciterChannel* state, uint32_t band, const float* source,
     const double transient = feq_exciter_transient_sample(
         &state->transients[band], filtered, wide_rate);
     const double harmonic_gain = 1.0 + transient * lift;
-    const double current =
-        band == 2 ? high_harmonic_sample(filtered, state->drive[band],
-                                         state->texture[band], harmonic_gain)
-        : band == 0
-            ? low_harmonic_sample(filtered, state->drive[band],
-                                  state->texture[band], harmonic_gain)
-            : sidechain_sample(filtered, state->drive[band],
-                               state->texture[band], harmonic_gain,
-                               kBandHarmonicGain[band]);
-    // One buffer for the whole excited sidechain, so Isolate cannot present a
-    // different signal from the one added beneath the dry programme.
-    state->wide[at] = static_cast<float>(current);
+    // Harmonics only. The foundation is linear, so it is added below at the
+    // base rate rather than being carried through the resampler twice.
+    state->wide[at] = static_cast<float>(feq_harmonic_sample(
+        &state->harmonics[band], filtered,
+        band_depth(band, state->drive[band]) * harmonic_gain,
+        band_even_weight(band, state->texture[band]), wide_rate));
   }
 
   feq_oversample_down(&state->oversamplers[band], state->wide,
                       state->wet_return, frames, oversample, state->middle);
   block_dc(&state->dc[band], state->wet_return, frames);
+  feq_biquad_process(&state->residue_filters[band], state->wet_return, frames,
+                     &state->band_cache[band].residue);
 
-  if (band != 2) {
-    return;
-  }
-  if (state->high_harmonic_hz != setup.freq_hz ||
-      state->high_harmonic_sample_rate != sample_rate) {
-    state->high_harmonic_hz = setup.freq_hz;
-    state->high_harmonic_sample_rate = sample_rate;
-    state->high_harmonic_coefficients = feq_biquad_coefficients(
-        FEQ_FILTER_HPQ, setup.freq_hz, 0.0, kFilterQ, sample_rate);
-  }
-  feq_biquad_process(&state->high_harmonic_filter, state->wet_return, frames,
-                     &state->high_harmonic_coefficients);
-  // The foundation is linear and needs no oversampling. Restored from the
-  // already-filtered source so it stays aligned with dry; sending it through
-  // the FIR round trip made this additive return comb-filter the mix.
+  // Restored from the already-filtered source rather than through the FIR round
+  // trip: sending it that way made this additive return comb-filter the mix.
+  // One buffer for the whole return, so Isolate cannot present a different
+  // signal from the one added beneath the dry programme.
   for (uint32_t at = 0; at < frames; ++at) {
     state->wet_return[at] = static_cast<float>(
         static_cast<double>(state->wet_return[at]) +
-        static_cast<double>(source[at]) * kHighFoundationLevel);
+        static_cast<double>(source[at]) * kFoundationLevel);
   }
-  feq_exciter_guard_process(&state->high_guard, state->wet_return, frames,
-                            sample_rate, 1.0);
+
+  if (band == 2) {
+    feq_exciter_guard_process(&state->high_guard, state->wet_return, frames,
+                              sample_rate, 1.0);
+  }
 }
 
 double add_band(FeqExciterChannel* state, uint32_t band, float* target,
@@ -304,12 +280,15 @@ double add_band(FeqExciterChannel* state, uint32_t band, float* target,
                 double return_scale, int processor_enabled, uint32_t frames,
                 double sample_rate) {
   const double enabled_mix =
-      feq_band_exciter_return_gain(setup.mix, band) * return_scale;
+      feq_exciter_return_gain(setup.mix) * return_scale;
   const double target_mix =
       (processor_enabled != 0 && setup.enabled != 0) ? enabled_mix : 0.0;
   if (target_mix <= 0.0 && state->mix[band] <= 0.0001) {
     state->mix[band] = 0.0;
     feq_exciter_transient_reset(&state->transients[band]);
+    // The level follower too, or the band comes back holding the level of
+    // whatever was playing when it was switched off.
+    feq_harmonic_reset(&state->harmonics[band]);
     return 0.0;
   }
 
@@ -346,25 +325,24 @@ void feq_exciter_channel_init(FeqExciterChannel* state, float* band0,
   state->middle = middle;
   state->dry = dry;
   state->dry_mix = 1.0;
-  identity(&state->high_harmonic_coefficients);
-  state->high_harmonic_hz = 0.0;
-  state->high_harmonic_sample_rate = 0.0;
-  feq_biquad_reset(&state->high_harmonic_filter);
   feq_exciter_guard_init(&state->high_guard, guard_scratch);
 
   for (uint32_t band = 0; band < FEQ_EXCITER_BANDS; ++band) {
     feq_biquad_reset(&state->band_filters[band][0]);
     feq_biquad_reset(&state->band_filters[band][1]);
+    feq_biquad_reset(&state->residue_filters[band]);
     state->band_cache[band].low_hz = 0.0;
     state->band_cache[band].high_hz = 0.0;
     state->band_cache[band].sample_rate = 0.0;
     identity(&state->band_cache[band].highpass);
     identity(&state->band_cache[band].lowpass);
+    identity(&state->band_cache[band].residue);
     feq_oversampler_reset(&state->oversamplers[band]);
     state->drive[band] = 0.0;
     state->texture[band] = 0.0;
     state->mix[band] = 0.0;
     feq_exciter_transient_init(&state->transients[band]);
+    feq_harmonic_init(&state->harmonics[band]);
     state->dc[band].x = 0.0;
     state->dc[band].y = 0.0;
   }
@@ -421,7 +399,7 @@ void feq_exciter_channel_process(FeqExciterChannel* state, float* target,
   double requested = 0.0;
   for (uint32_t band = 0; band < FEQ_EXCITER_BANDS; ++band) {
     if (settings->enabled != 0 && settings->bands[band].enabled != 0) {
-      requested += feq_band_exciter_return_gain(settings->bands[band].mix, band);
+      requested += feq_exciter_return_gain(settings->bands[band].mix);
     }
   }
   const double return_scale = requested > 1.0 ? 1.0 / requested : 1.0;

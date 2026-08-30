@@ -39,12 +39,12 @@ typedef struct FeqExciterGuard {
 
 void feq_exciter_guard_init(FeqExciterGuard* state, float* filtered);
 
-/** Low and Mid. */
-double feq_safe_exciter_return_gain(double amount);
-/** High reaches higher and tapers differently; it is the band that fizzes. */
-double feq_high_exciter_return_gain(double amount);
+/**
+ * One curve for all three bands: every return is now harmonics over the same
+ * quiet carrier, so there is nothing left for a second curve to describe.
+ */
+double feq_exciter_return_gain(double amount);
 double feq_organic_exciter_return_gain(double amount);
-double feq_band_exciter_return_gain(double amount, uint32_t band_index);
 
 /**
  * How much protection Organic needs at a given focus, 0 to 1.

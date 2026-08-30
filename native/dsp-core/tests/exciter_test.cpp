@@ -86,7 +86,8 @@ FeqExciterSettings only(uint32_t band, double freq_hz, double drive,
 
 /** Run a sine through one band and return the whole output. */
 std::vector<float> excite(uint32_t band, double tone_hz, double band_hz,
-                          double drive, double texture, double mix) {
+                          double drive, double texture, double mix,
+                          double amplitude = 0.5, uint32_t gate_after = 0) {
   std::vector<float> band0(kBlock);
   std::vector<float> band1(kBlock);
   std::vector<float> band2(kBlock);
@@ -112,9 +113,11 @@ std::vector<float> excite(uint32_t band, double tone_hz, double band_hz,
   double report[FEQ_EXCITER_BANDS] = {0.0, 0.0, 0.0};
   for (uint32_t index = 0; index < kBlocks; ++index) {
     for (uint32_t at = 0; at < kBlock; ++at) {
-      // -6 dBFS: loud enough to drive the stage, far enough from full scale
-      // that nothing measured here is the limiter's opinion.
-      block[at] = static_cast<float>(0.5 * std::sin(phase));
+      // -6 dBFS by default: loud enough to drive the stage, far enough from
+      // full scale that nothing measured here is the limiter's opinion.
+      const bool sounding = gate_after == 0 || index < gate_after;
+      block[at] =
+          sounding ? static_cast<float>(amplitude * std::sin(phase)) : 0.0f;
       phase += 2.0 * kPi * tone_hz / kRate;
       if (phase > 2.0 * kPi) {
         phase -= 2.0 * kPi;
@@ -218,11 +221,139 @@ void test_low_band() {
         "without moving the fundamental it was asked to excite");
 }
 
+/**
+ * The one property the whole redesign exists for.
+ *
+ * The shaper this replaced drove a biased tangent with the programme directly,
+ * so the harmonic RATIO followed the input level: on this same band the second
+ * order measured 12.8 dB below the fundamental at -6 dBFS, 33.6 below at -26,
+ * and 48.7 below at -46. Music sitting at -20 dBFS therefore got almost
+ * nothing and its peaks got a fifth of their amplitude as distortion, which is
+ * an effect that arrives only on transients rather than one with a character.
+ */
+void test_level_independence() {
+  std::printf("\nexciter: the same harmonics at any playback level\n");
+
+  const double amplitudes[3] = {0.5, 0.05, 0.005};
+  for (uint32_t band = 0; band < FEQ_EXCITER_BANDS; ++band) {
+    const double tone = band == 0 ? 80.0 : (band == 1 ? 900.0 : 4000.0);
+    const double centre = band == 0 ? 77.0 : (band == 1 ? 950.0 : 7700.0);
+    double loudest[3] = {0.0, 0.0, 0.0};
+    for (uint32_t at = 0; at < 3; ++at) {
+      const std::vector<float> out =
+          excite(band, tone, centre, 2.2, 0.3, 0.5, amplitudes[at]);
+      loudest[at] = loudest_harmonic_db(out, tone);
+    }
+    std::printf("       band %u: %+.1f dB at -6 dBFS, %+.1f at -26, %+.1f at -46\n",
+                band, loudest[0], loudest[1], loudest[2]);
+
+    /**
+     * Something has to be there before sameness means anything.
+     *
+     * Three equal readings would also be what a stage that generated no
+     * harmonics at all produced, and that is exactly how the null test on the
+     * separation packing bug passed while returning zero for every input.
+     */
+    check(loudest[0] > -45.0, "generates harmonics to begin with");
+    check(std::fabs(loudest[0] - loudest[1]) < 1.0 &&
+              std::fabs(loudest[0] - loudest[2]) < 1.5,
+          "and the same amount of them 40 dB quieter");
+  }
+}
+
+/**
+ * Each band is the thing it is named after, and none of them is an equaliser.
+ *
+ * Low and Mid used to return their whole filtered band at unity beneath the
+ * dry programme, so the Amount dial was mostly adding a copy of 20 Hz - 3 kHz
+ * to itself: +1.28 dB across the midrange at the shipping defaults and
+ * +2.81 dB at full Amount. That is a veil, and it is what a listener means by
+ * not liking the exciter on any band.
+ */
+void test_band_character() {
+  std::printf("\nexciter: what each band makes, and what it leaves alone\n");
+
+  struct Case {
+    uint32_t band;
+    const char* name;
+    double tone;
+    double centre;
+  };
+  const Case cases[3] = {{0, "low ", 80.0, 77.0},
+                         {1, "mid ", 900.0, 950.0},
+                         {2, "high", 4000.0, 7700.0}};
+
+  for (const Case& one : cases) {
+    const uint32_t from = static_cast<uint32_t>(kRate);
+    const std::vector<float> off =
+        excite(one.band, one.tone, one.centre, 2.0, 0.3, 0.0);
+    const std::vector<float> full =
+        excite(one.band, one.tone, one.centre, 2.0, 0.3, 1.0);
+    const double moved = relative_db(amount_at(full, one.tone, from),
+                                     amount_at(off, one.tone, from));
+    std::printf("       %s: fundamental moves %+.2f dB at full Amount\n",
+                one.name, moved);
+    check(std::fabs(moved) < 2.0,
+          "full Amount is not a level change on the band it excites");
+
+    // Warm and airy have to be different recipes, or Texture is a placebo.
+    const std::vector<float> warm =
+        excite(one.band, one.tone, one.centre, 2.0, 0.0, 1.0);
+    const std::vector<float> airy =
+        excite(one.band, one.tone, one.centre, 2.0, 0.7, 1.0);
+    const double warm_balance = even_over_odd_db(warm, one.tone);
+    const double airy_balance = even_over_odd_db(airy, one.tone);
+    std::printf("       %s: even over odd, warm %+.1f dB, airy %+.1f dB\n",
+                one.name, warm_balance, airy_balance);
+    check(warm_balance > airy_balance + 6.0,
+          "and Texture moves the interval, not merely the amount");
+  }
+
+  // Low stays the octave band at BOTH ends of Texture. The odd orders sit a
+  // twelfth and a seventeenth over a bass note, where they are hardness rather
+  // than weight, so this is the one band whose recipe never crosses over.
+  const std::vector<float> low_airy = excite(0, 80.0, 77.0, 2.0, 0.7, 1.0);
+  check(even_over_odd_db(low_airy, 80.0) > 0.0,
+        "and Low leans even even at its most present");
+}
+
+/**
+ * Nothing is held over the silence after a note.
+ *
+ * The level follower holds for 180 ms so that a decaying note keeps its
+ * character, which means any constant term in the shaper keeps being painted
+ * at that held level after the signal has gone. Chebyshev's T2 carries exactly
+ * such a term, and with it the low band's tail PLATEAUED instead of decaying:
+ * -40.6 dB at 20-60 ms after the note, -44.6 at 60-150, still -47.0 at
+ * 150-400.
+ */
+void test_release() {
+  std::printf("\nexciter: what is left after the note stops\n");
+
+  const uint32_t gate_after = 120;
+  const std::vector<float> out =
+      excite(0, 80.0, 77.0, 2.6, 0.2, 1.0, 0.5, gate_after);
+  const size_t gate = static_cast<size_t>(gate_after) * kBlock;
+  // Well past the band filters letting go, which a band-limited note must be
+  // allowed to do — 60 ms is four cycles of the note itself.
+  const size_t from = gate + static_cast<size_t>(kRate * 0.06);
+  double peak = 0.0;
+  for (size_t at = from; at < out.size(); ++at) {
+    peak = std::max(peak, static_cast<double>(std::fabs(out[at])));
+  }
+  std::printf("       peak from 60 ms after the note: %+.1f dB\n",
+              relative_db(peak, 0.5));
+  check(relative_db(peak, 0.5) < -60.0, "the band goes quiet with the note");
+}
+
 }  // namespace
 
 int main() {
   std::printf("fluideq exciter\n");
   test_low_band();
+  test_level_independence();
+  test_band_character();
+  test_release();
   if (g_failures == 0) {
     std::printf("\nall checks passed\n");
     return 0;

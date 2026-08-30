@@ -26,10 +26,8 @@ const SIBILANCE_CENTRE_HZ = 7_200;
 const SIBILANCE_RETURN_CUT_DB = -5.5;
 const SIBILANCE_QUALITY = 1.25;
 const PARAMETER_SMOOTHING_MS = 18;
-const MAX_RETURN_GAIN = 0.7;
-const RETURN_TAPER = 0.35;
-const HIGH_MAX_RETURN_GAIN = 0.95;
-const HIGH_RETURN_TAPER = 0.45;
+const MAX_RETURN_GAIN = 1;
+const RETURN_TAPER = 0.6;
 const ORGANIC_MAX_RETURN_GAIN = 0.95;
 const ORGANIC_RETURN_TAPER = 0.42;
 
@@ -58,25 +56,23 @@ export const createExciterGuard = (): IExciterGuardState => ({
 });
 
 /**
- * The original Exciter attenuates its complete processed sidechain before it is
- * mixed under dry. With the filtered foundation inside that return, a gain law
- * intended for a harmonic residue would add a second loud copy of each band. A
- * full dial reaches 70%, matching the useful upper region described for the
- * original parallel return. The control uses an audio taper rather than a
- * linear multiplier: authored 4-22% profile values must remain useful beneath
- * mastered programme, while zero must still be true silence. This is the same
- * reason level controls are normally tapered — equal control travel should not
- * be spent on changes that sit below perception.
+ * How much of a band's return reaches the mix, 0 to 1.
+ *
+ * One curve for all three bands. There were two, because High returned
+ * harmonics over a quiet carrier while Low and Mid returned a full copy of
+ * their own filtered band — three-quarters of a dial spent keeping that copy
+ * from becoming an equaliser. Every band returns harmonics over the same quiet
+ * carrier now, so the distinction has nothing left to describe.
+ *
+ * The old law reached only 70% and used a 0.35 taper, which put 0.1 at 0.31 and
+ * 1.0 at 0.70: the whole knob was worth 7 dB, and neither half of its travel
+ * changed much. A 0.6 taper over a full-scale top gives it 12 dB and still
+ * spends more travel low down, where an audio taper belongs — and zero is still
+ * true silence.
  */
-export const safeExciterReturnGain = (amount: number): number => {
+export const exciterReturnGain = (amount: number): number => {
   const safeAmount = Math.max(0, Math.min(1, amount));
   return MAX_RETURN_GAIN * safeAmount ** RETURN_TAPER;
-};
-
-/** High keeps more useful travel at the top while preserving its default. */
-export const highExciterReturnGain = (amount: number): number => {
-  const safeAmount = Math.max(0, Math.min(1, amount));
-  return HIGH_MAX_RETURN_GAIN * safeAmount ** HIGH_RETURN_TAPER;
 };
 
 /** Organic's approved harmonics stay forward without raising its foundation. */
@@ -84,14 +80,6 @@ export const organicExciterReturnGain = (amount: number): number => {
   const safeAmount = Math.max(0, Math.min(1, amount));
   return ORGANIC_MAX_RETURN_GAIN * safeAmount ** ORGANIC_RETURN_TAPER;
 };
-
-export const bandExciterReturnGain = (
-  amount: number,
-  bandIndex: number,
-): number =>
-  bandIndex === 2
-    ? highExciterReturnGain(amount)
-    : safeExciterReturnGain(amount);
 
 /** Smoothly enters and leaves the consonant region; there is no hard switch. */
 export const organicSibilanceProtection = (focusHz: number): number => {
