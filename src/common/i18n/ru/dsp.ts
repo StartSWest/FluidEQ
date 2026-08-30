@@ -77,6 +77,9 @@ const dsp = {
   'dsp.crossfade.custom': 'Своя',
   'dsp.crossfade.saveCurve': 'Сохранить кривую',
   'dsp.crossfade.resetCurve': 'Сбросить форму',
+  'dsp.crossfade.shapeSection': 'Своя форма',
+  'dsp.crossfade.applyCurve': 'Применить эту форму',
+  'dsp.crossfade.curveApplied': 'Применена — это форма перехода',
   'dsp.crossfade.deleteCurve': 'Удалить кривую',
   'dsp.crossfade.saveTitle': 'Сохранить кривую перехода',
   'dsp.crossfade.saveHint': 'Перетащенная форма сохраняется под этим именем.',
@@ -300,6 +303,20 @@ const dsp = {
   'dsp.maximizer.ceiling': 'Потолок',
   'dsp.maximizer.lookAhead': 'Упреждение',
   'dsp.maximizer.release': 'Восстановление',
+  'dsp.maximizer.group.loudness': 'Громкость',
+  'dsp.maximizer.group.loudnessHint':
+    'Усиление в потолок, который никогда не двигается. Всё, что ниже пиков, поднимается.',
+  'dsp.maximizer.group.timing': 'Тайминг',
+  'dsp.maximizer.group.timingHint':
+    'Насколько заранее лимитер видит пик и сколько времени ему нужно, чтобы отпустить.',
+  'dsp.maximizer.graph.output': 'Выход',
+  'dsp.maximizer.graph.held': 'Придержано',
+  'dsp.maximizer.graph.peakHold': 'Удержание пика',
+  'dsp.maximizer.graph.now': 'сейчас',
+  'dsp.maximizerPreset.safety': 'Только защита',
+  'dsp.maximizerPreset.transparent': 'Прозрачный',
+  'dsp.maximizerPreset.streaming': 'Стриминг',
+  'dsp.maximizerPreset.punch': 'Панч',
 
   'dsp.master.title': 'Мастер',
   'dsp.master.description':

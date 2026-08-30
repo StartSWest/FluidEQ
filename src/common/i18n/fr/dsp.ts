@@ -78,6 +78,9 @@ const dsp = {
   'dsp.crossfade.custom': 'Personnalisée',
   'dsp.crossfade.saveCurve': 'Enregistrer la courbe',
   'dsp.crossfade.resetCurve': 'Réinitialiser la forme',
+  'dsp.crossfade.shapeSection': 'Forme personnalisée',
+  'dsp.crossfade.applyCurve': 'Appliquer cette forme',
+  'dsp.crossfade.curveApplied': 'Appliquée : c’est la forme du fondu',
   'dsp.crossfade.deleteCurve': 'Supprimer la courbe',
   'dsp.crossfade.saveTitle': 'Enregistrer la courbe de fondu',
   'dsp.crossfade.saveHint': 'La forme déplacée est enregistrée sous ce nom.',
@@ -301,6 +304,20 @@ const dsp = {
   'dsp.maximizer.ceiling': 'Plafond',
   'dsp.maximizer.lookAhead': 'Anticipation',
   'dsp.maximizer.release': 'Relâchement',
+  'dsp.maximizer.group.loudness': 'Intensité sonore',
+  'dsp.maximizer.group.loudnessHint':
+    'Du gain contre un plafond qui ne bouge jamais. Tout ce qui est sous les crêtes remonte.',
+  'dsp.maximizer.group.timing': 'Temporisation',
+  'dsp.maximizer.group.timingHint':
+    'À quel point le limiteur voit une crête à l’avance, et le temps qu’il met à relâcher.',
+  'dsp.maximizer.graph.output': 'Sortie',
+  'dsp.maximizer.graph.held': 'Retenu',
+  'dsp.maximizer.graph.peakHold': 'Crête retenue',
+  'dsp.maximizer.graph.now': 'maintenant',
+  'dsp.maximizerPreset.safety': 'Protection seule',
+  'dsp.maximizerPreset.transparent': 'Transparent',
+  'dsp.maximizerPreset.streaming': 'Streaming',
+  'dsp.maximizerPreset.punch': 'Punch',
 
   'dsp.master.title': 'Master',
   'dsp.master.description':

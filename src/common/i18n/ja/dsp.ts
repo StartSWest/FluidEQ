@@ -73,6 +73,9 @@ const dsp = {
   'dsp.crossfade.custom': 'カスタム',
   'dsp.crossfade.saveCurve': 'カーブを保存',
   'dsp.crossfade.resetCurve': '形状をリセット',
+  'dsp.crossfade.shapeSection': 'カスタム形状',
+  'dsp.crossfade.applyCurve': 'この形状を適用',
+  'dsp.crossfade.curveApplied': '適用中 — フェードはこの形状です',
   'dsp.crossfade.deleteCurve': 'カーブを削除',
   'dsp.crossfade.saveTitle': 'フェードカーブを保存',
   'dsp.crossfade.saveHint': 'ドラッグした形状をこの名前で保存します。',
@@ -293,6 +296,20 @@ const dsp = {
   'dsp.maximizer.ceiling': '上限',
   'dsp.maximizer.lookAhead': '先読み',
   'dsp.maximizer.release': 'リリース',
+  'dsp.maximizer.group.loudness': 'ラウドネス',
+  'dsp.maximizer.group.loudnessHint':
+    '決して動かない天井へのゲイン。ピークの下にあるものがすべて持ち上がります。',
+  'dsp.maximizer.group.timing': 'タイミング',
+  'dsp.maximizer.group.timingHint':
+    'リミッターがピークをどれだけ早く見つけ、離すまでにどれだけかかるか。',
+  'dsp.maximizer.graph.output': '出力',
+  'dsp.maximizer.graph.held': '抑えた分',
+  'dsp.maximizer.graph.peakHold': 'ピークホールド',
+  'dsp.maximizer.graph.now': '現在',
+  'dsp.maximizerPreset.safety': '保護のみ',
+  'dsp.maximizerPreset.transparent': 'トランスペアレント',
+  'dsp.maximizerPreset.streaming': 'ストリーミング',
+  'dsp.maximizerPreset.punch': 'パンチ',
 
   'dsp.master.title': 'マスター',
   'dsp.master.description':

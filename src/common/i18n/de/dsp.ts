@@ -78,6 +78,10 @@ const dsp = {
   'dsp.crossfade.custom': 'Benutzerdefiniert',
   'dsp.crossfade.saveCurve': 'Kurve speichern',
   'dsp.crossfade.resetCurve': 'Form zurücksetzen',
+  'dsp.crossfade.shapeSection': 'Eigene Form',
+  'dsp.crossfade.applyCurve': 'Diese Form anwenden',
+  'dsp.crossfade.curveApplied':
+    'Angewendet – das ist die Form der Überblendung',
   'dsp.crossfade.deleteCurve': 'Kurve löschen',
   'dsp.crossfade.saveTitle': 'Überblendkurve speichern',
   'dsp.crossfade.saveHint':
@@ -305,6 +309,20 @@ const dsp = {
   'dsp.maximizer.ceiling': 'Obergrenze',
   'dsp.maximizer.lookAhead': 'Vorausschau',
   'dsp.maximizer.release': 'Release',
+  'dsp.maximizer.group.loudness': 'Lautheit',
+  'dsp.maximizer.group.loudnessHint':
+    'Verstärkung gegen eine Decke, die sich nie bewegt. Alles unter den Spitzen kommt hoch.',
+  'dsp.maximizer.group.timing': 'Timing',
+  'dsp.maximizer.group.timingHint':
+    'Wie früh der Limiter eine Spitze sieht und wie lange er zum Loslassen braucht.',
+  'dsp.maximizer.graph.output': 'Ausgang',
+  'dsp.maximizer.graph.held': 'Zurückgehalten',
+  'dsp.maximizer.graph.peakHold': 'Spitzenwert',
+  'dsp.maximizer.graph.now': 'jetzt',
+  'dsp.maximizerPreset.safety': 'Nur Schutz',
+  'dsp.maximizerPreset.transparent': 'Transparent',
+  'dsp.maximizerPreset.streaming': 'Streaming',
+  'dsp.maximizerPreset.punch': 'Punch',
 
   'dsp.master.title': 'Master',
   'dsp.master.description':

@@ -78,6 +78,9 @@ const dsp = {
   'dsp.crossfade.custom': 'Personalizada',
   'dsp.crossfade.saveCurve': 'Guardar curva',
   'dsp.crossfade.resetCurve': 'Restablecer forma',
+  'dsp.crossfade.shapeSection': 'Forma personalizada',
+  'dsp.crossfade.applyCurve': 'Aplicar esta forma',
+  'dsp.crossfade.curveApplied': 'Aplicada: es la forma del fundido',
   'dsp.crossfade.deleteCurve': 'Eliminar curva',
   'dsp.crossfade.saveTitle': 'Guardar curva de fundido',
   'dsp.crossfade.saveHint':
@@ -301,6 +304,20 @@ const dsp = {
   'dsp.maximizer.ceiling': 'Techo',
   'dsp.maximizer.lookAhead': 'Anticipación',
   'dsp.maximizer.release': 'Relajación',
+  'dsp.maximizer.group.loudness': 'Volumen',
+  'dsp.maximizer.group.loudnessHint':
+    'Ganancia contra un techo que no se mueve. Todo lo que está bajo los picos sube.',
+  'dsp.maximizer.group.timing': 'Tiempos',
+  'dsp.maximizer.group.timingHint':
+    'Con cuánta antelación ve el limitador un pico y cuánto tarda en soltarlo.',
+  'dsp.maximizer.graph.output': 'Salida',
+  'dsp.maximizer.graph.held': 'Retenido',
+  'dsp.maximizer.graph.peakHold': 'Pico retenido',
+  'dsp.maximizer.graph.now': 'ahora',
+  'dsp.maximizerPreset.safety': 'Solo protección',
+  'dsp.maximizerPreset.transparent': 'Transparente',
+  'dsp.maximizerPreset.streaming': 'Streaming',
+  'dsp.maximizerPreset.punch': 'Pegada',
 
   'dsp.master.title': 'Master',
   'dsp.master.description':

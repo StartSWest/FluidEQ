@@ -70,6 +70,9 @@ const dsp = {
   'dsp.crossfade.custom': '自定义',
   'dsp.crossfade.saveCurve': '保存曲线',
   'dsp.crossfade.resetCurve': '重置形状',
+  'dsp.crossfade.shapeSection': '自定义形状',
+  'dsp.crossfade.applyCurve': '应用此形状',
+  'dsp.crossfade.curveApplied': '已应用 — 淡变使用的就是此形状',
   'dsp.crossfade.deleteCurve': '删除曲线',
   'dsp.crossfade.saveTitle': '保存淡变曲线',
   'dsp.crossfade.saveHint': '拖动后的形状将以此名称保存。',
@@ -283,6 +286,20 @@ const dsp = {
   'dsp.maximizer.ceiling': '上限',
   'dsp.maximizer.lookAhead': '前瞻',
   'dsp.maximizer.release': '释放时间',
+  'dsp.maximizer.group.loudness': '响度',
+  'dsp.maximizer.group.loudnessHint':
+    '推向一个永不移动的天花板。峰值以下的一切都会被抬起来。',
+  'dsp.maximizer.group.timing': '时间',
+  'dsp.maximizer.group.timingHint':
+    '限制器提前多久看到峰值，以及松开需要多长时间。',
+  'dsp.maximizer.graph.output': '输出',
+  'dsp.maximizer.graph.held': '被压下',
+  'dsp.maximizer.graph.peakHold': '峰值保持',
+  'dsp.maximizer.graph.now': '现在',
+  'dsp.maximizerPreset.safety': '仅保护',
+  'dsp.maximizerPreset.transparent': '透明',
+  'dsp.maximizerPreset.streaming': '流媒体',
+  'dsp.maximizerPreset.punch': '力度',
 
   'dsp.master.title': '母带',
   'dsp.master.description':

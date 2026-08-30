@@ -2794,49 +2794,74 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // A limiter doing nothing and a limiter flattening the record look identical
 // without this, which is why the stage shipped for so long with no one able to
 // say whether it was working.
-.dsp-maximizer-meter {
-  display: grid;
-  grid-template-columns: 88px minmax(120px, 1fr) 72px;
-  align-items: center;
-  gap: 8px;
+// The processor described in its own toolbar rather than in the card
+// header, which a page with a toolbar has no room for.
+.dsp-maximizer-note {
+  flex: 1 0 100%;
+  max-width: 620px;
+  margin: 0;
+  color: rgba($white, 0.48);
+  font-size: 0.7rem;
+  line-height: 1.4;
+}
+
+.dsp-maximizer-display {
+  flex: 1 1 100%;
   width: 100%;
+  min-width: 0;
 }
 
-.dsp-maximizer-meter-name,
-.dsp-maximizer-meter-value {
-  color: rgba($white, 0.52);
-  font-size: 0.62rem;
+// Definite for the same reason as every DSP canvas: its backing store follows
+// this box, so an intrinsic height would feed the measurement back into itself.
+.dsp-maximizer-canvas {
+  height: 300px;
 }
 
-.dsp-maximizer-meter-value {
-  min-width: 72px;
-  font-family: $font-mono;
-  font-variant-numeric: tabular-nums;
-  text-align: right;
+// The live readings sit in the band the plot reserves for them, and each is a
+// label with its own figure rather than a sentence — the number is what gets
+// read, so it is the part that is bright and monospaced.
+.dsp-maximizer-status {
+  span {
+    display: inline-flex;
+    gap: 6px;
+    align-items: baseline;
+  }
+
+  b {
+    color: rgba($white, 0.9);
+    font-family: $font-mono;
+    font-variant-numeric: tabular-nums;
+    font-weight: $weight-regular;
+    letter-spacing: 0;
+    text-transform: none;
+  }
 }
 
-.dsp-maximizer-meter-track {
-  position: relative;
-  height: 6px;
-  overflow: hidden;
-  border-radius: 3px;
-  background: rgba($white, 0.08);
+// Two decisions, side by side: how much louder, and how the limiter gets
+// there. Equal columns because neither is the secondary one — a profile is a
+// point on both at once.
+.dsp-maximizer-controls {
+  display: grid;
+  flex: 1 1 100%;
+  width: 100%;
+  min-width: 0;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: stretch;
+  gap: 10px;
 }
 
-// Grows rightward from the left edge, because the quantity is a DEPTH of
-// reduction rather than a level. Drawing it as a level falling from the right
-// would read as the output getting quieter, which is the opposite of what the
-// dial that caused it is for.
-.dsp-maximizer-meter-fill {
-  width: 0%;
+.dsp-maximizer-controls .dsp-band {
+  flex: none;
   height: 100%;
-  border-radius: 3px;
-  // The same gradient the normalizer's post-gain bar uses. Reduction is the
-  // stage working, not the stage complaining, so it must not borrow the colour
-  // that means over.
-  background: linear-gradient(
-    90deg,
-    rgba($secondary-default, 0.42),
-    $secondary-default
-  );
+}
+
+.dsp-maximizer-controls .dsp-band-dials {
+  justify-content: center;
+  flex-wrap: nowrap;
+}
+
+@container dsp-card (max-width: 640px) {
+  .dsp-maximizer-controls {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }

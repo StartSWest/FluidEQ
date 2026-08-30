@@ -379,6 +379,7 @@ describe('dsp worklet bundle', () => {
       ...bypassed(),
       maximizer: {
         enabled: true,
+        presetId: '',
         driveDb: 0,
         ceilingDb: -6,
         lookAheadMs: 2,
@@ -410,6 +411,7 @@ describe('dsp worklet bundle', () => {
       ...bypassed(),
       maximizer: {
         enabled: true,
+        presetId: '',
         driveDb,
         ceilingDb,
         lookAheadMs: 2,

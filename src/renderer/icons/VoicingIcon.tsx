@@ -139,6 +139,15 @@ const ALIASES: Record<string, string> = {
   vinyl: 'hiphop',
   orchestra: 'classical',
   lofi: 'tape',
+  // The Maximizer's own profiles, drawn as what they do to the envelope.
+  // "Safety" applies no gain at all, "Transparent" rounds nothing off, and
+  // "Punch" is a kick's first cycle arriving before the limiter has moved.
+  safety: 'flat',
+  transparent: 'ambient',
+  punch: 'drumBass',
+  streaming: 'air',
+  broadcast: 'speech',
+  loud: 'rock',
   // Repairs, all of them a notch.
   deEss: 'notch',
   sibilance: 'notch',

@@ -278,6 +278,13 @@ export interface ICompressorSettings {
 export interface IMaximizerSettings {
   enabled: boolean;
   /**
+   * Which profile these four numbers came from, or `''` for a hand-made set.
+   *
+   * Renderer state and storage only — it is deliberately absent from the wire,
+   * because the engine is told the four values and has no use for their name.
+   */
+  presetId: string;
+  /**
    * Gain into the ceiling, which is the control that makes this a maximizer.
    *
    * Without it the stage could only ever turn peaks DOWN: there was no gain
@@ -1088,6 +1095,7 @@ export const DSP_DEFAULTS: IDspSettings = {
   },
   maximizer: {
     enabled: false,
+    presetId: '',
     // Unity: switching the stage in cannot change the level until Drive is
     // moved, so it arrives as the protection it used to be and becomes a
     // loudness tool only when asked.
@@ -1486,6 +1494,8 @@ export const clampDspSettings = (value: unknown): IDspSettings => {
     },
     maximizer: {
       enabled: clampBoolean(maximizer.enabled, DSP_DEFAULTS.maximizer.enabled),
+      presetId:
+        typeof maximizer.presetId === 'string' ? maximizer.presetId : '',
       driveDb: clampNumber(
         maximizer.driveDb,
         RANGES.maximizerDriveDb,

@@ -9,9 +9,6 @@ import {
   DSP_DEFAULTS,
   IBandSettings,
   IDspSettings,
-  MAXIMIZER_MAX_CEILING_DB,
-  MAXIMIZER_MIN_LOOK_AHEAD_MS,
-  MAXIMIZER_MIN_RELEASE_MS,
   clampDspSettings,
 } from '../../common/dsp/chain';
 import { DSP_PRESETS } from '../../common/dsp/presets';
@@ -22,7 +19,7 @@ import DspEqCard from './DspEqCard';
 import DspCrossfadeCard from './DspCrossfadeCard';
 import DspExciterCard from './DspExciterCard';
 import DspMasterCard from './DspMasterCard';
-import DspMaximizerMeter from './DspMaximizerMeter';
+import DspMaximizerCard from './DspMaximizerCard';
 import DspNormalizerCard from './DspNormalizerCard';
 import DspSideTabs from './DspSideTabs';
 import { TDspSection } from './sections';
@@ -457,81 +454,11 @@ const DspPanel = ({
           )}
 
           {section === 'maximizer' && (
-            <ProcessorCard
-              id="dsp-maximizer"
-              titleKey="dsp.maximizer.title"
-              descriptionKey="dsp.maximizer.description"
-              isEnabled={maximizer.enabled}
-              onToggle={() =>
-                patch({
-                  maximizer: { ...maximizer, enabled: !maximizer.enabled },
-                })
-              }
-            >
-              {/* First, because it is the control that makes this a
-                  maximizer rather than a limiter: gain goes in and the ceiling
-                  holds the top. Everything under the peaks comes up. */}
-              <Dial
-                labelKey="dsp.maximizer.drive"
-                value={maximizer.driveDb}
-                defaultValue={DSP_DEFAULTS.maximizer.driveDb}
-                min={0}
-                max={12}
-                unit="dB"
-                step={0.1}
-                isDisabled={!maximizer.enabled}
-                onCommit={onCommit}
-                onChange={(driveDb) =>
-                  patch({ maximizer: { ...maximizer, driveDb } })
-                }
-              />
-              <Dial
-                labelKey="dsp.maximizer.ceiling"
-                value={maximizer.ceilingDb}
-                defaultValue={DSP_DEFAULTS.maximizer.ceilingDb}
-                min={-12}
-                max={MAXIMIZER_MAX_CEILING_DB}
-                unit="dBTP"
-                step={0.1}
-                isDisabled={!maximizer.enabled}
-                onCommit={onCommit}
-                onChange={(ceilingDb) =>
-                  patch({ maximizer: { ...maximizer, ceilingDb } })
-                }
-              />
-              <Dial
-                labelKey="dsp.maximizer.lookAhead"
-                value={maximizer.lookAheadMs}
-                defaultValue={DSP_DEFAULTS.maximizer.lookAheadMs}
-                min={MAXIMIZER_MIN_LOOK_AHEAD_MS}
-                max={20}
-                unit="ms"
-                step={0.1}
-                isDisabled={!maximizer.enabled}
-                onCommit={onCommit}
-                onChange={(lookAheadMs) =>
-                  patch({ maximizer: { ...maximizer, lookAheadMs } })
-                }
-              />
-              <Dial
-                labelKey="dsp.maximizer.release"
-                value={maximizer.releaseMs}
-                defaultValue={DSP_DEFAULTS.maximizer.releaseMs}
-                min={MAXIMIZER_MIN_RELEASE_MS}
-                max={1_000}
-                unit="ms"
-                step={5}
-                isDisabled={!maximizer.enabled}
-                onCommit={onCommit}
-                onChange={(releaseMs) =>
-                  patch({ maximizer: { ...maximizer, releaseMs } })
-                }
-              />
-              {/* On the surface where the work happens, not behind a popover:
-                  it is the only reading that says whether any of the three
-                  dials above are doing anything. */}
-              <DspMaximizerMeter isEnabled={maximizer.enabled} />
-            </ProcessorCard>
+            <DspMaximizerCard
+              maximizer={maximizer}
+              onPatch={(next) => patch({ maximizer: next })}
+              onCommit={onCommit}
+            />
           )}
 
           {section === 'master' && (

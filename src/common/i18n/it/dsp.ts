@@ -77,6 +77,9 @@ const dsp = {
   'dsp.crossfade.custom': 'Personalizzata',
   'dsp.crossfade.saveCurve': 'Salva curva',
   'dsp.crossfade.resetCurve': 'Reimposta forma',
+  'dsp.crossfade.shapeSection': 'Forma personalizzata',
+  'dsp.crossfade.applyCurve': 'Applica questa forma',
+  'dsp.crossfade.curveApplied': 'Applicata: è la forma della dissolvenza',
   'dsp.crossfade.deleteCurve': 'Elimina curva',
   'dsp.crossfade.saveTitle': 'Salva curva di dissolvenza',
   'dsp.crossfade.saveHint':
@@ -300,6 +303,20 @@ const dsp = {
   'dsp.maximizer.ceiling': 'Tetto',
   'dsp.maximizer.lookAhead': 'Anticipo',
   'dsp.maximizer.release': 'Rilascio',
+  'dsp.maximizer.group.loudness': 'Volume',
+  'dsp.maximizer.group.loudnessHint':
+    'Guadagno contro un tetto che non si muove mai. Tutto ciò che sta sotto i picchi sale.',
+  'dsp.maximizer.group.timing': 'Tempi',
+  'dsp.maximizer.group.timingHint':
+    'Con quanto anticipo il limiter vede un picco e quanto impiega a rilasciarlo.',
+  'dsp.maximizer.graph.output': 'Uscita',
+  'dsp.maximizer.graph.held': 'Trattenuto',
+  'dsp.maximizer.graph.peakHold': 'Picco trattenuto',
+  'dsp.maximizer.graph.now': 'ora',
+  'dsp.maximizerPreset.safety': 'Solo protezione',
+  'dsp.maximizerPreset.transparent': 'Trasparente',
+  'dsp.maximizerPreset.streaming': 'Streaming',
+  'dsp.maximizerPreset.punch': 'Punch',
 
   'dsp.master.title': 'Master',
   'dsp.master.description':

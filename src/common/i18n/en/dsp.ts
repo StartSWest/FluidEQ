@@ -84,6 +84,9 @@ const dsp = {
   'dsp.crossfade.custom': 'Custom',
   'dsp.crossfade.saveCurve': 'Save curve',
   'dsp.crossfade.resetCurve': 'Reset shape',
+  'dsp.crossfade.shapeSection': 'Custom shape',
+  'dsp.crossfade.applyCurve': 'Apply this shape',
+  'dsp.crossfade.curveApplied': 'Applied — this is the shape in the fade',
   'dsp.crossfade.deleteCurve': 'Delete curve',
   'dsp.crossfade.saveTitle': 'Save fade curve',
   'dsp.crossfade.saveHint': 'The dragged shape is saved under this name.',
@@ -306,6 +309,20 @@ const dsp = {
   'dsp.maximizer.ceiling': 'Ceiling',
   'dsp.maximizer.lookAhead': 'Look-ahead',
   'dsp.maximizer.release': 'Release',
+  'dsp.maximizer.group.loudness': 'Loudness',
+  'dsp.maximizer.group.loudnessHint':
+    'Gain into a ceiling that never moves. Everything under the peaks comes up.',
+  'dsp.maximizer.group.timing': 'Timing',
+  'dsp.maximizer.group.timingHint':
+    'How early the limiter sees a peak, and how long it takes to let go.',
+  'dsp.maximizer.graph.output': 'Output',
+  'dsp.maximizer.graph.held': 'Held down',
+  'dsp.maximizer.graph.peakHold': 'Peak hold',
+  'dsp.maximizer.graph.now': 'now',
+  'dsp.maximizerPreset.safety': 'Safety only',
+  'dsp.maximizerPreset.transparent': 'Transparent',
+  'dsp.maximizerPreset.streaming': 'Streaming',
+  'dsp.maximizerPreset.punch': 'Punch',
 
   'dsp.master.title': 'Master',
   'dsp.master.description':

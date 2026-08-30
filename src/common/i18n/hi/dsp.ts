@@ -74,6 +74,9 @@ const dsp = {
   'dsp.crossfade.custom': 'कस्टम',
   'dsp.crossfade.saveCurve': 'कर्व सहेजें',
   'dsp.crossfade.resetCurve': 'आकार रीसेट करें',
+  'dsp.crossfade.shapeSection': 'कस्टम आकार',
+  'dsp.crossfade.applyCurve': 'यह आकार लागू करें',
+  'dsp.crossfade.curveApplied': 'लागू — फ़ेड में यही आकार है',
   'dsp.crossfade.deleteCurve': 'कर्व हटाएँ',
   'dsp.crossfade.saveTitle': 'फ़ेड कर्व सहेजें',
   'dsp.crossfade.saveHint': 'खींचा गया आकार इसी नाम से सहेजा जाता है।',
@@ -296,6 +299,20 @@ const dsp = {
   'dsp.maximizer.ceiling': 'सीमा',
   'dsp.maximizer.lookAhead': 'लुक-अहेड',
   'dsp.maximizer.release': 'रिलीज़',
+  'dsp.maximizer.group.loudness': 'लाउडनेस',
+  'dsp.maximizer.group.loudnessHint':
+    'ऐसी सीमा की ओर गेन जो कभी नहीं हिलती। शिखरों के नीचे सब कुछ ऊपर आ जाता है।',
+  'dsp.maximizer.group.timing': 'टाइमिंग',
+  'dsp.maximizer.group.timingHint':
+    'लिमिटर शिखर को कितना पहले देखता है, और छोड़ने में कितना समय लेता है।',
+  'dsp.maximizer.graph.output': 'आउटपुट',
+  'dsp.maximizer.graph.held': 'रोका गया',
+  'dsp.maximizer.graph.peakHold': 'पीक होल्ड',
+  'dsp.maximizer.graph.now': 'अभी',
+  'dsp.maximizerPreset.safety': 'केवल सुरक्षा',
+  'dsp.maximizerPreset.transparent': 'पारदर्शी',
+  'dsp.maximizerPreset.streaming': 'स्ट्रीमिंग',
+  'dsp.maximizerPreset.punch': 'पंच',
 
   'dsp.master.title': 'मास्टर',
   'dsp.master.description':
