@@ -94,7 +94,6 @@ typedef struct FeqDimension {
   float* low;
   float* mid_band;
   float* high;
-  float* wet;
   double low_width;
   double mid_width;
   double high_width;
@@ -113,7 +112,6 @@ void feq_dimension_init(FeqDimension* state,
                         float* low,
                         float* mid_band,
                         float* high,
-                        float* wet,
                         float* const* allpass_buffers,
                         uint32_t allpass_capacity);
 

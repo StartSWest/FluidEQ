@@ -90,7 +90,7 @@ uint32_t feq_dimension_allpass_capacity(double sample_rate) {
 }
 
 void feq_dimension_init(FeqDimension* state, float* side, float* low,
-                        float* mid_band, float* high, float* wet,
+                        float* mid_band, float* high,
                         float* const* allpass_buffers,
                         uint32_t allpass_capacity) {
   if (state == nullptr) {
@@ -101,7 +101,6 @@ void feq_dimension_init(FeqDimension* state, float* side, float* low,
   state->low = low;
   state->mid_band = mid_band;
   state->high = high;
-  state->wet = wet;
   for (uint32_t at = 0; at < FEQ_DIMENSION_ALLPASSES; ++at) {
     state->allpasses[at].buffer =
         allpass_buffers != nullptr ? allpass_buffers[at] : nullptr;
@@ -145,8 +144,7 @@ void feq_dimension_process(FeqDimension* state, float* left, float* right,
   if (state == nullptr || left == nullptr || right == nullptr ||
       settings == nullptr || frames == 0 || state->side == nullptr ||
       state->low == nullptr || state->mid_band == nullptr ||
-      state->high == nullptr || state->wet == nullptr ||
-      settings->enabled == 0) {
+      state->high == nullptr || settings->enabled == 0) {
     return;
   }
 
@@ -180,8 +178,9 @@ void feq_dimension_process(FeqDimension* state, float* left, float* right,
   for (uint32_t at = 0; at < frames; ++at) {
     const double l = static_cast<double>(left[at]);
     const double r = static_cast<double>(right[at]);
-    // `mid` is reused as scratch below only after this loop has read it out,
-    // so the two uses cannot overlap.
+    // A pass of its own, because the crossover below needs the whole block of
+    // side before any of it goes back out, and the output loop overwrites
+    // `left` and `right` in place.
     state->side[at] = static_cast<float>((l - r) * 0.5);
   }
 

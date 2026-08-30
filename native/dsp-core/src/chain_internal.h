@@ -297,7 +297,6 @@ struct FeqChain {
   std::vector<float> dimension_low;
   std::vector<float> dimension_mid;
   std::vector<float> dimension_high;
-  std::vector<float> dimension_wet;
   std::vector<float> dimension_allpass[FEQ_DIMENSION_ALLPASSES];
   std::vector<float*> dimension_allpass_pointers;
 

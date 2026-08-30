@@ -74,7 +74,6 @@ Run run(const FeqDimensionSettings& settings, double spread,
   std::vector<float> low(kFrames);
   std::vector<float> mid(kFrames);
   std::vector<float> high(kFrames);
-  std::vector<float> wet(kFrames);
   std::vector<std::vector<float>> buffers(FEQ_DIMENSION_ALLPASSES,
                                           std::vector<float>(capacity, 0.0f));
   std::vector<float*> pointers(FEQ_DIMENSION_ALLPASSES, nullptr);
@@ -84,7 +83,7 @@ Run run(const FeqDimensionSettings& settings, double spread,
 
   FeqDimension state{};
   feq_dimension_init(&state, side.data(), low.data(), mid.data(), high.data(),
-                     wet.data(), pointers.data(), capacity);
+                     pointers.data(), capacity);
 
   Run out;
   std::vector<float> left(kFrames);
