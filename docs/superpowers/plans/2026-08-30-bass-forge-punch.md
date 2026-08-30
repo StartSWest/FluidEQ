@@ -363,7 +363,7 @@ The eight meter bands are eight band-pass followers on a log grid from 20 Hz to 
 - [ ] **Step 5: Build and run until every property passes**
 
 ```bash
-pnpm build:native-dsp && ctest --test-dir native/build -R bass-forge --output-on-failure
+pnpm build:native-dsp && ctest --test-dir native/.build -R bass-forge --output-on-failure
 ```
 
 Expected: every line `ok`. If `test_level_is_preserved` fails only at the extremes, the follower is too fast — do not widen the tolerance, which is the property.
@@ -576,7 +576,7 @@ Buffers are sized once from `kLongestDelayMs` and never resized — only the fee
 - [ ] **Step 5: Build and run until every property passes**
 
 ```bash
-pnpm build:native-dsp && ctest --test-dir native/build -R bass-punch --output-on-failure
+pnpm build:native-dsp && ctest --test-dir native/.build -R bass-punch --output-on-failure
 ```
 
 - [ ] **Step 6: Commit**

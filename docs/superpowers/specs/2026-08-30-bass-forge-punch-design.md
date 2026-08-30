@@ -97,7 +97,7 @@ what lets "disabled is bit-exact passthrough" be a test instead of a hope.
 | `enabled`        | bool   | `false` | yes             |                                                                     |
 | `presetId`       | string | `''`    | **no**          | renderer and storage only, as the Maximizer's is                    |
 | `splitHz`        | 40–200 | 90      | yes, structural | where bass ends                                                     |
-| `driveDb`        | 0–12   | 0       | yes             | gain into the shaper — the "hot" control                            |
+| `driveDb`        | 0–12   | 0       | yes             | drive into the saturator — the "hot" control                        |
 | `subAmount`      | 0–1    | 0       | yes             | octave-down synthesis: weight for speakers that can play it         |
 | `presenceAmount` | 0–1    | 0       | yes             | upward harmonics — the phantom fundamental for speakers that cannot |
 | `texture`        | 0–1    | 0.8     | yes             | even↔odd recipe of the presence harmonics                           |
@@ -130,7 +130,9 @@ carry a control for it.
 ### Signal path, per block
 
 1. Split at `splitHz`. `rest` is left alone.
-2. `source = (low[0] + low[1]) / 2`, then `driven = source * 10^(driveDb/20)`.
+2. `source = (low[0] + low[1]) / 2`. Drive is deliberately **not** applied
+   here — a gain in front of these two generators is inaudible, for the reason
+   set out under "`driveDb` needs its own non-linearity" below.
 3. **Sub generator** — a zero-crossing flip-flop divider on `driven`, LR4
    lowpassed at `splitHz` and highpassed at 25 Hz, its RMS matched to
    `source`'s. This is what a BOSS OC-2 or a dbx 120 does.
@@ -148,7 +150,9 @@ texture, sampleRate)`, reused from `harmonics.h` unchanged. It is already
    level-normalised with the fundamental projection removed, which is the
    expensive half of a bass harmonic generator and is already written and
    already tested.
-5. `forged = subOut * subAmount + presence`.
+5. `forged = subOut * subAmount + presence`, then through
+   `feq_saturate_sample` at `driveDb`. This is the only place drive acts, and
+   at 0 dB it is a bypass.
 6. `wet[ch] = low[ch] + forged * mix`.
 7. **Level normalisation**, applied to the whole band rather than to the
    generated content alone:
@@ -168,8 +172,36 @@ texture, sampleRate)`, reused from `harmonics.h` unchanged. It is already
 
    Without this the stage is a volume control wearing a costume: every A/B is
    won by whichever side is louder and nobody can hear what it actually does.
-   It is also why `driveDb` changes how hard the divider and the shaper are hit
-   without changing how loud the result is.
+
+### `driveDb` needs its own non-linearity, and this is why
+
+An earlier draft of this section said normalisation is what lets `driveDb`
+"change how hard the divider and the shaper are hit without changing how loud
+the result is". That is wrong, and it was caught in implementation rather than
+on paper: **a gain in front of these two generators is inaudible.**
+
+Both of them are level-invariant on purpose. `feq_harmonic_sample`'s headline
+property — the whole reason it replaced a biased tangent — is that the harmonic
+ratio does not follow the input level. The divider's output is RMS-matched to
+its source. So raising the level going in changes neither one's output, and
+measurement bore that out exactly: with drive feeding only the divider's gate,
+0 dB and 12 dB were bit-identical on anything above roughly −50 dBFS, which is
+all music. The dial did nothing and the code honestly said so.
+
+Drive therefore has to push into something whose shape _does_ depend on level.
+It applies `feq_saturate_sample` from `saturate.h` to the forged sum, before
+the band normalisation:
+
+- that saturator's asymmetry OPENS with drive, which keeps the added orders
+  even rather than odd — warmth rather than grit, and the right colour for a
+  band that stops at 200 Hz;
+- it is already written, measured and in use by the EQ's analogue models, so
+  this is the same reuse the presence generator makes of `harmonics.h`;
+- normalisation stays downstream of it, so no-free-loudness survives intact;
+- at 0 dB it is a bypass, which keeps `mix = 0` and disabled bit-exact.
+
+This is also what makes the `hot` profile in the catalogue a different sound
+from `solid` rather than the same one with different amounts.
 
 ### `texture` is 0–1 here, not the Exciter's 0–0.7
 
