@@ -290,6 +290,8 @@ export interface ICompressorSettings {
  */
 export interface IDimensionSettings {
   enabled: boolean;
+  /** Which profile this came from, or empty once the user has edited it. */
+  presetId: string;
   /** Bass is narrowed or left alone. See the header for why never widened. */
   lowWidth: number;
   midWidth: number;
@@ -1158,6 +1160,7 @@ export const DSP_DEFAULTS: IDspSettings = {
    */
   dimension: {
     enabled: false,
+    presetId: 'default',
     lowWidth: 0.9,
     midWidth: 1.05,
     highWidth: 1.25,
@@ -1551,6 +1554,8 @@ export const clampDspSettings = (value: unknown): IDspSettings => {
     },
     dimension: {
       enabled: clampBoolean(dimension.enabled, DSP_DEFAULTS.dimension.enabled),
+      presetId:
+        typeof dimension.presetId === 'string' ? dimension.presetId : '',
       lowWidth: clampNumber(
         dimension.lowWidth,
         RANGES.dimensionLowWidth,
