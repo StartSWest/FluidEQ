@@ -44,8 +44,19 @@ constexpr double kFoundationLevel = 0.18;
  * harmonics are integrated by the ear rather than heard as separate tones, and
  * Mid the least because the midrange is where harmonic content stops being
  * warmth and becomes harshness.
+ *
+ * These were roughly twice this and it was too much, which is a mistake worth
+ * naming because the measurement that justified it was taken at the wrong
+ * level. The old shaper was compared at -6 dBFS, where it looked tame — and
+ * the replacement was tuned to match it THERE. But the old one followed the
+ * input, so on ordinary material around -20 dBFS it produced far less, and the
+ * new one produces the same ratio everywhere. Matching at the peak therefore
+ * meant roughly ten decibels more harmonic content than before on everything
+ * that is not a peak: measured at -20 dBFS, the hottest profiles were putting a
+ * tenth of the note back as harmonics, constantly. Consistent, and consistently
+ * too much.
  */
-constexpr double kBandDepth[FEQ_EXCITER_BANDS] = {0.85, 0.62, 0.9};
+constexpr double kBandDepth[FEQ_EXCITER_BANDS] = {0.44, 0.32, 0.47};
 /** Drive's floor: the gentlest setting still has a character, just a quiet one. */
 constexpr double kMinDepth = 0.18;
 constexpr double kDriveSpan = 2.5;

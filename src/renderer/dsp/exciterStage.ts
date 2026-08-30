@@ -91,8 +91,15 @@ const FOUNDATION_LEVEL = 0.18;
  * harmonics are integrated by the ear rather than heard as separate tones, and
  * Mid the least because the midrange is where harmonic content stops being
  * warmth and becomes harshness.
+ *
+ * These were roughly twice this and it was too much. The measurement that
+ * justified the larger figures was taken at -6 dBFS, where the shaper this
+ * replaced looked tame — but that one followed the input level, so on ordinary
+ * material near -20 dBFS it produced far less, while this one produces the same
+ * ratio everywhere. Matching at the peak meant about ten decibels more harmonic
+ * content than before on everything that is not a peak.
  */
-const BAND_DEPTH = [0.85, 0.62, 0.9] as const;
+const BAND_DEPTH = [0.44, 0.32, 0.47] as const;
 /** Drive's floor: the gentlest setting still has a character, just a quiet one. */
 const MIN_DEPTH = 0.18;
 const DRIVE_SPAN = 2.5;

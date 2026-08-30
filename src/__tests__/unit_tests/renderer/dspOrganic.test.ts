@@ -141,19 +141,24 @@ describe('the organic curve', () => {
    * harmonic to feel sharp, a restrained third so it stays fluid, and a clear
    * even-family lead so the return never becomes granular.
    *
-   * The numbers moved when the reference did, not when the sound did. They used
-   * to be a percentage of the return's OWN fundamental, which was 0.52 of the
-   * input; 45-52% of that is 23-27% of the note, and this measures 21% of the
-   * note. What the generator changed is that it is 21% at every playback level
-   * rather than only on a peak.
+   * The numbers have moved twice, and neither time was a change of taste.
+   *
+   * First the reference did: they used to be a percentage of the return's OWN
+   * fundamental, which was 0.52 of the input, and the carrier is 0.18 now.
+   *
+   * Then the depth did. It had been set so the default matched the old
+   * soft-diode curve on a -6 dBFS TONE, and that was the wrong place to match —
+   * the old curve followed the input level, so on ordinary material it produced
+   * far less, while this one produces the same ratio everywhere. Matching at
+   * the peak put about ten decibels too much on everything else.
    */
   it('locks the approved sharp-but-fluid harmonic balance', () => {
     const { second, third, fourth, fifth } = harmonics(0.35);
     const evenToOdd = (second + fourth) / (third + fifth);
-    expect(second).toBeGreaterThan(18);
-    expect(second).toBeLessThan(24);
-    expect(third).toBeGreaterThan(2);
-    expect(third).toBeLessThan(5);
+    expect(second).toBeGreaterThan(9);
+    expect(second).toBeLessThan(14);
+    expect(third).toBeGreaterThan(1);
+    expect(third).toBeLessThan(3);
     expect(evenToOdd).toBeGreaterThan(4);
   });
 
