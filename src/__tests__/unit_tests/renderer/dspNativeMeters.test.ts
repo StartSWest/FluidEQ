@@ -57,6 +57,22 @@ const analysisFrame = (
     exciterBands: [0, 0, 0],
     exciterOrganic: 0,
     maximizerReductionDb: 0,
+    dimensionGuard: 1,
+    master: {
+      autoHeadroomReductionDb: 0,
+      autoHeadroomTruePeakDb: -120,
+      safetyReductionDb: 0,
+      safetyTruePeakDb: -120,
+      dcCorrectionDb: -120,
+      repairedSamples: 0,
+      truePeakFactor: 4,
+      safetyEnabled: true,
+    },
+    normalizer: {
+      inputPeaks: [0, 0],
+      outputPeaks: [0, 0],
+      appliedGainDb: 0,
+    },
   };
 };
 

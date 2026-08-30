@@ -275,6 +275,38 @@ export interface ICompressorSettings {
   bands: readonly IBandSettings[];
 }
 
+/**
+ * Stereo width, per band, that survives being summed to mono.
+ *
+ * The processor touches the SIDE signal and nothing else, so `(L+R)/2` — which
+ * is what a phone, a laptop speaker or a club PA plays — comes out exactly as
+ * it went in whatever these are set to. That is a property of the arithmetic
+ * rather than a tuning, and `dimension_test.cpp` asserts it as an equality.
+ *
+ * This has no TypeScript implementation. It was written in C++ first, so the
+ * chain parity corpus covers the chain WITHOUT it; the stage is held to
+ * properties in its own native test instead. Fixtures leave it disabled, where
+ * it is a bit-exact bypass, so the two engines still agree.
+ */
+export interface IDimensionSettings {
+  enabled: boolean;
+  /** Bass is narrowed or left alone. See the header for why never widened. */
+  lowWidth: number;
+  midWidth: number;
+  highWidth: number;
+  lowHz: number;
+  highHz: number;
+  /**
+   * How much of the side is replaced by a phase-decorrelated copy of itself.
+   *
+   * Width alone can only scale what the mix already had. The all-pass network
+   * this drives makes the sides stop being a louder copy of the middle, which
+   * is the difference between a wider picture and a thinner one — and being
+   * confined to the side, it costs the mono listener nothing.
+   */
+  decorrelation: number;
+}
+
 export interface IMaximizerSettings {
   enabled: boolean;
   /**
@@ -313,6 +345,19 @@ export interface IMaximizerSettings {
 
 /** Below these, limiting becomes clipping or audible low-rate modulation. */
 export const MAXIMIZER_MIN_LOOK_AHEAD_MS = 1;
+
+/**
+ * The longest look-ahead the dial offers, and the size of the delay both
+ * engines build for it.
+ *
+ * Load-bearing rather than a dial limit: the ring is allocated once at this
+ * length so the look-ahead can move without the delay being rebuilt. A ring
+ * sized from the CURRENT setting has to be replaced every time the dial steps,
+ * and a replacement arrives full of zeros — which is the crackle while the dial
+ * moves and the silence while it is dragged. `kMaximizerMaxLookAheadMs` in
+ * `chain_internal.h` is the same number for the native engine.
+ */
+export const MAXIMIZER_MAX_LOOK_AHEAD_MS = 20;
 export const MAXIMIZER_MIN_RELEASE_MS = 40;
 export const MAXIMIZER_MAX_CEILING_DB = -0.1;
 
@@ -662,6 +707,7 @@ export interface IDspSettings {
   crossfade: ICrossfadeSettings;
   eq: IEqSettings;
   exciter: IExciterSettings;
+  dimension: IDimensionSettings;
   compressor: ICompressorSettings;
   maximizer: IMaximizerSettings;
   master: IMasterSettings;
@@ -737,9 +783,17 @@ const RANGES = {
    * rather than the track getting louder. The dial stops where it stops being
    * a loudness control.
    */
+  dimensionLowWidth: { min: 0, max: 1 },
+  dimensionWidth: { min: 0, max: 2 },
+  dimensionLowHz: { min: 60, max: 600 },
+  dimensionHighHz: { min: 1_000, max: 10_000 },
+  dimensionDecorrelation: { min: 0, max: 1 },
   maximizerDriveDb: { min: 0, max: 12 },
   ceilingDb: { min: -12, max: MAXIMIZER_MAX_CEILING_DB },
-  lookAheadMs: { min: MAXIMIZER_MIN_LOOK_AHEAD_MS, max: 20 },
+  lookAheadMs: {
+    min: MAXIMIZER_MIN_LOOK_AHEAD_MS,
+    max: MAXIMIZER_MAX_LOOK_AHEAD_MS,
+  },
   maximizerReleaseMs: { min: MAXIMIZER_MIN_RELEASE_MS, max: 1_000 },
   masterOutputTrimDb: { min: -24, max: 6 },
   masterCeilingDb: { min: -12, max: -0.1 },
@@ -1088,6 +1142,21 @@ export const DSP_DEFAULTS: IDspSettings = {
     align: { enabled: false, amount: 0.45 },
     isolate: false,
   },
+  /**
+   * Off, but not at unity — switching it on should do the tasteful thing.
+   *
+   * A little narrower at the bottom, which is right on every mix ever made,
+   * and generous only up top where the ear can actually place a source.
+   */
+  dimension: {
+    enabled: false,
+    lowWidth: 0.9,
+    midWidth: 1.05,
+    highWidth: 1.25,
+    lowHz: 200,
+    highHz: 3_000,
+    decorrelation: 0.25,
+  },
   compressor: {
     enabled: false,
     crossoverHz: [200, 3_000],
@@ -1233,6 +1302,7 @@ export const clampDspSettings = (value: unknown): IDspSettings => {
   const eq = isRecord(value.eq) ? value.eq : {};
   const storedEqBands = Array.isArray(eq.bands) ? eq.bands : [];
   const exciter = isRecord(value.exciter) ? value.exciter : {};
+  const dimension = isRecord(value.dimension) ? value.dimension : {};
   const compressor = isRecord(value.compressor) ? value.compressor : {};
   const maximizer = isRecord(value.maximizer) ? value.maximizer : {};
   const master = isRecord(value.master) ? value.master : {};
@@ -1470,6 +1540,39 @@ export const clampDspSettings = (value: unknown): IDspSettings => {
       // `store.ts` drops it there, which is the only place it should be
       // dropped.
       isolate: clampBoolean(exciter.isolate, DSP_DEFAULTS.exciter.isolate),
+    },
+    dimension: {
+      enabled: clampBoolean(dimension.enabled, DSP_DEFAULTS.dimension.enabled),
+      lowWidth: clampNumber(
+        dimension.lowWidth,
+        RANGES.dimensionLowWidth,
+        DSP_DEFAULTS.dimension.lowWidth,
+      ),
+      midWidth: clampNumber(
+        dimension.midWidth,
+        RANGES.dimensionWidth,
+        DSP_DEFAULTS.dimension.midWidth,
+      ),
+      highWidth: clampNumber(
+        dimension.highWidth,
+        RANGES.dimensionWidth,
+        DSP_DEFAULTS.dimension.highWidth,
+      ),
+      lowHz: clampNumber(
+        dimension.lowHz,
+        RANGES.dimensionLowHz,
+        DSP_DEFAULTS.dimension.lowHz,
+      ),
+      highHz: clampNumber(
+        dimension.highHz,
+        RANGES.dimensionHighHz,
+        DSP_DEFAULTS.dimension.highHz,
+      ),
+      decorrelation: clampNumber(
+        dimension.decorrelation,
+        RANGES.dimensionDecorrelation,
+        DSP_DEFAULTS.dimension.decorrelation,
+      ),
     },
     compressor: {
       enabled: clampBoolean(

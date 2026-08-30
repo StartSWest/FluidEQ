@@ -8,6 +8,7 @@ import {
   DSP_DEFAULTS,
   IMaximizerSettings,
   MAXIMIZER_MAX_CEILING_DB,
+  MAXIMIZER_MAX_LOOK_AHEAD_MS,
   MAXIMIZER_MIN_LOOK_AHEAD_MS,
   MAXIMIZER_MIN_RELEASE_MS,
 } from '../../common/dsp/chain';
@@ -125,7 +126,7 @@ const DspMaximizerCard = ({
               value={maximizer.lookAheadMs}
               defaultValue={DSP_DEFAULTS.maximizer.lookAheadMs}
               min={MAXIMIZER_MIN_LOOK_AHEAD_MS}
-              max={20}
+              max={MAXIMIZER_MAX_LOOK_AHEAD_MS}
               unit="ms"
               step={0.1}
               isDisabled={!maximizer.enabled}

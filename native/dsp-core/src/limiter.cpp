@@ -168,6 +168,9 @@ void feq_linked_limiter_init(FeqLinkedLimiter* state,
   state->gain_reduction_db = gain_reduction_db;
   state->channels = channels;
   state->capacity = capacity;
+  // The whole ring, which is what every caller that never moves its look-ahead
+  // has always had.
+  state->look_ahead = capacity - 1;
   state->position = 0;
   state->detector_gain = 1.0;
   state->gain = 1.0;
@@ -182,6 +185,15 @@ void feq_linked_limiter_init(FeqLinkedLimiter* state,
   for (uint32_t at = 0; at < capacity; ++at) {
     gain_reduction_db[at] = 0.0f;
   }
+}
+
+void feq_linked_limiter_set_look_ahead(FeqLinkedLimiter* state,
+                                       uint32_t look_ahead) {
+  if (state == nullptr || state->capacity == 0) {
+    return;
+  }
+  const uint32_t largest = state->capacity - 1;
+  state->look_ahead = look_ahead > largest ? largest : look_ahead;
 }
 
 void feq_linked_limiter_reset_control(FeqLinkedLimiter* state) {
@@ -205,7 +217,11 @@ void feq_linked_limiter_process(FeqLinkedLimiter* state,
     return;
   }
   const uint32_t capacity = state->capacity;
-  const int64_t look_ahead = static_cast<int64_t>(capacity) - 1;
+  // Read from the state rather than from the ring's size: the two are the same
+  // only for a limiter whose look-ahead never moves.
+  const int64_t look_ahead =
+      static_cast<int64_t>(state->look_ahead < capacity ? state->look_ahead
+                                                        : capacity - 1);
   const int64_t detector_latency =
       state->true_peak[0].factor == 1 ? 0 : FEQ_TRUE_PEAK_LATENCY;
   const int64_t attack_samples =
@@ -247,8 +263,10 @@ void feq_linked_limiter_process(FeqLinkedLimiter* state,
             : 1.0;
 
     const int64_t write_at = slot(position, capacity);
+    // `position - look_ahead`, which is `position + 1` only when the look-ahead
+    // fills the ring. Written the general way now that it need not.
     const int64_t read_at =
-        look_ahead == 0 ? write_at : slot(position + 1, capacity);
+        look_ahead == 0 ? write_at : slot(position - look_ahead, capacity);
 
     if (uses_slow_attack) {
       // Detection is immediate, a large gain move is not. A fixed dB/s slew

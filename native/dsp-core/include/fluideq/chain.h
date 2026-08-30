@@ -123,11 +123,25 @@ typedef struct FeqChainSettings {
     double crossover_hz[2];
     FeqChainCompressorBand bands[FEQ_CHAIN_COMPRESSOR_BANDS];
   } compressor;
+  /**
+   * Stereo width per band. Touches the side signal only, so the mono sum is
+   * unchanged at every setting — `dimension_test.cpp` asserts that as equality.
+   */
   struct {
     int enabled;
+    double low_width;
+    double mid_width;
+    double high_width;
+    double low_hz;
+    double high_hz;
+    double decorrelation;
+  } dimension;
+  struct {
+    int enabled;
+    /** Gain INTO the ceiling, which is what makes this a maximizer. */
+    double drive_db;
     double ceiling_db;
     /** Structural: the look-ahead sets the limiter's buffer length. */
-    double drive_db;
     double look_ahead_ms;
     double release_ms;
   } maximizer;
@@ -157,7 +171,7 @@ typedef struct FeqChainSettings {
  * silently re-point sixty-four bands: the decoder asserts the lead rather
  * than trusting it.
  */
-#define FEQ_CHAIN_PARAM_LEAD 70
+#define FEQ_CHAIN_PARAM_LEAD 77
 #define FEQ_CHAIN_BAND_PARAMS 7
 
 /** Non-zero on success. Leaves `out` untouched on a layout it cannot read. */

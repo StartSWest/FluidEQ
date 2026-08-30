@@ -108,6 +108,17 @@ export interface ILinkedLimiterState {
   delay: Float32Array[];
   /** Smoothed reduction in dB, delayed in lockstep with the audio. */
   gainReductionDb: Float32Array;
+  /**
+   * Emitted samples behind the write cursor, never more than `capacity - 1`.
+   *
+   * Held apart from the ring's length so it can move while audio is running.
+   * It used to be `capacity - 1` implicitly, so the only way to change the
+   * look-ahead was to build a new state — a new delay line full of zeros,
+   * which the limiter then emits. One step of the dial was a hole of silence
+   * as long as the look-ahead and a drag was a run of them, heard as a
+   * crackle and, dragged quickly, as the music stopping.
+   */
+  lookAhead: number;
   position: number;
   /** Fast detector with instantaneous attack and held exponential release. */
   detectorGain: number;
@@ -148,12 +159,30 @@ export const createLinkedLimiterState = (
     ),
     delay: Array.from({ length: channels }, () => new Float32Array(capacity)),
     gainReductionDb: new Float32Array(capacity),
+    lookAhead: capacity - 1,
     position: 0,
     detectorGain: 1,
     gain: 1,
     releaseHoldRemaining: 0,
     blockPeak: 0,
   };
+};
+
+/**
+ * Move the look-ahead without touching the audio already in the delay.
+ *
+ * The ring is built for the longest look-ahead the dial offers, so a change is
+ * one number: the read cursor moves inside programme that is already there.
+ * Anything past the ring is clamped to it, since a limiter cannot read outside
+ * its own delay.
+ */
+export const setLinkedLimiterLookAhead = (
+  state: ILinkedLimiterState,
+  lookAheadSamples: number,
+): void => {
+  const largest = state.gainReductionDb.length - 1;
+  const asked = Math.max(0, Math.floor(lookAheadSamples));
+  state.lookAhead = asked > largest ? largest : asked;
 };
 
 /** Clear gain control without emptying the continuously running audio delay. */
@@ -308,7 +337,9 @@ export const processLinkedLimiter = (
   }
   const { delay, gainReductionDb } = state;
   const capacity = gainReductionDb.length;
-  const lookAhead = capacity - 1;
+  // From the state, not from the ring's length: the two are the same only for
+  // a limiter whose look-ahead never moves.
+  const lookAhead = Math.min(state.lookAhead, capacity - 1);
   const detectorLatency =
     state.truePeak[0]?.factor === 1 ? 0 : TRUE_PEAK_LATENCY_SAMPLES;
   const attackSamples = Math.max(0, lookAhead - detectorLatency);
@@ -384,7 +415,13 @@ export const processLinkedLimiter = (
       }
 
       const writeAt = position % capacity;
-      const readAt = lookAhead === 0 ? writeAt : (position + 1) % capacity;
+      // `position - lookAhead`, which is `position + 1` only when the
+      // look-ahead fills the ring. The wrap has to be positive: the first
+      // samples of a stream sit behind the start of the buffer.
+      const readAt =
+        lookAhead === 0
+          ? writeAt
+          : (((position - lookAhead) % capacity) + capacity) % capacity;
       for (let channel = 0; channel < channels.length; channel += 1) {
         const line = delay[channel];
         const emitted = lookAhead === 0 ? channels[channel][i] : line[readAt];
@@ -445,7 +482,13 @@ export const processLinkedLimiter = (
       }
 
       const writeAt = position % capacity;
-      const readAt = lookAhead === 0 ? writeAt : (position + 1) % capacity;
+      // `position - lookAhead`, which is `position + 1` only when the
+      // look-ahead fills the ring. The wrap has to be positive: the first
+      // samples of a stream sit behind the start of the buffer.
+      const readAt =
+        lookAhead === 0
+          ? writeAt
+          : (((position - lookAhead) % capacity) + capacity) % capacity;
       state.gain = 10 ** (gainReductionDb[readAt] / 20);
       for (let channel = 0; channel < channels.length; channel += 1) {
         const line = delay[channel];

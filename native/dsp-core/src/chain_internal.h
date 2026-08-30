@@ -23,6 +23,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "fluideq/compressor.h"
 #include "fluideq/convolver.h"
+#include "fluideq/dimension.h"
 #include "fluideq/dynamics.h"
 #include "fluideq/exciter.h"
 #include "fluideq/limiter.h"
@@ -46,6 +47,17 @@ constexpr double kEqIsolateSmoothingMs = 18.0;
 constexpr double kTrackLevelTransitionMs = 2000.0;
 constexpr double kMaximizerReleaseHoldMs = 10.0;
 constexpr double kMaximizerSoftKneeDb = 1.5;
+/**
+ * The delay line is built for this much look-ahead whatever the dial says.
+ *
+ * It matches the dial's own maximum in `chain.ts`, and the ring being sized
+ * from the maximum rather than from the current setting is what allows the
+ * look-ahead to move while audio runs. `feq_chain_configure` is on the command
+ * thread with no lock, so a resize there frees the ring the audio thread is
+ * reading — heard as a click on every step of the dial and as silence while it
+ * is dragged, because each new ring arrives full of zeros.
+ */
+constexpr double kMaximizerMaxLookAheadMs = 20.0;
 /** Completes even the slowest 1 s release inside four seconds. */
 constexpr double kMaximizerReleaseSnapRatio = 0.02;
 constexpr double kOutputSafetyCeilingDb = -0.1;
@@ -279,6 +291,16 @@ struct FeqChain {
   std::vector<FeqTruePeak> maximizer_detectors;
   std::vector<float> maximizer_delay[FEQ_CHAIN_CHANNELS];
   std::vector<float*> maximizer_delay_pointers;
+  /* ---------------------------------------------------------- dimension -- */
+  FeqDimension dimension{};
+  std::vector<float> dimension_side;
+  std::vector<float> dimension_low;
+  std::vector<float> dimension_mid;
+  std::vector<float> dimension_high;
+  std::vector<float> dimension_wet;
+  std::vector<float> dimension_allpass[FEQ_DIMENSION_ALLPASSES];
+  std::vector<float*> dimension_allpass_pointers;
+
   std::vector<float> maximizer_reduction;
   uint32_t maximizer_look_ahead = 0;
   /**
@@ -326,6 +348,8 @@ struct FeqChain {
 /** The four stages that are one loop each, from `chain_stages.cpp`. */
 void chain_process_input_gain(FeqChain* chain, float* const* channels,
                               uint32_t frames);
+void chain_process_dimension(FeqChain* chain, float* const* channels,
+                             uint32_t frames);
 void chain_process_compressor(FeqChain* chain, float* const* channels,
                               uint32_t frames);
 void chain_process_maximizer(FeqChain* chain, float* const* channels,

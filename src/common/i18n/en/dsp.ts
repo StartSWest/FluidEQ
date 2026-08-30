@@ -301,6 +301,18 @@ const dsp = {
   'dsp.compressor.release': 'Release',
   'dsp.compressor.makeup': 'Makeup',
 
+  'dsp.dimension.guard': 'Mono guard',
+  'dsp.dimension.monoNote':
+    'Only the sides are touched, so a mono listener hears exactly what they would with this off. The guard closes when a mix is already out of phase.',
+  'dsp.dimension.title': 'Dimension',
+  'dsp.dimension.description':
+    'Widens the stereo picture per band. The mono sum never changes.',
+  'dsp.dimension.lowWidth': 'Low width',
+  'dsp.dimension.midWidth': 'Mid width',
+  'dsp.dimension.highWidth': 'High width',
+  'dsp.dimension.lowHz': 'Low split',
+  'dsp.dimension.highHz': 'High split',
+  'dsp.dimension.decorrelation': 'Spread',
   'dsp.maximizer.title': 'Maximizer',
   'dsp.maximizer.description':
     'Raises the overall level without letting peaks pass the ceiling.',

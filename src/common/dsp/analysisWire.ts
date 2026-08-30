@@ -34,7 +34,7 @@ export const ANALYSIS_BINS = 1024;
 export const ANALYSIS_SCOPE_PAIRS = 256;
 
 /** The fixed header; its own fields say how much payload follows. */
-export const ANALYSIS_HEADER_BYTES = 64;
+export const ANALYSIS_HEADER_BYTES = 120;
 
 /** The rack ceiling, matching FEQ_METER_MAX_BANDS. */
 export const ANALYSIS_MAX_BANDS = 64;
@@ -80,4 +80,50 @@ export interface IHostAnalysis {
    * and all three shipped with no way to see any of it.
    */
   maximizerReductionDb: number;
+  /**
+   * How much widening Dimension is allowing, 1 wide open and 0 fully shut.
+   *
+   * The stage cannot be trusted without it. Scaling the side is safe
+   * arithmetic, but on material whose channels already cancel, widening takes
+   * away what a mono listener was going to hear — so the guard closes, and a
+   * dial that has stopped doing what it says has to say so.
+   */
+  dimensionGuard: number;
+  master: IHostAnalysisMaster;
+  normalizer: IHostAnalysisNormalizer;
+}
+
+/**
+ * Everything the Master card prints, measured by the tail that produced it.
+ *
+ * Auto Headroom and the final guard are two separate limiters and the card
+ * shows them separately, because they mean different things: the first is the
+ * chain reserving room for gain still to come, the second is a fault boundary
+ * that should read zero on every piece of music ever made.
+ */
+export interface IHostAnalysisMaster {
+  /** Auto Headroom's deepest reduction over the window, dB. Never positive. */
+  autoHeadroomReductionDb: number;
+  /** What Auto Headroom saw arriving, dBTP, floored at -120. */
+  autoHeadroomTruePeakDb: number;
+  /** The guard's own deepest reduction, dB. Never positive. */
+  safetyReductionDb: number;
+  /** What the guard saw arriving, dBTP, floored at -120. */
+  safetyTruePeakDb: number;
+  /** The DC baseline the blocker removed, dBFS, floored at -120. */
+  dcCorrectionDb: number;
+  /** Non-finite samples repaired over the window. */
+  repairedSamples: number;
+  /** The oversampling the true-peak detectors ran at. */
+  truePeakFactor: 1 | 2 | 4;
+  /** Whether the guard is armed; development may bypass it. */
+  safetyEnabled: boolean;
+}
+
+/** The Normalizer's before and after bars, and the gain between them. */
+export interface IHostAnalysisNormalizer {
+  /** Linear amplitude, peak with a 350 ms release, per channel. */
+  inputPeaks: readonly [number, number];
+  outputPeaks: readonly [number, number];
+  appliedGainDb: number;
 }

@@ -295,6 +295,18 @@ const dsp = {
   'dsp.compressor.release': 'Восстановление',
   'dsp.compressor.makeup': 'Компенсация',
 
+  'dsp.dimension.guard': 'Моно-защита',
+  'dsp.dimension.monoNote':
+    'Обрабатываются только боковые каналы, поэтому в моно звучит ровно так же, как без эффекта. Защита закрывается, если микс уже в противофазе.',
+  'dsp.dimension.title': 'Пространство',
+  'dsp.dimension.description':
+    'Расширяет стереокартину по полосам. Моносумма не меняется.',
+  'dsp.dimension.lowWidth': 'Ширина низа',
+  'dsp.dimension.midWidth': 'Ширина середины',
+  'dsp.dimension.highWidth': 'Ширина верха',
+  'dsp.dimension.lowHz': 'Раздел низа',
+  'dsp.dimension.highHz': 'Раздел верха',
+  'dsp.dimension.decorrelation': 'Рассеяние',
   'dsp.maximizer.title': 'Максимайзер',
   'dsp.maximizer.description':
     'Поднимает общий уровень, не давая пикам выйти за потолок.',

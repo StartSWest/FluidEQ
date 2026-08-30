@@ -33,7 +33,7 @@ import {
  * Scalars before the variable-length band array. Must equal
  * `FEQ_CHAIN_PARAM_LEAD` in `fluideq/chain.h`.
  */
-export const CHAIN_PARAM_LEAD = 70;
+export const CHAIN_PARAM_LEAD = 77;
 
 /** Fields per EQ band. Must equal `FEQ_CHAIN_BAND_PARAMS`. */
 export const CHAIN_BAND_PARAMS = 7;
@@ -67,7 +67,7 @@ export const encodeChainSettings = (
   settings: IDspSettings,
   options: IChainWireOptions = {},
 ): number[] => {
-  const { exciter, eq, compressor, maximizer, master } = settings;
+  const { exciter, eq, dimension, compressor, maximizer, master } = settings;
   const values: number[] = [
     settings.enabled ? 1 : 0,
     options.outputSafetyEnabled === false ? 0 : 1,
@@ -119,6 +119,13 @@ export const encodeChainSettings = (
     );
   }
   values.push(
+    dimension.enabled ? 1 : 0,
+    dimension.lowWidth,
+    dimension.midWidth,
+    dimension.highWidth,
+    dimension.lowHz,
+    dimension.highHz,
+    dimension.decorrelation,
     maximizer.enabled ? 1 : 0,
     maximizer.driveDb,
     maximizer.ceilingDb,

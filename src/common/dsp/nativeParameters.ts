@@ -179,6 +179,14 @@ export const NATIVE_DSP_PARAMETERS = [
   // stored automation would follow the number, not the path.
   { id: 1605, path: 'maximizer.driveDb', kind: 'number' },
 
+  { id: 1801, path: 'dimension.enabled', kind: 'boolean' },
+  { id: 1802, path: 'dimension.lowWidth', kind: 'number' },
+  { id: 1803, path: 'dimension.midWidth', kind: 'number' },
+  { id: 1804, path: 'dimension.highWidth', kind: 'number' },
+  { id: 1805, path: 'dimension.lowHz', kind: 'number' },
+  { id: 1806, path: 'dimension.highHz', kind: 'number' },
+  { id: 1807, path: 'dimension.decorrelation', kind: 'number' },
+
   { id: 1701, path: 'master.enabled', kind: 'boolean' },
   { id: 1702, path: 'master.outputTrimDb', kind: 'number' },
   { id: 1703, path: 'master.loudnessMaximize', kind: 'boolean' },

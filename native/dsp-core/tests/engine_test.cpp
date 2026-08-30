@@ -454,9 +454,103 @@ void test_kernel_handoff_survives_a_drag() {
   feq_chain_destroy(chain);
 }
 
+/**
+ * The look-ahead dial, dragged, which used to stop the music.
+ *
+ * The delay ring was sized from the CURRENT look-ahead, so every step of that
+ * dial built a new one on the command thread while the audio thread was
+ * reading the old one — and a new ring is full of zeros, which the limiter then
+ * emits. One step was a hole of silence as long as the look-ahead; a drag was a
+ * run of them. Reported as a crackle that became silence when moved quickly.
+ *
+ * Measured as block energy rather than as individual zero samples: the
+ * programme is a tone and a tone has zero crossings of its own.
+ */
+void test_maximizer_look_ahead_drag() {
+  std::printf("dragging the maximizer look-ahead\n");
+  const double rate = 48000.0;
+  const uint32_t frames = 512;
+  FeqChain* chain = feq_chain_create(rate, 2, frames);
+  check(chain != nullptr, "chain is created");
+  if (chain == nullptr) {
+    return;
+  }
+
+  FeqChainSettings settings;
+  feq_chain_settings_defaults(&settings);
+  settings.maximizer.enabled = 1;
+  settings.maximizer.drive_db = 0.0;
+  settings.maximizer.ceiling_db = -0.1;
+  settings.maximizer.look_ahead_ms = 5.0;
+  feq_chain_configure(chain, &settings);
+
+  std::vector<float> left(frames, 0.0f);
+  std::vector<float> right(frames, 0.0f);
+  float* channels[2] = {left.data(), right.data()};
+  double phase = 0.0;
+  const double step = 2.0 * 3.14159265358979323846 * 440.0 / rate;
+  auto fill = [&]() {
+    for (uint32_t at = 0; at < frames; ++at) {
+      const float value = static_cast<float>(std::sin(phase) * 0.5);
+      left[at] = value;
+      right[at] = value;
+      phase += step;
+    }
+  };
+  auto energy = [&]() {
+    double sum = 0.0;
+    for (uint32_t at = 0; at < frames; ++at) {
+      sum += static_cast<double>(left[at]) * static_cast<double>(left[at]);
+    }
+    return std::sqrt(sum / static_cast<double>(frames));
+  };
+
+  // Every delay in the chain has to fill before anything but silence comes out.
+  for (int block = 0; block < 16; ++block) {
+    fill();
+    feq_chain_process(chain, channels, frames);
+  }
+  const double reference = energy();
+  check(reference > 0.2, "the tone is arriving at all");
+
+  // The dial's own steps, one block apart, which is faster than a hand but the
+  // same sequence of messages a drag sends.
+  double quietest = reference;
+  for (double ms = 5.0; ms >= 1.0; ms -= 0.1) {
+    settings.maximizer.look_ahead_ms = ms;
+    feq_chain_configure(chain, &settings);
+    fill();
+    feq_chain_process(chain, channels, frames);
+    const double level = energy();
+    if (level < quietest) {
+      quietest = level;
+    }
+  }
+  check(quietest > reference * 0.8,
+        "the level holds through every step of the dial");
+
+  /**
+   * The positive control.
+   *
+   * "No drop in level" and "measured nothing" are the same result otherwise.
+   * A hole the size the shortest resize used to leave — 5 ms at this rate — is
+   * punched into a good block, and the same measure has to see it.
+   */
+  fill();
+  feq_chain_process(chain, channels, frames);
+  for (uint32_t at = 0; at < 240; ++at) {
+    left[at] = 0.0f;
+  }
+  check(energy() < reference * 0.8,
+        "and the measure does notice a hole that size");
+
+  feq_chain_destroy(chain);
+}
+
 int main() {
   std::printf("fluideq dsp-core, version %s, ABI %u\n", feq_core_version(),
               feq_core_abi_version());
+  test_maximizer_look_ahead_drag();
   test_linear_phase_engages();
   test_kernel_handoff_survives_a_drag();
   test_identity();

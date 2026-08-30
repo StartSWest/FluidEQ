@@ -90,6 +90,13 @@ int feq_chain_settings_decode(const double* values,
     band.makeup_db = next();
   }
 
+  out->dimension.enabled = flag();
+  out->dimension.low_width = next();
+  out->dimension.mid_width = next();
+  out->dimension.high_width = next();
+  out->dimension.low_hz = next();
+  out->dimension.high_hz = next();
+  out->dimension.decorrelation = next();
   out->maximizer.enabled = flag();
   out->maximizer.drive_db = next();
   out->maximizer.ceiling_db = next();

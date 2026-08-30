@@ -86,6 +86,17 @@ export const DSP_PRESETS: IDspPreset[] = [
       // preset that is already compressing before it gets here. Referenced by
       // id for the same reason the exciter profile above it is — one copy of
       // the numbers, in the catalogue the picker also reads.
+      // Lossy encoders fold the sides into joint stereo, so a little width here
+      // restores something the file lost rather than inventing it.
+      dimension: {
+        enabled: true,
+        lowWidth: 0.95,
+        midWidth: 1.1,
+        highWidth: 1.4,
+        lowHz: 200,
+        highHz: 3_000,
+        decorrelation: 0.35,
+      },
       maximizer: maximizerPresetSettings('default', true),
       master: DSP_DEFAULTS.master,
     },
@@ -125,6 +136,15 @@ export const DSP_PRESETS: IDspPreset[] = [
             makeupDb: 2,
           },
         ],
+      },
+      dimension: {
+        enabled: true,
+        lowWidth: 0.9,
+        midWidth: 1.1,
+        highWidth: 1.3,
+        lowHz: 200,
+        highHz: 3_000,
+        decorrelation: 0.3,
       },
       maximizer: maximizerPresetSettings('loud', true),
       master: DSP_DEFAULTS.master,
@@ -209,6 +229,17 @@ export const DSP_PRESETS: IDspPreset[] = [
       },
       // Broadcast wants a level that holds across a whole programme, which is
       // more drive than a music preset and a shorter release to match.
+      // Narrow on purpose: broadcast is heard in mono more often than not, and
+      // a wide mix that survives the fold-down still loses its picture.
+      dimension: {
+        enabled: true,
+        lowWidth: 0.8,
+        midWidth: 1.0,
+        highWidth: 1.1,
+        lowHz: 200,
+        highHz: 3_000,
+        decorrelation: 0.15,
+      },
       maximizer: maximizerPresetSettings('broadcast', true),
       master: DSP_DEFAULTS.master,
     },

@@ -1124,6 +1124,13 @@ bool render_chain(const Fixture& fixture, std::vector<float>& actual) {
     band.makeup_db = next();
   }
 
+  settings.dimension.enabled = flag();
+  settings.dimension.low_width = next();
+  settings.dimension.mid_width = next();
+  settings.dimension.high_width = next();
+  settings.dimension.low_hz = next();
+  settings.dimension.high_hz = next();
+  settings.dimension.decorrelation = next();
   settings.maximizer.enabled = flag();
   settings.maximizer.drive_db = next();
   settings.maximizer.ceiling_db = next();

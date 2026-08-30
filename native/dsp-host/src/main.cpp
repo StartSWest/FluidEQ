@@ -317,6 +317,22 @@ void drain_analysis(HostState& state) {
   feq_meters_read_exciter(state.meters, frame.exciter_bands,
                           &frame.exciter_organic);
   feq_meters_read_maximizer(state.meters, &frame.maximizer_reduction_db);
+  feq_meters_read_dimension(state.meters, &frame.dimension_guard);
+  FeqMasterTelemetry master{};
+  feq_meters_read_master(state.meters, &master);
+  frame.auto_headroom_reduction_db =
+      static_cast<float>(master.auto_headroom_reduction_db);
+  frame.auto_headroom_true_peak_db =
+      static_cast<float>(master.auto_headroom_true_peak_db);
+  frame.safety_reduction_db = static_cast<float>(master.safety_reduction_db);
+  frame.safety_true_peak_db = static_cast<float>(master.safety_true_peak_db);
+  frame.dc_correction_db = static_cast<float>(master.dc_correction_db);
+  frame.repaired_samples = static_cast<uint32_t>(master.repaired_samples);
+  frame.true_peak_factor = master.true_peak_factor;
+  frame.safety_enabled = master.safety_enabled != 0 ? 1u : 0u;
+  feq_meters_read_normalizer(state.meters, frame.normalizer_input_peaks,
+                             frame.normalizer_output_peaks,
+                             &frame.normalizer_applied_gain_db);
   frame.correlation = correlation;
   frame.peak_left = peaks[0];
   frame.peak_right = peaks[1];

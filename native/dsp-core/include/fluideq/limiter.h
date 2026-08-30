@@ -94,6 +94,23 @@ typedef struct FeqLinkedLimiter {
   float* gain_reduction_db;
   uint32_t channels;
   uint32_t capacity;
+  /**
+   * Emitted samples behind the write cursor, never more than `capacity - 1`.
+   *
+   * Held apart from the ring's size so it can move WHILE audio is running,
+   * which is the difference between turning the look-ahead dial and hearing
+   * the record stop. It used to be `capacity - 1` implicitly, so the only way
+   * to change it was to resize the delay — and resizing means allocating a new
+   * ring full of zeros on the command thread while the audio thread is reading
+   * the old one. A turn of the dial emitted a hole of silence as long as the
+   * look-ahead; a drag emitted a run of them, which is what a crackle is.
+   *
+   * The ring is now built once at the largest look-ahead the dial offers, and
+   * this is the only thing that changes. Moving it splices the read cursor by
+   * the difference — a step of a tenth of a millisecond, rather than up to
+   * twenty milliseconds of nothing.
+   */
+  uint32_t look_ahead;
   int64_t position;
   /** Fast detector with instantaneous attack and held exponential release. */
   double detector_gain;
@@ -115,6 +132,17 @@ void feq_linked_limiter_init(FeqLinkedLimiter* state,
 
 /** Clear gain control without emptying the continuously running audio delay. */
 void feq_linked_limiter_reset_control(FeqLinkedLimiter* state);
+
+/**
+ * Move the look-ahead without touching the audio already in the delay.
+ *
+ * Safe to call from the command thread while the audio thread is processing:
+ * it writes one integer that the next sample reads, and every buffer stays
+ * where it was. Values above `capacity - 1` are clamped to it, so a caller
+ * cannot ask the limiter to read outside its own ring.
+ */
+void feq_linked_limiter_set_look_ahead(FeqLinkedLimiter* state,
+                                       uint32_t look_ahead);
 
 /**
  * Limit every channel in place from one shared decision.

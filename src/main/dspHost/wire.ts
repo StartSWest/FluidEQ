@@ -377,6 +377,21 @@ export const analysisFrameLength = (header: Buffer): number => {
   );
 };
 
+/**
+ * The oversampling the guard measured at, or the safest reading of a bad one.
+ *
+ * The host sends 1, 2 or 4 and nothing else; a value outside that came from a
+ * frame this build does not understand, and the panel would print it beside a
+ * ceiling as though it were a fact. Four is the reading that overstates the
+ * measurement rather than understating it.
+ */
+const truePeakFactorFrom = (raw: number): 1 | 2 | 4 => {
+  if (raw === 1 || raw === 2) {
+    return raw;
+  }
+  return 4;
+};
+
 export const decodeAnalysis = (frame: Buffer): IHostAnalysis | undefined => {
   if (frame.length < ANALYSIS_HEADER_BYTES) {
     return undefined;
@@ -456,6 +471,22 @@ export const decodeAnalysis = (frame: Buffer): IHostAnalysis | undefined => {
     exciterOrganic: view.getFloat32(52, true),
     // Offset 56; 60 is the padding that keeps the struct eight-byte aligned.
     maximizerReductionDb: view.getFloat32(56, true),
+    dimensionGuard: view.getFloat32(60, true),
+    master: {
+      autoHeadroomReductionDb: view.getFloat32(64, true),
+      autoHeadroomTruePeakDb: view.getFloat32(68, true),
+      safetyReductionDb: view.getFloat32(72, true),
+      safetyTruePeakDb: view.getFloat32(76, true),
+      dcCorrectionDb: view.getFloat32(80, true),
+      repairedSamples: view.getUint32(84, true),
+      truePeakFactor: truePeakFactorFrom(view.getUint32(88, true)),
+      safetyEnabled: view.getUint32(92, true) !== 0,
+    },
+    normalizer: {
+      inputPeaks: [view.getFloat32(96, true), view.getFloat32(100, true)],
+      outputPeaks: [view.getFloat32(104, true), view.getFloat32(108, true)],
+      appliedGainDb: view.getFloat32(112, true),
+    },
     bandAmounts,
     bandLevels,
   };

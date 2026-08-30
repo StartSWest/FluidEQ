@@ -18,6 +18,7 @@ import DspEqBar from './DspEqBar';
 import DspEqCard from './DspEqCard';
 import DspCrossfadeCard from './DspCrossfadeCard';
 import DspExciterCard from './DspExciterCard';
+import DspDimensionCard from './DspDimensionCard';
 import DspMasterCard from './DspMasterCard';
 import DspMaximizerCard from './DspMaximizerCard';
 import DspNormalizerCard from './DspNormalizerCard';
@@ -69,8 +70,16 @@ const DspPanel = ({
   engineState,
 }: IDspPanelProps) => {
   const { t } = useTranslation();
-  const { normalizer, crossfade, eq, exciter, compressor, maximizer, master } =
-    settings;
+  const {
+    normalizer,
+    crossfade,
+    eq,
+    exciter,
+    dimension,
+    compressor,
+    maximizer,
+    master,
+  } = settings;
   /**
    * The rate the filters will actually run at, from the engine.
    *
@@ -233,6 +242,7 @@ const DspPanel = ({
             crossfade: crossfade.enabled,
             eq: eq.enabled,
             exciter: exciter.enabled,
+            dimension: dimension.enabled,
             compressor: compressor.enabled,
             maximizer: maximizer.enabled,
             master: master.enabled,
@@ -451,6 +461,14 @@ const DspPanel = ({
                 </div>
               ))}
             </ProcessorCard>
+          )}
+
+          {section === 'dimension' && (
+            <DspDimensionCard
+              dimension={dimension}
+              onPatch={(next) => patch({ dimension: next })}
+              onCommit={onCommit}
+            />
           )}
 
           {section === 'maximizer' && (

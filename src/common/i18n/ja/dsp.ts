@@ -288,6 +288,18 @@ const dsp = {
   'dsp.compressor.release': 'リリース',
   'dsp.compressor.makeup': 'メイクアップ',
 
+  'dsp.dimension.guard': 'モノラル保護',
+  'dsp.dimension.monoNote':
+    'サイド成分のみを処理するため、モノラルではオフのときと同じに聞こえます。位相が乱れた素材では保護が働きます。',
+  'dsp.dimension.title': 'ディメンション',
+  'dsp.dimension.description':
+    '帯域ごとにステレオ感を広げます。モノラル合成は変わりません。',
+  'dsp.dimension.lowWidth': '低域の広がり',
+  'dsp.dimension.midWidth': '中域の広がり',
+  'dsp.dimension.highWidth': '高域の広がり',
+  'dsp.dimension.lowHz': '低域分割',
+  'dsp.dimension.highHz': '高域分割',
+  'dsp.dimension.decorrelation': '拡散',
   'dsp.maximizer.title': 'マキシマイザー',
   'dsp.maximizer.description':
     'ピークが上限を超えないようにしながら全体の音量を上げます。',

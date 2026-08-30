@@ -13,6 +13,52 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <cmath>
 
+namespace {
+
+/**
+ * The loudest sample in each of the two meter channels.
+ *
+ * A mono source fills both, because the Normalizer card draws an L and an R
+ * bar unconditionally: leaving the second at zero would report the right
+ * channel as silent on material that has no right channel to be silent.
+ */
+void peak_pair(const float* const* channels,
+               uint32_t channel_count,
+               uint32_t frames,
+               double* out_peaks) {
+  out_peaks[0] = 0.0;
+  out_peaks[1] = 0.0;
+  const uint32_t span = channel_count < 2 ? channel_count : 2;
+  for (uint32_t channel = 0; channel < span; ++channel) {
+    double peak = 0.0;
+    for (uint32_t at = 0; at < frames; ++at) {
+      const double magnitude = std::fabs(static_cast<double>(
+          channels[channel][at]));
+      if (magnitude > peak) {
+        peak = magnitude;
+      }
+    }
+    out_peaks[channel] = peak;
+  }
+  if (span == 1) {
+    out_peaks[1] = out_peaks[0];
+  }
+}
+
+/** The bars, plus the gain that separates them, in the card's own units. */
+void chain_publish_normalizer_meter(FeqChain* chain,
+                                    const double* input_peaks,
+                                    const double* output_peaks,
+                                    uint32_t frames) {
+  const double applied_gain_db =
+      chain->input_gain_now > 1e-6 ? 20.0 * std::log10(chain->input_gain_now)
+                                   : -120.0;
+  feq_meters_publish_normalizer(chain->meters, input_peaks, output_peaks,
+                                applied_gain_db, frames, chain->sample_rate);
+}
+
+}  // namespace
+
 /**
  * The prevention stage before anything nonlinear can see the source.
  *
@@ -24,16 +70,19 @@ void chain_process_input_gain(FeqChain* chain, float* const* channels,
   if (frames == 0) {
     return;
   }
-  bool has_programme = false;
-  for (uint32_t channel = 0; channel < chain->channels && !has_programme;
-       ++channel) {
-    for (uint32_t at = 0; at < frames; ++at) {
-      if (std::fabs(channels[channel][at]) > 1e-8f) {
-        has_programme = true;
-        break;
-      }
-    }
-  }
+  /**
+   * The before-peaks and the silence test are the same scan.
+   *
+   * The Normalizer card's four bars and its applied-gain readout came from the
+   * worklet, which is a passthrough now — so they sat at silence with a
+   * constant 0.0 dB beside them however loud the track was. They are measured
+   * here because here is the only place that sees the signal on both sides of
+   * the gain.
+   */
+  double input_peaks[2] = {0.0, 0.0};
+  peak_pair(channels, chain->channels, frames, input_peaks);
+  const bool has_programme =
+      input_peaks[0] > 1e-8 || input_peaks[1] > 1e-8;
   if (!has_programme) {
     /**
      * Digital silence has no waveform to click and no musical time to ride.
@@ -46,6 +95,9 @@ void chain_process_input_gain(FeqChain* chain, float* const* channels,
     chain->input_gain_now = std::pow(10.0, chain->input_gain_target_db / 20.0);
     chain->master_loudness_now_db = chain->master_loudness_target_db;
     chain->transition_elapsed = chain->transition_frames;
+    // Published on the silent path too, or the bars stop where the music
+    // stopped and stay there.
+    chain_publish_normalizer_meter(chain, input_peaks, input_peaks, frames);
     return;
   }
 
@@ -79,6 +131,9 @@ void chain_process_input_gain(FeqChain* chain, float* const* channels,
     }
   }
   chain->input_gain_now = std::pow(10.0, next_db / 20.0);
+  double output_peaks[2] = {0.0, 0.0};
+  peak_pair(channels, chain->channels, frames, output_peaks);
+  chain_publish_normalizer_meter(chain, input_peaks, output_peaks, frames);
 }
 
 /** The hidden compressor, which stays a linked downstream stage. */
@@ -137,6 +192,36 @@ void chain_process_compressor(FeqChain* chain, float* const* channels,
  * Feeding the linked detector continuously also keeps its look-ahead current
  * while bypassed, so switching it on cannot replay a stale block.
  */
+/**
+ * Stereo width, and only when there are two channels to have width between.
+ *
+ * A mono chain has no side signal at all, so there is nothing here to scale and
+ * nothing to decorrelate. Calling the processor with one channel would read a
+ * second one that does not exist.
+ */
+void chain_process_dimension(FeqChain* chain, float* const* channels,
+                             uint32_t frames) {
+  if (chain->channels < 2) {
+    return;
+  }
+  if (chain->settings.dimension.enabled == 0) {
+    // Left settled rather than reset every block: switching the stage back on
+    // must not replay an all-pass network full of a minute-old signal.
+    feq_dimension_reset(&chain->dimension);
+    return;
+  }
+  FeqDimensionSettings settings{};
+  settings.enabled = 1;
+  settings.low_width = chain->settings.dimension.low_width;
+  settings.mid_width = chain->settings.dimension.mid_width;
+  settings.high_width = chain->settings.dimension.high_width;
+  settings.low_hz = chain->settings.dimension.low_hz;
+  settings.high_hz = chain->settings.dimension.high_hz;
+  settings.decorrelation = chain->settings.dimension.decorrelation;
+  feq_dimension_process(&chain->dimension, channels[0], channels[1], frames,
+                        &settings, chain->sample_rate);
+}
+
 void chain_process_maximizer(FeqChain* chain, float* const* channels,
                        uint32_t frames) {
   if (chain->maximizer.delay == nullptr) {
@@ -205,7 +290,14 @@ void chain_process_maximizer(FeqChain* chain, float* const* channels,
   // where the reduction is short and frequent.
   if (on) {
     double deepest = 0.0;
-    for (uint32_t at = 0; at < frames; ++at) {
+    // The whole ring, and NOT the first `frames` slots of it. The ring is the
+    // reduction in flight and its length is the look-ahead, which has nothing
+    // to do with the block size: at a 1 ms look-ahead it holds 49 floats while
+    // a block is 480, so reading one slot per frame read 431 floats past the
+    // end of the vector. Every slot is rewritten within one look-ahead, so
+    // scanning all of them also stops the meter missing a peak that lands
+    // between two blocks.
+    for (size_t at = 0; at < chain->maximizer_reduction.size(); ++at) {
       const double value = static_cast<double>(chain->maximizer_reduction[at]);
       if (value < deepest) {
         deepest = value;

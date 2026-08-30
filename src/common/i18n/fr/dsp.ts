@@ -296,6 +296,18 @@ const dsp = {
   'dsp.compressor.release': 'Relâchement',
   'dsp.compressor.makeup': 'Compensation',
 
+  'dsp.dimension.guard': 'Garde mono',
+  'dsp.dimension.monoNote':
+    'Seuls les côtés sont modifiés : en mono, le rendu est identique à celui obtenu sans cet effet. La garde se ferme si le mixage est déjà déphasé.',
+  'dsp.dimension.title': 'Dimension',
+  'dsp.dimension.description':
+    "Élargit l'image stéréo par bande. La somme mono ne change jamais.",
+  'dsp.dimension.lowWidth': 'Largeur graves',
+  'dsp.dimension.midWidth': 'Largeur médiums',
+  'dsp.dimension.highWidth': 'Largeur aigus',
+  'dsp.dimension.lowHz': 'Coupure grave',
+  'dsp.dimension.highHz': 'Coupure aiguë',
+  'dsp.dimension.decorrelation': 'Diffusion',
   'dsp.maximizer.title': 'Maximiseur',
   'dsp.maximizer.description':
     'Augmente le niveau global sans laisser les crêtes dépasser le plafond.',

@@ -43,7 +43,10 @@ import {
   setDspChannelPeaks,
   setDspCorrelation,
   setDspExciterActivity,
+  setDspDimensionGuard,
   setDspMaximizerReduction,
+  setDspNormalizerMeter,
+  setDspOutputSafetyMeter,
   setDspPeak,
   setDspScatter,
 } from './store';
@@ -185,6 +188,38 @@ export const createNativeMeters = (
     // Same reason: a limiter that is working looks exactly like one that is
     // not until the reduction is on screen.
     setDspMaximizerReduction(frame.maximizerReductionDb);
+    setDspDimensionGuard(frame.dimensionGuard);
+    /**
+     * The Master card's five readouts, which had no source at all.
+     *
+     * Auto headroom, True peak, Safety active, DC correction and faults were
+     * fed by the worklet's `outputSafety` message. The worklet is a passthrough
+     * now and posts nothing, so every one of them printed its construction
+     * default — 0.0 dB of reduction and a -120 dBFS peak — over a chain that
+     * was measuring all five and discarding them. Nothing about the card was
+     * broken; it was reading an engine that had stopped talking.
+     *
+     * Shaped here rather than in the store because the wire is flat and the
+     * store's type is not: Auto Headroom is a nested stage in the panel's model
+     * and two adjacent floats on the pipe.
+     */
+    setDspOutputSafetyMeter({
+      enabled: frame.master.safetyEnabled,
+      truePeakFactor: frame.master.truePeakFactor,
+      postFilterNormalizer: {
+        gainReductionDb: frame.master.autoHeadroomReductionDb,
+        inputTruePeakDb: frame.master.autoHeadroomTruePeakDb,
+      },
+      gainReductionDb: frame.master.safetyReductionDb,
+      inputTruePeakDb: frame.master.safetyTruePeakDb,
+      dcCorrectionDb: frame.master.dcCorrectionDb,
+      repairedSamples: frame.master.repairedSamples,
+    });
+    // The Normalizer's four bars, dead for the same reason and fixed the same
+    // way. The gain beside them is the one the engine is actually applying,
+    // not the one the settings ask for: they differ for two seconds after a
+    // background analysis lands, and that ramp is the thing worth seeing.
+    setDspNormalizerMeter(frame.normalizer);
     setDspCorrelation(frame.correlation);
     setDspChannelPeaks(frame.peaks);
     setDspPeak(Math.max(frame.peaks[0], frame.peaks[1]));

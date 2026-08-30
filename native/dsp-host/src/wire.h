@@ -274,8 +274,38 @@ typedef struct FeqWireAnalysisFrame {
   float exciter_organic;
   /** Deepest Maximizer reduction over the block, dB. Never positive. */
   float maximizer_reduction_db;
+  /**
+   * How much widening Dimension is allowing, 0 to 1.
+   *
+   * Occupies the float that was padding the pair above to eight-byte
+   * alignment, so the frame does not grow and no offset below it moves.
+   */
+  float dimension_guard;
+  /**
+   * The Master tail, and the Normalizer's bars.
+   *
+   * In the header for the same reason the exciter's four are: they are always
+   * available and there are a fixed number of them, so a length and an offset
+   * would be more protocol than the thing it describes. Present because the
+   * worklet used to post them and is a passthrough now — the Master card's five
+   * readouts and the Normalizer's four bars had no source at all, and printed
+   * their defaults over a chain that was measuring every one of them.
+   */
+  float auto_headroom_reduction_db;
+  float auto_headroom_true_peak_db;
+  float safety_reduction_db;
+  float safety_true_peak_db;
+  float dc_correction_db;
+  uint32_t repaired_samples;
+  /** 1, 2 or 4; the panel prints it beside the ceiling it was measured at. */
+  uint32_t true_peak_factor;
+  /** Development can bypass the guard, and the card says which state it is in. */
+  uint32_t safety_enabled;
+  float normalizer_input_peaks[2];
+  float normalizer_output_peaks[2];
+  float normalizer_applied_gain_db;
   /** Pads the struct to eight-byte alignment; the assert below names it. */
-  float reserved;
+  float reserved_tail;
 } FeqWireAnalysisFrame;
 
 #ifdef __cplusplus
@@ -293,7 +323,7 @@ static_assert(sizeof(FeqWireHandshake) == 104, "handshake frame size");
 static_assert(sizeof(FeqWireCommandFrame) == 32, "command frame size");
 static_assert(sizeof(FeqWireAckFrame) == 32, "ack frame size");
 static_assert(sizeof(FeqWireTelemetryFrame) == 88, "telemetry frame size");
-static_assert(sizeof(FeqWireAnalysisFrame) == 64, "analysis frame size");
+static_assert(sizeof(FeqWireAnalysisFrame) == 120, "analysis frame size");
 #endif
 
 #endif /* FLUIDEQ_HOST_WIRE_H */

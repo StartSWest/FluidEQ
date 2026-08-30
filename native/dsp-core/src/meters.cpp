@@ -125,6 +125,63 @@ struct BandWindow {
   std::atomic<uint32_t> count{0};
 };
 
+/**
+ * The floor every dB reading in this file lands on when there is nothing.
+ *
+ * Matches `amplitude_db` in `output_safety.cpp` and the `-120` the renderer's
+ * meters treat as "no signal", so a silent window reads the same whichever of
+ * the three produced the number.
+ */
+constexpr float kMeterFloorDb = -120.0f;
+
+/**
+ * Fold a value into a running minimum held by the audio thread.
+ *
+ * A compare-exchange loop rather than a store, because the reader clears the
+ * slot with an exchange and the two must not lose each other's work: a plain
+ * load-compare-store between the reader's take and its clear would resurrect
+ * the window that was just read. The loop is uncontended in practice — one
+ * audio thread writes, one control thread clears — so it retries approximately
+ * never, and it never blocks, which is the only property the callback needs.
+ */
+void fold_minimum(std::atomic<float>& slot, float value) {
+  float seen = slot.load(std::memory_order_relaxed);
+  while (value < seen &&
+         !slot.compare_exchange_weak(seen, value, std::memory_order_relaxed)) {
+  }
+}
+
+/** The same, for a peak hold. */
+void fold_maximum(std::atomic<float>& slot, float value) {
+  float seen = slot.load(std::memory_order_relaxed);
+  while (value > seen &&
+         !slot.compare_exchange_weak(seen, value, std::memory_order_relaxed)) {
+  }
+}
+
+/**
+ * A peak that falls at the Normalizer meter's own release, per block.
+ *
+ * 350 ms, the constant the worklet used, kept because the bars were tuned
+ * against it. Derived from `frames` and the rate rather than from the reporting
+ * interval so the fall time does not change when the host skips a frame.
+ */
+constexpr double kNormalizerReleaseMs = 350.0;
+
+void fold_released_peak(std::atomic<float>& slot,
+                        double value,
+                        uint32_t frames,
+                        double sample_rate) {
+  const double release_samples = (kNormalizerReleaseMs / 1000.0) * sample_rate;
+  const double decay =
+      release_samples > 0.0
+          ? std::exp(-static_cast<double>(frames) / release_samples)
+          : 0.0;
+  const double held = slot.load(std::memory_order_relaxed) * decay;
+  slot.store(static_cast<float>(value > held ? value : held),
+             std::memory_order_relaxed);
+}
+
 /** Blackman, which is the window `AnalyserNode` applies before its transform. */
 std::vector<double> blackman_window() {
   std::vector<double> window(FEQ_METER_WINDOW);
@@ -152,6 +209,29 @@ struct FeqMeters {
   std::atomic<float> exciter_organic{0.0f};
   /** Deepest gain reduction over the last block, in dB. Never positive. */
   std::atomic<float> maximizer_reduction_db{0.0f};
+  /** Dimension's mono guard: 1 wide open, 0 fully shut. */
+  std::atomic<float> dimension_guard{1.0f};
+  /**
+   * The Master tail's window, folded per block and cleared on read.
+   *
+   * Independent atomics rather than a seqlock, for the reason the exciter's
+   * four are: each is drawn as its own readout, so a reader that caught one
+   * from this window and the next from the one after is showing a number that
+   * is at worst one block stale, on a panel that repaints every sixteen
+   * milliseconds. There is no shape here to tear.
+   */
+  std::atomic<float> auto_headroom_reduction_db{0.0f};
+  std::atomic<float> auto_headroom_true_peak_db{kMeterFloorDb};
+  std::atomic<float> safety_reduction_db{0.0f};
+  std::atomic<float> safety_true_peak_db{kMeterFloorDb};
+  std::atomic<float> dc_correction_db{kMeterFloorDb};
+  std::atomic<uint32_t> repaired_samples{0};
+  std::atomic<uint32_t> true_peak_factor{4};
+  std::atomic<int> safety_enabled{1};
+  /** The Normalizer's bars: held peaks with their own release, never cleared. */
+  std::atomic<float> normalizer_input_peaks[2];
+  std::atomic<float> normalizer_output_peaks[2];
+  std::atomic<float> normalizer_applied_gain_db{0.0f};
   std::vector<double> window;
   /** Reader-side scratch, so the transform allocates nothing per frame. */
   std::vector<double> real;
@@ -184,6 +264,13 @@ FeqMeters* feq_meters_create(uint32_t channels) {
   }
   for (auto& band : meters->exciter_bands) {
     band.store(0.0f, std::memory_order_relaxed);
+  }
+  // An array of atomics takes no member initializer, so silence is set here.
+  for (uint32_t channel = 0; channel < 2; channel += 1) {
+    meters->normalizer_input_peaks[channel].store(0.0f,
+                                                  std::memory_order_relaxed);
+    meters->normalizer_output_peaks[channel].store(0.0f,
+                                                   std::memory_order_relaxed);
   }
   meters->bands.amounts.assign(FEQ_METER_MAX_BANDS, 0.0f);
   meters->bands.levels.assign(FEQ_METER_MAX_BANDS, 0.0f);
@@ -463,6 +550,112 @@ void feq_meters_read_maximizer(FeqMeters* meters, float* out_reduction_db) {
   }
   *out_reduction_db =
       meters->maximizer_reduction_db.load(std::memory_order_relaxed);
+}
+
+void feq_meters_publish_dimension(FeqMeters* meters, double guard) {
+  if (meters == nullptr ||
+      meters->enabled.load(std::memory_order_acquire) == 0) {
+    return;
+  }
+  meters->dimension_guard.store(static_cast<float>(guard),
+                                std::memory_order_relaxed);
+}
+
+void feq_meters_read_dimension(FeqMeters* meters, float* out_guard) {
+  if (meters == nullptr || out_guard == nullptr) {
+    return;
+  }
+  *out_guard = meters->dimension_guard.load(std::memory_order_relaxed);
+}
+
+void feq_meters_publish_master(FeqMeters* meters,
+                               const FeqMasterTelemetry* telemetry) {
+  if (meters == nullptr || telemetry == nullptr ||
+      meters->enabled.load(std::memory_order_acquire) == 0) {
+    return;
+  }
+  fold_minimum(meters->auto_headroom_reduction_db,
+               static_cast<float>(telemetry->auto_headroom_reduction_db));
+  fold_maximum(meters->auto_headroom_true_peak_db,
+               static_cast<float>(telemetry->auto_headroom_true_peak_db));
+  fold_minimum(meters->safety_reduction_db,
+               static_cast<float>(telemetry->safety_reduction_db));
+  fold_maximum(meters->safety_true_peak_db,
+               static_cast<float>(telemetry->safety_true_peak_db));
+  fold_maximum(meters->dc_correction_db,
+               static_cast<float>(telemetry->dc_correction_db));
+  if (telemetry->repaired_samples > 0) {
+    meters->repaired_samples.fetch_add(
+        static_cast<uint32_t>(telemetry->repaired_samples),
+        std::memory_order_relaxed);
+  }
+  // Configuration rather than measurement: the latest is the right one.
+  meters->true_peak_factor.store(telemetry->true_peak_factor,
+                                 std::memory_order_relaxed);
+  meters->safety_enabled.store(telemetry->safety_enabled != 0 ? 1 : 0,
+                               std::memory_order_relaxed);
+}
+
+void feq_meters_read_master(FeqMeters* meters, FeqMasterTelemetry* out) {
+  if (meters == nullptr || out == nullptr) {
+    return;
+  }
+  out->auto_headroom_reduction_db =
+      meters->auto_headroom_reduction_db.exchange(0.0f,
+                                                  std::memory_order_relaxed);
+  out->auto_headroom_true_peak_db =
+      meters->auto_headroom_true_peak_db.exchange(kMeterFloorDb,
+                                                  std::memory_order_relaxed);
+  out->safety_reduction_db =
+      meters->safety_reduction_db.exchange(0.0f, std::memory_order_relaxed);
+  out->safety_true_peak_db = meters->safety_true_peak_db.exchange(
+      kMeterFloorDb, std::memory_order_relaxed);
+  out->dc_correction_db =
+      meters->dc_correction_db.exchange(kMeterFloorDb,
+                                        std::memory_order_relaxed);
+  out->repaired_samples =
+      meters->repaired_samples.exchange(0, std::memory_order_relaxed);
+  out->true_peak_factor =
+      meters->true_peak_factor.load(std::memory_order_relaxed);
+  out->safety_enabled = meters->safety_enabled.load(std::memory_order_relaxed);
+}
+
+void feq_meters_publish_normalizer(FeqMeters* meters,
+                                   const double* input_peaks,
+                                   const double* output_peaks,
+                                   double applied_gain_db,
+                                   uint32_t frames,
+                                   double sample_rate) {
+  if (meters == nullptr || input_peaks == nullptr || output_peaks == nullptr ||
+      meters->enabled.load(std::memory_order_acquire) == 0) {
+    return;
+  }
+  for (uint32_t channel = 0; channel < 2; channel += 1) {
+    fold_released_peak(meters->normalizer_input_peaks[channel],
+                       input_peaks[channel], frames, sample_rate);
+    fold_released_peak(meters->normalizer_output_peaks[channel],
+                       output_peaks[channel], frames, sample_rate);
+  }
+  meters->normalizer_applied_gain_db.store(
+      static_cast<float>(applied_gain_db), std::memory_order_relaxed);
+}
+
+void feq_meters_read_normalizer(FeqMeters* meters,
+                                float* out_input_peaks,
+                                float* out_output_peaks,
+                                float* out_applied_gain_db) {
+  if (meters == nullptr || out_input_peaks == nullptr ||
+      out_output_peaks == nullptr || out_applied_gain_db == nullptr) {
+    return;
+  }
+  for (uint32_t channel = 0; channel < 2; channel += 1) {
+    out_input_peaks[channel] =
+        meters->normalizer_input_peaks[channel].load(std::memory_order_relaxed);
+    out_output_peaks[channel] = meters->normalizer_output_peaks[channel].load(
+        std::memory_order_relaxed);
+  }
+  *out_applied_gain_db =
+      meters->normalizer_applied_gain_db.load(std::memory_order_relaxed);
 }
 
 uint32_t feq_meters_read_bands(FeqMeters* meters,

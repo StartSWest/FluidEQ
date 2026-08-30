@@ -301,6 +301,18 @@ const dsp = {
   'dsp.compressor.release': 'Release',
   'dsp.compressor.makeup': 'Ausgleich',
 
+  'dsp.dimension.guard': 'Mono-Schutz',
+  'dsp.dimension.monoNote':
+    'Nur die Seiten werden verändert, in Mono klingt es also genau wie ohne. Der Schutz schließt, wenn eine Mischung bereits phasenverschoben ist.',
+  'dsp.dimension.title': 'Dimension',
+  'dsp.dimension.description':
+    'Verbreitert das Stereobild pro Band. Die Mono-Summe bleibt gleich.',
+  'dsp.dimension.lowWidth': 'Breite Bass',
+  'dsp.dimension.midWidth': 'Breite Mitten',
+  'dsp.dimension.highWidth': 'Breite Höhen',
+  'dsp.dimension.lowHz': 'Trennung tief',
+  'dsp.dimension.highHz': 'Trennung hoch',
+  'dsp.dimension.decorrelation': 'Streuung',
   'dsp.maximizer.title': 'Maximizer',
   'dsp.maximizer.description':
     'Hebt den Gesamtpegel an, ohne Spitzen über die Obergrenze zu lassen.',

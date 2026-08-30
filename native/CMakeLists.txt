@@ -76,6 +76,7 @@ add_library(fluideq-dsp-core STATIC
   dsp-core/src/linear_phase.cpp
   dsp-core/src/loudness.cpp
   dsp-core/src/crossfade.cpp
+  dsp-core/src/dimension.cpp
   dsp-core/src/meters.cpp
   dsp-core/src/chain.cpp
   dsp-core/src/chain_eq.cpp
@@ -108,6 +109,10 @@ add_test(NAME resampler COMMAND fluideq-resampler-test)
 add_executable(fluideq-exciter-test dsp-core/tests/exciter_test.cpp)
 target_link_libraries(fluideq-exciter-test PRIVATE fluideq-dsp-core feq_strict)
 add_test(NAME exciter COMMAND fluideq-exciter-test)
+
+add_executable(fluideq-dimension-test dsp-core/tests/dimension_test.cpp)
+target_link_libraries(fluideq-dimension-test PRIVATE fluideq-dsp-core feq_strict)
+add_test(NAME dimension COMMAND fluideq-dimension-test)
 
 add_executable(fluideq-meters-test dsp-core/tests/meters_test.cpp)
 target_link_libraries(fluideq-meters-test PRIVATE fluideq-dsp-core feq_strict)

@@ -279,6 +279,17 @@ const dsp = {
   'dsp.compressor.release': '释放时间',
   'dsp.compressor.makeup': '补偿增益',
 
+  'dsp.dimension.guard': '单声道保护',
+  'dsp.dimension.monoNote':
+    '只处理侧信号，因此单声道听感与关闭时完全相同。当混音本身已反相时，保护会自动收紧。',
+  'dsp.dimension.title': '空间感',
+  'dsp.dimension.description': '分频段展宽立体声像，单声道叠加始终不变。',
+  'dsp.dimension.lowWidth': '低频宽度',
+  'dsp.dimension.midWidth': '中频宽度',
+  'dsp.dimension.highWidth': '高频宽度',
+  'dsp.dimension.lowHz': '低频分频',
+  'dsp.dimension.highHz': '高频分频',
+  'dsp.dimension.decorrelation': '扩散',
   'dsp.maximizer.title': '最大化器',
   'dsp.maximizer.description': '提升整体音量，同时不让峰值超过上限。',
   'dsp.maximizer.drive': '推动',

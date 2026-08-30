@@ -11,6 +11,7 @@ import {
   EQ_MAX_BAND_COUNT,
   MASTER_LOUDNESS_GAIN_MAX_DB,
   MASTER_LOUDNESS_GAIN_MIN_DB,
+  MAXIMIZER_MAX_LOOK_AHEAD_MS,
 } from '../../../common/dsp/chain';
 import {
   ICrossoverState,
@@ -26,6 +27,7 @@ import {
   ILinkedLimiterState,
   createLinkedLimiterState,
   processLinkedLimiter,
+  setLinkedLimiterLookAhead,
 } from '../limiter';
 import {
   IExciterChannelState,
@@ -711,25 +713,34 @@ class DspProcessor extends AudioWorkletProcessor {
   }
 
   /**
-   * Replace the Maximizer limiter only when the look-ahead actually changed.
+   * Point the Maximizer's limiter at a new look-ahead inside the delay it has.
    *
-   * Rebuilding them on every settings message would drop the delay line's
-   * contents mid-stream, which is an audible click on every knob turn.
+   * The delay is built once, at the longest look-ahead the dial offers, and
+   * never replaced. Building it from the CURRENT look-ahead instead meant a new
+   * delay line on every step of that dial — and a new line is full of zeros, so
+   * the limiter emitted a hole of silence as long as the look-ahead. One step
+   * was a click; a drag was a run of them, which is the music stopping.
    */
   private rebuildLimiters(): void {
+    if (!this.maximizerLimiter) {
+      this.maximizerLimiter = createLinkedLimiterState(
+        CHANNELS,
+        Math.max(
+          1,
+          Math.round((MAXIMIZER_MAX_LOOK_AHEAD_MS / 1_000) * sampleRate),
+        ),
+        oversampleFactorForSampleRate(sampleRate),
+      );
+    }
     const samples = Math.max(
       1,
       Math.round((this.settings.maximizer.lookAheadMs / 1_000) * sampleRate),
     );
-    if (samples === this.lookAheadSamples && this.maximizerLimiter) {
+    if (samples === this.lookAheadSamples) {
       return;
     }
     this.lookAheadSamples = samples;
-    this.maximizerLimiter = createLinkedLimiterState(
-      CHANNELS,
-      samples,
-      oversampleFactorForSampleRate(sampleRate),
-    );
+    setLinkedLimiterLookAhead(this.maximizerLimiter, samples);
   }
 
   /**

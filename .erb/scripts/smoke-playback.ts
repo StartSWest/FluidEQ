@@ -126,6 +126,13 @@ const chainValues = (eqEnabled: boolean, gainDb: number): number[] => {
     values.push(-18, 2, 10, 120, 0);
   }
   values.push(
+    0, // dimension enabled
+    1,
+    1,
+    1,
+    200,
+    3000,
+    0,
     0, // maximizer enabled
     0, // maximizer drive
     -0.1,

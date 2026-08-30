@@ -563,6 +563,15 @@ export const setDspMaximizerReduction = (reductionDb: number): void => {
 
 export const readDspMaximizerReduction = (): number => maximizerReductionDb;
 
+/** How much widening Dimension is allowing, 1 wide open and 0 fully shut. */
+let dimensionGuard = 1;
+
+export const setDspDimensionGuard = (guard: number): void => {
+  dimensionGuard = guard;
+};
+
+export const readDspDimensionGuard = (): number => dimensionGuard;
+
 /**
  * Each dynamic band's own detected level, in dBFS, by band index.
  *

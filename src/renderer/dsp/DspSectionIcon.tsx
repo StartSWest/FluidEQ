@@ -38,6 +38,13 @@ const GLYPHS: Record<TDspSection, { frame: string; accent: string }> = {
     frame: 'M2 13.5 C4.6 13.5 4.6 8 7.2 8 C9.8 8 9.8 13.5 12.4 13.5',
     accent: 'M16 3.5 V8.5 M13.5 6 H18.5',
   },
+  // The two edges of the stereo field, and the picture pushed out to meet
+  // them. A double-headed arrow rather than a pair of speakers, because the
+  // dial sets how far the image spreads and not what is playing it.
+  dimension: {
+    frame: 'M3 4.5 V15.5 M17 4.5 V15.5',
+    accent: 'M6 10 H14 M8.4 7.6 L6 10 L8.4 12.4 M11.6 7.6 L14 10 L11.6 12.4',
+  },
   compressor: {
     frame: 'M3 17 L17 3',
     accent: 'M3 17 L8.5 11.5 C10.5 9.4 12 8.8 17 8.4',

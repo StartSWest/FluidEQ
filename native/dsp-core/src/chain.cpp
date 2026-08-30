@@ -32,23 +32,30 @@ void resize_slot(ChainEqSlot& slot, uint32_t frames, uint32_t latency) {
   feq_saturator_reset(&slot.fuzz);
 }
 
+/** The look-ahead the dial is asking for, in samples, inside the ring. */
+uint32_t maximizer_look_ahead_samples(const FeqChain* chain) {
+  const double asked = chain->settings.maximizer.look_ahead_ms;
+  const double capped =
+      asked > kMaximizerMaxLookAheadMs ? kMaximizerMaxLookAheadMs : asked;
+  const double samples = std::floor((capped / 1000.0) * chain->sample_rate +
+                                    0.5);
+  return samples < 1.0 ? 1u : static_cast<uint32_t>(samples);
+}
+
 /**
- * Rebuild the Maximizer's limiter only when the look-ahead actually moved.
+ * Build the Maximizer's limiter once, at the largest look-ahead the dial has.
  *
- * Rebuilding on every settings message drops the delay line's contents
- * mid-stream, which is an audible click on every knob turn.
+ * Only ever called while the device is stopped — `rebuild_chain_and_player`
+ * negotiates the rate, builds, and only then lets a callback in. Sizing this
+ * from the CURRENT look-ahead instead meant every step of that dial resized
+ * the ring from the command thread while the audio thread was reading it: the
+ * old buffer freed under it, the new one full of zeros. One step emitted a
+ * hole of silence as long as the look-ahead, and a drag emitted a run of them.
  */
-void rebuild_maximizer(FeqChain* chain) {
-  double samples = (chain->settings.maximizer.look_ahead_ms / 1000.0) *
-                   chain->sample_rate;
-  samples = std::floor(samples + 0.5);
-  uint32_t look_ahead = samples < 1.0 ? 1u : static_cast<uint32_t>(samples);
-  if (look_ahead == chain->maximizer_look_ahead &&
-      chain->maximizer.delay != nullptr) {
-    return;
-  }
-  chain->maximizer_look_ahead = look_ahead;
-  const uint32_t capacity = look_ahead + 1;
+void allocate_maximizer(FeqChain* chain) {
+  const uint32_t largest = static_cast<uint32_t>(std::floor(
+      (kMaximizerMaxLookAheadMs / 1000.0) * chain->sample_rate + 0.5));
+  const uint32_t capacity = (largest < 1u ? 1u : largest) + 1;
   chain->maximizer_detectors.assign(chain->channels, FeqTruePeak{});
   chain->maximizer_reduction.assign(capacity, 0.0f);
   chain->maximizer_delay_pointers.assign(chain->channels, nullptr);
@@ -62,6 +69,29 @@ void rebuild_maximizer(FeqChain* chain) {
       chain->maximizer_delay_pointers.data(), chain->maximizer_reduction.data(),
       chain->channels, capacity,
       feq_oversample_factor_for_sample_rate(chain->sample_rate));
+  chain->maximizer_look_ahead = maximizer_look_ahead_samples(chain);
+  feq_linked_limiter_set_look_ahead(&chain->maximizer,
+                                    chain->maximizer_look_ahead);
+}
+
+/**
+ * Point the limiter at a different distance inside the ring it already has.
+ *
+ * One integer, and the audio in the delay is left exactly where it is. Moving
+ * it splices the read cursor by the difference — a tenth of a millisecond per
+ * step of the dial, against the twenty milliseconds of silence a resize used
+ * to produce.
+ */
+void apply_maximizer_look_ahead(FeqChain* chain) {
+  if (chain->maximizer.delay == nullptr) {
+    return;
+  }
+  const uint32_t look_ahead = maximizer_look_ahead_samples(chain);
+  if (look_ahead == chain->maximizer_look_ahead) {
+    return;
+  }
+  chain->maximizer_look_ahead = look_ahead;
+  feq_linked_limiter_set_look_ahead(&chain->maximizer, look_ahead);
 }
 
 void chain_encode_mid_side_impl(float* const* channels, uint32_t frames) {
@@ -172,7 +202,25 @@ FeqChain* feq_chain_create(double sample_rate,
     chain_prepare_exciter_path(chain, path);
   }
 
-  rebuild_maximizer(chain);
+  const uint32_t dimension_capacity =
+      feq_dimension_allpass_capacity(sample_rate);
+  chain->dimension_side.assign(frames, 0.0f);
+  chain->dimension_low.assign(frames, 0.0f);
+  chain->dimension_mid.assign(frames, 0.0f);
+  chain->dimension_high.assign(frames, 0.0f);
+  chain->dimension_wet.assign(frames, 0.0f);
+  chain->dimension_allpass_pointers.assign(FEQ_DIMENSION_ALLPASSES, nullptr);
+  for (uint32_t at = 0; at < FEQ_DIMENSION_ALLPASSES; ++at) {
+    chain->dimension_allpass[at].assign(dimension_capacity, 0.0f);
+    chain->dimension_allpass_pointers[at] = chain->dimension_allpass[at].data();
+  }
+  feq_dimension_init(&chain->dimension, chain->dimension_side.data(),
+                     chain->dimension_low.data(), chain->dimension_mid.data(),
+                     chain->dimension_high.data(), chain->dimension_wet.data(),
+                     chain->dimension_allpass_pointers.data(),
+                     dimension_capacity);
+
+  allocate_maximizer(chain);
 
   const uint32_t post_capacity =
       feq_post_filter_normalizer_look_ahead(sample_rate) + 1;
@@ -274,7 +322,7 @@ void feq_chain_configure(FeqChain* chain, const FeqChainSettings* settings) {
       chain->settings.eq.oversample != 4) {
     chain->settings.eq.oversample = 1;
   }
-  rebuild_maximizer(chain);
+  apply_maximizer_look_ahead(chain);
   chain_refresh_eq(chain);
   // After the bands, because it is built from the same settings and the guard
   // inside it decides whether anything is done at all. This is what makes
@@ -432,7 +480,12 @@ void feq_chain_process(FeqChain* chain, float* const* channels,
           chain->band_dynamics[band].active != 0
               ? chain->band_dynamics[band].amount
               : 1.0;
-      chain->band_level_scratch[band] = chain->band_dynamics[band].envelope;
+      // In dB, because that is the scale the line is plotted on. See
+      // `feq_meters_publish_bands`: the raw envelope read as a level just
+      // under 0 dB whatever the band was hearing.
+      const double envelope = chain->band_dynamics[band].envelope;
+      chain->band_level_scratch[band] =
+          envelope > 1e-6 ? 20.0 * std::log10(envelope) : -120.0;
     }
     feq_meters_publish_bands(
         chain->meters, chain->band_amount_scratch.data(),
@@ -442,6 +495,17 @@ void feq_chain_process(FeqChain* chain, float* const* channels,
                                   : FEQ_METER_MAX_BANDS));
   }
 
+  /**
+   * Width before the dynamics, and that position is forced rather than chosen.
+   *
+   * Anything that changes level has to happen before the ceiling holds it, or
+   * the widening pushes peaks back over a limit the Maximizer has already
+   * enforced. Before the compressor too, so the compressor is deciding about
+   * the signal that will actually be heard.
+   */
+  chain_process_dimension(chain, channels, frames);
+  feq_meters_publish_dimension(chain->meters,
+                               feq_dimension_guard(&chain->dimension));
   chain_process_compressor(chain, channels, frames);
   chain_process_maximizer(chain, channels, frames);
   // What it is holding down, which the spectrum cannot show either: a limiter
@@ -483,6 +547,31 @@ void feq_chain_process(FeqChain* chain, float* const* channels,
     options.release_hold_samples = 0.0;
     feq_output_safety_process(&chain->safety, channels, frames, &options);
   }
+
+  /**
+   * What the Master tail just did, for the card that claims to show it.
+   *
+   * Taken unconditionally, including while the panel is closed and while
+   * safety is bypassed. Both stages hold their readings until something takes
+   * them, so skipping the take would let a reduction from minutes ago be the
+   * first thing displayed when the tab is opened — a meter reporting a peak
+   * event that is over. Taking costs five `log10` calls a block.
+   */
+  const FeqPostFilterNormalizerTelemetry headroom_report =
+      feq_post_filter_normalizer_take_telemetry(&chain->post_normalizer);
+  const FeqOutputSafetyTelemetry safety_report =
+      feq_output_safety_take_telemetry(&chain->safety);
+  FeqMasterTelemetry master_report{};
+  master_report.auto_headroom_reduction_db = headroom_report.gain_reduction_db;
+  master_report.auto_headroom_true_peak_db =
+      headroom_report.input_true_peak_db;
+  master_report.safety_reduction_db = safety_report.gain_reduction_db;
+  master_report.safety_true_peak_db = safety_report.input_true_peak_db;
+  master_report.dc_correction_db = safety_report.dc_correction_db;
+  master_report.repaired_samples = safety_report.repaired_samples;
+  master_report.true_peak_factor = safety_report.true_peak_factor;
+  master_report.safety_enabled = chain->settings.output_safety_enabled;
+  feq_meters_publish_master(chain->meters, &master_report);
 
   // Last, after safety, because this is the one tap that has to be what leaves
   // for the device. A master meter read before the final limiter would show a

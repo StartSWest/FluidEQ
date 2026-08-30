@@ -296,6 +296,18 @@ const dsp = {
   'dsp.compressor.release': 'Relajación',
   'dsp.compressor.makeup': 'Compensación',
 
+  'dsp.dimension.guard': 'Protección mono',
+  'dsp.dimension.monoNote':
+    'Solo se tocan los laterales, así que en mono se oye exactamente lo mismo que con esto apagado. La protección se cierra si la mezcla ya está desfasada.',
+  'dsp.dimension.title': 'Dimensión',
+  'dsp.dimension.description':
+    'Ensancha la imagen estéreo por banda. La suma mono nunca cambia.',
+  'dsp.dimension.lowWidth': 'Ancho graves',
+  'dsp.dimension.midWidth': 'Ancho medios',
+  'dsp.dimension.highWidth': 'Ancho agudos',
+  'dsp.dimension.lowHz': 'Corte grave',
+  'dsp.dimension.highHz': 'Corte agudo',
+  'dsp.dimension.decorrelation': 'Difusión',
   'dsp.maximizer.title': 'Maximizador',
   'dsp.maximizer.description':
     'Sube el nivel general sin dejar que los picos pasen del techo.',

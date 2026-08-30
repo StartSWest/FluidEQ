@@ -9,7 +9,9 @@ import {
   createLimiterState,
   processLinkedLimiter,
   processLimiter,
+  setLinkedLimiterLookAhead,
 } from '../../../renderer/dsp/limiter';
+import { MAXIMIZER_MAX_LOOK_AHEAD_MS } from '../../../common/dsp/chain';
 
 const LOOK_AHEAD = 64;
 const CEILING = 0.5;
@@ -146,6 +148,87 @@ describe('look-ahead limiter', () => {
     expect(peak(buffer.subarray(LOOK_AHEAD + 32))).toBeLessThanOrEqual(
       CEILING + STARTUP_TOLERANCE,
     );
+  });
+});
+
+/**
+ * The Maximizer's look-ahead dial, which used to stop the music.
+ *
+ * The ring was sized from the CURRENT look-ahead, so every step of the dial
+ * built a new one — and a new delay line is full of zeros, which the limiter
+ * then emits. A single step was a hole of silence as long as the look-ahead;
+ * dragging the dial was a run of them, reported as a crackle that became
+ * silence when moved quickly.
+ *
+ * The positive control beside this is the point. A test that only asserts
+ * "no silence" passes just as well against a limiter that has stopped
+ * processing altogether, so the second case rebuilds the state the old way and
+ * requires the silence to appear.
+ */
+describe('moving the linked limiter look-ahead', () => {
+  const RATE = 48_000;
+  const LONGEST = Math.round((MAXIMIZER_MAX_LOOK_AHEAD_MS / 1_000) * RATE);
+  const BLOCK = 512;
+  const STEP_OPTIONS = {
+    ceiling: 1,
+    releaseCoefficient: Math.exp(-1 / ((100 / 1_000) * RATE)),
+    kneeDb: 0,
+    sampleRate: RATE,
+  };
+
+  /** Flat and well under the ceiling: nothing here should be reduced at all. */
+  const programme = (): Float32Array[] => [
+    new Float32Array(BLOCK).fill(0.5),
+    new Float32Array(BLOCK).fill(0.5),
+  ];
+
+  const silentSamples = (block: Float32Array[]): number =>
+    block[0].reduce(
+      (count, value) => (Math.abs(value) < 1e-6 ? count + 1 : count),
+      0,
+    );
+
+  /** Every dial step from 5 ms down to 1 ms, one block apart. */
+  const STEPS: number[] = [];
+  for (let samples = 240; samples >= 48; samples -= 5) {
+    STEPS.push(samples);
+  }
+
+  it('emits no silence while the look-ahead is dragged', () => {
+    const state = createLinkedLimiterState(2, LONGEST, 4);
+    setLinkedLimiterLookAhead(state, 240);
+    for (let block = 0; block < 8; block += 1) {
+      processLinkedLimiter(state, programme(), STEP_OPTIONS);
+    }
+    let silence = 0;
+    STEPS.forEach((samples) => {
+      setLinkedLimiterLookAhead(state, samples);
+      const block = programme();
+      processLinkedLimiter(state, block, STEP_OPTIONS);
+      silence += silentSamples(block);
+    });
+    expect(silence).toBe(0);
+  });
+
+  it('POSITIVE CONTROL: rebuilding the state instead does emit silence', () => {
+    let state = createLinkedLimiterState(2, 240, 4);
+    for (let block = 0; block < 8; block += 1) {
+      processLinkedLimiter(state, programme(), STEP_OPTIONS);
+    }
+    let silence = 0;
+    STEPS.forEach((samples) => {
+      state = createLinkedLimiterState(2, samples, 4);
+      const block = programme();
+      processLinkedLimiter(state, block, STEP_OPTIONS);
+      silence += silentSamples(block);
+    });
+    expect(silence).toBeGreaterThan(0);
+  });
+
+  it('keeps the ring when the dial reaches its own maximum', () => {
+    const state = createLinkedLimiterState(2, LONGEST, 4);
+    setLinkedLimiterLookAhead(state, LONGEST * 4);
+    expect(state.lookAhead).toBe(LONGEST);
   });
 });
 

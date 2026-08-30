@@ -291,6 +291,18 @@ const dsp = {
   'dsp.compressor.release': 'रिलीज़',
   'dsp.compressor.makeup': 'मेकअप',
 
+  'dsp.dimension.guard': 'मोनो सुरक्षा',
+  'dsp.dimension.monoNote':
+    'केवल साइड सिग्नल बदला जाता है, इसलिए मोनो में वही सुनाई देता है जो इसे बंद रखने पर। मिक्स पहले से आउट-ऑफ-फेज़ हो तो सुरक्षा बंद हो जाती है।',
+  'dsp.dimension.title': 'डाइमेंशन',
+  'dsp.dimension.description':
+    'प्रति बैंड स्टीरियो छवि चौड़ी करता है। मोनो योग कभी नहीं बदलता।',
+  'dsp.dimension.lowWidth': 'लो चौड़ाई',
+  'dsp.dimension.midWidth': 'मिड चौड़ाई',
+  'dsp.dimension.highWidth': 'हाई चौड़ाई',
+  'dsp.dimension.lowHz': 'लो विभाजन',
+  'dsp.dimension.highHz': 'हाई विभाजन',
+  'dsp.dimension.decorrelation': 'फैलाव',
   'dsp.maximizer.title': 'मैक्सिमाइज़र',
   'dsp.maximizer.description':
     'शिखरों को सीमा से ऊपर जाने दिए बिना कुल स्तर बढ़ाता है।',

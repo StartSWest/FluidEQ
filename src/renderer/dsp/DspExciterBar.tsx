@@ -167,6 +167,12 @@ const DspExciterBar = ({
           }}
         />
       </div>
+
+      {/* What the processor is, as the bar's own last line rather than as the
+          card's description. As a description it was 441px of prose holding the
+          position the EQ gives its preset picker, and it left this bar's two
+          controls wrapping onto a second row in the space that was left. */}
+      <p className="dsp-exciter-note">{t('dsp.exciter.description')}</p>
     </div>
   );
 };

@@ -167,8 +167,14 @@ int feq_meters_read_scope(FeqMeters* meters,
  * **Audio thread.**
  *
  * `amounts` is 0 to 1 per band — always 1 for a static band, which is what
- * makes it static — and `levels` is each band's own detected envelope as a
- * linear amplitude, which is the quantity its threshold is compared against.
+ * makes it static — and `levels` is each band's own detected envelope **in dB**,
+ * floored at -120, which is the quantity its threshold is compared against.
+ *
+ * dB and not the linear envelope the detector holds, because `DspEqGraph` plots
+ * this against `thresholdDb` on a decibel scale and fades the line out below
+ * the spectrum floor. Handed the raw envelope it read 0.25 as "0.25 dB": never
+ * below the floor, so never faded, and pinned just under 0 dB whatever the band
+ * was hearing. The worklet converted before sending and this has to as well.
  *
  * Reported at all because a dynamic band is the one control in the rack whose
  * effect cannot be drawn from its settings. The curve is drawn at full strength
@@ -195,8 +201,91 @@ void feq_meters_publish_exciter(FeqMeters* meters,
 /** What the Maximizer is holding down, in dB. **Audio thread.** */
 void feq_meters_publish_maximizer(FeqMeters* meters, double reduction_db);
 
+/** How much widening Dimension is allowing, 0 to 1. **Audio thread.** */
+void feq_meters_publish_dimension(FeqMeters* meters, double guard);
+
+/** The published Dimension guard. **Control thread.** */
+void feq_meters_read_dimension(FeqMeters* meters, float* out_guard);
+
 /** The published Maximizer reduction. **Control thread.** */
 void feq_meters_read_maximizer(FeqMeters* meters, float* out_reduction_db);
+
+/**
+ * What the Master tail did to this block: Auto Headroom, then the guard.
+ *
+ * Every number the Master card prints — Auto headroom, True peak, Safety
+ * active, DC correction, faults — used to arrive in the worklet's `outputSafety`
+ * message. The worklet is a passthrough now and posts nothing, so all five sat
+ * at their construction defaults for the life of the app while the C++ chain
+ * measured them and threw them away: `feq_output_safety_take_telemetry` and
+ * `feq_post_filter_normalizer_take_telemetry` were compiled and called by
+ * nobody. A Master showing "Auto headroom 0.0 dB" while it is holding the
+ * signal down six decibels is worse than one showing nothing, because it is a
+ * measurement and it is wrong.
+ */
+typedef struct FeqMasterTelemetry {
+  /** Auto Headroom's deepest gain over the window, dB. Never positive. */
+  double auto_headroom_reduction_db;
+  /** What Auto Headroom saw arriving, dBTP. */
+  double auto_headroom_true_peak_db;
+  /** The final guard's own deepest gain, dB. Never positive. */
+  double safety_reduction_db;
+  /** What the final guard saw arriving, dBTP. */
+  double safety_true_peak_db;
+  /** The estimated DC baseline the blocker removed, dBFS. */
+  double dc_correction_db;
+  /** Samples repaired because they arrived non-finite, over the window. */
+  uint64_t repaired_samples;
+  /** 1, 2 or 4: the oversampling the true-peak detectors are running at. */
+  uint32_t true_peak_factor;
+  /** Whether the guard is armed at all; development may bypass it. */
+  int safety_enabled;
+} FeqMasterTelemetry;
+
+/**
+ * Fold one block's Master readings into the window. **Audio thread.**
+ *
+ * Folded rather than stored, because the reader runs at about a fifth of the
+ * rate this is called at: the deepest reduction and the highest peak in a
+ * window are what the meter is for, and storing only the last block would drop
+ * four blocks in five and miss precisely the transient that caused the
+ * reduction being displayed.
+ */
+void feq_meters_publish_master(FeqMeters* meters,
+                               const FeqMasterTelemetry* telemetry);
+
+/**
+ * The folded window, cleared as it is taken. **Control thread.**
+ *
+ * Cleared here rather than decayed, matching the interval the worklet reported
+ * over: the next window has to be able to say "nothing happened", and a hold
+ * that survives its own read cannot.
+ */
+void feq_meters_read_master(FeqMeters* meters, FeqMasterTelemetry* out);
+
+/**
+ * The Normalizer's before and after peaks, and the gain between them.
+ * **Audio thread.**
+ *
+ * Peak-with-release rather than peak-per-window, and the release is computed
+ * from `frames` and the device rate here rather than applied by the reader.
+ * The worklet decayed these once per report interval, which only holds while
+ * the reader's cadence is fixed; the host's is not — it skips a frame whenever
+ * no stage published a window. Deriving it from the block keeps the fall time
+ * the same 350 ms it has always been however often the panel asks.
+ */
+void feq_meters_publish_normalizer(FeqMeters* meters,
+                                   const double* input_peaks,
+                                   const double* output_peaks,
+                                   double applied_gain_db,
+                                   uint32_t frames,
+                                   double sample_rate);
+
+/** The held Normalizer peaks. **Control thread.** Not cleared: they decay. */
+void feq_meters_read_normalizer(FeqMeters* meters,
+                                float* out_input_peaks,
+                                float* out_output_peaks,
+                                float* out_applied_gain_db);
 
 /** The published exciter activity. **Control thread.** */
 void feq_meters_read_exciter(FeqMeters* meters,

@@ -18,6 +18,7 @@ export type TDspSection =
   | 'crossfade'
   | 'eq'
   | 'exciter'
+  | 'dimension'
   | 'compressor'
   | 'maximizer'
   | 'master';
@@ -34,6 +35,7 @@ export const DSP_SECTIONS: { id: TDspSection; labelKey: TranslationKey }[] = [
   { id: 'crossfade', labelKey: 'dsp.crossfade.title' },
   { id: 'exciter', labelKey: 'dsp.exciter.title' },
   { id: 'eq', labelKey: 'dsp.eq.title' },
+  { id: 'dimension', labelKey: 'dsp.dimension.title' },
   // Keep the processor in the DSP chain, but hide its editor until it is ready.
   { id: 'maximizer', labelKey: 'dsp.maximizer.title' },
   { id: 'master', labelKey: 'dsp.master.title' },
