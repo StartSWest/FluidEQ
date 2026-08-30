@@ -21,6 +21,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "fluideq/chain.h"
 
+#include "fluideq/bass_forge.h"
+#include "fluideq/bass_punch.h"
 #include "fluideq/compressor.h"
 #include "fluideq/convolver.h"
 #include "fluideq/dimension.h"
@@ -291,6 +293,29 @@ struct FeqChain {
   std::vector<FeqTruePeak> maximizer_detectors;
   std::vector<float> maximizer_delay[FEQ_CHAIN_CHANNELS];
   std::vector<float*> maximizer_delay_pointers;
+  /* --------------------------------------------------------- bass forge -- */
+  FeqBassForge bass_forge{};
+  /** Both at two channels of the largest block: the stage never allocates. */
+  std::vector<float> bass_forge_low;
+  std::vector<float> bass_forge_scratch;
+
+  /* --------------------------------------------------------- bass punch -- */
+  FeqBassPunch bass_punch{};
+  std::vector<float> bass_punch_low;
+  /**
+   * Four lines, not three: `FEQ_BASS_PUNCH_BLOOM_LINES` is the three combs
+   * plus the all-pass behind them, and `feq_bass_punch_init` reads
+   * `bloom_buffers[FEQ_BASS_PUNCH_COMBS]` for that last one.
+   *
+   * Every line is sized at the LONGEST delay any rate needs, once, and never
+   * resized — `feq_chain_configure` runs on the command thread with no lock,
+   * so a line replaced while the decay dial is dragged is freed under the
+   * audio thread and comes back full of zeros. That is the lesson the
+   * Maximizer's look-ahead ring paid for.
+   */
+  std::vector<float> bass_punch_bloom[FEQ_BASS_PUNCH_BLOOM_LINES];
+  std::vector<float*> bass_punch_bloom_pointers;
+
   /* ---------------------------------------------------------- dimension -- */
   FeqDimension dimension{};
   std::vector<float> dimension_side;
@@ -344,11 +369,15 @@ struct FeqChain {
   float* pointers_d[FEQ_CHAIN_CHANNELS] = {nullptr, nullptr};
 };
 
-/** The four stages that are one loop each, from `chain_stages.cpp`. */
+/** The stages that are one call each, from `chain_stages.cpp`. */
 void chain_process_input_gain(FeqChain* chain, float* const* channels,
                               uint32_t frames);
 void chain_process_dimension(FeqChain* chain, float* const* channels,
                              uint32_t frames);
+void chain_process_bass_forge(FeqChain* chain, float* const* channels,
+                              uint32_t frames);
+void chain_process_bass_punch(FeqChain* chain, float* const* channels,
+                              uint32_t frames);
 void chain_process_compressor(FeqChain* chain, float* const* channels,
                               uint32_t frames);
 void chain_process_maximizer(FeqChain* chain, float* const* channels,

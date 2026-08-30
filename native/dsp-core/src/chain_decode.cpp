@@ -110,6 +110,26 @@ int feq_chain_settings_decode(const double* values,
   out->master.ceiling_db = next();
   out->master.release_ms = next();
 
+  // Before the band count and not after it, matching `encodeChainSettings`.
+  // The band count is the slot the length check reads to size the band array,
+  // so a stage appended behind it keeps every payload valid and shifts every
+  // band by one field into something that still decodes.
+  out->bass_forge.enabled = flag();
+  out->bass_forge.split_hz = next();
+  out->bass_forge.drive_db = next();
+  out->bass_forge.sub_amount = next();
+  out->bass_forge.presence_amount = next();
+  out->bass_forge.texture = next();
+  out->bass_forge.mix = next();
+
+  out->bass_punch.enabled = flag();
+  out->bass_punch.split_hz = next();
+  out->bass_punch.attack = next();
+  out->bass_punch.sustain = next();
+  out->bass_punch.bloom_amount = next();
+  out->bass_punch.bloom_decay_ms = next();
+  out->bass_punch.duck = next();
+
   out->eq.band_count = static_cast<uint32_t>(next());
   if (at != FEQ_CHAIN_PARAM_LEAD) {
     return 0;

@@ -143,6 +143,13 @@ void feq_chain_settings_defaults(FeqChainSettings* settings) {
     band.release_ms = 120.0;
     band.makeup_db = 0.0;
   }
+  // Both bass stages off, and every generator at rest under that. A decoder
+  // that failed halfway leaves these, so the resting values have to be the
+  // bit-exact bypass rather than a pleasant-sounding starting point.
+  settings->bass_forge.split_hz = 90.0;
+  settings->bass_forge.texture = 0.8;
+  settings->bass_punch.split_hz = 110.0;
+  settings->bass_punch.bloom_decay_ms = 120.0;
   settings->maximizer.ceiling_db = -0.1;
   settings->maximizer.look_ahead_ms = 5.0;
   settings->maximizer.release_ms = 150.0;
@@ -201,6 +208,26 @@ FeqChain* feq_chain_create(double sample_rate,
   for (uint32_t path = 0; path < kExciterPaths; ++path) {
     chain_prepare_exciter_path(chain, path);
   }
+
+  /**
+   * Two channels of the largest block each, because both stages work on a low
+   * band they split off and hand back, and neither may allocate to do it.
+   */
+  const size_t stereo_block = static_cast<size_t>(frames) * 2;
+  chain->bass_forge_low.assign(stereo_block, 0.0f);
+  chain->bass_forge_scratch.assign(stereo_block, 0.0f);
+  feq_bass_forge_init(&chain->bass_forge, chain->bass_forge_low.data(),
+                      chain->bass_forge_scratch.data());
+
+  const uint32_t bloom_capacity = feq_bass_punch_bloom_capacity(sample_rate);
+  chain->bass_punch_low.assign(stereo_block, 0.0f);
+  chain->bass_punch_bloom_pointers.assign(FEQ_BASS_PUNCH_BLOOM_LINES, nullptr);
+  for (uint32_t at = 0; at < FEQ_BASS_PUNCH_BLOOM_LINES; ++at) {
+    chain->bass_punch_bloom[at].assign(bloom_capacity, 0.0f);
+    chain->bass_punch_bloom_pointers[at] = chain->bass_punch_bloom[at].data();
+  }
+  feq_bass_punch_init(&chain->bass_punch, chain->bass_punch_low.data(),
+                      chain->bass_punch_bloom_pointers.data(), bloom_capacity);
 
   const uint32_t dimension_capacity =
       feq_dimension_allpass_capacity(sample_rate);
@@ -394,6 +421,11 @@ void feq_chain_reset(FeqChain* chain, FeqChainResetReason reason) {
     feq_compressor_reset(&compressor);
   }
   feq_linked_limiter_reset_control(&chain->maximizer);
+  // A seek or a new source must not arrive with the previous passage's bloom
+  // tail still decaying under it, which is what these two hold that no filter
+  // history above does.
+  feq_bass_forge_reset(&chain->bass_forge);
+  feq_bass_punch_reset(&chain->bass_punch);
 
   if (reason == FEQ_CHAIN_RESET_SOURCE_CHANGE) {
     /**
@@ -448,6 +480,14 @@ void feq_chain_process(FeqChain* chain, float* const* channels,
   chain_process_input_gain(chain, channels, frames);
 
   chain_process_exciter(chain, channels, frames);
+  /**
+   * Forge after the Exciter because both of them generate.
+   *
+   * They are the chain's two synthesis stages and they sit together, ahead of
+   * the EQ, so the EQ is shaping everything that will be heard rather than
+   * everything except what the two of them just made.
+   */
+  chain_process_bass_forge(chain, channels, frames);
   // Tapped where the visible chain draws its boundary, not where it is
   // convenient: the exciter graph is showing what the exciter did, so it has to
   // be read before the EQ has had a turn at the same buffer.
@@ -493,6 +533,16 @@ void feq_chain_process(FeqChain* chain, float* const* channels,
                                   ? bands
                                   : FEQ_METER_MAX_BANDS));
   }
+
+  /**
+   * Punch after the EQ and before the compressor: shaped, then controlled.
+   *
+   * A transient this stage has sharpened is something the compressor then gets
+   * to decide about. The other order hands the compressor's low band an
+   * envelope that has already been squashed, and Punch spends its range
+   * rebuilding an attack that was just taken away.
+   */
+  chain_process_bass_punch(chain, channels, frames);
 
   /**
    * Width before the dynamics, and that position is forced rather than chosen.

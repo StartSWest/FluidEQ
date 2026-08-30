@@ -55,6 +55,12 @@ export const DSP_PRESETS: IDspPreset[] = [
       // A chain consumes the processor profile by id; it does not carry a
       // second copy that can drift away from the Exciter picker.
       exciter: exciterPresetSettings('lossy-repair', true),
+      // Both bass stages at their defaults, which is off. Neither of these
+      // presets was tuned with them in the path, so switching one on here
+      // would change a shipped preset's sound without anyone having listened
+      // to it.
+      bassForge: DSP_DEFAULTS.bassForge,
+      bassPunch: DSP_DEFAULTS.bassPunch,
       compressor: {
         enabled: true,
         crossoverHz: [200, 3_000],
@@ -110,6 +116,8 @@ export const DSP_PRESETS: IDspPreset[] = [
       crossfade: DSP_DEFAULTS.crossfade,
       eq: DSP_DEFAULTS.eq,
       exciter: exciterPresetSettings('loud', true),
+      bassForge: DSP_DEFAULTS.bassForge,
+      bassPunch: DSP_DEFAULTS.bassPunch,
       compressor: {
         enabled: true,
         crossoverHz: [150, 2_500],
@@ -196,6 +204,8 @@ export const DSP_PRESETS: IDspPreset[] = [
       crossfade: DSP_DEFAULTS.crossfade,
       eq: DSP_DEFAULTS.eq,
       exciter: exciterPresetSettings('broadcast', true),
+      bassForge: DSP_DEFAULTS.bassForge,
+      bassPunch: DSP_DEFAULTS.bassPunch,
       compressor: {
         enabled: true,
         crossoverHz: [160, 2_600],

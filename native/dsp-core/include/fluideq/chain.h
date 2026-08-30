@@ -136,6 +136,36 @@ typedef struct FeqChainSettings {
     double high_hz;
     double decorrelation;
   } dimension;
+  /**
+   * The two bass stages, carried as the chain's own copies of their settings.
+   *
+   * Not `FeqBassForgeSettings` and `FeqBassPunchSettings` directly: this header
+   * is the wire's shape and including two stage headers into it would make
+   * every consumer of a chain snapshot depend on them. The stage structs are
+   * built from these in `chain_stages.cpp`, which is where the stage headers
+   * already are.
+   */
+  struct {
+    int enabled;
+    /** Structural: it moves the crossover. */
+    double split_hz;
+    double drive_db;
+    double sub_amount;
+    double presence_amount;
+    double texture;
+    /** Zero is a bit-exact bypass, which is why the default can leave it on. */
+    double mix;
+  } bass_forge;
+  struct {
+    int enabled;
+    /** Its own, not Forge's: the two stages do different jobs. */
+    double split_hz;
+    double attack;
+    double sustain;
+    double bloom_amount;
+    double bloom_decay_ms;
+    double duck;
+  } bass_punch;
   struct {
     int enabled;
     /** Gain INTO the ceiling, which is what makes this a maximizer. */
@@ -171,7 +201,7 @@ typedef struct FeqChainSettings {
  * silently re-point sixty-four bands: the decoder asserts the lead rather
  * than trusting it.
  */
-#define FEQ_CHAIN_PARAM_LEAD 77
+#define FEQ_CHAIN_PARAM_LEAD 91
 #define FEQ_CHAIN_BAND_PARAMS 7
 
 /** Non-zero on success. Leaves `out` untouched on a layout it cannot read. */
