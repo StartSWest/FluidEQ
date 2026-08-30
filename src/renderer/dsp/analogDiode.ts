@@ -4,10 +4,6 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-const WARM_BIAS = 0.58;
-const AIR_BIAS = 0.12;
-const CURRENT_CEILING = 0.45;
-
 /**
  * The later Aphex transient discriminator lets the harmonic output lead an
  * onset, then settles it back as the level detector catches up. These time
@@ -117,46 +113,3 @@ export const exciterTransientSample = (
   state.amount += (target - state.amount) * controlCoefficient;
   return state.amount;
 };
-
-/**
- * A smooth digital counterpart of the original Exciter's driven sidechain.
- *
- * US 4,150,253 does not return a synthetic harmonic residue. Its attenuated
- * excited signal contains the phase-shifted fundamentals passed by the filter
- * and the low-order odd/even harmonics created from them. That continuous
- * filtered component is the foundation that prevents the harmonics from being
- * heard as detached fizz.
- *
- * Normalising the tangent at silence keeps that foundation at unity while
- * Drive changes curvature rather than loudness. Bias supplies the one-sided
- * diode character, and Texture moves from even-rich warmth toward denser air.
- * There is no threshold, programme follower, or block measurement in the
- * curve, so it stays continuous under sustained material. `harmonicGain`
- * changes only the difference between that foundation and the curved signal;
- * the transient discriminator can therefore breathe without moving the whole
- * sidechain up and down.
- */
-export const analogDiodeExcitedSample = (
-  sample: number,
-  drive: number,
-  character: number,
-  level: number,
-  harmonicGain = 1,
-): number => {
-  const driven = sample * drive;
-  const characterMix = Math.max(
-    0,
-    Math.min(1, character / ANALOG_DIODE_MAX_CHARACTER),
-  );
-  const bias = WARM_BIAS + (AIR_BIAS - WARM_BIAS) * characterMix;
-  const biasOutput = Math.tanh(bias);
-  const tangentGain = 1 - biasOutput * biasOutput;
-  const shaped = Math.tanh(driven + bias) - biasOutput;
-  const complete = (shaped * level) / (Math.max(0.001, drive) * tangentGain);
-  const foundation = sample * level;
-  return foundation + (complete - foundation) * harmonicGain;
-};
-
-/** Organic's rail. The Exciter's depth is bounded by construction instead. */
-export const limitExciterCurrent = (current: number): number =>
-  Math.tanh(current / CURRENT_CEILING) * CURRENT_CEILING;

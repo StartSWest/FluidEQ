@@ -60,20 +60,6 @@ double feq_exciter_transient_sample(FeqExciterTransient* state,
                                     double sample,
                                     double sample_rate);
 
-/**
- * `harmonic_gain` scales only the difference between the foundation and the
- * curved signal, so the transient discriminator can breathe without moving the
- * whole sidechain up and down.
- */
-double feq_analog_diode_excited_sample(double sample,
-                                       double drive,
-                                       double character,
-                                       double level,
-                                       double harmonic_gain);
-
-/** Organic's rail. The Exciter's depth is bounded by construction instead. */
-double feq_limit_exciter_current(double current);
-
 #ifdef __cplusplus
 }
 #endif

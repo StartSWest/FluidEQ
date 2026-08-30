@@ -10,10 +10,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 namespace {
 
-constexpr double kWarmBias = 0.58;
-constexpr double kAirBias = 0.12;
-constexpr double kCurrentCeiling = 0.45;
-
 /**
  * Two followers at four speeds, plus a third pair smoothing the answer.
  *
@@ -111,28 +107,6 @@ double feq_exciter_transient_sample(FeqExciterTransient* state,
                                          : state->control_release;
   state->amount += (target - state->amount) * control_coefficient;
   return state->amount;
-}
-
-double feq_analog_diode_excited_sample(double sample,
-                                       double drive,
-                                       double character,
-                                       double level,
-                                       double harmonic_gain) {
-  const double driven = sample * drive;
-  const double character_mix =
-      clamp01(character / FEQ_ANALOG_DIODE_MAX_CHARACTER);
-  const double bias = kWarmBias + (kAirBias - kWarmBias) * character_mix;
-  const double bias_output = std::tanh(bias);
-  const double tangent_gain = 1.0 - bias_output * bias_output;
-  const double shaped = std::tanh(driven + bias) - bias_output;
-  const double safe_drive = drive > 0.001 ? drive : 0.001;
-  const double complete = (shaped * level) / (safe_drive * tangent_gain);
-  const double foundation = sample * level;
-  return foundation + (complete - foundation) * harmonic_gain;
-}
-
-double feq_limit_exciter_current(double current) {
-  return std::tanh(current / kCurrentCeiling) * kCurrentCeiling;
 }
 
 }  // extern "C"
