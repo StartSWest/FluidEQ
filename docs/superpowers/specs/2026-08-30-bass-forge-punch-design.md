@@ -133,7 +133,7 @@ carry a control for it.
 2. `source = (low[0] + low[1]) / 2`. Drive is deliberately **not** applied
    here — a gain in front of these two generators is inaudible, for the reason
    set out under "`driveDb` needs its own non-linearity" below.
-3. **Sub generator** — a zero-crossing flip-flop divider on `driven`, LR4
+3. **Sub generator** — a zero-crossing flip-flop divider on `source`, LR4
    lowpassed at `splitHz` and highpassed at 25 Hz, its RMS matched to
    `source`'s. This is what a BOSS OC-2 or a dbx 120 does.
 
