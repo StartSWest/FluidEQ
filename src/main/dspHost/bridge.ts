@@ -177,6 +177,43 @@ const setDspHostTrackGains = (
 ): Promise<boolean> => transport('gains', 0, inputGainDb, masterLoudnessGainDb);
 
 /**
+ * The measured noise floor for the track now playing, or null to clear it.
+ *
+ * Its own channel rather than the transport verb for the same reason the
+ * crossfade table has one: the verb carries four numbers and this is an array,
+ * and a profile arriving truncated has to be refused rather than half-applied.
+ */
+const setDspHostNoiseProfile = (
+  values: readonly number[] | null,
+): Promise<boolean> => ipcRenderer.invoke('dsp-host-noise-profile', values);
+
+/** Whether the Voice model is already on disk. */
+const readDspDenoiseModelState = (): Promise<boolean> =>
+  ipcRenderer.invoke('dsp-denoise-model-state');
+
+/**
+ * Fetch the Voice model and engage it, reporting bytes as they arrive.
+ *
+ * The listener is returned as a disposer rather than left attached: a card
+ * that is opened and closed repeatedly would otherwise accumulate one
+ * subscription per visit, and every one of them would fire.
+ */
+const downloadDspDenoiseModel = (
+  onProgress: (received: number, total: number) => void,
+): Promise<boolean> => {
+  const listener = (
+    _event: unknown,
+    progress: { received: number; total: number },
+  ) => onProgress(progress.received, progress.total);
+  ipcRenderer.on('dsp-denoise-model-progress', listener);
+  return ipcRenderer
+    .invoke('dsp-denoise-model-download')
+    .finally(() =>
+      ipcRenderer.removeListener('dsp-denoise-model-progress', listener),
+    );
+};
+
+/**
  * The listener's fader, 0 to 1.
  *
  * Mirrored because the elements are muted while the native engine is audible,
@@ -236,6 +273,9 @@ export const dspHostBridge = {
   crossfadeDspHost,
   setDspHostCrossfadeTable,
   setDspHostTrackGains,
+  setDspHostNoiseProfile,
+  readDspDenoiseModelState,
+  downloadDspDenoiseModel,
   setDspHostVolume,
   setDspHostAnalysis,
   onDspHostAnalysis,

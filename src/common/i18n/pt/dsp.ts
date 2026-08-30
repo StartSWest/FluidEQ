@@ -51,11 +51,11 @@ const dsp = {
   'dsp.normalizer.measuredLoudness': 'Sonoridade integrada',
   'dsp.normalizer.appliedGain': 'Ganho aplicado',
   'dsp.normalizer.limitedByCeiling':
-    '{{requested}} necessários — limitado pelo teto de pico',
+    '{requested} necessários — limitado pelo teto de pico',
   'dsp.normalizer.limitedByMaxGain':
-    '{{requested}} necessários — ganho máximo atingido',
+    '{requested} necessários — ganho máximo atingido',
   'dsp.normalizer.limitedByMinGain':
-    '{{requested}} necessários — atenuação máxima atingida',
+    '{requested} necessários — atenuação máxima atingida',
   'dsp.normalizer.limitedByGate':
     'Silencioso demais para medir — nenhum ganho aplicado',
   'dsp.normalizer.liveMeter': 'Antes / depois ao vivo',
@@ -65,6 +65,64 @@ const dsp = {
     'Picos de amostra reais medidos diretamente antes e depois do Normalizador. A marca zero é 0 dBFS.',
   'dsp.normalizer.honesty':
     'Evita sobrecarga posterior; não pode reconstruir distorção já gravada no arquivo.',
+
+  'dsp.denoise.title': 'Redução de ruído',
+  'dsp.denoise.description':
+    'Repara a fonte antes que algo a colora: chiado, zumbido da rede, estalos e um limpador neural de voz. Medido na própria faixa, não adivinhado.',
+  'dsp.denoise.isolate': 'Ouvir o que é removido',
+  'dsp.denoise.isolateHint':
+    'Reproduz o sinal removido em vez do mantido. A única forma fiável de ouvir se isto está a levar o chiado ou o prato de choque.',
+  'dsp.denoise.profileSource': 'Piso de ruído',
+  'dsp.denoise.scanned': 'Analisado',
+  'dsp.denoise.adaptive': 'Adaptativo',
+  'dsp.denoise.fallingBack':
+    'Sem análise para esta fonte — a seguir o piso ao vivo.',
+  'dsp.denoise.hiss': 'Chiado',
+  'dsp.denoise.hissHint':
+    'Supressão de banda larga face ao piso medido. Acrescenta 21 ms de latência enquanto está ligada.',
+  'dsp.denoise.amount': 'Quantidade',
+  'dsp.denoise.reductionLimit': 'Limite de redução',
+  'dsp.denoise.reductionLimitHint':
+    'Até onde qualquer frequência pode ser baixada. Deixar um pouco do ruído original é o que impede o resto de gorgolejar: mais fundo não é mais limpo.',
+  'dsp.denoise.sensitivity': 'Sensibilidade',
+  'dsp.denoise.smoothing': 'Suavização',
+  'dsp.denoise.hum': 'Zumbido',
+  'dsp.denoise.humHint':
+    'Corta a frequência da rede e os harmónicos que a análise realmente encontrou. Sem latência.',
+  'dsp.denoise.humFrequency': 'Frequência',
+  'dsp.denoise.humAuto': 'Auto',
+  'dsp.denoise.humFifty': '50 Hz',
+  'dsp.denoise.humSixty': '60 Hz',
+  'dsp.denoise.harmonics': 'Harmónicos',
+  'dsp.denoise.depth': 'Profundidade',
+  'dsp.denoise.width': 'Largura',
+  'dsp.denoise.humAutoWaiting':
+    'Auto usa a frequência medida. Ainda não foi medido nada nesta fonte.',
+  'dsp.denoise.click': 'Estalos',
+  'dsp.denoise.clickHint':
+    'Encontra e liga os danos impulsivos. Tudo o que seja demasiado longo para ser um estalo fica intacto, por isso a percussão sobrevive.',
+  'dsp.denoise.maxRepair': 'Reparação máxima',
+  'dsp.denoise.voice': 'Voz',
+  'dsp.denoise.voiceHint':
+    'Um limpador neural treinado com fala. Excelente em podcasts e entrevistas; na música leva os pratos e as caudas de reverberação.',
+  'dsp.denoise.voiceModelMissing':
+    'Precisa de uma transferência única de 10 MB antes de poder funcionar.',
+  'dsp.denoise.voiceDownload': 'Transferir modelo',
+  'dsp.denoise.voiceDownloading': 'A transferir o modelo · {progress}%',
+  'dsp.denoise.voiceReady': 'Modelo pronto',
+  'dsp.denoise.analysis': 'Análise da fonte',
+  'dsp.denoise.analyzing': 'A medir o piso de ruído · {progress}%',
+  'dsp.denoise.waiting': 'Reproduz uma faixa da biblioteca para a medir.',
+  'dsp.denoise.measuredFloor': 'Piso de ruído',
+  'dsp.denoise.measuredHum': 'Zumbido encontrado',
+  'dsp.denoise.measuredClicks': 'Estalos',
+  'dsp.denoise.noHum': 'Nenhum',
+  'dsp.denoise.perMinute': '{count}/min',
+  'dsp.denoise.liveReduction': 'A reduzir',
+  'dsp.denoise.clicksRepaired': 'Reparados',
+  'dsp.denoise.voiceUnderruns': 'Falhas de voz',
+  'dsp.denoise.nativeOnly':
+    'A redução de ruído só funciona no motor nativo, que não está a levar o áudio neste momento. Esta etapa está contornada.',
 
   'dsp.crossfade.title': 'Transição cruzada',
   'dsp.crossfade.description':

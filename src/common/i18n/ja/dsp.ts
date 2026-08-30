@@ -49,10 +49,9 @@ const dsp = {
   'dsp.normalizer.measuredPeak': '測定ピーク',
   'dsp.normalizer.measuredLoudness': '統合ラウドネス',
   'dsp.normalizer.appliedGain': '適用ゲイン',
-  'dsp.normalizer.limitedByCeiling':
-    '{{requested}} 必要 — ピーク上限により制限',
-  'dsp.normalizer.limitedByMaxGain': '{{requested}} 必要 — 最大ブースト',
-  'dsp.normalizer.limitedByMinGain': '{{requested}} 必要 — 最大減衰',
+  'dsp.normalizer.limitedByCeiling': '{requested} 必要 — ピーク上限により制限',
+  'dsp.normalizer.limitedByMaxGain': '{requested} 必要 — 最大ブースト',
+  'dsp.normalizer.limitedByMinGain': '{requested} 必要 — 最大減衰',
   'dsp.normalizer.limitedByGate': '測定するには静かすぎます — ゲインは未適用',
   'dsp.normalizer.liveMeter': 'ライブ比較',
   'dsp.normalizer.before': '前',
@@ -61,6 +60,64 @@ const dsp = {
     'ノーマライザーの直前と直後で測定した実際のサンプルピークです。ゼロ線は 0 dBFS です。',
   'dsp.normalizer.honesty':
     '後段の過負荷を防ぎますが、ファイルに既に含まれる歪みは復元できません。',
+
+  'dsp.denoise.title': 'ノイズ除去',
+  'dsp.denoise.description':
+    '色付けの前に音源を修復します。ヒス、電源ハム、クリック、そしてニューラル音声クリーナー。推測ではなく、曲そのものから実測した値で動きます。',
+  'dsp.denoise.isolate': '取り除かれる音を聴く',
+  'dsp.denoise.isolateHint':
+    '残す側ではなく取り除く側を再生します。ヒスを取っているのかハイハットを取っているのかを確かめる、唯一確実な方法です。',
+  'dsp.denoise.profileSource': 'ノイズフロア',
+  'dsp.denoise.scanned': '解析済み',
+  'dsp.denoise.adaptive': '適応',
+  'dsp.denoise.fallingBack':
+    'この音源の解析結果がありません。フロアをリアルタイムで追従します。',
+  'dsp.denoise.hiss': 'ヒス',
+  'dsp.denoise.hissHint':
+    '実測フロアに対する広帯域の抑制。オンの間は 21 ms の遅延が増えます。',
+  'dsp.denoise.amount': '量',
+  'dsp.denoise.reductionLimit': '低減の上限',
+  'dsp.denoise.reductionLimitHint':
+    'ひとつの周波数をどこまで下げてよいか。元のノイズを少し残すことで残りが揺らがなくなります。深いほどきれいになるわけではありません。',
+  'dsp.denoise.sensitivity': '感度',
+  'dsp.denoise.smoothing': '平滑化',
+  'dsp.denoise.hum': 'ハム',
+  'dsp.denoise.humHint':
+    '電源周波数と、解析が実際に見つけた倍音だけをノッチします。遅延なし。',
+  'dsp.denoise.humFrequency': '周波数',
+  'dsp.denoise.humAuto': '自動',
+  'dsp.denoise.humFifty': '50 Hz',
+  'dsp.denoise.humSixty': '60 Hz',
+  'dsp.denoise.harmonics': '倍音',
+  'dsp.denoise.depth': '深さ',
+  'dsp.denoise.width': '幅',
+  'dsp.denoise.humAutoWaiting':
+    '自動は実測周波数を使います。この音源はまだ測定されていません。',
+  'dsp.denoise.click': 'クリック',
+  'dsp.denoise.clickHint':
+    '衝撃的な損傷を見つけて繋ぎ直します。クリックと呼ぶには長すぎるものはそのまま残すので、打楽器は生き残ります。',
+  'dsp.denoise.maxRepair': '最長修復',
+  'dsp.denoise.voice': '音声',
+  'dsp.denoise.voiceHint':
+    '音声で学習したニューラルクリーナー。ポッドキャストやインタビューには最適ですが、音楽ではシンバルやリバーブの余韻まで持っていきます。',
+  'dsp.denoise.voiceModelMissing':
+    '動作させるには一度だけ 10 MB のモデルをダウンロードする必要があります。',
+  'dsp.denoise.voiceDownload': 'モデルをダウンロード',
+  'dsp.denoise.voiceDownloading': 'モデルをダウンロード中 · {progress}%',
+  'dsp.denoise.voiceReady': 'モデル準備完了',
+  'dsp.denoise.analysis': '音源の解析',
+  'dsp.denoise.analyzing': 'ノイズフロアを測定中 · {progress}%',
+  'dsp.denoise.waiting': 'ライブラリの曲を再生すると測定します。',
+  'dsp.denoise.measuredFloor': 'ノイズフロア',
+  'dsp.denoise.measuredHum': 'ハム検出',
+  'dsp.denoise.measuredClicks': 'クリック',
+  'dsp.denoise.noHum': 'なし',
+  'dsp.denoise.perMinute': '{count}/分',
+  'dsp.denoise.liveReduction': '低減中',
+  'dsp.denoise.clicksRepaired': '修復済み',
+  'dsp.denoise.voiceUnderruns': '音声の途切れ',
+  'dsp.denoise.nativeOnly':
+    'ノイズ除去はネイティブエンジンでのみ動作しますが、現在そのエンジンが音声を担っていません。この段はバイパスされています。',
 
   'dsp.crossfade.title': 'クロスフェード',
   'dsp.crossfade.description':

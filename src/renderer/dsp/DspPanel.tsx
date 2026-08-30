@@ -4,7 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   DSP_DEFAULTS,
   IBandSettings,
@@ -21,6 +21,7 @@ import DspExciterCard from './DspExciterCard';
 import DspDimensionCard from './DspDimensionCard';
 import DspMasterCard from './DspMasterCard';
 import DspMaximizerCard from './DspMaximizerCard';
+import DspDenoiseCard, { IDspVoiceModelState } from './DspDenoiseCard';
 import DspNormalizerCard from './DspNormalizerCard';
 import DspSideTabs from './DspSideTabs';
 import { TDspSection } from './sections';
@@ -72,6 +73,7 @@ const DspPanel = ({
   const { t } = useTranslation();
   const {
     normalizer,
+    denoise,
     crossfade,
     eq,
     exciter,
@@ -101,6 +103,73 @@ const DspPanel = ({
   // Which processor has the page. Local state: it is where the user is
   // looking, not part of the chain, and nothing outside this panel needs it.
   const [section, setSection] = useState<TDspSection>('normalizer');
+
+  /**
+   * The Voice model's download, which is a fact about the machine.
+   *
+   * Local rather than in the DSP store because it is not a setting and does
+   * not travel to the engine: it is whether a file exists on this disk, and
+   * the panel is the only thing that asks.
+   */
+  const [voiceModel, setVoiceModel] = useState<IDspVoiceModelState>({
+    state: 'missing',
+    fraction: 0,
+  });
+
+  /**
+   * The two bridge calls this panel needs, each checked for individually.
+   *
+   * Not just "is there a bridge": this panel is rendered by tests that have no
+   * preload at all AND by ones that supply a partial one, so the object being
+   * present says nothing about the method being there. An absent call means
+   * the model state is simply unknown, which is what `missing` already says —
+   * no separate state, and no throw during a render.
+   */
+  const readModelState = window.electron?.ipcRenderer?.readDspDenoiseModelState;
+  const downloadModel = window.electron?.ipcRenderer?.downloadDspDenoiseModel;
+
+  useEffect(() => {
+    if (typeof readModelState !== 'function') {
+      return undefined;
+    }
+    let cancelled = false;
+    readModelState()
+      .then((present) => {
+        if (!cancelled && present) {
+          setVoiceModel({ state: 'ready', fraction: 1 });
+        }
+        return present;
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, [readModelState]);
+
+  const downloadVoiceModel = useCallback(() => {
+    if (typeof downloadModel !== 'function') {
+      return;
+    }
+    setVoiceModel({ state: 'downloading', fraction: 0 });
+    downloadModel((received, total) => {
+      setVoiceModel({
+        state: 'downloading',
+        fraction: total > 0 ? received / total : 0,
+      });
+    })
+      .then((ok) => {
+        // `ok` is false when the bytes arrived but the engine has not taken
+        // them yet — a host that is not running. The file is still on disk, so
+        // the state is re-read rather than assumed failed.
+        setVoiceModel(
+          ok
+            ? { state: 'ready', fraction: 1 }
+            : { state: 'missing', fraction: 0 },
+        );
+        return ok;
+      })
+      .catch(() => setVoiceModel({ state: 'missing', fraction: 0 }));
+  }, [downloadModel]);
 
   /**
    * Isolate is an audition state owned by the page that exposes its switch.
@@ -253,6 +322,7 @@ const DspPanel = ({
           onSelect={selectSection}
           enabled={{
             normalizer: normalizer.mode !== 'off',
+            denoise: denoise.enabled,
             crossfade: crossfade.enabled,
             eq: eq.enabled,
             exciter: exciter.enabled,
@@ -269,6 +339,17 @@ const DspPanel = ({
               normalizer={normalizer}
               analysisState={inputAnalysis}
               onPatch={(next) => patch({ normalizer: next })}
+              onCommit={onCommit}
+            />
+          )}
+
+          {section === 'denoise' && (
+            <DspDenoiseCard
+              denoise={denoise}
+              analysisState={inputAnalysis}
+              model={voiceModel}
+              onDownloadModel={downloadVoiceModel}
+              onPatch={(next) => patch({ denoise: next })}
               onCommit={onCommit}
             />
           )}

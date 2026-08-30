@@ -120,6 +120,7 @@ const listeners = new Set<() => void>();
 const outputSafetyListeners = new Set<() => void>();
 const inputAnalysisListeners = new Set<() => void>();
 const normalizerMeterListeners = new Set<() => void>();
+const denoiseMeterListeners = new Set<() => void>();
 
 const emit = () => listeners.forEach((listener) => listener());
 
@@ -374,6 +375,56 @@ export const useDspInputAnalysis = (): IDspInputAnalysisState =>
     subscribeInputAnalysis,
     readDspInputAnalysis,
     readDspInputAnalysis,
+  );
+
+/**
+ * What the Denoise stage did, as opposed to what its dials are set to.
+ *
+ * None of it is derivable from the settings: how much a subtractor removed
+ * depends on the material, whether the click detector fired depends on whether
+ * the file has clicks, and whether the neural module is running at all depends
+ * on a download. A card showing only dial positions looks identical in every
+ * one of those cases.
+ */
+export interface IDspDenoiseMeter {
+  reductionDb: number;
+  noiseFloorDb: number;
+  clicksRepaired: number;
+  voiceUnderruns: number;
+  profileReady: boolean;
+  voiceModelLoaded: boolean;
+}
+
+const DENOISE_METER_IDLE: IDspDenoiseMeter = {
+  reductionDb: 0,
+  noiseFloorDb: -120,
+  clicksRepaired: 0,
+  voiceUnderruns: 0,
+  profileReady: false,
+  voiceModelLoaded: false,
+};
+
+let denoiseMeter: IDspDenoiseMeter = DENOISE_METER_IDLE;
+
+const subscribeDenoiseMeter = (listener: () => void) => {
+  denoiseMeterListeners.add(listener);
+  return () => {
+    denoiseMeterListeners.delete(listener);
+  };
+};
+
+export const setDspDenoiseMeter = (next: IDspDenoiseMeter): void => {
+  denoiseMeter = next;
+  denoiseMeterListeners.forEach((listener) => listener());
+};
+
+export const readDspDenoiseMeter = (): IDspDenoiseMeter => denoiseMeter;
+
+export const useDspDenoiseMeter = (): IDspDenoiseMeter =>
+  useSyncExternalStore(
+    subscribeDenoiseMeter,
+    readDspDenoiseMeter,
+    readDspDenoiseMeter,
   );
 
 export interface IDspNormalizerMeter {

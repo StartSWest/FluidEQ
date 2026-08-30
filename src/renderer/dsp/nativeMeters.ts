@@ -42,6 +42,7 @@ import {
   setDspBandLevels,
   setDspChannelPeaks,
   setDspCorrelation,
+  setDspDenoiseMeter,
   setDspExciterActivity,
   setDspLoudness,
   setDspDimensionGuard,
@@ -226,6 +227,7 @@ export const createNativeMeters = (
     // not the one the settings ask for: they differ for two seconds after a
     // background analysis lands, and that ramp is the thing worth seeing.
     setDspNormalizerMeter(frame.normalizer);
+    setDspDenoiseMeter(frame.denoise);
     setDspCorrelation(frame.correlation);
     setDspChannelPeaks(frame.peaks);
     setDspPeak(Math.max(frame.peaks[0], frame.peaks[1]));

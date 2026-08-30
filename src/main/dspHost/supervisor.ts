@@ -32,6 +32,7 @@ import { FrameReader } from './transport';
 import {
   HOST_COMMANDS,
   encodeChainPayload,
+  encodeNoiseProfilePayload,
   encodeCrossfadeTablePayload,
   encodeTrackGainsPayload,
   HOST_STATUS,
@@ -110,6 +111,10 @@ export class DspHostSupervisor {
 
   /** The whole chain, restored after a restart alongside the snapshot. */
   private lastChain: readonly number[] | undefined;
+
+  private lastNoiseProfile: readonly number[] | undefined;
+
+  private lastVoiceModel: readonly [string, string] | undefined;
 
   private deviceWanted = false;
 
@@ -249,6 +254,50 @@ export class DspHostSupervisor {
     const ack = await this.send(HOST_COMMANDS.applyChain, {
       parameterId: values.length,
       payload: encodeChainPayload(values),
+    });
+    return ack.status === HOST_STATUS.applied;
+  }
+
+  /**
+   * The measured floor for the track now playing, or undefined to clear it.
+   *
+   * Remembered for the same reason the chain is: a host that restarts mid-track
+   * is handed the settings again, and a profile that was not replayed would
+   * leave Denoise silently following the live floor on a track it had already
+   * measured — a stage quietly doing something other than what the card says.
+   */
+  async setNoiseProfile(
+    values: readonly number[] | undefined,
+  ): Promise<boolean> {
+    this.lastNoiseProfile = values;
+    const ack = await this.send(HOST_COMMANDS.setNoiseProfile, {
+      parameterId: values ? values.length : 0,
+      payload: values ? encodeNoiseProfilePayload(values) : undefined,
+    });
+    return ack.status === HOST_STATUS.applied;
+  }
+
+  /**
+   * Point the voice module at a model and a runtime, or clear both.
+   *
+   * Remembered and replayed for the same reason the chain and the profile are:
+   * a host that restarts would otherwise come back with the module silently
+   * unloaded while the card still shows it as ready.
+   */
+  async loadVoiceModel(
+    modelPath: string | undefined,
+    runtimePath: string | undefined,
+  ): Promise<boolean> {
+    this.lastVoiceModel =
+      modelPath && runtimePath ? [modelPath, runtimePath] : undefined;
+    const payload = this.lastVoiceModel
+      ? Buffer.from(this.lastVoiceModel.join('\n'), 'utf8')
+      : undefined;
+    const ack = await this.send(HOST_COMMANDS.loadVoiceModel, {
+      // Byte length, not character count: a path with an accent in it is
+      // longer in UTF-8 than in JavaScript, and the host reads bytes.
+      parameterId: payload ? payload.byteLength : 0,
+      payload,
     });
     return ack.status === HOST_STATUS.applied;
   }
@@ -656,6 +705,14 @@ export class DspHostSupervisor {
     // user is looking at rather than against defaults.
     if (this.lastChain) {
       await this.applyChain(this.lastChain);
+    }
+    // After the chain, because the chain rebuilds the Denoise stage and a
+    // profile handed over first would be discarded by that rebuild.
+    if (this.lastNoiseProfile) {
+      await this.setNoiseProfile(this.lastNoiseProfile);
+    }
+    if (this.lastVoiceModel) {
+      await this.loadVoiceModel(this.lastVoiceModel[0], this.lastVoiceModel[1]);
     }
     if (this.deviceWanted) {
       await this.openDevice();

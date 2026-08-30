@@ -121,6 +121,16 @@ struct FeqChain {
    */
   FeqMeters* meters = nullptr;
 
+  /**
+   * Restoration, owned rather than borrowed because its state is per-chain.
+   *
+   * Created with the chain and destroyed with it. Null only if allocation
+   * failed, in which case the stage is skipped and everything downstream still
+   * runs — a rack that refuses to make any sound because one processor could
+   * not allocate is worse than a rack missing one processor.
+   */
+  FeqDenoise* denoise = nullptr;
+
   ChainEqSlot slots[FEQ_CHAIN_CHANNELS];
   ChainExciterPath paths[kExciterPaths];
 

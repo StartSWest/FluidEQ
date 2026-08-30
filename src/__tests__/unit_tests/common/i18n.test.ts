@@ -138,4 +138,42 @@ describe('i18n', () => {
       });
     });
   });
+
+  /**
+   * A filled placeholder must leave no braces on screen.
+   *
+   * The test above compares the placeholder SETS between English and each
+   * locale, which is why it never noticed that four Normalizer strings were
+   * written `{{requested}}` in all ten languages at once. The substituter's
+   * pattern is `/\{(\w+)\}/`, so the inner pair matched, the outer pair
+   * survived, and the card read "{-1.2 dB} needed — limited by peak ceiling"
+   * for the life of the feature. Identical everywhere is not the same as
+   * correct, and only a check against the rendered output can tell them apart.
+   */
+  it('leaves no brace behind once a placeholder is filled', () => {
+    const keys = Object.keys(en) as TranslationKey[];
+    const filled = {
+      count: '3',
+      progress: '42',
+      requested: '-1.2 dB',
+      name: 'Example',
+    };
+    keys.forEach((key) => {
+      LOCALES.forEach(({ code }) => {
+        const rendered = translate(code, key, filled);
+        // Only for strings whose every placeholder this test can supply;
+        // anything else would fail on an unfilled name rather than on a
+        // malformed one, which is the other test's job.
+        const names = (en[key].match(/\{(\w+)\}/g) || []).map((token) =>
+          token.slice(1, -1),
+        );
+        if (names.some((placeholder) => !(placeholder in filled))) {
+          return;
+        }
+        expect(`${code}/${key}: ${rendered}`).toBe(
+          `${code}/${key}: ${rendered.replace(/[{}]/g, '')}`,
+        );
+      });
+    });
+  });
 });
