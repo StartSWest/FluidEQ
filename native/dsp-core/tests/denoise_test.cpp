@@ -86,6 +86,15 @@ double rms_db(const std::vector<float>& signal, uint32_t from, uint32_t count) {
   return rms > 1e-12 ? 20.0 * std::log10(rms) : -240.0;
 }
 
+/** What the stage delays by, for a given configuration. */
+uint32_t latency_of(const FeqDenoiseSettings& settings) {
+  FeqDenoise* denoise = feq_denoise_create(kRate, 2, kFrames);
+  feq_denoise_configure(denoise, &settings);
+  const uint32_t latency = feq_denoise_latency_frames(denoise);
+  feq_denoise_destroy(denoise);
+  return latency;
+}
+
 /** Run a signal through a configured stage and return what came out. */
 std::vector<float> run(const FeqDenoiseSettings& settings,
                        const std::vector<float>& input,
@@ -355,13 +364,159 @@ void test_isolate_is_the_difference() {
   const std::vector<float> a = run(kept, input, nullptr);
   const std::vector<float> b = run(removed, input, nullptr);
 
+  /*
+   * Against the input DELAYED by what the stage adds, not against the input.
+   *
+   * The stage delays everything it passes, so the signal the two outputs sum
+   * back to is the one that entered `latency` samples ago. Comparing against
+   * `input[i]` instead is what this assertion used to do, and it passed only
+   * because Isolate was making the same mistake in the other direction —
+   * subtracting an undelayed dry from a delayed wet. Two errors that cancel in
+   * a sum, and a comb filter left on the output.
+   */
+  const uint32_t latency = latency_of(kept);
+  check(latency > 0, "isolate: the configuration under test really does delay");
+
   double worst = 0.0;
   for (uint32_t i = kFrames * 10; i < length; i += 1) {
     worst = std::max(worst, std::fabs(static_cast<double>(a[i]) +
                                       static_cast<double>(b[i]) -
-                                      static_cast<double>(input[i])));
+                                      static_cast<double>(input[i - latency])));
   }
-  check(worst < 1e-6, "isolate: kept plus removed reconstructs the input");
+  check(worst < 1e-6,
+        "isolate: kept plus removed reconstructs the delayed input");
+}
+
+/**
+ * Isolate with nothing being removed must be SILENT.
+ *
+ * This is the assertion that was missing, and its absence let a real defect
+ * ship. The test above — kept plus removed equals the input — is
+ * `x + (y - x) == y`, true by construction however wrong either term is, so it
+ * passed while Isolate emitted a comb-filtered copy of the music: it was
+ * subtracting the UNDELAYED input from the DELAYED output, and a signal minus
+ * a shifted copy of itself at sixteen milliseconds is a slapback. It was
+ * reported on the first real listen as sounding like a chamber effect, which
+ * is precisely what it had been turned into.
+ *
+ * With every module bypassed the wet path is the dry path, so the difference
+ * must be zero. No algebra makes that true by accident: it is false for any
+ * misalignment at all.
+ */
+/**
+ * The delay the stage REPORTS must be the delay it actually adds.
+ *
+ * Measured with an impulse, because this was got wrong by reasoning: the
+ * spectral module's latency was derived as a window less a hop and is in fact
+ * a whole window. Isolate found it first — a residual taken against a
+ * mis-stated delay is a comb filter — but the number matters well beyond this
+ * stage. `feq_chain_latency_frames` sums it, and a deck handoff aligns the two
+ * decks against that sum, so a stage understating its delay puts every
+ * crossfade out by the difference with nothing in the audio to point at it.
+ *
+ * The impulse also proves the transform reconstructs: unit amplitude and unit
+ * energy out means the analysis and synthesis windows really do sum to one at
+ * this hop, so a failure here is the delay and not the arithmetic.
+ */
+void test_reported_latency_is_the_real_delay() {
+  const uint32_t length = kFrames * 40;
+  std::vector<float> input(length, 0.0f);
+  input[kFrames * 4] = 1.0f;
+
+  FeqDenoiseSettings settings = bypassed_modules();
+  settings.hiss.enabled = 1;
+  settings.hiss.amount = 0.0;
+  settings.profile_source = FEQ_DENOISE_PROFILE_ADAPTIVE;
+
+  const std::vector<float> out = run(settings, input, nullptr);
+  uint32_t peak = 0;
+  double best = 0.0;
+  double energy = 0.0;
+  for (uint32_t i = 0; i < length; i += 1) {
+    const double a = std::fabs(static_cast<double>(out[i]));
+    energy += a * a;
+    if (a > best) {
+      best = a;
+      peak = i;
+    }
+  }
+  const uint32_t measured = peak - kFrames * 4;
+  const uint32_t reported = latency_of(settings);
+  check(measured == reported,
+        "latency: the impulse comes out where the stage says it will");
+  check(best > 0.99 && best < 1.01,
+        "latency: the transform reconstructs at unit amplitude");
+  check(energy > 0.99 && energy < 1.01,
+        "latency: and at unit energy, so a failure above is the delay");
+}
+
+void test_isolate_is_silent_when_nothing_is_removed() {
+  const uint32_t length = kFrames * 60;
+  Noise source;
+  std::vector<float> input(length, 0.0f);
+  for (uint32_t i = 0; i < length; i += 1) {
+    const double time = static_cast<double>(i) / kRate;
+    input[i] = static_cast<float>(0.25 * std::sin(2.0 * kPi * 700.0 * time) +
+                                  0.05 * source.next());
+  }
+
+  /*
+   * The spectral module ON, at zero amount: it runs, it delays, and its gain
+   * is unity in every bin, so it removes nothing.
+   *
+   * That combination is the whole point. Bypassing every module instead makes
+   * the correct latency zero, so a misaligned Isolate and a correct one agree
+   * and the test proves nothing — which is exactly what the first version of
+   * this did, passing against the very bug it was written for. A module that
+   * delays while removing nothing is the only configuration where "aligned"
+   * and "not aligned" give different answers.
+   */
+  FeqDenoiseSettings settings = bypassed_modules();
+  settings.isolate = 1;
+  settings.hiss.enabled = 1;
+  settings.hiss.amount = 0.0;
+  settings.profile_source = FEQ_DENOISE_PROFILE_ADAPTIVE;
+  check(latency_of(settings) > 0,
+        "isolate: the silence case is a configuration that really delays");
+
+  const std::vector<float> removed = run(settings, input, nullptr);
+
+  double worst = 0.0;
+  for (uint32_t i = kFrames * 8; i < length; i += 1) {
+    worst = std::max(worst, std::fabs(static_cast<double>(removed[i])));
+  }
+  check(worst < 1e-5, "isolate: emits nothing when nothing is removed");
+
+  /*
+   * The positive control. With a module actually working the same measurement
+   * must become clearly non-zero — otherwise "silent" would also be satisfied
+   * by an Isolate that had stopped emitting anything at all, which is the one
+   * other explanation for a quiet result.
+   *
+   * Driven from a MEASURED profile rather than the adaptive tracker. The
+   * tracker needs a second and a half to converge and this signal is two
+   * thirds of one, so an adaptive control removes nothing and fails for a
+   * reason that has nothing to do with what is being tested.
+   */
+  const double variance = 0.05 * 0.05 / 3.0;
+  FeqNoiseProfile profile{};
+  for (uint32_t band = 0; band < FEQ_DENOISE_PROFILE_BANDS; band += 1) {
+    profile.bands_db[band] = 10.0 * std::log10(variance / (kRate * 0.5));
+  }
+  profile.floor_dbfs = 20.0 * std::log10(std::sqrt(variance));
+
+  FeqDenoiseSettings working = settings;
+  working.hiss.enabled = 1;
+  working.hiss.amount = 1.0;
+  working.profile_source = FEQ_DENOISE_PROFILE_SCANNED;
+  const std::vector<float> real = run(working, input, &profile);
+
+  double loudest = 0.0;
+  for (uint32_t i = kFrames * 20; i < length; i += 1) {
+    loudest = std::max(loudest, std::fabs(static_cast<double>(real[i])));
+  }
+  check(loudest > 1e-4,
+        "isolate: POSITIVE CONTROL, a working module gives it something");
 }
 
 /**
@@ -484,6 +639,8 @@ int main() {
   test_hum();
   test_click();
   test_isolate_is_the_difference();
+  test_reported_latency_is_the_real_delay();
+  test_isolate_is_silent_when_nothing_is_removed();
   if (g_failures != 0) {
     std::printf("%d failure(s)\n", g_failures);
     return 1;

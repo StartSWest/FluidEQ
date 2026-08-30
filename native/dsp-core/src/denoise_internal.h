@@ -54,6 +54,18 @@ constexpr uint32_t kDenoiseVoiceLatencyFrames = 4;
 constexpr double kDenoiseSilenceDb = -120.0;
 
 /**
+ * The deepest delay every module together can add, at any supported rate.
+ *
+ * The spectral window is the largest term: held near 21 ms, it reaches 4096
+ * samples at 192 kHz, of which a window less a hop is 3072. The neural module
+ * adds its own window and latency ring at 2880, and the click repairer its
+ * lookahead at 144. Six thousand and change, rounded up — this sizes Isolate's
+ * dry delay once at construction so no module toggle ever reallocates a buffer
+ * the callback is reading.
+ */
+constexpr uint32_t kDenoiseMaxLatencyFrames = 8192;
+
+/**
  * One channel's short-time transform state.
  *
  * `input` and `output` are the overlap-add rings; `previous_gain` and
@@ -181,6 +193,23 @@ struct FeqDenoise {
 
   /** Isolate's scratch: what the stage removed, kept to be emitted instead. */
   std::vector<std::vector<float>> residual;
+
+  /**
+   * The dry signal, delayed by exactly what the wet path costs.
+   *
+   * Isolate is `dry - wet`, and that is only the residual when the two are
+   * aligned in time. They were not. The spectral module delays by a window
+   * less a hop and the click repairer by its whole lookahead, so the
+   * subtraction was the input minus a time-shifted copy of itself — which is a
+   * comb filter, with a notch every 1/D Hz. At the sixteen-odd milliseconds
+   * this stage actually adds, a comb filter is a slapback, and it was reported
+   * as sounding like a chamber effect. It was one.
+   *
+   * A ring rather than one more copy of the block: the delay is longer than a
+   * block and spans several of them.
+   */
+  std::vector<std::vector<float>> dry_delay;
+  uint32_t dry_cursor = 0;
 
   /**
    * The neural module's runtime, session, worker and rings.

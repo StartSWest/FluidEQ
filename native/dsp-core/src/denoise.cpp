@@ -130,6 +130,15 @@ FeqDenoise* feq_denoise_create(double sample_rate,
     channel.assign(maximum_block_frames, 0.0f);
   }
 
+  // Sized once for the deepest the stage can ever delay — every module on, at
+  // the highest rate — rather than resized when a module is toggled. The
+  // alternative reallocates a buffer the callback is reading, which is the
+  // class of bug the Maximizer's look-ahead already had to be rescued from.
+  denoise->dry_delay.resize(denoise->channels);
+  for (auto& channel : denoise->dry_delay) {
+    channel.assign(kDenoiseMaxLatencyFrames + maximum_block_frames, 0.0f);
+  }
+
   denoise_spectral_configure(denoise);
   denoise_hum_configure(denoise);
   denoise_click_configure(denoise);
@@ -201,6 +210,13 @@ void feq_denoise_reset(FeqDenoise* denoise) {
   denoise_hum_reset(denoise);
   denoise_click_reset(denoise);
   denoise_voice_reset(denoise);
+  // Isolate's delay line holds the previous stream's audio. Left in place, the
+  // first blocks after a seek subtract a bar of the old position from the new
+  // one, which is the same defect this delay exists to remove.
+  for (auto& channel : denoise->dry_delay) {
+    std::fill(channel.begin(), channel.end(), 0.0f);
+  }
+  denoise->dry_cursor = 0;
   denoise->reported_reduction_db.store(0.0, std::memory_order_relaxed);
   denoise->reported_clicks.store(0, std::memory_order_relaxed);
   denoise->reported_voice_underruns.store(0, std::memory_order_relaxed);
@@ -215,10 +231,25 @@ void feq_denoise_process(FeqDenoise* denoise,
   }
 
   const bool isolate = denoise->settings.isolate != 0;
-  if (isolate) {
+  /*
+   * The delay the wet path is about to cost, read BEFORE processing.
+   *
+   * It has to be the same number for the write and the read below, and the
+   * modules can be reconfigured between blocks — reading it twice would align
+   * the subtraction to two different delays across one toggle and click.
+   */
+  const uint32_t latency = feq_denoise_latency_frames(denoise);
+  const uint32_t ring =
+      denoise->dry_delay.empty()
+          ? 0
+          : static_cast<uint32_t>(denoise->dry_delay[0].size());
+
+  if (isolate && ring > 0) {
     for (uint32_t c = 0; c < denoise->channels; c += 1) {
-      std::memcpy(denoise->residual[c].data(), channels[c],
-                  frames * sizeof(float));
+      float* line = denoise->dry_delay[c].data();
+      for (uint32_t i = 0; i < frames; i += 1) {
+        line[(denoise->dry_cursor + i) % ring] = channels[c][i];
+      }
     }
   }
 
@@ -228,18 +259,31 @@ void feq_denoise_process(FeqDenoise* denoise,
       denoise_spectral_process(denoise, channels, frames);
   const uint32_t underruns = denoise_voice_process(denoise, channels, frames);
 
-  if (isolate) {
-    // What was removed, which is the difference and nothing cleverer. This is
-    // the one control that lets a listener hear whether the stage is taking
-    // hiss or taking the hi-hat, so it has to be the actual residual rather
-    // than a reconstruction of it.
+  if (isolate && ring > 0) {
+    /*
+     * What was removed: the difference between the dry signal and the wet one,
+     * TIME-ALIGNED.
+     *
+     * The alignment is the whole correctness of this control. Subtracting the
+     * undelayed input from the delayed output is not a residual, it is the
+     * input minus a shifted copy of itself — a comb filter whose notches sit
+     * at multiples of 1/D. At this stage's real delay that is an audible
+     * slapback, and it was reported as a chamber effect on the first listen,
+     * which is exactly what it was.
+     */
     for (uint32_t c = 0; c < denoise->channels; c += 1) {
-      const float* dry = denoise->residual[c].data();
+      const float* line = denoise->dry_delay[c].data();
       float* wet = channels[c];
       for (uint32_t i = 0; i < frames; i += 1) {
-        wet[i] = dry[i] - wet[i];
+        const uint32_t at =
+            (denoise->dry_cursor + i + ring - latency) % ring;
+        wet[i] = line[at] - wet[i];
       }
     }
+  }
+
+  if (ring > 0) {
+    denoise->dry_cursor = (denoise->dry_cursor + frames) % ring;
   }
 
   denoise->reported_reduction_db.store(reduction_db, std::memory_order_relaxed);
@@ -264,10 +308,21 @@ uint32_t feq_denoise_latency_frames(const FeqDenoise* denoise) {
     latency += denoise->click[0].capacity;
   }
   if (denoise->settings.hiss.enabled != 0 && denoise->window > 0) {
-    // Weighted overlap-add: a sample enters the accumulator one hop from its
-    // end and reaches the output after the remaining frames have overlapped
-    // it, so the delay is the window less one hop rather than the window.
-    latency += denoise->window - denoise->hop;
+    /*
+     * A full window, MEASURED rather than reasoned about.
+     *
+     * The reasoning said a window less a hop, on the argument that a sample
+     * enters the accumulator one hop from its end. It was wrong by exactly one
+     * hop: an impulse fed in at 2048 leaves at 3072 with a 1024-point window,
+     * at unit amplitude and unit energy. The transform reconstructs perfectly
+     * — it simply does it a whole window later.
+     *
+     * Under-reporting this is not only an Isolate problem. The chain adds it
+     * into `feq_chain_latency_frames`, which is what a deck handoff aligns
+     * against, so a stage that lies about its delay puts every crossfade out
+     * by the difference.
+     */
+    latency += denoise->window;
   }
   latency += denoise_voice_latency_frames(denoise);
   return latency;

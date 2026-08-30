@@ -73,6 +73,7 @@ import {
 } from '../../../common/library/types';
 import { TCrossfadeCurve } from '../../../common/dsp/chain';
 import { ICrossfadeShape } from '../../../common/dsp/crossfadeShape';
+import { INoiseProfile } from '../../../common/dsp/noiseProfile';
 import {
   DSP_DIAGNOSTIC_CODES,
   DSP_DIAGNOSTIC_SCHEMA_VERSION,
@@ -1294,6 +1295,17 @@ export const LibraryPlayerProvider = ({
         : 0;
     let deferredAnalysis: IDspInputAnalysisState | undefined;
     let deferredTrackGains: readonly [number, number] | undefined;
+    /**
+     * The incoming track's noise floor, held across the overlap like the gains.
+     *
+     * A separate flag rather than checking the profile for undefined, because
+     * "no profile" is itself a value that has to be delivered: a track with no
+     * scan must CLEAR the previous one, and treating undefined as "nothing to
+     * publish" is what leaves the outgoing song's floor subtracting from the
+     * incoming one.
+     */
+    let deferredNoiseProfile: INoiseProfile | undefined;
+    let hasDeferredNoiseProfile = false;
     const publishAnalysis = (next: IDspInputAnalysisState) => {
       if (isCrossfading && !handoffComplete) {
         deferredAnalysis = next;
@@ -1318,6 +1330,11 @@ export const LibraryPlayerProvider = ({
       ] as const;
       if (isCrossfading && !handoffComplete) {
         deferredTrackGains = next;
+        // Deferred TOGETHER with the gains. Sending the floor now and the gain
+        // at the handoff would have the stage subtract the incoming track's
+        // noise from the outgoing track's audio for the length of the overlap.
+        deferredNoiseProfile = analysis?.noise;
+        hasDeferredNoiseProfile = true;
         return;
       }
       setDspTrackLevelGains(next[0], next[1]);
@@ -1340,6 +1357,24 @@ export const LibraryPlayerProvider = ({
       if (deferredTrackGains) {
         setDspTrackLevelGains(deferredTrackGains[0], deferredTrackGains[1]);
         deferredTrackGains = undefined;
+      }
+      // Replayed here for the same reason the gains are. Without it the
+      // engine keeps whatever floor the PREVIOUS track left behind for the
+      // whole of the new one — the incoming song denoised against the outgoing
+      // song's hiss, which is heard as the stage doing nothing useful and
+      // reported as "not scanning on switch".
+      if (hasDeferredNoiseProfile) {
+        setDspNoiseProfile(deferredNoiseProfile);
+        deferredNoiseProfile = undefined;
+        hasDeferredNoiseProfile = false;
+      } else {
+        // Nothing deferred means no measurement existed for this track when
+        // the overlap began — `publishTrackGains` returns early in that case
+        // to hold the outgoing level. The overlap is over now and the audio is
+        // entirely the incoming track, so the outgoing track's floor has to go
+        // whether or not a replacement has arrived yet. One that arrives later
+        // publishes itself through the ordinary path.
+        setDspNoiseProfile(undefined);
       }
       flushBufferedSwap();
     };
