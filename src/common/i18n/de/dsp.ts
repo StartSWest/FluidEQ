@@ -52,11 +52,11 @@ const dsp = {
   'dsp.normalizer.measuredLoudness': 'Integrierte Lautheit',
   'dsp.normalizer.appliedGain': 'Angewandte Verstärkung',
   'dsp.normalizer.limitedByCeiling':
-    '{{requested}} nötig — durch Peak-Limit begrenzt',
+    '{requested} nötig — durch Peak-Limit begrenzt',
   'dsp.normalizer.limitedByMaxGain':
-    '{{requested}} nötig — maximale Anhebung erreicht',
+    '{requested} nötig — maximale Anhebung erreicht',
   'dsp.normalizer.limitedByMinGain':
-    '{{requested}} nötig — maximale Absenkung erreicht',
+    '{requested} nötig — maximale Absenkung erreicht',
   'dsp.normalizer.limitedByGate':
     'Zu leise zum Messen — keine Verstärkung angewendet',
   'dsp.normalizer.liveMeter': 'Live vorher / nachher',
@@ -66,6 +66,65 @@ const dsp = {
     'Tatsächliche Sample-Peaks direkt vor und nach der Normalisierung. Die Nullmarke entspricht 0 dBFS.',
   'dsp.normalizer.honesty':
     'Verhindert nachfolgende Übersteuerung; bereits in der Datei enthaltene Verzerrung kann nicht rekonstruiert werden.',
+
+  'dsp.denoise.title': 'Rauschentfernung',
+  'dsp.denoise.description':
+    'Repariert die Quelle, bevor sie irgendetwas färbt: Rauschen, Netzbrummen, Knackser und ein neuronaler Sprachreiniger. Am Titel selbst gemessen, nicht geraten.',
+  'dsp.denoise.isolate': 'Entferntes anhören',
+  'dsp.denoise.isolateHint':
+    'Gibt das entfernte Signal statt des behaltenen wieder. Der einzige verlässliche Weg zu hören, ob hier Rauschen oder die Hi-Hat verschwindet.',
+  'dsp.denoise.profileSource': 'Rauschteppich',
+  'dsp.denoise.scanned': 'Gemessen',
+  'dsp.denoise.adaptive': 'Adaptiv',
+  'dsp.denoise.fallingBack':
+    'Für diese Quelle liegt keine Messung vor — der Teppich wird live verfolgt.',
+  'dsp.denoise.hiss': 'Rauschen',
+  'dsp.denoise.hissHint':
+    'Breitbandige Absenkung gegen den gemessenen Teppich. Fügt eingeschaltet 21 ms Latenz hinzu.',
+  'dsp.denoise.amount': 'Stärke',
+  'dsp.denoise.reductionLimit': 'Reduktionsgrenze',
+  'dsp.denoise.reductionLimitHint':
+    'Wie weit eine einzelne Frequenz abgesenkt werden darf. Etwas vom ursprünglichen Rauschen stehen zu lassen verhindert, dass der Rest zwitschert — tiefer ist nicht sauberer.',
+  'dsp.denoise.sensitivity': 'Empfindlichkeit',
+  'dsp.denoise.smoothing': 'Glättung',
+  'dsp.denoise.hum': 'Brummen',
+  'dsp.denoise.humHint':
+    'Kerbt die Netzfrequenz und die Oberwellen, die die Messung tatsächlich gefunden hat. Ohne Latenz.',
+  'dsp.denoise.humFrequency': 'Frequenz',
+  'dsp.denoise.humAuto': 'Auto',
+  'dsp.denoise.humFifty': '50 Hz',
+  'dsp.denoise.humSixty': '60 Hz',
+  'dsp.denoise.harmonics': 'Oberwellen',
+  'dsp.denoise.depth': 'Tiefe',
+  'dsp.denoise.width': 'Breite',
+  'dsp.denoise.humAutoWaiting':
+    'Auto nutzt die gemessene Frequenz. Für diese Quelle wurde noch nichts gemessen.',
+  'dsp.denoise.click': 'Knackser',
+  'dsp.denoise.clickHint':
+    'Findet impulsive Schäden und überbrückt sie. Alles, was zu lang für einen Knackser ist, bleibt unangetastet — so überlebt die Perkussion.',
+  'dsp.denoise.maxRepair': 'Längste Reparatur',
+  'dsp.denoise.voice': 'Stimme',
+  'dsp.denoise.voiceHint':
+    'Ein auf Sprache trainierter neuronaler Reiniger. Hervorragend bei Podcasts und Interviews; bei Musik nimmt er Becken und Hallfahnen mit.',
+  'dsp.denoise.voiceModelMissing':
+    'Benötigt einen einmaligen Download von 10 MB, bevor es laufen kann.',
+  'dsp.denoise.voiceDownload': 'Modell laden',
+  'dsp.denoise.voiceDownloading': 'Modell wird geladen · {progress}%',
+  'dsp.denoise.voiceReady': 'Modell bereit',
+  'dsp.denoise.analysis': 'Quellenanalyse',
+  'dsp.denoise.analyzing': 'Rauschteppich wird gemessen · {progress}%',
+  'dsp.denoise.waiting':
+    'Spiele einen Titel aus der Bibliothek ab, um ihn zu messen.',
+  'dsp.denoise.measuredFloor': 'Rauschteppich',
+  'dsp.denoise.measuredHum': 'Brummen gefunden',
+  'dsp.denoise.measuredClicks': 'Knackser',
+  'dsp.denoise.noHum': 'Keines',
+  'dsp.denoise.perMinute': '{count}/min',
+  'dsp.denoise.liveReduction': 'Reduziert',
+  'dsp.denoise.clicksRepaired': 'Repariert',
+  'dsp.denoise.voiceUnderruns': 'Stimmaussetzer',
+  'dsp.denoise.nativeOnly':
+    'Die Rauschentfernung läuft nur in der nativen Engine, die das Audio gerade nicht führt. Diese Stufe ist überbrückt.',
 
   'dsp.crossfade.title': 'Überblendung',
   'dsp.crossfade.description':

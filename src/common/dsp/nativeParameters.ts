@@ -6,6 +6,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import {
   CROSSFADE_CURVES,
+  DENOISE_HUM_MODES,
+  DENOISE_PROFILE_SOURCES,
   EQ_ENGINES,
   EQ_MODELS,
   EQ_PHASE_MODES,
@@ -208,6 +210,60 @@ export const NATIVE_DSP_PARAMETERS = [
    * value of it is switching while the same audio plays.
    */
   { id: 1901, path: 'debug.outputSafetyEnabled', kind: 'boolean' },
+
+  /*
+   * Denoise owns 2200-2299. 2000-2199 belongs to the bass stages.
+   *
+   * Gaps between the four module runs are deliberate. A fifth hiss dial
+   * extends 2215 to 2216 rather than reaching into the hum run, because an id
+   * cannot be moved once it has shipped and stored automation follows it.
+   */
+  { id: 2201, path: 'denoise.enabled', kind: 'boolean' },
+  { id: 2202, path: 'denoise.isolate', kind: 'boolean' },
+  {
+    id: 2203,
+    path: 'denoise.profileSource',
+    kind: 'enum',
+    values: DENOISE_PROFILE_SOURCES,
+  },
+
+  { id: 2211, path: 'denoise.hiss.enabled', kind: 'boolean' },
+  { id: 2212, path: 'denoise.hiss.amount', kind: 'number' },
+  { id: 2213, path: 'denoise.hiss.floorDb', kind: 'number' },
+  { id: 2214, path: 'denoise.hiss.sensitivityDb', kind: 'number' },
+  { id: 2215, path: 'denoise.hiss.smoothing', kind: 'number' },
+
+  { id: 2221, path: 'denoise.hum.enabled', kind: 'boolean' },
+  {
+    id: 2222,
+    path: 'denoise.hum.mode',
+    kind: 'enum',
+    values: DENOISE_HUM_MODES,
+  },
+  // Structural: the notch count is how many biquads the comb allocates.
+  { id: 2223, path: 'denoise.hum.harmonics', kind: 'number', structural: true },
+  { id: 2224, path: 'denoise.hum.depthDb', kind: 'number' },
+  { id: 2225, path: 'denoise.hum.quality', kind: 'number' },
+
+  { id: 2231, path: 'denoise.click.enabled', kind: 'boolean' },
+  { id: 2232, path: 'denoise.click.sensitivity', kind: 'number' },
+  // Structural: the repair limit sizes the detector's lookahead buffer.
+  {
+    id: 2233,
+    path: 'denoise.click.maxRepairSamples',
+    kind: 'number',
+    structural: true,
+  },
+
+  // Structural: engaging the model builds the session, its worker and the
+  // latency ring, none of which can be allocated from the audio callback.
+  {
+    id: 2241,
+    path: 'denoise.voice.enabled',
+    kind: 'boolean',
+    structural: true,
+  },
+  { id: 2242, path: 'denoise.voice.amount', kind: 'number' },
 ] as const satisfies readonly INativeParameter[];
 
 export type TNativeParameterId = (typeof NATIVE_DSP_PARAMETERS)[number]['id'];

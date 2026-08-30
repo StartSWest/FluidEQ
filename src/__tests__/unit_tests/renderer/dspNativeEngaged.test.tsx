@@ -56,6 +56,7 @@ const bridgeWith = (
     setDspHostTrackGains: yes,
     setDspHostCrossfadeTable: yes,
     setDspHostVolume: yes,
+    setDspHostNoiseProfile: yes,
   };
 };
 

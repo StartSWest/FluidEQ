@@ -19,6 +19,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
  */
 import { IDspSettings } from '../../common/dsp/chain';
 import { encodeChainSettings } from '../../common/dsp/chainWire';
+import {
+  encodeNoiseProfile,
+  INoiseProfile,
+} from '../../common/dsp/noiseProfile';
 
 /**
  * The half of the preload bridge this needs.
@@ -50,6 +54,9 @@ export interface INativeBackendBridge {
     masterLoudnessGainDb: number,
   ) => Promise<boolean>;
   setDspHostVolume: (volume: number) => Promise<boolean>;
+  setDspHostNoiseProfile: (
+    values: readonly number[] | null,
+  ) => Promise<boolean>;
 }
 
 export interface INativeBackendController {
@@ -107,6 +114,15 @@ export interface INativeTransport {
     inputGainDb: number,
     masterLoudnessGainDb: number,
   ) => Promise<boolean>;
+  /**
+   * The measured noise floor for this track, or undefined to clear it.
+   *
+   * Sits beside `setTrackGains` because it is the same kind of value: it comes
+   * from the analysis pass rather than from a control, and it belongs to one
+   * track. Clearing it on a track with no scan matters — a profile left over
+   * from the previous song subtracts that recording's hiss from this one.
+   */
+  setNoiseProfile: (profile: INoiseProfile | undefined) => Promise<boolean>;
   /**
    * The listener volume, 0 to 1.
    *
@@ -190,6 +206,10 @@ export const createNativeBackendController = (
       setCrossfadeTable: (values) => bridge.setDspHostCrossfadeTable(values),
       setTrackGains: (inputGainDb, masterLoudnessGainDb) =>
         bridge.setDspHostTrackGains(inputGainDb, masterLoudnessGainDb),
+      setNoiseProfile: (profile) =>
+        bridge.setDspHostNoiseProfile(
+          profile ? encodeNoiseProfile(profile) : null,
+        ),
     },
   };
 };

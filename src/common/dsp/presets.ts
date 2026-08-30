@@ -49,6 +49,11 @@ export const DSP_PRESETS: IDspPreset[] = [
     settings: {
       enabled: true,
       normalizer: DSP_DEFAULTS.normalizer,
+      // Bypassed in every shipped preset, including the codec repair one where
+      // it would plausibly help. Denoise without a scan has no profile to work
+      // against, and a preset that starts subtracting a floor it has not
+      // measured yet is a preset that sounds different on its second play.
+      denoise: DSP_DEFAULTS.denoise,
       crossfade: DSP_DEFAULTS.crossfade,
       // Left flat: this preset repairs a codec, and a tone curve on top of
       // that is a second opinion the user did not ask for.
@@ -98,6 +103,11 @@ export const DSP_PRESETS: IDspPreset[] = [
     settings: {
       enabled: true,
       normalizer: DSP_DEFAULTS.normalizer,
+      // Bypassed in every shipped preset, including the codec repair one where
+      // it would plausibly help. Denoise without a scan has no profile to work
+      // against, and a preset that starts subtracting a floor it has not
+      // measured yet is a preset that sounds different on its second play.
+      denoise: DSP_DEFAULTS.denoise,
       crossfade: DSP_DEFAULTS.crossfade,
       eq: DSP_DEFAULTS.eq,
       exciter: exciterPresetSettings('loud', true),
@@ -176,6 +186,11 @@ export const DSP_PRESETS: IDspPreset[] = [
     settings: {
       enabled: true,
       normalizer: DSP_DEFAULTS.normalizer,
+      // Bypassed in every shipped preset, including the codec repair one where
+      // it would plausibly help. Denoise without a scan has no profile to work
+      // against, and a preset that starts subtracting a floor it has not
+      // measured yet is a preset that sounds different on its second play.
+      denoise: DSP_DEFAULTS.denoise,
       crossfade: DSP_DEFAULTS.crossfade,
       eq: DSP_DEFAULTS.eq,
       exciter: exciterPresetSettings('broadcast', true),

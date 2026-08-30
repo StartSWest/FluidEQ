@@ -25,7 +25,10 @@ import {
 } from './nativeMirror';
 import { INativeMetersBridge, createNativeMeters } from './nativeMeters';
 import { ANALYSIS_BINS } from '../../common/dsp/analysisWire';
-import { setDspNativeTrackGainSink } from './useDspEngine';
+import {
+  setDspNativeNoiseProfileSink,
+  setDspNativeTrackGainSink,
+} from './useDspEngine';
 import {
   setDspNativeDeviceGeneration,
   useDspNativeDeviceGeneration,
@@ -149,7 +152,16 @@ export const useNativeBackend = (
         .setTrackGains(inputGainDb, masterLoudnessGainDb)
         .catch(() => undefined);
     });
-    return () => setDspNativeTrackGainSink(undefined);
+    // The measured floor travels the same way and for the same reason: it is
+    // analysis rather than a control, so nothing else in the settings path
+    // would ever carry it to the host.
+    setDspNativeNoiseProfileSink((profile) => {
+      controller.transport.setNoiseProfile(profile).catch(() => undefined);
+    });
+    return () => {
+      setDspNativeTrackGainSink(undefined);
+      setDspNativeNoiseProfileSink(undefined);
+    };
   }, [controller]);
 
   /**

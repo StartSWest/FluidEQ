@@ -16,6 +16,7 @@ import {
   SILENCE_DB,
   createLoudnessAnalyzer,
 } from './loudnessAnalysis';
+import { createNoiseProfileAnalyzer } from './noiseAnalysis';
 import { createProgrammeEdgeAnalyzer } from './programmeEdges';
 
 /**
@@ -39,6 +40,15 @@ export interface IAnalyzeInputOptions {
   signal: AbortSignal;
   isCancelled: () => boolean;
   onProgress: (progress: IInputAnalysisProgress) => void;
+  /**
+   * Whether to measure the noise floor in the same pass.
+   *
+   * Off by default because it costs a second transform over every sample, and
+   * a library whose owner never opens Denoise should not pay for it. The
+   * caller turns it on when the stage is enabled and the cached entry has no
+   * profile, which is the same lazy rule `edges` follows.
+   */
+  measureNoise?: boolean;
 }
 
 const nextFrame = (): Promise<void> =>
@@ -110,12 +120,19 @@ export const analyzeInputTrack = async (
     source.sampleRate,
     channelCount,
   );
+  // Same reasoning as the edge detector above: the decode is the expensive
+  // half and it has already happened, so measuring the floor in this loop is
+  // what keeps it from being a second pass over the whole file.
+  const noiseAnalyzer = options.measureNoise
+    ? createNoiseProfileAnalyzer(source.sampleRate, channelCount)
+    : undefined;
   const yieldFrames = Math.max(1, Math.round(source.sampleRate));
 
   for (let from = 0; from < source.length; from += yieldFrames) {
     const to = Math.min(source.length, from + yieldFrames);
     analyzer.feed(channels, from, to);
     edgeAnalyzer.feed(channels, from, to);
+    noiseAnalyzer?.feed(channels, from, to);
     options.onProgress({ fraction: to / source.length });
     // eslint-disable-next-line no-await-in-loop -- deliberate renderer yield; see function comment.
     await nextFrame();
@@ -131,6 +148,7 @@ export const analyzeInputTrack = async (
     truePeakDbtp: measurement.truePeakDbtp,
     integratedLufs: measurement.integratedLufs,
     edges: edgeAnalyzer.finish(),
+    noise: noiseAnalyzer?.finish(),
   };
 };
 

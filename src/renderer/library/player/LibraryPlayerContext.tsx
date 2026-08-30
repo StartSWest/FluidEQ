@@ -84,6 +84,7 @@ import {
 import { dspErrorValues, reportDspDiagnostic } from '../../dsp/diagnostics';
 import {
   setDspInputTrackId,
+  setDspNoiseProfile,
   setDspTrackLevelGains,
   useDspEngine,
 } from '../../dsp/useDspEngine';
@@ -1261,12 +1262,21 @@ export const LibraryPlayerProvider = ({
       swapBufferToBlob(audio, track.id, buffer);
     };
     const cachedAnalysis = track.normalization;
+    // Only the modules that actually consume a scanned profile. Clicks and the
+    // neural module need nothing measured, so having them on is not a reason
+    // to decode a file again.
+    const denoiseNeedsProfile =
+      dspSettingsRef.current.denoise.enabled &&
+      dspSettingsRef.current.denoise.profileSource === 'scanned' &&
+      (dspSettingsRef.current.denoise.hiss.enabled ||
+        dspSettingsRef.current.denoise.hum.enabled);
     const shouldAnalyze =
       dspSettingsRef.current.enabled &&
       (dspSettingsRef.current.normalizer.mode !== 'off' ||
         // The crossfade needs the same decode pass: it cannot know when this
         // song stops without measuring where its last audible sample is.
         transition.enabled ||
+        denoiseNeedsProfile ||
         (dspSettingsRef.current.master.enabled &&
           dspSettingsRef.current.master.loudnessMaximize));
     /**
@@ -1311,6 +1321,11 @@ export const LibraryPlayerProvider = ({
         return;
       }
       setDspTrackLevelGains(next[0], next[1]);
+      // Published with the gains rather than separately, so the floor and the
+      // level the stage sees always describe the same track. Undefined when
+      // this one has no scan: keeping the previous song's profile would
+      // subtract that recording's hiss from this one.
+      setDspNoiseProfile(analysis?.noise);
     };
     const completeTrackHandoff = () => {
       handoffComplete = true;
@@ -1484,7 +1499,11 @@ export const LibraryPlayerProvider = ({
         // An entry measured before the edges existed still holds correct
         // loudness numbers, so it is only worth decoding the file again for
         // the one feature that needs the missing half.
-        (!cachedAnalysis.edges && transition.enabled);
+        (!cachedAnalysis.edges && transition.enabled) ||
+        // Same rule for the noise floor, added the same way and for the same
+        // reason: no version bump, no library-wide re-measure, just one more
+        // decode for the one track whose missing half is now wanted.
+        (!cachedAnalysis.noise && denoiseNeedsProfile);
       if (!needsFreshAnalysis) {
         return;
       }
@@ -1495,6 +1514,7 @@ export const LibraryPlayerProvider = ({
         sampleRateHint: track.sampleRate,
         signal: analysisJob.controller.signal,
         isCancelled: () => cancelled || analysisJobRef.current !== analysisJob,
+        measureNoise: denoiseNeedsProfile,
         onProgress: ({ fraction }) => {
           if (
             !cachedAnalysis &&
@@ -1691,9 +1711,16 @@ export const LibraryPlayerProvider = ({
     // because the crossfade was switched on after it started.
     const wantsEdges =
       dspSettings.crossfade.enabled && !track?.normalization?.edges;
+    // Same shape as the edges above: a track measured before Denoise existed,
+    // or measured while the stage was off, is still missing this half.
+    const wantsNoise =
+      dspSettings.denoise.enabled &&
+      dspSettings.denoise.profileSource === 'scanned' &&
+      (dspSettings.denoise.hiss.enabled || dspSettings.denoise.hum.enabled) &&
+      !track?.normalization?.noise;
     if (
       !dspSettings.enabled ||
-      (!wantsLoudness && !wantsEdges) ||
+      (!wantsLoudness && !wantsEdges && !wantsNoise) ||
       !track ||
       track.kind !== 'audio' ||
       analysisJobRef.current?.trackId === track.id
@@ -1724,6 +1751,7 @@ export const LibraryPlayerProvider = ({
         sampleRateHint: track.sampleRate,
         signal: analysisJob.controller.signal,
         isCancelled: () => cancelled || analysisJobRef.current !== analysisJob,
+        measureNoise: wantsNoise,
         onProgress: ({ fraction }) => {
           if (!cancelled && analysisJobRef.current === analysisJob) {
             setDspInputAnalysis({
@@ -1813,6 +1841,10 @@ export const LibraryPlayerProvider = ({
     };
   }, [
     dspSettings.crossfade.enabled,
+    dspSettings.denoise.enabled,
+    dspSettings.denoise.hiss.enabled,
+    dspSettings.denoise.hum.enabled,
+    dspSettings.denoise.profileSource,
     dspSettings.enabled,
     dspSettings.master.enabled,
     dspSettings.master.loudnessMaximize,

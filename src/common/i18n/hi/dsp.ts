@@ -51,9 +51,9 @@ const dsp = {
   'dsp.normalizer.measuredLoudness': 'इंटीग्रेटेड लाउडनेस',
   'dsp.normalizer.appliedGain': 'लागू गेन',
   'dsp.normalizer.limitedByCeiling':
-    '{{requested}} आवश्यक — पीक सीमा द्वारा सीमित',
-  'dsp.normalizer.limitedByMaxGain': '{{requested}} आवश्यक — अधिकतम बूस्ट पर',
-  'dsp.normalizer.limitedByMinGain': '{{requested}} आवश्यक — अधिकतम क्षीणन पर',
+    '{requested} आवश्यक — पीक सीमा द्वारा सीमित',
+  'dsp.normalizer.limitedByMaxGain': '{requested} आवश्यक — अधिकतम बूस्ट पर',
+  'dsp.normalizer.limitedByMinGain': '{requested} आवश्यक — अधिकतम क्षीणन पर',
   'dsp.normalizer.limitedByGate': 'मापने के लिए बहुत शांत — कोई गेन लागू नहीं',
   'dsp.normalizer.liveMeter': 'लाइव पहले / बाद में',
   'dsp.normalizer.before': 'पहले',
@@ -62,6 +62,64 @@ const dsp = {
     'नॉर्मलाइज़र के ठीक पहले और बाद में मापे गए वास्तविक सैंपल पीक। शून्य निशान 0 dBFS है।',
   'dsp.normalizer.honesty':
     'आगे की ओवरलोडिंग रोकता है; फ़ाइल में पहले से मौजूद डिस्टॉर्शन को दोबारा नहीं बना सकता।',
+
+  'dsp.denoise.title': 'शोर निवारण',
+  'dsp.denoise.description':
+    'रंग चढ़ाने से पहले स्रोत की मरम्मत करता है: हिस, मेन्स हम, क्लिक और एक न्यूरल वॉइस क्लीनर। ट्रैक से ही मापा गया, अनुमान नहीं।',
+  'dsp.denoise.isolate': 'जो हटाया जा रहा है उसे सुनें',
+  'dsp.denoise.isolateHint':
+    'रखे गए संकेत के बजाय हटाया गया संकेत बजाता है। यह जानने का एकमात्र भरोसेमंद तरीका कि यह हिस ले जा रहा है या हाई-हैट।',
+  'dsp.denoise.profileSource': 'शोर स्तर',
+  'dsp.denoise.scanned': 'मापा गया',
+  'dsp.denoise.adaptive': 'अनुकूली',
+  'dsp.denoise.fallingBack':
+    'इस स्रोत का कोई माप नहीं — शोर स्तर सीधे लाइव पढ़ा जा रहा है।',
+  'dsp.denoise.hiss': 'हिस',
+  'dsp.denoise.hissHint':
+    'मापे गए स्तर के सापेक्ष व्यापक-बैंड दमन। चालू रहने पर 21 ms विलंब जोड़ता है।',
+  'dsp.denoise.amount': 'मात्रा',
+  'dsp.denoise.reductionLimit': 'कमी की सीमा',
+  'dsp.denoise.reductionLimitHint':
+    'किसी एक आवृत्ति को कितना नीचे लाया जा सकता है। थोड़ा मूल शोर छोड़ना ही बाकी को लहराने से रोकता है — ज़्यादा गहरा मतलब ज़्यादा साफ़ नहीं।',
+  'dsp.denoise.sensitivity': 'संवेदनशीलता',
+  'dsp.denoise.smoothing': 'स्मूदिंग',
+  'dsp.denoise.hum': 'हम',
+  'dsp.denoise.humHint':
+    'मेन्स आवृत्ति और उन्हीं हार्मोनिक्स को नॉच करता है जो माप में सचमुच मिले। कोई विलंब नहीं।',
+  'dsp.denoise.humFrequency': 'आवृत्ति',
+  'dsp.denoise.humAuto': 'स्वतः',
+  'dsp.denoise.humFifty': '50 Hz',
+  'dsp.denoise.humSixty': '60 Hz',
+  'dsp.denoise.harmonics': 'हार्मोनिक्स',
+  'dsp.denoise.depth': 'गहराई',
+  'dsp.denoise.width': 'चौड़ाई',
+  'dsp.denoise.humAutoWaiting':
+    'स्वतः मापी गई आवृत्ति का उपयोग करता है। इस स्रोत पर अभी कुछ मापा नहीं गया।',
+  'dsp.denoise.click': 'क्लिक',
+  'dsp.denoise.clickHint':
+    'आवेगी क्षति ढूँढ़कर पाटता है। जो भी क्लिक कहलाने के लिए बहुत लंबा है उसे छोड़ दिया जाता है, इसलिए ताल-वाद्य बचे रहते हैं।',
+  'dsp.denoise.maxRepair': 'अधिकतम मरम्मत',
+  'dsp.denoise.voice': 'आवाज़',
+  'dsp.denoise.voiceHint':
+    'वाणी पर प्रशिक्षित न्यूरल क्लीनर। पॉडकास्ट और साक्षात्कार पर उत्कृष्ट; संगीत पर यह झांझ और रीवर्ब की पूँछ भी ले जाता है।',
+  'dsp.denoise.voiceModelMissing':
+    'चलने से पहले एक बार 10 MB का मॉडल डाउनलोड करना होगा।',
+  'dsp.denoise.voiceDownload': 'मॉडल डाउनलोड करें',
+  'dsp.denoise.voiceDownloading': 'मॉडल डाउनलोड हो रहा है · {progress}%',
+  'dsp.denoise.voiceReady': 'मॉडल तैयार',
+  'dsp.denoise.analysis': 'स्रोत विश्लेषण',
+  'dsp.denoise.analyzing': 'शोर स्तर मापा जा रहा है · {progress}%',
+  'dsp.denoise.waiting': 'मापने के लिए लाइब्रेरी का कोई ट्रैक चलाएँ।',
+  'dsp.denoise.measuredFloor': 'शोर स्तर',
+  'dsp.denoise.measuredHum': 'हम मिला',
+  'dsp.denoise.measuredClicks': 'क्लिक',
+  'dsp.denoise.noHum': 'कोई नहीं',
+  'dsp.denoise.perMinute': '{count}/मिनट',
+  'dsp.denoise.liveReduction': 'घटाया जा रहा',
+  'dsp.denoise.clicksRepaired': 'मरम्मत हुई',
+  'dsp.denoise.voiceUnderruns': 'आवाज़ में कटाव',
+  'dsp.denoise.nativeOnly':
+    'शोर निवारण केवल नेटिव इंजन में चलता है, जो इस समय ऑडियो नहीं चला रहा। यह चरण बायपास है।',
 
   'dsp.crossfade.title': 'क्रॉसफ़ेड',
   'dsp.crossfade.description':

@@ -339,6 +339,15 @@ void drain_analysis(HostState& state) {
   frame.loudness_short_term_lufs = loudness[1];
   frame.loudness_integrated_lufs = loudness[2];
   frame.loudness_range_lu = loudness[3];
+  FeqDenoiseReport denoise{};
+  feq_chain_denoise_report(state.chain, &denoise);
+  frame.denoise_reduction_db = static_cast<float>(denoise.reduction_db);
+  frame.denoise_noise_floor_db = static_cast<float>(denoise.noise_floor_db);
+  frame.denoise_clicks_repaired = denoise.clicks_repaired;
+  frame.denoise_voice_underruns = denoise.voice_underruns;
+  frame.denoise_profile_ready = denoise.profile_ready != 0 ? 1u : 0u;
+  frame.denoise_voice_model_loaded =
+      denoise.voice_model_loaded != 0 ? 1u : 0u;
   frame.correlation = correlation;
   frame.peak_left = peaks[0];
   frame.peak_right = peaks[1];
@@ -1064,6 +1073,87 @@ int main(int argc, char** argv) {
         }
         send_ack(frame.request_id, FEQ_WIRE_APPLIED, frame.settings_revision,
                  static_cast<uint64_t>(frame.parameter_id) * state.block_frames,
+                 0.0);
+        break;
+      }
+
+      case FEQ_CMD_LOAD_VOICE_MODEL: {
+        if (frame.parameter_id == 0) {
+          if (state.chain != nullptr) {
+            feq_chain_load_voice_model(state.chain, nullptr, nullptr);
+          }
+          send_ack(frame.request_id, FEQ_WIRE_APPLIED, frame.settings_revision,
+                   0, 0.0);
+          break;
+        }
+        std::string payload(frame.parameter_id, '\0');
+        if (!read_exact(payload.data(), payload.size())) {
+          running = false;
+          break;
+        }
+        const size_t split = payload.find('\n');
+        if (split == std::string::npos) {
+          send_ack(frame.request_id, FEQ_WIRE_REJECTED, 0, 0, 0.0);
+          break;
+        }
+        const std::string model = payload.substr(0, split);
+        const std::string runtime = payload.substr(split + 1);
+        // Loading builds a session and starts a worker, so it happens here on
+        // the control thread and never from the callback. A refusal is
+        // reported rather than swallowed: the card distinguishes "no model" it
+        // asked for from one it thought it had.
+        const int loaded =
+            state.chain != nullptr
+                ? feq_chain_load_voice_model(state.chain, model.c_str(),
+                                             runtime.c_str())
+                : 0;
+        send_ack(frame.request_id,
+                 loaded != 0 ? FEQ_WIRE_APPLIED : FEQ_WIRE_REJECTED,
+                 frame.settings_revision, 0, 0.0);
+        break;
+      }
+
+      case FEQ_CMD_SET_NOISE_PROFILE: {
+        // Length zero clears it. A track with no scan must not inherit the
+        // previous song's floor: subtracting one recording's hiss from another
+        // is audible and there is nothing on screen that would explain it.
+        if (frame.parameter_id == 0) {
+          if (state.chain != nullptr) {
+            feq_chain_set_noise_profile(state.chain, nullptr);
+          }
+          send_ack(frame.request_id, FEQ_WIRE_APPLIED, frame.settings_revision,
+                   0, 0.0);
+          break;
+        }
+        if (frame.parameter_id != FEQ_DENOISE_PROFILE_WIRE) {
+          send_ack(frame.request_id, FEQ_WIRE_REJECTED, 0, 0, 0.0);
+          break;
+        }
+        std::vector<double> values(FEQ_DENOISE_PROFILE_WIRE, 0.0);
+        if (!read_exact(values.data(), values.size() * sizeof(double))) {
+          running = false;
+          break;
+        }
+        FeqNoiseProfile profile{};
+        size_t at = 0;
+        for (uint32_t band = 0; band < FEQ_DENOISE_PROFILE_BANDS; band += 1) {
+          profile.bands_db[band] = values[at++];
+        }
+        profile.floor_dbfs = values[at++];
+        profile.hum_hz = values[at++];
+        const double count = values[at++];
+        profile.hum_partial_count = static_cast<uint32_t>(
+            count > 0 && count <= FEQ_DENOISE_MAX_HUM_PARTIALS ? count : 0);
+        for (uint32_t i = 0; i < FEQ_DENOISE_MAX_HUM_PARTIALS; i += 1) {
+          profile.hum_partial_hz[i] = values[at++];
+        }
+        for (uint32_t i = 0; i < FEQ_DENOISE_MAX_HUM_PARTIALS; i += 1) {
+          profile.hum_partial_excess_db[i] = values[at++];
+        }
+        if (state.chain != nullptr) {
+          feq_chain_set_noise_profile(state.chain, &profile);
+        }
+        send_ack(frame.request_id, FEQ_WIRE_APPLIED, frame.settings_revision, 0,
                  0.0);
         break;
       }

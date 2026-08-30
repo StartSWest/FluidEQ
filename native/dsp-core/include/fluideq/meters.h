@@ -77,11 +77,19 @@ extern "C" {
  * `DspExciterGraph` wants `exciter`, `DspMasterGraph` wants `master`. Capturing
  * the other three would be work done every block for a picture nobody draws.
  */
+/*
+ * These are bit positions in `stage_mask`, so `denoise` is appended rather
+ * than placed where the stage actually runs. Inserting it at the front would
+ * renumber the three taps a running host already publishes and feed every
+ * graph its neighbour's spectrum. Matches `ANALYSIS_STAGES` in
+ * `analysisWire.ts`, which is append-only for the same reason.
+ */
 typedef enum FeqMeterStage {
   FEQ_METER_STAGE_EXCITER = 0,
   FEQ_METER_STAGE_EQ = 1,
   FEQ_METER_STAGE_MASTER = 2,
-  FEQ_METER_STAGE_COUNT = 3
+  FEQ_METER_STAGE_DENOISE = 3,
+  FEQ_METER_STAGE_COUNT = 4
 } FeqMeterStage;
 
 /**

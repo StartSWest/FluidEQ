@@ -26,6 +26,14 @@ const GLYPHS: Record<TDspSection, { frame: string; accent: string }> = {
     frame: 'M3 5 H17 M3 15 H17',
     accent: 'M5 10 H8 L10 7 L12 13 L14 10 H17',
   },
+  // A ragged floor with the wanted signal standing clear of it. The frame is
+  // the noise being cut down to a flat line; the accent is the one peak that
+  // survives, because this stage is defined by what it LEAVES rather than by
+  // what it removes.
+  denoise: {
+    frame: 'M2 15 L4 12.5 L6 15 L8 11.5 L10 15 L12 12 L14 15 L16 12.5 L18 15',
+    accent: 'M10 15 V4 M7.5 6.5 L10 4 L12.5 6.5',
+  },
   crossfade: {
     frame: 'M2 6 H6 C9 6 11 14 14 14 H18 M2 14 H6 C9 14 11 6 14 6 H18',
     accent: 'M8 10 H12',

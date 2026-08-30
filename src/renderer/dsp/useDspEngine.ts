@@ -14,6 +14,7 @@ import {
   DSP_DIAGNOSTIC_CODES,
   DSP_DIAGNOSTIC_SCHEMA_VERSION,
 } from '../../common/dsp/diagnostics';
+import { INoiseProfile } from '../../common/dsp/noiseProfile';
 import {
   IAudioGraphContext,
   IAudioNodeLike,
@@ -80,8 +81,29 @@ export const setDspNativeTrackGainSink = (
 ): void => {
   nativeTrackGainSink = sink;
 };
+/**
+ * The same arrangement for the noise floor, and it is registered and cleared
+ * with the controller so it never points at a host that has gone.
+ */
+let nativeNoiseProfileSink:
+  ((profile: INoiseProfile | undefined) => void) | undefined;
+
+export const setDspNativeNoiseProfileSink = (
+  sink: ((profile: INoiseProfile | undefined) => void) | undefined,
+): void => {
+  nativeNoiseProfileSink = sink;
+  // Replayed on registration, because the engine can engage after the track
+  // has already been measured. Without it, switching to the native engine
+  // mid-song leaves Denoise following the live floor on a track whose profile
+  // the renderer is holding.
+  if (sink) {
+    sink(pendingNoiseProfile);
+  }
+};
+
 let pendingInputGainDb = 0;
 let pendingMasterLoudnessGainDb = 0;
+let pendingNoiseProfile: INoiseProfile | undefined;
 let pendingInputTrackId = '';
 
 /** Flush source-bound delay before a new track's gain can reach the worklet. */
@@ -123,6 +145,23 @@ export const setDspTrackLevelGains = (
     },
   });
   nativeTrackGainSink?.(pendingInputGainDb, pendingMasterLoudnessGainDb);
+};
+
+/**
+ * The measured noise floor, published the same way the track gains are.
+ *
+ * Nothing is sent to the worklet: Denoise exists only in the native engine, so
+ * there is no second consumer of this and inventing one would be a message the
+ * worklet ignores. `undefined` clears the host's copy, which is what a track
+ * with no scan sends — a profile left in place from the previous song
+ * subtracts that recording's hiss from this one, and nothing on screen would
+ * explain the result.
+ */
+export const setDspNoiseProfile = (
+  profile: INoiseProfile | undefined,
+): void => {
+  pendingNoiseProfile = profile;
+  nativeNoiseProfileSink?.(profile);
 };
 
 interface IEngineState {

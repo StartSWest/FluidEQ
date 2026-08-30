@@ -83,6 +83,14 @@ const analysisFrame = (
       outputPeaks: [0, 0],
       appliedGainDb: 0,
     },
+    denoise: {
+      reductionDb: 0,
+      noiseFloorDb: -120,
+      clicksRepaired: 0,
+      voiceUnderruns: 0,
+      profileReady: false,
+      voiceModelLoaded: false,
+    },
   };
 };
 

@@ -28,6 +28,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <stdint.h>
 
+/* For the profile's band and partial counts, which size its payload. */
+#include "fluideq/denoise.h"
+
 #define FEQ_WIRE_PROTOCOL_VERSION 1
 
 /* 'FEQ' plus a letter for the kind, so a desynchronised stream is obvious. */
@@ -149,8 +152,32 @@ enum FeqWireCommand {
    * One command for both sides because a fade drawn against two different
    * shapes steps in the middle of the overlap.
    */
-  FEQ_CMD_SET_CROSSFADE_TABLE = 20
+  FEQ_CMD_SET_CROSSFADE_TABLE = 20,
+  /**
+   * The measured noise floor, as `FEQ_DENOISE_PROFILE_WIRE` doubles.
+   *
+   * Its own command rather than part of the chain snapshot, matching
+   * `SET_TRACK_GAINS`: it comes from analysis rather than from a dial and
+   * changes once per track, not once per knob-drag. A payload length of zero
+   * clears it, which is what a track with no scan sends — the stage then
+   * follows the floor live and says so, rather than subtracting the previous
+   * song's hiss from this one.
+   */
+  FEQ_CMD_SET_NOISE_PROFILE = 21,
+  /**
+   * The voice model and the ONNX Runtime, as one UTF-8 payload of
+   * `parameter_id` bytes: the model path, a newline, then the runtime path.
+   *
+   * One command for both because neither is any use without the other, and a
+   * module half-pointed at a model is a control that reads as ready while
+   * doing nothing. A zero-length payload unloads.
+   */
+  FEQ_CMD_LOAD_VOICE_MODEL = 22
 };
+
+/** Bands, then floor, fundamental and partial count, then the partials. */
+#define FEQ_DENOISE_PROFILE_WIRE \
+  (FEQ_DENOISE_PROFILE_BANDS + 3 + FEQ_DENOISE_MAX_HUM_PARTIALS * 2)
 
 
 enum FeqWireStatus {
@@ -319,6 +346,28 @@ typedef struct FeqWireAnalysisFrame {
   float loudness_short_term_lufs;
   float loudness_integrated_lufs;
   float loudness_range_lu;
+  /*
+   * Denoise, appended after every pre-existing offset and never inserted.
+   *
+   * The TypeScript reader's guards are `length < ANALYSIS_HEADER_BYTES` — a
+   * floor rather than an exact check — so a field placed above one of these
+   * does not fail there, it reads whatever float has moved into the old offset
+   * and hands the panel a plausible number. The static_assert below is the
+   * only thing that catches a change here, so it moves in the same commit.
+   */
+  float denoise_reduction_db;
+  float denoise_noise_floor_db;
+  uint32_t denoise_clicks_repaired;
+  uint32_t denoise_voice_underruns;
+  /*
+   * Two words rather than one bitfield, and it costs nothing: the second slot
+   * was padding anyway. They are two independent facts — a profile can be
+   * loaded with no model and a model with no profile — and the card says
+   * something different about each, so packing them would be a bit test on
+   * both sides to recover what the struct can just state.
+   */
+  uint32_t denoise_profile_ready;
+  uint32_t denoise_voice_model_loaded;
 } FeqWireAnalysisFrame;
 
 #ifdef __cplusplus
@@ -336,7 +385,8 @@ static_assert(sizeof(FeqWireHandshake) == 104, "handshake frame size");
 static_assert(sizeof(FeqWireCommandFrame) == 32, "command frame size");
 static_assert(sizeof(FeqWireAckFrame) == 32, "ack frame size");
 static_assert(sizeof(FeqWireTelemetryFrame) == 88, "telemetry frame size");
-static_assert(sizeof(FeqWireAnalysisFrame) == 136, "analysis frame size");
+/* 120, then 136 when Master loudness landed, then Denoise's six words. */
+static_assert(sizeof(FeqWireAnalysisFrame) == 160, "analysis frame size");
 #endif
 
 #endif /* FLUIDEQ_HOST_WIRE_H */

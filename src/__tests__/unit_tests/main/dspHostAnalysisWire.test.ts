@@ -158,13 +158,19 @@ describe('the analysis frame length', () => {
     expect(frame.length).toBe(analysisFrameLength(frame));
   });
 
-  it('counts all three stages and the scope', () => {
+  // Counted from `ANALYSIS_STAGES` rather than written as a literal. The
+  // frame carried three taps until Denoise added a fourth, and a hard-coded
+  // count here fails on the day a stage is added instead of proving the
+  // arithmetic still holds — which is the only thing this test is for.
+  it('counts every stage and the scope', () => {
     const frame = buildAnalysis({
       stages: [...ANALYSIS_STAGES],
       withScope: true,
     });
     expect(analysisFrameLength(frame)).toBe(
-      ANALYSIS_HEADER_BYTES + 3 * ANALYSIS_BINS * 4 + ANALYSIS_SCOPE_PAIRS * 8,
+      ANALYSIS_HEADER_BYTES +
+        ANALYSIS_STAGES.length * ANALYSIS_BINS * 4 +
+        ANALYSIS_SCOPE_PAIRS * 8,
     );
     expect(frame.length).toBe(analysisFrameLength(frame));
   });
@@ -277,7 +283,9 @@ describe('reading analysis frames off a pipe', () => {
       reader.push(frame.subarray(at, Math.min(at + 1500, frame.length)));
     }
     expect(analyses).toHaveLength(1);
-    expect(Object.keys(analyses[0].spectra)).toHaveLength(3);
+    expect(Object.keys(analyses[0].spectra)).toHaveLength(
+      ANALYSIS_STAGES.length,
+    );
   });
 
   /** Including a split that lands inside the header itself. */

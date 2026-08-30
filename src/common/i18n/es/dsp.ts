@@ -52,11 +52,11 @@ const dsp = {
   'dsp.normalizer.measuredLoudness': 'Sonoridad integrada',
   'dsp.normalizer.appliedGain': 'Ganancia aplicada',
   'dsp.normalizer.limitedByCeiling':
-    '{{requested}} necesarios — limitado por el techo de pico',
+    '{requested} necesarios — limitado por el techo de pico',
   'dsp.normalizer.limitedByMaxGain':
-    '{{requested}} necesarios — realce máximo alcanzado',
+    '{requested} necesarios — realce máximo alcanzado',
   'dsp.normalizer.limitedByMinGain':
-    '{{requested}} necesarios — atenuación máxima alcanzada',
+    '{requested} necesarios — atenuación máxima alcanzada',
   'dsp.normalizer.limitedByGate':
     'Demasiado bajo para medir — sin ganancia aplicada',
   'dsp.normalizer.liveMeter': 'Antes / después en vivo',
@@ -66,6 +66,64 @@ const dsp = {
     'Picos de muestra reales medidos justo antes y después del Normalizador. La marca cero es 0 dBFS.',
   'dsp.normalizer.honesty':
     'Evita sobrecargas posteriores; no puede reconstruir distorsión ya grabada en el archivo.',
+
+  'dsp.denoise.title': 'Reducción de ruido',
+  'dsp.denoise.description':
+    'Repara la fuente antes de que nada la coloree: siseo, zumbido de red, chasquidos y un limpiador neuronal de voz. Medido a partir de la propia pista, no supuesto.',
+  'dsp.denoise.isolate': 'Escuchar lo que se elimina',
+  'dsp.denoise.isolateHint':
+    'Reproduce la señal eliminada en lugar de la conservada. La única forma fiable de oír si esto se está llevando el siseo o el charles.',
+  'dsp.denoise.profileSource': 'Suelo de ruido',
+  'dsp.denoise.scanned': 'Analizado',
+  'dsp.denoise.adaptive': 'Adaptativo',
+  'dsp.denoise.fallingBack':
+    'Esta fuente no se ha analizado: siguiendo el suelo en vivo.',
+  'dsp.denoise.hiss': 'Siseo',
+  'dsp.denoise.hissHint':
+    'Supresión de banda ancha contra el suelo medido. Añade 21 ms de latencia mientras está activo.',
+  'dsp.denoise.amount': 'Cantidad',
+  'dsp.denoise.reductionLimit': 'Límite de reducción',
+  'dsp.denoise.reductionLimitHint':
+    'Cuánto puede bajarse cualquier frecuencia. Dejar algo del ruido original es lo que evita que el resto gorgotee: más profundo no es más limpio.',
+  'dsp.denoise.sensitivity': 'Sensibilidad',
+  'dsp.denoise.smoothing': 'Suavizado',
+  'dsp.denoise.hum': 'Zumbido',
+  'dsp.denoise.humHint':
+    'Filtra la frecuencia de red y los armónicos que el análisis encontró realmente. Sin latencia.',
+  'dsp.denoise.humFrequency': 'Frecuencia',
+  'dsp.denoise.humAuto': 'Auto',
+  'dsp.denoise.humFifty': '50 Hz',
+  'dsp.denoise.humSixty': '60 Hz',
+  'dsp.denoise.harmonics': 'Armónicos',
+  'dsp.denoise.depth': 'Profundidad',
+  'dsp.denoise.width': 'Anchura',
+  'dsp.denoise.humAutoWaiting':
+    'Auto usa la frecuencia medida. Todavía no se ha medido nada en esta fuente.',
+  'dsp.denoise.click': 'Chasquidos',
+  'dsp.denoise.clickHint':
+    'Encuentra y salva los daños impulsivos. Lo que sea demasiado largo para ser un chasquido se deja intacto, así la percusión sobrevive.',
+  'dsp.denoise.maxRepair': 'Reparación máxima',
+  'dsp.denoise.voice': 'Voz',
+  'dsp.denoise.voiceHint':
+    'Un limpiador neuronal entrenado con habla. Excelente en pódcast y entrevistas; en música se lleva los platillos y las colas de reverberación.',
+  'dsp.denoise.voiceModelMissing':
+    'Necesita descargar una vez un modelo de 10 MB antes de poder funcionar.',
+  'dsp.denoise.voiceDownload': 'Descargar modelo',
+  'dsp.denoise.voiceDownloading': 'Descargando el modelo · {progress}%',
+  'dsp.denoise.voiceReady': 'Modelo listo',
+  'dsp.denoise.analysis': 'Análisis de la fuente',
+  'dsp.denoise.analyzing': 'Midiendo el suelo de ruido · {progress}%',
+  'dsp.denoise.waiting': 'Reproduce una pista de la biblioteca para medirla.',
+  'dsp.denoise.measuredFloor': 'Suelo de ruido',
+  'dsp.denoise.measuredHum': 'Zumbido hallado',
+  'dsp.denoise.measuredClicks': 'Chasquidos',
+  'dsp.denoise.noHum': 'Ninguno',
+  'dsp.denoise.perMinute': '{count}/min',
+  'dsp.denoise.liveReduction': 'Reduciendo',
+  'dsp.denoise.clicksRepaired': 'Reparados',
+  'dsp.denoise.voiceUnderruns': 'Cortes de voz',
+  'dsp.denoise.nativeOnly':
+    'La reducción de ruido solo funciona en el motor nativo, que ahora mismo no lleva el audio. Esta etapa está omitida.',
 
   'dsp.crossfade.title': 'Fundido cruzado',
   'dsp.crossfade.description':

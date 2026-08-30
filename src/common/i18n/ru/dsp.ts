@@ -51,11 +51,11 @@ const dsp = {
   'dsp.normalizer.measuredLoudness': 'Интегральная громкость',
   'dsp.normalizer.appliedGain': 'Применённое усиление',
   'dsp.normalizer.limitedByCeiling':
-    '{{requested}} требуется — ограничено пиковым потолком',
+    '{requested} требуется — ограничено пиковым потолком',
   'dsp.normalizer.limitedByMaxGain':
-    '{{requested}} требуется — достигнут максимальный подъём',
+    '{requested} требуется — достигнут максимальный подъём',
   'dsp.normalizer.limitedByMinGain':
-    '{{requested}} требуется — достигнуто максимальное ослабление',
+    '{requested} требуется — достигнуто максимальное ослабление',
   'dsp.normalizer.limitedByGate':
     'Слишком тихо для измерения — усиление не применено',
   'dsp.normalizer.liveMeter': 'До / после в реальном времени',
@@ -65,6 +65,64 @@ const dsp = {
     'Фактические пики сэмплов непосредственно до и после нормализатора. Нулевая метка — 0 dBFS.',
   'dsp.normalizer.honesty':
     'Предотвращает последующую перегрузку, но не восстанавливает искажения, уже записанные в файл.',
+
+  'dsp.denoise.title': 'Шумоподавление',
+  'dsp.denoise.description':
+    'Восстанавливает источник до того, как что-либо его окрасит: шипение, сетевой фон, щелчки и нейронная очистка голоса. Измерено по самому треку, а не угадано.',
+  'dsp.denoise.isolate': 'Послушать удаляемое',
+  'dsp.denoise.isolateHint':
+    'Воспроизводит удаляемый сигнал вместо сохраняемого. Единственный надёжный способ услышать, убирается шипение или хай-хэт.',
+  'dsp.denoise.profileSource': 'Уровень шума',
+  'dsp.denoise.scanned': 'Измерен',
+  'dsp.denoise.adaptive': 'Адаптивный',
+  'dsp.denoise.fallingBack':
+    'Для этого источника измерений нет — уровень отслеживается на лету.',
+  'dsp.denoise.hiss': 'Шипение',
+  'dsp.denoise.hissHint':
+    'Широкополосное подавление относительно измеренного уровня. Добавляет 21 мс задержки, пока включено.',
+  'dsp.denoise.amount': 'Количество',
+  'dsp.denoise.reductionLimit': 'Предел подавления',
+  'dsp.denoise.reductionLimitHint':
+    'Насколько может быть опущена отдельная частота. Немного исходного шума оставляют затем, чтобы остальное не булькало: глубже не значит чище.',
+  'dsp.denoise.sensitivity': 'Чувствительность',
+  'dsp.denoise.smoothing': 'Сглаживание',
+  'dsp.denoise.hum': 'Фон',
+  'dsp.denoise.humHint':
+    'Вырезает частоту сети и те гармоники, которые действительно нашёл анализ. Без задержки.',
+  'dsp.denoise.humFrequency': 'Частота',
+  'dsp.denoise.humAuto': 'Авто',
+  'dsp.denoise.humFifty': '50 Гц',
+  'dsp.denoise.humSixty': '60 Гц',
+  'dsp.denoise.harmonics': 'Гармоники',
+  'dsp.denoise.depth': 'Глубина',
+  'dsp.denoise.width': 'Ширина',
+  'dsp.denoise.humAutoWaiting':
+    'Авто использует измеренную частоту. Для этого источника пока ничего не измерено.',
+  'dsp.denoise.click': 'Щелчки',
+  'dsp.denoise.clickHint':
+    'Находит импульсные повреждения и сшивает их. Всё, что слишком длинное для щелчка, остаётся нетронутым, поэтому перкуссия уцелеет.',
+  'dsp.denoise.maxRepair': 'Максимальная починка',
+  'dsp.denoise.voice': 'Голос',
+  'dsp.denoise.voiceHint':
+    'Нейронная очистка, обученная на речи. Отлично для подкастов и интервью; на музыке убирает тарелки и хвосты реверберации.',
+  'dsp.denoise.voiceModelMissing':
+    'Требуется однократная загрузка модели на 10 МБ, прежде чем это заработает.',
+  'dsp.denoise.voiceDownload': 'Загрузить модель',
+  'dsp.denoise.voiceDownloading': 'Загрузка модели · {progress}%',
+  'dsp.denoise.voiceReady': 'Модель готова',
+  'dsp.denoise.analysis': 'Анализ источника',
+  'dsp.denoise.analyzing': 'Измерение уровня шума · {progress}%',
+  'dsp.denoise.waiting': 'Включите трек из фонотеки, чтобы измерить его.',
+  'dsp.denoise.measuredFloor': 'Уровень шума',
+  'dsp.denoise.measuredHum': 'Найден фон',
+  'dsp.denoise.measuredClicks': 'Щелчки',
+  'dsp.denoise.noHum': 'Нет',
+  'dsp.denoise.perMinute': '{count}/мин',
+  'dsp.denoise.liveReduction': 'Подавление',
+  'dsp.denoise.clicksRepaired': 'Исправлено',
+  'dsp.denoise.voiceUnderruns': 'Пропуски голоса',
+  'dsp.denoise.nativeOnly':
+    'Шумоподавление работает только в нативном движке, который сейчас не ведёт звук. Этот этап обойдён.',
 
   'dsp.crossfade.title': 'Кроссфейд',
   'dsp.crossfade.description':

@@ -237,11 +237,52 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 .dsp-normalizer-control-surface,
 .dsp-normalizer-analysis,
-.dsp-normalizer-live {
+.dsp-normalizer-live,
+.dsp-denoise-source,
+.dsp-denoise-analysis,
+.dsp-denoise-live {
   min-width: 0;
   border: 1px solid rgba($white, 0.06);
   border-radius: 10px;
   background: rgba($black, 0.18);
+}
+
+// Denoise reuses the Normalizer's panel treatment rather than defining its
+// own. The two cards sit next to each other on the rail and both open with a
+// measurement of the source; a second set of nearly-identical surfaces would
+// read as a different kind of panel for no reason a user could name.
+.dsp-denoise-source,
+.dsp-denoise-analysis,
+.dsp-denoise-live {
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 14px;
+}
+
+// Two across on a wide panel, one on a narrow one. Four modules stacked in a
+// single column pushes the live readout below the fold, and a stage's own
+// meters have to be visible while its dials are being turned.
+// The button and its progress on one row, inside the module it belongs to.
+// A download offered somewhere other than beside the control it enables reads
+// as unrelated housekeeping.
+.dsp-denoise-model {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+
+  .dsp-normalizer-progress {
+    flex: 1 1 120px;
+  }
+}
+
+.dsp-denoise-modules {
+  display: grid;
+  width: 100%;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 10px;
 }
 
 .dsp-normalizer-control-surface {
