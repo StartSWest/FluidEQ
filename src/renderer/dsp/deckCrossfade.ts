@@ -5,7 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { useSyncExternalStore } from 'react';
-import { TCrossfadeCurve } from '../../common/dsp/chain';
+import { DSP_DEFAULTS, TCrossfadeCurve } from '../../common/dsp/chain';
 import {
   DSP_DIAGNOSTIC_CODES,
   DSP_DIAGNOSTIC_SCHEMA_VERSION,
@@ -26,6 +26,17 @@ export interface IDspCrossfadeMeter {
   progress: number;
   outgoingGain: number;
   incomingGain: number;
+  /**
+   * The curve the audible fade was started with, which is not always the one
+   * the panel is showing.
+   *
+   * A fade is committed to the audio clock at its first sample and nothing
+   * re-reads the setting, so picking a different curve while one runs changes
+   * the next fade and not this one. Without this, the preview drew the newly
+   * picked curve while the markers kept reporting the old one — the same
+   * disagreement as a hand-drawn path, from the other direction.
+   */
+  curve: TCrossfadeCurve;
 }
 
 interface IDeckMixer {
@@ -39,6 +50,10 @@ const IDLE_METER: IDspCrossfadeMeter = {
   progress: 0,
   outgoingGain: 1,
   incomingGain: 0,
+  // Nothing is audible, so nothing reads this; the panel draws its own setting
+  // between fades. It is the default rather than a literal so the two cannot
+  // drift apart.
+  curve: DSP_DEFAULTS.crossfade.curve,
 };
 
 let mixer: IDeckMixer | undefined;
@@ -136,6 +151,7 @@ const scheduleFrameCrossfade = (
       progress,
       outgoingGain,
       incomingGain,
+      curve,
     });
     if (progress < 1) {
       meterFrame = requestAnimationFrame(paint);
@@ -300,6 +316,7 @@ export const scheduleDspDeckCrossfade = (
       progress,
       outgoingGain: crossfadeGain(curve, progress, false),
       incomingGain: crossfadeGain(curve, progress, true),
+      curve,
     });
     if (progress < 1 && mixer === current) {
       meterFrame = requestAnimationFrame(paintMeter);

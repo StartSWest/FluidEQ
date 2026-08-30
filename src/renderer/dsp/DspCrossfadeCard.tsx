@@ -13,7 +13,7 @@ import {
 import { TranslationKey } from '../../common/i18n/en';
 import { useTranslation } from '../utils/I18nContext';
 import { Dial, ProcessorCard } from './DspControls';
-import { useDspCrossfadeMeter } from './deckCrossfade';
+import { crossfadeGain, useDspCrossfadeMeter } from './deckCrossfade';
 
 interface IDspCrossfadeCardProps {
   crossfade: ICrossfadeSettings;
@@ -27,19 +27,31 @@ const CURVE_LABELS: Record<TCrossfadeCurve, TranslationKey> = {
   linear: 'dsp.crossfade.linear',
 };
 
-const curvePath = (curve: TCrossfadeCurve, incoming: boolean): string => {
-  if (curve === 'linear') {
-    return incoming ? 'M16 94 L184 18' : 'M16 18 L184 94';
-  }
-  if (curve === 'smooth') {
-    return incoming
-      ? 'M16 94 C72 94 128 18 184 18'
-      : 'M16 18 C72 18 128 94 184 94';
-  }
-  return incoming
-    ? 'M16 94 C54 94 80 52 104 36 C128 20 154 18 184 18'
-    : 'M16 18 C54 18 80 20 104 36 C128 52 154 94 184 94';
-};
+/**
+ * The plot area inside the 200x112 viewBox. The markers and the lines both go
+ * through these, because they used to disagree: the curves were hand-drawn
+ * beziers and the markers read the real gain, so the equal-power sketch — an S
+ * that reached 0.74 at the midpoint where the audible curve sits at 0.50 —
+ * left both dots hanging well below their own line.
+ */
+const PLOT_LEFT = 16;
+const PLOT_RIGHT = 184;
+const PLOT_BOTTOM = 94;
+const PLOT_HEIGHT = 76;
+const CURVE_SEGMENTS = 48;
+
+const plotX = (progress: number): number =>
+  PLOT_LEFT + progress * (PLOT_RIGHT - PLOT_LEFT);
+
+const plotY = (gain: number): number => PLOT_BOTTOM - gain * PLOT_HEIGHT;
+
+const curvePath = (curve: TCrossfadeCurve, incoming: boolean): string =>
+  Array.from({ length: CURVE_SEGMENTS + 1 }, (_, index) => {
+    const progress = index / CURVE_SEGMENTS;
+    const x = plotX(progress).toFixed(2);
+    const y = plotY(crossfadeGain(curve, progress, incoming)).toFixed(2);
+    return `${index === 0 ? 'M' : 'L'}${x} ${y}`;
+  }).join(' ');
 
 const DspCrossfadeCard = ({
   crossfade,
@@ -48,9 +60,14 @@ const DspCrossfadeCard = ({
 }: IDspCrossfadeCardProps) => {
   const { t } = useTranslation();
   const meter = useDspCrossfadeMeter();
-  const markerX = 16 + meter.progress * 168;
-  const outgoingMarkerY = 94 - meter.outgoingGain * 76;
-  const incomingMarkerY = 94 - meter.incomingGain * 76;
+  const markerX = plotX(meter.progress);
+  const outgoingMarkerY = plotY(meter.outgoingGain);
+  const incomingMarkerY = plotY(meter.incomingGain);
+  // While a fade is audible the preview belongs to that fade, not to the
+  // picker. Choosing a different curve mid-fade changes the next one — the
+  // running automation is already on the audio clock — so drawing the new
+  // choice here would put the markers off their own line for the rest of it.
+  const drawnCurve = meter.active ? meter.curve : crossfade.curve;
 
   const selectCurve = (curve: TCrossfadeCurve) => {
     onPatch({ ...crossfade, curve });
@@ -77,11 +94,11 @@ const DspCrossfadeCard = ({
             <path className="dsp-crossfade-grid" d="M16 56 H184 M100 12 V100" />
             <path
               className="dsp-crossfade-line is-outgoing"
-              d={curvePath(crossfade.curve, false)}
+              d={curvePath(drawnCurve, false)}
             />
             <path
               className="dsp-crossfade-line is-incoming"
-              d={curvePath(crossfade.curve, true)}
+              d={curvePath(drawnCurve, true)}
             />
             {meter.active ? (
               <>
