@@ -1098,11 +1098,25 @@ git commit -m "The bass stages speak all ten languages"
 
 **Files:**
 
+- Modify: `native/dsp-host/src/wire.h` — the `FeqWireAnalysisFrame` struct **and** its `static_assert` at line 326
 - Modify: `native/dsp-core/include/fluideq/meters.h`, `native/dsp-core/src/meters.cpp`
 - Modify: `src/common/dsp/analysisWire.ts`
 - Modify: `src/main/dspHost/wire.ts`
 - Modify: `src/renderer/dsp/store.ts`, `src/renderer/dsp/nativeMeters.ts`
 - Test: `src/__tests__/unit_tests/main/dspHostAnalysisWire.test.ts`
+
+**The analysis header lives in four places, not three.** An earlier draft of this task listed the publisher, the TypeScript constant and the decoder, and missed the one that actually defines the layout: `FeqWireAnalysisFrame` in `native/dsp-host/src/wire.h`, pinned by `static_assert(sizeof(FeqWireAnalysisFrame) == 120, "analysis frame size")` at line 326. New members go at the **end** of that struct, after everything already in it, so no existing offset moves.
+
+**Expect two failing checks here, and both failing is correct** — the same gate Task 5 has. `claude/typescript-usage-review-7794ef` added `src/__tests__/unit_tests/dspHostWireLayout.test.ts`, which reads `wire.h` and asserts all five `static_assert` sizes against their TypeScript constants, including `FeqWireAnalysisFrame` against `ANALYSIS_HEADER_BYTES`. So:
+
+- grow the struct without moving its `static_assert` literal → the C++ **fails to compile**;
+- move the literal without `analysisWire.ts` → that test **fails**.
+
+Green with `wire.h` at 120 and the TypeScript at 196 is no longer reachable. Move the struct, its `static_assert`, `ANALYSIS_HEADER_BYTES` and the decoder in one commit, and do not weaken either check.
+
+**Still open, and not this plan's to close.** Those guards pin the header's _size_; nothing checks a received analysis frame's _length_ exactly. `src/main/dspHost/wire.ts` guards it with `length < ANALYSIS_HEADER_BYTES` — a floor, so a frame that grew on one side only passes it and then reads whatever float sits at the stale offset. That is a worse hole than the chain lead had, because the chain lead at least sat downstream of `isChainWirePayload`.
+
+It is deliberately not fixed here. "Exact" is not one number for this frame — the header is fixed but the payload after it is variable, so the assertion has to be header-exact _plus_ payload consistent with the declared band, bin and pair counts. That is design work to a decode path this branch and the noise-reduction branch are both reshaping, and it is Ivan's call. **Do not fold it into a task.**
 
 **Interfaces:**
 
