@@ -42,6 +42,7 @@ import {
   accumulateHeadroomFrame,
   advanceSupervisorTrimDb,
   createHeadroomCaptureState,
+  headroomConfidence,
   readHeadroomProgramme,
   shouldPushMeasurement,
 } from './utils/headroomCapture';
@@ -267,6 +268,9 @@ const SmartHeadroomEngine = () => {
           trimDb,
           lastPushedTrimDb: lastPushedTrim,
           programmeDeltaDb: changedEnough(programme),
+          // While confidence is still growing the estimate is walking the level
+          // somewhere, and the report cadence is that walk's step size.
+          isSettling: headroomConfidence(state) < 1,
         })
       ) {
         return;

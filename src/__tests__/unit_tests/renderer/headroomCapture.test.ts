@@ -20,10 +20,11 @@ import {
   accumulateHeadroomFrame,
   advanceSupervisorTrimDb,
   createHeadroomCaptureState,
-  HEADROOM_MIN_LISTENED_MS,
+  HEADROOM_SETTLE_MS,
   HEADROOM_RELEASE_DB_PER_S,
   IDLE_PUSH_INTERVAL_MS,
   IHeadroomCaptureState,
+  MIN_PUSH_INTERVAL_MS,
   PUSH_DEADBAND_DB,
   readHeadroomProgramme,
   shouldPushMeasurement,
@@ -40,6 +41,17 @@ const AXIS = Array.from(
 );
 
 const FRAME_MS = 45;
+
+/**
+ * Material 30 dB quieter at the top than at the bottom.
+ *
+ * Shared by the confidence pair below because a flat spectrum cannot tell them
+ * apart: a young capture reports the flat answer, so flat material reads the
+ * same at every confidence and the null test would pass against code that had
+ * stopped measuring anything at all.
+ */
+const SLOPE = (frequency: number) =>
+  -10 - 30 * (Math.log10(frequency / 20) / Math.log10(1000));
 
 /** Levels for every axis point, from a function of frequency. */
 const levelsFrom = (shape: (frequency: number) => number): Float64Array =>
@@ -69,30 +81,96 @@ const at = (points: { frequency: number; gain: number }[], target: number) => {
   return found.gain;
 };
 
+/**
+ * How far the reported programme departs from flat, in dB.
+ *
+ * The one number that says how much recovery is being claimed. Flat IS the
+ * worst case — every region at the loudest level makes the excess equal the
+ * chain's own peak — so a spread of zero gives back nothing and the measured
+ * spread gives back everything the evidence allows.
+ */
+const spreadOf = (points: { gain: number }[]) =>
+  points.reduce((peak, point) => Math.max(peak, point.gain), -Infinity) -
+  points.reduce((floor, point) => Math.min(floor, point.gain), Infinity);
+
 describe('headroom capture', () => {
-  it('says nothing before it has heard enough (null)', () => {
+  it('claims no recovery before it has listened (null)', () => {
     const state = createHeadroomCaptureState(AXIS);
-    play(state, () => -20, HEADROOM_MIN_LISTENED_MS / 2);
-    expect(readHeadroomProgramme(state)).toEqual([]);
+    play(state, SLOPE, FRAME_MS * 4);
+    // Sloped material heard for a fifth of a second. The shape is already in
+    // the hold; confidence is what is missing, so the answer is flat and the
+    // preamp stays exactly where Auto normalize has always put it.
+    expect(spreadOf(readHeadroomProgramme(state))).toBeLessThan(1);
   });
 
-  it('reports the shape it heard once it has (positive control)', () => {
-    // The control the null test above needs: the same call, the same material,
-    // enough time. Without this, "reports nothing" cannot be told apart from
-    // "never measures anything".
+  it('reports the whole shape once it has (positive control)', () => {
+    // The control the null test above needs: the same call and the same
+    // material, listened to. Without it, "claims nothing" cannot be told apart
+    // from "measures nothing".
     const state = createHeadroomCaptureState(AXIS);
-    play(state, () => -20, HEADROOM_MIN_LISTENED_MS * 2);
+    play(state, SLOPE, HEADROOM_SETTLE_MS);
     const points = readHeadroomProgramme(state);
     expect(points.length).toBeGreaterThan(5);
-    points.forEach((point) => expect(point.gain).toBeCloseTo(-20, 1));
+    expect(spreadOf(points)).toBeGreaterThan(20);
+  });
+
+  it('walks between the two and never steps back', () => {
+    // THE REGRESSION THIS EXISTS FOR. The estimate used to be withheld for ten
+    // seconds and then handed over whole, so the preamp moved eight or nine
+    // decibels in a single config write — a step change in loudness in the
+    // middle of somebody's music, arriving from the feature meant to prevent
+    // exactly that.
+    const state = createHeadroomCaptureState(AXIS);
+    const steps: number[] = [];
+    for (let step = 0; step < 40; step += 1) {
+      play(state, SLOPE, HEADROOM_SETTLE_MS / 40);
+      steps.push(spreadOf(readHeadroomProgramme(state)));
+    }
+    steps.slice(1).forEach((spread, index) => {
+      expect(spread).toBeGreaterThanOrEqual(steps[index] - 1e-9);
+    });
+    // No single step may carry more than a small share of the whole walk, or
+    // it is a jump wearing a ramp's clothes.
+    const largest = steps.reduce(
+      (worst, spread, index) =>
+        index === 0 ? spread : Math.max(worst, spread - steps[index - 1]),
+      0,
+    );
+    expect(largest).toBeLessThan(steps[steps.length - 1] / 10);
+  });
+
+  it('stops growing once it is confident', () => {
+    const settled = createHeadroomCaptureState(AXIS);
+    play(settled, SLOPE, HEADROOM_SETTLE_MS);
+    const atSettle = spreadOf(readHeadroomProgramme(settled));
+    play(settled, SLOPE, HEADROOM_SETTLE_MS * 2);
+    // Within a fiftieth of a decibel: the hold itself still breathes with the
+    // material, and confidence is what has stopped moving.
+    expect(spreadOf(readHeadroomProgramme(settled))).toBeCloseTo(atSettle, 1);
+  });
+
+  it('never reports a region louder than it heard it', () => {
+    // The blend only ever walks downwards from the flat answer. A point above
+    // its own measured level would be reserving less headroom than the evidence
+    // supports, which is the one error that makes the output too loud.
+    const state = createHeadroomCaptureState(AXIS);
+    play(state, SLOPE, HEADROOM_SETTLE_MS / 4);
+    const early = readHeadroomProgramme(state);
+    play(state, SLOPE, HEADROOM_SETTLE_MS);
+    const measured = readHeadroomProgramme(state);
+    const loudest = measured.reduce(
+      (peak, point) => Math.max(peak, point.gain),
+      -Infinity,
+    );
+    early.forEach((point, index) => {
+      expect(point.gain).toBeGreaterThanOrEqual(measured[index].gain - 1e-9);
+      expect(point.gain).toBeLessThanOrEqual(loudest + 1e-9);
+    });
   });
 
   it('measures a sloped spectrum as sloped', () => {
     const state = createHeadroomCaptureState(AXIS);
-    // 30 dB down at the top relative to the bottom.
-    const slope = (frequency: number) =>
-      -10 - 30 * (Math.log10(frequency / 20) / Math.log10(1000));
-    play(state, slope, HEADROOM_MIN_LISTENED_MS * 2);
+    play(state, SLOPE, HEADROOM_SETTLE_MS * 2);
     const points = readHeadroomProgramme(state);
     expect(at(points, 28)).toBeGreaterThan(at(points, 14142) + 20);
   });
@@ -110,7 +188,7 @@ describe('headroom capture', () => {
 
   it('lets an old peak decay at the documented rate', () => {
     const state = createHeadroomCaptureState(AXIS);
-    play(state, () => -40, HEADROOM_MIN_LISTENED_MS + 1000);
+    play(state, () => -40, HEADROOM_SETTLE_MS + 1000);
     play(state, () => -12, 1000);
     const loud = at(readHeadroomProgramme(state), 1000);
     play(state, () => -40, 60000);
@@ -124,7 +202,7 @@ describe('headroom capture', () => {
 
   it('buys no listened time from silence', () => {
     const state = createHeadroomCaptureState(AXIS);
-    play(state, () => -95, HEADROOM_MIN_LISTENED_MS * 3);
+    play(state, () => -95, HEADROOM_SETTLE_MS * 3);
     expect(state.listenedMs).toBe(0);
     expect(readHeadroomProgramme(state)).toEqual([]);
   });
@@ -139,7 +217,7 @@ describe('headroom capture', () => {
     play(
       withChain,
       (frequency) => (frequency >= 1000 ? -20 + 12 : -20),
-      HEADROOM_MIN_LISTENED_MS * 2,
+      HEADROOM_SETTLE_MS * 2,
     );
     const points = readHeadroomProgramme(withChain);
     // Reconstructed, the record is flat at -20 despite the output not being.
@@ -153,7 +231,7 @@ describe('headroom capture', () => {
     play(
       state,
       (frequency) => (frequency < 2000 ? -15 : -100),
-      HEADROOM_MIN_LISTENED_MS * 2,
+      HEADROOM_SETTLE_MS * 2,
     );
     const points = readHeadroomProgramme(state);
     // The silent treble must NOT be reported as quiet, or a treble boost would
@@ -293,6 +371,38 @@ describe('deciding when a measurement is worth a config write', () => {
     ).toBe(false);
   });
 
+  it('reports a converging estimate on the short floor, not the long one', () => {
+    // The ramp is delivered by these writes, so how often they are allowed IS
+    // its step size. On the fifteen-second floor a minute of recovery arrives
+    // in eight lurches instead of sixty steps.
+    expect(
+      shouldPushMeasurement({
+        ...settled,
+        sincePushMs: MIN_PUSH_INTERVAL_MS,
+        programmeDeltaDb: 1,
+        isSettling: true,
+      }),
+    ).toBe(true);
+    // The floor is still a floor.
+    expect(
+      shouldPushMeasurement({
+        ...settled,
+        sincePushMs: MIN_PUSH_INTERVAL_MS - 1,
+        programmeDeltaDb: 12,
+        isSettling: true,
+      }),
+    ).toBe(false);
+    // And once it has settled, the same movement waits its turn — otherwise an
+    // evening of ordinary wander rewrites the config every two seconds.
+    expect(
+      shouldPushMeasurement({
+        ...settled,
+        sincePushMs: MIN_PUSH_INTERVAL_MS,
+        programmeDeltaDb: 1,
+      }),
+    ).toBe(false);
+  });
+
   it('ignores a pull-down smaller than the deadband', () => {
     expect(
       shouldPushMeasurement({
@@ -308,7 +418,7 @@ describe('deciding when a measurement is worth a config write', () => {
 describe('the release rate is the documented one', () => {
   it('forgets six decibels a minute of listened time', () => {
     const state = createHeadroomCaptureState(AXIS);
-    play(state, () => -55, HEADROOM_MIN_LISTENED_MS + 1000);
+    play(state, () => -55, HEADROOM_SETTLE_MS + 1000);
     play(state, () => -10, 1000);
     const before = at(readHeadroomProgramme(state), 1000);
     // Quiet but still above the frame gate, so this IS listened time. Material
@@ -322,7 +432,7 @@ describe('the release rate is the documented one', () => {
 
   it('forgets nothing at all while the music is paused', () => {
     const state = createHeadroomCaptureState(AXIS);
-    play(state, () => -55, HEADROOM_MIN_LISTENED_MS + 1000);
+    play(state, () => -55, HEADROOM_SETTLE_MS + 1000);
     play(state, () => -10, 1000);
     const before = at(readHeadroomProgramme(state), 1000);
     play(state, () => -95, 600000);

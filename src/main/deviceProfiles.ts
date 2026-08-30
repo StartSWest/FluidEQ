@@ -50,6 +50,32 @@ export interface IActiveStateOverride {
 }
 
 /**
+ * What the session has measured, and which output it was measured on.
+ *
+ * THE PREAMP IS RENDERED FROM THE PROFILE, AND THIS IS NOT IN THE PROFILE.
+ *
+ * That sentence is the whole reason this type exists. Auto normalize measures
+ * the music in the renderer and reports it to the live state, where the display
+ * reads it — but the config is built from the saved preset, and a preset cannot
+ * carry a measurement (it is evidence about this session, and persisting it
+ * would apply last night's music to this morning's record). So the two answers
+ * were computed from two different states: the window showed the adaptive
+ * number and the `Preamp:` line kept the worst case, for ever, on every output
+ * with a profile attached — which is every output. The level never moved while
+ * the readout said it had.
+ *
+ * Carrying the evidence alongside the profiles closes that, and carrying the
+ * device with it is what keeps it honest: the loopback hears one endpoint, so
+ * the measurement is applied to that endpoint's chain and to no other.
+ */
+export interface ISessionHeadroom {
+  /** The output this was measured on. Evidence for one is not evidence for another. */
+  deviceId?: string;
+  programme?: IState['smartHeadroomProgramme'];
+  trimDb?: number;
+}
+
+/**
  * Whether this name may be written into a `Convolution:` line.
  *
  * `path.basename` splits on separators and nothing else, so the old pair of
@@ -313,6 +339,7 @@ const presetForDeviceChain = (
   preset: IPresetV2,
   convolutionFileName?: string,
   customFx?: ICustomFxSettings,
+  headroom?: ISessionHeadroom,
 ) => {
   const presetState = {
     isEnabled: true,
@@ -324,6 +351,11 @@ const presetForDeviceChain = (
     // means automatic, which every profile written before the flag existed was.
     isAutoPreAmpOn: preset.isAutoPreAmpOn ?? true,
     customFx,
+    // The one thing the chain needs that the profile is not allowed to hold.
+    // Absent for every output except the one being listened through, where its
+    // absence is exactly the cold start the preamp already knows how to answer.
+    smartHeadroomProgramme: headroom?.programme,
+    smartHeadroomTrimDb: headroom?.trimDb,
   };
 
   return stateToApoFiles(presetState, convolutionFileName);
@@ -435,6 +467,7 @@ export const deviceProfilesToFiles = (
   configDirPath?: string,
   activeOverride?: IActiveStateOverride,
   isEnabled = true,
+  sessionHeadroom: ISessionHeadroom | undefined = undefined,
 ): TApoConfigFiles => {
   const files: TApoConfigFiles = new Map();
 
@@ -524,7 +557,18 @@ export const deviceProfilesToFiles = (
         }
         const customFx = readCustomFx(configDirPath, assignment.deviceId);
         addDevice(
-          presetForDeviceChain(preset, convolutionFileName, customFx),
+          presetForDeviceChain(
+            preset,
+            convolutionFileName,
+            customFx,
+            // Only the output it was measured on. Handing another endpoint this
+            // evidence would reserve its headroom from music that never went
+            // through it.
+            sessionHeadroom?.deviceId &&
+              sessionHeadroom.deviceId === assignment.deviceId
+              ? sessionHeadroom
+              : undefined,
+          ),
           `${assignment.deviceName} -> ${assignment.presetName}`,
           assignment.deviceGuid || assignment.deviceName,
           assignment.deviceId,
@@ -808,6 +852,7 @@ export const flushDeviceProfiles = (
   configDirPath: string,
   activeOverride?: IActiveStateOverride,
   isEnabled = true,
+  sessionHeadroom: ISessionHeadroom | undefined = undefined,
 ) => {
   const files = deviceProfilesToFiles(
     settings,
@@ -815,6 +860,7 @@ export const flushDeviceProfiles = (
     configDirPath,
     activeOverride,
     isEnabled,
+    sessionHeadroom,
   );
 
   // Every output that still has a chain, by the digest its files are named

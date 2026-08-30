@@ -562,8 +562,21 @@ export const stateToApoFiles = (
   };
 };
 
+/**
+ * The state as `state.txt` should hold it.
+ *
+ * The measurement is left out, and the type has said so since it was added —
+ * "SESSION ONLY. Deliberately never persisted" — while this function wrote the
+ * whole object and put it on disk anyway. It cost nothing for as long as the
+ * config writer could not see the measurement at all; the moment it could, a
+ * launch would have reserved this morning's headroom from last night's music,
+ * at full confidence, before a single frame had been heard. Every launch starts
+ * with no opinion, which is the worst case, and listens its way down from
+ * there.
+ */
 export const serializeState = (state: IState) => {
-  return JSON.stringify(state);
+  const { smartHeadroomProgramme, smartHeadroomTrimDb, ...persisted } = state;
+  return JSON.stringify(persisted);
 };
 
 export const serializePreset = (preset: IPresetV2) => {

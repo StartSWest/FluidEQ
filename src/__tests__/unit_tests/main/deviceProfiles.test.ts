@@ -680,3 +680,113 @@ describe('profiles scoped to one output', () => {
     }
   });
 });
+
+/*
+ * THE DEFECT THIS SECTION EXISTS FOR.
+ *
+ * Auto normalize measured the music in the renderer, reported it, and the
+ * window showed the number the writer would settle on — while the writer built
+ * the config out of the SAVED PROFILE, which cannot carry a measurement. So the
+ * `Preamp:` line kept the worst case for ever on every output with a profile
+ * attached, which is every output: the readout walked from -11.1 dB to -2.6 dB
+ * over a listening session and not one sample got louder. Measured on the real
+ * config, where two device files still read `Preamp: -11.1 dB`.
+ */
+describe('the session measurement reaches the config writer', () => {
+  let presetsDir: string;
+
+  /** Ten decibels of treble boost: a chain with a lot to give back. */
+  const BOOSTED = {
+    preAmp: 0,
+    filters: {
+      air: {
+        id: 'air',
+        frequency: 9000,
+        gain: 10,
+        quality: 1.4,
+        type: FilterTypeEnum.PK,
+      },
+    },
+  };
+
+  /** Quiet where the boost is, which is what makes the reserve unnecessary. */
+  const QUIET_TREBLE = [20, 40, 80, 160, 320, 640, 1250, 2500, 5000, 20000].map(
+    (frequency) => ({
+      frequency,
+      gain: -10 - 12 * Math.log10(Math.max(frequency, 100) / 100),
+    }),
+  );
+
+  const preampOf = (files: TApoConfigFiles, devicePattern: string) =>
+    deviceFileFor(files, devicePattern)
+      .split(/\r?\n/)
+      .find((line) => line.startsWith('Preamp:'));
+
+  const settingsFor = (deviceId: string) => {
+    const settings = getDefaultDeviceProfileSettings();
+    settings.assignments[deviceId] = {
+      deviceId,
+      deviceName: 'USB Headphones',
+      deviceGuid: '{1234-ABCD}',
+      presetName: 'Boosted',
+    };
+    return settings;
+  };
+
+  beforeEach(() => {
+    presetsDir = fs.mkdtempSync(path.join(os.tmpdir(), 'fluideq-headroom-'));
+    fs.writeFileSync(path.join(presetsDir, 'Boosted'), JSON.stringify(BOOSTED));
+  });
+
+  afterEach(() => {
+    fs.rmSync(presetsDir, { recursive: true, force: true });
+  });
+
+  it('reserves the whole chain when nothing has been measured (null)', () => {
+    const files = deviceProfilesToFiles(
+      settingsFor('endpoint'),
+      () => presetsDir,
+    );
+    expect(preampOf(files, '{1234-ABCD}')).toBe('Preamp: -10.2 dB');
+  });
+
+  it('gives the headroom back once the music has been measured', () => {
+    const files = deviceProfilesToFiles(
+      settingsFor('endpoint'),
+      () => presetsDir,
+      undefined,
+      undefined,
+      true,
+      { deviceId: 'endpoint', programme: QUIET_TREBLE },
+    );
+    // Seven decibels the old writer could not see: the boost sits where this
+    // programme is quietest, so almost none of the reserve was ever needed.
+    expect(preampOf(files, '{1234-ABCD}')).toBe('Preamp: -3 dB');
+  });
+
+  it('applies the supervisor pull-down on top of it', () => {
+    const files = deviceProfilesToFiles(
+      settingsFor('endpoint'),
+      () => presetsDir,
+      undefined,
+      undefined,
+      true,
+      { deviceId: 'endpoint', programme: QUIET_TREBLE, trimDb: -4 },
+    );
+    expect(preampOf(files, '{1234-ABCD}')).toBe('Preamp: -7 dB');
+  });
+
+  it('refuses to spend one output evidence gathered on another', () => {
+    // The loopback hears one endpoint. Music that never went through the
+    // speakers says nothing about how much reserve the speakers need.
+    const files = deviceProfilesToFiles(
+      settingsFor('endpoint'),
+      () => presetsDir,
+      undefined,
+      undefined,
+      true,
+      { deviceId: 'a-different-output', programme: QUIET_TREBLE },
+    );
+    expect(preampOf(files, '{1234-ABCD}')).toBe('Preamp: -10.2 dB');
+  });
+});

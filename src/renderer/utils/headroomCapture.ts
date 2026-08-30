@@ -60,14 +60,33 @@ import { ABS_FLOOR_DBFS, FRAME_MIN_PEAK_DBFS } from './autoBalanceTuning';
 export const HEADROOM_RELEASE_DB_PER_S = 0.1;
 
 /**
- * How long the capture must have heard before its estimate is worth applying.
+ * How long the capture listens before it is speaking entirely for itself.
  *
- * Below this the answer is "no opinion", which the preamp reads as the
- * worst case — the same number that shipped. Ten seconds is long enough to have
- * seen a chorus and short enough that somebody who turns the mode on hears it
- * do something while still looking at it.
+ * NOT A GATE, AND IT USED TO BE ONE. The estimate was withheld for ten seconds
+ * and then handed over whole, so the preamp sat at the worst case and then
+ * moved to the measured value in a single write — eight or nine decibels of
+ * level, at once, with nothing to attribute it to. That is a step change in
+ * loudness in the middle of somebody's music, which is what this feature exists
+ * to avoid, arriving from the feature itself.
+ *
+ * So confidence grows with the listening instead. The reported programme is
+ * blended from "flat at the loudest region", which reproduces the worst case
+ * exactly, towards what was actually measured — see `readHeadroomProgramme`.
+ * Every intermediate answer is a legal programme, so the safety bound holds all
+ * the way along it, and the preamp glides rather than jumps.
+ *
+ * TWO minutes of LISTENED time, and the second one buys the whole point of the
+ * exercise. The step somebody hears is the ramp divided by how many config
+ * writes carry it, and the writes are floored at one per two seconds — so the
+ * settling time IS the step size. Simulated against the real push rule on a
+ * chain recovering 9.58 dB: sixty seconds gives thirty writes of 0.79 dB, which
+ * is still a change you can point at; a hundred and twenty gives fifty-nine of
+ * 0.41 dB, which is not. Three minutes reaches 0.28 dB and buys nothing audible
+ * for another twenty-seven writes.
+ *
+ * Paused music does not spend it, like every other clock here.
  */
-export const HEADROOM_MIN_LISTENED_MS = 10000;
+export const HEADROOM_SETTLE_MS = 120000;
 
 /** Bound on one frame's contribution, so a stalled renderer cannot claim time. */
 const MAX_FRAME_DELTA_MS = 250;
@@ -254,6 +273,15 @@ export const accumulateHeadroomFrame = (
 };
 
 /**
+ * How far the capture is towards speaking for itself, from 0 to 1.
+ *
+ * Read by the owner as well, to know whether the estimate is still converging
+ * and therefore worth reporting promptly — see `shouldPushMeasurement`.
+ */
+export const headroomConfidence = (state: IHeadroomCaptureState): number =>
+  Math.min(1, Math.max(0, state.listenedMs / HEADROOM_SETTLE_MS));
+
+/**
  * The measured programme, as the preamp maths wants it.
  *
  * A region that has heard nothing is reported at the loudest level heard
@@ -262,15 +290,22 @@ export const accumulateHeadroomFrame = (
  * neighbour would then pay for a boost sitting in the silence — the same
  * mistake the out-of-band rule exists to prevent, one region further in.
  *
- * An empty array means "no opinion yet", which the preamp reads as the worst
- * case. That is what a cold start is, and it is also what a silent room is.
+ * A FLAT PROGRAMME IS THE WORST CASE, EXACTLY. That identity is what makes the
+ * confidence blend below safe rather than merely gentle: if every region reports
+ * the same level L then the programme's peak is L and its peak through the chain
+ * is L plus the chain's own peak, so the excess is the chain peak and the preamp
+ * is the number that shipped. Reporting `loudest` everywhere and reporting
+ * nothing at all are therefore the same answer, and every mixture of the flat
+ * programme with the measured one lies between the two — never louder than the
+ * measurement says is safe, never quieter than the worst case.
+ *
+ * So a young capture is not silent, it is unconfident, and it walks from one to
+ * the other as it listens. An empty array is kept for the one case that is
+ * genuinely no answer: nothing finite heard anywhere, which is a silent room.
  */
 export const readHeadroomProgramme = (
   state: IHeadroomCaptureState,
 ): IProgrammePoint[] => {
-  if (state.listenedMs < HEADROOM_MIN_LISTENED_MS) {
-    return [];
-  }
   let loudest = Number.NEGATIVE_INFINITY;
   state.holdDb.forEach((level) => {
     if (Number.isFinite(level) && level > loudest) {
@@ -280,11 +315,15 @@ export const readHeadroomProgramme = (
   if (!Number.isFinite(loudest)) {
     return [];
   }
+  const confidence = headroomConfidence(state);
   return state.regions.map((region, index) => {
     const held = state.holdDb[index];
+    const measured = Number.isFinite(held) ? held : loudest;
     return {
       frequency: region.centreFrequency,
-      gain: Number.isFinite(held) ? held : loudest,
+      // `measured` is never above `loudest`, so this only ever walks downwards
+      // from the flat answer towards the measured one.
+      gain: loudest - confidence * (loudest - measured),
     };
   });
 };
@@ -294,8 +333,15 @@ export const readHeadroomProgramme = (
  * ---------------------------------------------------------------------- */
 
 /**
- * The floor on how often the APO config may be rewritten, in ms. Every report
- * ends in a config file being written and APO reloading it.
+ * The floor on how often the APO config may be rewritten WHILE THE ESTIMATE IS
+ * STILL CONVERGING, in ms. Every report ends in a config file being written and
+ * APO reloading it.
+ *
+ * It had no effect at all until the settling ramp needed it: the only other
+ * floor is fifteen seconds and this one was tested with `||` against it, so the
+ * longer of the two always won. Now it is the one that runs while the estimate
+ * converges, and its whole job is to let the recovery arrive as sixty small
+ * steps rather than eight large ones.
  */
 export const MIN_PUSH_INTERVAL_MS = 2000;
 
@@ -309,7 +355,17 @@ export const MIN_PUSH_INTERVAL_MS = 2000;
  */
 export const URGENT_PUSH_INTERVAL_MS = 200;
 
-/** How often a settled measurement is reported anyway, in ms. */
+/**
+ * The floor once the estimate has settled, in ms.
+ *
+ * Long, because a settled capture still wanders: the hold decays at a tenth of
+ * a decibel a second and jumps back up on the next chorus, so a moving
+ * measurement is the normal condition of an evening's listening and reporting
+ * each wobble would rewrite the config every few seconds all night. Nothing is
+ * lost by waiting — a settled estimate that has drifted a third of a decibel is
+ * not urgent, and anything that IS urgent is a pull-down, which has its own
+ * floor two orders of magnitude shorter.
+ */
 export const IDLE_PUSH_INTERVAL_MS = 15000;
 
 /** Movement worth a config write, in dB. */
@@ -321,6 +377,15 @@ export interface IPushDecision {
   lastPushedTrimDb: number;
   /** Largest per-region move since the last report, in dB. */
   programmeDeltaDb: number;
+  /**
+   * Whether the estimate is still walking up from the worst case.
+   *
+   * The two floors answer different questions. A settled capture that has
+   * drifted a third of a decibel can wait a quarter of a minute; a capture
+   * still handing back the reserve it has proved unnecessary is walking the
+   * level somewhere, and how often it reports IS the step size of that walk.
+   */
+  isSettling?: boolean;
 }
 
 /**
@@ -343,6 +408,7 @@ export const shouldPushMeasurement = ({
   trimDb,
   lastPushedTrimDb,
   programmeDeltaDb,
+  isSettling = false,
 }: IPushDecision): boolean => {
   const isUrgent =
     lastPushedTrimDb - trimDb >= PUSH_DEADBAND_DB &&
@@ -350,10 +416,8 @@ export const shouldPushMeasurement = ({
   if (isUrgent) {
     return true;
   }
-  if (
-    sincePushMs < MIN_PUSH_INTERVAL_MS ||
-    sincePushMs < IDLE_PUSH_INTERVAL_MS
-  ) {
+  const floorMs = isSettling ? MIN_PUSH_INTERVAL_MS : IDLE_PUSH_INTERVAL_MS;
+  if (sincePushMs < floorMs) {
     return false;
   }
   return (

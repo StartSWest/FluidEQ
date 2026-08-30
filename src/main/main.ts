@@ -144,6 +144,7 @@ import {
   flushDeviceProfiles,
   IActiveStateOverride,
   isGeneratedConfigFile,
+  ISessionHeadroom,
   loadDeviceProfileSettings,
   migrateNamedFilesToOutputFolders,
   saveDeviceProfileSettings,
@@ -1110,6 +1111,13 @@ const runStartupProfileMaintenance = () => {
 const applyDeviceState = (next: IState) => {
   const { isEnabled, isGraphViewOn, isCaseSensitiveFs, ...deviceState } = next;
   Object.assign(state, deviceState);
+  // The measurement belongs to the endpoint it was heard on and to nothing
+  // else. A profile carries none, so the spread above cannot clear it, and
+  // leaving it would hand the new output a reserve sized for music that went
+  // through the old one. The capture starts again from no opinion, which is the
+  // worst case — the same place a cold start begins.
+  state.smartHeadroomProgramme = undefined;
+  state.smartHeadroomTrimDb = undefined;
 };
 
 const getCurrentPreset = (): IPresetV2 => ({
@@ -1483,6 +1491,21 @@ const updateConfigPath = async (
   return true;
 };
 
+/**
+ * The live measurement, addressed to the output it was taken on.
+ *
+ * Every flush needs this, because the writer reserves headroom from the saved
+ * profile and the profile is not allowed to hold a measurement. Leave it out of
+ * a flush and that flush writes the worst case — which, on any path that runs
+ * while music is playing, is a jump back up to full attenuation and then a
+ * whole ramp back down again.
+ */
+const sessionHeadroom = (): ISessionHeadroom => ({
+  deviceId: session.activeAudioDeviceId,
+  programme: state.smartHeadroomProgramme,
+  trimDb: state.smartHeadroomTrimDb,
+});
+
 const handleUpdateHelperCore = async <T>(
   event: Electron.IpcMainEvent,
   channel: ChannelEnum | string,
@@ -1574,6 +1597,7 @@ const handleUpdateHelperCore = async <T>(
         session.configPath,
         activeOverride,
         state.isEnabled,
+        sessionHeadroom(),
       );
     });
   } catch (e) {
@@ -1783,6 +1807,7 @@ const syncActiveApoFilesFromDisk = async () => {
         session.configPath,
         undefined,
         state.isEnabled,
+        sessionHeadroom(),
       );
     });
   }

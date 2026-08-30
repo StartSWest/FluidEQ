@@ -352,9 +352,15 @@ export const fetchSettings = (settingsDir: string) => {
       throw new Error('Invalid state file loaded. Using default state.');
     }
     const bypassed = normalizeBypassed(input.bypassed);
+    // Dropped on the way in as well as on the way out, because files written by
+    // earlier builds already carry a measurement and the spread below would put
+    // one straight back into a session that has heard nothing. Left out of the
+    // object rather than set to undefined: an absent key and a present empty
+    // one are the same state, and only one of them says so.
+    const { smartHeadroomProgramme, smartHeadroomTrimDb, ...persisted } = input;
     // Manually set case sensitivity as false until it is confirmed in app that it can be enabled
     return {
-      ...input,
+      ...persisted,
       preAmp: clampGain(input.preAmp),
       filters: normalizeFilters(input.filters),
       ...(Array.isArray(input.graphicEq)

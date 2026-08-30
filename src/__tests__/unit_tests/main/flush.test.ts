@@ -314,6 +314,32 @@ describe('flush', () => {
           .toString(),
       ).toBe(serializeState(mockSettings));
     });
+
+    it('leaves the session measurement out of the state file', () => {
+      // The type has said SESSION ONLY since the field was added, while this
+      // wrote the whole object to disk. It cost nothing for as long as the
+      // config writer could not see a measurement at all; now that it can, a
+      // launch would reserve this morning's headroom from last night's music
+      // at full confidence, before hearing a single frame.
+      const measured: IState = {
+        ...mockSettings,
+        smartHeadroomProgramme: [{ frequency: 1000, gain: -20 }],
+        smartHeadroomTrimDb: -3,
+      };
+      save(measured, TEST_DATA_WRITE_DIR);
+      const written = fs
+        .readFileSync(addFileToPath(TEST_DATA_WRITE_DIR, 'state.txt'))
+        .toString();
+
+      expect(written).not.toContain('smartHeadroomProgramme');
+      expect(written).not.toContain('smartHeadroomTrimDb');
+      // The positive control: everything else about the same state survives.
+      expect(written).toBe(serializeState(mockSettings));
+      // And a file written by an earlier build does not put one back.
+      expect(
+        fetchSettings(TEST_DATA_WRITE_DIR).smartHeadroomProgramme,
+      ).toBeUndefined();
+    });
   });
 
   describe('fetchPreset', () => {
