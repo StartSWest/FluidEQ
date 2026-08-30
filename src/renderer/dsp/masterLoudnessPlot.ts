@@ -44,13 +44,36 @@ export const LOUDNESS_HISTORY = Math.ceil(
   LOUDNESS_WINDOW_MS / LOUDNESS_SAMPLE_MS,
 );
 
-/** The scale's ends. Below the floor a reading is drawn as absent, not as low. */
-const TOP_LUFS = 0;
-const FLOOR_LUFS = -36;
-const GRID_LUFS = [0, -6, -12, -18, -24, -30, -36];
+/**
+ * The scale hangs off the target rather than off full scale.
+ *
+ * An absolute -36 to 0 scale is what a level meter uses, and on this page it
+ * wasted two thirds of its height: music lives between about -20 and -8 LUFS,
+ * so every trace crowded into one narrow band while the bottom of the plot
+ * stayed empty for ever. It also made "am I at the target" a comparison
+ * between two lines that happened to be near each other.
+ *
+ * Six LU above the target and twenty-four below is EBU Tech 3341's relative
+ * scale, and it puts the target line at the same height whatever it is set to.
+ * The labels stay absolute LUFS, so nothing has to be read as an offset.
+ */
+const ABOVE_TARGET_LU = 6;
+const BELOW_TARGET_LU = 24;
+/** Where the grid sits, in LU from the target. */
+const GRID_FROM_TARGET = [6, 0, -6, -12, -18, -24];
 
 /** Full deflection of the reduction meter, matching the Maximizer's scale. */
 const GR_FULL_SCALE_DB = 12;
+
+/**
+ * The reduction gets its own lane at the top rather than the plot's own space.
+ *
+ * Hung into the loudness plot it read as a second signal drawn upside down —
+ * amber spikes floating in the empty upper half with no baseline to belong to.
+ * It is not a loudness and does not share the axis; what it shares is the
+ * seconds. A lane of its own with a floor under it says both.
+ */
+const GR_LANE_HEIGHT = 30;
 
 const PAD_L = 44;
 /** Room for the reduction meter and its scale, which live in this margin. */
@@ -59,8 +82,12 @@ const PAD_R = 62;
  * The legend and the status chips own two fixed rows above the plot, at the
  * heights the stylesheet puts them. Drawing under either one made the readings
  * look like they were labelling whatever passed behind them.
+ *
+ * Measured against the rendered page rather than guessed: the chips end at 53
+ * device-independent pixels, and at 64 the reduction lane's peaks came within
+ * a few pixels of them and read as touching.
  */
-const PAD_T = 64;
+const PAD_T = 78;
 const PAD_B = 22;
 
 const FONT =
@@ -98,11 +125,16 @@ export const paintMasterLoudness = (
   plot: IMasterLoudnessPlot,
 ): void => {
   const plotWidth = Math.max(1, width - PAD_L - PAD_R);
-  const plotHeight = Math.max(1, height - PAD_T - PAD_B);
+  const laneTop = PAD_T;
+  const laneBottom = PAD_T + GR_LANE_HEIGHT;
+  const plotTop = laneBottom + 6;
+  const plotHeight = Math.max(1, height - plotTop - PAD_B);
+  const topLufs = plot.targetLufs + ABOVE_TARGET_LU;
+  const floorLufs = plot.targetLufs - BELOW_TARGET_LU;
   const lufsY = (lufs: number): number =>
-    PAD_T +
-    ((TOP_LUFS - Math.max(FLOOR_LUFS, Math.min(TOP_LUFS, lufs))) /
-      (TOP_LUFS - FLOOR_LUFS)) *
+    plotTop +
+    ((topLufs - Math.max(floorLufs, Math.min(topLufs, lufs))) /
+      (topLufs - floorLufs)) *
       plotHeight;
   /**
    * Oldest at the left, newest at the right edge, which is where the eye is.
@@ -117,49 +149,78 @@ export const paintMasterLoudness = (
 
   context.font = FONT;
   context.textBaseline = 'middle';
-  GRID_LUFS.forEach((lufs) => {
+  GRID_FROM_TARGET.forEach((offset) => {
+    const lufs = plot.targetLufs + offset;
     const y = Math.round(lufsY(lufs)) + 0.5;
     context.strokeStyle =
-      lufs === 0 ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.07)';
+      offset === 0 ? 'rgba(255,255,255,0.16)' : 'rgba(255,255,255,0.07)';
     context.beginPath();
     context.moveTo(PAD_L, y);
     context.lineTo(width - PAD_R, y);
     context.stroke();
     context.fillStyle = 'rgba(255,255,255,0.38)';
     context.textAlign = 'right';
-    context.fillText(`${lufs}`, PAD_L - 7, y);
+    context.fillText(`${Math.round(lufs)}`, PAD_L - 7, y);
   });
   // The unit, once, where a stray number on the axis could be read as dB.
   context.fillStyle = 'rgba(255,255,255,0.28)';
   context.textAlign = 'right';
-  context.fillText('LUFS', PAD_L - 7, PAD_T - 10);
+  context.fillText('LUFS', PAD_L - 7, plotTop - 12);
 
   const visible = Math.min(plot.filled, LOUDNESS_HISTORY);
 
   /**
-   * The reduction, hung from the top of the plot rather than plotted as a
-   * value.
+   * The reduction, in a lane of its own above the loudness plot.
    *
-   * It is not a loudness and has no place on the LUFS axis, but it belongs on
-   * the same time axis: the whole question this page answers is whether the
-   * short-term line reached the target by mastering or by being held down, and
-   * that is only readable when the two are drawn over the same seconds.
+   * It is not a loudness and has no business on that axis, but it belongs on
+   * the same seconds: the question this page answers is whether the short-term
+   * line reached the target by mastering or by being held down, and that is
+   * only readable when the two are drawn over the same time.
    */
+  context.fillStyle = 'rgba(255,255,255,0.03)';
+  context.fillRect(PAD_L, laneTop, plotWidth, GR_LANE_HEIGHT);
   if (visible > 1) {
     context.beginPath();
-    context.moveTo(columnX(visible - 1), PAD_T);
+    context.moveTo(columnX(visible - 1), laneTop);
     for (let age = visible - 1; age >= 0; age -= 1) {
       const depth = Math.min(
         1,
         Math.abs(plot.reduction[sampleAt(age)]) / GR_FULL_SCALE_DB,
       );
-      context.lineTo(columnX(age), PAD_T + depth * plotHeight * 0.5);
+      context.lineTo(columnX(age), laneTop + depth * GR_LANE_HEIGHT);
     }
-    context.lineTo(columnX(0), PAD_T);
+    context.lineTo(columnX(0), laneTop);
     context.closePath();
     context.fillStyle = AMBER_FILL;
     context.fill();
+    // The lower edge stroked, so the lane reads as a measured shape rather
+    // than a smudge. At the fill's own weight the deepest moments and the
+    // shallow ones looked the same from across a desk.
+    context.beginPath();
+    for (let age = visible - 1; age >= 0; age -= 1) {
+      const depth = Math.min(
+        1,
+        Math.abs(plot.reduction[sampleAt(age)]) / GR_FULL_SCALE_DB,
+      );
+      const y = laneTop + depth * GR_LANE_HEIGHT;
+      if (age === visible - 1) {
+        context.moveTo(columnX(age), y);
+      } else {
+        context.lineTo(columnX(age), y);
+      }
+    }
+    context.strokeStyle = AMBER;
+    context.lineWidth = 1.2;
+    context.stroke();
   }
+  context.strokeStyle = 'rgba(255,255,255,0.1)';
+  context.beginPath();
+  context.moveTo(PAD_L, laneBottom + 0.5);
+  context.lineTo(width - PAD_R, laneBottom + 0.5);
+  context.stroke();
+  context.fillStyle = 'rgba(255,196,126,0.7)';
+  context.textAlign = 'right';
+  context.fillText(plot.reductionLabel, PAD_L - 7, laneTop + 9);
 
   if (visible > 1) {
     const floorY = height - PAD_B;
@@ -170,7 +231,18 @@ export const paintMasterLoudness = (
     }
     context.lineTo(columnX(0), floorY);
     context.closePath();
-    context.fillStyle = TEAL_FILL;
+    /**
+     * Faded downward, not filled flat.
+     *
+     * At a constant alpha the area under the momentary trace covered most of
+     * the plot as one solid slab — the shape of the envelope, which is the
+     * whole point of drawing it, was only its top edge and everything below
+     * carried the same weight as the reading itself.
+     */
+    const envelope = context.createLinearGradient(0, plotTop, 0, floorY);
+    envelope.addColorStop(0, TEAL_FILL);
+    envelope.addColorStop(1, 'rgba(0,229,207,0)');
+    context.fillStyle = envelope;
     context.fill();
 
     context.beginPath();
@@ -205,7 +277,7 @@ export const paintMasterLoudness = (
     context.textBaseline = 'middle';
   }
 
-  if (plot.integratedLufs > FLOOR_LUFS) {
+  if (plot.integratedLufs > floorLufs) {
     const integratedY = Math.round(lufsY(plot.integratedLufs)) + 0.5;
     context.save();
     context.setLineDash([1, 4]);
@@ -232,36 +304,35 @@ export const paintMasterLoudness = (
    */
   const meterX = width - PAD_R + 16;
   const meterWidth = 12;
+  const meterTop = laneTop;
+  const meterHeight = height - PAD_B - meterTop;
   context.fillStyle = 'rgba(255,255,255,0.06)';
-  context.fillRect(meterX, PAD_T, meterWidth, plotHeight);
+  context.fillRect(meterX, meterTop, meterWidth, meterHeight);
   const depth = Math.min(1, Math.abs(plot.liveReductionDb) / GR_FULL_SCALE_DB);
   if (depth > 0) {
     context.fillStyle = AMBER;
-    context.fillRect(meterX, PAD_T, meterWidth, depth * plotHeight);
+    context.fillRect(meterX, meterTop, meterWidth, depth * meterHeight);
   }
   context.textAlign = 'left';
   context.fillStyle = 'rgba(255,255,255,0.38)';
-  context.fillText('0', meterX + meterWidth + 5, PAD_T + 5);
+  context.fillText('0', meterX + meterWidth + 5, meterTop + 5);
   context.fillText(
     `-${GR_FULL_SCALE_DB}`,
     meterX + meterWidth + 5,
-    PAD_T + plotHeight - 5,
-  );
-  context.textAlign = 'center';
-  context.fillStyle =
-    depth > 0 ? 'rgba(255,196,126,0.9)' : 'rgba(255,255,255,0.3)';
-  context.fillText(
-    plot.reductionLabel,
-    meterX + meterWidth / 2,
-    height - PAD_B / 2,
+    meterTop + meterHeight - 5,
   );
 
   // Seconds, so the width of the picture is a duration rather than a guess.
-  context.textAlign = 'center';
+  // The newest column is right-aligned against the plot's own edge: centred,
+  // its label ran into the reduction meter's scale in the margin beyond it.
   context.fillStyle = 'rgba(255,255,255,0.38)';
   for (let seconds = 0; seconds <= LOUDNESS_WINDOW_MS / 1000; seconds += 10) {
     const age = (seconds * 1000) / LOUDNESS_SAMPLE_MS;
-    const label = seconds === 0 ? 'now' : `-${seconds}s`;
-    context.fillText(label, columnX(age), height - PAD_B / 2);
+    context.textAlign = seconds === 0 ? 'right' : 'center';
+    context.fillText(
+      seconds === 0 ? 'now' : `-${seconds}s`,
+      columnX(age),
+      height - PAD_B / 2,
+    );
   }
 };
