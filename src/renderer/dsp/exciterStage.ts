@@ -21,6 +21,7 @@ import {
   ANALOG_DIODE_MAX_CHARACTER,
   IExciterTransientState,
   analogDiodeExcitedSample,
+  analogDiodeOctaveSample,
   createExciterTransientState,
   exciterTransientSample,
   limitExciterCurrent,
@@ -191,6 +192,84 @@ export const exciterSidechainSample = (
     harmonicGain * baseHarmonicGain,
   );
 
+/**
+ * How far the low band leans on the octave, at rest and fully textured.
+ *
+ * Not 1 even at its warmest: a purely even shape is a pure octave doubler and
+ * loses the root of the note. Keeping a quarter of the odd shape is what stops
+ * it sounding like a different instrument playing along.
+ */
+const LOW_EVEN_WEIGHT_WARM = 0.75;
+const LOW_EVEN_WEIGHT_PRESENT = 0.3;
+
+/**
+ * The low band, weighted toward the octave, with Texture as the lever.
+ *
+ * Bass is the one range where the harmonic that matters is not a matter of
+ * taste. The ear infers a fundamental from its overtones, so a speaker that
+ * cannot reproduce 60 Hz still hears "60 Hz" from a strong 120 — which is why a
+ * low exciter exists at all. That effect is carried by the EVEN orders; the odd
+ * ones sit a twelfth and a seventeenth above the root, where they are heard as
+ * hardness rather than weight.
+ *
+ * Texture moves the interval rather than only the amount. At rest it is nearly
+ * all octave: round, and the reason a small speaker finds the note. Turned up it
+ * lets the odd orders back in, which is where definition and the sense of the
+ * bass cutting through a mix come from.
+ */
+export const lowExciterHarmonicSample = (
+  sample: number,
+  drive: number,
+  texture: number,
+  harmonicGain = 1,
+): number => {
+  const normalisedTexture = Math.max(
+    0,
+    Math.min(1, texture / ANALOG_DIODE_MAX_CHARACTER),
+  );
+  const evenWeight =
+    LOW_EVEN_WEIGHT_WARM +
+    (LOW_EVEN_WEIGHT_PRESENT - LOW_EVEN_WEIGHT_WARM) * normalisedTexture;
+  return analogDiodeOctaveSample(
+    sample,
+    drive,
+    texture,
+    SIDECHAIN_LEVEL,
+    harmonicGain * BAND_HARMONIC_GAIN[0],
+    evenWeight,
+  );
+};
+
+/**
+ * Which shape each band uses, in one place.
+ *
+ * The three are genuinely different instruments rather than one curve with
+ * three sets of numbers: High generates air above a quiet carrier, Low leans on
+ * the octave because that is what bass warmth is, and Mid is the plain excited
+ * sidechain between them.
+ */
+const bandHarmonicSample = (
+  band: number,
+  sample: number,
+  drive: number,
+  texture: number,
+  harmonicGain: number,
+): number => {
+  if (band === 2) {
+    return highExciterHarmonicSample(sample, drive, texture, harmonicGain);
+  }
+  if (band === 0) {
+    return lowExciterHarmonicSample(sample, drive, texture, harmonicGain);
+  }
+  return exciterSidechainSample(
+    sample,
+    drive,
+    texture,
+    harmonicGain,
+    BAND_HARMONIC_GAIN[band],
+  );
+};
+
 const normaliseHighDrive = (drive: number): number => {
   const normalised = Math.max(0, Math.min(1, (drive - 1) / 2.5));
   // High harmonics become brittle before Low/Mid do. Give the first half of
@@ -350,21 +429,13 @@ const shapeBand = (
       wideRate,
     );
     const transientHarmonicGain = 1 + transient * transientLift;
-    const protectedCurrent =
-      band === 2
-        ? highExciterHarmonicSample(
-            filteredSample,
-            state.drive[band],
-            state.texture[band],
-            transientHarmonicGain,
-          )
-        : exciterSidechainSample(
-            filteredSample,
-            state.drive[band],
-            state.texture[band],
-            transientHarmonicGain,
-            BAND_HARMONIC_GAIN[band],
-          );
+    const protectedCurrent = bandHarmonicSample(
+      band,
+      filteredSample,
+      state.drive[band],
+      state.texture[band],
+      transientHarmonicGain,
+    );
     // The fixed curve returns the whole excited sidechain. Keeping it in one
     // buffer guarantees Isolate cannot present a different signal from the one
     // that is added beneath the dry programme.

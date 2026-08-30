@@ -104,6 +104,10 @@ add_executable(fluideq-resampler-test dsp-core/tests/resampler_test.cpp)
 target_link_libraries(fluideq-resampler-test PRIVATE fluideq-dsp-core feq_strict)
 add_test(NAME resampler COMMAND fluideq-resampler-test)
 
+add_executable(fluideq-exciter-test dsp-core/tests/exciter_test.cpp)
+target_link_libraries(fluideq-exciter-test PRIVATE fluideq-dsp-core feq_strict)
+add_test(NAME exciter COMMAND fluideq-exciter-test)
+
 add_executable(fluideq-meters-test dsp-core/tests/meters_test.cpp)
 target_link_libraries(fluideq-meters-test PRIVATE fluideq-dsp-core feq_strict)
 add_test(NAME meters COMMAND fluideq-meters-test)

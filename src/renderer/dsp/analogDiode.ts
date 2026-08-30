@@ -157,6 +157,59 @@ export const analogDiodeExcitedSample = (
   return foundation + (complete - foundation) * harmonicGain;
 };
 
+/**
+ * The same diode, weighted toward the octave rather than the twelfth.
+ *
+ * `evenWeight` at 0 is `analogDiodeExcitedSample`; at 1 the added harmonics are
+ * the squared shape, which carries only even orders.
+ *
+ * `tanh` is odd, so on its own it produces third and fifth orders — on a 60 Hz
+ * note, 180 and 300 Hz, a twelfth and a seventeenth above the root. Dissonant
+ * intervals, heard as hardness. The bias adds even orders, but drive is what
+ * makes harmonics loud and drive pushes the odd content up faster than the bias
+ * can answer: measured on the low band, the third order came back 5 dB ABOVE
+ * the second.
+ *
+ * Squaring an odd shape is even-symmetric, so it gives the second and fourth
+ * orders and nothing else — the octave and two octaves, which is the interval a
+ * small speaker uses to imply a fundamental it cannot reproduce. The doubling
+ * restores unity, since `sin(x)^2` puts half its amplitude at 2f and half at
+ * DC, and the DC is removed downstream by the exciter's block filter.
+ *
+ * The blend is between the two sets of HARMONICS rather than between two
+ * signals. The odd shape carries the fundamental through it and the squared one
+ * does not, so blending the shapes and then subtracting the foundation removes
+ * a fundamental the even half never contributed — measured at -4.2 dB on the
+ * first attempt, which is an exciter acting as a volume control.
+ */
+export const analogDiodeOctaveSample = (
+  sample: number,
+  drive: number,
+  character: number,
+  level: number,
+  harmonicGain: number,
+  evenWeight: number,
+): number => {
+  const driven = sample * drive;
+  const characterMix = Math.max(
+    0,
+    Math.min(1, character / ANALOG_DIODE_MAX_CHARACTER),
+  );
+  const bias = WARM_BIAS + (AIR_BIAS - WARM_BIAS) * characterMix;
+  const biasOutput = Math.tanh(bias);
+  const tangentGain = 1 - biasOutput * biasOutput;
+  const odd = Math.tanh(driven + bias) - biasOutput;
+  const even = 2 * odd * odd;
+  const safeDrive = drive > 0.001 ? drive : 0.001;
+  const scale = level / (safeDrive * tangentGain);
+  const foundation = sample * level;
+  const oddResidue = odd * scale - foundation;
+  const evenResidue = even * scale;
+  const weight = Math.max(0, Math.min(1, evenWeight));
+  const residue = oddResidue + (evenResidue - oddResidue) * weight;
+  return foundation + residue * harmonicGain;
+};
+
 /** High and Organic alone use the protected rail; Low and Mid stay unbounded. */
 export const limitExciterCurrent = (current: number): number =>
   Math.tanh(current / CURRENT_CEILING) * CURRENT_CEILING;

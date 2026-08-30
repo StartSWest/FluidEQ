@@ -65,6 +65,21 @@ double feq_exciter_transient_sample(FeqExciterTransient* state,
  * curved signal, so the transient discriminator can breathe without moving the
  * whole sidechain up and down.
  */
+/**
+ * The same diode, weighted toward the octave rather than the twelfth.
+ *
+ *  at 0 is the ordinary excited sample; at 1 it is the squared
+ * shape, which carries only even orders. The low band uses it because bass
+ * warmth IS the octave — see the comment on the implementation for what was
+ * measured.
+ */
+double feq_analog_diode_octave_sample(double sample,
+                                      double drive,
+                                      double character,
+                                      double level,
+                                      double harmonic_gain,
+                                      double even_weight);
+
 double feq_analog_diode_excited_sample(double sample,
                                        double drive,
                                        double character,

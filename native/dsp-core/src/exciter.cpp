@@ -17,6 +17,15 @@ constexpr double kParameterSmoothingMs = 18.0;
 constexpr double kDcPole = 0.9974;
 constexpr double kSidechainLevel = 1.0;
 constexpr double kBandHarmonicGain[2] = {1.8, 2.4};
+/**
+ * How far the low band leans on the octave, at rest and fully textured.
+ *
+ * Not 1.0 even at its warmest: a purely even shape is a pure octave doubler
+ * and loses the root of the note. Keeping a quarter of the odd shape is what
+ * stops it sounding like a different instrument playing along.
+ */
+constexpr double kLowEvenWeightWarm = 0.75;
+constexpr double kLowEvenWeightPresent = 0.3;
 constexpr double kLowTransientLift = 0.35;
 constexpr double kMidTransientLift = 0.3;
 constexpr double kHighTransientLift = 0.22;
@@ -138,6 +147,40 @@ double sidechain_sample(double sample, double drive, double texture,
                                          harmonic_gain * base_harmonic_gain);
 }
 
+/**
+ * The low band, weighted toward the octave, with Texture as the lever.
+ *
+ * Bass is the one range where the harmonic that matters is not a matter of
+ * taste. The ear infers a fundamental from its overtones, so a speaker that
+ * cannot reproduce 60 Hz still hears "60 Hz" from a strong 120 — which is why a
+ * low exciter exists at all. That effect is carried by the EVEN orders, and the
+ * odd ones sit a twelfth and a seventeenth above the root where they are heard
+ * as hardness rather than weight.
+ *
+ * The band was leaning odd before this: measured on a 60 Hz tone, the third
+ * order came back 5 dB above the second. Warm at rest and firmer as Texture
+ * rises, rather than the reverse.
+ */
+double low_harmonic_sample(double sample, double drive, double texture,
+                           double harmonic_gain) {
+  const double normalised_texture =
+      clamp(texture / FEQ_ANALOG_DIODE_MAX_CHARACTER, 0.0, 1.0);
+  /**
+   * Texture moves the interval, not just the amount.
+   *
+   * At rest it is nearly all octave: round, and the reason a small speaker
+   * finds the note. Turned up it lets the odd orders back in, which is where
+   * definition and the sense of the bass cutting through a mix come from — so
+   * the control sweeps warmth against presence rather than merely "more".
+   */
+  const double even_weight =
+      kLowEvenWeightWarm +
+      (kLowEvenWeightPresent - kLowEvenWeightWarm) * normalised_texture;
+  return feq_analog_diode_octave_sample(
+      sample, drive, texture, kSidechainLevel,
+      harmonic_gain * kBandHarmonicGain[0], even_weight);
+}
+
 double transient_lift(uint32_t band) {
   if (band == 2) {
     return kHighTransientLift;
@@ -217,9 +260,12 @@ void shape_band(FeqExciterChannel* state, uint32_t band, const float* source,
     const double current =
         band == 2 ? high_harmonic_sample(filtered, state->drive[band],
                                          state->texture[band], harmonic_gain)
-                  : sidechain_sample(filtered, state->drive[band],
-                                     state->texture[band], harmonic_gain,
-                                     kBandHarmonicGain[band]);
+        : band == 0
+            ? low_harmonic_sample(filtered, state->drive[band],
+                                  state->texture[band], harmonic_gain)
+            : sidechain_sample(filtered, state->drive[band],
+                               state->texture[band], harmonic_gain,
+                               kBandHarmonicGain[band]);
     // One buffer for the whole excited sidechain, so Isolate cannot present a
     // different signal from the one added beneath the dry programme.
     state->wide[at] = static_cast<float>(current);
