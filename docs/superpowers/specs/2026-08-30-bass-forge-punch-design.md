@@ -47,11 +47,22 @@ Both stages are written in `native/dsp-core` with their own C++ property tests
 and no TypeScript worklet twin, matching Dimension.
 
 Consequence to be honest about: when the native host cannot start and the
-worklet fallback carries the audio, these two stages are silently absent.
-That must be visible in the UI. `TDspNativeState`'s `'failed'` value in
-`src/renderer/dsp/store.ts` currently has no non-test consumer, and the notice
-that renders it is being added in the `typescript-usage-review` worktree. This
-work depends on that notice and must not build a second one.
+worklet fallback carries the audio, these two stages are absent while every
+other stage keeps working. That has to be visible rather than silent.
+
+It already is. The notice gated on `nativeState === 'failed'` exists and ships
+in all ten locales; the `typescript-usage-review` worktree is moving it out of
+the Master side-tab and into the DSP panel header as `dsp.engineFallback`, so
+it is seen wherever the user happens to be standing rather than only on one
+page. Its text is being corrected there too — it claimed the music plays with
+no EQ, dynamics or limiter, which stopped being true once the controller was
+gated on `'engaged'`: a failed host now leaves the worklet chain audible, and
+what is actually lost is exactly the native-only stages.
+
+**Nothing further is built here for this, and nothing is re-added to
+`DspMasterCard`.** These two stages inherit that notice. The only thing this
+work owes is that the Forge and Punch cards read as unavailable rather than as
+broken when the fallback is carrying the audio.
 
 Second consequence: native DSP on macOS and Linux is deferred, so in practice
 these stages are Windows-only until that lands.
