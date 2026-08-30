@@ -78,6 +78,7 @@ add_library(fluideq-dsp-core STATIC
   dsp-core/src/crossfade.cpp
   dsp-core/src/dimension.cpp
   dsp-core/src/bass_forge.cpp
+  dsp-core/src/bass_punch.cpp
   dsp-core/src/meters.cpp
   dsp-core/src/chain.cpp
   dsp-core/src/chain_eq.cpp
@@ -118,6 +119,10 @@ add_test(NAME dimension COMMAND fluideq-dimension-test)
 add_executable(fluideq-bass-forge-test dsp-core/tests/bass_forge_test.cpp)
 target_link_libraries(fluideq-bass-forge-test PRIVATE fluideq-dsp-core feq_strict)
 add_test(NAME bass-forge COMMAND fluideq-bass-forge-test)
+
+add_executable(fluideq-bass-punch-test dsp-core/tests/bass_punch_test.cpp)
+target_link_libraries(fluideq-bass-punch-test PRIVATE fluideq-dsp-core feq_strict)
+add_test(NAME bass-punch COMMAND fluideq-bass-punch-test)
 
 add_executable(fluideq-meters-test dsp-core/tests/meters_test.cpp)
 target_link_libraries(fluideq-meters-test PRIVATE fluideq-dsp-core feq_strict)
