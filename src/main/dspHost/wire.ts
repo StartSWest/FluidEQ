@@ -199,8 +199,8 @@ export const encodeSnapshotPayload = (values: readonly number[]): Buffer => {
  * encoder that agrees with the first until a field is added to one of them.
  *
  * The lead is IMPORTED rather than restated. This file held its own copy at 69
- * while `chainWire.ts` and `FEQ_CHAIN_PARAM_LEAD` were both at 77, and eight
- * slots of drift went unnoticed because the check below cannot fire: every
+ * through two bumps of the real one — 77, then 78 — and the drift went
+ * unnoticed because the check below cannot fire: every
  * caller reaches it through the `dsp-host-chain` handler, which has already run
  * `isChainWirePayload` — that one checks the length exactly against the band
  * count the payload declares, so a floor of any value is strictly weaker than
@@ -493,6 +493,14 @@ export const decodeAnalysis = (frame: Buffer): IHostAnalysis | undefined => {
       inputPeaks: [view.getFloat32(96, true), view.getFloat32(100, true)],
       outputPeaks: [view.getFloat32(104, true), view.getFloat32(108, true)],
       appliedGainDb: view.getFloat32(112, true),
+    },
+    // Offset 116 is `reserved_tail`, the float that was padding the struct to
+    // eight-byte alignment before these four followed it.
+    loudness: {
+      momentaryLufs: view.getFloat32(120, true),
+      shortTermLufs: view.getFloat32(124, true),
+      integratedLufs: view.getFloat32(128, true),
+      rangeLu: view.getFloat32(132, true),
     },
     bandAmounts,
     bandLevels,

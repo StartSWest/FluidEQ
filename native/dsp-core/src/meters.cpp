@@ -212,6 +212,19 @@ struct FeqMeters {
   /** Dimension's mono guard: 1 wide open, 0 fully shut. */
   std::atomic<float> dimension_guard{1.0f};
   /**
+   * How loud the output actually is: momentary, short term, integrated, range.
+   *
+   * Four independent atomics for the same reason as the Master tail's: each is
+   * its own readout, they move at a tenth of the rate the panel repaints at,
+   * and there is no shape here to tear. Not cleared on read — a loudness
+   * measurement that reset itself every frame would be a meter that could
+   * never settle, which is the opposite of what integrated means.
+   */
+  std::atomic<float> loudness_momentary_lufs{-120.0f};
+  std::atomic<float> loudness_short_term_lufs{-120.0f};
+  std::atomic<float> loudness_integrated_lufs{-120.0f};
+  std::atomic<float> loudness_range_lu{0.0f};
+  /**
    * The Master tail's window, folded per block and cleared on read.
    *
    * Independent atomics rather than a seqlock, for the reason the exciter's
@@ -550,6 +563,35 @@ void feq_meters_read_maximizer(FeqMeters* meters, float* out_reduction_db) {
   }
   *out_reduction_db =
       meters->maximizer_reduction_db.load(std::memory_order_relaxed);
+}
+
+void feq_meters_publish_loudness(FeqMeters* meters,
+                                 const FeqLoudnessReading* reading) {
+  if (meters == nullptr || reading == nullptr ||
+      meters->enabled.load(std::memory_order_acquire) == 0) {
+    return;
+  }
+  meters->loudness_momentary_lufs.store(
+      static_cast<float>(reading->momentary_lufs), std::memory_order_relaxed);
+  meters->loudness_short_term_lufs.store(
+      static_cast<float>(reading->short_term_lufs), std::memory_order_relaxed);
+  meters->loudness_integrated_lufs.store(
+      static_cast<float>(reading->integrated_lufs), std::memory_order_relaxed);
+  meters->loudness_range_lu.store(static_cast<float>(reading->range_lu),
+                                  std::memory_order_relaxed);
+}
+
+void feq_meters_read_loudness(FeqMeters* meters, float* out_loudness) {
+  if (meters == nullptr || out_loudness == nullptr) {
+    return;
+  }
+  out_loudness[0] =
+      meters->loudness_momentary_lufs.load(std::memory_order_relaxed);
+  out_loudness[1] =
+      meters->loudness_short_term_lufs.load(std::memory_order_relaxed);
+  out_loudness[2] =
+      meters->loudness_integrated_lufs.load(std::memory_order_relaxed);
+  out_loudness[3] = meters->loudness_range_lu.load(std::memory_order_relaxed);
 }
 
 void feq_meters_publish_dimension(FeqMeters* meters, double guard) {

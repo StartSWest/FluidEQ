@@ -290,6 +290,8 @@ export interface ICompressorSettings {
  */
 export interface IDimensionSettings {
   enabled: boolean;
+  /** Which profile this came from, or empty once the user has edited it. */
+  presetId: string;
   /** Bass is narrowed or left alone. See the header for why never widened. */
   lowWidth: number;
   midWidth: number;
@@ -423,6 +425,8 @@ export interface ICrossfadeSettings {
  */
 export interface IMasterSettings {
   enabled: boolean;
+  /** The chosen delivery target, or '' once any of its numbers is moved. */
+  presetId: string;
   outputTrimDb: number;
   /** Constant source-LUFS gain with its required true-peak control last. */
   loudnessMaximize: boolean;
@@ -430,6 +434,32 @@ export interface IMasterSettings {
   /** User ceiling in dBTP, applied only while LUFS maximize is enabled. */
   ceilingDb: number;
   releaseMs: number;
+  /**
+   * How much gain reduction the loudness target is allowed to buy, in dB.
+   *
+   * The makeup used to be capped at the true-peak room the track had left,
+   * which under the shipped defaults — the Normalizer holding peaks at
+   * -1 dBTP and this stage's ceiling also at -1 dBTP — is exactly zero
+   * decibels on every commercially mastered record. The target was therefore
+   * unreachable by construction, and on quiet material it landed somewhere
+   * different for every track, which is why the loudness still moved.
+   *
+   * Auto Headroom is the look-ahead true-peak limiter that runs immediately
+   * before the master gain, and only while LUFS maximize is on. It already
+   * reserves the gain still to come, so makeup beyond the peak room is safe —
+   * it costs limiting, not clipping. This says how much of that cost the
+   * target may incur. At 0 the old peak-safe behaviour returns exactly.
+   */
+  peakLimitingDb: number;
+  /**
+   * Play the maximized result at the loudness it had before maximizing.
+   *
+   * The limiting is unchanged and only the final level moves, so A/B against a
+   * bypassed Master compares the sound rather than the volume. Without it the
+   * louder side wins every comparison, which is the oldest way to be wrong
+   * about a master.
+   */
+  matchedBypass: boolean;
 }
 
 /** Signed whole-track correction accepted by the renderer/worklet boundary. */
@@ -806,7 +836,15 @@ const RANGES = {
    * clamps into this one.
    */
   masterReleaseMs: { min: 40, max: 400 },
-  masterLoudnessTargetLufs: { min: -18, max: -6 },
+  /**
+   * Down to broadcast, not merely down to quiet streaming.
+   *
+   * -18 was the floor while the stage could only ever raise a track toward a
+   * target. It has always been able to lower one, and EBU R128's -23 LUFS is
+   * the one delivery specification with a legal weight behind it.
+   */
+  masterLoudnessTargetLufs: { min: -24, max: -6 },
+  masterPeakLimitingDb: { min: 0, max: 12 },
   normalizerTruePeakDbtp: { min: -12, max: -0.1 },
   normalizerTargetLufs: { min: -24, max: -5 },
   eqFrequency: { min: 20, max: 20_000 },
@@ -1158,6 +1196,7 @@ export const DSP_DEFAULTS: IDspSettings = {
    */
   dimension: {
     enabled: false,
+    presetId: 'default',
     lowWidth: 0.9,
     midWidth: 1.05,
     highWidth: 1.25,
@@ -1185,11 +1224,17 @@ export const DSP_DEFAULTS: IDspSettings = {
   // saved chain until its owner deliberately switches it in.
   master: {
     enabled: false,
+    presetId: '',
     outputTrimDb: 0,
     loudnessMaximize: false,
     loudnessTargetLufs: -9,
     ceilingDb: -1,
     releaseMs: 200,
+    // Six decibels of limiting is what a mastering engineer would call a
+    // normal amount of work. It is enough for a -20 LUFS record to reach a
+    // streaming target and not enough for the limiter to become the sound.
+    peakLimitingDb: 6,
+    matchedBypass: false,
   },
 };
 
@@ -1551,6 +1596,8 @@ export const clampDspSettings = (value: unknown): IDspSettings => {
     },
     dimension: {
       enabled: clampBoolean(dimension.enabled, DSP_DEFAULTS.dimension.enabled),
+      presetId:
+        typeof dimension.presetId === 'string' ? dimension.presetId : '',
       lowWidth: clampNumber(
         dimension.lowWidth,
         RANGES.dimensionLowWidth,
@@ -1630,6 +1677,7 @@ export const clampDspSettings = (value: unknown): IDspSettings => {
     },
     master: {
       enabled: clampBoolean(master.enabled, DSP_DEFAULTS.master.enabled),
+      presetId: typeof master.presetId === 'string' ? master.presetId : '',
       outputTrimDb: clampNumber(
         master.outputTrimDb,
         RANGES.masterOutputTrimDb,
@@ -1653,6 +1701,15 @@ export const clampDspSettings = (value: unknown): IDspSettings => {
         master.releaseMs,
         RANGES.masterReleaseMs,
         DSP_DEFAULTS.master.releaseMs,
+      ),
+      peakLimitingDb: clampNumber(
+        master.peakLimitingDb,
+        RANGES.masterPeakLimitingDb,
+        DSP_DEFAULTS.master.peakLimitingDb,
+      ),
+      matchedBypass: clampBoolean(
+        master.matchedBypass,
+        DSP_DEFAULTS.master.matchedBypass,
       ),
     },
   };

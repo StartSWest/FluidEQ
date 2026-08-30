@@ -991,6 +991,53 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   padding-left: 9px;
 }
 
+// The five numbers a loudness meter is, under the picture they came from.
+//
+// In the DOM rather than painted into the canvas because these are read as
+// values — the exact integrated figure is what a target is checked against —
+// and a canvas has nothing for a screen reader to reach.
+.dsp-master-loudness {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 8px;
+
+  span {
+    display: flex;
+    gap: 5px;
+    align-items: baseline;
+    padding: 4px 9px;
+    border: 1px solid rgba($white, 0.07);
+    border-radius: 7px;
+    background: rgba($black, 0.34);
+    color: rgba($white, 0.82);
+    font-size: 0.72rem;
+    font-variant-numeric: tabular-nums;
+
+    em {
+      color: rgba($white, 0.44);
+      font-size: 0.58rem;
+      font-style: normal;
+      font-weight: $weight-medium;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    // The integrated reading is the one a delivery target is judged against,
+    // so it wears the accent the rest of the row does not.
+    &.is-primary {
+      border-color: rgba($secondary-default, 0.3);
+      color: rgba($secondary-light, 0.96);
+    }
+
+    &.is-warning {
+      border-color: rgba($red, 0.42);
+      color: $red;
+    }
+  }
+}
+
 @container dsp-card (max-width: 900px) {
   .dsp-master-status {
     right: 18px;
@@ -3156,4 +3203,100 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // meter that has fallen to zero.
 .dsp-dimension-guard.is-off {
   opacity: 0.42;
+}
+
+// Dimension's width curve. Sized like the other processor graphs so the pages
+// keep the same rhythm when the rail moves between them.
+.dsp-dimension-graph {
+  display: grid;
+  gap: 6px;
+  width: 100%;
+}
+
+.dsp-dimension-canvas {
+  width: 100%;
+  height: 220px;
+}
+
+// The three widths and the three shape controls read as two decisions rather
+// than six numbers; the grouping is most of what somebody needs to set them.
+.dsp-dimension-controls {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 12px;
+  width: 100%;
+}
+
+.dsp-dimension-group {
+  display: grid;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid $border-subtle;
+  border-radius: 10px;
+}
+
+.dsp-dimension-group-name {
+  color: rgba($white, 0.52);
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.dsp-dimension-group-dials {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+// The field beside the curve: what the effect is doing, and how it is set.
+// Square on the left because a goniometer that is not square lies about the
+// angle, and the angle is the whole reading.
+.dsp-dimension-graph {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: 12px;
+  width: 100%;
+  align-items: stretch;
+}
+
+.dsp-dimension-field {
+  width: 220px;
+  height: 220px;
+  border-radius: 10px;
+  background: #090c12;
+  border: 1px solid $border-subtle;
+}
+
+.dsp-dimension-curve {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+@container dsp-card (max-width: 620px) {
+  .dsp-dimension-graph {
+    grid-template-columns: 1fr;
+  }
+
+  .dsp-dimension-field {
+    width: 100%;
+    max-width: 220px;
+    justify-self: center;
+  }
+}
+
+// The history strip under the curve, on the same width so the two share a
+// left edge and read as one pane rather than two stacked pictures.
+.dsp-dimension-history {
+  width: 100%;
+  height: 64px;
+  border-radius: 8px;
+  background: rgba($black, 0.28);
+}
+
+// Amber, matching the normalizer's before-bar: this is the one track here that
+// is a property of the RECORD rather than of the settings.
+.dsp-eq-legend-mark.is-correlation {
+  background: #ffb059;
 }

@@ -152,6 +152,15 @@ typedef struct FeqChainSettings {
     double loudness_target_lufs;
     double ceiling_db;
     double release_ms;
+    /**
+     * Play the maximized result at the loudness it had before maximizing.
+     *
+     * Auto Headroom still reserves the whole makeup, so the limiting is
+     * identical and only the final level moves. That is what makes an A/B
+     * against a bypassed Master a comparison of the sound rather than of the
+     * volume, which is the oldest way to be wrong about a master.
+     */
+    int matched_bypass;
   } master;
   /**
    * The A/B that proves the safety net is the net and not the sound.
@@ -171,7 +180,7 @@ typedef struct FeqChainSettings {
  * silently re-point sixty-four bands: the decoder asserts the lead rather
  * than trusting it.
  */
-#define FEQ_CHAIN_PARAM_LEAD 77
+#define FEQ_CHAIN_PARAM_LEAD 78
 #define FEQ_CHAIN_BAND_PARAMS 7
 
 /** Non-zero on success. Leaves `out` untouched on a layout it cannot read. */

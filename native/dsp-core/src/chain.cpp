@@ -163,6 +163,7 @@ FeqChain* feq_chain_create(double sample_rate,
   chain->sample_rate = sample_rate;
   chain->channels = channels;
   chain->max_frames = maximum_block_frames;
+  chain->loudness_meter = feq_loudness_meter_create(sample_rate, channels);
   feq_chain_settings_defaults(&chain->settings);
 
   const uint32_t frames = maximum_block_frames;
@@ -305,6 +306,7 @@ void feq_chain_destroy(FeqChain* chain) {
   // Anything still in transit has no thread left to reach it, and it holds the
   // largest allocation in the chain.
   chain_release_kernel_handoff(chain);
+  feq_loudness_meter_destroy(chain->loudness_meter);
   delete chain;
 }
 
@@ -394,6 +396,20 @@ void feq_chain_reset(FeqChain* chain, FeqChainResetReason reason) {
     feq_compressor_reset(&compressor);
   }
   feq_linked_limiter_reset_control(&chain->maximizer);
+
+  if (reason != FEQ_CHAIN_RESET_SEEK) {
+    /**
+     * A new programme is a new measurement, and a seek is not a new programme.
+     *
+     * Integrated loudness describes one piece of music. Carrying it across a
+     * track change would answer a question nobody asked — the average of the
+     * last three songs — and the reading would drift further from the target
+     * the longer the queue ran. Jumping about inside one song, on the other
+     * hand, is still that song, and restarting the integration on every scrub
+     * would make the number unreadable exactly when it is being watched.
+     */
+    feq_loudness_meter_reset(chain->loudness_meter);
+  }
 
   if (reason == FEQ_CHAIN_RESET_SOURCE_CHANGE) {
     /**
@@ -576,6 +592,20 @@ void feq_chain_process(FeqChain* chain, float* const* channels,
   // for the device. A master meter read before the final limiter would show a
   // peak the listener never hears and miss the reduction that removed it.
   feq_meters_capture(chain->meters, FEQ_METER_STAGE_MASTER, channels, frames);
+
+  /**
+   * The loudness of that same tap, and it runs whether or not anyone is
+   * watching.
+   *
+   * Gating the measurement on the panel being open would make the integrated
+   * reading depend on when the tab was opened, which is not a property of the
+   * music. Only the publish is gated, inside the meters, and the measurement
+   * costs two biquads per channel per sample.
+   */
+  feq_loudness_meter_process(chain->loudness_meter, channels, frames);
+  FeqLoudnessReading loudness{};
+  feq_loudness_meter_read(chain->loudness_meter, &loudness);
+  feq_meters_publish_loudness(chain->meters, &loudness);
 }
 
 void feq_chain_set_meters(FeqChain* chain, FeqMeters* meters) {

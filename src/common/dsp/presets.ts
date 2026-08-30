@@ -17,6 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { DSP_DEFAULTS, IDspSettings } from './chain';
+import { dimensionPresetSettings } from './dimensionPresets';
 import { exciterPresetSettings } from './exciterPresets';
 import { maximizerPresetSettings } from './maximizerPresets';
 
@@ -82,21 +83,11 @@ export const DSP_PRESETS: IDspPreset[] = [
           },
         ],
       },
-      // Three decibels: audible as loudness rather than as limiting, on a
-      // preset that is already compressing before it gets here. Referenced by
-      // id for the same reason the exciter profile above it is — one copy of
-      // the numbers, in the catalogue the picker also reads.
-      // Lossy encoders fold the sides into joint stereo, so a little width here
-      // restores something the file lost rather than inventing it.
-      dimension: {
-        enabled: true,
-        lowWidth: 0.95,
-        midWidth: 1.1,
-        highWidth: 1.4,
-        lowHz: 200,
-        highHz: 3_000,
-        decorrelation: 0.35,
-      },
+      // Lossy encoders fold the sides into joint stereo, so width here restores
+      // something the file lost rather than inventing it. Referenced by id for
+      // the same reason the exciter profile above is — one copy of the numbers,
+      // in the catalogue the picker also reads.
+      dimension: dimensionPresetSettings('speakers', true),
       maximizer: maximizerPresetSettings('default', true),
       master: DSP_DEFAULTS.master,
     },
@@ -137,15 +128,7 @@ export const DSP_PRESETS: IDspPreset[] = [
           },
         ],
       },
-      dimension: {
-        enabled: true,
-        lowWidth: 0.9,
-        midWidth: 1.1,
-        highWidth: 1.3,
-        lowHz: 200,
-        highHz: 3_000,
-        decorrelation: 0.3,
-      },
+      dimension: dimensionPresetSettings('speakers', true),
       maximizer: maximizerPresetSettings('loud', true),
       master: DSP_DEFAULTS.master,
     },
@@ -231,15 +214,7 @@ export const DSP_PRESETS: IDspPreset[] = [
       // more drive than a music preset and a shorter release to match.
       // Narrow on purpose: broadcast is heard in mono more often than not, and
       // a wide mix that survives the fold-down still loses its picture.
-      dimension: {
-        enabled: true,
-        lowWidth: 0.8,
-        midWidth: 1.0,
-        highWidth: 1.1,
-        lowHz: 200,
-        highHz: 3_000,
-        decorrelation: 0.15,
-      },
+      dimension: dimensionPresetSettings('monoSafe', true),
       maximizer: maximizerPresetSettings('broadcast', true),
       master: DSP_DEFAULTS.master,
     },

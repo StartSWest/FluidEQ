@@ -1592,6 +1592,87 @@ export const LibraryPlayerProvider = ({
   }, [trackId, loadRequest]);
 
   /**
+   * Measure the NEXT track while this one plays.
+   *
+   * Without this, an uncached track starts at raw unity and steps to its
+   * chosen gain over two seconds once the analysis lands — an audible level
+   * move at the top of a song, and the one place where per-track loudness
+   * matching is heard doing its job instead of doing it invisibly. It is also
+   * the worst possible moment for it: the opening bars are where somebody is
+   * deciding whether the record is at the right level.
+   *
+   * Measured here rather than made faster, because the decode is the cost and
+   * the decode cannot be skipped. A track measured before it is reached starts
+   * at its final gain from the first sample.
+   *
+   * Deliberately subordinate to the playing track's own analysis: while
+   * `analysisJobRef` holds a job, the audible track is still being measured
+   * and two full decodes at once would make the window drop frames to prepare
+   * a song nobody is listening to yet.
+   */
+  useEffect(() => {
+    const wantsLoudness =
+      dspSettings.normalizer.mode !== 'off' ||
+      (dspSettings.master.enabled && dspSettings.master.loudnessMaximize);
+    if (!dspSettings.enabled || !wantsLoudness || !queue || !track) {
+      return undefined;
+    }
+    // The queue's own rules decide what comes next — shuffle order, repeat,
+    // the end of the shelf. Reimplementing them here is how a prefetch comes
+    // to measure a track the player was never going to reach.
+    const nextId = currentTrackId(advanceQueue(queue, 1));
+    const next =
+      nextId && nextId !== track.id ? trackById.get(nextId) : undefined;
+    if (
+      !next ||
+      next.kind !== 'audio' ||
+      next.normalization ||
+      analysisJobRef.current
+    ) {
+      return undefined;
+    }
+
+    let cancelled = false;
+    const controller = new AbortController();
+    const measure = async () => {
+      const [buffer, signature] = await Promise.all([
+        window.electron.ipcRenderer.libraryTrackBytes(next.id),
+        window.electron.ipcRenderer.libraryTrackSignature(next.id),
+      ]);
+      if (!buffer || cancelled) {
+        return;
+      }
+      const analysis = await analyzeInputTrack(buffer, {
+        sampleRateHint: next.sampleRate,
+        signal: controller.signal,
+        // Yields to the playing track: if its loader starts a job mid-decode,
+        // this one stops rather than competing for the same window.
+        isCancelled: () => cancelled || analysisJobRef.current !== undefined,
+        // Nothing is published while this runs. The panel's progress belongs
+        // to the track being listened to, and a second bar for a song that has
+        // not started reads as the current one having gone backwards.
+        onProgress: () => undefined,
+      });
+      if (!analysis || cancelled) {
+        return;
+      }
+      await window.electron.ipcRenderer.setLibraryTrackNormalization(
+        next.id,
+        analysis,
+        signature ?? {
+          sizeBytes: next.sizeBytes,
+          mtimeMs: next.mtimeMs,
+        },
+      );
+    };
+    measure().catch(() => undefined);
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
+  }, [dspSettings, queue, track, trackById]);
+
+  /**
    * Enabling normalization or the crossfade while an already-playing uncached
    * track is active.
    *

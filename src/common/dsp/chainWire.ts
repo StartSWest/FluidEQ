@@ -33,7 +33,7 @@ import {
  * Scalars before the variable-length band array. Must equal
  * `FEQ_CHAIN_PARAM_LEAD` in `fluideq/chain.h`.
  */
-export const CHAIN_PARAM_LEAD = 77;
+export const CHAIN_PARAM_LEAD = 78;
 
 /** Fields per EQ band. Must equal `FEQ_CHAIN_BAND_PARAMS`. */
 export const CHAIN_BAND_PARAMS = 7;
@@ -137,6 +137,7 @@ export const encodeChainSettings = (
     master.loudnessTargetLufs,
     master.ceilingDb,
     master.releaseMs,
+    master.matchedBypass ? 1 : 0,
     eq.bands.length,
   );
   if (values.length !== CHAIN_PARAM_LEAD) {
