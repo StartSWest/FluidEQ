@@ -5,13 +5,24 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+import { TranslationKey } from '../../common/i18n/en';
 import { useTranslation } from '../utils/I18nContext';
-import { USER_PRESET_NAME_MAX } from './userPresets';
 
 interface IDspPresetSaveDialogProps {
   /** Names already taken, so overwriting can be said out loud rather than done
    * quietly. Compared case-insensitively, the way a person would. */
   existing: readonly string[];
+  /**
+   * What is being named. The dialog behaves identically for a rack and for a
+   * crossfade shape — same validation, same overwrite warning, same keys — so
+   * the copy is a parameter rather than a mode: the alternative was a second
+   * dialog whose only difference from this one was three strings.
+   */
+  titleKey: TranslationKey;
+  hintKey: TranslationKey;
+  placeholderKey: TranslationKey;
+  nameMax: number;
   onSave: (name: string) => void;
   onClose: () => void;
 }
@@ -27,6 +38,10 @@ interface IDspPresetSaveDialogProps {
  */
 const DspPresetSaveDialog = ({
   existing,
+  titleKey,
+  hintKey,
+  placeholderKey,
+  nameMax,
   onSave,
   onClose,
 }: IDspPresetSaveDialogProps) => {
@@ -50,7 +65,10 @@ const DspPresetSaveDialog = ({
     (one) => one.toLowerCase() === trimmed.toLowerCase(),
   );
 
-  return (
+  // Portalled to the window, for the reason spelled out in
+  // `DspEqImportDialog`: `.dsp-card` is a query container, and a container is
+  // the containing block for the fixed backdrop this dialog is built from.
+  return createPortal(
     <div
       className="dsp-import-backdrop"
       role="presentation"
@@ -67,18 +85,18 @@ const DspPresetSaveDialog = ({
         className="dsp-import"
         role="dialog"
         aria-modal="true"
-        aria-label={t('dsp.eqSave.title')}
+        aria-label={t(titleKey)}
       >
-        <h2 className="dsp-import__title">{t('dsp.eqSave.title')}</h2>
-        <p className="dsp-import__hint">{t('dsp.eqSave.hint')}</p>
+        <h2 className="dsp-import__title">{t(titleKey)}</h2>
+        <p className="dsp-import__hint">{t(hintKey)}</p>
 
         <input
           ref={inputRef}
           className="dsp-import__name"
           value={name}
-          maxLength={USER_PRESET_NAME_MAX}
-          placeholder={t('dsp.eqSave.placeholder')}
-          aria-label={t('dsp.eqSave.placeholder')}
+          maxLength={nameMax}
+          placeholder={t(placeholderKey)}
+          aria-label={t(placeholderKey)}
           onChange={(event) => setName(event.target.value)}
           onKeyDown={(event) => {
             if (event.key === 'Enter' && trimmed !== '') {
@@ -115,7 +133,8 @@ const DspPresetSaveDialog = ({
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 };
 

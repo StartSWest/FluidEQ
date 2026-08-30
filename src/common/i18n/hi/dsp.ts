@@ -71,6 +71,16 @@ const dsp = {
   'dsp.crossfade.equalPower': 'समान पावर',
   'dsp.crossfade.smooth': 'स्मूद',
   'dsp.crossfade.linear': 'लीनियर',
+  'dsp.crossfade.custom': 'कस्टम',
+  'dsp.crossfade.saveCurve': 'कर्व सहेजें',
+  'dsp.crossfade.resetCurve': 'आकार रीसेट करें',
+  'dsp.crossfade.deleteCurve': 'कर्व हटाएँ',
+  'dsp.crossfade.saveTitle': 'फ़ेड कर्व सहेजें',
+  'dsp.crossfade.saveHint': 'खींचा गया आकार इसी नाम से सहेजा जाता है।',
+  'dsp.crossfade.savePlaceholder': 'कर्व का नाम',
+  'dsp.crossfade.handleOutgoing': 'आउटगोइंग कर्व हैंडल',
+  'dsp.crossfade.handleIncoming': 'इनकमिंग कर्व हैंडल',
+  'dsp.crossfade.sum': 'संयुक्त स्तर',
   'dsp.crossfade.hint':
     'मैनुअल अगला और ट्रैक के स्वाभाविक अंत पर लागू होता है। सीक तुरंत रहता है।',
 

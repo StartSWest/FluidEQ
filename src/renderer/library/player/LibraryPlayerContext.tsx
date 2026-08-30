@@ -69,6 +69,7 @@ import {
 } from '../../audio/transportSource';
 import { ILibraryTrack } from '../../../common/library/types';
 import { TCrossfadeCurve } from '../../../common/dsp/chain';
+import { ICrossfadeShape } from '../../../common/dsp/crossfadeShape';
 import {
   DSP_DIAGNOSTIC_CODES,
   DSP_DIAGNOSTIC_SCHEMA_VERSION,
@@ -474,6 +475,7 @@ export const LibraryPlayerProvider = ({
         ? {
             durationMs: dspSettings.crossfade.durationMs,
             curve: dspSettings.crossfade.curve,
+            shape: dspSettings.crossfade.shape,
           }
         : undefined,
   });
@@ -579,6 +581,7 @@ export const LibraryPlayerProvider = ({
       incoming: HTMLAudioElement,
       durationMs: number,
       curve: TCrossfadeCurve,
+      shape: ICrossfadeShape,
       onFinished?: () => void,
     ) => {
       finishCrossfadeRef.current?.();
@@ -590,6 +593,7 @@ export const LibraryPlayerProvider = ({
         incoming,
         durationMs,
         curve,
+        shape,
       );
       let finished = false;
       const finish = () => {
@@ -1321,6 +1325,7 @@ export const LibraryPlayerProvider = ({
                 audio,
                 transition.durationMs,
                 transition.curve,
+                transition.shape,
                 () => {
                   completeTrackHandoff();
                 },

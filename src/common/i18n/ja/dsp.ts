@@ -70,6 +70,16 @@ const dsp = {
   'dsp.crossfade.equalPower': '等電力',
   'dsp.crossfade.smooth': 'スムーズ',
   'dsp.crossfade.linear': 'リニア',
+  'dsp.crossfade.custom': 'カスタム',
+  'dsp.crossfade.saveCurve': 'カーブを保存',
+  'dsp.crossfade.resetCurve': '形状をリセット',
+  'dsp.crossfade.deleteCurve': 'カーブを削除',
+  'dsp.crossfade.saveTitle': 'フェードカーブを保存',
+  'dsp.crossfade.saveHint': 'ドラッグした形状をこの名前で保存します。',
+  'dsp.crossfade.savePlaceholder': 'カーブ名',
+  'dsp.crossfade.handleOutgoing': 'アウトゴーイングカーブのハンドル',
+  'dsp.crossfade.handleIncoming': 'インカミングカーブのハンドル',
+  'dsp.crossfade.sum': '合成レベル',
   'dsp.crossfade.hint':
     '手動の次へ操作と自然な曲末に適用します。シークは即時のままです。',
 

@@ -1036,10 +1036,33 @@ bool render_crossfade(const Fixture& fixture, std::vector<float>& actual) {
   const auto curve = static_cast<FeqCrossfadeCurve>(
       static_cast<int>(fixture.params[0]));
   const int incoming = fixture.params[1] != 0.0 ? 1 : 0;
+
+  /**
+   * Custom carries its shape in the fixture, as the same 2x64 table the wire
+   * sends. Reading it through `feq_crossfade_table_gain` is the point of the
+   * fixture: the TypeScript side interpolates those same points, so a curve
+   * that agrees here agrees in the app.
+   */
+  FeqCrossfadeTable table;
+  const bool custom = curve == FEQ_CROSSFADE_CUSTOM;
+  if (custom) {
+    if (fixture.params.size() <
+        2 + static_cast<size_t>(FEQ_CROSSFADE_TABLE_POINTS) * 2) {
+      return false;
+    }
+    for (int at = 0; at < FEQ_CROSSFADE_TABLE_POINTS; ++at) {
+      table.outgoing[at] = static_cast<float>(fixture.params[2 + at]);
+      table.incoming[at] = static_cast<float>(
+          fixture.params[2 + FEQ_CROSSFADE_TABLE_POINTS + at]);
+    }
+  }
+
   actual.resize(fixture.input.size());
   for (size_t at = 0; at < fixture.input.size(); ++at) {
-    actual[at] = static_cast<float>(feq_crossfade_gain(
-        curve, static_cast<double>(fixture.input[at]), incoming));
+    const double progress = static_cast<double>(fixture.input[at]);
+    actual[at] = static_cast<float>(
+        custom ? feq_crossfade_table_gain(&table, progress, incoming)
+               : feq_crossfade_gain(curve, progress, incoming));
   }
   return true;
 }

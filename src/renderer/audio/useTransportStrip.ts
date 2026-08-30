@@ -62,9 +62,29 @@ export const useTransportStrip = (
   useEffect(() => {
     const root = document.getElementById('root');
     const owner = ownerRef.current;
+    // A BAR WITH NOTHING TO SHOW DOES NOT OWN THE STRIP.
+    //
+    // The token below was written to make a *cleanup* a no-op for a bar that
+    // is no longer the owner, and the effect body ignored it — so an instance
+    // with `isShowing` false took ownership anyway and wrote both classes
+    // off. Two of these are mounted at once: the library's bar stays in the
+    // tree with its tab hidden, and with no queue it asks for nothing. Its
+    // effect ran last, and `#root` came back with neither class on it while a
+    // bar was on screen — measured in the running window as
+    // `class="minimized"` with the idle bar drawn over the sidebar's last
+    // 64px. Writing the classes is the owner's job; a bar that is not showing
+    // only releases them, and only if they were its own.
+    if (!isShowing) {
+      if (stripOwner === owner) {
+        stripOwner = undefined;
+        root?.classList.remove('has-now-playing');
+        root?.classList.remove('is-floating-bar');
+      }
+      return undefined;
+    }
     stripOwner = owner;
-    root?.classList.toggle('has-now-playing', isShowing);
-    root?.classList.toggle('is-floating-bar', isShowing && isFloating);
+    root?.classList.add('has-now-playing');
+    root?.classList.toggle('is-floating-bar', isFloating);
     return () => {
       if (stripOwner !== owner) {
         return;

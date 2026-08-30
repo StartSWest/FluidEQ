@@ -32,6 +32,7 @@ import { FrameReader } from './transport';
 import {
   HOST_COMMANDS,
   encodeChainPayload,
+  encodeCrossfadeTablePayload,
   encodeTrackGainsPayload,
   HOST_STATUS,
   HOST_WIRE_PROTOCOL_VERSION,
@@ -335,6 +336,19 @@ export class DspHostSupervisor {
       parameterIndex: toDeck,
       parameterId: curveIndex,
       value: durationMs,
+    });
+    return ack.status === HOST_STATUS.applied;
+  }
+
+  /**
+   * The Custom curve's sampled shape, ahead of the fade that uses it.
+   *
+   * The host holds it pending and promotes it when a fade starts, so this is
+   * never racing the mixer for the table it is reading.
+   */
+  async setCrossfadeTable(values: readonly number[]): Promise<boolean> {
+    const ack = await this.send(HOST_COMMANDS.setCrossfadeTable, {
+      payload: encodeCrossfadeTablePayload(values),
     });
     return ack.status === HOST_STATUS.applied;
   }

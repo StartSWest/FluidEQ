@@ -25,6 +25,7 @@ import {
   isNativeParameterId,
 } from '../../common/dsp/nativeParameters';
 import { isChainWirePayload } from '../../common/dsp/chainWire';
+import { CROSSFADE_TABLE_POINTS } from '../../common/dsp/crossfadeShape';
 import { findDspHostExecutable } from '../dspHost/hostPath';
 import { DspHostSupervisor, TDspHostState } from '../dspHost/supervisor';
 import { IHostAnalysis, IHostTelemetry } from '../dspHost/wire';
@@ -208,6 +209,35 @@ export const registerDspHostIpc = ({
       }
       try {
         return await supervisor.applyChain(values);
+      } catch {
+        return false;
+      }
+    },
+  );
+
+  /**
+   * The Custom crossfade curve, as 128 gains: outgoing then incoming.
+   *
+   * Its own channel rather than a transport verb because the verb channel
+   * carries four numbers and this is an array, and because a shape that
+   * arrives truncated must be refused here rather than half-applied to a
+   * fade the listener is in the middle of.
+   */
+  ipcMain.handle(
+    'dsp-host-crossfade-table',
+    async (_event, values: unknown): Promise<boolean> => {
+      if (!supervisor || supervisor.getState() !== 'ready') {
+        return false;
+      }
+      if (
+        !Array.isArray(values) ||
+        values.length !== CROSSFADE_TABLE_POINTS * 2 ||
+        !values.every(isFiniteNumber)
+      ) {
+        return false;
+      }
+      try {
+        return await supervisor.setCrossfadeTable(values);
       } catch {
         return false;
       }

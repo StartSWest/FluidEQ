@@ -36,8 +36,19 @@ extern "C" {
 typedef enum FeqCrossfadeCurve {
   FEQ_CROSSFADE_EQUAL_POWER = 0,
   FEQ_CROSSFADE_SMOOTH = 1,
-  FEQ_CROSSFADE_LINEAR = 2
+  FEQ_CROSSFADE_LINEAR = 2,
+  /** The dragged shape, which needs a table and is not a closed form. */
+  FEQ_CROSSFADE_CUSTOM = 3
 } FeqCrossfadeCurve;
+
+/** Matches CROSSFADE_TABLE_POINTS in crossfadeShape.ts. */
+#define FEQ_CROSSFADE_TABLE_POINTS 64
+
+/** Both sides of one dragged shape, sampled evenly across the fade. */
+typedef struct FeqCrossfadeTable {
+  float outgoing[FEQ_CROSSFADE_TABLE_POINTS];
+  float incoming[FEQ_CROSSFADE_TABLE_POINTS];
+} FeqCrossfadeTable;
 
 /**
  * One deck's gain at a point in the fade, `progress` from 0 to 1.
@@ -51,8 +62,22 @@ typedef enum FeqCrossfadeCurve {
  */
 double feq_crossfade_gain(FeqCrossfadeCurve curve, double progress, int incoming);
 
+/**
+ * The Custom curve, read out of a table with linear interpolation.
+ *
+ * Separate from `feq_crossfade_gain` because it is the one curve that is data
+ * rather than arithmetic; giving the closed-form function a table argument it
+ * ignores for three of four curves would hide that.
+ */
+double feq_crossfade_table_gain(const FeqCrossfadeTable* table,
+                                double progress,
+                                int incoming);
+
 typedef struct FeqCrossfader {
   FeqCrossfadeCurve curve;
+  /** What the mixer is reading. Written only while no fade is running. */
+  FeqCrossfadeTable table;
+  FeqCrossfadeTable pending;
   /** Zero means no fade is running and the outgoing deck is alone. */
   uint64_t duration_frames;
   uint64_t elapsed_frames;
@@ -60,6 +85,19 @@ typedef struct FeqCrossfader {
 } FeqCrossfader;
 
 void feq_crossfader_init(FeqCrossfader* state);
+
+/**
+ * Hand over a shape for the NEXT fade.
+ *
+ * Held pending and promoted by `feq_crossfader_start`, and only when no fade
+ * is running. The audio thread reads the live table for the whole length of a
+ * fade, so writing it from the command thread mid-fade would tear it — half
+ * one shape and half another, which is a step in the gain rather than a
+ * different curve. A shape that arrives during a fade therefore applies to the
+ * one after it, which is also what the panel promises the user.
+ */
+void feq_crossfader_set_table(FeqCrossfader* state,
+                              const FeqCrossfadeTable* table);
 
 /**
  * Begin a fade of `duration_frames`. A duration of zero is an immediate cut.

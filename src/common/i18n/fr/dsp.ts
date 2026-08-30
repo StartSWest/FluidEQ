@@ -75,6 +75,16 @@ const dsp = {
   'dsp.crossfade.equalPower': 'Puissance égale',
   'dsp.crossfade.smooth': 'Doux',
   'dsp.crossfade.linear': 'Linéaire',
+  'dsp.crossfade.custom': 'Personnalisée',
+  'dsp.crossfade.saveCurve': 'Enregistrer la courbe',
+  'dsp.crossfade.resetCurve': 'Réinitialiser la forme',
+  'dsp.crossfade.deleteCurve': 'Supprimer la courbe',
+  'dsp.crossfade.saveTitle': 'Enregistrer la courbe de fondu',
+  'dsp.crossfade.saveHint': 'La forme déplacée est enregistrée sous ce nom.',
+  'dsp.crossfade.savePlaceholder': 'Nom de la courbe',
+  'dsp.crossfade.handleOutgoing': 'Poignée de la courbe sortante',
+  'dsp.crossfade.handleIncoming': 'Poignée de la courbe entrante',
+  'dsp.crossfade.sum': 'Niveau combiné',
   'dsp.crossfade.hint':
     'S’applique au bouton Suivant et aux fins naturelles. La recherche reste immédiate.',
 

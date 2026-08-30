@@ -1132,6 +1132,29 @@ int main(int argc, char** argv) {
                  frame.value);
         break;
 
+      case FEQ_CMD_SET_CROSSFADE_TABLE: {
+        // Read before the player check so a refused table still drains its
+        // payload: leaving 128 doubles in the pipe desynchronises every
+        // command after it, which reads as the host ignoring the transport.
+        double points[FEQ_CROSSFADE_TABLE_POINTS * 2] = {0.0};
+        if (!read_exact(points, sizeof(points))) {
+          running = false;
+          break;
+        }
+        if (state.player != nullptr) {
+          FeqCrossfadeTable table;
+          for (int at = 0; at < FEQ_CROSSFADE_TABLE_POINTS; ++at) {
+            table.outgoing[at] = static_cast<float>(points[at]);
+            table.incoming[at] =
+                static_cast<float>(points[FEQ_CROSSFADE_TABLE_POINTS + at]);
+          }
+          feq_player_set_crossfade_table(state.player, &table);
+        }
+        send_ack(frame.request_id, FEQ_WIRE_APPLIED, frame.settings_revision, 0,
+                 0.0);
+        break;
+      }
+
       case FEQ_CMD_SET_TRACK_GAINS: {
         // Two doubles, because they always arrive together: split across two
         // commands a track would play for a block with one applied and not

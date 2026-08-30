@@ -81,6 +81,16 @@ const dsp = {
   'dsp.crossfade.equalPower': 'Equal power',
   'dsp.crossfade.smooth': 'Smooth',
   'dsp.crossfade.linear': 'Linear',
+  'dsp.crossfade.custom': 'Custom',
+  'dsp.crossfade.saveCurve': 'Save curve',
+  'dsp.crossfade.resetCurve': 'Reset shape',
+  'dsp.crossfade.deleteCurve': 'Delete curve',
+  'dsp.crossfade.saveTitle': 'Save fade curve',
+  'dsp.crossfade.saveHint': 'The dragged shape is saved under this name.',
+  'dsp.crossfade.savePlaceholder': 'Curve name',
+  'dsp.crossfade.handleOutgoing': 'Outgoing curve handle',
+  'dsp.crossfade.handleIncoming': 'Incoming curve handle',
+  'dsp.crossfade.sum': 'Combined level',
   'dsp.crossfade.hint':
     'Applies to manual Next and natural track endings. Seeking stays immediate.',
 

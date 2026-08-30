@@ -16,6 +16,12 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+import {
+  clampCrossfadeShape,
+  defaultCrossfadeShape,
+  ICrossfadeShape,
+} from './crossfadeShape';
+
 /**
  * What the DSP chain is, as data.
  *
@@ -311,12 +317,18 @@ export interface IInputNormalizerSettings {
   targetLufs: number;
 }
 
-export type TCrossfadeCurve = 'equalPower' | 'smooth' | 'linear';
+export type TCrossfadeCurve = 'equalPower' | 'smooth' | 'linear' | 'custom';
 
+/**
+ * Append-only: the wire carries an index into this list, so an insert would
+ * renumber every curve the host already knows and hand a saved setting to the
+ * wrong one.
+ */
 export const CROSSFADE_CURVES: readonly TCrossfadeCurve[] = [
   'equalPower',
   'smooth',
   'linear',
+  'custom',
 ];
 
 /** A source transition after per-track normalization and before Exciter. */
@@ -324,6 +336,14 @@ export interface ICrossfadeSettings {
   enabled: boolean;
   durationMs: number;
   curve: TCrossfadeCurve;
+  /**
+   * The dragged shape, kept whether or not `custom` is the selected curve.
+   *
+   * Switching away to Equal power and back must return the curve the user
+   * drew; storing it only while it is selected would quietly discard the one
+   * setting in this card that takes real work to make.
+   */
+  shape: ICrossfadeShape;
 }
 
 /**
@@ -952,6 +972,7 @@ export const DSP_DEFAULTS: IDspSettings = {
     enabled: false,
     durationMs: 2_000,
     curve: 'equalPower',
+    shape: defaultCrossfadeShape(),
   },
   eq: {
     enabled: false,
@@ -977,6 +998,16 @@ export const DSP_DEFAULTS: IDspSettings = {
     // air split, and the three regions a listener describes without being
     // taught them. Adjacent is only where they begin: each edge moves on its
     // own from here, and two bands may cover the same octave.
+    /**
+     * The Amounts are read differently since the harmonic generator landed.
+     *
+     * They used to scale a return that was a full copy of its own filtered
+     * band, so 0.1 bought a couple of decibels of level and the harmonics came
+     * along behind it — which is why every Amount in this file and in the
+     * profile catalogue was small. A return is harmonics over an 18% carrier
+     * now, so the same 0.1 is nearly inaudible. Each figure below is chosen
+     * against a measured harmonic level rather than against a level boost.
+     */
     bands: [
       // Low: a small, even-dominant return for rounded impact rather than grit.
       {
@@ -987,7 +1018,9 @@ export const DSP_DEFAULTS: IDspSettings = {
         freqHz: 77,
         range: 0.3568123043805345,
         drive: 1.8,
-        mix: 0.1,
+        // Second order 24 dB under the note: the octave is present as weight
+        // without the bass reading as a separate instrument playing along.
+        mix: 0.15,
         texture: 0.05,
       },
       // Mid: soft second-harmonic body, deliberately below the high return.
@@ -997,7 +1030,7 @@ export const DSP_DEFAULTS: IDspSettings = {
         freqHz: 950,
         range: 0.3,
         drive: 2,
-        mix: 0.1,
+        mix: 0.2,
         texture: 0.18,
       },
       // High: mostly odd, which is what the old single-band exciter was, and
@@ -1008,7 +1041,7 @@ export const DSP_DEFAULTS: IDspSettings = {
         freqHz: 7_700,
         range: 0.23727782085891017,
         drive: 2.6,
-        mix: 0.22,
+        mix: 0.38,
         texture: 0.6,
       },
     ],
@@ -1282,6 +1315,7 @@ export const clampDspSettings = (value: unknown): IDspSettings => {
       curve: CROSSFADE_CURVES.includes(crossfade.curve as TCrossfadeCurve)
         ? (crossfade.curve as TCrossfadeCurve)
         : DSP_DEFAULTS.crossfade.curve,
+      shape: clampCrossfadeShape(crossfade.shape),
     },
     eq: {
       enabled: clampBoolean(eq.enabled, DSP_DEFAULTS.eq.enabled),

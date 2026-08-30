@@ -5,6 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useTranslation } from '../utils/I18nContext';
 
 interface IDspEqImportDialogProps {
@@ -63,7 +64,13 @@ const DspEqImportDialog = ({ onImport, onClose }: IDspEqImportDialogProps) => {
       .catch(() => setReadError(t('dsp.eqPreset.importFailed')));
   };
 
-  return (
+  // Portalled, because a backdrop is `position: fixed; inset: 0` and by that
+  // it means the window. Rendered where it is written it is a descendant of
+  // `.dsp-card`, which is a query container — and a container is the
+  // containing block for every fixed descendant, so `inset: 0` would resolve
+  // against one processor card. `.dsp-body.is-disabled`'s filter is a second
+  // road to the same failure.
+  return createPortal(
     <div
       className="dsp-import-backdrop"
       role="presentation"
@@ -143,7 +150,8 @@ const DspEqImportDialog = ({ onImport, onClose }: IDspEqImportDialogProps) => {
           }}
         />
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 };
 

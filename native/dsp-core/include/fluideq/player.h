@@ -148,6 +148,14 @@ void feq_player_start_crossfade(FeqPlayer* player,
                                 uint32_t to_deck,
                                 double duration_ms,
                                 FeqCrossfadeCurve curve);
+/**
+ * The Custom curve's shape, for the next fade.
+ *
+ * Held pending while a fade runs; see `feq_crossfader_set_table`.
+ */
+void feq_player_set_crossfade_table(FeqPlayer* player,
+                                    const FeqCrossfadeTable* table);
+
 /** 0 to 1. Reports 1 when nothing is running. */
 double feq_player_crossfade_progress(const FeqPlayer* player);
 

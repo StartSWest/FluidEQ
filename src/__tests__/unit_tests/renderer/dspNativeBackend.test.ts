@@ -38,6 +38,7 @@ const recordingBridge = (overrides: Partial<INativeBackendBridge> = {}) => {
     unloadDspHostDeck: record('unload', true),
     crossfadeDspHost: record('crossfade', true),
     setDspHostTrackGains: record('gains', true),
+    setDspHostCrossfadeTable: record('crossfadeTable', true),
     setDspHostVolume: record('volume', true),
     ...overrides,
   };

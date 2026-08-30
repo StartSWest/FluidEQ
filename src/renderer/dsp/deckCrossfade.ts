@@ -7,6 +7,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { useSyncExternalStore } from 'react';
 import { DSP_DEFAULTS, TCrossfadeCurve } from '../../common/dsp/chain';
 import {
+  crossfadeShapeGain,
+  ICrossfadeShape,
+} from '../../common/dsp/crossfadeShape';
+import {
   DSP_DIAGNOSTIC_CODES,
   DSP_DIAGNOSTIC_SCHEMA_VERSION,
 } from '../../common/dsp/diagnostics';
@@ -37,6 +41,8 @@ export interface IDspCrossfadeMeter {
    * disagreement as a hand-drawn path, from the other direction.
    */
   curve: TCrossfadeCurve;
+  /** The shape that fade is running, for the same reason as the curve. */
+  shape: ICrossfadeShape;
 }
 
 interface IDeckMixer {
@@ -54,6 +60,7 @@ const IDLE_METER: IDspCrossfadeMeter = {
   // between fades. It is the default rather than a literal so the two cannot
   // drift apart.
   curve: DSP_DEFAULTS.crossfade.curve,
+  shape: DSP_DEFAULTS.crossfade.shape,
 };
 
 let mixer: IDeckMixer | undefined;
@@ -80,8 +87,12 @@ export const crossfadeGain = (
   curve: TCrossfadeCurve,
   progress: number,
   incoming: boolean,
+  shape: ICrossfadeShape = DSP_DEFAULTS.crossfade.shape,
 ): number => {
   const unit = Math.max(0, Math.min(1, progress));
+  if (curve === 'custom') {
+    return crossfadeShapeGain(shape, unit, incoming);
+  }
   if (curve === 'linear') {
     return incoming ? unit : 1 - unit;
   }
@@ -95,9 +106,13 @@ export const crossfadeGain = (
   return (incoming ? incomingPower : outgoingPower) / unitySum;
 };
 
-const curveValues = (curve: TCrossfadeCurve, incoming: boolean): Float32Array =>
+const curveValues = (
+  curve: TCrossfadeCurve,
+  incoming: boolean,
+  shape: ICrossfadeShape,
+): Float32Array =>
   Float32Array.from({ length: CURVE_POINTS }, (_, index) =>
-    crossfadeGain(curve, index / (CURVE_POINTS - 1), incoming),
+    crossfadeGain(curve, index / (CURVE_POINTS - 1), incoming, shape),
   );
 
 const cancelAutomation = (parameter: AudioParam, at: number): void => {
@@ -133,6 +148,7 @@ const scheduleFrameCrossfade = (
   setIncoming: (value: number) => void,
   durationMs: number,
   curve: TCrossfadeCurve,
+  shape: ICrossfadeShape,
 ): void => {
   cancelMeterFrame();
   const startedAt = performance.now();
@@ -142,8 +158,8 @@ const scheduleFrameCrossfade = (
       0,
       Math.min(1, (performance.now() - startedAt) / duration),
     );
-    const outgoingGain = crossfadeGain(curve, progress, false);
-    const incomingGain = crossfadeGain(curve, progress, true);
+    const outgoingGain = crossfadeGain(curve, progress, false, shape);
+    const incomingGain = crossfadeGain(curve, progress, true, shape);
     setOutgoing(outgoingGain);
     setIncoming(incomingGain);
     emitMeter({
@@ -152,6 +168,7 @@ const scheduleFrameCrossfade = (
       outgoingGain,
       incomingGain,
       curve,
+      shape,
     });
     if (progress < 1) {
       meterFrame = requestAnimationFrame(paint);
@@ -167,6 +184,7 @@ const scheduleElementVolumeCrossfade = (
   incoming: HTMLAudioElement,
   durationMs: number,
   curve: TCrossfadeCurve,
+  shape: ICrossfadeShape,
 ): void => {
   const outgoingVolume = outgoing.volume;
   const incomingVolume = incoming.volume;
@@ -179,6 +197,7 @@ const scheduleElementVolumeCrossfade = (
     },
     durationMs,
     curve,
+    shape,
   );
 };
 
@@ -234,6 +253,7 @@ export const scheduleDspDeckCrossfade = (
   incoming: HTMLAudioElement,
   durationMs: number,
   curve: TCrossfadeCurve,
+  shape: ICrossfadeShape = DSP_DEFAULTS.crossfade.shape,
 ): boolean => {
   if (outgoing === incoming) {
     return false;
@@ -247,7 +267,13 @@ export const scheduleDspDeckCrossfade = (
       origin: 'renderer',
       values: { durationMs, curve },
     });
-    scheduleElementVolumeCrossfade(outgoing, incoming, durationMs, curve);
+    scheduleElementVolumeCrossfade(
+      outgoing,
+      incoming,
+      durationMs,
+      curve,
+      shape,
+    );
     return true;
   }
   const outgoingIndex = current.elements.indexOf(outgoing);
@@ -262,7 +288,13 @@ export const scheduleDspDeckCrossfade = (
       origin: 'renderer',
       values: { durationMs, curve },
     });
-    scheduleElementVolumeCrossfade(outgoing, incoming, durationMs, curve);
+    scheduleElementVolumeCrossfade(
+      outgoing,
+      incoming,
+      durationMs,
+      curve,
+      shape,
+    );
     return true;
   }
 
@@ -276,12 +308,12 @@ export const scheduleDspDeckCrossfade = (
     outgoingNode.gain.setValueAtTime(1, now);
     incomingNode.gain.setValueAtTime(0, now);
     outgoingNode.gain.setValueCurveAtTime(
-      curveValues(curve, false),
+      curveValues(curve, false, shape),
       startsAt,
       durationSeconds,
     );
     incomingNode.gain.setValueCurveAtTime(
-      curveValues(curve, true),
+      curveValues(curve, true, shape),
       startsAt,
       durationSeconds,
     );
@@ -301,6 +333,7 @@ export const scheduleDspDeckCrossfade = (
       (gain) => setGainNow(incomingNode, gain),
       durationMs,
       curve,
+      shape,
     );
     return true;
   }
@@ -314,9 +347,10 @@ export const scheduleDspDeckCrossfade = (
     emitMeter({
       active: progress < 1,
       progress,
-      outgoingGain: crossfadeGain(curve, progress, false),
-      incomingGain: crossfadeGain(curve, progress, true),
+      outgoingGain: crossfadeGain(curve, progress, false, shape),
+      incomingGain: crossfadeGain(curve, progress, true, shape),
       curve,
+      shape,
     });
     if (progress < 1 && mixer === current) {
       meterFrame = requestAnimationFrame(paintMeter);

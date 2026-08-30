@@ -42,6 +42,46 @@ double feq_crossfade_gain(FeqCrossfadeCurve curve,
   return (incoming != 0 ? incoming_power : outgoing_power) / unity_sum;
 }
 
+double feq_crossfade_table_gain(const FeqCrossfadeTable* table,
+                                double progress,
+                                int incoming) {
+  if (table == nullptr) {
+    return incoming != 0 ? 1.0 : 0.0;
+  }
+  double unit = progress;
+  if (!(unit > 0.0)) {
+    unit = 0.0;
+  } else if (unit > 1.0) {
+    unit = 1.0;
+  }
+
+  const float* side = incoming != 0 ? table->incoming : table->outgoing;
+  const double last = static_cast<double>(FEQ_CROSSFADE_TABLE_POINTS - 1);
+  const double scaled = unit * last;
+  double floor_index = std::floor(scaled);
+  if (floor_index > last - 1.0) {
+    floor_index = last - 1.0;
+  }
+  const auto lower = static_cast<int>(floor_index);
+  const double fraction = scaled - floor_index;
+
+  /**
+   * Interpolated rather than nearest: a 64-point table stepped across a
+   * two-second fade changes value every 31ms, which is a staircase of 64
+   * discontinuities — the same zippering the per-sample gain exists to avoid.
+   */
+  const double from = static_cast<double>(side[lower]);
+  const double to = static_cast<double>(side[lower + 1]);
+  return from + (to - from) * fraction;
+}
+
+static void copy_table(FeqCrossfadeTable* to, const FeqCrossfadeTable* from) {
+  for (int at = 0; at < FEQ_CROSSFADE_TABLE_POINTS; ++at) {
+    to->outgoing[at] = from->outgoing[at];
+    to->incoming[at] = from->incoming[at];
+  }
+}
+
 void feq_crossfader_init(FeqCrossfader* state) {
   if (state == nullptr) {
     return;
@@ -50,6 +90,32 @@ void feq_crossfader_init(FeqCrossfader* state) {
   state->duration_frames = 0;
   state->elapsed_frames = 0;
   state->active = 0;
+  /**
+   * Equal power, so a Custom fade that somehow starts before a shape has
+   * arrived is a normal-sounding fade rather than silence on both decks.
+   */
+  for (int at = 0; at < FEQ_CROSSFADE_TABLE_POINTS; ++at) {
+    const double unit =
+        static_cast<double>(at) / (FEQ_CROSSFADE_TABLE_POINTS - 1);
+    state->table.outgoing[at] = static_cast<float>(
+        feq_crossfade_gain(FEQ_CROSSFADE_EQUAL_POWER, unit, 0));
+    state->table.incoming[at] = static_cast<float>(
+        feq_crossfade_gain(FEQ_CROSSFADE_EQUAL_POWER, unit, 1));
+  }
+  copy_table(&state->pending, &state->table);
+}
+
+void feq_crossfader_set_table(FeqCrossfader* state,
+                              const FeqCrossfadeTable* table) {
+  if (state == nullptr || table == nullptr) {
+    return;
+  }
+  copy_table(&state->pending, table);
+  if (state->active == 0) {
+    // Nothing is reading the live table, so the shape can take effect now
+    // rather than waiting for a fade to start and end first.
+    copy_table(&state->table, table);
+  }
 }
 
 void feq_crossfader_start(FeqCrossfader* state,
@@ -70,6 +136,12 @@ void feq_crossfader_start(FeqCrossfader* state,
    */
   const double carried =
       state->active != 0 ? feq_crossfader_progress(state) : 0.0;
+  if (state->active == 0) {
+    // The only moment the live table may be replaced: the audio thread reads
+    // it for the whole length of a fade, and a restart mid-fade keeps its
+    // place on the curve it is already running.
+    copy_table(&state->table, &state->pending);
+  }
   state->curve = curve;
   state->duration_frames = duration_frames;
   state->elapsed_frames =
@@ -126,8 +198,13 @@ void feq_crossfader_mix(FeqCrossfader* state,
   uint64_t elapsed = state->elapsed_frames;
   for (uint32_t at = 0; at < frames; ++at) {
     const double progress = static_cast<double>(elapsed) / duration;
-    const double out_gain = feq_crossfade_gain(state->curve, progress, 0);
-    const double in_gain = feq_crossfade_gain(state->curve, progress, 1);
+    const int custom = state->curve == FEQ_CROSSFADE_CUSTOM ? 1 : 0;
+    const double out_gain =
+        custom != 0 ? feq_crossfade_table_gain(&state->table, progress, 0)
+                    : feq_crossfade_gain(state->curve, progress, 0);
+    const double in_gain =
+        custom != 0 ? feq_crossfade_table_gain(&state->table, progress, 1)
+                    : feq_crossfade_gain(state->curve, progress, 1);
     for (uint32_t channel = 0; channel < channels; ++channel) {
       if (out[channel] == nullptr) {
         continue;

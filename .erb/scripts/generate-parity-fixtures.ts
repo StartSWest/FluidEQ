@@ -114,6 +114,7 @@ import {
 } from '../../src/renderer/dsp/linearPhase';
 import { createLoudnessAnalyzer } from '../../src/renderer/dsp/loudnessAnalysis';
 import { crossfadeGain } from '../../src/renderer/dsp/deckCrossfade';
+import { crossfadeShapeTable } from '../../src/common/dsp/crossfadeShape';
 import {
   CROSSFADE_CURVES,
   EQ_ENGINES,
@@ -1682,7 +1683,19 @@ CROSSFADE_CURVES.forEach((curve) => {
       name: `crossfade/${curve}/${incoming === 1 ? 'incoming' : 'outgoing'}`,
       processor: ProcessorId.Crossfade,
       sampleRate: 48000,
-      params: [CROSSFADE_CURVES.indexOf(curve), incoming],
+      params: [
+        CROSSFADE_CURVES.indexOf(curve),
+        incoming,
+        // Custom is the one curve that is data. The table travels with the
+        // fixture for the same reason it travels on the wire: without it the
+        // native side has no shape to read and would answer with equal power.
+        ...(curve === 'custom'
+          ? [
+              ...crossfadeShapeTable(DSP_DEFAULTS.crossfade.shape, false),
+              ...crossfadeShapeTable(DSP_DEFAULTS.crossfade.shape, true),
+            ]
+          : []),
+      ],
       input: [progress],
       expected: [gains],
       // A gain, not a sample: the only rounding is one sin, one cos and the

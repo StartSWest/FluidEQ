@@ -6,6 +6,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import {
   crossfadeGain,
+  readDspCrossfadeMeter,
   registerDspDeckMixer,
   scheduleDspDeckCrossfade,
   selectDspDeck,
@@ -72,6 +73,53 @@ describe('DSP deck crossfade', () => {
         expect(incoming).toBeLessThanOrEqual(1);
       });
     });
+  });
+
+  /**
+   * Custom is deliberately NOT in the check above.
+   *
+   * The other three sum to one at every point by construction; a dragged shape
+   * does not, and must not be forced to — the hold and the dip are shapes
+   * people want. What it still owes is the guarantee that matters: it stays
+   * inside the plot, and it starts and ends where a fade has to.
+   */
+  it('lets a dragged shape leave unity but never the rails', () => {
+    const held = {
+      outgoing: [
+        { at: 0.2, gain: 0.98 },
+        { at: 0.4, gain: 0.95 },
+        { at: 0.6, gain: 0.9 },
+        { at: 0.8, gain: 0.6 },
+      ],
+      incoming: [
+        { at: 0.2, gain: 0.6 },
+        { at: 0.4, gain: 0.9 },
+        { at: 0.6, gain: 0.95 },
+        { at: 0.8, gain: 0.98 },
+      ],
+    };
+    let bulged = false;
+    for (let at = 0; at <= 100; at += 1) {
+      const progress = at / 100;
+      const outgoing = crossfadeGain('custom', progress, false, held);
+      const incoming = crossfadeGain('custom', progress, true, held);
+      expect(outgoing).toBeGreaterThanOrEqual(0);
+      expect(outgoing).toBeLessThanOrEqual(1);
+      expect(incoming).toBeGreaterThanOrEqual(0);
+      expect(incoming).toBeLessThanOrEqual(1);
+      bulged = bulged || outgoing + incoming > 1.2;
+    }
+    // The positive control: a shape drawn to bulge must actually bulge, or
+    // the check above is passing on a curve that was silently normalised.
+    expect(bulged).toBe(true);
+    expect(crossfadeGain('custom', 0, false, held)).toBeCloseTo(1, 6);
+    expect(crossfadeGain('custom', 1, false, held)).toBeCloseTo(0, 6);
+  });
+
+  /** A custom fade with no shape given is the default one, not silence. */
+  it('falls back to the default shape rather than to nothing', () => {
+    expect(crossfadeGain('custom', 0.5, false)).toBeCloseTo(0.5, 2);
+    expect(crossfadeGain('custom', 0.5, true)).toBeCloseTo(0.5, 2);
   });
 
   it('schedules both deck curves on the audio clock', () => {
@@ -168,6 +216,48 @@ describe('DSP deck crossfade', () => {
     expect(incoming.volume).toBeCloseTo(0.8, 6);
 
     clock.mockRestore();
+  });
+
+  /**
+   * The meter carries the curve the fade is RUNNING, not the one the panel is
+   * showing.
+   *
+   * A fade is committed to the audio clock at its first sample and nothing
+   * re-reads the setting, so picking a different curve mid-fade changes the
+   * next one. Without this the preview drew the new choice while the markers
+   * reported the old — dots sitting off their own line for the rest of the
+   * overlap, which is the defect this whole card was fixed for once already.
+   */
+  it('reports the curve the audible fade was started with', () => {
+    const clock = { currentTime: 2 };
+    const context = clock as unknown as AudioContext;
+    const outgoing = {} as HTMLAudioElement;
+    const incoming = {} as HTMLAudioElement;
+    const first = parameter();
+    const second = parameter();
+    const unregister = registerDspDeckMixer(
+      context,
+      [outgoing, incoming],
+      [
+        { context, gain: first.parameter } as unknown as GainNode,
+        { context, gain: second.parameter } as unknown as GainNode,
+      ],
+    );
+
+    scheduleDspDeckCrossfade(outgoing, incoming, 2_000, 'linear');
+    // Half way through the two-second fade, on the audio clock the meter reads.
+    clock.currentTime = 3.005;
+    frame.callback?.(0);
+
+    const meter = readDspCrossfadeMeter();
+    expect(meter.active).toBe(true);
+    expect(meter.curve).toBe('linear');
+    expect(meter.progress).toBeCloseTo(0.5, 3);
+    // The gains come from that same curve, which is what keeps the markers on
+    // the line the card draws from `meter.curve`.
+    expect(meter.outgoingGain).toBeCloseTo(0.5, 3);
+
+    unregister();
   });
 
   it('returns to exactly one audible deck after a transition', () => {

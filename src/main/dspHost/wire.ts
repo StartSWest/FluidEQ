@@ -27,6 +27,7 @@ import type {
   IHostAnalysis,
   TAnalysisStage,
 } from '../../common/dsp/analysisWire';
+import { CROSSFADE_TABLE_POINTS } from '../../common/dsp/crossfadeShape';
 
 /** Must match FEQ_WIRE_PROTOCOL_VERSION. */
 export const HOST_WIRE_PROTOCOL_VERSION = 1;
@@ -78,6 +79,7 @@ export const HOST_COMMANDS = {
   renderToFile: 17,
   setAnalysis: 18,
   setVolume: 19,
+  setCrossfadeTable: 20,
 } as const;
 
 /** `parameterId` for `setDiagnosticSignal`; `value` carries the frequency. */
@@ -205,6 +207,25 @@ export const encodeChainPayload = (values: readonly number[]): Buffer => {
   if (values.length < CHAIN_PARAM_LEAD) {
     throw new Error(
       `chain payload: ${values.length} values, expected at least ${CHAIN_PARAM_LEAD}`,
+    );
+  }
+  return encodeSnapshotPayload(values);
+};
+
+/**
+ * The Custom curve, as both sides sampled: outgoing first, then incoming.
+ *
+ * One payload rather than two commands because a half-applied shape is a fade
+ * whose two decks were drawn against different curves, which is a level step
+ * in the middle of the overlap.
+ */
+export const encodeCrossfadeTablePayload = (
+  values: readonly number[],
+): Buffer => {
+  const expected = CROSSFADE_TABLE_POINTS * 2;
+  if (values.length !== expected) {
+    throw new Error(
+      `crossfade table: ${values.length} values, expected ${expected}`,
     );
   }
   return encodeSnapshotPayload(values);

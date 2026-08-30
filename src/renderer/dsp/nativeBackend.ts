@@ -44,6 +44,7 @@ export interface INativeBackendBridge {
     durationMs: number,
     curveIndex: number,
   ) => Promise<boolean>;
+  setDspHostCrossfadeTable: (values: readonly number[]) => Promise<boolean>;
   setDspHostTrackGains: (
     inputGainDb: number,
     masterLoudnessGainDb: number,
@@ -94,6 +95,14 @@ export interface INativeTransport {
     durationMs: number,
     curveIndex: number,
   ) => Promise<boolean>;
+  /**
+   * The dragged shape, as the table the mixer reads per sample.
+   *
+   * Sent before the fade that uses it, never during one: the host promotes a
+   * pending table only when no fade is running, so a shape that arrives mid
+   * fade belongs to the next one.
+   */
+  setCrossfadeTable: (values: readonly number[]) => Promise<boolean>;
   setTrackGains: (
     inputGainDb: number,
     masterLoudnessGainDb: number,
@@ -178,6 +187,7 @@ export const createNativeBackendController = (
       setVolume: (volume) => bridge.setDspHostVolume(volume),
       crossfade: (toDeck, durationMs, curveIndex) =>
         bridge.crossfadeDspHost(toDeck, durationMs, curveIndex),
+      setCrossfadeTable: (values) => bridge.setDspHostCrossfadeTable(values),
       setTrackGains: (inputGainDb, masterLoudnessGainDb) =>
         bridge.setDspHostTrackGains(inputGainDb, masterLoudnessGainDb),
     },

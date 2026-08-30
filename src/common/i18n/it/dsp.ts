@@ -74,6 +74,17 @@ const dsp = {
   'dsp.crossfade.equalPower': 'Potenza costante',
   'dsp.crossfade.smooth': 'Morbida',
   'dsp.crossfade.linear': 'Lineare',
+  'dsp.crossfade.custom': 'Personalizzata',
+  'dsp.crossfade.saveCurve': 'Salva curva',
+  'dsp.crossfade.resetCurve': 'Reimposta forma',
+  'dsp.crossfade.deleteCurve': 'Elimina curva',
+  'dsp.crossfade.saveTitle': 'Salva curva di dissolvenza',
+  'dsp.crossfade.saveHint':
+    'La forma trascinata viene salvata con questo nome.',
+  'dsp.crossfade.savePlaceholder': 'Nome della curva',
+  'dsp.crossfade.handleOutgoing': 'Maniglia della curva uscente',
+  'dsp.crossfade.handleIncoming': 'Maniglia della curva entrante',
+  'dsp.crossfade.sum': 'Livello combinato',
   'dsp.crossfade.hint':
     'Si applica ad Avanti manuale e alle fini naturali. La ricerca resta immediata.',
 

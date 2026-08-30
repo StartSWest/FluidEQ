@@ -30,8 +30,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * waiting, which is what it is. Its title is a button, because the second
  * line of it is an instruction — see the press-target below.
  *
- * Unlike every other bar it floats over the content instead of reserving a
- * strip beside it, for the reason spelled out at `useTransportStrip` below.
+ * It reserves its strip like every other bar; see `useTransportStrip` below
+ * for what floating over the content cost when it did not.
  *
  * Never in full screen. There the bar is a thing that appears when the
  * pointer goes looking for it, over a picture — and an empty one appearing
@@ -50,20 +50,19 @@ const IdleTransportBar = ({ onGoToLibrary }: { onGoToLibrary: () => void }) => {
   const { t } = useTranslation();
   const barRef = useRef<HTMLDivElement | null>(null);
 
-  // OVER THE CONTENT, WHICH IS THE ONE THING THIS BAR DOES DIFFERENTLY.
+  // BESIDE THE CONTENT, LIKE EVERY OTHER BAR.
   //
-  // A bar driving a player earns its strip: the panel beneath it has to clear
-  // controls somebody is reaching for, and a scroll that ends underneath them
-  // ends nowhere. This one drives nothing. Measured in the running window,
-  // that strip is 74px — a fourteenth of a 1032px workspace, given up on
-  // every tab for a card whose entire content is the word "nothing", and
-  // taken off the bottom of whatever is actually being read.
+  // This floated over it for a while, to keep 74px of every tab that a card
+  // saying "nothing" had not earned. What that actually bought was an opaque
+  // glass card laid across the foot of the sidebar: the panels are cards with
+  // rounded corners that run to the bottom gutter, so the visualiser's meters
+  // and the sidebar's own bottom edge were painted underneath it, and the
+  // workspace's last row with them.
   //
-  // The cost is that the workspace does now change height once, when a real
-  // bar replaces this one. That is the trade: a shift at the moment something
-  // starts playing, against 74px missing from every tab for as long as
-  // nothing is.
-  useTransportStrip(barRef, true, true);
+  // The 74px is the honest price of a bar that is always there. Reserving it
+  // always also means the workspace no longer changes height at the moment
+  // something starts playing, which was the other half of that trade.
+  useTransportStrip(barRef, true, false);
 
   return createPortal(
     <div

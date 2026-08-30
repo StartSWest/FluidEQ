@@ -74,6 +74,16 @@ const dsp = {
   'dsp.crossfade.equalPower': 'Potência igual',
   'dsp.crossfade.smooth': 'Suave',
   'dsp.crossfade.linear': 'Linear',
+  'dsp.crossfade.custom': 'Personalizada',
+  'dsp.crossfade.saveCurve': 'Guardar curva',
+  'dsp.crossfade.resetCurve': 'Repor forma',
+  'dsp.crossfade.deleteCurve': 'Eliminar curva',
+  'dsp.crossfade.saveTitle': 'Guardar curva de fusão',
+  'dsp.crossfade.saveHint': 'A forma arrastada é guardada com este nome.',
+  'dsp.crossfade.savePlaceholder': 'Nome da curva',
+  'dsp.crossfade.handleOutgoing': 'Manípulo da curva de saída',
+  'dsp.crossfade.handleIncoming': 'Manípulo da curva de entrada',
+  'dsp.crossfade.sum': 'Nível combinado',
   'dsp.crossfade.hint':
     'Aplica-se ao Próximo manual e aos finais naturais. A busca continua imediata.',
 

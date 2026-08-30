@@ -44,6 +44,7 @@ import { fromPresetFile, toPresetFile } from '../../common/dsp/presetFile';
 import { exportEqPreset } from '../utils/equalizerApi';
 import {
   IUserPreset,
+  USER_PRESET_NAME_MAX,
   USER_PRESET_PREFIX,
   findUserPreset,
   readUserPresets,
@@ -618,6 +619,10 @@ const DspEqBar = ({ eq, sampleRate, onChange, onCommit }: IDspEqBarProps) => {
       {isNaming && (
         <DspPresetSaveDialog
           existing={userPresets.map((one) => one.name)}
+          titleKey="dsp.eqSave.title"
+          hintKey="dsp.eqSave.hint"
+          placeholderKey="dsp.eqSave.placeholder"
+          nameMax={USER_PRESET_NAME_MAX}
           onSave={handleSave}
           onClose={() => setIsNaming(false)}
         />

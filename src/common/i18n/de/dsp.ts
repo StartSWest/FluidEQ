@@ -75,6 +75,17 @@ const dsp = {
   'dsp.crossfade.equalPower': 'Gleiche Leistung',
   'dsp.crossfade.smooth': 'Weich',
   'dsp.crossfade.linear': 'Linear',
+  'dsp.crossfade.custom': 'Benutzerdefiniert',
+  'dsp.crossfade.saveCurve': 'Kurve speichern',
+  'dsp.crossfade.resetCurve': 'Form zurücksetzen',
+  'dsp.crossfade.deleteCurve': 'Kurve löschen',
+  'dsp.crossfade.saveTitle': 'Überblendkurve speichern',
+  'dsp.crossfade.saveHint':
+    'Die gezogene Form wird unter diesem Namen gespeichert.',
+  'dsp.crossfade.savePlaceholder': 'Kurvenname',
+  'dsp.crossfade.handleOutgoing': 'Griffpunkt der ausgehenden Kurve',
+  'dsp.crossfade.handleIncoming': 'Griffpunkt der eingehenden Kurve',
+  'dsp.crossfade.sum': 'Kombinierter Pegel',
   'dsp.crossfade.hint':
     'Gilt für manuelles Weiter und natürliche Titelenden. Suchen bleibt sofort.',
 

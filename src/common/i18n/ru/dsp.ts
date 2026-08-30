@@ -74,6 +74,16 @@ const dsp = {
   'dsp.crossfade.equalPower': 'Равная мощность',
   'dsp.crossfade.smooth': 'Плавная',
   'dsp.crossfade.linear': 'Линейная',
+  'dsp.crossfade.custom': 'Своя',
+  'dsp.crossfade.saveCurve': 'Сохранить кривую',
+  'dsp.crossfade.resetCurve': 'Сбросить форму',
+  'dsp.crossfade.deleteCurve': 'Удалить кривую',
+  'dsp.crossfade.saveTitle': 'Сохранить кривую перехода',
+  'dsp.crossfade.saveHint': 'Перетащенная форма сохраняется под этим именем.',
+  'dsp.crossfade.savePlaceholder': 'Имя кривой',
+  'dsp.crossfade.handleOutgoing': 'Точка исходящей кривой',
+  'dsp.crossfade.handleIncoming': 'Точка входящей кривой',
+  'dsp.crossfade.sum': 'Суммарный уровень',
   'dsp.crossfade.hint':
     'Работает для ручного перехода и естественного конца трека. Перемотка остаётся мгновенной.',
 

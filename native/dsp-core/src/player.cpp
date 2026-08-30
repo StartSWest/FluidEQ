@@ -437,6 +437,14 @@ void feq_player_start_crossfade(FeqPlayer* player,
   feq_crossfader_start(&player->fader, curve, duration);
 }
 
+void feq_player_set_crossfade_table(FeqPlayer* player,
+                                    const FeqCrossfadeTable* table) {
+  if (player == nullptr) {
+    return;
+  }
+  feq_crossfader_set_table(&player->fader, table);
+}
+
 double feq_player_crossfade_progress(const FeqPlayer* player) {
   return player != nullptr ? feq_crossfader_progress(&player->fader) : 1.0;
 }

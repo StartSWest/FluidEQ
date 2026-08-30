@@ -162,6 +162,15 @@ const crossfadeDspHost = (
   durationMs: number,
   curveIndex: number,
 ): Promise<boolean> => transport('crossfade', toDeck, durationMs, curveIndex);
+/**
+ * The Custom curve's sampled shape, 128 gains: outgoing then incoming.
+ *
+ * Its own channel because the transport verb carries numbers, not arrays.
+ */
+const setDspHostCrossfadeTable = (
+  values: readonly number[],
+): Promise<boolean> => ipcRenderer.invoke('dsp-host-crossfade-table', values);
+
 const setDspHostTrackGains = (
   inputGainDb: number,
   masterLoudnessGainDb: number,
@@ -225,6 +234,7 @@ export const dspHostBridge = {
   unloadDspHostDeck,
   seekDspHostDeck,
   crossfadeDspHost,
+  setDspHostCrossfadeTable,
   setDspHostTrackGains,
   setDspHostVolume,
   setDspHostAnalysis,

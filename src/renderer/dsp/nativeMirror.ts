@@ -34,6 +34,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * the way the elements are being driven beside it.
  */
 import { TCrossfadeCurve, CROSSFADE_CURVES } from '../../common/dsp/chain';
+import {
+  crossfadeShapeTable,
+  ICrossfadeShape,
+} from '../../common/dsp/crossfadeShape';
 import { INativeBackendController } from './nativeBackend';
 
 /** What the mirror needs from the player, and nothing more. */
@@ -69,6 +73,7 @@ export interface INativeMirrorState {
   transition?: {
     durationMs: number;
     curve: TCrossfadeCurve;
+    shape: ICrossfadeShape;
   };
 }
 
@@ -217,6 +222,7 @@ export const createNativeMirror = (
     incomingPath: string,
     durationMs: number,
     curve: TCrossfadeCurve,
+    shape: ICrossfadeShape,
     previousPath: string,
   ): Promise<boolean> => {
     const previousDeck = activeDeck;
@@ -233,6 +239,16 @@ export const createNativeMirror = (
       activeDeck = previousDeck;
       unmute();
       return false;
+    }
+
+    if (curve === 'custom') {
+      // Before the fade rather than with it: the host keeps a pending table and
+      // promotes it at the start of a fade, so this has to land first or the
+      // shape arrives one track change late.
+      await controller.transport.setCrossfadeTable([
+        ...crossfadeShapeTable(shape, false),
+        ...crossfadeShapeTable(shape, true),
+      ]);
     }
 
     const index = CROSSFADE_CURVES.indexOf(curve);
@@ -285,6 +301,7 @@ export const createNativeMirror = (
             mediaPath,
             transition.durationMs,
             transition.curve,
+            transition.shape,
             previous,
           ).catch(() => undefined);
           return;

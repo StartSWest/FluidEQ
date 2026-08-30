@@ -141,7 +141,15 @@ enum FeqWireCommand {
    * volume to the graph, so the dynamics stages have always responded to it and
    * the two engines would part company here if this went after them.
    */
-  FEQ_CMD_SET_VOLUME = 19
+  FEQ_CMD_SET_VOLUME = 19,
+  /**
+   * The Custom curve's shape, as `2 * FEQ_CROSSFADE_TABLE_POINTS` doubles of
+   * payload: the outgoing side first, then the incoming one.
+   *
+   * One command for both sides because a fade drawn against two different
+   * shapes steps in the middle of the overlap.
+   */
+  FEQ_CMD_SET_CROSSFADE_TABLE = 20
 };
 
 

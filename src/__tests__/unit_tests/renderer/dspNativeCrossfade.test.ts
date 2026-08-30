@@ -13,6 +13,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * call it. Until it did, the native engine cut between tracks while its own
  * crossfader, written and tested in C++, was never reached from the app at all.
  */
+import { DSP_DEFAULTS, TCrossfadeCurve } from '../../../common/dsp/chain';
+import {
+  CROSSFADE_TABLE_POINTS,
+  crossfadeShapeTable,
+  ICrossfadeShape,
+} from '../../../common/dsp/crossfadeShape';
 import { INativeBackendController } from '../../../renderer/dsp/nativeBackend';
 import { createNativeMirror } from '../../../renderer/dsp/nativeMirror';
 
@@ -48,6 +54,13 @@ const controllerSpy = (overrides: Record<string, unknown> = {}) => {
       select: ok('select'),
       setVolume: ok('setVolume'),
       crossfade: ok('crossfade'),
+      setCrossfadeTable: (values: readonly number[]) => {
+        // Logged by length rather than by value: the point of the call is that
+        // a whole table went before the fade, and 128 numbers in a name make
+        // every other expectation in this file unreadable.
+        calls.push(`setCrossfadeTable(${values.length})`);
+        return Promise.resolve(true);
+      },
       setTrackGains: ok('gains'),
       ...overrides,
     },
@@ -79,14 +92,15 @@ const handoffTo = async (
   mirror: ReturnType<typeof createNativeMirror>,
   mediaPath: string,
   durationMs: number,
-  curve: 'equalPower' | 'smooth' | 'linear',
+  curve: TCrossfadeCurve,
+  shape: ICrossfadeShape = DSP_DEFAULTS.crossfade.shape,
 ) => {
   mirror.sync({
     mediaPath,
     isPlaying: true,
     positionMs: 0,
     volume: 1,
-    transition: { durationMs, curve },
+    transition: { durationMs, curve, shape },
   });
   await settle();
 };
@@ -152,7 +166,11 @@ describe('the mirrored crossfade', () => {
       isPlaying: true,
       positionMs: 0,
       volume: 1,
-      transition: { durationMs: 4000, curve: 'equalPower' },
+      transition: {
+        durationMs: 4000,
+        curve: 'equalPower',
+        shape: DSP_DEFAULTS.crossfade.shape,
+      },
     });
     // And the very next position tick, carrying the same new track, while that
     // load has not come back yet.
@@ -161,7 +179,11 @@ describe('the mirrored crossfade', () => {
       isPlaying: true,
       positionMs: 120,
       volume: 1,
-      transition: { durationMs: 4000, curve: 'equalPower' },
+      transition: {
+        durationMs: 4000,
+        curve: 'equalPower',
+        shape: DSP_DEFAULTS.crossfade.shape,
+      },
     });
     await settle();
 
@@ -205,8 +227,82 @@ describe('the mirrored crossfade', () => {
     await handoffTo(mirror, 'C:/b.mp3', 1000, 'equalPower');
     await handoffTo(mirror, 'C:/c.mp3', 1000, 'smooth');
     await handoffTo(mirror, 'C:/d.mp3', 1000, 'linear');
+    await handoffTo(mirror, 'C:/e.mp3', 1000, 'custom');
 
-    expect(sent).toEqual([0, 1, 2]);
+    expect(sent).toEqual([0, 1, 2, 3]);
+  });
+
+  /**
+   * The shape has to land BEFORE the fade that uses it.
+   *
+   * The host holds a pending table and promotes it when a fade starts, so a
+   * table sent after the crossfade command would take effect one track change
+   * late — the fade the user just drew would run on the shape before it.
+   */
+  it('sends the shape before the fade that uses it', async () => {
+    const { mirror, calls } = await withTrackCued();
+
+    await handoffTo(mirror, 'C:/b.mp3', 1000, 'custom');
+
+    const table = calls.findIndex((call) =>
+      call.startsWith('setCrossfadeTable'),
+    );
+    const fade = calls.findIndex((call) => call.startsWith('crossfade'));
+    expect(table).toBeGreaterThanOrEqual(0);
+    expect(fade).toBeGreaterThan(table);
+    expect(calls[table]).toBe(
+      `setCrossfadeTable(${CROSSFADE_TABLE_POINTS * 2})`,
+    );
+  });
+
+  /**
+   * And only for Custom. The other three are closed forms the host already
+   * has; sending a table for them would be 128 doubles per track change to
+   * say nothing, and would overwrite the shape the user drew.
+   */
+  it('sends no table for the built-in curves', async () => {
+    const { mirror, calls } = await withTrackCued();
+
+    await handoffTo(mirror, 'C:/b.mp3', 1000, 'equalPower');
+    await handoffTo(mirror, 'C:/c.mp3', 1000, 'smooth');
+    await handoffTo(mirror, 'C:/d.mp3', 1000, 'linear');
+
+    expect(
+      calls.filter((call) => call.startsWith('setCrossfadeTable')),
+    ).toHaveLength(0);
+  });
+
+  /** The dragged shape reaches the host, not the default one. */
+  it('sends the shape the user actually drew', async () => {
+    const sent: number[][] = [];
+    const { mirror } = await withTrackCued({
+      setCrossfadeTable: (values: readonly number[]) => {
+        sent.push([...values]);
+        return Promise.resolve(true);
+      },
+    });
+    const dragged = {
+      outgoing: [
+        { at: 0.2, gain: 0.95 },
+        { at: 0.4, gain: 0.85 },
+        { at: 0.6, gain: 0.2 },
+        { at: 0.8, gain: 0.05 },
+      ],
+      incoming: [
+        { at: 0.2, gain: 0.05 },
+        { at: 0.4, gain: 0.2 },
+        { at: 0.6, gain: 0.85 },
+        { at: 0.8, gain: 0.95 },
+      ],
+    };
+
+    await handoffTo(mirror, 'C:/b.mp3', 1000, 'custom', dragged);
+
+    expect(sent).toHaveLength(1);
+    expect(sent[0]).toEqual([
+      ...crossfadeShapeTable(dragged, false),
+      ...crossfadeShapeTable(dragged, true),
+    ]);
   });
 
   /**

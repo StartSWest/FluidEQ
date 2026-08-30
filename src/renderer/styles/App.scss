@@ -494,6 +494,26 @@ select option {
   height: 56px;
 }
 
+// The pane follows its shell at EVERY width, not only at the narrow ones.
+//
+// The shell above is `flex: 0 1 auto`, so 420/320/260 are the widths it asks
+// for and not the widths it gets: it shrinks whenever the wrapper's line is
+// short. The pane's own `min-width: 230px` — written for a meter that had the
+// middle of the titlebar to itself — is a floor the shell has no such thing
+// as, so below 230 the drawing simply carried on past its box and under the
+// tab strip beside it. Measured in the running window at 985px wide: the
+// shell 211px, the pane 230, the first tab starting at 414.5 against a pane
+// ending at 417.7 and a canvas at 424.7 — the spectrum painted across "EQ".
+//
+// This lived in the `900px` query below with the same explanation. The bug it
+// describes is not a property of narrow windows; it is a property of a
+// shrinking box with a floor in it, and there was a whole band between 900
+// and roughly 1140 where the shell had already shrunk under 230 and the floor
+// still held.
+.titlebar-nav .waveform-visualizer {
+  min-width: 0;
+}
+
 // The meter's own rim, off.
 //
 // Two outlines around the same drawing is a pane inside a pill, and the eye
@@ -689,7 +709,15 @@ select option {
 // not deleted, though: it comes back beside the mark when the mark is pointed
 // at, which is where a version number is wanted anyway, and lifted out of the
 // flow so revealing it cannot push the bar's other contents around.
-@media (max-width: 900px) {
+//
+// 1080 rather than 900, which is the width at which the middle track starts
+// being rationed rather than a width chosen for the name. Measured at 985px
+// wide: the name and version came to 115px of a 167px left track, and the
+// meter — which asks for 260 here — had been squeezed to 211 to pay for it.
+// Below 1080 the meter is the thing in that track that still has something to
+// say, so the two words that name a window somebody already has open go
+// first.
+@media (max-width: 1080px) {
   // Hover cannot reach the mark while it is part of the window's drag
   // handle: `.window-titlebar` is `-webkit-app-region: drag`, so Windows
   // takes the pointer over it and the renderer is never told the mouse is
@@ -2954,14 +2982,9 @@ button.graph-legend {
     width: 190px;
   }
 
-  // The pane's own 230px floor was written for a meter with the middle of the
-  // titlebar to itself. It shares that space now, and a floor it cannot go
-  // under is a pane that slides out of its box and under the words beside it
-  // — which is exactly what a 720px window showed. The canvas is sized from
-  // its box, so giving ground here just draws a narrower spectrum.
-  .titlebar-nav .waveform-visualizer {
-    min-width: 0;
-  }
+  // No `min-width: 0` on the pane here any more. It is on the base rule now,
+  // because the shell shrinks at every width and not only at this one — see
+  // `.titlebar-nav .waveform-visualizer` above.
 
   // "LIVE OUTPUT" goes here, and only here.
   //
