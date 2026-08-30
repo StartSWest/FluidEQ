@@ -380,12 +380,13 @@ const dsp = {
     'Notfallschutz über +10 dBTP · 2 ms Vorausschau · Korrektur ohne Erholung · 3 Hz DC-Schutz · Reparatur ungültiger Samples',
   'dsp.master.dcCorrection': 'DC-Offset',
   'dsp.master.faults': 'Fehler',
-  'dsp.master.graph.spectrum': 'Ausgangsspektrum',
-  'dsp.master.graph.trim': 'Ausgangsverstärkung',
-  'dsp.master.graph.applied': 'Angewandter Pegel',
-  'dsp.master.graph.trimLine': 'Verstärkung {gain} dB',
-  'dsp.master.graph.appliedLine': 'Angewendet {gain} dB',
-  'dsp.master.graph.dcGuard': 'DC-Schutz',
+  'dsp.master.graph.momentary': 'Momentan',
+  'dsp.master.graph.shortTerm': 'Kurzzeit',
+  'dsp.master.graph.target': 'Ziel',
+  'dsp.master.graph.integrated': 'Integriert',
+  'dsp.master.graph.targetLine': 'Ziel {target} LUFS',
+  'dsp.master.graph.integratedLine': 'Integriert {value} LUFS',
+  'dsp.master.graph.reductionShort': 'GR',
   'dsp.master.graph.peakWarning':
     'Warnung · Ausgang {peak} dBTP über der Grenze',
   'dsp.master.graph.peakFixed':
@@ -400,6 +401,26 @@ const dsp = {
   'dsp.master.graph.safetyBypassed': 'Warnung · Schutz umgangen',
   'dsp.master.graph.loudnessActive':
     'LUFS maximieren · +{gain} dB Richtung {target} LUFS',
+  'dsp.master.peakLimiting': 'Spitzenbegrenzung',
+  'dsp.master.matchedBypass': 'Pegelgleiches Hören',
+  'dsp.master.matchedBypassHint':
+    'Gibt das Ergebnis {gain} dB leiser wieder, auf dem Pegel vor der Maximierung. Die Begrenzung bleibt gleich, ein ausgeschaltetes Master vergleicht also den Klang statt der Lautstärke.',
+  'dsp.master.limit.limiting':
+    '{requested} dB nötig — {room} dB Spitzenreserve plus die erlaubte Begrenzung.',
+  'dsp.master.limit.maxGain':
+    '{requested} dB nötig — an der maximalen Korrektur dieser Stufe.',
+  'dsp.master.limit.gate': 'Zu leise zum Messen — keine Korrektur angewendet.',
+  'dsp.master.loudness.momentary': 'M',
+  'dsp.master.loudness.shortTerm': 'S',
+  'dsp.master.loudness.integrated': 'I',
+  'dsp.master.loudness.range': 'LRA',
+  'dsp.master.loudness.truePeak': 'TP',
+  'dsp.masterPreset.label': 'Ziel',
+  'dsp.masterPreset.streaming': 'Streaming',
+  'dsp.masterPreset.streamingQuiet': 'Streaming, leise',
+  'dsp.masterPreset.broadcast': 'Rundfunk R128',
+  'dsp.masterPreset.club': 'Club',
+  'dsp.masterPreset.reference': 'Referenz',
 
   'tabs.dsp': 'DSP',
 };

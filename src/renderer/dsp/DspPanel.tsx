@@ -36,7 +36,7 @@ import {
   useDspInputAnalysis,
 } from './store';
 import '../styles/Dsp.scss';
-import { masterLoudnessGainDb } from './inputNormalizer';
+import { masterLoudnessBreakdown } from './inputNormalizer';
 
 interface IDspPanelProps {
   settings: IDspSettings;
@@ -93,7 +93,7 @@ const DspPanel = ({
   const nativeState = useDspNativeState();
   const outputSafetyMeter = useDspOutputSafetyMeter();
   const inputAnalysis = useDspInputAnalysis();
-  const loudnessGainDb = masterLoudnessGainDb(
+  const loudness = masterLoudnessBreakdown(
     master,
     normalizer,
     inputAnalysis.analysis,
@@ -485,7 +485,7 @@ const DspPanel = ({
               meter={outputSafetyMeter}
               safetyEnabled={outputSafetyEnabled}
               nativeState={nativeState}
-              loudnessGainDb={loudnessGainDb}
+              loudness={loudness}
               onSafetyToggle={() =>
                 setDspOutputSafetyEnabled(!outputSafetyEnabled)
               }

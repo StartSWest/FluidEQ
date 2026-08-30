@@ -34,8 +34,11 @@ describe('the chain wire layout', () => {
   /**
    * The one number both sides of the wire hard-code.
    *
-   * `FEQ_CHAIN_PARAM_LEAD` in `fluideq/chain.h` is 69 and neither side can ask
-   * the other. A scalar added to the encoder and forgotten in the C++ does not
+   * `FEQ_CHAIN_PARAM_LEAD` in `fluideq/chain.h` holds it too, and neither side
+   * can ask the other. The value itself is deliberately not written out here:
+   * it said 69 while both sides had long since agreed on 77, which is a
+   * comment that would have been believed by anybody checking the two numbers
+   * matched. A scalar added to the encoder and forgotten in the C++ does not
    * crash — it shifts every EQ band along by one field, so a Q becomes a
    * threshold and a frequency becomes a gain, and the result decodes into a
    * chain that is wrong and plausible. This is the check that catches it before

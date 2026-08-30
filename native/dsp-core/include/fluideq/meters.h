@@ -50,6 +50,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <stdint.h>
 
+#include "fluideq/loudness_meter.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -200,6 +202,27 @@ void feq_meters_publish_exciter(FeqMeters* meters,
 
 /** What the Maximizer is holding down, in dB. **Audio thread.** */
 void feq_meters_publish_maximizer(FeqMeters* meters, double reduction_db);
+
+/**
+ * How loud the output is, by BS.1770. **Audio thread.**
+ *
+ * The one reading the Master page could not take. It offered a loudness target
+ * and then had no way to say whether the chain was reaching it — the only LUFS
+ * on the page was the number the user had dialled, beside a spectrum that says
+ * nothing about level. A target with no meter is a setting that cannot be
+ * checked, which is how it came to apply exactly zero decibels to every track
+ * without anybody seeing.
+ */
+void feq_meters_publish_loudness(FeqMeters* meters,
+                                 const FeqLoudnessReading* reading);
+
+/**
+ * The published loudness. **Control thread.** Not cleared: it integrates.
+ *
+ * `out_loudness` receives four floats: momentary, short term, integrated, and
+ * the range in LU.
+ */
+void feq_meters_read_loudness(FeqMeters* meters, float* out_loudness);
 
 /** How much widening Dimension is allowing, 0 to 1. **Audio thread.** */
 void feq_meters_publish_dimension(FeqMeters* meters, double guard);

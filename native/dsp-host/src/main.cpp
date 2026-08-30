@@ -333,6 +333,12 @@ void drain_analysis(HostState& state) {
   feq_meters_read_normalizer(state.meters, frame.normalizer_input_peaks,
                              frame.normalizer_output_peaks,
                              &frame.normalizer_applied_gain_db);
+  float loudness[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+  feq_meters_read_loudness(state.meters, loudness);
+  frame.loudness_momentary_lufs = loudness[0];
+  frame.loudness_short_term_lufs = loudness[1];
+  frame.loudness_integrated_lufs = loudness[2];
+  frame.loudness_range_lu = loudness[3];
   frame.correlation = correlation;
   frame.peak_left = peaks[0];
   frame.peak_right = peaks[1];

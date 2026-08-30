@@ -109,6 +109,7 @@ int feq_chain_settings_decode(const double* values,
   out->master.loudness_target_lufs = next();
   out->master.ceiling_db = next();
   out->master.release_ms = next();
+  out->master.matched_bypass = flag();
 
   out->eq.band_count = static_cast<uint32_t>(next());
   if (at != FEQ_CHAIN_PARAM_LEAD) {

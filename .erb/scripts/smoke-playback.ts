@@ -139,11 +139,12 @@ const chainValues = (eqEnabled: boolean, gainDb: number): number[] => {
     5,
     150,
     0, // master enabled
-    0,
-    0,
-    -14,
-    -1,
-    2000,
+    0, // output trim
+    0, // LUFS maximize
+    -14, // loudness target
+    -1, // ceiling
+    2000, // release
+    0, // matched listen
     1, // one EQ band
   );
   // Peaking, 1 kHz, the gain under test, Q 1.

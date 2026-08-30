@@ -306,6 +306,19 @@ typedef struct FeqWireAnalysisFrame {
   float normalizer_applied_gain_db;
   /** Pads the struct to eight-byte alignment; the assert below names it. */
   float reserved_tail;
+  /**
+   * What the output actually measures, by BS.1770: momentary, short term,
+   * integrated, and the loudness range in LU.
+   *
+   * The Master page offered a loudness target and had no way to show whether
+   * the chain reached it — the only LUFS on screen was the number the user had
+   * dialled. That is how the makeup came to apply exactly zero decibels to
+   * every track for the life of the stage without anybody being able to see it.
+   */
+  float loudness_momentary_lufs;
+  float loudness_short_term_lufs;
+  float loudness_integrated_lufs;
+  float loudness_range_lu;
 } FeqWireAnalysisFrame;
 
 #ifdef __cplusplus
@@ -323,7 +336,7 @@ static_assert(sizeof(FeqWireHandshake) == 104, "handshake frame size");
 static_assert(sizeof(FeqWireCommandFrame) == 32, "command frame size");
 static_assert(sizeof(FeqWireAckFrame) == 32, "ack frame size");
 static_assert(sizeof(FeqWireTelemetryFrame) == 88, "telemetry frame size");
-static_assert(sizeof(FeqWireAnalysisFrame) == 120, "analysis frame size");
+static_assert(sizeof(FeqWireAnalysisFrame) == 136, "analysis frame size");
 #endif
 
 #endif /* FLUIDEQ_HOST_WIRE_H */

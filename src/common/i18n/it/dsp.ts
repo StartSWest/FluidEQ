@@ -374,12 +374,13 @@ const dsp = {
     'Protezione di emergenza sopra +10 dBTP · anticipo 2 ms · correzione senza rilascio · protezione DC 3 Hz · riparazione campioni non validi',
   'dsp.master.dcCorrection': 'Offset DC',
   'dsp.master.faults': 'Guasti',
-  'dsp.master.graph.spectrum': 'Spettro finale',
-  'dsp.master.graph.trim': 'Guadagno uscita',
-  'dsp.master.graph.applied': 'Guadagno applicato',
-  'dsp.master.graph.trimLine': 'Guadagno {gain} dB',
-  'dsp.master.graph.appliedLine': 'Applicato {gain} dB',
-  'dsp.master.graph.dcGuard': 'Protezione DC',
+  'dsp.master.graph.momentary': 'Momentaneo',
+  'dsp.master.graph.shortTerm': 'Breve termine',
+  'dsp.master.graph.target': 'Obiettivo',
+  'dsp.master.graph.integrated': 'Integrato',
+  'dsp.master.graph.targetLine': 'Obiettivo {target} LUFS',
+  'dsp.master.graph.integratedLine': 'Integrato {value} LUFS',
+  'dsp.master.graph.reductionShort': 'RG',
   'dsp.master.graph.peakWarning':
     'Avviso · uscita a {peak} dBTP oltre il tetto',
   'dsp.master.graph.peakFixed': 'Picco controllato · {gain} dB di riduzione',
@@ -393,6 +394,27 @@ const dsp = {
   'dsp.master.graph.safetyBypassed': 'Avviso · protezioni escluse',
   'dsp.master.graph.loudnessActive':
     'Massimizza LUFS · +{gain} dB verso {target} LUFS',
+  'dsp.master.peakLimiting': 'Limitazione dei picchi',
+  'dsp.master.matchedBypass': 'Ascolto pareggiato',
+  'dsp.master.matchedBypassHint':
+    'Riproduce il risultato {gain} dB più basso, al volume che aveva prima della massimizzazione. La limitazione non cambia, quindi spegnere Master confronta il suono e non il volume.',
+  'dsp.master.limit.limiting':
+    'Servivano {requested} dB — {room} dB di margine di picco più la limitazione consentita.',
+  'dsp.master.limit.maxGain':
+    'Servivano {requested} dB — alla correzione massima di questo stadio.',
+  'dsp.master.limit.gate':
+    'Troppo silenzioso per misurare — nessuna correzione applicata.',
+  'dsp.master.loudness.momentary': 'M',
+  'dsp.master.loudness.shortTerm': 'S',
+  'dsp.master.loudness.integrated': 'I',
+  'dsp.master.loudness.range': 'LRA',
+  'dsp.master.loudness.truePeak': 'TP',
+  'dsp.masterPreset.label': 'Destinazione',
+  'dsp.masterPreset.streaming': 'Streaming',
+  'dsp.masterPreset.streamingQuiet': 'Streaming, basso',
+  'dsp.masterPreset.broadcast': 'Broadcast R128',
+  'dsp.masterPreset.club': 'Club',
+  'dsp.masterPreset.reference': 'Riferimento',
 
   'tabs.dsp': 'DSP',
 };

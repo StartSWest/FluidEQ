@@ -34,7 +34,7 @@ export const ANALYSIS_BINS = 1024;
 export const ANALYSIS_SCOPE_PAIRS = 256;
 
 /** The fixed header; its own fields say how much payload follows. */
-export const ANALYSIS_HEADER_BYTES = 120;
+export const ANALYSIS_HEADER_BYTES = 136;
 
 /** The rack ceiling, matching FEQ_METER_MAX_BANDS. */
 export const ANALYSIS_MAX_BANDS = 64;
@@ -91,6 +91,33 @@ export interface IHostAnalysis {
   dimensionGuard: number;
   master: IHostAnalysisMaster;
   normalizer: IHostAnalysisNormalizer;
+  loudness: IHostAnalysisLoudness;
+}
+
+/**
+ * How loud the output is, measured where it leaves.
+ *
+ * The Master page has always offered a loudness target and never had anything
+ * to check it against: the only LUFS on screen was the number the user dialled.
+ * That is how a makeup that applied exactly zero decibels to every commercially
+ * mastered track shipped and stayed shipped — the meter that would have said so
+ * did not exist.
+ */
+export interface IHostAnalysisLoudness {
+  /** The last 400 ms, ungated. */
+  momentaryLufs: number;
+  /** The last 3 s, which is the one to watch while setting a target. */
+  shortTermLufs: number;
+  /** Gated, over the whole programme since the last track change. */
+  integratedLufs: number;
+  /**
+   * The 95th percentile of short-term blocks minus the 10th, in LU.
+   *
+   * What says whether a target was reached by mastering or by flattening. Two
+   * records at one integrated loudness and eight LU apart in range are not the
+   * same master, and no other reading on the page can tell them apart.
+   */
+  rangeLu: number;
 }
 
 /**
