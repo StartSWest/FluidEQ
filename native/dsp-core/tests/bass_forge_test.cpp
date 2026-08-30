@@ -27,26 +27,16 @@ SPDX-License-Identifier: GPL-3.0-or-later
  */
 #include "fluideq/bass_forge.h"
 
+#include "dsp_test_support.h"
+
 #include <cmath>
 #include <cstdio>
 #include <vector>
 
+using namespace feq_test;
+
 namespace {
 
-int g_failures = 0;
-
-void check(bool condition, const char* what) {
-  if (!condition) {
-    std::printf("  FAIL %s\n", what);
-    ++g_failures;
-  } else {
-    std::printf("  ok   %s\n", what);
-  }
-}
-
-constexpr double kPi = 3.14159265358979323846;
-constexpr double kRate = 48000.0;
-constexpr uint32_t kFrames = 512;
 constexpr uint32_t kBlocks = 200;
 /**
  * Where a measurement may begin, and how long it may run.
@@ -81,11 +71,6 @@ FeqBassForgeSettings everything() {
   return settings;
 }
 
-struct Signal {
-  std::vector<float> left;
-  std::vector<float> right;
-};
-
 /** One stage and its buffers, so a test can drive it over more than one run. */
 struct Stage {
   std::vector<float> low = std::vector<float>(kFrames * 2, 0.0f);
@@ -93,12 +78,9 @@ struct Stage {
   FeqBassForge state{};
   Stage() { feq_bass_forge_init(&state, low.data(), scratch.data()); }
   void run(Signal& signal, const FeqBassForgeSettings& settings) {
-    const size_t blocks = signal.left.size() / kFrames;
-    for (size_t block = 0; block < blocks; ++block) {
-      float* channels[2] = {signal.left.data() + block * kFrames,
-                            signal.right.data() + block * kFrames};
+    run_blocks(signal, [this, &settings](float* const* channels) {
       feq_bass_forge_process(&state, channels, 2, kFrames, &settings, kRate);
-    }
+    });
   }
 };
 
@@ -109,111 +91,9 @@ Signal process(const Signal& input, const FeqBassForgeSettings& settings) {
   return out;
 }
 
-/** A 32-bit LCG, so every run of this file measures the same signal. */
-struct Noise {
-  uint32_t seed;
-  double next() {
-    seed = seed * 1664525u + 1013904223u;
-    return static_cast<double>(seed >> 8) / 8388608.0 - 1.0;
-  }
-};
-
-/**
- * Pink, because white is the wrong question here — see the head of this file.
- * Paul Kellett's three-pole economy filter: -3 dB per octave to within a
- * quarter of a decibel, which is roughly what a record looks like and puts
- * about a fifth of the energy under 90 Hz.
- */
-struct Pink {
-  Noise noise{2463534242u};
-  double b0 = 0.0;
-  double b1 = 0.0;
-  double b2 = 0.0;
-  double next() {
-    const double white = noise.next();
-    b0 = 0.99765 * b0 + white * 0.0990460;
-    b1 = 0.96300 * b1 + white * 0.2965164;
-    b2 = 0.57000 * b2 + white * 1.0526913;
-    return b0 + b1 + b2 + white * 0.1848;
-  }
-};
-
-/** Scaled to a fixed peak, so every run of the sweep is the same loudness. */
-void normalise(std::vector<float>& samples, double peak) {
-  double largest = 0.0;
-  for (const float sample : samples) {
-    largest = std::fmax(largest, std::fabs(static_cast<double>(sample)));
-  }
-  if (largest <= 0.0) {
-    return;
-  }
-  const auto scale = static_cast<float>(peak / largest);
-  for (float& sample : samples) {
-    sample *= scale;
-  }
-}
-
-/** `mono` feeds one signal to both channels; otherwise they are two. */
-Signal pink_stereo(size_t count, bool mono) {
-  Pink source;
-  Pink other{Noise{97531u}, 0.0, 0.0, 0.0};
-  Signal out;
-  out.left.resize(count);
-  out.right.resize(count);
-  for (size_t at = 0; at < count; ++at) {
-    out.left[at] = static_cast<float>(source.next());
-    out.right[at] = mono ? out.left[at] : static_cast<float>(other.next());
-  }
-  normalise(out.left, 0.5);
-  normalise(out.right, 0.5);
-  return out;
-}
-
-Signal sine_stereo(size_t count, double hz, double amplitude) {
-  Signal out;
-  out.left.resize(count);
-  out.right.resize(count);
-  for (size_t at = 0; at < count; ++at) {
-    const double phase = (2.0 * kPi * hz * static_cast<double>(at)) / kRate;
-    out.left[at] = static_cast<float>(amplitude * std::sin(phase));
-    out.right[at] = out.left[at];
-  }
-  return out;
-}
-
-double rms(const Signal& signal, size_t from) {
-  double total = 0.0;
-  for (size_t at = from; at < signal.left.size(); ++at) {
-    const double l = static_cast<double>(signal.left[at]);
-    const double r = static_cast<double>(signal.right[at]);
-    total += l * l + r * r;
-  }
-  const auto count = static_cast<double>((signal.left.size() - from) * 2);
-  return std::sqrt(total / count);
-}
-
-/** One DFT bin. The tree's only FFT is in TypeScript, and this is eight lines. */
+/** The whole file measures the same second, so the DFT window is fixed. */
 double bin_magnitude(const std::vector<float>& samples, double hz) {
-  const double omega = (2.0 * kPi * hz) / kRate;
-  double real = 0.0;
-  double imaginary = 0.0;
-  for (size_t at = 0; at < kWindow; ++at) {
-    const double sample = static_cast<double>(samples[kSettled + at]);
-    const double angle = omega * static_cast<double>(at);
-    real += sample * std::cos(angle);
-    imaginary += sample * std::sin(angle);
-  }
-  return (2.0 * std::sqrt(real * real + imaginary * imaginary)) /
-         static_cast<double>(kWindow);
-}
-
-bool identical(const Signal& one, const Signal& other) {
-  for (size_t at = 0; at < one.left.size(); ++at) {
-    if (one.left[at] != other.left[at] || one.right[at] != other.right[at]) {
-      return false;
-    }
-  }
-  return true;
+  return feq_test::bin_magnitude(samples, hz, kSettled, kWindow);
 }
 
 /**
@@ -571,10 +451,5 @@ int main() {
   test_drive_colours_the_generated_bass();
   test_reset_clears_the_history();
   test_bands_report_the_band();
-  if (g_failures == 0) {
-    std::printf("\nall checks passed\n");
-    return 0;
-  }
-  std::printf("\n%d check(s) failed\n", g_failures);
-  return 1;
+  return finish();
 }
