@@ -62,11 +62,18 @@ typedef struct FeqBassForgeSettings {
   /** Where bass ends, 40 to 200 Hz. Structural: it moves the crossover. */
   double split_hz;
   /**
-   * 0 to 12 dB into the generators, and it is not a distortion control.
+   * 0 to 12 dB, and what it drives is a curve rather than a level.
    *
-   * Both generators are level-normalised, so a gain in front of either leaves
-   * the result the same size. What it moves is where the programme sits
-   * against the divider's floor — see `kDividerFloor` in `bass_forge.cpp`.
+   * A gain in front of these generators does nothing, and that is not a
+   * tuning accident: `feq_harmonic_sample` divides the band's own level out
+   * before it shapes anything, and the divider's output is matched back onto
+   * the band it came from. Both are level-invariant by construction, so
+   * anything in front of them has nothing to bite on. Drive therefore feeds
+   * the asymmetric curve in `saturate.h`, applied to the generated content
+   * before the band is normalised — which is warmth with a second harmonic in
+   * front of the third, and is the only reading of "hot" this stage can
+   * honestly offer. It also moves where the programme sits against the
+   * divider's floor; see `kDividerFloor` in `bass_forge.cpp`.
    */
   double drive_db;
   /** The octave below, 0 to 1. For hardware that can radiate it. */
@@ -110,7 +117,7 @@ typedef struct FeqBassForge {
   double source_mean_square;
   double octave_mean_square;
   double sub_gain;
-  /** The presence generator's DC blocker. See `kPresenceDcHz`. */
+  /** One DC blocker, downstream of every non-linearity. `kGeneratedDcHz`. */
   double dc_input;
   double dc_output;
   /** The no-free-loudness gain, and the two mean squares it comes from. */
@@ -119,6 +126,7 @@ typedef struct FeqBassForge {
   double gain;
   /** Smoothed controls. A `mix` below zero means none of them is primed. */
   double drive;
+  double saturation;
   double sub_amount;
   double presence_amount;
   double texture;

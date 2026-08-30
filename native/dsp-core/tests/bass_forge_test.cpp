@@ -16,14 +16,14 @@ SPDX-License-Identifier: GPL-3.0-or-later
  *
  * They are chosen so that the ways a bass enhancer actually fails are the ways
  * these fail: it is a hidden gain stage, it rumbles between the notes, it is
- * not quite transparent when it is turned down, or the two generators it
- * advertises turn out to be one generator with two labels.
+ * not quite transparent when turned down, the two generators it advertises are
+ * one generator with two labels, or a dial on the front does nothing.
  *
  * The level property is the one worth defending, and it is measured on pink
- * noise rather than on white for a reason that is easy to get wrong. Under
- * white noise the band this stage works in holds three tenths of a percent of
- * the energy, so a six decibel error down there moves the total by four
- * hundredths of a decibel and every possible implementation passes.
+ * noise rather than white for a reason that is easy to get wrong: under white
+ * noise the band this stage works in holds three tenths of a percent of the
+ * energy, so a six decibel error down there moves the total by four hundredths
+ * of a decibel and every possible implementation passes.
  */
 #include "fluideq/bass_forge.h"
 
@@ -51,13 +51,11 @@ constexpr uint32_t kBlocks = 200;
 /**
  * Where a measurement may begin, and how long it may run.
  *
- * Every follower in this stage is deliberately slow — the level window is a
- * quarter of a second and `feq_harmonic_sample` carries another of its own — so
- * a number taken from the first block measures the followers warming up rather
- * than the stage working. One second of settling, then one second of measuring.
- * Every frequency asked for below completes a whole number of cycles in that
- * second at this rate, which is what lets a single DFT bin sit exactly on a
- * tone with nothing to leak.
+ * Every follower here is deliberately slow — a quarter-second level window,
+ * and `feq_harmonic_sample` carries another — so a number from the first block
+ * measures the followers warming up. One second of settling, then one of
+ * measuring; every frequency asked for below completes a whole number of
+ * cycles in that second, so a DFT bin sits exactly on its tone.
  */
 constexpr size_t kSettled = kFrames * 100;
 constexpr size_t kWindow = 48000;
@@ -122,10 +120,9 @@ struct Noise {
 
 /**
  * Pink, because white is the wrong question here — see the head of this file.
- *
  * Paul Kellett's three-pole economy filter: -3 dB per octave to within a
- * quarter of a decibel across the audio band, which is roughly what a record
- * looks like and puts about a fifth of the energy under 90 Hz.
+ * quarter of a decibel, which is roughly what a record looks like and puts
+ * about a fifth of the energy under 90 Hz.
  */
 struct Pink {
   Noise noise{2463534242u};
@@ -261,27 +258,36 @@ void test_level_is_preserved() {
   double worst_mix = 0.0;
   double worst_sub = 0.0;
   double worst_presence = 0.0;
-  for (const double mix : {0.25, 0.5, 0.75, 1.0}) {
-    for (const double sub : {0.0, 0.5, 1.0}) {
-      for (const double presence : {0.0, 0.5, 1.0}) {
-        FeqBassForgeSettings settings = defaults();
-        settings.mix = mix;
-        settings.sub_amount = sub;
-        settings.presence_amount = presence;
-        const double after = rms(process(noise, settings), kSettled);
-        const double error = std::fabs(20.0 * std::log10(after / before));
-        if (error > worst) {
-          worst = error;
-          worst_mix = mix;
-          worst_sub = sub;
-          worst_presence = presence;
+  double worst_drive = 0.0;
+  // Drive is in the sweep because it is a non-linearity now: the curve
+  // compresses what it colours, and the gain that follows has to take that
+  // back as completely as it takes back the generators' own contribution.
+  for (const double drive : {0.0, 12.0}) {
+    for (const double mix : {0.25, 0.5, 0.75, 1.0}) {
+      for (const double sub : {0.0, 0.5, 1.0}) {
+        for (const double presence : {0.0, 0.5, 1.0}) {
+          FeqBassForgeSettings settings = defaults();
+          settings.drive_db = drive;
+          settings.mix = mix;
+          settings.sub_amount = sub;
+          settings.presence_amount = presence;
+          const double after = rms(process(noise, settings), kSettled);
+          const double error = std::fabs(20.0 * std::log10(after / before));
+          if (error > worst) {
+            worst = error;
+            worst_mix = mix;
+            worst_sub = sub;
+            worst_presence = presence;
+            worst_drive = drive;
+          }
         }
       }
     }
   }
   std::printf(
-      "       worst deviation %.3f dB at mix %.2f, sub %.2f, presence %.2f\n",
-      worst, worst_mix, worst_sub, worst_presence);
+      "       worst deviation %.3f dB at mix %.2f, sub %.2f, presence %.2f, "
+      "drive %.0f dB\n",
+      worst, worst_mix, worst_sub, worst_presence, worst_drive);
   check(worst < 0.5, "output RMS within 0.5 dB of input RMS, everywhere");
 
   // The positive control. Every assertion above is passed perfectly by a stage
@@ -362,12 +368,11 @@ void test_silence_stays_silent() {
   /**
    * And the case zeros cannot reach: a note far under the floor.
    *
-   * Exact silence multiplies out of every path in this stage whether the floor
-   * exists or not, so on its own it proves nothing. A -80 dBFS tone is what a
-   * record's noise floor looks like, and a divider with no floor would match
-   * its output back up to that tone's own level and put a manufactured octave
-   * there. The same measurement at -20 dBFS is the control: the floor has to be
-   * a floor rather than an off switch.
+   * Exact silence multiplies out of every path here whether the floor exists
+   * or not, so alone it proves nothing. A -80 dBFS tone is what a record's
+   * noise floor looks like, and a divider with no floor would match its output
+   * up to that tone's own level and put a manufactured octave there. The same
+   * measurement at -20 dBFS is the control: a floor, not an off switch.
    */
   const Signal faint = process(sine_stereo(kFrames * kBlocks, 60.0, 1e-4),
                                everything());
@@ -384,28 +389,111 @@ void test_silence_stays_silent() {
   check(loud_octave > loud_note * 0.2, "and one over it does");
 }
 
-/** Generated content is mono by construction. An equality, not a tolerance. */
+/**
+ * Generated content is mono because it comes from `(low[0]+low[1])/2`, and
+ * this test has to be able to fail when it does not.
+ *
+ * The obvious test — identical signal in both channels, assert the outputs
+ * match — cannot: two per-channel generators fed the same band evolve
+ * identically and pass it. So the channels DIFFER, and the measurement is then
+ * constrained twice over. It is of `output - input`, because the dry low band
+ * legitimately differs per channel and only the addition is claimed to be
+ * mono. And it is taken at frequencies the dry band has none of, because
+ * `output - input` is `low[ch] * (g - 1) + added * g`: the normalising gain
+ * acts on the dry band too, so in the time domain the two deltas differ for a
+ * perfectly correct stage. At 30 and 120 Hz a 60 Hz tone contributes nothing,
+ * leaving `added * g` and nothing else.
+ *
+ * Per-channel generators are level-normalised to their own source, so the 0.35
+ * ear and the 0.15 ear would come back 7.4 dB apart — a relative 0.57.
+ * Measured with exactly that fault injected: 0.40 at 30 Hz, 0.58 at 120.
+ *
+ * The tolerance is 0.01 rather than zero because the normalising gain ripples
+ * at the octave — it comes from a mean square containing one — and that ripple
+ * times a per-channel dry band lands back in the 30 Hz bin. Measured at
+ * 1.3e-3: eight times under the line, and the failure is forty times over it.
+ */
 void test_generated_content_is_mono() {
   std::printf("\nbass forge: what it generates is the same in both ears\n");
-  // Identical noise in both channels, so the dry band is already mono and any
-  // difference at the output is the two generators disagreeing.
-  const Signal noise = pink_stereo(kFrames * kBlocks, true);
-  const Signal result = process(noise, everything());
-  bool same = true;
-  for (size_t at = 0; at < result.left.size(); ++at) {
-    same = same && result.left[at] == result.right[at];
+  Signal note = sine_stereo(kFrames * kBlocks, 60.0, 0.35);
+  for (float& sample : note.right) {
+    sample *= (0.15f / 0.35f);
   }
-  check(same, "sample for sample, the two channels are the same signal");
+  const Signal result = process(note, everything());
+
+  Signal added;
+  added.left.resize(result.left.size());
+  added.right.resize(result.right.size());
+  for (size_t at = 0; at < result.left.size(); ++at) {
+    added.left[at] = result.left[at] - note.left[at];
+    added.right[at] = result.right[at] - note.right[at];
+  }
+
+  for (const double hz : {30.0, 120.0}) {
+    const double in_left = bin_magnitude(added.left, hz);
+    const double in_right = bin_magnitude(added.right, hz);
+    const double error =
+        std::fabs(in_left - in_right) / std::fmax(in_left, 1e-12);
+    std::printf("       %.0f Hz added: left %.6f, right %.6f (%.2e apart)\n",
+                hz, in_left, in_right, error);
+    check(error < 0.01, "the two ears are given the same generated content");
+    // The positive control: a bin with nothing in it matches itself perfectly.
+    check(in_left > 1e-3, "and there is something there to compare");
+  }
+}
+
+/**
+ * Drive has to reach the audio on ordinary programme, not only near the floor.
+ *
+ * This is the test the first version of this stage did not have, and its
+ * absence is what let `drive_db` ship as a dial that changed nothing above
+ * -50 dBFS: a gain in front of two level-normalised generators is a no-op, and
+ * every other property here passes just as well when it is. So this measures
+ * at a normal listening level, and it measures CONTENT rather than level —
+ * which is all it can measure, because the normaliser downstream guarantees
+ * the two settings come out the same loudness.
+ */
+void test_drive_colours_the_generated_bass() {
+  std::printf("\nbass forge: drive changes what the bass is made of\n");
+  const Signal note = sine_stereo(kFrames * kBlocks, 60.0, 0.1);
+  FeqBassForgeSettings clean = everything();
+  clean.drive_db = 0.0;
+  FeqBassForgeSettings hot = everything();
+  hot.drive_db = 12.0;
+
+  const Signal cool = process(note, clean);
+  const Signal warm = process(note, hot);
+  for (const double hz : {30.0, 60.0, 90.0, 120.0, 150.0, 180.0, 240.0}) {
+    std::printf("       %5.0f Hz: clean %.6f, hot %.6f\n", hz,
+                bin_magnitude(cool.left, hz), bin_magnitude(warm.left, hz));
+  }
+
+  double difference = 0.0;
+  double reference = 0.0;
+  for (size_t at = kSettled; at < cool.left.size(); ++at) {
+    const double gap = static_cast<double>(warm.left[at]) -
+                       static_cast<double>(cool.left[at]);
+    const double base = static_cast<double>(cool.left[at]);
+    difference += gap * gap;
+    reference += base * base;
+  }
+  const double ratio = std::sqrt(difference / reference);
+  std::printf("       hot differs from clean by %.2f%% RMS\n", ratio * 100.0);
+  // Five percent, and the number is chosen against a regression rather than
+  // against zero. A curve fed the generated content at its absolute amplitude
+  // measured 0.91% here, because a tangent barely bends around 0.1 — so a
+  // threshold anywhere under that would have called the level-dependent
+  // version working. Feeding it a normalised level gives 11%.
+  check(ratio > 0.05, "12 dB of drive is audibly not 0 dB of drive");
 }
 
 /**
  * Reset has to empty the crossover, not only the followers.
  *
- * The chain calls it on a seek and on a device change, and what is sitting in
- * those filters at that moment is the last few milliseconds of something else.
- * Left there it rings out into whatever comes next — and because the output is
- * written as `input + (forged band - dry band)`, a dry band with history in it
- * is SUBTRACTED from the silence rather than decaying into it.
+ * The chain calls it on a seek and on a device change, and what sits in those
+ * filters then is the last few milliseconds of something else. Because the
+ * output is written as `input + (forged band - dry band)`, a dry band with
+ * history in it is SUBTRACTED from the silence rather than decaying into it.
  */
 void test_reset_clears_the_history() {
   std::printf("\nbass forge: reset empties the crossover\n");
@@ -480,6 +568,7 @@ int main() {
   test_presence_follows_texture();
   test_silence_stays_silent();
   test_generated_content_is_mono();
+  test_drive_colours_the_generated_bass();
   test_reset_clears_the_history();
   test_bands_report_the_band();
   if (g_failures == 0) {
