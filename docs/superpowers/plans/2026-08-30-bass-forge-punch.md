@@ -34,9 +34,31 @@ Type-check and lint as you go throughout — those are seconds.
 
 ---
 
-### Task 1: Retire the second `CHAIN_PARAM_LEAD`
+### Task 1: Retire the second `CHAIN_PARAM_LEAD` — **DONE ELSEWHERE. DO NOT IMPLEMENT.**
 
-Standalone and mergeable on its own. Do it first: the rest of this plan moves that constant, and moving it while two copies exist leaves the main-process one sixteen behind instead of eight.
+This landed on `claude/typescript-usage-review-7794ef` instead. Ivan approved moving it there. Implementing it again here would collide on the same lines for no gain.
+
+The task number is kept rather than renumbering the rest, so that "do Task 7" means the same thing to anyone holding any copy of this plan.
+
+**What is already done on that branch:**
+
+- `src/main/dspHost/wire.ts` imports `CHAIN_PARAM_LEAD` from `common/dsp/chainWire` instead of declaring its own 69. The floor check stays, with a comment recording that it cannot fire on today's only path and survives only because `encodeChainPayload` is exported.
+- The stale comment in `dspChainWire.test.ts` no longer carries a copy of the number at all.
+- **A new test reads `FEQ_CHAIN_PARAM_LEAD` out of `native/dsp-core/include/fluideq/chain.h` and asserts it equals `CHAIN_PARAM_LEAD`.** That is the check none of the three copies had.
+
+**What that means for Task 5, which is the only reason this section still exists.** When Task 5 moves the lead from 77 to 91, that new test **will fail** until `chain.h` moves in the same commit. That is the test working, not a regression — it is precisely the drift it was written to catch. Do not weaken it, and do not move the TypeScript constant in one commit and the header in another.
+
+Still verify before starting Task 5:
+
+```bash
+git log --oneline -5 -- src/main/dspHost/wire.ts
+grep -n "CHAIN_PARAM_LEAD" src/main/dspHost/wire.ts
+```
+
+If `wire.ts` still declares its own `69`, that branch has not merged yet. Coordinate rather than fixing it here — two branches editing those lines is the collision this section exists to avoid.
+
+<details>
+<summary>Original task body, kept for reference only</summary>
 
 **Files:**
 
@@ -115,18 +137,10 @@ Expected: PASS, including the new case.
 
 ```bash
 git add src/main/dspHost/wire.ts src/__tests__/unit_tests/dspChainWire.test.ts native/dsp-core/src/chain_decode.cpp
-git commit -m "The chain lead had two authorities and the second one was dead
-
-src/main/dspHost/wire.ts declared its own CHAIN_PARAM_LEAD at 69 while
-common/dsp/chainWire.ts and chain.h both said 77. Eight slots of drift, and
-nothing caught it: src/main/ipc/dspHost.ts already validates with
-isChainWirePayload, which checks length exactly against the band count, so
-the floor downstream of it could never fire.
-
-Main re-exports the one constant now and keeps its floor check, so the floor
-is correct by construction rather than by remembering. Two comments carrying
-stale copies of the number go with it."
+git commit -m "The chain lead had two authorities and the second one was dead"
 ```
+
+</details>
 
 ---
 
@@ -756,6 +770,8 @@ The task with the most ways to be subtly wrong. Read the whole task before start
 - Produces: `CHAIN_PARAM_LEAD === 91`. `chain_process_bass_forge` and `chain_process_bass_punch`, declared in `chain_internal.h` beside the other stage functions.
 
 **Where the scalars go, and why it is not the end.** `encodeChainSettings` writes a positional array, and `isChainWirePayload` reads the EQ band count from `values[CHAIN_PARAM_LEAD - 1]` — the last lead slot. The fourteen new scalars go **immediately before** `eq.bands.length`, never after it. Appended after, the band count moves, every payload still validates, and every band decodes one slot along into something plausible.
+
+**Two tests will fail during this task, and both failing is correct.** The encoder's own `chain wire: lead is 91, expected 77` throw is the first. The second is the test that `claude/typescript-usage-review-7794ef` added, which reads `FEQ_CHAIN_PARAM_LEAD` straight out of `chain.h` and asserts it matches the TypeScript constant — see Task 1. Both go green only when the TypeScript constant, the C header and the decoder move together, which is the whole point of them. **Move all three in one commit.** Neither test is to be weakened, and a green suite with the header still at 77 means one of them was.
 
 - [ ] **Step 1: Write the failing test**
 
