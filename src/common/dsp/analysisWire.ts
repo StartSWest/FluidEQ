@@ -37,13 +37,19 @@ export const ANALYSIS_SCOPE_PAIRS = 256;
  * The fixed header; its own fields say how much payload follows.
  *
  * 120 before Master loudness took it to 136, and 136 before Denoise appended
- * six words at 136 to 156. Every pre-existing offset is untouched on purpose:
- * this constant, the publisher in `meters.cpp` and the reader in
- * `dspHost/wire.ts` all have to move in one commit, and the guards on the
- * reader are `length < ANALYSIS_HEADER_BYTES` — a floor rather than an exact
- * check. A frame written against an older layout therefore does not fail here,
- * it reads whatever has moved into the old offset and hands the panel a
- * plausible number. New fields go after everything already decoded, always.
+ * six words — 160 rather than 156, because the frame is eight-byte aligned.
+ * Every pre-existing offset is untouched on purpose: this constant, the
+ * publisher in `meters.cpp` and the reader in `dspHost/wire.ts` all have to
+ * move in one commit, and new fields go after everything already decoded,
+ * always.
+ *
+ * A frame written against a different layout does NOT get read as plausible
+ * numbers. `decodeAnalysis` computes the whole length from the header's own
+ * bin, pair, band and stage-mask fields and refuses anything that does not
+ * match exactly, so drift on either side fails closed. This comment used to
+ * say the opposite — that the reader's guards were only floors — and it was
+ * believed: three separate readers of it set out to add a check that has been
+ * there since the graphs were first fed from the engine.
  */
 export const ANALYSIS_HEADER_BYTES = 160;
 

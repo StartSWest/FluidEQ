@@ -258,6 +258,25 @@ describe('decoding an analysis frame', () => {
     const frame = buildAnalysis({ stages: ['eq'], withScope: false });
     expect(decodeAnalysis(frame.subarray(0, frame.length - 4))).toBeUndefined();
   });
+
+  /**
+   * The drift case, stated as a test because a comment saying it was stated
+   * the opposite for long enough to send three readers hunting for a check
+   * that was already here.
+   *
+   * A host whose header grew without this build following writes a frame
+   * longer than the fields inside it describe. That is the failure the fixed
+   * offsets would otherwise turn into plausible numbers, and it is refused.
+   */
+  it('refuses a frame longer than its own header describes', () => {
+    const frame = buildAnalysis({ stages: ['eq'], withScope: false });
+    // The control: the same frame, unpadded, decodes. Without it this passes
+    // just as well against a decoder that refuses everything.
+    expect(decodeAnalysis(frame)).toBeDefined();
+    expect(
+      decodeAnalysis(Buffer.concat([frame, Buffer.alloc(24)])),
+    ).toBeUndefined();
+  });
 });
 
 describe('reading analysis frames off a pipe', () => {
