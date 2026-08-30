@@ -35,7 +35,21 @@ export interface ILibraryRoot {
 }
 
 /**
- * Whole-file measurements used by the input normalizer.
+ * Where a file's audible programme begins and ends, in milliseconds from its
+ * first sample.
+ *
+ * Not the same as 0 and the duration: a track can carry seconds of digital
+ * silence at either end, and a crossfade scheduled against the container ends
+ * up overlapping the padding rather than the music. Measured in
+ * `programmeEdges.ts`.
+ */
+export interface ILibraryProgrammeEdges {
+  leadInMs: number;
+  endMs: number;
+}
+
+/**
+ * Whole-file measurements taken in one decode pass.
  *
  * Versioned independently from the library index so a future improvement to
  * either meter invalidates only these cached numbers, not the user's roots or
@@ -46,6 +60,13 @@ export interface ILibraryNormalizationAnalysis {
   version: 2;
   truePeakDbtp: number;
   integratedLufs: number;
+  /**
+   * Absent on entries cached before the edges were measured. Not a version
+   * bump: the loudness numbers beside them are still correct, and throwing
+   * away an analyzed library to learn where its silence is would cost every
+   * user a re-measure of every track they own.
+   */
+  edges?: ILibraryProgrammeEdges;
 }
 
 /** Cheap disk identity used to validate a cached whole-file measurement. */

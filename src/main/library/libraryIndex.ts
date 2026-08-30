@@ -39,11 +39,21 @@ const isOptionalNumber = (value: unknown): boolean =>
 const isOptionalBoolean = (value: unknown): boolean =>
   value === undefined || typeof value === 'boolean';
 
+const isProgrammeEdges = (value: unknown): boolean =>
+  isObject(value) &&
+  typeof value.leadInMs === 'number' &&
+  Number.isFinite(value.leadInMs) &&
+  value.leadInMs >= 0 &&
+  typeof value.endMs === 'number' &&
+  Number.isFinite(value.endMs) &&
+  value.endMs >= value.leadInMs;
+
 const isNormalizationAnalysis = (
   value: unknown,
 ): value is ILibraryNormalizationAnalysis =>
   isObject(value) &&
   value.version === 2 &&
+  (value.edges === undefined || isProgrammeEdges(value.edges)) &&
   typeof value.truePeakDbtp === 'number' &&
   Number.isFinite(value.truePeakDbtp) &&
   value.truePeakDbtp >= -120 &&

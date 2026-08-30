@@ -12,6 +12,7 @@ import {
 } from '../../common/dsp/chain';
 import { ILibraryNormalizationAnalysis } from '../../common/library/types';
 import { ABSOLUTE_GATE_LUFS, createLoudnessAnalyzer } from './loudnessAnalysis';
+import { createProgrammeEdgeAnalyzer } from './programmeEdges';
 
 /**
  * Bumped to 2 when the K-weighting stopped being the RBJ cookbook.
@@ -98,11 +99,19 @@ export const analyzeInputTrack = async (
     source.getChannelData(channel),
   );
   const analyzer = createLoudnessAnalyzer(source.sampleRate, channelCount);
+  // The decode is the expensive half and it has already happened. Running the
+  // edge detector over the same samples in the same loop is what keeps the
+  // crossfade's measurement free rather than a second pass over the file.
+  const edgeAnalyzer = createProgrammeEdgeAnalyzer(
+    source.sampleRate,
+    channelCount,
+  );
   const yieldFrames = Math.max(1, Math.round(source.sampleRate));
 
   for (let from = 0; from < source.length; from += yieldFrames) {
     const to = Math.min(source.length, from + yieldFrames);
     analyzer.feed(channels, from, to);
+    edgeAnalyzer.feed(channels, from, to);
     options.onProgress({ fraction: to / source.length });
     // eslint-disable-next-line no-await-in-loop -- deliberate renderer yield; see function comment.
     await nextFrame();
@@ -117,6 +126,7 @@ export const analyzeInputTrack = async (
     version: ANALYSIS_VERSION,
     truePeakDbtp: measurement.truePeakDbtp,
     integratedLufs: measurement.integratedLufs,
+    edges: edgeAnalyzer.finish(),
   };
 };
 

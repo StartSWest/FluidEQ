@@ -58,6 +58,21 @@ import { scanLibraryRootOffThread } from '../library/scanHost';
  */
 const MAX_PLAYBACK_BLOB_BYTES = 96 * 1024 * 1024;
 
+const isProgrammeEdges = (value: unknown): boolean => {
+  if (typeof value !== 'object' || value === null) {
+    return false;
+  }
+  const candidate = value as Record<string, unknown>;
+  return (
+    typeof candidate.leadInMs === 'number' &&
+    Number.isFinite(candidate.leadInMs) &&
+    candidate.leadInMs >= 0 &&
+    typeof candidate.endMs === 'number' &&
+    Number.isFinite(candidate.endMs) &&
+    candidate.endMs >= candidate.leadInMs
+  );
+};
+
 const isNormalizationAnalysis = (
   value: unknown,
 ): value is ILibraryNormalizationAnalysis => {
@@ -66,6 +81,7 @@ const isNormalizationAnalysis = (
   }
   const candidate = value as Record<string, unknown>;
   return (
+    (candidate.edges === undefined || isProgrammeEdges(candidate.edges)) &&
     candidate.version === 2 &&
     typeof candidate.truePeakDbtp === 'number' &&
     Number.isFinite(candidate.truePeakDbtp) &&

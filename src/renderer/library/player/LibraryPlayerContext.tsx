@@ -67,7 +67,10 @@ import {
   clearTransportSource,
   setTransportSource,
 } from '../../audio/transportSource';
-import { ILibraryTrack } from '../../../common/library/types';
+import {
+  ILibraryProgrammeEdges,
+  ILibraryTrack,
+} from '../../../common/library/types';
 import { TCrossfadeCurve } from '../../../common/dsp/chain';
 import { ICrossfadeShape } from '../../../common/dsp/crossfadeShape';
 import {
@@ -129,7 +132,18 @@ const normalizationChanged = (
   !previous ||
   previous.version !== next.version ||
   Math.abs(previous.truePeakDbtp - next.truePeakDbtp) >= 0.01 ||
-  Math.abs(previous.integratedLufs - next.integratedLufs) >= 0.01;
+  Math.abs(previous.integratedLufs - next.integratedLufs) >= 0.01 ||
+  previous.edges?.leadInMs !== next.edges?.leadInMs ||
+  previous.edges?.endMs !== next.edges?.endMs;
+
+/**
+ * How much leading silence is worth a seek.
+ *
+ * Below this the jump costs a decoder re-sync for something nobody could hear
+ * missing, and the incoming deck is better off simply starting at the file's
+ * first sample.
+ */
+const MIN_LEAD_IN_TRIM_MS = 250;
 
 /**
  * How long the level takes to come back after a seek.
@@ -711,6 +725,25 @@ export const LibraryPlayerProvider = ({
   const elementTrackRef = useRef(new Map<HTMLMediaElement, string>());
 
   /**
+   * Where the music stops in whatever each deck is playing.
+   *
+   * Keyed by element rather than by track id so it holds two entries and not
+   * one per song of a listening session, and so the `timeupdate` listener —
+   * bound once for the life of the element — can answer for the track that
+   * element is actually playing rather than the one the app is showing.
+   *
+   * Populated from the library's cached analysis at load, and again when a
+   * first-play measurement finishes, which for a track long enough to matter
+   * lands minutes before its own ending does.
+   */
+  const programmeEdgesRef = useRef(
+    new Map<HTMLMediaElement, ILibraryProgrammeEdges>(),
+  );
+
+  /** Decks whose next `seeked` is the lead-in trim — see `bindMediaEvents`. */
+  const leadInSeekRef = useRef(new Set<HTMLMediaElement>());
+
+  /**
    * Puts the last session's queue and playhead back, once.
    *
    * Waits for the index, because a queue is a list of ids and every one of
@@ -884,7 +917,21 @@ export const LibraryPlayerProvider = ({
         const transition = dspSettingsRef.current.crossfade;
         const playingId = current ? currentTrackId(current) : undefined;
         const { duration } = element;
-        const remainingMs = (duration - element.currentTime) * 1_000;
+        /**
+         * The end of the music, not the end of the file.
+         *
+         * A track padded with five seconds of digital silence used to start
+         * its two-second fade three seconds into that silence: nothing
+         * audible crossed over, and the next song waited for the padding to
+         * run out. Without a measurement this is the duration, which is what
+         * it always was.
+         */
+        const edges = programmeEdgesRef.current.get(element);
+        const programmeEndMs = Math.min(
+          duration * 1_000,
+          edges?.endMs ?? Number.POSITIVE_INFINITY,
+        );
+        const remainingMs = programmeEndMs - element.currentTime * 1_000;
         if (
           element === audioElementRef.current &&
           dspSettingsRef.current.enabled &&
@@ -894,7 +941,11 @@ export const LibraryPlayerProvider = ({
           playingId &&
           naturalCrossfadeTrackRef.current !== playingId &&
           Number.isFinite(duration) &&
-          remainingMs > 0 &&
+          // Not `remainingMs > 0`, which is the same test only while the
+          // programme runs to the last sample. Once the end is trimmed, being
+          // already inside the trailing silence — seeked into it, or arrived
+          // there while the DSP was off — is a reason to hand over now.
+          element.currentTime < duration &&
           remainingMs <= transition.durationMs &&
           (!queueAtEnd(current) || current.repeat === 'all')
         ) {
@@ -918,7 +969,16 @@ export const LibraryPlayerProvider = ({
         // through a ref because this listener is bound once for the life of
         // the element and must not take a dependency on anything defined
         // later in this component.
-        fadeInRef.current?.(element);
+        //
+        // Except for the player's own lead-in jump, which is not a seek
+        // anybody asked for: that deck is already inside a scheduled fade
+        // that owns its level, and a 70ms ramp from zero on top of the
+        // crossfade's own is the incoming song dipping as it arrives. The
+        // flag is consumed here, so a real seek on the same deck a moment
+        // later still gets its level back.
+        if (!leadInSeekRef.current.delete(element)) {
+          fadeInRef.current?.(element);
+        }
       };
       // `durationchange` as well as `loadedmetadata`, and it is the one that
       // matters. A resource the element cannot seek in reports its duration
@@ -1143,6 +1203,13 @@ export const LibraryPlayerProvider = ({
     // Tagged here, before either element can tick again, so the outgoing one
     // stops answering for a track it is no longer playing.
     elementTrackRef.current.set(audio, track.id);
+    // Deleted first, and unconditionally: a deck that is handed an unmeasured
+    // track must fall back to its duration rather than keep answering with
+    // the previous song's ending.
+    programmeEdgesRef.current.delete(audio);
+    if (track.normalization?.edges) {
+      programmeEdgesRef.current.set(audio, track.normalization.edges);
+    }
     if (!track.isPlayable) {
       audio.removeAttribute('src');
       setDspInputAnalysis({
@@ -1197,8 +1264,24 @@ export const LibraryPlayerProvider = ({
     const shouldAnalyze =
       dspSettingsRef.current.enabled &&
       (dspSettingsRef.current.normalizer.mode !== 'off' ||
+        // The crossfade needs the same decode pass: it cannot know when this
+        // song stops without measuring where its last audible sample is.
+        transition.enabled ||
         (dspSettingsRef.current.master.enabled &&
           dspSettingsRef.current.master.loudnessMaximize));
+    /**
+     * Skip the incoming track's leading silence, but only on a handoff.
+     *
+     * Starting a song the user picked out of the list still begins where the
+     * file begins; it is the overlap that has to land on music at both ends.
+     * Cached measurements only — the file has not been decoded yet at this
+     * point, so a track heard for the first time is trimmed from its second
+     * play onwards.
+     */
+    const leadInMs =
+      isCrossfading && cachedAnalysis?.edges
+        ? cachedAnalysis.edges.leadInMs
+        : 0;
     let deferredAnalysis: IDspInputAnalysisState | undefined;
     let deferredTrackGains: readonly [number, number] | undefined;
     const publishAnalysis = (next: IDspInputAnalysisState) => {
@@ -1314,6 +1397,16 @@ export const LibraryPlayerProvider = ({
           if (!cancelled) {
             playbackAccepted = true;
             if (isCrossfading) {
+              if (leadInMs >= MIN_LEAD_IN_TRIM_MS) {
+                // Here and not beside the `src` assignment: an element at
+                // `HAVE_NOTHING` records the seek against a resource whose
+                // ranges are unknown and then refuses every later one — the
+                // same trap the comment above `audio.src` describes. A
+                // settled `play()` means the decoder has data, so this lands.
+                leadInSeekRef.current.add(audio);
+                audio.currentTime = leadInMs / 1_000;
+                setPositionMs(leadInMs);
+              }
               // The incoming decoder owns transport only after it has actually
               // started. Taking ownership before `play()` settled let a slow
               // or rejected alternate deck capture Next/Previous and made the
@@ -1387,7 +1480,11 @@ export const LibraryPlayerProvider = ({
         !cachedAnalysis ||
         !signature ||
         signature.sizeBytes !== track.sizeBytes ||
-        signature.mtimeMs !== track.mtimeMs;
+        signature.mtimeMs !== track.mtimeMs ||
+        // An entry measured before the edges existed still holds correct
+        // loudness numbers, so it is only worth decoding the file again for
+        // the one feature that needs the missing half.
+        (!cachedAnalysis.edges && transition.enabled);
       if (!needsFreshAnalysis) {
         return;
       }
@@ -1429,6 +1526,12 @@ export const LibraryPlayerProvider = ({
         return;
       }
       const changed = normalizationChanged(cachedAnalysis, analysis);
+      // Straight onto the deck, without waiting for the index round trip: on
+      // a first play this measurement is the only thing that knows where the
+      // track stops, and it has to be in place before its own ending arrives.
+      if (analysis.edges && elementTrackRef.current.get(audio) === track.id) {
+        programmeEdgesRef.current.set(audio, analysis.edges);
+      }
       publishAnalysis({
         trackId: track.id,
         status: 'ready',
@@ -1489,22 +1592,29 @@ export const LibraryPlayerProvider = ({
   }, [trackId, loadRequest]);
 
   /**
-   * Enabling normalization while an already-playing uncached track is active.
+   * Enabling normalization or the crossfade while an already-playing uncached
+   * track is active.
    *
    * The ordinary loader already measures in the background. This path exists
    * for the one situation where it deliberately did not: the track was
-   * started while the mode was Off. The linked gain ramps once when analysis
+   * started while both were off. The linked gain ramps once when analysis
    * completes; it never follows short-term level afterwards.
    */
   useEffect(() => {
+    const wantsLoudness =
+      (dspSettings.normalizer.mode !== 'off' ||
+        (dspSettings.master.enabled && dspSettings.master.loudnessMaximize)) &&
+      !track?.normalization;
+    // A track already measured for loudness can still be missing its edges,
+    // either because it was analyzed before they were measured at all or
+    // because the crossfade was switched on after it started.
+    const wantsEdges =
+      dspSettings.crossfade.enabled && !track?.normalization?.edges;
     if (
       !dspSettings.enabled ||
-      (dspSettings.normalizer.mode === 'off' &&
-        (!dspSettings.master.enabled ||
-          !dspSettings.master.loudnessMaximize)) ||
+      (!wantsLoudness && !wantsEdges) ||
       !track ||
       track.kind !== 'audio' ||
-      track.normalization ||
       analysisJobRef.current?.trackId === track.id
     ) {
       return undefined;
@@ -1563,6 +1673,14 @@ export const LibraryPlayerProvider = ({
         }
         return;
       }
+      const deck = audioElementRef.current;
+      if (
+        analysis.edges &&
+        deck &&
+        elementTrackRef.current.get(deck) === track.id
+      ) {
+        programmeEdgesRef.current.set(deck, analysis.edges);
+      }
       setDspInputAnalysis({
         trackId: track.id,
         status: 'ready',
@@ -1613,6 +1731,7 @@ export const LibraryPlayerProvider = ({
       }
     };
   }, [
+    dspSettings.crossfade.enabled,
     dspSettings.enabled,
     dspSettings.master.enabled,
     dspSettings.master.loudnessMaximize,
