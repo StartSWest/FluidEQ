@@ -138,6 +138,25 @@ export const registerDspHostIpc = ({
       return unavailable;
     }
     await host.start();
+    /*
+     * A model downloaded in an earlier session has to be handed over here.
+     *
+     * Nothing else does it. `loadVoiceModel` was only ever called from the
+     * download handler, so the model engaged exactly once — in the session it
+     * was fetched — and every launch after that started with the file sitting
+     * on disk, the card offering no download because it was present, and the
+     * module reporting itself unavailable forever.
+     */
+    if (host.getState() === 'ready' && isDenoiseModelPresent()) {
+      const runtime = onnxRuntimeLibraryPath();
+      if (runtime) {
+        try {
+          await host.loadVoiceModel(denoiseModelPath(), runtime);
+        } catch {
+          // The stage reports itself unavailable, which is already correct.
+        }
+      }
+    }
     return statusOf();
   });
 
@@ -291,18 +310,28 @@ export const registerDspHostIpc = ({
       if (!ok) {
         return false;
       }
+      /*
+       * The answer is about the FILE, not about the engine.
+       *
+       * This used to report false whenever the host was not running or the
+       * runtime could not be found, reasoning that the card should not claim a
+       * module the engine had not accepted. The effect was the opposite of
+       * careful: the card reset itself to "missing" after a successful
+       * ten-megabyte download, so the button looked like it had done nothing
+       * and pressing it again re-ran the whole thing. Whether the ENGINE has
+       * the model is a different fact, and the card already has that one live
+       * from `voiceModelLoaded` in the meter frame.
+       */
       const runtime = onnxRuntimeLibraryPath();
-      if (!runtime || !supervisor || supervisor.getState() !== 'ready') {
-        // Downloaded but not engaged. Reported as false rather than true so
-        // the card does not claim a module is running that the engine has not
-        // accepted; the next engage replays it.
-        return false;
+      if (runtime && supervisor && supervisor.getState() === 'ready') {
+        try {
+          await supervisor.loadVoiceModel(denoiseModelPath(), runtime);
+        } catch {
+          // Engaging can wait for the next start. The file is downloaded and
+          // its hash verified, which is what was actually asked for.
+        }
       }
-      try {
-        return await supervisor.loadVoiceModel(denoiseModelPath(), runtime);
-      } catch {
-        return false;
-      }
+      return true;
     },
   );
 
