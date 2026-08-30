@@ -96,7 +96,10 @@ describe('DspPanel', () => {
     expect(
       presets.queryByRole('button', { name: 'Off' }),
     ).not.toBeInTheDocument();
-    expect(DSP_PRESETS).toHaveLength(3);
+    // Four: Task 7 added `bass-power`, whose dictionary entry Task 8 still
+    // owes — its button renders with the raw key until that key lands, which
+    // is expected here and is not what this count guards against.
+    expect(DSP_PRESETS).toHaveLength(4);
   });
 
   /**

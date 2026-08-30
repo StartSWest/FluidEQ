@@ -17,6 +17,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { DSP_DEFAULTS, IDspSettings } from './chain';
+import { bassForgePresetSettings } from './bassForgePresets';
+import { bassPunchPresetSettings } from './bassPunchPresets';
 import { dimensionPresetSettings } from './dimensionPresets';
 import { exciterPresetSettings } from './exciterPresets';
 import { maximizerPresetSettings } from './maximizerPresets';
@@ -241,6 +243,35 @@ export const DSP_PRESETS: IDspPreset[] = [
       // a wide mix that survives the fold-down still loses its picture.
       dimension: dimensionPresetSettings('monoSafe', true),
       maximizer: maximizerPresetSettings('broadcast', true),
+      master: DSP_DEFAULTS.master,
+    },
+  },
+  {
+    /**
+     * The two stages this feature added, switched on together.
+     *
+     * `solid` and `punch` rather than the loudest profile in either catalogue:
+     * this preset is most people's first contact with both stages, and a real
+     * octave below plus a hard, short transient is the legible version of what
+     * each one does. Referenced by id, exactly as the Exciter and Maximizer
+     * are above — one copy of the numbers, in the catalogue the picker also
+     * reads, so this preset and the picker cannot disagree about what `solid`
+     * or `punch` means.
+     */
+    id: 'bass-power',
+    labelKey: 'dsp.preset.bassPower',
+    settings: {
+      enabled: true,
+      normalizer: DSP_DEFAULTS.normalizer,
+      denoise: DSP_DEFAULTS.denoise,
+      crossfade: DSP_DEFAULTS.crossfade,
+      eq: DSP_DEFAULTS.eq,
+      exciter: DSP_DEFAULTS.exciter,
+      bassForge: bassForgePresetSettings('solid', true),
+      bassPunch: bassPunchPresetSettings('punch', true),
+      compressor: DSP_DEFAULTS.compressor,
+      dimension: DSP_DEFAULTS.dimension,
+      maximizer: DSP_DEFAULTS.maximizer,
       master: DSP_DEFAULTS.master,
     },
   },
