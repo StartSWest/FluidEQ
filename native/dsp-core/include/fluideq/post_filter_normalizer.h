@@ -71,10 +71,41 @@ extern "C" {
 #define FEQ_AUTO_HEADROOM_BYPASS_RELEASE_MS 1000.0
 #define FEQ_AUTO_HEADROOM_MARGIN_DB 0.2
 
+/**
+ * How long sustained reduction takes to reach the slow release, in ms.
+ *
+ * This stage went from catching the occasional transient to holding the
+ * programme down for whole choruses the moment the loudness target was allowed
+ * to ask for gain the track's peak room could not supply. One release time
+ * cannot serve both: fast enough for an isolated peak not to duck the phrase
+ * after it, and slow enough that a dense chorus does not have its level
+ * modulated at the rate of its own snare. That modulation is what pumping IS.
+ *
+ * So the release stretches with how long reduction has already persisted. A
+ * transient releases at the dialled time because the stage has not been down
+ * long enough to stretch; a passage that has been under reduction for a third
+ * of a second releases three times slower, and the level between its peaks
+ * stops moving.
+ */
+#define FEQ_AUTO_HEADROOM_SUSTAIN_MS 300.0
+/** What the release is multiplied by once reduction is fully sustained. */
+#define FEQ_AUTO_HEADROOM_SUSTAIN_STRETCH 3.0
+/** Below this much reduction the stage counts as not working. */
+#define FEQ_AUTO_HEADROOM_SUSTAIN_THRESHOLD_DB 0.1
+
 typedef struct FeqPostFilterNormalizer {
   FeqLinkedLimiter limiter;
   double minimum_gain;
   double input_true_peak;
+  /**
+   * How long the stage has been reducing, in samples, decaying when it is not.
+   *
+   * Per block rather than per sample deliberately: a block is about ten
+   * milliseconds and the release times this scales are forty to four hundred,
+   * so sampling the state once a block is well inside the quantity it
+   * controls — and it keeps every per-sample path in `limiter.cpp` untouched.
+   */
+  double sustain_samples;
 } FeqPostFilterNormalizer;
 
 typedef struct FeqPostFilterNormalizerTelemetry {

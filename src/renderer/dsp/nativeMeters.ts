@@ -43,6 +43,7 @@ import {
   setDspChannelPeaks,
   setDspCorrelation,
   setDspExciterActivity,
+  setDspLoudness,
   setDspDimensionGuard,
   setDspMaximizerReduction,
   setDspNormalizerMeter,
@@ -189,6 +190,11 @@ export const createNativeMeters = (
     // not until the reduction is on screen.
     setDspMaximizerReduction(frame.maximizerReductionDb);
     setDspDimensionGuard(frame.dimensionGuard);
+    // The one reading the Master page never had. Its target was a number the
+    // user set beside a spectrum, with nothing anywhere in the app that could
+    // say what the output measured — which is how a makeup applying exactly
+    // zero decibels went unseen for the life of the stage.
+    setDspLoudness(frame.loudness);
     /**
      * The Master card's five readouts, which had no source at all.
      *

@@ -487,6 +487,14 @@ export const decodeAnalysis = (frame: Buffer): IHostAnalysis | undefined => {
       outputPeaks: [view.getFloat32(104, true), view.getFloat32(108, true)],
       appliedGainDb: view.getFloat32(112, true),
     },
+    // Offset 116 is `reserved_tail`, the float that was padding the struct to
+    // eight-byte alignment before these four followed it.
+    loudness: {
+      momentaryLufs: view.getFloat32(120, true),
+      shortTermLufs: view.getFloat32(124, true),
+      integratedLufs: view.getFloat32(128, true),
+      rangeLu: view.getFloat32(132, true),
+    },
     bandAmounts,
     bandLevels,
   };

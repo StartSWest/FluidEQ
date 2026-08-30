@@ -91,7 +91,11 @@ constexpr double kShelfBandwidthExponent = 0.499666774155;
 constexpr double kHighpassHz = 38.13547087602444;
 constexpr double kHighpassQuality = 0.5003270373238773;
 
-FeqBiquadCoefficients k_weighting_shelf(double sample_rate) {
+}  // namespace
+
+extern "C" {
+
+FeqBiquadCoefficients feq_k_weighting_shelf(double sample_rate) {
   const double k = std::tan((kPi * kShelfHz) / sample_rate);
   const double high = std::pow(10.0, kShelfGainDb / 20.0);
   const double band = std::pow(high, kShelfBandwidthExponent);
@@ -105,7 +109,7 @@ FeqBiquadCoefficients k_weighting_shelf(double sample_rate) {
   return out;
 }
 
-FeqBiquadCoefficients k_weighting_highpass(double sample_rate) {
+FeqBiquadCoefficients feq_k_weighting_highpass(double sample_rate) {
   const double k = std::tan((kPi * kHighpassHz) / sample_rate);
   const double a0 = 1.0 + k / kHighpassQuality + k * k;
   FeqBiquadCoefficients out;
@@ -119,8 +123,6 @@ FeqBiquadCoefficients k_weighting_highpass(double sample_rate) {
   out.a2 = (1.0 - k / kHighpassQuality + k * k) / a0;
   return out;
 }
-
-}  // namespace
 
 struct FeqLoudnessAnalyzer {
   uint32_t channels = 0;
@@ -139,8 +141,6 @@ struct FeqLoudnessAnalyzer {
   uint64_t frame = 0;
 };
 
-extern "C" {
-
 FeqLoudnessAnalyzer* feq_loudness_create(double sample_rate,
                                          uint32_t channels) {
   if (!(sample_rate > 0.0) || channels == 0) {
@@ -149,8 +149,8 @@ FeqLoudnessAnalyzer* feq_loudness_create(double sample_rate,
   auto* analyzer = new FeqLoudnessAnalyzer();
   analyzer->channels = channels < 2 ? channels : 2;
 
-  analyzer->shelf = k_weighting_shelf(sample_rate);
-  analyzer->highpass = k_weighting_highpass(sample_rate);
+  analyzer->shelf = feq_k_weighting_shelf(sample_rate);
+  analyzer->highpass = feq_k_weighting_highpass(sample_rate);
 
   analyzer->shelf_states.resize(analyzer->channels);
   analyzer->highpass_states.resize(analyzer->channels);

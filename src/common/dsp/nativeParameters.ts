@@ -193,6 +193,13 @@ export const NATIVE_DSP_PARAMETERS = [
   { id: 1704, path: 'master.loudnessTargetLufs', kind: 'number' },
   { id: 1705, path: 'master.ceilingDb', kind: 'number' },
   { id: 1706, path: 'master.releaseMs', kind: 'number' },
+  /**
+   * A term of the track-level makeup rather than something the chain applies,
+   * which is why it is here and not in the chain snapshot — the same place
+   * `normalizer.targetLufs` sits, and for the same reason.
+   */
+  { id: 1707, path: 'master.peakLimitingDb', kind: 'number' },
+  { id: 1708, path: 'master.matchedBypass', kind: 'boolean' },
 
   /**
    * The A/B that proves the safety net is the net and not the sound.

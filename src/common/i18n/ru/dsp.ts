@@ -374,12 +374,13 @@ const dsp = {
     'Аварийная защита выше +10 dBTP · упреждение 2 мс · коррекция без восстановления · DC-защита 3 Гц · исправление неверных отсчётов',
   'dsp.master.dcCorrection': 'DC-смещение',
   'dsp.master.faults': 'Сбои',
-  'dsp.master.graph.spectrum': 'Финальный спектр',
-  'dsp.master.graph.trim': 'Выходной уровень',
-  'dsp.master.graph.applied': 'Применённый уровень',
-  'dsp.master.graph.trimLine': 'Уровень {gain} дБ',
-  'dsp.master.graph.appliedLine': 'Применено {gain} дБ',
-  'dsp.master.graph.dcGuard': 'DC-защита',
+  'dsp.master.graph.momentary': 'Мгновенная',
+  'dsp.master.graph.shortTerm': 'Кратковременная',
+  'dsp.master.graph.target': 'Цель',
+  'dsp.master.graph.integrated': 'Интегральная',
+  'dsp.master.graph.targetLine': 'Цель {target} LUFS',
+  'dsp.master.graph.integratedLine': 'Интегральная {value} LUFS',
+  'dsp.master.graph.reductionShort': 'GR',
   'dsp.master.graph.peakWarning':
     'Предупреждение · выход {peak} dBTP выше потолка',
   'dsp.master.graph.peakFixed': 'Пик ограничен · ослабление {gain} дБ',
@@ -393,6 +394,27 @@ const dsp = {
   'dsp.master.graph.safetyBypassed': 'Предупреждение · защита обойдена',
   'dsp.master.graph.loudnessActive':
     'Максимум LUFS · +{gain} дБ к {target} LUFS',
+  'dsp.master.peakLimiting': 'Ограничение пиков',
+  'dsp.master.matchedBypass': 'Прослушивание с выравниванием',
+  'dsp.master.matchedBypassHint':
+    'Воспроизводит результат тише на {gain} дБ, на уровне до максимизации. Ограничение не меняется, поэтому выключение Master сравнивает звук, а не громкость.',
+  'dsp.master.limit.limiting':
+    'Требовалось {requested} дБ — {room} дБ пикового запаса плюс разрешённое ограничение.',
+  'dsp.master.limit.maxGain':
+    'Требовалось {requested} дБ — на максимальной коррекции этой ступени.',
+  'dsp.master.limit.gate':
+    'Слишком тихо для измерения — коррекция не применена.',
+  'dsp.master.loudness.momentary': 'M',
+  'dsp.master.loudness.shortTerm': 'S',
+  'dsp.master.loudness.integrated': 'I',
+  'dsp.master.loudness.range': 'LRA',
+  'dsp.master.loudness.truePeak': 'TP',
+  'dsp.masterPreset.label': 'Назначение',
+  'dsp.masterPreset.streaming': 'Стриминг',
+  'dsp.masterPreset.streamingQuiet': 'Стриминг, тихо',
+  'dsp.masterPreset.broadcast': 'Вещание R128',
+  'dsp.masterPreset.club': 'Клуб',
+  'dsp.masterPreset.reference': 'Эталон',
 
   'tabs.dsp': 'DSP',
 };

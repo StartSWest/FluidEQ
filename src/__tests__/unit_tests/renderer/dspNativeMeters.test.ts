@@ -72,6 +72,12 @@ const analysisFrame = (
       truePeakFactor: 4,
       safetyEnabled: true,
     },
+    loudness: {
+      momentaryLufs: -120,
+      shortTermLufs: -120,
+      integratedLufs: -120,
+      rangeLu: 0,
+    },
     normalizer: {
       inputPeaks: [0, 0],
       outputPeaks: [0, 0],

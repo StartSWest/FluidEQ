@@ -990,6 +990,53 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   padding-left: 9px;
 }
 
+// The five numbers a loudness meter is, under the picture they came from.
+//
+// In the DOM rather than painted into the canvas because these are read as
+// values — the exact integrated figure is what a target is checked against —
+// and a canvas has nothing for a screen reader to reach.
+.dsp-master-loudness {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 8px;
+
+  span {
+    display: flex;
+    gap: 5px;
+    align-items: baseline;
+    padding: 4px 9px;
+    border: 1px solid rgba($white, 0.07);
+    border-radius: 7px;
+    background: rgba($black, 0.34);
+    color: rgba($white, 0.82);
+    font-size: 0.72rem;
+    font-variant-numeric: tabular-nums;
+
+    em {
+      color: rgba($white, 0.44);
+      font-size: 0.58rem;
+      font-style: normal;
+      font-weight: $weight-medium;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    // The integrated reading is the one a delivery target is judged against,
+    // so it wears the accent the rest of the row does not.
+    &.is-primary {
+      border-color: rgba($secondary-default, 0.3);
+      color: rgba($secondary-light, 0.96);
+    }
+
+    &.is-warning {
+      border-color: rgba($red, 0.42);
+      color: $red;
+    }
+  }
+}
+
 @container dsp-card (max-width: 900px) {
   .dsp-master-status {
     right: 18px;

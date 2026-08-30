@@ -40,6 +40,7 @@ void feq_post_filter_normalizer_init(FeqPostFilterNormalizer* state,
                           channels, capacity, true_peak_factor);
   state->minimum_gain = 1.0;
   state->input_true_peak = 0.0;
+  state->sustain_samples = 0.0;
 }
 
 void feq_post_filter_normalizer_rebase(FeqPostFilterNormalizer* state) {
@@ -49,6 +50,7 @@ void feq_post_filter_normalizer_rebase(FeqPostFilterNormalizer* state) {
   feq_linked_limiter_reset_control(&state->limiter);
   state->minimum_gain = 1.0;
   state->input_true_peak = 0.0;
+  state->sustain_samples = 0.0;
 }
 
 void feq_post_filter_normalizer_process(
@@ -78,11 +80,36 @@ void feq_post_filter_normalizer_process(
                                         ? options->release_ms
                                         : 1.0)
                                  : FEQ_AUTO_HEADROOM_BYPASS_RELEASE_MS;
-  const double effective_ms =
+  const double bounded_ms =
       enabled ? (selected_ms < FEQ_AUTO_HEADROOM_MAX_RELEASE_MS
                      ? selected_ms
                      : FEQ_AUTO_HEADROOM_MAX_RELEASE_MS)
               : FEQ_AUTO_HEADROOM_BYPASS_RELEASE_MS;
+  /**
+   * Program-dependent: the dialled release for a transient, slower for a
+   * passage that has been held down.
+   *
+   * `sustain` is how long the stage has already been reducing, measured
+   * against the block that just went past, so this block's release reflects
+   * what the music has been doing rather than what one sample did. A single
+   * peak leaves it near zero and releases at the time on the dial. Sustained
+   * limiting stretches it toward three times that, which is what stops the
+   * level between peaks moving at the rate of the peaks themselves.
+   *
+   * Only while enabled. The bypass release is a fixed slow walk back to unity
+   * and has nothing to be program-dependent about.
+   */
+  const double sustain_span =
+      (FEQ_AUTO_HEADROOM_SUSTAIN_MS / 1000.0) * options->sample_rate;
+  const double sustained =
+      enabled && sustain_span > 0.0
+          ? (state->sustain_samples < sustain_span
+                 ? state->sustain_samples / sustain_span
+                 : 1.0)
+          : 0.0;
+  const double effective_ms =
+      bounded_ms *
+      (1.0 + sustained * (FEQ_AUTO_HEADROOM_SUSTAIN_STRETCH - 1.0));
   const double release_coefficient =
       std::exp(-1.0 / ((effective_ms / 1000.0) * options->sample_rate));
 
@@ -118,6 +145,24 @@ void feq_post_filter_normalizer_process(
   }
   if (state->limiter.gain < state->minimum_gain) {
     state->minimum_gain = state->limiter.gain;
+  }
+
+  // Counted up while the stage is working and down while it is not, at the
+  // same rate — so a passage broken by a bar of space does not arrive back at
+  // the fast release the instant one peak stops asking for reduction.
+  const double reducing_below =
+      std::pow(10.0, -FEQ_AUTO_HEADROOM_SUSTAIN_THRESHOLD_DB / 20.0);
+  const double moved = static_cast<double>(frames);
+  if (enabled && state->limiter.gain < reducing_below) {
+    state->sustain_samples += moved;
+    if (state->sustain_samples > sustain_span) {
+      state->sustain_samples = sustain_span;
+    }
+  } else {
+    state->sustain_samples -= moved;
+    if (state->sustain_samples < 0.0) {
+      state->sustain_samples = 0.0;
+    }
   }
 }
 

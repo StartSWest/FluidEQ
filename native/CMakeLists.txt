@@ -75,6 +75,7 @@ add_library(fluideq-dsp-core STATIC
   dsp-core/src/convolver.cpp
   dsp-core/src/linear_phase.cpp
   dsp-core/src/loudness.cpp
+  dsp-core/src/loudness_meter.cpp
   dsp-core/src/crossfade.cpp
   dsp-core/src/dimension.cpp
   dsp-core/src/meters.cpp
