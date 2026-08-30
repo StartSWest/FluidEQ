@@ -51,7 +51,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // while the page is open — a line appearing under the heading with no motion
 // at all reads as the layout jumping rather than as news.
 .dsp-idle,
-.dsp-unavailable {
+.dsp-unavailable,
+.dsp-engine-fallback {
   @include animate(rise-in, $motion-base, $ease-out, 85ms);
 }
 
@@ -236,11 +237,52 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 .dsp-normalizer-control-surface,
 .dsp-normalizer-analysis,
-.dsp-normalizer-live {
+.dsp-normalizer-live,
+.dsp-denoise-source,
+.dsp-denoise-analysis,
+.dsp-denoise-live {
   min-width: 0;
   border: 1px solid rgba($white, 0.06);
   border-radius: 10px;
   background: rgba($black, 0.18);
+}
+
+// Denoise reuses the Normalizer's panel treatment rather than defining its
+// own. The two cards sit next to each other on the rail and both open with a
+// measurement of the source; a second set of nearly-identical surfaces would
+// read as a different kind of panel for no reason a user could name.
+.dsp-denoise-source,
+.dsp-denoise-analysis,
+.dsp-denoise-live {
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 14px;
+}
+
+// Two across on a wide panel, one on a narrow one. Four modules stacked in a
+// single column pushes the live readout below the fold, and a stage's own
+// meters have to be visible while its dials are being turned.
+// The button and its progress on one row, inside the module it belongs to.
+// A download offered somewhere other than beside the control it enables reads
+// as unrelated housekeeping.
+.dsp-denoise-model {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+
+  .dsp-normalizer-progress {
+    flex: 1 1 120px;
+  }
+}
+
+.dsp-denoise-modules {
+  display: grid;
+  width: 100%;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 10px;
 }
 
 .dsp-normalizer-control-surface {
@@ -990,6 +1032,53 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   padding-left: 9px;
 }
 
+// The five numbers a loudness meter is, under the picture they came from.
+//
+// In the DOM rather than painted into the canvas because these are read as
+// values — the exact integrated figure is what a target is checked against —
+// and a canvas has nothing for a screen reader to reach.
+.dsp-master-loudness {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 8px;
+
+  span {
+    display: flex;
+    gap: 5px;
+    align-items: baseline;
+    padding: 4px 9px;
+    border: 1px solid rgba($white, 0.07);
+    border-radius: 7px;
+    background: rgba($black, 0.34);
+    color: rgba($white, 0.82);
+    font-size: 0.72rem;
+    font-variant-numeric: tabular-nums;
+
+    em {
+      color: rgba($white, 0.44);
+      font-size: 0.58rem;
+      font-style: normal;
+      font-weight: $weight-medium;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    // The integrated reading is the one a delivery target is judged against,
+    // so it wears the accent the rest of the row does not.
+    &.is-primary {
+      border-color: rgba($secondary-default, 0.3);
+      color: rgba($secondary-light, 0.96);
+    }
+
+    &.is-warning {
+      border-color: rgba($red, 0.42);
+      color: $red;
+    }
+  }
+}
+
 @container dsp-card (max-width: 900px) {
   .dsp-master-status {
     right: 18px;
@@ -1160,6 +1249,22 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   gap: 10px;
 }
 
+// A switch that belongs TO the control above it rather than beside it.
+//
+// Gain match is not a stage: it is how you listen to the one it sits under,
+// and it does nothing at all while that one is off. Given a band of its own it
+// read as a third processor whose only visible effect was making the music
+// quieter, which is how it came to be reported as confusing. The rule it is
+// indented under stands in for the sentence that would otherwise have to say
+// "this one belongs to the thing above it".
+.dsp-band-nested {
+  margin-top: 10px;
+  padding-top: 10px;
+  padding-left: 12px;
+  border-top: 1px solid rgba($white, 0.06);
+  border-left: 2px solid rgba($secondary-default, 0.22);
+}
+
 // The one block on this page that earns a sentence. Everything else here is a
 // word and a number; this is an effect the user has no name for yet, so it
 // says what it is for.
@@ -1171,16 +1276,23 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 // Amber, the same attention colour the rack already uses, and deliberately not
-// `$red`: the audio is fine and every effect is still applied. Only the engine
-// doing the arithmetic changed, so this reports a fact rather than a fault.
-// Louder than a plain hint because the alternative — how it behaved before —
-// was no indication at all.
+// `$red`: the audio is fine and the fallback chain still applies every stage it
+// has. Only the engine doing the arithmetic changed, so this reports a fact
+// rather than a fault. Louder than a plain hint because the alternative — how
+// it behaved before — was no indication at all.
+//
+// Sizes itself now that it sits in the header rather than inside the Master
+// card, where it borrowed `.dsp-band-hint` for everything but the box.
 .dsp-engine-fallback {
+  max-width: 680px;
+  margin: 2px 0 0;
   padding: 7px 10px;
   border: 1px solid rgba(255, 176, 89, 0.3);
   border-radius: 6px;
   background: rgba(255, 176, 89, 0.06);
   color: rgb(255, 196, 126);
+  font-size: 0.74rem;
+  line-height: 1.4;
 }
 
 // Warm rather than the rack's cyan, matching the bar the display gives it. It
@@ -3148,4 +3260,100 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // meter that has fallen to zero.
 .dsp-dimension-guard.is-off {
   opacity: 0.42;
+}
+
+// Dimension's width curve. Sized like the other processor graphs so the pages
+// keep the same rhythm when the rail moves between them.
+.dsp-dimension-graph {
+  display: grid;
+  gap: 6px;
+  width: 100%;
+}
+
+.dsp-dimension-canvas {
+  width: 100%;
+  height: 220px;
+}
+
+// The three widths and the three shape controls read as two decisions rather
+// than six numbers; the grouping is most of what somebody needs to set them.
+.dsp-dimension-controls {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 12px;
+  width: 100%;
+}
+
+.dsp-dimension-group {
+  display: grid;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid $border-subtle;
+  border-radius: 10px;
+}
+
+.dsp-dimension-group-name {
+  color: rgba($white, 0.52);
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.dsp-dimension-group-dials {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+// The field beside the curve: what the effect is doing, and how it is set.
+// Square on the left because a goniometer that is not square lies about the
+// angle, and the angle is the whole reading.
+.dsp-dimension-graph {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: 12px;
+  width: 100%;
+  align-items: stretch;
+}
+
+.dsp-dimension-field {
+  width: 220px;
+  height: 220px;
+  border-radius: 10px;
+  background: #090c12;
+  border: 1px solid $border-subtle;
+}
+
+.dsp-dimension-curve {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+@container dsp-card (max-width: 620px) {
+  .dsp-dimension-graph {
+    grid-template-columns: 1fr;
+  }
+
+  .dsp-dimension-field {
+    width: 100%;
+    max-width: 220px;
+    justify-self: center;
+  }
+}
+
+// The history strip under the curve, on the same width so the two share a
+// left edge and read as one pane rather than two stacked pictures.
+.dsp-dimension-history {
+  width: 100%;
+  height: 64px;
+  border-radius: 8px;
+  background: rgba($black, 0.28);
+}
+
+// Amber, matching the normalizer's before-bar: this is the one track here that
+// is a property of the RECORD rather than of the settings.
+.dsp-eq-legend-mark.is-correlation {
+  background: #ffb059;
 }

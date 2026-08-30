@@ -8,9 +8,11 @@ import { DSP_DEFAULTS, IMasterSettings } from '../../common/dsp/chain';
 import { useTranslation } from '../utils/I18nContext';
 import Switch from '../widgets/Switch';
 import { Dial, ProcessorCard } from './DspControls';
+import DspMasterBar from './DspMasterBar';
 import DspMasterGraph from './DspMasterGraph';
+import { IMasterLoudnessBreakdown } from './inputNormalizer';
 import { OUTPUT_SAFETY_SOFT_KNEE_DB } from './outputSafety';
-import { IDspOutputSafetyMeter, TDspNativeState } from './store';
+import { IDspOutputSafetyMeter } from './store';
 
 const IS_DEV = process.env.NODE_ENV !== 'production';
 
@@ -25,17 +27,13 @@ interface IDspMasterCardProps {
   meter: IDspOutputSafetyMeter;
   safetyEnabled: boolean;
   /**
-   * Whether the one engine there is has started.
+   * The makeup AND why it is that number.
    *
-   * The C++ engine is the only thing that processes audio, so this is not a
-   * choice being reported — it is whether the rack is running at all. There is
-   * no fallback to hide a failure behind any more, which is precisely why it
-   * has to be visible: a host that did not start means no EQ, no compressor and
-   * no limiter, and the panel would otherwise show a full set of controls doing
-   * nothing.
+   * One value would leave the card recomputing the explanation beside an
+   * engine that computed the value, which is how two derivations of one number
+   * drift until the readout contradicts the dial above it.
    */
-  nativeState: TDspNativeState;
-  loudnessGainDb: number;
+  loudness: IMasterLoudnessBreakdown;
   onSafetyToggle: () => void;
   onPatch: (next: IMasterSettings) => void;
   onCommit: () => void;
@@ -46,13 +44,23 @@ const DspMasterCard = ({
   master,
   meter,
   safetyEnabled,
-  nativeState,
-  loudnessGainDb,
+  loudness,
   onSafetyToggle,
   onPatch,
   onCommit,
 }: IDspMasterCardProps) => {
   const { t } = useTranslation();
+  const loudnessGainDb = loudness.appliedDb;
+  /**
+   * Any change to a delivery number makes the result Custom; the rest do not.
+   *
+   * The same rule as the Exciter's and the Maximizer's pages. Output gain,
+   * release and matched listen are how the stage is being used rather than
+   * where the result is going, so moving one of those must not make the picker
+   * stop naming the destination that is still selected.
+   */
+  const patchDelivery = (next: Partial<IMasterSettings>) =>
+    onPatch({ ...master, ...next, presetId: '' });
   const usesSelectedHeadroom = master.loudnessMaximize;
   const effectiveCeiling = usesSelectedHeadroom ? master.ceilingDb : 0;
   const effectiveKnee = usesSelectedHeadroom ? OUTPUT_SAFETY_SOFT_KNEE_DB : 0;
@@ -74,12 +82,14 @@ const DspMasterCard = ({
     <ProcessorCard
       id="dsp-master"
       titleKey="dsp.master.title"
-      descriptionKey="dsp.master.description"
       isEnabled={master.enabled}
       onToggle={() => {
         onPatch({ ...master, enabled: !master.enabled });
         onCommit();
       }}
+      toolbar={
+        <DspMasterBar master={master} onChange={onPatch} onCommit={onCommit} />
+      }
     >
       <DspMasterGraph
         master={master}
@@ -110,21 +120,52 @@ const DspMasterCard = ({
           step={0.1}
           isDisabled={!master.enabled || !master.loudnessMaximize}
           onCommit={onCommit}
-          onChange={(ceilingDb) => onPatch({ ...master, ceilingDb })}
+          onChange={(ceilingDb) => patchDelivery({ ceilingDb })}
         />
         <Dial
           labelKey="dsp.master.loudnessTarget"
           value={master.loudnessTargetLufs}
           defaultValue={DSP_DEFAULTS.master.loudnessTargetLufs}
-          min={-18}
+          min={-24}
           max={-6}
           unit="LUFS"
           step={0.5}
           isDisabled={!master.enabled || !master.loudnessMaximize}
           onCommit={onCommit}
           onChange={(loudnessTargetLufs) =>
-            onPatch({ ...master, loudnessTargetLufs })
+            patchDelivery({ loudnessTargetLufs })
           }
+        />
+        {/* The control that decides whether the target is reached at all.
+            Beside the target rather than under a heading of its own, because
+            the two are one decision: how loud, and what it may cost. */}
+        <Dial
+          labelKey="dsp.master.peakLimiting"
+          value={master.peakLimitingDb}
+          defaultValue={DSP_DEFAULTS.master.peakLimitingDb}
+          min={0}
+          max={12}
+          unit="dB"
+          step={0.5}
+          isDisabled={!master.enabled || !master.loudnessMaximize}
+          onCommit={onCommit}
+          onChange={(peakLimitingDb) => patchDelivery({ peakLimitingDb })}
+        />
+        {/* Shipped as a setting, a wire parameter and a translated string, and
+            never as a control. It is the difference between limiting that is
+            heard and limiting that is not, which matters far more now that the
+            target actually engages the limiter. */}
+        <Dial
+          labelKey="dsp.master.release"
+          value={master.releaseMs}
+          defaultValue={DSP_DEFAULTS.master.releaseMs}
+          min={40}
+          max={400}
+          unit="ms"
+          step={5}
+          isDisabled={!master.enabled || !master.loudnessMaximize}
+          onCommit={onCommit}
+          onChange={(releaseMs) => onPatch({ ...master, releaseMs })}
         />
       </div>
 
@@ -149,6 +190,51 @@ const DspMasterCard = ({
         </div>
         <p className="dsp-band-hint">
           {t('dsp.master.loudnessMaximizeHint', {
+            gain: loudnessGainDb.toFixed(1),
+          })}
+        </p>
+        {/* Which term produced that number, when it was not the target.
+            Without it the dial says -9 LUFS, the hint says +2.5 dB, and there
+            is nothing on the page connecting the two. */}
+        {master.enabled &&
+        master.loudnessMaximize &&
+        loudness.limitedBy !== 'none' ? (
+          <p className="dsp-normalizer-limit">
+            {t(`dsp.master.limit.${loudness.limitedBy}`, {
+              requested: loudness.requestedDb.toFixed(1),
+              room: loudness.peakRoomDb.toFixed(1),
+              limiting: loudness.limitingDb.toFixed(1),
+            })}
+          </p>
+        ) : undefined}
+
+        {/*
+          Inside the maximize band, not beside it.
+
+          It had a band of its own, which put a switch that only makes things
+          QUIETER between two processing stages and gave it the same weight as
+          one — reported as confusing, and fairly. It is not a stage: it is how
+          you listen to the one above it, it is meaningless while that one is
+          off, and every plugin that has this calls it gain match rather than
+          anything to do with bypass.
+        */}
+        <div className="dsp-band-head dsp-band-nested">
+          <span className="dsp-band-title">
+            {t('dsp.master.matchedBypass')}
+          </span>
+          <Switch
+            id="dsp-master-matched-bypass"
+            isOn={master.matchedBypass}
+            isDisabled={!master.enabled || !master.loudnessMaximize}
+            handleToggle={() => {
+              onPatch({ ...master, matchedBypass: !master.matchedBypass });
+              onCommit();
+            }}
+            ariaLabel={t('dsp.master.matchedBypass')}
+          />
+        </div>
+        <p className="dsp-band-hint">
+          {t('dsp.master.matchedBypassHint', {
             gain: loudnessGainDb.toFixed(1),
           })}
         </p>
@@ -225,12 +311,6 @@ const DspMasterCard = ({
             </span>
           </span>
         </div>
-      ) : undefined}
-
-      {nativeState === 'failed' ? (
-        <p className="dsp-band-hint dsp-engine-fallback" role="status">
-          {t('dsp.master.engineFallback')}
-        </p>
       ) : undefined}
     </ProcessorCard>
   );

@@ -21,6 +21,7 @@ import {
   defaultCrossfadeShape,
   ICrossfadeShape,
 } from './crossfadeShape';
+import { NOISE_HUM_MAX_HARMONICS } from './noiseProfile';
 
 /**
  * What the DSP chain is, as data.
@@ -333,6 +334,8 @@ export interface IBassPunchSettings {
  */
 export interface IDimensionSettings {
   enabled: boolean;
+  /** Which profile this came from, or empty once the user has edited it. */
+  presetId: string;
   /** Bass is narrowed or left alone. See the header for why never widened. */
   lowWidth: number;
   midWidth: number;
@@ -427,6 +430,108 @@ export interface IInputNormalizerSettings {
   targetLufs: number;
 }
 
+/** Where the hiss module's floor estimate comes from. */
+export type TDenoiseProfileSource = 'scanned' | 'adaptive';
+
+export const DENOISE_PROFILE_SOURCES: readonly TDenoiseProfileSource[] = [
+  'scanned',
+  'adaptive',
+];
+
+/** The mains frequency, chosen or measured. */
+export type TDenoiseHumMode = 'auto' | 'fifty' | 'sixty';
+
+export const DENOISE_HUM_MODES: readonly TDenoiseHumMode[] = [
+  'auto',
+  'fifty',
+  'sixty',
+];
+
+/**
+ * Broadband suppression against a measured floor.
+ *
+ * `floorDb` is the one control that decides whether this sounds like a
+ * restoration or like a broken gate. It caps how far any single bin may be
+ * attenuated, so a low level of the original noise always survives — and that
+ * survivor is what masks the isolated bins the estimator leaves behind. Driven
+ * to negative infinity the module measurably removes more noise and audibly
+ * sounds worse, which is why the dial stops at -40 rather than at silence.
+ */
+export interface IDenoiseHissSettings {
+  enabled: boolean;
+  amount: number;
+  floorDb: number;
+  sensitivityDb: number;
+  smoothing: number;
+}
+
+/**
+ * A comb of notches at the measured mains fundamental and its partials.
+ *
+ * `harmonics` is a ceiling, not a count: the scan reports which partials stand
+ * above the local floor and only those are placed. A notch at a harmonic where
+ * there is no hum removes music and removes no buzz.
+ */
+export interface IDenoiseHumSettings {
+  enabled: boolean;
+  mode: TDenoiseHumMode;
+  harmonics: number;
+  depthDb: number;
+  quality: number;
+}
+
+/**
+ * Impulsive-outlier repair.
+ *
+ * `maxRepairSamples` is a safety limit rather than a tuning control. The
+ * failure mode of every click repairer is eating percussion, and the property
+ * that separates a click from a snare is width: a click is a handful of
+ * samples, a transient keeps going. A repair allowed to run long enough stops
+ * being a repair and becomes an interpolation over music.
+ */
+export interface IDenoiseClickSettings {
+  enabled: boolean;
+  sensitivity: number;
+  maxRepairSamples: number;
+}
+
+/**
+ * The neural module, which only exists once its model has been downloaded.
+ *
+ * `enabled` is what the user asked for and not what is running: with no model
+ * present the stage reports itself unavailable rather than silently passing
+ * audio through a control that reads as on.
+ */
+export interface IDenoiseVoiceSettings {
+  enabled: boolean;
+  amount: number;
+}
+
+/**
+ * Restoration, above every creative stage and below the input gain.
+ *
+ * Below the input gain because the Normalizer's constant gain is derived from a
+ * cached whole-file true peak: altering the waveform above it makes that
+ * measurement describe a signal that no longer exists, and the ceiling stops
+ * holding without anything reporting it. Above the Exciter and the EQ because
+ * the alternative is generating harmonics from hiss, or boosting it past the
+ * profile, and then trying to remove the result.
+ *
+ * Four modules rather than one engine with mode flags. They share the point in
+ * the chain and the scan that feeds them, and nothing else — a listener with
+ * mains buzz must not pay the spectral module's latency to remove it.
+ */
+export interface IDenoiseSettings {
+  enabled: boolean;
+  /** Monitor what is being removed instead of what is kept. */
+  isolate: boolean;
+  profileSource: TDenoiseProfileSource;
+  hiss: IDenoiseHissSettings;
+  hum: IDenoiseHumSettings;
+  click: IDenoiseClickSettings;
+  voice: IDenoiseVoiceSettings;
+}
+
 export type TCrossfadeCurve = 'equalPower' | 'smooth' | 'linear' | 'custom';
 
 /**
@@ -466,6 +571,8 @@ export interface ICrossfadeSettings {
  */
 export interface IMasterSettings {
   enabled: boolean;
+  /** The chosen delivery target, or '' once any of its numbers is moved. */
+  presetId: string;
   outputTrimDb: number;
   /** Constant source-LUFS gain with its required true-peak control last. */
   loudnessMaximize: boolean;
@@ -473,6 +580,32 @@ export interface IMasterSettings {
   /** User ceiling in dBTP, applied only while LUFS maximize is enabled. */
   ceilingDb: number;
   releaseMs: number;
+  /**
+   * How much gain reduction the loudness target is allowed to buy, in dB.
+   *
+   * The makeup used to be capped at the true-peak room the track had left,
+   * which under the shipped defaults — the Normalizer holding peaks at
+   * -1 dBTP and this stage's ceiling also at -1 dBTP — is exactly zero
+   * decibels on every commercially mastered record. The target was therefore
+   * unreachable by construction, and on quiet material it landed somewhere
+   * different for every track, which is why the loudness still moved.
+   *
+   * Auto Headroom is the look-ahead true-peak limiter that runs immediately
+   * before the master gain, and only while LUFS maximize is on. It already
+   * reserves the gain still to come, so makeup beyond the peak room is safe —
+   * it costs limiting, not clipping. This says how much of that cost the
+   * target may incur. At 0 the old peak-safe behaviour returns exactly.
+   */
+  peakLimitingDb: number;
+  /**
+   * Play the maximized result at the loudness it had before maximizing.
+   *
+   * The limiting is unchanged and only the final level moves, so A/B against a
+   * bypassed Master compares the sound rather than the volume. Without it the
+   * louder side wins every comparison, which is the oldest way to be wrong
+   * about a master.
+   */
+  matchedBypass: boolean;
 }
 
 /** Signed whole-track correction accepted by the renderer/worklet boundary. */
@@ -747,6 +880,7 @@ export interface IDspSettings {
   /** Root bypass. Individual processor states remain untouched underneath. */
   enabled: boolean;
   normalizer: IInputNormalizerSettings;
+  denoise: IDenoiseSettings;
   crossfade: ICrossfadeSettings;
   eq: IEqSettings;
   exciter: IExciterSettings;
@@ -868,9 +1002,45 @@ const RANGES = {
    * clamps into this one.
    */
   masterReleaseMs: { min: 40, max: 400 },
-  masterLoudnessTargetLufs: { min: -18, max: -6 },
+  /**
+   * Down to cinema, not merely down to quiet streaming.
+   *
+   * -18 was the floor while the stage could only ever raise a track toward a
+   * target. It has always been able to lower one, and the quiet end is where
+   * the specifications with legal or contractual weight behind them live: EBU
+   * R128 at -23, ATSC A/85 at -24, streaming video at -27. A floor above the
+   * target somebody has been handed is a dial that cannot do its job.
+   */
+  masterLoudnessTargetLufs: { min: -30, max: -6 },
+  masterPeakLimitingDb: { min: 0, max: 12 },
   normalizerTruePeakDbtp: { min: -12, max: -0.1 },
   normalizerTargetLufs: { min: -24, max: -5 },
+  denoiseAmount: { min: 0, max: 1 },
+  /**
+   * The reduction limit stops at -40 rather than at silence, deliberately.
+   *
+   * Past roughly -30 the surviving noise is too quiet to mask what the
+   * estimator leaves in the bins it could not decide about, and those isolated
+   * survivors warbling frame to frame is the artefact this whole module is
+   * arranged to avoid. The dial's deep end is already past where it stops
+   * being an improvement; there is no reason to extend it to where it is
+   * plainly worse.
+   */
+  denoiseFloorDb: { min: -40, max: -3 },
+  denoiseSensitivityDb: { min: -6, max: 12 },
+  denoiseSmoothing: { min: 0, max: 1 },
+  denoiseHumHarmonics: { min: 1, max: NOISE_HUM_MAX_HARMONICS },
+  denoiseHumDepthDb: { min: 6, max: 48 },
+  /**
+   * Q from 5 to 60. At 50 Hz that is a notch between 10 Hz and 0.8 Hz wide.
+   *
+   * The wide end is for hum that drifts with the supply; the narrow end is for
+   * a fundamental the scan pinned exactly. Wider than 5 stops being a hum
+   * filter and starts being a shelf on the bottom octave.
+   */
+  denoiseHumQuality: { min: 5, max: 60 },
+  denoiseClickSensitivity: { min: 0, max: 1 },
+  denoiseClickRepairSamples: { min: 8, max: 128 },
   eqFrequency: { min: 20, max: 20_000 },
   eqGainDb: { min: -24, max: 24 },
   eqQuality: { min: 0.1, max: 18 },
@@ -1123,6 +1293,42 @@ export const DSP_DEFAULTS: IDspSettings = {
     truePeakDbtp: -1,
     targetLufs: -14,
   },
+  denoise: {
+    enabled: false,
+    isolate: false,
+    profileSource: 'scanned',
+    hiss: {
+      enabled: true,
+      amount: 0.5,
+      // Eighteen decibels of reduction, which is where this stops sounding
+      // like processing. Deeper measurably removes more noise; what it leaves
+      // behind is the estimator's own residue with nothing left to mask it.
+      floorDb: -18,
+      sensitivityDb: 3,
+      smoothing: 0.7,
+    },
+    hum: {
+      enabled: true,
+      mode: 'auto',
+      harmonics: 6,
+      // A notch rather than a null. Removing a partial completely takes the
+      // music sharing that frequency with it, and mains hum does not need to
+      // be gone to stop being audible.
+      depthDb: 24,
+      quality: 30,
+    },
+    click: {
+      enabled: true,
+      sensitivity: 0.5,
+      maxRepairSamples: 32,
+    },
+    voice: {
+      // Off even inside an enabled stage: the model is a download the user has
+      // not necessarily made, and this module is wrong for music.
+      enabled: false,
+      amount: 1,
+    },
+  },
   crossfade: {
     enabled: false,
     durationMs: 2_000,
@@ -1240,6 +1446,7 @@ export const DSP_DEFAULTS: IDspSettings = {
    */
   dimension: {
     enabled: false,
+    presetId: 'default',
     lowWidth: 0.9,
     midWidth: 1.05,
     highWidth: 1.25,
@@ -1267,11 +1474,29 @@ export const DSP_DEFAULTS: IDspSettings = {
   // saved chain until its owner deliberately switches it in.
   master: {
     enabled: false,
+    presetId: 'default',
     outputTrimDb: 0,
     loudnessMaximize: false,
-    loudnessTargetLufs: -9,
+    /**
+     * -14 rather than the -9 this shipped with, and the gain law is why.
+     *
+     * While the makeup was capped at a track's remaining peak room, the target
+     * was unreachable and its value barely mattered — the stage applied 0.0 dB
+     * whatever the dial said. Now that it arrives, -9 asks a limiter for five
+     * or six decibels on the very first ordinary record somebody switches this
+     * on for, and the first thing they would hear is the limiter rather than
+     * the feature. -14 is where nearly everything played through this has
+     * already been normalized to, so the honest default is the one that mostly
+     * leaves a modern master alone and lifts the quiet ones.
+     */
+    loudnessTargetLufs: -14,
     ceilingDb: -1,
     releaseMs: 200,
+    // Six decibels of limiting is what a mastering engineer would call a
+    // normal amount of work. It is enough for a -20 LUFS record to reach a
+    // streaming target and not enough for the limiter to become the sound.
+    peakLimitingDb: 6,
+    matchedBypass: false,
   },
 };
 
@@ -1388,6 +1613,11 @@ export const clampDspSettings = (value: unknown): IDspSettings => {
     return DSP_DEFAULTS;
   }
   const normalizer = isRecord(value.normalizer) ? value.normalizer : {};
+  const denoise = isRecord(value.denoise) ? value.denoise : {};
+  const denoiseHiss = isRecord(denoise.hiss) ? denoise.hiss : {};
+  const denoiseHum = isRecord(denoise.hum) ? denoise.hum : {};
+  const denoiseClick = isRecord(denoise.click) ? denoise.click : {};
+  const denoiseVoice = isRecord(denoise.voice) ? denoise.voice : {};
   const crossfade = isRecord(value.crossfade) ? value.crossfade : {};
   const eq = isRecord(value.eq) ? value.eq : {};
   const storedEqBands = Array.isArray(eq.bands) ? eq.bands : [];
@@ -1502,6 +1732,99 @@ export const clampDspSettings = (value: unknown): IDspSettings => {
         RANGES.normalizerTargetLufs,
         DSP_DEFAULTS.normalizer.targetLufs,
       ),
+    },
+    denoise: {
+      enabled: clampBoolean(denoise.enabled, DSP_DEFAULTS.denoise.enabled),
+      isolate: clampBoolean(denoise.isolate, DSP_DEFAULTS.denoise.isolate),
+      profileSource: DENOISE_PROFILE_SOURCES.includes(
+        denoise.profileSource as TDenoiseProfileSource,
+      )
+        ? (denoise.profileSource as TDenoiseProfileSource)
+        : DSP_DEFAULTS.denoise.profileSource,
+      hiss: {
+        enabled: clampBoolean(
+          denoiseHiss.enabled,
+          DSP_DEFAULTS.denoise.hiss.enabled,
+        ),
+        amount: clampNumber(
+          denoiseHiss.amount,
+          RANGES.denoiseAmount,
+          DSP_DEFAULTS.denoise.hiss.amount,
+        ),
+        floorDb: clampNumber(
+          denoiseHiss.floorDb,
+          RANGES.denoiseFloorDb,
+          DSP_DEFAULTS.denoise.hiss.floorDb,
+        ),
+        sensitivityDb: clampNumber(
+          denoiseHiss.sensitivityDb,
+          RANGES.denoiseSensitivityDb,
+          DSP_DEFAULTS.denoise.hiss.sensitivityDb,
+        ),
+        smoothing: clampNumber(
+          denoiseHiss.smoothing,
+          RANGES.denoiseSmoothing,
+          DSP_DEFAULTS.denoise.hiss.smoothing,
+        ),
+      },
+      hum: {
+        enabled: clampBoolean(
+          denoiseHum.enabled,
+          DSP_DEFAULTS.denoise.hum.enabled,
+        ),
+        mode: DENOISE_HUM_MODES.includes(denoiseHum.mode as TDenoiseHumMode)
+          ? (denoiseHum.mode as TDenoiseHumMode)
+          : DSP_DEFAULTS.denoise.hum.mode,
+        // Rounded, because this counts notches. A stored 6.5 would otherwise
+        // place six and leave the seventh half-built.
+        harmonics: Math.round(
+          clampNumber(
+            denoiseHum.harmonics,
+            RANGES.denoiseHumHarmonics,
+            DSP_DEFAULTS.denoise.hum.harmonics,
+          ),
+        ),
+        depthDb: clampNumber(
+          denoiseHum.depthDb,
+          RANGES.denoiseHumDepthDb,
+          DSP_DEFAULTS.denoise.hum.depthDb,
+        ),
+        quality: clampNumber(
+          denoiseHum.quality,
+          RANGES.denoiseHumQuality,
+          DSP_DEFAULTS.denoise.hum.quality,
+        ),
+      },
+      click: {
+        enabled: clampBoolean(
+          denoiseClick.enabled,
+          DSP_DEFAULTS.denoise.click.enabled,
+        ),
+        sensitivity: clampNumber(
+          denoiseClick.sensitivity,
+          RANGES.denoiseClickSensitivity,
+          DSP_DEFAULTS.denoise.click.sensitivity,
+        ),
+        // A sample count, and the repair loop indexes with it.
+        maxRepairSamples: Math.round(
+          clampNumber(
+            denoiseClick.maxRepairSamples,
+            RANGES.denoiseClickRepairSamples,
+            DSP_DEFAULTS.denoise.click.maxRepairSamples,
+          ),
+        ),
+      },
+      voice: {
+        enabled: clampBoolean(
+          denoiseVoice.enabled,
+          DSP_DEFAULTS.denoise.voice.enabled,
+        ),
+        amount: clampNumber(
+          denoiseVoice.amount,
+          RANGES.denoiseAmount,
+          DSP_DEFAULTS.denoise.voice.amount,
+        ),
+      },
     },
     crossfade: {
       enabled: clampBoolean(crossfade.enabled, DSP_DEFAULTS.crossfade.enabled),
@@ -1705,6 +2028,8 @@ export const clampDspSettings = (value: unknown): IDspSettings => {
     },
     dimension: {
       enabled: clampBoolean(dimension.enabled, DSP_DEFAULTS.dimension.enabled),
+      presetId:
+        typeof dimension.presetId === 'string' ? dimension.presetId : '',
       lowWidth: clampNumber(
         dimension.lowWidth,
         RANGES.dimensionLowWidth,
@@ -1784,6 +2109,7 @@ export const clampDspSettings = (value: unknown): IDspSettings => {
     },
     master: {
       enabled: clampBoolean(master.enabled, DSP_DEFAULTS.master.enabled),
+      presetId: typeof master.presetId === 'string' ? master.presetId : '',
       outputTrimDb: clampNumber(
         master.outputTrimDb,
         RANGES.masterOutputTrimDb,
@@ -1807,6 +2133,15 @@ export const clampDspSettings = (value: unknown): IDspSettings => {
         master.releaseMs,
         RANGES.masterReleaseMs,
         DSP_DEFAULTS.master.releaseMs,
+      ),
+      peakLimitingDb: clampNumber(
+        master.peakLimitingDb,
+        RANGES.masterPeakLimitingDb,
+        DSP_DEFAULTS.master.peakLimitingDb,
+      ),
+      matchedBypass: clampBoolean(
+        master.matchedBypass,
+        DSP_DEFAULTS.master.matchedBypass,
       ),
     },
   };

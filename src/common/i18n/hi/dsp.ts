@@ -24,6 +24,8 @@ const dsp = {
     'जब आप लाइब्रेरी से कुछ चलाते हैं तब शुरू होता है। यह FluidEQ के अपने प्लेयर को प्रोसेस करता है, इसलिए ट्रैक लोड होने तक इसे कुछ नहीं करना।',
   'dsp.unavailable':
     'ऑडियो प्रोसेसिंग शुरू नहीं हो सकी। प्लेबैक पर कोई असर नहीं पड़ता।',
+  'dsp.engineFallback':
+    'नेटिव ऑडियो इंजन शुरू नहीं हो सका, इसलिए FluidEQ अपनी फ़ॉलबैक चेन से चला रहा है: EQ, डायनामिक्स और लिमिटर अब भी लागू होते हैं, लेकिन जो स्टेज केवल नेटिव इंजन में हैं वे बायपास हो जाते हैं। FluidEQ को फिर से शुरू करने पर आमतौर पर यह ठीक हो जाता है।',
   'dsp.presets': 'प्रीसेट',
   'dsp.preset.lossyRepair': 'संपीड़ित को सुधारें',
   'dsp.preset.loud': 'तेज़',
@@ -49,9 +51,9 @@ const dsp = {
   'dsp.normalizer.measuredLoudness': 'इंटीग्रेटेड लाउडनेस',
   'dsp.normalizer.appliedGain': 'लागू गेन',
   'dsp.normalizer.limitedByCeiling':
-    '{{requested}} आवश्यक — पीक सीमा द्वारा सीमित',
-  'dsp.normalizer.limitedByMaxGain': '{{requested}} आवश्यक — अधिकतम बूस्ट पर',
-  'dsp.normalizer.limitedByMinGain': '{{requested}} आवश्यक — अधिकतम क्षीणन पर',
+    '{requested} आवश्यक — पीक सीमा द्वारा सीमित',
+  'dsp.normalizer.limitedByMaxGain': '{requested} आवश्यक — अधिकतम बूस्ट पर',
+  'dsp.normalizer.limitedByMinGain': '{requested} आवश्यक — अधिकतम क्षीणन पर',
   'dsp.normalizer.limitedByGate': 'मापने के लिए बहुत शांत — कोई गेन लागू नहीं',
   'dsp.normalizer.liveMeter': 'लाइव पहले / बाद में',
   'dsp.normalizer.before': 'पहले',
@@ -60,6 +62,64 @@ const dsp = {
     'नॉर्मलाइज़र के ठीक पहले और बाद में मापे गए वास्तविक सैंपल पीक। शून्य निशान 0 dBFS है।',
   'dsp.normalizer.honesty':
     'आगे की ओवरलोडिंग रोकता है; फ़ाइल में पहले से मौजूद डिस्टॉर्शन को दोबारा नहीं बना सकता।',
+
+  'dsp.denoise.title': 'शोर निवारण',
+  'dsp.denoise.description':
+    'रंग चढ़ाने से पहले स्रोत की मरम्मत करता है: हिस, मेन्स हम, क्लिक और एक न्यूरल वॉइस क्लीनर। ट्रैक से ही मापा गया, अनुमान नहीं।',
+  'dsp.denoise.isolate': 'जो हटाया जा रहा है उसे सुनें',
+  'dsp.denoise.isolateHint':
+    'रखे गए संकेत के बजाय हटाया गया संकेत बजाता है। यह जानने का एकमात्र भरोसेमंद तरीका कि यह हिस ले जा रहा है या हाई-हैट।',
+  'dsp.denoise.profileSource': 'शोर स्तर',
+  'dsp.denoise.scanned': 'मापा गया',
+  'dsp.denoise.adaptive': 'अनुकूली',
+  'dsp.denoise.fallingBack':
+    'इस स्रोत का कोई माप नहीं — शोर स्तर सीधे लाइव पढ़ा जा रहा है।',
+  'dsp.denoise.hiss': 'हिस',
+  'dsp.denoise.hissHint':
+    'मापे गए स्तर के सापेक्ष व्यापक-बैंड दमन। चालू रहने पर 21 ms विलंब जोड़ता है।',
+  'dsp.denoise.amount': 'मात्रा',
+  'dsp.denoise.reductionLimit': 'कमी की सीमा',
+  'dsp.denoise.reductionLimitHint':
+    'किसी एक आवृत्ति को कितना नीचे लाया जा सकता है। थोड़ा मूल शोर छोड़ना ही बाकी को लहराने से रोकता है — ज़्यादा गहरा मतलब ज़्यादा साफ़ नहीं।',
+  'dsp.denoise.sensitivity': 'संवेदनशीलता',
+  'dsp.denoise.smoothing': 'स्मूदिंग',
+  'dsp.denoise.hum': 'हम',
+  'dsp.denoise.humHint':
+    'मेन्स आवृत्ति और उन्हीं हार्मोनिक्स को नॉच करता है जो माप में सचमुच मिले। कोई विलंब नहीं।',
+  'dsp.denoise.humFrequency': 'आवृत्ति',
+  'dsp.denoise.humAuto': 'स्वतः',
+  'dsp.denoise.humFifty': '50 Hz',
+  'dsp.denoise.humSixty': '60 Hz',
+  'dsp.denoise.harmonics': 'हार्मोनिक्स',
+  'dsp.denoise.depth': 'गहराई',
+  'dsp.denoise.width': 'चौड़ाई',
+  'dsp.denoise.humAutoWaiting':
+    'स्वतः मापी गई आवृत्ति का उपयोग करता है। इस स्रोत पर अभी कुछ मापा नहीं गया।',
+  'dsp.denoise.click': 'क्लिक',
+  'dsp.denoise.clickHint':
+    'आवेगी क्षति ढूँढ़कर पाटता है। जो भी क्लिक कहलाने के लिए बहुत लंबा है उसे छोड़ दिया जाता है, इसलिए ताल-वाद्य बचे रहते हैं।',
+  'dsp.denoise.maxRepair': 'अधिकतम मरम्मत',
+  'dsp.denoise.voice': 'आवाज़',
+  'dsp.denoise.voiceHint':
+    'वाणी पर प्रशिक्षित न्यूरल क्लीनर। पॉडकास्ट और साक्षात्कार पर उत्कृष्ट; संगीत पर यह झांझ और रीवर्ब की पूँछ भी ले जाता है।',
+  'dsp.denoise.voiceModelMissing':
+    'चलने से पहले एक बार 10 MB का मॉडल डाउनलोड करना होगा।',
+  'dsp.denoise.voiceDownload': 'मॉडल डाउनलोड करें',
+  'dsp.denoise.voiceDownloading': 'मॉडल डाउनलोड हो रहा है · {progress}%',
+  'dsp.denoise.voiceReady': 'मॉडल तैयार',
+  'dsp.denoise.analysis': 'स्रोत विश्लेषण',
+  'dsp.denoise.analyzing': 'शोर स्तर मापा जा रहा है · {progress}%',
+  'dsp.denoise.waiting': 'मापने के लिए लाइब्रेरी का कोई ट्रैक चलाएँ।',
+  'dsp.denoise.measuredFloor': 'शोर स्तर',
+  'dsp.denoise.measuredHum': 'हम मिला',
+  'dsp.denoise.measuredClicks': 'क्लिक',
+  'dsp.denoise.noHum': 'कोई नहीं',
+  'dsp.denoise.perMinute': '{count}/मिनट',
+  'dsp.denoise.liveReduction': 'घटाया जा रहा',
+  'dsp.denoise.clicksRepaired': 'मरम्मत हुई',
+  'dsp.denoise.voiceUnderruns': 'आवाज़ में कटाव',
+  'dsp.denoise.nativeOnly':
+    'शोर निवारण केवल नेटिव इंजन में चलता है, जो इस समय ऑडियो नहीं चला रहा। यह चरण बायपास है।',
 
   'dsp.crossfade.title': 'क्रॉसफ़ेड',
   'dsp.crossfade.description':
@@ -291,6 +351,21 @@ const dsp = {
   'dsp.compressor.release': 'रिलीज़',
   'dsp.compressor.makeup': 'मेकअप',
 
+  'dsp.dimension.historyLabel': 'समय के साथ साइड और मिड',
+  'dsp.dimension.legendCorrelation': 'सहसंबंध',
+  'dsp.dimension.fieldLabel': 'लाइव स्टीरियो फ़ील्ड',
+  'dsp.dimension.graphLabel': 'स्पेक्ट्रम में स्टीरियो चौड़ाई',
+  'dsp.dimension.legendUnity': 'अपरिवर्तित',
+  'dsp.dimension.legendWidth': 'चौड़ाई',
+  'dsp.dimension.groupWidth': 'चौड़ाई',
+  'dsp.dimension.groupShape': 'आकार',
+  'dsp.dimensionPreset.speakers': 'स्पीकर',
+  'dsp.dimensionPreset.laptop': 'लैपटॉप',
+  'dsp.dimensionPreset.intimate': 'नज़दीकी',
+  'dsp.dimensionPreset.expansive': 'विस्तृत',
+  'dsp.dimensionPreset.neutral': 'न्यूट्रल',
+  'dsp.dimensionPreset.monoSafe': 'मोनो सुरक्षित',
+  'dsp.dimensionPreset.headphones': 'हेडफ़ोन',
   'dsp.dimension.guard': 'मोनो सुरक्षा',
   'dsp.dimension.monoNote':
     'केवल साइड सिग्नल बदला जाता है, इसलिए मोनो में वही सुनाई देता है जो इसे बंद रखने पर। मिक्स पहले से आउट-ऑफ-फेज़ हो तो सुरक्षा बंद हो जाती है।',
@@ -346,8 +421,6 @@ const dsp = {
     'मैनुअल आउटपुट: कोई पीक कटौती नहीं। 0 dBFS से ऊपर के स्तर क्लिप होंगे।',
   'dsp.master.truePeak': 'TP इन',
   'dsp.master.gainReduction': 'गेन रिडक्शन',
-  'dsp.master.engineFallback':
-    'ऑडियो इंजन शुरू नहीं हो सका, इसलिए आपका संगीत बिना प्रोसेसिंग के चल रहा है — न EQ, न डायनामिक्स, न लिमिटर। FluidEQ को फिर से शुरू करने पर आमतौर पर यह ठीक हो जाता है।',
   'dsp.master.devSafety': 'सुरक्षा A/B',
   'dsp.master.devSafetyHint':
     'केवल डेवलपमेंट: पूरी अंतिम सुरक्षा को बायपास करता है ताकि उसका सटीक प्रभाव सुना जा सके।',
@@ -355,12 +428,13 @@ const dsp = {
     '+10 dBTP से ऊपर आपात सुरक्षा · 2 ms लुक-अहेड · बिना रिलीज़ सुधार · 3 Hz DC सुरक्षा · अमान्य सैम्पल सुधार',
   'dsp.master.dcCorrection': 'DC ऑफसेट',
   'dsp.master.faults': 'फॉल्ट',
-  'dsp.master.graph.spectrum': 'अंतिम स्पेक्ट्रम',
-  'dsp.master.graph.trim': 'आउटपुट गेन',
-  'dsp.master.graph.applied': 'लागू गेन',
-  'dsp.master.graph.trimLine': 'गेन {gain} dB',
-  'dsp.master.graph.appliedLine': 'लागू {gain} dB',
-  'dsp.master.graph.dcGuard': 'DC सुरक्षा',
+  'dsp.master.graph.momentary': 'क्षणिक',
+  'dsp.master.graph.shortTerm': 'अल्पकालिक',
+  'dsp.master.graph.target': 'लक्ष्य',
+  'dsp.master.graph.integrated': 'समेकित',
+  'dsp.master.graph.targetLine': 'लक्ष्य {target} LUFS',
+  'dsp.master.graph.integratedLine': 'समेकित {value} LUFS',
+  'dsp.master.graph.reductionShort': 'GR',
   'dsp.master.graph.peakWarning': 'चेतावनी · आउटपुट {peak} dBTP सीमा से ऊपर',
   'dsp.master.graph.peakFixed': 'पीक नियंत्रित · {gain} dB गेन रिडक्शन',
   'dsp.master.graph.peakSafe': 'ट्रू पीक सीमा के भीतर',
@@ -372,6 +446,37 @@ const dsp = {
   'dsp.master.graph.safetyBypassed': 'चेतावनी · सुरक्षा बायपास',
   'dsp.master.graph.loudnessActive':
     'LUFS अधिकतम · {target} LUFS की ओर +{gain} dB',
+  'dsp.master.peakLimiting': 'पीक लिमिटिंग',
+  'dsp.master.matchedBypass': 'गेन मिलान',
+  'dsp.master.matchedBypassHint':
+    'आउटपुट से {gain} dB की बढ़त वापस हटा देता है, इसलिए Master को चालू-बंद करने पर आवाज़ नहीं, ध्वनि की तुलना होती है। लिमिटिंग दोनों में एक जैसी रहती है — बदलता सिर्फ़ स्तर है।',
+  'dsp.master.limit.limiting':
+    '{requested} dB चाहिए थे — {room} dB पीक जगह और अनुमत लिमिटिंग तक ही।',
+  'dsp.master.limit.maxGain':
+    '{requested} dB चाहिए थे — इस चरण के अधिकतम सुधार पर।',
+  'dsp.master.limit.gate': 'मापने के लिए बहुत शांत — कोई सुधार लागू नहीं।',
+  'dsp.master.loudness.momentary': 'M',
+  'dsp.master.loudness.shortTerm': 'S',
+  'dsp.master.loudness.integrated': 'I',
+  'dsp.master.loudness.range': 'LRA',
+  'dsp.master.loudness.truePeak': 'TP',
+  'dsp.master.graph.matchedActive': 'गेन मिलान · {gain} dB वापस हटाया',
+  'dsp.masterPreset.label': 'गंतव्य',
+  'dsp.masterPreset.streaming': 'स्ट्रीमिंग',
+  'dsp.masterPreset.streamingQuiet': 'स्ट्रीमिंग, धीमा',
+  'dsp.masterPreset.podcast': 'पॉडकास्ट',
+  'dsp.masterPreset.audiobook': 'ऑडियोबुक',
+  'dsp.masterPreset.broadcast': 'प्रसारण R128',
+  'dsp.masterPreset.broadcastUs': 'प्रसारण A/85',
+  'dsp.masterPreset.cinema': 'सिनेमा',
+  'dsp.masterPreset.cd': 'CD',
+  'dsp.masterPreset.vinyl': 'विनाइल',
+  'dsp.masterPreset.club': 'क्लब',
+  'dsp.masterPreset.reference': 'संदर्भ',
+  'dsp.masterPresetGroup.streaming': 'डिलीवरी पर सामान्यीकृत',
+  'dsp.masterPresetGroup.broadcast': 'प्रसारण और सिनेमा',
+  'dsp.masterPresetGroup.unnormalized': 'कोई आपको धीमा नहीं करता',
+  'dsp.masterPresetGroup.tool': 'तुलना के लिए',
 
   'tabs.dsp': 'DSP',
 };

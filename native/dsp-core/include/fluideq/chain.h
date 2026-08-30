@@ -30,6 +30,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "fluideq/biquad.h"
 #include "fluideq/crossfade.h"
+#include "fluideq/denoise.h"
 #include "fluideq/eq.h"
 #include "fluideq/meters.h"
 
@@ -116,6 +117,14 @@ typedef struct FeqChainEqSettings {
 
 typedef struct FeqChainSettings {
   int enabled;
+  /**
+   * Restoration, below the input gain and above every creative stage.
+   *
+   * Below the input gain because that gain comes from a cached whole-file true
+   * peak: changing the waveform above it makes the measurement describe a
+   * signal that no longer exists and the ceiling stops holding silently.
+   */
+  FeqDenoiseSettings denoise;
   FeqChainExciterSettings exciter;
   FeqChainEqSettings eq;
   struct {
@@ -182,6 +191,15 @@ typedef struct FeqChainSettings {
     double loudness_target_lufs;
     double ceiling_db;
     double release_ms;
+    /**
+     * Play the maximized result at the loudness it had before maximizing.
+     *
+     * Auto Headroom still reserves the whole makeup, so the limiting is
+     * identical and only the final level moves. That is what makes an A/B
+     * against a bypassed Master a comparison of the sound rather than of the
+     * volume, which is the oldest way to be wrong about a master.
+     */
+    int matched_bypass;
   } master;
   /**
    * The A/B that proves the safety net is the net and not the sound.
@@ -201,7 +219,13 @@ typedef struct FeqChainSettings {
  * silently re-point sixty-four bands: the decoder asserts the lead rather
  * than trusting it.
  */
-#define FEQ_CHAIN_PARAM_LEAD 91
+/*
+ * 78 before Denoise added eighteen scalars, then 96 before Bass Forge and Bass
+ * Punch added seven each. All of them are appended immediately before the band
+ * count — which has to stay last, because both `isChainWirePayload` and the
+ * decoder read the tail's length from `FEQ_CHAIN_PARAM_LEAD - 1`.
+ */
+#define FEQ_CHAIN_PARAM_LEAD 110
 #define FEQ_CHAIN_BAND_PARAMS 7
 
 /** Non-zero on success. Leaves `out` untouched on a layout it cannot read. */
@@ -259,6 +283,28 @@ void feq_chain_set_track_level_gains(FeqChain* chain,
                                      double input_gain_db,
                                      double master_loudness_gain_db,
                                      int snap);
+
+/**
+ * Hand the Denoise stage a measured floor, or null to drop the one it has.
+ *
+ * Its own call rather than a field in the snapshot, for the same reason
+ * `set_eq_kernel` and `set_track_level_gains` are: it comes from analysis
+ * rather than from a dial, it changes once per track rather than once per
+ * knob-drag, and a second variable-length array inside the flat parameter
+ * layout would be a decoder bug waiting to happen.
+ *
+ * May allocate. Never call from the audio callback.
+ */
+void feq_chain_set_noise_profile(FeqChain* chain,
+                                 const FeqNoiseProfile* profile);
+
+/** Point the neural module at a model file, or null to unload it. */
+int feq_chain_load_voice_model(FeqChain* chain,
+                               const char* model_path,
+                               const char* runtime_path);
+
+/** What the Denoise stage did with the last block. **Control thread.** */
+void feq_chain_denoise_report(const FeqChain* chain, FeqDenoiseReport* out);
 
 typedef enum FeqChainResetReason {
   FEQ_CHAIN_RESET_STREAM_START = 0,

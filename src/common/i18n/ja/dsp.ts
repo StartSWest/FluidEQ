@@ -23,6 +23,8 @@ const dsp = {
   'dsp.idle':
     'ライブラリから再生すると起動します。FluidEQ 自身のプレーヤーを処理するため、曲を読み込むまでは何もしません。',
   'dsp.unavailable': '音声処理を開始できませんでした。再生には影響しません。',
+  'dsp.engineFallback':
+    'ネイティブのオーディオエンジンを起動できなかったため、FluidEQ はフォールバックチェーンで再生しています。EQ・ダイナミクス・リミッターは引き続きかかりますが、ネイティブエンジンにしかないステージはバイパスされます。通常は FluidEQ を再起動すると復帰します。',
   'dsp.presets': 'プリセット',
   'dsp.preset.lossyRepair': '圧縮音源を補修',
   'dsp.preset.loud': 'ラウド',
@@ -47,10 +49,9 @@ const dsp = {
   'dsp.normalizer.measuredPeak': '測定ピーク',
   'dsp.normalizer.measuredLoudness': '統合ラウドネス',
   'dsp.normalizer.appliedGain': '適用ゲイン',
-  'dsp.normalizer.limitedByCeiling':
-    '{{requested}} 必要 — ピーク上限により制限',
-  'dsp.normalizer.limitedByMaxGain': '{{requested}} 必要 — 最大ブースト',
-  'dsp.normalizer.limitedByMinGain': '{{requested}} 必要 — 最大減衰',
+  'dsp.normalizer.limitedByCeiling': '{requested} 必要 — ピーク上限により制限',
+  'dsp.normalizer.limitedByMaxGain': '{requested} 必要 — 最大ブースト',
+  'dsp.normalizer.limitedByMinGain': '{requested} 必要 — 最大減衰',
   'dsp.normalizer.limitedByGate': '測定するには静かすぎます — ゲインは未適用',
   'dsp.normalizer.liveMeter': 'ライブ比較',
   'dsp.normalizer.before': '前',
@@ -59,6 +60,64 @@ const dsp = {
     'ノーマライザーの直前と直後で測定した実際のサンプルピークです。ゼロ線は 0 dBFS です。',
   'dsp.normalizer.honesty':
     '後段の過負荷を防ぎますが、ファイルに既に含まれる歪みは復元できません。',
+
+  'dsp.denoise.title': 'ノイズ除去',
+  'dsp.denoise.description':
+    '色付けの前に音源を修復します。ヒス、電源ハム、クリック、そしてニューラル音声クリーナー。推測ではなく、曲そのものから実測した値で動きます。',
+  'dsp.denoise.isolate': '取り除かれる音を聴く',
+  'dsp.denoise.isolateHint':
+    '残す側ではなく取り除く側を再生します。ヒスを取っているのかハイハットを取っているのかを確かめる、唯一確実な方法です。',
+  'dsp.denoise.profileSource': 'ノイズフロア',
+  'dsp.denoise.scanned': '解析済み',
+  'dsp.denoise.adaptive': '適応',
+  'dsp.denoise.fallingBack':
+    'この音源の解析結果がありません。フロアをリアルタイムで追従します。',
+  'dsp.denoise.hiss': 'ヒス',
+  'dsp.denoise.hissHint':
+    '実測フロアに対する広帯域の抑制。オンの間は 21 ms の遅延が増えます。',
+  'dsp.denoise.amount': '量',
+  'dsp.denoise.reductionLimit': '低減の上限',
+  'dsp.denoise.reductionLimitHint':
+    'ひとつの周波数をどこまで下げてよいか。元のノイズを少し残すことで残りが揺らがなくなります。深いほどきれいになるわけではありません。',
+  'dsp.denoise.sensitivity': '感度',
+  'dsp.denoise.smoothing': '平滑化',
+  'dsp.denoise.hum': 'ハム',
+  'dsp.denoise.humHint':
+    '電源周波数と、解析が実際に見つけた倍音だけをノッチします。遅延なし。',
+  'dsp.denoise.humFrequency': '周波数',
+  'dsp.denoise.humAuto': '自動',
+  'dsp.denoise.humFifty': '50 Hz',
+  'dsp.denoise.humSixty': '60 Hz',
+  'dsp.denoise.harmonics': '倍音',
+  'dsp.denoise.depth': '深さ',
+  'dsp.denoise.width': '幅',
+  'dsp.denoise.humAutoWaiting':
+    '自動は実測周波数を使います。この音源はまだ測定されていません。',
+  'dsp.denoise.click': 'クリック',
+  'dsp.denoise.clickHint':
+    '衝撃的な損傷を見つけて繋ぎ直します。クリックと呼ぶには長すぎるものはそのまま残すので、打楽器は生き残ります。',
+  'dsp.denoise.maxRepair': '最長修復',
+  'dsp.denoise.voice': '音声',
+  'dsp.denoise.voiceHint':
+    '音声で学習したニューラルクリーナー。ポッドキャストやインタビューには最適ですが、音楽ではシンバルやリバーブの余韻まで持っていきます。',
+  'dsp.denoise.voiceModelMissing':
+    '動作させるには一度だけ 10 MB のモデルをダウンロードする必要があります。',
+  'dsp.denoise.voiceDownload': 'モデルをダウンロード',
+  'dsp.denoise.voiceDownloading': 'モデルをダウンロード中 · {progress}%',
+  'dsp.denoise.voiceReady': 'モデル準備完了',
+  'dsp.denoise.analysis': '音源の解析',
+  'dsp.denoise.analyzing': 'ノイズフロアを測定中 · {progress}%',
+  'dsp.denoise.waiting': 'ライブラリの曲を再生すると測定します。',
+  'dsp.denoise.measuredFloor': 'ノイズフロア',
+  'dsp.denoise.measuredHum': 'ハム検出',
+  'dsp.denoise.measuredClicks': 'クリック',
+  'dsp.denoise.noHum': 'なし',
+  'dsp.denoise.perMinute': '{count}/分',
+  'dsp.denoise.liveReduction': '低減中',
+  'dsp.denoise.clicksRepaired': '修復済み',
+  'dsp.denoise.voiceUnderruns': '音声の途切れ',
+  'dsp.denoise.nativeOnly':
+    'ノイズ除去はネイティブエンジンでのみ動作しますが、現在そのエンジンが音声を担っていません。この段はバイパスされています。',
 
   'dsp.crossfade.title': 'クロスフェード',
   'dsp.crossfade.description':
@@ -288,6 +347,21 @@ const dsp = {
   'dsp.compressor.release': 'リリース',
   'dsp.compressor.makeup': 'メイクアップ',
 
+  'dsp.dimension.historyLabel': 'サイドとミッドの推移',
+  'dsp.dimension.legendCorrelation': '相関',
+  'dsp.dimension.fieldLabel': 'ステレオフィールド',
+  'dsp.dimension.graphLabel': '帯域ごとのステレオ幅',
+  'dsp.dimension.legendUnity': '変化なし',
+  'dsp.dimension.legendWidth': '幅',
+  'dsp.dimension.groupWidth': '幅',
+  'dsp.dimension.groupShape': '形状',
+  'dsp.dimensionPreset.speakers': 'スピーカー',
+  'dsp.dimensionPreset.laptop': 'ノートPC',
+  'dsp.dimensionPreset.intimate': '親密',
+  'dsp.dimensionPreset.expansive': '広大',
+  'dsp.dimensionPreset.neutral': 'ニュートラル',
+  'dsp.dimensionPreset.monoSafe': 'モノラル安全',
+  'dsp.dimensionPreset.headphones': 'ヘッドホン',
   'dsp.dimension.guard': 'モノラル保護',
   'dsp.dimension.monoNote':
     'サイド成分のみを処理するため、モノラルではオフのときと同じに聞こえます。位相が乱れた素材では保護が働きます。',
@@ -343,8 +417,6 @@ const dsp = {
     '手動出力：ピーク低減なし。0 dBFSを超えるレベルはクリップします。',
   'dsp.master.truePeak': 'TP入力',
   'dsp.master.gainReduction': 'ゲインリダクション',
-  'dsp.master.engineFallback':
-    'オーディオエンジンを起動できなかったため、音楽は未処理のまま再生されています — EQ もダイナミクスもリミッターもかかりません。通常は FluidEQ を再起動すると復帰します。',
   'dsp.master.devSafety': 'セーフティA/B',
   'dsp.master.devSafetyHint':
     '開発環境のみ：最終保護をすべてバイパスし、変化をそのまま確認できます。',
@@ -352,12 +424,13 @@ const dsp = {
     '+10 dBTP超の緊急保護 · 2 ms先読み · 復帰しない補正 · 3 Hz DC保護 · 無効サンプル修復',
   'dsp.master.dcCorrection': 'DCオフセット',
   'dsp.master.faults': '障害',
-  'dsp.master.graph.spectrum': '最終スペクトラム',
-  'dsp.master.graph.trim': '出力ゲイン',
-  'dsp.master.graph.applied': '適用ゲイン',
-  'dsp.master.graph.trimLine': 'ゲイン {gain} dB',
-  'dsp.master.graph.appliedLine': '適用 {gain} dB',
-  'dsp.master.graph.dcGuard': 'DC保護',
+  'dsp.master.graph.momentary': 'モメンタリー',
+  'dsp.master.graph.shortTerm': 'ショートターム',
+  'dsp.master.graph.target': 'ターゲット',
+  'dsp.master.graph.integrated': 'インテグレーテッド',
+  'dsp.master.graph.targetLine': 'ターゲット {target} LUFS',
+  'dsp.master.graph.integratedLine': 'インテグレーテッド {value} LUFS',
+  'dsp.master.graph.reductionShort': 'GR',
   'dsp.master.graph.peakWarning': '警告 · 出力{peak} dBTP、上限超過',
   'dsp.master.graph.peakFixed': 'ピーク制御 · {gain} dBゲインリダクション',
   'dsp.master.graph.peakSafe': 'トゥルーピークは上限内',
@@ -369,6 +442,37 @@ const dsp = {
   'dsp.master.graph.safetyBypassed': '警告 · 保護機能バイパス',
   'dsp.master.graph.loudnessActive':
     'LUFS 最大化 · {target} LUFS へ +{gain} dB',
+  'dsp.master.peakLimiting': 'ピークリミッティング',
+  'dsp.master.matchedBypass': 'ゲインマッチ',
+  'dsp.master.matchedBypassHint':
+    '{gain} dB のメイクアップを出力から差し引くので、Master のオンオフで音量ではなく音そのものを比較できます。リミッティングはどちらでも同じで、変わるのはレベルだけです。',
+  'dsp.master.limit.limiting':
+    '{requested} dB 必要 — ピークの余裕 {room} dB と許可されたリミッティングまで。',
+  'dsp.master.limit.maxGain':
+    '{requested} dB 必要 — このステージの最大補正に達しています。',
+  'dsp.master.limit.gate': '静かすぎて測定できません — 補正は適用されません。',
+  'dsp.master.loudness.momentary': 'M',
+  'dsp.master.loudness.shortTerm': 'S',
+  'dsp.master.loudness.integrated': 'I',
+  'dsp.master.loudness.range': 'LRA',
+  'dsp.master.loudness.truePeak': 'TP',
+  'dsp.master.graph.matchedActive': 'ゲインマッチ · {gain} dB を差し引き',
+  'dsp.masterPreset.label': '配信先',
+  'dsp.masterPreset.streaming': 'ストリーミング',
+  'dsp.masterPreset.streamingQuiet': 'ストリーミング（小音量）',
+  'dsp.masterPreset.podcast': 'ポッドキャスト',
+  'dsp.masterPreset.audiobook': 'オーディオブック',
+  'dsp.masterPreset.broadcast': '放送 R128',
+  'dsp.masterPreset.broadcastUs': '放送 A/85',
+  'dsp.masterPreset.cinema': 'シネマ',
+  'dsp.masterPreset.cd': 'CD',
+  'dsp.masterPreset.vinyl': 'アナログレコード',
+  'dsp.masterPreset.club': 'クラブ',
+  'dsp.masterPreset.reference': 'リファレンス',
+  'dsp.masterPresetGroup.streaming': '配信時に正規化される',
+  'dsp.masterPresetGroup.broadcast': '放送とシネマ',
+  'dsp.masterPresetGroup.unnormalized': '誰も下げてくれない',
+  'dsp.masterPresetGroup.tool': '比較用',
 
   'tabs.dsp': 'DSP',
 };

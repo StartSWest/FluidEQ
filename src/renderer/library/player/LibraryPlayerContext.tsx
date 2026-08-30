@@ -84,6 +84,7 @@ import {
 import { dspErrorValues, reportDspDiagnostic } from '../../dsp/diagnostics';
 import {
   setDspInputTrackId,
+  setDspNoiseProfile,
   setDspTrackLevelGains,
   useDspEngine,
 } from '../../dsp/useDspEngine';
@@ -1261,12 +1262,21 @@ export const LibraryPlayerProvider = ({
       swapBufferToBlob(audio, track.id, buffer);
     };
     const cachedAnalysis = track.normalization;
+    // Only the modules that actually consume a scanned profile. Clicks and the
+    // neural module need nothing measured, so having them on is not a reason
+    // to decode a file again.
+    const denoiseNeedsProfile =
+      dspSettingsRef.current.denoise.enabled &&
+      dspSettingsRef.current.denoise.profileSource === 'scanned' &&
+      (dspSettingsRef.current.denoise.hiss.enabled ||
+        dspSettingsRef.current.denoise.hum.enabled);
     const shouldAnalyze =
       dspSettingsRef.current.enabled &&
       (dspSettingsRef.current.normalizer.mode !== 'off' ||
         // The crossfade needs the same decode pass: it cannot know when this
         // song stops without measuring where its last audible sample is.
         transition.enabled ||
+        denoiseNeedsProfile ||
         (dspSettingsRef.current.master.enabled &&
           dspSettingsRef.current.master.loudnessMaximize));
     /**
@@ -1311,6 +1321,11 @@ export const LibraryPlayerProvider = ({
         return;
       }
       setDspTrackLevelGains(next[0], next[1]);
+      // Published with the gains rather than separately, so the floor and the
+      // level the stage sees always describe the same track. Undefined when
+      // this one has no scan: keeping the previous song's profile would
+      // subtract that recording's hiss from this one.
+      setDspNoiseProfile(analysis?.noise);
     };
     const completeTrackHandoff = () => {
       handoffComplete = true;
@@ -1484,7 +1499,11 @@ export const LibraryPlayerProvider = ({
         // An entry measured before the edges existed still holds correct
         // loudness numbers, so it is only worth decoding the file again for
         // the one feature that needs the missing half.
-        (!cachedAnalysis.edges && transition.enabled);
+        (!cachedAnalysis.edges && transition.enabled) ||
+        // Same rule for the noise floor, added the same way and for the same
+        // reason: no version bump, no library-wide re-measure, just one more
+        // decode for the one track whose missing half is now wanted.
+        (!cachedAnalysis.noise && denoiseNeedsProfile);
       if (!needsFreshAnalysis) {
         return;
       }
@@ -1495,6 +1514,7 @@ export const LibraryPlayerProvider = ({
         sampleRateHint: track.sampleRate,
         signal: analysisJob.controller.signal,
         isCancelled: () => cancelled || analysisJobRef.current !== analysisJob,
+        measureNoise: denoiseNeedsProfile,
         onProgress: ({ fraction }) => {
           if (
             !cachedAnalysis &&
@@ -1592,6 +1612,87 @@ export const LibraryPlayerProvider = ({
   }, [trackId, loadRequest]);
 
   /**
+   * Measure the NEXT track while this one plays.
+   *
+   * Without this, an uncached track starts at raw unity and steps to its
+   * chosen gain over two seconds once the analysis lands — an audible level
+   * move at the top of a song, and the one place where per-track loudness
+   * matching is heard doing its job instead of doing it invisibly. It is also
+   * the worst possible moment for it: the opening bars are where somebody is
+   * deciding whether the record is at the right level.
+   *
+   * Measured here rather than made faster, because the decode is the cost and
+   * the decode cannot be skipped. A track measured before it is reached starts
+   * at its final gain from the first sample.
+   *
+   * Deliberately subordinate to the playing track's own analysis: while
+   * `analysisJobRef` holds a job, the audible track is still being measured
+   * and two full decodes at once would make the window drop frames to prepare
+   * a song nobody is listening to yet.
+   */
+  useEffect(() => {
+    const wantsLoudness =
+      dspSettings.normalizer.mode !== 'off' ||
+      (dspSettings.master.enabled && dspSettings.master.loudnessMaximize);
+    if (!dspSettings.enabled || !wantsLoudness || !queue || !track) {
+      return undefined;
+    }
+    // The queue's own rules decide what comes next — shuffle order, repeat,
+    // the end of the shelf. Reimplementing them here is how a prefetch comes
+    // to measure a track the player was never going to reach.
+    const nextId = currentTrackId(advanceQueue(queue, 1));
+    const next =
+      nextId && nextId !== track.id ? trackById.get(nextId) : undefined;
+    if (
+      !next ||
+      next.kind !== 'audio' ||
+      next.normalization ||
+      analysisJobRef.current
+    ) {
+      return undefined;
+    }
+
+    let cancelled = false;
+    const controller = new AbortController();
+    const measure = async () => {
+      const [buffer, signature] = await Promise.all([
+        window.electron.ipcRenderer.libraryTrackBytes(next.id),
+        window.electron.ipcRenderer.libraryTrackSignature(next.id),
+      ]);
+      if (!buffer || cancelled) {
+        return;
+      }
+      const analysis = await analyzeInputTrack(buffer, {
+        sampleRateHint: next.sampleRate,
+        signal: controller.signal,
+        // Yields to the playing track: if its loader starts a job mid-decode,
+        // this one stops rather than competing for the same window.
+        isCancelled: () => cancelled || analysisJobRef.current !== undefined,
+        // Nothing is published while this runs. The panel's progress belongs
+        // to the track being listened to, and a second bar for a song that has
+        // not started reads as the current one having gone backwards.
+        onProgress: () => undefined,
+      });
+      if (!analysis || cancelled) {
+        return;
+      }
+      await window.electron.ipcRenderer.setLibraryTrackNormalization(
+        next.id,
+        analysis,
+        signature ?? {
+          sizeBytes: next.sizeBytes,
+          mtimeMs: next.mtimeMs,
+        },
+      );
+    };
+    measure().catch(() => undefined);
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
+  }, [dspSettings, queue, track, trackById]);
+
+  /**
    * Enabling normalization or the crossfade while an already-playing uncached
    * track is active.
    *
@@ -1610,9 +1711,16 @@ export const LibraryPlayerProvider = ({
     // because the crossfade was switched on after it started.
     const wantsEdges =
       dspSettings.crossfade.enabled && !track?.normalization?.edges;
+    // Same shape as the edges above: a track measured before Denoise existed,
+    // or measured while the stage was off, is still missing this half.
+    const wantsNoise =
+      dspSettings.denoise.enabled &&
+      dspSettings.denoise.profileSource === 'scanned' &&
+      (dspSettings.denoise.hiss.enabled || dspSettings.denoise.hum.enabled) &&
+      !track?.normalization?.noise;
     if (
       !dspSettings.enabled ||
-      (!wantsLoudness && !wantsEdges) ||
+      (!wantsLoudness && !wantsEdges && !wantsNoise) ||
       !track ||
       track.kind !== 'audio' ||
       analysisJobRef.current?.trackId === track.id
@@ -1643,6 +1751,7 @@ export const LibraryPlayerProvider = ({
         sampleRateHint: track.sampleRate,
         signal: analysisJob.controller.signal,
         isCancelled: () => cancelled || analysisJobRef.current !== analysisJob,
+        measureNoise: wantsNoise,
         onProgress: ({ fraction }) => {
           if (!cancelled && analysisJobRef.current === analysisJob) {
             setDspInputAnalysis({
@@ -1732,6 +1841,10 @@ export const LibraryPlayerProvider = ({
     };
   }, [
     dspSettings.crossfade.enabled,
+    dspSettings.denoise.enabled,
+    dspSettings.denoise.hiss.enabled,
+    dspSettings.denoise.hum.enabled,
+    dspSettings.denoise.profileSource,
     dspSettings.enabled,
     dspSettings.master.enabled,
     dspSettings.master.loudnessMaximize,

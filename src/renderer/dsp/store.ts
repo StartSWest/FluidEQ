@@ -10,6 +10,7 @@ import {
   IDspSettings,
   clampDspSettings,
 } from '../../common/dsp/chain';
+import { IHostAnalysisLoudness } from '../../common/dsp/analysisWire';
 import { TDspAnalyserStage } from './monitorOutputs';
 import { ILibraryNormalizationAnalysis } from '../../common/library/types';
 
@@ -119,6 +120,7 @@ const listeners = new Set<() => void>();
 const outputSafetyListeners = new Set<() => void>();
 const inputAnalysisListeners = new Set<() => void>();
 const normalizerMeterListeners = new Set<() => void>();
+const denoiseMeterListeners = new Set<() => void>();
 
 const emit = () => listeners.forEach((listener) => listener());
 
@@ -375,6 +377,56 @@ export const useDspInputAnalysis = (): IDspInputAnalysisState =>
     readDspInputAnalysis,
   );
 
+/**
+ * What the Denoise stage did, as opposed to what its dials are set to.
+ *
+ * None of it is derivable from the settings: how much a subtractor removed
+ * depends on the material, whether the click detector fired depends on whether
+ * the file has clicks, and whether the neural module is running at all depends
+ * on a download. A card showing only dial positions looks identical in every
+ * one of those cases.
+ */
+export interface IDspDenoiseMeter {
+  reductionDb: number;
+  noiseFloorDb: number;
+  clicksRepaired: number;
+  voiceUnderruns: number;
+  profileReady: boolean;
+  voiceModelLoaded: boolean;
+}
+
+const DENOISE_METER_IDLE: IDspDenoiseMeter = {
+  reductionDb: 0,
+  noiseFloorDb: -120,
+  clicksRepaired: 0,
+  voiceUnderruns: 0,
+  profileReady: false,
+  voiceModelLoaded: false,
+};
+
+let denoiseMeter: IDspDenoiseMeter = DENOISE_METER_IDLE;
+
+const subscribeDenoiseMeter = (listener: () => void) => {
+  denoiseMeterListeners.add(listener);
+  return () => {
+    denoiseMeterListeners.delete(listener);
+  };
+};
+
+export const setDspDenoiseMeter = (next: IDspDenoiseMeter): void => {
+  denoiseMeter = next;
+  denoiseMeterListeners.forEach((listener) => listener());
+};
+
+export const readDspDenoiseMeter = (): IDspDenoiseMeter => denoiseMeter;
+
+export const useDspDenoiseMeter = (): IDspDenoiseMeter =>
+  useSyncExternalStore(
+    subscribeDenoiseMeter,
+    readDspDenoiseMeter,
+    readDspDenoiseMeter,
+  );
+
 export interface IDspNormalizerMeter {
   inputPeaks: readonly [number, number];
   outputPeaks: readonly [number, number];
@@ -562,6 +614,30 @@ export const setDspMaximizerReduction = (reductionDb: number): void => {
 };
 
 export const readDspMaximizerReduction = (): number => maximizerReductionDb;
+
+/**
+ * How loud the output is, by BS.1770, measured where it leaves for the device.
+ *
+ * Polled rather than subscribed for the same reason as the reduction above:
+ * this arrives about twenty-three times a second and is drawn inside an
+ * animation frame, so a React update per frame would be a reconcile per frame
+ * for a number that is painted onto a canvas either way.
+ *
+ * The floor is -120 rather than 0 because 0 LUFS is full scale: a display that
+ * started at zero would open with the loudest reading it can ever show.
+ */
+let loudness: IHostAnalysisLoudness = {
+  momentaryLufs: -120,
+  shortTermLufs: -120,
+  integratedLufs: -120,
+  rangeLu: 0,
+};
+
+export const setDspLoudness = (next: IHostAnalysisLoudness): void => {
+  loudness = next;
+};
+
+export const readDspLoudness = (): IHostAnalysisLoudness => loudness;
 
 /** How much widening Dimension is allowing, 1 wide open and 0 fully shut. */
 let dimensionGuard = 1;

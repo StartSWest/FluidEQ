@@ -24,6 +24,8 @@ const dsp = {
     'Запускается, когда вы включаете что-то из Библиотеки. Обрабатывается собственный проигрыватель FluidEQ, поэтому до загрузки трека работать не над чем.',
   'dsp.unavailable':
     'Не удалось запустить обработку звука. На воспроизведение это не влияет.',
+  'dsp.engineFallback':
+    'Нативный аудиодвижок не запустился, поэтому FluidEQ играет через резервную цепочку: эквалайзер, динамика и лимитер по-прежнему работают, но ступени, которые есть только в нативном движке, пропускаются. Обычно помогает перезапуск FluidEQ.',
   'dsp.presets': 'Пресеты',
   'dsp.preset.lossyRepair': 'Восстановить сжатое',
   'dsp.preset.loud': 'Громко',
@@ -49,11 +51,11 @@ const dsp = {
   'dsp.normalizer.measuredLoudness': 'Интегральная громкость',
   'dsp.normalizer.appliedGain': 'Применённое усиление',
   'dsp.normalizer.limitedByCeiling':
-    '{{requested}} требуется — ограничено пиковым потолком',
+    '{requested} требуется — ограничено пиковым потолком',
   'dsp.normalizer.limitedByMaxGain':
-    '{{requested}} требуется — достигнут максимальный подъём',
+    '{requested} требуется — достигнут максимальный подъём',
   'dsp.normalizer.limitedByMinGain':
-    '{{requested}} требуется — достигнуто максимальное ослабление',
+    '{requested} требуется — достигнуто максимальное ослабление',
   'dsp.normalizer.limitedByGate':
     'Слишком тихо для измерения — усиление не применено',
   'dsp.normalizer.liveMeter': 'До / после в реальном времени',
@@ -63,6 +65,64 @@ const dsp = {
     'Фактические пики сэмплов непосредственно до и после нормализатора. Нулевая метка — 0 dBFS.',
   'dsp.normalizer.honesty':
     'Предотвращает последующую перегрузку, но не восстанавливает искажения, уже записанные в файл.',
+
+  'dsp.denoise.title': 'Шумоподавление',
+  'dsp.denoise.description':
+    'Восстанавливает источник до того, как что-либо его окрасит: шипение, сетевой фон, щелчки и нейронная очистка голоса. Измерено по самому треку, а не угадано.',
+  'dsp.denoise.isolate': 'Послушать удаляемое',
+  'dsp.denoise.isolateHint':
+    'Воспроизводит удаляемый сигнал вместо сохраняемого. Единственный надёжный способ услышать, убирается шипение или хай-хэт.',
+  'dsp.denoise.profileSource': 'Уровень шума',
+  'dsp.denoise.scanned': 'Измерен',
+  'dsp.denoise.adaptive': 'Адаптивный',
+  'dsp.denoise.fallingBack':
+    'Для этого источника измерений нет — уровень отслеживается на лету.',
+  'dsp.denoise.hiss': 'Шипение',
+  'dsp.denoise.hissHint':
+    'Широкополосное подавление относительно измеренного уровня. Добавляет 21 мс задержки, пока включено.',
+  'dsp.denoise.amount': 'Количество',
+  'dsp.denoise.reductionLimit': 'Предел подавления',
+  'dsp.denoise.reductionLimitHint':
+    'Насколько может быть опущена отдельная частота. Немного исходного шума оставляют затем, чтобы остальное не булькало: глубже не значит чище.',
+  'dsp.denoise.sensitivity': 'Чувствительность',
+  'dsp.denoise.smoothing': 'Сглаживание',
+  'dsp.denoise.hum': 'Фон',
+  'dsp.denoise.humHint':
+    'Вырезает частоту сети и те гармоники, которые действительно нашёл анализ. Без задержки.',
+  'dsp.denoise.humFrequency': 'Частота',
+  'dsp.denoise.humAuto': 'Авто',
+  'dsp.denoise.humFifty': '50 Гц',
+  'dsp.denoise.humSixty': '60 Гц',
+  'dsp.denoise.harmonics': 'Гармоники',
+  'dsp.denoise.depth': 'Глубина',
+  'dsp.denoise.width': 'Ширина',
+  'dsp.denoise.humAutoWaiting':
+    'Авто использует измеренную частоту. Для этого источника пока ничего не измерено.',
+  'dsp.denoise.click': 'Щелчки',
+  'dsp.denoise.clickHint':
+    'Находит импульсные повреждения и сшивает их. Всё, что слишком длинное для щелчка, остаётся нетронутым, поэтому перкуссия уцелеет.',
+  'dsp.denoise.maxRepair': 'Максимальная починка',
+  'dsp.denoise.voice': 'Голос',
+  'dsp.denoise.voiceHint':
+    'Нейронная очистка, обученная на речи. Отлично для подкастов и интервью; на музыке убирает тарелки и хвосты реверберации.',
+  'dsp.denoise.voiceModelMissing':
+    'Требуется однократная загрузка модели на 10 МБ, прежде чем это заработает.',
+  'dsp.denoise.voiceDownload': 'Загрузить модель',
+  'dsp.denoise.voiceDownloading': 'Загрузка модели · {progress}%',
+  'dsp.denoise.voiceReady': 'Модель готова',
+  'dsp.denoise.analysis': 'Анализ источника',
+  'dsp.denoise.analyzing': 'Измерение уровня шума · {progress}%',
+  'dsp.denoise.waiting': 'Включите трек из фонотеки, чтобы измерить его.',
+  'dsp.denoise.measuredFloor': 'Уровень шума',
+  'dsp.denoise.measuredHum': 'Найден фон',
+  'dsp.denoise.measuredClicks': 'Щелчки',
+  'dsp.denoise.noHum': 'Нет',
+  'dsp.denoise.perMinute': '{count}/мин',
+  'dsp.denoise.liveReduction': 'Подавление',
+  'dsp.denoise.clicksRepaired': 'Исправлено',
+  'dsp.denoise.voiceUnderruns': 'Пропуски голоса',
+  'dsp.denoise.nativeOnly':
+    'Шумоподавление работает только в нативном движке, который сейчас не ведёт звук. Этот этап обойдён.',
 
   'dsp.crossfade.title': 'Кроссфейд',
   'dsp.crossfade.description':
@@ -295,6 +355,21 @@ const dsp = {
   'dsp.compressor.release': 'Восстановление',
   'dsp.compressor.makeup': 'Компенсация',
 
+  'dsp.dimension.historyLabel': 'Боковой и средний во времени',
+  'dsp.dimension.legendCorrelation': 'Корреляция',
+  'dsp.dimension.fieldLabel': 'Стереополе в реальном времени',
+  'dsp.dimension.graphLabel': 'Ширина стерео по спектру',
+  'dsp.dimension.legendUnity': 'Без изменений',
+  'dsp.dimension.legendWidth': 'Ширина',
+  'dsp.dimension.groupWidth': 'Ширина',
+  'dsp.dimension.groupShape': 'Форма',
+  'dsp.dimensionPreset.speakers': 'Колонки',
+  'dsp.dimensionPreset.laptop': 'Ноутбук',
+  'dsp.dimensionPreset.intimate': 'Камерно',
+  'dsp.dimensionPreset.expansive': 'Просторно',
+  'dsp.dimensionPreset.neutral': 'Нейтрально',
+  'dsp.dimensionPreset.monoSafe': 'Моно-безопасно',
+  'dsp.dimensionPreset.headphones': 'Наушники',
   'dsp.dimension.guard': 'Моно-защита',
   'dsp.dimension.monoNote':
     'Обрабатываются только боковые каналы, поэтому в моно звучит ровно так же, как без эффекта. Защита закрывается, если микс уже в противофазе.',
@@ -350,8 +425,6 @@ const dsp = {
     'Ручной выход: без ослабления пиков. Уровни выше 0 dBFS будут перегружены.',
   'dsp.master.truePeak': 'TP вход',
   'dsp.master.gainReduction': 'Ослабление',
-  'dsp.master.engineFallback':
-    'Аудиодвижок не запустился, поэтому музыка воспроизводится без обработки — без эквалайзера, динамики и лимитера. Обычно помогает перезапуск FluidEQ.',
   'dsp.master.devSafety': 'Защита A/B',
   'dsp.master.devSafetyHint':
     'Только для разработки: обходит всю финальную защиту, чтобы её влияние можно было услышать напрямую.',
@@ -359,12 +432,13 @@ const dsp = {
     'Аварийная защита выше +10 dBTP · упреждение 2 мс · коррекция без восстановления · DC-защита 3 Гц · исправление неверных отсчётов',
   'dsp.master.dcCorrection': 'DC-смещение',
   'dsp.master.faults': 'Сбои',
-  'dsp.master.graph.spectrum': 'Финальный спектр',
-  'dsp.master.graph.trim': 'Выходной уровень',
-  'dsp.master.graph.applied': 'Применённый уровень',
-  'dsp.master.graph.trimLine': 'Уровень {gain} дБ',
-  'dsp.master.graph.appliedLine': 'Применено {gain} дБ',
-  'dsp.master.graph.dcGuard': 'DC-защита',
+  'dsp.master.graph.momentary': 'Мгновенная',
+  'dsp.master.graph.shortTerm': 'Кратковременная',
+  'dsp.master.graph.target': 'Цель',
+  'dsp.master.graph.integrated': 'Интегральная',
+  'dsp.master.graph.targetLine': 'Цель {target} LUFS',
+  'dsp.master.graph.integratedLine': 'Интегральная {value} LUFS',
+  'dsp.master.graph.reductionShort': 'GR',
   'dsp.master.graph.peakWarning':
     'Предупреждение · выход {peak} dBTP выше потолка',
   'dsp.master.graph.peakFixed': 'Пик ограничен · ослабление {gain} дБ',
@@ -378,6 +452,38 @@ const dsp = {
   'dsp.master.graph.safetyBypassed': 'Предупреждение · защита обойдена',
   'dsp.master.graph.loudnessActive':
     'Максимум LUFS · +{gain} дБ к {target} LUFS',
+  'dsp.master.peakLimiting': 'Ограничение пиков',
+  'dsp.master.matchedBypass': 'Выравнивание уровня',
+  'dsp.master.matchedBypassHint':
+    'Снимает с выхода {gain} дБ подъёма, поэтому включение и выключение Master сравнивает звук, а не громкость. Ограничение в обоих случаях одинаковое — меняется только уровень.',
+  'dsp.master.limit.limiting':
+    'Требовалось {requested} дБ — {room} дБ пикового запаса плюс разрешённое ограничение.',
+  'dsp.master.limit.maxGain':
+    'Требовалось {requested} дБ — на максимальной коррекции этой ступени.',
+  'dsp.master.limit.gate':
+    'Слишком тихо для измерения — коррекция не применена.',
+  'dsp.master.loudness.momentary': 'M',
+  'dsp.master.loudness.shortTerm': 'S',
+  'dsp.master.loudness.integrated': 'I',
+  'dsp.master.loudness.range': 'LRA',
+  'dsp.master.loudness.truePeak': 'TP',
+  'dsp.master.graph.matchedActive': 'Уровень выровнен · {gain} дБ снято',
+  'dsp.masterPreset.label': 'Назначение',
+  'dsp.masterPreset.streaming': 'Стриминг',
+  'dsp.masterPreset.streamingQuiet': 'Стриминг, тихо',
+  'dsp.masterPreset.podcast': 'Подкаст',
+  'dsp.masterPreset.audiobook': 'Аудиокнига',
+  'dsp.masterPreset.broadcast': 'Вещание R128',
+  'dsp.masterPreset.broadcastUs': 'Вещание A/85',
+  'dsp.masterPreset.cinema': 'Кино',
+  'dsp.masterPreset.cd': 'CD',
+  'dsp.masterPreset.vinyl': 'Винил',
+  'dsp.masterPreset.club': 'Клуб',
+  'dsp.masterPreset.reference': 'Эталон',
+  'dsp.masterPresetGroup.streaming': 'Нормализуется при доставке',
+  'dsp.masterPresetGroup.broadcast': 'Вещание и кино',
+  'dsp.masterPresetGroup.unnormalized': 'Никто вас не убавит',
+  'dsp.masterPresetGroup.tool': 'Для сравнения',
 
   'tabs.dsp': 'DSP',
 };

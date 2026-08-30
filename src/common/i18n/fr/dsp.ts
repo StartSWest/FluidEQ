@@ -24,6 +24,8 @@ const dsp = {
     "Démarre quand vous lisez quelque chose depuis la Bibliothèque. Il traite le lecteur de FluidEQ, il n'a donc rien à faire tant qu'aucun morceau n'est chargé.",
   'dsp.unavailable':
     "Le traitement audio n'a pas pu démarrer. La lecture n'est pas affectée.",
+  'dsp.engineFallback':
+    "Le moteur audio natif n'a pas pu démarrer, FluidEQ lit donc via sa chaîne de secours : l'égaliseur, la dynamique et le limiteur s'appliquent toujours, mais les étages qui n'existent que dans le moteur natif sont contournés. Redémarrer FluidEQ suffit généralement.",
   'dsp.presets': 'Préréglages',
   'dsp.preset.lossyRepair': 'Réparer le compressé',
   'dsp.preset.loud': 'Fort',
@@ -50,11 +52,11 @@ const dsp = {
   'dsp.normalizer.measuredLoudness': 'Sonie intégrée',
   'dsp.normalizer.appliedGain': 'Gain appliqué',
   'dsp.normalizer.limitedByCeiling':
-    '{{requested}} nécessaires — limité par le plafond de crête',
+    '{requested} nécessaires — limité par le plafond de crête',
   'dsp.normalizer.limitedByMaxGain':
-    '{{requested}} nécessaires — gain maximal atteint',
+    '{requested} nécessaires — gain maximal atteint',
   'dsp.normalizer.limitedByMinGain':
-    '{{requested}} nécessaires — atténuation maximale atteinte',
+    '{requested} nécessaires — atténuation maximale atteinte',
   'dsp.normalizer.limitedByGate':
     'Trop faible pour être mesuré — aucun gain appliqué',
   'dsp.normalizer.liveMeter': 'Avant / après en direct',
@@ -64,6 +66,64 @@ const dsp = {
     'Crêtes d’échantillons réelles mesurées autour du normaliseur. Le repère zéro indique 0 dBFS.',
   'dsp.normalizer.honesty':
     'Évite la surcharge en aval ; il ne peut pas reconstruire une distorsion déjà inscrite dans le fichier.',
+
+  'dsp.denoise.title': 'Débruitage',
+  'dsp.denoise.description':
+    'Répare la source avant que quoi que ce soit ne la colore : souffle, ronflement secteur, craquements et un nettoyeur vocal neuronal. Mesuré sur la piste elle-même, pas deviné.',
+  'dsp.denoise.isolate': 'Écouter ce qui est retiré',
+  'dsp.denoise.isolateHint':
+    'Joue le signal retiré au lieu de celui conservé. Le seul moyen fiable d’entendre si cela emporte le souffle ou le charleston.',
+  'dsp.denoise.profileSource': 'Plancher de bruit',
+  'dsp.denoise.scanned': 'Analysé',
+  'dsp.denoise.adaptive': 'Adaptatif',
+  'dsp.denoise.fallingBack':
+    'Aucune analyse pour cette source — suivi du plancher en direct.',
+  'dsp.denoise.hiss': 'Souffle',
+  'dsp.denoise.hissHint':
+    'Atténuation large bande par rapport au plancher mesuré. Ajoute 21 ms de latence lorsqu’il est actif.',
+  'dsp.denoise.amount': 'Quantité',
+  'dsp.denoise.reductionLimit': 'Limite de réduction',
+  'dsp.denoise.reductionLimitHint':
+    'Jusqu’où une fréquence peut être abaissée. Laisser un peu du bruit d’origine empêche le reste de moduler : plus profond n’est pas plus propre.',
+  'dsp.denoise.sensitivity': 'Sensibilité',
+  'dsp.denoise.smoothing': 'Lissage',
+  'dsp.denoise.hum': 'Ronflement',
+  'dsp.denoise.humHint':
+    'Filtre la fréquence secteur et les harmoniques réellement trouvées par l’analyse. Sans latence.',
+  'dsp.denoise.humFrequency': 'Fréquence',
+  'dsp.denoise.humAuto': 'Auto',
+  'dsp.denoise.humFifty': '50 Hz',
+  'dsp.denoise.humSixty': '60 Hz',
+  'dsp.denoise.harmonics': 'Harmoniques',
+  'dsp.denoise.depth': 'Profondeur',
+  'dsp.denoise.width': 'Largeur',
+  'dsp.denoise.humAutoWaiting':
+    'Auto utilise la fréquence mesurée. Rien n’a encore été mesuré sur cette source.',
+  'dsp.denoise.click': 'Craquements',
+  'dsp.denoise.clickHint':
+    'Repère et comble les dégâts impulsionnels. Tout ce qui est trop long pour être un craquement est laissé intact, donc la percussion survit.',
+  'dsp.denoise.maxRepair': 'Réparation maximale',
+  'dsp.denoise.voice': 'Voix',
+  'dsp.denoise.voiceHint':
+    'Un nettoyeur neuronal entraîné sur la parole. Excellent sur les podcasts et les entretiens ; sur la musique il emporte les cymbales et les queues de réverbération.',
+  'dsp.denoise.voiceModelMissing':
+    'Nécessite un téléchargement unique de 10 Mo avant de pouvoir fonctionner.',
+  'dsp.denoise.voiceDownload': 'Télécharger le modèle',
+  'dsp.denoise.voiceDownloading': 'Téléchargement du modèle · {progress}%',
+  'dsp.denoise.voiceReady': 'Modèle prêt',
+  'dsp.denoise.analysis': 'Analyse de la source',
+  'dsp.denoise.analyzing': 'Mesure du plancher de bruit · {progress}%',
+  'dsp.denoise.waiting': 'Lisez une piste de la bibliothèque pour la mesurer.',
+  'dsp.denoise.measuredFloor': 'Plancher de bruit',
+  'dsp.denoise.measuredHum': 'Ronflement trouvé',
+  'dsp.denoise.measuredClicks': 'Craquements',
+  'dsp.denoise.noHum': 'Aucun',
+  'dsp.denoise.perMinute': '{count}/min',
+  'dsp.denoise.liveReduction': 'Réduction',
+  'dsp.denoise.clicksRepaired': 'Réparés',
+  'dsp.denoise.voiceUnderruns': 'Coupures voix',
+  'dsp.denoise.nativeOnly':
+    'Le débruitage ne fonctionne que dans le moteur natif, qui ne porte pas l’audio actuellement. Cette étape est contournée.',
 
   'dsp.crossfade.title': 'Fondu enchaîné',
   'dsp.crossfade.description':
@@ -296,6 +356,21 @@ const dsp = {
   'dsp.compressor.release': 'Relâchement',
   'dsp.compressor.makeup': 'Compensation',
 
+  'dsp.dimension.historyLabel': 'Côtés et centre dans le temps',
+  'dsp.dimension.legendCorrelation': 'Corrélation',
+  'dsp.dimension.fieldLabel': 'Champ stéréo en direct',
+  'dsp.dimension.graphLabel': 'Largeur stéréo selon la fréquence',
+  'dsp.dimension.legendUnity': 'Inchangé',
+  'dsp.dimension.legendWidth': 'Largeur',
+  'dsp.dimension.groupWidth': 'Largeur',
+  'dsp.dimension.groupShape': 'Forme',
+  'dsp.dimensionPreset.speakers': 'Enceintes',
+  'dsp.dimensionPreset.laptop': 'Portable',
+  'dsp.dimensionPreset.intimate': 'Intime',
+  'dsp.dimensionPreset.expansive': 'Ample',
+  'dsp.dimensionPreset.neutral': 'Neutre',
+  'dsp.dimensionPreset.monoSafe': 'Mono sûr',
+  'dsp.dimensionPreset.headphones': 'Casque',
   'dsp.dimension.guard': 'Garde mono',
   'dsp.dimension.monoNote':
     'Seuls les côtés sont modifiés : en mono, le rendu est identique à celui obtenu sans cet effet. La garde se ferme si le mixage est déjà déphasé.',
@@ -351,8 +426,6 @@ const dsp = {
     'Sortie manuelle : aucune réduction de crête. Les niveaux au-dessus de 0 dBFS satureront.',
   'dsp.master.truePeak': 'TP entrée',
   'dsp.master.gainReduction': 'Réduction de gain',
-  'dsp.master.engineFallback':
-    "Le moteur audio n'a pas pu démarrer, votre musique est donc lue sans traitement : ni égaliseur, ni dynamique, ni limiteur. Redémarrer FluidEQ suffit généralement.",
   'dsp.master.devSafety': 'Sécurité A/B',
   'dsp.master.devSafetyHint':
     'Développement uniquement : contourne toute la protection finale pour entendre exactement son effet.',
@@ -360,12 +433,13 @@ const dsp = {
     'Protection d’urgence au-dessus de +10 dBTP · anticipation 2 ms · correction sans relâchement · protection DC 3 Hz · réparation des échantillons invalides',
   'dsp.master.dcCorrection': 'Décalage DC',
   'dsp.master.faults': 'Défauts',
-  'dsp.master.graph.spectrum': 'Spectre final',
-  'dsp.master.graph.trim': 'Gain de sortie',
-  'dsp.master.graph.applied': 'Gain appliqué',
-  'dsp.master.graph.trimLine': 'Gain {gain} dB',
-  'dsp.master.graph.appliedLine': 'Appliqué {gain} dB',
-  'dsp.master.graph.dcGuard': 'Protection DC',
+  'dsp.master.graph.momentary': 'Momentané',
+  'dsp.master.graph.shortTerm': 'Court terme',
+  'dsp.master.graph.target': 'Cible',
+  'dsp.master.graph.integrated': 'Intégré',
+  'dsp.master.graph.targetLine': 'Cible {target} LUFS',
+  'dsp.master.graph.integratedLine': 'Intégré {value} LUFS',
+  'dsp.master.graph.reductionShort': 'RG',
   'dsp.master.graph.peakWarning':
     'Alerte · sortie à {peak} dBTP au-dessus du plafond',
   'dsp.master.graph.peakFixed': 'Crête contrôlée · {gain} dB de réduction',
@@ -379,6 +453,38 @@ const dsp = {
   'dsp.master.graph.safetyBypassed': 'Alerte · protections contournées',
   'dsp.master.graph.loudnessActive':
     'Maximisation LUFS · +{gain} dB vers {target} LUFS',
+  'dsp.master.peakLimiting': 'Limitation des crêtes',
+  'dsp.master.matchedBypass': 'Compensation de gain',
+  'dsp.master.matchedBypassHint':
+    'Retire de la sortie les {gain} dB de compensation : activer et désactiver Master compare alors le son et non le volume. La limitation est identique dans les deux cas, seul le niveau change.',
+  'dsp.master.limit.limiting':
+    '{requested} dB nécessaires — {room} dB de marge de crête plus la limitation autorisée.',
+  'dsp.master.limit.maxGain':
+    '{requested} dB nécessaires — au maximum de correction de cet étage.',
+  'dsp.master.limit.gate':
+    'Trop faible pour être mesuré — aucune correction appliquée.',
+  'dsp.master.loudness.momentary': 'M',
+  'dsp.master.loudness.shortTerm': 'S',
+  'dsp.master.loudness.integrated': 'I',
+  'dsp.master.loudness.range': 'LRA',
+  'dsp.master.loudness.truePeak': 'TP',
+  'dsp.master.graph.matchedActive': 'Gain compensé · {gain} dB retirés',
+  'dsp.masterPreset.label': 'Destination',
+  'dsp.masterPreset.streaming': 'Streaming',
+  'dsp.masterPreset.streamingQuiet': 'Streaming, faible',
+  'dsp.masterPreset.podcast': 'Podcast',
+  'dsp.masterPreset.audiobook': 'Livre audio',
+  'dsp.masterPreset.broadcast': 'Diffusion R128',
+  'dsp.masterPreset.broadcastUs': 'Diffusion A/85',
+  'dsp.masterPreset.cinema': 'Cinéma',
+  'dsp.masterPreset.cd': 'CD',
+  'dsp.masterPreset.vinyl': 'Vinyle',
+  'dsp.masterPreset.club': 'Club',
+  'dsp.masterPreset.reference': 'Référence',
+  'dsp.masterPresetGroup.streaming': 'Normalisé à la livraison',
+  'dsp.masterPresetGroup.broadcast': 'Diffusion et cinéma',
+  'dsp.masterPresetGroup.unnormalized': 'Personne ne vous baisse',
+  'dsp.masterPresetGroup.tool': 'Pour comparer',
 
   'tabs.dsp': 'DSP',
 };

@@ -4,6 +4,8 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
+import { readFileSync } from 'fs';
+import { join } from 'path';
 import { DSP_DEFAULTS, IEqSettings } from '../../common/dsp/chain';
 import { FilterTypeEnum } from '../../common/constants';
 import {
@@ -34,8 +36,11 @@ describe('the chain wire layout', () => {
   /**
    * The one number both sides of the wire hard-code.
    *
-   * `FEQ_CHAIN_PARAM_LEAD` in `fluideq/chain.h` is 91 and neither side can ask
-   * the other. A scalar added to the encoder and forgotten in the C++ does not
+   * `FEQ_CHAIN_PARAM_LEAD` in `fluideq/chain.h` holds it too, and neither side
+   * can ask the other. The value itself is deliberately not written out here:
+   * it said 69 while both sides had long since agreed on 77, which is a
+   * comment that would have been believed by anybody checking the two numbers
+   * matched. A scalar added to the encoder and forgotten in the C++ does not
    * crash — it shifts every EQ band along by one field, so a Q becomes a
    * threshold and a frequency becomes a gain, and the result decodes into a
    * chain that is wrong and plausible. This is the check that catches it before
@@ -46,6 +51,27 @@ describe('the chain wire layout', () => {
 
     expect(encoded).toHaveLength(CHAIN_PARAM_LEAD);
     expect(encoded[CHAIN_PARAM_LEAD - 1]).toBe(0);
+  });
+
+  /**
+   * The header is the other half of the contract, so read it rather than trust
+   * a comment about it.
+   *
+   * Nothing in TypeScript can fail when the C++ moves and this does not, which
+   * is exactly how `src/main/dspHost/wire.ts` sat at 69 through two bumps: it
+   * held a third copy of the number whose only check was weaker than one the
+   * caller had already passed. That copy is gone — main imports the same
+   * constant now — and this is what stops a fourth appearing.
+   */
+  it('agrees with FEQ_CHAIN_PARAM_LEAD in the C++ header', () => {
+    const header = readFileSync(
+      join(__dirname, '../../../native/dsp-core/include/fluideq/chain.h'),
+      'utf8',
+    );
+    const declared = /#define\s+FEQ_CHAIN_PARAM_LEAD\s+(\d+)/.exec(header);
+
+    expect(declared).not.toBeNull();
+    expect(Number(declared?.[1])).toBe(CHAIN_PARAM_LEAD);
   });
 
   it('appends seven fields per band, and says how many there are', () => {

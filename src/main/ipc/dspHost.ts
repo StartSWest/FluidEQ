@@ -25,6 +25,13 @@ import {
   isNativeParameterId,
 } from '../../common/dsp/nativeParameters';
 import { isChainWirePayload } from '../../common/dsp/chainWire';
+import { NOISE_PROFILE_WIRE_LENGTH } from '../../common/dsp/noiseProfile';
+import {
+  denoiseModelPath,
+  downloadDenoiseModel,
+  isDenoiseModelPresent,
+  onnxRuntimeLibraryPath,
+} from '../denoiseModel';
 import { CROSSFADE_TABLE_POINTS } from '../../common/dsp/crossfadeShape';
 import { findDspHostExecutable } from '../dspHost/hostPath';
 import { DspHostSupervisor, TDspHostState } from '../dspHost/supervisor';
@@ -209,6 +216,90 @@ export const registerDspHostIpc = ({
       }
       try {
         return await supervisor.applyChain(values);
+      } catch {
+        return false;
+      }
+    },
+  );
+
+  /**
+   * The measured noise floor for the track now playing, or null to clear it.
+   *
+   * Validated here rather than trusted: the renderer is the only sender and
+   * main the only forwarder, but the boundary is where a malformed message
+   * stops, and "the only caller is ours" is a property of today's code rather
+   * than of the channel. A wrong length reaching the host would be read as
+   * band levels shifted into the hum partials.
+   */
+  ipcMain.handle(
+    'dsp-host-noise-profile',
+    async (_event, values: unknown): Promise<boolean> => {
+      if (!supervisor || supervisor.getState() !== 'ready') {
+        return false;
+      }
+      if (values === null || values === undefined) {
+        try {
+          return await supervisor.setNoiseProfile(undefined);
+        } catch {
+          return false;
+        }
+      }
+      if (
+        !Array.isArray(values) ||
+        values.length !== NOISE_PROFILE_WIRE_LENGTH ||
+        !values.every(
+          (entry) => typeof entry === 'number' && Number.isFinite(entry),
+        )
+      ) {
+        return false;
+      }
+      try {
+        return await supervisor.setNoiseProfile(values);
+      } catch {
+        return false;
+      }
+    },
+  );
+
+  /**
+   * Whether the Voice model is on disk, so the card can offer the download.
+   *
+   * Separate from loading it: the answer is wanted before the host is even
+   * running, and it is what turns a switch that would do nothing into a
+   * button that says what it needs.
+   */
+  ipcMain.handle('dsp-denoise-model-state', async (): Promise<boolean> =>
+    isDenoiseModelPresent(),
+  );
+
+  /**
+   * Fetch the model, then hand it and the runtime to the host.
+   *
+   * Both together, because neither is any use alone: a module pointed at a
+   * model with no runtime is a control that reads as ready while doing
+   * nothing. Progress goes back on its own channel so the card can show it
+   * from the first second rather than after ten megabytes of silence.
+   */
+  ipcMain.handle(
+    'dsp-denoise-model-download',
+    async (event): Promise<boolean> => {
+      const ok = await downloadDenoiseModel(({ received, total }) => {
+        if (!event.sender.isDestroyed()) {
+          event.sender.send('dsp-denoise-model-progress', { received, total });
+        }
+      });
+      if (!ok) {
+        return false;
+      }
+      const runtime = onnxRuntimeLibraryPath();
+      if (!runtime || !supervisor || supervisor.getState() !== 'ready') {
+        // Downloaded but not engaged. Reported as false rather than true so
+        // the card does not claim a module is running that the engine has not
+        // accepted; the next engage replays it.
+        return false;
+      }
+      try {
+        return await supervisor.loadVoiceModel(denoiseModelPath(), runtime);
       } catch {
         return false;
       }

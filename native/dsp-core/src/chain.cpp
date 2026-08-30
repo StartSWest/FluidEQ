@@ -132,6 +132,7 @@ void feq_chain_settings_defaults(FeqChainSettings* settings) {
   *settings = FeqChainSettings{};
   settings->enabled = 1;
   settings->output_safety_enabled = 1;
+  feq_denoise_settings_defaults(&settings->denoise);
   settings->eq.model_amount = 1.0;
   settings->eq.oversample = 1;
   settings->compressor.crossover_hz[0] = 200.0;
@@ -170,6 +171,7 @@ FeqChain* feq_chain_create(double sample_rate,
   chain->sample_rate = sample_rate;
   chain->channels = channels;
   chain->max_frames = maximum_block_frames;
+  chain->loudness_meter = feq_loudness_meter_create(sample_rate, channels);
   feq_chain_settings_defaults(&chain->settings);
 
   const uint32_t frames = maximum_block_frames;
@@ -307,6 +309,12 @@ FeqChain* feq_chain_create(double sample_rate,
     feq_band_dynamics_init(&chain->band_dynamics[index]);
     feq_band_dynamics_init(&chain->dynamic_dynamics[index]);
   }
+  // Skipped rather than fatal if it cannot allocate. A rack that refuses to
+  // make any sound because one processor could not get memory is worse than a
+  // rack missing one processor.
+  chain->denoise =
+      feq_denoise_create(sample_rate, chain->channels, maximum_block_frames);
+
   // Both sets, so the first published one is complete and the spare is not a
   // half-built rack waiting to be swapped in.
   chain_refresh_eq(chain);
@@ -332,7 +340,32 @@ void feq_chain_destroy(FeqChain* chain) {
   // Anything still in transit has no thread left to reach it, and it holds the
   // largest allocation in the chain.
   chain_release_kernel_handoff(chain);
+  feq_loudness_meter_destroy(chain->loudness_meter);
+  feq_denoise_destroy(chain->denoise);
+  chain->denoise = nullptr;
   delete chain;
+}
+
+void feq_chain_set_noise_profile(FeqChain* chain,
+                                 const FeqNoiseProfile* profile) {
+  if (chain == nullptr) {
+    return;
+  }
+  feq_denoise_set_profile(chain->denoise, profile);
+}
+
+int feq_chain_load_voice_model(FeqChain* chain,
+                               const char* model_path,
+                               const char* runtime_path) {
+  if (chain == nullptr) {
+    return 0;
+  }
+  return feq_denoise_load_voice_model(chain->denoise, model_path,
+                                      runtime_path);
+}
+
+void feq_chain_denoise_report(const FeqChain* chain, FeqDenoiseReport* out) {
+  feq_denoise_report(chain == nullptr ? nullptr : chain->denoise, out);
 }
 
 void feq_chain_configure(FeqChain* chain, const FeqChainSettings* settings) {
@@ -349,6 +382,7 @@ void feq_chain_configure(FeqChain* chain, const FeqChainSettings* settings) {
     chain->settings.eq.oversample = 1;
   }
   apply_maximizer_look_ahead(chain);
+  feq_denoise_configure(chain->denoise, &chain->settings.denoise);
   chain_refresh_eq(chain);
   // After the bands, because it is built from the same settings and the guard
   // inside it decides whether anything is done at all. This is what makes
@@ -413,6 +447,7 @@ void feq_chain_reset(FeqChain* chain, FeqChainResetReason reason) {
   for (auto& state : chain->dynamic_states) {
     feq_biquad_reset(&state);
   }
+  feq_denoise_reset(chain->denoise);
   feq_biquad_reset(&chain->side_highpass);
   for (auto& crossover : chain->crossovers) {
     feq_crossover_reset(&crossover);
@@ -426,6 +461,20 @@ void feq_chain_reset(FeqChain* chain, FeqChainResetReason reason) {
   // history above does.
   feq_bass_forge_reset(&chain->bass_forge);
   feq_bass_punch_reset(&chain->bass_punch);
+
+  if (reason != FEQ_CHAIN_RESET_SEEK) {
+    /**
+     * A new programme is a new measurement, and a seek is not a new programme.
+     *
+     * Integrated loudness describes one piece of music. Carrying it across a
+     * track change would answer a question nobody asked — the average of the
+     * last three songs — and the reading would drift further from the target
+     * the longer the queue ran. Jumping about inside one song, on the other
+     * hand, is still that song, and restarting the integration on every scrub
+     * would make the number unreadable exactly when it is being watched.
+     */
+    feq_loudness_meter_reset(chain->loudness_meter);
+  }
 
   if (reason == FEQ_CHAIN_RESET_SOURCE_CHANGE) {
     /**
@@ -451,7 +500,14 @@ uint32_t feq_chain_latency_frames(const FeqChain* chain) {
   if (chain == nullptr) {
     return 0;
   }
-  return chain_linear_running(chain) != 0 ? feq_linear_phase_latency() : 0u;
+  uint32_t latency =
+      chain_linear_running(chain) != 0 ? feq_linear_phase_latency() : 0u;
+  // Denoise adds delay only for the modules that are on: the comb is zero
+  // latency, the repair costs its lookahead, the spectral module its window
+  // less a hop. A stage reporting a latency it is not actually adding puts the
+  // deck's crossfade out by that much on every handoff.
+  latency += feq_denoise_latency_frames(chain->denoise);
+  return latency;
 }
 
 void feq_chain_process(FeqChain* chain, float* const* channels,
@@ -478,6 +534,18 @@ void feq_chain_process(FeqChain* chain, float* const* channels,
   chain_adopt_kernel_handoff(chain);
 
   chain_process_input_gain(chain, channels, frames);
+
+  /*
+   * Restoration, before anything creative touches the block.
+   *
+   * Below the input gain because that gain was chosen from a cached whole-file
+   * true peak: altering the waveform above it makes the measurement describe a
+   * signal that no longer exists, and the ceiling stops holding with nothing
+   * reporting it. Above the exciter because the alternative is generating
+   * harmonics from hiss and then trying to remove the result.
+   */
+  feq_denoise_process(chain->denoise, channels, frames);
+  feq_meters_capture(chain->meters, FEQ_METER_STAGE_DENOISE, channels, frames);
 
   chain_process_exciter(chain, channels, frames);
   /**
@@ -626,6 +694,20 @@ void feq_chain_process(FeqChain* chain, float* const* channels,
   // for the device. A master meter read before the final limiter would show a
   // peak the listener never hears and miss the reduction that removed it.
   feq_meters_capture(chain->meters, FEQ_METER_STAGE_MASTER, channels, frames);
+
+  /**
+   * The loudness of that same tap, and it runs whether or not anyone is
+   * watching.
+   *
+   * Gating the measurement on the panel being open would make the integrated
+   * reading depend on when the tab was opened, which is not a property of the
+   * music. Only the publish is gated, inside the meters, and the measurement
+   * costs two biquads per channel per sample.
+   */
+  feq_loudness_meter_process(chain->loudness_meter, channels, frames);
+  FeqLoudnessReading loudness{};
+  feq_loudness_meter_read(chain->loudness_meter, &loudness);
+  feq_meters_publish_loudness(chain->meters, &loudness);
 }
 
 void feq_chain_set_meters(FeqChain* chain, FeqMeters* meters) {

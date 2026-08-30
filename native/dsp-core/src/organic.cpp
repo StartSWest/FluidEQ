@@ -54,12 +54,16 @@ void feq_organic_reset_transient(FeqOrganic* state) {
  * How much harmonic content the dial asks for, as a ratio of the focused band.
  *
  * The same figure the three bands call Depth, and it means the same thing here:
- * what survives to the output as harmonic amplitude, at any playback level. The
- * curve is chosen so the default 0.35 measures where the old soft-diode curve
- * measured on a -6 dBFS tone — the character is kept, the level-following is
- * not.
+ * what survives to the output as harmonic amplitude, at any playback level.
+ *
+ * It was roughly twice this, chosen so the default matched the old soft-diode
+ * curve on a -6 dBFS TONE. That was the wrong place to match. The old curve
+ * followed the input level, so on ordinary material near -20 dBFS it produced
+ * far less than it did at a peak, while this one produces the same ratio
+ * everywhere — matching at the peak put about ten decibels more harmonic
+ * content on everything that is not one.
  */
-double feq_organic_depth(double amount) { return 0.15 + amount * 0.85; }
+double feq_organic_depth(double amount) { return 0.08 + amount * 0.46; }
 
 /**
  * Organic stays even-dominant; the upper travel only adds a little density.

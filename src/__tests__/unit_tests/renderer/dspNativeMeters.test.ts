@@ -72,10 +72,24 @@ const analysisFrame = (
       truePeakFactor: 4,
       safetyEnabled: true,
     },
+    loudness: {
+      momentaryLufs: -120,
+      shortTermLufs: -120,
+      integratedLufs: -120,
+      rangeLu: 0,
+    },
     normalizer: {
       inputPeaks: [0, 0],
       outputPeaks: [0, 0],
       appliedGainDb: 0,
+    },
+    denoise: {
+      reductionDb: 0,
+      noiseFloorDb: -120,
+      clicksRepaired: 0,
+      voiceUnderruns: 0,
+      profileReady: false,
+      voiceModelLoaded: false,
     },
   };
 };

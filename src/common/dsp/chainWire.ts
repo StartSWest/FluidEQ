@@ -22,6 +22,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
  */
 import { FilterTypeEnum } from '../constants';
 import {
+  DENOISE_HUM_MODES,
+  DENOISE_PROFILE_SOURCES,
   EQ_ENGINES,
   EQ_MODELS,
   EQ_PHASE_MODES,
@@ -33,7 +35,7 @@ import {
  * Scalars before the variable-length band array. Must equal
  * `FEQ_CHAIN_PARAM_LEAD` in `fluideq/chain.h`.
  */
-export const CHAIN_PARAM_LEAD = 91;
+export const CHAIN_PARAM_LEAD = 110;
 
 /** Fields per EQ band. Must equal `FEQ_CHAIN_BAND_PARAMS`. */
 export const CHAIN_BAND_PARAMS = 7;
@@ -76,6 +78,7 @@ export const encodeChainSettings = (
     compressor,
     maximizer,
     master,
+    denoise,
   } = settings;
   const values: number[] = [
     settings.enabled ? 1 : 0,
@@ -146,6 +149,25 @@ export const encodeChainSettings = (
     master.loudnessTargetLufs,
     master.ceilingDb,
     master.releaseMs,
+    master.matchedBypass ? 1 : 0,
+    denoise.enabled ? 1 : 0,
+    denoise.isolate ? 1 : 0,
+    DENOISE_PROFILE_SOURCES.indexOf(denoise.profileSource),
+    denoise.hiss.enabled ? 1 : 0,
+    denoise.hiss.amount,
+    denoise.hiss.floorDb,
+    denoise.hiss.sensitivityDb,
+    denoise.hiss.smoothing,
+    denoise.hum.enabled ? 1 : 0,
+    DENOISE_HUM_MODES.indexOf(denoise.hum.mode),
+    denoise.hum.harmonics,
+    denoise.hum.depthDb,
+    denoise.hum.quality,
+    denoise.click.enabled ? 1 : 0,
+    denoise.click.sensitivity,
+    denoise.click.maxRepairSamples,
+    denoise.voice.enabled ? 1 : 0,
+    denoise.voice.amount,
     // Both bass stages go here rather than at the end, and the position is the
     // whole point: `isChainWirePayload` sizes the band array from the LAST lead
     // slot, so anything appended after `eq.bands.length` moves the band count
@@ -168,6 +190,10 @@ export const encodeChainSettings = (
     bassPunch.bloomAmount,
     bassPunch.bloomDecayMs,
     bassPunch.duck,
+    // Last in the lead, and it has to stay last: `isChainWirePayload` and
+    // `feq_chain_settings_decode` both read the band count from
+    // `CHAIN_PARAM_LEAD - 1` to know how long the tail is. A scalar appended
+    // after this one moves the count out from under both of them.
     eq.bands.length,
   );
   if (values.length !== CHAIN_PARAM_LEAD) {

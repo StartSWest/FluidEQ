@@ -27,7 +27,9 @@ import type {
   IHostAnalysis,
   TAnalysisStage,
 } from '../../common/dsp/analysisWire';
+import { CHAIN_PARAM_LEAD } from '../../common/dsp/chainWire';
 import { CROSSFADE_TABLE_POINTS } from '../../common/dsp/crossfadeShape';
+import { NOISE_PROFILE_WIRE_LENGTH } from '../../common/dsp/noiseProfile';
 
 /** Must match FEQ_WIRE_PROTOCOL_VERSION. */
 export const HOST_WIRE_PROTOCOL_VERSION = 1;
@@ -80,6 +82,16 @@ export const HOST_COMMANDS = {
   setAnalysis: 18,
   setVolume: 19,
   setCrossfadeTable: 20,
+  /**
+   * The measured noise floor. A zero-length payload clears it.
+   *
+   * Its own command rather than part of the chain snapshot, for the same
+   * reason `setTrackGains` is: it comes from analysis and changes once per
+   * track, not once per knob-drag.
+   */
+  setNoiseProfile: 21,
+  /** Model path, newline, runtime path, as UTF-8. Empty payload unloads. */
+  loadVoiceModel: 22,
 } as const;
 
 /** `parameterId` for `setDiagnosticSignal`; `value` carries the frequency. */
@@ -197,12 +209,18 @@ export const encodeSnapshotPayload = (values: readonly number[]): Buffer => {
  * the real worklet, so this is exercised by them rather than being a second
  * encoder that agrees with the first until a field is added to one of them.
  *
- * Everything before the bands sits at a fixed offset, which is why the lead is
- * asserted rather than assumed — a scalar added above and forgotten here would
- * push every band along by one and still decode into something plausible.
+ * The lead is IMPORTED rather than restated. This file held its own copy at 69
+ * through two bumps of the real one — 77, then 78 — and the drift went
+ * unnoticed because the check below cannot fire: every
+ * caller reaches it through the `dsp-host-chain` handler, which has already run
+ * `isChainWirePayload` — that one checks the length exactly against the band
+ * count the payload declares, so a floor of any value is strictly weaker than
+ * what has already passed. A second authority that can never disagree out loud
+ * is worse than none: it reads as a check while proving nothing.
+ *
+ * The floor stays because `encodeChainPayload` is exported and the next caller
+ * may not come through that handler. It just no longer owns a number.
  */
-export const CHAIN_PARAM_LEAD = 69;
-
 export const encodeChainPayload = (values: readonly number[]): Buffer => {
   if (values.length < CHAIN_PARAM_LEAD) {
     throw new Error(
@@ -219,6 +237,24 @@ export const encodeChainPayload = (values: readonly number[]): Buffer => {
  * whose two decks were drawn against different curves, which is a level step
  * in the middle of the overlap.
  */
+/**
+ * The measured floor, whose length is fixed rather than declared.
+ *
+ * Unlike the chain snapshot there is exactly one array in here and its size is
+ * a compile-time constant on both sides, so an exact check is possible and is
+ * therefore what this does. `feq_wire` refuses any other length outright.
+ */
+export const encodeNoiseProfilePayload = (
+  values: readonly number[],
+): Buffer => {
+  if (values.length !== NOISE_PROFILE_WIRE_LENGTH) {
+    throw new Error(
+      `noise profile: ${values.length} values, expected ${NOISE_PROFILE_WIRE_LENGTH}`,
+    );
+  }
+  return encodeSnapshotPayload(values);
+};
+
 export const encodeCrossfadeTablePayload = (
   values: readonly number[],
 ): Buffer => {
@@ -486,6 +522,28 @@ export const decodeAnalysis = (frame: Buffer): IHostAnalysis | undefined => {
       inputPeaks: [view.getFloat32(96, true), view.getFloat32(100, true)],
       outputPeaks: [view.getFloat32(104, true), view.getFloat32(108, true)],
       appliedGainDb: view.getFloat32(112, true),
+    },
+    // Offset 116 is `reserved_tail`, the float that was padding the struct to
+    // eight-byte alignment before these four followed it.
+    loudness: {
+      momentaryLufs: view.getFloat32(120, true),
+      shortTermLufs: view.getFloat32(124, true),
+      integratedLufs: view.getFloat32(128, true),
+      rangeLu: view.getFloat32(132, true),
+    },
+    // Denoise came after Master loudness and so sits after it, at 136 rather
+    // than the 120 it was written against. Appending is the rule here and not
+    // a preference: the guards below are `length < ANALYSIS_HEADER_BYTES`, a
+    // floor rather than an exact check, so a field placed above an existing
+    // one does not fail — it reads whatever has moved into the old offset and
+    // hands the panel a plausible number.
+    denoise: {
+      reductionDb: view.getFloat32(136, true),
+      noiseFloorDb: view.getFloat32(140, true),
+      clicksRepaired: view.getUint32(144, true),
+      voiceUnderruns: view.getUint32(148, true),
+      profileReady: view.getUint32(152, true) !== 0,
+      voiceModelLoaded: view.getUint32(156, true) !== 0,
     },
     bandAmounts,
     bandLevels,

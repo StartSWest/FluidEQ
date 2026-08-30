@@ -33,8 +33,25 @@ export const ANALYSIS_BINS = 1024;
 /** Sample pairs per scope window, matching `FEQ_METER_SCOPE_PAIRS`. */
 export const ANALYSIS_SCOPE_PAIRS = 256;
 
-/** The fixed header; its own fields say how much payload follows. */
-export const ANALYSIS_HEADER_BYTES = 120;
+/**
+ * The fixed header; its own fields say how much payload follows.
+ *
+ * 120 before Master loudness took it to 136, and 136 before Denoise appended
+ * six words — 160 rather than 156, because the frame is eight-byte aligned.
+ * Every pre-existing offset is untouched on purpose: this constant, the
+ * publisher in `meters.cpp` and the reader in `dspHost/wire.ts` all have to
+ * move in one commit, and new fields go after everything already decoded,
+ * always.
+ *
+ * A frame written against a different layout does NOT get read as plausible
+ * numbers. `decodeAnalysis` computes the whole length from the header's own
+ * bin, pair, band and stage-mask fields and refuses anything that does not
+ * match exactly, so drift on either side fails closed. This comment used to
+ * say the opposite — that the reader's guards were only floors — and it was
+ * believed: three separate readers of it set out to add a check that has been
+ * there since the graphs were first fed from the engine.
+ */
+export const ANALYSIS_HEADER_BYTES = 160;
 
 /** The rack ceiling, matching FEQ_METER_MAX_BANDS. */
 export const ANALYSIS_MAX_BANDS = 64;
@@ -47,7 +64,16 @@ export const ANALYSIS_MAX_BANDS = 64;
  * not happen on the other would leave a graph silently unfed — no error, no
  * warning, just one panel that never moves.
  */
-export const ANALYSIS_STAGES = ['exciter', 'eq', 'master'] as const;
+export const ANALYSIS_STAGES = [
+  'exciter',
+  'eq',
+  'master',
+  // Appended rather than placed in signal order. These are bit positions in
+  // `stage_mask`, so inserting `denoise` at the front — where the stage
+  // actually runs — would renumber the three taps a running host already
+  // publishes and feed each graph its neighbour's spectrum.
+  'denoise',
+] as const;
 
 export type TAnalysisStage = (typeof ANALYSIS_STAGES)[number];
 
@@ -91,6 +117,64 @@ export interface IHostAnalysis {
   dimensionGuard: number;
   master: IHostAnalysisMaster;
   normalizer: IHostAnalysisNormalizer;
+  loudness: IHostAnalysisLoudness;
+  denoise: IHostAnalysisDenoise;
+}
+
+/**
+ * How loud the output is, measured where it leaves.
+ *
+ * The Master page has always offered a loudness target and never had anything
+ * to check it against: the only LUFS on screen was the number the user dialled.
+ * That is how a makeup that applied exactly zero decibels to every commercially
+ * mastered track shipped and stayed shipped — the meter that would have said so
+ * did not exist.
+ */
+export interface IHostAnalysisLoudness {
+  /** The last 400 ms, ungated. */
+  momentaryLufs: number;
+  /** The last 3 s, which is the one to watch while setting a target. */
+  shortTermLufs: number;
+  /** Gated, over the whole programme since the last track change. */
+  integratedLufs: number;
+  /**
+   * The 95th percentile of short-term blocks minus the 10th, in LU.
+   *
+   * What says whether a target was reached by mastering or by flattening. Two
+   * records at one integrated loudness and eight LU apart in range are not the
+   * same master, and no other reading on the page can tell them apart.
+   */
+  rangeLu: number;
+}
+
+/**
+ * What the four Denoise modules did, which their settings cannot say.
+ *
+ * None of this is derivable from the dials. How much a spectral subtractor
+ * removed depends on the material; whether the click detector fired at all
+ * depends on whether the file has clicks; and whether the neural module is
+ * running at all depends on a download. A card showing only dial positions
+ * would look identical in every one of those cases.
+ */
+export interface IHostAnalysisDenoise {
+  /** Mean broadband attenuation over the window, dB. Never positive. */
+  reductionDb: number;
+  /** The floor the hiss module is currently working against, dBFS. */
+  noiseFloorDb: number;
+  /** Impulses repaired over the window. */
+  clicksRepaired: number;
+  /**
+   * Blocks the neural worker failed to deliver in time over the window.
+   *
+   * Dry audio was passed through for each one. Reported rather than hidden
+   * because the alternative to reporting it is a module that intermittently
+   * stops working and never says so.
+   */
+  voiceUnderruns: number;
+  /** Whether a scanned profile is loaded, as opposed to the adaptive tracker. */
+  profileReady: boolean;
+  /** Whether the neural model is loaded and its session built. */
+  voiceModelLoaded: boolean;
 }
 
 /**

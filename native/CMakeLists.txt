@@ -75,10 +75,16 @@ add_library(fluideq-dsp-core STATIC
   dsp-core/src/convolver.cpp
   dsp-core/src/linear_phase.cpp
   dsp-core/src/loudness.cpp
+  dsp-core/src/loudness_meter.cpp
   dsp-core/src/crossfade.cpp
   dsp-core/src/dimension.cpp
   dsp-core/src/bass_forge.cpp
   dsp-core/src/bass_punch.cpp
+  dsp-core/src/denoise.cpp
+  dsp-core/src/denoise_spectral.cpp
+  dsp-core/src/denoise_hum.cpp
+  dsp-core/src/denoise_click.cpp
+  dsp-core/src/denoise_voice.cpp
   dsp-core/src/meters.cpp
   dsp-core/src/chain.cpp
   dsp-core/src/chain_eq.cpp
@@ -90,6 +96,10 @@ add_library(fluideq-dsp-core STATIC
   dsp-core/src/player.cpp
 )
 target_include_directories(fluideq-dsp-core PUBLIC dsp-core/include)
+# The ONNX Runtime C API header, vendored. Nothing is LINKED against it: the
+# voice module loads the shared library by path at runtime, so this is a set of
+# declarations rather than a build dependency.
+target_include_directories(fluideq-dsp-core PRIVATE dsp-host/src/vendor)
 target_link_libraries(fluideq-dsp-core PRIVATE feq_strict)
 target_compile_definitions(fluideq-dsp-core
   PUBLIC FEQ_CORE_VERSION="${FEQ_CORE_VERSION}")
@@ -123,6 +133,10 @@ add_test(NAME bass-forge COMMAND fluideq-bass-forge-test)
 add_executable(fluideq-bass-punch-test dsp-core/tests/bass_punch_test.cpp)
 target_link_libraries(fluideq-bass-punch-test PRIVATE fluideq-dsp-core feq_strict)
 add_test(NAME bass-punch COMMAND fluideq-bass-punch-test)
+
+add_executable(fluideq-denoise-test dsp-core/tests/denoise_test.cpp)
+target_link_libraries(fluideq-denoise-test PRIVATE fluideq-dsp-core feq_strict)
+add_test(NAME denoise COMMAND fluideq-denoise-test)
 
 add_executable(fluideq-meters-test dsp-core/tests/meters_test.cpp)
 target_link_libraries(fluideq-meters-test PRIVATE fluideq-dsp-core feq_strict)

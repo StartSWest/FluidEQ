@@ -148,6 +148,25 @@ Windows itself, through Media Foundation. Nothing is bundled for them and
 nothing is licensed for them: those codecs belong to the operating system, and
 Microsoft licenses them for it.
 
+The Denoise stage's Voice module compiles in one more header as source:
+`onnxruntime_c_api.h` and its companion `onnxruntime_ep_c_api.h`, from the ONNX
+Runtime project by Microsoft, under the MIT Licence. Only the declarations are
+used — nothing is linked against them. The runtime itself is loaded by path at
+the moment the module is switched on, from the copy `onnxruntime-node` already
+installs for karaoke separation, so there is no second copy in the build and a
+machine without it simply has no Voice module.
+
+That module's network, **DPDFNet** by Ceva, is licensed **Apache-2.0** and is
+not shipped at all: it is downloaded on request, to the user's own profile,
+and verified against a pinned SHA-256 before it is loaded. Apache-2.0 requires
+attribution, so it is given here rather than only in a source comment, and it
+is one-way compatible with this project's GPL-3.0-or-later — a combination
+GPLv2 would not have permitted, which is why it was checked at the author's own
+repository rather than assumed from the badge on a mirror. The weights are
+republished by the `sherpa-onnx` project because Ceva's repository ships the
+export scripts rather than built artefacts; the licence comes from the author,
+the bytes come from the mirror, and the hash is what makes that split safe.
+
 That is deliberate rather than convenient. The only AAC decoders that could be
 vendored are either GPL-incompatible or a library rather than a header, and AAC
 is patented — shipping a decoder inside a binary that is sold is a different

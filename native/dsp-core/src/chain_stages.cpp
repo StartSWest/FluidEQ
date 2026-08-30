@@ -375,8 +375,20 @@ void chain_process_maximizer(FeqChain* chain, float* const* channels,
  */
 void chain_process_master_output(FeqChain* chain, float* const* channels,
                            uint32_t frames) {
+  /**
+   * Matched listen drops the makeup HERE and nowhere earlier.
+   *
+   * Auto Headroom has already reserved the whole makeup, so every sample has
+   * been limited exactly as it would be at full loudness — the drive into the
+   * ceiling, the reduction, the release, all identical. Only the level that
+   * leaves is different, which is the entire point: an A/B decided by which
+   * side is louder is not an A/B.
+   */
+  const double makeup_db = chain->settings.master.matched_bypass != 0
+                               ? 0.0
+                               : chain->master_loudness_now_db;
   const double total_db =
-      chain->settings.master.output_trim_db + chain->master_loudness_now_db;
+      chain->settings.master.output_trim_db + makeup_db;
   const double target =
       chain->settings.master.enabled != 0 ? std::pow(10.0, total_db / 20.0)
                                           : 1.0;

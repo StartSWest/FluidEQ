@@ -140,24 +140,46 @@ const chainValues = (eqEnabled: boolean, gainDb: number): number[] => {
     5,
     150,
     0, // master enabled
-    0,
-    0,
-    -14,
-    -1,
-    2000,
+    0, // output trim
+    0, // LUFS maximize
+    -14, // loudness target
+    -1, // ceiling
+    2000, // release
+    0, // matched listen
+    // Denoise, entirely off. This smoke exists to prove one EQ band survives
+    // the wire, and a repair stage that removes signal would be measuring
+    // something else against the tone it checks.
+    0, // denoise enabled
+    0, // isolate
+    0, // profile source: scanned
+    0, // hiss enabled
+    0.5, // hiss amount
+    -18, // hiss floor
+    3, // hiss sensitivity
+    0.7, // hiss smoothing
+    0, // hum enabled
+    0, // hum mode: auto
+    6, // hum harmonics
+    24, // hum depth
+    30, // hum quality
+    0, // click enabled
+    0.5, // click sensitivity
+    32, // click longest repair
+    0, // voice enabled
+    1, // voice amount
     0, // bass forge enabled
-    90,
-    0,
-    0,
-    0,
-    0.8,
+    90, // split
+    0, // drive
+    0, // sub amount
+    0, // presence amount
+    0.8, // texture
     0, // mix: zero is the bit-exact bypass
     0, // bass punch enabled
-    110,
-    0,
-    0,
-    0,
-    120,
+    110, // split
+    0, // attack
+    0, // sustain
+    0, // bloom amount
+    120, // bloom decay
     0, // duck
     1, // one EQ band
   );

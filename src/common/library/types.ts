@@ -16,6 +16,8 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+import { INoiseProfile } from '../dsp/noiseProfile';
+
 export interface ILibraryIndex {
   version: 1;
   roots: ILibraryRoot[];
@@ -67,6 +69,15 @@ export interface ILibraryNormalizationAnalysis {
    * user a re-measure of every track they own.
    */
   edges?: ILibraryProgrammeEdges;
+  /**
+   * The measured noise floor, absent on entries cached before Denoise existed.
+   *
+   * Not a version bump, for exactly the reason `edges` was not: the loudness
+   * numbers beside it are still correct, and re-measuring an analyzed library
+   * to learn where its hiss is would cost every user a decode of every track
+   * they own. Fetched lazily, only when the stage that needs it is on.
+   */
+  noise?: INoiseProfile;
 }
 
 /** Cheap disk identity used to validate a cached whole-file measurement. */

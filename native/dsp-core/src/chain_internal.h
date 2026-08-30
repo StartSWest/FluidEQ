@@ -30,6 +30,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "fluideq/exciter.h"
 #include "fluideq/limiter.h"
 #include "fluideq/linear_phase.h"
+#include "fluideq/loudness_meter.h"
 #include "fluideq/organic_stage.h"
 #include "fluideq/output_safety.h"
 #include "fluideq/oversample.h"
@@ -121,6 +122,16 @@ struct FeqChain {
    * costs one predictable branch per tap.
    */
   FeqMeters* meters = nullptr;
+
+  /**
+   * Restoration, owned rather than borrowed because its state is per-chain.
+   *
+   * Created with the chain and destroyed with it. Null only if allocation
+   * failed, in which case the stage is skipped and everything downstream still
+   * runs — a rack that refuses to make any sound because one processor could
+   * not allocate is worse than a rack missing one processor.
+   */
+  FeqDenoise* denoise = nullptr;
 
   ChainEqSlot slots[FEQ_CHAIN_CHANNELS];
   ChainExciterPath paths[kExciterPaths];
@@ -342,6 +353,18 @@ struct FeqChain {
   std::vector<float> post_delay[FEQ_CHAIN_CHANNELS];
   std::vector<float*> post_delay_pointers;
   std::vector<float> post_reduction;
+
+  /* ---------------------------------------------------------- loudness -- */
+  /**
+   * How loud what leaves is, which nothing in this engine could say.
+   *
+   * Owned here rather than by `FeqMeters` because it has to run whether or not
+   * the panel is open: integrated loudness is a measurement over the whole
+   * programme, and one that only accumulated while somebody was watching would
+   * read differently depending on when the tab was opened. The publish is
+   * gated by the meters; the measurement is not.
+   */
+  FeqLoudnessMeter* loudness_meter = nullptr;
 
   /* ------------------------------------------------------------ safety -- */
   FeqOutputSafety safety{};

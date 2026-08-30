@@ -297,20 +297,29 @@ describe('the High exciter', () => {
 
   /**
    * The band is an air generator, not a presence boost: what it returns is
-   * mostly what it made, not what it was given. The bounds are wide enough to
+   * a substantial part of what it made rather than a copy of what it was
+   * given. The bounds are wide enough to
    * survive a taste change to Depth and narrow enough to catch the band
    * turning back into a copy of its own source.
+   *
+   * They came down when the depths did. The figures they held were measured
+   * against a shaper compared at -6 dBFS, and matching there put about ten
+   * decibels more harmonic content on ordinary material than the stage had
+   * before — see `dspProcessorPresets.test.ts`, which measures at -20 dBFS for
+   * exactly that reason.
    */
-  it('makes its default upper harmonics louder than its foundation', () => {
+  it('makes upper harmonics a real part of its default return', () => {
     const output = renderAnalysis(highOnly(), 4_500);
     const fundamental = magnitudeAt(output, 4_500);
     const second = magnitudeAt(output, 9_000);
     const third = magnitudeAt(output, 13_500);
-    expect(second / fundamental).toBeGreaterThan(0.3);
-    expect(second / fundamental).toBeLessThan(0.9);
-    expect(third / fundamental).toBeGreaterThan(0.5);
-    expect(third / fundamental).toBeLessThan(1.3);
-    expect(second + third).toBeGreaterThan(fundamental);
+    expect(second / fundamental).toBeGreaterThan(0.15);
+    expect(second / fundamental).toBeLessThan(0.6);
+    expect(third / fundamental).toBeGreaterThan(0.25);
+    expect(third / fundamental).toBeLessThan(0.9);
+    // Together they are most of the carrier. They used to be MORE than it,
+    // which was the same overcooking the depths carried everywhere else.
+    expect(second + third).toBeGreaterThan(fundamental * 0.5);
   });
 
   it('uses Drive for density while retaining a continuous foundation', () => {

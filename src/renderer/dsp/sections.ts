@@ -15,6 +15,7 @@ import { TranslationKey } from '../../common/i18n/en';
  */
 export type TDspSection =
   | 'normalizer'
+  | 'denoise'
   | 'crossfade'
   | 'eq'
   | 'exciter'
@@ -32,6 +33,9 @@ export type TDspSection =
  */
 export const DSP_SECTIONS: { id: TDspSection; labelKey: TranslationKey }[] = [
   { id: 'normalizer', labelKey: 'dsp.normalizer.title' },
+  // Beside the Normalizer rather than beside the creative stages: both of
+  // these fix the source, and the rack reads as repair-then-colour.
+  { id: 'denoise', labelKey: 'dsp.denoise.title' },
   { id: 'crossfade', labelKey: 'dsp.crossfade.title' },
   { id: 'exciter', labelKey: 'dsp.exciter.title' },
   { id: 'eq', labelKey: 'dsp.eq.title' },

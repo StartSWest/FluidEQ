@@ -109,6 +109,30 @@ int feq_chain_settings_decode(const double* values,
   out->master.loudness_target_lufs = next();
   out->master.ceiling_db = next();
   out->master.release_ms = next();
+  out->master.matched_bypass = flag();
+
+  // Denoise, in the order `encodeChainSettings` writes it. Immediately before
+  // the band count, which stays last.
+  out->denoise.enabled = flag();
+  out->denoise.isolate = flag();
+  out->denoise.profile_source =
+      static_cast<FeqDenoiseProfileSource>(static_cast<int>(next()));
+  out->denoise.hiss.enabled = flag();
+  out->denoise.hiss.amount = next();
+  out->denoise.hiss.floor_db = next();
+  out->denoise.hiss.sensitivity_db = next();
+  out->denoise.hiss.smoothing = next();
+  out->denoise.hum.enabled = flag();
+  out->denoise.hum.mode =
+      static_cast<FeqDenoiseHumMode>(static_cast<int>(next()));
+  out->denoise.hum.harmonics = next();
+  out->denoise.hum.depth_db = next();
+  out->denoise.hum.quality = next();
+  out->denoise.click.enabled = flag();
+  out->denoise.click.sensitivity = next();
+  out->denoise.click.max_repair_samples = next();
+  out->denoise.voice.enabled = flag();
+  out->denoise.voice.amount = next();
 
   // Before the band count and not after it, matching `encodeChainSettings`.
   // The band count is the slot the length check reads to size the band array,

@@ -50,6 +50,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <stdint.h>
 
+#include "fluideq/loudness_meter.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -75,11 +77,19 @@ extern "C" {
  * `DspExciterGraph` wants `exciter`, `DspMasterGraph` wants `master`. Capturing
  * the other three would be work done every block for a picture nobody draws.
  */
+/*
+ * These are bit positions in `stage_mask`, so `denoise` is appended rather
+ * than placed where the stage actually runs. Inserting it at the front would
+ * renumber the three taps a running host already publishes and feed every
+ * graph its neighbour's spectrum. Matches `ANALYSIS_STAGES` in
+ * `analysisWire.ts`, which is append-only for the same reason.
+ */
 typedef enum FeqMeterStage {
   FEQ_METER_STAGE_EXCITER = 0,
   FEQ_METER_STAGE_EQ = 1,
   FEQ_METER_STAGE_MASTER = 2,
-  FEQ_METER_STAGE_COUNT = 3
+  FEQ_METER_STAGE_DENOISE = 3,
+  FEQ_METER_STAGE_COUNT = 4
 } FeqMeterStage;
 
 /**
@@ -200,6 +210,27 @@ void feq_meters_publish_exciter(FeqMeters* meters,
 
 /** What the Maximizer is holding down, in dB. **Audio thread.** */
 void feq_meters_publish_maximizer(FeqMeters* meters, double reduction_db);
+
+/**
+ * How loud the output is, by BS.1770. **Audio thread.**
+ *
+ * The one reading the Master page could not take. It offered a loudness target
+ * and then had no way to say whether the chain was reaching it — the only LUFS
+ * on the page was the number the user had dialled, beside a spectrum that says
+ * nothing about level. A target with no meter is a setting that cannot be
+ * checked, which is how it came to apply exactly zero decibels to every track
+ * without anybody seeing.
+ */
+void feq_meters_publish_loudness(FeqMeters* meters,
+                                 const FeqLoudnessReading* reading);
+
+/**
+ * The published loudness. **Control thread.** Not cleared: it integrates.
+ *
+ * `out_loudness` receives four floats: momentary, short term, integrated, and
+ * the range in LU.
+ */
+void feq_meters_read_loudness(FeqMeters* meters, float* out_loudness);
 
 /** How much widening Dimension is allowing, 0 to 1. **Audio thread.** */
 void feq_meters_publish_dimension(FeqMeters* meters, double guard);

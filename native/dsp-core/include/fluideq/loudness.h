@@ -26,12 +26,26 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <stdint.h>
 
+#include "fluideq/biquad.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 /** What a silent or absent measurement reports, in dB. */
 #define FEQ_LOUDNESS_SILENCE_DB (-120.0)
+
+/**
+ * The two cascaded sections BS.1770 calls K-weighting, designed at any rate.
+ *
+ * Exported rather than kept private because there is now a second meter — the
+ * live one in `loudness_meter.h` — and a whole-file reading that disagreed
+ * with the reading beside it on screen would be the app arguing with itself
+ * about the same song. The standard publishes coefficients at 48 kHz only, so
+ * this derivation IS the filter; two copies of it would be two filters.
+ */
+FeqBiquadCoefficients feq_k_weighting_shelf(double sample_rate);
+FeqBiquadCoefficients feq_k_weighting_highpass(double sample_rate);
 
 typedef struct FeqLoudnessAnalyzer FeqLoudnessAnalyzer;
 

@@ -45,11 +45,43 @@ export const POST_FILTER_NORMALIZER_KNEE_DB = 1.5;
 export const POST_FILTER_NORMALIZER_BYPASS_RELEASE_MS = 1_000;
 /** Keeps the emergency boundary idle after reconstruction and the DC blocker. */
 export const POST_FILTER_NORMALIZER_MARGIN_DB = 0.2;
+/**
+ * How long sustained reduction takes to reach the slow release, in ms.
+ *
+ * This stage went from catching the occasional transient to holding the
+ * programme down for whole choruses the moment the loudness target was allowed
+ * to ask for gain the track's peak room could not supply. One release time
+ * cannot serve both: fast enough for an isolated peak not to duck the phrase
+ * after it, and slow enough that a dense chorus does not have its level
+ * modulated at the rate of its own snare. That modulation is what pumping IS.
+ *
+ * So the release stretches with how long reduction has already persisted. A
+ * transient releases at the dialled time because the stage has not been down
+ * long enough to stretch; a passage that has been under reduction for a third
+ * of a second releases three times slower, and the level between its peaks
+ * stops moving.
+ */
+export const POST_FILTER_NORMALIZER_SUSTAIN_MS = 300;
+/** What the release is multiplied by once reduction is fully sustained. */
+export const POST_FILTER_NORMALIZER_SUSTAIN_STRETCH = 3;
 
 export interface IPostFilterNormalizerState {
   limiter: ILinkedLimiterState;
   minimumGain: number;
   inputTruePeak: number;
+  /**
+   * How long the programme has been over the ceiling, in samples.
+   *
+   * How long the stage has been ASKED for reduction, and deliberately not how
+   * long it has been giving it: see the note at the update site, where
+   * measuring the latter turned the release into a feedback loop on itself.
+   *
+   * Per block rather than per sample: a block is about ten milliseconds and the
+   * release times this scales are forty to four hundred, so sampling once a
+   * block is well inside the quantity it controls — and it keeps every
+   * per-sample path in `limiter.ts` untouched.
+   */
+  sustainSamples: number;
 }
 
 export interface IPostFilterNormalizerTelemetry {
@@ -71,6 +103,7 @@ export const resetPostFilterNormalizer = (
   resetLinkedLimiterState(state.limiter);
   state.minimumGain = 1;
   state.inputTruePeak = 0;
+  state.sustainSamples = 0;
 };
 
 /**
@@ -85,6 +118,7 @@ export const rebasePostFilterNormalizer = (
   resetLinkedLimiterControl(state.limiter);
   state.minimumGain = 1;
   state.inputTruePeak = 0;
+  state.sustainSamples = 0;
 };
 
 export const createPostFilterNormalizer = (
@@ -102,6 +136,7 @@ export const createPostFilterNormalizer = (
   ),
   minimumGain: 1,
   inputTruePeak: 0,
+  sustainSamples: 0,
 });
 
 /**
@@ -155,16 +190,39 @@ export const processPostFilterNormalizer = (
   const selectedReleaseMs = Number.isFinite(releaseMs)
     ? Math.max(1, releaseMs)
     : POST_FILTER_NORMALIZER_BYPASS_RELEASE_MS;
-  const effectiveReleaseMs = enabled
+  const boundedReleaseMs = enabled
     ? Math.min(selectedReleaseMs, POST_FILTER_NORMALIZER_MAX_RELEASE_MS)
     : POST_FILTER_NORMALIZER_BYPASS_RELEASE_MS;
+  /**
+   * Program-dependent: the dialled release for a transient, slower for a
+   * passage that has been held down.
+   *
+   * `sustainSamples` is how long the stage has already been reducing, measured
+   * against the block that just went past, so this block's release reflects
+   * what the music has been doing rather than what one sample did. A single
+   * peak leaves it near zero and releases at the time on the dial. Sustained
+   * limiting stretches it toward three times that, which is what stops the
+   * level between peaks moving at the rate of the peaks themselves.
+   *
+   * Only while enabled. The bypass release is a fixed slow walk back to unity
+   * and has nothing to be program-dependent about.
+   */
+  const sustainSpan = (POST_FILTER_NORMALIZER_SUSTAIN_MS / 1_000) * sampleRate;
+  const sustained =
+    enabled && sustainSpan > 0
+      ? Math.min(1, state.sustainSamples / sustainSpan)
+      : 0;
+  const effectiveReleaseMs =
+    boundedReleaseMs *
+    (1 + sustained * (POST_FILTER_NORMALIZER_SUSTAIN_STRETCH - 1));
   const releaseCoefficient = Math.exp(
     -1 / ((effectiveReleaseMs / 1_000) * sampleRate),
   );
+  const ceiling = enabled
+    ? 10 ** (normalizedCeilingDb / 20)
+    : Number.POSITIVE_INFINITY;
   processLinkedLimiter(limiter, channels, {
-    ceiling: enabled
-      ? 10 ** (normalizedCeilingDb / 20)
-      : Number.POSITIVE_INFINITY,
+    ceiling,
     releaseCoefficient,
     limitingReleaseCoefficient: releaseCoefficient,
     // Zero selects the look-ahead path rather than the dB-per-second one. A
@@ -184,6 +242,31 @@ export const processPostFilterNormalizer = (
 
   state.inputTruePeak = Math.max(state.inputTruePeak, limiter.blockPeak);
   state.minimumGain = Math.min(state.minimumGain, limiter.gain);
+
+  /**
+   * Counted from whether the PROGRAMME is over the ceiling this block.
+   *
+   * Counting the blocks where the gain sat below unity looked equivalent and
+   * was circular. An exponential release stays a tenth of a decibel down for
+   * most of its run, so recovery itself kept feeding the counter, the counter
+   * stretched the release, and the longer release lengthened the recovery:
+   * after one 15 ms transient the bed was still 0.42 dB down half a second
+   * later. That is a milder form of the level-riding this whole stage was
+   * rebuilt to stop, and the transient test caught it.
+   *
+   * The incoming peak against the ceiling is the programme asking for
+   * reduction rather than the stage still giving it back. A snare asks for two
+   * blocks; a dense chorus asks for a thousand, and only the second is what a
+   * slow release is for.
+   *
+   * Down at the same rate it goes up, so a passage broken by a bar of space
+   * does not arrive back at the fast release the instant one peak relents.
+   */
+  const moved = channels[0]?.length ?? 0;
+  state.sustainSamples =
+    enabled && limiter.blockPeak > ceiling
+      ? Math.min(sustainSpan, state.sustainSamples + moved)
+      : Math.max(0, state.sustainSamples - moved);
 };
 
 const amplitudeDb = (amplitude: number): number =>
