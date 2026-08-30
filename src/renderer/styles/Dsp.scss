@@ -450,7 +450,17 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   display: flex;
   flex: 1 0 100%;
   flex-direction: column;
+  // Centred on the column's own axis, like the dial and the curve switch
+  // above it. Left-aligned it was the only thing on the card off that axis,
+  // which is what made four controls in a corner read as leftovers.
+  align-items: center;
   gap: 8px;
+  // Fenced off from the row it shares the column with. The dial and the
+  // switch set the fade; everything under this line names and stores a shape,
+  // and without the rule the Save button read as a third control of the
+  // switch beside it.
+  padding-top: 12px;
+  border-top: 1px solid rgba($white, 0.1);
 }
 
 .dsp-crossfade-library__actions {
@@ -461,20 +471,56 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .dsp-crossfade-library__list {
   display: flex;
   flex-wrap: wrap;
+  justify-content: center;
   gap: 6px;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
-.dsp-crossfade-library__item {
-  display: flex;
-  align-items: center;
-  gap: 2px;
+// The EQ page's applied-layer chip, reused whole — its border, its pill
+// radius, its round remove button, all from `ActiveLayers.scss`. A saved shape
+// and an applied layer are the same kind of thing, and drawing them two
+// different ways made one app look like two.
+//
+// Only what this row does not have is overridden. The chip's body is a
+// four-track grid for a swatch, an icon, a label and a name; here it is the
+// state dot and the name, and a child with no track of its own lands on an
+// implicit second row.
+.dsp-crossfade-curve .active-layer__body {
+  grid-template-columns: auto minmax(0, 1fr);
+
+  &:disabled {
+    cursor: default;
+    opacity: 0.4;
+  }
 }
 
-.dsp-crossfade-library__delete {
-  padding-inline: 8px;
+// WHICH SHAPE IS IN THE FADE, and only one can be: the crossfade holds a
+// single shape, so the dot is filled on the pill whose own handles are that
+// shape and hollow on every other.
+.dsp-crossfade-curve__pip {
+  width: 7px;
+  height: 7px;
+  flex: 0 0 auto;
+  border: 1px solid rgba($white, 0.3);
+  border-radius: 50%;
+}
+
+// The lit treatment `.segmented__option.is-selected` gives the curve switch
+// directly above, so "this is the one chosen" looks the same twice on one card.
+.dsp-crossfade-curve.is-applied {
+  border-color: rgba($secondary-default, 0.55);
+  background: rgba($secondary-default, 0.2);
+
+  .dsp-crossfade-curve__pip {
+    border-color: $secondary-default;
+    background: $secondary-default;
+  }
+
+  .active-layer__name {
+    color: $white;
+  }
 }
 
 .dsp-crossfade-playhead {

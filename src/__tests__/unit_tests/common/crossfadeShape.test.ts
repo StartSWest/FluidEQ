@@ -10,6 +10,7 @@ import {
   CROSSFADE_SHAPE_HANDLES,
   CROSSFADE_TABLE_POINTS,
   crossfadeShapeGain,
+  crossfadeShapesMatch,
   crossfadeShapeTable,
   defaultCrossfadeShape,
   ICrossfadePoint,
@@ -200,6 +201,73 @@ describe('handle bounds', () => {
     expect(crossfadeHandleBounds(points, 0).min).toBeGreaterThan(0);
     expect(crossfadeHandleBounds(points, points.length - 1).max).toBeLessThan(
       1,
+    );
+  });
+});
+
+/**
+ * What the saved-shape row asks to know which of its pills is the one in use.
+ *
+ * The two questions it has to get right pull in opposite directions: a shape
+ * that has been to storage and back must still recognise itself, and two
+ * shapes a user dragged apart must never be confused. Both are asserted here,
+ * because a comparison that answers only one of them looks correct from the
+ * side it answers.
+ */
+describe('shape matching', () => {
+  const roundTrip = (shape: ICrossfadeShape): ICrossfadeShape =>
+    clampCrossfadeShape(JSON.parse(JSON.stringify(shape)) as unknown);
+
+  /** One handle pulled down, which is what a saved shape is. */
+  const dipped = (gain: number): ICrossfadeShape => {
+    const base = defaultCrossfadeShape();
+    return {
+      outgoing: base.outgoing.map((point, index) =>
+        index === 1 ? { at: point.at, gain } : point,
+      ),
+      incoming: base.incoming,
+    };
+  };
+
+  it('recognises a shape that has been through storage and back', () => {
+    const shape = dipped(0.2);
+    expect(crossfadeShapesMatch(roundTrip(shape), shape)).toBe(true);
+  });
+
+  /**
+   * The positive control for the tolerance.
+   *
+   * A test that only proves round trips match would pass just as well against
+   * a function that returned `true` for everything. The plot is 168 units
+   * wide, so 0.006 of gain is roughly the smallest drag that can be made with
+   * a mouse, and the two shapes below differ by exactly that.
+   */
+  it('does not confuse two shapes one pixel of drag apart', () => {
+    expect(crossfadeShapesMatch(dipped(0.2), dipped(0.206))).toBe(false);
+  });
+
+  it('holds a difference far under a pixel to be the same shape', () => {
+    expect(crossfadeShapesMatch(dipped(0.2), dipped(0.20001))).toBe(true);
+  });
+
+  /**
+   * Both sides, not just the one that happens to be dragged first. A
+   * comparison that read `outgoing` alone passes every case above.
+   */
+  it('compares the incoming side as well as the outgoing one', () => {
+    const base = defaultCrossfadeShape();
+    const movedIncoming: ICrossfadeShape = {
+      outgoing: base.outgoing,
+      incoming: base.incoming.map((point, index) =>
+        index === 2 ? { at: point.at, gain: 0.1 } : point,
+      ),
+    };
+    expect(crossfadeShapesMatch(base, movedIncoming)).toBe(false);
+  });
+
+  it('does not call a dragged shape the default one', () => {
+    expect(crossfadeShapesMatch(defaultCrossfadeShape(), dipped(0.2))).toBe(
+      false,
     );
   });
 });

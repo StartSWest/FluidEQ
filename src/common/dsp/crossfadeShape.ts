@@ -337,6 +337,43 @@ export const clampCrossfadeShape = (value: unknown): ICrossfadeShape => {
 };
 
 /**
+ * How far apart two handles may sit and still be called the same one.
+ *
+ * The preview's plot is 168 units wide, so one pixel of drag is worth about
+ * 0.006 of a unit — sixty times this. No shape a user could tell apart by
+ * dragging is ever reported as a match; only a shape that has been through
+ * storage and `clampCrossfadeShape` on its way back to being compared with
+ * itself.
+ */
+const SHAPE_MATCH_EPSILON = 1e-4;
+
+const sideMatches = (
+  left: readonly ICrossfadePoint[],
+  right: readonly ICrossfadePoint[],
+): boolean =>
+  left.length === right.length &&
+  left.every(
+    (point, index) =>
+      Math.abs(point.at - right[index].at) <= SHAPE_MATCH_EPSILON &&
+      Math.abs(point.gain - right[index].gain) <= SHAPE_MATCH_EPSILON,
+  );
+
+/**
+ * Whether two shapes are the same fade.
+ *
+ * What the saved-shape row asks to know which of its pills is the one being
+ * used. Tolerant rather than exact because the two sides of the question have
+ * taken different routes to get here: one came out of localStorage through
+ * `clampCrossfadeShape`, the other out of the DSP settings.
+ */
+export const crossfadeShapesMatch = (
+  left: ICrossfadeShape,
+  right: ICrossfadeShape,
+): boolean =>
+  sideMatches(left.outgoing, right.outgoing) &&
+  sideMatches(left.incoming, right.incoming);
+
+/**
  * Where a handle may be dragged to, given where its neighbours are.
  *
  * The editor asks rather than deciding for itself, so the rule that keeps the

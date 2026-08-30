@@ -82,6 +82,27 @@ const write = (curves: readonly ISavedCrossfadeCurve[]): void => {
 };
 
 /**
+ * An id no saved curve already holds.
+ *
+ * `Date.now()` on its own is not one. Two curves saved inside the same
+ * millisecond came away sharing an id: React drew the pair as a single pill
+ * because the key was the same, and deleting either removed both, since
+ * `deleteCrossfadeCurve` filters by id and every entry holding it goes with
+ * it. The random tail makes that collision unlikely and the loop makes it
+ * impossible.
+ */
+const freshId = (taken: readonly ISavedCrossfadeCurve[]): string => {
+  const used = new Set(taken.map((curve) => curve.id));
+  let id: string;
+  do {
+    id = `${SAVED_CURVE_PREFIX}${Date.now().toString(36)}${Math.random()
+      .toString(36)
+      .slice(2, 6)}`;
+  } while (used.has(id));
+  return id;
+};
+
+/**
  * Save under a name, replacing any curve that already has it.
  *
  * Replacing rather than appending: two entries with one name in the picker is
@@ -101,7 +122,7 @@ export const saveCrossfadeCurve = (
     (curve) => curve.name.toLowerCase() === trimmed.toLowerCase(),
   );
   const saved: ISavedCrossfadeCurve = {
-    id: match?.id ?? `${SAVED_CURVE_PREFIX}${Date.now().toString(36)}`,
+    id: match?.id ?? freshId(existing),
     name: trimmed,
     shape: clampCrossfadeShape(shape),
   };
