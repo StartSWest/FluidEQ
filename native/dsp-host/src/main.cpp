@@ -512,6 +512,33 @@ void render_bridge(void* context, float* const* planar, uint32_t frames) {
 }
 
 /**
+ * Decode ahead of the block an offline render is about to produce.
+ *
+ * An offline render is not paced by a device: it calls `render_bridge` as fast
+ * as the CPU allows, while the decks are refilled by the decoder thread in its
+ * own time. Nothing connected those two, so the loop read a ring that was dry
+ * for much of the run. Measured here, a five-second export of the same passage
+ * came back 53% silent for m4a, 22% for wma and 15% for flac; with this pump it
+ * is 0.4%, 0.2% and none. So it was a WAV export full of holes, and a decoder
+ * smoke test whose peak was whichever of the two states its telemetry window
+ * happened to land on.
+ *
+ * AAC loses that race hardest because Media Foundation returns 1024 frames per
+ * `ReadSample` where the vendored decoders return thousands, which is why the
+ * check that failed was always `m4a` — the decode itself is correct, and reads
+ * the same file at full level when nothing is outrunning it.
+ *
+ * The mutex is the one the decoder thread holds around its own pump, so a deck
+ * still has exactly one producer writing to it at a time.
+ */
+void pump_decks(HostState& state) {
+  const std::lock_guard<std::mutex> held(state.decoder_mutex);
+  if (state.player != nullptr) {
+    feq_player_pump(state.player);
+  }
+}
+
+/**
  * A 32-bit float WAV, written by hand.
  *
  * Float rather than 16-bit because the point of this file is comparison: the
@@ -1032,6 +1059,7 @@ int main(int argc, char** argv) {
         std::vector<float> right(state.block_frames, 0.0f);
         float* planar[2] = {left.data(), right.data()};
         for (uint32_t block = 0; block < frame.parameter_id; ++block) {
+          pump_decks(state);
           render_bridge(&state, planar, state.block_frames);
         }
         send_ack(frame.request_id, FEQ_WIRE_APPLIED, frame.settings_revision,
@@ -1242,6 +1270,7 @@ int main(int argc, char** argv) {
           const uint32_t span = total - at < state.block_frames
                                     ? total - at
                                     : state.block_frames;
+          pump_decks(state);
           render_bridge(&state, planar, span);
           // Interleaved on the way out, which is what a WAV holds and what
           // every reader on the other side expects.
