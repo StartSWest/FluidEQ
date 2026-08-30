@@ -285,6 +285,55 @@ Therefore:
   91 in the same commit, and `chain_decode.cpp` reads the new fields. The
   encoder's own length check is what catches a mismatch, and it must stay.
 
+### Two branches are moving this constant at once
+
+`claude/noise-reduction-filter-a41ca7` is designing Denoise as four native-only
+modules and will add scalars to the same lead. Both branches start from 77.
+
+If each picks its own new number independently, the second merge cannot resolve
+the conflict by taking either side: the band offsets are computed from the
+constant, so keeping one branch's number alongside both branches' scalars
+decodes every band one slot along **and still looks plausible**. That is
+precisely the failure the comment above `encodeChainSettings` was written
+about.
+
+**Whoever lands second re-numbers rather than resolves.** The merge is not
+done until `CHAIN_PARAM_LEAD`, `FEQ_CHAIN_PARAM_LEAD` and the actual count of
+scalars in `encodeChainSettings` are the same number, and the encoder's own
+length check is what proves it.
+
+The native parameter ids are a worse version of the same hazard, because they
+are permanent — a collision cannot be renumbered later without burning an id
+that a stored automation already follows. **This work reserves 2000–2199 for
+the two bass stages.** Denoise should start at 2200.
+
+### There are three copies of the lead, and two are wrong
+
+Found while checking the above, and it is worth fixing in the same commit as
+the renumber:
+
+| Where                                       | Value                    | Check                       |
+| ------------------------------------------- | ------------------------ | --------------------------- |
+| `src/common/dsp/chainWire.ts:36`            | 77                       | `!==`, exact — correct      |
+| `native/.../chain.h:174`                    | 77                       | the decoder's own — correct |
+| `src/main/dspHost/wire.ts:204`              | **69**                   | `<`, a floor — eight behind |
+| `src/__tests__/.../dspChainWire.test.ts:37` | says `chain.h` is **69** | a stale comment             |
+
+The main-process copy cannot catch anything: `src/main/ipc/dspHost.ts:207`
+already validates with `isChainWirePayload`, which checks the length exactly
+against the band count, and only then does `encodeChainPayload` re-check that
+it is at least 69. Anything reaching the floor has already passed a stronger
+test, so the floor has been dead since it fell behind — which is why nobody
+noticed.
+
+The fix is not to update 69 to 91. It is for `wire.ts` to import the one
+constant from `common/dsp/chainWire.ts` and keep its floor check, so a second
+authority stops existing and the floor becomes correct by construction rather
+than by remembering. The stale test comment goes with it.
+
+Left alone, this work would move the lead a second time and leave the
+main-process copy sixteen behind instead of eight.
+
 ### The parity corpus does get regenerated
 
 The first draft claimed it would not. That was wrong.
@@ -412,6 +461,9 @@ list.
 `bassPunchPresets.ts`, and `i18n/*/dsp.ts` across all ten locales in the same
 commit.
 
+**Main TS** — `dspHost/wire.ts`, which stops owning a second
+`CHAIN_PARAM_LEAD` and imports the common one.
+
 **Renderer TS** — `sections.ts`, `DspPanel.tsx`, `DspSectionIcon.tsx`,
 `store.ts`, `nativeMeters.ts`, `nativeMirror.ts`, and new
 `DspBassForgeCard.tsx` / `DspBassForgeGraph.tsx` / `DspBassForgeBar.tsx` and
@@ -429,6 +481,10 @@ outline — and `check-styles.ts` must pass. No invented styles, no raw
   `clampDspSettings`, the parameter table's count-against-map assertion,
   `chainWire` lead length, i18n completeness across ten locales, and
   `DspPanel` rendering both new sections.
+- A test asserting the main-process and common leads are the same number. It
+  would have caught the eight-slot drift years before this design did, and
+  once `wire.ts` imports the constant it is a test that cannot be made to fail
+  by editing one file — which is the point.
 - Regenerated parity fixtures, with the audio unchanged.
 - **A live window pass over CDP on `127.0.0.1:9222`** for both cards and both
   graphs: sizes, colours, placement, and the graphs actually moving with audio.
