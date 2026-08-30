@@ -157,10 +157,12 @@ describe('App', () => {
     // DSP sits second, next to EQ, because the rack is the rest of the signal
     // chain the EQ tab starts: someone who has just set a curve reaches for the
     // compressor, not past Media, Library and Karaoke to the end of the strip.
+    // "Online Media" and not "Media": jsdom has no `matchMedia`, which
+    // `useMediaQuery` reads as "not narrow", so this is the wide-window strip.
     expect(tabs.slice(0, 5).map((tab) => tab.textContent)).toEqual([
       'EQ',
       'DSP',
-      'Media',
+      'Online Media',
       'Library',
       'Karaoke',
     ]);

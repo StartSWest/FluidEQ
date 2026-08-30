@@ -58,6 +58,14 @@ export const useSlidingIndicator = <TElement extends HTMLElement>() => {
     const selection = new MutationObserver(measure);
     selection.observe(row, {
       attributeFilter: ['aria-selected'],
+      // A label can also change without anything being added or removed: the
+      // media tab drops a word on a narrow window, and React rewrites that
+      // text node in place rather than replacing it. Without `characterData`
+      // the only thing left to notice was the ResizeObserver, and the row is
+      // `flex: 0 1 auto` — already shrunk to what the titlebar allows at the
+      // width where the swap happens, so its own box need not move at all and
+      // the pill would keep the width of the name that is no longer there.
+      characterData: true,
       childList: true,
       subtree: true,
     });

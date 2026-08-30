@@ -116,7 +116,11 @@ const app = {
   'tabs.voicing': 'Voicing',
   'tabs.convolution': 'Convolution',
   'tabs.config': 'Config',
-  'tabs.media': 'Media',
+  'tabs.media': 'Online Media',
+  // The same place, named in one word for a titlebar that has run out of
+  // room. Not an abbreviation of the full name — it is the noun the full name
+  // qualifies, so a narrow window says less rather than saying it badly.
+  'tabs.mediaShort': 'Media',
   'tabs.karaoke': 'Karaoke',
   'tabs.scrollBack': 'Scroll tabs back',
   'tabs.scrollForward': 'Scroll tabs forward',

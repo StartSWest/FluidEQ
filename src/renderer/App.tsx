@@ -34,6 +34,7 @@ import {
   PRODUCT_VERSION,
 } from 'common/branding';
 import { resetRhythmRun } from './utils/rhythmRun';
+import { useMediaQuery } from './utils/useMediaQuery';
 import ConfigInspector from './components/ConfigInspector';
 import { resetEuphoriaMode } from './utils/euphoriaMode';
 import './styles/App.scss';
@@ -246,6 +247,22 @@ const EQ_GROUP_LABEL_KEYS = {
   convolution: 'tabs.convolution',
   config: 'tabs.config',
 } as const;
+
+/**
+ * The width below which the media tab is named in one word instead of two.
+ *
+ * 1280 is where the titlebar already stops giving everything its full
+ * presentation — the meter drops from 420px to 320 and both outer tracks
+ * start being sized from their contents. Everything the strip does below that
+ * only makes the words smaller, which is not enough for a name that runs to
+ * "Multimedia en línea" in Spanish and "オンラインメディア" in Japanese: at
+ * five tabs those two extra words cost more room than the whole EQ tab.
+ *
+ * So the qualifier goes and the noun stays. It costs nothing to lose, because
+ * this is the only place in the app that plays anything from a URL — "online"
+ * says which media tab only while there is room to say it.
+ */
+const MEDIA_TAB_ONE_WORD_QUERY = '(max-width: 1280px)';
 
 const isEqGroupTab = (tab: TWorkspaceTab): boolean =>
   EQ_GROUP_TABS.includes(tab);
@@ -584,6 +601,7 @@ const AppContent = () => {
     />
   );
   const isVideoTab = activeWorkspaceTab === 'video';
+  const isMediaTabOneWord = useMediaQuery(MEDIA_TAB_ONE_WORD_QUERY);
   const isLibraryTab = activeWorkspaceTab === 'library';
   const isKaraokeTab = activeWorkspaceTab === 'karaoke';
   const isDspTab = activeWorkspaceTab === 'dsp';
@@ -628,14 +646,19 @@ const AppContent = () => {
       >
         {t('tabs.dsp')}
       </button>
+      {/* The one tab whose name is too long for its own strip. It shortens for
+          the eye and not for anything else: the accessible name stays the full
+          two words at every width, and the short label is a word out of them,
+          so what is read aloud and what is on screen never disagree. */}
       <button
         type="button"
         role="tab"
         aria-selected={isVideoTab}
+        aria-label={t('tabs.media')}
         className={`workspace-tab${isVideoTab ? ' is-active' : ''}`}
         onClick={() => setActiveWorkspaceTab('video')}
       >
-        {t('tabs.media')}
+        {isMediaTabOneWord ? t('tabs.mediaShort') : t('tabs.media')}
       </button>
       <button
         type="button"
