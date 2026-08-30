@@ -72,6 +72,9 @@ constexpr double kEvenWeightPresent[FEQ_EXCITER_BANDS] = {0.58, 0.34, 0.26};
  */
 constexpr double kResidueReachOctaves = 1.0;
 
+/** How much return the three bands may ask for together. See `add_band`. */
+constexpr double kReturnCeiling = 2.0;
+
 constexpr double kExciterMinOctaves = 0.5;
 constexpr double kExciterOctaveSpan = 9.5;
 
@@ -393,8 +396,15 @@ void feq_exciter_channel_process(FeqExciterChannel* state, float* target,
    * The three bands may overlap, and each needs enough return to be audible —
    * but their foundations must never add up to several full copies of the
    * filtered programme. Every authored balance is preserved and the set is
-   * normalised only when the requested returns exceed unity together, so
+   * normalised only when the requested returns exceed the ceiling together, so
    * adjacent or default bands are unaffected.
+   *
+   * The ceiling is two, not one. One was right when a return WAS a full copy of
+   * its band: three of those at unity is three copies, and the rule existed to
+   * stop that. A return is 18% of its band now, so three at unity is half a
+   * copy — and holding the sum to one meant three bands at full Amount each got
+   * a third of what one band at full Amount gets, which reads as the dial doing
+   * less the more of it you use.
    */
   double requested = 0.0;
   for (uint32_t band = 0; band < FEQ_EXCITER_BANDS; ++band) {
@@ -402,7 +412,8 @@ void feq_exciter_channel_process(FeqExciterChannel* state, float* target,
       requested += feq_exciter_return_gain(settings->bands[band].mix);
     }
   }
-  const double return_scale = requested > 1.0 ? 1.0 / requested : 1.0;
+  const double return_scale =
+      requested > kReturnCeiling ? kReturnCeiling / requested : 1.0;
 
   for (uint32_t band = 0; band < FEQ_EXCITER_BANDS; ++band) {
     const FeqExciterBandSetup& setup = settings->bands[band];

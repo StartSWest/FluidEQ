@@ -12,14 +12,17 @@ import {
   upsample,
 } from './oversample';
 import {
-  ANALOG_DIODE_MAX_CHARACTER,
   IExciterTransientState,
-  analogDiodeExcitedSample,
   createExciterTransientState,
   exciterTransientSample,
-  limitExciterCurrent,
   resetExciterTransientState,
 } from './analogDiode';
+import {
+  IHarmonicState,
+  createHarmonicState,
+  harmonicSample,
+  resetHarmonicState,
+} from './harmonics';
 
 /**
  * Material voicing for a clean, metallic presentation.
@@ -30,68 +33,65 @@ import {
  */
 const MAX_OVERSAMPLE = 4;
 const PARAMETER_SMOOTHING_MS = 18;
-const ORGANIC_LEVEL = 0.65;
-/** Keep enough carrier to bind the return to the note, without duplicating it. */
-const ORGANIC_FOUNDATION_MIX = 0.8;
-export const ORGANIC_FOUNDATION_GAIN = ORGANIC_LEVEL * ORGANIC_FOUNDATION_MIX;
-const ORGANIC_HARMONIC_GAIN = 2.4;
+/**
+ * The same quiet carrier the three bands use, and for the same reason.
+ *
+ * It was 0.52 — a return that was half a copy of its own focused band, against
+ * the bands' 0.18. That made Organic the loudest thing in several profiles and
+ * its Amount dial a level control: measured alone at its focus, the MINIMUM
+ * amount already added +1.23 dB and the whole dial only reached +3.18, so
+ * turning it down could not take the lift away. It reads +0.46 to +2.27 now,
+ * and what the dial moves is harmonic density.
+ */
+export const ORGANIC_FOUNDATION_GAIN = 0.18;
 const ORGANIC_TRANSIENT_HARMONIC_LIFT = 0.35;
 
 export interface IOrganicState {
   oversampler: IOversamplerState;
   wide: Float32Array;
   wideDry: Float32Array;
-  drive: number;
-  asymmetry: number;
+  depth: number;
+  evenWeight: number;
   transient: IExciterTransientState;
+  harmonics: IHarmonicState;
 }
 
 export const createOrganicState = (blockSize: number): IOrganicState => ({
   oversampler: createOversampler(blockSize),
   wide: new Float32Array(blockSize * MAX_OVERSAMPLE),
   wideDry: new Float32Array(blockSize * MAX_OVERSAMPLE),
-  drive: 0,
-  asymmetry: 0,
+  depth: 0,
+  evenWeight: 0,
   transient: createExciterTransientState(),
+  harmonics: createHarmonicState(),
 });
 
-/** The amount dial reaches a broad useful range without becoming fuzz. */
-export const organicDrive = (amount: number): number => 0.8 + amount * 2.2;
-
-/** Organic stays even-dominant; the upper travel only adds a little density. */
-export const organicAsymmetry = (amount: number): number =>
-  0.78 + amount * 0.17;
+/**
+ * How much harmonic content the dial asks for, as a ratio of the focused band.
+ *
+ * The same figure the three bands call Depth, and it means the same thing here:
+ * what survives to the output as harmonic amplitude, at any playback level. The
+ * curve is chosen so the default 0.35 measures where the old soft-diode curve
+ * measured on a -6 dBFS tone — the character is kept, the level-following is
+ * not.
+ */
+export const organicDepth = (amount: number): number => 0.15 + amount * 0.85;
 
 /**
- * The same soft-diode current used by the approved Low/Mid/High bands.
+ * Organic stays even-dominant; the upper travel only adds a little density.
  *
- * Organic keeps the curve strongly even-dominant for body. Its focused,
- * phase-shaped fundamental supplies the continuous foundation and its curvature
- * supplies density. Its transient detector only leans on that curvature; there
- * is no hard gate, random drift, block-rate gain, or hidden carrier.
+ * Neither end crosses over to odd. That is the whole identity of the stage —
+ * body rather than edge — and it is the one thing about it that must not move.
  */
-export const organicSample = (
-  sample: number,
-  drive: number,
-  asymmetry: number,
-  harmonicGain = 1,
-): number => {
-  const character = (1 - asymmetry) * ANALOG_DIODE_MAX_CHARACTER;
-  const foundation = sample * ORGANIC_LEVEL;
-  const complete = analogDiodeExcitedSample(
-    sample,
-    drive,
-    character,
-    ORGANIC_LEVEL,
-    harmonicGain * ORGANIC_HARMONIC_GAIN,
-  );
-  return limitExciterCurrent(
-    foundation * ORGANIC_FOUNDATION_MIX + (complete - foundation),
-  );
-};
+export const organicEvenWeight = (amount: number): number =>
+  0.9 - amount * 0.12;
 
-export const resetOrganicTransient = (state: IOrganicState): void =>
+export const resetOrganicTransient = (state: IOrganicState): void => {
   resetExciterTransientState(state.transient);
+  // The level follower too, or the stage comes back holding the level of
+  // whatever was playing when it was switched off.
+  resetHarmonicState(state.harmonics);
+};
 
 /**
  * Replace a band with only its generated harmonic residue.
@@ -122,33 +122,30 @@ export const organicBlock = (
   const wideRate = sampleRate * oversample;
   const smooth =
     1 - Math.exp(-1 / ((PARAMETER_SMOOTHING_MS / 1_000) * wideRate));
-  const targetDrive = organicDrive(amount);
-  const targetAsymmetry = organicAsymmetry(amount);
+  const targetDepth = organicDepth(amount);
+  const targetEvenWeight = organicEvenWeight(amount);
 
-  if (state.drive === 0) {
-    state.drive = targetDrive;
-    state.asymmetry = targetAsymmetry;
+  if (state.depth === 0) {
+    state.depth = targetDepth;
+    state.evenWeight = targetEvenWeight;
   }
 
   for (let i = 0; i < wideLength; i += 1) {
-    state.drive += (targetDrive - state.drive) * smooth;
-    state.asymmetry += (targetAsymmetry - state.asymmetry) * smooth;
-    const transient = exciterTransientSample(
-      state.transient,
-      state.wideDry[i],
+    state.depth += (targetDepth - state.depth) * smooth;
+    state.evenWeight += (targetEvenWeight - state.evenWeight) * smooth;
+    const dry = state.wideDry[i];
+    const transient = exciterTransientSample(state.transient, dry, wideRate);
+    // Harmonics only, as the doc comment above says: the caller restores the
+    // foundation after downsampling so the carrier stays aligned with dry.
+    state.wide[i] = harmonicSample(
+      state.harmonics,
+      dry,
+      state.depth * (1 + transient * ORGANIC_TRANSIENT_HARMONIC_LIFT),
+      state.evenWeight,
       wideRate,
     );
-    const dry = state.wideDry[i];
-    state.wide[i] =
-      organicSample(
-        dry,
-        state.drive,
-        state.asymmetry,
-        1 + transient * ORGANIC_TRANSIENT_HARMONIC_LIFT,
-      ) -
-      dry * ORGANIC_FOUNDATION_GAIN;
   }
 
   downsample(state.oversampler, state.wide, target, oversample);
-  return state.drive;
+  return state.depth;
 };

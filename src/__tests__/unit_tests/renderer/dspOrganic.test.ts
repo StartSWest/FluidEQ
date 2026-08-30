@@ -5,11 +5,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import {
+  ORGANIC_FOUNDATION_GAIN,
   createOrganicState,
-  organicAsymmetry,
   organicBlock,
-  organicDrive,
-  organicSample,
+  organicDepth,
+  organicEvenWeight,
 } from '../../../renderer/dsp/organic';
 
 const RATE = 48_000;
@@ -42,15 +42,28 @@ const magnitudeAt = (buffer: Float64Array, hz: number): number => {
   return (2 * Math.hypot(s1 - s2 * cosine, s2 * Math.sin(omega))) / SIZE;
 };
 
-const harmonics = (amount: number) => {
-  const drive = organicDrive(amount);
-  const asymmetry = organicAsymmetry(amount);
-  const input = sine(FREQ);
-  const out = Float64Array.from(input, (value) =>
-    organicSample(value, drive, asymmetry),
-  );
-  const fundamental = magnitudeAt(out, FREQ);
-  const at = (n: number) => (magnitudeAt(out, FREQ * n) / fundamental) * 100;
+/**
+ * What the stage returns for a steady tone, as a percentage of that tone.
+ *
+ * Measured against the INPUT rather than against the return's own fundamental,
+ * because the return no longer has one worth dividing by: `organicBlock` hands
+ * back harmonics only and the foundation is restored by the caller. It is also
+ * the honest reference — a percentage of the note is what a listener hears this
+ * as, and it does not move when the carrier is retuned.
+ */
+const harmonics = (amount: number, amplitude = AMPLITUDE) => {
+  const state = createOrganicState(SIZE);
+  const out = new Float32Array(SIZE);
+  // Two passes: the level and projection followers need a run at the signal
+  // before the second one is the settled stage rather than the stage arriving.
+  for (let pass = 0; pass < 2; pass += 1) {
+    for (let i = 0; i < SIZE; i += 1) {
+      out[i] = amplitude * Math.sin((2 * Math.PI * FREQ * i) / RATE);
+    }
+    organicBlock(state, out, amount, RATE);
+  }
+  const measured = Float64Array.from(out);
+  const at = (n: number) => (magnitudeAt(measured, FREQ * n) / amplitude) * 100;
   return { second: at(2), third: at(3), fourth: at(4), fifth: at(5) };
 };
 
@@ -71,6 +84,9 @@ describe('the organic curve', () => {
       const even = second + fourth;
       const odd = third + fifth;
       expect(even).toBeGreaterThan(odd * 2);
+      // The recipe itself never crosses over either, which is the reason the
+      // measurement above can hold: body is what this stage is, at both ends.
+      expect(organicEvenWeight(amount)).toBeGreaterThan(0.7);
     });
   });
 
@@ -82,19 +98,39 @@ describe('the organic curve', () => {
     expect(harmonics(0.5).second).toBeGreaterThan(harmonics(0.25).second);
   });
 
+  /**
+   * The carrier is the same quiet one the three bands use.
+   *
+   * It was 0.52 — half a copy of Organic's own focused band, against the bands'
+   * 0.18 — which made this the loudest stage in several profiles and its Amount
+   * a level control. Measured alone at its focus, the MINIMUM amount already
+   * added +1.23 dB and the whole dial reached only +3.18, so turning it down
+   * could not take the lift away. It reads +0.41 to +1.36 now.
+   */
   it('keeps the foundation subordinate to the harmonic return', () => {
-    const amount = 0.35;
-    const drive = organicDrive(amount);
-    const asymmetry = organicAsymmetry(amount);
-    const smallSignal = 0.01;
-    const foundationOnly = organicSample(smallSignal, drive, asymmetry, 0);
-    // The former full foundation was 0.65 * input. Organic now retains only
-    // 80% of it, enough continuity to avoid detached fizz without presenting a
-    // second filtered copy of the programme.
-    expect(foundationOnly).toBeCloseTo(smallSignal * 0.65 * 0.8, 3);
-    // At the default amount the added octave is deliberately a major part of
-    // the return, which is the audible definition this revision is for.
-    expect(harmonics(amount).second).toBeGreaterThan(40);
+    expect(ORGANIC_FOUNDATION_GAIN).toBeCloseTo(0.18, 10);
+    // At the default amount the added octave is a major part of the return,
+    // which is the audible definition this stage is for.
+    expect(harmonics(0.35).second).toBeGreaterThan(10);
+  });
+
+  /**
+   * The same harmonics at any playback level, which is what the shared
+   * generator bought.
+   *
+   * The soft diode this replaced drove its curvature with the programme, so on
+   * this stage the second order measured -19.2 dB under the note at -6 dBFS,
+   * -35.9 at -26 and -55.1 at -46: an effect that arrived on peaks and was
+   * absent from everything quieter.
+   */
+  it('makes the same harmonics whatever the input level is', () => {
+    const loud = harmonics(0.35, 0.5);
+    const quiet = harmonics(0.35, 0.005);
+    expect(quiet.second / loud.second).toBeGreaterThan(0.9);
+    expect(quiet.second / loud.second).toBeLessThan(1.1);
+    // The positive control: sameness is only worth asserting if there is
+    // something there to be the same.
+    expect(loud.second).toBeGreaterThan(5);
   });
 
   /**
@@ -104,16 +140,21 @@ describe('the organic curve', () => {
    * fuzz. These windows preserve both sides of the decision: enough second
    * harmonic to feel sharp, a restrained third so it stays fluid, and a clear
    * even-family lead so the return never becomes granular.
+   *
+   * The numbers moved when the reference did, not when the sound did. They used
+   * to be a percentage of the return's OWN fundamental, which was 0.52 of the
+   * input; 45-52% of that is 23-27% of the note, and this measures 21% of the
+   * note. What the generator changed is that it is 21% at every playback level
+   * rather than only on a peak.
    */
   it('locks the approved sharp-but-fluid harmonic balance', () => {
     const { second, third, fourth, fifth } = harmonics(0.35);
     const evenToOdd = (second + fourth) / (third + fifth);
-    expect(second).toBeGreaterThan(45);
-    expect(second).toBeLessThan(52);
-    expect(third).toBeGreaterThan(12);
-    expect(third).toBeLessThan(18);
-    expect(evenToOdd).toBeGreaterThan(3.2);
-    expect(evenToOdd).toBeLessThan(3.8);
+    expect(second).toBeGreaterThan(18);
+    expect(second).toBeLessThan(24);
+    expect(third).toBeGreaterThan(2);
+    expect(third).toBeLessThan(5);
+    expect(evenToOdd).toBeGreaterThan(4);
   });
 
   /**
@@ -143,12 +184,10 @@ describe('the organic curve', () => {
    */
   it('NULL TEST: silence in is silence out', () => {
     [0, 0.5, 1].forEach((amount) => {
-      const quiet = organicSample(
-        0,
-        organicDrive(amount),
-        organicAsymmetry(amount),
-      );
-      expect(Math.abs(quiet)).toBeLessThan(1e-12);
+      const state = createOrganicState(128);
+      const buffer = new Float32Array(128);
+      organicBlock(state, buffer, amount, RATE);
+      expect(buffer.every((value) => Math.abs(value) < 1e-12)).toBe(true);
     });
   });
 });
@@ -173,12 +212,12 @@ describe('the organic stage in motion', () => {
    * version Ivan rejected. The authored amount must settle and stay still;
    * transient discrimination moves only the harmonic residue per sample.
    */
-  it('holds the authored drive steady on a sustained signal', () => {
+  it('holds the authored depth steady on a sustained signal', () => {
     const drives = runBlocks(400, 0.5);
     const settled = drives.slice(200);
     const spread = Math.max(...settled) - Math.min(...settled);
     expect(spread).toBe(0);
-    expect(settled[0]).toBeCloseTo(organicDrive(0.6), 8);
+    expect(settled[0]).toBeCloseTo(organicDepth(0.6), 8);
   });
 
   /**
@@ -186,7 +225,7 @@ describe('the organic stage in motion', () => {
    * behaviour made sustained music pump and grain; the per-sample transient
    * path supplies motion without moving the foundation or the authored drive.
    */
-  it('does not modulate drive from programme level', () => {
+  it('does not modulate depth from programme level', () => {
     const quiet = runBlocks(400, 0.05).slice(200);
     const loud = runBlocks(400, 0.9).slice(200);
     const mean = (values: number[]) =>

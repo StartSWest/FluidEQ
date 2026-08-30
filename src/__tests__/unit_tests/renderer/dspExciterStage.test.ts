@@ -418,6 +418,15 @@ describe('exciter return level', () => {
     expect(organicExciterReturnGain(1)).toBeCloseTo(0.95, 8);
   });
 
+  /**
+   * Three bands at full Amount are held to the ceiling, and the ceiling is two.
+   *
+   * It was one, from when a return WAS a whole copy of its own filtered band —
+   * three of those is three copies and had to be stopped. A return is harmonics
+   * over an 18% carrier now, so two of them is a third of a copy, and holding
+   * the sum to one meant each of three bands got a third of what one band alone
+   * gets: a dial that does less the more of it you use.
+   */
   it('normalises overlapping band foundations instead of stacking copies', () => {
     const state = createExciterChannel(FRAMES);
     const config = allBands({
@@ -432,9 +441,11 @@ describe('exciter return level', () => {
       const target = block(400, 0.5, index * FRAMES);
       contribution = runExciterChannel(state, target, config, RATE);
     }
-    expect(
-      contribution.bands.reduce((total, mix) => total + mix, 0),
-    ).toBeLessThanOrEqual(1.0001);
+    const total = contribution.bands.reduce((sum, mix) => sum + mix, 0);
+    expect(total).toBeLessThanOrEqual(2.0001);
+    // And it is actually being held, rather than passing because the returns
+    // never reached the ceiling in the first place.
+    expect(total).toBeGreaterThan(1.9);
   });
 });
 

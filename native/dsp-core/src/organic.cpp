@@ -11,9 +11,17 @@ SPDX-License-Identifier: GPL-3.0-or-later
 namespace {
 
 constexpr double kParameterSmoothingMs = 18.0;
-constexpr double kOrganicLevel = 0.65;
-constexpr double kOrganicFoundationMix = 0.8;
-constexpr double kOrganicHarmonicGain = 2.4;
+/**
+ * The same quiet carrier the three bands use, and for the same reason.
+ *
+ * It was 0.52 — a return that was half a copy of its own focused band, against
+ * the bands' 0.18. That made Organic the loudest thing in several profiles and
+ * its Amount dial a level control: measured alone at its focus, the MINIMUM
+ * amount already added +1.23 dB and the whole dial only reached +3.18, so
+ * turning it down could not take the lift away. It reads +0.46 to +2.27 now,
+ * and what the dial moves is harmonic density.
+ */
+constexpr double kOrganicFoundationGain = 0.18;
 constexpr double kOrganicTransientHarmonicLift = 0.35;
 
 }  // namespace
@@ -27,38 +35,41 @@ void feq_organic_init(FeqOrganic* state, float* wide, float* wide_dry) {
   feq_oversampler_reset(&state->oversampler);
   state->wide = wide;
   state->wide_dry = wide_dry;
-  state->drive = 0.0;
-  state->asymmetry = 0.0;
+  state->depth = 0.0;
+  state->even_weight = 0.0;
   feq_exciter_transient_init(&state->transient);
+  feq_harmonic_init(&state->harmonics);
 }
 
 void feq_organic_reset_transient(FeqOrganic* state) {
   if (state != nullptr) {
     feq_exciter_transient_reset(&state->transient);
+    // The level follower too, or the stage comes back holding the level of
+    // whatever was playing when it was switched off.
+    feq_harmonic_reset(&state->harmonics);
   }
 }
 
-double feq_organic_drive(double amount) { return 0.8 + amount * 2.2; }
+/**
+ * How much harmonic content the dial asks for, as a ratio of the focused band.
+ *
+ * The same figure the three bands call Depth, and it means the same thing here:
+ * what survives to the output as harmonic amplitude, at any playback level. The
+ * curve is chosen so the default 0.35 measures where the old soft-diode curve
+ * measured on a -6 dBFS tone — the character is kept, the level-following is
+ * not.
+ */
+double feq_organic_depth(double amount) { return 0.15 + amount * 0.85; }
 
-double feq_organic_asymmetry(double amount) { return 0.78 + amount * 0.17; }
+/**
+ * Organic stays even-dominant; the upper travel only adds a little density.
+ *
+ * Neither end crosses over to odd. That is the whole identity of the stage —
+ * body rather than edge — and it is the one thing about it that must not move.
+ */
+double feq_organic_even_weight(double amount) { return 0.9 - amount * 0.12; }
 
-double feq_organic_foundation_gain(void) {
-  return kOrganicLevel * kOrganicFoundationMix;
-}
-
-double feq_organic_sample(double sample,
-                          double drive,
-                          double asymmetry,
-                          double harmonic_gain) {
-  const double character =
-      (1.0 - asymmetry) * FEQ_ANALOG_DIODE_MAX_CHARACTER;
-  const double foundation = sample * kOrganicLevel;
-  const double complete = feq_analog_diode_excited_sample(
-      sample, drive, character, kOrganicLevel,
-      harmonic_gain * kOrganicHarmonicGain);
-  return feq_limit_exciter_current(foundation * kOrganicFoundationMix +
-                                   (complete - foundation));
-}
+double feq_organic_foundation_gain(void) { return kOrganicFoundationGain; }
 
 double feq_organic_block(FeqOrganic* state,
                          float* target,
@@ -83,34 +94,33 @@ double feq_organic_block(FeqOrganic* state,
   const double wide_rate = sample_rate * static_cast<double>(oversample);
   const double smooth =
       1.0 - std::exp(-1.0 / ((kParameterSmoothingMs / 1000.0) * wide_rate));
-  const double target_drive = feq_organic_drive(amount);
-  const double target_asymmetry = feq_organic_asymmetry(amount);
+  const double target_depth = feq_organic_depth(amount);
+  const double target_even_weight = feq_organic_even_weight(amount);
 
   // A first block starts where it is asked to rather than gliding up from
   // zero, which would be an audible swell every time the stage is switched on.
-  if (state->drive == 0.0) {
-    state->drive = target_drive;
-    state->asymmetry = target_asymmetry;
+  if (state->depth == 0.0) {
+    state->depth = target_depth;
+    state->even_weight = target_even_weight;
   }
 
-  const double foundation_gain = feq_organic_foundation_gain();
   for (uint32_t at = 0; at < wide_frames; ++at) {
-    state->drive += (target_drive - state->drive) * smooth;
-    state->asymmetry += (target_asymmetry - state->asymmetry) * smooth;
+    state->depth += (target_depth - state->depth) * smooth;
+    state->even_weight += (target_even_weight - state->even_weight) * smooth;
     const double dry = static_cast<double>(state->wide_dry[at]);
     const double transient =
         feq_exciter_transient_sample(&state->transient, dry, wide_rate);
-    const double excited = feq_organic_sample(
-        dry, state->drive, state->asymmetry,
-        1.0 + transient * kOrganicTransientHarmonicLift);
-    // Only the difference leaves this stage: it is summed in parallel, so
-    // returning the foundation too would add a second copy of the signal.
-    state->wide[at] = static_cast<float>(excited - dry * foundation_gain);
+    // Harmonics only: this stage is summed in parallel, so the caller restores
+    // the foundation after downsampling rather than it being returned here.
+    state->wide[at] = static_cast<float>(feq_harmonic_sample(
+        &state->harmonics, dry,
+        state->depth * (1.0 + transient * kOrganicTransientHarmonicLift),
+        state->even_weight, wide_rate));
   }
 
   feq_oversample_down(&state->oversampler, state->wide, target, frames,
                       oversample, middle);
-  return state->drive;
+  return state->depth;
 }
 
 }  // extern "C"

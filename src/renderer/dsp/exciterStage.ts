@@ -119,6 +119,9 @@ const EVEN_WEIGHT_PRESENT = [0.58, 0.34, 0.26] as const;
  */
 const RESIDUE_REACH_OCTAVES = 1;
 
+/** How much return the three bands may ask for together. See `addBand`. */
+const RETURN_CEILING = 2;
+
 const IDENTITY_COEFFICIENTS: IBiquadCoefficients = {
   b0: 1,
   b1: 0,
@@ -451,18 +454,27 @@ export const runExciterChannel = (
     target[i] = state.dry[i] * state.dryMix;
   }
 
-  // The three independently movable bands may overlap. Each processed path
-  // needs enough return to be audible, but their foundations must never add up
-  // to several full copies of the filtered programme. Preserve every authored
-  // balance and normalise only when the requested parallel returns exceed
-  // unity together. Adjacent/default bands are unaffected.
+  /**
+   * The three independently movable bands may overlap. Each processed path
+   * needs enough return to be audible, but their foundations must never add up
+   * to several full copies of the filtered programme, so the set is normalised
+   * when the requested returns exceed the ceiling together.
+   *
+   * The ceiling is two, not one. One was right when a return WAS a full copy of
+   * its band: three of those at unity is three copies, and the rule existed to
+   * stop that. A return is 18% of its band now, so three at unity is half a
+   * copy — and holding the sum to one meant three bands at full Amount each got
+   * a third of what one band at full Amount gets, which reads as the dial doing
+   * less the more of it you use.
+   */
   const requestedReturn = settings.bands.reduce(
     (total, band) =>
       total +
       (settings.enabled && band.enabled ? exciterReturnGain(band.mix) : 0),
     0,
   );
-  const returnScale = requestedReturn > 1 ? 1 / requestedReturn : 1;
+  const returnScale =
+    requestedReturn > RETURN_CEILING ? RETURN_CEILING / requestedReturn : 1;
 
   for (let band = 0; band < 3; band += 1) {
     const setup = settings.bands[band];

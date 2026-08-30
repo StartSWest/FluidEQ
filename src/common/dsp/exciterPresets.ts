@@ -77,6 +77,22 @@ const settings = (
  * both catalogs without coupling their parameters. Amounts stay moderate
  * because these are designed to be combined with EQ, compression and a limiter;
  * no profile relies on being the only processor producing the final sound.
+ *
+ * Every Amount here was re-measured when the harmonic generator landed, and
+ * they all moved up. They used to scale a return that was a whole copy of its
+ * own filtered band, so what separated one profile from another was mostly how
+ * much LEVEL each added — and the amounts had to stay small or the stage became
+ * an equaliser. A return is harmonics over an 18% carrier now, so the old
+ * numbers all collapsed toward the same thing: measured across the catalogue,
+ * every profile sat within five decibels of every other, from `classical` to
+ * `loud`.
+ *
+ * The figures below are chosen against the measured harmonic level at each
+ * band's own centre, which is what a listener actually hears these differ by:
+ * roughly -33 dB under the note for the transparent profiles, -26 for the
+ * moderate ones and -21 for the forward ones. Nothing in the catalogue moves
+ * the programme's level by more than 1.2 dB, and that one is `broadcast`, where
+ * a presence lift is the point.
  */
 export const EXCITER_PRESET_BY_ID = {
   none: {
@@ -104,15 +120,15 @@ export const EXCITER_PRESET_BY_ID = {
     group: 'genre',
     settings: settings(
       [
-        { freqHz: 90, range: 0.3, drive: 2, mix: 0.12 },
+        { freqHz: 90, range: 0.3, drive: 2, mix: 0.25 },
         {
           freqHz: 1_100,
           range: 0.28,
           drive: 2.1,
-          mix: 0.12,
+          mix: 0.28,
           texture: 0.22,
         },
-        { freqHz: 6_800, drive: 2.65, mix: 0.18, texture: 0.62 },
+        { freqHz: 6_800, drive: 2.65, mix: 0.45, texture: 0.62 },
       ],
       {},
       { enabled: true, amount: 0.3 },
@@ -124,9 +140,9 @@ export const EXCITER_PRESET_BY_ID = {
     group: 'genre',
     settings: settings(
       [
-        { mix: 0.07 },
-        { freqHz: 1_250, mix: 0.1, texture: 0.2 },
-        { freqHz: 7_200, drive: 2.65, mix: 0.2, texture: 0.62 },
+        { mix: 0.11 },
+        { freqHz: 1_250, mix: 0.19, texture: 0.2 },
+        { freqHz: 7_200, drive: 2.65, mix: 0.32, texture: 0.62 },
       ],
       {
         enabled: true,
@@ -141,7 +157,7 @@ export const EXCITER_PRESET_BY_ID = {
     labelKey: 'dsp.eqPreset.jazz',
     group: 'genre',
     settings: settings(
-      [{ mix: 0.07 }, { mix: 0.07 }, { mix: 0.11, texture: 0.5 }],
+      [{ mix: 0.07 }, { mix: 0.11 }, { mix: 0.16, texture: 0.5 }],
       { enabled: true, amount: 0.16, focusHz: 450, range: 0.35 },
     ),
   },
@@ -149,10 +165,12 @@ export const EXCITER_PRESET_BY_ID = {
     id: 'classical',
     labelKey: 'dsp.eqPreset.classical',
     group: 'genre',
+    // The most transparent profile in the catalogue, and the one that has to
+    // stay that way: its harmonics sit around 32 dB under the note.
     settings: settings([
-      { mix: 0.04 },
-      { mix: 0.04 },
-      { freqHz: 8_500, drive: 2.25, mix: 0.09, texture: 0.52 },
+      { mix: 0.035 },
+      { mix: 0.065 },
+      { freqHz: 8_500, drive: 2.25, mix: 0.15, texture: 0.52 },
     ]),
   },
   electronic: {
@@ -161,9 +179,9 @@ export const EXCITER_PRESET_BY_ID = {
     group: 'genre',
     settings: settings(
       [
-        { freqHz: 72, drive: 2.2, mix: 0.16, texture: 0.04 },
-        { mix: 0.07 },
-        { drive: 2.8, mix: 0.18, texture: 0.64 },
+        { freqHz: 72, drive: 2.2, mix: 0.25, texture: 0.04 },
+        { mix: 0.17 },
+        { drive: 2.8, mix: 0.53, texture: 0.64 },
       ],
       { enabled: true, amount: 0.16, focusHz: 180, range: 0.28 },
       { enabled: true, amount: 0.28 },
@@ -175,9 +193,12 @@ export const EXCITER_PRESET_BY_ID = {
     group: 'genre',
     settings: settings(
       [
-        { freqHz: 65, drive: 2.15, mix: 0.18, texture: 0.03 },
-        { mix: 0.07 },
-        { drive: 2.35, mix: 0.09, texture: 0.5 },
+        // The most forward low band in the catalogue: its octave sits 18 dB
+        // under the note, which is where a small speaker starts finding a
+        // fundamental it cannot reproduce.
+        { freqHz: 65, drive: 2.15, mix: 0.26, texture: 0.03 },
+        { mix: 0.15 },
+        { drive: 2.35, mix: 0.19, texture: 0.5 },
       ],
       {
         enabled: true,
@@ -194,9 +215,9 @@ export const EXCITER_PRESET_BY_ID = {
     group: 'genre',
     settings: settings(
       [
-        { mix: 0.06 },
-        { freqHz: 800, mix: 0.11, texture: 0.12 },
-        { drive: 2.45, mix: 0.15, texture: 0.55 },
+        { mix: 0.08 },
+        { freqHz: 800, mix: 0.24, texture: 0.12 },
+        { drive: 2.45, mix: 0.38, texture: 0.55 },
       ],
       { enabled: true, amount: 0.16, focusHz: 420, range: 0.32 },
       { enabled: true, amount: 0.12 },
@@ -209,12 +230,12 @@ export const EXCITER_PRESET_BY_ID = {
     settings: settings(
       [
         { enabled: false },
-        { freqHz: 850, range: 0.25, mix: 0.12, texture: 0.12 },
+        { freqHz: 850, range: 0.25, mix: 0.29, texture: 0.12 },
         {
           freqHz: 6_500,
           range: 0.18,
           drive: 2.45,
-          mix: 0.16,
+          mix: 0.42,
           texture: 0.56,
         },
       ],
@@ -234,9 +255,9 @@ export const EXCITER_PRESET_BY_ID = {
     group: 'scene',
     settings: settings(
       [
-        { drive: 2.05, mix: 0.12 },
-        { freqHz: 1_500, mix: 0.06, texture: 0.25 },
-        { freqHz: 5_500, drive: 2.7, mix: 0.18, texture: 0.64 },
+        { drive: 2.05, mix: 0.18 },
+        { freqHz: 1_500, mix: 0.14, texture: 0.25 },
+        { freqHz: 5_500, drive: 2.7, mix: 0.46, texture: 0.64 },
       ],
       {},
       { enabled: true, amount: 0.3 },
@@ -247,7 +268,7 @@ export const EXCITER_PRESET_BY_ID = {
     labelKey: 'dsp.eqPreset.movie',
     group: 'scene',
     settings: settings(
-      [{ mix: 0.08 }, { mix: 0.1 }, { drive: 2.4, mix: 0.12 }],
+      [{ mix: 0.1 }, { mix: 0.19 }, { drive: 2.4, mix: 0.36 }],
       {
         enabled: true,
         amount: 0.14,
@@ -263,12 +284,14 @@ export const EXCITER_PRESET_BY_ID = {
     labelKey: 'dsp.eqPreset.warm',
     group: 'character',
     settings: settings(
+      // Even orders forward on Low and Mid, High deliberately held back: warmth
+      // is body without the air that would read as brightness.
       [
-        { mix: 0.09, texture: 0.02 },
-        { drive: 2.1, mix: 0.14, texture: 0.08 },
-        { drive: 2.1, mix: 0.05, texture: 0.35 },
+        { mix: 0.17, texture: 0.02 },
+        { drive: 2.1, mix: 0.33, texture: 0.08 },
+        { drive: 2.1, mix: 0.09, texture: 0.35 },
       ],
-      { enabled: true, amount: 0.25, focusHz: 420, range: 0.4 },
+      { enabled: true, amount: 0.3, focusHz: 420, range: 0.4 },
     ),
   },
   air: {
@@ -282,7 +305,7 @@ export const EXCITER_PRESET_BY_ID = {
         freqHz: 7_500,
         range: 0.24,
         drive: 2.5,
-        mix: 0.24,
+        mix: 0.76,
         texture: 0.65,
       },
     ]),
@@ -301,7 +324,7 @@ export const EXCITER_PRESET_BY_ID = {
         freqHz: 7_000,
         range: 0.22,
         drive: 2.55,
-        mix: 0.24,
+        mix: 0.7,
         texture: 0.6,
       },
     ]),
@@ -319,7 +342,7 @@ export const EXCITER_PRESET_BY_ID = {
           freqHz: 7_500,
           range: 0.24,
           drive: 2.75,
-          mix: 0.3,
+          mix: 0.8,
           texture: 0.62,
         },
       ],
@@ -330,16 +353,33 @@ export const EXCITER_PRESET_BY_ID = {
     id: 'broadcast',
     labelKey: 'dsp.preset.broadcast',
     group: 'character',
+    /**
+     * The presence work moved to Mid, where it fits.
+     *
+     * It was a High band centred at 3 kHz, which is the very bottom of the High
+     * region — so `constrainExciterBandPosition` had almost no room to give it
+     * and clamped the authored 0.22 range down to 0.003. What shipped was a
+     * 2.5-3.6 kHz sliver rather than the wide presence lift the numbers read
+     * like, and nothing said so. Mid reaches 7 kHz, so the same centre gets its
+     * full width there, and High goes back to making air.
+     */
     settings: settings(
       [
-        { enabled: false },
         { enabled: false },
         {
           enabled: true,
           freqHz: 3_000,
-          range: 0.22,
+          range: 0.2,
           drive: 2.8,
-          mix: 0.3,
+          mix: 0.45,
+          texture: 0.55,
+        },
+        {
+          enabled: true,
+          freqHz: 7_500,
+          range: 0.24,
+          drive: 2.6,
+          mix: 0.5,
           texture: 0.6,
         },
       ],
