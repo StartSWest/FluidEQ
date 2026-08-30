@@ -17,6 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 @use 'color' as *;
+@use 'motion' as *;
 @use 'theme' as *;
 
 // Does not scroll itself: the workspace panel around it does, the same as
@@ -26,6 +27,40 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   display: flex;
   flex-direction: column;
   gap: 14px;
+}
+
+// THE PAGE ARRIVES IN THE ORDER IT HAS TO BE READ IN: what the rack is and
+// whether it is switched on, then the sentence saying it only touches
+// FluidEQ's own playback, then whatever the engine has to report, then the
+// chain down the side.
+//
+// Written flat, as one sequence of `$offset`s over the leaf elements, rather
+// than as blocks with cascades inside them — see `stagger-in` for why a
+// nested entrance is the wrong shape. `.dsp-header` and `.dsp-body` are
+// groups in the sequence, never containers with an entrance of their own.
+.dsp-header-line {
+  @include animate(rise-in);
+}
+
+.dsp-scope {
+  @include animate(rise-in, $motion-base, $ease-out, 55ms);
+}
+
+// The engine's own status, and it arrives after the scope notice it qualifies.
+// Conditionally rendered, so this also plays when the engine changes state
+// while the page is open — a line appearing under the heading with no motion
+// at all reads as the layout jumping rather than as news.
+.dsp-idle,
+.dsp-unavailable {
+  @include animate(rise-in, $motion-base, $ease-out, 85ms);
+}
+
+// Eight beats for the seven tabs that ship: the compressor keeps its place in
+// the chain while its editor is held back, so restoring that tab costs the
+// cascade nothing. The rail is keyed by section id and never unmounts, so this
+// runs once when the tab is opened and not on section changes.
+.dsp-rail-tab {
+  @include stagger-in($count: 8, $step: 26ms, $offset: 110ms);
 }
 
 .dsp-header {
@@ -122,10 +157,24 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   font-size: 0.66rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+  // The same fade the per-processor label has carried all along. Two words
+  // doing one job on one page, one of them stepping and one of them fading,
+  // is the kind of difference nobody can name and everybody can see.
+  transition: color 140ms ease;
 
   &.is-on {
     color: $secondary-default;
   }
+}
+
+// The rack dims when the global switch goes off, and it now takes as long
+// doing it as the switch takes to travel. The toggle already animated; the
+// entire page it commands changed in a single frame beside it, which read as
+// the picture being cut rather than as the chain being bypassed.
+.dsp-body {
+  transition:
+    opacity $motion-base $ease-out,
+    filter $motion-base $ease-out;
 }
 
 .dsp-body.is-disabled {
@@ -248,6 +297,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   text-align: right;
   text-overflow: ellipsis;
   white-space: nowrap;
+  // Analysing → ready → unavailable is a line that rewrites itself while it is
+  // being read. Fading the colour between those states keeps the change
+  // attached to the sentence instead of flicking underneath it.
+  transition: color 140ms ease;
 
   &.is-ready {
     color: $secondary-default;
@@ -505,6 +558,43 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   flex: 0 0 auto;
   border: 1px solid rgba($white, 0.3);
   border-radius: 50%;
+  // Applying a shape moves the fill from one pill to another. Fading both ends
+  // of that move is what makes it read as one mark travelling across the row
+  // rather than as two pills blinking independently.
+  transition:
+    border-color 140ms ease,
+    background 140ms ease;
+}
+
+// Carries the same fade as the pip inside it, so the chip and its mark light
+// together. This is the applied state changing hands, not an arrival.
+.dsp-crossfade-curve {
+  transition:
+    border-color 140ms ease,
+    background 140ms ease;
+}
+
+// THE CHIP ARRIVES WITH THE CARD THAT HOLDS IT, NOT ON TOP OF IT.
+//
+// `.active-layer` brings its own `pop-in` from the EQ page, where it is the
+// only thing arriving and the pop is the whole point. In here the same chip
+// sits inside `.dsp-stage .dsp-card`, which has an entrance of its own on
+// every section change — and the saved shapes are already on the page when
+// that entrance runs, so both play at once. Stacked entrances multiply their
+// opacities and add their travel: the chips would fade in behind the card
+// while scaling as well as sliding, on a curve neither animation describes.
+// `stagger-in` in `_motion.scss` sets out why that is the wrong shape.
+//
+// The cost is a shape saved from the row below no longer popping as it joins.
+// That is a deliberate trade and not an oversight: the card's entrance runs
+// every time this page is opened or the rail is clicked, the save happens
+// once in a while, and the common path is the one worth getting right.
+//
+// Menus are not covered by this and must not be — `eq-mode__menu` opens on a
+// click long after the card has settled, so it never overlaps anything.
+.dsp-card .active-layer {
+  animation: none;
+  will-change: auto;
 }
 
 // The lit treatment `.segmented__option.is-selected` gives the curve switch
@@ -1226,11 +1316,30 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   transition:
     background 140ms ease,
     color 140ms ease,
-    border-color 140ms ease;
+    border-color 140ms ease,
+    translate 140ms $ease-out;
 
+  // Leans toward the page it opens. The rail is the only navigation this tab
+  // has and it answered the pointer with colour alone; a couple of pixels in
+  // the direction the stage lies is the difference between a list of names
+  // and a set of controls.
   &:hover {
     background: rgba($primary-light, 0.34);
     color: rgba($white, 0.86);
+    translate: 2px 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dsp-rail-tab {
+    transition:
+      background 140ms ease,
+      color 140ms ease,
+      border-color 140ms ease;
+
+    &:hover {
+      translate: none;
+    }
   }
 }
 
@@ -1258,6 +1367,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   .dsp-section-icon__frame {
     stroke-width: 1.3;
     opacity: 0.42;
+    // Selecting a tab lifts the frame; without this it steps while the button
+    // around it fades, which is the glyph and its own button disagreeing about
+    // when the selection happened.
+    transition: opacity 140ms ease;
   }
 
   .dsp-section-icon__accent {
@@ -1286,7 +1399,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   height: 7px;
   border-radius: 50%;
   background: rgba($white, 0.14);
-  transition: background 140ms ease;
+  // The glow belongs in here with the colour. Switching a processor on sets
+  // both, and with only `background` listed the halo snapped to full strength
+  // while the dot it belongs to was still fading up — the lamp arrived in two
+  // pieces, a frame apart.
+  transition:
+    background 140ms ease,
+    box-shadow 140ms ease;
 }
 
 .dsp-rail-tab.is-on .dsp-rail-lamp {
@@ -1301,7 +1420,23 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   min-width: 0;
 }
 
+// The processor page itself, arriving in place of the one before it.
+//
+// This is the only entrance on the page that plays twice over: once when the
+// tab is opened, and again on every rail click, because each section is a
+// separate branch in `DspPanel` and switching builds a genuinely new node
+// rather than re-rendering the old one. That is what makes the delay here the
+// one number that cannot be taken from the arrival sequence above — a delay
+// placed to fall in behind the rail would be a dead pause after every click,
+// and a click that visibly does nothing is the bug this app has shipped
+// before. 40ms sits it just behind the heading on arrival and is below the
+// threshold where a click stops feeling immediate.
+//
+// `rise-in` moves `translate` and `opacity` only, so the EQ's canvas is
+// composited through the entrance rather than re-measured: nothing in here is
+// re-laid-out and no graph resizes mid-animation.
 .dsp-stage .dsp-card {
+  @include animate(rise-in, $motion-base, $ease-out, 40ms);
   flex: 1 1 auto;
 }
 
@@ -1469,10 +1604,17 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   font-variant-numeric: tabular-nums;
   line-height: 1;
   cursor: pointer;
+  // `opacity` and `box-shadow` are here for the two states below that nothing
+  // else on this button reaches: switching a band off fades its pick, and a
+  // dynamic band that is also selected draws its inner ring. Both were being
+  // set on a button whose colour and fill were mid-fade, so one pick changed
+  // in two steps while its fourteen neighbours changed in one.
   transition:
     background 130ms ease,
     color 130ms ease,
-    border-color 130ms ease;
+    border-color 130ms ease,
+    opacity 130ms ease,
+    box-shadow 130ms ease;
 
   &:hover {
     background: rgba($primary-light, 0.45);
@@ -1912,7 +2054,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
+// Both DSP dialogs — the EQ import and the preset save — are this backdrop
+// and this card, and they take the same entrance every other dialog in the
+// app does: the ground fades, the card springs. They were the two that
+// appeared in one frame with nothing behind them.
 .dsp-import-backdrop {
+  @include animate(fade-in, $motion-fast);
   position: fixed;
   inset: 0;
   z-index: 2400;
@@ -1924,6 +2071,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 .dsp-import {
+  @include animate(pop-in, $motion-base, $ease-spring);
   display: flex;
   width: min(560px, 100%);
   max-height: 100%;
@@ -2135,11 +2283,23 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       border-radius: 2px;
       background: transparent;
       content: '';
+      // The underline is the whole selection indicator once the names are
+      // gone, so it lights and dims rather than switching. Its glow is listed
+      // with it for the reason the rail lamp's is: they are set together and
+      // must not arrive a frame apart.
+      transition:
+        background 140ms ease,
+        box-shadow 140ms ease;
     }
 
     &:hover {
       background: transparent;
       color: rgba($white, 0.9);
+      // The rail is a horizontal strip of icons here, not a vertical list.
+      // The nudge on the wide layout leans toward the stage the tab opens;
+      // there is no such direction in a row, and 2px of sideways travel
+      // between neighbours 2px apart reads as the strip wobbling.
+      translate: none;
     }
   }
 
