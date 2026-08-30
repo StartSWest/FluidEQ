@@ -27,6 +27,7 @@ import type {
   IHostAnalysis,
   TAnalysisStage,
 } from '../../common/dsp/analysisWire';
+import { CHAIN_PARAM_LEAD } from '../../common/dsp/chainWire';
 import { CROSSFADE_TABLE_POINTS } from '../../common/dsp/crossfadeShape';
 
 /** Must match FEQ_WIRE_PROTOCOL_VERSION. */
@@ -197,12 +198,18 @@ export const encodeSnapshotPayload = (values: readonly number[]): Buffer => {
  * the real worklet, so this is exercised by them rather than being a second
  * encoder that agrees with the first until a field is added to one of them.
  *
- * Everything before the bands sits at a fixed offset, which is why the lead is
- * asserted rather than assumed — a scalar added above and forgotten here would
- * push every band along by one and still decode into something plausible.
+ * The lead is IMPORTED rather than restated. This file held its own copy at 69
+ * while `chainWire.ts` and `FEQ_CHAIN_PARAM_LEAD` were both at 77, and eight
+ * slots of drift went unnoticed because the check below cannot fire: every
+ * caller reaches it through the `dsp-host-chain` handler, which has already run
+ * `isChainWirePayload` — that one checks the length exactly against the band
+ * count the payload declares, so a floor of any value is strictly weaker than
+ * what has already passed. A second authority that can never disagree out loud
+ * is worse than none: it reads as a check while proving nothing.
+ *
+ * The floor stays because `encodeChainPayload` is exported and the next caller
+ * may not come through that handler. It just no longer owns a number.
  */
-export const CHAIN_PARAM_LEAD = 69;
-
 export const encodeChainPayload = (values: readonly number[]): Buffer => {
   if (values.length < CHAIN_PARAM_LEAD) {
     throw new Error(
