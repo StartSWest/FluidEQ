@@ -139,6 +139,9 @@ const PROTECTED: IEqPresetSetup = { subsonicHz: 20, monoBelowHz: 40 };
  *    they are read at and not one of their shapes. The `wide` character is
  *    what makes this bite: it stacks 4-7 dB where `proportional` stacks
  *    under 2, because widening each skirt is widening the overlap.
+ *    A test measures this now. It did not before, and five curves had drifted
+ *    back over the line by a tenth of a decibel — which is how a limit with
+ *    nothing watching it decays.
  *  - **Nothing is symmetrical for the sake of looking tidy.** Hearing is not:
  *    the ear's sensitivity dips below 200 Hz and above 6 kHz and is most
  *    acute around 3 kHz, so a curve that is gentle at 3 kHz and generous at
@@ -230,7 +233,7 @@ export const EQ_PRESETS: readonly IEqPreset[] = [
     labelKey: 'dsp.eqPreset.hiphop',
     group: 'genre',
     gains: [
-      2.5, 2.8, 2.2, 1.1, 0, -0.6, -0.6, 0, 0.6, 1.1, 1.4, 0.8, 0.6, 0.6, 0.3,
+      2.5, 2.7, 2.2, 1.1, 0, -0.6, -0.6, 0, 0.6, 1.1, 1.4, 0.8, 0.6, 0.6, 0.3,
     ],
     // Sub-bass this heavy is where cancellation actually costs something,
     // so the mono corner sits above the fundamental rather than under it.
@@ -297,7 +300,7 @@ export const EQ_PRESETS: readonly IEqPreset[] = [
     id: 'bassBoost',
     labelKey: 'dsp.eqPreset.bassBoost',
     group: 'character',
-    gains: [2.5, 2.5, 2, 1.5, 0.7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    gains: [2.5, 2.4, 1.9, 1.5, 0.7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     setup: { model: 'wide', subsonicHz: 30, monoBelowHz: 100 },
   },
   {
@@ -316,7 +319,7 @@ export const EQ_PRESETS: readonly IEqPreset[] = [
     id: 'loudness',
     labelKey: 'dsp.eqPreset.loudness',
     group: 'scene',
-    gains: [2.9, 2.6, 2, 1.2, 0.3, 0, 0, 0, 0, 0, 0.3, 0.9, 1.7, 2.3, 2.6],
+    gains: [2.9, 2.5, 2, 1.2, 0.3, 0, 0, 0, 0, 0, 0.3, 0.9, 1.7, 2.3, 2.6],
     setup: { model: 'wide', subsonicHz: 25, monoBelowHz: 70 },
   },
   {
@@ -575,7 +578,7 @@ export const EQ_PRESETS: readonly IEqPreset[] = [
     id: 'reggae',
     labelKey: 'dsp.eqPreset.reggae',
     group: 'genre',
-    gains: [2.6, 2.9, 2.2, 1, 0, -1.5, -0.5, 0.3, 0.6, 0.6, 1, 1, 0.6, 0.3, 0],
+    gains: [2.6, 2.8, 2.2, 1, 0, -1.5, -0.5, 0.3, 0.6, 0.6, 1, 1, 0.6, 0.3, 0],
     setup: { model: 'wide', subsonicHz: 25, monoBelowHz: 80 },
   },
   {
@@ -626,7 +629,7 @@ export const EQ_PRESETS: readonly IEqPreset[] = [
     labelKey: 'dsp.eqPreset.trap',
     group: 'genre',
     gains: [
-      3.5, 3.1, 2.1, 0.7, -1, -2, -1.5, -0.5, 0.3, 1, 1.4, 1.4, 1.7, 1.4, 0.7,
+      3.4, 3, 2.1, 0.7, -1, -2, -1.5, -0.5, 0.3, 1, 1.4, 1.4, 1.7, 1.4, 0.7,
     ],
     setup: { model: 'wide', subsonicHz: 25, monoBelowHz: 90 },
   },

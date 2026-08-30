@@ -16,6 +16,10 @@ import {
   eqPresetSetup,
   eqSettingsForPreset,
 } from '../../../common/dsp/eqPresets';
+import {
+  biquadCoefficients,
+  biquadMagnitudeDb,
+} from '../../../renderer/dsp/biquad';
 
 /**
  * Every value is intentionally unlike the factory baseline. If a preset
@@ -142,5 +146,91 @@ describe('complete EQ factory presets', () => {
         clamped: result,
       });
     });
+  });
+
+  /**
+   * The rule `eqPresets.ts` states about itself, enforced.
+   *
+   * These bands sit a third of an octave apart at the bottom, so their skirts
+   * overlap and adjacent gains ADD. The largest band in a curve is therefore
+   * not what the curve does: "bass boost" once had a largest band of +5 and
+   * measured +12.15 dB summed at 69 Hz, and ten presets were past the limit
+   * with none of them looking it. They were all rescaled — and then nothing
+   * held them there, so five had drifted back over by the time this was
+   * written. Only by a tenth of a decibel, which is exactly how a limit
+   * without a test decays.
+   *
+   * Measured from the coefficients the engine actually builds, model and all,
+   * because `wide` stacks 4-7 dB where `proportional` stacks under 2: widening
+   * each skirt is widening the overlap.
+   */
+  it('keeps every summed curve under the +6 dB ceiling it claims', () => {
+    const points = Array.from(
+      { length: 400 },
+      (_, index) => 20 * 1_000 ** (index / 399),
+    );
+    const peaks = EQ_PRESETS.map((preset) => {
+      const result = eqSettingsForPreset(contaminatedEq(), preset);
+      const setup = eqPresetSetup(preset);
+      const peak = points.reduce((highest, hz) => {
+        const summed = result.bands.reduce(
+          (total, band) =>
+            band.enabled
+              ? total +
+                biquadMagnitudeDb(
+                  biquadCoefficients(
+                    {
+                      type: band.type as never,
+                      frequency: band.frequency,
+                      gainDb: band.gainDb,
+                      quality: band.quality,
+                    },
+                    48_000,
+                    setup.model,
+                    setup.modelAmount,
+                  ),
+                  hz,
+                  48_000,
+                )
+              : total,
+          0,
+        );
+        return Math.max(highest, summed);
+      }, Number.NEGATIVE_INFINITY);
+      return { id: preset.id, over: peak > 6 };
+    });
+    expect(peaks.filter((one) => one.over)).toEqual([]);
+  });
+
+  /**
+   * The positive control for the ceiling above.
+   *
+   * An empty list would also be what a broken measurement produced, and a
+   * summing bug that always returned zero would pass the check silently. A
+   * curve deliberately built past the limit has to be caught.
+   */
+  it('POSITIVE CONTROL: a curve over the ceiling is detected', () => {
+    const loud = eqSettingsForPreset(contaminatedEq(), EQ_PRESETS[2]);
+    const peak = loud.bands.reduce(
+      (total, band) =>
+        total +
+        biquadMagnitudeDb(
+          biquadCoefficients(
+            {
+              type: band.type as never,
+              frequency: band.frequency,
+              gainDb: band.gainDb * 4,
+              quality: band.quality,
+            },
+            48_000,
+            'wide',
+            1,
+          ),
+          60,
+          48_000,
+        ),
+      0,
+    );
+    expect(peak).toBeGreaterThan(6);
   });
 });
