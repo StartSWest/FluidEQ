@@ -276,6 +276,49 @@ export interface ICompressorSettings {
 }
 
 /**
+ * Generates low end rather than shaping what the source already has — the
+ * difference between this and an EQ boost, which can only raise a
+ * fundamental that survived onto the recording in the first place.
+ *
+ * There is deliberately no mono control on this stage. An earlier design
+ * migrated `eq.monoBelowHz` into it; roughly twenty EQ presets reference that
+ * field, and an EQ preset cannot reach into another stage's settings, so the
+ * migration would have silently dropped the mono-maker from every one of
+ * them. Forge instead generates from `(low[0] + low[1]) / 2` as a
+ * construction of the stage itself, and the mono-maker stays in the EQ.
+ */
+export interface IBassForgeSettings {
+  enabled: boolean;
+  /** Stable processor-local profile id, or empty after a hand edit. */
+  presetId: string;
+  /** Below this, the band Forge builds its low end from. */
+  splitHz: number;
+  driveDb: number;
+  subAmount: number;
+  presenceAmount: number;
+  /** Spans further than the Exciter's does. @see RANGES.bassForgeTexture */
+  texture: number;
+  mix: number;
+}
+
+/**
+ * Shapes how the low end hits rather than generating it, which is why this
+ * carries its own `splitHz` instead of sharing Forge's — the two stages do
+ * different jobs and a user may want either without the other.
+ */
+export interface IBassPunchSettings {
+  enabled: boolean;
+  /** Stable processor-local profile id, or empty after a hand edit. */
+  presetId: string;
+  splitHz: number;
+  attack: number;
+  sustain: number;
+  bloomAmount: number;
+  bloomDecayMs: number;
+  duck: number;
+}
+
+/**
  * Stereo width, per band, that survives being summed to mono.
  *
  * The processor touches the SIDE signal and nothing else, so `(L+R)/2` — which
@@ -707,6 +750,8 @@ export interface IDspSettings {
   crossfade: ICrossfadeSettings;
   eq: IEqSettings;
   exciter: IExciterSettings;
+  bassForge: IBassForgeSettings;
+  bassPunch: IBassPunchSettings;
   dimension: IDimensionSettings;
   compressor: ICompressorSettings;
   maximizer: IMaximizerSettings;
@@ -764,6 +809,23 @@ const RANGES = {
   // widens the chosen region without combining unrelated ends of the spectrum
   // inside one non-linearity.
   organicFocusHz: { min: 40, max: 16_000 },
+  bassSplitHz: { min: 40, max: 200 },
+  bassForgeDriveDb: { min: 0, max: 12 },
+  bassAmount: { min: 0, max: 1 },
+  /**
+   * The full even-to-odd span, unlike the Exciter's 0.7 ceiling.
+   *
+   * That ceiling is about `band_even_weight`, which drives a diode character
+   * curve whose far end is symmetric and harsh across presence and air. This
+   * maps straight to `feq_harmonic_sample`'s `even_weight`, where 1 is pure
+   * second order -- the octave up, which IS the phantom fundamental this
+   * control exists for and the good end for bass. The odd end tops out at the
+   * third of a 200 Hz band, which is 600 Hz, nowhere near what that ceiling
+   * protects.
+   */
+  bassForgeTexture: { min: 0, max: 1 },
+  bassPunchShape: { min: -1, max: 1 },
+  bassPunchBloomDecayMs: { min: 40, max: 250 },
   compressorLowHz: { min: 60, max: 600 },
   compressorHighHz: { min: 1_000, max: 10_000 },
   thresholdDb: { min: -60, max: 0 },
@@ -1150,6 +1212,26 @@ export const DSP_DEFAULTS: IDspSettings = {
     align: { enabled: false, amount: 0.45 },
     isolate: false,
   },
+  bassForge: {
+    enabled: false,
+    presetId: '',
+    splitHz: 90,
+    driveDb: 0,
+    subAmount: 0,
+    presenceAmount: 0,
+    texture: 0.8,
+    mix: 0,
+  },
+  bassPunch: {
+    enabled: false,
+    presetId: '',
+    splitHz: 110,
+    attack: 0,
+    sustain: 0,
+    bloomAmount: 0,
+    bloomDecayMs: 120,
+    duck: 0,
+  },
   /**
    * Off, but not at unity — switching it on should do the tasteful thing.
    *
@@ -1310,6 +1392,8 @@ export const clampDspSettings = (value: unknown): IDspSettings => {
   const eq = isRecord(value.eq) ? value.eq : {};
   const storedEqBands = Array.isArray(eq.bands) ? eq.bands : [];
   const exciter = isRecord(value.exciter) ? value.exciter : {};
+  const bassForge = isRecord(value.bassForge) ? value.bassForge : {};
+  const bassPunch = isRecord(value.bassPunch) ? value.bassPunch : {};
   const dimension = isRecord(value.dimension) ? value.dimension : {};
   const compressor = isRecord(value.compressor) ? value.compressor : {};
   const maximizer = isRecord(value.maximizer) ? value.maximizer : {};
@@ -1548,6 +1632,76 @@ export const clampDspSettings = (value: unknown): IDspSettings => {
       // `store.ts` drops it there, which is the only place it should be
       // dropped.
       isolate: clampBoolean(exciter.isolate, DSP_DEFAULTS.exciter.isolate),
+    },
+    bassForge: {
+      enabled: clampBoolean(bassForge.enabled, DSP_DEFAULTS.bassForge.enabled),
+      presetId:
+        typeof bassForge.presetId === 'string' ? bassForge.presetId : '',
+      splitHz: clampNumber(
+        bassForge.splitHz,
+        RANGES.bassSplitHz,
+        DSP_DEFAULTS.bassForge.splitHz,
+      ),
+      driveDb: clampNumber(
+        bassForge.driveDb,
+        RANGES.bassForgeDriveDb,
+        DSP_DEFAULTS.bassForge.driveDb,
+      ),
+      subAmount: clampNumber(
+        bassForge.subAmount,
+        RANGES.bassAmount,
+        DSP_DEFAULTS.bassForge.subAmount,
+      ),
+      presenceAmount: clampNumber(
+        bassForge.presenceAmount,
+        RANGES.bassAmount,
+        DSP_DEFAULTS.bassForge.presenceAmount,
+      ),
+      texture: clampNumber(
+        bassForge.texture,
+        RANGES.bassForgeTexture,
+        DSP_DEFAULTS.bassForge.texture,
+      ),
+      mix: clampNumber(
+        bassForge.mix,
+        RANGES.bassAmount,
+        DSP_DEFAULTS.bassForge.mix,
+      ),
+    },
+    bassPunch: {
+      enabled: clampBoolean(bassPunch.enabled, DSP_DEFAULTS.bassPunch.enabled),
+      presetId:
+        typeof bassPunch.presetId === 'string' ? bassPunch.presetId : '',
+      splitHz: clampNumber(
+        bassPunch.splitHz,
+        RANGES.bassSplitHz,
+        DSP_DEFAULTS.bassPunch.splitHz,
+      ),
+      attack: clampNumber(
+        bassPunch.attack,
+        RANGES.bassPunchShape,
+        DSP_DEFAULTS.bassPunch.attack,
+      ),
+      sustain: clampNumber(
+        bassPunch.sustain,
+        RANGES.bassPunchShape,
+        DSP_DEFAULTS.bassPunch.sustain,
+      ),
+      bloomAmount: clampNumber(
+        bassPunch.bloomAmount,
+        RANGES.bassAmount,
+        DSP_DEFAULTS.bassPunch.bloomAmount,
+      ),
+      bloomDecayMs: clampNumber(
+        bassPunch.bloomDecayMs,
+        RANGES.bassPunchBloomDecayMs,
+        DSP_DEFAULTS.bassPunch.bloomDecayMs,
+      ),
+      duck: clampNumber(
+        bassPunch.duck,
+        RANGES.bassAmount,
+        DSP_DEFAULTS.bassPunch.duck,
+      ),
     },
     dimension: {
       enabled: clampBoolean(dimension.enabled, DSP_DEFAULTS.dimension.enabled),
