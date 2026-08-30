@@ -296,6 +296,8 @@ const dsp = {
   'dsp.maximizer.title': 'Maximiseur',
   'dsp.maximizer.description':
     'Augmente le niveau global sans laisser les crêtes dépasser le plafond.',
+  'dsp.maximizer.drive': 'Attaque',
+  'dsp.maximizer.reduction': 'Réduction',
   'dsp.maximizer.ceiling': 'Plafond',
   'dsp.maximizer.lookAhead': 'Anticipation',
   'dsp.maximizer.release': 'Relâchement',

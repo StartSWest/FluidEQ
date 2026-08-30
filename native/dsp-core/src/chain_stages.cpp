@@ -145,7 +145,36 @@ void chain_process_maximizer(FeqChain* chain, float* const* channels,
   const bool on = chain->settings.maximizer.enabled != 0;
   if (!on) {
     feq_linked_limiter_reset_control(&chain->maximizer);
+    chain->maximizer_reduction_db = 0.0;
   }
+
+  /**
+   * Drive, which is the half of a maximizer this stage did not have.
+   *
+   * Gain goes IN and the ceiling holds the top: everything under the peaks
+   * comes up while the peaks stay where they were, and that gap is the whole
+   * effect. Without it there was no gain term anywhere in this function or in
+   * the limiter it calls, so the stage could only ever attenuate — and the
+   * always-on output safety already guaranteed nothing clipped, which left it
+   * doing nothing that was not already done.
+   *
+   * Applied here rather than folded into the ceiling because they are not the
+   * same control: the ceiling is where the output is allowed to reach and Drive
+   * is how hard the programme is pushed at it. Folding them would mean asking
+   * for more loudness by asking for a lower ceiling, which is backwards.
+   */
+  const double drive =
+      on ? std::pow(10.0, chain->settings.maximizer.drive_db / 20.0) : 1.0;
+  if (drive != 1.0) {
+    for (uint32_t channel = 0; channel < chain->channels; ++channel) {
+      float* samples = channels[channel];
+      for (uint32_t at = 0; at < frames; ++at) {
+        samples[at] = static_cast<float>(static_cast<double>(samples[at]) *
+                                         drive);
+      }
+    }
+  }
+
   FeqLimiterOptions options{};
   options.ceiling = on ? std::pow(10.0, chain->settings.maximizer.ceiling_db /
                                             20.0)
@@ -170,6 +199,20 @@ void chain_process_maximizer(FeqChain* chain, float* const* channels,
   options.attack_slew_db_per_second = 0.0;
   options.sample_rate = chain->sample_rate;
   feq_linked_limiter_process(&chain->maximizer, channels, frames, &options);
+
+  // The deepest point of the block rather than its mean: a meter that averaged
+  // would read almost nothing on exactly the dense material this stage is for,
+  // where the reduction is short and frequent.
+  if (on) {
+    double deepest = 0.0;
+    for (uint32_t at = 0; at < frames; ++at) {
+      const double value = static_cast<double>(chain->maximizer_reduction[at]);
+      if (value < deepest) {
+        deepest = value;
+      }
+    }
+    chain->maximizer_reduction_db = deepest;
+  }
 }
 
 /**

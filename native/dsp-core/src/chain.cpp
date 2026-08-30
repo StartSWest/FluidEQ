@@ -444,6 +444,10 @@ void feq_chain_process(FeqChain* chain, float* const* channels,
 
   chain_process_compressor(chain, channels, frames);
   chain_process_maximizer(chain, channels, frames);
+  // What it is holding down, which the spectrum cannot show either: a limiter
+  // that is working looks exactly like one that is not until you see the
+  // reduction.
+  feq_meters_publish_maximizer(chain->meters, chain->maximizer_reduction_db);
 
   const bool uses_selected_headroom =
       chain->settings.master.enabled != 0 &&

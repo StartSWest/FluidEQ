@@ -316,6 +316,7 @@ void drain_analysis(HostState& state) {
   frame.bands = bands;
   feq_meters_read_exciter(state.meters, frame.exciter_bands,
                           &frame.exciter_organic);
+  feq_meters_read_maximizer(state.meters, &frame.maximizer_reduction_db);
   frame.correlation = correlation;
   frame.peak_left = peaks[0];
   frame.peak_right = peaks[1];

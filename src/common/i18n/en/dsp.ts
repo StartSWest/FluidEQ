@@ -301,6 +301,8 @@ const dsp = {
   'dsp.maximizer.title': 'Maximizer',
   'dsp.maximizer.description':
     'Raises the overall level without letting peaks pass the ceiling.',
+  'dsp.maximizer.drive': 'Drive',
+  'dsp.maximizer.reduction': 'Reduction',
   'dsp.maximizer.ceiling': 'Ceiling',
   'dsp.maximizer.lookAhead': 'Look-ahead',
   'dsp.maximizer.release': 'Release',

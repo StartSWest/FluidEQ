@@ -549,6 +549,21 @@ export const readDspExciterBands = (): readonly number[] => exciterBands;
 export const readDspExciterOrganic = (): number => exciterOrganic;
 
 /**
+ * How hard the Maximizer is holding the signal down, in dB. Never positive.
+ *
+ * Polled rather than subscribed, like the exciter activity beside it: this
+ * changes every audio block and a React update per block is a repaint the
+ * display cannot use.
+ */
+let maximizerReductionDb = 0;
+
+export const setDspMaximizerReduction = (reductionDb: number): void => {
+  maximizerReductionDb = reductionDb;
+};
+
+export const readDspMaximizerReduction = (): number => maximizerReductionDb;
+
+/**
  * Each dynamic band's own detected level, in dBFS, by band index.
  *
  * The quantity the threshold is compared against, and NOT the same thing as

@@ -78,7 +78,7 @@ enum ProcessorId : uint32_t {
   kOutputSafety = 14,
   kAutoHeadroom = 15,
   kExciterTransient = 16,
-  kAnalogDiode = 17,
+  /* 17 was kAnalogDiode, whose shaper nothing calls any more. */
   kPhaseAlign = 18,
   kExciterGuard = 19,
   kOrganic = 20,
@@ -738,20 +738,6 @@ bool render_exciter_transient(const Fixture& fixture,
   return true;
 }
 
-/** `[drive, character, level, harmonicGain]`. */
-bool render_analog_diode(const Fixture& fixture, std::vector<float>& actual) {
-  if (fixture.params.size() < 4) {
-    return false;
-  }
-  actual = fixture.input;
-  for (float& sample : actual) {
-    sample = static_cast<float>(feq_analog_diode_excited_sample(
-        static_cast<double>(sample), fixture.params[0], fixture.params[1],
-        fixture.params[2], fixture.params[3]));
-  }
-  return true;
-}
-
 /** `[amount]`. */
 bool render_phase_align(const Fixture& fixture, std::vector<float>& actual) {
   if (fixture.params.empty()) {
@@ -1074,7 +1060,7 @@ bool render_crossfade(const Fixture& fixture, std::vector<float>& actual) {
  * bands — is last, so everything before it sits at a fixed offset and adding a
  * scalar cannot silently re-point sixty-four bands.
  */
-constexpr size_t kChainParamLead = 69;
+constexpr size_t kChainParamLead = FEQ_CHAIN_PARAM_LEAD;
 constexpr size_t kChainBandParams = 7;
 
 bool render_chain(const Fixture& fixture, std::vector<float>& actual) {
@@ -1139,6 +1125,7 @@ bool render_chain(const Fixture& fixture, std::vector<float>& actual) {
   }
 
   settings.maximizer.enabled = flag();
+  settings.maximizer.drive_db = next();
   settings.maximizer.ceiling_db = next();
   settings.maximizer.look_ahead_ms = next();
   settings.maximizer.release_ms = next();
@@ -1223,8 +1210,6 @@ bool render(const Fixture& fixture, std::vector<float>& actual) {
       return render_phase_align(fixture, actual);
     case kExciterTransient:
       return render_exciter_transient(fixture, actual);
-    case kAnalogDiode:
-      return render_analog_diode(fixture, actual);
     case kAutoHeadroom:
       return render_auto_headroom(fixture, actual);
     case kOutputSafety:

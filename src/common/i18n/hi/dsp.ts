@@ -291,6 +291,8 @@ const dsp = {
   'dsp.maximizer.title': 'मैक्सिमाइज़र',
   'dsp.maximizer.description':
     'शिखरों को सीमा से ऊपर जाने दिए बिना कुल स्तर बढ़ाता है।',
+  'dsp.maximizer.drive': 'ड्राइव',
+  'dsp.maximizer.reduction': 'कटौती',
   'dsp.maximizer.ceiling': 'सीमा',
   'dsp.maximizer.lookAhead': 'लुक-अहेड',
   'dsp.maximizer.release': 'रिलीज़',

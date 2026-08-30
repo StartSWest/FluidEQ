@@ -127,6 +127,7 @@ typedef struct FeqChainSettings {
     int enabled;
     double ceiling_db;
     /** Structural: the look-ahead sets the limiter's buffer length. */
+    double drive_db;
     double look_ahead_ms;
     double release_ms;
   } maximizer;
@@ -156,7 +157,7 @@ typedef struct FeqChainSettings {
  * silently re-point sixty-four bands: the decoder asserts the lead rather
  * than trusting it.
  */
-#define FEQ_CHAIN_PARAM_LEAD 69
+#define FEQ_CHAIN_PARAM_LEAD 70
 #define FEQ_CHAIN_BAND_PARAMS 7
 
 /** Non-zero on success. Leaves `out` untouched on a layout it cannot read. */

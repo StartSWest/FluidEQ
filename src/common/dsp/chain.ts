@@ -277,6 +277,21 @@ export interface ICompressorSettings {
 
 export interface IMaximizerSettings {
   enabled: boolean;
+  /**
+   * Gain into the ceiling, which is the control that makes this a maximizer.
+   *
+   * Without it the stage could only ever turn peaks DOWN: there was no gain
+   * term anywhere in it or in the limiter it drives, so switching it on made
+   * things quieter or did nothing, and the always-on output safety already
+   * guaranteed nothing could clip. That is a limiter, and this is named after
+   * the other thing — every maximizer is gain into a ceiling, and this one had
+   * the ceiling and no gain.
+   *
+   * Louder comes out of the gap between the two: raise Drive and the peaks meet
+   * the ceiling sooner, so what is under them comes up while the ceiling holds
+   * the top still.
+   */
+  driveDb: number;
   /** Reconstructed output ceiling in dBTP. Never reaches digital full scale. */
   ceilingDb: number;
   /**
@@ -707,6 +722,15 @@ const RANGES = {
   // Below -60 nothing musical ever falls under the threshold, so the band
   // would be permanently engaged and indistinguishable from a static one.
   eqThresholdDb: { min: -60, max: 0 },
+  /**
+   * Twelve decibels of drive, which is as far as this is worth going.
+   *
+   * Past about 12 dB into a ceiling the limiter is holding the signal down for
+   * most of its length, and what that sounds like is the dynamics leaving
+   * rather than the track getting louder. The dial stops where it stops being
+   * a loudness control.
+   */
+  maximizerDriveDb: { min: 0, max: 12 },
   ceilingDb: { min: -12, max: MAXIMIZER_MAX_CEILING_DB },
   lookAheadMs: { min: MAXIMIZER_MIN_LOOK_AHEAD_MS, max: 20 },
   maximizerReleaseMs: { min: MAXIMIZER_MIN_RELEASE_MS, max: 1_000 },
@@ -1064,6 +1088,10 @@ export const DSP_DEFAULTS: IDspSettings = {
   },
   maximizer: {
     enabled: false,
+    // Unity: switching the stage in cannot change the level until Drive is
+    // moved, so it arrives as the protection it used to be and becomes a
+    // loudness tool only when asked.
+    driveDb: 0,
     ceilingDb: -1,
     lookAheadMs: 5,
     releaseMs: 100,
@@ -1458,6 +1486,11 @@ export const clampDspSettings = (value: unknown): IDspSettings => {
     },
     maximizer: {
       enabled: clampBoolean(maximizer.enabled, DSP_DEFAULTS.maximizer.enabled),
+      driveDb: clampNumber(
+        maximizer.driveDb,
+        RANGES.maximizerDriveDb,
+        DSP_DEFAULTS.maximizer.driveDb,
+      ),
       ceilingDb: clampNumber(
         maximizer.ceilingDb,
         RANGES.ceilingDb,

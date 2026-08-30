@@ -300,6 +300,8 @@ const dsp = {
   'dsp.maximizer.title': 'Maximizer',
   'dsp.maximizer.description':
     'Hebt den Gesamtpegel an, ohne Spitzen über die Obergrenze zu lassen.',
+  'dsp.maximizer.drive': 'Drive',
+  'dsp.maximizer.reduction': 'Reduktion',
   'dsp.maximizer.ceiling': 'Obergrenze',
   'dsp.maximizer.lookAhead': 'Vorausschau',
   'dsp.maximizer.release': 'Release',

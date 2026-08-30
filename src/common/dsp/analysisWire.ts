@@ -34,7 +34,7 @@ export const ANALYSIS_BINS = 1024;
 export const ANALYSIS_SCOPE_PAIRS = 256;
 
 /** The fixed header; its own fields say how much payload follows. */
-export const ANALYSIS_HEADER_BYTES = 56;
+export const ANALYSIS_HEADER_BYTES = 64;
 
 /** The rack ceiling, matching FEQ_METER_MAX_BANDS. */
 export const ANALYSIS_MAX_BANDS = 64;
@@ -72,4 +72,12 @@ export interface IHostAnalysis {
   /** What the exciter three bands and its organic stage contributed. */
   exciterBands: readonly number[];
   exciterOrganic: number;
+  /**
+   * How hard the Maximizer is holding the signal down, in dB. Never positive.
+   *
+   * The one reading that stage cannot be set without: Drive, ceiling and
+   * release only mean anything against how much reduction they are producing,
+   * and all three shipped with no way to see any of it.
+   */
+  maximizerReductionDb: number;
 }

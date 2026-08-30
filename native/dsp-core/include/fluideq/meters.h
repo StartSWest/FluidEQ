@@ -192,6 +192,12 @@ void feq_meters_publish_exciter(FeqMeters* meters,
                                 const double* bands,
                                 double organic);
 
+/** What the Maximizer is holding down, in dB. **Audio thread.** */
+void feq_meters_publish_maximizer(FeqMeters* meters, double reduction_db);
+
+/** The published Maximizer reduction. **Control thread.** */
+void feq_meters_read_maximizer(FeqMeters* meters, float* out_reduction_db);
+
 /** The published exciter activity. **Control thread.** */
 void feq_meters_read_exciter(FeqMeters* meters,
                              float* out_bands,

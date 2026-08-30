@@ -379,6 +379,7 @@ describe('dsp worklet bundle', () => {
       ...bypassed(),
       maximizer: {
         enabled: true,
+        driveDb: 0,
         ceilingDb: -6,
         lookAheadMs: 2,
         releaseMs: 50,
@@ -390,6 +391,79 @@ describe('dsp worklet bundle', () => {
     // Skip the first blocks: the delay line starts empty and emits silence.
     expect(peak(output, QUANTUM * 4)).toBeLessThanOrEqual(ceiling + 1e-4);
     expect(peak(output, QUANTUM * 4)).toBeGreaterThan(ceiling * 0.75);
+  });
+
+  /**
+   * Drive is what makes this a maximizer rather than a limiter.
+   *
+   * There was no gain term anywhere in the stage or in the limiter it drives,
+   * so switching it on could only ever turn peaks DOWN — and the always-on
+   * output safety already guaranteed nothing clipped, which left it doing
+   * nothing that was not already done. Louder comes out of the gap between the
+   * gain going in and the ceiling holding the top: quiet material rises to meet
+   * the ceiling, and the ceiling does not move.
+   */
+  it('Drive raises quiet material without moving the ceiling', () => {
+    const ceilingDb = -6;
+    const ceiling = 10 ** (ceilingDb / 20);
+    const settings = (driveDb: number): IDspSettings => ({
+      ...bypassed(),
+      maximizer: {
+        enabled: true,
+        driveDb,
+        ceilingDb,
+        lookAheadMs: 2,
+        releaseMs: 50,
+      },
+    });
+    /**
+     * A tone rather than a constant fill, which matters here.
+     *
+     * The always-on output safety blocks DC at 3 Hz, so a buffer filled with
+     * one value arrives about a decibel down and the reading is the DC blocker
+     * rather than the stage under test. Well under the ceiling either way, so
+     * at Drive 0 the limiter has nothing to do and the level can only come
+     * from the gain.
+     */
+    const tone = (amplitude: number): Float32Array => {
+      const out = new Float32Array(QUANTUM * 16);
+      for (let at = 0; at < out.length; at += 1) {
+        out[at] =
+          amplitude * Math.sin((2 * Math.PI * 1_000 * at) / SAMPLE_RATE);
+      }
+      return out;
+    };
+    const quiet = tone(0.05);
+
+    const flat = new (loadProcessor())();
+    send(flat, settings(0));
+    const atRest = peak(run(flat, quiet), QUANTUM * 4);
+
+    const driven = new (loadProcessor())();
+    send(driven, settings(12));
+    const atDrive = peak(run(driven, quiet), QUANTUM * 4);
+
+    // Twelve decibels is four times the amplitude, and nothing is limiting.
+    expect(atDrive / atRest).toBeGreaterThan(3.5);
+    expect(atRest).toBeCloseTo(0.05, 3);
+
+    /**
+     * And the ceiling still holds when the drive pushes well past it.
+     *
+     * Compared with a quarter-decibel of room rather than exactly, because the
+     * ceiling is a TRUE-peak figure and `peak` reads sample peaks. The limiter
+     * is controlling the reconstructed waveform between the samples, so on a
+     * tone the two readings differ by a hundredth of a decibel or so in either
+     * direction. What this catches is the ceiling not holding at all, which is
+     * what a drive applied after the limiter instead of before it would do —
+     * that would come out four times over.
+     */
+    const loud = tone(0.5);
+    const pushed = new (loadProcessor())();
+    send(pushed, settings(12));
+    expect(peak(run(pushed, loud), QUANTUM * 4)).toBeLessThanOrEqual(
+      ceiling * 1.03,
+    );
   });
 
   it('the compressor reduces a loud signal and leaves a quiet one alone', () => {

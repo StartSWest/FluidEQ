@@ -296,6 +296,8 @@ const dsp = {
   'dsp.maximizer.title': 'Maximizador',
   'dsp.maximizer.description':
     'Sube el nivel general sin dejar que los picos pasen del techo.',
+  'dsp.maximizer.drive': 'Empuje',
+  'dsp.maximizer.reduction': 'Reducción',
   'dsp.maximizer.ceiling': 'Techo',
   'dsp.maximizer.lookAhead': 'Anticipación',
   'dsp.maximizer.release': 'Relajación',

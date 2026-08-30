@@ -2789,3 +2789,54 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     row-gap: 2px;
   }
 }
+
+// The Maximizer's gain reduction, on the card beside the dials that cause it.
+// A limiter doing nothing and a limiter flattening the record look identical
+// without this, which is why the stage shipped for so long with no one able to
+// say whether it was working.
+.dsp-maximizer-meter {
+  display: grid;
+  grid-template-columns: 88px minmax(120px, 1fr) 72px;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.dsp-maximizer-meter-name,
+.dsp-maximizer-meter-value {
+  color: rgba($white, 0.52);
+  font-size: 0.62rem;
+}
+
+.dsp-maximizer-meter-value {
+  min-width: 72px;
+  font-family: $font-mono;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.dsp-maximizer-meter-track {
+  position: relative;
+  height: 6px;
+  overflow: hidden;
+  border-radius: 3px;
+  background: rgba($white, 0.08);
+}
+
+// Grows rightward from the left edge, because the quantity is a DEPTH of
+// reduction rather than a level. Drawing it as a level falling from the right
+// would read as the output getting quieter, which is the opposite of what the
+// dial that caused it is for.
+.dsp-maximizer-meter-fill {
+  width: 0%;
+  height: 100%;
+  border-radius: 3px;
+  // The same gradient the normalizer's post-gain bar uses. Reduction is the
+  // stage working, not the stage complaining, so it must not borrow the colour
+  // that means over.
+  background: linear-gradient(
+    90deg,
+    rgba($secondary-default, 0.42),
+    $secondary-default
+  );
+}

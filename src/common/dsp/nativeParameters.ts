@@ -175,6 +175,9 @@ export const NATIVE_DSP_PARAMETERS = [
   { id: 1602, path: 'maximizer.ceilingDb', kind: 'number' },
   { id: 1603, path: 'maximizer.lookAheadMs', kind: 'number', structural: true },
   { id: 1604, path: 'maximizer.releaseMs', kind: 'number' },
+  // 1605 rather than a renumber: the ids are the wire's own names and a
+  // stored automation would follow the number, not the path.
+  { id: 1605, path: 'maximizer.driveDb', kind: 'number' },
 
   { id: 1701, path: 'master.enabled', kind: 'boolean' },
   { id: 1702, path: 'master.outputTrimDb', kind: 'number' },

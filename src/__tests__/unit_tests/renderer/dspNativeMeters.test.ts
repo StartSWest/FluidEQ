@@ -56,6 +56,7 @@ const analysisFrame = (
     bandLevels: [],
     exciterBands: [0, 0, 0],
     exciterOrganic: 0,
+    maximizerReductionDb: 0,
   };
 };
 

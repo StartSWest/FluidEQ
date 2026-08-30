@@ -281,6 +281,14 @@ struct FeqChain {
   std::vector<float*> maximizer_delay_pointers;
   std::vector<float> maximizer_reduction;
   uint32_t maximizer_look_ahead = 0;
+  /**
+   * The deepest reduction over the last block, in dB, for the meter.
+   *
+   * A maximizer cannot be set without seeing this. Drive, ceiling and release
+   * only make sense against how hard the limiter is actually working, and this
+   * stage has been shipping all three with no way to see any of it.
+   */
+  double maximizer_reduction_db = 0.0;
 
   /* ------------------------------------------------------ auto headroom -- */
   FeqPostFilterNormalizer post_normalizer{};

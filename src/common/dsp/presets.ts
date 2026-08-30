@@ -83,6 +83,9 @@ export const DSP_PRESETS: IDspPreset[] = [
       },
       maximizer: {
         enabled: true,
+        // Three decibels: audible as loudness rather than as limiting, on a
+        // preset that is already compressing before it gets here.
+        driveDb: 3,
         ceilingDb: -1,
         lookAheadMs: 5,
         releaseMs: 100,
@@ -128,6 +131,7 @@ export const DSP_PRESETS: IDspPreset[] = [
       },
       maximizer: {
         enabled: true,
+        driveDb: 6,
         ceilingDb: -0.5,
         lookAheadMs: 8,
         releaseMs: 60,
@@ -214,6 +218,9 @@ export const DSP_PRESETS: IDspPreset[] = [
       },
       maximizer: {
         enabled: true,
+        // Broadcast wants a level that holds across a whole programme, which
+        // is more drive than a music preset and a shorter release to match.
+        driveDb: 5,
         ceilingDb: -0.8,
         lookAheadMs: 6,
         releaseMs: 90,

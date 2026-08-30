@@ -1273,6 +1273,24 @@ class DspProcessor extends AudioWorkletProcessor {
       limiter.releaseHoldRemaining = 0;
       limiter.gainReductionDb.fill(0);
     }
+    /**
+     * Drive, which is the half of a maximizer this stage did not have.
+     *
+     * Gain goes IN and the ceiling holds the top, so everything under the peaks
+     * comes up while the peaks stay put. Without it there was no gain term
+     * anywhere here or in the limiter below, and the stage could only ever
+     * attenuate — while the always-on output safety already guaranteed nothing
+     * clipped, which left it doing nothing that was not already done.
+     */
+    const drive = maximizer.enabled ? 10 ** (maximizer.driveDb / 20) : 1;
+    if (drive !== 1) {
+      for (let index = 0; index < output.length; index += 1) {
+        const channel = output[index];
+        for (let at = 0; at < channel.length; at += 1) {
+          channel[at] *= drive;
+        }
+      }
+    }
     processLinkedLimiter(limiter, output, {
       ceiling: maximizer.enabled
         ? 10 ** (maximizer.ceilingDb / 20)

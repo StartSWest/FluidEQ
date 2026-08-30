@@ -22,6 +22,7 @@ import DspEqCard from './DspEqCard';
 import DspCrossfadeCard from './DspCrossfadeCard';
 import DspExciterCard from './DspExciterCard';
 import DspMasterCard from './DspMasterCard';
+import DspMaximizerMeter from './DspMaximizerMeter';
 import DspNormalizerCard from './DspNormalizerCard';
 import DspSideTabs from './DspSideTabs';
 import { TDspSection } from './sections';
@@ -467,6 +468,23 @@ const DspPanel = ({
                 })
               }
             >
+              {/* First, because it is the control that makes this a
+                  maximizer rather than a limiter: gain goes in and the ceiling
+                  holds the top. Everything under the peaks comes up. */}
+              <Dial
+                labelKey="dsp.maximizer.drive"
+                value={maximizer.driveDb}
+                defaultValue={DSP_DEFAULTS.maximizer.driveDb}
+                min={0}
+                max={12}
+                unit="dB"
+                step={0.1}
+                isDisabled={!maximizer.enabled}
+                onCommit={onCommit}
+                onChange={(driveDb) =>
+                  patch({ maximizer: { ...maximizer, driveDb } })
+                }
+              />
               <Dial
                 labelKey="dsp.maximizer.ceiling"
                 value={maximizer.ceilingDb}
@@ -509,6 +527,10 @@ const DspPanel = ({
                   patch({ maximizer: { ...maximizer, releaseMs } })
                 }
               />
+              {/* On the surface where the work happens, not behind a popover:
+                  it is the only reading that says whether any of the three
+                  dials above are doing anything. */}
+              <DspMaximizerMeter isEnabled={maximizer.enabled} />
             </ProcessorCard>
           )}
 

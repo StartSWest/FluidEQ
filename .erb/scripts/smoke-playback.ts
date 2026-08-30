@@ -127,6 +127,7 @@ const chainValues = (eqEnabled: boolean, gainDb: number): number[] => {
   }
   values.push(
     0, // maximizer enabled
+    0, // maximizer drive
     -0.1,
     5,
     150,

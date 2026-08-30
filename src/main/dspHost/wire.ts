@@ -454,6 +454,8 @@ export const decodeAnalysis = (frame: Buffer): IHostAnalysis | undefined => {
       view.getFloat32(48, true),
     ],
     exciterOrganic: view.getFloat32(52, true),
+    // Offset 56; 60 is the padding that keeps the struct eight-byte aligned.
+    maximizerReductionDb: view.getFloat32(56, true),
     bandAmounts,
     bandLevels,
   };

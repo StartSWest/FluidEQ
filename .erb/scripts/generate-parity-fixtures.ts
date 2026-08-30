@@ -75,7 +75,6 @@ import {
   processPostFilterNormalizer,
 } from '../../src/renderer/dsp/postFilterNormalizer';
 import {
-  analogDiodeExcitedSample,
   createExciterTransientState,
   exciterTransientSample,
 } from '../../src/renderer/dsp/analogDiode';
@@ -178,7 +177,7 @@ enum ProcessorId {
   OutputSafety = 14,
   AutoHeadroom = 15,
   ExciterTransient = 16,
-  AnalogDiode = 17,
+  /** 17 was AnalogDiode, whose shaper nothing calls any more. */
   PhaseAlign = 18,
   ExciterGuard = 19,
   Organic = 20,
@@ -1198,37 +1197,6 @@ parityCorpus(FRAMES, 48000).forEach((signal) => {
   });
 });
 
-// Character spans the full travel: bias moves from warm to air across it, and
-// the two ends produce quite different harmonic balances.
-[
-  { drive: 1.0, character: 0.0, harmonic: 1.0 },
-  { drive: 2.5, character: 0.35, harmonic: 0.5 },
-  { drive: 4.0, character: 0.7, harmonic: 1.0 },
-].forEach((setting) => {
-  parityCorpus(FRAMES, 48000).forEach((signal) => {
-    fixtures.push({
-      name: `diode/${setting.drive}/${setting.character}/${signal.name}`,
-      processor: ProcessorId.AnalogDiode,
-      sampleRate: 48000,
-      params: [setting.drive, setting.character, 0.8, setting.harmonic],
-      input: processorInput(signal.channels),
-      expected: processorInput(signal.channels).map((channel) =>
-        Float32Array.from(channel, (value) =>
-          analogDiodeExcitedSample(
-            value,
-            setting.drive,
-            setting.character,
-            0.8,
-            setting.harmonic,
-          ),
-        ),
-      ),
-      maxAbsTolerance: 1e-6,
-      rmsTolerance: 1e-7,
-    });
-  });
-});
-
 /**
  * Timing, including fully off.
  *
@@ -1835,7 +1803,14 @@ const CHAIN_PRESETS: { label: string; settings: IDspSettings }[] = [
     settings: {
       ...DSP_DEFAULTS,
       compressor: { ...DSP_DEFAULTS.compressor, enabled: true },
-      maximizer: { ...DSP_DEFAULTS.maximizer, enabled: true, ceilingDb: -3 },
+      // Driven, not just enabled: at drive 0 the gain term is skipped entirely
+      // and the fixture would pass whether or not either engine had one.
+      maximizer: {
+        ...DSP_DEFAULTS.maximizer,
+        enabled: true,
+        driveDb: 6,
+        ceilingDb: -3,
+      },
     },
   },
   {

@@ -288,6 +288,8 @@ const dsp = {
   'dsp.maximizer.title': 'マキシマイザー',
   'dsp.maximizer.description':
     'ピークが上限を超えないようにしながら全体の音量を上げます。',
+  'dsp.maximizer.drive': 'ドライブ',
+  'dsp.maximizer.reduction': 'リダクション',
   'dsp.maximizer.ceiling': '上限',
   'dsp.maximizer.lookAhead': '先読み',
   'dsp.maximizer.release': 'リリース',

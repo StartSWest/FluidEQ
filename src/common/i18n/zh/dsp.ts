@@ -278,6 +278,8 @@ const dsp = {
 
   'dsp.maximizer.title': '最大化器',
   'dsp.maximizer.description': '提升整体音量，同时不让峰值超过上限。',
+  'dsp.maximizer.drive': '推动',
+  'dsp.maximizer.reduction': '增益衰减',
   'dsp.maximizer.ceiling': '上限',
   'dsp.maximizer.lookAhead': '前瞻',
   'dsp.maximizer.release': '释放时间',

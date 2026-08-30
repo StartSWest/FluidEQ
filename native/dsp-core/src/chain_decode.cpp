@@ -91,6 +91,7 @@ int feq_chain_settings_decode(const double* values,
   }
 
   out->maximizer.enabled = flag();
+  out->maximizer.drive_db = next();
   out->maximizer.ceiling_db = next();
   out->maximizer.look_ahead_ms = next();
   out->maximizer.release_ms = next();

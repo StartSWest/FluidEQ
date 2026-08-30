@@ -295,6 +295,8 @@ const dsp = {
   'dsp.maximizer.title': 'Максимайзер',
   'dsp.maximizer.description':
     'Поднимает общий уровень, не давая пикам выйти за потолок.',
+  'dsp.maximizer.drive': 'Разгон',
+  'dsp.maximizer.reduction': 'Подавление',
   'dsp.maximizer.ceiling': 'Потолок',
   'dsp.maximizer.lookAhead': 'Упреждение',
   'dsp.maximizer.release': 'Восстановление',

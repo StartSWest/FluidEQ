@@ -150,6 +150,8 @@ struct FeqMeters {
   BandWindow bands;
   std::atomic<float> exciter_bands[FEQ_METER_EXCITER_BANDS];
   std::atomic<float> exciter_organic{0.0f};
+  /** Deepest gain reduction over the last block, in dB. Never positive. */
+  std::atomic<float> maximizer_reduction_db{0.0f};
   std::vector<double> window;
   /** Reader-side scratch, so the transform allocates nothing per frame. */
   std::vector<double> real;
@@ -444,6 +446,23 @@ void feq_meters_read_exciter(FeqMeters* meters,
         std::memory_order_relaxed);
   }
   *out_organic = meters->exciter_organic.load(std::memory_order_relaxed);
+}
+
+void feq_meters_publish_maximizer(FeqMeters* meters, double reduction_db) {
+  if (meters == nullptr ||
+      meters->enabled.load(std::memory_order_acquire) == 0) {
+    return;
+  }
+  meters->maximizer_reduction_db.store(static_cast<float>(reduction_db),
+                                       std::memory_order_relaxed);
+}
+
+void feq_meters_read_maximizer(FeqMeters* meters, float* out_reduction_db) {
+  if (meters == nullptr || out_reduction_db == nullptr) {
+    return;
+  }
+  *out_reduction_db =
+      meters->maximizer_reduction_db.load(std::memory_order_relaxed);
 }
 
 uint32_t feq_meters_read_bands(FeqMeters* meters,

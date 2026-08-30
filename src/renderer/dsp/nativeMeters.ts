@@ -43,6 +43,7 @@ import {
   setDspChannelPeaks,
   setDspCorrelation,
   setDspExciterActivity,
+  setDspMaximizerReduction,
   setDspPeak,
   setDspScatter,
 } from './store';
@@ -181,6 +182,9 @@ export const createNativeMeters = (
     // it contributed can only be measured. Sent every frame because a light at
     // zero is a real reading rather than a missing one.
     setDspExciterActivity(frame.exciterBands, frame.exciterOrganic);
+    // Same reason: a limiter that is working looks exactly like one that is
+    // not until the reduction is on screen.
+    setDspMaximizerReduction(frame.maximizerReductionDb);
     setDspCorrelation(frame.correlation);
     setDspChannelPeaks(frame.peaks);
     setDspPeak(Math.max(frame.peaks[0], frame.peaks[1]));
