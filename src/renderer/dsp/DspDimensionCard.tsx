@@ -33,7 +33,22 @@ const DimensionGuardMeter = ({ isEnabled }: { isEnabled: boolean }) => {
   const valueRef = useRef<HTMLSpanElement | null>(null);
 
   useEffect(() => {
+    /**
+     * A stopped meter has to look stopped.
+     *
+     * The fill's resting width is 100%, because a guard that is wide open is
+     * the ordinary state and the bar reads as how much of the control is
+     * AVAILABLE. Leaving early on a disabled card therefore left a full bar and
+     * a "100%" reading sitting under six greyed-out dials, which is a live
+     * meter reporting on a stage that is not running.
+     */
     if (!isEnabled) {
+      if (barRef.current) {
+        barRef.current.style.width = '0%';
+      }
+      if (valueRef.current) {
+        valueRef.current.textContent = '—';
+      }
       return undefined;
     }
     let frame = 0;
@@ -52,7 +67,10 @@ const DimensionGuardMeter = ({ isEnabled }: { isEnabled: boolean }) => {
   }, [isEnabled]);
 
   return (
-    <div className="dsp-dimension-guard" aria-live="off">
+    <div
+      className={`dsp-dimension-guard${isEnabled ? '' : ' is-off'}`}
+      aria-live="off"
+    >
       <span className="dsp-dimension-guard-name">
         {t('dsp.dimension.guard')}
       </span>

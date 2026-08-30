@@ -32,6 +32,22 @@ import {
   decodeAnalysis,
 } from '../../../main/dspHost/wire';
 
+/** The header fields past the scope, which are all fixed-width. */
+interface IAnalysisTail {
+  dimensionGuard: number;
+  autoHeadroomReductionDb: number;
+  autoHeadroomTruePeakDb: number;
+  safetyReductionDb: number;
+  safetyTruePeakDb: number;
+  dcCorrectionDb: number;
+  repairedSamples: number;
+  truePeakFactor: number;
+  safetyEnabled: boolean;
+  normalizerInputPeaks: readonly [number, number];
+  normalizerOutputPeaks: readonly [number, number];
+  normalizerAppliedGainDb: number;
+}
+
 /** An analysis frame exactly as the host lays one out. */
 const buildAnalysis = (options: {
   stages: readonly (typeof ANALYSIS_STAGES)[number][];
@@ -40,6 +56,7 @@ const buildAnalysis = (options: {
   correlation?: number;
   peaks?: readonly [number, number];
   fill?: (stageIndex: number, bin: number) => number;
+  tail?: IAnalysisTail;
 }): Buffer => {
   const stageMask = options.stages.reduce(
     // The wire field IS a bit mask; the arithmetic spelling is less readable.
@@ -62,6 +79,34 @@ const buildAnalysis = (options: {
   frame.writeDoubleLE(options.correlation ?? 0.5, 24);
   frame.writeFloatLE(options.peaks?.[0] ?? 0.25, 32);
   frame.writeFloatLE(options.peaks?.[1] ?? 0.75, 36);
+
+  /**
+   * The tail, written at the offsets `wire.h` puts it at.
+   *
+   * Spelled out here rather than taken from `decodeAnalysis`, because a test
+   * that asked the decoder where its own fields are would agree with any answer
+   * it gave. These numbers are the second, independent copy — so moving a field
+   * in the decoder without moving it here fails, which is the only thing a
+   * TypeScript test can guard. That the C++ struct still agrees is held by the
+   * `static_assert` on `sizeof(FeqWireAnalysisFrame)` and by nothing else.
+   */
+  const { tail } = options;
+  if (tail) {
+    frame.writeFloatLE(tail.dimensionGuard, 60);
+    frame.writeFloatLE(tail.autoHeadroomReductionDb, 64);
+    frame.writeFloatLE(tail.autoHeadroomTruePeakDb, 68);
+    frame.writeFloatLE(tail.safetyReductionDb, 72);
+    frame.writeFloatLE(tail.safetyTruePeakDb, 76);
+    frame.writeFloatLE(tail.dcCorrectionDb, 80);
+    frame.writeUInt32LE(tail.repairedSamples, 84);
+    frame.writeUInt32LE(tail.truePeakFactor, 88);
+    frame.writeUInt32LE(tail.safetyEnabled ? 1 : 0, 92);
+    frame.writeFloatLE(tail.normalizerInputPeaks[0], 96);
+    frame.writeFloatLE(tail.normalizerInputPeaks[1], 100);
+    frame.writeFloatLE(tail.normalizerOutputPeaks[0], 104);
+    frame.writeFloatLE(tail.normalizerOutputPeaks[1], 108);
+    frame.writeFloatLE(tail.normalizerAppliedGainDb, 112);
+  }
 
   let at = ANALYSIS_HEADER_BYTES;
   options.stages.forEach((_stage, index) => {
@@ -276,5 +321,102 @@ describe('reading analysis frames off a pipe', () => {
     reader.push(frame);
     expect(analyses).toHaveLength(0);
     expect(desynchronised).toEqual([MAGIC_ANALYSIS]);
+  });
+});
+
+/**
+ * The fixed tail: the Master's five readouts, the Normalizer's bars, Dimension.
+ *
+ * These share one stretch of header and were added by two separate pieces of
+ * work, one of which took the float that used to pad the frame to eight-byte
+ * alignment. That is exactly the kind of neighbour that collides silently — a
+ * field landing four bytes out still decodes to a plausible number, and the
+ * only symptom is a readout that is wrong rather than missing.
+ *
+ * So every field is written and read back individually, at a distinct value.
+ * Filling them all with the same number would pass just as well if the decoder
+ * read one field twice and another never.
+ */
+describe('the Master, Normalizer and Dimension fields', () => {
+  const tail = {
+    dimensionGuard: 0.5,
+    autoHeadroomReductionDb: -6.5,
+    autoHeadroomTruePeakDb: -1.25,
+    safetyReductionDb: -0.75,
+    safetyTruePeakDb: -0.25,
+    dcCorrectionDb: -54,
+    repairedSamples: 7,
+    truePeakFactor: 2,
+    safetyEnabled: false,
+    normalizerInputPeaks: [0.375, 0.4375] as const,
+    normalizerOutputPeaks: [0.625, 0.6875] as const,
+    normalizerAppliedGainDb: 4.5,
+  };
+
+  it('round-trips every one of them', () => {
+    const decoded = decodeAnalysis(
+      buildAnalysis({ stages: ['master'], withScope: false, tail }),
+    );
+
+    expect(decoded?.dimensionGuard).toBeCloseTo(0.5, 6);
+    expect(decoded?.master).toEqual({
+      autoHeadroomReductionDb: -6.5,
+      autoHeadroomTruePeakDb: -1.25,
+      safetyReductionDb: -0.75,
+      safetyTruePeakDb: -0.25,
+      dcCorrectionDb: -54,
+      repairedSamples: 7,
+      truePeakFactor: 2,
+      safetyEnabled: false,
+    });
+    expect(decoded?.normalizer).toEqual({
+      inputPeaks: [0.375, 0.4375],
+      outputPeaks: [0.625, 0.6875],
+      appliedGainDb: 4.5,
+    });
+  });
+
+  /**
+   * The tail survives the payload it sits in front of.
+   *
+   * Three spectra and a scope is twelve kilobytes written after this header. A
+   * length computed one field short would put the bins over the top of it, and
+   * the spectra would still decode — they are just floats — while the readouts
+   * quietly became whatever the first bins happened to be.
+   */
+  it('is not overwritten by a full payload', () => {
+    const decoded = decodeAnalysis(
+      buildAnalysis({
+        stages: [...ANALYSIS_STAGES],
+        withScope: true,
+        fill: () => -12,
+        tail,
+      }),
+    );
+
+    expect(decoded?.master.autoHeadroomReductionDb).toBeCloseTo(-6.5, 6);
+    expect(decoded?.normalizer.appliedGainDb).toBeCloseTo(4.5, 6);
+    expect(decoded?.spectra.master?.[0]).toBeCloseTo(-12, 6);
+  });
+
+  /**
+   * An oversampling factor this build does not know is not printed as a fact.
+   *
+   * The panel puts this number beside the ceiling it was measured at. A zero
+   * from a frame written by some other build would read as "measured at 0x",
+   * which is not a thing; four overstates the measurement rather than
+   * understating it, which is the safe direction for a headroom readout.
+   */
+  it('falls back to 4x for a true-peak factor it does not recognise', () => {
+    const frame = buildAnalysis({
+      stages: ['master'],
+      withScope: false,
+      tail,
+    });
+    frame.writeUInt32LE(0, 88);
+    expect(decodeAnalysis(frame)?.master.truePeakFactor).toBe(4);
+
+    frame.writeUInt32LE(1, 88);
+    expect(decodeAnalysis(frame)?.master.truePeakFactor).toBe(1);
   });
 });

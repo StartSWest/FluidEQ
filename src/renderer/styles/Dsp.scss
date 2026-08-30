@@ -3142,3 +3142,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   font-size: 0.62rem;
   line-height: 1.5;
 }
+
+// Dimmed to the same 0.42 the rest of the panel uses for a section that is
+// switched off, so the row reads as part of a disabled card rather than as a
+// meter that has fallen to zero.
+.dsp-dimension-guard.is-off {
+  opacity: 0.42;
+}

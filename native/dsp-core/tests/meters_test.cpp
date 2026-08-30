@@ -318,6 +318,107 @@ int main() {
                               &correlation, peaks) == 0,
         "a second read with no new window sends nothing");
 
+  /**
+   * The Master tail: folded across the window, cleared as it is taken.
+   *
+   * The audio thread publishes once per block and the host reads about a fifth
+   * as often, so "the last block" is the wrong answer four times in five —
+   * and wrong in the direction that matters, because the block it drops is the
+   * transient that caused the reduction being displayed. Storing rather than
+   * folding would make the meter miss exactly the event it exists to show.
+   */
+  FeqMasterTelemetry first{};
+  first.auto_headroom_reduction_db = -2.0;
+  first.auto_headroom_true_peak_db = -6.0;
+  first.safety_reduction_db = -0.5;
+  first.safety_true_peak_db = -3.0;
+  first.dc_correction_db = -70.0;
+  first.repaired_samples = 2;
+  first.true_peak_factor = 4;
+  first.safety_enabled = 1;
+
+  FeqMasterTelemetry second = first;
+  // The block the meter has to keep: deeper reduction, higher peak.
+  second.auto_headroom_reduction_db = -9.5;
+  second.auto_headroom_true_peak_db = -1.0;
+  second.safety_reduction_db = -0.25;  // shallower, and must be ignored
+  second.safety_true_peak_db = -4.0;   // lower, and must be ignored
+  second.dc_correction_db = -80.0;     // quieter, and must be ignored
+  second.repaired_samples = 3;
+
+  feq_meters_publish_master(meters, &first);
+  feq_meters_publish_master(meters, &second);
+
+  FeqMasterTelemetry taken{};
+  feq_meters_read_master(meters, &taken);
+  std::printf("       auto headroom %.2f dB over two blocks of -2.00 / -9.50\n",
+              taken.auto_headroom_reduction_db);
+  check(std::fabs(taken.auto_headroom_reduction_db + 9.5) < 1e-4,
+        "the window keeps the deepest Auto Headroom reduction, not the last");
+  check(std::fabs(taken.auto_headroom_true_peak_db + 1.0) < 1e-4,
+        "and the highest peak that arrived at it");
+  check(std::fabs(taken.safety_reduction_db + 0.5) < 1e-4,
+        "the guard's deepest reduction survives a shallower block after it");
+  check(std::fabs(taken.safety_true_peak_db + 3.0) < 1e-4,
+        "and its highest peak survives a quieter one");
+  check(std::fabs(taken.dc_correction_db + 70.0) < 1e-4,
+        "DC reports the worst baseline seen, not the most recent");
+  check(taken.repaired_samples == 5,
+        "faults are summed across the window rather than replaced");
+  check(taken.true_peak_factor == 4 && taken.safety_enabled != 0,
+        "and the configuration comes through as it was published");
+
+  /**
+   * The clear, which is what lets a peak event end.
+   *
+   * Without it the card latches the deepest reduction of the session and holds
+   * it forever — a reduction that finished minutes ago, displayed as one that
+   * is happening now, with no way for a quiet passage to say otherwise.
+   */
+  FeqMasterTelemetry after{};
+  feq_meters_read_master(meters, &after);
+  check(after.auto_headroom_reduction_db == 0.0 &&
+            after.safety_reduction_db == 0.0,
+        "a window in which nothing happened reports no reduction");
+  check(after.auto_headroom_true_peak_db < -119.0 &&
+            after.safety_true_peak_db < -119.0 &&
+            after.dc_correction_db < -119.0,
+        "and its peaks fall back to the floor rather than holding");
+  check(after.repaired_samples == 0, "and its fault count starts again at zero");
+
+  /**
+   * The Normalizer's bars decay instead of clearing, and that is deliberate.
+   *
+   * A peak meter that resets on read flickers at whatever rate the reader
+   * happens to run; the 350 ms release is what the bars were tuned against.
+   * Fed one loud block and then silence, the hold has to come down over time
+   * rather than either vanishing or staying put.
+   */
+  const double loud[2] = {0.8, 0.8};
+  const double quiet[2] = {0.0, 0.0};
+  feq_meters_publish_normalizer(meters, loud, loud, 3.0, 480, kRate);
+  float held_in[2] = {0.0f, 0.0f};
+  float held_out[2] = {0.0f, 0.0f};
+  float applied = 0.0f;
+  feq_meters_read_normalizer(meters, held_in, held_out, &applied);
+  check(held_in[0] > 0.75f, "a loud block raises the Normalizer's input bar");
+  check(std::fabs(applied - 3.0f) < 1e-4f,
+        "and the gain beside it is the one that was applied");
+
+  // A tenth of a second of silence: audible movement, nowhere near the floor.
+  for (int block = 0; block < 10; block += 1) {
+    feq_meters_publish_normalizer(meters, quiet, quiet, 3.0, 480, kRate);
+  }
+  float fallen_in[2] = {0.0f, 0.0f};
+  feq_meters_read_normalizer(meters, fallen_in, held_out, &applied);
+  std::printf("       the bar fell from %.3f to %.3f over 100 ms\n",
+              static_cast<double>(held_in[0]),
+              static_cast<double>(fallen_in[0]));
+  check(fallen_in[0] < held_in[0],
+        "silence brings it down rather than latching it");
+  check(fallen_in[0] > 0.3f,
+        "but at the release it was tuned to, not instantly");
+
   feq_meters_destroy(meters);
 
   if (g_failures > 0) {
