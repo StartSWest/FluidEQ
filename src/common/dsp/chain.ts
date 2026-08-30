@@ -837,13 +837,15 @@ const RANGES = {
    */
   masterReleaseMs: { min: 40, max: 400 },
   /**
-   * Down to broadcast, not merely down to quiet streaming.
+   * Down to cinema, not merely down to quiet streaming.
    *
    * -18 was the floor while the stage could only ever raise a track toward a
-   * target. It has always been able to lower one, and EBU R128's -23 LUFS is
-   * the one delivery specification with a legal weight behind it.
+   * target. It has always been able to lower one, and the quiet end is where
+   * the specifications with legal or contractual weight behind them live: EBU
+   * R128 at -23, ATSC A/85 at -24, streaming video at -27. A floor above the
+   * target somebody has been handed is a dial that cannot do its job.
    */
-  masterLoudnessTargetLufs: { min: -24, max: -6 },
+  masterLoudnessTargetLufs: { min: -30, max: -6 },
   masterPeakLimitingDb: { min: 0, max: 12 },
   normalizerTruePeakDbtp: { min: -12, max: -0.1 },
   normalizerTargetLufs: { min: -24, max: -5 },
@@ -1224,10 +1226,22 @@ export const DSP_DEFAULTS: IDspSettings = {
   // saved chain until its owner deliberately switches it in.
   master: {
     enabled: false,
-    presetId: '',
+    presetId: 'default',
     outputTrimDb: 0,
     loudnessMaximize: false,
-    loudnessTargetLufs: -9,
+    /**
+     * -14 rather than the -9 this shipped with, and the gain law is why.
+     *
+     * While the makeup was capped at a track's remaining peak room, the target
+     * was unreachable and its value barely mattered — the stage applied 0.0 dB
+     * whatever the dial said. Now that it arrives, -9 asks a limiter for five
+     * or six decibels on the very first ordinary record somebody switches this
+     * on for, and the first thing they would hear is the limiter rather than
+     * the feature. -14 is where nearly everything played through this has
+     * already been normalized to, so the honest default is the one that mostly
+     * leaves a modern master alone and lifts the quiet ones.
+     */
+    loudnessTargetLufs: -14,
     ceilingDb: -1,
     releaseMs: 200,
     // Six decibels of limiting is what a mastering engineer would call a

@@ -386,9 +386,9 @@ const dsp = {
   'dsp.master.graph.loudnessActive':
     'LUFS 最大化 · {target} LUFS へ +{gain} dB',
   'dsp.master.peakLimiting': 'ピークリミッティング',
-  'dsp.master.matchedBypass': '等ラウドネス試聴',
+  'dsp.master.matchedBypass': 'ゲインマッチ',
   'dsp.master.matchedBypassHint':
-    '結果を {gain} dB 下げ、最大化前のラウドネスで再生します。リミッティングは変わらないので、Master をオフにすると音量ではなく音そのものを比較できます。',
+    '{gain} dB のメイクアップを出力から差し引くので、Master のオンオフで音量ではなく音そのものを比較できます。リミッティングはどちらでも同じで、変わるのはレベルだけです。',
   'dsp.master.limit.limiting':
     '{requested} dB 必要 — ピークの余裕 {room} dB と許可されたリミッティングまで。',
   'dsp.master.limit.maxGain':
@@ -399,12 +399,23 @@ const dsp = {
   'dsp.master.loudness.integrated': 'I',
   'dsp.master.loudness.range': 'LRA',
   'dsp.master.loudness.truePeak': 'TP',
+  'dsp.master.graph.matchedActive': 'ゲインマッチ · {gain} dB を差し引き',
   'dsp.masterPreset.label': '配信先',
   'dsp.masterPreset.streaming': 'ストリーミング',
   'dsp.masterPreset.streamingQuiet': 'ストリーミング（小音量）',
+  'dsp.masterPreset.podcast': 'ポッドキャスト',
+  'dsp.masterPreset.audiobook': 'オーディオブック',
   'dsp.masterPreset.broadcast': '放送 R128',
+  'dsp.masterPreset.broadcastUs': '放送 A/85',
+  'dsp.masterPreset.cinema': 'シネマ',
+  'dsp.masterPreset.cd': 'CD',
+  'dsp.masterPreset.vinyl': 'アナログレコード',
   'dsp.masterPreset.club': 'クラブ',
   'dsp.masterPreset.reference': 'リファレンス',
+  'dsp.masterPresetGroup.streaming': '配信時に正規化される',
+  'dsp.masterPresetGroup.broadcast': '放送とシネマ',
+  'dsp.masterPresetGroup.unnormalized': '誰も下げてくれない',
+  'dsp.masterPresetGroup.tool': '比較用',
 
   'tabs.dsp': 'DSP',
 };

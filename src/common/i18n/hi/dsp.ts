@@ -389,9 +389,9 @@ const dsp = {
   'dsp.master.graph.loudnessActive':
     'LUFS अधिकतम · {target} LUFS की ओर +{gain} dB',
   'dsp.master.peakLimiting': 'पीक लिमिटिंग',
-  'dsp.master.matchedBypass': 'समान लाउडनेस सुनवाई',
+  'dsp.master.matchedBypass': 'गेन मिलान',
   'dsp.master.matchedBypassHint':
-    'परिणाम को {gain} dB धीमा बजाता है, उसी लाउडनेस पर जो मैक्सिमाइज़ से पहले थी। लिमिटिंग वही रहती है, इसलिए Master बंद करने पर आवाज़ नहीं, ध्वनि की तुलना होती है।',
+    'आउटपुट से {gain} dB की बढ़त वापस हटा देता है, इसलिए Master को चालू-बंद करने पर आवाज़ नहीं, ध्वनि की तुलना होती है। लिमिटिंग दोनों में एक जैसी रहती है — बदलता सिर्फ़ स्तर है।',
   'dsp.master.limit.limiting':
     '{requested} dB चाहिए थे — {room} dB पीक जगह और अनुमत लिमिटिंग तक ही।',
   'dsp.master.limit.maxGain':
@@ -402,12 +402,23 @@ const dsp = {
   'dsp.master.loudness.integrated': 'I',
   'dsp.master.loudness.range': 'LRA',
   'dsp.master.loudness.truePeak': 'TP',
+  'dsp.master.graph.matchedActive': 'गेन मिलान · {gain} dB वापस हटाया',
   'dsp.masterPreset.label': 'गंतव्य',
   'dsp.masterPreset.streaming': 'स्ट्रीमिंग',
   'dsp.masterPreset.streamingQuiet': 'स्ट्रीमिंग, धीमा',
+  'dsp.masterPreset.podcast': 'पॉडकास्ट',
+  'dsp.masterPreset.audiobook': 'ऑडियोबुक',
   'dsp.masterPreset.broadcast': 'प्रसारण R128',
+  'dsp.masterPreset.broadcastUs': 'प्रसारण A/85',
+  'dsp.masterPreset.cinema': 'सिनेमा',
+  'dsp.masterPreset.cd': 'CD',
+  'dsp.masterPreset.vinyl': 'विनाइल',
   'dsp.masterPreset.club': 'क्लब',
   'dsp.masterPreset.reference': 'संदर्भ',
+  'dsp.masterPresetGroup.streaming': 'डिलीवरी पर सामान्यीकृत',
+  'dsp.masterPresetGroup.broadcast': 'प्रसारण और सिनेमा',
+  'dsp.masterPresetGroup.unnormalized': 'कोई आपको धीमा नहीं करता',
+  'dsp.masterPresetGroup.tool': 'तुलना के लिए',
 
   'tabs.dsp': 'DSP',
 };

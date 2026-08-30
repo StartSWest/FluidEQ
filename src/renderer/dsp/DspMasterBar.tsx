@@ -15,6 +15,7 @@ import { TranslationKey } from '../../common/i18n/en';
 import VoicingIcon from '../icons/VoicingIcon';
 import { useTranslation } from '../utils/I18nContext';
 import RichPick, { IRichPickEntry } from '../widgets/RichPick';
+import DspBarIcon from './DspBarIcon';
 
 interface IDspMasterBarProps {
   master: IMasterSettings;
@@ -49,7 +50,7 @@ const DspMasterBar = ({ master, onChange, onCommit }: IDspMasterBarProps) => {
     id: preset.id,
     name: t(preset.labelKey as TranslationKey),
     hint: destinationHint(preset),
-    group: '',
+    group: preset.group,
     icon: <VoicingIcon profileId={preset.id} className="rich-pick__glyph" />,
   }));
   const ordered = entries.map((entry) => entry.id);
@@ -84,7 +85,9 @@ const DspMasterBar = ({ master, onChange, onCommit }: IDspMasterBarProps) => {
         </span>
         <RichPick
           entries={entries}
-          groupLabel={() => ''}
+          groupLabel={(group) =>
+            group ? t(`dsp.masterPresetGroup.${group}` as TranslationKey) : ''
+          }
           activeId={master.presetId}
           onPick={applyPreset}
           placeholder={t('dsp.eqPreset.custom')}
@@ -116,6 +119,21 @@ const DspMasterBar = ({ master, onChange, onCommit }: IDspMasterBarProps) => {
           <svg viewBox="0 0 16 16" aria-hidden="true">
             <path d="m6 3 5 5-5 5" />
           </svg>
+        </button>
+      </div>
+
+      {/* The way back from an experiment, in the place the Maximizer's page
+          puts it. Reset applies the Default destination rather than switching
+          the stage off: those are different intentions, and the toggle in the
+          card header already does the second one. */}
+      <div className="dsp-eq-transfer dsp-eq-reset">
+        <button
+          type="button"
+          className="button small subtle"
+          onClick={() => applyPreset('default')}
+        >
+          <DspBarIcon name="reset" />
+          {t('dsp.eqPreset.reset')}
         </button>
       </div>
 

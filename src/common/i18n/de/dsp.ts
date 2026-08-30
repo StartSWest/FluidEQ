@@ -402,9 +402,9 @@ const dsp = {
   'dsp.master.graph.loudnessActive':
     'LUFS maximieren · +{gain} dB Richtung {target} LUFS',
   'dsp.master.peakLimiting': 'Spitzenbegrenzung',
-  'dsp.master.matchedBypass': 'Pegelgleiches Hören',
+  'dsp.master.matchedBypass': 'Pegelabgleich',
   'dsp.master.matchedBypassHint':
-    'Gibt das Ergebnis {gain} dB leiser wieder, auf dem Pegel vor der Maximierung. Die Begrenzung bleibt gleich, ein ausgeschaltetes Master vergleicht also den Klang statt der Lautstärke.',
+    'Nimmt die {gain} dB Anhebung am Ausgang wieder zurück, sodass Master ein- und ausschalten den Klang vergleicht und nicht die Lautstärke. Die Begrenzung bleibt in beiden Fällen gleich — nur der Pegel ändert sich.',
   'dsp.master.limit.limiting':
     '{requested} dB nötig — {room} dB Spitzenreserve plus die erlaubte Begrenzung.',
   'dsp.master.limit.maxGain':
@@ -415,12 +415,23 @@ const dsp = {
   'dsp.master.loudness.integrated': 'I',
   'dsp.master.loudness.range': 'LRA',
   'dsp.master.loudness.truePeak': 'TP',
+  'dsp.master.graph.matchedActive': 'Pegelabgleich · {gain} dB zurückgenommen',
   'dsp.masterPreset.label': 'Ziel',
   'dsp.masterPreset.streaming': 'Streaming',
   'dsp.masterPreset.streamingQuiet': 'Streaming, leise',
+  'dsp.masterPreset.podcast': 'Podcast',
+  'dsp.masterPreset.audiobook': 'Hörbuch',
   'dsp.masterPreset.broadcast': 'Rundfunk R128',
+  'dsp.masterPreset.broadcastUs': 'Rundfunk A/85',
+  'dsp.masterPreset.cinema': 'Kino',
+  'dsp.masterPreset.cd': 'CD',
+  'dsp.masterPreset.vinyl': 'Vinyl',
   'dsp.masterPreset.club': 'Club',
   'dsp.masterPreset.reference': 'Referenz',
+  'dsp.masterPresetGroup.streaming': 'Bei Auslieferung normalisiert',
+  'dsp.masterPresetGroup.broadcast': 'Rundfunk und Kino',
+  'dsp.masterPresetGroup.unnormalized': 'Niemand dreht dich leiser',
+  'dsp.masterPresetGroup.tool': 'Zum Vergleichen',
 
   'tabs.dsp': 'DSP',
 };

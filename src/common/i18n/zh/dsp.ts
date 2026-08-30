@@ -374,9 +374,9 @@ const dsp = {
   'dsp.master.graph.loudnessActive':
     'LUFS 最大化 · +{gain} dB 至 {target} LUFS',
   'dsp.master.peakLimiting': '峰值限制',
-  'dsp.master.matchedBypass': '等响对比',
+  'dsp.master.matchedBypass': '增益匹配',
   'dsp.master.matchedBypassHint':
-    '将结果降低 {gain} dB 播放，回到最大化之前的响度。限制处理不变，因此关闭 Master 比较的是声音而不是音量。',
+    '把 {gain} dB 的补偿从输出端扣回去，这样开关 Master 比较的是声音而不是音量。两种状态下的限制完全相同，只有电平不同。',
   'dsp.master.limit.limiting':
     '需要 {requested} dB — 只有 {room} dB 峰值余量加上允许的限制量。',
   'dsp.master.limit.maxGain': '需要 {requested} dB — 已达本级的最大校正量。',
@@ -386,12 +386,23 @@ const dsp = {
   'dsp.master.loudness.integrated': 'I',
   'dsp.master.loudness.range': 'LRA',
   'dsp.master.loudness.truePeak': 'TP',
+  'dsp.master.graph.matchedActive': '增益匹配 · 已扣回 {gain} dB',
   'dsp.masterPreset.label': '投放目标',
   'dsp.masterPreset.streaming': '流媒体',
   'dsp.masterPreset.streamingQuiet': '流媒体，较轻',
+  'dsp.masterPreset.podcast': '播客',
+  'dsp.masterPreset.audiobook': '有声书',
   'dsp.masterPreset.broadcast': '广播 R128',
+  'dsp.masterPreset.broadcastUs': '广播 A/85',
+  'dsp.masterPreset.cinema': '影院',
+  'dsp.masterPreset.cd': 'CD',
+  'dsp.masterPreset.vinyl': '黑胶',
   'dsp.masterPreset.club': '俱乐部',
   'dsp.masterPreset.reference': '参考',
+  'dsp.masterPresetGroup.streaming': '投放时会被归一化',
+  'dsp.masterPresetGroup.broadcast': '广播与影院',
+  'dsp.masterPresetGroup.unnormalized': '没人会把你调低',
+  'dsp.masterPresetGroup.tool': '用于对比',
 
   'tabs.dsp': 'DSP',
 };

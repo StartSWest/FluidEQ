@@ -339,6 +339,19 @@ const DspMasterGraph = ({
             })}
           </span>
         ) : undefined}
+        {/*
+          Said out loud, because otherwise the only evidence of it is that the
+          music got quieter — which from the listener's side is
+          indistinguishable from a fault. A listening aid that lowers the
+          output silently is most of why this control was confusing.
+        */}
+        {maximizeActive && master.matchedBypass ? (
+          <span className="is-fixed">
+            {t('dsp.master.graph.matchedActive', {
+              gain: loudnessGainDb.toFixed(1),
+            })}
+          </span>
+        ) : undefined}
       </div>
       <ul className="dsp-eq-legend dsp-master-legend">
         <li className="dsp-eq-legend-item">

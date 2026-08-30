@@ -399,9 +399,9 @@ const dsp = {
   'dsp.master.graph.loudnessActive':
     'LUFS maximize · +{gain} dB toward {target} LUFS',
   'dsp.master.peakLimiting': 'Peak limiting',
-  'dsp.master.matchedBypass': 'Matched listen',
+  'dsp.master.matchedBypass': 'Gain match',
   'dsp.master.matchedBypassHint':
-    'Plays the result {gain} dB quieter, at the loudness it had before maximizing. The limiting is unchanged, so switching Master off compares the sound instead of the volume.',
+    'Takes the {gain} dB of makeup back off the output, so turning Master on and off compares the sound rather than the volume. The limiting is identical either way — only the level changes.',
   'dsp.master.limit.limiting':
     'Needed {requested} dB — {room} dB of peak room plus the limiting allowed.',
   'dsp.master.limit.maxGain':
@@ -412,12 +412,23 @@ const dsp = {
   'dsp.master.loudness.integrated': 'I',
   'dsp.master.loudness.range': 'LRA',
   'dsp.master.loudness.truePeak': 'TP',
+  'dsp.master.graph.matchedActive': 'Gain match · {gain} dB taken back off',
   'dsp.masterPreset.label': 'Destination',
   'dsp.masterPreset.streaming': 'Streaming',
   'dsp.masterPreset.streamingQuiet': 'Streaming, quiet',
+  'dsp.masterPreset.podcast': 'Podcast',
+  'dsp.masterPreset.audiobook': 'Audiobook',
   'dsp.masterPreset.broadcast': 'Broadcast R128',
+  'dsp.masterPreset.broadcastUs': 'Broadcast A/85',
+  'dsp.masterPreset.cinema': 'Cinema',
+  'dsp.masterPreset.cd': 'CD',
+  'dsp.masterPreset.vinyl': 'Vinyl',
   'dsp.masterPreset.club': 'Club',
   'dsp.masterPreset.reference': 'Reference',
+  'dsp.masterPresetGroup.streaming': 'Normalized on delivery',
+  'dsp.masterPresetGroup.broadcast': 'Broadcast and cinema',
+  'dsp.masterPresetGroup.unnormalized': 'Nothing turns you down',
+  'dsp.masterPresetGroup.tool': 'For comparing',
 
   'tabs.dsp': 'DSP',
 };

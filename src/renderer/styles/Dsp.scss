@@ -1208,6 +1208,22 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   gap: 10px;
 }
 
+// A switch that belongs TO the control above it rather than beside it.
+//
+// Gain match is not a stage: it is how you listen to the one it sits under,
+// and it does nothing at all while that one is off. Given a band of its own it
+// read as a third processor whose only visible effect was making the music
+// quieter, which is how it came to be reported as confusing. The rule it is
+// indented under stands in for the sentence that would otherwise have to say
+// "this one belongs to the thing above it".
+.dsp-band-nested {
+  margin-top: 10px;
+  padding-top: 10px;
+  padding-left: 12px;
+  border-top: 1px solid rgba($white, 0.06);
+  border-left: 2px solid rgba($secondary-default, 0.22);
+}
+
 // The one block on this page that earns a sentence. Everything else here is a
 // word and a number; this is an effect the user has no name for yet, so it
 // says what it is for.

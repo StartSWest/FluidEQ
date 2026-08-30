@@ -395,9 +395,9 @@ const dsp = {
   'dsp.master.graph.loudnessActive':
     'Максимум LUFS · +{gain} дБ к {target} LUFS',
   'dsp.master.peakLimiting': 'Ограничение пиков',
-  'dsp.master.matchedBypass': 'Прослушивание с выравниванием',
+  'dsp.master.matchedBypass': 'Выравнивание уровня',
   'dsp.master.matchedBypassHint':
-    'Воспроизводит результат тише на {gain} дБ, на уровне до максимизации. Ограничение не меняется, поэтому выключение Master сравнивает звук, а не громкость.',
+    'Снимает с выхода {gain} дБ подъёма, поэтому включение и выключение Master сравнивает звук, а не громкость. Ограничение в обоих случаях одинаковое — меняется только уровень.',
   'dsp.master.limit.limiting':
     'Требовалось {requested} дБ — {room} дБ пикового запаса плюс разрешённое ограничение.',
   'dsp.master.limit.maxGain':
@@ -409,12 +409,23 @@ const dsp = {
   'dsp.master.loudness.integrated': 'I',
   'dsp.master.loudness.range': 'LRA',
   'dsp.master.loudness.truePeak': 'TP',
+  'dsp.master.graph.matchedActive': 'Уровень выровнен · {gain} дБ снято',
   'dsp.masterPreset.label': 'Назначение',
   'dsp.masterPreset.streaming': 'Стриминг',
   'dsp.masterPreset.streamingQuiet': 'Стриминг, тихо',
+  'dsp.masterPreset.podcast': 'Подкаст',
+  'dsp.masterPreset.audiobook': 'Аудиокнига',
   'dsp.masterPreset.broadcast': 'Вещание R128',
+  'dsp.masterPreset.broadcastUs': 'Вещание A/85',
+  'dsp.masterPreset.cinema': 'Кино',
+  'dsp.masterPreset.cd': 'CD',
+  'dsp.masterPreset.vinyl': 'Винил',
   'dsp.masterPreset.club': 'Клуб',
   'dsp.masterPreset.reference': 'Эталон',
+  'dsp.masterPresetGroup.streaming': 'Нормализуется при доставке',
+  'dsp.masterPresetGroup.broadcast': 'Вещание и кино',
+  'dsp.masterPresetGroup.unnormalized': 'Никто вас не убавит',
+  'dsp.masterPresetGroup.tool': 'Для сравнения',
 
   'tabs.dsp': 'DSP',
 };

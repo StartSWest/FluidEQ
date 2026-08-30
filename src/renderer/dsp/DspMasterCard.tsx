@@ -207,10 +207,18 @@ const DspMasterCard = ({
             })}
           </p>
         ) : undefined}
-      </div>
 
-      <div className="dsp-band">
-        <div className="dsp-band-head">
+        {/*
+          Inside the maximize band, not beside it.
+
+          It had a band of its own, which put a switch that only makes things
+          QUIETER between two processing stages and gave it the same weight as
+          one — reported as confusing, and fairly. It is not a stage: it is how
+          you listen to the one above it, it is meaningless while that one is
+          off, and every plugin that has this calls it gain match rather than
+          anything to do with bypass.
+        */}
+        <div className="dsp-band-head dsp-band-nested">
           <span className="dsp-band-title">
             {t('dsp.master.matchedBypass')}
           </span>

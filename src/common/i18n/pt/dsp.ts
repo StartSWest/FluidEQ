@@ -396,9 +396,9 @@ const dsp = {
   'dsp.master.graph.loudnessActive':
     'Maximizar LUFS · +{gain} dB rumo a {target} LUFS',
   'dsp.master.peakLimiting': 'Limitação de picos',
-  'dsp.master.matchedBypass': 'Escuta igualada',
+  'dsp.master.matchedBypass': 'Igualar ganho',
   'dsp.master.matchedBypassHint':
-    'Reproduz o resultado {gain} dB mais baixo, no volume que tinha antes de maximizar. A limitação não muda, por isso desligar o Master compara o som e não o volume.',
+    'Retira da saída os {gain} dB de compensação, por isso ligar e desligar o Master compara o som e não o volume. A limitação é idêntica nos dois casos — só o nível muda.',
   'dsp.master.limit.limiting':
     'Eram precisos {requested} dB — {room} dB de folga de pico mais a limitação permitida.',
   'dsp.master.limit.maxGain':
@@ -410,12 +410,23 @@ const dsp = {
   'dsp.master.loudness.integrated': 'I',
   'dsp.master.loudness.range': 'LRA',
   'dsp.master.loudness.truePeak': 'TP',
+  'dsp.master.graph.matchedActive': 'Ganho igualado · {gain} dB retirados',
   'dsp.masterPreset.label': 'Destino',
   'dsp.masterPreset.streaming': 'Streaming',
   'dsp.masterPreset.streamingQuiet': 'Streaming, baixo',
+  'dsp.masterPreset.podcast': 'Podcast',
+  'dsp.masterPreset.audiobook': 'Audiolivro',
   'dsp.masterPreset.broadcast': 'Radiodifusão R128',
+  'dsp.masterPreset.broadcastUs': 'Radiodifusão A/85',
+  'dsp.masterPreset.cinema': 'Cinema',
+  'dsp.masterPreset.cd': 'CD',
+  'dsp.masterPreset.vinyl': 'Vinil',
   'dsp.masterPreset.club': 'Club',
   'dsp.masterPreset.reference': 'Referência',
+  'dsp.masterPresetGroup.streaming': 'Normalizado na entrega',
+  'dsp.masterPresetGroup.broadcast': 'Radiodifusão e cinema',
+  'dsp.masterPresetGroup.unnormalized': 'Ninguém baixa o teu volume',
+  'dsp.masterPresetGroup.tool': 'Para comparar',
 
   'tabs.dsp': 'DSP',
 };
