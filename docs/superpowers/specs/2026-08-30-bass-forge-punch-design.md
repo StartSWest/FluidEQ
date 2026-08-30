@@ -384,22 +384,43 @@ either of them it would be the same picture the pages either side already show,
 with nothing of the stage in it — the reasoning `DspMaximizerGraph` already
 records.
 
-### `INativeTelemetryFrame` additions
+### The meters travel on `IHostAnalysis`, not on `INativeTelemetryFrame`
+
+An earlier draft of this section named `INativeTelemetryFrame` in
+`nativeProtocol.ts`. That is the wrong wire, and writing the plan is what
+caught it.
+
+Stage meters go on `IHostAnalysis` in `src/common/dsp/analysisWire.ts` — that
+is what `nativeMeters.ts` consumes and what already carries `dimensionGuard`,
+`maximizerReductionDb` and `exciterBands`. It is **not** a JSON object with
+optional fields: it is a binary frame with a fixed `ANALYSIS_HEADER_BYTES = 120`
+header, decoded at hard-coded offsets in `src/main/dspHost/wire.ts`, where
+`dimensionGuard` is `view.getFloat32(60, true)`.
+
+So the addition is:
 
 ```ts
-readonly bassForge: {
-  readonly inputDb: readonly number[];   // 8 log-spaced bands, 20 Hz–1 kHz
-  readonly outputDb: readonly number[];
+// on IHostAnalysis
+bassForge: {
+  inputDb: readonly number[];    // 8 log-spaced bands, 20 Hz–1 kHz
+  outputDb: readonly number[];
 };
-readonly bassPunch: {
-  readonly transientGainDb: number;
-  readonly sustainGainDb: number;
-  readonly duckGainDb: number;
+bassPunch: {
+  transientGainDb: number;
+  sustainGainDb: number;
+  duckGainDb: number;
 };
 ```
 
-`isNativeTelemetryFrame` validates both — it is field-by-field and an
-unvalidated addition is an addition that is not really on the wire.
+and the real work is growing the header and the C++ publisher in `meters.cpp`
+together. Sixteen float32s for Forge and three for Punch takes
+`ANALYSIS_HEADER_BYTES` from 120 to **196**, and the new fields go at the very
+end so that every offset already being decoded stays where it is.
+
+**This is the second constant the noise-reduction branch will also move**, and
+nothing had noticed it before now. The rule is the chain lead's: whoever lands
+second re-numbers rather than resolves, appending after every existing offset
+on both sides.
 
 The eight bands are measured with band-pass envelope followers on the audio
 thread, not an FFT. Sixteen biquads is nothing; a transform per block is not.
