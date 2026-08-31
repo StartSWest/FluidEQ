@@ -120,6 +120,7 @@ describe('DspPanel', () => {
       'Exciter',
       'Bass Forge',
       'Equaliser',
+      'Bass Punch',
       'Maximizer',
       'Master',
     ].forEach((name) => {
@@ -240,6 +241,106 @@ describe('DspPanel', () => {
     expect(next.bassForge.presetId).toBe('default');
     expect(next.bassForge.mix).toBeGreaterThan(0);
     expect(next.bassForge.enabled).toBe(false);
+  });
+
+  /**
+   * The same guard Forge's page has, and for the same reason: the stage was
+   * built, wired, metered and translated with no way for anyone to switch it
+   * on. A page missing a dial is a parameter nobody can reach.
+   */
+  it('gives Bass Punch a page with a dial for each of its six controls', () => {
+    renderPanel();
+    fireEvent.click(screen.getByRole('button', { name: /Bass Punch/i }));
+    const page = within(screen.getByRole('region', { name: /Bass Punch/i }));
+    // Exact names, which is what separates "Bloom" from "Bloom decay" — a
+    // pattern would match both and let either dial go missing unnoticed.
+    ['Split', 'Attack', 'Sustain', 'Bloom', 'Bloom decay', 'Duck'].forEach(
+      (name) => {
+        expect(page.getByRole('slider', { name })).toBeInTheDocument();
+      },
+    );
+  });
+
+  /**
+   * Zero is not off on this page: it is the stage running, hearing the note
+   * and deciding to change nothing about it. That only reads if the range is
+   * symmetric about the rest position, so a dial declared -1 to +1 is what
+   * makes turning it LEFT a thing anybody thinks to do.
+   */
+  it('rests Attack and Sustain at the centre of a symmetric range', () => {
+    renderPanel();
+    fireEvent.click(screen.getByRole('button', { name: /Bass Punch/i }));
+    const page = within(screen.getByRole('region', { name: /Bass Punch/i }));
+    ['Attack', 'Sustain'].forEach((name) => {
+      const dial = page.getByRole('slider', { name });
+      expect(dial).toHaveAttribute('aria-valuemin', '-1');
+      expect(dial).toHaveAttribute('aria-valuemax', '1');
+      expect(dial).toHaveAttribute('aria-valuenow', '0');
+    });
+    // The positive control the three above need: Bloom is an AMOUNT on the
+    // same page, and a card that made every dial bipolar would pass them.
+    const bloom = page.getByRole('slider', { name: 'Bloom' });
+    expect(bloom).toHaveAttribute('aria-valuemin', '0');
+  });
+
+  /**
+   * A live strip under greyed-out dials is a strip reporting on a stage that
+   * is not running — the same defect Dimension's guard bar and Forge's plot
+   * had. It matters more here than anywhere else in the rack: all three of
+   * Punch's gains genuinely rest at 0 dB, so three flat traces down the middle
+   * of a live-looking plot would say the stage is running and choosing to
+   * change nothing, which is exactly what a centred dial means.
+   */
+  it('reads as stopped, not as running-and-flat, while Bass Punch is off', () => {
+    const { container } = renderPanel();
+    fireEvent.click(screen.getByRole('button', { name: /Bass Punch/i }));
+    expect(container.querySelector('.dsp-bass-punch-display')).toHaveClass(
+      'is-off',
+    );
+    expect(screen.getByRole('slider', { name: 'Attack' })).toBeDisabled();
+  });
+
+  it('POSITIVE CONTROL: drops the stopped reading once Punch is on', () => {
+    const active: IDspSettings = {
+      ...DSP_DEFAULTS,
+      bassPunch: { ...DSP_DEFAULTS.bassPunch, enabled: true },
+    };
+    const { container } = renderPanel(active);
+    fireEvent.click(screen.getByRole('button', { name: /Bass Punch/i }));
+    expect(container.querySelector('.dsp-bass-punch-display')).not.toHaveClass(
+      'is-off',
+    );
+    expect(screen.getByRole('slider', { name: 'Attack' })).toBeEnabled();
+  });
+
+  /**
+   * The strip draws two different kinds of measurement and nothing on the
+   * canvas can say so: the attack lane is a max-over-window that the native
+   * reader clears as it takes it, and the other two are point samples of
+   * states that persist. Undrawn differently and unexplained, the picture
+   * would be claiming all three read alike.
+   */
+  it('says why the attack lane is drawn as marks and the others as traces', () => {
+    renderPanel();
+    fireEvent.click(screen.getByRole('button', { name: /Bass Punch/i }));
+    expect(screen.getByText(/separate marks/i)).toBeInTheDocument();
+  });
+
+  /**
+   * Reset goes to this catalogue's own baseline for the reason Forge's does:
+   * the shipping defaults put attack, sustain, bloom and duck all at zero, so
+   * resetting to them would leave a stage switched on and shaping nothing.
+   */
+  it('resets Bass Punch to a profile that shapes something', () => {
+    const { onChange } = renderPanel();
+    fireEvent.click(screen.getByRole('button', { name: /Bass Punch/i }));
+    const page = within(screen.getByRole('region', { name: /Bass Punch/i }));
+    fireEvent.click(page.getByRole('button', { name: 'Reset' }));
+    const next = onChange.mock.calls[0][0] as IDspSettings;
+    expect(next.bassPunch.presetId).toBe('default');
+    expect(next.bassPunch.attack).toBeGreaterThan(0);
+    expect(next.bassPunch.duck).toBeGreaterThan(0);
+    expect(next.bassPunch.enabled).toBe(false);
   });
 
   it('applies a preset whole when one is chosen', () => {

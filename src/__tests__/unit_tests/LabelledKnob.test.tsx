@@ -130,3 +130,76 @@ describe('LabelledKnob', () => {
     expect(onChange).not.toHaveBeenCalled();
   });
 });
+
+/**
+ * Where the filled arc grows FROM, which nothing else in the suite can see.
+ *
+ * A range that straddles zero symmetrically is a bipolar control: zero is a
+ * rest position and either direction from it is a decision. Grown from the low
+ * end such a dial sits half filled while doing nothing, which reads as a level
+ * — and a dial whose rest position looks like a level is one nobody thinks to
+ * turn left. Bass Punch's Attack and Sustain and the EQ's band gain are the
+ * dials this covers.
+ */
+describe('LabelledKnob, on a range that straddles zero', () => {
+  const arc = (
+    { min, max, value }: { min: number; max: number; value: number } = {
+      min: -1,
+      max: 1,
+      value: 0,
+    },
+  ) => {
+    const view = render(
+      <LabelledKnob
+        label="Attack"
+        value={value}
+        min={min}
+        max={max}
+        step={0.01}
+        unit=""
+        defaultValue={0}
+        onChange={jest.fn()}
+      />,
+    );
+    const found = view.container.querySelector('.knob__value');
+    view.unmount();
+    return found;
+  };
+
+  it('draws no arc at all at the centre, because nothing is being done', () => {
+    expect(arc()).toBeNull();
+  });
+
+  /**
+   * POSITIVE CONTROL for the test above, and the assertion that matters most:
+   * equal distances either side of the centre draw the same LENGTH of arc from
+   * different starts. A dial still growing from its low end would draw 25% and
+   * 75% of the sweep for these two.
+   */
+  it('POSITIVE CONTROL: grows the same length either side of the centre', () => {
+    const up = arc({ min: -1, max: 1, value: 0.5 });
+    const down = arc({ min: -1, max: 1, value: -0.5 });
+    expect(up).toHaveAttribute('stroke-dasharray', '18.75 100');
+    expect(down).toHaveAttribute('stroke-dasharray', '18.75 100');
+    // Half a sweep apart: the positive arc starts at the top of the travel,
+    // the negative one a quarter of the range earlier.
+    expect(up).toHaveAttribute('stroke-dashoffset', '-37.5');
+    expect(down).toHaveAttribute('stroke-dashoffset', '-18.75');
+  });
+
+  /**
+   * A range that merely happens to include negatives is not bipolar: the
+   * Master's -24 to +6 dB trim and the Normalizer's -12 to -0.1 target both
+   * have a low end that IS their floor, and must keep filling from it.
+   */
+  it('still fills from the low end where that end is the floor', () => {
+    expect(arc({ min: -24, max: 6, value: -24 })).toHaveAttribute(
+      'stroke-dasharray',
+      '0 100',
+    );
+    expect(arc({ min: -24, max: 6, value: 6 })).toHaveAttribute(
+      'stroke-dashoffset',
+      '0',
+    );
+  });
+});

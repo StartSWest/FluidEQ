@@ -119,6 +119,16 @@ const Knob = ({
   const arcStart = Math.min(arcOrigin, clampedProgress);
   const arcLength = Math.abs(clampedProgress - arcOrigin);
   /**
+   * A bipolar dial at rest draws nothing; every other one keeps what it had.
+   *
+   * The stroke has round caps, so a zero-length dash paints a dot. At the low
+   * end of an amount that dot is the cap of an arc about to grow and has been
+   * on screen for the life of this widget. At the CENTRE of a bipolar range it
+   * would be a mark saying "a little" on the one setting that means none —
+   * and the notch already points straight up there, which says it better.
+   */
+  const showsArc = arcLength > 0 || !isBipolar;
+  /**
    * As many digits as fit inside the dial, and no more.
    *
    * The face is about 40px across, which is roughly six characters of the
@@ -268,12 +278,7 @@ const Knob = ({
           strokeDasharray="75 25"
           transform="rotate(135 36 36)"
         />
-        {/* Nothing drawn at all when the arc has no length, which on a bipolar
-            dial is its rest position. The stroke has round caps, so a
-            zero-length dash paints a dot at the top of the travel — a mark
-            that says "a little of something" on the one setting that means
-            none of it. The notch already points straight up there. */}
-        {arcLength > 0 ? (
+        {showsArc ? (
           <circle
             className="knob__value"
             cx="36"
