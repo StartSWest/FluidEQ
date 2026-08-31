@@ -386,11 +386,16 @@ const main = async (): Promise<void> => {
 
   // The same control for Forge: with no deck loaded the stage still runs, and
   // its two runs have to fall to the floor rather than holding the last note.
-  const silentForge = frames.reduce(
+  const forgePeakOverSilence = frames.reduce(
     (best, frame) => Math.max(best, ...frame.bassForge.inputDb),
     -Infinity,
   );
-  console.log(`       forge dry band over silence: ${silentForge.toFixed(1)} dB`);
+  const lastForge = frames.at(-1)?.bassForge.inputDb;
+  const silentForge = lastForge ? Math.max(...lastForge) : -Infinity;
+  console.log(
+    `       forge dry band over silence: ${silentForge.toFixed(1)} dB ` +
+      `(peak across the decay ${forgePeakOverSilence.toFixed(1)} dB)`,
+  );
   check(
     silentForge < forgeLoudest - 30,
     'and Forge stops reporting a band it can no longer hear',
