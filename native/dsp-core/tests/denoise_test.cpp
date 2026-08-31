@@ -18,6 +18,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <cmath>
 #include <cstdio>
+#include <cstring>
 #include <cstdint>
 #include <vector>
 
@@ -418,6 +419,83 @@ void test_isolate_is_the_difference() {
  * energy out means the analysis and synthesis windows really do sum to one at
  * this hop, so a failure here is the delay and not the arithmetic.
  */
+/** Every module's real delay against what it claims, one configuration each. */
+void test_every_module_reports_its_real_delay() {
+  const uint32_t length = kFrames * 40;
+
+  struct Case {
+    const char* what;
+    FeqDenoiseSettings settings;
+  };
+
+  FeqDenoiseSettings click_only = bypassed_modules();
+  click_only.click.enabled = 1;
+
+  FeqDenoiseSettings hum_only = bypassed_modules();
+  hum_only.hum.enabled = 1;
+
+  FeqDenoiseSettings hiss_only = bypassed_modules();
+  hiss_only.hiss.enabled = 1;
+  hiss_only.hiss.amount = 0.0;
+  hiss_only.profile_source = FEQ_DENOISE_PROFILE_ADAPTIVE;
+
+  // The shipped defaults, which is the configuration a listener actually
+  // meets and the one the stack's delays have to add up in.
+  FeqDenoiseSettings all_on = hiss_only;
+  all_on.click.enabled = 1;
+  all_on.hum.enabled = 1;
+
+  const Case cases[] = {
+      {"click alone", click_only},
+      {"hum alone", hum_only},
+      {"hiss alone", hiss_only},
+      {"the shipped defaults", all_on},
+  };
+
+  /*
+   * A chirp, correlated — NOT an impulse.
+   *
+   * An impulse is a click, and the click repairer duly removes it: probing
+   * that module with one measures how well it works, not how long it takes.
+   * A sweep has no impulsive content for it to find and, unlike a steady tone,
+   * correlates to a single unambiguous offset rather than to every multiple of
+   * a period.
+   */
+  std::vector<float> input(length, 0.0f);
+  for (uint32_t i = 0; i < length; i += 1) {
+    const double t = static_cast<double>(i) / kRate;
+    const double sweep = 120.0 + (4800.0 - 120.0) * t * 0.5;
+    input[i] = static_cast<float>(0.3 * std::sin(2.0 * kPi * sweep * t));
+  }
+
+  for (const Case& item : cases) {
+    const std::vector<float> out = run(item.settings, input, nullptr);
+
+    // Correlated over a span well clear of both the warm-up and the tail.
+    const uint32_t from = kFrames * 16;
+    const uint32_t count = kFrames * 12;
+    uint32_t measured = 0;
+    double best = -1.0;
+    for (uint32_t shift = 0; shift <= 4096; shift += 1) {
+      double sum = 0.0;
+      for (uint32_t i = 0; i < count; i += 1) {
+        sum += static_cast<double>(out[from + i]) *
+               static_cast<double>(input[from + i - shift]);
+      }
+      if (sum > best) {
+        best = sum;
+        measured = shift;
+      }
+    }
+    const uint32_t reported = latency_of(item.settings);
+    char label[160];
+    std::snprintf(label, sizeof(label),
+                  "latency: %s delays %u and reports %u", item.what, measured,
+                  reported);
+    check(measured == reported, label);
+  }
+}
+
 void test_reported_latency_is_the_real_delay() {
   const uint32_t length = kFrames * 40;
   std::vector<float> input(length, 0.0f);
@@ -640,6 +718,7 @@ int main() {
   test_click();
   test_isolate_is_the_difference();
   test_reported_latency_is_the_real_delay();
+  test_every_module_reports_its_real_delay();
   test_isolate_is_silent_when_nothing_is_removed();
   if (g_failures != 0) {
     std::printf("%d failure(s)\n", g_failures);

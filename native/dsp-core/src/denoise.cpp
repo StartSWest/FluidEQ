@@ -305,7 +305,17 @@ uint32_t feq_denoise_latency_frames(const FeqDenoise* denoise) {
   }
   uint32_t latency = 0;
   if (denoise->settings.click.enabled != 0 && !denoise->click.empty()) {
-    latency += denoise->click[0].capacity;
+    /*
+     * The whole buffer LESS ONE. The read head is the write head plus one, so
+     * a sample leaving is `capacity - 1` old, not `capacity`.
+     *
+     * One sample sounds like a rounding argument and is not. Isolate takes a
+     * difference, and the difference of a signal against itself shifted by a
+     * single sample is a first-order high-pass — 6 dB per octave, and the
+     * whole programme comes through it. Reported as hearing the song in
+     * Isolate, which is precisely what a one-sample error produces.
+     */
+    latency += denoise->click[0].capacity - 1;
   }
   if (denoise->settings.hiss.enabled != 0 && denoise->window > 0) {
     /*
