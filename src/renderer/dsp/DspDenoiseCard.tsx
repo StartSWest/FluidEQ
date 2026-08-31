@@ -67,10 +67,12 @@ const DspDenoiseCard = ({
   /**
    * The whole card goes inert when the native engine is not carrying audio.
    *
-   * Denoise exists only in C++, so on the worklet fallback every control here
-   * is connected to nothing. The panel header already says the engine changed;
-   * what it cannot say is which card stopped working, and controls that look
-   * live while doing nothing is the defect this exists to prevent.
+   * There is no worklet fallback any more — `useDspEngine` stands the worklet
+   * down unconditionally — so a failed host means every control here is
+   * connected to nothing. `DspPanel` now makes the entire rack inert for the
+   * same reason; this stays because it also drives `isEnabled`, and a stage
+   * that reports itself enabled while nothing runs is the lie the panel's
+   * dimming cannot reach.
    */
   const isBypassedByEngine = nativeState === 'failed';
   const isEnabled = denoise.enabled && !isBypassedByEngine;
@@ -151,12 +153,6 @@ const DspDenoiseCard = ({
         </div>
       }
     >
-      {isBypassedByEngine ? (
-        <p className="dsp-engine-fallback" role="status">
-          {t('dsp.denoise.nativeOnly')}
-        </p>
-      ) : null}
-
       <section className="dsp-denoise-source">
         <div className="dsp-band-head">
           <span className="dsp-band-title">

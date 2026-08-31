@@ -10,7 +10,6 @@ import DspBassPunchBar from './DspBassPunchBar';
 import DspBassPunchGraph from './DspBassPunchGraph';
 import { Dial, ProcessorCard } from './DspControls';
 import Switch from '../widgets/Switch';
-import { useDspNativeState } from './store';
 
 interface IDspBassPunchCardProps {
   bassPunch: IBassPunchSettings;
@@ -42,7 +41,6 @@ const DspBassPunchCard = ({
   onCommit,
 }: IDspBassPunchCardProps) => {
   const { t } = useTranslation();
-  const nativeState = useDspNativeState();
 
   /**
    * Any change to the sound makes the result Custom; bypass does not.
@@ -104,16 +102,6 @@ const DspBassPunchCard = ({
         </div>
       }
     >
-      {/* This stage has no TypeScript implementation, so the worklet fallback
-          passes it through untouched. The header's own fallback notice says
-          the engine changed; it does not say that this particular page is one
-          of the ones with nothing behind it. */}
-      {nativeState === 'failed' ? (
-        <p className="dsp-engine-fallback" role="status">
-          {t('dsp.bassPunch.unavailable')}
-        </p>
-      ) : undefined}
-
       <DspBassPunchGraph bassPunch={bassPunch} />
 
       <div className="dsp-band dsp-bass-punch-controls">

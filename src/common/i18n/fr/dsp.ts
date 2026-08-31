@@ -24,8 +24,8 @@ const dsp = {
     "Démarre quand vous lisez quelque chose depuis la Bibliothèque. Il traite le lecteur de FluidEQ, il n'a donc rien à faire tant qu'aucun morceau n'est chargé.",
   'dsp.unavailable':
     "Le traitement audio n'a pas pu démarrer. La lecture n'est pas affectée.",
-  'dsp.engineFallback':
-    "Le moteur audio natif n'a pas pu démarrer, FluidEQ lit donc via sa chaîne de secours : l'égaliseur, la dynamique et le limiteur s'appliquent toujours, mais les étages qui n'existent que dans le moteur natif sont contournés. Redémarrer FluidEQ suffit généralement.",
+  'dsp.engineDown':
+    "Le moteur audio natif n'a pas pu démarrer, tous les étages DSP sont donc désactivés. Rien ci-dessous ne traite votre musique et les commandes sont désactivées ; la lecture elle-même n'est pas affectée. Redémarrer FluidEQ suffit généralement.",
   'dsp.presets': 'Préréglages',
   'dsp.preset.lossyRepair': 'Réparer le compressé',
   'dsp.preset.loud': 'Fort',
@@ -132,8 +132,6 @@ const dsp = {
   'dsp.denoise.liveReduction': 'Réduction',
   'dsp.denoise.clicksRepaired': 'Réparés',
   'dsp.denoise.voiceUnderruns': 'Coupures voix',
-  'dsp.denoise.nativeOnly':
-    'Le débruitage ne fonctionne que dans le moteur natif, qui ne porte pas l’audio actuellement. Cette étape est contournée.',
 
   'dsp.crossfade.title': 'Fondu enchaîné',
   'dsp.crossfade.description':
@@ -370,8 +368,6 @@ const dsp = {
   'dsp.bassForge.graph.aboveSplit': 'Au-dessus de la coupure',
   'dsp.bassForge.monoNote':
     "Les basses générées sont sommées en mono. Les basses d'origine gardent leur stéréo.",
-  'dsp.bassForge.unavailable':
-    "La Forge de basses ne fonctionne que dans le moteur natif, qui ne porte pas l'audio actuellement. Cette étape est contournée.",
   'dsp.bassForgePreset.subtle': 'Subtil',
   'dsp.bassForgePreset.deep': 'Profond',
   'dsp.bassForgePreset.solid': 'Solide',
@@ -396,8 +392,6 @@ const dsp = {
   'dsp.bassPunch.bloomAmount': 'Éclosion',
   'dsp.bassPunch.bloomDecayMs': "Durée de l'éclosion",
   'dsp.bassPunch.duck': 'Ducking',
-  'dsp.bassPunch.unavailable':
-    "Le Punch des basses ne fonctionne que dans le moteur natif, qui ne porte pas l'audio actuellement. Cette étape est contournée.",
   'dsp.bassPunch.meterNote':
     "L'attaque est tracée en marques séparées, car chacune est le plus grand écart mesuré à l'intérieur de sa propre fenêtre. Le maintien et le ducking durent sur plusieurs fenêtres : ils sont échantillonnés et s'affichent en tracés continus.",
   'dsp.bassPunch.graph.now': 'maintenant',

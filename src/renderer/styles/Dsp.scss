@@ -52,7 +52,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // at all reads as the layout jumping rather than as news.
 .dsp-idle,
 .dsp-unavailable,
-.dsp-engine-fallback {
+.dsp-engine-down {
   @include animate(rise-in, $motion-base, $ease-out, 85ms);
 }
 
@@ -1362,14 +1362,18 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // lived in the Master card; two of them were still carrying both long after
 // this rule started re-setting every property that one sets — margin, colour,
 // size and leading — from later in the same file.
-.dsp-engine-fallback {
+// Red, not the amber it wore for months. Amber said "degraded"; the truth is
+// that the rack is off and the music is untouched, and the rack below it is
+// dimmed to match. A warning colour on a paragraph that reports a total
+// failure is the notice disagreeing with itself.
+.dsp-engine-down {
   max-width: 680px;
   margin: 2px 0 0;
   padding: 7px 10px;
-  border: 1px solid rgba(255, 176, 89, 0.3);
+  border: 1px solid rgba($red, 0.4);
   border-radius: 6px;
-  background: rgba(255, 176, 89, 0.06);
-  color: rgb(255, 196, 126);
+  background: rgba($red, 0.08);
+  color: $red;
   font-size: 0.74rem;
   line-height: 1.4;
 }

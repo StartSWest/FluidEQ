@@ -23,8 +23,8 @@ const dsp = {
   'dsp.idle':
     'ライブラリから再生すると起動します。FluidEQ 自身のプレーヤーを処理するため、曲を読み込むまでは何もしません。',
   'dsp.unavailable': '音声処理を開始できませんでした。再生には影響しません。',
-  'dsp.engineFallback':
-    'ネイティブのオーディオエンジンを起動できなかったため、FluidEQ はフォールバックチェーンで再生しています。EQ・ダイナミクス・リミッターは引き続きかかりますが、ネイティブエンジンにしかないステージはバイパスされます。通常は FluidEQ を再起動すると復帰します。',
+  'dsp.engineDown':
+    'ネイティブのオーディオエンジンを起動できなかったため、すべての DSP ステージがオフになっています。下の処理は一切かかっておらず、操作も無効です。再生そのものには影響しません。通常は FluidEQ を再起動すると復帰します。',
   'dsp.presets': 'プリセット',
   'dsp.preset.lossyRepair': '圧縮音源を補修',
   'dsp.preset.loud': 'ラウド',
@@ -126,8 +126,6 @@ const dsp = {
   'dsp.denoise.liveReduction': '低減中',
   'dsp.denoise.clicksRepaired': '修復済み',
   'dsp.denoise.voiceUnderruns': '音声の途切れ',
-  'dsp.denoise.nativeOnly':
-    'ノイズ除去はネイティブエンジンでのみ動作しますが、現在そのエンジンが音声を担っていません。この段はバイパスされています。',
 
   'dsp.crossfade.title': 'クロスフェード',
   'dsp.crossfade.description':
@@ -361,8 +359,6 @@ const dsp = {
   'dsp.bassForge.graph.aboveSplit': '分割より上',
   'dsp.bassForge.monoNote':
     '生成された低音はモノラルに合成されます。元の低音のステレオ感はそのまま残ります。',
-  'dsp.bassForge.unavailable':
-    'ベースフォージはネイティブエンジンでのみ動作しますが、現在そのエンジンが音声を担っていません。この段はバイパスされています。',
   'dsp.bassForgePreset.subtle': '控えめ',
   'dsp.bassForgePreset.deep': 'ディープ',
   'dsp.bassForgePreset.solid': 'ソリッド',
@@ -386,8 +382,6 @@ const dsp = {
   'dsp.bassPunch.bloomAmount': '膨らみ',
   'dsp.bassPunch.bloomDecayMs': '膨らみの減衰',
   'dsp.bassPunch.duck': 'ダッキング',
-  'dsp.bassPunch.unavailable':
-    'ベースパンチはネイティブエンジンでのみ動作しますが、現在そのエンジンが音声を担っていません。この段はバイパスされています。',
   'dsp.bassPunch.meterNote':
     'アタックは個別の目盛りで描かれます。各目盛りはその測定窓の中で最も大きい振れだからです。サステインとダッキングは複数の窓にまたがって続くため、サンプリングして連続した線で描いています。',
   'dsp.bassPunch.graph.now': '現在',

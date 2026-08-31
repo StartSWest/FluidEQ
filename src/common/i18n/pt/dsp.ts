@@ -24,8 +24,8 @@ const dsp = {
     'Inicia quando você toca algo da Biblioteca. Ele processa o reprodutor do próprio FluidEQ, então não tem nada a fazer até carregar uma faixa.',
   'dsp.unavailable':
     'O processamento de áudio não conseguiu iniciar. A reprodução não é afetada.',
-  'dsp.engineFallback':
-    'O motor de áudio nativo não conseguiu iniciar, por isso o FluidEQ está a tocar através da sua cadeia de reserva: o equalizador, a dinâmica e o limitador continuam a aplicar-se, mas os estágios que só existem no motor nativo são ignorados. Reiniciar o FluidEQ costuma resolver.',
+  'dsp.engineDown':
+    'O motor de áudio nativo não conseguiu iniciar, por isso todos os estágios de DSP estão desligados. Nada aqui em baixo está a processar a sua música e os controlos estão desativados; a reprodução em si não é afetada. Reiniciar o FluidEQ costuma resolver.',
   'dsp.presets': 'Predefinições',
   'dsp.preset.lossyRepair': 'Reparar comprimido',
   'dsp.preset.loud': 'Alto',
@@ -131,8 +131,6 @@ const dsp = {
   'dsp.denoise.liveReduction': 'A reduzir',
   'dsp.denoise.clicksRepaired': 'Reparados',
   'dsp.denoise.voiceUnderruns': 'Falhas de voz',
-  'dsp.denoise.nativeOnly':
-    'A redução de ruído só funciona no motor nativo, que não está a levar o áudio neste momento. Esta etapa está contornada.',
 
   'dsp.crossfade.title': 'Transição cruzada',
   'dsp.crossfade.description':
@@ -371,8 +369,6 @@ const dsp = {
   'dsp.bassForge.graph.aboveSplit': 'Acima do corte',
   'dsp.bassForge.monoNote':
     'O grave gerado é somado em mono. Os graves originais mantêm o seu estéreo.',
-  'dsp.bassForge.unavailable':
-    'A Forja de graves só funciona no motor nativo, que não está a levar o áudio neste momento. Esta etapa está contornada.',
   'dsp.bassForgePreset.subtle': 'Subtil',
   'dsp.bassForgePreset.deep': 'Profundo',
   'dsp.bassForgePreset.solid': 'Sólido',
@@ -397,8 +393,6 @@ const dsp = {
   'dsp.bassPunch.bloomAmount': 'Floração',
   'dsp.bassPunch.bloomDecayMs': 'Duração da floração',
   'dsp.bassPunch.duck': 'Ducking',
-  'dsp.bassPunch.unavailable':
-    'O Punch dos graves só funciona no motor nativo, que não está a levar o áudio neste momento. Esta etapa está contornada.',
   'dsp.bassPunch.meterNote':
     'O ataque é desenhado com marcas separadas, porque cada uma é a maior oscilação dentro da sua própria janela de medição. A sustentação e o ducking duram por várias janelas, por isso são amostrados e correm como traços contínuos.',
   'dsp.bassPunch.graph.now': 'agora',

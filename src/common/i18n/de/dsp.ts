@@ -24,8 +24,8 @@ const dsp = {
     'Startet, sobald du etwas aus der Bibliothek abspielst. Es verarbeitet FluidEQs eigenen Player und hat daher nichts zu tun, bis ein Titel geladen ist.',
   'dsp.unavailable':
     'Die Audioverarbeitung konnte nicht gestartet werden. Die Wiedergabe ist davon nicht betroffen.',
-  'dsp.engineFallback':
-    'Die native Audio-Engine konnte nicht starten, daher spielt FluidEQ über seine Ersatzkette: EQ, Dynamik und Limiter greifen weiterhin, aber Stufen, die es nur nativ gibt, werden übersprungen. Ein Neustart von FluidEQ hilft meist.',
+  'dsp.engineDown':
+    'Die native Audio-Engine konnte nicht starten, daher sind alle DSP-Stufen aus. Nichts unten verarbeitet deine Musik und die Regler sind deaktiviert – die Wiedergabe selbst ist nicht betroffen. Ein Neustart von FluidEQ hilft meist.',
   'dsp.presets': 'Voreinstellungen',
   'dsp.preset.lossyRepair': 'Komprimiertes reparieren',
   'dsp.preset.loud': 'Laut',
@@ -133,8 +133,6 @@ const dsp = {
   'dsp.denoise.liveReduction': 'Reduziert',
   'dsp.denoise.clicksRepaired': 'Repariert',
   'dsp.denoise.voiceUnderruns': 'Stimmaussetzer',
-  'dsp.denoise.nativeOnly':
-    'Die Rauschentfernung läuft nur in der nativen Engine, die das Audio gerade nicht führt. Diese Stufe ist überbrückt.',
 
   'dsp.crossfade.title': 'Überblendung',
   'dsp.crossfade.description':
@@ -376,8 +374,6 @@ const dsp = {
   'dsp.bassForge.graph.aboveSplit': 'Über Trennung',
   'dsp.bassForge.monoNote':
     'Der erzeugte Bass wird zu Mono summiert. Die ursprünglichen Bässe behalten ihr Stereo.',
-  'dsp.bassForge.unavailable':
-    'Die Bass-Schmiede läuft nur in der nativen Engine, die das Audio gerade nicht führt. Diese Stufe ist überbrückt.',
   'dsp.bassForgePreset.subtle': 'Subtil',
   'dsp.bassForgePreset.deep': 'Tief',
   'dsp.bassForgePreset.solid': 'Solide',
@@ -402,8 +398,6 @@ const dsp = {
   'dsp.bassPunch.bloomAmount': 'Blüte',
   'dsp.bassPunch.bloomDecayMs': 'Blütedauer',
   'dsp.bassPunch.duck': 'Ducking',
-  'dsp.bassPunch.unavailable':
-    'Der Bass-Punch läuft nur in der nativen Engine, die das Audio gerade nicht führt. Diese Stufe ist überbrückt.',
   'dsp.bassPunch.meterNote':
     'Attack wird als einzelne Marken gezeichnet, weil jede der größte Ausschlag innerhalb ihres eigenen Messfensters ist. Sustain und Ducking dauern über mehrere Fenster hinweg an, werden deshalb abgetastet und laufen als durchgehende Kurven.',
   'dsp.bassPunch.graph.now': 'jetzt',

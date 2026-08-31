@@ -23,8 +23,8 @@ const dsp = {
   'dsp.idle':
     '从音乐库播放时自动启动。它处理的是 FluidEQ 自带的播放器，因此在加载曲目前无事可做。',
   'dsp.unavailable': '音频处理未能启动，播放不受影响。',
-  'dsp.engineFallback':
-    '原生音频引擎无法启动，因此 FluidEQ 正通过后备链路播放：均衡器、动态处理和限制器仍然生效，但仅存在于原生引擎中的处理级会被跳过。重启 FluidEQ 通常可以恢复。',
+  'dsp.engineDown':
+    '原生音频引擎无法启动，因此所有 DSP 处理级均已关闭。下方没有任何环节在处理你的音乐，控件也已禁用；播放本身不受影响。重启 FluidEQ 通常可以恢复。',
   'dsp.presets': '预设',
   'dsp.preset.lossyRepair': '修复压缩音频',
   'dsp.preset.loud': '响亮',
@@ -118,8 +118,6 @@ const dsp = {
   'dsp.denoise.liveReduction': '正在衰减',
   'dsp.denoise.clicksRepaired': '已修补',
   'dsp.denoise.voiceUnderruns': '人声断续',
-  'dsp.denoise.nativeOnly':
-    '降噪仅在原生引擎中运行，而当前音频并未由它承载。此级已被旁路。',
 
   'dsp.crossfade.title': '交叉淡化',
   'dsp.crossfade.description':
@@ -346,8 +344,6 @@ const dsp = {
   'dsp.bassForge.graph.aboveSplit': '分频以上',
   'dsp.bassForge.monoNote':
     '生成的低音会合并为单声道，原始低频仍保留其立体声。',
-  'dsp.bassForge.unavailable':
-    '低音熔炉仅在原生引擎中运行，而当前音频并未由它承载。此级已被旁路。',
   'dsp.bassForgePreset.subtle': '轻微',
   'dsp.bassForgePreset.deep': '深沉',
   'dsp.bassForgePreset.solid': '扎实',
@@ -371,8 +367,6 @@ const dsp = {
   'dsp.bassPunch.bloomAmount': '绽放',
   'dsp.bassPunch.bloomDecayMs': '绽放衰减',
   'dsp.bassPunch.duck': '闪避',
-  'dsp.bassPunch.unavailable':
-    '低音冲击仅在原生引擎中运行，而当前音频并未由它承载。此级已被旁路。',
   'dsp.bassPunch.meterNote':
     '启动时间以独立的刻度绘制，因为每一刻度都是各自测量窗口内最大的摆幅。延音与闪避会跨越多个窗口，因此直接取样，画成连续的曲线。',
   'dsp.bassPunch.graph.now': '现在',

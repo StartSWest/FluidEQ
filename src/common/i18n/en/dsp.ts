@@ -33,8 +33,8 @@ const dsp = {
     'Starts when you play something from the Library. It processes the FluidEQ player itself, so there is nothing for it to do until a track is loaded.',
   'dsp.unavailable':
     'Audio processing could not start. Playback is unaffected.',
-  'dsp.engineFallback':
-    'The native audio engine could not start, so FluidEQ is playing through its fallback chain: the EQ, dynamics and limiter still apply, but stages that only exist natively are bypassed. Restarting FluidEQ usually brings it back.',
+  'dsp.engineDown':
+    'The native audio engine could not start, so every DSP stage is off. Nothing below is processing your music and the controls are disabled — playback itself is unaffected. Restarting FluidEQ usually brings it back.',
   'dsp.presets': 'Presets',
   'dsp.preset.lossyRepair': 'Repair compressed',
   'dsp.preset.loud': 'Loud',
@@ -140,8 +140,6 @@ const dsp = {
   'dsp.denoise.liveReduction': 'Reducing',
   'dsp.denoise.clicksRepaired': 'Repaired',
   'dsp.denoise.voiceUnderruns': 'Voice dropouts',
-  'dsp.denoise.nativeOnly':
-    'Denoise runs only in the native engine, which is not currently carrying the audio. This stage is bypassed.',
 
   'dsp.crossfade.title': 'Crossfade',
   'dsp.crossfade.description':
@@ -379,8 +377,6 @@ const dsp = {
   'dsp.bassForge.graph.aboveSplit': 'Above split',
   'dsp.bassForge.monoNote':
     'Generated bass is summed to mono. The original low end keeps its stereo.',
-  'dsp.bassForge.unavailable':
-    'Bass Forge runs only in the native engine, which is not currently carrying the audio. This stage is bypassed.',
   'dsp.bassForgePreset.subtle': 'Subtle',
   'dsp.bassForgePreset.deep': 'Deep',
   'dsp.bassForgePreset.solid': 'Solid',
@@ -404,8 +400,6 @@ const dsp = {
   'dsp.bassPunch.bloomAmount': 'Bloom',
   'dsp.bassPunch.bloomDecayMs': 'Bloom decay',
   'dsp.bassPunch.duck': 'Duck',
-  'dsp.bassPunch.unavailable':
-    'Bass Punch runs only in the native engine, which is not currently carrying the audio. This stage is bypassed.',
   'dsp.bassPunch.meterNote':
     'Attack is drawn as separate marks because each one is the largest swing inside its own measuring window. Sustain and duck last across several windows, so they are sampled and run as continuous traces.',
   'dsp.bassPunch.graph.now': 'now',

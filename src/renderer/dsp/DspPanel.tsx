@@ -97,6 +97,20 @@ const DspPanel = ({
   const sampleRate = useDspSampleRate();
   const outputSafetyEnabled = useDspOutputSafetyEnabled();
   const nativeState = useDspNativeState();
+  /**
+   * Whether anything below this actually reaches the music.
+   *
+   * The switch is not the only thing that can make the answer no. The native
+   * engine is the ONLY engine — `useDspEngine` stands the worklet down
+   * unconditionally — so when the host has not started, every control in the
+   * rack is a knob wired to nothing. Leaving them live let a user spend an
+   * evening voicing a chain that was never in the signal path, with one line of
+   * text as the only clue.
+   *
+   * `failed` and not `idle`: idle means the player has not been opened yet, and
+   * dimming the whole rack because nobody has pressed play would be wrong.
+   */
+  const isLive = settings.enabled && nativeState !== 'failed';
   const outputSafetyMeter = useDspOutputSafetyMeter();
   const inputAnalysis = useDspInputAnalysis();
   const loudness = masterLoudnessBreakdown(
@@ -262,7 +276,7 @@ const DspPanel = ({
                 key={preset.id}
                 type="button"
                 className="button small subtle"
-                disabled={!settings.enabled}
+                disabled={!isLive}
                 onClick={() => {
                   onChange(preset.settings);
                   onCommit();
@@ -305,21 +319,27 @@ const DspPanel = ({
             ever seen by a user who happened to open Master — and a failure the
             listener cannot see is the failure being silent.
 
-            Suppressed when the worklet chain has failed too, because then this
-            would contradict the line directly above it: there is no fallback
-            carrying the audio, nothing is processing, and `dsp.unavailable` is
-            the true one. */}
+            `alert`, not `status`, and red rather than amber, because it is an
+            error: every stage is off. It said the EQ, dynamics and limiter
+            "still apply" long after `useDspEngine` made the worklet a permanent
+            passthrough, so the one line whose whole job is to tell the listener
+            what is happening to their music was the last thing still claiming
+            there was a fallback.
+
+            Suppressed when the worklet chain has failed too, because then
+            `dsp.unavailable` directly above says the same thing and two red
+            paragraphs saying it twice is worse than one saying it once. */}
         {nativeState === 'failed' && engineState !== 'failed' ? (
-          <p className="dsp-engine-fallback" role="status">
-            {t('dsp.engineFallback')}
+          <p className="dsp-engine-down" role="alert">
+            {t('dsp.engineDown')}
           </p>
         ) : undefined}
       </header>
 
       <div
-        className={`dsp-body${settings.enabled ? '' : ' is-disabled'}`}
-        inert={settings.enabled ? undefined : true}
-        aria-disabled={!settings.enabled}
+        className={`dsp-body${isLive ? '' : ' is-disabled'}`}
+        inert={isLive ? undefined : true}
+        aria-disabled={!isLive}
       >
         <DspSideTabs
           active={section}

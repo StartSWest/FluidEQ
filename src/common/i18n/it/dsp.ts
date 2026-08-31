@@ -24,8 +24,8 @@ const dsp = {
     'Si avvia quando riproduci qualcosa dalla Libreria. Elabora il lettore di FluidEQ, quindi non ha nulla da fare finché non carichi un brano.',
   'dsp.unavailable':
     "L'elaborazione audio non è riuscita ad avviarsi. La riproduzione non è interessata.",
-  'dsp.engineFallback':
-    'Il motore audio nativo non è riuscito ad avviarsi, quindi FluidEQ riproduce attraverso la sua catena di riserva: equalizzatore, dinamica e limiter continuano ad applicarsi, ma gli stadi che esistono solo nel motore nativo vengono saltati. Di solito basta riavviare FluidEQ.',
+  'dsp.engineDown':
+    'Il motore audio nativo non è riuscito ad avviarsi, quindi ogni stadio DSP è spento. Niente qui sotto sta elaborando la tua musica e i controlli sono disattivati; la riproduzione in sé non è interessata. Di solito basta riavviare FluidEQ.',
   'dsp.presets': 'Preimpostazioni',
   'dsp.preset.lossyRepair': 'Ripara compresso',
   'dsp.preset.loud': 'Forte',
@@ -131,8 +131,6 @@ const dsp = {
   'dsp.denoise.liveReduction': 'Riduzione',
   'dsp.denoise.clicksRepaired': 'Riparati',
   'dsp.denoise.voiceUnderruns': 'Interruzioni voce',
-  'dsp.denoise.nativeOnly':
-    'La riduzione del rumore funziona solo nel motore nativo, che al momento non sta portando l’audio. Questo stadio è escluso.',
 
   'dsp.crossfade.title': 'Dissolvenza incrociata',
   'dsp.crossfade.description':
@@ -369,8 +367,6 @@ const dsp = {
   'dsp.bassForge.graph.aboveSplit': 'Sopra il taglio',
   'dsp.bassForge.monoNote':
     'Il basso generato viene sommato in mono. I bassi originali mantengono il loro stereo.',
-  'dsp.bassForge.unavailable':
-    "La Fucina dei bassi funziona solo nel motore nativo, che al momento non sta portando l'audio. Questo stadio è escluso.",
   'dsp.bassForgePreset.subtle': 'Sottile',
   'dsp.bassForgePreset.deep': 'Profondo',
   'dsp.bassForgePreset.solid': 'Solido',
@@ -395,8 +391,6 @@ const dsp = {
   'dsp.bassPunch.bloomAmount': 'Fioritura',
   'dsp.bassPunch.bloomDecayMs': 'Durata fioritura',
   'dsp.bassPunch.duck': 'Ducking',
-  'dsp.bassPunch.unavailable':
-    "Il Punch dei bassi funziona solo nel motore nativo, che al momento non sta portando l'audio. Questo stadio è escluso.",
   'dsp.bassPunch.meterNote':
     "L'attacco è disegnato a segni separati, perché ognuno è la massima escursione all'interno della propria finestra di misura. Sostegno e ducking durano per più finestre, quindi vengono campionati e scorrono come tracce continue.",
   'dsp.bassPunch.graph.now': 'ora',
