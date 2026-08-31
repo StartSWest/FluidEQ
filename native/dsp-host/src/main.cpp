@@ -175,6 +175,14 @@ struct HostState {
    * signal telling it to cue that again.
    */
   std::atomic<uint32_t> device_generation{0};
+  /**
+   * Whether the current outage has already been logged.
+   *
+   * The retry runs on the telemetry thread, about forty times a second, so a
+   * line per attempt would bury the one that says what happened. Touched only
+   * under `device_mutex`, which every reopen already holds.
+   */
+  bool reopen_failure_reported{false};
 };
 
 std::mutex g_stdout_mutex;
@@ -754,9 +762,34 @@ void reopen_if_device_changed(HostState& state, IAudioOutputBackend& backend,
   std::string error;
   FeqBackendFormat negotiated{};
   if (!backend.open(negotiated, error)) {
-    std::fprintf(stderr, "FluidEQ-DSP: reopen failed: %s\n", error.c_str());
+    /**
+     * The device is not there YET, which is not the same as not coming back.
+     *
+     * A headset powering off and on, or Windows re-enumerating after one is
+     * plugged in, leaves a window of a second or so with no default endpoint
+     * at all — Chromium logs "invalid output parameters" against the same
+     * moment. Opening during that window fails, and giving up here left the
+     * host closed and silent with nothing scheduled to try again: the process
+     * alive, no device, no error anybody could see, and only a restart to fix
+     * it. That is the "no sound after changing output" this mechanism was
+     * supposed to prevent.
+     *
+     * The request goes back so the next telemetry tick tries again, which is a
+     * poll that already exists rather than a delay invented here. Reported
+     * once per outage: this runs about forty times a second, and a log line
+     * per attempt would bury the one that matters.
+     */
+    backend.request_reopen();
+    if (!state.reopen_failure_reported) {
+      state.reopen_failure_reported = true;
+      std::fprintf(stderr,
+                   "FluidEQ-DSP: reopen failed: %s; retrying until an "
+                   "endpoint is available\n",
+                   error.c_str());
+    }
     return;
   }
+  state.reopen_failure_reported = false;
 
   const uint32_t channels = negotiated.channels < kEngineChannels
                                 ? negotiated.channels
@@ -790,8 +823,12 @@ void reopen_if_device_changed(HostState& state, IAudioOutputBackend& backend,
     return;
   }
   if (!backend.start(error)) {
-    std::fprintf(stderr, "FluidEQ-DSP: reopen failed: %s\n", error.c_str());
+    // Opened and then refused to run, which is the same outage a moment later.
+    // Closed and asked for again rather than left as a silent open handle.
+    std::fprintf(stderr, "FluidEQ-DSP: reopen failed to start: %s\n",
+                 error.c_str());
     backend.close();
+    backend.request_reopen();
     return;
   }
 

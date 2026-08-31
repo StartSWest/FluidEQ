@@ -236,6 +236,10 @@ class WasapiBackend final : public IAudioOutputBackend {
     reopen_.store(false, std::memory_order_release);
   }
 
+  void request_reopen() override {
+    reopen_.store(true, std::memory_order_release);
+  }
+
   const char* name() const override { return "wasapi-shared"; }
 
  private:

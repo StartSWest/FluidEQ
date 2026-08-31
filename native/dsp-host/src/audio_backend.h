@@ -121,6 +121,19 @@ class IAudioOutputBackend {
   /** Acknowledge a reopen, so it is acted on once. */
   virtual void clear_reopen() {}
 
+  /**
+   * Ask for another attempt, because the last one did not succeed.
+   *
+   * A reopen is acknowledged BEFORE it is tried, so a change arriving during
+   * the attempt is not lost. That leaves nothing holding the request when the
+   * attempt itself fails — and an endpoint that has just gone away is exactly
+   * when opening fails, so the one case this whole mechanism exists for was
+   * also the one it gave up on: closed, silent, and nothing scheduled to try
+   * again. Putting the request back is what makes it wait for the device to
+   * come back rather than for the user to restart the app.
+   */
+  virtual void request_reopen() {}
+
   /** A human-readable name for the handshake and for support reports. */
   virtual const char* name() const = 0;
 };
