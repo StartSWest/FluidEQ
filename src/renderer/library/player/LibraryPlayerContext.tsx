@@ -328,36 +328,6 @@ export const LibraryPlayerProvider = ({
   });
 
   /**
-   * Catches the one case the effect above cannot: `trackId` staying exactly
-   * where it is while `track` disappears from under it — `library-root-remove`
-   * (`ipc/library.ts`) deletes a root's tracks outright, so `trackById.get(trackId)`
-   * starts returning `undefined` with no change to the queue that would
-   * re-run the loader effect. Left alone, the hidden `Audio()` keeps whatever
-   * `src` it already had — playing, with no bar and no controls, reachable
-   * only by quitting.
-   *
-   * Deliberately its own effect, keyed on the transition into "track missing"
-   * rather than on `track` itself: adding `track` to the effect above was
-   * rejected on purpose (its own comment explains why — a rescan refreshing
-   * this same track's tags must not restart what is already playing), and
-   * `[track === undefined]` only fires on the one edge that actually matters
-   * instead of on every `trackById` update a rescan produces.
-   */
-  useEffect(() => {
-    const audio = audioElementRef.current;
-    if (!audio || !trackId || track) {
-      return;
-    }
-    audio.pause();
-    audio.removeAttribute('src');
-    setIsPlaying(false);
-    setIsUnplayable(false);
-    setDurationMs(0);
-    setPositionMs(0);
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- keyed on the missing-track transition only; see the comment above.
-  }, [track === undefined]);
-
-  /**
    * What is coming, and where each of it came from — the record being
    * played through, what was added by hand, and what continuation guessed.
    * See `useUpNext`.
