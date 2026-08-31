@@ -73,6 +73,10 @@ const dsp = {
   'dsp.denoise.isolateHint': 'Ascolta solo ciò che questo stadio rimuove.',
   'dsp.denoise.isolateOn':
     'Il segnale mantenuto è rimosso: si sente solo ciò che viene tolto.',
+  'dsp.denoise.graphOutput': 'Uscita',
+  'dsp.denoise.graphFloor': 'Rumore di fondo',
+  'dsp.denoise.graphHum': 'Ronzio',
+  'dsp.denoise.graphIdle': 'Inattivo',
   'dsp.denoise.profileSource': 'Rumore di fondo',
   'dsp.denoise.scanned': 'Analizzato',
   'dsp.denoise.adaptive': 'Adattivo',

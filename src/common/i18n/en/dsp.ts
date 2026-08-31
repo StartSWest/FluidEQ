@@ -80,6 +80,10 @@ const dsp = {
   'dsp.denoise.isolateHint': 'Hear only what this stage is removing.',
   'dsp.denoise.isolateOn':
     'Kept signal dropped — you are hearing only what is removed.',
+  'dsp.denoise.graphOutput': 'Output',
+  'dsp.denoise.graphFloor': 'Noise floor',
+  'dsp.denoise.graphHum': 'Hum',
+  'dsp.denoise.graphIdle': 'Idle',
   'dsp.denoise.profileSource': 'Noise floor',
   'dsp.denoise.scanned': 'Scanned',
   'dsp.denoise.adaptive': 'Adaptive',

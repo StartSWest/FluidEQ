@@ -68,6 +68,10 @@ const dsp = {
   'dsp.denoise.isolateHint': 'この段が取り除いている成分だけを聴きます。',
   'dsp.denoise.isolateOn':
     '残す信号を除去 — 取り除かれる成分だけが聞こえます。',
+  'dsp.denoise.graphOutput': '出力',
+  'dsp.denoise.graphFloor': 'ノイズフロア',
+  'dsp.denoise.graphHum': 'ハム',
+  'dsp.denoise.graphIdle': '待機',
   'dsp.denoise.profileSource': 'ノイズフロア',
   'dsp.denoise.scanned': '解析済み',
   'dsp.denoise.adaptive': '適応',

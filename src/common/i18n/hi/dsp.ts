@@ -70,6 +70,10 @@ const dsp = {
   'dsp.denoise.isolateHint': 'केवल वही सुनें जो यह चरण हटा रहा है।',
   'dsp.denoise.isolateOn':
     'रखा गया सिग्नल हटा दिया गया — केवल हटाया जा रहा हिस्सा सुनाई दे रहा है।',
+  'dsp.denoise.graphOutput': 'आउटपुट',
+  'dsp.denoise.graphFloor': 'शोर स्तर',
+  'dsp.denoise.graphHum': 'हम',
+  'dsp.denoise.graphIdle': 'निष्क्रिय',
   'dsp.denoise.profileSource': 'शोर स्तर',
   'dsp.denoise.scanned': 'मापा गया',
   'dsp.denoise.adaptive': 'अनुकूली',

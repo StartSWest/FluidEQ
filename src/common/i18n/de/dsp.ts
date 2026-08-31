@@ -74,6 +74,10 @@ const dsp = {
   'dsp.denoise.isolateHint': 'Nur hören, was diese Stufe entfernt.',
   'dsp.denoise.isolateOn':
     'Das behaltene Signal ist entfernt — nur das Entfernte ist hörbar.',
+  'dsp.denoise.graphOutput': 'Ausgang',
+  'dsp.denoise.graphFloor': 'Rauschteppich',
+  'dsp.denoise.graphHum': 'Brummen',
+  'dsp.denoise.graphIdle': 'Inaktiv',
   'dsp.denoise.profileSource': 'Rauschteppich',
   'dsp.denoise.scanned': 'Gemessen',
   'dsp.denoise.adaptive': 'Adaptiv',

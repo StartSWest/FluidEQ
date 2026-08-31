@@ -74,6 +74,10 @@ const dsp = {
   'dsp.denoise.isolateHint': 'Écouter uniquement ce que cette étape retire.',
   'dsp.denoise.isolateOn':
     'Le signal conservé est retiré — seul ce qui est enlevé est audible.',
+  'dsp.denoise.graphOutput': 'Sortie',
+  'dsp.denoise.graphFloor': 'Plancher de bruit',
+  'dsp.denoise.graphHum': 'Ronflement',
+  'dsp.denoise.graphIdle': 'Inactif',
   'dsp.denoise.profileSource': 'Plancher de bruit',
   'dsp.denoise.scanned': 'Analysé',
   'dsp.denoise.adaptive': 'Adaptatif',

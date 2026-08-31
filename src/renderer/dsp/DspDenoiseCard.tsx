@@ -15,6 +15,7 @@ import { NOISE_HUM_MAX_HARMONICS } from '../../common/dsp/noiseProfile';
 import Switch from '../widgets/Switch';
 import { useTranslation } from '../utils/I18nContext';
 import { Dial, ProcessorCard } from './DspControls';
+import DspDenoiseGraph from './DspDenoiseGraph';
 import {
   IDspInputAnalysisState,
   useDspDenoiseMeter,
@@ -181,6 +182,12 @@ const DspDenoiseCard = ({
           <p className="dsp-band-hint">{t('dsp.denoise.fallingBack')}</p>
         ) : null}
       </section>
+
+      {/* Above the numbers, because it is the reading that makes them mean
+          something: a floor and a spectrum in the same units on the same
+          axes. "Reducing: -4 dB" is the same number whether the stage is
+          taking hiss or taking the vocal. */}
+      <DspDenoiseGraph profile={profile} isEnabled={isEnabled} />
 
       <section className="dsp-denoise-analysis" aria-live="polite">
         <div className="dsp-band-head">

@@ -278,6 +278,64 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
+// Tall enough to read a floor against a spectrum. Below roughly 150px the two
+// curves sit close enough that "under the floor" stops being legible, which is
+// the one thing this picture exists to show.
+.dsp-denoise-graph {
+  position: relative;
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  height: 176px;
+  flex-direction: column;
+  border: 1px solid rgba($white, 0.06);
+  border-radius: 10px;
+  background: rgba($black, 0.22);
+
+  canvas {
+    display: block;
+    width: 100%;
+    min-height: 0;
+    flex: 1 1 auto;
+  }
+}
+
+.dsp-denoise-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 0 10px 7px;
+}
+
+.dsp-denoise-legend-key {
+  display: flex;
+  align-items: center;
+  color: rgba($white, 0.42);
+  font-size: 0.62rem;
+  gap: 5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+
+  &::before {
+    width: 10px;
+    height: 2px;
+    border-radius: 1px;
+    content: '';
+  }
+
+  &.is-spectrum::before {
+    background: rgba($white, 0.35);
+  }
+
+  &.is-floor::before {
+    background: rgba(255, 176, 89, 0.85);
+  }
+
+  &.is-hum::before {
+    background: rgba(84, 200, 255, 0.6);
+  }
+}
+
 .dsp-denoise-modules {
   display: grid;
   width: 100%;

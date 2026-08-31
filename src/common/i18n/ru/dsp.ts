@@ -73,6 +73,10 @@ const dsp = {
   'dsp.denoise.isolateHint': 'Слушать только то, что убирает этот этап.',
   'dsp.denoise.isolateOn':
     'Сохраняемый сигнал убран — слышно только удаляемое.',
+  'dsp.denoise.graphOutput': 'Выход',
+  'dsp.denoise.graphFloor': 'Уровень шума',
+  'dsp.denoise.graphHum': 'Фон',
+  'dsp.denoise.graphIdle': 'Простой',
   'dsp.denoise.profileSource': 'Уровень шума',
   'dsp.denoise.scanned': 'Измерен',
   'dsp.denoise.adaptive': 'Адаптивный',
