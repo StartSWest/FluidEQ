@@ -69,9 +69,10 @@ const dsp = {
   'dsp.denoise.title': 'Redução de ruído',
   'dsp.denoise.description':
     'Repara a fonte antes que algo a colora: chiado, zumbido da rede, estalos e um limpador neural de voz. Medido na própria faixa, não adivinhado.',
-  'dsp.denoise.isolate': 'Ouvir o que é removido',
-  'dsp.denoise.isolateHint':
-    'Reproduz o sinal removido em vez do mantido. A única forma fiável de ouvir se isto está a levar o chiado ou o prato de choque.',
+  'dsp.denoise.isolate': 'Isolar',
+  'dsp.denoise.isolateHint': 'Ouvir apenas o que esta etapa remove.',
+  'dsp.denoise.isolateOn':
+    'O sinal mantido foi removido — ouve-se apenas o que é retirado.',
   'dsp.denoise.profileSource': 'Piso de ruído',
   'dsp.denoise.scanned': 'Analisado',
   'dsp.denoise.adaptive': 'Adaptativo',

@@ -66,9 +66,10 @@ const dsp = {
   'dsp.denoise.title': 'शोर निवारण',
   'dsp.denoise.description':
     'रंग चढ़ाने से पहले स्रोत की मरम्मत करता है: हिस, मेन्स हम, क्लिक और एक न्यूरल वॉइस क्लीनर। ट्रैक से ही मापा गया, अनुमान नहीं।',
-  'dsp.denoise.isolate': 'जो हटाया जा रहा है उसे सुनें',
-  'dsp.denoise.isolateHint':
-    'रखे गए संकेत के बजाय हटाया गया संकेत बजाता है। यह जानने का एकमात्र भरोसेमंद तरीका कि यह हिस ले जा रहा है या हाई-हैट।',
+  'dsp.denoise.isolate': 'अलग करें',
+  'dsp.denoise.isolateHint': 'केवल वही सुनें जो यह चरण हटा रहा है।',
+  'dsp.denoise.isolateOn':
+    'रखा गया सिग्नल हटा दिया गया — केवल हटाया जा रहा हिस्सा सुनाई दे रहा है।',
   'dsp.denoise.profileSource': 'शोर स्तर',
   'dsp.denoise.scanned': 'मापा गया',
   'dsp.denoise.adaptive': 'अनुकूली',

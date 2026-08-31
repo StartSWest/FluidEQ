@@ -69,9 +69,10 @@ const dsp = {
   'dsp.denoise.title': 'Riduzione del rumore',
   'dsp.denoise.description':
     'Ripara la sorgente prima che qualcosa la colori: fruscio, ronzio di rete, click e un pulitore vocale neurale. Misurato sul brano stesso, non ipotizzato.',
-  'dsp.denoise.isolate': 'Ascolta ciò che viene tolto',
-  'dsp.denoise.isolateHint':
-    'Riproduce il segnale rimosso invece di quello mantenuto. L’unico modo affidabile per sentire se sta togliendo il fruscio o il charleston.',
+  'dsp.denoise.isolate': 'Isola',
+  'dsp.denoise.isolateHint': 'Ascolta solo ciò che questo stadio rimuove.',
+  'dsp.denoise.isolateOn':
+    'Il segnale mantenuto è rimosso: si sente solo ciò che viene tolto.',
   'dsp.denoise.profileSource': 'Rumore di fondo',
   'dsp.denoise.scanned': 'Analizzato',
   'dsp.denoise.adaptive': 'Adattivo',

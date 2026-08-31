@@ -70,9 +70,10 @@ const dsp = {
   'dsp.denoise.title': 'Débruitage',
   'dsp.denoise.description':
     'Répare la source avant que quoi que ce soit ne la colore : souffle, ronflement secteur, craquements et un nettoyeur vocal neuronal. Mesuré sur la piste elle-même, pas deviné.',
-  'dsp.denoise.isolate': 'Écouter ce qui est retiré',
-  'dsp.denoise.isolateHint':
-    'Joue le signal retiré au lieu de celui conservé. Le seul moyen fiable d’entendre si cela emporte le souffle ou le charleston.',
+  'dsp.denoise.isolate': 'Isoler',
+  'dsp.denoise.isolateHint': 'Écouter uniquement ce que cette étape retire.',
+  'dsp.denoise.isolateOn':
+    'Le signal conservé est retiré — seul ce qui est enlevé est audible.',
   'dsp.denoise.profileSource': 'Plancher de bruit',
   'dsp.denoise.scanned': 'Analysé',
   'dsp.denoise.adaptive': 'Adaptatif',

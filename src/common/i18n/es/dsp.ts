@@ -70,9 +70,10 @@ const dsp = {
   'dsp.denoise.title': 'Reducción de ruido',
   'dsp.denoise.description':
     'Repara la fuente antes de que nada la coloree: siseo, zumbido de red, chasquidos y un limpiador neuronal de voz. Medido a partir de la propia pista, no supuesto.',
-  'dsp.denoise.isolate': 'Escuchar lo que se elimina',
-  'dsp.denoise.isolateHint':
-    'Reproduce la señal eliminada en lugar de la conservada. La única forma fiable de oír si esto se está llevando el siseo o el charles.',
+  'dsp.denoise.isolate': 'Aislar',
+  'dsp.denoise.isolateHint': 'Escucha solo lo que esta etapa elimina.',
+  'dsp.denoise.isolateOn':
+    'Se eliminó la señal conservada; solo se oye lo que se quita.',
   'dsp.denoise.profileSource': 'Suelo de ruido',
   'dsp.denoise.scanned': 'Analizado',
   'dsp.denoise.adaptive': 'Adaptativo',

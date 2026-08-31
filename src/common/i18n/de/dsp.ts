@@ -70,9 +70,10 @@ const dsp = {
   'dsp.denoise.title': 'Rauschentfernung',
   'dsp.denoise.description':
     'Repariert die Quelle, bevor sie irgendetwas färbt: Rauschen, Netzbrummen, Knackser und ein neuronaler Sprachreiniger. Am Titel selbst gemessen, nicht geraten.',
-  'dsp.denoise.isolate': 'Entferntes anhören',
-  'dsp.denoise.isolateHint':
-    'Gibt das entfernte Signal statt des behaltenen wieder. Der einzige verlässliche Weg zu hören, ob hier Rauschen oder die Hi-Hat verschwindet.',
+  'dsp.denoise.isolate': 'Isolieren',
+  'dsp.denoise.isolateHint': 'Nur hören, was diese Stufe entfernt.',
+  'dsp.denoise.isolateOn':
+    'Das behaltene Signal ist entfernt — nur das Entfernte ist hörbar.',
   'dsp.denoise.profileSource': 'Rauschteppich',
   'dsp.denoise.scanned': 'Gemessen',
   'dsp.denoise.adaptive': 'Adaptiv',

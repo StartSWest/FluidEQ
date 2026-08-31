@@ -112,16 +112,33 @@ const DspDenoiseCard = ({
       isEnabled={isEnabled}
       onToggle={() => commitPatch({ enabled: !denoise.enabled })}
       beforePower={
-        <button
-          type="button"
-          className={`button small${denoise.isolate ? '' : ' subtle'}`}
-          aria-pressed={denoise.isolate}
-          disabled={!isEnabled}
-          onClick={() => commitPatch({ isolate: !denoise.isolate })}
-          title={t('dsp.denoise.isolateHint')}
+        /* The labelled switch the EQ and the Exciter already use for Isolate.
+           It is the same control, doing the same job, in the same place on the
+           header row — a button here read as a different kind of thing. */
+        <div
+          className="dsp-monitor-isolate"
+          title={
+            denoise.isolate
+              ? t('dsp.denoise.isolateOn')
+              : t('dsp.denoise.isolateHint')
+          }
         >
-          {t('dsp.denoise.isolate')}
-        </button>
+          <span
+            className={`dsp-monitor-isolate-label${
+              denoise.isolate ? ' is-on' : ''
+            }`}
+            aria-hidden="true"
+          >
+            {t('dsp.denoise.isolate')}
+          </span>
+          <Switch
+            id="dsp-denoise-isolate"
+            isOn={denoise.isolate}
+            isDisabled={!isEnabled}
+            handleToggle={() => commitPatch({ isolate: !denoise.isolate })}
+            ariaLabel={t('dsp.denoise.isolate')}
+          />
+        </div>
       }
     >
       {isBypassedByEngine ? (
