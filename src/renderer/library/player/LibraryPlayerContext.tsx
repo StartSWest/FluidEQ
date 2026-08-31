@@ -997,6 +997,64 @@ export const LibraryPlayerProvider = ({
     }
   }, [hostTransport.ended, handleEnded]);
 
+  /**
+   * Start the overlap while there is still music to overlap with.
+   *
+   * Driven by the published clock rather than by the element's `timeupdate`,
+   * which is where this lived. The element is no longer necessarily running —
+   * once the host owns the transport it is paused, and a paused element emits
+   * no ticks — so a check that hung off one would simply stop happening on the
+   * engine that is actually playing.
+   *
+   * One path serves both engines: `publishedPositionMs` is the host's when
+   * there is a deck and the element's otherwise, so this reads whichever one
+   * is making the sound.
+   */
+  useEffect(() => {
+    const { current } = queueRef;
+    const transition = dspSettings.crossfade;
+    const playingId = current ? currentTrackId(current) : undefined;
+    const element = audioElementRef.current;
+    if (
+      !current ||
+      !playingId ||
+      !element ||
+      !dspSettings.enabled ||
+      !transition.enabled ||
+      current.repeat === 'one' ||
+      naturalCrossfadeTrackRef.current === playingId ||
+      !Number.isFinite(publishedDurationMs) ||
+      publishedDurationMs <= 0 ||
+      (queueAtEnd(current) && current.repeat !== 'all')
+    ) {
+      return;
+    }
+    /**
+     * The end of the music, not the end of the file.
+     *
+     * A track padded with five seconds of digital silence used to start its
+     * two-second fade three seconds into that silence: nothing audible crossed
+     * over, and the next song waited for the padding to run out. Without a
+     * measurement this is the duration, which is what it always was.
+     */
+    const edges = programmeEdgesRef.current.get(element);
+    const programmeEndMs = Math.min(
+      publishedDurationMs,
+      edges?.endMs ?? Number.POSITIVE_INFINITY,
+    );
+    // Not `remaining > 0`, which is the same test only while the programme
+    // runs to the last sample. Once the end is trimmed, being already inside
+    // the trailing silence — seeked into it, or arrived there while the DSP
+    // was off — is a reason to hand over now.
+    if (
+      publishedPositionMs < publishedDurationMs &&
+      programmeEndMs - publishedPositionMs <= transition.durationMs
+    ) {
+      naturalCrossfadeTrackRef.current = playingId;
+      setQueue(advanceQueue(current, 1));
+    }
+  }, [publishedPositionMs, publishedDurationMs, dspSettings]);
+
   const bindMediaEvents = useCallback(
     (element: HTMLMediaElement): (() => void) => {
       const isActive = () =>
@@ -1026,45 +1084,6 @@ export const LibraryPlayerProvider = ({
         }
         if (ownsPosition()) {
           setPositionMs(element.currentTime * 1000);
-        }
-        const { current } = queueRef;
-        const transition = dspSettingsRef.current.crossfade;
-        const playingId = current ? currentTrackId(current) : undefined;
-        const { duration } = element;
-        /**
-         * The end of the music, not the end of the file.
-         *
-         * A track padded with five seconds of digital silence used to start
-         * its two-second fade three seconds into that silence: nothing
-         * audible crossed over, and the next song waited for the padding to
-         * run out. Without a measurement this is the duration, which is what
-         * it always was.
-         */
-        const edges = programmeEdgesRef.current.get(element);
-        const programmeEndMs = Math.min(
-          duration * 1_000,
-          edges?.endMs ?? Number.POSITIVE_INFINITY,
-        );
-        const remainingMs = programmeEndMs - element.currentTime * 1_000;
-        if (
-          element === audioElementRef.current &&
-          dspSettingsRef.current.enabled &&
-          transition.enabled &&
-          current &&
-          current.repeat !== 'one' &&
-          playingId &&
-          naturalCrossfadeTrackRef.current !== playingId &&
-          Number.isFinite(duration) &&
-          // Not `remainingMs > 0`, which is the same test only while the
-          // programme runs to the last sample. Once the end is trimmed, being
-          // already inside the trailing silence — seeked into it, or arrived
-          // there while the DSP was off — is a reason to hand over now.
-          element.currentTime < duration &&
-          remainingMs <= transition.durationMs &&
-          (!queueAtEnd(current) || current.repeat === 'all')
-        ) {
-          naturalCrossfadeTrackRef.current = playingId;
-          setQueue(advanceQueue(current, 1));
         }
       };
       // `seeked` as well, exactly as `useKaraokeSession` does it: the element
