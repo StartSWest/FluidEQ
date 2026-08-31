@@ -56,12 +56,17 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   @include animate(rise-in, $motion-base, $ease-out, 85ms);
 }
 
-// Eight beats for the seven tabs that ship: the compressor keeps its place in
+// Nine beats for the eight tabs that ship: the compressor keeps its place in
 // the chain while its editor is held back, so restoring that tab costs the
 // cascade nothing. The rail is keyed by section id and never unmounts, so this
 // runs once when the tab is opened and not on section changes.
+//
+// The count has to be at least the number of tabs: `stagger-in` only writes
+// `nth-child` delays up to it, and every tab past the count inherits the LAST
+// delay — so the rail would run out of stagger partway down and finish with
+// several entries arriving together.
 .dsp-rail-tab {
-  @include stagger-in($count: 8, $step: 26ms, $offset: 110ms);
+  @include stagger-in($count: 9, $step: 26ms, $offset: 110ms);
 }
 
 .dsp-header {
@@ -2000,7 +2005,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // the preset picker, on the one page in the rack that has both, and the two
 // controls behind it wrapping into a second row 390px wide.
 .dsp-exciter-note,
-.dsp-maximizer-note {
+.dsp-maximizer-note,
+.dsp-bass-forge-note {
   flex: 1 0 100%;
   max-width: 620px;
   margin: 0;
@@ -3356,4 +3362,51 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // is a property of the RECORD rather than of the settings.
 .dsp-eq-legend-mark.is-correlation {
   background: #ffb059;
+}
+
+// Bass Forge's two runs, on the card above the dials that made the difference
+// between them. Claims the whole row the way the Maximizer's display does, so
+// the six knobs sit under the picture rather than beside a squeezed one.
+.dsp-bass-forge-display {
+  flex: 1 1 100%;
+  width: 100%;
+  min-width: 0;
+}
+
+// Dimmed to the same 0.42 the panel uses for a switched-off section, matching
+// Dimension's guard bar. The plot draws no measurement at all while the stage
+// is bypassed — the native side resets it every block, so both runs sit at the
+// -120 floor, and two flat lines along the bottom of a live-looking plot read
+// as a meter hearing silence rather than as a stage that is not running.
+.dsp-bass-forge-display.is-off {
+  opacity: 0.42;
+}
+
+// Definite for the same reason as every DSP canvas: its backing store follows
+// this box, so an intrinsic height would feed the measurement into itself.
+.dsp-bass-forge-canvas {
+  width: 100%;
+  height: 260px;
+}
+
+// Five entries rather than the three the Maximizer's carries, so they are
+// tightened the way the Master's legend is instead of overflowing the plot.
+.dsp-bass-forge-legend {
+  z-index: 2;
+  top: 5px;
+  gap: 10px;
+  padding-right: 9px;
+  padding-left: 9px;
+}
+
+// One framed group rather than the paired boxes the Maximizer and Dimension
+// use: this stage's six dials are not two decisions. Sub and Presence answer
+// the same question for different hardware, and the other three all shape what
+// those two produced.
+.dsp-bass-forge-controls {
+  flex: 1 1 100%;
+}
+
+.dsp-bass-forge-controls .dsp-band-dials {
+  justify-content: center;
 }
