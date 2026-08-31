@@ -91,6 +91,21 @@ struct DenoiseSpectralChannel {
    */
   std::vector<double> adaptive_db;
   std::vector<double> running_minimum;
+  /**
+   * The periodogram smoothed in time, which is what the minimum is taken of.
+   *
+   * Not the raw one. A raw bin's power is exponentially distributed, so over a
+   * second and a half of noise its minimum lands ten to fifteen decibels under
+   * its mean — while a steady tone, which barely fluctuates at all, has a
+   * minimum equal to its own level. Taking minima of the raw periodogram
+   * therefore estimates the noise far too low and the tone exactly right,
+   * which is precisely backwards: it removed a 1 kHz tone by the full 30 dB
+   * and left the noise floor within a decibel of where it started.
+   *
+   * Smoothing first collapses the noise's variance, so its minimum approaches
+   * its mean and a small bias correction is enough.
+   */
+  std::vector<double> smoothed_power;
   uint32_t minimum_age = 0;
 };
 

@@ -116,6 +116,141 @@ std::vector<float> run(const FeqDenoiseSettings& settings,
   return left;
 }
 
+/* -------------------------------------------------------------- adaptive -- */
+
+/**
+ * Does the live tracker actually find the floor, with no scan at all?
+ *
+ * The question this answers is "is Adaptive doing anything", and it cannot be
+ * answered by listening: a tracker that never converges and a tracker that
+ * converges correctly both leave the music intact and differ only in whether
+ * the hiss goes. So it is measured — the same tone-over-noise as the scanned
+ * test, with the profile withheld.
+ *
+ * It needs a LONG signal. Minimum statistics looks back a second and a half
+ * before it has an estimate at all, so anything shorter measures the warm-up
+ * rather than the tracker.
+ */
+void test_adaptive_finds_the_floor_without_a_scan() {
+  const uint32_t length = kFrames * 700; /* about 7.5 seconds */
+  const double tone_hz = 1000.0;
+  const double noise_amplitude = 0.001;
+
+  /*
+   * The tone is GATED into notes, because that is what the method needs.
+   *
+   * Minimum statistics finds the floor by looking for the quietest the band
+   * gets over its look-back. A note that stops gives it that; a tone held for
+   * the whole file never does, and the tracker correctly concludes that the
+   * quietest that band ever gets IS the tone. Held tones are the documented
+   * limit of this mode and there is a separate test for it below — this one
+   * asks whether the tracker works on material that behaves like music.
+   *
+   * Smoothly enveloped, since a hard gate is a click and the click repairer
+   * and the spectral estimator would both have opinions about it.
+   */
+  Noise source;
+  std::vector<float> input(length, 0.0f);
+  for (uint32_t i = 0; i < length; i += 1) {
+    const double t = static_cast<double>(i) / kRate;
+    const double envelope = std::max(0.0, std::sin(2.0 * kPi * t * 1.25));
+    const double tone =
+        0.1 * envelope *
+        std::sin(2.0 * kPi * tone_hz * static_cast<double>(i) / kRate);
+    input[i] = static_cast<float>(tone + noise_amplitude * source.next());
+  }
+
+  FeqDenoiseSettings settings = bypassed_modules();
+  settings.hiss.enabled = 1;
+  settings.hiss.amount = 1.0;
+  settings.hiss.floor_db = -30.0;
+  settings.profile_source = FEQ_DENOISE_PROFILE_ADAPTIVE;
+
+  // No profile handed over at all, which is the point.
+  const std::vector<float> processed = run(settings, input, nullptr);
+  const std::vector<float> bypassed =
+      run(bypassed_modules(), input, nullptr);
+
+  // Measured in the last third, well past the tracker's warm-up.
+  const uint32_t from = kFrames * 450;
+  const uint32_t count = 48000;
+
+  const double tone_in = tone_level_db(bypassed, tone_hz, from, count);
+  const double tone_out = tone_level_db(processed, tone_hz, from, count);
+  check(std::fabs(tone_out - tone_in) < 1.5,
+        "adaptive: the tone survives without a scan");
+
+  /*
+   * The noise is measured as broadband RMS inside a GAP between notes, not as
+   * a projection onto one frequency.
+   *
+   * A projection answers "how much energy is at exactly 7 kHz", which for
+   * broadband noise is a tiny and very noisy quantity — it moved 2.7 dB while
+   * the audible hiss moved far more. In a gap the signal is nothing but noise,
+   * so its RMS is the hiss itself and the reading is the thing a listener is
+   * actually judging.
+   *
+   * The envelope repeats at 1.25 Hz, so gaps sit in the second half of every
+   * 0.8 s period; this lands in one late in the file.
+   */
+  const uint32_t gap_from = static_cast<uint32_t>(6.9 * kRate);
+  const uint32_t gap_count = static_cast<uint32_t>(0.25 * kRate);
+  const double floor_in = rms_db(bypassed, gap_from, gap_count);
+  const double floor_out = rms_db(processed, gap_from, gap_count);
+  check(floor_out < floor_in - 6.0,
+        "adaptive: the hiss in a gap drops by more than 6 dB with no scan");
+
+  /*
+   * The tone assertion above IS the positive control for the floor one. A
+   * module that simply attenuated everything would satisfy "the floor drops"
+   * and fail "the tone survives", so the pair together says the tracker is
+   * discriminating rather than merely turning things down.
+   */
+}
+
+/**
+ * The documented limit: a tone that never stops is read as noise.
+ *
+ * Not a defect, and recorded here so it is not rediscovered as one. Minimum
+ * statistics estimates the floor as the quietest a band gets over its
+ * look-back; a sustained organ note or synth pad held longer than that window
+ * never gets quieter, so the tracker concludes the note is the floor and
+ * removes it. That is inherent to the method, and it is the reason Scanned
+ * exists — a whole-file measurement takes its percentile across the entire
+ * track, where a note sustained through one section is not the quietest thing
+ * in the file.
+ *
+ * Asserted rather than commented, because the day it changes is a day someone
+ * needs to know the trade has moved.
+ */
+void test_adaptive_suppresses_an_endlessly_held_tone() {
+  const uint32_t length = kFrames * 700;
+  const double tone_hz = 1000.0;
+
+  Noise source;
+  std::vector<float> input(length, 0.0f);
+  for (uint32_t i = 0; i < length; i += 1) {
+    input[i] = static_cast<float>(
+        0.1 * std::sin(2.0 * kPi * tone_hz * static_cast<double>(i) / kRate) +
+        0.001 * source.next());
+  }
+
+  FeqDenoiseSettings settings = bypassed_modules();
+  settings.hiss.enabled = 1;
+  settings.hiss.amount = 1.0;
+  settings.hiss.floor_db = -30.0;
+  settings.profile_source = FEQ_DENOISE_PROFILE_ADAPTIVE;
+
+  const std::vector<float> processed = run(settings, input, nullptr);
+  const std::vector<float> bypassed = run(bypassed_modules(), input, nullptr);
+
+  const uint32_t from = kFrames * 450;
+  const double held_in = tone_level_db(bypassed, tone_hz, from, 48000);
+  const double held_out = tone_level_db(processed, tone_hz, from, 48000);
+  check(held_out < held_in - 12.0,
+        "adaptive: a permanently held tone IS suppressed, as the method must");
+}
+
 /* ------------------------------------------------------------------ hiss -- */
 
 /**
@@ -714,6 +849,8 @@ int main() {
   test_band_centres();
   test_bypass_is_exact();
   test_hiss();
+  test_adaptive_finds_the_floor_without_a_scan();
+  test_adaptive_suppresses_an_endlessly_held_tone();
   test_hum();
   test_click();
   test_isolate_is_the_difference();
