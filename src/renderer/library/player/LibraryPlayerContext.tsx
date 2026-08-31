@@ -45,7 +45,6 @@ import {
   useState,
 } from 'react';
 import { currentTrackId, ILibraryQueue } from '../../../common/library/queue';
-import { registerPlayer } from '../../audio/playbackOwner';
 import { useDspEngine } from '../../dsp/useDspEngine';
 import { useDspSettings } from '../../dsp/store';
 import { useLibrary } from '../LibraryContext';
@@ -53,6 +52,7 @@ import { readStoredVolume } from './playbackMemory';
 import { ILibraryPlayerContextValue } from './playerContract';
 import { useDeckAudio } from './useDeckAudio';
 import { useDeckBookkeeping } from './useDeckBookkeeping';
+import { useDeckLifecycle } from './useDeckLifecycle';
 import { useMediaEvents } from './useMediaEvents';
 import { usePlaybackCommands } from './usePlaybackCommands';
 import { usePlayerDecks } from './usePlayerDecks';
@@ -147,8 +147,6 @@ export const LibraryPlayerProvider = ({
     | undefined
   >(undefined);
 
-  /** Read inside `swapBufferToBlob`'s continuation, where the `trackId` it
-   * closed over would be the one from the render that started the read. */
   /**
    * The native engine, and the clock it hands back. See `usePlayerEngine`:
    * while a deck holds a track the position comes from the engine making the
@@ -169,6 +167,9 @@ export const LibraryPlayerProvider = ({
     durationMs,
     volume,
   });
+  /** Read inside continuations that outlive the render which started them —
+   * the disk read, the decode — where a captured `trackId` would name a track
+   * that has since changed. */
   const trackIdRef = useRef(trackId);
   trackIdRef.current = trackId;
 
@@ -188,36 +189,6 @@ export const LibraryPlayerProvider = ({
     naturalCrossfadeTrackRef,
     fadeFrameRef,
   } = useDeckAudio({ volumeRef, trackIdRef });
-
-  // Silence the element if this provider ever goes away.
-  //
-  // It is a bare `new Audio()` in a ref, deliberately never rendered, which
-  // means React tears down nothing for it: unmount the provider and the sound
-  // simply carries on, reachable by nothing, until the window closes. Mount a
-  // second provider — which a hot reload does on every save — and its own
-  // fresh element starts a second song over the top of the orphan. Two tracks
-  // at once, and no control on screen governs either.
-  //
-  // `hasOpenedLibrary` in `App.tsx` is one-way, so this should not fire in a
-  // packaged build; it fires constantly in development, which is where the
-  // overlap was found.
-  useEffect(() => {
-    isDisposedRef.current = false;
-    return () => {
-      isDisposedRef.current = true;
-      // Reading the CURRENT overlap is the whole point: there is none when
-      // this effect runs, so the rule's advice — copy the ref at setup —
-      // would capture `undefined` and leave a running crossfade holding both
-      // decks after the provider is gone.
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-      finishCrossfadeRef.current?.();
-      audioElements.forEach((audio) => {
-        audio.pause();
-        audio.removeAttribute('src');
-        audio.load();
-      });
-    };
-  }, [audioElements, finishCrossfadeRef]);
   /**
    * What each deck is currently doing, keyed by the deck itself. See
    * `useDeckBookkeeping` for why element and not track id.
@@ -293,31 +264,23 @@ export const LibraryPlayerProvider = ({
     },
   );
 
-  // Bound once to both decks. Only the active deck writes transport state;
-  // the outgoing deck stays audible during overlap without fighting the UI.
-  useEffect(() => {
-    const unbind = audioElements.map((element) => bindMediaEvents(element));
-    return () => unbind.forEach((one) => one());
-  }, [audioElements, bindMediaEvents]);
-
-  // How the rest of the app silences this player when it takes over. Pausing
-  // rather than clearing the queue: the reader gets their album back where
-  // they left it when they come back to the tab, which is what "something
-  // else started" should cost them and no more.
-  useEffect(
-    () =>
-      registerPlayer('library', () => {
-        audioElements.forEach((audio) => audio.pause());
-        videoElementRef.current?.pause();
-      }),
-    [audioElements],
-  );
-
   /**
    * Putting a track on a deck. The largest single thing the player does,
    * and the one with the widest reach into its state — see
    * `useTrackLoader`, where that surface is named rather than implied.
    */
+  /**
+   * A deck's life inside this provider: bound, reachable, and torn down.
+   * See `useDeckLifecycle` — the teardown is why a hot reload does not leave
+   * a second song playing over the top of the first.
+   */
+  useDeckLifecycle({
+    audioElements,
+    videoElementRef,
+    isDisposedRef,
+    finishCrossfadeRef,
+    bindMediaEvents,
+  });
   useTrackLoader({
     trackId,
     track,
