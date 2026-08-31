@@ -30,6 +30,7 @@ const dsp = {
   'dsp.preset.lossyRepair': 'Réparer le compressé',
   'dsp.preset.loud': 'Fort',
   'dsp.preset.broadcast': 'Radio',
+  'dsp.preset.bassPower': 'Puissance des basses',
   'dsp.bypassed': 'Contourné',
   'dsp.enabled': 'Activé',
 
@@ -341,6 +342,50 @@ const dsp = {
     "N'entendre que les harmoniques ajoutées par cet étage.",
   'dsp.exciter.isolateOn':
     "Signal direct coupé — vous n'entendez que ce qui est ajouté.",
+
+  'dsp.bassForge.title': 'Forge de basses',
+  'dsp.bassForge.description':
+    "Ajoute une véritable octave sous les basses pour les enceintes capables de la restituer, et les harmoniques de cette octave pour celles qui ne le peuvent pas — une petite enceinte ne rayonne rien à 45 Hz, mais les harmoniques permettent à l'oreille de reconstruire la hauteur malgré tout. Le volume des basses ne change pas.",
+  'dsp.bassForge.splitHz': 'Coupure',
+  'dsp.bassForge.driveDb': 'Intensité',
+  'dsp.bassForge.subAmount': 'Sub',
+  'dsp.bassForge.presenceAmount': 'Présence',
+  'dsp.bassForge.texture': 'Texture',
+  'dsp.bassForge.mix': 'Quantité',
+  'dsp.bassForge.monoNote':
+    "Les basses générées sont sommées en mono. Les basses d'origine gardent leur stéréo.",
+  'dsp.bassForge.unavailable':
+    "La Forge de basses ne fonctionne que dans le moteur natif, qui ne porte pas l'audio actuellement. Cette étape est contournée.",
+  'dsp.bassForgePreset.subtle': 'Subtil',
+  'dsp.bassForgePreset.deep': 'Profond',
+  'dsp.bassForgePreset.solid': 'Solide',
+  'dsp.bassForgePreset.hot': 'Chaud',
+  'dsp.bassForgePreset.round': 'Rond',
+  'dsp.bassForgePreset.dry': 'Sec',
+  'dsp.bassForgePreset.wet': 'Humide',
+  'dsp.bassForgePreset.phantom': 'Fantôme',
+  'dsp.bassForgePreset.dub': 'Dub',
+  'dsp.bassForgePreset.club': 'Club',
+
+  'dsp.bassPunch.title': 'Punch des basses',
+  'dsp.bassPunch.description':
+    "Façonne l'attaque et la chute des basses, pas leur timbre. Attaque et sustain sont bipolaires : en dessous du centre c'est plus serré et plus sec, au-dessus c'est plus long et plus humide.",
+  'dsp.bassPunch.splitHz': 'Coupure',
+  'dsp.bassPunch.attack': 'Attaque',
+  'dsp.bassPunch.sustain': 'Sustain',
+  'dsp.bassPunch.bloomAmount': 'Éclosion',
+  'dsp.bassPunch.bloomDecayMs': "Durée de l'éclosion",
+  'dsp.bassPunch.duck': 'Ducking',
+  'dsp.bassPunch.unavailable':
+    "Le Punch des basses ne fonctionne que dans le moteur natif, qui ne porte pas l'audio actuellement. Cette étape est contournée.",
+  'dsp.bassPunchPreset.tight': 'Serré',
+  'dsp.bassPunchPreset.open': 'Ouvert',
+  'dsp.bassPunchPreset.slam': 'Claque',
+  'dsp.bassPunchPreset.dry': 'Sec',
+  'dsp.bassPunchPreset.wet': 'Humide',
+  'dsp.bassPunchPreset.soft': 'Doux',
+  'dsp.bassPunchPreset.dnb': 'D&B',
+  'dsp.bassPunchPreset.club': 'Club',
 
   'dsp.compressor.title': 'Compresseur multibande',
   'dsp.compressor.description':

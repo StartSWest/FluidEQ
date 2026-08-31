@@ -29,6 +29,7 @@ const dsp = {
   'dsp.preset.lossyRepair': '修复压缩音频',
   'dsp.preset.loud': '响亮',
   'dsp.preset.broadcast': '广播',
+  'dsp.preset.bassPower': '强劲低音',
   'dsp.bypassed': '旁通',
   'dsp.enabled': '开启',
 
@@ -320,6 +321,50 @@ const dsp = {
   'dsp.exciter.isolate': '独听',
   'dsp.exciter.isolateHint': '只听这一级所添加的谐波。',
   'dsp.exciter.isolateOn': '已关闭干信号——你听到的只有它添加的部分。',
+
+  'dsp.bassForge.title': '低音熔炉',
+  'dsp.bassForge.description':
+    '为能播放的音箱加入低音下方真实的一个八度，为不能播放的音箱加入该八度的谐波——小音箱在 45 Hz 完全无法发声，但谐波仍能让耳朵重建出音高。低频本身的响度并不改变。',
+  'dsp.bassForge.splitHz': '分频',
+  'dsp.bassForge.driveDb': '强度',
+  'dsp.bassForge.subAmount': '次低音',
+  'dsp.bassForge.presenceAmount': '临场感',
+  'dsp.bassForge.texture': '质感',
+  'dsp.bassForge.mix': '混合量',
+  'dsp.bassForge.monoNote':
+    '生成的低音会合并为单声道，原始低频仍保留其立体声。',
+  'dsp.bassForge.unavailable':
+    '低音熔炉仅在原生引擎中运行，而当前音频并未由它承载。此级已被旁路。',
+  'dsp.bassForgePreset.subtle': '轻微',
+  'dsp.bassForgePreset.deep': '深沉',
+  'dsp.bassForgePreset.solid': '扎实',
+  'dsp.bassForgePreset.hot': '火热',
+  'dsp.bassForgePreset.round': '圆润',
+  'dsp.bassForgePreset.dry': '干',
+  'dsp.bassForgePreset.wet': '湿',
+  'dsp.bassForgePreset.phantom': '幻影',
+  'dsp.bassForgePreset.dub': 'Dub',
+  'dsp.bassForgePreset.club': '俱乐部',
+
+  'dsp.bassPunch.title': '低音冲击',
+  'dsp.bassPunch.description':
+    '塑造低频的起音和衰减，而非音色。起音和延音是双极的：中心以下更紧、更干；中心以上更长、更湿。',
+  'dsp.bassPunch.splitHz': '分频',
+  'dsp.bassPunch.attack': '启动时间',
+  'dsp.bassPunch.sustain': '延音',
+  'dsp.bassPunch.bloomAmount': '绽放',
+  'dsp.bassPunch.bloomDecayMs': '绽放衰减',
+  'dsp.bassPunch.duck': '闪避',
+  'dsp.bassPunch.unavailable':
+    '低音冲击仅在原生引擎中运行，而当前音频并未由它承载。此级已被旁路。',
+  'dsp.bassPunchPreset.tight': '紧实',
+  'dsp.bassPunchPreset.open': '开放',
+  'dsp.bassPunchPreset.slam': '重击',
+  'dsp.bassPunchPreset.dry': '干',
+  'dsp.bassPunchPreset.wet': '湿',
+  'dsp.bassPunchPreset.soft': '柔和',
+  'dsp.bassPunchPreset.dnb': 'D&B',
+  'dsp.bassPunchPreset.club': '俱乐部',
 
   'dsp.compressor.title': '多段压缩器',
   'dsp.compressor.description': '在三个频段中分别平衡音量。',

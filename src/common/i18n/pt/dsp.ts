@@ -30,6 +30,7 @@ const dsp = {
   'dsp.preset.lossyRepair': 'Reparar comprimido',
   'dsp.preset.loud': 'Alto',
   'dsp.preset.broadcast': 'Radiofónico',
+  'dsp.preset.bassPower': 'Potência de graves',
   'dsp.bypassed': 'Ignorado',
   'dsp.enabled': 'Ligado',
 
@@ -342,6 +343,50 @@ const dsp = {
     'Ouve apenas os harmónicos que esta etapa acrescenta.',
   'dsp.exciter.isolateOn':
     'Sinal direto desligado — ouves apenas o que isto acrescenta.',
+
+  'dsp.bassForge.title': 'Forja de graves',
+  'dsp.bassForge.description':
+    'Acrescenta uma oitava real abaixo do grave para colunas capazes de a reproduzir, e os harmónicos dessa oitava para as que não conseguem — uma coluna pequena não irradia nada a 45 Hz, mas os harmónicos permitem que o ouvido reconstrua a altura mesmo assim. O volume dos graves não muda.',
+  'dsp.bassForge.splitHz': 'Corte',
+  'dsp.bassForge.driveDb': 'Intensidade',
+  'dsp.bassForge.subAmount': 'Sub',
+  'dsp.bassForge.presenceAmount': 'Presença',
+  'dsp.bassForge.texture': 'Textura',
+  'dsp.bassForge.mix': 'Quantidade',
+  'dsp.bassForge.monoNote':
+    'O grave gerado é somado em mono. Os graves originais mantêm o seu estéreo.',
+  'dsp.bassForge.unavailable':
+    'A Forja de graves só funciona no motor nativo, que não está a levar o áudio neste momento. Esta etapa está contornada.',
+  'dsp.bassForgePreset.subtle': 'Subtil',
+  'dsp.bassForgePreset.deep': 'Profundo',
+  'dsp.bassForgePreset.solid': 'Sólido',
+  'dsp.bassForgePreset.hot': 'Quente',
+  'dsp.bassForgePreset.round': 'Redondo',
+  'dsp.bassForgePreset.dry': 'Seco',
+  'dsp.bassForgePreset.wet': 'Húmido',
+  'dsp.bassForgePreset.phantom': 'Fantasma',
+  'dsp.bassForgePreset.dub': 'Dub',
+  'dsp.bassForgePreset.club': 'Club',
+
+  'dsp.bassPunch.title': 'Punch dos graves',
+  'dsp.bassPunch.description':
+    'Molda o ataque e a queda dos graves, não o seu timbre. Ataque e sustain são bipolares: abaixo do centro é mais apertado e seco, acima é mais longo e húmido.',
+  'dsp.bassPunch.splitHz': 'Corte',
+  'dsp.bassPunch.attack': 'Ataque',
+  'dsp.bassPunch.sustain': 'Sustain',
+  'dsp.bassPunch.bloomAmount': 'Floração',
+  'dsp.bassPunch.bloomDecayMs': 'Duração da floração',
+  'dsp.bassPunch.duck': 'Ducking',
+  'dsp.bassPunch.unavailable':
+    'O Punch dos graves só funciona no motor nativo, que não está a levar o áudio neste momento. Esta etapa está contornada.',
+  'dsp.bassPunchPreset.tight': 'Apertado',
+  'dsp.bassPunchPreset.open': 'Aberto',
+  'dsp.bassPunchPreset.slam': 'Pancada',
+  'dsp.bassPunchPreset.dry': 'Seco',
+  'dsp.bassPunchPreset.wet': 'Húmido',
+  'dsp.bassPunchPreset.soft': 'Suave',
+  'dsp.bassPunchPreset.dnb': 'D&B',
+  'dsp.bassPunchPreset.club': 'Club',
 
   'dsp.compressor.title': 'Compressor multibanda',
   'dsp.compressor.description':
