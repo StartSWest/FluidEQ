@@ -1171,6 +1171,7 @@ bool render_chain(const Fixture& fixture, std::vector<float>& actual) {
   settings.denoise.voice.amount = next();
 
   settings.bass_forge.enabled = flag();
+  settings.bass_forge.isolate = flag();
   settings.bass_forge.split_hz = next();
   settings.bass_forge.drive_db = next();
   settings.bass_forge.sub_amount = next();
@@ -1179,6 +1180,7 @@ bool render_chain(const Fixture& fixture, std::vector<float>& actual) {
   settings.bass_forge.mix = next();
 
   settings.bass_punch.enabled = flag();
+  settings.bass_punch.isolate = flag();
   settings.bass_punch.split_hz = next();
   settings.bass_punch.attack = next();
   settings.bass_punch.sustain = next();

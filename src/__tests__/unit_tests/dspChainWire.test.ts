@@ -96,18 +96,32 @@ describe('the chain wire layout', () => {
   it('carries both bass stages in the lead', () => {
     const encoded = encodeChainSettings({
       ...DSP_DEFAULTS,
-      bassForge: { ...DSP_DEFAULTS.bassForge, enabled: true, mix: 0.7 },
-      bassPunch: { ...DSP_DEFAULTS.bassPunch, enabled: true, duck: 0.4 },
+      bassForge: {
+        ...DSP_DEFAULTS.bassForge,
+        enabled: true,
+        // Set opposite ways on the two stages on purpose: an Isolate wired to
+        // the wrong stage's flag, or to a constant, reads the same on both and
+        // would pass here if they agreed.
+        isolate: true,
+        mix: 0.7,
+      },
+      bassPunch: {
+        ...DSP_DEFAULTS.bassPunch,
+        enabled: true,
+        isolate: false,
+        duck: 0.4,
+      },
     });
 
     expect(encoded).toHaveLength(
       CHAIN_PARAM_LEAD + DSP_DEFAULTS.eq.bands.length * CHAIN_BAND_PARAMS,
     );
-    // A length check alone passes whether or not the fourteen scalars are on
+    // A length check alone passes whether or not the sixteen scalars are on
     // the wire at all, so read them where the decoder reads them: the last
-    // fifteen lead slots are Forge's seven, Punch's seven, and the band count.
-    expect(encoded.slice(CHAIN_PARAM_LEAD - 15, CHAIN_PARAM_LEAD - 1)).toEqual([
-      1, 90, 0, 0, 0, 0.8, 0.7, 1, 110, 0, 0, 0, 120, 0.4,
+    // seventeen lead slots are Forge's eight, Punch's eight, and the band
+    // count.
+    expect(encoded.slice(CHAIN_PARAM_LEAD - 17, CHAIN_PARAM_LEAD - 1)).toEqual([
+      1, 1, 90, 0, 0, 0, 0.8, 0.7, 1, 0, 110, 0, 0, 0, 120, 0.4,
     ]);
     // The band count stays in the last lead slot. If the new scalars were
     // appended after it instead of before, this reads 0.7 and every band that

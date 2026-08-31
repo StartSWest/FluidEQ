@@ -168,6 +168,7 @@ const chainValues = (eqEnabled: boolean, gainDb: number): number[] => {
     0, // voice enabled
     1, // voice amount
     0, // bass forge enabled
+    0, // bass forge isolate
     90, // split
     0, // drive
     0, // sub amount
@@ -175,6 +176,7 @@ const chainValues = (eqEnabled: boolean, gainDb: number): number[] => {
     0.8, // texture
     0, // mix: zero is the bit-exact bypass
     0, // bass punch enabled
+    0, // bass punch isolate
     110, // split
     0, // attack
     0, // sustain

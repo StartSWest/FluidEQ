@@ -327,6 +327,9 @@ const dsp = {
   'dsp.exciter.isolateOn': '已关闭干信号——你听到的只有它添加的部分。',
 
   'dsp.bassForge.title': '低音熔炉',
+  'dsp.bassForge.isolate': '独听',
+  'dsp.bassForge.isolateHint': '只听这一级正在加进去的低频。',
+  'dsp.bassForge.isolateOn': '原始信号已移除——现在只听到 Forge 加进去的部分。',
   'dsp.bassForge.description':
     '为能播放的音箱加入低音下方真实的一个八度，为不能播放的音箱加入该八度的谐波——小音箱在 45 Hz 完全无法发声，但谐波仍能让耳朵重建出音高。低频本身的响度并不改变。',
   'dsp.bassForge.splitHz': '分频',
@@ -352,6 +355,10 @@ const dsp = {
   'dsp.bassForgePreset.dub': 'Dub',
 
   'dsp.bassPunch.title': '低音冲击',
+  'dsp.bassPunch.isolate': '独听',
+  'dsp.bassPunch.isolateHint': '只听这一级正在做的塑形。',
+  'dsp.bassPunch.isolateOn':
+    '原始信号已移除——现在只听到 Punch 加进去的部分。所有旋钮归位时为静音。',
   'dsp.bassPunch.description':
     '塑造低频的起音和衰减，而非音色。起音和延音是双极的：中心以下更紧、更干；中心以上更长、更湿。',
   'dsp.bassPunch.splitHz': '分频',

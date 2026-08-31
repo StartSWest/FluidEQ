@@ -17,14 +17,14 @@ describe('the native DSP parameter table', () => {
    * table at once; a wire lead can be renumbered when the second branch
    * merges, but an id cannot, because a stored automation follows the number
    * rather than the path. This is the check that the reservation held after
-   * that merge, and that none of the fourteen ids collided with a twin.
+   * that merge, and that none of the sixteen ids collided with a twin.
    */
   it('reserves 2000-2199 for the bass stages and burns nothing', () => {
     const bass = NATIVE_DSP_PARAMETERS.filter(
       (p) => p.id >= 2000 && p.id < 2200,
     );
-    expect(bass).toHaveLength(14);
-    expect(new Set(bass.map((p) => p.id)).size).toBe(14);
+    expect(bass).toHaveLength(16);
+    expect(new Set(bass.map((p) => p.id)).size).toBe(16);
     expect(NATIVE_DSP_PARAMETER_COUNT).toBe(NATIVE_DSP_PARAMETERS.length);
   });
 });

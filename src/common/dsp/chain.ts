@@ -290,6 +290,20 @@ export interface ICompressorSettings {
  */
 export interface IBassForgeSettings {
   enabled: boolean;
+  /**
+   * Hear what this stage adds, with the programme dropped.
+   *
+   * A subtraction like the EQ's and Denoise's, so at a mix of zero it is
+   * silence rather than the low band soloed — a band plays whether the stage
+   * is working or not, and a monitor that cannot tell you the difference is
+   * not one.
+   *
+   * Deliberately NOT persisted, and the drop belongs in `readStored` rather
+   * than here: this function also runs on every patch and every settings
+   * message, so forcing it false here strips the value between the button and
+   * the audio, which is what once stopped the Exciter's isolate working.
+   */
+  isolate: boolean;
   /** Stable processor-local profile id, or empty after a hand edit. */
   presetId: string;
   /** Below this, the band Forge builds its low end from. */
@@ -309,6 +323,18 @@ export interface IBassForgeSettings {
  */
 export interface IBassPunchSettings {
   enabled: boolean;
+  /**
+   * Hear what this stage adds, with the programme dropped.
+   *
+   * This stage generates nothing, so its contribution IS the monitor: the
+   * transient shaping, the bloom tail and the ducking, and nothing else. With
+   * every dial at rest that is exactly silence, which is the honest reading of
+   * a stage doing nothing rather than a fault.
+   *
+   * Not persisted, and dropped in `readStored` rather than here — see the note
+   * on Forge's above for why this function is the wrong place.
+   */
+  isolate: boolean;
   /** Stable processor-local profile id, or empty after a hand edit. */
   presetId: string;
   splitHz: number;
@@ -1420,6 +1446,7 @@ export const DSP_DEFAULTS: IDspSettings = {
   },
   bassForge: {
     enabled: false,
+    isolate: false,
     presetId: '',
     splitHz: 90,
     driveDb: 0,
@@ -1430,6 +1457,7 @@ export const DSP_DEFAULTS: IDspSettings = {
   },
   bassPunch: {
     enabled: false,
+    isolate: false,
     presetId: '',
     splitHz: 110,
     attack: 0,
@@ -1958,6 +1986,7 @@ export const clampDspSettings = (value: unknown): IDspSettings => {
     },
     bassForge: {
       enabled: clampBoolean(bassForge.enabled, DSP_DEFAULTS.bassForge.enabled),
+      isolate: clampBoolean(bassForge.isolate, DSP_DEFAULTS.bassForge.isolate),
       presetId:
         typeof bassForge.presetId === 'string' ? bassForge.presetId : '',
       splitHz: clampNumber(
@@ -1993,6 +2022,7 @@ export const clampDspSettings = (value: unknown): IDspSettings => {
     },
     bassPunch: {
       enabled: clampBoolean(bassPunch.enabled, DSP_DEFAULTS.bassPunch.enabled),
+      isolate: clampBoolean(bassPunch.isolate, DSP_DEFAULTS.bassPunch.isolate),
       presetId:
         typeof bassPunch.presetId === 'string' ? bassPunch.presetId : '',
       splitHz: clampNumber(

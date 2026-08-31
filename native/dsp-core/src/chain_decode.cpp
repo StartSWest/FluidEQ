@@ -140,6 +140,7 @@ int feq_chain_settings_decode(const double* values,
   // so a stage appended behind it keeps every payload valid and shifts every
   // band by one field into something that still decodes.
   out->bass_forge.enabled = flag();
+  out->bass_forge.isolate = flag();
   out->bass_forge.split_hz = next();
   out->bass_forge.drive_db = next();
   out->bass_forge.sub_amount = next();
@@ -148,6 +149,7 @@ int feq_chain_settings_decode(const double* values,
   out->bass_forge.mix = next();
 
   out->bass_punch.enabled = flag();
+  out->bass_punch.isolate = flag();
   out->bass_punch.split_hz = next();
   out->bass_punch.attack = next();
   out->bass_punch.sustain = next();

@@ -35,7 +35,7 @@ import {
  * Scalars before the variable-length band array. Must equal
  * `FEQ_CHAIN_PARAM_LEAD` in `fluideq/chain.h`.
  */
-export const CHAIN_PARAM_LEAD = 110;
+export const CHAIN_PARAM_LEAD = 112;
 
 /** Fields per EQ band. Must equal `FEQ_CHAIN_BAND_PARAMS`. */
 export const CHAIN_BAND_PARAMS = 7;
@@ -177,6 +177,7 @@ export const encodeChainSettings = (
     // `presetId` is renderer and storage only. It names a profile in a
     // catalogue the native side does not have, so it never goes on the wire.
     bassForge.enabled ? 1 : 0,
+    bassForge.isolate ? 1 : 0,
     bassForge.splitHz,
     bassForge.driveDb,
     bassForge.subAmount,
@@ -184,6 +185,7 @@ export const encodeChainSettings = (
     bassForge.texture,
     bassForge.mix,
     bassPunch.enabled ? 1 : 0,
+    bassPunch.isolate ? 1 : 0,
     bassPunch.splitHz,
     bassPunch.attack,
     bassPunch.sustain,

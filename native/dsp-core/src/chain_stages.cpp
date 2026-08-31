@@ -245,6 +245,7 @@ void chain_process_bass_forge(FeqChain* chain, float* const* channels,
   }
   FeqBassForgeSettings settings{};
   settings.enabled = 1;
+  settings.isolate = chain->settings.bass_forge.isolate;
   // The eight-band analyser is a graph and nothing else, so it runs only while
   // something is reading it — the gate every other stage's meter work is
   // already behind, inside `feq_meters_capture`.
@@ -278,6 +279,7 @@ void chain_process_bass_punch(FeqChain* chain, float* const* channels,
   }
   FeqBassPunchSettings settings{};
   settings.enabled = 1;
+  settings.isolate = chain->settings.bass_punch.isolate;
   settings.split_hz = chain->settings.bass_punch.split_hz;
   settings.attack = chain->settings.bass_punch.attack;
   settings.sustain = chain->settings.bass_punch.sustain;

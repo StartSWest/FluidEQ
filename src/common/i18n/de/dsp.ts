@@ -355,6 +355,11 @@ const dsp = {
     'Direktsignal aus — Sie hören nur, was hier hinzukommt.',
 
   'dsp.bassForge.title': 'Bass-Schmiede',
+  'dsp.bassForge.isolate': 'Isolieren',
+  'dsp.bassForge.isolateHint':
+    'Nur die Bässe hören, die diese Stufe hinzufügt.',
+  'dsp.bassForge.isolateOn':
+    'Programm entfernt — zu hören ist nur, was Forge hinzufügt.',
   'dsp.bassForge.description':
     'Fügt eine echte Oktave unter dem Bass hinzu, für Lautsprecher, die sie wiedergeben können, und die Obertöne dieser Oktave für Lautsprecher, die es nicht können — ein kleiner Lautsprecher strahlt bei 45 Hz nichts ab, aber die Obertöne lassen das Ohr die Tonhöhe trotzdem rekonstruieren. Wie laut der Bass ist, ändert sich nicht.',
   'dsp.bassForge.splitHz': 'Trennung',
@@ -380,6 +385,11 @@ const dsp = {
   'dsp.bassForgePreset.dub': 'Dub',
 
   'dsp.bassPunch.title': 'Bass-Punch',
+  'dsp.bassPunch.isolate': 'Isolieren',
+  'dsp.bassPunch.isolateHint':
+    'Nur die Formung hören, die diese Stufe vornimmt.',
+  'dsp.bassPunch.isolateOn':
+    'Programm entfernt — zu hören ist nur, was Punch hinzufügt. Still, wenn alle Regler in Ruhe stehen.',
   'dsp.bassPunch.description':
     'Formt Attack und Ausklang der Bässe, nicht ihren Klang. Attack und Sustain sind bipolar: unterhalb der Mitte enger und trockener, oberhalb länger und nasser.',
   'dsp.bassPunch.splitHz': 'Trennung',

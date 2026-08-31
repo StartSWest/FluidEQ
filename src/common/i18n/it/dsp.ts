@@ -348,6 +348,11 @@ const dsp = {
     'Segnale diretto escluso: senti solo ciò che viene aggiunto.',
 
   'dsp.bassForge.title': 'Fucina dei bassi',
+  'dsp.bassForge.isolate': 'Isola',
+  'dsp.bassForge.isolateHint':
+    'Ascolta solo i bassi che questo stadio aggiunge.',
+  'dsp.bassForge.isolateOn':
+    'Segnale originale rimosso: si sente solo ciò che Forge aggiunge.',
   'dsp.bassForge.description':
     "Aggiunge un'ottava reale sotto il basso per gli altoparlanti in grado di riprodurla, e le armoniche di quell'ottava per quelli che non possono — un altoparlante piccolo non irradia nulla a 45 Hz, ma le armoniche permettono comunque all'orecchio di ricostruire l'intonazione. Quanto sono forti i bassi non cambia.",
   'dsp.bassForge.splitHz': 'Taglio',
@@ -373,6 +378,11 @@ const dsp = {
   'dsp.bassForgePreset.dub': 'Dub',
 
   'dsp.bassPunch.title': 'Punch dei bassi',
+  'dsp.bassPunch.isolate': 'Isola',
+  'dsp.bassPunch.isolateHint':
+    'Ascolta solo la modellazione che questo stadio applica.',
+  'dsp.bassPunch.isolateOn':
+    'Segnale originale rimosso: si sente solo ciò che Punch aggiunge. In silenzio con tutti i comandi a riposo.',
   'dsp.bassPunch.description':
     "Modella l'attacco e il decadimento dei bassi, non il loro timbro. Attacco e sostegno sono bipolari: sotto il centro è più stretto e secco, sopra è più lungo e bagnato.",
   'dsp.bassPunch.splitHz': 'Taglio',

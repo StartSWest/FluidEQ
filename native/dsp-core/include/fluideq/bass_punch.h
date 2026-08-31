@@ -56,6 +56,25 @@ extern "C" {
 typedef struct FeqBassPunchSettings {
   int enabled;
   /**
+   * Hear the stage's contribution alone, with the programme dropped.
+   *
+   * This stage generates nothing — it applies gains and adds a tail — so its
+   * contribution is the only thing it can honestly isolate: the three deltas
+   * that the writeback already adds to the input, which are the transient
+   * shaping, the bloom, and the ducking of everything above the corner.
+   *
+   * With all four dials at rest that is **exactly** silence, because the same
+   * writeback comment records why the deltas are zero when both gains are
+   * one. A monitor that made noise there would be lying about a stage doing
+   * nothing, which is the failure this mode exists to detect.
+   *
+   * A monitoring mode, not a setting. `readStored` in the renderer drops it on
+   * load — never `clampDspSettings`, which also runs on every patch and every
+   * settings message and would strip the value between the button and the
+   * audio.
+   */
+  int isolate;
+  /**
    * Where bass ends, 40 to 200 Hz. Structural: it moves both filters.
    *
    * The detector's corner and the shelf's midpoint at once — at this frequency

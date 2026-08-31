@@ -248,6 +248,7 @@ void feq_bass_forge_process(FeqBassForge* state, float* const* channels,
   // has just been opened would otherwise draw the audio that was playing when
   // it was last closed for its first frames.
   const int meters = settings->meters != 0 ? 1 : 0;
+  const bool isolate = settings->isolate != 0;
   if (meters != 0 && state->meters_running == 0) {
     bass_forge_clear_meters(state);
   }
@@ -467,8 +468,13 @@ void feq_bass_forge_process(FeqBassForge* state, float* const* channels,
       const double band = wet[channel] * state->gain;
       dry_band += dry[channel];
       forged_band += band;
+      // Everything this stage adds, in one term. The monitor is that same
+      // term with the programme dropped rather than a second signal path,
+      // which is why what is heard cannot drift from what is applied.
+      const double contribution = band - dry[channel];
       channels[channel][at] = static_cast<float>(
-          static_cast<double>(channels[channel][at]) + (band - dry[channel]));
+          isolate ? contribution
+                  : static_cast<double>(channels[channel][at]) + contribution);
     }
     dry_band *= channel_scale;
     forged_band *= channel_scale;
