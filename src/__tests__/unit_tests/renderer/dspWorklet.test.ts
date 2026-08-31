@@ -8,14 +8,10 @@ import fs from 'fs';
 import path from 'path';
 import vm from 'vm';
 import Server from 'webpack-dev-server';
-import { DSP_DEFAULTS, IDspSettings } from '../../../common/dsp/chain';
-import { DSP_PRESETS } from '../../../common/dsp/presets';
 import {
   DSP_OUTPUT_COUNT,
   DSP_OUTPUT_INDEX,
 } from '../../../renderer/dsp/monitorOutputs';
-import { OUTPUT_SAFETY_LOOK_AHEAD_MS } from '../../../renderer/dsp/outputSafety';
-import { POST_FILTER_NORMALIZER_LOOK_AHEAD_MS } from '../../../renderer/dsp/postFilterNormalizer';
 
 /**
  * The worklet's own webpack config, asserted as configuration rather than run.
@@ -43,6 +39,14 @@ import { dspWorkletConfig } from '../../../../.erb/configs/webpack.dspWorklet';
  * rejects with nothing useful in it. Importing the source would typecheck,
  * pass, and tell us nothing about that — only executing the emitted file in a
  * scope with exactly the three globals a worklet gets can.
+ *
+ * WHAT THIS FILE NO LONGER TESTS, so that nobody goes looking. The node used to
+ * hold the entire rack and most of the cases here drove it: the maximizer's
+ * ceiling, the compressor's reduction, Drive on quiet material, the background
+ * normalization hand-off, every factory preset for non-finite samples. All of
+ * that arithmetic is now C++ and is measured by `smoke-engines.ts`, which
+ * renders the same song through both engines and subtracts. The worklet is a
+ * wire, and a wire has exactly the three behaviours below it can get wrong.
  */
 const BUNDLE = path.join(
   __dirname,
@@ -55,16 +59,6 @@ const SOURCE = path.join(
 
 const SAMPLE_RATE = 48_000;
 const QUANTUM = 128;
-const PROCESSING_LATENCY =
-  Math.max(
-    1,
-    Math.round((DSP_DEFAULTS.maximizer.lookAheadMs / 1_000) * SAMPLE_RATE),
-  ) +
-  Math.max(
-    1,
-    Math.round((POST_FILTER_NORMALIZER_LOOK_AHEAD_MS / 1_000) * SAMPLE_RATE),
-  ) +
-  Math.max(1, Math.round((OUTPUT_SAFETY_LOOK_AHEAD_MS / 1_000) * SAMPLE_RATE));
 
 interface IProcessorLike {
   port: { onmessage: ((event: { data: unknown }) => void) | null };
@@ -103,27 +97,6 @@ const loadProcessor = (): TProcessorConstructor => {
   }
   return ctor;
 };
-
-const post = (processor: IProcessorLike, data: unknown): void => {
-  if (!processor.port.onmessage) {
-    throw new Error('The processor installed no port listener.');
-  }
-  processor.port.onmessage({ data });
-};
-
-const send = (processor: IProcessorLike, settings: IDspSettings): void =>
-  post(processor, settings);
-
-/** Explicit literal bypass for tests that exercise one later stage in isolation. */
-const bypassed = (settings: IDspSettings = DSP_DEFAULTS): IDspSettings => ({
-  ...settings,
-  normalizer: { ...settings.normalizer, mode: 'off' },
-  eq: { ...settings.eq, enabled: false, isolate: false },
-  exciter: { ...settings.exciter, enabled: false, isolate: false },
-  compressor: { ...settings.compressor, enabled: false },
-  maximizer: { ...settings.maximizer, enabled: false },
-  master: { ...settings.master, enabled: false },
-});
 
 const monoOutputs = (): Float32Array[][] =>
   Array.from({ length: DSP_OUTPUT_COUNT }, () => [new Float32Array(QUANTUM)]);
@@ -171,8 +144,7 @@ describe('dsp worklet bundle', () => {
    *
    * What keeps this honest instead is `check-build-exists.ts` in `setupFiles`,
    * which refuses to start Jest without a build at all, and the behavioural
-   * assertions below: a bundle stale enough to matter is one whose behaviour
-   * changed, and behaviour is what every test here measures.
+   * assertions below.
    */
 
   it('loads and registers in a scope with no window, self or document', () => {
@@ -249,55 +221,22 @@ describe('dsp worklet bundle', () => {
 
   it('emits no top-level reference to a global a worklet does not have', () => {
     const bundle = fs.readFileSync(BUNDLE, 'utf8');
-    // `self` as a bare identifier. The limiter has a `window` PROPERTY, so
-    // that name is checked as a global read rather than by bare occurrence.
     expect(/(^|[^.\w$])self\s*[.[,)=;]/.test(bundle)).toBe(false);
     expect(/(^|[^.\w$])document\s*\./.test(bundle)).toBe(false);
   });
 
-  it('NULL TEST: bypasses every user processor except fixed output safety', () => {
+  /**
+   * The whole of what the node now does, stated as an identity.
+   *
+   * `toBeCloseTo(6)` rather than `toBe`: the input is `Float64` arithmetic
+   * narrowed to `Float32` on the way in, so the comparison is against the
+   * rounding the format imposes and not against the node.
+   */
+  it('copies its input to the master output, sample for sample', () => {
     const processor = new (loadProcessor())();
-    send(processor, bypassed());
-    const input = new Float32Array(QUANTUM * 8);
-    for (let i = 0; i < input.length; i += 1) {
-      input[i] = Math.sin(i / 8) * 0.4;
-    }
-    const output = run(processor, input);
-    expect(peak(output.subarray(0, PROCESSING_LATENCY))).toBe(0);
-    output.subarray(PROCESSING_LATENCY).forEach((value, index) => {
-      // The remaining sub-millidecibel difference is the always-on 3 Hz DC
-      // blocker, not a user processor or hidden gain stage.
-      expect(Math.abs(value - input[index])).toBeLessThan(0.003);
-    });
-  });
-
-  it('root bypass ignores active nested processors and copies input exactly', () => {
-    const processor = new (loadProcessor())();
-    send(processor, {
-      ...DSP_DEFAULTS,
-      enabled: false,
-      eq: {
-        ...DSP_DEFAULTS.eq,
-        enabled: true,
-        bands: DSP_DEFAULTS.eq.bands.map((band) => ({
-          ...band,
-          gainDb: 12,
-        })),
-      },
-      maximizer: {
-        ...DSP_DEFAULTS.maximizer,
-        enabled: true,
-        ceilingDb: -12,
-      },
-      master: {
-        ...DSP_DEFAULTS.master,
-        enabled: true,
-        outputTrimDb: 6,
-      },
-    });
     const input = Float32Array.from(
       { length: QUANTUM * 4 },
-      (_, index) => Math.sin(index / 7) * 0.8,
+      (_value, index) => Math.sin(index / 7) * 0.8,
     );
     const output = run(processor, input);
     output.forEach((value, index) => {
@@ -305,192 +244,24 @@ describe('dsp worklet bundle', () => {
     });
   });
 
-  it('lands a background normalization update during silence', () => {
+  /**
+   * POSITIVE CONTROL for the identity above.
+   *
+   * Without it, a node that wrote nothing at all would satisfy it perfectly on
+   * an input of zeros — and a passthrough test is exactly the shape that can
+   * pass by doing nothing. This asserts there was a signal to copy.
+   */
+  it('POSITIVE CONTROL: what it copies is not silence', () => {
     const processor = new (loadProcessor())();
-    send(processor, bypassed());
-    post(processor, { masterPeakHoldTrackId: 'track-a' });
-    post(processor, {
-      trackLevelGains: { inputGainDb: 0, masterLoudnessGainDb: 0 },
-    });
-    run(processor, new Float32Array(QUANTUM).fill(0.5));
-
-    post(processor, {
-      trackLevelGains: { inputGainDb: -6, masterLoudnessGainDb: 0 },
-    });
-    // Flush the complete fixed-latency path so this is silence at the audible
-    // output too, not merely a source gap with earlier programme still queued.
-    // Let the fixed 3 Hz DC guard settle too. A constant 0.5 probe resumed
-    // after only the delay latency is intentionally corrected by that guard,
-    // so it cannot be used as a transparent-gain assertion at that instant.
-    run(processor, new Float32Array(QUANTUM * 96));
-    const levelState = processor as unknown as {
-      inputGainNow: number;
-      inputGainTargetDb: number;
-    };
-    expect(levelState.inputGainTargetDb).toBe(-6);
-    expect(levelState.inputGainNow).toBeCloseTo(10 ** (-6 / 20), 6);
-    const resumedInput = Float32Array.from(
+    const input = Float32Array.from(
       { length: QUANTUM * 4 },
-      (_, index) => 0.5 * Math.cos((2 * Math.PI * 1_000 * index) / SAMPLE_RATE),
+      (_value, index) => Math.sin(index / 7) * 0.8,
     );
-    const resumed = run(processor, resumedInput);
-    expect(resumed[PROCESSING_LATENCY]).toBeCloseTo(
-      resumedInput[0] * 10 ** (-6 / 20),
-      3,
-    );
-  });
-
-  it('phase-locks background Normalizer and Master LUFS gain for two seconds', () => {
-    const processor = new (loadProcessor())();
-    send(processor, bypassed());
-    post(processor, { masterPeakHoldTrackId: 'track-ramp' });
-    post(processor, {
-      trackLevelGains: { inputGainDb: 0, masterLoudnessGainDb: 0 },
-    });
-    run(processor, new Float32Array(QUANTUM).fill(0.25));
-
-    post(processor, {
-      trackLevelGains: { inputGainDb: -6, masterLoudnessGainDb: 4 },
-    });
-    const before = processor as unknown as {
-      trackLevelTransitionFrames: number;
-      trackLevelTransitionElapsedFrames: number;
-      inputGainNow: number;
-      masterLoudnessGainNowDb: number;
-    };
-    expect(before.trackLevelTransitionFrames).toBe(SAMPLE_RATE * 2);
-    expect(before.trackLevelTransitionElapsedFrames).toBe(0);
-
-    run(processor, new Float32Array(SAMPLE_RATE).fill(0.25));
-    expect(20 * Math.log10(before.inputGainNow)).toBeCloseTo(-3, 2);
-    expect(before.masterLoudnessGainNowDb).toBeCloseTo(2, 2);
-    expect(before.trackLevelTransitionElapsedFrames).toBe(SAMPLE_RATE);
-  });
-
-  /**
-   * The control that makes the null test above mean something.
-   *
-   * A `process` that copied its input and ignored every setting would pass the
-   * bypass test perfectly while doing nothing at all.
-   */
-  it('POSITIVE CONTROL: the maximizer holds its ceiling on loud audio', () => {
-    const processor = new (loadProcessor())();
-    send(processor, {
-      ...bypassed(),
-      maximizer: {
-        enabled: true,
-        presetId: '',
-        driveDb: 0,
-        ceilingDb: -6,
-        lookAheadMs: 2,
-        releaseMs: 50,
-      },
-    });
-    const input = new Float32Array(QUANTUM * 16).fill(0.95);
-    const output = run(processor, input);
-    const ceiling = 10 ** (-6 / 20);
-    // Skip the first blocks: the delay line starts empty and emits silence.
-    expect(peak(output, QUANTUM * 4)).toBeLessThanOrEqual(ceiling + 1e-4);
-    expect(peak(output, QUANTUM * 4)).toBeGreaterThan(ceiling * 0.75);
-  });
-
-  /**
-   * Drive is what makes this a maximizer rather than a limiter.
-   *
-   * There was no gain term anywhere in the stage or in the limiter it drives,
-   * so switching it on could only ever turn peaks DOWN — and the always-on
-   * output safety already guaranteed nothing clipped, which left it doing
-   * nothing that was not already done. Louder comes out of the gap between the
-   * gain going in and the ceiling holding the top: quiet material rises to meet
-   * the ceiling, and the ceiling does not move.
-   */
-  it('Drive raises quiet material without moving the ceiling', () => {
-    const ceilingDb = -6;
-    const ceiling = 10 ** (ceilingDb / 20);
-    const settings = (driveDb: number): IDspSettings => ({
-      ...bypassed(),
-      maximizer: {
-        enabled: true,
-        presetId: '',
-        driveDb,
-        ceilingDb,
-        lookAheadMs: 2,
-        releaseMs: 50,
-      },
-    });
-    /**
-     * A tone rather than a constant fill, which matters here.
-     *
-     * The always-on output safety blocks DC at 3 Hz, so a buffer filled with
-     * one value arrives about a decibel down and the reading is the DC blocker
-     * rather than the stage under test. Well under the ceiling either way, so
-     * at Drive 0 the limiter has nothing to do and the level can only come
-     * from the gain.
-     */
-    const tone = (amplitude: number): Float32Array => {
-      const out = new Float32Array(QUANTUM * 16);
-      for (let at = 0; at < out.length; at += 1) {
-        out[at] =
-          amplitude * Math.sin((2 * Math.PI * 1_000 * at) / SAMPLE_RATE);
-      }
-      return out;
-    };
-    const quiet = tone(0.05);
-
-    const flat = new (loadProcessor())();
-    send(flat, settings(0));
-    const atRest = peak(run(flat, quiet), QUANTUM * 4);
-
-    const driven = new (loadProcessor())();
-    send(driven, settings(12));
-    const atDrive = peak(run(driven, quiet), QUANTUM * 4);
-
-    // Twelve decibels is four times the amplitude, and nothing is limiting.
-    expect(atDrive / atRest).toBeGreaterThan(3.5);
-    expect(atRest).toBeCloseTo(0.05, 3);
-
-    /**
-     * And the ceiling still holds when the drive pushes well past it.
-     *
-     * Compared with a quarter-decibel of room rather than exactly, because the
-     * ceiling is a TRUE-peak figure and `peak` reads sample peaks. The limiter
-     * is controlling the reconstructed waveform between the samples, so on a
-     * tone the two readings differ by a hundredth of a decibel or so in either
-     * direction. What this catches is the ceiling not holding at all, which is
-     * what a drive applied after the limiter instead of before it would do —
-     * that would come out four times over.
-     */
-    const loud = tone(0.5);
-    const pushed = new (loadProcessor())();
-    send(pushed, settings(12));
-    expect(peak(run(pushed, loud), QUANTUM * 4)).toBeLessThanOrEqual(
-      ceiling * 1.03,
-    );
-  });
-
-  it('the compressor reduces a loud signal and leaves a quiet one alone', () => {
-    const settings: IDspSettings = {
-      ...bypassed(),
-      compressor: { ...DSP_DEFAULTS.compressor, enabled: true },
-    };
-    const levelAfter = (level: number): number => {
-      const processor = new (loadProcessor())();
-      send(processor, settings);
-      const signal = Float32Array.from(
-        { length: QUANTUM * 16 },
-        (_, index) =>
-          Math.sin((2 * Math.PI * 997 * index) / SAMPLE_RATE) * level,
-      );
-      return peak(run(processor, signal), QUANTUM * 8);
-    };
-    // -18dBFS threshold: 0.02 is far below it, 0.9 far above.
-    expect(levelAfter(0.02)).toBeCloseTo(0.02, 3);
-    expect(levelAfter(0.9)).toBeLessThan(0.9);
+    expect(peak(run(processor, input))).toBeGreaterThan(0.7);
   });
 
   it('emits silence rather than a stutter when the input is disconnected', () => {
     const processor = new (loadProcessor())();
-    send(processor, { ...bypassed(), enabled: false });
     const outputs = monoOutputs();
     outputs[DSP_OUTPUT_INDEX.master][0].fill(0.5);
     processor.process([[]], outputs);
@@ -498,24 +269,8 @@ describe('dsp worklet bundle', () => {
     expect(peak(target)).toBe(0);
   });
 
-  it('survives every factory preset without producing a non-finite sample', () => {
-    const input = new Float32Array(QUANTUM * 8);
-    for (let i = 0; i < input.length; i += 1) {
-      input[i] = Math.sin(i / 5) * 0.7 + Math.sin(i / 50) * 0.25;
-    }
-    DSP_PRESETS.forEach((preset) => {
-      const processor = new (loadProcessor())();
-      send(processor, preset.settings);
-      run(processor, input).forEach((value) => {
-        expect(Number.isFinite(value)).toBe(true);
-        expect(Math.abs(value)).toBeLessThanOrEqual(1.5);
-      });
-    });
-  });
-
   it('handles stereo without crossing the two channels', () => {
     const processor = new (loadProcessor())();
-    send(processor, { ...bypassed(), enabled: false });
     const left = new Float32Array(QUANTUM).fill(0.3);
     const right = new Float32Array(QUANTUM).fill(-0.7);
     const outputs = Array.from({ length: DSP_OUTPUT_COUNT }, () => [

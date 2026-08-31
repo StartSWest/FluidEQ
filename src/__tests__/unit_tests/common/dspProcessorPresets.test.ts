@@ -5,170 +5,36 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 /**
- * Every profile of every processor, held to what it actually does.
+ * Every profile of these two processors, held to what the engine will accept.
  *
  * The EQ catalogue has had a ceiling test since five of its curves were found
- * over the line it states about itself. These three had nothing, and the
- * Exciter's went the same way for a worse reason.
+ * over the line it states about itself. These had nothing.
  *
- * WHAT WENT WRONG, because the test only makes sense with it. The Exciter's
- * depths were set by comparing the new harmonic generator against the shaper it
- * replaced, at -6 dBFS. That comparison was fair and the conclusion was wrong:
- * the old shaper FOLLOWED the input level, so on ordinary material around
- * -20 dBFS it produced far less than it did at a peak, while the new one
- * produces the same ratio at every level. Matching at the peak therefore meant
- * about ten decibels more harmonic content than before on everything that is
- * not a peak — measured at -20 dBFS, the hottest profiles were returning a
- * tenth of the note as harmonics, constantly. Consistent, and consistently too
- * much. Reported as the effects sounding awful, which they did.
+ * The Exciter's half of this file is GONE, and it is worth saying why so that
+ * nobody restores it here. It rendered each profile through
+ * `runExciterChannel` and measured the loudest generated order against the
+ * fundamental, because the profiles had once been voiced at -6 dBFS against a
+ * level-following shaper they replaced and came out roughly ten decibels too
+ * hot on ordinary material — reported as the effects sounding awful, which they
+ * did. That stage is now C++ only; the TypeScript one it drove has been
+ * deleted. The measurement still matters and it belongs where the arithmetic
+ * now lives: `smoke-engines.ts` and the native suite.
  *
- * So the measurement below is taken at -20 dBFS and not at a peak. A profile
- * that is tasteful on a transient and exhausting on a verse is a profile
- * measured in the wrong place.
+ * What remains is a different question, and one that does not need an engine:
+ * whether a profile survives `clampDspSettings` unchanged. A profile the clamp
+ * edits is a profile the user never actually hears.
  */
-import {
-  DSP_DEFAULTS,
-  IExciterSettings,
-  clampDspSettings,
-} from '../../../common/dsp/chain';
+import { DSP_DEFAULTS, clampDspSettings } from '../../../common/dsp/chain';
 import {
   DIMENSION_PRESETS,
   dimensionPresetSettings,
   isDimensionPresetId,
 } from '../../../common/dsp/dimensionPresets';
-import { EXCITER_PRESETS } from '../../../common/dsp/exciterPresets';
 import {
   MAXIMIZER_PRESETS,
   isMaximizerPresetId,
   maximizerPresetSettings,
 } from '../../../common/dsp/maximizerPresets';
-import {
-  createExciterChannel,
-  runExciterChannel,
-} from '../../../renderer/dsp/exciterStage';
-
-const RATE = 48_000;
-const FRAMES = 256;
-const SETTLE = 200;
-const WINDOW = 16_384;
-
-/** Where real music sits. Deliberately not where its peaks reach. */
-const TYPICAL_LEVEL = 0.1;
-
-/**
- * The ceiling, in dB under the note being excited.
- *
- * Five per cent of the fundamental, returned constantly, is a colour. A tenth
- * is what this catalogue was doing when it was reported as sounding awful, so
- * the line sits between the two and nearer the quieter one.
- */
-const LOUDEST_HARMONIC_DB = -24;
-
-const magnitudeAt = (buffer: Float64Array, hz: number): number => {
-  const omega = (2 * Math.PI * hz) / RATE;
-  const cosine = Math.cos(omega);
-  const coefficient = 2 * cosine;
-  let previous = 0;
-  let earlier = 0;
-  for (let index = 0; index < buffer.length; index += 1) {
-    const current = buffer[index] + coefficient * previous - earlier;
-    earlier = previous;
-    previous = current;
-  }
-  return (
-    (2 * Math.hypot(previous - earlier * cosine, earlier * Math.sin(omega))) /
-    buffer.length
-  );
-};
-
-const render = (
-  settings: IExciterSettings,
-  hz: number,
-  level: number,
-): Float64Array => {
-  const channel = createExciterChannel(FRAMES);
-  const out = new Float64Array(WINDOW);
-  for (let block = 0; block < SETTLE + WINDOW / FRAMES; block += 1) {
-    const target = new Float32Array(FRAMES);
-    for (let at = 0; at < FRAMES; at += 1) {
-      target[at] =
-        level * Math.sin((2 * Math.PI * hz * (block * FRAMES + at)) / RATE);
-    }
-    runExciterChannel(channel, target, settings, RATE);
-    if (block >= SETTLE) {
-      out.set(target, (block - SETTLE) * FRAMES);
-    }
-  }
-  return out;
-};
-
-const liveExciter = (
-  preset: (typeof EXCITER_PRESETS)[number],
-): IExciterSettings => ({
-  enabled: true,
-  presetId: preset.id,
-  stereo: preset.settings.stereo,
-  bands: preset.settings.bands.map((band) => ({ ...band })),
-  organic: { ...preset.settings.organic },
-  align: { ...preset.settings.align },
-  isolate: false,
-});
-
-/** The loudest generated order of one band, in dB under its fundamental. */
-const loudestHarmonicDb = (
-  settings: IExciterSettings,
-  band: number,
-): number => {
-  const setup = settings.bands[band];
-  const out = render(settings, setup.freqHz, TYPICAL_LEVEL);
-  const fundamental = magnitudeAt(out, setup.freqHz);
-  let loudest = 0;
-  for (let order = 2; order <= 5; order += 1) {
-    if (setup.freqHz * order < 20_000) {
-      loudest = Math.max(loudest, magnitudeAt(out, setup.freqHz * order));
-    }
-  }
-  return (
-    20 * Math.log10(Math.max(loudest, 1e-12) / Math.max(fundamental, 1e-12))
-  );
-};
-
-describe('exciter profiles', () => {
-  it('none of them is exhausting on ordinary material', () => {
-    const over: { id: string; band: number; db: number }[] = [];
-    EXCITER_PRESETS.forEach((preset) => {
-      const settings = liveExciter(preset);
-      settings.bands.forEach((band, index) => {
-        if (!band.enabled) {
-          return;
-        }
-        const value = loudestHarmonicDb(settings, index);
-        if (value > LOUDEST_HARMONIC_DB) {
-          over.push({ id: preset.id, band: index, db: value });
-        }
-      });
-    });
-    expect(over).toEqual([]);
-  });
-
-  /**
-   * The positive control. An empty list above is also what a broken
-   * measurement returns, and a stage that generated nothing at all would pass
-   * the ceiling perfectly while doing nothing — which is the other way this
-   * catalogue can be wrong.
-   */
-  it('POSITIVE CONTROL: they are still doing something', () => {
-    const loud = EXCITER_PRESETS.find((preset) => preset.id === 'loud');
-    expect(loud).toBeDefined();
-    const settings = liveExciter(loud!);
-    const highest = settings.bands
-      .map((band, index) =>
-        band.enabled ? loudestHarmonicDb(settings, index) : -200,
-      )
-      .reduce((best, value) => Math.max(best, value), -200);
-    expect(highest).toBeGreaterThan(-40);
-  });
-});
 
 describe('maximizer profiles', () => {
   it('every one survives the engine clamp unchanged', () => {
