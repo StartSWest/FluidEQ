@@ -370,6 +370,11 @@ const dsp = {
   'dsp.bassPunch.duck': 'ダッキング',
   'dsp.bassPunch.unavailable':
     'ベースパンチはネイティブエンジンでのみ動作しますが、現在そのエンジンが音声を担っていません。この段はバイパスされています。',
+  'dsp.bassPunch.meterNote':
+    'アタックは個別の目盛りで描かれます。各目盛りはその測定窓の中で最も大きい振れだからです。サステインとダッキングは複数の窓にまたがって続くため、サンプリングして連続した線で描いています。',
+  'dsp.bassPunch.graph.now': '現在',
+  'dsp.bassPunch.graph.perWindow': '窓ごとのピーク',
+  'dsp.bassPunch.graph.sampled': 'サンプリング',
   'dsp.bassPunchPreset.tight': 'タイト',
   'dsp.bassPunchPreset.open': 'オープン',
   'dsp.bassPunchPreset.slam': '強打',

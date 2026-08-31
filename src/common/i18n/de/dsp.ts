@@ -384,6 +384,11 @@ const dsp = {
   'dsp.bassPunch.duck': 'Ducking',
   'dsp.bassPunch.unavailable':
     'Der Bass-Punch läuft nur in der nativen Engine, die das Audio gerade nicht führt. Diese Stufe ist überbrückt.',
+  'dsp.bassPunch.meterNote':
+    'Attack wird als einzelne Marken gezeichnet, weil jede der größte Ausschlag innerhalb ihres eigenen Messfensters ist. Sustain und Ducking dauern über mehrere Fenster hinweg an, werden deshalb abgetastet und laufen als durchgehende Kurven.',
+  'dsp.bassPunch.graph.now': 'jetzt',
+  'dsp.bassPunch.graph.perWindow': 'Spitze pro Fenster',
+  'dsp.bassPunch.graph.sampled': 'abgetastet',
   'dsp.bassPunchPreset.tight': 'Straff',
   'dsp.bassPunchPreset.open': 'Offen',
   'dsp.bassPunchPreset.slam': 'Knall',

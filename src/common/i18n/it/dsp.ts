@@ -377,6 +377,11 @@ const dsp = {
   'dsp.bassPunch.duck': 'Ducking',
   'dsp.bassPunch.unavailable':
     "Il Punch dei bassi funziona solo nel motore nativo, che al momento non sta portando l'audio. Questo stadio è escluso.",
+  'dsp.bassPunch.meterNote':
+    "L'attacco è disegnato a segni separati, perché ognuno è la massima escursione all'interno della propria finestra di misura. Sostegno e ducking durano per più finestre, quindi vengono campionati e scorrono come tracce continue.",
+  'dsp.bassPunch.graph.now': 'ora',
+  'dsp.bassPunch.graph.perWindow': 'picco per finestra',
+  'dsp.bassPunch.graph.sampled': 'campionato',
   'dsp.bassPunchPreset.tight': 'Stretto',
   'dsp.bassPunchPreset.open': 'Aperto',
   'dsp.bassPunchPreset.slam': 'Colpo',

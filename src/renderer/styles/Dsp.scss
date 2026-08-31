@@ -2006,7 +2006,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // controls behind it wrapping into a second row 390px wide.
 .dsp-exciter-note,
 .dsp-maximizer-note,
-.dsp-bass-forge-note {
+.dsp-bass-forge-note,
+.dsp-bass-punch-note {
   flex: 1 0 100%;
   max-width: 620px;
   margin: 0;
@@ -3162,7 +3163,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // The live readings sit in the band the plot reserves for them, and each is a
 // label with its own figure rather than a sentence — the number is what gets
 // read, so it is the part that is bright and monospaced.
-.dsp-maximizer-status {
+.dsp-maximizer-status,
+.dsp-bass-punch-status {
   span {
     display: inline-flex;
     gap: 6px;
@@ -3408,5 +3410,48 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 .dsp-bass-forge-controls .dsp-band-dials {
+  justify-content: center;
+}
+
+// Bass Punch's three gains over time, on the card above the dials that shape
+// them. Claims the whole row the way Forge's and the Maximizer's displays do,
+// so the six knobs sit under the picture rather than beside a squeezed one.
+.dsp-bass-punch-display {
+  flex: 1 1 100%;
+  width: 100%;
+  min-width: 0;
+}
+
+// Dimmed to the same 0.42 the panel uses for a switched-off section, matching
+// Forge and Dimension's guard bar. The strip draws no measurement at all while
+// the stage is bypassed, and here that matters more than anywhere else in the
+// rack: all three gains genuinely rest at 0 dB, so three flat traces along the
+// middle of a live-looking plot would read as a stage that is running and
+// choosing to change nothing — which is precisely what a centred Attack dial
+// means, and therefore the one reading an off stage must never borrow.
+.dsp-bass-punch-display.is-off {
+  opacity: 0.42;
+}
+
+// Definite for the same reason as every DSP canvas: its backing store follows
+// this box, so an intrinsic height would feed the measurement into itself.
+// Taller than Forge's 260 because this plot is two stacked lanes, and the duck
+// lane below the divider gets under a third of what is left after the legend
+// and the status chips have taken their two rows.
+.dsp-bass-punch-canvas {
+  width: 100%;
+  height: 300px;
+}
+
+// One framed group rather than the paired boxes the Maximizer and Dimension
+// use, for the same reason Forge's dials are one group: Attack and Sustain are
+// the two halves of one note, Bloom and its decay are one control in two
+// numbers, and Duck buys the same weight from somewhere else. Split feeds all
+// of them.
+.dsp-bass-punch-controls {
+  flex: 1 1 100%;
+}
+
+.dsp-bass-punch-controls .dsp-band-dials {
   justify-content: center;
 }

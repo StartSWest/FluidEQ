@@ -378,6 +378,11 @@ const dsp = {
   'dsp.bassPunch.duck': 'Ducking',
   'dsp.bassPunch.unavailable':
     'La Pegada de graves solo funciona en el motor nativo, que ahora mismo no lleva el audio. Esta etapa está omitida.',
+  'dsp.bassPunch.meterNote':
+    'El ataque se dibuja con marcas separadas porque cada una es la mayor oscilación dentro de su propia ventana de medida. El sostenimiento y el ducking duran varias ventanas, así que se muestrean y se trazan de forma continua.',
+  'dsp.bassPunch.graph.now': 'ahora',
+  'dsp.bassPunch.graph.perWindow': 'pico por ventana',
+  'dsp.bassPunch.graph.sampled': 'muestreado',
   'dsp.bassPunchPreset.tight': 'Ajustado',
   'dsp.bassPunchPreset.open': 'Abierto',
   'dsp.bassPunchPreset.slam': 'Golpe',

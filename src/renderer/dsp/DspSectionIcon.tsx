@@ -56,6 +56,15 @@ const GLYPHS: Record<TDspSection, { frame: string; accent: string }> = {
       'C11 7.5 13 7.5 14 10 C15 12.5 17 12.5 18 10',
     accent: 'M2 10 C4 4 8 4 10 10 C12 16 16 16 18 10',
   },
+  // A note's envelope: a hard leading edge and a decay away from it. The
+  // frame is the note the stage was given, the accent is the same note with
+  // its attack made steeper and its tail cut shorter — the one picture that
+  // says this stage moves things in TIME, next to a neighbour that moves
+  // them in pitch.
+  bassPunch: {
+    frame: 'M2 16 L7 6 C9.5 6 9.5 16 18 16',
+    accent: 'M2 16 L7 3 C8.2 3 8.2 16 11.5 16',
+  },
   // The two edges of the stereo field, and the picture pushed out to meet
   // them. A double-headed arrow rather than a pair of speakers, because the
   // dial sets how far the image spreads and not what is playing it.

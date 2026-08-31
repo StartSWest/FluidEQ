@@ -377,6 +377,11 @@ const dsp = {
   'dsp.bassPunch.duck': 'Дакинг',
   'dsp.bassPunch.unavailable':
     'Бас-панч работает только в нативном движке, который сейчас не ведёт звук. Этот этап обойдён.',
+  'dsp.bassPunch.meterNote':
+    'Атака нарисована отдельными штрихами: каждый из них — наибольший размах внутри собственного окна измерения. Сустейн и дакинг длятся несколько окон, поэтому берутся выборкой и идут непрерывными линиями.',
+  'dsp.bassPunch.graph.now': 'сейчас',
+  'dsp.bassPunch.graph.perWindow': 'пик за окно',
+  'dsp.bassPunch.graph.sampled': 'выборка',
   'dsp.bassPunchPreset.tight': 'Плотный',
   'dsp.bassPunchPreset.open': 'Открытый',
   'dsp.bassPunchPreset.slam': 'Удар',

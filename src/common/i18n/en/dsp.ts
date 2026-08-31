@@ -385,6 +385,11 @@ const dsp = {
   'dsp.bassPunch.duck': 'Duck',
   'dsp.bassPunch.unavailable':
     'Bass Punch runs only in the native engine, which is not currently carrying the audio. This stage is bypassed.',
+  'dsp.bassPunch.meterNote':
+    'Attack is drawn as separate marks because each one is the largest swing inside its own measuring window. Sustain and duck last across several windows, so they are sampled and run as continuous traces.',
+  'dsp.bassPunch.graph.now': 'now',
+  'dsp.bassPunch.graph.perWindow': 'peak per window',
+  'dsp.bassPunch.graph.sampled': 'sampled',
   'dsp.bassPunchPreset.tight': 'Tight',
   'dsp.bassPunchPreset.open': 'Open',
   'dsp.bassPunchPreset.slam': 'Slam',

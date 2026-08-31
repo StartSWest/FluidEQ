@@ -357,6 +357,11 @@ const dsp = {
   'dsp.bassPunch.duck': '闪避',
   'dsp.bassPunch.unavailable':
     '低音冲击仅在原生引擎中运行，而当前音频并未由它承载。此级已被旁路。',
+  'dsp.bassPunch.meterNote':
+    '启动时间以独立的刻度绘制，因为每一刻度都是各自测量窗口内最大的摆幅。延音与闪避会跨越多个窗口，因此直接取样，画成连续的曲线。',
+  'dsp.bassPunch.graph.now': '现在',
+  'dsp.bassPunch.graph.perWindow': '每窗峰值',
+  'dsp.bassPunch.graph.sampled': '取样',
   'dsp.bassPunchPreset.tight': '紧实',
   'dsp.bassPunchPreset.open': '开放',
   'dsp.bassPunchPreset.slam': '重击',

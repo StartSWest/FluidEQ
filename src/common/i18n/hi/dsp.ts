@@ -373,6 +373,11 @@ const dsp = {
   'dsp.bassPunch.duck': 'डकिंग',
   'dsp.bassPunch.unavailable':
     'बास पंच केवल नेटिव इंजन में चलता है, जो इस समय ऑडियो नहीं चला रहा। यह चरण बायपास है।',
+  'dsp.bassPunch.meterNote':
+    'अटैक अलग-अलग निशानों में खींचा जाता है, क्योंकि हर निशान अपनी ही माप-विंडो के भीतर का सबसे बड़ा उतार-चढ़ाव है। सस्टेन और डकिंग कई विंडो तक बने रहते हैं, इसलिए उनका नमूना लिया जाता है और वे लगातार रेखाओं में चलते हैं।',
+  'dsp.bassPunch.graph.now': 'अभी',
+  'dsp.bassPunch.graph.perWindow': 'प्रति विंडो शिखर',
+  'dsp.bassPunch.graph.sampled': 'नमूना लिया',
   'dsp.bassPunchPreset.tight': 'टाइट',
   'dsp.bassPunchPreset.open': 'ओपन',
   'dsp.bassPunchPreset.slam': 'स्लैम',

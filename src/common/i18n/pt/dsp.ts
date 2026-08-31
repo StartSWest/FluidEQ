@@ -379,6 +379,11 @@ const dsp = {
   'dsp.bassPunch.duck': 'Ducking',
   'dsp.bassPunch.unavailable':
     'O Punch dos graves só funciona no motor nativo, que não está a levar o áudio neste momento. Esta etapa está contornada.',
+  'dsp.bassPunch.meterNote':
+    'O ataque é desenhado com marcas separadas, porque cada uma é a maior oscilação dentro da sua própria janela de medição. A sustentação e o ducking duram por várias janelas, por isso são amostrados e correm como traços contínuos.',
+  'dsp.bassPunch.graph.now': 'agora',
+  'dsp.bassPunch.graph.perWindow': 'pico por janela',
+  'dsp.bassPunch.graph.sampled': 'amostrado',
   'dsp.bassPunchPreset.tight': 'Apertado',
   'dsp.bassPunchPreset.open': 'Aberto',
   'dsp.bassPunchPreset.slam': 'Pancada',

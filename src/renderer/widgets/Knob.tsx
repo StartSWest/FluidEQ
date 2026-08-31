@@ -97,6 +97,27 @@ const Knob = ({
 
   const position = toPosition(value);
   const clampedProgress = Math.min(100, Math.max(0, position * 100));
+
+  /**
+   * Where the filled arc GROWS FROM, decided by the range rather than by a
+   * prop — the same reasoning as `isProportional` above.
+   *
+   * A range that straddles zero symmetrically is a bipolar control: zero is
+   * not the bottom of an amount, it is a rest position, and either direction
+   * from it is a decision. Grown from the low end, such a dial sits half
+   * filled while it is doing nothing, which reads as a level rather than as a
+   * centre — and a dial whose rest position looks like a level is one nobody
+   * thinks to turn left. Bass Punch's Attack and Sustain (-1 to +1) and the
+   * EQ's band gain (-24 to +24 dB) are the two in this app.
+   *
+   * A range that merely happens to include negatives is not this: the Master's
+   * -24 to +6 dB trim, the Normalizer's -12 to -0.1 target and the Denoise
+   * -6 to +12 makeup all have a low end that IS their floor.
+   */
+  const isBipolar = min < 0 && max === -min;
+  const arcOrigin = isBipolar ? 50 : 0;
+  const arcStart = Math.min(arcOrigin, clampedProgress);
+  const arcLength = Math.abs(clampedProgress - arcOrigin);
   /**
    * As many digits as fit inside the dial, and no more.
    *
@@ -247,15 +268,26 @@ const Knob = ({
           strokeDasharray="75 25"
           transform="rotate(135 36 36)"
         />
-        <circle
-          className="knob__value"
-          cx="36"
-          cy="36"
-          r="30"
-          pathLength="100"
-          strokeDasharray={`${(75 * clampedProgress) / 100} 100`}
-          transform="rotate(135 36 36)"
-        />
+        {/* Nothing drawn at all when the arc has no length, which on a bipolar
+            dial is its rest position. The stroke has round caps, so a
+            zero-length dash paints a dot at the top of the travel — a mark
+            that says "a little of something" on the one setting that means
+            none of it. The notch already points straight up there. */}
+        {arcLength > 0 ? (
+          <circle
+            className="knob__value"
+            cx="36"
+            cy="36"
+            r="30"
+            pathLength="100"
+            strokeDasharray={`${(75 * arcLength) / 100} 100`}
+            // Negative, because a dash pattern offset backwards begins that
+            // far along the path — which is how the arc starts at the centre
+            // of a bipolar range instead of at its low end.
+            strokeDashoffset={-(75 * arcStart) / 100}
+            transform="rotate(135 36 36)"
+          />
+        ) : undefined}
         <circle className="knob__shadow" cx="36" cy="37.5" r="23" />
         <circle
           className="knob__body"

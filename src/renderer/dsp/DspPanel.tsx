@@ -14,6 +14,7 @@ import {
 import { DSP_PRESETS } from '../../common/dsp/presets';
 import { TranslationKey } from '../../common/i18n/en';
 import DspBassForgeCard from './DspBassForgeCard';
+import DspBassPunchCard from './DspBassPunchCard';
 import { Dial, ProcessorCard } from './DspControls';
 import DspEqBar from './DspEqBar';
 import DspEqCard from './DspEqCard';
@@ -79,6 +80,7 @@ const DspPanel = ({
     eq,
     exciter,
     bassForge,
+    bassPunch,
     dimension,
     compressor,
     maximizer,
@@ -329,6 +331,7 @@ const DspPanel = ({
             eq: eq.enabled,
             exciter: exciter.enabled,
             bassForge: bassForge.enabled,
+            bassPunch: bassPunch.enabled,
             dimension: dimension.enabled,
             compressor: compressor.enabled,
             maximizer: maximizer.enabled,
@@ -433,6 +436,14 @@ const DspPanel = ({
             <DspBassForgeCard
               bassForge={bassForge}
               onPatch={(next) => patch({ bassForge: next })}
+              onCommit={onCommit}
+            />
+          )}
+
+          {section === 'bassPunch' && (
+            <DspBassPunchCard
+              bassPunch={bassPunch}
+              onPatch={(next) => patch({ bassPunch: next })}
               onCommit={onCommit}
             />
           )}
