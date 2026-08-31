@@ -12,7 +12,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * the chain arrived — is a real defect with a real symptom, and it belongs
  * somewhere a test can reach without a renderer.
  */
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { IDspSettings } from '../../common/dsp/chain';
 import {
   INativeBackendController,
@@ -309,7 +309,7 @@ export const useNativeMirror = (
   controller: INativeBackendController | undefined,
   elements: readonly HTMLMediaElement[],
   state: INativeMirrorState,
-): void => {
+): ((positionMs: number) => void) => {
   const mirrorRef = useRef<INativeMirror | undefined>(undefined);
   const stateRef = useRef(state);
   stateRef.current = state;
@@ -342,4 +342,20 @@ export const useNativeMirror = (
   useEffect(() => {
     mirrorRef.current?.sync(state);
   }, [state.mediaPath, state.isPlaying, state.positionMs, state]);
+
+  /**
+   * The scrubber's way through to the deck that is audible.
+   *
+   * Stable for the life of the player and reads the mirror through the ref, so
+   * it does not change identity when the engine is rebuilt around a new
+   * endpoint — every callback that takes it downstream would otherwise be
+   * rebuilt with it, on a path where the seek and the rebuild race.
+   *
+   * A no-op while there is no mirror rather than an optional: the caller
+   * already knows whether the host owns the transport, from telemetry, and
+   * that is a different question from whether the mirror exists.
+   */
+  return useCallback((positionMs: number) => {
+    mirrorRef.current?.seek(positionMs);
+  }, []);
 };

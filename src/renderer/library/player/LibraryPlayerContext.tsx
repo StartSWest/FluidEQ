@@ -154,6 +154,7 @@ export const LibraryPlayerProvider = ({
    */
   const {
     hostOwnsTransportRef,
+    seekHost,
     hostEnded,
     publishedPositionMs,
     publishedDurationMs,
@@ -390,6 +391,8 @@ export const LibraryPlayerProvider = ({
     activeElement,
     startSeekFade,
     finishCrossfadeRef,
+    hostOwnsTransportRef,
+    seekHost,
     publishedPositionMs,
     volumeRef,
     setPositionMs,

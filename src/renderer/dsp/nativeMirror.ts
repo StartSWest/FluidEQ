@@ -99,6 +99,18 @@ export interface INativeMirror {
    * something it cares about actually moved.
    */
   sync: (state: INativeMirrorState) => void;
+  /**
+   * Move the playhead, because the listener asked — addressed to the deck that
+   * is audible.
+   *
+   * The scrubber used to reach the host only by accident: it set the muted
+   * element's `currentTime`, and the drift check at the foot of `sync` noticed
+   * on some later render and forwarded it. That check exists to SUPPRESS
+   * seeks — its threshold is half a second — so every drag shorter than that
+   * was discarded in silence, and the ones that survived arrived a render late.
+   * A command the user gave is not drift and must not be inferred from it.
+   */
+  seek: (positionMs: number) => void;
   /** Hand the audio back to the element path. */
   release: () => void;
 }
@@ -431,6 +443,25 @@ export const createNativeMirror = (
           .seek(activeDeck, positionMs / 1000)
           .catch(() => undefined);
       }
+    },
+
+    seek: (positionMs: number) => {
+      const target = Math.max(0, positionMs);
+      /**
+       * Claimed as the last reading, or the drift check undoes this.
+       *
+       * That check compares the element's clock against where the host should
+       * have reached by now. The element is paused and muted while a deck
+       * holds the track, so its clock stays wherever it was left — and the
+       * next sync would read the gap this jump just opened as drift and seek
+       * the deck straight back. Recording the jump as the reading is what
+       * makes the two agree about what has already happened.
+       */
+      toldPositionMs = target;
+      toldAt = performance.now();
+      controller.transport
+        .seek(activeDeck, target / 1000)
+        .catch(() => undefined);
     },
 
     release: () => {

@@ -19,6 +19,26 @@ what is already running, and none of them are optional.
   to prevent. It has happened repeatedly and it is what he asks for by name:
   _"attempt all my requests"_.
 
+## Go all the way. Come back when it is done, or when you are stuck
+
+Ivan does not want progress reports. He wants the work finished. Coming back
+mid-task with a fragment — one file changed, a cause named, a question that has
+an obvious answer — is what he calls _de buchito en buchito_, and it is the
+thing he asks for by name to stop.
+
+- **Interrupt him for exactly one reason: you cannot advance.** A real block —
+  a decision only he can make, a credential, something that needs his ears or
+  his window. Not "here is what I found so far", not "shall I continue", not a
+  summary of half the work.
+- **Everything else, keep going.** Found the cause? Fix it. Fix needs four
+  files? Change four files. Type-check fails? Fix it. Suite red? Fix it. Then
+  come back, once, with the whole thing done.
+- **A question you can answer yourself is not a question.** Pick the sensible
+  option, say which one you picked in the final answer, and move on.
+- The failure this prevents: a turn that ends with the diagnosis written up
+  and nothing repaired. He has to read it, say "yes obviously", and wait
+  again — twice the time for the same result.
+
 ## The change first. Tests after he is happy with it
 
 What he asked for goes in, and he gets to look at it. Only once he is

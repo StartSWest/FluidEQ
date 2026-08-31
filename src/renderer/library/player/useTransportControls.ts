@@ -36,6 +36,10 @@ export const useTransportControls = (options: {
   activeElement: () => HTMLMediaElement | undefined;
   startSeekFade: (element: HTMLMediaElement) => void;
   finishCrossfadeRef: MutableRefObject<(() => void) | undefined>;
+  /** True while a native deck holds the track, so the element is not audible. */
+  hostOwnsTransportRef: MutableRefObject<boolean>;
+  /** Move the audible deck's playhead. See `seek`. */
+  seekHost: (positionMs: number) => void;
   /** The clock of whichever engine is playing. See `publishedPositionMs`. */
   publishedPositionMs: number;
   volumeRef: MutableRefObject<number>;
@@ -49,6 +53,8 @@ export const useTransportControls = (options: {
     activeElement,
     startSeekFade,
     finishCrossfadeRef,
+    hostOwnsTransportRef,
+    seekHost,
     publishedPositionMs,
     volumeRef,
     setPositionMs,
@@ -56,42 +62,30 @@ export const useTransportControls = (options: {
     setQueue,
   } = options;
 
-  const skip = useCallback(
-    (direction: 1 | -1) => {
-      if (
-        direction === -1 &&
-        publishedPositionMs > PREVIOUS_RESTART_THRESHOLD_MS
-      ) {
-        const element = activeElement();
-        if (element) {
-          // Close any overlap before rewinding the deck that now owns the
-          // transport. A second Previous sees position zero and advances to the
-          // actual previous queue item.
-          finishCrossfadeRef.current?.();
-          startSeekFade(element);
-          element.currentTime = 0;
-        }
-        setPositionMs(0);
-        return;
-      }
-      setQueue((current) =>
-        current ? advanceQueue(current, direction) : current,
-      );
-    },
-    [
-      activeElement,
-      publishedPositionMs,
-      startSeekFade,
-      finishCrossfadeRef,
-      setPositionMs,
-      setQueue,
-    ],
-  );
-
+  /**
+   * Move the playhead, on whichever engine is actually making the sound.
+   *
+   * BOTH are moved, always, and that is the point. The host is what the
+   * listener hears; the element is the warm fallback that takes over if the
+   * device goes away, and one left at the old position hands back a song that
+   * jumps backwards at the worst possible moment.
+   *
+   * The host used to be reached only by side effect: this set the muted
+   * element's `currentTime`, and the drift check in `nativeMirror.sync`
+   * forwarded it on some later render if the gap happened to clear half a
+   * second. That check exists to SUPPRESS seeks — steady playback would
+   * otherwise seek on every tick and stutter — so it discarded every drag
+   * shorter than its threshold, and the bar, which reads the host, snapped
+   * back to a playhead that had never moved. Reported as the seek bar not
+   * working, and it was not: nothing was ever asked of the engine.
+   */
   const seek = useCallback(
     (nextPositionMs: number) => {
-      const element = activeElement();
       const clamped = Math.max(0, nextPositionMs);
+      if (hostOwnsTransportRef.current) {
+        seekHost(clamped);
+      }
+      const element = activeElement();
       if (!element) {
         setPositionMs(clamped);
         return;
@@ -110,7 +104,39 @@ export const useTransportControls = (options: {
       // never went to is worse than one that admits it did not move.
       setPositionMs(element.currentTime * 1000);
     },
-    [activeElement, startSeekFade, setPositionMs],
+    [
+      activeElement,
+      hostOwnsTransportRef,
+      seekHost,
+      startSeekFade,
+      setPositionMs,
+    ],
+  );
+
+  const skip = useCallback(
+    (direction: 1 | -1) => {
+      if (
+        direction === -1 &&
+        publishedPositionMs > PREVIOUS_RESTART_THRESHOLD_MS
+      ) {
+        // Close any overlap before rewinding the deck that now owns the
+        // transport. A second Previous sees position zero and advances to the
+        // actual previous queue item.
+        finishCrossfadeRef.current?.();
+        // Through `seek` rather than straight at the element: Previous is a
+        // jump to zero and has to reach the audible engine the same way the
+        // scrubber does. Setting `currentTime` here rewound a muted element
+        // while the deck played on, so the first Previous did nothing audible
+        // and the second one — seeing a position it had reset — skipped a
+        // track instead of restarting this one.
+        seek(0);
+        return;
+      }
+      setQueue((current) =>
+        current ? advanceQueue(current, direction) : current,
+      );
+    },
+    [publishedPositionMs, finishCrossfadeRef, seek, setQueue],
   );
 
   /**
