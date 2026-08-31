@@ -212,6 +212,92 @@ describe('createNoiseProfileAnalyzer', () => {
     expect(profile.humPartials).toHaveLength(0);
   });
 
+  it('does not mistake a bassline for mains hum', () => {
+    /*
+     * The false positive the detector used to produce, and the reason it was
+     * reported as useless on real music.
+     *
+     * G1 is 49.0 Hz and B1 is 61.7 Hz, which sit either side of the two
+     * frequencies being looked for, and the search windows were wide enough to
+     * reach both. Averaged over a file a bassline stands well above the floor,
+     * so it scored as hum, and the comb went onto its harmonics.
+     *
+     * What separates them is that a note STOPS. The notes change every half
+     * second here, so each bin collapses to the floor repeatedly, and the
+     * running minimum the detector now works from collapses with it.
+     */
+    const length = RATE * 12;
+    const source = makeNoise(4_242);
+    const signal = new Float32Array(length);
+    for (let i = 0; i < length; i += 1) {
+      const time = i / RATE;
+      // G1, D2, G1, B1 — a bassline, not a fault.
+      const note = [49.0, 73.4, 49.0, 61.7][Math.floor(time * 2) % 4];
+      signal[i] =
+        0.15 * Math.sin(2 * Math.PI * note * time) +
+        0.05 * Math.sin(2 * Math.PI * note * 2 * time) +
+        0.0005 * source();
+    }
+
+    const profile = feedWholeFile(createNoiseProfileAnalyzer(RATE, 2), signal);
+    expect(profile.humHz).toBe(0);
+    expect(profile.humPartials).toHaveLength(0);
+  });
+
+  it('finds 60 Hz hum whose fundamental is missing entirely', () => {
+    /*
+     * The case that decided the detector had to score the whole comb.
+     *
+     * Mains hum reaches a recording through transformers and ground loops that
+     * are anything but linear, so the upper partials routinely stand above the
+     * first — and any recording that has been high-passed has no fundamental
+     * left at all. There is nothing whatsoever at 60 Hz in this signal, and
+     * nothing at 50 either, so a detector comparing the two fundamentals is
+     * choosing between two patches of noise. The comb at 120, 180 and 240 is
+     * unambiguous.
+     *
+     * The fundamental then comes from a least-squares fit over those three,
+     * which is why it can be reported at all.
+     */
+    const length = RATE * 12;
+    const source = makeNoise(9_001);
+    const signal = new Float32Array(length);
+    for (let i = 0; i < length; i += 1) {
+      const time = i / RATE;
+      signal[i] =
+        0.02 * Math.sin(2 * Math.PI * 120 * time) +
+        0.012 * Math.sin(2 * Math.PI * 180 * time) +
+        0.006 * Math.sin(2 * Math.PI * 240 * time) +
+        0.0005 * source();
+    }
+
+    const profile = feedWholeFile(createNoiseProfileAnalyzer(RATE, 2), signal);
+    expect(Math.abs(profile.humHz - 60)).toBeLessThan(0.5);
+    expect(profile.humPartials.length).toBeGreaterThanOrEqual(3);
+  });
+
+  it('claims neither 50 nor 60 for a tone sitting between them', () => {
+    /*
+     * The overlap bug, pinned.
+     *
+     * The two searches used to span 44-56 and 54-66, which share 54-56. A peak
+     * in that gap was found by both, awarded to whichever scored higher by a
+     * hair, and then reported as the FUNDAMENTAL — so a 55 Hz tone became a
+     * comb at 110, 165, 220 and the notches landed on an instrument. Neither
+     * window reaches it now.
+     */
+    const length = RATE * 12;
+    const source = makeNoise(5_555);
+    const signal = new Float32Array(length);
+    for (let i = 0; i < length; i += 1) {
+      const time = i / RATE;
+      signal[i] = 0.1 * Math.sin(2 * Math.PI * 55 * time) + 0.0005 * source();
+    }
+
+    const profile = feedWholeFile(createNoiseProfileAnalyzer(RATE, 2), signal);
+    expect(profile.humHz).toBe(0);
+  });
+
   it('counts injected clicks and leaves clean material alone', () => {
     const length = RATE * 8;
     const source = makeNoise(2_026);

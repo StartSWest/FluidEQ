@@ -126,7 +126,33 @@ const BAND_EDGE_RATIO = 2 ** (Math.log2(20_000 / 20) / NOISE_PROFILE_BANDS / 2);
  * resolves the fundamental to a few tenths of a hertz.
  */
 const HUM_WINDOW = 16_384;
-const HUM_SEARCH_HZ = 6;
+/**
+ * How far a partial may sit from its nominal frequency, as a fraction of it.
+ *
+ * Two percent, which covers material transferred off-speed — the case the
+ * allowance actually exists for, and one that stretches the whole comb rather
+ * than shifting it. A grid holds its frequency far tighter than this.
+ */
+const HUM_DRIFT_FRACTION = 0.02;
+
+/**
+ * Frames before the running minimum is trusted over the mean.
+ *
+ * Each frame is a third of a second, so this is under three seconds of audio.
+ * Below it there are too few observations for "the quietest this bin ever got"
+ * to distinguish a note that stopped from one that never played.
+ */
+const HUM_MIN_STATIONARY_FRAMES = 8;
+
+/**
+ * How far a partial's quietest frame may fall below its average, in dB.
+ *
+ * Hum is on for the whole file, so its quietest frame is its average and this
+ * ratio is near zero. A bass note playing a quarter of the time has an average
+ * four times its absence, so it lands far below. Six decibels leaves room for
+ * hum that breathes with the supply without leaving room for a note.
+ */
+const HUM_STATIONARITY_DB = -6;
 const HUM_CANDIDATES = [50, 60] as const;
 
 /** Clicks are counted with the detector's own logic, so the card agrees. */
@@ -186,14 +212,59 @@ export const createNoiseProfileAnalyzer = (
   let subFrames = 0;
   let completedSubWindows = 0;
 
-  // The hum transform accumulates a mean power spectrum over the whole file
-  // rather than a running minimum: a partial that is present throughout is
-  // what is being looked for, and averaging is what makes it stand out of the
-  // noise it sits on.
+  /*
+   * Two spectra, and the second one is what makes the detector work.
+   *
+   * The mean over the file is what a partial present throughout stands out of,
+   * and that was the whole of it. But a bass note stands out of a mean too —
+   * G1 is 49.0 Hz and B1 is 61.7 Hz, either side of the two frequencies being
+   * looked for — so on bass-heavy material the detector reported hum that was
+   * a bassline, placed a comb on its harmonics, and notched the instrument.
+   *
+   * The running MINIMUM separates them, and nothing else does. Hum is in every
+   * frame of the file by definition; a note is not, and the moment the bass
+   * moves off that pitch its bin collapses to the floor and takes the minimum
+   * with it. A sinusoid's per-frame power barely varies, so its minimum is its
+   * level. That is the same discrimination minimum statistics rests on, at a
+   * third of a second per frame instead of five milliseconds.
+   *
+   * The mean is kept as the fallback for files too short for a minimum to mean
+   * anything.
+   */
+  /*
+   * Blackman-Harris, not Hann, and this window is the difference between the
+   * detector working on music and not.
+   *
+   * Hann's sidelobes are about 45 dB down a few bins out. A bass note at 0.15
+   * sits some 88 dB over the noise floor of a quiet recording, so it leaks
+   * forty-odd decibels into every bin for a hundred hertz either side — in
+   * EVERY frame it plays. That defeats the running minimum completely: the
+   * 60 Hz bin never falls to the floor, because whichever note is playing is
+   * always putting something there, and the detector duly finds a stationary
+   * partial that is an artefact of its own window.
+   *
+   * The four-term Blackman-Harris is 92 dB down, which puts that leakage under
+   * the floor instead of forty decibels over it. It costs main-lobe width —
+   * four bins rather than two — and that is the right trade here, because what
+   * this transform is doing is looking for a small tone standing next to very
+   * large ones. Nothing is calibrated against it: every hum decision is a ratio
+   * against the local floor measured through the same window.
+   */
+  const humShape = new Float64Array(HUM_WINDOW);
+  for (let i = 0; i < HUM_WINDOW; i += 1) {
+    const t = (2 * Math.PI * i) / HUM_WINDOW;
+    humShape[i] =
+      0.35875 -
+      0.48829 * Math.cos(t) +
+      0.14128 * Math.cos(2 * t) -
+      0.01168 * Math.cos(3 * t);
+  }
+
   const humFrame = new Float64Array(HUM_WINDOW);
   const humReal = new Float64Array(HUM_WINDOW);
   const humImaginary = new Float64Array(HUM_WINDOW);
   const humPower = new Float64Array(HUM_WINDOW / 2 + 1);
+  const humStationary = new Float64Array(HUM_WINDOW / 2 + 1).fill(Infinity);
   let humFill = 0;
   let humFrames = 0;
 
@@ -244,14 +315,17 @@ export const createNoiseProfileAnalyzer = (
 
   const processHumFrame = () => {
     for (let i = 0; i < HUM_WINDOW; i += 1) {
-      humReal[i] =
-        humFrame[i] * (0.5 - 0.5 * Math.cos((2 * Math.PI * i) / HUM_WINDOW));
+      humReal[i] = humFrame[i] * humShape[i];
       humImaginary[i] = 0;
     }
     fftInPlace(humReal, humImaginary, false);
     for (let bin = 0; bin < humPower.length; bin += 1) {
-      humPower[bin] +=
+      const power =
         humReal[bin] * humReal[bin] + humImaginary[bin] * humImaginary[bin];
+      humPower[bin] += power;
+      if (power < humStationary[bin]) {
+        humStationary[bin] = power;
+      }
     }
     humFrames += 1;
     humFill = 0;
@@ -380,7 +454,18 @@ export const createNoiseProfileAnalyzer = (
           ? Math.max(NOISE_PROFILE_SILENCE_DB, 10 * Math.log10(totalPower))
           : NOISE_PROFILE_SILENCE_DB;
 
-      const { humHz, humPartials } = findHum(humPower, humFrames, sampleRate);
+      // Levels from the mean; presence over time from the minimum. Too few
+      // frames to have taken a meaningful minimum and the stationarity test is
+      // disabled by handing it the mean, which scores every bin at zero.
+      const humMean = new Float64Array(humPower.length);
+      for (let bin = 0; bin < humPower.length; bin += 1) {
+        humMean[bin] = humPower[bin] / Math.max(1, humFrames);
+      }
+      const { humHz, humPartials } = findHum(
+        humMean,
+        humFrames >= HUM_MIN_STATIONARY_FRAMES ? humStationary : humMean,
+        sampleRate,
+      );
 
       const minutes = samples / sampleRate / 60;
       return {
@@ -405,24 +490,89 @@ export const createNoiseProfileAnalyzer = (
  */
 const findHum = (
   power: Float64Array,
-  frames: number,
+  stationary: Float64Array,
   sampleRate: number,
 ): { humHz: number; humPartials: INoiseHumPartial[] } => {
-  if (frames === 0) {
-    return { humHz: 0, humPartials: [] };
-  }
   const binHz = sampleRate / HUM_WINDOW;
 
+  /**
+   * How much of a bin's average level is there in its quietest frame, in dB.
+   *
+   * Zero for something present the whole way through, deeply negative for
+   * something that comes and goes. That is the entire distinction between hum
+   * and a note, and it is measured rather than assumed.
+   *
+   * The two spectra do different jobs and the split matters. The MEAN is what
+   * levels are read from, because averaging is what pulls a small partial out
+   * of the noise it sits on. The MINIMUM is only ever used as this ratio: the
+   * minimum of an exponentially distributed power has enormous relative
+   * scatter, so reading a level off it invents six-decibel peaks out of plain
+   * noise — which is exactly what it did when it was tried as the spectrum.
+   */
+  const stationarityDb = (bin: number): number => {
+    if (bin <= 0 || bin >= power.length || power[bin] <= 0) {
+      return -Infinity;
+    }
+    const quietest = Number.isFinite(stationary[bin]) ? stationary[bin] : 0;
+    return quietest > 0 ? 10 * Math.log10(quietest / power[bin]) : -Infinity;
+  };
+
+  /*
+   * The search window widens with the harmonic, and at the fundamental it is
+   * ONE BIN.
+   *
+   * It was a flat six hertz, which put 44-56 around fifty and 54-66 around
+   * sixty. Those overlap. A single peak anywhere in 54-56 was found by both
+   * searches and awarded to whichever scored marginally higher, and a peak at
+   * 56 could be returned as the fifty-hertz candidate — after which every
+   * harmonic was placed at a multiple of 56 and the comb sat on nothing.
+   *
+   * A grid never deviates by more than a fraction of a hertz. What the width
+   * is really for is material transferred off-speed, and that scales the whole
+   * comb rather than shifting it, so the allowance belongs proportional to the
+   * harmonic: two percent, which at the tenth partial is ten hertz and at the
+   * fundamental is less than the bin spacing, so the two candidates can no
+   * longer reach each other.
+   */
   const peakNear = (hz: number): { hz: number; power: number } => {
-    const centre = Math.round(hz / binHz);
-    const span = Math.max(1, Math.round(HUM_SEARCH_HZ / binHz));
-    let best = centre;
-    for (let bin = centre - span; bin <= centre + span; bin += 1) {
-      if (bin > 0 && bin < power.length - 1 && power[bin] > power[best]) {
+    // In HERTZ around the target, then converted to bins — not the target
+    // rounded to a bin and widened by whole bins from there. That skews the
+    // window by up to half a bin: sixty hertz rounds to a bin at 58.6, so
+    // "one bin either side" reached down to 55.7 and could claim a tone that
+    // is nowhere near sixty.
+    const toleranceHz = Math.max(binHz * 1.5, hz * HUM_DRIFT_FRACTION);
+    const lowest = Math.max(1, Math.ceil((hz - toleranceHz) / binHz));
+    const highest = Math.min(
+      power.length - 2,
+      Math.floor((hz + toleranceHz) / binHz),
+    );
+    if (lowest > highest) {
+      return { hz: 0, power: 0 };
+    }
+    let best = lowest;
+    for (let bin = lowest; bin <= highest; bin += 1) {
+      if (power[bin] > power[best]) {
         best = bin;
       }
     }
     if (best <= 0 || best >= power.length - 1) {
+      return { hz: 0, power: 0 };
+    }
+    /*
+     * It has to be a PEAK, not merely the largest thing in the window.
+     *
+     * A strong tone just outside the window leaves the spectrum climbing
+     * steadily toward it, so the largest bin inside sits on the edge and is
+     * part of somebody else's skirt. Taking it produced the worst failure this
+     * detector had: a sustained 55 Hz tone, which is neither mains frequency,
+     * was returned as the fundamental — and the comb then went onto 110, 165
+     * and 220, notching an instrument at four frequencies because of a peak
+     * that was never there.
+     *
+     * A true partial falls away on both sides. Equality is allowed, since a
+     * tone landing exactly between two bins fills them equally.
+     */
+    if (power[best] < power[best - 1] || power[best] < power[best + 1]) {
       return { hz: 0, power: 0 };
     }
     // Parabolic interpolation on the log magnitudes, which is the standard
@@ -433,27 +583,44 @@ const findHum = (
     const denominator = left - 2 * middle + right;
     const offset =
       Math.abs(denominator) > 1e-12 ? (0.5 * (left - right)) / denominator : 0;
-    return {
-      hz: (best + Math.max(-0.5, Math.min(0.5, offset))) * binHz,
-      power: power[best] / frames,
-    };
+    const refined = (best + Math.max(-0.5, Math.min(0.5, offset))) * binHz;
+    // The tolerance is checked against the REFINED frequency, not against the
+    // bin it came from. A bin is nearly three hertz wide here, so a peak whose
+    // bin is inside the window can interpolate to a frequency that is plainly
+    // outside it — which is how a 55 Hz tone was still being handed back as a
+    // sixty-hertz partial after the window itself had been fixed.
+    if (Math.abs(refined - hz) > toleranceHz) {
+      return { hz: 0, power: 0 };
+    }
+    return { hz: refined, power: power[best] };
   };
 
-  /** The floor beside a partial, so its excess is measured and not assumed. */
+  /**
+   * The floor beside a partial, so its excess is measured and not assumed.
+   *
+   * A MEDIAN, not a mean. The window reaches twenty-four bins either side,
+   * which at this transform is seventy hertz — so for a fundamental at fifty
+   * it contains the hundred-hertz partial and, at the low end, DC. Averaging
+   * those in raises the "floor" by whatever the neighbouring harmonic is
+   * doing and hides the very peak being measured. A median is unmoved by a few
+   * loud bins in the window, which is the entire reason to prefer it here.
+   */
   const neighbourhood = (bin: number): number => {
-    let sum = 0;
-    let count = 0;
-    // Symmetric, and the eight bins nearest the peak are skipped: a partial
-    // spreads into its immediate neighbours through the window, so measuring
-    // the floor from those would be measuring the hum and calling it the floor.
+    const around: number[] = [];
+    // The eight bins nearest the peak are skipped: a partial spreads into its
+    // immediate neighbours through the window, so measuring the floor from
+    // those would be measuring the hum and calling it the floor.
     for (let offset = -24; offset <= 24; offset += 1) {
       const at = bin + offset;
       if (Math.abs(offset) >= 8 && at > 0 && at < power.length) {
-        sum += power[at] / frames;
-        count += 1;
+        around.push(power[at]);
       }
     }
-    return count > 0 ? sum / count : 0;
+    if (around.length === 0) {
+      return 0;
+    }
+    around.sort((a, b) => a - b);
+    return around[Math.floor(around.length / 2)];
   };
 
   /** A candidate's height over the floor around it, in dB. */
@@ -467,34 +634,83 @@ const findHum = (
       : 0;
   };
 
-  let chosenHz = 0;
-  let chosenExcess = 0;
+  /*
+   * Score a candidate on its WHOLE COMB, not on its fundamental.
+   *
+   * Deciding between fifty and sixty by whichever fundamental is taller is
+   * wrong in the common case and not merely imprecise. Mains hum reaches a
+   * recording through transformers and ground loops that are anything but
+   * linear, so the second and third partials routinely stand above the first,
+   * and any recording that has been high-passed — most of them — has no
+   * fundamental left at all. The comb is the signature. Ten evenly spaced
+   * partials at sixty and none at fifty is an unambiguous answer even when
+   * there is nothing whatsoever at sixty hertz itself.
+   */
+  const scoreComb = (
+    fundamental: number,
+  ): { score: number; partials: INoiseHumPartial[]; orders: number[] } => {
+    const partials: INoiseHumPartial[] = [];
+    const orders: number[] = [];
+    let score = 0;
+    for (let order = 1; order <= NOISE_HUM_MAX_HARMONICS; order += 1) {
+      const target = fundamental * order;
+      if (target >= sampleRate * 0.45 || target >= 2_000) {
+        break;
+      }
+      const found = peakNear(target);
+      const excessDb = found.hz > 0 ? excessAt(found) : 0;
+      // Present throughout, not merely present. A bass note is as loud as hum
+      // and stands as far above the floor; what it does not do is play in
+      // every frame of the file.
+      const steady =
+        found.hz > 0 &&
+        stationarityDb(Math.round(found.hz / binHz)) >= HUM_STATIONARITY_DB;
+      // Six decibels over the surrounding floor, the same bar the notch
+      // placement uses. Below that the peak is the floor, and a notch there is
+      // all cost.
+      if (found.hz > 0 && steady && excessDb >= 6) {
+        score += excessDb;
+        partials.push({ hz: found.hz, excessDb });
+        orders.push(order);
+      }
+    }
+    return { score, partials, orders };
+  };
+
+  let chosen = {
+    score: 0,
+    partials: [] as INoiseHumPartial[],
+    orders: [] as number[],
+  };
   HUM_CANDIDATES.forEach((candidate) => {
-    const found = peakNear(candidate);
-    const excess = excessAt(found);
-    if (excess > chosenExcess) {
-      chosenExcess = excess;
-      chosenHz = found.hz;
+    const scored = scoreComb(candidate);
+    if (scored.score > chosen.score) {
+      chosen = scored;
     }
   });
 
-  // Six decibels over the surrounding floor, the same bar the notch placement
-  // uses. Below that the peak is the floor, and a notch there is all cost.
-  if (chosenHz <= 0 || chosenExcess < 6) {
+  if (chosen.partials.length === 0) {
     return { humHz: 0, humPartials: [] };
   }
 
-  const humPartials: INoiseHumPartial[] = [];
-  for (let partial = 1; partial <= NOISE_HUM_MAX_HARMONICS; partial += 1) {
-    const target = chosenHz * partial;
-    if (target >= sampleRate * 0.45 || target >= 2_000) {
-      break;
-    }
-    const found = peakNear(target);
-    if (found.hz > 0) {
-      humPartials.push({ hz: found.hz, excessDb: excessAt(found) });
-    }
-  }
+  /*
+   * The fundamental, solved from every partial rather than read off the first.
+   *
+   * Each located partial says f_n is about n times f0, so the least-squares f0
+   * over all of them is sum(n*f_n) / sum(n*n) — and a partial's frequency
+   * error does not grow with its order while the LEVER n does, so the tenth
+   * harmonic pins f0 roughly ten times as tightly as the first. This matters
+   * downstream and the notch placement says so: the comb is built at multiples
+   * of this number, and by the eighth partial an f0 that is a tenth of a hertz
+   * out is nearly a hertz out, which for a Q of thirty is outside the notch.
+   */
+  let weighted = 0;
+  let orderSquares = 0;
+  chosen.orders.forEach((order, index) => {
+    weighted += order * chosen.partials[index].hz;
+    orderSquares += order * order;
+  });
+  const humHz = orderSquares > 0 ? weighted / orderSquares : 0;
 
-  return { humHz: chosenHz, humPartials };
+  return { humHz, humPartials: chosen.partials };
 };

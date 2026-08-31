@@ -336,8 +336,11 @@ it under the terms of the GNU General Public License version 3 or later.
   // the pane rose over seven hundred milliseconds and then snapped back the
   // instant the mode went off — the way out has to be as smooth as the way in,
   // and it is the way out this whole file is currently being read for.
+  // 65 rather than 64 since the pane grew a bottom border, and the same in
+  // App.scss: the extra pixel is the edge, not the drawing. See
+  // `WaveformVisualizer.scss`.
   .waveform-visualizer {
-    height: 64px;
+    height: 65px;
   }
 
   // The band colours are NOT touched here, and that is the fix.

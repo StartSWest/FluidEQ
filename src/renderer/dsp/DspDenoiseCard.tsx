@@ -203,7 +203,12 @@ const DspDenoiseCard = ({
           something: a floor and a spectrum in the same units on the same
           axes. "Reducing: -4 dB" is the same number whether the stage is
           taking hiss or taking the vocal. */}
-      <DspDenoiseGraph profile={profile} isEnabled={isEnabled} />
+      <DspDenoiseGraph
+        profile={profile}
+        hum={denoise.hum}
+        click={denoise.click}
+        isEnabled={isEnabled}
+      />
 
       <section className="dsp-denoise-analysis" aria-live="polite">
         <div className="dsp-band-head">

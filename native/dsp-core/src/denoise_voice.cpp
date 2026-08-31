@@ -152,6 +152,8 @@ struct VoiceRuntime {
   std::vector<double> window;
   std::vector<VoiceChannel> channels;
   std::vector<float> initial_state;
+  /** The 960-point transform. Built at load, used only by the worker. */
+  FeqDft* transform = nullptr;
 
   /**
    * One pair of rings per channel, as fixed arrays rather than vectors.
@@ -277,7 +279,7 @@ void process_hop(VoiceRuntime& runtime, VoiceChannel& channel) {
   for (uint32_t i = 0; i < kVoiceWindow; i += 1) {
     real[i] = static_cast<double>(channel.analysis[i]) * runtime.window[i];
   }
-  feq_fft_in_place(real.data(), imaginary.data(), kVoiceWindow, 0);
+  feq_dft_in_place(runtime.transform, real.data(), imaginary.data(), 0);
 
   std::vector<float> spectrum(kVoiceBins * 2, 0.0f);
   for (uint32_t bin = 0; bin < kVoiceBins; bin += 1) {
@@ -338,7 +340,7 @@ void process_hop(VoiceRuntime& runtime, VoiceChannel& channel) {
   api->ReleaseValue(outputs[0]);
   api->ReleaseValue(outputs[1]);
 
-  feq_fft_in_place(real.data(), imaginary.data(), kVoiceWindow, 1);
+  feq_dft_in_place(runtime.transform, real.data(), imaginary.data(), 1);
 
   const double scale = 1.0 / static_cast<double>(kVoiceWindow);
   for (uint32_t i = 0; i < kVoiceWindow - kVoiceHop; i += 1) {
@@ -394,6 +396,29 @@ void denoise_voice_reset(FeqDenoise* denoise) {
   for (uint32_t c = 0; c < runtime->channel_count; c += 1) {
     runtime->input[c].reset(kVoiceHop * 32);
     runtime->output[c].reset(kVoiceHop * 32);
+    /*
+     * Prime the output with the backlog this module CLAIMS to have.
+     *
+     * `kDenoiseVoiceLatencyFrames` documents a head start the worker gets, and
+     * `denoise_voice_latency_frames` reports the stage as delaying by exactly
+     * that much — but nothing implemented it, so the real delay was whatever
+     * the ring happened to be holding at the time. Two consequences: the
+     * worker started from behind and underran until it caught up, and Isolate,
+     * which time-aligns on the reported figure, was subtracting two signals
+     * that were not aligned. That is the comb filter this stage already
+     * learned about once.
+     *
+     * Silence, so the delay is exact from the first sample rather than
+     * approached. A small stack buffer rather than an allocation, because a
+     * reset can be reached from the audio thread.
+     */
+    float silence[64] = {0.0f};
+    uint32_t remaining = kVoiceHop * kDenoiseVoiceLatencyFrames;
+    while (remaining > 0) {
+      const uint32_t block = remaining < 64 ? remaining : 64;
+      runtime->output[c].push(silence, block);
+      remaining -= block;
+    }
     VoiceChannel& channel = runtime->channels[c];
     std::fill(channel.analysis.begin(), channel.analysis.end(), 0.0f);
     std::fill(channel.synthesis.begin(), channel.synthesis.end(), 0.0f);
@@ -525,6 +550,7 @@ int denoise_voice_load_model(FeqDenoise* denoise,
   }
 
   runtime->channel_count = denoise->channels;
+  runtime->transform = feq_dft_create(kVoiceWindow);
   runtime->window.resize(kVoiceWindow);
   for (uint32_t i = 0; i < kVoiceWindow; i += 1) {
     runtime->window[i] = vorbis_window(i, kVoiceWindow);
@@ -557,6 +583,9 @@ void denoise_voice_unload(FeqDenoise* denoise) {
   if (runtime->worker.joinable()) {
     runtime->worker.join();
   }
+  // After the join and never before: the worker is the plan's only user.
+  feq_dft_destroy(runtime->transform);
+  runtime->transform = nullptr;
   const OrtApi* api = runtime->api;
   if (api != nullptr) {
     if (runtime->memory != nullptr) {

@@ -43,6 +43,30 @@ const trayInstances: {
 let builtMenus: IMenuItem[][] = [];
 let existingFiles = new Set<string>();
 
+/**
+ * A menu item's icon is a NativeImage rather than a path, so the mock has to
+ * hand back something with an image's shape. It carries its source path so a
+ * test can still say which asset an item was given.
+ */
+interface IFakeImage {
+  source: string;
+  isEmpty: () => boolean;
+  resize: () => IFakeImage;
+  addRepresentation: jest.Mock;
+  toPNG: () => Buffer;
+}
+
+const fakeImage = (source: string): IFakeImage => {
+  const image: IFakeImage = {
+    source,
+    isEmpty: () => false,
+    resize: () => image,
+    addRepresentation: jest.fn(),
+    toPNG: () => Buffer.alloc(0),
+  };
+  return image;
+};
+
 jest.mock('fs', () => ({
   __esModule: true,
   default: { existsSync: (target: string) => existingFiles.has(target) },
@@ -51,6 +75,7 @@ jest.mock('fs', () => ({
 
 jest.mock('electron', () => ({
   app: { isPackaged: false, quit: jest.fn() },
+  nativeImage: { createFromPath: (target: string) => fakeImage(target) },
   Menu: {
     buildFromTemplate: (template: IMenuItem[]) => {
       builtMenus.push(template);

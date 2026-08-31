@@ -84,6 +84,9 @@ void denoise_hum_configure(FeqDenoise* denoise) {
     // recorded them, and by the eighth partial an assumed multiple can be
     // several hertz out — which for a Q of 30 is entirely outside the notch.
     bool present = !denoise->profile_ready;
+    // With no scan there is no measurement, so the dial's depth is all there
+    // is to go on. With one, the depth is bounded by what was measured.
+    double excess_db = settings.depth_db;
     if (denoise->profile_ready) {
       for (uint32_t i = 0; i < denoise->profile.hum_partial_count; i += 1) {
         const double candidate = denoise->profile.hum_partial_hz[i];
@@ -91,6 +94,7 @@ void denoise_hum_configure(FeqDenoise* denoise) {
           if (denoise->profile.hum_partial_excess_db[i] >=
               kHumPartialThresholdDb) {
             hz = candidate;
+            excess_db = denoise->profile.hum_partial_excess_db[i];
             present = true;
           }
           break;
@@ -102,8 +106,25 @@ void denoise_hum_configure(FeqDenoise* denoise) {
       continue;
     }
 
+    /*
+     * Never cut a partial deeper than it actually stands above the floor.
+     *
+     * One depth for the whole comb treats the tenth partial like the first,
+     * and mains partials do not arrive at one level — they fall away with
+     * order. So a flat twenty-decibel comb spends most of its notches taking
+     * twenty decibels out of a partial that was six decibels tall, and the
+     * other fourteen come out of whatever music shares the frequency. They buy
+     * nothing: once a partial is at the floor it is inaudible whatever else is
+     * done to it.
+     *
+     * The professional tools offer this as a fixed slope over harmonic order.
+     * A measurement per partial is the same idea without the guess, and the
+     * scan has already made it.
+     */
+    const double depth_db = std::min(settings.depth_db, excess_db);
+
     denoise->hum_coefficients.push_back(feq_biquad_coefficients(
-        FEQ_FILTER_PK, hz, -settings.depth_db, settings.quality,
+        FEQ_FILTER_PK, hz, -depth_db, settings.quality,
         denoise->sample_rate));
   }
 

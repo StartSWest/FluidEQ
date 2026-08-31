@@ -28,10 +28,38 @@ extern "C" {
 typedef struct FeqConvolverKernel FeqConvolverKernel;
 typedef struct FeqConvolver FeqConvolver;
 
-/** Radix-2, in place, over `size` samples. `size` must be a power of two. */
+/**
+ * Radix-2, in place, over `size` samples. `size` MUST be a power of two.
+ *
+ * A size that is not one is refused and the buffers left untouched, rather
+ * than read past their end — which is what this used to do, sixty-four doubles
+ * beyond a 960-point call, silently, until an unrelated allocation died of it.
+ * Use `FeqDft` when the size is not a power of two.
+ */
 void feq_fft_in_place(double* real,
                       double* imaginary,
                       uint32_t size,
+                      int inverse);
+
+typedef struct FeqDft FeqDft;
+
+/**
+ * A transform of ANY size, built on the one above by Bluestein's algorithm.
+ *
+ * Needed because a model dictates its own window: DPDFNet runs at 960 samples
+ * and wants exactly 481 bins, and no amount of zero-padding produces those
+ * bins. Costs two power-of-two transforms of the first size at or above 2N-1
+ * per call, plus a kernel built once at create.
+ *
+ * `feq_dft_in_place` allocates nothing and is safe on a worker thread, but a
+ * plan carries its own scratch and so belongs to one thread at a time.
+ * `inverse` is unnormalised, matching `feq_fft_in_place`: the caller divides.
+ */
+FeqDft* feq_dft_create(uint32_t size);
+void feq_dft_destroy(FeqDft* plan);
+void feq_dft_in_place(FeqDft* plan,
+                      double* real,
+                      double* imaginary,
                       int inverse);
 
 uint32_t feq_convolver_latency(void);

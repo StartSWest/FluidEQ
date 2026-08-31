@@ -13,15 +13,24 @@ SPDX-License-Identifier: GPL-3.0-or-later
  *
  * The hard part is not finding clicks, it is not finding drums. A snare hit is
  * also unpredicted by its predecessors, and every naive click remover eats
- * percussion. Two things keep this one honest:
+ * percussion. This one did: measured on kick, snare and hats containing no
+ * damage whatsoever, it performed three thousand repairs and removed energy
+ * only ten decibels below the music itself. Two guards keep it honest, and the
+ * second is the one that does the work:
  *
  *  - WIDTH. A click is a handful of samples and its energy does not persist; a
  *    transient keeps going. So a run is only repaired while it stays under
  *    `max_repair_samples`, and a longer excursion is left alone — the point at
  *    which a repair stops being a repair and becomes an interpolation over
  *    music is exactly the point at which this refuses.
- *  - The error scale is smoothed only from samples that were not flagged, so a
- *    passage full of clicks does not quietly raise the bar until they pass.
+ *  - ISOLATION. Width alone cannot see the failure above, because inside a
+ *    hi-hat the flagged runs are SHORT. A cymbal is close to noise, so almost
+ *    every sample of it is unpredicted, and the module sat there interpolating
+ *    two samples at a time — which is a low-pass filter applied to a transient.
+ *    What separates the two cases is not how long a run is but what surrounds
+ *    it: real damage is an isolated event in otherwise predictable material,
+ *    while percussion flags densely with no clean neighbourhood anywhere. So a
+ *    run is repaired only when the rest of the buffer around it is quiet.
  */
 
 #include <algorithm>
@@ -66,6 +75,21 @@ constexpr double kMedianStep = 0.005;
  */
 constexpr uint32_t kWarmupSamples = 2048;
 
+/**
+ * How much of the buffer AROUND a run may also be flagged, as a proportion.
+ *
+ * The isolation test. A vinyl tick puts two or three samples out of fifty in
+ * question and leaves the rest alone; a hi-hat puts half of them in question
+ * and keeps doing it for milliseconds. Fifteen percent sits far above the
+ * first and far below the second, so it does not need to be a dial.
+ *
+ * Deliberately measured OUTSIDE the run rather than over the whole buffer. A
+ * dropout long enough to fill most of `max_repair_samples` is a legitimate
+ * repair, and counting its own samples against it would refuse exactly the
+ * damage this module exists for.
+ */
+constexpr double kMaxSurroundingFlagged = 0.15;
+
 uint32_t repair_capacity(const FeqDenoise* denoise) {
   const double requested = denoise->settings.click.max_repair_samples;
   const uint32_t limit = static_cast<uint32_t>(
@@ -85,6 +109,7 @@ void denoise_click_configure(FeqDenoise* denoise) {
       channel.capacity = capacity;
       channel.history.assign(capacity, 0.0f);
       channel.flags.assign(capacity, uint8_t{0});
+      channel.flagged_count = 0;
       channel.cursor = 0;
       // Seeded below any real material rather than at zero: the tracker is
       // multiplicative, so zero is a fixed point it can never climb out of.
@@ -99,6 +124,7 @@ void denoise_click_reset(FeqDenoise* denoise) {
   for (auto& channel : denoise->click) {
     std::fill(channel.history.begin(), channel.history.end(), 0.0f);
     std::fill(channel.flags.begin(), channel.flags.end(), uint8_t{0});
+    channel.flagged_count = 0;
     channel.cursor = 0;
     channel.median_error = kMinimumErrorScale;
     channel.warmup = kWarmupSamples;
@@ -165,7 +191,11 @@ uint32_t denoise_click_process(FeqDenoise* denoise,
         flagged = error > scale * factor;
       }
       channel.history[write] = buffer[i];
+      // The slot being written held a flag from a whole buffer ago; it leaves
+      // the total as this one joins it.
+      channel.flagged_count -= channel.flags[write];
       channel.flags[write] = flagged ? 1u : 0u;
+      channel.flagged_count += channel.flags[write];
 
       channel.cursor = (write + 1) % capacity;
 
@@ -196,6 +226,24 @@ uint32_t denoise_click_process(FeqDenoise* denoise,
         continue;
       }
 
+      /*
+       * Isolation: is the rest of the buffer clean, or is the material itself
+       * unpredictable here? See `kMaxSurroundingFlagged`.
+       *
+       * The run's own samples are excluded from both sides of the comparison,
+       * so a long repairable dropout is judged on its surroundings exactly as
+       * a two-sample tick is.
+       */
+      const uint32_t surrounding =
+          channel.flagged_count > run ? channel.flagged_count - run : 0;
+      const uint32_t elsewhere = capacity > run ? capacity - run : 1;
+      if (static_cast<double>(surrounding) >
+          kMaxSurroundingFlagged * static_cast<double>(elsewhere)) {
+        channel.in_run = true;
+        buffer[i] = channel.history[read];
+        continue;
+      }
+
       if (!channel.in_run) {
         repaired += 1;
         channel.in_run = true;
@@ -213,6 +261,7 @@ uint32_t denoise_click_process(FeqDenoise* denoise,
       for (uint32_t step_index = 1; step_index <= run; step_index += 1) {
         channel.history[at] =
             static_cast<float>(start + step * static_cast<double>(step_index));
+        channel.flagged_count -= channel.flags[at];
         channel.flags[at] = 0;
         at = (at + 1) % capacity;
       }

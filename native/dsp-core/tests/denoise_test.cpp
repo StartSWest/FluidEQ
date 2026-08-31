@@ -16,6 +16,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
  */
 #include "fluideq/denoise.h"
 
+#include "fluideq/convolver.h"
+
 #include <cmath>
 #include <cstdio>
 #include <cstring>
@@ -75,6 +77,32 @@ double tone_level_db(const std::vector<float>& signal,
       2.0 * std::sqrt(real * real + imaginary * imaginary) /
       static_cast<double>(count);
   return magnitude > 1e-12 ? 20.0 * std::log10(magnitude) : -240.0;
+}
+
+/**
+ * Average power across a band, in dB.
+ *
+ * A single projection is the right instrument for a TONE and the wrong one for
+ * noise: at one frequency a broadband signal gives a chi-square estimate with
+ * two degrees of freedom, which scatters by several decibels run to run and
+ * cannot tell a real 2 dB difference from its own variance. Thirty-two probes
+ * spread across the band average that down to where a comparison means
+ * something.
+ */
+double band_level_db(const std::vector<float>& signal,
+                     double low,
+                     double high,
+                     uint32_t from,
+                     uint32_t count) {
+  constexpr uint32_t kProbes = 32;
+  double sum = 0.0;
+  for (uint32_t i = 0; i < kProbes; i += 1) {
+    const double t = static_cast<double>(i) / static_cast<double>(kProbes - 1);
+    const double db =
+        tone_level_db(signal, low * std::pow(high / low, t), from, count);
+    sum += std::pow(10.0, db / 10.0);
+  }
+  return 10.0 * std::log10(sum / static_cast<double>(kProbes));
 }
 
 double rms_db(const std::vector<float>& signal, uint32_t from, uint32_t count) {
@@ -249,6 +277,533 @@ void test_adaptive_suppresses_an_endlessly_held_tone() {
   const double held_out = tone_level_db(processed, tone_hz, from, 48000);
   check(held_out < held_in - 12.0,
         "adaptive: a permanently held tone IS suppressed, as the method must");
+}
+
+/* -------------------------------------------------------------- transform -- */
+
+/**
+ * The 960-point transform, against a direct DFT and against itself.
+ *
+ * This exists because the voice module was calling the radix-2 FFT with 960
+ * points. Radix-2 requires a power of two; 960 is not one, and the butterfly
+ * stage read sixty-four doubles past the end of the buffer on every call. The
+ * symptom was not a wrong spectrum — it was a smashed heap, a worker thread
+ * that never returned from its first hop, and a module that looked like a
+ * model doing nothing. A night went into ONNX Runtime, which was never
+ * reached.
+ *
+ * So two assertions, and the second is the one that matters. A round trip
+ * proves the pair is self-consistent, which a transform that returned its
+ * input untouched would also satisfy. Only the comparison against a directly
+ * evaluated DFT proves it computes the right thing.
+ */
+void test_arbitrary_size_transform() {
+  constexpr uint32_t kSize = 960;
+
+  Noise source;
+  std::vector<double> real(kSize, 0.0);
+  std::vector<double> imaginary(kSize, 0.0);
+  for (uint32_t i = 0; i < kSize; i += 1) {
+    real[i] = source.next();
+    imaginary[i] = source.next();
+  }
+  const std::vector<double> real_in = real;
+  const std::vector<double> imaginary_in = imaginary;
+
+  FeqDft* plan = feq_dft_create(kSize);
+  check(plan != nullptr, "transform: a 960-point plan can be built");
+  if (plan == nullptr) {
+    return;
+  }
+
+  feq_dft_in_place(plan, real.data(), imaginary.data(), 0);
+
+  // Against the definition, at a handful of bins spread across the range.
+  double worst = 0.0;
+  const uint32_t probes[5] = {0, 1, 137, 480, 959};
+  for (uint32_t p = 0; p < 5; p += 1) {
+    const uint32_t k = probes[p];
+    double sum_real = 0.0;
+    double sum_imaginary = 0.0;
+    for (uint32_t n = 0; n < kSize; n += 1) {
+      const double angle = -2.0 * kPi * static_cast<double>(k) *
+                           static_cast<double>(n) / static_cast<double>(kSize);
+      const double c = std::cos(angle);
+      const double s = std::sin(angle);
+      sum_real += real_in[n] * c - imaginary_in[n] * s;
+      sum_imaginary += real_in[n] * s + imaginary_in[n] * c;
+    }
+    worst = std::max(worst, std::fabs(real[k] - sum_real));
+    worst = std::max(worst, std::fabs(imaginary[k] - sum_imaginary));
+  }
+  check(worst < 1e-6,
+        "transform: 960 points match a directly evaluated DFT");
+
+  // And back. The inverse is unnormalised, so the 1/N is applied here.
+  feq_dft_in_place(plan, real.data(), imaginary.data(), 1);
+  double drift = 0.0;
+  for (uint32_t i = 0; i < kSize; i += 1) {
+    drift = std::max(drift,
+                     std::fabs(real[i] / kSize - real_in[i]));
+    drift = std::max(drift,
+                     std::fabs(imaginary[i] / kSize - imaginary_in[i]));
+  }
+  check(drift < 1e-9, "transform: forward then inverse returns the input");
+  feq_dft_destroy(plan);
+
+  /*
+   * The positive control, and the assertion that would have caught the bug
+   * outright: the radix-2 transform must REFUSE a size that is not a power of
+   * two rather than run off the end of the buffer.
+   */
+  std::vector<double> guard_real(kSize, 1.0);
+  std::vector<double> guard_imaginary(kSize, 0.0);
+  feq_fft_in_place(guard_real.data(), guard_imaginary.data(), kSize, 0);
+  bool untouched = true;
+  for (uint32_t i = 0; i < kSize; i += 1) {
+    if (guard_real[i] != 1.0 || guard_imaginary[i] != 0.0) {
+      untouched = false;
+    }
+  }
+  check(untouched,
+        "transform: POSITIVE CONTROL, the radix-2 FFT refuses 960 points");
+}
+
+/* ----------------------------------------------------------------- clicks -- */
+
+/**
+ * Drums are not damage.
+ *
+ * The click test beside this one uses a 440 Hz sine as its clean material,
+ * which a linear extrapolator predicts perfectly — so it says nothing at all
+ * about the case the module's own header calls the hard one. Measured on kick,
+ * snare and hats instead, the repairer performed three thousand repairs on
+ * material containing no damage whatsoever and removed energy ten decibels
+ * below the music. A cymbal is close to noise, so almost every sample of it is
+ * unpredicted; the runs were short, so the width guard passed them; and the
+ * module sat there interpolating two samples at a time, which is a low-pass
+ * filter on a transient.
+ *
+ * So the assertion is on the RESIDUAL — what the module took out of clean
+ * percussion, against the percussion itself — because a repair count says
+ * nothing about how much was actually removed.
+ */
+void test_click_leaves_percussion_alone() {
+  const uint32_t length = kFrames * 500;
+
+  Noise source;
+  std::vector<float> drums(length, 0.0f);
+  for (uint32_t i = 0; i < length; i += 1) {
+    const double t = static_cast<double>(i) / kRate;
+    const double in_beat = std::fmod(t, 0.5);       /* 120 bpm */
+    const double in_bar = std::fmod(t, 1.0);
+    const double in_eighth = std::fmod(t, 0.25);
+    const double kick =
+        0.7 * std::exp(-in_beat * 45.0) * std::sin(2.0 * kPi * 55.0 * in_beat);
+    const double snare =
+        in_bar >= 0.5 ? 0.5 * std::exp(-(in_bar - 0.5) * 60.0) * source.next()
+                      : 0.0;
+    const double hat = 0.25 * std::exp(-in_eighth * 400.0) * source.next();
+    drums[i] = static_cast<float>(kick + snare + hat + 0.0005 * source.next());
+  }
+
+  FeqDenoiseSettings settings = bypassed_modules();
+  settings.click.enabled = 1;
+  settings.click.sensitivity = 0.5;
+  settings.click.max_repair_samples = 32;
+
+  const std::vector<float> processed = run(settings, drums, nullptr);
+
+  // Aligned by the delay the module reports, or the difference measured is
+  // dominated by the 47-sample shift rather than by anything removed.
+  const uint32_t latency = latency_of(settings);
+  std::vector<float> residual(length - latency, 0.0f);
+  for (uint32_t i = 0; i + latency < length; i += 1) {
+    residual[i] = static_cast<float>(static_cast<double>(processed[i + latency]) -
+                                     static_cast<double>(drums[i]));
+  }
+
+  const uint32_t from = kFrames * 350;
+  const uint32_t count = 48000;
+  const double music = rms_db(drums, from, count);
+  const double removed = rms_db(residual, from, count);
+  check(removed < music - 25.0,
+        "click: what it takes out of clean drums is 25 dB under them");
+
+  /*
+   * The positive control, and it has to be placed carefully.
+   *
+   * Clicks go in the QUIET part of each beat — 0.44 s into a 0.5 s bar, after
+   * the kick has decayed 45 dB and the last hat 78 dB. That is where a tick is
+   * audible and where a repairer has to work. Injecting them on top of a cymbal
+   * would measure nothing: a click under a crash is masked whether it is
+   * repaired or not, and refusing to repair there is correct behaviour.
+   */
+  std::vector<float> clicked = drums;
+  uint32_t injected = 0;
+  for (double t = 0.44; t < static_cast<double>(length) / kRate; t += 0.5) {
+    const uint32_t at = static_cast<uint32_t>(t * kRate);
+    if (at + 4 < length) {
+      clicked[at] = 0.95f;
+      clicked[at + 1] = -0.85f;
+      injected += 1;
+    }
+  }
+
+  const auto repairs_in = [&](const std::vector<float>& signal) {
+    FeqDenoise* denoise = feq_denoise_create(kRate, 2, kFrames);
+    feq_denoise_configure(denoise, &settings);
+    std::vector<float> left = signal;
+    std::vector<float> right = signal;
+    for (uint32_t at = 0; at + kFrames <= length; at += kFrames) {
+      float* channels[2] = {left.data() + at, right.data() + at};
+      feq_denoise_process(denoise, channels, kFrames);
+    }
+    FeqDenoiseReport report{};
+    feq_denoise_report(denoise, &report);
+    feq_denoise_destroy(denoise);
+    return report.clicks_repaired;
+  };
+
+  // Two channels are fed the same signal, so each injected tick counts twice.
+  const uint32_t found = repairs_in(clicked) - repairs_in(drums);
+  check(found >= injected * 2,
+        "click: POSITIVE CONTROL, every tick in the gaps is still found");
+}
+
+/* ------------------------------------------------- what the stage may touch */
+
+/**
+ * A sustained bass note survives; a sustained midrange note does not.
+ *
+ * Both tones are held for the whole file, so minimum statistics reads BOTH as
+ * noise — that is the documented limit tested above. The only thing separating
+ * them is frequency, which is exactly what makes this a paired measurement
+ * rather than two loose assertions: a stage that had simply stopped working
+ * would leave both alone, and one with no frequency weighting would take both.
+ *
+ * The reason the weighting exists is in `hiss_weight`: every floor estimator
+ * here finds noise by asking what the quietest thing a band ever does is, and
+ * bass never goes quiet, so it answers "the bass".
+ */
+void test_bass_is_out_of_reach() {
+  // Twelve and a half seconds. The measurement below runs to 12.0 s, and the
+  // buffer has to outlast it — at 1100 blocks it did not, and the read past
+  // the end was an access violation rather than a failed assertion.
+  const uint32_t length = kFrames * 1200;
+
+  Noise source;
+  std::vector<float> input(length, 0.0f);
+  for (uint32_t i = 0; i < length; i += 1) {
+    const double t = static_cast<double>(i) / kRate;
+    input[i] = static_cast<float>(0.1 * std::sin(2.0 * kPi * 50.0 * t) +
+                                  0.1 * std::sin(2.0 * kPi * 500.0 * t) +
+                                  0.001 * source.next());
+  }
+
+  FeqDenoiseSettings settings = bypassed_modules();
+  settings.hiss.enabled = 1;
+  settings.hiss.amount = 1.0;
+  settings.hiss.floor_db = -30.0;
+  settings.profile_source = FEQ_DENOISE_PROFILE_ADAPTIVE;
+
+  const std::vector<float> processed = run(settings, input, nullptr);
+  const std::vector<float> bypassed = run(bypassed_modules(), input, nullptr);
+
+  // The last two seconds, long past the tracker's warm-up.
+  const uint32_t from = static_cast<uint32_t>(kRate * 10.0);
+  const uint32_t count = static_cast<uint32_t>(kRate * 2.0);
+
+  const double bass = tone_level_db(processed, 50.0, from, count) -
+                      tone_level_db(bypassed, 50.0, from, count);
+  const double mid = tone_level_db(processed, 500.0, from, count) -
+                     tone_level_db(bypassed, 500.0, from, count);
+
+  check(std::fabs(bass) < 0.5, "bass: a held 50 Hz note is left alone");
+  check(mid < -3.0,
+        "bass: POSITIVE CONTROL, the same held note at 500 Hz is suppressed");
+}
+
+/**
+ * The same protection, in Scanned — where the bad estimate is the SCAN's.
+ *
+ * Adaptive eats bass because a 1.5-second minimum never sees the band go
+ * quiet. Scanned eats it for the same reason one level up: the scan takes the
+ * tenth percentile across the whole file, and on a track where the bass plays
+ * throughout, the tenth percentile of the 50 Hz band is still the bass. Two
+ * different estimators, one shared assumption, one shared failure.
+ *
+ * So the profile here is deliberately the kind a real scan produces on
+ * gapless material — the low bands overstated by 40 dB, far above the actual
+ * noise in the signal — and the question is whether the stage honours it.
+ * Below the taper it must not, above it must, and the pairing is what
+ * separates "protected" from "doing nothing at all".
+ *
+ * This is also the test that says the rest of the chain is shared. The gain
+ * this runs through is the same log-spectral estimator, the same frequency
+ * smoothing and the same whitened limit as the adaptive tests above; only the
+ * source of the noise estimate differs.
+ */
+void test_bass_is_out_of_reach_when_scanned() {
+  const uint32_t length = kFrames * 400;
+  const double noise_amplitude = 0.001;
+
+  Noise source;
+  std::vector<float> input(length, 0.0f);
+  for (uint32_t i = 0; i < length; i += 1) {
+    const double t = static_cast<double>(i) / kRate;
+    input[i] = static_cast<float>(0.1 * std::sin(2.0 * kPi * 50.0 * t) +
+                                  0.1 * std::sin(2.0 * kPi * 500.0 * t) +
+                                  noise_amplitude * source.next());
+  }
+
+  const double variance = noise_amplitude * noise_amplitude / 3.0;
+  const double density_db = 10.0 * std::log10(variance / (kRate * 0.5));
+
+  /*
+   * Below 800 Hz the profile claims a floor far above anything in the signal.
+   *
+   * Deliberately past what a scan would ever report, because the assertion is
+   * about REACH and not about calibration: an overstatement that only just
+   * bit would leave the two halves of this test separated by a threshold
+   * rather than by the taper. The first attempt used a plausible +40 dB and
+   * the control did not fire — a sine puts its power in ONE bin while a
+   * density is spread across the band, so the tone sits some seventy decibels
+   * above the per-bin noise power and forty never reached it. That is a real
+   * property of the units and worth stating rather than tuning around.
+   */
+  FeqNoiseProfile profile{};
+  for (uint32_t band = 0; band < FEQ_DENOISE_PROFILE_BANDS; band += 1) {
+    const bool low = feq_denoise_band_hz(band) < 800.0;
+    profile.bands_db[band] = low ? -30.0 : density_db;
+  }
+  profile.floor_dbfs = 20.0 * std::log10(std::sqrt(variance));
+  profile.hum_hz = 0.0;
+  profile.hum_partial_count = 0;
+
+  FeqDenoiseSettings settings = bypassed_modules();
+  settings.hiss.enabled = 1;
+  settings.hiss.amount = 1.0;
+  settings.hiss.floor_db = -30.0;
+  settings.profile_source = FEQ_DENOISE_PROFILE_SCANNED;
+
+  const std::vector<float> processed = run(settings, input, &profile);
+  const std::vector<float> bypassed = run(bypassed_modules(), input, &profile);
+
+  const uint32_t from = kFrames * 60;
+  const uint32_t count = 48000;
+
+  const double bass = tone_level_db(processed, 50.0, from, count) -
+                      tone_level_db(bypassed, 50.0, from, count);
+  const double mid = tone_level_db(processed, 500.0, from, count) -
+                     tone_level_db(bypassed, 500.0, from, count);
+
+  check(std::fabs(bass) < 0.5,
+        "scanned: an overstated bass band cannot reach the bass");
+  check(mid < -6.0,
+        "scanned: POSITIVE CONTROL, the same overstatement at 500 Hz bites");
+}
+
+/**
+ * What is LEFT is flatter than what came in.
+ *
+ * Whitening's whole claim. The input floor is tilted hard — brown-ish noise,
+ * far more energy low than high — and after processing the residue must be
+ * closer to flat than it started, because each bin is aimed at a common
+ * residual level rather than at a common attenuation.
+ *
+ * Measured above the frequency weighting's taper so this reads the whitening
+ * and not the bass protection, and paired with the bypassed run, which must
+ * still show the original tilt: without that control a stage that had merely
+ * gone quiet everywhere would also look "flat".
+ *
+ * The REDUCTION LIMIT has to be shallow for this to measure anything, and that
+ * is a property of the feature rather than a convenience. Whitening shapes the
+ * limit; the limit only has an effect where it actually binds, and at -24 dB
+ * the estimator's own gain on noise-only material already sits below it — so
+ * the shaped floor is never reached and the residue keeps its tilt. Measured:
+ * 1.4 dB of flattening at -24, 4.2 at -12, 9.3 at -6. A test written at -24
+ * would have been testing nothing and would have looked like a broken feature.
+ */
+void test_whitening_flattens_the_residue() {
+  const uint32_t length = kFrames * 400;
+
+  // A one-pole low-pass on white noise: a 6 dB per octave tilt, so the 500 Hz
+  // region sits far above the 8 kHz region.
+  Noise source;
+  std::vector<float> input(length, 0.0f);
+  double memory = 0.0;
+  for (uint32_t i = 0; i < length; i += 1) {
+    memory = 0.98 * memory + 0.02 * source.next();
+    input[i] = static_cast<float>(6.0 * memory);
+  }
+
+  FeqDenoiseSettings settings = bypassed_modules();
+  settings.hiss.enabled = 1;
+  settings.hiss.amount = 1.0;
+  settings.hiss.floor_db = -6.0;
+  settings.profile_source = FEQ_DENOISE_PROFILE_ADAPTIVE;
+
+  const std::vector<float> processed = run(settings, input, nullptr);
+  const std::vector<float> bypassed = run(bypassed_modules(), input, nullptr);
+
+  const uint32_t from = kFrames * 250;
+  const uint32_t count = 48000;
+
+  // Two bands, both well above the taper, three octaves apart. The tilt is the
+  // difference between them; flattening is that difference shrinking.
+  const double tilt_in = band_level_db(bypassed, 500.0, 700.0, from, count) -
+                         band_level_db(bypassed, 4000.0, 5600.0, from, count);
+  const double tilt_out = band_level_db(processed, 500.0, 700.0, from, count) -
+                          band_level_db(processed, 4000.0, 5600.0, from, count);
+
+  check(tilt_out < tilt_in - 4.0,
+        "whitening: the residue is flatter than the noise that entered");
+  check(tilt_in > 12.0,
+        "whitening: POSITIVE CONTROL, the untouched noise really is tilted");
+}
+
+/**
+ * The Smoothing dial reaches the estimator, and in the direction it claims.
+ *
+ * Smoothing is the decision-directed constant: how much of the previous
+ * frame's decision is carried into this one. Higher means a longer memory, so
+ * the estimate wanders further and more slowly over stationary material, which
+ * shows up as the residual bed drifting in level. Lower means it tracks the
+ * instantaneous evidence, so the bed sits still and the flicker moves into the
+ * individual bins instead.
+ *
+ * That drift is the measurable consequence, and it is measured over a
+ * noise-only stretch where nothing else can move: 0.43 dB of spread at the
+ * bottom of the dial, 1.52 dB at the top, monotone in between.
+ *
+ * The first attempt at this test asserted that processing adds no level
+ * fluctuation at all, and both halves of that were wrong. Broadband RMS
+ * averages over a thousand bins, so it cannot see per-bin flicker — the actual
+ * musical-noise phenomenon — and no denoiser suppressing by twenty decibels
+ * leaves a residue as steady as its input. It was measuring the wrong thing
+ * and demanding the impossible of it.
+ */
+void test_smoothing_reaches_the_estimator() {
+  const uint32_t length = kFrames * 600;
+
+  Noise source;
+  std::vector<float> input(length, 0.0f);
+  for (uint32_t i = 0; i < length; i += 1) {
+    input[i] = static_cast<float>(0.002 * source.next());
+  }
+
+  // Twenty-millisecond windows: short enough to catch a drift, long enough
+  // that a single window is a level rather than a sample.
+  const uint32_t window = static_cast<uint32_t>(kRate * 0.02);
+  const uint32_t from = kFrames * 400;
+  const uint32_t windows = 100;
+
+  auto spread_db = [&](const std::vector<float>& signal) {
+    double sum = 0.0;
+    double squares = 0.0;
+    for (uint32_t w = 0; w < windows; w += 1) {
+      const double level = rms_db(signal, from + w * window, window);
+      sum += level;
+      squares += level * level;
+    }
+    const double mean = sum / static_cast<double>(windows);
+    return std::sqrt(squares / static_cast<double>(windows) - mean * mean);
+  };
+
+  auto spread_at = [&](double smoothing) {
+    FeqDenoiseSettings settings = bypassed_modules();
+    settings.hiss.enabled = 1;
+    settings.hiss.amount = 1.0;
+    settings.hiss.floor_db = -30.0;
+    settings.hiss.smoothing = smoothing;
+    settings.profile_source = FEQ_DENOISE_PROFILE_ADAPTIVE;
+    return spread_db(run(settings, input, nullptr));
+  };
+
+  const double low = spread_at(0.0);
+  const double middle = spread_at(0.5);
+  const double high = spread_at(1.0);
+
+  check(low < middle && middle < high,
+        "smoothing: the dial moves the estimator's memory, monotonically");
+  check(high - low > 0.5,
+        "smoothing: and by an amount that is not rounding");
+
+  // The positive control the pair above needs: the measurement itself is not
+  // reading a constant. An untouched noise bed has its own small spread, and
+  // every reading here must stand above it or the dial is being credited with
+  // the meter's own noise.
+  const double untouched = spread_db(run(bypassed_modules(), input, nullptr));
+  check(low > untouched,
+        "smoothing: POSITIVE CONTROL, even the steadiest setting moves it");
+}
+
+/**
+ * After a long stretch of nothing but noise, the music comes back.
+ *
+ * The decision-directed recursion is a feedback loop, and a bin sitting under
+ * the noise estimate feeds only itself: its a priori SNR is last frame's times
+ * alpha, decaying with a fixed point at zero. Left unbounded, every such bin
+ * winds down together and the stage drains a track away over a few seconds
+ * with no way back except a seek, which resets the loop.
+ *
+ * So the recursion is floored, and this is the assertion that says so. Eight
+ * seconds of noise only — every bin under the estimate, the worst case for the
+ * loop — and then a tone, which must return to its proper level promptly
+ * rather than staying suppressed.
+ */
+void test_recovers_after_a_long_quiet_stretch() {
+  const uint32_t length = kFrames * 1000;
+  const uint32_t tone_from = static_cast<uint32_t>(kRate * 8.0);
+  const double tone_hz = 2000.0;
+
+  Noise source;
+  std::vector<float> input(length, 0.0f);
+  for (uint32_t i = 0; i < length; i += 1) {
+    const double tone =
+        i >= tone_from
+            ? 0.1 * std::sin(2.0 * kPi * tone_hz * static_cast<double>(i) /
+                             kRate)
+            : 0.0;
+    input[i] = static_cast<float>(tone + 0.002 * source.next());
+  }
+
+  FeqDenoiseSettings settings = bypassed_modules();
+  settings.hiss.enabled = 1;
+  settings.hiss.amount = 1.0;
+  settings.hiss.floor_db = -30.0;
+  settings.profile_source = FEQ_DENOISE_PROFILE_ADAPTIVE;
+
+  const std::vector<float> processed = run(settings, input, nullptr);
+  const std::vector<float> bypassed = run(bypassed_modules(), input, nullptr);
+
+  // A quarter of a second, starting a tenth of a second after the tone does.
+  // Long enough to measure, early enough that a stage which needed seconds to
+  // climb back would fail.
+  const uint32_t from = tone_from + static_cast<uint32_t>(kRate * 0.1);
+  const uint32_t count = static_cast<uint32_t>(kRate * 0.25);
+
+  const double recovered = tone_level_db(processed, tone_hz, from, count) -
+                           tone_level_db(bypassed, tone_hz, from, count);
+  check(recovered > -1.5,
+        "recovery: a tone after eight seconds of noise returns within 1.5 dB");
+
+  /*
+   * The positive control the assertion above needs: the stage really was
+   * suppressing during that stretch, so "it recovered" is a statement about
+   * the loop climbing back rather than about it never having engaged.
+   *
+   * Measured over a window that ENDS before the tone starts. At block 700 it
+   * did not — it ran 22400 samples past the tone's entry, and the tone is 34 dB
+   * above the noise, so the window read the tone and reported no suppression
+   * at all. The measurement looked like a broken denoiser and was a broken
+   * measurement.
+   */
+  const double during = rms_db(processed, kFrames * 600, 48000) -
+                        rms_db(bypassed, kFrames * 600, 48000);
+  check(during < -6.0,
+        "recovery: POSITIVE CONTROL, the noise-only stretch really was cut");
 }
 
 /* ------------------------------------------------------------------ hiss -- */
@@ -851,8 +1406,15 @@ int main() {
   test_hiss();
   test_adaptive_finds_the_floor_without_a_scan();
   test_adaptive_suppresses_an_endlessly_held_tone();
+  test_bass_is_out_of_reach();
+  test_bass_is_out_of_reach_when_scanned();
+  test_whitening_flattens_the_residue();
+  test_smoothing_reaches_the_estimator();
+  test_recovers_after_a_long_quiet_stretch();
   test_hum();
+  test_arbitrary_size_transform();
   test_click();
+  test_click_leaves_percussion_alone();
   test_isolate_is_the_difference();
   test_reported_latency_is_the_real_delay();
   test_every_module_reports_its_real_delay();

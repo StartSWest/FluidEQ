@@ -24,20 +24,37 @@ SPDX-License-Identifier: GPL-3.0-or-later
 /**
  * The analysis window, in milliseconds rather than in bins.
  *
- * Held near 21 ms at every sample rate, which means the transform size changes
- * with the rate and the FREQUENCY resolution changes with it. That is the
- * right way round: a longer window smears transients, and transient smearing
- * is what a listener notices, while a noise floor is smooth enough that bin
- * spacing is not the binding constraint. Pinning the bin count instead would
- * make the stage sound different at 44.1 and 96 kHz for no reason anyone could
- * name.
+ * Held at a fixed DURATION at every sample rate, so the transform size moves
+ * with the rate rather than the time resolution moving. Pinning the bin count
+ * instead would make the stage sound different at 44.1 and 96 kHz for no
+ * reason anyone could name.
  *
- * 1024 at 48 kHz, so 21.3 ms and 46.9 Hz bins.
+ * 2048 at 48 kHz, so 42.7 ms and 23.4 Hz bins.
+ *
+ * It was half this. The argument for 21 ms was that a longer window smears
+ * transients while a noise floor is smooth enough that bin spacing is not the
+ * binding constraint. The first half is true; the second is only true above a
+ * few hundred hertz. At 46.9 Hz bins there are four of them below 200 Hz, so
+ * every gain decision down there was taken across a quarter of the bass
+ * register at once and the floor could not be told apart from the note. That
+ * is what was reported as no resolution. Restoration work is done at 40-90 ms
+ * for this reason.
  */
-constexpr double kDenoiseWindowMs = 21.3;
+constexpr double kDenoiseWindowMs = 42.7;
 
-/** Three-quarter overlap. Hann squared at hop N/4 sums to a constant. */
-constexpr uint32_t kDenoiseOverlap = 4;
+/**
+ * Seven-eighths overlap. Hann squared at hop N/M sums to M x 3/8.
+ *
+ * Raised from four as the window doubled, and it had to be. At hop N/4 a
+ * doubled window also halves the rate at which any gain is allowed to change,
+ * and a gain that moves every 10.7 ms instead of every 5.3 ms is audibly
+ * slower to let go of a transient — the doubling would have bought frequency
+ * resolution by spending time resolution, which is a trade nobody asked for.
+ * Eight keeps the hop at 256 samples, exactly where it was. The cost is one
+ * transform twice as often, which for two channels is under a percent of a
+ * core.
+ */
+constexpr uint32_t kDenoiseOverlap = 8;
 
 /** The neural module's frame, fixed by the model at 48 kHz. */
 constexpr uint32_t kDenoiseVoiceFrame = 480;
@@ -56,14 +73,15 @@ constexpr double kDenoiseSilenceDb = -120.0;
 /**
  * The deepest delay every module together can add, at any supported rate.
  *
- * The spectral window is the largest term: held near 21 ms, it reaches 4096
- * samples at 192 kHz, of which a window less a hop is 3072. The neural module
- * adds its own window and latency ring at 2880, and the click repairer its
- * lookahead at 144. Six thousand and change, rounded up — this sizes Isolate's
- * dry delay once at construction so no module toggle ever reallocates a buffer
- * the callback is reading.
+ * The spectral window is the largest term: held at 42.7 ms, it reaches 8192
+ * samples at 192 kHz. The neural module adds its own window and latency ring
+ * at 2880, and the click repairer its lookahead at 144, for 11216 — so this
+ * doubled when the window did, and it must move with it every time. It sizes
+ * Isolate's dry delay once at construction so that no module toggle ever
+ * reallocates a buffer the callback is reading; a value too small does not
+ * fail loudly, it silently wraps the ring and returns the wrong sample.
  */
-constexpr uint32_t kDenoiseMaxLatencyFrames = 8192;
+constexpr uint32_t kDenoiseMaxLatencyFrames = 16384;
 
 /**
  * One channel's short-time transform state.
@@ -82,15 +100,54 @@ struct DenoiseSpectralChannel {
   std::vector<double> previous_gain;
   std::vector<double> previous_magnitude;
   /**
-   * The live floor estimate, and the running minimum it is derived from.
+   * The live floor estimate: minimum statistics over OVERLAPPING subwindows.
    *
-   * Minimum statistics: the quietest thing seen in a bin over the last couple
-   * of seconds is the noise in that bin, because music stops and noise does
-   * not. `minimum_age` is what stops a single quiet passage from pinning the
-   * estimate forever once the music comes back.
+   * The quietest thing seen in a bin over the last couple of seconds is the
+   * noise in that bin, because music stops and noise does not. How that
+   * look-back is organised is the difference between a floor that glides and
+   * one that lurches, and it was organised the crude way: one running minimum
+   * over a whole 1.5-second block, adopted and reset at the block boundary.
+   *
+   * That estimate is constant for 281 frames and then jumps. Worse, inside a
+   * block a running minimum can only FALL, so when the noise rises the stage
+   * over-suppresses for up to a second and a half and then snaps out of it.
+   * Both halves were audible and both were reported: sticky, and digital.
+   *
+   * Martin's actual method keeps V shorter subwindows and takes the minimum
+   * across them, retiring the oldest as each one closes. The estimate then
+   * refreshes every U frames instead of every U x V, and it can rise as well
+   * as fall, because a loud subwindow eventually ages out of the set.
+   *
+   * `subwindow_minimum` is the one still being filled, `subwindow_history`
+   * holds the V that have closed (laid out bin-major, V per bin), and
+   * `history_minimum` is their minimum — recomputed only when a subwindow
+   * closes, so the per-frame cost stays at one comparison per bin.
    */
   std::vector<double> adaptive_db;
-  std::vector<double> running_minimum;
+  std::vector<double> subwindow_minimum;
+  std::vector<double> subwindow_history;
+  std::vector<double> history_minimum;
+  /**
+   * A priori SNR before it is smoothed across neighbouring bins.
+   *
+   * Held per frame rather than per bin because the smoothing needs the
+   * neighbours' UNsmoothed values; writing back in place would feed each bin's
+   * result into the next one's input and turn a three-tap kernel into a
+   * one-pole filter running up the spectrum.
+   */
+  std::vector<double> priori;
+  /**
+   * The a posteriori SNR, and the log of the noise power the frame settled on.
+   *
+   * Carried from the first pass to the second because both are needed there
+   * and neither survives recomputation: the log-spectral gain is a function of
+   * BOTH SNRs, and the whitened reduction limit needs each bin's noise against
+   * the frame's geometric mean of them. Logarithmic because that mean is a
+   * mean of logs and the limit is a ratio raised to a fractional power, both
+   * of which are cheaper on that side.
+   */
+  std::vector<double> posterior;
+  std::vector<double> log_noise;
   /**
    * The periodogram smoothed in time, which is what the minimum is taken of.
    *
@@ -106,7 +163,28 @@ struct DenoiseSpectralChannel {
    * its mean and a small bias correction is enough.
    */
   std::vector<double> smoothed_power;
-  uint32_t minimum_age = 0;
+  /** Frames into the subwindow currently being filled. */
+  uint32_t subwindow_age = 0;
+  /** Which of the V history slots the next closed subwindow overwrites. */
+  uint32_t subwindow_slot = 0;
+  /**
+   * Whether any subwindow has closed yet.
+   *
+   * Until one has, the stage publishes no floor at all and passes the signal
+   * through. The alternative is an estimate built from a few milliseconds of
+   * whatever the track opens with, glided onto within a fraction of a second —
+   * which is a stage that suppresses its own first note.
+   */
+  bool floor_ready = false;
+  /**
+   * Whether a first frame has been seen.
+   *
+   * `smoothed_power` starting at zero means the first several frames report a
+   * floor far below the real one, and a running minimum keeps that. Seeding
+   * the smoother with the first frame's actual power instead costs one branch
+   * and removes a wrong estimate that used to survive a whole look-back.
+   */
+  bool primed = false;
 };
 
 struct DenoiseHumChannel {
@@ -133,6 +211,16 @@ struct DenoiseClickChannel {
    * head means both sides are always in hand.
    */
   std::vector<uint8_t> flags;
+  /**
+   * How many of `flags` are set, kept as a running total.
+   *
+   * The isolation test needs to know how much of the neighbourhood is in
+   * question, and it needs to know it per sample. Counting the buffer each time
+   * would be fifty comparisons on the audio thread for every sample; carried
+   * incrementally it is two additions, as long as every write and every clear
+   * goes through it.
+   */
+  uint32_t flagged_count = 0;
   uint32_t capacity = 0;
   uint32_t cursor = 0;
   /**
@@ -205,6 +293,34 @@ struct FeqDenoise {
   /** The per-bin floor the spectral module actually subtracts against. */
   std::vector<double> profile_bins_db;
   bool profile_bins_valid = false;
+
+  /**
+   * How much of the reduction each bin is allowed to receive, 0 to 1.
+   *
+   * This exists because the floor estimator is wrong at low frequencies, in
+   * BOTH modes, and for one reason: every method here decides what the noise
+   * is by finding the quietest thing a band ever does. Adaptive takes the
+   * minimum over a second and a half; the scan takes the tenth percentile over
+   * the whole file. Both assume a band goes quiet sometimes.
+   *
+   * Bass does not. A held note runs longer than the look-back, a kick pattern
+   * repeats without a gap, and the quietest thing the 60 Hz band ever does is
+   * still the bass — so the estimator calls the bass the noise floor and the
+   * stage subtracts it. Reported as the reduction eating bass, which is
+   * exactly what it was doing.
+   *
+   * It cannot be fixed inside the estimator at these frequencies. A transform
+   * with linear bin spacing gives the whole bottom octave two bins, so there
+   * is no spectral neighbourhood to compare a bass partial against and no way
+   * to tell a sustained note from stationary rumble per bin. Up top, where
+   * hiss actually lives, there are hundreds of bins per octave and gaps in
+   * every band constantly, and the method works.
+   *
+   * So the module is held to the range where its own assumption holds. That is
+   * a statement about hiss, not a fudge: mains buzz has the hum comb and
+   * impulsive damage has the click repairer, and neither of those is this.
+   */
+  std::vector<double> hiss_weight;
 
   /**
    * The live floor per profile band, written by the audio thread for the panel.

@@ -35,10 +35,25 @@ it under the terms of the GNU General Public License version 3 or later.
   display: block;
   width: min(31vw, 420px);
   min-width: 230px;
-  height: 62px;
+  // 63, not 62, and the reason is the border below it.
+  //
+  // The pane had no bottom edge: three sides of border and an open foot, which
+  // nobody saw while it sat inside the titlebar's capsule with the capsule's
+  // own outline around it. With that capsule gone the pane is the only
+  // bordered thing in the bar and the missing edge is the first thing you
+  // notice — worst when the output clips, where the ring goes red on three
+  // sides and stops.
+  //
+  // The height carries the fourth side rather than the drawing paying for it.
+  // `box-sizing` is `border-box` here, so a border added at 62 would take its
+  // pixel out of the padding box, and the stage below is positioned against
+  // that box — the wave and everything the frame loop paints on it would have
+  // risen a pixel the moment a border appeared. 63 with two borders is the
+  // same 61px of pane as 62 with one, so nothing inside moves. The 64s in
+  // App.scss and Euphoria.scss went to 65 for the same reason.
+  height: 63px;
   padding: 0;
   border: 1px solid rgba($primary-lighter, 0.1);
-  border-bottom: 0;
   border-radius: 18px;
   // The same bargain the panels and the title bar make: translucent enough
   // that the shell's own colour comes through, opaque enough that a trace drawn

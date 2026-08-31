@@ -18,7 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import fs from 'fs';
 import path from 'path';
-import { app, BrowserWindow, Menu, Tray } from 'electron';
+import { app, BrowserWindow, Menu, nativeImage, Tray } from 'electron';
 import log from 'electron-log';
 import { PRODUCT_NAME } from '../common/branding';
 import { DEFAULT_LOCALE, LocaleCode, translate } from '../common/i18n';
@@ -115,6 +115,60 @@ let areUpdatesEnabled = false;
  */
 let trayIcons: { plain: string; update: string } | null = null;
 
+/** What a Windows menu asks for at 100%; the 2x representation covers 200%. */
+const MENU_ICON_PX = 16;
+
+/**
+ * The same two marks again, sized for the menu itself.
+ *
+ * NativeImages rather than paths, because a menu icon has to carry both
+ * scalings: Windows asks for these in device pixels, and a lone 16px bitmap
+ * on the 150% display most laptops run gets scaled up by the shell into the
+ * same resampled smudge the multi-resolution .ico exists to avoid. Null when
+ * the assets cannot be read — see `loadMenuIcon`.
+ */
+let menuIcons: {
+  plain: Electron.NativeImage;
+  update: Electron.NativeImage;
+} | null = null;
+
+/**
+ * A menu-sized mark from `base`, with `retina` as its 2x representation.
+ *
+ * Null rather than an empty image when the asset is unreadable: Electron
+ * accepts an empty NativeImage on a menu item without complaint, and it
+ * reserves the icon gutter and paints nothing into it — an item that looks
+ * like its icon failed to load rather than one that never had one.
+ */
+const loadMenuIcon = (
+  base: string,
+  retina: string,
+): Electron.NativeImage | null => {
+  const source = nativeImage.createFromPath(base);
+  if (source.isEmpty()) {
+    return null;
+  }
+  const icon = source.resize({
+    width: MENU_ICON_PX,
+    height: MENU_ICON_PX,
+    quality: 'best',
+  });
+  const large = nativeImage.createFromPath(retina);
+  if (!large.isEmpty()) {
+    icon.addRepresentation({
+      scaleFactor: 2,
+      buffer: large
+        .resize({
+          width: MENU_ICON_PX * 2,
+          height: MENU_ICON_PX * 2,
+          quality: 'best',
+        })
+        .toPNG(),
+    });
+  }
+  return icon;
+};
+
 /**
  * Put the right mark in the notification area for the current state.
  *
@@ -206,22 +260,29 @@ const buildMenu = (getMainWindow: () => BrowserWindow | null) => {
   const { onInstallUpdate, onCheckForUpdates } = updateActions;
   const template: Electron.MenuItemConstructorOptions[] = [];
 
-  // AT THE TOP WHEN THERE IS AN UPDATE TO INSTALL. Position is the only
-  // emphasis available: Electron's menu template has no weight, colour or
-  // icon for a default item on Windows, so first-with-a-separator-under-it is
-  // what makes it read as the thing to press. The whole point of raising the
-  // tray badge is to draw the eye here, and burying the action underneath
-  // Open would waste the notification that got the user to this menu.
+  // AT THE TOP WHEN THERE IS AN UPDATE TO INSTALL. Position carries the
+  // emphasis: Electron's menu template has no weight or colour for a default
+  // item on Windows, so first-with-a-separator-under-it is what makes it read
+  // as the thing to press, and the mark beside it is the badged one the
+  // notification area is already showing. The whole point of raising the tray
+  // badge is to draw the eye here, and burying the action underneath Open
+  // would waste the notification that got the user to this menu.
   if (areUpdatesEnabled && isUpdateReady && onInstallUpdate) {
     template.push({
       label: translate(locale, 'app.tray.installUpdate'),
+      icon: menuIcons?.update,
       click: () => onInstallUpdate(),
     });
     template.push({ type: 'separator' });
   }
 
+  // The only two items that stand for the app itself get its mark. Quit and
+  // "check for updates" are left bare on purpose: there is no drawn glyph for
+  // either in this project, and a made-up one would be the first piece of
+  // iconography in the app that nothing else uses.
   template.push({
     label: translate(locale, 'app.tray.open', { product: PRODUCT_NAME }),
+    icon: menuIcons?.plain,
     click: () => revealWindow(getMainWindow),
   });
 
@@ -236,7 +297,9 @@ const buildMenu = (getMainWindow: () => BrowserWindow | null) => {
     });
   }
 
-  template.push({ type: 'separator' });
+  // No separator above Quit. Grouping is what a separator is for, and with
+  // two or three items there are no groups to divide — it only added a rule
+  // across a menu short enough to read in one glance.
   template.push({
     label: translate(locale, 'app.tray.quit', { product: PRODUCT_NAME }),
     click: () => {
@@ -363,6 +426,23 @@ export const setUpTray = (deps: ITrayDeps) => {
       'Tray update badge is missing (assets/icon-update.ico); the icon will not change when an update is ready.',
     );
   }
+
+  // The drawn 16px art rather than the app icon resampled down to it, for the
+  // reason the tray takes the .ico: 16px is where a mark either survives or
+  // turns to mush, and assets/icons holds a frame drawn at exactly that size.
+  // Falling back to the tray's own icon keeps the item iconless-but-working
+  // rather than gutter-with-a-hole if that directory ever stops shipping.
+  const plainMenuIcon =
+    loadMenuIcon(
+      path.join(assetsPath, 'icons', '16x16.png'),
+      path.join(assetsPath, 'icons', '32x32.png'),
+    ) ?? loadMenuIcon(iconPath, iconPath);
+  // Same source as the notification area is showing, badge and all, so the
+  // menu that opens off a badged icon is not wearing the plain one.
+  const updateMenuIcon = loadMenuIcon(trayIcons.update, trayIcons.update);
+  menuIcons = plainMenuIcon
+    ? { plain: plainMenuIcon, update: updateMenuIcon ?? plainMenuIcon }
+    : null;
 
   try {
     tray = new Tray(iconPath);

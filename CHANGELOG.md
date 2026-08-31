@@ -6,6 +6,145 @@ actions menu opens it again any time.
 
 ---
 
+## 1.6.0
+
+FluidEQ 1.6 is about what happens to a song after the equaliser. Version 1.5
+could play your library and shape whatever the machine was playing; the shaping
+was one curve and a preamp. This version adds a full processing rack for the
+app's own player — denoise, exciter, bass, dynamics, width and mastering, each
+with a picture of what it is doing — and rebuilds the audio underneath it in
+C++, in a process of its own, because a browser's audio graph was never going
+to carry it.
+
+**The rack applies to music played inside FluidEQ.** It does not change Spotify,
+YouTube or anything else on the machine — that is what the equaliser and its
+per-output profiles are for, and they are unchanged. The DSP tab says so at the
+top of the page.
+
+### New
+
+- **A DSP tab, and a chain of nine stages down it.** Every stage is off until
+  you turn it on, every stage says what it is doing while it works, and the
+  order is fixed because it is the order the arithmetic makes sense in:
+  Normalizer, Denoise, Exciter, Bass Forge, Equaliser, Bass Punch, Dimension,
+  Maximizer, Master.
+- **Normalizer.** Measures the complete track once, then applies one
+  stereo-linked gain before anything colours it — True Peak or Loudness, with
+  the measured peak, the integrated loudness and the gain it actually applied
+  all on screen. No pumping and no moving follower, because there is nothing
+  following: the measurement is of the whole file.
+- **Denoise: hiss, mains hum, clicks and a neural voice cleaner.** Measured from
+  the track rather than guessed at — the scan finds the noise floor and the hum
+  frequency that is really there, and the graph draws the floor the engine is
+  subtracting while it subtracts it. Click repair bridges impulsive damage and
+  leaves anything too long to be a click alone, so percussion survives. Isolate
+  plays only what is being removed, which is the only honest way to judge it.
+- **Exciter: three bands, plus Organic and Timing.** Each band generates
+  harmonics that were never in the signal — even orders for body, odd for air —
+  over a frequency and a range you set. Organic adds smooth even-harmonic
+  density around a chosen focus. Timing lets highs lead and delays mids and lows
+  for clearer attacks, and adds no harmonics at all. Isolate hears the
+  harmonics on their own.
+- **Bass Forge and Bass Punch.** Forge synthesises the missing fundamental and
+  reinforces the real one from a single band, for speakers that cannot reach it.
+  Punch works on time rather than frequency — the fifteen milliseconds of attack
+  no filter can get at. Both come with profiles, both can be soloed, and both
+  start off.
+- **A fifteen-band parametric equaliser, drawn as the filters actually
+  respond** rather than as they were asked to. Peak, both shelves, notch, both
+  passes and band pass; bands added either side of the one you have selected;
+  Character (Focused or Broad) for the way a boost narrows as it grows; Serial
+  or Parallel engines; Minimum or Linear phase; Stereo, Mid only or Sides only;
+  2× oversampling. Dynamic bands act only when there is something to act on, and
+  the graph says which ones are moving. Forty-seven presets, each bringing its
+  own headroom, and curves imported from Squiglink, AutoEq or Equalizer APO
+  text.
+- **Dimension and Maximizer.** A stereo widener that works per band and can
+  never change what a mono listener hears — the guard closes on its own when a
+  mix is already out of phase — and a maximizer that raises the overall level
+  without letting peaks past the ceiling, showing how much it is holding down
+  while it does it.
+- **Master, with a destination rather than a number.** Streaming, Podcast,
+  Audiobook, Broadcast R128 and A/85, Cinema, CD, Vinyl, Club and Reference each
+  set the loudness target and ceiling that delivery actually uses. Auto headroom
+  reduces only the peaks that approach a true-peak ceiling; gain match takes the
+  makeup back off so switching the stage on and off compares the sound instead
+  of the volume; and the last guard — DC blocker, invalid-sample repair,
+  emergency ceiling — reports what it caught rather than silently catching it.
+- **Racks you can save, name and hand to somebody else,** alongside per-stage
+  profiles and a crossfade curve you draw and keep.
+- **A native audio engine.** The whole chain is C++ in a process of its own,
+  named FluidEQ-DSP so a task list says something, and it ends when the app
+  does however the app ended. Two decks with a bounded read-ahead each and a
+  crossfade that moves per sample; MP3, FLAC, Ogg Vorbis and WAV decoded in the
+  engine itself and everything else the library accepts decoded through Windows
+  Media Foundation; a resampler, partitioned convolution, and a loudness meter
+  measuring with the filter the standard actually specifies. It was held
+  bit-identical to the engine it replaces on real music before it became the
+  default, and if it cannot start, the app says so and plays through the
+  fallback chain rather than pretending.
+- **Smart EQ remembers a song.** Listen to a track for two minutes with a
+  correction in place and FluidEQ offers to keep it; the next time that song
+  plays — from the library, from Spotify, from a browser, whoever is playing it
+  — the curve comes back, says which song it recognised, and offers to stop. A
+  shelf per output, the oldest correction leaving when it is full, a star on the
+  row that has one, and Forget reaching the song wherever it was filed.
+- **Karaoke songs can hold more than one language of words.** A second set of
+  lyrics borrows the first one's clock, so the translation lands on the same
+  notes; the Maker asks which language you are looking at and checks the
+  syllable and note counts against the original; and a Spanish sheet you can see
+  is a Spanish file you can save.
+- **Browse the library by genre,** and the queue no longer stops when the shelf
+  it came from runs out.
+- **Updates install themselves.** When one has been downloaded and verified,
+  FluidEQ waits until the window is closed and nothing is playing, then installs
+  it and comes back the way it was. The update that brings you to this version
+  still shows the installer's window — the running app is what asks for a quiet
+  install, so this one is the first that can. Every update after it is
+  invisible.
+
+### Changed
+
+- **The title bar carries the app's navigation.** The five places sit either
+  side of the live meter — Online Media and EQ on the left, DSP, Library and
+  Karaoke on the right — which gives the workspace its row back. The meter is
+  measured into the true centre of the window rather than being left wherever
+  the names happened to end.
+- **The Media tab is called Online Media,** and shortens to one word on a narrow
+  window rather than being abbreviated.
+- **One typography on all three platforms.** Each system's own font, one weight
+  scale, one monospace stack, and figures that do not shove their neighbours
+  around while a value counts up. Two bundled webfonts were tried and taken back
+  out — Segoe UI is sharper at the sizes this interface lives at.
+- **The DSP page moves like the rest of the app:** the same easings, the same
+  card entrances, menus that open away from the now-playing bar instead of
+  underneath it.
+
+### Fixed
+
+- **A library on OneDrive scanned to nothing.** Placeholder files were read as
+  empty rather than as files waiting to be fetched.
+- **Shuffle moved the playhead.** The whole run was shuffled and then searched
+  for the current track, which put it at a random index — it looked like a timer
+  going off, and it was four lines in `shuffle()`.
+- **A crackle during playback.** The mirror feeding the visualisers was seeking
+  every time a render arrived late; the seek was the sound.
+- **Half of an AAC export was silence** when an offline render outran its own
+  decoder.
+- **A tag block with a bad length no longer costs the file** — the bounds check
+  is where the bug is, rather than a retry wrapped around it.
+- **Playback enters softly** instead of stepping into the middle of a waveform,
+  and a crossfade waits until there is something to fade to.
+- **The engine follows the output device it is supposed to play to,** and brings
+  its decks back when the device changes under it.
+- **The seek bar stops reporting a song that is no longer on screen.**
+- **The Maker's tool popover was measured against the wrong box,** so its last
+  row sat under the now-playing bar with no way to scroll to it.
+- **A file that had been recovered stopped calling itself an error,** and Stop
+  no longer leaves an empty bar behind.
+
+---
+
 ## 1.5.0
 
 FluidEQ 1.5 adds a music and video library. The app could already shape whatever

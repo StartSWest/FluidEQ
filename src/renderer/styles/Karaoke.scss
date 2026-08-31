@@ -17,6 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 @use 'color' as *;
+@use 'constant' as *;
 @use 'motion' as *;
 @use 'spacing' as *;
 @use 'theme' as *;
@@ -4069,9 +4070,35 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // card plus its inset, which is the same strip `#root` reserves.
   --karaoke-popover-foot: 0px;
 
+  // Every band between the top of the window and the foot of the Maker, named
+  // rather than rolled into one number, because subtracting the bar alone was
+  // not enough and it took a measurement to see why: the cap was written
+  // against the viewport while the box that clips the popover is the Maker,
+  // and the Maker neither starts at the top of the window nor ends at the
+  // bottom of it.
+  //
+  // Measured in the running window at 852px tall, with a bar up: title bar 74,
+  // shell gutter 12, Maker top 87 — the extra 1 is the workspace card's own
+  // border. Header 101, popover 9 below the toolbar it hangs from, Maker
+  // bottom 759 against a bar whose reserved strip starts at 774 and a bottom
+  // gutter of 14. That leaves 562px of room for a popover the old sum let grow
+  // to 639, and `overflow: hidden` on the Maker took the difference off the
+  // bottom — the last row of "when it is idle" sat under the bar, which is
+  // what was reported.
+  //
+  // The 20 covers the popover's own 9px drop, the two 1px card borders, and
+  // leaves the rest as air between the panel and the bar. Nothing here is a
+  // fudge factor: take a term out and the panel goes under something.
   max-height: calc(
-    100dvh - var(--karaoke-maker-header-height, 56px) -
-      34px - var(--karaoke-popover-foot)
+    100dvh -
+      #{$title-bar-height} - var(--shell-gutter, 16px) - var(
+        --shell-gutter-bottom,
+        18px
+      ) - var(--karaoke-popover-foot) - var(
+        --karaoke-maker-header-height,
+        56px
+      ) -
+      20px
   );
   overflow-x: hidden;
   overflow-y: auto;

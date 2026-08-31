@@ -287,12 +287,16 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // Tall enough to read a floor against a spectrum. Below roughly 150px the two
 // curves sit close enough that "under the floor" stops being legible, which is
 // the one thing this picture exists to show.
+//
+// Grown by the click lane's 24px rather than taking that room out of the plot.
+// The lane is a second reading; paying for it with the first one's legibility
+// would have cost more than it bought.
 .dsp-denoise-graph {
   position: relative;
   display: flex;
   width: 100%;
   min-width: 0;
-  height: 176px;
+  height: 200px;
   flex-direction: column;
   border: 1px solid rgba($white, 0.06);
   border-radius: 10px;
@@ -339,6 +343,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   &.is-hum::before {
     background: rgba(84, 200, 255, 0.6);
+  }
+
+  &.is-clicks::before {
+    background: rgba(150, 222, 143, 0.8);
   }
 }
 

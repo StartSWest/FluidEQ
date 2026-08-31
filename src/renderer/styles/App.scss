@@ -347,12 +347,18 @@ select option {
   gap: 16px;
   width: 100%;
   height: $title-bar-height;
-  // 2px rather than 7 above and below. The wrapper carries its own 4px margin
-  // on top of this, so the bar shows 6px above and below its outline — enough
-  // to read as something sitting in the bar rather than as the bar itself.
-  // Nothing else moves: every other child here is centred in its track rather
-  // than stretched to it.
-  padding: 2px 12px 2px 18px;
+  // 2px rather than 7 above and below, so the meter reads as something sitting
+  // in the bar rather than as the bar itself.
+  //
+  // The same either side, and that part is not cosmetic: the three tracks are
+  // laid out inside the padding box, so 18 on the left against 12 on the right
+  // moves the middle of that box 3px right of the middle of the window — and
+  // the meter with it. Measured, 723 against a window centre of 720, after
+  // everything else about the centring was right. The window controls take the
+  // extra 6px of inset; at 34px in a 74px bar nobody can see where they moved,
+  // and a spectrum 3px off centre is the sort of thing that is only ever seen
+  // once it cannot be unseen.
+  padding: 2px 18px;
   // Sits almost flush with the page rather than as a bar laid over it. The
   // old surface topped out at #101d2a against a page nearer #061019, which is
   // a big enough step to read as a separate strip of chrome.
@@ -400,99 +406,89 @@ select option {
     justify-self: center;
     width: 100%;
     max-width: 420px;
-    // Same 64px as the euphoric override, so the pane no longer resizes
+    // Same 65px as the euphoric override, so the pane no longer resizes
     // when rainbow mode is toggled — the wave inside was already unified
     // to max amplitude + normalise, and this makes the container match.
-    height: 64px;
+    //
+    // 65 rather than 64 since the pane grew a bottom border: one more pixel
+    // of box for one more pixel of edge, so the 63px of pane inside it is
+    // what it always was. See `WaveformVisualizer.scss`.
+    height: 65px;
     -webkit-app-region: no-drag;
   }
 }
 
-// *** The titlebar's navigation wrapper ***************************************
+// *** The titlebar's middle track *********************************************
 //
-// The meter and the app's four places, in one outline across the top of the
-// window.
+// The meter, and nothing else. The app's five places sit in the two ends of
+// the bar beside it — two on the left, three on the right.
 //
 // The places used to sit in a capsule of their own above the workspace card,
 // which cost a row of the window and read as a strip of chrome left over
-// between the titlebar and the page. Up here they share the outline of the one
-// element that makes this window look like itself, and the workspace starts at
-// the top of the workspace.
+// between the titlebar and the page. Then they shared one pill with the meter,
+// which is what put the spectrum 31px left of the middle of the window: the
+// pill was centred, the names were not evenly dealt inside it, and the meter
+// took the difference. They float in the ends now, and this track holds the
+// one element that has to look centred, so that it is.
 //
-// THE METER IS NOT TOUCHED BY ANY OF THIS. Its pane, its width, its height and
-// its drawing are exactly what they were; the wrapper is measured around them,
-// and the flex basis below restates the width the grid track used to give it
-// rather than choosing a new one.
+// This wrapper is a line, not a box: no outline, no fill, no glow. The pane is
+// the only bordered thing in the titlebar, which is what makes it the thing
+// the eye lands on.
+//
+// THE METER IS NOT TOUCHED BY ANY OF THIS. Its pane, its height and its
+// drawing are exactly what they were; only its width gives way, which is the
+// cheapest thing in this bar to lose.
 .titlebar-nav {
   display: flex;
   max-width: 100%;
   min-width: 0;
   align-items: center;
-  // Sized by what is in it, not by the track. Below 1280 the middle column is
+  // Sized by what is in it, not by the track. Below 1080 the middle column is
   // a `1fr` remainder, and a grid item stretches to its track by default —
-  // which drew the outline right across whatever was left of the window.
+  // which spread the row right across whatever was left of the window.
   justify-self: center;
-  // The meter is 64px tall and sits 3px inside the outline, so the wrapper
-  // comes to 72px with its border — which is what the titlebar's own padding
-  // was opened up to allow.
-  //
-  // Nothing at all on the left. The pane's stage clips its drawing at 18px
-  // and the wrapper's inner corner is 19, so at zero the two curves are very
-  // nearly concentric and the spectrum runs right up to the outline. Any
-  // padding here shows as a crescent of empty ground in the corner, which is
-  // what it looked like at 12 and still at 4.
-  //
-  // Nothing above or below it either — a trial, to see the spectrum run to
-  // the outline on all three sides. The pane already carries its own inset
-  // above the readout and below the bars, so any padding here is a second
-  // margin stacked on a first.
-  padding: 0 12px 0 0;
-  // The bar it sits in, showing. 4 here plus the bar's own 2 of padding puts
-  // 6px of titlebar above and below the outline, which is the difference
-  // between a control set into the bar and a control that is the bar. The
-  // bar's height was grown by exactly this much to pay for it.
-  margin-block: 4px;
-  border: 1px solid rgba($secondary-light, 0.28);
-  // A rounded box rather than a stadium. At half the height the caps were
-  // the widest thing about it and the outline read as a lozenge with a
-  // spectrum stuck in it; at 20 it is the shape the panels below use, which
-  // is what makes it belong to this app rather than to a media player.
-  border-radius: 20px;
-  background: rgba(#040c14, 0.5);
-  box-shadow:
-    inset 0 1px 0 rgba($white, 0.04),
-    0 0 26px rgba($secondary-default, 0.08);
-  // Wide enough that the two halves read as two things sharing an outline
-  // rather than as a spectrum with words crowded onto the end of it. The
-  // drawing runs to its own edge and the menu starts well clear of it.
-  gap: 24px;
   -webkit-app-region: no-drag;
 }
 
-// The 420px the grid track used to hand it, restated as a real width.
+// What the ends leave over, up to the 420px the grid track used to hand it.
 //
-// A flex basis is not enough: the pane's own width is a percentage of this
-// box, and a percentage inside a shrink-to-fit parent contributes nothing to
-// the parent's intrinsic size — so the line was measured from the pane's
-// 230px minimum and the meter came out at 230 instead of 420. A length here
-// gives the percentage something definite to resolve against, and the number
-// is the one the track was already producing.
+// `--titlebar-side` is the wider of the two ends, measured in the running
+// window by `useTitlebarSideWidth`. Both ends are guaranteed that width by the
+// grid's equal `1fr` tracks whether they need it or not, so the space the
+// spectrum can have without pushing anything is the window less two of them —
+// less the bar's own padding (30), the two grid gaps (32) and 14 of air, which
+// is the 76 below.
+//
+// Without it the wider end simply overflowed its track: measured at 1440px
+// wide, 519px of names, pet, actions and window controls in a 479px track,
+// overhanging the tab beside it by 40. The number cannot be written down as a
+// constant instead — "Online Media" is half again as wide in Spanish.
+//
+// The floor is the point below which the drawing stops being a drawing. Under
+// it the ends overlap the meter rather than the meter vanishing, which is the
+// better of the two on a window nobody can use anyway.
+//
+// A length rather than a flex basis: the pane's own width is a percentage of
+// this box, and a percentage inside a shrink-to-fit parent contributes nothing
+// to the parent's intrinsic size — the line was measured from the pane's 230px
+// minimum and the meter came out at 230 instead of 420.
 .titlebar-nav .waveform-visualizer-shell {
-  width: 420px;
+  --titlebar-wave-max: 420px;
+
+  width: clamp(
+    140px,
+    calc(100vw - 2 * var(--titlebar-side, 320px) - 76px),
+    var(--titlebar-wave-max)
+  );
   min-width: 0;
   flex: 0 1 auto;
 }
 
-// Shorter than the 64px the bar gave it when the bar was all it had.
-//
-// Written three classes deep to beat both of the two-class rules that set
-// this height — the titlebar's own and euphoria's, which exist as a pair so
-// the pane does not resize when rainbow mode is switched on. One number here
-// covers both states, and the canvas is sized from its box, so the drawing
-// simply comes back shorter.
-.titlebar-nav > .waveform-visualizer-shell > .waveform-visualizer {
-  height: 56px;
-}
+// No height override here any more. The pane was cut to 56px to fit inside a
+// wrapper that was 58px of box plus 8px of margin; with the wrapper gone it
+// takes back the 64px the titlebar's own rule gives it — the same 64 euphoria
+// sets, which is why the pane does not resize when rainbow mode is switched
+// on — and the row comes to exactly what the pill occupied before it.
 
 // The pane follows its shell at EVERY width, not only at the narrow ones.
 //
@@ -514,91 +510,38 @@ select option {
   min-width: 0;
 }
 
-// The meter's own rim, off.
+// Nothing here strips the meter any more.
 //
-// Two outlines around the same drawing is a pane inside a pill, and the eye
-// reads the inner one as the edge of something separate — which is exactly
-// what the wrapper exists to stop. Everything about the pane that is a
-// measurement stays: the width, the height, the canvas and what it draws.
-// What goes is the border, the fill and the glow, all three of which are now
-// the wrapper's to carry.
-//
-// Three classes deep because the pane's lit and paused states are two, and a
-// tie would be settled by whichever stylesheet the bundler happened to put
-// last.
-.titlebar-nav > .waveform-visualizer-shell > .waveform-visualizer {
-  border-color: transparent;
-  background: transparent;
-  box-shadow: none;
-}
-
-// Lit when there is signal: the glow the pane used to carry, on the outline
-// that replaced its own.
-//
-// `:where` around the test so the argument adds no specificity — otherwise
-// this beats the rainbow rule below, and the mode somebody deliberately
-// switched on would lose to the ordinary state.
-.titlebar-nav:has(:where(.waveform-visualizer.is-active)) {
-  border-color: rgba($secondary-light, 0.45);
-  box-shadow:
-    inset 0 1px 0 rgba($white, 0.06),
-    0 0 26px rgba($secondary-default, 0.16),
-    0 0 60px rgba($analogous-2, 0.08);
-}
-
-// Rainbow mode, on the outline that goes all the way across the window.
-//
-// The same rim the pane used to sweep — a tight inset ring for the edge, a
-// wider inset wash falling off inward, one outward bloom — and the same
-// keyframes, so the wrapper, the badge and the game's trace stay in step
-// without being driven from a common ancestor. It is one element travelling
-// through the spectrum rather than one inside another.
-.is-euphoric .titlebar-nav {
-  animation: euphoria-sweep 3.6s linear infinite;
-  border-color: hsl(var(--euphoria-hue) 90% 62% / 42%);
-  box-shadow:
-    inset 0 0 0 1px hsl(var(--euphoria-hue) 95% 68% / 22%),
-    inset 0 0 14px hsl(var(--euphoria-hue) 95% 62% / 16%),
-    0 0 18px hsl(var(--euphoria-hue) 95% 60% / 30%);
-}
+// Its fill, its rim, its lit cyan when there is signal and its rainbow sweep
+// in euphoria are all its own again — `WaveformVisualizer.scss` for the first
+// three, `.is-euphoric .waveform-visualizer` in `Euphoria.scss` for the last.
+// They were suppressed while a wrapper carried them on the meter's behalf: two
+// outlines around one drawing read as a pane inside a pill, so the inner one
+// went. There is no outer one now, and the border on the spectrum is the only
+// border in the titlebar — which is the point of it.
 
 // The lit place keeps the app's own cyan, rainbow mode or not. Sweeping it
 // with the rest was tried and taken back out: the pill is where you ARE, and
 // a mark that changes colour on its own is a mark that reads as something
 // happening rather than as a statement of fact.
 
-@media (prefers-reduced-motion: reduce) {
-  .is-euphoric .titlebar-nav {
-    animation: none;
-  }
-}
-
-// Nothing left of the capsule the four used to sit in. There is one outline
-// across the top of the window now and it belongs to the wrapper; a second one
-// inside it reads as a control inside a control.
-.titlebar-nav .workspace-tabs-shell {
+// Nothing left of the capsule the places used to sit in. They float in the
+// titlebar the way the window controls opposite them do; the only outline up
+// here belongs to the spectrum.
+.window-titlebar .workspace-tabs-shell {
   position: relative;
   z-index: auto;
   max-width: none;
   margin: 0;
 
-  // A rule down the middle of the gap, so the two halves of the wrapper read
-  // as two things sharing an outline rather than as a spectrum with words
-  // trailing off the end of it. Short of full height on purpose: a line that
-  // runs edge to edge cuts the capsule in two, where one that stops short
-  // divides what is inside it.
-  &::before {
-    position: absolute;
-    top: 10px;
-    bottom: 10px;
-    left: -12px;
-    width: 1px;
-    background: rgba($secondary-light, 0.18);
-    content: '';
-  }
+  // No rule beside the meter, either side of it. There was one when the
+  // capsule held everything, dividing the spectrum from the words inside a
+  // shared outline; with no outline the two hairlines were floating lines in
+  // the titlebar, and they made the pane look boxed in by something that was
+  // not there. The pane's own border is what separates it from the names now.
 }
 
-.titlebar-nav .workspace-tabs {
+.window-titlebar .workspace-tabs {
   padding: 0;
   border: 0;
   background: none;
@@ -606,11 +549,10 @@ select option {
   flex-wrap: nowrap;
   gap: 6px;
 
-  // A hairline between each pair, the same rule that divides the meter from
-  // the menu — so the four read as a row of places rather than as four words
-  // that happen to be near each other. Fainter than that one and shorter:
-  // this divides items inside a group, where the other divides the two
-  // halves of the whole capsule.
+  // A hairline between each pair, so the names in a group read as a row of
+  // places rather than as words that happen to be near each other. The only
+  // rules left in the titlebar: the two that stood either side of the meter
+  // went with the outline they belonged to.
   //
   // Every gap gets one, the lit one's included. Suppressing them either side
   // of the pill was tried and it left two gaps of the four looking like a
@@ -641,7 +583,7 @@ select option {
 // only text in the middle of the bar, and 0.74rem next to a 64px spectrum
 // read as a caption on it. Nothing else about them changes: same weight, same
 // colours, same lit pill measured against whichever one is chosen.
-.titlebar-nav .workspace-tab {
+.window-titlebar .workspace-tab {
   min-height: 38px;
   padding: 9px 20px 10px;
   font-size: 0.86rem;
@@ -659,7 +601,7 @@ select option {
 // it did. It takes the whole height of the row now and most of its colour is
 // bloom rather than border: the word stays the brightest thing in it, and the
 // pill reads as light behind the choice rather than as a box around it.
-.titlebar-nav .workspace-tabs__pill {
+.window-titlebar .workspace-tabs__pill {
   top: 0;
   bottom: 0;
   border-color: rgba($secondary-light, 0.24);
@@ -669,24 +611,32 @@ select option {
     0 0 30px rgba($secondary-default, 0.28);
 }
 
-// With the meter switched off from the View menu the wrapper has nothing to
-// hold a space for. Its own rule above hides it while keeping it mounted —
-// this only stops the outline being drawn around 420px of nothing.
+// With the meter switched off from the View menu the middle track has nothing
+// to hold a space for. The titlebar's own rule hides the pane while keeping it
+// mounted — this takes its width out of the line as well, so the two ends of
+// the bar come together rather than leaning on 420px of nothing.
 .titlebar-nav:has(> .waveform-visualizer-shell.is-hidden) {
-  padding-left: 6px;
-
   > .waveform-visualizer-shell {
     display: none;
   }
 }
 
-// The identity owns the left column. Keeping it as one grid child is what lets
-// the waveform retain the true middle while the right-side controls change.
+// The identity and the first two places, in the left track. One grid child, so
+// the meter beside it keeps the true middle whatever this end comes to.
 .window-titlebar__left {
   display: flex;
   min-width: 0;
   align-items: center;
   gap: 12px;
+
+  // The names stand against the meter, the identity stays at the window's
+  // edge, and the elastic between them is this margin. It contributes nothing
+  // to the width `useTitlebarSideWidth` measures, which is what lets that
+  // measurement be a statement about content rather than about the track it
+  // was given.
+  .workspace-tabs-shell {
+    margin-left: auto;
+  }
 }
 
 .workspace-header__identity {
@@ -1047,13 +997,28 @@ select option {
   font-size: 0.72rem;
 }
 
+// The last three places, the pet, the actions button and the window controls.
+//
+// Stretched to its track rather than `justify-self: end`, which is what it was
+// while it held nothing but controls. It has names in it now, and they belong
+// against the meter while everything else stays at the window's edge — which
+// takes free space inside the box to give away, and a shrink-to-fit box has
+// none. `justify-content` puts the cluster at the end; the auto margin below
+// takes the slack back for the one child that wants it.
 .window-titlebar__right {
   display: flex;
   min-width: 0;
   align-items: center;
-  justify-self: end;
+  justify-content: flex-end;
   gap: 10px;
   -webkit-app-region: no-drag;
+
+  // The elastic that gives the pet its room: whatever the window is wider than
+  // this end needs, it goes here, between the names and the creature. Not
+  // counted by `useTitlebarSideWidth`, which sums children and not margins.
+  .workspace-tabs-shell {
+    margin-right: auto;
+  }
 }
 
 .window-titlebar__controls {
@@ -2929,43 +2894,34 @@ button.graph-legend {
 }
 
 // A 13-inch laptop or a side-by-side desktop window still has room for the
-// complete titlebar, but not for the waveform's full 420px presentation or
-// equal outer tracks. Size those tracks from their contents and cap the middle
-// pane before either control cluster can intrude into it.
+// complete titlebar, but not for the waveform's full 420px presentation.
+//
+// The equal outer tracks stay. They used to be given up here, sized from their
+// contents instead, because the control cluster could outgrow its half — the
+// meter now yields to whichever end is wider, so it cannot, and equal tracks
+// are the only thing that puts the spectrum in the middle of the window. The
+// cap below is what it may not exceed; `--titlebar-side` is usually what it
+// actually gets.
 @media (max-width: 1280px) {
-  .window-titlebar {
-    // The controls can be wider than their equal outer track at this size.
-    // Let both outer tracks follow their contents and give the waveform the
-    // true remainder, capped below so it cannot reclaim all of that space.
-    grid-template-columns: auto minmax(180px, 1fr) auto;
-  }
-
-  // The same 320px cap the meter has always had at this width, written where
-  // the wrapper's flex line can see it. The pane is unchanged; only the box
-  // handing it that number moved.
   .titlebar-nav .waveform-visualizer-shell {
-    width: 320px;
+    --titlebar-wave-max: 320px;
   }
 }
 
-// The wrapper holds two things that both want room, so it gives ground in the
+// The bar holds three things that all want room, so it gives ground in the
 // order that costs least: the spectrum first, which only draws narrower, and
 // the words after it — smaller and closer together, never wrapped or hidden.
 // A place nobody can reach is worse than a place set in small type.
 @media (max-width: 1080px) {
-  .titlebar-nav {
-    gap: 16px;
-  }
-
   .titlebar-nav .waveform-visualizer-shell {
-    width: 260px;
+    --titlebar-wave-max: 260px;
   }
 
-  .titlebar-nav .workspace-tabs {
+  .window-titlebar .workspace-tabs {
     gap: 4px;
   }
 
-  .titlebar-nav .workspace-tab {
+  .window-titlebar .workspace-tab {
     min-height: 34px;
     padding: 8px 14px 9px;
     font-size: 0.78rem;
@@ -2973,13 +2929,8 @@ button.graph-legend {
 }
 
 @media (max-width: 900px) {
-  .titlebar-nav {
-    padding-right: 8px;
-    gap: 10px;
-  }
-
   .titlebar-nav .waveform-visualizer-shell {
-    width: 190px;
+    --titlebar-wave-max: 190px;
   }
 
   // No `min-width: 0` on the pane here any more. It is on the base rule now,
@@ -2997,11 +2948,11 @@ button.graph-legend {
     display: none;
   }
 
-  .titlebar-nav .workspace-tabs {
+  .window-titlebar .workspace-tabs {
     gap: 2px;
   }
 
-  .titlebar-nav .workspace-tab {
+  .window-titlebar .workspace-tab {
     min-height: 32px;
     padding: 7px 9px 8px;
     font-size: 0.7rem;
@@ -3010,9 +2961,13 @@ button.graph-legend {
 
 @media (max-width: 1080px) {
   .window-titlebar {
-    // The content-sized columns already protect the control clusters. At this
-    // point the remaining middle track and the spaces around it can contract
-    // further without changing that layout model again.
+    // Content-sized tracks from here down, and the spectrum stops being
+    // centred with them. Below this width the two ends cannot both be given
+    // the width of the wider one and still leave a meter worth drawing — at
+    // 900 that is around 360px a side against a window of 900 — so the choice
+    // is a centred spectrum with the names overlapping it or an honest row
+    // that is slightly off centre. The row wins; a place nobody can press is
+    // worse than a drawing nobody can measure the middle of by eye.
     grid-template-columns: auto minmax(100px, 1fr) auto;
     gap: 8px;
     padding-inline: 12px;

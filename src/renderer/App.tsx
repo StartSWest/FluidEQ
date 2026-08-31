@@ -35,6 +35,7 @@ import {
 } from 'common/branding';
 import { resetRhythmRun } from './utils/rhythmRun';
 import { useMediaQuery } from './utils/useMediaQuery';
+import { useTitlebarSideWidth } from './utils/useTitlebarSideWidth';
 import ConfigInspector from './components/ConfigInspector';
 import { resetEuphoriaMode } from './utils/euphoriaMode';
 import './styles/App.scss';
@@ -607,45 +608,27 @@ const AppContent = () => {
   const isDspTab = activeWorkspaceTab === 'dsp';
 
   /**
-   * The five places, drawn in the titlebar beside the live output meter.
+   * The five places, drawn in the titlebar either side of the live output
+   * meter — two on the left, three on the right.
    *
    * Above the workspace rather than on it. The meter is the one element that
    * makes this window look like itself and it already floats across the top;
    * putting the places in the same wrapper means the app's navigation lives
    * in its signature element and the workspace below gets its row back.
    *
+   * Split, because all five on one end left the spectrum sitting a couple of
+   * hundred pixels left of the window's middle while the wrapper around it was
+   * perfectly centred — the one drawing in this app that is meant to look
+   * centred was the one thing that was not. The names are dealt out so the two
+   * ends come to about the same width: Online Media, the longest of them,
+   * balances the three short ones on the right.
+   *
    * Built here rather than in the header markup only because it is long, and
-   * the titlebar reads better as three things than as three things and a
-   * list.
+   * the titlebar reads better as four things than as four things and two
+   * lists.
    */
-  const workspaceTabs = (
+  const workspaceTabsLeft = (
     <WorkspaceTabStrip label={t('tabs.aria')}>
-      {/* Five places, not nine. The equaliser and everything that sets it
-          are one tab with a row of pills inside — see EQ_GROUP_TABS. */}
-      <button
-        type="button"
-        role="tab"
-        aria-selected={isEqGroupTab(activeWorkspaceTab)}
-        className={`workspace-tab${
-          isEqGroupTab(activeWorkspaceTab) ? ' is-active' : ''
-        }`}
-        onClick={() => setActiveWorkspaceTab(lastEqTab)}
-      >
-        {t('tabs.eq')}
-      </button>
-      {/* Beside the equaliser, because that is what it belongs with: the rack
-          is the rest of the signal chain the EQ tab starts, and a user who
-          has just set a curve looks for the compressor next — not past Media,
-          Library and Karaoke to the far end of the strip. */}
-      <button
-        type="button"
-        role="tab"
-        aria-selected={isDspTab}
-        className={`workspace-tab${isDspTab ? ' is-active' : ''}`}
-        onClick={() => setActiveWorkspaceTab('dsp')}
-      >
-        {t('tabs.dsp')}
-      </button>
       {/* The one tab whose name is too long for its own strip. It shortens for
           the eye and not for anything else: the accessible name stays the full
           two words at every width, and the short label is a word out of them,
@@ -659,6 +642,41 @@ const AppContent = () => {
         onClick={() => setActiveWorkspaceTab('video')}
       >
         {isMediaTabOneWord ? t('tabs.mediaShort') : t('tabs.media')}
+      </button>
+      {/* Five places, not nine. The equaliser and everything that sets it
+          are one tab with a row of pills inside — see EQ_GROUP_TABS.
+
+          Last on this side, so it is the name against the meter's left edge
+          and the rack is the name against its right: the two halves of one
+          signal chain still touch, with the spectrum they are shaping between
+          them. */}
+      <button
+        type="button"
+        role="tab"
+        aria-selected={isEqGroupTab(activeWorkspaceTab)}
+        className={`workspace-tab${
+          isEqGroupTab(activeWorkspaceTab) ? ' is-active' : ''
+        }`}
+        onClick={() => setActiveWorkspaceTab(lastEqTab)}
+      >
+        {t('tabs.eq')}
+      </button>
+    </WorkspaceTabStrip>
+  );
+  const workspaceTabsRight = (
+    <WorkspaceTabStrip label={t('tabs.aria')}>
+      {/* First on this side, which keeps it next to the equaliser across the
+          meter: the rack is the rest of the signal chain the EQ tab starts,
+          and a user who has just set a curve looks for the compressor next —
+          not past Library and Karaoke to the far end of the strip. */}
+      <button
+        type="button"
+        role="tab"
+        aria-selected={isDspTab}
+        className={`workspace-tab${isDspTab ? ' is-active' : ''}`}
+        onClick={() => setActiveWorkspaceTab('dsp')}
+      >
+        {t('tabs.dsp')}
       </button>
       <button
         type="button"
@@ -727,6 +745,14 @@ const AppContent = () => {
   // the line above it. A recording must not end because somebody switched
   // tabs, so this is hosted here rather than inside the EQ page.
   useSongEqSessionHost();
+
+  // What the two ends of the titlebar actually need, so the meter between them
+  // can be given the rest and stay in the middle of the window. The bar's own
+  // element carries the answer as a custom property — see the hook.
+  const titlebarRef = useRef<HTMLElement | null>(null);
+  const titlebarLeftRef = useRef<HTMLDivElement | null>(null);
+  const titlebarRightRef = useRef<HTMLDivElement | null>(null);
+  useTitlebarSideWidth(titlebarRef, titlebarLeftRef, titlebarRightRef);
 
   // Set from inside the graph pane; read here because the elements that have
   // to get out of the way are not the graph's — the EQ panel is its sibling,
@@ -1367,13 +1393,17 @@ const AppContent = () => {
   return (
     <>
       <header
+        ref={titlebarRef}
         className="workspace-header window-titlebar"
         onDoubleClick={handleTitlebarDoubleClick}
       >
-        {/* The three direct grid children keep the waveform optically centred.
-            Identity stays in the left track; pet, transport, actions and window
-            controls share one ordered cluster in the right track. */}
-        <div className="window-titlebar__left">
+        {/* The three direct grid children are what centre the waveform, and
+            the middle one holds nothing but the meter for exactly that reason:
+            two equal outer tracks put an `auto` middle one in the true middle
+            of the window, so anything else in there pushes the spectrum off
+            it. Identity and two places on the left; three places, the pet, the
+            actions button and the window controls on the right. */}
+        <div className="window-titlebar__left" ref={titlebarLeftRef}>
           <div className="workspace-header__identity">
             <BrandMark />
             {/* Named, because a narrow window hides this and leaves the mark
@@ -1395,6 +1425,7 @@ const AppContent = () => {
               </div>
             </div>
           </div>
+          {workspaceTabsLeft}
         </div>
         {/* Moved, not copied.
 
@@ -1410,15 +1441,24 @@ const AppContent = () => {
             unmounting it would tear the analyser's hook down and build it again
             on every mode change, for a component nobody can see. CSS hides the
             bar; this stays put behind it. */}
-        {/* One wrapper, two things: the meter exactly as it was, and the four
-            places beside it. The meter is not restyled or resized by being in
-            here — it keeps its own pane, its own width and its own height, and
-            the wrapper is drawn around whatever that comes to. */}
+        {/* The meter, alone in the middle track and therefore in the middle of
+            the window. It is not restyled or resized by being in here — it
+            keeps its own pane, its own border and its own drawing, and only
+            its width gives way, to whatever the wider end of the bar leaves
+            over. See `useTitlebarSideWidth`. */}
         <div className="titlebar-nav">
           <WaveformVisualizer />
-          {workspaceTabs}
         </div>
-        <div className="window-titlebar__right">
+        <div className="window-titlebar__right" ref={titlebarRightRef}>
+          {/* First, so it stands against the meter with the elastic space
+              behind it — which is what leaves the pet room instead of the
+              names crowding it into the window controls.
+
+              Two tab strips rather than one, because a single one cannot be
+              interrupted by the meter and still slide its pill along itself.
+              Each measures its own highlight and draws none when the chosen
+              place is on the other side — see `useSlidingIndicator`. */}
+          {workspaceTabsRight}
           {!isChromeHidden && (
             <SupportPet
               hasContributed={hasContributed}
