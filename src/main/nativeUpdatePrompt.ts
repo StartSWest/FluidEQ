@@ -117,7 +117,7 @@ export interface INativeUpdatePrompt {
  * is hidden into the tray. Anything that is not on-screen counts as
  * off-screen for this decision.
  */
-const isWindowOnScreen = (window: BrowserWindow | null): boolean => {
+export const isWindowOnScreen = (window: BrowserWindow | null): boolean => {
   if (!window || window.isDestroyed()) {
     return false;
   }

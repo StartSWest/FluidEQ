@@ -109,6 +109,19 @@ APO is installed separately."
     Goto apoDone
   ${EndIf}
 
+  ; An update is not a moment to ask anything. FluidEQ applies updates by
+  ; closing itself and running this installer, so there is no window and often
+  ; nobody at the machine — a message box here is a restart that hangs on a
+  ; button nobody is there to press. `${Silent}` covers the path the app
+  ; actually uses; this covers an update installer run by hand, which is the
+  ; same event and equally not the time. Somebody who declined APO at
+  ; installation gets the button inside the app, not an ambush during an
+  ; update.
+  ${If} ${isUpdated}
+    !insertmacro ApoLog "Update - leaving Equalizer APO to the app's own button."
+    Goto apoDone
+  ${EndIf}
+
   MessageBox MB_YESNO|MB_ICONQUESTION \
     "FluidEQ needs Equalizer APO to process audio. It is included with this \
 installer - nothing will be downloaded.$\r$\n$\r$\nIts setup will now open so \

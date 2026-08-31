@@ -50,6 +50,17 @@ export interface IDspHostIpcDeps {
  */
 let supervisor: DspHostSupervisor | undefined;
 
+/**
+ * Whether the host is currently pushing audio at a device.
+ *
+ * Kept here because this is the only place main ever learns it: the transport
+ * verbs pass through this module and the supervisor keeps no play state of its
+ * own. The unattended updater reads it to decide whether restarting the app
+ * would cut a song off mid-bar — the window being hidden into the tray says
+ * nothing about that, since the host plays perfectly well with no window.
+ */
+let isHostPlaying = false;
+
 export interface IDspHostStatus {
   state: TDspHostState | 'unavailable';
   handshake?: ReturnType<DspHostSupervisor['getHandshake']>;
@@ -390,13 +401,20 @@ export const registerDspHostIpc = ({
       }
       try {
         switch (verb) {
-          case 'play':
-            return await supervisor.setPlaying(true);
+          case 'play': {
+            const applied = await supervisor.setPlaying(true);
+            isHostPlaying = applied;
+            return applied;
+          }
           case 'pause':
+            isHostPlaying = false;
             return await supervisor.setPlaying(false);
           case 'select':
             return await supervisor.selectDeck(slot);
           case 'unload':
+            // An unload while playing is a stop by another name; the renderer
+            // does not always pause first.
+            isHostPlaying = false;
             return await supervisor.unloadDeck(slot);
           case 'seek':
             return isFiniteNumber(value)
@@ -508,8 +526,19 @@ export const registerDspHostIpc = ({
  */
 export const dspHostPid = (): number | undefined => supervisor?.getPid();
 
+/**
+ * Is FluidEQ playing something right now?
+ *
+ * Answers false whenever the host is not up, so a crashed or not-yet-started
+ * host reads as "nothing is playing" rather than as a reason to hold an update
+ * back forever. The flag itself is set by the transport verbs above.
+ */
+export const isDspHostPlaying = (): boolean =>
+  isHostPlaying && supervisor?.getState() === 'ready';
+
 export const shutdownDspHost = async (): Promise<void> => {
   const host = supervisor;
   supervisor = undefined;
+  isHostPlaying = false;
   await host?.stop();
 };

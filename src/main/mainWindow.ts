@@ -77,6 +77,17 @@ export interface IMainWindowDeps {
   saveWindowState: () => void;
   /** Tells the renderer whether it is maximised, so its chrome can match. */
   sendWindowState: () => void;
+  /**
+   * Was this launch the app restarting itself to finish an update?
+   *
+   * If so the window is built and loaded but never shown: an unattended update
+   * only ever runs when FluidEQ was already out of the way, and putting a
+   * window — plus the What's New dialog on top of it — in front of somebody
+   * who minimised the app a minute ago is the interruption the whole
+   * unattended path exists to avoid. The tray icon is there, and opening from
+   * it works exactly as it does for any hidden window.
+   */
+  startsHidden: () => boolean;
 
   /** Started only once a window exists — see the note on the interface. */
   syncDatabasesOnStartup: () => Promise<void>;
@@ -96,6 +107,7 @@ export const createMainWindowFactory = ({
   setUpAutoUpdates,
   setUpMemoryTraceTrigger,
   startMemoryProbe,
+  startsHidden,
   syncDatabasesOnStartup,
 }: IMainWindowDeps) => {
   const installExtensions = async () => {
@@ -304,6 +316,28 @@ export const createMainWindowFactory = ({
         return;
       }
       hasRevealedMainWindow = true;
+
+      if (startsHidden()) {
+        // Nothing at all: no show, no minimize. A minimized window would still
+        // put an entry on the taskbar and flash it, which is the same
+        // interruption in a smaller font.
+        //
+        // The maximise cannot happen here — `maximize()` shows the window, so
+        // doing it now would defeat the whole point — and it cannot be
+        // skipped either: a window that was never on screen answers
+        // `isMaximized()` false, and saveWindowState writes that answer down.
+        // Somebody who keeps FluidEQ maximised would be un-maximised by every
+        // update, permanently. So it waits for the tray to open the window and
+        // happens then, one frame late and visible as a snap, which is the
+        // cost of not flashing a window at somebody who put it away.
+        if (restored.isMaximized) {
+          created.once('show', () => created.maximize());
+        }
+        if (isDebug) {
+          created.webContents.openDevTools();
+        }
+        return;
+      }
 
       if (process.env.START_MINIMIZED) {
         created.minimize();
