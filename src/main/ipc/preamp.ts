@@ -137,12 +137,34 @@ export const registerPreampIpc = ({
     // trusted to be the only thing that checks.
     state.smartHeadroomTrimDb = Number.isFinite(trim) ? Math.min(0, trim) : 0;
     state.preAmp = getResolvedPreAmp(state);
+    /**
+     * A measurement is evidence, and evidence is never written to a profile.
+     *
+     * `useActiveSessionOverride` was true here, which makes
+     * `shouldPersistProfile` true in `handleUpdateHelperCore` — so every push
+     * wrote the attached profile. While the estimate is still converging the
+     * floor between pushes is two seconds, so a listening session spent its
+     * first two minutes writing the user's profile every two seconds, on the
+     * main process, with `fs.writeFileSync`. That is the "Wrote preset for:
+     * <profile>" line repeating with nobody touching the app.
+     *
+     * It also committed whatever was live at the time into the saved profile
+     * and cleared `hasActiveSessionOverride` — so a measurement quietly saved
+     * edits the user had not saved.
+     *
+     * Nothing is lost by not writing it. The config writer never reads the
+     * preamp out of a profile when Auto normalize is on: `flushDeviceProfiles`
+     * takes the programme and the trim as `sessionHeadroom` and derives the
+     * number itself, for the one output they were heard on, and the
+     * active-session path renders them straight off live state. Both routes
+     * already have this measurement; neither needs a file.
+     */
     await handleUpdateHelper<number>(
       event,
       ChannelEnum.SET_SMART_HEADROOM_MEASUREMENT,
       state.preAmp,
       false,
-      true,
+      false,
     );
   });
 

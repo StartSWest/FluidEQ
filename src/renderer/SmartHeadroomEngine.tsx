@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { getDriverFilters } from 'common/driver';
 import { getHeadphoneFilters } from 'common/headphone';
 import { getSmartEqFilters } from 'common/smartEq';
@@ -106,7 +106,7 @@ const SmartHeadroomEngine = () => {
    * A bypassed layer is not in the config, so nothing of it is in what the
    * analyser hears and there is nothing to remove.
    */
-  const buildResponse = (): ICombinedResponse => {
+  const buildResponse = useCallback((): ICombinedResponse => {
     const off = (layer: TApoLayer) => (bypassed ?? []).includes(layer);
     const curves: Array<IGraphicEqPoint[] | undefined> = [];
     if (!off('eq') && graphicEq?.length) {
@@ -137,17 +137,59 @@ const SmartHeadroomEngine = () => {
       curves,
       constantGain: preAmp + (off('custom') ? 0 : (customFx?.preAmp ?? 0)),
     };
-  };
-
-  // Held on a ref so the sixty-times-a-second loop below reads the current
-  // chain without being rebuilt every time somebody nudges a band.
-  const buildResponseRef = useRef(buildResponse);
-  buildResponseRef.current = buildResponse;
+  }, [
+    bypassed,
+    convolution,
+    customFx,
+    driver,
+    filters,
+    graphicEq,
+    headphone,
+    preAmp,
+    smartEq,
+    voicing,
+  ]);
 
   const isOn = isAutoPreAmpOn;
 
+  /**
+   * The probe grid, and the chain sampled on it — both computed when they
+   * change, which is not what the analyser does.
+   *
+   * This was inside `tick`, so twenty-two times a second the whole chain was
+   * rebuilt (every layer's filters derived from its profile and intensity) and
+   * evaluated across 320 frequencies: biquad coefficients allocated per filter,
+   * every graphic curve — the EQ import, the custom layer, a convolution's
+   * measured response — filtered, copied and re-sorted, and a fresh 320-element
+   * array returned. All of it a pure function of a chain that only changes when
+   * somebody edits it.
+   *
+   * On a machine listening with Auto normalize on, that ran for the whole
+   * session, on the renderer's main thread, next to the graphs it was starving.
+   * The window did not stutter, it stopped: nothing painted because the thread
+   * had nothing left, and the allocation rate alone kept the collector busy.
+   *
+   * It is memoized rather than throttled. Nothing is deferred and nothing is
+   * scheduled — an edit still reaches the very next frame, because the edit is
+   * what invalidates it.
+   */
+  const axis = useMemo(
+    () =>
+      capture ? createFrequencyAxis(capture.context.sampleRate) : undefined,
+    [capture],
+  );
+
+  const chainGainDb = useMemo(
+    () =>
+      axis ? getResponseGainAtFrequencies(buildResponse(), axis) : undefined,
+    [axis, buildResponse],
+  );
+
+  const chainGainRef = useRef(chainGainDb);
+  chainGainRef.current = chainGainDb;
+
   useEffect(() => {
-    if (!isOn || !isActive || !capture) {
+    if (!isOn || !isActive || !capture || !axis) {
       return undefined;
     }
     const { context, source } = capture;
@@ -199,7 +241,6 @@ const SmartHeadroomEngine = () => {
       );
     }
 
-    const axis = createFrequencyAxis(context.sampleRate);
     const cells: IAxisCell[] = createAxisCells(
       axis,
       context.sampleRate,
@@ -236,10 +277,7 @@ const SmartHeadroomEngine = () => {
 
       analyser.getFloatFrequencyData(frequencyData);
       readAbsoluteLevels(frequencyData, cells, levels);
-      state.chainGainDb = getResponseGainAtFrequencies(
-        buildResponseRef.current(),
-        axis,
-      );
+      state.chainGainDb = chainGainRef.current;
       accumulateHeadroomFrame(state, { levels, timestampMs: nowMs });
 
       let peakDbfs = Number.NEGATIVE_INFINITY;
@@ -288,7 +326,7 @@ const SmartHeadroomEngine = () => {
       splitter.disconnect();
       peakAnalysers.forEach((peakAnalyser) => peakAnalyser.disconnect());
     };
-  }, [capture, isActive, isOn]);
+  }, [axis, capture, isActive, isOn]);
 
   return null;
 };
