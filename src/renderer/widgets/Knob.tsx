@@ -100,15 +100,21 @@ const Knob = ({
 
   /**
    * Where the filled arc GROWS FROM, decided by the range rather than by a
-   * prop — the same reasoning as `isProportional` above.
+   * prop — the same reasoning as `isProportional` above, and read off the same
+   * two numbers.
    *
-   * A range that straddles zero symmetrically is a bipolar control: zero is
-   * not the bottom of an amount, it is a rest position, and either direction
-   * from it is a decision. Grown from the low end, such a dial sits half
-   * filled while it is doing nothing, which reads as a level rather than as a
-   * centre — and a dial whose rest position looks like a level is one nobody
-   * thinks to turn left. Bass Punch's Attack and Sustain (-1 to +1) and the
-   * EQ's band gain (-24 to +24 dB) are the two in this app.
+   * What the predicate MEANS: a range that straddles zero symmetrically is one
+   * where zero is the rest position rather than the floor, so turning the dial
+   * down is a decision and not an absence. Grown from the low end, such a dial
+   * sits half filled while it is doing nothing, which reads as a level — and a
+   * dial whose rest position looks like a level is one nobody thinks to turn
+   * down. Grown from the centre, its rest is empty and the notch points
+   * straight up, which is what "doing nothing" looks like.
+   *
+   * Anything satisfying that gets the centre, including whatever is added
+   * next; as this is written it catches three — Bass Punch's Attack and
+   * Sustain (-1 to +1), the EQ's band gain (-24 to +24 dB) and the side bar's
+   * preamp, which is the -20 to +20 dB dial the paragraph above already names.
    *
    * A range that merely happens to include negatives is not this: the Master's
    * -24 to +6 dB trim, the Normalizer's -12 to -0.1 target and the Denoise

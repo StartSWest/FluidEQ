@@ -134,12 +134,16 @@ describe('LabelledKnob', () => {
 /**
  * Where the filled arc grows FROM, which nothing else in the suite can see.
  *
- * A range that straddles zero symmetrically is a bipolar control: zero is a
- * rest position and either direction from it is a decision. Grown from the low
- * end such a dial sits half filled while doing nothing, which reads as a level
- * — and a dial whose rest position looks like a level is one nobody thinks to
- * turn left. Bass Punch's Attack and Sustain and the EQ's band gain are the
- * dials this covers.
+ * A range that straddles zero symmetrically is one where zero is the rest
+ * position rather than the floor, so turning the dial down is a decision and
+ * not an absence. Grown from the low end such a dial sits half filled while
+ * doing nothing, which reads as a level — and a dial whose rest position looks
+ * like a level is one nobody thinks to turn down.
+ *
+ * Asserted through the predicate rather than through a list of dials, because
+ * the list is what goes stale: the ranges below stand in for every symmetric
+ * one in the app, which as this is written is Bass Punch's Attack and Sustain,
+ * the EQ's band gain and the side bar's preamp.
  */
 describe('LabelledKnob, on a range that straddles zero', () => {
   const arc = (
@@ -166,8 +170,16 @@ describe('LabelledKnob, on a range that straddles zero', () => {
     return found;
   };
 
+  /**
+   * All three shipped symmetric ranges, not just Punch's. The side bar's
+   * preamp is -20 to +20 and was not enumerated when this branch went in; it
+   * gets the centre for the same reason the other two do, and this is what
+   * says so rather than a comment.
+   */
   it('draws no arc at all at the centre, because nothing is being done', () => {
     expect(arc()).toBeNull();
+    expect(arc({ min: -24, max: 24, value: 0 })).toBeNull();
+    expect(arc({ min: -20, max: 20, value: 0 })).toBeNull();
   });
 
   /**
@@ -185,6 +197,12 @@ describe('LabelledKnob, on a range that straddles zero', () => {
     // the negative one a quarter of the range earlier.
     expect(up).toHaveAttribute('stroke-dashoffset', '-37.5');
     expect(down).toHaveAttribute('stroke-dashoffset', '-18.75');
+    // The preamp's own range, at the same fraction of it, lands identically:
+    // the rule is read off the shape of the range and not off its units.
+    expect(arc({ min: -20, max: 20, value: 10 })).toHaveAttribute(
+      'stroke-dashoffset',
+      '-37.5',
+    );
   });
 
   /**

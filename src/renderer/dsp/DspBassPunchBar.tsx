@@ -43,9 +43,10 @@ const signed = (value: number): string =>
  * the menu lies from then on.
  *
  * Attack and sustain carry an explicit sign, which is the one thing a reader
- * has to see here: they are the only bipolar figures in any of these
- * catalogues, and `0.60 · -0.15` says at a glance that `rock` hits harder and
- * decays shorter, where `0.60 · 0.15` would read as two amounts.
+ * has to see here. Every other figure on the line is an amount that starts at
+ * nothing, so unsigned they would read as two more of those: `+0.60 · -0.15`
+ * says at a glance that `rock` hits harder and decays shorter, where
+ * `0.60 · 0.15` says only that it does more of two things.
  *
  * `splitHz` is absent for the same reason Forge's is — the whole catalogue
  * sits at 90, 100 or 110, and a column that says the same thing fourteen times

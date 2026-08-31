@@ -27,10 +27,13 @@ interface IDspBassPunchCardProps {
  * Bloom and its decay are a single control in two numbers, and Duck buys the
  * same weight from somewhere else entirely. Split feeds every one of them.
  *
- * Attack and Sustain are the only bipolar dials in the rack. Zero is not off
- * here: it is the stage running, hearing the note, and deciding to change
- * nothing about it — which is why they carry a default of 0 and a range that
- * is symmetric about it rather than an amount that starts at nothing.
+ * Attack and Sustain are bipolar. Zero is not off here: it is the stage
+ * running, hearing the note, and deciding to change nothing about it — which
+ * is why they carry a default of 0 and a range symmetric about it rather than
+ * an amount that starts at nothing. `Knob` reads that symmetry off the range
+ * itself and grows the arc from the centre, so the rest position draws no arc
+ * at all; the EQ's band gain and the side bar's preamp answer to the same
+ * rule, and nothing here had to ask for it.
  */
 const DspBassPunchCard = ({
   bassPunch,
