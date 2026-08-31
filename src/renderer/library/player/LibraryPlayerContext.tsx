@@ -672,7 +672,29 @@ export const LibraryPlayerProvider = ({
         return;
       }
       const wasPlaying = !element.paused;
-      const at = element.currentTime;
+      /**
+       * Only a playhead this element can vouch for.
+       *
+       * The restore below exists to make a mid-playback swap inaudible, and it
+       * is only meaningful if `currentTime` describes the media the element is
+       * holding. Setting `src` runs the media load algorithm, which puts
+       * `readyState` back to HAVE_NOTHING — so between a track change and its
+       * metadata arriving, `currentTime` still reads out of the PREVIOUS
+       * source. Capturing it there and restoring it afterwards is what made
+       * Previous-then-Next return to a song and resume where it had been
+       * rather than starting it at zero.
+       *
+       * The existing guard above asks whether the APP is still on this track.
+       * It cannot answer this, which is whether the ELEMENT is: the loader
+       * sets `src` and the read can complete before the load does.
+       *
+       * Zero when there is nothing to vouch for, which is also what a track
+       * that has not started should resume to.
+       */
+      const at =
+        element.readyState >= HTMLMediaElement.HAVE_METADATA
+          ? element.currentTime
+          : 0;
       releaseBlob(element);
       const blobUrl = URL.createObjectURL(new Blob([buffer]));
       blobUrlsRef.current.set(element, blobUrl);
@@ -685,7 +707,12 @@ export const LibraryPlayerProvider = ({
       // `cancelPendingSwap`.
       const onSwapped = () => {
         pendingSwapsRef.current.delete(element);
-        element.currentTime = at;
+        // Nothing to put back is left alone rather than written as a seek to
+        // zero: a track that has just started is already there, and assigning
+        // `currentTime` makes the decoder re-sync for no reason.
+        if (at > 0) {
+          element.currentTime = at;
+        }
         if (wasPlaying) {
           element.play().catch(() => undefined);
         }
@@ -1011,11 +1038,30 @@ export const LibraryPlayerProvider = ({
         if (Number.isFinite(element.duration) && element.duration > 0) {
           setDurationMs(element.duration * 1000);
         }
-        // The one safe moment to put the playhead back where the last session
-        // left it: the ranges are known now, so the seek lands instead of
-        // being silently dropped.
+        /**
+         * The one safe moment to put the playhead back where the last session
+         * left it: the ranges are known now, so the seek lands instead of
+         * being silently dropped.
+         *
+         * Matched against the track this ELEMENT is actually playing, which
+         * is the check every other reader of `pendingRestore` already makes
+         * and this one did not — while being the only one that performs a
+         * seek. A restore that outlived its own track landed the saved
+         * position on whatever loaded next: a song chosen with Next or
+         * Previous started near the end, because that is where the last
+         * session had stopped. Reported as "the song starts mid-song, almost
+         * at the end".
+         *
+         * The loader clears the ref when it loads a different track, so this
+         * only bites when the loader has not run in between — it is keyed on
+         * the track id alone, so navigating back to the same track never
+         * re-runs it.
+         */
         const restore = pendingRestore.current;
-        if (restore !== undefined) {
+        if (
+          restore !== undefined &&
+          elementTrackRef.current.get(element) === restore.trackId
+        ) {
           pendingRestore.current = undefined;
           element.currentTime = restore.positionMs / 1000;
           setPositionMs(restore.positionMs);
