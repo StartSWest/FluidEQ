@@ -1206,6 +1206,22 @@ export const LibraryPlayerProvider = ({
         if (!isActive()) {
           return;
         }
+        /**
+         * A deck the host has taken over is paused deliberately, and that is
+         * not the listener pausing.
+         *
+         * Once the host holds the track the element stops decoding it — see
+         * the mirror — and the `pause` that follows is the second decoder
+         * being switched off, not a transport event. Acting on it stopped the
+         * music a moment after every track started.
+         *
+         * Play is not guarded the same way: a deck that has actually begun
+         * playing is a track starting whichever engine owns it, and the host
+         * has no transport of its own to report until a deck is loaded.
+         */
+        if (hostOwnsTransportRef.current) {
+          return;
+        }
         releasePlayback('library');
         setIsPlaying(false);
       };
@@ -2195,6 +2211,29 @@ export const LibraryPlayerProvider = ({
   const toggle = useCallback(() => {
     const element = activeElement();
     if (!element) {
+      return;
+    }
+    /**
+     * Ask the engine that is playing, not the one that is only loaded.
+     *
+     * While the host owns the transport the element is paused and holding the
+     * file as a fallback, so `element.paused` answers "yes" forever and this
+     * would have called `play()` on it every time — starting the second
+     * decoder the pause exists to stop, and restarting the sound in the
+     * element as well as the host on any deck the host had failed to open.
+     *
+     * The state IS the request here. `sync` carries it to the host on the very
+     * next tick, which is where a play or a pause actually happens.
+     */
+    if (hostOwnsTransportRef.current) {
+      setIsPlaying((playing) => {
+        if (playing) {
+          releasePlayback('library');
+        } else {
+          claimPlayback('library');
+        }
+        return !playing;
+      });
       return;
     }
     if (element.paused) {

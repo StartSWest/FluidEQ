@@ -20,10 +20,24 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * Rewriting it to prove a DSP port is a large change to code that is not what
  * is being ported.
  *
- * So the element keeps every job it has — timing, events, position, queue,
- * end-of-track — and is muted. The native host is told the same file, the same
- * position and the same play state, and it makes the sound. Flipping the switch
- * changes which of two engines is audible and nothing else at all.
+ * So the element keeps the jobs the host cannot do — the queue, the library,
+ * the restore, the file it is on — and hands over the ones it can. The native
+ * host is told the same file, the same position and the same play state, and
+ * it makes the sound.
+ *
+ * It used to keep the CLOCK as well, muted but still running, and that was the
+ * expensive half of the arrangement in two ways. It decoded every track a
+ * second time for numbers nobody heard; and two clocks can disagree, which
+ * they did — a deck cued at the position the previous track had reached played
+ * from the middle while the seek bar read zero, each side telling the truth
+ * about a different player.
+ *
+ * The host reports its deck's position, duration and state in telemetry now,
+ * so the element is muted AND paused once a deck holds the track. It stays
+ * loaded, because it is the fallback: a host that cannot open a file — a
+ * corrupt one, or any file at all on a platform whose decoder and device
+ * backend are not written yet — hands the sound straight back to a deck that
+ * is already holding the bytes.
  *
  * The crossfade is mirrored too, and it is the one place where "shadow the
  * element" is not enough. The player's overlap runs two muted elements while
@@ -105,12 +119,18 @@ export const createNativeMirror = (
   elements: readonly HTMLMediaElement[],
 ): INativeMirror => {
   /**
-   * The element is muted, not paused.
+   * Muted at first, and paused as soon as the host has the track.
    *
-   * Pausing it would stop the clock the whole player reads: position, the
-   * end-of-track event, the crossfade's cue point and the queue's advance all
-   * hang off it. Muted, every one of those keeps working and only the sound is
-   * gone — which is exactly the substitution being made.
+   * It used to stay running, because the clock the whole player read hung off
+   * it: position, end-of-track, the crossfade's cue point and the queue's
+   * advance. Every one of those now comes from the host — it reports its
+   * deck's position, duration and state in telemetry — so the element has no
+   * remaining job while the host is playing, and a muted element that is still
+   * running is the same file being decoded twice.
+   *
+   * Muted first and paused second rather than never started, because the
+   * element is the fallback: a host that cannot open the file hands the sound
+   * back, and a deck already holding the bytes hands it back instantly.
    */
   const muted = new Map<HTMLMediaElement, boolean>();
   elements.forEach((element) => {
@@ -164,6 +184,46 @@ export const createNativeMirror = (
   };
 
   /**
+   * Stop the second decoder, now that the host is the one playing.
+   *
+   * Called only after a deck has actually loaded and been selected. Before
+   * that the host has nothing, and an element paused early is silence.
+   *
+   * The `pause` event this raises is ignored by the player while the host owns
+   * the transport — see `onPause`. Without that it read as the listener
+   * pausing, and the music stopped a moment after every track began.
+   */
+  const stoodDown = new Set<HTMLMediaElement>();
+  const standDownElements = () => {
+    elements.forEach((element) => {
+      if (!element.paused) {
+        stoodDown.add(element);
+        element.pause();
+      }
+    });
+  };
+
+  /**
+   * Give the sound back to the elements this took it from.
+   *
+   * Exactly those, remembered rather than inferred: after a stand-down every
+   * deck is paused, so "resume the paused ones" would start the spare holding
+   * the previous file as well as the one the listener is on.
+   *
+   * Both halves, and in this order: unmuted while still paused is a track that
+   * looks audible and is not.
+   */
+  const handBack = () => {
+    unmute();
+    stoodDown.forEach((element) => {
+      if (element.paused) {
+        element.play().catch(() => undefined);
+      }
+    });
+    stoodDown.clear();
+  };
+
+  /**
    * Load a file into deck zero and take it to where the element already is.
    *
    * One `async` rather than a chain, because the steps are ordered and a
@@ -187,11 +247,12 @@ export const createNativeMirror = (
        * It stays either way. A native engine that went silent on a file it
        * could not read would be worse than one that hands the sound back.
        *
-       * The element is still playing it, muted. Sitting in silence while
-       * claiming to be the native engine is the worst of the three options;
-       * handing the sound back is the honest one.
+       * The element still has it, muted and possibly stood down from a track
+       * the host COULD read. Sitting in silence while claiming to be the
+       * native engine is the worst of the three options; handing the sound
+       * back — unmuted and running again — is the honest one.
        */
-      unmute();
+      handBack();
       return;
     }
     await controller.transport.select(activeDeck);
@@ -204,6 +265,9 @@ export const createNativeMirror = (
       await controller.transport.play();
       playing = true;
     }
+    // The host has the track and is the one playing it. Last, so nothing is
+    // stood down for a deck that turned out not to load.
+    standDownElements();
   };
 
   /**
@@ -237,7 +301,7 @@ export const createNativeMirror = (
       // element fade — which is already running — carry the handoff.
       loadedPath = previousPath;
       activeDeck = previousDeck;
-      unmute();
+      handBack();
       return false;
     }
 
@@ -259,6 +323,10 @@ export const createNativeMirror = (
       // panel offers, rather than whatever index -1 lands on.
       index >= 0 ? index : 0,
     );
+    // The incoming deck is the host's now, as the outgoing one already was.
+    // Both elements go quiet: the player runs its own overlap on them, and
+    // there is nothing for either to be doing while the host fades its decks.
+    standDownElements();
     return true;
   };
 
@@ -366,7 +434,7 @@ export const createNativeMirror = (
     },
 
     release: () => {
-      unmute();
+      handBack();
       loadedPath = undefined;
       playing = false;
       controller.transport.pause().catch(() => undefined);

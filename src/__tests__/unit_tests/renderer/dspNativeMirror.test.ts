@@ -46,8 +46,29 @@ const controllerSpy = (overrides: Record<string, unknown> = {}) => {
 };
 
 /** Just enough of a media element for the mirror, which only touches `muted`. */
-const fakeElement = (): HTMLMediaElement =>
-  ({ muted: false }) as unknown as HTMLMediaElement;
+/**
+ * Enough of an element to be paused and resumed, which it has to be.
+ *
+ * This used to be `{ muted: false }` and nothing else. Once the mirror started
+ * standing the elements down, `pause()` was missing on it — and the throw went
+ * straight into the `.catch` that `sync` wraps every cue in, so the suite
+ * carried on reporting green for a call that never happened. A stub thin
+ * enough to hide the behaviour under test is worse than no stub.
+ */
+const fakeElement = (): HTMLMediaElement => {
+  const element = {
+    muted: false,
+    paused: false,
+    play: () => {
+      element.paused = false;
+      return Promise.resolve();
+    },
+    pause: () => {
+      element.paused = true;
+    },
+  };
+  return element as unknown as HTMLMediaElement;
+};
 
 const settle = () =>
   new Promise((resolve) => {
@@ -56,20 +77,85 @@ const settle = () =>
 
 describe('the native mirror', () => {
   /**
-   * Muted, never paused, and the distinction is the whole design.
+   * Muted on engaging, and not yet paused.
    *
-   * Pausing the element would stop the clock the entire player reads from:
-   * position, the end-of-track event, the crossfade's cue point and the
-   * queue's advance all hang off it. Muted, every one of those keeps working
-   * and only the sound moves to the other engine.
+   * The order is the point. Engaging only means the host is available; it has
+   * no track until a deck is loaded, and an element paused before that is
+   * silence with nothing taking over. It is stood down once the host actually
+   * holds the file — see the cue tests below.
    */
-  it('mutes the elements rather than pausing them', () => {
+  it('mutes the elements when it takes over, without pausing them yet', () => {
     const { controller } = controllerSpy();
     const elements = [fakeElement(), fakeElement()];
 
     createNativeMirror(controller, elements);
 
     expect(elements.every((element) => element.muted)).toBe(true);
+    expect(elements.some((element) => element.paused)).toBe(false);
+  });
+
+  it('stops the element decoding once the host holds the track', async () => {
+    /**
+     * The reason the element was kept running is gone.
+     *
+     * It stayed muted-but-playing because the clock the player read hung off
+     * it. The host reports its deck's position, duration and state now, so a
+     * running element is only the same file being decoded a second time for
+     * numbers nobody reads.
+     */
+    const { controller } = controllerSpy();
+    const element = fakeElement();
+    const mirror = createNativeMirror(controller, [element]);
+
+    mirror.sync({
+      mediaPath: 'C:/music/one.wav',
+      isPlaying: true,
+      positionMs: 0,
+      volume: 1,
+    });
+    await settle();
+
+    expect(element.paused).toBe(true);
+    expect(element.muted).toBe(true);
+  });
+
+  it('hands the sound back, running, when the host cannot open the file', async () => {
+    /**
+     * The fallback, and it has to be audible rather than merely unmuted.
+     *
+     * A previous track the host COULD read will have left this element stood
+     * down, so unmuting alone gives a deck that looks audible and is silent.
+     * This is the path every file takes on a platform whose native decoder and
+     * device backend are not written yet.
+     */
+    let readable = true;
+    const { controller } = controllerSpy({
+      load: () => Promise.resolve(readable),
+    });
+    const element = fakeElement();
+    const mirror = createNativeMirror(controller, [element]);
+
+    // A track the host can read, which is what stands the element down.
+    mirror.sync({
+      mediaPath: 'C:/music/one.wav',
+      isPlaying: true,
+      positionMs: 0,
+      volume: 1,
+    });
+    await settle();
+    expect(element.paused).toBe(true);
+
+    readable = false;
+    mirror.sync({
+      mediaPath: 'C:/music/unreadable.xyz',
+      isPlaying: true,
+      positionMs: 0,
+      volume: 1,
+    });
+    await settle();
+
+    expect(element.muted).toBe(false);
+    expect(element.paused).toBe(false);
   });
 
   it('gives the elements their sound back when released', () => {
