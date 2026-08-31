@@ -48,12 +48,7 @@ import {
   useState,
 } from 'react';
 import { buildSongIdentity } from 'common/songIdentity';
-import {
-  advanceQueue,
-  currentTrackId,
-  ILibraryQueue,
-  queueAtEnd,
-} from '../../../common/library/queue';
+import { currentTrackId, ILibraryQueue } from '../../../common/library/queue';
 import { registerPlayer } from '../../audio/playbackOwner';
 import {
   clearTransportSource,
@@ -80,6 +75,7 @@ import { useSessionMemory } from './useSessionMemory';
 import { useTrackAnalysis } from './useTrackAnalysis';
 import { useTransportControls } from './useTransportControls';
 import { useUpNext } from './useUpNext';
+import { useTrackEnd } from './useTrackEnd';
 import { useTrackLoader } from './useTrackLoader';
 
 // Re-exported so every existing importer keeps working: the contract moved,
@@ -443,121 +439,24 @@ export const LibraryPlayerProvider = ({
         : audioElementRef.current,
     [videoTrackId],
   );
-
   /**
-   * The track that just finished. `repeat: 'one'` restarts it in place — the
-   * queue's own `position` never moves for that mode (see `advanceQueue`'s
-   * doc comment), so this is the one case that has to act on the element
-   * directly rather than letting a `trackId` change trigger a reload.
-   * Everything else calls `advanceQueue` and lets that effect take over —
-   * stopping at the end with repeat off is `advanceQueue` holding position at
-   * the last track combined with the check below, not a separate rule here.
+   * A track running out — what to do about it, when the host says it has,
+   * and when to start an overlap before it does. See `useTrackEnd`.
    */
-  const handleEnded = useCallback((element: HTMLMediaElement) => {
-    const { current } = queueRef;
-    if (!current) {
-      return;
-    }
-    if (current.repeat === 'one') {
-      element.currentTime = 0;
-      element.play().catch(() => undefined);
-      return;
-    }
-    const wasAtEnd = queueAtEnd(current);
-    setQueue(advanceQueue(current, 1));
-    if (wasAtEnd && current.repeat === 'off') {
-      // Nothing queued after it — a player with nothing next just stops,
-      // rather than replaying the track that just ended.
-      setIsPlaying(false);
-    }
-  }, []);
-
-  /**
-   * End of track, from the deck that actually reached it.
-   *
-   * The host reports `ended` as a STATE and holds it until something else is
-   * loaded, so this fires on the edge and remembers which track it fired for.
-   * Reading it as an event would advance the queue again on every telemetry
-   * frame until the next load, which is forty times a second.
-   *
-   * The element's own `ended` is ignored while the host owns the transport —
-   * see `onEnded`. One of them has to be the authority, and it is the one
-   * making the sound.
-   */
-  useEffect(() => {
-    const playing = trackIdRef.current;
-    if (!hostTransport.ended || !playing || endedTrackRef.current === playing) {
-      return;
-    }
-    endedTrackRef.current = playing;
-    const element = audioElementRef.current;
-    if (element) {
-      handleEnded(element);
-    }
-  }, [hostTransport.ended, handleEnded]);
-
-  /**
-   * Start the overlap while there is still music to overlap with.
-   *
-   * Driven by the published clock rather than by the element's `timeupdate`,
-   * which is where this lived. The element is no longer necessarily running —
-   * once the host owns the transport it is paused, and a paused element emits
-   * no ticks — so a check that hung off one would simply stop happening on the
-   * engine that is actually playing.
-   *
-   * One path serves both engines: `publishedPositionMs` is the host's when
-   * there is a deck and the element's otherwise, so this reads whichever one
-   * is making the sound.
-   */
-  useEffect(() => {
-    const { current } = queueRef;
-    const transition = dspSettings.crossfade;
-    const playingId = current ? currentTrackId(current) : undefined;
-    const element = audioElementRef.current;
-    if (
-      !current ||
-      !playingId ||
-      !element ||
-      !dspSettings.enabled ||
-      !transition.enabled ||
-      current.repeat === 'one' ||
-      naturalCrossfadeTrackRef.current === playingId ||
-      !Number.isFinite(publishedDurationMs) ||
-      publishedDurationMs <= 0 ||
-      (queueAtEnd(current) && current.repeat !== 'all')
-    ) {
-      return;
-    }
-    /**
-     * The end of the music, not the end of the file.
-     *
-     * A track padded with five seconds of digital silence used to start its
-     * two-second fade three seconds into that silence: nothing audible crossed
-     * over, and the next song waited for the padding to run out. Without a
-     * measurement this is the duration, which is what it always was.
-     */
-    const edges = programmeEdgesRef.current.get(element);
-    const programmeEndMs = Math.min(
-      publishedDurationMs,
-      edges?.endMs ?? Number.POSITIVE_INFINITY,
-    );
-    // Not `remaining > 0`, which is the same test only while the programme
-    // runs to the last sample. Once the end is trimmed, being already inside
-    // the trailing silence — seeked into it, or arrived there while the DSP
-    // was off — is a reason to hand over now.
-    if (
-      publishedPositionMs < publishedDurationMs &&
-      programmeEndMs - publishedPositionMs <= transition.durationMs
-    ) {
-      naturalCrossfadeTrackRef.current = playingId;
-      setQueue(advanceQueue(current, 1));
-    }
-  }, [
+  const handleEnded = useTrackEnd({
+    queueRef,
+    setQueue,
+    setIsPlaying,
+    trackIdRef,
+    audioElementRef,
+    endedTrackRef,
+    naturalCrossfadeTrackRef,
+    programmeEdgesRef,
+    hostEnded: hostTransport.ended,
+    dspSettings,
     publishedPositionMs,
     publishedDurationMs,
-    dspSettings,
-    naturalCrossfadeTrackRef,
-  ]);
+  });
   /**
    * What the player learns by listening to a deck. See `useMediaEvents`,
    * which is also where the reasoning about which of those statements
