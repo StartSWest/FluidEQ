@@ -293,10 +293,14 @@ const DspBassPunchGraph = ({ bassPunch }: IDspBassPunchGraphProps) => {
         context.fillStyle = 'rgba(255,255,255,0.3)';
         context.fillText(`-${second}s`, x, height - PAD_B / 2);
       }
+      // Right-aligned rather than centred on the last column: this margin is
+      // 14px, not the 62 the Maximizer keeps for its meter, so a centred label
+      // would hang half its width off the end of the canvas.
+      context.textAlign = 'right';
       context.fillStyle = 'rgba(255,255,255,0.3)';
       context.fillText(
         t('dsp.bassPunch.graph.now'),
-        width - PAD_R,
+        width - PAD_R + 6,
         height - PAD_B / 2,
       );
 
