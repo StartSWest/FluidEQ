@@ -352,6 +352,8 @@ const dsp = {
   'dsp.bassForge.presenceAmount': 'Présence',
   'dsp.bassForge.texture': 'Texture',
   'dsp.bassForge.mix': 'Quantité',
+  'dsp.bassForge.graph.belowSplit': 'Sous la coupure',
+  'dsp.bassForge.graph.aboveSplit': 'Au-dessus de la coupure',
   'dsp.bassForge.monoNote':
     "Les basses générées sont sommées en mono. Les basses d'origine gardent leur stéréo.",
   'dsp.bassForge.unavailable':

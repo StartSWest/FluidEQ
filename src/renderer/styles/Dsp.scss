@@ -1098,7 +1098,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     }
   }
 
-  .dsp-master-legend {
+  // Bass Forge's is the five-entry legend, so it needs this more than the
+  // Master's three do: `.dsp-eq-legend` is `flex-wrap: nowrap`, and at this
+  // width the gaps are what runs it past the plot.
+  .dsp-master-legend,
+  .dsp-bass-forge-legend {
     gap: 7px;
   }
 }

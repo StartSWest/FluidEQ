@@ -359,6 +359,11 @@ const dsp = {
   'dsp.bassForge.presenceAmount': 'Presence',
   'dsp.bassForge.texture': 'Texture',
   'dsp.bassForge.mix': 'Amount',
+  // Regions of the graph, not the generators. The two are summed before the
+  // stage's own meter reads them, so which one made a given band is not
+  // recoverable — see the header of `DspBassForgeGraph`.
+  'dsp.bassForge.graph.belowSplit': 'Below split',
+  'dsp.bassForge.graph.aboveSplit': 'Above split',
   'dsp.bassForge.monoNote':
     'Generated bass is summed to mono. The original low end keeps its stereo.',
   'dsp.bassForge.unavailable':

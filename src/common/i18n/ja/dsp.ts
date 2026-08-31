@@ -344,6 +344,8 @@ const dsp = {
   'dsp.bassForge.presenceAmount': 'プレゼンス',
   'dsp.bassForge.texture': '質感',
   'dsp.bassForge.mix': '量',
+  'dsp.bassForge.graph.belowSplit': '分割より下',
+  'dsp.bassForge.graph.aboveSplit': '分割より上',
   'dsp.bassForge.monoNote':
     '生成された低音はモノラルに合成されます。元の低音のステレオ感はそのまま残ります。',
   'dsp.bassForge.unavailable':

@@ -347,6 +347,8 @@ const dsp = {
   'dsp.bassForge.presenceAmount': 'प्रेज़ेंस',
   'dsp.bassForge.texture': 'बनावट',
   'dsp.bassForge.mix': 'मात्रा',
+  'dsp.bassForge.graph.belowSplit': 'विभाजन से नीचे',
+  'dsp.bassForge.graph.aboveSplit': 'विभाजन से ऊपर',
   'dsp.bassForge.monoNote':
     'जनरेट किया गया बास मोनो में मिला दिया जाता है। मूल बास अपना स्टीरियो बनाए रखता है।',
   'dsp.bassForge.unavailable':

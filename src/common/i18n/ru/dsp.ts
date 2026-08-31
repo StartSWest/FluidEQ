@@ -351,6 +351,8 @@ const dsp = {
   'dsp.bassForge.presenceAmount': 'Пресенс',
   'dsp.bassForge.texture': 'Текстура',
   'dsp.bassForge.mix': 'Количество',
+  'dsp.bassForge.graph.belowSplit': 'Ниже раздела',
+  'dsp.bassForge.graph.aboveSplit': 'Выше раздела',
   'dsp.bassForge.monoNote':
     'Сгенерированный бас сводится в моно. Исходные низкие частоты сохраняют своё стерео.',
   'dsp.bassForge.unavailable':

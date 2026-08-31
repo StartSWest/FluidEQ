@@ -331,6 +331,8 @@ const dsp = {
   'dsp.bassForge.presenceAmount': '临场感',
   'dsp.bassForge.texture': '质感',
   'dsp.bassForge.mix': '混合量',
+  'dsp.bassForge.graph.belowSplit': '分频以下',
+  'dsp.bassForge.graph.aboveSplit': '分频以上',
   'dsp.bassForge.monoNote':
     '生成的低音会合并为单声道，原始低频仍保留其立体声。',
   'dsp.bassForge.unavailable':

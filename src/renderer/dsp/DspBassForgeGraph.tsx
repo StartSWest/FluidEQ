@@ -21,11 +21,25 @@ import { readDspBassForgeBands } from './store';
  * this graph is FOR sit on top of each other.
  *
  * The generated content is the filled area BETWEEN the two runs, in two hues
- * split at the corner: blue below `splitHz` is the octave divider making a
- * real sub, amber above it is the harmonics of that octave standing in for a
- * fundamental the speaker cannot radiate. They are two different generators
- * that both read as "more bass" on a spectrum, and this is the only place on
- * the page that tells them apart without reading the dials.
+ * split at the corner. The two hues divide it BY FREQUENCY, not by generator,
+ * and the labels say so: this graph cannot attribute a band to the divider or
+ * to the harmonics, because it is not told. `bass_forge.cpp` computes
+ * `sub * sub_amount + shaped` into one number and then sends that through
+ * drive, the DC blocker and `mix` before the output followers ever see it, so
+ * by the time anything is metered the two generators are one signal and their
+ * origin is gone.
+ *
+ * The corner is still the line worth drawing, for two reasons that survive
+ * that. It is where the USER put `splitHz`, so it is the boundary they are
+ * actually steering. And with the divider up, energy below it is
+ * overwhelmingly the divider's: the divider's whole output is an octave below
+ * a band that already stops at the corner.
+ *
+ * What that does NOT hold for is a very low fundamental. The presence
+ * generator is fed the whole low band, so the second harmonic of a 35 Hz note
+ * lands near 70 Hz — under a default 90 Hz corner, on the low side of this
+ * plot, with `subAmount` possibly at zero. Colour there is honestly "energy
+ * below the split", which is what the legend now claims and all it claims.
  *
  * Only the positive difference is filled. Where the forged run sits BELOW the
  * dry one the two paths coincide and the area collapses to nothing, because
@@ -86,9 +100,13 @@ const GRID_HZ: [number, string][] = [
 const GRAPH_FONT =
   '10px -apple-system, BlinkMacSystemFont, "Segoe UI", Ubuntu, Cantarell, "Noto Sans", "DejaVu Sans", sans-serif';
 
-/** The rack's existing inks. Blue is the low band, amber is added harmonics. */
-const SUB_INK = '84, 200, 255';
-const PRESENCE_INK = '255, 176, 89';
+/**
+ * The rack's existing inks, borrowed from the Exciter's low band and its
+ * organic stage. Named for the SIDE of the corner each one paints and not for
+ * a generator: the meter cannot tell the two generators apart. See the header.
+ */
+const LOW_SIDE_INK = '84, 200, 255';
+const HIGH_SIDE_INK = '255, 176, 89';
 const OUTPUT_INK = '64, 214, 200';
 const DRY_INK = '255, 255, 255';
 
@@ -239,7 +257,7 @@ const DspBassForgeGraph = ({ bassForge }: IDspBassForgeGraphProps) => {
          * Two fills of the same path rather than two paths: the corner is a
          * frequency and the area is continuous across it, so cutting the
          * PAINT at `splitHz` keeps the shape whole while still saying which
-         * generator owns which part of it.
+         * SIDE of the user's own corner each part of it landed on.
          */
         const madePath = () => {
           context.beginPath();
@@ -258,8 +276,8 @@ const DspBassForgeGraph = ({ bassForge }: IDspBassForgeGraphProps) => {
 
         const cornerX = toX(splitHz);
         [
-          { ink: SUB_INK, from: PAD_L, to: cornerX },
-          { ink: PRESENCE_INK, from: cornerX, to: width - PAD_R },
+          { ink: LOW_SIDE_INK, from: PAD_L, to: cornerX },
+          { ink: HIGH_SIDE_INK, from: cornerX, to: width - PAD_R },
         ].forEach(({ ink, from, to }) => {
           if (to - from < 0.5) {
             return;
@@ -362,16 +380,16 @@ const DspBassForgeGraph = ({ bassForge }: IDspBassForgeGraphProps) => {
         <li className="dsp-eq-legend-item">
           <span
             className="dsp-eq-legend-mark is-filled"
-            style={{ color: `rgb(${SUB_INK})` }}
+            style={{ color: `rgb(${LOW_SIDE_INK})` }}
           />
-          {t('dsp.bassForge.subAmount')}
+          {t('dsp.bassForge.graph.belowSplit')}
         </li>
         <li className="dsp-eq-legend-item">
           <span
             className="dsp-eq-legend-mark is-filled"
-            style={{ color: `rgb(${PRESENCE_INK})` }}
+            style={{ color: `rgb(${HIGH_SIDE_INK})` }}
           />
-          {t('dsp.bassForge.presenceAmount')}
+          {t('dsp.bassForge.graph.aboveSplit')}
         </li>
         <li className="dsp-eq-legend-item">
           <span className="dsp-eq-legend-mark is-dashed" />

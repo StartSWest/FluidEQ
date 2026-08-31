@@ -194,6 +194,31 @@ describe('DspPanel', () => {
   });
 
   /**
+   * The graph's two fills are regions, and the legend must not promote them
+   * into generators.
+   *
+   * `bass_forge.cpp` computes `sub * sub_amount + shaped` into one number
+   * before drive, the DC blocker, `mix` and the output followers, so nothing
+   * downstream can say which generator made a given band. The presence
+   * generator is fed the whole low band, so the second harmonic of a 35 Hz
+   * note lands near 70 Hz — below a default 90 Hz corner, in the low-side
+   * fill, with the Sub dial possibly at zero. A legend calling that fill "Sub"
+   * would be asserting something the meter is not told.
+   */
+  it('labels the graph fills by region, never by which generator made them', () => {
+    const { container } = renderPanel();
+    fireEvent.click(screen.getByRole('button', { name: /Bass Forge/i }));
+    const legend = container.querySelector('.dsp-bass-forge-legend');
+    expect(legend).toHaveTextContent('Below split');
+    expect(legend).toHaveTextContent('Above split');
+    // The two dial names, which are the attribution this must not claim. They
+    // are still on the page — this asserts they are not in the LEGEND.
+    expect(legend).not.toHaveTextContent(/Sub\b/);
+    expect(legend).not.toHaveTextContent(/Presence/);
+    expect(screen.getByRole('slider', { name: 'Sub' })).toBeInTheDocument();
+  });
+
+  /**
    * A live meter under greyed-out dials is a meter reporting on a stage that
    * is not running — the same defect Dimension's guard bar had.
    *

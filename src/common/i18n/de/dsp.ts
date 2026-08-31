@@ -358,6 +358,8 @@ const dsp = {
   'dsp.bassForge.presenceAmount': 'Präsenz',
   'dsp.bassForge.texture': 'Textur',
   'dsp.bassForge.mix': 'Anteil',
+  'dsp.bassForge.graph.belowSplit': 'Unter Trennung',
+  'dsp.bassForge.graph.aboveSplit': 'Über Trennung',
   'dsp.bassForge.monoNote':
     'Der erzeugte Bass wird zu Mono summiert. Die ursprünglichen Bässe behalten ihr Stereo.',
   'dsp.bassForge.unavailable':
