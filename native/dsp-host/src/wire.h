@@ -44,7 +44,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * rebuild the native host, so a pull across this change is exactly when it
  * happens.
  */
-#define FEQ_WIRE_PROTOCOL_VERSION 2
+#define FEQ_WIRE_PROTOCOL_VERSION 3
 
 /* 'FEQ' plus a letter for the kind, so a desynchronised stream is obvious. */
 #define FEQ_MAGIC_HANDSHAKE 0x48514546u /* FEQH */

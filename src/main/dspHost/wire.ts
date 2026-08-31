@@ -41,7 +41,7 @@ import {
  * changes, so a stale host is refused at the handshake with a legible reason
  * rather than desynchronising on its first analysis frame.
  */
-export const HOST_WIRE_PROTOCOL_VERSION = 2;
+export const HOST_WIRE_PROTOCOL_VERSION = 3;
 
 export const HANDSHAKE_BYTES = 104;
 export const COMMAND_BYTES = 32;
