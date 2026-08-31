@@ -129,20 +129,22 @@ const buildAnalysis = (options: {
   /**
    * The bass block, written at the offsets it was appended at.
    *
-   * 160 is where the header ended when Denoise's six words landed; these
-   * twenty floats start there and nothing above them moves. Same rule as the
-   * tail above: the numbers are a second, independent copy of the layout, so
-   * moving a field in the decoder alone fails here.
+   * 320 is where the header ended once Denoise's forty floor bands followed
+   * its six words; these twenty floats start there and nothing above them
+   * moves. They were at 160 until Denoise landed those bands on main and this
+   * branch re-numbered under it — which is what this copy is for: it is a
+   * second, independent statement of the layout, so moving a field in the
+   * decoder alone fails here, and it did.
    */
   const { bass } = options;
   if (bass) {
     for (let band = 0; band < bass.forgeInputDb.length; band += 1) {
-      frame.writeFloatLE(bass.forgeInputDb[band], 160 + band * 4);
-      frame.writeFloatLE(bass.forgeOutputDb[band], 192 + band * 4);
+      frame.writeFloatLE(bass.forgeInputDb[band], 320 + band * 4);
+      frame.writeFloatLE(bass.forgeOutputDb[band], 352 + band * 4);
     }
-    frame.writeFloatLE(bass.punchTransientDb, 224);
-    frame.writeFloatLE(bass.punchSustainDb, 228);
-    frame.writeFloatLE(bass.punchDuckDb, 232);
+    frame.writeFloatLE(bass.punchTransientDb, 384);
+    frame.writeFloatLE(bass.punchSustainDb, 388);
+    frame.writeFloatLE(bass.punchDuckDb, 392);
   }
 
   let at = ANALYSIS_HEADER_BYTES;
