@@ -64,6 +64,7 @@ import { ILibraryPlayerContextValue } from './playerContract';
 import { useDeckAudio } from './useDeckAudio';
 import { useMediaEvents } from './useMediaEvents';
 import { usePlaybackCommands } from './usePlaybackCommands';
+import { usePlayerDecks } from './usePlayerDecks';
 import { usePublishedTransport } from './usePublishedTransport';
 import { useQueueControls } from './useQueueControls';
 import { useSessionMemory } from './useSessionMemory';
@@ -96,39 +97,9 @@ export const LibraryPlayerProvider = ({
     () => new Map(index.tracks.map((t) => [t.id, t])),
     [index.tracks],
   );
-
-  // Two stable, hidden decks make a real overlap possible. Replacing one
-  // element's source cannot crossfade: the old decoder is already gone by the
-  // time the new source starts.
-  const audioElementsRef = useRef<
-    readonly [HTMLAudioElement, HTMLAudioElement] | undefined
-  >(undefined);
-  if (!audioElementsRef.current) {
-    const storedVolume = readStoredVolume();
-    const first = new Audio();
-    const second = new Audio();
-    [first, second].forEach((element) => {
-      /**
-       * Before any `src`, and that ordering is the whole point.
-       *
-       * Library tracks are served over `fluideq-media://`, which is a different
-       * origin from this page. Without a CORS-mode request the media is tainted,
-       * and Chromium's rule for tainted media is that the
-       * `MediaElementAudioSourceNode` built on it emits SILENCE while the element
-       * carries on decoding — so the transport ran and the seek bar moved with no
-       * sound at all. `crossOrigin` is only consulted when the load starts, so
-       * setting it after a `src` has been assigned does nothing.
-       */
-      element.crossOrigin = 'anonymous';
-      // Set from storage here, not from an effect after the first render. An
-      // element built at unity and turned down afterwards is briefly at unity,
-      // and someone who left the fader at 17% would get a burst of full-scale
-      // audio on launch — the opposite of what remembering it is for.
-      element.volume = storedVolume;
-    });
-    audioElementsRef.current = [first, second];
-  }
-  const audioElements = audioElementsRef.current;
+  // Two hidden decks, built once. See `usePlayerDecks` for why they are not
+  // rendered and why their properties are set before any source is.
+  const audioElements = usePlayerDecks();
   const audioElementRef = useRef<HTMLAudioElement | undefined>(
     audioElements[0],
   );
