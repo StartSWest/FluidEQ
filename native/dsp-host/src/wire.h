@@ -34,17 +34,23 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "fluideq/bass_forge.h"
 
 /*
- * Bumped to 2 when Denoise changed the analysis frame layout.
+ * Bumped on every frame layout change. 2 was Denoise growing the analysis
+ * frame; 4 is the telemetry frame gaining the transport.
  *
  * The handshake already refuses a host whose protocol differs; what it cannot
  * catch is a host built before a layout change that did not move this number.
- * That host agrees it speaks version 1, is accepted, and then desynchronises
- * on the first analysis frame — reported as diagnostic 3005 with magic 0,
- * which names the symptom and nothing about the cause. `pnpm dev` does not
- * rebuild the native host, so a pull across this change is exactly when it
- * happens.
+ * That host agrees it speaks the version it was told, is accepted, and then
+ * desynchronises on the first frame of the kind that changed — reported as
+ * diagnostic 3005 with magic 0, which names the symptom and nothing about the
+ * cause. `pnpm dev` does not rebuild the native host, so a pull across this
+ * change is exactly when it happens.
+ *
+ * The analysis frame states its own size in the handshake and is checked
+ * exactly; the other three are fixed structs whose sizes are hard-coded on
+ * both sides, so this number is what stands between them and a stale binary.
+ * Move it, or the next person debugging silence starts where we started.
  */
-#define FEQ_WIRE_PROTOCOL_VERSION 3
+#define FEQ_WIRE_PROTOCOL_VERSION 4
 
 /* 'FEQ' plus a letter for the kind, so a desynchronised stream is obvious. */
 #define FEQ_MAGIC_HANDSHAKE 0x48514546u /* FEQH */
@@ -287,6 +293,28 @@ typedef struct FeqWireTelemetryFrame {
   /** What the device negotiated, which is rarely what was asked for. */
   uint32_t sample_rate;
   uint32_t channels;
+  /**
+   * The transport, from the engine that is actually playing it.
+   *
+   * Until now the renderer's `<audio>` element owned the clock: it decoded the
+   * same file a second time, muted, purely so the seek bar had a number and
+   * the queue had an end-of-track event. Two clocks that could disagree, and
+   * they did — a track cued at the position the PREVIOUS one had reached
+   * played from the middle while the bar read zero, because each was telling
+   * the truth about a different player.
+   *
+   * One engine owns the position now, and it is the one making the sound.
+   *
+   * Seconds rather than frames: the decks resample to the device rate, so a
+   * frame count means nothing without also sending which rate it was counted
+   * at, and every consumer wants seconds anyway.
+   */
+  uint32_t active_deck;
+  /** `FeqDeckState`: empty, ready, or ended. Ended is end-of-track. */
+  uint32_t deck_state;
+  double deck_position_seconds;
+  /** Zero when the decoder could not say, which is legal for some streams. */
+  double deck_duration_seconds;
 } FeqWireTelemetryFrame;
 
 /**
@@ -457,7 +485,7 @@ typedef struct FeqWireAnalysisFrame {
 static_assert(sizeof(FeqWireHandshake) == 104, "handshake frame size");
 static_assert(sizeof(FeqWireCommandFrame) == 32, "command frame size");
 static_assert(sizeof(FeqWireAckFrame) == 32, "ack frame size");
-static_assert(sizeof(FeqWireTelemetryFrame) == 88, "telemetry frame size");
+static_assert(sizeof(FeqWireTelemetryFrame) == 112, "telemetry frame size");
 /*
  * 120, then 136 when Master loudness landed, then Denoise's six words took it
  * to 160 and its forty floor bands to 320. The two bass stages add sixteen

@@ -35,18 +35,17 @@ import {
   NOISE_PROFILE_WIRE_LENGTH,
 } from '../../common/dsp/noiseProfile';
 
-/** Must match FEQ_WIRE_PROTOCOL_VERSION. */
 /**
  * Must match `FEQ_WIRE_PROTOCOL_VERSION`. Bump BOTH whenever a frame layout
  * changes, so a stale host is refused at the handshake with a legible reason
- * rather than desynchronising on its first analysis frame.
+ * rather than desynchronising on its first frame of that kind.
  */
-export const HOST_WIRE_PROTOCOL_VERSION = 3;
+export const HOST_WIRE_PROTOCOL_VERSION = 4;
 
 export const HANDSHAKE_BYTES = 104;
 export const COMMAND_BYTES = 32;
 export const ACK_BYTES = 32;
-export const TELEMETRY_BYTES = 88;
+export const TELEMETRY_BYTES = 112;
 
 export const MAGIC_HANDSHAKE = 0x48514546;
 export const MAGIC_COMMAND = 0x43514546;
@@ -168,6 +167,19 @@ export interface IHostTelemetry {
   repairedSamples: number;
   sampleRate: number;
   channels: number;
+  /**
+   * The transport, from the engine that is actually playing it.
+   *
+   * The seek bar and the end of a track used to come from a muted `<audio>`
+   * element decoding the same file a second time. Two clocks that could
+   * disagree, and did.
+   */
+  activeDeck: number;
+  /** 0 empty, 1 ready, 2 ended. Ended is end-of-track. */
+  deckState: number;
+  deckPositionSeconds: number;
+  /** Zero when the decoder could not say, which is legal for some streams. */
+  deckDurationSeconds: number;
 }
 
 /** A C `char[]` is NUL-padded, not NUL-terminated when it exactly fits. */
@@ -354,6 +366,12 @@ export const decodeTelemetry = (frame: Buffer): IHostTelemetry | undefined => {
     repairedSamples: Number(view.getBigUint64(72, true)),
     sampleRate: view.getUint32(80, true),
     channels: view.getUint32(84, true),
+    activeDeck: view.getUint32(88, true),
+    deckState: view.getUint32(92, true),
+    // 96, not 92: the two doubles are eight-aligned, so the compiler leaves no
+    // gap here only because the two words above it fill one.
+    deckPositionSeconds: view.getFloat64(96, true),
+    deckDurationSeconds: view.getFloat64(104, true),
   };
 };
 

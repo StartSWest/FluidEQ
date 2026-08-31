@@ -438,6 +438,28 @@ void drain_telemetry(HostState& state, const IAudioOutputBackend& backend) {
     frame.repaired_samples = record.repaired_samples;
     frame.sample_rate = state.sample_rate;
     frame.channels = state.channels;
+    /**
+     * The transport, read from the player rather than inferred.
+     *
+     * Safe from this thread: `player.h` states that any thread may read the
+     * position and state, which is why they are atomics there and why this
+     * does not take `decoder_mutex` — the audio callback must never wait on a
+     * lock a telemetry drain is holding.
+     *
+     * An absent player reports an empty deck at zero rather than stale
+     * numbers, so the renderer sees "nothing loaded" instead of the last
+     * track's position frozen on the bar.
+     */
+    if (state.player != nullptr) {
+      const uint32_t deck = feq_player_active_deck(state.player);
+      frame.active_deck = deck;
+      frame.deck_state =
+          static_cast<uint32_t>(feq_player_deck_state(state.player, deck));
+      frame.deck_position_seconds =
+          feq_player_position_seconds(state.player, deck);
+      frame.deck_duration_seconds =
+          feq_player_duration_seconds(state.player, deck);
+    }
     write_frame(&frame, sizeof(frame));
   }
 }
