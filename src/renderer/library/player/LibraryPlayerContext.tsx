@@ -675,24 +675,29 @@ export const LibraryPlayerProvider = ({
       /**
        * Only a playhead this element can vouch for.
        *
-       * The restore below exists to make a mid-playback swap inaudible, and it
-       * is only meaningful if `currentTime` describes the media the element is
-       * holding. Setting `src` runs the media load algorithm, which puts
-       * `readyState` back to HAVE_NOTHING — so between a track change and its
-       * metadata arriving, `currentTime` still reads out of the PREVIOUS
-       * source. Capturing it there and restoring it afterwards is what made
-       * Previous-then-Next return to a song and resume where it had been
-       * rather than starting it at zero.
+       * The restore below makes a mid-playback swap inaudible, and it is only
+       * meaningful if `currentTime` describes the media the element is
+       * holding. Reported exactly: play A, play B, seek B to the middle, come
+       * back to A — and A begins in the middle, with the seek bar reading
+       * zero. B's playhead, on A's audio.
        *
-       * The existing guard above asks whether the APP is still on this track.
-       * It cannot answer this, which is whether the ELEMENT is: the loader
-       * sets `src` and the read can complete before the load does.
+       * `readyState` cannot catch that and neither can the `src` attribute.
+       * Assigning `src` does not synchronously drop the element to
+       * HAVE_NOTHING: the media load algorithm is QUEUED, so for a turn or
+       * more afterwards the attribute names the new track while `readyState`
+       * and `currentTime` still describe the previous one. Both guards read as
+       * healthy and both are answering about the wrong resource.
        *
-       * Zero when there is nothing to vouch for, which is also what a track
-       * that has not started should resume to.
+       * `currentSrc` is the one that cannot: it is the resource actually
+       * selected, and it stays on the old track until the new load reaches it.
+       *
+       * Zero when there is nothing to vouch for, which is also where a track
+       * that has not started belongs.
        */
+      const holdsThisTrack =
+        element.currentSrc === libraryMediaUrl('track', forTrackId);
       const at =
-        element.readyState >= HTMLMediaElement.HAVE_METADATA
+        holdsThisTrack && element.readyState >= HTMLMediaElement.HAVE_METADATA
           ? element.currentTime
           : 0;
       releaseBlob(element);
@@ -1560,18 +1565,15 @@ export const LibraryPlayerProvider = ({
        * element that has neither announced itself nor failed is still reading,
        * and playing before it can render a sample buys nothing.
        */
-      const metadataReady =
-        audio.readyState >= HTMLMediaElement.HAVE_METADATA
-          ? Promise.resolve()
-          : new Promise<void>((resolve) => {
-              const settle = () => {
-                audio.removeEventListener('loadedmetadata', settle);
-                audio.removeEventListener('error', settle);
-                resolve();
-              };
-              audio.addEventListener('loadedmetadata', settle);
-              audio.addEventListener('error', settle);
-            });
+      const metadataReady = new Promise<void>((resolve) => {
+        const settle = () => {
+          audio.removeEventListener('loadedmetadata', settle);
+          audio.removeEventListener('error', settle);
+          resolve();
+        };
+        audio.addEventListener('loadedmetadata', settle);
+        audio.addEventListener('error', settle);
+      });
       metadataReady
         .then(() => (cancelled ? undefined : audio.play()))
         .then(() => {
