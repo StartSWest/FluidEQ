@@ -379,7 +379,7 @@ const dsp = {
   'dsp.bassPunchPreset.dry': 'सूखा',
   'dsp.bassPunchPreset.wet': 'गीला',
   'dsp.bassPunchPreset.soft': 'मुलायम',
-  'dsp.bassPunchPreset.dnb': 'D&B',
+  'dsp.bassPunchPreset.dnb': 'ड्रम एंड बेस',
   'dsp.bassPunchPreset.club': 'क्लब',
 
   'dsp.compressor.title': 'मल्टीबैंड कंप्रेसर',

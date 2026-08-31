@@ -369,13 +369,13 @@ const dsp = {
 
   'dsp.bassPunch.title': 'Pegada de graves',
   'dsp.bassPunch.description':
-    'Da forma al ataque y a la caída de los graves, no a su timbre. Ataque y sustain son bipolares: por debajo del centro es más ajustado y seco, por encima es más largo y húmedo.',
+    'Da forma al ataque y a la caída de los graves, no a su timbre. Ataque y sostenimiento son bipolares: por debajo del centro es más ajustado y seco, por encima es más largo y húmedo.',
   'dsp.bassPunch.splitHz': 'Corte',
   'dsp.bassPunch.attack': 'Ataque',
-  'dsp.bassPunch.sustain': 'Sustain',
+  'dsp.bassPunch.sustain': 'Sostenimiento',
   'dsp.bassPunch.bloomAmount': 'Florecimiento',
   'dsp.bassPunch.bloomDecayMs': 'Caída de florecimiento',
-  'dsp.bassPunch.duck': 'Duck',
+  'dsp.bassPunch.duck': 'Ducking',
   'dsp.bassPunch.unavailable':
     'La Pegada de graves solo funciona en el motor nativo, que ahora mismo no lleva el audio. Esta etapa está omitida.',
   'dsp.bassPunchPreset.tight': 'Ajustado',

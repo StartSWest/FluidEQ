@@ -368,10 +368,10 @@ const dsp = {
 
   'dsp.bassPunch.title': 'Punch dei bassi',
   'dsp.bassPunch.description':
-    "Modella l'attacco e il decadimento dei bassi, non il loro timbro. Attacco e sustain sono bipolari: sotto il centro è più stretto e secco, sopra è più lungo e bagnato.",
+    "Modella l'attacco e il decadimento dei bassi, non il loro timbro. Attacco e sostegno sono bipolari: sotto il centro è più stretto e secco, sopra è più lungo e bagnato.",
   'dsp.bassPunch.splitHz': 'Taglio',
   'dsp.bassPunch.attack': 'Attacco',
-  'dsp.bassPunch.sustain': 'Sustain',
+  'dsp.bassPunch.sustain': 'Sostegno',
   'dsp.bassPunch.bloomAmount': 'Fioritura',
   'dsp.bassPunch.bloomDecayMs': 'Durata fioritura',
   'dsp.bassPunch.duck': 'Ducking',

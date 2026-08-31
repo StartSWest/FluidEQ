@@ -376,7 +376,7 @@ const dsp = {
   'dsp.bassPunchPreset.dry': 'ドライ',
   'dsp.bassPunchPreset.wet': 'ウェット',
   'dsp.bassPunchPreset.soft': 'ソフト',
-  'dsp.bassPunchPreset.dnb': 'DnB',
+  'dsp.bassPunchPreset.dnb': 'ドラムンベース',
   'dsp.bassPunchPreset.club': 'クラブ',
 
   'dsp.compressor.title': 'マルチバンドコンプレッサー',

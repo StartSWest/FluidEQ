@@ -369,10 +369,10 @@ const dsp = {
 
   'dsp.bassPunch.title': 'Punch des basses',
   'dsp.bassPunch.description':
-    "Façonne l'attaque et la chute des basses, pas leur timbre. Attaque et sustain sont bipolaires : en dessous du centre c'est plus serré et plus sec, au-dessus c'est plus long et plus humide.",
+    "Façonne l'attaque et la chute des basses, pas leur timbre. Attaque et maintien sont bipolaires : en dessous du centre c'est plus serré et plus sec, au-dessus c'est plus long et plus humide.",
   'dsp.bassPunch.splitHz': 'Coupure',
   'dsp.bassPunch.attack': 'Attaque',
-  'dsp.bassPunch.sustain': 'Sustain',
+  'dsp.bassPunch.sustain': 'Maintien',
   'dsp.bassPunch.bloomAmount': 'Éclosion',
   'dsp.bassPunch.bloomDecayMs': "Durée de l'éclosion",
   'dsp.bassPunch.duck': 'Ducking',

@@ -370,10 +370,10 @@ const dsp = {
 
   'dsp.bassPunch.title': 'Punch dos graves',
   'dsp.bassPunch.description':
-    'Molda o ataque e a queda dos graves, não o seu timbre. Ataque e sustain são bipolares: abaixo do centro é mais apertado e seco, acima é mais longo e húmido.',
+    'Molda o ataque e a queda dos graves, não o seu timbre. Ataque e sustentação são bipolares: abaixo do centro é mais apertado e seco, acima é mais longo e húmido.',
   'dsp.bassPunch.splitHz': 'Corte',
   'dsp.bassPunch.attack': 'Ataque',
-  'dsp.bassPunch.sustain': 'Sustain',
+  'dsp.bassPunch.sustain': 'Sustentação',
   'dsp.bassPunch.bloomAmount': 'Floração',
   'dsp.bassPunch.bloomDecayMs': 'Duração da floração',
   'dsp.bassPunch.duck': 'Ducking',
