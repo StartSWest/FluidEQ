@@ -20,6 +20,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { MutableRefObject, useCallback } from 'react';
 import {
   ILibraryQueue,
+  buildQueue,
+  currentTrackId,
   setShuffle as setQueueShuffle,
 } from '../../../common/library/queue';
 import { nextRepeat } from './playerContract';
@@ -31,6 +33,14 @@ export interface IQueueControls {
   moveUpNext: (from: number, to: number) => void;
   setShuffle: (isShuffled: boolean) => void;
   cycleRepeat: () => void;
+  /**
+   * Re-aim the queue at a different list without interrupting the track.
+   *
+   * Nothing here reaches a media element, and that is the point: the same
+   * `trackId` comes out, so the loader — keyed on that id alone — does not
+   * run and the audio carries on through the swap.
+   */
+  retargetQueue: (trackIds: readonly string[]) => void;
 }
 
 export const useQueueControls = (options: {
@@ -40,6 +50,8 @@ export const useQueueControls = (options: {
   queueRef: MutableRefObject<ILibraryQueue | undefined>;
   /** What the listener put there by hand, which survives a re-aim. */
   addedIdsRef: MutableRefObject<ReadonlySet<string>>;
+  /** What continuation guessed, which is re-aimed differently from the rest. */
+  continuedIdsRef: MutableRefObject<ReadonlySet<string>>;
   setAddedIds: (
     update: (current: ReadonlySet<string>) => ReadonlySet<string>,
   ) => void;
@@ -50,7 +62,14 @@ export const useQueueControls = (options: {
    */
   playTracks: (trackIds: readonly string[], startTrackId: string) => void;
 }): IQueueControls => {
-  const { setQueue, queueRef, addedIdsRef, setAddedIds, playTracks } = options;
+  const {
+    setQueue,
+    queueRef,
+    addedIdsRef,
+    continuedIdsRef,
+    setAddedIds,
+    playTracks,
+  } = options;
 
   const jumpToQueuePosition = useCallback(
     (position: number) => {
@@ -202,6 +221,135 @@ export const useQueueControls = (options: {
     );
   }, [setQueue]);
 
+  /**
+   * The list Next walks, swapped under a playing track. See the interface for
+   * why the queue follows the view rather than the press that started it.
+   *
+   * Nothing here reaches the media element, and that is the point: `trackId`
+   * comes out the same, so the loader effect — keyed on that id alone — does
+   * not run, and the audio carries on through the swap without a gap. Shuffle
+   * and repeat are the listener's settings rather than the list's, so they
+   * come across too.
+   */
+  const retargetQueue = useCallback(
+    (trackIds: readonly string[]) => {
+      setQueue((current) => {
+        if (!current) {
+          return current;
+        }
+        const playing = currentTrackId(current);
+        if (playing === undefined || !trackIds.includes(playing)) {
+          return current;
+        }
+        // WHAT WAS ADDED BY HAND SURVIVES THE SWAP, IN ITS OWN ORDER.
+        //
+        // The context changes whenever the reader changes shelf or sorts one —
+        // that is the point of re-aiming. A list they built themselves is not
+        // part of that context: losing it because they looked elsewhere would
+        // be the worst kind of quiet, and re-sorting it along with the shelf is
+        // very nearly as bad. Sorting Songs by title used to scatter the picks
+        // into alphabetical order among fifty thousand rows, because a pick
+        // that also appears in the new list was simply absorbed by it.
+        //
+        // So they are lifted out first and put back at the front, and the list
+        // underneath is built WITHOUT them so nothing is drawn twice.
+        const ahead = current.order
+          .slice(current.position + 1)
+          .map((index) => current.trackIds[index])
+          .filter((id): id is string => id !== undefined);
+        const pending = ahead.filter((id) => addedIdsRef.current.has(id));
+        // AND WHAT THE PLAYER DREW FOR ITSELF SURVIVES TOO — AT THE END.
+        //
+        // Continuation is not part of the context either: it exists precisely
+        // because the context ran out. Left to be rebuilt, it was: this
+        // callback runs on every track change, so a seven-track album with
+        // continuation on dropped its ten drawn songs and drew ten different
+        // ones after every single track. The panel then listed a different
+        // "more like this" every three minutes with nothing having been asked
+        // for — the same shape as the re-shuffle bug two comments down, and
+        // the same report: something changing by itself.
+        //
+        // At the END rather than after the playhead, which is the one way this
+        // differs from the picks above: what follows the current track is the
+        // rest of the record, and a guess is what comes after all of it.
+        const continued = ahead.filter(
+          (id) =>
+            !addedIdsRef.current.has(id) && continuedIdsRef.current.has(id),
+        );
+        const pendingSet = new Set([...pending, ...continued]);
+        const context = trackIds.filter(
+          (id) => id === playing || !pendingSet.has(id),
+        );
+        // A SHUFFLED QUEUE IS NOT RE-AIMED BY A LIST OF THE SAME SONGS.
+        //
+        // `buildQueue` draws a FRESH random order every time it is asked for a
+        // shuffled one, and this callback runs on every track change — so with
+        // shuffle on, an album re-aimed at itself came back re-shuffled and the
+        // playhead landed somewhere new in the new order each time. Up Next then
+        // reported a different length on every pass of the same seven songs —
+        // six, then one, then four, then none — which looks exactly like
+        // something firing on a timer, and was reported as one.
+        //
+        // Order is what re-aiming is FOR when nothing is shuffled: sorting the
+        // shelf by title should reorder what plays next. Under shuffle the
+        // shelf's order is deliberately not the queue's, so membership is the
+        // only thing that can mean anything — same songs, same queue, whatever
+        // order they arrive in. Compared against the context rather than the
+        // whole queue, because the picks are not part of what is being re-aimed.
+        if (current.isShuffled) {
+          const held = new Set(
+            current.trackIds.filter((id) => !pendingSet.has(id)),
+          );
+          const arriving = new Set(context);
+          if (
+            held.size === arriving.size &&
+            [...arriving].every((id) => held.has(id))
+          ) {
+            return current;
+          }
+        }
+        const base = buildQueue([...context], playing, current.isShuffled);
+        const kept = base.trackIds.length;
+        const next =
+          pending.length === 0 && continued.length === 0
+            ? base
+            : {
+                ...base,
+                trackIds: [...base.trackIds, ...pending, ...continued],
+                order: (() => {
+                  const order = [...base.order];
+                  order.splice(
+                    base.position + 1,
+                    0,
+                    ...pending.map((_, index) => kept + index),
+                  );
+                  order.push(
+                    ...continued.map(
+                      (_, index) => kept + pending.length + index,
+                    ),
+                  );
+                  return order;
+                })(),
+              };
+        if (
+          next.trackIds.length === current.trackIds.length &&
+          next.trackIds.every((id, index) => id === current.trackIds[index]) &&
+          next.order.length === current.order.length &&
+          next.order.every((value, index) => value === current.order[index])
+        ) {
+          // The same list arriving again — a re-render of the view rather than a
+          // change of it. Returning the existing object keeps every consumer of
+          // this context from re-rendering for nothing.
+          return current;
+        }
+        return { ...next, repeat: current.repeat };
+      });
+      // Refs, listed because the rule cannot see they are stable through a hook
+      // boundary.
+    },
+    [addedIdsRef, continuedIdsRef, setQueue],
+  );
+
   return {
     jumpToQueuePosition,
     appendToQueue,
@@ -209,5 +357,6 @@ export const useQueueControls = (options: {
     moveUpNext,
     setShuffle,
     cycleRepeat,
+    retargetQueue,
   };
 };
