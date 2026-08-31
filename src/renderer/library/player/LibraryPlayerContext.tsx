@@ -77,18 +77,11 @@ import { useDspNativeTransport, useDspSettings } from '../../dsp/store';
 import { useLibrary } from '../LibraryContext';
 import {
   readPlaybackMemory,
-  readStoredContinuation,
   readStoredVolume,
   restorablePositionMs,
   writePlaybackMemory,
-  writeStoredContinuation,
   writeStoredVolume,
 } from './playbackMemory';
-import {
-  CONTINUATION_LOW_WATER,
-  pickContinuation,
-} from '../../../common/library/continuation';
-
 import {
   ILibraryPlayerContextValue,
   PREVIOUS_RESTART_THRESHOLD_MS,
@@ -98,6 +91,7 @@ import { useDeckAudio } from './useDeckAudio';
 import { useMediaEvents } from './useMediaEvents';
 import { useQueueControls } from './useQueueControls';
 import { useTrackAnalysis } from './useTrackAnalysis';
+import { useUpNext } from './useUpNext';
 import { useTrackLoader } from './useTrackLoader';
 
 // Re-exported so every existing importer keeps working: the contract moved,
@@ -811,6 +805,26 @@ export const LibraryPlayerProvider = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps -- keyed on the missing-track transition only; see the comment above.
   }, [track === undefined]);
 
+  /**
+   * What is coming, and where each of it came from — the record being
+   * played through, what was added by hand, and what continuation guessed.
+   * See `useUpNext`.
+   */
+  const {
+    upNext,
+    isContinuationOn,
+    setIsContinuationOn,
+    setAddedIds,
+    addedIdsRef,
+    continuedIdsRef,
+  } = useUpNext({
+    queue,
+    trackId,
+    trackById,
+    libraryTracks: index.tracks,
+    setQueue,
+  });
+
   const stop = useCallback(() => {
     setQueue(undefined);
   }, []);
@@ -866,7 +880,7 @@ export const LibraryPlayerProvider = ({
       }
       element.play().catch(() => undefined);
     },
-    [activeElement],
+    [activeElement, setAddedIds],
   );
 
   const toggle = useCallback(() => {
@@ -914,277 +928,124 @@ export const LibraryPlayerProvider = ({
    * and repeat are the listener's settings rather than the list's, so they
    * come across too.
    */
-  const retargetQueue = useCallback((trackIds: readonly string[]) => {
-    setQueue((current) => {
-      if (!current) {
-        return current;
-      }
-      const playing = currentTrackId(current);
-      if (playing === undefined || !trackIds.includes(playing)) {
-        return current;
-      }
-      // WHAT WAS ADDED BY HAND SURVIVES THE SWAP, IN ITS OWN ORDER.
-      //
-      // The context changes whenever the reader changes shelf or sorts one —
-      // that is the point of re-aiming. A list they built themselves is not
-      // part of that context: losing it because they looked elsewhere would
-      // be the worst kind of quiet, and re-sorting it along with the shelf is
-      // very nearly as bad. Sorting Songs by title used to scatter the picks
-      // into alphabetical order among fifty thousand rows, because a pick
-      // that also appears in the new list was simply absorbed by it.
-      //
-      // So they are lifted out first and put back at the front, and the list
-      // underneath is built WITHOUT them so nothing is drawn twice.
-      const ahead = current.order
-        .slice(current.position + 1)
-        .map((index) => current.trackIds[index])
-        .filter((id): id is string => id !== undefined);
-      const pending = ahead.filter((id) => addedIdsRef.current.has(id));
-      // AND WHAT THE PLAYER DREW FOR ITSELF SURVIVES TOO — AT THE END.
-      //
-      // Continuation is not part of the context either: it exists precisely
-      // because the context ran out. Left to be rebuilt, it was: this
-      // callback runs on every track change, so a seven-track album with
-      // continuation on dropped its ten drawn songs and drew ten different
-      // ones after every single track. The panel then listed a different
-      // "more like this" every three minutes with nothing having been asked
-      // for — the same shape as the re-shuffle bug two comments down, and
-      // the same report: something changing by itself.
-      //
-      // At the END rather than after the playhead, which is the one way this
-      // differs from the picks above: what follows the current track is the
-      // rest of the record, and a guess is what comes after all of it.
-      const continued = ahead.filter(
-        (id) => !addedIdsRef.current.has(id) && continuedIdsRef.current.has(id),
-      );
-      const pendingSet = new Set([...pending, ...continued]);
-      const context = trackIds.filter(
-        (id) => id === playing || !pendingSet.has(id),
-      );
-      // A SHUFFLED QUEUE IS NOT RE-AIMED BY A LIST OF THE SAME SONGS.
-      //
-      // `buildQueue` draws a FRESH random order every time it is asked for a
-      // shuffled one, and this callback runs on every track change — so with
-      // shuffle on, an album re-aimed at itself came back re-shuffled and the
-      // playhead landed somewhere new in the new order each time. Up Next then
-      // reported a different length on every pass of the same seven songs —
-      // six, then one, then four, then none — which looks exactly like
-      // something firing on a timer, and was reported as one.
-      //
-      // Order is what re-aiming is FOR when nothing is shuffled: sorting the
-      // shelf by title should reorder what plays next. Under shuffle the
-      // shelf's order is deliberately not the queue's, so membership is the
-      // only thing that can mean anything — same songs, same queue, whatever
-      // order they arrive in. Compared against the context rather than the
-      // whole queue, because the picks are not part of what is being re-aimed.
-      if (current.isShuffled) {
-        const held = new Set(
-          current.trackIds.filter((id) => !pendingSet.has(id)),
-        );
-        const arriving = new Set(context);
-        if (
-          held.size === arriving.size &&
-          [...arriving].every((id) => held.has(id))
-        ) {
+  const retargetQueue = useCallback(
+    (trackIds: readonly string[]) => {
+      setQueue((current) => {
+        if (!current) {
           return current;
         }
-      }
-      const base = buildQueue([...context], playing, current.isShuffled);
-      const kept = base.trackIds.length;
-      const next =
-        pending.length === 0 && continued.length === 0
-          ? base
-          : {
-              ...base,
-              trackIds: [...base.trackIds, ...pending, ...continued],
-              order: (() => {
-                const order = [...base.order];
-                order.splice(
-                  base.position + 1,
-                  0,
-                  ...pending.map((_, index) => kept + index),
-                );
-                order.push(
-                  ...continued.map((_, index) => kept + pending.length + index),
-                );
-                return order;
-              })(),
-            };
-      if (
-        next.trackIds.length === current.trackIds.length &&
-        next.trackIds.every((id, index) => id === current.trackIds[index]) &&
-        next.order.length === current.order.length &&
-        next.order.every((value, index) => value === current.order[index])
-      ) {
-        // The same list arriving again — a re-render of the view rather than a
-        // change of it. Returning the existing object keeps every consumer of
-        // this context from re-rendering for nothing.
-        return current;
-      }
-      return { ...next, repeat: current.repeat };
-    });
-  }, []);
-
-  /**
-   * KEEP PLAYING WHEN THE LIST RUNS OUT.
-   *
-   * A queue is whatever shelf was being read, and a shelf ends: `advanceQueue`
-   * holds at the last entry and `handleEnded` stops there. That is right for a
-   * player with nothing queued and wrong for somebody who put a record on —
-   * the answer arrives as silence with no explanation, which is the shape of
-   * failure this project's rules are written against.
-   *
-   * So when the run ahead gets short, more of the same genre is drawn from
-   * the whole library and appended. `pickContinuation` owns the choosing and
-   * is pure; this owns only when to ask.
-   *
-   * NOT A TIMER, and it must never become one: the condition is how much is
-   * left ahead of the playhead, which changes exactly when the queue does.
-   */
-  const [isContinuationOn, setIsContinuationOn] = useState<boolean>(
-    readStoredContinuation,
+        const playing = currentTrackId(current);
+        if (playing === undefined || !trackIds.includes(playing)) {
+          return current;
+        }
+        // WHAT WAS ADDED BY HAND SURVIVES THE SWAP, IN ITS OWN ORDER.
+        //
+        // The context changes whenever the reader changes shelf or sorts one —
+        // that is the point of re-aiming. A list they built themselves is not
+        // part of that context: losing it because they looked elsewhere would
+        // be the worst kind of quiet, and re-sorting it along with the shelf is
+        // very nearly as bad. Sorting Songs by title used to scatter the picks
+        // into alphabetical order among fifty thousand rows, because a pick
+        // that also appears in the new list was simply absorbed by it.
+        //
+        // So they are lifted out first and put back at the front, and the list
+        // underneath is built WITHOUT them so nothing is drawn twice.
+        const ahead = current.order
+          .slice(current.position + 1)
+          .map((index) => current.trackIds[index])
+          .filter((id): id is string => id !== undefined);
+        const pending = ahead.filter((id) => addedIdsRef.current.has(id));
+        // AND WHAT THE PLAYER DREW FOR ITSELF SURVIVES TOO — AT THE END.
+        //
+        // Continuation is not part of the context either: it exists precisely
+        // because the context ran out. Left to be rebuilt, it was: this
+        // callback runs on every track change, so a seven-track album with
+        // continuation on dropped its ten drawn songs and drew ten different
+        // ones after every single track. The panel then listed a different
+        // "more like this" every three minutes with nothing having been asked
+        // for — the same shape as the re-shuffle bug two comments down, and
+        // the same report: something changing by itself.
+        //
+        // At the END rather than after the playhead, which is the one way this
+        // differs from the picks above: what follows the current track is the
+        // rest of the record, and a guess is what comes after all of it.
+        const continued = ahead.filter(
+          (id) =>
+            !addedIdsRef.current.has(id) && continuedIdsRef.current.has(id),
+        );
+        const pendingSet = new Set([...pending, ...continued]);
+        const context = trackIds.filter(
+          (id) => id === playing || !pendingSet.has(id),
+        );
+        // A SHUFFLED QUEUE IS NOT RE-AIMED BY A LIST OF THE SAME SONGS.
+        //
+        // `buildQueue` draws a FRESH random order every time it is asked for a
+        // shuffled one, and this callback runs on every track change — so with
+        // shuffle on, an album re-aimed at itself came back re-shuffled and the
+        // playhead landed somewhere new in the new order each time. Up Next then
+        // reported a different length on every pass of the same seven songs —
+        // six, then one, then four, then none — which looks exactly like
+        // something firing on a timer, and was reported as one.
+        //
+        // Order is what re-aiming is FOR when nothing is shuffled: sorting the
+        // shelf by title should reorder what plays next. Under shuffle the
+        // shelf's order is deliberately not the queue's, so membership is the
+        // only thing that can mean anything — same songs, same queue, whatever
+        // order they arrive in. Compared against the context rather than the
+        // whole queue, because the picks are not part of what is being re-aimed.
+        if (current.isShuffled) {
+          const held = new Set(
+            current.trackIds.filter((id) => !pendingSet.has(id)),
+          );
+          const arriving = new Set(context);
+          if (
+            held.size === arriving.size &&
+            [...arriving].every((id) => held.has(id))
+          ) {
+            return current;
+          }
+        }
+        const base = buildQueue([...context], playing, current.isShuffled);
+        const kept = base.trackIds.length;
+        const next =
+          pending.length === 0 && continued.length === 0
+            ? base
+            : {
+                ...base,
+                trackIds: [...base.trackIds, ...pending, ...continued],
+                order: (() => {
+                  const order = [...base.order];
+                  order.splice(
+                    base.position + 1,
+                    0,
+                    ...pending.map((_, index) => kept + index),
+                  );
+                  order.push(
+                    ...continued.map(
+                      (_, index) => kept + pending.length + index,
+                    ),
+                  );
+                  return order;
+                })(),
+              };
+        if (
+          next.trackIds.length === current.trackIds.length &&
+          next.trackIds.every((id, index) => id === current.trackIds[index]) &&
+          next.order.length === current.order.length &&
+          next.order.every((value, index) => value === current.order[index])
+        ) {
+          // The same list arriving again — a re-render of the view rather than a
+          // change of it. Returning the existing object keeps every consumer of
+          // this context from re-rendering for nothing.
+          return current;
+        }
+        return { ...next, repeat: current.repeat };
+      });
+      // Refs, listed because the rule cannot see they are stable through a hook
+      // boundary.
+    },
+    [addedIdsRef, continuedIdsRef],
   );
-  useEffect(() => {
-    writeStoredContinuation(isContinuationOn);
-  }, [isContinuationOn]);
-
-  /** Ids this drew, so the panel can head them as their own run rather than
-   * passing them off as the rest of the record. */
-  const [continuedIds, setContinuedIds] = useState<ReadonlySet<string>>(
-    () => new Set(),
-  );
-  // Read by `retargetQueue` for the same reason `addedIdsRef` is: that
-  // callback has no dependencies and must see the set as it is when the view
-  // changes, not as it was when the callback was made.
-  const continuedIdsRef = useRef(continuedIds);
-  continuedIdsRef.current = continuedIds;
-
-  /**
-   * Everything played this session.
-   *
-   * Kept so continuation never hands back a song that has just been heard —
-   * a genre of forty tracks would otherwise start repeating itself inside an
-   * hour, which reads as the feature being broken rather than as a small
-   * pool. A ref rather than state: nothing renders from it, and a set that
-   * grew by one every three minutes would re-render every consumer of this
-   * context for it.
-   */
-  const playedIds = useRef<Set<string>>(new Set());
-  useEffect(() => {
-    if (trackId !== undefined) {
-      playedIds.current.add(trackId);
-    }
-  }, [trackId]);
-
-  useEffect(() => {
-    // `repeat` other than 'off' means the queue never runs out — 'all' wraps
-    // and 'one' holds — so there is nothing here to answer.
-    if (!isContinuationOn || !queue || queue.repeat !== 'off') {
-      return;
-    }
-    const ahead = queue.order.length - queue.position - 1;
-    if (ahead >= CONTINUATION_LOW_WATER) {
-      return;
-    }
-    const playing = currentTrackId(queue);
-    const seed = playing === undefined ? undefined : trackById.get(playing);
-    // A film ending is not a request for more films. Continuation is about
-    // music carrying on in the background; `pickContinuation` draws audio
-    // only, and seeding it from a video would answer a question nobody asked.
-    if (!seed || seed.kind !== 'audio') {
-      return;
-    }
-    const exclude = new Set([...queue.trackIds, ...playedIds.current]);
-    const picked = pickContinuation(index.tracks, seed, exclude);
-    if (picked.length === 0) {
-      // Nothing left in the genre that has not been heard. The player stops
-      // at the end of the run, which is the honest answer — better than
-      // starting the same forty songs again without being asked.
-      return;
-    }
-    setContinuedIds((current) => {
-      const next = new Set(current);
-      picked.forEach((id) => next.add(id));
-      return next;
-    });
-    // AT THE END, not after the playhead: what sits directly after the
-    // current track is the listener's own picks, and a continuation that
-    // pushed itself in front of them would answer a decision they made with
-    // a guess this made.
-    setQueue((current) => {
-      if (!current) {
-        return current;
-      }
-      const base = current.trackIds.length;
-      return {
-        ...current,
-        trackIds: [...current.trackIds, ...picked],
-        order: [...current.order, ...picked.map((_, index) => base + index)],
-      };
-    });
-  }, [isContinuationOn, queue, index.tracks, trackById]);
-
-  /**
-   * The ids the listener added by hand, ever.
-   *
-   * Kept beside the queue rather than inside it because the queue's job is
-   * unchanged — it is still one run of tracks with a position in it, and the
-   * added ones are spliced into that run so everything downstream (advance,
-   * repeat, shuffle, the loader) needs to know nothing about where a track
-   * came from. This set is only what tells the panel which of them to draw.
-   */
-  const [addedIds, setAddedIds] = useState<ReadonlySet<string>>(
-    () => new Set(),
-  );
-  // Read by `retargetQueue`, which runs from a callback with no dependencies
-  // — it must see the set as it is when the view changes, not as it was when
-  // that callback was made.
-  const addedIdsRef = useRef(addedIds);
-  addedIdsRef.current = addedIds;
-
-  /**
-   * Everything still ahead of the playhead, in the order it arrives.
-   *
-   * What was added by hand sits at the front of it — `appendToQueue` splices
-   * those in right after the current track — and the rest of the album, the
-   * folder or the shelf follows. A list that showed ONLY hand-picked entries
-   * was empty for the ordinary case of pressing play on a record and reading
-   * as broken; a list that shows what is genuinely coming answers the
-   * question either way.
-   */
-  const upNext = useMemo(() => {
-    if (!queue) {
-      return [];
-    }
-    return queue.order
-      .slice(queue.position + 1)
-      .map((trackIndex, offset) => {
-        const trackId = queue.trackIds[trackIndex];
-        return {
-          position: queue.position + 1 + offset,
-          trackId,
-          // Which half of the list this belongs to: a decision the listener
-          // made, or the record they happen to be playing through. The panel
-          // draws the two under headings of their own — the whole point of
-          // showing both is being able to tell them apart.
-          isAdded: trackId !== undefined && addedIds.has(trackId),
-          // Drawn by continuation rather than by the shelf. A third answer to
-          // the same question the two above split, and it has to be its own:
-          // heading a guess as "then" would claim the record does not end.
-          isContinued: trackId !== undefined && continuedIds.has(trackId),
-        };
-      })
-      .filter(
-        (
-          entry,
-        ): entry is {
-          position: number;
-          trackId: string;
-          isAdded: boolean;
-          isContinued: boolean;
-        } => entry.trackId !== undefined,
-      );
-  }, [addedIds, continuedIds, queue]);
   /**
    * Rearranging what is coming, none of which can make a sound. See
    * `useQueueControls` for why that is a boundary rather than a filing
@@ -1370,6 +1231,7 @@ export const LibraryPlayerProvider = ({
       retargetQueue,
       upNext,
       isContinuationOn,
+      setIsContinuationOn,
       jumpToQueuePosition,
       appendToQueue,
       removeUpNextAt,
