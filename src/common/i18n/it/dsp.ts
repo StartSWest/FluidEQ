@@ -30,6 +30,7 @@ const dsp = {
   'dsp.preset.lossyRepair': 'Ripara compresso',
   'dsp.preset.loud': 'Forte',
   'dsp.preset.broadcast': 'Radiofonico',
+  'dsp.preset.bassPower': 'Potenza dei bassi',
   'dsp.bypassed': 'Bypassato',
   'dsp.enabled': 'Attivo',
 
@@ -345,6 +346,55 @@ const dsp = {
     'Ascolta solo le armoniche che questo stadio aggiunge.',
   'dsp.exciter.isolateOn':
     'Segnale diretto escluso: senti solo ciò che viene aggiunto.',
+
+  'dsp.bassForge.title': 'Fucina dei bassi',
+  'dsp.bassForge.description':
+    "Aggiunge un'ottava reale sotto il basso per gli altoparlanti in grado di riprodurla, e le armoniche di quell'ottava per quelli che non possono — un altoparlante piccolo non irradia nulla a 45 Hz, ma le armoniche permettono comunque all'orecchio di ricostruire l'intonazione. Quanto sono forti i bassi non cambia.",
+  'dsp.bassForge.splitHz': 'Taglio',
+  'dsp.bassForge.driveDb': 'Intensità',
+  'dsp.bassForge.subAmount': 'Sub',
+  'dsp.bassForge.presenceAmount': 'Presenza',
+  'dsp.bassForge.texture': 'Trama',
+  'dsp.bassForge.mix': 'Quantità',
+  'dsp.bassForge.graph.belowSplit': 'Sotto il taglio',
+  'dsp.bassForge.graph.aboveSplit': 'Sopra il taglio',
+  'dsp.bassForge.monoNote':
+    'Il basso generato viene sommato in mono. I bassi originali mantengono il loro stereo.',
+  'dsp.bassForge.unavailable':
+    "La Fucina dei bassi funziona solo nel motore nativo, che al momento non sta portando l'audio. Questo stadio è escluso.",
+  'dsp.bassForgePreset.subtle': 'Sottile',
+  'dsp.bassForgePreset.deep': 'Profondo',
+  'dsp.bassForgePreset.solid': 'Solido',
+  'dsp.bassForgePreset.hot': 'Caldo',
+  'dsp.bassForgePreset.round': 'Rotondo',
+  'dsp.bassForgePreset.dry': 'Secco',
+  'dsp.bassForgePreset.wet': 'Bagnato',
+  'dsp.bassForgePreset.phantom': 'Fantasma',
+  'dsp.bassForgePreset.dub': 'Dub',
+
+  'dsp.bassPunch.title': 'Punch dei bassi',
+  'dsp.bassPunch.description':
+    "Modella l'attacco e il decadimento dei bassi, non il loro timbro. Attacco e sostegno sono bipolari: sotto il centro è più stretto e secco, sopra è più lungo e bagnato.",
+  'dsp.bassPunch.splitHz': 'Taglio',
+  'dsp.bassPunch.attack': 'Attacco',
+  'dsp.bassPunch.sustain': 'Sostegno',
+  'dsp.bassPunch.bloomAmount': 'Fioritura',
+  'dsp.bassPunch.bloomDecayMs': 'Durata fioritura',
+  'dsp.bassPunch.duck': 'Ducking',
+  'dsp.bassPunch.unavailable':
+    "Il Punch dei bassi funziona solo nel motore nativo, che al momento non sta portando l'audio. Questo stadio è escluso.",
+  'dsp.bassPunch.meterNote':
+    "L'attacco è disegnato a segni separati, perché ognuno è la massima escursione all'interno della propria finestra di misura. Sostegno e ducking durano per più finestre, quindi vengono campionati e scorrono come tracce continue.",
+  'dsp.bassPunch.graph.now': 'ora',
+  'dsp.bassPunch.graph.perWindow': 'picco per finestra',
+  'dsp.bassPunch.graph.sampled': 'campionato',
+  'dsp.bassPunchPreset.tight': 'Stretto',
+  'dsp.bassPunchPreset.open': 'Aperto',
+  'dsp.bassPunchPreset.slam': 'Colpo',
+  'dsp.bassPunchPreset.dry': 'Secco',
+  'dsp.bassPunchPreset.wet': 'Bagnato',
+  'dsp.bassPunchPreset.soft': 'Morbido',
+  'dsp.bassPunchPreset.dnb': 'D&B',
 
   'dsp.compressor.title': 'Compressore multibanda',
   'dsp.compressor.description':

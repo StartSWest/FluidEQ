@@ -26,6 +26,7 @@ import { findDspHostExecutable } from '../../src/main/dspHost/hostPath';
 import { DspHostSupervisor } from '../../src/main/dspHost/supervisor';
 import { NATIVE_DSP_PARAMETERS } from '../../src/common/dsp/nativeParameters';
 import { IHostTelemetry } from '../../src/main/dspHost/wire';
+import { CHAIN_PARAM_LEAD } from '../../src/common/dsp/chainWire';
 
 let failures = 0;
 const check = (condition: boolean, what: string) => {
@@ -166,8 +167,32 @@ const chainValues = (eqEnabled: boolean, gainDb: number): number[] => {
     32, // click longest repair
     0, // voice enabled
     1, // voice amount
+    0, // bass forge enabled
+    90, // split
+    0, // drive
+    0, // sub amount
+    0, // presence amount
+    0.8, // texture
+    0, // mix: zero is the bit-exact bypass
+    0, // bass punch enabled
+    110, // split
+    0, // attack
+    0, // sustain
+    0, // bloom amount
+    120, // bloom decay
+    0, // duck
     1, // one EQ band
   );
+  if (values.length !== CHAIN_PARAM_LEAD) {
+    // Asserted here because this is a THIRD writer of the positional layout,
+    // and it is the one with nothing above it to catch a drift. Left
+    // unchecked, a stale lead here decodes as nothing at all: the host
+    // rejects the whole payload and every check below reports the effect it
+    // was measuring as absent rather than the wire as wrong.
+    throw new Error(
+      `playback smoke: lead is ${values.length}, expected ${CHAIN_PARAM_LEAD}`,
+    );
+  }
   // Peaking, 1 kHz, the gain under test, Q 1.
   values.push(1, 0, 1000, gainDb, 1, 0, -24);
   return values;

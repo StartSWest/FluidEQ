@@ -56,12 +56,18 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   @include animate(rise-in, $motion-base, $ease-out, 85ms);
 }
 
-// Eight beats for the seven tabs that ship: the compressor keeps its place in
-// the chain while its editor is held back, so restoring that tab costs the
-// cascade nothing. The rail is keyed by section id and never unmounts, so this
-// runs once when the tab is opened and not on section changes.
+// Ten beats for the ten tabs `DSP_SECTIONS` ships. The rail is keyed by section
+// id and never unmounts, so this runs once when the tab is opened and not on
+// section changes.
+//
+// The count has to be at least the number of tabs: `stagger-in` only writes
+// `nth-child` delays up to it, and every tab past the count inherits the LAST
+// delay — so the rail would run out of stagger partway down and finish with
+// several entries arriving together. That is exactly what happened when Bass
+// Forge and Bass Punch took the list from eight entries to ten and this stayed
+// at nine: the Maximizer and the Master flew in on the same beat.
 .dsp-rail-tab {
-  @include stagger-in($count: 8, $step: 26ms, $offset: 110ms);
+  @include stagger-in($count: 10, $step: 26ms, $offset: 110ms);
 }
 
 .dsp-header {
@@ -1151,7 +1157,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     }
   }
 
-  .dsp-master-legend {
+  // Bass Forge's is the five-entry legend, so it needs this more than the
+  // Master's three do: `.dsp-eq-legend` is `flex-wrap: nowrap`, and at this
+  // width the gaps are what runs it past the plot.
+  .dsp-master-legend,
+  .dsp-bass-forge-legend {
     gap: 7px;
   }
 }
@@ -1339,8 +1349,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // rather than a fault. Louder than a plain hint because the alternative — how
 // it behaved before — was no indication at all.
 //
-// Sizes itself now that it sits in the header rather than inside the Master
-// card, where it borrowed `.dsp-band-hint` for everything but the box.
+// Sizes itself, in the header and inside a card alike, which is why it is the
+// only class on any of the four notices. It borrowed `.dsp-band-hint` while it
+// lived in the Master card; two of them were still carrying both long after
+// this rule started re-setting every property that one sets — margin, colour,
+// size and leading — from later in the same file.
 .dsp-engine-fallback {
   max-width: 680px;
   margin: 2px 0 0;
@@ -2058,7 +2071,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // the preset picker, on the one page in the rack that has both, and the two
 // controls behind it wrapping into a second row 390px wide.
 .dsp-exciter-note,
-.dsp-maximizer-note {
+.dsp-maximizer-note,
+.dsp-bass-forge-note,
+.dsp-bass-punch-note {
   flex: 1 0 100%;
   max-width: 620px;
   margin: 0;
@@ -3214,11 +3229,36 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // The live readings sit in the band the plot reserves for them, and each is a
 // label with its own figure rather than a sentence — the number is what gets
 // read, so it is the part that is bright and monospaced.
-.dsp-maximizer-status {
+.dsp-maximizer-status,
+// Three chips, each in its own trace's ink, because the row is the legend for
+// the plot above it and the eye pairs them by colour.
+//
+// Its own modifiers rather than the Master card's `.is-safe` and `.is-fixed`:
+// those two mean "nominal" and "corrected" there and are switched by state,
+// which is neither what these say nor how they behave. Borrowing them also put
+// the duck chip in the sustain's teal against a blue trace — the row teaching a
+// rule and then breaking it on the third item. The values match `TRANSIENT_INK`,
+// `SUSTAIN_INK` and `DUCK_INK` in `DspBassPunchGraph.tsx`.
+.dsp-bass-punch-status {
   span {
     display: inline-flex;
     gap: 6px;
     align-items: baseline;
+  }
+
+  .is-attack {
+    border-color: rgba(255, 176, 89, 0.3);
+    color: rgba(255, 176, 89, 0.92);
+  }
+
+  .is-sustain {
+    border-color: rgba(64, 214, 200, 0.3);
+    color: rgba(64, 214, 200, 0.92);
+  }
+
+  .is-duck {
+    border-color: rgba(84, 200, 255, 0.3);
+    color: rgba(84, 200, 255, 0.92);
   }
 
   b {
@@ -3414,4 +3454,94 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // is a property of the RECORD rather than of the settings.
 .dsp-eq-legend-mark.is-correlation {
   background: #ffb059;
+}
+
+// Bass Forge's two runs, on the card above the dials that made the difference
+// between them. Claims the whole row the way the Maximizer's display does, so
+// the six knobs sit under the picture rather than beside a squeezed one.
+.dsp-bass-forge-display {
+  flex: 1 1 100%;
+  width: 100%;
+  min-width: 0;
+}
+
+// Dimmed to the same 0.42 the panel uses for a switched-off section, matching
+// Dimension's guard bar. The plot draws no measurement at all while the stage
+// is bypassed — the native side resets it every block, so both runs sit at the
+// -120 floor, and two flat lines along the bottom of a live-looking plot read
+// as a meter hearing silence rather than as a stage that is not running.
+.dsp-bass-forge-display.is-off {
+  opacity: 0.42;
+}
+
+// Definite for the same reason as every DSP canvas: its backing store follows
+// this box, so an intrinsic height would feed the measurement into itself.
+.dsp-bass-forge-canvas {
+  width: 100%;
+  height: 260px;
+}
+
+// Five entries rather than the three the Maximizer's carries, so they are
+// tightened the way the Master's legend is instead of overflowing the plot.
+.dsp-bass-forge-legend {
+  z-index: 2;
+  top: 5px;
+  gap: 10px;
+  padding-right: 9px;
+  padding-left: 9px;
+}
+
+// One framed group rather than the paired boxes the Maximizer and Dimension
+// use: this stage's six dials are not two decisions. Sub and Presence answer
+// the same question for different hardware, and the other three all shape what
+// those two produced.
+.dsp-bass-forge-controls {
+  flex: 1 1 100%;
+}
+
+.dsp-bass-forge-controls .dsp-band-dials {
+  justify-content: center;
+}
+
+// Bass Punch's three gains over time, on the card above the dials that shape
+// them. Claims the whole row the way Forge's and the Maximizer's displays do,
+// so the six knobs sit under the picture rather than beside a squeezed one.
+.dsp-bass-punch-display {
+  flex: 1 1 100%;
+  width: 100%;
+  min-width: 0;
+}
+
+// Dimmed to the same 0.42 the panel uses for a switched-off section, matching
+// Forge and Dimension's guard bar. The strip draws no measurement at all while
+// the stage is bypassed, and here that matters more than anywhere else in the
+// rack: all three gains genuinely rest at 0 dB, so three flat traces along the
+// middle of a live-looking plot would read as a stage that is running and
+// choosing to change nothing — which is precisely what a centred Attack dial
+// means, and therefore the one reading an off stage must never borrow.
+.dsp-bass-punch-display.is-off {
+  opacity: 0.42;
+}
+
+// Definite for the same reason as every DSP canvas: its backing store follows
+// this box, so an intrinsic height would feed the measurement into itself.
+// Taller than Forge's 260 and the Maximizer's 300 because this plot is two
+// stacked lanes, and the duck lane below the divider takes under a third of
+// what is left once the legend and the status chips have had their two rows.
+.dsp-bass-punch-canvas {
+  width: 100%;
+  height: 320px;
+}
+
+// One framed group rather than the paired boxes the Maximizer and Dimension
+// use, for the same reason Forge's dials are one group: Attack and Sustain are
+// the two halves of one note, Bloom and its decay are one control in two
+// numbers, and Duck buys the same weight from somewhere else. Split feeds all
+// of them.
+.dsp-bass-punch-controls {
+  flex: 1 1 100%;
+}
+
+.dsp-bass-punch-controls .dsp-band-dials {
+  justify-content: center;
 }

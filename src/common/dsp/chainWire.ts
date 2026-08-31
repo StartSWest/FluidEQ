@@ -35,7 +35,7 @@ import {
  * Scalars before the variable-length band array. Must equal
  * `FEQ_CHAIN_PARAM_LEAD` in `fluideq/chain.h`.
  */
-export const CHAIN_PARAM_LEAD = 96;
+export const CHAIN_PARAM_LEAD = 110;
 
 /** Fields per EQ band. Must equal `FEQ_CHAIN_BAND_PARAMS`. */
 export const CHAIN_BAND_PARAMS = 7;
@@ -69,8 +69,17 @@ export const encodeChainSettings = (
   settings: IDspSettings,
   options: IChainWireOptions = {},
 ): number[] => {
-  const { exciter, eq, dimension, compressor, maximizer, master, denoise } =
-    settings;
+  const {
+    exciter,
+    eq,
+    bassForge,
+    bassPunch,
+    dimension,
+    compressor,
+    maximizer,
+    master,
+    denoise,
+  } = settings;
   const values: number[] = [
     settings.enabled ? 1 : 0,
     options.outputSafetyEnabled === false ? 0 : 1,
@@ -159,6 +168,28 @@ export const encodeChainSettings = (
     denoise.click.maxRepairSamples,
     denoise.voice.enabled ? 1 : 0,
     denoise.voice.amount,
+    // Both bass stages go here rather than at the end, and the position is the
+    // whole point: `isChainWirePayload` sizes the band array from the LAST lead
+    // slot, so anything appended after `eq.bands.length` moves the band count
+    // without moving the length check, and every band decodes one slot along
+    // into something that still looks like a band.
+    //
+    // `presetId` is renderer and storage only. It names a profile in a
+    // catalogue the native side does not have, so it never goes on the wire.
+    bassForge.enabled ? 1 : 0,
+    bassForge.splitHz,
+    bassForge.driveDb,
+    bassForge.subAmount,
+    bassForge.presenceAmount,
+    bassForge.texture,
+    bassForge.mix,
+    bassPunch.enabled ? 1 : 0,
+    bassPunch.splitHz,
+    bassPunch.attack,
+    bassPunch.sustain,
+    bassPunch.bloomAmount,
+    bassPunch.bloomDecayMs,
+    bassPunch.duck,
     // Last in the lead, and it has to stay last: `isChainWirePayload` and
     // `feq_chain_settings_decode` both read the band count from
     // `CHAIN_PARAM_LEAD - 1` to know how long the tail is. A scalar appended

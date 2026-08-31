@@ -204,6 +204,9 @@ Difference compare(const std::vector<float>& actual,
 size_t g_dynamic_fixtures = 0;
 size_t g_dynamic_engaged = 0;
 
+/** Set by `render_chain` when its field list has fallen behind the wire's. */
+bool g_chain_layout_stale = false;
+
 /**
  * One rack, parsed from `[engine, bandCount, (band) * count]` at `offset`.
  *
@@ -1143,11 +1146,68 @@ bool render_chain(const Fixture& fixture, std::vector<float>& actual) {
   settings.master.loudness_target_lufs = next();
   settings.master.ceiling_db = next();
   settings.master.release_ms = next();
+  settings.master.matched_bypass = flag();
+
+  // Denoise, in the order `encodeChainSettings` writes it.
+  settings.denoise.enabled = flag();
+  settings.denoise.isolate = flag();
+  settings.denoise.profile_source =
+      static_cast<FeqDenoiseProfileSource>(static_cast<int>(next()));
+  settings.denoise.hiss.enabled = flag();
+  settings.denoise.hiss.amount = next();
+  settings.denoise.hiss.floor_db = next();
+  settings.denoise.hiss.sensitivity_db = next();
+  settings.denoise.hiss.smoothing = next();
+  settings.denoise.hum.enabled = flag();
+  settings.denoise.hum.mode =
+      static_cast<FeqDenoiseHumMode>(static_cast<int>(next()));
+  settings.denoise.hum.harmonics = next();
+  settings.denoise.hum.depth_db = next();
+  settings.denoise.hum.quality = next();
+  settings.denoise.click.enabled = flag();
+  settings.denoise.click.sensitivity = next();
+  settings.denoise.click.max_repair_samples = next();
+  settings.denoise.voice.enabled = flag();
+  settings.denoise.voice.amount = next();
+
+  settings.bass_forge.enabled = flag();
+  settings.bass_forge.split_hz = next();
+  settings.bass_forge.drive_db = next();
+  settings.bass_forge.sub_amount = next();
+  settings.bass_forge.presence_amount = next();
+  settings.bass_forge.texture = next();
+  settings.bass_forge.mix = next();
+
+  settings.bass_punch.enabled = flag();
+  settings.bass_punch.split_hz = next();
+  settings.bass_punch.attack = next();
+  settings.bass_punch.sustain = next();
+  settings.bass_punch.bloom_amount = next();
+  settings.bass_punch.bloom_decay_ms = next();
+  settings.bass_punch.duck = next();
 
   settings.eq.band_count = static_cast<uint32_t>(next());
   if (at != kChainParamLead) {
-    // Asserted rather than assumed: a layout the generator and the runner
-    // disagree about would read a Q as a threshold and still sound plausible.
+    /**
+     * Asserted rather than assumed: a layout the generator and the runner
+     * disagree about would read a Q as a threshold and still sound plausible.
+     *
+     * It is printed, and `g_chain_layout_stale` makes the run FAIL, because the
+     * silent version of this was worse than the bug it guarded against. Falling
+     * out of `render` counts a fixture as "pending — no native implementation
+     * yet", and the whole chain has had one since the first day it was ported;
+     * so when Denoise added eighteen scalars to the lead and the bass stages
+     * added seven each, this reader stopped at 78 of 110, every one of the
+     * twenty-seven whole-chain fixtures quietly became pending, and the suite
+     * kept reporting "parity passed". Those are the only fixtures that test the
+     * orchestration — stage order, the mid/side wrapper, the meter taps — and
+     * for three stages nothing had run them.
+     */
+    g_chain_layout_stale = true;
+    std::printf(
+        "  CHAIN LAYOUT STALE: this runner reads %zu of the %zu lead fields "
+        "`encodeChainSettings` writes\n",
+        at, kChainParamLead);
     return false;
   }
   for (uint32_t band = 0; band < settings.eq.band_count &&
@@ -1385,7 +1445,14 @@ int main(int argc, char** argv) {
         "threshold, so these fixtures prove only the static path\n");
   }
 
-  if (failed > 0 || unreadable > 0 || !control_ok || !dynamic_covered) {
+  if (g_chain_layout_stale) {
+    std::printf(
+        "  chain coverage: NONE — the runner's field list is behind "
+        "`encodeChainSettings`, so every whole-chain fixture was skipped\n");
+  }
+
+  if (failed > 0 || unreadable > 0 || !control_ok || !dynamic_covered ||
+      g_chain_layout_stale) {
     std::printf("\nparity FAILED\n");
     return 1;
   }

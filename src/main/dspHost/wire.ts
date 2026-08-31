@@ -17,6 +17,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * a byte-swap on the host, not a second code path here.
  */
 import {
+  ANALYSIS_BASS_FORGE_BANDS,
   ANALYSIS_BINS,
   ANALYSIS_HEADER_BYTES,
   ANALYSIS_MAX_BANDS,
@@ -40,7 +41,7 @@ import {
  * changes, so a stale host is refused at the handshake with a legible reason
  * rather than desynchronising on its first analysis frame.
  */
-export const HOST_WIRE_PROTOCOL_VERSION = 2;
+export const HOST_WIRE_PROTOCOL_VERSION = 3;
 
 export const HANDSHAKE_BYTES = 104;
 export const COMMAND_BYTES = 32;
@@ -57,6 +58,7 @@ export const MAGIC_ANALYSIS = 0x4e514546;
 // renderer needs it too and may not import from src/main. Re-exported so the
 // host-side callers still have one place to look.
 export {
+  ANALYSIS_BASS_FORGE_BANDS,
   ANALYSIS_BINS,
   ANALYSIS_HEADER_BYTES,
   ANALYSIS_MAX_BANDS,
@@ -499,6 +501,23 @@ export const decodeAnalysis = (frame: Buffer): IHostAnalysis | undefined => {
     at += bytes;
   }
 
+  /**
+   * Forge's two runs, read out of the header before the payload is walked.
+   *
+   * 320 is where the header ended once Denoise's forty floor bands followed
+   * its six words, and 352 is eight floats past it. Both runs are the same
+   * kind of number in the same units, so an offset four bytes out here does
+   * not throw and does not look wrong — it draws the dry band against a
+   * shifted copy of itself, which is a picture of a stage doing nothing on
+   * material where it is working hard.
+   */
+  const bassForgeInputDb: number[] = [];
+  const bassForgeOutputDb: number[] = [];
+  for (let band = 0; band < ANALYSIS_BASS_FORGE_BANDS; band += 1) {
+    bassForgeInputDb.push(view.getFloat32(320 + band * 4, true));
+    bassForgeOutputDb.push(view.getFloat32(352 + band * 4, true));
+  }
+
   // Amounts then levels, each  long, in the order the host wrote them.
   const bandAmounts: number[] = [];
   const bandLevels: number[] = [];
@@ -566,6 +585,18 @@ export const decodeAnalysis = (frame: Buffer): IHostAnalysis | undefined => {
       ),
       profileReady: view.getUint32(152, true) !== 0,
       voiceModelLoaded: view.getUint32(156, true) !== 0,
+    },
+    // Offsets 320 through 383, read above. Appended after Denoise's floor
+    // bands for the same reason Denoise was appended after Master loudness: a
+    // field inserted above an existing one moves every offset below it, and
+    // floats decode into floats without complaint. This branch landed after
+    // the floor bands, so it is these offsets that moved and not theirs.
+    bassForge: { inputDb: bassForgeInputDb, outputDb: bassForgeOutputDb },
+    // 384, 388, 392; 396 is the pad that keeps the frame eight-byte aligned.
+    bassPunch: {
+      transientGainDb: view.getFloat32(384, true),
+      sustainGainDb: view.getFloat32(388, true),
+      duckGainDb: view.getFloat32(392, true),
     },
     bandAmounts,
     bandLevels,

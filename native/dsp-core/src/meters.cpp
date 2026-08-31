@@ -11,7 +11,17 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include <cstring>
 #include <vector>
 
+#include "fluideq/bass_forge.h"
 #include "fluideq/convolver.h"
+
+/*
+ * `meters.h` mirrors this count rather than including the header, so that
+ * every stage in the rack does not pull `harmonics.h` and `biquad.h` in for
+ * one integer. This is the only place the two are compiled together, so it is
+ * the only place that can hold them equal.
+ */
+static_assert(FEQ_METER_BASS_FORGE_BANDS == FEQ_BASS_FORGE_BANDS,
+              "the meter's Forge band count must match the stage's");
 
 namespace {
 
@@ -159,6 +169,14 @@ void fold_maximum(std::atomic<float>& slot, float value) {
   }
 }
 
+/** The same again, keeping whichever value is furthest from zero. */
+void fold_by_magnitude(std::atomic<float>& slot, float value) {
+  float seen = slot.load(std::memory_order_relaxed);
+  while (std::fabs(value) > std::fabs(seen) &&
+         !slot.compare_exchange_weak(seen, value, std::memory_order_relaxed)) {
+  }
+}
+
 /**
  * A peak that falls at the Normalizer meter's own release, per block.
  *
@@ -245,6 +263,21 @@ struct FeqMeters {
   std::atomic<float> normalizer_input_peaks[2];
   std::atomic<float> normalizer_output_peaks[2];
   std::atomic<float> normalizer_applied_gain_db{0.0f};
+  /**
+   * Bass Forge's eight bands before it ran and after, in dBFS.
+   *
+   * Independent atomics rather than a seqlock, for the reason the exciter's
+   * are: each band is a point on an eight-point graph that repaints every
+   * sixteen milliseconds, so a reader catching band 3 from this block and
+   * band 4 from the next is drawing a curve at worst one block stale. There
+   * is no shape here fine enough to tear.
+   */
+  std::atomic<float> bass_forge_input_db[FEQ_METER_BASS_FORGE_BANDS];
+  std::atomic<float> bass_forge_output_db[FEQ_METER_BASS_FORGE_BANDS];
+  /** Bass Punch's three applied gains. At rest they are 0 dB, not the floor. */
+  std::atomic<float> bass_punch_transient_db{0.0f};
+  std::atomic<float> bass_punch_sustain_db{0.0f};
+  std::atomic<float> bass_punch_duck_db{0.0f};
   std::vector<double> window;
   /** Reader-side scratch, so the transform allocates nothing per frame. */
   std::vector<double> real;
@@ -277,6 +310,15 @@ FeqMeters* feq_meters_create(uint32_t channels) {
   }
   for (auto& band : meters->exciter_bands) {
     band.store(0.0f, std::memory_order_relaxed);
+  }
+  // Forge's two runs open at the display floor rather than at zero, because
+  // zero dBFS is full scale: a graph fed nothing would paint both curves
+  // pinned at the top until the first block arrived.
+  for (uint32_t band = 0; band < FEQ_METER_BASS_FORGE_BANDS; band += 1) {
+    meters->bass_forge_input_db[band].store(kMeterFloorDb,
+                                            std::memory_order_relaxed);
+    meters->bass_forge_output_db[band].store(kMeterFloorDb,
+                                             std::memory_order_relaxed);
   }
   // An array of atomics takes no member initializer, so silence is set here.
   for (uint32_t channel = 0; channel < 2; channel += 1) {
@@ -608,6 +650,86 @@ void feq_meters_read_dimension(FeqMeters* meters, float* out_guard) {
     return;
   }
   *out_guard = meters->dimension_guard.load(std::memory_order_relaxed);
+}
+
+void feq_meters_publish_bass_forge(FeqMeters* meters, const double* input_db,
+                                   const double* output_db) {
+  if (meters == nullptr || input_db == nullptr || output_db == nullptr ||
+      meters->enabled.load(std::memory_order_acquire) == 0) {
+    return;
+  }
+  for (uint32_t band = 0; band < FEQ_METER_BASS_FORGE_BANDS; band += 1) {
+    meters->bass_forge_input_db[band].store(static_cast<float>(input_db[band]),
+                                            std::memory_order_relaxed);
+    meters->bass_forge_output_db[band].store(
+        static_cast<float>(output_db[band]), std::memory_order_relaxed);
+  }
+}
+
+void feq_meters_read_bass_forge(FeqMeters* meters, float* out_input_db,
+                                float* out_output_db) {
+  if (meters == nullptr || out_input_db == nullptr ||
+      out_output_db == nullptr) {
+    return;
+  }
+  for (uint32_t band = 0; band < FEQ_METER_BASS_FORGE_BANDS; band += 1) {
+    out_input_db[band] =
+        meters->bass_forge_input_db[band].load(std::memory_order_relaxed);
+    out_output_db[band] =
+        meters->bass_forge_output_db[band].load(std::memory_order_relaxed);
+  }
+}
+
+void feq_meters_publish_bass_punch(FeqMeters* meters, double transient_db,
+                                   double sustain_db, double duck_db) {
+  if (meters == nullptr ||
+      meters->enabled.load(std::memory_order_acquire) == 0) {
+    return;
+  }
+  /*
+   * The transient is FOLDED and the other two are stored, which is measured
+   * rather than tidy.
+   *
+   * All three are published per block — about 94 a second at 512 frames — and
+   * read once per analysis window, about 23. So three blocks in four are never
+   * seen. The sustain and the duck are slow envelopes and survive that: over a
+   * real gated note through the real host they reached 9.0 and 6.0 dB in the
+   * frames that were sampled. The transient is a few milliseconds wide and
+   * read exactly 0.0 dB in all 69 frames of the same run, while the chain test
+   * reading every block saw it reach 7.6 — a lane that would have drawn flat
+   * on a stage doing its loudest work.
+   *
+   * Folded by magnitude and not by sign, because `attack` runs both ways: a
+   * negative setting softens the leading edge, and the deepest softening is
+   * the reading that matters just as much as the hardest sharpening.
+   */
+  fold_by_magnitude(meters->bass_punch_transient_db,
+                    static_cast<float>(transient_db));
+  meters->bass_punch_sustain_db.store(static_cast<float>(sustain_db),
+                                      std::memory_order_relaxed);
+  meters->bass_punch_duck_db.store(static_cast<float>(duck_db),
+                                   std::memory_order_relaxed);
+}
+
+void feq_meters_read_bass_punch(FeqMeters* meters, float* out_transient_db,
+                                float* out_sustain_db, float* out_duck_db) {
+  if (meters == nullptr || out_transient_db == nullptr ||
+      out_sustain_db == nullptr || out_duck_db == nullptr) {
+    return;
+  }
+  /*
+   * The transient is cleared as it is taken; the other two are not.
+   *
+   * A hold that survives its own read cannot say "nothing happened in this
+   * window", and the note after a kick has to be able to. The sustain and the
+   * duck are stored rather than folded, so there is nothing to clear — the
+   * next block overwrites them either way.
+   */
+  *out_transient_db =
+      meters->bass_punch_transient_db.exchange(0.0f, std::memory_order_relaxed);
+  *out_sustain_db =
+      meters->bass_punch_sustain_db.load(std::memory_order_relaxed);
+  *out_duck_db = meters->bass_punch_duck_db.load(std::memory_order_relaxed);
 }
 
 void feq_meters_publish_master(FeqMeters* meters,

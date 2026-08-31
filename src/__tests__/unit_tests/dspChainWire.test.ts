@@ -93,6 +93,29 @@ describe('the chain wire layout', () => {
     expect(second).toEqual([1, 0, 200, 1, 1, 0, -24]);
   });
 
+  it('carries both bass stages in the lead', () => {
+    const encoded = encodeChainSettings({
+      ...DSP_DEFAULTS,
+      bassForge: { ...DSP_DEFAULTS.bassForge, enabled: true, mix: 0.7 },
+      bassPunch: { ...DSP_DEFAULTS.bassPunch, enabled: true, duck: 0.4 },
+    });
+
+    expect(encoded).toHaveLength(
+      CHAIN_PARAM_LEAD + DSP_DEFAULTS.eq.bands.length * CHAIN_BAND_PARAMS,
+    );
+    // A length check alone passes whether or not the fourteen scalars are on
+    // the wire at all, so read them where the decoder reads them: the last
+    // fifteen lead slots are Forge's seven, Punch's seven, and the band count.
+    expect(encoded.slice(CHAIN_PARAM_LEAD - 15, CHAIN_PARAM_LEAD - 1)).toEqual([
+      1, 90, 0, 0, 0, 0.8, 0.7, 1, 110, 0, 0, 0, 120, 0.4,
+    ]);
+    // The band count stays in the last lead slot. If the new scalars were
+    // appended after it instead of before, this reads 0.7 and every band that
+    // follows is one slot out.
+    expect(encoded[CHAIN_PARAM_LEAD - 1]).toBe(DSP_DEFAULTS.eq.bands.length);
+    expect(isChainWirePayload(encoded)).toBe(true);
+  });
+
   it('carries the maximum rack the app allows', () => {
     // Sixty-four bands is the reason this is not a flat scalar table. If the
     // encoder ever silently truncated, this is where it would show.

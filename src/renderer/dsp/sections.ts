@@ -19,6 +19,8 @@ export type TDspSection =
   | 'crossfade'
   | 'eq'
   | 'exciter'
+  | 'bassForge'
+  | 'bassPunch'
   | 'dimension'
   | 'compressor'
   | 'maximizer'
@@ -38,7 +40,17 @@ export const DSP_SECTIONS: { id: TDspSection; labelKey: TranslationKey }[] = [
   { id: 'denoise', labelKey: 'dsp.denoise.title' },
   { id: 'crossfade', labelKey: 'dsp.crossfade.title' },
   { id: 'exciter', labelKey: 'dsp.exciter.title' },
+  // Beside the Exciter, and ahead of the EQ, because that is where the audio
+  // runs: `chain_process_bass_forge` sits between the two so the EQ shapes
+  // everything that will be heard rather than everything except what the
+  // rack's two synthesis stages just made.
+  { id: 'bassForge', labelKey: 'dsp.bassForge.title' },
   { id: 'eq', labelKey: 'dsp.eq.title' },
+  // After the EQ rather than beside Forge, because that is where the audio
+  // runs: `chain_process_bass_punch` sits between the EQ and Dimension so the
+  // envelope it shapes is the one the EQ has already voiced, not one the EQ
+  // then re-times underneath it.
+  { id: 'bassPunch', labelKey: 'dsp.bassPunch.title' },
   { id: 'dimension', labelKey: 'dsp.dimension.title' },
   // Keep the processor in the DSP chain, but hide its editor until it is ready.
   { id: 'maximizer', labelKey: 'dsp.maximizer.title' },

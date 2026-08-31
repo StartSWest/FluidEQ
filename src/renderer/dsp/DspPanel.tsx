@@ -13,6 +13,8 @@ import {
 } from '../../common/dsp/chain';
 import { DSP_PRESETS } from '../../common/dsp/presets';
 import { TranslationKey } from '../../common/i18n/en';
+import DspBassForgeCard from './DspBassForgeCard';
+import DspBassPunchCard from './DspBassPunchCard';
 import { Dial, ProcessorCard } from './DspControls';
 import DspEqBar from './DspEqBar';
 import DspEqCard from './DspEqCard';
@@ -77,6 +79,8 @@ const DspPanel = ({
     crossfade,
     eq,
     exciter,
+    bassForge,
+    bassPunch,
     dimension,
     compressor,
     maximizer,
@@ -326,6 +330,8 @@ const DspPanel = ({
             crossfade: crossfade.enabled,
             eq: eq.enabled,
             exciter: exciter.enabled,
+            bassForge: bassForge.enabled,
+            bassPunch: bassPunch.enabled,
             dimension: dimension.enabled,
             compressor: compressor.enabled,
             maximizer: maximizer.enabled,
@@ -422,6 +428,22 @@ const DspPanel = ({
             <DspExciterCard
               exciter={exciter}
               onPatch={(next) => patch({ exciter: next })}
+              onCommit={onCommit}
+            />
+          )}
+
+          {section === 'bassForge' && (
+            <DspBassForgeCard
+              bassForge={bassForge}
+              onPatch={(next) => patch({ bassForge: next })}
+              onCommit={onCommit}
+            />
+          )}
+
+          {section === 'bassPunch' && (
+            <DspBassPunchCard
+              bassPunch={bassPunch}
+              onPatch={(next) => patch({ bassPunch: next })}
               onCommit={onCommit}
             />
           )}

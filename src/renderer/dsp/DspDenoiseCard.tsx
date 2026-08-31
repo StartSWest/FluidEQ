@@ -152,7 +152,7 @@ const DspDenoiseCard = ({
       }
     >
       {isBypassedByEngine ? (
-        <p className="dsp-band-hint dsp-engine-fallback" role="status">
+        <p className="dsp-engine-fallback" role="status">
           {t('dsp.denoise.nativeOnly')}
         </p>
       ) : null}

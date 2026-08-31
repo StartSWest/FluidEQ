@@ -78,6 +78,10 @@ add_library(fluideq-dsp-core STATIC
   dsp-core/src/loudness_meter.cpp
   dsp-core/src/crossfade.cpp
   dsp-core/src/dimension.cpp
+  dsp-core/src/bass_forge.cpp
+  dsp-core/src/bass_forge_meters.cpp
+  dsp-core/src/bass_punch.cpp
+  dsp-core/src/bass_punch_bloom.cpp
   dsp-core/src/denoise.cpp
   dsp-core/src/denoise_spectral.cpp
   dsp-core/src/denoise_hum.cpp
@@ -124,6 +128,22 @@ add_executable(fluideq-dimension-test dsp-core/tests/dimension_test.cpp)
 target_link_libraries(fluideq-dimension-test PRIVATE fluideq-dsp-core feq_strict)
 add_test(NAME dimension COMMAND fluideq-dimension-test)
 
+add_executable(fluideq-bass-forge-test dsp-core/tests/bass_forge_test.cpp)
+target_link_libraries(fluideq-bass-forge-test PRIVATE fluideq-dsp-core feq_strict)
+add_test(NAME bass-forge COMMAND fluideq-bass-forge-test)
+
+add_executable(fluideq-bass-punch-test dsp-core/tests/bass_punch_test.cpp)
+target_link_libraries(fluideq-bass-punch-test PRIVATE fluideq-dsp-core feq_strict)
+add_test(NAME bass-punch COMMAND fluideq-bass-punch-test)
+
+# Both bass stages split the same way, so the way that split can fail is one
+# property and not two. Separate from the two stage files because it is shared,
+# and because measuring AT the corner is the case those files were written
+# without: every bin either of them takes is away from it.
+add_executable(fluideq-bass-split-test dsp-core/tests/bass_split_test.cpp)
+target_link_libraries(fluideq-bass-split-test PRIVATE fluideq-dsp-core feq_strict)
+add_test(NAME bass-split COMMAND fluideq-bass-split-test)
+
 add_executable(fluideq-denoise-test dsp-core/tests/denoise_test.cpp)
 target_link_libraries(fluideq-denoise-test PRIVATE fluideq-dsp-core feq_strict)
 add_test(NAME denoise COMMAND fluideq-denoise-test)
@@ -131,6 +151,14 @@ add_test(NAME denoise COMMAND fluideq-denoise-test)
 add_executable(fluideq-meters-test dsp-core/tests/meters_test.cpp)
 target_link_libraries(fluideq-meters-test PRIVATE fluideq-dsp-core feq_strict)
 add_test(NAME meters COMMAND fluideq-meters-test)
+
+# Separate from `meters` because it asks a different question: not whether the
+# meters measure, but where in the chain each one is tapped. A tap taken at the
+# wrong point reports a real measurement of the wrong signal, which every check
+# in `meters_test` still passes.
+add_executable(fluideq-chain-meters-test dsp-core/tests/chain_meters_test.cpp)
+target_link_libraries(fluideq-chain-meters-test PRIVATE fluideq-dsp-core feq_strict)
+add_test(NAME chain-meters COMMAND fluideq-chain-meters-test)
 
 add_executable(fluideq-player-test dsp-core/tests/player_test.cpp)
 target_link_libraries(fluideq-player-test PRIVATE fluideq-dsp-core feq_strict)

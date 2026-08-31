@@ -145,6 +145,36 @@ typedef struct FeqChainSettings {
     double high_hz;
     double decorrelation;
   } dimension;
+  /**
+   * The two bass stages, carried as the chain's own copies of their settings.
+   *
+   * Not `FeqBassForgeSettings` and `FeqBassPunchSettings` directly: this header
+   * is the wire's shape and including two stage headers into it would make
+   * every consumer of a chain snapshot depend on them. The stage structs are
+   * built from these in `chain_stages.cpp`, which is where the stage headers
+   * already are.
+   */
+  struct {
+    int enabled;
+    /** Structural: it moves the crossover. */
+    double split_hz;
+    double drive_db;
+    double sub_amount;
+    double presence_amount;
+    double texture;
+    /** Zero is a bit-exact bypass, which is why the default can leave it on. */
+    double mix;
+  } bass_forge;
+  struct {
+    int enabled;
+    /** Its own, not Forge's: the two stages do different jobs. */
+    double split_hz;
+    double attack;
+    double sustain;
+    double bloom_amount;
+    double bloom_decay_ms;
+    double duck;
+  } bass_punch;
   struct {
     int enabled;
     /** Gain INTO the ceiling, which is what makes this a maximizer. */
@@ -183,18 +213,19 @@ typedef struct FeqChainSettings {
 /**
  * The flat-array layout, and the two numbers that define it.
  *
- * `chainParams` in `generate-parity-fixtures.ts` and `encodeChainSettings` in
- * `wire.ts` both write it; `feq_chain_settings_decode` reads it. Everything
- * before the band array sits at a fixed offset, so adding a scalar cannot
- * silently re-point sixty-four bands: the decoder asserts the lead rather
- * than trusting it.
+ * `encodeChainSettings` in `src/common/dsp/chainWire.ts` writes it — the only
+ * thing that does, the fixture generator's `chainParams` being a one-line alias
+ * to it — and `feq_chain_settings_decode` reads it. Everything before the band
+ * array sits at a fixed offset, so adding a scalar cannot silently re-point
+ * sixty-four bands: the decoder asserts the lead rather than trusting it.
  */
 /*
- * 78 before Denoise added eighteen scalars, appended immediately before the
- * band count — which has to stay last, because both `isChainWirePayload` and
- * the decoder read the tail's length from `FEQ_CHAIN_PARAM_LEAD - 1`.
+ * 78 before Denoise added eighteen scalars, then 96 before Bass Forge and Bass
+ * Punch added seven each. All of them are appended immediately before the band
+ * count — which has to stay last, because both `isChainWirePayload` and the
+ * decoder read the tail's length from `FEQ_CHAIN_PARAM_LEAD - 1`.
  */
-#define FEQ_CHAIN_PARAM_LEAD 96
+#define FEQ_CHAIN_PARAM_LEAD 110
 #define FEQ_CHAIN_BAND_PARAMS 7
 
 /** Non-zero on success. Leaves `out` untouched on a layout it cannot read. */

@@ -34,7 +34,15 @@ import { FilterTypeEnum } from '../constants';
  * and the native core is promised a snapshot that has already been through it.
  * Duplicating the bounds here would create a second authority that drifts.
  */
-export const NATIVE_DSP_PARAMETER_SCHEMA_VERSION = 1 as const;
+/**
+ * Bumped to 2 for the bass stages below: adding parameters changes what a
+ * renderer must see for the chain to be complete, and a renderer built
+ * against an older host is missing two whole stages rather than one field.
+ * The version exists so that mismatch fails the handshake loudly, before any
+ * audio runs, rather than the renderer silently rendering controls neither
+ * stage is listening to.
+ */
+export const NATIVE_DSP_PARAMETER_SCHEMA_VERSION = 2 as const;
 
 export type TNativeParameterKind = 'boolean' | 'number' | 'enum';
 
@@ -188,6 +196,34 @@ export const NATIVE_DSP_PARAMETERS = [
   { id: 1805, path: 'dimension.lowHz', kind: 'number' },
   { id: 1806, path: 'dimension.highHz', kind: 'number' },
   { id: 1807, path: 'dimension.decorrelation', kind: 'number' },
+
+  /**
+   * A fresh thousand-block, and 2000-2199 belongs to the two bass stages.
+   *
+   * Reserved rather than merely used: `claude/noise-reduction-filter-a41ca7` is
+   * designing four more native-only modules against the same table, and two
+   * branches both reaching for the next free id is the one collision this scheme
+   * cannot recover from. A wire lead can be renumbered on merge; an id cannot,
+   * because a stored automation follows the number rather than the path. Denoise
+   * starts at 2200.
+   */
+  { id: 2001, path: 'bassForge.enabled', kind: 'boolean' },
+  { id: 2002, path: 'bassForge.splitHz', kind: 'number', structural: true },
+  { id: 2003, path: 'bassForge.driveDb', kind: 'number' },
+  { id: 2004, path: 'bassForge.subAmount', kind: 'number' },
+  { id: 2005, path: 'bassForge.presenceAmount', kind: 'number' },
+  { id: 2006, path: 'bassForge.texture', kind: 'number' },
+  { id: 2007, path: 'bassForge.mix', kind: 'number' },
+
+  { id: 2101, path: 'bassPunch.enabled', kind: 'boolean' },
+  { id: 2102, path: 'bassPunch.splitHz', kind: 'number', structural: true },
+  { id: 2103, path: 'bassPunch.attack', kind: 'number' },
+  { id: 2104, path: 'bassPunch.sustain', kind: 'number' },
+  { id: 2105, path: 'bassPunch.bloomAmount', kind: 'number' },
+  // Not structural: the comb delays are fixed at the longest and only the
+  // feedback gain moves, so the dial never reallocates a buffer.
+  { id: 2106, path: 'bassPunch.bloomDecayMs', kind: 'number' },
+  { id: 2107, path: 'bassPunch.duck', kind: 'number' },
 
   { id: 1701, path: 'master.enabled', kind: 'boolean' },
   { id: 1702, path: 'master.outputTrimDb', kind: 'number' },

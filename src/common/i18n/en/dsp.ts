@@ -39,6 +39,7 @@ const dsp = {
   'dsp.preset.lossyRepair': 'Repair compressed',
   'dsp.preset.loud': 'Loud',
   'dsp.preset.broadcast': 'Broadcast',
+  'dsp.preset.bassPower': 'Bass power',
   'dsp.bypassed': 'Bypassed',
   'dsp.enabled': 'On',
 
@@ -353,6 +354,58 @@ const dsp = {
   'dsp.exciter.isolateHint': 'Hear only the harmonics this stage is adding.',
   'dsp.exciter.isolateOn':
     'Dry signal dropped — you are hearing only what this adds.',
+
+  'dsp.bassForge.title': 'Bass Forge',
+  'dsp.bassForge.description':
+    'Adds a real octave below the bass for speakers that can play one, and the harmonics of that octave for speakers that cannot — a small speaker radiates nothing at 45 Hz, but the harmonics let the ear reconstruct the pitch anyway. How loud the low end is does not change.',
+  'dsp.bassForge.splitHz': 'Split',
+  'dsp.bassForge.driveDb': 'Drive',
+  'dsp.bassForge.subAmount': 'Sub',
+  'dsp.bassForge.presenceAmount': 'Presence',
+  'dsp.bassForge.texture': 'Texture',
+  'dsp.bassForge.mix': 'Amount',
+  // Regions of the graph, not the generators. The two are summed before the
+  // stage's own meter reads them, so which one made a given band is not
+  // recoverable — see the header of `DspBassForgeGraph`.
+  'dsp.bassForge.graph.belowSplit': 'Below split',
+  'dsp.bassForge.graph.aboveSplit': 'Above split',
+  'dsp.bassForge.monoNote':
+    'Generated bass is summed to mono. The original low end keeps its stereo.',
+  'dsp.bassForge.unavailable':
+    'Bass Forge runs only in the native engine, which is not currently carrying the audio. This stage is bypassed.',
+  'dsp.bassForgePreset.subtle': 'Subtle',
+  'dsp.bassForgePreset.deep': 'Deep',
+  'dsp.bassForgePreset.solid': 'Solid',
+  'dsp.bassForgePreset.hot': 'Hot',
+  'dsp.bassForgePreset.round': 'Round',
+  'dsp.bassForgePreset.dry': 'Dry',
+  'dsp.bassForgePreset.wet': 'Wet',
+  'dsp.bassForgePreset.phantom': 'Phantom',
+  'dsp.bassForgePreset.dub': 'Dub',
+
+  'dsp.bassPunch.title': 'Bass Punch',
+  'dsp.bassPunch.description':
+    'Shapes the attack and decay of the low end, not its tone. Attack and sustain are bipolar: below centre is tighter and drier, above is longer and wetter.',
+  'dsp.bassPunch.splitHz': 'Split',
+  'dsp.bassPunch.attack': 'Attack',
+  'dsp.bassPunch.sustain': 'Sustain',
+  'dsp.bassPunch.bloomAmount': 'Bloom',
+  'dsp.bassPunch.bloomDecayMs': 'Bloom decay',
+  'dsp.bassPunch.duck': 'Duck',
+  'dsp.bassPunch.unavailable':
+    'Bass Punch runs only in the native engine, which is not currently carrying the audio. This stage is bypassed.',
+  'dsp.bassPunch.meterNote':
+    'Attack is drawn as separate marks because each one is the largest swing inside its own measuring window. Sustain and duck last across several windows, so they are sampled and run as continuous traces.',
+  'dsp.bassPunch.graph.now': 'now',
+  'dsp.bassPunch.graph.perWindow': 'peak per window',
+  'dsp.bassPunch.graph.sampled': 'sampled',
+  'dsp.bassPunchPreset.tight': 'Tight',
+  'dsp.bassPunchPreset.open': 'Open',
+  'dsp.bassPunchPreset.slam': 'Slam',
+  'dsp.bassPunchPreset.dry': 'Dry',
+  'dsp.bassPunchPreset.wet': 'Wet',
+  'dsp.bassPunchPreset.soft': 'Soft',
+  'dsp.bassPunchPreset.dnb': 'D&B',
 
   'dsp.compressor.title': 'Multiband compressor',
   'dsp.compressor.description':

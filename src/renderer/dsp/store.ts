@@ -10,7 +10,10 @@ import {
   IDspSettings,
   clampDspSettings,
 } from '../../common/dsp/chain';
-import { IHostAnalysisLoudness } from '../../common/dsp/analysisWire';
+import {
+  ANALYSIS_BASS_FORGE_BANDS,
+  IHostAnalysisLoudness,
+} from '../../common/dsp/analysisWire';
 import { TDspAnalyserStage } from './monitorOutputs';
 import { ILibraryNormalizationAnalysis } from '../../common/library/types';
 
@@ -650,6 +653,77 @@ export const setDspDimensionGuard = (guard: number): void => {
 };
 
 export const readDspDimensionGuard = (): number => dimensionGuard;
+
+/**
+ * The low band before Bass Forge and after it, eight bands of each.
+ *
+ * Polled rather than React state, for the reason the guard above is: this
+ * arrives once per analysis window, about twenty-three times a second, and is
+ * painted onto a canvas inside an animation frame. Putting it in state would
+ * be a reconcile per audio window for sixteen numbers no component renders —
+ * a repaint the display cannot use at that rate and the reconciler cannot
+ * afford beside the rest of the panel.
+ *
+ * Both runs start at the display floor rather than at zero, because zero dBFS
+ * is full scale: a graph fed nothing would open with both curves pinned at
+ * the top of it.
+ */
+const BASS_FORGE_FLOOR_DB = -120;
+let bassForgeInputDb: readonly number[] = new Array<number>(
+  ANALYSIS_BASS_FORGE_BANDS,
+).fill(BASS_FORGE_FLOOR_DB);
+let bassForgeOutputDb: readonly number[] = new Array<number>(
+  ANALYSIS_BASS_FORGE_BANDS,
+).fill(BASS_FORGE_FLOOR_DB);
+
+export const setDspBassForgeBands = (
+  inputDb: readonly number[],
+  outputDb: readonly number[],
+): void => {
+  bassForgeInputDb = inputDb;
+  bassForgeOutputDb = outputDb;
+};
+
+export const readDspBassForgeBands = (): {
+  inputDb: readonly number[];
+  outputDb: readonly number[];
+} => ({ inputDb: bassForgeInputDb, outputDb: bassForgeOutputDb });
+
+/**
+ * What Bass Punch is applying, in dB of gain.
+ *
+ * Polled for the same reason, and with more of it: the strip these feed is a
+ * three-second scroll, so it samples on every animation frame whether or not
+ * a new window has arrived. A setter that re-rendered would be doing the work
+ * twice at two different rates.
+ *
+ * At rest all three are 0 dB — they are gains, not levels, so the floor the
+ * two runs above rest at would read as a stage ducking by 120 decibels while
+ * it sits idle.
+ */
+let bassPunchTransientDb = 0;
+let bassPunchSustainDb = 0;
+let bassPunchDuckDb = 0;
+
+export const setDspBassPunchActivity = (
+  transientDb: number,
+  sustainDb: number,
+  duckDb: number,
+): void => {
+  bassPunchTransientDb = transientDb;
+  bassPunchSustainDb = sustainDb;
+  bassPunchDuckDb = duckDb;
+};
+
+export const readDspBassPunchActivity = (): {
+  transientDb: number;
+  sustainDb: number;
+  duckDb: number;
+} => ({
+  transientDb: bassPunchTransientDb,
+  sustainDb: bassPunchSustainDb,
+  duckDb: bassPunchDuckDb,
+});
 
 /**
  * Each dynamic band's own detected level, in dBFS, by band index.

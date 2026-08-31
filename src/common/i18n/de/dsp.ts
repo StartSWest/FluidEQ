@@ -30,6 +30,7 @@ const dsp = {
   'dsp.preset.lossyRepair': 'Komprimiertes reparieren',
   'dsp.preset.loud': 'Laut',
   'dsp.preset.broadcast': 'Rundfunk',
+  'dsp.preset.bassPower': 'Basskraft',
   'dsp.bypassed': 'Umgangen',
   'dsp.enabled': 'Ein',
 
@@ -352,6 +353,55 @@ const dsp = {
     'Nur die Obertöne hören, die diese Stufe hinzufügt.',
   'dsp.exciter.isolateOn':
     'Direktsignal aus — Sie hören nur, was hier hinzukommt.',
+
+  'dsp.bassForge.title': 'Bass-Schmiede',
+  'dsp.bassForge.description':
+    'Fügt eine echte Oktave unter dem Bass hinzu, für Lautsprecher, die sie wiedergeben können, und die Obertöne dieser Oktave für Lautsprecher, die es nicht können — ein kleiner Lautsprecher strahlt bei 45 Hz nichts ab, aber die Obertöne lassen das Ohr die Tonhöhe trotzdem rekonstruieren. Wie laut der Bass ist, ändert sich nicht.',
+  'dsp.bassForge.splitHz': 'Trennung',
+  'dsp.bassForge.driveDb': 'Intensität',
+  'dsp.bassForge.subAmount': 'Sub',
+  'dsp.bassForge.presenceAmount': 'Präsenz',
+  'dsp.bassForge.texture': 'Textur',
+  'dsp.bassForge.mix': 'Anteil',
+  'dsp.bassForge.graph.belowSplit': 'Unter Trennung',
+  'dsp.bassForge.graph.aboveSplit': 'Über Trennung',
+  'dsp.bassForge.monoNote':
+    'Der erzeugte Bass wird zu Mono summiert. Die ursprünglichen Bässe behalten ihr Stereo.',
+  'dsp.bassForge.unavailable':
+    'Die Bass-Schmiede läuft nur in der nativen Engine, die das Audio gerade nicht führt. Diese Stufe ist überbrückt.',
+  'dsp.bassForgePreset.subtle': 'Subtil',
+  'dsp.bassForgePreset.deep': 'Tief',
+  'dsp.bassForgePreset.solid': 'Solide',
+  'dsp.bassForgePreset.hot': 'Heiß',
+  'dsp.bassForgePreset.round': 'Rund',
+  'dsp.bassForgePreset.dry': 'Trocken',
+  'dsp.bassForgePreset.wet': 'Nass',
+  'dsp.bassForgePreset.phantom': 'Phantom',
+  'dsp.bassForgePreset.dub': 'Dub',
+
+  'dsp.bassPunch.title': 'Bass-Punch',
+  'dsp.bassPunch.description':
+    'Formt Attack und Ausklang der Bässe, nicht ihren Klang. Attack und Sustain sind bipolar: unterhalb der Mitte enger und trockener, oberhalb länger und nasser.',
+  'dsp.bassPunch.splitHz': 'Trennung',
+  'dsp.bassPunch.attack': 'Attack',
+  'dsp.bassPunch.sustain': 'Sustain',
+  'dsp.bassPunch.bloomAmount': 'Blüte',
+  'dsp.bassPunch.bloomDecayMs': 'Blütedauer',
+  'dsp.bassPunch.duck': 'Ducking',
+  'dsp.bassPunch.unavailable':
+    'Der Bass-Punch läuft nur in der nativen Engine, die das Audio gerade nicht führt. Diese Stufe ist überbrückt.',
+  'dsp.bassPunch.meterNote':
+    'Attack wird als einzelne Marken gezeichnet, weil jede der größte Ausschlag innerhalb ihres eigenen Messfensters ist. Sustain und Ducking dauern über mehrere Fenster hinweg an, werden deshalb abgetastet und laufen als durchgehende Kurven.',
+  'dsp.bassPunch.graph.now': 'jetzt',
+  'dsp.bassPunch.graph.perWindow': 'Spitze pro Fenster',
+  'dsp.bassPunch.graph.sampled': 'abgetastet',
+  'dsp.bassPunchPreset.tight': 'Straff',
+  'dsp.bassPunchPreset.open': 'Offen',
+  'dsp.bassPunchPreset.slam': 'Knall',
+  'dsp.bassPunchPreset.dry': 'Trocken',
+  'dsp.bassPunchPreset.wet': 'Nass',
+  'dsp.bassPunchPreset.soft': 'Weich',
+  'dsp.bassPunchPreset.dnb': 'D&B',
 
   'dsp.compressor.title': 'Multiband-Kompressor',
   'dsp.compressor.description':

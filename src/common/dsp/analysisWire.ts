@@ -34,10 +34,24 @@ export const ANALYSIS_BINS = 1024;
 export const ANALYSIS_SCOPE_PAIRS = 256;
 
 /**
+ * Bass Forge's band count, matching `FEQ_BASS_FORGE_BANDS`.
+ *
+ * Eight log-spaced band-pass followers between 20 Hz and 1 kHz, which is the
+ * range the graph they feed is zoomed to. Not a free choice either: the two
+ * runs are fixed-width fields in the analysis header, so this number is part
+ * of `ANALYSIS_HEADER_BYTES`.
+ */
+export const ANALYSIS_BASS_FORGE_BANDS = 8;
+
+/**
  * The fixed header; its own fields say how much payload follows.
  *
  * 120 before Master loudness took it to 136, and 136 before Denoise appended
  * six words — 160 rather than 156, because the frame is eight-byte aligned.
+ * Denoise's forty floor bands then took it to 320. Then the two bass stages:
+ * sixteen floats for Forge's eight bands in and out and three for Punch's
+ * gains, which is 76 bytes onto 320 and lands on 396 — rounded to 400 by one
+ * explicit pad float, for the same alignment reason.
  * Every pre-existing offset is untouched on purpose: this constant, the
  * publisher in `meters.cpp` and the reader in `dspHost/wire.ts` all have to
  * move in one commit, and new fields go after everything already decoded,
@@ -51,7 +65,7 @@ export const ANALYSIS_SCOPE_PAIRS = 256;
  * believed: three separate readers of it set out to add a check that has been
  * there since the graphs were first fed from the engine.
  */
-export const ANALYSIS_HEADER_BYTES = 320;
+export const ANALYSIS_HEADER_BYTES = 400;
 
 /** The rack ceiling, matching FEQ_METER_MAX_BANDS. */
 export const ANALYSIS_MAX_BANDS = 64;
@@ -119,6 +133,44 @@ export interface IHostAnalysis {
   normalizer: IHostAnalysisNormalizer;
   loudness: IHostAnalysisLoudness;
   denoise: IHostAnalysisDenoise;
+  bassForge: IHostAnalysisBassForge;
+  bassPunch: IHostAnalysisBassPunch;
+}
+
+/**
+ * The low band before Bass Forge and after it, eight bands of each.
+ *
+ * Two curves rather than one difference, because the card draws the generated
+ * content as the AREA BETWEEN them and a single delta cannot say where the
+ * energy appeared. The stage's two generators work in opposite directions —
+ * `sub_amount` supplies an octave below what the record carries, and
+ * `presence_amount` supplies the harmonics above it — so "6 dB of new bass"
+ * describes two entirely different results depending on which band it landed
+ * in, and the dials cannot tell them apart either.
+ */
+export interface IHostAnalysisBassForge {
+  /** dBFS per band, 20 Hz to 1 kHz on a log grid, floored at -120. */
+  inputDb: readonly number[];
+  outputDb: readonly number[];
+}
+
+/**
+ * What Bass Punch is applying, in dB of gain rather than level.
+ *
+ * The one claim the stage makes that its settings cannot show: the leading
+ * edge and the tail are shaped independently, and over a complete note the
+ * two envelope followers converge so the gain averages to unity. Watching all
+ * three on a time strip is what distinguishes that from a tone control.
+ *
+ * At rest they are 0 dB, not the -120 the level meters rest at.
+ */
+export interface IHostAnalysisBassPunch {
+  /** The attack section's gain: positive is harder, negative is softer. */
+  transientGainDb: number;
+  /** The tail's gain: positive is longer and wetter, negative is tighter. */
+  sustainGainDb: number;
+  /** What the band above the split is being pulled down by. Never positive. */
+  duckGainDb: number;
 }
 
 /**

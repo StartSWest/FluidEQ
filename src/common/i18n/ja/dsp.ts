@@ -29,6 +29,7 @@ const dsp = {
   'dsp.preset.lossyRepair': '圧縮音源を補修',
   'dsp.preset.loud': 'ラウド',
   'dsp.preset.broadcast': '放送',
+  'dsp.preset.bassPower': 'ベースパワー',
   'dsp.bypassed': 'バイパス',
   'dsp.enabled': 'オン',
 
@@ -338,6 +339,55 @@ const dsp = {
   'dsp.exciter.isolate': 'アイソレート',
   'dsp.exciter.isolateHint': 'この段が加えている倍音だけを聴きます。',
   'dsp.exciter.isolateOn': 'ドライ信号をオフ — 加えた分だけが聞こえています。',
+
+  'dsp.bassForge.title': 'ベースフォージ',
+  'dsp.bassForge.description':
+    '再生できるスピーカーには低音の1オクターブ下を実際に加え、それができないスピーカーにはそのオクターブの倍音を加えます。小型スピーカーは45 Hzでは何も出せませんが、倍音があれば耳はピッチを再構成できます。低音の音量そのものは変わりません。',
+  'dsp.bassForge.splitHz': '分割',
+  'dsp.bassForge.driveDb': 'ドライブ',
+  'dsp.bassForge.subAmount': 'サブ',
+  'dsp.bassForge.presenceAmount': 'プレゼンス',
+  'dsp.bassForge.texture': '質感',
+  'dsp.bassForge.mix': '量',
+  'dsp.bassForge.graph.belowSplit': '分割より下',
+  'dsp.bassForge.graph.aboveSplit': '分割より上',
+  'dsp.bassForge.monoNote':
+    '生成された低音はモノラルに合成されます。元の低音のステレオ感はそのまま残ります。',
+  'dsp.bassForge.unavailable':
+    'ベースフォージはネイティブエンジンでのみ動作しますが、現在そのエンジンが音声を担っていません。この段はバイパスされています。',
+  'dsp.bassForgePreset.subtle': '控えめ',
+  'dsp.bassForgePreset.deep': 'ディープ',
+  'dsp.bassForgePreset.solid': 'ソリッド',
+  'dsp.bassForgePreset.hot': 'ホット',
+  'dsp.bassForgePreset.round': 'ラウンド',
+  'dsp.bassForgePreset.dry': 'ドライ',
+  'dsp.bassForgePreset.wet': 'ウェット',
+  'dsp.bassForgePreset.phantom': 'ファントム',
+  'dsp.bassForgePreset.dub': 'ダブ',
+
+  'dsp.bassPunch.title': 'ベースパンチ',
+  'dsp.bassPunch.description':
+    '低音のアタックとディケイを形づくるもので、音色は変えません。アタックとサステインは双極性です。中央より下は締まって乾いた質感に、上は長く濡れた質感になります。',
+  'dsp.bassPunch.splitHz': '分割',
+  'dsp.bassPunch.attack': 'アタック',
+  'dsp.bassPunch.sustain': 'サステイン',
+  'dsp.bassPunch.bloomAmount': '膨らみ',
+  'dsp.bassPunch.bloomDecayMs': '膨らみの減衰',
+  'dsp.bassPunch.duck': 'ダッキング',
+  'dsp.bassPunch.unavailable':
+    'ベースパンチはネイティブエンジンでのみ動作しますが、現在そのエンジンが音声を担っていません。この段はバイパスされています。',
+  'dsp.bassPunch.meterNote':
+    'アタックは個別の目盛りで描かれます。各目盛りはその測定窓の中で最も大きい振れだからです。サステインとダッキングは複数の窓にまたがって続くため、サンプリングして連続した線で描いています。',
+  'dsp.bassPunch.graph.now': '現在',
+  'dsp.bassPunch.graph.perWindow': '窓ごとのピーク',
+  'dsp.bassPunch.graph.sampled': 'サンプリング',
+  'dsp.bassPunchPreset.tight': 'タイト',
+  'dsp.bassPunchPreset.open': 'オープン',
+  'dsp.bassPunchPreset.slam': '強打',
+  'dsp.bassPunchPreset.dry': 'ドライ',
+  'dsp.bassPunchPreset.wet': 'ウェット',
+  'dsp.bassPunchPreset.soft': 'ソフト',
+  'dsp.bassPunchPreset.dnb': 'ドラムンベース',
 
   'dsp.compressor.title': 'マルチバンドコンプレッサー',
   'dsp.compressor.description': '3 つの帯域それぞれで音量を均します。',

@@ -30,6 +30,7 @@ const dsp = {
   'dsp.preset.lossyRepair': 'संपीड़ित को सुधारें',
   'dsp.preset.loud': 'तेज़',
   'dsp.preset.broadcast': 'ब्रॉडकास्ट',
+  'dsp.preset.bassPower': 'बास पावर',
   'dsp.bypassed': 'बायपास',
   'dsp.enabled': 'चालू',
 
@@ -341,6 +342,55 @@ const dsp = {
   'dsp.exciter.isolateHint': 'केवल वे हार्मोनिक्स सुनें जो यह चरण जोड़ रहा है।',
   'dsp.exciter.isolateOn':
     'ड्राई सिग्नल बंद — आप केवल जोड़ा गया हिस्सा सुन रहे हैं।',
+
+  'dsp.bassForge.title': 'बास फ़ोर्ज',
+  'dsp.bassForge.description':
+    'जो स्पीकर बजा सकते हैं उनके लिए बास से एक असली सप्तक नीचे जोड़ता है, और जो नहीं बजा सकते उनके लिए उस सप्तक के हार्मोनिक्स — एक छोटा स्पीकर 45 Hz पर कुछ भी विकीर्ण नहीं करता, लेकिन हार्मोनिक्स फिर भी कान को पिच फिर से बनाने देते हैं। बास कितना तेज़ है यह नहीं बदलता।',
+  'dsp.bassForge.splitHz': 'विभाजन',
+  'dsp.bassForge.driveDb': 'ड्राइव',
+  'dsp.bassForge.subAmount': 'सब',
+  'dsp.bassForge.presenceAmount': 'प्रेज़ेंस',
+  'dsp.bassForge.texture': 'बनावट',
+  'dsp.bassForge.mix': 'मात्रा',
+  'dsp.bassForge.graph.belowSplit': 'विभाजन से नीचे',
+  'dsp.bassForge.graph.aboveSplit': 'विभाजन से ऊपर',
+  'dsp.bassForge.monoNote':
+    'जनरेट किया गया बास मोनो में मिला दिया जाता है। मूल बास अपना स्टीरियो बनाए रखता है।',
+  'dsp.bassForge.unavailable':
+    'बास फ़ोर्ज केवल नेटिव इंजन में चलता है, जो इस समय ऑडियो नहीं चला रहा। यह चरण बायपास है।',
+  'dsp.bassForgePreset.subtle': 'हल्का',
+  'dsp.bassForgePreset.deep': 'गहरा',
+  'dsp.bassForgePreset.solid': 'ठोस',
+  'dsp.bassForgePreset.hot': 'गरम',
+  'dsp.bassForgePreset.round': 'गोल',
+  'dsp.bassForgePreset.dry': 'सूखा',
+  'dsp.bassForgePreset.wet': 'गीला',
+  'dsp.bassForgePreset.phantom': 'फैंटम',
+  'dsp.bassForgePreset.dub': 'डब',
+
+  'dsp.bassPunch.title': 'बास पंच',
+  'dsp.bassPunch.description':
+    'बास के अटैक और डिके को आकार देता है, उसके टोन को नहीं। अटैक और सस्टेन बाइपोलर हैं: केंद्र से नीचे ज़्यादा टाइट और सूखा, ऊपर ज़्यादा लंबा और गीला।',
+  'dsp.bassPunch.splitHz': 'विभाजन',
+  'dsp.bassPunch.attack': 'अटैक',
+  'dsp.bassPunch.sustain': 'सस्टेन',
+  'dsp.bassPunch.bloomAmount': 'उभार',
+  'dsp.bassPunch.bloomDecayMs': 'उभार क्षय',
+  'dsp.bassPunch.duck': 'डकिंग',
+  'dsp.bassPunch.unavailable':
+    'बास पंच केवल नेटिव इंजन में चलता है, जो इस समय ऑडियो नहीं चला रहा। यह चरण बायपास है।',
+  'dsp.bassPunch.meterNote':
+    'अटैक अलग-अलग निशानों में खींचा जाता है, क्योंकि हर निशान अपनी ही माप-विंडो के भीतर का सबसे बड़ा उतार-चढ़ाव है। सस्टेन और डकिंग कई विंडो तक बने रहते हैं, इसलिए उनका नमूना लिया जाता है और वे लगातार रेखाओं में चलते हैं।',
+  'dsp.bassPunch.graph.now': 'अभी',
+  'dsp.bassPunch.graph.perWindow': 'प्रति विंडो शिखर',
+  'dsp.bassPunch.graph.sampled': 'नमूना लिया',
+  'dsp.bassPunchPreset.tight': 'टाइट',
+  'dsp.bassPunchPreset.open': 'ओपन',
+  'dsp.bassPunchPreset.slam': 'स्लैम',
+  'dsp.bassPunchPreset.dry': 'सूखा',
+  'dsp.bassPunchPreset.wet': 'गीला',
+  'dsp.bassPunchPreset.soft': 'मुलायम',
+  'dsp.bassPunchPreset.dnb': 'ड्रम एंड बेस',
 
   'dsp.compressor.title': 'मल्टीबैंड कंप्रेसर',
   'dsp.compressor.description':

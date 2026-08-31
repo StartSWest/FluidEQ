@@ -7,12 +7,13 @@ SPDX-License-Identifier: GPL-3.0-or-later
 /**
  * One flat array of doubles into a `FeqChainSettings`.
  *
- * This layout is written by `chainParams` in `generate-parity-fixtures.ts` and
- * by `encodeChainSettings` in `src/main/dspHost/wire.ts`, and it is deliberately
- * the same one for both. The fixtures already push twenty-seven whole-chain
- * cases through it against the real worklet, so the decoder the app depends on
- * at runtime is the decoder those fixtures exercise — rather than a second one
- * that agrees with the first until a field is added to one of them.
+ * This layout has exactly one writer: `encodeChainSettings` in
+ * `src/common/dsp/chainWire.ts`. The fixture generator's `chainParams` is a
+ * one-line alias to it rather than a second implementation, which is the point
+ * — the fixtures push twenty-seven whole-chain cases through this decoder
+ * against the real worklet, so the decoder the app depends on at runtime is the
+ * decoder those fixtures exercise, and a field added to the encoder cannot
+ * reach the app through a path the fixtures never saw.
  *
  * The variable-length part, the EQ's bands, is last on purpose: everything
  * before it sits at a fixed offset, so adding a scalar cannot silently
@@ -133,6 +134,26 @@ int feq_chain_settings_decode(const double* values,
   out->denoise.click.max_repair_samples = next();
   out->denoise.voice.enabled = flag();
   out->denoise.voice.amount = next();
+
+  // Before the band count and not after it, matching `encodeChainSettings`.
+  // The band count is the slot the length check reads to size the band array,
+  // so a stage appended behind it keeps every payload valid and shifts every
+  // band by one field into something that still decodes.
+  out->bass_forge.enabled = flag();
+  out->bass_forge.split_hz = next();
+  out->bass_forge.drive_db = next();
+  out->bass_forge.sub_amount = next();
+  out->bass_forge.presence_amount = next();
+  out->bass_forge.texture = next();
+  out->bass_forge.mix = next();
+
+  out->bass_punch.enabled = flag();
+  out->bass_punch.split_hz = next();
+  out->bass_punch.attack = next();
+  out->bass_punch.sustain = next();
+  out->bass_punch.bloom_amount = next();
+  out->bass_punch.bloom_decay_ms = next();
+  out->bass_punch.duck = next();
 
   out->eq.band_count = static_cast<uint32_t>(next());
   if (at != FEQ_CHAIN_PARAM_LEAD) {

@@ -29,9 +29,13 @@ import {
 import {
   IDspAnalyser,
   readDspAnalyser,
+  readDspBassForgeBands,
+  readDspBassPunchActivity,
   readDspNormalizerMeter,
   readDspOutputSafetyMeter,
   setDspAnalyser,
+  setDspBassForgeBands,
+  setDspBassPunchActivity,
   setDspNormalizerMeter,
   setDspOutputSafetyMeter,
 } from '../../../renderer/dsp/store';
@@ -91,6 +95,24 @@ const analysisFrame = (
       profileReady: false,
       voiceModelLoaded: false,
       floorBandsDb: [],
+    },
+    /**
+     * Every band a different number, and the two runs sloped opposite ways.
+     *
+     * A meter wired to nothing is the classic version of this bug and it does
+     * not look like one: the store's defaults are the display floor, which is
+     * exactly what a stage sitting idle publishes. Filling the frame with
+     * values nothing else in the app produces is what makes "arrived" and
+     * "never set" distinguishable.
+     */
+    bassForge: {
+      inputDb: [-20, -21, -22, -23, -24, -25, -26, -27],
+      outputDb: [-25, -24, -23, -22, -21, -20, -19, -18],
+    },
+    bassPunch: {
+      transientGainDb: 3.5,
+      sustainGainDb: -1.25,
+      duckGainDb: -4,
     },
   };
 };
@@ -427,5 +449,51 @@ describe('the readouts the Master and Normalizer cards print', () => {
       readDspOutputSafetyMeter().postFilterNormalizer.gainReductionDb,
     ).toBe(0);
     expect(readDspOutputSafetyMeter().gainReductionDb).toBe(0);
+  });
+});
+
+/**
+ * The two bass stages, from the decoded frame to the values the cards poll.
+ *
+ * Neither stage has a spectrum tap, so this path is the ONLY thing between
+ * the engine's measurement and the graph. A meter wired to nothing is the
+ * classic failure here and it is invisible from the card's side: the store's
+ * resting values are the display floor and 0 dB, which is exactly what an
+ * idle stage publishes, so a setter that is never called looks identical to a
+ * stage that is switched off.
+ *
+ * Both tests therefore start by writing a value that is neither, and check it
+ * is REPLACED — not merely that the reader returns something plausible.
+ */
+describe('the Bass Forge and Bass Punch meters', () => {
+  it('lands Forge both runs, band for band', () => {
+    // The positive control: something distinct in the slot beforehand, so a
+    // setter that never fires leaves this behind rather than a resting value
+    // the assertions could be read as confirming.
+    setDspBassForgeBands([1, 1, 1, 1, 1, 1, 1, 1], [2, 2, 2, 2, 2, 2, 2, 2]);
+    const { bridge, send } = fakeBridge();
+    createNativeMeters(bridge, ANALYSIS_BINS);
+
+    send(analysisFrame(['eq']));
+
+    const bands = readDspBassForgeBands();
+    expect(bands.inputDb).toEqual([-20, -21, -22, -23, -24, -25, -26, -27]);
+    expect(bands.outputDb).toEqual([-25, -24, -23, -22, -21, -20, -19, -18]);
+  });
+
+  it('lands Punch three gains, each in its own slot', () => {
+    setDspBassPunchActivity(9, 9, 9);
+    const { bridge, send } = fakeBridge();
+    createNativeMeters(bridge, ANALYSIS_BINS);
+
+    send(analysisFrame(['eq']));
+
+    // Distinct values rather than one repeated: two gains crossed over would
+    // pass just as well against a single number checked three times.
+    expect(readDspBassPunchActivity()).toEqual({
+      transientDb: 3.5,
+      sustainDb: -1.25,
+      duckDb: -4,
+    });
   });
 });

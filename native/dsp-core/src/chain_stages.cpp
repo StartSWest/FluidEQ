@@ -5,8 +5,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 /**
- * The four stages that are one loop each: gain in, compressor, limiter, gain
- * out. Split from `chain.cpp` so that file holds only lifecycle and order.
+ * The stages that are one call each: gain in, width, both bass stages,
+ * compressor, limiter, gain out. Split from `chain.cpp` so that file holds
+ * only lifecycle and order.
  */
 
 #include "chain_internal.h"
@@ -205,8 +206,8 @@ void chain_process_dimension(FeqChain* chain, float* const* channels,
     return;
   }
   if (chain->settings.dimension.enabled == 0) {
-    // Left settled rather than reset every block: switching the stage back on
-    // must not replay an all-pass network full of a minute-old signal.
+    // Reset every block it is off for, not left settled: switching the stage
+    // back on must not replay an all-pass network full of a minute-old signal.
     feq_dimension_reset(&chain->dimension);
     return;
   }
@@ -220,6 +221,71 @@ void chain_process_dimension(FeqChain* chain, float* const* channels,
   settings.decorrelation = chain->settings.dimension.decorrelation;
   feq_dimension_process(&chain->dimension, channels[0], channels[1], frames,
                         &settings, chain->sample_rate);
+}
+
+/**
+ * The generated low end, and only where there are two channels to generate it.
+ *
+ * The stage sources every harmonic from `(low[0] + low[1]) / 2` and writes back
+ * over both, so a one-channel chain has no second buffer for it to read. That
+ * is the same reason `chain_process_dimension` above turns itself off.
+ */
+void chain_process_bass_forge(FeqChain* chain, float* const* channels,
+                              uint32_t frames) {
+  if (chain->channels < 2) {
+    return;
+  }
+  if (chain->settings.bass_forge.enabled == 0) {
+    // Reset every block it is off for, not left settled: switching the stage
+    // back on must not replay a crossover and a set of meter followers holding
+    // a minute-old signal, and `chain.cpp` publishes the bands unconditionally
+    // so a stage that kept them would hold a stale reading on screen.
+    feq_bass_forge_reset(&chain->bass_forge);
+    return;
+  }
+  FeqBassForgeSettings settings{};
+  settings.enabled = 1;
+  // The eight-band analyser is a graph and nothing else, so it runs only while
+  // something is reading it — the gate every other stage's meter work is
+  // already behind, inside `feq_meters_capture`.
+  settings.meters = feq_meters_enabled(chain->meters);
+  settings.split_hz = chain->settings.bass_forge.split_hz;
+  settings.drive_db = chain->settings.bass_forge.drive_db;
+  settings.sub_amount = chain->settings.bass_forge.sub_amount;
+  settings.presence_amount = chain->settings.bass_forge.presence_amount;
+  settings.texture = chain->settings.bass_forge.texture;
+  settings.mix = chain->settings.bass_forge.mix;
+  feq_bass_forge_process(&chain->bass_forge, channels, chain->channels, frames,
+                         &settings, chain->sample_rate);
+}
+
+/**
+ * How the low end hits, in the same two-channel-only shape and for the same
+ * reason: the bloom is fed from the low band summed to mono.
+ */
+void chain_process_bass_punch(FeqChain* chain, float* const* channels,
+                              uint32_t frames) {
+  if (chain->channels < 2) {
+    return;
+  }
+  if (chain->settings.bass_punch.enabled == 0) {
+    // Reset every block it is off for, not left settled: a bloom network left
+    // full would replay the tail of whatever last played when the stage came
+    // back on, and `chain.cpp` publishes the three gains unconditionally, so a
+    // stage that kept its followers would hold a stale reading on screen.
+    feq_bass_punch_reset(&chain->bass_punch);
+    return;
+  }
+  FeqBassPunchSettings settings{};
+  settings.enabled = 1;
+  settings.split_hz = chain->settings.bass_punch.split_hz;
+  settings.attack = chain->settings.bass_punch.attack;
+  settings.sustain = chain->settings.bass_punch.sustain;
+  settings.bloom_amount = chain->settings.bass_punch.bloom_amount;
+  settings.bloom_decay_ms = chain->settings.bass_punch.bloom_decay_ms;
+  settings.duck = chain->settings.bass_punch.duck;
+  feq_bass_punch_process(&chain->bass_punch, channels, chain->channels, frames,
+                         &settings, chain->sample_rate);
 }
 
 void chain_process_maximizer(FeqChain* chain, float* const* channels,

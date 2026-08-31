@@ -96,7 +96,10 @@ describe('DspPanel', () => {
     expect(
       presets.queryByRole('button', { name: 'Off' }),
     ).not.toBeInTheDocument();
-    expect(DSP_PRESETS).toHaveLength(3);
+    // Four: Task 7 added `bass-power`, whose dictionary entry Task 8 still
+    // owes — its button renders with the raw key until that key lands, which
+    // is expected here and is not what this count guards against.
+    expect(DSP_PRESETS).toHaveLength(4);
   });
 
   /**
@@ -115,7 +118,9 @@ describe('DspPanel', () => {
       'Normalizer',
       'Crossfade',
       'Exciter',
+      'Bass Forge',
       'Equaliser',
+      'Bass Punch',
       'Maximizer',
       'Master',
     ].forEach((name) => {
@@ -157,6 +162,210 @@ describe('DspPanel', () => {
     renderPanel();
     fireEvent.click(screen.getByRole('button', { name: /Exciter/i }));
     expect(screen.getByText(/never in the signal/i)).toBeInTheDocument();
+  });
+
+  /**
+   * The stage had been built, wired, metered and translated with no way for
+   * anyone to switch it on. This asserts the surface exists and carries a
+   * control for every field of `IBassForgeSettings` that has one — a page
+   * missing a dial is a parameter nobody can reach.
+   */
+  it('gives Bass Forge a page with a dial for each of its six controls', () => {
+    renderPanel();
+    fireEvent.click(screen.getByRole('button', { name: /Bass Forge/i }));
+    const page = within(screen.getByRole('region', { name: /Bass Forge/i }));
+    ['Split', 'Sub', 'Presence', 'Texture', 'Drive', 'Amount'].forEach(
+      (name) => {
+        expect(page.getByRole('slider', { name })).toBeInTheDocument();
+      },
+    );
+  });
+
+  /**
+   * There is no mono dial on this page and there is deliberately never going
+   * to be one: Forge generates from `(low[0] + low[1]) / 2` as a construction
+   * of the stage, and the mono-maker roughly twenty EQ profiles reference
+   * stays in the EQ. Unexplained, the absence reads as a missing control.
+   */
+  it('says the generated bass is mono, since no dial on the page can', () => {
+    renderPanel();
+    fireEvent.click(screen.getByRole('button', { name: /Bass Forge/i }));
+    expect(screen.getByText(/summed to mono/i)).toBeInTheDocument();
+  });
+
+  /**
+   * The graph's two fills are regions, and the legend must not promote them
+   * into generators.
+   *
+   * `bass_forge.cpp` computes `sub * sub_amount + shaped` into one number
+   * before drive, the DC blocker, `mix` and the output followers, so nothing
+   * downstream can say which generator made a given band. The presence
+   * generator is fed the whole low band, so the second harmonic of a 35 Hz
+   * note lands near 70 Hz — below a default 90 Hz corner, in the low-side
+   * fill, with the Sub dial possibly at zero. A legend calling that fill "Sub"
+   * would be asserting something the meter is not told.
+   */
+  it('labels the graph fills by region, never by which generator made them', () => {
+    const { container } = renderPanel();
+    fireEvent.click(screen.getByRole('button', { name: /Bass Forge/i }));
+    const legend = container.querySelector('.dsp-bass-forge-legend');
+    expect(legend).toHaveTextContent('Below split');
+    expect(legend).toHaveTextContent('Above split');
+    // The two dial names, which are the attribution this must not claim. They
+    // are still on the page — this asserts they are not in the LEGEND.
+    expect(legend).not.toHaveTextContent(/Sub\b/);
+    expect(legend).not.toHaveTextContent(/Presence/);
+    expect(screen.getByRole('slider', { name: 'Sub' })).toBeInTheDocument();
+  });
+
+  /**
+   * A live meter under greyed-out dials is a meter reporting on a stage that
+   * is not running — the same defect Dimension's guard bar had.
+   *
+   * The bands genuinely read -120 dB while the stage is off, because the
+   * native side resets it every block, so there is no stale data here. What
+   * this guards is the READING: the plot has to look stopped rather than look
+   * like it is hearing silence.
+   */
+  it('reads as stopped, not as running-and-quiet, while Bass Forge is off', () => {
+    const { container } = renderPanel();
+    fireEvent.click(screen.getByRole('button', { name: /Bass Forge/i }));
+    expect(container.querySelector('.dsp-bass-forge-display')).toHaveClass(
+      'is-off',
+    );
+    expect(screen.getByRole('slider', { name: 'Sub' })).toBeDisabled();
+  });
+
+  it('POSITIVE CONTROL: drops the stopped reading once the stage is on', () => {
+    const active: IDspSettings = {
+      ...DSP_DEFAULTS,
+      bassForge: { ...DSP_DEFAULTS.bassForge, enabled: true },
+    };
+    const { container } = renderPanel(active);
+    fireEvent.click(screen.getByRole('button', { name: /Bass Forge/i }));
+    expect(container.querySelector('.dsp-bass-forge-display')).not.toHaveClass(
+      'is-off',
+    );
+    expect(screen.getByRole('slider', { name: 'Sub' })).toBeEnabled();
+  });
+
+  /**
+   * Reset goes to the catalogue's own baseline rather than to `DSP_DEFAULTS`,
+   * where every amount is zero: resetting to those would leave a stage that is
+   * switched on and audibly doing nothing. Bypass stays the chain preset's
+   * decision, which is why a profile never carries one.
+   */
+  it('resets Bass Forge to a profile that makes something', () => {
+    const { onChange } = renderPanel();
+    fireEvent.click(screen.getByRole('button', { name: /Bass Forge/i }));
+    // Exact, not a pattern: "Preset", "Previous preset" and "Next preset" all
+    // contain the word, and the picker sits on the same bar as this button.
+    const page = within(screen.getByRole('region', { name: /Bass Forge/i }));
+    fireEvent.click(page.getByRole('button', { name: 'Reset' }));
+    const next = onChange.mock.calls[0][0] as IDspSettings;
+    expect(next.bassForge.presetId).toBe('default');
+    expect(next.bassForge.mix).toBeGreaterThan(0);
+    expect(next.bassForge.enabled).toBe(false);
+  });
+
+  /**
+   * The same guard Forge's page has, and for the same reason: the stage was
+   * built, wired, metered and translated with no way for anyone to switch it
+   * on. A page missing a dial is a parameter nobody can reach.
+   */
+  it('gives Bass Punch a page with a dial for each of its six controls', () => {
+    renderPanel();
+    fireEvent.click(screen.getByRole('button', { name: /Bass Punch/i }));
+    const page = within(screen.getByRole('region', { name: /Bass Punch/i }));
+    // Exact names, which is what separates "Bloom" from "Bloom decay" — a
+    // pattern would match both and let either dial go missing unnoticed.
+    ['Split', 'Attack', 'Sustain', 'Bloom', 'Bloom decay', 'Duck'].forEach(
+      (name) => {
+        expect(page.getByRole('slider', { name })).toBeInTheDocument();
+      },
+    );
+  });
+
+  /**
+   * Zero is not off on this page: it is the stage running, hearing the note
+   * and deciding to change nothing about it. That only reads if the range is
+   * symmetric about the rest position, so a dial declared -1 to +1 is what
+   * makes turning it LEFT a thing anybody thinks to do.
+   */
+  it('rests Attack and Sustain at the centre of a symmetric range', () => {
+    renderPanel();
+    fireEvent.click(screen.getByRole('button', { name: /Bass Punch/i }));
+    const page = within(screen.getByRole('region', { name: /Bass Punch/i }));
+    ['Attack', 'Sustain'].forEach((name) => {
+      const dial = page.getByRole('slider', { name });
+      expect(dial).toHaveAttribute('aria-valuemin', '-1');
+      expect(dial).toHaveAttribute('aria-valuemax', '1');
+      expect(dial).toHaveAttribute('aria-valuenow', '0');
+    });
+    // The positive control the three above need: Bloom is an AMOUNT on the
+    // same page, and a card that made every dial bipolar would pass them.
+    const bloom = page.getByRole('slider', { name: 'Bloom' });
+    expect(bloom).toHaveAttribute('aria-valuemin', '0');
+  });
+
+  /**
+   * A live strip under greyed-out dials is a strip reporting on a stage that
+   * is not running — the same defect Dimension's guard bar and Forge's plot
+   * had. It matters more here than anywhere else in the rack: all three of
+   * Punch's gains genuinely rest at 0 dB, so three flat traces down the middle
+   * of a live-looking plot would say the stage is running and choosing to
+   * change nothing, which is exactly what a centred dial means.
+   */
+  it('reads as stopped, not as running-and-flat, while Bass Punch is off', () => {
+    const { container } = renderPanel();
+    fireEvent.click(screen.getByRole('button', { name: /Bass Punch/i }));
+    expect(container.querySelector('.dsp-bass-punch-display')).toHaveClass(
+      'is-off',
+    );
+    expect(screen.getByRole('slider', { name: 'Attack' })).toBeDisabled();
+  });
+
+  it('POSITIVE CONTROL: drops the stopped reading once Punch is on', () => {
+    const active: IDspSettings = {
+      ...DSP_DEFAULTS,
+      bassPunch: { ...DSP_DEFAULTS.bassPunch, enabled: true },
+    };
+    const { container } = renderPanel(active);
+    fireEvent.click(screen.getByRole('button', { name: /Bass Punch/i }));
+    expect(container.querySelector('.dsp-bass-punch-display')).not.toHaveClass(
+      'is-off',
+    );
+    expect(screen.getByRole('slider', { name: 'Attack' })).toBeEnabled();
+  });
+
+  /**
+   * The strip draws two different kinds of measurement and nothing on the
+   * canvas can say so: the attack lane is a max-over-window that the native
+   * reader clears as it takes it, and the other two are point samples of
+   * states that persist. Undrawn differently and unexplained, the picture
+   * would be claiming all three read alike.
+   */
+  it('says why the attack lane is drawn as marks and the others as traces', () => {
+    renderPanel();
+    fireEvent.click(screen.getByRole('button', { name: /Bass Punch/i }));
+    expect(screen.getByText(/separate marks/i)).toBeInTheDocument();
+  });
+
+  /**
+   * Reset goes to this catalogue's own baseline for the reason Forge's does:
+   * the shipping defaults put attack, sustain, bloom and duck all at zero, so
+   * resetting to them would leave a stage switched on and shaping nothing.
+   */
+  it('resets Bass Punch to a profile that shapes something', () => {
+    const { onChange } = renderPanel();
+    fireEvent.click(screen.getByRole('button', { name: /Bass Punch/i }));
+    const page = within(screen.getByRole('region', { name: /Bass Punch/i }));
+    fireEvent.click(page.getByRole('button', { name: 'Reset' }));
+    const next = onChange.mock.calls[0][0] as IDspSettings;
+    expect(next.bassPunch.presetId).toBe('default');
+    expect(next.bassPunch.attack).toBeGreaterThan(0);
+    expect(next.bassPunch.duck).toBeGreaterThan(0);
+    expect(next.bassPunch.enabled).toBe(false);
   });
 
   it('applies a preset whole when one is chosen', () => {

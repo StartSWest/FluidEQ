@@ -100,6 +100,16 @@ typedef enum FeqMeterStage {
 /** The exciter has three bands, and the display shows three lights. */
 #define FEQ_METER_EXCITER_BANDS 3
 
+/**
+ * Bass Forge's band count, mirrored here rather than included.
+ *
+ * `meters.h` is pulled in by every stage in the rack and by the host; taking
+ * `bass_forge.h` for one integer would drag `harmonics.h` and `biquad.h`
+ * behind it into all of them. `meters.cpp` includes the real header and pins
+ * the two equal with a `static_assert`, so the copy cannot drift silently.
+ */
+#define FEQ_METER_BASS_FORGE_BANDS 8
+
 typedef struct FeqMeters FeqMeters;
 
 FeqMeters* feq_meters_create(uint32_t channels);
@@ -317,6 +327,61 @@ void feq_meters_read_normalizer(FeqMeters* meters,
                                 float* out_input_peaks,
                                 float* out_output_peaks,
                                 float* out_applied_gain_db);
+
+/**
+ * Bass Forge's eight band levels, before and after it ran. **Audio thread.**
+ *
+ * Both runs, because the graph draws the generated content as the area
+ * BETWEEN them. Sent as levels in dBFS rather than as a difference so the
+ * card can show where the stage is working as well as how much it made — a
+ * single delta curve cannot say whether 6 dB appeared at 40 Hz or at 400.
+ *
+ * Measured by band-pass envelope followers rather than by a transform: the
+ * eight are sixteen biquads on a signal already in the buffer, where an FFT
+ * per block is tens of microseconds of work on the audio thread for a picture
+ * eight points wide.
+ */
+void feq_meters_publish_bass_forge(FeqMeters* meters,
+                                   const double* input_db,
+                                   const double* output_db);
+
+/**
+ * The published Forge bands, `FEQ_METER_BASS_FORGE_BANDS` each.
+ * **Control thread.**
+ */
+void feq_meters_read_bass_forge(FeqMeters* meters,
+                                float* out_input_db,
+                                float* out_output_db);
+
+/**
+ * What Bass Punch is applying, in dB of gain. **Audio thread.**
+ *
+ * Gains and not levels, so the resting value is 0 dB. The stage's whole claim
+ * is that the transient and the sustain are shaped independently and that
+ * over a complete note the two average to unity; three numbers on a scrolling
+ * strip are what let that be watched rather than taken on trust.
+ */
+void feq_meters_publish_bass_punch(FeqMeters* meters,
+                                   double transient_db,
+                                   double sustain_db,
+                                   double duck_db);
+
+/**
+ * The published Punch gains. **Control thread.**
+ *
+ * The transient is the window's largest excursion either way and is CLEARED
+ * as it is taken; the sustain and the duck are the latest block's and are not.
+ * Publishing runs at about 94 blocks a second and this is called about 23
+ * times, so three blocks in four go unseen: measured through the real host, a
+ * stored transient read 0.0 dB in every one of 69 frames while the same signal
+ * read every block reached 7.6. The other two are slow envelopes and came
+ * through that same run at 9.0 and 6.0 dB, so they lose nothing by being
+ * sampled and keep the shape a scrolling strip is drawn from.
+ */
+void feq_meters_read_bass_punch(FeqMeters* meters,
+                                float* out_transient_db,
+                                float* out_sustain_db,
+                                float* out_duck_db);
 
 /** The published exciter activity. **Control thread.** */
 void feq_meters_read_exciter(FeqMeters* meters,

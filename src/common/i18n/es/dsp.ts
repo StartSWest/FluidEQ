@@ -30,6 +30,7 @@ const dsp = {
   'dsp.preset.lossyRepair': 'Reparar comprimido',
   'dsp.preset.loud': 'Alto',
   'dsp.preset.broadcast': 'Radiofónico',
+  'dsp.preset.bassPower': 'Potencia de graves',
   'dsp.bypassed': 'Desactivado',
   'dsp.enabled': 'Activado',
 
@@ -346,6 +347,55 @@ const dsp = {
   'dsp.exciter.isolateHint': 'Escucha solo los armónicos que añade esta etapa.',
   'dsp.exciter.isolateOn':
     'Señal directa desactivada: solo oyes lo que esto añade.',
+
+  'dsp.bassForge.title': 'Forja de graves',
+  'dsp.bassForge.description':
+    'Añade una octava real por debajo del bajo para los altavoces que puedan reproducirla, y los armónicos de esa octava para los que no puedan — un altavoz pequeño no radia nada a 45 Hz, pero los armónicos permiten que el oído reconstruya el tono de todos modos. El volumen de los graves no cambia.',
+  'dsp.bassForge.splitHz': 'Corte',
+  'dsp.bassForge.driveDb': 'Intensidad',
+  'dsp.bassForge.subAmount': 'Sub',
+  'dsp.bassForge.presenceAmount': 'Presencia',
+  'dsp.bassForge.texture': 'Textura',
+  'dsp.bassForge.mix': 'Cantidad',
+  'dsp.bassForge.graph.belowSplit': 'Bajo el corte',
+  'dsp.bassForge.graph.aboveSplit': 'Sobre el corte',
+  'dsp.bassForge.monoNote':
+    'El bajo generado se suma a mono. Los graves originales conservan su estéreo.',
+  'dsp.bassForge.unavailable':
+    'La Forja de graves solo funciona en el motor nativo, que ahora mismo no lleva el audio. Esta etapa está omitida.',
+  'dsp.bassForgePreset.subtle': 'Sutil',
+  'dsp.bassForgePreset.deep': 'Profundo',
+  'dsp.bassForgePreset.solid': 'Sólido',
+  'dsp.bassForgePreset.hot': 'Caliente',
+  'dsp.bassForgePreset.round': 'Redondo',
+  'dsp.bassForgePreset.dry': 'Seco',
+  'dsp.bassForgePreset.wet': 'Húmedo',
+  'dsp.bassForgePreset.phantom': 'Fantasma',
+  'dsp.bassForgePreset.dub': 'Dub',
+
+  'dsp.bassPunch.title': 'Pegada de graves',
+  'dsp.bassPunch.description':
+    'Da forma al ataque y a la caída de los graves, no a su timbre. Ataque y sostenimiento son bipolares: por debajo del centro es más ajustado y seco, por encima es más largo y húmedo.',
+  'dsp.bassPunch.splitHz': 'Corte',
+  'dsp.bassPunch.attack': 'Ataque',
+  'dsp.bassPunch.sustain': 'Sostenimiento',
+  'dsp.bassPunch.bloomAmount': 'Florecimiento',
+  'dsp.bassPunch.bloomDecayMs': 'Caída de florecimiento',
+  'dsp.bassPunch.duck': 'Ducking',
+  'dsp.bassPunch.unavailable':
+    'La Pegada de graves solo funciona en el motor nativo, que ahora mismo no lleva el audio. Esta etapa está omitida.',
+  'dsp.bassPunch.meterNote':
+    'El ataque se dibuja con marcas separadas porque cada una es la mayor oscilación dentro de su propia ventana de medida. El sostenimiento y el ducking duran varias ventanas, así que se muestrean y se trazan de forma continua.',
+  'dsp.bassPunch.graph.now': 'ahora',
+  'dsp.bassPunch.graph.perWindow': 'pico por ventana',
+  'dsp.bassPunch.graph.sampled': 'muestreado',
+  'dsp.bassPunchPreset.tight': 'Ajustado',
+  'dsp.bassPunchPreset.open': 'Abierto',
+  'dsp.bassPunchPreset.slam': 'Golpe',
+  'dsp.bassPunchPreset.dry': 'Seco',
+  'dsp.bassPunchPreset.wet': 'Húmedo',
+  'dsp.bassPunchPreset.soft': 'Suave',
+  'dsp.bassPunchPreset.dnb': 'D&B',
 
   'dsp.compressor.title': 'Compresor multibanda',
   'dsp.compressor.description':

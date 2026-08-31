@@ -198,3 +198,36 @@ describe('EQ rack sizes', () => {
     expect(clamped.eq.bands).toHaveLength(EQ_MAX_BAND_COUNT);
   });
 });
+
+describe('bass stages clamp', () => {
+  it('defaults both stages off', () => {
+    expect(DSP_DEFAULTS.bassForge.enabled).toBe(false);
+    expect(DSP_DEFAULTS.bassPunch.enabled).toBe(false);
+  });
+
+  it('pulls out-of-range values back to the dial', () => {
+    const clamped = clampDspSettings({
+      bassForge: { splitHz: 5_000, texture: 4, mix: -2, driveDb: 99 },
+      bassPunch: { attack: 9, sustain: -9, bloomDecayMs: 5, duck: 3 },
+    });
+    expect(clamped.bassForge.splitHz).toBe(200);
+    expect(clamped.bassForge.texture).toBe(1);
+    expect(clamped.bassForge.mix).toBe(0);
+    expect(clamped.bassForge.driveDb).toBe(12);
+    expect(clamped.bassPunch.attack).toBe(1);
+    expect(clamped.bassPunch.sustain).toBe(-1);
+    expect(clamped.bassPunch.bloomDecayMs).toBe(40);
+    expect(clamped.bassPunch.duck).toBe(1);
+  });
+
+  /**
+   * Settings stored before these stages existed must load, and must load with
+   * both stages off. A stage that arrives switched on after an update is a
+   * user's sound changing while they were not looking.
+   */
+  it('loads settings saved before the stages existed', () => {
+    const { bassForge, bassPunch } = clampDspSettings({ eq: DSP_DEFAULTS.eq });
+    expect(bassForge).toEqual(DSP_DEFAULTS.bassForge);
+    expect(bassPunch).toEqual(DSP_DEFAULTS.bassPunch);
+  });
+});

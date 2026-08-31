@@ -30,6 +30,7 @@ const dsp = {
   'dsp.preset.lossyRepair': 'Восстановить сжатое',
   'dsp.preset.loud': 'Громко',
   'dsp.preset.broadcast': 'Эфирный',
+  'dsp.preset.bassPower': 'Мощный бас',
   'dsp.bypassed': 'Обход',
   'dsp.enabled': 'Включено',
 
@@ -345,6 +346,55 @@ const dsp = {
     'Слышать только гармоники, которые добавляет этот блок.',
   'dsp.exciter.isolateOn':
     'Прямой сигнал выключен — слышно только добавленное.',
+
+  'dsp.bassForge.title': 'Кузница баса',
+  'dsp.bassForge.description':
+    'Добавляет настоящую октаву ниже баса для колонок, способных её воспроизвести, и гармоники этой октавы — для тех, что не способны: маленькая колонка ничего не излучает на 45 Гц, но гармоники всё равно позволяют уху восстановить высоту тона. Громкость низких частот при этом не меняется.',
+  'dsp.bassForge.splitHz': 'Раздел',
+  'dsp.bassForge.driveDb': 'Интенсивность',
+  'dsp.bassForge.subAmount': 'Саб',
+  'dsp.bassForge.presenceAmount': 'Пресенс',
+  'dsp.bassForge.texture': 'Текстура',
+  'dsp.bassForge.mix': 'Количество',
+  'dsp.bassForge.graph.belowSplit': 'Ниже раздела',
+  'dsp.bassForge.graph.aboveSplit': 'Выше раздела',
+  'dsp.bassForge.monoNote':
+    'Сгенерированный бас сводится в моно. Исходные низкие частоты сохраняют своё стерео.',
+  'dsp.bassForge.unavailable':
+    'Кузница баса работает только в нативном движке, который сейчас не ведёт звук. Этот этап обойдён.',
+  'dsp.bassForgePreset.subtle': 'Лёгкий',
+  'dsp.bassForgePreset.deep': 'Глубокий',
+  'dsp.bassForgePreset.solid': 'Плотный',
+  'dsp.bassForgePreset.hot': 'Горячий',
+  'dsp.bassForgePreset.round': 'Округлый',
+  'dsp.bassForgePreset.dry': 'Сухой',
+  'dsp.bassForgePreset.wet': 'Влажный',
+  'dsp.bassForgePreset.phantom': 'Фантом',
+  'dsp.bassForgePreset.dub': 'Даб',
+
+  'dsp.bassPunch.title': 'Бас-панч',
+  'dsp.bassPunch.description':
+    'Формирует атаку и спад низких частот, а не их тембр. Атака и сустейн биполярны: ниже центра — плотнее и суше, выше — длиннее и влажнее.',
+  'dsp.bassPunch.splitHz': 'Раздел',
+  'dsp.bassPunch.attack': 'Атака',
+  'dsp.bassPunch.sustain': 'Сустейн',
+  'dsp.bassPunch.bloomAmount': 'Расцвет',
+  'dsp.bassPunch.bloomDecayMs': 'Время расцвета',
+  'dsp.bassPunch.duck': 'Дакинг',
+  'dsp.bassPunch.unavailable':
+    'Бас-панч работает только в нативном движке, который сейчас не ведёт звук. Этот этап обойдён.',
+  'dsp.bassPunch.meterNote':
+    'Атака нарисована отдельными штрихами: каждый из них — наибольший размах внутри собственного окна измерения. Сустейн и дакинг длятся несколько окон, поэтому берутся выборкой и идут непрерывными линиями.',
+  'dsp.bassPunch.graph.now': 'сейчас',
+  'dsp.bassPunch.graph.perWindow': 'пик за окно',
+  'dsp.bassPunch.graph.sampled': 'выборка',
+  'dsp.bassPunchPreset.tight': 'Плотный',
+  'dsp.bassPunchPreset.open': 'Открытый',
+  'dsp.bassPunchPreset.slam': 'Удар',
+  'dsp.bassPunchPreset.dry': 'Сухой',
+  'dsp.bassPunchPreset.wet': 'Влажный',
+  'dsp.bassPunchPreset.soft': 'Мягкий',
+  'dsp.bassPunchPreset.dnb': 'D&B',
 
   'dsp.compressor.title': 'Многополосный компрессор',
   'dsp.compressor.description':

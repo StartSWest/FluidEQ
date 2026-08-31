@@ -20,6 +20,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
  */
 import { FrameReader } from '../../../main/dspHost/transport';
 import {
+  ANALYSIS_BASS_FORGE_BANDS,
   ANALYSIS_BINS,
   ANALYSIS_HEADER_BYTES,
   ANALYSIS_SCOPE_PAIRS,
@@ -31,6 +32,22 @@ import {
   analysisFrameLength,
   decodeAnalysis,
 } from '../../../main/dspHost/wire';
+
+/**
+ * The two bass stages' meters, which sit after every offset above them.
+ *
+ * Forge's eight bands twice — the dry low band and the forged one — because
+ * the graph they feed draws the generated content as the area BETWEEN them,
+ * so one set of levels would say nothing at all. Punch's three are gains in
+ * dB rather than levels, which is why they rest at 0 and not at the floor.
+ */
+interface IAnalysisBass {
+  forgeInputDb: readonly number[];
+  forgeOutputDb: readonly number[];
+  punchTransientDb: number;
+  punchSustainDb: number;
+  punchDuckDb: number;
+}
 
 /** The header fields past the scope, which are all fixed-width. */
 interface IAnalysisTail {
@@ -57,6 +74,7 @@ const buildAnalysis = (options: {
   peaks?: readonly [number, number];
   fill?: (stageIndex: number, bin: number) => number;
   tail?: IAnalysisTail;
+  bass?: IAnalysisBass;
 }): Buffer => {
   const stageMask = options.stages.reduce(
     // The wire field IS a bit mask; the arithmetic spelling is less readable.
@@ -106,6 +124,27 @@ const buildAnalysis = (options: {
     frame.writeFloatLE(tail.normalizerOutputPeaks[0], 104);
     frame.writeFloatLE(tail.normalizerOutputPeaks[1], 108);
     frame.writeFloatLE(tail.normalizerAppliedGainDb, 112);
+  }
+
+  /**
+   * The bass block, written at the offsets it was appended at.
+   *
+   * 320 is where the header ended once Denoise's forty floor bands followed
+   * its six words; these twenty floats start there and nothing above them
+   * moves. They were at 160 until Denoise landed those bands on main and this
+   * branch re-numbered under it — which is what this copy is for: it is a
+   * second, independent statement of the layout, so moving a field in the
+   * decoder alone fails here, and it did.
+   */
+  const { bass } = options;
+  if (bass) {
+    for (let band = 0; band < bass.forgeInputDb.length; band += 1) {
+      frame.writeFloatLE(bass.forgeInputDb[band], 320 + band * 4);
+      frame.writeFloatLE(bass.forgeOutputDb[band], 352 + band * 4);
+    }
+    frame.writeFloatLE(bass.punchTransientDb, 384);
+    frame.writeFloatLE(bass.punchSustainDb, 388);
+    frame.writeFloatLE(bass.punchDuckDb, 392);
   }
 
   let at = ANALYSIS_HEADER_BYTES;
@@ -445,5 +484,105 @@ describe('the Master, Normalizer and Dimension fields', () => {
 
     frame.writeUInt32LE(1, 88);
     expect(decodeAnalysis(frame)?.master.truePeakFactor).toBe(1);
+  });
+});
+
+/**
+ * The two bass stages, appended after every offset that already existed.
+ *
+ * Twenty floats is the largest single block ever added to this header, and the
+ * one most likely to be got wrong: sixteen of them are the same kind of number
+ * in two runs of eight, so a decoder reading the input run twice, or starting
+ * the output run four bytes early, produces a graph that looks entirely
+ * plausible and is showing the dry band against itself.
+ *
+ * So every band carries a distinct value and the two runs are given different
+ * slopes, and the assertions name individual bands rather than the arrays.
+ */
+describe('the Bass Forge and Bass Punch meters', () => {
+  const bass = {
+    // Descending, so band 0 is the loudest.
+    forgeInputDb: [-20, -21, -22, -23, -24, -25, -26, -27] as const,
+    // Ascending against it, so a run read at the wrong offset cannot pass.
+    forgeOutputDb: [-25, -24, -23, -22, -21, -20, -19, -18] as const,
+    punchTransientDb: 3.5,
+    punchSustainDb: -1.25,
+    punchDuckDb: -4,
+  };
+
+  it('reads back every band of both runs, and the three punch gains', () => {
+    const decoded = decodeAnalysis(
+      buildAnalysis({ stages: ['eq'], withScope: false, bass }),
+    );
+
+    expect(decoded?.bassForge.inputDb).toHaveLength(ANALYSIS_BASS_FORGE_BANDS);
+    expect(decoded?.bassForge.outputDb).toHaveLength(ANALYSIS_BASS_FORGE_BANDS);
+    expect(decoded?.bassForge.inputDb[0]).toBeCloseTo(-20, 6);
+    expect(decoded?.bassForge.inputDb[7]).toBeCloseTo(-27, 6);
+    expect(decoded?.bassForge.outputDb[0]).toBeCloseTo(-25, 6);
+    expect(decoded?.bassForge.outputDb[7]).toBeCloseTo(-18, 6);
+    expect(decoded?.bassPunch.transientGainDb).toBeCloseTo(3.5, 6);
+    expect(decoded?.bassPunch.sustainGainDb).toBeCloseTo(-1.25, 6);
+    expect(decoded?.bassPunch.duckGainDb).toBeCloseTo(-4, 6);
+  });
+
+  /**
+   * The whole reason these went at the end: nothing above them may move.
+   *
+   * A field inserted rather than appended still decodes — they are all floats
+   * — and the only symptom is a readout four bytes out, which is a number that
+   * is wrong and entirely believable. `dimensionGuard` at 60 and the
+   * Normalizer's gain at 112 are the two nearest neighbours worth naming.
+   */
+  it('moves no offset that was already decoded', () => {
+    const decoded = decodeAnalysis(
+      buildAnalysis({
+        stages: ['eq'],
+        withScope: false,
+        bass,
+        tail: {
+          dimensionGuard: 0.5,
+          autoHeadroomReductionDb: -6.5,
+          autoHeadroomTruePeakDb: -1.25,
+          safetyReductionDb: -0.75,
+          safetyTruePeakDb: -0.25,
+          dcCorrectionDb: -54,
+          repairedSamples: 7,
+          truePeakFactor: 2,
+          safetyEnabled: false,
+          normalizerInputPeaks: [0.375, 0.4375],
+          normalizerOutputPeaks: [0.625, 0.6875],
+          normalizerAppliedGainDb: 4.5,
+        },
+      }),
+    );
+
+    expect(decoded?.dimensionGuard).toBeCloseTo(0.5, 6);
+    expect(decoded?.normalizer.appliedGainDb).toBeCloseTo(4.5, 6);
+    expect(decoded?.denoise.reductionDb).toBeCloseTo(0, 6);
+    expect(decoded?.bassForge.inputDb[0]).toBeCloseTo(-20, 6);
+  });
+
+  /**
+   * And the payload still starts where the header ends.
+   *
+   * A header grown on one side only writes a frame longer than its own fields
+   * describe, and `decodeAnalysis` refuses it — so the proof that this block
+   * was counted into `ANALYSIS_HEADER_BYTES` is that a full payload still
+   * decodes with the bass values intact behind it.
+   */
+  it('sits in front of a full payload without being overwritten', () => {
+    const decoded = decodeAnalysis(
+      buildAnalysis({
+        stages: [...ANALYSIS_STAGES],
+        withScope: true,
+        fill: () => -12,
+        bass,
+      }),
+    );
+
+    expect(decoded?.spectra.eq?.[0]).toBeCloseTo(-12, 6);
+    expect(decoded?.bassForge.outputDb[3]).toBeCloseTo(-22, 6);
+    expect(decoded?.bassPunch.duckGainDb).toBeCloseTo(-4, 6);
   });
 });

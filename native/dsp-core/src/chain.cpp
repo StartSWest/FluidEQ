@@ -144,6 +144,13 @@ void feq_chain_settings_defaults(FeqChainSettings* settings) {
     band.release_ms = 120.0;
     band.makeup_db = 0.0;
   }
+  // Both bass stages off, and every generator at rest under that. A decoder
+  // that failed halfway leaves these, so the resting values have to be the
+  // bit-exact bypass rather than a pleasant-sounding starting point.
+  settings->bass_forge.split_hz = 90.0;
+  settings->bass_forge.texture = 0.8;
+  settings->bass_punch.split_hz = 110.0;
+  settings->bass_punch.bloom_decay_ms = 120.0;
   settings->maximizer.ceiling_db = -0.1;
   settings->maximizer.look_ahead_ms = 5.0;
   settings->maximizer.release_ms = 150.0;
@@ -203,6 +210,26 @@ FeqChain* feq_chain_create(double sample_rate,
   for (uint32_t path = 0; path < kExciterPaths; ++path) {
     chain_prepare_exciter_path(chain, path);
   }
+
+  /**
+   * Two channels of the largest block each, because both stages work on a low
+   * band they split off and hand back, and neither may allocate to do it.
+   */
+  const size_t stereo_block = static_cast<size_t>(frames) * 2;
+  chain->bass_forge_low.assign(stereo_block, 0.0f);
+  chain->bass_forge_scratch.assign(stereo_block, 0.0f);
+  feq_bass_forge_init(&chain->bass_forge, chain->bass_forge_low.data(),
+                      chain->bass_forge_scratch.data());
+
+  const uint32_t bloom_capacity = feq_bass_punch_bloom_capacity(sample_rate);
+  chain->bass_punch_low.assign(stereo_block, 0.0f);
+  chain->bass_punch_bloom_pointers.assign(FEQ_BASS_PUNCH_BLOOM_LINES, nullptr);
+  for (uint32_t at = 0; at < FEQ_BASS_PUNCH_BLOOM_LINES; ++at) {
+    chain->bass_punch_bloom[at].assign(bloom_capacity, 0.0f);
+    chain->bass_punch_bloom_pointers[at] = chain->bass_punch_bloom[at].data();
+  }
+  feq_bass_punch_init(&chain->bass_punch, chain->bass_punch_low.data(),
+                      chain->bass_punch_bloom_pointers.data(), bloom_capacity);
 
   const uint32_t dimension_capacity =
       feq_dimension_allpass_capacity(sample_rate);
@@ -429,6 +456,11 @@ void feq_chain_reset(FeqChain* chain, FeqChainResetReason reason) {
     feq_compressor_reset(&compressor);
   }
   feq_linked_limiter_reset_control(&chain->maximizer);
+  // A seek or a new source must not arrive with the previous passage's bloom
+  // tail still decaying under it, which is what these two hold that no filter
+  // history above does.
+  feq_bass_forge_reset(&chain->bass_forge);
+  feq_bass_punch_reset(&chain->bass_punch);
 
   if (reason != FEQ_CHAIN_RESET_SEEK) {
     /**
@@ -516,14 +548,49 @@ void feq_chain_process(FeqChain* chain, float* const* channels,
   feq_meters_capture(chain->meters, FEQ_METER_STAGE_DENOISE, channels, frames);
 
   chain_process_exciter(chain, channels, frames);
-  // Tapped where the visible chain draws its boundary, not where it is
-  // convenient: the exciter graph is showing what the exciter did, so it has to
-  // be read before the EQ has had a turn at the same buffer.
+  /**
+   * Tapped where the visible chain draws its boundary, not where it is
+   * convenient: the exciter graph is showing what the exciter did, so it has
+   * to be read before anything else has had a turn at the same buffer.
+   *
+   * This sat four lines lower for as long as Bass Forge has been in the
+   * chain, which put a second generator between the stage and its own meter:
+   * with Forge switched on the Exciter graph was drawing Forge's output, and
+   * the two stages are hard to tell apart on a spectrum precisely because
+   * both of them add harmonics to material that did not have them. Forge has
+   * its own eight-band meter below and does not need a spectrum tap.
+   */
   feq_meters_capture(chain->meters, FEQ_METER_STAGE_EXCITER, channels, frames);
   // And what its three bands and the organic stage contributed, which the
   // spectrum cannot show: a nonlinear stage has no transfer curve to draw.
   feq_meters_publish_exciter(chain->meters, chain->exciter_band_report,
                              chain->exciter_organic_report);
+
+  /**
+   * Forge after the Exciter because both of them generate.
+   *
+   * They are the chain's two synthesis stages and they sit together, ahead of
+   * the EQ, so the EQ is shaping everything that will be heard rather than
+   * everything except what the two of them just made.
+   */
+  chain_process_bass_forge(chain, channels, frames);
+  /**
+   * The dry low band against the forged one, which no spectrum can separate.
+   *
+   * Both runs come off band-pass followers the stage already ran during the
+   * block, so this is a copy of sixteen doubles rather than a measurement.
+   * Published unconditionally: `chain_process_bass_forge` resets the stage on
+   * every block it is switched off for, which drives both runs to the -120
+   * floor — an honest "not running" rather than a minute-old reading held on
+   * screen.
+   */
+  if (chain->meters != nullptr) {
+    double forge_input_db[FEQ_BASS_FORGE_BANDS];
+    double forge_output_db[FEQ_BASS_FORGE_BANDS];
+    feq_bass_forge_bands(&chain->bass_forge, forge_input_db, forge_output_db);
+    feq_meters_publish_bass_forge(chain->meters, forge_input_db,
+                                  forge_output_db);
+  }
 
   chain_process_eq(chain, channels, frames);
   feq_meters_capture(chain->meters, FEQ_METER_STAGE_EQ, channels, frames);
@@ -561,6 +628,29 @@ void feq_chain_process(FeqChain* chain, float* const* channels,
                                   ? bands
                                   : FEQ_METER_MAX_BANDS));
   }
+
+  /**
+   * Punch after the EQ and before the compressor: shaped, then controlled.
+   *
+   * A transient this stage has sharpened is something the compressor then gets
+   * to decide about. The other order hands the compressor's low band an
+   * envelope that has already been squashed, and Punch spends its range
+   * rebuilding an attack that was just taken away.
+   */
+  chain_process_bass_punch(chain, channels, frames);
+  /**
+   * Three gains, which are the only evidence the stage is doing what it says.
+   *
+   * Its claim is that the leading edge and the tail are shaped independently
+   * and that over a complete note the two followers converge, so the gain
+   * averages to unity. A dial position cannot show either. Published every
+   * block for the same reason Forge's bands are: `chain_process_bass_punch`
+   * resets the stage while it is off, which puts all three at 0 dB.
+   */
+  feq_meters_publish_bass_punch(chain->meters,
+                                feq_bass_punch_transient_db(&chain->bass_punch),
+                                feq_bass_punch_sustain_db(&chain->bass_punch),
+                                feq_bass_punch_duck_db(&chain->bass_punch));
 
   /**
    * Width before the dynamics, and that position is forced rather than chosen.
