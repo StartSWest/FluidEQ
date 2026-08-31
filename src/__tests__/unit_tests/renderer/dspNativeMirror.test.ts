@@ -443,6 +443,90 @@ describe('the native mirror', () => {
   });
 
   /**
+   * The whole sequence that silenced the engine, because no smaller one does.
+   *
+   * Reported as: play from the library, go to Karaoke, come back to the
+   * library — and the native engine is heard no more, with the deck loaded and
+   * selected and nothing throwing anywhere.
+   *
+   * `playing` is what `sync` compares against to decide whether to send a
+   * transport command. Set only on the branch that started playback, it
+   * survived as true across a cue that never played, and then agreed with the
+   * `isPlaying` that arrived a moment later — so no play was ever sent.
+   *
+   * Every step matters. The second cue has to arrive with `isPlaying` false,
+   * which is what really happens: the track changes on the render before the
+   * element fires `play`. Collapse that and the test passes against the bug.
+   */
+  it('plays a track cued after an unload, once the element starts', async () => {
+    const { controller, calls } = controllerSpy();
+    const element = fakeElement();
+    const mirror = createNativeMirror(controller, [element]);
+
+    // Playing from the library.
+    mirror.sync({
+      mediaPath: 'C:/music/one.wav',
+      isPlaying: true,
+      positionMs: 0,
+      volume: 1,
+    });
+    await settle();
+
+    // Karaoke takes over: the library has no track, so the deck is emptied.
+    mirror.sync({
+      mediaPath: undefined,
+      isPlaying: false,
+      positionMs: 0,
+      volume: 1,
+    });
+    await settle();
+    calls.length = 0;
+
+    // Back to the library. The track is set a render before the element has
+    // fired `play`, so this cue is not yet playing.
+    mirror.sync({
+      mediaPath: 'C:/music/two.wav',
+      isPlaying: false,
+      positionMs: 0,
+      volume: 1,
+    });
+    await settle();
+
+    // And now the element starts, which is the tick that has to reach the host.
+    mirror.sync({
+      mediaPath: 'C:/music/two.wav',
+      isPlaying: true,
+      positionMs: 0,
+      volume: 1,
+    });
+    await settle();
+
+    expect(calls).toContain('play');
+  });
+
+  /**
+   * The positive control for the test above: the same run, asserted on the
+   * host rather than on the flag, so "it sent play" cannot be satisfied by a
+   * mirror that sends play at every opportunity.
+   */
+  it('does not play a deck cued while the player is paused', async () => {
+    const { controller, calls } = controllerSpy();
+    const element = fakeElement();
+    const mirror = createNativeMirror(controller, [element]);
+
+    mirror.sync({
+      mediaPath: 'C:/music/one.wav',
+      isPlaying: false,
+      positionMs: 0,
+      volume: 1,
+    });
+    await settle();
+
+    expect(calls).not.toContain('play');
+    expect(calls).toContain('pause');
+  });
+
+  /**
    * A format the native decoder cannot read yet — every compressed one, today.
    *
    * The element is still playing it, muted. Sitting there in silence while
