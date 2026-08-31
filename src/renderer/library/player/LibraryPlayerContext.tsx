@@ -40,7 +40,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import {
   createContext,
   ReactNode,
-  useCallback,
   useContext,
   useEffect,
   useMemo,
@@ -71,6 +70,7 @@ import { useSessionMemory } from './useSessionMemory';
 import { useTrackAnalysis } from './useTrackAnalysis';
 import { useTransportControls } from './useTransportControls';
 import { useUpNext } from './useUpNext';
+import { useVideoElement } from './useVideoElement';
 import { useTrackEnd } from './useTrackEnd';
 import { useTrackLoader } from './useTrackLoader';
 
@@ -417,24 +417,6 @@ export const LibraryPlayerProvider = ({
     pendingRestore,
     isRestoringRef,
   });
-  // Gated on `isPlayable` too: an mkv or avi is `kind === 'video'` exactly
-  // like an mp4, but Chromium has no demuxer for it. Without this check
-  // `LibraryVideoStage` would still mount a `<video src=...>` for a file it
-  // cannot decode — a black box with a broken-media icon on the Library tab
-  // — while the bar's own `isUnplayable` message is the only honest answer
-  // this case has. Leaving it unset keeps the stage closed and routes
-  // nothing anywhere, matching the audio branch below exactly.
-  const videoTrackId =
-    track?.kind === 'video' && track.isPlayable ? track.id : undefined;
-
-  /** The element every transport command reaches right now. */
-  const activeElement = useCallback(
-    (): HTMLMediaElement | undefined =>
-      videoTrackId
-        ? (videoElementRef.current ?? undefined)
-        : audioElementRef.current,
-    [videoTrackId],
-  );
   /**
    * A track running out — what to do about it, when the host says it has,
    * and when to start an overlap before it does. See `useTrackEnd`.
@@ -475,6 +457,21 @@ export const LibraryPlayerProvider = ({
     setIsUnplayable,
   });
 
+  /**
+   * Video is drawn by `LibraryVideoStage`, which owns a real element; the
+   * player redirects transport at it while a video is current. See
+   * `useVideoElement`.
+   */
+  const { videoTrackId, registerVideoElement, activeElement } = useVideoElement(
+    {
+      track,
+      videoElementRef,
+      audioElementRef,
+      volumeRef,
+      bindMediaEvents,
+    },
+  );
+
   // Bound once to both decks. Only the active deck writes transport state;
   // the outgoing deck stays audible during overlap without fighting the UI.
   useEffect(() => {
@@ -493,40 +490,6 @@ export const LibraryPlayerProvider = ({
         videoElementRef.current?.pause();
       }),
     [audioElements],
-  );
-
-  const registerVideoElement = useCallback(
-    (element: HTMLVideoElement | null): (() => void) => {
-      videoElementRef.current = element;
-      if (!element) {
-        return () => undefined;
-      }
-      element.volume = volumeRef.current;
-      const unbind = bindMediaEvents(element);
-      return () => {
-        unbind();
-        // `LibraryVideoStage` unmounts the instant `videoTrackId` goes
-        // undefined — the queue moved to an audio track, or off the end —
-        // and this cleanup is what runs at that exact moment. It has to stop
-        // the video itself rather than trust the unmount to: React tears
-        // this element out of the DOM, but nothing about removing a node
-        // stops whatever it was doing, and the `[trackId]` effect below
-        // starts `audio.play()` in the very same commit. `pause()` is
-        // synchronous and this cleanup is guaranteed to run before any new
-        // effect fires this commit (React runs every destroy function across
-        // the tree before any create function), so the two can never
-        // overlap. `removeAttribute('src')` on top of `pause()` — matching
-        // exactly how the audio element itself is released a few lines
-        // down — because a paused-but-loaded video keeps its buffer and its
-        // decoder alive; only clearing the source lets both go.
-        element.pause();
-        element.removeAttribute('src');
-        if (videoElementRef.current === element) {
-          videoElementRef.current = null;
-        }
-      };
-    },
-    [bindMediaEvents],
   );
 
   /**
