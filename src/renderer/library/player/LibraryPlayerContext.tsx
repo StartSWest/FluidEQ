@@ -754,6 +754,31 @@ export const LibraryPlayerProvider = ({
   const elementTrackRef = useRef(new Map<HTMLMediaElement, string>());
 
   /**
+   * Decks holding a track that has just been loaded and must start at zero.
+   *
+   * A song reached by switching away and back was starting part-way in, and
+   * every explanation for it was ruled out one at a time by measurement: the
+   * crossfade lead-in trim never runs with crossfade off, the blob swap costs
+   * 26ms, the fade-in is 80ms, and the element reports `currentTime` 0 when it
+   * begins. Stopping a song and playing it again is fine and switching away
+   * and back is not, which puts the write on the loader path — it is keyed on
+   * the track id, so stop-and-play never re-runs it.
+   *
+   * Rather than keep hunting the writer, the load states the position it
+   * wants. A track that has just been loaded plays from its beginning; that is
+   * true of every path except the two that deliberately ask for somewhere
+   * else, and both of those clear this first.
+   *
+   * Applied when metadata arrives rather than beside the `src` assignment, and
+   * that ordering is not a detail — the comment above `audio.src` has the
+   * measurements: seeking an element still at `HAVE_NOTHING` records the seek
+   * against a resource whose ranges are unknown, and `seekable` then comes
+   * back empty and STAYS empty, so every later seek is silently refused. That
+   * is the disabled seek bar this file has already been through once.
+   */
+  const freshLoadRef = useRef(new Set<HTMLMediaElement>());
+
+  /**
    * Where the music stops in whatever each deck is playing.
    *
    * Keyed by element rather than by track id so it holds two entries and not
@@ -1063,8 +1088,27 @@ export const LibraryPlayerProvider = ({
           elementTrackRef.current.get(element) === restore.trackId
         ) {
           pendingRestore.current = undefined;
+          // The restore is the position this load wants, so the reset below
+          // must not then argue with it.
+          freshLoadRef.current.delete(element);
           element.currentTime = restore.positionMs / 1000;
           setPositionMs(restore.positionMs);
+        } else if (freshLoadRef.current.delete(element)) {
+          /**
+           * A newly loaded track starts at its beginning. Stated, not assumed.
+           *
+           * Only when something is actually there to correct: assigning zero
+           * to an element already at zero makes the decoder re-sync for
+           * nothing, which is audible as a tick at the top of every song.
+           *
+           * The crossfade's lead-in trim is the one caller that wants a fresh
+           * load to begin somewhere else, and it seeks from `play()`'s
+           * continuation — after this — so it still wins.
+           */
+          if (element.currentTime > 0) {
+            element.currentTime = 0;
+            setPositionMs(0);
+          }
         }
       };
       // The element is the authority on when sound actually starts, so the
@@ -1251,6 +1295,9 @@ export const LibraryPlayerProvider = ({
     // Tagged here, before either element can tick again, so the outgoing one
     // stops answering for a track it is no longer playing.
     elementTrackRef.current.set(audio, track.id);
+    // Whatever this deck was doing, it is playing something new now, and
+    // something new starts at the start. Consumed once, at metadata.
+    freshLoadRef.current.add(audio);
     // Deleted first, and unconditionally: a deck that is handed an unmeasured
     // track must fall back to its duration rather than keep answering with
     // the previous song's ending.
@@ -1487,8 +1534,46 @@ export const LibraryPlayerProvider = ({
       pendingRestore.current = undefined;
       audio.preload = 'auto';
       audio.volume = 0;
-      audio
-        .play()
+      /**
+       * Nothing is heard until the element knows what it is holding.
+       *
+       * `play()` used to be called on the same tick as the `src` assignment,
+       * so a deck could be producing sound while still at `HAVE_NOTHING` —
+       * with no duration, no seekable range, and a `currentTime` that still
+       * reads out of the source it has not finished replacing. Every write
+       * that lands in that window lands on audio the listener is already
+       * hearing, which is why a song switched away from and back to could
+       * begin part-way in.
+       *
+       * Waiting costs nothing audible: the element has to reach
+       * `loadedmetadata` before it can render a sample anyway. It only moves
+       * the app's decisions to the far side of that line.
+       *
+       * `error` resolves it too. A file that will never produce metadata must
+       * still reach `play()`, because its rejection is what raises the
+       * unplayable notice — a silent deck waiting forever would be the worse
+       * failure, and it is the one this file has already shipped once.
+       *
+       * Those two events are the whole condition — there is no deadline here
+       * on purpose. A timer would be guessing at how long a disk is allowed to
+       * take, and it would guess wrong on the machine that needed it most. An
+       * element that has neither announced itself nor failed is still reading,
+       * and playing before it can render a sample buys nothing.
+       */
+      const metadataReady =
+        audio.readyState >= HTMLMediaElement.HAVE_METADATA
+          ? Promise.resolve()
+          : new Promise<void>((resolve) => {
+              const settle = () => {
+                audio.removeEventListener('loadedmetadata', settle);
+                audio.removeEventListener('error', settle);
+                resolve();
+              };
+              audio.addEventListener('loadedmetadata', settle);
+              audio.addEventListener('error', settle);
+            });
+      metadataReady
+        .then(() => (cancelled ? undefined : audio.play()))
         .then(() => {
           if (!cancelled) {
             playbackAccepted = true;

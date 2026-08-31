@@ -431,6 +431,12 @@ describe('crossfade transport ownership', () => {
         latestPlayer?.skip(1);
       });
       expect(latestPlayer?.track?.id).toBe(secondAudioTrack.id);
+      // A deck holds until its source announces itself, which jsdom never does
+      // on its own. A real element fires this before it can render a sample.
+      await act(async () => {
+        incoming.dispatchEvent(new Event('loadedmetadata'));
+        await Promise.resolve();
+      });
       expect(mediaPlay.mock.instances).toContain(incoming);
 
       await act(async () => {
@@ -638,6 +644,10 @@ describe('crossfade transport ownership', () => {
         latestPlayer?.skip(1);
       });
       await act(async () => {
+        // A deck holds until its source announces itself; jsdom never does.
+        createdAudio.forEach((element) => {
+          element.dispatchEvent(new Event('loadedmetadata'));
+        });
         await Promise.resolve();
       });
 
