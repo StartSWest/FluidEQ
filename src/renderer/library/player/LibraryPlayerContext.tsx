@@ -54,7 +54,6 @@ import {
   currentTrackId,
   ILibraryQueue,
   queueAtEnd,
-  setShuffle as setQueueShuffle,
 } from '../../../common/library/queue';
 import { libraryMediaUrl } from '../../../common/library/mediaUrl';
 import {
@@ -122,11 +121,11 @@ import {
   PREVIOUS_RESTART_THRESHOLD_MS,
   TRACK_FADE_IN_MS,
   clampVolume,
-  nextRepeat,
   normalizationChanged,
 } from './playerContract';
 import { useDeckAudio } from './useDeckAudio';
 import { useMediaEvents } from './useMediaEvents';
+import { useQueueControls } from './useQueueControls';
 
 // Re-exported so every existing importer keeps working: the contract moved,
 // the module that serves it did not.
@@ -1950,132 +1949,25 @@ export const LibraryPlayerProvider = ({
         } => entry.trackId !== undefined,
       );
   }, [addedIds, continuedIds, queue]);
-
-  const jumpToQueuePosition = useCallback((position: number) => {
-    setQueue((current) =>
-      !current || position < 0 || position >= current.order.length
-        ? current
-        : { ...current, position },
-    );
-  }, []);
-
-  const appendToQueue = useCallback(
-    (trackIds: readonly string[]) => {
-      const [first] = trackIds;
-      if (first === undefined) {
-        return;
-      }
-      if (!queueRef.current) {
-        playTracks(trackIds, first);
-        return;
-      }
-      setAddedIds((current) => {
-        const next = new Set(current);
-        trackIds.forEach((id) => next.add(id));
-        return next;
-      });
-      setQueue((current) => {
-        if (!current) {
-          return current;
-        }
-        // PROMOTED, NOT COPIED.
-        //
-        // Pressing play on a record makes it the context, so the whole thing
-        // is already sitting ahead of the playhead under "then". Choosing
-        // "add to up next" on that same record afterwards used to append a
-        // second copy of every track, and the panel then listed the album
-        // twice — once as what happens to be coming, once as a decision.
-        //
-        // It is one decision. A track already queued ahead is MOVED into the
-        // picks run rather than duplicated; only a track that is not there at
-        // all is a genuinely new entry. Do the same on a second album and both
-        // sit in the picks, in the order they were chosen, which is what
-        // building a list for the evening actually looks like.
-        //
-        // AFTER WHAT WAS PICKED BEFORE THEM, never on top of it: the run of
-        // hand-picked entries following the playhead is where these join, and
-        // the playhead itself when there is no such run yet. `addedIdsRef` is
-        // read rather than the set being written above, because that write
-        // has not landed and the end of the OLD run is the insertion point.
-        const nextTrackIds = [...current.trackIds];
-        const order = [...current.order];
-        let insertAt = current.position + 1;
-        while (insertAt < order.length) {
-          const id = nextTrackIds[order[insertAt] ?? -1];
-          if (id === undefined || !addedIdsRef.current.has(id)) {
-            break;
-          }
-          insertAt += 1;
-        }
-        const moved = trackIds.map((id) => {
-          // An occurrence beyond the picks run — the context copy. Anything
-          // inside the run is already a pick and is left where it stands.
-          const at = order.findIndex(
-            (trackIndex, position) =>
-              position >= insertAt && nextTrackIds[trackIndex] === id,
-          );
-          if (at !== -1) {
-            const [entry] = order.splice(at, 1);
-            return entry ?? -1;
-          }
-          nextTrackIds.push(id);
-          return nextTrackIds.length - 1;
-        });
-        order.splice(insertAt, 0, ...moved.filter((entry) => entry >= 0));
-        return { ...current, trackIds: nextTrackIds, order };
-      });
-    },
-    [playTracks],
-  );
-
   /**
-   * Out of the run, by place rather than by name.
-   *
-   * `order` alone is edited and `trackIds` is left as it is: the same song
-   * can sit in this list several times, so the id says nothing about WHICH
-   * entry was meant, and an unreferenced id costs a string.
+   * Rearranging what is coming, none of which can make a sound. See
+   * `useQueueControls` for why that is a boundary rather than a filing
+   * decision.
    */
-  const removeUpNextAt = useCallback((position: number) => {
-    setQueue((current) => {
-      if (
-        !current ||
-        position <= current.position ||
-        position >= current.order.length
-      ) {
-        return current;
-      }
-      const order = [...current.order];
-      order.splice(position, 1);
-      return { ...current, order };
-    });
-  }, []);
-
-  const moveUpNext = useCallback((from: number, to: number) => {
-    setQueue((current) => {
-      if (
-        !current ||
-        from <= current.position ||
-        from >= current.order.length ||
-        from === to
-      ) {
-        return current;
-      }
-      const order = [...current.order];
-      const [moved] = order.splice(from, 1);
-      if (moved === undefined) {
-        return current;
-      }
-      // After the splice everything past `from` has shifted down one, so a
-      // target that was below it is now one place nearer.
-      const shifted = to > from ? to - 1 : to;
-      order.splice(
-        Math.min(Math.max(current.position + 1, shifted), order.length),
-        0,
-        moved,
-      );
-      return { ...current, order };
-    });
-  }, []);
+  const {
+    jumpToQueuePosition,
+    appendToQueue,
+    removeUpNextAt,
+    moveUpNext,
+    setShuffle,
+    cycleRepeat,
+  } = useQueueControls({
+    setQueue,
+    queueRef,
+    addedIdsRef,
+    setAddedIds,
+    playTracks,
+  });
 
   const skip = useCallback(
     (direction: 1 | -1) => {
@@ -2126,18 +2018,6 @@ export const LibraryPlayerProvider = ({
     },
     [activeElement, startSeekFade],
   );
-
-  const setShuffle = useCallback((isShuffled: boolean) => {
-    setQueue((current) =>
-      current ? setQueueShuffle(current, isShuffled) : current,
-    );
-  }, []);
-
-  const cycleRepeat = useCallback(() => {
-    setQueue((current) =>
-      current ? { ...current, repeat: nextRepeat(current.repeat) } : current,
-    );
-  }, []);
 
   /**
    * Move the fader. Audible immediately, not written to disk.
