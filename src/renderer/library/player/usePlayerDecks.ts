@@ -21,13 +21,24 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * Both of the properties set here are set BEFORE any `src`, and both for
  * reasons that are invisible afterwards. See each one.
  */
-import { useRef } from 'react';
+import { MutableRefObject, useEffect, useRef } from 'react';
 import { readStoredVolume } from './playbackMemory';
 
-export const usePlayerDecks = (): readonly [
-  HTMLAudioElement,
-  HTMLAudioElement,
-] => {
+export interface IPlayerDecks {
+  audioElements: readonly [HTMLAudioElement, HTMLAudioElement];
+  /**
+   * The fader, readable from listeners bound once for the life of a deck.
+   *
+   * Kept here because this is what owns the elements it has to reach: the
+   * level belongs to the deck, not to the render that moved the slider.
+   */
+  volumeRef: MutableRefObject<number>;
+}
+
+export const usePlayerDecks = (
+  volume: number,
+  videoElementRef: MutableRefObject<HTMLVideoElement | null>,
+): IPlayerDecks => {
   // Two stable, hidden decks make a real overlap possible. Replacing one
   // element's source cannot crossfade: the old decoder is already gone by the
   // time the new source starts.
@@ -61,5 +72,22 @@ export const usePlayerDecks = (): readonly [
   }
   const audioElements = audioElementsRef.current;
 
-  return audioElements;
+  /**
+   * Every deck follows the fader, including the video the stage registered.
+   *
+   * On the elements rather than in the DSP chain, so the level is right even
+   * when the graph has fallen back to direct output.
+   */
+  const volumeRef = useRef(volume);
+  useEffect(() => {
+    volumeRef.current = volume;
+    audioElements.forEach((audio) => {
+      audio.volume = volume;
+    });
+    if (videoElementRef.current) {
+      videoElementRef.current.volume = volume;
+    }
+  }, [audioElements, volume, videoElementRef]);
+
+  return { audioElements, volumeRef };
 };

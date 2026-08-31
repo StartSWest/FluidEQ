@@ -34,6 +34,16 @@ import {
   writePlaybackMemory,
 } from './playbackMemory';
 
+export interface ISessionMemory {
+  /**
+   * Where the last session left off, offered to the loader rather than
+   * applied here — see the ref's own comment.
+   */
+  pendingRestore: MutableRefObject<
+    { trackId: string; positionMs: number } | undefined
+  >;
+}
+
 export const useSessionMemory = (options: {
   queue: ILibraryQueue | undefined;
   queueRef: MutableRefObject<ILibraryQueue | undefined>;
@@ -43,13 +53,7 @@ export const useSessionMemory = (options: {
   libraryTracks: readonly ILibraryTrack[];
   setQueue: Dispatch<SetStateAction<ILibraryQueue | undefined>>;
   setPositionMs: (value: number) => void;
-  /** Offered to the loader rather than applied here. See above. */
-  pendingRestore: MutableRefObject<
-    { trackId: string; positionMs: number } | undefined
-  >;
-  /** True until the stored queue has been put back, so nothing saves over it. */
-  isRestoringRef: MutableRefObject<boolean>;
-}): void => {
+}): ISessionMemory => {
   const {
     queue,
     queueRef,
@@ -58,9 +62,25 @@ export const useSessionMemory = (options: {
     libraryTracks,
     setQueue,
     setPositionMs,
-    pendingRestore,
-    isRestoringRef,
   } = options;
+
+  /**
+   * Where the last session left off, waiting for the element to be ready for
+   * it.
+   *
+   * Applied on `loadedmetadata`, never at load time — assigning a position
+   * while the element is still at `HAVE_NOTHING` is exactly what emptied the
+   * seekable range and broke seeking for the whole of that load; see the
+   * loader's own comment. Cleared as soon as it is used, so it can only ever
+   * move the playhead once.
+   */
+  const pendingRestore = useRef<
+    { trackId: string; positionMs: number } | undefined
+  >(undefined);
+  /** True until the stored session has been read back. Nothing is written
+   * before that, or the first render's empty queue would erase the very
+   * thing being restored. */
+  const isRestoringRef = useRef(true);
 
   /**
    * Puts the last session's queue and playhead back, once.
@@ -164,4 +184,6 @@ export const useSessionMemory = (options: {
     // Refs, spelled out because the rule cannot see they are stable through a
     // hook boundary.
   }, [isRestoringRef, queueRef]);
+
+  return { pendingRestore };
 };

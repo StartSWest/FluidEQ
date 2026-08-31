@@ -17,16 +17,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 /**
- * The thing that actually makes sound, held above the tab switch.
+ * The player, held above the tab switch: its state, and the wiring between the
+ * hooks that do the work.
  *
- * The audio element is built with `new Audio()` in a ref, never rendered as
- * JSX. `LibraryWorkspace` — and everything under it — is hidden rather than
- * unmounted while another tab is open (see `App.tsx`'s comment above
- * `hasOpenedLibrary`), but a *rendered* `<audio>` would still be at the mercy
- * of React reconciling this component's tree: a key change, a conditional
- * branch taken differently, anything that makes React decide to tear down
- * and rebuild the element silently stops the music. An object living only in
- * a ref has no such risk — nothing about it is wired to the DOM at all.
+ * Nearly everything that used to be here now lives beside it — the decks, the
+ * loader, the analysis, the queue, the transport, the session, the native
+ * engine — and each says what it is for at the top of its own file. What is
+ * left is the state those parts share, the order they have to run in, and the
+ * value the rest of the app reads.
  *
  * Deliberately NOT wired to `mediaKeys.ts` / `TitlebarMediaTransport`. That
  * transport presses a Windows virtual key for whatever application is
@@ -91,9 +89,17 @@ export const LibraryPlayerProvider = ({
     () => new Map(index.tracks.map((t) => [t.id, t])),
     [index.tracks],
   );
-  // Two hidden decks, built once. See `usePlayerDecks` for why they are not
-  // rendered and why their properties are set before any source is.
-  const audioElements = usePlayerDecks();
+  // Non-null while `LibraryVideoStage` has a `<video>` registered — the
+  // element every transport command reaches instead, for exactly as long as
+  // the current track is a video.
+  const videoElementRef = useRef<HTMLVideoElement | null>(null);
+  // Read from storage rather than defaulted and corrected afterwards: the
+  // decks below are built at the stored level, and a state that disagreed with
+  // them for one render would put a burst of full-scale audio through them.
+  const [volume, setVolumeState] = useState(readStoredVolume);
+  // Two hidden decks, built once, kept at the listener's level. See
+  // `usePlayerDecks` for why they are never rendered.
+  const { audioElements, volumeRef } = usePlayerDecks(volume, videoElementRef);
   const audioElementRef = useRef<HTMLAudioElement | undefined>(
     audioElements[0],
   );
@@ -110,20 +116,13 @@ export const LibraryPlayerProvider = ({
   useDspEngine(audioElements, dspSettings);
   const dspSettingsRef = useRef(dspSettings);
   dspSettingsRef.current = dspSettings;
-  // Non-null while `LibraryVideoStage` has a `<video>` registered — the
-  // element every transport command reaches instead, for exactly as long as
-  // the current track is a video.
-  const videoElementRef = useRef<HTMLVideoElement | null>(null);
 
   const [queue, setQueue] = useState<ILibraryQueue | undefined>(undefined);
   const [isPlaying, setIsPlaying] = useState(false);
   const [positionMs, setPositionMs] = useState(0);
   const [durationMs, setDurationMs] = useState(0);
-  // Initialised from storage rather than defaulted and corrected later: the
-  // element above was built at the stored level, and a state that disagreed
-  // with it for one render would have the effect below undo that.
-  const [volume, setVolumeState] = useState(readStoredVolume);
   const [isUnplayable, setIsUnplayable] = useState(false);
+
   // Re-runs the loader when Play targets the already-cued track after Stop or
   // session restore. A direct src assignment here used to bypass every piece
   // of preparation the normal track loader owns.
@@ -136,35 +135,6 @@ export const LibraryPlayerProvider = ({
   useEffect(() => {
     queueRef.current = queue;
   }, [queue]);
-
-  /**
-   * Where the last session left off, waiting for the element to be ready for
-   * it.
-   *
-   * Applied on `loadedmetadata`, never at load time — assigning a position
-   * while the element is still at `HAVE_NOTHING` is exactly what emptied the
-   * seekable range and broke seeking for the whole of that load; see the
-   * loader's own comment. Cleared as soon as it is used, so it can only ever
-   * move the playhead once.
-   */
-  const pendingRestore = useRef<
-    { trackId: string; positionMs: number } | undefined
-  >(undefined);
-  /** True until the stored session has been read back. Nothing is written
-   * before that, or the first render's empty queue would erase the very
-   * thing being restored. */
-  const isRestoringRef = useRef(true);
-
-  const volumeRef = useRef(volume);
-  useEffect(() => {
-    volumeRef.current = volume;
-    audioElements.forEach((audio) => {
-      audio.volume = volume;
-    });
-    if (videoElementRef.current) {
-      videoElementRef.current.volume = volume;
-    }
-  }, [audioElements, volume]);
 
   const trackId = queue ? currentTrackId(queue) : undefined;
   const track = trackId ? trackById.get(trackId) : undefined;
@@ -259,7 +229,7 @@ export const LibraryPlayerProvider = ({
    * its playhead offered to the loader, never a window that starts making
    * noise on its own. See `useSessionMemory`.
    */
-  useSessionMemory({
+  const { pendingRestore } = useSessionMemory({
     queue,
     queueRef,
     positionMs,
@@ -267,8 +237,6 @@ export const LibraryPlayerProvider = ({
     libraryTracks: index.tracks,
     setQueue,
     setPositionMs,
-    pendingRestore,
-    isRestoringRef,
   });
   /**
    * A track running out — what to do about it, when the host says it has,
