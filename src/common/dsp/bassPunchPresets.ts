@@ -193,6 +193,10 @@ export const bassPunchPresetSettings = (
   enabled: boolean,
 ): IBassPunchSettings => ({
   enabled,
+  // A profile is a sound. Isolate is a way of listening to one, so loading a
+  // profile never turns the monitor on -- it would be a preset that plays
+  // something other than what it is named after.
+  isolate: false,
   presetId: id,
   ...BASS_PUNCH_PRESET_BY_ID[id].settings,
 });

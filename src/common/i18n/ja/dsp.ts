@@ -341,6 +341,10 @@ const dsp = {
   'dsp.exciter.isolateOn': 'ドライ信号をオフ — 加えた分だけが聞こえています。',
 
   'dsp.bassForge.title': 'ベースフォージ',
+  'dsp.bassForge.isolate': 'アイソレート',
+  'dsp.bassForge.isolateHint': 'この段が加えている低域だけを聴きます。',
+  'dsp.bassForge.isolateOn':
+    '元の信号を外し、Forge が加えている成分だけを聴いています。',
   'dsp.bassForge.description':
     '再生できるスピーカーには低音の1オクターブ下を実際に加え、それができないスピーカーにはそのオクターブの倍音を加えます。小型スピーカーは45 Hzでは何も出せませんが、倍音があれば耳はピッチを再構成できます。低音の音量そのものは変わりません。',
   'dsp.bassForge.splitHz': '分割',
@@ -366,6 +370,10 @@ const dsp = {
   'dsp.bassForgePreset.dub': 'ダブ',
 
   'dsp.bassPunch.title': 'ベースパンチ',
+  'dsp.bassPunch.isolate': 'アイソレート',
+  'dsp.bassPunch.isolateHint': 'この段が行っている整形だけを聴きます。',
+  'dsp.bassPunch.isolateOn':
+    '元の信号を外し、Punch が加えている成分だけを聴いています。すべてのつまみが中立のときは無音です。',
   'dsp.bassPunch.description':
     '低音のアタックとディケイを形づくるもので、音色は変えません。アタックとサステインは双極性です。中央より下は締まって乾いた質感に、上は長く濡れた質感になります。',
   'dsp.bassPunch.splitHz': '分割',

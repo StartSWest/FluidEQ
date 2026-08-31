@@ -221,6 +221,7 @@ void feq_bass_punch_process(FeqBassPunch* state, float* const* channels,
   // Two channels of low band is what the buffer holds: a surround block gets
   // its front pair shaped and the rest passed through untouched.
   const uint32_t used = channel_count < 2u ? 1u : 2u;
+  const bool isolate = settings->isolate != 0;
 
   if (state->sample_rate != sample_rate) {
     state->sample_rate = sample_rate;
@@ -361,9 +362,14 @@ void feq_bass_punch_process(FeqBassPunch* state, float* const* channels,
       const double input = static_cast<double>(channels[channel][at]);
       const double band =
           one_pole_sample(&state->shelf[channel], shelf, input);
-      channels[channel][at] = static_cast<float>(
-          input + (shaped_gain - 1.0) * band + bloom +
-          (duck_gain - 1.0) * (input - band));
+      // The three deltas ARE the stage's contribution, which is why the
+      // monitor is this same sum with the input dropped rather than a second
+      // path: what is heard cannot drift from what is applied, and at rest it
+      // is exactly zero for the reason the comment above gives.
+      const double contribution = (shaped_gain - 1.0) * band + bloom +
+                                  (duck_gain - 1.0) * (input - band);
+      channels[channel][at] =
+          static_cast<float>(isolate ? contribution : input + contribution);
     }
   }
 }

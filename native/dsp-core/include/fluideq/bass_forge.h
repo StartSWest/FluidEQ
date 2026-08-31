@@ -60,6 +60,26 @@ extern "C" {
 typedef struct FeqBassForgeSettings {
   int enabled;
   /**
+   * Hear the stage's contribution alone, with the programme dropped.
+   *
+   * A subtraction, exactly as the EQ's and Denoise's monitors are: what is
+   * left is `(dry + generated) * normaliser - dry`, which is everything this
+   * stage adds and nothing else. It is deliberately NOT the low band soloed —
+   * a crossover band plays whether the stage is doing anything or not, which
+   * is the one thing a monitor must never do.
+   *
+   * At a mix of zero it is therefore silence to the last bit, because both
+   * mean squares are then fed identical numbers and the delta is exactly
+   * zero. That is the reading rather than a fault: nothing added, nothing to
+   * hear.
+   *
+   * A monitoring mode, not a setting. `readStored` in the renderer drops it on
+   * load — never `clampDspSettings`, which also runs on every patch and every
+   * settings message and would strip the value between the button and the
+   * audio.
+   */
+  int isolate;
+  /**
    * Where bass ends, 40 to 200 Hz. Structural: it moves both filters.
    *
    * The generators' corner and the normaliser's shelf midpoint at once — at

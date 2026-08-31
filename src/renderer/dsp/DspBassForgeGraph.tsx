@@ -194,7 +194,7 @@ const DspBassForgeGraph = ({ bassForge }: IDspBassForgeGraphProps) => {
           (TOP_DB - FLOOR_DB)) *
           plotH;
 
-      const { enabled, splitHz } = settingsRef.current;
+      const { enabled, splitHz, isolate } = settingsRef.current;
 
       context.font = GRAPH_FONT;
       context.lineWidth = 1;
@@ -292,23 +292,39 @@ const DspBassForgeGraph = ({ bassForge }: IDspBassForgeGraphProps) => {
           context.restore();
         });
 
-        // The dry run first and dim, because it is the reference the forged
-        // one is read against rather than a second result.
-        context.strokeStyle = `rgba(${DRY_INK},0.3)`;
-        context.lineWidth = 1.2;
-        context.beginPath();
-        for (let column = 0; column <= columns; column += 1) {
-          context.lineTo(columnX(column), toY(dry[column]));
-        }
-        context.stroke();
+        /**
+         * Under Isolate the two curves go, and the fill between them stays.
+         *
+         * That fill IS the stage's contribution, and the contribution is
+         * exactly what Isolate sends to the speakers — so dropping the curves
+         * leaves the picture showing what is audible and nothing that is not.
+         * Drawing them anyway would put a dry reference and a summed output on
+         * screen while neither is being played, which is the graph disagreeing
+         * with the audio at the one moment a user is checking it.
+         *
+         * The meters themselves are unchanged: they measure the band inside
+         * the stage, which Isolate does not move. Only what is worth drawing
+         * from them does.
+         */
+        if (!isolate) {
+          // The dry run first and dim, because it is the reference the forged
+          // one is read against rather than a second result.
+          context.strokeStyle = `rgba(${DRY_INK},0.3)`;
+          context.lineWidth = 1.2;
+          context.beginPath();
+          for (let column = 0; column <= columns; column += 1) {
+            context.lineTo(columnX(column), toY(dry[column]));
+          }
+          context.stroke();
 
-        context.strokeStyle = `rgba(${OUTPUT_INK},0.92)`;
-        context.lineWidth = 1.6;
-        context.beginPath();
-        for (let column = 0; column <= columns; column += 1) {
-          context.lineTo(columnX(column), toY(forged[column]));
+          context.strokeStyle = `rgba(${OUTPUT_INK},0.92)`;
+          context.lineWidth = 1.6;
+          context.beginPath();
+          for (let column = 0; column <= columns; column += 1) {
+            context.lineTo(columnX(column), toY(forged[column]));
+          }
+          context.stroke();
         }
-        context.stroke();
       }
 
       /* ------------------------------------------------------- the split */

@@ -9,6 +9,7 @@ import { useTranslation } from '../utils/I18nContext';
 import DspBassPunchBar from './DspBassPunchBar';
 import DspBassPunchGraph from './DspBassPunchGraph';
 import { Dial, ProcessorCard } from './DspControls';
+import Switch from '../widgets/Switch';
 import { useDspNativeState } from './store';
 
 interface IDspBassPunchCardProps {
@@ -68,6 +69,39 @@ const DspBassPunchCard = ({
           onChange={onPatch}
           onCommit={onCommit}
         />
+      }
+      beforePower={
+        /* The same labelled switch, in the same place, as the three stages
+           that already have one. Through `onPatch` rather than `patch`:
+           `patch` clears `presetId` because a sound edit stops a profile being
+           that profile, and listening to a stage is not editing it. */
+        <div
+          className="dsp-monitor-isolate"
+          title={
+            bassPunch.isolate
+              ? t('dsp.bassPunch.isolateOn')
+              : t('dsp.bassPunch.isolateHint')
+          }
+        >
+          <span
+            className={`dsp-monitor-isolate-label${
+              bassPunch.isolate ? ' is-on' : ''
+            }`}
+            aria-hidden="true"
+          >
+            {t('dsp.bassPunch.isolate')}
+          </span>
+          <Switch
+            id="dsp-bass-punch-isolate"
+            isOn={bassPunch.isolate}
+            isDisabled={!bassPunch.enabled}
+            handleToggle={() => {
+              onPatch({ ...bassPunch, isolate: !bassPunch.isolate });
+              onCommit();
+            }}
+            ariaLabel={t('dsp.bassPunch.isolate')}
+          />
+        </div>
       }
     >
       {/* This stage has no TypeScript implementation, so the worklet fallback

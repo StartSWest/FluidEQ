@@ -144,6 +144,11 @@ add_executable(fluideq-bass-split-test dsp-core/tests/bass_split_test.cpp)
 target_link_libraries(fluideq-bass-split-test PRIVATE fluideq-dsp-core feq_strict)
 add_test(NAME bass-split COMMAND fluideq-bass-split-test)
 
+add_executable(fluideq-bass-isolate-test dsp-core/tests/bass_isolate_test.cpp)
+target_link_libraries(fluideq-bass-isolate-test
+  PRIVATE fluideq-dsp-core feq_strict)
+add_test(NAME bass-isolate COMMAND fluideq-bass-isolate-test)
+
 add_executable(fluideq-denoise-test dsp-core/tests/denoise_test.cpp)
 target_link_libraries(fluideq-denoise-test PRIVATE fluideq-dsp-core feq_strict)
 add_test(NAME denoise COMMAND fluideq-denoise-test)

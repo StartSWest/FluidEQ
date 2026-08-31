@@ -350,6 +350,11 @@ const dsp = {
     'Sinal direto desligado — ouves apenas o que isto acrescenta.',
 
   'dsp.bassForge.title': 'Forja de graves',
+  'dsp.bassForge.isolate': 'Isolar',
+  'dsp.bassForge.isolateHint':
+    'Ouvir apenas os graves que esta etapa acrescenta.',
+  'dsp.bassForge.isolateOn':
+    'Sinal original removido — ouve-se apenas o que o Forge acrescenta.',
   'dsp.bassForge.description':
     'Acrescenta uma oitava real abaixo do grave para colunas capazes de a reproduzir, e os harmónicos dessa oitava para as que não conseguem — uma coluna pequena não irradia nada a 45 Hz, mas os harmónicos permitem que o ouvido reconstrua a altura mesmo assim. O volume dos graves não muda.',
   'dsp.bassForge.splitHz': 'Corte',
@@ -375,6 +380,11 @@ const dsp = {
   'dsp.bassForgePreset.dub': 'Dub',
 
   'dsp.bassPunch.title': 'Punch dos graves',
+  'dsp.bassPunch.isolate': 'Isolar',
+  'dsp.bassPunch.isolateHint':
+    'Ouvir apenas a modelação que esta etapa aplica.',
+  'dsp.bassPunch.isolateOn':
+    'Sinal original removido — ouve-se apenas o que o Punch acrescenta. Em silêncio com todos os controlos em repouso.',
   'dsp.bassPunch.description':
     'Molda o ataque e a queda dos graves, não o seu timbre. Ataque e sustentação são bipolares: abaixo do centro é mais apertado e seco, acima é mais longo e húmido.',
   'dsp.bassPunch.splitHz': 'Corte',

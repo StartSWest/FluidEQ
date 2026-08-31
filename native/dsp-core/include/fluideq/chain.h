@@ -156,6 +156,8 @@ typedef struct FeqChainSettings {
    */
   struct {
     int enabled;
+    /** Monitor what the stage adds, programme dropped. @see bass_forge.h */
+    int isolate;
     /** Structural: it moves the crossover. */
     double split_hz;
     double drive_db;
@@ -167,6 +169,8 @@ typedef struct FeqChainSettings {
   } bass_forge;
   struct {
     int enabled;
+    /** Monitor what the stage adds, programme dropped. @see bass_punch.h */
+    int isolate;
     /** Its own, not Forge's: the two stages do different jobs. */
     double split_hz;
     double attack;
@@ -225,7 +229,7 @@ typedef struct FeqChainSettings {
  * count — which has to stay last, because both `isChainWirePayload` and the
  * decoder read the tail's length from `FEQ_CHAIN_PARAM_LEAD - 1`.
  */
-#define FEQ_CHAIN_PARAM_LEAD 110
+#define FEQ_CHAIN_PARAM_LEAD 112
 #define FEQ_CHAIN_BAND_PARAMS 7
 
 /** Non-zero on success. Leaves `out` untouched on a layout it cannot read. */

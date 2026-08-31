@@ -208,6 +208,7 @@ export const NATIVE_DSP_PARAMETERS = [
    * starts at 2200.
    */
   { id: 2001, path: 'bassForge.enabled', kind: 'boolean' },
+  { id: 2008, path: 'bassForge.isolate', kind: 'boolean' },
   { id: 2002, path: 'bassForge.splitHz', kind: 'number', structural: true },
   { id: 2003, path: 'bassForge.driveDb', kind: 'number' },
   { id: 2004, path: 'bassForge.subAmount', kind: 'number' },
@@ -216,6 +217,7 @@ export const NATIVE_DSP_PARAMETERS = [
   { id: 2007, path: 'bassForge.mix', kind: 'number' },
 
   { id: 2101, path: 'bassPunch.enabled', kind: 'boolean' },
+  { id: 2108, path: 'bassPunch.isolate', kind: 'boolean' },
   { id: 2102, path: 'bassPunch.splitHz', kind: 'number', structural: true },
   { id: 2103, path: 'bassPunch.attack', kind: 'number' },
   { id: 2104, path: 'bassPunch.sustain', kind: 'number' },

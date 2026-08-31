@@ -9,6 +9,7 @@ import { useTranslation } from '../utils/I18nContext';
 import DspBassForgeBar from './DspBassForgeBar';
 import DspBassForgeGraph from './DspBassForgeGraph';
 import { Dial, ProcessorCard } from './DspControls';
+import Switch from '../widgets/Switch';
 import { useDspNativeState } from './store';
 
 interface IDspBassForgeCardProps {
@@ -63,6 +64,40 @@ const DspBassForgeCard = ({
           onChange={onPatch}
           onCommit={onCommit}
         />
+      }
+      beforePower={
+        /* The labelled switch the EQ, the Exciter and Denoise already use, in
+           the same place on the header row. It goes through `onPatch` rather
+           than `patch` on purpose: `patch` clears `presetId` because a sound
+           edit stops a profile being that profile, and listening to a stage is
+           not editing it. */
+        <div
+          className="dsp-monitor-isolate"
+          title={
+            bassForge.isolate
+              ? t('dsp.bassForge.isolateOn')
+              : t('dsp.bassForge.isolateHint')
+          }
+        >
+          <span
+            className={`dsp-monitor-isolate-label${
+              bassForge.isolate ? ' is-on' : ''
+            }`}
+            aria-hidden="true"
+          >
+            {t('dsp.bassForge.isolate')}
+          </span>
+          <Switch
+            id="dsp-bass-forge-isolate"
+            isOn={bassForge.isolate}
+            isDisabled={!bassForge.enabled}
+            handleToggle={() => {
+              onPatch({ ...bassForge, isolate: !bassForge.isolate });
+              onCommit();
+            }}
+            ariaLabel={t('dsp.bassForge.isolate')}
+          />
+        </div>
       }
     >
       {/* This stage has no TypeScript implementation, so the worklet fallback

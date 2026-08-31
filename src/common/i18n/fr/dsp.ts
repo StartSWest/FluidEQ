@@ -349,6 +349,11 @@ const dsp = {
     "Signal direct coupé — vous n'entendez que ce qui est ajouté.",
 
   'dsp.bassForge.title': 'Forge de basses',
+  'dsp.bassForge.isolate': 'Isoler',
+  'dsp.bassForge.isolateHint':
+    'Écouter uniquement les graves que cette étape ajoute.',
+  'dsp.bassForge.isolateOn':
+    'Signal d’origine retiré : on n’entend que ce que Forge ajoute.',
   'dsp.bassForge.description':
     "Ajoute une véritable octave sous les basses pour les enceintes capables de la restituer, et les harmoniques de cette octave pour celles qui ne le peuvent pas — une petite enceinte ne rayonne rien à 45 Hz, mais les harmoniques permettent à l'oreille de reconstruire la hauteur malgré tout. Le volume des basses ne change pas.",
   'dsp.bassForge.splitHz': 'Coupure',
@@ -374,6 +379,11 @@ const dsp = {
   'dsp.bassForgePreset.dub': 'Dub',
 
   'dsp.bassPunch.title': 'Punch des basses',
+  'dsp.bassPunch.isolate': 'Isoler',
+  'dsp.bassPunch.isolateHint':
+    'Écouter uniquement le modelage que cette étape applique.',
+  'dsp.bassPunch.isolateOn':
+    'Signal d’origine retiré : on n’entend que ce que Punch ajoute. Silencieux quand tous les réglages sont au repos.',
   'dsp.bassPunch.description':
     "Façonne l'attaque et la chute des basses, pas leur timbre. Attaque et maintien sont bipolaires : en dessous du centre c'est plus serré et plus sec, au-dessus c'est plus long et plus humide.",
   'dsp.bassPunch.splitHz': 'Coupure',

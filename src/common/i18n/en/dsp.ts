@@ -356,6 +356,10 @@ const dsp = {
     'Dry signal dropped — you are hearing only what this adds.',
 
   'dsp.bassForge.title': 'Bass Forge',
+  'dsp.bassForge.isolate': 'Isolate',
+  'dsp.bassForge.isolateHint': 'Hear only the low end this stage is adding.',
+  'dsp.bassForge.isolateOn':
+    'Programme dropped — you are hearing only what Forge adds.',
   'dsp.bassForge.description':
     'Adds a real octave below the bass for speakers that can play one, and the harmonics of that octave for speakers that cannot — a small speaker radiates nothing at 45 Hz, but the harmonics let the ear reconstruct the pitch anyway. How loud the low end is does not change.',
   'dsp.bassForge.splitHz': 'Split',
@@ -384,6 +388,10 @@ const dsp = {
   'dsp.bassForgePreset.dub': 'Dub',
 
   'dsp.bassPunch.title': 'Bass Punch',
+  'dsp.bassPunch.isolate': 'Isolate',
+  'dsp.bassPunch.isolateHint': 'Hear only the shaping this stage is doing.',
+  'dsp.bassPunch.isolateOn':
+    'Programme dropped — you are hearing only what Punch adds. Silent when every dial is at rest.',
   'dsp.bassPunch.description':
     'Shapes the attack and decay of the low end, not its tone. Attack and sustain are bipolar: below centre is tighter and drier, above is longer and wetter.',
   'dsp.bassPunch.splitHz': 'Split',
