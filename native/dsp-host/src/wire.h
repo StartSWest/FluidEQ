@@ -203,7 +203,28 @@ typedef struct FeqWireHandshake {
   uint32_t parameter_schema_version;
   uint32_t abi_version;
   uint32_t parameter_count;
-  uint32_t reserved;
+  /**
+   * `sizeof(FeqWireAnalysisFrame)`, asked of the compiler rather than agreed.
+   *
+   * The analysis frame is the only one whose length is not fixed, so the
+   * reader takes this many bytes as its header and reads the rest of the
+   * length out of it. A host whose header is a different size therefore does
+   * not send one bad frame — it sends the next frame's first bytes as part of
+   * this one, and every frame after that is misread. The desynchronisation is
+   * permanent and its symptom is silence, because the supervisor's only
+   * answer to a lost stream is to kill the host.
+   *
+   * That happened. The frame went from 160 bytes to 320 when Denoise's forty
+   * floor bands landed, `FEQ_WIRE_PROTOCOL_VERSION` stayed at 1 because
+   * nothing makes it move, and a host binary from twenty-two minutes earlier
+   * handshook cleanly and then destroyed the stream. The version is a number
+   * somebody has to remember to change; this is one the compiler cannot get
+   * wrong, and it is checked before a single frame is read.
+   *
+   * An older host leaves this zero, which is not any frame size and is
+   * refused like any other mismatch.
+   */
+  uint32_t analysis_frame_bytes;
   char core_version[24];
   char architecture[16];
   char build_revision[24];

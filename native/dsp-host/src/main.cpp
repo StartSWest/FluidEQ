@@ -218,6 +218,8 @@ void send_handshake(const char* backend_name) {
   handshake.parameter_schema_version = FEQ_PARAMETER_SCHEMA_VERSION;
   handshake.abi_version = feq_core_abi_version();
   handshake.parameter_count = static_cast<uint32_t>(FEQ_PARAMETER_COUNT);
+  handshake.analysis_frame_bytes =
+      static_cast<uint32_t>(sizeof(FeqWireAnalysisFrame));
   std::snprintf(handshake.core_version, sizeof(handshake.core_version), "%s",
                 feq_core_version());
 #if defined(_M_X64) || defined(__x86_64__)

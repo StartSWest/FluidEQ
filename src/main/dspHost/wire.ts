@@ -121,6 +121,14 @@ export interface IHostHandshake {
   parameterSchemaVersion: number;
   abiVersion: number;
   parameterCount: number;
+  /**
+   * The host's `sizeof(FeqWireAnalysisFrame)`, which must equal
+   * `ANALYSIS_HEADER_BYTES` or the stream cannot be sliced at all.
+   *
+   * Zero from a host built before the field existed, which is not a frame
+   * size and is refused the same way any other mismatch is.
+   */
+  analysisFrameBytes: number;
   coreVersion: string;
   architecture: string;
   buildRevision: string;
@@ -294,6 +302,8 @@ export const decodeHandshake = (frame: Buffer): IHostHandshake | undefined => {
     parameterSchemaVersion: view.getUint32(8, true),
     abiVersion: view.getUint32(12, true),
     parameterCount: view.getUint32(16, true),
+    // Offset 20, the word that used to be reserved.
+    analysisFrameBytes: view.getUint32(20, true),
     coreVersion: readFixedString(view, 24, 24),
     architecture: readFixedString(view, 48, 16),
     buildRevision: readFixedString(view, 64, 24),

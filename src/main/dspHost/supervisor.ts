@@ -21,6 +21,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * cannot.
  */
 import { ChildProcessWithoutNullStreams, spawn } from 'child_process';
+import { ANALYSIS_HEADER_BYTES } from '../../common/dsp/analysisWire';
 import {
   DSP_DIAGNOSTIC_CODES,
   DSP_DIAGNOSTIC_SCHEMA_VERSION,
@@ -594,8 +595,11 @@ export class DspHostSupervisor {
         reason: mismatch,
         hostProtocol: handshake.protocolVersion,
         hostParameters: handshake.parameterCount,
+        hostAnalysisFrame: handshake.analysisFrameBytes,
+        hostBuild: handshake.buildRevision,
         expectedProtocol: HOST_WIRE_PROTOCOL_VERSION,
         expectedParameters: this.options.expectedParameterCount,
+        expectedAnalysisFrame: ANALYSIS_HEADER_BYTES,
       });
       child.kill();
       return false;
@@ -612,6 +616,27 @@ export class DspHostSupervisor {
     }
     if (handshake.parameterCount !== this.options.expectedParameterCount) {
       return 'parameter count';
+    }
+    /**
+     * The analysis frame is the one whose length is not fixed, and the only
+     * one a mismatch can silently corrupt rather than simply misread.
+     *
+     * Every other frame here is a constant stride, so a host that disagreed
+     * about one would be caught on the first bad magic. This one is a header
+     * of `ANALYSIS_HEADER_BYTES` followed by a length computed from fields
+     * inside it — get the header size wrong and the reader consumes part of
+     * the NEXT frame as payload, permanently, until a magic happens to land
+     * on a float that reads as garbage and the stream is declared lost.
+     *
+     * Which is what a stale host binary did: 160-byte frames read as 320,
+     * `magic: 0` a few seconds in, the host killed, and the app silent while
+     * still showing itself as playing. The protocol version did not move
+     * because it is maintained by hand and the frame had grown four times
+     * without it. This number is `sizeof` on the far side, so it moves on its
+     * own, and it is checked before a single frame is decoded.
+     */
+    if (handshake.analysisFrameBytes !== ANALYSIS_HEADER_BYTES) {
+      return 'analysis frame size';
     }
     return undefined;
   }
