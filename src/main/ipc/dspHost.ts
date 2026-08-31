@@ -50,6 +50,17 @@ export interface IDspHostIpcDeps {
  */
 let supervisor: DspHostSupervisor | undefined;
 
+/**
+ * Whether the host is currently pushing audio at a device.
+ *
+ * Kept here because this is the only place main ever learns it: the transport
+ * verbs pass through this module and the supervisor keeps no play state of its
+ * own. The unattended updater reads it to decide whether restarting the app
+ * would cut a song off mid-bar — the window being hidden into the tray says
+ * nothing about that, since the host plays perfectly well with no window.
+ */
+let isHostPlaying = false;
+
 export interface IDspHostStatus {
   state: TDspHostState | 'unavailable';
   handshake?: ReturnType<DspHostSupervisor['getHandshake']>;
@@ -138,6 +149,25 @@ export const registerDspHostIpc = ({
       return unavailable;
     }
     await host.start();
+    /*
+     * A model downloaded in an earlier session has to be handed over here.
+     *
+     * Nothing else does it. `loadVoiceModel` was only ever called from the
+     * download handler, so the model engaged exactly once — in the session it
+     * was fetched — and every launch after that started with the file sitting
+     * on disk, the card offering no download because it was present, and the
+     * module reporting itself unavailable forever.
+     */
+    if (host.getState() === 'ready' && isDenoiseModelPresent()) {
+      const runtime = onnxRuntimeLibraryPath();
+      if (runtime) {
+        try {
+          await host.loadVoiceModel(denoiseModelPath(), runtime);
+        } catch {
+          // The stage reports itself unavailable, which is already correct.
+        }
+      }
+    }
     return statusOf();
   });
 
@@ -291,18 +321,28 @@ export const registerDspHostIpc = ({
       if (!ok) {
         return false;
       }
+      /*
+       * The answer is about the FILE, not about the engine.
+       *
+       * This used to report false whenever the host was not running or the
+       * runtime could not be found, reasoning that the card should not claim a
+       * module the engine had not accepted. The effect was the opposite of
+       * careful: the card reset itself to "missing" after a successful
+       * ten-megabyte download, so the button looked like it had done nothing
+       * and pressing it again re-ran the whole thing. Whether the ENGINE has
+       * the model is a different fact, and the card already has that one live
+       * from `voiceModelLoaded` in the meter frame.
+       */
       const runtime = onnxRuntimeLibraryPath();
-      if (!runtime || !supervisor || supervisor.getState() !== 'ready') {
-        // Downloaded but not engaged. Reported as false rather than true so
-        // the card does not claim a module is running that the engine has not
-        // accepted; the next engage replays it.
-        return false;
+      if (runtime && supervisor && supervisor.getState() === 'ready') {
+        try {
+          await supervisor.loadVoiceModel(denoiseModelPath(), runtime);
+        } catch {
+          // Engaging can wait for the next start. The file is downloaded and
+          // its hash verified, which is what was actually asked for.
+        }
       }
-      try {
-        return await supervisor.loadVoiceModel(denoiseModelPath(), runtime);
-      } catch {
-        return false;
-      }
+      return true;
     },
   );
 
@@ -361,13 +401,20 @@ export const registerDspHostIpc = ({
       }
       try {
         switch (verb) {
-          case 'play':
-            return await supervisor.setPlaying(true);
+          case 'play': {
+            const applied = await supervisor.setPlaying(true);
+            isHostPlaying = applied;
+            return applied;
+          }
           case 'pause':
+            isHostPlaying = false;
             return await supervisor.setPlaying(false);
           case 'select':
             return await supervisor.selectDeck(slot);
           case 'unload':
+            // An unload while playing is a stop by another name; the renderer
+            // does not always pause first.
+            isHostPlaying = false;
             return await supervisor.unloadDeck(slot);
           case 'seek':
             return isFiniteNumber(value)
@@ -479,8 +526,19 @@ export const registerDspHostIpc = ({
  */
 export const dspHostPid = (): number | undefined => supervisor?.getPid();
 
+/**
+ * Is FluidEQ playing something right now?
+ *
+ * Answers false whenever the host is not up, so a crashed or not-yet-started
+ * host reads as "nothing is playing" rather than as a reason to hold an update
+ * back forever. The flag itself is set by the transport verbs above.
+ */
+export const isDspHostPlaying = (): boolean =>
+  isHostPlaying && supervisor?.getState() === 'ready';
+
 export const shutdownDspHost = async (): Promise<void> => {
   const host = supervisor;
   supervisor = undefined;
+  isHostPlaying = false;
   await host?.stop();
 };

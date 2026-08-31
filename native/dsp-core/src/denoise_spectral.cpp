@@ -41,6 +41,17 @@ constexpr double kPi = 3.14159265358979323846;
  */
 constexpr double kMinimumStatisticsBias = 2.0;
 
+/**
+ * How hard the periodogram is smoothed before its minimum is taken.
+ *
+ * At roughly 190 frames a second this is a time constant near fifty
+ * milliseconds — long enough to collapse the exponential scatter of a noise
+ * bin, short enough that a note ending still shows up as a dip within the
+ * look-back window. Without it the tracker read a steady tone as noise and
+ * fluctuating noise as signal, which is the exact inverse of its job.
+ */
+constexpr double kMinimumSmoothing = 0.9;
+
 /** How long the running minimum looks back, in seconds. */
 constexpr double kMinimumWindowSeconds = 1.5;
 
@@ -119,6 +130,7 @@ void denoise_spectral_configure(FeqDenoise* denoise) {
       channel.previous_magnitude.assign(bins, 0.0);
       channel.adaptive_db.assign(bins, kDenoiseSilenceDb);
       channel.running_minimum.assign(bins, 0.0);
+      channel.smoothed_power.assign(bins, 0.0);
       channel.fill = 0;
       channel.minimum_age = 0;
     }
@@ -151,6 +163,8 @@ void denoise_spectral_reset(FeqDenoise* denoise) {
     std::fill(channel.adaptive_db.begin(), channel.adaptive_db.end(),
               kDenoiseSilenceDb);
     std::fill(channel.running_minimum.begin(), channel.running_minimum.end(),
+              0.0);
+    std::fill(channel.smoothed_power.begin(), channel.smoothed_power.end(),
               0.0);
     channel.fill = 0;
     channel.minimum_age = 0;
@@ -231,8 +245,17 @@ double process_frame(FeqDenoise* denoise,
     // The live floor is tracked whether or not it is the one in use, so that
     // switching the control mid-track does not wait a second and a half for
     // an estimate to warm up.
-    if (channel.minimum_age == 0 || power < channel.running_minimum[bin]) {
-      channel.running_minimum[bin] = power;
+    //
+    // Smoothed in time BEFORE the minimum is taken — see `smoothed_power`.
+    // Minima of the RAW periodogram estimate fluctuating noise far too low and
+    // a steady tone exactly right, which inverts the discrimination the whole
+    // method rests on.
+    channel.smoothed_power[bin] =
+        kMinimumSmoothing * channel.smoothed_power[bin] +
+        (1.0 - kMinimumSmoothing) * power;
+    const double tracked = channel.smoothed_power[bin];
+    if (channel.minimum_age == 0 || tracked < channel.running_minimum[bin]) {
+      channel.running_minimum[bin] = tracked;
     }
 
     double noise_power = adaptive
@@ -280,6 +303,39 @@ double process_frame(FeqDenoise* denoise,
                                      : kDenoiseSilenceDb;
     }
     channel.minimum_age = 0;
+  }
+
+  /*
+   * The floor the panel draws, in the profile's own density units.
+   *
+   * Published from whichever source actually decided the gains above, not from
+   * the profile the stage was handed — in Adaptive those differ every frame,
+   * and a picture of the handed-over value would show a flat line while the
+   * tracker moved underneath it.
+   *
+   * Converted back to a density here, which is the inverse of what
+   * `profile_bin_power` does on the way in, so the drawing code needs one path
+   * for both sources rather than two that must agree.
+   */
+  if (!denoise->live_floor_db.empty()) {
+    const double bin_width =
+        denoise->sample_rate / static_cast<double>(window);
+    const double reference = denoise->sample_rate * 0.5 * denoise->window_energy;
+    for (uint32_t band = 0; band < FEQ_DENOISE_PROFILE_BANDS; band += 1) {
+      const double centre = feq_denoise_band_hz(band);
+      const uint32_t bin = static_cast<uint32_t>(
+          std::min(static_cast<double>(bins - 1),
+                   std::max(0.0, centre / bin_width)));
+      const double bin_power =
+          adaptive ? (channel.adaptive_db[bin] <= kDenoiseSilenceDb
+                          ? 0.0
+                          : db_to_power(channel.adaptive_db[bin]))
+                   : profile_bin_power(denoise, bin);
+      denoise->live_floor_db[band] =
+          bin_power > kFloorEpsilon
+              ? 10.0 * std::log10(bin_power / reference)
+              : kDenoiseSilenceDb;
+    }
   }
 
   feq_fft_in_place(channel.real.data(), channel.imaginary.data(), window, 1);

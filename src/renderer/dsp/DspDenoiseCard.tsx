@@ -15,6 +15,7 @@ import { NOISE_HUM_MAX_HARMONICS } from '../../common/dsp/noiseProfile';
 import Switch from '../widgets/Switch';
 import { useTranslation } from '../utils/I18nContext';
 import { Dial, ProcessorCard } from './DspControls';
+import DspDenoiseGraph from './DspDenoiseGraph';
 import {
   IDspInputAnalysisState,
   useDspDenoiseMeter,
@@ -82,9 +83,18 @@ const DspDenoiseCard = ({
     onCommit();
   };
 
-  /** Falling back is a fact about the run, not about the setting. */
+  /**
+   * Falling back is a fact about the run, not about the setting — and it is
+   * NOT the same fact as a scan being under way.
+   *
+   * Switching to Scanned on an unmeasured track starts a scan; saying "no scan
+   * for this source" while that scan is running describes the moment before
+   * the one the user is in, and reads as a refusal rather than as work in
+   * progress. The measuring line below says what is actually happening.
+   */
+  const isScanning = analysisState.status === 'analyzing';
   const isFallingBack =
-    denoise.profileSource === 'scanned' && !meter.profileReady;
+    denoise.profileSource === 'scanned' && !meter.profileReady && !isScanning;
 
   const value = (input: number | undefined, unit: string, digits = 1) =>
     input === undefined ? '—' : `${input.toFixed(digits)} ${unit}`;
@@ -112,16 +122,33 @@ const DspDenoiseCard = ({
       isEnabled={isEnabled}
       onToggle={() => commitPatch({ enabled: !denoise.enabled })}
       beforePower={
-        <button
-          type="button"
-          className={`button small${denoise.isolate ? '' : ' subtle'}`}
-          aria-pressed={denoise.isolate}
-          disabled={!isEnabled}
-          onClick={() => commitPatch({ isolate: !denoise.isolate })}
-          title={t('dsp.denoise.isolateHint')}
+        /* The labelled switch the EQ and the Exciter already use for Isolate.
+           It is the same control, doing the same job, in the same place on the
+           header row — a button here read as a different kind of thing. */
+        <div
+          className="dsp-monitor-isolate"
+          title={
+            denoise.isolate
+              ? t('dsp.denoise.isolateOn')
+              : t('dsp.denoise.isolateHint')
+          }
         >
-          {t('dsp.denoise.isolate')}
-        </button>
+          <span
+            className={`dsp-monitor-isolate-label${
+              denoise.isolate ? ' is-on' : ''
+            }`}
+            aria-hidden="true"
+          >
+            {t('dsp.denoise.isolate')}
+          </span>
+          <Switch
+            id="dsp-denoise-isolate"
+            isOn={denoise.isolate}
+            isDisabled={!isEnabled}
+            handleToggle={() => commitPatch({ isolate: !denoise.isolate })}
+            ariaLabel={t('dsp.denoise.isolate')}
+          />
+        </div>
       }
     >
       {isBypassedByEngine ? (
@@ -160,10 +187,23 @@ const DspDenoiseCard = ({
             track that has never been measured is running the live tracker, and
             a dial that has quietly stopped doing what it says is the failure
             the Normalizer's limit line already exists to prevent. */}
+        {isEnabled && isScanning && denoise.profileSource === 'scanned' ? (
+          <p className="dsp-band-hint">
+            {t('dsp.denoise.analyzing', {
+              progress: Math.round(analysisState.fraction * 100),
+            })}
+          </p>
+        ) : null}
         {isEnabled && isFallingBack ? (
           <p className="dsp-band-hint">{t('dsp.denoise.fallingBack')}</p>
         ) : null}
       </section>
+
+      {/* Above the numbers, because it is the reading that makes them mean
+          something: a floor and a spectrum in the same units on the same
+          axes. "Reducing: -4 dB" is the same number whether the stage is
+          taking hiss or taking the vocal. */}
+      <DspDenoiseGraph profile={profile} isEnabled={isEnabled} />
 
       <section className="dsp-denoise-analysis" aria-live="polite">
         <div className="dsp-band-head">

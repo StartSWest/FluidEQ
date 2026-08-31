@@ -63,9 +63,13 @@ const dsp = {
   'dsp.denoise.title': '降噪',
   'dsp.denoise.description':
     '在任何染色之前先修复音源：嘶声、市电哼声、爆音，以及一个神经网络人声清理器。数值取自音轨本身的实测，而非猜测。',
-  'dsp.denoise.isolate': '试听被去掉的部分',
-  'dsp.denoise.isolateHint':
-    '播放被去掉的信号而非保留的信号。这是判断它拿走的是嘶声还是踩镲的唯一可靠方法。',
+  'dsp.denoise.isolate': '独听',
+  'dsp.denoise.isolateHint': '只听这一级正在去掉的部分。',
+  'dsp.denoise.isolateOn': '保留信号已移除——现在只听到被去掉的部分。',
+  'dsp.denoise.graphOutput': '输出',
+  'dsp.denoise.graphFloor': '本底噪声',
+  'dsp.denoise.graphHum': '哼声',
+  'dsp.denoise.graphIdle': '空闲',
   'dsp.denoise.profileSource': '本底噪声',
   'dsp.denoise.scanned': '已扫描',
   'dsp.denoise.adaptive': '自适应',

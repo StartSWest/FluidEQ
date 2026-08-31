@@ -70,9 +70,14 @@ const dsp = {
   'dsp.denoise.title': 'Шумоподавление',
   'dsp.denoise.description':
     'Восстанавливает источник до того, как что-либо его окрасит: шипение, сетевой фон, щелчки и нейронная очистка голоса. Измерено по самому треку, а не угадано.',
-  'dsp.denoise.isolate': 'Послушать удаляемое',
-  'dsp.denoise.isolateHint':
-    'Воспроизводит удаляемый сигнал вместо сохраняемого. Единственный надёжный способ услышать, убирается шипение или хай-хэт.',
+  'dsp.denoise.isolate': 'Изолировать',
+  'dsp.denoise.isolateHint': 'Слушать только то, что убирает этот этап.',
+  'dsp.denoise.isolateOn':
+    'Сохраняемый сигнал убран — слышно только удаляемое.',
+  'dsp.denoise.graphOutput': 'Выход',
+  'dsp.denoise.graphFloor': 'Уровень шума',
+  'dsp.denoise.graphHum': 'Фон',
+  'dsp.denoise.graphIdle': 'Простой',
   'dsp.denoise.profileSource': 'Уровень шума',
   'dsp.denoise.scanned': 'Измерен',
   'dsp.denoise.adaptive': 'Адаптивный',

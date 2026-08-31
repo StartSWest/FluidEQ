@@ -30,10 +30,18 @@ import type {
 } from '../../common/dsp/analysisWire';
 import { CHAIN_PARAM_LEAD } from '../../common/dsp/chainWire';
 import { CROSSFADE_TABLE_POINTS } from '../../common/dsp/crossfadeShape';
-import { NOISE_PROFILE_WIRE_LENGTH } from '../../common/dsp/noiseProfile';
+import {
+  NOISE_PROFILE_BANDS,
+  NOISE_PROFILE_WIRE_LENGTH,
+} from '../../common/dsp/noiseProfile';
 
 /** Must match FEQ_WIRE_PROTOCOL_VERSION. */
-export const HOST_WIRE_PROTOCOL_VERSION = 1;
+/**
+ * Must match `FEQ_WIRE_PROTOCOL_VERSION`. Bump BOTH whenever a frame layout
+ * changes, so a stale host is refused at the handshake with a legible reason
+ * rather than desynchronising on its first analysis frame.
+ */
+export const HOST_WIRE_PROTOCOL_VERSION = 2;
 
 export const HANDSHAKE_BYTES = 104;
 export const COMMAND_BYTES = 32;
@@ -115,6 +123,14 @@ export interface IHostHandshake {
   parameterSchemaVersion: number;
   abiVersion: number;
   parameterCount: number;
+  /**
+   * The host's `sizeof(FeqWireAnalysisFrame)`, which must equal
+   * `ANALYSIS_HEADER_BYTES` or the stream cannot be sliced at all.
+   *
+   * Zero from a host built before the field existed, which is not a frame
+   * size and is refused the same way any other mismatch is.
+   */
+  analysisFrameBytes: number;
   coreVersion: string;
   architecture: string;
   buildRevision: string;
@@ -288,6 +304,8 @@ export const decodeHandshake = (frame: Buffer): IHostHandshake | undefined => {
     parameterSchemaVersion: view.getUint32(8, true),
     abiVersion: view.getUint32(12, true),
     parameterCount: view.getUint32(16, true),
+    // Offset 20, the word that used to be reserved.
+    analysisFrameBytes: view.getUint32(20, true),
     coreVersion: readFixedString(view, 24, 24),
     architecture: readFixedString(view, 48, 16),
     buildRevision: readFixedString(view, 64, 24),
@@ -486,17 +504,18 @@ export const decodeAnalysis = (frame: Buffer): IHostAnalysis | undefined => {
   /**
    * Forge's two runs, read out of the header before the payload is walked.
    *
-   * 160 is where the header ended when Denoise's six words landed, and 192 is
-   * eight floats past it. Both runs are the same kind of number in the same
-   * units, so an offset four bytes out here does not throw and does not look
-   * wrong — it draws the dry band against a shifted copy of itself, which is
-   * a picture of a stage doing nothing on material where it is working hard.
+   * 320 is where the header ended once Denoise's forty floor bands followed
+   * its six words, and 352 is eight floats past it. Both runs are the same
+   * kind of number in the same units, so an offset four bytes out here does
+   * not throw and does not look wrong — it draws the dry band against a
+   * shifted copy of itself, which is a picture of a stage doing nothing on
+   * material where it is working hard.
    */
   const bassForgeInputDb: number[] = [];
   const bassForgeOutputDb: number[] = [];
   for (let band = 0; band < ANALYSIS_BASS_FORGE_BANDS; band += 1) {
-    bassForgeInputDb.push(view.getFloat32(160 + band * 4, true));
-    bassForgeOutputDb.push(view.getFloat32(192 + band * 4, true));
+    bassForgeInputDb.push(view.getFloat32(320 + band * 4, true));
+    bassForgeOutputDb.push(view.getFloat32(352 + band * 4, true));
   }
 
   // Amounts then levels, each  long, in the order the host wrote them.
@@ -560,19 +579,24 @@ export const decodeAnalysis = (frame: Buffer): IHostAnalysis | undefined => {
       noiseFloorDb: view.getFloat32(140, true),
       clicksRepaired: view.getUint32(144, true),
       voiceUnderruns: view.getUint32(148, true),
+      // 160 onward: forty floats of live floor, one per profile band.
+      floorBandsDb: Array.from({ length: NOISE_PROFILE_BANDS }, (_unused, at) =>
+        view.getFloat32(160 + at * 4, true),
+      ),
       profileReady: view.getUint32(152, true) !== 0,
       voiceModelLoaded: view.getUint32(156, true) !== 0,
     },
-    // Offsets 160 through 223, read above. Appended after Denoise for the same
-    // reason Denoise was appended after Master loudness: a field inserted
-    // above an existing one moves every offset below it, and floats decode
-    // into floats without complaint.
+    // Offsets 320 through 383, read above. Appended after Denoise's floor
+    // bands for the same reason Denoise was appended after Master loudness: a
+    // field inserted above an existing one moves every offset below it, and
+    // floats decode into floats without complaint. This branch landed after
+    // the floor bands, so it is these offsets that moved and not theirs.
     bassForge: { inputDb: bassForgeInputDb, outputDb: bassForgeOutputDb },
-    // 224, 228, 232; 236 is the pad that keeps the frame eight-byte aligned.
+    // 384, 388, 392; 396 is the pad that keeps the frame eight-byte aligned.
     bassPunch: {
-      transientGainDb: view.getFloat32(224, true),
-      sustainGainDb: view.getFloat32(228, true),
-      duckGainDb: view.getFloat32(232, true),
+      transientGainDb: view.getFloat32(384, true),
+      sustainGainDb: view.getFloat32(388, true),
+      duckGainDb: view.getFloat32(392, true),
     },
     bandAmounts,
     bandLevels,

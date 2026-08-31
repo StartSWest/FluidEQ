@@ -125,6 +125,7 @@ describe('current executable update authorization', () => {
     expect(result).toEqual({
       checkIfDue: expect.any(Function),
       checkNow: expect.any(Function),
+      isReadyToInstall: expect.any(Function),
       quitAndInstall: expect.any(Function),
     });
     expect(harness.verifyPublisher).toHaveBeenCalledWith(

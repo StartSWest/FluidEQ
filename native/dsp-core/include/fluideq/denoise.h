@@ -135,6 +135,18 @@ typedef struct FeqDenoiseReport {
   uint32_t voice_underruns;
   int profile_ready;
   int voice_model_loaded;
+  /**
+   * The floor actually in use, per profile band, as a density in dB.
+   *
+   * Whichever source is live — the scanned profile or the adaptive tracker —
+   * so the panel draws what the stage is subtracting rather than what it was
+   * handed. In Adaptive those are not the same thing at all, and that mode's
+   * entire behaviour is invisible without this: a tracker that never converges
+   * and one that converges correctly are told apart by watching this move.
+   *
+   * Same units as `bands_db`, so one drawing path serves both sources.
+   */
+  double floor_bands_db[FEQ_DENOISE_PROFILE_BANDS];
 } FeqDenoiseReport;
 
 typedef struct FeqDenoise FeqDenoise;

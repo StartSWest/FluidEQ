@@ -99,6 +99,7 @@ import {
   beginQuit,
   destroyTray,
   getTrayLocale,
+  isAppQuitting,
   revealMainWindow,
   setTrayUpdateReady,
   setTrayUpdatesEnabled,
@@ -107,7 +108,14 @@ import {
 import {
   createNativeUpdatePrompt,
   INativeUpdatePrompt,
+  isWindowOnScreen,
 } from './nativeUpdatePrompt';
+import {
+  consumeUnattendedRestart,
+  createUnattendedUpdate,
+  IUnattendedUpdate,
+  rememberUnattendedRestart,
+} from './unattendedUpdate';
 import { translate } from '../common/i18n';
 import { createMainWindowFactory } from './mainWindow';
 import { createApoAdoption } from './apoAdopt';
@@ -125,7 +133,12 @@ import { registerKaraokePitch } from './karaokePitch';
 import { registerProfilesIpc } from './ipc/profiles';
 import { registerUpdatesIpc } from './ipc/updates';
 import { libraryIndexSnapshot, registerLibraryIpc } from './ipc/library';
-import { dspHostPid, registerDspHostIpc, shutdownDspHost } from './ipc/dspHost';
+import {
+  dspHostPid,
+  isDspHostPlaying,
+  registerDspHostIpc,
+  shutdownDspHost,
+} from './ipc/dspHost';
 import { registerProcessIpc } from './ipc/processes';
 import { registerLibraryPlaylistsIpc } from './ipc/libraryPlaylists';
 import {
@@ -455,6 +468,28 @@ const setUpMemoryTraceTrigger = () => {
  */
 let nativeUpdatePrompt: INativeUpdatePrompt | undefined;
 
+/**
+ * Applies a downloaded update by itself, whenever doing so would go unnoticed.
+ * Built alongside the prompt above, and deliberately consulted from the same
+ * places: a ready download, and every event that means the app has just got
+ * out of the user's way. See unattendedUpdate.ts for why there is no timer.
+ */
+let unattendedUpdate: IUnattendedUpdate | undefined;
+
+const applyUpdateIfUnattended = (reason: string) => {
+  // `setImmediate` here is about the call stack, not about waiting: there is
+  // no duration to tune and nothing is being retried. Every caller is inside
+  // an event Electron is still dispatching — the window's own `close` handler
+  // is what calls `hide()`, so a `hide` listener runs while that `close` is
+  // still on the stack, and this path ends in `app.quit()`, which closes the
+  // same window again. Starting the quit from a fresh stack keeps that out of
+  // a re-entrant close. It also lets the renderer's status message flush
+  // before the process goes.
+  setImmediate(() => {
+    unattendedUpdate?.applyIfUnattended(reason);
+  });
+};
+
 const installActiveUpdate = () => {
   if (!activeAutoUpdater) {
     // Reachable only if the tray or a toast outlived the updater. Say so
@@ -465,14 +500,15 @@ const installActiveUpdate = () => {
     return;
   }
   try {
-    // `false` for isSilent so the NSIS installer stays visible — the honest
-    // thing when the app the user was looking at (or just clicked a
-    // notification for) is about to vanish. `true` for isForceRunAfter so
+    // `true` for isSilent so the NSIS run puts nothing on screen and asks
+    // nothing: no language dialog, no licence page, no progress window with a
+    // button on it, and no second pass at the Equalizer APO installer, which
+    // installer.nsh skips on a silent run. `true` for isForceRunAfter so
     // FluidEQ opens again once the install finishes. The controller arms the
     // tray's quit flag via beforeQuit; without that the window's close
     // handler would cancel the exit and the installer would fail to replace
     // a still-open executable.
-    activeAutoUpdater.quitAndInstall(false, true);
+    activeAutoUpdater.quitAndInstall(true, true);
   } catch (error) {
     // NOT LOG-ONLY. This is the primary action of the whole tray update flow,
     // reached from the notification and from the menu item, and both of those
@@ -523,9 +559,23 @@ const checkForUpdatesIfDue = (reason: string) => {
 const watchForUpdateOpportunities = () => {
   powerMonitor.on('resume', () => checkForUpdatesIfDue('wake from sleep'));
   powerMonitor.on('unlock-screen', () => checkForUpdatesIfDue('screen unlock'));
+  // The screen locking means the machine has been left. Nothing there is
+  // watching a restart happen, and it is the longest uninterrupted stretch
+  // this app ever gets.
+  powerMonitor.on('lock-screen', () =>
+    applyUpdateIfUnattended('the screen locking'),
+  );
   if (mainWindow && !mainWindow.isDestroyed()) {
     mainWindow.on('show', () => checkForUpdatesIfDue('window shown'));
     mainWindow.on('focus', () => checkForUpdatesIfDue('window focused'));
+    // The other half: the window leaving the screen is the moment a pending
+    // update stops being in anybody's way. Both events, because closing to
+    // the tray and minimising to the taskbar are different signals for the
+    // same thing and only one of them fires.
+    mainWindow.on('hide', () => applyUpdateIfUnattended('the window hiding'));
+    mainWindow.on('minimize', () =>
+      applyUpdateIfUnattended('the window being minimised'),
+    );
   }
 };
 
@@ -550,6 +600,21 @@ const setUpAutoUpdates = async () => {
     logger: log,
   });
 
+  unattendedUpdate = createUnattendedUpdate({
+    install: installActiveUpdate,
+    // Reads the controller through the same late-bound `activeAutoUpdater` the
+    // install does, because this is built before it exists.
+    isInstallerReady: () => Boolean(activeAutoUpdater?.isReadyToInstall()),
+    isPlayingAudio: isDspHostPlaying,
+    isWindowOnScreen: () => isWindowOnScreen(mainWindow),
+    rememberRestart: () =>
+      rememberUnattendedRestart(
+        UNATTENDED_RESTART_MARKER_PATH,
+        app.getVersion(),
+      ),
+    logger: log,
+  });
+
   activeAutoUpdater = await setUpReleaseAutoUpdates({
     executablePath: process.execPath,
     isPackaged: app.isPackaged,
@@ -571,6 +636,12 @@ const setUpAutoUpdates = async () => {
       nativeUpdatePrompt?.handleStatus(payload);
       if (mainWindow && !mainWindow.isDestroyed()) {
         mainWindow.webContents.send(APP_UPDATE_EVENT, payload);
+      }
+      // Last, and only once the badge and the banner are up: if this attempt
+      // installs, the app is gone within the call, and the surfaces above are
+      // what a user who is looking sees instead.
+      if (payload.phase === 'ready') {
+        applyUpdateIfUnattended('the download finishing');
       }
     },
   });
@@ -678,7 +749,16 @@ const saveWindowState = () => {
       height: bounds.height,
       x: bounds.x,
       y: bounds.y,
-      isMaximized: mainWindow.isMaximized(),
+      // A window that is off screen right now cannot report the state the user
+      // chose. Normally that never happens: the close handler saves before it
+      // hides, so the window is still visible at that moment. It does happen
+      // after an unattended update, which builds the window and never shows
+      // it — `isMaximized()` answers false, and writing that answer down would
+      // un-maximise FluidEQ for good, one update at a time. Keep what was
+      // already recorded instead.
+      isMaximized: mainWindow.isVisible()
+        ? mainWindow.isMaximized()
+        : loadWindowState().isMaximized === true,
     };
     fs.writeFileSync(
       path.join(userDataDir, WINDOW_STATE_FILENAME),
@@ -811,6 +891,25 @@ const setWindowDimension = (isExpanded: boolean) => {
 
 // Load initial state from local state file
 const userDataDir = app.getPath('userData');
+
+/** Where the "I restarted myself" note lives; see unattendedUpdate.ts. */
+const UNATTENDED_RESTART_MARKER_PATH = path.join(
+  userDataDir,
+  'unattended-update.json',
+);
+
+/**
+ * Read exactly once, here, at the top of the launch.
+ *
+ * Reading also clears the marker, so it has to happen in one place — asking a
+ * second time would answer false and the window would appear after all. The
+ * window factory reads this boolean rather than the file.
+ */
+const didRestartForUnattendedUpdate = consumeUnattendedRestart(
+  UNATTENDED_RESTART_MARKER_PATH,
+  app.getVersion(),
+);
+
 const presetPath = path.join(userDataDir, PRESETS_DIR);
 const baselinePath = path.join(userDataDir, PRESET_BASELINES_DIR);
 const state: IState = fetchSettings(userDataDir);
@@ -2553,6 +2652,7 @@ const createMainWindow = createMainWindowFactory({
   setUpAutoUpdates,
   setUpMemoryTraceTrigger,
   startMemoryProbe,
+  startsHidden: () => didRestartForUnattendedUpdate,
   syncDatabasesOnStartup,
 });
 
@@ -2766,6 +2866,21 @@ app
             });
           },
         });
+
+        // A launch that came back from an unattended update deliberately left
+        // the window off screen, because the tray is the way back to it. If
+        // the tray did not build, that way back does not exist: the process
+        // would be running with no icon and no window, which from the outside
+        // is indistinguishable from not starting at all. `isAppQuitting` is
+        // how tray.ts reports the failure — it arms the flag so the close
+        // button closes for real — and nothing legitimate has armed it this
+        // early in a launch.
+        if (didRestartForUnattendedUpdate && isAppQuitting()) {
+          log.warn(
+            'No tray icon after an unattended update; showing the window so FluidEQ can still be reached.',
+          );
+          revealMainWindow(() => mainWindow);
+        }
         return undefined;
       })
       .catch((error) => {

@@ -93,15 +93,19 @@ export const registerUpdatesIpc = ({
     if (!updater) {
       throw new Error('Updates are disabled for this build.');
     }
-    // `false` for isSilent: the NSIS installer shows its progress, which is the
-    // honest thing when the app the user was using has just vanished.
+    // `true` for isSilent: the NSIS run is invisible and asks nothing. A
+    // visible one puts a language dialog and a progress window in front of
+    // somebody who has already said "restart now" and whose app has already
+    // closed — there is no question left for it to ask, and it also re-runs
+    // the Equalizer APO block over a machine that plainly has APO already.
+    // `true` for isForceRunAfter so FluidEQ comes back by itself.
     //
     // Rethrown rather than swallowed. The ordinary update banner already treats
     // a rejection as "put the button back", and the mandatory-update modal needs
     // it to reach the manual-install instructions — a blocking window whose only
     // button silently does nothing is the exact failure this must not have.
     try {
-      updater.quitAndInstall(false, true);
+      updater.quitAndInstall(true, true);
     } catch (error) {
       log.info('Update install could not start', error);
       throw error;

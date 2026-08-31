@@ -218,6 +218,8 @@ void send_handshake(const char* backend_name) {
   handshake.parameter_schema_version = FEQ_PARAMETER_SCHEMA_VERSION;
   handshake.abi_version = feq_core_abi_version();
   handshake.parameter_count = static_cast<uint32_t>(FEQ_PARAMETER_COUNT);
+  handshake.analysis_frame_bytes =
+      static_cast<uint32_t>(sizeof(FeqWireAnalysisFrame));
   std::snprintf(handshake.core_version, sizeof(handshake.core_version), "%s",
                 feq_core_version());
 #if defined(_M_X64) || defined(__x86_64__)
@@ -345,6 +347,10 @@ void drain_analysis(HostState& state) {
   frame.denoise_noise_floor_db = static_cast<float>(denoise.noise_floor_db);
   frame.denoise_clicks_repaired = denoise.clicks_repaired;
   frame.denoise_voice_underruns = denoise.voice_underruns;
+  for (uint32_t band = 0; band < FEQ_DENOISE_PROFILE_BANDS; band += 1) {
+    frame.denoise_floor_bands[band] =
+        static_cast<float>(denoise.floor_bands_db[band]);
+  }
   frame.denoise_profile_ready = denoise.profile_ready != 0 ? 1u : 0u;
   frame.denoise_voice_model_loaded =
       denoise.voice_model_loaded != 0 ? 1u : 0u;

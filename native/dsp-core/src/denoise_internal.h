@@ -54,6 +54,18 @@ constexpr uint32_t kDenoiseVoiceLatencyFrames = 4;
 constexpr double kDenoiseSilenceDb = -120.0;
 
 /**
+ * The deepest delay every module together can add, at any supported rate.
+ *
+ * The spectral window is the largest term: held near 21 ms, it reaches 4096
+ * samples at 192 kHz, of which a window less a hop is 3072. The neural module
+ * adds its own window and latency ring at 2880, and the click repairer its
+ * lookahead at 144. Six thousand and change, rounded up — this sizes Isolate's
+ * dry delay once at construction so no module toggle ever reallocates a buffer
+ * the callback is reading.
+ */
+constexpr uint32_t kDenoiseMaxLatencyFrames = 8192;
+
+/**
  * One channel's short-time transform state.
  *
  * `input` and `output` are the overlap-add rings; `previous_gain` and
@@ -79,6 +91,21 @@ struct DenoiseSpectralChannel {
    */
   std::vector<double> adaptive_db;
   std::vector<double> running_minimum;
+  /**
+   * The periodogram smoothed in time, which is what the minimum is taken of.
+   *
+   * Not the raw one. A raw bin's power is exponentially distributed, so over a
+   * second and a half of noise its minimum lands ten to fifteen decibels under
+   * its mean — while a steady tone, which barely fluctuates at all, has a
+   * minimum equal to its own level. Taking minima of the raw periodogram
+   * therefore estimates the noise far too low and the tone exactly right,
+   * which is precisely backwards: it removed a 1 kHz tone by the full 30 dB
+   * and left the noise floor within a decibel of where it started.
+   *
+   * Smoothing first collapses the noise's variance, so its minimum approaches
+   * its mean and a small bias correction is enough.
+   */
+  std::vector<double> smoothed_power;
   uint32_t minimum_age = 0;
 };
 
@@ -179,8 +206,36 @@ struct FeqDenoise {
   std::vector<double> profile_bins_db;
   bool profile_bins_valid = false;
 
+  /**
+   * The live floor per profile band, written by the audio thread for the panel.
+   *
+   * A plain array rather than a published pair, and a torn read is acceptable
+   * here in a way it is not for the EQ's coefficients: the worst case is one
+   * band of a meter drawn from the previous frame, which is a pixel, against
+   * the alternative of a second buffer and a swap for a picture that repaints
+   * sixty times a second anyway.
+   */
+  std::vector<double> live_floor_db;
+
   /** Isolate's scratch: what the stage removed, kept to be emitted instead. */
   std::vector<std::vector<float>> residual;
+
+  /**
+   * The dry signal, delayed by exactly what the wet path costs.
+   *
+   * Isolate is `dry - wet`, and that is only the residual when the two are
+   * aligned in time. They were not. The spectral module delays by a window
+   * less a hop and the click repairer by its whole lookahead, so the
+   * subtraction was the input minus a time-shifted copy of itself — which is a
+   * comb filter, with a notch every 1/D Hz. At the sixteen-odd milliseconds
+   * this stage actually adds, a comb filter is a slapback, and it was reported
+   * as sounding like a chamber effect. It was one.
+   *
+   * A ring rather than one more copy of the block: the delay is longer than a
+   * block and spans several of them.
+   */
+  std::vector<std::vector<float>> dry_delay;
+  uint32_t dry_cursor = 0;
 
   /**
    * The neural module's runtime, session, worker and rings.

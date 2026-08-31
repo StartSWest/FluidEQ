@@ -33,7 +33,18 @@ SPDX-License-Identifier: GPL-3.0-or-later
 /* For FEQ_BASS_FORGE_BANDS, which sizes the two runs in the analysis frame. */
 #include "fluideq/bass_forge.h"
 
-#define FEQ_WIRE_PROTOCOL_VERSION 1
+/*
+ * Bumped to 2 when Denoise changed the analysis frame layout.
+ *
+ * The handshake already refuses a host whose protocol differs; what it cannot
+ * catch is a host built before a layout change that did not move this number.
+ * That host agrees it speaks version 1, is accepted, and then desynchronises
+ * on the first analysis frame — reported as diagnostic 3005 with magic 0,
+ * which names the symptom and nothing about the cause. `pnpm dev` does not
+ * rebuild the native host, so a pull across this change is exactly when it
+ * happens.
+ */
+#define FEQ_WIRE_PROTOCOL_VERSION 2
 
 /* 'FEQ' plus a letter for the kind, so a desynchronised stream is obvious. */
 #define FEQ_MAGIC_HANDSHAKE 0x48514546u /* FEQH */
@@ -194,7 +205,28 @@ typedef struct FeqWireHandshake {
   uint32_t parameter_schema_version;
   uint32_t abi_version;
   uint32_t parameter_count;
-  uint32_t reserved;
+  /**
+   * `sizeof(FeqWireAnalysisFrame)`, asked of the compiler rather than agreed.
+   *
+   * The analysis frame is the only one whose length is not fixed, so the
+   * reader takes this many bytes as its header and reads the rest of the
+   * length out of it. A host whose header is a different size therefore does
+   * not send one bad frame — it sends the next frame's first bytes as part of
+   * this one, and every frame after that is misread. The desynchronisation is
+   * permanent and its symptom is silence, because the supervisor's only
+   * answer to a lost stream is to kill the host.
+   *
+   * That happened. The frame went from 160 bytes to 320 when Denoise's forty
+   * floor bands landed, `FEQ_WIRE_PROTOCOL_VERSION` stayed at 1 because
+   * nothing makes it move, and a host binary from twenty-two minutes earlier
+   * handshook cleanly and then destroyed the stream. The version is a number
+   * somebody has to remember to change; this is one the compiler cannot get
+   * wrong, and it is checked before a single frame is read.
+   *
+   * An older host leaves this zero, which is not any frame size and is
+   * refused like any other mismatch.
+   */
+  uint32_t analysis_frame_bytes;
   char core_version[24];
   char architecture[16];
   char build_revision[24];
@@ -370,6 +402,14 @@ typedef struct FeqWireAnalysisFrame {
    */
   uint32_t denoise_profile_ready;
   uint32_t denoise_voice_model_loaded;
+  /**
+   * The live floor per profile band, in the profile's density units.
+   *
+   * Forty floats is a lot for a fixed header and they earn it: without them
+   * the Adaptive mode has no visible behaviour at all, and a mode whose only
+   * evidence is whether the sound got better is a mode nobody can tune.
+   */
+  float denoise_floor_bands[FEQ_DENOISE_PROFILE_BANDS];
   /*
    * The two bass stages, appended after every pre-existing offset.
    *
@@ -395,7 +435,7 @@ typedef struct FeqWireAnalysisFrame {
   float bass_punch_duck_db;
   /*
    * Pads the frame back to eight-byte alignment, and the assert below names
-   * the arithmetic: nineteen floats is 76 bytes onto 160, and 236 is not a
+   * the arithmetic: nineteen floats is 76 bytes onto 320, and 396 is not a
    * multiple of the eight that `correlation` at offset 24 forces on the whole
    * struct. The compiler would insert this byte-for-byte anyway; spelling it
    * out is what keeps the TypeScript constant derivable by reading this file.
@@ -420,12 +460,12 @@ static_assert(sizeof(FeqWireAckFrame) == 32, "ack frame size");
 static_assert(sizeof(FeqWireTelemetryFrame) == 88, "telemetry frame size");
 /*
  * 120, then 136 when Master loudness landed, then Denoise's six words took it
- * to 160. The two bass stages add sixteen floats for Forge and three for
- * Punch — 76 bytes, which lands on 236 and is rounded to 240 by the explicit
- * `bass_reserved_tail`, because `correlation` makes the whole struct
- * eight-byte aligned.
+ * to 160 and its forty floor bands to 320. The two bass stages add sixteen
+ * floats for Forge and three for Punch — 76 bytes, which lands on 396 and is
+ * rounded to 400 by the explicit `bass_reserved_tail`, because `correlation`
+ * makes the whole struct eight-byte aligned.
  */
-static_assert(sizeof(FeqWireAnalysisFrame) == 240, "analysis frame size");
+static_assert(sizeof(FeqWireAnalysisFrame) == 400, "analysis frame size");
 #endif
 
 #endif /* FLUIDEQ_HOST_WIRE_H */

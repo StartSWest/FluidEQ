@@ -77,9 +77,14 @@ const dsp = {
   'dsp.denoise.title': 'Denoise',
   'dsp.denoise.description':
     'Repairs the source before anything colours it: hiss, mains hum, clicks and a neural voice cleaner. Measured from the track itself, not guessed.',
-  'dsp.denoise.isolate': 'Listen to what is removed',
-  'dsp.denoise.isolateHint':
-    'Plays the removed signal instead of the kept one. The only reliable way to hear whether this is taking hiss or taking the hi-hat.',
+  'dsp.denoise.isolate': 'Isolate',
+  'dsp.denoise.isolateHint': 'Hear only what this stage is removing.',
+  'dsp.denoise.isolateOn':
+    'Kept signal dropped — you are hearing only what is removed.',
+  'dsp.denoise.graphOutput': 'Output',
+  'dsp.denoise.graphFloor': 'Noise floor',
+  'dsp.denoise.graphHum': 'Hum',
+  'dsp.denoise.graphIdle': 'Idle',
   'dsp.denoise.profileSource': 'Noise floor',
   'dsp.denoise.scanned': 'Scanned',
   'dsp.denoise.adaptive': 'Adaptive',

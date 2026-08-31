@@ -58,12 +58,21 @@ export const isDenoiseModelPresent = (): boolean => {
 };
 
 /**
- * Where the ONNX Runtime shared library is, resolved rather than guessed.
+ * Where the ONNX Runtime shared library is, searched rather than resolved.
  *
  * It already ships for karaoke separation, so the voice module borrows it
- * rather than adding a second copy. Resolved through the package's own entry
- * point because the layout underneath it — `bin/napi-vN/win32/x64` — is the
- * package's business and has changed between releases.
+ * rather than adding a second copy. What it must NOT do is ask
+ * `require.resolve` where the package lives: webpack rewrites that call into
+ * its own module-id lookup, so in the built main bundle it answers with a
+ * number or throws. This returned undefined for every packaged build, the
+ * Voice module could therefore never engage, and — because the card treated
+ * "downloaded but not engaged" as failure — the download button appeared to do
+ * nothing at all after fetching ten megabytes.
+ *
+ * The two real layouts are named instead. Under `app.asar.unpacked` when
+ * packaged, under the workspace root in development; the `bin/napi-vN/...`
+ * arrangement below either one is the package's business and has changed
+ * between releases, so that part is walked.
  */
 export const onnxRuntimeLibraryPath = (): string | undefined => {
   const names: Record<string, string> = {
@@ -75,9 +84,28 @@ export const onnxRuntimeLibraryPath = (): string | undefined => {
   if (!name) {
     return undefined;
   }
+  const roots = [
+    process.resourcesPath
+      ? path.join(
+          process.resourcesPath,
+          'app.asar.unpacked',
+          'node_modules',
+          'onnxruntime-node',
+        )
+      : undefined,
+    path.join(app.getAppPath(), 'node_modules', 'onnxruntime-node'),
+    // The workspace root in development: `getAppPath` points at `release/app`,
+    // whose node_modules is a link and does not carry the runtime itself.
+    path.join(app.getAppPath(), '..', '..', 'node_modules', 'onnxruntime-node'),
+  ].filter((root): root is string => root !== undefined);
+
   try {
-    const entry = require.resolve('onnxruntime-node');
-    const root = path.dirname(entry).replace(/[\\/]dist$/, '');
+    const root = roots.find((candidate) =>
+      fs.existsSync(path.join(candidate, 'bin')),
+    );
+    if (!root) {
+      return undefined;
+    }
     const napi = path.join(root, 'bin');
     let found: string | undefined;
     // Depth-limited, and it stops at the first hit: `some` short-circuits, so

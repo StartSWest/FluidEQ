@@ -48,9 +48,10 @@ export const ANALYSIS_BASS_FORGE_BANDS = 8;
  *
  * 120 before Master loudness took it to 136, and 136 before Denoise appended
  * six words — 160 rather than 156, because the frame is eight-byte aligned.
- * Then the two bass stages: sixteen floats for Forge's eight bands in and out
- * and three for Punch's gains, which is 76 bytes onto 160 and lands on 236 —
- * rounded to 240 by one explicit pad float, for the same alignment reason.
+ * Denoise's forty floor bands then took it to 320. Then the two bass stages:
+ * sixteen floats for Forge's eight bands in and out and three for Punch's
+ * gains, which is 76 bytes onto 320 and lands on 396 — rounded to 400 by one
+ * explicit pad float, for the same alignment reason.
  * Every pre-existing offset is untouched on purpose: this constant, the
  * publisher in `meters.cpp` and the reader in `dspHost/wire.ts` all have to
  * move in one commit, and new fields go after everything already decoded,
@@ -64,7 +65,7 @@ export const ANALYSIS_BASS_FORGE_BANDS = 8;
  * believed: three separate readers of it set out to add a check that has been
  * there since the graphs were first fed from the engine.
  */
-export const ANALYSIS_HEADER_BYTES = 240;
+export const ANALYSIS_HEADER_BYTES = 400;
 
 /** The rack ceiling, matching FEQ_METER_MAX_BANDS. */
 export const ANALYSIS_MAX_BANDS = 64;
@@ -226,6 +227,14 @@ export interface IHostAnalysisDenoise {
   profileReady: boolean;
   /** Whether the neural model is loaded and its session built. */
   voiceModelLoaded: boolean;
+  /**
+   * The floor the stage is subtracting right now, per profile band.
+   *
+   * Not the profile it was handed: in Adaptive the two differ every frame, and
+   * drawing the handed-over value would show a flat line while the tracker
+   * moved underneath it. Same density units as `INoiseProfile.bandsDb`.
+   */
+  floorBandsDb: readonly number[];
 }
 
 /**

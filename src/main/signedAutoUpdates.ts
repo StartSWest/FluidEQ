@@ -127,7 +127,27 @@ export interface IReleaseAutoUpdateOptions {
 }
 
 export interface IAuthorizedAutoUpdater {
+  /**
+   * Close FluidEQ and apply the downloaded update.
+   *
+   * `isSilent` must be true on every real call. A visible NSIS run on an
+   * update means a language dialog and a progress window with a button on it,
+   * for a step nobody asked to watch — and the app is already gone by then, so
+   * there is nothing the wizard can usefully ask. Silent also skips the
+   * Equalizer APO block in installer.nsh, which has no business running again
+   * over a machine that already has it. The argument survives only because the
+   * tests drive both branches through it.
+   */
   quitAndInstall(isSilent?: boolean, isForceRunAfter?: boolean): void;
+  /**
+   * Is there a downloaded installer that has passed release-channel
+   * verification and is waiting to be run?
+   *
+   * The unattended install path asks this before deciding whether the moment
+   * is right; `quitAndInstall` throws when it is not true, and a throw is not
+   * a way to ask a question.
+   */
+  isReadyToInstall(): boolean;
   /**
    * Run one update check now, whatever the clock says.
    *
@@ -439,6 +459,14 @@ export const setUpReleaseAutoUpdates = async (
   // beyond every trust check so an ambiguous build never initializes it.
   const updater = loadUpdater();
   updater.logger = logger;
+  // Stays off, and not because updates should be reluctant. electron-updater's
+  // own quit handler calls `install()` straight on its singleton, which walks
+  // past the verification below — for the unsigned GitHub channel the
+  // `update-downloaded` listener here is the ONLY Authenticode check there is.
+  // Installing on quit would therefore run an installer nothing had vouched
+  // for. The unattended path in main goes through `quitAndInstall`, which is
+  // gated on `isInstallerAuthorized`, and gets the same "no clicks" outcome
+  // without the hole.
   updater.autoInstallOnAppQuit = false;
   if (isSignedChannel) {
     updater.setFeedURL({ provider: 'generic', url: updateUrl as string });
@@ -644,6 +672,7 @@ export const setUpReleaseAutoUpdates = async (
       beforeQuit?.();
       updater.quitAndInstall(isSilent, isForceRunAfter);
     },
+    isReadyToInstall: () => isInstallerAuthorized,
     checkNow,
     checkIfDue,
   };

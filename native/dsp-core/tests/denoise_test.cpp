@@ -18,6 +18,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <cmath>
 #include <cstdio>
+#include <cstring>
 #include <cstdint>
 #include <vector>
 
@@ -86,6 +87,15 @@ double rms_db(const std::vector<float>& signal, uint32_t from, uint32_t count) {
   return rms > 1e-12 ? 20.0 * std::log10(rms) : -240.0;
 }
 
+/** What the stage delays by, for a given configuration. */
+uint32_t latency_of(const FeqDenoiseSettings& settings) {
+  FeqDenoise* denoise = feq_denoise_create(kRate, 2, kFrames);
+  feq_denoise_configure(denoise, &settings);
+  const uint32_t latency = feq_denoise_latency_frames(denoise);
+  feq_denoise_destroy(denoise);
+  return latency;
+}
+
 /** Run a signal through a configured stage and return what came out. */
 std::vector<float> run(const FeqDenoiseSettings& settings,
                        const std::vector<float>& input,
@@ -104,6 +114,141 @@ std::vector<float> run(const FeqDenoiseSettings& settings,
   }
   feq_denoise_destroy(denoise);
   return left;
+}
+
+/* -------------------------------------------------------------- adaptive -- */
+
+/**
+ * Does the live tracker actually find the floor, with no scan at all?
+ *
+ * The question this answers is "is Adaptive doing anything", and it cannot be
+ * answered by listening: a tracker that never converges and a tracker that
+ * converges correctly both leave the music intact and differ only in whether
+ * the hiss goes. So it is measured — the same tone-over-noise as the scanned
+ * test, with the profile withheld.
+ *
+ * It needs a LONG signal. Minimum statistics looks back a second and a half
+ * before it has an estimate at all, so anything shorter measures the warm-up
+ * rather than the tracker.
+ */
+void test_adaptive_finds_the_floor_without_a_scan() {
+  const uint32_t length = kFrames * 700; /* about 7.5 seconds */
+  const double tone_hz = 1000.0;
+  const double noise_amplitude = 0.001;
+
+  /*
+   * The tone is GATED into notes, because that is what the method needs.
+   *
+   * Minimum statistics finds the floor by looking for the quietest the band
+   * gets over its look-back. A note that stops gives it that; a tone held for
+   * the whole file never does, and the tracker correctly concludes that the
+   * quietest that band ever gets IS the tone. Held tones are the documented
+   * limit of this mode and there is a separate test for it below — this one
+   * asks whether the tracker works on material that behaves like music.
+   *
+   * Smoothly enveloped, since a hard gate is a click and the click repairer
+   * and the spectral estimator would both have opinions about it.
+   */
+  Noise source;
+  std::vector<float> input(length, 0.0f);
+  for (uint32_t i = 0; i < length; i += 1) {
+    const double t = static_cast<double>(i) / kRate;
+    const double envelope = std::max(0.0, std::sin(2.0 * kPi * t * 1.25));
+    const double tone =
+        0.1 * envelope *
+        std::sin(2.0 * kPi * tone_hz * static_cast<double>(i) / kRate);
+    input[i] = static_cast<float>(tone + noise_amplitude * source.next());
+  }
+
+  FeqDenoiseSettings settings = bypassed_modules();
+  settings.hiss.enabled = 1;
+  settings.hiss.amount = 1.0;
+  settings.hiss.floor_db = -30.0;
+  settings.profile_source = FEQ_DENOISE_PROFILE_ADAPTIVE;
+
+  // No profile handed over at all, which is the point.
+  const std::vector<float> processed = run(settings, input, nullptr);
+  const std::vector<float> bypassed =
+      run(bypassed_modules(), input, nullptr);
+
+  // Measured in the last third, well past the tracker's warm-up.
+  const uint32_t from = kFrames * 450;
+  const uint32_t count = 48000;
+
+  const double tone_in = tone_level_db(bypassed, tone_hz, from, count);
+  const double tone_out = tone_level_db(processed, tone_hz, from, count);
+  check(std::fabs(tone_out - tone_in) < 1.5,
+        "adaptive: the tone survives without a scan");
+
+  /*
+   * The noise is measured as broadband RMS inside a GAP between notes, not as
+   * a projection onto one frequency.
+   *
+   * A projection answers "how much energy is at exactly 7 kHz", which for
+   * broadband noise is a tiny and very noisy quantity — it moved 2.7 dB while
+   * the audible hiss moved far more. In a gap the signal is nothing but noise,
+   * so its RMS is the hiss itself and the reading is the thing a listener is
+   * actually judging.
+   *
+   * The envelope repeats at 1.25 Hz, so gaps sit in the second half of every
+   * 0.8 s period; this lands in one late in the file.
+   */
+  const uint32_t gap_from = static_cast<uint32_t>(6.9 * kRate);
+  const uint32_t gap_count = static_cast<uint32_t>(0.25 * kRate);
+  const double floor_in = rms_db(bypassed, gap_from, gap_count);
+  const double floor_out = rms_db(processed, gap_from, gap_count);
+  check(floor_out < floor_in - 6.0,
+        "adaptive: the hiss in a gap drops by more than 6 dB with no scan");
+
+  /*
+   * The tone assertion above IS the positive control for the floor one. A
+   * module that simply attenuated everything would satisfy "the floor drops"
+   * and fail "the tone survives", so the pair together says the tracker is
+   * discriminating rather than merely turning things down.
+   */
+}
+
+/**
+ * The documented limit: a tone that never stops is read as noise.
+ *
+ * Not a defect, and recorded here so it is not rediscovered as one. Minimum
+ * statistics estimates the floor as the quietest a band gets over its
+ * look-back; a sustained organ note or synth pad held longer than that window
+ * never gets quieter, so the tracker concludes the note is the floor and
+ * removes it. That is inherent to the method, and it is the reason Scanned
+ * exists — a whole-file measurement takes its percentile across the entire
+ * track, where a note sustained through one section is not the quietest thing
+ * in the file.
+ *
+ * Asserted rather than commented, because the day it changes is a day someone
+ * needs to know the trade has moved.
+ */
+void test_adaptive_suppresses_an_endlessly_held_tone() {
+  const uint32_t length = kFrames * 700;
+  const double tone_hz = 1000.0;
+
+  Noise source;
+  std::vector<float> input(length, 0.0f);
+  for (uint32_t i = 0; i < length; i += 1) {
+    input[i] = static_cast<float>(
+        0.1 * std::sin(2.0 * kPi * tone_hz * static_cast<double>(i) / kRate) +
+        0.001 * source.next());
+  }
+
+  FeqDenoiseSettings settings = bypassed_modules();
+  settings.hiss.enabled = 1;
+  settings.hiss.amount = 1.0;
+  settings.hiss.floor_db = -30.0;
+  settings.profile_source = FEQ_DENOISE_PROFILE_ADAPTIVE;
+
+  const std::vector<float> processed = run(settings, input, nullptr);
+  const std::vector<float> bypassed = run(bypassed_modules(), input, nullptr);
+
+  const uint32_t from = kFrames * 450;
+  const double held_in = tone_level_db(bypassed, tone_hz, from, 48000);
+  const double held_out = tone_level_db(processed, tone_hz, from, 48000);
+  check(held_out < held_in - 12.0,
+        "adaptive: a permanently held tone IS suppressed, as the method must");
 }
 
 /* ------------------------------------------------------------------ hiss -- */
@@ -355,13 +500,236 @@ void test_isolate_is_the_difference() {
   const std::vector<float> a = run(kept, input, nullptr);
   const std::vector<float> b = run(removed, input, nullptr);
 
+  /*
+   * Against the input DELAYED by what the stage adds, not against the input.
+   *
+   * The stage delays everything it passes, so the signal the two outputs sum
+   * back to is the one that entered `latency` samples ago. Comparing against
+   * `input[i]` instead is what this assertion used to do, and it passed only
+   * because Isolate was making the same mistake in the other direction —
+   * subtracting an undelayed dry from a delayed wet. Two errors that cancel in
+   * a sum, and a comb filter left on the output.
+   */
+  const uint32_t latency = latency_of(kept);
+  check(latency > 0, "isolate: the configuration under test really does delay");
+
   double worst = 0.0;
   for (uint32_t i = kFrames * 10; i < length; i += 1) {
     worst = std::max(worst, std::fabs(static_cast<double>(a[i]) +
                                       static_cast<double>(b[i]) -
-                                      static_cast<double>(input[i])));
+                                      static_cast<double>(input[i - latency])));
   }
-  check(worst < 1e-6, "isolate: kept plus removed reconstructs the input");
+  check(worst < 1e-6,
+        "isolate: kept plus removed reconstructs the delayed input");
+}
+
+/**
+ * Isolate with nothing being removed must be SILENT.
+ *
+ * This is the assertion that was missing, and its absence let a real defect
+ * ship. The test above — kept plus removed equals the input — is
+ * `x + (y - x) == y`, true by construction however wrong either term is, so it
+ * passed while Isolate emitted a comb-filtered copy of the music: it was
+ * subtracting the UNDELAYED input from the DELAYED output, and a signal minus
+ * a shifted copy of itself at sixteen milliseconds is a slapback. It was
+ * reported on the first real listen as sounding like a chamber effect, which
+ * is precisely what it had been turned into.
+ *
+ * With every module bypassed the wet path is the dry path, so the difference
+ * must be zero. No algebra makes that true by accident: it is false for any
+ * misalignment at all.
+ */
+/**
+ * The delay the stage REPORTS must be the delay it actually adds.
+ *
+ * Measured with an impulse, because this was got wrong by reasoning: the
+ * spectral module's latency was derived as a window less a hop and is in fact
+ * a whole window. Isolate found it first — a residual taken against a
+ * mis-stated delay is a comb filter — but the number matters well beyond this
+ * stage. `feq_chain_latency_frames` sums it, and a deck handoff aligns the two
+ * decks against that sum, so a stage understating its delay puts every
+ * crossfade out by the difference with nothing in the audio to point at it.
+ *
+ * The impulse also proves the transform reconstructs: unit amplitude and unit
+ * energy out means the analysis and synthesis windows really do sum to one at
+ * this hop, so a failure here is the delay and not the arithmetic.
+ */
+/** Every module's real delay against what it claims, one configuration each. */
+void test_every_module_reports_its_real_delay() {
+  const uint32_t length = kFrames * 40;
+
+  struct Case {
+    const char* what;
+    FeqDenoiseSettings settings;
+  };
+
+  FeqDenoiseSettings click_only = bypassed_modules();
+  click_only.click.enabled = 1;
+
+  FeqDenoiseSettings hum_only = bypassed_modules();
+  hum_only.hum.enabled = 1;
+
+  FeqDenoiseSettings hiss_only = bypassed_modules();
+  hiss_only.hiss.enabled = 1;
+  hiss_only.hiss.amount = 0.0;
+  hiss_only.profile_source = FEQ_DENOISE_PROFILE_ADAPTIVE;
+
+  // The shipped defaults, which is the configuration a listener actually
+  // meets and the one the stack's delays have to add up in.
+  FeqDenoiseSettings all_on = hiss_only;
+  all_on.click.enabled = 1;
+  all_on.hum.enabled = 1;
+
+  const Case cases[] = {
+      {"click alone", click_only},
+      {"hum alone", hum_only},
+      {"hiss alone", hiss_only},
+      {"the shipped defaults", all_on},
+  };
+
+  /*
+   * A chirp, correlated — NOT an impulse.
+   *
+   * An impulse is a click, and the click repairer duly removes it: probing
+   * that module with one measures how well it works, not how long it takes.
+   * A sweep has no impulsive content for it to find and, unlike a steady tone,
+   * correlates to a single unambiguous offset rather than to every multiple of
+   * a period.
+   */
+  std::vector<float> input(length, 0.0f);
+  for (uint32_t i = 0; i < length; i += 1) {
+    const double t = static_cast<double>(i) / kRate;
+    const double sweep = 120.0 + (4800.0 - 120.0) * t * 0.5;
+    input[i] = static_cast<float>(0.3 * std::sin(2.0 * kPi * sweep * t));
+  }
+
+  for (const Case& item : cases) {
+    const std::vector<float> out = run(item.settings, input, nullptr);
+
+    // Correlated over a span well clear of both the warm-up and the tail.
+    const uint32_t from = kFrames * 16;
+    const uint32_t count = kFrames * 12;
+    uint32_t measured = 0;
+    double best = -1.0;
+    for (uint32_t shift = 0; shift <= 4096; shift += 1) {
+      double sum = 0.0;
+      for (uint32_t i = 0; i < count; i += 1) {
+        sum += static_cast<double>(out[from + i]) *
+               static_cast<double>(input[from + i - shift]);
+      }
+      if (sum > best) {
+        best = sum;
+        measured = shift;
+      }
+    }
+    const uint32_t reported = latency_of(item.settings);
+    char label[160];
+    std::snprintf(label, sizeof(label),
+                  "latency: %s delays %u and reports %u", item.what, measured,
+                  reported);
+    check(measured == reported, label);
+  }
+}
+
+void test_reported_latency_is_the_real_delay() {
+  const uint32_t length = kFrames * 40;
+  std::vector<float> input(length, 0.0f);
+  input[kFrames * 4] = 1.0f;
+
+  FeqDenoiseSettings settings = bypassed_modules();
+  settings.hiss.enabled = 1;
+  settings.hiss.amount = 0.0;
+  settings.profile_source = FEQ_DENOISE_PROFILE_ADAPTIVE;
+
+  const std::vector<float> out = run(settings, input, nullptr);
+  uint32_t peak = 0;
+  double best = 0.0;
+  double energy = 0.0;
+  for (uint32_t i = 0; i < length; i += 1) {
+    const double a = std::fabs(static_cast<double>(out[i]));
+    energy += a * a;
+    if (a > best) {
+      best = a;
+      peak = i;
+    }
+  }
+  const uint32_t measured = peak - kFrames * 4;
+  const uint32_t reported = latency_of(settings);
+  check(measured == reported,
+        "latency: the impulse comes out where the stage says it will");
+  check(best > 0.99 && best < 1.01,
+        "latency: the transform reconstructs at unit amplitude");
+  check(energy > 0.99 && energy < 1.01,
+        "latency: and at unit energy, so a failure above is the delay");
+}
+
+void test_isolate_is_silent_when_nothing_is_removed() {
+  const uint32_t length = kFrames * 60;
+  Noise source;
+  std::vector<float> input(length, 0.0f);
+  for (uint32_t i = 0; i < length; i += 1) {
+    const double time = static_cast<double>(i) / kRate;
+    input[i] = static_cast<float>(0.25 * std::sin(2.0 * kPi * 700.0 * time) +
+                                  0.05 * source.next());
+  }
+
+  /*
+   * The spectral module ON, at zero amount: it runs, it delays, and its gain
+   * is unity in every bin, so it removes nothing.
+   *
+   * That combination is the whole point. Bypassing every module instead makes
+   * the correct latency zero, so a misaligned Isolate and a correct one agree
+   * and the test proves nothing — which is exactly what the first version of
+   * this did, passing against the very bug it was written for. A module that
+   * delays while removing nothing is the only configuration where "aligned"
+   * and "not aligned" give different answers.
+   */
+  FeqDenoiseSettings settings = bypassed_modules();
+  settings.isolate = 1;
+  settings.hiss.enabled = 1;
+  settings.hiss.amount = 0.0;
+  settings.profile_source = FEQ_DENOISE_PROFILE_ADAPTIVE;
+  check(latency_of(settings) > 0,
+        "isolate: the silence case is a configuration that really delays");
+
+  const std::vector<float> removed = run(settings, input, nullptr);
+
+  double worst = 0.0;
+  for (uint32_t i = kFrames * 8; i < length; i += 1) {
+    worst = std::max(worst, std::fabs(static_cast<double>(removed[i])));
+  }
+  check(worst < 1e-5, "isolate: emits nothing when nothing is removed");
+
+  /*
+   * The positive control. With a module actually working the same measurement
+   * must become clearly non-zero — otherwise "silent" would also be satisfied
+   * by an Isolate that had stopped emitting anything at all, which is the one
+   * other explanation for a quiet result.
+   *
+   * Driven from a MEASURED profile rather than the adaptive tracker. The
+   * tracker needs a second and a half to converge and this signal is two
+   * thirds of one, so an adaptive control removes nothing and fails for a
+   * reason that has nothing to do with what is being tested.
+   */
+  const double variance = 0.05 * 0.05 / 3.0;
+  FeqNoiseProfile profile{};
+  for (uint32_t band = 0; band < FEQ_DENOISE_PROFILE_BANDS; band += 1) {
+    profile.bands_db[band] = 10.0 * std::log10(variance / (kRate * 0.5));
+  }
+  profile.floor_dbfs = 20.0 * std::log10(std::sqrt(variance));
+
+  FeqDenoiseSettings working = settings;
+  working.hiss.enabled = 1;
+  working.hiss.amount = 1.0;
+  working.profile_source = FEQ_DENOISE_PROFILE_SCANNED;
+  const std::vector<float> real = run(working, input, &profile);
+
+  double loudest = 0.0;
+  for (uint32_t i = kFrames * 20; i < length; i += 1) {
+    loudest = std::max(loudest, std::fabs(static_cast<double>(real[i])));
+  }
+  check(loudest > 1e-4,
+        "isolate: POSITIVE CONTROL, a working module gives it something");
 }
 
 /**
@@ -481,9 +849,14 @@ int main() {
   test_band_centres();
   test_bypass_is_exact();
   test_hiss();
+  test_adaptive_finds_the_floor_without_a_scan();
+  test_adaptive_suppresses_an_endlessly_held_tone();
   test_hum();
   test_click();
   test_isolate_is_the_difference();
+  test_reported_latency_is_the_real_delay();
+  test_every_module_reports_its_real_delay();
+  test_isolate_is_silent_when_nothing_is_removed();
   if (g_failures != 0) {
     std::printf("%d failure(s)\n", g_failures);
     return 1;
