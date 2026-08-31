@@ -31,7 +31,18 @@ SPDX-License-Identifier: GPL-3.0-or-later
 /* For the profile's band and partial counts, which size its payload. */
 #include "fluideq/denoise.h"
 
-#define FEQ_WIRE_PROTOCOL_VERSION 1
+/*
+ * Bumped to 2 when Denoise changed the analysis frame layout.
+ *
+ * The handshake already refuses a host whose protocol differs; what it cannot
+ * catch is a host built before a layout change that did not move this number.
+ * That host agrees it speaks version 1, is accepted, and then desynchronises
+ * on the first analysis frame — reported as diagnostic 3005 with magic 0,
+ * which names the symptom and nothing about the cause. `pnpm dev` does not
+ * rebuild the native host, so a pull across this change is exactly when it
+ * happens.
+ */
+#define FEQ_WIRE_PROTOCOL_VERSION 2
 
 /* 'FEQ' plus a letter for the kind, so a desynchronised stream is obvious. */
 #define FEQ_MAGIC_HANDSHAKE 0x48514546u /* FEQH */

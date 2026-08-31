@@ -35,7 +35,12 @@ import {
 } from '../../common/dsp/noiseProfile';
 
 /** Must match FEQ_WIRE_PROTOCOL_VERSION. */
-export const HOST_WIRE_PROTOCOL_VERSION = 1;
+/**
+ * Must match `FEQ_WIRE_PROTOCOL_VERSION`. Bump BOTH whenever a frame layout
+ * changes, so a stale host is refused at the handshake with a legible reason
+ * rather than desynchronising on its first analysis frame.
+ */
+export const HOST_WIRE_PROTOCOL_VERSION = 2;
 
 export const HANDSHAKE_BYTES = 104;
 export const COMMAND_BYTES = 32;
