@@ -17,7 +17,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * and are not — both touch the deck, and Previous decides between rewinding
  * one and changing track by asking where the playhead is.
  */
-import { MutableRefObject, useCallback } from 'react';
+import { Dispatch, MutableRefObject, SetStateAction, useCallback } from 'react';
 import {
   ILibraryQueue,
   buildQueue,
@@ -52,9 +52,7 @@ export const useQueueControls = (options: {
   addedIdsRef: MutableRefObject<ReadonlySet<string>>;
   /** What continuation guessed, which is re-aimed differently from the rest. */
   continuedIdsRef: MutableRefObject<ReadonlySet<string>>;
-  setAddedIds: (
-    update: (current: ReadonlySet<string>) => ReadonlySet<string>,
-  ) => void;
+  setAddedIds: Dispatch<SetStateAction<ReadonlySet<string>>>;
   /**
    * Starting a queue from nothing is still a play, not a rearrangement — it
    * is the one case here that CAN make a sound, so it is borrowed rather than

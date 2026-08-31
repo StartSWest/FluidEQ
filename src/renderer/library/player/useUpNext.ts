@@ -23,7 +23,14 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * decides what a list says, which is a different job from playing the thing at
  * the top of it.
  */
-import { useEffect, useMemo, useRef, useState } from 'react';
+import {
+  Dispatch,
+  SetStateAction,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   CONTINUATION_LOW_WATER,
   pickContinuation,
@@ -49,9 +56,7 @@ export interface IUpNext {
   upNext: readonly IUpNextEntry[];
   isContinuationOn: boolean;
   setIsContinuationOn: (value: boolean) => void;
-  setAddedIds: (
-    update: (current: ReadonlySet<string>) => ReadonlySet<string>,
-  ) => void;
+  setAddedIds: Dispatch<SetStateAction<ReadonlySet<string>>>;
   addedIdsRef: React.MutableRefObject<ReadonlySet<string>>;
   continuedIdsRef: React.MutableRefObject<ReadonlySet<string>>;
 }

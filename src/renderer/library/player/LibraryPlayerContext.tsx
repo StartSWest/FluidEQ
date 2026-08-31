@@ -50,16 +50,11 @@ import {
 import { buildSongIdentity } from 'common/songIdentity';
 import {
   advanceQueue,
-  buildQueue,
   currentTrackId,
   ILibraryQueue,
   queueAtEnd,
 } from '../../../common/library/queue';
-import {
-  claimPlayback,
-  registerPlayer,
-  releasePlayback,
-} from '../../audio/playbackOwner';
+import { registerPlayer } from '../../audio/playbackOwner';
 import {
   clearTransportSource,
   setTransportSource,
@@ -79,6 +74,7 @@ import { readStoredVolume } from './playbackMemory';
 import { ILibraryPlayerContextValue } from './playerContract';
 import { useDeckAudio } from './useDeckAudio';
 import { useMediaEvents } from './useMediaEvents';
+import { usePlaybackCommands } from './usePlaybackCommands';
 import { useQueueControls } from './useQueueControls';
 import { useSessionMemory } from './useSessionMemory';
 import { useTrackAnalysis } from './useTrackAnalysis';
@@ -738,99 +734,21 @@ export const LibraryPlayerProvider = ({
     libraryTracks: index.tracks,
     setQueue,
   });
-
-  const stop = useCallback(() => {
-    setQueue(undefined);
-  }, []);
-
-  const playTracks = useCallback(
-    (trackIds: readonly string[], startTrackId: string) => {
-      // PLAY REPLACES. Pressing play on a record is choosing what to listen
-      // to now, and the list built by hand for what came before it does not
-      // survive that — it was a list of what to play next, and "next" has
-      // just been answered by something else. Add to up next is the half that
-      // keeps a list; this is the half that starts one.
-      setAddedIds((current) => (current.size === 0 ? current : new Set()));
-      setQueue((current) => {
-        const next = buildQueue(
-          [...trackIds],
-          startTrackId,
-          current?.isShuffled ?? false,
-        );
-        // Shuffle and repeat are player preferences, not properties of one
-        // list — picking a new album should not silently turn Repeat off.
-        return current ? { ...next, repeat: current.repeat } : next;
-      });
-
-      // ASKING FOR THE TRACK THAT IS ALREADY CUED IS STILL ASKING FOR IT.
-      //
-      // Everything that starts sound hangs off the loader effect, and that
-      // effect is keyed on `trackId` CHANGING — deliberately, so a rescan
-      // refreshing this track's tags cannot restart it. The cost is the case
-      // where the queue is already sitting on the very track being asked for,
-      // and then a press did nothing at all:
-      //
-      //   - after a restart, where the session is restored cued and paused
-      //     with no source fetched (see `pendingRestore` in that effect), so
-      //     the album's Play looked broken while the bar's Play worked;
-      //   - after Stop, where the same album is chosen again.
-      //
-      // Only the audio element is given a source here. A video belongs to
-      // `LibraryVideoStage`, which loads it itself — see `videoTrackId`.
-      const cued = queueRef.current
-        ? currentTrackId(queueRef.current)
-        : undefined;
-      if (cued !== startTrackId) {
-        return;
-      }
-      const element = activeElement();
-      if (!element) {
-        return;
-      }
-      pendingRestore.current = undefined;
-      if (element === audioElementRef.current && !element.getAttribute('src')) {
-        setLoadRequest((current) => current + 1);
-        return;
-      }
-      element.play().catch(() => undefined);
-    },
-    [activeElement, setAddedIds],
-  );
-
-  const toggle = useCallback(() => {
-    const element = activeElement();
-    if (!element) {
-      return;
-    }
-    /**
-     * Ask the engine that is playing, not the one that is only loaded.
-     *
-     * While the host owns the transport the element is paused and holding the
-     * file as a fallback, so `element.paused` answers "yes" forever and this
-     * would have called `play()` on it every time — starting the second
-     * decoder the pause exists to stop, and restarting the sound in the
-     * element as well as the host on any deck the host had failed to open.
-     *
-     * The state IS the request here. `sync` carries it to the host on the very
-     * next tick, which is where a play or a pause actually happens.
-     */
-    if (hostOwnsTransportRef.current) {
-      setIsPlaying((playing) => {
-        if (playing) {
-          releasePlayback('library');
-        } else {
-          claimPlayback('library');
-        }
-        return !playing;
-      });
-      return;
-    }
-    if (element.paused) {
-      element.play().catch(() => undefined);
-    } else {
-      element.pause();
-    }
-  }, [activeElement]);
+  /**
+   * Start, stop and suspend — the three commands that decide whether there
+   * is anything playing at all. See `usePlaybackCommands`.
+   */
+  const { stop, playTracks, toggle } = usePlaybackCommands({
+    activeElement,
+    queueRef,
+    hostOwnsTransportRef,
+    setQueue,
+    setIsPlaying,
+    setAddedIds,
+    setLoadRequest,
+    pendingRestore,
+    audioElementRef,
+  });
   /**
    * Rearranging what is coming, none of which can make a sound. See
    * `useQueueControls` for why that is a boundary rather than a filing
