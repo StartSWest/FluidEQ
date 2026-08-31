@@ -47,13 +47,8 @@ import {
   useRef,
   useState,
 } from 'react';
-import { buildSongIdentity } from 'common/songIdentity';
 import { currentTrackId, ILibraryQueue } from '../../../common/library/queue';
 import { registerPlayer } from '../../audio/playbackOwner';
-import {
-  clearTransportSource,
-  setTransportSource,
-} from '../../audio/transportSource';
 import { ILibraryProgrammeEdges } from '../../../common/library/types';
 import { useDspEngine } from '../../dsp/useDspEngine';
 import {
@@ -70,6 +65,7 @@ import { ILibraryPlayerContextValue } from './playerContract';
 import { useDeckAudio } from './useDeckAudio';
 import { useMediaEvents } from './useMediaEvents';
 import { usePlaybackCommands } from './usePlaybackCommands';
+import { usePublishedTransport } from './usePublishedTransport';
 import { useQueueControls } from './useQueueControls';
 import { useSessionMemory } from './useSessionMemory';
 import { useTrackAnalysis } from './useTrackAnalysis';
@@ -683,51 +679,20 @@ export const LibraryPlayerProvider = ({
     setVolumeState,
     setQueue,
   });
-
   /**
-   * The library's claim on the bar at the foot of the window.
-   *
-   * Published in the same register as karaoke's and the Media tab's, so one
-   * rule can decide between them — see `pickTransportOwner`. What the library
-   * gets when it wins is not this: `NowPlayingBar` draws it from this context
-   * directly, because the library has cover art, a format readout, shuffle and
-   * repeat, and none of those fit a shape the other two could honestly fill in.
+   * Telling the rest of the app what this player is doing, in the shape
+   * every source can answer with. See `usePublishedTransport`.
    */
-  useEffect(() => {
-    if (!track) {
-      clearTransportSource('library');
-      return;
-    }
-    setTransportSource({
-      owner: 'library',
-      title: track.title,
-      subtitle: track.artist,
-      isPlaying,
-      positionMs: publishedPositionMs,
-      durationMs: publishedDurationMs,
-      toggle,
-      seek,
-      volume,
-      setVolume,
-      identity: buildSongIdentity(
-        'library',
-        track.id,
-        track.title,
-        track.artist,
-      ),
-    });
-  }, [
+  usePublishedTransport({
     track,
     isPlaying,
     publishedPositionMs,
     publishedDurationMs,
+    volume,
     toggle,
     seek,
-    volume,
     setVolume,
-  ]);
-
-  useEffect(() => () => clearTransportSource('library'), []);
+  });
 
   const value = useMemo<ILibraryPlayerContextValue>(
     () => ({
