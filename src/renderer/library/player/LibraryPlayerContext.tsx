@@ -94,6 +94,7 @@ import {
   useNativeDeviceGeneration,
   useNativeMeters,
   useNativeMirror,
+  useNativeTransport,
 } from '../../dsp/useNativeBackend';
 import {
   analyzeInputTrack,
@@ -103,6 +104,7 @@ import {
 import {
   IDspInputAnalysisState,
   setDspInputAnalysis,
+  useDspNativeTransport,
   useDspSettings,
 } from '../../dsp/store';
 import { useLibrary } from '../LibraryContext';
@@ -473,6 +475,35 @@ export const LibraryPlayerProvider = ({
   useNativeMeters(nativeBackend);
   // And the mirror re-cues when the host moves to a different endpoint.
   useNativeDeviceGeneration(nativeBackend);
+  // The clock comes from the engine making the sound. See `hostTransport`.
+  useNativeTransport(nativeBackend);
+  /**
+   * One clock, and it belongs to whatever is audible.
+   *
+   * While the host is playing, the element is muted and its position is a
+   * second decode of the same file kept only to be a clock. Reading both is
+   * what let a track cued at the previous one's position play from the middle
+   * with the bar at zero: each was right about a different player.
+   *
+   * `hasSource` rather than "is the native engine on", because the host has a
+   * clock only once a deck holds something. Between engaging and the first
+   * load there is nothing to read, and the element is still the authority.
+   */
+  const hostTransport = useDspNativeTransport();
+  const hostOwnsTransport = hostTransport.hasSource;
+  const publishedPositionMs = hostOwnsTransport
+    ? hostTransport.positionSeconds * 1_000
+    : positionMs;
+  // A duration of zero means the decoder could not say, which is legal — the
+  // element's own answer is better than none.
+  const publishedDurationMs =
+    hostOwnsTransport && hostTransport.durationSeconds > 0
+      ? hostTransport.durationSeconds * 1_000
+      : durationMs;
+  const hostOwnsTransportRef = useRef(hostOwnsTransport);
+  hostOwnsTransportRef.current = hostOwnsTransport;
+  /** Fired for at most one track; see the effect beside `handleEnded`. */
+  const endedTrackRef = useRef<string | undefined>(undefined);
   useNativeMirror(nativeBackend, audioElements, {
     mediaPath: track?.path,
     isPlaying,
@@ -942,6 +973,30 @@ export const LibraryPlayerProvider = ({
     }
   }, []);
 
+  /**
+   * End of track, from the deck that actually reached it.
+   *
+   * The host reports `ended` as a STATE and holds it until something else is
+   * loaded, so this fires on the edge and remembers which track it fired for.
+   * Reading it as an event would advance the queue again on every telemetry
+   * frame until the next load, which is forty times a second.
+   *
+   * The element's own `ended` is ignored while the host owns the transport —
+   * see `onEnded`. One of them has to be the authority, and it is the one
+   * making the sound.
+   */
+  useEffect(() => {
+    const playing = trackIdRef.current;
+    if (!hostTransport.ended || !playing || endedTrackRef.current === playing) {
+      return;
+    }
+    endedTrackRef.current = playing;
+    const element = audioElementRef.current;
+    if (element) {
+      handleEnded(element);
+    }
+  }, [hostTransport.ended, handleEnded]);
+
   const bindMediaEvents = useCallback(
     (element: HTMLMediaElement): (() => void) => {
       const isActive = () =>
@@ -1136,7 +1191,16 @@ export const LibraryPlayerProvider = ({
         setIsPlaying(false);
       };
       const onEnded = () => {
-        if (isActive()) {
+        /**
+         * Only when this element is the one playing the track.
+         *
+         * While the host owns the transport the element is muted and running
+         * a second decode purely as a clock, and its `ended` is that clock
+         * reaching the end — not the music. Both firing advanced the queue
+         * twice on the same track, and which one won depended on how far the
+         * two decoders had drifted.
+         */
+        if (isActive() && !hostOwnsTransportRef.current) {
           handleEnded(element);
         }
       };
@@ -2531,7 +2595,10 @@ export const LibraryPlayerProvider = ({
 
   const skip = useCallback(
     (direction: 1 | -1) => {
-      if (direction === -1 && positionMs > PREVIOUS_RESTART_THRESHOLD_MS) {
+      if (
+        direction === -1 &&
+        publishedPositionMs > PREVIOUS_RESTART_THRESHOLD_MS
+      ) {
         const element = activeElement();
         if (element) {
           // Close any overlap before rewinding the deck that now owns the
@@ -2548,7 +2615,7 @@ export const LibraryPlayerProvider = ({
         current ? advanceQueue(current, direction) : current,
       );
     },
-    [activeElement, positionMs, startSeekFade],
+    [activeElement, publishedPositionMs, startSeekFade],
   );
 
   const seek = useCallback(
@@ -2631,8 +2698,8 @@ export const LibraryPlayerProvider = ({
       title: track.title,
       subtitle: track.artist,
       isPlaying,
-      positionMs,
-      durationMs,
+      positionMs: publishedPositionMs,
+      durationMs: publishedDurationMs,
       toggle,
       seek,
       volume,
@@ -2647,8 +2714,8 @@ export const LibraryPlayerProvider = ({
   }, [
     track,
     isPlaying,
-    positionMs,
-    durationMs,
+    publishedPositionMs,
+    publishedDurationMs,
     toggle,
     seek,
     volume,
@@ -2662,8 +2729,8 @@ export const LibraryPlayerProvider = ({
       queue,
       track,
       isPlaying,
-      positionMs,
-      durationMs,
+      positionMs: publishedPositionMs,
+      durationMs: publishedDurationMs,
       volume,
       isShuffled: queue?.isShuffled ?? false,
       repeat: queue?.repeat ?? 'off',
@@ -2692,8 +2759,8 @@ export const LibraryPlayerProvider = ({
       queue,
       track,
       isPlaying,
-      positionMs,
-      durationMs,
+      publishedPositionMs,
+      publishedDurationMs,
       volume,
       videoTrackId,
       isUnplayable,

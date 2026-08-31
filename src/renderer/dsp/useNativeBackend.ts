@@ -29,8 +29,11 @@ import {
   setDspNativeNoiseProfileSink,
   setDspNativeTrackGainSink,
 } from './useDspEngine';
+import { DECK_EMPTY, DECK_ENDED } from '../../common/dsp/deckState';
 import {
+  clearDspNativeTransport,
   setDspNativeDeviceGeneration,
+  setDspNativeTransport,
   useDspNativeDeviceGeneration,
   setDspNativeState,
   useDspNativeState,
@@ -217,6 +220,56 @@ export const useNativeDeviceGeneration = (
     return bridge.onDspHostTelemetry((frame) =>
       setDspNativeDeviceGeneration(frame.deviceGeneration),
     );
+  }, [controller]);
+};
+
+/**
+ * The seek bar and end-of-track, from the engine that is making the sound.
+ *
+ * Every consumer of this used to read a muted `<audio>` element that decoded
+ * the same file a second time purely to be a clock. Two clocks that could
+ * disagree — and did, for an evening: a deck cued at the position the previous
+ * track had reached played from the middle while the bar read zero, each side
+ * telling the truth about a different player.
+ *
+ * Cleared when the engine lets go, for the reason `useNativeMeters` gives
+ * about the analysers: anything else leaves the bar frozen on the last frame
+ * of a transport that has stopped.
+ */
+export const useNativeTransport = (
+  controller: INativeBackendController | undefined,
+): void => {
+  useEffect(() => {
+    if (!controller) {
+      clearDspNativeTransport();
+      return undefined;
+    }
+    const bridge = bridgeOf() as unknown as
+      | {
+          onDspHostTelemetry?: (
+            listener: (frame: {
+              deckState: number;
+              deckPositionSeconds: number;
+              deckDurationSeconds: number;
+            }) => void,
+          ) => () => void;
+        }
+      | undefined;
+    if (typeof bridge?.onDspHostTelemetry !== 'function') {
+      return undefined;
+    }
+    const stop = bridge.onDspHostTelemetry((frame) => {
+      setDspNativeTransport({
+        hasSource: frame.deckState !== DECK_EMPTY,
+        positionSeconds: frame.deckPositionSeconds,
+        durationSeconds: frame.deckDurationSeconds,
+        ended: frame.deckState === DECK_ENDED,
+      });
+    });
+    return () => {
+      stop();
+      clearDspNativeTransport();
+    };
   }, [controller]);
 };
 

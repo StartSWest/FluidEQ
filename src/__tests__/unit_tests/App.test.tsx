@@ -154,15 +154,23 @@ describe('App', () => {
     // voicing, convolution, config — are pills inside the EQ page, which is
     // why DSP is top-level rather than mixed into the APO pages.
     //
-    // DSP sits second, next to EQ, because the rack is the rest of the signal
+    // DSP sits immediately after EQ, because the rack is the rest of the signal
     // chain the EQ tab starts: someone who has just set a curve reaches for the
-    // compressor, not past Media, Library and Karaoke to the end of the strip.
+    // compressor, not past Library and Karaoke to the end of the strip. That
+    // is what this asserts, and it is unchanged.
+    //
+    // What did change is where the strip breaks. The five used to be one run;
+    // they are now dealt into two so the meter between them sits in the
+    // window's actual middle, and Online Media — the longest name — is the one
+    // on the left balancing the three short ones on the right. So it leads the
+    // DOM order without leading the group EQ belongs to.
+    //
     // "Online Media" and not "Media": jsdom has no `matchMedia`, which
     // `useMediaQuery` reads as "not narrow", so this is the wide-window strip.
     expect(tabs.slice(0, 5).map((tab) => tab.textContent)).toEqual([
+      'Online Media',
       'EQ',
       'DSP',
-      'Online Media',
       'Library',
       'Karaoke',
     ]);

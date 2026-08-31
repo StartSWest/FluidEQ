@@ -278,6 +278,60 @@ export const setDspNativeDeviceGeneration = (next: number): void => {
 export const readDspNativeDeviceGeneration = (): number =>
   nativeDeviceGeneration;
 
+/** What the engine making the sound says about where it is. */
+export interface IDspNativeTransport {
+  /** False until a deck has been loaded, so nothing reads a position of zero
+   * as "the track is at its beginning" while there is no track. */
+  hasSource: boolean;
+  positionSeconds: number;
+  /** Zero when the decoder could not say, which is legal for some streams. */
+  durationSeconds: number;
+  /** The deck reached the end of its file, which is end-of-track. */
+  ended: boolean;
+}
+
+const IDLE_TRANSPORT: IDspNativeTransport = {
+  hasSource: false,
+  positionSeconds: 0,
+  durationSeconds: 0,
+  ended: false,
+};
+
+/**
+ * The transport, from the host rather than from a second decoder.
+ *
+ * The seek bar and end-of-track used to come from a muted `<audio>` element
+ * decoding every track a second time purely to have a clock. Two clocks that
+ * could disagree, and did: a deck cued at the position the PREVIOUS track had
+ * reached played from the middle while the bar read zero, because each was
+ * telling the truth about a different player.
+ *
+ * Published from telemetry, which already arrives about forty times a second.
+ */
+let nativeTransport: IDspNativeTransport = IDLE_TRANSPORT;
+
+export const setDspNativeTransport = (next: IDspNativeTransport): void => {
+  const current = nativeTransport;
+  if (
+    current.hasSource === next.hasSource &&
+    current.ended === next.ended &&
+    current.positionSeconds === next.positionSeconds &&
+    current.durationSeconds === next.durationSeconds
+  ) {
+    return;
+  }
+  nativeTransport = next;
+  emit();
+};
+
+export const readDspNativeTransport = (): IDspNativeTransport =>
+  nativeTransport;
+
+/** Forgotten when the engine lets go, so nothing reads a stale position. */
+export const clearDspNativeTransport = (): void => {
+  setDspNativeTransport(IDLE_TRANSPORT);
+};
+
 export const useDspNativeDeviceGeneration = (): number =>
   useSyncExternalStore(
     subscribe,
@@ -287,6 +341,19 @@ export const useDspNativeDeviceGeneration = (): number =>
 
 export const useDspNativeState = (): TDspNativeState =>
   useSyncExternalStore(subscribe, readDspNativeState, readDspNativeState);
+
+/**
+ * Safe to return by reference: `setDspNativeTransport` compares every field
+ * and keeps the previous object when nothing moved, so `useSyncExternalStore`
+ * is not handed a new identity forty times a second for a position that has
+ * not changed.
+ */
+export const useDspNativeTransport = (): IDspNativeTransport =>
+  useSyncExternalStore(
+    subscribe,
+    readDspNativeTransport,
+    readDspNativeTransport,
+  );
 
 /** The one question the worklet asks: is something else making the sound? */
 export const readDspNativeEngaged = (): boolean => nativeState === 'engaged';
