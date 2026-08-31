@@ -697,9 +697,13 @@ void feq_chain_process(FeqChain* chain, float* const* channels,
     options.ceiling = std::pow(10.0, kOutputSafetyCeilingDb / 20.0);
     options.activation_threshold =
         std::pow(10.0, kOutputSafetyExtremeDbtp / 20.0);
-    // Safety is not a loudness processor. A coefficient of one latches
-    // attenuation instead of following the programme back toward unity.
-    options.release_coefficient = 1.0;
+    // Safety is not a loudness processor, and a one-second release is not one:
+    // it is slower than every musical event and than Master's slowest setting.
+    // A coefficient of one, which is what this was, latched the attenuation
+    // instead — so a single overdriven moment turned the output down until the
+    // chain was rebuilt. See `FEQ_SAFETY_RELEASE_MS`.
+    options.release_coefficient = std::exp(
+        -1.0 / ((FEQ_SAFETY_RELEASE_MS / 1000.0) * chain->sample_rate));
     options.knee_db = 0.0;
     options.release_hold_samples = 0.0;
     feq_output_safety_process(&chain->safety, channels, frames, &options);

@@ -18,8 +18,27 @@ export const OUTPUT_SAFETY_CEILING_DB = -0.1;
 export const OUTPUT_SAFETY_EXTREME_DBTP = 10;
 
 export const OUTPUT_SAFETY_LOOK_AHEAD_MS = 2;
-/** Safety gain is peak-held; it never follows the music back toward unity. */
-export const OUTPUT_SAFETY_RELEASE_MS = Number.POSITIVE_INFINITY;
+/**
+ * How fast the guard hands the level back once the fault stops.
+ *
+ * This was `Infinity`, which makes the coefficient exactly one, which makes
+ * the release term `(required - gain) * (1 - 1)` — zero. The gain could move
+ * down and never up. It was described as peak-holding, and the effect of
+ * peak-holding a guard armed at +10 dBTP is that ONE overdriven moment turns
+ * the app down for the rest of the session: exaggerate an EQ band, hear it
+ * duck, set the band back to flat, and the level is simply gone. Nothing on
+ * screen says why, because the fault it is protecting against ended.
+ *
+ * A safeguard is allowed to act only while there is something to guard
+ * against. Once the source is fixed the reduction has no justification left,
+ * so it has to be given back.
+ *
+ * One second, which is two and a half times the slowest release Master offers
+ * (400ms) and far slower than any musical event, so this still cannot behave
+ * as a loudness processor — the reason the infinite release was chosen. It
+ * only ever runs below +10 dBTP, where by definition nothing needs limiting.
+ */
+export const OUTPUT_SAFETY_RELEASE_MS = 1_000;
 /** An emergency boundary begins only at the actual ceiling. */
 export const OUTPUT_SAFETY_SOFT_KNEE_DB = 0;
 export const OUTPUT_SAFETY_DC_CUTOFF_HZ = 3;

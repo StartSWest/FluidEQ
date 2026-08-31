@@ -1781,9 +1781,11 @@ class DspProcessor extends AudioWorkletProcessor {
         limiterEnabled: true,
         ceiling: 10 ** (OUTPUT_SAFETY_CEILING_DB / 20),
         activationThreshold: 10 ** (OUTPUT_SAFETY_EXTREME_DBTP / 20),
-        // Safety is not a loudness processor. A coefficient of one latches
-        // attenuation instead of following the programme back toward unity.
-        releaseCoefficient: 1,
+        // The release is left to the state, which derived it from the sample
+        // rate at creation. It used to be pinned to 1 here, which is an
+        // infinite release: the guard's gain could move down and never up, so
+        // one overdriven moment turned the output down for good. See
+        // `OUTPUT_SAFETY_RELEASE_MS`.
         kneeDb: 0,
         releaseHoldSamples: 0,
       });

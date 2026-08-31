@@ -30,6 +30,26 @@ extern "C" {
 
 #define FEQ_SAFETY_CEILING_DB (-0.1)
 #define FEQ_SAFETY_LOOK_AHEAD_MS 2.0
+/**
+ * How fast the guard hands the level back once the fault stops.
+ *
+ * This was an infinite release, so the coefficient was exactly one and the
+ * release term `(required - gain) * (1 - 1)` was zero: the gain could move
+ * down and never up. Peak-holding a guard armed at +10 dBTP means ONE
+ * overdriven moment turns the output down for the rest of the session — an
+ * exaggerated EQ band ducks it, setting the band back to flat does not bring
+ * it back, and nothing says why, because the fault being guarded against is
+ * over.
+ *
+ * One second is two and a half times the slowest release Master offers and far
+ * slower than any musical event, so this still cannot behave as a loudness
+ * processor, which is what the infinite release was protecting against. It
+ * only runs below +10 dBTP, where nothing needs limiting anyway.
+ *
+ * Mirrors `OUTPUT_SAFETY_RELEASE_MS` in `outputSafety.ts` and must move with
+ * it: the parity corpus is generated from that side.
+ */
+#define FEQ_SAFETY_RELEASE_MS 1000.0
 #define FEQ_SAFETY_DC_CUTOFF_HZ 3.0
 #define FEQ_SAFETY_DC_METER_CUTOFF_HZ 0.1
 

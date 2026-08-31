@@ -79,4 +79,86 @@ describe('always-on output safety', () => {
     expect(Math.abs(left[FRAMES - 1])).toBeLessThan(0.02);
     expect(Math.abs(right[FRAMES - 1])).toBeLessThan(0.02);
   });
+
+  /**
+   * A guard that armed on a fault has to let go once the fault is over.
+   *
+   * This is the whole bug, reported from a running window: exaggerate an EQ
+   * band far enough to reach +10 dBTP, hear the output duck, set the band flat
+   * again — and the level never comes back. The release coefficient was 1,
+   * making the release term `(required - gain) * (1 - 1)`, which is zero. The
+   * gain could move down and never up, so one overdriven moment turned the app
+   * down until the chain was rebuilt.
+   */
+  const overloadThenRecover = (): { ducked: number; recovered: number } => {
+    const state = createOutputSafety(2, RATE);
+    const options = {
+      limiterEnabled: true,
+      activationThreshold: 10 ** (OUTPUT_SAFETY_EXTREME_DBTP / 20),
+    };
+    // The fault: well past the +10 dBTP the guard arms at.
+    processOutputSafety(
+      state,
+      [new Float32Array(FRAMES).fill(4), new Float32Array(FRAMES).fill(4)],
+      options,
+    );
+    const ducked = state.limiter.gain;
+
+    /**
+     * The source is fixed. Five seconds of ordinary music, nowhere near the
+     * threshold, which is exactly when a guard has nothing left to guard.
+     *
+     * Five and not two because the duck was about twelve decibels, and a
+     * one-second time constant covers that in roughly four: measured, two
+     * seconds returns 0.899 and it is still climbing. The number is the
+     * release doing what it says rather than a tolerance chosen to pass.
+     */
+    for (let block = 0; block < (RATE * 5) / FRAMES; block += 1) {
+      const left = Float32Array.from(
+        { length: FRAMES },
+        (_, index) =>
+          Math.sin((2 * Math.PI * 220 * (block * FRAMES + index)) / RATE) * 0.2,
+      );
+      processOutputSafety(state, [left, Float32Array.from(left)], options);
+    }
+    return { ducked, recovered: state.limiter.gain };
+  };
+
+  it('gives the level back once the overload stops', () => {
+    const { ducked, recovered } = overloadThenRecover();
+    // The fault really did pull it down, or the recovery below proves nothing.
+    expect(ducked).toBeLessThan(0.5);
+    expect(recovered).toBeGreaterThan(0.99);
+  });
+
+  /**
+   * The positive control for the measurement itself.
+   *
+   * `recovered > 0.99` is also what a guard that never engaged would report,
+   * so the reduction is asserted above; this pins the other end, that two
+   * seconds is genuinely enough at the release this ships with. A release an
+   * order of magnitude slower would pass the ceiling tests and still leave a
+   * user turned down for a minute.
+   */
+  it('POSITIVE CONTROL: recovery is most of the way there within a second', () => {
+    const state = createOutputSafety(2, RATE);
+    const options = {
+      limiterEnabled: true,
+      activationThreshold: 10 ** (OUTPUT_SAFETY_EXTREME_DBTP / 20),
+    };
+    processOutputSafety(
+      state,
+      [new Float32Array(FRAMES).fill(4), new Float32Array(FRAMES).fill(4)],
+      options,
+    );
+    for (let block = 0; block < RATE / FRAMES; block += 1) {
+      const left = Float32Array.from(
+        { length: FRAMES },
+        (_, index) =>
+          Math.sin((2 * Math.PI * 220 * (block * FRAMES + index)) / RATE) * 0.2,
+      );
+      processOutputSafety(state, [left, Float32Array.from(left)], options);
+    }
+    expect(state.limiter.gain).toBeGreaterThan(0.6);
+  });
 });

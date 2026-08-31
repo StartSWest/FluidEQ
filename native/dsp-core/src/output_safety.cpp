@@ -50,13 +50,10 @@ void feq_output_safety_init(FeqOutputSafety* state,
   state->true_peak_factor =
       feq_oversample_factor_for_sample_rate(sample_rate);
   state->ceiling = std::pow(10.0, FEQ_SAFETY_CEILING_DB / 20.0);
-  /**
-   * An infinite release means the coefficient is exactly one: the guard never
-   * recovers on its own within a meter interval, which is what "emergency"
-   * means here. `exp(-1 / inf)` is 1, and it is written out rather than
-   * computed so a platform's `exp` cannot round it to 0.9999999.
-   */
-  state->release_coefficient = 1.0;
+  // See `FEQ_SAFETY_RELEASE_MS`: finite, so a guard that armed on a fault
+  // gives the level back once the fault is over.
+  state->release_coefficient =
+      std::exp(-1.0 / ((FEQ_SAFETY_RELEASE_MS / 1000.0) * sample_rate));
   state->minimum_limiter_gain = 1.0;
   state->input_true_peak = 0.0;
   state->dc_offset_peak = 0.0;
