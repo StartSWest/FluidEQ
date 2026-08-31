@@ -44,9 +44,28 @@ const PAD_R = 8;
 const PAD_T = 14;
 const PAD_B = 18;
 
-/** The same range the EQ and Exciter pages use, so all three read alike. */
-const SPECTRUM_FLOOR_DB = -96;
+/**
+ * Deeper than the EQ and Exciter pages, and it has to be.
+ *
+ * Those stop at -96 because they are drawn to show programme. This one is
+ * drawn to show a NOISE FLOOR, and a floor worth removing lives below where
+ * they stop: hiss at -60 dBFS broadband lands near -97 per bin once the
+ * transform has spread it, so at -96 the line sat one decibel outside the plot
+ * and was clipped flat to the bottom edge — reported, correctly, as the yellow
+ * line not being there at all.
+ */
+const SPECTRUM_FLOOR_DB = -132;
 const SPECTRUM_TOP_DB = 0;
+
+/**
+ * Hann's mean w², which the meter's normalisation carries into every bin.
+ *
+ * `feq_meters_read_spectrum` publishes 20·log10(|X[k]| / N) over a Hann
+ * window, so turning the profile's density into that same number needs the
+ * window's energy as well as the transform size. Guessing the bin width
+ * instead — the obvious move, and the one this had — is 7.3 dB out at 48 kHz.
+ */
+const HANN_MEAN_SQUARE = 0.375;
 
 const GRID_HZ: [number, string][] = [
   [50, '50'],
@@ -55,6 +74,8 @@ const GRID_HZ: [number, string][] = [
   [5_000, '5k'],
   [15_000, '15k'],
 ];
+
+const GRID_DB = [-30, -60, -90, -120];
 
 const SPECTRUM_INK = '255, 255, 255';
 /** Warm, matching the amber this app already uses for "pay attention". */
@@ -130,6 +151,21 @@ const DspDenoiseGraph = ({ profile, isEnabled }: IDspDenoiseGraphProps) => {
         context.fillText(label, x, height - 5);
       });
 
+      // Level lines, which this page needs and the others do not: the range
+      // runs to -132 so a noise floor is inside it, and an unlabelled plot
+      // that deep gives no sense of whether a floor at the bottom is quiet or
+      // merely clipped.
+      context.textAlign = 'right';
+      GRID_DB.forEach((db) => {
+        const y = Math.round(toY(db)) + 0.5;
+        context.beginPath();
+        context.moveTo(PAD_L, y);
+        context.lineTo(PAD_L + plotW, y);
+        context.stroke();
+        context.fillText(`${db}`, PAD_L + plotW - 2, y - 2);
+      });
+      context.textAlign = 'center';
+
       const { profile: measured, isEnabled: live } = stateRef.current;
       const nyquist = readDspSampleRate() / 2;
 
@@ -179,14 +215,21 @@ const DspDenoiseGraph = ({ profile, isEnabled }: IDspDenoiseGraphProps) => {
           : measured?.bandsDb;
       if (bands && bands.length > 0) {
         /*
-         * The profile is a power DENSITY and the spectrum above is a per-bin
-         * level, so the density is multiplied by the analyser's own bin width
-         * before it is drawn. Without that the two lines are in different
-         * units and the picture invites exactly the wrong conclusion, which is
-         * worse than drawing nothing.
+         * The profile is a power DENSITY; the spectrum above is
+         * 20·log10(|X[k]| / N) over a Hann window. Converting between them
+         * needs the window's energy and the transform size, not the bin width:
+         *
+         *   E[|X|²] = density · (fs/2) · meanW² · N
+         *   published = 10·log10(E[|X|²] / N²)
+         *             = density_dB + 10·log10((fs/2) · meanW² / N)
+         *
+         * Reaching for the bin width instead is the obvious move and is 7.3 dB
+         * out at 48 kHz — enough to put a real floor outside the plot.
          */
-        const binWidth = nyquist / Math.max(1, binsRef.current.length || 1024);
-        const widthDb = 10 * Math.log10(binWidth);
+        const binCount = Math.max(1, binsRef.current.length || 1024);
+        const transform = binCount * 2;
+        const widthDb =
+          10 * Math.log10((nyquist * HANN_MEAN_SQUARE) / transform);
 
         context.beginPath();
         for (let x = 0; x <= plotW; x += 1) {
