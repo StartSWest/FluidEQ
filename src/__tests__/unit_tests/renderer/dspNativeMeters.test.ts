@@ -90,6 +90,7 @@ const analysisFrame = (
       voiceUnderruns: 0,
       profileReady: false,
       voiceModelLoaded: false,
+      floorBandsDb: [],
     },
   };
 };

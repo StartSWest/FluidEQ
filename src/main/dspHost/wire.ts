@@ -29,7 +29,10 @@ import type {
 } from '../../common/dsp/analysisWire';
 import { CHAIN_PARAM_LEAD } from '../../common/dsp/chainWire';
 import { CROSSFADE_TABLE_POINTS } from '../../common/dsp/crossfadeShape';
-import { NOISE_PROFILE_WIRE_LENGTH } from '../../common/dsp/noiseProfile';
+import {
+  NOISE_PROFILE_BANDS,
+  NOISE_PROFILE_WIRE_LENGTH,
+} from '../../common/dsp/noiseProfile';
 
 /** Must match FEQ_WIRE_PROTOCOL_VERSION. */
 export const HOST_WIRE_PROTOCOL_VERSION = 1;
@@ -542,6 +545,10 @@ export const decodeAnalysis = (frame: Buffer): IHostAnalysis | undefined => {
       noiseFloorDb: view.getFloat32(140, true),
       clicksRepaired: view.getUint32(144, true),
       voiceUnderruns: view.getUint32(148, true),
+      // 160 onward: forty floats of live floor, one per profile band.
+      floorBandsDb: Array.from({ length: NOISE_PROFILE_BANDS }, (_unused, at) =>
+        view.getFloat32(160 + at * 4, true),
+      ),
       profileReady: view.getUint32(152, true) !== 0,
       voiceModelLoaded: view.getUint32(156, true) !== 0,
     },

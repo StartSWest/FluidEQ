@@ -51,7 +51,7 @@ export const ANALYSIS_SCOPE_PAIRS = 256;
  * believed: three separate readers of it set out to add a check that has been
  * there since the graphs were first fed from the engine.
  */
-export const ANALYSIS_HEADER_BYTES = 160;
+export const ANALYSIS_HEADER_BYTES = 320;
 
 /** The rack ceiling, matching FEQ_METER_MAX_BANDS. */
 export const ANALYSIS_MAX_BANDS = 64;
@@ -175,6 +175,14 @@ export interface IHostAnalysisDenoise {
   profileReady: boolean;
   /** Whether the neural model is loaded and its session built. */
   voiceModelLoaded: boolean;
+  /**
+   * The floor the stage is subtracting right now, per profile band.
+   *
+   * Not the profile it was handed: in Adaptive the two differ every frame, and
+   * drawing the handed-over value would show a flat line while the tracker
+   * moved underneath it. Same density units as `INoiseProfile.bandsDb`.
+   */
+  floorBandsDb: readonly number[];
 }
 
 /**

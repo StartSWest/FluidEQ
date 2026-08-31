@@ -389,6 +389,8 @@ export const useDspInputAnalysis = (): IDspInputAnalysisState =>
 export interface IDspDenoiseMeter {
   reductionDb: number;
   noiseFloorDb: number;
+  /** The floor being subtracted right now, per band. See `floorBandsDb`. */
+  floorBandsDb: readonly number[];
   clicksRepaired: number;
   voiceUnderruns: number;
   profileReady: boolean;
@@ -398,6 +400,7 @@ export interface IDspDenoiseMeter {
 const DENOISE_METER_IDLE: IDspDenoiseMeter = {
   reductionDb: 0,
   noiseFloorDb: -120,
+  floorBandsDb: [],
   clicksRepaired: 0,
   voiceUnderruns: 0,
   profileReady: false,

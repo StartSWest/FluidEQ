@@ -305,6 +305,39 @@ double process_frame(FeqDenoise* denoise,
     channel.minimum_age = 0;
   }
 
+  /*
+   * The floor the panel draws, in the profile's own density units.
+   *
+   * Published from whichever source actually decided the gains above, not from
+   * the profile the stage was handed — in Adaptive those differ every frame,
+   * and a picture of the handed-over value would show a flat line while the
+   * tracker moved underneath it.
+   *
+   * Converted back to a density here, which is the inverse of what
+   * `profile_bin_power` does on the way in, so the drawing code needs one path
+   * for both sources rather than two that must agree.
+   */
+  if (!denoise->live_floor_db.empty()) {
+    const double bin_width =
+        denoise->sample_rate / static_cast<double>(window);
+    const double reference = denoise->sample_rate * 0.5 * denoise->window_energy;
+    for (uint32_t band = 0; band < FEQ_DENOISE_PROFILE_BANDS; band += 1) {
+      const double centre = feq_denoise_band_hz(band);
+      const uint32_t bin = static_cast<uint32_t>(
+          std::min(static_cast<double>(bins - 1),
+                   std::max(0.0, centre / bin_width)));
+      const double bin_power =
+          adaptive ? (channel.adaptive_db[bin] <= kDenoiseSilenceDb
+                          ? 0.0
+                          : db_to_power(channel.adaptive_db[bin]))
+                   : profile_bin_power(denoise, bin);
+      denoise->live_floor_db[band] =
+          bin_power > kFloorEpsilon
+              ? 10.0 * std::log10(bin_power / reference)
+              : kDenoiseSilenceDb;
+    }
+  }
+
   feq_fft_in_place(channel.real.data(), channel.imaginary.data(), window, 1);
 
   // Shift the accumulator down by one hop and clear the tail BEFORE adding

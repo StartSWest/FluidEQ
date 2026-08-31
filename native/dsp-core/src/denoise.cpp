@@ -125,6 +125,8 @@ FeqDenoise* feq_denoise_create(double sample_rate,
   }
   denoise->profile.floor_dbfs = kDenoiseSilenceDb;
 
+  denoise->live_floor_db.assign(FEQ_DENOISE_PROFILE_BANDS, kDenoiseSilenceDb);
+
   denoise->residual.resize(denoise->channels);
   for (auto& channel : denoise->residual) {
     channel.assign(maximum_block_frames, 0.0f);
@@ -358,6 +360,12 @@ void feq_denoise_report(const FeqDenoise* denoise, FeqDenoiseReport* out) {
   out->profile_ready = denoise->profile_ready ? 1 : 0;
   out->voice_model_loaded =
       denoise->voice_model_loaded.load(std::memory_order_relaxed);
+  for (uint32_t band = 0; band < FEQ_DENOISE_PROFILE_BANDS; band += 1) {
+    out->floor_bands_db[band] =
+        band < denoise->live_floor_db.size()
+            ? denoise->live_floor_db[band]
+            : kDenoiseSilenceDb;
+  }
 }
 
 }  // extern "C"

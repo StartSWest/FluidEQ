@@ -206,6 +206,17 @@ struct FeqDenoise {
   std::vector<double> profile_bins_db;
   bool profile_bins_valid = false;
 
+  /**
+   * The live floor per profile band, written by the audio thread for the panel.
+   *
+   * A plain array rather than a published pair, and a torn read is acceptable
+   * here in a way it is not for the EQ's coefficients: the worst case is one
+   * band of a meter drawn from the previous frame, which is a pixel, against
+   * the alternative of a second buffer and a swap for a picture that repaints
+   * sixty times a second anyway.
+   */
+  std::vector<double> live_floor_db;
+
   /** Isolate's scratch: what the stage removed, kept to be emitted instead. */
   std::vector<std::vector<float>> residual;
 

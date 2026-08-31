@@ -164,7 +164,20 @@ const DspDenoiseGraph = ({ profile, isEnabled }: IDspDenoiseGraphProps) => {
       }
 
       /* ------------------------------------------------- the noise floor */
-      if (measured) {
+      const meter = readDspDenoiseMeter();
+      /*
+       * The floor the engine is subtracting RIGHT NOW, not the one it was
+       * handed. They are the same in Scanned and completely different in
+       * Adaptive, where the tracker moves every frame — and a mode whose only
+       * evidence is whether the sound got better is a mode nobody can tune.
+       * Falls back to the stored profile when the engine is not running, so
+       * the card still shows what a scan found.
+       */
+      const bands =
+        live && meter.floorBandsDb.length > 0
+          ? meter.floorBandsDb
+          : measured?.bandsDb;
+      if (bands && bands.length > 0) {
         /*
          * The profile is a power DENSITY and the spectrum above is a per-bin
          * level, so the density is multiplied by the analyser's own bin width
@@ -178,7 +191,7 @@ const DspDenoiseGraph = ({ profile, isEnabled }: IDspDenoiseGraphProps) => {
         context.beginPath();
         for (let x = 0; x <= plotW; x += 1) {
           const hz = MIN_HZ * (MAX_HZ / MIN_HZ) ** (x / plotW);
-          const db = noiseProfileLevelAt(measured.bandsDb, hz) + widthDb;
+          const db = noiseProfileLevelAt(bands, hz) + widthDb;
           const y = toY(db);
           if (x === 0) {
             context.moveTo(PAD_L, y);
@@ -200,7 +213,7 @@ const DspDenoiseGraph = ({ profile, isEnabled }: IDspDenoiseGraphProps) => {
         context.lineWidth = 1;
 
         /* ----------------------------------------------- hum partials */
-        measured.humPartials.forEach((partial) => {
+        measured?.humPartials.forEach((partial) => {
           if (partial.hz < MIN_HZ || partial.hz > MAX_HZ) {
             return;
           }
@@ -219,7 +232,6 @@ const DspDenoiseGraph = ({ profile, isEnabled }: IDspDenoiseGraphProps) => {
       }
 
       /* ------------------------------------------------ what it is doing */
-      const meter = readDspDenoiseMeter();
       context.textAlign = 'left';
       context.font = '10px system-ui, sans-serif';
       context.fillStyle = `rgba(${SPECTRUM_INK}, 0.45)`;

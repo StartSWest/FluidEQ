@@ -368,6 +368,14 @@ typedef struct FeqWireAnalysisFrame {
    */
   uint32_t denoise_profile_ready;
   uint32_t denoise_voice_model_loaded;
+  /**
+   * The live floor per profile band, in the profile's density units.
+   *
+   * Forty floats is a lot for a fixed header and they earn it: without them
+   * the Adaptive mode has no visible behaviour at all, and a mode whose only
+   * evidence is whether the sound got better is a mode nobody can tune.
+   */
+  float denoise_floor_bands[FEQ_DENOISE_PROFILE_BANDS];
 } FeqWireAnalysisFrame;
 
 #ifdef __cplusplus
@@ -386,7 +394,7 @@ static_assert(sizeof(FeqWireCommandFrame) == 32, "command frame size");
 static_assert(sizeof(FeqWireAckFrame) == 32, "ack frame size");
 static_assert(sizeof(FeqWireTelemetryFrame) == 88, "telemetry frame size");
 /* 120, then 136 when Master loudness landed, then Denoise's six words. */
-static_assert(sizeof(FeqWireAnalysisFrame) == 160, "analysis frame size");
+static_assert(sizeof(FeqWireAnalysisFrame) == 320, "analysis frame size");
 #endif
 
 #endif /* FLUIDEQ_HOST_WIRE_H */
