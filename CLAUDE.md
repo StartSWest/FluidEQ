@@ -151,16 +151,27 @@ fix — it is the bug, rescheduled. Ivan calls these crappy solutions and he is
 right: every one of them costs a second debugging session on the same defect,
 later, with less context.
 
-- **No `setTimeout` or `setInterval` to make a race behave.** Not to "let
-  state settle", not to retry until something is ready, not to defer work
-  until after a render. A delay that fixes a race only means the race now
-  loses more often, and it will start winning again on a slower machine or a
-  bigger library. Timers are legitimate for exactly what they name — a
-  debounce the user can feel, a real IPC deadline, an animation's own
-  duration. `src/renderer/library` and `src/common/library` contain none, and
-  the queue bug reported as "a timer going crazy" turned out to be
-  `shuffle()` putting the playhead at a random index. That is the pattern:
-  what looks timed is almost always something recomputing itself.
+- **NO `setTimeout`. NO `setInterval`. NO EXCEPTIONS.** Not to "let state
+  settle", not to retry until something is ready, not to defer work until
+  after a render, not as a deadline, not as a fallback, not "just this once
+  because the event might not come". If you are about to write a duration in
+  milliseconds to decide _when_ something happens, stop: you are guessing at
+  another machine's speed and you will guess wrong on the machine that needed
+  you to be right. Wait on the event, the promise, or the state that actually
+  says the thing is ready. If no such signal exists, that is the bug — find it
+  or add it.
+
+  This rule used to carry an exception for "a real deadline", and the
+  exception is what produced timers. It is gone. Do not reintroduce it, do not
+  argue the case in a comment, and do not smuggle one in as a "watchdog". An
+  `AbortSignal`, an event listener, a promise, or `requestAnimationFrame` tied
+  to something being painted are how waiting is spelled here.
+
+  `src/renderer/library` and `src/common/library` contain none, and the queue
+  bug reported as "a timer going crazy" turned out to be `shuffle()` putting
+  the playhead at a random index. That is the pattern: what looks timed is
+  almost always something recomputing itself.
+
 - **Read the function that is wrong before patching the one that calls it.**
   The same queue bug got a real but secondary fix in `retargetQueue` first —
   it did re-shuffle on every track change and that needed fixing — while the
