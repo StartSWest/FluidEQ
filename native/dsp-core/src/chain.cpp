@@ -549,6 +549,24 @@ void feq_chain_process(FeqChain* chain, float* const* channels,
 
   chain_process_exciter(chain, channels, frames);
   /**
+   * Tapped where the visible chain draws its boundary, not where it is
+   * convenient: the exciter graph is showing what the exciter did, so it has
+   * to be read before anything else has had a turn at the same buffer.
+   *
+   * This sat four lines lower for as long as Bass Forge has been in the
+   * chain, which put a second generator between the stage and its own meter:
+   * with Forge switched on the Exciter graph was drawing Forge's output, and
+   * the two stages are hard to tell apart on a spectrum precisely because
+   * both of them add harmonics to material that did not have them. Forge has
+   * its own eight-band meter below and does not need a spectrum tap.
+   */
+  feq_meters_capture(chain->meters, FEQ_METER_STAGE_EXCITER, channels, frames);
+  // And what its three bands and the organic stage contributed, which the
+  // spectrum cannot show: a nonlinear stage has no transfer curve to draw.
+  feq_meters_publish_exciter(chain->meters, chain->exciter_band_report,
+                             chain->exciter_organic_report);
+
+  /**
    * Forge after the Exciter because both of them generate.
    *
    * They are the chain's two synthesis stages and they sit together, ahead of
@@ -556,14 +574,23 @@ void feq_chain_process(FeqChain* chain, float* const* channels,
    * everything except what the two of them just made.
    */
   chain_process_bass_forge(chain, channels, frames);
-  // Tapped where the visible chain draws its boundary, not where it is
-  // convenient: the exciter graph is showing what the exciter did, so it has to
-  // be read before the EQ has had a turn at the same buffer.
-  feq_meters_capture(chain->meters, FEQ_METER_STAGE_EXCITER, channels, frames);
-  // And what its three bands and the organic stage contributed, which the
-  // spectrum cannot show: a nonlinear stage has no transfer curve to draw.
-  feq_meters_publish_exciter(chain->meters, chain->exciter_band_report,
-                             chain->exciter_organic_report);
+  /**
+   * The dry low band against the forged one, which no spectrum can separate.
+   *
+   * Both runs come off band-pass followers the stage already ran during the
+   * block, so this is a copy of sixteen doubles rather than a measurement.
+   * Published unconditionally: `chain_process_bass_forge` resets the stage on
+   * every block it is switched off for, which drives both runs to the -120
+   * floor — an honest "not running" rather than a minute-old reading held on
+   * screen.
+   */
+  if (chain->meters != nullptr) {
+    double forge_input_db[FEQ_BASS_FORGE_BANDS];
+    double forge_output_db[FEQ_BASS_FORGE_BANDS];
+    feq_bass_forge_bands(&chain->bass_forge, forge_input_db, forge_output_db);
+    feq_meters_publish_bass_forge(chain->meters, forge_input_db,
+                                  forge_output_db);
+  }
 
   chain_process_eq(chain, channels, frames);
   feq_meters_capture(chain->meters, FEQ_METER_STAGE_EQ, channels, frames);
@@ -611,6 +638,19 @@ void feq_chain_process(FeqChain* chain, float* const* channels,
    * rebuilding an attack that was just taken away.
    */
   chain_process_bass_punch(chain, channels, frames);
+  /**
+   * Three gains, which are the only evidence the stage is doing what it says.
+   *
+   * Its claim is that the leading edge and the tail are shaped independently
+   * and that over a complete note the two followers converge, so the gain
+   * averages to unity. A dial position cannot show either. Published every
+   * block for the same reason Forge's bands are: `chain_process_bass_punch`
+   * resets the stage while it is off, which puts all three at 0 dB.
+   */
+  feq_meters_publish_bass_punch(chain->meters,
+                                feq_bass_punch_transient_db(&chain->bass_punch),
+                                feq_bass_punch_sustain_db(&chain->bass_punch),
+                                feq_bass_punch_duck_db(&chain->bass_punch));
 
   /**
    * Width before the dynamics, and that position is forced rather than chosen.

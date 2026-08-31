@@ -142,6 +142,14 @@ add_executable(fluideq-meters-test dsp-core/tests/meters_test.cpp)
 target_link_libraries(fluideq-meters-test PRIVATE fluideq-dsp-core feq_strict)
 add_test(NAME meters COMMAND fluideq-meters-test)
 
+# Separate from `meters` because it asks a different question: not whether the
+# meters measure, but where in the chain each one is tapped. A tap taken at the
+# wrong point reports a real measurement of the wrong signal, which every check
+# in `meters_test` still passes.
+add_executable(fluideq-chain-meters-test dsp-core/tests/chain_meters_test.cpp)
+target_link_libraries(fluideq-chain-meters-test PRIVATE fluideq-dsp-core feq_strict)
+add_test(NAME chain-meters COMMAND fluideq-chain-meters-test)
+
 add_executable(fluideq-player-test dsp-core/tests/player_test.cpp)
 target_link_libraries(fluideq-player-test PRIVATE fluideq-dsp-core feq_strict)
 add_test(NAME player COMMAND fluideq-player-test)

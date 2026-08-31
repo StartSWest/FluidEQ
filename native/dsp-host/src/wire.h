@@ -30,6 +30,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 /* For the profile's band and partial counts, which size its payload. */
 #include "fluideq/denoise.h"
+/* For FEQ_BASS_FORGE_BANDS, which sizes the two runs in the analysis frame. */
+#include "fluideq/bass_forge.h"
 
 #define FEQ_WIRE_PROTOCOL_VERSION 1
 
@@ -368,6 +370,37 @@ typedef struct FeqWireAnalysisFrame {
    */
   uint32_t denoise_profile_ready;
   uint32_t denoise_voice_model_loaded;
+  /*
+   * The two bass stages, appended after every pre-existing offset.
+   *
+   * Forge sends its eight bands twice — the dry low band and the forged one —
+   * because the graph draws the generated content as the AREA BETWEEN the two
+   * curves. One run of levels would show that something is happening in the
+   * bass and say nothing at all about what the stage made, which is the only
+   * question the card is asked.
+   *
+   * In the header rather than the payload for the same reason the exciter's
+   * four are: fixed in number and always available, so a length and an offset
+   * would be more protocol than the thing it describes.
+   */
+  float bass_forge_input_db[FEQ_BASS_FORGE_BANDS];
+  float bass_forge_output_db[FEQ_BASS_FORGE_BANDS];
+  /*
+   * Punch reports applied gain, not level, so these rest at 0 dB rather than
+   * at the -120 floor the two runs above rest at. A reader that floors them
+   * would be showing a stage ducking by 120 dB while it sits idle.
+   */
+  float bass_punch_transient_db;
+  float bass_punch_sustain_db;
+  float bass_punch_duck_db;
+  /*
+   * Pads the frame back to eight-byte alignment, and the assert below names
+   * the arithmetic: nineteen floats is 76 bytes onto 160, and 236 is not a
+   * multiple of the eight that `correlation` at offset 24 forces on the whole
+   * struct. The compiler would insert this byte-for-byte anyway; spelling it
+   * out is what keeps the TypeScript constant derivable by reading this file.
+   */
+  float bass_reserved_tail;
 } FeqWireAnalysisFrame;
 
 #ifdef __cplusplus
@@ -385,8 +418,14 @@ static_assert(sizeof(FeqWireHandshake) == 104, "handshake frame size");
 static_assert(sizeof(FeqWireCommandFrame) == 32, "command frame size");
 static_assert(sizeof(FeqWireAckFrame) == 32, "ack frame size");
 static_assert(sizeof(FeqWireTelemetryFrame) == 88, "telemetry frame size");
-/* 120, then 136 when Master loudness landed, then Denoise's six words. */
-static_assert(sizeof(FeqWireAnalysisFrame) == 160, "analysis frame size");
+/*
+ * 120, then 136 when Master loudness landed, then Denoise's six words took it
+ * to 160. The two bass stages add sixteen floats for Forge and three for
+ * Punch — 76 bytes, which lands on 236 and is rounded to 240 by the explicit
+ * `bass_reserved_tail`, because `correlation` makes the whole struct
+ * eight-byte aligned.
+ */
+static_assert(sizeof(FeqWireAnalysisFrame) == 240, "analysis frame size");
 #endif
 
 #endif /* FLUIDEQ_HOST_WIRE_H */

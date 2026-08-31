@@ -40,6 +40,8 @@ import {
   setDspAnalyser,
   setDspBandAmounts,
   setDspBandLevels,
+  setDspBassForgeBands,
+  setDspBassPunchActivity,
   setDspChannelPeaks,
   setDspCorrelation,
   setDspDenoiseMeter,
@@ -191,6 +193,24 @@ export const createNativeMeters = (
     // not until the reduction is on screen.
     setDspMaximizerReduction(frame.maximizerReductionDb);
     setDspDimensionGuard(frame.dimensionGuard);
+    /**
+     * The two bass stages, which have no spectrum tap and cannot have one.
+     *
+     * What Forge made is the gap between the dry low band and the forged one,
+     * and both live inside the same octave; a 1024-bin transform of the
+     * output shows one curve and cannot subtract the other from it. Punch is
+     * a gain over time, which a frequency display has no axis for at all.
+     *
+     * Sent every frame, empty or not, because zero is a real reading here: a
+     * stage that is switched off resets its followers every block, so the
+     * floor and the 0 dB mean "not running" rather than "nothing arrived".
+     */
+    setDspBassForgeBands(frame.bassForge.inputDb, frame.bassForge.outputDb);
+    setDspBassPunchActivity(
+      frame.bassPunch.transientGainDb,
+      frame.bassPunch.sustainGainDb,
+      frame.bassPunch.duckGainDb,
+    );
     // The one reading the Master page never had. Its target was a number the
     // user set beside a spectrum, with nothing anywhere in the app that could
     // say what the output measured — which is how a makeup applying exactly

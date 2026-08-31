@@ -168,6 +168,24 @@ const main = async (): Promise<void> => {
           amount: 0.6,
         },
       },
+      // Both bass stages wide open, because their meters are fixed fields in
+      // the header rather than a payload: a decoder reading them at the wrong
+      // offset returns floats either way, and only a stage that is actually
+      // generating makes the right offset distinguishable from a neighbour.
+      bassForge: {
+        ...DSP_DEFAULTS.bassForge,
+        enabled: true,
+        subAmount: 1,
+        presenceAmount: 1,
+        mix: 1,
+      },
+      bassPunch: {
+        ...DSP_DEFAULTS.bassPunch,
+        enabled: true,
+        attack: 1,
+        sustain: -1,
+        duck: 1,
+      },
     }),
   );
   await host.loadDeck(0, decoded);
@@ -278,6 +296,72 @@ const main = async (): Promise<void> => {
   check(organicPeak > 0, 'and the organic stage reports its mix');
 
   /**
+   * The two bass stages, which is the whole of the header this work grew.
+   *
+   * Everything above them travels on offsets that predate this branch, so a
+   * mistake in the new fields cannot show up as a wrong number in an old one —
+   * the frame's length is computed from its own header and refused unless it
+   * matches exactly, so drift on either side goes dead rather than plausible.
+   * That is precisely why these have to be checked here: a dead panel and a
+   * panel nobody wired up look identical from the renderer.
+   */
+  const forgeGap = frames.reduce((best, frame) => {
+    const gaps = frame.bassForge.outputDb.map(
+      (level, band) => level - frame.bassForge.inputDb[band],
+    );
+    return Math.max(best, ...gaps);
+  }, -Infinity);
+  const forgeLoudest = frames.reduce(
+    (best, frame) => Math.max(best, ...frame.bassForge.inputDb),
+    -Infinity,
+  );
+  console.log(
+    `       forge dry band peaked at ${forgeLoudest.toFixed(1)} dB, ` +
+      `forged run stood ${forgeGap.toFixed(1)} dB above it`,
+  );
+  check(
+    frames.every(
+      (frame) =>
+        frame.bassForge.inputDb.length === 8 &&
+        frame.bassForge.outputDb.length === 8,
+    ),
+    'Forge sends eight bands of dry and eight of forged',
+  );
+  check(forgeLoudest > -60, 'the dry run carries programme, not a floor');
+  // The stage's claim is that it MAKES low end. Two identical runs would mean
+  // the same buffer measured twice, which is the shape this bug takes.
+  check(forgeGap > 1, 'and the forged run stands above it where it generated');
+
+  /**
+   * Each lane on its own, because a maximum across the three hides a dead one.
+   *
+   * That is not a hypothetical either. The transient is a few milliseconds
+   * wide and the frames arrive about a quarter as often as the blocks that
+   * measure it, so a stored reading came through at exactly 0.0 dB in every
+   * frame of a run where the same signal read 7.6 dB per block — and a check
+   * on the maximum passed anyway, on the strength of the sustain beside it.
+   */
+  const punchReach = frames.reduce(
+    (best, frame) => ({
+      transient: Math.max(best.transient, Math.abs(frame.bassPunch.transientGainDb)),
+      sustain: Math.max(best.sustain, Math.abs(frame.bassPunch.sustainGainDb)),
+      duck: Math.max(best.duck, Math.abs(frame.bassPunch.duckGainDb)),
+    }),
+    { transient: 0, sustain: 0, duck: 0 },
+  );
+  console.log(
+    `       punch reached transient ${punchReach.transient.toFixed(2)}, ` +
+      `sustain ${punchReach.sustain.toFixed(2)}, ` +
+      `duck ${punchReach.duck.toFixed(2)} dB`,
+  );
+  check(
+    punchReach.transient > 0.1,
+    'the attack lane survives being sampled at the frame rate',
+  );
+  check(punchReach.sustain > 0.1, 'the sustain lane reports its own gain');
+  check(punchReach.duck > 0.1, 'and the duck lane reports what it pulled down');
+
+  /**
    * The positive control, and the reason every threshold above means anything.
    *
    * A host that sent a plausible constant would satisfy all of it. Taking the
@@ -298,6 +382,18 @@ const main = async (): Promise<void> => {
   check(
     silentPeak < musicPeak - 30,
     'and reads far below the music, so the meter follows the audio',
+  );
+
+  // The same control for Forge: with no deck loaded the stage still runs, and
+  // its two runs have to fall to the floor rather than holding the last note.
+  const silentForge = frames.reduce(
+    (best, frame) => Math.max(best, ...frame.bassForge.inputDb),
+    -Infinity,
+  );
+  console.log(`       forge dry band over silence: ${silentForge.toFixed(1)} dB`);
+  check(
+    silentForge < forgeLoudest - 30,
+    'and Forge stops reporting a band it can no longer hear',
   );
 
   /** Off again, and off means off. */

@@ -348,6 +348,15 @@ void drain_analysis(HostState& state) {
   frame.denoise_profile_ready = denoise.profile_ready != 0 ? 1u : 0u;
   frame.denoise_voice_model_loaded =
       denoise.voice_model_loaded != 0 ? 1u : 0u;
+  // Forge's two runs and Punch's three gains, straight out of the atomics the
+  // audio thread published them into. Neither stage has a spectrum tap: what
+  // Forge made is the gap between these two curves, and what Punch did is a
+  // gain over time, and a 1024-bin transform can show neither.
+  feq_meters_read_bass_forge(state.meters, frame.bass_forge_input_db,
+                             frame.bass_forge_output_db);
+  feq_meters_read_bass_punch(state.meters, &frame.bass_punch_transient_db,
+                             &frame.bass_punch_sustain_db,
+                             &frame.bass_punch_duck_db);
   frame.correlation = correlation;
   frame.peak_left = peaks[0];
   frame.peak_right = peaks[1];
