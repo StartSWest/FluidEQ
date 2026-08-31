@@ -118,6 +118,7 @@ describe('DspPanel', () => {
       'Normalizer',
       'Crossfade',
       'Exciter',
+      'Bass Forge',
       'Equaliser',
       'Maximizer',
       'Master',
@@ -160,6 +161,85 @@ describe('DspPanel', () => {
     renderPanel();
     fireEvent.click(screen.getByRole('button', { name: /Exciter/i }));
     expect(screen.getByText(/never in the signal/i)).toBeInTheDocument();
+  });
+
+  /**
+   * The stage had been built, wired, metered and translated with no way for
+   * anyone to switch it on. This asserts the surface exists and carries a
+   * control for every field of `IBassForgeSettings` that has one — a page
+   * missing a dial is a parameter nobody can reach.
+   */
+  it('gives Bass Forge a page with a dial for each of its six controls', () => {
+    renderPanel();
+    fireEvent.click(screen.getByRole('button', { name: /Bass Forge/i }));
+    const page = within(screen.getByRole('region', { name: /Bass Forge/i }));
+    ['Split', 'Sub', 'Presence', 'Texture', 'Drive', 'Amount'].forEach(
+      (name) => {
+        expect(page.getByRole('slider', { name })).toBeInTheDocument();
+      },
+    );
+  });
+
+  /**
+   * There is no mono dial on this page and there is deliberately never going
+   * to be one: Forge generates from `(low[0] + low[1]) / 2` as a construction
+   * of the stage, and the mono-maker roughly twenty EQ profiles reference
+   * stays in the EQ. Unexplained, the absence reads as a missing control.
+   */
+  it('says the generated bass is mono, since no dial on the page can', () => {
+    renderPanel();
+    fireEvent.click(screen.getByRole('button', { name: /Bass Forge/i }));
+    expect(screen.getByText(/summed to mono/i)).toBeInTheDocument();
+  });
+
+  /**
+   * A live meter under greyed-out dials is a meter reporting on a stage that
+   * is not running — the same defect Dimension's guard bar had.
+   *
+   * The bands genuinely read -120 dB while the stage is off, because the
+   * native side resets it every block, so there is no stale data here. What
+   * this guards is the READING: the plot has to look stopped rather than look
+   * like it is hearing silence.
+   */
+  it('reads as stopped, not as running-and-quiet, while Bass Forge is off', () => {
+    const { container } = renderPanel();
+    fireEvent.click(screen.getByRole('button', { name: /Bass Forge/i }));
+    expect(container.querySelector('.dsp-bass-forge-display')).toHaveClass(
+      'is-off',
+    );
+    expect(screen.getByRole('slider', { name: 'Sub' })).toBeDisabled();
+  });
+
+  it('POSITIVE CONTROL: drops the stopped reading once the stage is on', () => {
+    const active: IDspSettings = {
+      ...DSP_DEFAULTS,
+      bassForge: { ...DSP_DEFAULTS.bassForge, enabled: true },
+    };
+    const { container } = renderPanel(active);
+    fireEvent.click(screen.getByRole('button', { name: /Bass Forge/i }));
+    expect(container.querySelector('.dsp-bass-forge-display')).not.toHaveClass(
+      'is-off',
+    );
+    expect(screen.getByRole('slider', { name: 'Sub' })).toBeEnabled();
+  });
+
+  /**
+   * Reset goes to the catalogue's own baseline rather than to `DSP_DEFAULTS`,
+   * where every amount is zero: resetting to those would leave a stage that is
+   * switched on and audibly doing nothing. Bypass stays the chain preset's
+   * decision, which is why a profile never carries one.
+   */
+  it('resets Bass Forge to a profile that makes something', () => {
+    const { onChange } = renderPanel();
+    fireEvent.click(screen.getByRole('button', { name: /Bass Forge/i }));
+    // Exact, not a pattern: "Preset", "Previous preset" and "Next preset" all
+    // contain the word, and the picker sits on the same bar as this button.
+    const page = within(screen.getByRole('region', { name: /Bass Forge/i }));
+    fireEvent.click(page.getByRole('button', { name: 'Reset' }));
+    const next = onChange.mock.calls[0][0] as IDspSettings;
+    expect(next.bassForge.presetId).toBe('default');
+    expect(next.bassForge.mix).toBeGreaterThan(0);
+    expect(next.bassForge.enabled).toBe(false);
   });
 
   it('applies a preset whole when one is chosen', () => {
