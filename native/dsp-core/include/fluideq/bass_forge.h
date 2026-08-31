@@ -59,8 +59,26 @@ extern "C" {
 
 typedef struct FeqBassForgeSettings {
   int enabled;
-  /** Where bass ends, 40 to 200 Hz. Structural: it moves the crossover. */
+  /**
+   * Where bass ends, 40 to 200 Hz. Structural: it moves both filters.
+   *
+   * The generators' corner and the normaliser's shelf midpoint at once — at
+   * this frequency the delivered gain is the root mean square of the band's
+   * gain and unity, which is what a shelf's corner means everywhere else.
+   */
   double split_hz;
+  /**
+   * Whether the eight-band analyser runs this block. **Not a wire field.**
+   *
+   * Sixteen band-passes and sixteen followers per sample is 1.5 million biquad
+   * evaluations a second at 48 kHz, spent entirely on a graph that is one tab
+   * of ten and usually closed. `chain_process_bass_forge` fills this from
+   * `feq_meters_enabled`, the same gate `feq_meters_capture` already applies to
+   * every other stage's meter work. The followers are reset when it turns back
+   * on, so an opened panel reads the audio playing now rather than the audio
+   * playing when it was last closed.
+   */
+  int meters;
   /**
    * 0 to 12 dB, and what it drives is a curve rather than a level.
    *
@@ -95,8 +113,29 @@ typedef struct FeqBassForgeSettings {
 } FeqBassForgeSettings;
 
 typedef struct FeqBassForge {
-  /** One Linkwitz-Riley 4th-order lowpass per channel: two Butterworth. */
+  /**
+   * The GENERATORS' band: one Linkwitz-Riley 4th-order lowpass per channel.
+   *
+   * Steep, because the divider counts zero crossings and a band that leaked
+   * midrange would have it counting the wrong ones. It is not what the
+   * normalising gain is applied through; `shelf` below is, and says why.
+   */
   FeqBiquadState split[2][2];
+  /**
+   * The GAIN's band: one pole per channel, and the one state a TDF-II
+   * first-order section needs.
+   *
+   * The band and the rest are recombined by subtraction, so the delivered
+   * response is `rest + (band - rest) * L(f)` and everything turns on what `L`
+   * does at the corner. A one-pole's Nyquist locus is the circle
+   * `|L - 1/2| = 1/2`, giving `Re(L) = |L|^2` at every frequency and therefore
+   * `|delivered|^2 = rest^2 + (band^2 - rest^2) / (1 + (f/split)^2)`: monotone
+   * between the two gains, never past either. An LR4 lowpass is -0.5 at its own
+   * corner, so a CUT on the band arrived there as a lift — measured at
+   * +0.41 dB while the normaliser was holding the band 0.76 dB down. See
+   * `bass_punch.cpp`, which carries the full argument and the same one-pole.
+   */
+  double shelf[2];
   /** The divider's band limit. Mono, so one set of states rather than two. */
   FeqBiquadState divider_low[2];
   FeqBiquadState divider_high;
@@ -107,6 +146,8 @@ typedef struct FeqBassForge {
   FeqBiquadState meter_output[FEQ_BASS_FORGE_BANDS];
   double meter_input_mean_square[FEQ_BASS_FORGE_BANDS];
   double meter_output_mean_square[FEQ_BASS_FORGE_BANDS];
+  /** Whether the analyser ran last block, so the gate's edge can be seen. */
+  int meters_running;
   /** The divider's flip-flop, and the sign it is watching for a rising edge. */
   int flipped;
   int positive;

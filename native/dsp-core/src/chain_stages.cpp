@@ -206,8 +206,8 @@ void chain_process_dimension(FeqChain* chain, float* const* channels,
     return;
   }
   if (chain->settings.dimension.enabled == 0) {
-    // Left settled rather than reset every block: switching the stage back on
-    // must not replay an all-pass network full of a minute-old signal.
+    // Reset every block it is off for, not left settled: switching the stage
+    // back on must not replay an all-pass network full of a minute-old signal.
     feq_dimension_reset(&chain->dimension);
     return;
   }
@@ -236,14 +236,19 @@ void chain_process_bass_forge(FeqChain* chain, float* const* channels,
     return;
   }
   if (chain->settings.bass_forge.enabled == 0) {
-    // Left settled rather than reset every block: switching the stage back on
-    // must not replay a crossover and a set of meter followers holding a
-    // minute-old signal.
+    // Reset every block it is off for, not left settled: switching the stage
+    // back on must not replay a crossover and a set of meter followers holding
+    // a minute-old signal, and `chain.cpp` publishes the bands unconditionally
+    // so a stage that kept them would hold a stale reading on screen.
     feq_bass_forge_reset(&chain->bass_forge);
     return;
   }
   FeqBassForgeSettings settings{};
   settings.enabled = 1;
+  // The eight-band analyser is a graph and nothing else, so it runs only while
+  // something is reading it — the gate every other stage's meter work is
+  // already behind, inside `feq_meters_capture`.
+  settings.meters = feq_meters_enabled(chain->meters);
   settings.split_hz = chain->settings.bass_forge.split_hz;
   settings.drive_db = chain->settings.bass_forge.drive_db;
   settings.sub_amount = chain->settings.bass_forge.sub_amount;
@@ -264,8 +269,10 @@ void chain_process_bass_punch(FeqChain* chain, float* const* channels,
     return;
   }
   if (chain->settings.bass_punch.enabled == 0) {
-    // Settled, not reset: a bloom network emptied every block would still be
-    // holding the tail of whatever last played when the stage came back on.
+    // Reset every block it is off for, not left settled: a bloom network left
+    // full would replay the tail of whatever last played when the stage came
+    // back on, and `chain.cpp` publishes the three gains unconditionally, so a
+    // stage that kept its followers would hold a stale reading on screen.
     feq_bass_punch_reset(&chain->bass_punch);
     return;
   }

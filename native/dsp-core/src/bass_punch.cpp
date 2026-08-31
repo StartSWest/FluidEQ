@@ -4,11 +4,13 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-#include "fluideq/bass_punch.h"
+#include "bass_punch_internal.h"
 
 #include <cmath>
 
 namespace {
+
+constexpr double kPi = 3.14159265358979323846;
 
 /** Two cascaded Butterworth stages make one Linkwitz-Riley 4th order. */
 constexpr double kButterworthQ = 0.70710678118654752440;
@@ -19,13 +21,14 @@ constexpr double kParameterSmoothingMs = 18.0;
 /**
  * What the followers watch, and why it is a mean square and not `|x|`.
  *
- * A rectified sample ripples at twice the note, and an attack/release follower
- * rectifies that ripple into a standing offset — measured at +0.71 dB on a
- * 60 Hz tone, which is a tone control by another name and the one thing this
- * stage promises not to be. Two milliseconds is a tenth of the fast follower's
- * own release, so it costs almost nothing at the leading edge: the first five
- * milliseconds of a kick still rise 5.7 dB against the 6.8 they rise without
- * it, and the standing offset on a 40 Hz tone goes from 0.23 dB to 0.10.
+ * A rectified sample ripples at twice the note, and the followers behind it
+ * turn that ripple into a standing offset — a tone control by another name,
+ * and the one thing this stage promises not to be. Two milliseconds is a tenth
+ * of the fast follower's own release, so it costs almost nothing at the leading
+ * edge: the first five milliseconds of a kick still rise 5.7 dB against the 6.8
+ * they rise without it, and the standing offset on a 40 Hz tone goes from
+ * 0.23 dB to 0.10. The larger +0.71 dB offset `kSlowMs` names below has a
+ * different cause and needed a different fix; this window does not remove it.
  */
 constexpr double kDetectorMs = 2.0;
 
@@ -67,18 +70,6 @@ constexpr double kSustainScale = 2.0;
 constexpr double kAttackCeilingDb = 12.0;
 constexpr double kSustainCeilingDb = 9.0;
 
-/**
- * Mutually prime in samples at every rate that matters.
- *
- * One comb is a pitched ring rather than a space, and three that share a factor
- * are one comb with extra steps. `dimension.cpp` picked its all-pass delays on
- * the same reasoning.
- */
-constexpr double kCombMs[FEQ_BASS_PUNCH_COMBS] = {23.7, 31.1, 41.3};
-constexpr double kAllPassMs = 7.3;
-constexpr double kAllPassGain = 0.62;
-constexpr double kLongestDelayMs = 41.3;
-
 /** Deep enough to be felt, shallow enough that it is never heard as the mix
  *  breathing. Past about 6 dB the upper band audibly leaves and comes back. */
 constexpr double kDuckMaxDb = 6.0;
@@ -99,14 +90,18 @@ constexpr double kDuckFloorDb = -45.0;
 constexpr double kDuckFullDb = -18.0;
 
 /**
- * The documented ranges, enforced where the audio is rather than in the UI: a
- * preset stored by an older build reaches the engine without passing through a
- * control, and a split corner of zero is a filter that returns NaN forever.
+ * The documented ranges, enforced where the audio is rather than in the UI.
+ *
+ * A preset stored by an older build reaches the engine without passing through
+ * a control, and a split corner of zero is not a quiet filter: the cookbook
+ * lowpass collapses to `y[n] = 2*y[n-1] - y[n-2]` there, which is a straight
+ * line drawn through the last two outputs and grows by their difference every
+ * sample. The corner only ever moves while audio is running, so those two
+ * outputs are never zero — from the ordinary sample-to-sample step of a 60 Hz
+ * note at -20 dBFS it reaches full scale in about a thousand samples.
  */
 constexpr double kMinSplitHz = 40.0;
 constexpr double kMaxSplitHz = 200.0;
-constexpr double kMinDecayMs = 40.0;
-constexpr double kMaxDecayMs = 250.0;
 
 /** Below this there is no envelope to take a ratio of and the answer is noise. */
 constexpr double kLevelFloor = 1e-9;
@@ -122,95 +117,56 @@ double smoothing(double milliseconds, double sample_rate) {
   return 1.0 - std::exp(-1.0 / ((milliseconds / 1000.0) * sample_rate));
 }
 
-/** The reverberation relation, so the dial is a real decay time. */
-double comb_feedback(double delay_seconds, double decay_seconds) {
-  return std::pow(10.0, -3.0 * delay_seconds / decay_seconds);
-}
-
 /**
- * One sample through one biquad, which `biquad.h` does not expose.
+ * The one-pole the GAIN is applied through, and why it is not the LR4 above.
  *
- * The bloom needs it: its band limit runs on a mono sample that only exists
- * inside the loop, and `feq_biquad_process` works in place over a buffer. Same
- * arithmetic and the same Direct Form I state.
+ * `feq_crossover_split` in `primitives.h` was not reused and could not be: it
+ * derives its upper bands the same way this stage does, by subtraction, so it
+ * is the reference implementation of this defect rather than of its fix.
+ *
+ * With `rest = x - band` the delivered response is `d + (g - d) * L(f)`, and
+ * an LR4 lowpass is exactly -0.5 at its own corner — half amplitude, opposite
+ * sign. A boost therefore arrives inverted there: `1.5d - 0.5g` cancels
+ * completely at `g = 3` (+9.5 dB, inside a dial that ceilings at 12) and flips
+ * polarity above it. Measured before this changed, a duck asking for -6 dB
+ * delivered -11.98 dB at a 200 Hz split.
+ *
+ * A one-pole cannot do that, and it is the only order that cannot. Its Nyquist
+ * locus is the circle `|L - 1/2| = 1/2`, so `Re(L) = |L|^2` everywhere and
+ * `|d + (g - d)L1|^2` collapses to `d^2 + (g^2 - d^2) / (1 + (f/split)^2)` —
+ * monotone from `g` at DC to `d` at Nyquist, never past either end, never zero.
+ * Bode's gain-phase relation says nothing steeper can stay inside that circle,
+ * so the trade is a 6 dB per octave transition in exchange for a shelf that is
+ * correct at every setting. The detector keeps its 24 dB per octave band,
+ * because what it has to find is a kick and not a snare.
+ *
+ * The alternative — a real LR4 highpass, making a complementary pair — sums to
+ * an allpass rather than to the input, which would cost the bit-exact bypass
+ * both this stage and Forge document and test, and at the corner it delivers
+ * `(g + d) / 2`: less of the asked-for gain than the shelf's
+ * `sqrt((g^2 + d^2) / 2)`, not more.
  */
-double run_stage(FeqBiquadState* state, const FeqBiquadCoefficients& c,
-                 double sample) {
-  const double y = c.b0 * sample + c.b1 * state->x1 + c.b2 * state->x2 -
-                   c.a1 * state->y1 - c.a2 * state->y2;
-  state->x2 = state->x1;
-  state->x1 = sample;
-  state->y2 = state->y1;
-  state->y1 = y;
-  return y;
+struct OnePole {
+  double b;
+  double a;
+};
+
+OnePole one_pole(double corner_hz, double sample_rate) {
+  const double warped = std::tan(kPi * corner_hz / sample_rate);
+  return OnePole{warped / (1.0 + warped), (warped - 1.0) / (warped + 1.0)};
 }
 
-void set_delay(FeqBassPunchDelay* line, double milliseconds,
-               double sample_rate) {
-  const double samples = (milliseconds / 1000.0) * sample_rate;
-  auto delay = static_cast<uint32_t>(std::floor(samples + 0.5));
-  if (delay < 1u) {
-    delay = 1u;
-  }
-  if (delay > line->capacity) {
-    delay = line->capacity;
-  }
-  line->delay = delay;
-  line->cursor = 0;
-}
-
-void clear_line(FeqBassPunchDelay* line) {
-  line->cursor = 0;
-  if (line->buffer == nullptr) {
-    return;
-  }
-  for (uint32_t at = 0; at < line->capacity; ++at) {
-    line->buffer[at] = 0.0f;
-  }
-}
-
-/**
- * One feedback comb. What leaves is the delayed sample, taken before the new
- * one is stored, so the loop gain is the only thing that sets the decay.
- */
-double comb_sample(FeqBassPunchDelay* line, double sample, double feedback) {
-  if (line->buffer == nullptr || line->delay == 0) {
-    return 0.0;
-  }
-  const double delayed = static_cast<double>(line->buffer[line->cursor]);
-  line->buffer[line->cursor] =
-      static_cast<float>(sample + delayed * feedback);
-  line->cursor += 1;
-  if (line->cursor >= line->delay) {
-    line->cursor = 0;
-  }
-  return delayed;
-}
-
-/** One Schroeder all-pass: flat magnitude, and all of the phase. */
-double all_pass_sample(FeqBassPunchDelay* line, double sample, double gain) {
-  if (line->buffer == nullptr || line->delay == 0) {
-    return sample;
-  }
-  const double delayed = static_cast<double>(line->buffer[line->cursor]);
-  const double stored = sample + gain * delayed;
-  line->buffer[line->cursor] = static_cast<float>(stored);
-  line->cursor += 1;
-  if (line->cursor >= line->delay) {
-    line->cursor = 0;
-  }
-  return delayed - gain * stored;
+/** Transposed Direct Form II, which is why one double of state is enough. */
+double one_pole_sample(double* state, const OnePole& coefficients,
+                       double sample) {
+  const double out = coefficients.b * sample + *state;
+  *state = coefficients.b * sample - coefficients.a * out;
+  return out;
 }
 
 }  // namespace
 
 extern "C" {
-
-uint32_t feq_bass_punch_bloom_capacity(double sample_rate) {
-  const double samples = (kLongestDelayMs / 1000.0) * sample_rate;
-  const double rounded = std::floor(samples + 0.5);
-  return rounded < 1.0 ? 1u : static_cast<uint32_t>(rounded) + 1u;
-}
 
 void feq_bass_punch_init(FeqBassPunch* state, float* low,
                          float* const* bloom_buffers,
@@ -220,20 +176,7 @@ void feq_bass_punch_init(FeqBassPunch* state, float* low,
   }
   state->low = low;
   state->sample_rate = 0.0;
-  for (uint32_t at = 0; at < FEQ_BASS_PUNCH_COMBS; ++at) {
-    state->combs[at].buffer =
-        bloom_buffers != nullptr ? bloom_buffers[at] : nullptr;
-    state->combs[at].capacity = bloom_capacity;
-    state->combs[at].delay = 0;
-    state->combs[at].cursor = 0;
-    state->comb_feedback[at] = 0.0;
-  }
-  state->all_pass.buffer =
-      bloom_buffers != nullptr ? bloom_buffers[FEQ_BASS_PUNCH_COMBS] : nullptr;
-  state->all_pass.capacity = bloom_capacity;
-  state->all_pass.delay = 0;
-  state->all_pass.cursor = 0;
-  state->all_pass_gain = 0.0;
+  bass_punch_bloom_attach(state, bloom_buffers, bloom_capacity);
   // Clear until the first block has run: without it a session opens by fading
   // the user's own settings in over 18 ms.
   state->primed = 0;
@@ -251,13 +194,11 @@ void feq_bass_punch_reset(FeqBassPunch* state) {
   for (uint32_t channel = 0; channel < 2; ++channel) {
     feq_biquad_reset(&state->split[channel][0]);
     feq_biquad_reset(&state->split[channel][1]);
+    state->shelf[channel] = 0.0;
   }
   feq_biquad_reset(&state->bloom_low[0]);
   feq_biquad_reset(&state->bloom_low[1]);
-  for (auto& line : state->combs) {
-    clear_line(&line);
-  }
-  clear_line(&state->all_pass);
+  bass_punch_bloom_clear(state);
   state->detector_mean_square = 0.0;
   state->fast = 0.0;
   state->slow = 0.0;
@@ -281,22 +222,15 @@ void feq_bass_punch_process(FeqBassPunch* state, float* const* channels,
   // its front pair shaped and the rest passed through untouched.
   const uint32_t used = channel_count < 2u ? 1u : 2u;
 
-  // Emptied as well as re-lengthed. What is in a line at the old rate is read
-  // back at a different offset and a different speed at the new one, and it is
-  // read back through a feedback loop, so it does not decay out of the way.
   if (state->sample_rate != sample_rate) {
     state->sample_rate = sample_rate;
-    for (uint32_t at = 0; at < FEQ_BASS_PUNCH_COMBS; ++at) {
-      set_delay(&state->combs[at], kCombMs[at], sample_rate);
-      clear_line(&state->combs[at]);
-    }
-    set_delay(&state->all_pass, kAllPassMs, sample_rate);
-    clear_line(&state->all_pass);
+    bass_punch_bloom_retune(state, sample_rate);
   }
 
   const double split_hz = clamp(settings->split_hz, kMinSplitHz, kMaxSplitHz);
   const FeqBiquadCoefficients lowpass = feq_biquad_coefficients(
       FEQ_FILTER_LPQ, split_hz, 0.0, kButterworthQ, sample_rate);
+  const OnePole shelf = one_pole(split_hz, sample_rate);
 
   const double smooth = smoothing(kParameterSmoothingMs, sample_rate);
   const double detect = smoothing(kDetectorMs, sample_rate);
@@ -310,25 +244,10 @@ void feq_bass_punch_process(FeqBassPunch* state, float* const* channels,
   const double target_sustain = clamp(settings->sustain, -1.0, 1.0);
   const double target_bloom = clamp(settings->bloom_amount, 0.0, 1.0);
   const double target_duck = clamp(settings->duck, 0.0, 1.0);
-  const double decay_seconds =
-      clamp(settings->bloom_decay_ms, kMinDecayMs, kMaxDecayMs) / 1000.0;
   double target_feedback[FEQ_BASS_PUNCH_COMBS] = {};
-  for (uint32_t at = 0; at < FEQ_BASS_PUNCH_COMBS; ++at) {
-    target_feedback[at] = comb_feedback(kCombMs[at] / 1000.0, decay_seconds);
-  }
-  /**
-   * The all-pass decays at the dialled rate too, and is capped at Schroeder's
-   * gain rather than set to it.
-   *
-   * It is not decoration: no comb here has a round trip short enough to fit
-   * inside a forty millisecond decay — the shortest is 23.7 ms and the longest
-   * 41.3 — so at the short end of the dial the combs produce three slaps and
-   * the all-pass produces the decay. At the long end the combs carry the tail
-   * and the cap keeps the network from ringing longer than the dial says, which
-   * above about 0.7 is heard as a small room rather than as a decay.
-   */
-  const double target_all_pass = std::fmin(
-      comb_feedback(kAllPassMs / 1000.0, decay_seconds), kAllPassGain);
+  double target_all_pass = 0.0;
+  bass_punch_bloom_targets(settings->bloom_decay_ms, target_feedback,
+                           &target_all_pass);
 
   if (state->primed == 0) {
     state->primed = 1;
@@ -342,8 +261,8 @@ void feq_bass_punch_process(FeqBassPunch* state, float* const* channels,
     state->all_pass_gain = target_all_pass;
   }
 
-  // The low band, per channel. The caller's block is not touched yet: the
-  // output is written as `input + (shaped band - dry band) + ...`, and it is
+  // The detector's low band, per channel. The caller's block is not touched
+  // yet: the output is written as `input + (g - 1) * band + ...`, and it is
   // that form rather than `rest + shaped band` which makes every dial at rest
   // come back bit for bit instead of within a rounding of itself.
   for (uint32_t channel = 0; channel < used; ++channel) {
@@ -356,7 +275,6 @@ void feq_bass_punch_process(FeqBassPunch* state, float* const* channels,
   }
 
   const double channel_scale = 1.0 / static_cast<double>(used);
-  const double comb_scale = 1.0 / static_cast<double>(FEQ_BASS_PUNCH_COMBS);
   for (uint32_t at = 0; at < frames; ++at) {
     state->attack += (target_attack - state->attack) * smooth;
     state->sustain += (target_sustain - state->sustain) * smooth;
@@ -408,33 +326,17 @@ void feq_bass_punch_process(FeqBassPunch* state, float* const* channels,
     const double shaped_gain = std::pow(
         10.0, (state->transient_gain_db + state->sustain_gain_db) / 20.0);
 
-    double shaped[2] = {0.0, 0.0};
+    // The bloom is fed from the DETECTOR's band rather than from the shelf:
+    // what goes into a quarter-second tail has to be the note and not the
+    // shelf's skirt, and the network's own band limit is at the same corner.
     double mono = 0.0;
     for (uint32_t channel = 0; channel < used; ++channel) {
-      shaped[channel] =
-          static_cast<double>(state->low[channel * frames + at]) * shaped_gain;
-      mono += shaped[channel];
+      mono += static_cast<double>(state->low[channel * frames + at]);
     }
-    mono *= channel_scale;
+    mono *= channel_scale * shaped_gain;
 
-    // The network runs whatever `bloom_amount` is, and only its output is
-    // scaled. A tail that starts filling when the dial leaves zero arrives as a
-    // swell rather than as a decay of the note that caused it.
-    double bloom = 0.0;
-    for (uint32_t line = 0; line < FEQ_BASS_PUNCH_COMBS; ++line) {
-      bloom +=
-          comb_sample(&state->combs[line], mono, state->comb_feedback[line]);
-    }
-    bloom = all_pass_sample(&state->all_pass, bloom * comb_scale,
-                            state->all_pass_gain);
-    // Band-limited on the way out, because the shaper's own gain is a
-    // modulation and puts sidebands above the split that the bloom would
-    // otherwise hold on to for a quarter of a second. No DC blocker: a second
-    // order one at 30 Hz rings for 52 ms, which is longer than the shortest
-    // decay this dial offers, and the network's own gain at DC is under 1.8.
-    bloom = run_stage(&state->bloom_low[1], lowpass,
-                      run_stage(&state->bloom_low[0], lowpass, bloom));
-    bloom *= state->bloom_amount;
+    const double bloom =
+        bass_punch_bloom_sample(state, mono, &lowpass) * state->bloom_amount;
 
     // Instant attack, `kDuckReleaseMs` to let go: the duck has to be under the
     // kick rather than behind it, and the release is what stops it chattering
@@ -452,13 +354,16 @@ void feq_bass_punch_process(FeqBassPunch* state, float* const* channels,
     state->duck_gain_db = -kDuckMaxDb * state->duck * depth;
     const double duck_gain = std::pow(10.0, state->duck_gain_db / 20.0);
 
+    // Both gains reach the audio through the one-pole shelf, and the two
+    // deltas are exactly zero when both gains are one — which is what keeps
+    // every dial at rest a bit-exact bypass rather than a near one.
     for (uint32_t channel = 0; channel < used; ++channel) {
       const double input = static_cast<double>(channels[channel][at]);
       const double band =
-          static_cast<double>(state->low[channel * frames + at]);
+          one_pole_sample(&state->shelf[channel], shelf, input);
       channels[channel][at] = static_cast<float>(
-          input + (shaped[channel] - band) + bloom +
-          (input - band) * (duck_gain - 1.0));
+          input + (shaped_gain - 1.0) * band + bloom +
+          (duck_gain - 1.0) * (input - band));
     }
   }
 }

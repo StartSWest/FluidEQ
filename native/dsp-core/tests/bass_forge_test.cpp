@@ -53,6 +53,9 @@ constexpr size_t kWindow = 48000;
 FeqBassForgeSettings defaults() {
   FeqBassForgeSettings settings{};
   settings.enabled = 1;
+  // On for every test here, because the chain switches it on whenever the
+  // panel is open and `test_meters_are_gated` is where it is switched off.
+  settings.meters = 1;
   settings.split_hz = 90.0;
   settings.drive_db = 0.0;
   settings.sub_amount = 0.0;
@@ -437,6 +440,46 @@ void test_bands_report_the_band() {
         "and the forged meter sees an octave the dry one does not");
 }
 
+/**
+ * The analyser is a graph, so it must not run while nothing is drawing it.
+ *
+ * Sixteen band-passes and sixteen followers per sample is a million and a half
+ * biquad evaluations a second at 48 kHz, and the panel is one tab of ten. The
+ * audio may not notice either way — that is the first assertion — and the
+ * meters have to notice, which is the second.
+ */
+void test_meters_are_gated() {
+  std::printf("\nbass forge: the analyser stops when nothing is reading it\n");
+  const Signal noise = pink_stereo(kFrames * kBlocks, false);
+  FeqBassForgeSettings dark = everything();
+  dark.meters = 0;
+
+  Stage gated;
+  Signal quiet = noise;
+  gated.run(quiet, dark);
+  Stage lit;
+  Signal loud = noise;
+  lit.run(loud, everything());
+  check(identical(quiet, loud),
+        "the gate does not move one sample of the audio");
+
+  double dark_input[FEQ_BASS_FORGE_BANDS] = {};
+  double dark_output[FEQ_BASS_FORGE_BANDS] = {};
+  feq_bass_forge_bands(&gated.state, dark_input, dark_output);
+  double lit_input[FEQ_BASS_FORGE_BANDS] = {};
+  double lit_output[FEQ_BASS_FORGE_BANDS] = {};
+  feq_bass_forge_bands(&lit.state, lit_input, lit_output);
+  std::printf("       band 2 gated: in %.1f dB; running: in %.1f dB\n",
+              dark_input[2], lit_input[2]);
+  bool floored = true;
+  for (uint32_t band = 0; band < FEQ_BASS_FORGE_BANDS; ++band) {
+    floored = floored && dark_input[band] <= -120.0 &&
+              dark_output[band] <= -120.0;
+  }
+  check(floored, "and with it gated the eight bands read the floor");
+  check(lit_input[2] > -60.0, "while running they read the band");
+}
+
 }  // namespace
 
 int main() {
@@ -451,5 +494,6 @@ int main() {
   test_drive_colours_the_generated_bass();
   test_reset_clears_the_history();
   test_bands_report_the_band();
+  test_meters_are_gated();
   return finish();
 }

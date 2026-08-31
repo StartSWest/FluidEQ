@@ -55,7 +55,13 @@ extern "C" {
 
 typedef struct FeqBassPunchSettings {
   int enabled;
-  /** Where bass ends, 40 to 200 Hz. Structural: it moves the crossover. */
+  /**
+   * Where bass ends, 40 to 200 Hz. Structural: it moves both filters.
+   *
+   * The detector's corner and the shelf's midpoint at once — at this frequency
+   * the delivered gain is the root mean square of the two band gains, which is
+   * what a shelf's corner means everywhere else in audio.
+   */
   double split_hz;
   /**
    * The leading edge, -1 to +1. Positive is harder, negative is softer.
@@ -85,8 +91,30 @@ typedef struct FeqBassPunchDelay {
 } FeqBassPunchDelay;
 
 typedef struct FeqBassPunch {
-  /** One Linkwitz-Riley 4th-order lowpass per channel: two Butterworth. */
+  /**
+   * The DETECTOR's band: one Linkwitz-Riley 4th-order lowpass per channel.
+   *
+   * Steep, because what the followers are asked to find is a kick and not a
+   * snare, and 24 dB per octave is what keeps a vocal out of the envelope. It
+   * is not what the gain is applied through; see `shelf` below for why those
+   * are two different filters.
+   */
   FeqBiquadState split[2][2];
+  /**
+   * The GAIN's band: one pole per channel, and the one state a TDF-II
+   * first-order section needs.
+   *
+   * The two bands are recombined by subtraction, so the delivered response is
+   * `rest + (band - rest) * L(f)` and everything depends on what `L` does at
+   * the corner. A one-pole's Nyquist locus is the circle `|L - 1/2| = 1/2`,
+   * which gives `Re(L) = |L|^2` at every frequency and therefore
+   * `|delivered|^2 = rest^2 + (band^2 - rest^2) / (1 + (f/split)^2)` — a
+   * magnitude that runs monotonically from one gain to the other and can
+   * neither overshoot nor reach zero. No steeper filter has that property, and
+   * an LR4 lowpass is the worst case of not having it: it is exactly -0.5 at
+   * its own corner, so a boost arrives inverted there.
+   */
+  double shelf[2];
   /** The bloom's band limit. Mono, so one pair of stages rather than two. */
   FeqBiquadState bloom_low[2];
   FeqBassPunchDelay combs[FEQ_BASS_PUNCH_COMBS];
@@ -166,7 +194,16 @@ double feq_bass_punch_transient_db(const FeqBassPunch* state);
 /** Gain the sustain section is applying, in dB. **Control thread.** */
 double feq_bass_punch_sustain_db(const FeqBassPunch* state);
 
-/** Gain the duck is applying to the upper band, in dB. **Control thread.** */
+/**
+ * Gain the duck is applying to the upper band, in dB. **Control thread.**
+ *
+ * This is the gain the band is given, and above the split it is the gain the
+ * output receives: `bass_split_test.cpp` holds the delivered response to the
+ * shelf's closed form at seven frequencies, and it reaches this number four
+ * octaves up. Across the corner it arrives gradually, as a shelf does — that
+ * is the reading, not a discrepancy. Before the split was built on a one-pole
+ * it was a discrepancy: this said -6.0 while 200 Hz measured -11.98.
+ */
 double feq_bass_punch_duck_db(const FeqBassPunch* state);
 
 #ifdef __cplusplus

@@ -7,6 +7,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "fluideq/bass_forge.h"
 #include "fluideq/saturate.h"
 
+#include "bass_forge_internal.h"
+
 #include <cmath>
 
 namespace {
@@ -103,9 +105,15 @@ constexpr double kUnityProbe = 1e-4;
 constexpr double kColourFloor = 0.001;
 
 /**
- * The documented ranges, enforced where the audio is rather than in the UI: a
- * preset stored by an older build reaches the engine without passing through a
- * control, and a split corner of zero is a filter that returns NaN forever.
+ * The documented ranges, enforced where the audio is rather than in the UI.
+ *
+ * A preset stored by an older build reaches the engine without passing through
+ * a control, and a split corner of zero is not a quiet filter: the cookbook
+ * lowpass collapses to `y[n] = 2*y[n-1] - y[n-2]` there, which is a straight
+ * line drawn through the last two outputs and grows by their difference every
+ * sample. The corner only ever moves while audio is running, so those two
+ * outputs are never zero — from the ordinary sample-to-sample step of a 60 Hz
+ * note at -20 dBFS it reaches full scale in about a thousand samples.
  */
 constexpr double kMinSplitHz = 40.0;
 constexpr double kMaxSplitHz = 200.0;
@@ -113,11 +121,6 @@ constexpr double kMaxDriveDb = 12.0;
 
 /** Below this there is no signal to take a ratio of and the answer is noise. */
 constexpr double kEnergyFloor = 1e-12;
-
-/** The meter grid: eight bands, geometrically spaced, bass and nothing else. */
-constexpr double kMeterLowHz = 20.0;
-constexpr double kMeterHighHz = 1000.0;
-constexpr double kMeterFloorDb = -120.0;
 
 double clamp(double value, double low, double high) {
   if (value < low) {
@@ -131,52 +134,37 @@ double smoothing(double milliseconds, double sample_rate) {
 }
 
 /**
- * One sample through one biquad, which `biquad.h` does not expose.
+ * The one-pole the NORMALISING GAIN is applied through, not the LR4 above.
  *
- * The meters and nothing else need this: sixteen band-passes have to run
- * beside the audio without a buffer each, and `feq_biquad_process` works in
- * place over one. Same arithmetic and the same Direct Form I state.
+ * `bass_punch.cpp` carries the argument in full and this is the same filter:
+ * with `rest = x - band` the delivered response is `d + (g - d) * L(f)`, and an
+ * LR4 lowpass is exactly -0.5 at its own corner, so the gain arrives inverted
+ * there. Here `g` is the level normaliser and never exceeds unity by much, so
+ * the failure was a bump rather than a null — the band held 0.76 dB down came
+ * out 0.41 dB UP at the split — but it is the same defect and the same fix. A
+ * one-pole's Nyquist locus is the circle `|L - 1/2| = 1/2`, which makes the
+ * delivered magnitude monotone between the two gains at every setting.
+ *
+ * `feq_crossover_split` in `primitives.h` derives its upper bands the same way
+ * this stage does, so reusing it would have reproduced the defect, not fixed
+ * it.
  */
-double run_stage(FeqBiquadState* state, const FeqBiquadCoefficients& c,
-                 double sample) {
-  const double y = c.b0 * sample + c.b1 * state->x1 + c.b2 * state->x2 -
-                   c.a1 * state->y1 - c.a2 * state->y2;
-  state->x2 = state->x1;
-  state->x1 = sample;
-  state->y2 = state->y1;
-  state->y1 = y;
-  return y;
+struct OnePole {
+  double b;
+  double a;
+};
+
+OnePole one_pole(double corner_hz, double sample_rate) {
+  const double warped = std::tan(kPi * corner_hz / sample_rate);
+  return OnePole{warped / (1.0 + warped), (warped - 1.0) / (warped + 1.0)};
 }
 
-/**
- * The eight meter band-passes, rebuilt only when the rate moves.
- *
- * Q comes from the grid rather than from taste: each band's -3 dB width is
- * exactly the spacing to its neighbour, so the eight read as one curve instead
- * of as eight spikes with holes between them.
- */
-void build_meter_bands(FeqBassForge* state, double sample_rate) {
-  const double ratio =
-      std::pow(kMeterHighHz / kMeterLowHz,
-               1.0 / static_cast<double>(FEQ_BASS_FORGE_BANDS - 1));
-  const double quality = std::sqrt(ratio) / (ratio - 1.0);
-  double centre = kMeterLowHz;
-  for (uint32_t band = 0; band < FEQ_BASS_FORGE_BANDS; ++band) {
-    const double safe = std::fmin(centre, sample_rate * 0.45);
-    state->meter_coefficients[band] =
-        feq_biquad_coefficients(FEQ_FILTER_BP, safe, 0.0, quality, sample_rate);
-    feq_biquad_reset(&state->meter_input[band]);
-    feq_biquad_reset(&state->meter_output[band]);
-    centre *= ratio;
-  }
-}
-
-double level_db(double mean_square) {
-  if (mean_square <= kEnergyFloor) {
-    return kMeterFloorDb;
-  }
-  const double decibels = 10.0 * std::log10(mean_square);
-  return decibels > kMeterFloorDb ? decibels : kMeterFloorDb;
+/** Transposed Direct Form II, which is why one double of state is enough. */
+double one_pole_sample(double* state, const OnePole& coefficients,
+                       double sample) {
+  const double out = coefficients.b * sample + *state;
+  *state = coefficients.b * sample - coefficients.a * out;
+  return out;
 }
 
 }  // namespace
@@ -212,17 +200,14 @@ void feq_bass_forge_reset(FeqBassForge* state) {
   for (uint32_t channel = 0; channel < 2; ++channel) {
     feq_biquad_reset(&state->split[channel][0]);
     feq_biquad_reset(&state->split[channel][1]);
+    state->shelf[channel] = 0.0;
   }
   feq_biquad_reset(&state->divider_low[0]);
   feq_biquad_reset(&state->divider_low[1]);
   feq_biquad_reset(&state->divider_high);
   feq_harmonic_reset(&state->harmonic);
-  for (uint32_t band = 0; band < FEQ_BASS_FORGE_BANDS; ++band) {
-    feq_biquad_reset(&state->meter_input[band]);
-    feq_biquad_reset(&state->meter_output[band]);
-    state->meter_input_mean_square[band] = 0.0;
-    state->meter_output_mean_square[band] = 0.0;
-  }
+  bass_forge_clear_meters(state);
+  state->meters_running = 0;
   state->flipped = 0;
   state->positive = 0;
   state->divider_mean_square = 0.0;
@@ -253,15 +238,25 @@ void feq_bass_forge_process(FeqBassForge* state, float* const* channels,
   // Two channels of low band is what the buffers hold: a surround block gets
   // its front pair forged and the rest passed through untouched.
   const uint32_t used = channel_count < 2u ? 1u : 2u;
+  const double channel_scale = 1.0 / static_cast<double>(used);
 
   if (state->sample_rate != sample_rate) {
     state->sample_rate = sample_rate;
-    build_meter_bands(state, sample_rate);
+    bass_forge_build_meters(state, sample_rate);
   }
+  // The analyser's own followers are a quarter-second window, so a panel that
+  // has just been opened would otherwise draw the audio that was playing when
+  // it was last closed for its first frames.
+  const int meters = settings->meters != 0 ? 1 : 0;
+  if (meters != 0 && state->meters_running == 0) {
+    bass_forge_clear_meters(state);
+  }
+  state->meters_running = meters;
 
   const double split_hz = clamp(settings->split_hz, kMinSplitHz, kMaxSplitHz);
   const FeqBiquadCoefficients lowpass = feq_biquad_coefficients(
       FEQ_FILTER_LPQ, split_hz, 0.0, kButterworthQ, sample_rate);
+  const OnePole shelf = one_pole(split_hz, sample_rate);
   // One stage here and two above: the octave of a 50 Hz note lands exactly on
   // this corner, and a 4th-order one would take 6 dB off the thing the
   // generator exists to make. One stage is still 12 dB down at 12 Hz, which is
@@ -296,10 +291,10 @@ void feq_bass_forge_process(FeqBassForge* state, float* const* channels,
     state->mix = target_mix;
   }
 
-  // The low band, per channel. The caller's buffer is not touched yet: the
-  // output is written as `input + (forged band - dry band)`, and it is that
-  // form rather than `rest + forged band` which makes a mix of zero come back
-  // bit for bit instead of within a rounding of itself.
+  // The generators' low band, per channel. The caller's buffer is not touched
+  // yet: the output is written as `input + (forged band - dry band)`, and it is
+  // that form rather than `rest + forged band` which makes a mix of zero come
+  // back bit for bit instead of within a rounding of itself.
   for (uint32_t channel = 0; channel < used; ++channel) {
     float* band = state->low + channel * frames;
     for (uint32_t at = 0; at < frames; ++at) {
@@ -437,12 +432,17 @@ void feq_bass_forge_process(FeqBassForge* state, float* const* channels,
 
     const double added = state->dc_output * state->mix;
 
+    // The band the gain will act on, which is the shelf's and not the
+    // generators': a normaliser that measured one band and scaled another
+    // would be compensating for energy it had not moved.
     double dry[2] = {0.0, 0.0};
     double wet[2] = {0.0, 0.0};
     double square_low = 0.0;
     double square_wet = 0.0;
     for (uint32_t channel = 0; channel < used; ++channel) {
-      dry[channel] = static_cast<double>(state->low[channel * frames + at]);
+      dry[channel] =
+          one_pole_sample(&state->shelf[channel], shelf,
+                          static_cast<double>(channels[channel][at]));
       wet[channel] = dry[channel] + added;
       square_low += dry[channel] * dry[channel];
       square_wet += wet[channel] * wet[channel];
@@ -461,38 +461,23 @@ void feq_bass_forge_process(FeqBassForge* state, float* const* channels,
             : 1.0;
     state->gain += (target_gain - state->gain) * smooth;
 
+    double dry_band = 0.0;
     double forged_band = 0.0;
     for (uint32_t channel = 0; channel < used; ++channel) {
       const double band = wet[channel] * state->gain;
+      dry_band += dry[channel];
       forged_band += band;
       channels[channel][at] = static_cast<float>(
           static_cast<double>(channels[channel][at]) + (band - dry[channel]));
     }
-    forged_band /= static_cast<double>(used);
+    dry_band *= channel_scale;
+    forged_band *= channel_scale;
 
-    for (uint32_t band = 0; band < FEQ_BASS_FORGE_BANDS; ++band) {
-      const double before =
-          run_stage(&state->meter_input[band], state->meter_coefficients[band],
-                    mono);
-      state->meter_input_mean_square[band] +=
-          (before * before - state->meter_input_mean_square[band]) * window;
-      const double after =
-          run_stage(&state->meter_output[band], state->meter_coefficients[band],
-                    forged_band);
-      state->meter_output_mean_square[band] +=
-          (after * after - state->meter_output_mean_square[band]) * window;
+    // Both runs read the same band, so a mix of zero draws one curve rather
+    // than two that differ only in which filter defined the band.
+    if (meters != 0) {
+      bass_forge_run_meters(state, dry_band, forged_band, window);
     }
-  }
-}
-
-void feq_bass_forge_bands(const FeqBassForge* state, double* input_db,
-                          double* output_db) {
-  if (state == nullptr || input_db == nullptr || output_db == nullptr) {
-    return;
-  }
-  for (uint32_t band = 0; band < FEQ_BASS_FORGE_BANDS; ++band) {
-    input_db[band] = level_db(state->meter_input_mean_square[band]);
-    output_db[band] = level_db(state->meter_output_mean_square[band]);
   }
 }
 

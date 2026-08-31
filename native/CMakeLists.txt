@@ -79,7 +79,9 @@ add_library(fluideq-dsp-core STATIC
   dsp-core/src/crossfade.cpp
   dsp-core/src/dimension.cpp
   dsp-core/src/bass_forge.cpp
+  dsp-core/src/bass_forge_meters.cpp
   dsp-core/src/bass_punch.cpp
+  dsp-core/src/bass_punch_bloom.cpp
   dsp-core/src/denoise.cpp
   dsp-core/src/denoise_spectral.cpp
   dsp-core/src/denoise_hum.cpp
@@ -133,6 +135,14 @@ add_test(NAME bass-forge COMMAND fluideq-bass-forge-test)
 add_executable(fluideq-bass-punch-test dsp-core/tests/bass_punch_test.cpp)
 target_link_libraries(fluideq-bass-punch-test PRIVATE fluideq-dsp-core feq_strict)
 add_test(NAME bass-punch COMMAND fluideq-bass-punch-test)
+
+# Both bass stages split the same way, so the way that split can fail is one
+# property and not two. Separate from the two stage files because it is shared,
+# and because measuring AT the corner is the case those files were written
+# without: every bin either of them takes is away from it.
+add_executable(fluideq-bass-split-test dsp-core/tests/bass_split_test.cpp)
+target_link_libraries(fluideq-bass-split-test PRIVATE fluideq-dsp-core feq_strict)
+add_test(NAME bass-split COMMAND fluideq-bass-split-test)
 
 add_executable(fluideq-denoise-test dsp-core/tests/denoise_test.cpp)
 target_link_libraries(fluideq-denoise-test PRIVATE fluideq-dsp-core feq_strict)

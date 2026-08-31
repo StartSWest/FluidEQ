@@ -42,13 +42,13 @@ constexpr size_t kLastMeasured = 12;
 /**
  * The corner these tests run at, and it is the top of the dial on purpose.
  *
- * The crossover defines `rest` by subtraction, so the two bands are phase
- * complementary rather than amplitude complementary: at 60 Hz against a 110 Hz
- * corner `rest` is nearly as large as `low` and opposed to it, and the sum moves
- * far less than the gain applied to the band. Measured here, a pulse whose first
- * five milliseconds rise 6.8 dB at a 200 Hz corner rise 2.0 dB at a 110 Hz one —
- * not the shaper being weak, but the test asking a 60 Hz note to sit inside a
- * band that half excludes it.
+ * Every measurement below is of a 60 Hz note, and the gain reaches it through a
+ * shelf whose midpoint is this corner — so at 200 Hz the note sits well inside
+ * the band and reads most of what the dial asks for, while at 110 it would read
+ * about two thirds of it. That is the shelf being a shelf rather than the shaper
+ * being weak, and it is why none of these numbers is a claim about the corner
+ * itself. `bass_split_test.cpp` is where the corner is measured, because the way
+ * this construction can fail is invisible at every frequency except that one.
  */
 constexpr double kSplitHz = 200.0;
 
