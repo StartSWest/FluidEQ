@@ -50,14 +50,7 @@ import { currentTrackId, ILibraryQueue } from '../../../common/library/queue';
 import { registerPlayer } from '../../audio/playbackOwner';
 import { ILibraryProgrammeEdges } from '../../../common/library/types';
 import { useDspEngine } from '../../dsp/useDspEngine';
-import {
-  useNativeBackend,
-  useNativeDeviceGeneration,
-  useNativeMeters,
-  useNativeMirror,
-  useNativeTransport,
-} from '../../dsp/useNativeBackend';
-import { useDspNativeTransport, useDspSettings } from '../../dsp/store';
+import { useDspSettings } from '../../dsp/store';
 import { useLibrary } from '../LibraryContext';
 import { readStoredVolume } from './playbackMemory';
 import { ILibraryPlayerContextValue } from './playerContract';
@@ -65,6 +58,7 @@ import { useDeckAudio } from './useDeckAudio';
 import { useMediaEvents } from './useMediaEvents';
 import { usePlaybackCommands } from './usePlaybackCommands';
 import { usePlayerDecks } from './usePlayerDecks';
+import { usePlayerEngine } from './usePlayerEngine';
 import { usePublishedTransport } from './usePublishedTransport';
 import { useQueueControls } from './useQueueControls';
 import { useSessionMemory } from './useSessionMemory';
@@ -121,19 +115,6 @@ export const LibraryPlayerProvider = ({
   // the current track is a video.
   const videoElementRef = useRef<HTMLVideoElement | null>(null);
 
-  // Silence the element if this provider ever goes away.
-  //
-  // It is a bare `new Audio()` in a ref, deliberately never rendered, which
-  // means React tears down nothing for it: unmount the provider and the sound
-  // simply carries on, reachable by nothing, until the window closes. Mount a
-  // second provider — which a hot reload does on every save — and its own
-  // fresh element starts a second song over the top of the orphan. Two tracks
-  // at once, and no control on screen governs either.
-  //
-  // `hasOpenedLibrary` in `App.tsx` is one-way, so this should not fire in a
-  // packaged build; it fires constantly in development, which is where the
-  // overlap was found.
-
   const [queue, setQueue] = useState<ILibraryQueue | undefined>(undefined);
   const [isPlaying, setIsPlaying] = useState(false);
   const [positionMs, setPositionMs] = useState(0);
@@ -188,78 +169,6 @@ export const LibraryPlayerProvider = ({
   const trackId = queue ? currentTrackId(queue) : undefined;
   const track = trackId ? trackById.get(trackId) : undefined;
 
-  /**
-   * The native engine, shadowing this player — and now the default one.
-   *
-   * Deliberately a SHADOW rather than a replacement, which is what it stays
-   * after becoming the default. The elements above keep every job they have —
-   * position, events, the queue's advance, the crossfade's cue point — and are
-   * muted, while the host is told the same file at the same position. That is
-   * what made the two engines comparable while there was a switch, and it is
-   * what makes the fallback whole now that there is not: a host that cannot
-   * start leaves the elements unmuted and the TypeScript chain processing, and
-   * the only thing the user loses is which engine did the arithmetic.
-   *
-   * `useNativeBackend` answers `undefined` unless the native engine is
-   * selected, so there is nothing here to call by accident on either path.
-   */
-  const nativeBackend = useNativeBackend(dspSettings);
-  // The panel's graphs read the engine that is audible, not the muted one.
-  useNativeMeters(nativeBackend);
-  // And the mirror re-cues when the host moves to a different endpoint.
-  useNativeDeviceGeneration(nativeBackend);
-  // The clock comes from the engine making the sound. See `hostTransport`.
-  useNativeTransport(nativeBackend);
-  /**
-   * One clock, and it belongs to whatever is audible.
-   *
-   * While the host is playing, the element is muted and its position is a
-   * second decode of the same file kept only to be a clock. Reading both is
-   * what let a track cued at the previous one's position play from the middle
-   * with the bar at zero: each was right about a different player.
-   *
-   * `hasSource` rather than "is the native engine on", because the host has a
-   * clock only once a deck holds something. Between engaging and the first
-   * load there is nothing to read, and the element is still the authority.
-   */
-  const hostTransport = useDspNativeTransport();
-  const hostOwnsTransport = hostTransport.hasSource;
-  const publishedPositionMs = hostOwnsTransport
-    ? hostTransport.positionSeconds * 1_000
-    : positionMs;
-  // A duration of zero means the decoder could not say, which is legal — the
-  // element's own answer is better than none.
-  const publishedDurationMs =
-    hostOwnsTransport && hostTransport.durationSeconds > 0
-      ? hostTransport.durationSeconds * 1_000
-      : durationMs;
-  const hostOwnsTransportRef = useRef(hostOwnsTransport);
-  hostOwnsTransportRef.current = hostOwnsTransport;
-  /** Fired for at most one track; see the effect beside `handleEnded`. */
-  const endedTrackRef = useRef<string | undefined>(undefined);
-  useNativeMirror(nativeBackend, audioElements, {
-    mediaPath: track?.path,
-    isPlaying,
-    positionMs,
-    volume,
-    /**
-     * The fade the mirror should use if the track changes under it.
-     *
-     * Passed as state rather than called as an event: the player sets the new
-     * track, React re-renders, and the mirror sees the change on the very next
-     * sync — which is exactly when the fade should start. A method called
-     * afterwards always arrived to find the track already cued as a cut.
-     */
-    transition:
-      dspSettings.enabled && dspSettings.crossfade.enabled
-        ? {
-            durationMs: dspSettings.crossfade.durationMs,
-            curve: dspSettings.crossfade.curve,
-            shape: dspSettings.crossfade.shape,
-          }
-        : undefined,
-  });
-
   const analysisJobRef = useRef<
     | {
         trackId: string;
@@ -270,6 +179,26 @@ export const LibraryPlayerProvider = ({
 
   /** Read inside `swapBufferToBlob`'s continuation, where the `trackId` it
    * closed over would be the one from the render that started the read. */
+  /**
+   * The native engine, and the clock it hands back. See `usePlayerEngine`:
+   * while a deck holds a track the position comes from the engine making the
+   * sound, and the element is muted, paused and held only as a fallback.
+   */
+  const {
+    hostOwnsTransportRef,
+    hostEnded,
+    publishedPositionMs,
+    publishedDurationMs,
+    endedTrackRef,
+  } = usePlayerEngine({
+    dspSettings,
+    audioElements,
+    track,
+    isPlaying,
+    positionMs,
+    durationMs,
+    volume,
+  });
   const trackIdRef = useRef(trackId);
   trackIdRef.current = trackId;
 
@@ -290,6 +219,18 @@ export const LibraryPlayerProvider = ({
     fadeFrameRef,
   } = useDeckAudio({ volumeRef, trackIdRef });
 
+  // Silence the element if this provider ever goes away.
+  //
+  // It is a bare `new Audio()` in a ref, deliberately never rendered, which
+  // means React tears down nothing for it: unmount the provider and the sound
+  // simply carries on, reachable by nothing, until the window closes. Mount a
+  // second provider — which a hot reload does on every save — and its own
+  // fresh element starts a second song over the top of the orphan. Two tracks
+  // at once, and no control on screen governs either.
+  //
+  // `hasOpenedLibrary` in `App.tsx` is one-way, so this should not fire in a
+  // packaged build; it fires constantly in development, which is where the
+  // overlap was found.
   useEffect(() => {
     isDisposedRef.current = false;
     return () => {
@@ -401,7 +342,7 @@ export const LibraryPlayerProvider = ({
     endedTrackRef,
     naturalCrossfadeTrackRef,
     programmeEdgesRef,
-    hostEnded: hostTransport.ended,
+    hostEnded,
     dspSettings,
     publishedPositionMs,
     publishedDurationMs,
