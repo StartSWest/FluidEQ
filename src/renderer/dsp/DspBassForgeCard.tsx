@@ -70,11 +70,7 @@ const DspBassForgeCard = ({
           the engine changed; it does not say that this particular page is one
           of the ones with nothing behind it. */}
       {nativeState === 'failed' ? (
-        // Both classes, matching `DspDenoiseCard`: the fallback rule is the
-        // amber box and `dsp-band-hint` is what sizes an in-card paragraph.
-        // The header's copy of this notice sizes itself; the in-card ones do
-        // not, and the two in-card notices have to render alike.
-        <p className="dsp-band-hint dsp-engine-fallback" role="status">
+        <p className="dsp-engine-fallback" role="status">
           {t('dsp.bassForge.unavailable')}
         </p>
       ) : undefined}

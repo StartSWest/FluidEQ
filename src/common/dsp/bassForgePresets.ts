@@ -210,7 +210,10 @@ export const BASS_FORGE_PRESET_BY_ID = {
   },
   club: {
     id: 'club',
-    labelKey: 'dsp.bassForgePreset.club',
+    // The Master rack's word for the same room, the way `car` above borrows the
+    // EQ's: a second key translated ten times would only be the same word, and
+    // a duplicate is a key migration once it has shipped.
+    labelKey: 'dsp.masterPreset.club',
     group: 'scene',
     // A PA subwoofer plays the real octave without help, so this leans on
     // subAmount rather than the illusion a smaller system would need.

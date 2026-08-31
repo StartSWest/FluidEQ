@@ -367,7 +367,6 @@ const dsp = {
   'dsp.bassForgePreset.wet': 'गीला',
   'dsp.bassForgePreset.phantom': 'फैंटम',
   'dsp.bassForgePreset.dub': 'डब',
-  'dsp.bassForgePreset.club': 'क्लब',
 
   'dsp.bassPunch.title': 'बास पंच',
   'dsp.bassPunch.description':
@@ -392,7 +391,6 @@ const dsp = {
   'dsp.bassPunchPreset.wet': 'गीला',
   'dsp.bassPunchPreset.soft': 'मुलायम',
   'dsp.bassPunchPreset.dnb': 'ड्रम एंड बेस',
-  'dsp.bassPunchPreset.club': 'क्लब',
 
   'dsp.compressor.title': 'मल्टीबैंड कंप्रेसर',
   'dsp.compressor.description':

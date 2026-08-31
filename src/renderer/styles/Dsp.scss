@@ -56,17 +56,18 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   @include animate(rise-in, $motion-base, $ease-out, 85ms);
 }
 
-// Nine beats for the eight tabs that ship: the compressor keeps its place in
-// the chain while its editor is held back, so restoring that tab costs the
-// cascade nothing. The rail is keyed by section id and never unmounts, so this
-// runs once when the tab is opened and not on section changes.
+// Ten beats for the ten tabs `DSP_SECTIONS` ships. The rail is keyed by section
+// id and never unmounts, so this runs once when the tab is opened and not on
+// section changes.
 //
 // The count has to be at least the number of tabs: `stagger-in` only writes
 // `nth-child` delays up to it, and every tab past the count inherits the LAST
 // delay — so the rail would run out of stagger partway down and finish with
-// several entries arriving together.
+// several entries arriving together. That is exactly what happened when Bass
+// Forge and Bass Punch took the list from eight entries to ten and this stayed
+// at nine: the Maximizer and the Master flew in on the same beat.
 .dsp-rail-tab {
-  @include stagger-in($count: 9, $step: 26ms, $offset: 110ms);
+  @include stagger-in($count: 10, $step: 26ms, $offset: 110ms);
 }
 
 .dsp-header {
@@ -1348,8 +1349,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // rather than a fault. Louder than a plain hint because the alternative — how
 // it behaved before — was no indication at all.
 //
-// Sizes itself now that it sits in the header rather than inside the Master
-// card, where it borrowed `.dsp-band-hint` for everything but the box.
+// Sizes itself, in the header and inside a card alike, which is why it is the
+// only class on any of the four notices. It borrowed `.dsp-band-hint` while it
+// lived in the Master card; two of them were still carrying both long after
+// this rule started re-setting every property that one sets — margin, colour,
+// size and leading — from later in the same file.
 .dsp-engine-fallback {
   max-width: 680px;
   margin: 2px 0 0;
@@ -3226,11 +3230,35 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // label with its own figure rather than a sentence — the number is what gets
 // read, so it is the part that is bright and monospaced.
 .dsp-maximizer-status,
+// Three chips, each in its own trace's ink, because the row is the legend for
+// the plot above it and the eye pairs them by colour.
+//
+// Its own modifiers rather than the Master card's `.is-safe` and `.is-fixed`:
+// those two mean "nominal" and "corrected" there and are switched by state,
+// which is neither what these say nor how they behave. Borrowing them also put
+// the duck chip in the sustain's teal against a blue trace — the row teaching a
+// rule and then breaking it on the third item. The values match `TRANSIENT_INK`,
+// `SUSTAIN_INK` and `DUCK_INK` in `DspBassPunchGraph.tsx`.
 .dsp-bass-punch-status {
   span {
     display: inline-flex;
     gap: 6px;
     align-items: baseline;
+  }
+
+  .is-attack {
+    border-color: rgba(255, 176, 89, 0.3);
+    color: rgba(255, 176, 89, 0.92);
+  }
+
+  .is-sustain {
+    border-color: rgba(64, 214, 200, 0.3);
+    color: rgba(64, 214, 200, 0.92);
+  }
+
+  .is-duck {
+    border-color: rgba(84, 200, 255, 0.3);
+    color: rgba(84, 200, 255, 0.92);
   }
 
   b {

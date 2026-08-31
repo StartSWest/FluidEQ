@@ -169,7 +169,10 @@ export const BASS_PUNCH_PRESET_BY_ID = {
   },
   club: {
     id: 'club',
-    labelKey: 'dsp.bassPunchPreset.club',
+    // The Master rack's word for the same room, as `bassForgePresets.ts` does:
+    // a second key translated ten times would only be the same word, and a
+    // duplicate is a key migration once it has shipped.
+    labelKey: 'dsp.masterPreset.club',
     group: 'scene',
     settings: profile(100, 0.5, 0.5, 0.5, 200, 0.4),
   },

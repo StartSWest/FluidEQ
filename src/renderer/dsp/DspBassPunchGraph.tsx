@@ -427,15 +427,15 @@ const DspBassPunchGraph = ({ bassPunch }: IDspBassPunchGraphProps) => {
           readings somebody quotes when they report what the stage did, and
           text can be selected, translated and read aloud. */}
       <div className="dsp-master-status dsp-bass-punch-status" aria-live="off">
-        <span className="is-fixed">
+        <span className="is-attack">
           {t('dsp.bassPunch.attack')}
           <b ref={transientRef}>—</b>
         </span>
-        <span className="is-safe">
+        <span className="is-sustain">
           {t('dsp.bassPunch.sustain')}
           <b ref={sustainRef}>—</b>
         </span>
-        <span className="is-safe">
+        <span className="is-duck">
           {t('dsp.bassPunch.duck')}
           <b ref={duckRef}>—</b>
         </span>

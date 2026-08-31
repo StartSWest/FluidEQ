@@ -372,7 +372,6 @@ const dsp = {
   'dsp.bassForgePreset.wet': 'Húmedo',
   'dsp.bassForgePreset.phantom': 'Fantasma',
   'dsp.bassForgePreset.dub': 'Dub',
-  'dsp.bassForgePreset.club': 'Club',
 
   'dsp.bassPunch.title': 'Pegada de graves',
   'dsp.bassPunch.description':
@@ -397,7 +396,6 @@ const dsp = {
   'dsp.bassPunchPreset.wet': 'Húmedo',
   'dsp.bassPunchPreset.soft': 'Suave',
   'dsp.bassPunchPreset.dnb': 'D&B',
-  'dsp.bassPunchPreset.club': 'Club',
 
   'dsp.compressor.title': 'Compresor multibanda',
   'dsp.compressor.description':

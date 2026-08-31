@@ -371,7 +371,6 @@ const dsp = {
   'dsp.bassForgePreset.wet': 'Влажный',
   'dsp.bassForgePreset.phantom': 'Фантом',
   'dsp.bassForgePreset.dub': 'Даб',
-  'dsp.bassForgePreset.club': 'Клуб',
 
   'dsp.bassPunch.title': 'Бас-панч',
   'dsp.bassPunch.description':
@@ -396,7 +395,6 @@ const dsp = {
   'dsp.bassPunchPreset.wet': 'Влажный',
   'dsp.bassPunchPreset.soft': 'Мягкий',
   'dsp.bassPunchPreset.dnb': 'D&B',
-  'dsp.bassPunchPreset.club': 'Клуб',
 
   'dsp.compressor.title': 'Многополосный компрессор',
   'dsp.compressor.description':

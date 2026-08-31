@@ -350,7 +350,6 @@ const dsp = {
   'dsp.bassForgePreset.wet': '湿',
   'dsp.bassForgePreset.phantom': '幻影',
   'dsp.bassForgePreset.dub': 'Dub',
-  'dsp.bassForgePreset.club': '俱乐部',
 
   'dsp.bassPunch.title': '低音冲击',
   'dsp.bassPunch.description':
@@ -375,7 +374,6 @@ const dsp = {
   'dsp.bassPunchPreset.wet': '湿',
   'dsp.bassPunchPreset.soft': '柔和',
   'dsp.bassPunchPreset.dnb': 'D&B',
-  'dsp.bassPunchPreset.club': '俱乐部',
 
   'dsp.compressor.title': '多段压缩器',
   'dsp.compressor.description': '在三个频段中分别平衡音量。',

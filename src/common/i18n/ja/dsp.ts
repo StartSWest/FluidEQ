@@ -364,7 +364,6 @@ const dsp = {
   'dsp.bassForgePreset.wet': 'ウェット',
   'dsp.bassForgePreset.phantom': 'ファントム',
   'dsp.bassForgePreset.dub': 'ダブ',
-  'dsp.bassForgePreset.club': 'クラブ',
 
   'dsp.bassPunch.title': 'ベースパンチ',
   'dsp.bassPunch.description':
@@ -389,7 +388,6 @@ const dsp = {
   'dsp.bassPunchPreset.wet': 'ウェット',
   'dsp.bassPunchPreset.soft': 'ソフト',
   'dsp.bassPunchPreset.dnb': 'ドラムンベース',
-  'dsp.bassPunchPreset.club': 'クラブ',
 
   'dsp.compressor.title': 'マルチバンドコンプレッサー',
   'dsp.compressor.description': '3 つの帯域それぞれで音量を均します。',
