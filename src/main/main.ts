@@ -1892,7 +1892,28 @@ const syncActiveApoFilesFromDisk = async () => {
     return;
   }
 
-  persistExternallyAdoptedState();
+  /**
+   * Only a change to the GENERATED files is a reason to write anything back.
+   *
+   * `syncCustomFxFromConfig` re-reads the user's own custom file, which is not
+   * part of a preset — `getCurrentPreset` does not carry `customFx`, and
+   * `getStateForAudioDevice` deliberately clears it, because that file is where
+   * it lives. So persisting on it wrote a preset whose bytes could not have
+   * changed, and then saved the whole state beside it.
+   *
+   * That is the "Wrote preset for: <profile>" line repeating every couple of
+   * seconds with nobody touching the app. Each of this app's own APO writes
+   * defers a sync and re-queues one when it finishes, and every sync that
+   * re-read the custom file counted as an external edit — so the app kept
+   * answering its own writes with a preset write, on the main process, in the
+   * middle of playback.
+   *
+   * The renderer is still told, below: re-reading the file IS how the custom
+   * layer reaches the panel, and that has nothing to do with persisting.
+   */
+  if (generatedChanged) {
+    persistExternallyAdoptedState();
+  }
 
   // Recompute automatic headroom and normalize the generated text after a
   // supported external edit. Never rewrite a file containing commands the app
