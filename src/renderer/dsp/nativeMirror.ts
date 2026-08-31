@@ -273,10 +273,31 @@ export const createNativeMirror = (
     if (positionMs > SEEK_THRESHOLD_MS) {
       await controller.transport.seek(activeDeck, positionMs / 1000);
     }
+    /**
+     * Told either way, and recorded either way. This is what `playing` MEANS:
+     * the last thing the host was told, not a note that it was once started.
+     *
+     * Setting it only on the playing branch left it true across a cue that did
+     * not play, and `sync` below sends a transport command only when
+     * `isPlaying` disagrees with it. So the sequence that silenced the engine
+     * was: play a track, leave for Karaoke — which unloads the deck without
+     * ever contradicting the flag — come back, and cue on the tick the track
+     * changes, when `isPlaying` is still false because the element has not
+     * fired `play` yet. No play was sent, the elements were stood down anyway,
+     * and when `isPlaying` did turn true a moment later it MATCHED the stale
+     * flag, so nothing was sent then either. Deck loaded, elements muted and
+     * paused, host never asked to play: silence with every part reporting
+     * success.
+     *
+     * The pause is not a formality. A cue that is not playing has to leave the
+     * host stopped, or the next track inherits the previous one's transport.
+     */
     if (isPlaying) {
       await controller.transport.play();
-      playing = true;
+    } else {
+      await controller.transport.pause();
     }
+    playing = isPlaying;
     // The host has the track and is the one playing it. Last, so nothing is
     // stood down for a deck that turned out not to load.
     standDownElements();
@@ -335,6 +356,11 @@ export const createNativeMirror = (
       // panel offers, rather than whatever index -1 lands on.
       index >= 0 ? index : 0,
     );
+    // A crossfade only ever starts from a playing transport — `sync` reaches
+    // here on `isPlaying` — so the host is playing whether or not it was told
+    // again. Recorded rather than assumed, for the same reason as in `cue`:
+    // the flag is what `sync` compares against, and a wrong one is silence.
+    playing = true;
     // The incoming deck is the host's now, as the outgoing one already was.
     // Both elements go quiet: the player runs its own overlap on them, and
     // there is nothing for either to be doing while the host fades its decks.
@@ -361,6 +387,10 @@ export const createNativeMirror = (
         toldAt = performance.now();
         if (!mediaPath) {
           controller.transport.unload(activeDeck).catch(() => undefined);
+          // An emptied deck is not playing, and the flag has to say so or the
+          // next track that arrives already playing agrees with it and is
+          // never started. See the note in `cue`.
+          playing = false;
           return;
         }
 
@@ -435,10 +465,40 @@ export const createNativeMirror = (
        */
       const now = performance.now();
       const elapsed = playing && toldAt > 0 ? now - toldAt : 0;
+      const lastReading = toldPositionMs;
       const expected = toldPositionMs + elapsed;
       toldPositionMs = positionMs;
       toldAt = now;
-      if (Math.abs(positionMs - expected) > SEEK_THRESHOLD_MS) {
+      /**
+       * A reading that has not moved is a stopped clock, not a jump.
+       *
+       * The element is paused for the whole time a deck holds the track, so its
+       * `currentTime` sits frozen at whatever it was paused at — near zero,
+       * because the stand-down happens as soon as the deck takes over. `playing`
+       * meanwhile is true, so `expected` walks forward with wall time while the
+       * reading never does.
+       *
+       * Each sync resets the baseline, so the gap only opens when one render to
+       * the next takes longer than the threshold — and then this seeks the deck
+       * to that frozen reading. The song jumps back to its beginning on its own,
+       * with nobody touching anything.
+       *
+       * And it fed itself, exactly as the threshold's own note warns. A seek
+       * empties the read-ahead ring, which is a hole in the audio: the crack.
+       * Recovering costs main-thread work, which makes the next render later
+       * still, which is another seek. Two reports, one fault — the scrubber
+       * crawling back to zero, and playback breaking up untouched.
+       *
+       * Requiring the reading to have MOVED is what separates a stopped clock
+       * from a jump, and it keeps the case this check exists for: a session
+       * restore assigns `currentTime` from a media event after the deck is
+       * already cued, and that genuinely does move the reading, so the deck
+       * still follows it.
+       */
+      if (
+        positionMs !== lastReading &&
+        Math.abs(positionMs - expected) > SEEK_THRESHOLD_MS
+      ) {
         controller.transport
           .seek(activeDeck, positionMs / 1000)
           .catch(() => undefined);
