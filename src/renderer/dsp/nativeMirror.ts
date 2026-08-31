@@ -307,7 +307,31 @@ export const createNativeMirror = (
           return;
         }
 
-        cue(mediaPath, isPlaying, positionMs).catch(() => undefined);
+        /**
+         * A new track starts at its beginning. The position arriving with it
+         * belongs to the track it replaced.
+         *
+         * `mediaPath` and `positionMs` reach this function from two different
+         * sources — the queue and the element's own clock — and on the tick
+         * that changes the track they disagree: the path is already the new
+         * song and the position is still the old one's. Handed to `cue`, that
+         * loaded the incoming track and then seeked it to where the outgoing
+         * one had been. Reported exactly: play A, play B, seek B to the middle,
+         * go back to A, and A begins in the middle while the seek bar reads
+         * zero — the bar is the element, which really is at zero, and the
+         * sound is this deck, which was told to be somewhere else.
+         *
+         * `previous` settles it without trusting the number. Undefined means
+         * nothing was loaded and the engine is being switched on underneath a
+         * song already playing, which is the case the threshold below exists
+         * for and the one time the incoming position is real. Anything else is
+         * a track change, and a track change starts at zero.
+         */
+        cue(
+          mediaPath,
+          isPlaying,
+          previous === undefined ? positionMs : 0,
+        ).catch(() => undefined);
         return;
       }
 

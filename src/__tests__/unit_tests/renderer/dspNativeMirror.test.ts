@@ -134,6 +134,41 @@ describe('the native mirror', () => {
     expect(calls).toContain('seek(92)');
   });
 
+  it('starts a new track at its beginning, not where the last one was', async () => {
+    /**
+     * The path and the position reach `sync` from two different sources — the
+     * queue and the element's clock — and on the tick that changes the track
+     * they disagree: the path is already the new song while the position is
+     * still the outgoing one's. Cueing at that number loaded the incoming
+     * track and seeked it to where the previous one had been, which was heard
+     * as a song starting in the middle with the seek bar reading zero.
+     */
+    const { controller, calls } = controllerSpy();
+    const mirror = createNativeMirror(controller, [fakeElement()]);
+
+    // Engaged mid-song: nothing was loaded, so this position IS real.
+    mirror.sync({
+      mediaPath: 'C:/music/one.wav',
+      isPlaying: true,
+      positionMs: 92_000,
+      volume: 1,
+    });
+    await settle();
+    calls.length = 0;
+
+    // The track changes, and the position has not caught up yet.
+    mirror.sync({
+      mediaPath: 'C:/music/two.wav',
+      isPlaying: true,
+      positionMs: 92_000,
+      volume: 1,
+    });
+    await settle();
+
+    expect(calls).toContain('load(0)');
+    expect(calls.filter((call) => call.startsWith('seek'))).toEqual([]);
+  });
+
   describe('while a track plays', () => {
     const running = async () => {
       const spy = controllerSpy();
