@@ -36,15 +36,24 @@ export const SEPARATION_RUNTIME_PROVENANCE: IKaraokeMakerLicenseRecord = {
   sourceUrl: 'https://huggingface.co/silverdaw/mel-band-roformer-vocals-onnx',
 };
 
-/** The graph, and the external tensor file it references by name. */
-const SEPARATION_MODEL_BASE =
-  'https://huggingface.co/silverdaw/mel-band-roformer-vocals-onnx/resolve/main';
-export const SEPARATION_MODEL_FILE = 'syhft_core_folded_fp16_webgpu.onnx';
-export const SEPARATION_MODEL_URL = `${SEPARATION_MODEL_BASE}/${SEPARATION_MODEL_FILE}`;
-export const SEPARATION_WEIGHTS_URL = `${SEPARATION_MODEL_URL}.data`;
-
-/** Cache name for the two model files, kept apart from the transformers cache. */
-export const SEPARATION_CACHE = 'fluideq-separation-model-v1';
+/*
+ * THE DOWNLOAD LIVES IN MAIN, AND ITS URLS LIVE THERE WITH IT.
+ *
+ * There used to be a base URL, a model filename, a weights URL and a Cache
+ * Storage name here, and they were the last of the onnxruntime-web attempt —
+ * the renderer-worker version that `src/main/karaokeSeparation.ts` describes
+ * itself as having replaced. Nothing had read them for some time.
+ *
+ * They were worse than unused, which is why this note replaces them rather than
+ * a silent deletion. `karaokeSeparation.ts` holds its own `MODEL_FILE` and
+ * `WEIGHTS_FILE`, so the model's name was written twice, in two processes, with
+ * only one of the copies doing any downloading. A change to the pinned model
+ * would have been made in one place and looked complete.
+ *
+ * The provenance records above stay: they are read by `useMakerSeparation` for
+ * the licence panel, and they describe where the weights come from rather than
+ * fetching them.
+ */
 
 const SEPARATION_DOWNLOADED_KEY =
   'fluideq.karaoke.separationDownloaded.v1.melband-roformer';

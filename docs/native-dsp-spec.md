@@ -5,7 +5,13 @@ than by the renderer. This is the contract between them.
 
 The authority for every name and number here is code, not this file:
 
-- `src/common/dsp/nativeProtocol.ts` — versions, envelopes, commands, telemetry
+- `src/main/dspHost/wire.ts` — the protocol version, the command table and
+  every frame encoder and decoder
+- `native/dsp-host/src/wire.h` — the same layout on the C++ side, pinned with
+  `static_assert` and checked against the TypeScript by
+  `dspHostWireLayout.test.ts`
+- `src/common/dsp/analysisWire.ts` — the analysis frame, whose payload is sized
+  by constants held in `native/dsp-core/include/fluideq/meters.h`
 - `src/common/dsp/nativeParameters.ts` — the numeric parameter table
 - `src/common/dsp/diagnostics.ts` — the diagnostic codes, shared with the
   current AudioWorklet engine
@@ -99,8 +105,18 @@ The UI updates its own store optimistically and never blocks a pointer event
 on an acknowledgement. A rejection publishes the host's sanitized value back,
 so a dial cannot be left showing a number the engine is not using.
 
-Command groups are listed in `nativeProtocol.ts`: `engine.*`, `transport.*`,
-`dsp.*`, `analysis.*`, `diagnostics.*`.
+Commands are numbered, not named: `HOST_COMMANDS` in
+`src/main/dspHost/wire.ts` and `FeqWireCommand` in
+`native/dsp-host/src/wire.h` hold the same table, and the frame carries the
+number. Ids are append-only for the reason `FEQ_WIRE_PROTOCOL_VERSION` exists —
+an added kind is a breaking change here, because an unknown magic is fatal to
+the reader by design.
+
+A command that carries a variable-length payload states its own length in
+`parameter_id` (or, for `RENDER_TO_FILE`, in `value`). The host checks every
+one of those against the ceiling the encoder can produce before allocating for
+it; a length outside its range means the two sides disagree about where the
+frame ends, and the stream is not recoverable from that.
 
 ### Structural versus continuous
 

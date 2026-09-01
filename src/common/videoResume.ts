@@ -345,8 +345,31 @@ export const buildResumeSeekScript = (position: number): string => {
   };
 
   if (!attempt()) {
+    // One pass per frame, not one per mutation batch, and this is about cost
+    // rather than correctness — the selection is the same either way, which a
+    // test confirmed by passing with this hop removed.
+    //
+    // NO BACKTICKS IN THIS COMMENT. It sits inside the template literal that
+    // builds this script, so one would end the string and the rest would be
+    // parsed as TypeScript. That is not hypothetical; it happened here.
+    //
+    // What the hop avoids is layout thrashing. Choosing the largest player
+    // reads clientWidth, and reading that from a MutationObserver callback
+    // forces a synchronous reflow, because the callback runs as a microtask
+    // before the browser has laid the page out. These sites mutate the DOM
+    // continuously while their bundle boots, so that would be a forced reflow
+    // per batch, on the page's own critical path, for as long as it takes a
+    // player to appear. Inside a frame callback the layout has happened
+    // anyway, the read is free, and a burst of batches collapses into one pass.
+    let queued = false;
     const observer = new MutationObserver(() => {
-      if (attempt()) { observer.disconnect(); }
+      if (done) { observer.disconnect(); return; }
+      if (queued) { return; }
+      queued = true;
+      requestAnimationFrame(() => {
+        queued = false;
+        if (attempt()) { observer.disconnect(); }
+      });
     });
     observer.observe(document.documentElement, { childList: true, subtree: true });
     window.addEventListener(

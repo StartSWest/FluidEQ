@@ -179,10 +179,27 @@ describe('deciding where to start', () => {
  * throws "not implemented" — and a throw is not the thing being watched for
  * here, a call is.
  */
-const givenMediaOnThePage = ({ readyState = 0, duration = 300 } = {}) => {
+const givenMediaOnThePage = ({
+  readyState = 0,
+  duration = 300,
+  width = 640,
+  height = 360,
+} = {}) => {
   const el = document.createElement('video');
   Object.defineProperty(el, 'readyState', {
     value: readyState,
+    configurable: true,
+  });
+  // jsdom has no layout engine, so `clientWidth` and `clientHeight` are always
+  // zero and the script's sort-by-area would be a no-op — every element would
+  // tie and the first in document order would win by accident. Given here so
+  // the ordering the script actually depends on is the ordering under test.
+  Object.defineProperty(el, 'clientWidth', {
+    value: width,
+    configurable: true,
+  });
+  Object.defineProperty(el, 'clientHeight', {
+    value: height,
     configurable: true,
   });
   Object.defineProperty(el, 'duration', {
@@ -271,6 +288,20 @@ describe('picking a page back up', () => {
   });
 
   /**
+   * The observer reacts to a mutation, then looks a frame later — so a test
+   * has to let both happen. Two frames, because the mutation callback is what
+   * schedules the frame.
+   */
+  const settle = async () => {
+    for (let i = 0; i < 3; i += 1) {
+      // eslint-disable-next-line no-await-in-loop -- frames are sequential.
+      await new Promise((resolve) => {
+        requestAnimationFrame(() => resolve(undefined));
+      });
+    }
+  };
+
+  /**
    * THE CASE THE TWENTY-SECOND POLL EXISTED FOR.
    *
    * These sites do not have a player in the document when the page fires its
@@ -279,10 +310,6 @@ describe('picking a page back up', () => {
    * which is the shape this project bans: a duration standing in for an event.
    * It is now a `MutationObserver`, and this is the test that says the
    * replacement actually does the job the timer was doing.
-   *
-   * A microtask boundary, not a timer: that is precisely the difference. The
-   * observer's callback is queued as a microtask when the DOM changes, so
-   * awaiting once is enough — there is no interval left to wait out.
    */
   it('seeks a player that is only added to the page later', async () => {
     runInThePage(buildResumeSeekScript(117));
@@ -292,7 +319,7 @@ describe('picking a page back up', () => {
     expect(document.querySelector('video')).toBeNull();
 
     const { el } = givenMediaOnThePage({ readyState: 1 });
-    await Promise.resolve();
+    await settle();
 
     expect(el.currentTime).toBe(117);
   });
@@ -301,13 +328,13 @@ describe('picking a page back up', () => {
     runInThePage(buildResumeSeekScript(117));
 
     const { el } = givenMediaOnThePage({ readyState: 1 });
-    await Promise.resolve();
+    await settle();
     expect(el.currentTime).toBe(117);
 
     // An advert player mounting afterwards must not be rewound to the
     // position of the video the user was actually watching.
     const later = givenMediaOnThePage({ readyState: 1 });
-    await Promise.resolve();
+    await settle();
 
     expect(later.el.currentTime).toBe(0);
   });
@@ -316,11 +343,78 @@ describe('picking a page back up', () => {
     runInThePage(buildResumeSeekScript(117));
 
     const { el } = givenMediaOnThePage();
-    await Promise.resolve();
+    await settle();
 
     expect(el.currentTime).toBe(0);
     el.dispatchEvent(new Event('loadedmetadata'));
     expect(el.currentTime).toBe(117);
+  });
+
+  /**
+   * The largest of several players wins, not the first in document order.
+   *
+   * These pages carry more than one media element — an advert, a muted
+   * preview, a miniplayer — and the one somebody is watching is the big one.
+   *
+   * This pins the SELECTION, and deliberately claims nothing about the frame
+   * hop in the observer: the same test was run with that hop removed and
+   * passed, because both elements land in one mutation batch either way. The
+   * hop is there to avoid forcing a reflow per batch, which is a cost, not a
+   * behaviour, and is not something this suite can see.
+   */
+  it('picks the largest player, not the first one to mount', async () => {
+    runInThePage(buildResumeSeekScript(117));
+
+    const advert = givenMediaOnThePage({
+      readyState: 1,
+      width: 20,
+      height: 20,
+    });
+    const player = givenMediaOnThePage({
+      readyState: 1,
+      width: 640,
+      height: 360,
+    });
+    await settle();
+
+    expect(player.el.currentTime).toBe(117);
+    expect(advert.el.currentTime).toBe(0);
+  });
+
+  /**
+   * A burst of mutations costs one pass, not one pass each.
+   *
+   * `largest()` reads `clientWidth`, and reading that from a mutation callback
+   * forces a synchronous reflow — so a page that mutates continuously while it
+   * boots would pay for one on every batch. This is the assertion that the
+   * frame hop is actually doing that job, since the selection tests cannot see
+   * it.
+   */
+  it('looks once per frame however many times the page mutates', async () => {
+    const spy = jest.spyOn(document, 'querySelectorAll');
+    try {
+      runInThePage(buildResumeSeekScript(117));
+      const afterInitialAttempt = spy.mock.calls.length;
+
+      // Twenty separate batches, each its own microtask checkpoint, with no
+      // media element for any of them to find.
+      for (let i = 0; i < 20; i += 1) {
+        document.body.appendChild(document.createElement('div'));
+        // eslint-disable-next-line no-await-in-loop -- separate batches is the point.
+        await Promise.resolve();
+      }
+
+      // Without the hop this would be twenty lookups. With it, the frame has
+      // not come round yet, so it is none.
+      expect(spy.mock.calls.length).toBe(afterInitialAttempt);
+
+      await settle();
+      expect(spy.mock.calls.length).toBeLessThanOrEqual(
+        afterInitialAttempt + 2,
+      );
+    } finally {
+      spy.mockRestore();
+    }
   });
 
   /**

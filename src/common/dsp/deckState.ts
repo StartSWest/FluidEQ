@@ -17,7 +17,17 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * queue do with it.
  */
 export const DECK_EMPTY = 0;
-/** Loaded and able to play, whether or not the transport is running. */
+/**
+ * Loaded and able to play, whether or not the transport is running.
+ *
+ * NOTHING READS THIS, AND IT STAYS ANYWAY. A dead-code sweep flagged it and
+ * removing it would have been wrong: this file exists to mirror `FeqDeckState`
+ * exactly, and a mirror with a hole at 1 invites the next person to close the
+ * gap by renumbering `DECK_ENDED` to match — which would silently re-point
+ * end-of-track, the signal the queue advances on.
+ *
+ * The value being unused is a fact about the renderer, not about the enum.
+ */
 export const DECK_READY = 1;
 /**
  * The decoder reached the end of the file.
