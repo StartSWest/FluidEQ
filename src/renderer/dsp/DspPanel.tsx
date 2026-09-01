@@ -108,24 +108,27 @@ const DspPanel = ({
   const outputSafetyEnabled = useDspOutputSafetyEnabled();
   const nativeState = useDspNativeState();
   /**
-   * Whether anything below this can reach the music.
+   * Whether anything here is reaching the music RIGHT NOW.
    *
-   * The switch is not the only thing that can make the answer no. The native
-   * engine is the ONLY engine — `useDspEngine` stands the worklet down
-   * unconditionally — so when the host has FAILED, every control in the rack is
-   * a knob wired to nothing and will stay that way until the app restarts.
-   * Leaving them live let a user spend an evening voicing a chain that was
-   * never in the signal path, with one line of text as the only clue.
+   * The native engine is the only engine — `useDspEngine` stands the worklet
+   * down unconditionally — so the rack is live only while that engine is
+   * actually engaged, which it is only while a Library track is playing. Idle
+   * and failed are different reasons for the same fact, and the panel treats
+   * them the same because the listener hears them the same: nothing.
    *
-   * Idle is not that state and must not be treated as it. It only says no
-   * Library track is playing at this instant; the settings are saved and take
-   * effect the moment one starts. Dimming the rack there took the entire UI —
-   * preset pickers, every button — away from the user precisely when they were
-   * setting a sound up before pressing play, and `dsp.idle` in the header
-   * already says the processing itself waits for audio.
+   * A switch reading ON over silence is the specific thing being prevented.
+   * It says processing is happening when none is, next to a line of text
+   * saying the opposite, and it is what makes somebody voice a chain for an
+   * evening and wonder why nothing changed.
+   *
+   * This deliberately reverses the choice made a commit earlier, which kept
+   * the rack live while idle so a sound could be set up before pressing play.
+   * That cost was accepted knowingly: setting up before play is a real thing
+   * to want, but not at the price of the switch lying about the signal path.
+   * `dsp.idle` in the header says what to do about it — start a track.
    */
-  const isEngineDown = nativeState === 'failed';
-  const isRackLive = settings.enabled && !isEngineDown;
+  const isRackEngaged = nativeState === 'engaged';
+  const isRackLive = settings.enabled && isRackEngaged;
   const outputSafetyMeter = useDspOutputSafetyMeter();
   const inputAnalysis = useDspInputAnalysis();
   const loudness = masterLoudnessBreakdown(
@@ -296,7 +299,7 @@ const DspPanel = ({
           </h2>
           <DspChainPresetBar
             settings={settings}
-            disabled={isEngineDown}
+            disabled={!isRackEngaged}
             onChange={onChange}
             onCommit={onCommit}
           />
@@ -310,7 +313,7 @@ const DspPanel = ({
             <Switch
               id="dsp-global-toggle"
               isOn={isRackLive}
-              isDisabled={isEngineDown}
+              isDisabled={!isRackEngaged}
               handleToggle={() => {
                 patch({ enabled: !settings.enabled }, true);
                 onCommit();

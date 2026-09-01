@@ -627,10 +627,27 @@ describe('DspPanel', () => {
     expect(screen.getByText(/music is playing from Library/i)).toHaveClass(
       'is-idle',
     );
-    // Idle says "no track is playing", not "the rack is dead": the settings
-    // are saved and take effect the moment one starts, so the switch shows the
-    // preference and every control stays editable. Only a failed host — which
-    // stays failed until the app restarts — takes the rack away.
+    // Idle is not a failure -- no "could not start", asserted above -- but it
+    // is not processing either, and the switch must not say it is. A control
+    // reading ON directly above a line of text saying "DSP starts when music
+    // is playing from Library" is the panel contradicting itself in the space
+    // of two rows, and it is what makes somebody voice a chain for an evening
+    // and wonder why nothing changed. Off, and not togglable, until a track
+    // engages the engine.
+    expect(screen.getByRole('checkbox', { name: 'DSP' })).not.toBeChecked();
+    expect(screen.getByRole('checkbox', { name: 'DSP' })).toBeDisabled();
+    expect(container.querySelector('.dsp-stage')).toHaveAttribute(
+      'aria-disabled',
+      'true',
+    );
+  });
+
+  it('turns the rack on once a track engages the engine', () => {
+    // The positive control for the case above: every one of those assertions
+    // would also pass for a panel that is simply always off. This is the same
+    // panel, the same defaults, one state apart.
+    act(() => setDspNativeState('engaged'));
+    const { container } = renderPanel(DSP_DEFAULTS, 'running');
     expect(screen.getByRole('checkbox', { name: 'DSP' })).toBeChecked();
     expect(screen.getByRole('checkbox', { name: 'DSP' })).toBeEnabled();
     expect(container.querySelector('.dsp-stage')).toHaveAttribute(

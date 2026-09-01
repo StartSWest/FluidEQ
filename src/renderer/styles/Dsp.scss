@@ -84,7 +84,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  gap: 18px;
   flex-wrap: wrap;
 }
 
@@ -92,7 +92,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   display: flex;
   align-items: baseline;
   gap: 8px;
-  margin: 1px 0 0;
+  // No top nudge. A 1px offset here pushed the title off the row's centre
+  // line, which is what made "DSP 48 kHz" sit visibly low against the preset
+  // field beside it -- the row centres its children, so the title has to be
+  // allowed to sit where it puts them.
+  margin: 0;
   font-size: 1.22rem;
 }
 
@@ -150,6 +154,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // shared classes keep the arrows, field and label literally identical.
   flex: 0 1 auto;
   margin-right: auto;
+  // The same rule the power group on the right already carried, so the header
+  // reads as three groups with two matching separators rather than one
+  // divided end and one crowded one. The title and the presets were butted
+  // together on a bare 16px gap, which made two unrelated things -- a heading
+  // and a control -- look like one run of chrome.
+  padding-left: 18px;
+  border-left: 1px solid rgba($white, 0.1);
 }
 
 .dsp-global-power {
