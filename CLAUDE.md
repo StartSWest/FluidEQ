@@ -61,9 +61,26 @@ satisfied does the suite get run, read or added to.
 - Never re-explain what Ivan just said, never enumerate options when one is
   clearly best — recommend it in one sentence.
 - Final line of every response is a verdict, nothing after it:
-  - `Status: DONE`
+  - `Status: DONE` — **only when nothing at all is outstanding.** Not one
+    request left on the list, nothing owed, nothing waiting on Ivan, no test
+    unwritten, no check unrun, no "pending your launch". If a single item is
+    still open, this is the wrong verdict.
+  - `Status: TASK DONE — Pending work: <a, b, c>` — the thing just asked for
+    is finished, but something else is not. This is the normal verdict for a
+    session with a list; `DONE` is the rarer one.
   - `Status: IN PROGRESS — <what remains>`
   - `Status: BLOCKED — <what is needed>`
+
+- **Whenever anything is outstanding, say what, on the verdict line.**
+  `Pending work:` then the actual items — every request still on the list,
+  every check not yet run, every thing needing Ivan's window, his ears or his
+  decision. Name them; "some follow-up remains" is not a list.
+
+  The failure this exists to stop is a turn that reads as finished while work
+  is still open. `Status: DONE — pending your launch` is the exact shape of
+  it: the verdict says done, the clause after it says otherwise, and the open
+  item is one dash away from invisible. It is also how four of six requests
+  get reported as six.
 
 ## UI work — the rules the tests cannot enforce
 
