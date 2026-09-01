@@ -130,14 +130,34 @@ const clearTimer = () => {
  * other hand, means going to where it is: the foot of the window for the
  * transport, the head of it for the graph's own toolbar.
  *
- * Generous, because a pointer moving fast reports few positions on the way:
- * at 120px the band is crossed by every approach and by nothing else.
+ * The top toolbar keeps a generous approach band because it is itself at the
+ * top edge. The transport is different: panels that end above it can contain
+ * real controls near the foot of the window, and a 120px detector made merely
+ * reaching those controls summon the bar. Ten pixels is still crossed by an
+ * approach to the edge without stealing the last part of those panels.
  */
-const WAKE_EDGE_PX = 120;
+const TOP_WAKE_EDGE_PX = 120;
+export const BOTTOM_WAKE_EDGE_PX = 10;
+
+/**
+ * Panels shortened by the floating transport become part of its interaction
+ * region after it opens.
+ *
+ * Without that continuity, moving from the bottom edge into the newly lifted
+ * panel leaves the transport's physical strip, hides the bar, and moves the
+ * control under the pointer again. These are the three surfaces whose lower
+ * controls participate in that layout.
+ */
+const BOTTOM_CHROME_HOLD_SELECTOR =
+  '.look-designer, .karaoke-playlist, .karaoke-pitch';
+
+const isInBottomChromeSurface = (event: PointerEvent): boolean =>
+  event.target instanceof Element &&
+  event.target.closest(BOTTOM_CHROME_HOLD_SELECTOR) !== null;
 
 const isInWakeZone = (event: PointerEvent): boolean =>
-  event.clientY >= window.innerHeight - WAKE_EDGE_PX ||
-  event.clientY <= WAKE_EDGE_PX;
+  event.clientY >= window.innerHeight - BOTTOM_WAKE_EDGE_PX ||
+  event.clientY <= TOP_WAKE_EDGE_PX;
 
 /**
  * Whether the pointer is down where the transport bar lives.
@@ -174,9 +194,14 @@ export const useIsPointerNearBottom = () =>
   );
 
 const handleActivity = (event?: Event) => {
+  let isInBottomSurface = false;
   if (event?.type === 'pointermove') {
     const move = event as PointerEvent;
-    setNearBottom(move.clientY >= window.innerHeight - WAKE_EDGE_PX);
+    isInBottomSurface = isInBottomChromeSurface(move);
+    setNearBottom(
+      move.clientY >= window.innerHeight - BOTTOM_WAKE_EDGE_PX ||
+        isInBottomSurface,
+    );
   }
   if (event?.type === 'keydown' && isQuietKey(event as KeyboardEvent)) {
     return;
@@ -188,6 +213,14 @@ const handleActivity = (event?: Event) => {
     event?.type === 'pointermove' &&
     !isInWakeZone(event as PointerEvent)
   ) {
+    return;
+  }
+  // Once revealed, the bar and every panel it pushes behave as one continuous
+  // target. No idle clock runs while the pointer is inside that target; moving
+  // outside flips `isNearBottom` off and lets the bar leave immediately.
+  if (isInBottomSurface) {
+    setIdle(false);
+    clearTimer();
     return;
   }
   // MOVING THE POINTER WAKES IT, HOWEVER IT WENT AWAY.

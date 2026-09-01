@@ -247,8 +247,8 @@ const onDspHostAnalysis = (listener: (frame: IHostAnalysis) => void) => {
  *
  * Lives beside the DSP host's bridge because the host is one of the rows: it
  * is our own child rather than Electron's, so nothing else in the app knows
- * it exists. Development only — the handler answers with an empty list in a
- * production build.
+ * it exists. Available in every build because installed users need the same
+ * evidence when the engine or one of Electron's services is misbehaving.
  */
 const appProcesses = (): Promise<unknown[]> =>
   ipcRenderer.invoke('app-processes');

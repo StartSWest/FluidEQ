@@ -52,10 +52,13 @@ export type IScanWorkerResponse =
   | { type: 'failed'; message: string };
 
 /**
- * `utilityProcess` gives the child a `parentPort` on the Node global, which
- * the type definitions shipped with `@types/node` know nothing about — it is
- * Electron's own addition. Narrowed here once, with a real runtime check,
- * rather than cast at every call site.
+ * `utilityProcess` gives the child a `parentPort` on Electron's extended
+ * `process` object, which the type definitions shipped with `@types/node` know
+ * nothing about. This used to read `globalThis.parentPort`; that property does
+ * not exist in an Electron utility process, so the packaged worker registered
+ * no listener, exited, and every folder scan completed with zero tracks.
+ * Narrowed here once, with a real runtime check, rather than cast at every call
+ * site.
  */
 interface IParentPort {
   postMessage: (message: unknown) => void;
@@ -63,7 +66,8 @@ interface IParentPort {
 }
 
 const parentPort = (): IParentPort | undefined => {
-  const candidate = (globalThis as { parentPort?: unknown }).parentPort;
+  const candidate = (process as NodeJS.Process & { parentPort?: unknown })
+    .parentPort;
   if (
     typeof candidate === 'object' &&
     candidate !== null &&

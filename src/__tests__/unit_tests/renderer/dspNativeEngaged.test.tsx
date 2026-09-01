@@ -71,13 +71,13 @@ const installBridge = (bridge: INativeBackendBridge | undefined): void => {
 
 describe('when browser playback stands down for the native host', () => {
   beforeEach(() => {
-    setDspNativeState('idle');
+    act(() => setDspNativeState('idle'));
     installBridge(undefined);
   });
 
   afterEach(() => {
     installBridge(undefined);
-    setDspNativeState('idle');
+    act(() => setDspNativeState('idle'));
   });
 
   it('reports engaged once the host has actually come up', async () => {
@@ -86,6 +86,23 @@ describe('when browser playback stands down for the native host', () => {
     renderHook(() => useNativeBackend(DSP_DEFAULTS));
 
     await waitFor(() => expect(readDspNativeEngaged()).toBe(true));
+  });
+
+  it('does not start until Library audio is actually playing', async () => {
+    const startDspHost = jest.fn(() => Promise.resolve({ state: 'ready' }));
+    installBridge(bridgeWith(startDspHost));
+
+    const view = renderHook(
+      ({ isPlaying }) => useNativeBackend(DSP_DEFAULTS, isPlaying),
+      { initialProps: { isPlaying: false } },
+    );
+
+    expect(startDspHost).not.toHaveBeenCalled();
+    expect(readDspNativeState()).toBe('idle');
+
+    view.rerender({ isPlaying: true });
+    await waitFor(() => expect(readDspNativeState()).toBe('engaged'));
+    expect(startDspHost).toHaveBeenCalledTimes(1);
   });
 
   /**
@@ -149,6 +166,29 @@ describe('when browser playback stands down for the native host', () => {
     view.unmount();
     expect(readDspNativeEngaged()).toBe(false);
   });
+
+  it('does not let a late startup overwrite idle after teardown', async () => {
+    let release: (value: { state: string }) => void = () => undefined;
+    const pending = new Promise<{ state: string }>((resolve) => {
+      release = resolve;
+    });
+    const stopDspHost = jest.fn(() => Promise.resolve({ state: 'stopped' }));
+    const bridge = bridgeWith(() => pending);
+    bridge.stopDspHost = stopDspHost;
+    installBridge(bridge);
+
+    const view = renderHook(() => useNativeBackend(DSP_DEFAULTS));
+    await Promise.resolve();
+    view.unmount();
+
+    await act(async () => {
+      release({ state: 'ready' });
+      await pending;
+    });
+
+    await waitFor(() => expect(stopDspHost).toHaveBeenCalledTimes(1));
+    expect(readDspNativeState()).toBe('idle');
+  });
 });
 
 describe('the controller behind it', () => {
@@ -188,13 +228,13 @@ describe('the controller behind it', () => {
  */
 describe('the controller is not handed out early', () => {
   beforeEach(() => {
-    setDspNativeState('idle');
+    act(() => setDspNativeState('idle'));
     installBridge(undefined);
   });
 
   afterEach(() => {
     installBridge(undefined);
-    setDspNativeState('idle');
+    act(() => setDspNativeState('idle'));
   });
 
   it('withholds the controller until the host has finished engaging', async () => {
@@ -256,13 +296,13 @@ describe('the controller is not handed out early', () => {
  */
 describe('idle is not the same as failed', () => {
   beforeEach(() => {
-    setDspNativeState('idle');
+    act(() => setDspNativeState('idle'));
     installBridge(undefined);
   });
 
   afterEach(() => {
     installBridge(undefined);
-    setDspNativeState('idle');
+    act(() => setDspNativeState('idle'));
   });
 
   it('stays idle before anything has been attempted', () => {

@@ -188,15 +188,26 @@ export class DspHostSupervisor {
       this.setState('stopped');
       return;
     }
+    /**
+     * Mark the exit as intentional before asking for it.
+     *
+     * The child closes between the shutdown acknowledgement and the promise
+     * below resolving. Setting `stopped` afterwards let `onExit` see `ready`,
+     * report a clean code-zero shutdown as a host crash, and start a replacement
+     * while the renderer was tearing the engine down. That replacement then
+     * lost the race with this method's final state write and left the DSP panel
+     * reporting a failed engine. `send` permits commands in `stopped`, so the
+     * polite shutdown still reaches the child while `onExit` can now identify
+     * it correctly.
+     */
+    this.setState('stopped');
     // Asked to leave before being made to. The host closes its endpoint on the
     // way out, and a killed process does not — which leaves the device held by
     // a process that no longer exists until Windows notices.
-    if (this.state === 'ready') {
-      try {
-        await this.send(HOST_COMMANDS.shutdown, {});
-      } catch {
-        // It was already going. Nothing to add.
-      }
+    try {
+      await this.send(HOST_COMMANDS.shutdown, {});
+    } catch {
+      // It was already going. Nothing to add.
     }
     await new Promise<void>((resolve) => {
       const timer = setTimeout(() => {
@@ -210,7 +221,6 @@ export class DspHostSupervisor {
     });
     this.child = undefined;
     this.stats = undefined;
-    this.setState('stopped');
   }
 
   async openDevice(): Promise<boolean> {

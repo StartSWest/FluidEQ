@@ -134,13 +134,35 @@ top of the page.
 - **The Processes panel explains the split instead of listing Chromium names.**
   Interface, app core, graphics, browser sound, network, pages and the C++ audio
   engine each say what they do. The engine now reports its own memory and CPU,
-  which Electron cannot measure for a separate executable.
+  which Electron cannot measure for a separate executable, and the panel ships
+  in installed builds rather than disappearing outside development.
+- **Library DSP now follows Library playback.** The native engine starts only
+  while an audio track from the Library is actually playing; while it is idle,
+  the DSP switch stays unavailable and an orange notice says clearly that the
+  rack does not process Spotify, YouTube or other apps.
+- **Full-screen transport controls reveal only at the bottom 10 pixels.** Once
+  revealed, the bar stays open while the pointer is inside New Look, the
+  Karaoke playlist or the pitch lane, so those panels and the bar behave as one
+  stable control surface instead of pushing each other away.
 - **An output without Equalizer APO enabled is marked `APO OFF`.** Its device
   card explains why FluidEQ cannot change that output and opens APO's Device
   Selector directly instead of leaving a curve that cannot reach the device.
 
 ### Fixed
 
+- **Adding a Library folder in an installed build produced zero tracks.** The
+  packaged scanner listened for Electron's worker port on the wrong object and
+  exited cleanly without ever receiving the root. It now uses the utility
+  process channel Electron exposes and falls back to the in-process scanner if
+  a worker ever exits before finishing.
+- **Stopping the native engine started another one.** A deliberate code-zero
+  shutdown crossed the supervisor's exit handler before it had been marked as
+  intentional, so it was reported as a failure and restarted during teardown.
+- **New Look's Name field and Karaoke's lower controls no longer move away from
+  the pointer** when the bottom transport appears or fades.
+- **The rainbow hairline across the top of the header is gone.** Rainbow mode
+  remains in the visualisers where it belongs, without adding chrome to the
+  window frame.
 - **A library on OneDrive scanned to nothing.** Placeholder files were read as
   empty rather than as files waiting to be fetched.
 - **Shuffle moved the playhead.** The whole run was shuffled and then searched

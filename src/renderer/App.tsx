@@ -151,9 +151,6 @@ import {
 } from './utils/equalizerApi';
 import { startEqualizerApoInstall } from './utils/apoInstall';
 
-/** Matches the DSP panel's own dev gate: tooling, not a shipped feature. */
-const IS_DEV_BUILD = process.env.NODE_ENV !== 'production';
-
 const APO_RESTART_RECOMMENDED_KEY = 'fluideq.apoRestartRecommended';
 /** The version whose notes have already been shown. */
 const WHATS_NEW_SEEN_KEY = 'fluideq.whatsNewSeen';
@@ -1810,24 +1807,21 @@ const AppContent = () => {
                     </div>
                   </>
                 )}
-                {/* Development only, and a full row rather than a column
-                    entry: it is the answer to "which of these six identical
-                    FluidEQ rows is eating my memory", and somebody asking that
-                    is not browsing the menu. */}
-                {IS_DEV_BUILD ? (
-                  <button
-                    type="button"
-                    role="menuitem"
-                    className="workspace-header__menu-support"
-                    onClick={() => {
-                      setShowAudioToolsMenu(false);
-                      setShowProcessesDialog(true);
-                    }}
-                  >
-                    <MenuIcon name="restart" />
-                    {t('app.processes.menu')}
-                  </button>
-                ) : undefined}
+                {/* A full row rather than a column entry: it answers which of
+                    the identical FluidEQ rows is using memory, in every build
+                    where that question can matter. */}
+                <button
+                  type="button"
+                  role="menuitem"
+                  className="workspace-header__menu-support"
+                  onClick={() => {
+                    setShowAudioToolsMenu(false);
+                    setShowProcessesDialog(true);
+                  }}
+                >
+                  <MenuIcon name="restart" />
+                  {t('app.processes.menu')}
+                </button>
                 <button
                   type="button"
                   role="menuitem"

@@ -81,7 +81,10 @@ export const usePlayerEngine = (options: {
    * `useNativeBackend` answers `undefined` until the native engine has actually
    * engaged, so there is nothing here to call early or on the browser path.
    */
-  const nativeBackend = useNativeBackend(dspSettings);
+  const nativeBackend = useNativeBackend(
+    dspSettings,
+    isPlaying && track?.kind === 'audio',
+  );
   // And the mirror re-cues when the host moves to a different endpoint.
   useNativeDeviceGeneration(nativeBackend);
   // The clock comes from the engine making the sound. See `hostTransport`.

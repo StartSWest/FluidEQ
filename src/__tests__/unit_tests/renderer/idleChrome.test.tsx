@@ -16,22 +16,32 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { act, renderHook } from '@testing-library/react';
+import { act, render, renderHook } from '@testing-library/react';
 import {
+  BOTTOM_WAKE_EDGE_PX,
   CHROME_IDLE_MS,
   revealChromeNow,
   useIsChromeIdle,
+  useIsPointerNearBottom,
   watchChromeIdle,
 } from '../../../renderer/utils/idleChrome';
+
+const movePointer = (target: EventTarget, clientY: number): void => {
+  act(() => {
+    target.dispatchEvent(
+      new MouseEvent('pointermove', { bubbles: true, clientY }),
+    );
+  });
+};
 
 describe('idle chrome', () => {
   beforeEach(() => {
     jest.useFakeTimers();
-    watchChromeIdle(false);
+    act(() => watchChromeIdle(false));
   });
 
   afterEach(() => {
-    watchChromeIdle(false);
+    act(() => watchChromeIdle(false));
     jest.useRealTimers();
   });
 
@@ -59,8 +69,18 @@ describe('idle chrome', () => {
     });
     expect(result.current).toBe(true);
 
-    // The foot of the window is where the transport is, and going there is
-    // reaching for it.
+    // Controls can now use the space down to ten pixels above the foot without
+    // summoning the transport.
+    act(() => {
+      window.dispatchEvent(
+        new MouseEvent('pointermove', {
+          clientY: window.innerHeight - BOTTOM_WAKE_EDGE_PX - 1,
+        }),
+      );
+    });
+    expect(result.current).toBe(true);
+
+    // The last ten pixels are the deliberate reveal target.
     act(() => {
       window.dispatchEvent(
         new MouseEvent('pointermove', { clientY: window.innerHeight - 4 }),
@@ -83,4 +103,36 @@ describe('idle chrome', () => {
     act(() => revealChromeNow());
     expect(result.current).toBe(false);
   });
+
+  it.each(['look-designer', 'karaoke-playlist', 'karaoke-pitch'])(
+    'keeps the transport open while the pointer is inside %s',
+    (className) => {
+      const idle = renderHook(() => useIsChromeIdle());
+      const nearBottom = renderHook(() => useIsPointerNearBottom());
+      const panel = render(
+        <div className={className} data-testid="bottom-chrome-surface">
+          <button type="button">Control</button>
+        </div>,
+      );
+
+      act(() => watchChromeIdle(true));
+      act(() => jest.advanceTimersByTime(CHROME_IDLE_MS));
+      expect(idle.result.current).toBe(true);
+
+      movePointer(window, window.innerHeight - 4);
+      expect(idle.result.current).toBe(false);
+      expect(nearBottom.result.current).toBe(true);
+
+      movePointer(
+        panel.getByRole('button'),
+        Math.round(window.innerHeight / 2),
+      );
+      act(() => jest.advanceTimersByTime(CHROME_IDLE_MS));
+      expect(idle.result.current).toBe(false);
+      expect(nearBottom.result.current).toBe(true);
+
+      movePointer(window, Math.round(window.innerHeight / 2));
+      expect(nearBottom.result.current).toBe(false);
+    },
+  );
 });

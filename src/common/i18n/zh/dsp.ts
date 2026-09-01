@@ -21,7 +21,7 @@ const dsp = {
   'dsp.scopeNotice':
     '仅作用于在 FluidEQ 内播放的音乐，不会改变 Spotify、YouTube 或其他应用。',
   'dsp.idle':
-    '从音乐库播放时自动启动。它处理的是 FluidEQ 自带的播放器，因此在加载曲目前无事可做。',
+    '从音乐库播放音乐时 DSP 才会启用。它不会处理 Spotify、YouTube 或其他应用。',
   'dsp.unavailable': '音频处理未能启动，播放不受影响。',
   'dsp.engineDown':
     '原生音频引擎无法启动，因此所有 DSP 处理级均已关闭。下方没有任何环节在处理你的音乐，控件也已禁用；播放本身不受影响。重启 FluidEQ 通常可以恢复。',

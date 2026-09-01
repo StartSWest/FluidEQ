@@ -68,7 +68,15 @@ const hardKill = (pid: number): void => {
     // `/F` gives the launcher no chance to tidy up, which is the point. The
     // host is deliberately not in the tree this takes down — a detached
     // grandchild is exactly the process being tested.
-    spawnSync('taskkill', ['/PID', String(pid), '/F'], { windowsHide: true });
+    const result = spawnSync('taskkill', ['/PID', String(pid), '/F'], {
+      encoding: 'utf8',
+      windowsHide: true,
+    });
+    if (result.status !== 0) {
+      throw new Error(
+        `Could not kill ${pid}: ${result.stderr.trim() || result.stdout.trim()}`,
+      );
+    }
     return;
   }
   process.kill(pid, 'SIGKILL');
@@ -197,6 +205,9 @@ const outlivesParent = async (parentPid: number, hostPid: number) => {
   // telemetry with nobody reading it.
   await sleep(2_000);
   hardKill(parentPid);
+  if (isAlive(parentPid)) {
+    throw new Error(`Parent ${parentPid} is still alive after force-kill`);
+  }
   const deadline = Date.now() + 10_000;
   while (Date.now() < deadline) {
     // eslint-disable-next-line no-await-in-loop -- polling a real process.

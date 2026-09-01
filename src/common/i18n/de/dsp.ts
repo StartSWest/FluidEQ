@@ -21,7 +21,7 @@ const dsp = {
   'dsp.scopeNotice':
     'Gilt für Musik, die in FluidEQ abgespielt wird. Spotify, YouTube und andere Apps bleiben unverändert.',
   'dsp.idle':
-    'Startet, sobald du etwas aus der Bibliothek abspielst. Es verarbeitet FluidEQs eigenen Player und hat daher nichts zu tun, bis ein Titel geladen ist.',
+    'DSP wird aktiv, wenn Musik aus der Bibliothek abgespielt wird. Spotify, YouTube und andere Apps werden nicht verarbeitet.',
   'dsp.unavailable':
     'Die Audioverarbeitung konnte nicht gestartet werden. Die Wiedergabe ist davon nicht betroffen.',
   'dsp.engineDown':

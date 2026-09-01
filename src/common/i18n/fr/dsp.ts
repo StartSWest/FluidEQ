@@ -21,7 +21,7 @@ const dsp = {
   'dsp.scopeNotice':
     "S'applique à la musique lue dans FluidEQ. Cela ne change rien à Spotify, YouTube ni aux autres applications.",
   'dsp.idle':
-    "Démarre quand vous lisez quelque chose depuis la Bibliothèque. Il traite le lecteur de FluidEQ, il n'a donc rien à faire tant qu'aucun morceau n'est chargé.",
+    "Le DSP s'active quand la musique est lue depuis la Bibliothèque. Il ne traite pas Spotify, YouTube ni les autres applications.",
   'dsp.unavailable':
     "Le traitement audio n'a pas pu démarrer. La lecture n'est pas affectée.",
   'dsp.engineDown':

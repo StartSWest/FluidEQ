@@ -117,6 +117,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   color: rgba($white, 0.72);
   font-size: 0.76rem;
   line-height: 1.45;
+
+  // Waiting is an actionable state, not muted explanatory copy. The stored
+  // chain remains ready, but no Library audio is playing and therefore no DSP
+  // is active; amber says "not yet" without borrowing red from a real engine
+  // failure.
+  &.is-idle {
+    color: #ffad52;
+  }
 }
 
 // Not an error, and it must not look like one. The engine lives in the library

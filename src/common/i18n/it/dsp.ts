@@ -21,7 +21,7 @@ const dsp = {
   'dsp.scopeNotice':
     'Si applica alla musica riprodotta dentro FluidEQ. Non cambia Spotify, YouTube o altre app.',
   'dsp.idle':
-    'Si avvia quando riproduci qualcosa dalla Libreria. Elabora il lettore di FluidEQ, quindi non ha nulla da fare finché non carichi un brano.',
+    'Il DSP si attiva quando la musica viene riprodotta dalla Libreria. Non elabora Spotify, YouTube o altre app.',
   'dsp.unavailable':
     "L'elaborazione audio non è riuscita ad avviarsi. La riproduzione non è interessata.",
   'dsp.engineDown':

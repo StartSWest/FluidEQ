@@ -28,9 +28,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * What it does NOT do is repaint the interface. Six hues spread over every
  * surface is a toy, and this app is sold. It takes the accents only — the marks
  * that were already saying "this one, here" — and lets them say it in spectrum
- * instead: the bar under the open tab, the edge of the open processor, the
- * lamps, and one hairline across the top. Everything else stays exactly as it
- * was.
+ * instead: the bar under the open tab, the edge of the open processor, and the
+ * lamps. Everything else stays exactly as it was.
  *
  * The order is the spectrum's own, low to high, because that is what the
  * `rainbow` palette means on the graph — a bar's colour says where in the
@@ -64,29 +63,6 @@ html.is-euphoric {
   }
 }
 
-// The hairline, across the very top of the window.
-//
-// Fixed to the body rather than drawn inside the workspace on purpose: the
-// workspace is `position: static`, and giving it a positioning context to hang
-// this off would make it a stacking context too — which is the sort of change
-// that moves a full-screen graph and would be blamed on something else weeks
-// later. Nothing here is in the layout, so switching the mode on cannot resize
-// a pane. `pointer-events: none` keeps the titlebar's drag region underneath
-// it working.
-html.is-euphoric::before {
-  content: '';
-  position: fixed;
-  top: 0;
-  right: 0;
-  left: 0;
-  z-index: 2000;
-  height: 2px;
-  background: var(--rainbow-sweep);
-  background-size: 200% 100%;
-  animation: rainbow-drift 12s linear infinite;
-  pointer-events: none;
-}
-
 // The bar under the open tab, which was the accent doing this job already.
 .is-euphoric .workspace-tab-group__bar {
   background: var(--rainbow-sweep);
@@ -111,7 +87,6 @@ html.is-euphoric::before {
 // A moving gradient behind text is exactly the thing this setting is for
 // people who cannot have. The colours stay; only the travel stops.
 @media (prefers-reduced-motion: reduce) {
-  html.is-euphoric::before,
   .is-euphoric .workspace-tab-group__bar,
   .is-euphoric .dsp-import {
     animation: none;

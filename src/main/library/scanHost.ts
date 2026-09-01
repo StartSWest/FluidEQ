@@ -76,6 +76,7 @@ export const scanLibraryRootOffThread = (
   }
   return new Promise<IScanResult>((resolve) => {
     let settled = false;
+    let fallbackStarted = false;
     const finish = (result: IScanResult) => {
       if (!settled) {
         settled = true;
@@ -135,7 +136,39 @@ export const scanLibraryRootOffThread = (
       child.kill();
     };
 
+    /**
+     * A utility process that started is not necessarily a worker that worked.
+     *
+     * The packaged worker once launched with no message listener because it
+     * read the wrong `parentPort`. It then exited normally, and the old exit
+     * handler returned the known tracks — an empty array for a newly-added
+     * root — so the folder picker looked broken even though it had added the
+     * folder correctly. Any worker failure now takes the proven in-process
+     * path instead. The flag keeps an error followed by an exit from starting
+     * two scans of the same root.
+     */
+    const fallBackToMain = (message: string, error?: unknown) => {
+      if (settled || fallbackStarted) {
+        return;
+      }
+      fallbackStarted = true;
+      workerUnavailable = true;
+      // eslint-disable-next-line no-console -- this project's one sanctioned console sink; see libraryIndex.ts
+      console.error(message, error);
+      stop();
+      scanLibraryRoot(options).then(finish, () =>
+        finish({
+          tracks: options.known.slice(),
+          karaokeSkipped: 0,
+          wasCancelled: true,
+        }),
+      );
+    };
+
     child.on('message', (raw: unknown) => {
+      if (fallbackStarted) {
+        return;
+      }
       forwardCancel();
       if (typeof raw !== 'object' || raw === null || !('type' in raw)) {
         return;
@@ -159,25 +192,16 @@ export const scanLibraryRootOffThread = (
         return;
       }
       // `failed`: the worker caught something it could not carry on from.
-      // eslint-disable-next-line no-console -- this project's one sanctioned console sink; see libraryIndex.ts
-      console.error(`Library scan worker failed: ${message.message}`);
-      stop();
-      finish({
-        tracks: options.known.slice(),
-        karaokeSkipped: 0,
-        wasCancelled: true,
-      });
+      fallBackToMain(`Library scan worker failed: ${message.message}`);
     });
 
     // A worker that dies without saying `done` must not leave the scan
     // pending forever — the renderer derives `isScanning` from the terminal
     // progress event, so a promise that never settles pins the strip on.
     child.on('exit', () => {
-      finish({
-        tracks: options.known.slice(),
-        karaokeSkipped: 0,
-        wasCancelled: true,
-      });
+      fallBackToMain(
+        'Library scan worker exited before finishing; scanning in-process instead',
+      );
     });
 
     const request: IScanWorkerRequest = {

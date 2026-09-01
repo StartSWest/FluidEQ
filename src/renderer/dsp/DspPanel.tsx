@@ -117,10 +117,12 @@ const DspPanel = ({
    * evening voicing a chain that was never in the signal path, with one line of
    * text as the only clue.
    *
-   * `failed` and not `idle`: idle means the player has not been opened yet, and
-   * dimming the whole rack because nobody has pressed play would be wrong.
+   * An enabled preference is not an active rack. The native path now engages
+   * only while Library audio is actually playing, so idle controls are dimmed
+   * and the global switch reads off instead of claiming silent processing is
+   * active.
    */
-  const isRackLive = settings.enabled && nativeState !== 'failed';
+  const isRackLive = settings.enabled && nativeState === 'engaged';
   const outputSafetyMeter = useDspOutputSafetyMeter();
   const inputAnalysis = useDspInputAnalysis();
   const loudness = masterLoudnessBreakdown(
@@ -297,17 +299,15 @@ const DspPanel = ({
           />
           <div className="dsp-global-power">
             <span
-              className={`dsp-global-power-state${
-                settings.enabled ? ' is-on' : ''
-              }`}
+              className={`dsp-global-power-state${isRackLive ? ' is-on' : ''}`}
               aria-hidden="true"
             >
-              {settings.enabled ? t('dsp.enabled') : t('dsp.bypassed')}
+              {isRackLive ? t('dsp.enabled') : t('dsp.bypassed')}
             </span>
             <Switch
               id="dsp-global-toggle"
-              isOn={settings.enabled}
-              isDisabled={false}
+              isOn={isRackLive}
+              isDisabled={nativeState !== 'engaged'}
               handleToggle={() => {
                 patch({ enabled: !settings.enabled }, true);
                 onCommit();
@@ -316,10 +316,9 @@ const DspPanel = ({
             />
           </div>
         </div>
-        <p className="dsp-scope">{t('dsp.scopeNotice')}</p>
-        {engineState === 'idle' ? (
-          <p className="dsp-idle">{t('dsp.idle')}</p>
-        ) : undefined}
+        <p className={`dsp-scope${nativeState === 'idle' ? ' is-idle' : ''}`}>
+          {t(nativeState === 'idle' ? 'dsp.idle' : 'dsp.scopeNotice')}
+        </p>
         {engineState === 'failed' ? (
           <p className="dsp-unavailable">{t('dsp.unavailable')}</p>
         ) : undefined}

@@ -69,6 +69,7 @@ const bridgeOf = ():
  */
 export const useNativeBackend = (
   settings: IDspSettings,
+  isLibraryAudioPlaying = true,
 ): INativeBackendController | undefined => {
   const nativeState = useDspNativeState();
   const outputSafetyEnabled = useDspOutputSafetyEnabled();
@@ -81,6 +82,15 @@ export const useNativeBackend = (
   safetyRef.current = outputSafetyEnabled;
 
   useEffect(() => {
+    if (!isLibraryAudioPlaying) {
+      // A stored DSP preference is not an active engine. The Library's browser
+      // element starts playback first; that real play state mounts the native
+      // path, which then takes over from the element. Paused, stopped and video
+      // library items have nothing for this audio-only engine to process.
+      controllerRef.current = undefined;
+      setDspNativeState('idle');
+      return undefined;
+    }
     const bridge = bridgeOf();
     if (!bridge) {
       /**
@@ -95,10 +105,20 @@ export const useNativeBackend = (
       return undefined;
     }
     const controller = createNativeBackendController(bridge);
+    let isCurrent = true;
     controllerRef.current = controller;
     controller
       .engage(settingsRef.current, safetyRef.current)
-      .then((ready) => {
+      .then(async (ready) => {
+        if (!isCurrent) {
+          // The player paused or unmounted while the host was negotiating its
+          // endpoint. The old continuation must not overwrite `idle` with a
+          // stale failure or leave a late-ready process running unowned.
+          if (ready) {
+            await controller.disengage();
+          }
+          return ready;
+        }
         if (!ready) {
           // The supervisor has already reported why. Dropping the controller
           // rather than retrying keeps a host that cannot start from being
@@ -112,6 +132,9 @@ export const useNativeBackend = (
         return ready;
       })
       .catch(() => {
+        if (!isCurrent) {
+          return;
+        }
         controllerRef.current = undefined;
         // `failed`, not `idle`: a rejected start is a host that was asked for
         // and did not arrive, which is exactly what the notice is for. Idle
@@ -120,11 +143,12 @@ export const useNativeBackend = (
       });
 
     return () => {
+      isCurrent = false;
       controllerRef.current = undefined;
       setDspNativeState('idle');
       controller.disengage().catch(() => undefined);
     };
-  }, []);
+  }, [isLibraryAudioPlaying]);
 
   useEffect(() => {
     controllerRef.current

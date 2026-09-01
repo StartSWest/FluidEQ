@@ -185,6 +185,21 @@ const main = async () => {
   );
   await mismatched.stop();
 
+  console.log('orderly shutdown');
+  const orderlyDiagnostics: IDspDiagnosticEvent[] = [];
+  const orderly = new DspHostSupervisor({
+    executablePath,
+    expectedParameterCount: PARAMETER_COUNT,
+    onDiagnostic: (event) => orderlyDiagnostics.push(event),
+  });
+  check(await orderly.start(), 'the host starts before an orderly shutdown');
+  await orderly.stop();
+  check(orderly.getState() === 'stopped', 'an orderly shutdown stays stopped');
+  check(
+    !orderlyDiagnostics.some((event) => event.code === 3003),
+    'an orderly shutdown is not reported as a host crash',
+  );
+
   await supervisor.stop();
 
   if (failures === 0) {

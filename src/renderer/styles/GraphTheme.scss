@@ -1864,10 +1864,10 @@ it under the terms of the GNU General Public License version 3 or later.
 
 // The look designer, under a floating transport bar.
 //
-// Same live reservation as Karaoke's playlist and pitch pane: the root says
-// both that the bar overlays the picture and whether it has faded away. While
-// it is visible, lift the designer's bottom above the measured card; once the
-// chrome is idle, give the preview panel the space back.
+// The editor joins the bar's interaction region while the pointer is inside it
+// (see `idleChrome`), so this reservation cannot disappear under the pointer.
+// Once the pointer exits both, the chrome can fade and the preview gets the
+// room back without moving a control somebody is reaching for.
 #root.has-now-playing.is-floating-bar:not(.is-chrome-idle)
   .app-workspace.is-app-full
   .look-designer {

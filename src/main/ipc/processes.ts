@@ -28,8 +28,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * no app-level meaning for keep their service name as a detail rather than
  * being dressed up as something they are not.
  *
- * Development only. It is a question a developer asks while chasing memory,
- * and a list of process ids is not something to put in front of a listener.
+ * This is also user-facing diagnostics: an installed build is where a listener
+ * most needs to identify a runaway engine, renderer, or Chromium service.
  */
 import { BrowserWindow, app, ipcMain } from 'electron';
 import type { IHostStats } from '../dspHost/wire';
@@ -153,69 +153,64 @@ const ROLE_ORDER: readonly TProcessRole[] = [
 
 export const registerProcessIpc = (deps: IProcessIpcDeps): void => {
   ipcMain.handle('app-processes', (): IAppProcess[] => {
-    if (process.env.NODE_ENV === 'development') {
-      const window = deps.getMainWindow();
-      /**
-       * Read once, outside the map.
-       *
-       * `getOSProcessId` throws once the web contents are destroyed, and a
-       * window closing while this list is being built is an ordinary race
-       * rather than an error worth reporting.
-       */
-      let appWindowPid = 0;
-      try {
-        appWindowPid = window ? window.webContents.getOSProcessId() : 0;
-      } catch {
-        appWindowPid = 0;
-      }
-
-      const rows: IAppProcess[] = app.getAppMetrics().map((metric) => {
-        const isAppWindow = metric.pid === appWindowPid;
-        const role = roleFor(metric.type, metric.serviceName, isAppWindow);
-        return {
-          pid: metric.pid,
-          role,
-          detail: role === 'helper' ? metric.serviceName : undefined,
-          // `workingSetSize` is in kilobytes, which is the units mistake that
-          // makes a 900 MB renderer look like 900 KB and get ignored.
-          memoryMb: Math.round(metric.memory.workingSetSize / 1024),
-          cpuPercent: Math.round(metric.cpu.percentCPUUsage * 10) / 10,
-        };
-      });
-
-      const nativePid = deps.getNativeHostPid();
-      if (nativePid !== undefined) {
-        /*
-         * Appended rather than merged: Electron does not know about it.
-         *
-         * Its memory is not in `getAppMetrics` either, and reading another
-         * process's counters from here needs a platform call this file
-         * deliberately does not make — so the host measures itself and says so
-         * on its own wire, twice a second. That is where these two numbers come
-         * from, and they are the same working set Electron reports above rather
-         * than a private commit that would not add up with it.
-         */
-        const stats = deps.getNativeHostStats();
-        rows.push({
-          pid: nativePid,
-          role: 'engine',
-          memoryMb:
-            stats === undefined
-              ? undefined
-              : Math.round(stats.workingSetBytes / (1024 * 1024)),
-          cpuPercent:
-            stats === undefined
-              ? undefined
-              : Math.round(stats.cpuPercent * 10) / 10,
-        });
-      }
-
-      return rows.sort(
-        (a, b) => ROLE_ORDER.indexOf(a.role) - ROLE_ORDER.indexOf(b.role),
-      );
+    const window = deps.getMainWindow();
+    /**
+     * Read once, outside the map.
+     *
+     * `getOSProcessId` throws once the web contents are destroyed, and a
+     * window closing while this list is being built is an ordinary race
+     * rather than an error worth reporting.
+     */
+    let appWindowPid = 0;
+    try {
+      appWindowPid = window ? window.webContents.getOSProcessId() : 0;
+    } catch {
+      appWindowPid = 0;
     }
-    // Empty rather than absent, so the renderer's panel renders nothing
-    // instead of having to branch on whether the channel exists at all.
-    return [];
+
+    const rows: IAppProcess[] = app.getAppMetrics().map((metric) => {
+      const isAppWindow = metric.pid === appWindowPid;
+      const role = roleFor(metric.type, metric.serviceName, isAppWindow);
+      return {
+        pid: metric.pid,
+        role,
+        detail: role === 'helper' ? metric.serviceName : undefined,
+        // `workingSetSize` is in kilobytes, which is the units mistake that
+        // makes a 900 MB renderer look like 900 KB and get ignored.
+        memoryMb: Math.round(metric.memory.workingSetSize / 1024),
+        cpuPercent: Math.round(metric.cpu.percentCPUUsage * 10) / 10,
+      };
+    });
+
+    const nativePid = deps.getNativeHostPid();
+    if (nativePid !== undefined) {
+      /*
+       * Appended rather than merged: Electron does not know about it.
+       *
+       * Its memory is not in `getAppMetrics` either, and reading another
+       * process's counters from here needs a platform call this file
+       * deliberately does not make — so the host measures itself and says so
+       * on its own wire, twice a second. That is where these two numbers come
+       * from, and they are the same working set Electron reports above rather
+       * than a private commit that would not add up with it.
+       */
+      const stats = deps.getNativeHostStats();
+      rows.push({
+        pid: nativePid,
+        role: 'engine',
+        memoryMb:
+          stats === undefined
+            ? undefined
+            : Math.round(stats.workingSetBytes / (1024 * 1024)),
+        cpuPercent:
+          stats === undefined
+            ? undefined
+            : Math.round(stats.cpuPercent * 10) / 10,
+      });
+    }
+
+    return rows.sort(
+      (a, b) => ROLE_ORDER.indexOf(a.role) - ROLE_ORDER.indexOf(b.role),
+    );
   });
 };

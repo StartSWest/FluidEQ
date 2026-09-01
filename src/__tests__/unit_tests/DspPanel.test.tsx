@@ -5,7 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import '@testing-library/jest-dom';
-import { fireEvent, render, screen, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import defaultFluidEqContext from '__tests__/utils/mockFluidEqProvider';
 import { DSP_DEFAULTS, IDspSettings } from '../../common/dsp/chain';
 import { DSP_PRESETS } from '../../common/dsp/presets';
@@ -14,6 +14,7 @@ import DspPanel from '../../renderer/dsp/DspPanel';
 import {
   TDspEngineState,
   readDspOutputSafetyEnabled,
+  setDspNativeState,
   setDspOutputSafetyEnabled,
   setDspSampleRate,
 } from '../../renderer/dsp/store';
@@ -45,6 +46,10 @@ const renderPanel = (
 };
 
 describe('DspPanel', () => {
+  beforeEach(() => act(() => setDspNativeState('engaged')));
+
+  afterEach(() => act(() => setDspNativeState('idle')));
+
   /**
    * The rule a test can check even though the ones it protects against cannot.
    *
@@ -60,7 +65,7 @@ describe('DspPanel', () => {
   });
 
   it('offers an ephemeral final-safety A/B in development', () => {
-    setDspOutputSafetyEnabled(true);
+    act(() => setDspOutputSafetyEnabled(true));
     renderPanel();
     fireEvent.click(screen.getByRole('button', { name: /Master/i }));
     const toggle = screen.getByRole('checkbox', { name: 'Safety A/B' });
@@ -68,7 +73,7 @@ describe('DspPanel', () => {
     fireEvent.click(toggle);
     expect(readDspOutputSafetyEnabled()).toBe(false);
     expect(toggle).not.toBeChecked();
-    setDspOutputSafetyEnabled(true);
+    act(() => setDspOutputSafetyEnabled(true));
   });
 
   it('shows the automatic system rate compactly in the DSP title', () => {
@@ -613,11 +618,17 @@ describe('DspPanel', () => {
    * people audio processing could not start on a machine that was fine.
    */
   it('does NOT claim a failure when the engine has simply not started', () => {
+    act(() => setDspNativeState('idle'));
     renderPanel(DSP_DEFAULTS, 'idle');
     expect(screen.queryByText(/could not start/i)).not.toBeInTheDocument();
     expect(
-      screen.getByText(/play something from the Library/i),
+      screen.getByText(/music is playing from Library/i),
     ).toBeInTheDocument();
+    expect(screen.getByText(/music is playing from Library/i)).toHaveClass(
+      'is-idle',
+    );
+    expect(screen.getByRole('checkbox', { name: 'DSP' })).not.toBeChecked();
+    expect(screen.getByRole('checkbox', { name: 'DSP' })).toBeDisabled();
   });
 
   /**
