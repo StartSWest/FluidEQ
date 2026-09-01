@@ -97,9 +97,9 @@ describe('the native backend controller', () => {
     /**
      * A failure has to stay a branch, not become a throw.
      *
-     * The TypeScript chain is still there and still works, so the caller's
-     * fallback should be an `if` rather than a `catch` — and the supervisor
-     * has already reported the reason as a diagnostic.
+     * Browser playback still works without the rack, so the caller handles this
+     * as a branch and keeps the media elements audible. The supervisor has
+     * already reported the reason as a diagnostic.
      */
     it('reports false rather than throwing, and opens no device', async () => {
       const { bridge, calls } = recordingBridge({
@@ -197,11 +197,11 @@ describe('the native backend controller', () => {
     });
 
     /**
-     * A knob turned while the switch is on TypeScript must not start a process.
+     * A settings update before engagement must not start a process.
      *
      * Without this, moving any control would spawn the host and open an audio
-     * endpoint for an engine nobody selected — which wakes the DAC and puts
-     * its noise floor into the room for no reason a user could name.
+     * endpoint before the Library needs it — which wakes the DAC and puts its
+     * noise floor into the room for no reason a user could name.
      */
     it('does nothing at all when the backend is not engaged', async () => {
       const { bridge, calls } = recordingBridge();

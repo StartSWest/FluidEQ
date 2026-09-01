@@ -232,7 +232,7 @@ const dsp = {
   'dsp.chainImport.title': 'Importa una catena DSP',
   'dsp.chainImport.hint':
     'Incolla un preset di catena DSP FluidEQ oppure scegli il relativo file JSON.',
-  'dsp.chainImport.placeholder': '{"format": "fluideq-dsp-chain", ...}',
+  'dsp.chainImport.placeholder': '"format": "fluideq-dsp-chain", ...',
   'dsp.chainImport.invalid': 'Questo non è un preset di catena DSP FluidEQ.',
   'dsp.eqSave.title': 'Salva preset',
   'dsp.eqSave.hint': 'Salva il rack così com’è.',

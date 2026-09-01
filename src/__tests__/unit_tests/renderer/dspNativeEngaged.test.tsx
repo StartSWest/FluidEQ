@@ -5,22 +5,14 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 /**
- * What the TypeScript chain stands down for, and what it must not stand down
- * for.
+ * When browser playback may be muted for the native host, and when it must not
+ * be.
  *
  * This covers one defect, and it is the defect that made shipping the native
- * engine as the default unsafe. The worklet was told to stand down whenever the
- * native backend was SELECTED, which is the same thing as it running right up
- * until the host fails to start — and then it is the opposite. A missing
- * binary, an unsupported platform, a spawn that is refused: each leaves the
- * selection at `native`, the host absent, and the worklet standing down for an
- * engine that is not there. The whole rack is bypassed and the user hears their
- * track with no EQ, no compressor and no limiter, with nothing on screen to say
- * why.
- *
- * It was invisible while the switch was a development toy, because a developer
- * who notices flips it back. It becomes every user's experience the moment the
- * default changes, which is what this file exists to prevent.
+ * engine as the default unsafe. The media elements were muted before the host
+ * had actually started. A missing binary, an unsupported platform, or a refused
+ * spawn then left no engine making sound. This file pins the actual-engagement
+ * boundary that keeps browser playback audible on failure.
  */
 import { act, renderHook, waitFor } from '@testing-library/react';
 import {
@@ -77,7 +69,7 @@ const installBridge = (bridge: INativeBackendBridge | undefined): void => {
   target.electron = { ipcRenderer: bridge };
 };
 
-describe('what the TypeScript chain stands down for', () => {
+describe('when browser playback stands down for the native host', () => {
   beforeEach(() => {
     setDspNativeState('idle');
     installBridge(undefined);
@@ -99,11 +91,11 @@ describe('what the TypeScript chain stands down for', () => {
   /**
    * The regression, and the reason for the whole file.
    *
-   * A host that does not start must leave this false, because false is what
-   * keeps the worklet processing. Selecting the native backend is not evidence
-   * that anything native is running.
+   * A host that does not start must leave this false, because false keeps the
+   * browser media elements audible. Beginning a start is not evidence that
+   * anything native is running.
    */
-  it('stays disengaged when the host cannot start, so the rack keeps running', async () => {
+  it('stays disengaged when the host cannot start, so browser playback stays audible', async () => {
     installBridge(bridgeWith(() => Promise.resolve({ state: 'failed' })));
 
     renderHook(() => useNativeBackend(DSP_DEFAULTS));
@@ -190,9 +182,9 @@ describe('the controller behind it', () => {
  * `engage` was still spawning the process, waiting for the handshake, pushing
  * the chain and opening the device. The mirror took that as its cue to mute the
  * elements and start issuing load, select and play at a host with no endpoint
- * open. The TypeScript chain had already stood down, so neither engine was
- * making sound. It only happened once because `disengage` leaves the process
- * running, so every later engage resolved fast enough to hide the window.
+ * open. The browser elements had already been muted, so neither path was making
+ * sound. It only happened once because `disengage` leaves the process running,
+ * so every later engage resolved fast enough to hide the window.
  */
 describe('the controller is not handed out early', () => {
   beforeEach(() => {

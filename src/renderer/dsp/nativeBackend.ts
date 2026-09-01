@@ -7,15 +7,13 @@ SPDX-License-Identifier: GPL-3.0-or-later
 /**
  * Driving the engine, which is now the only one there is.
  *
- * The TypeScript chain was kept beside it through the migration so the two
- * could be compared on the same material, and having been compared — 2137
- * parity fixtures, and the same samples on real music — it no longer processes
- * anything. Those modules survive purely as the reference the fixtures are
- * generated from.
+ * The TypeScript chain stayed beside it through the migration so the two could
+ * be compared on the same material. Its final 2,085 reference fixtures are now
+ * frozen in the native test corpus, and the TypeScript processors are gone.
  *
  * Everything here is a plain function over an injected surface rather than a
- * hook, for one reason: it is testable that way. The hook that uses it is four
- * lines and has nothing in it worth testing; this has the ordering that does.
+ * hook, for one reason: it is testable that way. The hook that uses it owns the
+ * lifecycle; this has the command ordering that matters.
  */
 import { IDspSettings } from '../../common/dsp/chain';
 import { encodeChainSettings } from '../../common/dsp/chainWire';
@@ -195,7 +193,7 @@ export const createNativeBackendController = (
     update: async (settings, outputSafetyEnabled) => {
       if (!engaged) {
         // Nothing to update, and pushing anyway would start the process the
-        // switch just turned off.
+        // Library has not successfully engaged.
         return false;
       }
       return pushChain(settings, outputSafetyEnabled);

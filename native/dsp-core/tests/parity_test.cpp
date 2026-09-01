@@ -7,11 +7,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
 /**
  * Hold the native engine to what the TypeScript engine already does.
  *
- * The fixtures are written by `.erb/scripts/generate-parity-fixtures.ts` from
- * the TypeScript modules themselves, so this is not a test of agreed constants
- * — it is a test that the port produces the same numbers as the thing it is
- * replacing, on signals chosen because each one is somewhere a DSP port has
- * historically gone wrong.
+ * The fixtures were frozen from the final TypeScript rack immediately before
+ * it was removed, so this is not a test of agreed constants — it is a test that
+ * the native engine keeps producing the same numbers as the thing it replaced,
+ * on signals chosen because each one is somewhere a DSP port has historically
+ * gone wrong.
  *
  * A processor the native side has not implemented yet is reported as PENDING
  * and counted, never skipped quietly. A suite that silently passes over what

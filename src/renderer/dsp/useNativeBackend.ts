@@ -84,8 +84,8 @@ export const useNativeBackend = (
     const bridge = bridgeOf();
     if (!bridge) {
       /**
-       * No preload, so no host and no way to get one. The TypeScript chain has
-       * to keep processing; saying so is what stops it standing down.
+       * No preload, so no host and no way to get one. Browser playback has to
+       * stay audible; saying so is what stops its media elements being muted.
        *
        * `idle` rather than `failed` because nothing was attempted and there is
        * nothing for a user to act on. A packaged app always has its preload —
@@ -106,8 +106,8 @@ export const useNativeBackend = (
           controllerRef.current = undefined;
         }
         // Both outcomes reported, and the failure is the one that matters: it
-        // is what keeps the TypeScript chain processing instead of standing
-        // down for an engine that never started.
+        // keeps browser playback audible instead of muting it for an engine
+        // that never started.
         setDspNativeState(ready ? 'engaged' : 'failed');
         return ready;
       })

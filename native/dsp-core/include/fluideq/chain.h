@@ -16,7 +16,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * Every stage this calls already has its own parity fixtures. What those
  * cannot see is orchestration — a stage in the wrong order, a mid/side encode
  * wrapping the wrong span, a smoothing ramp that starts a block late — so the
- * chain is held to the real worklet running under `workletHarness.ts`.
+ * chain is held to the final worklet output in the frozen parity corpus.
  *
  * Settings are a resolved struct rather than the sparse parameter table. The
  * table addresses one control for a drag; a snapshot is the whole chain, and

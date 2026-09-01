@@ -111,8 +111,8 @@ export const registerDspHostIpc = ({
     const executablePath = findDspHostExecutable();
     if (!executablePath) {
       // Not an error worth a dialog: a checkout that has never built the
-      // native target is an ordinary state, and the renderer's answer is to
-      // keep using the TypeScript engine.
+      // native target is an ordinary state. Browser playback remains available
+      // unchanged, and the renderer marks the DSP rack unavailable.
       log.info('dsp host: no executable found; native engine unavailable');
       return undefined;
     }

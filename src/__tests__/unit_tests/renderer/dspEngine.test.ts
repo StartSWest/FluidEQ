@@ -32,7 +32,11 @@ interface IHarness {
  * without a browser.
  */
 const installAudio = (
-  overrides: { addModuleFails?: boolean; resumeFails?: boolean } = {},
+  overrides: {
+    addModuleFails?: boolean;
+    resumeFails?: boolean;
+    graphFails?: boolean;
+  } = {},
 ): IHarness => {
   const source = node();
   const destination = node();
@@ -47,6 +51,17 @@ const installAudio = (
       ? Promise.reject(new Error('not allowed to start'))
       : Promise.resolve(),
   );
+  let gainCount = 0;
+  const createGain = () => {
+    gainCount += 1;
+    const gain = { ...node(), gain: { value: 1 } };
+    if (overrides.graphFails && gainCount === 1) {
+      gain.connect = jest.fn(() => {
+        throw new Error('graph refused connection');
+      });
+    }
+    return gain;
+  };
 
   Object.defineProperty(window, 'AudioContext', {
     configurable: true,
@@ -59,8 +74,9 @@ const installAudio = (
       // which is exactly the case the resume-on-play listener exists for.
       state: 'suspended',
       resume,
+      close: jest.fn(() => Promise.resolve()),
       createMediaElementSource,
-      createGain: () => ({ ...node(), gain: { value: 1 } }),
+      createGain,
       createWaveShaper: () => ({ ...node(), curve: null }),
       createBiquadFilter: () => ({
         ...node(),
@@ -79,7 +95,10 @@ const installAudio = (
   Object.defineProperty(window, 'AudioWorkletNode', {
     configurable: true,
     writable: true,
-    value: jest.fn(() => ({ ...node(), port: { postMessage: jest.fn() } })),
+    value: jest.fn(() => ({
+      ...node(),
+      port: { postMessage: jest.fn(), close: jest.fn() },
+    })),
   });
 
   return { source, destination, createMediaElementSource, addModule, resume };
@@ -145,9 +164,8 @@ describe('useDspEngine', () => {
 
   it('POSITIVE CONTROL: becomes active when everything succeeds', async () => {
     installAudio();
-    const { result } = renderHook(() =>
-      useDspEngine([element()], DSP_DEFAULTS),
-    );
+    const elements = [element()];
+    const { result } = renderHook(() => useDspEngine(elements, DSP_DEFAULTS));
     await waitFor(() => expect(result.current.active).toBe(true));
   });
 
@@ -160,9 +178,8 @@ describe('useDspEngine', () => {
    */
   it('leaves the element alone when the worklet module will not load', async () => {
     const harness = installAudio({ addModuleFails: true });
-    const { result } = renderHook(() =>
-      useDspEngine([element()], DSP_DEFAULTS),
-    );
+    const elements = [element()];
+    const { result } = renderHook(() => useDspEngine(elements, DSP_DEFAULTS));
     await waitFor(() => expect(harness.addModule).toHaveBeenCalled());
     expect(result.current.active).toBe(false);
     expect(harness.createMediaElementSource).not.toHaveBeenCalled();
@@ -170,9 +187,8 @@ describe('useDspEngine', () => {
 
   it('leaves the element alone when the context will not resume', async () => {
     const harness = installAudio({ resumeFails: true });
-    const { result } = renderHook(() =>
-      useDspEngine([element()], DSP_DEFAULTS),
-    );
+    const elements = [element()];
+    const { result } = renderHook(() => useDspEngine(elements, DSP_DEFAULTS));
     await waitFor(() => expect(harness.resume).toHaveBeenCalled());
     expect(result.current.active).toBe(false);
     expect(harness.createMediaElementSource).not.toHaveBeenCalled();
@@ -184,23 +200,23 @@ describe('useDspEngine', () => {
    * On unmount the graph goes, but the element is still captured — so it must
    * be wired straight to the destination or it plays into nothing.
    */
-  it('routes the captured element straight out when torn down', async () => {
-    const harness = installAudio();
-    const { result, unmount } = renderHook(() =>
-      useDspEngine([element()], DSP_DEFAULTS),
-    );
-    await waitFor(() => expect(result.current.active).toBe(true));
-    act(() => unmount());
-    expect(harness.source.connect).toHaveBeenLastCalledWith(
-      harness.destination,
+  it('routes the captured element straight out when graph construction fails', async () => {
+    const harness = installAudio({ graphFails: true });
+    const elements = [element()];
+    renderHook(() => useDspEngine(elements, DSP_DEFAULTS));
+    await waitFor(() =>
+      expect(harness.source.connect).toHaveBeenLastCalledWith(
+        harness.destination,
+      ),
     );
   });
 
   it('captures the element only once across re-renders', async () => {
     const harness = installAudio();
     const target = element();
+    const elements = [target];
     const { result, rerender } = renderHook(
-      ({ settings }) => useDspEngine([target], settings),
+      ({ settings }) => useDspEngine(elements, settings),
       { initialProps: { settings: DSP_DEFAULTS } },
     );
     await waitFor(() => expect(result.current.active).toBe(true));
@@ -231,7 +247,8 @@ describe('useDspEngine', () => {
   it('resumes a suspended context when playback starts', async () => {
     const harness = installAudio();
     const target = element();
-    const { result } = renderHook(() => useDspEngine([target], DSP_DEFAULTS));
+    const elements = [target];
+    const { result } = renderHook(() => useDspEngine(elements, DSP_DEFAULTS));
     await waitFor(() => expect(result.current.active).toBe(true));
     const beforePlay = harness.resume.mock.calls.length;
 
@@ -243,8 +260,9 @@ describe('useDspEngine', () => {
   it('stops listening for play once the engine is torn down', async () => {
     installAudio();
     const target = element();
+    const elements = [target];
     const { result, unmount } = renderHook(() =>
-      useDspEngine([target], DSP_DEFAULTS),
+      useDspEngine(elements, DSP_DEFAULTS),
     );
     await waitFor(() => expect(result.current.active).toBe(true));
     expect(target.listenerCount('play')).toBe(1);

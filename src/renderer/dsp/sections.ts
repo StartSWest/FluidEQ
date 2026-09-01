@@ -29,9 +29,9 @@ export type TDspSection =
 /**
  * The rack's visible workflow, with the output boundary fixed last.
  *
- * This list chooses pages; it does not schedule samples. The worklet owns the
- * approved processor topology independently, so moving a tab can never change
- * the sound by accident.
+ * This list chooses pages; it does not schedule samples. The native chain owns
+ * the approved processor topology independently, so moving a tab can never
+ * change the sound by accident.
  */
 export const DSP_SECTIONS: { id: TDspSection; labelKey: TranslationKey }[] = [
   { id: 'normalizer', labelKey: 'dsp.normalizer.title' },

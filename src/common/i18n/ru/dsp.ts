@@ -229,7 +229,7 @@ const dsp = {
   'dsp.chainImport.title': 'Импорт цепочки DSP',
   'dsp.chainImport.hint':
     'Вставьте пресет цепочки DSP FluidEQ или выберите его JSON-файл.',
-  'dsp.chainImport.placeholder': '{"format": "fluideq-dsp-chain", ...}',
+  'dsp.chainImport.placeholder': '"format": "fluideq-dsp-chain", ...',
   'dsp.chainImport.invalid': 'Это не пресет цепочки DSP FluidEQ.',
   'dsp.eqSave.title': 'Сохранить пресет',
   'dsp.eqSave.hint': 'Сохраняет рэк как есть.',

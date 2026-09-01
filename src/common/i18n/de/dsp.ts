@@ -235,7 +235,7 @@ const dsp = {
   'dsp.chainImport.title': 'DSP-Kette importieren',
   'dsp.chainImport.hint':
     'Füge ein FluidEQ-DSP-Kettenpreset ein oder wähle seine JSON-Datei.',
-  'dsp.chainImport.placeholder': '{"format": "fluideq-dsp-chain", ...}',
+  'dsp.chainImport.placeholder': '"format": "fluideq-dsp-chain", ...',
   'dsp.chainImport.invalid': 'Dies ist kein FluidEQ-DSP-Kettenpreset.',
   'dsp.eqSave.title': 'Preset speichern',
   'dsp.eqSave.hint': 'Speichert das Rack, wie es ist.',

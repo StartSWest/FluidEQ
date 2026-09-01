@@ -143,6 +143,12 @@ const eq: Partial<Dictionary> = {
   'output.title': 'Perfil automático',
   'output.device': 'Dispositivo de salida',
   'output.active': 'ACTIVO',
+  'output.apoOff': 'APO DESACT.',
+  'output.apoMissingTitle': 'Equalizer APO no está activado para esta salida',
+  'output.apoMissingBody':
+    'FluidEQ no puede cambiar {device} hasta que lo actives en el Selector de dispositivos de Equalizer APO y reinicies Windows.',
+  'output.apoConfigure': 'Activar en Selector de dispositivos',
+  'output.apoCancel': 'Cancelar',
   'output.none': 'No se han encontrado salidas activas',
   'output.mapping': 'Asignación automática',
   'output.mapping.neutral': 'Salida neutra',

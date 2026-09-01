@@ -139,6 +139,12 @@ const eq: Partial<Dictionary> = {
   'output.title': '自動プロファイル',
   'output.device': '出力デバイス',
   'output.active': '使用中',
+  'output.apoOff': 'APO オフ',
+  'output.apoMissingTitle': 'この出力では Equalizer APO が有効になっていません',
+  'output.apoMissingBody':
+    'Equalizer APO の Device Selector で {device} を有効にして Windows を再起動するまで、FluidEQ はこの出力を変更できません。',
+  'output.apoConfigure': 'Device Selector で有効にする',
+  'output.apoCancel': 'キャンセル',
   'output.none': '有効な出力が見つかりません',
   'output.mapping': '自動割り当て',
   'output.mapping.neutral': '無処理の出力',

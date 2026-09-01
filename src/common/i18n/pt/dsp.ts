@@ -231,7 +231,7 @@ const dsp = {
   'dsp.chainImport.title': 'Importar uma cadeia DSP',
   'dsp.chainImport.hint':
     'Cola uma predefinição de cadeia DSP FluidEQ ou escolhe o ficheiro JSON.',
-  'dsp.chainImport.placeholder': '{"format": "fluideq-dsp-chain", ...}',
+  'dsp.chainImport.placeholder': '"format": "fluideq-dsp-chain", ...',
   'dsp.chainImport.invalid':
     'Isto não é uma predefinição de cadeia DSP FluidEQ.',
   'dsp.eqSave.title': 'Guardar predefinição',

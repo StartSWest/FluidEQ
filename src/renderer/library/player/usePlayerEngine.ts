@@ -74,14 +74,12 @@ export const usePlayerEngine = (options: {
    * Deliberately a SHADOW rather than a replacement, which is what it stays
    * after becoming the default. The elements above keep every job they have —
    * position, events, the queue's advance, the crossfade's cue point — and are
-   * muted, while the host is told the same file at the same position. That is
-   * what made the two engines comparable while there was a switch, and it is
-   * what makes the fallback whole now that there is not: a host that cannot
-   * start leaves the elements unmuted and the TypeScript chain processing, and
-   * the only thing the user loses is which engine did the arithmetic.
+   * muted, while the host is told the same file at the same position. A host
+   * that cannot start leaves the elements unmuted, so library playback remains
+   * available unchanged while the DSP rack is visibly unavailable.
    *
-   * `useNativeBackend` answers `undefined` unless the native engine is
-   * selected, so there is nothing here to call by accident on either path.
+   * `useNativeBackend` answers `undefined` until the native engine has actually
+   * engaged, so there is nothing here to call early or on the browser path.
    */
   const nativeBackend = useNativeBackend(dspSettings);
   // And the mirror re-cues when the host moves to a different endpoint.

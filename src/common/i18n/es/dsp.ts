@@ -233,7 +233,7 @@ const dsp = {
   'dsp.chainImport.title': 'Importar una cadena DSP',
   'dsp.chainImport.hint':
     'Pega un ajuste de cadena DSP de FluidEQ o elige su archivo JSON.',
-  'dsp.chainImport.placeholder': '{"format": "fluideq-dsp-chain", ...}',
+  'dsp.chainImport.placeholder': '"format": "fluideq-dsp-chain", ...',
   'dsp.chainImport.invalid': 'Esto no es un ajuste de cadena DSP de FluidEQ.',
   'dsp.eqSave.title': 'Guardar ajuste',
   'dsp.eqSave.hint': 'Guarda el rack tal y como está.',

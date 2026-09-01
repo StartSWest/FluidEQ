@@ -112,10 +112,6 @@ add_executable(fluideq-dsp-core-test dsp-core/tests/engine_test.cpp)
 target_link_libraries(fluideq-dsp-core-test PRIVATE fluideq-dsp-core feq_strict)
 add_test(NAME dsp-core COMMAND fluideq-dsp-core-test)
 
-# Held to what the TypeScript engine already does. The corpus is regenerated
-# from those modules by `generate-parity-fixtures.ts` before this runs, so the
-# reference cannot go stale — see the head of that script for why that is the
-# right direction during a migration, and what it therefore cannot catch.
 add_executable(fluideq-resampler-test dsp-core/tests/resampler_test.cpp)
 target_link_libraries(fluideq-resampler-test PRIVATE fluideq-dsp-core feq_strict)
 add_test(NAME resampler COMMAND fluideq-resampler-test)
@@ -169,6 +165,8 @@ add_executable(fluideq-player-test dsp-core/tests/player_test.cpp)
 target_link_libraries(fluideq-player-test PRIVATE fluideq-dsp-core feq_strict)
 add_test(NAME player COMMAND fluideq-player-test)
 
+# Held to the final output of the TypeScript engine that the native rack
+# replaced. The frozen corpus is expanded by `build-native-dsp.ts --test`.
 add_executable(fluideq-dsp-parity-test dsp-core/tests/parity_test.cpp)
 target_link_libraries(fluideq-dsp-parity-test
   PRIVATE fluideq-dsp-core feq_strict)

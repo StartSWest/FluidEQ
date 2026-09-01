@@ -335,9 +335,9 @@ const DspPanel = ({
             what is happening to their music was the last thing still claiming
             there was a fallback.
 
-            Suppressed when the worklet chain has failed too, because then
-            `dsp.unavailable` directly above says the same thing and two red
-            paragraphs saying it twice is worse than one saying it once. */}
+            Suppressed when the browser audio graph has failed too, because
+            then `dsp.unavailable` directly above says the same thing and two
+            red paragraphs saying it twice is worse than one saying it once. */}
         {nativeState === 'failed' && engineState !== 'failed' ? (
           <p className="dsp-engine-down" role="alert">
             {t('dsp.engineDown')}

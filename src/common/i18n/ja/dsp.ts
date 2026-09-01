@@ -226,7 +226,7 @@ const dsp = {
   'dsp.chainImport.title': 'DSP チェーンを読み込む',
   'dsp.chainImport.hint':
     'FluidEQ DSP チェーンプリセットを貼り付けるか、JSON ファイルを選んでください。',
-  'dsp.chainImport.placeholder': '{"format": "fluideq-dsp-chain", ...}',
+  'dsp.chainImport.placeholder': '"format": "fluideq-dsp-chain", ...',
   'dsp.chainImport.invalid': 'FluidEQ DSP チェーンプリセットではありません。',
   'dsp.eqSave.title': 'プリセットを保存',
   'dsp.eqSave.hint': 'いまのラックをそのまま保存します。',

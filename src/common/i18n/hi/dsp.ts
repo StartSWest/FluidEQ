@@ -228,7 +228,7 @@ const dsp = {
   'dsp.chainImport.title': 'DSP चेन आयात करें',
   'dsp.chainImport.hint':
     'FluidEQ DSP चेन प्रीसेट चिपकाएँ या उसकी JSON फ़ाइल चुनें।',
-  'dsp.chainImport.placeholder': '{"format": "fluideq-dsp-chain", ...}',
+  'dsp.chainImport.placeholder': '"format": "fluideq-dsp-chain", ...',
   'dsp.chainImport.invalid': 'यह FluidEQ DSP चेन प्रीसेट नहीं है।',
   'dsp.eqSave.title': 'प्रीसेट सहेजें',
   'dsp.eqSave.hint': 'रैक को जैसा है वैसा सहेजें।',

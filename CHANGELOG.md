@@ -71,8 +71,11 @@ top of the page.
   makeup back off so switching the stage on and off compares the sound instead
   of the volume; and the last guard — DC blocker, invalid-sample repair,
   emergency ceiling — reports what it caught rather than silently catching it.
-- **Racks you can save, name and hand to somebody else,** alongside per-stage
-  profiles and a crossfade curve you draw and keep.
+- **Complete racks you can save, name and hand to somebody else.** A chain
+  preset keeps every stage, setting and enabled state together; it can be
+  exported as a FluidEQ DSP-chain file and opened again without confusing it
+  with an EQ curve. Per-stage profiles and a crossfade curve you draw and keep
+  sit alongside it.
 - **A native audio engine.** The whole chain is C++ in a process of its own,
   named FluidEQ-DSP so a task list says something, and it ends when the app
   does however the app ended. Two decks with a bounded read-ahead each and a
@@ -80,9 +83,10 @@ top of the page.
   engine itself and everything else the library accepts decoded through Windows
   Media Foundation; a resampler, partitioned convolution, and a loudness meter
   measuring with the filter the standard actually specifies. It was held
-  bit-identical to the engine it replaces on real music before it became the
-  default, and if it cannot start, the app says so and plays through the
-  fallback chain rather than pretending.
+  bit-identical to the engine it replaced on real music before it became the
+  only rack. If it cannot start, library playback continues unchanged, every
+  DSP stage is visibly disabled and the app says why; there is no second
+  implementation waiting to drift away from it.
 - **Smart EQ remembers a song.** Listen to a track for two minutes with a
   correction in place and FluidEQ offers to keep it; the next time that song
   plays — from the library, from Spotify, from a browser, whoever is playing it
@@ -119,6 +123,21 @@ top of the page.
 - **The DSP page moves like the rest of the app:** the same easings, the same
   card entrances, menus that open away from the now-playing bar instead of
   underneath it.
+- **An expanded or full-screen response graph follows the thing making the
+  sound.** Library art, a Karaoke stage or an Online Media page stays behind the
+  graph even while another tab is selected, and leaving that player returns to
+  one ordinary window state instead of a second competing full-screen mode.
+- **Transport controls ask the source that owns them.** Online Media uses a
+  loaded page's real Previous, Next, Play and Pause actions when it exposes
+  them; Stop, seek and the Library and Karaoke controls all reach the player
+  whose clock is on screen.
+- **The Processes panel explains the split instead of listing Chromium names.**
+  Interface, app core, graphics, browser sound, network, pages and the C++ audio
+  engine each say what they do. The engine now reports its own memory and CPU,
+  which Electron cannot measure for a separate executable.
+- **An output without Equalizer APO enabled is marked `APO OFF`.** Its device
+  card explains why FluidEQ cannot change that output and opens APO's Device
+  Selector directly instead of leaving a curve that cannot reach the device.
 
 ### Fixed
 
@@ -134,10 +153,23 @@ top of the page.
 - **A tag block with a bad length no longer costs the file** — the bounds check
   is where the bug is, rather than a retry wrapped around it.
 - **Playback enters softly** instead of stepping into the middle of a waveform,
-  and a crossfade waits until there is something to fade to.
-- **The engine follows the output device it is supposed to play to,** and brings
-  its decks back when the device changes under it.
-- **The seek bar stops reporting a song that is no longer on screen.**
+  and a crossfade waits until there is something to fade to. Next and Previous
+  also start the new song at its beginning rather than at the old song's
+  position.
+- **The engine follows the output device it is supposed to play to,** brings
+  its decks back when the device changes under it, and keeps trying while
+  Windows is between endpoints instead of staying alive and silent after the
+  first failed reopen.
+- **The seek bar asks the engine making the sound.** It no longer reports a
+  song that has left the screen, follows a stale mirror clock, or carries the
+  last player's Play state into the next source. Moving from Karaoke back to
+  the Library no longer leaves the next track silent.
+- **Smart auto-normalize no longer writes the active profile every two
+  seconds** while its measurement converges, and it no longer rebuilds every
+  response curve on every analyser frame. Unsaved edits stay unsaved and the
+  renderer keeps its time for the graphs.
+- **FluidEQ recognises its own Equalizer APO writes.** A config change the app
+  just made no longer comes back through the watcher as an outside preset edit.
 - **The Maker's tool popover was measured against the wrong box,** so its last
   row sat under the now-playing bar with no way to scroll to it.
 - **A file that had been recovered stopped calling itself an error,** and Stop

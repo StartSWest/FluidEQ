@@ -7,12 +7,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
 /**
  * A real endpoint, held open, counted for dropouts.
  *
- * This is the gap every other check in the suite leaves. The parity fixtures
- * hold the native chain to the worklet sample for sample and `smoke-engines`
- * proves the two agree on real music, but both of them render offline into a
- * buffer, and a buffer is never late. A crackle is not a wrong sample — it is a
- * right sample that did not arrive in time, and nothing computed offline can
- * see one.
+ * This is the gap every other check in the suite leaves. The frozen parity
+ * fixtures hold the native chain to the TypeScript rack it replaced, but they
+ * render offline into a buffer, and a buffer is never late. A crackle is not a
+ * wrong sample — it is a right sample that did not arrive in time, and nothing
+ * computed offline can see one.
  *
  * So this opens the actual device, holds it, and reads what only the device
  * thread can know: how many periods went unserved, and how long the callback
@@ -29,9 +28,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
  *
  * What it still cannot answer: whether the sound is CORRECT once it reaches the
  * speaker. Zero dropouts and a wrong channel map is silence in one ear, and
- * this would call it perfect. `smoke-engines` covers the samples, this covers
- * their timing, and between them what is left for ears is small and worth
- * saying out loud rather than implying.
+ * this would call it perfect. The parity and playback checks cover samples,
+ * this covers their timing, and between them what is left for ears is small and
+ * worth saying out loud rather than implying.
  */
 import { findDspHostExecutable } from '../../src/main/dspHost/hostPath';
 import { DspHostSupervisor } from '../../src/main/dspHost/supervisor';
@@ -197,7 +196,10 @@ const main = async (): Promise<void> => {
    * would stop advancing, or stop existing.
    */
   const beforeRestart = reports.at(-1)?.framesProcessed ?? 0;
-  check(await host.openDevice(), 'opening an already-open endpoint is accepted');
+  check(
+    await host.openDevice(),
+    'opening an already-open endpoint is accepted',
+  );
   await sleep(400);
   check(host.getState() === 'ready', 'and the host is still alive afterwards');
   const afterRestart = reports.at(-1)?.framesProcessed ?? 0;

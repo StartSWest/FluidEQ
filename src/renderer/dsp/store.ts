@@ -104,17 +104,12 @@ let outputSafetyEnabled = true;
 /**
  * The C++ engine is the only one that processes audio. There is no switch.
  *
- * The TypeScript chain was kept in the tree through the migration so the two
- * could be compared on the same material, and it earned that: the parity corpus
- * held the native chain to it sample for sample, and `smoke-engines` showed the
- * two agreeing on real music to 0.00e+0 — the same samples, not close ones.
- * Having been proved, it has no further job at runtime.
- *
- * It is NOT deleted. `generate-parity-fixtures.ts` still builds all 2137
- * fixtures from those modules, and they are the only thing that holds the C++
- * to a reference rather than to its own opinion. What has gone is the switch,
- * the second audible path, and the fallback: nothing TypeScript touches the
- * audio any more.
+ * The TypeScript chain stayed through the migration so the two could be
+ * compared on the same material. It earned that overlap: the parity corpus held
+ * the native chain to it sample for sample. The final 2,085 fixtures are frozen
+ * in the native tests, and the TypeScript processors themselves are gone.
+ * There is no switch, second audible path, or fallback: nothing TypeScript
+ * touches the audio any more.
  *
  * No fallback in particular is a decision rather than an omission. A chain that
  * quietly did something different when the host failed to start is a user
@@ -220,17 +215,11 @@ export const setDspOutputSafetyEnabled = (next: boolean): void => {
 /**
  * Whether the native engine is actually carrying the audio right now.
  *
- * Not the same fact as `readDspBackend`, and the difference is the whole reason
- * this exists. The backend is what was *selected*; this is what is *true*. A
- * host that fails to spawn, a platform with no device backend compiled in, a
- * binary missing from the package — each of those leaves the selection at
- * `native` while nothing native is running.
- *
- * The TypeScript chain stands down on this rather than on the selection. Keyed
- * to the selection it was actively wrong the moment native was made the default:
- * the host failing meant the worklet stood down for an engine that was not
- * there, and the user got their track with the entire rack silently bypassed —
- * no EQ, no compressor, no limiter, and nothing on screen saying so.
+ * A host that fails to spawn, a platform with no device backend compiled in, or
+ * a binary missing from the package all mean the same thing: nothing native is
+ * running. The media elements are muted only after this reaches `engaged`.
+ * Otherwise browser playback stays audible and the rack is visibly unavailable
+ * instead of becoming a silent failure.
  *
  * Three states rather than a boolean, for exactly the reason `TDspEngineState`
  * above has three: the boolean version cannot tell "has not tried yet" from

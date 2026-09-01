@@ -18,12 +18,24 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * that stops working the first time nobody does.
  */
 import { spawnSync } from 'child_process';
-import { existsSync, mkdirSync, rmSync } from 'fs';
+import { createHash } from 'crypto';
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'fs';
 import path from 'path';
+import { brotliDecompressSync } from 'zlib';
 
 const ROOT = path.join(__dirname, '..', '..');
 const NATIVE_DIR = path.join(ROOT, 'native');
 const BUILD_DIR = path.join(NATIVE_DIR, '.build');
+const PARITY_ARCHIVE = path.join(
+  NATIVE_DIR,
+  'dsp-core',
+  'tests',
+  'parity-fixtures.tar.br',
+);
+const PARITY_FIXTURES_DIR = path.join(BUILD_DIR, 'fixtures');
+const PARITY_ARCHIVE_SHA256 =
+  'a32a67ed8d38b6d321b6ba2e7a4cf85770ad896e8892a01c43501785c0586325';
+const PARITY_FIXTURE_COUNT = 2085;
 
 const isWindows = process.platform === 'win32';
 const shouldClean = process.argv.includes('--clean');
@@ -177,6 +189,76 @@ const generate = (script: string) => {
   }
 };
 
+/**
+ * Expand the final TypeScript-to-C++ comparison corpus without bringing the
+ * retired TypeScript rack back into the tree.
+ *
+ * The corpus was frozen from commit 929e5d397, immediately before the
+ * TypeScript processors were removed. Brotli is built into Node; the payload
+ * is an ordinary POSIX tar so no platform package manager or archive utility
+ * becomes a test prerequisite.
+ */
+const extractParityFixtures = (): void => {
+  const compressed = readFileSync(PARITY_ARCHIVE);
+  const digest = createHash('sha256').update(compressed).digest('hex');
+  if (digest !== PARITY_ARCHIVE_SHA256) {
+    fail(`the frozen parity archive has SHA-256 ${digest}`);
+  }
+
+  const tar = brotliDecompressSync(compressed);
+  rmSync(PARITY_FIXTURES_DIR, { recursive: true, force: true });
+  mkdirSync(PARITY_FIXTURES_DIR, { recursive: true });
+
+  let offset = 0;
+  let written = 0;
+  while (offset + 512 <= tar.length) {
+    const header = tar.subarray(offset, offset + 512);
+    if (header.every((byte) => byte === 0)) {
+      break;
+    }
+
+    const nul = header.indexOf(0);
+    const rawName = header
+      .subarray(0, nul < 0 ? 100 : Math.min(nul, 100))
+      .toString('utf8');
+    const sizeText = header
+      .subarray(124, 136)
+      .toString('ascii')
+      .replace(/\0/g, '')
+      .trim();
+    const size = Number.parseInt(sizeText || '0', 8);
+    const type = header[156];
+    offset += 512;
+
+    if (!Number.isSafeInteger(size) || size < 0 || offset + size > tar.length) {
+      fail(`the frozen parity archive has an invalid entry: ${rawName}`);
+    }
+
+    if (type === 0 || type === 48) {
+      const name = rawName.replace(/^\.\//, '');
+      if (!name || name.includes('/') || name.includes('\\')) {
+        fail(`the frozen parity archive has an unsafe entry: ${rawName}`);
+      }
+      writeFileSync(
+        path.join(PARITY_FIXTURES_DIR, name),
+        tar.subarray(offset, offset + size),
+      );
+      written += 1;
+    } else if (!(type === 53 && (rawName === './' || rawName === '.'))) {
+      fail(`the frozen parity archive has an unsupported entry: ${rawName}`);
+    }
+
+    offset += Math.ceil(size / 512) * 512;
+  }
+
+  if (written !== PARITY_FIXTURE_COUNT) {
+    fail(
+      `the frozen parity archive contains ${written} fixtures; expected ${PARITY_FIXTURE_COUNT}`,
+    );
+  }
+  console.log(`native parity: ${written} frozen fixtures extracted`);
+};
+
 generate('generate-native-parameters.ts');
 
 mkdirSync(BUILD_DIR, { recursive: true });
@@ -194,13 +276,21 @@ run(tools, [
 run(tools, ['--build', BUILD_DIR, '--config', 'Release']);
 
 if (shouldTest) {
-  // After the build, not before: the corpus is a hundred and eighty files and
-  // nothing but the tests reads it, so an ordinary `pnpm build` should not pay
-  // for it. Regenerated every run so the reference cannot go stale.
-  generate('generate-parity-fixtures.ts');
-  const ctest = path.join(path.dirname(tools.cmake), isWindows ? 'ctest.exe' : 'ctest');
+  // After the build, not before: nothing but the tests reads the corpus, so an
+  // ordinary `pnpm build` should not pay to expand it.
+  extractParityFixtures();
+  const ctest = path.join(
+    path.dirname(tools.cmake),
+    isWindows ? 'ctest.exe' : 'ctest',
+  );
   const runner = existsSync(ctest) ? ctest : 'ctest';
-  const args = ['--test-dir', BUILD_DIR, '--output-on-failure', '-C', 'Release'];
+  const args = [
+    '--test-dir',
+    BUILD_DIR,
+    '--output-on-failure',
+    '-C',
+    'Release',
+  ];
   const result = isWindows
     ? spawnSync(windowsShellCommand(tools, runner, args), {
         stdio: 'inherit',

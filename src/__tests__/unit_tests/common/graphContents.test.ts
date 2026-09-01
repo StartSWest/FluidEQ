@@ -65,6 +65,9 @@ describe('what the plot is showing', () => {
     MODES.forEach((mode) => {
       setGraphView(mode);
       setGraphContents('everything');
+      if (getGraphCoverageHidden()) {
+        toggleGraphCoverage();
+      }
     });
     setGraphView('normal');
   });
@@ -101,43 +104,31 @@ describe('what the plot is showing', () => {
     expect(seen).toEqual(['layers', 'curves', 'clean', 'wave', 'everything']);
   });
 
-  /**
-   * The fourth stop, and the switch that has to be its exact inverse.
-   *
-   * `clean` is the one state whose flag a menu switch also writes, so that
-   * switch has to be able to undo itself from wherever it was pressed —
-   * including from `layers`, whose quiet EQ line no control in the app can put
-   * back. It works because the switch moves the coverage flag and nothing else,
-   * and because `getGraphContents` asks about coverage before it asks about the
-   * quiet line. Read the other way round, the trip out would still work and the
-   * trip home would land somewhere else.
-   */
-  it('lets the coverage switch reach clean and come straight back', () => {
+  it('changes the coverage wash without changing the named graph state', () => {
     setGraphContents('layers');
+    expect(getGraphCoverageHidden()).toBe(false);
 
     toggleGraphCoverage();
     expect(getGraphCoverageHidden()).toBe(true);
-    expect(getGraphContents()).toBe('clean');
+    expect(getGraphContents()).toBe('layers');
 
     toggleGraphCoverage();
     expect(getGraphCoverageHidden()).toBe(false);
     expect(getGraphContents()).toBe('layers');
   });
 
-  it('takes the wash away at the fourth stop and gives it back round the loop', () => {
+  it('leaves the coverage choice alone while the cycle visits clean', () => {
     setGraphContents('everything');
     expect(getGraphCoverageHidden()).toBe(false);
 
     setGraphContents('clean');
-    expect(getGraphCoverageHidden()).toBe(true);
+    expect(getGraphCoverageHidden()).toBe(false);
 
-    // `wave` keeps it hidden — there are no curves left for it to wash over —
-    // and the press after that is back at the top with the columns on. Hidden
-    // here used to mean hidden until somebody said otherwise; the cycle writes
-    // this flag now, which is the whole of what `clean` cost.
+    // Clean is a presentation override. The independent wash preference stays
+    // where the user left it underneath, through both neighbours of the stop.
     cycleGraphContents();
     expect(getGraphContents()).toBe('wave');
-    expect(getGraphCoverageHidden()).toBe(true);
+    expect(getGraphCoverageHidden()).toBe(false);
 
     cycleGraphContents();
     expect(getGraphContents()).toBe('everything');

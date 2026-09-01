@@ -117,7 +117,8 @@ const WAVE_STEM = 'fluideq.graphWaveHidden';
 const SOLO_STEM = 'fluideq.graphSolo';
 const QUIET_EQ_STEM = 'fluideq.graphQuietEq';
 const CURVES_STEM = 'fluideq.graphHiddenCurves';
-/** The newest of them: a menu switch first, and the cycle's fourth stop since. */
+const CLEAN_STEM = 'fluideq.graphClean';
+/** Independent from the five-state contents cycle. */
 const COVERAGE_STEM = 'fluideq.graphCoverageHidden';
 
 describe('one set of view settings per mode', () => {
@@ -261,12 +262,13 @@ describe('one set of view settings per mode', () => {
     style.setGraphView('fullscreen');
     expect(style.getGraphWaveHidden()).toBe(true);
 
-    // The coverage wash joined them when `clean` did. It was already per mode
-    // as a menu switch, which is the only reason the cycle could take it
-    // without one mode's stop showing up in another's.
+    // Clean has a flag of its own. Reusing coverage here destroyed the user's
+    // independent wash choice every time the five-state cycle passed through
+    // its blank presentation.
     style.setGraphContents('clean');
-    expect(stored(`${COVERAGE_STEM}.fullscreen`)).toBe('true');
-    expect(stored(`${COVERAGE_STEM}.normal`)).toBeNull();
+    expect(stored(`${CLEAN_STEM}.fullscreen`)).toBe('true');
+    expect(stored(`${CLEAN_STEM}.normal`)).toBeNull();
+    expect(stored(`${COVERAGE_STEM}.fullscreen`)).toBeNull();
   });
 
   it('keeps the hidden curves per mode, still comma-joined', () => {

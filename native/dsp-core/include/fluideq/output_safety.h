@@ -47,7 +47,7 @@ extern "C" {
  * only runs below +10 dBTP, where nothing needs limiting anyway.
  *
  * Mirrors `OUTPUT_SAFETY_RELEASE_MS` in `outputSafety.ts` and must move with
- * it: the parity corpus is generated from that side.
+ * it: the frozen parity corpus was generated from that side.
  */
 #define FEQ_SAFETY_RELEASE_MS 1000.0
 #define FEQ_SAFETY_DC_CUTOFF_HZ 3.0

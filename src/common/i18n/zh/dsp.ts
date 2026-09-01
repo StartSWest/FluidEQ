@@ -214,7 +214,7 @@ const dsp = {
   'dsp.chainShare.hint': '将完整滤镜链保存为可分享的文件。',
   'dsp.chainImport.title': '导入 DSP 链',
   'dsp.chainImport.hint': '粘贴 FluidEQ DSP 链预设，或选择其 JSON 文件。',
-  'dsp.chainImport.placeholder': '{"format": "fluideq-dsp-chain", ...}',
+  'dsp.chainImport.placeholder': '"format": "fluideq-dsp-chain", ...',
   'dsp.chainImport.invalid': '这不是 FluidEQ DSP 链预设。',
   'dsp.eqSave.title': '保存预设',
   'dsp.eqSave.hint': '按当前状态保存机架。',

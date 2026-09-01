@@ -44,9 +44,9 @@ import { dspWorkletConfig } from '../../../../.erb/configs/webpack.dspWorklet';
  * hold the entire rack and most of the cases here drove it: the maximizer's
  * ceiling, the compressor's reduction, Drive on quiet material, the background
  * normalization hand-off, every factory preset for non-finite samples. All of
- * that arithmetic is now C++ and is measured by `smoke-engines.ts`, which
- * renders the same song through both engines and subtracts. The worklet is a
- * wire, and a wire has exactly the three behaviours below it can get wrong.
+ * that arithmetic is now C++ and is covered by native unit tests, the frozen
+ * migration parity corpus, and host playback smokes. The worklet is a wire, and
+ * a wire has exactly the three behaviours below it can get wrong.
  */
 const BUNDLE = path.join(
   __dirname,

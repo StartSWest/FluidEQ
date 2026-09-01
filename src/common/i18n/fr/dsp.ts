@@ -232,7 +232,7 @@ const dsp = {
   'dsp.chainImport.title': 'Importer une chaîne DSP',
   'dsp.chainImport.hint':
     'Collez un préréglage de chaîne DSP FluidEQ ou choisissez son fichier JSON.',
-  'dsp.chainImport.placeholder': '{"format": "fluideq-dsp-chain", ...}',
+  'dsp.chainImport.placeholder': '"format": "fluideq-dsp-chain", ...',
   'dsp.chainImport.invalid':
     'Ceci n’est pas un préréglage de chaîne DSP FluidEQ.',
   'dsp.eqSave.title': 'Enregistrer le préréglage',
