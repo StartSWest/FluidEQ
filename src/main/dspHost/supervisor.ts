@@ -26,6 +26,7 @@ import {
   DSP_DIAGNOSTIC_CODES,
   DSP_DIAGNOSTIC_SCHEMA_VERSION,
   IDspDiagnosticEvent,
+  TDspDiagnosticValue,
   TDspDiagnosticSeverity,
   TDspDiagnosticCode,
 } from '../../common/dsp/diagnostics';
@@ -50,6 +51,11 @@ import {
 
 export type TDspHostState = 'stopped' | 'starting' | 'ready' | 'failed';
 
+export interface IDspHostLifecycleEvent {
+  event: string;
+  values: Readonly<Record<string, TDspDiagnosticValue>>;
+}
+
 export interface IDspHostOptions {
   executablePath: string;
   /** How many parameters this build of the renderer knows about. */
@@ -59,6 +65,8 @@ export interface IDspHostOptions {
   onAnalysis?: (analysis: IHostAnalysis) => void;
   onDiagnostic?: (event: IDspDiagnosticEvent) => void;
   onStateChange?: (state: TDspHostState) => void;
+  /** Structured process-boundary evidence written by Electron main. */
+  onLifecycle?: (event: IDspHostLifecycleEvent) => void;
 }
 
 /**
@@ -89,6 +97,15 @@ interface IPending {
   resolve: (ack: IHostAck) => void;
   reject: (error: Error) => void;
   timer: ReturnType<typeof setTimeout>;
+  child: ChildProcessWithoutNullStreams;
+}
+
+interface IChildLifecycle {
+  generation: number;
+  startedAt: number;
+  analysisFrames: number;
+  lastAnalysisAt: number;
+  shutdownRequested: boolean;
 }
 
 export class DspHostSupervisor {
@@ -103,6 +120,20 @@ export class DspHostSupervisor {
   private readonly pending = new Map<number, IPending>();
 
   private readonly stderrTail: string[] = [];
+
+  /** A pipe chunk is not guaranteed to end at a line boundary. */
+  private readonly stderrRemainders = new WeakMap<
+    ChildProcessWithoutNullStreams,
+    string
+  >();
+
+  /** Identity is per process, so a late exit cannot be mistaken for the new one. */
+  private readonly childLifecycles = new WeakMap<
+    ChildProcessWithoutNullStreams,
+    IChildLifecycle
+  >();
+
+  private generation = 0;
 
   /**
    * The host's own memory and CPU, cleared with the process it described.
@@ -128,6 +159,9 @@ export class DspHostSupervisor {
   private lastVoiceModel: readonly [string, string] | undefined;
 
   private deviceWanted = false;
+
+  /** Restored after an unexpected restart, just like the chain and device. */
+  private analysisWanted = false;
 
   /** Set once a fatal condition is reported, so it is reported only once. */
   private reportedFailure = false;
@@ -174,7 +208,9 @@ export class DspHostSupervisor {
   }
 
   async start(): Promise<boolean> {
+    this.trace('start-requested');
     if (this.state === 'ready' || this.state === 'starting') {
+      this.trace('start-reused');
       return this.state === 'ready';
     }
     this.reportedFailure = false;
@@ -186,8 +222,14 @@ export class DspHostSupervisor {
     const { child } = this;
     if (!child) {
       this.setState('stopped');
+      this.trace('stop-complete', undefined, { reason: 'no-child' });
       return;
     }
+    const lifecycle = this.childLifecycles.get(child);
+    if (lifecycle) {
+      lifecycle.shutdownRequested = true;
+    }
+    this.trace('stop-requested', child);
     /**
      * Mark the exit as intentional before asking for it.
      *
@@ -206,11 +248,13 @@ export class DspHostSupervisor {
     // a process that no longer exists until Windows notices.
     try {
       await this.send(HOST_COMMANDS.shutdown, {});
+      this.trace('shutdown-acknowledged', child);
     } catch {
-      // It was already going. Nothing to add.
+      this.trace('shutdown-command-failed', child);
     }
     await new Promise<void>((resolve) => {
       const timer = setTimeout(() => {
+        this.trace('shutdown-force-kill', child);
         child.kill();
         resolve();
       }, SHUTDOWN_DEADLINE_MS);
@@ -219,20 +263,46 @@ export class DspHostSupervisor {
         resolve();
       });
     });
-    this.child = undefined;
-    this.stats = undefined;
+    if (this.child === child) {
+      this.child = undefined;
+      this.stats = undefined;
+    }
+    this.trace('stop-complete', child);
   }
 
   async openDevice(): Promise<boolean> {
     this.deviceWanted = true;
-    const ack = await this.send(HOST_COMMANDS.start, {});
-    return ack.status === HOST_STATUS.applied;
+    this.trace('device-open-requested');
+    try {
+      const ack = await this.send(HOST_COMMANDS.start, {});
+      const applied = ack.status === HOST_STATUS.applied;
+      this.trace('device-open-complete', undefined, {
+        applied,
+        sampleRate: ack.sanitizedValue,
+      });
+      return applied;
+    } catch (error: unknown) {
+      this.trace('device-open-failed', undefined, {
+        message: error instanceof Error ? error.message : String(error),
+      });
+      throw error;
+    }
   }
 
   async closeDevice(): Promise<boolean> {
     this.deviceWanted = false;
-    const ack = await this.send(HOST_COMMANDS.stop, {});
-    return ack.status === HOST_STATUS.applied;
+    this.trace('device-close-requested');
+    try {
+      const ack = await this.send(HOST_COMMANDS.stop, {});
+      const applied = ack.status === HOST_STATUS.applied;
+      this.trace('device-close-complete', undefined, { applied });
+      return applied;
+    } catch (error: unknown) {
+      this.trace('device-close-failed', undefined, {
+        message: error instanceof Error ? error.message : String(error),
+      });
+      throw error;
+    }
   }
 
   /**
@@ -462,10 +532,22 @@ export class DspHostSupervisor {
    * never opens it should not pay for the graphs in it.
    */
   async setAnalysis(enabled: boolean): Promise<boolean> {
-    const ack = await this.send(HOST_COMMANDS.setAnalysis, {
-      parameterId: enabled ? 1 : 0,
-    });
-    return ack.status === HOST_STATUS.applied;
+    this.analysisWanted = enabled;
+    this.trace('analysis-requested', undefined, { enabled });
+    try {
+      const ack = await this.send(HOST_COMMANDS.setAnalysis, {
+        parameterId: enabled ? 1 : 0,
+      });
+      const applied = ack.status === HOST_STATUS.applied;
+      this.trace('analysis-request-complete', undefined, { enabled, applied });
+      return applied;
+    } catch (error: unknown) {
+      this.trace('analysis-request-failed', undefined, {
+        enabled,
+        message: error instanceof Error ? error.message : String(error),
+      });
+      throw error;
+    }
   }
 
   /**
@@ -483,8 +565,42 @@ export class DspHostSupervisor {
     if (this.state === next) {
       return;
     }
+    const previous = this.state;
     this.state = next;
+    this.trace('state-changed', undefined, { previous, next });
     this.options.onStateChange?.(next);
+  }
+
+  /**
+   * One structured record for every lifecycle boundary worth correlating.
+   *
+   * The old log only carried diagnostic code 3004 after the restart budget was
+   * gone. It did not say which process left, whether that process had been asked
+   * to stop, whether a replacement already existed, or whether analysis had
+   * ever produced a frame. Those are the facts that distinguish a device fault,
+   * a process crash and a stale-exit race, so they travel with every boundary.
+   */
+  private trace(
+    event: string,
+    child: ChildProcessWithoutNullStreams | undefined = this.child,
+    values: Readonly<Record<string, TDspDiagnosticValue>> = {},
+  ): void {
+    const lifecycle = child ? this.childLifecycles.get(child) : undefined;
+    this.options.onLifecycle?.({
+      event,
+      values: {
+        pid: child?.pid ?? null,
+        generation: lifecycle?.generation ?? this.generation,
+        state: this.state,
+        current: child ? this.child === child : this.child !== undefined,
+        shutdownRequested: lifecycle?.shutdownRequested ?? false,
+        deviceWanted: this.deviceWanted,
+        analysisWanted: this.analysisWanted,
+        analysisFrames: lifecycle?.analysisFrames ?? 0,
+        restartAttempts: this.restartTimes.length,
+        ...values,
+      },
+    });
   }
 
   /**
@@ -510,7 +626,9 @@ export class DspHostSupervisor {
     code: TDspDiagnosticCode,
     values: Record<string, string | number | boolean | null>,
     severity: TDspDiagnosticSeverity = 'error',
+    child: ChildProcessWithoutNullStreams | undefined = this.child,
   ): void {
+    const lifecycle = child ? this.childLifecycles.get(child) : undefined;
     const detail = this.stderrDetail();
     this.options.onDiagnostic?.({
       schemaVersion: DSP_DIAGNOSTIC_SCHEMA_VERSION,
@@ -520,7 +638,23 @@ export class DspHostSupervisor {
       // The host's own message, whenever it left one. Absent rather than an
       // empty string when it did not, so a log line does not carry a field
       // that says nothing.
-      values: detail ? { ...values, detail } : values,
+      values: {
+        ...values,
+        pid: child?.pid ?? null,
+        generation: lifecycle?.generation ?? this.generation,
+        state: this.state,
+        current: child ? this.child === child : this.child !== undefined,
+        shutdownRequested: lifecycle?.shutdownRequested ?? false,
+        deviceWanted: this.deviceWanted,
+        analysisWanted: this.analysisWanted,
+        analysisFrames: lifecycle?.analysisFrames ?? 0,
+        lastAnalysisAgeMs:
+          lifecycle && lifecycle.lastAnalysisAt > 0
+            ? Date.now() - lifecycle.lastAnalysisAt
+            : null,
+        restartAttempts: this.restartTimes.length,
+        ...(detail ? { detail } : {}),
+      },
     });
   }
 
@@ -528,17 +662,20 @@ export class DspHostSupervisor {
   private fail(
     code: TDspDiagnosticCode,
     values: Record<string, string | number | boolean | null>,
+    child: ChildProcessWithoutNullStreams | undefined = this.child,
   ): void {
     this.setState('failed');
     if (this.reportedFailure) {
       return;
     }
     this.reportedFailure = true;
-    this.report(code, values);
+    this.report(code, values, 'error', child);
   }
 
   private async spawnAndHandshake(): Promise<boolean> {
     this.setState('starting');
+    this.generation += 1;
+    const { generation } = this;
     let child: ChildProcessWithoutNullStreams;
     try {
       /**
@@ -563,6 +700,11 @@ export class DspHostSupervisor {
         },
       );
     } catch (error: unknown) {
+      this.trace('spawn-failed', undefined, {
+        generation,
+        path: this.options.executablePath,
+        message: error instanceof Error ? error.message : String(error),
+      });
       this.fail(DSP_DIAGNOSTIC_CODES.hostSpawnFailed, {
         path: this.options.executablePath,
         message: error instanceof Error ? error.message : String(error),
@@ -570,6 +712,14 @@ export class DspHostSupervisor {
       return false;
     }
     this.child = child;
+    this.childLifecycles.set(child, {
+      generation,
+      startedAt: Date.now(),
+      analysisFrames: 0,
+      lastAnalysisAt: 0,
+      shutdownRequested: false,
+    });
+    this.trace('spawned', child, { path: this.options.executablePath });
 
     const handshakeArrived = new Promise<IHostHandshake | undefined>(
       (resolve) => {
@@ -582,14 +732,38 @@ export class DspHostSupervisor {
             clearTimeout(timer);
             resolve(handshake);
           },
-          onAck: (ack) => this.settle(ack),
-          onTelemetry: (telemetry) => this.options.onTelemetry?.(telemetry),
-          onAnalysis: (analysis) => this.options.onAnalysis?.(analysis),
+          onAck: (ack) => this.settle(child, ack),
+          onTelemetry: (telemetry) => {
+            if (this.child === child) {
+              this.options.onTelemetry?.(telemetry);
+            }
+          },
+          onAnalysis: (analysis) => {
+            if (this.child !== child) {
+              return;
+            }
+            const lifecycle = this.childLifecycles.get(child);
+            if (lifecycle) {
+              lifecycle.analysisFrames += 1;
+              lifecycle.lastAnalysisAt = Date.now();
+              if (lifecycle.analysisFrames === 1) {
+                this.trace('analysis-first-frame', child);
+              }
+            }
+            this.options.onAnalysis?.(analysis);
+          },
           onStats: (stats) => {
-            this.stats = stats;
+            if (this.child === child) {
+              this.stats = stats;
+            }
           },
           onDesynchronised: (magic) => {
             clearTimeout(timer);
+            if (this.child !== child) {
+              this.trace('stale-desynchronisation-ignored', child, { magic });
+              resolve(undefined);
+              return;
+            }
             this.fail(DSP_DIAGNOSTIC_CODES.hostStreamDesynchronised, {
               magic,
             });
@@ -601,9 +775,18 @@ export class DspHostSupervisor {
       },
     );
 
-    child.stderr.on('data', (chunk: Buffer) => this.captureStderr(chunk));
-    child.on('close', (code) => this.onExit(code ?? -1));
+    child.stderr.on('data', (chunk: Buffer) =>
+      this.captureStderr(child, chunk),
+    );
+    child.on('close', (code, signal) => this.onExit(child, code ?? -1, signal));
     child.on('error', (error: Error) => {
+      if (this.child !== child) {
+        this.trace('stale-process-error-ignored', child, {
+          message: error.message,
+        });
+        return;
+      }
+      this.trace('process-error', child, { message: error.message });
       this.fail(DSP_DIAGNOSTIC_CODES.hostSpawnFailed, {
         path: this.options.executablePath,
         message: error.message,
@@ -611,6 +794,15 @@ export class DspHostSupervisor {
     });
 
     const handshake = await handshakeArrived;
+    const lifecycle = this.childLifecycles.get(child);
+    if (
+      this.child !== child ||
+      lifecycle?.shutdownRequested ||
+      this.state === 'stopped'
+    ) {
+      this.trace('stale-handshake-ignored', child);
+      return false;
+    }
     if (!handshake) {
       if (this.state !== 'failed') {
         this.fail(DSP_DIAGNOSTIC_CODES.hostHandshakeRejected, {
@@ -642,6 +834,13 @@ export class DspHostSupervisor {
 
     this.handshake = handshake;
     this.setState('ready');
+    this.trace('handshake-ready', child, {
+      protocolVersion: handshake.protocolVersion,
+      parameterCount: handshake.parameterCount,
+      analysisFrameBytes: handshake.analysisFrameBytes,
+      buildRevision: handshake.buildRevision,
+      backend: handshake.backend,
+    });
     return true;
   }
 
@@ -676,9 +875,26 @@ export class DspHostSupervisor {
     return undefined;
   }
 
-  private captureStderr(chunk: Buffer): void {
-    const lines = chunk.toString('utf8').split(/\r?\n/).filter(Boolean);
-    this.stderrTail.push(...lines);
+  private captureStderr(
+    child: ChildProcessWithoutNullStreams,
+    chunk: Buffer,
+  ): void {
+    const joined =
+      (this.stderrRemainders.get(child) ?? '') + chunk.toString('utf8');
+    const lines = joined.split(/\r?\n/);
+    this.stderrRemainders.set(child, lines.pop() ?? '');
+    lines.filter(Boolean).forEach((line) => this.recordStderr(child, line));
+  }
+
+  private recordStderr(
+    child: ChildProcessWithoutNullStreams,
+    line: string,
+  ): void {
+    const generation = this.childLifecycles.get(child)?.generation ?? 0;
+    this.stderrTail.push(
+      `[pid=${child.pid ?? 'unknown'} generation=${generation}] ${line}`,
+    );
+    this.trace('stderr', child, { line });
     // Bounded, because a host looping on a device error can produce a great
     // deal of it and main is not where a log file belongs.
     while (this.stderrTail.length > STDERR_TAIL_LINES) {
@@ -686,11 +902,12 @@ export class DspHostSupervisor {
     }
   }
 
-  private settle(ack: IHostAck): void {
+  private settle(child: ChildProcessWithoutNullStreams, ack: IHostAck): void {
     const waiting = this.pending.get(ack.requestId);
-    if (!waiting) {
+    if (!waiting || waiting.child !== child) {
       // A reply to a request from a previous host, arriving after a restart.
       // Dropped: applying it would act on state the new host has never seen.
+      this.trace('stale-ack-ignored', child, { requestId: ack.requestId });
       return;
     }
     clearTimeout(waiting.timer);
@@ -698,16 +915,55 @@ export class DspHostSupervisor {
     waiting.resolve(ack);
   }
 
-  private onExit(code: number): void {
+  private onExit(
+    child: ChildProcessWithoutNullStreams,
+    code: number,
+    signal: NodeJS.Signals | null,
+  ): void {
+    const remainder = this.stderrRemainders.get(child)?.trim();
+    if (remainder) {
+      this.recordStderr(child, remainder);
+    }
+    this.stderrRemainders.delete(child);
+
+    const lifecycle = this.childLifecycles.get(child);
+    const stateAtExit = this.state;
+    const isCurrent = this.child === child;
+    this.trace('exited', child, {
+      code,
+      signal: signal ?? 'none',
+      stateAtExit,
+      uptimeMs: lifecycle ? Date.now() - lifecycle.startedAt : 0,
+    });
+
+    /**
+     * A replacement may already own the supervisor when an older child closes.
+     *
+     * `stop()` marks the old host stopped before awaiting its acknowledgement.
+     * Playback can restart during that await and spawn a replacement. The old
+     * close used to clear `this.child`, reject the replacement's commands and
+     * count a clean code-zero exit against the crash budget. Three quick
+     * play/pause handovers therefore produced diagnostic 3004 even though every
+     * native process had shut down correctly.
+     */
+    if (!isCurrent) {
+      this.trace('stale-exit-ignored', child, {
+        code,
+        signal: signal ?? 'none',
+      });
+      this.rejectPendingFor(child);
+      return;
+    }
+
     this.child = undefined;
     this.stats = undefined;
-    this.pending.forEach((waiting) => {
-      clearTimeout(waiting.timer);
-      waiting.reject(new Error('the DSP host exited'));
-    });
-    this.pending.clear();
+    this.rejectPendingFor(child);
 
-    if (this.state === 'stopped' || this.state === 'failed') {
+    if (
+      lifecycle?.shutdownRequested ||
+      stateAtExit === 'stopped' ||
+      stateAtExit === 'failed'
+    ) {
       return;
     }
 
@@ -725,8 +981,14 @@ export class DspHostSupervisor {
      */
     this.report(
       DSP_DIAGNOSTIC_CODES.hostExited,
-      { code },
+      {
+        code,
+        signal: signal ?? 'none',
+        uptimeMs: lifecycle ? Date.now() - lifecycle.startedAt : 0,
+        stateAtExit,
+      },
       code === 0 ? 'info' : 'error',
+      child,
     );
 
     const now = Date.now();
@@ -734,17 +996,41 @@ export class DspHostSupervisor {
       (at) => now - at < RESTART_WINDOW_MS,
     );
     if (this.restartTimes.length >= RESTART_BUDGET) {
-      this.fail(DSP_DIAGNOSTIC_CODES.hostRestartBudgetExhausted, {
-        attempts: this.restartTimes.length,
+      this.trace('restart-budget-exhausted', child, {
+        code,
         windowMs: RESTART_WINDOW_MS,
       });
+      this.fail(
+        DSP_DIAGNOSTIC_CODES.hostRestartBudgetExhausted,
+        {
+          attempts: this.restartTimes.length,
+          windowMs: RESTART_WINDOW_MS,
+        },
+        child,
+      );
       return;
     }
     this.restartTimes.push(now);
+    this.trace('restart-scheduled', child, {
+      code,
+      attempt: this.restartTimes.length,
+      windowMs: RESTART_WINDOW_MS,
+    });
     // Caught rather than discarded: `restore` reopens a device, and a rejection
     // there is the difference between a host that came back silent and one
     // that came back working. The failure is already reported by whatever threw.
     this.restore().catch(() => undefined);
+  }
+
+  private rejectPendingFor(child: ChildProcessWithoutNullStreams): void {
+    this.pending.forEach((waiting, requestId) => {
+      if (waiting.child !== child) {
+        return;
+      }
+      clearTimeout(waiting.timer);
+      waiting.reject(new Error('the DSP host exited'));
+      this.pending.delete(requestId);
+    });
   }
 
   /**
@@ -774,6 +1060,13 @@ export class DspHostSupervisor {
     }
     if (this.lastVoiceModel) {
       await this.loadVoiceModel(this.lastVoiceModel[0], this.lastVoiceModel[1]);
+    }
+    // The replacement defaults analysis to off. The DSP panel stays mounted
+    // across a supervised crash, so it does not issue another request itself;
+    // without restoring this flag every FX visualizer remains blank until the
+    // panel is closed and opened again.
+    if (this.analysisWanted) {
+      await this.setAnalysis(true);
     }
     if (this.deviceWanted) {
       await this.openDevice();
@@ -805,7 +1098,7 @@ export class DspHostSupervisor {
         this.pending.delete(requestId);
         reject(new Error(`the DSP host did not answer request ${requestId}`));
       }, ACK_DEADLINE_MS);
-      this.pending.set(requestId, { resolve, reject, timer });
+      this.pending.set(requestId, { resolve, reject, timer, child });
 
       child.stdin.write(
         encodeCommand({

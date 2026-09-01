@@ -21,7 +21,10 @@ import { DspHostSupervisor } from '../../src/main/dspHost/supervisor';
 import { findDspHostExecutable } from '../../src/main/dspHost/hostPath';
 import { NATIVE_DSP_PARAMETERS } from '../../src/common/dsp/nativeParameters';
 import { IDspDiagnosticEvent } from '../../src/common/dsp/diagnostics';
-import { IHostTelemetry } from '../../src/main/dspHost/wire';
+import {
+  IHostAnalysis,
+  IHostTelemetry,
+} from '../../src/main/dspHost/wire';
 
 let failures = 0;
 const check = (condition: boolean, what: string) => {
@@ -62,6 +65,7 @@ const main = async () => {
 
   const diagnostics: IDspDiagnosticEvent[] = [];
   const telemetry: IHostTelemetry[] = [];
+  const analysis: IHostAnalysis[] = [];
   const states: string[] = [];
 
   const supervisor = new DspHostSupervisor({
@@ -69,6 +73,7 @@ const main = async () => {
     expectedParameterCount: PARAMETER_COUNT,
     onDiagnostic: (event) => diagnostics.push(event),
     onTelemetry: (frame) => telemetry.push(frame),
+    onAnalysis: (frame) => analysis.push(frame),
     onStateChange: (state) => states.push(state),
   });
 
@@ -108,10 +113,13 @@ const main = async () => {
     (telemetry[telemetry.length - 1]?.sampleRate ?? 0) >= 44100,
     `telemetry carries the negotiated rate (${telemetry[telemetry.length - 1]?.sampleRate})`,
   );
-  check(await supervisor.closeDevice(), 'the device closes through the supervisor');
+  check(await supervisor.setAnalysis(true), 'analysis is enabled');
+  await waitFor(() => analysis.length > 0, 'the first analysis frame');
+  check(analysis.length > 0, 'analysis reaches the supervisor');
 
   console.log('crash recovery');
   const before = supervisor.getPid();
+  const analysisBeforeRestart = analysis.length;
   const diagnosticsBefore = diagnostics.length;
   process.kill(before ?? 0);
   await waitFor(
@@ -120,6 +128,14 @@ const main = async () => {
   );
   check(supervisor.getState() === 'ready', 'a killed host is replaced');
   check(supervisor.getPid() !== before, 'the replacement is a new process');
+  await waitFor(
+    () => analysis.length > analysisBeforeRestart,
+    'analysis from the replacement host',
+  );
+  check(
+    analysis.length > analysisBeforeRestart,
+    'the replacement restores the analysis stream',
+  );
   check(
     diagnostics
       .slice(diagnosticsBefore)
@@ -130,6 +146,7 @@ const main = async () => {
   // comes back flat looks exactly like an engine ignoring the panel.
   const afterRestart = await supervisor.setParameter(gainId, 2, -1.0, 25);
   check(afterRestart.status === 0, 'the replacement accepts commands');
+  check(await supervisor.closeDevice(), 'the device closes through the supervisor');
 
   console.log('restart budget');
   // Three restarts are allowed inside the window; the fourth exit gives up.
@@ -199,6 +216,31 @@ const main = async () => {
     !orderlyDiagnostics.some((event) => event.code === 3003),
     'an orderly shutdown is not reported as a host crash',
   );
+
+  console.log('overlapping stop and start');
+  const overlapDiagnostics: IDspDiagnosticEvent[] = [];
+  const overlap = new DspHostSupervisor({
+    executablePath,
+    expectedParameterCount: PARAMETER_COUNT,
+    onDiagnostic: (event) => overlapDiagnostics.push(event),
+  });
+  check(await overlap.start(), 'the overlap host starts');
+  const overlapBefore = overlap.getPid();
+  const stopping = overlap.stop();
+  check(
+    await overlap.start(),
+    'a replacement may start while the old host is still closing',
+  );
+  await stopping;
+  check(
+    overlap.getState() === 'ready' && overlap.getPid() !== overlapBefore,
+    'the old clean exit does not clear or fail the replacement',
+  );
+  check(
+    !overlapDiagnostics.some((event) => event.code === 3003),
+    'the stale code-zero exit is not counted as a crash',
+  );
+  await overlap.stop();
 
   await supervisor.stop();
 

@@ -530,7 +530,12 @@ export const deviceProfilesToFiles = (
             );
             if (hydrated !== preset.convolution) {
               preset.convolution = hydrated;
-              savePreset(assignment.presetName, preset, dir);
+              savePreset(
+                assignment.presetName,
+                preset,
+                dir,
+                'convolution-analysis-migration',
+              );
             }
           } catch {
             // Keep the profile usable if a legacy WAV cannot be analyzed. APO

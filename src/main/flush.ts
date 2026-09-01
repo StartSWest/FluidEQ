@@ -455,20 +455,22 @@ export const fetchPreset = (presetName: string, presetsDir: string) => {
 const lastPresetLogAt = new Map<string, number>();
 const PRESET_LOG_INTERVAL_MS = 1000;
 
-const logPresetWrite = (presetName: string) => {
+const logPresetWrite = (presetName: string, source: string) => {
   const now = Date.now();
-  const previous = lastPresetLogAt.get(presetName) ?? 0;
+  const key = `${presetName}\u0000${source}`;
+  const previous = lastPresetLogAt.get(key) ?? 0;
   if (now - previous < PRESET_LOG_INTERVAL_MS) {
     return;
   }
-  lastPresetLogAt.set(presetName, now);
-  log.info(`Wrote preset for: ${presetName}`);
+  lastPresetLogAt.set(key, now);
+  log.info('Wrote preset', { preset: presetName, source });
 };
 
 export const savePreset = (
   presetName: string,
   presetInfo: IPresetV2,
   presetsDir: string,
+  source = 'direct',
 ) => {
   try {
     const presetPath = presetFilePath(presetsDir, presetName);
@@ -479,7 +481,7 @@ export const savePreset = (
     log.error('Failed to save to preset %s', presetName);
     throw ex;
   }
-  logPresetWrite(presetName);
+  logPresetWrite(presetName, source);
 };
 
 /**

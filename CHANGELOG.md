@@ -6,6 +6,32 @@ actions menu opens it again any time.
 
 ---
 
+## 1.6.1
+
+This patch makes the new native DSP engine recover reliably and makes its
+failures useful to diagnose instead of leaving only a restart-budget code.
+
+### Fixed
+
+- **DSP visualisers return after the native engine restarts.** The replacement
+  process restores the analysis stream before reopening the audio device, so
+  every stage graph resumes without closing and reopening the DSP page.
+- **A clean old process can no longer take its replacement down with it.** Every
+  acknowledgement, frame, error and exit is now tied to the native process that
+  produced it. A late code-zero exit during a quick stop/start handover cannot
+  clear the new engine or consume its restart budget.
+
+### Diagnostics
+
+- **Native engine logs now show the lifecycle that led to a failure:** process
+  and generation, start and stop intent, device and analysis state, first
+  analysis frame, restart count, exit signal and the native host's own message.
+  Informational code-zero exits are logged as information rather than errors.
+- **Automatic profile writes name their cause.** Logs distinguish manual saves,
+  imports, external Equalizer APO edits, convolution migration and the exact
+  edit channel, making repeated Smart EQ writes identifiable instead of showing
+  the same unexplained preset line every few seconds.
+
 ## 1.6.0
 
 FluidEQ 1.6 is about what happens to a song after the equaliser. Version 1.5

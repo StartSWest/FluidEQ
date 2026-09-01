@@ -270,7 +270,12 @@ export const registerProfilesIpc = ({
       // Restoring writes the profile back to the baseline, but deliberately does
       // NOT rewrite the baseline itself — restoring twice in a row is a no-op
       // rather than a way to lose the copy.
-      savePreset(presetName, getCurrentPreset(), activePresetDir());
+      savePreset(
+        presetName,
+        getCurrentPreset(),
+        activePresetDir(),
+        'restore-saved-profile',
+      );
       attachPresetToActiveDevice(presetName);
       await handleUpdate(event, channel, true);
     } catch (e) {
@@ -328,7 +333,7 @@ export const registerProfilesIpc = ({
         const targetName = availableProfileNameForActiveDevice(presetName);
 
         const preset = getCurrentPreset();
-        savePreset(targetName, preset, activePresetDir());
+        savePreset(targetName, preset, activePresetDir(), 'manual-save');
         // This is the copy the user chose to keep. Later edits auto-save over the
         // profile itself, so this is the only thing left to restore from.
         savePresetBaseline(targetName, preset, activeBaselineDir());

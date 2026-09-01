@@ -131,10 +131,36 @@ export const registerDspHostIpc = ({
       onAnalysis: (analysis: IHostAnalysis) =>
         publish('dsp-host-analysis', analysis),
       onStateChange: (state: TDspHostState) => publish('dsp-host-state', state),
+      onLifecycle: (event) => {
+        const entry = { event: event.event, ...event.values };
+        if (event.event === 'stderr') {
+          const line = String(event.values.line ?? '').toLowerCase();
+          if (/failed|could not|\berror\b|no default|unsupported/.test(line)) {
+            log.warn('dsp host native', entry);
+          } else {
+            log.info('dsp host native', entry);
+          }
+        } else {
+          log.info('dsp host lifecycle', entry);
+        }
+      },
       onDiagnostic: (event: IDspDiagnosticEvent) => {
         // Logged as well as forwarded. A window that has already gone is
         // exactly the case where the reason it went is worth keeping.
-        log.error('dsp host diagnostic', event);
+        switch (event.severity) {
+          case 'debug':
+            log.debug('dsp host diagnostic', event);
+            break;
+          case 'info':
+            log.info('dsp host diagnostic', event);
+            break;
+          case 'warn':
+            log.warn('dsp host diagnostic', event);
+            break;
+          default:
+            log.error('dsp host diagnostic', event);
+            break;
+        }
         publish('dsp-host-diagnostic', event);
       },
     });

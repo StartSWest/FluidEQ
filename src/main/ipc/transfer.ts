@@ -576,7 +576,7 @@ export const registerTransferIpc = ({
       const name = availableProfileNameForActiveDevice(
         session.activeAudioDevice?.name || session.activeAudioDeviceId,
       );
-      savePreset(name, bundle.preset, activePresetDir());
+      savePreset(name, bundle.preset, activePresetDir(), 'chain-import');
       savePresetBaseline(name, bundle.preset, activeBaselineDir());
       attachPresetToActiveDevice(name);
 

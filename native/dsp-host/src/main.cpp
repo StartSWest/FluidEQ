@@ -967,8 +967,14 @@ int main(int argc, char** argv) {
    * inside `fwrite` on a pipe nobody is draining any more.
    */
   g_backend_for_exit = backend.get();
-  feq_watch_parent(parent_pid_from(argc, argv), &release_device_on_parent_exit);
+  const uint32_t parent_pid = parent_pid_from(argc, argv);
+  feq_watch_parent(parent_pid, &release_device_on_parent_exit);
   send_handshake(backend->name());
+  std::fprintf(stderr,
+               "FluidEQ-DSP: host ready backend=%s parentPid=%u fallbackRate=%u "
+               "channels=%u blockFrames=%u\n",
+               backend->name(), parent_pid, state.sample_rate, state.channels,
+               state.block_frames);
 
   // Built once and handed to every player: the decoder is stateless and the
   // per-file state lives behind the handle it returns.
@@ -1059,6 +1065,8 @@ int main(int argc, char** argv) {
       // The parent closed the pipe. An ordinary shutdown, not a fault:
       // Electron exiting takes its children with it, and there is nothing to
       // report to a process that has already gone.
+      std::fprintf(stderr,
+                   "FluidEQ-DSP: control pipe closed; orderly shutdown\n");
       break;
     }
     if (frame.magic != FEQ_MAGIC_COMMAND ||
@@ -1101,6 +1109,10 @@ int main(int argc, char** argv) {
         state.device_wanted.store(true, std::memory_order_release);
         const std::lock_guard<std::mutex> device_held(state.device_mutex);
         if (backend->is_running()) {
+          std::fprintf(stderr,
+                       "FluidEQ-DSP: device start reused rate=%u channels=%u "
+                       "blockFrames=%u\n",
+                       state.sample_rate, state.channels, state.block_frames);
           send_ack(frame.request_id, FEQ_WIRE_APPLIED, frame.settings_revision,
                    0, static_cast<double>(state.sample_rate));
           break;
@@ -1125,6 +1137,11 @@ int main(int argc, char** argv) {
           send_ack(frame.request_id, FEQ_WIRE_REJECTED, 0, 0, 0.0);
           break;
         }
+        std::fprintf(stderr,
+                     "FluidEQ-DSP: device started backend=%s rate=%u "
+                     "channels=%u blockFrames=%u\n",
+                     backend->name(), state.sample_rate, state.channels,
+                     state.block_frames);
         send_ack(frame.request_id, FEQ_WIRE_APPLIED, frame.settings_revision, 0,
                  static_cast<double>(state.sample_rate));
         break;
@@ -1133,10 +1150,15 @@ int main(int argc, char** argv) {
       case FEQ_CMD_STOP: {
         state.device_wanted.store(false, std::memory_order_release);
         const std::lock_guard<std::mutex> device_held(state.device_mutex);
+        const bool was_open = backend->is_open();
+        const bool was_running = backend->is_running();
         // The endpoint is released, not paused. A held-open device keeps the
         // hardware awake, which is audible on a DAC as its own noise floor in
         // a room where nothing is playing.
         backend->close();
+        std::fprintf(stderr,
+                     "FluidEQ-DSP: device stopped wasOpen=%u wasRunning=%u\n",
+                     was_open ? 1u : 0u, was_running ? 1u : 0u);
         send_ack(frame.request_id, FEQ_WIRE_APPLIED, frame.settings_revision, 0,
                  0.0);
         break;
@@ -1461,6 +1483,8 @@ int main(int argc, char** argv) {
       case FEQ_CMD_SET_ANALYSIS: {
         const int wanted = frame.parameter_id != 0 ? 1 : 0;
         feq_meters_set_enabled(state.meters, wanted);
+        std::fprintf(stderr, "FluidEQ-DSP: analysis %s\n",
+                     wanted != 0 ? "enabled" : "disabled");
         send_ack(frame.request_id, FEQ_WIRE_APPLIED, frame.settings_revision, 0,
                  static_cast<double>(wanted));
         break;
@@ -1511,7 +1535,8 @@ int main(int argc, char** argv) {
       }
 
       case FEQ_CMD_SHUTDOWN:
-
+        std::fprintf(stderr,
+                     "FluidEQ-DSP: shutdown command acknowledged\n");
         send_ack(frame.request_id, FEQ_WIRE_APPLIED, frame.settings_revision, 0,
                  0.0);
         running = false;
@@ -1538,5 +1563,6 @@ int main(int argc, char** argv) {
   // After the chain, which holds a borrowed pointer to it.
   feq_meters_destroy(state.meters);
   feq_engine_destroy(state.engine);
+  std::fprintf(stderr, "FluidEQ-DSP: host stopped cleanly\n");
   return 0;
 }

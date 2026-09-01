@@ -1459,7 +1459,7 @@ const createEmptyProfileForActiveDevice = () => {
     index += 1;
   }
   const name = `${UNTITLED_PROFILE_PREFIX} ${index}`;
-  savePreset(name, getCurrentPreset(), dir);
+  savePreset(name, getCurrentPreset(), dir, 'profile-created');
   attachPresetToActiveDevice(name);
 };
 
@@ -1655,6 +1655,7 @@ const handleUpdateHelperCore = async <T>(
         assignment.presetName,
         getCurrentPreset(),
         presetDirForDevice(assignment.deviceId),
+        String(channel),
       );
       session.hasActiveSessionOverride = false;
     } else if (
@@ -1825,6 +1826,7 @@ const persistExternallyAdoptedState = () => {
       assignment.presetName,
       getCurrentPreset(),
       presetDirForDevice(assignment.deviceId),
+      'external-apo-edit',
     );
   }
 };
