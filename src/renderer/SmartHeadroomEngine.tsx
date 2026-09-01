@@ -294,7 +294,16 @@ const SmartHeadroomEngine = () => {
           }
         }
       });
-      trimDb = advanceSupervisorTrimDb(trimDb, peakDbfs, deltaMs);
+      // `lastPushedTrim` is what the output actually reflects: the trim only
+      // reaches APO when the throttle below lets it through. Handing it over is
+      // what stops the loop counting one overshoot dozens of times while its
+      // own correction is still in flight. See `advanceSupervisorTrimDb`.
+      trimDb = advanceSupervisorTrimDb(
+        trimDb,
+        peakDbfs,
+        deltaMs,
+        lastPushedTrim,
+      );
 
       const programme = readHeadroomProgramme(state);
       if (programme.length === 0) {

@@ -81,10 +81,30 @@ export const usePlayerEngine = (options: {
    * `useNativeBackend` answers `undefined` until the native engine has actually
    * engaged, so there is nothing here to call early or on the browser path.
    */
-  const nativeBackend = useNativeBackend(
-    dspSettings,
-    isPlaying && track?.kind === 'audio',
-  );
+  /**
+   * THE TRACK, NOT THE TRANSPORT.
+   *
+   * This used to be `isPlaying && track?.kind === 'audio'`, so every pause tore
+   * the engine down and every play built it again — and pressing pause is not a
+   * rare event. That one `isPlaying` is what made the whole rack feel broken:
+   *
+   *  - The supervisor spawned and killed processes on every transport change,
+   *    and a start arriving mid-handshake used to be answered "not ready",
+   *    which made the incoming controller kill the host it had just asked for.
+   *  - Tearing the mirror down hands the audio back to the elements, so for a
+   *    moment the element and the host both play the same file a few
+   *    milliseconds apart. That is a comb filter, and it is what "it kills the
+   *    bass" was.
+   *  - Switching to Karaoke or Online Media pauses the Library, which took the
+   *    engine with it and left the player rebuilding itself on the way back.
+   *
+   * Having a track is the stable fact. A paused deck is a loaded deck, and the
+   * host is simply told to pause — which the mirror already does from
+   * `isPlaying`. The engine's lifetime now follows what there is to play, not
+   * whether it is playing this instant, and the resident process is bounded by
+   * the Library provider's own off-tab lease rather than by the pause button.
+   */
+  const nativeBackend = useNativeBackend(dspSettings, track?.kind === 'audio');
   // And the mirror re-cues when the host moves to a different endpoint.
   useNativeDeviceGeneration(nativeBackend);
   // The clock comes from the engine making the sound. See `hostTransport`.

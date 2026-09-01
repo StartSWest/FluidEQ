@@ -69,7 +69,7 @@ const bridgeOf = ():
  */
 export const useNativeBackend = (
   settings: IDspSettings,
-  isLibraryAudioPlaying = true,
+  hasLibraryAudioTrack = true,
 ): INativeBackendController | undefined => {
   const nativeState = useDspNativeState();
   const outputSafetyEnabled = useDspOutputSafetyEnabled();
@@ -82,11 +82,16 @@ export const useNativeBackend = (
   safetyRef.current = outputSafetyEnabled;
 
   useEffect(() => {
-    if (!isLibraryAudioPlaying) {
-      // A stored DSP preference is not an active engine. The Library's browser
-      // element starts playback first; that real play state mounts the native
-      // path, which then takes over from the element. Paused, stopped and video
-      // library items have nothing for this audio-only engine to process.
+    if (!hasLibraryAudioTrack) {
+      /**
+       * Having a track, not playing one. See `usePlayerEngine`.
+       *
+       * This was `isPlaying` and it made pause a lifecycle event: engine down,
+       * mirror torn down, elements handed the audio back, engine up again on
+       * the next press. Video library items and an empty deck still have
+       * nothing for an audio-only engine to do, and those are the stable facts
+       * this now turns on.
+       */
       controllerRef.current = undefined;
       setDspNativeState('idle');
       return undefined;
@@ -148,7 +153,7 @@ export const useNativeBackend = (
       setDspNativeState('idle');
       controller.disengage().catch(() => undefined);
     };
-  }, [isLibraryAudioPlaying]);
+  }, [hasLibraryAudioTrack]);
 
   useEffect(() => {
     controllerRef.current

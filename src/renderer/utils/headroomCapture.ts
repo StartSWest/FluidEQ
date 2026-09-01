@@ -485,6 +485,25 @@ export const advanceSupervisorTrimDb = (
   trimDb: number,
   peakDbfs: number,
   deltaMs: number,
+  /**
+   * The trim the OUTPUT currently reflects, which is not the same number.
+   *
+   * This loop runs every frame, but its correction only reaches Equalizer APO
+   * when the push throttle lets it, and APO then has to reload before the
+   * loopback can show the result. Everything between is dead time, and an
+   * integrator that keeps accumulating through its own dead time winds up.
+   *
+   * That is the reported bug: enabling APO, watching the preamp walk to the
+   * -20 clamp and stay there, and having to toggle the feature off and on to
+   * get a sane -6 back. Nothing was broken about the measurement — the loop was
+   * simply counting the same overshoot dozens of times before it could see any
+   * of its own answer to it, then releasing at a fifth of a decibel a second,
+   * which is over a minute of music to give fourteen decibels back.
+   *
+   * Defaults to `trimDb`, which is the old behaviour, so a caller that has no
+   * idea what is applied is no worse off than before.
+   */
+  appliedTrimDb: number = trimDb,
 ): number => {
   const dt = Math.min(Math.max(deltaMs, 0), MAX_FRAME_DELTA_MS) / 1000;
   const current = Number.isFinite(trimDb) ? Math.min(0, trimDb) : 0;
@@ -493,10 +512,25 @@ export const advanceSupervisorTrimDb = (
   }
   const over = peakDbfs - SUPERVISOR_CEILING_DBFS;
   if (over > 0) {
-    // Never further than the overshoot itself: the supervisor's job is to put
-    // the peak on the ceiling, not to duck under it and crawl back.
-    const step = Math.min(over, SUPERVISOR_ATTACK_DB_PER_S * dt);
-    return current - step;
+    /*
+     * ANTI-WINDUP: THE MEASUREMENT ONLY JUSTIFIES SO MUCH.
+     *
+     * The overshoot was measured with `appliedTrimDb` in effect, so it is
+     * evidence for exactly that much more attenuation and not a decibel more.
+     * Everything already committed beyond that is a correction still in flight,
+     * and counting it again is how the loop used to run away from itself.
+     *
+     * `Math.min(current, …)` because the attack branch must never raise the
+     * trim. Un-winding on a peak that is still over the ceiling would be a
+     * level jump upward at the exact moment the evidence says it is too loud;
+     * the release below is the only thing allowed to give level back.
+     */
+    const applied = Number.isFinite(appliedTrimDb)
+      ? Math.min(0, appliedTrimDb)
+      : 0;
+    const justified = applied - over;
+    const step = SUPERVISOR_ATTACK_DB_PER_S * dt;
+    return Math.min(current, Math.max(justified, current - step));
   }
   if (current >= 0) {
     return 0;

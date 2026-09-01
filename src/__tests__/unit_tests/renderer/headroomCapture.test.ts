@@ -294,6 +294,61 @@ describe('the sample peak supervisor', () => {
     );
     expect(twoSteps).toBeCloseTo(oneStep, 6);
   });
+
+  /**
+   * THE RUNAWAY, WHICH IS WHAT "IT GOES TO -20 AND NEVER COMES BACK" WAS.
+   *
+   * The loop runs every frame; its correction only reaches Equalizer APO when
+   * the push throttle allows, and APO has to reload before the loopback can
+   * show any of it. Through all of that the peak keeps reading the OLD level,
+   * so without anti-windup the same overshoot is counted on every tick.
+   *
+   * Six decibels over the ceiling, held for two seconds of frames with nothing
+   * yet applied, is evidence for six decibels of trim. The old loop took 6 dB/s
+   * for the whole two seconds and committed twelve, then released at a fifth of
+   * a decibel a second — a minute of music to undo an error it invented.
+   */
+  it('does not wind past what one measurement justifies', () => {
+    let trim = 0;
+    const applied = 0; // nothing has reached APO yet: the dead time.
+    for (let frame = 0; frame < 44; frame += 1) {
+      trim = advanceSupervisorTrimDb(
+        trim,
+        SUPERVISOR_CEILING_DBFS + 6,
+        45,
+        applied,
+      );
+    }
+    // Two seconds of 6 dB/s attack would be -12. The measurement says 6.
+    expect(trim).toBeCloseTo(-6, 6);
+  });
+
+  /**
+   * And it keeps attacking once the correction has actually landed.
+   *
+   * Anti-windup must not become a ceiling on the supervisor: when the applied
+   * trim catches up and the peak is STILL over, that is fresh evidence and the
+   * loop is entitled to take more.
+   */
+  it('attacks further once its last correction is reflected in the output', () => {
+    let trim = -6;
+    for (let frame = 0; frame < 44; frame += 1) {
+      // The output now reflects -6, and it is still 3 dB too loud.
+      trim = advanceSupervisorTrimDb(trim, SUPERVISOR_CEILING_DBFS + 3, 45, -6);
+    }
+    expect(trim).toBeCloseTo(-9, 6);
+  });
+
+  /** The attack branch never hands level back; only the release may. */
+  it('does not jump the trim upward while still over the ceiling', () => {
+    const next = advanceSupervisorTrimDb(
+      -18,
+      SUPERVISOR_CEILING_DBFS + 1,
+      45,
+      -2,
+    );
+    expect(next).toBeLessThanOrEqual(-18);
+  });
 });
 
 describe('deciding when a measurement is worth a config write', () => {
