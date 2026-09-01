@@ -53,6 +53,7 @@ import {
   ICrossfadeShape,
 } from '../../common/dsp/crossfadeShape';
 import { INativeBackendController } from './nativeBackend';
+import { claimDspNativeSource } from './store';
 
 /** What the mirror needs from the player, and nothing more. */
 export interface INativeMirrorState {
@@ -113,8 +114,16 @@ export interface INativeMirror {
    * A command the user gave is not drift and must not be inferred from it.
    */
   seek: (positionMs: number) => void;
-  /** Hand the audio back to the element path. */
-  release: () => void;
+  /**
+   * Hand the audio back to the element path.
+   *
+   * `resume` is what the LISTENER wants, and it has to be passed in because
+   * the mirror cannot infer it. Handing back happens for two opposite reasons:
+   * the DSP switch going off mid-track, where the elements must pick the music
+   * up and carry on — and the listener pressing Stop or Pause, where starting
+   * them is the bug this parameter exists to prevent. See `handBack`.
+   */
+  release: (resume: boolean) => void;
 }
 
 /**
@@ -208,9 +217,19 @@ export const createNativeMirror = (
    * The `pause` event this raises is ignored by the player while the host owns
    * the transport — see `onPause`. Without that it read as the listener
    * pausing, and the music stopped a moment after every track began.
+   *
+   * Which is why the claim goes FIRST, before a single element is paused. That
+   * guard reads `hasSource` from the store, and the store was fed only by
+   * telemetry — so between this pause and the host's next frame the answer was
+   * still `false`, the guard let the event through, and `isPlaying` went false
+   * on a track that had just started. `isPlaying` is what gates the native
+   * engine, so the engine disengaged itself roughly 120 ms after engaging,
+   * while the replacement it triggered raced the teardown for the process.
+   * The DSP tab showed ON over a host that had been shut down mid-handshake.
    */
   const stoodDown = new Set<HTMLMediaElement>();
-  const standDownElements = () => {
+  const standDownElements = (positionSeconds: number) => {
+    claimDspNativeSource(positionSeconds);
     elements.forEach((element) => {
       if (!element.paused) {
         stoodDown.add(element);
@@ -229,13 +248,38 @@ export const createNativeMirror = (
    * Both halves, and in this order: unmuted while still paused is a track that
    * looks audible and is not.
    */
-  const handBack = () => {
+  /*
+   * PRESSING STOP MUST NOT START THE MUSIC, AND IT DID.
+   *
+   * This used to call `play()` on every stood-down element unconditionally,
+   * which was right for the case it was written for — the host losing the
+   * track mid-song, where the elements have to pick it up — and exactly wrong
+   * for the case that arrived later.
+   *
+   * The chain, end to end. The engage effect in `useNativeBackend` is keyed on
+   * whether library audio is playing, so pausing DISENGAGES the engine. That
+   * tears down the controller, which tears down the mirror, whose cleanup is
+   * `release`. Release handed back, handing back called `play()`, and `onPlay`
+   * in `useMediaEvents` is deliberately NOT guarded the way `onPause` is — it
+   * sets `isPlaying` true for any element that starts, on the reasoning that a
+   * deck which has actually begun playing is a track starting. So the element
+   * started, the flag went true, and the music the listener had just stopped
+   * came back. Stop and Pause both, identically, because both reach the same
+   * gate.
+   *
+   * So the intent has to travel with the call. The mirror has no way to work
+   * it out for itself: `playing` here is the last thing the HOST was told, and
+   * whether that has caught up with the listener by teardown is a race.
+   */
+  const handBack = (resume: boolean) => {
     unmute();
-    stoodDown.forEach((element) => {
-      if (element.paused) {
-        element.play().catch(() => undefined);
-      }
-    });
+    if (resume) {
+      stoodDown.forEach((element) => {
+        if (element.paused) {
+          element.play().catch(() => undefined);
+        }
+      });
+    }
     stoodDown.clear();
   };
 
@@ -269,7 +313,9 @@ export const createNativeMirror = (
        * back — unmuted and running again — is the honest one.
        */
       hostOwnsTransport = false;
-      handBack();
+      // The listener's intent, not the mirror's record: this is a cue that
+      // never played, so `playing` may not have caught up yet.
+      handBack(isPlaying);
       return;
     }
     await controller.transport.select(activeDeck);
@@ -306,7 +352,7 @@ export const createNativeMirror = (
     hostOwnsTransport = true;
     // The host has the track and is the one playing it. Last, so nothing is
     // stood down for a deck that turned out not to load.
-    standDownElements();
+    standDownElements(positionMs / 1_000);
   };
 
   /**
@@ -342,7 +388,9 @@ export const createNativeMirror = (
       loadedPath = previousPath;
       activeDeck = previousDeck;
       hostOwnsTransport = false;
-      handBack();
+      // Mid-fade, so the element fade already running is what carries the
+      // handoff — it only carries it if the elements are actually running.
+      handBack(playing);
       return false;
     }
 
@@ -382,7 +430,7 @@ export const createNativeMirror = (
     // The incoming deck is the host's now, as the outgoing one already was.
     // Both elements go quiet: the player runs its own overlap on them, and
     // there is nothing for either to be doing while the host fades its decks.
-    standDownElements();
+    standDownElements(startPositionMs / 1_000);
     return true;
   };
 
@@ -557,8 +605,8 @@ export const createNativeMirror = (
         .catch(() => undefined);
     },
 
-    release: () => {
-      handBack();
+    release: (resume) => {
+      handBack(resume);
       loadedPath = undefined;
       playing = false;
       hostOwnsTransport = false;

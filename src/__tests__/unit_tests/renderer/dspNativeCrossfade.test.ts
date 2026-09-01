@@ -358,7 +358,7 @@ describe('the mirrored crossfade', () => {
 
     await handoffTo(mirror, 'C:/b.mp3', 4000, 'equalPower');
     calls.length = 0;
-    mirror.release();
+    mirror.release(true);
     await settle();
 
     expect(calls).toContain('unload(0)');

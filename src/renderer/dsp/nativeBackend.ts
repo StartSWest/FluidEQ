@@ -123,6 +123,41 @@ export interface INativeTransport {
   setVolume: (volume: number) => Promise<boolean>;
 }
 
+/**
+ * One host, one queue — across every controller, not within one.
+ *
+ * `startDspHost` and `stopDspHost` reach a single supervisor owned by main, so
+ * two controllers overlapping are not two engines: they are two callers
+ * commanding one, and the loser's teardown lands inside the winner's startup.
+ * Measured, from the app's own lifecycle trace, on an ordinary track change:
+ *
+ *   25.421  start-requested     <- the incoming controller
+ *   25.423  start-reused           the outgoing one's process, handed over
+ *   25.482  device-close-requested <- the outgoing controller's disengage
+ *   25.487  device-open-requested  <- the incoming one's engage
+ *   25.516  stop-requested      <- the outgoing one, killing the shared host
+ *   25.526  device-open-complete   state=stopped
+ *
+ * The open still acked — from a process already shutting down — so `engage`
+ * returned true and the panel read ON. Every band, every stage and every
+ * preset then did nothing, and nothing on screen said so.
+ *
+ * Module scope because the RESOURCE is module scope. A queue held per
+ * controller would order each one against itself, which was never the problem.
+ */
+let hostWork: Promise<unknown> = Promise.resolve();
+
+const serialize = <T>(work: () => Promise<T>): Promise<T> => {
+  // Both arms, so one command that throws does not wedge every command after
+  // it: the queue is an ordering guarantee, not an error channel.
+  const next = hostWork.then(work, work);
+  hostWork = next.then(
+    () => undefined,
+    () => undefined,
+  );
+  return next;
+};
+
 export const createNativeBackendController = (
   bridge: INativeBackendBridge,
 ): INativeBackendController => {
@@ -143,61 +178,64 @@ export const createNativeBackendController = (
     );
 
   return {
-    engage: async (settings, outputSafetyEnabled) => {
-      const status = await bridge.startDspHost();
-      if (status.state !== 'ready') {
+    engage: (settings, outputSafetyEnabled) =>
+      serialize(async () => {
+        const status = await bridge.startDspHost();
+        if (status.state !== 'ready') {
+          /**
+           * Reported by the supervisor as a diagnostic already, so this says no
+           * rather than throwing — the caller turns it into the notice the user
+           * sees. There is nothing to fall back to: a host that will not start
+           * means the audio plays unprocessed, and saying so is the whole point
+           * of returning a value instead of an exception nobody would catch.
+           */
+          return false;
+        }
+        if (!(await pushChain(settings, outputSafetyEnabled))) {
+          await settle(bridge.stopDspHost);
+          return false;
+        }
+        if (!(await bridge.openDspHostDevice())) {
+          await settle(bridge.stopDspHost);
+          return false;
+        }
+        engaged = true;
+        return true;
+      }),
+
+    disengage: () =>
+      serialize(async () => {
+        if (!engaged) {
+          return;
+        }
+        engaged = false;
         /**
-         * Reported by the supervisor as a diagnostic already, so this says no
-         * rather than throwing — the caller turns it into the notice the user
-         * sees. There is nothing to fall back to: a host that will not start
-         * means the audio plays unprocessed, and saying so is the whole point
-         * of returning a value instead of an exception nobody would catch.
+         * Both decks are emptied before the device closes.
+         *
+         * A deck still holding a track is a decoder thread still reading a file
+         * and two seconds of audio still in a ring, for a backend nobody is
+         * listening to. Switching back and forth a few times without this leaves
+         * one of each behind every time.
          */
-        return false;
-      }
-      if (!(await pushChain(settings, outputSafetyEnabled))) {
+        await settle(() => bridge.unloadDspHostDeck(0));
+        await settle(() => bridge.unloadDspHostDeck(1));
+        await settle(bridge.pauseDspHost);
+        await settle(bridge.closeDspHostDevice);
+        // The Library provider now has a short off-tab lease of its own. Once
+        // that expires there is no UI or playback left to justify a resident
+        // native process, its model, or its decoder allocations.
         await settle(bridge.stopDspHost);
-        return false;
-      }
-      if (!(await bridge.openDspHostDevice())) {
-        await settle(bridge.stopDspHost);
-        return false;
-      }
-      engaged = true;
-      return true;
-    },
+      }),
 
-    disengage: async () => {
-      if (!engaged) {
-        return;
-      }
-      engaged = false;
-      /**
-       * Both decks are emptied before the device closes.
-       *
-       * A deck still holding a track is a decoder thread still reading a file
-       * and two seconds of audio still in a ring, for a backend nobody is
-       * listening to. Switching back and forth a few times without this leaves
-       * one of each behind every time.
-       */
-      await settle(() => bridge.unloadDspHostDeck(0));
-      await settle(() => bridge.unloadDspHostDeck(1));
-      await settle(bridge.pauseDspHost);
-      await settle(bridge.closeDspHostDevice);
-      // The Library provider now has a short off-tab lease of its own. Once
-      // that expires there is no UI or playback left to justify a resident
-      // native process, its model, or its decoder allocations.
-      await settle(bridge.stopDspHost);
-    },
-
-    update: async (settings, outputSafetyEnabled) => {
-      if (!engaged) {
-        // Nothing to update, and pushing anyway would start the process the
-        // Library has not successfully engaged.
-        return false;
-      }
-      return pushChain(settings, outputSafetyEnabled);
-    },
+    update: (settings, outputSafetyEnabled) =>
+      serialize(async () => {
+        if (!engaged) {
+          // Nothing to update, and pushing anyway would start the process the
+          // Library has not successfully engaged.
+          return false;
+        }
+        return pushChain(settings, outputSafetyEnabled);
+      }),
 
     transport: {
       load: (deck, mediaPath) => bridge.loadDspHostDeck(deck, mediaPath),

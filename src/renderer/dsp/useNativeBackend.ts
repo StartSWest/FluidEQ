@@ -383,7 +383,21 @@ export const useNativeMirror = (
     mirror.sync(stateRef.current);
     return () => {
       mirrorRef.current = undefined;
-      mirror.release();
+      /**
+       * Whether the listener still wants sound, read at the moment of teardown.
+       *
+       * `stateRef` and not a captured value: this cleanup closes over the
+       * render that created the mirror, and the thing that usually tears it
+       * down is precisely a change to `isPlaying`. A captured `true` would hand
+       * the elements back running every time somebody pressed Pause.
+       *
+       * Two opposite reasons reach this line. The DSP switch going off
+       * mid-track has to leave the music playing on the elements; the listener
+       * pressing Stop or Pause disengages the engine too — see the effect above,
+       * keyed on whether library audio is playing — and must leave them alone.
+       * Only the player knows which, so it is asked.
+       */
+      mirror.release(stateRef.current.isPlaying);
     };
   }, [controller, elements, deviceGeneration]);
 

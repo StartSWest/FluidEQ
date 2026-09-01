@@ -310,6 +310,36 @@ export const setDspNativeTransport = (next: IDspNativeTransport): void => {
   emit();
 };
 
+/**
+ * A deck has the track — said by the mirror, a frame before telemetry says it.
+ *
+ * `hasSource` is what the player means by "the host is the engine playing
+ * this", and every guard built on it runs at element speed while the fact
+ * itself arrived at telemetry speed. The gap is small and it was fatal: the
+ * mirror pauses the elements the instant a deck is loaded and selected, the
+ * element fires `pause`, and `onPause` asked this question one frame too
+ * early — got `false`, read a deliberate stand-down as the listener pressing
+ * pause, and set `isPlaying` false. That flag gates the native engine, so the
+ * engine tore itself down 120 ms after engaging, every single track.
+ *
+ * The load, select and play were all acknowledged by the host before this is
+ * called, so the deck genuinely holds the file: every telemetry frame that
+ * follows agrees, and nothing here can flap.
+ */
+export const claimDspNativeSource = (positionSeconds: number): void => {
+  if (nativeTransport.hasSource) {
+    return;
+  }
+  // Carrying the position the deck was cued to, because the bar switches to
+  // the host's clock on the same tick this flag turns true. Left at the stored
+  // zero, a rack engaged mid-track showed 0:00 until the first frame arrived.
+  setDspNativeTransport({
+    ...nativeTransport,
+    hasSource: true,
+    positionSeconds,
+  });
+};
+
 export const readDspNativeTransport = (): IDspNativeTransport =>
   nativeTransport;
 

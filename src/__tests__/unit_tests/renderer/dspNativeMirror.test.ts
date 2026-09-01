@@ -163,9 +163,70 @@ describe('the native mirror', () => {
     const elements = [fakeElement(), fakeElement()];
     const mirror = createNativeMirror(controller, elements);
 
-    mirror.release();
+    mirror.release(true);
 
     expect(elements.every((element) => element.muted)).toBe(false);
+  });
+
+  /**
+   * PRESSING STOP MUST NOT START THE MUSIC.
+   *
+   * Reported as "stop is start the music instead of stopping it, also pause",
+   * and it was both, for one reason. The engage effect in `useNativeBackend` is
+   * keyed on whether library audio is playing, so pausing DISENGAGES the
+   * engine — which tears down the controller, which tears down the mirror,
+   * whose cleanup is `release`. Release handed the elements back by calling
+   * `play()` on them unconditionally, `onPlay` in `useMediaEvents` is
+   * deliberately not guarded the way `onPause` is, and `isPlaying` went true
+   * again. The track the listener had just stopped started playing.
+   *
+   * Both directions are pinned here, because the resume is not dead weight: a
+   * DSP switch turned off mid-song reaches this same line and there the
+   * elements MUST pick the music up, or turning the rack off would silence the
+   * library.
+   */
+  it('does not start the elements when released with the listener stopped', async () => {
+    const { controller } = controllerSpy();
+    const element = fakeElement();
+    const mirror = createNativeMirror(controller, [element]);
+
+    // A track cued and playing on the host: the element is stood down.
+    mirror.sync({
+      mediaPath: 'C:/music/one.wav',
+      isPlaying: true,
+      positionMs: 0,
+      volume: 1,
+    });
+    await settle();
+    expect(element.paused).toBe(true);
+
+    mirror.release(false);
+
+    expect(element.paused).toBe(true);
+    // Still handed back: the sound is the element's again, it is simply not
+    // running. Muting is unconditional and only the transport is in question.
+    expect(element.muted).toBe(false);
+  });
+
+  it('does start the elements when released while the listener is playing', async () => {
+    const { controller } = controllerSpy();
+    const element = fakeElement();
+    const mirror = createNativeMirror(controller, [element]);
+
+    mirror.sync({
+      mediaPath: 'C:/music/one.wav',
+      isPlaying: true,
+      positionMs: 0,
+      volume: 1,
+    });
+    await settle();
+    expect(element.paused).toBe(true);
+
+    // The DSP switch going off mid-track, which is the case the resume exists
+    // for: the elements have to carry the music on from here.
+    mirror.release(true);
+
+    expect(element.paused).toBe(false);
   });
 
   it('restores whatever the element was, not a hard false', () => {
@@ -176,7 +237,7 @@ describe('the native mirror', () => {
     element.muted = true;
     const mirror = createNativeMirror(controller, [element]);
 
-    mirror.release();
+    mirror.release(true);
 
     expect(element.muted).toBe(true);
   });
