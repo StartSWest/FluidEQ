@@ -119,6 +119,32 @@ constexpr double kMinSplitHz = 40.0;
 constexpr double kMaxSplitHz = 200.0;
 constexpr double kMaxDriveDb = 12.0;
 
+/**
+ * Both generators reach two, not one, and two is where they stop paying.
+ *
+ * An amount is multiplied by `mix` before it reaches the band, and the
+ * catalogue's profiles sit around a mix of 0.5 — so a ceiling of 1 meant the
+ * top of the Sub and Presence dials delivered HALF the effect the stage can
+ * make, and reaching the rest of it meant also opening a second dial that
+ * scales the other generator with it. At 2 the top of each dial delivers at a
+ * mix of 0.5 what 1 delivered only at a mix of 1, which is what "the dial is
+ * not noticeable at the top" was actually describing.
+ *
+ * Measured on a 55 Hz note at -20 dBFS with a 90 Hz split and mix at 1, the
+ * ceiling is where it is because past it both generators are buying their own
+ * fundamental rather than adding to it. Presence 1 to 2 adds 4.3 dB of second
+ * harmonic; 2 to 4 adds a further 2.4 while taking 1.8 dB off the note. Sub 1
+ * to 2 adds 2.4 dB of octave; 2 to 4 adds 0.9 while taking 1.4 off the note.
+ * At an amount of 2 the generated content is already level with the note it
+ * came from, which is as far as "blends rather than replaces" reaches.
+ *
+ * The no-free-loudness rule below is untouched by the wider range and that was
+ * measured rather than assumed: across drive 0 and 12 dB, mix 0.5 and 1, and
+ * both amounts from 0 to 3, pink noise came back within 0.004 dB of its input
+ * RMS — the same budget `bass_forge_test.cpp` allows 0.5 dB for.
+ */
+constexpr double kMaxAmount = 2.0;
+
 /** Below this there is no signal to take a ratio of and the answer is noise. */
 constexpr double kEnergyFloor = 1e-12;
 
@@ -279,8 +305,9 @@ void feq_bass_forge_process(FeqBassForge* state, float* const* channels,
   // and the reason the ceiling is not 1 — intermodulation between partials —
   // applies at least as hard to a band carrying an octave and its harmonics.
   const double target_saturation = feq_fuzz_drive(drive_db / kMaxDriveDb);
-  const double target_sub = clamp(settings->sub_amount, 0.0, 1.0);
-  const double target_presence = clamp(settings->presence_amount, 0.0, 1.0);
+  const double target_sub = clamp(settings->sub_amount, 0.0, kMaxAmount);
+  const double target_presence =
+      clamp(settings->presence_amount, 0.0, kMaxAmount);
   const double target_texture = clamp(settings->texture, 0.0, 1.0);
   const double target_mix = clamp(settings->mix, 0.0, 1.0);
   if (state->mix < 0.0) {

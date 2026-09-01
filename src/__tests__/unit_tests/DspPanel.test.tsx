@@ -644,6 +644,29 @@ describe('DspPanel', () => {
     expect(onCommit).toHaveBeenCalled();
   });
 
+  /**
+   * Leaving a page is not editing it, so the chain must still name its preset.
+   *
+   * The clear goes through `patch`, which blanks the chain's `presetId`
+   * because a sound edit stops a preset being that preset. Turning a monitor
+   * off is not a sound edit — every card's own Isolate switch bypasses `patch`
+   * for exactly this reason — so without `preservePreset` set, switching tabs
+   * with a monitor on marked the whole rack Custom.
+   */
+  it('keeps the chain preset when a monitor is cleared on the way out', () => {
+    const active: IDspSettings = {
+      ...DSP_DEFAULTS,
+      presetId: 'rock',
+      bassForge: { ...DSP_DEFAULTS.bassForge, enabled: true, isolate: true },
+    };
+    const { onChange } = renderPanel(active);
+    fireEvent.click(screen.getByRole('button', { name: /Bass Forge/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Maximizer/i }));
+    const next = onChange.mock.calls[0][0] as IDspSettings;
+    expect(next.bassForge.isolate).toBe(false);
+    expect(next.presetId).toBe('rock');
+  });
+
   it('turns every monitor flag off when the DSP workspace closes', () => {
     const active: IDspSettings = {
       ...DSP_DEFAULTS,

@@ -120,13 +120,17 @@ const DspBassForgeCard = ({
             onCommit={onCommit}
             onChange={(splitHz) => patch({ splitHz })}
           />
-          {/* The real octave below, for hardware that can radiate one. */}
+          {/* The real octave below, for hardware that can radiate one.
+              To 2 rather than to 1, and not for symmetry with Mix: an amount
+              is multiplied BY Mix on its way in, so a ceiling of 1 put the top
+              of this dial at half the effect the generator can make wherever
+              Mix sat below full. `RANGES.bassForgeAmount` carries the rest. */}
           <Dial
             labelKey="dsp.bassForge.subAmount"
             value={bassForge.subAmount}
             defaultValue={DSP_DEFAULTS.bassForge.subAmount}
             min={0}
-            max={1}
+            max={2}
             unit=""
             step={0.01}
             isDisabled={!bassForge.enabled}
@@ -142,7 +146,7 @@ const DspBassForgeCard = ({
             value={bassForge.presenceAmount}
             defaultValue={DSP_DEFAULTS.bassForge.presenceAmount}
             min={0}
-            max={1}
+            max={2}
             unit=""
             step={0.01}
             isDisabled={!bassForge.enabled}

@@ -480,6 +480,74 @@ void test_meters_are_gated() {
   check(lit_input[2] > -60.0, "while running they read the band");
 }
 
+/**
+ * The top of each Amount dial is at two, and it still does something there.
+ *
+ * The ceiling used to be one, which put the top of both dials at half the
+ * effect the stage can make wherever `mix` sat below full — and the profiles
+ * mix around 0.5. This is the property that says the extra travel is real
+ * rather than a wider number that saturates before it arrives, and the second
+ * half of it is the one that would have caught a ceiling raised in the UI and
+ * not in the audio: past two the clamp holds, so three must sound like two.
+ *
+ * Measured on the 60 Hz note below at -20 dBFS with mix at 1: presence 1 to 2
+ * adds 4.3 dB of second harmonic and sub 1 to 2 adds 2.5 dB of octave. The
+ * margins asserted are a third of each, far outside the followers' settling.
+ */
+void test_amounts_reach_two() {
+  std::printf("\nbass forge: both Amount dials go to two, and get there\n");
+  const Signal note = sine_stereo(kFrames * kBlocks, 60.0, 0.1);
+
+  FeqBassForgeSettings one = defaults();
+  one.mix = 1.0;
+  one.presence_amount = 1.0;
+  FeqBassForgeSettings two = one;
+  two.presence_amount = 2.0;
+  FeqBassForgeSettings past = one;
+  past.presence_amount = 3.0;
+
+  const double second_at_one = bin_magnitude(process(note, one).left, 120.0);
+  const Signal at_two = process(note, two);
+  const double second_at_two = bin_magnitude(at_two.left, 120.0);
+  const double second_past = bin_magnitude(process(note, past).left, 120.0);
+  std::printf("       presence 1: 120 Hz %.6f, 2: %.6f (%.1f dB more)\n",
+              second_at_one, second_at_two,
+              20.0 * std::log10(second_at_two / second_at_one));
+  check(second_at_two > second_at_one * 1.18,
+        "presence at two makes more second harmonic than presence at one");
+  check(std::fabs(second_past - second_at_two) < second_at_two * 0.01,
+        "and three is clamped to two rather than reaching further");
+
+  FeqBassForgeSettings sub_one = defaults();
+  sub_one.mix = 1.0;
+  sub_one.sub_amount = 1.0;
+  FeqBassForgeSettings sub_two = sub_one;
+  sub_two.sub_amount = 2.0;
+  const double octave_at_one =
+      bin_magnitude(process(note, sub_one).left, 30.0);
+  const Signal sub_at_two = process(note, sub_two);
+  const double octave_at_two = bin_magnitude(sub_at_two.left, 30.0);
+  std::printf("       sub 1: 30 Hz %.6f, 2: %.6f (%.1f dB more)\n",
+              octave_at_one, octave_at_two,
+              20.0 * std::log10(octave_at_two / octave_at_one));
+  check(octave_at_two > octave_at_one * 1.09,
+        "sub at two makes more octave than sub at one");
+
+  // And the rule the whole stage is built on is untouched by the extra
+  // travel. `test_level_is_preserved` sweeps to one; this is the top corner.
+  const Signal noise = pink_stereo(kFrames * kBlocks, false);
+  FeqBassForgeSettings loudest = defaults();
+  loudest.drive_db = 12.0;
+  loudest.mix = 1.0;
+  loudest.sub_amount = 2.0;
+  loudest.presence_amount = 2.0;
+  const double before = rms(noise, kSettled);
+  const double after = rms(process(noise, loudest), kSettled);
+  const double error = std::fabs(20.0 * std::log10(after / before));
+  std::printf("       both amounts at two, drive 12: %.3f dB off\n", error);
+  check(error < 0.5, "both dials at two is still not a volume control");
+}
+
 }  // namespace
 
 int main() {
@@ -487,6 +555,7 @@ int main() {
   test_disabled_is_bit_exact();
   test_zero_mix_is_bit_exact();
   test_level_is_preserved();
+  test_amounts_reach_two();
   test_sub_generates_an_octave_below();
   test_presence_follows_texture();
   test_silence_stays_silent();
