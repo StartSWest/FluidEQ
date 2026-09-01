@@ -10,6 +10,7 @@ import { execFile } from 'child_process';
 import { promisify } from 'util';
 import path from 'path';
 import fs from 'fs';
+import log from 'electron-log';
 import { IAudioDevice } from '../common/constants';
 import { POWERSHELL_PATH } from './powershell';
 
@@ -39,6 +40,45 @@ const getAudioDeviceScriptPath = () => {
     '../../assets/windows-audio-devices.ps1',
   );
   return fs.existsSync(scriptPath) ? scriptPath : developmentScriptPath;
+};
+
+/**
+ * What the discovery script said, or nothing at all.
+ *
+ * `JSON.parse` was called on this output bare, with `|| '[]'` as its only
+ * guard. That covers an empty run and nothing else: PowerShell writes progress
+ * records, deprecation notices and module-load warnings to the same stream it
+ * is asked for JSON on, and one line ahead of the payload makes the whole thing
+ * unparseable. The throw then travelled up through the IPC handler and the
+ * device list came back as an error rather than as a list — for a machine whose
+ * devices were perfectly readable.
+ *
+ * An empty list is the honest answer to "I could not read this". The caller
+ * already handles having no devices; it has no way to handle an exception.
+ *
+ * The scalar case is kept because the script emits a bare object rather than a
+ * one-element array when the machine has exactly one endpoint — that is
+ * `ConvertTo-Json` behaviour, not a bug, and it is why the wrap exists.
+ */
+export const parseDeviceJson = (stdout: string): IAudioDevice[] => {
+  const text = stdout.trim();
+  if (!text) {
+    return [];
+  }
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(text);
+  } catch {
+    log.error(
+      `Audio device discovery did not return JSON: ${text.slice(0, 200)}`,
+    );
+    return [];
+  }
+  if (Array.isArray(parsed)) {
+    return parsed as IAudioDevice[];
+  }
+  // `null` parses fine and is not a device.
+  return parsed && typeof parsed === 'object' ? [parsed as IAudioDevice] : [];
 };
 
 export const filterVisibleAudioDevices = (
@@ -102,10 +142,7 @@ export const discoverAudioDevices = async (): Promise<IAudioDevice[]> => {
     ],
     { windowsHide: true, timeout: 10000, maxBuffer: 1024 * 1024 },
   );
-  const parsed = JSON.parse(stdout.trim() || '[]');
-  return filterVisibleAudioDevices(
-    (Array.isArray(parsed) ? parsed : [parsed]) as IAudioDevice[],
-  );
+  return filterVisibleAudioDevices(parseDeviceJson(stdout));
 };
 
 export const setDefaultAudioDevice = async (deviceId: string) => {

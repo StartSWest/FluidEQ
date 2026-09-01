@@ -318,13 +318,11 @@ export const NO_GAIN_FILTER_TYPES = [
   FilterTypeEnum.NO,
 ];
 
-export const WINDOW_WIDTH = 1428;
 export const WINDOW_HEIGHT = 625;
 export const WINDOW_HEIGHT_EXPANDED = 1036;
 export const WINDOW_MIN_WIDTH = 720;
 export const WINDOW_MIN_HEIGHT = 620;
 
-export const PREAMP_REGEX = /^Preamp: (-?\d+(?:\.\d+)?) dB$/;
 // The index is optional: APO ignores whatever sits between `Filter` and the
 // colon, and exporters differ — AutoEq numbers its lines, OPRA does not.
 export const FILTER_REGEX =

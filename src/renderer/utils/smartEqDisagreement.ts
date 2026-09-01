@@ -83,15 +83,6 @@ export const setSmartEqDisagreement = (next: TDisagreement) => {
   listeners.forEach((listener) => listener());
 };
 
-export const clearSmartEqDisagreement = () => {
-  if (Object.keys(disagreement).length === 0) {
-    return;
-  }
-  setSmartEqDisagreement({});
-};
-
-export const getSmartEqDisagreement = () => disagreement;
-
 export const useSmartEqDisagreement = (): TDisagreement =>
   useSyncExternalStore(
     (listener: () => void) => {

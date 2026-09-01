@@ -173,11 +173,3 @@ export const separateVocals = async (
     signal?.removeEventListener('abort', onAbort);
   }
 };
-
-/**
- * Kept for callers; the session lives in the main process now and stays warm
- * for the next song, which is the behaviour a session cache exists to buy.
- */
-export const releaseSeparationModel = async (): Promise<void> => {
-  emitSeparationSession({ status: 'unloaded', inMemory: false });
-};

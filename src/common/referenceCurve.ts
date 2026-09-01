@@ -53,8 +53,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * centres its answer anyway, so fitting it is free and assuming it is wrong.
  */
 
-export type TReferenceMode = 'detail' | 'balance' | 'target';
-
 /**
  * A point on a reference curve.
  *

@@ -79,17 +79,6 @@ export interface IConvolverState {
  * own half-length. Reported rather than assumed: the transport has to know. */
 export const CONVOLVER_LATENCY = PARTITION;
 
-/**
- * How long a replacement takes to become usable, in samples.
- *
- * A new convolver starts with an empty ring, so its first partition of output
- * is silence that has nothing to do with the audio. Swapping straight to it is
- * a 10 ms hole — which is exactly what "the EQ micro-cuts when I move it"
- * sounds like. The caller feeds both for this long before it starts listening
- * to the new one.
- */
-export const CONVOLVER_WARMUP = PARTITION;
-
 /** Transform a kernel into partitions. Renderer-side; never on a callback. */
 export const prepareKernel = (kernel: Float32Array): IConvolverKernel => {
   const partitions = Math.ceil(kernel.length / PARTITION);
@@ -218,35 +207,4 @@ export const convolve = (
     buffer[i] = state.ready[state.read];
     state.read = (state.read + 1) % state.ready.length;
   }
-};
-
-/**
- * Filter through two convolvers at once, writing the mix of them.
- *
- * `blend` is how much of `next` to use, from 0 to 1, and it moves by `step` per
- * sample so a handover can span more than one block. Both are fed the whole
- * input whatever the blend is — a convolver that stops being listened to still
- * has to be fed, because its ring is the last half-second of audio and letting
- * it go stale would make coming back to it a discontinuity of its own.
- *
- * Returns where the blend finished, so the caller can carry it to the next
- * block without either side needing to know the block size.
- */
-export const convolveBlend = (
-  active: IConvolverState,
-  next: IConvolverState,
-  buffer: Float32Array,
-  scratch: Float32Array,
-  blend: number,
-  step: number,
-): number => {
-  scratch.set(buffer);
-  convolve(active, buffer);
-  convolve(next, scratch);
-  let mix = blend;
-  for (let i = 0; i < buffer.length; i += 1) {
-    mix = Math.min(1, mix + step);
-    buffer[i] += (scratch[i] - buffer[i]) * mix;
-  }
-  return mix;
 };

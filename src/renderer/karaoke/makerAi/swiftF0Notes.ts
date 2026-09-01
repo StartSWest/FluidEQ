@@ -11,13 +11,6 @@ import { IKaraokeMakerAnalysisWindow } from './analysisWindows';
 import { IKaraokeMakerDownloadSummary } from './whisperProgress';
 import { karaokeMakerNotesFromPitchContour } from './pitchContourNotes';
 
-export const RMVPE_PROVENANCE: IKaraokeMakerLicenseRecord = {
-  component: 'RMVPE vocal pitch model',
-  version: 'lj1995/VoiceConversionWebUI (downloaded on demand)',
-  license: 'MIT',
-  sourceUrl: 'https://huggingface.co/lj1995/VoiceConversionWebUI',
-};
-
 export const SWIFT_F0_PROVENANCE: IKaraokeMakerLicenseRecord = {
   component: 'SwiftF0 vocal pitch model',
   version: 'lars76/swift-f0 (bundled)',

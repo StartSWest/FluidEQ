@@ -254,11 +254,6 @@ const gainAtSortedGraphicEqFrequency = (
 };
 
 /** Linear interpolation in log frequency, matching Equalizer APO GraphicEQ. */
-export const getGraphicEqGainAtFrequency = (
-  points: IGraphicEqPoint[] | undefined,
-  frequency: number,
-): number =>
-  gainAtSortedGraphicEqFrequency(sortedGraphicEqPoints(points), frequency);
 
 /**
  * How far a chain departs from flat, in either direction.
@@ -523,22 +518,4 @@ export const getAutoPreAmpGain = (response: ICombinedResponse): number => {
     AUTO_PREAMP_HEADROOM_DB
   );
   return Math.round(gain * 100) / 100;
-};
-
-/**
- * The peak of a native GraphicEQ stage, in dB.
- *
- * GraphicEQ is not a collection of biquads, so it cannot go through
- * `getChainPeakGain`. APO interpolates between the supplied points, which
- * cannot create a value above the largest point; the largest finite gain is
- * therefore the stage peak. Keeping the negative result matters for a curve
- * that cuts everywhere: auto-normalize should restore that lost level too.
- */
-export const getGraphicEqPeakGain = (
-  points: IGraphicEqPoint[] | undefined,
-): number => {
-  const finiteGains = (points ?? [])
-    .map(({ gain }) => gain)
-    .filter((gain) => Number.isFinite(gain));
-  return finiteGains.length > 0 ? Math.max(...finiteGains) : 0;
 };

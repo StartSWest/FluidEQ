@@ -458,8 +458,34 @@ export const hardenPopup = (contents: WebContents) => {
   if (opener) {
     opener
       .executeJavaScript('JSON.stringify(sessionStorage)')
-      .then((dump: unknown) =>
-        contents.executeJavaScript(
+      .then((dump: unknown) => {
+        /*
+         * STILL BLANK, OR THE COPY DOES NOT HAPPEN.
+         *
+         * Everything above is only correct while this window is `about:blank`,
+         * because that is when it is still on the OPENER'S origin and the write
+         * lands where a browser would have put it. The paragraph above says so;
+         * until this check it was the only thing saying so.
+         *
+         * And the ordering it depends on is not guaranteed. This runs two
+         * asynchronous round-trips after the window was created — one to read
+         * the opener, one to write here — while the site is concurrently
+         * setting `location` to whichever identity provider it uses. The seed
+         * usually wins that race. When it does not, the opener's sign-in state
+         * would be written into `accounts.google.com`'s storage area instead of
+         * its own: one site's secrets, handed to another, by a copy that was
+         * meant to be same-origin.
+         *
+         * An empty URL is the pre-navigation state and counts as blank.
+         */
+        const here = contents.isDestroyed() ? 'gone' : contents.getURL();
+        if (here !== '' && here !== 'about:blank') {
+          log.info(
+            `Sign-in popup already left about:blank (${forLog(here)}); session storage not seeded`,
+          );
+          return undefined;
+        }
+        return contents.executeJavaScript(
           `(() => {
             const carried = JSON.parse(${JSON.stringify(String(dump))});
             const names = Object.keys(carried);
@@ -473,11 +499,16 @@ export const hardenPopup = (contents: WebContents) => {
             });
             return names.length;
           })()`,
-        ),
-      )
-      .then((carried) =>
-        log.info(`Sign-in popup inherited ${carried} session-storage keys`),
-      )
+        );
+      })
+      .then((carried) => {
+        // `undefined` is the skip above, which has already said why it skipped.
+        // A second line here would only repeat it less precisely.
+        if (carried !== undefined) {
+          log.info(`Sign-in popup inherited ${carried} session-storage keys`);
+        }
+        return carried;
+      })
       .catch(() => {
         // Either window can go away mid-copy, and a sign-in that never opened
         // is not a failure worth a line of its own.

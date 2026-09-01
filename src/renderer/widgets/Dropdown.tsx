@@ -133,16 +133,6 @@ const PAGE_SIZE = 100;
 /** Distance from the bottom of the list at which the next page is appended. */
 const LOAD_MORE_THRESHOLD_PX = 240;
 
-export const matchesDropdownSearch = (option: IOptionEntry, query: string) => {
-  const terms = normalizeSearchText(query).split(/\s+/).filter(Boolean);
-  if (terms.length === 0) {
-    return true;
-  }
-
-  const searchableText = normalizeSearchText(`${option.label} ${option.value}`);
-  return terms.every((term) => searchableText.includes(term));
-};
-
 const Dropdown = ({
   name,
   options,

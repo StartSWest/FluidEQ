@@ -453,39 +453,6 @@ export const cycleGraphContents = () => {
 };
 
 /**
- * Put the bands' own line back, whatever the plot was doing. Ctrl+Q.
- *
- * Unconditional rather than a toggle, which is the whole point: the one thing
- * the key promises is that the EQ curve is on the plot afterwards, so leaning on
- * it can never be what took the curve away. A second press does nothing.
- *
- * Only `wave` is rescued. `everything` and `clean` both draw the line at full
- * weight already, so there is nothing there to repair; the two that could look
- * like an oversight are left alone deliberately.
- *
- * `curves` already draws the line at full weight with its handles — the wave is
- * what is missing there, and somebody who asked for the EQ curve did not ask for
- * the visualiser back. Turning it on would be answering a question that was not
- * put.
- *
- * `layers` draws the line too, thinly. That state exists so the curves
- * underneath can be read *against* it, so the line being quiet is the deliberate
- * arrangement rather than a curve gone missing, and a key that yanked somebody
- * out of the reading state would be undoing a choice instead of repairing one.
- * Ctrl+W is one press away for anybody who does want out.
- *
- * Which leaves `wave`, the single state where the EQ curve is genuinely not
- * drawn — and `everything` is where it goes, because the wave is already up in
- * that state and taking it away to add the curves would be trading one drawing
- * for another.
- */
-export const showEqCurve = () => {
-  if (getGraphContents() === 'wave') {
-    setGraphContents('everything');
-  }
-};
-
-/**
  * Which of the five the plot is in, for anything that draws a control for it.
  *
  * One subscription across the four flags rather than four hooks and a

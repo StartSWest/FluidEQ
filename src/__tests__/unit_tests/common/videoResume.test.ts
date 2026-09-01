@@ -271,6 +271,59 @@ describe('picking a page back up', () => {
   });
 
   /**
+   * THE CASE THE TWENTY-SECOND POLL EXISTED FOR.
+   *
+   * These sites do not have a player in the document when the page fires its
+   * load event — they mount one several levels down once their own bundle has
+   * run. The script used to wait for that by asking every 250ms, eighty times,
+   * which is the shape this project bans: a duration standing in for an event.
+   * It is now a `MutationObserver`, and this is the test that says the
+   * replacement actually does the job the timer was doing.
+   *
+   * A microtask boundary, not a timer: that is precisely the difference. The
+   * observer's callback is queued as a microtask when the DOM changes, so
+   * awaiting once is enough — there is no interval left to wait out.
+   */
+  it('seeks a player that is only added to the page later', async () => {
+    runInThePage(buildResumeSeekScript(117));
+
+    // Nothing on the page yet, which is where the old poll would have started
+    // counting.
+    expect(document.querySelector('video')).toBeNull();
+
+    const { el } = givenMediaOnThePage({ readyState: 1 });
+    await Promise.resolve();
+
+    expect(el.currentTime).toBe(117);
+  });
+
+  it('stops observing once it has seeked, and does not seek a second player', async () => {
+    runInThePage(buildResumeSeekScript(117));
+
+    const { el } = givenMediaOnThePage({ readyState: 1 });
+    await Promise.resolve();
+    expect(el.currentTime).toBe(117);
+
+    // An advert player mounting afterwards must not be rewound to the
+    // position of the video the user was actually watching.
+    const later = givenMediaOnThePage({ readyState: 1 });
+    await Promise.resolve();
+
+    expect(later.el.currentTime).toBe(0);
+  });
+
+  it('waits for metadata on a player that arrives late without it', async () => {
+    runInThePage(buildResumeSeekScript(117));
+
+    const { el } = givenMediaOnThePage();
+    await Promise.resolve();
+
+    expect(el.currentTime).toBe(0);
+    el.dispatchEvent(new Event('loadedmetadata'));
+    expect(el.currentTime).toBe(117);
+  });
+
+  /**
    * The position becomes source in another process's page. It has been checked
    * twice before it gets here, which is the reason to check it once more rather
    * than the reason not to.

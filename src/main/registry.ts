@@ -53,7 +53,6 @@ const isSoftwareInstalled = async (softwareKey: string) => {
   return false;
 };
 
-export const isPeaceInstalled = () => isSoftwareInstalled('Peace');
 export const isEqualizerAPOInstalled = () =>
   process.platform === 'win32'
     ? isSoftwareInstalled('EqualizerAPO')

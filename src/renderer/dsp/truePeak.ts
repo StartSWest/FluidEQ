@@ -17,7 +17,6 @@ const TAPS = 12;
 
 /** Half the filter's span, in input samples: the delay it introduces. */
 const HALF = TAPS / 2;
-export const TRUE_PEAK_LATENCY_SAMPLES = HALF;
 
 /**
  * A windowed-sinc interpolator, one phase per fractional offset.

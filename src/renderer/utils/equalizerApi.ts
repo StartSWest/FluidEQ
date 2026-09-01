@@ -482,18 +482,6 @@ export const getEqualizerState = (): Promise<IState> => {
 };
 
 /**
- * Get the current equalizer status
- * @deprecated - Removing with the context refactor
- * @returns { Promise<boolean> } true for on, false for off, exception otherwise
- */
-export const getEqualizerStatus = (): Promise<boolean> => {
-  const channel = ChannelEnum.GET_ENABLE;
-  window.electron.ipcRenderer.sendMessage(channel, []);
-
-  return promisifyResult(simpleResponseHandler<boolean>(), channel);
-};
-
-/**
  * Enable Equalizer
  * @returns { Promise<void> } exception if failed.
  */
@@ -611,18 +599,6 @@ export const setMainPreAmp = (gain: number) => {
 };
 
 /**
- * Get the a slider's gain value
- * @deprecated - Removing with the context refactor
- * @param {string} filterId - id of the slider being adjusted
- * @returns { Promise<number> } gain - current system gain value in the range [-20, 20]
- */
-export const getGain = (filterId: string): Promise<number> => {
-  const channel = ChannelEnum.GET_FILTER_GAIN;
-  window.electron.ipcRenderer.sendMessage(channel, [filterId]);
-  return promisifyResult(simpleResponseHandler<number>(), channel + filterId);
-};
-
-/**
  * Adjusts a slider's gain value
  * @param {string} filterId - id of the slider being adjusted
  * @param {number} gain - new gain value, brought into [-20, 20]
@@ -635,18 +611,6 @@ export const setGain = (filterId: string, gain: number) => {
   const channel = ChannelEnum.SET_FILTER_GAIN;
   window.electron.ipcRenderer.sendMessage(channel, [filterId, clampGain(gain)]);
   return promisifyResult(setterResponseHandler, channel + filterId);
-};
-
-/**
- * Get a slider's frequency
- * @deprecated - Removing with the context refactor
- * @param {string} filterId - id of the slider being adjusted
- * @returns { Promise<number> } frequency - frequency value in the range [0, 20000]
- */
-export const getFrequency = (filterId: string): Promise<number> => {
-  const channel = ChannelEnum.GET_FILTER_FREQUENCY;
-  window.electron.ipcRenderer.sendMessage(channel, [filterId]);
-  return promisifyResult(simpleResponseHandler<number>(), channel + filterId);
 };
 
 /**
@@ -663,18 +627,6 @@ export const setFrequency = (filterId: string, frequency: number) => {
   }
   window.electron.ipcRenderer.sendMessage(channel, [filterId, frequency]);
   return promisifyResult(setterResponseHandler, channel + filterId);
-};
-
-/**
- * Get a slider's quality
- * @deprecated - Removing with the context refactor
- * @param {string} filterId - id of the slider being adjusted
- * @returns { Promise<number> } quality - value in the range [0.01, 33.3333]
- */
-export const getQuality = (filterId: string): Promise<number> => {
-  const channel = ChannelEnum.GET_FILTER_QUALITY;
-  window.electron.ipcRenderer.sendMessage(channel, [filterId]);
-  return promisifyResult(simpleResponseHandler<number>(), channel + filterId);
 };
 
 /**
@@ -732,17 +684,6 @@ export const setFilterValues = (edits: IFilterEdit[]) => {
   // batches over the same selection would race to write the same config.
   window.electron.ipcRenderer.sendMessage(channel, [edits]);
   return promisifyResult(setterResponseHandler, channel);
-};
-
-/**
- * Get number of equalizer bands
- * @deprecated - Removing with the context refactor
- * @returns { Promise<number> } exception if failed
- */
-export const getEqualizerSliderCount = (): Promise<number> => {
-  const channel = ChannelEnum.GET_FILTER_COUNT;
-  window.electron.ipcRenderer.sendMessage(channel, []);
-  return promisifyResult(simpleResponseHandler<number>(), channel);
 };
 
 /**
@@ -946,24 +887,4 @@ export const setFixedBand = (size: FixedBandSizeEnum): Promise<IFiltersMap> => {
     simpleResponseHandler<IFiltersMap>(),
     channel,
   );
-};
-
-/**
- * Increase Window Size
- * @returns { Promise<void> } exception if failed.
- */
-export const increaseWindowSize = (): Promise<void> => {
-  const channel = ChannelEnum.SET_WINDOW_SIZE;
-  window.electron.ipcRenderer.sendMessage(channel, [true]);
-  return promisifyResult(setterResponseHandler, channel);
-};
-
-/**
- * Decrease Window Size
- * @returns { Promise<void> } exception if failed.
- */
-export const decreaseWindowSize = (): Promise<void> => {
-  const channel = ChannelEnum.SET_WINDOW_SIZE;
-  window.electron.ipcRenderer.sendMessage(channel, [false]);
-  return promisifyResult(setterResponseHandler, channel);
 };

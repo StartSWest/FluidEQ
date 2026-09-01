@@ -96,7 +96,6 @@ export interface IKaraokeMakerLyricSheet {
   lines: IKaraokeMakerLine[];
 }
 
-export type TKaraokeMakerLineCaptureIntent = 'start' | 'end';
 export type TKaraokeMakerTokenBoundary = 'start' | 'end';
 
 /** A small audible/visual separation that prevents adjacent lines overlapping. */

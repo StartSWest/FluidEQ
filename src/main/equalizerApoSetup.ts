@@ -50,14 +50,6 @@ export const getEqualizerApoSetupPath = (): string =>
     'equalizer-apo-setup.exe',
   );
 
-export const hasBundledEqualizerApo = (): boolean => {
-  try {
-    return fs.existsSync(getEqualizerApoSetupPath());
-  } catch {
-    return false;
-  }
-};
-
 /**
  * Launch it, and do not wait.
  *

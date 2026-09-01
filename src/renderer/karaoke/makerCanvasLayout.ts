@@ -362,34 +362,3 @@ export const karaokeMakerNoteIsActive = (
   endMs: number,
   playheadMs: number,
 ): boolean => endMs > startMs && playheadMs >= startMs && playheadMs < endMs;
-
-/**
- * Prefer a stable lane for each lyric line, but fall back to another lane
- * whenever its measured text would collide with the previous label there.
- */
-export const karaokeMakerLyricLane = (
-  laneRightEdges: readonly number[],
-  labelLeft: number,
-  preferredLane: number,
-  gap = 10,
-): number => {
-  if (!laneRightEdges.length) {
-    return 0;
-  }
-  const safePreferred =
-    ((preferredLane % laneRightEdges.length) + laneRightEdges.length) %
-    laneRightEdges.length;
-  const candidates = [
-    safePreferred,
-    ...laneRightEdges
-      .map((_edge, lane) => lane)
-      .filter((lane) => lane !== safePreferred)
-      .sort((left, right) => laneRightEdges[left] - laneRightEdges[right]),
-  ];
-  return (
-    candidates.find((lane) => laneRightEdges[lane] + gap <= labelLeft) ??
-    candidates.reduce((best, lane) =>
-      laneRightEdges[lane] < laneRightEdges[best] ? lane : best,
-    )
-  );
-};

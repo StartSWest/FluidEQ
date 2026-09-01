@@ -53,19 +53,3 @@ export const METER_STYLES: MeterStyle[] = [
 
 /** Where the chosen meter style is remembered. */
 export const METER_STYLE_KEY = 'fluideq-meter-style';
-
-export const nextMeterStyle = (style: MeterStyle): MeterStyle => {
-  const index = METER_STYLES.indexOf(style);
-  // An unknown value — a stored style from a build with a different set —
-  // starts the cycle again rather than getting stuck outside it.
-  return METER_STYLES[(index + 1) % METER_STYLES.length] ?? 'bar';
-};
-
-export const previousMeterStyle = (style: MeterStyle): MeterStyle => {
-  const index = METER_STYLES.indexOf(style);
-  if (index < 0) {
-    return METER_STYLES[METER_STYLES.length - 1] ?? 'bar';
-  }
-  const previous = (index - 1 + METER_STYLES.length) % METER_STYLES.length;
-  return METER_STYLES[previous] ?? 'bar';
-};

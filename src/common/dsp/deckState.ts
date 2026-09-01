@@ -27,6 +27,3 @@ export const DECK_READY = 1;
  * file a second time, which is one of the two clocks that removal got rid of.
  */
 export const DECK_ENDED = 2;
-
-export type TDeckState =
-  typeof DECK_EMPTY | typeof DECK_READY | typeof DECK_ENDED;

@@ -204,41 +204,6 @@ export const useFocusOutside = <T extends HTMLElement = HTMLElement>(
   }, [handleFocus]);
 };
 
-export const useFocusOut = <T extends HTMLElement = HTMLElement>(
-  ref: RefObject<T | null>,
-  callback: () => void,
-) => {
-  const handleFocus = useMemo(() => {
-    return (e: globalThis.FocusEvent) => {
-      if (
-        ref.current &&
-        ref.current.contains(e.target as Node) &&
-        !ref.current.contains(e.relatedTarget as Node)
-      ) {
-        callback();
-      }
-    };
-  }, [callback, ref]);
-
-  useEffect(() => {
-    const element = ref.current;
-    element?.addEventListener('focusout', handleFocus, true);
-
-    return () => element?.removeEventListener('focusout', handleFocus, true);
-  }, [ref, handleFocus]);
-};
-
-// https://reactjs.org/docs/hooks-faq.html#how-to-get-the-previous-props-or-state
-export const usePrevious = <T>(value: T): T | undefined => {
-  const prevChildrenRef = useRef<T | undefined>(undefined);
-
-  useEffect(() => {
-    prevChildrenRef.current = value;
-  }, [value]);
-
-  return prevChildrenRef.current;
-};
-
 export const useIsFirstRender = () => {
   const isFirstRender = useRef(true);
 

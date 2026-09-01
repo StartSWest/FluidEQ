@@ -296,33 +296,65 @@ export const buildResumeSeekScript = (position: number): string => {
   // else's page, and the check costs a line.
   const at = Number.isFinite(position) && position > 0 ? position : 0;
 
+  /*
+   * A MutationObserver, not a poll.
+   *
+   * This used to retry every 250ms up to eighty times — twenty seconds of
+   * asking a page whether it had built its player yet. That is the shape this
+   * project bans by name: a duration in milliseconds standing in for an event
+   * that actually exists. It was also wrong in both directions at once. On a
+   * fast machine the element is there within one frame and the wait is pure
+   * latency; on a slow one, or a page that takes longer than twenty seconds to
+   * hydrate, the resume silently never happens and nothing says why.
+   *
+   * The element being added to the document IS the event, and the DOM reports
+   * it. `subtree: true` because these sites mount their player several levels
+   * down, well after the first paint.
+   *
+   * The observer disconnects the moment it has seeked, so it does not outlive
+   * its purpose — and `pagehide` takes it down on the way out, because a page
+   * that never builds a player would otherwise leave one observing forever.
+   */
   return `(() => {
   const at = ${at};
-  let tries = 0;
-  const attempt = () => {
-    const media = Array.from(document.querySelectorAll('video, audio'));
-    media.sort(
+  const largest = () => Array.from(document.querySelectorAll('video, audio'))
+    .sort(
       (a, b) => (b.clientWidth * b.clientHeight) - (a.clientWidth * a.clientHeight)
-    );
-    const el = media[0];
-    if (!el) {
-      tries += 1;
-      if (tries < 80) { setTimeout(attempt, 250); }
-      return;
-    }
-    const seek = () => {
-      try {
-        // Past the end is not a resume, it is a video that finished.
-        if (at > 0 && (!Number.isFinite(el.duration) || at < el.duration)) {
-          el.currentTime = at;
-        }
-      } catch (e) { /* a server-controlled stream can refuse a seek */ }
-    };
-    if (el.readyState >= 1) { seek(); } else {
-      el.addEventListener('loadedmetadata', seek, { once: true });
-    }
+    )[0];
+
+  let done = false;
+  const seek = (el) => {
+    try {
+      // Past the end is not a resume, it is a video that finished.
+      if (at > 0 && (!Number.isFinite(el.duration) || at < el.duration)) {
+        el.currentTime = at;
+      }
+    } catch (e) { /* a server-controlled stream can refuse a seek */ }
   };
-  attempt();
+
+  const attempt = () => {
+    if (done) { return true; }
+    const el = largest();
+    if (!el) { return false; }
+    done = true;
+    if (el.readyState >= 1) { seek(el); } else {
+      // Metadata is what carries duration, and the check above needs it.
+      el.addEventListener('loadedmetadata', () => seek(el), { once: true });
+    }
+    return true;
+  };
+
+  if (!attempt()) {
+    const observer = new MutationObserver(() => {
+      if (attempt()) { observer.disconnect(); }
+    });
+    observer.observe(document.documentElement, { childList: true, subtree: true });
+    window.addEventListener(
+      'pagehide',
+      () => observer.disconnect(),
+      { once: true }
+    );
+  }
   return 'ok';
 })()`;
 };

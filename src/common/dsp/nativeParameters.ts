@@ -65,13 +65,24 @@ export interface INativeParameter {
    */
   readonly structural?: true;
   /**
-   * The vocabulary of an enum parameter, and the wire carries its index.
+   * The vocabulary of an enum parameter, and the wire carries its INDEX.
    *
-   * Owned here rather than read from the app's own union, and append-only:
-   * reordering one of these lists silently re-points every value a running
-   * host is holding. `nativeProtocol.test.ts` asserts each list still covers
-   * the union it mirrors, so widening the app without widening the protocol
-   * fails loudly rather than at runtime on somebody's machine.
+   * Read from the app's own unions in `chain.ts` — all but `EQ_BAND_TYPES`,
+   * which is assembled here out of `FilterTypeEnum` and is therefore the only
+   * one that can fall behind what the app can produce.
+   *
+   * APPEND-ONLY, and that is the part with teeth. `encodeNativeEnum` sends
+   * `indexOf(value)`; `decodeNativeEnum` reads `values[index]`. So reordering
+   * one of these lists silently re-points every value a running host is
+   * holding, and the edit that does it looks like tidying `chain.ts` — it
+   * passes the type checker and touches no file with "protocol" in its name.
+   *
+   * `nativeParameters.test.ts` pins each vocabulary's exact order as literals
+   * and checks that `EQ_BAND_TYPES` still covers `FilterTypeEnum`, so a reorder
+   * fails loudly rather than at runtime on somebody's machine. (An earlier
+   * version of this comment named `nativeProtocol.test.ts`, which never
+   * existed — the invariant was documented as guarded for as long as it went
+   * unguarded.)
    */
   readonly values?: readonly string[];
 }
@@ -320,15 +331,10 @@ const BY_ID = new Map<number, INativeParameter>(
  */
 export const NATIVE_DSP_PARAMETER_COUNT = BY_ID.size;
 
-export const nativeParameter = (id: number): INativeParameter | undefined =>
-  BY_ID.get(id);
-
 export const isNativeParameterId = (id: number): id is TNativeParameterId =>
   BY_ID.has(id);
 
 /** Which parameters need preparing off the audio thread before they can apply. */
-export const isStructuralParameter = (id: number): boolean =>
-  BY_ID.get(id)?.structural === true;
 
 /**
  * The wire form of an enum value: its index in the parameter's own vocabulary.

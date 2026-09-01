@@ -66,22 +66,6 @@ export const nextWaveformStyle = (style: WaveformStyle): WaveformStyle => {
 };
 
 /**
- * The previous style in the cycle — reached with Ctrl+click, so somebody
- * who went one too far can walk back without cycling the whole way round.
- * Unknown value resolves to the last style rather than the first, so the
- * pair with `nextWaveformStyle` stays symmetric.
- */
-export const previousWaveformStyle = (style: WaveformStyle): WaveformStyle => {
-  const index = WAVEFORM_STYLES.indexOf(style);
-  if (index < 0) {
-    return WAVEFORM_STYLES[WAVEFORM_STYLES.length - 1] ?? 'line';
-  }
-  const previous =
-    (index - 1 + WAVEFORM_STYLES.length) % WAVEFORM_STYLES.length;
-  return WAVEFORM_STYLES[previous] ?? 'line';
-};
-
-/**
  * The three paths every style produces.
  *
  * Not every style uses all three; an unused one is an empty string, which

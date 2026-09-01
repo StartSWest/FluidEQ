@@ -356,9 +356,6 @@ export const resolveAccentStroke = (
 ): TracePaint => (euphoria.isOn ? euphoriaTraceColour(euphoria.hue) : fallback);
 
 /** How present the wide, faint half of a lit tip is, by mode. */
-export const ACCENT_HALO_OPACITY = 0.28;
-export const ACCENT_HALO_EUPHORIC_OPACITY = 0.5;
-export const ACCENT_CORE_OPACITY = 0.92;
 
 /**
  * Which way up a live curve is drawn, as a translate and a vertical scale.

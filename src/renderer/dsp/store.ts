@@ -172,10 +172,6 @@ export const persistDspSettings = (): void => {
 };
 
 /** Apply and persist in one step, for a control with no drag to protect. */
-export const writeDspSettings = (next: IDspSettings): void => {
-  applyDspSettings(next);
-  persistDspSettings();
-};
 
 /** Reported by the engine. Only it may move this off `idle`. */
 export const setDspEngineState = (next: TDspEngineState): void => {

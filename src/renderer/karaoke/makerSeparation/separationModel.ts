@@ -43,15 +43,6 @@ export const SEPARATION_MODEL_FILE = 'syhft_core_folded_fp16_webgpu.onnx';
 export const SEPARATION_MODEL_URL = `${SEPARATION_MODEL_BASE}/${SEPARATION_MODEL_FILE}`;
 export const SEPARATION_WEIGHTS_URL = `${SEPARATION_MODEL_URL}.data`;
 
-/**
- * Roughly what the user is being asked to download, for the consent prompt.
- *
- * Stated because it is large enough to matter: eighteen times the Whisper model
- * this app already fetches, and on a metered connection that is a decision
- * rather than a detail.
- */
-export const SEPARATION_MODEL_BYTES = 746_498_840;
-
 /** Cache name for the two model files, kept apart from the transformers cache. */
 export const SEPARATION_CACHE = 'fluideq-separation-model-v1';
 
@@ -77,16 +68,6 @@ let snapshot: ISeparationSessionSnapshot = {
 
 const listeners = new Set<() => void>();
 
-export const readSeparationSessionSnapshot = (): ISeparationSessionSnapshot =>
-  snapshot;
-
-export const subscribeToSeparationSession = (listener: () => void) => {
-  listeners.add(listener);
-  return () => {
-    listeners.delete(listener);
-  };
-};
-
 export const emitSeparationSession = (
   patch: Partial<ISeparationSessionSnapshot>,
 ) => {
@@ -109,38 +90,6 @@ export const markSeparationDownloaded = () => {
     // The session stays usable without the hint; it only saves a cache probe.
   }
   emitSeparationSession({ downloaded: true });
-};
-
-/**
- * Whether both model files are already cached.
- *
- * Checks the cache rather than trusting the stored flag alone, because the
- * flag survives a cache the browser has since evicted — and the difference
- * between "cached" and "about to download 700MB" is one the user should not
- * discover halfway through a wizard. Both files are required: the graph
- * without its external weights is a 5MB file that fails at session creation.
- */
-export const refreshSeparationDownloaded = async (): Promise<boolean> => {
-  if (typeof caches === 'undefined') {
-    return false;
-  }
-  try {
-    const cache = await caches.open(SEPARATION_CACHE);
-    const [graph, weights] = await Promise.all([
-      cache.match(SEPARATION_MODEL_URL),
-      cache.match(SEPARATION_WEIGHTS_URL),
-    ]);
-    const complete = Boolean(graph && weights);
-    if (complete) {
-      markSeparationDownloaded();
-      return true;
-    }
-    emitSeparationSession({ downloaded: false });
-    return false;
-  } catch {
-    // Cache introspection is an optimisation, never the source of truth.
-    return false;
-  }
 };
 
 /**

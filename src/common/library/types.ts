@@ -81,10 +81,6 @@ export interface ILibraryNormalizationAnalysis {
 }
 
 /** Cheap disk identity used to validate a cached whole-file measurement. */
-export interface ILibraryFileSignature {
-  sizeBytes: number;
-  mtimeMs: number;
-}
 
 export interface ILibraryTrack {
   id: string; // stable hash of the absolute path

@@ -42,6 +42,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include <cstdlib>
 #include <cstring>
 #include <mutex>
+// For `std::bad_alloc`, which the offline render refuses rather than dies of.
+#include <new>
 #include <string>
 #include <thread>
 #include <vector>
@@ -215,6 +217,81 @@ bool read_exact(void* into, size_t bytes) {
     cursor += got;
     remaining -= got;
   }
+  return true;
+}
+
+/**
+ * The longest path this host will accept from the wire.
+ *
+ * Windows extended-length paths top out at 32767 UTF-16 units, so this is the
+ * generous end of what a real one can be rather than a guess at what is
+ * reasonable. Nothing legitimate approaches it; the number exists so that a
+ * length field which is NOT a length has somewhere to fail.
+ */
+constexpr uint32_t kMaxPathBytes = 32u * 1024u;
+
+/**
+ * The longest chain payload the decoder could ever accept, in doubles.
+ *
+ * `feq_chain_settings_decode` already refuses anything that is not exactly
+ * `LEAD + bands * BAND_PARAMS` — but it is handed a vector that has already
+ * been allocated, so the refusal comes one allocation too late. This is the
+ * same arithmetic at its maximum, checked before the memory is asked for.
+ */
+constexpr uint32_t kMaxChainParams =
+    FEQ_CHAIN_PARAM_LEAD + FEQ_CHAIN_MAX_EQ_BANDS * FEQ_CHAIN_BAND_PARAMS;
+
+/**
+ * Whether a length that arrived from the pipe is one this build can hold.
+ *
+ * Every variable-length command states its own count, and that count is read
+ * from the wire before anything is allocated for it. Sizing an allocation
+ * straight from it is how a desynchronised stream — a host built before a
+ * layout change, a frame read at the wrong offset — becomes a 34 GB
+ * `std::vector`, and there is no `catch` between that and `std::terminate`
+ * anywhere on this path. The engine would disappear mid-playback and the log
+ * would say nothing about why.
+ *
+ * REFUSED RATHER THAN CLAMPED, AND FATAL RATHER THAN SKIPPED. A length outside
+ * its range means the reader and the writer disagree about where this frame
+ * ends. `wire.h` already states the rule for that case and it applies whole:
+ * there is no safe number of bytes to skip, so the stream is not recoverable
+ * and the loop stops rather than guessing at the next frame boundary.
+ *
+ * The ceilings are the encoder's own maxima, so a legitimate frame is never
+ * refused — see `kMaxPathBytes` and `kMaxChainParams`.
+ */
+bool payload_within(uint32_t count, uint32_t ceiling, const char* what) {
+  if (count <= ceiling) {
+    return true;
+  }
+  std::fprintf(stderr,
+               "FluidEQ-DSP: %s declares %u, ceiling is %u; the control "
+               "stream has desynchronised\n",
+               what, count, ceiling);
+  return false;
+}
+
+/**
+ * A `double` from the wire read back as a byte length.
+ *
+ * `RENDER_TO_FILE` carries its path length in `value`, which is a `double`
+ * because the frame has no second integer field free. A negative or NaN double
+ * cast to `size_t` is undefined behaviour BEFORE any allocation is attempted —
+ * on x86-64 it lands on 0x8000000000000000, which `std::string` answers with a
+ * `length_error` and this process answers with `std::terminate`. So the value
+ * is judged as a double, while it still is one.
+ */
+bool wire_length_from_double(double value, uint32_t ceiling, uint32_t* out) {
+  if (!std::isfinite(value) || value < 0.0 ||
+      value > static_cast<double>(ceiling)) {
+    std::fprintf(stderr,
+                 "FluidEQ-DSP: path length %f is not a length; the control "
+                 "stream has desynchronised\n",
+                 value);
+    return false;
+  }
+  *out = static_cast<uint32_t>(value);
   return true;
 }
 
@@ -1239,6 +1316,13 @@ int main(int argc, char** argv) {
                    0, 0.0);
           break;
         }
+        // Two paths and the newline between them, so twice the ceiling plus
+        // one. Checked before the string is sized — see `payload_within`.
+        if (!payload_within(frame.parameter_id, 2u * kMaxPathBytes + 1u,
+                            "voice model payload")) {
+          running = false;
+          break;
+        }
         std::string payload(frame.parameter_id, '\0');
         if (!read_exact(payload.data(), payload.size())) {
           running = false;
@@ -1312,6 +1396,14 @@ int main(int argc, char** argv) {
       }
 
       case FEQ_CMD_APPLY_CHAIN: {
+        // The decoder checks the exact length too, but it is handed a vector
+        // that has already been allocated. This is the same ceiling, reached
+        // one step earlier — see `kMaxChainParams`.
+        if (!payload_within(frame.parameter_id, kMaxChainParams,
+                            "chain payload")) {
+          running = false;
+          break;
+        }
         std::vector<double> values(frame.parameter_id, 0.0);
         if (frame.parameter_id > 0 &&
             !read_exact(values.data(), values.size() * sizeof(double))) {
@@ -1337,6 +1429,10 @@ int main(int argc, char** argv) {
       }
 
       case FEQ_CMD_LOAD_DECK: {
+        if (!payload_within(frame.parameter_id, kMaxPathBytes, "deck path")) {
+          running = false;
+          break;
+        }
         std::string path(frame.parameter_id, '\0');
         if (frame.parameter_id > 0 &&
             !read_exact(path.data(), path.size())) {
@@ -1498,18 +1594,73 @@ int main(int argc, char** argv) {
           send_ack(frame.request_id, FEQ_WIRE_REJECTED, 0, 0, 0.0);
           break;
         }
-        std::string path(static_cast<size_t>(frame.value), '\0');
+        uint32_t path_bytes = 0;
+        if (!wire_length_from_double(frame.value, kMaxPathBytes, &path_bytes)) {
+          running = false;
+          break;
+        }
+        std::string path(path_bytes, '\0');
         if (!path.empty() && !read_exact(path.data(), path.size())) {
           running = false;
           break;
         }
 
         const uint32_t total = frame.parameter_id;
+        /*
+         * A WAV cannot say how long this would be, so it is not a WAV.
+         *
+         * `write_float_wav` stores the data length in the 32-bit field the
+         * format gives it, and `static_cast<uint32_t>` of anything past that
+         * TRUNCATES — the file would be written in full and its header would
+         * describe a fraction of it, which every reader on the other side
+         * believes. Refusing here is the honest answer, and it doubles as the
+         * ceiling that keeps the reserve below from being asked for 34 GB.
+         */
+        // `state.channels` is `min(negotiated, 2)` with no floor under it, so a
+        // backend that negotiated nothing would divide by zero here. One is the
+        // smallest divisor that keeps this a ceiling rather than a crash; a
+        // zero-channel endpoint has larger problems than its export limit.
+        const uint32_t render_channels =
+            state.channels < 1u ? 1u : state.channels;
+        const uint32_t max_render_frames =
+            (0xFFFFFFFFu - 64u) /
+            (render_channels * static_cast<uint32_t>(sizeof(float)));
+        if (total > max_render_frames) {
+          // Answered rather than fatal, unlike the length checks above: this
+          // count sits in the frame itself and nothing follows it in the pipe,
+          // so the stream is still in step and the caller can be told no.
+          std::fprintf(stderr,
+                       "FluidEQ-DSP: render of %u frames exceeds what a WAV "
+                       "can address (%u)\n",
+                       total, max_render_frames);
+          send_ack(frame.request_id, FEQ_WIRE_REJECTED, 0, 0, 0.0);
+          break;
+        }
         std::vector<float> left(state.block_frames, 0.0f);
         std::vector<float> right(state.block_frames, 0.0f);
         float* planar[2] = {left.data(), right.data()};
         std::vector<float> out;
-        out.reserve(static_cast<size_t>(total) * state.channels);
+        /*
+         * The one allocation here that a WELL-FORMED request can still fail.
+         *
+         * Every other length on this path is now bounded by what the protocol
+         * or the WAV format can express, so an oversized one is a
+         * desynchronised stream and stops the loop. This one is different: a
+         * three-hour render is a legitimate ask that a machine may simply not
+         * have the memory for, and the whole render is accumulated before it is
+         * written. Without this the failure is `std::terminate` — the engine
+         * vanishes mid-session and the log says nothing — instead of the export
+         * being refused while playback carries on.
+         */
+        try {
+          out.reserve(static_cast<size_t>(total) * state.channels);
+        } catch (const std::bad_alloc&) {
+          std::fprintf(stderr,
+                       "FluidEQ-DSP: not enough memory to render %u frames\n",
+                       total);
+          send_ack(frame.request_id, FEQ_WIRE_REJECTED, 0, 0, 0.0);
+          break;
+        }
 
         for (uint32_t at = 0; at < total; at += state.block_frames) {
           const uint32_t span = total - at < state.block_frames

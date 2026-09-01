@@ -444,14 +444,6 @@ export const hasCustomPresenceRange = (
   lines[keyOf(mode, label, 'full')] !== undefined;
 
 /** Every mode at once, for a preferences-level "put it all back". */
-export const resetPresenceLines = () => {
-  if (Object.keys(lines).length === 0) {
-    return;
-  }
-  lines = {};
-  persist();
-  notify();
-};
 
 /**
  * How much of a boost a range has earned, from 0 to 1.

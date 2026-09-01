@@ -186,12 +186,6 @@ const gainAtFrequency = (f: number, c: ITransferFuncCoeffs) => {
   return 10 * Math.log10(numerator / denominator);
 };
 
-// Get curve info for the preAmplification
-export const getPreAmpLine = (preAmp: number): IChartPointData[] =>
-  SAMPLE_FREQUENCIES.map((f) => {
-    return { x: f, y: preAmp };
-  });
-
 // Get curve and point info for individual filters
 export const getFilterLineData = (filter: IFilter): IChartPointData[] => {
   const tf = getTFCoefficients(filter);

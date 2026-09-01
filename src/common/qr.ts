@@ -479,8 +479,6 @@ const penalty = (matrix: Matrix): number => {
   return score;
 };
 
-export const QR_MAX_VERSION = 10;
-
 /**
  * Encode `text` as a QR matrix of booleans, true meaning a dark module.
  * Returns undefined when the text is too long for version 10 at level M,

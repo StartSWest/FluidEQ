@@ -44,8 +44,6 @@ try {
 
 const listeners = new Set<() => void>();
 
-export const isContinuousEqOn = () => isOn;
-
 export const setContinuousEq = (next: boolean) => {
   if (isOn === next) {
     return;
