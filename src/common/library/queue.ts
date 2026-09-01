@@ -136,17 +136,29 @@ export const queueAtEnd = (queue: ILibraryQueue): boolean =>
   queue.position >= queue.order.length - 1;
 
 /**
- * Moves `position` by one step. `repeat: 'one'` holds the current track
- * for either direction — it names what keeps playing, not which button was
- * pressed. `repeat: 'all'` wraps past either edge; `repeat: 'off'` holds at
- * the edge it reached, the way a player that has nothing queued next just
- * stops.
+ * Moves `position` by one step.
+ *
+ * `repeat: 'all'` wraps past either edge; `repeat: 'off'` holds at the edge it
+ * reached, the way a player that has nothing queued next just stops.
+ *
+ * REPEAT-ONE USED TO HOLD POSITION HERE, FOR EITHER DIRECTION, and that made
+ * Next and Previous do nothing — except that they still handed back a new
+ * queue object, so the track re-cued and started over. Both buttons restarted
+ * the song, at any position, and it looked like a transport bug rather than a
+ * repeat-mode one.
+ *
+ * Repeat-one says what happens when a track ENDS, not what the skip buttons
+ * mean; no player disables Next because a song is set to loop. The end path
+ * never needed this either — `handleEnded` returns early on repeat-one and
+ * restarts the element directly, and the natural-crossfade effect bails on it
+ * too, so neither reaches this function. The clause only ever changed the
+ * behaviour of a button press.
  */
 export const advanceQueue = (
   queue: ILibraryQueue,
   direction: 1 | -1,
 ): ILibraryQueue => {
-  if (queue.order.length === 0 || queue.repeat === 'one') {
+  if (queue.order.length === 0) {
     return { ...queue };
   }
   const last = queue.order.length - 1;

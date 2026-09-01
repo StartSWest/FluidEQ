@@ -48,9 +48,25 @@ describe('the play queue', () => {
     expect(currentTrackId(advanceQueue(looping, 1))).toBe('a');
   });
 
-  it('stays put on repeat one', () => {
+  /**
+   * REPEAT-ONE DOES NOT DISABLE THE SKIP BUTTONS.
+   *
+   * This used to assert the opposite — that `advanceQueue` held position under
+   * repeat-one, in either direction. What that produced in the app was Next and
+   * Previous appearing to restart the song: they moved nothing, but they still
+   * handed back a NEW queue object, so the track re-cued and started over. At
+   * any position, from either button, which read as a transport bug rather than
+   * a repeat-mode one.
+   *
+   * Repeat-one says what happens when a track ENDS. `handleEnded` acts on that
+   * itself and returns before reaching this function, so nothing about looping
+   * is lost by letting a deliberate press through — and no player anywhere
+   * refuses to skip because a song is set to loop.
+   */
+  it('still skips on repeat one, because a press is not the end of a track', () => {
     const queue = { ...buildQueue(ids, 'b', false), repeat: 'one' as const };
-    expect(currentTrackId(advanceQueue(queue, 1))).toBe('b');
+    expect(currentTrackId(advanceQueue(queue, 1))).toBe('c');
+    expect(currentTrackId(advanceQueue(queue, -1))).toBe('a');
   });
 
   it('keeps playing the same track when shuffle is switched on', () => {

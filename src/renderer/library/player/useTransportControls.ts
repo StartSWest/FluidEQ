@@ -116,32 +116,23 @@ export const useTransportControls = (options: {
   const skip = useCallback(
     (direction: 1 | -1) => {
       /*
-       * HOW FAR IN WE ACTUALLY ARE, ASKED OF BOTH CLOCKS.
+       * `publishedPositionMs` alone, and a correction worth recording.
        *
-       * Previous is the one control in the app whose meaning changes with the
-       * playhead — past ten seconds it restarts the track, before that it goes
-       * to the previous one, which is what every player does. So a wrong
-       * position here does not misreport anything; it presses a different
-       * button than the one the listener pressed.
+       * This briefly took the LATER of this clock and the element's, on the
+       * reasoning that during a handover one side can read zero while the
+       * other knows where the track is, and that "a stale clock lags, it does
+       * not run fast". The second half of that is false across a track change:
+       * the element is a paused fallback holding the PREVIOUS track's
+       * `currentTime`, so a second into a new song it reads minutes, and
+       * Previous restarted instead of stepping back. Stale high, not stale low.
        *
-       * And there are two clocks. `publishedPositionMs` follows whichever
-       * engine is audible, and ownership moves between the native deck and the
-       * element on track change, on engage, and now on pause as well — the
-       * engine stays up across a pause rather than being torn down. During
-       * those handovers one side can briefly read zero while the other knows
-       * exactly where the track is, and a zero read here silently turns
-       * "restart" into "skip back".
-       *
-       * They describe the same playhead, so the later of the two is the one
-       * that knows. Neither can be ahead of the truth: a stale clock lags, it
-       * does not run fast.
+       * The clock that follows whatever is audible is the only one that
+       * describes this track.
        */
-      const elementPositionMs = (activeElement()?.currentTime ?? 0) * 1000;
-      const intoTrackMs = Math.max(
-        Number.isFinite(publishedPositionMs) ? publishedPositionMs : 0,
-        Number.isFinite(elementPositionMs) ? elementPositionMs : 0,
-      );
-      if (direction === -1 && intoTrackMs > PREVIOUS_RESTART_THRESHOLD_MS) {
+      if (
+        direction === -1 &&
+        publishedPositionMs > PREVIOUS_RESTART_THRESHOLD_MS
+      ) {
         // Close any overlap before rewinding the deck that now owns the
         // transport. A second Previous sees position zero and advances to the
         // actual previous queue item.
@@ -156,30 +147,20 @@ export const useTransportControls = (options: {
         return;
       }
       /*
-       * NEXT SETTLES THE OVERLAP TOO, AND NOT SETTLING IT IS WHY NEXT RESTARTED
-       * THE TRACK.
+       * Settling the overlap here was a guess, and the real cause was
+       * elsewhere: `advanceQueue` held position under repeat-one, so both
+       * buttons handed back a new queue object on the same track and it
+       * re-cued. That is fixed where it belongs, in the queue.
        *
-       * Only Previous did this, on the reasoning that it was about to rewind
-       * the deck. But the first second of a track is precisely when a crossfade
-       * from the PREVIOUS change is still running — two decks live, the mirror
-       * mid-handoff — and pressing Next into that advanced the queue while the
-       * fade still owned both decks. The handoff then completed against a queue
-       * that had already moved, cueing the incoming file onto the deck it was
-       * fading away from, which is heard as the track starting over.
-       *
-       * That is why it only happened on an early press: a second in, the fade
-       * has finished and there is nothing left to collide with.
-       *
-       * Settling first makes the overlap resolve into a known state — one
-       * audible deck, the other released — so the advance below acts on decks
-       * nothing else is still moving.
+       * The call is gone rather than kept as insurance. It was never shown to
+       * change anything, and a settle on every Next is a real effect on the
+       * crossfade path to carry on a hunch.
        */
-      finishCrossfadeRef.current?.();
       setQueue((current) =>
         current ? advanceQueue(current, direction) : current,
       );
     },
-    [publishedPositionMs, activeElement, finishCrossfadeRef, seek, setQueue],
+    [publishedPositionMs, finishCrossfadeRef, seek, setQueue],
   );
 
   /**

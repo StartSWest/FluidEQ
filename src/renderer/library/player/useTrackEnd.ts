@@ -80,10 +80,11 @@ export const useTrackEnd = (options: {
   } = options;
 
   /**
-   * The track that just finished. `repeat: 'one'` restarts it in place — the
-   * queue's own `position` never moves for that mode (see `advanceQueue`'s
-   * doc comment), so this is the one case that has to act on the element
-   * directly rather than letting a `trackId` change trigger a reload.
+   * The track that just finished. `repeat: 'one'` restarts it in place, acting
+   * on the element directly rather than letting a `trackId` change trigger a
+   * reload — and this early return is now the ONLY thing implementing that
+   * mode. `advanceQueue` used to hold position for repeat-one as well, which
+   * was redundant here and broke the skip buttons, so it no longer does.
    * Everything else calls `advanceQueue` and lets that effect take over —
    * stopping at the end with repeat off is `advanceQueue` holding position at
    * the last track combined with the check below, not a separate rule here.
