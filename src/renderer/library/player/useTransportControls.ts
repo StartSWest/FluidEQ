@@ -132,6 +132,26 @@ export const useTransportControls = (options: {
         seek(0);
         return;
       }
+      /*
+       * NEXT SETTLES THE OVERLAP TOO, AND NOT SETTLING IT IS WHY NEXT RESTARTED
+       * THE TRACK.
+       *
+       * Only Previous did this, on the reasoning that it was about to rewind
+       * the deck. But the first second of a track is precisely when a crossfade
+       * from the PREVIOUS change is still running — two decks live, the mirror
+       * mid-handoff — and pressing Next into that advanced the queue while the
+       * fade still owned both decks. The handoff then completed against a queue
+       * that had already moved, cueing the incoming file onto the deck it was
+       * fading away from, which is heard as the track starting over.
+       *
+       * That is why it only happened on an early press: a second in, the fade
+       * has finished and there is nothing left to collide with.
+       *
+       * Settling first makes the overlap resolve into a known state — one
+       * audible deck, the other released — so the advance below acts on decks
+       * nothing else is still moving.
+       */
+      finishCrossfadeRef.current?.();
       setQueue((current) =>
         current ? advanceQueue(current, direction) : current,
       );

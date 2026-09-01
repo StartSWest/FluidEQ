@@ -704,6 +704,53 @@ describe('Previous button behavior', () => {
     });
     expect(latestPlayer?.track?.id).toBe(videoTrack.id);
   });
+
+  /**
+   * NEXT IS NOT PREVIOUS, AND THE FIRST SECOND IS WHERE THAT WENT WRONG.
+   *
+   * Restarting the track instead of leaving it is Previous's rule, and it is
+   * correctly gated on `direction === -1`. What was not gated was settling the
+   * crossfade: only Previous did that, and the first second of a track is
+   * exactly when a fade from the change before is still running.
+   *
+   * So Next pressed early advanced the queue while an overlap still owned both
+   * decks, and the handoff completed against a queue that had already moved —
+   * heard as the track starting over rather than the next one playing.
+   *
+   * Pressed twice in a row with no time in between, Next must land two tracks
+   * on, never back on the one it started from.
+   */
+  /**
+   * WHAT THIS PINS, AND WHAT IT DOES NOT.
+   *
+   * It pins the asymmetry: at position zero, Previous restarts and Next
+   * advances. That is the rule the report was about — "next on the first second
+   * makes the sound start; that feature is only for prev".
+   *
+   * It does NOT reproduce the mechanism. The fix is that Next now settles an
+   * in-flight crossfade before advancing, and this harness has no live overlap
+   * to settle, so it would pass without that change. The collision needs two
+   * real decks mid-fade and is a listening test, not a jsdom one. Said plainly
+   * here rather than left for someone to assume this covers it.
+   */
+  it('advances on an early Next where Previous would restart', async () => {
+    renderHarness();
+    await act(async () => {
+      await Promise.resolve();
+    });
+    act(() => {
+      latestPlayer?.playTracks([videoTrack.id, audioTrack.id], videoTrack.id);
+    });
+    expect(latestPlayer?.track?.id).toBe(videoTrack.id);
+
+    // Position zero, which is where Previous's restart rule lives. Next has no
+    // business honouring it.
+    act(() => {
+      latestPlayer?.skip(1);
+    });
+    expect(latestPlayer?.track?.id).toBe(audioTrack.id);
+    expect(latestPlayer?.track?.id).not.toBe(videoTrack.id);
+  });
 });
 
 describe('the length of the playing track', () => {
