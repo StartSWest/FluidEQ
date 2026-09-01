@@ -25,3 +25,34 @@ index 9e4cf4f..1e36905 100644
              await this.tokenizer.peekBuffer(keyBuffer, { length: Math.min(keyBuffer.length, bytesRemaining) });
              let zero = util.findZero(keyBuffer);
              const key = await this.tokenizer.readToken(new StringType(zero, 'ascii'));
+diff --git a/lib/mp4/MP4Parser.js b/lib/mp4/MP4Parser.js
+index 8296d9d..812b7c0 100644
+--- a/lib/mp4/MP4Parser.js
++++ b/lib/mp4/MP4Parser.js
+@@ -452,7 +452,25 @@ export class MP4Parser extends BasicParser {
+         // @ts-expect-error
+         const track = {
+             media: {},
+-            fragments: []
++            fragments: [],
++            // A `trak` is not required to carry every sample table, and a
++            // plain .m4a whose `stbl` has no `stsz` is legal and common.
++            // These five were left undefined when their box was absent, but
++            // `parse()` reads them as arrays without checking: at minimum
++            // `audioTrack.sampleSizeTable.length` in the fragment-less branch
++            // and `soundSampleDescription.length` in the audio-track filter
++            // above it. That threw `Cannot read properties of undefined
++            // (reading 'length')` out of `parseFile` and lost the whole file
++            // -- tags, duration and embedded cover art -- for a track whose
++            // metadata had already been read successfully.
++            //
++            // An absent box means a table with no entries, which is exactly
++            // what every reader of these already tests for with `.length`.
++            chunkOffsetTable: [],
++            sampleToChunkTable: [],
++            sampleSizeTable: [],
++            timeToSampleTable: [],
++            soundSampleDescription: []
+         };
+         await trakBox.readAtoms(this.tokenizer, async (child, remaining) => {
+             const payLoadLength = child.getPayloadLength(remaining);

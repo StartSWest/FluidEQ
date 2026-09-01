@@ -417,7 +417,17 @@ describe('App', () => {
     },
   );
 
-  it('keeps player fullscreen across media tabs and exits it for EQ or DSP', async () => {
+  /**
+   * This used to assert the opposite for the three playback tabs — that a
+   * Karaoke full screen was KEPT when Library or Online Media was selected —
+   * because the state behind it was one boolean that could not say which
+   * surface owned the window. What that produced on screen was a Library page
+   * with no titlebar and its floating controls piled on top of each other,
+   * reported as "it stays in full screen and it should not". Full screen now
+   * belongs to the surface that entered it, and any navigation leaves it,
+   * which is the rule the graph modes already had.
+   */
+  it('leaves player fullscreen whenever the workspace tab changes', async () => {
     const { container } = render(<App />);
     await act(async () => Promise.resolve());
     fireEvent.click(screen.getByRole('tab', { name: 'Karaoke' }));
@@ -428,18 +438,22 @@ describe('App', () => {
 
     setWindowFullScreen.mockClear();
     fireEvent.click(screen.getByRole('tab', { name: 'Library' }));
-    expect(container.querySelector('.app-workspace')).toHaveClass(
+    await waitFor(() =>
+      expect(setWindowFullScreen).toHaveBeenLastCalledWith(false),
+    );
+    expect(container.querySelector('.app-workspace')).not.toHaveClass(
       'is-app-full',
     );
-    expect(setWindowFullScreen).not.toHaveBeenCalled();
 
+    // The other playback tab, and a tab outside the group entirely: the owner
+    // is compared to the open tab, not to a list of tabs, so both leave.
+    setWindowFullScreen.mockClear();
+    fireEvent.click(screen.getByRole('tab', { name: 'Karaoke' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Enter full screen' }));
+    await waitFor(() =>
+      expect(setWindowFullScreen).toHaveBeenLastCalledWith(true),
+    );
     fireEvent.click(screen.getByRole('tab', { name: 'Online Media' }));
-    expect(container.querySelector('.app-workspace')).toHaveClass(
-      'is-app-full',
-    );
-    expect(setWindowFullScreen).not.toHaveBeenCalled();
-
-    fireEvent.click(screen.getByRole('tab', { name: 'EQ' }));
     await waitFor(() =>
       expect(setWindowFullScreen).toHaveBeenLastCalledWith(false),
     );

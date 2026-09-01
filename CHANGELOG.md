@@ -25,6 +25,14 @@ failures useful to diagnose instead of leaving only a restart-budget code.
   Electron host for resizing and caching. Libraries scanned by the affected
   build automatically re-check missing covers once; existing metadata and
   cached covers are preserved.
+- **Some `.m4a` files no longer lose their tags, duration and cover.** A track
+  whose MP4 structure omits an optional sample table was rejected outright
+  during a scan. Such files are now read normally, and one that genuinely
+  cannot be read is still skipped without interrupting the scan.
+- **Leaving full screen now follows the tab you press.** Taking the Karaoke
+  stage, the Library or Online Media full screen and then switching workspace
+  returns the window to its normal size, instead of handing the new tab a
+  full-screen layout it was not designed for.
 
 ### Diagnostics
 

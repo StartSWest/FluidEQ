@@ -737,11 +737,19 @@ const AppContent = () => {
     </WorkspaceTabStrip>
   );
 
-  // One native-window fullscreen state for the three playback workspaces.
-  // Karaoke originated the control, but Library and Online Media use the same
-  // state so changing tabs cannot reveal a second, guest-owned fullscreen.
-  const [isKaraokeFullScreen, setIsKaraokeFullScreen] = useState(false);
-  const karaokeFullScreenRequestedRef = useRef(false);
+  // WHICH playback workspace owns the native-window full screen, not merely
+  // whether one does. Karaoke originated the control and Library and Online
+  // Media share it so there can never be two, but as a bare boolean it read
+  // `true` on all three at once: taking the Karaoke stage full screen and then
+  // pressing Library handed Library a full-screen window it never asked for,
+  // titlebar gone and its floating controls stacked over each other. Full
+  // screen belongs to the surface that entered it, and a navigation leaves it
+  // — the same rule the graph modes have always had.
+  const [mediaFullScreenOwner, setMediaFullScreenOwner] = useState<
+    TWorkspaceTab | undefined
+  >(undefined);
+  const isMediaFullScreen = mediaFullScreenOwner !== undefined;
+  const mediaFullScreenRequestedRef = useRef(false);
   const [showAudioRestartRecommendation, setShowAudioRestartRecommendation] =
     useState(false);
   const [isWindowMaximized, setIsWindowMaximized] = useState(false);
@@ -883,20 +891,25 @@ const AppContent = () => {
   const isKaraokeGraphFullScreen =
     showsKaraokeGraphBackdrop && graphView === 'fullscreen';
   const isKaraokeGraphOverlay = showsKaraokeGraphBackdrop;
+  // Owner-scoped, not merely "some surface is full screen": between the tab
+  // changing and the effect below releasing the window there is one render in
+  // which the outgoing owner is still recorded, and these classes must not
+  // dress the incoming tab in the outgoing tab's full-screen layout.
   const isMediaSurfaceFullScreen =
-    isKaraokeFullScreen || isKaraokeGraphFullScreen;
+    mediaFullScreenOwner === activeWorkspaceTab || isKaraokeGraphFullScreen;
   const isKaraokeSurfaceFullScreen =
-    (isKaraokeTab && isKaraokeFullScreen) || isKaraokeGraphFullScreen;
+    (isKaraokeTab && mediaFullScreenOwner === 'karaoke') ||
+    isKaraokeGraphFullScreen;
 
   /** The window itself is full screen, so the titlebar is not on screen. */
   const isGraphAppFullScreen =
-    graphView === 'fullscreen' && showsGraph && !isKaraokeFullScreen;
+    graphView === 'fullscreen' && showsGraph && !isMediaFullScreen;
   // Full screen with the top bar kept. Everything below reads this rather than
   // the mode alone, so "full screen" and "full screen with the bar" cannot end
   // up disagreeing about which pieces are on screen.
   const hasFullScreenTopBar = useFullScreenTopBar();
   const isChromeHidden =
-    (isGraphAppFullScreen || isKaraokeFullScreen) && !hasFullScreenTopBar;
+    (isGraphAppFullScreen || isMediaFullScreen) && !hasFullScreenTopBar;
   /**
    * Full screen, whether or not the top bar is showing.
    *
@@ -906,7 +919,7 @@ const AppContent = () => {
    * reach the bottom edge, and a reserved strip there is a band of background
    * under a stage that should have filled it.
    */
-  const isAppFullScreen = isGraphAppFullScreen || isKaraokeFullScreen;
+  const isAppFullScreen = isGraphAppFullScreen || isMediaFullScreen;
   const editorHeight = useEditorHeight(activeWorkspaceTab);
 
   // Watched only in full screen, and stopped on the way out — see the store for
@@ -941,9 +954,9 @@ const AppContent = () => {
     // `isChromeHidden` as well: full screen fades the transport bar too, and a
     // full-screen surface with no graph on it would otherwise have nothing
     // watching for the stillness that fades it.
-    watchChromeIdle(showsGraph || isKaraokeFullScreen || isChromeHidden);
+    watchChromeIdle(showsGraph || isMediaFullScreen || isChromeHidden);
     return () => watchChromeIdle(false);
-  }, [isChromeHidden, isKaraokeFullScreen, showsGraph]);
+  }, [isChromeHidden, isMediaFullScreen, showsGraph]);
 
   /**
    * Take the window fullscreen when the graph asks for it.
@@ -961,20 +974,25 @@ const AppContent = () => {
     return () => onWindowFullScreenChange(() => undefined);
   }, []);
 
-  const applyKaraokeFullScreen = useCallback(async (next: boolean) => {
-    karaokeFullScreenRequestedRef.current = next;
-    setIsKaraokeFullScreen(next);
-    try {
-      const applied =
-        await window.electron.ipcRenderer.setWindowFullScreen(next);
-      karaokeFullScreenRequestedRef.current = next && applied;
-      setIsKaraokeFullScreen(next && applied);
-    } catch (error) {
-      karaokeFullScreenRequestedRef.current = false;
-      setIsKaraokeFullScreen(false);
-      reportError('Could not change Karaoke full screen', error);
-    }
-  }, []);
+  /** `undefined` leaves full screen; a tab takes it, and owns it. */
+  const applyMediaFullScreen = useCallback(
+    async (owner: TWorkspaceTab | undefined) => {
+      const next = owner !== undefined;
+      mediaFullScreenRequestedRef.current = next;
+      setMediaFullScreenOwner(owner);
+      try {
+        const applied =
+          await window.electron.ipcRenderer.setWindowFullScreen(next);
+        mediaFullScreenRequestedRef.current = next && applied;
+        setMediaFullScreenOwner(next && applied ? owner : undefined);
+      } catch (error) {
+        mediaFullScreenRequestedRef.current = false;
+        setMediaFullScreenOwner(undefined);
+        reportError('Could not change the media surface full screen', error);
+      }
+    },
+    [],
+  );
 
   // Ctrl+F and Ctrl+S always mean graph fullscreen and expanded mode in a
   // playback workspace. This listener also covers Library and Karaoke when
@@ -984,7 +1002,7 @@ const AppContent = () => {
   // commands, separate visible results, all App-owned.
   useEffect(() => {
     const isMediaTab = isFullscreenMediaTab(activeWorkspaceTab);
-    if (!isMediaTab && !isKaraokeFullScreen) {
+    if (!isMediaTab && !isMediaFullScreen) {
       return undefined;
     }
     const onKeyDown = (event: KeyboardEvent) => {
@@ -995,7 +1013,7 @@ const AppContent = () => {
         !event.altKey &&
         !event.repeat &&
         (shortcut === 'f' || shortcut === 's');
-      const wantsExit = event.key === 'Escape' && isKaraokeFullScreen;
+      const wantsExit = event.key === 'Escape' && isMediaFullScreen;
       if (!wantsToggle && !wantsExit) {
         return;
       }
@@ -1013,7 +1031,7 @@ const AppContent = () => {
       event.preventDefault();
       event.stopImmediatePropagation();
       if (wantsExit) {
-        applyKaraokeFullScreen(false);
+        applyMediaFullScreen(undefined);
         return;
       }
 
@@ -1021,9 +1039,9 @@ const AppContent = () => {
       // bounce the BrowserWindow out and back in. Transfer ownership in React,
       // then let the graph store apply the requested view; for Ctrl+F the OS
       // window is already in the requested state.
-      if (isKaraokeFullScreen) {
-        karaokeFullScreenRequestedRef.current = false;
-        setIsKaraokeFullScreen(false);
+      if (isMediaFullScreen) {
+        mediaFullScreenRequestedRef.current = false;
+        setMediaFullScreenOwner(undefined);
       }
       setActiveTabGraphVisibility(true);
       if (shortcut === 's') {
@@ -1036,16 +1054,33 @@ const AppContent = () => {
     return () => window.removeEventListener('keydown', onKeyDown, true);
   }, [
     activeWorkspaceTab,
-    applyKaraokeFullScreen,
-    isKaraokeFullScreen,
+    applyMediaFullScreen,
+    isMediaFullScreen,
     setActiveTabGraphVisibility,
   ]);
 
+  /**
+   * CHANGING WORKSPACE PAGES LEAVES FULL SCREEN — ANY PAGE, NOT JUST A
+   * NON-PLAYBACK ONE.
+   *
+   * This used to release the window only when the new tab was outside the
+   * three playback workspaces, on the reasoning that they share one full
+   * screen so there is nothing to hand over. But sharing the *window* is not
+   * sharing the *layout*: Karaoke full screen is a lyric stage with the
+   * titlebar gone, and arriving on Library still in it gave that tab a
+   * hidden titlebar with its own floating controls piled into the space —
+   * exactly the "the tab press did nothing" that `selectTopWorkspaceTab`
+   * already prevents for the graph modes. So the owner is compared to the
+   * open tab, and any mismatch leaves.
+   */
   useEffect(() => {
-    if (!isFullscreenMediaTab(activeWorkspaceTab) && isKaraokeFullScreen) {
-      applyKaraokeFullScreen(false);
+    if (
+      mediaFullScreenOwner !== undefined &&
+      mediaFullScreenOwner !== activeWorkspaceTab
+    ) {
+      applyMediaFullScreen(undefined);
     }
-  }, [activeWorkspaceTab, applyKaraokeFullScreen, isKaraokeFullScreen]);
+  }, [activeWorkspaceTab, applyMediaFullScreen, mediaFullScreenOwner]);
 
   // The live capture's own failure, read once and reported once.
   //
@@ -1267,10 +1302,10 @@ const AppContent = () => {
         setIsWindowMaximized(Boolean(state?.isMaximized));
         if (
           state?.isFullScreen === false &&
-          karaokeFullScreenRequestedRef.current
+          mediaFullScreenRequestedRef.current
         ) {
-          karaokeFullScreenRequestedRef.current = false;
-          setIsKaraokeFullScreen(false);
+          mediaFullScreenRequestedRef.current = false;
+          setMediaFullScreenOwner(undefined);
         }
       },
     );
@@ -1896,9 +1931,9 @@ const AppContent = () => {
       </header>
       <main
         className={`app-workspace${
-          isGraphAppFullScreen || isKaraokeFullScreen ? ' is-app-full' : ''
+          isGraphAppFullScreen || isMediaFullScreen ? ' is-app-full' : ''
         }${
-          (isGraphAppFullScreen || isKaraokeFullScreen) && hasFullScreenTopBar
+          (isGraphAppFullScreen || isMediaFullScreen) && hasFullScreenTopBar
             ? ' has-top-bar'
             : ''
         }${isMediaSurfaceFullScreen ? ' is-media-full' : ''}${
@@ -1970,7 +2005,7 @@ const AppContent = () => {
 
         <div
           className={`center-workspace${
-            isGraphFullScreen && showsGraph && !isKaraokeFullScreen
+            isGraphFullScreen && showsGraph && !isMediaFullScreen
               ? ' is-graph-full'
               : ''
           }${isResizingPanes ? ' is-resizing' : ''}`}
@@ -2122,19 +2157,19 @@ const AppContent = () => {
                   !showsMediaGraphBackdrop &&
                   (!isVideoTab || isGraphBackdropMode)
                 }
-                isFullScreen={isVideoTab && isKaraokeFullScreen}
+                isFullScreen={mediaFullScreenOwner === 'video'}
                 isGraphBackdrop={showsMediaGraphBackdrop}
                 onRequestFullScreen={() => {
-                  applyKaraokeFullScreen(true);
+                  applyMediaFullScreen('video');
                 }}
                 onRequestGraphFullScreen={() => {
                   // A double-click on the guest is the same command as Ctrl+F.
                   // If the shared no-graph media surface already owns the OS
                   // window, transfer it without first bouncing out of full
                   // screen and making Chromium resize the live video twice.
-                  if (isKaraokeFullScreen) {
-                    karaokeFullScreenRequestedRef.current = false;
-                    setIsKaraokeFullScreen(false);
+                  if (isMediaFullScreen) {
+                    mediaFullScreenRequestedRef.current = false;
+                    setMediaFullScreenOwner(undefined);
                   }
                   setActiveTabGraphVisibility(true);
                   toggleGraphFullScreen();
@@ -2177,9 +2212,13 @@ const AppContent = () => {
                       }
                       isGraphBackdrop={showsLibraryGraphBackdrop}
                       revealRequest={libraryReveal}
-                      isFullScreen={isLibraryTab && isKaraokeFullScreen}
+                      isFullScreen={mediaFullScreenOwner === 'library'}
                       onToggleFullScreen={() => {
-                        applyKaraokeFullScreen(!isKaraokeFullScreen);
+                        applyMediaFullScreen(
+                          mediaFullScreenOwner === 'library'
+                            ? undefined
+                            : 'library',
+                        );
                       }}
                     />
                     {showsLibraryGraphBackdrop && <LibraryStageArt />}
@@ -2215,7 +2254,9 @@ const AppContent = () => {
                     exitGraphFullScreen();
                     return;
                   }
-                  applyKaraokeFullScreen(!isKaraokeFullScreen);
+                  applyMediaFullScreen(
+                    mediaFullScreenOwner === 'karaoke' ? undefined : 'karaoke',
+                  );
                 }}
               />
             )}
@@ -2323,7 +2364,7 @@ const AppContent = () => {
             surface beneath that graph, the overlay class moves it into the
             lower dock so it cannot cover the playlist or song metadata. A
             native Karaoke full screen keeps the creature out entirely. */}
-        {isChromeHidden && !isKaraokeFullScreen && (
+        {isChromeHidden && !isMediaFullScreen && (
           <div
             className={`fullscreen-chrome${
               isKaraokeTab ? ' is-karaoke-overlay' : ''
