@@ -619,7 +619,7 @@ describe('DspPanel', () => {
    */
   it('does NOT claim a failure when the engine has simply not started', () => {
     act(() => setDspNativeState('idle'));
-    renderPanel(DSP_DEFAULTS, 'idle');
+    const { container } = renderPanel(DSP_DEFAULTS, 'idle');
     expect(screen.queryByText(/could not start/i)).not.toBeInTheDocument();
     expect(
       screen.getByText(/music is playing from Library/i),
@@ -627,8 +627,22 @@ describe('DspPanel', () => {
     expect(screen.getByText(/music is playing from Library/i)).toHaveClass(
       'is-idle',
     );
-    expect(screen.getByRole('checkbox', { name: 'DSP' })).not.toBeChecked();
-    expect(screen.getByRole('checkbox', { name: 'DSP' })).toBeDisabled();
+    // Idle says "no track is playing", not "the rack is dead": the settings
+    // are saved and take effect the moment one starts, so the switch shows the
+    // preference and every control stays editable. Only a failed host — which
+    // stays failed until the app restarts — takes the rack away.
+    expect(screen.getByRole('checkbox', { name: 'DSP' })).toBeChecked();
+    expect(screen.getByRole('checkbox', { name: 'DSP' })).toBeEnabled();
+    expect(container.querySelector('.dsp-stage')).toHaveAttribute(
+      'aria-disabled',
+      'false',
+    );
+    const rail = screen.getByRole('navigation', { name: 'DSP' });
+    expect(
+      within(
+        rail.querySelector('.dsp-rail-processors') as HTMLElement,
+      ).getByRole('button', { name: /Normalizer/i }),
+    ).toBeEnabled();
   });
 
   /**

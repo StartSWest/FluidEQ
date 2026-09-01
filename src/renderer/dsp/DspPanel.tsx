@@ -108,21 +108,24 @@ const DspPanel = ({
   const outputSafetyEnabled = useDspOutputSafetyEnabled();
   const nativeState = useDspNativeState();
   /**
-   * Whether anything below this actually reaches the music.
+   * Whether anything below this can reach the music.
    *
    * The switch is not the only thing that can make the answer no. The native
    * engine is the ONLY engine — `useDspEngine` stands the worklet down
-   * unconditionally — so when the host has not started, every control in the
-   * rack is a knob wired to nothing. Leaving them live let a user spend an
-   * evening voicing a chain that was never in the signal path, with one line of
-   * text as the only clue.
+   * unconditionally — so when the host has FAILED, every control in the rack is
+   * a knob wired to nothing and will stay that way until the app restarts.
+   * Leaving them live let a user spend an evening voicing a chain that was
+   * never in the signal path, with one line of text as the only clue.
    *
-   * An enabled preference is not an active rack. The native path now engages
-   * only while Library audio is actually playing, so idle controls are dimmed
-   * and the global switch reads off instead of claiming silent processing is
-   * active.
+   * Idle is not that state and must not be treated as it. It only says no
+   * Library track is playing at this instant; the settings are saved and take
+   * effect the moment one starts. Dimming the rack there took the entire UI —
+   * preset pickers, every button — away from the user precisely when they were
+   * setting a sound up before pressing play, and `dsp.idle` in the header
+   * already says the processing itself waits for audio.
    */
-  const isRackLive = settings.enabled && nativeState === 'engaged';
+  const isEngineDown = nativeState === 'failed';
+  const isRackLive = settings.enabled && !isEngineDown;
   const outputSafetyMeter = useDspOutputSafetyMeter();
   const inputAnalysis = useDspInputAnalysis();
   const loudness = masterLoudnessBreakdown(
@@ -293,7 +296,7 @@ const DspPanel = ({
           </h2>
           <DspChainPresetBar
             settings={settings}
-            disabled={nativeState === 'failed'}
+            disabled={isEngineDown}
             onChange={onChange}
             onCommit={onCommit}
           />
@@ -307,7 +310,7 @@ const DspPanel = ({
             <Switch
               id="dsp-global-toggle"
               isOn={isRackLive}
-              isDisabled={nativeState !== 'engaged'}
+              isDisabled={isEngineDown}
               handleToggle={() => {
                 patch({ enabled: !settings.enabled }, true);
                 onCommit();

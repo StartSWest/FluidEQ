@@ -443,6 +443,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
+// Below 1000px only the description has to give way, so it takes the second
+// line and the toolbar keeps the first one to itself.
+//
+// The toolbar stays ONE flex box here. Flattening it with `display: contents`
+// gave Reset a grid cell of its own, and a cell placed on row two puts Reset
+// on row two unconditionally — which is what dropped it under the picker with
+// 400px of that row still empty. As a flex child it sits beside the next arrow
+// and wraps only when the picker and Reset genuinely cannot share the line.
 @container dsp-card (max-width: 999px) {
   #dsp-denoise .dsp-card-header.has-toolbar {
     display: grid;
@@ -452,12 +460,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 
   #dsp-denoise .dsp-denoise-bar {
-    display: contents;
+    grid-row: 1;
+    grid-column: 1;
   }
 
   #dsp-denoise .dsp-eq-preset-first {
-    grid-row: 1;
-    grid-column: 1;
     min-width: 0;
   }
 
@@ -466,16 +473,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     grid-column: 2;
   }
 
-  #dsp-denoise .dsp-eq-transfer {
-    grid-row: 2;
-    grid-column: 1;
-  }
-
   #dsp-denoise .dsp-card-titles {
     grid-row: 2;
-    grid-column: 2;
+    grid-column: 1 / -1;
   }
 
+  // Reset is the last control in the toolbar now, so the rule after it would
+  // separate the picker from nothing.
   #dsp-denoise .dsp-eq-reset {
     margin-right: 0;
     padding-right: 0;
@@ -484,15 +488,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 @container dsp-card (max-width: 620px) {
-  #dsp-denoise .dsp-eq-transfer {
-    grid-column: 1 / -1;
-  }
-
-  #dsp-denoise .dsp-card-titles {
-    grid-row: 3;
-    grid-column: 1 / -1;
-  }
-
   .dsp-denoise-analysis-head {
     align-items: stretch;
     flex-direction: column;
