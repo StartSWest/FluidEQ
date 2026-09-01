@@ -115,10 +115,33 @@ export const useTransportControls = (options: {
 
   const skip = useCallback(
     (direction: 1 | -1) => {
-      if (
-        direction === -1 &&
-        publishedPositionMs > PREVIOUS_RESTART_THRESHOLD_MS
-      ) {
+      /*
+       * HOW FAR IN WE ACTUALLY ARE, ASKED OF BOTH CLOCKS.
+       *
+       * Previous is the one control in the app whose meaning changes with the
+       * playhead — past ten seconds it restarts the track, before that it goes
+       * to the previous one, which is what every player does. So a wrong
+       * position here does not misreport anything; it presses a different
+       * button than the one the listener pressed.
+       *
+       * And there are two clocks. `publishedPositionMs` follows whichever
+       * engine is audible, and ownership moves between the native deck and the
+       * element on track change, on engage, and now on pause as well — the
+       * engine stays up across a pause rather than being torn down. During
+       * those handovers one side can briefly read zero while the other knows
+       * exactly where the track is, and a zero read here silently turns
+       * "restart" into "skip back".
+       *
+       * They describe the same playhead, so the later of the two is the one
+       * that knows. Neither can be ahead of the truth: a stale clock lags, it
+       * does not run fast.
+       */
+      const elementPositionMs = (activeElement()?.currentTime ?? 0) * 1000;
+      const intoTrackMs = Math.max(
+        Number.isFinite(publishedPositionMs) ? publishedPositionMs : 0,
+        Number.isFinite(elementPositionMs) ? elementPositionMs : 0,
+      );
+      if (direction === -1 && intoTrackMs > PREVIOUS_RESTART_THRESHOLD_MS) {
         // Close any overlap before rewinding the deck that now owns the
         // transport. A second Previous sees position zero and advances to the
         // actual previous queue item.
@@ -156,7 +179,7 @@ export const useTransportControls = (options: {
         current ? advanceQueue(current, direction) : current,
       );
     },
-    [publishedPositionMs, finishCrossfadeRef, seek, setQueue],
+    [publishedPositionMs, activeElement, finishCrossfadeRef, seek, setQueue],
   );
 
   /**
