@@ -22,6 +22,7 @@ import {
   readDspExciterOrganic,
   readDspSampleRate,
 } from './store';
+import { IGraphLoopFrame, startGraphLoop } from './graphLoop';
 
 /**
  * Where each band works and what it is doing, over the spectrum it is doing it
@@ -139,6 +140,8 @@ const DspExciterGraph = ({
   const { t } = useTranslation();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const binsRef = useRef<Float32Array>(new Float32Array(0));
+  /** The running loop's way in, for a render that has to reach the canvas. */
+  const redraw = useRef<(() => void) | undefined>(undefined);
   /** Eased amounts: three bands then the organic stage. */
   const drawn = useRef([0, 0, 0, 0]);
   const settingsRef = useRef(settings);
@@ -371,13 +374,13 @@ const DspExciterGraph = ({
     if (!canvas || !context) {
       return undefined;
     }
-    let frame = 0;
-
-    const paint = () => {
+    const paint = ({ schedule }: IGraphLoopFrame) => {
       const width = canvas.clientWidth;
       const height = canvas.clientHeight;
       if (width === 0 || height === 0) {
-        frame = requestAnimationFrame(paint);
+        // Not laid out yet. Asked for again unconditionally, because this is
+        // waiting on the document rather than on the engine.
+        schedule();
         return;
       }
       const ratio = window.devicePixelRatio || 1;
@@ -640,13 +643,22 @@ const DspExciterGraph = ({
           );
         });
       });
-
-      frame = requestAnimationFrame(paint);
     };
 
-    frame = requestAnimationFrame(paint);
-    return () => cancelAnimationFrame(frame);
+    const loop = startGraphLoop(paint);
+    redraw.current = loop.schedule;
+    return () => {
+      redraw.current = undefined;
+      loop.stop();
+    };
   }, []);
+
+  // Repaint when anything drawn changes. The loop itself only turns while the
+  // engine is publishing, so a band dragged against a silent chain reaches the
+  // canvas through here and nowhere else.
+  useEffect(() => {
+    redraw.current?.();
+  });
 
   return (
     <div className="dsp-exciter-display">

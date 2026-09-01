@@ -13,6 +13,7 @@ import {
   readDspAnalyser,
   readDspBandAmounts,
   readDspBandLevels,
+  subscribeDspAnalysers,
 } from './store';
 
 const MIN_HZ = 20;
@@ -855,6 +856,14 @@ const DspEqGraph = ({
      * analyser is published and stops when there is none — a DSP page with
      * nothing playing costs nothing, and one with audio is a normal 60fps
      * canvas rather than sixty React renders a second.
+     *
+     * Stopping is only safe because something re-arms it. The subscription at
+     * the foot of this effect is that something: the engine registering its
+     * analyser is an event now, and without it the only re-arm was the
+     * per-render redraw below — which does not fire, because a host frame
+     * arriving renders nothing. The panel therefore came up dead after every
+     * refresh, output change and driver restart, and needed a control moved
+     * before the spectrum would start.
      */
     const schedule = () => {
       if (frame === 0) {
@@ -879,11 +888,21 @@ const DspEqGraph = ({
         : undefined;
     observer?.observe(canvas);
 
+    /**
+     * The engine arriving, which is the other thing that has to start a frame.
+     *
+     * Both directions matter. A registration restarts the loop that stopped
+     * while there was nothing to draw; a release gives one last frame, so the
+     * spectrum clears instead of freezing on whatever the host sent last.
+     */
+    const unwatch = subscribeDspAnalysers(schedule);
+
     return () => {
       if (frame !== 0) {
         window.cancelAnimationFrame(frame);
       }
       observer?.disconnect();
+      unwatch();
     };
   }, []);
 

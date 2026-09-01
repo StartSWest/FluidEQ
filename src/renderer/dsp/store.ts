@@ -552,22 +552,93 @@ export interface IDspAnalyser {
 
 const analysers: Partial<Record<TDspAnalyserStage, IDspAnalyser>> = {};
 
+/**
+ * Told when a stage changes hands, because nothing else can say so.
+ *
+ * The slot is a plain module value read inside a canvas frame, and that is
+ * what keeps twenty-three host frames a second out of React. The price of it
+ * is that FILLING one is invisible: a graph that stopped its loop because the
+ * slot was empty has nothing to wake it when the engine starts publishing, and
+ * it stays frozen until some unrelated render happens to re-arm it.
+ *
+ * That is the bug behind "the graphs do not move after a refresh". A fresh
+ * renderer mounts the panel with every slot empty — the host is not engaged
+ * yet — so the loop paints once and stops; the first analysis frame then
+ * arrives from an IPC callback, which renders nothing. Changing the output or
+ * restarting the audio driver reaches the same state by a different road: the
+ * engine disengages, `release` hands the slots back empty, and the loops stop
+ * before the engine comes back.
+ *
+ * Fired only when the occupant actually CHANGES, which is once per engage and
+ * once per release. It is not on the frame path and must never become so —
+ * `nativeMeters` compares before it assigns for exactly this reason.
+ */
+const analyserListeners = new Set<() => void>();
+
+export const subscribeDspAnalysers = (listener: () => void): (() => void) => {
+  analyserListeners.add(listener);
+  return () => {
+    analyserListeners.delete(listener);
+  };
+};
+
+const announceAnalysers = (): void => {
+  analyserListeners.forEach((listener) => listener());
+};
+
 export const setDspAnalyser = (
   stage: TDspAnalyserStage,
   next: IDspAnalyser | undefined,
 ): void => {
-  analysers[stage] = next;
+  if (analysers[stage] === next) {
+    return;
+  }
+  // Deleted rather than set to `undefined`, so an emptied slot is absent from
+  // the record instead of present and holding nothing. `release` passes the
+  // displaced holder straight through and that is `undefined` now that the
+  // worklet registers nothing, which would otherwise leave every stage listed
+  // forever.
+  if (next === undefined) {
+    delete analysers[stage];
+  } else {
+    analysers[stage] = next;
+  }
+  announceAnalysers();
 };
 
 export const clearDspAnalysers = (): void => {
-  (Object.keys(analysers) as TDspAnalyserStage[]).forEach((stage) => {
+  const held = Object.keys(analysers) as TDspAnalyserStage[];
+  held.forEach((stage) => {
     delete analysers[stage];
   });
+  if (held.length > 0) {
+    announceAnalysers();
+  }
 };
 
 export const readDspAnalyser = (
   stage: TDspAnalyserStage,
 ): IDspAnalyser | undefined => analysers[stage];
+
+/**
+ * Whether the engine is publishing anything at all, for a graph with no tap.
+ *
+ * Most cards in the rack draw a measurement rather than a spectrum — a gain
+ * over time, a guard, a reduction depth — so they have no analyser of their
+ * own to ask, and gating them on one that happens to exist is wrong in a way
+ * that shows: Denoise's tap goes quiet when the stage is bypassed, and a
+ * Denoise graph gated on it would freeze while the engine ran on.
+ *
+ * The stage slots are the only evidence of the host publishing that reaches
+ * this side, so any one of them being held is the signal. `master` is the
+ * output tap and is always among them while the engine is engaged, so this is
+ * true for exactly as long as frames are arriving and false the moment
+ * `nativeMeters` hands the slots back.
+ */
+export const readDspAnalysisLive = (): boolean =>
+  (Object.keys(analysers) as TDspAnalyserStage[]).some(
+    (stage) => analysers[stage] !== undefined,
+  );
 
 /**
  * Phase correlation of what leaves the chain, reported by the worklet.

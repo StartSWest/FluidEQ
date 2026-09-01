@@ -8,6 +8,7 @@ import { useEffect, useRef } from 'react';
 import { IMaximizerSettings } from '../../common/dsp/chain';
 import { useTranslation } from '../utils/I18nContext';
 import { readDspMaximizerReduction, readDspPeak } from './store';
+import { IGraphLoopFrame, startGraphLoop } from './graphLoop';
 
 /**
  * What the Maximizer did to the last six seconds of the record.
@@ -116,16 +117,19 @@ const DspMaximizerGraph = ({ maximizer }: IDspMaximizerGraphProps) => {
   const sampledAt = useRef(0);
   const heldDepth = useRef(0);
   const peakHold = useRef(0);
+  /** The running loop's way in, for a render that has to reach the canvas. */
+  const redraw = useRef<(() => void) | undefined>(undefined);
 
   const { ceilingDb, enabled } = maximizer;
 
   useEffect(() => {
-    let frame = 0;
-    const paint = () => {
+    const paint = ({ schedule }: IGraphLoopFrame) => {
       const canvas = canvasRef.current;
       const context = canvas?.getContext('2d');
       if (!canvas || !context) {
-        frame = requestAnimationFrame(paint);
+        // Waiting on the document rather than on the engine, so asked for
+        // again whether or not anything is playing.
+        schedule();
         return;
       }
 
@@ -384,13 +388,45 @@ const DspMaximizerGraph = ({ maximizer }: IDspMaximizerGraphProps) => {
         const y = PAD_T + (db / GR_FULL_SCALE_DB) * plotHeight;
         context.fillText(db === 0 ? '0' : `-${db}`, meterX + meterWidth + 5, y);
       });
-
-      frame = requestAnimationFrame(paint);
     };
 
-    frame = requestAnimationFrame(paint);
-    return () => cancelAnimationFrame(frame);
+    const loop = startGraphLoop(paint, {
+      /**
+       * The strip empties when the engine lets go.
+       *
+       * A column is written per sample interval, so a loop that stops and
+       * resumes later would butt the moment audio returned against the moment
+       * it stopped and present six unbroken seconds. The floor and a zero
+       * depth are what "nothing has been measured" looks like here.
+       */
+      onEngineGone: () => {
+        levels.current.fill(-120);
+        depths.current.fill(0);
+        writeAt.current = 0;
+        pendingLevel.current = -120;
+        pendingDepth.current = 0;
+        // Restarted, not zeroed. A zero here is a sample clock that elapsed
+        // long ago, so the very next frame — the one drawing the emptied strip
+        // — would commit a column from the readings that were current when the
+        // engine stopped, and the strip would clear to a single stale mark.
+        sampledAt.current = performance.now();
+        heldDepth.current = 0;
+        peakHold.current = 0;
+      },
+    });
+    redraw.current = loop.schedule;
+    return () => {
+      redraw.current = undefined;
+      loop.stop();
+    };
   }, [ceilingDb, enabled, t]);
+
+  // Repaint when anything drawn changes. The loop only turns while the engine
+  // is publishing, so the ceiling line reaches the canvas through here while
+  // nothing is playing.
+  useEffect(() => {
+    redraw.current?.();
+  });
 
   return (
     <div className="dsp-eq-plot dsp-maximizer-display">

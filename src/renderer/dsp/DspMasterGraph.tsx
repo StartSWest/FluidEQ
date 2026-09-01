@@ -14,6 +14,7 @@ import {
   paintMasterLoudness,
 } from './masterLoudnessPlot';
 import { IDspOutputSafetyMeter, readDspLoudness, readDspPeak } from './store';
+import { IGraphLoopFrame, startGraphLoop } from './graphLoop';
 
 /** Below this, the slow DC estimate is beneath a useful reporting floor. */
 const DC_REPORT_THRESHOLD_DB = -60;
@@ -62,6 +63,8 @@ const DspMasterGraph = ({
 }: IDspMasterGraphProps) => {
   const { t } = useTranslation();
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  /** The running loop's way in, for a render that has to reach the canvas. */
+  const redraw = useRef<(() => void) | undefined>(undefined);
   const peakEventTimerRef = useRef<number | undefined>(undefined);
   const dcEventTimerRef = useRef<number | undefined>(undefined);
   /**
@@ -225,12 +228,13 @@ const DspMasterGraph = ({
   const reductionLabel = t('dsp.master.graph.reductionShort');
 
   useEffect(() => {
-    let frame = 0;
-    const paint = () => {
+    const paint = ({ schedule }: IGraphLoopFrame) => {
       const canvas = canvasRef.current;
       const context = canvas?.getContext('2d');
       if (!canvas || !context) {
-        frame = requestAnimationFrame(paint);
+        // Waiting on the document rather than on the engine, so asked for
+        // again whether or not anything is playing.
+        schedule();
         return;
       }
       const width = Math.max(1, canvas.clientWidth);
@@ -293,12 +297,36 @@ const DspMasterGraph = ({
         reductionLabel,
       };
       paintMasterLoudness(context, width, height, plot);
-
-      frame = requestAnimationFrame(paint);
     };
 
-    frame = requestAnimationFrame(paint);
-    return () => cancelAnimationFrame(frame);
+    const loop = startGraphLoop(paint, {
+      /**
+       * The strip empties when the engine lets go.
+       *
+       * A column lands every hundred milliseconds, so a loop that stops and
+       * starts again later would butt two different moments together and draw
+       * the join as continuous. `filled` back to zero is the honest picture:
+       * nothing has been measured yet.
+       */
+      onEngineGone: () => {
+        momentaryRef.current.fill(-120);
+        shortTermRef.current.fill(-120);
+        reductionRef.current.fill(0);
+        headRef.current = 0;
+        filledRef.current = 0;
+        // Restarted, not zeroed. A zero here is a sample clock that elapsed
+        // long ago, so the very next frame — the one drawing the emptied strip
+        // — would commit a column of the readings that were current when the
+        // engine stopped, and the strip would clear to a single stale mark.
+        sampledAtRef.current = performance.now();
+        pendingReductionRef.current = 0;
+      },
+    });
+    redraw.current = loop.schedule;
+    return () => {
+      redraw.current = undefined;
+      loop.stop();
+    };
   }, [
     maximizeActive,
     master.loudnessTargetLufs,
@@ -308,6 +336,13 @@ const DspMasterGraph = ({
     t,
     targetLabel,
   ]);
+
+  // Repaint when anything drawn changes. The loop only turns while the engine
+  // is publishing, so the target line and the ceiling reach the canvas through
+  // here while nothing is playing.
+  useEffect(() => {
+    redraw.current?.();
+  });
 
   return (
     <div className="dsp-eq-plot dsp-master-display">

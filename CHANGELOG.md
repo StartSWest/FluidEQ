@@ -16,6 +16,15 @@ failures useful to diagnose instead of leaving only a restart-budget code.
 - **DSP visualisers return after the native engine restarts.** The replacement
   process restores the analysis stream before reopening the audio device, so
   every stage graph resumes without closing and reopening the DSP page.
+- **DSP graphs start moving again by themselves.** A graph stops drawing when
+  there is nothing to draw, and only moving a control could wake it — so after
+  refreshing the window, changing the output or restarting the audio driver, the
+  spectrum and the stage displays sat still while the music played. They now
+  follow the engine itself and pick up the moment it starts measuring again.
+  The graphs that used to redraw continuously stand down while nothing is
+  playing, so an open DSP page over a silent chain costs nothing, and the time
+  strips clear when the engine lets go instead of joining two moments together
+  as if no time had passed.
 - **A clean old process can no longer take its replacement down with it.** Every
   acknowledgement, frame, error and exit is now tied to the native process that
   produced it. A late code-zero exit during a quick stop/start handover cannot

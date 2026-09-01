@@ -8,6 +8,7 @@ import { useEffect, useRef } from 'react';
 import { IBassPunchSettings } from '../../common/dsp/chain';
 import { useTranslation } from '../utils/I18nContext';
 import { readDspBassPunchActivity } from './store';
+import { IGraphLoopFrame, startGraphLoop } from './graphLoop';
 
 /**
  * The last three seconds of what Punch did, on a time axis.
@@ -152,17 +153,19 @@ const DspBassPunchGraph = ({ bassPunch }: IDspBassPunchGraphProps) => {
   const pendingTransient = useRef(0);
   const sampledAt = useRef(0);
   const heldTransient = useRef(0);
+  /** The running loop's way in, for a render that has to reach the canvas. */
+  const redraw = useRef<(() => void) | undefined>(undefined);
 
   const { enabled } = bassPunch;
 
   useEffect(() => {
-    let frame = 0;
-
-    const paint = () => {
+    const paint = ({ schedule }: IGraphLoopFrame) => {
       const canvas = canvasRef.current;
       const context = canvas?.getContext('2d');
       if (!canvas || !context) {
-        frame = requestAnimationFrame(paint);
+        // Waiting on the document rather than on the engine, so asked for
+        // again whether or not anything is playing.
+        schedule();
         return;
       }
 
@@ -401,13 +404,47 @@ const DspBassPunchGraph = ({ bassPunch }: IDspBassPunchGraphProps) => {
           }
         }
       });
-
-      frame = requestAnimationFrame(paint);
     };
 
-    frame = requestAnimationFrame(paint);
-    return () => cancelAnimationFrame(frame);
+    const loop = startGraphLoop(paint, {
+      /**
+       * The strip empties when the engine lets go.
+       *
+       * A column is written per sample interval, so a loop that stops and
+       * resumes later would place the moment audio returned immediately
+       * beside the moment it stopped and draw the join as three unbroken
+       * seconds. `live` back to zero is what an engine that is not running
+       * looks like — the same picture the strip used to scroll to, arrived at
+       * without spending a window of frames getting there.
+       */
+      onEngineGone: () => {
+        transients.current.fill(0);
+        sustains.current.fill(0);
+        ducks.current.fill(0);
+        live.current.fill(0);
+        writeAt.current = 0;
+        pendingTransient.current = 0;
+        // Restarted, not zeroed. A zero here is a sample clock that elapsed
+        // long ago, so the very next frame — the one drawing the emptied strip
+        // — would commit a column of the gains that were current when the
+        // engine stopped, and the strip would clear to a single stale mark.
+        sampledAt.current = performance.now();
+        heldTransient.current = 0;
+      },
+    });
+    redraw.current = loop.schedule;
+    return () => {
+      redraw.current = undefined;
+      loop.stop();
+    };
   }, [enabled, t]);
+
+  // Repaint when anything drawn changes. The loop only turns while the engine
+  // is publishing, so the split and the dials reach the canvas through here
+  // while nothing is playing.
+  useEffect(() => {
+    redraw.current?.();
+  });
 
   return (
     <div

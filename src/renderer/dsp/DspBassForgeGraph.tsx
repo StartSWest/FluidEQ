@@ -9,6 +9,7 @@ import { ANALYSIS_BASS_FORGE_BANDS } from '../../common/dsp/analysisWire';
 import { IBassForgeSettings } from '../../common/dsp/chain';
 import { useTranslation } from '../utils/I18nContext';
 import { readDspBassForgeBands } from './store';
+import { IGraphLoopFrame, startGraphLoop } from './graphLoop';
 
 /**
  * The low band going in, the low band coming out, and the difference.
@@ -150,22 +151,24 @@ const DspBassForgeGraph = ({ bassForge }: IDspBassForgeGraphProps) => {
    */
   const dryRef = useRef(new Float32Array(0));
   const forgedRef = useRef(new Float32Array(0));
+  /** The running loop's way in, for a render that has to reach the canvas. */
+  const redraw = useRef<(() => void) | undefined>(undefined);
 
   useEffect(() => {
-    let frame = 0;
-
-    const paint = () => {
+    const paint = ({ schedule }: IGraphLoopFrame) => {
       const canvas = canvasRef.current;
       const context = canvas?.getContext('2d');
       if (!canvas || !context) {
-        frame = requestAnimationFrame(paint);
+        // Waiting on the document rather than on the engine, so asked for
+        // again whether or not anything is playing.
+        schedule();
         return;
       }
 
       const width = canvas.clientWidth;
       const height = canvas.clientHeight;
       if (width === 0 || height === 0) {
-        frame = requestAnimationFrame(paint);
+        schedule();
         return;
       }
       const ratio = Math.max(1, window.devicePixelRatio || 1);
@@ -356,13 +359,22 @@ const DspBassForgeGraph = ({ bassForge }: IDspBassForgeGraphProps) => {
         splitX + (labelFlips ? -4 : 4),
         PAD_T + 3,
       );
-
-      frame = requestAnimationFrame(paint);
     };
 
-    frame = requestAnimationFrame(paint);
-    return () => cancelAnimationFrame(frame);
+    const loop = startGraphLoop(paint);
+    redraw.current = loop.schedule;
+    return () => {
+      redraw.current = undefined;
+      loop.stop();
+    };
   }, []);
+
+  // Repaint when anything drawn changes. The loop only turns while the engine
+  // is publishing, so the split and the dials reach the canvas through here
+  // while nothing is playing.
+  useEffect(() => {
+    redraw.current?.();
+  });
 
   return (
     <div

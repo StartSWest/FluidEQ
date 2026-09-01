@@ -14,6 +14,7 @@ import {
   readDspDimensionGuard,
   readDspScatter,
 } from './store';
+import { IGraphLoopFrame, startGraphLoop } from './graphLoop';
 
 /**
  * The stereo field itself, beside the shape the dials are asking for.
@@ -134,10 +135,10 @@ const DspDimensionGraph = ({
   settingsRef.current = dimension;
   const rateRef = useRef(sampleRate);
   rateRef.current = sampleRate;
+  /** The running loop's way in, for a render that has to reach the canvas. */
+  const redraw = useRef<(() => void) | undefined>(undefined);
 
   useEffect(() => {
-    let frame = 0;
-
     const fit = (
       canvas: HTMLCanvasElement,
     ): CanvasRenderingContext2D | null => {
@@ -378,7 +379,21 @@ const DspDimensionGraph = ({
       });
     };
 
-    const paint = () => {
+    const paint = ({ schedule }: IGraphLoopFrame) => {
+      /**
+       * Nothing is drawn until all three panes have a size.
+       *
+       * `fit` answers null for a canvas the document has not laid out yet and
+       * each painter quietly returns, so without this the loop could stop
+       * having drawn nothing at all — the card would come up blank and stay
+       * blank until the engine started. Waiting on the document, so asked for
+       * again whether or not anything is playing.
+       */
+      const panes = [fieldRef.current, curveRef.current, historyRef.current];
+      if (panes.some((pane) => !pane?.clientWidth || !pane.clientHeight)) {
+        schedule();
+        return;
+      }
       const { enabled } = settingsRef.current;
       const guard = enabled
         ? Math.max(0, Math.min(1, readDspDimensionGuard()))
@@ -422,11 +437,44 @@ const DspDimensionGraph = ({
       paintField(enabled);
       paintCurve(enabled, guard);
       paintHistory(enabled);
-      frame = requestAnimationFrame(paint);
     };
-    frame = requestAnimationFrame(paint);
-    return () => cancelAnimationFrame(frame);
+
+    const loop = startGraphLoop(paint, {
+      /**
+       * The strip empties when the engine lets go.
+       *
+       * A column is committed on the sample clock, so a loop that stops and
+       * resumes later would splice two moments and draw eight unbroken
+       * seconds across the join. Correlation goes back to 1 rather than 0 for
+       * the reason the ring is built that way: silence has no correlation to
+       * report, and a zero there reads as a warning about nothing.
+       */
+      onEngineGone: () => {
+        midHistory.current.fill(0);
+        sideHistory.current.fill(0);
+        correlationHistory.current.fill(1);
+        pendingMid.current = 0;
+        pendingSide.current = 0;
+        // Restarted, not zeroed. A zero here is a sample clock that elapsed
+        // long ago, so the very next frame — the one drawing the emptied strip
+        // — would commit a column from the readings that were current when the
+        // engine stopped, and the strip would clear to a single stale mark.
+        lastSampleAt.current = performance.now();
+      },
+    });
+    redraw.current = loop.schedule;
+    return () => {
+      redraw.current = undefined;
+      loop.stop();
+    };
   }, []);
+
+  // Repaint when anything drawn changes. The loop only turns while the engine
+  // is publishing, so the width curve and the crossover reach the canvas
+  // through here while nothing is playing.
+  useEffect(() => {
+    redraw.current?.();
+  });
 
   return (
     <div className="dsp-dimension-graph">
