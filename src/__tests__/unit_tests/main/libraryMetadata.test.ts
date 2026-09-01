@@ -232,6 +232,148 @@ describe('reading tags off a file', () => {
       logged.mockRestore();
     }
   });
+
+  /**
+   * An `.m4a` whose track carries no sample-size table.
+   *
+   * `MP4Parser.parseTrackBox` builds its track object with `media` and
+   * `fragments` and nothing else, then `parse()` reads five tables off it as
+   * arrays without checking: `soundSampleDescription.length` for every track,
+   * and `sampleSizeTable.length` for an audio track with no fragments. An
+   * `stbl` is not required to carry an `stsz`, so a legal file reached
+   * `Cannot read properties of undefined (reading 'length')` and threw out of
+   * `parseFile` — losing the tags, the duration and the embedded cover of a
+   * file whose metadata had already been read correctly. Three files in a
+   * real library did exactly this, which is how it was found.
+   *
+   * `patches/music-metadata@11.14.0.patch` initialises those tables to empty
+   * arrays, because an absent box means a table with no entries — which is
+   * what every reader of them already tests for.
+   *
+   * `withSampleSizeTable` is the positive control, and it is the whole point
+   * of building the fixture this way. Without it, a fixture malformed in some
+   * unrelated way would fail to parse for its own reasons and this test would
+   * pass for none. The `stsz` variant is the same bytes plus that one box, it
+   * has always parsed, and it must still report the same facts — plus the
+   * bitrate that only a sample-size table can produce.
+   */
+  const TIMESCALE = 44100;
+  const SAMPLE_COUNT = 88200; // two seconds, in timescale units
+  const CHANNELS = 2;
+
+  const mp4Box = (name: string, ...payload: Buffer[]): Buffer => {
+    const body = Buffer.concat(payload);
+    const header = Buffer.alloc(8);
+    header.writeUInt32BE(body.length + 8, 0);
+    header.write(name, 4, 'latin1');
+    return Buffer.concat([header, body]);
+  };
+
+  const soundSampleDescription = (): Buffer => {
+    // Read in two halves: an 8-byte version block, then the version-0 fields.
+    const description = Buffer.alloc(20);
+    description.writeInt16BE(0, 0); // version 0
+    description.writeInt16BE(0, 2); // revision
+    description.writeInt32BE(0, 4); // vendor
+    description.writeInt16BE(CHANNELS, 8);
+    description.writeInt16BE(16, 10); // bits per sample
+    description.writeInt16BE(0, 12); // compression id
+    description.writeInt16BE(0, 14); // packet size
+    description.writeUInt16BE(TIMESCALE, 16); // 16.16 fixed point, whole part
+    description.writeUInt16BE(0, 18); // ...and its fraction
+    // The entry's own header: size, format, six reserved bytes, then the
+    // data-reference index at a fixed offset of ten.
+    const entry = Buffer.alloc(16);
+    entry.writeUInt32BE(16 + description.length, 0);
+    entry.write('mp4a', 4, 'latin1');
+    entry.writeUInt16BE(1, 14);
+    const stsdHeader = Buffer.alloc(8);
+    stsdHeader.writeUInt32BE(1, 4); // one entry
+    return Buffer.concat([stsdHeader, entry, description]);
+  };
+
+  const mp4WithoutStsz = (withSampleSizeTable: boolean): Buffer => {
+    const ftyp = Buffer.alloc(16);
+    ftyp.write('M4A ', 0, 'latin1');
+    ftyp.write('M4A ', 8, 'latin1');
+    ftyp.write('mp42', 12, 'latin1');
+
+    const tkhd = Buffer.alloc(84);
+    tkhd.writeUInt32BE(1, 12); // track id
+    tkhd.writeUInt32BE(SAMPLE_COUNT, 20);
+
+    const mdhd = Buffer.alloc(24);
+    mdhd.writeUInt32BE(TIMESCALE, 12);
+    mdhd.writeUInt32BE(SAMPLE_COUNT, 16);
+
+    const hdlr = Buffer.alloc(32);
+    hdlr.write('mhlr', 4, 'latin1');
+    hdlr.write('soun', 8, 'latin1'); // what makes this an audio track
+
+    // Two samples of a thousand bytes each, so the control does not merely
+    // add an empty table: it is the only variant that can reach `sizeInBytes`
+    // and therefore the only one that reports a bitrate.
+    const stsz = Buffer.alloc(20);
+    stsz.writeInt32BE(0, 4); // a per-sample table follows, not one fixed size
+    stsz.writeInt32BE(2, 8);
+    stsz.writeInt32BE(1000, 12);
+    stsz.writeInt32BE(1000, 16);
+
+    const stbl = mp4Box(
+      'stbl',
+      mp4Box('stsd', soundSampleDescription()),
+      ...(withSampleSizeTable ? [mp4Box('stsz', stsz)] : []),
+    );
+    const trak = mp4Box(
+      'trak',
+      mp4Box('tkhd', tkhd),
+      mp4Box(
+        'mdia',
+        mp4Box('mdhd', mdhd),
+        mp4Box('hdlr', hdlr),
+        mp4Box('minf', stbl),
+      ),
+    );
+    return Buffer.concat([mp4Box('ftyp', ftyp), mp4Box('moov', trak)]);
+  };
+
+  const writeMp4 = (withSampleSizeTable: boolean): string => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fluideq-tags-'));
+    const file = path.join(dir, 'no-sample-table.m4a');
+    fs.writeFileSync(file, mp4WithoutStsz(withSampleSizeTable));
+    return file;
+  };
+
+  it('does not throw on the track box that used to kill the MP4 parser', async () => {
+    // Asserted against `parseFile` itself rather than through this module, so
+    // that dropping the guard says so in one line rather than failing
+    // somewhere downstream -- the same shape as the APEv2 case above.
+    const { parseFile } = await import('music-metadata');
+    await expect(parseFile(writeMp4(false))).resolves.toBeDefined();
+  });
+
+  it('reads the same facts with and without a sample-size table', async () => {
+    const withTable = await readLibraryTags(writeMp4(true));
+    const withoutTable = await readLibraryTags(writeMp4(false));
+
+    // The control. If the fixture were malformed for some reason of its own,
+    // this variant would fail too and neither assertion would mean anything.
+    expect(withTable.readFailed).toBeUndefined();
+    expect(withTable.durationMs).toBe(2000);
+    expect(withTable.sampleRate).toBe(TIMESCALE);
+    expect(withTable.channels).toBe(CHANNELS);
+    // 8 * 2000 bytes over two seconds. Only a sample-size table can produce
+    // this, which is what makes the two variants genuinely different files.
+    expect(withTable.bitrate).toBe(8000);
+
+    // The regression. Everything the file itself declares still arrives; only
+    // the bitrate, which is computed from the missing table, is absent.
+    expect(withoutTable.readFailed).toBeUndefined();
+    expect(withoutTable.durationMs).toBe(2000);
+    expect(withoutTable.sampleRate).toBe(TIMESCALE);
+    expect(withoutTable.channels).toBe(CHANNELS);
+    expect(withoutTable.bitrate).toBeUndefined();
+  });
 });
 
 describe('finding a cover beside the music', () => {
