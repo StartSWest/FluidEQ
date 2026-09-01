@@ -32,6 +32,7 @@ import fs from 'fs';
 import path from 'path';
 import { app, utilityProcess } from 'electron';
 import { IScanOptions, IScanResult, scanLibraryRoot } from './libraryScanner';
+import { storeArtwork as cacheArtwork } from './libraryArtwork';
 import { IScanWorkerRequest, IScanWorkerResponse } from './scanWorkerProtocol';
 
 /**
@@ -67,12 +68,21 @@ const workerEntry = (): string | undefined => {
  */
 let workerUnavailable = false;
 
+/** The fallback still runs inside Electron, so it can cache covers directly. */
+const scanLibraryRootInMain = (options: IScanOptions): Promise<IScanResult> =>
+  scanLibraryRoot({
+    ...options,
+    storeArtwork:
+      options.storeArtwork ??
+      ((bytes) => cacheArtwork(options.userDataDir, bytes)),
+  });
+
 export const scanLibraryRootOffThread = (
   options: IScanOptions,
 ): Promise<IScanResult> => {
   const entry = workerUnavailable ? undefined : workerEntry();
   if (!entry) {
-    return scanLibraryRoot(options);
+    return scanLibraryRootInMain(options);
   }
   return new Promise<IScanResult>((resolve) => {
     let settled = false;
@@ -107,7 +117,7 @@ export const scanLibraryRootOffThread = (
         'Could not start the library scan worker; scanning in-process instead',
         error,
       );
-      scanLibraryRoot(options).then(finish, () =>
+      scanLibraryRootInMain(options).then(finish, () =>
         finish({
           tracks: options.known.slice(),
           karaokeSkipped: 0,
@@ -156,7 +166,7 @@ export const scanLibraryRootOffThread = (
       // eslint-disable-next-line no-console -- this project's one sanctioned console sink; see libraryIndex.ts
       console.error(message, error);
       stop();
-      scanLibraryRoot(options).then(finish, () =>
+      scanLibraryRootInMain(options).then(finish, () =>
         finish({
           tracks: options.known.slice(),
           karaokeSkipped: 0,
@@ -174,6 +184,34 @@ export const scanLibraryRootOffThread = (
         return;
       }
       const message = raw as IScanWorkerResponse;
+      if (message.type === 'store-artwork') {
+        /**
+         * `nativeImage` only exists in this Electron process. The worker sends
+         * the raw picture and waits for this reply before it publishes the
+         * resolved track, so an `artId` can never point at a file that has not
+         * finished writing yet.
+         */
+        cacheArtwork(options.userDataDir, message.bytes)
+          .then((artId) => {
+            if (settled || fallbackStarted) {
+              return undefined;
+            }
+            const reply: IScanWorkerRequest = {
+              type: 'artwork-stored',
+              requestId: message.requestId,
+              artId,
+            };
+            child.postMessage(reply);
+            return undefined;
+          })
+          .catch((error) =>
+            fallBackToMain(
+              'Could not return cached artwork to the library scan worker; scanning in-process instead',
+              error,
+            ),
+          );
+        return;
+      }
       if (message.type === 'progress') {
         options.onProgress(message.progress);
         return;

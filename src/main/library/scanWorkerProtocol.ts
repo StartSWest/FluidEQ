@@ -38,7 +38,13 @@ export type IScanWorkerRequest =
       userDataDir: string;
       known: ILibraryTrack[];
     }
-  | { type: 'cancel' };
+  | { type: 'cancel' }
+  | {
+      /** Reply to one `store-artwork` request from the worker. */
+      type: 'artwork-stored';
+      requestId: number;
+      artId?: string;
+    };
 
 export type IScanWorkerResponse =
   | { type: 'progress'; progress: ILibraryScanProgress }
@@ -48,6 +54,15 @@ export type IScanWorkerResponse =
       tracks: ILibraryTrack[];
       karaokeSkipped: number;
       wasCancelled: boolean;
+    }
+  | {
+      /**
+       * Raw cover bytes for the Electron host to resize and cache. A utility
+       * process is a Node environment and cannot call `nativeImage` itself.
+       */
+      type: 'store-artwork';
+      requestId: number;
+      bytes: Uint8Array;
     }
   | { type: 'failed'; message: string };
 

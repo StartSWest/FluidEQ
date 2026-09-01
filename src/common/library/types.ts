@@ -108,6 +108,17 @@ export interface ILibraryTrack {
   codec?: string;
   /** Thumbnail id in the art cache; absent means draw a generated tile. */
   artId?: string;
+  /**
+   * True once this file has actually been checked for embedded or folder art.
+   *
+   * Older packaged scans could read every tag but attempted to decode covers
+   * inside Electron's Node-only utility process, where `nativeImage` does not
+   * exist. Those tracks have no `artId` and no way to distinguish that failure
+   * from a genuinely artless file. Leaving this optional lets the next scan
+   * re-read only such ambiguous tracks once; afterwards `true` means an absent
+   * `artId` is a real result and ordinary incremental rescans stay cheap.
+   */
+  artworkChecked?: boolean;
   sizeBytes: number;
   mtimeMs: number;
   addedAt: number;

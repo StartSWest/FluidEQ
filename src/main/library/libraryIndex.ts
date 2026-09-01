@@ -97,6 +97,7 @@ const isLibraryTrack = (value: unknown): value is ILibraryTrack =>
   isOptionalNumber(value.channels) &&
   isOptionalString(value.codec) &&
   isOptionalString(value.artId) &&
+  isOptionalBoolean(value.artworkChecked) &&
   typeof value.sizeBytes === 'number' &&
   typeof value.mtimeMs === 'number' &&
   typeof value.addedAt === 'number' &&

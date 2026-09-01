@@ -32,6 +32,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * picture.
  */
 
+import crypto from 'crypto';
 import {
   IScanWorkerRequest,
   IScanWorkerResponse,
@@ -41,10 +42,44 @@ import {
 import { scanLibraryRoot } from './libraryScanner';
 
 let cancelRequested = false;
+let nextArtworkRequestId = 0;
+const artworkReplies = new Map<number, (artId: string | undefined) => void>();
+const artworkRequestsByHash = new Map<string, Promise<string | undefined>>();
 
 const send = (message: IScanWorkerResponse) => postToHost(message);
 
+/**
+ * Asks the Electron host to do the one part of scanning this Node-only process
+ * cannot: decode, resize and cache an image with `nativeImage`.
+ */
+const storeArtworkInHost = (bytes: Uint8Array): Promise<string | undefined> => {
+  // One album can repeat the same embedded picture on every track. Hashing in
+  // the worker keeps that from structured-cloning the same megabytes over IPC
+  // a dozen times; the host still owns the actual cache and image decode.
+  const hash = crypto.createHash('sha1').update(bytes).digest('hex');
+  const pending = artworkRequestsByHash.get(hash);
+  if (pending) {
+    return pending;
+  }
+  nextArtworkRequestId += 1;
+  const requestId = nextArtworkRequestId;
+  const request = new Promise<string | undefined>((resolve) => {
+    artworkReplies.set(requestId, resolve);
+    send({ type: 'store-artwork', requestId, bytes });
+  });
+  artworkRequestsByHash.set(hash, request);
+  return request;
+};
+
 onHostMessage((message: IScanWorkerRequest) => {
+  if (message.type === 'artwork-stored') {
+    const resolve = artworkReplies.get(message.requestId);
+    if (resolve) {
+      artworkReplies.delete(message.requestId);
+      resolve(message.artId);
+    }
+    return;
+  }
   if (message.type === 'cancel') {
     cancelRequested = true;
     return;
@@ -58,6 +93,7 @@ onHostMessage((message: IScanWorkerRequest) => {
     rootPath: message.rootPath,
     userDataDir: message.userDataDir,
     known: message.known,
+    storeArtwork: storeArtworkInHost,
     onProgress: (progress) => send({ type: 'progress', progress }),
     onTracks: (tracks) => send({ type: 'tracks', tracks }),
     isCancelled: () => cancelRequested,

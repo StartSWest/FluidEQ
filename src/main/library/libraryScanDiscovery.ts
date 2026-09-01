@@ -53,6 +53,13 @@ export interface IWalkContext {
   rootId: string;
   userDataDir: string;
   knownByPath: Map<string, ILibraryTrack>;
+  /**
+   * Turns raw embedded or folder artwork into a cache id. The main-process
+   * fallback supplies the Electron implementation directly; the utility
+   * worker supplies an IPC-backed implementation because it has no
+   * `nativeImage` of its own.
+   */
+  storeArtwork?: (bytes: Uint8Array) => Promise<string | undefined>;
   onProgress: (progress: ILibraryScanProgress) => void;
   /** Called by both phases: discovery publishes provisional rows for newly
    * found files (see `discoverDirectory`'s own comment), and phase two

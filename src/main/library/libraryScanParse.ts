@@ -32,7 +32,6 @@ import {
   libraryTitleFromFileName,
 } from '../../common/library/files';
 import { findFolderArt, readLibraryTags } from './libraryMetadata';
-import { storeArtwork } from './libraryArtwork';
 import {
   ICandidateFile,
   IDiscoverState,
@@ -59,6 +58,7 @@ export const shouldReparse = (
   stat: { size: number; mtimeMs: number },
 ): boolean =>
   existing === undefined ||
+  (existing.artId === undefined && existing.artworkChecked !== true) ||
   existing.sizeBytes !== stat.size ||
   existing.mtimeMs !== stat.mtimeMs;
 
@@ -70,10 +70,10 @@ interface IFolderArtCache {
 /** Everything about the directory a single file is being read out of. */
 interface IDirectoryContext {
   rootId: string;
-  userDataDir: string;
   dir: string;
   fileNames: readonly string[];
   folderArt: IFolderArtCache;
+  storeArtwork?: (bytes: Uint8Array) => Promise<string | undefined>;
 }
 
 /**
@@ -94,7 +94,7 @@ const resolveFolderArt = async (
   const artPath = path.join(ctx.dir, artName);
   try {
     const bytes = await fs.promises.readFile(artPath);
-    ctx.folderArt.id = await storeArtwork(ctx.userDataDir, bytes);
+    ctx.folderArt.id = await ctx.storeArtwork?.(bytes);
   } catch (error) {
     // A folder image that will not read must not fail every track beside it
     // -- the tracks still play with the generated tile Task 4 falls back to.
@@ -114,7 +114,7 @@ const buildTrack = async (
 ): Promise<ILibraryTrack> => {
   const facts = await readLibraryTags(filePath);
   const artId = facts.picture
-    ? await storeArtwork(ctx.userDataDir, facts.picture.data)
+    ? await ctx.storeArtwork?.(facts.picture.data)
     : await resolveFolderArt(ctx);
   const title =
     facts.title !== undefined && facts.title.trim().length > 0
@@ -140,6 +140,7 @@ const buildTrack = async (
     channels: facts.channels,
     codec: facts.codec,
     artId,
+    artworkChecked: ctx.storeArtwork !== undefined,
     sizeBytes: stat.size,
     mtimeMs: stat.mtimeMs,
     addedAt,
@@ -183,10 +184,10 @@ const parseCandidate = async (
   }
   const dirCtx: IDirectoryContext = {
     rootId: context.rootId,
-    userDataDir: context.userDataDir,
     dir: candidate.dir,
     fileNames: candidate.dirFileNames,
     folderArt,
+    storeArtwork: context.storeArtwork,
   };
   let stats: fs.Stats;
   try {

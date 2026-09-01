@@ -20,6 +20,11 @@ failures useful to diagnose instead of leaving only a restart-budget code.
   acknowledgement, frame, error and exit is now tied to the native process that
   produced it. A late code-zero exit during a quick stop/start handover cannot
   clear the new engine or consume its restart budget.
+- **Packaged library scans now keep cover art.** Tag reading stays in the
+  background worker, while raw embedded or folder artwork is handed to the
+  Electron host for resizing and caching. Libraries scanned by the affected
+  build automatically re-check missing covers once; existing metadata and
+  cached covers are preserved.
 
 ### Diagnostics
 

@@ -44,6 +44,8 @@ export interface IScanOptions {
   rootPath: string;
   userDataDir: string;
   known: readonly ILibraryTrack[];
+  /** See `IWalkContext.storeArtwork`. Optional for pure discovery callers. */
+  storeArtwork?: (bytes: Uint8Array) => Promise<string | undefined>;
   onProgress: (progress: ILibraryScanProgress) => void;
   /** Called by both phases with a batch of tracks, so a caller can publish
    * partial results while the walk is still running: phase one
@@ -115,6 +117,7 @@ export const scanLibraryRoot = async (
     rootId: options.rootId,
     userDataDir: options.userDataDir,
     knownByPath,
+    storeArtwork: options.storeArtwork,
     onProgress: options.onProgress,
     onTracks: options.onTracks,
     isCancelled: options.isCancelled,

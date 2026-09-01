@@ -10,7 +10,10 @@ import {
   shouldReparse,
   trackIdForPath,
 } from '../../../main/library/libraryScanner';
-import { readLibraryTags } from '../../../main/library/libraryMetadata';
+import {
+  findFolderArt,
+  readLibraryTags,
+} from '../../../main/library/libraryMetadata';
 // Imported from the renderer on purpose: this asserts the real percentage
 // calculation the strip shows, not a hand-copied formula that could quietly
 // drift from it. See `libraryScanPercent`'s own doc for why `parsed > 0` is
@@ -19,13 +22,11 @@ import { libraryScanPercent } from '../../../renderer/library/LibraryScanProgres
 
 jest.mock('../../../main/library/libraryMetadata', () => ({
   readLibraryTags: jest.fn(() => Promise.resolve({ title: 'Tagged' })),
-  findFolderArt: () => undefined,
-}));
-jest.mock('../../../main/library/libraryArtwork', () => ({
-  storeArtwork: () => Promise.resolve(undefined),
+  findFolderArt: jest.fn(() => undefined),
 }));
 
 const mockedReadLibraryTags = readLibraryTags as jest.Mock;
+const mockedFindFolderArt = findFolderArt as jest.Mock;
 
 const folder = (files: Record<string, string>): string => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fluideq-scan-'));
@@ -384,6 +385,64 @@ describe('scanning a folder', () => {
     expect(result.tracks[0]).toMatchObject({ hasMetadataError: true });
   });
 
+  it('hands embedded artwork to the supplied host cache before publishing the track', async () => {
+    const picture = new Uint8Array([1, 2, 3, 4]);
+    mockedReadLibraryTags.mockResolvedValueOnce({
+      title: 'Covered',
+      artist: 'Tagged artist',
+      picture: { data: picture, format: 'image/png' },
+    });
+    const storeArtwork = jest.fn<Promise<string | undefined>, [Uint8Array]>(
+      () => Promise.resolve('abc123'),
+    );
+    const dir = folder({ 'covered.mp3': 'x' });
+
+    const result = await scanLibraryRoot({
+      rootId: 'r1',
+      rootPath: dir,
+      userDataDir: dir,
+      known: [],
+      storeArtwork,
+      onProgress: () => undefined,
+      isCancelled: () => false,
+    });
+
+    expect(storeArtwork).toHaveBeenCalledWith(picture);
+    expect(result.tracks[0]).toMatchObject({
+      title: 'Covered',
+      artist: 'Tagged artist',
+      artId: 'abc123',
+      artworkChecked: true,
+    });
+  });
+
+  it('hands folder artwork to the same host cache when tags have no picture', async () => {
+    mockedFindFolderArt.mockReturnValueOnce('cover.jpg');
+    const storeArtwork = jest.fn<Promise<string | undefined>, [Uint8Array]>(
+      () => Promise.resolve('def456'),
+    );
+    const dir = folder({ 'plain.mp3': 'x', 'cover.jpg': 'folder-cover' });
+
+    const result = await scanLibraryRoot({
+      rootId: 'r1',
+      rootPath: dir,
+      userDataDir: dir,
+      known: [],
+      storeArtwork,
+      onProgress: () => undefined,
+      isCancelled: () => false,
+    });
+
+    expect(storeArtwork).toHaveBeenCalledTimes(1);
+    expect(Buffer.from(storeArtwork.mock.calls[0][0]).toString('utf8')).toBe(
+      'folder-cover',
+    );
+    expect(result.tracks[0]).toMatchObject({
+      artId: 'def456',
+      artworkChecked: true,
+    });
+  });
+
   it('publishes parsed tracks in batches before the scan finishes, growing across batches', async () => {
     // Enough files to cross the batch-size threshold at least once, so this
     // proves batching (more than one onTracks call) rather than "everything
@@ -510,6 +569,7 @@ describe('deciding whether a file needs re-reading', () => {
     kind: 'audio',
     isPlayable: true,
     title: 'A',
+    artworkChecked: true,
     sizeBytes: 100,
     mtimeMs: 200,
     addedAt: 1,
@@ -523,6 +583,23 @@ describe('deciding whether a file needs re-reading', () => {
     expect(shouldReparse(known, { size: 101, mtimeMs: 200 })).toBe(true);
     expect(shouldReparse(known, { size: 100, mtimeMs: 201 })).toBe(true);
     expect(shouldReparse(undefined, { size: 100, mtimeMs: 200 })).toBe(true);
+  });
+
+  it('repairs an unchanged legacy track once when no artwork result was recorded', () => {
+    expect(
+      shouldReparse(
+        { ...known, artId: undefined, artworkChecked: undefined },
+        { size: 100, mtimeMs: 200 },
+      ),
+    ).toBe(true);
+    // A real cached id proves the old scan completed artwork even before the
+    // explicit marker existed, so those tracks do not need the migration pass.
+    expect(
+      shouldReparse(
+        { ...known, artId: 'abc123', artworkChecked: undefined },
+        { size: 100, mtimeMs: 200 },
+      ),
+    ).toBe(false);
   });
 
   it('gives a file the same id every scan', () => {
