@@ -8,11 +8,39 @@ actions menu opens it again any time.
 
 ## 1.6.1
 
-This patch makes the new native DSP engine recover reliably and makes its
-failures useful to diagnose instead of leaving only a restart-budget code.
+This patch makes the new native DSP engine recover reliably, fixes a transport
+bug that made Stop restart the music, and makes the engine's failures useful to
+diagnose instead of leaving only a restart-budget code.
+
+### New
+
+- **Folders look like folders.** A folder on the Folders shelf is drawn as a
+  folder holding its cover art, instead of as an album with a different label.
 
 ### Fixed
 
+- **Stop and Pause no longer start the music again.** Pausing switches the
+  native engine off, and handing the audio back to the fallback player restarted
+  it — so pressing Stop or Pause silenced the track for a moment and then played
+  it from where it had been. Both now stop, and turning the DSP switch off in
+  the middle of a song still leaves the music playing.
+- **The DSP switch reads off when nothing is playing.** It had begun showing ON,
+  in the accent colour, directly above the line saying "DSP starts when music is
+  playing from Library" — the panel contradicting itself over silence. With no
+  Library track playing, the switch, the ON/BYPASSED label, the stage and the
+  presets all read off and cannot be moved.
+- **Buttons that cannot be pressed now look it.** The DSP preset bar's Reset,
+  Save, Export and Import sat in the full accent colour while doing nothing when
+  clicked. Every unavailable button in the app is now drawn as unavailable, and
+  keeps the tooltip that says why.
+- **Reset stays on the preset line.** In the Denoise header below 1000px, Reset
+  dropped under the picker with most of that row still empty. It now sits beside
+  the picker and wraps only when the two genuinely cannot share the line.
+- **A malformed control message can no longer stop the audio engine.** The
+  native host checked the size of an incoming command only after making room for
+  it, so a frame that arrived garbled could ask for more memory than the machine
+  had and take the engine down mid-song, with nothing in the log to explain it.
+  Such a frame is now refused by name and the engine keeps playing.
 - **DSP visualisers return after the native engine restarts.** The replacement
   process restores the analysis stream before reopening the audio device, so
   every stage graph resumes without closing and reopening the DSP page.

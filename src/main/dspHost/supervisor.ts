@@ -113,6 +113,12 @@ export class DspHostSupervisor {
 
   private state: TDspHostState = 'stopped';
 
+  /**
+   * The spawn currently handshaking, so concurrent callers share one answer
+   * rather than one of them mistaking it for a failure. See `start`.
+   */
+  private starting: Promise<boolean> | undefined;
+
   private handshake: IHostHandshake | undefined;
 
   private nextRequestId = 1;
@@ -207,18 +213,73 @@ export class DspHostSupervisor {
     return this.stderrTail;
   }
 
+  /**
+   * The host, started once however many callers ask at once.
+   *
+   * A SECOND CALLER ARRIVING DURING A STARTUP USED TO BE TOLD "NOT READY", and
+   * that one word is what made every fast track change a process churn. The
+   * check returned `this.state === 'ready'`, which is `false` while a spawn is
+   * still handshaking — so the caller read a healthy, half-open host as a
+   * failure, and `engage` answers a failed start by calling `stop`. The
+   * incoming controller therefore killed the very process it had just asked
+   * for, then started another, which the next change killed in turn.
+   *
+   * From the app's own lifecycle trace, on an ordinary track change:
+   *
+   *   start-requested        the incoming controller
+   *   start-reused           handed the outgoing one's process — and told false
+   *   device-open-requested
+   *   stop-requested         the loser tearing down the shared host
+   *   device-open-complete   state=stopped
+   *
+   * The open still acked, from a process already shutting down, so the panel
+   * read ON over an engine that was gone. Two symptoms come out of this one
+   * line: engines multiplying, and the elements handed the audio back mid-flight
+   * so the same track plays twice a few milliseconds apart — which is a comb
+   * filter, and is heard as the bass going out of the music.
+   *
+   * So a caller that arrives mid-startup now WAITS for that startup and gets
+   * its real answer. One in-flight promise, shared: the supervisor owns one
+   * process and callers are told about that one process.
+   */
   async start(): Promise<boolean> {
     this.trace('start-requested');
-    if (this.state === 'ready' || this.state === 'starting') {
+    if (this.state === 'ready') {
       this.trace('start-reused');
-      return this.state === 'ready';
+      return true;
+    }
+    if (this.starting) {
+      // Not a second spawn — the same one, awaited. Whatever it resolves to is
+      // the truth for every caller holding it.
+      this.trace('start-joined');
+      return this.starting;
     }
     this.reportedFailure = false;
-    return this.spawnAndHandshake();
+    const pending = this.spawnAndHandshake();
+    this.starting = pending;
+    try {
+      return await pending;
+    } finally {
+      // Cleared only if it is still ours: a `stop` and a fresh `start` can both
+      // have happened while this one was in flight.
+      if (this.starting === pending) {
+        this.starting = undefined;
+      }
+    }
   }
 
   async stop(): Promise<void> {
     this.deviceWanted = false;
+    /**
+     * A startup this stop supersedes is no longer anybody's answer.
+     *
+     * Left in place, the next `start` would join a handshake for a process this
+     * call is in the middle of killing, and be told `true` about an engine that
+     * is already gone. The in-flight spawn still finishes and still cleans up
+     * after itself — `spawnAndHandshake` owns that — this only stops it being
+     * handed to a caller who asked after the stop.
+     */
+    this.starting = undefined;
     const { child } = this;
     if (!child) {
       this.setState('stopped');

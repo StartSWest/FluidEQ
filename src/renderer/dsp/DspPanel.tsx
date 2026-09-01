@@ -108,27 +108,36 @@ const DspPanel = ({
   const outputSafetyEnabled = useDspOutputSafetyEnabled();
   const nativeState = useDspNativeState();
   /**
-   * Whether anything here is reaching the music RIGHT NOW.
+   * Three questions, and conflating them is what made the panel a mess.
    *
-   * The native engine is the only engine — `useDspEngine` stands the worklet
-   * down unconditionally — so the rack is live only while that engine is
-   * actually engaged, which it is only while a Library track is playing. Idle
-   * and failed are different reasons for the same fact, and the panel treats
-   * them the same because the listener hears them the same: nothing.
+   * `isRackEngaged` is whether the engine is running RIGHT NOW, which it is
+   * only while a Library track plays. That is the right thing to disable the UI
+   * on: with nothing playing there is nothing to voice, so the controls go
+   * inert and the header line says why.
    *
-   * A switch reading ON over silence is the specific thing being prevented.
-   * It says processing is happening when none is, next to a line of text
-   * saying the opposite, and it is what makes somebody voice a chain for an
-   * evening and wonder why nothing changed.
+   * `isRackLive` is what the SWITCH READS, and it must be the user's own
+   * setting. A commit ago it was `settings.enabled && isRackEngaged`, so
+   * pausing flipped the switch to BYPASSED underneath somebody who had turned
+   * it on — the panel changing a saved preference to describe a transient. The
+   * setting survives a pause; the switch says so.
    *
-   * This deliberately reverses the choice made a commit earlier, which kept
-   * the rack live while idle so a sound could be set up before pressing play.
-   * That cost was accepted knowingly: setting up before play is a real thing
-   * to want, but not at the price of the switch lying about the signal path.
-   * `dsp.idle` in the header says what to do about it — start a track.
+   * A failed host is the one case where the switch must contradict the
+   * setting, because then the rack genuinely is a row of knobs wired to
+   * nothing and will stay that way until the app restarts.
    */
   const isRackEngaged = nativeState === 'engaged';
-  const isRackLive = settings.enabled && isRackEngaged;
+  const isEngineDown = nativeState === 'failed';
+  const isRackLive = settings.enabled && !isEngineDown;
+  /**
+   * And the third: whether a control is worth touching at all.
+   *
+   * The rack goes inert while nothing is playing — there is nothing to voice,
+   * and the header line already says to start a track. That is a presentation
+   * decision and it stays entirely in this file: nothing here changes the
+   * engine's lifetime, because tearing the engine down and rebuilding it around
+   * a pause is what produced the multiplying processes and the doubled audio.
+   */
+  const areControlsUsable = isRackLive && isRackEngaged;
   const outputSafetyMeter = useDspOutputSafetyMeter();
   const inputAnalysis = useDspInputAnalysis();
   const loudness = masterLoudnessBreakdown(
@@ -354,7 +363,7 @@ const DspPanel = ({
         <DspSideTabs
           active={section}
           onSelect={selectSection}
-          filtersDisabled={!isRackLive}
+          filtersDisabled={!areControlsUsable}
           enabled={{
             normalizer: normalizer.mode !== 'off',
             denoise: denoise.enabled,
@@ -372,10 +381,12 @@ const DspPanel = ({
 
         <div
           className={`dsp-stage${
-            section !== 'crossfade' && !isRackLive ? ' is-disabled' : ''
+            section !== 'crossfade' && !areControlsUsable ? ' is-disabled' : ''
           }`}
-          inert={section !== 'crossfade' && !isRackLive ? true : undefined}
-          aria-disabled={section !== 'crossfade' && !isRackLive}
+          inert={
+            section !== 'crossfade' && !areControlsUsable ? true : undefined
+          }
+          aria-disabled={section !== 'crossfade' && !areControlsUsable}
         >
           {section === 'normalizer' && (
             <DspNormalizerCard

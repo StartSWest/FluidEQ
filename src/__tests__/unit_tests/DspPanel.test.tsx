@@ -627,14 +627,19 @@ describe('DspPanel', () => {
     expect(screen.getByText(/music is playing from Library/i)).toHaveClass(
       'is-idle',
     );
-    // Idle is not a failure -- no "could not start", asserted above -- but it
-    // is not processing either, and the switch must not say it is. A control
-    // reading ON directly above a line of text saying "DSP starts when music
-    // is playing from Library" is the panel contradicting itself in the space
-    // of two rows, and it is what makes somebody voice a chain for an evening
-    // and wonder why nothing changed. Off, and not togglable, until a track
-    // engages the engine.
-    expect(screen.getByRole('checkbox', { name: 'DSP' })).not.toBeChecked();
+    /*
+     * THE SWITCH KEEPS THE SETTING; THE UI IS WHAT GOES AWAY.
+     *
+     * It used to be forced unchecked while idle, so that it could not read ON
+     * over silence. That cure was worse: pausing a track flipped a saved
+     * preference underneath the user, and the panel was rewriting a setting to
+     * describe a transient.
+     *
+     * Disabled, and still checked, says both true things at once — this is
+     * what you have chosen, and it is not reaching anything at this instant.
+     * The idle line above, asserted already, is what explains the second half.
+     */
+    expect(screen.getByRole('checkbox', { name: 'DSP' })).toBeChecked();
     expect(screen.getByRole('checkbox', { name: 'DSP' })).toBeDisabled();
     expect(container.querySelector('.dsp-stage')).toHaveAttribute(
       'aria-disabled',
