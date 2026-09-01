@@ -44,6 +44,7 @@ import { useTranslation } from '../utils/I18nContext';
 import MenuIcon from '../icons/MenuIcon';
 import { libraryFilterHistory } from '../utils/libraryFilterHistory';
 import LibraryCoverArt from './LibraryCoverArt';
+import LibraryFolderArt from './LibraryFolderArt';
 import LibraryGridView from './LibraryGridView';
 import LibrarySearchField from './LibrarySearchField';
 import LibraryListView from './LibraryListView';
@@ -692,6 +693,13 @@ const LibraryDetail = ({
     });
   }
 
+  // The header's picture. Inside a directory this is whatever cover was found
+  // first beneath it and belongs to no record in particular — which is why the
+  // folder branch below draws it inside a folder rather than as one.
+  const headerArtId =
+    (isAlbum || isFolder ? album?.artId : artist?.artId) ??
+    detailTracks.find((entry) => entry.artId !== undefined)?.artId;
+
   const handlePlay = () => {
     // THE FIRST ROW OF THE TABLE UNDER IT, not the first of the whole album.
     //
@@ -734,14 +742,11 @@ const LibraryDetail = ({
       </div>
       {!isWayThrough && (
         <div className="library-detail__header">
-          <LibraryCoverArt
-            artId={
-              (isAlbum || isFolder ? album?.artId : artist?.artId) ??
-              detailTracks.find((entry) => entry.artId !== undefined)?.artId
-            }
-            label={title}
-            size="cover"
-          />
+          {isFolder ? (
+            <LibraryFolderArt artId={headerArtId} label={title} size="cover" />
+          ) : (
+            <LibraryCoverArt artId={headerArtId} label={title} size="cover" />
+          )}
           <div className="library-detail__info">
             {/* The name becomes the field it is edited in, in place. A modal
                 for one text box would cover the very list that says which

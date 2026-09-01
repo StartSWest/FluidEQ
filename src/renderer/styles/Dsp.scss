@@ -2423,9 +2423,18 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     stroke-linejoin: round;
   }
 
-  &:hover {
+  &:hover:not(:disabled) {
     background: rgba($secondary-default, 0.16);
     color: rgba($white, 0.9);
+  }
+
+  // The same 0.5 the `RichPick` trigger between them fades to. These three are
+  // sized and spaced to read as one control with a middle and two ends, so a
+  // dimmed field flanked by two arrows still lighting up under the pointer is
+  // one control disagreeing with itself about whether it can be used.
+  &:disabled {
+    cursor: default;
+    opacity: 0.5;
   }
 }
 

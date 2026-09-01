@@ -117,17 +117,24 @@ const VIEW_ICONS = {
   coverflow: 'viewCoverFlow',
 } as const;
 
-/** The two readings of the same shelf, in the order the menu offers them. */
+/**
+ * The two readings of the same shelf, in the order the menu offers them.
+ *
+ * The tree first, because the tree is what the shelf opens as — see
+ * `folderTree.ts`, where an unset choice reads as `true`. The flat reading was
+ * listed at the top, so the one entry that is never the default was the one a
+ * reader's eye landed on first.
+ */
 const FOLDER_READINGS = [
-  {
-    key: 'library.browse.folder',
-    hint: 'library.browse.folderHint',
-    asTree: false,
-  },
   {
     key: 'library.browse.directory',
     hint: 'library.browse.directoryHint',
     asTree: true,
+  },
+  {
+    key: 'library.browse.folder',
+    hint: 'library.browse.folderHint',
+    asTree: false,
   },
 ] as const;
 

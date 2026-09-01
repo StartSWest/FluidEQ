@@ -49,6 +49,7 @@ import { useTranslation } from '../utils/I18nContext';
 import MenuIcon from '../icons/MenuIcon';
 import { FAVORITES_PLAYLIST_ID } from '../../common/library/playlists';
 import LibraryCoverArt from './LibraryCoverArt';
+import LibraryFolderArt from './LibraryFolderArt';
 import { usePlaylists } from './PlaylistContext';
 import { useFolderEntries } from './useFolderEntries';
 
@@ -763,7 +764,18 @@ const LibraryGridView = ({
             onClick={() => openItem(item.id)}
           >
             <span className="library-grid__art">
-              <LibraryCoverArt artId={item.artId} label={title} size="tile" />
+              {/* A folder tile is a folder: its `artId` belongs to the first
+                  album found anywhere beneath it, not to the directory —
+                  see `LibraryFolderArt`. */}
+              {browseMode === 'folder' ? (
+                <LibraryFolderArt
+                  artId={item.artId}
+                  label={title}
+                  size="tile"
+                />
+              ) : (
+                <LibraryCoverArt artId={item.artId} label={title} size="tile" />
+              )}
               {/* Same restraint as `LibraryListView`'s pending badge: this is
                   information, not a problem, so it gets the quiet mark
                   rather than the unplayable one's red. */}

@@ -53,6 +53,7 @@ import {
 import { useTranslation } from '../utils/I18nContext';
 import MenuIcon from '../icons/MenuIcon';
 import LibraryCoverArt from './LibraryCoverArt';
+import LibraryFolderArt from './LibraryFolderArt';
 import { useFolderEntries } from './useFolderEntries';
 import LibraryDetail from './LibraryDetail';
 import { FAVORITES_PLAYLIST_ID } from '../../common/library/playlists';
@@ -1059,11 +1060,22 @@ const LibraryCoverFlow = ({
                 style={{ transform: coverFlowTransform(index - currentIndex) }}
               >
                 <span className="library-coverflow__art">
-                  <LibraryCoverArt
-                    artId={item.artId}
-                    label={title}
-                    size="cover"
-                  />
+                  {/* The one shelf whose sleeves are not albums — see
+                      `LibraryFolderArt` for why a directory cannot be drawn
+                      as the first cover found beneath it. */}
+                  {browseMode === 'folder' ? (
+                    <LibraryFolderArt
+                      artId={item.artId}
+                      label={title}
+                      size="cover"
+                    />
+                  ) : (
+                    <LibraryCoverArt
+                      artId={item.artId}
+                      label={title}
+                      size="cover"
+                    />
+                  )}
                   {/* Same restraint as `LibraryListView`'s pending badge:
                       information, not a problem, so it draws quiet rather
                       than alarmed. */}

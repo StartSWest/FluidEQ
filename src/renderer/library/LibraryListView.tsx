@@ -49,6 +49,7 @@ import { useTranslation } from '../utils/I18nContext';
 import { isInsideAnchoredMenu } from '../widgets/AnchoredMenu';
 import MenuIcon from '../icons/MenuIcon';
 import LibraryCoverArt from './LibraryCoverArt';
+import LibraryFolderArt from './LibraryFolderArt';
 import LibraryTrackRow from './LibraryTrackRow';
 import LibraryTrackMenu from './LibraryTrackMenu';
 import { usePlaylists } from './PlaylistContext';
@@ -1147,7 +1148,7 @@ const LibraryListView = ({
                 role="cell"
                 className="library-list__col library-list__col--art"
               >
-                <LibraryCoverArt
+                <LibraryFolderArt
                   artId={folder.artId}
                   label={folder.name}
                   size="row"

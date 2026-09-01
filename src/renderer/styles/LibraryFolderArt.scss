@@ -1,0 +1,133 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+@use 'sass:color' as sass-color;
+@use 'color' as *;
+@use 'theme' as *;
+
+// *** The folder that shows what is in it **************************************
+//
+// See `LibraryFolderArt.tsx` for why a directory is not drawn as an album.
+//
+// The silhouette is a mask rather than a `clip-path: polygon()` so the tab,
+// its slope and the four corners keep their radii, and rather than
+// `clip-path: path()` because that one takes absolute pixels and this shape
+// has to be right at 32px and at 160px. Every size this is drawn at is a
+// square, so `mask-size: 100% 100%` never distorts it.
+//
+// Coordinates below are the path's own 0-100 grid, and the sheet's inset
+// percentages are read off them: the tab runs from y=6 to the body top at
+// y≈16, the body's bottom edge is y=94, and the sides span the full width.
+$folder-silhouette: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M6 6H40c2.4 0 4.7 1.2 6 3.2l2.6 3.9c1.3 2 3.6 3.2 6 3.2H94c3.3 0 6 2.7 6 6V88c0 3.3-2.7 6-6 6H6c-3.3 0-6-2.7-6-6V12c0-3.3 2.7-6 6-6z'/%3E%3C/svg%3E");
+
+// Teal-slate rather than the manila a file manager would use: this is the one
+// piece of chrome in the library that has to read as "not artwork" at a
+// glance, and it does that by being made of the same two surfaces every other
+// well and card here is made of, tinted with the shell's own accent.
+$folder-chrome-top: sass-color.mix($secondary-dark, $surface-field, 30%);
+$folder-chrome-bottom: sass-color.mix($secondary-darker, $panel-bottom, 40%);
+
+.library-folder-art {
+  position: relative;
+  display: block;
+  flex: 0 0 auto;
+
+  // The three sizes `LibraryCoverArt` has, because this stands where one of
+  // its covers stood: the row list's leading column, a grid tile, the
+  // drill-in header and the carousel's sleeve.
+  &--row {
+    width: $control-height-sm;
+    height: $control-height-sm;
+  }
+
+  &--tile {
+    width: 100%;
+    aspect-ratio: 1;
+  }
+
+  &--cover {
+    width: 160px;
+    height: 160px;
+  }
+}
+
+.library-folder-art__sleeve {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    158deg,
+    $folder-chrome-top,
+    $folder-chrome-bottom
+  );
+  // Follows the silhouette rather than a box, which is the whole point of
+  // casting it: a rectangular shadow under a folder is a folder stuck on a
+  // card.
+  filter: drop-shadow(0 1px 2px rgba($black, 0.5));
+  mask-image: $folder-silhouette;
+  mask-repeat: no-repeat;
+  mask-size: 100% 100%;
+  -webkit-mask-image: $folder-silhouette;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-size: 100% 100%;
+}
+
+// The cover, tucked inside the folder's front. The rim left showing on all
+// four sides is what makes this read as "in a folder" instead of "cropped",
+// and the top inset clears the tab entirely — below y=16 on the path's grid,
+// with room to spare so the slope never touches the picture's corner.
+.library-folder-art__sheet {
+  position: absolute;
+  top: 26%;
+  right: 8%;
+  bottom: 9%;
+  left: 8%;
+  overflow: hidden;
+  border-radius: 3px;
+  // Depth, downwards: the picture sits behind the folder's front edge, so the
+  // shadow it casts is the one falling on it from above.
+  box-shadow:
+    0 -1px 3px rgba($black, 0.5),
+    0 0 0 1px rgba($black, 0.28);
+}
+
+// `.library-cover-art--row`, `--tile` and `--cover` each hard-size themselves,
+// and `LibraryCoverFlow.scss` re-sizes `--cover` a second time for the
+// carousel. Three classes so this wins over both of them wherever the two
+// stylesheets land relative to each other in the bundle: inside a folder the
+// picture is the sheet's size and nothing else's.
+.library-folder-art .library-folder-art__sheet .library-cover-art {
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+}
+
+// Same reason, for the generated initials tile: the carousel scales its
+// lettering to the sleeve, and in here the lettering belongs to the smaller
+// picture inside the sleeve. The fallback is the drill-in header's 160px, so
+// this is right outside the carousel too.
+.library-folder-art .library-folder-art__sheet .library-cover-art__tile {
+  font-size: 0.5rem;
+}
+
+.library-folder-art--tile .library-folder-art__sheet .library-cover-art__tile {
+  font-size: 1.1rem;
+}
+
+.library-folder-art--cover .library-folder-art__sheet .library-cover-art__tile {
+  font-size: calc(var(--cover-flow-size, 160px) * 0.2);
+}

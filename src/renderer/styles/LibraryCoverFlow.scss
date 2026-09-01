@@ -452,6 +452,16 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     transition: box-shadow 260ms $ease-out;
   }
 
+  // The Folders shelf's sleeve is a folder holding a cover, and it carries
+  // the same literal 160px to undo — see `LibraryFolderArt.scss`. Only the
+  // size: the shadow and the corners belong to the silhouette, which casts
+  // and rounds its own.
+  .library-folder-art--cover {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1;
+  }
+
   // The generated initials tile scales with the sleeve rather than staying at
   // the 2.4rem the drill-in header wants.
   .library-cover-art__tile {
