@@ -386,8 +386,7 @@ it under the terms of the GNU General Public License version 3 or later.
 
   // A broad diagonal colour cut crosses behind the blades. It is light rather
   // than an opaque sheet, so the app remains legible throughout the hit.
-  &::before,
-  &::after {
+  &::before {
     position: absolute;
     content: '';
     pointer-events: none;
@@ -410,29 +409,6 @@ it under the terms of the GNU General Public License version 3 or later.
     );
     transform: skewX(-13deg) translate3d(-40vw, 0, 0);
     animation: euphoria-prism-sweep 940ms cubic-bezier(0.16, 0.9, 0.3, 1)
-      forwards;
-  }
-
-  // The impact line arrives through the centre and opens edge-to-edge. It is
-  // the switch's click made visible, before the coloured blades follow it.
-  &::after {
-    top: 50%;
-    right: 0;
-    left: 0;
-    height: 2px;
-    background: linear-gradient(
-      90deg,
-      transparent,
-      rgba(#4defff, 0.86),
-      rgba($white, 0.96),
-      rgba(#ff4daf, 0.88),
-      transparent
-    );
-    box-shadow:
-      0 0 14px rgba(#4defff, 0.62),
-      0 0 26px rgba(#ff4daf, 0.46);
-    transform: scaleX(0);
-    animation: euphoria-impact-line 760ms cubic-bezier(0.16, 0.9, 0.3, 1)
       forwards;
   }
 }
@@ -487,27 +463,6 @@ it under the terms of the GNU General Public License version 3 or later.
   100% {
     opacity: 0;
     transform: skewX(-13deg) translate3d(185vw, 0, 0);
-  }
-}
-
-@keyframes euphoria-impact-line {
-  0% {
-    opacity: 0;
-    transform: scaleX(0);
-  }
-
-  18% {
-    opacity: 1;
-  }
-
-  58% {
-    opacity: 0.82;
-    transform: scaleX(1);
-  }
-
-  100% {
-    opacity: 0;
-    transform: scaleX(1);
   }
 }
 

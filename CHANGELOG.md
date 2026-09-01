@@ -142,8 +142,9 @@ top of the page.
   rack does not process Spotify, YouTube or other apps.
 - **Full-screen transport controls reveal only at the bottom 10 pixels.** Once
   revealed, the bar stays open while the pointer is inside New Look, the
-  Karaoke playlist or the pitch lane, so those panels and the bar behave as one
-  stable control surface instead of pushing each other away.
+  Karaoke playlist or the pitch lane, then waits five seconds after the pointer
+  leaves. Those panels can hold an open bar but never reveal one from the
+  middle of the screen.
 - **An output without Equalizer APO enabled is marked `APO OFF`.** Its device
   card explains why FluidEQ cannot change that output and opens APO's Device
   Selector directly instead of leaving a curve that cannot reach the device.
@@ -151,10 +152,10 @@ top of the page.
 ### Fixed
 
 - **Adding a Library folder in an installed build produced zero tracks.** The
-  packaged scanner listened for Electron's worker port on the wrong object and
-  exited cleanly without ever receiving the root. It now uses the utility
-  process channel Electron exposes and falls back to the in-process scanner if
-  a worker ever exits before finishing.
+  packaged scanner now uses Electron's utility-process port and reads scan
+  requests from the `MessageEvent.data` envelope that port actually delivers.
+  It also falls back to the in-process scanner if a worker exits before
+  finishing.
 - **Stopping the native engine started another one.** A deliberate code-zero
   shutdown crossed the supervisor's exit handler before it had been marked as
   intentional, so it was reported as a failure and restarted during teardown.
@@ -162,7 +163,8 @@ top of the page.
   the pointer** when the bottom transport appears or fades.
 - **The rainbow hairline across the top of the header is gone.** Rainbow mode
   remains in the visualisers where it belongs, without adding chrome to the
-  window frame.
+  window frame or flashing a horizontal line through the centre when it
+  activates.
 - **A library on OneDrive scanned to nothing.** Placeholder files were read as
   empty rather than as files waiting to be fetched.
 - **Shuffle moved the playhead.** The whole run was shuffled and then searched

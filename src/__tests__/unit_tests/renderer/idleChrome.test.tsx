@@ -104,35 +104,52 @@ describe('idle chrome', () => {
     expect(result.current).toBe(false);
   });
 
-  it.each(['look-designer', 'karaoke-playlist', 'karaoke-pitch'])(
-    'keeps the transport open while the pointer is inside %s',
-    (className) => {
-      const idle = renderHook(() => useIsChromeIdle());
-      const nearBottom = renderHook(() => useIsPointerNearBottom());
-      const panel = render(
-        <div className={className} data-testid="bottom-chrome-surface">
-          <button type="button">Control</button>
-        </div>,
-      );
+  it.each([
+    'now-playing-bar',
+    'look-designer',
+    'karaoke-playlist',
+    'karaoke-pitch',
+  ])('keeps the transport open while the pointer is inside %s', (className) => {
+    const idle = renderHook(() => useIsChromeIdle());
+    const nearBottom = renderHook(() => useIsPointerNearBottom());
+    const panel = render(
+      <div className={className} data-testid="bottom-chrome-surface">
+        <button type="button">Control</button>
+      </div>,
+    );
 
-      act(() => watchChromeIdle(true));
-      act(() => jest.advanceTimersByTime(CHROME_IDLE_MS));
-      expect(idle.result.current).toBe(true);
+    act(() => watchChromeIdle(true));
+    act(() => jest.advanceTimersByTime(CHROME_IDLE_MS));
+    expect(idle.result.current).toBe(true);
+    expect(nearBottom.result.current).toBe(false);
 
-      movePointer(window, window.innerHeight - 4);
-      expect(idle.result.current).toBe(false);
-      expect(nearBottom.result.current).toBe(true);
+    // The panel can hold an already-visible bar, but cannot summon one from
+    // the middle of the screen by itself.
+    movePointer(panel.getByRole('button'), Math.round(window.innerHeight / 2));
+    expect(idle.result.current).toBe(true);
+    expect(nearBottom.result.current).toBe(false);
 
-      movePointer(
-        panel.getByRole('button'),
-        Math.round(window.innerHeight / 2),
-      );
-      act(() => jest.advanceTimersByTime(CHROME_IDLE_MS));
-      expect(idle.result.current).toBe(false);
-      expect(nearBottom.result.current).toBe(true);
+    movePointer(window, window.innerHeight - 4);
+    expect(idle.result.current).toBe(false);
+    expect(nearBottom.result.current).toBe(true);
 
-      movePointer(window, Math.round(window.innerHeight / 2));
-      expect(nearBottom.result.current).toBe(false);
-    },
-  );
+    movePointer(panel.getByRole('button'), Math.round(window.innerHeight / 2));
+    act(() => jest.advanceTimersByTime(CHROME_IDLE_MS));
+    expect(idle.result.current).toBe(false);
+    expect(nearBottom.result.current).toBe(true);
+
+    movePointer(window, Math.round(window.innerHeight / 2));
+    // Exiting the combined surface starts a five-second grace period rather
+    // than snapping the bar shut immediately.
+    expect(idle.result.current).toBe(false);
+    expect(nearBottom.result.current).toBe(true);
+
+    act(() => jest.advanceTimersByTime(CHROME_IDLE_MS - 1));
+    expect(idle.result.current).toBe(false);
+    expect(nearBottom.result.current).toBe(true);
+
+    act(() => jest.advanceTimersByTime(1));
+    expect(idle.result.current).toBe(true);
+    expect(nearBottom.result.current).toBe(false);
+  });
 });

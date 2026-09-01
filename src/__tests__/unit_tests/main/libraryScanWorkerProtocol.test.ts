@@ -12,7 +12,10 @@ import {
 
 interface IFakeParentPort {
   postMessage: jest.Mock<void, [unknown]>;
-  on: jest.Mock<void, ['message', (message: IScanWorkerRequest) => void]>;
+  on: jest.Mock<
+    void,
+    ['message', (event: { data: IScanWorkerRequest }) => void]
+  >;
 }
 
 const utilityProcess = process as unknown as {
@@ -25,7 +28,7 @@ describe('the packaged library worker channel', () => {
   });
 
   it('uses Electron utilityProcess process.parentPort in both directions', () => {
-    let receive: ((message: IScanWorkerRequest) => void) | undefined;
+    let receive: ((event: { data: IScanWorkerRequest }) => void) | undefined;
     const port: IFakeParentPort = {
       postMessage: jest.fn(),
       on: jest.fn((_event, listener) => {
@@ -36,8 +39,16 @@ describe('the packaged library worker channel', () => {
     const listener = jest.fn<void, [IScanWorkerRequest]>();
 
     onHostMessage(listener);
-    const request: IScanWorkerRequest = { type: 'cancel' };
-    receive?.(request);
+    const request: IScanWorkerRequest = {
+      type: 'scan',
+      rootId: 'music-root',
+      rootPath: 'C:\\Music',
+      userDataDir: 'C:\\FluidEQ',
+      known: [],
+    };
+    // Electron's ParentPort emits a MessageEvent. The value sent by the host
+    // is its `data`, never the event object itself.
+    receive?.({ data: request });
     postToHost({ type: 'failed', message: 'proof' });
 
     expect(port.on).toHaveBeenCalledWith('message', expect.any(Function));

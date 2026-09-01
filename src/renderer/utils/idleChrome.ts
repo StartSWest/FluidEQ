@@ -149,7 +149,7 @@ export const BOTTOM_WAKE_EDGE_PX = 10;
  * controls participate in that layout.
  */
 const BOTTOM_CHROME_HOLD_SELECTOR =
-  '.look-designer, .karaoke-playlist, .karaoke-pitch';
+  '.now-playing-bar, .look-designer, .karaoke-playlist, .karaoke-pitch';
 
 const isInBottomChromeSurface = (event: PointerEvent): boolean =>
   event.target instanceof Element &&
@@ -162,10 +162,9 @@ const isInWakeZone = (event: PointerEvent): boolean =>
 /**
  * Whether the pointer is down where the transport bar lives.
  *
- * The bar has two ways to go: the pointer leaving its strip, and the clock
- * running out. Leaving is the quick one and is what somebody who came for one
- * button expects; the clock catches the case where the pointer stops inside
- * the strip and stays there.
+ * Entering the bottom edge reveals the bar. Leaving it starts the same
+ * five-second clock as the rest of the chrome; it does not make the bar snap
+ * shut under a pointer travelling to a neighbouring control.
  */
 let isNearBottom = false;
 const bottomListeners = new Set<() => void>();
@@ -195,13 +194,18 @@ export const useIsPointerNearBottom = () =>
 
 const handleActivity = (event?: Event) => {
   let isInBottomSurface = false;
+  let bottomSurfaceHoldsOpen = false;
   if (event?.type === 'pointermove') {
     const move = event as PointerEvent;
     isInBottomSurface = isInBottomChromeSurface(move);
-    setNearBottom(
-      move.clientY >= window.innerHeight - BOTTOM_WAKE_EDGE_PX ||
-        isInBottomSurface,
-    );
+    // A protected editor surface may HOLD a bar that the bottom edge already
+    // revealed, but it must never reveal one itself. Treating the whole panel
+    // as `nearBottom` made a pointer in the middle of the screen summon the
+    // transport — exactly the opposite of the ten-pixel wake target.
+    bottomSurfaceHoldsOpen = isInBottomSurface && isNearBottom && !isIdle;
+    if (move.clientY >= window.innerHeight - BOTTOM_WAKE_EDGE_PX) {
+      setNearBottom(true);
+    }
   }
   if (event?.type === 'keydown' && isQuietKey(event as KeyboardEvent)) {
     return;
@@ -216,9 +220,10 @@ const handleActivity = (event?: Event) => {
     return;
   }
   // Once revealed, the bar and every panel it pushes behave as one continuous
-  // target. No idle clock runs while the pointer is inside that target; moving
-  // outside flips `isNearBottom` off and lets the bar leave immediately.
-  if (isInBottomSurface) {
+  // target. No idle clock runs while the pointer is inside that target. A
+  // surface reached while the bar was hidden is ordinary mid-screen movement
+  // and has already returned through the wake-zone guard above.
+  if (bottomSurfaceHoldsOpen) {
     setIdle(false);
     clearTimer();
     return;
@@ -241,7 +246,10 @@ const handleActivity = (event?: Event) => {
   }
   setIdle(false);
   clearTimer();
-  timer = window.setTimeout(() => setIdle(true), CHROME_IDLE_MS);
+  timer = window.setTimeout(() => {
+    setNearBottom(false);
+    setIdle(true);
+  }, CHROME_IDLE_MS);
 };
 
 /**

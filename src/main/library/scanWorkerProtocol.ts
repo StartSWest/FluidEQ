@@ -62,7 +62,10 @@ export type IScanWorkerResponse =
  */
 interface IParentPort {
   postMessage: (message: unknown) => void;
-  on: (event: 'message', listener: (message: unknown) => void) => void;
+  on: (
+    event: 'message',
+    listener: (messageEvent: { data: unknown }) => void,
+  ) => void;
 }
 
 const parentPort = (): IParentPort | undefined => {
@@ -86,9 +89,18 @@ export const postToHost = (message: IScanWorkerResponse): void => {
 export const onHostMessage = (
   listener: (message: IScanWorkerRequest) => void,
 ): void => {
-  parentPort()?.on('message', (raw) => {
-    // Structured-clone delivers the object as sent, but this is still a
-    // message crossing a process boundary: narrow before trusting it.
+  parentPort()?.on('message', (event) => {
+    /**
+     * `ParentPort` is a MessagePort, not a child-process IPC channel.
+     *
+     * Electron wraps every incoming value in a MessageEvent and puts the
+     * structured-cloned request in `data`. Reading the event itself appeared
+     * plausible because it is also an object, but it has no request `type`.
+     * The worker therefore ignored every scan command and stayed alive
+     * forever: the root was saved, no tracks appeared, no terminal progress
+     * arrived, and no exit existed for the host's fallback to notice.
+     */
+    const raw = event.data;
     if (typeof raw === 'object' && raw !== null && 'type' in raw) {
       listener(raw as IScanWorkerRequest);
     }
