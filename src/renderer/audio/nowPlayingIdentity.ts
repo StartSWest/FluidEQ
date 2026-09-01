@@ -19,8 +19,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import type { ISongIdentity } from 'common/songIdentity';
 import { usePlaybackOwner } from './playbackOwner';
 import type { TPlaybackOwner } from './playbackOwner';
-import { useLastPlayingOwner, useTransportSources } from './transportSource';
-import type { ITransportSource } from './transportSource';
+import {
+  useLastPlayingOwner,
+  useTransportIdentitySources,
+} from './transportSource';
+import type { TTransportIdentitySources } from './transportSource';
 
 /** What is actually happening to a song, as far as the recorder is
  * concerned — never merely what the bar would show for it. */
@@ -63,7 +66,7 @@ export interface INowPlayingIdentity {
  * check would get wrong.
  */
 export const pickPlayingIdentity = (
-  sources: Partial<Record<TPlaybackOwner, ITransportSource>>,
+  sources: TTransportIdentitySources,
   playingOwner: TPlaybackOwner | undefined,
   lastPlayingOwner: TPlaybackOwner | undefined,
 ): INowPlayingIdentity => {
@@ -81,7 +84,7 @@ export const pickPlayingIdentity = (
 };
 
 export const useNowPlayingIdentity = (): INowPlayingIdentity => {
-  const sources = useTransportSources();
+  const sources = useTransportIdentitySources();
   const playingOwner = usePlaybackOwner();
   const lastPlayingOwner = useLastPlayingOwner();
   return pickPlayingIdentity(sources, playingOwner, lastPlayingOwner);

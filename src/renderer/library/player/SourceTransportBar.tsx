@@ -39,10 +39,9 @@ const NUDGE_MS = 5_000;
  * things behind it and not two transports that look alike. Anything drawn
  * twice would eventually be drawn differently.
  *
- * What it does not have is what belongs to a *queue*: no previous, no next, no
- * shuffle, no repeat. A karaoke session is one song and a web page is one
- * page, and offering "next" for either is offering something nothing can
- * answer.
+ * Queue controls appear only when the source can answer them. A web player
+ * delegates to its loaded page's real buttons; Karaoke supplies its own
+ * transport; neither gets a speculative button that silently does nothing.
  *
  * The position row and the fader each appear only where the source says it has
  * one. A page we can ask to play or pause has no playhead we can move, and a
@@ -212,32 +211,33 @@ const SourceTransportBar = ({
         <>
           <div className="now-playing-bar__deck">
             <div className="now-playing-bar__buttons">
-              {/* A queue either side, for the one source that has one: the
-                  machine's own player, and only where Windows says it takes
-                  the command. A karaoke session and a web page have no next,
-                  and neither draws these. */}
-              {source.previous && (
-                <button
-                  type="button"
-                  className="now-playing-bar__control"
-                  aria-label={t('library.previous')}
-                  title={t('library.previous')}
-                  onClick={source.previous}
-                >
-                  <TransportIcon name="previous" />
-                </button>
-              )}
-              {canStep && (
-                <button
-                  type="button"
-                  className="now-playing-bar__control now-playing-bar__nudge"
-                  aria-label={t('library.back5')}
-                  title={t('library.back5')}
-                  onClick={() => nudge(-1)}
-                >
-                  <TransportIcon name="back5" />
-                </button>
-              )}
+              {/* Queue controls only where the source reported real actions:
+                  the loaded web page's own buttons or commands Windows says
+                  another program accepts. */}
+              <div className="now-playing-bar__flank now-playing-bar__flank--start">
+                {source.previous && (
+                  <button
+                    type="button"
+                    className="now-playing-bar__control"
+                    aria-label={t('library.previous')}
+                    title={t('library.previous')}
+                    onClick={source.previous}
+                  >
+                    <TransportIcon name="previous" />
+                  </button>
+                )}
+                {canStep && (
+                  <button
+                    type="button"
+                    className="now-playing-bar__control now-playing-bar__nudge"
+                    aria-label={t('library.back5')}
+                    title={t('library.back5')}
+                    onClick={() => nudge(-1)}
+                  >
+                    <TransportIcon name="back5" />
+                  </button>
+                )}
+              </div>
               <button
                 type="button"
                 className={`now-playing-bar__control now-playing-bar__play${
@@ -253,28 +253,42 @@ const SourceTransportBar = ({
               >
                 <TransportIcon name={source.isPlaying ? 'pause' : 'play'} />
               </button>
-              {canStep && (
-                <button
-                  type="button"
-                  className="now-playing-bar__control now-playing-bar__nudge"
-                  aria-label={t('library.forward5')}
-                  title={t('library.forward5')}
-                  onClick={() => nudge(1)}
-                >
-                  <TransportIcon name="forward5" />
-                </button>
-              )}
-              {source.next && (
-                <button
-                  type="button"
-                  className="now-playing-bar__control"
-                  aria-label={t('library.next')}
-                  title={t('library.next')}
-                  onClick={source.next}
-                >
-                  <TransportIcon name="next" />
-                </button>
-              )}
+              <div className="now-playing-bar__flank now-playing-bar__flank--end">
+                {canStep && (
+                  <button
+                    type="button"
+                    className="now-playing-bar__control now-playing-bar__nudge"
+                    aria-label={t('library.forward5')}
+                    title={t('library.forward5')}
+                    onClick={() => nudge(1)}
+                  >
+                    <TransportIcon name="forward5" />
+                  </button>
+                )}
+                {source.next && (
+                  <button
+                    type="button"
+                    className="now-playing-bar__control"
+                    aria-label={t('library.next')}
+                    title={t('library.next')}
+                    onClick={source.next}
+                  >
+                    <TransportIcon name="next" />
+                  </button>
+                )}
+                {source.stop && (
+                  <button
+                    type="button"
+                    className="now-playing-bar__control now-playing-bar__stop"
+                    aria-label={t('library.stop')}
+                    title={t('library.stop')}
+                    onClick={source.stop}
+                    disabled={!source.isPlaying && source.positionMs <= 0}
+                  >
+                    <TransportIcon name="stop" />
+                  </button>
+                )}
+              </div>
             </div>
             {canSeek && (
               <div className="now-playing-bar__position">

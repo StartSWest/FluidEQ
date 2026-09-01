@@ -43,18 +43,13 @@ import {
 } from 'react';
 import { getStreakJoy } from 'common/rhythmGame';
 import { getEaseFactor } from 'common/smoothing';
-import {
-  MeterStyle,
-  METER_STYLE_KEY,
-  nextMeterStyle,
-  previousMeterStyle,
-} from 'common/meterStyles';
+import { METER_STYLES, MeterStyle, METER_STYLE_KEY } from 'common/meterStyles';
 import { useTranslation } from '../utils/I18nContext';
 import {
   useLiveAudioCapture,
   useLiveAudioFrame,
 } from '../audio/LiveAudioContext';
-import { useGraphMeterHidden } from '../utils/graphStyle';
+import { toggleGraphMeter, useGraphMeterHidden } from '../utils/graphStyle';
 import { useRhythmRun } from '../utils/rhythmRun';
 import { useIsEuphoric } from '../utils/euphoriaMode';
 import { useSmoothFrames } from '../utils/useSmoothFrames';
@@ -67,6 +62,15 @@ import {
   levelFraction,
   levelZone,
 } from './outputLevel';
+
+type TMeterCycleStyle = MeterStyle | 'off';
+
+const METER_CYCLE: readonly TMeterCycleStyle[] = [...METER_STYLES, 'off'];
+
+const LEGACY_METER_OFF_MIGRATION_KEY = 'fluideq.meterOffStateMigrated';
+
+const isMeterCycleStyle = (value: string | null): value is TMeterCycleStyle =>
+  value === 'off' || METER_STYLES.includes(value as MeterStyle);
 
 /**
  * What to call a bar.
@@ -1583,11 +1587,6 @@ const OutputLevelMeter = () => {
   const { isClipping, outputLevels } = useLiveAudioFrame();
   const { t } = useTranslation();
   const isHidden = useGraphMeterHidden();
-  // Claimed alongside the titlebar trace rather than relying on it. The two are
-  // mounted independently, and a meter that draws real dBFS is exactly the kind
-  // of owner the capture exists for — it must not be silently dependent on
-  // another component happening to be on screen.
-  useLiveAudioCapture(!isHidden);
   const isEuphoric = useIsEuphoric(getStreakJoy(useRhythmRun().streak) >= 1);
   const isEuphoricRef = useRef(isEuphoric);
   isEuphoricRef.current = isEuphoric;
@@ -1600,16 +1599,44 @@ const OutputLevelMeter = () => {
   // The first-run default is `fluid`, the same look the titlebar wave
   // opens on, so the two visualisers agree about what the app looks like
   // before anybody has chosen anything.
-  const [style, setStyle] = useState<MeterStyle>(() => {
+  const migratedLegacyOffRef = useRef(false);
+  const [style, setStyle] = useState<TMeterCycleStyle>(() => {
     try {
-      return (window.localStorage.getItem(METER_STYLE_KEY) ||
-        'fluid') as MeterStyle;
+      const stored = window.localStorage.getItem(METER_STYLE_KEY);
+      if (
+        isHidden &&
+        stored === METER_STYLES[0] &&
+        window.localStorage.getItem(LEGACY_METER_OFF_MIGRATION_KEY) !== 'true'
+      ) {
+        window.localStorage.setItem(LEGACY_METER_OFF_MIGRATION_KEY, 'true');
+        window.localStorage.setItem(METER_STYLE_KEY, 'off');
+        migratedLegacyOffRef.current = true;
+        return 'off';
+      }
+      return isMeterCycleStyle(stored) ? stored : 'fluid';
     } catch {
       return 'fluid';
     }
   });
-  const styleRef = useRef(style);
-  styleRef.current = style;
+  const isOff = style === 'off';
+  const drawableStyle: MeterStyle = isOff ? 'fluid' : style;
+  const styleRef = useRef<MeterStyle>(drawableStyle);
+  styleRef.current = drawableStyle;
+  const isOffRef = useRef(isOff);
+  isOffRef.current = isOff;
+
+  // Hidden is still the View-menu preference. Off is a visible cycle state:
+  // it releases the analyser claim but leaves this button available to restore
+  // the next visualiser style with another click.
+  useLiveAudioCapture(!isHidden && !isOff);
+
+  useEffect(() => {
+    if (!migratedLegacyOffRef.current || !isHidden) {
+      return;
+    }
+    migratedLegacyOffRef.current = false;
+    toggleGraphMeter();
+  }, [isHidden]);
 
   // The style's name is painted at the foot of the canvas on every frame
   // and never goes away, so cycling needs no timer and no announcement
@@ -1618,9 +1645,12 @@ const OutputLevelMeter = () => {
     (event: ReactMouseEvent<HTMLButtonElement>) => {
       const goingBack = event.ctrlKey || event.metaKey;
       setStyle((current) => {
-        const next = goingBack
-          ? previousMeterStyle(current)
-          : nextMeterStyle(current);
+        const at = METER_CYCLE.indexOf(current);
+        const direction = goingBack ? -1 : 1;
+        const next =
+          METER_CYCLE[
+            (at + direction + METER_CYCLE.length) % METER_CYCLE.length
+          ] ?? 'fluid';
         try {
           window.localStorage.setItem(METER_STYLE_KEY, next);
         } catch {
@@ -1641,6 +1671,9 @@ const OutputLevelMeter = () => {
   const targetsRef = useRef<IChannelLevel[]>(easedRef.current);
 
   useEffect(() => {
+    if (isOff) {
+      return;
+    }
     const isIdle = outputLevels.length === 0;
     const channels = isIdle
       ? [
@@ -1695,7 +1728,7 @@ const OutputLevelMeter = () => {
       internalClippingRef.current = anyInternalClipping;
       setIsInternallyClipping(anyInternalClipping);
     }
-  }, [outputLevels]);
+  }, [isOff, outputLevels]);
 
   const isDisplayedClipping = isClipping || isInternallyClipping;
 
@@ -1726,35 +1759,38 @@ const OutputLevelMeter = () => {
       context.clearRect(0, 0, canvas.width, canvas.height);
       context.setTransform(ratio, 0, 0, ratio, 0, 0);
 
+      const isOff = isOffRef.current;
       const rise = getEaseFactor(deltaMs, LEVEL_ATTACK_MS);
       const fall = getEaseFactor(deltaMs, LEVEL_RELEASE_MS);
       const peakFall = getEaseFactor(deltaMs, PEAK_RELEASE_MS);
       let moving = false;
 
-      for (let i = 0; i < easedRef.current.length; i += 1) {
-        const target = targetsRef.current[i];
-        // A channel with no reading yet is left at whatever it was holding
-        // rather than eased toward nothing, which would drop it to the floor
-        // for one frame every time the capture restarts.
-        if (target) {
-          const eased = easedRef.current[i];
-          const levelGap = target.level - eased.level;
-          if (Math.abs(levelGap) > 0.002) {
-            eased.level += levelGap * (levelGap > 0 ? rise : fall);
-            moving = true;
-          } else {
-            eased.level = target.level;
+      if (!isOff) {
+        for (let i = 0; i < easedRef.current.length; i += 1) {
+          const target = targetsRef.current[i];
+          // A channel with no reading yet is left at whatever it was holding
+          // rather than eased toward nothing, which would drop it to the floor
+          // for one frame every time the capture restarts.
+          if (target) {
+            const eased = easedRef.current[i];
+            const levelGap = target.level - eased.level;
+            if (Math.abs(levelGap) > 0.002) {
+              eased.level += levelGap * (levelGap > 0 ? rise : fall);
+              moving = true;
+            } else {
+              eased.level = target.level;
+            }
+            const peakGap = target.peak - eased.peak;
+            if (Math.abs(peakGap) > 0.002) {
+              // Peak rises instantly to the new peak, falls slowly.
+              eased.peak += peakGap * (peakGap > 0 ? 1 : peakFall);
+              moving = true;
+            } else {
+              eased.peak = target.peak;
+            }
+            eased.zone = target.zone;
+            eased.peakZone = target.peakZone;
           }
-          const peakGap = target.peak - eased.peak;
-          if (Math.abs(peakGap) > 0.002) {
-            // Peak rises instantly to the new peak, falls slowly.
-            eased.peak += peakGap * (peakGap > 0 ? 1 : peakFall);
-            moving = true;
-          } else {
-            eased.peak = target.peak;
-          }
-          eased.zone = target.zone;
-          eased.peakZone = target.peakZone;
         }
       }
 
@@ -1812,7 +1848,7 @@ const OutputLevelMeter = () => {
         // is the fault that got two earlier versions of this taken out. In
         // the background it is the container that heats up while the
         // reading stays exactly as legible as it was.
-        const clipped = easedRef.current[i]?.peakZone === 'clip';
+        const clipped = !isOff && easedRef.current[i]?.peakZone === 'clip';
         if (clipped) {
           context.save();
           context.clip();
@@ -1841,7 +1877,7 @@ const OutputLevelMeter = () => {
         // A soft outer glow in euphoria — the pane is always lit even when
         // audio is quiet, and the mode announces itself around the strip
         // rather than over the meter's reading.
-        if (isEuphoricRef.current) {
+        if (!isOff && isEuphoricRef.current) {
           context.save();
           context.shadowColor = 'rgba(255, 60, 172, 0.5)';
           context.shadowBlur = 14;
@@ -1861,13 +1897,15 @@ const OutputLevelMeter = () => {
           context.restore();
         }
 
-        drawChannel(
-          context,
-          rect,
-          easedRef.current[i],
-          styleRef.current,
-          isEuphoricRef.current,
-        );
+        if (!isOff) {
+          drawChannel(
+            context,
+            rect,
+            easedRef.current[i],
+            styleRef.current,
+            isEuphoricRef.current,
+          );
+        }
       }
 
       // The channel letters above each strip. Drawn in canvas rather than
@@ -1902,11 +1940,13 @@ const OutputLevelMeter = () => {
       context.textAlign = 'center';
       context.textBaseline = 'bottom';
       context.fillStyle = 'rgba(216, 210, 255, 0.62)';
-      context.fillText(
-        styleRef.current.toUpperCase(),
-        boxWidth / 2,
-        boxHeight - 3,
-      );
+      if (!isOff) {
+        context.fillText(
+          styleRef.current.toUpperCase(),
+          boxWidth / 2,
+          boxHeight - 3,
+        );
+      }
       context.restore();
 
       // Some styles are driven by the clock as well as by the reading — the
@@ -1915,16 +1955,17 @@ const OutputLevelMeter = () => {
       // to stay awake for them. Every other style reports honestly and lets
       // it stop through a quiet passage.
       return (
-        moving ||
-        styleRef.current === 'fluid' ||
-        styleRef.current === 'pulse' ||
-        styleRef.current === 'needle' ||
-        styleRef.current === 'stack' ||
-        styleRef.current === 'flow' ||
-        // The two hue-cycling ladders, and only in euphoria: at rest they
-        // are plain ladders with nothing to redraw between readings.
-        ((styleRef.current === 'segments' || styleRef.current === 'leds') &&
-          isEuphoricRef.current)
+        !isOff &&
+        (moving ||
+          styleRef.current === 'fluid' ||
+          styleRef.current === 'pulse' ||
+          styleRef.current === 'needle' ||
+          styleRef.current === 'stack' ||
+          styleRef.current === 'flow' ||
+          // The two hue-cycling ladders, and only in euphoria: at rest they
+          // are plain ladders with nothing to redraw between readings.
+          ((styleRef.current === 'segments' || styleRef.current === 'leds') &&
+            isEuphoricRef.current))
       );
     },
     [t],
@@ -1968,14 +2009,17 @@ const OutputLevelMeter = () => {
   return (
     <button
       type="button"
-      className={`output-meter${isDisplayedClipping ? ' is-clipping' : ''}${
-        isIdle ? ' is-idle' : ''
-      }`}
+      className={`output-meter${
+        isDisplayedClipping && !isOff ? ' is-clipping' : ''
+      }${isIdle && !isOff ? ' is-idle' : ''}${isOff ? ' is-off' : ''}`}
       aria-label={`${t('graph.meter.aria')} — ${style}`}
       title={`${t('graph.meter.aria')} — ${style}`}
       onClick={cycleStyle}
     >
       <canvas ref={attachCanvas} className="output-meter__canvas" aria-hidden />
+      {isOff && (
+        <span className="output-meter__off">{style.toUpperCase()}</span>
+      )}
     </button>
   );
 };

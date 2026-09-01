@@ -38,18 +38,43 @@ const app: Partial<Dictionary> = {
   'app.processes.menu': 'プロセス…',
   'app.processes.eyebrow': 'プロセス',
   'app.processes.hint':
-    'これらはすべて同じプログラムなので、Windows はどれもアプリ名で表示します。ここでは各プロセスが実際に何をしているかを示します。',
+    'これらはすべて同じプログラムなので、Windows はどれもアプリ名で表示します。ここでは各プロセスが FluidEQ のために実際に何をしているかを示します。',
+  'app.processes.hintSplit':
+    '分かれているのは意図的です。画面、描画、音がそれぞれ独立して動くので、ウィンドウが忙しくても音楽は止まらず、どこか一つの不具合が全体を巻き込むこともありません。',
   'app.processes.process': 'プロセス',
   'app.processes.pid': 'PID',
   'app.processes.memory': 'メモリ',
   'app.processes.cpu': 'CPU',
   'app.processes.thisWindow': 'このウィンドウ',
   'app.processes.total': '合計 {megabytes} MB。',
-  'app.processes.kindMain': 'メイン',
-  'app.processes.kindWindow': 'ウィンドウ',
-  'app.processes.kindGpu': 'GPU',
-  'app.processes.kindUtility': 'ユーティリティ',
-  'app.processes.kindDsp': 'DSP エンジン (C++)',
+  'app.processes.unmeasured': 'ダッシュはまだ計測されていない値です。',
+  'app.processes.name.window': '画面',
+  'app.processes.what.window':
+    'いま見ているウィンドウです。カーブ、ライブラリ、プレーヤー、すべての操作部。ウィンドウごとに 1 プロセスなので、重い再描画が音を止めることはありません。',
+  'app.processes.name.core': 'アプリ本体',
+  'app.processes.what.core':
+    'ウィンドウを持たない部分です。設定を保持し、オーディオデバイスとシステムのイコライザーとやり取りし、更新を確認し、この一覧のほかのプロセスを起動します。',
+  'app.processes.name.engine': 'オーディオエンジン (C++)',
+  'app.processes.what.engine':
+    'FluidEQ 自前のエンジンです。再生するものをデコードし、そのままイコライザーを適用します。別のプログラムなので、Windows はほかとは離れた場所に表示します。',
+  'app.processes.name.graphics': 'グラフィックス',
+  'app.processes.what.graphics':
+    'ウィンドウをグラフィックスカードで描きます。スペクトラム、カーブ、あらゆるアニメーション。画面で何かが動いていれば動作します。カラオケやノイズのモデルはここでは動きません。',
+  'app.processes.name.sound': 'ブラウザーの音',
+  'app.processes.what.sound':
+    'Chromium 自身の音声で、動画タブやページが鳴らす音に使われます。あなたの音楽はここを通りません。',
+  'app.processes.name.network': 'ネットワーク',
+  'app.processes.what.network':
+    '更新の確認、ジャケット画像、動画タブが読み込むすべて。この一覧のほかのプロセスはネットワークに触れません。',
+  'app.processes.name.camera': 'カメラサービス',
+  'app.processes.what.camera':
+    'アプリが Windows にオーディオデバイスの一覧を求めると Chromium が起動します。同じ呼び出しがカメラも列挙するためで、カメラは開いていません。',
+  'app.processes.name.page': 'ウェブページ',
+  'app.processes.what.page':
+    '動画タブで開いているページです。画面とは別の、独自のプロセスで動きます。',
+  'app.processes.name.helper': '補助サービス',
+  'app.processes.what.helper':
+    '必要に応じて起動する Chromium のサービスです。FluidEQ が名前を指定して求めることはありません。',
   'app.menu.reinstallApp': '{product} を再インストール…',
   'app.menu.fixAudio': 'オーディオの問題を修復…',
   'app.menu.reinstallApo': 'Equalizer APO を再インストール…',

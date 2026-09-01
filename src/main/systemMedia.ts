@@ -109,7 +109,7 @@ export interface ISystemMediaSnapshot {
    * and per page: a YouTube video in Chrome answers yes to moving the playhead
    * and no to next and previous, while a Spotify queue answers yes to all
    * three. Buttons drawn from the flags are buttons that work; buttons drawn
-   * for every session would be three that do nothing on most of them.
+   * for every session would be controls that do nothing on most of them.
    */
   canNext: boolean;
   canPrevious: boolean;
@@ -124,7 +124,8 @@ export interface ISystemMediaSnapshot {
  * one of our own players does. A pause and never a toggle — a media key would
  * have *started* whatever was sitting there paused.
  */
-export type TSystemMediaCommand = 'next' | 'previous' | 'seek' | 'pause';
+export type TSystemMediaCommand =
+  'next' | 'previous' | 'seek' | 'stop' | 'pause';
 
 /**
  * The watcher, as one PowerShell script.
@@ -309,9 +310,9 @@ export const stopWatchingSystemMedia = (): void => {
 };
 
 /**
- * Ask the current session to skip or to move its playhead.
+ * Ask the current session to skip, stop, or move its playhead.
  *
- * A process per press, and that is the right trade: these are three buttons
+ * A process per press, and that is the right trade: these are a few buttons
  * somebody clicks occasionally, the watcher's loop must not stall waiting on
  * a command, and a command that had to travel down the watcher's stdin would
  * be a protocol between two programs where a one-line script does.
@@ -328,18 +329,32 @@ export const sendSystemMediaCommand = async (
   command: TSystemMediaCommand,
   positionMs?: number,
 ): Promise<void> => {
-  const call = (() => {
+  const commandScript = (() => {
     if (command === 'next') {
-      return '$session.TrySkipNextAsync()';
+      return 'Await ($session.TrySkipNextAsync()) ([bool]) | Out-Null';
     }
     if (command === 'previous') {
-      return '$session.TrySkipPreviousAsync()';
+      return 'Await ($session.TrySkipPreviousAsync()) ([bool]) | Out-Null';
     }
     if (command === 'pause') {
-      return '$session.TryPauseAsync()';
+      return 'Await ($session.TryPauseAsync()) ([bool]) | Out-Null';
+    }
+    if (command === 'stop') {
+      // Chrome pages and Spotify commonly expose pause and seek without
+      // advertising Stop. Give them the same stop-and-rewind behavior rather
+      // than drawing a button that silently does nothing.
+      return `
+$stopped = Await ($session.TryStopAsync()) ([bool])
+if (-not $stopped) {
+  Await ($session.TryPauseAsync()) ([bool]) | Out-Null
+  $controls = $session.GetPlaybackInfo().Controls
+  if ($controls.IsPlaybackPositionEnabled) {
+    Await ($session.TryChangePlaybackPositionAsync([long]0)) ([bool]) | Out-Null
+  }
+}`;
     }
     const ticks = Math.max(0, Math.round((positionMs ?? 0) * 10_000));
-    return `$session.TryChangePlaybackPositionAsync([long]${ticks})`;
+    return `Await ($session.TryChangePlaybackPositionAsync([long]${ticks})) ([bool]) | Out-Null`;
   })();
 
   const script = `
@@ -360,7 +375,7 @@ if (-not $manager) { exit 1 }
 ${SELF_SKIP}
 $session = Select-OtherSession $manager
 if (-not $session) { exit 1 }
-Await (${call}) ([bool]) | Out-Null
+${commandScript}
 `;
 
   await new Promise<void>((resolve) => {

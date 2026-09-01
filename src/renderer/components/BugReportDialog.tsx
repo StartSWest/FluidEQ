@@ -24,7 +24,9 @@ import {
   buildMailtoUrl,
   REPORT_EMAIL,
 } from 'common/bugReport';
+import { PRODUCT_NAME } from 'common/branding';
 import { gatherBugReport } from '../utils/equalizerApi';
+import DialogHeader from './DialogHeader';
 import '../styles/BugReport.scss';
 
 interface IBugReportDialogProps {
@@ -45,7 +47,11 @@ export default function BugReportDialog({ onClose }: IBugReportDialogProps) {
   const [facts, setFacts] = useState<IGatheredFacts>();
   const [failed, setFailed] = useState(false);
   const [notice, setNotice] = useState('');
-  const dialogRef = useRef<HTMLDivElement>(null);
+  // Undefined means the preview is still following the generated report.
+  // Once the user edits it, their redactions become the source used by every
+  // action below instead of being silently rebuilt away.
+  const [reportOverride, setReportOverride] = useState<string>();
+  const closeRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     let alive = true;
@@ -69,6 +75,7 @@ export default function BugReportDialog({ onClose }: IBugReportDialogProps) {
   }, []);
 
   useEffect(() => {
+    closeRef.current?.focus();
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         onClose();
@@ -78,7 +85,7 @@ export default function BugReportDialog({ onClose }: IBugReportDialogProps) {
     return () => document.removeEventListener('keydown', onKeyDown);
   }, [onClose]);
 
-  const report = facts
+  const generatedReport = facts
     ? buildBugReport({ ...facts, description })
     : buildBugReport({
         appVersion: '',
@@ -90,6 +97,7 @@ export default function BugReportDialog({ onClose }: IBugReportDialogProps) {
         appLog: '',
         installLog: '',
       });
+  const report = reportOverride ?? generatedReport;
 
   const say = useCallback((message: string) => {
     setNotice(message);
@@ -150,94 +158,91 @@ export default function BugReportDialog({ onClose }: IBugReportDialogProps) {
         className="bug-report"
         role="dialog"
         aria-modal="true"
-        aria-label="Report a problem"
-        ref={dialogRef}
+        aria-labelledby="bug-report-title"
       >
-        <div className="bug-report__head">
-          <h2>Report a problem</h2>
-          <button type="button" onClick={onClose} aria-label="Close">
-            <svg viewBox="0 0 12 12" aria-hidden="true">
-              <path d="M3 3l6 6M9 3l-6 6" />
-            </svg>
-          </button>
-        </div>
+        <DialogHeader
+          eyebrow={PRODUCT_NAME}
+          title="Report a problem"
+          titleId="bug-report-title"
+          closeLabel="Close"
+          onClose={onClose}
+          closeRef={closeRef}
+        />
 
-        <label className="bug-report__field" htmlFor="bug-report-description">
-          <span>What went wrong?</span>
-          <textarea
-            id="bug-report-description"
-            value={description}
-            rows={3}
-            placeholder="What were you doing, and what happened instead?"
-            onChange={(event) => setDescription(event.target.value)}
-          />
-        </label>
+        <div className="bug-report__body-wrap">
+          <label className="bug-report__field" htmlFor="bug-report-description">
+            <span>What went wrong?</span>
+            <textarea
+              id="bug-report-description"
+              value={description}
+              rows={3}
+              placeholder="What were you doing, and what happened instead?"
+              onChange={(event) => setDescription(event.target.value)}
+            />
+          </label>
 
-        {/* The whole point. Shown, editable, and nothing is sent from here —
-            the buttons below copy it or hand it to a browser, and the person
-            reading it is the last line of defence that no rule can replace. */}
-        <label className="bug-report__field" htmlFor="bug-report-body">
-          <span>
-            This is exactly what will be sent. Read it, and delete anything you
-            would rather not share.
-          </span>
-          <textarea
-            id="bug-report-body"
-            className="bug-report__body"
-            value={report}
-            rows={14}
-            readOnly={!facts && !failed}
-            onChange={() => {
-              // Editing the composed report is deliberately not wired up: it
-              // is rebuilt from the description and the facts on every
-              // keystroke, so an edit here would be silently reverted. Copy it
-              // and edit it where it lands instead, which is the honest
-              // behaviour rather than a box that fights back.
-            }}
-          />
-        </label>
+          {/* The whole point. Shown, editable, and nothing is sent from here —
+              the buttons below copy it or hand it to a browser, and the person
+              reading it is the last line of defence that no rule can replace. */}
+          <label className="bug-report__field" htmlFor="bug-report-body">
+            <span>
+              This is exactly what will be sent. Read it, and delete anything
+              you would rather not share.
+            </span>
+            <textarea
+              id="bug-report-body"
+              className="bug-report__body"
+              value={report}
+              rows={14}
+              readOnly={!facts && !failed}
+              onChange={(event) => setReportOverride(event.target.value)}
+            />
+          </label>
 
-        {failed && (
-          <p className="bug-report__warn">
-            The logs could not be read, so this report has none. It is still
-            worth sending.
-          </p>
-        )}
-
-        <p className="bug-report__privacy">
-          Account names, paths and email addresses are removed automatically.
-          Nothing is sent until you press one of these.
-          {REPORT_EMAIL
-            ? ' The email goes only to the developer; the issue is public.'
-            : ' The issue is public.'}
-        </p>
-
-        <div className="bug-report__actions">
-          <button
-            type="button"
-            className="bug-report__primary"
-            onClick={openIssue}
-          >
-            Open a GitHub issue
-          </button>
-          {/* Only when this build has an address. A mailto with none opens an
-              empty compose window, which looks like it worked and is a report
-              nobody ever receives. */}
-          {REPORT_EMAIL && (
-            <button type="button" onClick={sendEmail}>
-              Email it privately
-            </button>
+          {failed && (
+            <p className="bug-report__warn">
+              The logs could not be read, so this report has none. It is still
+              worth sending.
+            </p>
           )}
-          <button type="button" onClick={copy}>
-            Copy
-          </button>
+
+          <p className="bug-report__privacy">
+            Account names, paths and email addresses are removed automatically.
+            Nothing is sent until you press one of these.
+            {REPORT_EMAIL
+              ? ' The email goes only to the developer; the issue is public.'
+              : ' The issue is public.'}
+          </p>
         </div>
 
-        {notice && (
-          <p className="bug-report__notice" role="status">
-            {notice}
-          </p>
-        )}
+        <div className="bug-report__footer">
+          {notice && (
+            <p className="bug-report__notice" role="status">
+              {notice}
+            </p>
+          )}
+
+          <div className="bug-report__actions">
+            <button
+              type="button"
+              className="bug-report__primary"
+              onClick={openIssue}
+            >
+              Open a GitHub issue
+            </button>
+            {/* Only when this build has an address. A mailto with none opens an
+                empty compose window, which looks like it worked and is a report
+                nobody ever receives. */}
+            {REPORT_EMAIL && (
+              <button type="button" onClick={sendEmail}>
+                Email it privately
+              </button>
+            )}
+            <button type="button" onClick={copy}>
+              Copy
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );

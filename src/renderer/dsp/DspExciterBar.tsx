@@ -61,9 +61,9 @@ const profileHint = (
 /**
  * Processor-local profiles, presented with the same picker as the EQ.
  *
- * Applying one preserves bypass. That distinction is what makes these usable
- * by a later chain preset: choosing a sound and choosing whether the processor
- * participates are two separate decisions, so a chain may omit this stage.
+ * Choosing one here starts the processor as well as loading the sound. The
+ * shared preset builder still accepts an explicit bypass state so a whole-chain
+ * recipe can omit this stage without changing the local picker contract.
  */
 const DspExciterBar = ({
   exciter,
@@ -90,7 +90,7 @@ const DspExciterBar = ({
     if (!isExciterPresetId(id)) {
       return;
     }
-    onChange(exciterPresetSettings(id, exciter.enabled));
+    onChange(exciterPresetSettings(id, true));
     onCommit();
   };
 

@@ -79,11 +79,11 @@ const configuration: webpack.Configuration = {
   },
 
   entry: {
-    renderer: [
-      `webpack-dev-server/client?http://localhost:${port}/dist`,
-      'webpack/hot/only-dev-server',
-      path.join(webpackPaths.srcRendererPath, 'index.tsx'),
-    ],
+    // webpack-dev-server injects its client and hot runtime for this web
+    // target. Listing them here as well created two websocket clients in the
+    // same renderer: one announced HMR enabled, the duplicate announced it
+    // disabled, and both waited for updates for the lifetime of the window.
+    renderer: path.join(webpackPaths.srcRendererPath, 'index.tsx'),
     'karaoke-whisper-worker': path.join(
       webpackPaths.srcRendererPath,
       'karaoke/whisper.worker.ts',

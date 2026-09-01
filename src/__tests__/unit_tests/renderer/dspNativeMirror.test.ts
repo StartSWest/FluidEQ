@@ -379,17 +379,33 @@ describe('the native mirror', () => {
       clock.mockRestore();
     });
 
-    it('seeks when the listener jumps', async () => {
+    it('seeks immediately through the listener command route', async () => {
       const { calls, mirror } = await running();
 
+      mirror.seek(120_000);
+      await settle();
+
+      expect(calls).toEqual(['seek(120)']);
+    });
+
+    it('does not seek back when the paused fallback refuses the jump', async () => {
+      const { calls, mirror } = await running();
+
+      // The audible deck accepts the explicit command first.
+      mirror.seek(120_000);
+      await settle();
+      // Its paused fallback then reports the position it stayed at. This is
+      // state for a possible hand-back, not a second command to the host.
       mirror.sync({
         mediaPath: 'C:/music/one.wav',
         isPlaying: true,
-        positionMs: 120_000,
+        positionMs: 0,
         volume: 1,
       });
       await settle();
 
+      // Positive control and regression in one: the requested seek happened,
+      // while the stale readback did not append a reverse seek to zero.
       expect(calls).toEqual(['seek(120)']);
     });
 

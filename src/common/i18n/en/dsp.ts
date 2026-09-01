@@ -75,6 +75,8 @@ const dsp = {
     'Prevents overload downstream; it cannot reconstruct distortion already baked into a file.',
 
   'dsp.denoise.title': 'Denoise',
+  'dsp.denoisePreset.gentle': 'Gentle cleanup',
+  'dsp.denoisePreset.strong': 'Strong cleanup',
   'dsp.denoise.description':
     'Repairs the source before anything colours it: hiss, mains hum, clicks and a neural voice cleaner. Measured from the track itself, not guessed.',
   'dsp.denoise.isolate': 'Isolate',
@@ -230,6 +232,16 @@ const dsp = {
 
   'dsp.eqPreset.import': 'Import',
   'dsp.eqPreset.export': 'Export',
+  'dsp.chainSave.title': 'Save DSP chain',
+  'dsp.chainSave.hint':
+    'Save every filter and its enabled state as one preset.',
+  'dsp.chainShare.hint':
+    'Saves the complete filter chain as a file others can open.',
+  'dsp.chainImport.title': 'Import a DSP chain',
+  'dsp.chainImport.hint':
+    'Paste a FluidEQ DSP chain preset, or choose its JSON file.',
+  'dsp.chainImport.placeholder': '{"format": "fluideq-dsp-chain", ...}',
+  'dsp.chainImport.invalid': 'This is not a FluidEQ DSP chain preset.',
   'dsp.eqSave.title': 'Save preset',
   'dsp.eqSave.hint': 'Save the rack as it stands.',
   'dsp.eqSave.placeholder': 'Name',

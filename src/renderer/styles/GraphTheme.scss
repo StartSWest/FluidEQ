@@ -345,28 +345,16 @@ it under the terms of the GNU General Public License version 3 or later.
   box-shadow: 0 0 7px rgba(0, 229, 207, 0.72);
 }
 
-// No engine behind the sliders means the curves are only a preview — whether
-// because the equaliser is switched off or because Equalizer APO is not
-// installed at all. Keep everything visible and readable for context, but make
-// both workspaces unmistakably idle.
+// No engine behind the sliders means these editors cannot affect the output —
+// whether because the equaliser is switched off or because Equalizer APO is
+// not installed at all. Keep their values visible for context, but make the
+// workspaces unmistakably idle. The graph is deliberately absent from this
+// rule: it remains a fully active live graph and omits the inactive EQ curves.
 .workspace-tab-panel--eq.is-engine-disabled,
 .workspace-tab-panel--presets.is-engine-disabled,
 .workspace-tab-panel--convolution.is-engine-disabled {
   opacity: 0.46;
   filter: saturate(0.35);
-  cursor: not-allowed;
-}
-
-// The graph gets the dimming but not the desaturation.
-//
-// A `filter` on an ancestor forces the whole subtree to be re-rasterised
-// whenever anything inside it moves — and the live trace inside this one is
-// redrawn up to sixty times a second, continuously, for as long as the pane is
-// open. Without Equalizer APO installed that is not a passing state either: it
-// is where the app sits permanently until somebody installs it. Opacity alone
-// is handled by the compositor and costs nothing per frame.
-.graph-wrapper.is-engine-disabled {
-  opacity: 0.5;
   cursor: not-allowed;
 }
 
@@ -380,16 +368,7 @@ it under the terms of the GNU General Public License version 3 or later.
 // panel is what goes inert.
 .workspace-tab-panel--presets.is-engine-disabled .autoeq-panel,
 .workspace-tab-panel--convolution.is-engine-disabled .voicing-panel,
-.workspace-tab-panel--convolution.is-engine-disabled .convolution-panel,
-// A descendant, not a child.
-//
-// This was `> svg`, and it was right when the plot was a direct child of the
-// wrapper. A `.graph-plot` element was introduced between them later, and a
-// child combinator does not complain when it stops matching — it silently
-// selects nothing. So the engine could be switched off and every band handle
-// in the plot stayed draggable, editing a config nothing was reading.
-.graph-wrapper.is-engine-disabled .graph-plot,
-.graph-wrapper.is-engine-disabled > .live-output-controls {
+.workspace-tab-panel--convolution.is-engine-disabled .convolution-panel {
   pointer-events: none;
 }
 
@@ -803,7 +782,7 @@ it under the terms of the GNU General Public License version 3 or later.
 // page from then on.
 // Scoped under the strip for the same reason as the stepper below: the
 // `.live-output-controls button` rule hands every button here a ghost pill,
-// and a back arrow wants to be a glyph rather than a labelled control.
+// and the full-screen exit wants to be a glyph rather than a labelled control.
 .live-output-controls .graph-fullscreen-exit {
   display: inline-flex;
   width: 30px;
@@ -811,10 +790,7 @@ it under the terms of the GNU General Public License version 3 or later.
   align-items: center;
   justify-content: center;
   padding: 0;
-  // First in the row, and the row is right-aligned — so without this it would
-  // sit against the other controls instead of holding the far edge a back
-  // control is looked for on.
-  margin-right: auto;
+  margin-left: 2px;
 
   svg {
     width: 15px;
@@ -988,14 +964,7 @@ it under the terms of the GNU General Public License version 3 or later.
   top: calc(100% + 5px);
   right: 0;
   min-width: 216px;
-  // Taller than the room it has, on a graph docked at the foot of the window:
-  // the list is long and the last rows were simply cut off at the window's
-  // edge with no way to reach them. It stops at the room available and
-  // scrolls — `overscroll-behavior` and the thin scrollbar above were
-  // already here waiting for it.
-  max-height: min(58vh, 420px);
   padding: 5px;
-  overflow-y: auto;
 
   &.is-above {
     top: auto;
@@ -1144,6 +1113,45 @@ it under the terms of the GNU General Public License version 3 or later.
   display: none;
 }
 
+// Ctrl+W's Clean stop is a stage, not another graph arrangement.
+//
+// Keep the plot box in the layout: the Library and Karaoke art layers measure
+// it to place the media underneath, and removing it makes that media jump. The
+// chart itself is not mounted in this state, while this rule removes the card
+// surface that would otherwise leave a dark sheet over the picture.
+.graph-wrapper.is-clean {
+  border-color: transparent;
+  background: none;
+  box-shadow: none;
+  backdrop-filter: none;
+
+  &::before {
+    background: none;
+    opacity: 0;
+  }
+
+  // These describe a drawing that Clean deliberately does not mount. The mode
+  // announcement remains for one beat so Ctrl+W still says where it landed.
+  .graph-clip-warning,
+  .graph-look-announcement {
+    display: none;
+  }
+
+  // Keep the options bar as the visible way to change or leave Clean, but
+  // remove the legends and editing instructions that describe a drawing which
+  // is no longer there.
+  .graph-edit-hint,
+  .graph-legend-menu,
+  .graph-legend-group > .graph-legend:not(.graph-legend--picker),
+  .graph-legend--picker > .graph-legend__label {
+    display: none;
+  }
+
+  .graph-legend--picker {
+    margin-inline-start: 0;
+  }
+}
+
 // The live trace, and the drawing it sits behind.
 //
 // Two layers over the same box: a canvas carrying the wave, and the chart's SVG
@@ -1242,6 +1250,20 @@ it under the terms of the GNU General Public License version 3 or later.
   display: block;
   width: 100%;
   height: 100%;
+}
+
+.output-meter__off {
+  position: absolute;
+  z-index: 1;
+  right: 0;
+  bottom: 3px;
+  left: 0;
+  color: rgba($primary-lighter, 0.68);
+  font-size: 0.69rem;
+  font-weight: $weight-bold;
+  letter-spacing: 0.14em;
+  text-align: center;
+  pointer-events: none;
 }
 
 // The announcement pill is now painted on the canvas rather than
@@ -1379,18 +1401,19 @@ it under the terms of the GNU General Public License version 3 or later.
 // panel loses its scroll position for having been away. The one place that
 // reasoning is overruled is the player's tab, where the space the boxes keep is
 // a band the picture cannot reach — see the chrome rule further down.
-// MEDIA IS THE ONLY TAB THE GRAPH IS DRAWN THROUGH.
+// MEDIA, LIBRARY AND THE KARAOKE PLAYER ARE DRAWN THROUGH.
 //
-// Karaoke used to be exempt here as well, on the theory that a lyric stage is
-// a picture worth seeing behind a translucent graph. In practice it was two
-// interfaces competing for the same pixels — and in the editor it was worse
-// still, leaving the Maker mounted under the graph so the two shared the
-// column as a half-empty docked pane. Karaoke now takes this path, which is
-// the ordinary one: the graph fills the screen and shows nothing through it,
-// exactly as on the EQ tab. A video is the one surface where the overlay
-// still earns itself.
+// The Library and a lyric stage are picture-led surfaces just like Media, so a
+// double-click on their docked graphs keeps what was already on screen visible
+// under the full-screen graph. The Maker is deliberately not exempt: an editor
+// under a translucent chart is two interfaces competing for the same pixels.
+// The workspace publishes `is-graph-overlay` only for the player, never while
+// its Maker is open, so the two paths do not depend on an invalid nested
+// `:has()` selector.
 .center-workspace.is-graph-full:not(
-    :has(.workspace-tab-panel--video:not(.is-hidden))
+    :has(.workspace-tab-panel--video:not(.is-hidden)),
+    :has(.workspace-tab-panel--library:not(.is-hidden)),
+    :has(.workspace-tab-panel--karaoke.is-graph-overlay:not(.is-hidden))
   ) {
   // The panel and the tab strip together — `.middle-content` is both. Neither
   // is reachable while the card covers the column, so there is nothing lost.
@@ -1432,6 +1455,42 @@ it under the terms of the GNU General Public License version 3 or later.
 .center-workspace.is-graph-full > .middle-content .workspace-tab-panel {
   border-color: transparent;
   box-shadow: none;
+}
+
+// THE BACKDROP FOLLOWS PLAYBACK, NOT THE SELECTED TAB.
+//
+// A playing Media, Library or Karaoke surface stays mounted when another tab
+// is selected. In expanded/fullscreen graph mode App reveals that owner as the
+// backdrop, so the selected tab's editor must not remain as a second visible
+// panel in the same flex column. The transport and headless engines are not tab
+// panels and remain untouched.
+.center-workspace.is-graph-full:has(
+    .is-playback-backdrop:not(.is-hidden),
+    .workspace-tab-panel--karaoke.is-graph-overlay:not(.is-hidden)
+  )
+  > .middle-content
+  > :is(.workspace-tab-panel, .workspace-tab-panel--video):not(
+    .is-playback-backdrop
+  ):not(.is-graph-overlay) {
+  display: none;
+}
+
+// Library keeps its real workspace mounted so its video element is not torn
+// down and reloaded on the way into the graph. In backdrop mode everything but
+// that video stands down. For an audio track there is no video child and this
+// becomes a clear, empty host; `LibraryStageArt` supplies the record and wash
+// from its body-level layer underneath.
+.center-workspace.is-graph-full
+  .workspace-tab-panel--library.is-playback-backdrop {
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  background: none;
+  box-shadow: none;
+
+  > :not(.library-video-stage) {
+    display: none;
+  }
 }
 
 // The creature, in the corner the titlebar used to occupy.
@@ -1782,7 +1841,14 @@ it under the terms of the GNU General Public License version 3 or later.
 // The strip normally starts 8px from the top of the card, and the card now
 // starts at the top of the display — so without this the controls sit behind
 // the title bar, which is a toolbar you can see and cannot press.
-.app-workspace.is-app-full.has-top-bar .live-output-controls,
+.app-workspace.is-app-full.has-top-bar .live-output-controls {
+  // Karaoke's own fullscreen toolbar sits 9px inside a stage that starts 8px
+  // below the titlebar. Use the same combined inset so swapping the Karaoke
+  // toolbar for the graph toolbar does not move the controls or alter the gap
+  // beneath them.
+  top: calc(#{$title-bar-height} + 17px);
+}
+
 .app-workspace.is-app-full.has-top-bar .look-designer {
   top: calc(#{$title-bar-height} + 8px);
 }
@@ -1794,6 +1860,18 @@ it under the terms of the GNU General Public License version 3 or later.
 // moving it down by the title bar pushed exactly that much of it off the end.
 .app-workspace.is-app-full.has-top-bar .look-designer {
   max-height: calc(100vh - #{$title-bar-height} - 24px);
+}
+
+// The look designer, under a floating transport bar.
+//
+// Same live reservation as Karaoke's playlist and pitch pane: the root says
+// both that the bar overlays the picture and whether it has faded away. While
+// it is visible, lift the designer's bottom above the measured card; once the
+// chrome is idle, give the preview panel the space back.
+#root.has-now-playing.is-floating-bar:not(.is-chrome-idle)
+  .app-workspace.is-app-full
+  .look-designer {
+  bottom: calc(var(--now-playing-bar-height, 0px) + 8px);
 }
 
 // The graph with the workspace to itself.
@@ -1866,22 +1944,29 @@ it under the terms of the GNU General Public License version 3 or later.
     .video-browser__bar {
       display: none;
     }
+  }
 
-    // THE PICTURE UNDERNEATH STAYS CLICKABLE.
-    //
-    // This is the one mode where the graph is scenery rather than the subject:
-    // it is drawn over a running video, and the thing somebody wants to press
-    // — play, seek, a link on the page — is behind it. The plot was taking
-    // every one of those clicks and doing nothing with them, which makes a
-    // player that is plainly visible feel dead.
-    //
-    // THE WRAPPER, NOT JUST THE PLOT. Making only `.graph-plot` transparent
-    // was measured and did nothing: the card around it covers the same screen
-    // and was still taking every click itself. The whole graph goes
-    // through-clickable, and the toolbar inside it comes back on its own —
-    // `.live-output-controls` is already `pointer-events: none` with
-    // `auto` on each child, so its buttons keep working while the card and the
-    // drawing behind them do not.
+  // LIBRARY AND KARAOKE UNDERNEATH STAY CLICKABLE.
+  //
+  // In Library and Karaoke the graph is scenery over controls that remain part
+  // of FluidEQ, so the plot taking those clicks makes the visible player feel
+  // dead.
+  //
+  // Online Media is deliberately NOT in this list. A double-click passed
+  // through the graph reaches YouTube's player and requests HTML fullscreen at
+  // the same time FluidEQ is already in graph fullscreen. Those two owners are
+  // the stuck/double-fullscreen defect. Media keeps the graph as the input
+  // surface; leave graph mode before interacting with the guest page.
+  //
+  // THE WRAPPER, NOT JUST THE PLOT. Making only `.graph-plot` transparent was
+  // measured and did nothing: the card around it covers the same screen and was
+  // still taking every click itself. The whole graph goes through-clickable,
+  // and the toolbar inside it comes back on its own. The Karaoke Maker is not
+  // in this selector, so its editing surface remains protected by the graph.
+  &:has(
+    .workspace-tab-panel--library:not(.is-hidden),
+    .workspace-tab-panel--karaoke.is-graph-overlay:not(.is-hidden)
+  ) {
     > .graph-wrapper {
       pointer-events: none;
     }
@@ -1889,16 +1974,15 @@ it under the terms of the GNU General Public License version 3 or later.
     > .graph-wrapper .live-output-controls > * {
       pointer-events: auto;
     }
-  }
 
-  // The Library's cover art gets the card drawn over it and NOT the
-  // click-through above, which was tried here and taken out again.
-  //
-  // Over a video the clicks are wanted underneath: there is a player down
-  // there with a play button and a seek bar. Under the record there is a
-  // picture — `pointer-events: none` on the whole of it — and a song list that
-  // is hidden, so nothing gains a click and the card loses the one gesture
-  // this mode is left with: a double-click on the graph to come back out.
+    // SVG band handles opt themselves back into hit testing with presentation
+    // attributes. Disable the plot explicitly so those handles cannot catch a
+    // press after the wrapper has been made transparent to it.
+    > .graph-wrapper > .graph-plot,
+    > .graph-wrapper > .graph-plot * {
+      pointer-events: none;
+    }
+  }
 
   // And with them gone, the player is the panel.
   //
@@ -2041,6 +2125,20 @@ it under the terms of the GNU General Public License version 3 or later.
   // worth looking at, and a visualiser wants every pixel there is.
   > .graph-wrapper.is-stretched > .graph-plot {
     flex: 1 1 auto;
+  }
+
+  // The expanded/fullscreen card rules above intentionally rebuild a surface
+  // after the normal card is removed. Clean is the exception: media must stay
+  // completely unobscured in those modes too.
+  > .graph-wrapper.is-clean {
+    border-color: transparent;
+    box-shadow: none;
+    backdrop-filter: none;
+
+    &::before {
+      background: none;
+      opacity: 0;
+    }
   }
 }
 

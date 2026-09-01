@@ -30,10 +30,16 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   z-index: 1400;
   inset: 0;
   display: grid;
-  padding: $spacing-m;
+  padding: $spacing-l;
   place-items: center;
-  background: rgba(#03070d, 0.62);
-  backdrop-filter: blur(3px);
+  background:
+    radial-gradient(
+      circle at 18% 18%,
+      rgba($secondary-default, 0.1),
+      transparent 38%
+    ),
+    rgba(#03070d, 0.72);
+  backdrop-filter: blur(14px) saturate(1.12);
 }
 
 // A frame with a scrolling body inside it, rather than one box that scrolls.
@@ -48,12 +54,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   @include menu-surface;
   // One rhythm for the panel and for each of its columns, so the ladder at the
   // bottom of this file tightens all three by editing one number.
-  --support-gap: 18px;
+  --support-gap: 16px;
 
   position: relative;
   display: grid;
-  width: min(760px, 100%);
-  max-height: calc(100vh - #{$spacing-m} * 2);
+  width: min(1040px, 100%);
+  max-height: calc(100vh - #{$spacing-l} * 2);
+  grid-template-rows: auto minmax(0, 1fr);
   // The body's square corners must not show through the frame's rounded ones.
   overflow: hidden;
   // The whole panel lifts with the streak. `--pet-joy` is set on this element
@@ -62,8 +69,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   //
   // The border brightens alongside it: a glow with no edge to sit against reads
   // as a blur rather than as the thing itself lighting up.
-  border-color: rgba($secondary-light, calc(0.22 + var(--pet-joy, 0) * 0.55));
+  border-color: rgba($secondary-light, calc(0.26 + var(--pet-joy, 0) * 0.55));
+  border-radius: $radius-xl;
+  background:
+    linear-gradient(135deg, rgba($white, 0.035), transparent 38%),
+    linear-gradient(155deg, rgba(#18293e, 0.97), rgba(#0b1421, 0.98));
   box-shadow:
+    0 32px 90px rgba($black, 0.64),
+    inset 0 1px 0 rgba($white, 0.07),
     0 0 calc(var(--pet-joy, 0) * 40px)
       rgba($secondary-default, calc(var(--pet-joy, 0) * 0.45)),
     0 0 calc(var(--pet-joy, 0) * 90px)
@@ -73,8 +86,41 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     box-shadow 300ms ease-out;
 
   h2 {
-    margin: 5px 0 0;
-    font-size: 1.6rem;
+    margin: 3px 0 0;
+    font-size: 1.48rem;
+    line-height: 1.15;
+  }
+}
+
+// The dialog now has the same deliberate header/body split as the newer
+// About and release-notes panels. The thin spectrum rail makes Rainbow mode
+// feel native to this surface without turning the whole header into a badge.
+.support-dialog__topbar {
+  position: relative;
+  display: flex;
+  min-height: 58px;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 14px 10px 18px;
+  border-bottom: 1px solid rgba($primary-lighter, 0.1);
+  background: rgba(#07111c, 0.32);
+
+  &::after {
+    position: absolute;
+    right: 0;
+    bottom: -1px;
+    left: 0;
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba($secondary-light, 0.4),
+      rgba($neon-lime, 0.28),
+      rgba(#ff4daf, 0.24),
+      transparent
+    );
+    content: '';
+    opacity: calc(0.32 + var(--pet-joy, 0) * 0.68);
   }
 }
 
@@ -84,7 +130,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // Grid rows size to their content, so without this the body simply pushes
   // the frame past its own max-height and nothing ever scrolls at all.
   min-height: 0;
-  padding: 28px 32px 26px;
+  padding: 22px;
   gap: var(--support-gap);
   overflow-y: auto;
   @include slim-scrollbar;
@@ -107,14 +153,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // which stylesheet the bundler happens to emit first.
 .euphoria-pill.support-dialog__mode {
   @include animate(pop-in, $motion-base, $ease-spring);
-  justify-self: center;
-  grid-column: 1 / -1;
-  padding: 5px 18px;
-  font-size: 0.66rem;
-  letter-spacing: 0.18em;
+  padding: 5px 14px;
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
   box-shadow:
-    0 4px 18px rgba($black, 0.45),
-    0 0 22px rgba($secondary-light, 0.28);
+    inset 0 1px 0 rgba($white, 0.2),
+    0 0 18px rgba($secondary-light, 0.2);
 }
 
 // One column or two, decided at the bottom of this file.
@@ -126,6 +170,59 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .support-dialog__stage,
 .support-dialog__ask {
   display: contents;
+}
+
+// At desktop width the left side is the interactive playground and the right
+// side is the ask. Giving each one its own surface removes the old "two text
+// columns inside one large modal" feeling and makes the game discoverable.
+@media (min-width: 860px) {
+  .support-dialog__scroll {
+    align-items: stretch;
+    grid-template-columns: minmax(300px, 0.88fr) minmax(420px, 1.12fr);
+    column-gap: 18px;
+  }
+
+  .support-dialog__stage,
+  .support-dialog__ask {
+    display: grid;
+    min-width: 0;
+    align-content: start;
+    gap: var(--support-gap);
+    border: 1px solid rgba($primary-lighter, 0.11);
+    border-radius: $radius-l;
+    box-shadow: inset 0 1px 0 rgba($white, 0.035);
+  }
+
+  .support-dialog__stage {
+    position: relative;
+    overflow: hidden;
+    padding: 24px 20px 20px;
+    background:
+      radial-gradient(
+        circle at 50% 18%,
+        rgba($secondary-default, 0.15),
+        transparent 42%
+      ),
+      rgba(#091522, 0.42);
+
+    &::after {
+      position: absolute;
+      right: 22%;
+      bottom: -60px;
+      left: 22%;
+      height: 100px;
+      border-radius: 50%;
+      background: rgba($secondary-default, 0.1);
+      filter: blur(32px);
+      content: '';
+      pointer-events: none;
+    }
+  }
+
+  .support-dialog__ask {
+    padding: 22px;
+    background: rgba(#101d2e, 0.44);
+  }
 }
 
 // No rule underneath, and barely any gap. The trace belongs to the creature
@@ -185,7 +282,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   min-width: 0;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   text-align: center;
 
   > div {
@@ -203,23 +300,17 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 .support-dialog__close {
-  // On the frame rather than in the body, so it holds the corner however far
-  // the panel has been scrolled. Clear of the scrollbar's track as well: the
-  // two would otherwise be stacked on the same eight pixels on exactly the
-  // windows where both are in use.
-  position: absolute;
-  z-index: 4;
-  top: 12px;
-  right: 12px;
   display: grid;
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 auto;
   place-items: center;
   padding: 0;
   color: rgba($white, 0.72);
   border: 1px solid transparent;
-  border-radius: $radius-xs;
-  background: transparent;
+  border-color: rgba($primary-lighter, 0.08);
+  border-radius: $radius-s;
+  background: rgba($primary-dark, 0.2);
   cursor: pointer;
   transition: $transition-control;
 
@@ -243,9 +334,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 .support-dialog__pitch {
   margin: 0;
-  color: rgba($primary-lighter, 0.92);
-  font-size: 1rem;
-  line-height: 1.7;
+  color: rgba($white, 0.9);
+  font-size: 0.94rem;
+  line-height: 1.62;
 }
 
 // Quieter than the pitch and set apart from it: this is the maker speaking,
@@ -253,24 +344,26 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // paragraph of the same argument.
 .support-dialog__craft {
   margin: 0;
-  padding-left: 16px;
-  color: rgba($primary-lighter, 0.8);
-  border-left: 2px solid rgba($secondary-light, 0.42);
-  font-size: 0.9rem;
-  font-style: italic;
-  line-height: 1.65;
+  padding: 12px 14px;
+  color: rgba($primary-lighter, 0.7);
+  border: 1px solid rgba($secondary-light, 0.1);
+  border-left-color: rgba($secondary-light, 0.42);
+  border-radius: $radius-s;
+  background: rgba(#07111c, 0.3);
+  font-size: 0.78rem;
+  line-height: 1.55;
 }
 
 .support-dialog__methods {
   display: grid;
-  gap: 14px;
+  gap: 10px;
 }
 
 .support-method {
   @include inset-surface;
   display: grid;
   min-width: 0;
-  padding: 22px;
+  padding: 16px;
   gap: 8px;
   color: inherit;
   text-decoration: none;
@@ -280,7 +373,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     align-items: baseline;
     gap: 7px;
     color: $white;
-    font-size: 1.12rem;
+    font-size: 1rem;
     font-weight: $weight-bold;
 
     // Ticker, so a donor can match the chain at a glance.
@@ -345,7 +438,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // stay full width underneath it — a truncated address is a lost donation.
 .support-method--qr {
   align-items: center;
-  column-gap: 24px;
+  column-gap: 18px;
   grid-template-columns: minmax(0, 1fr) auto;
 
   .support-method__address,
@@ -359,9 +452,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // the link, which is what most people will actually use.
   .qr-code {
     display: block;
-    width: 140px;
-    height: 140px;
-    padding: 10px;
+    width: 124px;
+    height: 124px;
+    padding: 8px;
     border: 1px solid rgba($secondary-light, 0.28);
     border-radius: $radius-s;
     background: $white;
@@ -382,11 +475,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .support-method--primary {
   position: relative;
   border-color: rgba($secondary-light, 0.34);
-  background: linear-gradient(
-    145deg,
-    rgba($secondary-default, 0.16),
-    rgba(#12243a, 0.9)
-  );
+  background:
+    radial-gradient(
+      circle at 8% 0%,
+      rgba($secondary-default, 0.18),
+      transparent 54%
+    ),
+    rgba(#102238, 0.72);
   cursor: pointer;
   transition:
     $transition-control,
@@ -395,11 +490,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   &:hover,
   &:focus-visible {
     border-color: rgba($secondary-light, 0.62);
-    background: linear-gradient(
-      145deg,
-      rgba($secondary-default, 0.26),
-      rgba(#16304a, 0.94)
-    );
+    background:
+      radial-gradient(
+        circle at 8% 0%,
+        rgba($secondary-default, 0.3),
+        transparent 58%
+      ),
+      rgba(#142b42, 0.82);
     translate: 0 -2px;
     outline: none;
   }
@@ -459,7 +556,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   align-items: center;
   gap: 10px;
   margin: 0;
-  padding: 11px 14px;
+  padding: 10px 12px;
   color: $neon-yellow;
   border: 1px solid rgba($neon-yellow, 0.26);
   border-left: 2px solid rgba($neon-yellow, 0.75);
@@ -516,7 +613,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   flex-wrap: wrap;
   align-items: baseline;
   gap: 6px 20px;
-  padding-top: 14px;
+  padding-top: 12px;
   border-top: 1px solid rgba($primary-lighter, 0.1);
 }
 
@@ -630,53 +727,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   .support-dialog__footer,
   .support-dialog__notes {
     font-size: 0.68rem;
-  }
-}
-
-// Two columns, wherever there is width for them.
-//
-// Everything above this line can only take things away, and the panel had run
-// out of things it could afford to lose: a creature, a game, a pitch, an aside,
-// a payment card and a footer stacked one under the next come to well over a
-// thousand pixels, in a window that is nearly always wider than it is tall. So
-// the last resort is not to cut further but to put the same content somewhere
-// else. It comes down by about a third, and nothing is dropped to do it.
-//
-// The seam was already there: the toy on the left — creature, score, trace,
-// and the line she is jumping — and the ask on the right. Placed after the
-// ladder deliberately, so a short window still tightens and still sheds the
-// aside, and this only decides where what is left goes.
-//
-// Supporters only, and not for want of trying otherwise: without the game the
-// left column is a creature and a heading standing against a full column of
-// text, which looks like a layout that has lost something. That panel is also
-// some three hundred pixels shorter, so it is the one that does not need this.
-@media (min-width: 900px) {
-  .support-dialog--game {
-    width: min(1000px, 100%);
-  }
-
-  .support-dialog--game .support-dialog__scroll {
-    align-items: start;
-    // The ask gets the wider side. It carries every paragraph in the panel,
-    // while the stage is fixed furniture that gains nothing from more room.
-    grid-template-columns: minmax(0, 0.86fr) minmax(0, 1.14fr);
-    column-gap: 30px;
-    // Room for the close button. In one column it hangs over a centred heading
-    // and touches nothing; here the right-hand column's first line runs
-    // straight underneath it. This is exactly the button's width plus its
-    // inset, so the text stops where the button starts.
-    padding-right: 52px;
-  }
-
-  // Real boxes again rather than `display: contents`, each carrying the
-  // panel's own vertical rhythm so the two columns cannot drift apart.
-  .support-dialog--game .support-dialog__stage,
-  .support-dialog--game .support-dialog__ask {
-    display: grid;
-    min-width: 0;
-    align-content: start;
-    gap: var(--support-gap);
   }
 }
 
@@ -837,55 +887,35 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
-// Which app this is, at the top of the panel.
-//
-// The name lives in the titlebar everywhere else, and this is the one window
-// reachable when the titlebar is not on screen: the creature sits in the corner
-// over a full-screen video, and clicking it used to open a panel with a mascot,
-// a QR code and nothing saying what any of it belonged to.
-//
-// Quiet on purpose. It is a signature, not a heading — the panel is about the
-// work rather than about the brand, and a logo lockup at the top of it would
-// change what the whole thing sounds like.
+// Product identity at the left of the fixed header. The mark gets the same
+// compact glass well as the current titlebar controls, while the name remains
+// quiet enough for the actual support heading to own the body.
 .support-dialog__brand {
-  // Across both columns.
-  //
-  // The panel is a grid, so a new child without this took a cell of its own —
-  // which pushed the creature into the right-hand column, left the top of the
-  // left one empty, and threw the whole two-column layout out. A row that spans
-  // is what a header is.
-  // Across both columns and centred on the panel.
-  //
-  // A new child of a grid without being told where to sit took a cell of its
-  // own, pushed the creature into the right-hand column and left the top of the
-  // left one empty. A header spans — and centred it sits directly above the
-  // euphoria pill, or exactly where that pill would be when there is none, so
-  // the top of the panel reads the same either way.
-  grid-column: 1 / -1;
   display: flex;
+  min-width: 0;
   align-items: center;
-  justify-content: center;
-  margin-bottom: 2px;
-  color: rgba($primary-lighter, 0.72);
-  font-size: 0.82rem;
+  margin-right: auto;
+  color: rgba($white, 0.88);
+  font-size: 0.86rem;
   font-weight: $weight-bold;
-  gap: 9px;
+  gap: 10px;
   letter-spacing: 0.02em;
 
-  // Big enough to be a mark rather than a speck. The titlebar's copy sits in a
-  // row of 26px controls and has to match them; here it is a signature at the
-  // top of a panel and has the room.
   .brand-mark {
     display: flex;
-    width: 26px;
-    height: 26px;
+    width: 32px;
+    height: 32px;
     flex: 0 0 auto;
     align-items: center;
     justify-content: center;
+    border: 1px solid rgba($secondary-light, 0.26);
+    border-radius: $radius-s;
+    background: rgba($secondary-default, 0.1);
+    box-shadow: inset 0 1px 0 rgba($white, 0.06);
 
     svg {
-      width: 100%;
-      height: 100%;
+      width: 21px;
+      height: 21px;
       fill: none;
       stroke: $secondary-light;
       stroke-linecap: round;
@@ -895,8 +925,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 .support-dialog__version {
-  margin-left: 6px;
-  color: rgba($primary-lighter, 0.45);
-  font-size: 0.68rem;
-  font-weight: $weight-medium;
+  margin-left: 7px;
+  padding: 1px 6px;
+  color: rgba($secondary-light, 0.72);
+  border: 1px solid rgba($secondary-light, 0.2);
+  border-radius: $radius-pill;
+  background: rgba($secondary-default, 0.08);
+  font-size: 0.58rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: $weight-bold;
 }

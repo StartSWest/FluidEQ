@@ -80,26 +80,20 @@ describe('DspPanel', () => {
     expect(screen.queryByText(/device bits/i)).not.toBeInTheDocument();
   });
 
-  /**
-   * Every preset gets a button, and the count is asserted so that adding one
-   * without a name in the dictionary fails here rather than shipping a button
-   * labelled with its own key.
-   */
+  /** Every complete chain is reachable from the one searchable preset menu. */
   it('offers every factory preset', () => {
     const { container } = renderPanel();
     const presets = within(
       container.querySelector('.dsp-presets') as HTMLElement,
     );
-    ['Repair compressed', 'Loud', 'Broadcast'].forEach((name) => {
-      expect(presets.getByRole('button', { name })).toBeInTheDocument();
-    });
+    fireEvent.click(presets.getByRole('button', { name: 'Presets' }));
+    expect(screen.getAllByRole('menuitemradio')).toHaveLength(
+      DSP_PRESETS.length,
+    );
+    expect(DSP_PRESETS).toHaveLength(28);
     expect(
-      presets.queryByRole('button', { name: 'Off' }),
-    ).not.toBeInTheDocument();
-    // Four: Task 7 added `bass-power`, whose dictionary entry Task 8 still
-    // owes — its button renders with the raw key until that key lands, which
-    // is expected here and is not what this count guards against.
-    expect(DSP_PRESETS).toHaveLength(4);
+      screen.getByRole('menuitemradio', { name: /Repair compressed/i }),
+    ).toBeInTheDocument();
   });
 
   /**
@@ -113,9 +107,11 @@ describe('DspPanel', () => {
     renderPanel();
     // Scoped to the rail: the band picker inside the EQ page is also labelled
     // "Equaliser", and a document-wide query matches both.
-    const rail = within(screen.getByRole('navigation', { name: 'DSP' }));
+    const railElement = screen.getByRole('navigation', { name: 'DSP' });
+    const rail = within(railElement);
     [
       'Normalizer',
+      'Denoise',
       'Crossfade',
       'Exciter',
       'Bass Forge',
@@ -131,6 +127,15 @@ describe('DspPanel', () => {
     expect(
       rail.queryByRole('button', { name: /Multiband compressor/i }),
     ).not.toBeInTheDocument();
+    const filters = within(
+      railElement.querySelector('.dsp-rail-processors') as HTMLElement,
+    );
+    const playback = within(
+      railElement.querySelector('.dsp-rail-playback') as HTMLElement,
+    );
+    expect(filters.queryByRole('button', { name: /Crossfade/i })).toBeNull();
+    expect(playback.getByRole('button', { name: /Crossfade/i })).toBeVisible();
+    expect(playback.getByText('Playback options')).toBeVisible();
   });
 
   /**
@@ -368,11 +373,117 @@ describe('DspPanel', () => {
     expect(next.bassPunch.enabled).toBe(false);
   });
 
+  it('turns on every filter when one of its presets is selected', () => {
+    const cases = [
+      {
+        section: 'Denoise',
+        trigger: 'Preset',
+        item: /^Gentle cleanup/i,
+        processor: 'denoise',
+      },
+      {
+        section: 'Exciter',
+        trigger: 'Preset',
+        item: /^Air/i,
+        processor: 'exciter',
+      },
+      {
+        section: 'Bass Forge',
+        trigger: 'Preset',
+        item: /^Deep/i,
+        processor: 'bassForge',
+      },
+      {
+        section: 'Equaliser',
+        trigger: 'Preset',
+        item: /^Bass boost/i,
+        processor: 'eq',
+      },
+      {
+        section: 'Bass Punch',
+        trigger: 'Preset',
+        item: /^Slam/i,
+        processor: 'bassPunch',
+      },
+      {
+        section: 'Dimension',
+        trigger: 'Preset',
+        item: /^Expansive/i,
+        processor: 'dimension',
+      },
+      {
+        section: 'Maximizer',
+        trigger: 'Preset',
+        item: /^Transparent/i,
+        processor: 'maximizer',
+      },
+      {
+        section: 'Master',
+        trigger: 'Destination',
+        item: /^Cinema/i,
+        processor: 'master',
+      },
+    ] as const;
+
+    cases.forEach(({ section, trigger, item, processor }) => {
+      const view = renderPanel();
+      const rail = within(screen.getByRole('navigation', { name: 'DSP' }));
+      fireEvent.click(
+        rail.getByRole('button', {
+          name: new RegExp(`^${section}$`, 'i'),
+        }),
+      );
+      const page = within(
+        screen.getByRole('region', { name: new RegExp(section, 'i') }),
+      );
+      fireEvent.click(page.getByRole('button', { name: trigger }));
+      fireEvent.click(screen.getByRole('menuitemradio', { name: item }));
+
+      const next = view.onChange.mock.calls[0][0] as IDspSettings;
+      expect(next[processor].enabled).toBe(true);
+      view.unmount();
+    });
+  });
+
   it('applies a preset whole when one is chosen', () => {
-    const { onChange } = renderPanel();
-    fireEvent.click(screen.getByRole('button', { name: /Repair compressed/i }));
+    const { onChange, onCommit } = renderPanel();
+    fireEvent.click(screen.getByRole('button', { name: 'Presets' }));
+    fireEvent.click(
+      screen.getByRole('menuitemradio', { name: /Repair compressed/i }),
+    );
     const repair = DSP_PRESETS.find((preset) => preset.id === 'lossy-repair');
     expect(onChange).toHaveBeenCalledWith(repair?.settings);
+    expect(onCommit).toHaveBeenCalled();
+  });
+
+  it('does not change Crossfade when a DSP preset is chosen', () => {
+    const active: IDspSettings = {
+      ...DSP_DEFAULTS,
+      crossfade: {
+        ...DSP_DEFAULTS.crossfade,
+        enabled: true,
+        durationMs: 7_250,
+        curve: 'smooth',
+      },
+    };
+    const { onChange } = renderPanel(active);
+    fireEvent.click(screen.getByRole('button', { name: 'Presets' }));
+    fireEvent.click(screen.getByRole('menuitemradio', { name: /Rock/i }));
+    const next = onChange.mock.calls[0][0] as IDspSettings;
+    expect(next.presetId).toBe('rock');
+    expect(next.crossfade).toEqual(active.crossfade);
+  });
+
+  it('keeps the filter preset at the left of its header', () => {
+    const { container } = renderPanel();
+    fireEvent.click(screen.getByRole('button', { name: /Denoise/i }));
+    const header = container.querySelector('#dsp-denoise .dsp-card-header');
+    expect(header).not.toBeNull();
+    const visible = Array.from(header?.children ?? []).filter(
+      (child) => !child.classList.contains('is-visually-hidden'),
+    );
+    expect(visible[0]).toHaveClass('dsp-denoise-bar');
+    expect(visible[1]).toHaveClass('dsp-card-titles');
   });
 
   it('toggles a processor without disturbing the others', () => {
@@ -414,6 +525,20 @@ describe('DspPanel', () => {
     expect(onCommit).toHaveBeenCalled();
   });
 
+  it('turns Denoise Isolate off before bypassing Denoise', () => {
+    const active: IDspSettings = {
+      ...DSP_DEFAULTS,
+      denoise: { ...DSP_DEFAULTS.denoise, enabled: true, isolate: true },
+    };
+    const { onChange, onCommit } = renderPanel(active);
+    fireEvent.click(screen.getByRole('button', { name: /Denoise/i }));
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Denoise' }));
+    const next = onChange.mock.calls[0][0] as IDspSettings;
+    expect(next.denoise.enabled).toBe(false);
+    expect(next.denoise.isolate).toBe(false);
+    expect(onCommit).toHaveBeenCalled();
+  });
+
   it('turns EQ Isolate off before leaving the EQ view', () => {
     const active: IDspSettings = {
       ...DSP_DEFAULTS,
@@ -440,15 +565,30 @@ describe('DspPanel', () => {
     expect(onCommit).toHaveBeenCalled();
   });
 
-  it('turns both monitor flags off when the DSP workspace closes', () => {
+  it('turns Denoise Isolate off before leaving the Denoise view', () => {
     const active: IDspSettings = {
       ...DSP_DEFAULTS,
+      denoise: { ...DSP_DEFAULTS.denoise, enabled: true, isolate: true },
+    };
+    const { onChange, onCommit } = renderPanel(active);
+    fireEvent.click(screen.getByRole('button', { name: /Denoise/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Maximizer/i }));
+    const next = onChange.mock.calls[0][0] as IDspSettings;
+    expect(next.denoise.isolate).toBe(false);
+    expect(onCommit).toHaveBeenCalled();
+  });
+
+  it('turns every monitor flag off when the DSP workspace closes', () => {
+    const active: IDspSettings = {
+      ...DSP_DEFAULTS,
+      denoise: { ...DSP_DEFAULTS.denoise, enabled: true, isolate: true },
       eq: { ...DSP_DEFAULTS.eq, enabled: true, isolate: true },
       exciter: { ...DSP_DEFAULTS.exciter, enabled: true, isolate: true },
     };
     const { unmount, onChange, onCommit } = renderPanel(active);
     unmount();
     const next = onChange.mock.calls[0][0] as IDspSettings;
+    expect(next.denoise.isolate).toBe(false);
     expect(next.eq.isolate).toBe(false);
     expect(next.exciter.isolate).toBe(false);
     expect(onCommit).toHaveBeenCalled();
@@ -511,9 +651,40 @@ describe('DspPanel', () => {
     expect(onCommit).toHaveBeenCalled();
     unmount();
     const { container } = renderPanel(next);
-    expect(container.querySelector('.dsp-body')).toHaveAttribute(
+    expect(container.querySelector('.dsp-stage')).toHaveAttribute(
       'aria-disabled',
       'true',
     );
+  });
+
+  it('keeps Crossfade available while the filter rack is bypassed', () => {
+    const bypassed: IDspSettings = {
+      ...DSP_DEFAULTS,
+      enabled: false,
+      presetId: 'rock',
+    };
+    const { onChange } = renderPanel(bypassed);
+    const rail = screen.getByRole('navigation', { name: 'DSP' });
+    const filters = within(
+      rail.querySelector('.dsp-rail-processors') as HTMLElement,
+    );
+    const playback = within(
+      rail.querySelector('.dsp-rail-playback') as HTMLElement,
+    );
+    expect(filters.getByRole('button', { name: /Normalizer/i })).toBeDisabled();
+    const crossfadeTab = playback.getByRole('button', {
+      name: /Crossfade/i,
+    });
+    expect(crossfadeTab).toBeEnabled();
+    fireEvent.click(crossfadeTab);
+    const crossfadeToggle = screen.getByRole('checkbox', {
+      name: 'Crossfade',
+    });
+    expect(crossfadeToggle).toBeEnabled();
+    fireEvent.click(crossfadeToggle);
+    const next = onChange.mock.calls[0][0] as IDspSettings;
+    expect(next.enabled).toBe(false);
+    expect(next.presetId).toBe('rock');
+    expect(next.crossfade.enabled).toBe(true);
   });
 });

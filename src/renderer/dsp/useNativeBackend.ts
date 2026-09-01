@@ -306,11 +306,10 @@ export const useNativeTransport = (
  * when it lets go. Any other lifetime leaves the panel drawing a frozen frame
  * from an engine that has stopped, which is the same defect this fixes.
  */
-export const useNativeMeters = (
-  controller: INativeBackendController | undefined,
-): void => {
+export const useNativeMeters = (): void => {
+  const nativeState = useDspNativeState();
   useEffect(() => {
-    if (!controller) {
+    if (nativeState !== 'engaged') {
       return undefined;
     }
     const bridge = bridgeOf() as unknown as INativeMetersBridge | undefined;
@@ -319,7 +318,7 @@ export const useNativeMeters = (
     }
     const meters = createNativeMeters(bridge, ANALYSIS_BINS);
     return () => meters.release();
-  }, [controller]);
+  }, [nativeState]);
 };
 
 /**

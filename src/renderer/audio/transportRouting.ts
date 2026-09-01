@@ -38,7 +38,7 @@ import type { ITransportSource } from './transportSource';
  * host that draws every other tab's — and they must never both answer yes.
  * That is why the rule lives here rather than in either of them.
  */
-export const pickTransportOwner = (
+const pickTransportOwner = (
   tabOwner: TPlaybackOwner | undefined,
   sources: Partial<Record<TPlaybackOwner, ITransportSource>>,
   playingOwner: TPlaybackOwner | undefined,
@@ -65,6 +65,21 @@ export const pickTransportOwner = (
   if (playingOwner === undefined && sources.system?.isPlaying === true) {
     return 'system';
   }
+  // A natural end is still the same listening session. Hold the actual
+  // player's controls while its known next item starts; the player's bounded
+  // handoff lease clears on `playing`, explicit pause/stop, error, or expiry.
+  if (
+    lastOwner !== undefined &&
+    sources[lastOwner]?.retainWhenHidden === true
+  ) {
+    return lastOwner;
+  }
+  const retainedOwner = (['library', 'karaoke', 'media'] as const).find(
+    (candidate) => sources[candidate]?.retainWhenHidden === true,
+  );
+  if (retainedOwner !== undefined) {
+    return retainedOwner;
+  }
   if (tabOwner !== undefined && sources[tabOwner] !== undefined) {
     return tabOwner;
   }
@@ -73,3 +88,5 @@ export const pickTransportOwner = (
   }
   return undefined;
 };
+
+export default pickTransportOwner;

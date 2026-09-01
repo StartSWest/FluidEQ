@@ -26,7 +26,6 @@ import {
   useMemo,
   useRef,
   useState,
-  useSyncExternalStore,
 } from 'react';
 import { createPortal } from 'react-dom';
 import { buildSongIdentity } from 'common/songIdentity';
@@ -52,6 +51,8 @@ import {
   clearTransportSource,
   setTransportSource,
 } from '../audio/transportSource';
+import { usePlaybackHandoff } from '../audio/playbackHandoff';
+import { releasePlayback } from '../audio/playbackOwner';
 import { useTransportSlot } from '../audio/transportSlot';
 import { useTranslation } from '../utils/I18nContext';
 import { setChromeHeld } from '../utils/idleChrome';
@@ -105,17 +106,14 @@ import { useKaraokeMelodyTone } from './useKaraokeMelodyTone';
 import { useKaraokeChordAnalysis } from './useKaraokeChordAnalysis';
 import { useKaraokeVocalMix } from './useKaraokeVocalMix';
 import { TKaraokeSessionError, useKaraokeSession } from './useKaraokeSession';
-import {
-  getKaraokeWhisperSessionSnapshot,
-  releaseKaraokeWhisperModel,
-  subscribeKaraokeWhisperSession,
-} from './makerAi';
+import { releaseKaraokeWhisperModel } from './makerAi';
 import '../styles/Karaoke.scss';
 
 interface IKaraokeWorkspaceProps {
   /** Hidden instead of unmounted so future playback and capture survive tabs. */
   isHidden: boolean;
   isFullScreen?: boolean;
+  isGraphOverlay?: boolean;
   isChromeIdle?: boolean;
   hasFullScreenTopBar?: boolean;
   onToggleFullScreenTopBar?: () => void;
@@ -241,6 +239,7 @@ const orderedRestoredPlaylist = (
 const KaraokeWorkspace = ({
   isHidden,
   isFullScreen = false,
+  isGraphOverlay = false,
   isChromeIdle = false,
   hasFullScreenTopBar = true,
   onToggleFullScreenTopBar = () => undefined,
@@ -268,11 +267,6 @@ const KaraokeWorkspace = ({
   const [isMakerWorking, setIsMakerWorking] = useState(false);
   const [restoreMakerDraft, setRestoreMakerDraft] =
     useState(readKaraokeMakerOpen);
-  const whisperSession = useSyncExternalStore(
-    subscribeKaraokeWhisperSession,
-    getKaraokeWhisperSessionSnapshot,
-    getKaraokeWhisperSessionSnapshot,
-  );
   const [countInCue, setCountInCue] = useState<string>();
   const [countInLabel, setCountInLabel] = useState<string>();
   const [lyricsFollowRequestKey, setLyricsFollowRequestKey] = useState(0);
@@ -312,7 +306,11 @@ const KaraokeWorkspace = ({
   const countInTimerRef = useRef<number | undefined>(undefined);
   const resumeWithCountInAfterScrubRef = useRef(false);
   const autoplayAfterLoadRef = useRef(false);
+  const [retainWhenHidden, setRetainWhenHidden] = usePlaybackHandoff();
   const microphone = useKaraokeMicrophone(!isHidden);
+  // Visible playback gets the frame clock needed by lyrics and pitch. Hidden
+  // playback falls back to the audio element's low-rate `timeupdate` events,
+  // which keep the bottom transport moving without animating an unseen stage.
   const session = useKaraokeSession(!isHidden);
   const { song, status, error, warning, seek } = session;
   const songId = song?.id;
@@ -433,20 +431,16 @@ const KaraokeWorkspace = ({
       .catch(() => undefined);
   }, [song, applyStemsToSong]);
 
-  // Leaving the tab discharges both AI models after the memory panel's idle
-  // delay — the whisper worker and the separation session in main together
-  // hold well over a gigabyte. Staying on the tab never discharges anything;
-  // coming back cancels the countdown. 'keep' in the panel means keep.
+  // AI is editing machinery, not playback. The hidden lifetime keeps one audio
+  // element and nothing else; both models leave immediately with their UI.
   useEffect(() => {
-    if (!isHidden || whisperSession.settings.policy === 'keep') {
+    if (!isHidden) {
       return undefined;
     }
-    const timer = window.setTimeout(() => {
-      window.electron.ipcRenderer.releaseKaraokeSeparationModel();
-      releaseKaraokeWhisperModel().catch(() => undefined);
-    }, whisperSession.settings.idleMinutes * 60_000);
-    return () => window.clearTimeout(timer);
-  }, [isHidden, whisperSession.settings]);
+    window.electron.ipcRenderer.releaseKaraokeSeparationModel();
+    releaseKaraokeWhisperModel().catch(() => undefined);
+    return undefined;
+  }, [isHidden]);
   const isLoading = status === 'loading';
   const playheadRef = useRef(session.playheadMs);
   const sessionRef = useRef(session);
@@ -545,10 +539,12 @@ const KaraokeWorkspace = ({
 
   const handleTogglePlayback = useCallback(() => {
     if (countInCue) {
+      setRetainWhenHidden(false);
       cancelCountIn();
       return;
     }
     if (status === 'playing') {
+      setRetainWhenHidden(false);
       sessionRef.current.pause();
       return;
     }
@@ -561,7 +557,13 @@ const KaraokeWorkspace = ({
       return;
     }
     sessionRef.current.play().catch(() => undefined);
-  }, [cancelCountIn, countInCue, startSongPlayback, status]);
+  }, [
+    cancelCountIn,
+    countInCue,
+    setRetainWhenHidden,
+    startSongPlayback,
+    status,
+  ]);
 
   // Maker playback is editing transport, so it starts immediately rather
   // than going through the singer-facing 1, 2, 3 count-in. The header button
@@ -575,9 +577,10 @@ const KaraokeWorkspace = ({
   }, [cancelCountIn, status]);
 
   const handleEditorPause = useCallback(() => {
+    setRetainWhenHidden(false);
     cancelCountIn();
     sessionRef.current.pause();
-  }, [cancelCountIn]);
+  }, [cancelCountIn, setRetainWhenHidden]);
 
   const handleEditorTogglePlayback = useCallback(() => {
     if (status === 'playing') {
@@ -599,6 +602,16 @@ const KaraokeWorkspace = ({
     },
     [cancelCountIn, seek],
   );
+
+  const handleStopPlayback = useCallback(() => {
+    autoplayAfterLoadRef.current = false;
+    resumeWithCountInAfterScrubRef.current = false;
+    setRetainWhenHidden(false);
+    cancelCountIn();
+    sessionRef.current.pause();
+    sessionRef.current.seek(0);
+    playheadRef.current = 0;
+  }, [cancelCountIn, setRetainWhenHidden]);
 
   const handleSelectLyric = useCallback(
     (timeMs: number) => {
@@ -908,13 +921,31 @@ const KaraokeWorkspace = ({
     cancelCountIn();
     if (songId && autoplayAfterLoadRef.current) {
       autoplayAfterLoadRef.current = false;
+      // Loading may have used part of the original grace period. The ready
+      // song gets a fresh bound for its count-in and real `playing` event.
+      setRetainWhenHidden(true);
       startSongPlaybackRef.current(true);
     }
-  }, [cancelCountIn, songId]);
+  }, [cancelCountIn, setRetainWhenHidden, songId]);
+
+  // The lease exists only while a queued song is being loaded and started.
+  // An actual play event completes the handoff; pause, error and clear are all
+  // terminal and must make a hidden workspace eligible for disposal again.
+  useEffect(() => {
+    if (
+      status === 'playing' ||
+      status === 'paused' ||
+      status === 'empty' ||
+      status === 'error'
+    ) {
+      setRetainWhenHidden(false);
+    }
+  }, [setRetainWhenHidden, status]);
 
   const loadPlaylistItem = useCallback(
     async (item: IKaraokePlaylistItem, autoplay = false) => {
       autoplayAfterLoadRef.current = autoplay;
+      setRetainWhenHidden(autoplay);
       playheadRef.current = 0;
       setSelectedPlaylistId(item.id);
       // The artwork and video travel with the pair. `loadFiles` picks the
@@ -928,9 +959,10 @@ const KaraokeWorkspace = ({
       ]);
       if (!loaded) {
         autoplayAfterLoadRef.current = false;
+        setRetainWhenHidden(false);
       }
     },
-    [session],
+    [session, setRetainWhenHidden],
   );
 
   const addFiles = useCallback(
@@ -1080,6 +1112,8 @@ const KaraokeWorkspace = ({
   };
 
   const clearPlaylist = () => {
+    autoplayAfterLoadRef.current = false;
+    setRetainWhenHidden(false);
     libraryFilesRef.current = [];
     setPlaylist([]);
     setSelectedPlaylistId(undefined);
@@ -1181,6 +1215,8 @@ const KaraokeWorkspace = ({
       if (next) {
         loadPlaylistItem(next, status === 'playing');
       } else {
+        autoplayAfterLoadRef.current = false;
+        setRetainWhenHidden(false);
         setSelectedPlaylistId(undefined);
         session.clear();
       }
@@ -1503,7 +1539,10 @@ const KaraokeWorkspace = ({
       >
         <svg viewBox="0 0 24 24" aria-hidden="true">
           {isFullScreen ? (
-            <path d="M9 4v5H4m11-5v5h5M9 20v-5H4m11 5v-5h5" />
+            <path
+              style={{ fill: 'currentColor', stroke: 'none' }}
+              d="M5 16h3v3h2v-5H5v2Zm3-8H5v2h5V5H8v3Zm6 11h2v-3h3v-2h-5v5Zm2-11V5h-2v5h5V8h-3Z"
+            />
           ) : (
             <path d="M9 4H4v5m11-5h5v5M9 20H4v-5m11 5h5v-5" />
           )}
@@ -1558,16 +1597,28 @@ const KaraokeWorkspace = ({
       clearTransportSource('karaoke');
       return;
     }
+    const selectedIndex = playlist.findIndex(
+      (item) => item.id === selectedPlaylistId,
+    );
+    const hasQueuedSuccessor =
+      status === 'ended' &&
+      !isMakerWorking &&
+      selectedIndex >= 0 &&
+      selectedIndex + 1 < playlist.length;
     setTransportSource({
       owner: 'karaoke',
       title: song.title,
       subtitle: song.artist || undefined,
       artworkUrl: coverUrl,
       isPlaying: status === 'playing',
+      retainWhenHidden: retainWhenHidden || hasQueuedSuccessor || undefined,
       positionMs: session.playheadMs,
       durationMs: session.durationMs,
       toggle: handleTogglePlayback,
       seek: handleSeek,
+      // The exact KaraokeTransport instance remains in this slot while the
+      // workspace is hidden. Replacing it with the generic source controls is
+      // what changed the icon sizes and dropped karaoke-only actions.
       hasOwnControls: true,
       identity: buildSongIdentity('karaoke', song.id, song.title, song.artist),
     });
@@ -1575,11 +1626,23 @@ const KaraokeWorkspace = ({
     song,
     coverUrl,
     status,
+    retainWhenHidden,
     session.playheadMs,
     session.durationMs,
     handleTogglePlayback,
     handleSeek,
+    isMakerWorking,
+    playlist,
+    selectedPlaylistId,
   ]);
+
+  // The transport description above must expose the handoff before ownership
+  // is released, or another tab's paused controls can flash between songs.
+  useEffect(() => {
+    if (status === 'ended') {
+      releasePlayback('karaoke');
+    }
+  }, [status]);
 
   // The tab can go away while another is playing; `clearTransportSource` is
   // guarded so it only takes the bar back if karaoke still owns it.
@@ -1656,11 +1719,30 @@ const KaraokeWorkspace = ({
           : []),
       ]}
       onTogglePlayback={handleTogglePlayback}
+      onStop={handleStopPlayback}
       onJumpToStart={() => handleSeek(0)}
       onJumpToEnd={() => handleSeek(session.durationMs)}
       onSeek={handleSeek}
     />
   ) : undefined;
+  const karaokeTransportPortal =
+    transportSlot && karaokeControls
+      ? createPortal(karaokeControls, transportSlot, 'karaoke-transport')
+      : null;
+
+  if (isHidden) {
+    return (
+      // The wrapper matches the visible root so React preserves the keyed
+      // audio node across tab changes. Reparenting that live element would
+      // remount it and create exactly the stop/click this path prevents.
+      <section className="karaoke-audio-host" hidden>
+        {/* Audio-only karaoke; timed lyrics are rendered only by the visible workspace. */}
+        {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
+        <audio key="karaoke-audio" ref={session.audioRef} preload="metadata" />
+        {karaokeTransportPortal}
+      </section>
+    );
+  }
 
   return (
     <section
@@ -1668,6 +1750,8 @@ const KaraokeWorkspace = ({
       className={`karaoke-workspace workspace-tab-panel workspace-tab-panel--karaoke${
         isHidden ? ' is-hidden' : ''
       }${isFullScreen ? ' is-fullscreen' : ''}${
+        isGraphOverlay && !isMakerOpen ? ' is-graph-overlay' : ''
+      }${isMakerOpen ? ' is-maker-open' : ''}${
         song ? ' has-song' : ' is-empty'
       }`}
       aria-labelledby={isFullScreen ? undefined : 'karaoke-workspace-title'}
@@ -1713,7 +1797,8 @@ const KaraokeWorkspace = ({
       {/* Imported timed lyrics are rendered beside this audio-only element;
           there is no video track to caption. */}
       {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
-      <audio ref={session.audioRef} preload="metadata" />
+      <audio key="karaoke-audio" ref={session.audioRef} preload="metadata" />
+      {karaokeTransportPortal}
       <input
         ref={fileInputRef}
         className="karaoke-workspace__file-input"
@@ -1827,7 +1912,7 @@ const KaraokeWorkspace = ({
           }${isDragging ? ' is-dragging' : ''}`}
           style={pitchStyle}
         >
-          {isFullScreen && workspaceActions}
+          {isFullScreen && !isGraphOverlay && workspaceActions}
           {playlist.length > 0 && layout.playlistCollapsed && (
             <button
               type="button"
@@ -2070,14 +2155,6 @@ const KaraokeWorkspace = ({
           </div>
         </>
       )}
-      {/* Drawn into the bar at the foot of the window rather than here.
-          This app has one transport and one place for it; rendered in both,
-          it was two bars stacked on each other — measured, the karaoke row
-          sat inside the bar's own card. The controls themselves are
-          unchanged, mix faders and all: only where they land has moved. */}
-      {transportSlot &&
-        karaokeControls &&
-        createPortal(karaokeControls, transportSlot)}
       {isMakerOpen &&
         song &&
         song.assets.find((asset) => asset.role === 'audio') && (

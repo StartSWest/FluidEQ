@@ -62,8 +62,8 @@ const main = async () => {
   let pending = Buffer.alloc(0);
   host.stdout.on('data', (chunk: Buffer) => {
     pending = Buffer.concat([pending, chunk]);
-    // Length is discovered from the magic rather than assumed, because three
-    // frame kinds of three different sizes share this stream.
+    // Length is discovered from the magic rather than assumed, because four
+    // frame kinds of four different sizes share this stream.
     for (;;) {
       if (pending.length < 4) {
         return;
@@ -83,7 +83,11 @@ const main = async () => {
         handshake = decodeHandshake(frame);
       } else if (magic === 0x41514546) {
         acks.push(decodeAck(frame));
-      } else {
+      } else if (magic === 0x54514546) {
+        // Named rather than reached by falling through everything else: the
+        // stats frame joined this stream and a decoder handed the wrong kind
+        // returns undefined, so an `else` would have dropped telemetry
+        // silently for whichever frame arrived next.
         const record = decodeTelemetry(frame);
         if (record) {
           telemetry.push(record);

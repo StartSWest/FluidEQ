@@ -88,10 +88,11 @@ enum ChannelEnum {
   // description of what was applied, so the renderer never handles a path.
   IMPORT_EQ_FILE = 'importEqFile',
   IMPORT_EQ_TEXT = 'importEqText',
-  // A DSP rack preset out through a native Save As dialog. The renderer sends
-  // the serialised preset, never a filesystem path; main validates the payload
-  // and owns both the chosen destination and the write.
+  // DSP presets out through native Save As dialogs. The renderer sends the
+  // serialised preset, never a filesystem path; main validates the payload and
+  // owns both the chosen destination and the write.
   EXPORT_EQ_PRESET = 'exportEqPreset',
+  EXPORT_DSP_PRESET = 'exportDspPreset',
   IMPORT_CONVOLUTION_FILE = 'importConvolutionFile',
   CHECK_OPRA_UPDATE = 'checkOpraUpdate',
   UPDATE_OPRA_DATABASE = 'updateOpraDatabase',

@@ -512,12 +512,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 // The full-screen dock now belongs to the top of the stage, not to the lyric
-// canvas. Reserve exactly one compact row beneath it so song metadata, chords
-// and the text-size control cannot slide under the floating buttons.
+// canvas. Move only the right-hand chord/tools pane beneath its 40px control
+// row, 8-9px top offset and a visible gap. The song title keeps its natural
+// position on the left, where it does not compete with the right-aligned dock.
+// Both fullscreen routes use this exact clearance, so opening the graph does
+// not make the chord pane jump to a second position.
 .karaoke-workspace.is-fullscreen
   .karaoke-workspace__stage.has-song
-  .karaoke-song__heading {
-  padding-top: 42px;
+  .karaoke-song__tools {
+  margin-top: 56px;
 }
 
 // Normal mode gets this breathing room from the workspace panel's 12px outer
@@ -1290,10 +1293,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 .karaoke-workspace__stage.has-song.has-collapsed-playlist
-  .karaoke-song__heading {
+  .karaoke-song__heading
+  > div:first-child {
   // The restore pill owns the top-left corner. Reserve its row so a short or
-  // single-line song title can never slide underneath it.
-  padding-top: 34px;
+  // single-line song title can never slide underneath it. Only the title side
+  // moves: applying this to the whole heading also pushed the unrelated chord
+  // tools down by 34px whenever the playlist was collapsed.
+  padding-top: 44px;
 }
 
 // Chords are estimated from the backing audio, not guessed from the lead
@@ -1742,6 +1748,25 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     0 5px 16px rgba($black, 0.22),
     inset 0 1px 0 rgba($white, 0.035);
 
+  // Match the library transport's asymmetric action count without moving the
+  // play button: two fixed-width flanks keep it on the bar's centre line while
+  // Stop occupies the third position on the right.
+  .karaoke-transport__flank {
+    display: flex;
+    width: 110px;
+    flex: 0 0 110px;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .karaoke-transport__flank--start {
+    justify-content: flex-end;
+  }
+
+  .karaoke-transport__flank--end {
+    justify-content: flex-start;
+  }
+
   .karaoke-transport__control {
     position: relative;
     display: grid;
@@ -1758,7 +1783,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     box-shadow: none !important;
     filter: none;
     transition:
-      transform 180ms cubic-bezier(0.2, 0.8, 0.2, 1),
       color 180ms ease,
       background 180ms ease,
       box-shadow 180ms ease;
@@ -1774,7 +1798,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     &:active:not([aria-disabled='true']) {
       color: $white !important;
       background: rgba($secondary-default, 0.22) !important;
-      transform: scale(0.94);
     }
 
     &:disabled {
@@ -1859,25 +1882,29 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     &:hover:not([aria-disabled='true']) {
       color: #031411 !important;
       background: linear-gradient(145deg, $white, $secondary-light) !important;
-      box-shadow:
-        0 10px 25px rgba($black, 0.38),
-        0 0 30px rgba($secondary-default, 0.46),
-        inset 0 1px 0 rgba($white, 0.55) !important;
     }
 
     &:active:not([aria-disabled='true']) {
       color: #031411 !important;
-      transform: scale(0.95);
     }
 
-    &.is-playing:not([aria-disabled='true']) {
-      animation: karaoke-transport-breathe 2.8s ease-in-out infinite;
+    &:disabled {
+      color: rgba($primary-lighter, 0.4) !important;
+      background: rgba(#1a2b38, 0.6) !important;
+      box-shadow: none !important;
     }
 
     .karaoke-button__icon {
-      width: 18px;
-      height: 18px;
+      // The same optical size as the shared Media/Library Play button. The
+      // surrounding circles were already both 44px; this 18px override was
+      // the visible size jump when the bar changed owners.
+      width: 23px;
+      height: 23px;
     }
+  }
+
+  .karaoke-transport__stop:not(:disabled) {
+    color: rgba($primary-lighter, 0.62) !important;
   }
 }
 
@@ -1895,20 +1922,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 .karaoke-transport__time {
-  color: $text-muted;
-  font-size: 0.62rem;
+  min-width: 30px;
+  color: $text-faint;
+  font-size: 0.6rem;
   font-variant-numeric: tabular-nums;
+  text-align: center;
   white-space: nowrap;
-
-  &:first-child {
-    min-width: 34px;
-    color: rgba($primary-lighter, 0.84);
-    text-align: right;
-  }
-
-  &:last-child {
-    min-width: 38px;
-  }
 }
 
 .karaoke-transport__timeline,
@@ -2187,7 +2206,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   height: 17px;
   overflow: visible;
   color: currentcolor;
-  filter: drop-shadow(0 0 5px rgba($secondary-default, 0.2));
 }
 
 .karaoke-transport__icon-fill {
@@ -2232,36 +2250,18 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       rgba($primary-lighter, 0.12) var(--karaoke-range-progress),
       rgba($primary-lighter, 0.12) 100%
     );
-    box-shadow:
-      inset 0 1px 2px rgba($black, 0.68),
-      0 0 10px rgba($secondary-default, 0.08);
+    box-shadow: inset 0 1px 2px rgba($black, 0.68);
   }
 
   &::-webkit-slider-thumb {
     appearance: none;
-    width: 14px;
-    height: 14px;
-    margin-top: -4.5px;
+    width: 13px;
+    height: 13px;
+    margin-top: -4px;
     border: 2px solid rgba(#dffffb, 0.92);
     border-radius: 50%;
     background: $secondary-default;
-    box-shadow:
-      0 0 0 3px rgba($secondary-default, 0.09),
-      0 0 15px rgba($secondary-default, 0.45);
-    transition:
-      transform 150ms cubic-bezier(0.2, 0.8, 0.2, 1),
-      box-shadow 150ms ease;
-  }
-
-  &:hover::-webkit-slider-thumb {
-    box-shadow:
-      0 0 0 4px rgba($secondary-default, 0.12),
-      0 0 19px rgba($secondary-default, 0.58);
-    transform: scale(1.12);
-  }
-
-  &:active::-webkit-slider-thumb {
-    transform: scale(0.96);
+    box-shadow: 0 0 12px rgba($secondary-default, 0.45);
   }
 
   &:focus-visible {
@@ -2271,8 +2271,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   &:focus-visible::-webkit-slider-thumb {
     box-shadow:
       0 0 0 3px rgba($surface-base, 0.95),
-      0 0 0 5px rgba($secondary-light, 0.72),
-      0 0 20px rgba($secondary-default, 0.5);
+      0 0 0 5px rgba($secondary-light, 0.72);
   }
 
   &:disabled {
@@ -2311,23 +2310,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   .karaoke-transport[data-level-count='1'] > .karaoke-transport__mix-buttons {
     display: flex;
-  }
-}
-
-@keyframes karaoke-transport-breathe {
-  0%,
-  100% {
-    box-shadow:
-      0 8px 20px rgba($black, 0.34),
-      0 0 18px rgba($secondary-default, 0.26),
-      inset 0 1px 0 rgba($white, 0.42);
-  }
-
-  50% {
-    box-shadow:
-      0 9px 22px rgba($black, 0.36),
-      0 0 30px rgba($secondary-default, 0.5),
-      inset 0 1px 0 rgba($white, 0.48);
   }
 }
 
@@ -3342,10 +3324,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   .karaoke-pitch,
   .karaoke-pitch__canvas {
     transition: none !important;
-  }
-
-  .karaoke-transport__play.is-playing {
-    animation: none !important;
   }
 
   .karaoke-chords__scan {

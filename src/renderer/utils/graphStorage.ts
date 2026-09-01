@@ -72,6 +72,7 @@ export const VIEW_KEYS = {
   wave: 'fluideq.graphWaveHidden',
   quietEq: 'fluideq.graphQuietEq',
   solo: 'fluideq.graphSolo',
+  clean: 'fluideq.graphClean',
   grid: 'fluideq.graphGridHidden',
   coverage: 'fluideq.graphCoverageHidden',
   meter: 'fluideq.graphMeterHidden',

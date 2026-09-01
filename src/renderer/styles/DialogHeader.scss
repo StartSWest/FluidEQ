@@ -16,12 +16,31 @@ it under the terms of the GNU General Public License version 3 or later.
 // 18px/20px/14px padding, and neither knew the other existed. See
 // `DialogHeader.tsx` for why the mark now sits in it.
 .dialog-header {
+  position: relative;
   display: flex;
-  align-items: flex-start;
+  min-height: 60px;
+  align-items: center;
   justify-content: space-between;
   gap: $spacing-m;
-  padding: 18px 20px 14px;
-  border-bottom: 1px solid rgba($primary-lighter, 0.12);
+  padding: 10px 14px 10px 18px;
+  border-bottom: 1px solid rgba($primary-lighter, 0.1);
+  background: rgba(#07111c, 0.32);
+
+  &::after {
+    position: absolute;
+    right: 0;
+    bottom: -1px;
+    left: 0;
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba($secondary-light, 0.34),
+      rgba($neon-lime, 0.2),
+      transparent
+    );
+    content: '';
+  }
 }
 
 .dialog-header__identity {
@@ -45,13 +64,16 @@ it under the terms of the GNU General Public License version 3 or later.
   // about this, and a mark taller than the text it introduces stops being a
   // signature and becomes a picture.
   .brand-mark {
-    width: 36px;
-    height: 36px;
-    border-radius: 12px;
+    width: 34px;
+    height: 34px;
+    border: 1px solid rgba($secondary-light, 0.26);
+    border-radius: $radius-s;
+    background: rgba($secondary-default, 0.1);
+    box-shadow: inset 0 1px 0 rgba($white, 0.06);
 
     svg {
-      width: 24px;
-      height: 24px;
+      width: 22px;
+      height: 22px;
     }
   }
 }
@@ -74,7 +96,8 @@ it under the terms of the GNU General Public License version 3 or later.
   @include truncate;
   margin: 3px 0 0;
   color: rgba($white, 0.95);
-  font-size: 1.1rem;
+  font-size: 1.05rem;
+  line-height: 1.2;
 }
 
 // The titlebar's version tag, to the declaration. It is the same fact in the
@@ -97,15 +120,15 @@ it under the terms of the GNU General Public License version 3 or later.
 
 .dialog-header__close {
   display: grid;
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   flex: 0 0 auto;
   place-items: center;
   padding: 0;
   color: rgba($white, 0.72);
-  border: 1px solid transparent;
-  border-radius: $radius-xs;
-  background: transparent;
+  border: 1px solid rgba($primary-lighter, 0.08);
+  border-radius: $radius-s;
+  background: rgba($primary-dark, 0.2);
   cursor: pointer;
   transition: $transition-control;
 

@@ -27,6 +27,7 @@ import {
 import {
   IVideoSite,
   VIDEO_BROWSER_PARTITION,
+  VIDEO_GRAPH_FULLSCREEN_REQUEST,
   VIDEO_SITES,
   VIDEO_LINK_BLOCKED,
   buildSearchUrl,
@@ -51,7 +52,6 @@ import Switch from '../widgets/Switch';
 import { useTranslation } from '../utils/I18nContext';
 import { useIsAdBlockRevealed } from '../utils/adBlockReveal';
 import { useGraphView } from '../utils/graphStyle';
-import { exitGraphFullScreen } from '../utils/graphViewSettings';
 import VideoSearch from './VideoSearch';
 import {
   claimPlayback,
@@ -62,15 +62,19 @@ import {
   clearTransportSource,
   setTransportSource,
 } from '../audio/transportSource';
+import { PLAYBACK_HANDOFF_GRACE_MS } from '../audio/playbackHandoff';
 import VideoSiteIcon from './VideoSiteIcon';
 import '../styles/VideoBrowser.scss';
 import {
   EXIT_PAGE_FULLSCREEN,
   PLAYER_ONLY_CSS,
   PROBE_PLAYBACK,
+  PROBE_PLAYBACK_PHASE,
   PROBE_SKIP_CONTROLS,
   READ_NOW_PLAYING,
+  READ_PLAYBACK_CLOCK,
   READ_POSITION,
+  STOP_AND_RESET_PLAYBACK,
   nudgePositionScript,
   skipScript,
   STOP_PLAYBACK,
@@ -247,6 +251,9 @@ const VIDEO_RESUME_KEY = 'fluideq.videoResume';
 /** How often to note the position, in milliseconds. */
 const RESUME_SAMPLE_MS = 5000;
 
+/** Four bar updates a second; visual guest work remains stopped off-tab. */
+const TRANSPORT_CLOCK_SAMPLE_MS = 250;
+
 /**
  * Which run of the page-stripping is the current one.
  *
@@ -291,9 +298,23 @@ interface IVideoBrowserProps {
    * with `display: none`, the guest is left alone and keeps playing.
    */
   isHidden: boolean;
+  /** The one fullscreen state shared by Media, Library and Karaoke. */
+  isFullScreen: boolean;
+  /** The player is the picture under an expanded graph, even off its tab. */
+  isGraphBackdrop: boolean;
+  /** Promotes a site's HTML-fullscreen request to FluidEQ's window instead. */
+  onRequestFullScreen: () => void;
+  /** A double-click on the guest video requests graph fullscreen. */
+  onRequestGraphFullScreen: () => void;
 }
 
-const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
+const VideoBrowser = ({
+  isHidden,
+  isFullScreen,
+  isGraphBackdrop,
+  onRequestFullScreen,
+  onRequestGraphFullScreen,
+}: IVideoBrowserProps) => {
   const { t } = useTranslation();
   const webviewRef = useRef<IWebview | null>(null);
   /** The guest's own volume, held here because the page cannot be asked what
@@ -330,6 +351,10 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
    * they are registered on mount and cannot see a prop that changes. */
   const isHiddenRef = useRef(isHidden);
   isHiddenRef.current = isHidden;
+  const onRequestFullScreenRef = useRef(onRequestFullScreen);
+  onRequestFullScreenRef.current = onRequestFullScreen;
+  const onRequestGraphFullScreenRef = useRef(onRequestGraphFullScreen);
+  onRequestGraphFullScreenRef.current = onRequestGraphFullScreen;
   const graphView = useGraphView();
 
   // Read once, into a ref as well as into state: the `src` attribute must not
@@ -367,19 +392,6 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
   // rather than by this component, because the chord that moves it is pressed
   // on the support dialog and this player may not be mounted at the time.
   const isAdBlockRevealed = useIsAdBlockRevealed();
-  // The page asked for fullscreen — the button on YouTube's own player.
-  //
-  // A guest going fullscreen fills the element it lives in and nothing more, so
-  // on its own the button would expand the video to the size of the box it was
-  // already in. This gives it the rest of the player's pane: the toolbar stands
-  // down and the picture takes the lot.
-  //
-  // The pane, and not the window. FluidEQ is not a browser, and the reason to
-  // play something in it is to watch the spectrum move with it — a video over
-  // the whole window covers the graph, which is the only thing here the video
-  // is for.
-  const [isPageFullScreen, setIsPageFullScreen] = useState(false);
-
   const activeSite = findSiteForUrl(currentUrl);
 
   // Held in a ref rather than in state. Nothing renders from it, and a sample
@@ -514,7 +526,7 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
     /**
      * What the bar shows while the Media tab is the one being looked at.
      *
-     * Title, play and pause, a fader, five seconds either way — and the
+     * Title, play, pause and stop, a fader, five seconds either way — and the
      * page's own skip buttons where the page has them.
      *
      * No seek SLIDER, still: there is no playhead we own to move and this
@@ -528,6 +540,17 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
      * page's own button, pressed where the page has one and not offered where
      * it does not. See `PROBE_SKIP_CONTROLS`.
      */
+    let playbackRevision = 0;
+    let retainForHandoff = false;
+    let isDisposed = false;
+    let playbackClockPositionMs = 0;
+    let playbackClockDurationMs = 0;
+    let playbackClockFrame = 0;
+    let playbackClockRevision = 0;
+    let playbackClockReadPending = false;
+    let lastPlaybackClockRead = -Infinity;
+    let handoffFrame = 0;
+    let handoffDeadline = 0;
     const describe = (isPlaying: boolean) => {
       // The song where the page publishes one, the page otherwise.
       //
@@ -557,8 +580,9 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
           nowPlayingRef.current.title,
         ),
         isPlaying,
-        positionMs: 0,
-        durationMs: 0,
+        retainWhenHidden: retainForHandoff || undefined,
+        positionMs: playbackClockPositionMs,
+        durationMs: playbackClockDurationMs,
         toggle: () => {
           try {
             // The one call in this pane made WITH a user gesture, because it
@@ -570,6 +594,26 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
               .catch(() => undefined);
           } catch {
             // No web contents to ask.
+          }
+        },
+        stop: () => {
+          // Stop is a state of this loaded Media page, not the removal of its
+          // source. Publish the paused beginning before asking the guest so
+          // its later `media-paused` event can only confirm the same bar.
+          playbackRevision += 1;
+          setHandoffRetention(false);
+          stopPlaybackClock();
+          playingRef.current = false;
+          playbackClockPositionMs = 0;
+          describe(false);
+          releasePlayback('media');
+          try {
+            view
+              .executeJavaScript(STOP_AND_RESET_PLAYBACK)
+              .catch(() => undefined);
+          } catch {
+            // The loaded description remains; the guest can be retried once it
+            // is attached again instead of replacing the bar with idle chrome.
           }
         },
         // Five seconds either way, done inside the page.
@@ -610,18 +654,131 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
         },
       });
     };
+    const stopPlaybackClock = () => {
+      playbackClockRevision += 1;
+      if (playbackClockFrame !== 0) {
+        window.cancelAnimationFrame(playbackClockFrame);
+        playbackClockFrame = 0;
+      }
+    };
+    const samplePlaybackClock = (renderTime: number) => {
+      if (isDisposed || !playingRef.current) {
+        playbackClockFrame = 0;
+        return;
+      }
+      if (
+        renderTime - lastPlaybackClockRead >= TRANSPORT_CLOCK_SAMPLE_MS &&
+        !playbackClockReadPending
+      ) {
+        lastPlaybackClockRead = renderTime;
+        playbackClockReadPending = true;
+        const revision = playbackClockRevision;
+        try {
+          view
+            .executeJavaScript(READ_PLAYBACK_CLOCK)
+            .then((clock) => {
+              playbackClockReadPending = false;
+              if (
+                isDisposed ||
+                !playingRef.current ||
+                playbackClockRevision !== revision
+              ) {
+                return clock;
+              }
+              const record = (clock ?? {}) as Record<string, unknown>;
+              playbackClockPositionMs =
+                typeof record.positionMs === 'number' &&
+                Number.isFinite(record.positionMs)
+                  ? record.positionMs
+                  : 0;
+              playbackClockDurationMs =
+                typeof record.durationMs === 'number' &&
+                Number.isFinite(record.durationMs)
+                  ? record.durationMs
+                  : 0;
+              describe(true);
+              return clock;
+            })
+            .catch(() => {
+              playbackClockReadPending = false;
+            });
+        } catch {
+          playbackClockReadPending = false;
+        }
+      }
+      playbackClockFrame = window.requestAnimationFrame(samplePlaybackClock);
+    };
+    const startPlaybackClock = () => {
+      stopPlaybackClock();
+      lastPlaybackClockRead = -Infinity;
+      playbackClockFrame = window.requestAnimationFrame(samplePlaybackClock);
+    };
+    const setHandoffRetention = (retain: boolean) => {
+      if (handoffFrame !== 0) {
+        window.cancelAnimationFrame(handoffFrame);
+        handoffFrame = 0;
+      }
+      retainForHandoff = retain;
+      if (!retain) {
+        handoffDeadline = 0;
+        return;
+      }
+      handoffDeadline = performance.now() + PLAYBACK_HANDOFF_GRACE_MS;
+      const watchHandoff = (now: number) => {
+        if (isDisposed || !retainForHandoff) {
+          handoffFrame = 0;
+          return;
+        }
+        if (now >= handoffDeadline) {
+          handoffFrame = 0;
+          retainForHandoff = false;
+          describe(false);
+          return;
+        }
+        handoffFrame = window.requestAnimationFrame(watchHandoff);
+      };
+      handoffFrame = window.requestAnimationFrame(watchHandoff);
+    };
     const onPlaying = () => {
+      playbackRevision += 1;
+      setHandoffRetention(false);
       playingRef.current = true;
       claimPlayback('media');
       describe(true);
+      startPlaybackClock();
+      nowPlayingProbeRef.current();
       // A frame taken now is a frame of the thing that just started, which is
       // a better picture than the page's poster or its cookie banner.
       grabFrame();
     };
     const onPaused = () => {
       playingRef.current = false;
-      releasePlayback('media');
-      describe(false);
+      stopPlaybackClock();
+      const revision = playbackRevision + 1;
+      playbackRevision = revision;
+      const settlePausedState = (phase: unknown) => {
+        if (isDisposed || playbackRevision !== revision) {
+          return;
+        }
+        if (phase === 'playing') {
+          onPlaying();
+          return;
+        }
+        // Every natural end gets the bounded lease. Some sites autoplay a
+        // queue without exposing a usable Next control; the real next
+        // `playing` event cancels it, and expiry handles a final item.
+        setHandoffRetention(phase === 'ended');
+        describe(false);
+        releasePlayback('media');
+      };
+      try {
+        view
+          .executeJavaScript(PROBE_PLAYBACK_PHASE)
+          .then(settlePausedState)
+          .catch(() => settlePausedState('paused'));
+      } catch {
+        settlePausedState('paused');
+      }
     };
     /**
      * Ask the page what it has, and describe it or take the bar away.
@@ -765,6 +922,11 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
               return state;
             }
             playingRef.current = state;
+            if (state) {
+              setHandoffRetention(false);
+              claimPlayback('media');
+              startPlaybackClock();
+            }
             describe(state);
             grabFrame();
             return state;
@@ -781,6 +943,12 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
     view.addEventListener('did-navigate-in-page', probe);
     view.addEventListener('page-title-updated', probe);
     const unregister = registerPlayer('media', () => {
+      playbackRevision += 1;
+      setHandoffRetention(false);
+      stopPlaybackClock();
+      playingRef.current = false;
+      describe(false);
+      releasePlayback('media');
       try {
         view.executeJavaScript(STOP_PLAYBACK).catch(() => undefined);
       } catch {
@@ -788,6 +956,10 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
       }
     });
     return () => {
+      isDisposed = true;
+      playbackRevision += 1;
+      setHandoffRetention(false);
+      stopPlaybackClock();
       view.removeEventListener('media-started-playing', onPlaying);
       view.removeEventListener('media-paused', onPaused);
       view.removeEventListener('dom-ready', probe);
@@ -1057,38 +1229,33 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
     };
 
     const handleEnterFullScreen = () => {
-      // THE THIRD FULL-SCREEN STATE, COLLAPSED BACK INTO TWO.
+      // THERE IS NO GUEST-OWNED FULL-SCREEN STATE.
       //
-      // Letting clicks through to the page — which is what makes a video under
-      // a full-screen graph usable at all — also lets a double-click reach the
-      // player and ask for the page's own HTML full screen. That is a third
-      // mode nothing here manages: the guest covers the graph, the graph is
-      // still mounted and drawing underneath, and two compositing surfaces
-      // fight over the same screen, which is what the stutter is.
+      // YouTube, Twitch and the other guests ask Electron to put the webview in
+      // the document's top layer. That layer is above FluidEQ's titlebar, graph
+      // and exit controls, so it is the state that ate the top of the Media
+      // screen and could not survive a switch to Library or Karaoke.
       //
-      // Whichever the user asked for last wins, and here that is the video. So
-      // the graph's mode is dropped rather than layered under it, and what is
-      // left is ordinary page full screen.
-      exitGraphFullScreen();
-      setIsPageFullScreen(true);
-      // THE WINDOW GOES WITH IT.
-      //
-      // A guest asking for full screen only ever filled the webview's own box
-      // inside our window, so the picture stopped at our chrome and the
-      // taskbar stayed on screen — the player believed it was full screen and
-      // laid its controls out for a display it did not have. Real full screen
-      // is the OS window's to give, and only the main process can ask.
-      window.electron.ipcRenderer
-        .setWindowFullScreen(true)
-        .catch(() => undefined);
+      // Leave the guest's top layer immediately, then promote the same click to
+      // the shared FluidEQ window-fullscreen state. The player still fills the
+      // Media workspace, but App owns tab changes, Escape, the optional top bar
+      // and the one exit path.
+      try {
+        view.executeJavaScript(EXIT_PAGE_FULLSCREEN).catch(() => undefined);
+      } catch {
+        // The guest can disappear between making the request and this event.
+      }
+      onRequestFullScreenRef.current();
     };
     const handleLeaveFullScreen = () => {
-      setIsPageFullScreen(false);
-      // Given back the same way it was taken, so leaving the player's full
-      // screen does not strand the window without its titlebar.
-      window.electron.ipcRenderer
-        .setWindowFullScreen(false)
-        .catch(() => undefined);
+      // Normally the acknowledgement of EXIT_PAGE_FULLSCREEN above. Treating
+      // it as an app exit would undo shared fullscreen in the entering gesture.
+    };
+    const handleGuestMessage = (event: Event) => {
+      const { channel } = event as Event & { channel?: string };
+      if (channel === VIDEO_GRAPH_FULLSCREEN_REQUEST) {
+        onRequestGraphFullScreenRef.current();
+      }
     };
 
     // Nothing may be asked of the guest before this.
@@ -1127,6 +1294,7 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
     view.addEventListener('will-navigate', handleWillNavigate);
     view.addEventListener('enter-html-full-screen', handleEnterFullScreen);
     view.addEventListener('leave-html-full-screen', handleLeaveFullScreen);
+    view.addEventListener('ipc-message', handleGuestMessage);
     view.addEventListener('dom-ready', handleReady);
 
     return () => {
@@ -1137,6 +1305,7 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
       view.removeEventListener('will-navigate', handleWillNavigate);
       view.removeEventListener('enter-html-full-screen', handleEnterFullScreen);
       view.removeEventListener('leave-html-full-screen', handleLeaveFullScreen);
+      view.removeEventListener('ipc-message', handleGuestMessage);
       view.removeEventListener('dom-ready', handleReady);
     };
   }, [syncNavigationState]);
@@ -1297,89 +1466,92 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
       // keeping behind the graph.
       className={`video-browser workspace-tab-panel--video${
         isHidden ? ' is-hidden' : ''
-      }${isPageFullScreen ? ' is-fullscreen' : ''}`}
+      }${isFullScreen ? ' is-fullscreen' : ''}${
+        isGraphBackdrop ? ' is-playback-backdrop' : ''
+      }`}
     >
-      <div className="video-browser__bar">
-        <div className="video-browser__nav">
-          <button
-            type="button"
-            className="video-browser__nav-button"
-            aria-label={t('video.back')}
-            title={t('video.back')}
-            disabled={!canGoBack}
-            onClick={() => webviewRef.current?.goBack()}
-          >
-            <svg viewBox="0 0 16 16" aria-hidden="true">
-              <path d="M10 3L5 8l5 5" />
-            </svg>
-          </button>
-          <button
-            type="button"
-            className="video-browser__nav-button"
-            aria-label={t('video.forward')}
-            title={t('video.forward')}
-            disabled={!canGoForward}
-            onClick={() => webviewRef.current?.goForward()}
-          >
-            <svg viewBox="0 0 16 16" aria-hidden="true">
-              <path d="M6 3l5 5-5 5" />
-            </svg>
-          </button>
-          <button
-            type="button"
-            className="video-browser__nav-button"
-            aria-label={isLoading ? t('video.stop') : t('video.reload')}
-            title={isLoading ? t('video.stop') : t('video.reload')}
-            onClick={() => {
-              const view = webviewRef.current;
-              if (isLoading) {
-                view?.stop();
-              } else {
-                view?.reload();
-              }
-            }}
-          >
-            {isLoading ? (
-              <svg viewBox="0 0 16 16" aria-hidden="true">
-                <path d="M4 4l8 8M12 4l-8 8" />
-              </svg>
-            ) : (
-              <svg viewBox="0 0 16 16" aria-hidden="true">
-                <path d="M13 8a5 5 0 1 1-1.6-3.7M13 2v3h-3" />
-              </svg>
-            )}
-          </button>
-        </div>
-
-        <div
-          className="video-browser__sites"
-          role="group"
-          aria-label={t('video.sites')}
-        >
-          {VIDEO_SITES.map((site) => (
+      {!isHidden && (
+        <div className="video-browser__bar">
+          <div className="video-browser__nav">
             <button
-              key={site.id}
               type="button"
-              className={`video-browser__site${
-                activeSite?.id === site.id ? ' is-active' : ''
-              }`}
-              aria-pressed={activeSite?.id === site.id}
-              onClick={() => goToSite(site)}
+              className="video-browser__nav-button"
+              aria-label={t('video.back')}
+              title={t('video.back')}
+              disabled={!canGoBack}
+              onClick={() => webviewRef.current?.goBack()}
             >
-              <VideoSiteIcon siteId={site.id} />
-              {site.name}
+              <svg viewBox="0 0 16 16" aria-hidden="true">
+                <path d="M10 3L5 8l5 5" />
+              </svg>
             </button>
-          ))}
-        </div>
+            <button
+              type="button"
+              className="video-browser__nav-button"
+              aria-label={t('video.forward')}
+              title={t('video.forward')}
+              disabled={!canGoForward}
+              onClick={() => webviewRef.current?.goForward()}
+            >
+              <svg viewBox="0 0 16 16" aria-hidden="true">
+                <path d="M6 3l5 5-5 5" />
+              </svg>
+            </button>
+            <button
+              type="button"
+              className="video-browser__nav-button"
+              aria-label={isLoading ? t('video.stop') : t('video.reload')}
+              title={isLoading ? t('video.stop') : t('video.reload')}
+              onClick={() => {
+                const view = webviewRef.current;
+                if (isLoading) {
+                  view?.stop();
+                } else {
+                  view?.reload();
+                }
+              }}
+            >
+              {isLoading ? (
+                <svg viewBox="0 0 16 16" aria-hidden="true">
+                  <path d="M4 4l8 8M12 4l-8 8" />
+                </svg>
+              ) : (
+                <svg viewBox="0 0 16 16" aria-hidden="true">
+                  <path d="M13 8a5 5 0 1 1-1.6-3.7M13 2v3h-3" />
+                </svg>
+              )}
+            </button>
+          </div>
 
-        <div className="video-browser__search">
-          <VideoSearch
-            handleSearch={handleSearch}
-            siteName={(activeSite ?? HOME_SITE).name}
-          />
-        </div>
+          <div
+            className="video-browser__sites"
+            role="group"
+            aria-label={t('video.sites')}
+          >
+            {VIDEO_SITES.map((site) => (
+              <button
+                key={site.id}
+                type="button"
+                className={`video-browser__site${
+                  activeSite?.id === site.id ? ' is-active' : ''
+                }`}
+                aria-pressed={activeSite?.id === site.id}
+                onClick={() => goToSite(site)}
+              >
+                <VideoSiteIcon siteId={site.id} />
+                {site.name}
+              </button>
+            ))}
+          </div>
 
-        {/*
+          <div className="video-browser__search">
+            <VideoSearch
+              handleSearch={handleSearch}
+              siteName={(activeSite ?? HOME_SITE).name}
+            />
+          </div>
+
+          {/*
           THE OTHER HALF OF A SESSION THAT REMEMBERS.
 
           The player keeps cookies now, so that signing in is worth doing — and
@@ -1399,56 +1571,57 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
           login and then shows nothing is indistinguishable from one that failed,
           and that difference matters more here than anywhere else in the app.
         */}
-        <button
-          type="button"
-          className={`video-browser__sign-out is-${signOutState}`}
-          onClick={handleSignOut}
-          disabled={signOutState === 'clearing'}
-          title={t('video.signOutHint')}
-          aria-label={t(
-            {
-              idle: 'video.signOut',
-              clearing: 'video.signOutBusy',
-              done: 'video.signOutDone',
-              failed: 'video.signOutFailed',
-            }[signOutState] as TranslationKey,
-          )}
-        >
-          {/* Announced through the button's own label, so the drawing is
+          <button
+            type="button"
+            className={`video-browser__sign-out is-${signOutState}`}
+            onClick={handleSignOut}
+            disabled={signOutState === 'clearing'}
+            title={t('video.signOutHint')}
+            aria-label={t(
+              {
+                idle: 'video.signOut',
+                clearing: 'video.signOutBusy',
+                done: 'video.signOutDone',
+                failed: 'video.signOutFailed',
+              }[signOutState] as TranslationKey,
+            )}
+          >
+            {/* Announced through the button's own label, so the drawing is
               hidden from anything that reads rather than looks. */}
-          <svg viewBox="0 0 16 16" aria-hidden>
-            {signOutState === 'done' && <path d="M3.5 8.4l3 3 6-6.6" />}
-            {signOutState === 'failed' && (
-              <path d="M4.5 4.5l7 7M11.5 4.5l-7 7" />
-            )}
-            {signOutState !== 'done' && signOutState !== 'failed' && (
-              // A door with an arrow leaving it, which is what every other
-              // application in the world uses for this.
-              <>
-                <path d="M9.5 2.5h-6v11h6" />
-                <path d="M7.5 8h7M11.5 5l3 3-3 3" />
-              </>
-            )}
-          </svg>
-        </button>
+            <svg viewBox="0 0 16 16" aria-hidden>
+              {signOutState === 'done' && <path d="M3.5 8.4l3 3 6-6.6" />}
+              {signOutState === 'failed' && (
+                <path d="M4.5 4.5l7 7M11.5 4.5l-7 7" />
+              )}
+              {signOutState !== 'done' && signOutState !== 'failed' && (
+                // A door with an arrow leaving it, which is what every other
+                // application in the world uses for this.
+                <>
+                  <path d="M9.5 2.5h-6v11h6" />
+                  <path d="M7.5 8h7M11.5 5l3 3-3 3" />
+                </>
+              )}
+            </svg>
+          </button>
 
-        {isAdBlockRevealed && (
-          <div className="video-browser__ad-block">
-            <span
-              className="video-browser__ad-block-label"
-              title={t('video.adBlockHint')}
-            >
-              {t('video.adBlock')}
-            </span>
-            <Switch
-              id="videoAdBlocker"
-              isOn={isAdBlockOn}
-              isDisabled={false}
-              handleToggle={() => setIsAdBlockOn((on) => !on)}
-            />
-          </div>
-        )}
-      </div>
+          {isAdBlockRevealed && (
+            <div className="video-browser__ad-block">
+              <span
+                className="video-browser__ad-block-label"
+                title={t('video.adBlockHint')}
+              >
+                {t('video.adBlock')}
+              </span>
+              <Switch
+                id="videoAdBlocker"
+                isOn={isAdBlockOn}
+                isDisabled={false}
+                handleToggle={() => setIsAdBlockOn((on) => !on)}
+              />
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="video-browser__stage">
         <Webview
@@ -1473,7 +1646,7 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
           allowpopups="true"
           webpreferences={VIDEO_WEB_PREFERENCES}
         />
-        {downloadUpdate && (
+        {!isHidden && downloadUpdate && (
           <div
             className={`video-browser__download is-${downloadUpdate.phase}`}
             role={downloadUpdate.phase === 'failed' ? 'alert' : 'status'}
@@ -1565,7 +1738,7 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
             )}
           </div>
         )}
-        {blockedUrl && (
+        {!isHidden && blockedUrl && (
           <div className="video-browser__blocked" role="alert">
             <div>
               <strong>{t('video.blockedTitle')}</strong>

@@ -76,6 +76,17 @@ export const VIDEO_BROWSER_PARTITION = 'persist:fluideq-video';
  */
 export const VIDEO_LINK_BLOCKED = 'video-link-blocked';
 
+/**
+ * A double-click on the guest's actual video, sent from its sandboxed preload
+ * to the owning `<webview>` element.
+ *
+ * This is intentionally not exposed to the page. The preload catches the
+ * gesture before YouTube can request its own HTML fullscreen and App turns it
+ * into the one graph-fullscreen state FluidEQ already owns.
+ */
+export const VIDEO_GRAPH_FULLSCREEN_REQUEST =
+  'fluideq-video-graph-fullscreen-request';
+
 export interface IVideoSite {
   id: string;
   /** The brand's own name. Never translated — nobody localises "YouTube". */

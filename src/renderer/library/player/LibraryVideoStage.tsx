@@ -16,11 +16,11 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { libraryMediaUrl } from '../../../common/library/mediaUrl';
 import { useTranslation } from '../../utils/I18nContext';
 import { useGraphFullScreen } from '../../utils/graphStyle';
-import { useLibraryPlayer } from './LibraryPlayerContext';
+import { useLibraryPlayerSession } from './LibraryPlayerContext';
 import '../../styles/NowPlayingBar.scss';
 
 /**
@@ -32,19 +32,25 @@ import '../../styles/NowPlayingBar.scss';
  * for a video exactly the way it does for a song — see
  * `registerVideoElement`'s doc comment.
  *
- * Fullscreen goes through the same `setWindowFullScreen` IPC call
- * `VideoBrowser` already uses for its own player, not a second mechanism:
- * fullscreen here means this pane fills itself (own CSS, `.is-fullscreen`)
- * while the OS titlebar and taskbar step aside, matching the reasoning in
- * `VideoBrowser.scss` for why the response graph and the rest of the
- * workspace are left exactly where they were rather than torn down too.
+ * Fullscreen is controlled by App. Media, Library and Karaoke therefore resize
+ * the same BrowserWindow and keep the same state when the selected tab changes.
  */
-const LibraryVideoStage = () => {
+interface ILibraryVideoStageProps {
+  /** Keep only the registered media engine; no invisible controls or paint. */
+  isHidden?: boolean;
+  isFullScreen: boolean;
+  onToggleFullScreen: () => void;
+}
+
+const LibraryVideoStage = ({
+  isHidden = false,
+  isFullScreen,
+  onToggleFullScreen,
+}: ILibraryVideoStageProps) => {
   const { t } = useTranslation();
   const { videoTrackId, isPlaying, registerVideoElement, toggle, stop } =
-    useLibraryPlayer();
+    useLibraryPlayerSession();
   const videoRef = useRef<HTMLVideoElement | null>(null);
-  const [isFullScreen, setIsFullScreen] = useState(false);
   /**
    * The graph is expanded or full screen over this tab, so the picture behind
    * it should be this video rather than the record sleeve.
@@ -101,49 +107,13 @@ const LibraryVideoStage = () => {
     }
   }, [isPlaying, videoTrackId]);
 
-  // The window can leave full screen from outside this button — Escape, or
-  // the OS chrome — and `App.tsx`'s Karaoke flag resets itself the same way.
-  useEffect(() => {
-    const unsubscribe = window.electron.ipcRenderer.on(
-      'window-state-changed',
-      (...args: unknown[]) => {
-        const state = args[0] as { isFullScreen?: boolean } | undefined;
-        if (state?.isFullScreen === false) {
-          setIsFullScreen(false);
-        }
-      },
-    );
-    return () => {
-      unsubscribe();
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!videoTrackId && isFullScreen) {
-      window.electron.ipcRenderer
-        .setWindowFullScreen(false)
-        .catch(() => undefined);
-      setIsFullScreen(false);
-    }
-  }, [videoTrackId, isFullScreen]);
-
   if (!videoTrackId) {
     return null;
   }
 
-  const handleToggleFullScreen = async () => {
-    const next = !isFullScreen;
-    try {
-      const applied =
-        await window.electron.ipcRenderer.setWindowFullScreen(next);
-      setIsFullScreen(next && applied);
-    } catch {
-      setIsFullScreen(false);
-    }
-  };
-
   return (
     <div
+      hidden={isHidden}
       className={`library-video-stage${isFullScreen ? ' is-fullscreen' : ''}${
         isBehindGraph ? ' is-behind-graph' : ''
       }`}
@@ -156,7 +126,7 @@ const LibraryVideoStage = () => {
         className="library-video-stage__video"
         src={libraryMediaUrl('track', videoTrackId)}
         onClick={toggle}
-        onDoubleClick={handleToggleFullScreen}
+        onDoubleClick={onToggleFullScreen}
       />
       {/* The way out. Without it a video owned the whole tab until the queue
           happened to move off it — and a video-only queue at its own end never
@@ -164,30 +134,34 @@ const LibraryVideoStage = () => {
           Stopping rather than merely hiding the stage: the queue holds only
           videos, so leaving it playing behind a closed pane would be sound
           with no picture and no obvious way back to it. */}
-      <button
-        type="button"
-        className="library-video-stage__back"
-        aria-label={t('library.back')}
-        title={t('library.back')}
-        onClick={stop}
-      >
-        <svg viewBox="0 0 20 20" aria-hidden="true">
-          <path d="M12 4l-6 6 6 6" />
-        </svg>
-        <span>{t('library.back')}</span>
-      </button>
-      <button
-        type="button"
-        className="library-video-stage__fullscreen"
-        aria-label={t('library.fullScreen')}
-        title={t('library.fullScreen')}
-        aria-pressed={isFullScreen}
-        onClick={handleToggleFullScreen}
-      >
-        <svg viewBox="0 0 20 20" aria-hidden="true">
-          <path d="M7 3H3v4M13 3h4v4M7 17H3v-4M13 17h4v-4" />
-        </svg>
-      </button>
+      {!isHidden && (
+        <>
+          <button
+            type="button"
+            className="library-video-stage__back"
+            aria-label={t('library.back')}
+            title={t('library.back')}
+            onClick={stop}
+          >
+            <svg viewBox="0 0 20 20" aria-hidden="true">
+              <path d="M12 4l-6 6 6 6" />
+            </svg>
+            <span>{t('library.back')}</span>
+          </button>
+          <button
+            type="button"
+            className="library-video-stage__fullscreen"
+            aria-label={t('library.fullScreen')}
+            title={t('library.fullScreen')}
+            aria-pressed={isFullScreen}
+            onClick={onToggleFullScreen}
+          >
+            <svg viewBox="0 0 20 20" aria-hidden="true">
+              <path d="M7 3H3v4M13 3h4v4M7 17H3v-4M13 17h4v-4" />
+            </svg>
+          </button>
+        </>
+      )}
     </div>
   );
 };

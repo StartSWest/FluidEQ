@@ -28,8 +28,14 @@ import {
   DISCLAIMER_ACCEPTED_KEY,
   buildAcceptance,
 } from '../../common/disclaimer';
+import { VIDEO_GRAPH_FULLSCREEN_REQUEST } from '../../common/videoSites';
 import App from '../../renderer/App';
 import { Channels } from '../../main/api';
+import {
+  claimPlayback,
+  resetPlaybackOwner,
+} from '../../renderer/audio/playbackOwner';
+import { setGraphView } from '../../renderer/utils/graphStyle';
 
 describe('App', () => {
   const setWindowFullScreen = jest.fn(async (next: boolean) => next);
@@ -38,6 +44,8 @@ describe('App', () => {
   beforeEach(() => {
     setWindowFullScreen.mockClear();
     sendMediaTransport.mockClear();
+    resetPlaybackOwner();
+    setGraphView('normal');
     window.localStorage.clear();
     // The first-run acknowledgement is a gate: on a profile that has never
     // accepted it, it takes the window and holds focus, and every assertion
@@ -54,6 +62,18 @@ describe('App', () => {
     Object.defineProperty(HTMLCanvasElement.prototype, 'getContext', {
       configurable: true,
       value: jest.fn(() => null),
+    });
+    Object.defineProperty(HTMLMediaElement.prototype, 'play', {
+      configurable: true,
+      value: jest.fn(async () => undefined),
+    });
+    Object.defineProperty(HTMLMediaElement.prototype, 'pause', {
+      configurable: true,
+      value: jest.fn(() => undefined),
+    });
+    Object.defineProperty(HTMLMediaElement.prototype, 'load', {
+      configurable: true,
+      value: jest.fn(() => undefined),
     });
     Object.defineProperty(window, 'electron', {
       configurable: true,
@@ -82,6 +102,14 @@ describe('App', () => {
           isWindowMaximized: async () => false,
           setWindowFullScreen,
           sendMediaTransport,
+          releaseKaraokeSeparationModel: jest.fn(),
+          getLibraryIndex: async () => ({
+            index: { version: 1, roots: [], tracks: [] },
+            wasReset: false,
+          }),
+          onLibraryScanProgress: () => () => {},
+          onLibraryTracksAdded: () => () => {},
+          onLibraryIndexChanged: () => () => {},
         },
       }),
     });
@@ -90,6 +118,23 @@ describe('App', () => {
   it('should render', async () => {
     expect(render(<App />)).toBeTruthy();
     await act(async () => Promise.resolve());
+  });
+
+  it('keeps the official website in a fixed right-pane footer', async () => {
+    const { container } = render(<App />);
+    await act(async () => Promise.resolve());
+
+    const website = screen.getByRole('link', {
+      name: 'Open fluideq.com in your browser',
+    });
+    expect(website).toBeVisible();
+    expect(website).toHaveAttribute('href', 'https://fluideq.com');
+    expect(website).toHaveAttribute('target', '_blank');
+    const footer = website.closest('.right-content__footer');
+    const scrollArea = container.querySelector('.right-content__scroll');
+    expect(footer).not.toBeNull();
+    expect(scrollArea).not.toBeNull();
+    expect(scrollArea).not.toContainElement(footer as HTMLElement);
   });
 
   it('starts both output sections collapsed', async () => {
@@ -226,7 +271,7 @@ describe('App', () => {
     expect(container.querySelector('.graph-wrapper')).toBeNull();
   });
 
-  it('gives Karaoke its own Ctrl+F and top-corner full-screen control', async () => {
+  it('uses the media surface for its control and graph fullscreen for Ctrl+F', async () => {
     const { container } = render(<App />);
     await act(async () => Promise.resolve());
     fireEvent.click(screen.getByRole('tab', { name: 'Karaoke' }));
@@ -248,8 +293,13 @@ describe('App', () => {
     );
     expect(setWindowFullScreen).toHaveBeenCalledTimes(1);
     expect(container.querySelector('.app-workspace')).toHaveClass(
-      'is-karaoke-full',
+      'is-app-full',
       'has-top-bar',
+    );
+    expect(container.querySelector('.app-workspace')).not.toHaveClass(
+      'is-media-full',
+      'is-karaoke-full',
+      'has-karaoke-graph',
     );
     expect(
       screen.queryByRole('heading', {
@@ -261,32 +311,213 @@ describe('App', () => {
       screen.getByRole('button', { name: 'Exit full screen' }),
     ).toBeVisible();
 
-    fireEvent.click(
-      screen.getByRole('button', { name: 'Hide the FluidEQ header' }),
-    );
-    expect(container.querySelector('.app-workspace')).not.toHaveClass(
-      'has-top-bar',
-    );
-    expect(
-      container.querySelector('.fullscreen-chrome'),
-    ).not.toBeInTheDocument();
-    fireEvent.click(
-      screen.getByRole('button', { name: 'Show the FluidEQ header' }),
-    );
-    expect(container.querySelector('.app-workspace')).toHaveClass(
-      'has-top-bar',
-    );
-
     fireEvent.keyDown(window, { key: 'Escape', code: 'Escape' });
     await waitFor(() =>
       expect(setWindowFullScreen).toHaveBeenLastCalledWith(false),
     );
     expect(setWindowFullScreen).toHaveBeenCalledTimes(2);
     expect(container.querySelector('.app-workspace')).not.toHaveClass(
+      'is-media-full',
       'is-karaoke-full',
     );
     expect(container.querySelector('.center-workspace')).not.toHaveClass(
       'is-graph-full',
+    );
+  });
+
+  it.each([
+    ['karaoke', 'Karaoke', '.karaoke-workspace'],
+    ['library', 'Library', '.library-workspace'],
+  ] as const)(
+    'keeps Online Media hidden when %s owns the graph backdrop',
+    async (owner, tabName, ownerSelector) => {
+      const { container } = render(<App />);
+      await act(async () => Promise.resolve());
+      fireEvent.click(screen.getByRole('tab', { name: tabName }));
+      act(() => claimPlayback(owner));
+      fireEvent.click(screen.getByRole('tab', { name: 'Online Media' }));
+
+      fireEvent.keyDown(window, { key: 'f', code: 'KeyF', ctrlKey: true });
+      await waitFor(() =>
+        expect(setWindowFullScreen).toHaveBeenLastCalledWith(true),
+      );
+
+      await waitFor(() =>
+        expect(container.querySelector('.video-browser')).toHaveClass(
+          'is-hidden',
+        ),
+      );
+      expect(container.querySelector(ownerSelector)).toHaveClass(
+        owner === 'karaoke' ? 'is-graph-overlay' : 'is-playback-backdrop',
+      );
+
+      fireEvent.keyDown(window, { key: 'Escape', code: 'Escape' });
+      await waitFor(() =>
+        expect(setWindowFullScreen).toHaveBeenLastCalledWith(false),
+      );
+    },
+  );
+
+  it('restores a Library graph fullscreen double-click that passes through the graph', async () => {
+    const { container } = render(<App />);
+    await act(async () => Promise.resolve());
+    fireEvent.click(screen.getByRole('tab', { name: 'Library' }));
+    act(() => claimPlayback('library'));
+
+    fireEvent.keyDown(window, { key: 'f', code: 'KeyF', ctrlKey: true });
+    await waitFor(() =>
+      expect(container.querySelector('.center-workspace')).toHaveClass(
+        'is-graph-full',
+      ),
+    );
+
+    const librarySurface = container.querySelector('.library-workspace');
+    expect(librarySurface).not.toBeNull();
+    fireEvent.doubleClick(librarySurface as HTMLElement);
+
+    await waitFor(() =>
+      expect(container.querySelector('.center-workspace')).not.toHaveClass(
+        'is-graph-full',
+      ),
+    );
+    await waitFor(() =>
+      expect(setWindowFullScreen).toHaveBeenLastCalledWith(false),
+    );
+  });
+
+  it.each([
+    ['expanded', 's', 'KeyS', 0],
+    ['fullscreen', 'f', 'KeyF', 2],
+  ] as const)(
+    'exits graph %s when the workspace tab changes',
+    async (_mode, key, code, expectedFullScreenCalls) => {
+      const { container } = render(<App />);
+      await act(async () => Promise.resolve());
+      fireEvent.click(screen.getByRole('tab', { name: 'Online Media' }));
+      act(() => claimPlayback('media'));
+
+      fireEvent.keyDown(window, { key, code, ctrlKey: true });
+      await waitFor(() =>
+        expect(container.querySelector('.center-workspace')).toHaveClass(
+          'is-graph-full',
+        ),
+      );
+
+      fireEvent.click(screen.getByRole('tab', { name: 'Library' }));
+      await waitFor(() =>
+        expect(container.querySelector('.center-workspace')).not.toHaveClass(
+          'is-graph-full',
+        ),
+      );
+      await waitFor(() =>
+        expect(setWindowFullScreen).toHaveBeenCalledTimes(
+          expectedFullScreenCalls,
+        ),
+      );
+    },
+  );
+
+  it('keeps player fullscreen across media tabs and exits it for EQ or DSP', async () => {
+    const { container } = render(<App />);
+    await act(async () => Promise.resolve());
+    fireEvent.click(screen.getByRole('tab', { name: 'Karaoke' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Enter full screen' }));
+    await waitFor(() =>
+      expect(setWindowFullScreen).toHaveBeenLastCalledWith(true),
+    );
+
+    setWindowFullScreen.mockClear();
+    fireEvent.click(screen.getByRole('tab', { name: 'Library' }));
+    expect(container.querySelector('.app-workspace')).toHaveClass(
+      'is-app-full',
+    );
+    expect(setWindowFullScreen).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByRole('tab', { name: 'Online Media' }));
+    expect(container.querySelector('.app-workspace')).toHaveClass(
+      'is-app-full',
+    );
+    expect(setWindowFullScreen).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByRole('tab', { name: 'EQ' }));
+    await waitFor(() =>
+      expect(setWindowFullScreen).toHaveBeenLastCalledWith(false),
+    );
+
+    setWindowFullScreen.mockClear();
+    fireEvent.click(screen.getByRole('tab', { name: 'Karaoke' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Enter full screen' }));
+    await waitFor(() =>
+      expect(setWindowFullScreen).toHaveBeenLastCalledWith(true),
+    );
+    fireEvent.click(screen.getByRole('tab', { name: 'DSP' }));
+    await waitFor(() =>
+      expect(setWindowFullScreen).toHaveBeenLastCalledWith(false),
+    );
+  });
+
+  it('promotes an Online Media HTML-fullscreen request to the shared app surface', async () => {
+    const { container } = render(<App />);
+    await act(async () => Promise.resolve());
+    fireEvent.click(screen.getByRole('tab', { name: 'Online Media' }));
+
+    const view = container.querySelector('webview');
+    if (!view) {
+      throw new Error('Online Media did not mount its webview');
+    }
+    const executeJavaScript = jest.fn(async () => undefined);
+    Object.defineProperty(view, 'executeJavaScript', {
+      configurable: true,
+      value: executeJavaScript,
+    });
+
+    fireEvent(view as HTMLElement, new Event('enter-html-full-screen'));
+
+    await waitFor(() =>
+      expect(setWindowFullScreen).toHaveBeenLastCalledWith(true),
+    );
+    expect(executeJavaScript).toHaveBeenCalled();
+    expect(container.querySelector('.app-workspace')).toHaveClass(
+      'is-app-full',
+      'is-media-full',
+    );
+    expect(container.querySelector('.video-browser')).toHaveClass(
+      'is-fullscreen',
+    );
+  });
+
+  it('turns a guest video double-click into graph fullscreen', async () => {
+    const { container } = render(<App />);
+    await act(async () => Promise.resolve());
+    fireEvent.click(screen.getByRole('tab', { name: 'Online Media' }));
+    act(() => claimPlayback('media'));
+
+    const view = container.querySelector('webview');
+    if (!view) {
+      throw new Error('Online Media did not mount its webview');
+    }
+    const request = new Event('ipc-message');
+    Object.defineProperty(request, 'channel', {
+      value: VIDEO_GRAPH_FULLSCREEN_REQUEST,
+    });
+    fireEvent(view as HTMLElement, request);
+
+    await waitFor(() =>
+      expect(setWindowFullScreen).toHaveBeenLastCalledWith(true),
+    );
+    expect(container.querySelector('.center-workspace')).toHaveClass(
+      'is-graph-full',
+    );
+    expect(container.querySelector('.video-browser')).toHaveClass(
+      'is-playback-backdrop',
+    );
+    expect(container.querySelector('.video-browser')).not.toHaveClass(
+      'is-fullscreen',
+    );
+
+    fireEvent.keyDown(window, { key: 'Escape', code: 'Escape' });
+    await waitFor(() =>
+      expect(setWindowFullScreen).toHaveBeenLastCalledWith(false),
     );
   });
 

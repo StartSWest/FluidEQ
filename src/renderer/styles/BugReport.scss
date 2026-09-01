@@ -7,80 +7,39 @@ it under the terms of the GNU General Public License version 3 or later.
 */
 
 @use 'color' as *;
+@use 'dialog' as dialog;
 @use 'motion' as *;
 @use 'spacing' as *;
 @use 'theme' as *;
 
 .bug-report-backdrop {
-  @include animate(fade-in, $motion-fast);
-  position: fixed;
-  z-index: 1600;
-  inset: 0;
-  display: grid;
-  padding: $spacing-m;
-  place-items: center;
-  background: rgba(#03070d, 0.68);
-  backdrop-filter: blur(3px);
+  @include dialog.backdrop(1600);
 }
 
 .bug-report {
-  @include animate(pop-in, $motion-base, $ease-spring);
-  @include menu-surface;
+  @include dialog.surface(840px, 840px);
+  grid-template-rows: auto minmax(0, 1fr) auto;
+}
+
+.bug-report__body-wrap {
   display: grid;
-  width: min(720px, 100%);
-  max-height: calc(100vh - #{$spacing-m} * 2);
-  padding: 22px 24px;
-  gap: 14px;
+  min-height: 0;
+  padding: 16px 18px;
+  gap: 12px;
   overflow-y: auto;
   @include slim-scrollbar;
 }
 
-.bug-report__head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-
-  h2 {
-    margin: 0;
-    font-size: 1rem;
-    font-weight: $weight-bold;
-  }
-
-  button {
-    display: grid;
-    width: 28px;
-    height: 28px;
-    place-items: center;
-    padding: 0;
-    color: rgba($white, 0.68);
-    border: 1px solid transparent;
-    border-radius: $radius-xs;
-    background: transparent;
-    cursor: pointer;
-
-    svg {
-      width: 12px;
-      height: 12px;
-      fill: none;
-      stroke: currentColor;
-      stroke-width: 1.6;
-      stroke-linecap: round;
-    }
-
-    &:hover {
-      color: $white;
-      border-color: rgba($white, 0.2);
-    }
-  }
-}
-
 .bug-report__field {
+  @include dialog.section-surface;
   display: grid;
+  padding: 12px;
   gap: 6px;
 
   > span {
-    color: rgba($primary-lighter, 0.78);
+    color: rgba($primary-lighter, 0.82);
     font-size: 0.74rem;
+    font-weight: $weight-semibold;
     line-height: 1.45;
   }
 
@@ -113,7 +72,7 @@ it under the terms of the GNU General Public License version 3 or later.
 
 .bug-report__warn {
   margin: 0;
-  padding: 8px 12px;
+  padding: 10px 12px;
   color: $neon-yellow;
   border: 1px solid rgba($neon-yellow, 0.25);
   border-radius: $radius-s;
@@ -124,7 +83,9 @@ it under the terms of the GNU General Public License version 3 or later.
 // Stated plainly and near the buttons, because it is the thing somebody wants
 // to know at the moment they are deciding whether to press one.
 .bug-report__privacy {
+  @include dialog.section-surface;
   margin: 0;
+  padding: 10px 12px;
   color: rgba($primary-lighter, 0.6);
   font-size: 0.7rem;
   line-height: 1.5;
@@ -140,7 +101,7 @@ it under the terms of the GNU General Public License version 3 or later.
     color: rgba($primary-lighter, 0.9);
     border: 1px solid rgba($secondary-default, 0.3);
     border-radius: $radius-s;
-    background: transparent;
+    background: rgba($primary-dark, 0.22);
     font-size: 0.8rem;
     font-weight: $weight-semibold;
     cursor: pointer;
@@ -156,8 +117,8 @@ it under the terms of the GNU General Public License version 3 or later.
 .bug-report__primary {
   flex: 1 1 auto;
   color: #06131d !important;
-  border: none !important;
-  background: $secondary-light !important;
+  border-color: rgba(137, 255, 246, 0.82) !important;
+  background: linear-gradient(135deg, #64fff0, #10d7c7 72%) !important;
 
   &:hover {
     background: $white !important;
@@ -168,4 +129,26 @@ it under the terms of the GNU General Public License version 3 or later.
   margin: 0;
   color: $secondary-light;
   font-size: 0.74rem;
+}
+
+.bug-report__footer {
+  display: grid;
+  padding: 11px 16px 13px;
+  gap: 8px;
+  border-top: 1px solid rgba($primary-lighter, 0.1);
+  background: rgba(#07111c, 0.26);
+}
+
+@media (max-width: 620px) {
+  .bug-report__actions {
+    flex-wrap: wrap;
+
+    button {
+      flex: 1 1 auto;
+    }
+
+    .bug-report__primary {
+      flex-basis: 100%;
+    }
+  }
 }

@@ -21,7 +21,7 @@ import { ILibraryTrack } from '../../common/library/types';
 import { TranslationKey } from '../../common/i18n';
 import { useTranslation } from '../utils/I18nContext';
 import { useLibrary } from './LibraryContext';
-import { useLibraryPlayer } from './player/LibraryPlayerContext';
+import { useLibraryPlayerSession } from './player/LibraryPlayerContext';
 import LibraryCoverArt from './LibraryCoverArt';
 import Switch from '../widgets/Switch';
 
@@ -225,7 +225,7 @@ const LibraryUpNext = ({
     moveUpNext,
     isContinuationOn,
     setIsContinuationOn,
-  } = useLibraryPlayer();
+  } = useLibraryPlayerSession();
 
   const listRef = useRef<HTMLDivElement | null>(null);
   const [scrollTop, setScrollTop] = useState(0);

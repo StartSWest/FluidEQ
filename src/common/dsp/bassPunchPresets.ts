@@ -158,6 +158,20 @@ export const BASS_PUNCH_PRESET_BY_ID = {
     // it is nearly off while attack and duck do the work of cutting through.
     settings: profile(90, 0.9, -0.5, 0.05, 50, 0.55),
   },
+  pop: {
+    id: 'pop',
+    labelKey: 'dsp.eqPreset.pop',
+    group: 'genre',
+    settings: profile(110, 0.35, 0.1, 0.2, 110, 0.2),
+  },
+  acoustic: {
+    id: 'acoustic',
+    labelKey: 'dsp.eqPreset.acoustic',
+    group: 'genre',
+    // A natural body resonance is already in the instrument. This only dries
+    // its tail slightly and leaves both the leading edge and the mids intact.
+    settings: profile(90, -0.1, -0.25, 0.05, 80, 0.05),
+  },
 
   lateNight: {
     id: 'lateNight',
@@ -175,6 +189,20 @@ export const BASS_PUNCH_PRESET_BY_ID = {
     labelKey: 'dsp.masterPreset.club',
     group: 'scene',
     settings: profile(100, 0.5, 0.5, 0.5, 200, 0.4),
+  },
+  movie: {
+    id: 'movie',
+    labelKey: 'dsp.eqPreset.movie',
+    group: 'scene',
+    settings: profile(100, 0.25, 0.65, 0.6, 220, 0.25),
+  },
+  gaming: {
+    id: 'gaming',
+    labelKey: 'dsp.eqPreset.gaming',
+    group: 'scene',
+    // Fast impact and no tail: repeated effects remain separate rather than
+    // turning a busy scene into one continuous low-frequency bed.
+    settings: profile(100, 0.75, -0.35, 0.05, 60, 0.45),
   },
 } satisfies Record<string, IBassPunchPreset>;
 

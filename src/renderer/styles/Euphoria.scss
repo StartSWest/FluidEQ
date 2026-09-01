@@ -92,6 +92,14 @@ it under the terms of the GNU General Public License version 3 or later.
       0 0 14px hsl(var(--euphoria-hue) 95% 60% / 26%);
   }
 
+  // Off remains a stopped instrument even while the rest of the app is in
+  // euphoria. A hue-sweeping rim around a static grid is still a visualiser.
+  .waveform-visualizer.is-off {
+    animation: none;
+    border-color: rgba($primary-lighter, 0.16);
+    box-shadow: inset 0 1px 0 rgba($white, 0.04);
+  }
+
   .euphoria-pill {
     animation: euphoria-sweep 3.6s linear infinite;
   }
@@ -362,54 +370,164 @@ it under the terms of the GNU General Public License version 3 or later.
 // narrow meter the two were painted across each other. The pane keeps the
 // 64px it has at every other width.
 
-// The moment it lands.
-//
-// Fired once, by a key change on the element, and it removes itself when the
-// animation ends — a celebration that lingers is wallpaper. Everything here is
-// transform and opacity so the whole thing is composited: a burst that drops
-// frames on the one occasion it fires would be worse than no burst.
+// The moment Rainbow mode switches on: a prismatic shutter, built from the
+// same vertical language as the spectrum bars rather than expanding circles.
+// It crosses the whole window once, then the parent's own final animation event
+// removes the temporary layer. The moving pieces use only transform and opacity
+// so the one celebration does not stall the live graph underneath it.
 .euphoria-burst {
   position: fixed;
   z-index: 3000;
-  top: 50%;
-  left: 50%;
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
+  overflow: hidden;
+  isolation: isolate;
+  animation: euphoria-burst-life 1100ms linear forwards;
   pointer-events: none;
-  translate: -50% -50%;
+  inset: 0;
 
-  // Two rings leaving at slightly different rates, because a single expanding
-  // circle reads as a loading spinner and a pair reads as an impact.
+  // A broad diagonal colour cut crosses behind the blades. It is light rather
+  // than an opaque sheet, so the app remains legible throughout the hit.
   &::before,
   &::after {
     position: absolute;
-    inset: 0;
-    border: 2px solid;
-    border-radius: 50%;
-    animation: euphoria-ring 900ms cubic-bezier(0.16, 0.9, 0.3, 1) forwards;
     content: '';
+    pointer-events: none;
   }
 
   &::before {
-    border-color: $neon-lime;
+    top: -20%;
+    bottom: -20%;
+    left: -45%;
+    width: 56%;
+    background: linear-gradient(
+      105deg,
+      transparent 0%,
+      rgba(#4defff, 0.12) 14%,
+      rgba(#7dff7a, 0.34) 31%,
+      rgba(#ffe86a, 0.48) 48%,
+      rgba(#ff6cb8, 0.42) 66%,
+      rgba(#8e69ff, 0.18) 84%,
+      transparent 100%
+    );
+    transform: skewX(-13deg) translate3d(-40vw, 0, 0);
+    animation: euphoria-prism-sweep 940ms cubic-bezier(0.16, 0.9, 0.3, 1)
+      forwards;
   }
 
+  // The impact line arrives through the centre and opens edge-to-edge. It is
+  // the switch's click made visible, before the coloured blades follow it.
   &::after {
-    border-color: #ff3cac;
-    animation-delay: 90ms;
+    top: 50%;
+    right: 0;
+    left: 0;
+    height: 2px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(#4defff, 0.86),
+      rgba($white, 0.96),
+      rgba(#ff4daf, 0.88),
+      transparent
+    );
+    box-shadow:
+      0 0 14px rgba(#4defff, 0.62),
+      0 0 26px rgba(#ff4daf, 0.46);
+    transform: scaleX(0);
+    animation: euphoria-impact-line 760ms cubic-bezier(0.16, 0.9, 0.3, 1)
+      forwards;
   }
 }
 
-@keyframes euphoria-ring {
-  from {
-    opacity: 0.9;
-    scale: 1;
+.euphoria-burst__blade {
+  position: absolute;
+  top: -24vh;
+  bottom: -24vh;
+  left: calc(var(--euphoria-blade-index) * 7.7vw - 4vw);
+  width: 12vw;
+  background: linear-gradient(
+    180deg,
+    transparent 4%,
+    hsl(var(--euphoria-blade-hue) 96% 68% / 8%) 22%,
+    hsl(var(--euphoria-blade-hue) 98% 64% / 52%) 50%,
+    hsl(var(--euphoria-blade-hue) 96% 68% / 10%) 78%,
+    transparent 96%
+  );
+  opacity: 0;
+  transform: translate3d(0, 105vh, 0) skewX(-12deg) scaleY(0.22);
+  animation: euphoria-blade-rise 840ms cubic-bezier(0.12, 0.86, 0.24, 1)
+    forwards;
+  animation-delay: calc(var(--euphoria-blade-index) * 14ms);
+  will-change: transform, opacity;
+}
+
+@keyframes euphoria-burst-life {
+  0%,
+  88% {
+    opacity: 1;
   }
 
-  to {
+  100% {
     opacity: 0;
-    scale: 90;
+  }
+}
+
+@keyframes euphoria-prism-sweep {
+  0% {
+    opacity: 0;
+    transform: skewX(-13deg) translate3d(-40vw, 0, 0);
+  }
+
+  18% {
+    opacity: 1;
+  }
+
+  72% {
+    opacity: 0.7;
+  }
+
+  100% {
+    opacity: 0;
+    transform: skewX(-13deg) translate3d(185vw, 0, 0);
+  }
+}
+
+@keyframes euphoria-impact-line {
+  0% {
+    opacity: 0;
+    transform: scaleX(0);
+  }
+
+  18% {
+    opacity: 1;
+  }
+
+  58% {
+    opacity: 0.82;
+    transform: scaleX(1);
+  }
+
+  100% {
+    opacity: 0;
+    transform: scaleX(1);
+  }
+}
+
+@keyframes euphoria-blade-rise {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 105vh, 0) skewX(-12deg) scaleY(0.22);
+  }
+
+  24% {
+    opacity: 0.82;
+  }
+
+  66% {
+    opacity: 0.5;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate3d(0, -115vh, 0) skewX(-12deg) scaleY(0.42);
   }
 }
 
@@ -509,6 +627,22 @@ it under the terms of the GNU General Public License version 3 or later.
     &,
     .bandWrapper {
       animation: none;
+    }
+  }
+
+  .euphoria-burst {
+    background: linear-gradient(
+      105deg,
+      rgba(#4defff, 0.08),
+      rgba(#ffe86a, 0.14),
+      rgba(#ff4daf, 0.1)
+    );
+    animation-duration: 240ms;
+
+    &::before,
+    &::after,
+    .euphoria-burst__blade {
+      display: none;
     }
   }
 }

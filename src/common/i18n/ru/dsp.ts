@@ -68,6 +68,8 @@ const dsp = {
     'Предотвращает последующую перегрузку, но не восстанавливает искажения, уже записанные в файл.',
 
   'dsp.denoise.title': 'Шумоподавление',
+  'dsp.denoisePreset.gentle': 'Мягкая очистка',
+  'dsp.denoisePreset.strong': 'Глубокая очистка',
   'dsp.denoise.description':
     'Восстанавливает источник до того, как что-либо его окрасит: шипение, сетевой фон, щелчки и нейронная очистка голоса. Измерено по самому треку, а не угадано.',
   'dsp.denoise.isolate': 'Изолировать',
@@ -221,6 +223,14 @@ const dsp = {
 
   'dsp.eqPreset.import': 'Импорт',
   'dsp.eqPreset.export': 'Экспорт',
+  'dsp.chainSave.title': 'Сохранить цепочку DSP',
+  'dsp.chainSave.hint': 'Сохраняет все фильтры и их состояние в одном пресете.',
+  'dsp.chainShare.hint': 'Сохраняет всю цепочку фильтров в файл для обмена.',
+  'dsp.chainImport.title': 'Импорт цепочки DSP',
+  'dsp.chainImport.hint':
+    'Вставьте пресет цепочки DSP FluidEQ или выберите его JSON-файл.',
+  'dsp.chainImport.placeholder': '{"format": "fluideq-dsp-chain", ...}',
+  'dsp.chainImport.invalid': 'Это не пресет цепочки DSP FluidEQ.',
   'dsp.eqSave.title': 'Сохранить пресет',
   'dsp.eqSave.hint': 'Сохраняет рэк как есть.',
   'dsp.eqSave.placeholder': 'Имя',

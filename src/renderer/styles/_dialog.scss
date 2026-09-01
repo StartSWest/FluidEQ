@@ -1,0 +1,100 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'motion' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+// The shared modal family. About, release notes, processes and problem reports
+// used to agree only on being dark rectangles; each carried a slightly
+// different blur, radius and shadow. These two mixins make a new dialog belong
+// to the app by construction, while still allowing each body to choose its own
+// width and content layout.
+@mixin backdrop($layer) {
+  @include animate(fade-in, $motion-fast);
+  position: fixed;
+  z-index: $layer;
+  inset: 0;
+  display: grid;
+  padding: $spacing-l;
+  place-items: center;
+  background:
+    radial-gradient(
+      circle at 18% 16%,
+      rgba($secondary-default, 0.1),
+      transparent 38%
+    ),
+    rgba(#03070d, 0.74);
+  backdrop-filter: blur(14px) saturate(1.12);
+
+  @media (max-width: 620px), (max-height: 620px) {
+    padding: $spacing-s;
+  }
+}
+
+@mixin surface($width, $height) {
+  @include animate(pop-in, $motion-base, $ease-spring);
+  position: relative;
+  display: grid;
+  width: min($width, 100%);
+  max-height: min($height, calc(100vh - #{$spacing-l} * 2));
+  overflow: hidden;
+  border: 1px solid rgba($secondary-light, 0.27);
+  border-radius: $radius-xl;
+  background:
+    linear-gradient(135deg, rgba($white, 0.035), transparent 38%),
+    linear-gradient(155deg, rgba(#18293e, 0.97), rgba(#0b1421, 0.98));
+  box-shadow:
+    0 32px 90px rgba($black, 0.64),
+    inset 0 1px 0 rgba($white, 0.07);
+
+  // One subtle spectrum edge connects these utility windows to the analyser
+  // without turning every panel into a rainbow card.
+  &::before {
+    position: absolute;
+    z-index: 2;
+    top: 0;
+    right: 9%;
+    left: 9%;
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba($secondary-light, 0.58),
+      rgba($neon-lime, 0.3),
+      rgba(#ff4daf, 0.28),
+      transparent
+    );
+    content: '';
+    pointer-events: none;
+  }
+
+  .is-euphoric & {
+    animation: euphoria-sweep 3.6s linear infinite;
+    border-color: hsl(var(--euphoria-hue, 160deg) 90% 62% / 55%);
+    box-shadow:
+      0 32px 90px rgba($black, 0.64),
+      0 0 36px hsl(var(--euphoria-hue, 160deg) 95% 60% / 22%),
+      inset 0 1px 0 rgba($white, 0.07);
+  }
+
+  @media (max-width: 620px), (max-height: 620px) {
+    max-height: calc(100vh - #{$spacing-m});
+    border-radius: $radius-l;
+  }
+}
+
+// A modern inner group: enough separation to scan, not another floating modal
+// inside the first one.
+@mixin section-surface {
+  border: 1px solid rgba($primary-lighter, 0.1);
+  border-radius: $radius-m;
+  background: rgba(#091522, 0.34);
+  box-shadow: inset 0 1px 0 rgba($white, 0.03);
+}

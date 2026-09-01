@@ -25,10 +25,10 @@ import { MutableRefObject, useCallback, useRef } from 'react';
 import { IDspSettings } from '../../../common/dsp/chain';
 import { ILibraryTrack } from '../../../common/library/types';
 import { readDspNativeTransport, useDspNativeTransport } from '../../dsp/store';
+import { MIN_LEAD_IN_TRIM_MS } from './playerContract';
 import {
   useNativeBackend,
   useNativeDeviceGeneration,
-  useNativeMeters,
   useNativeMirror,
   useNativeTransport,
 } from '../../dsp/useNativeBackend';
@@ -84,8 +84,6 @@ export const usePlayerEngine = (options: {
    * selected, so there is nothing here to call by accident on either path.
    */
   const nativeBackend = useNativeBackend(dspSettings);
-  // The panel's graphs read the engine that is audible, not the muted one.
-  useNativeMeters(nativeBackend);
   // And the mirror re-cues when the host moves to a different endpoint.
   useNativeDeviceGeneration(nativeBackend);
   // The clock comes from the engine making the sound. See `hostTransport`.
@@ -145,6 +143,7 @@ export const usePlayerEngine = (options: {
   hostOwnsTransportRef.current = hostOwnsTransport;
   /** Fired for at most one track; see the effect beside `handleEnded`. */
   const endedTrackRef = useRef<string | undefined>(undefined);
+  const measuredLeadInMs = track?.normalization?.edges?.leadInMs ?? 0;
   const mirrorSeek = useNativeMirror(nativeBackend, audioElements, {
     mediaPath: track?.path,
     isPlaying,
@@ -158,14 +157,15 @@ export const usePlayerEngine = (options: {
      * sync — which is exactly when the fade should start. A method called
      * afterwards always arrived to find the track already cued as a cut.
      */
-    transition:
-      dspSettings.enabled && dspSettings.crossfade.enabled
-        ? {
-            durationMs: dspSettings.crossfade.durationMs,
-            curve: dspSettings.crossfade.curve,
-            shape: dspSettings.crossfade.shape,
-          }
-        : undefined,
+    transition: dspSettings.crossfade.enabled
+      ? {
+          durationMs: dspSettings.crossfade.durationMs,
+          curve: dspSettings.crossfade.curve,
+          shape: dspSettings.crossfade.shape,
+          startPositionMs:
+            measuredLeadInMs >= MIN_LEAD_IN_TRIM_MS ? measuredLeadInMs : 0,
+        }
+      : undefined,
   });
 
   /**

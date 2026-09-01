@@ -35,7 +35,7 @@ import {
 import { CROSSFADE_TABLE_POINTS } from '../../common/dsp/crossfadeShape';
 import { findDspHostExecutable } from '../dspHost/hostPath';
 import { DspHostSupervisor, TDspHostState } from '../dspHost/supervisor';
-import { IHostAnalysis, IHostTelemetry } from '../dspHost/wire';
+import { IHostAnalysis, IHostStats, IHostTelemetry } from '../dspHost/wire';
 
 export interface IDspHostIpcDeps {
   getMainWindow: () => BrowserWindow | null;
@@ -525,6 +525,16 @@ export const registerDspHostIpc = ({
  * Task Manager files it away from the FluidEQ group entirely.
  */
 export const dspHostPid = (): number | undefined => supervisor?.getPid();
+
+/**
+ * What the host process costs, as the host itself measured it.
+ *
+ * The same list, and the one row Electron cannot fill in: `getAppMetrics`
+ * covers Electron's children and this is a separate executable. Undefined
+ * until its first sample arrives, which is within a frame of it starting.
+ */
+export const dspHostStats = (): IHostStats | undefined =>
+  supervisor?.getStats();
 
 /**
  * Is FluidEQ playing something right now?

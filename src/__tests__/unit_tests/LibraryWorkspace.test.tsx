@@ -50,6 +50,7 @@ const track = (over: Partial<ILibraryTrack>): ILibraryTrack => ({
 // calls, which nothing in this file did before Task 19 wired `playTracks` in.
 const mediaPlay = jest.fn().mockResolvedValue(undefined);
 const mediaPause = jest.fn();
+const toggleFullScreen = jest.fn();
 
 const addLibraryRoot = jest.fn(() =>
   Promise.resolve({ version: 1, roots: [], tracks: [] }),
@@ -84,6 +85,7 @@ beforeEach(() => {
   cancelLibraryScan.mockClear();
   mediaPlay.mockClear();
   mediaPause.mockClear();
+  toggleFullScreen.mockClear();
   progressListener = undefined;
   indexListener = undefined;
   initialIndex = { version: 1, roots: [], tracks: [] };
@@ -134,7 +136,11 @@ const renderWorkspace = () =>
             `LibraryPlayerProvider` resolves a track id against the index
             `LibraryProvider` holds. */}
         <LibraryPlayerProvider>
-          <LibraryWorkspace isHidden={false} />
+          <LibraryWorkspace
+            isHidden={false}
+            isFullScreen={false}
+            onToggleFullScreen={toggleFullScreen}
+          />
         </LibraryPlayerProvider>
       </LibraryProvider>
     </I18nProvider>,

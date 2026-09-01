@@ -4,37 +4,124 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-/**
- * Every profile of these two processors, held to what the engine will accept.
- *
- * The EQ catalogue has had a ceiling test since five of its curves were found
- * over the line it states about itself. These had nothing.
- *
- * The Exciter's half of this file is GONE, and it is worth saying why so that
- * nobody restores it here. It rendered each profile through
- * `runExciterChannel` and measured the loudest generated order against the
- * fundamental, because the profiles had once been voiced at -6 dBFS against a
- * level-following shaper they replaced and came out roughly ten decibels too
- * hot on ordinary material — reported as the effects sounding awful, which they
- * did. That stage is now C++ only; the TypeScript one it drove has been
- * deleted. The measurement still matters and it belongs where the arithmetic
- * now lives: `smoke-engines.ts` and the native suite.
- *
- * What remains is a different question, and one that does not need an engine:
- * whether a profile survives `clampDspSettings` unchanged. A profile the clamp
- * edits is a profile the user never actually hears.
- */
+/** Every processor-local profile must be exactly what the engine accepts. */
 import { DSP_DEFAULTS, clampDspSettings } from '../../../common/dsp/chain';
+import {
+  COMPRESSOR_PRESETS,
+  compressorPresetSettings,
+  isCompressorPresetId,
+} from '../../../common/dsp/compressorPresets';
+import {
+  DENOISE_PRESETS,
+  denoisePresetSettings,
+  isDenoisePresetId,
+} from '../../../common/dsp/denoisePresets';
 import {
   DIMENSION_PRESETS,
   dimensionPresetSettings,
   isDimensionPresetId,
 } from '../../../common/dsp/dimensionPresets';
 import {
+  EXCITER_PRESETS,
+  exciterPresetSettings,
+  isExciterPresetId,
+} from '../../../common/dsp/exciterPresets';
+import {
   MAXIMIZER_PRESETS,
   isMaximizerPresetId,
   maximizerPresetSettings,
 } from '../../../common/dsp/maximizerPresets';
+
+describe('denoise profiles', () => {
+  it('every one survives the engine clamp unchanged', () => {
+    DENOISE_PRESETS.forEach((preset) => {
+      expect(isDenoisePresetId(preset.id)).toBe(true);
+      const live = denoisePresetSettings(preset.id as never, true);
+      const clamped = clampDspSettings({
+        ...DSP_DEFAULTS,
+        denoise: live,
+      }).denoise;
+      expect({ id: preset.id, clamped }).toEqual({
+        id: preset.id,
+        clamped: live,
+      });
+    });
+  });
+
+  /** General cleanup is spectral only; destructive repairs are opt-in. */
+  it('never combines hum or click repair into a general profile', () => {
+    DENOISE_PRESETS.filter((preset) => preset.group !== 'repair').forEach(
+      (preset) => {
+        expect({
+          id: preset.id,
+          hum: preset.settings.hum.enabled,
+          click: preset.settings.click.enabled,
+          voice: preset.settings.voice.enabled,
+        }).toEqual({
+          id: preset.id,
+          hum: false,
+          click: false,
+          voice: false,
+        });
+      },
+    );
+  });
+
+  it('keeps spectral reduction conservative', () => {
+    DENOISE_PRESETS.filter((preset) => preset.settings.hiss.enabled).forEach(
+      (preset) => {
+        expect({ id: preset.id, amount: preset.settings.hiss.amount }).toEqual({
+          id: preset.id,
+          amount: expect.any(Number),
+        });
+        expect(preset.settings.hiss.amount).toBeLessThanOrEqual(0.35);
+        expect(preset.settings.hiss.floorDb).toBeGreaterThanOrEqual(-12);
+      },
+    );
+  });
+});
+
+describe('exciter profiles', () => {
+  it('every one survives the engine clamp unchanged', () => {
+    EXCITER_PRESETS.forEach((preset) => {
+      expect(isExciterPresetId(preset.id)).toBe(true);
+      const live = exciterPresetSettings(preset.id as never, true);
+      const clamped = clampDspSettings({
+        ...DSP_DEFAULTS,
+        exciter: live,
+      }).exciter;
+      expect({ id: preset.id, clamped }).toEqual({
+        id: preset.id,
+        clamped: live,
+      });
+    });
+  });
+});
+
+describe('compressor profiles', () => {
+  it('every one survives the engine clamp unchanged', () => {
+    COMPRESSOR_PRESETS.forEach((preset) => {
+      expect(isCompressorPresetId(preset.id)).toBe(true);
+      const live = compressorPresetSettings(preset.id as never, true);
+      const clamped = clampDspSettings({
+        ...DSP_DEFAULTS,
+        compressor: live,
+      }).compressor;
+      expect({ id: preset.id, clamped }).toEqual({
+        id: preset.id,
+        clamped: live,
+      });
+    });
+  });
+
+  it('never hides heavy gain behind automatic makeup', () => {
+    COMPRESSOR_PRESETS.forEach((preset) => {
+      preset.settings.bands.forEach((band) => {
+        expect(band.makeupDb).toBeLessThanOrEqual(2);
+      });
+    });
+  });
+});
 
 describe('maximizer profiles', () => {
   it('every one survives the engine clamp unchanged', () => {

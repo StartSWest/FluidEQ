@@ -7,6 +7,7 @@ it under the terms of the GNU General Public License version 3 or later.
 */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import {
   AUTOMATIC_PRESET_PREFIX,
   IAudioDevice,
@@ -14,6 +15,7 @@ import {
 } from 'common/constants';
 import { ErrorDescription } from 'common/errors';
 import Dropdown from './widgets/Dropdown';
+import Button from './widgets/Button';
 import SidebarSection from './components/SidebarSection';
 import { IOptionEntry } from './widgets/List';
 import { useFluidEqContext } from './utils/FluidEqContext';
@@ -30,7 +32,11 @@ const EMPTY_SETTINGS: IDeviceProfileSettings = {
   assignments: {},
 };
 
-const DeviceProfiles = () => {
+interface IDeviceProfilesProps {
+  onConfigureApo: () => Promise<boolean>;
+}
+
+const DeviceProfiles = ({ onConfigureApo }: IDeviceProfilesProps) => {
   const { isBlockingError, performHealthCheck, setGlobalError } =
     useFluidEqContext();
   const { t } = useTranslation();
@@ -39,6 +45,7 @@ const DeviceProfiles = () => {
     useState<IDeviceProfileSettings>(EMPTY_SETTINGS);
   const [selectedDeviceId, setSelectedDeviceId] = useState('');
   const [isBusy, setIsBusy] = useState(false);
+  const [dismissedApoDeviceId, setDismissedApoDeviceId] = useState('');
   const activeDeviceIdRef = useRef('');
 
   const refresh = useCallback(async () => {
@@ -123,6 +130,26 @@ const DeviceProfiles = () => {
     () => devices.find((device) => device.id === selectedDeviceId),
     [devices, selectedDeviceId],
   );
+  const isApoMissing = selectedDevice?.isEqualizerApoAttached === false;
+  const showApoNotice =
+    isApoMissing && dismissedApoDeviceId !== selectedDevice?.id;
+
+  useEffect(() => {
+    setDismissedApoDeviceId('');
+  }, [selectedDeviceId]);
+
+  useEffect(() => {
+    if (!showApoNotice) {
+      return undefined;
+    }
+    const dismissOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && selectedDevice) {
+        setDismissedApoDeviceId(selectedDevice.id);
+      }
+    };
+    document.addEventListener('keydown', dismissOnEscape);
+    return () => document.removeEventListener('keydown', dismissOnEscape);
+  }, [selectedDevice, showApoNotice]);
   const assignedPreset = selectedDeviceId
     ? settings.assignments[selectedDeviceId]?.presetName || ''
     : '';
@@ -147,6 +174,12 @@ const DeviceProfiles = () => {
     }
   };
 
+  const handleConfigureApo = async () => {
+    if (selectedDevice && (await onConfigureApo())) {
+      setDismissedApoDeviceId(selectedDevice.id);
+    }
+  };
+
   const deviceOptions: IOptionEntry[] = useMemo(
     () =>
       devices.map((device) => ({
@@ -168,6 +201,7 @@ const DeviceProfiles = () => {
     // The picker is the summary, so folding this section hides the mapping
     // detail but leaves the output you are choosing between on screen.
     <SidebarSection
+      className="device-profiles"
       defaultOpen={false}
       eyebrow={t('output.eyebrow')}
       title={t('output.title')}
@@ -178,9 +212,14 @@ const DeviceProfiles = () => {
               obvious. */}
           <span className="device-profiles__label device-profiles__label--row">
             {t('output.device')}
-            {selectedDevice?.isDefault && (
-              <span className="default-badge">{t('output.active')}</span>
-            )}
+            <span className="device-profiles__badges">
+              {isApoMissing && (
+                <span className="apo-badge">{t('output.apoOff')}</span>
+              )}
+              {selectedDevice?.isDefault && (
+                <span className="default-badge">{t('output.active')}</span>
+              )}
+            </span>
           </span>
           <Dropdown
             name={t('output.device')}
@@ -200,6 +239,46 @@ const DeviceProfiles = () => {
         <span>{t('output.mapping.hint')}</span>
       </div>
       <p className="device-profiles__hint">{t('output.hint')}</p>
+      {showApoNotice &&
+        selectedDevice &&
+        createPortal(
+          <aside
+            className="device-apo-notice"
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby="device-apo-notice-title"
+            aria-describedby="device-apo-notice-body"
+          >
+            <div className="device-apo-notice__copy">
+              <span className="apo-badge">{t('output.apoOff')}</span>
+              <h2 id="device-apo-notice-title">
+                {t('output.apoMissingTitle')}
+              </h2>
+              <p id="device-apo-notice-body">
+                {t('output.apoMissingBody', { device: selectedDevice.name })}
+              </p>
+            </div>
+            <div className="device-apo-notice__actions">
+              <Button
+                ariaLabel={t('output.apoConfigure')}
+                isDisabled={false}
+                className="default"
+                handleChange={handleConfigureApo}
+              >
+                {t('output.apoConfigure')}
+              </Button>
+              <Button
+                ariaLabel={t('output.apoCancel')}
+                isDisabled={false}
+                className="subtle"
+                handleChange={() => setDismissedApoDeviceId(selectedDevice.id)}
+              >
+                {t('output.apoCancel')}
+              </Button>
+            </div>
+          </aside>,
+          document.body,
+        )}
     </SidebarSection>
   );
 };

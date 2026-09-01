@@ -55,12 +55,9 @@ export interface INowPlayingBarProps {
   isShuffled: boolean;
   onToggle: () => void;
   onSkip: (direction: 1 | -1) => void;
-  /** Clears the queue entirely — the one always-visible way out of a video
-   * that has taken over the Library tab with nothing queued after it. See
-   * `LibraryPlayerContext.stop`'s own comment for why this, and not a
-   * close button on the video stage, is the fix: this bar is mounted above
-   * every tab, so Stop works from wherever the queue was left, not only
-   * from the Library tab itself. */
+  /** Pauses and rewinds the loaded item without discarding it. This bar is
+   * mounted above every tab, so the command reaches the same player instance
+   * even when its Library view is not visible. */
   onStop: () => void;
   onSeek: (positionMs: number) => void;
   onShuffle: () => void;
@@ -808,6 +805,7 @@ const NowPlayingBar = ({
               aria-label={t('library.stop')}
               title={t('library.stop')}
               onClick={onStop}
+              disabled={!isPlaying && positionMs <= 0}
             >
               <TransportIcon name="stop" />
             </button>

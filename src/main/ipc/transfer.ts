@@ -42,6 +42,7 @@ import {
 } from '../../common/chainBundle';
 import { parseEqText } from '../../common/apoText';
 import { fromPresetFile } from '../../common/dsp/presetFile';
+import { fromDspChainPresetFile } from '../../common/dsp/dspChainPresetFile';
 import { fetchPreset, savePreset, savePresetBaseline } from '../flush';
 import { getCustomFileNameForDevice } from '../deviceProfiles';
 import { getConfigPath } from '../registry';
@@ -205,6 +206,59 @@ export const registerTransferIpc = ({
       event.reply(channel, reply);
     } catch (e) {
       handleError(event, channel, ErrorCode.FAILURE, (e as Error).message);
+    }
+  });
+
+  /** The same guarded Save As path, for every audible DSP stage at once. */
+  ipcMain.on(ChannelEnum.EXPORT_DSP_PRESET, async (event, arg) => {
+    const channel = ChannelEnum.EXPORT_DSP_PRESET;
+    try {
+      const suggestedName = arg?.[0];
+      const contents = arg?.[1];
+      if (
+        typeof suggestedName !== 'string' ||
+        typeof contents !== 'string' ||
+        suggestedName.length > 200 ||
+        contents.length > 1_000_000 ||
+        !fromDspChainPresetFile(contents)
+      ) {
+        handleError(event, channel, ErrorCode.INVALID_PARAMETER);
+        return;
+      }
+
+      const baseName =
+        suggestedName.replace(/[^\w\- ]+/g, '').trim() || 'Custom';
+      const saveOptions = {
+        title: 'Export DSP chain preset',
+        defaultPath: `${baseName}.fluideq-dsp.json`,
+        filters: [
+          {
+            name: `${PRODUCT_NAME} DSP chain`,
+            extensions: ['fluideq-dsp.json'],
+          },
+        ],
+      };
+      const parent = getMainWindow();
+      const target = parent
+        ? await dialog.showSaveDialog(parent, saveOptions)
+        : await dialog.showSaveDialog(saveOptions);
+
+      if (target.canceled || !target.filePath) {
+        const reply: TSuccess<boolean> = { result: false };
+        event.reply(channel, reply);
+        return;
+      }
+
+      fs.writeFileSync(target.filePath, contents, 'utf8');
+      const reply: TSuccess<boolean> = { result: true };
+      event.reply(channel, reply);
+    } catch (error) {
+      handleError(
+        event,
+        channel,
+        ErrorCode.FAILURE,
+        error instanceof Error ? error.message : undefined,
+      );
     }
   });
 

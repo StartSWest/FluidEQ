@@ -7,6 +7,7 @@ it under the terms of the GNU General Public License version 3 or later.
 */
 
 @use 'color' as *;
+@use 'constant' as *;
 @use 'spacing' as *;
 @use 'theme' as *;
 
@@ -107,6 +108,76 @@ it under the terms of the GNU General Public License version 3 or later.
   box-shadow: 0 0 16px rgba($secondary-default, 0.18);
   font-size: 0.62rem;
   font-weight: $weight-bold;
+}
+
+.device-profiles__badges {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 5px;
+}
+
+.apo-badge {
+  width: max-content;
+  flex: 0 0 auto;
+  padding: 4px 8px;
+  color: $primary-lighter;
+  border: 1px solid rgba($red, 0.52);
+  border-radius: $radius-pill;
+  background: rgba($red, 0.14);
+  box-shadow: 0 0 14px rgba($red, 0.12);
+  font-size: 0.62rem;
+  font-weight: $weight-bold;
+}
+
+.device-apo-notice {
+  position: fixed;
+  z-index: 1250;
+  top: calc($title-bar-height + 16px);
+  left: 50%;
+  display: grid;
+  width: min(620px, calc(100vw - 32px));
+  max-height: calc(100vh - $title-bar-height - 32px);
+  padding: $spacing-m;
+  overflow-y: auto;
+  border: 1px solid rgba($red, 0.52);
+  border-radius: $radius-m;
+  background:
+    radial-gradient(circle at 8% 0%, rgba($red, 0.1), transparent 40%),
+    rgba($primary-default, 0.98);
+  box-shadow: 0 18px 48px rgba($black, 0.48);
+  gap: $spacing-m;
+  transform: translateX(-50%);
+
+  h2,
+  p {
+    margin: 0;
+  }
+
+  h2 {
+    color: $white;
+    font-size: 1rem;
+    font-weight: $weight-bold;
+  }
+
+  p {
+    color: $primary-lighter;
+    font-size: 0.76rem;
+    line-height: 1.45;
+  }
+}
+
+.device-apo-notice__copy {
+  display: grid;
+  min-width: 0;
+  gap: $spacing-xs;
+}
+
+.device-apo-notice__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: $spacing-s;
 }
 
 .link-button {

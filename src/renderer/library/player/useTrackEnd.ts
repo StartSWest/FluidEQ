@@ -41,11 +41,14 @@ import {
   queueAtEnd,
 } from '../../../common/library/queue';
 import { ILibraryProgrammeEdges } from '../../../common/library/types';
+import { releasePlayback } from '../../audio/playbackOwner';
+import type { TSetPlaybackHandoff } from '../../audio/playbackHandoff';
 
 export const useTrackEnd = (options: {
   queueRef: MutableRefObject<ILibraryQueue | undefined>;
   setQueue: Dispatch<SetStateAction<ILibraryQueue | undefined>>;
   setIsPlaying: Dispatch<SetStateAction<boolean>>;
+  setRetainWhenHidden: TSetPlaybackHandoff;
   trackIdRef: MutableRefObject<string | undefined>;
   audioElementRef: MutableRefObject<HTMLAudioElement | undefined>;
   /** Which track already triggered its own end, so it cannot do so twice. */
@@ -64,6 +67,7 @@ export const useTrackEnd = (options: {
     queueRef,
     setQueue,
     setIsPlaying,
+    setRetainWhenHidden,
     trackIdRef,
     audioElementRef,
     endedTrackRef,
@@ -91,19 +95,22 @@ export const useTrackEnd = (options: {
         return;
       }
       if (current.repeat === 'one') {
+        setRetainWhenHidden(true);
         element.currentTime = 0;
         element.play().catch(() => undefined);
         return;
       }
       const wasAtEnd = queueAtEnd(current);
+      setRetainWhenHidden(!wasAtEnd || current.repeat === 'all');
       setQueue(advanceQueue(current, 1));
       if (wasAtEnd && current.repeat === 'off') {
         // Nothing queued after it — a player with nothing next just stops,
         // rather than replaying the track that just ended.
+        releasePlayback('library');
         setIsPlaying(false);
       }
     },
-    [queueRef, setIsPlaying, setQueue],
+    [queueRef, setIsPlaying, setQueue, setRetainWhenHidden],
   );
 
   /**

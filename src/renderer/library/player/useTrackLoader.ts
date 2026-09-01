@@ -45,7 +45,6 @@ import {
 } from '../../dsp/inputNormalizer';
 import { IDspInputAnalysisState, setDspInputAnalysis } from '../../dsp/store';
 import {
-  setDspInputTrackId,
   setDspNoiseProfile,
   setDspTrackLevelGains,
 } from '../../dsp/useDspEngine';
@@ -178,12 +177,6 @@ export const useTrackLoader = (deps: ITrackLoaderDeps): void => {
       selectDspDeck(audio);
     }
     naturalCrossfadeTrackRef.current = undefined;
-    // On a direct load this must precede the new normalization gain. During a
-    // crossfade both identity and track-level gain stay owned by the outgoing
-    // song until the incoming deck has completed the configured overlap.
-    if (!isCrossfading) {
-      setDspInputTrackId(track?.id ?? '');
-    }
     if (!isCrossfading) {
       releaseBlob(audio);
     }
@@ -349,7 +342,6 @@ export const useTrackLoader = (deps: ITrackLoaderDeps): void => {
       if (cancelled) {
         return;
       }
-      setDspInputTrackId(track.id, true);
       if (deferredAnalysis) {
         setDspInputAnalysis(deferredAnalysis);
         deferredAnalysis = undefined;

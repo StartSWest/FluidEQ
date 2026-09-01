@@ -549,6 +549,8 @@ export interface IDenoiseVoiceSettings {
  */
 export interface IDenoiseSettings {
   enabled: boolean;
+  /** Which processor-local cleanup profile is loaded, or '' after an edit. */
+  presetId: string;
   /** Monitor what is being removed instead of what is kept. */
   isolate: boolean;
   profileSource: TDenoiseProfileSource;
@@ -905,6 +907,8 @@ export const EQ_MAX_BAND_COUNT = 64;
 export interface IDspSettings {
   /** Root bypass. Individual processor states remain untouched underneath. */
   enabled: boolean;
+  /** Which whole-rack profile is loaded, or '' after any stage is edited. */
+  presetId: string;
   normalizer: IInputNormalizerSettings;
   denoise: IDenoiseSettings;
   crossfade: ICrossfadeSettings;
@@ -1314,6 +1318,7 @@ export const buildEqRack = (count: number): readonly IEqBandSettings[] => {
 
 export const DSP_DEFAULTS: IDspSettings = {
   enabled: true,
+  presetId: '',
   normalizer: {
     mode: 'truePeak',
     truePeakDbtp: -1,
@@ -1321,20 +1326,24 @@ export const DSP_DEFAULTS: IDspSettings = {
   },
   denoise: {
     enabled: false,
+    presetId: 'default',
     isolate: false,
     profileSource: 'scanned',
     hiss: {
       enabled: true,
-      amount: 0.5,
-      // Eighteen decibels of reduction, which is where this stops sounding
-      // like processing. Deeper measurably removes more noise; what it leaves
-      // behind is the estimator's own residue with nothing left to mask it.
-      floorDb: -18,
-      sensitivityDb: 3,
-      smoothing: 0.7,
+      amount: 0.15,
+      // Enabling the stage must not make clean material sound processed. At
+      // this amount the worst-bin gain remains above 0.87 (-1.2 dB), while a
+      // user with an actual noise problem can deliberately choose a deeper
+      // profile. The old 50% / -18 dB start was the sound-quality complaint.
+      floorDb: -6,
+      sensitivityDb: -1,
+      smoothing: 0.95,
     },
     hum: {
-      enabled: true,
+      // A hum comb is repair for a measured fault, not part of general noise
+      // reduction. Starting it speculatively removes musical fundamentals.
+      enabled: false,
       mode: 'auto',
       harmonics: 6,
       // A notch rather than a null. Removing a partial completely takes the
@@ -1344,7 +1353,9 @@ export const DSP_DEFAULTS: IDspSettings = {
       quality: 30,
     },
     click: {
-      enabled: true,
+      // Click repair is equally problem-specific: even a guarded detector has
+      // no reason to interpolate clean transients until the user asks it to.
+      enabled: false,
       sensitivity: 0.5,
       maxRepairSamples: 32,
     },
@@ -1746,6 +1757,10 @@ export const clampDspSettings = (value: unknown): IDspSettings => {
 
   return {
     enabled: clampBoolean(value.enabled, DSP_DEFAULTS.enabled),
+    presetId:
+      typeof value.presetId === 'string'
+        ? value.presetId
+        : DSP_DEFAULTS.presetId,
     normalizer: {
       mode: NORMALIZER_MODES.includes(normalizer.mode as TNormalizerMode)
         ? (normalizer.mode as TNormalizerMode)
@@ -1763,6 +1778,10 @@ export const clampDspSettings = (value: unknown): IDspSettings => {
     },
     denoise: {
       enabled: clampBoolean(denoise.enabled, DSP_DEFAULTS.denoise.enabled),
+      presetId:
+        typeof denoise.presetId === 'string'
+          ? denoise.presetId
+          : DSP_DEFAULTS.denoise.presetId,
       isolate: clampBoolean(denoise.isolate, DSP_DEFAULTS.denoise.isolate),
       profileSource: DENOISE_PROFILE_SOURCES.includes(
         denoise.profileSource as TDenoiseProfileSource,

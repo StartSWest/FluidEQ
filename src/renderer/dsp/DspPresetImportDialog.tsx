@@ -6,28 +6,31 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { TranslationKey } from '../../common/i18n/en';
 import { useTranslation } from '../utils/I18nContext';
 
-interface IDspEqImportDialogProps {
-  /** Called with the text to parse. The caller reports what came of it. */
+interface IDspPresetImportDialogProps {
+  titleKey: TranslationKey;
+  hintKey: TranslationKey;
+  placeholderKey: TranslationKey;
+  accept: string;
+  /** A parser error from the owner, shown inside the still-open dialog. */
+  error?: string;
+  /** Called with the visible text. The owner decides which format it accepts. */
   onImport: (text: string) => void;
   onClose: () => void;
 }
 
-/**
- * Paste a curve, or pick the file it lives in.
- *
- * A file picker alone was the wrong single door. These curves are published on
- * web pages — Squiglink, AutoEq, oratory1990's sheets — where the thing you
- * have is eleven lines on the clipboard, not a file on disk. Saving it to a
- * text file first only to pick it back up is a step that exists solely because
- * the app asked for it.
- *
- * Choosing a file fills the box rather than importing straight away, so both
- * doors end at the same place: the text is on screen, and it is obvious what
- * is about to be applied.
- */
-const DspEqImportDialog = ({ onImport, onClose }: IDspEqImportDialogProps) => {
+/** One visible, inspectable door for pasted presets and preset files. */
+const DspPresetImportDialog = ({
+  titleKey,
+  hintKey,
+  placeholderKey,
+  accept,
+  error = '',
+  onImport,
+  onClose,
+}: IDspPresetImportDialogProps) => {
   const { t } = useTranslation();
   const [text, setText] = useState('');
   const [readError, setReadError] = useState('');
@@ -38,8 +41,6 @@ const DspEqImportDialog = ({ onImport, onClose }: IDspEqImportDialogProps) => {
     textRef.current?.focus();
   }, []);
 
-  // On the document rather than the dialog: the focus can be inside the file
-  // picker or on the backdrop, and Escape has to close from all of them.
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
@@ -64,19 +65,10 @@ const DspEqImportDialog = ({ onImport, onClose }: IDspEqImportDialogProps) => {
       .catch(() => setReadError(t('dsp.eqPreset.importFailed')));
   };
 
-  // Portalled, because a backdrop is `position: fixed; inset: 0` and by that
-  // it means the window. Rendered where it is written it is a descendant of
-  // `.dsp-card`, which is a query container — and a container is the
-  // containing block for every fixed descendant, so `inset: 0` would resolve
-  // against one processor card. `.dsp-body.is-disabled`'s filter is a second
-  // road to the same failure.
   return createPortal(
     <div
       className="dsp-import-backdrop"
       role="presentation"
-      // Only a click that landed on the backdrop itself closes. Comparing the
-      // target beats stopping propagation inside the dialog: the dialog stays
-      // a plain non-interactive container, which is what it is.
       onClick={(event) => {
         if (event.target === event.currentTarget) {
           onClose();
@@ -87,24 +79,24 @@ const DspEqImportDialog = ({ onImport, onClose }: IDspEqImportDialogProps) => {
         className="dsp-import"
         role="dialog"
         aria-modal="true"
-        aria-label={t('dsp.eqImport.title')}
+        aria-label={t(titleKey)}
       >
-        <h2 className="dsp-import__title">{t('dsp.eqImport.title')}</h2>
-        <p className="dsp-import__hint">{t('dsp.eqImport.hint')}</p>
+        <h2 className="dsp-import__title">{t(titleKey)}</h2>
+        <p className="dsp-import__hint">{t(hintKey)}</p>
 
         <textarea
           ref={textRef}
           className="dsp-import__body"
           value={text}
           spellCheck={false}
-          placeholder={t('dsp.eqImport.placeholder')}
-          aria-label={t('dsp.eqImport.placeholder')}
+          placeholder={t(placeholderKey)}
+          aria-label={t(placeholderKey)}
           onChange={(event) => setText(event.target.value)}
         />
 
-        {readError !== '' && (
+        {(readError !== '' || error !== '') && (
           <p className="dsp-import__error" role="status">
-            {readError}
+            {readError || error}
           </p>
         )}
 
@@ -124,7 +116,6 @@ const DspEqImportDialog = ({ onImport, onClose }: IDspEqImportDialogProps) => {
           >
             {t('dsp.eqImport.cancel')}
           </button>
-          {/* The loud one, because it is the action the dialog exists for. */}
           <button
             type="button"
             className="button small"
@@ -138,14 +129,10 @@ const DspEqImportDialog = ({ onImport, onClose }: IDspEqImportDialogProps) => {
         <input
           ref={fileRef}
           type="file"
-          // Both doors: a published curve is a text file and a shared preset is
-          // JSON, and from the outside they are the same errand.
-          accept=".txt,.json,text/plain,application/json"
+          accept={accept}
           hidden
           onChange={(event) => {
             readFile(event.target.files?.[0]);
-            // Cleared so choosing the same file twice fires again — without
-            // this, re-picking a file the user has just edited does nothing.
             event.target.value = '';
           }}
         />
@@ -155,4 +142,4 @@ const DspEqImportDialog = ({ onImport, onClose }: IDspEqImportDialogProps) => {
   );
 };
 
-export default DspEqImportDialog;
+export default DspPresetImportDialog;

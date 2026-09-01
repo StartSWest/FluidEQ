@@ -23,6 +23,7 @@ import KaraokeTransport from '../../renderer/karaoke/KaraokeTransport';
 describe('KaraokeTransport', () => {
   it('uses app-style icon controls and keeps every transport action wired', () => {
     const onTogglePlayback = jest.fn();
+    const onStop = jest.fn();
     const onJumpToStart = jest.fn();
     const onJumpToEnd = jest.fn();
     const onSeek = jest.fn();
@@ -41,6 +42,7 @@ describe('KaraokeTransport', () => {
           },
         ]}
         onTogglePlayback={onTogglePlayback}
+        onStop={onStop}
         onJumpToStart={onJumpToStart}
         onJumpToEnd={onJumpToEnd}
         onSeek={onSeek}
@@ -53,7 +55,7 @@ describe('KaraokeTransport', () => {
       container.querySelectorAll(
         '.karaoke-transport__buttons .karaoke-button__icon',
       ),
-    ).toHaveLength(5);
+    ).toHaveLength(6);
     expect(screen.getByLabelText('Song position')).toHaveStyle(
       '--karaoke-range-progress: 20%',
     );
@@ -69,6 +71,7 @@ describe('KaraokeTransport', () => {
       screen.getByRole('button', { name: 'Go forward 5 seconds' }),
     );
     fireEvent.click(screen.getByRole('button', { name: 'Jump to song end' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Stop' }));
     fireEvent.change(screen.getByLabelText('Song position'), {
       target: { value: '25000' },
     });
@@ -81,8 +84,30 @@ describe('KaraokeTransport', () => {
     expect(onSeek).toHaveBeenNthCalledWith(1, 7_000);
     expect(onSeek).toHaveBeenNthCalledWith(2, 17_000);
     expect(onTogglePlayback).toHaveBeenCalledTimes(1);
+    expect(onStop).toHaveBeenCalledTimes(1);
     expect(onSeek).toHaveBeenNthCalledWith(3, 25_000);
     expect(onVolume).toHaveBeenCalledWith(0.4);
+  });
+
+  it('greys out Stop only once the loaded song is already paused at zero', () => {
+    const transport = (playheadMs: number) => (
+      <KaraokeTransport
+        status="paused"
+        playheadMs={playheadMs}
+        durationMs={60_000}
+        levels={[]}
+        onTogglePlayback={() => {}}
+        onStop={() => {}}
+        onJumpToStart={() => {}}
+        onJumpToEnd={() => {}}
+        onSeek={() => {}}
+      />
+    );
+    const { rerender } = render(transport(0));
+    expect(screen.getByRole('button', { name: 'Stop' })).toBeDisabled();
+
+    rerender(transport(12_000));
+    expect(screen.getByRole('button', { name: 'Stop' })).toBeEnabled();
   });
 
   it('opens all hidden channel faders from the compact icon group', () => {
@@ -119,6 +144,7 @@ describe('KaraokeTransport', () => {
           },
         ]}
         onTogglePlayback={() => {}}
+        onStop={() => {}}
         onJumpToStart={() => {}}
         onJumpToEnd={() => {}}
         onSeek={() => {}}
@@ -195,6 +221,7 @@ describe('KaraokeTransport', () => {
           durationMs={60_000}
           levels={levels}
           onTogglePlayback={() => {}}
+          onStop={() => {}}
           onJumpToStart={() => {}}
           onJumpToEnd={() => {}}
           onSeek={() => {}}
@@ -231,6 +258,7 @@ describe('KaraokeTransport', () => {
             },
           ]}
           onTogglePlayback={() => {}}
+          onStop={() => {}}
           onJumpToStart={() => {}}
           onJumpToEnd={() => {}}
           onSeek={() => {}}

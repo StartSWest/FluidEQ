@@ -36,18 +36,43 @@ const app = {
   'app.processes.menu': 'Processes…',
   'app.processes.eyebrow': 'Processes',
   'app.processes.hint':
-    'Windows names every one of these after the app, because they are all the same program. This is what each one actually does.',
+    'Windows names every one of these after the app, because they are all the same program. This is what each one actually does for FluidEQ.',
+  'app.processes.hintSplit':
+    'The split is deliberate: the interface, the drawing and the sound each run on their own, so a busy window cannot stall the music and a fault in one part does not take the rest with it.',
   'app.processes.process': 'Process',
   'app.processes.pid': 'PID',
   'app.processes.memory': 'Memory',
   'app.processes.cpu': 'CPU',
   'app.processes.thisWindow': 'this window',
   'app.processes.total': '{megabytes} MB in total.',
-  'app.processes.kindMain': 'Main',
-  'app.processes.kindWindow': 'Window',
-  'app.processes.kindGpu': 'GPU',
-  'app.processes.kindUtility': 'Utility',
-  'app.processes.kindDsp': 'DSP engine (C++)',
+  'app.processes.unmeasured': 'A dash is a figure nothing has measured yet.',
+  'app.processes.name.window': 'Interface',
+  'app.processes.what.window':
+    'The window you are looking at: the curve, the library, the player, every control. One process per window, so a heavy redraw cannot stall the sound.',
+  'app.processes.name.core': 'App core',
+  'app.processes.what.core':
+    'The part with no window. Keeps your settings, talks to the audio devices and the system equalizer, checks for updates, and starts everything else in this list.',
+  'app.processes.name.engine': 'Audio engine (C++)',
+  'app.processes.what.engine':
+    "FluidEQ's own engine. Decodes what you play and applies the equalizer as it goes. A separate program from the rest, which is why Windows files it away from them.",
+  'app.processes.name.graphics': 'Graphics',
+  'app.processes.what.graphics':
+    'Draws the window on the graphics card: the spectrum, the curve, every animation. Busy whenever anything on screen moves — it runs no karaoke or noise models.',
+  'app.processes.name.sound': 'Browser sound',
+  'app.processes.what.sound':
+    "Chromium's own audio, for the Video tab and for sounds a page plays. Your music does not go through it.",
+  'app.processes.name.network': 'Network',
+  'app.processes.what.network':
+    'Update checks, cover art, and everything the Video tab loads. Nothing else here reaches the network.',
+  'app.processes.name.camera': 'Camera service',
+  'app.processes.what.camera':
+    'Started by Chromium when the app asks Windows for the list of audio devices, because the same call also lists cameras. It holds no camera open.',
+  'app.processes.name.page': 'Web page',
+  'app.processes.what.page':
+    'A page open in the Video tab. It runs in its own process, apart from the interface.',
+  'app.processes.name.helper': 'Helper',
+  'app.processes.what.helper':
+    'A Chromium service started on demand. FluidEQ never asks for this one by name.',
   'app.menu.reinstallApp': 'Reinstall {product}…',
   'app.menu.fixAudio': 'Fix audio problems…',
   'app.menu.reinstallApo': 'Reinstall Equalizer APO…',

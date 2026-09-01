@@ -35,7 +35,6 @@ import {
   toggleGraphFullScreen,
   useGraphCoverageHidden,
   useGraphGridHidden,
-  useLiveOutputSolo,
 } from '../utils/graphStyle';
 import { toggleChromeNow } from '../utils/idleChrome';
 import {
@@ -200,11 +199,14 @@ const CoverageOverlay = ({
   yScale,
   top,
   plotHeight,
+  isResponseHidden,
 }: {
   xScale: AxisScale<NumberValue>;
   yScale: AxisScale<NumberValue>;
   top: number;
   plotHeight: number;
+  /** No response layers are being presented, so their listening bands go too. */
+  isResponseHidden: boolean;
 }) => {
   const { balanceProgress, presenceLevels, presenceTypical } =
     useLiveAudioFrame();
@@ -213,7 +215,6 @@ const CoverageOverlay = ({
   // localises them at the point it says them, through the same lookup the
   // Smart EQ bubble uses.
   const { t } = useTranslation();
-  const isSolo = useLiveOutputSolo();
   // The shaded columns only. The bars along the foot are drawn either way — see
   // `useGraphCoverageHidden` for why the switch stops short of them.
   const isWashHidden = useGraphCoverageHidden();
@@ -298,7 +299,7 @@ const CoverageOverlay = ({
    * frame rate, and the retained copy must not be a second reason to re-render
    * — it is read during a render that was already happening.
    */
-  const isGone = isSolo || !coverage?.length;
+  const isGone = isResponseHidden || !coverage?.length;
   if (coverage?.length) {
     lastCoverage.current = coverage;
   }
@@ -894,6 +895,8 @@ interface IChartProps {
    * `LiveTraceCanvas`, which subscribes to it directly.
    */
   liveCurves?: ILiveCurveData[];
+  /** The live output owns the plot instead of supporting response curves. */
+  isLiveOutputForeground: boolean;
   onMarqueeSelect?: (ids: string[], additive: boolean) => void;
 }
 
@@ -903,6 +906,7 @@ const Chart = ({
   dimensions,
   editablePoints = [],
   liveCurves = [],
+  isLiveOutputForeground,
   onMarqueeSelect,
 }: IChartProps) => {
   const { width, height, margins } = dimensions;
@@ -977,6 +981,12 @@ const Chart = ({
   };
 
   const handleSelectionStart = (event: PointerEvent<SVGSVGElement>) => {
+    // No visible/editable EQ curve means there is nothing this gesture can
+    // select. Do not even start the rubber band: an empty selection rectangle
+    // over a hidden curve looks like an invisible editor is still active.
+    if (!onMarqueeSelect) {
+      return;
+    }
     const target = event.target as Element;
     if (target.closest?.('.graph-edit-point')) {
       return;
@@ -1073,6 +1083,7 @@ const Chart = ({
           height={svgHeight}
           offsetLeft={margins.left}
           offsetTop={margins.top}
+          isForeground={isLiveOutputForeground}
         />
       )}
       <svg
@@ -1222,6 +1233,7 @@ const Chart = ({
           yScale={yScaleGain}
           top={padding.top}
           plotHeight={plotHeight}
+          isResponseHidden={isLiveOutputForeground}
         />
         {selectionBox && (
           <rect

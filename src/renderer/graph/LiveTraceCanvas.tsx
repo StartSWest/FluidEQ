@@ -70,11 +70,7 @@ import {
   hasGraphPieces,
 } from 'common/graphShapes';
 import { useSmoothFrames } from 'renderer/utils/useSmoothFrames';
-import {
-  useGraphGridHidden,
-  useGraphLook,
-  useLiveOutputSolo,
-} from 'renderer/utils/graphStyle';
+import { useGraphGridHidden, useGraphLook } from 'renderer/utils/graphStyle';
 import { useLiveAudioFrame } from '../audio/LiveAudioContext';
 import { createAccentState, paintGraphAccent } from './graphAccents';
 import { useLookPreviewPoints } from './lookPreview';
@@ -225,6 +221,8 @@ interface ILiveTraceCanvasProps {
   /** Where that box starts inside the plot, i.e. the chart SVG's margins. */
   offsetLeft: number;
   offsetTop: number;
+  /** Whether this is the subject of the graph rather than a supporting layer. */
+  isForeground: boolean;
 }
 
 /**
@@ -271,6 +269,7 @@ const LiveTraceCanvas = ({
   height,
   offsetLeft,
   offsetTop,
+  isForeground,
 }: ILiveTraceCanvasProps) => {
   // The measurement, straight from the analyser. This component re-renders with
   // every frame and nothing above it does — which is the entire arrangement.
@@ -289,13 +288,11 @@ const LiveTraceCanvas = ({
   const lookRef = useRef(look);
   lookRef.current = look;
 
-  // Whether the trace has the grid to itself, which is the only thing outside
-  // the look that changes how it is drawn. Read from the store rather than
-  // taken off the curve, because what the mode changes here is a proportion of
-  // the look's weight and the descriptor knows nothing about the look.
-  const isSolo = useLiveOutputSolo();
-  const isSoloRef = useRef(isSolo);
-  isSoloRef.current = isSolo;
+  // Whether the trace has the response plot to itself. This is true both in the
+  // user's Wave only mode and when APO is off, because in either case there is
+  // no applied response for the wave to sit behind.
+  const isForegroundRef = useRef(isForeground);
+  isForegroundRef.current = isForeground;
 
   // Whether there is a frequency axis left for the trace to be honest about.
   // Read here rather than derived from the props, because the margins the chart
@@ -367,7 +364,7 @@ const LiveTraceCanvas = ({
   // already soloed should draw the heavier trace, not ease up to it from the
   // supporting weight for no reason anybody watching could name.
   const shownStrokeWidthRef = useRef(
-    resolvePresentedStrokeWidth(look.tuning.strokeWidth, isSolo),
+    resolvePresentedStrokeWidth(look.tuning.strokeWidth, isForeground),
   );
 
   const drawFrame = useCallback(
@@ -470,7 +467,7 @@ const LiveTraceCanvas = ({
       const lastX = Number(xScale(eased[eased.length - 1].x)) || 0;
       const dataSpan = lastX - firstX;
       const stretch =
-        isSoloRef.current && isGridHiddenRef.current && dataSpan > 0
+        isForegroundRef.current && isGridHiddenRef.current && dataSpan > 0
           ? (plot.right - plot.left) / dataSpan
           : 1;
 
@@ -762,7 +759,7 @@ const LiveTraceCanvas = ({
       // through the same settle as the opacity so the two arrive together.
       const targetStrokeWidth = resolvePresentedStrokeWidth(
         tuning.strokeWidth,
-        isSoloRef.current,
+        isForegroundRef.current,
       );
       const widthGap = targetStrokeWidth - shownStrokeWidthRef.current;
       if (widthGap > STROKE_WIDTH_EPSILON || widthGap < -STROKE_WIDTH_EPSILON) {
@@ -1215,7 +1212,16 @@ const LiveTraceCanvas = ({
     // the figure does, it would make the whole panel appear dead. A resize is
     // the same argument with a worse symptom: resizing the backing store clears
     // it, so a settled trace would simply vanish rather than merely go stale.
-  }, [curves, height, isGridHidden, isSolo, kickFrames, look, points, width]);
+  }, [
+    curves,
+    height,
+    isForeground,
+    isGridHidden,
+    kickFrames,
+    look,
+    points,
+    width,
+  ]);
 
   // Silence takes the canvas out of the document rather than leaving an empty
   // one behind it. An element that is drawing nothing still costs something to

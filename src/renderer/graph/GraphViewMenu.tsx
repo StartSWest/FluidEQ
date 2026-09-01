@@ -53,6 +53,8 @@ interface IGraphViewMenuProps {
   onCycleLook: (direction: 1 | -1) => void;
   isWaveHidden: boolean;
   onToggleWave: () => void;
+  /** Whether Equalizer APO can currently apply response layers. */
+  isResponseAvailable?: boolean;
   /** Active response curves, already arranged in APO application order. */
   curveToggles: readonly { curve: TGraphCurve; label: string }[];
   hiddenCurves: readonly TGraphCurve[];
@@ -162,6 +164,7 @@ const GraphViewMenu = ({
   onCycleLook,
   isWaveHidden,
   onToggleWave,
+  isResponseAvailable = true,
   curveToggles,
   hiddenCurves,
   onToggleCurve,
@@ -281,11 +284,10 @@ const GraphViewMenu = ({
             placement.isAbove ? ' is-above' : ''
           }${placement.isLeftAligned ? ' is-left' : ''}`}
           ref={menuRef}
-          style={
-            placement.maxHeight
-              ? { maxHeight: placement.maxHeight, overflowY: 'auto' }
-              : undefined
-          }
+          style={{
+            maxHeight: placement.maxHeight ?? 'none',
+            overflowY: placement.maxHeight ? 'auto' : 'visible',
+          }}
           role="menu"
         >
           <button
@@ -341,7 +343,11 @@ const GraphViewMenu = ({
               states walked one press at a time is the same comparing gesture
               the style rows make, and closing after each would mean reopening
               the menu four times to see the fourth one. */}
-          <button type="button" onClick={onCycleContents}>
+          <button
+            type="button"
+            disabled={!isResponseAvailable}
+            onClick={onCycleContents}
+          >
             <Icon>
               <path d="M13.5 6.5A5.5 5.5 0 1 0 14 9" />
               <path d="M13.8 2.6v4h-4" />
@@ -362,6 +368,7 @@ const GraphViewMenu = ({
                 type="button"
                 role="menuitemcheckbox"
                 aria-checked={isHidden}
+                disabled={!isResponseAvailable}
                 key={curve}
                 onClick={choose(() => onToggleCurve(curve))}
               >
@@ -392,6 +399,7 @@ const GraphViewMenu = ({
             type="button"
             role="menuitemcheckbox"
             aria-checked={isWaveHidden}
+            disabled={!isResponseAvailable}
             onClick={choose(onToggleWave)}
           >
             <Icon>
@@ -463,6 +471,7 @@ const GraphViewMenu = ({
             type="button"
             role="menuitemcheckbox"
             aria-checked={isCoverageHidden}
+            disabled={!isResponseAvailable}
             onClick={choose(onToggleCoverage)}
           >
             <Icon>

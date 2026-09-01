@@ -40,13 +40,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // The first column is a fixed width rather than a fraction, so the transport
 // beside it always starts at the same x. The button group is a fixed width
 // with its contents centred, so the play button sits at that group's centre
-// however many buttons flank it — five on the library and karaoke rows,
+// however many buttons flank it — six on the library and karaoke rows,
 // one on a web page that can only be played and paused. Without the second
 // figure the Media tab's lone play button sat where the library's `previous`
 // was, and switching tabs moved the control under the pointer.
 $now-playing-art-size: 36px;
-$now-playing-buttons-width: 250px;
-$now-playing-flank-width: 98px;
+$now-playing-buttons-width: 272px;
+$now-playing-flank-width: 110px;
 $now-playing-seek-width: 340px;
 
 // One height, whichever tab is driving it.
@@ -485,7 +485,7 @@ $now-playing-bar-height: 64px;
 //
 // Fixed widths inside it rather than fractions, so the deck is the same size
 // on every tab and, being the middle column between two equal fractions, in
-// the same place -- karaoke's five keys and the library's six sit in a group
+// the same place -- karaoke's and the library's six keys sit in a group
 // of one width, and the seek line is one length everywhere.
 .now-playing-bar__deck,
 .now-playing-bar__adopted .karaoke-transport__deck {
@@ -898,11 +898,8 @@ $now-playing-bar-height: 64px;
 //
 // Sits inside `LibraryWorkspace` the way `.video-browser__stage` sits inside
 // `VideoBrowser` — no frame of its own, filling whatever room the tab gives
-// it. Full screen fills the pane itself rather than the whole grid, matching
-// `VideoBrowser.scss`'s own reasoning for why the rest of the workspace stays
-// exactly where it was: the window goes borderless through the same
-// `setWindowFullScreen` call, and what expands into the space that frees up
-// is this one pane.
+// it. App expands the shared Media/Library/Karaoke workspace, so this stage can
+// stay in that pane instead of fixing a second surface over the window.
 
 .library-video-stage {
   position: relative;
@@ -914,9 +911,14 @@ $now-playing-bar-height: 64px;
   background: $black;
 
   &.is-fullscreen {
-    position: fixed;
-    z-index: 1150;
-    inset: 0;
+    // App expands the shared Media/Library/Karaoke workspace. Keeping this
+    // stage in its parent lets the optional FluidEQ top bar retain its space
+    // instead of being covered by a second fixed fullscreen layer.
+    position: relative;
+    z-index: auto;
+    inset: auto;
+    min-height: 0;
+    flex: 1 1 auto;
     border-radius: 0;
   }
 
@@ -947,22 +949,6 @@ $now-playing-bar-height: 64px;
       display: none;
     }
   }
-}
-
-// What `position: fixed` above needs from the column it sits in.
-//
-// `.center-workspace` carries `will-change: opacity, transform` from its
-// entrance animation, and a will-change of transform makes an element the
-// containing block for every fixed descendant it has. So `inset: 0` resolved
-// against the middle column rather than the window: the window went
-// borderless, the picture filled the space between the two sidebars, and the
-// whole thing read as full screen not working. The graph's own overlay hit
-// this exact wall and answered it by measuring the column; here the picture
-// really does want the window, so the promotion is dropped for as long as it
-// is up. Nothing is animating at that moment — full screen is a mode, not a
-// transition — so there is nothing left for the hint to help.
-.center-workspace:has(.library-video-stage.is-fullscreen) {
-  will-change: auto;
 }
 
 .library-video-stage__video {

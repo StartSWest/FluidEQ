@@ -28,6 +28,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "audio_backend.h"
 #include "decoders/pcm_decoder.h"
 #include "parent_watch.h"
+#include "process_stats.h"
 #include "fluideq/chain.h"
 #include "fluideq/dsp.h"
 #include "fluideq/player.h"
@@ -57,6 +58,19 @@ constexpr uint32_t kFallbackBlockFrames = 512;
 constexpr uint32_t kEngineChannels = 2;
 /** 25 ms, i.e. 40 Hz — ahead of the 20-30 Hz the renderer redraws at. */
 constexpr int kTelemetryIntervalMs = 25;
+
+/**
+ * Twenty telemetry ticks, so half a second between process samples.
+ *
+ * Counted on the loop that already exists rather than given a clock of its
+ * own. The number is chosen from what reads well rather than from what is
+ * cheap: memory and CPU are figures somebody watches climb, and a column that
+ * changes forty times a second cannot be read at all. It is also the window
+ * the CPU percentage is averaged over — short enough to see the engine react
+ * to a track starting, long enough that a single scheduling quantum does not
+ * dominate the answer.
+ */
+constexpr int kStatsIntervalTicks = 20;
 
 enum class SignalKind : int { Silence = 0, Sine = 1 };
 
@@ -470,6 +484,31 @@ void drain_telemetry(HostState& state, const IAudioOutputBackend& backend) {
     }
     write_frame(&frame, sizeof(frame));
   }
+}
+
+/**
+ * Say what this process costs, whether or not any audio is flowing.
+ *
+ * Deliberately not folded into the telemetry frame beside it: telemetry is
+ * produced per audio callback and therefore stops entirely when nothing is
+ * playing, which is when a memory figure is most often being looked at. A
+ * process asleep with a gigabyte resident is a bug; a process asleep with no
+ * row is invisible.
+ *
+ * A platform without an implementation sends nothing at all, rather than a
+ * frame of zeroes: the app draws a dash for a figure it does not have, and a
+ * zero would read as a measured zero.
+ */
+void publish_process_stats() {
+  FeqProcessStats sample{};
+  if (!feq_sample_process_stats(&sample)) {
+    return;
+  }
+  FeqWireStatsFrame frame{};
+  frame.magic = FEQ_MAGIC_STATS;
+  frame.working_set_bytes = sample.working_set_bytes;
+  frame.cpu_percent = sample.cpu_percent;
+  write_frame(&frame, sizeof(frame));
 }
 
 /**
@@ -951,6 +990,19 @@ int main(int argc, char** argv) {
 
   std::atomic<bool> publishing{true};
   std::thread telemetry([&] {
+    /*
+     * Prime the CPU difference here, and throw the answer away.
+     *
+     * A percentage is a difference between two readings and the first call has
+     * only one. Whatever it returned would be a number about starting up
+     * printed in a column that is read as "what the engine is doing now", so
+     * the first frame anybody sees is deliberately a real half-second interval
+     * instead. Until it arrives the app draws its dash, which is what a dash
+     * there means.
+     */
+    FeqProcessStats primed{};
+    feq_sample_process_stats(&primed);
+    int stats_ticks = 0;
     while (publishing.load(std::memory_order_acquire)) {
       reopen_if_device_changed(state, *backend, decoder_ops);
       drain_telemetry(state, *backend);
@@ -958,6 +1010,11 @@ int main(int argc, char** argv) {
       // are allowed to happen, and giving them a thread of their own would add
       // a second writer to stdout for no gain.
       drain_analysis(state);
+      stats_ticks += 1;
+      if (stats_ticks >= kStatsIntervalTicks) {
+        stats_ticks = 0;
+        publish_process_stats();
+      }
       std::this_thread::sleep_for(
           std::chrono::milliseconds(kTelemetryIntervalMs));
     }

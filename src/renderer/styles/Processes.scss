@@ -7,6 +7,7 @@ it under the terms of the GNU General Public License version 3 or later.
 */
 
 @use 'color' as *;
+@use 'dialog' as dialog;
 @use 'spacing' as *;
 @use 'theme' as *;
 
@@ -15,37 +16,139 @@ it under the terms of the GNU General Public License version 3 or later.
 // like a debugging tool that wandered in.
 @use 'About';
 
-// Narrower than About, which holds prose. Four columns of numbers read worse
-// the wider they are: the eye has further to travel from a name to its value.
-.processes {
-  width: min(520px, 100%);
+/*
+ * Wider than About, because every row carries a sentence.
+ *
+ * 520px was right while a row was one word: four columns of numbers read worse
+ * the wider they are, since the eye has further to travel from a name to its
+ * value. A row that explains itself changes the constraint — at 520 the
+ * explanations wrapped to three lines each and the table became a wall. The
+ * name column takes the extra width; the three number columns are sized by
+ * their content and do not move.
+ */
+/*
+ * Both classes, because `.about` sets a width too.
+ *
+ * `.processes` alone is the same specificity as `.about` and lost on source
+ * order — About's stylesheet is emitted after this one, since the About dialog
+ * imports it as well. Measured in the running window: the card stayed 620px
+ * while every other rule in this file applied, which is precisely the failure
+ * that reasoning about the cascade does not catch and `getComputedStyle` does.
+ */
+.about.processes {
+  width: min(860px, 100%);
+  // A third row for the footer. About's own grid is header and body, and this
+  // is the only card of the three that has anything to pin under the scroll.
+  grid-template-rows: auto minmax(0, 1fr) auto;
+}
+
+/*
+ * The total, pinned under the scrolling table.
+ *
+ * A summary that scrolls away is not a summary. The list is long enough to
+ * scroll on a short window, and the line it adds up to was the first thing to
+ * go — so it sits in the card rather than in the body, on the right, under the
+ * columns of numbers it totals.
+ */
+.processes__footer {
+  display: flex;
+  gap: $spacing-m;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 11px 18px 13px;
+  border-top: 1px solid rgba($secondary-light, 0.12);
+  background: rgba(#07111c, 0.26);
+}
+
+.processes__footnote {
+  color: rgba($primary-lighter, 0.45);
+  font-size: 0.68rem;
+  line-height: 1.4;
+}
+
+/*
+ * Pushed right by the flex row even when the note beside it is absent, which
+ * is the common case: `margin-left: auto` rather than relying on
+ * `space-between`, which centres a lone child's leftover space instead.
+ */
+.processes__total {
+  margin-left: auto;
+  color: rgba($primary-lighter, 0.78);
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 .processes__hint {
-  margin: 0 0 $spacing-s;
+  @include dialog.section-surface;
+  margin: 0;
+  padding: 9px 12px;
   color: rgba($primary-lighter, 0.62);
   font-size: 0.72rem;
   line-height: 1.5;
 }
 
 .processes__table {
+  @include dialog.section-surface;
   width: 100%;
-  margin-bottom: $spacing-m;
+  overflow: hidden;
   border-collapse: collapse;
   font-size: 0.74rem;
 
   th {
-    padding-bottom: 6px;
-    border-bottom: 1px solid rgba($secondary-light, 0.2);
-    color: rgba($primary-lighter, 0.5);
-    font-weight: $weight-medium;
+    position: sticky;
+    z-index: 1;
+    top: -18px;
+    padding: 9px 12px;
+    border-bottom: 1px solid rgba($secondary-light, 0.16);
+    color: rgba($primary-lighter, 0.58);
+    background: rgba(#0b1726, 0.96);
+    font-size: 0.64rem;
+    font-weight: $weight-bold;
+    letter-spacing: 0.08em;
     text-align: left;
+    text-transform: uppercase;
   }
 
   td {
-    padding: 6px 0;
+    padding: 10px 12px;
     border-bottom: 1px solid rgba($secondary-light, 0.08);
+    // Top, not middle: the numbers belong beside the name they describe, and
+    // centring them against a two-line cell floats them into the explanation.
+    vertical-align: top;
   }
+
+  // The footer draws the rule that closes the table. The last row's own would
+  // hang twenty pixels above it, reading as two lines for one edge.
+  tr:last-child td {
+    border-bottom: none;
+  }
+}
+
+.processes__name {
+  display: block;
+  color: rgba($primary-lighter, 0.92);
+  font-weight: $weight-medium;
+}
+
+/*
+ * What the process is for, in a sentence.
+ *
+ * The reason this dialog exists at all: `Utility: video_capture.mojom.
+ * VideoCaptureService` is a true label that answers nothing, and the two rows
+ * people assume the worst about — the graphics process and the camera service
+ * — are innocent for reasons no name can carry.
+ *
+ * Held to 52 characters' worth of line by the column beside it rather than by
+ * a max-width here; dimmed so a column of names still scans as a column.
+ */
+.processes__what {
+  display: block;
+  margin-top: 3px;
+  padding-right: $spacing-m;
+  color: rgba($primary-lighter, 0.5);
+  font-size: 0.68rem;
+  line-height: 1.45;
 }
 
 /*
@@ -56,20 +159,29 @@ it under the terms of the GNU General Public License version 3 or later.
  * "1024" and "9024" different widths and the column stops lining up.
  */
 .processes__number {
+  padding-left: $spacing-m;
   font-variant-numeric: tabular-nums;
   text-align: right;
+  // Never wrapped: "844 MB" broken across two lines in a column read by
+  // scanning is worse than the column being one word wider.
+  white-space: nowrap;
 }
 
-// The one row somebody is usually looking for. Marked rather than sorted to
-// the top: the sort is by memory, and moving it would break that.
-.processes tr.is-this-window td {
+// The one row somebody is usually looking for. Marked rather than moved: the
+// order is fixed so that a row found once stays where it was found.
+.processes tr.is-this-window .processes__name {
   color: $primary-lighter;
+}
+
+.processes tr.is-this-window td {
+  background: rgba($secondary-default, 0.055);
 }
 
 .processes__tag {
   margin-left: 8px;
   padding: 1px 6px;
-  border-radius: 999px;
+  border: 1px solid rgba($secondary-light, 0.18);
+  border-radius: $radius-pill;
   background: rgba($secondary-default, 0.16);
   color: $secondary-light;
   font-size: 0.62rem;

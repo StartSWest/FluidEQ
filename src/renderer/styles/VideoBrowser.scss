@@ -90,6 +90,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   border: none;
   border-radius: 0;
   box-shadow: none;
+  // Rounded composite clipping is useful for the docked card and expensive at
+  // display resolution. HTML fullscreen has no corners to contain, so do not
+  // put the live video through a second offscreen layer while it is decoding.
+  clip-path: none;
+  isolation: auto;
+  overflow: visible;
 }
 
 .video-browser__bar {

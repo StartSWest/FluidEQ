@@ -35,7 +35,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 /*
  * Bumped on every frame layout change. 2 was Denoise growing the analysis
- * frame; 4 is the telemetry frame gaining the transport.
+ * frame; 4 is the telemetry frame gaining the transport; 5 is the stats frame,
+ * which is a new kind rather than a changed one — and an added kind is a
+ * breaking change here precisely because an unknown magic is fatal to the
+ * reader by design: it means the stream has desynchronised and there is no
+ * safe number of bytes to skip.
  *
  * The handshake already refuses a host whose protocol differs; what it cannot
  * catch is a host built before a layout change that did not move this number.
@@ -50,7 +54,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * both sides, so this number is what stands between them and a stale binary.
  * Move it, or the next person debugging silence starts where we started.
  */
-#define FEQ_WIRE_PROTOCOL_VERSION 4
+#define FEQ_WIRE_PROTOCOL_VERSION 5
 
 /* 'FEQ' plus a letter for the kind, so a desynchronised stream is obvious. */
 #define FEQ_MAGIC_HANDSHAKE 0x48514546u /* FEQH */
@@ -58,6 +62,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #define FEQ_MAGIC_ACK 0x41514546u       /* FEQA */
 #define FEQ_MAGIC_TELEMETRY 0x54514546u /* FEQT */
 #define FEQ_MAGIC_ANALYSIS 0x4E514546u  /* FEQN */
+#define FEQ_MAGIC_STATS 0x53514546u     /* FEQS */
 
 enum FeqWireCommand {
   FEQ_CMD_HELLO = 1,
@@ -318,6 +323,30 @@ typedef struct FeqWireTelemetryFrame {
 } FeqWireTelemetryFrame;
 
 /**
+ * What this process costs the machine, since nothing else can say.
+ *
+ * Electron measures its own children and this is not one of them — it is a
+ * separate executable spawned by main — so the app's process list showed the
+ * engine with a dash where its memory and CPU belong. That is the row somebody
+ * most wants a number for: it is the process decoding audio and running the
+ * chain, and it is also the one Task Manager files away from the FluidEQ group
+ * entirely, being a different binary.
+ *
+ * Its own clock rather than telemetry's. A telemetry frame exists per audio
+ * callback and therefore only while something is playing, which is exactly
+ * when a memory question is least interesting; this one is sent on a fixed
+ * interval whether or not a device is open, and is small enough that doing so
+ * costs nothing. See `process_stats.h` for what the two fields measure.
+ */
+typedef struct FeqWireStatsFrame {
+  uint32_t magic;
+  /** Zero. Present so `cpu_percent` lands on an eight-byte boundary. */
+  uint32_t reserved;
+  uint64_t working_set_bytes;
+  double cpu_percent;
+} FeqWireStatsFrame;
+
+/**
  * What the panel draws, when it is open.
  *
  * Followed by its payload: for each stage named in `stage_mask`, ascending,
@@ -486,6 +515,7 @@ static_assert(sizeof(FeqWireHandshake) == 104, "handshake frame size");
 static_assert(sizeof(FeqWireCommandFrame) == 32, "command frame size");
 static_assert(sizeof(FeqWireAckFrame) == 32, "ack frame size");
 static_assert(sizeof(FeqWireTelemetryFrame) == 112, "telemetry frame size");
+static_assert(sizeof(FeqWireStatsFrame) == 24, "stats frame size");
 /*
  * 120, then 136 when Master loudness landed, then Denoise's six words took it
  * to 160 and its forty floor bands to 320. The two bass stages add sixteen

@@ -22,13 +22,9 @@ import { DSP_OUTPUT_INDEX } from '../monitorOutputs';
  * so removing the node would take the audio with it rather than leaving it
  * unprocessed. That is the whole of this file's job.
  *
- * The output topology is unchanged, and that is deliberate too. The node is
- * still built with `DSP_OUTPUT_COUNT` outputs and `graph.ts` still connects an
- * analyser to each one, so the per-stage graphs keep their wiring. Only output
- * zero is written; the rest terminate at analysers reading silence, which is
- * the correct picture of a stage that is not running here. The DSP panel's
- * meters come from the host's analysis frame through `nativeMeters.ts`, and
- * never came from this node once it stood down.
+ * There is one output. The six silent monitor outputs and their AnalyserNodes
+ * went with the rack: native analysis owns those meters while the DSP panel is
+ * visible, so keeping FFT buffers here for an off-screen panel was pure cost.
  */
 class DspProcessor extends AudioWorkletProcessor {
   /* eslint-disable-next-line class-methods-use-this --

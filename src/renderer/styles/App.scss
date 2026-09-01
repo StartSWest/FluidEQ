@@ -533,6 +533,11 @@ select option {
   z-index: auto;
   max-width: none;
   margin: 0;
+  // Both strips sit inside the titlebar's drag handle. The right one happened
+  // to inherit `no-drag` from its parent; the left one did not, so Windows
+  // treated presses on Online Media and EQ as attempts to move the window.
+  // The navigation itself must own the exception whichever side it is on.
+  -webkit-app-region: no-drag;
 
   // No rule beside the meter, either side of it. There was one when the
   // capsule held everything, dividing the spectrum from the words inside a
@@ -616,6 +621,18 @@ select option {
 // mounted — this takes its width out of the line as well, so the two ends of
 // the bar come together rather than leaning on 420px of nothing.
 .titlebar-nav:has(> .waveform-visualizer-shell.is-hidden) {
+  // The wave normally supplies the visual boundary between the two halves of
+  // the navigation. With its width removed, EQ and DSP become adjacent tabs
+  // from separate strips, so neither strip's ordinary sibling rule can draw
+  // the divider between them. Keep one hairline in the vacated middle track.
+  &::before {
+    width: 1px;
+    height: 20px;
+    flex: 0 0 auto;
+    background: rgba($secondary-light, 0.12);
+    content: '';
+  }
+
   > .waveform-visualizer-shell {
     display: none;
   }
@@ -1011,7 +1028,12 @@ select option {
   align-items: center;
   justify-content: flex-end;
   gap: 10px;
-  -webkit-app-region: no-drag;
+  // The large elastic gap between the right-hand tabs and the pet is titlebar,
+  // not a control. Marking this whole flex row `no-drag` made that visibly
+  // empty area refuse window drags. Each interactive child already owns its
+  // narrower `no-drag` region, so the row itself must inherit the titlebar's
+  // drag behavior.
+  -webkit-app-region: drag;
 
   // The elastic that gives the pet its room: whatever the window is wider than
   // this end needs, it goes here, between the names and the creature. Not
@@ -1437,10 +1459,10 @@ textarea,
   align-content: stretch;
 }
 
-// Karaoke's full-screen mode keeps the player rather than promoting the
-// shared response graph. The graph remains mounted so live capture does not
-// restart on exit, but gives the screen back until the mode closes.
-.app-workspace.is-app-full.is-karaoke-full {
+// Media, Library and Karaoke share one application-owned fullscreen shell.
+// The graph remains mounted so live capture does not restart on exit, but gives
+// the screen back until the mode closes. A guest page never owns this layout.
+.app-workspace.is-app-full.is-media-full {
   grid-template-areas: 'center-workspace';
   grid-template-columns: minmax(0, 1fr);
   grid-template-rows: minmax(0, 1fr);
@@ -1454,8 +1476,13 @@ textarea,
   }
 
   > .center-workspace > .pane-resizer,
-  > .center-workspace > .graph-wrapper,
   .workspace-tabs {
+    display: none;
+  }
+
+  // Native Karaoke fullscreen has no graph. Graph-triggered fullscreen uses
+  // this exact shell but keeps the overlay that requested it.
+  &:not(.has-karaoke-graph) > .center-workspace > .graph-wrapper {
     display: none;
   }
 
@@ -1470,10 +1497,30 @@ textarea,
     box-shadow: none;
   }
 
+  // Online players request HTML fullscreen from inside a `<webview>`. App
+  // immediately cancels that top-layer state and puts this shared shell full
+  // screen instead. The controlled class gives the picture the whole pane.
+  .workspace-tab-panel--video {
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+  }
+
   // Full-screen content lies behind the translucent FluidEQ titlebar. When
   // the shared graph/Karaoke preference keeps that bar visible, reserve only
   // its actual height; when it is hidden the stage reaches the top edge.
   &.has-top-bar .karaoke-workspace.is-fullscreen {
+    padding-top: calc(#{$title-bar-height} + 8px);
+  }
+
+  // Keep the first usable pixel of an online player and the Library below the
+  // optional FluidEQ bar. The old guest-owned fullscreen sat in the browser's
+  // top layer and covered this bar instead, which is the clipped top reported
+  // when Media entered fullscreen.
+  &.has-top-bar .workspace-tab-panel--video,
+  &.has-top-bar .workspace-tab-panel--library {
     padding-top: calc(#{$title-bar-height} + 8px);
   }
 
@@ -1534,11 +1581,12 @@ textarea,
   grid-area: right-content;
 }
 
-// The two columns that are allowed to be longer than the window. They take the
-// scrolling that the document used to do — which is the trade that keeps the
-// centre column still while a profile list grows without limit.
+// The side content takes the scrolling that the document used to do — which is
+// the trade that keeps the centre column still while a profile list grows
+// without limit. The right pane scrolls only its card row, leaving its footer
+// outside this surface.
 .side-bar,
-.right-content {
+.right-content__scroll {
   min-height: 0;
   overflow-x: hidden;
   overflow-y: auto;
@@ -1993,8 +2041,8 @@ $tab-border: rgba($secondary-light, 0.2);
 .workspace-tab-panel--convolution
   .workspace-tab-panel__scroll
   > .convolution-panel,
-.right-content > .device-profiles,
-.right-content > .presets-bar {
+.right-content__scroll > .device-profiles,
+.right-content__scroll > .presets-bar {
   border: 0;
   background: transparent;
   box-shadow: none;
@@ -2266,14 +2314,77 @@ $tab-border: rgba($secondary-light, 0.2);
   @include panel-surface;
   display: grid;
   min-height: 0;
-  padding: 12px;
-  gap: 10px;
-  // Every section is content-sized and the column starts at the top. Giving
-  // the last one 1fr stretched it over all the leftover height, so a collapsed
-  // profiles section became a tall empty box with its header floating in the
-  // middle.
-  grid-template-rows: repeat(3, max-content);
+  padding: 0;
+  gap: 0;
+  grid-template-rows: minmax(0, 1fr) max-content;
+  align-content: stretch;
+  overflow: hidden;
+}
+
+// The cards scroll; the website does not. Keeping the scrollbar on this inner
+// row makes it end above the footer instead of running behind the link, and the
+// stable gutter stops the cards shifting sideways when overflow first appears.
+.right-content__scroll {
+  display: grid;
+  min-height: 0;
   align-content: start;
+  gap: 10px;
+  padding: 12px;
+  grid-auto-rows: max-content;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+  overscroll-behavior: contain;
+}
+
+.right-content__footer {
+  display: flex;
+  min-height: 54px;
+  align-items: center;
+  justify-content: center;
+  padding: 9px 12px 11px;
+  border-top: 1px solid rgba($secondary-light, 0.1);
+  background: linear-gradient(180deg, rgba(#0b1825, 0.86), rgba(#08131f, 0.98));
+  box-shadow: 0 -10px 22px rgba($black, 0.12);
+}
+
+.right-content__site {
+  display: inline-flex;
+  min-height: 34px;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 7px 14px;
+  color: $secondary-light;
+  border: 1px solid rgba($secondary-light, 0.32);
+  border-radius: $radius-pill;
+  background: rgba($secondary-default, 0.13);
+  box-shadow:
+    inset 0 1px 0 rgba($white, 0.08),
+    0 0 18px rgba($secondary-default, 0.1);
+  font-size: 0.7rem;
+  font-weight: $weight-semibold;
+  line-height: 1;
+  text-decoration: none;
+  cursor: pointer;
+  transition: $transition-control;
+
+  &:hover,
+  &:focus-visible {
+    color: $white;
+    border-color: rgba($secondary-light, 0.62);
+    background: rgba($secondary-default, 0.25);
+    box-shadow:
+      inset 0 1px 0 rgba($white, 0.14),
+      0 0 22px rgba($secondary-default, 0.24);
+    outline: none;
+  }
+}
+
+.right-content__site-icon {
+  width: 12px;
+  height: 12px;
+  flex: 0 0 auto;
 }
 
 // *** Response graph *********************************************************
@@ -2350,7 +2461,7 @@ $tab-border: rgba($secondary-light, 0.2);
   // whether it was or not. With the band gone the peaks come all the way up
   // here, so this is worth being explicit about.
   z-index: 3;
-  top: 8px;
+  top: 9px;
   right: 10px;
   left: 10px;
   display: flex;
@@ -2774,8 +2885,8 @@ button.graph-legend {
       var(--now-playing-bar-height, 0px) + var(--shell-gutter-bottom, 18px)
     );
     width: $sound-panel-width;
-    padding: 14px;
-    overflow-y: auto;
+    padding: 0;
+    overflow: hidden;
     background: rgba(6, 20, 33, 0.97);
     border-left: 1px solid rgba(63, 149, 173, 0.3);
     box-shadow: -18px 0 48px rgba(0, 0, 0, 0.45);
@@ -2785,6 +2896,10 @@ button.graph-legend {
     &.is-open {
       transform: translateX(0);
     }
+  }
+
+  .right-content__scroll {
+    padding: 14px;
   }
 
   .right-content-toggle {
@@ -2835,7 +2950,7 @@ button.graph-legend {
   // were the difference between a strip and a wall. It is a 340px drawer
   // now, and two columns inside it truncated every label it has: "Automatic
   // ...", "Second out...", "No compe...".
-  .right-content {
+  .right-content__scroll {
     grid-template-columns: minmax(0, 1fr);
   }
 
@@ -2864,7 +2979,10 @@ button.graph-legend {
   .right-content {
     min-height: 0;
     overflow-x: hidden;
-    overflow-y: auto;
+    overflow-y: hidden;
+  }
+
+  .right-content__scroll {
     overscroll-behavior: contain;
   }
 

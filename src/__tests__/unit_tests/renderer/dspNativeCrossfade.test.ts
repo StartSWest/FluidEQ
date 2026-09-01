@@ -94,13 +94,14 @@ const handoffTo = async (
   durationMs: number,
   curve: TCrossfadeCurve,
   shape: ICrossfadeShape = DSP_DEFAULTS.crossfade.shape,
+  startPositionMs = 0,
 ) => {
   mirror.sync({
     mediaPath,
     isPlaying: true,
     positionMs: 0,
     volume: 1,
-    transition: { durationMs, curve, shape },
+    transition: { durationMs, curve, shape, startPositionMs },
   });
   await settle();
 };
@@ -130,6 +131,24 @@ describe('the mirrored crossfade', () => {
     // Deck one, because deck zero is the one currently audible.
     expect(calls).toContain('load(1)');
     expect(calls).toContain('crossfade(1)');
+  });
+
+  it('cues the incoming lead-in before making that deck audible', async () => {
+    const { mirror, calls } = await withTrackCued();
+
+    await handoffTo(
+      mirror,
+      'C:/b.mp3',
+      4000,
+      'equalPower',
+      DSP_DEFAULTS.crossfade.shape,
+      750,
+    );
+
+    const seekAt = calls.indexOf('seek(1,0.75)');
+    const fadeAt = calls.indexOf('crossfade(1)');
+    expect(seekAt).toBeGreaterThanOrEqual(0);
+    expect(fadeAt).toBeGreaterThan(seekAt);
   });
 
   /** And back again, so a third track does not land on the deck still playing. */
@@ -359,13 +378,7 @@ describe('the mirrored crossfade', () => {
     await handoffTo(mirror, 'C:/b.mp3', 4000, 'equalPower');
     calls.length = 0;
 
-    // A jump far past the drift threshold, which is what makes it a seek.
-    mirror.sync({
-      mediaPath: 'C:/b.mp3',
-      isPlaying: true,
-      positionMs: 90_000,
-      volume: 1,
-    });
+    mirror.seek(90_000);
     await settle();
 
     expect(calls.some((call) => call.startsWith('seek(1,'))).toBe(true);

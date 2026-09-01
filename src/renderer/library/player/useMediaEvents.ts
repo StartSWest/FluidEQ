@@ -43,6 +43,7 @@ export interface IMediaEventDeps {
   setPositionMs: (value: number) => void;
   setDurationMs: (value: number) => void;
   setIsPlaying: (value: boolean) => void;
+  setRetainWhenHidden: (value: boolean) => void;
   setIsUnplayable: (value: boolean) => void;
 }
 
@@ -63,6 +64,7 @@ export const useMediaEvents = (
     setPositionMs,
     setDurationMs,
     setIsPlaying,
+    setRetainWhenHidden,
     setIsUnplayable,
   } = deps;
 
@@ -210,6 +212,7 @@ export const useMediaEvents = (
         if (!isActive()) {
           return;
         }
+        setRetainWhenHidden(false);
         claimPlayback('library');
         setIsPlaying(true);
       };
@@ -230,9 +233,10 @@ export const useMediaEvents = (
          * playing is a track starting whichever engine owns it, and the host
          * has no transport of its own to report until a deck is loaded.
          */
-        if (hostOwnsTransportRef.current) {
+        if (hostOwnsTransportRef.current || element.ended) {
           return;
         }
+        setRetainWhenHidden(false);
         releasePlayback('library');
         setIsPlaying(false);
       };
@@ -265,6 +269,8 @@ export const useMediaEvents = (
           return;
         }
         setIsUnplayable(true);
+        setRetainWhenHidden(false);
+        releasePlayback('library');
         setIsPlaying(false);
       };
       element.addEventListener('timeupdate', onTimeUpdate);
@@ -304,6 +310,7 @@ export const useMediaEvents = (
       setPositionMs,
       setDurationMs,
       setIsPlaying,
+      setRetainWhenHidden,
       setIsUnplayable,
     ],
   );

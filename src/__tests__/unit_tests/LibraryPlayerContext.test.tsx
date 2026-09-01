@@ -92,7 +92,9 @@ let indexChangedHandler: ((next: ILibraryIndex) => void) | undefined;
  * side under it. */
 const Harness = () => {
   latestPlayer = useLibraryPlayer();
-  return <LibraryVideoStage />;
+  return (
+    <LibraryVideoStage isFullScreen={false} onToggleFullScreen={() => {}} />
+  );
 };
 
 beforeAll(() => {
@@ -222,8 +224,8 @@ describe('leaving a video behind (Task 19 fix-round)', () => {
   });
 });
 
-describe('the dead end a video with nothing next leaves behind (blocker 1)', () => {
-  it('lets Stop clear a video-only queue that reached its own end', async () => {
+describe('the shared Stop contract', () => {
+  it('pauses and rewinds a video without discarding its loaded queue', async () => {
     renderHarness();
     await act(async () => {
       await Promise.resolve();
@@ -238,24 +240,37 @@ describe('the dead end a video with nothing next leaves behind (blocker 1)', () 
     expect(document.querySelector('video')).not.toBeNull();
 
     // `repeat` defaults to 'off' and `advanceQueue` holds position at the
-    // last track rather than clearing it -- the exact dead end blocker 1
-    // describes: every browse view stays gated on `videoTrackId` forever,
-    // with nothing in the queue itself that ever unsets it.
+    // last track. Stop must therefore act on the loaded video in place, just
+    // as Karaoke and Online Media do, rather than using queue deletion as a
+    // different meaning for the same icon.
     act(() => {
       latestPlayer?.skip(1);
     });
     expect(latestPlayer?.videoTrackId).toBe(videoTrack.id);
 
+    const videoElement = document.querySelector('video');
+    expect(videoElement).not.toBeNull();
+    const videoPause = jest.fn();
+    Object.defineProperty(videoElement, 'pause', {
+      configurable: true,
+      value: videoPause,
+    });
+    if (videoElement) {
+      videoElement.currentTime = 18;
+    }
+    currentTimeSets.length = 0;
+
     act(() => {
       latestPlayer?.stop();
     });
 
-    expect(latestPlayer?.videoTrackId).toBeUndefined();
-    expect(latestPlayer?.track).toBeUndefined();
-    expect(latestPlayer?.queue).toBeUndefined();
-    // The stage itself unmounts along with the queue clearing -- the tab
-    // actually gets back to browsing, not just an id flipping in state.
-    expect(document.querySelector('video')).toBeNull();
+    expect(videoPause).toHaveBeenCalledTimes(1);
+    expect(currentTimeSets[currentTimeSets.length - 1]).toBe(0);
+    expect(latestPlayer?.isPlaying).toBe(false);
+    expect(latestPlayer?.videoTrackId).toBe(videoTrack.id);
+    expect(latestPlayer?.track?.id).toBe(videoTrack.id);
+    expect(latestPlayer?.queue).toBeDefined();
+    expect(document.querySelector('video')).toBe(videoElement);
   });
 });
 

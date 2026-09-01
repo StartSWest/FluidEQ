@@ -559,6 +559,7 @@ const FrequencyResponseChart = ({
   // Which of the five arrangements the switches add up to, so the View menu's
   // cycle row can name it instead of only offering to move on from it.
   const graphContents = useGraphContents();
+  const isClean = graphContents === 'clean';
   const modeAnnouncement = useGraphModeAnnouncement();
   // The dots go with the line they draw. A handle you can drag over a curve
   // that is not on screen gives no feedback at all — the whole point of
@@ -672,9 +673,21 @@ const FrequencyResponseChart = ({
     customFx,
   } = useFluidEqContext();
   const isGraphViewOn = isVisible ?? isGlobalGraphViewOn;
+  const isDisplayedGridHidden = isClean || isGridHidden;
+  const isDisplayedCoverageHidden =
+    isClean || isCoverageHidden || !isEngineUsable;
+  const canEditEqCurve =
+    !isClean && !isSolo && isEngineUsable && !areHandlesHidden;
+  // The live output is the subject whenever no APO response can be heard. This
+  // is the same presentation as Wave only, without overwriting the user's
+  // remembered graph mode just because the engine was switched off briefly.
+  const isLiveOutputForeground = isSolo || !isEngineUsable;
+  // With no response to replace it, the wave is the graph. Force it on without
+  // changing the stored switch, so the user's previous layout returns with APO.
+  const isDisplayedWaveHidden = isClean || (isEngineUsable && isWaveHidden);
   // The live trace over the response curve is the plot's whole reason to be
   // reading frames, so the plot owns the capture for as long as it is drawn.
-  useLiveAudioCapture(isGraphViewOn);
+  useLiveAudioCapture(isGraphViewOn && !isClean);
   const isBypassed = (layer: TApoLayer) => bypassed.includes(layer);
   // A boolean rather than the two tests written out at each of the three places
   // that need them — the curve, its legend chip, and the sum they both feed.
@@ -698,7 +711,10 @@ const FrequencyResponseChart = ({
    * curves at all, so it has no list.
    */
   const curveChips: ICurveChip[] = [];
-  if (!isSolo) {
+  // With no usable APO engine none of these layers reaches the output. The
+  // graph itself still has a live signal to show, so leave that graph fully
+  // available and omit only the response curves that would claim to be heard.
+  if (!isLiveOutputForeground) {
     if (hasConvolution) {
       curveChips.push({
         curve: 'convolution',
@@ -1055,6 +1071,19 @@ const FrequencyResponseChart = ({
     ],
   );
 
+  /**
+   * Curves that are actually in the audible Equalizer APO path.
+   *
+   * Keeping this separate from `chartData` matters: the builder still derives
+   * the editor's values while the engine is off, but those preview values must
+   * not reach either the plot or its scale and make an inactive tuning look
+   * applied. An empty scale also restores the graph's ordinary full range.
+   */
+  const appliedChartData = useMemo(
+    () => (isEngineUsable ? chartData : []),
+    [chartData, isEngineUsable],
+  );
+
   useEffect(() => {
     // The config writer owns automatic gain staging. Every edit that changes a
     // layer already ends in a flush, and flush.ts derives the final-chain
@@ -1231,7 +1260,7 @@ const FrequencyResponseChart = ({
             toggleGraphStretch();
           } else if (key === 'i') {
             cycleWaveOrientation();
-          } else {
+          } else if (isEngineUsable) {
             // Ctrl+W walks the five things the plot can show rather than
             // toggling one of two switches that each turn the other off. One of
             // the five is reachable no other way, which is why the View menu's
@@ -1271,7 +1300,13 @@ const FrequencyResponseChart = ({
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [isGraphViewOn, isDesignerOpen, closeDesigner, setSelectedFilterIds]);
+  }, [
+    isGraphViewOn,
+    isDesignerOpen,
+    isEngineUsable,
+    closeDesigner,
+    setSelectedFilterIds,
+  ]);
 
   const dimensions: ChartDimensions = {
     width,
@@ -1325,10 +1360,10 @@ const FrequencyResponseChart = ({
           // a curve does not rescale the axis under the ones left. A grid that
           // moves when you take a line off it makes the remaining lines look
           // like they changed.
-          chartData.filter(
+          appliedChartData.filter(
             (curve) => !hiddenCurves.includes(CURVE_BY_CHART_ID[curve.id]),
           ),
-    [chartData, hasRecentAudio, hiddenCurves, isSolo],
+    [appliedChartData, hasRecentAudio, hiddenCurves, isSolo],
   );
 
   /**
@@ -1345,7 +1380,7 @@ const FrequencyResponseChart = ({
    * hundred points and change twenty-two times a second.
    */
   const liveCurves = useMemo<ILiveCurveData[]>(() => {
-    if (isWaveHidden) {
+    if (isDisplayedWaveHidden) {
       return [];
     }
     // Held back only while there is something to hold it back for.
@@ -1355,7 +1390,7 @@ const FrequencyResponseChart = ({
     // Solo removes every one of them, so the reason to dim it goes with them:
     // what was left was the one drawing on screen, drawn at half strength for
     // the benefit of curves that are no longer there.
-    const opacity = isSolo ? 1 : SUPPORTING_CURVE_OPACITY;
+    const opacity = isLiveOutputForeground ? 1 : SUPPORTING_CURVE_OPACITY;
     const isHalfHeight =
       waveOrientation === 'mirrored' || waveOrientation === 'centred';
     // The compact size draws the wave at half its amplitude against whichever
@@ -1387,7 +1422,12 @@ const FrequencyResponseChart = ({
         opacity,
       },
     ];
-  }, [isSolo, isWaveHidden, waveOrientation, waveSize]);
+  }, [
+    isDisplayedWaveHidden,
+    isLiveOutputForeground,
+    waveOrientation,
+    waveSize,
+  ]);
 
   const editablePoints: IEditableChartPoint[] = useMemo(() => {
     // Sliders are ordered by frequency, so use the exact same ordering when
@@ -1457,14 +1497,13 @@ const FrequencyResponseChart = ({
 
   return isGraphViewOn ? (
     <div
-      className={`graph-wrapper${!isEngineUsable ? ' is-engine-disabled' : ''}${
+      className={`graph-wrapper${
         bypassed.includes('eq') ? ' is-eq-bypassed' : ''
-      }${areHandlesHidden ? ' is-handles-hidden' : ''}${
+      }${areHandlesHidden || isLiveOutputForeground ? ' is-handles-hidden' : ''}${
         isGridHidden ? ' is-gridless' : ''
       }${isStretched ? ' is-stretched' : ''}${
         isDesignerOpen ? ' is-designing' : ''
-      }`}
-      aria-disabled={!isEngineUsable}
+      }${isClean ? ' is-clean' : ''}`}
       // Read by the full-screen rules only. Handed down as variables rather
       // than as a style on the card itself, because what they actually apply to
       // is the surface layer behind the drawing — see GraphTheme.
@@ -1496,24 +1535,6 @@ const FrequencyResponseChart = ({
             on the grid beside it, so half the row had a surface and half did
             not. They belong together: they are all captions and controls for
             the same drawing. */}
-        {/* THE WAY OUT, ON SCREEN RATHER THAN ONLY ON A KEY.
-            Escape has always left this mode and still does, but a full-screen
-            graph over a video hides every other exit — the tab strip is gone
-            and the View menu is a dropdown somebody has to open to discover
-            what it does. First in the row, where a back control belongs. */}
-        {isFullScreen && (
-          <button
-            type="button"
-            className="graph-fullscreen-exit"
-            onClick={exitGraphFullScreen}
-            title={t('graph.view.exitFullscreen')}
-            aria-label={t('graph.view.exitFullscreen')}
-          >
-            <svg viewBox="0 0 16 16" aria-hidden="true">
-              <path d="M10 3.5 5.5 8l4.5 4.5" />
-            </svg>
-          </button>
-        )}
         <span className="graph-legend-group" ref={legendGroup}>
           {/* First in the cluster rather than alone at the left of the strip.
 
@@ -1527,11 +1548,13 @@ const FrequencyResponseChart = ({
               both take the band handles off the plot, so every one of these
               gestures does nothing, and instructions for controls that are not
               on screen read as controls that have stopped working. */}
-          {!isSolo && !areHandlesHidden && !areChipsCollapsed && (
-            <span className="graph-edit-hint">
-              Drag points · Ctrl/Shift select · Ctrl+scroll: Q
-            </span>
-          )}
+          {!isLiveOutputForeground &&
+            !areHandlesHidden &&
+            !areChipsCollapsed && (
+              <span className="graph-edit-hint">
+                Drag points · Ctrl/Shift select · Ctrl+scroll: Q
+              </span>
+            )}
           {/* Every chip is its curve's switch.
 
               The legend already had the two things a control needs — it names
@@ -1567,7 +1590,7 @@ const FrequencyResponseChart = ({
             more than a cycle can reasonably walk, hence a searchable list. */}
           <span
             className={`graph-legend graph-legend--live graph-legend--picker${
-              isWaveHidden ? ' is-hidden' : ''
+              isDisplayedWaveHidden ? ' is-hidden' : ''
             }`}
           >
             {/* Named separately from the value so the two can look like what
@@ -1582,10 +1605,11 @@ const FrequencyResponseChart = ({
             <button
               type="button"
               className="graph-legend__label"
-              aria-pressed={!isWaveHidden}
-              title={t(isWaveHidden ? 'graph.show' : 'graph.hide', {
+              aria-pressed={!isDisplayedWaveHidden}
+              title={t(isDisplayedWaveHidden ? 'graph.show' : 'graph.hide', {
                 item: t('graph.item.wave'),
               })}
+              disabled={!isEngineUsable}
               onClick={toggleGraphWave}
             >
               <svg
@@ -1611,7 +1635,7 @@ const FrequencyResponseChart = ({
               className="graph-look-step"
               aria-label={t('graph.style.previous')}
               title={`${t('graph.style.previous')} (Ctrl+Space)`}
-              disabled={isWaveHidden}
+              disabled={isDisplayedWaveHidden}
               onClick={() => cycleGraphLook(-1)}
             >
               <svg viewBox="0 0 16 16" aria-hidden>
@@ -1626,7 +1650,7 @@ const FrequencyResponseChart = ({
               menuClassName="graph-look-menu"
               options={graphLookOptions}
               value={selectedLookId}
-              isDisabled={isWaveHidden}
+              isDisabled={isDisplayedWaveHidden}
               isFilterable
               filterPlaceholder={t('graph.style.search')}
               placement="down"
@@ -1637,7 +1661,7 @@ const FrequencyResponseChart = ({
               className="graph-look-step"
               aria-label={t('graph.style.next')}
               title={`${t('graph.style.next')} (Space)`}
-              disabled={isWaveHidden}
+              disabled={isDisplayedWaveHidden}
               onClick={() => cycleGraphLook(1)}
             >
               <svg viewBox="0 0 16 16" aria-hidden>
@@ -1664,7 +1688,7 @@ const FrequencyResponseChart = ({
               title={`${t('look.palette.cycle')}: ${t(
                 PALETTE_LABEL_KEYS[graphPalette],
               )}`}
-              disabled={isWaveHidden || !isPaletteSelectable}
+              disabled={isDisplayedWaveHidden || !isPaletteSelectable}
               onClick={() =>
                 setGraphPalette(
                   GRAPH_PALETTES[
@@ -1697,13 +1721,13 @@ const FrequencyResponseChart = ({
               // There is nothing to design against with the wave switched off:
               // every control in the panel is judged by what it does to a
               // drawing that is not there.
-              disabled={isWaveHidden}
+              disabled={isDisplayedWaveHidden}
               onClick={() =>
                 isDesignerOpen ? closeDesigner() : openDesigner()
               }
               aria-pressed={isDesignerOpen}
               title={(() => {
-                if (isWaveHidden) {
+                if (isDisplayedWaveHidden) {
                   return t('graph.design.showWave');
                 }
                 return isDesignerOpen
@@ -1748,13 +1772,16 @@ const FrequencyResponseChart = ({
             <button
               type="button"
               className="graph-look-step graph-look-step--toggle"
-              aria-pressed={!isCoverageHidden}
-              aria-label={t(isCoverageHidden ? 'graph.show' : 'graph.hide', {
-                item: t('graph.item.bands'),
-              })}
-              title={t(isCoverageHidden ? 'graph.show' : 'graph.hide', {
-                item: t('graph.item.bands'),
-              })}
+              aria-pressed={!isDisplayedCoverageHidden}
+              aria-label={t(
+                isDisplayedCoverageHidden ? 'graph.show' : 'graph.hide',
+                { item: t('graph.item.bands') },
+              )}
+              title={t(
+                isDisplayedCoverageHidden ? 'graph.show' : 'graph.hide',
+                { item: t('graph.item.bands') },
+              )}
+              disabled={!isEngineUsable}
               onClick={toggleGraphCoverage}
             >
               <svg viewBox="0 0 16 16" aria-hidden>
@@ -1764,11 +1791,12 @@ const FrequencyResponseChart = ({
             <button
               type="button"
               className="graph-look-step graph-look-step--toggle"
-              aria-pressed={!isGridHidden}
-              aria-label={t(isGridHidden ? 'graph.show' : 'graph.hide', {
-                item: t('graph.item.grid'),
-              })}
-              title={t(isGridHidden ? 'graph.show' : 'graph.hide', {
+              aria-pressed={!isDisplayedGridHidden}
+              aria-label={t(
+                isDisplayedGridHidden ? 'graph.show' : 'graph.hide',
+                { item: t('graph.item.grid') },
+              )}
+              title={t(isDisplayedGridHidden ? 'graph.show' : 'graph.hide', {
                 item: t('graph.item.grid'),
               })}
               onClick={toggleGraphGrid}
@@ -1784,16 +1812,17 @@ const FrequencyResponseChart = ({
               view={graphView}
               onChangeView={setGraphView}
               onCycleLook={cycleGraphLook}
-              isWaveHidden={isWaveHidden}
+              isWaveHidden={isDisplayedWaveHidden}
               onToggleWave={toggleGraphWave}
+              isResponseAvailable={isEngineUsable}
               curveToggles={curveChips}
               hiddenCurves={hiddenCurves}
               onToggleCurve={toggleGraphCurve}
-              contents={graphContents}
+              contents={isEngineUsable ? graphContents : 'wave'}
               onCycleContents={cycleGraphContents}
-              isGridHidden={isGridHidden}
+              isGridHidden={isDisplayedGridHidden}
               onToggleGrid={toggleGraphGrid}
-              isCoverageHidden={isCoverageHidden}
+              isCoverageHidden={isDisplayedCoverageHidden}
               onToggleCoverage={toggleGraphCoverage}
               isMeterHidden={isMeterHidden}
               onToggleMeter={toggleGraphMeter}
@@ -1813,6 +1842,28 @@ const FrequencyResponseChart = ({
               onToggleTopBar={toggleFullScreenTopBar}
             />
           </span>
+          {/* THE WAY OUT, ON SCREEN RATHER THAN ONLY ON A KEY.
+              Escape still leaves full screen, but the visible exit belongs to
+              this pane with the other graph controls. Keeping it inside the
+              group prevents a detached pill from colliding with Karaoke's
+              song tools underneath. */}
+          {isFullScreen && (
+            <button
+              type="button"
+              className="graph-fullscreen-exit"
+              onClick={exitGraphFullScreen}
+              title={t('graph.view.exitFullscreen')}
+              aria-label={t('graph.view.exitFullscreen')}
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path
+                  fill="currentColor"
+                  stroke="none"
+                  d="M5 16h3v3h2v-5H5v2Zm3-8H5v2h5V5H8v3Zm6 11h2v-3h3v-2h-5v5Zm2-11V5h-2v5h5V8h-3Z"
+                />
+              </svg>
+            </button>
+          )}
         </span>
         {/* Its own subscriber, so that a badge which is absent almost all of the
             time does not wake the graph up to say so. */}
@@ -1850,27 +1901,34 @@ const FrequencyResponseChart = ({
         </div>
       )}
       <div className="graph-plot" ref={ref}>
-        {isLoading ? (
-          <div className="center full row">
-            <Spinner />
-          </div>
-        ) : (
-          <Chart
-            data={displayData}
-            // The band curves, which are also the only curves: the live trace
-            // is not in `data` at all any more, so nothing the analyser does can
-            // make the y-extent memos rescan every point.
-            scaleData={chartData}
-            dimensions={dimensions}
-            editablePoints={isSolo ? [] : editablePoints}
-            liveCurves={liveCurves}
-            onMarqueeSelect={(ids, additive) =>
-              setSelectedFilterIds(
-                additive ? [...new Set([...selectedFilterIds, ...ids])] : ids,
-              )
-            }
-          />
-        )}
+        {!isClean &&
+          (isLoading ? (
+            <div className="center full row">
+              <Spinner />
+            </div>
+          ) : (
+            <Chart
+              data={displayData}
+              // The band curves, which are also the only curves: the live trace
+              // is not in `data` at all any more, so nothing the analyser does can
+              // make the y-extent memos rescan every point.
+              scaleData={appliedChartData}
+              dimensions={dimensions}
+              editablePoints={canEditEqCurve ? editablePoints : []}
+              liveCurves={liveCurves}
+              isLiveOutputForeground={isLiveOutputForeground}
+              onMarqueeSelect={
+                canEditEqCurve
+                  ? (ids, additive) =>
+                      setSelectedFilterIds(
+                        additive
+                          ? [...new Set([...selectedFilterIds, ...ids])]
+                          : ids,
+                      )
+                  : undefined
+              }
+            />
+          ))}
       </div>
       {/* Inside the graph card, alongside the plot rather than over in a
           dialog of its own — what the panel is for is watching this chart

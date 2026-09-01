@@ -30,6 +30,7 @@ import { ErrorCode, ErrorDescription } from 'common/errors';
 import { SUPPORT_CONTRIBUTED_KEY } from 'common/support';
 import {
   LATEST_RELEASE_URL,
+  OFFICIAL_SITE_URL,
   PRODUCT_NAME,
   PRODUCT_VERSION,
 } from 'common/branding';
@@ -57,9 +58,10 @@ import SideBar from './SideBar';
 import {
   exitGraphFullScreen,
   onWindowFullScreenChange,
+  toggleGraphExpanded,
+  toggleGraphFullScreen,
   toggleFullScreenTopBar,
   useGraphFullScreen,
-  useGraphLook,
   useGraphView,
   useFullScreenTopBar,
 } from './utils/graphStyle';
@@ -72,8 +74,8 @@ import { reportError } from './utils/logger';
 import VideoBrowser from './video/VideoBrowser';
 import { albumKey } from '../common/library/grouping';
 import { ILibraryTrack } from '../common/library/types';
-import LibraryWorkspace from './library/LibraryWorkspace';
 import LibraryStageArt from './library/LibraryStageArt';
+import LibraryWorkspace from './library/LibraryWorkspace';
 import { LibraryProvider } from './library/LibraryContext';
 import { PlaylistProvider, usePlaylists } from './library/PlaylistContext';
 import { useHasPendingKaraokeFiles } from './library/karaokeHandoff';
@@ -90,9 +92,11 @@ import { useSongEqSessionHost } from './audio/songEqSession';
 import {
   readRememberedTransportOwner,
   useLastTransportOwner,
+  useTransportIdentitySources,
   useTransportSources,
 } from './audio/transportSource';
-import { pickTransportOwner } from './audio/transportRouting';
+import pickTransportOwner from './audio/transportRouting';
+import { useIdlePlayerMount } from './audio/useIdlePlayerMount';
 import KaraokeWorkspace from './karaoke/KaraokeWorkspace';
 import PaneResizer from './components/PaneResizer';
 import WorkspaceTabStrip from './components/WorkspaceTabStrip';
@@ -267,6 +271,15 @@ const MEDIA_TAB_ONE_WORD_QUERY = '(max-width: 1280px)';
 
 const isEqGroupTab = (tab: TWorkspaceTab): boolean =>
   EQ_GROUP_TABS.includes(tab);
+
+const FULLSCREEN_MEDIA_TABS: readonly TWorkspaceTab[] = [
+  'video',
+  'library',
+  'karaoke',
+];
+
+const isFullscreenMediaTab = (tab: TWorkspaceTab): boolean =>
+  FULLSCREEN_MEDIA_TABS.includes(tab);
 
 /** A stored tab name, under whatever name that tab had when it was written. */
 const resolveWorkspaceTab = (stored: unknown): TWorkspaceTab | undefined =>
@@ -521,22 +534,6 @@ const AppContent = () => {
     setGlobalError,
   } = useFluidEqContext();
   const { t } = useTranslation();
-  const graphLook = useGraphLook();
-
-  /**
-   * Rainbow reaches the rest of the app, not just the graph it was chosen for.
-   *
-   * On `document.body` rather than on the workspace because the menus are
-   * portalled straight to the body and would otherwise sit outside whatever
-   * element carried the class — the one part of the UI most likely to be open
-   * when somebody is admiring the colours.
-   */
-  useEffect(() => {
-    document.body.classList.toggle(
-      'is-rainbow',
-      graphLook.palette === 'rainbow',
-    );
-  }, [graphLook.palette]);
 
   // The sound panel drawer, meaningful only under the three-column breakpoint.
   const [rightPaneOpen, setRightPaneOpen] = useState(false);
@@ -544,6 +541,21 @@ const AppContent = () => {
   const [topPaneOpen, setTopPaneOpen] = useState(false);
   const [activeWorkspaceTab, setActiveWorkspaceTab] =
     useState<TWorkspaceTab>(readWorkspaceTab);
+  // Set from inside the graph pane; changing workspace pages leaves either
+  // large graph mode first. The backdrop now follows playback rather than the
+  // selected tab, so carrying expanded/fullscreen through a navigation makes
+  // the tab press appear to do nothing.
+  const isGraphFullScreen = useGraphFullScreen();
+  const graphView = useGraphView();
+  const selectTopWorkspaceTab = useCallback(
+    (next: TWorkspaceTab) => {
+      if (next !== activeWorkspaceTab && graphView !== 'normal') {
+        exitGraphFullScreen();
+      }
+      setActiveWorkspaceTab(next);
+    },
+    [activeWorkspaceTab, graphView],
+  );
   /**
    * Which of the equaliser's five was last open, for the tab that holds them.
    *
@@ -596,7 +608,7 @@ const AppContent = () => {
       onSelect={(id) => {
         const next = resolveWorkspaceTab(id);
         if (next) {
-          setActiveWorkspaceTab(next);
+          selectTopWorkspaceTab(next);
         }
       }}
     />
@@ -606,6 +618,35 @@ const AppContent = () => {
   const isLibraryTab = activeWorkspaceTab === 'library';
   const isKaraokeTab = activeWorkspaceTab === 'karaoke';
   const isDspTab = activeWorkspaceTab === 'dsp';
+  const playingOwner = usePlaybackOwner();
+  const transportIdentities = useTransportIdentitySources();
+  // A loaded silent player keeps only its controller/media shell for five
+  // seconds after leaving the tab. That prevents the fast empty-bar glitch,
+  // but the lease is bounded: once it expires, unmounting disposes the guest,
+  // media elements, observers and native DSP host. Playing audio has no timer.
+  const keepVideoMounted = useIdlePlayerMount({
+    isActive: isVideoTab,
+    hasLoadedSource: transportIdentities.media !== undefined,
+    isPlaying:
+      playingOwner === 'media' || transportIdentities.media?.isPlaying === true,
+  });
+  const keepLibraryMounted = useIdlePlayerMount({
+    // The native DSP engine lives in this provider as well. If it has already
+    // been opened, the visible DSP rack is an active consumer even though the
+    // Library shelf itself is not the selected tab.
+    isActive: isLibraryTab || isDspTab,
+    hasLoadedSource: transportIdentities.library !== undefined,
+    isPlaying:
+      playingOwner === 'library' ||
+      transportIdentities.library?.isPlaying === true,
+  });
+  const keepKaraokeMounted = useIdlePlayerMount({
+    isActive: isKaraokeTab,
+    hasLoadedSource: transportIdentities.karaoke !== undefined,
+    isPlaying:
+      playingOwner === 'karaoke' ||
+      transportIdentities.karaoke?.isPlaying === true,
+  });
 
   /**
    * The five places, drawn in the titlebar either side of the live output
@@ -639,7 +680,7 @@ const AppContent = () => {
         aria-selected={isVideoTab}
         aria-label={t('tabs.media')}
         className={`workspace-tab${isVideoTab ? ' is-active' : ''}`}
-        onClick={() => setActiveWorkspaceTab('video')}
+        onClick={() => selectTopWorkspaceTab('video')}
       >
         {isMediaTabOneWord ? t('tabs.mediaShort') : t('tabs.media')}
       </button>
@@ -657,7 +698,7 @@ const AppContent = () => {
         className={`workspace-tab${
           isEqGroupTab(activeWorkspaceTab) ? ' is-active' : ''
         }`}
-        onClick={() => setActiveWorkspaceTab(lastEqTab)}
+        onClick={() => selectTopWorkspaceTab(lastEqTab)}
       >
         {t('tabs.eq')}
       </button>
@@ -674,7 +715,7 @@ const AppContent = () => {
         role="tab"
         aria-selected={isDspTab}
         className={`workspace-tab${isDspTab ? ' is-active' : ''}`}
-        onClick={() => setActiveWorkspaceTab('dsp')}
+        onClick={() => selectTopWorkspaceTab('dsp')}
       >
         {t('tabs.dsp')}
       </button>
@@ -683,7 +724,7 @@ const AppContent = () => {
         role="tab"
         aria-selected={isLibraryTab}
         className={`workspace-tab${isLibraryTab ? ' is-active' : ''}`}
-        onClick={() => setActiveWorkspaceTab('library')}
+        onClick={() => selectTopWorkspaceTab('library')}
       >
         {t('tabs.library')}
       </button>
@@ -692,13 +733,16 @@ const AppContent = () => {
         role="tab"
         aria-selected={isKaraokeTab}
         className={`workspace-tab${isKaraokeTab ? ' is-active' : ''}`}
-        onClick={() => setActiveWorkspaceTab('karaoke')}
+        onClick={() => selectTopWorkspaceTab('karaoke')}
       >
         {t('tabs.karaoke')}
       </button>
     </WorkspaceTabStrip>
   );
 
+  // One native-window fullscreen state for the three playback workspaces.
+  // Karaoke originated the control, but Library and Online Media use the same
+  // state so changing tabs cannot reveal a second, guest-owned fullscreen.
   const [isKaraokeFullScreen, setIsKaraokeFullScreen] = useState(false);
   const karaokeFullScreenRequestedRef = useRef(false);
   const [showAudioRestartRecommendation, setShowAudioRestartRecommendation] =
@@ -754,11 +798,8 @@ const AppContent = () => {
   const titlebarRightRef = useRef<HTMLDivElement | null>(null);
   useTitlebarSideWidth(titlebarRef, titlebarLeftRef, titlebarRightRef);
 
-  // Set from inside the graph pane; read here because the elements that have
-  // to get out of the way are not the graph's — the EQ panel is its sibling,
-  // and the side panels and titlebar are further out still.
-  const isGraphFullScreen = useGraphFullScreen();
-  const graphView = useGraphView();
+  // The graph mode is read above with the titlebar navigation because those
+  // controls now participate in leaving full screen.
   // Each workspace owns this choice. Karaoke starts without the response graph
   // because its stage and pitch lane need the height; Library starts without
   // it because the tab is a surface for looking at album art, not at a
@@ -770,10 +811,11 @@ const AppContent = () => {
   // the choice, and the switch in the sidebar then did nothing on that one tab
   // — a control that visibly does nothing being worse than the row it saved.
   const showsGraph =
-    graphVisibilityByTab?.[activeWorkspaceTab] ??
-    (activeWorkspaceTab === 'karaoke' || activeWorkspaceTab === 'library'
-      ? false
-      : isGraphViewOn);
+    (graphView !== 'normal' && isFullscreenMediaTab(activeWorkspaceTab)) ||
+    (graphVisibilityByTab?.[activeWorkspaceTab] ??
+      (activeWorkspaceTab === 'karaoke' || activeWorkspaceTab === 'library'
+        ? false
+        : isGraphViewOn));
   const setActiveTabGraphVisibility = useCallback(
     (next: boolean) => {
       setGraphVisibilityByTab((current) => ({
@@ -826,6 +868,29 @@ const AppContent = () => {
    * the same pixels. So the overlay is scoped in GraphTheme.scss to exclude a
    * Maker, and full screen here stays exactly what it is everywhere else.
    */
+  // The picture behind an expanded graph follows the thing making the sound,
+  // never the tab selected above it. This lets a Karaoke song stay a Karaoke
+  // stage while Library or Media is selected, and lets a web player stay live
+  // under the graph while EQ is open. `system` never claims this store, so an
+  // external browser, Spotify or another application deliberately gets the
+  // quiet graph-only surface.
+  const isGraphBackdropMode = isGraphFullScreen && showsGraph;
+  const graphBackdropOwner = isGraphBackdropMode ? playingOwner : undefined;
+  const showsMediaGraphBackdrop = graphBackdropOwner === 'media';
+  const showsLibraryGraphBackdrop = graphBackdropOwner === 'library';
+  const showsKaraokeGraphBackdrop = graphBackdropOwner === 'karaoke';
+
+  // Karaoke has one fullscreen layout. Entering it from the graph changes only
+  // whether the graph is drawn over that layout; it does not create a second
+  // set of stage offsets, playlist sizing or chord positions.
+  const isKaraokeGraphFullScreen =
+    showsKaraokeGraphBackdrop && graphView === 'fullscreen';
+  const isKaraokeGraphOverlay = showsKaraokeGraphBackdrop;
+  const isMediaSurfaceFullScreen =
+    isKaraokeFullScreen || isKaraokeGraphFullScreen;
+  const isKaraokeSurfaceFullScreen =
+    (isKaraokeTab && isKaraokeFullScreen) || isKaraokeGraphFullScreen;
+
   /** The window itself is full screen, so the titlebar is not on screen. */
   const isGraphAppFullScreen =
     graphView === 'fullscreen' && showsGraph && !isKaraokeFullScreen;
@@ -914,19 +979,25 @@ const AppContent = () => {
     }
   }, []);
 
-  // Karaoke owns Ctrl+F while its tab is active. The response graph also has
-  // that shortcut, so this listener runs in capture and stops the event before
-  // the graph can turn itself into the full-screen surface instead.
+  // Ctrl+F and Ctrl+S always mean graph fullscreen and expanded mode in a
+  // playback workspace. This listener also covers Library and Karaoke when
+  // their normal per-tab graph is hidden, where FrequencyResponseChart has no
+  // mounted listener of its own to hear either shortcut. The player's explicit
+  // fullscreen controls use the shared media surface instead; separate
+  // commands, separate visible results, all App-owned.
   useEffect(() => {
-    if (!isKaraokeTab) {
+    const isMediaTab = isFullscreenMediaTab(activeWorkspaceTab);
+    if (!isMediaTab && !isKaraokeFullScreen) {
       return undefined;
     }
     const onKeyDown = (event: KeyboardEvent) => {
+      const shortcut = event.key.toLowerCase();
       const wantsToggle =
+        isMediaTab &&
         (event.ctrlKey || event.metaKey) &&
         !event.altKey &&
         !event.repeat &&
-        event.key.toLowerCase() === 'f';
+        (shortcut === 'f' || shortcut === 's');
       const wantsExit = event.key === 'Escape' && isKaraokeFullScreen;
       if (!wantsToggle && !wantsExit) {
         return;
@@ -944,17 +1015,40 @@ const AppContent = () => {
       }
       event.preventDefault();
       event.stopImmediatePropagation();
-      applyKaraokeFullScreen(wantsExit ? false : !isKaraokeFullScreen);
+      if (wantsExit) {
+        applyKaraokeFullScreen(false);
+        return;
+      }
+
+      // Switching from the no-graph media surface to a graph mode must not
+      // bounce the BrowserWindow out and back in. Transfer ownership in React,
+      // then let the graph store apply the requested view; for Ctrl+F the OS
+      // window is already in the requested state.
+      if (isKaraokeFullScreen) {
+        karaokeFullScreenRequestedRef.current = false;
+        setIsKaraokeFullScreen(false);
+      }
+      setActiveTabGraphVisibility(true);
+      if (shortcut === 's') {
+        toggleGraphExpanded();
+      } else {
+        toggleGraphFullScreen();
+      }
     };
     window.addEventListener('keydown', onKeyDown, true);
     return () => window.removeEventListener('keydown', onKeyDown, true);
-  }, [applyKaraokeFullScreen, isKaraokeFullScreen, isKaraokeTab]);
+  }, [
+    activeWorkspaceTab,
+    applyKaraokeFullScreen,
+    isKaraokeFullScreen,
+    setActiveTabGraphVisibility,
+  ]);
 
   useEffect(() => {
-    if (!isKaraokeTab && isKaraokeFullScreen) {
+    if (!isFullscreenMediaTab(activeWorkspaceTab) && isKaraokeFullScreen) {
       applyKaraokeFullScreen(false);
     }
-  }, [applyKaraokeFullScreen, isKaraokeFullScreen, isKaraokeTab]);
+  }, [activeWorkspaceTab, applyKaraokeFullScreen, isKaraokeFullScreen]);
 
   // The live capture's own failure, read once and reported once.
   //
@@ -970,9 +1064,9 @@ const AppContent = () => {
   /**
    * The player somebody was using when the window last closed.
    *
-   * Each of the three below is mounted on first visit to its tab and then
-   * never unmounted, which is the right lifetime for a session and the wrong
-   * one for a restart. The tab is remembered but the player is not, so coming
+   * Each of the three below becomes eligible to mount on its first visit and
+   * can later be disposed after its silent off-tab lease. The tab is remembered
+   * but a disposed player is not live, so coming
    * back on the EQ, DSP or Config tab — which is most restarts — left every
    * player unmounted, nothing describing itself to the bar, and the foot of
    * the window reading "Nothing playing" over a queue that was sitting in
@@ -986,23 +1080,18 @@ const AppContent = () => {
    * question about one. Each restores paused — the point is the transport
    * being there to press, not sound arriving unasked at launch.
    *
-   * Held in state purely to be read once. This component re-renders several
-   * times a second while anything is playing, and the answer is a fact about
-   * how the window opened — re-reading storage for it on every frame would be
-   * both wasted work and a value that could change under flags which have
-   * already gone true.
+   * Held in state purely to be read once. The answer is a fact about how the
+   * window opened; re-reading storage after that would be wasted work and could
+   * change the value under flags which have already gone true.
    */
   const [restoredOwner] = useState(readRememberedTransportOwner);
-  // The player is mounted on first visit and never unmounted, because its page
-  // is destroyed the moment the element leaves the DOM — switching to the EQ
-  // to move a band would otherwise stop whatever was playing. Until somebody
-  // opens the tab, though, there is no reason to have a browser engine running
-  // at all, so it does not exist.
+  // Once visited, the Media tab is eligible to reconstruct its guest. A silent
+  // hidden browser receives only the shared five-second disposal lease.
   const [hasOpenedVideo, setHasOpenedVideo] = useState(
     () => restoredOwner === 'media',
   );
-  // Library follows the same lifetime rule: a scan started on this tab must
-  // not be abandoned by switching away from it.
+  // Library follows the same eligibility rule. Its providers survive off-tab
+  // while a deck is making sound, or for the bounded silent grace period.
   const [hasOpenedLibrary, setHasOpenedLibrary] = useState(
     () => restoredOwner === 'library',
   );
@@ -1016,16 +1105,19 @@ const AppContent = () => {
    * the reader on the right page and left them to find the row, which on a
    * forty-track compilation is no answer at all. The track id travels with
    * the album so the list can scroll to that row and mark it. */
-  const revealPlayingTrack = useCallback((track: ILibraryTrack) => {
-    setActiveWorkspaceTab('library');
-    setLibraryReveal((current) => ({
-      albumId: albumKey(track),
-      trackId: track.id,
-      nonce: (current?.nonce ?? 0) + 1,
-    }));
-  }, []);
-  // Karaoke follows the same lifetime rule. Once audio and microphone capture
-  // land here, leaving the tab must not tear either pipeline down.
+  const revealPlayingTrack = useCallback(
+    (track: ILibraryTrack) => {
+      selectTopWorkspaceTab('library');
+      setLibraryReveal((current) => ({
+        albumId: albumKey(track),
+        trackId: track.id,
+        nonce: (current?.nonce ?? 0) + 1,
+      }));
+    },
+    [selectTopWorkspaceTab],
+  );
+  // Karaoke keeps a playing audio element across a tab switch. Its microphone,
+  // canvases and editing tools belong to the visible tab and are discharged.
   const [hasOpenedKaraoke, setHasOpenedKaraoke] = useState(
     () => restoredOwner === 'karaoke',
   );
@@ -1048,8 +1140,8 @@ const AppContent = () => {
       return;
     }
     setHasOpenedKaraoke(true);
-    setActiveWorkspaceTab('karaoke');
-  }, [hasPendingKaraokeFiles]);
+    selectTopWorkspaceTab('karaoke');
+  }, [hasPendingKaraokeFiles, selectTopWorkspaceTab]);
 
   // The editor's height when the drag began, so every move is measured from one
   // fixed point rather than accumulated.
@@ -1241,10 +1333,11 @@ const AppContent = () => {
       await window.electron.ipcRenderer.openEqualizerApoConfigurator();
     if (error) {
       window.alert(error);
-      return;
+      return false;
     }
     localStorage.setItem(APO_RESTART_RECOMMENDED_KEY, 'true');
     setShowAudioRestartRecommendation(true);
+    return true;
   };
 
   /**
@@ -1345,6 +1438,19 @@ const AppContent = () => {
     if (!error) {
       localStorage.removeItem(APO_RESTART_RECOMMENDED_KEY);
       setShowAudioRestartRecommendation(false);
+      /**
+       * Audiosrv came back; the loopback stream did not necessarily come with it.
+       *
+       * Chromium can keep the old capture track `live` after Windows invalidates
+       * its endpoint, feeding silence forever. A retry is not enough because the
+       * capture sees that live track and correctly refuses to open a duplicate.
+       * The output-change path is the owner of a full rebind: it removes the
+       * track listeners, stops every track, disconnects the analyser graph,
+       * closes its AudioContext and clears its pump before opening a fresh
+       * loopback. Reusing that path also means repeated restart notifications
+       * are coalesced instead of accumulating streams or timers.
+       */
+      window.dispatchEvent(new CustomEvent('fluideq-output-changed'));
       performHealthCheck();
     }
   };
@@ -1801,7 +1907,9 @@ const AppContent = () => {
           (isGraphAppFullScreen || isKaraokeFullScreen) && hasFullScreenTopBar
             ? ' has-top-bar'
             : ''
-        }${isKaraokeFullScreen ? ' is-karaoke-full' : ''}`}
+        }${isMediaSurfaceFullScreen ? ' is-media-full' : ''}${
+          isKaraokeSurfaceFullScreen ? ' is-karaoke-full' : ''
+        }${isKaraokeGraphFullScreen ? ' has-karaoke-graph' : ''}`}
       >
         {showAudioRestartRecommendation && (
           <aside className="audio-restart-notice" role="status">
@@ -1872,6 +1980,26 @@ const AppContent = () => {
               ? ' is-graph-full'
               : ''
           }${isResizingPanes ? ' is-resizing' : ''}`}
+          onDoubleClickCapture={(event) => {
+            if (!isGraphAppFullScreen) {
+              return;
+            }
+            const target = event.target as Element;
+            if (
+              target.closest(
+                'button, input, select, textarea, a, [role="dialog"], [role="menu"], .graph-edit-point',
+              )
+            ) {
+              return;
+            }
+            // Library and Karaoke deliberately let pointer events pass through
+            // the graph to their live surface. Catch the gesture at their
+            // shared ancestor so the usual graph double-click still restores
+            // the window without making the player underneath unclickable.
+            event.preventDefault();
+            event.stopPropagation();
+            exitGraphFullScreen();
+          }}
         >
           <div
             className="middle-content"
@@ -1991,11 +2119,34 @@ const AppContent = () => {
                 </div>
               </div>
             )}
-            {/* Outside the tab switch above, and deliberately: this one is
-                hidden rather than unmounted, so that leaving the tab does not
-                stop the music. It has no engine-disabled state either — a
-                video plays whether or not Equalizer APO is behind it. */}
-            {hasOpenedVideo && <VideoBrowser isHidden={!isVideoTab} />}
+            {/* A loaded guest gets a five-second silent lease through a tab
+                switch. Playing has no deadline; a silent guest is then
+                unmounted, which destroys its renderer process. */}
+            {hasOpenedVideo && keepVideoMounted && (
+              <VideoBrowser
+                isHidden={
+                  !showsMediaGraphBackdrop &&
+                  (!isVideoTab || isGraphBackdropMode)
+                }
+                isFullScreen={isVideoTab && isKaraokeFullScreen}
+                isGraphBackdrop={showsMediaGraphBackdrop}
+                onRequestFullScreen={() => {
+                  applyKaraokeFullScreen(true);
+                }}
+                onRequestGraphFullScreen={() => {
+                  // A double-click on the guest is the same command as Ctrl+F.
+                  // If the shared no-graph media surface already owns the OS
+                  // window, transfer it without first bouncing out of full
+                  // screen and making Chromium resize the live video twice.
+                  if (isKaraokeFullScreen) {
+                    karaokeFullScreenRequestedRef.current = false;
+                    setIsKaraokeFullScreen(false);
+                  }
+                  setActiveTabGraphVisibility(true);
+                  toggleGraphFullScreen();
+                }}
+              />
+            )}
             {/* The bar for karaoke and for the Media page, mounted where
                 nothing can gate it. Its own rule keeps it and the library's
                 bar from ever both being up. */}
@@ -2006,25 +2157,18 @@ const AppContent = () => {
             <IdleTransportBarSlot
               activeTab={activeWorkspaceTab}
               isFullScreen={isAppFullScreen}
-              onGoToTab={setActiveWorkspaceTab}
+              onGoToTab={selectTopWorkspaceTab}
             />
             <TabTransportBar
               activeTab={activeWorkspaceTab}
               isIdle={isAppFullScreen && (!isPointerNearBottom || isChromeIdle)}
               isFloating={isAppFullScreen}
-              onGoToTab={setActiveWorkspaceTab}
+              onGoToTab={selectTopWorkspaceTab}
             />
-            {/* Same lifetime rule as the player above: mounted once a scan
-                could be running here, then hidden rather than destroyed so
-                switching tabs cannot cancel it. `LibraryPlayerProvider`
-                nests inside `LibraryProvider` — it resolves a track id
-                against the library index to draw a title and an artist, and
-                that index is what `LibraryProvider` holds — and, once
-                mounted, is never re-created by anything a tab does for
-                exactly the same reason: `hasOpenedLibrary` only ever goes
-                from false to true. The audio element it owns lives inside a
-                ref, never rendered, so nothing here can remount it either. */}
-            {hasOpenedLibrary && (
+            {/* The providers keep a playing deck, or a silent one for the short
+                disposal lease. The shelf is pruned immediately off-tab; after
+                the lease, the providers and native DSP host leave too. */}
+            {hasOpenedLibrary && keepLibraryMounted && (
               <LibraryProvider>
                 {/* Inside `LibraryProvider` for tidiness rather than
                     necessity — it needs nothing from it — and outside
@@ -2033,20 +2177,18 @@ const AppContent = () => {
                 <PlaylistProvider>
                   <LibraryPlayerProvider>
                     <LibraryWorkspace
-                      isHidden={!isLibraryTab}
+                      isHidden={
+                        !showsLibraryGraphBackdrop &&
+                        (!isLibraryTab || isGraphBackdropMode)
+                      }
+                      isGraphBackdrop={showsLibraryGraphBackdrop}
                       revealRequest={libraryReveal}
+                      isFullScreen={isLibraryTab && isKaraokeFullScreen}
+                      onToggleFullScreen={() => {
+                        applyKaraokeFullScreen(!isKaraokeFullScreen);
+                      }}
                     />
-                    {/* The song behind a full-screen graph, on this tab only.
-                      Gated on the same pair the layout is — the graph being
-                      full screen AND drawn — because `isGraphAppFullScreen`
-                      alone is true on a Library tab that still has its own
-                      layout, and the picture then covered the library rather
-                      than backing the plot. Media and Karaoke have full
-                      screens of their own with their own picture in them; a
-                      third one here would be a third answer to one question. */}
-                    {isGraphFullScreen && showsGraph && isLibraryTab && (
-                      <LibraryStageArt />
-                    )}
+                    {showsLibraryGraphBackdrop && <LibraryStageArt />}
                     <ConnectedNowPlayingBar
                       activeTab={activeWorkspaceTab}
                       isIdle={
@@ -2060,19 +2202,27 @@ const AppContent = () => {
                 </PlaylistProvider>
               </LibraryProvider>
             )}
-            {/* Mounted on first visit and then hidden instead of destroyed.
-                The empty shell has no live resources yet, but the lifetime is
-                correct before song playback and microphone capture arrive. */}
-            {hasOpenedKaraoke && (
+            {/* Loaded Karaoke keeps only its audio element and exact shared
+                transport during the silent lease. It then unmounts completely
+                unless playback resumed. */}
+            {hasOpenedKaraoke && keepKaraokeMounted && (
               <KaraokeWorkspace
-                isHidden={!isKaraokeTab}
-                isFullScreen={isKaraokeFullScreen}
+                isHidden={
+                  !showsKaraokeGraphBackdrop &&
+                  (!isKaraokeTab || isGraphBackdropMode)
+                }
+                isFullScreen={isKaraokeSurfaceFullScreen}
+                isGraphOverlay={isKaraokeGraphOverlay}
                 isChromeIdle={isChromeIdle}
                 hasFullScreenTopBar={hasFullScreenTopBar}
                 onToggleFullScreenTopBar={toggleFullScreenTopBar}
-                onToggleFullScreen={() =>
-                  applyKaraokeFullScreen(!isKaraokeFullScreen)
-                }
+                onToggleFullScreen={() => {
+                  if (isKaraokeGraphFullScreen) {
+                    exitGraphFullScreen();
+                    return;
+                  }
+                  applyKaraokeFullScreen(!isKaraokeFullScreen);
+                }}
               />
             )}
             {/* Outside the tab switch for the same class of reason, and more
@@ -2133,21 +2283,36 @@ const AppContent = () => {
           />
         )}
         <div className={`right-content${rightPaneOpen ? ' is-open' : ''}`}>
-          <DeviceProfiles />
-          {/* Directly under the output picker: it is the same question asked
-              twice over — that one chooses where the sound goes, this one
-              adds a second somewhere. */}
-          <ExtraOutputs />
-          {/* Sits with the output device because it answers the same question:
-              what is this sound coming out of. */}
-          <DriverPicker />
-          <PresetsBar
-            fetchPresets={getPresetListFromFiles}
-            loadPreset={loadPreset}
-            savePreset={savePreset}
-            renamePreset={renamePreset}
-            deletePreset={deletePreset}
-          />
+          <div className="right-content__scroll">
+            <DeviceProfiles onConfigureApo={handleConfigureEqualizerApo} />
+            {/* Directly under the output picker: it is the same question asked
+                twice over — that one chooses where the sound goes, this one
+                adds a second somewhere. */}
+            <ExtraOutputs />
+            {/* Sits with the output device because it answers the same question:
+                what is this sound coming out of. */}
+            <DriverPicker />
+            <PresetsBar
+              fetchPresets={getPresetListFromFiles}
+              loadPreset={loadPreset}
+              savePreset={savePreset}
+              renamePreset={renamePreset}
+              deletePreset={deletePreset}
+            />
+          </div>
+          <footer className="right-content__footer">
+            <a
+              className="right-content__site"
+              href={OFFICIAL_SITE_URL}
+              target="_blank"
+              rel="noreferrer"
+              aria-label="Open fluideq.com in your browser"
+              title="Open fluideq.com in your browser"
+            >
+              <span>fluideq.com</span>
+              <MenuIcon name="external" className="right-content__site-icon" />
+            </a>
+          </footer>
         </div>
         {/* Only a genuinely fatal condition takes the screen. Anything else is
             reported without touching the editor: a preset that failed to save

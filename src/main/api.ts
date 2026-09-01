@@ -156,7 +156,7 @@ const watchSystemMedia = (enabled: boolean) =>
   ipcRenderer.invoke('system-media-watch', enabled) as Promise<void>;
 
 /**
- * Skip, seek, or quieten whatever the machine is playing.
+ * Skip, seek, stop, or quieten whatever the machine is playing.
  *
  * Skip and seek are buttons, drawn only where the session said it takes them
  * — the flags travel with each snapshot. `pause` is not a button: it is sent
@@ -165,7 +165,7 @@ const watchSystemMedia = (enabled: boolean) =>
  * key, which reaches players that never registered a session at all.
  */
 const sendSystemMediaCommand = (
-  command: 'next' | 'previous' | 'seek' | 'pause',
+  command: 'next' | 'previous' | 'seek' | 'stop' | 'pause',
   positionMs?: number,
 ) =>
   ipcRenderer.invoke(

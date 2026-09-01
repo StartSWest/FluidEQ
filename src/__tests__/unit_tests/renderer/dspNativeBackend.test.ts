@@ -119,6 +119,7 @@ describe('the native backend controller', () => {
 
       expect(await controller.engage(DSP_DEFAULTS, true)).toBe(false);
       expect(calls).not.toContain('open');
+      expect(calls).toContain('stop');
     });
   });
 
@@ -139,7 +140,13 @@ describe('the native backend controller', () => {
 
       await controller.disengage();
 
-      expect(calls).toEqual(['unload(0)', 'unload(1)', 'pause', 'close']);
+      expect(calls).toEqual([
+        'unload(0)',
+        'unload(1)',
+        'pause',
+        'close',
+        'stop',
+      ]);
     });
 
     it('does nothing when it was never engaged', async () => {
@@ -161,6 +168,20 @@ describe('the native backend controller', () => {
       await controller.disengage();
 
       expect(calls).toEqual([]);
+    });
+
+    it('still kills the process when an earlier cleanup step fails', async () => {
+      const { bridge, calls } = recordingBridge({
+        unloadDspHostDeck: () => Promise.reject(new Error('deck already gone')),
+      });
+      const controller = createNativeBackendController(bridge);
+      await controller.engage(DSP_DEFAULTS, true);
+      calls.length = 0;
+
+      await controller.disengage();
+
+      expect(calls).toContain('close');
+      expect(calls).toContain('stop');
     });
   });
 

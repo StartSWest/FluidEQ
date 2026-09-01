@@ -65,6 +65,8 @@ const dsp = {
     'आगे की ओवरलोडिंग रोकता है; फ़ाइल में पहले से मौजूद डिस्टॉर्शन को दोबारा नहीं बना सकता।',
 
   'dsp.denoise.title': 'शोर निवारण',
+  'dsp.denoisePreset.gentle': 'हल्की सफ़ाई',
+  'dsp.denoisePreset.strong': 'गहरी सफ़ाई',
   'dsp.denoise.description':
     'रंग चढ़ाने से पहले स्रोत की मरम्मत करता है: हिस, मेन्स हम, क्लिक और एक न्यूरल वॉइस क्लीनर। ट्रैक से ही मापा गया, अनुमान नहीं।',
   'dsp.denoise.isolate': 'अलग करें',
@@ -218,6 +220,16 @@ const dsp = {
 
   'dsp.eqPreset.import': 'आयात करें',
   'dsp.eqPreset.export': 'निर्यात करें',
+  'dsp.chainSave.title': 'DSP चेन सहेजें',
+  'dsp.chainSave.hint':
+    'सभी फ़िल्टर और उनकी चालू स्थिति को एक प्रीसेट में सहेजें।',
+  'dsp.chainShare.hint':
+    'पूरी फ़िल्टर चेन को साझा करने योग्य फ़ाइल में सहेजता है।',
+  'dsp.chainImport.title': 'DSP चेन आयात करें',
+  'dsp.chainImport.hint':
+    'FluidEQ DSP चेन प्रीसेट चिपकाएँ या उसकी JSON फ़ाइल चुनें।',
+  'dsp.chainImport.placeholder': '{"format": "fluideq-dsp-chain", ...}',
+  'dsp.chainImport.invalid': 'यह FluidEQ DSP चेन प्रीसेट नहीं है।',
   'dsp.eqSave.title': 'प्रीसेट सहेजें',
   'dsp.eqSave.hint': 'रैक को जैसा है वैसा सहेजें।',
   'dsp.eqSave.placeholder': 'नाम',

@@ -8,6 +8,7 @@ it under the terms of the GNU General Public License version 3 or later.
 
 @use 'color' as *;
 @use 'constant' as *;
+@use 'dialog' as dialog;
 @use 'motion' as *;
 @use 'spacing' as *;
 @use 'theme' as *;
@@ -16,43 +17,12 @@ it under the terms of the GNU General Public License version 3 or later.
 // inside it and close back onto it, so they have to stack rather than share a
 // level and depend on DOM order.
 .whats-new-backdrop {
-  @include animate(fade-in, $motion-fast);
-  position: fixed;
-  z-index: 1450;
-  inset: 0;
-  display: grid;
-  padding: $spacing-m;
-  place-items: center;
-  background: rgba(#03070d, 0.62);
-  backdrop-filter: blur(3px);
+  @include dialog.backdrop(1450);
 }
 
 .whats-new {
-  @include animate(pop-in, $motion-base, $ease-spring);
-  display: grid;
-  width: min(680px, 100%);
-  max-height: min(760px, calc(100vh - 48px));
+  @include dialog.surface(780px, 820px);
   grid-template-rows: auto minmax(0, 1fr) auto;
-  border: 1px solid rgba($secondary-light, 0.28);
-  border-radius: $radius-l;
-  background: linear-gradient(150deg, rgba(#101d2a, 0.99), rgba(#08121b, 0.99));
-  box-shadow: 0 30px 80px rgba($black, 0.5);
-
-  // This panel has its own surface rather than the shared `menu-surface`, so
-  // euphoria has to be spelled out here — it does not inherit the treatment
-  // the mixin now emits.
-  //
-  // Which is worth doing: what is new in FluidEQ is exactly the thing somebody
-  // at the ceiling has just been enjoying, and a release-notes panel arriving
-  // as a plain grey rectangle over a celebrating window reads as a different
-  // application.
-  .is-euphoric & {
-    animation: euphoria-sweep 3.6s linear infinite;
-    border-color: hsl(var(--euphoria-hue, 160deg) 90% 62% / 55%);
-    box-shadow:
-      0 30px 80px rgba($black, 0.5),
-      0 0 36px hsl(var(--euphoria-hue, 160deg) 95% 60% / 22%);
-  }
 }
 
 // The header, its close button and the euphoria treatment on its eyebrow all
@@ -68,8 +38,9 @@ it under the terms of the GNU General Public License version 3 or later.
 .whats-new__footer {
   display: flex;
   justify-content: flex-end;
-  padding: 12px 20px 16px;
-  border-top: 1px solid rgba($primary-lighter, 0.12);
+  padding: 11px 16px 13px;
+  border-top: 1px solid rgba($primary-lighter, 0.1);
+  background: rgba(#07111c, 0.26);
 }
 
 .whats-new__ok {
@@ -77,7 +48,7 @@ it under the terms of the GNU General Public License version 3 or later.
   padding: 7px 18px;
   color: #041f25;
   border: 1px solid rgba(137, 255, 246, 0.82);
-  border-radius: $radius-xs;
+  border-radius: $radius-s;
   background: linear-gradient(135deg, #64fff0, #10d7c7 72%);
   cursor: pointer;
   font-size: 0.78rem;
@@ -101,7 +72,7 @@ it under the terms of the GNU General Public License version 3 or later.
 // a small thing that feels broken.
 .whats-new__body {
   min-height: 0;
-  padding: 4px 20px 20px;
+  padding: 12px 20px 20px;
   overflow-y: auto;
   color: rgba($primary-lighter, 0.84);
   font-size: 0.78rem;
@@ -110,14 +81,23 @@ it under the terms of the GNU General Public License version 3 or later.
 
   // Version numbers, and the thing you scan for.
   h3 {
-    margin: 22px 0 2px;
-    padding-bottom: 6px;
+    position: sticky;
+    z-index: 1;
+    top: -12px;
+    margin: 14px -4px 8px;
+    padding: 10px 12px 9px;
     color: $secondary-light;
-    border-bottom: 1px solid rgba($secondary-light, 0.2);
+    border: 1px solid rgba($secondary-light, 0.16);
+    border-radius: $radius-s;
+    background: rgba(#0b1726, 0.94);
+    box-shadow:
+      0 8px 18px rgba($black, 0.22),
+      inset 0 1px 0 rgba($white, 0.035);
+    backdrop-filter: blur(12px);
     font-size: 0.95rem;
 
     &:first-child {
-      margin-top: 8px;
+      margin-top: 0;
     }
   }
 
@@ -136,12 +116,30 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 
   ul {
-    margin: 6px 0;
-    padding-left: 18px;
+    display: grid;
+    margin: 8px 0 12px;
+    padding: 0;
+    gap: 6px;
+    list-style: none;
   }
 
   li {
-    margin: 5px 0;
+    @include dialog.section-surface;
+    position: relative;
+    margin: 0;
+    padding: 9px 12px 9px 24px;
+
+    &::before {
+      position: absolute;
+      top: 15px;
+      left: 11px;
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: $secondary-light;
+      box-shadow: 0 0 8px rgba($secondary-light, 0.45);
+      content: '';
+    }
   }
 
   strong {

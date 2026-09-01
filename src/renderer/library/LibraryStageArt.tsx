@@ -20,7 +20,7 @@ import { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { libraryMediaUrl } from '../../common/library/mediaUrl';
 import LibraryCoverArt from './LibraryCoverArt';
-import { useLibraryPlayer } from './player/LibraryPlayerContext';
+import { useLibraryPlayerSession } from './player/LibraryPlayerContext';
 import '../styles/LibraryStageArt.scss';
 
 /**
@@ -117,7 +117,7 @@ const useStageBox = () => {
  * through the picture.
  */
 const LibraryStageArt = () => {
-  const { track, videoTrackId } = useLibraryPlayer();
+  const { track, videoTrackId } = useLibraryPlayerSession();
 
   // A marker for the one stylesheet rule this view needs from the graph: its
   // plot lifted over the picture. Scoped to this class rather than written

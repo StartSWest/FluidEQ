@@ -25,7 +25,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * paused on the tab you are looking at while something else is playing.
  */
 
-import { pickTransportOwner } from '../../../renderer/audio/transportRouting';
+import pickTransportOwner from '../../../renderer/audio/transportRouting';
 import type { ITransportSource } from '../../../renderer/audio/transportSource';
 import type { TPlaybackOwner } from '../../../renderer/audio/playbackOwner';
 
@@ -42,13 +42,19 @@ const source = (
 });
 
 describe('which player the bar belongs to', () => {
-  it('follows the tab when nothing is playing', () => {
+  it('follows the loaded player tab after playback is explicitly stopped', () => {
     const sources = {
       library: source('library'),
       karaoke: source('karaoke'),
     };
+    // Library was the last audible player, but Stop released audible
+    // ownership without deleting either source. The visible Karaoke tab owns
+    // the controls now; on an EQ/DSP tab the last Library bar remains.
     expect(pickTransportOwner('karaoke', sources, undefined, 'library')).toBe(
       'karaoke',
+    );
+    expect(pickTransportOwner(undefined, sources, undefined, 'library')).toBe(
+      'library',
     );
   });
 
@@ -85,6 +91,18 @@ describe('which player the bar belongs to', () => {
     };
     expect(pickTransportOwner('library', sources, undefined, 'library')).toBe(
       'library',
+    );
+  });
+
+  it('keeps the actual player through a natural queue handoff', () => {
+    const media = source('media');
+    media.retainWhenHidden = true;
+    const sources = {
+      library: source('library'),
+      media,
+    };
+    expect(pickTransportOwner('library', sources, undefined, 'media')).toBe(
+      'media',
     );
   });
 

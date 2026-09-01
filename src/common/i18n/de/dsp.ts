@@ -69,6 +69,8 @@ const dsp = {
     'Verhindert nachfolgende Übersteuerung; bereits in der Datei enthaltene Verzerrung kann nicht rekonstruiert werden.',
 
   'dsp.denoise.title': 'Rauschentfernung',
+  'dsp.denoisePreset.gentle': 'Sanfte Bereinigung',
+  'dsp.denoisePreset.strong': 'Starke Bereinigung',
   'dsp.denoise.description':
     'Repariert die Quelle, bevor sie irgendetwas färbt: Rauschen, Netzbrummen, Knackser und ein neuronaler Sprachreiniger. Am Titel selbst gemessen, nicht geraten.',
   'dsp.denoise.isolate': 'Isolieren',
@@ -225,6 +227,16 @@ const dsp = {
 
   'dsp.eqPreset.import': 'Importieren',
   'dsp.eqPreset.export': 'Exportieren',
+  'dsp.chainSave.title': 'DSP-Kette speichern',
+  'dsp.chainSave.hint':
+    'Speichert alle Filter und ihren Aktivierungsstatus als ein Preset.',
+  'dsp.chainShare.hint':
+    'Speichert die vollständige Filterkette als Datei zum Weitergeben.',
+  'dsp.chainImport.title': 'DSP-Kette importieren',
+  'dsp.chainImport.hint':
+    'Füge ein FluidEQ-DSP-Kettenpreset ein oder wähle seine JSON-Datei.',
+  'dsp.chainImport.placeholder': '{"format": "fluideq-dsp-chain", ...}',
+  'dsp.chainImport.invalid': 'Dies ist kein FluidEQ-DSP-Kettenpreset.',
   'dsp.eqSave.title': 'Preset speichern',
   'dsp.eqSave.hint': 'Speichert das Rack, wie es ist.',
   'dsp.eqSave.placeholder': 'Name',

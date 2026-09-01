@@ -135,6 +135,7 @@ import { registerUpdatesIpc } from './ipc/updates';
 import { libraryIndexSnapshot, registerLibraryIpc } from './ipc/library';
 import {
   dspHostPid,
+  dspHostStats,
   isDspHostPlaying,
   registerDspHostIpc,
   shutdownDspHost,
@@ -2465,9 +2466,9 @@ ipcMain.handle('system-media-watch', (event, enabled: unknown) => {
 });
 
 /**
- * Skip or seek whatever the machine is playing.
+ * Skip, seek, stop, or pause whatever the machine is playing.
  *
- * The renderer names one of three commands and, for a seek, where to go. The
+ * The renderer names a command and, for a seek, where to go. The
  * name is checked here rather than trusted: everything else on this path ends
  * up inside a PowerShell script, and a name from a window that reached it
  * would be a window writing PowerShell.
@@ -2479,6 +2480,7 @@ ipcMain.handle(
       command !== 'next' &&
       command !== 'previous' &&
       command !== 'seek' &&
+      command !== 'stop' &&
       command !== 'pause'
     ) {
       return;
@@ -2535,6 +2537,7 @@ registerDspHostIpc({ getMainWindow: () => mainWindow });
 registerProcessIpc({
   getMainWindow: () => mainWindow,
   getNativeHostPid: dspHostPid,
+  getNativeHostStats: dspHostStats,
 });
 
 registerLibraryIpc({

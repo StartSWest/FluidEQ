@@ -15,6 +15,7 @@ import { NOISE_HUM_MAX_HARMONICS } from '../../common/dsp/noiseProfile';
 import Switch from '../widgets/Switch';
 import { useTranslation } from '../utils/I18nContext';
 import { Dial, ProcessorCard } from './DspControls';
+import DspDenoiseBar from './DspDenoiseBar';
 import DspDenoiseGraph from './DspDenoiseGraph';
 import {
   IDspInputAnalysisState,
@@ -78,7 +79,7 @@ const DspDenoiseCard = ({
   const isEnabled = denoise.enabled && !isBypassedByEngine;
 
   const patch = (next: Partial<IDenoiseSettings>) => {
-    onPatch({ ...denoise, ...next });
+    onPatch({ ...denoise, ...next, presetId: '' });
   };
   const commitPatch = (next: Partial<IDenoiseSettings>) => {
     patch(next);
@@ -122,7 +123,20 @@ const DspDenoiseCard = ({
       titleKey="dsp.denoise.title"
       descriptionKey="dsp.denoise.description"
       isEnabled={isEnabled}
-      onToggle={() => commitPatch({ enabled: !denoise.enabled })}
+      onToggle={() => {
+        // Isolate is an audition, never part of the processor's saved sound.
+        // Leaving it armed under bypass makes the next enable play only the
+        // rejected residue, which sounds like the filter has destroyed audio.
+        onPatch({ ...denoise, enabled: !denoise.enabled, isolate: false });
+        onCommit();
+      }}
+      toolbar={
+        <DspDenoiseBar
+          denoise={denoise}
+          onChange={onPatch}
+          onCommit={onCommit}
+        />
+      }
       beforePower={
         /* The labelled switch the EQ and the Exciter already use for Isolate.
            It is the same control, doing the same job, in the same place on the
@@ -147,17 +161,46 @@ const DspDenoiseCard = ({
             id="dsp-denoise-isolate"
             isOn={denoise.isolate}
             isDisabled={!isEnabled}
-            handleToggle={() => commitPatch({ isolate: !denoise.isolate })}
+            handleToggle={() => {
+              onPatch({ ...denoise, isolate: !denoise.isolate });
+              onCommit();
+            }}
             ariaLabel={t('dsp.denoise.isolate')}
           />
         </div>
       }
     >
-      <section className="dsp-denoise-source">
-        <div className="dsp-band-head">
-          <span className="dsp-band-title">
-            {t('dsp.denoise.profileSource')}
-          </span>
+      {/* Above the numbers, because it is the reading that makes them mean
+          something: a floor and a spectrum in the same units on the same
+          axes. "Reducing: -4 dB" is the same number whether the stage is
+          taking hiss or taking the vocal. */}
+      <DspDenoiseGraph
+        profile={profile}
+        hum={denoise.hum}
+        click={denoise.click}
+        isEnabled={isEnabled}
+      />
+
+      <section className="dsp-denoise-analysis" aria-live="polite">
+        {/* The source mode describes this analysis, so a separate full-width
+            card for the same decision spent a complete row without adding a
+            second task. Keeping them together removes that dead height. */}
+        <div className="dsp-denoise-analysis-head">
+          <div className="dsp-denoise-analysis-label">
+            <span className="dsp-band-title">{t('dsp.denoise.analysis')}</span>
+            <span
+              className={`dsp-normalizer-status is-${analysisState.status}`}
+            >
+              {analysisState.status === 'analyzing'
+                ? t('dsp.denoise.analyzing', {
+                    progress: Math.round(analysisState.fraction * 100),
+                  })
+                : undefined}
+              {analysisState.status === 'idle' && !profile
+                ? t('dsp.denoise.waiting')
+                : undefined}
+            </span>
+          </div>
           <div
             className="segmented"
             role="group"
@@ -179,47 +222,9 @@ const DspDenoiseCard = ({
             ))}
           </div>
         </div>
-        {/* Named rather than left to be inferred. A control set to Scanned on a
-            track that has never been measured is running the live tracker, and
-            a dial that has quietly stopped doing what it says is the failure
-            the Normalizer's limit line already exists to prevent. */}
-        {isEnabled && isScanning && denoise.profileSource === 'scanned' ? (
-          <p className="dsp-band-hint">
-            {t('dsp.denoise.analyzing', {
-              progress: Math.round(analysisState.fraction * 100),
-            })}
-          </p>
-        ) : null}
         {isEnabled && isFallingBack ? (
           <p className="dsp-band-hint">{t('dsp.denoise.fallingBack')}</p>
         ) : null}
-      </section>
-
-      {/* Above the numbers, because it is the reading that makes them mean
-          something: a floor and a spectrum in the same units on the same
-          axes. "Reducing: -4 dB" is the same number whether the stage is
-          taking hiss or taking the vocal. */}
-      <DspDenoiseGraph
-        profile={profile}
-        hum={denoise.hum}
-        click={denoise.click}
-        isEnabled={isEnabled}
-      />
-
-      <section className="dsp-denoise-analysis" aria-live="polite">
-        <div className="dsp-band-head">
-          <span className="dsp-band-title">{t('dsp.denoise.analysis')}</span>
-          <span className={`dsp-normalizer-status is-${analysisState.status}`}>
-            {analysisState.status === 'analyzing'
-              ? t('dsp.denoise.analyzing', {
-                  progress: Math.round(analysisState.fraction * 100),
-                })
-              : undefined}
-            {analysisState.status === 'idle' && !profile
-              ? t('dsp.denoise.waiting')
-              : undefined}
-          </span>
-        </div>
         <div
           className="dsp-normalizer-progress"
           role="progressbar"
@@ -253,7 +258,7 @@ const DspDenoiseCard = ({
       </section>
 
       <div className="dsp-denoise-modules">
-        <div className="dsp-band">
+        <div className="dsp-band dsp-denoise-module is-hiss">
           <div className="dsp-band-head">
             <span className="dsp-band-title">{t('dsp.denoise.hiss')}</span>
             <Switch
@@ -329,7 +334,7 @@ const DspDenoiseCard = ({
           <p className="dsp-band-hint">{t('dsp.denoise.reductionLimitHint')}</p>
         </div>
 
-        <div className="dsp-band">
+        <div className="dsp-band dsp-denoise-module is-hum">
           <div className="dsp-band-head">
             <span className="dsp-band-title">{t('dsp.denoise.hum')}</span>
             <Switch
@@ -422,7 +427,7 @@ const DspDenoiseCard = ({
           )}
         </div>
 
-        <div className="dsp-band">
+        <div className="dsp-band dsp-denoise-module is-clicks">
           <div className="dsp-band-head">
             <span className="dsp-band-title">{t('dsp.denoise.click')}</span>
             <Switch
@@ -470,7 +475,7 @@ const DspDenoiseCard = ({
           <p className="dsp-band-hint">{t('dsp.denoise.clickHint')}</p>
         </div>
 
-        <div className="dsp-band">
+        <div className="dsp-band dsp-denoise-module is-voice">
           <div className="dsp-band-head">
             <span className="dsp-band-title">{t('dsp.denoise.voice')}</span>
             <Switch
@@ -552,22 +557,22 @@ const DspDenoiseCard = ({
         </div>
       </div>
 
-      <section className="dsp-denoise-live">
-        <dl className="dsp-normalizer-stats">
-          <div>
-            <dt>{t('dsp.denoise.liveReduction')}</dt>
-            <dd>{isEnabled ? value(meter.reductionDb, 'dB') : '—'}</dd>
-          </div>
-          <div>
-            <dt>{t('dsp.denoise.clicksRepaired')}</dt>
-            <dd>{isEnabled ? meter.clicksRepaired.toFixed(0) : '—'}</dd>
-          </div>
-          <div>
-            <dt>{t('dsp.denoise.voiceUnderruns')}</dt>
-            <dd>{isEnabled ? meter.voiceUnderruns.toFixed(0) : '—'}</dd>
-          </div>
-        </dl>
-      </section>
+      {/* The readings already carry their own three surfaces. A fourth card
+          around them added padding and a border but no grouping information. */}
+      <dl className="dsp-normalizer-stats dsp-denoise-live" aria-live="polite">
+        <div>
+          <dt>{t('dsp.denoise.liveReduction')}</dt>
+          <dd>{isEnabled ? value(meter.reductionDb, 'dB') : '—'}</dd>
+        </div>
+        <div>
+          <dt>{t('dsp.denoise.clicksRepaired')}</dt>
+          <dd>{isEnabled ? meter.clicksRepaired.toFixed(0) : '—'}</dd>
+        </div>
+        <div>
+          <dt>{t('dsp.denoise.voiceUnderruns')}</dt>
+          <dd>{isEnabled ? meter.voiceUnderruns.toFixed(0) : '—'}</dd>
+        </div>
+      </dl>
     </ProcessorCard>
   );
 };

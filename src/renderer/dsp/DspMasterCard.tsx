@@ -11,7 +11,6 @@ import { Dial, ProcessorCard } from './DspControls';
 import DspMasterBar from './DspMasterBar';
 import DspMasterGraph from './DspMasterGraph';
 import { IMasterLoudnessBreakdown } from './inputNormalizer';
-import { OUTPUT_SAFETY_SOFT_KNEE_DB } from './outputSafety';
 import { IDspOutputSafetyMeter } from './store';
 
 const IS_DEV = process.env.NODE_ENV !== 'production';
@@ -62,8 +61,6 @@ const DspMasterCard = ({
   const patchDelivery = (next: Partial<IMasterSettings>) =>
     onPatch({ ...master, ...next, presetId: '' });
   const usesSelectedHeadroom = master.loudnessMaximize;
-  const effectiveCeiling = usesSelectedHeadroom ? master.ceilingDb : 0;
-  const effectiveKnee = usesSelectedHeadroom ? OUTPUT_SAFETY_SOFT_KNEE_DB : 0;
   const autoGainReductionDb = meter.postFilterNormalizer.gainReductionDb;
   const safetyGainReductionDb = safetyEnabled ? meter.gainReductionDb : 0;
   const totalGainReductionDb = autoGainReductionDb + safetyGainReductionDb;
@@ -169,7 +166,7 @@ const DspMasterCard = ({
         />
       </div>
 
-      <div className="dsp-band">
+      <div className="dsp-band dsp-master-option">
         <div className="dsp-band-head">
           <span className="dsp-band-title">
             {t('dsp.master.loudnessMaximize')}
@@ -207,18 +204,14 @@ const DspMasterCard = ({
             })}
           </p>
         ) : undefined}
+      </div>
 
-        {/*
-          Inside the maximize band, not beside it.
-
-          It had a band of its own, which put a switch that only makes things
-          QUIETER between two processing stages and gave it the same weight as
-          one — reported as confusing, and fairly. It is not a stage: it is how
-          you listen to the one above it, it is meaningless while that one is
-          off, and every plugin that has this calls it gain match rather than
-          anything to do with bypass.
-        */}
-        <div className="dsp-band-head dsp-band-nested">
+      {/* Keeping this listening option below LUFS Maximize made one bottom
+          surface twice as tall as its neighbours and forced the DSP workspace
+          to scroll at Full HD. It remains adjacent and dependent, but as a
+          sibling the three bottom surfaces share one compact row. */}
+      <div className="dsp-band dsp-master-option">
+        <div className="dsp-band-head">
           <span className="dsp-band-title">
             {t('dsp.master.matchedBypass')}
           </span>
@@ -238,31 +231,6 @@ const DspMasterCard = ({
             gain: loudnessGainDb.toFixed(1),
           })}
         </p>
-      </div>
-
-      <div className="dsp-band">
-        <span className="dsp-band-title">{t('dsp.master.meter')}</span>
-        <p className="dsp-band-hint">
-          {master.enabled && usesSelectedHeadroom
-            ? t('dsp.master.safetyHint', {
-                factor: meter.truePeakFactor,
-                ceiling: effectiveCeiling.toFixed(1),
-                knee: effectiveKnee.toFixed(1),
-              })
-            : t('dsp.master.manualHint')}
-        </p>
-        <div className="dsp-level-meters" aria-live="polite">
-          <span>
-            {t('dsp.master.truePeak')} {meterDb(displayedTruePeakDb)}
-          </span>
-          <span>
-            {t('dsp.master.autoHeadroom')} {meterDb(autoGainReductionDb)}
-          </span>
-          <span>
-            {t('dsp.master.graph.safetyActive')}{' '}
-            {meterDb(safetyGainReductionDb)}
-          </span>
-        </div>
       </div>
 
       {IS_DEV ? (

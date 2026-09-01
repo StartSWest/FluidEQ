@@ -36,7 +36,8 @@ const PATHS = {
   redo: 'M15 7h5v-5m-.5 5.5A8 8 0 1 0 19 17',
   apply: 'M5 12.5l4.2 4.2L19 7',
   fullscreen: 'M9 4H4v5m11-5h5v5M9 20H4v-5m11 5h5v-5',
-  fullscreenExit: 'M9 9H4V4m11 5h5V4M9 15H4v5m11-5h5v5',
+  fullscreenExit:
+    'M5 16h3v3h2v-5H5v2Zm3-8H5v2h5V5H8v3Zm6 11h2v-3h3v-2h-5v5Zm2-11V5h-2v5h5V8h-3Z',
   close: 'M6 6l12 12M18 6L6 18',
   previous: 'M15 5l-7 7 7 7',
   next: 'M9 5l7 7-7 7',
@@ -83,7 +84,12 @@ const KaraokeMakerToolIcon = ({ name }: IKaraokeMakerToolIconProps) => (
     aria-hidden="true"
     focusable="false"
   >
-    <path d={PATHS[name]} transform={NUDGES[name]} />
+    <path
+      d={PATHS[name]}
+      transform={NUDGES[name]}
+      fill={name === 'fullscreenExit' ? 'currentColor' : undefined}
+      stroke={name === 'fullscreenExit' ? 'none' : undefined}
+    />
   </svg>
 );
 

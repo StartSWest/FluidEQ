@@ -7,6 +7,7 @@ it under the terms of the GNU General Public License version 3 or later.
 */
 
 @use 'color' as *;
+@use 'dialog' as dialog;
 @use 'motion' as *;
 @use 'spacing' as *;
 @use 'theme' as *;
@@ -15,37 +16,12 @@ it under the terms of the GNU General Public License version 3 or later.
 // one can be on screen at a time, and neither should ever be behind the
 // support dialog at 1400.
 .about-backdrop {
-  @include animate(fade-in, $motion-fast);
-  position: fixed;
-  z-index: 1450;
-  inset: 0;
-  display: grid;
-  padding: $spacing-m;
-  place-items: center;
-  background: rgba(#03070d, 0.62);
-  backdrop-filter: blur(3px);
+  @include dialog.backdrop(1450);
 }
 
 .about {
-  @include animate(pop-in, $motion-base, $ease-spring);
-  display: grid;
-  width: min(620px, 100%);
-  max-height: min(720px, calc(100vh - 48px));
+  @include dialog.surface(760px, 800px);
   grid-template-rows: auto minmax(0, 1fr);
-  border: 1px solid rgba($secondary-light, 0.28);
-  border-radius: $radius-l;
-  background: linear-gradient(150deg, rgba(#101d2a, 0.99), rgba(#08121b, 0.99));
-  box-shadow: 0 30px 80px rgba($black, 0.5);
-
-  // Its own surface rather than the shared `menu-surface`, matching the
-  // release notes, so the euphoria treatment has to be spelled out.
-  .is-euphoric & {
-    animation: euphoria-sweep 3.6s linear infinite;
-    border-color: hsl(var(--euphoria-hue, 160deg) 90% 62% / 55%);
-    box-shadow:
-      0 30px 80px rgba($black, 0.5),
-      0 0 36px hsl(var(--euphoria-hue, 160deg) 95% 60% / 22%);
-  }
 }
 
 // The header, its close button and the euphoria treatment on its eyebrow all
@@ -53,8 +29,10 @@ it under the terms of the GNU General Public License version 3 or later.
 // `DialogHeader.scss`, once.
 
 .about__body {
+  display: grid;
   min-height: 0;
-  padding: $spacing-m 20px 20px;
+  padding: 18px 20px 20px;
+  gap: 10px;
   overflow-y: auto;
   color: rgba($primary-lighter, 0.84);
   font-size: 0.78rem;
@@ -92,19 +70,14 @@ it under the terms of the GNU General Public License version 3 or later.
 // a pill round it. The header carries all three now; see `DialogHeader.scss`.
 
 .about__section {
-  margin-top: $spacing-m;
-
-  // The first one starts where the body's own padding puts it. It used to
-  // begin under the identity row's bottom border, which supplied the gap this
-  // margin would otherwise double.
-  &:first-child {
-    margin-top: 0;
-  }
+  @include dialog.section-surface;
+  margin: 0;
+  padding: 14px 16px;
 
   h3 {
-    margin: 0 0 4px;
-    color: rgba($white, 0.9);
-    font-size: 0.7rem;
+    margin: 0 0 7px;
+    color: $secondary-light;
+    font-size: 0.66rem;
     font-weight: $weight-bold;
     letter-spacing: 0.12em;
     text-transform: uppercase;
@@ -121,9 +94,9 @@ it under the terms of the GNU General Public License version 3 or later.
 }
 
 .about__footer {
-  margin-top: $spacing-l;
-  padding-top: $spacing-s;
-  border-top: 1px solid rgba($primary-lighter, 0.12);
+  @include dialog.section-surface;
+  margin: 0;
+  padding: 12px 14px;
   color: rgba($primary-lighter, 0.62);
   font-size: 0.72rem;
 }

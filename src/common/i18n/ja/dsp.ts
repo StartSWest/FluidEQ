@@ -63,6 +63,8 @@ const dsp = {
     '後段の過負荷を防ぎますが、ファイルに既に含まれる歪みは復元できません。',
 
   'dsp.denoise.title': 'ノイズ除去',
+  'dsp.denoisePreset.gentle': '穏やかなクリーンアップ',
+  'dsp.denoisePreset.strong': '強力なクリーンアップ',
   'dsp.denoise.description':
     '色付けの前に音源を修復します。ヒス、電源ハム、クリック、そしてニューラル音声クリーナー。推測ではなく、曲そのものから実測した値で動きます。',
   'dsp.denoise.isolate': 'アイソレート',
@@ -216,6 +218,16 @@ const dsp = {
 
   'dsp.eqPreset.import': 'インポート',
   'dsp.eqPreset.export': 'エクスポート',
+  'dsp.chainSave.title': 'DSP チェーンを保存',
+  'dsp.chainSave.hint':
+    'すべてのフィルターと有効状態を一つのプリセットとして保存します。',
+  'dsp.chainShare.hint':
+    'フィルターチェーン全体を共有できるファイルとして保存します。',
+  'dsp.chainImport.title': 'DSP チェーンを読み込む',
+  'dsp.chainImport.hint':
+    'FluidEQ DSP チェーンプリセットを貼り付けるか、JSON ファイルを選んでください。',
+  'dsp.chainImport.placeholder': '{"format": "fluideq-dsp-chain", ...}',
+  'dsp.chainImport.invalid': 'FluidEQ DSP チェーンプリセットではありません。',
   'dsp.eqSave.title': 'プリセットを保存',
   'dsp.eqSave.hint': 'いまのラックをそのまま保存します。',
   'dsp.eqSave.placeholder': '名前',

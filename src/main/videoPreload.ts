@@ -43,6 +43,7 @@ import {
   VIDEO_AD_BLOCK_DEFAULT,
   VIDEO_AD_BLOCK_REQUEST,
 } from '../common/videoAdBlock';
+import { VIDEO_GRAPH_FULLSCREEN_REQUEST } from '../common/videoSites';
 
 /**
  * ClearTube's `content.css`, verbatim.
@@ -151,6 +152,50 @@ const SKIP_BUTTON_SELECTORS = [
 ];
 
 const PLAYER_SELECTOR = '#movie_player, .html5-video-player';
+
+/**
+ * Turn a double-click on the moving picture into FluidEQ graph fullscreen.
+ *
+ * Registered in capture from the preload's isolated world, before the page's
+ * player handlers. Stopping it here is what prevents YouTube from entering its
+ * own HTML fullscreen underneath the graph and creating two competing modes.
+ * Coordinates are used as well as ancestry because most players put a controls
+ * or gesture overlay in front of the `<video>` rather than making the video the
+ * event target.
+ */
+const handleVideoDoubleClick = (event: MouseEvent) => {
+  const target = event.target instanceof Element ? event.target : null;
+  if (
+    target?.closest(
+      'button, input, select, textarea, a, [contenteditable], [role="button"]',
+    )
+  ) {
+    return;
+  }
+
+  const hitsVideo = Array.from(document.querySelectorAll('video')).some(
+    (video) => {
+      const rect = video.getBoundingClientRect();
+      return (
+        rect.width > 0 &&
+        rect.height > 0 &&
+        event.clientX >= rect.left &&
+        event.clientX <= rect.right &&
+        event.clientY >= rect.top &&
+        event.clientY <= rect.bottom
+      );
+    },
+  );
+  if (!hitsVideo) {
+    return;
+  }
+
+  event.preventDefault();
+  event.stopImmediatePropagation();
+  ipcRenderer.sendToHost(VIDEO_GRAPH_FULLSCREEN_REQUEST);
+};
+
+window.addEventListener('dblclick', handleVideoDoubleClick, true);
 
 /** How often to sweep the page, in milliseconds. ClearTube's own cadence. */
 const SWEEP_INTERVAL_MS = 350;

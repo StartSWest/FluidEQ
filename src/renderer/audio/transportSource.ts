@@ -51,9 +51,19 @@ export interface ITransportSource {
    */
   artworkUrl?: string;
   isPlaying: boolean;
+  /**
+   * Keep this player's engine mounted through a confirmed queue handoff.
+   *
+   * Distinct from `isPlaying`: the bar must show Pause only while sound exists,
+   * but an ended item can have a next item already being prepared. No player
+   * should be destroyed in that gap.
+   */
+  retainWhenHidden?: boolean;
   positionMs: number;
   durationMs: number;
   toggle: () => void;
+  /** Stop and return to the beginning without withdrawing the loaded source. */
+  stop?: () => void;
   /** Absent where the source cannot seek — a page we can only ask to play or
    * pause has no playhead to move. */
   seek?: (positionMs: number) => void;
@@ -72,10 +82,10 @@ export interface ITransportSource {
   /**
    * The queue either side, where there is one.
    *
-   * Absent for a karaoke session and for a web page: one song and one page
-   * have no next. Present for another program's player only where Windows
-   * says that player takes the command — a button that answers nothing is
-   * worse than a button that is not offered.
+   * Absent for a karaoke session. A web player publishes only the controls its
+   * loaded page actually exposes, and another program publishes only commands
+   * Windows says it accepts — a button that answers nothing is worse than a
+   * button that is not offered.
    */
   next?: () => void;
   previous?: () => void;
@@ -121,6 +131,32 @@ const listeners = new Set<() => void>();
  * the bar on every other tab.
  */
 let sources: Partial<Record<TPlaybackOwner, ITransportSource>> = {};
+
+/**
+ * The recorder's narrow view of those sources.
+ *
+ * Position changes several times a second; song identity and play state do
+ * not. Keeping a stable snapshot for the latter prevents the recorder host in
+ * `AppContent` from re-rendering the entire application for a seek-bar tick.
+ */
+export type TTransportIdentitySources = Partial<
+  Record<
+    TPlaybackOwner,
+    Pick<ITransportSource, 'identity' | 'isPlaying' | 'retainWhenHidden'>
+  >
+>;
+
+let identitySources: TTransportIdentitySources = {};
+
+const sameIdentity = (
+  current: ISongIdentity | undefined,
+  next: ISongIdentity | undefined,
+): boolean =>
+  current?.key === next?.key &&
+  current?.alias === next?.alias &&
+  current?.title === next?.title &&
+  current?.artist === next?.artist &&
+  current?.source === next?.source;
 
 /**
  * Who described themselves last.
@@ -215,7 +251,11 @@ export const setTransportSource = (next: ITransportSource): void => {
   // somebody paused an hour ago. Which is the whole of the rule: something
   // outside is worth the bar while it is playing, and worth nothing once it
   // stops.
-  if (next.owner !== 'system') {
+  //
+  // Position republishes this source several times a second. Writing the same
+  // owner through synchronous localStorage on every tick made a UI-only clock
+  // wait on persistent storage; the preference changes only when the owner does.
+  if (next.owner !== 'system' && lastOwner !== next.owner) {
     lastOwner = next.owner;
     try {
       window.localStorage.setItem(LAST_OWNER_KEY, next.owner);
@@ -223,6 +263,21 @@ export const setTransportSource = (next: ITransportSource): void => {
       // The preference then lasts as long as the window, which is what it
       // did before it was written down at all.
     }
+  }
+  const currentIdentity = identitySources[next.owner];
+  if (
+    currentIdentity?.isPlaying !== next.isPlaying ||
+    currentIdentity?.retainWhenHidden !== next.retainWhenHidden ||
+    !sameIdentity(currentIdentity?.identity, next.identity)
+  ) {
+    identitySources = {
+      ...identitySources,
+      [next.owner]: {
+        identity: next.identity,
+        isPlaying: next.isPlaying,
+        retainWhenHidden: next.retainWhenHidden,
+      },
+    };
   }
   if (next.isPlaying) {
     lastPlayingOwner = next.owner;
@@ -267,6 +322,9 @@ export const clearTransportSource = (owner: TPlaybackOwner): void => {
   }
   const next = { ...sources };
   delete next[owner];
+  const nextIdentities = { ...identitySources };
+  delete nextIdentities[owner];
+  identitySources = nextIdentities;
   if (lastPlayingOwner === owner) {
     lastPlayingOwner = undefined;
     lastPlayingKey = undefined;
@@ -293,6 +351,14 @@ export const useTransportSources = (): Partial<
     () => EMPTY,
   );
 
+/** Song identity and play state, stable across position-only publications. */
+export const useTransportIdentitySources = (): TTransportIdentitySources =>
+  useSyncExternalStore(
+    subscribe,
+    () => identitySources,
+    () => EMPTY,
+  );
+
 /** The owner of the most recent description — see `lastOwner`. */
 export const useLastTransportOwner = (): TPlaybackOwner | undefined =>
   useSyncExternalStore(
@@ -312,6 +378,7 @@ export const useLastPlayingOwner = (): TPlaybackOwner | undefined =>
 /** Test seam — module state outlives a render, see `resetPlaybackOwner`. */
 export const resetTransportSource = (): void => {
   sources = {};
+  identitySources = {};
   lastOwner = undefined;
   lastPlayingOwner = undefined;
   lastPlayingKey = undefined;

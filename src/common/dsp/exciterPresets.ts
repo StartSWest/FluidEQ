@@ -223,6 +223,30 @@ export const EXCITER_PRESET_BY_ID = {
       { enabled: true, amount: 0.12 },
     ),
   },
+  metal: {
+    id: 'metal',
+    labelKey: 'dsp.eqPreset.metal',
+    group: 'genre',
+    settings: settings(
+      [
+        { mix: 0.18 },
+        { freqHz: 1_500, mix: 0.25, texture: 0.28 },
+        { freqHz: 6_800, drive: 2.7, mix: 0.5, texture: 0.64 },
+      ],
+      {},
+      { enabled: true, amount: 0.35 },
+    ),
+  },
+  ambient: {
+    id: 'ambient',
+    labelKey: 'dsp.eqPreset.ambient',
+    group: 'genre',
+    settings: settings(
+      [{ mix: 0.08 }, { mix: 0.13 }, { drive: 2.4, mix: 0.4 }],
+      { enabled: true, amount: 0.12, focusHz: 500, range: 0.38 },
+      { enabled: true, amount: 0.1 },
+    ),
+  },
   vocal: {
     id: 'vocal',
     labelKey: 'dsp.eqPreset.vocal',
@@ -245,6 +269,21 @@ export const EXCITER_PRESET_BY_ID = {
         focusHz: 260,
         range: 0.22,
       },
+      {},
+      'mid',
+    ),
+  },
+  audiobook: {
+    id: 'audiobook',
+    labelKey: 'dsp.eqPreset.audiobook',
+    group: 'voice',
+    settings: settings(
+      [
+        { enabled: false },
+        { freqHz: 1_000, range: 0.24, mix: 0.18, texture: 0.1 },
+        { freqHz: 5_500, drive: 2.25, mix: 0.2, texture: 0.48 },
+      ],
+      { enabled: true, amount: 0.08, focusHz: 250, range: 0.2 },
       {},
       'mid',
     ),
@@ -277,6 +316,17 @@ export const EXCITER_PRESET_BY_ID = {
       },
       { enabled: true, amount: 0.15 },
       'mid',
+    ),
+  },
+  lateNight: {
+    id: 'lateNight',
+    labelKey: 'dsp.eqPreset.lateNight',
+    group: 'scene',
+    // Body helps quiet listening; a forward air band would do the opposite by
+    // making sibilance and effects the first things heard at low level.
+    settings: settings(
+      [{ mix: 0.1 }, { mix: 0.18, texture: 0.1 }, { mix: 0.12 }],
+      { enabled: true, amount: 0.18, focusHz: 350, range: 0.32 },
     ),
   },
   warm: {

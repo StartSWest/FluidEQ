@@ -143,6 +143,14 @@ export const useSystemMediaSource = (): void => {
             .sendMediaTransport('playPause')
             .catch(() => undefined);
         },
+        // Stop is not a media key: it is a distinct session command. Main uses
+        // native Stop where the player has one, or pause-and-rewind where it
+        // does not, so every external player gets the same visible control.
+        stop: () => {
+          window.electron?.ipcRenderer
+            .sendSystemMediaCommand('stop')
+            .catch(() => undefined);
+        },
         // A STEP RATHER THAN A SLIDER, and the position is the child's.
         //
         // Windows will move another player's playhead — measured on Chrome:

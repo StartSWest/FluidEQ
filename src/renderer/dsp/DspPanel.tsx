@@ -11,7 +11,6 @@ import {
   IDspSettings,
   clampDspSettings,
 } from '../../common/dsp/chain';
-import { DSP_PRESETS } from '../../common/dsp/presets';
 import { TranslationKey } from '../../common/i18n/en';
 import DspBassForgeCard from './DspBassForgeCard';
 import DspBassPunchCard from './DspBassPunchCard';
@@ -25,6 +24,7 @@ import DspMasterCard from './DspMasterCard';
 import DspMaximizerCard from './DspMaximizerCard';
 import DspDenoiseCard, { IDspVoiceModelState } from './DspDenoiseCard';
 import DspNormalizerCard from './DspNormalizerCard';
+import DspChainPresetBar from './DspChainPresetBar';
 import DspSideTabs from './DspSideTabs';
 import { TDspSection } from './sections';
 import { useTranslation } from '../utils/I18nContext';
@@ -40,6 +40,7 @@ import {
 } from './store';
 import '../styles/Dsp.scss';
 import { masterLoudnessBreakdown } from './inputNormalizer';
+import { useNativeMeters } from './useNativeBackend';
 
 interface IDspPanelProps {
   settings: IDspSettings;
@@ -73,6 +74,15 @@ const DspPanel = ({
   engineState,
 }: IDspPanelProps) => {
   const { t } = useTranslation();
+  /**
+   * Native analysis belongs to the surface that draws it.
+   *
+   * Keeping this beside the player left three FFTs, a scope capture, large
+   * host frames and every meter-store write running while the DSP tab was not
+   * mounted. This panel is mounted only while its tab is visible, so its
+   * lifetime is the exact demand signal the host needs.
+   */
+  useNativeMeters();
   const {
     normalizer,
     denoise,
@@ -110,7 +120,7 @@ const DspPanel = ({
    * `failed` and not `idle`: idle means the player has not been opened yet, and
    * dimming the whole rack because nobody has pressed play would be wrong.
    */
-  const isLive = settings.enabled && nativeState !== 'failed';
+  const isRackLive = settings.enabled && nativeState !== 'failed';
   const outputSafetyMeter = useDspOutputSafetyMeter();
   const inputAnalysis = useDspInputAnalysis();
   const loudness = masterLoudnessBreakdown(
@@ -205,11 +215,12 @@ const DspPanel = ({
         onChange: change,
         onCommit: commit,
       } = latest.current;
-      if (!last.eq.isolate && !last.exciter.isolate) {
+      if (!last.denoise.isolate && !last.eq.isolate && !last.exciter.isolate) {
         return;
       }
       change({
         ...last,
+        denoise: { ...last.denoise, isolate: false },
         eq: { ...last.eq, isolate: false },
         exciter: { ...last.exciter, isolate: false },
       });
@@ -219,8 +230,14 @@ const DspPanel = ({
   );
 
   /** Every change passes through the shared settings trust boundary. */
-  const patch = (next: Partial<IDspSettings>) =>
-    onChange(clampDspSettings({ ...settings, ...next }));
+  const patch = (next: Partial<IDspSettings>, preservePreset = false) =>
+    onChange(
+      clampDspSettings({
+        ...settings,
+        ...next,
+        presetId: preservePreset ? settings.presetId : '',
+      }),
+    );
 
   const patchBand = (index: number, next: Partial<IBandSettings>) =>
     patch({
@@ -238,7 +255,10 @@ const DspPanel = ({
       return;
     }
     let clearedIsolate = false;
-    if (section === 'eq' && eq.isolate) {
+    if (section === 'denoise' && denoise.isolate) {
+      patch({ denoise: { ...denoise, isolate: false } });
+      clearedIsolate = true;
+    } else if (section === 'eq' && eq.isolate) {
       patch({ eq: { ...eq, isolate: false } });
       clearedIsolate = true;
     } else if (section === 'exciter' && exciter.isolate) {
@@ -269,23 +289,12 @@ const DspPanel = ({
               </span>
             ) : undefined}
           </h2>
-          <div className="dsp-presets">
-            <span className="dsp-presets-label">{t('dsp.presets')}</span>
-            {DSP_PRESETS.map((preset) => (
-              <button
-                key={preset.id}
-                type="button"
-                className="button small subtle"
-                disabled={!isLive}
-                onClick={() => {
-                  onChange(preset.settings);
-                  onCommit();
-                }}
-              >
-                {t(preset.labelKey as TranslationKey)}
-              </button>
-            ))}
-          </div>
+          <DspChainPresetBar
+            settings={settings}
+            disabled={nativeState === 'failed'}
+            onChange={onChange}
+            onCommit={onCommit}
+          />
           <div className="dsp-global-power">
             <span
               className={`dsp-global-power-state${
@@ -300,7 +309,7 @@ const DspPanel = ({
               isOn={settings.enabled}
               isDisabled={false}
               handleToggle={() => {
-                patch({ enabled: !settings.enabled });
+                patch({ enabled: !settings.enabled }, true);
                 onCommit();
               }}
               ariaLabel={t('dsp.title')}
@@ -336,14 +345,11 @@ const DspPanel = ({
         ) : undefined}
       </header>
 
-      <div
-        className={`dsp-body${isLive ? '' : ' is-disabled'}`}
-        inert={isLive ? undefined : true}
-        aria-disabled={!isLive}
-      >
+      <div className="dsp-body">
         <DspSideTabs
           active={section}
           onSelect={selectSection}
+          filtersDisabled={!isRackLive}
           enabled={{
             normalizer: normalizer.mode !== 'off',
             denoise: denoise.enabled,
@@ -359,7 +365,13 @@ const DspPanel = ({
           }}
         />
 
-        <div className="dsp-stage">
+        <div
+          className={`dsp-stage${
+            section !== 'crossfade' && !isRackLive ? ' is-disabled' : ''
+          }`}
+          inert={section !== 'crossfade' && !isRackLive ? true : undefined}
+          aria-disabled={section !== 'crossfade' && !isRackLive}
+        >
           {section === 'normalizer' && (
             <DspNormalizerCard
               normalizer={normalizer}
@@ -383,7 +395,9 @@ const DspPanel = ({
           {section === 'crossfade' && (
             <DspCrossfadeCard
               crossfade={crossfade}
-              onPatch={(next) => patch({ crossfade: next })}
+              // Playback transitions are independent from the selected rack
+              // sound, so editing one does not turn the chain label Custom.
+              onPatch={(next) => patch({ crossfade: next }, true)}
               onCommit={onCommit}
             />
           )}

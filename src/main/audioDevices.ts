@@ -73,6 +73,7 @@ export const discoverAudioDevices = async (): Promise<IAudioDevice[]> => {
         guid: '{DEMO-SPEAKERS}',
         isDefault: true,
         isActive: true,
+        isEqualizerApoAttached: true,
       },
       {
         id: 'demo-headphones',
@@ -80,6 +81,7 @@ export const discoverAudioDevices = async (): Promise<IAudioDevice[]> => {
         guid: '{DEMO-HEADPHONES}',
         isDefault: false,
         isActive: true,
+        isEqualizerApoAttached: true,
       },
     ];
   }

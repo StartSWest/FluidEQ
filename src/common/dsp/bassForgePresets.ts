@@ -183,6 +183,12 @@ export const BASS_FORGE_PRESET_BY_ID = {
     group: 'genre',
     settings: profile(90, 1, 0.4, 0.4, 0.8, 0.3),
   },
+  trap: {
+    id: 'trap',
+    labelKey: 'dsp.eqPreset.trap',
+    group: 'genre',
+    settings: profile(75, 3.5, 0.85, 0.65, 0.8, 0.65),
+  },
 
   laptop: {
     id: 'laptop',
@@ -218,6 +224,28 @@ export const BASS_FORGE_PRESET_BY_ID = {
     // A PA subwoofer plays the real octave without help, so this leans on
     // subAmount rather than the illusion a smaller system would need.
     settings: profile(90, 3, 0.9, 0.3, 0.9, 0.6),
+  },
+  movie: {
+    id: 'movie',
+    labelKey: 'dsp.eqPreset.movie',
+    group: 'scene',
+    // LFE wants a real octave and little phantom edge; the split stays below
+    // dialogue fundamentals so the effect cannot turn a voice into a growl.
+    settings: profile(80, 1.5, 0.75, 0.35, 0.9, 0.5),
+  },
+  gaming: {
+    id: 'gaming',
+    labelKey: 'dsp.eqPreset.gaming',
+    group: 'scene',
+    settings: profile(100, 2, 0.35, 0.7, 0.9, 0.55),
+  },
+  smallSpeakers: {
+    id: 'smallSpeakers',
+    labelKey: 'dsp.eqPreset.smallSpeakers',
+    group: 'scene',
+    // No octave a small driver cannot radiate; the second-order cue carries
+    // the pitch without spending excursion below the enclosure's cutoff.
+    settings: profile(110, 1, 0, 0.75, 1, 0.6),
   },
 } satisfies Record<string, IBassForgePreset>;
 

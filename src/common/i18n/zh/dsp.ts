@@ -61,6 +61,8 @@ const dsp = {
   'dsp.normalizer.honesty': '可防止后级过载，但无法重建文件中已经存在的失真。',
 
   'dsp.denoise.title': '降噪',
+  'dsp.denoisePreset.gentle': '轻度清理',
+  'dsp.denoisePreset.strong': '强力清理',
   'dsp.denoise.description':
     '在任何染色之前先修复音源：嘶声、市电哼声、爆音，以及一个神经网络人声清理器。数值取自音轨本身的实测，而非猜测。',
   'dsp.denoise.isolate': '独听',
@@ -207,6 +209,13 @@ const dsp = {
 
   'dsp.eqPreset.import': '导入',
   'dsp.eqPreset.export': '导出',
+  'dsp.chainSave.title': '保存 DSP 链',
+  'dsp.chainSave.hint': '将所有滤镜及其启用状态保存为一个预设。',
+  'dsp.chainShare.hint': '将完整滤镜链保存为可分享的文件。',
+  'dsp.chainImport.title': '导入 DSP 链',
+  'dsp.chainImport.hint': '粘贴 FluidEQ DSP 链预设，或选择其 JSON 文件。',
+  'dsp.chainImport.placeholder': '{"format": "fluideq-dsp-chain", ...}',
+  'dsp.chainImport.invalid': '这不是 FluidEQ DSP 链预设。',
   'dsp.eqSave.title': '保存预设',
   'dsp.eqSave.hint': '按当前状态保存机架。',
   'dsp.eqSave.placeholder': '名称',

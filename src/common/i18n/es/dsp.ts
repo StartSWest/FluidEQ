@@ -69,6 +69,8 @@ const dsp = {
     'Evita sobrecargas posteriores; no puede reconstruir distorsión ya grabada en el archivo.',
 
   'dsp.denoise.title': 'Reducción de ruido',
+  'dsp.denoisePreset.gentle': 'Limpieza suave',
+  'dsp.denoisePreset.strong': 'Limpieza intensa',
   'dsp.denoise.description':
     'Repara la fuente antes de que nada la coloree: siseo, zumbido de red, chasquidos y un limpiador neuronal de voz. Medido a partir de la propia pista, no supuesto.',
   'dsp.denoise.isolate': 'Aislar',
@@ -223,6 +225,16 @@ const dsp = {
 
   'dsp.eqPreset.import': 'Importar',
   'dsp.eqPreset.export': 'Exportar',
+  'dsp.chainSave.title': 'Guardar cadena DSP',
+  'dsp.chainSave.hint':
+    'Guarda todos los filtros y su estado en un solo ajuste.',
+  'dsp.chainShare.hint':
+    'Guarda toda la cadena de filtros en un archivo para compartir.',
+  'dsp.chainImport.title': 'Importar una cadena DSP',
+  'dsp.chainImport.hint':
+    'Pega un ajuste de cadena DSP de FluidEQ o elige su archivo JSON.',
+  'dsp.chainImport.placeholder': '{"format": "fluideq-dsp-chain", ...}',
+  'dsp.chainImport.invalid': 'Esto no es un ajuste de cadena DSP de FluidEQ.',
   'dsp.eqSave.title': 'Guardar ajuste',
   'dsp.eqSave.hint': 'Guarda el rack tal y como está.',
   'dsp.eqSave.placeholder': 'Nombre',

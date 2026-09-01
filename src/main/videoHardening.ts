@@ -316,6 +316,13 @@ export const hardenAttachment = (
   webPreferences.webSecurity = true;
   webPreferences.allowRunningInsecureContent = false;
   webPreferences.experimentalFeatures = false;
+  // The guest's HTML fullscreen and the BrowserWindow's OS fullscreen are two
+  // separate transitions in FluidEQ. Electron normally resizes the host for
+  // the first one, then VideoBrowser asks the main process for the second one;
+  // on a playing video that double resize stalls Chromium's decoder/compositor.
+  // Keep the guest in charge of its top-layer player, but let the one explicit
+  // BrowserWindow transition below it own the physical display size.
+  webPreferences.disableHtmlFullscreenWindowResize = true;
 
   // The tag's own attributes, decided here rather than in markup.
   params.partition = VIDEO_BROWSER_PARTITION;

@@ -23,6 +23,21 @@ import {
 } from '../../renderer/utils/paneSizes';
 
 describe('workspace pane sizes', () => {
+  it('measures on resize, not while React reads snapshots', () => {
+    const query = jest.spyOn(document, 'querySelector');
+
+    // Positive control: resize is the store boundary that owns the DOM read.
+    window.dispatchEvent(new Event('resize'));
+    expect(query).toHaveBeenCalledTimes(1);
+    query.mockClear();
+
+    getEditorHeight('snapshot-probe');
+    getEditorHeight('snapshot-probe');
+
+    expect(query).not.toHaveBeenCalled();
+    query.mockRestore();
+  });
+
   it('resizes and persists each response graph divider independently', () => {
     window.localStorage.clear();
     const untouchedHeight = getEditorHeight('autoeq');

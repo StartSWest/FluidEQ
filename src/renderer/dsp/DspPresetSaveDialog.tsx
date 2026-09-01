@@ -66,7 +66,7 @@ const DspPresetSaveDialog = ({
   );
 
   // Portalled to the window, for the reason spelled out in
-  // `DspEqImportDialog`: `.dsp-card` is a query container, and a container is
+  // `DspPresetImportDialog`: `.dsp-card` is a query container, and a container is
   // the containing block for the fixed backdrop this dialog is built from.
   return createPortal(
     <div

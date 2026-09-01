@@ -47,9 +47,15 @@ import {
 import { currentTrackId, ILibraryQueue } from '../../../common/library/queue';
 import { useDspEngine } from '../../dsp/useDspEngine';
 import { useDspSettings } from '../../dsp/store';
+import { usePlaybackHandoff } from '../../audio/playbackHandoff';
+import { claimPlayback, releasePlayback } from '../../audio/playbackOwner';
 import { useLibrary } from '../LibraryContext';
 import { readStoredVolume } from './playbackMemory';
-import { ILibraryPlayerContextValue } from './playerContract';
+import {
+  ILibraryPlayerClock,
+  ILibraryPlayerContextValue,
+  ILibraryPlayerSession,
+} from './playerContract';
 import { useDeckAudio } from './useDeckAudio';
 import { useDeckBookkeeping } from './useDeckBookkeeping';
 import { useDeckLifecycle } from './useDeckLifecycle';
@@ -71,8 +77,12 @@ import { useTrackLoader } from './useTrackLoader';
 // the module that serves it did not.
 export type { ILibraryPlayerContextValue } from './playerContract';
 
-const LibraryPlayerContext = createContext<
-  ILibraryPlayerContextValue | undefined
+const LibraryPlayerContext = createContext<ILibraryPlayerSession | undefined>(
+  undefined,
+);
+
+const LibraryPlayerClockContext = createContext<
+  ILibraryPlayerClock | undefined
 >(undefined);
 
 export const LibraryPlayerProvider = ({
@@ -119,6 +129,7 @@ export const LibraryPlayerProvider = ({
 
   const [queue, setQueue] = useState<ILibraryQueue | undefined>(undefined);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [retainWhenHidden, setRetainWhenHidden] = usePlaybackHandoff();
   const [positionMs, setPositionMs] = useState(0);
   const [durationMs, setDurationMs] = useState(0);
   const [isUnplayable, setIsUnplayable] = useState(false);
@@ -153,6 +164,7 @@ export const LibraryPlayerProvider = ({
    * sound, and the element is muted, paused and held only as a fallback.
    */
   const {
+    hostOwnsTransport,
     hostOwnsTransportRef,
     seekHost,
     hostEnded,
@@ -168,6 +180,15 @@ export const LibraryPlayerProvider = ({
     durationMs,
     volume,
   });
+  // The element claims fallback playback from its own `play` event. A native
+  // deck has no DOM event, so its first non-ended telemetry frame is the real
+  // signal that a queued handoff has begun making sound again.
+  useEffect(() => {
+    if (isPlaying && hostOwnsTransport && !hostEnded) {
+      claimPlayback('library');
+      setRetainWhenHidden(false);
+    }
+  }, [hostEnded, hostOwnsTransport, isPlaying, setRetainWhenHidden]);
   /** Read inside continuations that outlive the render which started them —
    * the disk read, the decode — where a captured `trackId` would name a track
    * that has since changed. */
@@ -218,6 +239,7 @@ export const LibraryPlayerProvider = ({
     queueRef,
     setQueue,
     setIsPlaying,
+    setRetainWhenHidden,
     trackIdRef,
     audioElementRef,
     endedTrackRef,
@@ -247,6 +269,7 @@ export const LibraryPlayerProvider = ({
     setPositionMs,
     setDurationMs,
     setIsPlaying,
+    setRetainWhenHidden,
     setIsUnplayable,
   });
 
@@ -277,7 +300,6 @@ export const LibraryPlayerProvider = ({
    */
   useDeckLifecycle({
     audioElements,
-    videoElementRef,
     isDisposedRef,
     finishCrossfadeRef,
     bindMediaEvents,
@@ -353,11 +375,20 @@ export const LibraryPlayerProvider = ({
    */
   const { stop, playTracks, toggle } = usePlaybackCommands({
     activeElement,
+    audioElements,
     queueRef,
     hostOwnsTransportRef,
     setQueue,
     setIsPlaying,
+    setRetainWhenHidden,
     setAddedIds,
+    finishCrossfadeRef,
+    fadeFrameRef,
+    seekHost,
+    setPositionMs,
+    volumeRef,
+    endedTrackRef,
+    naturalCrossfadeTrackRef,
     setLoadRequest,
     pendingRestore,
     audioElementRef,
@@ -406,6 +437,7 @@ export const LibraryPlayerProvider = ({
   usePublishedTransport({
     track,
     isPlaying,
+    retainWhenHidden,
     publishedPositionMs,
     publishedDurationMs,
     volume,
@@ -413,14 +445,30 @@ export const LibraryPlayerProvider = ({
     seek,
     setVolume,
   });
+  // Publish the handoff lease before giving up audible ownership. Otherwise
+  // the synchronous owner update can let another tab's paused bar flash for
+  // one render between tracks. The next real play event/telemetry frame claims
+  // ownership again; expiry leaves it released for cleanup.
+  useEffect(() => {
+    if (retainWhenHidden) {
+      releasePlayback('library');
+    }
+  }, [retainWhenHidden]);
 
-  const value = useMemo<ILibraryPlayerContextValue>(
+  /**
+   * The session and the clock travel separately.
+   *
+   * Native playback publishes the playhead four times a second. Keeping those
+   * two numbers in this value invalidated LibraryWorkspace, Up Next, the video
+   * stage and the full-screen artwork on every tick even though none of them
+   * read either number. The clock has one visual consumer; the session has the
+   * rest, so their context boundaries now match their actual update rates.
+   */
+  const value = useMemo<ILibraryPlayerSession>(
     () => ({
       queue,
       track,
       isPlaying,
-      positionMs: publishedPositionMs,
-      durationMs: publishedDurationMs,
       volume,
       isShuffled: queue?.isShuffled ?? false,
       repeat: queue?.repeat ?? 'off',
@@ -449,8 +497,6 @@ export const LibraryPlayerProvider = ({
       queue,
       track,
       isPlaying,
-      publishedPositionMs,
-      publishedDurationMs,
       volume,
       videoTrackId,
       isUnplayable,
@@ -474,20 +520,40 @@ export const LibraryPlayerProvider = ({
       registerVideoElement,
     ],
   );
+  const clock = useMemo<ILibraryPlayerClock>(
+    () => ({
+      positionMs: publishedPositionMs,
+      durationMs: publishedDurationMs,
+    }),
+    [publishedDurationMs, publishedPositionMs],
+  );
 
   return (
     <LibraryPlayerContext.Provider value={value}>
-      {children}
+      <LibraryPlayerClockContext.Provider value={clock}>
+        {children}
+      </LibraryPlayerClockContext.Provider>
     </LibraryPlayerContext.Provider>
   );
 };
 
-export const useLibraryPlayer = (): ILibraryPlayerContextValue => {
+export const useLibraryPlayerSession = (): ILibraryPlayerSession => {
   const context = useContext(LibraryPlayerContext);
   if (!context) {
+    throw new Error(
+      'useLibraryPlayerSession must be used inside LibraryPlayerProvider',
+    );
+  }
+  return context;
+};
+
+export const useLibraryPlayer = (): ILibraryPlayerContextValue => {
+  const session = useLibraryPlayerSession();
+  const clock = useContext(LibraryPlayerClockContext);
+  if (!clock) {
     throw new Error(
       'useLibraryPlayer must be used inside LibraryPlayerProvider',
     );
   }
-  return context;
+  return { ...session, ...clock };
 };

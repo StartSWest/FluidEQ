@@ -56,9 +56,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   @include animate(rise-in, $motion-base, $ease-out, 85ms);
 }
 
-// Ten beats for the ten tabs `DSP_SECTIONS` ships. The rail is keyed by section
-// id and never unmounts, so this runs once when the tab is opened and not on
-// section changes.
+// Ten beats for the ten controls across the filter and playback groups. The
+// rail is keyed by section id and never unmounts, so this runs once when the
+// tab is opened and not on section changes.
 //
 // The count has to be at least the number of tabs: `stagger-in` only writes
 // `nth-child` delays up to it, and every tab past the count inherits the LAST
@@ -138,17 +138,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 .dsp-presets {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-left: auto;
-}
-
-.dsp-presets-label {
-  color: rgba($white, 0.5);
-  font-size: 0.68rem;
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
+  // It is the same preset control as every filter bar, at the rack level. The
+  // shared classes keep the arrows, field and label literally identical.
+  flex: 0 1 auto;
+  margin-right: auto;
 }
 
 .dsp-global-power {
@@ -174,17 +167,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
-// The rack dims when the global switch goes off, and it now takes as long
-// doing it as the switch takes to travel. The toggle already animated; the
-// entire page it commands changed in a single frame beside it, which read as
-// the picture being cut rather than as the chain being bypassed.
-.dsp-body {
+// The filter page dims when the global switch goes off. Crossfade is a player
+// transition in a separate rail group and deliberately remains interactive.
+.dsp-stage {
   transition:
     opacity $motion-base $ease-out,
     filter $motion-base $ease-out;
 }
 
-.dsp-body.is-disabled {
+.dsp-stage.is-disabled {
   opacity: 0.44;
   filter: saturate(0.25);
   pointer-events: none;
@@ -244,9 +235,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .dsp-normalizer-control-surface,
 .dsp-normalizer-analysis,
 .dsp-normalizer-live,
-.dsp-denoise-source,
-.dsp-denoise-analysis,
-.dsp-denoise-live {
+.dsp-denoise-analysis {
   min-width: 0;
   border: 1px solid rgba($white, 0.06);
   border-radius: 10px;
@@ -257,14 +246,32 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // own. The two cards sit next to each other on the rail and both open with a
 // measurement of the source; a second set of nearly-identical surfaces would
 // read as a different kind of panel for no reason a user could name.
-.dsp-denoise-source,
-.dsp-denoise-analysis,
-.dsp-denoise-live {
+.dsp-denoise-analysis {
   display: flex;
   width: 100%;
   flex-direction: column;
   gap: 8px;
   padding: 10px 14px;
+}
+
+.dsp-denoise-analysis-head,
+.dsp-denoise-analysis-label {
+  display: flex;
+  align-items: center;
+}
+
+.dsp-denoise-analysis-head {
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.dsp-denoise-analysis-label {
+  min-width: 0;
+  gap: 10px;
+}
+
+.dsp-denoise-analysis-head .segmented {
+  flex: 0 0 auto;
 }
 
 // Two across on a wide panel, one on a narrow one. Four modules stacked in a
@@ -355,6 +362,171 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   width: 100%;
   grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   gap: 10px;
+}
+
+.dsp-denoise-module {
+  height: 100%;
+  gap: 8px;
+}
+
+.dsp-denoise-module .dsp-band-dials {
+  width: 100%;
+  justify-content: center;
+}
+
+.dsp-denoise-module.is-hum > .segmented {
+  width: min(100%, 260px);
+  align-self: center;
+}
+
+.dsp-denoise-live {
+  width: 100%;
+}
+
+// Hiss and Hum need room for four and three dials. Clicks needs enough for its
+// pair to remain horizontal; Voice only needs one. Equal or nearly equal
+// tracks made Clicks stack vertically, and that one extra dial row set the
+// height of all four cards. These tracks follow the controls each module owns.
+@container dsp-card (min-width: 1000px) {
+  // Denoise has only a preset and Reset before its description. Treating the
+  // toolbar as an independent wrapping flex box dropped Reset onto a second
+  // header line even though the complete header fits comfortably at Full HD.
+  #dsp-denoise .dsp-card-header.has-toolbar {
+    display: grid;
+    grid-template-columns: auto auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 12px;
+  }
+
+  #dsp-denoise .dsp-denoise-bar {
+    display: contents;
+  }
+
+  #dsp-denoise .dsp-eq-preset-first {
+    grid-column: 1;
+  }
+
+  #dsp-denoise .dsp-eq-transfer {
+    grid-column: 2;
+  }
+
+  #dsp-denoise .dsp-card-titles {
+    grid-column: 3;
+  }
+
+  #dsp-denoise .dsp-card-power {
+    grid-column: 4;
+  }
+
+  #dsp-denoise .dsp-eq-reset {
+    margin-right: 0;
+    padding-right: 0;
+    border-right: 0;
+  }
+
+  .dsp-denoise-modules {
+    grid-template-columns:
+      minmax(300px, 34fr) minmax(250px, 30fr) minmax(170px, 20fr)
+      minmax(130px, 16fr);
+  }
+
+  .dsp-denoise-module .dsp-band-dials {
+    flex-wrap: nowrap;
+  }
+}
+
+@container dsp-card (max-width: 999px) {
+  #dsp-denoise .dsp-card-header.has-toolbar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 8px 12px;
+  }
+
+  #dsp-denoise .dsp-denoise-bar {
+    display: contents;
+  }
+
+  #dsp-denoise .dsp-eq-preset-first {
+    grid-row: 1;
+    grid-column: 1;
+    min-width: 0;
+  }
+
+  #dsp-denoise .dsp-card-power {
+    grid-row: 1;
+    grid-column: 2;
+  }
+
+  #dsp-denoise .dsp-eq-transfer {
+    grid-row: 2;
+    grid-column: 1;
+  }
+
+  #dsp-denoise .dsp-card-titles {
+    grid-row: 2;
+    grid-column: 2;
+  }
+
+  #dsp-denoise .dsp-eq-reset {
+    margin-right: 0;
+    padding-right: 0;
+    border-right: 0;
+  }
+}
+
+@container dsp-card (max-width: 620px) {
+  #dsp-denoise .dsp-eq-transfer {
+    grid-column: 1 / -1;
+  }
+
+  #dsp-denoise .dsp-card-titles {
+    grid-row: 3;
+    grid-column: 1 / -1;
+  }
+
+  .dsp-denoise-analysis-head {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .dsp-denoise-analysis-head .segmented {
+    align-self: flex-start;
+  }
+}
+
+// Full HD needs the same deliberate vertical density as the EQ. The graph sits
+// at its measured 150px legibility floor, dials keep enough pointer travel,
+// and both readout rows still fit their two text lines. Overflow continues to
+// scroll below these rules on windows that are shorter or narrower.
+@media (max-height: 1100px) {
+  #dsp-denoise .dsp-card-body {
+    gap: 8px;
+  }
+
+  .dsp-denoise-graph {
+    height: 150px;
+  }
+
+  .dsp-denoise-analysis {
+    gap: 6px;
+    padding: 8px 12px;
+  }
+
+  #dsp-denoise .knob {
+    width: 68px;
+    height: 68px;
+    flex-basis: 68px;
+  }
+
+  #dsp-denoise .labelled-knob {
+    width: 68px;
+  }
+
+  .dsp-denoise-analysis .dsp-normalizer-stats,
+  .dsp-denoise-live {
+    min-height: 54px;
+  }
 }
 
 .dsp-normalizer-control-surface {
@@ -1031,9 +1203,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   opacity: 0.42;
 }
 
-// Three equal Master scopes: automatic ceiling, final meter, and the
-// development-only safety A/B. They stay one clean row when the card is wide
-// and wrap as complete surfaces instead of breaking their contents apart.
+// Three equal Master scopes: loudness maximize, its adjacent gain match, and
+// the development-only safety A/B. Gain match used to sit inside the first
+// surface and made that one card set a needlessly tall row at Full HD.
+// Siblings keep the dependency clear in reading order without spending a
+// second row of height. They wrap as complete surfaces on narrow cards.
 #dsp-master .dsp-crossovers {
   justify-content: center;
   flex-wrap: wrap;
@@ -1041,6 +1215,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #dsp-master .dsp-band {
   flex-basis: 280px;
+}
+
+.dsp-master-option {
+  align-self: stretch;
 }
 
 .dsp-master-display {
@@ -1325,22 +1503,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   gap: 10px;
 }
 
-// A switch that belongs TO the control above it rather than beside it.
-//
-// Gain match is not a stage: it is how you listen to the one it sits under,
-// and it does nothing at all while that one is off. Given a band of its own it
-// read as a third processor whose only visible effect was making the music
-// quieter, which is how it came to be reported as confusing. The rule it is
-// indented under stands in for the sentence that would otherwise have to say
-// "this one belongs to the thing above it".
-.dsp-band-nested {
-  margin-top: 10px;
-  padding-top: 10px;
-  padding-left: 12px;
-  border-top: 1px solid rgba($white, 0.06);
-  border-left: 2px solid rgba($secondary-default, 0.22);
-}
-
 // The one block on this page that earns a sentence. Everything else here is a
 // word and a number; this is an effect the user has no name for yet, so it
 // says what it is for.
@@ -1492,34 +1654,85 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   display: flex;
   flex: 0 0 auto;
   flex-direction: column;
-  gap: 4px;
   width: 168px;
 }
 
+.dsp-rail-processors,
+.dsp-rail-playback {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+// Crossfade schedules the player; it is not a filter in the signal chain.
+// The separate, labelled group prevents its on/off lamp from reading as one
+// more stage a whole-chain preset owns.
+.dsp-rail-playback {
+  gap: 5px;
+  margin-top: 11px;
+  padding-top: 10px;
+  border-top: 1px solid rgba($white, 0.09);
+}
+
+.dsp-rail-group-label {
+  padding: 0 11px 2px;
+  color: rgba($white, 0.36);
+  font-size: 0.58rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 .dsp-rail-tab {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 9px;
   padding: 9px 11px;
   border: 1px solid transparent;
   border-radius: 9px;
-  background: rgba($primary-light, 0.2);
+  background: transparent;
   color: rgba($white, 0.62);
   font-size: 0.78rem;
   text-align: left;
   cursor: pointer;
   transition:
     background 140ms ease,
+    box-shadow 140ms ease,
     color 140ms ease,
     border-color 140ms ease,
     translate 140ms $ease-out;
+
+  // A narrow edge identifies the page without flooding the whole row with the
+  // accent colour. The old full teal fill made ten separate controls read as
+  // one heavy blue block.
+  &::before {
+    position: absolute;
+    top: 8px;
+    bottom: 8px;
+    left: -1px;
+    width: 2px;
+    border-radius: 0 2px 2px 0;
+    background: $secondary-default;
+    box-shadow: 0 0 8px rgba($secondary-default, 0.58);
+    content: '';
+    opacity: 0;
+    transform: scaleY(0.45);
+    transition:
+      opacity 140ms ease,
+      transform 140ms $ease-out;
+  }
+
+  &:disabled {
+    opacity: 0.42;
+    cursor: default;
+  }
 
   // Leans toward the page it opens. The rail is the only navigation this tab
   // has and it answered the pointer with colour alone; a couple of pixels in
   // the direction the stage lies is the difference between a list of names
   // and a set of controls.
-  &:hover {
-    background: rgba($primary-light, 0.34);
+  &:hover:not(:disabled) {
+    background: rgba($white, 0.045);
     color: rgba($white, 0.86);
     translate: 2px 0;
   }
@@ -1532,16 +1745,29 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       color 140ms ease,
       border-color 140ms ease;
 
-    &:hover {
+    &:hover:not(:disabled) {
       translate: none;
     }
   }
 }
 
 .dsp-rail-tab.is-active {
-  border-color: rgba($secondary-default, 0.4);
-  background: rgba($secondary-default, 0.12);
+  border-color: rgba($white, 0.075);
+  background: linear-gradient(
+    90deg,
+    rgba($white, 0.075),
+    rgba($white, 0.025) 72%,
+    transparent
+  );
+  box-shadow:
+    inset 0 1px 0 rgba($white, 0.025),
+    0 5px 14px rgba($black, 0.11);
   color: $white;
+
+  &::before {
+    opacity: 1;
+    transform: scaleY(1);
+  }
 }
 
 // The glyph carries the processor's identity, and on a narrow window it is the
@@ -1549,8 +1775,17 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // with the text beside it.
 .dsp-section-icon {
   flex: 0 0 auto;
-  width: 20px;
-  height: 20px;
+  box-sizing: border-box;
+  width: 22px;
+  height: 22px;
+  padding: 2px;
+  border: 1px solid rgba($white, 0.045);
+  border-radius: 6px;
+  background: rgba($white, 0.025);
+  transition:
+    background 140ms ease,
+    border-color 140ms ease,
+    color 140ms ease;
 
   path {
     fill: none;
@@ -1578,6 +1813,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   opacity: 0.6;
 }
 
+.dsp-rail-tab.is-active .dsp-section-icon {
+  border-color: rgba($secondary-default, 0.2);
+  background: rgba($secondary-default, 0.09);
+  color: $secondary-default;
+}
+
 .dsp-rail-name {
   flex: 1 1 auto;
   min-width: 0;
@@ -1592,8 +1833,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   flex: 0 0 auto;
   width: 7px;
   height: 7px;
+  border: 1px solid rgba($white, 0.1);
   border-radius: 50%;
-  background: rgba($white, 0.14);
+  background: rgba($black, 0.16);
   // The glow belongs in here with the colour. Switching a processor on sets
   // both, and with only `background` listed the halo snapped to full strength
   // while the dot it belongs to was still fading up — the lamp arrived in two
@@ -1604,6 +1846,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 .dsp-rail-tab.is-on .dsp-rail-lamp {
+  border-color: rgba($secondary-default, 0.58);
   background: $secondary-default;
   box-shadow: 0 0 6px rgba($secondary-default, 0.75);
 }
@@ -2454,10 +2697,33 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   .dsp-rail {
     flex-direction: row;
     width: auto;
-    justify-content: space-around;
     gap: 2px;
     overflow-x: hidden;
     padding-bottom: 2px;
+  }
+
+  .dsp-rail-processors,
+  .dsp-rail-playback {
+    flex-direction: row;
+    gap: 2px;
+  }
+
+  .dsp-rail-processors {
+    flex: 1 1 auto;
+    justify-content: space-around;
+  }
+
+  .dsp-rail-playback {
+    flex: 0 0 auto;
+    margin-top: 0;
+    padding-top: 0;
+    padding-left: 4px;
+    border-top: 0;
+    border-left: 1px solid rgba($white, 0.09);
+  }
+
+  .dsp-rail-group-label {
+    display: none;
   }
 
   .dsp-rail-tab {
@@ -2470,6 +2736,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     border: 0;
     border-radius: 0;
     background: transparent;
+
+    // The wide rail uses a left edge; the compact rail uses the underline
+    // below. Showing both would turn one selection into two indicators.
+    &::before {
+      display: none;
+    }
 
     &::after {
       position: absolute;
@@ -2489,7 +2761,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
         box-shadow 140ms ease;
     }
 
-    &:hover {
+    &:hover:not(:disabled) {
       background: transparent;
       color: rgba($white, 0.9);
       // The rail is a horizontal strip of icons here, not a vertical list.

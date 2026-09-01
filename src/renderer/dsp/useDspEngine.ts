@@ -15,30 +15,11 @@ import {
   DSP_DIAGNOSTIC_SCHEMA_VERSION,
 } from '../../common/dsp/diagnostics';
 import { INoiseProfile } from '../../common/dsp/noiseProfile';
-import {
-  IAudioGraphContext,
-  IAudioNodeLike,
-  IDspGraph,
-  IWorkletNodeLike,
-  buildDspGraph,
-} from './graph';
+import { IAudioNodeLike, IDspGraph, buildDspGraph } from './graph';
 import {
   TDspEngineState,
-  IDspOutputSafetyMeter,
-  clearDspAnalysers,
-  setDspAnalyser,
-  setDspBandAmounts,
-  setDspExciterActivity,
-  setDspBandLevels,
-  setDspChannelPeaks,
-  setDspCorrelation,
-  setDspScatter,
   setDspEngineState,
-  setDspPeak,
   setDspSampleRate,
-  setDspOutputSafetyMeter,
-  setDspNormalizerMeter,
-  useDspOutputSafetyEnabled,
   useDspInputAnalysis,
 } from './store';
 import { masterLoudnessGainDb, normalizerGainDb } from './inputNormalizer';
@@ -57,7 +38,6 @@ const workletUrl = (): URL =>
     window.location.href,
   );
 
-let inputGainPort: MessagePort | undefined;
 /**
  * Where the same gains go when the native engine is the audible one.
  *
@@ -104,20 +84,6 @@ export const setDspNativeNoiseProfileSink = (
 let pendingInputGainDb = 0;
 let pendingMasterLoudnessGainDb = 0;
 let pendingNoiseProfile: INoiseProfile | undefined;
-let pendingInputTrackId = '';
-
-/** Flush source-bound delay before a new track's gain can reach the worklet. */
-export const setDspInputTrackId = (
-  trackId: string,
-  preserveTrackLevelGain = false,
-): void => {
-  pendingInputTrackId = trackId;
-  inputGainPort?.postMessage({
-    masterPeakHoldTrackId: pendingInputTrackId,
-    preserveTrackLevelGain,
-  });
-};
-
 /**
  * Update the source normalizer and its final LUFS compensation atomically.
  *
@@ -138,12 +104,6 @@ export const setDspTrackLevelGains = (
         Math.max(MASTER_LOUDNESS_GAIN_MIN_DB, masterLoudnessGainDb),
       )
     : 0;
-  inputGainPort?.postMessage({
-    trackLevelGains: {
-      inputGainDb: pendingInputGainDb,
-      masterLoudnessGainDb: pendingMasterLoudnessGainDb,
-    },
-  });
   nativeTrackGainSink?.(pendingInputGainDb, pendingMasterLoudnessGainDb);
 };
 
@@ -200,7 +160,6 @@ export const useDspEngine = (
   settings: IDspSettings,
 ): IEngineState => {
   const [active, setActive] = useState(false);
-  const outputSafetyEnabled = useDspOutputSafetyEnabled();
   const inputAnalysis = useDspInputAnalysis();
   const inputGainDb = normalizerGainDb(
     settings.normalizer,
@@ -218,15 +177,7 @@ export const useDspEngine = (
   const graphRef = useRef<IDspGraph | undefined>(undefined);
   const workletRef = useRef<AudioWorkletNode | undefined>(undefined);
   const settingsRef = useRef(settings);
-  const outputSafetyEnabledRef = useRef(outputSafetyEnabled);
-  const inputGainDbRef = useRef(inputGainDb);
-  const loudnessGainDbRef = useRef(loudnessGainDb);
-  const inputTrackIdRef = useRef(inputAnalysis.trackId ?? '');
   settingsRef.current = settings;
-  outputSafetyEnabledRef.current = outputSafetyEnabled;
-  inputGainDbRef.current = inputGainDb;
-  loudnessGainDbRef.current = loudnessGainDb;
-  inputTrackIdRef.current = inputAnalysis.trackId ?? '';
   useEffect(() => {
     if (elements.length === 0 || typeof window.AudioContext !== 'function') {
       return undefined;
@@ -262,7 +213,7 @@ export const useDspEngine = (
      * while unmounting is not — reporting `failed` there would leave a red
      * notice behind for a chain that was simply put away.
      */
-    const teardown = (next: TDspEngineState) => {
+    const teardown = (next: TDspEngineState, disposeContext = false): void => {
       const currentWorklet = workletRef.current;
       // Once the graph falls back to direct element output, its deck gains are
       // disconnected. Remove the crossfade registration first so transport can
@@ -290,12 +241,30 @@ export const useDspEngine = (
         // to reach the speakers, so this is not allowed to stop that.
       }
       graphRef.current = undefined;
-      if (inputGainPort === currentWorklet?.port) {
-        inputGainPort = undefined;
+      if (currentWorklet) {
+        currentWorklet.port.onmessage = null;
       }
+      currentWorklet?.port.close();
       workletRef.current = undefined;
+
+      if (disposeContext) {
+        // This path is reached only when the player provider is leaving. The
+        // captured elements leave with it, so there is no audio path to rescue;
+        // every node and the context itself can be released outright.
+        sourcesRef.current.forEach((source) => source.disconnect());
+        deckGainsRef.current.forEach((gain) => gain.disconnect());
+        mixerRef.current?.disconnect();
+        sourcesRef.current = [];
+        deckGainsRef.current = [];
+        mixerRef.current = undefined;
+        const context = contextRef.current;
+        contextRef.current = undefined;
+        context?.close().catch(() => undefined);
+        setDspEngineState(next);
+        return;
+      }
+
       fallBackToDirectOutput();
-      clearDspAnalysers();
       setActive(false);
       setDspEngineState(next);
     };
@@ -340,121 +309,6 @@ export const useDspEngine = (
         outputChannelCount: Array.from({ length: DSP_OUTPUT_COUNT }, () => 2),
       });
       workletRef.current = worklet;
-      inputGainPort = worklet.port;
-      worklet.port.postMessage({
-        debugOutputSafetyEnabled: outputSafetyEnabledRef.current,
-      });
-      setDspInputTrackId(inputTrackIdRef.current);
-      setDspTrackLevelGains(inputGainDbRef.current, loudnessGainDbRef.current);
-      // The worklet reports its correlation measurement back the same way it
-      // receives settings. Assigned before the graph is built so the very
-      // first block's reading is not dropped on the floor.
-      worklet.port.onmessage = (message: MessageEvent<unknown>) => {
-        const data = message.data as {
-          correlation?: unknown;
-          peak?: unknown;
-          channelPeaks?: unknown;
-          bandAmounts?: unknown;
-          bandLevels?: unknown;
-          exciterBands?: unknown;
-          exciterOrganic?: unknown;
-          outputSafety?: unknown;
-          scatter?: unknown;
-          normalizerMeter?: unknown;
-          diagnostic?: unknown;
-        } | null;
-        if (data?.diagnostic !== undefined) {
-          reportDspDiagnostic(data.diagnostic);
-        }
-        if (data && typeof data.correlation === 'number') {
-          setDspCorrelation(data.correlation);
-        }
-        if (data && typeof data.peak === 'number') {
-          setDspPeak(data.peak);
-        }
-        if (
-          data &&
-          Array.isArray(data.channelPeaks) &&
-          data.channelPeaks.every(
-            (value) => typeof value === 'number' && Number.isFinite(value),
-          )
-        ) {
-          setDspChannelPeaks(data.channelPeaks as number[]);
-        }
-        if (data && Array.isArray(data.bandAmounts)) {
-          setDspBandAmounts(data.bandAmounts as number[]);
-        }
-        if (data && Array.isArray(data.bandLevels)) {
-          setDspBandLevels(data.bandLevels as number[]);
-        }
-        if (
-          data &&
-          Array.isArray(data.exciterBands) &&
-          typeof data.exciterOrganic === 'number'
-        ) {
-          setDspExciterActivity(
-            data.exciterBands as number[],
-            data.exciterOrganic,
-          );
-        }
-        if (
-          data?.outputSafety instanceof Object &&
-          typeof (data.outputSafety as { enabled?: unknown }).enabled ===
-            'boolean'
-        ) {
-          const safety = data.outputSafety as IDspOutputSafetyMeter;
-          if (
-            safety.postFilterNormalizer instanceof Object &&
-            Number.isFinite(safety.postFilterNormalizer.gainReductionDb) &&
-            Number.isFinite(safety.postFilterNormalizer.inputTruePeakDb) &&
-            Number.isFinite(safety.gainReductionDb) &&
-            Number.isFinite(safety.inputTruePeakDb) &&
-            Number.isFinite(safety.dcCorrectionDb) &&
-            Number.isFinite(safety.repairedSamples) &&
-            (safety.truePeakFactor === 1 ||
-              safety.truePeakFactor === 2 ||
-              safety.truePeakFactor === 4)
-          ) {
-            setDspOutputSafetyMeter(safety);
-          }
-        }
-        if (data?.scatter instanceof Float32Array) {
-          setDspScatter(data.scatter);
-        }
-        if (
-          data?.normalizerMeter instanceof Object &&
-          Array.isArray(
-            (data.normalizerMeter as { inputPeaks?: unknown }).inputPeaks,
-          ) &&
-          Array.isArray(
-            (data.normalizerMeter as { outputPeaks?: unknown }).outputPeaks,
-          )
-        ) {
-          const meter = data.normalizerMeter as {
-            inputPeaks: unknown[];
-            outputPeaks: unknown[];
-            appliedGainDb?: unknown;
-          };
-          if (
-            meter.inputPeaks.length === 2 &&
-            meter.outputPeaks.length === 2 &&
-            meter.inputPeaks.every(
-              (value) => typeof value === 'number' && Number.isFinite(value),
-            ) &&
-            meter.outputPeaks.every(
-              (value) => typeof value === 'number' && Number.isFinite(value),
-            ) &&
-            typeof meter.appliedGainDb === 'number' &&
-            Number.isFinite(meter.appliedGainDb)
-          ) {
-            setDspNormalizerMeter({
-              inputPeaks: meter.inputPeaks as [number, number],
-              outputPeaks: meter.outputPeaks as [number, number],
-              appliedGainDb: meter.appliedGainDb,
-            });
-          }
-        }
-      };
       // The point of no return. Both stable decks are captured once and mixed
       // before the worklet, so a transition is two real decoders overlapping
       // through the same DSP chain rather than a fade to silence and back.
@@ -486,18 +340,10 @@ export const useDspEngine = (
       unregisterDeckMixer = registerDspDeckMixer(context, elements, deckGains);
       if (settingsRef.current.enabled) {
         graphRef.current = buildDspGraph(
-          context as unknown as IAudioGraphContext,
           mixer as unknown as IAudioNodeLike,
-          worklet as unknown as IWorkletNodeLike,
+          worklet as unknown as IAudioNodeLike,
           context.destination as unknown as IAudioNodeLike,
-          settingsRef.current,
         );
-        setDspAnalyser('normalizer', graphRef.current.analysers.normalizer);
-        setDspAnalyser('exciter', graphRef.current.analysers.exciter);
-        setDspAnalyser('eq', graphRef.current.analysers.eq);
-        setDspAnalyser('compressor', graphRef.current.analysers.compressor);
-        setDspAnalyser('maximizer', graphRef.current.analysers.maximizer);
-        setDspAnalyser('master', graphRef.current.analysers.master);
       } else {
         mixer.connect(context.destination);
       }
@@ -560,7 +406,7 @@ export const useDspEngine = (
       elements.forEach((element) =>
         element.removeEventListener('play', resumeForPlayback),
       );
-      teardown('idle');
+      teardown('idle', true);
     };
   }, [elements]);
 
@@ -576,88 +422,18 @@ export const useDspEngine = (
         graphRef.current.dispose();
         graphRef.current = undefined;
         mixer.connect(context.destination);
-        clearDspAnalysers();
       }
       return;
     }
     if (!graphRef.current) {
       mixer.disconnect();
       graphRef.current = buildDspGraph(
-        context as unknown as IAudioGraphContext,
         mixer as unknown as IAudioNodeLike,
-        worklet as unknown as IWorkletNodeLike,
+        worklet as unknown as IAudioNodeLike,
         context.destination as unknown as IAudioNodeLike,
-        settings,
       );
-      setDspAnalyser('normalizer', graphRef.current.analysers.normalizer);
-      setDspAnalyser('exciter', graphRef.current.analysers.exciter);
-      setDspAnalyser('eq', graphRef.current.analysers.eq);
-      setDspAnalyser('compressor', graphRef.current.analysers.compressor);
-      setDspAnalyser('maximizer', graphRef.current.analysers.maximizer);
-      setDspAnalyser('master', graphRef.current.analysers.master);
-      return;
     }
-    graphRef.current.update(settings);
-  }, [settings]);
-
-  useEffect(() => {
-    workletRef.current?.port.postMessage({
-      debugOutputSafetyEnabled: outputSafetyEnabled,
-    });
-  }, [outputSafetyEnabled]);
-
-  /**
-   * Meters follow the window; the audio does not.
-   *
-   * Playback carries on behind a minimised window, and so did this telemetry —
-   * a full meter frame every `METER_BLOCKS`, each one landing in ten store
-   * writes and re-rendering every graph subscribed to them, to paint a surface
-   * Chromium is not compositing. The worklet stops building the frame at all
-   * while hidden; see `metersEnabled` there for why it is silenced at the
-   * source rather than dropped on arrival.
-   *
-   * Keyed on `active` so a worklet built after this effect first ran is still
-   * told the current state — the node is replaced whenever the engine
-   * restarts, and a fresh one starts out assuming somebody is watching.
-   */
-  useEffect(() => {
-    const publishMeterVisibility = () => {
-      workletRef.current?.port.postMessage({
-        metersEnabled: !document.hidden,
-      });
-    };
-    publishMeterVisibility();
-    document.addEventListener('visibilitychange', publishMeterVisibility);
-    return () =>
-      document.removeEventListener('visibilitychange', publishMeterVisibility);
-  }, [active]);
-
-  /**
-   * The TypeScript chain never processes. Always, not while native is running.
-   *
-   * It used to stand down on `nativeEngaged`, which was right while there were
-   * two engines and a fallback: the worklet took over whenever the host was not
-   * there. There is no fallback now, and leaving that conditional in place made
-   * it a silent one — a host that failed to start would have had the TypeScript
-   * rack quietly processing the audio while the panel displayed a notice saying
-   * the music was playing unprocessed. One of those two would have been a lie,
-   * and the listener could not tell which.
-   *
-   * So the worklet is a passthrough and nothing else. It still has to EXIST,
-   * because `createMediaElementSource` cannot be undone: from the moment the
-   * element is captured, the graph is the only route to the speakers, and
-   * removing it would take the audio with it. What it must not do is process.
-   *
-   * Keyed on `active` because the worklet is replaced whenever the engine
-   * restarts, and a fresh one starts out assuming it is the one playing.
-   */
-  useEffect(() => {
-    workletRef.current?.port.postMessage({ standDown: true });
-  }, [active]);
-
-  useEffect(() => {
-    setDspInputTrackId(inputAnalysis.trackId ?? '');
-  }, [inputAnalysis.trackId]);
+  }, [settings.enabled]);
 
   useEffect(() => {
     setDspTrackLevelGains(inputGainDb, loudnessGainDb);

@@ -41,6 +41,7 @@ import {
   IHostAck,
   IHostHandshake,
   IHostAnalysis,
+  IHostStats,
   IHostTelemetry,
   THostCommand,
   encodeCommand,
@@ -103,6 +104,15 @@ export class DspHostSupervisor {
 
   private readonly stderrTail: string[] = [];
 
+  /**
+   * The host's own memory and CPU, cleared with the process it described.
+   *
+   * A restart replaces the process, and the figures from the one that died
+   * describe nothing that exists — showing them would put a stale number in
+   * the one column somebody is watching for a change.
+   */
+  private stats: IHostStats | undefined;
+
   private restartTimes: number[] = [];
 
   /** What to restore after a restart, so a crash is not also a reset. */
@@ -147,6 +157,17 @@ export class DspHostSupervisor {
     return this.child?.pid;
   }
 
+  /**
+   * What the host process costs, or undefined before its first sample.
+   *
+   * Undefined and not zero: the app's process list draws a dash for a figure
+   * it does not have, and a zero here would draw a measured zero for a process
+   * that is plainly running.
+   */
+  getStats(): IHostStats | undefined {
+    return this.stats;
+  }
+
   /** The host's own stderr, kept apart from the renderer's log. */
   getStderrTail(): readonly string[] {
     return this.stderrTail;
@@ -188,6 +209,7 @@ export class DspHostSupervisor {
       });
     });
     this.child = undefined;
+    this.stats = undefined;
     this.setState('stopped');
   }
 
@@ -553,6 +575,9 @@ export class DspHostSupervisor {
           onAck: (ack) => this.settle(ack),
           onTelemetry: (telemetry) => this.options.onTelemetry?.(telemetry),
           onAnalysis: (analysis) => this.options.onAnalysis?.(analysis),
+          onStats: (stats) => {
+            this.stats = stats;
+          },
           onDesynchronised: (magic) => {
             clearTimeout(timer);
             this.fail(DSP_DIAGNOSTIC_CODES.hostStreamDesynchronised, {
@@ -665,6 +690,7 @@ export class DspHostSupervisor {
 
   private onExit(code: number): void {
     this.child = undefined;
+    this.stats = undefined;
     this.pending.forEach((waiting) => {
       clearTimeout(waiting.timer);
       waiting.reject(new Error('the DSP host exited'));

@@ -37,7 +37,7 @@ import AnchoredMenu, { isInsideAnchoredMenu } from '../widgets/AnchoredMenu';
 import RichPick from '../widgets/RichPick';
 import SegmentedControl from '../widgets/SegmentedControl';
 import { eqPresetEntries, eqPresetGroupLabel } from './presetPickEntries';
-import DspEqImportDialog from './DspEqImportDialog';
+import DspPresetImportDialog from './DspPresetImportDialog';
 import DspBarIcon from './DspBarIcon';
 import DspPresetSaveDialog from './DspPresetSaveDialog';
 import { fromPresetFile, toPresetFile } from '../../common/dsp/presetFile';
@@ -154,9 +154,13 @@ const DspEqBar = ({ eq, sampleRate, onChange, onCommit }: IDspEqBarProps) => {
    * count, its thresholds, its phase mode — so fitting it to the current
    * rack would hand back something subtly different from what was saved.
    */
-  const applyUserPreset = (preset: IUserPreset) => {
+  const applyUserPreset = (preset: IUserPreset, enable = true) => {
     setNotice('');
-    onChange({ ...preset.eq, enabled: eq.enabled, presetId: preset.id });
+    onChange({
+      ...preset.eq,
+      enabled: enable ? true : eq.enabled,
+      presetId: preset.id,
+    });
     onCommit();
   };
 
@@ -170,11 +174,11 @@ const DspEqBar = ({ eq, sampleRate, onChange, onCommit }: IDspEqBarProps) => {
   const entries = eqPresetEntries(userPresets, t);
   const ordered = entries.map((one) => one.id);
 
-  const applyPreset = (id: string) => {
+  const applyPreset = (id: string, enable = true) => {
     if (id.startsWith(USER_PRESET_PREFIX)) {
       const saved = findUserPreset(id);
       if (saved) {
-        applyUserPreset(saved);
+        applyUserPreset(saved, enable);
       }
       return;
     }
@@ -184,8 +188,12 @@ const DspEqBar = ({ eq, sampleRate, onChange, onCommit }: IDspEqBarProps) => {
     }
     setNotice('');
     // One deterministic state, including the canonical band shapes. The only
-    // value retained from the previous rack is whether the processor is on.
-    onChange(eqSettingsForPreset(eq, chosen));
+    // Direct selection starts the processor. Reset is the one caller that
+    // keeps bypass, because it restores values rather than auditioning a sound.
+    onChange({
+      ...eqSettingsForPreset(eq, chosen),
+      enabled: enable ? true : eq.enabled,
+    });
     onCommit();
   };
 
@@ -378,7 +386,7 @@ const DspEqBar = ({ eq, sampleRate, onChange, onCommit }: IDspEqBarProps) => {
         <button
           type="button"
           className="button small subtle"
-          onClick={() => applyPreset(EQ_DEFAULT_PRESET_ID)}
+          onClick={() => applyPreset(EQ_DEFAULT_PRESET_ID, false)}
         >
           <DspBarIcon name="reset" />
           {t('dsp.eqPreset.reset')}
@@ -610,7 +618,12 @@ const DspEqBar = ({ eq, sampleRate, onChange, onCommit }: IDspEqBarProps) => {
       )}
 
       {isImporting && (
-        <DspEqImportDialog
+        <DspPresetImportDialog
+          titleKey="dsp.eqImport.title"
+          hintKey="dsp.eqImport.hint"
+          placeholderKey="dsp.eqImport.placeholder"
+          accept=".txt,.json,text/plain,application/json"
+          error={notice}
           onImport={handleImport}
           onClose={() => setIsImporting(false)}
         />

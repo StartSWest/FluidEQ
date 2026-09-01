@@ -62,6 +62,7 @@ interface IKaraokeTransportProps {
   durationMs: number;
   levels: readonly IKaraokeTransportLevel[];
   onTogglePlayback: () => void;
+  onStop: () => void;
   onJumpToStart: () => void;
   onJumpToEnd: () => void;
   onSeek: (timeMs: number) => void;
@@ -73,6 +74,7 @@ export type TKaraokeTransportIcon =
   | 'previous'
   | 'play'
   | 'pause'
+  | 'stop'
   | 'next'
   | 'seekBack'
   | 'seekForward'
@@ -143,6 +145,17 @@ export const KaraokeTransportIcon = ({
           rx="1.3"
         />
       </>
+    );
+  } else if (name === 'stop') {
+    drawing = (
+      <rect
+        className="karaoke-transport__icon-fill"
+        x="7"
+        y="7"
+        width="10"
+        height="10"
+        rx="1.5"
+      />
     );
   } else if (name === 'next') {
     drawing = (
@@ -343,6 +356,7 @@ const KaraokeTransport = ({
   durationMs,
   levels,
   onTogglePlayback,
+  onStop,
   onJumpToStart,
   onJumpToEnd,
   onSeek,
@@ -370,6 +384,7 @@ const KaraokeTransport = ({
   const [mixMenuAnchor, setMixMenuAnchor] = useState<HTMLElement | null>(null);
   const isPlaying = status === 'playing';
   const canPlay = !['empty', 'loading'].includes(status);
+  const isStopped = canPlay && !isPlaying && playheadMs <= 0;
   const progress =
     durationMs > 0 ? Math.min(100, (playheadMs / durationMs) * 100) : 0;
   const progressStyle = {
@@ -465,32 +480,34 @@ const KaraokeTransport = ({
           tab drew it. */}
       <div className="karaoke-transport__deck">
         <div className="karaoke-transport__buttons">
-          <button
-            type="button"
-            className="button small subtle karaoke-transport__control"
-            onClick={onJumpToStart}
-            disabled={!canPlay}
-            aria-disabled={!canPlay}
-            aria-label={t('karaoke.maker.jumpToStart')}
-            title={t('karaoke.maker.jumpToStart')}
-          >
-            <KaraokeTransportIcon name="previous" />
-          </button>
-          <button
-            type="button"
-            className="button small subtle karaoke-transport__control"
-            onClick={() => onSeek(Math.max(0, playheadMs - seekStepMs))}
-            disabled={!canPlay}
-            aria-disabled={!canPlay}
-            aria-label={t('karaoke.maker.seekBack', {
-              seconds: seekStepMs / 1_000,
-            })}
-            title={t('karaoke.maker.seekBack', {
-              seconds: seekStepMs / 1_000,
-            })}
-          >
-            <KaraokeTransportIcon name="seekBack" step={seekStepMs / 1_000} />
-          </button>
+          <div className="karaoke-transport__flank karaoke-transport__flank--start">
+            <button
+              type="button"
+              className="button small subtle karaoke-transport__control"
+              onClick={onJumpToStart}
+              disabled={!canPlay}
+              aria-disabled={!canPlay}
+              aria-label={t('karaoke.maker.jumpToStart')}
+              title={t('karaoke.maker.jumpToStart')}
+            >
+              <KaraokeTransportIcon name="previous" />
+            </button>
+            <button
+              type="button"
+              className="button small subtle karaoke-transport__control"
+              onClick={() => onSeek(Math.max(0, playheadMs - seekStepMs))}
+              disabled={!canPlay}
+              aria-disabled={!canPlay}
+              aria-label={t('karaoke.maker.seekBack', {
+                seconds: seekStepMs / 1_000,
+              })}
+              title={t('karaoke.maker.seekBack', {
+                seconds: seekStepMs / 1_000,
+              })}
+            >
+              <KaraokeTransportIcon name="seekBack" step={seekStepMs / 1_000} />
+            </button>
+          </div>
           <button
             type="button"
             className={`button small karaoke-transport__control karaoke-transport__play${
@@ -514,37 +531,50 @@ const KaraokeTransport = ({
           >
             <KaraokeTransportIcon name={isPlaying ? 'pause' : 'play'} />
           </button>
-          <button
-            type="button"
-            className="button small subtle karaoke-transport__control"
-            onClick={() =>
-              onSeek(Math.min(durationMs, playheadMs + seekStepMs))
-            }
-            disabled={!canPlay}
-            aria-disabled={!canPlay}
-            aria-label={t('karaoke.maker.seekForward', {
-              seconds: seekStepMs / 1_000,
-            })}
-            title={t('karaoke.maker.seekForward', {
-              seconds: seekStepMs / 1_000,
-            })}
-          >
-            <KaraokeTransportIcon
-              name="seekForward"
-              step={seekStepMs / 1_000}
-            />
-          </button>
-          <button
-            type="button"
-            className="button small subtle karaoke-transport__control"
-            onClick={onJumpToEnd}
-            disabled={!canPlay}
-            aria-disabled={!canPlay}
-            aria-label={t('karaoke.maker.jumpToEnd')}
-            title={t('karaoke.maker.jumpToEnd')}
-          >
-            <KaraokeTransportIcon name="next" />
-          </button>
+          <div className="karaoke-transport__flank karaoke-transport__flank--end">
+            <button
+              type="button"
+              className="button small subtle karaoke-transport__control"
+              onClick={() =>
+                onSeek(Math.min(durationMs, playheadMs + seekStepMs))
+              }
+              disabled={!canPlay}
+              aria-disabled={!canPlay}
+              aria-label={t('karaoke.maker.seekForward', {
+                seconds: seekStepMs / 1_000,
+              })}
+              title={t('karaoke.maker.seekForward', {
+                seconds: seekStepMs / 1_000,
+              })}
+            >
+              <KaraokeTransportIcon
+                name="seekForward"
+                step={seekStepMs / 1_000}
+              />
+            </button>
+            <button
+              type="button"
+              className="button small subtle karaoke-transport__control"
+              onClick={onJumpToEnd}
+              disabled={!canPlay}
+              aria-disabled={!canPlay}
+              aria-label={t('karaoke.maker.jumpToEnd')}
+              title={t('karaoke.maker.jumpToEnd')}
+            >
+              <KaraokeTransportIcon name="next" />
+            </button>
+            <button
+              type="button"
+              className="button small subtle karaoke-transport__control karaoke-transport__stop"
+              onClick={onStop}
+              disabled={!canPlay || isStopped}
+              aria-disabled={!canPlay || isStopped}
+              aria-label={t('library.stop')}
+              title={t('library.stop')}
+            >
+              <KaraokeTransportIcon name="stop" />
+            </button>
+          </div>
         </div>
         {!isTight && positionRow}
       </div>

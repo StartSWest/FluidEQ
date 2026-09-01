@@ -219,12 +219,21 @@ if(WIN32)
   # Both ship with Windows. WASAPI is a user-mode COM API: no driver, no
   # kernel component, nothing to install and nothing to sign â and the Media
   # Foundation libraries below are the same kind of thing.
+  # What this process costs, which only this process can cheaply see: Electron
+  # measures its own children and the host is not one of them.
+  target_sources(fluideq-dsp-host PRIVATE
+    dsp-host/src/platform/windows/process_stats_windows.cpp)
+  # Both ship with Windows. `psapi` is where `GetProcessMemoryInfo` lives; on
+  # Windows 7 and later the header redirects it into kernel32 and this import
+  # library goes unused, which costs nothing and keeps the link honest about
+  # what the code asked for.
   target_link_libraries(fluideq-dsp-host PRIVATE
-    ole32 avrt mfplat mfreadwrite mfuuid propsys)
+    ole32 avrt mfplat mfreadwrite mfuuid propsys psapi)
 
 else()
   target_sources(fluideq-dsp-host PRIVATE
     dsp-host/src/platform/unsupported_backend.cpp
+    dsp-host/src/platform/unsupported_process_stats.cpp
     dsp-host/src/decoders/platform/unsupported_media_decoder.cpp)
   find_package(Threads REQUIRED)
   target_link_libraries(fluideq-dsp-host PRIVATE Threads::Threads)

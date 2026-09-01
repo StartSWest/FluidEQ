@@ -38,18 +38,43 @@ const app: Partial<Dictionary> = {
   'app.processes.menu': '进程…',
   'app.processes.eyebrow': '进程',
   'app.processes.hint':
-    'Windows 把它们全部显示为应用名称，因为它们是同一个程序。这里显示每个进程实际负责什么。',
+    'Windows 把它们全部显示为应用名称，因为它们是同一个程序。这里显示每个进程实际为 FluidEQ 做什么。',
+  'app.processes.hintSplit':
+    '拆开是故意的：界面、绘制和声音各自独立运行，忙碌的窗口不会拖慢音乐，某一部分出错也不会把其余部分一起带走。',
   'app.processes.process': '进程',
   'app.processes.pid': 'PID',
   'app.processes.memory': '内存',
   'app.processes.cpu': 'CPU',
   'app.processes.thisWindow': '此窗口',
   'app.processes.total': '共 {megabytes} MB。',
-  'app.processes.kindMain': '主进程',
-  'app.processes.kindWindow': '窗口',
-  'app.processes.kindGpu': 'GPU',
-  'app.processes.kindUtility': '实用程序',
-  'app.processes.kindDsp': 'DSP 引擎 (C++)',
+  'app.processes.unmeasured': '短横线表示该数值尚未被测量。',
+  'app.processes.name.window': '界面',
+  'app.processes.what.window':
+    '你正在看的这个窗口：曲线、媒体库、播放器和所有控件。每个窗口一个进程，因此繁重的重绘不会拖慢声音。',
+  'app.processes.name.core': '应用核心',
+  'app.processes.what.core':
+    '没有窗口的那一部分。保存你的设置，与音频设备和系统均衡器通信，检查更新，并启动此列表中的其他一切。',
+  'app.processes.name.engine': '音频引擎 (C++)',
+  'app.processes.what.engine':
+    'FluidEQ 自己的引擎。解码你播放的内容，并顺带应用均衡器。它是独立的程序，所以 Windows 把它与其余进程分开归类。',
+  'app.processes.name.graphics': '图形',
+  'app.processes.what.graphics':
+    '在显卡上绘制窗口：频谱、曲线和每一个动画。只要屏幕上有东西在动它就忙碌；这里不运行任何卡拉OK或降噪模型。',
+  'app.processes.name.sound': '浏览器声音',
+  'app.processes.what.sound':
+    'Chromium 自己的音频，用于视频标签页和网页发出的声音。你的音乐不经过它。',
+  'app.processes.name.network': '网络',
+  'app.processes.what.network':
+    '检查更新、封面图片，以及视频标签页加载的一切。此列表中的其他进程都不联网。',
+  'app.processes.name.camera': '摄像头服务',
+  'app.processes.what.camera':
+    '当应用向 Windows 索取音频设备列表时由 Chromium 启动，因为同一个调用也会枚举摄像头。它没有打开任何摄像头。',
+  'app.processes.name.page': '网页',
+  'app.processes.what.page':
+    '在视频标签页中打开的网页。它运行在自己的进程里，与界面分开。',
+  'app.processes.name.helper': '辅助服务',
+  'app.processes.what.helper':
+    '按需启动的 Chromium 服务。FluidEQ 从不按名称请求它。',
   'app.menu.reinstallApp': '重新安装 {product}…',
   'app.menu.fixAudio': '修复音频问题…',
   'app.menu.reinstallApo': '重新安装 Equalizer APO…',

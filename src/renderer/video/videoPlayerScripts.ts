@@ -288,6 +288,15 @@ export const STOP_PLAYBACK = `(() => {
   return 'ok';
 })()`;
 
+/** Stop the loaded player but keep the page and its transport available. */
+export const STOP_AND_RESET_PLAYBACK = `(() => {
+  document.querySelectorAll('video, audio').forEach((media) => {
+    try { media.pause(); } catch (e) { /* already gone */ }
+    try { media.currentTime = 0; } catch (e) { /* live stream or gone */ }
+  });
+  return 'ok';
+})()`;
+
 /**
  * How far into whatever is playing, in seconds.
  *
@@ -308,6 +317,20 @@ export const READ_POSITION = `(() => {
   return Number.isFinite(chosen.currentTime) ? chosen.currentTime : 0;
 })()`;
 
+/** The live clock for the app-owned transport while the guest is off-tab. */
+export const READ_PLAYBACK_CLOCK = `(() => {
+  const media = Array.from(document.querySelectorAll('video, audio'));
+  if (!media.length) { return { positionMs: 0, durationMs: 0 }; }
+  media.sort(
+    (a, b) => (b.clientWidth * b.clientHeight) - (a.clientWidth * a.clientHeight)
+  );
+  const playing = media.find((el) => !el.paused && !el.ended);
+  const chosen = playing || media[0];
+  const currentTime = Number.isFinite(chosen.currentTime) ? chosen.currentTime : 0;
+  const duration = Number.isFinite(chosen.duration) ? chosen.duration : 0;
+  return { positionMs: currentTime * 1000, durationMs: duration * 1000 };
+})()`;
+
 /**
  * Whether the page has a player at all, and whether it is running.
  *
@@ -324,6 +347,20 @@ export const PROBE_PLAYBACK = `(() => {
   const media = [...document.querySelectorAll('video, audio')];
   if (media.length === 0) { return null; }
   return media.some((m) => !m.paused && !m.ended);
+})()`;
+
+/**
+ * Why Electron reported that every media element in the guest paused.
+ *
+ * A natural end is not a pause from the listener. Queue-driven sites briefly
+ * have no playing media while replacing the finished item, and destroying the
+ * webview in that gap destroys the queue before it can advance.
+ */
+export const PROBE_PLAYBACK_PHASE = `(() => {
+  const media = [...document.querySelectorAll('video, audio')];
+  if (media.some((m) => !m.paused && !m.ended)) { return 'playing'; }
+  if (media.some((m) => m.ended)) { return 'ended'; }
+  return 'paused';
 })()`;
 
 /**

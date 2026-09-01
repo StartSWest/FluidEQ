@@ -7,9 +7,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 /**
  * A deck's life inside this provider: bound, reachable, and torn down.
  *
- * Three effects with one subject. The decks get their listeners; they are
- * registered so the rest of the app can silence them when another player takes
- * over; and they are stopped outright if the provider ever goes away.
+ * Two effects with one subject. The decks get their listeners, and they are
+ * stopped outright if the provider ever goes away.
  *
  * That last one is not defensive tidying. The decks are bare `Audio()` objects
  * in a ref, so React tears down nothing for them — unmount the provider and the
@@ -18,23 +17,16 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * deck starts a second song over the top of the orphan.
  */
 import { MutableRefObject, useEffect } from 'react';
-import { registerPlayer } from '../../audio/playbackOwner';
 
 export const useDeckLifecycle = (options: {
   audioElements: readonly HTMLAudioElement[];
-  videoElementRef: MutableRefObject<HTMLVideoElement | null>;
   isDisposedRef: MutableRefObject<boolean>;
   /** Ends a running overlap before the decks are stopped. */
   finishCrossfadeRef: MutableRefObject<(() => void) | undefined>;
   bindMediaEvents: (element: HTMLMediaElement) => () => void;
 }): void => {
-  const {
-    audioElements,
-    videoElementRef,
-    isDisposedRef,
-    finishCrossfadeRef,
-    bindMediaEvents,
-  } = options;
+  const { audioElements, isDisposedRef, finishCrossfadeRef, bindMediaEvents } =
+    options;
 
   // Silence the element if this provider ever goes away.
   //
@@ -72,17 +64,4 @@ export const useDeckLifecycle = (options: {
     const unbind = audioElements.map((element) => bindMediaEvents(element));
     return () => unbind.forEach((one) => one());
   }, [audioElements, bindMediaEvents]);
-
-  // How the rest of the app silences this player when it takes over. Pausing
-  // rather than clearing the queue: the reader gets their album back where
-  // they left it when they come back to the tab, which is what "something
-  // else started" should cost them and no more.
-  useEffect(
-    () =>
-      registerPlayer('library', () => {
-        audioElements.forEach((audio) => audio.pause());
-        videoElementRef.current?.pause();
-      }),
-    [audioElements, videoElementRef],
-  );
 };

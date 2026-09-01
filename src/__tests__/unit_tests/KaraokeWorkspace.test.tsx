@@ -1234,6 +1234,20 @@ describe('KaraokeWorkspace', () => {
     ).not.toHaveClass('is-stage-toolbar', 'is-idle');
   });
 
+  it('uses the fullscreen layout without duplicating Karaoke chrome under a graph', () => {
+    const { container } = render(
+      <KaraokeWorkspace isHidden={false} isFullScreen isGraphOverlay />,
+    );
+
+    expect(container.querySelector('.karaoke-workspace')).toHaveClass(
+      'is-fullscreen',
+      'is-graph-overlay',
+    );
+    expect(
+      screen.queryByRole('toolbar', { name: 'Karaoke actions' }),
+    ).not.toBeInTheDocument();
+  });
+
   it('persists independent normal and fullscreen splitter layouts', async () => {
     const { container, rerender } = render(
       <KaraokeWorkspace isHidden={false} />,
@@ -1966,19 +1980,36 @@ describe('KaraokeWorkspace', () => {
     const audio = container.querySelector('audio') as HTMLAudioElement;
     fireEvent.playing(audio);
     const pausesBeforeTabChange = pause.mock.calls.length;
+    const transportBeforeTabChange =
+      barSlot?.querySelector('.karaoke-transport');
 
     rerender(<KaraokeWorkspace isHidden />);
 
     expect(pause).toHaveBeenCalledTimes(pausesBeforeTabChange);
     expect(audio).toHaveAttribute('src', 'blob:karaoke-song');
+    expect(barSlot?.querySelector('.karaoke-transport')).toBe(
+      transportBeforeTabChange,
+    );
+    expect(
+      screen.getByRole('button', { name: 'Jump to song start' }),
+    ).toBeVisible();
+    expect(
+      screen.getByRole('button', { name: 'Jump to song end' }),
+    ).toBeVisible();
+    expect(screen.getByRole('button', { name: 'Stop' })).toBeVisible();
+    audio.currentTime = 4;
+    const pausesBeforeStop = pause.mock.calls.length;
+    fireEvent.click(screen.getByRole('button', { name: 'Stop' }));
+    expect(pause).toHaveBeenCalledTimes(pausesBeforeStop + 1);
+    expect(audio.currentTime).toBe(0);
   });
 
-  it('stays mounted but leaves the accessibility tree when another tab opens', () => {
+  it('releases the hidden stage DOM when another tab opens', () => {
     const { container } = render(<KaraokeWorkspace isHidden />);
     const workspace = container.querySelector('.karaoke-workspace');
 
-    expect(workspace).toHaveClass('is-hidden');
-    expect(workspace).toHaveAttribute('aria-hidden', 'true');
+    expect(workspace).not.toBeInTheDocument();
+    expect(container.querySelector('.karaoke-audio-host')).toBeInTheDocument();
     expect(
       screen.queryByRole('heading', {
         level: 2,

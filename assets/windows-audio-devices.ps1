@@ -4,9 +4,15 @@ $source = @'
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using Microsoft.Win32;
 
 public static class AquaAudioDevices
 {
+    private static readonly string[] EqualizerApoClsids = {
+        "{EACD2258-FCAC-4FF4-B36D-419E924A6D79}",
+        "{EC1CC9CE-FAED-4822-828A-82A81A6F018F}"
+    };
+
     [ComImport, Guid("BCDE0395-E52F-467C-8E3D-C4579291692E")]
     private class MMDeviceEnumeratorComObject { }
 
@@ -107,6 +113,58 @@ public static class AquaAudioDevices
         public string guid { get; set; }
         public bool isDefault { get; set; }
         public bool isActive { get; set; }
+        public Nullable<bool> isEqualizerApoAttached { get; set; }
+    }
+
+    private static bool ContainsEqualizerApoClsid(object rawValue)
+    {
+        var values = rawValue as string[];
+        if (values != null)
+        {
+            foreach (var value in values)
+                if (ContainsEqualizerApoClsid(value))
+                    return true;
+            return false;
+        }
+
+        var text = rawValue as string;
+        if (String.IsNullOrWhiteSpace(text))
+            return false;
+        foreach (var clsid in EqualizerApoClsids)
+            if (text.IndexOf(clsid, StringComparison.OrdinalIgnoreCase) >= 0)
+                return true;
+        return false;
+    }
+
+    private static Nullable<bool> IsEqualizerApoAttached(string deviceGuid)
+    {
+        try
+        {
+            using (var machine = RegistryKey.OpenBaseKey(
+                RegistryHive.LocalMachine,
+                RegistryView.Registry64))
+            using (var properties = machine.OpenSubKey(
+                @"SOFTWARE\Microsoft\Windows\CurrentVersion\MMDevices\Audio\Render\" +
+                deviceGuid + @"\FxProperties"))
+            {
+                if (properties == null)
+                    return false;
+                foreach (var valueName in properties.GetValueNames())
+                    if (ContainsEqualizerApoClsid(
+                        properties.GetValue(
+                            valueName,
+                            null,
+                            RegistryValueOptions.DoNotExpandEnvironmentNames)))
+                        return true;
+                return false;
+            }
+        }
+        catch
+        {
+            // Unknown is deliberately distinct from "not attached". A locked
+            // registry must not produce a confident warning in the UI.
+            return null;
+        }
     }
 
     public static List<Device> GetRenderDevices()
@@ -146,12 +204,14 @@ public static class AquaAudioDevices
             if (String.IsNullOrWhiteSpace(friendlyName))
                 continue;
             var marker = id.LastIndexOf("{");
+            var guid = marker >= 0 ? id.Substring(marker) : id;
             result.Add(new Device {
                 id = id,
                 name = friendlyName.Trim(),
-                guid = marker >= 0 ? id.Substring(marker) : id,
+                guid = guid,
                 isDefault = String.Equals(id, defaultId, StringComparison.OrdinalIgnoreCase),
-                isActive = (state & 1) == 1
+                isActive = (state & 1) == 1,
+                isEqualizerApoAttached = IsEqualizerApoAttached(guid)
             });
         }
         return result;

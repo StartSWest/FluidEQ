@@ -412,8 +412,9 @@ export const EQ_PRESETS: readonly IEqPreset[] = [
     gains: [
       0.7, 1.1, 1.9, 2.2, 1.9, 1.1, 0.4, 0, -0.4, -1.1, -1.5, -1.1, -0.4, 0, 0,
     ],
-    // The one preset that asks for harmonic colour, and only a little.
-    setup: { ...PROTECTED, model: 'wide', fuzzAmount: 0.25 },
+    // Warm is a broad tilt, not saturation. Fuzz here was compounded by any
+    // later character stage and was the grit reported from the full chain.
+    setup: { ...PROTECTED, model: 'wide' },
   },
   {
     // The top two octaves only. What a lossy file lost, insofar as an EQ can

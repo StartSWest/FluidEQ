@@ -73,10 +73,10 @@ export const ANALYSIS_MAX_BANDS = 64;
 /**
  * The taps, in the order their bits sit in `stage_mask`.
  *
- * Named exactly as `DSP_OUTPUT_INDEX` names them in the renderer, because these
- * strings are handed straight to `setDspAnalyser`. A rename on one side that did
- * not happen on the other would leave a graph silently unfed — no error, no
- * warning, just one panel that never moves.
+ * Each name is a `TDspAnalyserStage` in the renderer because these strings are
+ * handed straight to `setDspAnalyser`. A rename on one side that did not happen
+ * on the other would leave a graph silently unfed — no error, no warning, just
+ * one panel that never moves.
  */
 export const ANALYSIS_STAGES = [
   'exciter',

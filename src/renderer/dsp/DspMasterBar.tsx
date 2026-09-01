@@ -55,11 +55,14 @@ const DspMasterBar = ({ master, onChange, onCommit }: IDspMasterBarProps) => {
   }));
   const ordered = entries.map((entry) => entry.id);
 
-  const applyPreset = (id: string) => {
+  const applyPreset = (id: string, enable = true) => {
     if (!isMasterPresetId(id)) {
       return;
     }
-    onChange(masterPresetSettings(id, master));
+    onChange({
+      ...masterPresetSettings(id, master),
+      enabled: enable ? true : master.enabled,
+    });
     onCommit();
   };
 
@@ -130,7 +133,7 @@ const DspMasterBar = ({ master, onChange, onCommit }: IDspMasterBarProps) => {
         <button
           type="button"
           className="button small subtle"
-          onClick={() => applyPreset('default')}
+          onClick={() => applyPreset('default', false)}
         >
           <DspBarIcon name="reset" />
           {t('dsp.eqPreset.reset')}

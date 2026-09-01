@@ -21,9 +21,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 /*
  * Rainbow mode, everywhere the graph is not.
  *
- * The palette is a graph setting and it used to stop at the graph, which made
- * choosing it feel like it had half worked: the figure changed and the app
- * around it stayed the same cyan it always was.
+ * The graph palette and Rainbow mode are separate choices. A rainbow graph may
+ * be used while the rest of the interface remains FluidEQ cyan; these accents
+ * arrive only when the earned Rainbow switch is actually enabled.
  *
  * What it does NOT do is repaint the interface. Six hues spread over every
  * surface is a toy, and this app is sold. It takes the accents only — the marks
@@ -37,7 +37,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * frequency range it sits. The rail happens to run in signal order too, so its
  * lamps land in the same order the graph would have drawn them.
  */
-body.is-rainbow {
+html.is-euphoric {
   --rainbow-sweep: linear-gradient(
     90deg,
     #ff4d6d,
@@ -73,7 +73,7 @@ body.is-rainbow {
 // later. Nothing here is in the layout, so switching the mode on cannot resize
 // a pane. `pointer-events: none` keeps the titlebar's drag region underneath
 // it working.
-body.is-rainbow::before {
+html.is-euphoric::before {
   content: '';
   position: fixed;
   top: 0;
@@ -88,28 +88,16 @@ body.is-rainbow::before {
 }
 
 // The bar under the open tab, which was the accent doing this job already.
-body.is-rainbow .workspace-tab-group__bar {
+.is-euphoric .workspace-tab-group__bar {
   background: var(--rainbow-sweep);
   background-size: 200% 100%;
-  animation: rainbow-drift 12s linear infinite;
-}
-
-body.is-rainbow .dsp-rail-tab.is-active {
-  border-color: transparent;
-  background:
-    linear-gradient(rgba($primary-light, 0.28), rgba($primary-light, 0.28))
-      padding-box,
-    var(--rainbow-sweep) border-box;
-  background-size:
-    auto,
-    200% 100%;
   animation: rainbow-drift 12s linear infinite;
 }
 
 // Import and Save Preset are the same modal surface, so the rainbow edge is
 // applied to their shared class. Keeping the fill on the padding box leaves the
 // dialog readable while the one-pixel border carries the moving spectrum.
-body.is-rainbow .dsp-import {
+.is-euphoric .dsp-import {
   border-color: transparent;
   background:
     linear-gradient($primary-default, $primary-default) padding-box,
@@ -120,52 +108,12 @@ body.is-rainbow .dsp-import {
   animation: rainbow-drift 12s linear infinite;
 }
 
-// One hue each, in the order they sit in the chain. A single colour repeated
-// four times would say nothing the solid cyan did not already say.
-body.is-rainbow .dsp-rail-tab:nth-child(1).is-on .dsp-rail-lamp {
-  background: #ff4d6d;
-  box-shadow: 0 0 6px rgba(255, 77, 109, 0.75);
-}
-
-body.is-rainbow .dsp-rail-tab:nth-child(2).is-on .dsp-rail-lamp {
-  background: #ffd93d;
-  box-shadow: 0 0 6px rgba(255, 217, 61, 0.75);
-}
-
-body.is-rainbow .dsp-rail-tab:nth-child(3).is-on .dsp-rail-lamp {
-  background: #36c9d6;
-  box-shadow: 0 0 6px rgba(54, 201, 214, 0.75);
-}
-
-body.is-rainbow .dsp-rail-tab:nth-child(4).is-on .dsp-rail-lamp {
-  background: #b06ab3;
-  box-shadow: 0 0 6px rgba(176, 106, 179, 0.75);
-}
-
-// The glyphs follow their own lamps rather than staying grey beside them.
-body.is-rainbow .dsp-rail-tab:nth-child(1) .dsp-section-icon__accent {
-  color: #ff4d6d;
-}
-
-body.is-rainbow .dsp-rail-tab:nth-child(2) .dsp-section-icon__accent {
-  color: #ffd93d;
-}
-
-body.is-rainbow .dsp-rail-tab:nth-child(3) .dsp-section-icon__accent {
-  color: #36c9d6;
-}
-
-body.is-rainbow .dsp-rail-tab:nth-child(4) .dsp-section-icon__accent {
-  color: #b06ab3;
-}
-
 // A moving gradient behind text is exactly the thing this setting is for
 // people who cannot have. The colours stay; only the travel stops.
 @media (prefers-reduced-motion: reduce) {
-  body.is-rainbow::before,
-  body.is-rainbow .workspace-tab-group__bar,
-  body.is-rainbow .dsp-rail-tab.is-active,
-  body.is-rainbow .dsp-import {
+  html.is-euphoric::before,
+  .is-euphoric .workspace-tab-group__bar,
+  .is-euphoric .dsp-import {
     animation: none;
   }
 }

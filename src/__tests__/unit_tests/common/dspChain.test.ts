@@ -12,7 +12,8 @@ import {
   buildEqRack,
   clampDspSettings,
 } from '../../../common/dsp/chain';
-import { DSP_PRESETS } from '../../../common/dsp/presets';
+import { compressorPresetSettings } from '../../../common/dsp/compressorPresets';
+import { DSP_PRESETS, dspPresetSettings } from '../../../common/dsp/presets';
 
 describe('dsp chain settings', () => {
   it('defaults to every module bypassed', () => {
@@ -94,6 +95,208 @@ describe('dsp chain settings', () => {
     DSP_PRESETS.forEach((preset) => {
       expect(clampDspSettings(preset.settings)).toEqual(preset.settings);
     });
+  });
+
+  it('ships 28 uniquely named complete-chain presets', () => {
+    expect(DSP_PRESETS).toHaveLength(28);
+    expect(new Set(DSP_PRESETS.map((preset) => preset.id)).size).toBe(
+      DSP_PRESETS.length,
+    );
+    DSP_PRESETS.forEach((preset) => {
+      expect(preset.settings.presetId).toBe(preset.id);
+    });
+  });
+
+  it('never loads an audition-only isolate state', () => {
+    DSP_PRESETS.forEach((preset) => {
+      expect({
+        id: preset.id,
+        denoise: preset.settings.denoise.isolate,
+        eq: preset.settings.eq.isolate,
+        exciter: preset.settings.exciter.isolate,
+        bassForge: preset.settings.bassForge.isolate,
+        bassPunch: preset.settings.bassPunch.isolate,
+      }).toEqual({
+        id: preset.id,
+        denoise: false,
+        eq: false,
+        exciter: false,
+        bassForge: false,
+        bassPunch: false,
+      });
+    });
+  });
+
+  /** Cleanup is source repair; ordinary voicings must leave clean audio alone. */
+  it('uses Denoise only in explicitly repaired chains', () => {
+    DSP_PRESETS.forEach((preset) => {
+      expect(preset.settings.denoise.enabled).toBe(
+        preset.group === 'repair' &&
+          ['vinyl-restore', 'tape-restore', 'podcast', 'audiobook'].includes(
+            preset.id,
+          ),
+      );
+    });
+  });
+
+  it('does not stack two loudness drivers in one chain', () => {
+    DSP_PRESETS.forEach((preset) => {
+      const drivenMaximizer =
+        preset.settings.maximizer.enabled &&
+        preset.settings.maximizer.driveDb > 0;
+      expect({
+        id: preset.id,
+        doubleDriven:
+          drivenMaximizer && preset.settings.master.loudnessMaximize,
+      }).toEqual({ id: preset.id, doubleDriven: false });
+    });
+  });
+
+  it('gives every chain at most one harmonic or transient character stage', () => {
+    DSP_PRESETS.forEach((preset) => {
+      const characterStages = [
+        preset.settings.exciter.enabled,
+        preset.settings.bassForge.enabled,
+        preset.settings.bassPunch.enabled,
+      ].filter(Boolean).length;
+      expect({ id: preset.id, tooMany: characterStages > 1 }).toEqual({
+        id: preset.id,
+        tooMany: false,
+      });
+    });
+  });
+
+  it('keeps every chain to five intentional processors or fewer', () => {
+    DSP_PRESETS.forEach((preset) => {
+      const stages = [
+        preset.settings.denoise.enabled,
+        preset.settings.eq.enabled,
+        preset.settings.exciter.enabled,
+        preset.settings.bassForge.enabled,
+        preset.settings.bassPunch.enabled,
+        preset.settings.compressor.enabled,
+        preset.settings.dimension.enabled,
+        preset.settings.maximizer.enabled,
+        preset.settings.master.enabled,
+      ].filter(Boolean).length;
+      expect({ id: preset.id, tooMany: stages > 5 }).toEqual({
+        id: preset.id,
+        tooMany: false,
+      });
+    });
+  });
+
+  it('keeps Default free of fuzz and harmonic generators', () => {
+    const balanced = DSP_PRESETS.find((preset) => preset.id === 'balanced');
+    expect(balanced?.settings.eq.presetId).toBe('flat');
+    expect(balanced?.settings.eq.fuzzAmount).toBe(0);
+    expect(balanced?.settings.exciter.enabled).toBe(false);
+    expect(balanced?.settings.bassForge.enabled).toBe(false);
+  });
+
+  it('gives Punch one transient character stage instead of stacking them', () => {
+    const punch = DSP_PRESETS.find((preset) => preset.id === 'punch');
+    expect(punch?.settings.eq.presetId).toBe('flat');
+    expect(punch?.settings.bassForge.enabled).toBe(false);
+    expect(punch?.settings.bassPunch.presetId).toBe('punch');
+    expect(punch?.settings.compressor).toEqual(
+      compressorPresetSettings('gentle', true),
+    );
+    expect(punch?.settings.maximizer.presetId).toBe('transparent');
+  });
+
+  it('keeps Warm tonal instead of stacking harmonic generators', () => {
+    const warm = DSP_PRESETS.find((preset) => preset.id === 'warm');
+    expect(warm?.settings.eq.presetId).toBe('warm');
+    expect(warm?.settings.eq.fuzzAmount).toBe(0);
+    expect(warm?.settings.exciter.enabled).toBe(false);
+    expect(warm?.settings.bassForge.enabled).toBe(false);
+  });
+
+  it('keeps Expansive to clean EQ and one controlled width stage', () => {
+    const expansive = DSP_PRESETS.find((preset) => preset.id === 'expansive');
+    expect(expansive?.settings.eq.presetId).toBe('ambient');
+    expect(expansive?.settings.exciter.enabled).toBe(false);
+    expect(expansive?.settings.dimension.presetId).toBe('expansive');
+    expect(expansive?.settings.dimension.decorrelation).toBeLessThan(0.5);
+    expect(expansive?.settings.maximizer.enabled).toBe(false);
+  });
+
+  it('uses Master only where a delivery target owns the final level', () => {
+    const mastered = DSP_PRESETS.filter(
+      (preset) => preset.settings.master.enabled,
+    );
+    expect(mastered.map((preset) => preset.id)).toEqual([
+      'reference',
+      'balanced',
+      'vinyl-restore',
+      'tape-restore',
+    ]);
+    mastered.forEach((preset) => {
+      expect(preset.settings.maximizer.enabled).toBe(false);
+    });
+    expect(
+      DSP_PRESETS.filter((preset) => preset.settings.maximizer.enabled),
+    ).toHaveLength(23);
+  });
+
+  it('does not replace a named final profile with a generic Maximizer', () => {
+    const expected = {
+      'late-night': 'lateNight',
+      pop: 'pop',
+      rock: 'rock',
+      hiphop: 'hiphop',
+      electronic: 'electronic',
+      jazz: 'jazz',
+      classical: 'classical',
+      acoustic: 'acoustic',
+      metal: 'metal',
+      reggae: 'reggae',
+      gaming: 'gaming',
+      movie: 'movie',
+      podcast: 'podcast',
+      audiobook: 'audiobook',
+    } as const;
+    Object.entries(expected).forEach(([chainId, maximizerId]) => {
+      const chain = DSP_PRESETS.find((preset) => preset.id === chainId);
+      expect({
+        chainId,
+        maximizerId: chain?.settings.maximizer.presetId,
+      }).toEqual({ chainId, maximizerId });
+    });
+  });
+
+  it('uses the purpose-built D&B transient profile', () => {
+    const drumBass = DSP_PRESETS.find((preset) => preset.id === 'drum-bass');
+    expect(drumBass?.settings.bassForge.enabled).toBe(false);
+    expect(drumBass?.settings.bassPunch.presetId).toBe('dnb');
+  });
+
+  it('gain-matches Reference, and no other whole-chain preset', () => {
+    DSP_PRESETS.forEach((preset) => {
+      expect({
+        id: preset.id,
+        gainMatched: preset.settings.master.matchedBypass,
+      }).toEqual({
+        id: preset.id,
+        gainMatched: preset.id === 'reference',
+      });
+    });
+  });
+
+  it('keeps Crossfade independent when a whole-chain preset is applied', () => {
+    const current: IDspSettings = {
+      ...DSP_DEFAULTS,
+      crossfade: {
+        ...DSP_DEFAULTS.crossfade,
+        enabled: true,
+        durationMs: 7_250,
+        curve: 'smooth',
+      },
+    };
+    const applied = dspPresetSettings('rock', current);
+    expect(applied?.presetId).toBe('rock');
+    expect(applied?.crossfade).toEqual(current.crossfade);
   });
 
   it('always returns three compressor bands whatever it was handed', () => {

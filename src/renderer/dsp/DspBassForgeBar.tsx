@@ -52,8 +52,9 @@ const profileHint = (preset: IBassForgePreset): string =>
  * Processor-local profiles, presented with the same picker as the EQ, the
  * Exciter, the Maximizer and Dimension.
  *
- * Applying one preserves bypass, which is what lets a chain preset reference a
- * profile by id and still decide for itself whether this stage participates.
+ * Choosing one here starts the processor as well as loading the sound. The
+ * shared preset builder still accepts bypass explicitly for whole-chain
+ * recipes, which decide for themselves whether this stage participates.
  */
 const DspBassForgeBar = ({
   bassForge,
@@ -76,11 +77,11 @@ const DspBassForgeBar = ({
   );
   const ordered = entries.map((entry) => entry.id);
 
-  const applyPreset = (id: string) => {
+  const applyPreset = (id: string, enable = true) => {
     if (!isBassForgePresetId(id)) {
       return;
     }
-    onChange(bassForgePresetSettings(id, bassForge.enabled));
+    onChange(bassForgePresetSettings(id, enable ? true : bassForge.enabled));
     onCommit();
   };
 
@@ -149,7 +150,7 @@ const DspBassForgeBar = ({
         <button
           type="button"
           className="button small subtle"
-          onClick={() => applyPreset('default')}
+          onClick={() => applyPreset('default', false)}
         >
           <DspBarIcon name="reset" />
           {t('dsp.eqPreset.reset')}

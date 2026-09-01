@@ -72,14 +72,7 @@ export interface INativeBackendController {
     settings: IDspSettings,
     outputSafetyEnabled: boolean,
   ) => Promise<boolean>;
-  /**
-   * Release the endpoint but leave the process up.
-   *
-   * Opening an endpoint is what wakes a DAC — its noise floor becomes audible
-   * — so idle means closed. The process staying up is what makes switching
-   * back cost nothing, and a supervised process that is not holding a device
-   * costs a few megabytes and no power.
-   */
+  /** Release the endpoint, decoder decks, and native process. */
   disengage: () => Promise<void>;
   /** Push the chain again, for a knob that moved. */
   update: (
@@ -137,6 +130,15 @@ export const createNativeBackendController = (
 ): INativeBackendController => {
   let engaged = false;
 
+  const settle = async (action: () => Promise<unknown>): Promise<void> => {
+    try {
+      await action();
+    } catch {
+      // Disposal is cumulative. A deck already gone must not prevent the
+      // endpoint closing or the process itself being terminated.
+    }
+  };
+
   const pushChain = (settings: IDspSettings, outputSafetyEnabled: boolean) =>
     bridge.applyDspHostChain(
       encodeChainSettings(settings, { outputSafetyEnabled }),
@@ -156,9 +158,11 @@ export const createNativeBackendController = (
         return false;
       }
       if (!(await pushChain(settings, outputSafetyEnabled))) {
+        await settle(bridge.stopDspHost);
         return false;
       }
       if (!(await bridge.openDspHostDevice())) {
+        await settle(bridge.stopDspHost);
         return false;
       }
       engaged = true;
@@ -178,10 +182,14 @@ export const createNativeBackendController = (
        * listening to. Switching back and forth a few times without this leaves
        * one of each behind every time.
        */
-      await bridge.unloadDspHostDeck(0);
-      await bridge.unloadDspHostDeck(1);
-      await bridge.pauseDspHost();
-      await bridge.closeDspHostDevice();
+      await settle(() => bridge.unloadDspHostDeck(0));
+      await settle(() => bridge.unloadDspHostDeck(1));
+      await settle(bridge.pauseDspHost);
+      await settle(bridge.closeDspHostDevice);
+      // The Library provider now has a short off-tab lease of its own. Once
+      // that expires there is no UI or playback left to justify a resident
+      // native process, its model, or its decoder allocations.
+      await settle(bridge.stopDspHost);
     },
 
     update: async (settings, outputSafetyEnabled) => {

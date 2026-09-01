@@ -45,8 +45,9 @@ const profileHint = (preset: IDimensionPreset): string =>
  * Processor-local profiles, presented with the same picker as the EQ, the
  * Exciter and the Maximizer.
  *
- * Applying one preserves bypass, which is what lets a chain preset reference a
- * profile by id and still decide for itself whether this stage participates.
+ * Choosing one here starts the processor as well as loading the sound. The
+ * shared preset builder still accepts bypass explicitly for whole-chain
+ * recipes, which decide for themselves whether this stage participates.
  */
 const DspDimensionBar = ({
   dimension,
@@ -69,11 +70,11 @@ const DspDimensionBar = ({
   );
   const ordered = entries.map((entry) => entry.id);
 
-  const applyPreset = (id: string) => {
+  const applyPreset = (id: string, enable = true) => {
     if (!isDimensionPresetId(id)) {
       return;
     }
-    onChange(dimensionPresetSettings(id, dimension.enabled));
+    onChange(dimensionPresetSettings(id, enable ? true : dimension.enabled));
     onCommit();
   };
 
@@ -142,7 +143,7 @@ const DspDimensionBar = ({
         <button
           type="button"
           className="button small subtle"
-          onClick={() => applyPreset('neutral')}
+          onClick={() => applyPreset('neutral', false)}
         >
           <DspBarIcon name="reset" />
           {t('dsp.eqPreset.reset')}

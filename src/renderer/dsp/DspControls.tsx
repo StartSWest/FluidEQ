@@ -108,13 +108,14 @@ export const ProcessorCard = ({
       className={`dsp-card${isEnabled ? ' is-active' : ''}`}
       aria-labelledby={`${id}-title`}
     >
-      {/* The description on the left, the on/off on the RIGHT.
+      {/* The preset on the left, the on/off on the RIGHT.
 
           The switch used to lead the row, which put the least-used control in
           the position the eye reads first and left the page starting with a
           toggle rather than with what the page is. Reading order now runs
-          description → controls → switch, and the switch sits at the end of
-          the header where a plugin's bypass button lives.
+          preset → description → switch, and the switch sits at the end of
+          the header where a plugin's bypass button lives. Filters without a
+          preset simply begin with their description.
 
           The name itself lives on the rail, which is where it is chosen; the
           heading stays for `aria-labelledby` and is visually hidden. */}
@@ -130,12 +131,15 @@ export const ProcessorCard = ({
         <h3 className="dsp-card-title is-visually-hidden" id={`${id}-title`}>
           {t(titleKey)}
         </h3>
+        {/* The preset is always the leftmost visible control. It chooses the
+            complete processor state, so putting prose before it made the most
+            useful control change position from one filter page to the next. */}
+        {toolbar}
         {descriptionKey ? (
           <div className="dsp-card-titles">
             <p className="dsp-card-description">{t(descriptionKey)}</p>
           </div>
         ) : undefined}
-        {toolbar}
         {/* The switch says which state it is IN, not what pressing it does.
             A bare toggle with no word beside it leaves the user reading a
             colour, and on a rack where four of these sit behind four pages

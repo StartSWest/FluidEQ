@@ -151,6 +151,7 @@ export const useKaraokeSession = (isActive: boolean) => {
   const [warning, setWarning] = useState<IKaraokeSessionWarning>();
   const [playheadMs, setPlayheadMs] = useState(0);
   const playheadMsRef = useRef(0);
+  const isActiveRef = useRef(isActive);
   const [durationMs, setDurationMs] = useState(0);
   const [volume, setVolumeState] = useState(persistedVolume);
   // Solo listening scales the backing track under the master volume; 1 is
@@ -159,6 +160,7 @@ export const useKaraokeSession = (isActive: boolean) => {
   const backingScaleRef = useRef(1);
   const volumeRef = useRef(persistedVolume());
   playheadMsRef.current = playheadMs;
+  isActiveRef.current = isActive;
 
   /** Read the media element directly for frame-accurate visual synchronization. */
   const readPlayheadMs = useCallback((): number => {
@@ -179,6 +181,7 @@ export const useKaraokeSession = (isActive: boolean) => {
 
   const clear = useCallback(() => {
     importRequestRef.current += 1;
+    releasePlayback('karaoke');
     const audio = audioRef.current;
     if (audio) {
       audio.pause();
@@ -470,6 +473,14 @@ export const useKaraokeSession = (isActive: boolean) => {
         setStatus((current) => (current === 'ready' ? current : 'paused'));
       }
     };
+    const onTimeUpdate = () => {
+      // The visible stage owns its smoother frame clock below. Off-tab, this
+      // native media event is enough to keep the one transport readout honest
+      // without running an animation loop for DOM that is not mounted.
+      if (!isActiveRef.current) {
+        syncTime();
+      }
+    };
     const onEnded = () => {
       syncTime();
       setStatus('ended');
@@ -482,12 +493,14 @@ export const useKaraokeSession = (isActive: boolean) => {
       setStatus((current) => (current === 'loading' ? 'ready' : current));
     };
     const onError = () => {
+      releasePlayback('karaoke');
       setError('playback');
       setStatus('error');
     };
 
     audio.addEventListener('playing', onPlaying);
     audio.addEventListener('pause', onPause);
+    audio.addEventListener('timeupdate', onTimeUpdate);
     audio.addEventListener('ended', onEnded);
     audio.addEventListener('loadedmetadata', onReady);
     audio.addEventListener('durationchange', onReady);
@@ -496,6 +509,7 @@ export const useKaraokeSession = (isActive: boolean) => {
     return () => {
       audio.removeEventListener('playing', onPlaying);
       audio.removeEventListener('pause', onPause);
+      audio.removeEventListener('timeupdate', onTimeUpdate);
       audio.removeEventListener('ended', onEnded);
       audio.removeEventListener('loadedmetadata', onReady);
       audio.removeEventListener('durationchange', onReady);

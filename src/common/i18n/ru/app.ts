@@ -38,18 +38,44 @@ const app: Partial<Dictionary> = {
   'app.processes.menu': 'Процессы…',
   'app.processes.eyebrow': 'Процессы',
   'app.processes.hint':
-    'Windows называет каждый из них именем приложения, потому что это одна и та же программа. Здесь видно, чем каждый занят на самом деле.',
+    'Windows называет каждый из них именем приложения, потому что это одна и та же программа. Здесь видно, что каждый из них делает для FluidEQ.',
+  'app.processes.hintSplit':
+    'Разделение сделано намеренно: интерфейс, отрисовка и звук работают порознь, поэтому занятое окно не тормозит музыку, а сбой в одной части не утягивает за собой остальные.',
   'app.processes.process': 'Процесс',
   'app.processes.pid': 'PID',
   'app.processes.memory': 'Память',
   'app.processes.cpu': 'ЦП',
   'app.processes.thisWindow': 'это окно',
   'app.processes.total': 'Всего {megabytes} МБ.',
-  'app.processes.kindMain': 'Главный',
-  'app.processes.kindWindow': 'Окно',
-  'app.processes.kindGpu': 'GPU',
-  'app.processes.kindUtility': 'Служба',
-  'app.processes.kindDsp': 'Движок DSP (C++)',
+  'app.processes.unmeasured':
+    'Прочерк — величина, которую ещё никто не измерил.',
+  'app.processes.name.window': 'Интерфейс',
+  'app.processes.what.window':
+    'Окно, которое вы видите: кривая, библиотека, проигрыватель, все регуляторы. По одному процессу на окно, чтобы тяжёлая перерисовка не тормозила звук.',
+  'app.processes.name.core': 'Ядро приложения',
+  'app.processes.what.core':
+    'Часть без собственного окна. Хранит настройки, общается с аудиоустройствами и системным эквалайзером, проверяет обновления и запускает всё остальное из этого списка.',
+  'app.processes.name.engine': 'Аудиодвижок (C++)',
+  'app.processes.what.engine':
+    'Собственный движок FluidEQ. Декодирует то, что вы слушаете, и попутно применяет эквалайзер. Это отдельная программа — потому Windows и держит её в стороне от остальных.',
+  'app.processes.name.graphics': 'Графика',
+  'app.processes.what.graphics':
+    'Рисует окно на видеокарте: спектр, кривую, каждую анимацию. Занята всякий раз, когда на экране что-то движется; никаких моделей караоке или шумоподавления здесь не работает.',
+  'app.processes.name.sound': 'Звук браузера',
+  'app.processes.what.sound':
+    'Собственный звук Chromium — для вкладки «Видео» и звуков страницы. Ваша музыка через него не идёт.',
+  'app.processes.name.network': 'Сеть',
+  'app.processes.what.network':
+    'Проверка обновлений, обложки и всё, что загружает вкладка «Видео». Больше ничто здесь в сеть не выходит.',
+  'app.processes.name.camera': 'Служба камеры',
+  'app.processes.what.camera':
+    'Запускается Chromium, когда приложение запрашивает у Windows список аудиоустройств: тот же вызов перечисляет и камеры. Ни одна камера при этом не открыта.',
+  'app.processes.name.page': 'Веб-страница',
+  'app.processes.what.page':
+    'Страница, открытая во вкладке «Видео». Работает в отдельном процессе, в стороне от интерфейса.',
+  'app.processes.name.helper': 'Вспомогательная служба',
+  'app.processes.what.helper':
+    'Служба Chromium, запускаемая по необходимости. FluidEQ никогда не просит её по имени.',
   'app.menu.reinstallApp': 'Переустановить {product}…',
   'app.menu.fixAudio': 'Исправить проблемы со звуком…',
   'app.menu.reinstallApo': 'Переустановить Equalizer APO…',

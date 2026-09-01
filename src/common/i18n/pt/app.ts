@@ -38,18 +38,43 @@ const app: Partial<Dictionary> = {
   'app.processes.menu': 'Processos…',
   'app.processes.eyebrow': 'Processos',
   'app.processes.hint':
-    'O Windows dá a todos eles o nome da aplicação, porque são o mesmo programa. Isto é o que cada um faz na realidade.',
+    'O Windows dá a todos eles o nome da aplicação, porque são o mesmo programa. Isto é o que cada um faz na realidade pelo FluidEQ.',
+  'app.processes.hintSplit':
+    'A divisão é propositada: a interface, o desenho e o som funcionam cada um por si, para que uma janela ocupada não atrase a música e uma falha numa parte não leve as restantes atrás.',
   'app.processes.process': 'Processo',
   'app.processes.pid': 'PID',
   'app.processes.memory': 'Memória',
   'app.processes.cpu': 'CPU',
   'app.processes.thisWindow': 'esta janela',
   'app.processes.total': '{megabytes} MB no total.',
-  'app.processes.kindMain': 'Principal',
-  'app.processes.kindWindow': 'Janela',
-  'app.processes.kindGpu': 'GPU',
-  'app.processes.kindUtility': 'Serviço',
-  'app.processes.kindDsp': 'Motor DSP (C++)',
+  'app.processes.unmeasured': 'Um traço é um valor que ainda ninguém mediu.',
+  'app.processes.name.window': 'Interface',
+  'app.processes.what.window':
+    'A janela que está a ver: a curva, a biblioteca, o leitor, todos os controlos. Um processo por janela, para que um redesenho pesado não atrase o som.',
+  'app.processes.name.core': 'Núcleo da app',
+  'app.processes.what.core':
+    'A parte sem janela. Guarda as suas definições, fala com os dispositivos de áudio e com o equalizador do sistema, procura atualizações e arranca tudo o resto desta lista.',
+  'app.processes.name.engine': 'Motor de áudio (C++)',
+  'app.processes.what.engine':
+    'O motor próprio do FluidEQ. Descodifica o que reproduz e aplica o equalizador pelo caminho. É um programa à parte, por isso o Windows arruma-o longe dos restantes.',
+  'app.processes.name.graphics': 'Gráficos',
+  'app.processes.what.graphics':
+    'Desenha a janela na placa gráfica: o espetro, a curva, cada animação. Trabalha sempre que algo se move no ecrã; aqui não corre nenhum modelo de karaoke ou de ruído.',
+  'app.processes.name.sound': 'Som do navegador',
+  'app.processes.what.sound':
+    'O áudio próprio do Chromium, para o separador Vídeo e para os sons de uma página. A sua música não passa por aqui.',
+  'app.processes.name.network': 'Rede',
+  'app.processes.what.network':
+    'Verificação de atualizações, capas e tudo o que o separador Vídeo carrega. Mais nada nesta lista vai à rede.',
+  'app.processes.name.camera': 'Serviço de câmara',
+  'app.processes.what.camera':
+    'Iniciado pelo Chromium quando a app pede ao Windows a lista de dispositivos de áudio, porque a mesma chamada enumera também as câmaras. Não mantém nenhuma câmara aberta.',
+  'app.processes.name.page': 'Página web',
+  'app.processes.what.page':
+    'Uma página aberta no separador Vídeo. Corre no seu próprio processo, à parte da interface.',
+  'app.processes.name.helper': 'Serviço auxiliar',
+  'app.processes.what.helper':
+    'Um serviço do Chromium iniciado a pedido. O FluidEQ nunca o pede pelo nome.',
   'app.menu.reinstallApp': 'Reinstalar {product}…',
   'app.menu.fixAudio': 'Corrigir problemas de áudio…',
   'app.menu.reinstallApo': 'Reinstalar Equalizer APO…',

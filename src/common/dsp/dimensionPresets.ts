@@ -141,10 +141,36 @@ export const DIMENSION_PRESET_BY_ID = {
     id: 'expansive',
     labelKey: 'dsp.dimensionPreset.expansive',
     group: 'character',
-    // The widest profile here, and most of it is spread rather than level —
-    // decorrelation at 0.75 is what keeps this from being the hollow centre
-    // that a plain side boost produces.
-    settings: profile(0.85, 1.3, 1.8, 180, 2_600, 0.75),
+    // Still the widest profile here, but not a phase effect. The former 1.8
+    // high width plus 0.75 decorrelation made cymbals and reverb tails grainy
+    // in listening even though the samples did not clip.
+    settings: profile(0.85, 1.22, 1.55, 180, 2_600, 0.45),
+  },
+  vocal: {
+    id: 'vocal',
+    labelKey: 'dsp.eqPreset.vocal',
+    group: 'character',
+    settings: profile(0.75, 0.72, 1.08, 220, 4_000, 0.15),
+  },
+  gaming: {
+    id: 'gaming',
+    labelKey: 'dsp.eqPreset.gaming',
+    group: 'playback',
+    settings: profile(0.75, 1.25, 1.55, 180, 2_400, 0.55),
+  },
+  movie: {
+    id: 'movie',
+    labelKey: 'dsp.eqPreset.movie',
+    group: 'playback',
+    settings: profile(0.8, 1.2, 1.65, 160, 2_200, 0.6),
+  },
+  club: {
+    id: 'club',
+    labelKey: 'dsp.masterPreset.club',
+    group: 'playback',
+    // Bass approaches mono for a PA, while the top stays only modestly wide;
+    // the room supplies more spread than the record needs to manufacture.
+    settings: profile(0.45, 1, 1.15, 180, 3_200, 0.15),
   },
 } satisfies Record<string, IDimensionPreset>;
 

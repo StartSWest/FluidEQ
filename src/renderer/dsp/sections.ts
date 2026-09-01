@@ -38,7 +38,6 @@ export const DSP_SECTIONS: { id: TDspSection; labelKey: TranslationKey }[] = [
   // Beside the Normalizer rather than beside the creative stages: both of
   // these fix the source, and the rack reads as repair-then-colour.
   { id: 'denoise', labelKey: 'dsp.denoise.title' },
-  { id: 'crossfade', labelKey: 'dsp.crossfade.title' },
   { id: 'exciter', labelKey: 'dsp.exciter.title' },
   // Beside the Exciter, and ahead of the EQ, because that is where the audio
   // runs: `chain_process_bass_forge` sits between the two so the EQ shapes
@@ -56,3 +55,9 @@ export const DSP_SECTIONS: { id: TDspSection; labelKey: TranslationKey }[] = [
   { id: 'maximizer', labelKey: 'dsp.maximizer.title' },
   { id: 'master', labelKey: 'dsp.master.title' },
 ];
+
+/** Playback transitions are configured here, but are not DSP filter stages. */
+export const DSP_PLAYBACK_SECTIONS: {
+  id: TDspSection;
+  labelKey: TranslationKey;
+}[] = [{ id: 'crossfade', labelKey: 'dsp.crossfade.title' }];

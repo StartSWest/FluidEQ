@@ -45,8 +45,9 @@ const profileHint = (preset: IMaximizerPreset): string =>
  * Processor-local profiles, presented with the same picker as the EQ and the
  * Exciter.
  *
- * Applying one preserves bypass, which is what lets a chain preset reference a
- * profile by id and still decide for itself whether this stage participates.
+ * Choosing one here starts the processor as well as loading the sound. The
+ * shared preset builder still accepts bypass explicitly for whole-chain
+ * recipes, which decide for themselves whether this stage participates.
  */
 const DspMaximizerBar = ({
   maximizer,
@@ -69,11 +70,11 @@ const DspMaximizerBar = ({
   );
   const ordered = entries.map((entry) => entry.id);
 
-  const applyPreset = (id: string) => {
+  const applyPreset = (id: string, enable = true) => {
     if (!isMaximizerPresetId(id)) {
       return;
     }
-    onChange(maximizerPresetSettings(id, maximizer.enabled));
+    onChange(maximizerPresetSettings(id, enable ? true : maximizer.enabled));
     onCommit();
   };
 
@@ -138,7 +139,7 @@ const DspMaximizerBar = ({
         <button
           type="button"
           className="button small subtle"
-          onClick={() => applyPreset('safety')}
+          onClick={() => applyPreset('safety', false)}
         >
           <DspBarIcon name="reset" />
           {t('dsp.eqPreset.reset')}

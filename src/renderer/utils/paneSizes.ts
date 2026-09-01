@@ -116,7 +116,7 @@ const EDITOR_DEFAULT_SHARE = 0.7;
  * The divider and the two gaps around it are not part of the split either,
  * so they come off the top.
  */
-const splittableHeight = () => {
+const measureSplittableHeight = () => {
   if (typeof document !== 'undefined') {
     const column = document.querySelector('.center-workspace');
     if (column instanceof HTMLElement && column.clientHeight > 0) {
@@ -133,10 +133,21 @@ const splittableHeight = () => {
   const viewport = typeof window === 'undefined' ? 0 : window.innerHeight || 0;
   // Nothing laid out to measure — a test environment, or a render before the
   // first layout. The window less an allowance for the chrome around the
-  // column is the best guess available, and it is only ever used for one
-  // frame, since the first real read happens with the column on screen.
+  // column is the best guess available. The first subscription refreshes it
+  // after the workspace has committed to the DOM.
   return viewport > 0 ? viewport - CHROME_ALLOWANCE : 614;
 };
+
+/**
+ * Layout is measured at store boundaries, never while React reads a snapshot.
+ *
+ * `useSyncExternalStore` may call its getter several times for one render and
+ * again after the commit. Letting those reads reach the DOM made every host
+ * telemetry update synchronously lay out the whole workspace. Once the store
+ * has seen the mounted column, only a resize can change this number; divider
+ * drags only change the share.
+ */
+let cachedSplittableHeight = measureSplittableHeight();
 
 /**
  * The tallest a lone pane may be: the space to divide, less what the pane below
@@ -147,7 +158,7 @@ const splittableHeight = () => {
  * to the minimum, which is the honest answer — there is no room to give.
  */
 const ceilingForSinglePane = () =>
-  Math.max(PANE_MIN_HEIGHT, splittableHeight() - PANE_MIN_HEIGHT);
+  Math.max(PANE_MIN_HEIGHT, cachedSplittableHeight - PANE_MIN_HEIGHT);
 
 /** Floor only. Used where a second pane is absorbing the difference. */
 export const clampToMinimum = (value: number) =>
@@ -171,7 +182,7 @@ const readStoredDefaultShare = (): number => {
     );
     if (Number.isFinite(legacy) && legacy > 0) {
       window.localStorage.removeItem(LEGACY_EDITOR_HEIGHT_KEY);
-      const migrated = clampShare(legacy / splittableHeight());
+      const migrated = clampShare(legacy / cachedSplittableHeight);
       window.localStorage.setItem(LEGACY_EDITOR_SHARE_KEY, String(migrated));
       return migrated;
     }
@@ -207,6 +218,23 @@ const editorShareForTab = (tab: string) =>
   editorSharesByTab[tab] ?? defaultEditorShare;
 
 const editorListeners = new Set<() => void>();
+const cachedEditorHeights = new Map<string, number>();
+
+const calculateEditorHeight = (tab: string) =>
+  clampToWindow(Math.round(cachedSplittableHeight * editorShareForTab(tab)));
+
+const refreshEditorHeightCache = () => {
+  const measured = measureSplittableHeight();
+  if (measured === cachedSplittableHeight) {
+    return false;
+  }
+
+  cachedSplittableHeight = measured;
+  cachedEditorHeights.forEach((_height, tab) => {
+    cachedEditorHeights.set(tab, calculateEditorHeight(tab));
+  });
+  return true;
+};
 
 /**
  * The share as pixels for the window as it is right now.
@@ -217,8 +245,16 @@ const editorListeners = new Set<() => void>();
  * big again restores exactly what was set rather than whatever the smallest
  * size it ever had happened to allow.
  */
-export const getEditorHeight = (tab = 'default') =>
-  clampToWindow(Math.round(splittableHeight() * editorShareForTab(tab)));
+export const getEditorHeight = (tab = 'default') => {
+  const cached = cachedEditorHeights.get(tab);
+  if (cached !== undefined) {
+    return cached;
+  }
+
+  const height = calculateEditorHeight(tab);
+  cachedEditorHeights.set(tab, height);
+  return height;
+};
 
 /**
  * Set from a drag, in pixels, converted straight back to a share.
@@ -234,8 +270,9 @@ export const setEditorHeight = (next: number, tab = 'default') => {
   }
   editorSharesByTab = {
     ...editorSharesByTab,
-    [tab]: clampShare(value / splittableHeight()),
+    [tab]: clampShare(value / cachedSplittableHeight),
   };
+  cachedEditorHeights.set(tab, calculateEditorHeight(tab));
   editorListeners.forEach((listener) => listener());
 };
 
@@ -256,8 +293,16 @@ export const commitPaneSizes = () => {
   }
 };
 
+let hasMeasuredMountedWorkspace = false;
+
 const subscribeEditor = (listener: () => void) => {
   editorListeners.add(listener);
+  if (!hasMeasuredMountedWorkspace) {
+    hasMeasuredMountedWorkspace = true;
+    if (refreshEditorHeightCache()) {
+      listener();
+    }
+  }
   return () => {
     editorListeners.delete(listener);
   };
@@ -275,13 +320,14 @@ export const useEditorHeight = (tab = 'default') =>
 /**
  * Redraw at the new size when the window changes.
  *
- * Only a notification: the share is not touched, so the panes keep their
- * proportion across a resize, a move to another monitor and a maximise. This
- * used to write a clamped pixel height back into the store, which is how a
- * window briefly made small permanently lost the split it had.
+ * Refresh the cached pixels and notify; the share is not touched, so the panes
+ * keep their proportion across a resize, a move to another monitor and a
+ * maximise. This used to write a clamped pixel height back into the store,
+ * which is how a window briefly made small permanently lost the split it had.
  */
 if (typeof window !== 'undefined') {
   window.addEventListener('resize', () => {
+    refreshEditorHeightCache();
     editorListeners.forEach((listener) => listener());
   });
 }

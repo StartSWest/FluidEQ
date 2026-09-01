@@ -84,13 +84,9 @@ export interface ILibraryPlayerContextValue {
    * the filtered list. */
   playTracks: (trackIds: readonly string[], startTrackId: string) => void;
   /**
-   * Clears the queue entirely — the one control that always ends playback
-   * and returns the Library tab to browsing, wherever it currently is.
-   * Setting `queue` to `undefined` drops `trackId`/`track`/`videoTrackId`
-   * together in the same render, so `LibraryVideoStage` unmounts (its own
-   * cleanup pauses and releases the `<video>`, see `registerVideoElement`)
-   * and every browse view's `!videoTrackId` gate opens back up — the escape
-   * hatch a video queue with no next track otherwise has none of.
+   * Pauses and rewinds the loaded item while preserving the track and queue.
+   * This is the same Stop contract as Karaoke and Online Media: the controls
+   * remain usable from another tab, and Play can resume the item from zero.
    */
   stop: () => void;
   toggle: () => void;
@@ -188,3 +184,15 @@ export interface ILibraryPlayerContextValue {
    */
   registerVideoElement: (element: HTMLVideoElement | null) => () => void;
 }
+
+/** The only fields that change continuously during ordinary playback. */
+export type ILibraryPlayerClock = Pick<
+  ILibraryPlayerContextValue,
+  'positionMs' | 'durationMs'
+>;
+
+/** Everything a library surface needs without subscribing to the playhead. */
+export type ILibraryPlayerSession = Omit<
+  ILibraryPlayerContextValue,
+  keyof ILibraryPlayerClock
+>;

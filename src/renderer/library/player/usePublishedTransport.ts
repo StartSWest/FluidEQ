@@ -28,6 +28,7 @@ import {
 export const usePublishedTransport = (options: {
   track: ILibraryTrack | undefined;
   isPlaying: boolean;
+  retainWhenHidden: boolean;
   /** The clock of whichever engine is playing. */
   publishedPositionMs: number;
   publishedDurationMs: number;
@@ -39,6 +40,7 @@ export const usePublishedTransport = (options: {
   const {
     track,
     isPlaying,
+    retainWhenHidden,
     publishedPositionMs,
     publishedDurationMs,
     volume,
@@ -66,6 +68,7 @@ export const usePublishedTransport = (options: {
       title: track.title,
       subtitle: track.artist,
       isPlaying,
+      retainWhenHidden: retainWhenHidden || undefined,
       positionMs: publishedPositionMs,
       durationMs: publishedDurationMs,
       toggle,
@@ -82,6 +85,7 @@ export const usePublishedTransport = (options: {
   }, [
     track,
     isPlaying,
+    retainWhenHidden,
     publishedPositionMs,
     publishedDurationMs,
     toggle,

@@ -38,18 +38,43 @@ const app: Partial<Dictionary> = {
   'app.processes.menu': 'प्रक्रियाएँ…',
   'app.processes.eyebrow': 'प्रक्रियाएँ',
   'app.processes.hint':
-    'Windows इन सभी को ऐप के नाम से दिखाता है, क्योंकि ये एक ही प्रोग्राम हैं। यहाँ देखें कि हर एक असल में क्या करता है।',
+    'Windows इन सभी को ऐप के नाम से दिखाता है, क्योंकि ये एक ही प्रोग्राम हैं। यहाँ देखें कि हर एक असल में FluidEQ के लिए क्या करता है।',
+  'app.processes.hintSplit':
+    'यह बँटवारा जान-बूझकर है: इंटरफ़ेस, ड्रॉइंग और ध्वनि अलग-अलग चलते हैं, ताकि व्यस्त विंडो संगीत को धीमा न करे और एक हिस्से की गड़बड़ी बाकी को अपने साथ न ले जाए।',
   'app.processes.process': 'प्रक्रिया',
   'app.processes.pid': 'PID',
   'app.processes.memory': 'मेमोरी',
   'app.processes.cpu': 'CPU',
   'app.processes.thisWindow': 'यह विंडो',
   'app.processes.total': 'कुल {megabytes} MB।',
-  'app.processes.kindMain': 'मुख्य',
-  'app.processes.kindWindow': 'विंडो',
-  'app.processes.kindGpu': 'GPU',
-  'app.processes.kindUtility': 'यूटिलिटी',
-  'app.processes.kindDsp': 'DSP इंजन (C++)',
+  'app.processes.unmeasured': 'डैश का मतलब है कि यह आँकड़ा अभी मापा नहीं गया।',
+  'app.processes.name.window': 'इंटरफ़ेस',
+  'app.processes.what.window':
+    'वही विंडो जो आप देख रहे हैं: कर्व, लाइब्रेरी, प्लेयर और सभी नियंत्रण। हर विंडो के लिए एक प्रोसेस, ताकि भारी री-ड्रॉ आवाज़ को न रोके।',
+  'app.processes.name.core': 'ऐप कोर',
+  'app.processes.what.core':
+    'वह हिस्सा जिसकी अपनी कोई विंडो नहीं है। आपकी सेटिंग्स रखता है, ऑडियो डिवाइस और सिस्टम इक्वलाइज़र से बात करता है, अपडेट जाँचता है, और इस सूची की बाकी हर चीज़ शुरू करता है।',
+  'app.processes.name.engine': 'ऑडियो इंजन (C++)',
+  'app.processes.what.engine':
+    'FluidEQ का अपना इंजन। आप जो चलाते हैं उसे डिकोड करता है और साथ-साथ इक्वलाइज़र लगाता है। यह अलग प्रोग्राम है, इसीलिए Windows इसे बाकी से दूर रखता है।',
+  'app.processes.name.graphics': 'ग्राफ़िक्स',
+  'app.processes.what.graphics':
+    'विंडो को ग्राफ़िक्स कार्ड पर बनाता है: स्पेक्ट्रम, कर्व और हर एनिमेशन। स्क्रीन पर कुछ भी हिलते ही यह व्यस्त हो जाता है — कराओके या नॉइज़ मॉडल यहाँ नहीं चलते।',
+  'app.processes.name.sound': 'ब्राउज़र ध्वनि',
+  'app.processes.what.sound':
+    'Chromium की अपनी ऑडियो, वीडियो टैब और पेज की आवाज़ों के लिए। आपका संगीत इससे होकर नहीं जाता।',
+  'app.processes.name.network': 'नेटवर्क',
+  'app.processes.what.network':
+    'अपडेट जाँच, कवर आर्ट, और वीडियो टैब जो कुछ लोड करता है। इस सूची में और कुछ भी नेटवर्क तक नहीं पहुँचता।',
+  'app.processes.name.camera': 'कैमरा सेवा',
+  'app.processes.what.camera':
+    'जब ऐप Windows से ऑडियो डिवाइसों की सूची माँगता है तब Chromium इसे शुरू करता है, क्योंकि वही कॉल कैमरे भी गिनता है। कोई कैमरा खुला नहीं रहता।',
+  'app.processes.name.page': 'वेब पेज',
+  'app.processes.what.page':
+    'वीडियो टैब में खुला एक पेज। यह इंटरफ़ेस से अलग, अपनी ही प्रोसेस में चलता है।',
+  'app.processes.name.helper': 'सहायक सेवा',
+  'app.processes.what.helper':
+    'ज़रूरत पड़ने पर शुरू होने वाली Chromium सेवा। FluidEQ इसे कभी नाम लेकर नहीं माँगता।',
   'app.menu.reinstallApp': '{product} फिर स्थापित करें…',
   'app.menu.fixAudio': 'ऑडियो समस्याएँ ठीक करें…',
   'app.menu.reinstallApo': 'Equalizer APO फिर स्थापित करें…',

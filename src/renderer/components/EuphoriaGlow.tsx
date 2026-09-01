@@ -16,7 +16,13 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  type CSSProperties,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import { getStreakJoy } from 'common/rhythmGame';
 import { forEachGraphPoint, graphPointCount } from '../graph/EditablePoint';
 import { useLiveAudioFrame } from '../audio/LiveAudioContext';
@@ -50,12 +56,8 @@ const EUPHORIA_AT = 1;
  */
 const LEVEL_STEPS = 12;
 
-/**
- * How long to wait for a burst to tell us it has finished before assuming it
- * never will. Comfortably past the 900ms ring and its 90ms-delayed sibling, so
- * this only fires when the event did not arrive at all.
- */
-const BURST_GIVE_UP_MS = 1600;
+/** One blade per slice of the activation sweep; static so renders allocate none. */
+const EUPHORIA_BLADES = Array.from({ length: 14 }, (_, index) => index);
 
 /**
  * One band's share of the spectrum, as a stepped level.
@@ -391,23 +393,6 @@ const EuphoriaGlow = () => {
     wasEuphoricRef.current = isEuphoric;
   }, [isEuphoric]);
 
-  // A backstop, because of what an unfinished burst leaves behind.
-  //
-  // The rings expand to ninety times their own size across a `position: fixed`
-  // element at the top of the stacking order, so a burst that never clears
-  // itself is a window-sized overlay the renderer has to keep drawing for —
-  // invisible, since it ends fully transparent, and permanent. `animationend`
-  // is the ordinary way out and it is not a guarantee: an animation that never
-  // starts never ends either, which is one stylesheet rule or one hidden
-  // ancestor away.
-  useEffect(() => {
-    if (burst === 0) {
-      return undefined;
-    }
-    const timer = window.setTimeout(() => setBurst(0), BURST_GIVE_UP_MS);
-    return () => window.clearTimeout(timer);
-  }, [burst]);
-
   // The class follows `isEuphoric`, and the variable follows `joy`. They are
   // two different questions and deriving both from `joy` got one of them wrong.
   //
@@ -449,8 +434,27 @@ const EuphoriaGlow = () => {
         <span
           key={burst}
           className="euphoria-burst"
-          onAnimationEnd={() => setBurst(0)}
-        />
+          onAnimationEnd={(event) => {
+            // Children finish first. The overlay owns a deliberately longest
+            // life animation; only that event removes the whole temporary FX.
+            if (event.animationName === 'euphoria-burst-life') {
+              setBurst(0);
+            }
+          }}
+        >
+          {EUPHORIA_BLADES.map((index) => (
+            <span
+              key={index}
+              className="euphoria-burst__blade"
+              style={
+                {
+                  '--euphoria-blade-index': index,
+                  '--euphoria-blade-hue': `${(index * 360) / EUPHORIA_BLADES.length}deg`,
+                } as CSSProperties
+              }
+            />
+          ))}
+        </span>
       )}
     </>
   );

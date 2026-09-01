@@ -38,18 +38,44 @@ const app: Partial<Dictionary> = {
   'app.processes.menu': 'Processi…',
   'app.processes.eyebrow': 'Processi',
   'app.processes.hint':
-    "Windows chiama ognuno di questi come l'app, perché sono lo stesso programma. Questo è ciò che ciascuno fa davvero.",
+    "Windows chiama ognuno di questi come l'app, perché sono lo stesso programma. Questo è ciò che ciascuno fa davvero per FluidEQ.",
+  'app.processes.hintSplit':
+    'La divisione è voluta: interfaccia, disegno e suono girano ognuno per conto proprio, così una finestra impegnata non rallenta la musica e un guasto in una parte non si porta via le altre.',
   'app.processes.process': 'Processo',
   'app.processes.pid': 'PID',
   'app.processes.memory': 'Memoria',
   'app.processes.cpu': 'CPU',
   'app.processes.thisWindow': 'questa finestra',
   'app.processes.total': '{megabytes} MB in totale.',
-  'app.processes.kindMain': 'Principale',
-  'app.processes.kindWindow': 'Finestra',
-  'app.processes.kindGpu': 'GPU',
-  'app.processes.kindUtility': 'Servizio',
-  'app.processes.kindDsp': 'Motore DSP (C++)',
+  'app.processes.unmeasured':
+    'Un trattino indica un valore che nessuno ha ancora misurato.',
+  'app.processes.name.window': 'Interfaccia',
+  'app.processes.what.window':
+    'La finestra che stai guardando: la curva, la libreria, il lettore, tutti i controlli. Un processo per finestra, così un ridisegno pesante non rallenta il suono.',
+  'app.processes.name.core': "Nucleo dell'app",
+  'app.processes.what.core':
+    "La parte senza finestra. Conserva le tue impostazioni, parla con i dispositivi audio e con l'equalizzatore di sistema, cerca gli aggiornamenti e avvia tutto il resto di questo elenco.",
+  'app.processes.name.engine': 'Motore audio (C++)',
+  'app.processes.what.engine':
+    "Il motore proprio di FluidEQ. Decodifica ciò che ascolti e applica l'equalizzatore strada facendo. È un programma a sé, per questo Windows lo colloca lontano dagli altri.",
+  'app.processes.name.graphics': 'Grafica',
+  'app.processes.what.graphics':
+    'Disegna la finestra sulla scheda grafica: lo spettro, la curva, ogni animazione. Lavora ogni volta che qualcosa si muove sullo schermo; qui non gira alcun modello di karaoke o di rumore.',
+  'app.processes.name.sound': 'Audio del browser',
+  'app.processes.what.sound':
+    'Il suono proprio di Chromium, per la scheda Video e per i suoni di una pagina. La tua musica non passa di qui.',
+  'app.processes.name.network': 'Rete',
+  'app.processes.what.network':
+    "Controllo aggiornamenti, copertine e tutto ciò che carica la scheda Video. Nient'altro qui tocca la rete.",
+  'app.processes.name.camera': 'Servizio fotocamera',
+  'app.processes.what.camera':
+    "Avviato da Chromium quando l'app chiede a Windows l'elenco dei dispositivi audio, perché la stessa chiamata elenca anche le fotocamere. Non tiene aperta alcuna fotocamera.",
+  'app.processes.name.page': 'Pagina web',
+  'app.processes.what.page':
+    'Una pagina aperta nella scheda Video. Gira in un processo tutto suo, separato dall’interfaccia.',
+  'app.processes.name.helper': 'Servizio ausiliario',
+  'app.processes.what.helper':
+    'Un servizio di Chromium avviato su richiesta. FluidEQ non lo chiede mai per nome.',
   'app.menu.reinstallApp': 'Reinstalla {product}…',
   'app.menu.fixAudio': 'Risolvi problemi audio…',
   'app.menu.reinstallApo': 'Reinstalla Equalizer APO…',

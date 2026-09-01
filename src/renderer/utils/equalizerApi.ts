@@ -242,6 +242,16 @@ export const exportEqPreset = (
   return promisifyResult(simpleResponseHandler<boolean>(), channel);
 };
 
+/** Show the desktop Save As dialog for a complete DSP filter chain. */
+export const exportDspChainPreset = (
+  suggestedName: string,
+  contents: string,
+): Promise<boolean> => {
+  const channel = ChannelEnum.EXPORT_DSP_PRESET;
+  window.electron.ipcRenderer.sendMessage(channel, [suggestedName, contents]);
+  return promisifyResult(simpleResponseHandler<boolean>(), channel);
+};
+
 /**
  * One output's whole chain, out to a file.
  *

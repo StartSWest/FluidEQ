@@ -40,18 +40,20 @@ import {
  * changes, so a stale host is refused at the handshake with a legible reason
  * rather than desynchronising on its first frame of that kind.
  */
-export const HOST_WIRE_PROTOCOL_VERSION = 4;
+export const HOST_WIRE_PROTOCOL_VERSION = 5;
 
 export const HANDSHAKE_BYTES = 104;
 export const COMMAND_BYTES = 32;
 export const ACK_BYTES = 32;
 export const TELEMETRY_BYTES = 112;
+export const STATS_BYTES = 24;
 
 export const MAGIC_HANDSHAKE = 0x48514546;
 export const MAGIC_COMMAND = 0x43514546;
 export const MAGIC_ACK = 0x41514546;
 export const MAGIC_TELEMETRY = 0x54514546;
 export const MAGIC_ANALYSIS = 0x4e514546;
+export const MAGIC_STATS = 0x53514546;
 
 // The agreement about what these bytes mean lives in src/common, because the
 // renderer needs it too and may not import from src/main. Re-exported so the
@@ -143,6 +145,22 @@ export interface IHostAck {
   acceptedRevision: number;
   appliedAtSampleFrame: number;
   sanitizedValue: number;
+}
+
+/**
+ * What the host process costs, measured by the host process.
+ *
+ * Electron's `getAppMetrics` knows only Electron's own children and the host is
+ * a separate executable, so this is the only place either number exists. It
+ * arrives on its own half-second clock rather than with telemetry, because
+ * telemetry stops when the audio does and an idle process holding memory is
+ * exactly the thing somebody opens the process list to find.
+ */
+export interface IHostStats {
+  /** The same measure Electron reports for its own rows: the working set. */
+  workingSetBytes: number;
+  /** Share of one core since the previous sample, as Chromium counts it. */
+  cpuPercent: number;
 }
 
 export interface IHostTelemetry {
@@ -342,6 +360,21 @@ export const decodeAck = (frame: Buffer): IHostAck | undefined => {
   };
 };
 
+export const decodeStats = (frame: Buffer): IHostStats | undefined => {
+  if (frame.length < STATS_BYTES) {
+    return undefined;
+  }
+  const view = new DataView(frame.buffer, frame.byteOffset, frame.byteLength);
+  if (view.getUint32(0, true) !== MAGIC_STATS) {
+    return undefined;
+  }
+  return {
+    // Offset 4 is the padding word that aligns the double at 16.
+    workingSetBytes: Number(view.getBigUint64(8, true)),
+    cpuPercent: view.getFloat64(16, true),
+  };
+};
+
 export const decodeTelemetry = (frame: Buffer): IHostTelemetry | undefined => {
   if (frame.length < TELEMETRY_BYTES) {
     return undefined;
@@ -378,7 +411,7 @@ export const decodeTelemetry = (frame: Buffer): IHostTelemetry | undefined => {
 /**
  * How many bytes the frame starting here occupies, or 0 if it is unknown.
  *
- * The stream carries three different frame kinds at three different lengths,
+ * The stream carries four different frame kinds at four different lengths,
  * so a reader cannot slice on a fixed stride. It reads the magic first and is
  * told how far the next one begins — and an unrecognised magic means the
  * stream has desynchronised, which is a fault to report rather than a byte to
@@ -392,6 +425,8 @@ export const frameLengthFor = (magic: number): number => {
       return ACK_BYTES;
     case MAGIC_TELEMETRY:
       return TELEMETRY_BYTES;
+    case MAGIC_STATS:
+      return STATS_BYTES;
     case MAGIC_ANALYSIS:
       // The header only. Its own fields say what follows, so the reader asks
       // `analysisFrameLength` once it holds this much.

@@ -18,15 +18,18 @@ import {
   IHostAck,
   IHostAnalysis,
   IHostHandshake,
+  IHostStats,
   IHostTelemetry,
   MAGIC_ACK,
   MAGIC_ANALYSIS,
   MAGIC_HANDSHAKE,
+  MAGIC_STATS,
   MAGIC_TELEMETRY,
   analysisFrameLength,
   decodeAck,
   decodeAnalysis,
   decodeHandshake,
+  decodeStats,
   decodeTelemetry,
   frameLengthFor,
 } from './wire';
@@ -37,6 +40,12 @@ export interface IFrameHandlers {
   onTelemetry: (telemetry: IHostTelemetry) => void;
   /** Optional: only a renderer with the DSP panel open ever asks for these. */
   onAnalysis?: (analysis: IHostAnalysis) => void;
+  /**
+   * Optional, and absent from a host older than protocol 5 — which cannot get
+   * past the handshake, so in practice absent only from a caller that does not
+   * care what the engine costs.
+   */
+  onStats?: (stats: IHostStats) => void;
   /** The stream no longer begins on a frame. Fatal; the reader stops. */
   onDesynchronised: (magic: number) => void;
 }
@@ -140,6 +149,13 @@ export class FrameReader {
       const analysis = decodeAnalysis(frame);
       if (analysis) {
         this.handlers.onAnalysis?.(analysis);
+      }
+      return;
+    }
+    if (magic === MAGIC_STATS) {
+      const stats = decodeStats(frame);
+      if (stats) {
+        this.handlers.onStats?.(stats);
       }
     }
   }

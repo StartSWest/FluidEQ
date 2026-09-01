@@ -6,7 +6,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { PRODUCT_NAME } from 'common/branding';
-import type { IAppProcess } from '../../main/ipc/processes';
+import type { TranslationKey } from 'common/i18n/en';
+import type { IAppProcess, TProcessRole } from '../../main/ipc/processes';
 import { useTranslation } from '../utils/I18nContext';
 import DialogHeader from './DialogHeader';
 import '../styles/Processes.scss';
@@ -14,6 +15,32 @@ import '../styles/Processes.scss';
 interface IProcessesDialogProps {
   onClose: () => void;
 }
+
+/** Exhaustive by type: a new role does not compile until it has a name. */
+const NAME_KEYS: Record<TProcessRole, TranslationKey> = {
+  window: 'app.processes.name.window',
+  core: 'app.processes.name.core',
+  engine: 'app.processes.name.engine',
+  graphics: 'app.processes.name.graphics',
+  sound: 'app.processes.name.sound',
+  network: 'app.processes.name.network',
+  camera: 'app.processes.name.camera',
+  page: 'app.processes.name.page',
+  helper: 'app.processes.name.helper',
+};
+
+/** The sentence under the name: what it does, and why it is running. */
+const WHAT_KEYS: Record<TProcessRole, TranslationKey> = {
+  window: 'app.processes.what.window',
+  core: 'app.processes.what.core',
+  engine: 'app.processes.what.engine',
+  graphics: 'app.processes.what.graphics',
+  sound: 'app.processes.what.sound',
+  network: 'app.processes.what.network',
+  camera: 'app.processes.what.camera',
+  page: 'app.processes.what.page',
+  helper: 'app.processes.what.helper',
+};
 
 /**
  * Which of our processes is which, since Task Manager cannot say.
@@ -25,15 +52,21 @@ interface IProcessesDialogProps {
  * and every child says "Google Chrome". No naming scheme fixes it, because
  * there is nothing per-process to name.
  *
- * Electron knows, though, and this is where it says so. The row marked as this
- * window is the one that matters when memory climbs: an app playing a video
- * runs several renderers, and picking ours out by process id is a guess that
- * sends the search into the wrong file.
+ * Electron knows, though, and this is where it says so — but knowing that a
+ * process is `Utility: video_capture.mojom.VideoCaptureService` answers a
+ * question nobody asked. The list is opened to find out what part of FluidEQ
+ * is holding the memory, so every row says what it does for FluidEQ and why it
+ * is running at all. Two of them exist only because somebody would otherwise
+ * assume the worst about them: the graphics process, which is busy whenever
+ * anything on screen moves and has nothing to do with the karaoke models, and
+ * the camera service, which Windows starts when the app asks for the list of
+ * audio devices and which holds no camera open.
  *
  * The DSP engine is listed alongside even though it is not Electron's, because
  * somebody looking at this list is asking about FluidEQ rather than about
  * Chromium — and it is the one process Task Manager files somewhere else
- * entirely, being a separate executable.
+ * entirely, being a separate executable. Its memory and CPU come from the host
+ * itself; Electron cannot see them.
  */
 export default function ProcessesDialog({ onClose }: IProcessesDialogProps) {
   const { t } = useTranslation();
@@ -45,10 +78,11 @@ export default function ProcessesDialog({ onClose }: IProcessesDialogProps) {
       { appProcesses?: () => Promise<IAppProcess[]> } | undefined;
     bridge
       ?.appProcesses?.()
+      // Main orders them, and it orders them the same way every time. Sorting
+      // by size here is what used to make rows swap places under the cursor
+      // while they were being read.
       .then((next) => {
-        // Largest first: the question this answers is always "what is holding
-        // the memory", and making somebody scan for it defeats the point.
-        setRows([...next].sort((a, b) => b.memoryMb - a.memoryMb));
+        setRows(next);
         return next;
       })
       .catch(() => undefined);
@@ -75,25 +109,19 @@ export default function ProcessesDialog({ onClose }: IProcessesDialogProps) {
   }, [onClose, refresh]);
 
   /**
-   * Electron's own labels, made readable without inventing anything.
+   * The app's name for a process, and the sentence that makes it make sense.
    *
-   * The service name is the whole point for a utility: six rows saying
-   * `Utility` say nothing, while `Network Service` and `Audio Service` say
-   * everything. Both come from Electron rather than from a guess about a pid.
+   * Written out rather than built from the role — `app.processes.name.${role}`
+   * would be a string the key type cannot check, and the first role added
+   * without a string would render the key itself in every language. A helper
+   * keeps the service name Chromium gave it, which is more informative than
+   * any label this app could invent for a process it never asked for.
    */
-  const describe = (row: IAppProcess): string => {
-    const kinds: Record<string, string> = {
-      Browser: t('app.processes.kindMain'),
-      Tab: t('app.processes.kindWindow'),
-      GPU: t('app.processes.kindGpu'),
-      Utility: t('app.processes.kindUtility'),
-      'DSP Engine': t('app.processes.kindDsp'),
-    };
-    const kind = kinds[row.kind] ?? row.kind;
-    return row.service ? `${kind}: ${row.service}` : kind;
-  };
+  const nameFor = (row: IAppProcess): string =>
+    row.role === 'helper' && row.detail ? row.detail : t(NAME_KEYS[row.role]);
 
-  const total = rows.reduce((sum, row) => sum + row.memoryMb, 0);
+  const total = rows.reduce((sum, row) => sum + (row.memoryMb ?? 0), 0);
+  const anyUnmeasured = rows.some((row) => row.memoryMb === undefined);
 
   return (
     <div
@@ -122,6 +150,7 @@ export default function ProcessesDialog({ onClose }: IProcessesDialogProps) {
 
         <div className="about__body">
           <p className="processes__hint">{t('app.processes.hint')}</p>
+          <p className="processes__hint">{t('app.processes.hintSplit')}</p>
 
           <table className="processes__table">
             <thead>
@@ -142,33 +171,52 @@ export default function ProcessesDialog({ onClose }: IProcessesDialogProps) {
               {rows.map((row) => (
                 <tr
                   key={row.pid}
-                  className={row.isAppWindow ? 'is-this-window' : undefined}
+                  className={
+                    row.role === 'window' ? 'is-this-window' : undefined
+                  }
                 >
                   <td>
-                    {describe(row)}
-                    {row.isAppWindow ? (
-                      <span className="processes__tag">
-                        {t('app.processes.thisWindow')}
-                      </span>
-                    ) : undefined}
+                    <span className="processes__name">
+                      {nameFor(row)}
+                      {row.role === 'window' ? (
+                        <span className="processes__tag">
+                          {t('app.processes.thisWindow')}
+                        </span>
+                      ) : undefined}
+                    </span>
+                    <span className="processes__what">
+                      {t(WHAT_KEYS[row.role])}
+                    </span>
                   </td>
                   <td className="processes__number">{row.pid}</td>
                   <td className="processes__number">
-                    {/* The native host's size is not Electron's to report, and
-                        a wrong number is worse than a dash. */}
-                    {row.isNative ? '—' : `${row.memoryMb} MB`}
+                    {/* A dash for a figure nobody has measured yet, never a
+                        zero — a zero reads as a process that costs nothing. */}
+                    {row.memoryMb === undefined ? '—' : `${row.memoryMb} MB`}
                   </td>
                   <td className="processes__number">
-                    {row.isNative ? '—' : `${row.cpuPercent}%`}
+                    {row.cpuPercent === undefined ? '—' : `${row.cpuPercent}%`}
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
+        </div>
 
-          <p className="processes__hint">
+        {/* Outside the scrolling body on purpose. The total is the one line
+            somebody reads after scanning the table, and inside `about__body`
+            it was the first thing to scroll out of sight — worst on a short
+            window, where the table is exactly long enough to need scrolling
+            and the figure it adds up to is exactly what is then hidden. */}
+        <div className="processes__footer">
+          {anyUnmeasured ? (
+            <span className="processes__footnote">
+              {t('app.processes.unmeasured')}
+            </span>
+          ) : undefined}
+          <span className="processes__total">
             {t('app.processes.total', { megabytes: String(total) })}
-          </p>
+          </span>
         </div>
       </div>
     </div>

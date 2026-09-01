@@ -88,6 +88,8 @@ export interface INativeMirrorState {
     durationMs: number;
     curve: TCrossfadeCurve;
     shape: ICrossfadeShape;
+    /** Cue the incoming deck here before it becomes audible. */
+    startPositionMs?: number;
   };
 }
 
@@ -153,6 +155,8 @@ export const createNativeMirror = (
 
   let loadedPath: string | undefined;
   let playing = false;
+  /** True once a native deck has loaded and the elements have stood down. */
+  let hostOwnsTransport = false;
   /**
    * Which deck is audible. Not always zero, once a crossfade has happened.
    *
@@ -264,6 +268,7 @@ export const createNativeMirror = (
        * native engine is the worst of the three options; handing the sound
        * back — unmuted and running again — is the honest one.
        */
+      hostOwnsTransport = false;
       handBack();
       return;
     }
@@ -298,6 +303,7 @@ export const createNativeMirror = (
       await controller.transport.pause();
     }
     playing = isPlaying;
+    hostOwnsTransport = true;
     // The host has the track and is the one playing it. Last, so nothing is
     // stood down for a deck that turned out not to load.
     standDownElements();
@@ -321,6 +327,7 @@ export const createNativeMirror = (
     curve: TCrossfadeCurve,
     shape: ICrossfadeShape,
     previousPath: string,
+    startPositionMs: number,
   ): Promise<boolean> => {
     const previousDeck = activeDeck;
     const toDeck = activeDeck === 0 ? 1 : 0;
@@ -334,8 +341,19 @@ export const createNativeMirror = (
       // element fade — which is already running — carry the handoff.
       loadedPath = previousPath;
       activeDeck = previousDeck;
+      hostOwnsTransport = false;
       handBack();
       return false;
+    }
+
+    if (startPositionMs > 0) {
+      // The element applies this after its own play() settles. The host cannot:
+      // seeking once the fade is audible empties the incoming read-ahead ring
+      // and the refill is the crack heard on Next. Cue it before the crossfade
+      // command, while the outgoing deck is still the only audible one.
+      await controller.transport.seek(toDeck, startPositionMs / 1_000);
+      toldPositionMs = startPositionMs;
+      toldAt = performance.now();
     }
 
     if (curve === 'custom') {
@@ -386,6 +404,7 @@ export const createNativeMirror = (
         toldPositionMs = positionMs;
         toldAt = performance.now();
         if (!mediaPath) {
+          hostOwnsTransport = false;
           controller.transport.unload(activeDeck).catch(() => undefined);
           // An emptied deck is not playing, and the flag has to say so or the
           // next track that arrives already playing agrees with it and is
@@ -413,6 +432,7 @@ export const createNativeMirror = (
             transition.curve,
             transition.shape,
             previous,
+            transition.startPositionMs ?? 0,
           ).catch(() => undefined);
           return;
         }
@@ -454,7 +474,8 @@ export const createNativeMirror = (
       }
 
       /**
-       * A jump the listener made, not the time this tick took to arrive.
+       * A jump made on the element before the host took ownership, not the
+       * time this tick took to arrive.
        *
        * Compared against where the element SHOULD be by now — the last reading
        * plus the wall time since it, while playing — rather than against the
@@ -489,13 +510,25 @@ export const createNativeMirror = (
        * still, which is another seek. Two reports, one fault — the scrubber
        * crawling back to zero, and playback breaking up untouched.
        *
-       * Requiring the reading to have MOVED is what separates a stopped clock
-       * from a jump, and it keeps the case this check exists for: a session
-       * restore assigns `currentTime` from a media event after the deck is
-       * already cued, and that genuinely does move the reading, so the deck
-       * still follows it.
+       * Requiring the reading to have MOVED separates a stopped clock from a
+       * jump. Requiring the element to still own transport separates that jump
+       * from two more stale readings that must never command the host:
+       *
+       * - A scrub seeks both engines for fallback. A paused element can refuse
+       *   the assignment and report its old position; treating that readback as
+       *   another command seeks the audible deck straight back.
+       * - A crossfade claims the incoming native deck before the element has
+       *   completed its own handoff. Forwarding either the outgoing position or
+       *   the incoming lead-in after the fade starts empties the new deck's
+       *   read-ahead ring — the crack heard on Next. The lead-in is now part of
+       *   the native cue above, before that deck becomes audible.
+       *
+       * Before a native load completes, the element is still the authority and
+       * this path remains available for a session restore. Once the host owns
+       * the clock, user seeks have the explicit `seek` route.
        */
       if (
+        !hostOwnsTransport &&
         positionMs !== lastReading &&
         Math.abs(positionMs - expected) > SEEK_THRESHOLD_MS
       ) {
@@ -528,6 +561,7 @@ export const createNativeMirror = (
       handBack();
       loadedPath = undefined;
       playing = false;
+      hostOwnsTransport = false;
       controller.transport.pause().catch(() => undefined);
       // Both decks, because a crossfade leaves the previous track loaded on the
       // other one and an unload of only the active deck would leave a whole

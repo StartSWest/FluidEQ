@@ -244,6 +244,21 @@ const soloListeners = new Set<() => void>();
 wakeOnViewChange(soloListeners);
 
 /**
+ * The blank presentation in the Ctrl+W cycle.
+ *
+ * This has its own flag instead of borrowing any of the individual visibility
+ * switches. Clean is temporary scenery for the media underneath; leaving it
+ * must restore the grid, coverage, meter and waves exactly as they were rather
+ * than silently rewriting five preferences to get an empty drawing.
+ */
+const cleanSetting = createPerViewSetting(
+  VIEW_KEYS.clean,
+  false,
+  parseFlag,
+  serializeFlag,
+);
+
+/**
  * Not exported, and there is nothing left that should set this directly.
  *
  * The Video tab used to force it on while it was open and put the old value
@@ -293,8 +308,8 @@ export const toggleLiveOutputSolo = () =>
  * two keys that quietly undo one another.
  *
  * Everything; then everything with the cyan EQ curve quieted; then the curves
- * with the wave switched off; then everything again with the coverage columns
- * taken away; then the wave alone.
+ * with the wave switched off; then a clear stage with no graph drawing; then
+ * the wave alone.
  *
  * `layers` is the reading state. The bands' own line is the loudest thing on
  * the plot — full weight, a glow, a spectrum gradient and two dozen handles
@@ -303,11 +318,10 @@ export const toggleLiveOutputSolo = () =>
  * layers are doing to it, and they are exactly what it covers. Its handles go
  * with it, since the chart ties them to the curve they draw.
  *
- * `clean` is the watching state, and it takes nothing off the measurement:
- * every curve, the grid, the wave and the handles are all there. What goes is
- * the Smart EQ coverage wash — nine tinted blocks the full height of the
- * drawing, which are the entire point while a scan is running and a sheet of
- * grey over the curves for everything else.
+ * `clean` is the watching state. The plot keeps its dimensions so media art and
+ * video positioning do not jump, but no graph drawing is mounted: no wave,
+ * curves, grid, handles or coverage. Global app instrumentation outside the
+ * graph — including the titlebar wave — remains visible.
  *
  * FIVE NAMED STATES, not three loose flags.
  *
@@ -368,8 +382,7 @@ export const GRAPH_CONTENTS_LABEL: Record<TGraphContents, string> = {
   // The state that did earn the older name is gone — see `TGraphContents`.
   layers: 'Layers over wave',
   curves: 'Curves only',
-  // Short on purpose. It is not "everything minus the coverage columns" to
-  // anybody using it; it is the plot with nothing washed over it.
+  // Short on purpose: it is a clear stage for the media underneath.
   clean: 'Clean',
   wave: 'Wave only',
 };
@@ -377,21 +390,16 @@ export const GRAPH_CONTENTS_LABEL: Record<TGraphContents, string> = {
 /**
  * Which state the flags add up to.
  *
- * THE ORDER OF THESE TESTS IS PART OF THE SPECIFICATION. Coverage is asked
- * second — ahead of the hidden wave and the quiet EQ line — so that the menu's
- * own show/hide of the columns is the exact inverse of what the cycle does.
- * Hiding them while the plot is on `layers` leaves `eqQuiet` exactly where it
- * was and derives `clean`; showing them again finds `eqQuiet` still set and
- * gives `layers` back. Asked last, the trip out would still work and the trip
- * home would not: the state would have been read off a flag the switch never
- * touched, and there would be nothing to come back to.
+ * Clean is asked first because it is an explicit presentation override. The
+ * individual visibility flags keep their own values underneath it and become
+ * observable again as soon as the cycle moves on.
  */
 export const getGraphContents = (): TGraphContents => {
+  if (cleanSetting.get()) {
+    return 'clean';
+  }
   if (soloSetting.get()) {
     return 'wave';
-  }
-  if (coverageSetting.get()) {
-    return 'clean';
   }
   if (waveSetting.get()) {
     return 'curves';
@@ -409,13 +417,11 @@ export const getGraphContents = (): TGraphContents => {
  * is what the others are read against — so hiding it takes the plot to the wave,
  * and showing it again brings everything back.
  *
- * The coverage wash is set from here too, and it is the one value in the machine
- * with a second writer: `toggleGraphCoverage`, the menu switch. That is not a
- * crack in the rule, it is what the rule buys. The switch moves one flag and
- * names no state, so it can only ever land on `clean` and come straight back to
- * whatever was underneath — which is the whole reason `getGraphContents` asks
- * about coverage before it asks about the wave. Every other flag here still has
- * exactly one writer, and this one is reversible precisely because it does not.
+ * Clean is deliberately separate from the individual visibility preferences.
+ * Reusing the coverage flag made "Clean" mean only "hide listening bands" and
+ * also made that independent menu switch unexpectedly change the Ctrl+W state.
+ * The explicit flag lets the renderer clear everything without destroying the
+ * arrangement that should return afterwards.
  *
  * A `function` rather than a `const`, so it hoists. Everything that changes what
  * the plot shows now comes through here, and two of those — the wave toggle and
@@ -427,10 +433,7 @@ export function setGraphContents(next: TGraphContents) {
   setWaveHidden(next === 'curves');
   setEqQuiet(next === 'layers');
   setCurveHidden('eq', next === 'wave');
-  // Solo drops the wash anyway — the whole overlay leaves with the curves — so
-  // this is what keeps `wave` and `clean` from disagreeing about a flag that is
-  // invisible in one of them and would come back on the way out.
-  setCoverageHidden(next === 'clean' || next === 'wave');
+  cleanSetting.set(next === 'clean');
 }
 
 /**
@@ -491,21 +494,19 @@ export const showEqCurve = () => {
  * menu that worked each of them out from a different flag is exactly how it
  * ended up offering to hide a curve that was already gone.
  *
- * Coverage is in here because the state is derived from it now. Left out, the
- * cycle row would go on saying "Everything" after the columns were switched off
- * two rows below it, until some unrelated render knocked it loose — which is
- * the same class of fault as the one above, arriving through the newest flag.
+ * Clean has its own subscription because it is the state now; coverage is an
+ * independent drawing preference and no longer changes this answer.
  */
 const subscribeContents = (listener: () => void) => {
   soloListeners.add(listener);
   waveListeners.add(listener);
   quietEqListeners.add(listener);
-  const stopCoverage = coverageSetting.subscribe(listener);
+  const stopClean = cleanSetting.subscribe(listener);
   return () => {
     soloListeners.delete(listener);
     waveListeners.delete(listener);
     quietEqListeners.delete(listener);
-    stopCoverage();
+    stopClean();
   };
 };
 
@@ -718,6 +719,10 @@ function setWaveHidden(next: boolean) {
  * `setLiveOutputSolo` states from the other side.
  */
 export const toggleGraphWave = () => {
+  if (cleanSetting.get()) {
+    setGraphContents('everything');
+    return;
+  }
   if (!waveSetting.get() && soloSetting.get()) {
     setGraphContents('curves');
     return;
@@ -850,6 +855,11 @@ function setCurveHidden(curve: TGraphCurve, next: boolean) {
  * `setGraphContents`.
  */
 export const toggleGraphCurve = (curve: TGraphCurve) => {
+  if (cleanSetting.get()) {
+    setGraphContents('everything');
+    setCurveHidden(curve, false);
+    return;
+  }
   const hidden = curvesSetting.get();
   setCurveHidden(curve, !hidden.includes(curve));
 };
@@ -1086,6 +1096,11 @@ const gridSetting = createPerViewSetting(
 );
 
 export const toggleGraphGrid = () => {
+  if (cleanSetting.get()) {
+    cleanSetting.set(false);
+    gridSetting.set(false);
+    return;
+  }
   gridSetting.set(!gridSetting.get());
 };
 
@@ -1107,21 +1122,9 @@ export const useGraphGridHidden = () =>
  * video, or on a graph somebody is using as a visualiser, they are nine grey
  * rectangles across the picture.
  *
- * A menu switch AND the fourth stop of the Ctrl+W cycle, which it was not. The
- * objection to putting it in the cycle was length: that cycle is what the plot
- * is *about*, walked with one key, and an extra stop for a background wash
- * would have made everybody pass through it to reach the states they use.
- *
- * That objection is answered rather than overruled. The cycle is still five
- * stops long, because `clean` took the place of `layersAlone` instead of being
- * added beside it — a stop that only changed the weight of one line, traded for
- * the state somebody watches a scan run in. Nobody walks further than before.
- *
- * So hidden here no longer means hidden until said otherwise: the cycle writes
- * this flag now, and stepping off `clean` brings the columns back. The switch
- * is still worth having, because it is the way in and out of that one state
- * without walking the other four — and because it is exactly reversible, which
- * is what `getGraphContents` asking about coverage before the wave is for.
+ * This remains independent from the Ctrl+W states. Hiding listening bands is a
+ * useful graph arrangement of its own; it must not accidentally become the
+ * completely blank Clean mode.
  *
  * The progress bars along the foot are not covered by this. They are two pixels
  * of the plot's height and they are the part that answers "is it still working",
@@ -1151,12 +1154,17 @@ function setCoverageHidden(next: boolean) {
  * The menu switch: the one control that moves a value in the machine without
  * naming a state.
  *
- * Deliberately not routed through `setGraphContents`, because what makes it
- * reversible is everything it does *not* touch. It leaves `eqQuiet` alone, so
- * hiding the columns from `layers` derives `clean` and showing them again finds
- * the quiet line still set and gives `layers` straight back.
+ * Deliberately not routed through `setGraphContents`: coverage is an
+ * independent preference and no longer names the Clean state. From Clean, the
+ * effective control says "show", so that one press leaves Clean and restores
+ * the columns without disturbing the other remembered graph preferences.
  */
 export const toggleGraphCoverage = () => {
+  if (cleanSetting.get()) {
+    cleanSetting.set(false);
+    setCoverageHidden(false);
+    return;
+  }
   setCoverageHidden(!coverageSetting.get());
 };
 

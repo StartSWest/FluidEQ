@@ -54,10 +54,9 @@ import {
 import { getStreakJoy } from 'common/rhythmGame';
 import { easeTowards, getEaseFactor } from 'common/smoothing';
 import {
+  WAVEFORM_STYLES,
   WaveformStyle,
   createWaveformShape,
-  nextWaveformStyle,
-  previousWaveformStyle,
 } from 'common/waveformStyles';
 import {
   BASELINE_DASH,
@@ -110,9 +109,23 @@ import {
   useIsEuphoriaAchieved,
   useIsEuphoric,
 } from './utils/euphoriaMode';
-import { useTitlebarWaveHidden } from './utils/graphStyle';
+import { toggleTitlebarWave, useTitlebarWaveHidden } from './utils/graphStyle';
 import { useTranslation } from './utils/I18nContext';
 import './styles/WaveformVisualizer.scss';
+
+type TWaveformCycleStyle = WaveformStyle | 'off';
+
+const WAVEFORM_CYCLE: readonly TWaveformCycleStyle[] = [
+  ...WAVEFORM_STYLES,
+  'off',
+];
+
+const LEGACY_WAVE_OFF_MIGRATION_KEY = 'fluideq.waveOffStateMigrated';
+
+const isWaveformCycleStyle = (
+  value: string | null,
+): value is TWaveformCycleStyle =>
+  value === 'off' || WAVEFORM_STYLES.includes(value as WaveformStyle);
 
 const WaveformVisualizer = () => {
   const isTitlebarWaveHidden = useTitlebarWaveHidden();
@@ -133,14 +146,6 @@ const WaveformVisualizer = () => {
   // the support panel it used to open in euphoria is still one click away on
   // the creature beside it.
   const { isActive, isPaused } = useLiveAudioControl();
-  // This meter is mounted for the life of the window — see its render site in
-  // `App.tsx` for why it stays put behind the hidden titlebar rather than
-  // unmounting. That makes it the owner whose claim decides what an idle
-  // FluidEQ costs: while the window is on screen the loopback is open and the
-  // trace is live, and the moment the window is minimised the claim releases,
-  // the endpoint is given back and the device may sleep.
-  useLiveAudioCapture();
-
   // Every sample eased toward the new frame instead of jumping to it.
   //
   // The analyser publishes about twenty-two times a second, which is fast
@@ -161,16 +166,48 @@ const WaveformVisualizer = () => {
   // being handed back a different meter every morning is not charming. The
   // first-run default is `spectrum` — the site's signal-deck look, and the
   // one this pane is designed around; other styles are behind clicks.
-  const [style, setStyle] = useState<WaveformStyle>(() => {
+  const migratedLegacyOffRef = useRef(false);
+  const [style, setStyle] = useState<TWaveformCycleStyle>(() => {
     try {
-      return (window.localStorage.getItem(WAVEFORM_STYLE_KEY) ||
-        'fluid') as WaveformStyle;
+      const stored = window.localStorage.getItem(WAVEFORM_STYLE_KEY);
+      // The first implementation encoded the cycle's final stop by hiding the
+      // whole pane and resetting its style to the first entry. Convert that
+      // exact legacy pair once so somebody already stranded there gets the new
+      // visible Off state instead of needing an invisible click target.
+      if (
+        isTitlebarWaveHidden &&
+        stored === WAVEFORM_STYLES[0] &&
+        window.localStorage.getItem(LEGACY_WAVE_OFF_MIGRATION_KEY) !== 'true'
+      ) {
+        window.localStorage.setItem(LEGACY_WAVE_OFF_MIGRATION_KEY, 'true');
+        window.localStorage.setItem(WAVEFORM_STYLE_KEY, 'off');
+        migratedLegacyOffRef.current = true;
+        return 'off';
+      }
+      return isWaveformCycleStyle(stored) ? stored : 'fluid';
     } catch {
       return 'fluid';
     }
   });
-  const styleRef = useRef(style);
-  styleRef.current = style;
+  const isOff = style === 'off';
+  const drawableStyle: WaveformStyle = isOff ? 'fluid' : style;
+  const styleRef = useRef<WaveformStyle>(drawableStyle);
+  styleRef.current = drawableStyle;
+  const isOffRef = useRef(isOff);
+  isOffRef.current = isOff;
+
+  // Hidden is only a presentation preference; Off is the cycle state that
+  // actually releases this visualiser's analyser claim while leaving its
+  // button on screen so it can be clicked back on.
+  useLiveAudioCapture(!isOff);
+
+  useEffect(() => {
+    if (!migratedLegacyOffRef.current || !isTitlebarWaveHidden) {
+      return;
+    }
+    migratedLegacyOffRef.current = false;
+    toggleTitlebarWave();
+  }, [isTitlebarWaveHidden]);
 
   // A brief announcement of the style the click just landed on. Shown for
   // two seconds in a pill on the pane and then faded out. It lives in DOM
@@ -178,7 +215,8 @@ const WaveformVisualizer = () => {
   // card itself. The name stays in state through the fade so there is
   // still something to fade away — clearing it when the timer fires would
   // cut the animation at the instant it starts.
-  const [announcedStyle, setAnnouncedStyle] = useState<WaveformStyle>(style);
+  const [announcedStyle, setAnnouncedStyle] =
+    useState<TWaveformCycleStyle>(style);
   const [isAnnouncementVisible, setIsAnnouncementVisible] = useState(false);
   const announcementTimerRef = useRef<number | null>(null);
 
@@ -189,9 +227,12 @@ const WaveformVisualizer = () => {
       // the styles to come back one step.
       const goingBack = event.ctrlKey || event.metaKey;
       setStyle((current) => {
-        const next = goingBack
-          ? previousWaveformStyle(current)
-          : nextWaveformStyle(current);
+        const at = WAVEFORM_CYCLE.indexOf(current);
+        const direction = goingBack ? -1 : 1;
+        const next =
+          WAVEFORM_CYCLE[
+            (at + direction + WAVEFORM_CYCLE.length) % WAVEFORM_CYCLE.length
+          ] ?? 'fluid';
         try {
           window.localStorage.setItem(WAVEFORM_STYLE_KEY, next);
         } catch {
@@ -251,7 +292,10 @@ const WaveformVisualizer = () => {
   isPausedRef.current = isPaused;
   // Resolved on the render that changes the style rather than on every frame,
   // so the loop allocates nothing it does not hand to the rasteriser.
-  const paint = useMemo(() => resolveStylePaint(style), [style]);
+  const paint = useMemo(
+    () => resolveStylePaint(drawableStyle),
+    [drawableStyle],
+  );
   const paintRef = useRef(paint);
   paintRef.current = paint;
   // The freq-domain points, kept in a ref so the frame loop reads whatever
@@ -433,6 +477,13 @@ const WaveformVisualizer = () => {
     context.lineTo(WAVEFORM_BLEED + boxWidth, centre);
     context.stroke();
     context.setLineDash(NO_DASH);
+
+    // Off is still a visible, clickable instrument. Its static paper remains
+    // so the titlebar does not turn into an unexplained empty capsule; only the
+    // live figure and the analyser work below this point stop.
+    if (isOffRef.current) {
+      return false;
+    }
 
     // Spectrum bars — imperative rather than through the shape, because
     // each bar carries its own hue and its own vertical gradient and a
@@ -693,6 +744,9 @@ const WaveformVisualizer = () => {
 
   // A new measurement is a new target, and a reason to start moving again.
   useEffect(() => {
+    if (isOff) {
+      return;
+    }
     targetRef.current = waveform;
     if (smoothedRef.current.length !== waveform.length) {
       // First frame, or the analyser changed size. Nothing to ease from, so
@@ -700,7 +754,7 @@ const WaveformVisualizer = () => {
       smoothedRef.current = waveform.slice();
     }
     kickFrames();
-  }, [kickFrames, waveform]);
+  }, [isOff, kickFrames, waveform]);
 
   // Held peak, so the number is readable instead of a blur of digits.
   // Back in state because the readout is DOM again: it sits in the meta
@@ -724,6 +778,9 @@ const WaveformVisualizer = () => {
   const heldPeakRef = useRef<number | undefined>(undefined);
 
   useEffect(() => {
+    if (isOff) {
+      return;
+    }
     const framePeak = peakDbOf(waveform);
     const previous = heldPeakRef.current;
     let next: number | undefined;
@@ -745,7 +802,7 @@ const WaveformVisualizer = () => {
       heldPeakRef.current = shown;
       setHeldPeak(shown);
     }
-  }, [waveform]);
+  }, [isOff, waveform]);
 
   // The capture's own verdict, from railed samples — the app's one
   // definition of clipping, and the same one the sidebar meter uses.
@@ -795,9 +852,9 @@ const WaveformVisualizer = () => {
         // but it stays, because it is the only place the current style is
         // legible to anything outside this component now that the drawing is a
         // bitmap.
-        className={`waveform-visualizer waveform-visualizer--${style}${isActive ? ' is-active' : ''}${
-          isPaused ? ' is-paused' : ''
-        }${isOverloading ? ' is-clipping' : ''}`}
+        className={`waveform-visualizer waveform-visualizer--${style}${isActive && !isOff ? ' is-active' : ''}${
+          isPaused && !isOff ? ' is-paused' : ''
+        }${isOverloading && !isOff ? ' is-clipping' : ''}${isOff ? ' is-off' : ''}`}
         // Says what pressing it does AND which style is currently drawn — the
         // second half is the only place the choice is legible now that the
         // meter has eleven of them, and hovering is the fastest way to tell
@@ -812,24 +869,26 @@ const WaveformVisualizer = () => {
         {/* The meta row, in DOM and outside the stage so it can sit flush
             against the top of the pane. Only the waveform below it is
             inset; these hug the edge. */}
-        <span className="waveform-visualizer__meta">
-          <span className="waveform-visualizer__signal">
-            <span className="waveform-visualizer__signal-dot" />
-            {t(isActive ? 'waveform.live' : 'waveform.signal')}
-          </span>
-          <span className="waveform-visualizer__readout">
-            {/* Clipping outranks the number: once it is lit, the number is
-                the least interesting thing on the pane. */}
-            {isOverloading && (
-              <span className="waveform-visualizer__clip">
-                {t('waveform.clip')}
+        {!isOff && (
+          <span className="waveform-visualizer__meta">
+            <span className="waveform-visualizer__signal">
+              <span className="waveform-visualizer__signal-dot" />
+              {t(isActive ? 'waveform.live' : 'waveform.signal')}
+            </span>
+            <span className="waveform-visualizer__readout">
+              {/* Clipping outranks the number: once it is lit, the number is
+                  the least interesting thing on the pane. */}
+              {isOverloading && (
+                <span className="waveform-visualizer__clip">
+                  {t('waveform.clip')}
+                </span>
+              )}
+              <span className="waveform-visualizer__peak">
+                {heldPeak === undefined ? '—' : `${heldPeak.toFixed(1)} dB`}
               </span>
-            )}
-            <span className="waveform-visualizer__peak">
-              {heldPeak === undefined ? '—' : `${heldPeak.toFixed(1)} dB`}
             </span>
           </span>
-        </span>
+        )}
         {/* The stage: a wrapper whose only job is to clip the canvas to
             the pane's rounded shape. The canvas is deliberately grown
             past the pane on every side so the trace's bloom has somewhere
@@ -870,12 +929,12 @@ const WaveformVisualizer = () => {
             `role="status"` reaches a reader for the same brief window. */}
         <span
           className={`waveform-visualizer__announcement${
-            isAnnouncementVisible ? ' is-visible' : ''
+            isOff || isAnnouncementVisible ? ' is-visible' : ''
           }`}
           role="status"
-          aria-hidden={!isAnnouncementVisible}
+          aria-hidden={!isOff && !isAnnouncementVisible}
         >
-          {announcedStyle}
+          {isOff ? style : announcedStyle}
         </span>
       </button>
       {/* The switch, and only for someone who has already reached the ceiling

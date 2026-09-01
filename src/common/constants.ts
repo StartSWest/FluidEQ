@@ -769,6 +769,14 @@ export interface IAudioDevice {
   guid: string;
   isDefault: boolean;
   isActive: boolean;
+  /**
+   * Whether Equalizer APO is registered on this particular Windows endpoint.
+   *
+   * `null`/missing means Windows could not answer, not that APO is absent. The
+   * renderer only warns on an explicit `false`, so a registry read failure
+   * cannot send somebody into the Device Selector on a guess.
+   */
+  isEqualizerApoAttached?: boolean | null;
 }
 
 export interface IDeviceProfileAssignment {

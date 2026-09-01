@@ -170,17 +170,18 @@ describe('the now playing bar', () => {
     expect(star.getAttribute('aria-pressed')).toBe('true');
   });
 
-  it('offers a Stop that clears the queue entirely (blocker 1)', async () => {
-    // The state-machine bug this guards: a video queue that reaches either
-    // end with `repeat: 'off'` has nothing that ever clears `videoTrackId`
-    // (see `LibraryWorkspace`'s gating and `advanceQueue`'s hold-at-the-edge
-    // behaviour) except this control. A happy-path render assertion would
-    // never see that — only a real click on Stop proves the bar exposes a
-    // way out at all.
+  it('offers the same stop-and-rewind command as the other player bars', async () => {
+    // The player owns the reset semantics; this proves the always-visible bar
+    // sends Stop to that exact loaded instance even from another tab.
     const onStop = jest.fn();
     bar({ onStop });
     await userEvent.click(screen.getByRole('button', { name: 'Stop' }));
     expect(onStop).toHaveBeenCalledTimes(1);
+  });
+
+  it('greys out Stop once the loaded Library item is paused at zero', () => {
+    bar({ isPlaying: false, positionMs: 0 });
+    expect(screen.getByRole('button', { name: 'Stop' })).toBeDisabled();
   });
 });
 
@@ -271,6 +272,47 @@ describe('the song-eq badge', () => {
     expect(
       screen.getByLabelText(/smart eq is learning this song/i),
     ).toBeVisible();
+  });
+
+  it('keeps a loaded Media source on its bar when Stop is pressed', async () => {
+    const stop = jest.fn();
+    const source: ITransportSource = {
+      owner: 'media',
+      title: 'Paused video',
+      isPlaying: false,
+      positionMs: 12_000,
+      durationMs: 60_000,
+      toggle: jest.fn(),
+      stop,
+    };
+    render(
+      <I18nProvider>
+        <SourceTransportBar source={source} />
+      </I18nProvider>,
+    );
+
+    await userEvent.click(screen.getByRole('button', { name: 'Stop' }));
+
+    expect(stop).toHaveBeenCalledTimes(1);
+    expect(screen.getByText('Paused video')).toBeVisible();
+  });
+
+  it('greys out Media Stop once its loaded source is paused at zero', () => {
+    const source: ITransportSource = {
+      owner: 'media',
+      title: 'Stopped video',
+      isPlaying: false,
+      positionMs: 0,
+      durationMs: 60_000,
+      toggle: jest.fn(),
+      stop: jest.fn(),
+    };
+    render(
+      <I18nProvider>
+        <SourceTransportBar source={source} />
+      </I18nProvider>,
+    );
+    expect(screen.getByRole('button', { name: 'Stop' })).toBeDisabled();
   });
 
   /**

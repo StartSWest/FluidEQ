@@ -335,32 +335,11 @@ export default function SupportDialog({
         aria-modal="true"
         aria-labelledby="support-dialog-title"
       >
-        {/* Outside the scrolling area, and first in the panel.
-            It used to live in the header, and the header scrolls — so on any
-            window short enough to need a scrollbar the way out of the dialog
-            slid off the top edge the moment anyone scrolled down to read the
-            rest of it, leaving Escape and the backdrop as the only exits. */}
-        <button
-          ref={closeRef}
-          type="button"
-          className="support-dialog__close"
-          aria-label={t('support.close')}
-          onClick={onClose}
-        >
-          <svg viewBox="0 0 12 12" aria-hidden="true">
-            <path d="M3 3l6 6M9 3l-6 6" />
-          </svg>
-        </button>
-
-        {/* Everything that scrolls, which is everything except the way out. */}
-        <div className="support-dialog__scroll">
-          {/* Which app this is.
-
-              Everywhere else the name is in the titlebar, and this panel is the
-              one thing reachable when the titlebar is not on screen — the
-              creature is in the corner over a full-screen video, and clicking
-              it opens a window with a mascot, a QR code and no indication of
-              what it belongs to. */}
+        {/* A real, fixed header rather than three items floating independently
+            over the body. It stays outside the scrolling area, so the app
+            identity, the active mode and the way out remain available in every
+            window size. */}
+        <div className="support-dialog__topbar">
           <div className="support-dialog__brand">
             <BrandMark />
             <span>
@@ -370,17 +349,28 @@ export default function SupportDialog({
               )}
             </span>
           </div>
-          {/* Euphoria, announced across the whole panel.
-              A row of its own above both columns rather than a tag in the
-              corner of the trace: the mode is not something the waveform is
-              doing, it is what the entire window is doing, and the badge for it
-              should be the first thing read rather than the thing sitting on
-              top of the picture it describes. */}
+
           {isEuphoric && (
             <span className="euphoria-pill support-dialog__mode">
               {t('support.game.euphoria')}
             </span>
           )}
+
+          <button
+            ref={closeRef}
+            type="button"
+            className="support-dialog__close"
+            aria-label={t('support.close')}
+            onClick={onClose}
+          >
+            <svg viewBox="0 0 12 12" aria-hidden="true">
+              <path d="M3 3l6 6M9 3l-6 6" />
+            </svg>
+          </button>
+        </div>
+
+        {/* Everything that scrolls, which is everything except the way out. */}
+        <div className="support-dialog__scroll">
           {/* The creature, her title, and the thing she is jumping. Grouped
               because the two travel together into the left column when the
               panel splits, and the trace has to stay directly under her. */}

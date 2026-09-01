@@ -60,6 +60,7 @@ const readStored = (): IDspSettings => {
       exciter: { ...settings.exciter, isolate: false },
       bassForge: { ...settings.bassForge, isolate: false },
       bassPunch: { ...settings.bassPunch, isolate: false },
+      denoise: { ...settings.denoise, isolate: false },
     };
   } catch {
     // Unreadable or unparseable storage is the same answer as no storage;
