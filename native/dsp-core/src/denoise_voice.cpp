@@ -261,8 +261,12 @@ bool read_initial_state(VoiceRuntime& runtime) {
       return false;
     }
     out.assign(value);
-    api->AllocatorFree(allocator, value);
-    return true;
+    // Freeing cannot fail in a way this lambda can act on — the string is
+    // already copied out — but the status is inspected rather than dropped so
+    // that the compiler's rule holds everywhere and this file needs no
+    // exemption.
+    const bool freed = api->AllocatorFree(allocator, value) == nullptr;
+    return freed;
   };
 
   std::string size_text;
@@ -754,8 +758,13 @@ int denoise_voice_load_model(FeqDenoise* denoise, const char* model_path,
     // One thread each. The worker is already off the audio thread and ORT
     // spawning its own pool would put unpredictable scheduling next to a
     // real-time callback for no throughput this needs.
-    api->SetIntraOpNumThreads(runtime->options, 1);
-    api->SetInterOpNumThreads(runtime->options, 1);
+    //
+    // The status was discarded here until Clang refused to compile it. MSVC
+    // does not diagnose a dropped `warn_unused_result`, so on Windows a
+    // session that silently kept ORT's default pool looked identical to one
+    // that had been pinned to a single thread.
+    ok = api->SetIntraOpNumThreads(runtime->options, 1) == nullptr;
+    ok = ok && api->SetInterOpNumThreads(runtime->options, 1) == nullptr;
   }
 #if defined(_WIN32)
   std::wstring wide;
