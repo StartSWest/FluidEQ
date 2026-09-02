@@ -360,6 +360,30 @@ if(WIN32)
   target_link_libraries(fluideq-dsp-host PRIVATE
     ole32 avrt mfplat mfreadwrite mfuuid propsys psapi)
 
+elseif(APPLE)
+  # Apple Silicon only. Universal is a flag rather than a port, but a second
+  # architecture doubles what the frozen parity corpus has to be checked
+  # against, and that is a cost to pay when somebody needs it.
+  set(CMAKE_OSX_ARCHITECTURES "arm64" CACHE STRING "" FORCE)
+  target_sources(fluideq-dsp-host PRIVATE
+    dsp-host/src/platform/macos/coreaudio_backend.cpp
+    # The two stubs, for now: this branch REPLACES the else() that used to
+    # supply them, and without them the host does not link — which would
+    # leave this task with nothing to run. Task 5 swaps the first for a mach
+    # implementation, Task 6 the second for AudioToolbox.
+    dsp-host/src/platform/unsupported_process_stats.cpp
+    dsp-host/src/decoders/platform/unsupported_media_decoder.cpp)
+  # All three ship with macOS. AUHAL is a user-mode audio unit: no driver, no
+  # kernel extension, nothing to install and nothing to sign — the same
+  # property that made WASAPI the right answer on Windows.
+  target_link_libraries(fluideq-dsp-host PRIVATE
+    "-framework CoreAudio"
+    "-framework AudioToolbox"
+    "-framework AudioUnit"
+    "-framework CoreFoundation")
+  find_package(Threads REQUIRED)
+  target_link_libraries(fluideq-dsp-host PRIVATE Threads::Threads)
+
 else()
   target_sources(fluideq-dsp-host PRIVATE
     dsp-host/src/platform/unsupported_backend.cpp
