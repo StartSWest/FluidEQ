@@ -114,9 +114,16 @@ typedef struct FeqBassForgeSettings {
    * divider's floor; see `kDividerFloor` in `bass_forge.cpp`.
    */
   double drive_db;
-  /** The octave below, 0 to 1. For hardware that can radiate it. */
+  /**
+   * The octave below, 0 to 2. For hardware that can radiate it.
+   *
+   * Two rather than one because an amount is multiplied by `mix` on its way in
+   * and the profiles sit around half of that, so a ceiling of one put the top
+   * of this dial at half the effect the generator can make. `kMaxAmount` in
+   * `bass_forge.cpp` carries the measurement and why the ceiling is not four.
+   */
   double sub_amount;
-  /** The harmonics above, 0 to 1. For hardware that cannot. */
+  /** The harmonics above, 0 to 2. For hardware that cannot. @see sub_amount */
   double presence_amount;
   /**
    * Even against odd in the presence recipe, 0 to 1.

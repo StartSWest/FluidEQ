@@ -424,6 +424,33 @@ describe('bass stages clamp', () => {
   });
 
   /**
+   * Forge's two generators reach two; everything shaped like a blend does not.
+   *
+   * The generators make new content and are multiplied by `mix` on the way in,
+   * so their ceiling is not the same number as a fraction's. `mix` itself,
+   * Punch's `bloomAmount` and its `duck` are all fractions of something that
+   * already exists, and a fraction above one has stopped meaning what it says
+   * — which is why widening the shared `bassAmount` range would have been the
+   * wrong fix.
+   */
+  it('lets Sub and Presence reach two while every blend stops at one', () => {
+    const clamped = clampDspSettings({
+      bassForge: { subAmount: 2, presenceAmount: 1.5, mix: 2 },
+      bassPunch: { bloomAmount: 2 },
+    });
+    expect(clamped.bassForge.subAmount).toBe(2);
+    expect(clamped.bassForge.presenceAmount).toBe(1.5);
+    expect(clamped.bassForge.mix).toBe(1);
+    expect(clamped.bassPunch.bloomAmount).toBe(1);
+
+    const over = clampDspSettings({
+      bassForge: { subAmount: 9, presenceAmount: -3 },
+    });
+    expect(over.bassForge.subAmount).toBe(2);
+    expect(over.bassForge.presenceAmount).toBe(0);
+  });
+
+  /**
    * Settings stored before these stages existed must load, and must load with
    * both stages off. A stage that arrives switched on after an update is a
    * user's sound changing while they were not looking.

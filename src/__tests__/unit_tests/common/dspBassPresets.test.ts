@@ -17,6 +17,7 @@ import { DSP_DEFAULTS, clampDspSettings } from '../../../common/dsp/chain';
 import {
   BASS_FORGE_PRESET_BY_ID,
   BASS_FORGE_PRESETS,
+  IBassForgePresetSettings,
   bassForgePresetSettings,
   isBassForgePresetId,
 } from '../../../common/dsp/bassForgePresets';
@@ -53,6 +54,49 @@ describe('bass forge profiles', () => {
     expect(
       BASS_FORGE_PRESET_BY_ID.laptop.settings.presenceAmount,
     ).toBeGreaterThan(0.5);
+  });
+
+  /**
+   * No profile may be quiet enough to be indistinguishable from bypass.
+   *
+   * Both amounts are multiplied by `mix` before they reach the band, so depth
+   * is their sum against it and not either one alone — which is how `subtle`
+   * and `dry` came to ship at 0.09 by this measure. Measured through the
+   * engine's own Isolate against a 55 Hz bass note, that was a contribution
+   * 30 dB under the programme: below where anything can be told from nothing,
+   * on a stage whose whole difficulty is that it changes timbre rather than
+   * level. The floor here is 0.2, which the quietest two now clear at 0.22 and
+   * measure at -22 dB — quiet, which is what they are named for, but present.
+   *
+   * A proxy rather than the measurement: the dB figure needs the C++ engine,
+   * and `bassForgePresets.ts` carries the whole table it was solved against.
+   */
+  it('ships no profile that cannot be told apart from bypass', () => {
+    BASS_FORGE_PRESETS.forEach((preset) => {
+      const { subAmount, presenceAmount, mix } = preset.settings;
+      const depth = (subAmount + presenceAmount) * mix;
+      expect({ id: preset.id, tooQuiet: depth < 0.2 }).toEqual({
+        id: preset.id,
+        tooQuiet: false,
+      });
+    });
+  });
+
+  /**
+   * The two ordering claims the profile comments make in prose.
+   *
+   * `laptop` says it pushes presence hardest of anything in the catalogue and
+   * `dub` says it carries the most real sub; both are the reason those two
+   * profiles exist, and both are one careless edit from becoming false while
+   * the comment still asserts them.
+   */
+  it('keeps laptop the deepest phantom and dub the deepest real sub', () => {
+    const highest = (pick: (of: IBassForgePresetSettings) => number) =>
+      BASS_FORGE_PRESETS.reduce((best, preset) =>
+        pick(preset.settings) > pick(best.settings) ? preset : best,
+      ).id;
+    expect(highest((of) => of.presenceAmount)).toBe('laptop');
+    expect(highest((of) => of.subAmount)).toBe('dub');
   });
 
   /**

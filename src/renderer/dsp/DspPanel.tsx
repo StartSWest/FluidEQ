@@ -307,13 +307,18 @@ const DspPanel = ({
    * almost always the same thing — but firing on the wider condition also
    * fires when a page is ENTERED, which puts a settings write in front of the
    * user's next click and changes what that click reports back.
+   *
+   * `preservePreset` is set, because leaving a page is not editing it. Without
+   * it `patch` blanks the CHAIN's `presetId` — so switching tabs with a
+   * monitor on marked the whole rack Custom. Each card's own Isolate switch
+   * already bypasses `patch` for exactly this reason.
    */
   const selectSection = (next: TDspSection) => {
     if (next === section) {
       return;
     }
     if (isIsolatingSection(section) && settings[section].isolate) {
-      patch(withoutIsolate(settings));
+      patch(withoutIsolate(settings), true);
       onCommit();
     }
     setSection(next);

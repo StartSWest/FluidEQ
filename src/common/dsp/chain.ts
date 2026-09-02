@@ -309,7 +309,9 @@ export interface IBassForgeSettings {
   /** Below this, the band Forge builds its low end from. */
   splitHz: number;
   driveDb: number;
+  /** 0 to 2, not 0 to 1 like `mix`. @see RANGES.bassForgeAmount */
   subAmount: number;
+  /** 0 to 2, not 0 to 1 like `mix`. @see RANGES.bassForgeAmount */
   presenceAmount: number;
   /** Spans further than the Exciter's does. @see RANGES.bassForgeTexture */
   texture: number;
@@ -976,6 +978,23 @@ const RANGES = {
   bassSplitHz: { min: 40, max: 200 },
   bassForgeDriveDb: { min: 0, max: 12 },
   bassAmount: { min: 0, max: 1 },
+  /**
+   * Forge's two generators reach two; every other bass dial stays a blend.
+   *
+   * Separate from `bassAmount` rather than a widening of it, because that
+   * range also bounds Forge's `mix` and Punch's `bloomAmount` and `duck` —
+   * all three are fractions of something that already exists, and a fraction
+   * above one is not a bigger effect, it is a fraction that stopped meaning
+   * what it says.
+   *
+   * Sub and Presence are not fractions. They are how much NEW content the
+   * generators make relative to the band, and they are multiplied by `mix`
+   * before they arrive. The catalogue's profiles mix around 0.5, so a ceiling
+   * of one meant the top of both dials delivered half of what the stage can
+   * do. `kMaxAmount` in `bass_forge.cpp` holds the measurement, including why
+   * the ceiling is two and not four and why the level rule survives it.
+   */
+  bassForgeAmount: { min: 0, max: 2 },
   /**
    * The full even-to-odd span, unlike the Exciter's 0.7 ceiling.
    *
@@ -2043,12 +2062,12 @@ export const clampDspSettings = (value: unknown): IDspSettings => {
       ),
       subAmount: clampNumber(
         bassForge.subAmount,
-        RANGES.bassAmount,
+        RANGES.bassForgeAmount,
         DSP_DEFAULTS.bassForge.subAmount,
       ),
       presenceAmount: clampNumber(
         bassForge.presenceAmount,
-        RANGES.bassAmount,
+        RANGES.bassForgeAmount,
         DSP_DEFAULTS.bassForge.presenceAmount,
       ),
       texture: clampNumber(

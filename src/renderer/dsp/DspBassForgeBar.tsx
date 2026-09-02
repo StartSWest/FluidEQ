@@ -41,8 +41,13 @@ interface IDspBassForgeBarProps {
  */
 const profileHint = (preset: IBassForgePreset): string =>
   [
-    `${Math.round(preset.settings.subAmount * 100)}%`,
-    `${Math.round(preset.settings.presenceAmount * 100)}%`,
+    // Sub and Presence are plain numbers rather than percentages, and Mix
+    // stays a percentage, because that is what each one is: the two amounts
+    // reach 2 and say how much content the generators make relative to the
+    // band, while Mix is a fraction of what they made. Rendering `1.85` as
+    // "185%" both reads as a mistake and disagrees with the dial beneath it.
+    preset.settings.subAmount.toFixed(2),
+    preset.settings.presenceAmount.toFixed(2),
     preset.settings.texture.toFixed(2),
     `+${preset.settings.driveDb.toFixed(1)} dB`,
     `${Math.round(preset.settings.mix * 100)}%`,
