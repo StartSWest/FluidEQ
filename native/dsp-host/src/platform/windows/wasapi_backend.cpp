@@ -23,6 +23,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <atomic>
 #include <cstdio>
+#include <cstdlib>
 #include <string>
 #include <thread>
 #include <vector>
@@ -166,6 +167,10 @@ class WasapiBackend final : public IAudioOutputBackend {
       negotiated = format_;
       return true;
     }
+    // Cleared per attempt, not per process: a machine can gain an endpoint
+    // between two opens — plugging in a USB DAC is exactly that — and a latched
+    // answer would keep reporting the silence it found the first time.
+    endpoint_absent_ = false;
     if (!prepare(error)) {
       teardown();
       return false;
@@ -174,6 +179,8 @@ class WasapiBackend final : public IAudioOutputBackend {
     open_.store(true, std::memory_order_release);
     return true;
   }
+
+  bool endpoint_absent() const override { return endpoint_absent_; }
 
   bool start(std::string& error) override {
     if (!is_open()) {
@@ -243,6 +250,27 @@ class WasapiBackend final : public IAudioOutputBackend {
   const char* name() const override { return "wasapi-shared"; }
 
  private:
+  /**
+   * Pretend this machine has no endpoint, so the silent-machine path can be
+   * tested on a machine that has one.
+   *
+   * `smoke-native-dsp.ts` uses it as the positive control for its own skip: a
+   * branch that only ever runs on a build agent is a branch nobody has run,
+   * and the whole point of the skip is that it must not be reachable by
+   * accident. Deliberately not a build flag — the binary under test has to be
+   * the binary that ships, or the control proves something about a different
+   * program.
+   */
+  static bool forced_absent() {
+    size_t length = 0;
+    char value[8] = {};
+    if (getenv_s(&length, value, sizeof(value),
+                 "FLUIDEQ_DSP_NO_ENDPOINT") != 0) {
+      return false;
+    }
+    return length > 0 && value[0] == '1';
+  }
+
   bool prepare(std::string& error) {
     // Apartment-agnostic on this thread; the render thread initialises its
     // own, because COM is per-thread and the interfaces are used from both.
@@ -280,8 +308,17 @@ class WasapiBackend final : public IAudioOutputBackend {
     reopen_.store(false, std::memory_order_release);
 
     const HRESULT endpoint =
-        enumerator->GetDefaultAudioEndpoint(eRender, eConsole, &device_);
+        forced_absent()
+            ? HRESULT_FROM_WIN32(ERROR_NOT_FOUND)
+            : enumerator->GetDefaultAudioEndpoint(eRender, eConsole, &device_);
     if (FAILED(endpoint)) {
+      /**
+       * `E_NOTFOUND` here means the machine has no render endpoint at all —
+       * a build agent, a server, a session with the audio service stopped.
+       * Every other failure is a device that exists and would not open, which
+       * is a defect. `endpoint_absent` carries that distinction out.
+       */
+      endpoint_absent_ = endpoint == HRESULT_FROM_WIN32(ERROR_NOT_FOUND);
       error = with_code("no default output device", endpoint);
       return false;
     }
@@ -490,6 +527,8 @@ class WasapiBackend final : public IAudioOutputBackend {
   HANDLE event_ = nullptr;
   UINT32 buffer_frames_ = 0;
   bool owns_com_ = false;
+  /** Read only on the control thread, between `open` and its ack. */
+  bool endpoint_absent_ = false;
 
   FeqBackendFormat format_;
   std::vector<std::vector<float>> planar_;
