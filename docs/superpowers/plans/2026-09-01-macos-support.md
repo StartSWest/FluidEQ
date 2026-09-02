@@ -143,7 +143,7 @@ Run:
 cd native && cmake --build .verify -j8
 ```
 
-Expected: PASS. `libfluideq-dsp-core.a`, all twelve test binaries and `bin/FluidEQ-DSP` build with no warnings.
+Expected: PASS. `libfluideq-dsp-core.a`, all thirteen test binaries and `bin/FluidEQ-DSP` build with no warnings.
 
 - [ ] **Step 7: Verify the suite passes, parity included**
 
@@ -153,7 +153,7 @@ Run:
 pnpm build:native-dsp --test
 ```
 
-Expected: the parity corpus is expanded to 2085 fixtures and all twelve ctest cases pass, `dsp-parity` among them.
+Expected: the parity corpus is expanded to 2085 fixtures and all thirteen ctest cases pass, `dsp-parity` among them.
 
 If `dsp-parity` fails on arm64, do NOT widen a tolerance. Record the failing case and its magnitude and stop — the spec calls for that to be examined per-test, and a global loosening would hide the one thing this corpus exists to detect.
 
@@ -1100,7 +1100,7 @@ Run:
 pnpm test:native-dsp
 ```
 
-Expected: PASS, now thirteen ctest cases.
+Expected: PASS, now fourteen ctest cases.
 
 - [ ] **Step 7: Commit**
 
@@ -2123,7 +2123,7 @@ In `.github/workflows/test.yml`, add after the existing `test` job, at the same 
       - name: Check the file encodings
         run: pnpm typecheck:encoding
 
-      # Builds the host and runs all thirteen ctest cases, parity included.
+      # Builds the host and runs all fourteen ctest cases, parity included.
       # A GitHub runner has no sound card, which the backend reports through
       # `endpoint_absent` rather than as a failure — that distinction is why
       # this job can be trusted to go red for a real reason.
@@ -2174,6 +2174,6 @@ than a red one."
 
 ## Done
 
-The engine runs on macOS: `pnpm dev` launches FluidEQ, the library plays through CoreAudio with the whole rack applied, the thirteen native tests are green, the platform-isolation check holds the layering, and CI runs all of it on both platforms.
+The engine runs on macOS: `pnpm dev` launches FluidEQ, the library plays through CoreAudio with the whole rack applied, the fourteen native tests are green, the platform-isolation check holds the layering, and CI runs all of it on both platforms.
 
 Not done, by design: system-wide capture, packaging and signing, Linux. Each is its own spec.
