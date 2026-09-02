@@ -47,6 +47,66 @@ const check = (condition: boolean, what: string) => {
   }
 };
 
+const sleep = (ms: number) =>
+  new Promise<void>((resolve) => {
+    setTimeout(resolve, ms);
+  });
+
+/**
+ * What a machine with no output endpoint answers — asked of a machine that has
+ * one.
+ *
+ * The skip further down only ever fires on a build agent, and a branch that
+ * runs nowhere a developer can see it is a branch nobody has tested. That is
+ * how a skip quietly becomes "these checks never ran anywhere".
+ * `FLUIDEQ_DSP_NO_ENDPOINT` makes the shipped binary take its silent-machine
+ * path on demand, so this control runs on every machine on every run, against
+ * the same executable the rest of the script drives.
+ *
+ * Its stderr is discarded: the host correctly prints "no default output
+ * device" and that line in the middle of a passing run reads as a fault.
+ */
+const silentMachineStartStatus = async (): Promise<number | undefined> => {
+  const host = spawn(HOST, [], {
+    stdio: ['pipe', 'pipe', 'ignore'],
+    env: { ...process.env, FLUIDEQ_DSP_NO_ENDPOINT: '1' },
+  });
+  let pending = Buffer.alloc(0);
+  let status: number | undefined;
+  host.stdout.on('data', (chunk: Buffer) => {
+    pending = Buffer.concat([pending, chunk]);
+    for (;;) {
+      if (pending.length < 4) {
+        return;
+      }
+      const magic = pending.readUInt32LE(0);
+      const length = frameLengthFor(magic);
+      if (length === 0 || pending.length < length) {
+        return;
+      }
+      const frame = pending.subarray(0, length);
+      pending = pending.subarray(length);
+      if (magic === 0x41514546 && status === undefined) {
+        status = decodeAck(frame)?.status;
+      }
+    }
+  });
+  host.stdin.write(
+    encodeCommand({
+      command: HOST_COMMANDS.start,
+      requestId: 1,
+      settingsRevision: 1,
+    }),
+  );
+  const deadline = Date.now() + 5000;
+  while (status === undefined && Date.now() < deadline) {
+    // eslint-disable-next-line no-await-in-loop -- polling is sequential.
+    await sleep(5);
+  }
+  host.kill();
+  return status;
+};
+
 const main = async () => {
   if (!existsSync(HOST)) {
     console.error(`smoke: host not built at ${HOST}`);
@@ -99,11 +159,6 @@ const main = async () => {
   const exited = new Promise<number>((resolve) => {
     host.on('close', (code) => resolve(code ?? -1));
   });
-
-  const sleep = (ms: number) =>
-    new Promise<void>((resolve) => {
-      setTimeout(resolve, ms);
-    });
 
   /**
    * Bounded by a real deadline, because some of these wait on real work.
@@ -246,8 +301,34 @@ const main = async () => {
     }),
   );
   await waitFor(() => acks.length >= 6, 'device start ack');
-  const started = acks[5]?.status === HOST_STATUS.applied;
-  check(started, 'the output endpoint opens');
+  const startStatus = acks[5]?.status;
+  const started = startStatus === HOST_STATUS.applied;
+  /**
+   * No sound card, which is a fact about the machine rather than a defect.
+   *
+   * The host answers UNSUPPORTED only when `GetDefaultAudioEndpoint` reports
+   * there is no render endpoint at all; a device that exists and refuses to
+   * open still answers REJECTED and still fails here. Without that
+   * distinction the weekly cold build failed every week on a runner with no
+   * sound card, which is the one signal that build exists to give.
+   */
+  const silentMachine = startStatus === HOST_STATUS.unsupported;
+
+  // The control before the skip, so the skip is never the only evidence that
+  // any of this works.
+  const controlStatus = await silentMachineStartStatus();
+  check(
+    controlStatus === HOST_STATUS.unsupported,
+    `a machine with no endpoint answers unsupported (${controlStatus})`,
+  );
+
+  if (silentMachine) {
+    console.log(
+      '  skip this machine has no output endpoint; device checks not run',
+    );
+  } else {
+    check(started, 'the output endpoint opens');
+  }
 
   if (started) {
     check(
@@ -305,7 +386,11 @@ const main = async () => {
   check(!desynchronised, 'the frame stream never desynchronised');
 
   if (failures === 0) {
-    console.log('\nall checks passed');
+    console.log(
+      silentMachine
+        ? '\nall checks passed — the device checks were skipped, no endpoint here'
+        : '\nall checks passed',
+    );
     process.exit(0);
   }
   console.error(`\n${failures} check(s) failed`);

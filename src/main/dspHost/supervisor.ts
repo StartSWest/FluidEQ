@@ -166,6 +166,9 @@ export class DspHostSupervisor {
 
   private deviceWanted = false;
 
+  /** Set per attempt, so plugging a DAC in is not answered from history. */
+  private endpointAbsent = false;
+
   /** Restored after an unexpected restart, just like the chain and device. */
   private analysisWanted = false;
 
@@ -331,12 +334,27 @@ export class DspHostSupervisor {
     this.trace('stop-complete', child);
   }
 
+  /**
+   * Did the last `openDevice` fail because this machine has no output at all?
+   *
+   * The host answers UNSUPPORTED for a machine with no render endpoint and
+   * REJECTED for a device that exists and would not open — a fact about the
+   * hardware against a defect. Both leave `openDevice` false, so a caller that
+   * only needs "is there sound" is unaffected; this is for the ones that have
+   * to tell a build agent from a broken install.
+   */
+  get noOutputEndpoint(): boolean {
+    return this.endpointAbsent;
+  }
+
   async openDevice(): Promise<boolean> {
     this.deviceWanted = true;
+    this.endpointAbsent = false;
     this.trace('device-open-requested');
     try {
       const ack = await this.send(HOST_COMMANDS.start, {});
       const applied = ack.status === HOST_STATUS.applied;
+      this.endpointAbsent = ack.status === HOST_STATUS.unsupported;
       this.trace('device-open-complete', undefined, {
         applied,
         sampleRate: ack.sanitizedValue,

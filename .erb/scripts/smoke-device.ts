@@ -117,7 +117,18 @@ const main = async (): Promise<void> => {
     await host.applyChain(encodeChainSettings(heavySettings())),
     'the heavy chain is accepted',
   );
-  check(await host.openDevice(), 'the endpoint opens');
+  const opened = await host.openDevice();
+  if (!opened && host.noOutputEndpoint) {
+    // Not a failure, and the same reasoning as the backend check above: a
+    // machine with no sound card has nothing to measure here. The host says
+    // UNSUPPORTED for that and REJECTED for a device that exists and would
+    // not open, so this cannot swallow a real refusal.
+    console.log('       no output endpoint on this machine,');
+    console.log('       skipped');
+    await host.stop();
+    process.exit(0);
+  }
+  check(opened, 'the endpoint opens');
 
   await sleep(HOLD_MS);
 

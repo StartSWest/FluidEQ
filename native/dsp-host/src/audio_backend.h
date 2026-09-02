@@ -89,6 +89,21 @@ class IAudioOutputBackend {
    */
   virtual bool open(FeqBackendFormat& negotiated, std::string& error) = 0;
 
+  /**
+   * Did the last `open` fail because this machine has no output at all?
+   *
+   * The distinction the caller needs is between a defect and a fact about the
+   * hardware. A build agent has no sound card, so opening an endpoint there
+   * fails forever and correctly, and reporting that the same way as "the
+   * device refused the format" makes a green tree indistinguishable from a
+   * broken one — which is what happened to the weekly cold build.
+   *
+   * False by default and by design. A stub that refuses everything has not
+   * discovered that a machine is silent; it has declined to look, and claiming
+   * otherwise would turn every unimplemented platform into a skipped test.
+   */
+  virtual bool endpoint_absent() const { return false; }
+
   /** Begin the real-time thread. The engine must already match the format. */
   virtual bool start(std::string& error) = 0;
 

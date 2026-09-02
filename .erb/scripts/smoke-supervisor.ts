@@ -106,16 +106,40 @@ const main = async () => {
   check(refused.status === 1, 'an unknown parameter is refused');
 
   console.log('device');
-  check(await supervisor.openDevice(), 'the device opens through the supervisor');
-  await waitFor(() => telemetry.length > 0, 'telemetry');
-  check(telemetry.length > 0, 'telemetry reaches the supervisor');
-  check(
-    (telemetry[telemetry.length - 1]?.sampleRate ?? 0) >= 44100,
-    `telemetry carries the negotiated rate (${telemetry[telemetry.length - 1]?.sampleRate})`,
-  );
+  const deviceOpened = await supervisor.openDevice();
+  /**
+   * A machine with no sound card, which is a fact rather than a defect.
+   *
+   * The host answers UNSUPPORTED only when there is no render endpoint at
+   * all — a device that exists and refuses still answers REJECTED and still
+   * fails here. Everything below that does not need audio keeps running, which
+   * is most of this script: the restart budget, the handshake refusal and the
+   * orderly shutdown are supervisor behaviour and a build agent should still
+   * be proving them.
+   */
+  const silentMachine = !deviceOpened && supervisor.noOutputEndpoint;
+  if (silentMachine) {
+    console.log('       no output endpoint on this machine; device skipped');
+  } else {
+    check(deviceOpened, 'the device opens through the supervisor');
+  }
+  // Both streams are produced by the device thread, so on a silent machine
+  // they never arrive — measured, rather than assumed: with only the open and
+  // close guarded, these four were the checks that failed and nothing else in
+  // the script did.
+  if (!silentMachine) {
+    await waitFor(() => telemetry.length > 0, 'telemetry');
+    check(telemetry.length > 0, 'telemetry reaches the supervisor');
+    check(
+      (telemetry[telemetry.length - 1]?.sampleRate ?? 0) >= 44100,
+      `telemetry carries the negotiated rate (${telemetry[telemetry.length - 1]?.sampleRate})`,
+    );
+  }
   check(await supervisor.setAnalysis(true), 'analysis is enabled');
-  await waitFor(() => analysis.length > 0, 'the first analysis frame');
-  check(analysis.length > 0, 'analysis reaches the supervisor');
+  if (!silentMachine) {
+    await waitFor(() => analysis.length > 0, 'the first analysis frame');
+    check(analysis.length > 0, 'analysis reaches the supervisor');
+  }
 
   console.log('crash recovery');
   const before = supervisor.getPid();
@@ -128,14 +152,16 @@ const main = async () => {
   );
   check(supervisor.getState() === 'ready', 'a killed host is replaced');
   check(supervisor.getPid() !== before, 'the replacement is a new process');
-  await waitFor(
-    () => analysis.length > analysisBeforeRestart,
-    'analysis from the replacement host',
-  );
-  check(
-    analysis.length > analysisBeforeRestart,
-    'the replacement restores the analysis stream',
-  );
+  if (!silentMachine) {
+    await waitFor(
+      () => analysis.length > analysisBeforeRestart,
+      'analysis from the replacement host',
+    );
+    check(
+      analysis.length > analysisBeforeRestart,
+      'the replacement restores the analysis stream',
+    );
+  }
   check(
     diagnostics
       .slice(diagnosticsBefore)
@@ -146,7 +172,12 @@ const main = async () => {
   // comes back flat looks exactly like an engine ignoring the panel.
   const afterRestart = await supervisor.setParameter(gainId, 2, -1.0, 25);
   check(afterRestart.status === 0, 'the replacement accepts commands');
-  check(await supervisor.closeDevice(), 'the device closes through the supervisor');
+  if (!silentMachine) {
+    check(
+      await supervisor.closeDevice(),
+      'the device closes through the supervisor',
+    );
+  }
 
   console.log('restart budget');
   // Three restarts are allowed inside the window; the fourth exit gives up.
@@ -245,7 +276,11 @@ const main = async () => {
   await supervisor.stop();
 
   if (failures === 0) {
-    console.log('\nall checks passed');
+    console.log(
+      silentMachine
+        ? '\nall checks passed — the device stream checks were skipped, no endpoint here'
+        : '\nall checks passed',
+    );
     process.exit(0);
   }
   console.error(`\n${failures} check(s) failed`);

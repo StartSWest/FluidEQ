@@ -1198,7 +1198,20 @@ int main(int argc, char** argv) {
         FeqBackendFormat negotiated{};
         if (!backend->open(negotiated, error)) {
           std::fprintf(stderr, "FluidEQ-DSP: %s\n", error.c_str());
-          send_ack(frame.request_id, FEQ_WIRE_REJECTED, 0, 0, 0.0);
+          /**
+           * A machine with no output endpoint is UNSUPPORTED, not REJECTED.
+           *
+           * Both mean the device did not open and the app treats them alike,
+           * so nothing downstream changes. What it buys is a caller that can
+           * tell a build agent with no sound card from a device that exists
+           * and would not open — the second is a defect and the first is a
+           * fact about the hardware, and reporting them identically is what
+           * left the weekly cold build failing on a missing sound card.
+           */
+          send_ack(frame.request_id,
+                   backend->endpoint_absent() ? FEQ_WIRE_UNSUPPORTED
+                                              : FEQ_WIRE_REJECTED,
+                   0, 0, 0.0);
           break;
         }
         state.sample_rate = negotiated.sample_rate;
