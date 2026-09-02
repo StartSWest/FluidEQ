@@ -76,3 +76,7 @@ presets/**
 native/.build/
 native/build-remote-playback/
 native/dsp-core/include/fluideq/parameters.h
+
+# Subagent-driven development scratch: ledgers, briefs and review packages.
+# The git history is the record; this is the controller working memory.
+.superpowers/
