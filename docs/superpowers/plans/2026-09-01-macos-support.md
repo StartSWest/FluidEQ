@@ -11,7 +11,7 @@
 ## Global Constraints
 
 - **Target: arm64 only.** `CMAKE_OSX_ARCHITECTURES` is `arm64`. No universal build.
-- **No Windows source may be edited.** `platform/windows/*` and the `if(WIN32)` branch of `native/CMakeLists.txt` are untouched by every task in this plan.
+- **No Windows source may be edited, and no existing Windows target may change.** `platform/windows/*` is untouched by every task in this plan. The `if(WIN32)` branch of `native/CMakeLists.txt` may gain the sources of the NEW test target in Task 4 and nothing else — no existing target's sources, flags or libraries change.
 - **The existing non-Windows `else()` branch stays.** Linux and unknown platforms keep compiling against the stub.
 - **`-Werror` is never relaxed**, for any platform or file. `dsp-host/src/decoders/vendor/vendor.cpp` keeps the single existing documented exemption and remains the only one.
 - **Platform code lives under a `platform/` directory and nowhere else.** No `#ifdef _WIN32` / `__APPLE__` / `__linux__` and no platform header outside those directories.
@@ -1739,33 +1739,34 @@ The blocking modal offers to install Equalizer APO. On macOS it must never appea
 
 - [ ] **Step 1: Gate the modal on the capability**
 
-In `src/renderer/App.tsx`, replace the `PrereqMissingModal` render block:
+Two edits in `src/renderer/App.tsx`, and no markup is duplicated — the notice that already exists below the modal is the one that shows.
 
-```tsx
-{
-  globalError && isBlockingError && window.electron.capabilities.apoConfig && (
-    <PrereqMissingModal
-      key={prereqNonce}
-      isLoading={isLoading}
-      onRetry={performHealthCheck}
-      errorMsg={globalError.shortError}
-      actionMsg={globalError.action}
-    />
-  );
-}
-{
-  globalError && isBlockingError && !window.electron.capabilities.apoConfig && (
-    <div className="workspace-notice" role="alert">
-      <div>
-        <strong>{globalError.shortError}</strong>
-        <span>{globalError.action}</span>
-      </div>
-    </div>
-  );
-}
+First, gate the modal itself. Its condition gains one term:
+
+```text
+{globalError && isBlockingError && window.electron.capabilities.apoConfig && (
+  <PrereqMissingModal
+    key={prereqNonce}
+    isLoading={isLoading}
+    onRetry={performHealthCheck}
+    errorMsg={globalError.shortError}
+    actionMsg={globalError.action}
+  />
+)}
+```
+
+Second, widen the existing `workspace-notice` block's condition so it also
+catches the blocking errors the modal no longer shows. Change ONLY its
+condition; its body stays exactly as it is:
+
+```text
+{globalError &&
+  (!isBlockingError || !window.electron.capabilities.apoConfig) && (
 ```
 
 The error is still shown, as a notice rather than a blocking modal. Swallowing it would leave a Mac with a real engine fault and a silent app; what must not happen is offering a Windows installer as the remedy.
+
+On Windows `apoConfig` is true, so the first condition reduces to what it was and the second to `!isBlockingError` — the two branches partition exactly as before.
 
 - [ ] **Step 2: Typecheck and lint**
 
@@ -2083,54 +2084,54 @@ Expected: PASS.
 
 In `.github/workflows/test.yml`, add after the existing `test` job, at the same indentation:
 
-```yaml
-macos:
-  runs-on: macos-14
+```text
+  macos:
+    runs-on: macos-14
 
-  # `pipefail` is not the default, and both a failed `pnpm install` and a
-  # missing `cmake` have already reported success on this platform because
-  # the failing command was upstream of a pipe. A green job that ran nothing
-  # is worse than a red one.
-  defaults:
-    run:
-      shell: bash -euo pipefail {0}
+    # `pipefail` is not the default, and both a failed `pnpm install` and a
+    # missing `cmake` have already reported success on this platform because
+    # the failing command was upstream of a pipe. A green job that ran nothing
+    # is worse than a red one.
+    defaults:
+      run:
+        shell: bash -euo pipefail {0}
 
-  steps:
-    - name: Check out FluidEQ
-      uses: actions/checkout@v4
+    steps:
+      - name: Check out FluidEQ
+        uses: actions/checkout@v4
 
-    - name: Install pnpm
-      uses: pnpm/action-setup@v4
-      with:
-        version: 11.7.0
-        run_install: false
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.7.0
+          run_install: false
 
-    - name: Install Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: 22
-        cache: pnpm
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
 
-    - name: Install dependencies
-      run: pnpm install --frozen-lockfile
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
 
-    # Ahead of the build, because it is seconds and it is what keeps a
-    # filter or a preset a single edit for every platform.
-    - name: Check the platform isolation
-      run: pnpm typecheck:platform
+      # Ahead of the build, because it is seconds and it is what keeps a
+      # filter or a preset a single edit for every platform.
+      - name: Check the platform isolation
+        run: pnpm typecheck:platform
 
-    - name: Check the file encodings
-      run: pnpm typecheck:encoding
+      - name: Check the file encodings
+        run: pnpm typecheck:encoding
 
-    # Builds the host and runs all thirteen ctest cases, parity included.
-    # A GitHub runner has no sound card, which the backend reports through
-    # `endpoint_absent` rather than as a failure — that distinction is why
-    # this job can be trusted to go red for a real reason.
-    - name: Build and test the native engine
-      run: pnpm test:native-dsp
+      # Builds the host and runs all thirteen ctest cases, parity included.
+      # A GitHub runner has no sound card, which the backend reports through
+      # `endpoint_absent` rather than as a failure — that distinction is why
+      # this job can be trusted to go red for a real reason.
+      - name: Build and test the native engine
+        run: pnpm test:native-dsp
 
-    - name: Run unit tests
-      run: pnpm test:unit --runInBand
+      - name: Run unit tests
+        run: pnpm test:unit --runInBand
 ```
 
 - [ ] **Step 5: Verify the workflow parses**
