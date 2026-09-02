@@ -496,8 +496,12 @@ elseif(APPLE)
   set(CMAKE_OSX_ARCHITECTURES "arm64" CACHE STRING "" FORCE)
   target_sources(fluideq-dsp-host PRIVATE
     dsp-host/src/platform/macos/coreaudio_backend.cpp
-    dsp-host/src/platform/macos/process_stats_macos.cpp
-    dsp-host/src/decoders/platform/macos/audiotoolbox_decoder.cpp)
+    # The two stubs, for now: this branch REPLACES the else() that used to
+    # supply them, and without them the host does not link — which would
+    # leave this task with nothing to run. Task 5 swaps the first for a mach
+    # implementation, Task 6 the second for AudioToolbox.
+    dsp-host/src/platform/unsupported_process_stats.cpp
+    dsp-host/src/decoders/platform/unsupported_media_decoder.cpp)
   # All three ship with macOS. AUHAL is a user-mode audio unit: no driver, no
   # kernel extension, nothing to install and nothing to sign — the same
   # property that made WASAPI the right answer on Windows.
@@ -1321,6 +1325,20 @@ bool feq_sample_process_stats(FeqProcessStats* out) {
 }
 ```
 
+Then swap the stub for it. In `native/CMakeLists.txt`, inside the `elseif(APPLE)` branch, replace this line:
+
+```text
+    dsp-host/src/platform/unsupported_process_stats.cpp
+```
+
+with:
+
+```text
+    dsp-host/src/platform/macos/process_stats_macos.cpp
+```
+
+Leave the comment above the stub list alone except to drop the sentence naming this task; the decoder stub stays until Task 6.
+
 - [ ] **Step 2: Build**
 
 Run:
@@ -1547,6 +1565,20 @@ FeqDecoderOps feq_media_decoder_ops(void) {
   return ops;
 }
 ```
+
+Then swap the stub for it. In `native/CMakeLists.txt`, inside the `elseif(APPLE)` branch, replace this line:
+
+```text
+    dsp-host/src/decoders/platform/unsupported_media_decoder.cpp
+```
+
+with:
+
+```text
+    dsp-host/src/decoders/platform/macos/audiotoolbox_decoder.cpp
+```
+
+That is the last stub in the branch, so delete the comment that introduced them as temporary.
 
 - [ ] **Step 2: Build**
 
