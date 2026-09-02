@@ -59,6 +59,44 @@ interface IDspPanelProps {
 }
 
 /**
+ * The five sections that own an isolate switch. Each id IS its settings key.
+ *
+ * One list rather than a branch per stage, because a branch per stage is what
+ * shipped broken: the two clearing paths below named denoise, EQ and the
+ * Exciter, and neither was extended when Bass Forge and Bass Punch grew
+ * isolate switches of their own. Leaving either page with the monitor on left
+ * the whole rack playing that stage's contribution and nothing else, with the
+ * switch that did it out of sight.
+ *
+ * `readStored` in `store.ts` already drops all five on load, which is the
+ * evidence this list is the one that fell behind rather than the other.
+ */
+const ISOLATING_SECTIONS = [
+  'denoise',
+  'eq',
+  'exciter',
+  'bassForge',
+  'bassPunch',
+] as const;
+
+type TIsolatingSection = (typeof ISOLATING_SECTIONS)[number];
+
+const isIsolatingSection = (id: TDspSection): id is TIsolatingSection =>
+  (ISOLATING_SECTIONS as readonly TDspSection[]).includes(id);
+
+const isSoloing = (of: IDspSettings) =>
+  ISOLATING_SECTIONS.some((section) => of[section].isolate);
+
+const withoutIsolate = (from: IDspSettings): IDspSettings => ({
+  ...from,
+  denoise: { ...from.denoise, isolate: false },
+  eq: { ...from.eq, isolate: false },
+  exciter: { ...from.exciter, isolate: false },
+  bassForge: { ...from.bassForge, isolate: false },
+  bassPunch: { ...from.bassPunch, isolate: false },
+});
+
+/**
  * The DSP chain's controls.
  *
  * The scope notice is visible text in the header rather than a tooltip, and
@@ -232,15 +270,10 @@ const DspPanel = ({
         onChange: change,
         onCommit: commit,
       } = latest.current;
-      if (!last.denoise.isolate && !last.eq.isolate && !last.exciter.isolate) {
+      if (!isSoloing(last)) {
         return;
       }
-      change({
-        ...last,
-        denoise: { ...last.denoise, isolate: false },
-        eq: { ...last.eq, isolate: false },
-        exciter: { ...last.exciter, isolate: false },
-      });
+      change(withoutIsolate(last));
       commit();
     },
     [],
@@ -266,23 +299,21 @@ const DspPanel = ({
       },
     });
 
-  /** Clear the monitor before its control disappears behind another page. */
+  /**
+   * Clear the monitor before its control disappears behind another page.
+   *
+   * Gated on the section being LEFT owning the solo, not on any stage having
+   * one: a solo can only be switched on from its own page, so the two are
+   * almost always the same thing — but firing on the wider condition also
+   * fires when a page is ENTERED, which puts a settings write in front of the
+   * user's next click and changes what that click reports back.
+   */
   const selectSection = (next: TDspSection) => {
     if (next === section) {
       return;
     }
-    let clearedIsolate = false;
-    if (section === 'denoise' && denoise.isolate) {
-      patch({ denoise: { ...denoise, isolate: false } });
-      clearedIsolate = true;
-    } else if (section === 'eq' && eq.isolate) {
-      patch({ eq: { ...eq, isolate: false } });
-      clearedIsolate = true;
-    } else if (section === 'exciter' && exciter.isolate) {
-      patch({ exciter: { ...exciter, isolate: false } });
-      clearedIsolate = true;
-    }
-    if (clearedIsolate) {
+    if (isIsolatingSection(section) && settings[section].isolate) {
+      patch(withoutIsolate(settings));
       onCommit();
     }
     setSection(next);

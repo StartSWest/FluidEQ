@@ -583,12 +583,75 @@ describe('DspPanel', () => {
     expect(onCommit).toHaveBeenCalled();
   });
 
+  /*
+   * The two bass stages get the same four cases as everything else, and they
+   * are here because they were not: both shipped with isolate switches and
+   * neither was added to the panel's clearing paths or to its bypass toggle,
+   * so leaving either page with the monitor on left the whole rack playing
+   * that stage's contribution alone, with the switch that did it out of sight.
+   */
+  it('turns Bass Punch Isolate off before bypassing Bass Punch', () => {
+    const active: IDspSettings = {
+      ...DSP_DEFAULTS,
+      bassPunch: { ...DSP_DEFAULTS.bassPunch, enabled: true, isolate: true },
+    };
+    const { onChange, onCommit } = renderPanel(active);
+    fireEvent.click(screen.getByRole('button', { name: /Bass Punch/i }));
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Bass Punch' }));
+    const next = onChange.mock.calls[0][0] as IDspSettings;
+    expect(next.bassPunch.enabled).toBe(false);
+    expect(next.bassPunch.isolate).toBe(false);
+    expect(onCommit).toHaveBeenCalled();
+  });
+
+  it('turns Bass Forge Isolate off before bypassing Bass Forge', () => {
+    const active: IDspSettings = {
+      ...DSP_DEFAULTS,
+      bassForge: { ...DSP_DEFAULTS.bassForge, enabled: true, isolate: true },
+    };
+    const { onChange, onCommit } = renderPanel(active);
+    fireEvent.click(screen.getByRole('button', { name: /Bass Forge/i }));
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Bass Forge' }));
+    const next = onChange.mock.calls[0][0] as IDspSettings;
+    expect(next.bassForge.enabled).toBe(false);
+    expect(next.bassForge.isolate).toBe(false);
+    expect(onCommit).toHaveBeenCalled();
+  });
+
+  it('turns Bass Punch Isolate off before leaving the Bass Punch view', () => {
+    const active: IDspSettings = {
+      ...DSP_DEFAULTS,
+      bassPunch: { ...DSP_DEFAULTS.bassPunch, enabled: true, isolate: true },
+    };
+    const { onChange, onCommit } = renderPanel(active);
+    fireEvent.click(screen.getByRole('button', { name: /Bass Punch/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Maximizer/i }));
+    const next = onChange.mock.calls[0][0] as IDspSettings;
+    expect(next.bassPunch.isolate).toBe(false);
+    expect(onCommit).toHaveBeenCalled();
+  });
+
+  it('turns Bass Forge Isolate off before leaving the Bass Forge view', () => {
+    const active: IDspSettings = {
+      ...DSP_DEFAULTS,
+      bassForge: { ...DSP_DEFAULTS.bassForge, enabled: true, isolate: true },
+    };
+    const { onChange, onCommit } = renderPanel(active);
+    fireEvent.click(screen.getByRole('button', { name: /Bass Forge/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Maximizer/i }));
+    const next = onChange.mock.calls[0][0] as IDspSettings;
+    expect(next.bassForge.isolate).toBe(false);
+    expect(onCommit).toHaveBeenCalled();
+  });
+
   it('turns every monitor flag off when the DSP workspace closes', () => {
     const active: IDspSettings = {
       ...DSP_DEFAULTS,
       denoise: { ...DSP_DEFAULTS.denoise, enabled: true, isolate: true },
       eq: { ...DSP_DEFAULTS.eq, enabled: true, isolate: true },
       exciter: { ...DSP_DEFAULTS.exciter, enabled: true, isolate: true },
+      bassForge: { ...DSP_DEFAULTS.bassForge, enabled: true, isolate: true },
+      bassPunch: { ...DSP_DEFAULTS.bassPunch, enabled: true, isolate: true },
     };
     const { unmount, onChange, onCommit } = renderPanel(active);
     unmount();
@@ -596,6 +659,8 @@ describe('DspPanel', () => {
     expect(next.denoise.isolate).toBe(false);
     expect(next.eq.isolate).toBe(false);
     expect(next.exciter.isolate).toBe(false);
+    expect(next.bassForge.isolate).toBe(false);
+    expect(next.bassPunch.isolate).toBe(false);
     expect(onCommit).toHaveBeenCalled();
   });
 

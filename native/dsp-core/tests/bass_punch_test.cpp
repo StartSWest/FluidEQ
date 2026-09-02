@@ -272,7 +272,19 @@ void test_steady_tone_settles_to_unity() {
   std::printf("       output moved %.3f dB; meters read %.3f / %.3f dB\n",
               moved, transient, sustained);
   check(std::fabs(moved) < 0.3, "steady tone is unchanged by the shaper");
-  check(std::fabs(transient) < 0.3 && std::fabs(sustained) < 0.3,
+  // The audio figure above is the one that says "not a tone control"; this is
+  // a looser bound on purpose, because the meter is not the same measurement.
+  //
+  // It is read once, after the block, so it samples a gain that ripples at
+  // twice the note rather than the mean of one. The ripple is what survives
+  // `rise > 0 ? rise : 0`: the fast follower rings around the slow one at
+  // 2 * 60 Hz and only the positive half of the difference is kept, so the
+  // mean of the kept part is not zero however well the followers converge.
+  // That residual scales with `kAttackScale` and nothing else — 0.16 dB when
+  // the scale was 0.5, 0.38 dB at 1.2 — while the audio it produces stays at
+  // 0.04 dB, because the audio integrates the ripple the meter catches one
+  // sample of. A bound of 0.3 here was therefore a bound on the scale.
+  check(std::fabs(transient) < 0.5 && std::fabs(sustained) < 0.5,
         "and the meters agree that it is doing nothing");
 }
 
@@ -304,6 +316,58 @@ void test_attack_lifts_the_front_of_a_pulse() {
   check(front > 2.0, "the first five milliseconds rise by more than 2 dB");
   check(std::fabs(tail) < 0.5, "and the note after 50 ms is left alone");
   check(cut < -1.0, "a negative attack softens the same five milliseconds");
+}
+
+/**
+ * The same kick with the bass still playing under it, which is the case every
+ * measurement above misses and the one every listener is in.
+ *
+ * `pulse_train` returns exactly 0.0 between bursts. Both followers therefore
+ * collapse to the floor in the gap and the next onset reads a fast-over-slow
+ * ratio of 28 dB — against 10 dB for the same kick over an ordinary bassline,
+ * and 6 dB where the bass is louder than the kick. Every constant in the stage
+ * was fitted against the 28, so `kAttackScale` bought a third of the gain it
+ * was sized for on any real programme: the top of the attack dial moved the
+ * hit by 2.4 dB, the `slam` profile made the front of the kick 1.3 dB QUIETER
+ * than bypass, and the whole stage was reported as doing nothing while every
+ * assertion above passed.
+ *
+ * A silent gap is not a quiet bassline, and this is the positive control that
+ * says which of the two is being measured. The threshold is deliberately far
+ * under what the stage now delivers (+6.7 dB): what it has to catch is a
+ * return to the old calibration, not a tenth of a decibel of drift.
+ */
+Signal programme_train(double decay_s, double length_s, double amplitude,
+                       double bass) {
+  Signal out = pulse_train(decay_s, length_s, amplitude);
+  for (size_t at = 0; at < out.left.size(); ++at) {
+    // 43 Hz shares no factor with the 60 Hz burst, so the two never lock into
+    // one envelope and the bassline stays a bassline.
+    const double note =
+        bass * std::sin(2.0 * kPi * 43.0 * static_cast<double>(at) / kRate);
+    out.left[at] = static_cast<float>(out.left[at] + note);
+    out.right[at] = static_cast<float>(out.right[at] + note);
+  }
+  return out;
+}
+
+void test_attack_survives_a_bassline() {
+  std::printf("\nbass punch: the hit still moves with the bass playing "
+              "under it\n");
+  // 8 dB under the kick, which is an ordinary balance rather than a hard case.
+  const Signal train = programme_train(0.035, 0.12, 0.1, 0.04);
+  FeqBassPunchSettings harder = defaults();
+  harder.attack = 1.0;
+
+  const Signal flat = process(train, defaults());
+  const Signal hard = process(train, harder);
+  const double hit = window_change_db(hard, flat, 0.005, 0.015);
+  const double tail = window_change_db(hard, flat, 0.05, 0.12);
+  std::printf("       attack +1 over a bassline: 5-15 ms %+.2f dB, "
+              "50-120 ms %+.2f dB\n",
+              hit, tail);
+  check(hit > 3.0, "the hit rises by more than 3 dB with programme under it");
+  check(std::fabs(tail) < 0.5, "and the note after 50 ms is still left alone");
 }
 
 /** Sustain is the other end of the same note, and a stage that ignored it
@@ -401,41 +465,84 @@ void test_bloom_is_mono() {
   check(largest > 0.01, "and there was a bloom there to compare");
 }
 
-/**
- * Duck is the one that buys weight without spending headroom, so what it must
- * do is a measured number rather than a direction: 6 dB at the top of the dial.
- */
-void test_duck_pulls_the_upper_band_down() {
-  std::printf("\nbass punch: duck pulls the band above the split down\n");
-  for (const double amplitude : {0.5, 0.1}) {
-    Signal mixed = sine_stereo(kFrames * kBlocks, 60.0, amplitude);
-    const Signal air = sine_stereo(kFrames * kBlocks, 2000.0, 0.02);
-    for (size_t at = 0; at < mixed.left.size(); ++at) {
-      mixed.left[at] += air.left[at];
-      mixed.right[at] += air.right[at];
-    }
-    FeqBassPunchSettings on = defaults();
-    on.duck = 1.0;
-    Stage stage;
-    Signal out = mixed;
-    stage.run(out, on);
-
-    const size_t from = out.left.size() - static_cast<size_t>(kRate);
-    const size_t window = static_cast<size_t>(kRate);
-    const double before = bin_magnitude(mixed.left, 2000.0, from, window);
-    const double after = bin_magnitude(out.left, 2000.0, from, window);
-    const double moved = 20.0 * std::log10(after / before);
-    const double meter = feq_bass_punch_duck_db(&stage.state);
-    std::printf("       low band at %.0f dBFS: 2 kHz moved %+.2f dB, meter "
-                "%+.2f dB\n",
-                20.0 * std::log10(amplitude), moved, meter);
-    if (amplitude > 0.3) {
-      check(std::fabs(moved + 6.0) < 0.5, "a loud low band ducks it by 6 dB");
-      check(std::fabs(meter + 6.0) < 0.1, "and the meter says the same");
-    } else {
-      check(moved < -4.0, "and an ordinary one at -20 dBFS by nearly as much");
-    }
+/** The 2 kHz probe every duck measurement below is taken on. */
+Signal with_air(Signal base, double amplitude) {
+  const Signal air = sine_stereo(base.left.size(), 2000.0, amplitude);
+  for (size_t at = 0; at < base.left.size(); ++at) {
+    base.left[at] = static_cast<float>(base.left[at] + air.left[at]);
+    base.right[at] = static_cast<float>(base.right[at] + air.right[at]);
   }
+  return base;
+}
+
+/**
+ * Duck buys weight without spending headroom, and the way it fails is by
+ * buying it once and never giving it back.
+ *
+ * Its depth used to be a ramp over -45 to -18 dBFS of absolute level, and every
+ * real low band sits over -18 dBFS from the first bar to the last — so the
+ * ramp was pinned at 1 for every frame of every track and the meter read
+ * -6.00 to -6.00 with no movement in it at all. That is a permanent shelf on
+ * everything above the split, which is a tone control wearing a ducker's name,
+ * and it is what made the profiles cancel: `slam` spent its whole attack
+ * undoing a tilt that never released.
+ *
+ * So the assertion is not "a loud low band ducks by 6 dB" — the old one, which
+ * a permanent tilt passes perfectly. It is both halves at once: a steady note
+ * moves the upper band by nothing however loud it is, and a kick over that same
+ * note takes the depth to the bottom of the dial and gives all of it back
+ * before the next one.
+ */
+void test_duck_is_a_duck_not_a_tilt() {
+  std::printf("\nbass punch: duck rides the note instead of tilting the mix\n");
+  FeqBassPunchSettings on = defaults();
+  on.duck = 1.0;
+
+  // -6 dBFS, which is as present as a low band ever gets, and the old ramp's
+  // full depth by a margin of twelve decibels.
+  const Signal steady = with_air(sine_stereo(kFrames * kBlocks, 60.0, 0.5), 0.02);
+  Stage held;
+  Signal flat = steady;
+  held.run(flat, on);
+  const size_t from = flat.left.size() - static_cast<size_t>(kRate);
+  const auto window = static_cast<size_t>(kRate);
+  const double still =
+      20.0 * std::log10(bin_magnitude(flat.left, 2000.0, from, window) /
+                        bin_magnitude(steady.left, 2000.0, from, window));
+  std::printf("       steady -6 dBFS note: 2 kHz moved %+.2f dB, meter "
+              "%+.2f dB\n",
+              still, feq_bass_punch_duck_db(&held.state));
+  check(std::fabs(still) < 0.5, "a steady low band is not something to duck");
+
+  // And the case it exists for: a kick landing on a bass line that is already
+  // playing, which is the signal the old ramp could not tell from silence.
+  const Signal train = with_air(programme_train(0.035, 0.12, 0.3, 0.12), 0.02);
+  Stage stage;
+  Signal out = train;
+  double deepest = 0.0;
+  double shallowest = -1.0e9;
+  const size_t blocks = out.left.size() / kFrames;
+  for (size_t block = 0; block < blocks; ++block) {
+    float* channels[2] = {out.left.data() + block * kFrames,
+                          out.right.data() + block * kFrames};
+    feq_bass_punch_process(&stage.state, channels, 2, kFrames, &on, kRate);
+    // After the cascade has filled, for the reason `kFirstMeasured` gives.
+    if (block * kFrames < kFirstMeasured * kPulsePeriod) {
+      continue;
+    }
+    const double meter = feq_bass_punch_duck_db(&stage.state);
+    deepest = std::fmin(deepest, meter);
+    shallowest = std::fmax(shallowest, meter);
+  }
+  const double pushed =
+      20.0 * std::log10(bin_magnitude(out.left, 2000.0, from, window) /
+                        bin_magnitude(train.left, 2000.0, from, window));
+  std::printf("       kick over that note: meter swings %+.2f to %+.2f dB, "
+              "2 kHz averages %+.2f dB\n",
+              deepest, shallowest, pushed);
+  check(deepest < -5.0, "the hit takes the upper band most of the way down");
+  check(shallowest > -0.5, "and it is all given back before the next one");
+  check(pushed < -0.3, "and the upper band really was moved, not just metered");
 }
 
 /**
@@ -487,11 +594,12 @@ int main() {
   test_neutral_settings_are_bit_exact();
   test_steady_tone_settles_to_unity();
   test_attack_lifts_the_front_of_a_pulse();
+  test_attack_survives_a_bassline();
   test_sustain_moves_the_tail();
   test_bloom_decay_matches_the_dial();
   test_bloom_amount_fills_the_gap();
   test_bloom_is_mono();
-  test_duck_pulls_the_upper_band_down();
+  test_duck_is_a_duck_not_a_tilt();
   test_reset_clears_the_history();
   return finish();
 }

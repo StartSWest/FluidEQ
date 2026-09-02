@@ -53,7 +53,10 @@ const DspBassForgeCard = ({
       titleKey="dsp.bassForge.title"
       isEnabled={bassForge.enabled}
       onToggle={() => {
-        onPatch({ ...bassForge, enabled: !bassForge.enabled });
+        // Disarmed on the way past, as every other monitor in the rack is.
+        // Left armed under bypass, the next enable plays the stage's
+        // contribution alone with the switch that did it out of sight.
+        onPatch({ ...bassForge, enabled: !bassForge.enabled, isolate: false });
         onCommit();
       }}
       toolbar={

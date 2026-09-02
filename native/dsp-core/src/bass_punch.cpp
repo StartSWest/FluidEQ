@@ -57,12 +57,37 @@ constexpr double kSlowerMs = 150.0;
 /**
  * How far a decibel of envelope difference travels as a decibel of gain.
  *
- * A sharp kick reads about 22 dB between the fast and slow envelopes, so a half
- * puts the top of the dial at the ceiling below on the hardest material and
- * under it on everything softer — which is the right way round. The tail reads
- * about 4 dB, so it needs twice rather than half to reach a comparable depth.
+ * The rule is that the top of the dial reaches the ceiling below on the hardest
+ * material and sits under it on everything softer. What that costs depends
+ * entirely on the envelope difference the material actually produces, and the
+ * first number here was fitted to one that cannot occur: 0.5 came from "a sharp
+ * kick reads about 22 dB between the fast and slow envelopes", which is a kick
+ * alone in digital silence. `pulse_train` in `bass_punch_test.cpp` is exactly
+ * that — it returns 0.0 between bursts, so both followers collapse to the floor
+ * and the next onset reads a ratio no programme material can.
+ *
+ * Measured, same kick, same stage, three signals:
+ *
+ *     alone in silence            rise 28.3 dB   fall 41.6 dB
+ *     over a -18 dBFS bassline    rise 10.0 dB   fall  3.8 dB
+ *     over a bassline louder
+ *       than the kick itself      rise  5.8 dB   fall  1.4 dB
+ *
+ * Music is the second and third rows. At 0.5 the top of the attack dial bought
+ * 5 dB of gain there instead of the ceiling's 12, which reached the audio
+ * through the shelf as +2.4 dB over the 5-15 ms of the hit and -0.6 dB over the
+ * first 5 — and the `slam` profile, whose duck and negative sustain are sized
+ * against an attack that was supposed to be at its ceiling, made the front of
+ * the kick 1.3 dB QUIETER than bypass. 1.2 is the same rule refitted to the
+ * second row: 10 dB of rise reaches the ceiling, anything denser sits under it,
+ * and the silence case is held there by the ceiling as it always was.
+ * `test_attack_survives_a_bassline` is the guard, and it fails at 0.5.
+ *
+ * `kSustainScale` is left alone because the tail was never fitted to silence in
+ * the same way: 3.8 dB of fall at twice is 7.6 dB, which is inside the ceiling
+ * below and audible where it is applied.
  */
-constexpr double kAttackScale = 0.5;
+constexpr double kAttackScale = 1.2;
 constexpr double kSustainScale = 2.0;
 
 /** Ceilings, not tuning: past these the shaper stops sounding like the note
@@ -76,18 +101,45 @@ constexpr double kDuckMaxDb = 6.0;
 constexpr double kDuckReleaseMs = 30.0;
 
 /**
- * Where the duck reaches full depth and where it lets go, in dBFS.
+ * The gate, in dBFS, and it is only a gate now. See `kDuckRangeDb` below.
  *
  * A ducker with no floor pulls the upper band down under a bass line that is
  * only there in name — the tail of the last note, a room mic's rumble — and
  * that reads as the mix breathing rather than as weight. -45 dBFS is under
  * anything a listener would call a bass note; -18 is where one is unmistakably
- * present. Between them the depth is a ramp, so the duck arrives with the note
- * rather than switching on inside it, which is the shape `bass_forge.cpp` gives
- * its divider gate for the same reason.
+ * present, and between them this ramps in so the guard has no edge to click on.
+ *
+ * What it no longer does is set the DEPTH. It used to be the whole of it, and
+ * measured, that made the control a tone control: every real low band sits
+ * above -18 dBFS continuously, so the ramp was pinned at 1 for every frame of
+ * every track and the duck meter read -6.00 to -6.00 with no movement in it.
+ * What shipped as "pulled down under the bass" was a permanent -5.85 dB shelf
+ * above the split, and it is what made the profiles cancel: `slam` spent its
+ * whole attack undoing a tilt that never let go.
  */
 constexpr double kDuckFloorDb = -45.0;
 constexpr double kDuckFullDb = -18.0;
+
+/**
+ * How far the low band must stand above its OWN running level for full depth.
+ *
+ * This is what makes it a duck rather than a shelf, and it is the same
+ * construction the shaper above already runs on: a difference of envelopes, so
+ * there is no absolute threshold for material to sit permanently over. The
+ * reference is `slower`, the 150 ms envelope, so what the ramp measures is the
+ * hit against the bass line it arrives on top of — which is the thing the
+ * upper band actually has to get out of the way of.
+ *
+ * It follows that a steady note ducks nothing, at any level, because a steady
+ * note has nothing to stand above. That is the property, not a gap in it:
+ * `test_duck_is_a_duck_not_a_tilt` asserts both halves.
+ *
+ * 6 dB because that is inside the excess an ordinary kick produces over an
+ * ordinary bass line — measured, 10 dB where the kick leads and 5.8 dB where
+ * the bass is louder than the kick — so the dial reaches its depth on the
+ * first and most of it on the second.
+ */
+constexpr double kDuckRangeDb = 6.0;
 
 /**
  * The documented ranges, enforced where the audio is rather than in the UI.
@@ -347,11 +399,16 @@ void feq_bass_punch_process(FeqBassPunch* state, float* const* channels,
             ? state->fast
             : state->duck_level + (state->fast - state->duck_level) *
                                       duck_release;
-    const double depth =
-        clamp((20.0 * std::log10(std::fmax(state->duck_level, kLevelFloor)) -
-               kDuckFloorDb) /
-                  (kDuckFullDb - kDuckFloorDb),
-              0.0, 1.0);
+    const double level =
+        20.0 * std::log10(std::fmax(state->duck_level, kLevelFloor));
+    // The gate first, then the depth. The gate answers "is there a bass note
+    // here at all", which is absolute; the depth answers "how far is it above
+    // the one before it", which cannot be, or the answer is yes forever.
+    const double present =
+        clamp((level - kDuckFloorDb) / (kDuckFullDb - kDuckFloorDb), 0.0, 1.0);
+    const double excess =
+        level - 20.0 * std::log10(std::fmax(state->slower, kLevelFloor));
+    const double depth = present * clamp(excess / kDuckRangeDb, 0.0, 1.0);
     state->duck_gain_db = -kDuckMaxDb * state->duck * depth;
     const double duck_gain = std::pow(10.0, state->duck_gain_db / 20.0);
 

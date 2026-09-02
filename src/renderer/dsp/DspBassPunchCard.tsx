@@ -58,7 +58,10 @@ const DspBassPunchCard = ({
       titleKey="dsp.bassPunch.title"
       isEnabled={bassPunch.enabled}
       onToggle={() => {
-        onPatch({ ...bassPunch, enabled: !bassPunch.enabled });
+        // Disarmed on the way past, as every other monitor in the rack is.
+        // Left armed under bypass, the next enable plays the stage's
+        // contribution alone with the switch that did it out of sight.
+        onPatch({ ...bassPunch, enabled: !bassPunch.enabled, isolate: false });
         onCommit();
       }}
       toolbar={
