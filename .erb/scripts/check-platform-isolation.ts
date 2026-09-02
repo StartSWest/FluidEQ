@@ -1,0 +1,135 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+
+Keeps the layering that makes a third platform cheap.
+
+Ninety-six per cent of the native tree is written once and compiled
+everywhere. That is not an accident of the code — it is a rule, and until
+this script the rule lived in a comment at the top of `audio_backend.h`.
+Comments do not fail builds.
+
+The failure this exists to prevent is not a bad decision. It is somebody
+adding one `#ifdef __APPLE__` inside `chain.cpp` to fix one thing on one
+platform, and the ninety-six per cent beginning to slide — after which a
+filter fix is three edits and a preset fix is three edits, and the reason
+FluidEQ could afford macOS at all is gone.
+
+The rule: platform code lives under a `platform/` directory. Everything
+above that line compiles identically on every platform FluidEQ ships on.
+*/
+
+import { execFileSync } from 'child_process';
+import { readFileSync } from 'fs';
+import path from 'path';
+
+const REPO_ROOT = path.join(__dirname, '..', '..');
+
+/** Our own C++ . Vendored trees are somebody else's rules. */
+const SOURCE_EXTENSIONS = new Set(['.cpp', '.h', '.hpp']);
+
+const isVendored = (name: string) => name.includes('/vendor/');
+
+/** A file that is allowed to know which OS it is on. */
+const isPlatformScoped = (name: string) =>
+  name.includes('/platform/') || name.endsWith('.rc');
+
+/**
+ * Branching on the platform, which above the seam means two behaviours in
+ * one file rather than one behaviour behind an interface.
+ */
+const PLATFORM_MACRO =
+  /^\s*#\s*(if|ifdef|ifndef|elif).*\b(_WIN32|_WIN64|__APPLE__|__linux__|__MACH__|TARGET_OS_)/;
+
+/**
+ * A system header, which is the other half of the same mistake: a file that
+ * includes one has already decided which OS it is for.
+ */
+const PLATFORM_INCLUDE =
+  /^\s*#\s*include\s*[<"](windows\.h|AudioToolbox\/|AudioUnit\/|CoreAudio\/|CoreFoundation\/|mach\/|alsa\/|pulse\/|pipewire\/|sys\/sysctl\.h|libproc\.h)/i;
+
+/**
+ * The files that may know which OS they are on without living under
+ * `platform/`, each with the reason it is not a seam.
+ *
+ * There are two kinds of platform code and this check exists to separate
+ * them. A device backend is genuinely different BEHAVIOUR per OS, it has an
+ * interface to hide behind, and it belongs under `platform/`. A two-way
+ * Win/POSIX shim for `dlopen` or `fopen` is portability plumbing: six lines
+ * with no decision in them, and splitting it across three files to satisfy a
+ * rule would make it harder to read, not easier.
+ *
+ * These four are the second kind. They are listed rather than pattern-matched
+ * so that the debt is visible and finite — the check's real job is to stop
+ * the NEXT one appearing unnoticed, not to relitigate these.
+ *
+ * A reason is required rather than a bare path, so anything added here has to
+ * say what it is for.
+ */
+const ALLOWED = new Map<string, string>([
+  [
+    'native/dsp-host/src/main.cpp',
+    'stdio binary mode is a CRT property with no seam to sit behind',
+  ],
+  [
+    'native/dsp-core/src/denoise_voice.cpp',
+    'LoadLibrary/dlopen shim: the ONNX Runtime is loaded by path at runtime, and the POSIX half is what macOS and Linux both take',
+  ],
+  [
+    'native/dsp-host/src/parent_watch.cpp',
+    'Win32 process wait vs POSIX poll, with a Linux prctl fast path; there is no portable way to block on a process that is not our child',
+  ],
+  [
+    'native/dsp-host/src/decoders/compressed_decoder.cpp',
+    'fopen_s vs fopen, which is a C runtime difference rather than a platform capability',
+  ],
+]);
+
+const tracked = execFileSync('git', ['ls-files', '-z', 'native'], {
+  cwd: REPO_ROOT,
+  encoding: 'utf8',
+  maxBuffer: 32 * 1024 * 1024,
+})
+  .split('\0')
+  .filter(
+    (name) =>
+      name !== '' &&
+      SOURCE_EXTENSIONS.has(path.extname(name)) &&
+      !isVendored(name) &&
+      !isPlatformScoped(name),
+  );
+
+const offences: string[] = [];
+
+tracked.forEach((name) => {
+  if (ALLOWED.has(name)) {
+    return;
+  }
+  const text = readFileSync(path.join(REPO_ROOT, name), 'utf8');
+  text.split('\n').forEach((line, index) => {
+    if (PLATFORM_MACRO.test(line)) {
+      offences.push(
+        `${name}:${index + 1}  platform macro above the seam: ${line.trim().slice(0, 72)}`,
+      );
+    }
+    if (PLATFORM_INCLUDE.test(line)) {
+      offences.push(
+        `${name}:${index + 1}  system header above the seam: ${line.trim().slice(0, 72)}`,
+      );
+    }
+  });
+});
+
+if (offences.length > 0) {
+  console.error(
+    `\n${offences.length} platform-isolation violation(s) — this code belongs under a platform/ directory behind one of the interfaces in dsp-host/src; see the header of this script:\n\n${offences.join('\n')}\n`,
+  );
+  process.exit(1);
+}
+
+console.log(
+  `${tracked.length} shared native sources are platform-free (${ALLOWED.size} allowed by name).`,
+);
