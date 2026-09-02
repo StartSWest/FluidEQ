@@ -49,7 +49,7 @@ const PLATFORM_MACRO =
  * includes one has already decided which OS it is for.
  */
 const PLATFORM_INCLUDE =
-  /^\s*#\s*include\s*[<"](windows\.h|AudioToolbox\/|AudioUnit\/|CoreAudio\/|CoreFoundation\/|mach\/|alsa\/|pulse\/|pipewire\/|sys\/sysctl\.h|libproc\.h)/i;
+  /^\s*#\s*include\s*[<"](windows\.h|AudioToolbox\/|AudioUnit\/|AVFoundation\/|Accelerate\/|CoreAudio\/|CoreFoundation\/|CoreMIDI\/|IOKit\/|TargetConditionals\.h|mach\/|alsa\/|pulse\/|pipewire\/|sys\/sysctl\.h|sys\/prctl\.h|libproc\.h)/i;
 
 /**
  * The files that may know which OS they are on without living under
@@ -66,25 +66,54 @@ const PLATFORM_INCLUDE =
  * so that the debt is visible and finite — the check's real job is to stop
  * the NEXT one appearing unnoticed, not to relitigate these.
  *
+ * Which is why each carries a COUNT rather than a bare exemption. Skipping
+ * the file outright would have made these four the only places a new
+ * `#ifdef __APPLE__` could be added unnoticed — and `denoise_voice.cpp` is
+ * in shared dsp-core, so that is not a hypothetical. The count is a ratchet:
+ * the file is allowed exactly the lines it trips today and fails the moment
+ * it trips one more. Lowering it when a shim goes away is free; raising it
+ * needs the argument a new entry needs.
+ *
  * A reason is required rather than a bare path, so anything added here has to
  * say what it is for.
  */
-const ALLOWED = new Map<string, string>([
+interface IAllowance {
+  reason: string;
+  /** Lines in this file that trip the patterns above, as of today. */
+  expected: number;
+}
+
+const ALLOWED = new Map<string, IAllowance>([
   [
     'native/dsp-host/src/main.cpp',
-    'stdio binary mode is a CRT property with no seam to sit behind',
+    {
+      reason: 'stdio binary mode is a CRT property with no seam to sit behind',
+      expected: 3,
+    },
   ],
   [
     'native/dsp-core/src/denoise_voice.cpp',
-    'LoadLibrary/dlopen shim: the ONNX Runtime is loaded by path at runtime, and the POSIX half is what macOS and Linux both take',
+    {
+      reason:
+        'LoadLibrary/dlopen shim: the ONNX Runtime is loaded by path at runtime, and the POSIX half is what macOS and Linux both take',
+      expected: 7,
+    },
   ],
   [
     'native/dsp-host/src/parent_watch.cpp',
-    'Win32 process wait vs POSIX poll, with a Linux prctl fast path; there is no portable way to block on a process that is not our child',
+    {
+      reason:
+        'Win32 process wait vs POSIX poll, with a Linux prctl fast path; there is no portable way to block on a process that is not our child',
+      expected: 6,
+    },
   ],
   [
     'native/dsp-host/src/decoders/compressed_decoder.cpp',
-    'fopen_s vs fopen, which is a C runtime difference rather than a platform capability',
+    {
+      reason:
+        'fopen_s vs fopen, which is a C runtime difference rather than a platform capability',
+      expected: 1,
+    },
   ],
 ]);
 
@@ -105,22 +134,35 @@ const tracked = execFileSync('git', ['ls-files', '-z', 'native'], {
 const offences: string[] = [];
 
 tracked.forEach((name) => {
-  if (ALLOWED.has(name)) {
-    return;
-  }
   const text = readFileSync(path.join(REPO_ROOT, name), 'utf8');
+  const hits: string[] = [];
   text.split('\n').forEach((line, index) => {
     if (PLATFORM_MACRO.test(line)) {
-      offences.push(
+      hits.push(
         `${name}:${index + 1}  platform macro above the seam: ${line.trim().slice(0, 72)}`,
       );
     }
     if (PLATFORM_INCLUDE.test(line)) {
-      offences.push(
+      hits.push(
         `${name}:${index + 1}  system header above the seam: ${line.trim().slice(0, 72)}`,
       );
     }
   });
+
+  const allowance = ALLOWED.get(name);
+  if (allowance === undefined) {
+    offences.push(...hits);
+    return;
+  }
+  // Allowed at today's count and no further. The lines are still printed,
+  // because "this file grew by one" is not actionable without saying which.
+  if (hits.length > allowance.expected) {
+    offences.push(
+      `${name}  platform code grew from ${allowance.expected} to ${hits.length} lines. This file is allowed its existing shim (${allowance.reason}) and nothing more:\n${hits
+        .map((hit) => `    ${hit}`)
+        .join('\n')}`,
+    );
+  }
 });
 
 if (offences.length > 0) {
