@@ -56,6 +56,24 @@ satisfied does the suite get run, read or added to.
 
 ## Response format
 
+**Ivan does not read the code.** He is not looking at the diff, the files or
+the symbols, so a report written in those terms tells him nothing and costs him
+a round trip to ask what it meant. Write every answer for somebody who will
+only ever see the running app.
+
+- **Say what changed in terms of what he can see, hear or do** — "the loudness
+  readout showed a plus in front of a minus number", not the identifier of the
+  string that did it. No file paths, no function names, no flags, no protocol
+  or wire detail, no class names. If a name has to appear at all, it is because
+  he has to type it.
+- **Do not narrate the reasoning.** He wants the result and anything he has to
+  act on. The measurements, the mechanism and the trade-offs belong in the
+  commit message and the code comments, where they are already required — not
+  in his terminal.
+- **Decide the small things.** A choice he has no stake in is not a question:
+  pick it, say which in one line, and move on. Bring him a decision only when
+  it is genuinely his — money, a release, something destructive, or something
+  only his ears can settle.
 - Yes/no question → the direct answer in the FIRST sentence.
 - Simple fix → 1–3 sentences. Complex task → short bullets.
 - Never re-explain what Ivan just said, never enumerate options when one is
