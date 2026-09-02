@@ -8,27 +8,74 @@ actions menu opens it again any time.
 
 ## 1.6.1
 
-This patch makes the new native DSP engine recover reliably, fixes a transport
-bug that made Stop restart the music, and makes the engine's failures useful to
-diagnose instead of leaving only a restart-budget code.
+This patch makes the native DSP engine stay up and stay single, fixes the
+transport buttons — Stop, Pause, Next and Previous all did the wrong thing in
+one situation or another — and recalibrates the two bass stages against real
+music instead of against a test tone.
 
 ### New
 
 - **Folders look like folders.** A folder on the Folders shelf is drawn as a
   folder holding its cover art, instead of as an album with a different label.
 
+### Changed
+
+- **Master's loudness target now allows 9 dB of peak limiting, not 6.** Six is
+  a normal amount of work for a delivery and it is the whole of the residual
+  spread for a player: against five sources each peaking within 1.5 dB of full
+  scale, a 20 LU input spread came out at 3.0 LU. Nine reaches the target on
+  the material that needs it most.
+
 ### Fixed
 
-- **Stop and Pause no longer start the music again.** Pausing switches the
-  native engine off, and handing the audio back to the fallback player restarted
-  it — so pressing Stop or Pause silenced the track for a moment and then played
-  it from where it had been. Both now stop, and turning the DSP switch off in
-  the middle of a song still leaves the music playing.
-- **The DSP switch reads off when nothing is playing.** It had begun showing ON,
-  in the accent colour, directly above the line saying "DSP starts when music is
-  playing from Library" — the panel contradicting itself over silence. With no
-  Library track playing, the switch, the ON/BYPASSED label, the stage and the
-  presets all read off and cannot be moved.
+- **Bass Punch does what its dials say on actual music.** Every constant in the
+  stage had been fitted against a kick alone in digital silence, where both
+  envelope followers collapse to the floor between hits and read a ratio no
+  real programme can produce — 28.3 dB alone in silence against 10.0 dB over an
+  ordinary bassline. The top of the attack dial was buying a fraction of what
+  it claimed, and the duck never fully let go. Both are measured against
+  programme material now.
+- **Bass Forge's Amount dials reach what the stage can actually make.** They
+  stopped at 1 and were multiplied by Mix before reaching the band, and the
+  profiles mix around 0.5 — so the top of each dial delivered half the
+  available effect, and the rest could only be found by opening a second
+  control.
+- **A stage monitor stops when you leave its page** instead of running on
+  unheard.
+- **The DSP no longer sounds different with every filter switched off.** The
+  engine's lifetime was tied to whether audio was playing this instant, so every
+  pause tore it down and every play built it again — and each teardown handed
+  the audio back to the fallback player for a moment, so the same track played
+  twice a few milliseconds apart. That is a comb filter, and it took the bass
+  out of the music. The engine now follows whether there is a track to play.
+- **Only one audio engine runs at a time.** A track change arriving while the
+  engine was still starting was told it had failed, and a failed start is
+  answered by shutting the engine down — so a new one killed the process it had
+  just asked for, over and over, on every change.
+- **Switching to Karaoke or Online Media no longer destroys the Library
+  player.** It paused the Library, which took the engine down with it and left
+  the player rebuilding itself on the way back.
+- **Stop and Pause no longer start the music again.** Handing the audio back to
+  the fallback player restarted it, so pressing Stop or Pause silenced the track
+  for a moment and then played it from where it had been. Both now stop, and
+  turning the DSP switch off in the middle of a song still leaves the music
+  playing.
+- **Next and Previous work with Repeat one switched on.** Both buttons appeared
+  to restart the track from any position: with Repeat one set, the queue refused
+  to move in either direction but still handed back a fresh queue, so the track
+  reloaded and began again. Repeat one loops a track when it _ends_; it does not
+  disable the skip buttons.
+- **Previous restarts the track past ten seconds and steps back before it**,
+  reading the position from the engine that is actually playing.
+- **The DSP switch keeps the setting you chose.** Pausing used to flip it to
+  BYPASSED, rewriting a saved preference to describe a pause. It now stays as
+  you left it and simply goes unavailable, with the header line saying that
+  processing waits for a track.
+- **The Auto Headroom preamp stops walking itself down.** It corrects far faster
+  than Equalizer APO can show the result, and was counting the same overshoot on
+  every pass while its own correction was still in flight — reaching −11.88 dB
+  where the measurement justified −6, then taking over a minute to give it back.
+  It now only credits itself with what the output has actually shown.
 - **Buttons that cannot be pressed now look it.** The DSP preset bar's Reset,
   Save, Export and Import sat in the full accent colour while doing nothing when
   clicked. Every unavailable button in the app is now drawn as unavailable, and
