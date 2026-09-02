@@ -74,6 +74,24 @@ constexpr size_t kProbeCount = sizeof(kProbeHz) / sizeof(kProbeHz[0]);
 constexpr double kProbeAmplitude = 0.004;
 
 /**
+ * The same sweep for Punch, moved off the multiples of four.
+ *
+ * Punch's duck has to be driven by a kick now rather than by a steady note, and
+ * a kick repeated every 12000 samples is a 60 Hz carrier under a 4 Hz comb —
+ * lines at 60 ± 4k, which is every multiple of four. Two of the probes above
+ * are on that grid, and both read the kick's own line rather than the probe:
+ * measured, 100 Hz came back -0.83 dB against a shelf saying -0.29, and 200 Hz
+ * -0.05 against -0.77, while the five clear bins agreed to three hundredths of
+ * a decibel. Moving two hertz is enough, and it costs nothing: the shelf is
+ * smooth and 102 Hz is the same question 100 Hz was asking.
+ *
+ * Punch generates no harmonics — the shelf is a gain and the bloom is off here
+ * — so unlike the Forge sweep these have nothing to dodge but the driver.
+ */
+constexpr double kPunchProbeHz[] = {50.0,  102.0, 141.0, 202.0,
+                                    283.0, 402.0, 802.0};
+
+/**
  * The closed form above, in dB.
  *
  * The stages run the bilinear-transformed one-pole, whose frequency axis is
@@ -145,32 +163,84 @@ FeqBassPunchSettings punch_defaults() {
 }
 
 /**
- * Duck at the top of the dial, measured across the corner rather than above it.
+ * Duck across the corner, and why the reference is now a MEAN rather than the
+ * meter's last reading.
  *
- * `test_duck_pulls_the_upper_band_down` in `bass_punch_test.cpp` measures at
- * 2 kHz, ten times the corner, where every construction agrees. This measures
- * the whole transition, and the number it is held to is the closed form —
- * which is also what makes `feq_bass_punch_duck_db` honest: the meter reports
- * the gain the upper band is given, and the band is now given exactly that.
+ * The duck used to hold one depth for a whole run: its ramp was absolute, so a
+ * steady note pinned it at the bottom of the dial and the delivered response
+ * could be read against that one number. That was also the defect — a depth
+ * that never moved is a shelf, not a duck — so it now ramps on how far the low
+ * band stands above its own running level, and no signal holds it still. A
+ * peak-held envelope and a 150 ms one cannot keep a constant ratio: that is the
+ * whole mechanism, not a gap in it.
+ *
+ * The closed form survives intact anyway, because the delivered response is
+ * LINEAR in the duck gain. With the band gain at one it is
+ * `d + (1 - d) * L1(f)`, so a probe tone that is steady through the window
+ * comes out scaled by `d̄ + (1 - d̄) * L1(f)` exactly, where `d̄` is the mean of
+ * the gain over that window — the sidebands the modulation makes land off the
+ * probe's own bin and do not touch it. So the run is driven a sample at a time,
+ * `d̄` is accumulated as a LINEAR gain rather than in decibels, and every probe
+ * is held to `shelf_db(1.0, d̄, hz)` to the same third of a decibel as before.
+ *
+ * The check that `d̄` is meaningfully under unity is the positive control. A
+ * duck that had stopped working entirely would leave every probe at 0 dB and
+ * agree with a closed form evaluated at a gain of one, perfectly, at all seven
+ * frequencies.
  */
 void test_punch_duck_across_the_corner() {
   std::printf("bass split: duck delivers a shelf, not a notch\n");
-  const Signal input = note_with_probes(60.0, 0.5);
+  // A kick four times a second on top of the probes: the duck needs something
+  // to stand above, and a steady note is by construction not that.
+  Signal input;
+  input.left.assign(kFrames * kBlocks, 0.0f);
+  input.right.assign(kFrames * kBlocks, 0.0f);
+  for (const double hz : kPunchProbeHz) {
+    const Signal probe = sine_stereo(kFrames * kBlocks, hz, kProbeAmplitude);
+    for (size_t at = 0; at < input.left.size(); ++at) {
+      input.left[at] += probe.left[at];
+      input.right[at] += probe.right[at];
+    }
+  }
+  for (size_t at = 0; at < input.left.size(); ++at) {
+    const double seconds = static_cast<double>(at % 12000) / kRate;
+    const double kick =
+        seconds <= 0.12 ? 0.5 * std::sin(2.0 * kPi * 60.0 * seconds) *
+                              std::exp(-seconds / 0.035)
+                        : 0.0;
+    input.left[at] = static_cast<float>(input.left[at] + kick);
+    input.right[at] = static_cast<float>(input.right[at] + kick);
+  }
+
   FeqBassPunchSettings on = punch_defaults();
   on.duck = 1.0;
   PunchStage stage;
   Signal out = input;
-  stage.run(out, on);
-
-  const double meter = feq_bass_punch_duck_db(&stage.state);
-  const double rest = std::pow(10.0, meter / 20.0);
-  std::printf("       meter reads %+.2f dB on the upper band\n", meter);
-  check(std::fabs(meter + 6.0) < 0.05, "the duck is at its full depth");
+  // One sample per call, so the gain can be averaged over every sample the bin
+  // is taken from rather than over one reading per block.
+  double total = 0.0;
+  double deepest = 0.0;
+  for (size_t at = 0; at < out.left.size(); ++at) {
+    float* channels[2] = {out.left.data() + at, out.right.data() + at};
+    feq_bass_punch_process(&stage.state, channels, 2, 1, &on, kRate);
+    const double gain =
+        std::pow(10.0, feq_bass_punch_duck_db(&stage.state) / 20.0);
+    deepest = std::fmin(deepest, feq_bass_punch_duck_db(&stage.state));
+    if (at >= kSettled && at < kSettled + kWindow) {
+      total += gain;
+    }
+  }
+  const double rest = total / static_cast<double>(kWindow);
+  std::printf("       duck reaches %+.2f dB and averages %+.2f dB over the "
+              "window\n",
+              deepest, 20.0 * std::log10(rest));
+  check(deepest < -5.0, "the duck reaches the depth the dial asks for");
+  check(rest < 0.9, "and it is down far enough on average to measure a shelf");
 
   double previous = 1.0e9;
   bool falling = true;
   for (size_t at = 0; at < kProbeCount; ++at) {
-    const double hz = kProbeHz[at];
+    const double hz = kPunchProbeHz[at];
     const double measured = probe_db(out, input, hz);
     const double expected = shelf_db(1.0, rest, hz);
     std::printf("       %6.0f Hz: measured %+7.3f dB, shelf says %+7.3f dB\n",

@@ -29,6 +29,14 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * competing with it. Pulling the upper band down under the low band's own
  * envelope buys more apparent weight than raising the bass does, and it costs
  * headroom instead of spending it.
+ *
+ * Under the low band's own envelope, and that is the whole of it: its depth is
+ * a difference of envelopes like the shaper's, not a level. It shipped as a
+ * level — a ramp over -45 to -18 dBFS — and every real low band sits over
+ * -18 dBFS from the first bar to the last, so the ramp was pinned and the duck
+ * meter read -6.00 to -6.00 for entire tracks. A depth that never lets go is a
+ * shelf, and a shelf is what the stage's first paragraph says this rack does
+ * not need another of.
  */
 #ifndef FLUIDEQ_BASS_PUNCH_H
 #define FLUIDEQ_BASS_PUNCH_H
@@ -222,6 +230,12 @@ double feq_bass_punch_sustain_db(const FeqBassPunch* state);
  * octaves up. Across the corner it arrives gradually, as a shelf does — that
  * is the reading, not a discrepancy. Before the split was built on a one-pole
  * it was a discrepancy: this said -6.0 while 200 Hz measured -11.98.
+ *
+ * It MOVES, and a reader sampling it once a block is sampling a gain that
+ * reaches the bottom of the dial on a hit and returns to unity between hits.
+ * That is why the split test averages it over the window it bins rather than
+ * taking the last reading: the delivered response is linear in this gain, so
+ * the closed form holds against its mean and against nothing else.
  */
 double feq_bass_punch_duck_db(const FeqBassPunch* state);
 
