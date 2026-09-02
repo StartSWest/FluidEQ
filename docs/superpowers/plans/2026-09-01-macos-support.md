@@ -257,15 +257,39 @@ const PLATFORM_INCLUDE =
   /^\s*#\s*include\s*[<"](windows\.h|AudioToolbox\/|AudioUnit\/|CoreAudio\/|CoreFoundation\/|mach\/|alsa\/|pulse\/|pipewire\/|sys\/sysctl\.h|libproc\.h)/i;
 
 /**
- * `main.cpp` sets stdio to binary mode on Windows, which is a property of
- * the C runtime rather than of the audio engine, and has no interface to
- * hide behind. A reason is required rather than a bare path, so anything
- * added here has to say what it is for.
+ * The files that may know which OS they are on without living under
+ * `platform/`, each with the reason it is not a seam.
+ *
+ * There are two kinds of platform code and this check exists to separate
+ * them. A device backend is genuinely different BEHAVIOUR per OS, it has an
+ * interface to hide behind, and it belongs under `platform/`. A two-way
+ * Win/POSIX shim for `dlopen` or `fopen` is portability plumbing: six lines
+ * with no decision in them, and splitting it across three files to satisfy a
+ * rule would make it harder to read, not easier.
+ *
+ * These four are the second kind. They are listed rather than pattern-matched
+ * so that the debt is visible and finite — the check's real job is to stop
+ * the NEXT one appearing unnoticed, not to relitigate these.
+ *
+ * A reason is required rather than a bare path, so anything added here has to
+ * say what it is for.
  */
 const ALLOWED = new Map<string, string>([
   [
     'native/dsp-host/src/main.cpp',
     'stdio binary mode is a CRT property with no seam to sit behind',
+  ],
+  [
+    'native/dsp-core/src/denoise_voice.cpp',
+    'LoadLibrary/dlopen shim: the ONNX Runtime is loaded by path at runtime, and the POSIX half is what macOS and Linux both take',
+  ],
+  [
+    'native/dsp-host/src/parent_watch.cpp',
+    'Win32 process wait vs POSIX poll, with a Linux prctl fast path; there is no portable way to block on a process that is not our child',
+  ],
+  [
+    'native/dsp-host/src/decoders/compressed_decoder.cpp',
+    'fopen_s vs fopen, which is a C runtime difference rather than a platform capability',
   ],
 ]);
 
@@ -332,7 +356,7 @@ Run:
 pnpm typecheck:platform
 ```
 
-Expected: PASS, reporting the count of shared sources and 1 allowed by name. If it reports a violation in a file this plan does not touch, that file is a genuine pre-existing leak — report it rather than adding it to `ALLOWED`.
+Expected: PASS, reporting the count of shared sources and 4 allowed by name. If it reports a violation in a file NOT in the `ALLOWED` map, that file is a genuine pre-existing leak — report it rather than adding it to `ALLOWED` yourself.
 
 - [ ] **Step 4: Prove the check can fail (positive control)**
 
