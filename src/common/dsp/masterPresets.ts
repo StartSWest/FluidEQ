@@ -80,22 +80,30 @@ export interface IMasterPreset {
 
 export const MASTER_PRESET_BY_ID = {
   /**
-   * What the stage arrives at, and it is the streaming target.
+   * What the stage arrives at, and it aims at the streaming target without
+   * being the delivery profile for it.
    *
    * Not unity, and deliberately so: the Reset beside it exists to undo an
    * experiment, and landing on a chain that does nothing would make Reset
    * indistinguishable from switching the stage off. -14 LUFS is also the
    * honest default for a player, because it is where most of what anybody
    * plays through this has already been normalized to.
+   *
+   * Nine decibels of allowance rather than `streaming`'s six, and that is the
+   * one place the two now differ. A delivery is one record and its engineer
+   * decides what limiting it can stand; a player is a whole library played
+   * back to back, and six leaves every wide-dynamic recording short of the
+   * target while everything else reaches it — measured as 3.0 LU of residual
+   * spread against 0.86 at the top of the dial. See `DSP_DEFAULTS.master`.
    */
   default: {
     id: 'default',
     labelKey: 'dsp.eqPreset.default',
     group: 'streaming',
-    // 200ms matches `DSP_DEFAULTS.master`, which this profile has to: the
-    // stage arrives on it, and a Reset that moved the release would make the
-    // default profile something you cannot get back to.
-    settings: profile(-14, -1, 6, 200),
+    // Every number here matches `DSP_DEFAULTS.master`, which this profile has
+    // to: the stage arrives on it, and a Reset that moved any of them would
+    // make the default profile something you cannot get back to.
+    settings: profile(-14, -1, 9, 200),
   },
   streaming: {
     id: 'streaming',

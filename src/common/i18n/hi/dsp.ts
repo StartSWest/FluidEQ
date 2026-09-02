@@ -518,7 +518,7 @@ const dsp = {
   'dsp.master.graph.safetyActive': 'सुरक्षा सक्रिय',
   'dsp.master.graph.safetyBypassed': 'चेतावनी · सुरक्षा बायपास',
   'dsp.master.graph.loudnessActive':
-    'LUFS अधिकतम · {target} LUFS की ओर +{gain} dB',
+    'LUFS अधिकतम · {target} LUFS की ओर {gain} dB',
   'dsp.master.peakLimiting': 'पीक लिमिटिंग',
   'dsp.master.matchedBypass': 'गेन मिलान',
   'dsp.master.matchedBypassHint':

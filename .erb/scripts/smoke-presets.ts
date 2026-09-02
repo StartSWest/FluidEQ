@@ -59,6 +59,7 @@ import { NATIVE_DSP_PARAMETERS } from '../../src/common/dsp/nativeParameters';
 import { DSP_PRESETS } from '../../src/common/dsp/presets';
 import { findDspHostExecutable } from '../../src/main/dspHost/hostPath';
 import { DspHostSupervisor } from '../../src/main/dspHost/supervisor';
+import { writeProgrammeFixture } from './programme-fixture';
 
 interface IAudio {
   rate: number;
@@ -273,20 +274,69 @@ const main = async (): Promise<void> => {
     throw new Error('preset smoke: no host executable; run pnpm build first');
   }
   // An optional fixture keeps catalogue tuning honest across more than the
-  // one song this script originally hard-coded. CI still gets its stable
-  // default; a full audit runs the second repository fixture as another pass.
+  // one song this script originally hard-coded. A full audit runs another
+  // pass over a second file by naming it.
   const argumentsAfterScript = process.argv.slice(2);
   const chainsOnly = argumentsAfterScript.includes('--chains-only');
   const fixture = argumentsAfterScript.find(
     (argument) => argument !== '--chains-only',
   );
-  const source = fixture
-    ? path.resolve(fixture)
-    : path.resolve(__dirname, '../..', 'karaoke_instrumental.mp3');
-  if (!existsSync(source)) {
-    throw new Error(`preset smoke: missing fixture ${source}`);
-  }
   const scratch = mkdtempSync(path.join(tmpdir(), 'fluideq-presets-'));
+  /**
+   * Real music where there is any, and synthesised programme where there is
+   * not — never a skipped pass.
+   *
+   * The song this used to require unconditionally is excluded by `.gitignore`
+   * (`/*.MP3`), so on a clean checkout the file cannot exist and this script
+   * threw before it reached a single check. The weekly cold build runs
+   * `pnpm test` from exactly such a checkout. A named fixture that is absent
+   * is still fatal, because that is a typo rather than a cold tree.
+   */
+  const repositoryFixture = path.resolve(
+    __dirname,
+    '../..',
+    'karaoke_instrumental.mp3',
+  );
+  let source: string;
+  /**
+   * Whether the level windows below are being asked about the music they were
+   * drawn against.
+   *
+   * They are not a property of the catalogue on its own. "Within 1.5 dB of DSP
+   * Off" was measured over one recording, with that recording's spectrum,
+   * loudness and crest factor, and the same profiles move synthesised
+   * programme by four or five decibels while being entirely correct — which
+   * was confirmed by generating one and watching every boosting chain leave
+   * the window from above and every speech chain leave it from below. Widening
+   * the bound until both passed would assert nothing; shaping the generator
+   * until it agreed would be fitting the evidence to the answer.
+   *
+   * So they run over real music and are skipped otherwise. The shape-safety
+   * pass, which asks whether a profile renders valid audio at all, runs
+   * always — it does not care what it is given, and it is the half a cold
+   * build most needs.
+   */
+  let levelChecks = true;
+  if (fixture) {
+    source = path.resolve(fixture);
+    if (!existsSync(source)) {
+      throw new Error(`preset smoke: missing fixture ${source}`);
+    }
+  } else if (existsSync(repositoryFixture)) {
+    source = repositoryFixture;
+  } else {
+    source = path.join(scratch, 'programme.wav');
+    writeProgrammeFixture(source);
+    levelChecks = false;
+  }
+  // Said out loud, and unmissably, because a green run means two different
+  // things depending on it.
+  line(`source: ${source}`);
+  line(
+    levelChecks
+      ? 'level windows: ON (real music)'
+      : 'level windows: SKIPPED — synthesised programme, shape safety only',
+  );
   const host = new DspHostSupervisor({
     executablePath,
     expectedParameterCount: NATIVE_DSP_PARAMETERS.length,
@@ -329,7 +379,7 @@ const main = async (): Promise<void> => {
     check(await host.setPlaying(true), 'the transport starts');
 
     const dry = await render(DSP_DEFAULTS, 'dry-reference');
-    check(passesShapeSafety(dry), 'the reference is valid real music');
+    check(passesShapeSafety(dry), 'the reference is valid programme');
 
     // Positive control: a flat-topped constant must fail the same predicate.
     const clipped = measure({
@@ -352,15 +402,17 @@ const main = async (): Promise<void> => {
         passesShapeSafety(result),
         `${preset.id}: no clip, silence, DC, or crushing`,
       );
-      check(
-        levelDb > -1.5 && levelDb < 1.6,
-        `${preset.id}: stays within -1.5/+1.6 dB of DSP Off`,
-      );
-      if (preset.id === 'reference') {
+      if (levelChecks) {
         check(
-          Math.abs(levelDb) < 0.5,
-          'reference: gain-matched level stays within 0.5 dB of DSP Off',
+          levelDb > -1.5 && levelDb < 1.6,
+          `${preset.id}: stays within -1.5/+1.6 dB of DSP Off`,
         );
+        if (preset.id === 'reference') {
+          check(
+            Math.abs(levelDb) < 0.5,
+            'reference: gain-matched level stays within 0.5 dB of DSP Off',
+          );
+        }
       }
     }
 
@@ -386,15 +438,17 @@ const main = async (): Promise<void> => {
           passesShapeSafety(result),
           `${preset.family}/${preset.id}: no clip, silence, DC, or crushing`,
         );
-        check(
-          levelDb > -12 && levelDb < 9,
-          `${preset.family}/${preset.id}: level remains bounded`,
-        );
-        if (preset.family === 'denoise') {
+        if (levelChecks) {
           check(
-            levelDb > -2 && levelDb < 0.5,
-            `${preset.id}: does not hollow out clean music`,
+            levelDb > -12 && levelDb < 9,
+            `${preset.family}/${preset.id}: level remains bounded`,
           );
+          if (preset.family === 'denoise') {
+            check(
+              levelDb > -2 && levelDb < 0.5,
+              `${preset.id}: does not hollow out clean music`,
+            );
+          }
         }
       }
     }
@@ -402,7 +456,11 @@ const main = async (): Promise<void> => {
     if (failures > 0) {
       throw new Error(`preset smoke: ${failures} check(s) failed`);
     }
-    line('all preset checks passed');
+    line(
+      levelChecks
+        ? 'all preset checks passed'
+        : 'all preset shape checks passed — level windows were not evaluated',
+    );
   } finally {
     await host.stop();
     rmSync(scratch, { recursive: true, force: true });

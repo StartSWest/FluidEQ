@@ -528,7 +528,7 @@ const dsp = {
   'dsp.master.graph.safetyActive': 'Proteções ativas',
   'dsp.master.graph.safetyBypassed': 'Aviso · proteções ignoradas',
   'dsp.master.graph.loudnessActive':
-    'Maximizar LUFS · +{gain} dB rumo a {target} LUFS',
+    'Maximizar LUFS · {gain} dB rumo a {target} LUFS',
   'dsp.master.peakLimiting': 'Limitação de picos',
   'dsp.master.matchedBypass': 'Igualar ganho',
   'dsp.master.matchedBypassHint':
