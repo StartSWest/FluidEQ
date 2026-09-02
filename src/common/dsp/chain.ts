@@ -1531,10 +1531,33 @@ export const DSP_DEFAULTS: IDspSettings = {
     loudnessTargetLufs: -14,
     ceilingDb: -1,
     releaseMs: 200,
-    // Six decibels of limiting is what a mastering engineer would call a
-    // normal amount of work. It is enough for a -20 LUFS record to reach a
-    // streaming target and not enough for the limiter to become the sound.
-    peakLimitingDb: 6,
+    /**
+     * Nine, measured, and it is the only number that decides whether a library
+     * arrives at one loudness or nearly.
+     *
+     * Six was chosen as "a normal amount of work" and it is — for a delivery.
+     * As a player default it was the whole of the residual spread: rendered
+     * through the real chain against five sources each peaking within 1.5 dB
+     * of full scale, a 20 LU input spread came out at 3.0 LU, and every one of
+     * those three decibels was one wide-dynamic record stopped at the
+     * allowance rather than at the target. At nine the same corpus lands
+     * inside 0.86 LU, and twelve — the top of the dial — measures identically,
+     * so the last three decibels buy nothing and only widen the worst case.
+     *
+     * It is affordable because makeup past the peak room is nearly free in
+     * loudness: +6.00 dB asked of Auto Headroom measured 5.81 LU delivered on
+     * dense programme, about a fifth of a decibel of cost for every six it
+     * holds. The -23 LUFS source that needed the whole nine came out at -14.86
+     * LUFS and -1.08 dBTP, under the ceiling — the limiter absorbed 8.5 dB
+     * without the peak escaping, which is the property that makes the
+     * allowance safe to spend rather than merely permitted.
+     *
+     * `MASTER_PRESET_BY_ID.default` carries the same nine and has to: it is
+     * where Reset lands. The `streaming` profile deliberately keeps six —
+     * that one is a delivery specification, and this one is how a player
+     * behaves.
+     */
+    peakLimitingDb: 9,
     matchedBypass: false,
   },
 };

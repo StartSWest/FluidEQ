@@ -492,8 +492,7 @@ const dsp = {
   'dsp.master.graph.faultClean': '采样有效',
   'dsp.master.graph.safetyActive': '保护功能已启用',
   'dsp.master.graph.safetyBypassed': '警告 · 保护功能已旁路',
-  'dsp.master.graph.loudnessActive':
-    'LUFS 最大化 · +{gain} dB 至 {target} LUFS',
+  'dsp.master.graph.loudnessActive': 'LUFS 最大化 · {gain} dB 至 {target} LUFS',
   'dsp.master.peakLimiting': '峰值限制',
   'dsp.master.matchedBypass': '增益匹配',
   'dsp.master.matchedBypassHint':

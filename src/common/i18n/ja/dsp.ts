@@ -513,8 +513,7 @@ const dsp = {
   'dsp.master.graph.faultClean': 'サンプル正常',
   'dsp.master.graph.safetyActive': '保護機能有効',
   'dsp.master.graph.safetyBypassed': '警告 · 保護機能バイパス',
-  'dsp.master.graph.loudnessActive':
-    'LUFS 最大化 · {target} LUFS へ +{gain} dB',
+  'dsp.master.graph.loudnessActive': 'LUFS 最大化 · {target} LUFS へ {gain} dB',
   'dsp.master.peakLimiting': 'ピークリミッティング',
   'dsp.master.matchedBypass': 'ゲインマッチ',
   'dsp.master.matchedBypassHint':

@@ -38,6 +38,19 @@ const displayDbfs = (value: number): string =>
 const displayLufs = (value: number): string =>
   value <= -70 ? '—' : `${value.toFixed(1)}`;
 
+/**
+ * The makeup carries its own sign, because this stage attenuates more often
+ * than it boosts.
+ *
+ * The plus used to be written into the sentence in all ten locales, from back
+ * when the makeup was capped at the track's remaining peak room and could only
+ * ever be zero or positive. It is a LUFS target now: against the -14 default,
+ * every commercially mastered record asks for attenuation, and the line read
+ * "+-10.2 dB toward -14.0 LUFS" on the most ordinary case there is.
+ */
+const signedDb = (value: number): string =>
+  `${value > 0 ? '+' : ''}${value.toFixed(1)}`;
+
 interface IDspMasterGraphProps {
   master: IMasterSettings;
   meter: IDspOutputSafetyMeter;
@@ -369,7 +382,7 @@ const DspMasterGraph = ({
         {maximizeActive ? (
           <span className="is-safe">
             {t('dsp.master.graph.loudnessActive', {
-              gain: loudnessGainDb.toFixed(1),
+              gain: signedDb(loudnessGainDb),
               target: master.loudnessTargetLufs.toFixed(1),
             })}
           </span>
@@ -383,7 +396,7 @@ const DspMasterGraph = ({
         {maximizeActive && master.matchedBypass ? (
           <span className="is-fixed">
             {t('dsp.master.graph.matchedActive', {
-              gain: loudnessGainDb.toFixed(1),
+              gain: signedDb(loudnessGainDb),
             })}
           </span>
         ) : undefined}

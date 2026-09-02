@@ -533,7 +533,7 @@ const dsp = {
   'dsp.master.graph.safetyActive': 'Safeguards active',
   'dsp.master.graph.safetyBypassed': 'Warning · safeguards bypassed',
   'dsp.master.graph.loudnessActive':
-    'LUFS maximize · +{gain} dB toward {target} LUFS',
+    'LUFS maximize · {gain} dB toward {target} LUFS',
   'dsp.master.peakLimiting': 'Peak limiting',
   'dsp.master.matchedBypass': 'Gain match',
   'dsp.master.matchedBypassHint':
