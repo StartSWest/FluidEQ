@@ -116,6 +116,7 @@ const dsp = {
     'Findet impulsive Schäden und überbrückt sie. Alles, was zu lang für einen Knackser ist, bleibt unangetastet — so überlebt die Perkussion.',
   'dsp.denoise.maxRepair': 'Längste Reparatur',
   'dsp.denoise.voice': 'Stimme',
+  'dsp.denoise.background': 'Hintergrund',
   'dsp.denoise.voiceHint':
     'Ein auf Sprache trainierter neuronaler Reiniger. Hervorragend bei Podcasts und Interviews; bei Musik nimmt er Becken und Hallfahnen mit.',
   'dsp.denoise.voiceModelMissing':

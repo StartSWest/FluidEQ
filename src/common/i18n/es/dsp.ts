@@ -116,6 +116,7 @@ const dsp = {
     'Encuentra y salva los daños impulsivos. Lo que sea demasiado largo para ser un chasquido se deja intacto, así la percusión sobrevive.',
   'dsp.denoise.maxRepair': 'Reparación máxima',
   'dsp.denoise.voice': 'Voz',
+  'dsp.denoise.background': 'Fondo',
   'dsp.denoise.voiceHint':
     'Un limpiador neuronal entrenado con habla. Excelente en pódcast y entrevistas; en música se lleva los platillos y las colas de reverberación.',
   'dsp.denoise.voiceModelMissing':

@@ -154,6 +154,17 @@ struct HostState {
    */
   FeqChainSettings chain_settings{};
   /**
+   * The voice model that most recently loaded successfully.
+   *
+   * A device open rebuilds the fallback-rate chain before audio starts. The
+   * model used to live only inside that discarded chain, so downloading it
+   * before START made it disappear as soon as the real endpoint negotiated.
+   * Keeping the paths beside the settings lets every replacement chain restore
+   * the same module before it can be published to the audio thread.
+   */
+  std::string voice_model_path;
+  std::string voice_runtime_path;
+  /**
    * The listener's fader, 0 to 1, and where the ramp has reached.
    *
    * `volume` is written by the control thread and read by the audio thread;
@@ -174,11 +185,12 @@ struct HostState {
    */
   std::mutex decoder_mutex;
   /**
-   * Serialises anything that opens, closes or rebuilds the device path.
+   * Serialises anything that opens, closes or rebuilds the device path, plus
+   * the voice-model state copied into every rebuilt chain.
    *
-   * Taken by the control thread for START and STOP, and by the reopen below.
-   * Never by the audio thread, which only reads what those two have already
-   * finished building.
+   * Taken by the control thread for START, STOP and voice-model changes, and
+   * by the reopen below. Never by the audio thread, which only reads what
+   * those two have already finished building.
    */
   std::mutex device_mutex;
   /** What the renderer last asked for, so a reopen knows whether to start. */
@@ -810,6 +822,15 @@ bool rebuild_chain_and_player(HostState& state, const FeqDecoderOps& ops) {
     return false;
   }
   feq_chain_configure(chain, &state.chain_settings);
+  if (!state.voice_model_path.empty() &&
+      feq_chain_load_voice_model(chain, state.voice_model_path.c_str(),
+                                 state.voice_runtime_path.c_str()) == 0) {
+    std::fprintf(stderr,
+                 "FluidEQ-DSP: voice model failed to survive chain rebuild\n");
+    // Voice is optional. A missing runtime must not turn a healthy output
+    // device into silence; the meter reports the module unavailable and the
+    // next rebuild can retry the retained, previously valid pair.
+  }
   // Re-attached rather than recreated, so the panel's displays carry across a
   // rebuild instead of blanking every time a band moves.
   feq_chain_set_meters(chain, state.meters);
@@ -1322,9 +1343,12 @@ int main(int argc, char** argv) {
 
       case FEQ_CMD_LOAD_VOICE_MODEL: {
         if (frame.parameter_id == 0) {
+          const std::lock_guard<std::mutex> device_held(state.device_mutex);
           if (state.chain != nullptr) {
             feq_chain_load_voice_model(state.chain, nullptr, nullptr);
           }
+          state.voice_model_path.clear();
+          state.voice_runtime_path.clear();
           send_ack(frame.request_id, FEQ_WIRE_APPLIED, frame.settings_revision,
                    0, 0.0);
           break;
@@ -1352,11 +1376,23 @@ int main(int argc, char** argv) {
         // the control thread and never from the callback. A refusal is
         // reported rather than swallowed: the card distinguishes "no model" it
         // asked for from one it thought it had.
-        const int loaded =
-            state.chain != nullptr
-                ? feq_chain_load_voice_model(state.chain, model.c_str(),
-                                             runtime.c_str())
-                : 0;
+        int loaded = 0;
+        {
+          // A default-device notification can rebuild the chain on the
+          // telemetry thread. Loading and remembering the model are one
+          // operation under the same lock, so the rebuild sees either the
+          // old successful pair or the new successful pair, never half of
+          // one.
+          const std::lock_guard<std::mutex> device_held(state.device_mutex);
+          loaded = state.chain != nullptr
+                       ? feq_chain_load_voice_model(state.chain, model.c_str(),
+                                                    runtime.c_str())
+                       : 0;
+          if (loaded != 0) {
+            state.voice_model_path = model;
+            state.voice_runtime_path = runtime;
+          }
+        }
         send_ack(frame.request_id,
                  loaded != 0 ? FEQ_WIRE_APPLIED : FEQ_WIRE_REJECTED,
                  frame.settings_revision, 0, 0.0);

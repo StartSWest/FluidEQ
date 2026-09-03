@@ -6,10 +6,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import {
   DENOISE_HUM_MODES,
+  DENOISE_VOICE_MODES,
   DSP_DEFAULTS,
   IDenoiseSettings,
   TDenoiseHumMode,
   TDenoiseProfileSource,
+  TDenoiseVoiceMode,
 } from '../../common/dsp/chain';
 import { NOISE_HUM_MAX_HARMONICS } from '../../common/dsp/noiseProfile';
 import Switch from '../widgets/Switch';
@@ -51,6 +53,11 @@ const HUM_MODE_LABELS = {
   fifty: 'dsp.denoise.humFifty',
   sixty: 'dsp.denoise.humSixty',
 } as const satisfies Record<TDenoiseHumMode, string>;
+
+const VOICE_MODE_LABELS = {
+  voice: 'dsp.denoise.voice',
+  background: 'dsp.denoise.background',
+} as const satisfies Record<TDenoiseVoiceMode, string>;
 
 const DspDenoiseCard = ({
   denoise,
@@ -115,6 +122,14 @@ const DspDenoiseCard = ({
       profile.humHz > 0
         ? `${profile.humHz.toFixed(1)} Hz`
         : t('dsp.denoise.noHum');
+  }
+
+  let voiceHint = t('dsp.denoise.voiceModelMissing');
+  if (model.state === 'ready') {
+    voiceHint = t('dsp.denoise.voiceReady');
+  }
+  if (meter.voiceModelLoaded) {
+    voiceHint = t('dsp.denoise.voiceHint');
   }
 
   return (
@@ -481,10 +496,7 @@ const DspDenoiseCard = ({
             <Switch
               id="dsp-denoise-voice"
               isOn={denoise.voice.enabled}
-              isDisabled={
-                !isEnabled ||
-                (!meter.voiceModelLoaded && model.state !== 'ready')
-              }
+              isDisabled={!isEnabled || !meter.voiceModelLoaded}
               handleToggle={() =>
                 commitPatch({
                   voice: { ...denoise.voice, enabled: !denoise.voice.enabled },
@@ -492,6 +504,32 @@ const DspDenoiseCard = ({
               }
               ariaLabel={t('dsp.denoise.voice')}
             />
+          </div>
+          <div
+            className="segmented"
+            role="group"
+            aria-label={t('dsp.denoise.voice')}
+          >
+            {DENOISE_VOICE_MODES.map((mode) => (
+              <button
+                key={mode}
+                type="button"
+                className={`segmented__option${
+                  denoise.voice.mode === mode ? ' is-selected' : ''
+                }`}
+                aria-pressed={denoise.voice.mode === mode}
+                disabled={
+                  !isEnabled ||
+                  !denoise.voice.enabled ||
+                  !meter.voiceModelLoaded
+                }
+                onClick={() =>
+                  commitPatch({ voice: { ...denoise.voice, mode } })
+                }
+              >
+                {t(VOICE_MODE_LABELS[mode])}
+              </button>
+            ))}
           </div>
           <div className="dsp-band-dials">
             <Dial
@@ -503,9 +541,7 @@ const DspDenoiseCard = ({
               unit=""
               step={0.01}
               isDisabled={
-                !isEnabled ||
-                !denoise.voice.enabled ||
-                (!meter.voiceModelLoaded && model.state !== 'ready')
+                !isEnabled || !denoise.voice.enabled || !meter.voiceModelLoaded
               }
               onCommit={onCommit}
               onChange={(amount) =>
@@ -516,11 +552,7 @@ const DspDenoiseCard = ({
           {/* The switch is disabled rather than merely ineffective, because a
               control that turns on and changes nothing is worse than one that
               says why it cannot. */}
-          <p className="dsp-band-hint">
-            {model.state === 'ready' || meter.voiceModelLoaded
-              ? t('dsp.denoise.voiceHint')
-              : t('dsp.denoise.voiceModelMissing')}
-          </p>
+          <p className="dsp-band-hint">{voiceHint}</p>
           {model.state !== 'ready' && !meter.voiceModelLoaded ? (
             <div className="dsp-denoise-model">
               <button

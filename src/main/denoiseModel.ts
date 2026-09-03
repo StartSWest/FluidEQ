@@ -48,10 +48,20 @@ const modelDir = () => path.join(app.getPath('userData'), 'denoise-models');
 
 export const denoiseModelPath = (): string => path.join(modelDir(), MODEL_FILE);
 
-/** Whether the model is on disk and the right size to be worth hashing. */
+/** Whether the exact pinned model is on disk. */
 export const isDenoiseModelPresent = (): boolean => {
   try {
-    return fs.statSync(denoiseModelPath()).size === MODEL_BYTES;
+    const modelPath = denoiseModelPath();
+    if (fs.statSync(modelPath).size !== MODEL_BYTES) {
+      return false;
+    }
+    // Size alone let a same-length damaged file survive every restart and be
+    // handed back to ONNX Runtime. Ten megabytes is cheap to identify here,
+    // and the download path already defines the digest that is trusted.
+    return (
+      createHash('sha256').update(fs.readFileSync(modelPath)).digest('hex') ===
+      MODEL_SHA256
+    );
   } catch {
     return false;
   }
@@ -70,18 +80,12 @@ export const isDenoiseModelPresent = (): boolean => {
  * nothing at all after fetching ten megabytes.
  *
  * The two real layouts are named instead. Under `app.asar.unpacked` when
- * packaged, under the workspace root in development; the `bin/napi-vN/...`
- * arrangement below either one is the package's business and has changed
- * between releases, so that part is walked.
+ * packaged, under the workspace root in development. Runtime releases may
+ * change the N-API directory or the Unix SONAME, but selecting another CPU's
+ * library is never valid, so only `napi-vN/<platform>/<arch>` is searched.
  */
 export const onnxRuntimeLibraryPath = (): string | undefined => {
-  const names: Record<string, string> = {
-    win32: 'onnxruntime.dll',
-    darwin: 'libonnxruntime.dylib',
-    linux: 'libonnxruntime.so',
-  };
-  const name = names[process.platform];
-  if (!name) {
+  if (!['win32', 'darwin', 'linux'].includes(process.platform)) {
     return undefined;
   }
   const roots = [
@@ -100,32 +104,59 @@ export const onnxRuntimeLibraryPath = (): string | undefined => {
   ].filter((root): root is string => root !== undefined);
 
   try {
-    const root = roots.find((candidate) =>
-      fs.existsSync(path.join(candidate, 'bin')),
-    );
-    if (!root) {
-      return undefined;
-    }
-    const napi = path.join(root, 'bin');
-    let found: string | undefined;
-    // Depth-limited, and it stops at the first hit: `some` short-circuits, so
-    // the walk does not read every architecture's directory to find the one
-    // this machine is running.
-    const walk = (at: string, depth: number): boolean => {
-      if (depth > 4) {
-        return false;
+    const matchesRuntime = (name: string) => {
+      if (process.platform === 'win32') {
+        return name === 'onnxruntime.dll';
       }
-      return fs.readdirSync(at).some((entryName) => {
-        const full = path.join(at, entryName);
-        if (entryName === name) {
-          found = full;
-          return true;
-        }
-        return fs.statSync(full).isDirectory() && walk(full, depth + 1);
-      });
+      if (process.platform === 'darwin') {
+        return /^libonnxruntime(?:\.\d+(?:\.\d+)*)?\.dylib$/.test(name);
+      }
+      return /^libonnxruntime\.so(?:\.\d+(?:\.\d+)*)?$/.test(name);
     };
-    walk(napi, 0);
-    return found;
+    const candidates = roots.flatMap((root) => {
+      const bin = path.join(root, 'bin');
+      if (!fs.existsSync(bin)) {
+        return [];
+      }
+      return fs
+        .readdirSync(bin, { withFileTypes: true })
+        .filter(
+          (entry) => entry.isDirectory() && /^napi-v\d+$/.test(entry.name),
+        )
+        .map((entry) => entry.name)
+        .sort(
+          (left, right) =>
+            Number(right.slice('napi-v'.length)) -
+            Number(left.slice('napi-v'.length)),
+        )
+        .flatMap((napiDirectory) => {
+          const runtimeDirectory = path.join(
+            bin,
+            napiDirectory,
+            process.platform,
+            process.arch,
+          );
+          if (!fs.existsSync(runtimeDirectory)) {
+            return [];
+          }
+          return (
+            fs
+              .readdirSync(runtimeDirectory, { withFileTypes: true })
+              .filter((entry) => entry.isFile() || entry.isSymbolicLink())
+              .map((entry) => entry.name)
+              .filter(matchesRuntime)
+              // Prefer the stable SONAME over a fully versioned duplicate,
+              // while keeping the result independent from enumeration order.
+              .sort((left, right) =>
+                left.length === right.length
+                  ? left.localeCompare(right)
+                  : left.length - right.length,
+              )
+              .map((name) => path.join(runtimeDirectory, name))
+          );
+        });
+    });
+    return candidates[0];
   } catch {
     return undefined;
   }

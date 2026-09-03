@@ -110,6 +110,7 @@ const dsp = {
     '衝撃的な損傷を見つけて繋ぎ直します。クリックと呼ぶには長すぎるものはそのまま残すので、打楽器は生き残ります。',
   'dsp.denoise.maxRepair': '最長修復',
   'dsp.denoise.voice': '音声',
+  'dsp.denoise.background': '背景音',
   'dsp.denoise.voiceHint':
     '音声で学習したニューラルクリーナー。ポッドキャストやインタビューには最適ですが、音楽ではシンバルやリバーブの余韻まで持っていきます。',
   'dsp.denoise.voiceModelMissing':

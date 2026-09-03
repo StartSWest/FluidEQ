@@ -45,6 +45,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "denoise_internal.h"
 #include "fluideq/convolver.h"
+#include "fluideq/resampler.h"
 
 #if defined(_WIN32)
 #define WIN32_LEAN_AND_MEAN
@@ -67,6 +68,17 @@ constexpr double kPi = 3.14159265358979323846;
 
 /** The rate the 48 kHz model was trained at; anything else must resample. */
 constexpr double kVoiceRate = 48000.0;
+
+uint32_t device_frames_for(double device_rate, uint32_t model_frames) {
+  return static_cast<uint32_t>(std::llround(static_cast<double>(model_frames) *
+                                            device_rate / kVoiceRate));
+}
+
+/** One model window, plus the worker's four-hop scheduling headroom. */
+uint32_t voice_latency_for(double device_rate) {
+  return device_frames_for(device_rate, kVoiceWindow) +
+         device_frames_for(device_rate, kVoiceHop * kDenoiseVoiceLatencyFrames);
+}
 
 /**
  * A single-producer, single-consumer float ring.
@@ -111,6 +123,19 @@ struct VoiceRing {
     for (uint32_t i = 0; i < count; i += 1) {
       into[i] = data[(r + i) % capacity];
     }
+    read.store(r + count, std::memory_order_release);
+  }
+
+  void peek(float* into, uint32_t count) const {
+    const uint32_t capacity = static_cast<uint32_t>(data.size());
+    const uint32_t r = read.load(std::memory_order_relaxed);
+    for (uint32_t i = 0; i < count; i += 1) {
+      into[i] = data[(r + i) % capacity];
+    }
+  }
+
+  void discard(uint32_t count) {
+    const uint32_t r = read.load(std::memory_order_relaxed);
     read.store(r + count, std::memory_order_release);
   }
 };
@@ -164,7 +189,22 @@ struct VoiceRuntime {
    */
   VoiceRing input[FEQ_DENOISE_CHANNELS];
   VoiceRing output[FEQ_DENOISE_CHANNELS];
+  /** Worker-only rings on the model's fixed 48 kHz timeline. */
+  VoiceRing model_input[FEQ_DENOISE_CHANNELS];
+  VoiceRing model_output[FEQ_DENOISE_CHANNELS];
+  FeqResampler* to_model = nullptr;
+  FeqResampler* from_model = nullptr;
+  std::vector<float> worker_device_input[FEQ_DENOISE_CHANNELS];
+  std::vector<float> worker_model_input[FEQ_DENOISE_CHANNELS];
+  std::vector<float> worker_model_output[FEQ_DENOISE_CHANNELS];
+  std::vector<float> worker_device_output[FEQ_DENOISE_CHANNELS];
+  std::vector<float> dry_delay[FEQ_DENOISE_CHANNELS];
   std::vector<float> scratch;
+  uint32_t dry_cursor = 0;
+  uint64_t output_debt = 0;
+  uint32_t max_frames = 0;
+  uint32_t voice_latency = 0;
+  double device_rate = kVoiceRate;
 
   std::thread worker;
   std::atomic<bool> running{false};
@@ -253,9 +293,8 @@ bool read_initial_state(VoiceRuntime& runtime) {
     size_t from = 0;
     while (from <= csv.size() && index < limit) {
       const size_t comma = csv.find(',', from);
-      const std::string piece =
-          csv.substr(from, comma == std::string::npos ? std::string::npos
-                                                     : comma - from);
+      const std::string piece = csv.substr(
+          from, comma == std::string::npos ? std::string::npos : comma - from);
       if (!piece.empty()) {
         runtime.initial_state[at + index] = std::stof(piece);
         index += 1;
@@ -288,8 +327,7 @@ void process_hop(VoiceRuntime& runtime, VoiceChannel& channel) {
   }
 
   const int64_t spec_shape[4] = {1, 1, static_cast<int64_t>(kVoiceBins), 2};
-  const int64_t state_shape[1] = {
-      static_cast<int64_t>(channel.state.size())};
+  const int64_t state_shape[1] = {static_cast<int64_t>(channel.state.size())};
   OrtValue* spec_value = nullptr;
   OrtValue* state_value = nullptr;
   if (api->CreateTensorWithDataAsOrtValue(
@@ -320,11 +358,10 @@ void process_hop(VoiceRuntime& runtime, VoiceChannel& channel) {
 
   float* enhanced = nullptr;
   float* next_state = nullptr;
-  if (api->GetTensorMutableData(outputs[0],
-                               reinterpret_cast<void**>(&enhanced)) == nullptr &&
-      api->GetTensorMutableData(outputs[1],
-                               reinterpret_cast<void**>(&next_state)) ==
-          nullptr) {
+  if (api->GetTensorMutableData(
+          outputs[0], reinterpret_cast<void**>(&enhanced)) == nullptr &&
+      api->GetTensorMutableData(
+          outputs[1], reinterpret_cast<void**>(&next_state)) == nullptr) {
     for (uint32_t bin = 0; bin < kVoiceBins; bin += 1) {
       real[bin] = enhanced[bin * 2];
       imaginary[bin] = enhanced[bin * 2 + 1];
@@ -358,22 +395,103 @@ void process_hop(VoiceRuntime& runtime, VoiceChannel& channel) {
   }
 }
 
-/** The worker loop: drain what the callback pushed, refill what it will pop. */
+bool resample_input(VoiceRuntime& runtime) {
+  uint32_t available = UINT32_MAX;
+  uint32_t space = UINT32_MAX;
+  for (uint32_t c = 0; c < runtime.channel_count; c += 1) {
+    available = std::min(available, runtime.input[c].available());
+    space = std::min(space, runtime.model_input[c].space());
+  }
+  if (available == 0 || space == 0) {
+    return false;
+  }
+
+  const uint32_t input_frames = std::min(
+      available, static_cast<uint32_t>(runtime.worker_device_input[0].size()));
+  const uint32_t output_frames = std::min(
+      space, static_cast<uint32_t>(runtime.worker_model_input[0].size()));
+  const float* input[FEQ_DENOISE_CHANNELS] = {};
+  float* output[FEQ_DENOISE_CHANNELS] = {};
+  for (uint32_t c = 0; c < runtime.channel_count; c += 1) {
+    runtime.input[c].peek(runtime.worker_device_input[c].data(), input_frames);
+    input[c] = runtime.worker_device_input[c].data();
+    output[c] = runtime.worker_model_input[c].data();
+  }
+  uint32_t consumed = 0;
+  const uint32_t produced = feq_resample(runtime.to_model, input, input_frames,
+                                         output, output_frames, &consumed);
+  for (uint32_t c = 0; c < runtime.channel_count; c += 1) {
+    runtime.input[c].discard(consumed);
+    if (produced > 0) {
+      runtime.model_input[c].push(output[c], produced);
+    }
+  }
+  return consumed > 0 || produced > 0;
+}
+
+bool process_model_hop(VoiceRuntime& runtime) {
+  for (uint32_t c = 0; c < runtime.channel_count; c += 1) {
+    if (runtime.model_input[c].available() < kVoiceHop ||
+        runtime.model_output[c].space() < kVoiceHop) {
+      return false;
+    }
+  }
+  for (uint32_t c = 0; c < runtime.channel_count; c += 1) {
+    runtime.model_input[c].pop(runtime.worker_model_input[c].data(), kVoiceHop);
+    VoiceChannel& channel = runtime.channels[c];
+    std::memcpy(&channel.analysis[kVoiceWindow - kVoiceHop],
+                runtime.worker_model_input[c].data(),
+                kVoiceHop * sizeof(float));
+    process_hop(runtime, channel);
+    runtime.model_output[c].push(channel.synthesis.data(), kVoiceHop);
+  }
+  return true;
+}
+
+bool resample_output(VoiceRuntime& runtime) {
+  uint32_t available = UINT32_MAX;
+  uint32_t space = UINT32_MAX;
+  for (uint32_t c = 0; c < runtime.channel_count; c += 1) {
+    available = std::min(available, runtime.model_output[c].available());
+    space = std::min(space, runtime.output[c].space());
+  }
+  if (available == 0 || space == 0) {
+    return false;
+  }
+
+  const uint32_t input_frames = std::min(
+      available, static_cast<uint32_t>(runtime.worker_model_output[0].size()));
+  const uint32_t output_frames = std::min(
+      space, static_cast<uint32_t>(runtime.worker_device_output[0].size()));
+  const float* input[FEQ_DENOISE_CHANNELS] = {};
+  float* output[FEQ_DENOISE_CHANNELS] = {};
+  for (uint32_t c = 0; c < runtime.channel_count; c += 1) {
+    runtime.model_output[c].peek(runtime.worker_model_output[c].data(),
+                                 input_frames);
+    input[c] = runtime.worker_model_output[c].data();
+    output[c] = runtime.worker_device_output[c].data();
+  }
+  uint32_t consumed = 0;
+  const uint32_t produced =
+      feq_resample(runtime.from_model, input, input_frames, output,
+                   output_frames, &consumed);
+  for (uint32_t c = 0; c < runtime.channel_count; c += 1) {
+    runtime.model_output[c].discard(consumed);
+    if (produced > 0) {
+      runtime.output[c].push(output[c], produced);
+    }
+  }
+  return consumed > 0 || produced > 0;
+}
+
+/** The worker converts to 48 kHz, runs the model, then converts back. */
 void worker_loop(VoiceRuntime* runtime) {
-  std::vector<float> hop(kVoiceHop, 0.0f);
   while (runtime->running.load(std::memory_order_acquire)) {
-    bool worked = false;
-    for (uint32_t c = 0; c < runtime->channel_count; c += 1) {
-      if (runtime->input[c].available() < kVoiceHop ||
-          runtime->output[c].space() < kVoiceHop) {
-        continue;
-      }
-      runtime->input[c].pop(hop.data(), kVoiceHop);
-      VoiceChannel& channel = runtime->channels[c];
-      std::memcpy(&channel.analysis[kVoiceWindow - kVoiceHop], hop.data(),
-                  kVoiceHop * sizeof(float));
-      process_hop(*runtime, channel);
-      runtime->output[c].push(channel.synthesis.data(), kVoiceHop);
+    bool worked = resample_input(*runtime);
+    while (process_model_hop(*runtime)) {
+      worked = true;
+    }
+    while (resample_output(*runtime)) {
       worked = true;
     }
     if (!worked) {
@@ -384,90 +502,221 @@ void worker_loop(VoiceRuntime* runtime) {
   }
 }
 
+/** Prepare a runtime that is not yet visible to the audio callback. */
+void reset_runtime(VoiceRuntime& runtime) {
+  const uint32_t model_capacity = kVoiceHop * 128 + kVoiceWindow;
+  const uint32_t device_capacity =
+      device_frames_for(runtime.device_rate, kVoiceHop * 128) +
+      runtime.max_frames + FEQ_RESAMPLER_TAPS;
+  const uint32_t model_chunk = kVoiceHop * 8 + FEQ_RESAMPLER_TAPS;
+  const uint32_t device_chunk =
+      std::max(runtime.max_frames,
+               device_frames_for(runtime.device_rate, kVoiceHop * 8) +
+                   FEQ_RESAMPLER_TAPS);
+  const uint32_t dry_capacity = runtime.voice_latency + runtime.max_frames;
+  feq_resampler_reset(runtime.to_model);
+  feq_resampler_reset(runtime.from_model);
+  for (uint32_t c = 0; c < runtime.channel_count; c += 1) {
+    runtime.input[c].reset(device_capacity);
+    runtime.output[c].reset(device_capacity);
+    runtime.model_input[c].reset(model_capacity);
+    runtime.model_output[c].reset(model_capacity);
+    runtime.worker_device_input[c].assign(device_chunk, 0.0f);
+    runtime.worker_model_input[c].assign(model_chunk, 0.0f);
+    runtime.worker_model_output[c].assign(model_chunk, 0.0f);
+    runtime.worker_device_output[c].assign(device_chunk, 0.0f);
+    runtime.dry_delay[c].assign(dry_capacity, 0.0f);
+
+    /*
+     * Four finished hops are scheduling headroom. The model front end keeps a
+     * full two-hop analysis window before its output is on the source timeline;
+     * the dry path below carries both terms so partial Amount cannot double the
+     * speaker with a delayed copy.
+     */
+    float silence[64] = {0.0f};
+    uint32_t remaining = device_frames_for(
+        runtime.device_rate, kVoiceHop * kDenoiseVoiceLatencyFrames);
+    while (remaining > 0) {
+      const uint32_t block = remaining < 64 ? remaining : 64;
+      runtime.output[c].push(silence, block);
+      remaining -= block;
+    }
+
+    VoiceChannel& channel = runtime.channels[c];
+    std::fill(channel.analysis.begin(), channel.analysis.end(), 0.0f);
+    std::fill(channel.synthesis.begin(), channel.synthesis.end(), 0.0f);
+    channel.state = runtime.initial_state;
+  }
+  runtime.scratch.assign(runtime.max_frames, 0.0f);
+  runtime.dry_cursor = 0;
+  runtime.output_debt = 0;
+}
+
+void destroy_runtime(VoiceRuntime* runtime) {
+  if (runtime == nullptr) {
+    return;
+  }
+  runtime->running.store(false, std::memory_order_release);
+  if (runtime->worker.joinable()) {
+    runtime->worker.join();
+  }
+  feq_resampler_destroy(runtime->to_model);
+  runtime->to_model = nullptr;
+  feq_resampler_destroy(runtime->from_model);
+  runtime->from_model = nullptr;
+  feq_dft_destroy(runtime->transform);
+  runtime->transform = nullptr;
+  const OrtApi* api = runtime->api;
+  if (api != nullptr) {
+    if (runtime->memory != nullptr) {
+      api->ReleaseMemoryInfo(runtime->memory);
+    }
+    if (runtime->session != nullptr) {
+      api->ReleaseSession(runtime->session);
+    }
+    if (runtime->options != nullptr) {
+      api->ReleaseSessionOptions(runtime->options);
+    }
+    if (runtime->env != nullptr) {
+      api->ReleaseEnv(runtime->env);
+    }
+  }
+  close_library(*runtime);
+  delete runtime;
+}
+
+/** Retire only after the callback has left the runtime it acquired. */
+void retire_runtime(FeqDenoise* denoise, VoiceRuntime* runtime) {
+  if (runtime == nullptr) {
+    return;
+  }
+  while (denoise->voice_readers.load(std::memory_order_acquire) != 0) {
+    std::this_thread::yield();
+  }
+  destroy_runtime(runtime);
+}
+
 }  // namespace
 
 void denoise_voice_configure(FeqDenoise* denoise) { (void)denoise; }
 
 void denoise_voice_reset(FeqDenoise* denoise) {
-  auto* runtime = static_cast<VoiceRuntime*>(denoise->voice);
-  if (runtime == nullptr) {
+  if (denoise->voice_model_path.empty() ||
+      denoise->voice_runtime_path.empty()) {
     return;
   }
-  for (uint32_t c = 0; c < runtime->channel_count; c += 1) {
-    runtime->input[c].reset(kVoiceHop * 32);
-    runtime->output[c].reset(kVoiceHop * 32);
-    /*
-     * Prime the output with the backlog this module CLAIMS to have.
-     *
-     * `kDenoiseVoiceLatencyFrames` documents a head start the worker gets, and
-     * `denoise_voice_latency_frames` reports the stage as delaying by exactly
-     * that much — but nothing implemented it, so the real delay was whatever
-     * the ring happened to be holding at the time. Two consequences: the
-     * worker started from behind and underran until it caught up, and Isolate,
-     * which time-aligns on the reported figure, was subtracting two signals
-     * that were not aligned. That is the comb filter this stage already
-     * learned about once.
-     *
-     * Silence, so the delay is exact from the first sample rather than
-     * approached. A small stack buffer rather than an allocation, because a
-     * reset can be reached from the audio thread.
-     */
-    float silence[64] = {0.0f};
-    uint32_t remaining = kVoiceHop * kDenoiseVoiceLatencyFrames;
-    while (remaining > 0) {
-      const uint32_t block = remaining < 64 ? remaining : 64;
-      runtime->output[c].push(silence, block);
-      remaining -= block;
-    }
-    VoiceChannel& channel = runtime->channels[c];
-    std::fill(channel.analysis.begin(), channel.analysis.end(), 0.0f);
-    std::fill(channel.synthesis.begin(), channel.synthesis.end(), 0.0f);
-    channel.state = runtime->initial_state;
-  }
+  // Build and publish a clean replacement. Mutating the live worker's rings
+  // here races both the callback and the inference thread on a seek.
+  const std::string model_path = denoise->voice_model_path;
+  const std::string runtime_path = denoise->voice_runtime_path;
+  denoise_voice_load_model(denoise, model_path.c_str(), runtime_path.c_str());
 }
 
-uint32_t denoise_voice_process(FeqDenoise* denoise,
-                               float* const* channels,
+uint32_t denoise_voice_process(FeqDenoise* denoise, float* const* channels,
                                uint32_t frames) {
-  auto* runtime = static_cast<VoiceRuntime*>(denoise->voice);
-  if (denoise->settings.voice.enabled == 0 || runtime == nullptr) {
-    // Asked for with nothing behind it. Dry through, and the panel reports the
-    // model as absent rather than leaving the dial looking effective. NOT an
-    // underrun: that means the worker was late, and there is no worker.
+  denoise->voice_readers.fetch_add(1, std::memory_order_acq_rel);
+  auto* runtime = static_cast<VoiceRuntime*>(
+      denoise->voice.load(std::memory_order_acquire));
+  if (runtime == nullptr) {
+    denoise->voice_readers.fetch_sub(1, std::memory_order_release);
     return 0;
   }
 
+  const bool enabled = denoise->settings.voice.enabled != 0;
+  const bool keep_background =
+      denoise->settings.voice.mode == FEQ_DENOISE_VOICE_KEEP_BACKGROUND;
   const double amount =
       std::min(1.0, std::max(0.0, denoise->settings.voice.amount));
   uint32_t underruns = 0;
+  bool can_push = true;
+  for (uint32_t c = 0; c < denoise->channels && c < runtime->channel_count;
+       c += 1) {
+    can_push = can_push && runtime->input[c].space() >= frames;
+  }
+
+  /* Ingress is all-or-none so stereo can never move by different blocks. */
+  for (uint32_t c = 0;
+       can_push && c < denoise->channels && c < runtime->channel_count;
+       c += 1) {
+    runtime->input[c].push(channels[c], frames);
+  }
+
+  const uint32_t dry_ring =
+      runtime->dry_delay[0].empty()
+          ? 0
+          : static_cast<uint32_t>(runtime->dry_delay[0].size());
+  for (uint32_t c = 0; c < denoise->channels && c < runtime->channel_count;
+       c += 1) {
+    float* line = runtime->dry_delay[c].data();
+    for (uint32_t i = 0; i < frames; i += 1) {
+      line[(runtime->dry_cursor + i) % dry_ring] = channels[c][i];
+    }
+  }
+
+  /*
+   * Output that missed its block is never allowed to masquerade as the next
+   * block. Drop that debt once it arrives, then resume on the common timeline.
+   */
+  uint32_t available = UINT32_MAX;
+  for (uint32_t c = 0; c < denoise->channels && c < runtime->channel_count;
+       c += 1) {
+    available = std::min(available, runtime->output[c].available());
+  }
+  const uint32_t discard = static_cast<uint32_t>(std::min<uint64_t>(
+      runtime->output_debt, static_cast<uint64_t>(available)));
+  if (discard > 0) {
+    for (uint32_t c = 0; c < denoise->channels && c < runtime->channel_count;
+         c += 1) {
+      runtime->output[c].discard(discard);
+    }
+    runtime->output_debt -= discard;
+    available -= discard;
+  }
+
+  const bool output_ready =
+      can_push && runtime->output_debt == 0 && available >= frames;
 
   for (uint32_t c = 0; c < denoise->channels && c < runtime->channel_count;
        c += 1) {
     float* buffer = channels[c];
-    if (runtime->input[c].space() >= frames) {
-      runtime->input[c].push(buffer, frames);
-    }
-    if (runtime->output[c].available() >= frames) {
-      runtime->scratch.resize(frames);
+    const float* line = runtime->dry_delay[c].data();
+    if (output_ready) {
       runtime->output[c].pop(runtime->scratch.data(), frames);
-      for (uint32_t i = 0; i < frames; i += 1) {
-        buffer[i] = static_cast<float>(
-            buffer[i] * (1.0 - amount) + runtime->scratch[i] * amount);
+      if (enabled) {
+        for (uint32_t i = 0; i < frames; i += 1) {
+          const uint32_t at =
+              (runtime->dry_cursor + i + dry_ring - runtime->voice_latency) %
+              dry_ring;
+          const float selected = keep_background
+                                     ? line[at] - runtime->scratch[i]
+                                     : runtime->scratch[i];
+          buffer[i] =
+              static_cast<float>(line[at] * (1.0 - amount) + selected * amount);
+        }
       }
-    } else {
-      // Late. The dry signal goes through untouched and the miss is counted,
-      // because a module that intermittently stops working without saying so
-      // is worse than one that admits it.
-      underruns += 1;
+    } else if (enabled) {
+      for (uint32_t i = 0; i < frames; i += 1) {
+        const uint32_t at =
+            (runtime->dry_cursor + i + dry_ring - runtime->voice_latency) %
+            dry_ring;
+        buffer[i] = line[at];
+      }
     }
   }
+
+  if (!output_ready) {
+    runtime->output_debt += frames;
+    if (enabled) {
+      underruns = 1;
+    }
+  }
+  runtime->dry_cursor = (runtime->dry_cursor + frames) % dry_ring;
+  denoise->voice_readers.fetch_sub(1, std::memory_order_release);
   return underruns;
 }
 
-int denoise_voice_load_model(FeqDenoise* denoise,
-                             const char* model_path,
+int denoise_voice_load_model(FeqDenoise* denoise, const char* model_path,
                              const char* runtime_path) {
-  denoise_voice_unload(denoise);
   if (model_path == nullptr || runtime_path == nullptr) {
     return 0;
   }
@@ -488,8 +737,8 @@ int denoise_voice_load_model(FeqDenoise* denoise,
   }
 
   using GetApiBase = const OrtApiBase*(ORT_API_CALL*)();
-  auto base = reinterpret_cast<GetApiBase>(load_symbol(*runtime,
-                                                       "OrtGetApiBase"));
+  auto base =
+      reinterpret_cast<GetApiBase>(load_symbol(*runtime, "OrtGetApiBase"));
   if (base == nullptr) {
     close_library(*runtime);
     delete runtime;
@@ -532,25 +781,27 @@ int denoise_voice_load_model(FeqDenoise* denoise,
   ok = ok && read_initial_state(*runtime);
 
   if (!ok) {
-    if (runtime->memory != nullptr) {
-      api->ReleaseMemoryInfo(runtime->memory);
-    }
-    if (runtime->session != nullptr) {
-      api->ReleaseSession(runtime->session);
-    }
-    if (runtime->options != nullptr) {
-      api->ReleaseSessionOptions(runtime->options);
-    }
-    if (runtime->env != nullptr) {
-      api->ReleaseEnv(runtime->env);
-    }
-    close_library(*runtime);
-    delete runtime;
+    destroy_runtime(runtime);
     return 0;
   }
 
   runtime->channel_count = denoise->channels;
+  runtime->max_frames = denoise->max_frames;
+  runtime->device_rate = denoise->sample_rate;
+  runtime->voice_latency = voice_latency_for(runtime->device_rate);
+  runtime->to_model = feq_resampler_create(runtime->device_rate, kVoiceRate,
+                                           runtime->channel_count);
+  runtime->from_model = feq_resampler_create(kVoiceRate, runtime->device_rate,
+                                             runtime->channel_count);
+  if (runtime->to_model == nullptr || runtime->from_model == nullptr) {
+    destroy_runtime(runtime);
+    return 0;
+  }
   runtime->transform = feq_dft_create(kVoiceWindow);
+  if (runtime->transform == nullptr) {
+    destroy_runtime(runtime);
+    return 0;
+  }
   runtime->window.resize(kVoiceWindow);
   for (uint32_t i = 0; i < kVoiceWindow; i += 1) {
     runtime->window[i] = vorbis_window(i, kVoiceWindow);
@@ -562,56 +813,37 @@ int denoise_voice_load_model(FeqDenoise* denoise,
     channel.state = runtime->initial_state;
   }
 
-  denoise->voice = runtime;
-  denoise_voice_reset(denoise);
+  reset_runtime(*runtime);
 
   runtime->running.store(true, std::memory_order_release);
-  runtime->worker = std::thread(worker_loop, runtime);
+  try {
+    runtime->worker = std::thread(worker_loop, runtime);
+  } catch (...) {
+    runtime->running.store(false, std::memory_order_release);
+    destroy_runtime(runtime);
+    return 0;
+  }
 
-  denoise->voice_model_loaded.store(1, std::memory_order_relaxed);
+  denoise->voice_model_path = model_path;
+  denoise->voice_runtime_path = runtime_path;
+  auto* previous = static_cast<VoiceRuntime*>(
+      denoise->voice.exchange(runtime, std::memory_order_acq_rel));
+  retire_runtime(denoise, previous);
   return 1;
 }
 
 void denoise_voice_unload(FeqDenoise* denoise) {
-  denoise->voice_model_loaded.store(0, std::memory_order_relaxed);
-  auto* runtime = static_cast<VoiceRuntime*>(denoise->voice);
-  denoise->voice = nullptr;
-  if (runtime == nullptr) {
-    return;
-  }
-  runtime->running.store(false, std::memory_order_release);
-  if (runtime->worker.joinable()) {
-    runtime->worker.join();
-  }
-  // After the join and never before: the worker is the plan's only user.
-  feq_dft_destroy(runtime->transform);
-  runtime->transform = nullptr;
-  const OrtApi* api = runtime->api;
-  if (api != nullptr) {
-    if (runtime->memory != nullptr) {
-      api->ReleaseMemoryInfo(runtime->memory);
-    }
-    if (runtime->session != nullptr) {
-      api->ReleaseSession(runtime->session);
-    }
-    if (runtime->options != nullptr) {
-      api->ReleaseSessionOptions(runtime->options);
-    }
-    if (runtime->env != nullptr) {
-      api->ReleaseEnv(runtime->env);
-    }
-  }
-  close_library(*runtime);
-  delete runtime;
+  denoise->voice_model_path.clear();
+  denoise->voice_runtime_path.clear();
+  auto* runtime = static_cast<VoiceRuntime*>(
+      denoise->voice.exchange(nullptr, std::memory_order_acq_rel));
+  retire_runtime(denoise, runtime);
 }
 
 uint32_t denoise_voice_latency_frames(const FeqDenoise* denoise) {
-  if (denoise->voice == nullptr ||
-      denoise->voice_model_loaded.load(std::memory_order_relaxed) == 0) {
+  if (denoise->settings.voice.enabled == 0 ||
+      denoise->voice.load(std::memory_order_acquire) == nullptr) {
     return 0;
   }
-  // The transform's own window, plus the hops the callback stays behind the
-  // worker. Reporting a latency the stage is not adding puts the deck's
-  // crossfade out by that much on every handoff.
-  return kVoiceWindow + kVoiceHop * kDenoiseVoiceLatencyFrames;
+  return voice_latency_for(denoise->sample_rate);
 }

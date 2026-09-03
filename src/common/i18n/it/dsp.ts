@@ -115,6 +115,7 @@ const dsp = {
     'Trova e ricuce i danni impulsivi. Tutto ciò che è troppo lungo per essere un click viene lasciato stare, così la percussione sopravvive.',
   'dsp.denoise.maxRepair': 'Riparazione massima',
   'dsp.denoise.voice': 'Voce',
+  'dsp.denoise.background': 'Sottofondo',
   'dsp.denoise.voiceHint':
     'Un pulitore neurale addestrato sul parlato. Eccellente su podcast e interviste; sulla musica porta via piatti e code di riverbero.',
   'dsp.denoise.voiceModelMissing':

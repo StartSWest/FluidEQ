@@ -224,12 +224,12 @@ typedef struct FeqChainSettings {
  * sixty-four bands: the decoder asserts the lead rather than trusting it.
  */
 /*
- * 78 before Denoise added eighteen scalars, then 96 before Bass Forge and Bass
+ * 78 before Denoise added nineteen scalars, then 97 before Bass Forge and Bass
  * Punch added seven each. All of them are appended immediately before the band
  * count — which has to stay last, because both `isChainWirePayload` and the
  * decoder read the tail's length from `FEQ_CHAIN_PARAM_LEAD - 1`.
  */
-#define FEQ_CHAIN_PARAM_LEAD 112
+#define FEQ_CHAIN_PARAM_LEAD 113
 #define FEQ_CHAIN_BAND_PARAMS 7
 
 /** Non-zero on success. Leaves `out` untouched on a layout it cannot read. */

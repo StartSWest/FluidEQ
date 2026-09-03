@@ -122,6 +122,7 @@ const dsp = {
     'Finds and bridges impulsive damage. Anything too long to be a click is left alone, so percussion survives.',
   'dsp.denoise.maxRepair': 'Longest repair',
   'dsp.denoise.voice': 'Voice',
+  'dsp.denoise.background': 'Background',
   'dsp.denoise.voiceHint':
     'A neural cleaner trained on speech. Excellent on podcasts and interviews; on music it removes cymbals and reverb tails.',
   'dsp.denoise.voiceModelMissing':

@@ -16,6 +16,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <atomic>
 #include <cstdint>
+#include <string>
 #include <vector>
 
 #include "fluideq/biquad.h"
@@ -74,14 +75,14 @@ constexpr double kDenoiseSilenceDb = -120.0;
  * The deepest delay every module together can add, at any supported rate.
  *
  * The spectral window is the largest term: held at 42.7 ms, it reaches 8192
- * samples at 192 kHz. The neural module adds its own window and latency ring
- * at 2880, and the click repairer its lookahead at 144, for 11216 — so this
+ * samples at 192 kHz. The 48 kHz neural module reaches 11520 after conversion
+ * at 192 kHz, and the click repairer its lookahead at 144, for 19856 — so this
  * doubled when the window did, and it must move with it every time. It sizes
  * Isolate's dry delay once at construction so that no module toggle ever
  * reallocates a buffer the callback is reading; a value too small does not
  * fail loudly, it silently wraps the ring and returns the wrong sample.
  */
-constexpr uint32_t kDenoiseMaxLatencyFrames = 16384;
+constexpr uint32_t kDenoiseMaxLatencyFrames = 32768;
 
 /**
  * One channel's short-time transform state.
@@ -360,14 +361,25 @@ struct FeqDenoise {
    * library handle, and nothing else in the core should have to see either.
    * Null until a model is loaded, which is the ordinary state.
    */
-  void* voice = nullptr;
+  std::atomic<void*> voice{nullptr};
+  /**
+   * The callback announces while it is using the published runtime.
+   *
+   * Model loading happens on the control thread. A plain pointer let that
+   * thread delete the old ONNX session while the callback was still inside
+   * it. The loader now publishes a complete replacement atomically and waits
+   * for this count to return to zero before retiring the old one.
+   */
+  std::atomic<uint32_t> voice_readers{0};
+  /** Rebuild a clean runtime on a source reset without mutating the live one. */
+  std::string voice_model_path;
+  std::string voice_runtime_path;
 
   /** Published for the panel; written by the audio thread, read by control. */
   std::atomic<double> reported_reduction_db{0.0};
   std::atomic<double> reported_floor_db{kDenoiseSilenceDb};
   std::atomic<uint32_t> reported_clicks{0};
   std::atomic<uint32_t> reported_voice_underruns{0};
-  std::atomic<int> voice_model_loaded{0};
 };
 
 /** Rebuild the transform size and window for the current rate. */

@@ -133,6 +133,8 @@ int feq_chain_settings_decode(const double* values,
   out->denoise.click.sensitivity = next();
   out->denoise.click.max_repair_samples = next();
   out->denoise.voice.enabled = flag();
+  out->denoise.voice.mode =
+      static_cast<FeqDenoiseVoiceMode>(static_cast<int>(next()));
   out->denoise.voice.amount = next();
 
   // Before the band count and not after it, matching `encodeChainSettings`.

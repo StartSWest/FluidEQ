@@ -115,6 +115,7 @@ const dsp = {
     'Encontra e liga os danos impulsivos. Tudo o que seja demasiado longo para ser um estalo fica intacto, por isso a percussão sobrevive.',
   'dsp.denoise.maxRepair': 'Reparação máxima',
   'dsp.denoise.voice': 'Voz',
+  'dsp.denoise.background': 'Fundo',
   'dsp.denoise.voiceHint':
     'Um limpador neural treinado com fala. Excelente em podcasts e entrevistas; na música leva os pratos e as caudas de reverberação.',
   'dsp.denoise.voiceModelMissing':

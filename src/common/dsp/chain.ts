@@ -523,6 +523,20 @@ export interface IDenoiseClickSettings {
   maxRepairSamples: number;
 }
 
+export type TDenoiseVoiceMode = 'voice' | 'background';
+
+/**
+ * Append-only: the native wire carries the index, not the string.
+ *
+ * Voice keeps the model's cleaned speech. Background keeps the aligned
+ * difference between the source and that speech — the noise and programme the
+ * speech cleaner rejected, not a second stem-separation model.
+ */
+export const DENOISE_VOICE_MODES: readonly TDenoiseVoiceMode[] = [
+  'voice',
+  'background',
+];
+
 /**
  * The neural module, which only exists once its model has been downloaded.
  *
@@ -532,6 +546,7 @@ export interface IDenoiseClickSettings {
  */
 export interface IDenoiseVoiceSettings {
   enabled: boolean;
+  mode: TDenoiseVoiceMode;
   amount: number;
 }
 
@@ -1382,6 +1397,7 @@ export const DSP_DEFAULTS: IDspSettings = {
       // Off even inside an enabled stage: the model is a download the user has
       // not necessarily made, and this module is wrong for music.
       enabled: false,
+      mode: 'voice',
       amount: 1,
     },
   },
@@ -1908,6 +1924,11 @@ export const clampDspSettings = (value: unknown): IDspSettings => {
           denoiseVoice.enabled,
           DSP_DEFAULTS.denoise.voice.enabled,
         ),
+        mode: DENOISE_VOICE_MODES.includes(
+          denoiseVoice.mode as TDenoiseVoiceMode,
+        )
+          ? (denoiseVoice.mode as TDenoiseVoiceMode)
+          : DSP_DEFAULTS.denoise.voice.mode,
         amount: clampNumber(
           denoiseVoice.amount,
           RANGES.denoiseAmount,

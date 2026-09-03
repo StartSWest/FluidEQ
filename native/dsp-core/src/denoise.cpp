@@ -102,6 +102,7 @@ void feq_denoise_settings_defaults(FeqDenoiseSettings* settings) {
   settings->click.sensitivity = 0.5;
   settings->click.max_repair_samples = 32.0;
   settings->voice.enabled = 0;
+  settings->voice.mode = FEQ_DENOISE_VOICE_KEEP_VOICE;
   settings->voice.amount = 1.0;
 }
 
@@ -246,7 +247,7 @@ void feq_denoise_process(FeqDenoise* denoise,
           ? 0
           : static_cast<uint32_t>(denoise->dry_delay[0].size());
 
-  if (isolate && ring > 0) {
+  if (ring > 0) {
     for (uint32_t c = 0; c < denoise->channels; c += 1) {
       float* line = denoise->dry_delay[c].data();
       for (uint32_t i = 0; i < frames; i += 1) {
@@ -359,7 +360,7 @@ void feq_denoise_report(const FeqDenoise* denoise, FeqDenoiseReport* out) {
       denoise->reported_voice_underruns.load(std::memory_order_relaxed);
   out->profile_ready = denoise->profile_ready ? 1 : 0;
   out->voice_model_loaded =
-      denoise->voice_model_loaded.load(std::memory_order_relaxed);
+      denoise->voice.load(std::memory_order_acquire) != nullptr ? 1 : 0;
   for (uint32_t band = 0; band < FEQ_DENOISE_PROFILE_BANDS; band += 1) {
     out->floor_bands_db[band] =
         band < denoise->live_floor_db.size()

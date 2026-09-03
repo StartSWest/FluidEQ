@@ -24,6 +24,7 @@ import { FilterTypeEnum } from '../constants';
 import {
   DENOISE_HUM_MODES,
   DENOISE_PROFILE_SOURCES,
+  DENOISE_VOICE_MODES,
   EQ_ENGINES,
   EQ_MODELS,
   EQ_PHASE_MODES,
@@ -35,7 +36,7 @@ import {
  * Scalars before the variable-length band array. Must equal
  * `FEQ_CHAIN_PARAM_LEAD` in `fluideq/chain.h`.
  */
-export const CHAIN_PARAM_LEAD = 112;
+export const CHAIN_PARAM_LEAD = 113;
 
 /** Fields per EQ band. Must equal `FEQ_CHAIN_BAND_PARAMS`. */
 export const CHAIN_BAND_PARAMS = 7;
@@ -167,6 +168,7 @@ export const encodeChainSettings = (
     denoise.click.sensitivity,
     denoise.click.maxRepairSamples,
     denoise.voice.enabled ? 1 : 0,
+    DENOISE_VOICE_MODES.indexOf(denoise.voice.mode),
     denoise.voice.amount,
     // Both bass stages go here rather than at the end, and the position is the
     // whole point: `isChainWirePayload` sizes the band array from the LAST lead

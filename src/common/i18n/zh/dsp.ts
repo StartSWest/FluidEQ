@@ -103,6 +103,7 @@ const dsp = {
     '找出脉冲性损伤并加以修补。长到不像爆音的部分会原样保留，因此打击乐得以幸存。',
   'dsp.denoise.maxRepair': '最长修补',
   'dsp.denoise.voice': '人声',
+  'dsp.denoise.background': '背景声',
   'dsp.denoise.voiceHint':
     '以语音训练的神经网络清理器。用于播客和访谈效果极好；用于音乐则会带走镲片和混响尾音。',
   'dsp.denoise.voiceModelMissing': '需先一次性下载 10 MB 模型才能运行。',

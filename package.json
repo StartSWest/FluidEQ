@@ -194,7 +194,10 @@
     "productName": "FluidEQ",
     "appId": "com.gigabytz.fluideq",
     "asar": true,
-    "asarUnpack": "**\\*.{node,dll}",
+    "asarUnpack": [
+      "**/*.{node,dll,dylib}",
+      "**/*.so*"
+    ],
     "files": [
       "dist",
       "node_modules",

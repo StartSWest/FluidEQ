@@ -116,6 +116,7 @@ const dsp = {
     'Repère et comble les dégâts impulsionnels. Tout ce qui est trop long pour être un craquement est laissé intact, donc la percussion survit.',
   'dsp.denoise.maxRepair': 'Réparation maximale',
   'dsp.denoise.voice': 'Voix',
+  'dsp.denoise.background': 'Arrière-plan',
   'dsp.denoise.voiceHint':
     'Un nettoyeur neuronal entraîné sur la parole. Excellent sur les podcasts et les entretiens ; sur la musique il emporte les cymbales et les queues de réverbération.',
   'dsp.denoise.voiceModelMissing':

@@ -56,6 +56,12 @@ typedef enum FeqDenoiseHumMode {
   FEQ_DENOISE_HUM_SIXTY = 2
 } FeqDenoiseHumMode;
 
+/** Matches `DENOISE_VOICE_MODES`. */
+typedef enum FeqDenoiseVoiceMode {
+  FEQ_DENOISE_VOICE_KEEP_VOICE = 0,
+  FEQ_DENOISE_VOICE_KEEP_BACKGROUND = 1
+} FeqDenoiseVoiceMode;
+
 typedef struct FeqDenoiseSettings {
   int enabled;
   /** Emit what is being removed instead of what is kept. */
@@ -86,6 +92,7 @@ typedef struct FeqDenoiseSettings {
   struct {
     /** Structural: builds the session, its worker and the latency ring. */
     int enabled;
+    FeqDenoiseVoiceMode mode;
     double amount;
   } voice;
 } FeqDenoiseSettings;

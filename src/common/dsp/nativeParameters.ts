@@ -8,6 +8,7 @@ import {
   CROSSFADE_CURVES,
   DENOISE_HUM_MODES,
   DENOISE_PROFILE_SOURCES,
+  DENOISE_VOICE_MODES,
   EQ_ENGINES,
   EQ_MODELS,
   EQ_PHASE_MODES,
@@ -35,14 +36,14 @@ import { FilterTypeEnum } from '../constants';
  * Duplicating the bounds here would create a second authority that drifts.
  */
 /**
- * Bumped to 2 for the bass stages below: adding parameters changes what a
+ * Bumped to 3 for the Voice output mode: adding parameters changes what a
  * renderer must see for the chain to be complete, and a renderer built
- * against an older host is missing two whole stages rather than one field.
+ * against an older host is missing the selector rather than one optional bit.
  * The version exists so that mismatch fails the handshake loudly, before any
  * audio runs, rather than the renderer silently rendering controls neither
  * stage is listening to.
  */
-export const NATIVE_DSP_PARAMETER_SCHEMA_VERSION = 2 as const;
+export const NATIVE_DSP_PARAMETER_SCHEMA_VERSION = 3 as const;
 
 export type TNativeParameterKind = 'boolean' | 'number' | 'enum';
 
@@ -313,6 +314,12 @@ export const NATIVE_DSP_PARAMETERS = [
     structural: true,
   },
   { id: 2242, path: 'denoise.voice.amount', kind: 'number' },
+  {
+    id: 2243,
+    path: 'denoise.voice.mode',
+    kind: 'enum',
+    values: DENOISE_VOICE_MODES,
+  },
 ] as const satisfies readonly INativeParameter[];
 
 export type TNativeParameterId = (typeof NATIVE_DSP_PARAMETERS)[number]['id'];
