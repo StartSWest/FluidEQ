@@ -112,7 +112,8 @@
     "react-dom": "^19.2.8",
     "react-router-dom": "^7.18.2",
     "regedit": "^5.1.4",
-    "uid": "^2.0.2"
+    "uid": "^2.0.2",
+    "ws": "^8.21.3"
   },
   "devDependencies": {
     "@electron/notarize": "^3.1.1",
@@ -132,6 +133,7 @@
     "@types/react-dom": "^19.2.4",
     "@types/react-test-renderer": "^19.1.0",
     "@types/webpack-bundle-analyzer": "^4.7.0",
+    "@types/ws": "^8.18.1",
     "@typescript-eslint/eslint-plugin": "^8.65.0",
     "@typescript-eslint/parser": "^8.65.0",
     "browserslist-config-erb": "^0.0.3",

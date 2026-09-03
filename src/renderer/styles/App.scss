@@ -1844,6 +1844,7 @@ $tab-border: rgba($secondary-light, 0.2);
 .workspace-tab-panel--presets,
 .workspace-tab-panel--convolution,
 .workspace-tab-panel--dsp,
+.workspace-tab-panel--share,
 .workspace-tab-panel--config,
 .workspace-tab-panel--video,
 .workspace-tab-panel--karaoke,
@@ -2011,6 +2012,7 @@ $tab-border: rgba($secondary-light, 0.2);
 .workspace-tab-panel--convolution,
 .workspace-tab-panel--presets,
 .workspace-tab-panel--dsp,
+.workspace-tab-panel--share,
 .workspace-tab-panel--config {
   min-height: 0;
   flex: 1 1 auto;
@@ -2030,6 +2032,7 @@ $tab-border: rgba($secondary-light, 0.2);
   .workspace-tab-panel__scroll > .convolution-panel,
   .workspace-tab-panel__scroll > .voicing-panel,
   .workspace-tab-panel__scroll > .autoeq-panel,
+  .workspace-tab-panel__scroll > .remote-audio,
   .workspace-tab-panel__scroll > .config-inspector {
     flex: 1 1 auto;
   }

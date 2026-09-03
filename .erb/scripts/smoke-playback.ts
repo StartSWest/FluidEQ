@@ -166,6 +166,7 @@ const chainValues = (eqEnabled: boolean, gainDb: number): number[] => {
     0.5, // click sensitivity
     32, // click longest repair
     0, // voice enabled
+    0, // voice mode: automatic
     1, // voice amount
     0, // bass forge enabled
     0, // bass forge isolate

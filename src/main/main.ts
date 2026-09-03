@@ -142,6 +142,7 @@ import {
 } from './ipc/dspHost';
 import { registerProcessIpc } from './ipc/processes';
 import { registerLibraryPlaylistsIpc } from './ipc/libraryPlaylists';
+import { registerRemoteAudioIpc } from './ipc/remoteAudio';
 import {
   handleLibraryMedia,
   registerLibraryMediaScheme,
@@ -2522,6 +2523,10 @@ registerWindowIpc({
   sendWindowState,
 });
 
+const stopRemoteAudioLan = registerRemoteAudioIpc({
+  getMainWindow: () => mainWindow,
+});
+
 registerKaraokeIpc({
   userDataDir,
   getMainWindow: () => mainWindow,
@@ -2755,6 +2760,7 @@ app.on('before-quit', () => {
   // window trying to hide itself into the tray.
   beginQuit();
   destroyTray();
+  stopRemoteAudioLan();
   // Here rather than in `will-quit`, which is already too late to wait for
   // anything asynchronous. A host left running holds an audio endpoint open,
   // and an endpoint held by a process whose parent has gone is one Windows

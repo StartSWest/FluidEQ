@@ -39,6 +39,11 @@ import type {
   ILibraryTrack,
 } from '../common/library/types';
 import type { ILibraryPlaylists } from '../common/library/playlists';
+import type {
+  ILanHostDetails,
+  ILanRemoteAudioChunk,
+  ILanRemoteAudioSignal,
+} from '../common/remoteAudio';
 import { dspHostBridge } from './dspHost/bridge';
 
 export type Channels = string;
@@ -501,6 +506,51 @@ const onLibraryPlaylistsChanged = (
   };
 };
 
+const startRemoteAudioLanHost = () =>
+  ipcRenderer.invoke('remote-audio-lan-host') as Promise<ILanHostDetails>;
+
+const joinRemoteAudioLan = (code: string) =>
+  ipcRenderer.invoke('remote-audio-lan-join', code) as Promise<void>;
+
+const sendRemoteAudioLanSignal = (message: ILanRemoteAudioSignal) =>
+  ipcRenderer.invoke('remote-audio-lan-send', message) as Promise<void>;
+
+const sendRemoteAudioLanAudio = (chunk: ILanRemoteAudioChunk) =>
+  ipcRenderer.send('remote-audio-lan-audio-send', chunk);
+
+const stopRemoteAudioLan = () =>
+  ipcRenderer.invoke('remote-audio-lan-stop') as Promise<void>;
+
+const onRemoteAudioLanSignal = (
+  listener: (message: ILanRemoteAudioSignal) => void,
+) => {
+  const wrapped = (_event: IpcRendererEvent, message: ILanRemoteAudioSignal) =>
+    listener(message);
+  ipcRenderer.on('remote-audio-lan-signal', wrapped);
+  return () => {
+    ipcRenderer.removeListener('remote-audio-lan-signal', wrapped);
+  };
+};
+
+const onRemoteAudioLanAudio = (
+  listener: (chunk: ILanRemoteAudioChunk) => void,
+) => {
+  const wrapped = (_event: IpcRendererEvent, chunk: ILanRemoteAudioChunk) =>
+    listener(chunk);
+  ipcRenderer.on('remote-audio-lan-audio', wrapped);
+  return () => {
+    ipcRenderer.removeListener('remote-audio-lan-audio', wrapped);
+  };
+};
+
+const onRemoteAudioLanError = (listener: () => void) => {
+  const wrapped = () => listener();
+  ipcRenderer.on('remote-audio-lan-error', wrapped);
+  return () => {
+    ipcRenderer.removeListener('remote-audio-lan-error', wrapped);
+  };
+};
+
 export default {
   /**
    * What this build is running on, read once while the preload has a `process`.
@@ -571,6 +621,14 @@ export default {
     addTracksToLibraryPlaylist,
     removeTracksFromLibraryPlaylist,
     onLibraryPlaylistsChanged,
+    startRemoteAudioLanHost,
+    joinRemoteAudioLan,
+    sendRemoteAudioLanSignal,
+    sendRemoteAudioLanAudio,
+    stopRemoteAudioLan,
+    onRemoteAudioLanSignal,
+    onRemoteAudioLanAudio,
+    onRemoteAudioLanError,
     // Spread rather than nested, so the native engine's calls sit beside every
     // other one here. Its own module because this file is already long enough
     // that a reader has to search it — see the head of `dspHost/bridge.ts`.

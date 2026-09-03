@@ -26,6 +26,7 @@ import video from './video';
 import library from './library';
 import songEq from './songEq';
 import dsp from './dsp';
+import remoteAudio from './remoteAudio';
 
 const it: Partial<Dictionary> = {
   ...karaoke,
@@ -36,6 +37,7 @@ const it: Partial<Dictionary> = {
   ...library,
   ...songEq,
   ...dsp,
+  ...remoteAudio,
 };
 
 export default it;

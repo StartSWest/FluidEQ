@@ -195,7 +195,7 @@ describe('App', () => {
     await act(async () => Promise.resolve());
     const tabs = screen.getAllByRole('tab');
 
-    // The strip itself: five places. The equaliser's five — bands, presets,
+    // The strip itself: six places. The equaliser's five — bands, presets,
     // voicing, convolution, config — are pills inside the EQ page, which is
     // why DSP is top-level rather than mixed into the APO pages.
     //
@@ -204,7 +204,7 @@ describe('App', () => {
     // compressor, not past Library and Karaoke to the end of the strip. That
     // is what this asserts, and it is unchanged.
     //
-    // What did change is where the strip breaks. The five used to be one run;
+    // What did change is where the strip breaks. The six used to be one run;
     // they are now dealt into two so the meter between them sits in the
     // window's actual middle, and Online Media — the longest name — is the one
     // on the left balancing the three short ones on the right. So it leads the
@@ -212,10 +212,11 @@ describe('App', () => {
     //
     // "Online Media" and not "Media": jsdom has no `matchMedia`, which
     // `useMediaQuery` reads as "not narrow", so this is the wide-window strip.
-    expect(tabs.slice(0, 5).map((tab) => tab.textContent)).toEqual([
+    expect(tabs.slice(0, 6).map((tab) => tab.textContent)).toEqual([
       'Online Media',
       'EQ',
       'DSP',
+      'Share',
       'Library',
       'Karaoke',
     ]);

@@ -139,6 +139,8 @@ import {
   LiveAudioProvider,
   useLiveAudioControl,
 } from './audio/LiveAudioContext';
+import RemoteAudioPanel from './remoteAudio/RemoteAudioPanel';
+import { RemoteAudioProvider } from './remoteAudio/RemoteAudioContext';
 import EuphoriaGlow from './components/EuphoriaGlow';
 import {
   deletePreset,
@@ -175,6 +177,7 @@ type TWorkspaceTab =
   | 'voicing'
   | 'convolution'
   | 'dsp'
+  | 'share'
   | 'video'
   | 'library'
   | 'karaoke'
@@ -214,6 +217,7 @@ const WORKSPACE_TABS: TWorkspaceTab[] = [
   'library',
   'karaoke',
   'dsp',
+  'share',
   'config',
 ];
 
@@ -615,6 +619,7 @@ const AppContent = () => {
   const isLibraryTab = activeWorkspaceTab === 'library';
   const isKaraokeTab = activeWorkspaceTab === 'karaoke';
   const isDspTab = activeWorkspaceTab === 'dsp';
+  const isShareTab = activeWorkspaceTab === 'share';
   const playingOwner = usePlaybackOwner();
   const transportIdentities = useTransportIdentitySources();
   // A loaded silent player keeps only its controller/media shell for five
@@ -646,15 +651,15 @@ const AppContent = () => {
   });
 
   /**
-   * The five places, drawn in the titlebar either side of the live output
-   * meter — two on the left, three on the right.
+   * The six places, drawn in the titlebar either side of the live output
+   * meter — two on the left, four on the right.
    *
    * Above the workspace rather than on it. The meter is the one element that
    * makes this window look like itself and it already floats across the top;
    * putting the places in the same wrapper means the app's navigation lives
    * in its signature element and the workspace below gets its row back.
    *
-   * Split, because all five on one end left the spectrum sitting a couple of
+   * Split, because all six on one end left the spectrum sitting a couple of
    * hundred pixels left of the window's middle while the wrapper around it was
    * perfectly centred — the one drawing in this app that is meant to look
    * centred was the one thing that was not. The names are dealt out so the two
@@ -715,6 +720,15 @@ const AppContent = () => {
         onClick={() => selectTopWorkspaceTab('dsp')}
       >
         {t('tabs.dsp')}
+      </button>
+      <button
+        type="button"
+        role="tab"
+        aria-selected={isShareTab}
+        className={`workspace-tab${isShareTab ? ' is-active' : ''}`}
+        onClick={() => selectTopWorkspaceTab('share')}
+      >
+        {t('tabs.share')}
       </button>
       <button
         type="button"
@@ -818,7 +832,9 @@ const AppContent = () => {
   const showsGraph =
     (graphView !== 'normal' && isFullscreenMediaTab(activeWorkspaceTab)) ||
     (graphVisibilityByTab?.[activeWorkspaceTab] ??
-      (activeWorkspaceTab === 'karaoke' || activeWorkspaceTab === 'library'
+      (activeWorkspaceTab === 'karaoke' ||
+      activeWorkspaceTab === 'library' ||
+      activeWorkspaceTab === 'share'
         ? false
         : isGraphViewOn));
   const setActiveTabGraphVisibility = useCallback(
@@ -2045,7 +2061,7 @@ const AppContent = () => {
                 : undefined
             }
           >
-            {/* The five places are in the titlebar now, beside the meter —
+            {/* The six places are in the titlebar now, beside the meter —
                 see `workspaceTabs` and the wrapper it is drawn in. */}
             {activeWorkspaceTab === 'eq' && (
               <div
@@ -2128,6 +2144,16 @@ const AppContent = () => {
                     onCommit={persistDspSettings}
                     engineState={dspEngineState}
                   />
+                </div>
+              </div>
+            )}
+            {activeWorkspaceTab === 'share' && (
+              <div
+                key={activeWorkspaceTab}
+                className="workspace-tab-panel workspace-tab-panel--share"
+              >
+                <div className="workspace-tab-panel__scroll">
+                  <RemoteAudioPanel />
                 </div>
               </div>
             )}
@@ -2510,16 +2536,18 @@ export default function App() {
     <I18nProvider>
       <FluidEqProvider>
         <LiveAudioProvider>
-          {/* Mounted here rather than inside the support dialog, because the
-              run outlives that dialog being closed and the celebration is
-              meant to reach the whole window. It renders nothing; it puts the
-              streak on the document root where every stylesheet can see it. */}
-          <EuphoriaGlow />
-          <Router>
-            <Routes>
-              <Route path="/" element={<AppContent />} />
-            </Routes>
-          </Router>
+          <RemoteAudioProvider>
+            {/* Mounted here rather than inside the support dialog, because the
+                run outlives that dialog being closed and the celebration is
+                meant to reach the whole window. It renders nothing; it puts the
+                streak on the document root where every stylesheet can see it. */}
+            <EuphoriaGlow />
+            <Router>
+              <Routes>
+                <Route path="/" element={<AppContent />} />
+              </Routes>
+            </Router>
+          </RemoteAudioProvider>
         </LiveAudioProvider>
       </FluidEqProvider>
     </I18nProvider>

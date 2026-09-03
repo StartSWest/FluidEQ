@@ -1,0 +1,321 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+.remote-audio {
+  width: min(940px, 100%);
+  margin: 0 auto;
+  padding: $spacing-m $spacing-s $spacing-l;
+  color: $text-primary;
+}
+
+.remote-audio__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: $spacing-l;
+  margin-bottom: $spacing-l;
+
+  h1 {
+    margin: 2px 0 $spacing-s;
+    font-size: clamp(22px, 3vw, 34px);
+    line-height: 1.08;
+    font-weight: $weight-bold;
+  }
+
+  p {
+    max-width: 640px;
+    margin: 0;
+    color: $text-muted;
+    line-height: 1.55;
+  }
+}
+
+.remote-audio__eyebrow,
+.remote-audio__card-kicker {
+  color: $secondary-light !important;
+  font-size: 10px;
+  font-weight: $weight-bold;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.remote-audio__badges {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: $spacing-xs;
+  max-width: 280px;
+
+  span {
+    padding: 5px 9px;
+    border: 1px solid rgba($secondary-light, 0.28);
+    border-radius: $radius-pill;
+    background: rgba($secondary-default, 0.07);
+    color: $secondary-light;
+    font-size: 10px;
+    font-weight: $weight-semibold;
+    white-space: nowrap;
+  }
+}
+
+.remote-audio__choices {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: $spacing-m;
+}
+
+.remote-audio__card,
+.remote-audio__session {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-m;
+  padding: $spacing-l;
+  overflow: hidden;
+  border: 1px solid $border-panel;
+  border-radius: $radius-l;
+  background: rgba($surface-base, 0.34);
+  box-shadow: inset 0 1px 0 rgba($white, 0.04);
+}
+
+.remote-audio__card--listen {
+  border-color: rgba($secondary-light, 0.3);
+}
+
+.remote-audio__role-mark {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  color: rgba($secondary-light, 0.12);
+  font-size: 52px;
+  line-height: 1;
+  font-weight: $weight-bold;
+}
+
+.remote-audio__card-copy {
+  min-height: 122px;
+  padding-right: $spacing-xl;
+
+  h2,
+  p {
+    margin: 0;
+  }
+
+  h2 {
+    margin: $spacing-xs 0 $spacing-s;
+    font-size: 18px;
+    font-weight: $weight-bold;
+  }
+
+  p:last-child {
+    color: $text-muted;
+    line-height: 1.5;
+  }
+}
+
+.remote-audio__field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  > span {
+    color: $text-muted;
+    font-size: 11px;
+    font-weight: $weight-semibold;
+  }
+
+  textarea {
+    width: 100%;
+    min-height: 68px;
+    resize: vertical;
+    font-family: $font-mono;
+    font-size: 10px;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+  }
+}
+
+.remote-audio__session {
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+.remote-audio__session--sender {
+  max-width: 620px;
+
+  > p {
+    margin: 0;
+    color: $text-muted;
+    line-height: 1.55;
+  }
+}
+
+.remote-audio__session-heading,
+.remote-audio__code-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacing-m;
+
+  h2,
+  h3,
+  p {
+    margin: 0;
+  }
+
+  h2 {
+    margin-top: 3px;
+    font-size: 20px;
+    font-weight: $weight-bold;
+  }
+}
+
+.remote-audio__status {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 4px 10px;
+  border: 1px solid $border-subtle;
+  border-radius: $radius-pill;
+  color: $text-muted;
+  font-size: 11px;
+  font-weight: $weight-semibold;
+  white-space: nowrap;
+}
+
+.remote-audio__status--connected {
+  border-color: rgba($analogous-2, 0.32);
+  color: $analogous-2;
+}
+
+.remote-audio__status--playback-blocked,
+.remote-audio__status--disconnected,
+.remote-audio__status--error {
+  border-color: rgba($red, 0.32);
+  color: $red;
+}
+
+.remote-audio__codes {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-s;
+
+  > h3,
+  > p {
+    margin: 0;
+  }
+
+  > h3 {
+    font-size: 13px;
+    font-weight: $weight-bold;
+  }
+
+  > p {
+    color: $text-muted;
+    font-size: 12px;
+    line-height: 1.45;
+  }
+}
+
+.remote-audio__code {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-s;
+  padding: $spacing-s;
+  border: 1px solid $border-subtle;
+  border-radius: $radius-s;
+  background: rgba($surface-field, 0.34);
+
+  textarea {
+    width: 100%;
+    min-height: 64px;
+    resize: none;
+    font-family: $font-mono;
+    font-size: 10px;
+    line-height: 1.35;
+  }
+}
+
+.remote-audio__code-heading > span {
+  color: $secondary-light;
+  font-family: $font-mono;
+  font-size: 11px;
+  font-weight: $weight-semibold;
+}
+
+.remote-audio__stop {
+  align-self: flex-start;
+}
+
+.remote-audio__error {
+  margin-bottom: $spacing-m;
+  padding: 10px 12px;
+  border: 1px solid rgba($red, 0.35);
+  border-radius: $radius-s;
+  background: rgba($red, 0.08);
+  color: #ffc1cb;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.remote-audio__note {
+  display: flex;
+  align-items: baseline;
+  gap: $spacing-s;
+  margin-top: $spacing-m;
+  padding: 0 $spacing-xs;
+  color: $text-faint;
+  font-size: 11px;
+  line-height: 1.45;
+
+  strong {
+    flex: 0 0 auto;
+    color: $text-muted;
+    font-weight: $weight-semibold;
+  }
+}
+
+@container eq-panel (max-width: 700px) {
+  .remote-audio__header {
+    flex-direction: column;
+  }
+
+  .remote-audio__badges {
+    justify-content: flex-start;
+    max-width: none;
+  }
+
+  .remote-audio__choices {
+    grid-template-columns: 1fr;
+  }
+
+  .remote-audio__card-copy {
+    min-height: auto;
+  }
+}
+
+@container eq-panel (max-width: 460px) {
+  .remote-audio {
+    padding-inline: 0;
+  }
+
+  .remote-audio__card,
+  .remote-audio__session {
+    padding: $spacing-m;
+  }
+
+  .remote-audio__session-heading,
+  .remote-audio__note {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
