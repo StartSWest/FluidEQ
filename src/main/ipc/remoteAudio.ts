@@ -21,6 +21,7 @@ import { createRemoteAudioCredentialStore } from '../remoteAudioCredentials';
 import startRemoteAudioHostSession from '../remoteAudioHostSession';
 import createRemoteAudioLan from '../remoteAudioLan';
 import { decodePairingCode } from '../remoteAudioLanProtocol';
+import createRemoteAudioPorts from '../remoteAudioPorts';
 
 const LAN_SIGNAL_CHANNEL = 'remote-audio-lan-signal';
 const LAN_AUDIO_CHANNEL = 'remote-audio-lan-audio';
@@ -55,9 +56,15 @@ export const registerRemoteAudioIpc = ({
       mainWindow.webContents.send(channel, value);
     }
   };
+  const ports = createRemoteAudioPorts(getMainWindow, (peerId) =>
+    sendToWindow('remote-audio-lan-streaming', peerId),
+  );
   const lan = createRemoteAudioLan(
-    (signal) => sendToWindow(LAN_SIGNAL_CHANNEL, signal),
-    (chunk) => sendToWindow(LAN_AUDIO_CHANNEL, chunk),
+    (signal) => {
+      ports.signal(signal);
+      sendToWindow(LAN_SIGNAL_CHANNEL, signal);
+    },
+    ports.audio,
     () => sendToWindow(LAN_ERROR_CHANNEL, undefined),
     (stats) => sendToWindow(LAN_NETWORK_CHANNEL, stats),
   );
@@ -68,6 +75,7 @@ export const registerRemoteAudioIpc = ({
 
   const beginSessionOperation = () => {
     sessionGeneration += 1;
+    ports.reset();
     return sessionGeneration;
   };
   const sessionIsCurrent = (generation: number) =>
@@ -101,6 +109,7 @@ export const registerRemoteAudioIpc = ({
           // The transport owns the critical path. The visual meter is a
           // decimated renderer-only mirror and cannot delay a network packet.
           lan.sendAudio(chunk);
+          ports.analyze(chunk);
           const now = Date.now();
           if (now - lastMeterAt >= 33) {
             lastMeterAt = now;
@@ -273,5 +282,6 @@ export const registerRemoteAudioIpc = ({
     beginSessionOperation();
     stopCapture();
     lan.stop();
+    ports.close();
   };
 };

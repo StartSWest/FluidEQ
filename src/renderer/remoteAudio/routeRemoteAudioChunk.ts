@@ -38,9 +38,11 @@ const routeRemoteAudioChunk = ({
   if (role !== 'listener' || isStopping || !peerIds.has(chunk.peerId)) {
     return;
   }
-  connectedPeerIds.add(chunk.peerId);
   mixer?.push(chunk);
-  publishListenerState();
+  if (!connectedPeerIds.has(chunk.peerId)) {
+    connectedPeerIds.add(chunk.peerId);
+    publishListenerState();
+  }
 };
 
 export default routeRemoteAudioChunk;

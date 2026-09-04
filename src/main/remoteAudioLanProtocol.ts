@@ -382,18 +382,25 @@ export const normalizeAudioChunk = (value: unknown): INormalizedAudioChunk => {
  * Zstandard runs in Node's worker pool so lossless transport cannot hold up
  * Electron's main event loop or the loopback-driven UI meters.
  */
-export const encodeAudioAsync = async (
-  chunk: INormalizedAudioChunk,
-  compress = true,
-): Promise<Buffer> => {
+const audioHeader = (chunk: INormalizedAudioChunk, compress: boolean) => {
   const header = Buffer.allocUnsafe(AUDIO_HEADER_BYTES);
   header.writeUInt32LE(chunk.sequence, 0);
   header.writeUInt32LE(chunk.sampleRate, 4);
   header.writeUInt8(chunk.channels, 8);
   header.writeUInt16LE(chunk.frames, 9);
   header.writeUInt8(compress ? AUDIO_ZSTD : AUDIO_RAW, 11);
+  return header;
+};
+
+export const encodeAudioRaw = (chunk: INormalizedAudioChunk): Buffer =>
+  Buffer.concat([audioHeader(chunk, false), chunk.pcm]);
+
+export const encodeAudioAsync = async (
+  chunk: INormalizedAudioChunk,
+  compress = true,
+): Promise<Buffer> => {
   if (!compress) {
-    return Buffer.concat([header, chunk.pcm]);
+    return encodeAudioRaw(chunk);
   }
   const compressed = await new Promise<Buffer>((resolve, reject) => {
     zstdCompress(
@@ -402,7 +409,7 @@ export const encodeAudioAsync = async (
       (error, result) => (error ? reject(error) : resolve(result)),
     );
   });
-  return Buffer.concat([header, compressed]);
+  return Buffer.concat([audioHeader(chunk, true), compressed]);
 };
 
 export const decodeAudioAsync = async (

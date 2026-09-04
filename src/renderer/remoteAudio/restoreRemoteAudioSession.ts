@@ -15,7 +15,7 @@ interface IRestoreRemoteAudioSessionOptions {
   onFailure(error: TRemoteAudioError): void;
   onListenerMixer(mixer: IPcmMixer): void;
   onListenerRestored(deviceName: string, options: ILanPairingOption[]): void;
-  onPlaybackBlocked(): void;
+  onPlaybackBlocked(blocked: boolean): void;
   onSenderRestored(deviceName: string): void;
   outputSinkId: string;
   publishMeter: TRemoteAudioMeterListener;

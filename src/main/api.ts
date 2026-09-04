@@ -589,6 +589,14 @@ const onRemoteAudioLanAudio = (
   };
 };
 
+const onRemoteAudioLanStreaming = (listener: (peerId: string) => void) => {
+  const wrapped = (_event: IpcRendererEvent, peerId: string) =>
+    listener(peerId);
+  ipcRenderer.on('remote-audio-lan-streaming', wrapped);
+  return () =>
+    ipcRenderer.removeListener('remote-audio-lan-streaming', wrapped);
+};
+
 const onRemoteAudioLanNetwork = (
   listener: (stats: ILanRemoteAudioNetworkStats) => void,
 ) => {
@@ -691,6 +699,7 @@ export default {
     stopRemoteAudioLan,
     onRemoteAudioLanSignal,
     onRemoteAudioLanAudio,
+    onRemoteAudioLanStreaming,
     onRemoteAudioLanNetwork,
     onRemoteAudioLanError,
     // Spread rather than nested, so the native engine's calls sit beside every

@@ -44,10 +44,18 @@ import useRemoteAudioRecovery from './useRemoteAudioRecovery';
 import useRemoteAudioStreamMode from './useRemoteAudioStreamMode';
 
 const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
-  const { capture } = useLiveAudioControl();
+  const { capture, setSharingAudio } = useLiveAudioControl();
   const { activeDeviceId } = useFluidEqContext();
   const [role, setRole] = useState<TRemoteAudioRole | undefined>(undefined);
   const [phase, setPhase] = useState<TRemoteAudioPhase>('idle');
+  useEffect(() => {
+    setSharingAudio(
+      window.electron.platform === 'win32' &&
+        role === 'sender' &&
+        phase === 'connected',
+    );
+    return () => setSharingAudio(false);
+  }, [phase, role, setSharingAudio]);
   const [error, setError] = useState<TRemoteAudioError | undefined>(undefined);
   const [lanOptions, setLanOptions] = useState<ILanPairingOption[]>([]);
   const [connectedCount, setConnectedCount] = useState(0);
@@ -193,9 +201,8 @@ const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
         return;
       }
       if (signal.kind === 'stream-mode') {
-        if (activeRole === 'listener') {
-          mixerRef.current?.setPeerMode(peerId, signal.mode);
-        }
+        // The main process sends this on the same port as PCM, preserving
+        // ordering even when the UI is busy. Reapplying it here resets recovery.
         return;
       }
       if (signal.kind === 'peer-ready') {
@@ -262,6 +269,18 @@ const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
   );
   const acceptAudioRef = useRef(acceptAudio);
   acceptAudioRef.current = acceptAudio;
+  const acceptStreamingRef = useRef<(peerId: string) => void>(() => undefined);
+  acceptStreamingRef.current = (peerId) => {
+    if (
+      roleRef.current === 'listener' &&
+      !stoppingRef.current &&
+      peerIdsRef.current.has(peerId) &&
+      !connectedPeerIdsRef.current.has(peerId)
+    ) {
+      connectedPeerIdsRef.current.add(peerId);
+      publishListenerState();
+    }
+  };
 
   const handleLanError = useRemoteAudioRecovery({
     clearNetworkStats,
@@ -282,6 +301,7 @@ const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
   useRemoteAudioBridgeSubscriptions({
     acceptAudioRef,
     acceptSignalRef,
+    acceptStreamingRef,
     handleError: handleLanError,
   });
 
@@ -315,8 +335,8 @@ const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
         setLanOptions(options);
         setPhase('waiting');
       },
-      onPlaybackBlocked: () => {
-        playbackBlockedRef.current = true;
+      onPlaybackBlocked: (blocked) => {
+        playbackBlockedRef.current = blocked;
         publishListenerState();
       },
       onSenderRestored: publishSenderConnection,
@@ -412,7 +432,6 @@ const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
   const resumePlayback = useCallback(async () => {
     try {
       await mixerRef.current?.resume();
-      playbackBlockedRef.current = false;
       publishListenerState();
     } catch {
       setError('connection');

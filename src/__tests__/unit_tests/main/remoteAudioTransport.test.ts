@@ -99,7 +99,7 @@ describe('LAN audio transport boundaries', () => {
     expect(emitAudio).not.toHaveBeenCalled();
   });
 
-  it('disconnects instead of accumulating video encoder latency', async () => {
+  it('sends a video capture burst without inventing encoder overload', () => {
     const { transport } = createTransport();
     const socket = new FakeSocket();
     transport.attach(
@@ -113,13 +113,36 @@ describe('LAN audio transport boundaries', () => {
       transport.sendAudio(audioChunk('video-peer', sequence));
     }
 
+    expect(socket.close).not.toHaveBeenCalled();
+    expect(socket.sent).toHaveLength(16);
+    expect(
+      socket.sent.map((packet) =>
+        openPacket(packet, keyFromSecret('video-session')).clear.readUInt32LE(
+          0,
+        ),
+      ),
+    ).toEqual(Array.from({ length: 16 }, (_, index) => index));
+    transport.closeAll();
+  });
+
+  it('still rejects a genuinely congested video socket', () => {
+    const { transport } = createTransport();
+    const socket = new FakeSocket();
+    transport.attach(
+      'video-peer',
+      socket as unknown as WebSocket,
+      keyFromSecret('video-session'),
+    );
+    transport.setStreamMode('video-peer', 'video');
+    socket.bufferedAmount = 256 * 1024 + 1;
+
+    transport.sendAudio(audioChunk('video-peer', 0));
+
     expect(socket.close).toHaveBeenCalledWith(
       1013,
-      'Audio sender is overloaded',
+      'Network send buffer is overloaded',
     );
-    await new Promise((resolve) => {
-      setTimeout(resolve, 0);
-    });
+    expect(socket.sent).toHaveLength(0);
     transport.closeAll();
   });
 });

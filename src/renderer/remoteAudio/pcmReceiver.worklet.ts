@@ -8,29 +8,28 @@ import {
   IRemoteAudioPlaybackProfile,
   REMOTE_AUDIO_PLAYBACK_PROFILES,
 } from './remoteAudioPlaybackProfiles';
+import {
+  advanceStream,
+  readStream,
+  resamplerKernel,
+  RESAMPLER_HALF,
+  type IPcmStream,
+} from './pcmResampler';
 
-interface IQueuedChunk {
+interface IPeerStream extends IPcmStream {
   channels: number;
-  frames: number;
-  samples: Float32Array;
-}
-
-interface IPeerStream {
-  availableFrames: number;
-  channels: number;
-  chunks: IQueuedChunk[];
   expectedSequence?: number;
   fadeDirection: -1 | 0 | 1;
   gain: number;
-  kernel: Float32Array;
   meterFilledFrames: number;
   meterPeak: number;
   meterSamples: Float32Array;
   meterSquareSum: number;
-  position: number;
   primed: boolean;
   removing: boolean;
   sampleRate: number;
+  skipFrames: number;
+  skipBlend: number;
   stableFrames: number;
   targetBufferSeconds: number;
 }
@@ -59,71 +58,9 @@ interface IConfigureMessage {
 const PROCESSOR_NAME = 'fluideq-remote-audio';
 const METER_FRAMES = 1_024;
 const FADE_SECONDS = 0.012;
+const STARVATION_FADE_SECONDS = 0.003;
 const MAX_DRIFT_CORRECTION = 0.001;
 const DRIFT_RESPONSE = 0.01;
-const RESAMPLER_TAPS = 64;
-const RESAMPLER_HALF = RESAMPLER_TAPS / 2;
-const RESAMPLER_PHASES = 256;
-const KAISER_BETA = 8.6;
-const MAX_CACHED_RESAMPLER_KERNELS = 16;
-const KERNEL_CACHE = new Map<string, Float32Array>();
-const besselI0 = (value: number): number => {
-  let sum = 1;
-  let term = 1;
-  for (let index = 1; index < 20; index += 1) {
-    term *= value / 2 / index;
-    sum += term * term;
-  }
-  return sum;
-};
-
-const sinc = (value: number): number => {
-  if (Math.abs(value) < 1e-12) {
-    return 1;
-  }
-  const radians = Math.PI * value;
-  return Math.sin(radians) / radians;
-};
-
-const resamplerKernel = (
-  sourceSampleRate: number,
-  outputSampleRate: number,
-): Float32Array => {
-  const cacheKey = `${sourceSampleRate}:${outputSampleRate}`;
-  const cached = KERNEL_CACHE.get(cacheKey);
-  if (cached) {
-    KERNEL_CACHE.delete(cacheKey);
-    KERNEL_CACHE.set(cacheKey, cached);
-    return cached;
-  }
-  const table = new Float32Array((RESAMPLER_PHASES + 1) * RESAMPLER_TAPS);
-  const rateRatio = outputSampleRate / sourceSampleRate;
-  const cutoff = Math.min(rateRatio, 1) * 0.94;
-  const normalizer = besselI0(KAISER_BETA);
-  for (let phase = 0; phase <= RESAMPLER_PHASES; phase += 1) {
-    const offset = phase / RESAMPLER_PHASES;
-    for (let tap = 0; tap < RESAMPLER_TAPS; tap += 1) {
-      const distance = tap - RESAMPLER_HALF + 1 - offset;
-      const windowAt = distance / RESAMPLER_HALF;
-      const window =
-        windowAt > -1 && windowAt < 1
-          ? besselI0(KAISER_BETA * Math.sqrt(1 - windowAt * windowAt)) /
-            normalizer
-          : 0;
-      table[phase * RESAMPLER_TAPS + tap] =
-        cutoff * sinc(cutoff * distance) * window;
-    }
-  }
-  if (KERNEL_CACHE.size >= MAX_CACHED_RESAMPLER_KERNELS) {
-    const oldestKey = KERNEL_CACHE.keys().next().value;
-    if (typeof oldestKey === 'string') {
-      KERNEL_CACHE.delete(oldestKey);
-    }
-  }
-  KERNEL_CACHE.set(cacheKey, table);
-  return table;
-};
-
 const isPushMessage = (value: unknown): value is IPushMessage => {
   if (typeof value !== 'object' || value === null) {
     return false;
@@ -162,67 +99,55 @@ const isConfigureMessage = (value: unknown): value is IConfigureMessage =>
   ((value as Partial<IConfigureMessage>).mode === 'music' ||
     (value as Partial<IConfigureMessage>).mode === 'video');
 
-const streamSample = (
-  peer: IPeerStream,
-  channel: number,
-  frame: number,
-): number => {
-  if (frame < 0) {
-    return 0;
-  }
-  let remaining = frame;
-  for (let index = 0; index < peer.chunks.length; index += 1) {
-    const chunk = peer.chunks[index];
-    if (remaining < chunk.frames) {
-      const sourceChannel = Math.min(channel, chunk.channels - 1);
-      return chunk.samples[remaining * chunk.channels + sourceChannel] ?? 0;
-    }
-    remaining -= chunk.frames;
-  }
-  return 0;
-};
-
-const advanceStream = (peer: IPeerStream, frames: number) => {
-  peer.position += frames;
-  peer.availableFrames = Math.max(0, peer.availableFrames - frames);
-  // Retain half a sinc window behind the read head. Dropping a packet as soon
-  // as it was consumed left fractional-rate conversion without its history
-  // and made every packet boundary a new interpolation edge.
-  while (
-    peer.chunks.length > 1 &&
-    peer.position >= peer.chunks[0].frames + RESAMPLER_HALF
-  ) {
-    peer.position -= peer.chunks[0].frames;
-    peer.chunks.shift();
-  }
-};
-
 class RemoteAudioProcessor extends AudioWorkletProcessor {
   private readonly peers = new Map<string, IPeerStream>();
 
   private readonly peerModes = new Map<string, 'music' | 'video'>();
 
+  private audioPort?: MessagePort;
+
   constructor() {
     super();
-    this.port.onmessage = ({ data }: MessageEvent<unknown>) => {
-      if (isConfigureMessage(data)) {
-        this.peerModes.set(data.peerId, data.mode);
-        const peer = this.peers.get(data.peerId);
-        if (peer) {
-          peer.targetBufferSeconds =
-            REMOTE_AUDIO_PLAYBACK_PROFILES[data.mode].startBufferSeconds;
-          peer.stableFrames = 0;
-        }
-      } else if (isRemoveMessage(data)) {
-        const peer = this.peers.get(data.peerId);
-        if (peer) {
-          peer.removing = true;
-          peer.fadeDirection = -1;
-        }
-      } else if (isPushMessage(data)) {
-        this.push(data);
+    this.port.onmessage = (event: MessageEvent<unknown>) =>
+      this.accept(event.data);
+  }
+
+  private accept(data: unknown) {
+    if (typeof data === 'object' && data !== null && 'kind' in data) {
+      if (data.kind === 'attach' && 'port' in data) {
+        this.audioPort?.close();
+        this.audioPort = data.port as MessagePort;
+        this.audioPort.onmessage = (event: MessageEvent<unknown>) =>
+          this.accept(event.data);
+        return;
       }
-    };
+      if (data.kind === 'reset' || data.kind === 'close') {
+        this.peers.clear();
+        this.peerModes.clear();
+        if (data.kind === 'close') {
+          this.audioPort?.close();
+          this.audioPort = undefined;
+        }
+        return;
+      }
+    }
+    if (isConfigureMessage(data)) {
+      this.peerModes.set(data.peerId, data.mode);
+      const peer = this.peers.get(data.peerId);
+      if (peer) {
+        peer.targetBufferSeconds =
+          REMOTE_AUDIO_PLAYBACK_PROFILES[data.mode].startBufferSeconds;
+        peer.stableFrames = 0;
+      }
+    } else if (isRemoveMessage(data)) {
+      const peer = this.peers.get(data.peerId);
+      if (peer) {
+        peer.removing = true;
+        peer.fadeDirection = -1;
+      }
+    } else if (isPushMessage(data)) {
+      this.push(data);
+    }
   }
 
   private profileFor(peerId: string): IRemoteAudioPlaybackProfile {
@@ -255,6 +180,8 @@ class RemoteAudioProcessor extends AudioWorkletProcessor {
         primed: false,
         removing: false,
         sampleRate: message.sampleRate,
+        skipFrames: 0,
+        skipBlend: 0,
         stableFrames: 0,
         targetBufferSeconds: this.profileFor(message.peerId).startBufferSeconds,
       };
@@ -276,6 +203,8 @@ class RemoteAudioProcessor extends AudioWorkletProcessor {
       peer.primed = false;
       peer.stableFrames = 0;
       peer.targetBufferSeconds = playbackProfile.startBufferSeconds;
+      peer.skipFrames = 0;
+      peer.skipBlend = 0;
     }
     peer.expectedSequence =
       message.sequence === 0xffff_ffff ? 0 : message.sequence + 1;
@@ -338,13 +267,22 @@ class RemoteAudioProcessor extends AudioWorkletProcessor {
         }
         return;
       }
+      if (playbackProfile.catchupThresholdSeconds) {
+        // Replaying everything that arrived during starvation added the whole
+        // outage to lip-sync delay. While already silent, resume at the live
+        // reservoir instead; music retains every buffered sample.
+        advanceStream(
+          peer,
+          Math.max(0, Math.floor(peer.availableFrames - startFrames)),
+        );
+      }
       peer.primed = true;
       peer.fadeDirection = 1;
     }
 
     if (!peer.removing) {
       const emergencyFrames =
-        peer.sampleRate * FADE_SECONDS + RESAMPLER_HALF + 1;
+        peer.sampleRate * STARVATION_FADE_SECONDS + RESAMPLER_HALF + 1;
       if (peer.availableFrames <= emergencyFrames) {
         peer.fadeDirection = -1;
       } else if (peer.fadeDirection < 0) {
@@ -355,8 +293,22 @@ class RemoteAudioProcessor extends AudioWorkletProcessor {
       }
     }
     const targetFrames = peer.sampleRate * peer.targetBufferSeconds;
+    const catchupThreshold = playbackProfile.catchupThresholdSeconds;
+    if (
+      catchupThreshold &&
+      !peer.removing &&
+      peer.gain === 1 &&
+      peer.skipFrames === 0 &&
+      peer.availableFrames > targetFrames + peer.sampleRate * catchupThreshold
+    ) {
+      // A 0.1% clock correction takes tens of seconds to shed one network burst.
+      // Crossfade the stale prefix once, at the original pitch, instead of
+      // speeding up the programme or stopping playback to empty the queue.
+      peer.skipFrames = Math.floor(peer.availableFrames - targetFrames);
+      peer.skipBlend = 0;
+    }
     const deadbandFrames = peer.sampleRate * playbackProfile.deadbandSeconds;
-    const bufferError = peer.availableFrames - targetFrames;
+    const bufferError = peer.availableFrames - peer.skipFrames - targetFrames;
     const correctedError =
       Math.abs(bufferError) <= deadbandFrames
         ? 0
@@ -380,9 +332,11 @@ class RemoteAudioProcessor extends AudioWorkletProcessor {
       // availableFrames is already relative to the fractional read head.
       // Counting sourceFrame again caused false underruns and periodic clicks.
       const requiredFrames = exactSample ? 1 : RESAMPLER_HALF + 1 - fraction;
-      if (peer.availableFrames < requiredFrames) {
+      if (peer.availableFrames - peer.skipFrames < requiredFrames) {
         peer.gain = 0;
         peer.primed = false;
+        peer.skipFrames = 0;
+        peer.skipBlend = 0;
         peer.stableFrames = 0;
         if (!peer.removing) {
           peer.targetBufferSeconds = Math.min(
@@ -405,32 +359,26 @@ class RemoteAudioProcessor extends AudioWorkletProcessor {
           peer.fadeDirection = 0;
         }
       } else if (peer.fadeDirection < 0) {
-        peer.gain = Math.max(0, peer.gain - fadeStep);
+        // Do not fade valid audio twelve milliseconds before it runs out:
+        // normal packet jitter fits the reservoir and should stay at full gain.
+        const release = peer.removing
+          ? fadeStep
+          : 1 / (sampleRate * STARVATION_FADE_SECONDS);
+        peer.gain = Math.max(0, peer.gain - release);
       }
       let mono = 0;
       for (let channel = 0; channel < output.length; channel += 1) {
-        let value: number;
-        if (exactSample) {
-          value = streamSample(peer, channel, sourceFrame);
-        } else {
-          const phase = fraction * RESAMPLER_PHASES;
-          const phaseIndex = Math.floor(phase);
-          const phaseBlend = phase - phaseIndex;
-          const lowOffset = phaseIndex * RESAMPLER_TAPS;
-          const highOffset = lowOffset + RESAMPLER_TAPS;
-          let sum = 0;
-          for (let tap = 0; tap < RESAMPLER_TAPS; tap += 1) {
-            const coefficient =
-              peer.kernel[lowOffset + tap] * (1 - phaseBlend) +
-              peer.kernel[highOffset + tap] * phaseBlend;
-            sum +=
-              streamSample(
-                peer,
-                channel,
-                sourceFrame - RESAMPLER_HALF + 1 + tap,
-              ) * coefficient;
-          }
-          value = sum;
+        let value = readStream(peer, channel, peer.position, exactSample);
+        if (peer.skipFrames > 0) {
+          value =
+            value * (1 - peer.skipBlend) +
+            readStream(
+              peer,
+              channel,
+              peer.position + peer.skipFrames,
+              exactSample,
+            ) *
+              peer.skipBlend;
         }
         value *= peer.gain;
         output[channel][frame] += value;
@@ -438,14 +386,24 @@ class RemoteAudioProcessor extends AudioWorkletProcessor {
       }
       this.publishMeter(peerId, peer, mono / output.length);
       advanceStream(peer, rateRatio);
+      if (peer.skipFrames > 0) {
+        peer.skipBlend = Math.min(1, peer.skipBlend + fadeStep);
+        if (peer.skipBlend === 1) {
+          advanceStream(peer, peer.skipFrames);
+          peer.skipFrames = 0;
+          peer.skipBlend = 0;
+        }
+      }
       renderedFrames += 1;
       if (peer.fadeDirection < 0 && peer.gain === 0) {
         peer.primed = false;
+        peer.skipFrames = 0;
+        peer.skipBlend = 0;
         peer.stableFrames = 0;
         if (!peer.removing) {
           // Increase protection only after a real starvation event. Stable LANs
           // keep the low lip-sync delay; bursty links earn more safety on the
-          // next fill without changing or discarding a single audio sample.
+          // next fill. Video can then discard a stale prefix to restore sync.
           peer.targetBufferSeconds = Math.min(
             playbackProfile.maximumBufferSeconds,
             peer.targetBufferSeconds + playbackProfile.recoveryStepSeconds,

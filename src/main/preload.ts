@@ -16,9 +16,30 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { contextBridge } from 'electron';
+import { contextBridge, ipcRenderer } from 'electron';
 import api from './api';
+import {
+  isRemoteAudioPortKind,
+  REMOTE_AUDIO_PORT_CHANNEL,
+} from '../common/remoteAudioPorts';
 
 // Keep exposure after the API import: if that dependency graph cannot load,
 // there is no partial bridge for the renderer to mistake for a usable one.
 contextBridge.exposeInMainWorld('electron', api);
+
+// Ports cannot cross contextBridge. Check the actual source window rather than
+// its serialized origin: packaged file pages have an opaque origin. Main also
+// validates the sending frame; embedded video pages have another preload.
+window.addEventListener('message', (event: MessageEvent<unknown>) => {
+  const data = event.data as { channel?: unknown; kind?: unknown } | null;
+  if (
+    event.source === window &&
+    data?.channel === REMOTE_AUDIO_PORT_CHANNEL &&
+    isRemoteAudioPortKind(data.kind) &&
+    event.ports.length === 1
+  ) {
+    ipcRenderer.postMessage(REMOTE_AUDIO_PORT_CHANNEL, data.kind, [
+      event.ports[0],
+    ]);
+  }
+});

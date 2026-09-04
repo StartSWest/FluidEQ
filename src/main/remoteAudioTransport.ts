@@ -13,6 +13,7 @@ import {
   PACKET_SIGNAL,
   decodeAudioAsync,
   encodeAudioAsync,
+  encodeAudioRaw,
   normalizeAudioChunk,
   openPacket,
   openSignal,
@@ -137,6 +138,23 @@ const createRemoteAudioTransport = ({
     const { socket } = connection;
     const activeGeneration = generation;
     const streamMode = streamModes.get(chunk.peerId) ?? 'music';
+    // Raw PCM has no asynchronous encoder. Queuing it behind resolved promises
+    // made a single 160 ms pipe read close an otherwise empty, healthy socket.
+    if (streamMode === 'video' && !encodeQueues.has(chunk.peerId)) {
+      const queuedBytes = socket.bufferedAmount;
+      if (queuedBytes > MAX_SOCKET_BUFFER_BYTES.video) {
+        socket.close(1013, 'Network send buffer is overloaded');
+        return;
+      }
+      const packet = sealPacket(
+        PACKET_AUDIO,
+        encodeAudioRaw(chunk),
+        connection.key,
+      );
+      socket.send(packet);
+      networkMeter.record(chunk.peerId, 'send', packet.byteLength, queuedBytes);
+      return;
+    }
     const chunkMilliseconds = (chunk.frames / chunk.sampleRate) * 1_000;
     const pendingMilliseconds =
       (pendingEncodeMilliseconds.get(chunk.peerId) ?? 0) + chunkMilliseconds;

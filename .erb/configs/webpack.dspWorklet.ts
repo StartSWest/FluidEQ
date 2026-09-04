@@ -64,6 +64,10 @@ export const dspWorkletConfig = (
   devtool: false,
 
   entry: {
+    'sender-spectrum': path.join(
+      webpackPaths.srcRendererPath,
+      'remoteAudio/senderSpectrum.worker.ts',
+    ),
     'dsp-worklet': path.join(
       webpackPaths.srcRendererPath,
       'dsp/worklets/dspProcessor.worklet.ts',

@@ -16,11 +16,20 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { createContext, ReactNode, useContext, useEffect, useRef } from 'react';
+import {
+  createContext,
+  ReactNode,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import useLiveOutputSpectrum, {
   TCaptureClaim,
 } from '../graph/useLiveOutputSpectrum';
 import { useFluidEqContext } from '../utils/FluidEqContext';
+import useSenderSpectrum from '../remoteAudio/useSenderSpectrum';
 
 type LiveAudioValue = ReturnType<typeof useLiveOutputSpectrum>;
 
@@ -39,11 +48,19 @@ const LiveAudioFrameContext = createContext<
   LiveAudioValue['frame'] | undefined
 >(undefined);
 const LiveAudioControlContext = createContext<
-  LiveAudioValue['control'] | undefined
+  | (LiveAudioValue['control'] & { setSharingAudio(active: boolean): void })
+  | undefined
 >(undefined);
 
 export const LiveAudioProvider = ({ children }: { children: ReactNode }) => {
   const { control, frame } = useLiveOutputSpectrum();
+  const [sharingAudio, setSharingAudio] = useState(false);
+  const senderFrame = useSenderSpectrum(sharingAudio, control.isPaused);
+  const visibleFrame = useMemo(
+    () => (senderFrame ? { ...frame, ...senderFrame } : frame),
+    [frame, senderFrame],
+  );
+  const controls = useMemo(() => ({ ...control, setSharingAudio }), [control]);
   const { isEnabled } = useFluidEqContext();
   const wasEngineEnabledRef = useRef(isEnabled);
 
@@ -63,10 +80,10 @@ export const LiveAudioProvider = ({ children }: { children: ReactNode }) => {
   }, [control, isEnabled]);
 
   return (
-    <LiveAudioControlContext.Provider value={control}>
+    <LiveAudioControlContext.Provider value={controls}>
       {/* `children` keeps its identity across the provider's own re-renders,
           so React skips the subtree and only context consumers wake up. */}
-      <LiveAudioFrameContext.Provider value={frame}>
+      <LiveAudioFrameContext.Provider value={visibleFrame}>
         {children}
       </LiveAudioFrameContext.Provider>
     </LiveAudioControlContext.Provider>

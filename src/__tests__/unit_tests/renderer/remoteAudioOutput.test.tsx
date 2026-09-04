@@ -10,6 +10,12 @@ import useSelectedRemoteAudioOutput from '../../../renderer/remoteAudio/useSelec
 
 const resolveSelectedOutputSinkId = jest.fn();
 const directSetSinkId = jest.fn<Promise<void>, [string]>();
+const resumeAudioContext = jest.fn<Promise<void>, []>();
+const audioPort = { close: jest.fn() };
+jest.mock('../../../renderer/remoteAudio/openRemoteAudioPort', () => ({
+  __esModule: true,
+  default: jest.fn(() => Promise.resolve(audioPort)),
+}));
 
 jest.mock('../../../renderer/remoteAudio/selectedOutput', () => ({
   __esModule: true,
@@ -33,7 +39,10 @@ const sink = {
   volume: 0,
 };
 
-const installAudioFakes = (directOutput = false) => {
+const installAudioFakes = (
+  directOutput = false,
+  state: AudioContextState = 'running',
+) => {
   Object.defineProperty(globalThis, 'AudioContext', {
     configurable: true,
     value: jest.fn(() => {
@@ -44,7 +53,8 @@ const installAudioFakes = (directOutput = false) => {
           stream: { getTracks: () => [] },
         })),
         destination: {},
-        resume: jest.fn().mockResolvedValue(undefined),
+        resume: resumeAudioContext,
+        state,
       };
       return directOutput
         ? { ...context, setSinkId: directSetSinkId }
@@ -64,7 +74,9 @@ const installAudioFakes = (directOutput = false) => {
 describe('remote audio output following', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    sink.setSinkId.mockResolvedValue(undefined);
     directSetSinkId.mockResolvedValue(undefined);
+    resumeAudioContext.mockResolvedValue(undefined);
     installAudioFakes();
   });
 
@@ -79,7 +91,26 @@ describe('remote audio output following', () => {
     await mixer.close();
   });
 
+  it('keeps the listener usable while playback waits for a user gesture', async () => {
+    installAudioFakes(true, 'suspended');
+    let allowPlayback: (() => void) | undefined;
+    resumeAudioContext.mockImplementation(
+      () =>
+        new Promise<void>((resolve) => {
+          allowPlayback = resolve;
+        }),
+    );
+    const onBlocked = jest.fn();
+    const mixer = await createPcmMixer('default', onBlocked, jest.fn());
+    expect(onBlocked).toHaveBeenLastCalledWith(true);
+    expect(allowPlayback).toBeDefined();
+    allowPlayback?.();
+    await waitFor(() => expect(onBlocked).toHaveBeenLastCalledWith(false));
+    await mixer.close();
+  });
+
   it('serializes output changes and recovers after one device rejects', async () => {
+    const mixer = await createPcmMixer('default', jest.fn(), jest.fn());
     const pending: {
       reject(error: Error): void;
       resolve(): void;
@@ -91,8 +122,6 @@ describe('remote audio output following', () => {
           pending.push({ reject, resolve, sinkId });
         }),
     );
-    const mixer = await createPcmMixer('default', jest.fn(), jest.fn());
-
     const first = mixer.setOutput('speakers-a');
     const second = mixer.setOutput('speakers-b');
     await waitFor(() =>

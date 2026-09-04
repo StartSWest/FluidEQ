@@ -11,6 +11,7 @@ import type {
   TRemoteAudioStreamMode,
 } from '../../common/remoteAudio';
 import type { IRemoteAudioMeter, TRemoteAudioMeterListener } from './meter';
+import openRemoteAudioPort from './openRemoteAudioPort';
 
 interface IAudioSink {
   srcObject: HTMLAudioElement['srcObject'];
@@ -58,13 +59,18 @@ const createAudioSink = (): IAudioSink => new Audio();
  */
 export const createPcmMixer = async (
   outputSinkId: string,
-  onPlaybackBlocked: () => void,
+  onPlaybackBlocked: (blocked: boolean) => void,
   onMeter: TRemoteAudioMeterListener,
 ): Promise<IPcmMixer> => {
   const context = new AudioContext({
     latencyHint: 'interactive',
   }) as IRoutableAudioContext;
-  await context.audioWorklet.addModule(workletUrl().href);
+  try {
+    await context.audioWorklet.addModule(workletUrl().href);
+  } catch (error) {
+    await context.close();
+    throw error;
+  }
   const mixer = new AudioWorkletNode(context, PROCESSOR_NAME, {
     numberOfInputs: 0,
     numberOfOutputs: 1,
@@ -139,17 +145,38 @@ export const createPcmMixer = async (
     }
     playbackStarted = true;
     try {
-      await switchOutput(currentSinkId);
+      const resumed = context.resume();
+      if (context.state === 'suspended') {
+        onPlaybackBlocked(true);
+      }
+      await resumed;
       if (isClosed) {
         return;
       }
-      await context.resume();
       await sink?.play();
+      onPlaybackBlocked(false);
     } catch {
       playbackStarted = false;
-      onPlaybackBlocked();
+      if (!isClosed) {
+        onPlaybackBlocked(true);
+      }
     }
   };
+
+  try {
+    const port = await openRemoteAudioPort('playback');
+    mixer.port.postMessage({ kind: 'attach', port }, [port]);
+    await switchOutput(currentSinkId);
+    // A suspended context's resume promise can wait for a user gesture. Return
+    // the mixer now so the listener can connect and expose its resume control.
+    startPlayback().catch(() => onPlaybackBlocked(true));
+  } catch (error) {
+    mixer.disconnect();
+    sink?.pause();
+    destination?.stream.getTracks().forEach((track) => track.stop());
+    await context.close();
+    throw error;
+  }
 
   return {
     push: (chunk) => {
@@ -157,7 +184,7 @@ export const createPcmMixer = async (
         return;
       }
       mixer.port.postMessage({ kind: 'push', ...chunk }, [chunk.pcm]);
-      startPlayback().catch(() => onPlaybackBlocked());
+      startPlayback().catch(() => onPlaybackBlocked(true));
     },
     removePeer: (peerId) => {
       if (!isClosed) {
@@ -181,6 +208,7 @@ export const createPcmMixer = async (
         return;
       }
       isClosed = true;
+      mixer.port.postMessage({ kind: 'close' });
       await outputSwitch.catch(() => undefined);
       mixer.port.onmessage = null;
       mixer.disconnect();

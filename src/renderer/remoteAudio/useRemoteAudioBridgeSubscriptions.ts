@@ -9,6 +9,7 @@ import type {
 interface IBridgeSubscriptionOptions {
   acceptAudioRef: { current(chunk: ILanRemoteAudioChunk): void };
   acceptSignalRef: { current(signal: ILanRemoteAudioSignal): void };
+  acceptStreamingRef: { current(peerId: string): void };
   handleError(): void;
 }
 
@@ -16,6 +17,7 @@ interface IBridgeSubscriptionOptions {
 const useRemoteAudioBridgeSubscriptions = ({
   acceptAudioRef,
   acceptSignalRef,
+  acceptStreamingRef,
   handleError,
 }: IBridgeSubscriptionOptions) => {
   useEffect(() => {
@@ -30,12 +32,17 @@ const useRemoteAudioBridgeSubscriptions = ({
       }) ?? (() => undefined);
     const unsubscribeError =
       bridge?.onRemoteAudioLanError?.(handleError) ?? (() => undefined);
+    const unsubscribeStreaming =
+      bridge?.onRemoteAudioLanStreaming?.((peerId) =>
+        acceptStreamingRef.current(peerId),
+      ) ?? (() => undefined);
     return () => {
       unsubscribeSignal();
       unsubscribeAudio();
       unsubscribeError();
+      unsubscribeStreaming();
     };
-  }, [acceptAudioRef, acceptSignalRef, handleError]);
+  }, [acceptAudioRef, acceptSignalRef, acceptStreamingRef, handleError]);
 };
 
 export default useRemoteAudioBridgeSubscriptions;

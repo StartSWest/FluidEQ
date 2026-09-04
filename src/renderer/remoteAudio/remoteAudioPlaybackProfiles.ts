@@ -3,6 +3,7 @@
 export interface IRemoteAudioPlaybackProfile {
   deadbandSeconds: number;
   maximumBufferSeconds: number;
+  catchupThresholdSeconds?: number;
   recoveryDecaySeconds?: number;
   recoveryStepSeconds: number;
   startBufferSeconds: number;
@@ -20,10 +21,11 @@ export const REMOTE_AUDIO_PLAYBACK_PROFILES: Record<
     recoveryStepSeconds: 0.06,
     startBufferSeconds: 0.24,
   },
-  // Three capture packets at 48 kHz keep the network side below one video
-  // frame. A real underrun adds protection in one-packet steps; after a stable
+  // Three capture packets at 48 kHz provide a 30 ms playout reservoir (not an
+  // end-to-end latency claim). An underrun adds protection; after a stable
   // run that protection decays again instead of leaving the picture behind.
   video: {
+    catchupThresholdSeconds: 0.02,
     deadbandSeconds: 0.005,
     maximumBufferSeconds: 0.09,
     recoveryDecaySeconds: 2,

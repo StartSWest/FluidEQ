@@ -59,8 +59,8 @@ const useRemoteAudioListenerActions = ({
       try {
         mixer = await createPcmMixer(
           outputSinkIdRef.current,
-          () => {
-            playbackBlockedRef.current = true;
+          (blocked) => {
+            playbackBlockedRef.current = blocked;
             publishListenerState();
           },
           publishMeter,
