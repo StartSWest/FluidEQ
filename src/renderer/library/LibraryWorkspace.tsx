@@ -1362,18 +1362,15 @@ const LibraryWorkspace = ({
           something to steer and something else worth adding, so the row
           appears from then on.
 
-          AND NOT OVER A VIDEO. Every shelf below is already withheld while
-          one plays — the picture is meant to have the whole tab, which is
-          what the queue's own placement assumes (`has-video` floats it on
-          the picture instead of taking a strip out of the shelf) and what
-          the chip assumes when it moves out of this row and onto the
-          picture. This row was the one child that never got the same gate,
-          so it stayed at the foot of the tab under the video: browse, view,
-          sort and search controls steering a shelf that is not on screen,
-          holding 41px the picture should have had, and standing exactly
-          where the queue's own last rows land — the panel runs to the foot
-          of the card, so its end was drawn behind these controls. */}
-          {!videoTrackId && index.roots.length > 0 && (
+          AND OVER A VIDEO TOO, which it did not used to be. It was withheld
+          while one played, on the argument that the picture should have the
+          whole tab — and what that produced was a tab with no way back to
+          the library except the one button drawn on the picture, and no
+          search, no browse and no view while a video was up. The row keeps
+          its place at the top and the picture takes what is left under it
+          (see `has-video` in Library.scss, which orders the two), so
+          leaving a video is the same gesture as leaving anything else. */}
+          {index.roots.length > 0 && (
             <div className="library-toolbar-row" ref={chromeRef}>
               <LibraryToolbar
                 browseMode={browseMode}

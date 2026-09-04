@@ -400,15 +400,17 @@ describe('handing a click off to the player (Task 19)', () => {
 
     await userEvent.click(await screen.findByText('Live at the Roxy'));
 
-    // The stage's own fullscreen control is the only thing here with this
-    // label, so its presence is proof `handlePlayTrack` actually reached
-    // `playTracks` rather than staying the inert stub it was before this
-    // task.
+    // The stage's own way back is the only thing here with this label, so its
+    // presence is proof `handlePlayTrack` actually reached `playTracks` rather
+    // than staying the inert stub it was before this task. It used to be the
+    // full-screen button; that went when full screen became the double-click
+    // and Ctrl+F, which every video player already answers to.
     expect(
-      await screen.findByRole('button', { name: 'Full screen' }),
+      await screen.findByRole('button', { name: 'Back' }),
     ).toBeInTheDocument();
-    // Replaced, not layered underneath — see the `!videoTrackId` guard on
-    // `LibraryVideoSection` in `LibraryWorkspace`.
+    // The SHELF is replaced by the picture — see the `!videoTrackId` guard on
+    // `LibraryVideoSection` in `LibraryWorkspace`. The toolbar above it is
+    // not: browse, view and search stay reachable while a video plays.
     expect(screen.queryByText('Live at the Roxy')).not.toBeInTheDocument();
   });
 

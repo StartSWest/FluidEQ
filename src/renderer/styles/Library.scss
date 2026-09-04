@@ -109,6 +109,19 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     border-radius: 0;
     background: none;
     box-shadow: none;
+
+    // The padding those two were spelled out against is gone with it, so the
+    // corners they stand in are now the window's own — see the chip's base
+    // rule for why the numbers are written twice rather than inherited.
+    .library-up-next,
+    .library-up-next__splitter {
+      top: 12px;
+    }
+
+    .library-up-next__chip--over-video {
+      top: 12px;
+      right: 12px;
+    }
   }
 
   // The empty state is the one thing that advertises the drop; the whole
@@ -2782,16 +2795,34 @@ $library-wave-step: 4ms;
 // like every other view in this tab, so the only thing left here is where the
 // column starts and ends.
 .library-workspace.has-video {
+  // The toolbar keeps the top, the picture takes what is left.
+  //
+  // The stage is FIRST in the markup and has to stay there: it is the one
+  // child that survives the tab being hidden, and React reconciles by
+  // position, so moving it in the tree would remount a playing video. Order
+  // is a paint-time answer to a layout question, which is exactly the case
+  // for it.
+  .library-video-stage {
+    order: 1;
+  }
+
   .library-up-next,
   .library-up-next__splitter {
-    // FULL HEIGHT, from the card's own top inset.
+    // Level with the top of the picture beside it, which is now under the
+    // toolbar rather than at the card's own edge — so the queue starts where
+    // it starts on a shelf, from the measured row height, and the base rule
+    // already says exactly that. Nothing to override.
     //
-    // On a shelf the queue starts under the toolbar, because the toolbar is
-    // what it must not cover. Over a video there is no toolbar — the picture
-    // is the whole tab — so the column runs the height of the card, level with
-    // the top of the picture beside it. `LibraryVideoStage`'s Back button is
-    // inside the picture and no longer under this panel's corner.
-    top: 10px;
+    // The full-screen picture is the exception: there the toolbar is gone and
+    // the stage does own the whole card again.
+    top: calc(var(--library-chrome-height, 0px) + 10px + 8px);
+  }
+
+  &:has(.library-video-stage.is-fullscreen) {
+    .library-up-next,
+    .library-up-next__splitter {
+      top: 10px;
+    }
   }
 }
 
@@ -2817,8 +2848,13 @@ $library-wave-step: 4ms;
 .library-up-next__chip--over-video {
   position: absolute;
   z-index: 1160;
-  top: 12px;
-  right: 12px;
+  // Level with the Back button in the opposite corner, which is 12px inside
+  // the picture — and the picture itself starts at the card's own padding.
+  // An absolute child is placed against the padding BOX, which takes no
+  // notice of that padding, so both numbers have to be said here or the chip
+  // rides higher and further out than the control it is paired with.
+  top: calc(10px + 12px);
+  right: calc(12px + 12px);
 }
 
 // On a shelf the chip rides in the toolbar's right-hand cluster, in the flow
