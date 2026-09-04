@@ -74,7 +74,7 @@ export const RemoteAudioListenerWorkspace = ({
       </div>
 
       <div className="remote-audio__session-actions">
-        {!remote.role && (
+        {remote.role !== 'listener' && (
           <button
             type="button"
             className="button small"

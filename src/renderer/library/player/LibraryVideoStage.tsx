@@ -128,39 +128,32 @@ const LibraryVideoStage = ({
         onClick={toggle}
         onDoubleClick={onToggleFullScreen}
       />
-      {/* The way out. Without it a video owned the whole tab until the queue
-          happened to move off it — and a video-only queue at its own end never
-          does, so the tab stayed that video until the app was relaunched.
-          Stopping rather than merely hiding the stage: the queue holds only
-          videos, so leaving it playing behind a closed pane would be sound
-          with no picture and no obvious way back to it. */}
+      {/* The way out, and the only control drawn on the picture.
+          Without it a video owned the whole tab until the queue happened to
+          move off it — and a video-only queue at its own end never does, so
+          the tab stayed that video until the app was relaunched. Stopping
+          rather than merely hiding the stage: the queue holds only videos, so
+          leaving it playing behind a closed pane would be sound with no
+          picture and no obvious way back to it.
+
+          THERE IS NO FULL-SCREEN BUTTON. Full screen is the double-click on
+          the picture and Ctrl+F, which is what every video player on this
+          machine already answers to — a button in the corner is a third
+          spelling of a command nobody was looking for one for, and it cost
+          the top-right corner of every video to say it. */}
       {!isHidden && (
-        <>
-          <button
-            type="button"
-            className="button small subtle library-video-stage__back"
-            aria-label={t('library.back')}
-            title={t('library.back')}
-            onClick={stop}
-          >
-            <svg viewBox="0 0 20 20" aria-hidden="true">
-              <path d="M12 4l-6 6 6 6" />
-            </svg>
-            <span>{t('library.back')}</span>
-          </button>
-          <button
-            type="button"
-            className="button small subtle library-video-stage__fullscreen"
-            aria-label={t('library.fullScreen')}
-            title={t('library.fullScreen')}
-            aria-pressed={isFullScreen}
-            onClick={onToggleFullScreen}
-          >
-            <svg viewBox="0 0 20 20" aria-hidden="true">
-              <path d="M7 3H3v4M13 3h4v4M7 17H3v-4M13 17h4v-4" />
-            </svg>
-          </button>
-        </>
+        <button
+          type="button"
+          className="button small subtle library-video-stage__back"
+          aria-label={t('library.back')}
+          title={t('library.back')}
+          onClick={stop}
+        >
+          <svg viewBox="0 0 20 20" aria-hidden="true">
+            <path d="M12 4l-6 6 6 6" />
+          </svg>
+          <span>{t('library.back')}</span>
+        </button>
       )}
     </div>
   );

@@ -427,10 +427,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   margin: 0;
   padding: 9px 11px;
   color: $text-muted;
-  border: 1px solid rgba(#ffb648, 0.22);
-  border-left: 2px solid rgba(#ffb648, 0.7);
+  border: 1px solid rgba($amber, 0.22);
+  border-left: 2px solid rgba($amber, 0.7);
   border-radius: $radius-xs;
-  background: rgba(#ffb648, 0.06);
+  background: rgba($amber, 0.06);
   font-size: $text-small;
   line-height: 1.45;
 
@@ -439,7 +439,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // control byte followed by the letters `A0`, printed in amber in front of the
   // warning. The literal has nothing in it for a shell to interpret.
   &::before {
-    color: rgba(#ffb648, 0.9);
+    color: rgba($amber, 0.9);
     content: '⚠';
     font-size: $text-lead;
     line-height: 1.2;

@@ -1273,13 +1273,20 @@ const LibraryWorkspace = ({
       }${
         isGraphBackdrop ? ' is-playback-backdrop' : ''
       }${isDragOver ? ' is-drag-over' : ''}${
-        // Only while the panel is actually drawn, and only where it takes a
-        // strip. The class reserves the column the panel stands in — folded
-        // there is no panel and no strip, and leaving it on left a third of
-        // the tab empty with the shelf squeezed into what was left. Over a
-        // video there is no strip either: the picture keeps the whole tab and
-        // the panel floats on top of it.
-        !isUpNextOverVideo && !isUpNextCollapsed ? ' has-up-next' : ''
+        // Only while the panel is actually drawn. The class reserves the
+        // column the panel stands in — folded there is no panel and no strip,
+        // and leaving it on left a third of the tab empty with the shelf
+        // squeezed into what was left.
+        //
+        // A VIDEO IS NOT AN EXCEPTION TO IT. It used to be: the picture kept
+        // the whole tab and the queue was laid on top of its right-hand edge,
+        // which is not what this app does anywhere else. Karaoke puts its
+        // playlist BESIDE the stage and takes the width out of it, and so does
+        // every player worth copying — a list over the picture hides part of
+        // what is playing and puts the two things in one rectangle. The strip
+        // is reserved here as well now, and the picture is the width that is
+        // left over.
+        !isUpNextCollapsed ? ' has-up-next' : ''
       }${isUpNextOverVideo ? ' has-video' : ''}${
         isUpNextFloating ? ' has-up-next-floating' : ''
       }`}

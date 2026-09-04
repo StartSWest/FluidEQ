@@ -199,7 +199,9 @@ export const registerRemoteAudioIpc = ({
       credentials.write({ role: 'listener', ...session.credentials });
       return session.details;
     } catch (error) {
-      lan.stop();
+      if (sessionIsCurrent(generation)) {
+        lan.stop();
+      }
       throw error;
     }
   });

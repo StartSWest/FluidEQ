@@ -152,4 +152,25 @@ describe('remote audio IPC session persistence', () => {
     expect(credentials.pause).toHaveBeenCalledTimes(1);
     expect(credentials.activate).not.toHaveBeenCalled();
   });
+
+  it('does not let a replaced listener start stop the newer session', async () => {
+    let finishHost: ((value: unknown) => void) | undefined;
+    mockStartRemoteAudioHostSession.mockReturnValue(
+      new Promise((resolve) => {
+        finishHost = resolve;
+      }),
+    );
+    const host = handlers.get('remote-audio-lan-host');
+    const stop = handlers.get('remote-audio-lan-stop');
+
+    const starting = host?.({}, false);
+    await stop?.({}, 'pause');
+    finishHost?.({
+      credentials: { port: 49_100, secret: 'saved-secret' },
+      details: { deviceName: 'HEADSET-PC', options: [] },
+    });
+
+    await expect(starting).rejects.toThrow('LAN audio session was replaced.');
+    expect(lan.stop).toHaveBeenCalledTimes(1);
+  });
 });

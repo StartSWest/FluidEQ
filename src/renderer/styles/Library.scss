@@ -94,6 +94,21 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // tab: the toolbar that measures itself against it is not on screen.
   &:has(.library-video-stage.is-fullscreen) {
     container-type: normal;
+    // NO FRAME. The card's border, corners, shadow and floor are what make it
+    // one panel among several; with the picture filling the screen they are a
+    // frame drawn around the only thing on it, and the two rounded corners at
+    // the top read as the video having been cut. Same answer, and the same
+    // reason, as `.video-browser.is-fullscreen .video-browser__stage`.
+    //
+    // The padding goes with them, so the picture reaches all four window
+    // edges. The queue keeps its own inset: it is placed against this box's
+    // padding edge, which is now the window's, so its 10px and 12px become
+    // exactly the margin karaoke's playlist keeps off a full screen.
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
   }
 
   // The empty state is the one thing that advertises the drop; the whole
@@ -2752,61 +2767,57 @@ $library-wave-step: 4ms;
   background: $surface-field-end;
 }
 
-// *** The queue over a video **************************************************
+// *** The queue beside a video ************************************************
 //
 // A video is a queue entry like any other, and "what is next" is the question
 // a listener has WHILE one plays — so the panel is drawn there too, the way
-// karaoke keeps its playlist beside the stage. It floats on the picture rather
-// than taking a strip out of it: `has-up-next` is withheld in this case (see
-// `LibraryWorkspace`), so the stage keeps the whole tab and the queue stands
-// on top of its right-hand edge.
+// karaoke keeps its playlist beside the stage, and the way the list sits down
+// the right of every video site this app opens.
 //
-// Full screen is the same panel, moved from the card to the window. The stage
-// goes `position: fixed; z-index: 1150` there, so anything meant to stay
-// legible over it has to be fixed too and stand above it — hence `1160`, and
-// hence the containment released on `.library-workspace` above, without which
-// "fixed" would mean the card and the panel would land in the middle of the
-// picture.
+// BESIDE, NOT OVER. It floated on the picture's right-hand edge before, with
+// `has-up-next` withheld so the stage kept the whole tab. Two things were
+// wrong with that and both of them show: the queue covered a quarter of what
+// was playing, and the picture and the list were one rectangle instead of two
+// panes with an edge between them that can be dragged. It takes the strip now
+// like every other view in this tab, so the only thing left here is where the
+// column starts and ends.
 .library-workspace.has-video {
   .library-up-next,
   .library-up-next__splitter {
-    // Clear of the video's own Back and full-screen buttons, which sit at
-    // `$spacing-s` from the top corners.
-    top: 52px;
-  }
-
-  &:has(.library-video-stage.is-fullscreen) {
-    .library-up-next {
-      position: fixed;
-      z-index: 1160;
-      right: 0;
-      bottom: 0;
-      border-radius: 0;
-    }
-
-    // No inset in full screen: the panel runs to the window's own edge, so
-    // the splitter sits directly on the panel's width.
-    .library-up-next__splitter {
-      position: fixed;
-      z-index: 1161;
-      right: var(--up-next-width, 260px);
-      bottom: 0;
-    }
-
-    .library-up-next__chip--over-video {
-      position: fixed;
-      z-index: 1160;
-    }
+    // FULL HEIGHT, from the card's own top inset.
+    //
+    // On a shelf the queue starts under the toolbar, because the toolbar is
+    // what it must not cover. Over a video there is no toolbar — the picture
+    // is the whole tab — so the column runs the height of the card, level with
+    // the top of the picture beside it. `LibraryVideoStage`'s Back button is
+    // inside the picture and no longer under this panel's corner.
+    top: 10px;
   }
 }
 
-// Folded over a picture there is no toolbar to keep the chip below, so it
-// stands clear of the video's own Back and full-screen buttons, which hold the
-// two top corners.
+// The queue under a floating transport bar, in full screen.
+//
+// Word for word the rule karaoke's playlist keeps, from the same two root
+// classes: `is-floating-bar` says a bar is drawn OVER the content instead of
+// beside it, and `is-chrome-idle` says it has faded out and the room is the
+// panel's again. Without it the bar is laid across the queue's last rows —
+// the ones nearest what plays next, which is the half of the list anybody
+// looks at in full screen.
+#root.has-now-playing.is-floating-bar:not(.is-chrome-idle)
+  .library-workspace.has-video:has(.library-video-stage.is-fullscreen) {
+  .library-up-next,
+  .library-up-next__splitter {
+    bottom: calc(var(--now-playing-bar-height, 0px) + 8px);
+  }
+}
+
+// Folded, the way back to the queue is a chip on the picture — the corner the
+// full-screen button used to hold, which is where a video player puts this
+// control and where the eye goes for it.
 .library-up-next__chip--over-video {
   position: absolute;
   z-index: 1160;
-  top: 52px;
+  top: 12px;
   right: 12px;
 }
 

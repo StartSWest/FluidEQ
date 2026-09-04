@@ -51,7 +51,11 @@ it under the terms of the GNU General Public License version 3 or later.
   color: rgba($red, 0.92);
   border: 1px solid rgba($red, 0.28);
   border-radius: $radius-xs;
-  background: rgba(#0a0508, 0.8);
+  // The plot well, like every other block of fixed-width evidence in the
+  // app. It was a near-black of its own, which is a colour this window does
+  // not have anywhere else — and a crash screen is a poor place to introduce
+  // one.
+  background: $surface-plot;
   font-family: $font-mono;
   font-size: $text-body;
   line-height: 1.5;

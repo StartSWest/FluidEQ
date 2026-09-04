@@ -136,7 +136,6 @@ const library = {
   'library.nothingPlaying': 'Nothing playing',
   'library.nothingPlayingHint': 'Pick something to play',
   'library.systemAudio': 'System audio',
-  'library.fullScreen': 'Full screen',
 
   'library.trackActions': 'What to do with this song',
   'library.browse.playlist': 'Playlists',

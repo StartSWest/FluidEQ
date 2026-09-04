@@ -9,7 +9,13 @@ describe('remote audio listener reconnect', () => {
       role: 'listener',
       details: {
         deviceName: 'HEADSET-PC',
-        options: [{ address: '192.168.1.20', code: 'saved-code' }],
+        options: [
+          {
+            address: '192.168.1.20',
+            code: 'saved-code',
+            deviceName: 'HEADSET-PC',
+          },
+        ],
       },
     });
     Object.assign(window, {
@@ -40,7 +46,11 @@ describe('remote audio listener reconnect', () => {
     expect(setConnectedCount).toHaveBeenCalledWith(0);
     expect(setDeviceName).toHaveBeenCalledWith('HEADSET-PC');
     expect(setLanOptions).toHaveBeenCalledWith([
-      { address: '192.168.1.20', code: 'saved-code' },
+      {
+        address: '192.168.1.20',
+        code: 'saved-code',
+        deviceName: 'HEADSET-PC',
+      },
     ]);
     expect(setPhase).toHaveBeenLastCalledWith('waiting');
   });

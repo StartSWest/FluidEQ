@@ -117,7 +117,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // tooltip nobody hovers.
 .dsp-scope {
   max-width: 680px;
-  margin: 0;
+  // The panel's own 14px gap plus this: the sentence sat as close to the rack
+  // below it as the heading above it does, so a line that qualifies the whole
+  // page read as a caption belonging to the first card in it.
+  margin: 0 0 8px;
   color: rgba($white, 0.72);
   font-size: $text-body;
   line-height: 1.45;
@@ -127,7 +130,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // is active; amber says "not yet" without borrowing red from a real engine
   // failure.
   &.is-idle {
-    color: #ffad52;
+    color: $amber;
   }
 }
 
@@ -773,7 +776,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   touch-action: none;
 
   &.is-outgoing {
-    stroke: #ffb059;
+    stroke: $amber;
   }
 
   &.is-incoming {
@@ -935,7 +938,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   vector-effect: non-scaling-stroke;
 
   &.is-outgoing {
-    fill: #ffb059;
+    fill: $amber;
   }
 
   &.is-incoming {
@@ -953,7 +956,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   stroke-linecap: round;
 
   &.is-outgoing {
-    stroke: #ffb059;
+    stroke: $amber;
   }
 
   &.is-incoming {
@@ -989,7 +992,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 
   .is-outgoing {
-    color: #ffb059;
+    color: $amber;
   }
 
   .is-incoming {
@@ -3748,7 +3751,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // Amber, matching the normalizer's before-bar: this is the one track here that
 // is a property of the RECORD rather than of the settings.
 .dsp-eq-legend-mark.is-correlation {
-  background: #ffb059;
+  background: $amber;
 }
 
 // Bass Forge's two runs, on the card above the dials that made the difference

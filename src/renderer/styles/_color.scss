@@ -54,3 +54,14 @@ $white: #ffffff;
 
 // Additional
 $red: #ff647c;
+
+// CAUTION, and the one shade of it.
+//
+// "Not yet", "this is a property of the record rather than of your settings",
+// "this voicing was measured somewhere else" — the app says all of that in
+// amber, and it had been saying it in three: #ffad52 on the DSP's waiting
+// line, #ffb059 on its correlation marks and #ffb648 on the driver curve and
+// the voicing note. Three warm oranges a few degrees apart do not read as
+// three meanings; they read as one meaning drawn carelessly. #ffb059 is the
+// middle of what was there and the one the graph already uses.
+$amber: #ffb059;

@@ -141,7 +141,6 @@ const library: Partial<Dictionary> = {
   'library.nothingPlaying': 'No suena nada',
   'library.nothingPlayingHint': 'Elige algo para reproducir',
   'library.systemAudio': 'Audio del sistema',
-  'library.fullScreen': 'Pantalla completa',
 
   'library.trackActions': 'Qué hacer con esta canción',
   'library.browse.playlist': 'Listas',

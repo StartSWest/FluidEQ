@@ -1227,7 +1227,10 @@ select option {
   padding: 12px 14px;
   border: 1px solid rgba($red, 0.42);
   border-radius: $radius-m;
-  background: rgba(#2a1420, 0.97);
+  // Red said by the border and the text, on the app's own card colour. The
+  // fill was a maroon mixed by hand for this one notice, so the only place
+  // the window ever went warm was the place it most needed to look native.
+  background: $surface-plot;
   box-shadow: 0 16px 40px rgba($black, 0.45);
 
   > div {
@@ -1631,7 +1634,7 @@ select option {
   &--close:focus-visible {
     color: $white;
     border-color: rgba($red, 0.7);
-    background: #c53a4c;
+    background: $red;
   }
 
   // Same 13px of height as every other glyph in the bar, so the row reads as

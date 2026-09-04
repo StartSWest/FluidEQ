@@ -962,8 +962,7 @@ $now-playing-bar-height: 64px;
     height: var(--stage-art-height, 100vh);
     border-radius: 0;
 
-    > .library-video-stage__back,
-    > .library-video-stage__fullscreen {
+    > .library-video-stage__back {
       display: none;
     }
   }
@@ -978,32 +977,32 @@ $now-playing-bar-height: 64px;
   cursor: pointer;
 }
 
-// Top corners rather than the foot: the now-playing bar already owns the
-// bottom of the window, and a control tucked under the picture reads as the
-// video's own chrome rather than the app's.
+// The one control on the picture, in the corner karaoke puts its own way back
+// — top left, 12px in, the same place `.karaoke-playlist__expand` stands.
 //
-// BOTH ARE `button small subtle`, and everything that makes them look like a
-// button comes from there — the label colour, the outline, the radius, the
-// weight, the hover and the focus ring. They had a full set of their own
-// before: a different border tint, a different fill, a different hover, a
-// height and a radius nothing else in the app uses. Beside any other control
-// they read as belonging to a different program, which is exactly what the
-// quiet outline exists to stop being necessary.
+// It is `button small subtle`, and everything that makes it look like a button
+// comes from there: the label colour, the outline, the radius, the weight, the
+// hover and the focus ring. It had a full set of its own before — a different
+// border tint, a different fill, a different hover, a height and a radius
+// nothing else in the app uses — which beside any other control read as
+// belonging to a different program. That is exactly what the quiet outline
+// exists to stop being necessary.
 //
 // What stays here is placement, the glyph's size, and one fill.
 //
-// Written from inside `.library-video-stage` and compounded with the two
-// classes it is overriding, because `.button.subtle` states its fill and its
-// hover fill at two classes and five: a rule of one class loses to it wherever
-// it is written in the sheet, and a rule that merely ties loses or wins by
-// the order two stylesheets happen to be bundled in. This is the same
-// arithmetic the `[aria-disabled]` block in Button.scss had to be moved for.
+// Written from inside `.library-video-stage` and compounded with the classes
+// it is overriding, because `.button.subtle` states its fill and its hover
+// fill at two classes and five: a rule of one class loses to it wherever it is
+// written in the sheet, and a rule that merely ties loses or wins by the order
+// two stylesheets happen to be bundled in. This is the same arithmetic the
+// `[aria-disabled]` block in Button.scss had to be moved for.
 .library-video-stage {
-  .library-video-stage__back,
-  .library-video-stage__fullscreen {
+  .library-video-stage__back {
     position: absolute;
     z-index: 2;
-    top: $spacing-s;
+    top: 12px;
+    left: 12px;
+    gap: 6px;
 
     svg {
       width: 15px;
@@ -1021,27 +1020,12 @@ $now-playing-bar-height: 64px;
   // is a tint over a panel and nothing at all over a moving picture. The
   // label needs a floor of its own here, or it is legible only for as long as
   // the frame behind it happens to be dark.
-  .library-video-stage__back.button.subtle,
-  .library-video-stage__fullscreen.button.subtle {
+  .library-video-stage__back.button.subtle {
     background: $surface-panel;
 
     &:hover:not(:disabled) {
       background: $surface-menu-top;
     }
-  }
-
-  .library-video-stage__back {
-    left: $spacing-s;
-    gap: 6px;
-  }
-
-  .library-video-stage__fullscreen.button.small {
-    right: $spacing-s;
-    // Square: a glyph and nothing else, so the label padding `small` reserves
-    // would make an oblong with the icon adrift in the middle of it.
-    width: $control-height-sm;
-    min-width: 0;
-    padding: 0;
   }
 }
 
