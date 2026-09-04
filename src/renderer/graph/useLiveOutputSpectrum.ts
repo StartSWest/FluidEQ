@@ -75,6 +75,16 @@ import {
   readPeakAmplitude,
 } from './outputLevel';
 
+/**
+ * The ceiling a clip warning is measured against: -1 dBFS as an amplitude.
+ *
+ * Not full scale, because full scale is not where the trouble starts. Windows'
+ * loopback keeps roughly a decibel of headroom, so a chain reaching 0 dBFS in
+ * FluidEQ is squashed on the way out and the capture never sees a railed
+ * sample — the meter stayed quiet while the sound was already being limited.
+ */
+const CEILING = 0.891;
+
 export interface IBalanceCaptureOptions extends IBalanceListenBounds {
   signal?: AbortSignal;
   onProgress?: (progress: IBalanceProgress) => void;
@@ -824,14 +834,22 @@ const useLiveOutputSpectrum = () => {
             meterAnalysers[channel].getFloatTimeDomainData(channelSamples);
             // A 45 ms clipped frame would disappear before the eye registers
             // it, but the hold must preserve the channel that actually railed.
-            if (detectClipping(channelSamples)) {
+            //
+            // Two ways in. Railed samples are the certain one. The other is
+            // the ceiling Windows itself keeps: the loopback holds about a
+            // decibel of headroom, so a chain that overshoots is limited on
+            // the way out and NEVER arrives here as railed samples — it only
+            // sounds wrong. Measured against that ceiling the warning comes
+            // while there is still something to do about it.
+            const channelPeak = readPeakAmplitude(channelSamples);
+            if (detectClipping(channelSamples) || channelPeak >= CEILING) {
               meterClipUntilMs[channel] = meterNowMs + CLIP_HOLD_MS;
             }
             const channelIsClipping = meterNowMs < meterClipUntilMs[channel];
             anyChannelClipping ||= channelIsClipping;
             const follower = advanceLevel(
               meterFollowers[channel],
-              amplitudeToDb(readPeakAmplitude(channelSamples)),
+              amplitudeToDb(channelPeak),
               meterDeltaMs,
             );
             meterFrame[channel].levelDb = follower.levelDb;

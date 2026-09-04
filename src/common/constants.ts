@@ -31,7 +31,13 @@ export const MIN_GAIN = -20;
  * APO can build a biquad from. Non-finite input collapses to a neutral value
  * instead.
  */
-const DEFAULT_QUALITY = 1;
+// Two, not one. A Q of 1 is a broad shelf-like bell nearly an octave and a
+// half wide, which is why every default layout read as smeared: neighbouring
+// bands overlapped so far that moving one moved the sound of three. At 2 a
+// band is about two thirds of an octave, which is the spacing the layouts
+// themselves are laid out at. Every band the app creates on its own — the
+// layouts, Add band, and a value that failed to parse — starts here.
+export const DEFAULT_QUALITY = 2;
 
 export const clampGain = (gain: number) =>
   Number.isFinite(gain) ? Math.min(MAX_GAIN, Math.max(MIN_GAIN, gain)) : 0;
@@ -910,7 +916,7 @@ export const FIXED_BAND_FREQUENCIES: Record<FixedBandSizeEnum, number[]> = {
 const DEFAULT_FILTER_TEMPLATE = {
   frequency: 1000,
   gain: 0,
-  quality: 1,
+  quality: DEFAULT_QUALITY,
   type: FilterTypeEnum.PK,
 };
 

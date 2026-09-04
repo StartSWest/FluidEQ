@@ -162,10 +162,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   align-items: center;
   justify-content: center;
   padding: 0;
-  border: 1px solid rgba($primary-lighter, 0.14);
+  border: 1px solid rgba($edge-tint, 0.14);
   border-radius: $radius-s;
-  background: rgba($white, 0.03);
-  color: rgba($primary-lighter, 0.85);
+  background: rgba($secondary-default, 0.07);
+  color: $text-primary;
   cursor: pointer;
   transition:
     background 140ms ease,
@@ -217,11 +217,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   align-items: center;
   padding: 4px 9px;
   gap: 5px;
-  border: 1px solid rgba($primary-lighter, 0.14);
+  border: 1px solid rgba($edge-tint, 0.14);
   border-radius: 999px;
-  background: rgba($white, 0.03);
-  color: rgba($primary-lighter, 0.8);
-  font-size: 0.68rem;
+  background: rgba($secondary-default, 0.07);
+  color: $text-muted;
+  font-size: $text-small;
   white-space: nowrap;
   cursor: pointer;
   transition:
@@ -279,19 +279,22 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   height: 26px;
   align-items: center;
   padding: 0 3px 0 8px;
-  border: 1px solid rgba($primary-lighter, 0.14);
+  border: 1px solid rgba($edge-tint, 0.14);
   // Matches the site pills rather than the nav buttons: this is the other end
   // of the same row, and 26px tall against a 999px radius is a capsule.
   border-radius: 999px;
-  background: rgba($white, 0.03);
+  background: rgba($secondary-default, 0.07);
   gap: 6px;
   transition:
     border-color 140ms ease,
     background 140ms ease;
 
+  // Focus lights the EDGE, not the fill. A field that repaints when the
+  // caret lands in it is a field that changes colour for typing in — and it
+  // was a different colour from its own resting face, so two search boxes
+  // side by side looked like two kinds of control the moment one was used.
   &:focus-within {
-    border-color: rgba($secondary-light, 0.55);
-    background: rgba($secondary-light, 0.08);
+    border-color: $border-field-focus;
   }
 
   // Squared off at the bottom while the list is open, so the two read as one
@@ -307,7 +310,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   height: 12px;
   flex: 0 0 auto;
   fill: none;
-  stroke: rgba($primary-lighter, 0.55);
+  stroke: rgba($edge-tint, 0.55);
   stroke-linecap: round;
   stroke-width: 1.6;
 }
@@ -326,12 +329,25 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   border: none;
   background: none;
   box-shadow: none;
-  color: $primary-lighter;
-  font-size: 0.7rem;
+  color: $text-primary;
+  font-size: $text-body;
   outline: none;
 
   &::placeholder {
-    color: rgba($primary-lighter, 0.4);
+    color: $text-faint;
+  }
+
+  // And it stays glass in every state. The shared rule's HOVER carries two
+  // `:not()`s, which put it above a plain two-class selector — so the field
+  // was quiet at rest and then painted a cyan rectangle inside the capsule
+  // the moment the pointer crossed it, stopping short of both round ends.
+  &:hover:not(:disabled),
+  &:focus,
+  &:focus-visible {
+    border: none;
+    background: none;
+    box-shadow: none;
+    outline: none;
   }
 }
 
@@ -346,7 +362,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   border: none;
   border-radius: 50%;
   background: none;
-  color: rgba($primary-lighter, 0.5);
+  color: $text-faint;
   cursor: pointer;
 
   svg {
@@ -360,7 +376,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   &:hover {
     background: rgba($white, 0.08);
-    color: $primary-lighter;
+    color: $text-primary;
   }
 }
 
@@ -371,7 +387,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   border-radius: 999px;
   background: rgba($secondary-light, 0.16);
   color: $secondary-light;
-  font-size: 0.64rem;
+  font-size: $text-small;
   white-space: nowrap;
   cursor: pointer;
   transition:
@@ -402,7 +418,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   padding: 4px;
   border: 1px solid rgba($secondary-light, 0.28);
   border-radius: $radius-m;
-  background: linear-gradient(160deg, rgba(#0d2029, 0.99), rgba(#0a161d, 0.99));
+  background: rgba($surface-menu-top, 0.99);
   box-shadow: 0 18px 44px rgba($black, 0.5);
 
   ul {
@@ -414,8 +430,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 .video-search__suggestions-title {
   padding: 3px 8px 5px;
-  color: rgba($primary-lighter, 0.45);
-  font-size: 0.58rem;
+  color: $text-faint;
+  font-size: $text-eyebrow;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -441,8 +457,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   padding: 5px 8px;
   border: none;
   background: none;
-  color: rgba($primary-lighter, 0.88);
-  font-size: 0.68rem;
+  color: $text-primary;
+  font-size: $text-small;
   gap: 7px;
   text-align: left;
   cursor: pointer;
@@ -452,7 +468,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     height: 11px;
     flex: 0 0 auto;
     fill: none;
-    stroke: rgba($primary-lighter, 0.4);
+    stroke: rgba($edge-tint, 0.4);
     stroke-linecap: round;
     stroke-width: 1.5;
   }
@@ -476,7 +492,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   border: none;
   border-radius: 50%;
   background: none;
-  color: rgba($primary-lighter, 0.35);
+  color: $text-faint;
   cursor: pointer;
 
   svg {
@@ -490,7 +506,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   &:hover {
     background: rgba($white, 0.1);
-    color: $primary-lighter;
+    color: $text-primary;
   }
 }
 
@@ -499,10 +515,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   margin-top: 3px;
   padding: 5px 8px;
   border: none;
-  border-top: 1px solid rgba($primary-lighter, 0.08);
+  border-top: 1px solid rgba($edge-tint, 0.08);
   background: none;
-  color: rgba($primary-lighter, 0.5);
-  font-size: 0.62rem;
+  color: $text-faint;
+  font-size: $text-micro;
   text-align: left;
   cursor: pointer;
 
@@ -537,7 +553,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   border: 1px solid transparent;
   border-radius: $radius-s;
   background: transparent;
-  color: rgba($primary-lighter, 0.6);
+  color: $text-muted;
   place-items: center;
   cursor: pointer;
   transition:
@@ -595,8 +611,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 .video-browser__ad-block-label {
-  color: rgba($primary-lighter, 0.75);
-  font-size: 0.68rem;
+  color: $text-muted;
+  font-size: $text-small;
   white-space: nowrap;
   cursor: help;
 }
@@ -672,13 +688,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   padding: 10px 12px;
   border: 1px solid rgba($secondary-light, 0.42);
   border-radius: $radius-m;
-  background:
-    radial-gradient(
-      circle at 8% 0%,
-      rgba($secondary-light, 0.12),
-      transparent 42%
-    ),
-    linear-gradient(145deg, rgba(#0d2029, 0.98), rgba(#09161d, 0.98));
+  background: rgba($surface-menu-top, 0.98);
   box-shadow: 0 16px 42px rgba($black, 0.5);
 
   &.is-completed {
@@ -686,7 +696,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 
   &.is-failed {
-    border-color: rgba(#ff7386, 0.58);
+    border-color: rgba($red, 0.58);
   }
 }
 
@@ -720,8 +730,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   strong {
     overflow: hidden;
-    color: $primary-lighter;
-    font-size: 0.75rem;
+    color: $text-primary;
+    font-size: $text-body;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
@@ -729,8 +739,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   > span,
   > small {
     overflow: hidden;
-    color: rgba($primary-lighter, 0.7);
-    font-size: 0.65rem;
+    color: $text-muted;
+    font-size: $text-small;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
@@ -742,13 +752,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   margin-top: 3px;
   overflow: hidden;
   border-radius: 999px;
-  background: rgba($primary-lighter, 0.14);
+  background: rgba($edge-tint, 0.14);
 
   > span {
     position: absolute;
     inset: 0 auto 0 0;
     border-radius: inherit;
-    background: linear-gradient(90deg, $secondary-light, #55f2bd);
+    background: $secondary-light;
     box-shadow: 0 0 12px rgba($secondary-light, 0.55);
     transition: width 150ms ease-out;
   }
@@ -765,7 +775,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     border-radius: $radius-s;
     background: rgba($secondary-light, 0.12);
     color: $secondary-light;
-    font-size: 0.67rem;
+    font-size: $text-small;
     cursor: pointer;
 
     &:hover {
@@ -782,10 +792,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   flex: 0 0 auto;
   padding: 0;
   place-items: center;
-  border: 1px solid rgba($primary-lighter, 0.18);
+  border: 1px solid rgba($edge-tint, 0.18);
   border-radius: 8px;
   background: transparent;
-  color: rgba($primary-lighter, 0.72);
+  color: $text-muted;
   cursor: pointer;
 
   &:hover {
@@ -840,7 +850,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   padding: 10px 12px;
   border: 1px solid rgba($secondary-light, 0.4);
   border-radius: $radius-m;
-  background: linear-gradient(145deg, rgba(#0d2029, 0.97), rgba(#0a161d, 0.97));
+  background: rgba($surface-menu-top, 0.97);
   box-shadow: 0 16px 40px rgba($black, 0.45);
 
   > div {
@@ -852,13 +862,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   strong {
     color: $secondary-light;
-    font-size: 0.74rem;
+    font-size: $text-body;
   }
 
   span {
     overflow: hidden;
-    color: rgba($primary-lighter, 0.78);
-    font-size: 0.68rem;
+    color: $text-muted;
+    font-size: $text-small;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
@@ -870,7 +880,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     border-radius: $radius-s;
     background: rgba($secondary-light, 0.14);
     color: $secondary-light;
-    font-size: 0.68rem;
+    font-size: $text-small;
     cursor: pointer;
 
     &:hover {

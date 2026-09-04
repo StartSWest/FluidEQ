@@ -50,12 +50,18 @@ html {
   width: 100%;
   height: 100%;
   color-scheme: dark;
-  // Cyan and trackless, identical to the `slim-scrollbar` mixin a dozen inner
-  // panels reach for. The default here used to be the violet primary on a dark
-  // track, which made every scrollbar the app did not explicitly style the odd
-  // one out. There is no reason for two answers to the same question.
-  scrollbar-color: rgba($secondary-default, 0.6) transparent;
-  scrollbar-width: thin;
+  // No `scrollbar-color` and no `scrollbar-width` here, or anywhere.
+  //
+  // They were set on this element to give unstyled scrollbars the same cyan
+  // as the styled ones, and they did the opposite: in Chromium the standard
+  // properties take precedence over every `::-webkit-scrollbar` rule below,
+  // and once they are set the bar is drawn by the platform's own painter. On
+  // Windows 11 that is the Fluent scrollbar — a 10px bar with an arrow button
+  // at each end, both filled in the thumb colour — so the right column ended
+  // in a fat cyan strip with two cyan triangles, and nothing in the rules
+  // below could reach it. The pseudo-elements are the one path that draws the
+  // thin, buttonless bar this app wants, and they only run when the standard
+  // properties are left alone.
 }
 
 body {
@@ -68,7 +74,7 @@ body {
   min-width: 0;
   margin: 0;
   overflow: hidden;
-  color: #edf8ff;
+  color: $text-primary;
   // Nothing in here is a document.
   //
   // This is an application window, and almost every gesture in it is a drag:
@@ -82,26 +88,32 @@ body {
   // is the point — the fields you type in, and anything meant to be copied.
   -webkit-user-select: none;
   user-select: none;
-  // Cyan-forward ambience. The warm accents stay as faint highlights only, so
-  // the shell reads teal rather than violet.
-  background:
-    radial-gradient(circle at 8% -10%, rgba($neon-cyan, 0.2), transparent 32%),
-    radial-gradient(
-      circle at 46% -18%,
-      rgba($secondary-default, 0.15),
-      transparent 34%
-    ),
-    radial-gradient(
-      circle at 92% 10%,
-      rgba($secondary-dark, 0.18),
-      transparent 36%
-    ),
-    radial-gradient(
-      circle at 48% 115%,
-      rgba($neon-lime, 0.07),
-      transparent 32%
-    ),
-    linear-gradient(145deg, #04090f 0%, #061019 48%, #04090f 100%);
+  // A flat slate, two values lighter at the head of the window than the foot.
+  //
+  // This was seven radial washes — cyan, teal and lime, at both ends — over a
+  // diagonal near-black, and it is what made the cards disagree with each
+  // other: they were translucent, and each one sampled whatever wash it stood
+  // over. Measured, the shell itself was rgb(10,39,49) in the top-left corner,
+  // rgb(3,11,17) in the middle and rgb(14,27,27) — green — at the foot, so
+  // "the background" was three colours and every card on it was a fourth.
+  //
+  // The washes are gone, not toned down. The window's mood comes from the
+  // cyan the controls carry, and a background that keeps still is what lets
+  // that read as colour rather than as haze.
+  //
+  // One step under the panes, flat; the colour comes from the bloom below.
+  // The panel colour itself was tried here and the columns vanished into it,
+  // and a set of washes in the corners was tried after that and read as
+  // blotches at the edges of the window.
+  //
+  // No background here, and that is not a detail.
+  //
+  // A background declared on `body` while `html` has none is lifted out of
+  // the element and painted as the canvas — the whole window, corner to
+  // corner, ignoring any radius `body` carries, and over the backdrop the
+  // system is drawing behind the window. The shell is painted on `#root`
+  // instead, which is an ordinary element.
+  background: transparent;
   isolation: isolate;
   font-family:
     // The system UI font, deliberately, and no bundled webfont.
@@ -152,26 +164,84 @@ body {
   // dragged. Nothing in the test suite can see that.
   font-variant-numeric: tabular-nums;
 
-  // Soft bloom behind the whole shell. Purely decorative, and weighted to the
-  // cyan/teal end of the spectrum palette.
+  // Soft bloom behind the whole shell: one blurred disc in the middle of the
+  // window, weighted to the cyan/teal end of the spectrum palette. It was
+  // taken out during the flattening and put back by request — the one piece
+  // of light the floor keeps. It is the original, unchanged; the panes over
+  // it are opaque, so it shows only in the gutters between them.
+}
+
+// Full screen: the two bars become glass.
+//
+// The only blur in the app, and the only place one earns its cost. Everywhere
+// else a pane stands on a floor of the same family and a blur would be
+// compositing work for a difference nobody could name. Here the plot runs
+// under both bars edge to edge, so an opaque bar is a slab laid across a
+// picture — and a translucent one with no blur is worse, because the drawing
+// carries on legibly underneath the words.
+//
+// Two elements, both of them a single strip, neither of them redrawn per
+// frame: the compositor blurs each once and reuses it until the picture
+// under it changes.
+#root:has(> .app-workspace.is-app-full) .window-titlebar,
+#root:has(> .app-workspace.is-app-full) .graph-legend-group,
+body:has(> #root > .app-workspace.is-app-full) .now-playing-bar {
+  background-color: rgba($surface-panel, 0.8);
+  backdrop-filter: blur(22px) saturate(130%);
+  -webkit-backdrop-filter: blur(22px) saturate(130%);
+}
+
+// The blocks inside the glass go part-way see-through with it.
+//
+// They are opaque slabs of the block colour, which over a blurred picture
+// read as two cut-outs laid on the glass rather than as part of it. At two
+// thirds they still hold their controls apart from whatever is moving
+// underneath, and the blur carries through them.
+body:has(> #root > .app-workspace.is-app-full) .now-playing-bar__deck,
+body:has(> #root > .app-workspace.is-app-full) .now-playing-bar__volume {
+  background-color: rgba($surface-block, 0.66);
+}
+
+// The header runs to the window's edges, and only in this view.
+//
+// It normally floats on the shell's gutter like a card. In full screen the
+// plot is the window, so that gutter is a 12px strip of moving spectrum
+// above and beside the bar — a band of colour outside the app's own chrome,
+// which is what made the top of the screen look broken.
+#root:has(> .app-workspace.is-app-full) .window-titlebar {
+  top: 0;
+  right: 0;
+  left: 0;
+  border-radius: 0;
+}
+
+// The graph's largest view keeps the app's own floor.
+//
+// It was taken off here, from when this view took the window full screen and
+// the plot was meant to stand on the desktop. The view does not touch the
+// window any more — it only puts the panes away — so a lighter floor in it
+// was the same window painted two different colours depending on which panes
+// were showing, which is what shows at the corners.
+//
+// The bloom stays off, and only that. It is a 90px blur across most of the
+// window, so with the plot filling the window it became a screen-sized layer
+// between the drawing and the system's backdrop, and it flickered. Nothing of
+// it was visible anyway: it only ever showed in the gutters between panes,
+// and this is the view with no gutters.
+#root:has(> .app-workspace.is-app-full) {
+  // Solid, and only here.
+  //
+  // The window drops its backdrop material for the length of full screen —
+  // there is nothing behind a window that IS the screen to blur — so the
+  // tenth of the floor that is normally left open stopped showing a blurred
+  // desktop and started showing the window's own bare base. Two dark tones
+  // meeting across the empty half of the plot, with a soft edge between
+  // them: the "two tone gradient". With nothing to let through, the floor
+  // has no reason to be see-through.
+  background: $surface-base;
+
   &::before {
-    position: fixed;
-    z-index: -1;
-    inset: 8% 18% 10%;
-    border-radius: 50%;
-    background: conic-gradient(
-      from 140deg,
-      rgba($neon-cyan, 0.1),
-      rgba($secondary-default, 0.09),
-      rgba($neon-lime, 0.05),
-      rgba($secondary-dark, 0.08),
-      rgba($neon-pink, 0.035),
-      rgba($neon-cyan, 0.1)
-    );
-    filter: blur(90px);
-    opacity: 0.9;
-    pointer-events: none;
-    content: '';
+    display: none;
   }
 }
 
@@ -212,9 +282,16 @@ select {
   }
 }
 
+// A native select names a choice, so it is labelled like the quiet button
+// rather than like a box you type into.
+select {
+  color: $secondary-light;
+  font-weight: $weight-bold;
+}
+
 select option {
   color: $text-primary;
-  background: #213b49;
+  background: $surface-menu-top;
 }
 
 ::-webkit-scrollbar {
@@ -229,14 +306,18 @@ select option {
   background: transparent;
 }
 
+// Quiet at rest, cyan under the pointer. A scrollbar is not a control the eye
+// should find on its own: at 60% cyan it was the brightest thing on any panel
+// that happened to overflow, and outshone the switches beside it.
 ::-webkit-scrollbar-thumb {
   min-height: 28px;
-  border: 1px solid rgba($primary-lighter, 0.08);
+  border: 2px solid transparent;
   border-radius: $radius-pill;
-  background: rgba($secondary-default, 0.6);
+  background: rgba($secondary-light, 0.34);
+  background-clip: padding-box;
 
   &:hover {
-    background: rgba($secondary-light, 0.85);
+    background-color: $secondary-default;
   }
 }
 
@@ -268,10 +349,41 @@ select option {
   text-align: center;
 }
 
+// The one chevron, on every control that opens something. Same size, the
+// colour of the label it follows, a little quieter than it, and it turns
+// over when the thing it belongs to is open — a select, the Voicing pick,
+// the Smart EQ mode menu, a folding section — so "open" is one gesture
+// across the app. Placement (margins, which corner) is each caller's; the
+// glyph, its weight and its motion are not.
+.chevron {
+  width: 11px;
+  height: 11px;
+  flex: 0 0 auto;
+  fill: none;
+  opacity: 0.7;
+  stroke: currentcolor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+  transition: transform 150ms ease;
+}
+
+[aria-expanded='true'] > .chevron,
+.is-open > .chevron,
+.is-open > * > .chevron {
+  transform: rotate(180deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chevron {
+    transition: none;
+  }
+}
+
 .eyebrow,
 .control-kicker {
   color: $secondary-light;
-  font-size: 0.58rem;
+  font-size: $text-eyebrow;
   font-weight: $weight-bold;
   letter-spacing: 0.16em;
   text-shadow: 0 0 16px rgba($secondary-default, 0.35);
@@ -293,7 +405,7 @@ select option {
     @include truncate;
     flex: 0 1 auto;
     color: $text-muted;
-    font-size: 0.68rem;
+    font-size: $text-small;
   }
 }
 
@@ -306,8 +418,8 @@ select option {
   box-shadow: 0 0 10px rgba($secondary-default, 0.8);
 
   &.error {
-    background: #ef6a6a;
-    box-shadow: 0 0 10px rgba(#ef6a6a, 0.8);
+    background: $red;
+    box-shadow: 0 0 10px rgba($red, 0.8);
   }
 }
 
@@ -333,20 +445,28 @@ select option {
 .window-titlebar {
   position: fixed;
   z-index: 100;
-  top: 0;
-  right: 0;
-  left: 0;
+  // A card on the shell's gutter line, like the transport bar at the other end
+  // of the window. Its height is taken out of the strip rather than added to
+  // it, so the seventeen places that position themselves under the titlebar
+  // still clear it without any of them being touched.
+  top: var(--shell-gutter, 16px);
+  right: var(--shell-gutter, 16px);
+  left: var(--shell-gutter, 16px);
   display: grid;
   // Equal outer tracks keep the middle one optically centred in the window
   // regardless of how wide the brand block or the control cluster get. The
   // middle track is sized by its contents now rather than capped at the
   // meter's 420px: it carries the meter AND the four places beside it, and a
   // cap written for one of them would squeeze both.
-  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  grid-template-columns: minmax(max-content, 1fr) minmax(120px, auto) minmax(
+      max-content,
+      1fr
+    );
   align-items: center;
   gap: 16px;
-  width: 100%;
-  height: $title-bar-height;
+  // The strip less the gutter it stands off the top edge by, which leaves the
+  // 74px the bar has always been at the shell's own inset.
+  height: calc(#{$title-bar-height} - var(--shell-gutter, 16px));
   // 2px rather than 7 above and below, so the meter reads as something sitting
   // in the bar rather than as the bar itself.
   //
@@ -359,36 +479,47 @@ select option {
   // and a spectrum 3px off centre is the sort of thing that is only ever seen
   // once it cannot be unseen.
   padding: 2px 18px;
-  // Sits almost flush with the page rather than as a bar laid over it. The
-  // old surface topped out at #101d2a against a page nearer #061019, which is
-  // a big enough step to read as a separate strip of chrome.
+  // The same card as the transport bar at the foot of the window, drawn from
+  // the same mixin and the same two stops, with the cast shadow turned the
+  // other way because this one hangs over the workspace instead of under it.
   //
-  // What is left is a hairline and a shallow shadow, which the bar still needs:
-  // it is fixed and the workspace scrolls underneath, so with nothing at all
-  // the content would appear to slide out of the title text. The blur below is
-  // what keeps that content legible at this opacity, so it has to stay.
-  border-bottom: 1px solid rgba($primary-lighter, 0.05);
-  // A little of what the panels get, and not all of it.
+  // It used to be a strip: full width, square, a hairline along the bottom and
+  // nothing else. Three panels and a transport card in a shell, with a strip of
+  // chrome across the top, is the one edge in the window that belonged to a
+  // different design.
   //
-  // This was translucent already — and so dark that it made no difference: at
-  // #070f18 over #040a11 there was nothing for the shell's washes to tint, so
-  // the bar read as a black strip above a lit window. Moved onto the panel
-  // family and opened up slightly, it picks up the same cyan the cards do.
+  // `background-color` under the gradient is what keeps it opaque. This bar
+  // floats at `z-index: 100` over three accelerated canvases, so the compositor
+  // gives it a layer of its own, and text on a layer only keeps its subpixel
+  // antialiasing over an opaque background: at 0.84 the brand, the tab names
+  // and the version all rendered grey and soft.
+  // The whole top band of the window is a drag handle, not just the card.
   //
-  // Still the darkest surface on screen, deliberately. It is chrome — the
-  // window's frame rather than part of the work — and the cards should come
-  // forward of it.
-  // Opaque, and that is about the text rather than the colour. This bar floats
-  // over the window at `z-index: 100`, above three accelerated canvases, so the
-  // compositor gives it a layer of its own whatever else is done to it — and on
-  // a layer it will only draw text with subpixel antialiasing if it can see an
-  // opaque background behind that text. At 0.84 it could not, and the brand,
-  // the tab names and the version all rendered grey and soft. What the
-  // transparency was buying was 16% of the shell's washes, measured at one to
-  // three units per channel through this surface; the colours below already
-  // carry the cyan the comment above is about.
-  background: linear-gradient(180deg, $panel-bottom, #0a1220);
-  box-shadow: 0 6px 16px rgba($black, 0.1);
+  // The card stands 12px off the top edge and both sides now, and that margin
+  // was dead: the pointer landed on the page behind it and the window would not
+  // move. Windows builds the drag region as the union of the `drag` rectangles
+  // minus the `no-drag` ones, so a rectangle laid over the whole band picks up
+  // the gutter without taking anything away from the controls inside the card,
+  // which subtract themselves.
+  &::before {
+    position: fixed;
+    z-index: -1;
+    top: 0;
+    right: 0;
+    left: 0;
+    height: $title-bar-height;
+    content: '';
+    -webkit-app-region: drag;
+  }
+
+  @include panel-surface;
+  // The pane colour, flat. The ramp the panes carry was tried here and on a
+  // 74px bar it read as a bevel; the block colour was tried and it made the
+  // bar a different material from the columns under it.
+  background-image: none;
+  // No shadow: it fell onto the top of the three columns and read as a
+  // darker band inside each of them. See `panel-surface`.
+  box-shadow: none;
   // NO `backdrop-filter` on this bar, or on anything inside it that carries
   // text. A backdrop filter is a compositor layer by definition, and text drawn
   // into a layer whose contents are not opaque loses subpixel antialiasing — so
@@ -402,6 +533,22 @@ select option {
   // under a full-screen graph, and that is already scaled, blurred by 46px and
   // held at 0.42, so what reaches the eye through the 14% this bar leaves open
   // is a soft wash either way.
+  //
+  // A drag region, and it has to be the system's rather than the app's.
+  //
+  // Everything a titlebar does comes with this one declaration: the drag
+  // itself, the snap zones with the preview Windows draws for them,
+  // restoring a maximised or snapped window by dragging it off, and
+  // double-click to maximise. All of it was dead for a while, and the cause
+  // was not this line — it was the window being see-through. Windows hands a
+  // press on a drag region over as a press on a caption, and it declines to
+  // do that for a transparent window, so nothing downstream of it ever
+  // happened. The window has a backdrop material now instead of being
+  // see-through, and the whole set works again.
+  //
+  // The app moved its own window for a few minutes and it was worse in every
+  // way: no preview, no drag-off-to-restore, and snapping that had to be
+  // re-derived from scratch.
   -webkit-app-region: drag;
   -webkit-user-select: none;
   user-select: none;
@@ -420,7 +567,11 @@ select option {
   .waveform-visualizer {
     justify-self: center;
     width: 100%;
-    max-width: 420px;
+    // No 420 ceiling. The shell around it is already exactly what the two ends
+    // leave, so this was a second opinion about the same width and the one that
+    // won: measured at a 2560px window the shell came to 1192 and the drawing
+    // stopped at 420, with 772px of empty bar after it and the mode badge —
+    // which is centred on the SHELL — floating clear of the wave it names.
     // Same 65px as the euphoric override, so the pane no longer resizes
     // when rainbow mode is toggled — the wave inside was already unified
     // to max amplitude + normalise, and this makes the container match.
@@ -429,6 +580,12 @@ select option {
     // of box for one more pixel of edge, so the 63px of pane inside it is
     // what it always was. See `WaveformVisualizer.scss`.
     height: 65px;
+    // Carved out of the drag handle, because it is a button: a press on it
+    // cycles the meter's look. A system drag region cannot pass a press
+    // through to what is under it, so the two cannot both be true here — and
+    // between picking the window up by this one stretch and being able to
+    // press the only control in the middle of the bar, the control wins. The
+    // rest of the bar, either side of it, is still a handle.
     -webkit-app-region: no-drag;
   }
 }
@@ -462,7 +619,12 @@ select option {
   // a `1fr` remainder, and a grid item stretches to its track by default —
   // which spread the row right across whatever was left of the window.
   justify-self: center;
-  -webkit-app-region: no-drag;
+  // A drag handle, spectrum included. It is the widest thing in the bar, and
+  // a bar that cannot be picked up along its widest stretch is a bar with
+  // nowhere to grab. The cost is the meter's own click, which cycled its
+  // look: a system drag region cannot pass a press through to what is under
+  // it. The look is still reachable from the graph's own menu.
+  -webkit-app-region: drag;
 }
 
 // What the ends leave over, up to the 420px the grid track used to hand it.
@@ -488,13 +650,18 @@ select option {
 // to the parent's intrinsic size — the line was measured from the pane's 230px
 // minimum and the meter came out at 230 instead of 420.
 .titlebar-nav .waveform-visualizer-shell {
-  --titlebar-wave-max: 420px;
-
-  width: clamp(
-    140px,
-    calc(100vw - 2 * var(--titlebar-side, 320px) - 76px),
-    var(--titlebar-wave-max)
-  );
+  // 420 at most, a share of the window below that, and nothing reserved.
+  //
+  // The width is the meter's own again — the grid does the rest. Its two end
+  // tracks are `minmax(max-content, 1fr)`: never narrower than what they hold,
+  // and otherwise equal, so whatever the window has over goes to the ENDS in
+  // equal halves, where the auto margins push the glyphs in against the
+  // drawing and leave the slack at the window's edges. The old
+  // `100vw - 2 × the wider end` did the same job by arithmetic and charged the
+  // meter twice the wider end even when the other was 200px narrower; and a
+  // meter with no cap at all, tried in between, filled 1192px of a 2560px bar
+  // with one drawing, which is not a meter any more.
+  width: min(31vw, 420px);
   min-width: 0;
   flex: 0 1 auto;
 }
@@ -522,7 +689,26 @@ select option {
 // and roughly 1140 where the shell had already shrunk under 230 and the floor
 // still held.
 .titlebar-nav .waveform-visualizer {
+  // The pane fills its shell, and both of its own sizes have to go for that.
+  //
+  // `WaveformVisualizer.scss` gives it `width: min(31vw, 420px)` and a 230px
+  // floor, which are the numbers for the meter as a standalone control. In the
+  // titlebar the shell above already IS the width — whatever the two ends do
+  // not need — so those two were a second opinion about it: measured at 1543px
+  // wide the shell came to 634 and the drawing inside it stopped at 420, with
+  // 214px of empty bar after it and the mode badge centred on the drawing well
+  // left of the middle.
+  width: 100%;
   min-width: 0;
+  flex: 1 1 auto;
+}
+
+// The one button in the middle track, given back to the pointer. Everything
+// around it in here is a drag handle, and Windows subtracts a `no-drag`
+// rectangle from that region rather than layering it — so this is what keeps
+// the rainbow switch pressable on a bar you can also pick the window up by.
+.titlebar-nav .waveform-visualizer__euphoria {
+  -webkit-app-region: no-drag;
 }
 
 // Nothing here strips the meter any more.
@@ -589,10 +775,115 @@ select option {
     z-index: 2;
     top: 9px;
     bottom: 9px;
-    left: -3px;
+    left: calc(var(--tab-gap, 6px) / -2);
     width: 1px;
-    background: rgba($secondary-light, 0.12);
+    // A seam rather than a tick. At a flat colour these were four hard little
+    // sticks in a row of round shapes, and the two next to the lit pill read as
+    // marks on it. Faded at both ends they stop short of anything.
+    background: rgba($secondary-light, 0.16);
     content: '';
+  }
+
+  // Every gap keeps its line, the chosen one's included. Hiding the two either
+  // side of the pill was tried and it is worse: the row loses its rhythm and
+  // the gap that lost its line reads as the strip having been redrawn rather
+  // than as something having been selected. The pill clears the line by 3px on
+  // both sides, which is what stops them touching.
+
+  // Six places rather than four, so a glyph now carries as much of the meaning
+  // as the word does, and at the narrow widths below it carries all of it.
+  .workspace-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+
+    .menu-icon {
+      width: 19px;
+      height: 19px;
+      flex: 0 0 auto;
+      opacity: 0.85;
+    }
+
+    &.is-active .menu-icon {
+      opacity: 1;
+    }
+  }
+}
+
+// Glyphs only, and early — because the spectrum is what pays for the words.
+//
+// The meter is not a fixed 420px, it is what the two ends leave over. Measured
+// with the labels showing, it holds 420 down to 1800 and then falls off a
+// cliff: 374 at 1700, 322 at 1600, 222 at 1500, and on its 140px floor by 1400.
+// Six words either side of it is simply more than the row can carry and still
+// have a drawing in the middle.
+//
+// Dropping them here keeps the spectrum at its full width down to about 1244,
+// which is most of the way to the window's 720px minimum. Nothing is lost by
+// it: every one of these buttons carries its full name as its accessible name
+// at every width, so what is read aloud does not change when what is drawn
+// does.
+@media (max-width: calc(#{$bp-desktop} - 1px)) {
+  // Everything the bar can stop spending, spent on the drawing instead: 8px of
+  // grid gap rather than 16, 10 of padding either side rather than 18, and 7
+  // around each glyph rather than 12 — six of those, so 60px of it. The air
+  // constant follows the two it names, or the meter goes on reserving room the
+  // bar has already given back.
+  // The equal end tracks stay, because they are the only thing that puts the
+  // spectrum in the middle of the WINDOW rather than in the middle of whatever
+  // is left over. What changes here is what the ends carry, not how they are
+  // measured: glyphs instead of words, no product name, no creature. The bar
+  // spends less on itself too — 8px of grid gap rather than 16 and 10 of
+  // padding either side rather than 18 — and the air constant follows the two
+  // it names, or the meter goes on reserving room that has already been given
+  // back.
+  .window-titlebar {
+    --titlebar-air: 50px;
+
+    gap: 8px;
+    padding-inline: 10px;
+  }
+
+  // "LIVE OUTPUT" goes, and its dot with it.
+  //
+  // It and the mode badge are both centred on the top of the pane, and from
+  // here down they are painted across each other. The badge names a mode that
+  // is otherwise invisible; the label repeats what a moving spectrum under the
+  // word "live" already says, and a signal light with nothing beside it is a
+  // mark nobody can read.
+  .titlebar-nav .waveform-visualizer__signal {
+    display: none;
+  }
+
+  // The glyphs spread into room the drawing cannot use anyway.
+  //
+  // Widening a strip does cost the spectrum — `useTitlebarSideWidth` sums the
+  // end's children, so every pixel between the glyphs is a pixel off the meter.
+  // What makes this free is the cap: the drawing stops growing at 420, and from
+  // about 1200 up there is more room in the ends than it can take. The slope
+  // spends only that surplus, so the row opens out on a wide window and closes
+  // to a compact 6px before the meter is ever short.
+  // Named through the strip so this outweighs the wide-window rule further
+  // down the file, which is a `.window-titlebar .workspace-tab` of the same
+  // weight and would otherwise win on order alone.
+  //
+  // The room goes inside each glyph's own box, evenly on both sides, and NOT
+  // into the gap between them. Widening the gap opens the space between the
+  // rules instead of around the icons, so a glyph ends up sitting against one
+  // rule with the air on the far side of the other — which is the thing that
+  // looks wrong even though every box is the same width.
+  .window-titlebar .workspace-tabs .workspace-tab {
+    padding: 9px clamp(7px, calc((100vw - #{$bp-two-column}) / 14), 22px) 10px;
+  }
+
+  .workspace-tab__label {
+    display: none;
+  }
+
+  // The glyph is the whole control now, so it takes the room the word gave up.
+  .window-titlebar .workspace-tab .menu-icon {
+    width: 21px;
+    height: 21px;
   }
 }
 
@@ -606,29 +897,20 @@ select option {
 .window-titlebar .workspace-tab {
   min-height: 38px;
   padding: 9px 20px 10px;
-  font-size: 0.86rem;
+  font-size: $text-lead;
   letter-spacing: 0.012em;
-
-  &:not(.is-active) {
-    color: rgba($primary-lighter, 0.7);
-  }
 }
 
-// The lit pill, bigger and softer.
-//
-// It used to be a 24px lozenge inset inside a 32px strip with a hard cyan
-// edge — a small bright shape that announced itself before the word inside
-// it did. It takes the whole height of the row now and most of its colour is
-// bloom rather than border: the word stays the brightest thing in it, and the
-// pill reads as light behind the choice rather than as a box around it.
+// The bar, up here where the row is taller and the glow has further to carry.
 .window-titlebar .workspace-tabs__pill {
-  top: 0;
-  bottom: 0;
-  border-color: rgba($secondary-light, 0.24);
-  background: rgba($secondary-default, 0.15);
-  box-shadow:
-    inset 0 0 14px rgba($secondary-light, 0.12),
-    0 0 30px rgba($secondary-default, 0.28);
+  height: 2px;
+  box-shadow: 0 0 16px rgba($secondary-default, 0.8);
+
+  // Nothing rises off it. There used to be a radial glow fading up behind the
+  // chosen icon; with gradients gone from the chrome that became a solid
+  // block of cyan behind the glyph — a capsule again, the shape the bar was
+  // put here to replace. The bar and its own glow are the whole mark, exactly
+  // as they are on the BANDS / VOICING rail below.
 }
 
 // With the meter switched off from the View menu the middle track has nothing
@@ -657,7 +939,10 @@ select option {
 // the meter beside it keeps the true middle whatever this end comes to.
 .window-titlebar__left {
   display: flex;
-  min-width: 0;
+  // Its own content, and an `auto` track may otherwise shrink under it: with
+  // the middle one taking everything it can, the drawing was painted over the
+  // glyphs at narrow widths.
+  min-width: max-content;
   align-items: center;
   gap: 12px;
 
@@ -692,14 +977,23 @@ select option {
 // at, which is where a version number is wanted anyway, and lifted out of the
 // flow so revealing it cannot push the bar's other contents around.
 //
-// 1080 rather than 900, which is the width at which the middle track starts
-// being rationed rather than a width chosen for the name. Measured at 985px
-// wide: the name and version came to 115px of a 167px left track, and the
-// meter — which asks for 260 here — had been squeezed to 211 to pay for it.
-// Below 1080 the meter is the thing in that track that still has something to
-// say, so the two words that name a window somebody already has open go
-// first.
-@media (max-width: 1080px) {
+// Later than the words, and at the width the spectrum actually asks for them.
+//
+// The tab labels go at 1800 because the drawing starves without that room. The
+// name and the creature are not in that class: with the tabs down to glyphs the
+// meter is still at its full 420 to about 1300, so taking them out any earlier
+// spends what the bar was not short of.
+//
+// 1300 and not 1080, because 1080 was late enough to put a step in the wrong
+// direction: the meter fell to 308 at 1100 and then JUMPED BACK to 400 at 1000
+// as these two vanished. A drawing that gets bigger as the window gets smaller
+// is the inconsistency; matching the threshold to the width where the meter
+// first gives ground is what removes it.
+//
+// Nothing is deleted: the name comes back beside the mark when the mark is
+// pointed at, lifted out of the flow so revealing it cannot push the bar's
+// other contents around.
+@media (max-width: $bp-two-column) {
   // Hover cannot reach the mark while it is part of the window's drag
   // handle: `.window-titlebar` is `-webkit-app-region: drag`, so Windows
   // takes the pointer over it and the renderer is never told the mouse is
@@ -718,7 +1012,7 @@ select option {
     padding: 6px $spacing-s;
     border: 1px solid rgba($secondary-light, 0.2);
     border-radius: $radius-s;
-    background: rgba(#07131f, 0.96);
+    background: rgba($surface-menu-top, 0.96);
     box-shadow: 0 10px 26px rgba($black, 0.45);
     opacity: 0;
     visibility: hidden;
@@ -740,6 +1034,15 @@ select option {
     opacity: 1;
     visibility: visible;
   }
+
+  // The creature goes too, and it is the right end that had to give: the meter
+  // is sized from the WIDER of the two ends, and with the tabs down to glyphs
+  // that is the right one. She is 40px plus her gap of it, and the one thing up
+  // here that is company rather than information. Support is still one item down
+  // in the tools menu beside her, and the full-screen chrome keeps its own copy.
+  .window-titlebar .support-pet {
+    display: none;
+  }
 }
 
 // A small glass transport rather than three window buttons. It controls media
@@ -755,9 +1058,7 @@ select option {
   padding: 3px 4px;
   border: 1px solid rgba($secondary-light, 0.14);
   border-radius: $radius-pill;
-  background:
-    linear-gradient(180deg, rgba(#173047, 0.68), rgba(#06121e, 0.78)),
-    rgba($surface-base, 0.58);
+  background: rgba($surface-field-end, 0.68);
   box-shadow:
     0 8px 22px rgba($black, 0.3),
     0 0 20px rgba($secondary-default, 0.055),
@@ -780,12 +1081,7 @@ select option {
     right: 14%;
     left: 14%;
     height: 1px;
-    background: linear-gradient(
-      90deg,
-      transparent,
-      rgba($secondary-light, 0.38),
-      transparent
-    );
+    background: rgba($secondary-light, 0.38);
     content: '';
     pointer-events: none;
   }
@@ -840,9 +1136,9 @@ select option {
     width: 38px;
     height: 38px;
     margin: -4px 1px;
-    color: #031411;
+    color: $surface-base;
     border-color: rgba($white, 0.3);
-    background: linear-gradient(145deg, $secondary-light, $secondary-default);
+    background: $secondary-default;
     box-shadow:
       0 7px 17px rgba($black, 0.32),
       0 0 19px rgba($secondary-default, 0.28),
@@ -856,9 +1152,9 @@ select option {
 
     &:hover,
     &:focus-visible {
-      color: #031411;
+      color: $surface-base;
       border-color: rgba($white, 0.42);
-      background: linear-gradient(145deg, $white, $secondary-light);
+      background: $secondary-light;
       box-shadow:
         0 9px 21px rgba($black, 0.36),
         0 0 27px rgba($secondary-default, 0.42),
@@ -888,11 +1184,7 @@ select option {
   flex: 0 0 auto;
   border: 1px solid rgba($secondary-default, 0.35);
   border-radius: 15px;
-  background: linear-gradient(
-    145deg,
-    rgba($secondary-default, 0.2),
-    rgba($analogous-1, 0.11)
-  );
+  background: rgba($secondary-default, 0.2);
   box-shadow:
     0 0 0 1px rgba($secondary-light, 0.06),
     0 14px 38px rgba($secondary-default, 0.12);
@@ -935,7 +1227,7 @@ select option {
   padding: 12px 14px;
   border: 1px solid rgba($red, 0.42);
   border-radius: $radius-m;
-  background: linear-gradient(145deg, rgba(#2a1420, 0.97), rgba(#160c14, 0.97));
+  background: rgba(#2a1420, 0.97);
   box-shadow: 0 16px 40px rgba($black, 0.45);
 
   > div {
@@ -946,12 +1238,12 @@ select option {
 
   strong {
     color: rgba($white, 0.94);
-    font-size: 0.76rem;
+    font-size: $text-body;
   }
 
   span {
-    color: rgba($primary-lighter, 0.74);
-    font-size: 0.7rem;
+    color: $text-muted;
+    font-size: $text-body;
     line-height: 1.4;
   }
 
@@ -992,7 +1284,7 @@ select option {
 // "something happened" in one place on screen rather than two.
 .workspace-notice--ok {
   border-color: rgba($secondary-light, 0.42);
-  background: linear-gradient(145deg, rgba(#0d2029, 0.97), rgba(#0a161d, 0.97));
+  background: rgba($surface-menu-top, 0.97);
 
   strong {
     color: $secondary-light;
@@ -1021,7 +1313,7 @@ select option {
   border: 1px solid rgba($secondary-light, 0.24);
   border-radius: $radius-pill;
   background: rgba($secondary-default, 0.1);
-  font-size: 0.58rem;
+  font-size: $text-eyebrow;
   font-variant-numeric: tabular-nums;
   font-weight: $weight-bold;
   letter-spacing: 0.02em;
@@ -1030,8 +1322,8 @@ select option {
 .workspace-header__tagline {
   @include truncate;
   margin-top: 2px;
-  color: $primary-lighter;
-  font-size: 0.72rem;
+  color: $text-primary;
+  font-size: $text-body;
 }
 
 // The last three places, the pet, the actions button and the window controls.
@@ -1044,7 +1336,7 @@ select option {
 // takes the slack back for the one child that wants it.
 .window-titlebar__right {
   display: flex;
-  min-width: 0;
+  min-width: max-content;
   align-items: center;
   justify-content: flex-end;
   gap: 10px;
@@ -1090,12 +1382,17 @@ select option {
   @include ghost-button;
   color: rgba($secondary-light, 0.82);
   border-color: rgba($secondary-light, 0.15);
-  background:
-    linear-gradient(180deg, rgba(#173047, 0.66), rgba(#06121e, 0.78)),
-    rgba($surface-base, 0.56);
+  // Above the bar, not below it. This is a raised control and it was painting
+  // rgb(16,34,49) against a card of rgb(17,37,54) — darker than the surface it
+  // stands on, which is the reading of a recess. The field rung puts it back
+  // on top.
+  background: $block-lift;
+  // Flat, like every other control in this bar. It cast a 22px shadow and a
+  // glow, which up here drew a dark halo across the titlebar behind it and
+  // read as a card floating over the window rather than a button sitting in
+  // it. The one-pixel rims stay: they are the control's own edge, not a
+  // shadow it throws on anything else.
   box-shadow:
-    0 8px 22px rgba($black, 0.28),
-    0 0 18px rgba($secondary-default, 0.045),
     inset 0 1px 0 rgba($white, 0.075),
     inset 0 -1px 0 rgba($black, 0.2);
   // Same reason as the transport pill beside it: see `.window-titlebar` above.
@@ -1112,12 +1409,7 @@ select option {
     right: 18%;
     left: 18%;
     height: 1px;
-    background: linear-gradient(
-      90deg,
-      transparent,
-      rgba($secondary-light, 0.34),
-      transparent
-    );
+    background: rgba($secondary-light, 0.34);
     content: '';
     pointer-events: none;
   }
@@ -1142,9 +1434,7 @@ select option {
   &:focus-visible {
     color: $white;
     border-color: rgba($secondary-light, 0.3);
-    background:
-      linear-gradient(180deg, rgba(#1a3850, 0.74), rgba(#071824, 0.82)),
-      rgba($secondary-default, 0.07);
+    background: rgba($surface-field, 0.74);
     box-shadow:
       0 10px 26px rgba($black, 0.32),
       0 0 23px rgba($secondary-default, 0.1),
@@ -1156,9 +1446,7 @@ select option {
   &[aria-expanded='true'] {
     color: $white;
     border-color: rgba($secondary-light, 0.42);
-    background:
-      linear-gradient(180deg, rgba(#1b3b53, 0.78), rgba(#071a26, 0.86)),
-      rgba($secondary-default, 0.1);
+    background: rgba($surface-field, 0.78);
     box-shadow:
       0 10px 28px rgba($black, 0.34),
       0 0 25px rgba($secondary-default, 0.17),
@@ -1184,9 +1472,9 @@ select option {
   width: 440px;
   padding: 10px;
   border-color: rgba($secondary-light, 0.18);
-  background:
-    linear-gradient(145deg, rgba(#193249, 0.94), rgba(#081725, 0.96)),
-    rgba($surface-base, 0.9);
+  // The menu surface's own colour. This had a diagonal ramp of its own that
+  // ran off to rgb(8,23,37) in the bottom corner — darker than the shell — so
+  // the widest menu in the app was also the only one with a black corner.
   box-shadow:
     0 22px 52px rgba($black, 0.52),
     0 0 32px rgba($secondary-default, 0.1),
@@ -1206,16 +1494,16 @@ select option {
     gap: 9px;
     grid-template-columns: 16px minmax(0, 1fr);
     padding: 9px 10px;
-    color: rgba($white, 0.88);
-    border: 1px solid rgba($secondary-light, 0.055);
+    // Rows, like every other menu's: nothing painted at rest, the accent
+    // tint under the pointer. Each entry used to be a boxed button with its
+    // own grey fill and border, which made the menu a grid of grey tiles on
+    // a teal card.
+    color: $text-primary;
+    border: 1px solid transparent;
     border-radius: $radius-xs;
-    background: linear-gradient(
-      180deg,
-      rgba($white, 0.045),
-      rgba($white, 0.018)
-    );
-    box-shadow: inset 0 1px 0 rgba($white, 0.025);
-    font-size: 0.7rem;
+    background: transparent;
+    box-shadow: none;
+    font-size: $text-body;
     text-align: left;
     cursor: pointer;
     transition: $transition-control;
@@ -1223,15 +1511,7 @@ select option {
     &:hover,
     &:focus-visible {
       color: $white;
-      border-color: rgba($secondary-light, 0.3);
-      background: linear-gradient(
-        135deg,
-        rgba($secondary-default, 0.18),
-        rgba($secondary-default, 0.07)
-      );
-      box-shadow:
-        0 0 16px rgba($secondary-default, 0.08),
-        inset 0 1px 0 rgba($white, 0.06);
+      background: $hover-accent;
       outline: none;
     }
 
@@ -1258,7 +1538,7 @@ select option {
   margin-top: 4px;
   padding-top: 11px;
   color: $secondary-light;
-  border-top-color: rgba($primary-lighter, 0.14);
+  border-top-color: rgba($edge-tint, 0.14);
   border-radius: 0 0 $radius-xs $radius-xs;
   background: transparent;
 
@@ -1277,12 +1557,12 @@ select option {
   align-items: center;
   gap: 8px;
   padding: 3px 4px 8px;
-  color: rgba($primary-lighter, 0.82);
+  color: $text-muted;
   border: 0;
-  border-bottom: 1px solid rgba($primary-lighter, 0.12);
+  border-bottom: 1px solid rgba($edge-tint, 0.12);
   background: none;
   font-family: inherit;
-  font-size: 0.66rem;
+  font-size: $text-small;
   text-align: left;
 }
 
@@ -1309,7 +1589,7 @@ select option {
   color: $red;
   border: 1px solid rgba($red, 0.45);
   border-radius: $radius-pill;
-  font-size: 0.6rem;
+  font-size: $text-micro;
   font-weight: $weight-bold;
   letter-spacing: 0.04em;
   white-space: nowrap;
@@ -1350,7 +1630,7 @@ select option {
   &--close:hover,
   &--close:focus-visible {
     color: $white;
-    border-color: rgba(#ff7180, 0.7);
+    border-color: rgba($red, 0.7);
     background: #c53a4c;
   }
 
@@ -1381,10 +1661,50 @@ select option {
 // crush three panels into one screen. There the document goes back to being the
 // scroll surface — see the media query at the end of this file.
 #root {
+  position: relative;
   width: 100%;
   height: 100vh;
   padding-top: $title-bar-height;
   overflow: hidden;
+  // The floor every pane stands on, laid over the blurred desktop Windows
+  // draws behind the window — see `$window-backdrop`. Not opaque, and not
+  // clear either: the gutters between the panes carry a little of what is
+  // behind the app and nothing else does.
+  //
+  // No border and no radius of its own. The window is not see-through any
+  // more, because Windows will not put a backdrop material behind one that
+  // is, so DWM owns the outer corner and rounds it at the system radius. An
+  // 18px radius drawn here would leave a sliver of bare backdrop outside it
+  // at each corner.
+  background: $window-backdrop;
+
+  // Soft bloom behind the whole shell: one blurred disc in the middle of the
+  // window, weighted to the cyan/teal end of the spectrum palette. It was
+  // taken out during the flattening and put back by request — the one piece
+  // of light the floor keeps. The panes over it are opaque, so it shows only
+  // in the gutters between them.
+  //
+  // Absolute rather than fixed, so the shell's own overflow clips it to the
+  // rounded corner instead of it painting over the corner.
+  &::before {
+    position: absolute;
+    z-index: -1;
+    inset: 8% 18% 10%;
+    border-radius: 50%;
+    background: conic-gradient(
+      from 140deg,
+      rgba($neon-cyan, 0.1),
+      rgba($secondary-default, 0.09),
+      rgba($neon-lime, 0.05),
+      rgba($secondary-dark, 0.08),
+      rgba($neon-pink, 0.035),
+      rgba($neon-cyan, 0.1)
+    );
+    filter: blur(90px);
+    opacity: 0.9;
+    pointer-events: none;
+    content: '';
+  }
 }
 
 // The now-playing bar is `position: fixed` to the window (see
@@ -1441,13 +1761,35 @@ textarea,
 // and `NowPlayingBar.scss`, which aligns its card to the same line from
 // outside this element's subtree.
 :root {
-  --shell-gutter: 16px;
-  // 10 rather than 18, and it is spent twice: once as the gap between the
-  // last card and the transport bar, once as the gap between that bar and the
-  // foot of the window. On a 1080-tall screen those 16px were the easiest
-  // vertical to give back, and the bar still reads as a card set into the
-  // shell rather than as a strip stuck to the edge.
-  --shell-gutter-bottom: 10px;
+  // One number for the whole shell, and it is the same 12 the columns are
+  // already separated by.
+  //
+  // At 16 the margin round the outside was wider than the gaps inside it, which
+  // is what made the window read as a picture in a frame rather than as a set of
+  // panels: the eye takes the widest gap as the outline. Equal all round, the
+  // shell reads as one grid, and it gives four pixels back on each side and two
+  // at the foot.
+  // THE TWO SURFACES A CANVAS NEEDS.
+  //
+  // Sass variables do not exist at runtime, so anything drawn into a canvas
+  // — the level meter, and whatever else is drawn rather than laid out — had
+  // them written out as hex and went stale the moment the palette moved.
+  // Published here, the drawing reads the same value the stylesheets do and
+  // a change of theme reaches it without a second edit.
+  --meter-well: #{$track-well};
+  // Pulse only. Sparks rising up a strip need a night behind them: on the
+  // ordinary well they were embers on a lit floor, which is the one thing
+  // that style cannot afford. Every other meter keeps `--meter-well`.
+  --meter-well-pulse: #{sass-color.mix($surface-base, $surface-panel, 55%)};
+  // Unlit content sits ABOVE the well, not below it: an empty segment is a
+  // thing that is there and switched off, so it has to be visible against
+  // the slot it stands in. At the pane colour it was darker than the well
+  // and the top of a stack read as a hole in the instrument.
+  --meter-unlit: #{sass-color.mix($edge-tint, $track-well, 9%)};
+  --shell-gutter: 12px;
+  // Spent twice: once as the gap between the last card and the transport bar,
+  // once as the gap between that bar and the foot of the window.
+  --shell-gutter-bottom: 12px;
 }
 
 .app-workspace {
@@ -1737,34 +2079,46 @@ $tab-border: rgba($secondary-light, 0.2);
   // that bounce was enough to flash a scroll arrow on and off again.
   overflow: visible;
   align-items: center;
-  // The capsule the four sit in. A real surface, sunk into the window rather
-  // than floated over it: the row is a control, and at a whisper of a border
-  // it read as four loose words with one of them highlighted.
-  padding: 4px;
-  border: 1px solid rgba($secondary-light, 0.16);
-  border-radius: $radius-pill;
-  background: rgba($surface-field, 0.55);
-  box-shadow:
-    inset 0 1px 0 rgba($white, 0.04),
-    inset 0 -1px 0 rgba($black, 0.25),
-    0 6px 18px rgba($black, 0.28);
-  gap: 3px;
+  // No capsule any more, and no surface of its own.
+  //
+  // The row is marked the way the EQ page marks its sections: a lit bar under
+  // whichever one is chosen. A capsule around it as well was a second frame
+  // saying the same thing, and it cost the spectrum beside it 8px of padding
+  // and a border on each strip at exactly the widths where the drawing is
+  // already short of room.
+  padding: 0;
+  // Named, because the divider below has to be half of it and the two cannot
+  // be allowed to drift. Written as a constant while the gap grew with the
+  // window, the line sat 3px from one glyph and 37 from the next, so every
+  // icon was crowded against the rule on one side and adrift from the one on
+  // the other.
+  --tab-gap: 6px;
+
+  gap: var(--tab-gap);
 }
 
-// The lit pill, drawn once and moved — see `WorkspaceTabStrip`, which measures
-// where it goes. Behind the labels, so the text it lands under keeps its own
-// colour rather than being painted over.
+// How far the bar under a tab stops short of the tab's ends, lit and hover
+// alike. One number, so the two bars are the same length under the same tab.
+$tab-bar-inset: 8px;
+
+// The lit bar, drawn once and moved — see `WorkspaceTabStrip`, which measures
+// where it goes. The same mark the EQ page puts under its sections, for the
+// same reason: it says which one without drawing a second shape around it.
 .workspace-tabs__pill {
   position: absolute;
   z-index: 0;
-  top: 4px;
-  bottom: 4px;
-  left: 0;
-  width: var(--tab-pill-width, 0);
-  border: 1px solid rgba($secondary-light, 0.45);
-  border-radius: $radius-pill;
-  background: rgba($secondary-default, 0.2);
-  box-shadow: 0 0 20px rgba($secondary-default, 0.18);
+  bottom: 0;
+  // Inset from both ends of the tab it was measured against — the same 8px
+  // the hover bar keeps — so it fits inside the tab's rounded corners. At
+  // the tab's full width it ran under the focus ring's curve and stuck out
+  // past it at each end, the way the top of a "u" pokes out of an "o".
+  left: $tab-bar-inset;
+  width: calc(var(--tab-pill-width, 0px) - #{$tab-bar-inset * 2});
+  height: 2px;
+  border: 0;
+  border-radius: 2px;
+  background: $secondary-default;
+  box-shadow: 0 0 12px rgba($secondary-default, 0.75);
   pointer-events: none;
   transform: translateX(var(--tab-pill-x, 0));
   transition:
@@ -1783,10 +2137,21 @@ $tab-border: rgba($secondary-light, 0.2);
   min-height: 32px;
   padding: 7px 18px 8px;
   border: 1px solid transparent;
-  border-radius: $radius-pill;
+  // Not a pill any more. The focus ring follows this radius, and around a
+  // 21px glyph in a capsule-less row a pill drew a lozenge floating in the
+  // titlebar — the shape the selection itself stopped being when it became a
+  // bar under the icon.
+  border-radius: $radius-xs;
   background: none;
-  color: rgba($primary-lighter, 0.66);
-  font-size: 0.74rem;
+  // The same grey the BANDS / VOICING / CONFIG pills use, bold like them, and
+  // the same pale cyan when chosen: one rail of tabs at the top of the window
+  // and one under it, drawn the same way.
+  // Half of the mist was right when this bar only ever stood on the app's
+  // own floor. In full screen it lies over a picture, and at 0.5 the names of
+  // the places read as switched off. Two thirds is legible over both without
+  // becoming a second lit thing beside the chosen one.
+  color: rgba($edge-tint, 0.68);
+  font-size: $text-body;
   // Bold, and it has to be bold rather than heavier.
   //
   // 800 is exactly where Segoe UI stops being Segoe UI: CSS weight matching
@@ -1805,9 +2170,25 @@ $tab-border: rgba($secondary-light, 0.2);
   cursor: pointer;
   transition: $transition-control;
 
+  // Hover answers in the same language the selection does: a dim version of
+  // the bar, in the place the lit one would land. The old answer was a filled
+  // rounded box, which belonged to the capsule these used to sit in — without
+  // it a panel appears under the pointer in the middle of the titlebar, and
+  // for a moment it reads as the chosen place rather than as the one being
+  // pointed at.
   &:hover:not(.is-active) {
-    color: rgba($primary-lighter, 0.95);
-    background: rgba($white, 0.05);
+    color: rgba($edge-tint, 0.85);
+
+    &::after {
+      position: absolute;
+      right: $tab-bar-inset;
+      bottom: 0;
+      left: $tab-bar-inset;
+      height: 2px;
+      border-radius: 2px;
+      background: rgba($secondary-light, 0.3);
+      content: '';
+    }
   }
 
   &:focus-visible {
@@ -1888,25 +2269,6 @@ $tab-border: rgba($secondary-light, 0.2);
 .workspace-tab-panel--karaoke,
 .workspace-tab-panel--library {
   @include panel-surface;
-  // The ramp measured against the window, not against this panel.
-  //
-  // `panel-surface` runs its gradient over whatever box it lands on, so a
-  // panel's colour depends on how tall that panel happens to be. This one sits
-  // above the graph and is therefore much shorter than the column beside it —
-  // and a gradient that reaches `$panel-bottom` at 62% of a short box reaches
-  // it far higher up the screen than the same gradient over a full-height one.
-  // Hence a tab page that reads noticeably darker than the pane next to it
-  // while being, on paper, the same surface.
-  //
-  // `fixed` positions the background against the viewport rather than the
-  // element, so every panel using it is showing one continuous ramp sampled at
-  // its own place on the screen. Two panels at the same height are then the
-  // same colour, whatever their sizes.
-  //
-  // Set after the include because `panel-surface` writes the `background`
-  // shorthand, which would reset both of these.
-  background-attachment: fixed;
-  background-size: 100% 100vh;
   display: flex;
   flex-direction: column;
   // One padding for every tab, taken from the Media tab: 10px above the first
@@ -2091,12 +2453,18 @@ $tab-border: rgba($secondary-light, 0.2);
 
 // Sections that fill a workspace card sit directly on it instead of painting
 // a second card on top: one surface, not a stack of nested boxes.
+//
+// The right column's two entries are gone from this list. They named
+// `.device-profiles` and `.presets-bar` back when each was a card of its own
+// in the column; now `device-profiles` is a class on the folding section
+// itself, so the rule was stripping that one section's well and border while
+// the three under it kept theirs — the first thing in the column was the one
+// that did not match. `.presets-bar` lives inside a section and the selector
+// matched nothing.
 .workspace-tab-panel--eq .workspace-tab-panel__scroll > .main-content,
 .workspace-tab-panel--convolution
   .workspace-tab-panel__scroll
-  > .convolution-panel,
-.right-content__scroll > .device-profiles,
-.right-content__scroll > .presets-bar {
+  > .convolution-panel {
   border: 0;
   background: transparent;
   box-shadow: none;
@@ -2127,8 +2495,8 @@ $tab-border: rgba($secondary-light, 0.2);
   width: 30px;
   height: 56px;
   padding: 0;
-  color: #bfeef2;
-  background: rgba(9, 30, 44, 0.94);
+  color: $text-muted;
+  background: $surface-panel;
   border: 1px solid rgba(63, 149, 173, 0.35);
   border-right: 0;
   border-radius: 16px 0 0 16px;
@@ -2193,8 +2561,8 @@ $tab-border: rgba($secondary-light, 0.2);
   width: 30px;
   height: 56px;
   padding: 0;
-  color: #bfeef2;
-  background: rgba(9, 30, 44, 0.94);
+  color: $text-muted;
+  background: $surface-panel;
   border: 1px solid rgba(63, 149, 173, 0.35);
   border-left: 0;
   border-radius: 0 16px 16px 0;
@@ -2292,7 +2660,7 @@ $tab-border: rgba($secondary-light, 0.2);
   color: rgba($secondary-light, 0.8);
   border: 1px solid rgba($secondary-light, 0.12);
   border-radius: 50%;
-  background: rgba(#020a12, 0.5);
+  background: rgba($edge-tint, 0.11);
   box-shadow: none;
   cursor: pointer;
 
@@ -2341,7 +2709,7 @@ $tab-border: rgba($secondary-light, 0.2);
   86%,
   100% {
     border-color: rgba(63, 149, 173, 0.35);
-    color: #bfeef2;
+    color: $text-muted;
   }
 
   91% {
@@ -2397,9 +2765,10 @@ $tab-border: rgba($secondary-light, 0.2);
   align-items: center;
   justify-content: center;
   padding: 9px 12px 11px;
-  border-top: 1px solid rgba($secondary-light, 0.1);
-  background: linear-gradient(180deg, rgba(#0b1825, 0.86), rgba(#08131f, 0.98));
-  box-shadow: 0 -10px 22px rgba($black, 0.12);
+  // The pane's own colour and a hairline; a strip of its own was one more
+  // tone at the foot of a column that already had three.
+  border-top: 1px solid $border-subtle;
+  background: transparent;
 }
 
 .right-content__site {
@@ -2409,15 +2778,14 @@ $tab-border: rgba($secondary-light, 0.2);
   justify-content: center;
   gap: 6px;
   padding: 7px 14px;
+  // The quiet button, exactly: it was a glowing pill of its own.
   color: $secondary-light;
-  border: 1px solid rgba($secondary-light, 0.32);
-  border-radius: $radius-pill;
-  background: rgba($secondary-default, 0.13);
-  box-shadow:
-    inset 0 1px 0 rgba($white, 0.08),
-    0 0 18px rgba($secondary-default, 0.1);
-  font-size: 0.7rem;
-  font-weight: $weight-semibold;
+  border: 1px solid $border-field;
+  border-radius: $radius-xs;
+  background: rgba($secondary-default, 0.07);
+  box-shadow: none;
+  font-size: $text-body;
+  font-weight: $weight-bold;
   line-height: 1;
   text-decoration: none;
   cursor: pointer;
@@ -2426,11 +2794,9 @@ $tab-border: rgba($secondary-light, 0.2);
   &:hover,
   &:focus-visible {
     color: $white;
-    border-color: rgba($secondary-light, 0.62);
-    background: rgba($secondary-default, 0.25);
-    box-shadow:
-      inset 0 1px 0 rgba($white, 0.14),
-      0 0 22px rgba($secondary-default, 0.24);
+    border-color: rgba($secondary-light, 0.55);
+    background: rgba($secondary-default, 0.16);
+    box-shadow: none;
     outline: none;
   }
 }
@@ -2523,7 +2889,7 @@ $tab-border: rgba($secondary-light, 0.2);
   align-items: center;
   justify-content: flex-end;
   gap: $spacing-s;
-  font-size: 0.65rem;
+  font-size: $text-small;
   // Enough dark behind each glyph to hold it apart from whatever is moving
   // underneath, and nothing that draws a box. A band across the top was the
   // other answer and it cost the whole edge of the picture; this costs the
@@ -2550,7 +2916,7 @@ $tab-border: rgba($secondary-light, 0.2);
   flex: 0 0 auto;
   align-items: center;
   gap: 5px;
-  color: $primary-lighter;
+  color: $text-primary;
   white-space: nowrap;
 
   // The swatch takes its colour from a custom property rather than from the
@@ -2580,7 +2946,7 @@ button.graph-legend {
 
   &:hover,
   &:focus-visible {
-    background: rgba($primary-lighter, 0.12);
+    background: rgba($edge-tint, 0.12);
     outline: none;
   }
 
@@ -2589,7 +2955,7 @@ button.graph-legend {
   // dimming the whole chip evenly would have made a hidden curve look like a
   // disabled control.
   &.is-hidden {
-    color: rgba($primary-lighter, 0.5);
+    color: $text-faint;
 
     &::before {
       height: 5px;
@@ -2650,8 +3016,8 @@ button.graph-legend {
 .graph-edit-hint {
   @include truncate;
   flex: 0 1 auto;
-  color: rgba($primary-lighter, 0.68);
-  font-size: 0.6rem;
+  color: $text-muted;
+  font-size: $text-micro;
   letter-spacing: 0.02em;
 }
 
@@ -2663,7 +3029,7 @@ button.graph-legend {
   border: 1px solid rgba($red, 0.7);
   border-radius: $radius-pill;
   background: rgba($red, 0.22);
-  font-size: 0.58rem;
+  font-size: $text-eyebrow;
   font-weight: $weight-bold;
   letter-spacing: 0.08em;
   white-space: nowrap;
@@ -2806,7 +3172,7 @@ button.graph-legend {
   &__dot {
     // Dark rather than transparent, so the ring reads against the trace when a
     // wave passes behind it.
-    fill: rgba($primary-dark, 0.72);
+    fill: rgba($surface-well, 0.72);
     stroke: var(--point-color);
     stroke-width: 2;
     transition:
@@ -2884,9 +3250,9 @@ button.graph-legend {
   color: $white;
   border: 1px solid rgba($secondary-light, 0.45);
   border-radius: $radius-m;
-  background: rgba($primary-default, 0.97);
+  background: rgba($surface-menu, 0.97);
   box-shadow: 0 12px 32px rgba($black, 0.35);
-  font-size: 0.75rem;
+  font-size: $text-body;
   transform: translateX(-50%);
 }
 
@@ -2909,7 +3275,7 @@ button.graph-legend {
 @media (max-width: $bp-three-column) {
   :root {
     --shell-gutter: 12px;
-    --shell-gutter-bottom: 14px;
+    --shell-gutter-bottom: 12px;
   }
 
   .app-workspace {
@@ -2941,7 +3307,7 @@ button.graph-legend {
     width: $sound-panel-width;
     padding: 0;
     overflow: hidden;
-    background: rgba(6, 20, 33, 0.97);
+    background: $surface-panel;
     border-left: 1px solid rgba(63, 149, 173, 0.3);
     box-shadow: -18px 0 48px rgba(0, 0, 0, 0.45);
     transform: translateX(105%);
@@ -3065,84 +3431,32 @@ button.graph-legend {
   }
 }
 
-// A 13-inch laptop or a side-by-side desktop window still has room for the
-// complete titlebar, but not for the waveform's full 420px presentation.
+// No stepped caps on the spectrum any more — 320 here, 260 at 1080, 190 at 900.
 //
-// The equal outer tracks stay. They used to be given up here, sized from their
-// contents instead, because the control cluster could outgrow its half — the
-// meter now yields to whichever end is wider, so it cannot, and equal tracks
-// are the only thing that puts the spectrum in the middle of the window. The
-// cap below is what it may not exceed; `--titlebar-side` is usually what it
-// actually gets.
-@media (max-width: 1280px) {
-  .titlebar-nav .waveform-visualizer-shell {
-    --titlebar-wave-max: 320px;
-  }
-}
+// They were written for equal `1fr` end tracks, where the meter had to be told
+// what it may not exceed or it would push the ends off the bar. Below 1800 the
+// ends are sized from their own content and the meter simply takes the middle
+// track, so the leftover space is the cap, and a second one measured against
+// the window was only ever taking width the bar had already freed: at 900 the
+// track offered 320px and this handed the drawing 190.
 
-// The bar holds three things that all want room, so it gives ground in the
-// order that costs least: the spectrum first, which only draws narrower, and
-// the words after it — smaller and closer together, never wrapped or hidden.
-// A place nobody can reach is worse than a place set in small type.
-@media (max-width: 1080px) {
-  .titlebar-nav .waveform-visualizer-shell {
-    --titlebar-wave-max: 260px;
-  }
+// No second and third sizing of the tabs here and at 900 any more. They shrank
+// a labelled tab — its min-height, its padding and its type — and below 1800
+// there is no label left to shrink: all they did was step the glyph boxes down
+// twice more on the way to the window's minimum, which is two more places for
+// the spectrum beside them to jump.
 
-  .window-titlebar .workspace-tabs {
-    gap: 4px;
-  }
-
-  .window-titlebar .workspace-tab {
-    min-height: 34px;
-    padding: 8px 14px 9px;
-    font-size: 0.78rem;
-  }
-}
-
-@media (max-width: 900px) {
-  .titlebar-nav .waveform-visualizer-shell {
-    --titlebar-wave-max: 190px;
-  }
-
+@media (max-width: $bp-two-column) {
   // No `min-width: 0` on the pane here any more. It is on the base rule now,
   // because the shell shrinks at every width and not only at this one — see
   // `.titlebar-nav .waveform-visualizer` above.
 
-  // "LIVE OUTPUT" goes here, and only here.
+  // The last squeeze, all of it at one width: the bar's own padding, the gap
+  // between the right-hand glyphs and the controls, and the controls
+  // themselves. These used to be spread over 1080, 900 and 760.
   //
-  // It and the rainbow badge are both centred on the top of the pane, and on
-  // a meter this narrow they are painted across each other. The badge names a
-  // mode that is otherwise invisible; the label repeats what a moving
-  // spectrum under the words "live" already says. The dot goes with it — a
-  // signal light with nothing beside it is a mark nobody can read.
-  .titlebar-nav .waveform-visualizer__signal {
-    display: none;
-  }
-
-  .window-titlebar .workspace-tabs {
-    gap: 2px;
-  }
-
-  .window-titlebar .workspace-tab {
-    min-height: 32px;
-    padding: 7px 9px 8px;
-    font-size: 0.7rem;
-  }
-}
-
-@media (max-width: 1080px) {
   .window-titlebar {
-    // Content-sized tracks from here down, and the spectrum stops being
-    // centred with them. Below this width the two ends cannot both be given
-    // the width of the wider one and still leave a meter worth drawing — at
-    // 900 that is around 360px a side against a window of 900 — so the choice
-    // is a centred spectrum with the names overlapping it or an honest row
-    // that is slightly off centre. The row wins; a place nobody can press is
-    // worse than a drawing nobody can measure the middle of by eye.
-    grid-template-columns: auto minmax(100px, 1fr) auto;
-    gap: 8px;
-    padding-inline: 12px;
+    padding-inline: 8px;
   }
 
   .window-titlebar__right {
@@ -3160,27 +3474,26 @@ button.graph-legend {
   }
 }
 
+// No 1080 step for the titlebar any more. It sized the window controls, the
+// tools button and the right-hand gap a second time on the way down, and every
+// one of those is a width the spectrum beside them jumps at. They happen at 900
+// with everything else the bar gives up, so the titlebar has three widths in
+// total: 1800 for the words, 1300 for the name and the creature, 900 for the
+// last squeeze.
+
 @media (max-width: 760px) {
   :root {
     --shell-gutter: 10px;
-    --shell-gutter-bottom: 12px;
+    --shell-gutter-bottom: 10px;
   }
 
   .right-content {
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .window-titlebar {
-    grid-template-columns: auto minmax(72px, 1fr) auto;
-    gap: 5px;
-    padding-inline: 8px;
-
-    // No override for the waveform here any more. Shrinking it to 220px wide
-    // and 46px tall is what left the rainbow pill — which is centred over the
-    // top of the pane — painted across "LIVE OUTPUT": measured, the label ran
-    // to x=266 and the pill began at 253. It keeps the 320px the breakpoint
-    // above gives it, where both fit.
-  }
+  // No titlebar rules here any more. The grid, the gap and the padding were a
+  // fourth sizing of the same bar; it has three now — 1800, 1300 and 900 — and
+  // nothing between them.
 
   // No shrunken brand mark here either. At this width the name and the
   // version are already hidden and the mark is the only identity left on the
@@ -3280,8 +3593,8 @@ button.graph-legend {
 .workspace-header__menu-heading {
   margin: 0 0 2px;
   padding-inline: 6px;
-  color: rgba($primary-lighter, 0.5);
-  font-size: 0.58rem;
+  color: $text-faint;
+  font-size: $text-eyebrow;
   font-weight: $weight-bold;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -3293,7 +3606,7 @@ button.graph-legend {
   height: 0;
   margin: 5px 0;
   border: 0;
-  border-top: 1px solid rgba($primary-lighter, 0.1);
+  border-top: 1px solid rgba($edge-tint, 0.1);
 }
 
 // Narrow windows cannot hold two columns beside the titlebar controls, so it
@@ -3399,8 +3712,8 @@ button.graph-legend {
   gap: 5px;
   border: 0;
   background: none;
-  color: rgba($primary-lighter, 0.5);
-  font-size: 0.64rem;
+  color: $text-faint;
+  font-size: $text-small;
   font-weight: $weight-bold;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -3409,7 +3722,7 @@ button.graph-legend {
   transition: $transition-control;
 
   &:hover:not(.is-active) {
-    color: rgba($primary-lighter, 0.85);
+    color: $text-primary;
   }
 
   &:focus-visible {

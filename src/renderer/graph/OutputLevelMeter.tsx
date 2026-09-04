@@ -53,8 +53,7 @@ import { toggleGraphMeter, useGraphMeterHidden } from '../utils/graphStyle';
 import { useRhythmRun } from '../utils/rhythmRun';
 import { useIsEuphoric } from '../utils/euphoriaMode';
 import { useSmoothFrames } from '../utils/useSmoothFrames';
-import { readDspChannelPeaks } from '../dsp/store';
-import { CLIP_HOLD_MS } from './liveSpectrumFrames';
+import { readInternalClipping } from '../audio/internalClipping';
 import {
   LEVEL_FLOOR_DB,
   LEVEL_HOT_DB,
@@ -101,14 +100,18 @@ const LEVEL_ATTACK_MS = 35;
 // distance in a single 60Hz frame, which is not a release at all — the
 // bars simply teleported to the new reading and the fall was over before
 // it could be seen. Two hundred lets the drop actually read as a drop.
-const LEVEL_RELEASE_MS = 200;
+// Quicker than it was, at 200ms. A ladder of discrete lamps shows the fall
+// as steps going out, and a slow release left the bottom of the ladder lit
+// through gaps the ear plainly hears — the reading lagged the music.
+const LEVEL_RELEASE_MS = 120;
 const PEAK_RELEASE_MS = 900;
 
 /** How thick the brightened reading edge is, on the styles that have one. */
 const BAR_TIP_HEIGHT = 2;
 
 const CHANNEL_WIDTH = 18;
-const CHANNEL_GAP = 10;
+
+const CHANNEL_GAP = 8;
 
 /**
  * Where the meter's two zone boundaries sit on the strip.
@@ -165,6 +168,30 @@ const RAINBOW_STOPS: ReadonlyArray<{ offset: number; colour: string }> = [
  * red regardless of the mode, because the warning is what the colour means
  * and the mode does not get to override it.
  */
+/**
+ * The palette values this canvas paints with, read from the stylesheet.
+ *
+ * A canvas cannot use a Sass variable, so these were written out as hex and
+ * went stale every time the palette moved — twice in one afternoon. Read from
+ * the custom properties the shell publishes (see `--meter-well` in App.scss),
+ * they follow the theme by construction.
+ *
+ * Read on demand rather than cached: it is two property lookups on a frame
+ * that is already rasterising a meter, and caching would need something to
+ * invalidate it the moment a theme changed, which is the bug this replaces.
+ */
+const surfaceColour = (
+  element: Element | null,
+  name: string,
+  fallback: string,
+) => {
+  if (!element) {
+    return fallback;
+  }
+  const value = getComputedStyle(element).getPropertyValue(name).trim();
+  return value || fallback;
+};
+
 const ZONE_COLOURS = {
   safe: '#54ff8a',
   hot: '#ffd24a',
@@ -374,6 +401,7 @@ const drawChannel = (
   channel: IChannelLevel,
   style: MeterStyle,
   isEuphoric: boolean,
+  unlitColour: string,
 ) => {
   const fillHeight = rect.height * channel.level;
   const fillTop = rect.y + rect.height - fillHeight;
@@ -388,11 +416,34 @@ const drawChannel = (
 
   // The bead grid, hoisted out of the `dots` case because the peak
   // marker below has to land on it as well.
-  const dotCount = 20;
+  // Sixteen beads, each taking the full width of its channel and separated
+  // by a hair rather than by a gap. Twenty were capped by the spacing between
+  // them long before the strip's width came into it, so a wide meter drew a
+  // column of small dots with the sides empty; large beads packed close read
+  // as a ladder and still give the level somewhere to count.
+  //
+  // At twenty they were capped by the spacing between them long before the
+  // strip's width came into it, so a wide meter drew a column of small dots
+  // down the middle with the sides empty. Fewer, larger beads is what an LED
+  // ladder looks like, and the reading is no coarser than the eye can read
+  // off one anyway.
+  // As many beads as the strip can hold at a readable pitch, up to sixteen.
+  //
+  // A fixed count divides whatever height there is, so on a short meter the
+  // beads were squashed into ellipses touching each other. Twelve pixels of
+  // pitch is the smallest that still leaves a round bead with air round it;
+  // below that the ladder simply has fewer rungs, which is what a shorter
+  // ladder should be.
+  const dotCount = Math.max(6, Math.min(16, Math.floor(rect.height / 12)));
   const dotSpacing = rect.height / dotCount;
+  // Half the pitch less a little: the gap between beads is what is left
+  // over, and it has to survive the smallest pitch the count above allows.
+  // A ceiling of its own, so widening the channel for the fluid column does
+  // not turn the ladder into a stack of saucers: a bead is sized by the
+  // pitch it sits at, and the strip's width is only ever a limit on it.
   const dotRadius = Math.max(
-    1.5,
-    Math.min(rect.width / 2 - 1.5, dotSpacing / 2 - 1),
+    2.5,
+    Math.min(8.5, rect.width / 2, dotSpacing / 2 - 0.8),
   );
   const beadAt = (index: number) =>
     rect.y + rect.height - (index + 0.5) * dotSpacing;
@@ -417,11 +468,20 @@ const drawChannel = (
    * follows the mode, which is the one place the meter announces which
    * mode it is in without a legend.
    */
+  /**
+   * Everything a meter draws that is NOT the reading: the unlit remainder of
+   * a bar, the ticks beside it, the empty beads of a ladder.
+   *
+   * One step UP from the well it lies in — `$track-well` in _theme.scss,
+   * written out because a canvas cannot read a Sass variable, and the same
+   * colour a switch that is off and a progress bar not yet started both
+   * use. An unlit segment has to be visible against the well behind it, and
+   * the well is deliberately the darkest thing in the instrument.
+   */
   const ghost = (draw: () => void) => {
     context.save();
-    context.globalAlpha = 0.26;
-    context.fillStyle = '#94a3b8';
-    context.strokeStyle = '#94a3b8';
+    context.fillStyle = unlitColour;
+    context.strokeStyle = unlitColour;
     draw();
     context.restore();
   };
@@ -517,14 +577,14 @@ const drawChannel = (
        * only thing in the strip that is emitting.
        */
       ghost(() => {
-        context.globalAlpha = 0.13;
         for (let i = litBlocks; i < blockCount; i += 1) {
           lamp(i);
           context.fill();
         }
         // A rim on each dark lamp, so the grid is legible in silence and
-        // the lit ones have something to be read against.
-        context.globalAlpha = 0.2;
+        // the lit ones have something to be read against. The same hairline
+        // the stack's unlit slabs and the flow's empty column carry.
+        context.strokeStyle = 'rgba(214, 233, 247, 0.2)';
         context.lineWidth = 1;
         for (let i = litBlocks; i < blockCount; i += 1) {
           lamp(i);
@@ -590,6 +650,24 @@ const drawChannel = (
         }
       });
       glow(() => {
+        // The ladder's own ramp, lifted off the floor.
+        //
+        // The shared one starts at a deep teal because a continuous column
+        // wants a dark foot to grow out of. A lamp does not: the bottom
+        // beads came out dimmer than the ones above them, which reads as
+        // half-lit rather than as lit low. Same hues, all of them bright,
+        // so what varies across the ladder is colour and not brightness.
+        context.fillStyle = paintLevel(
+          context,
+          rect,
+          isEuphoric
+            ? RAINBOW_STOPS
+            : [
+                { offset: 0, colour: '#39d7ff' },
+                { offset: 0.5, colour: '#00c5ff' },
+                { offset: 1, colour: '#c8fff8' },
+              ],
+        );
         for (let i = 0; i < litDots; i += 1) {
           bead(i);
         }
@@ -627,66 +705,21 @@ const drawChannel = (
        * the bead keeps whatever colour its decibel gives it and the
        * shading works for any hue.
        */
+      // FLAT LAMPS, and no edge on the lit ones.
+      //
+      // They carried a white gloss and a dark underside — a moulded plastic
+      // bead, two gradients each, sixteen of them per channel every frame.
+      // A ring was tried after that and it outlined the light, which is the
+      // one thing a lamp does not have. What is left is the disc and the
+      // bloom the `glow` pass already gives it, and the bloom is what says
+      // how brightly it is on. The unlit beads keep their ring: they are
+      // sockets, and a socket does have an edge.
       context.save();
-      for (let i = 0; i < litDots; i += 1) {
-        const cy = beadAt(i);
-        const hiX = centreX - dotRadius * 0.32;
-        const hiY = cy - dotRadius * 0.36;
-        const gloss = context.createRadialGradient(
-          hiX,
-          hiY,
-          dotRadius * 0.05,
-          hiX,
-          hiY,
-          dotRadius * 1.2,
-        );
-        gloss.addColorStop(0, 'rgba(255, 255, 255, 0.62)');
-        gloss.addColorStop(0.4, 'rgba(255, 255, 255, 0.14)');
-        gloss.addColorStop(1, 'rgba(255, 255, 255, 0)');
-        context.fillStyle = gloss;
-        beadPath(i);
-        context.fill();
-
-        const shX = centreX + dotRadius * 0.4;
-        const shY = cy + dotRadius * 0.46;
-        const shade = context.createRadialGradient(
-          shX,
-          shY,
-          dotRadius * 0.1,
-          shX,
-          shY,
-          dotRadius * 1.3,
-        );
-        shade.addColorStop(0, 'rgba(0, 0, 0, 0.34)');
-        shade.addColorStop(1, 'rgba(0, 0, 0, 0)');
-        context.fillStyle = shade;
-        beadPath(i);
-        context.fill();
-
-        context.strokeStyle = 'rgba(2, 8, 14, 0.6)';
-        context.lineWidth = 1;
-        beadPath(i);
-        context.stroke();
-      }
-      // The unlit ones get the same bezel and a recess, so the dark part
-      // of the ladder reads as empty sockets in a panel rather than as
-      // faint dots printed on it.
       for (let i = litDots; i < dotCount; i += 1) {
-        const cy = beadAt(i);
-        const well = context.createRadialGradient(
-          centreX,
-          cy - dotRadius * 0.4,
-          dotRadius * 0.1,
-          centreX,
-          cy,
-          dotRadius,
-        );
-        well.addColorStop(0, 'rgba(0, 0, 0, 0.5)');
-        well.addColorStop(1, 'rgba(0, 0, 0, 0)');
-        context.fillStyle = well;
-        beadPath(i);
-        context.fill();
-        context.strokeStyle = 'rgba(148, 163, 184, 0.16)';
+        // No dark well inside an unlit bead: it made each one a black hole
+        // punched in the ladder. The bead's own colour is the empty state,
+        // the same one every off control in the app uses.
+        context.strokeStyle = 'rgba(214, 233, 247, 0.2)';
         context.lineWidth = 1;
         beadPath(i);
         context.stroke();
@@ -828,9 +861,20 @@ const drawChannel = (
        * shading is noticed.
        */
       const centreX = rect.x + rect.width / 2;
-      const bulbRadius = rect.width * 0.44;
+      // Wider than it was: with no slot behind it the thermometer is the
+      // whole of what the channel draws, and a third of the width left the
+      // instrument looking like a thread down the middle of an empty column.
+      const tubeWidth = Math.max(4, rect.width * 0.46);
+      // The bulb is a swelling of the tube, not a ball on the end of it.
+      //
+      // It was half the channel's width against a tube under half of that,
+      // so the reservoir came out more than twice the tube's diameter and
+      // the whole thing read as a lollipop. Four fifths of the tube as a
+      // RADIUS makes it about one and a half times as wide — the proportion
+      // a real thermometer has, and enough for the neck to be a curve
+      // rather than a step.
+      const bulbRadius = tubeWidth * 0.8;
       const bulbCentreY = rect.y + rect.height - bulbRadius - 1;
-      const tubeWidth = Math.max(3, rect.width * 0.34);
       const tubeX = centreX - tubeWidth / 2;
       const tubeTop = rect.y + 2;
       // Overlapped into the bulb so the two read as one cavity rather
@@ -854,7 +898,10 @@ const drawChannel = (
         context.arc(centreX, bulbCentreY, bulbRadius, 0, Math.PI * 2);
       };
 
-      // The cavity, unlit — the empty part of the instrument.
+      // The cavity, unlit — the empty part of the instrument. This one IS
+      // the thermometer's own inside, and it stays: what does not belong is
+      // the rectangular track behind the whole strip, which this style skips
+      // (see the track fill above) because the glass is its own container.
       ghost(() => {
         glassPath();
         context.fill();
@@ -943,15 +990,31 @@ const drawChannel = (
        * tube, which says the instrument is live and hearing quiet rather
        * than switched off.
        */
-      const hazeBeat = 0.25 + channel.level * 2.6;
+      // Mostly the level, and only a little of it constant. A high floor
+      // makes a silent meter as bright as a loud one, which is a light with
+      // no information in it; a low one lets the colour arrive with the
+      // signal and leave with it.
+      const hazeBeat = 0.16 + channel.level * 3.4;
       context.save();
-      // Clipped to this channel's own tube. The gradients are far wider
-      // than the strip — that is what makes the gas fill it corner to
-      // corner rather than fading out before the edges — so without this
-      // each channel's gas would wash across the whole canvas and the two
-      // would blend into one cloud.
+      // Clipped to the READING, not to the tube.
+      //
+      // It filled the whole strip, so the empty part of the meter carried a
+      // drifting colour of its own and no two meters in the app looked alike
+      // above their readings — the one place that should be the plain empty
+      // track. Held to the lit part, the gas is something the level brings
+      // with it and the ground stays the track it always was.
+      //
+      // Still clipped rather than merely drawn short: the gradients are far
+      // wider than the strip, which is what makes the gas fill it corner to
+      // corner instead of fading out before the edges.
+      const litHeight = rect.height * channel.level;
       context.beginPath();
-      context.rect(rect.x, rect.y, rect.width, rect.height);
+      context.rect(
+        rect.x,
+        rect.y + rect.height - litHeight,
+        rect.width,
+        litHeight,
+      );
       context.clip();
       /*
        * PLAIN BLENDING, and this is what makes the nebula dark.
@@ -990,6 +1053,11 @@ const drawChannel = (
        * The nebula's palette, following the mode like everything else on
        * this meter: the full spectrum in rainbow, cyan tones at rest.
        *
+       * Held at about a third of what it was: the gas used to be drawn over
+       * the whole strip, where a dark wash was the point, and now it is
+       * drawn only over the reading — where the same alpha buried the
+       * colour it was meant to be tinting.
+       *
        * The cyan set is six entries too, not one colour repeated, so the
        * drift still shows movement — a gradient between identical stops is
        * a flat fill however fast it slides. Deep teal through ice and back
@@ -1006,20 +1074,28 @@ const drawChannel = (
        */
       const spectrum = isEuphoric
         ? [
-            '0, 38, 58',
-            '12, 30, 64',
-            '30, 54, 20',
-            '64, 46, 10',
-            '58, 12, 39',
-            '30, 18, 64',
+            // The rainbow at full strength. These were deep, near-black
+            // versions of each hue — chosen when the gas was a wash over the
+            // whole strip — and over the reading they read as a dark smear
+            // rather than as a spectrum.
+            '0, 200, 255',
+            '90, 140, 255',
+            '120, 255, 140',
+            '255, 210, 80',
+            '255, 90, 150',
+            '190, 120, 255',
           ]
         : [
-            '0, 20, 30',
-            '0, 30, 43',
-            '0, 39, 51',
-            '5, 47, 58',
-            '0, 36, 40',
-            '0, 25, 35',
+            // Lit teals rather than deep ones. They were chosen when the gas
+            // covered the whole strip and had to stay out of the way; drawn
+            // only over the reading, dark colours made the reading itself
+            // look switched off.
+            '90, 220, 230',
+            '120, 240, 235',
+            '156, 255, 244',
+            '190, 255, 250',
+            '140, 246, 240',
+            '105, 228, 234',
           ];
       const body = context.createLinearGradient(
         0,
@@ -1068,7 +1144,7 @@ const drawChannel = (
         const radius = rect.width * (1.5 + channel.level * 1.4);
         const haze = context.createRadialGradient(cx, cy, 0, cx, cy, radius);
         haze.addColorStop(0, `rgba(${knot.tint}, ${0.5 * hazeBeat})`);
-        haze.addColorStop(0.45, `rgba(${knot.tint}, ${0.2 * hazeBeat})`);
+        haze.addColorStop(0.45, `rgba(${knot.tint}, ${0.22 * hazeBeat})`);
         haze.addColorStop(1, `rgba(${knot.tint}, 0)`);
         context.fillStyle = haze;
         context.fillRect(rect.x, rect.y, rect.width, rect.height);
@@ -1178,7 +1254,9 @@ const drawChannel = (
       const flicker =
         1 +
         (Math.sin(now * 0.011) * 0.16 + Math.sin(now * 0.027) * 0.09) * drive;
-      const bedGlow = (0.28 + drive * 0.5) * flicker;
+      // Brighter, and led by the level. At 0.28 with a shallow slope the bed
+      // read as a dim smudge at the foot of the strip whatever was playing.
+      const bedGlow = (0.34 + drive * 0.78) * flicker;
       /**
        * The bed keeps the mode's own colour — the travelling hue in
        * rainbow, cyan at rest — and does not take the zones.
@@ -1191,7 +1269,7 @@ const drawChannel = (
        */
       const bedHue = isEuphoric
         ? `hsla(${(now * 0.02) % 360}, 95%, 62%,`
-        : 'rgba(0, 200, 255,';
+        : 'rgba(90, 240, 255,';
       const bed = context.createLinearGradient(
         0,
         rect.y + rect.height,
@@ -1346,6 +1424,9 @@ const drawChannel = (
       const slabAt = (index: number) =>
         rect.y + rect.height - (index + 1) * pitch + slabGap / 2;
 
+      // Unlit slabs are drawn, not implied: a fill for the body and a
+      // hairline round it, so an empty stack reads as a column of blocks
+      // waiting to light rather than as a smear at the top of the strip.
       ghost(() => {
         for (let i = litSlabs; i < slabCount; i += 1) {
           context.fillRect(
@@ -1356,6 +1437,18 @@ const drawChannel = (
           );
         }
       });
+      context.save();
+      context.strokeStyle = 'rgba(214, 233, 247, 0.2)';
+      context.lineWidth = 1;
+      for (let i = litSlabs; i < slabCount; i += 1) {
+        context.strokeRect(
+          rect.x + leanAt(i) + 0.5,
+          slabAt(i) + 0.5,
+          rect.width - 1,
+          slabHeight - 1,
+        );
+      }
+      context.restore();
       glow(() => {
         for (let i = 0; i < litSlabs; i += 1) {
           const y = slabAt(i);
@@ -1399,14 +1492,22 @@ const drawChannel = (
       // The empty length of pipe above the current. The contrast between
       // it and the running part is what makes the level readable at a
       // glance, without a rule drawn across the strip to mark it.
-      ghost(() => {
-        context.fillRect(
-          rect.x,
-          rect.y,
-          rect.width,
-          Math.max(0, columnTop - rect.y),
+      // The empty part above the current is an outline, not a fill: this
+      // style is a column of moving water, and a solid block over it read as
+      // a lid. The hairline is the same one the stack's unlit slabs carry,
+      // so both say "nothing here yet" the same way.
+      if (columnTop - rect.y >= 1) {
+        context.save();
+        context.strokeStyle = 'rgba(214, 233, 247, 0.2)';
+        context.lineWidth = 1;
+        context.strokeRect(
+          rect.x + 0.5,
+          rect.y + 0.5,
+          rect.width - 1,
+          Math.max(0, columnTop - rect.y) - 1,
         );
-      });
+        context.restore();
+      }
 
       if (columnHeight >= 1) {
         context.save();
@@ -1548,29 +1649,13 @@ const drawChannel = (
   // top of the meter. A ring at the same radius as a bead was invisible:
   // it circled a lit bead exactly and disappeared into it, which is why
   // nothing showed at all for a while.
-  const peakIndex = Math.max(
-    0,
-    Math.min(dotCount - 1, Math.round(channel.peak * dotCount) - 1),
-  );
-  const litIndex = Math.round(channel.level * dotCount) - 1;
-  if (style === 'leds' && channel.peak > 0.02 && peakIndex > litIndex) {
-    context.save();
-    context.globalAlpha = 0.94;
-    context.strokeStyle = ZONE_COLOURS[channel.peakZone];
-    context.lineWidth = 1.6;
-    context.shadowColor = ZONE_COLOURS[channel.peakZone];
-    context.shadowBlur = 6;
-    context.beginPath();
-    context.arc(
-      rect.x + rect.width / 2,
-      beadAt(peakIndex),
-      dotRadius,
-      0,
-      Math.PI * 2,
-    );
-    context.stroke();
-    context.restore();
-  }
+  // NO PEAK RING ON THE LADDER.
+  //
+  // A hollow ring floating above the lit beads read as a bead that had half
+  // failed rather than as a peak held: the ladder already shows the reading
+  // as a count of lamps, and a seventeenth mark in the same shape is one
+  // more thing to tell apart at a glance. The peak is still held and still
+  // shown by the styles drawn as a continuous column.
 
   // The ember column deliberately gets no peak-hold mark of its own. It
   // already carries one line — the reading at the top of the embers — and
@@ -1590,7 +1675,6 @@ const OutputLevelMeter = () => {
   const isEuphoric = useIsEuphoric(getStreakJoy(useRhythmRun().streak) >= 1);
   const isEuphoricRef = useRef(isEuphoric);
   isEuphoricRef.current = isEuphoric;
-  const internalClipUntilRef = useRef<number[]>([0, 0]);
   const internalClippingRef = useRef(false);
   const [isInternallyClipping, setIsInternallyClipping] = useState(false);
 
@@ -1664,6 +1748,15 @@ const OutputLevelMeter = () => {
 
   // The buffered channel state, eased frame-to-frame so the meter carries
   // motion between analyser publishes and does not jump.
+  /**
+   * How much of the clip warning is showing, per channel, 0 to 1.
+   *
+   * The hold is a boolean and it ends the way a switch ends — the red was
+   * simply gone on the next frame, which reads as a glitch rather than as a
+   * warning finishing. This rises the moment the warning is true and falls
+   * over a fifth of a second when it stops.
+   */
+  const warnEnvelopeRef = useRef<number[]>([0, 0]);
   const easedRef = useRef<IChannelLevel[]>([
     { level: 0, peak: 0, zone: 'safe', peakZone: 'safe' },
     { level: 0, peak: 0, zone: 'safe', peakZone: 'safe' },
@@ -1689,10 +1782,13 @@ const OutputLevelMeter = () => {
           },
         ]
       : outputLevels;
-    const dspChannelPeaks = readDspChannelPeaks();
-    const nowMs = performance.now();
+    // One verdict for the whole app — see `internalClipping.ts`. The wave in
+    // the titlebar and the graph's badge read the same thing, so the three
+    // agree about a moment instead of one of them being the only one that
+    // ever went red.
+    const internalClipping = readInternalClipping(performance.now());
     let anyInternalClipping = false;
-    targetsRef.current = channels.map((channel, index) => {
+    targetsRef.current = channels.map((channel) => {
       const level = levelFraction(channel.levelDb);
       const peak = levelFraction(channel.peakDb);
       /**
@@ -1703,11 +1799,6 @@ const OutputLevelMeter = () => {
        * path consults settings or predicts a ceiling. Orange remains measured
        * near-ceiling level; red is evidence in samples from either path.
        */
-      if ((dspChannelPeaks[index] ?? 0) >= 1) {
-        internalClipUntilRef.current[index] = nowMs + CLIP_HOLD_MS;
-      }
-      const internalClipping =
-        nowMs < (internalClipUntilRef.current[index] ?? 0);
       anyInternalClipping ||= internalClipping;
       const isRailed = channel.isClipping || internalClipping;
       return {
@@ -1760,6 +1851,14 @@ const OutputLevelMeter = () => {
       context.setTransform(ratio, 0, 0, ratio, 0, 0);
 
       const isOff = isOffRef.current;
+      // Read once a frame from the canvas itself, so a theme change reaches
+      // the drawing without anything having to be told about it.
+      const wellColour = surfaceColour(
+        canvas,
+        styleRef.current === 'pulse' ? '--meter-well-pulse' : '--meter-well',
+        '#2e4f63',
+      );
+      const unlitColour = surfaceColour(canvas, '--meter-unlit', '#1a3a4e');
       const rise = getEaseFactor(deltaMs, LEVEL_ATTACK_MS);
       const fall = getEaseFactor(deltaMs, LEVEL_RELEASE_MS);
       const peakFall = getEaseFactor(deltaMs, PEAK_RELEASE_MS);
@@ -1795,9 +1894,17 @@ const OutputLevelMeter = () => {
       }
 
       const channelCount = easedRef.current.length;
+      // ONE WIDTH FOR EVERY STYLE.
+      //
+      // They were being set apart one at a time and the meter changed size
+      // as it cycled, which is a control that moves under the eye for no
+      // reason the eye can name. A style is a way of drawing the same
+      // reading, not a different instrument.
+      const channelWidth = CHANNEL_WIDTH;
+      const channelGap = CHANNEL_GAP;
       // Layout: two channels centred with a gap between them.
       const totalWidth =
-        channelCount * CHANNEL_WIDTH + (channelCount - 1) * CHANNEL_GAP;
+        channelCount * channelWidth + (channelCount - 1) * channelGap;
       const startX = (boxWidth - totalWidth) / 2;
       // Room at the top for the channel letters, and room at the bottom
       // for the clip rim — that rim is stroked half a pixel outside the
@@ -1815,15 +1922,22 @@ const OutputLevelMeter = () => {
 
       for (let i = 0; i < channelCount; i += 1) {
         const rect: IChannelRect = {
-          x: startX + i * (CHANNEL_WIDTH + CHANNEL_GAP),
+          x: startX + i * (channelWidth + channelGap),
           y: rectY,
-          width: CHANNEL_WIDTH,
+          width: channelWidth,
           height: rectHeight,
         };
-        // One track for every style: `$surface-base`, the shell's own
-        // colour, so the strip reads as a well cut into the card rather
-        // than as something laid on top of it. Nothing about it competes
-        // with the reading inside.
+        // One track for every style: the same faint lift every slider track
+        // in the app uses — the cool white at a few percent over whatever
+        // card it stands on — so the strip is a track with a reading in it
+        // rather than a hole. Nothing about it competes with the reading.
+        //
+        // It was `#0c131d`, the shell's old near-black. Once the cards moved
+        // to slate that made two black bars the darkest thing in the window,
+        // and a well cut into a well cut into a card is always going to be:
+        // the ladder only has so many rungs below the card. Lifting the
+        // track instead puts it beside the strength slider's, which is what
+        // it is.
         //
         // It replaced a faint green/amber/red zone gradient. That gradient
         // was trying to name the loud region before anything was playing,
@@ -1835,10 +1949,51 @@ const OutputLevelMeter = () => {
         // The corner radius follows the style: the bead column runs in a
         // pill, everything else in a slot with a soft corner.
         const trackRadius = styleRef.current === 'leds' ? rect.width / 2 : 3;
-        context.fillStyle = '#0c131d';
+        // ONE CONTAINER FOR EVERY STYLE.
+        //
+        // Two of them used to draw their own — the thermometer's glass, the
+        // bead ladder — and skipping the track for those left the meter
+        // sitting on the bare card, which read as a drawing that had lost
+        // its instrument. Ten styles that each decide whether they have a
+        // background is ten different meters; one slot with ten readings in
+        // it is a meter with ten looks.
+        //
+        // A WELL: below the card, not above it. It was the empty-track
+        // colour, which is a step ABOVE the card — so the meter read as a
+        // light strip with holes punched in it rather than as an instrument
+        // recessed into the panel, and the unlit beads had to go darker than
+        // the card to be seen at all. Down here the order is the one every
+        // meter has ever had: a dark slot, unlit content a step up from it,
+        // and the reading brightest of the three.
+        // Three styles stand in no slot: the bead ladder has its own unlit
+        // beads, the thermometer its own glass, and the fluid column is a
+        // body of water rather than something poured into a container.
+        // The path is built for every style, filled only for the ones that
+        // stand in a slot. The clip warning below strokes and clips against
+        // this same path — built inside the guard, the two styles without a
+        // slot had no path to stroke and the warning simply did not appear.
+        // Five styles draw their own container — the bead ladder, the
+        // thermometer, the fluid column, the segmented lamps, the stack —
+        // so they get no slot behind them, no resting edge, and no heat
+        // wash over the drawing.
+        // Switched off, the meter is a slot with nothing in it, so it keeps
+        // its container whatever style it would have drawn. `styleRef` holds
+        // the style it FALLS BACK to when off — fluid — which is one of the
+        // three that draw their own, so the off state came out with no
+        // background at all.
+        const hasContainer =
+          isOff ||
+          (styleRef.current !== 'leds' &&
+            styleRef.current !== 'mercury' &&
+            styleRef.current !== 'fluid' &&
+            styleRef.current !== 'segments' &&
+            styleRef.current !== 'stack');
         context.beginPath();
         context.roundRect(rect.x, rect.y, rect.width, rect.height, trackRadius);
-        context.fill();
+        if (hasContainer) {
+          context.fillStyle = wellColour;
+          context.fill();
+        }
 
         // Clipped: the well itself goes red at the ceiling, and its rim
         // with it.
@@ -1848,18 +2003,34 @@ const OutputLevelMeter = () => {
         // is the fault that got two earlier versions of this taken out. In
         // the background it is the container that heats up while the
         // reading stays exactly as legible as it was.
-        const clipped = !isOff && easedRef.current[i]?.peakZone === 'clip';
-        if (clipped) {
+        // Railed samples only. The near-ceiling zone was tried here too, in
+        // orange, and it read as the meter warning about ordinary loud
+        // music — the zone is already said by the peak marker's colour.
+        const peakZone = isOff ? 'safe' : easedRef.current[i]?.peakZone;
+        const clipped = peakZone === 'clip';
+        const warnRgb = '255, 90, 110';
+        // Full while it is true, then down over 200ms.
+        const previous = warnEnvelopeRef.current[i] ?? 0;
+        const warnLevel = clipped ? 1 : Math.max(0, previous - deltaMs / 200);
+        warnEnvelopeRef.current[i] = warnLevel;
+        const warned = warnLevel > 0.001;
+        if (warned && hasContainer) {
           context.save();
           context.clip();
+          // The whole strip, not a band at the top: nothing at the foot
+          // rising to full at the ceiling. A short wash across the top read
+          // as a stripe laid on the meter; over the full height it reads as
+          // the container heating from the top down, which is where the
+          // trouble is.
           const heat = context.createLinearGradient(
             0,
-            rect.y,
+            rect.y + rect.height,
             0,
-            rect.y + rect.height * 0.22,
+            rect.y,
           );
-          heat.addColorStop(0, 'rgba(255, 90, 110, 0.55)');
-          heat.addColorStop(1, 'rgba(255, 90, 110, 0)');
+          heat.addColorStop(0, `rgba(${warnRgb}, 0)`);
+          heat.addColorStop(0.62, `rgba(${warnRgb}, ${0.05 * warnLevel})`);
+          heat.addColorStop(1, `rgba(${warnRgb}, ${0.55 * warnLevel})`);
           context.fillStyle = heat;
           context.fillRect(rect.x, rect.y, rect.width, rect.height);
           context.restore();
@@ -1868,16 +2039,75 @@ const OutputLevelMeter = () => {
         // A hairline rim, so the well has an edge to be read by rather
         // than dissolving into whatever is behind it. It takes the warning
         // colour while the channel is clipped, so the edge says it too.
-        context.strokeStyle = clipped
-          ? 'rgba(255, 90, 110, 0.85)'
-          : 'rgba(139, 246, 255, 0.14)';
-        context.lineWidth = 1;
-        context.stroke();
+        //
+        // Not around mercury or the LED ladder, for the same reason the
+        // track fill is skipped for them above: both draw their own
+        // container. The warning still reaches them through their own
+        // colour.
+        // The ladder has no permanent edge either — only the clip warning,
+        // which is the one thing worth drawing a box for.
+        // A hairline across the ceiling. Every style with a container gets
+        // it, plus the fluid column: that one has no container but is a
+        // single body of water, so a line at the top reads as the vessel's
+        // brim. The bead ladder and the thermometer are open shapes and a
+        // line across them would be a lid on something with none.
+        context.save();
+        if (hasContainer || styleRef.current === 'fluid') {
+          context.strokeStyle = 'rgba(214, 233, 247, 0.18)';
+          context.lineWidth = 1;
+          context.beginPath();
+          context.moveTo(rect.x + 0.5, rect.y + 0.5);
+          context.lineTo(rect.x + rect.width - 0.5, rect.y + 0.5);
+          context.stroke();
+        }
+        context.restore();
+
+        context.beginPath();
+        context.roundRect(rect.x, rect.y, rect.width, rect.height, trackRadius);
+        if (hasContainer || warned) {
+          if (warned) {
+            // The edge fades the way the wash does: nothing at the foot,
+            // full at the ceiling. A red line of even weight down the whole
+            // strip drew a box round the meter and said the trouble was
+            // everywhere, when it is at the top.
+            const edge = context.createLinearGradient(
+              0,
+              rect.y + rect.height,
+              0,
+              rect.y,
+            );
+            edge.addColorStop(0, `rgba(${warnRgb}, 0)`);
+            edge.addColorStop(0.62, `rgba(${warnRgb}, ${0.06 * warnLevel})`);
+            edge.addColorStop(1, `rgba(${warnRgb}, ${0.9 * warnLevel})`);
+            context.strokeStyle = edge;
+          } else {
+            // The resting edge fades the same way, for the same reason: a
+            // hairline of even weight closes a box round the instrument,
+            // and the meter is read from the top down.
+            const edge = context.createLinearGradient(
+              0,
+              rect.y + rect.height,
+              0,
+              rect.y,
+            );
+            edge.addColorStop(0, 'rgba(139, 246, 255, 0)');
+            edge.addColorStop(0.62, 'rgba(139, 246, 255, 0.02)');
+            edge.addColorStop(1, 'rgba(139, 246, 255, 0.2)');
+            context.strokeStyle = edge;
+          }
+          context.lineWidth = 1;
+          context.stroke();
+        }
 
         // A soft outer glow in euphoria — the pane is always lit even when
         // audio is quiet, and the mode announces itself around the strip
         // rather than over the meter's reading.
-        if (!isOff && isEuphoricRef.current) {
+        if (
+          !isOff &&
+          isEuphoricRef.current &&
+          styleRef.current !== 'leds' &&
+          styleRef.current !== 'mercury'
+        ) {
           context.save();
           context.shadowColor = 'rgba(255, 60, 172, 0.5)';
           context.shadowBlur = 14;
@@ -1904,6 +2134,7 @@ const OutputLevelMeter = () => {
             easedRef.current[i],
             styleRef.current,
             isEuphoricRef.current,
+            unlitColour,
           );
         }
       }
@@ -1918,8 +2149,7 @@ const OutputLevelMeter = () => {
       const isStereo = channelCount > 1;
       for (let i = 0; i < channelCount; i += 1) {
         const letter = t(channelNameKey(i, isStereo));
-        const cx =
-          startX + i * (CHANNEL_WIDTH + CHANNEL_GAP) + CHANNEL_WIDTH / 2;
+        const cx = startX + i * (channelWidth + channelGap) + channelWidth / 2;
         context.fillText(letter, cx, 1);
       }
 

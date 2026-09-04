@@ -252,27 +252,38 @@ const Knob = ({
       onPointerCancel={endDrag}
     >
       <svg className="knob__dial" viewBox="0 0 72 72" aria-hidden="true">
-        {/* The metal is three gradients rather than one, because that is what
-            a turned aluminium knob under a single light actually is: a body
-            lit from the upper left, a bevel that is bright along the top edge
-            and dark along the bottom, and a recessed face that catches almost
-            none of it. Flat fills with a border read as a circle with a line
-            on it; these read as an object. */}
+        {/* Slate, like everything else in the window. This was a turned
+            aluminium knob — a near-white body lit from the upper left, a
+            chrome bevel, a black face — and it was the one piece of metal in
+            a flat blue interface: the eye went to it before the EQ. The body
+            is now the field rung of the same ladder every control uses, one
+            step lighter than the card, with the faintest top light so it still
+            reads as a disc rather than a printed circle; the face is the well
+            rung. Only the notch and the arc carry colour, which is the part
+            that means something. */}
         <defs>
-          <radialGradient id={`${ids}-body`} cx="32%" cy="24%" r="82%">
-            <stop offset="0%" stopColor="#f6fafc" />
-            <stop offset="38%" stopColor="#c3cfd8" />
-            <stop offset="74%" stopColor="#8b97a3" />
-            <stop offset="100%" stopColor="#5b6672" />
+          <radialGradient id={`${ids}-body`} cx="38%" cy="28%" r="80%">
+            <stop offset="0%" stopColor="#33637e" />
+            <stop offset="70%" stopColor="#27526b" />
+            <stop offset="100%" stopColor="#224a61" />
           </radialGradient>
           <linearGradient id={`${ids}-bevel`} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#ffffff" stopOpacity="0.85" />
-            <stop offset="45%" stopColor="#ffffff" stopOpacity="0.12" />
-            <stop offset="100%" stopColor="#000000" stopOpacity="0.55" />
+            {/* Mist above, mist below. The lower stop was black at 30%,
+                which on a navy body is not a shaded edge — it is a dark
+                ring drawn round the knob, and it read as a hole the knob
+                sat in. */}
+            <stop offset="0%" stopColor="#d6e9f7" stopOpacity="0.24" />
+            <stop offset="55%" stopColor="#d6e9f7" stopOpacity="0.05" />
+            <stop offset="100%" stopColor="#d6e9f7" stopOpacity="0.1" />
           </linearGradient>
-          <radialGradient id={`${ids}-face`} cx="50%" cy="34%" r="70%">
-            <stop offset="0%" stopColor="#20303f" />
-            <stop offset="100%" stopColor="#0b141d" />
+          {/* The well the number sits in. It was #122a3a to #0e2230 —
+              below the window's own floor, so the middle of every knob was
+              the darkest thing on the panel and read as a hole rather than
+              as a recess. One step under the knob's body is all a recess
+              needs. */}
+          <radialGradient id={`${ids}-face`} cx="50%" cy="40%" r="70%">
+            <stop offset="0%" stopColor="#27526b" />
+            <stop offset="100%" stopColor="#21475d" />
           </radialGradient>
         </defs>
         <circle
@@ -299,7 +310,6 @@ const Knob = ({
             transform="rotate(135 36 36)"
           />
         ) : undefined}
-        <circle className="knob__shadow" cx="36" cy="37.5" r="23" />
         <circle
           className="knob__body"
           cx="36"
@@ -319,11 +329,10 @@ const Knob = ({
             and the filled arc always point at the same place by construction
             rather than by two calculations agreeing. */}
         <g transform={`rotate(${135 + (clampedProgress / 100) * 270} 36 36)`}>
-          {/* Cyan on near-white is almost invisible, and the brightest part of
-              this body is exactly where the notch sits at the top of its
-              travel. The dark line underneath is what gives it an edge to
-              read against — the same trick a real knob gets for free from
-              the groove being cut into the metal. */}
+          {/* A faint groove under the notch, so the cyan line has an edge to
+              sit in rather than floating on the disc. Much quieter than it
+              was when the body was near-white and the line needed a dark
+              bed to be seen at all. */}
           <line
             className="knob__notch-groove"
             x1="49"

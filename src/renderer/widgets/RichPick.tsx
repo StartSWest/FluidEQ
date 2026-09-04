@@ -13,6 +13,7 @@ import {
   useState,
 } from 'react';
 import { useTranslation } from '../utils/I18nContext';
+import Chevron from '../icons/Chevron';
 import AnchoredMenu, { isInsideAnchoredMenu } from './AnchoredMenu';
 import '../styles/RichPick.scss';
 
@@ -214,9 +215,7 @@ const RichPick = ({
         {/* It opens a menu, and nothing on it said so — it read as a button
             that does something, in a row of buttons that do. The same chevron
             the mode picker carries, turning over when it is open. */}
-        <svg className="rich-pick__caret" viewBox="0 0 16 16" aria-hidden>
-          <path d="M4 6.5l4 4 4-4" />
-        </svg>
+        <Chevron className="rich-pick__caret" />
       </button>
 
       {children}
@@ -236,7 +235,7 @@ const RichPick = ({
           </svg>
           <input
             ref={searchRef}
-            type="search"
+            type="text"
             value={query}
             placeholder={t('common.search')}
             aria-label={t('common.search')}
@@ -250,6 +249,26 @@ const RichPick = ({
               }
             }}
           />
+          {query.length > 0 && (
+            <button
+              type="button"
+              className="menu-search__clear"
+              aria-label={t('common.clearSearch')}
+              title={t('common.clearSearch')}
+              // Pressing a button focuses it, and this one unmounts on the
+              // very next render, so without this the caret would land on
+              // the body and the next keystroke would go nowhere.
+              onMouseDown={(event) => event.preventDefault()}
+              onClick={() => {
+                setQuery('');
+                searchRef.current?.focus();
+              }}
+            >
+              <svg viewBox="0 0 12 12" aria-hidden="true" focusable="false">
+                <path d="M3 3l6 6M9 3l-6 6" />
+              </svg>
+            </button>
+          )}
         </div>
 
         {matches.length === 0 && (

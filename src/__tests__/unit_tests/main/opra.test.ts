@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { FilterTypeEnum } from 'common/constants';
+import { DEFAULT_QUALITY, FilterTypeEnum } from 'common/constants';
 import { forgetOpraIndex, getOpraPreset, getOpraProductList } from 'main/opra';
 import { addFileToPath } from 'main/flush';
 
@@ -169,8 +169,9 @@ describe('opra', () => {
         (entry) => entry.frequency === 2000,
       );
 
-      // Five bands in the published library have no q at all.
-      expect(band?.quality).toBe(1);
+      // Five bands in the published library have no q at all, and a band
+      // without one gets the app's own default — see `DEFAULT_QUALITY`.
+      expect(band?.quality).toBe(DEFAULT_QUALITY);
     });
 
     it('skips a band type it does not understand rather than failing the curve', () => {

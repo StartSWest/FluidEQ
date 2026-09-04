@@ -178,6 +178,8 @@ const DspDenoiseCard = ({
           taking hiss or taking the vocal. */}
       <DspDenoiseGraph
         profile={profile}
+        profileSource={denoise.profileSource}
+        hiss={denoise.hiss}
         hum={denoise.hum}
         click={denoise.click}
         isEnabled={isEnabled}

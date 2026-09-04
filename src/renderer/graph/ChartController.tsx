@@ -20,6 +20,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { useMemo } from 'react';
 import * as d3 from 'd3';
 import { MAX_GAIN, MIN_GAIN } from 'common/constants';
+import { SelectionMode } from 'common/bandSelection';
 import { Color } from 'renderer/styles/color';
 
 /**
@@ -164,7 +165,7 @@ export interface IEditableChartPoint {
   selected: boolean;
   hovered: boolean;
   /**  is where the press landed, in chart units — see the drag state. */
-  onSelect: (additive: boolean, grab: IChartPointData) => void;
+  onSelect: (mode: SelectionMode, grab: IChartPointData) => void;
   onChange: (data: IChartPointData) => void;
   onCommit: () => void;
   onQualityWheel: (direction: number) => void;

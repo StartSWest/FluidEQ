@@ -23,8 +23,8 @@ it under the terms of the GNU General Public License version 3 or later.
   justify-content: space-between;
   gap: $spacing-m;
   padding: 10px 14px 10px 18px;
-  border-bottom: 1px solid rgba($primary-lighter, 0.1);
-  background: rgba(#07111c, 0.32);
+  border-bottom: 1px solid rgba($edge-tint, 0.1);
+  background: $block-lift;
 
   &::after {
     position: absolute;
@@ -32,13 +32,7 @@ it under the terms of the GNU General Public License version 3 or later.
     bottom: -1px;
     left: 0;
     height: 1px;
-    background: linear-gradient(
-      90deg,
-      transparent,
-      rgba($secondary-light, 0.34),
-      rgba($neon-lime, 0.2),
-      transparent
-    );
+    background: rgba($secondary-light, 0.34);
     content: '';
   }
 }
@@ -112,7 +106,7 @@ it under the terms of the GNU General Public License version 3 or later.
   border: 1px solid rgba($secondary-light, 0.24);
   border-radius: $radius-pill;
   background: rgba($secondary-default, 0.1);
-  font-size: 0.58rem;
+  font-size: $text-eyebrow;
   font-variant-numeric: tabular-nums;
   font-weight: $weight-bold;
   letter-spacing: 0.02em;
@@ -126,9 +120,9 @@ it under the terms of the GNU General Public License version 3 or later.
   place-items: center;
   padding: 0;
   color: rgba($white, 0.72);
-  border: 1px solid rgba($primary-lighter, 0.08);
+  border: 1px solid rgba($edge-tint, 0.08);
   border-radius: $radius-s;
-  background: rgba($primary-dark, 0.2);
+  background: $surface-plot;
   cursor: pointer;
   transition: $transition-control;
 

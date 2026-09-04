@@ -79,6 +79,7 @@ const dsp = {
     'Le signal conservé est retiré — seul ce qui est enlevé est audible.',
   'dsp.denoise.graphOutput': 'Sortie',
   'dsp.denoise.graphFloor': 'Plancher de bruit',
+  'dsp.denoise.graphHissAction': 'Réduction du souffle appliquée',
   'dsp.denoise.graphHum': 'Ronflement',
   'dsp.denoise.graphIdle': 'Inactif',
   'dsp.denoise.graphClicks': 'Réparation de clics',

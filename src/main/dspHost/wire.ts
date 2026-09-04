@@ -40,7 +40,7 @@ import {
  * changes, so a stale host is refused at the handshake with a legible reason
  * rather than desynchronising on its first frame of that kind.
  */
-export const HOST_WIRE_PROTOCOL_VERSION = 5;
+export const HOST_WIRE_PROTOCOL_VERSION = 6;
 
 export const HANDSHAKE_BYTES = 104;
 export const COMMAND_BYTES = 32;
@@ -635,6 +635,12 @@ export const decodeAnalysis = (frame: Buffer): IHostAnalysis | undefined => {
       // 160 onward: forty floats of live floor, one per profile band.
       floorBandsDb: Array.from({ length: NOISE_PROFILE_BANDS }, (_unused, at) =>
         view.getFloat32(160 + at * 4, true),
+      ),
+      // Appended after the complete 400-byte v5 header. These are the gains
+      // the audio received, not a curve reverse-engineered from the controls.
+      hissReductionBandsDb: Array.from(
+        { length: NOISE_PROFILE_BANDS },
+        (_unused, at) => view.getFloat32(400 + at * 4, true),
       ),
       profileReady: view.getUint32(152, true) !== 0,
       voiceModelLoaded: view.getUint32(156, true) !== 0,

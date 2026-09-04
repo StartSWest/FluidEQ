@@ -16,12 +16,12 @@
   }
 
   > h4 {
-    font-size: 0.78rem;
+    font-size: $text-lead;
   }
 
   > p {
     color: $text-muted;
-    font-size: 0.7rem;
+    font-size: $text-body;
     line-height: 1.45;
   }
 }
@@ -40,8 +40,8 @@
   align-items: center;
   gap: 8px;
   color: $text-muted;
-  border-top: 1px solid rgba($primary-lighter, 0.1);
-  font-size: 0.68rem;
+  border-top: 1px solid rgba($edge-tint, 0.1);
+  font-size: $text-small;
 
   > span {
     width: 6px;
@@ -59,7 +59,7 @@
   flex-direction: column;
   padding-top: 9px;
   gap: 7px;
-  border-top: 1px solid rgba($primary-lighter, 0.1);
+  border-top: 1px solid rgba($edge-tint, 0.1);
 }
 
 .remote-audio__code-heading {
@@ -78,13 +78,13 @@
 
   strong {
     color: $text-primary;
-    font-size: 0.72rem;
+    font-size: $text-body;
   }
 
   span {
     color: $text-muted;
     font-family: $font-mono;
-    font-size: 0.62rem;
+    font-size: $text-micro;
   }
 }
 
@@ -94,12 +94,13 @@
   min-width: 0;
   padding: 10px 11px;
   overflow: hidden;
-  border: 1px solid rgba($primary-lighter, 0.13);
+  border: 1px solid $border-subtle;
   border-radius: $radius-xs;
-  background: rgba($primary-dark, 0.24);
+  // A readout to be copied, on the same well every listing in the app uses.
+  background: $surface-plot;
   color: $text-muted;
   font-family: $font-mono;
-  font-size: 0.64rem;
+  font-size: $text-small;
   line-height: 1.35;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -111,7 +112,7 @@
   justify-content: flex-end;
   padding-top: 11px;
   gap: 8px;
-  border-top: 1px solid rgba($primary-lighter, 0.12);
+  border-top: 1px solid rgba($edge-tint, 0.12);
 }
 
 .remote-audio__note {
@@ -121,8 +122,8 @@
   padding-top: 10px;
   gap: 8px;
   color: $text-faint;
-  border-top: 1px solid rgba($primary-lighter, 0.09);
-  font-size: 0.66rem;
+  border-top: 1px solid rgba($edge-tint, 0.09);
+  font-size: $text-small;
   line-height: 1.45;
 
   strong {

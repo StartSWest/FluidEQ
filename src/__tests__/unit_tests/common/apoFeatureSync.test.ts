@@ -43,7 +43,7 @@ const overrideFor = (state: IState, feature: TApoFeature) => {
 };
 
 describe('live Equalizer APO feature-file adoption', () => {
-  it('compares audible filters instead of comments, ids, or line order', () => {
+  it('compares audible filters instead of comments, ids, or line order', async () => {
     const reordered = [
       'Filter 2: ON HSC Fc 8000 Hz Gain -1.25 dB Q 0.8',
       FILTER,
@@ -62,7 +62,7 @@ describe('live Equalizer APO feature-file adoption', () => {
     );
   });
 
-  it('replaces the main EQ with an external parametric file and clears attribution', () => {
+  it('replaces the main EQ with an external parametric file and clears attribution', async () => {
     const state: IState = {
       ...getDefaultState(),
       headset: 'Old model',
@@ -91,7 +91,7 @@ describe('live Equalizer APO feature-file adoption', () => {
     expect(state.isFlat).toBe(false);
   });
 
-  it('keeps editable EQ bands but returns them to zero when the file is cleared', () => {
+  it('keeps editable EQ bands but returns them to zero when the file is cleared', async () => {
     const state = getDefaultState();
     const count = Object.keys(state.filters).length;
     Object.values(state.filters)[0].gain = 6;
@@ -123,7 +123,7 @@ describe('live Equalizer APO feature-file adoption', () => {
     },
   );
 
-  it('preserves a native GraphicEQ edit as a native curve', () => {
+  it('preserves a native GraphicEQ edit as a native curve', async () => {
     const state = getDefaultState();
 
     adoptApoFeatureText(
@@ -145,7 +145,7 @@ describe('live Equalizer APO feature-file adoption', () => {
     ]);
   });
 
-  it('makes the canonical write compare equal, stopping the watcher loop', () => {
+  it('makes the canonical write compare equal, stopping the watcher loop', async () => {
     const state = getDefaultState();
     adoptApoFeatureText(state, 'driver', FILTER);
     const written = stateToApoFiles(state)?.features.find(
@@ -158,14 +158,14 @@ describe('live Equalizer APO feature-file adoption', () => {
     );
   });
 
-  it('persists an adopted override across an app restart', () => {
+  it('persists an adopted override across an app restart', async () => {
     const settingsDir = fs.mkdtempSync(
       path.join(os.tmpdir(), 'fluideq-apo-sync-'),
     );
     try {
       const state = getDefaultState();
       adoptApoFeatureText(state, 'driver', FILTER);
-      save(state, settingsDir);
+      await save(state, settingsDir);
 
       expect(fetchSettings(settingsDir).driver?.apoOverride).toEqual(
         state.driver?.apoOverride,
@@ -175,7 +175,7 @@ describe('live Equalizer APO feature-file adoption', () => {
     }
   });
 
-  it('refuses unsupported filters so a later write cannot erase them', () => {
+  it('refuses unsupported filters so a later write cannot erase them', async () => {
     const state = getDefaultState();
     const before = state.driver;
 

@@ -29,7 +29,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   min-width: 0;
 
   > [role='menu'] {
-    @include field-surface;
+    @include choice-surface;
     display: flex;
     width: 100%;
     min-width: 0;
@@ -38,11 +38,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     justify-content: space-between;
     padding: 8px $field-padding-inline;
     overflow: hidden;
-    font-size: 0.72rem;
+    font-size: $text-body;
     cursor: pointer;
 
     &:hover:not([aria-disabled='true']) {
       border-color: $border-field-hover;
+      background: rgba($secondary-default, 0.14);
     }
 
     &:focus-visible {
@@ -60,21 +61,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       flex: 1 1 auto;
     }
 
-    svg.arrow {
-      width: 11px;
-      height: auto;
-      flex: 0 0 auto;
+    // The shared chevron; only where it stands is said here.
+    .arrow {
       margin-left: 10px;
-      opacity: 0.75;
-
-      path {
-        fill: currentColor;
-      }
-    }
-
-    &[aria-disabled='true'] svg path {
-      fill: rgba($primary-lighter, 0.5);
-      stroke: rgba($primary-lighter, 0.5);
     }
   }
 }
@@ -152,46 +141,19 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // needs right padding wide enough to keep a long query from running under the
 // cross — 30px is the 18px button plus its two 6px margins.
 .dropdown-filter-field {
-  position: relative;
-  display: flex;
+  @include menu-search;
   min-width: 0;
+  // Out to the menu's own edges, cancelling the starting row's 8px, so the
+  // hairline under the search parts the whole menu instead of stopping short
+  // of it — the Voicing pick's line has always run edge to edge, and a line
+  // that stops eight pixels early is the tell that two menus were built by
+  // different hands.
+  margin: -8px -8px 0;
 
-  input[type='text'] {
-    padding-right: 30px;
-  }
-}
-
-.dropdown-filter-field__clear {
-  position: absolute;
-  top: 50%;
-  right: 6px;
-  display: grid;
-  width: 18px;
-  height: 18px;
-  place-items: center;
-  padding: 0;
-  color: rgba($primary-lighter, 0.55);
-  border: 0;
-  border-radius: 50%;
-  background: transparent;
-  cursor: pointer;
-  transform: translateY(-50%);
-  transition: $transition-control;
-
-  svg {
-    width: 9px;
-    height: 9px;
-    fill: none;
-    stroke: currentColor;
-    stroke-linecap: round;
-    stroke-width: 1.8;
-  }
-
-  &:hover,
-  &:focus-visible {
-    color: $secondary-light;
-    background: rgba($secondary-default, 0.18);
-    outline: none;
+  // The field is one grid cell; TextInput wraps the input in a div.
+  > div {
+    display: flex;
+    min-width: 0;
   }
 }
 
@@ -206,8 +168,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   align-items: center;
   justify-content: space-between;
   gap: $spacing-s;
-  color: rgba($primary-lighter, 0.62);
-  font-size: 0.58rem;
+  color: $text-muted;
+  font-size: $text-eyebrow;
   font-weight: $weight-bold;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -228,7 +190,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   button {
     flex: 0 0 auto;
     padding: 0;
-    color: rgba($primary-lighter, 0.62);
+    color: $text-muted;
     border: 0;
     background: transparent;
     font: inherit;
@@ -258,10 +220,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     gap: 5px;
     padding: 4px 7px;
     color: rgba($white, 0.82);
-    border: 1px solid rgba($primary-lighter, 0.14);
+    border: 1px solid $border-subtle;
     border-radius: $radius-xs;
-    background: rgba($primary-light, 0.12);
-    font-size: 0.62rem;
+    background: rgba($edge-tint, 0.05);
+    font-size: $text-micro;
     cursor: pointer;
     transition: $transition-control;
 

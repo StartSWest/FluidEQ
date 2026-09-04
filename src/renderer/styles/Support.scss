@@ -32,14 +32,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   display: grid;
   padding: $spacing-l;
   place-items: center;
-  background:
-    radial-gradient(
-      circle at 18% 18%,
-      rgba($secondary-default, 0.1),
-      transparent 38%
-    ),
-    rgba(#03070d, 0.72);
-  backdrop-filter: blur(14px) saturate(1.12);
+  background: rgba($surface-well, 0.72);
 }
 
 // A frame with a scrolling body inside it, rather than one box that scrolls.
@@ -71,9 +64,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // as a blur rather than as the thing itself lighting up.
   border-color: rgba($secondary-light, calc(0.26 + var(--pet-joy, 0) * 0.55));
   border-radius: $radius-xl;
-  background:
-    linear-gradient(135deg, rgba($white, 0.035), transparent 38%),
-    linear-gradient(155deg, rgba(#18293e, 0.97), rgba(#0b1421, 0.98));
+  background: rgba($surface-field-end, 0.97);
   box-shadow:
     0 32px 90px rgba($black, 0.64),
     inset 0 1px 0 rgba($white, 0.07),
@@ -102,8 +93,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   align-items: center;
   gap: 14px;
   padding: 10px 14px 10px 18px;
-  border-bottom: 1px solid rgba($primary-lighter, 0.1);
-  background: rgba(#07111c, 0.32);
+  border-bottom: 1px solid rgba($edge-tint, 0.1);
+  background: $block-lift;
 
   &::after {
     position: absolute;
@@ -111,14 +102,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     bottom: -1px;
     left: 0;
     height: 1px;
-    background: linear-gradient(
-      90deg,
-      transparent,
-      rgba($secondary-light, 0.4),
-      rgba($neon-lime, 0.28),
-      rgba(#ff4daf, 0.24),
-      transparent
-    );
+    background: rgba($secondary-light, 0.4);
     content: '';
     opacity: calc(0.32 + var(--pet-joy, 0) * 0.68);
   }
@@ -154,7 +138,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .euphoria-pill.support-dialog__mode {
   @include animate(pop-in, $motion-base, $ease-spring);
   padding: 5px 14px;
-  font-size: 0.62rem;
+  font-size: $text-micro;
   letter-spacing: 0.14em;
   box-shadow:
     inset 0 1px 0 rgba($white, 0.2),
@@ -188,7 +172,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     min-width: 0;
     align-content: start;
     gap: var(--support-gap);
-    border: 1px solid rgba($primary-lighter, 0.11);
+    border: 1px solid rgba($edge-tint, 0.11);
     border-radius: $radius-l;
     box-shadow: inset 0 1px 0 rgba($white, 0.035);
   }
@@ -197,13 +181,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     position: relative;
     overflow: hidden;
     padding: 24px 20px 20px;
-    background:
-      radial-gradient(
-        circle at 50% 18%,
-        rgba($secondary-default, 0.15),
-        transparent 42%
-      ),
-      rgba(#091522, 0.42);
+    background: rgba($surface-base, 0.42);
 
     &::after {
       position: absolute;
@@ -213,7 +191,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       height: 100px;
       border-radius: 50%;
       background: rgba($secondary-default, 0.1);
-      filter: blur(32px);
       content: '';
       pointer-events: none;
     }
@@ -221,7 +198,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   .support-dialog__ask {
     padding: 22px;
-    background: rgba(#101d2e, 0.44);
+    background: $surface-plot;
   }
 }
 
@@ -295,8 +272,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // already given, so it can afford to be small.
 .support-dialog__pet-hint {
   margin: 5px 0 0;
-  color: rgba($primary-lighter, 0.55);
-  font-size: 0.66rem;
+  color: $text-faint;
+  font-size: $text-small;
 }
 
 .support-dialog__close {
@@ -308,9 +285,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   padding: 0;
   color: rgba($white, 0.72);
   border: 1px solid transparent;
-  border-color: rgba($primary-lighter, 0.08);
+  border-color: rgba($edge-tint, 0.08);
   border-radius: $radius-s;
-  background: rgba($primary-dark, 0.2);
+  background: $surface-plot;
   cursor: pointer;
   transition: $transition-control;
 
@@ -335,7 +312,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .support-dialog__pitch {
   margin: 0;
   color: rgba($white, 0.9);
-  font-size: 0.94rem;
+  font-size: $text-title;
   line-height: 1.62;
 }
 
@@ -345,12 +322,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .support-dialog__craft {
   margin: 0;
   padding: 12px 14px;
-  color: rgba($primary-lighter, 0.7);
+  color: $text-muted;
   border: 1px solid rgba($secondary-light, 0.1);
   border-left-color: rgba($secondary-light, 0.42);
   border-radius: $radius-s;
-  background: rgba(#07111c, 0.3);
-  font-size: 0.78rem;
+  background: $block-lift;
+  font-size: $text-lead;
   line-height: 1.55;
 }
 
@@ -379,7 +356,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     // Ticker, so a donor can match the chain at a glance.
     em {
       color: rgba($secondary-light, 0.7);
-      font-size: 0.62rem;
+      font-size: $text-micro;
       font-style: normal;
       font-weight: $weight-bold;
       letter-spacing: 0.06em;
@@ -387,8 +364,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 
   &__hint {
-    color: rgba($primary-lighter, 0.76);
-    font-size: 0.88rem;
+    color: $text-muted;
+    font-size: $text-lead;
     line-height: 1.5;
   }
 
@@ -400,9 +377,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     color: $secondary-light;
     border: 1px solid rgba($secondary-light, 0.2);
     border-radius: $radius-xs;
-    background: rgba(#050b12, 0.7);
+    background: rgba($surface-menu-top, 0.7);
     font-family: $font-mono;
-    font-size: 0.82rem;
+    font-size: $text-lead;
     line-height: 1.5;
     overflow-wrap: anywhere;
     user-select: all;
@@ -428,7 +405,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     min-height: $control-height-sm;
     padding: 6px 12px;
     border-radius: $radius-xs;
-    font-size: 0.8rem;
+    font-size: $text-lead;
     font-weight: $weight-bold;
     text-decoration: none;
   }
@@ -475,13 +452,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .support-method--primary {
   position: relative;
   border-color: rgba($secondary-light, 0.34);
-  background:
-    radial-gradient(
-      circle at 8% 0%,
-      rgba($secondary-default, 0.18),
-      transparent 54%
-    ),
-    rgba(#102238, 0.72);
+  background: rgba($surface-menu-top, 0.72);
   cursor: pointer;
   transition:
     $transition-control,
@@ -490,13 +461,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   &:hover,
   &:focus-visible {
     border-color: rgba($secondary-light, 0.62);
-    background:
-      radial-gradient(
-        circle at 8% 0%,
-        rgba($secondary-default, 0.3),
-        transparent 58%
-      ),
-      rgba(#142b42, 0.82);
+    background: rgba($surface-field-end, 0.82);
     translate: 0 -2px;
     outline: none;
   }
@@ -526,7 +491,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     &::after {
       color: rgba($secondary-light, 0.55);
       content: '→';
-      font-size: 0.95rem;
+      font-size: $text-title;
       transition: translate 160ms $ease-out;
     }
   }
@@ -544,7 +509,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   padding: 9px 12px;
   border-radius: $radius-xs;
   border-style: dashed;
-  font-size: 0.82rem;
+  font-size: $text-lead;
   font-weight: $weight-bold;
 }
 
@@ -561,12 +526,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   border: 1px solid rgba($neon-yellow, 0.26);
   border-left: 2px solid rgba($neon-yellow, 0.75);
   border-radius: $radius-s;
-  background: linear-gradient(
-    145deg,
-    rgba($neon-yellow, 0.1),
-    rgba($neon-yellow, 0.03)
-  );
-  font-size: 0.86rem;
+  background: rgba($neon-yellow, 0.1);
+  font-size: $text-lead;
   font-weight: $weight-bold;
   line-height: 1.45;
 
@@ -587,7 +548,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   color: $secondary-light;
   border: 0;
   background: transparent;
-  font-size: 0.82rem;
+  font-size: $text-lead;
   font-weight: $weight-bold;
   text-align: left;
   cursor: pointer;
@@ -614,7 +575,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   align-items: baseline;
   gap: 6px 20px;
   padding-top: 12px;
-  border-top: 1px solid rgba($primary-lighter, 0.1);
+  border-top: 1px solid rgba($edge-tint, 0.1);
 }
 
 .support-dialog__footer {
@@ -622,8 +583,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // its own the moment that leaves it less than a readable measure.
   flex: 1 1 260px;
   margin: 0;
-  color: rgba($primary-lighter, 0.6);
-  font-size: 0.8rem;
+  color: $text-muted;
+  font-size: $text-lead;
   line-height: 1.45;
 
   a {
@@ -661,7 +622,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 
   .support-dialog__craft {
-    font-size: 0.74rem;
+    font-size: $text-body;
     line-height: 1.5;
   }
 
@@ -688,7 +649,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 
   .support-dialog__pitch {
-    font-size: 0.76rem;
+    font-size: $text-body;
     line-height: 1.5;
   }
 
@@ -713,7 +674,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 
   .support-dialog__pitch {
-    font-size: 0.72rem;
+    font-size: $text-body;
   }
 
   .support-method--qr {
@@ -726,7 +687,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   .support-dialog__footer,
   .support-dialog__notes {
-    font-size: 0.68rem;
+    font-size: $text-small;
   }
 }
 
@@ -760,18 +721,18 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .support-dialog__dev-reset {
   margin-left: 10px;
   padding: 1px 7px;
-  color: rgba($primary-lighter, 0.5);
-  border: 1px dashed rgba($primary-lighter, 0.28);
+  color: $text-faint;
+  border: 1px dashed rgba($edge-tint, 0.28);
   border-radius: $radius-s;
   background: none;
-  font-size: 0.66rem;
+  font-size: $text-small;
   font-family: inherit;
   cursor: pointer;
   vertical-align: middle;
 
   &:hover {
-    color: #ff8b98;
-    border-color: rgba(#ff8b98, 0.5);
+    color: $red;
+    border-color: rgba($red, 0.5);
   }
 }
 
@@ -896,7 +857,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   align-items: center;
   margin-right: auto;
   color: rgba($white, 0.88);
-  font-size: 0.86rem;
+  font-size: $text-lead;
   font-weight: $weight-bold;
   gap: 10px;
   letter-spacing: 0.02em;
@@ -931,7 +892,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   border: 1px solid rgba($secondary-light, 0.2);
   border-radius: $radius-pill;
   background: rgba($secondary-default, 0.08);
-  font-size: 0.58rem;
+  font-size: $text-eyebrow;
   font-variant-numeric: tabular-nums;
   font-weight: $weight-bold;
 }

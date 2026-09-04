@@ -71,11 +71,11 @@ const mockSettings = {
 describe('flush', () => {
   describe('stateToString', () => {
     const defaultState = getDefaultState();
-    it('should return empty string if state is disabled', () => {
+    it('should return empty string if state is disabled', async () => {
       expect(stateToString({ ...defaultState, isEnabled: false })).toBe('');
     });
 
-    it('should convert output to correct format', () => {
+    it('should convert output to correct format', async () => {
       const returnedString = stateToString(defaultState);
       expect(returnedString).toMatch(/Device: all\n\rChannel: all\n\r/);
       expect(returnedString).toMatch(/Preamp: 0 dB$/);
@@ -87,7 +87,7 @@ describe('flush', () => {
     // Equalizer APO's ParametricEQ grammar only accepts a Gain token for the
     // peaking and shelf forms. A stray Gain on a band pass, notch or pass
     // filter makes APO reject the whole line.
-    it('emits the Gain token only for filter types that take one', () => {
+    it('emits the Gain token only for filter types that take one', async () => {
       const withGain = [
         FilterTypeEnum.PK,
         FilterTypeEnum.LSC,
@@ -133,7 +133,7 @@ describe('flush', () => {
 
     // A gainless filter still shapes the signal at 0 dB, so unlike a flat
     // peak or shelf it must survive into the config.
-    it('keeps zero-gain band pass and notch filters', () => {
+    it('keeps zero-gain band pass and notch filters', async () => {
       const state = getDefaultState();
       const filter = Object.values(state.filters)[0];
       filter.type = FilterTypeEnum.BP;
@@ -146,13 +146,13 @@ describe('flush', () => {
     // The voicing is a separate layer. APO numbers filters globally, so a
     // duplicate or skipped index silently breaks the config it appends to.
     describe('voicing layer', () => {
-      it('writes nothing when no voicing is selected', () => {
+      it('writes nothing when no voicing is selected', async () => {
         const state = getDefaultState();
         state.voicing = { profileId: '', intensity: 1 };
         expect(stateToString(state)).not.toContain('Filter ');
       });
 
-      it('numbers straight on from the EQ bands', () => {
+      it('numbers straight on from the EQ bands', async () => {
         const state = getDefaultState();
         const bands = Object.values(state.filters).slice(0, 2);
         bands.forEach((band, index) => {
@@ -178,7 +178,7 @@ describe('flush', () => {
       });
 
       // Clearing resets the bands the user tuned, not the target they chose.
-      it('survives a flat EQ', () => {
+      it('survives a flat EQ', async () => {
         const state = getDefaultState();
         state.isFlat = true;
         state.voicing = { profileId: 'speech', intensity: 1 };
@@ -189,7 +189,7 @@ describe('flush', () => {
         expect(output).not.toContain('ON HPQ Fc 85 Hz Gain');
       });
 
-      it('scales gains by intensity and drops the ones that reach zero', () => {
+      it('scales gains by intensity and drops the ones that reach zero', async () => {
         const state = getDefaultState();
         state.isFlat = true;
 
@@ -204,7 +204,7 @@ describe('flush', () => {
         expect(stateToString(state)).not.toContain('Filter ');
       });
 
-      it('ignores an unknown profile', () => {
+      it('ignores an unknown profile', async () => {
         const state = getDefaultState();
         state.isFlat = true;
         state.voicing = { profileId: 'not-a-profile', intensity: 1 };
@@ -224,7 +224,7 @@ describe('flush', () => {
      * So the band half of this case still holds exactly, and the preamp half is
      * deliberately gone — see PREAMP_MIN_GAIN.
      */
-    it('clamps legacy band gains to the safe +/-20 dB range', () => {
+    it('clamps legacy band gains to the safe +/-20 dB range', async () => {
       const state = getDefaultState();
       const firstFilter = Object.values(state.filters)[0];
       firstFilter.gain = 30;
@@ -235,7 +235,7 @@ describe('flush', () => {
       expect(returnedString).not.toContain('Gain 30 dB');
     });
 
-    it('lets the preamp reserve more headroom than a band may ask for', () => {
+    it('lets the preamp reserve more headroom than a band may ask for', async () => {
       const state = getDefaultState();
       // Two fully boosted bands an octave apart, which is a curve the editor
       // invites anybody to draw and which needs more than 20 dB back.
@@ -255,7 +255,7 @@ describe('flush', () => {
       expect(reserved).toBeGreaterThanOrEqual(PREAMP_MIN_GAIN);
     });
 
-    it('omits every filter while the state is explicitly flat', () => {
+    it('omits every filter while the state is explicitly flat', async () => {
       const state = getDefaultState();
       const firstFilter = Object.values(state.filters)[0];
       firstFilter.type = FilterTypeEnum.NO;
@@ -264,7 +264,7 @@ describe('flush', () => {
       expect(stateToString(state)).not.toContain('Filter ');
     });
 
-    it('keeps convolution active when the EQ chain is flat', () => {
+    it('keeps convolution active when the EQ chain is flat', async () => {
       const state = getDefaultState();
       state.isFlat = true;
       state.convolution = {
@@ -283,7 +283,7 @@ describe('flush', () => {
       expect(returnedString).not.toContain('Filter ');
     });
 
-    it('writes GraphicEQ profiles using APO native syntax', () => {
+    it('writes GraphicEQ profiles using APO native syntax', async () => {
       const state = getDefaultState();
       state.eqFormat = AutoEqFormat.GRAPHIC;
       state.graphicEq = [
@@ -299,15 +299,15 @@ describe('flush', () => {
   });
 
   describe('fetchSettings', () => {
-    it('should succesfully fetch settings from the state file', () => {
+    it('should succesfully fetch settings from the state file', async () => {
       const settings: IState = fetchSettings(TEST_DATA_READ_DIR);
       expect(settings).toStrictEqual(mockSettings);
     });
   });
 
   describe('save', () => {
-    it('should succesfully save settings to the state file', () => {
-      save(mockSettings, TEST_DATA_WRITE_DIR);
+    it('should succesfully save settings to the state file', async () => {
+      await save(mockSettings, TEST_DATA_WRITE_DIR);
       expect(
         fs
           .readFileSync(addFileToPath(TEST_DATA_WRITE_DIR, 'state.txt'))
@@ -315,7 +315,7 @@ describe('flush', () => {
       ).toBe(serializeState(mockSettings));
     });
 
-    it('leaves the session measurement out of the state file', () => {
+    it('leaves the session measurement out of the state file', async () => {
       // The type has said SESSION ONLY since the field was added, while this
       // wrote the whole object to disk. It cost nothing for as long as the
       // config writer could not see a measurement at all; now that it can, a
@@ -326,7 +326,7 @@ describe('flush', () => {
         smartHeadroomProgramme: [{ frequency: 1000, gain: -20 }],
         smartHeadroomTrimDb: -3,
       };
-      save(measured, TEST_DATA_WRITE_DIR);
+      await save(measured, TEST_DATA_WRITE_DIR);
       const written = fs
         .readFileSync(addFileToPath(TEST_DATA_WRITE_DIR, 'state.txt'))
         .toString();
@@ -343,13 +343,13 @@ describe('flush', () => {
   });
 
   describe('fetchPreset', () => {
-    beforeAll(() => {
+    beforeAll(async () => {
       fs.copyFileSync(
         addFileToPath(TEST_DATA_READ_DIR, 'presetV1'),
         addFileToPath(TEST_DATA_WRITE_DIR, 'presetV1'),
       );
     });
-    it('should read succesfully a preset of the IPresetV2 format', () => {
+    it('should read succesfully a preset of the IPresetV2 format', async () => {
       const presetName = 'presetV2';
       const preset = fetchPreset(presetName, TEST_DATA_READ_DIR);
       expect(preset).toStrictEqual({
@@ -373,7 +373,7 @@ describe('flush', () => {
       });
     });
 
-    it('should read succesfully a preset of the IPresetV1 format and replace it with a IPresetV2 format', () => {
+    it('should read succesfully a preset of the IPresetV1 format and replace it with a IPresetV2 format', async () => {
       const preset = fetchPreset('presetV1', TEST_DATA_WRITE_DIR);
       expect(preset).toStrictEqual({
         preAmp: 0,
@@ -392,7 +392,7 @@ describe('flush', () => {
   });
 
   describe('save and delete preset', () => {
-    it('should save and delete a preset', () => {
+    it('should save and delete a preset', async () => {
       const presetName = 'newPreset';
       const preset: IPresetV2 = {
         preAmp: 0,
@@ -406,20 +406,20 @@ describe('flush', () => {
           },
         },
       };
-      savePreset(presetName, preset, TEST_DATA_WRITE_DIR);
+      await savePreset(presetName, preset, TEST_DATA_WRITE_DIR);
       expect(doesPresetExist(presetName, TEST_DATA_WRITE_DIR)).toBe(true);
-      deletePreset(presetName, TEST_DATA_WRITE_DIR);
+      await deletePreset(presetName, TEST_DATA_WRITE_DIR);
       expect(doesPresetExist(presetName, TEST_DATA_WRITE_DIR)).toBe(false);
     });
   });
 
   describe('doesPresetExist', () => {
-    it('should return true for an existing preset', () => {
+    it('should return true for an existing preset', async () => {
       const presetName = 'presetV1';
       expect(doesPresetExist(presetName, TEST_DATA_READ_DIR)).toBe(true);
     });
 
-    it('should return false for a non-existing preset', () => {
+    it('should return false for a non-existing preset', async () => {
       const presetName = '404_not_found';
       expect(doesPresetExist(presetName, TEST_DATA_READ_DIR)).toBe(false);
     });
@@ -448,7 +448,7 @@ describe('flush', () => {
       },
     };
 
-    beforeAll(() => {
+    beforeAll(async () => {
       // Create a file with the old file name in case if it doesn't exist
       if (!doesPresetExist(oldPresetName, TEST_DATA_WRITE_DIR)) {
         fs.writeFileSync(
@@ -461,28 +461,28 @@ describe('flush', () => {
       }
     });
 
-    it('should sucessfully rename a preset', () => {
-      renamePreset(oldPresetName, newPresetName, TEST_DATA_WRITE_DIR);
+    it('should sucessfully rename a preset', async () => {
+      await renamePreset(oldPresetName, newPresetName, TEST_DATA_WRITE_DIR);
       expect(doesPresetExist(oldPresetName, TEST_DATA_WRITE_DIR)).toBe(false);
       expect(fetchPreset(newPresetName, TEST_DATA_WRITE_DIR)).toStrictEqual(
         preset,
       );
-      renamePreset(newPresetName, oldPresetName, TEST_DATA_WRITE_DIR);
+      await renamePreset(newPresetName, oldPresetName, TEST_DATA_WRITE_DIR);
     });
   });
 
   describe('checkConfig', () => {
-    it('should return true for an existing preset', () => {
+    it('should return true for an existing preset', async () => {
       expect(() => checkConfigFile(TEST_DATA_DIR)).toThrow();
     });
 
-    it('should return false for a non-existing preset', () => {
+    it('should return false for a non-existing preset', async () => {
       expect(checkConfigFile(TEST_DATA_READ_DIR)).toBe(false);
     });
   });
 
   describe('updateConfig', () => {
-    it('should result in a valid config file', () => {
+    it('should result in a valid config file', async () => {
       updateConfig(TEST_DATA_WRITE_DIR);
       expect(checkConfigFile(TEST_DATA_WRITE_DIR)).toBe(true);
     });

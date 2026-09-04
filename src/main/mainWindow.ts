@@ -18,7 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import path from 'path';
-import { BrowserWindow, app, desktopCapturer, ipcMain } from 'electron';
+import { BrowserWindow, app, desktopCapturer, ipcMain, screen } from 'electron';
 import log from 'electron-log';
 import { PRODUCT_NAME } from '../common/branding';
 import {
@@ -32,6 +32,32 @@ import { contentSecurityPolicy } from './contentSecurityPolicy';
 import MenuBuilder from './menu';
 import { IAuthorizedAutoUpdater } from './signedAutoUpdates';
 import { isAppQuitting } from './tray';
+
+/**
+ * The desktop, blurred, behind the app's own floor.
+ *
+ * Windows 11 draws this itself: DWM composites the blur once for the whole
+ * window, out of process, so it costs the app nothing per frame. A blur done
+ * in the page cannot do this at all — CSS can only sample what is inside the
+ * window, and the desktop is not.
+ *
+ * It rules out a see-through window, which is the trade. Windows will not put
+ * a backdrop material behind a transparent window, so the app cannot draw its
+ * own corners over one either: DWM rounds the window at the system radius
+ * instead, which is about 8px and not adjustable. The stylesheet follows —
+ * `$window-backdrop` there — and the two have to agree, or the shell paints
+ * an opaque floor over a blur nobody can see.
+ *
+ * Acrylic: a live blur of whatever is behind the window, which is the one
+ * that actually shows the desktop. Windows switches it off while the window
+ * is not focused and leaves a flat grey in its place — the shell over it is
+ * opaque enough (see `$window-backdrop`) that what remains is a shade rather
+ * than a slab, which is the trade for having the real thing while working.
+ *
+ * Only Windows 11 has it. Older Windows, macOS and Linux ignore the option
+ * and get the opaque floor the stylesheet falls back to.
+ */
+const WINDOW_BACKDROP_MATERIAL = 'acrylic' as const;
 
 /**
  * How long a renderer gets to paint before the window is shown anyway.
@@ -172,11 +198,21 @@ export const createMainWindowFactory = ({
       ),
       resizable: true,
       frame: false,
+      // Windows 11 rounds a frameless window itself, at the system radius.
+      // Not adjustable, and not negotiable while there is a backdrop
+      // material: see `WINDOW_BACKDROP_MATERIAL`.
+      roundedCorners: true,
+      backgroundMaterial: WINDOW_BACKDROP_MATERIAL,
       // Chromium paints white until the first frame of the page arrives. On a
       // frameless dark window that is a full-size white flash, and it happens
       // before any CSS has loaded, so no stylesheet can prevent it. Matching the
-      // shell's own background means the gap is invisible.
-      backgroundColor: '#04090f',
+      // shell's own background means the gap is invisible. This is
+      // `$surface-base` in _theme.scss; the two move together.
+      // Fully transparent, so the backdrop material is what shows through
+      // wherever the page does not paint. It is also what Chromium fills the
+      // window with before the first frame arrives, which used to be a
+      // full-size white flash and is now the blurred desktop.
+      backgroundColor: '#00000000',
       webPreferences: {
         preload: app.isPackaged
           ? path.join(__dirname, 'preload.js')
@@ -369,8 +405,25 @@ export const createMainWindowFactory = ({
     ipcMain.once(RENDERER_READY_EVENT, revealMainWindow);
     created.on('maximize', sendWindowState);
     created.on('unmaximize', sendWindowState);
-    created.on('enter-full-screen', sendWindowState);
-    created.on('leave-full-screen', sendWindowState);
+    created.on('enter-full-screen', () => {
+      // The backdrop comes off for the duration.
+      //
+      // Windows draws a backdrop material by extending the window frame into
+      // the client area, and that frame keeps its margins through the
+      // full-screen transition: measured on a 2560x1440 display, the window
+      // came to 2544x1424 at 8,8 with a strip of desktop down all four edges.
+      // Full screen has nothing behind it to blur anyway — the window is the
+      // screen — so the material is not being given up for anything.
+      created.setBackgroundMaterial('none');
+      sendWindowState();
+    });
+
+    created.on('leave-full-screen', () => {
+      if (!created.isDestroyed()) {
+        created.setBackgroundMaterial(WINDOW_BACKDROP_MATERIAL);
+      }
+      sendWindowState();
+    });
     // Debounced: dragging a window fires 'resize' continuously, and writing a
     // file on every frame of that would be absurd. 400ms after the user stops.
     let saveTimer: NodeJS.Timeout | undefined;

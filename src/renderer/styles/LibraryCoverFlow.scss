@@ -168,15 +168,16 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   height: 44px;
   place-items: center;
   padding: 0;
-  color: rgba($primary-lighter, 0.72);
-  border: 1px solid rgba($primary-lighter, 0.16);
+  color: $text-muted;
+  border: 1px solid rgba($edge-tint, 0.16);
   border-radius: 50%;
-  background: rgba(6, 22, 33, 0.55);
+  // The shell colour rather than a near-black of its own: this floats over
+  // artwork, and it has to read as the app's own scrim, not as a hole.
+  background: rgba($surface-base, 0.55);
   cursor: pointer;
   // Its own `translate` rather than a `transform`, so the hover nudge below
   // composes with the centring instead of replacing it.
   translate: 0 -50%;
-  backdrop-filter: blur(10px) saturate(1.2);
   transition:
     color 160ms $ease-out,
     border-color 160ms $ease-out,
@@ -545,7 +546,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   flex: 1 1 auto;
   flex-direction: column;
   padding: $spacing-s $spacing-s 0;
-  border-top: 1px solid rgba($primary-lighter, 0.1);
+  border-top: 1px solid rgba($edge-tint, 0.1);
   // Rises out of the seam it opens along, rather than appearing whole. The
   // stage above is still shrinking on its own 340ms as this arrives, so the
   // two read as one movement: the row lifts and the album comes up behind it.
@@ -608,8 +609,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   border: 0;
   border-radius: $radius-xs;
   background: none;
-  color: rgba($primary-lighter, 0.62);
-  font-size: 0.64rem;
+  color: $text-muted;
+  font-size: $text-small;
   font-weight: $weight-bold;
   line-height: 1.4;
   cursor: pointer;

@@ -7,7 +7,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { useEffect, useRef } from 'react';
 import {
   IDenoiseClickSettings,
+  IDenoiseHissSettings,
   IDenoiseHumSettings,
+  TDenoiseProfileSource,
 } from '../../common/dsp/chain';
 import {
   INoiseProfile,
@@ -32,9 +34,10 @@ import { IGraphLoopFrame, startGraphLoop } from './graphLoop';
  *
  * Three modules act and each needs a different kind of picture:
  *
- *  - HISS is a level against frequency, so it is a curve on the same axes as
- *    the spectrum. A floor line that hugs the bottom is a stage removing hiss;
- *    a floor riding up into the programme is a stage removing the programme.
+ *  - HISS is a level against frequency, so it is two curves on the same axes
+ *    as the spectrum: the measured floor and the residual floor after the
+ *    real gain the processor applied. Moving a control moves the second line,
+ *    while the first remains the measurement it was made against.
  *  - HUM is a comb at known frequencies, so it is drawn as the comb: one mark
  *    per partial that will actually be notched, at the depth it will actually
  *    be cut. The whole question about a notch is whether it sits where the
@@ -129,12 +132,16 @@ const GRID_DB = [-30, -60, -90, -120];
 const SPECTRUM_INK = '255, 255, 255';
 /** Warm, matching the amber this app already uses for "pay attention". */
 const FLOOR_INK = '255, 176, 89';
+/** Violet is reserved here for the floor after the actual hiss gain. */
+const HISS_ACTION_INK = '197, 138, 249';
 const HUM_INK = '84, 200, 255';
 /** Green, because this lane reports activity rather than a level. */
 const CLICK_INK = '150, 222, 143';
 
 interface IDspDenoiseGraphProps {
   profile: INoiseProfile | undefined;
+  profileSource: TDenoiseProfileSource;
+  hiss: IDenoiseHissSettings;
   hum: IDenoiseHumSettings;
   click: IDenoiseClickSettings;
   isEnabled: boolean;
@@ -142,6 +149,8 @@ interface IDspDenoiseGraphProps {
 
 const DspDenoiseGraph = ({
   profile,
+  profileSource,
+  hiss,
   hum,
   click,
   isEnabled,
@@ -151,8 +160,22 @@ const DspDenoiseGraph = ({
   const binsRef = useRef<Float32Array>(new Float32Array(0));
   /** The running loop's way in, for a render that has to reach the canvas. */
   const redraw = useRef<(() => void) | undefined>(undefined);
-  const stateRef = useRef({ profile, hum, click, isEnabled });
-  stateRef.current = { profile, hum, click, isEnabled };
+  const stateRef = useRef({
+    profile,
+    profileSource,
+    hiss,
+    hum,
+    click,
+    isEnabled,
+  });
+  stateRef.current = {
+    profile,
+    profileSource,
+    hiss,
+    hum,
+    click,
+    isEnabled,
+  };
 
   /**
    * The click lane's history, kept out of React entirely.
@@ -212,6 +235,8 @@ const DspDenoiseGraph = ({
 
       const {
         profile: measured,
+        profileSource: floorSource,
+        hiss: hissSettings,
         hum: humSettings,
         click: clickSettings,
         isEnabled: live,
@@ -345,17 +370,17 @@ const DspDenoiseGraph = ({
 
       /* ------------------------------------------------- the noise floor */
       /*
-       * The floor the engine is subtracting RIGHT NOW, not the one it was
-       * handed. They are the same in Scanned and completely different in
-       * Adaptive, where the tracker moves every frame — and a mode whose only
-       * evidence is whether the sound got better is a mode nobody can tune.
-       * Falls back to the stored profile when the engine is not running, so
-       * the card still shows what a scan found.
+       * Scanned is the saved measurement and therefore never moves while the
+       * song plays. Only an explicit completed rescan replaces it. Adaptive
+       * reads the engine's live floor, because there the moving estimate is
+       * the feature and a tracker whose only evidence is whether the sound got
+       * better is one nobody can tune. When the engine is idle, the last saved
+       * measurement remains visible.
        */
-      const bands =
-        live && meter.floorBandsDb.length > 0
-          ? meter.floorBandsDb
-          : measured?.bandsDb;
+      let bands = measured?.bandsDb;
+      if (floorSource === 'adaptive' && live && meter.floorBandsDb.length > 0) {
+        bands = meter.floorBandsDb;
+      }
       if (bands && bands.length > 0) {
         /*
          * The profile is a power DENSITY; the spectrum above is
@@ -396,6 +421,41 @@ const DspDenoiseGraph = ({
         context.closePath();
         context.fillStyle = `rgba(${FLOOR_INK}, 0.08)`;
         context.fill();
+
+        /*
+         * The floor after the REAL per-bin gain that reached the audio.
+         *
+         * It is tempting to derive this from Amount and Reduction limit, but
+         * Sensitivity and Smoothing are decisions against the current signal;
+         * their result does not exist in the settings. The native processor
+         * publishes that result, and adding its dB gain to the measured floor
+         * shows the residual bed leaving the stage. The bass protection taper
+         * is visible here too because it is already part of the applied gain.
+         */
+        const hissReduction = meter.hissReductionBandsDb;
+        if (
+          live &&
+          hissSettings.enabled &&
+          hissReduction.length === bands.length
+        ) {
+          context.beginPath();
+          for (let x = 0; x <= plotW; x += 1) {
+            const hz = MIN_HZ * (MAX_HZ / MIN_HZ) ** (x / plotW);
+            const db =
+              noiseProfileLevelAt(bands, hz) +
+              widthDb +
+              noiseProfileLevelAt(hissReduction, hz);
+            const y = toY(db);
+            if (x === 0) {
+              context.moveTo(PAD_L, y);
+            } else {
+              context.lineTo(PAD_L + x, y);
+            }
+          }
+          context.strokeStyle = `rgba(${HISS_ACTION_INK}, 0.95)`;
+          context.lineWidth = 1.75;
+          context.stroke();
+        }
         context.lineWidth = 1;
       }
 
@@ -497,6 +557,9 @@ const DspDenoiseGraph = ({
         </span>
         <span className="dsp-denoise-legend-key is-floor">
           {t('dsp.denoise.graphFloor')}
+        </span>
+        <span className="dsp-denoise-legend-key is-hiss-action">
+          {t('dsp.denoise.graphHissAction')}
         </span>
         <span className="dsp-denoise-legend-key is-hum">
           {t('dsp.denoise.graphHum')}

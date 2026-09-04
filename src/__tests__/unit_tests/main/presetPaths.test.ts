@@ -44,7 +44,7 @@ describe('profile names as file paths', () => {
   let presetsDir: string;
   let outside: string;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     root = fs.mkdtempSync(path.join(os.tmpdir(), 'fluideq-presets-'));
     presetsDir = path.join(root, 'presets');
     fs.mkdirSync(presetsDir);
@@ -54,7 +54,7 @@ describe('profile names as file paths', () => {
     fs.writeFileSync(outside, 'still here', { encoding: 'utf8' });
   });
 
-  afterEach(() => {
+  afterEach(async () => {
     fs.rmSync(root, { recursive: true, force: true });
   });
 
@@ -68,63 +68,65 @@ describe('profile names as file paths', () => {
     'nested\\name',
   ];
 
-  it('refuses to save through a name that leaves the directory', () => {
-    escapes.forEach((name) => {
+  it('refuses to save through a name that leaves the directory', async () => {
+    escapes.forEach(async (name) => {
       expect(() => savePreset(name, preset(), presetsDir)).toThrow();
     });
     expect(fs.readFileSync(outside, 'utf8')).toBe('still here');
     expect(fs.readdirSync(presetsDir)).toHaveLength(0);
   });
 
-  it('refuses to delete through one, which is the worst of them', () => {
+  it('refuses to delete through one, which is the worst of them', async () => {
     // `fs.unlinkSync` on a path the caller chose is arbitrary file deletion,
     // and DELETE_PRESET did not even run the reserved-name check the save path
     // ran. Nothing outside the directory may be removed.
-    escapes.forEach((name) => {
-      expect(() => deletePreset(name, presetsDir)).toThrow();
-    });
+    await Promise.all(
+      escapes.map(async (name) => {
+        await expect(deletePreset(name, presetsDir)).rejects.toThrow();
+      }),
+    );
     expect(fs.existsSync(outside)).toBe(true);
   });
 
-  it('refuses to read through one', () => {
-    escapes.forEach((name) => {
+  it('refuses to read through one', async () => {
+    escapes.forEach(async (name) => {
       expect(() => fetchPreset(name, presetsDir)).toThrow();
     });
   });
 
-  it('refuses either end of a rename', () => {
-    savePreset('real.txt', preset(), presetsDir);
-    expect(() =>
+  it('refuses either end of a rename', async () => {
+    await savePreset('real.txt', preset(), presetsDir);
+    await expect(
       renamePreset('real.txt', '../escaped.txt', presetsDir),
-    ).toThrow();
-    expect(() =>
+    ).rejects.toThrow();
+    await expect(
       renamePreset('../do-not-touch.txt', 'x.txt', presetsDir),
-    ).toThrow();
+    ).rejects.toThrow();
     expect(fs.existsSync(path.join(root, 'escaped.txt'))).toBe(false);
     expect(fs.readFileSync(outside, 'utf8')).toBe('still here');
   });
 
-  it('answers "no" rather than throwing when asked whether one exists', () => {
+  it('answers "no" rather than throwing when asked whether one exists', async () => {
     // The callers are asking whether a name is taken. A name no profile can be
     // stored under is not taken, and saying so keeps the caller working.
-    escapes.forEach((name) => {
+    escapes.forEach(async (name) => {
       expect(doesPresetExist(name, presetsDir)).toBe(false);
     });
   });
 
-  it('still does all of that for ordinary names', () => {
+  it('still does all of that for ordinary names', async () => {
     // The guard has to be invisible to everybody who is not attacking it.
     // Spaces, dots and non-ASCII are all legitimate in a profile name.
     const name = 'Café monitors v2.1.txt';
-    savePreset(name, preset(), presetsDir);
+    await savePreset(name, preset(), presetsDir);
     expect(doesPresetExist(name, presetsDir)).toBe(true);
     expect(fetchPreset(name, presetsDir)).toMatchObject({ preAmp: -3 });
 
-    renamePreset(name, 'Café monitors v2.2.txt', presetsDir);
+    await renamePreset(name, 'Café monitors v2.2.txt', presetsDir);
     expect(doesPresetExist(name, presetsDir)).toBe(false);
     expect(doesPresetExist('Café monitors v2.2.txt', presetsDir)).toBe(true);
 
-    deletePreset('Café monitors v2.2.txt', presetsDir);
+    await deletePreset('Café monitors v2.2.txt', presetsDir);
     expect(doesPresetExist('Café monitors v2.2.txt', presetsDir)).toBe(false);
   });
 });

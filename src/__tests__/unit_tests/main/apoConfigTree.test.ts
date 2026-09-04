@@ -57,7 +57,7 @@ describe('reading the whole config as a tree', () => {
     },
   };
 
-  beforeEach(() => {
+  beforeEach(async () => {
     configDir = fs.mkdtempSync(path.join(os.tmpdir(), 'fluideq-tree-'));
     presetsDir = fs.mkdtempSync(path.join(os.tmpdir(), 'fluideq-tree-p-'));
     fs.writeFileSync(
@@ -83,13 +83,13 @@ describe('reading the whole config as a tree', () => {
     );
   });
 
-  afterEach(() => {
+  afterEach(async () => {
     fs.rmSync(configDir, { recursive: true, force: true });
     fs.rmSync(presetsDir, { recursive: true, force: true });
   });
 
-  it('gives every output its own branch, in the order the config lists them', () => {
-    flushDeviceProfiles(settings, () => presetsDir, configDir);
+  it('gives every output its own branch, in the order the config lists them', async () => {
+    await flushDeviceProfiles(settings, () => presetsDir, configDir);
 
     const tree = readApoConfigTree(configDir);
 
@@ -102,8 +102,8 @@ describe('reading the whole config as a tree', () => {
     ]);
   });
 
-  it('carries the label, the preamp and the filter count for a device', () => {
-    flushDeviceProfiles(settings, () => presetsDir, configDir);
+  it('carries the label, the preamp and the filter count for a device', async () => {
+    await flushDeviceProfiles(settings, () => presetsDir, configDir);
 
     const tree = readApoConfigTree(configDir);
     const kraken = tree?.devices.find((d) => d.devicePattern === KRAKEN);
@@ -114,8 +114,8 @@ describe('reading the whole config as a tree', () => {
     expect(kraken?.filterCount).toBeGreaterThan(1);
   });
 
-  it('keeps the include structure rather than flattening it', () => {
-    flushDeviceProfiles(settings, () => presetsDir, configDir);
+  it('keeps the include structure rather than flattening it', async () => {
+    await flushDeviceProfiles(settings, () => presetsDir, configDir);
 
     const tree = readApoConfigTree(configDir);
     const kraken = tree?.devices.find((d) => d.devicePattern === KRAKEN);
@@ -139,8 +139,8 @@ describe('reading the whole config as a tree', () => {
     ).toBe(true);
   });
 
-  it('says so when an output applies nothing at all', () => {
-    flushDeviceProfiles(settings, () => presetsDir, configDir);
+  it('says so when an output applies nothing at all', async () => {
+    await flushDeviceProfiles(settings, () => presetsDir, configDir);
 
     const tree = readApoConfigTree(configDir);
     const speakers = tree?.devices.find((d) => d.devicePattern === SPEAKERS);
@@ -156,7 +156,7 @@ describe('reading the whole config as a tree', () => {
 
   // A file named by an Include that is not there is the single most useful
   // thing this view can report, because it is silent everywhere else.
-  it('marks an include that points at nothing', () => {
+  it('marks an include that points at nothing', async () => {
     fs.writeFileSync(
       path.join(configDir, FLUIDEQ_CONFIG_FILENAME),
       [
@@ -173,18 +173,18 @@ describe('reading the whole config as a tree', () => {
     expect(kraken?.filterCount).toBe(0);
   });
 
-  it('returns nothing when FluidEQ has never written here', () => {
+  it('returns nothing when FluidEQ has never written here', async () => {
     expect(readApoConfigTree(configDir)).toBeUndefined();
   });
 
   // Three ways to be silent, and only one of them is a chain that happens to
   // be flat. A tree of files looks identical in all three.
-  it('says whether any of it is being applied', () => {
-    flushDeviceProfiles(settings, () => presetsDir, configDir);
+  it('says whether any of it is being applied', async () => {
+    await flushDeviceProfiles(settings, () => presetsDir, configDir);
     expect(readApoConfigTree(configDir)?.isApplied).toBe(true);
 
     // The engine switch: a config that names no output at all.
-    flushDeviceProfiles(
+    await flushDeviceProfiles(
       settings,
       () => presetsDir,
       configDir,
@@ -196,8 +196,8 @@ describe('reading the whole config as a tree', () => {
 
   // Everything below is inert if Equalizer APO is not reading the root file,
   // and that is APO's own config.txt — anything can have rewritten it.
-  it('says whether Equalizer APO is including the config at all', () => {
-    flushDeviceProfiles(settings, () => presetsDir, configDir);
+  it('says whether Equalizer APO is including the config at all', async () => {
+    await flushDeviceProfiles(settings, () => presetsDir, configDir);
     expect(readApoConfigTree(configDir)?.isIncludedByApo).toBe(false);
 
     fs.writeFileSync(

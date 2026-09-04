@@ -28,6 +28,7 @@ import {
   MIN_QUALITY,
   TApoLayer,
 } from 'common/constants';
+import { SelectionMode } from 'common/bandSelection';
 import { ErrorDescription } from 'common/errors';
 import { GRAPH_PALETTES, GraphPalette } from 'common/graphStyles';
 import { TranslationKey } from 'common/i18n';
@@ -58,6 +59,7 @@ import {
 import { getLineGainAtFrequency } from './utils';
 import { plotTopMargin } from './plotMargins';
 import { ColorEnum } from '../styles/color';
+import { useInternalClipping } from '../audio/internalClipping';
 import {
   useLiveAudioCapture,
   useLiveAudioFrame,
@@ -409,7 +411,8 @@ const CurveLegendMenu = ({ chips }: { chips: ICurveChip[] }) => {
 const LiveClipWarning = () => {
   const { t } = useTranslation();
   const { isClipping } = useLiveAudioFrame();
-  return isClipping ? (
+  const isInternallyClipping = useInternalClipping();
+  return isClipping || isInternallyClipping ? (
     <span className="graph-clip-warning" role="status">
       {t('graph.clip')}
     </span>
@@ -656,6 +659,7 @@ const FrequencyResponseChart = ({
     dispatchFilter,
     selectedFilterIds,
     setSelectedFilterIds,
+    nextFilterSelection,
     hoveredFilterId,
     setHoveredFilterId,
     voicing,
@@ -666,7 +670,11 @@ const FrequencyResponseChart = ({
     customFx,
   } = useFluidEqContext();
   const isGraphViewOn = isVisible ?? isGlobalGraphViewOn;
-  const isDisplayedGridHidden = isClean || isGridHidden;
+  // Clean takes the drawing off the paper, not the paper: the grid stays
+  // unless the user has hidden it themselves. It used to go with the
+  // curves, and a card with nothing on it at all read as the graph having
+  // failed rather than as a stage.
+  const isDisplayedGridHidden = isGridHidden;
   const isDisplayedCoverageHidden =
     isClean || isCoverageHidden || !isEngineUsable;
   const canEditEqCurve =
@@ -852,15 +860,8 @@ const FrequencyResponseChart = ({
   >(undefined);
 
   const handlePointSelect = useCallback(
-    (filterId: string, additive: boolean, grab: IChartPointData) => {
-      let ids = [filterId];
-      if (additive) {
-        ids = selectedFilterIds.includes(filterId)
-          ? selectedFilterIds.filter((id) => id !== filterId)
-          : [...selectedFilterIds, filterId];
-      } else if (selectedFilterIds.includes(filterId)) {
-        ids = selectedFilterIds;
-      }
+    (filterId: string, mode: SelectionMode, grab: IChartPointData) => {
+      const ids = nextFilterSelection(filterId, mode);
       pointDragState.current = {
         sourceId: filterId,
         ids,
@@ -877,7 +878,7 @@ const FrequencyResponseChart = ({
       };
       setSelectedFilterIds(ids);
     },
-    [filters, selectedFilterIds, setSelectedFilterIds],
+    [filters, nextFilterSelection, setSelectedFilterIds],
   );
 
   const flushPointEdit = useCallback(
@@ -1340,7 +1341,10 @@ const FrequencyResponseChart = ({
    */
   const displayData = useMemo(
     () =>
-      isSolo && hasRecentAudio
+      // Clean draws nothing on the paper; the paper itself — the grid and
+      // its scale — stays, which is why the chart is still mounted in that
+      // state and is simply handed no curves.
+      isClean || (isSolo && hasRecentAudio)
         ? []
         : // Anything switched off in the legend is dropped rather than drawn
           // transparent, for the same reason solo drops these wholesale: a path
@@ -1353,7 +1357,7 @@ const FrequencyResponseChart = ({
           appliedChartData.filter(
             (curve) => !hiddenCurves.includes(CURVE_BY_CHART_ID[curve.id]),
           ),
-    [appliedChartData, hasRecentAudio, hiddenCurves, isSolo],
+    [appliedChartData, hasRecentAudio, hiddenCurves, isClean, isSolo],
   );
 
   /**
@@ -1454,8 +1458,8 @@ const FrequencyResponseChart = ({
         data: { x: filter.frequency, y: curveGain },
         selected: selectedFilterIds.includes(filter.id),
         hovered: hoveredFilterId === filter.id,
-        onSelect: (additive: boolean, grab: IChartPointData) =>
-          handlePointSelect(filter.id, additive, grab),
+        onSelect: (mode: SelectionMode, grab: IChartPointData) =>
+          handlePointSelect(filter.id, mode, grab),
         onHover: (isHovered: boolean) =>
           setHoveredFilterId(isHovered ? filter.id : ''),
         onChange: (point: IChartPointData) => handlePointMove(filter.id, point),
@@ -1832,28 +1836,11 @@ const FrequencyResponseChart = ({
               onToggleTopBar={toggleFullScreenTopBar}
             />
           </span>
-          {/* THE WAY OUT, ON SCREEN RATHER THAN ONLY ON A KEY.
-              Escape still leaves full screen, but the visible exit belongs to
-              this pane with the other graph controls. Keeping it inside the
-              group prevents a detached pill from colliding with Karaoke's
-              song tools underneath. */}
-          {isFullScreen && (
-            <button
-              type="button"
-              className="graph-fullscreen-exit"
-              onClick={exitGraphFullScreen}
-              title={t('graph.view.exitFullscreen')}
-              aria-label={t('graph.view.exitFullscreen')}
-            >
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path
-                  fill="currentColor"
-                  stroke="none"
-                  d="M5 16h3v3h2v-5H5v2Zm3-8H5v2h5V5H8v3Zm6 11h2v-3h3v-2h-5v5Zm2-11V5h-2v5h5V8h-3Z"
-                />
-              </svg>
-            </button>
-          )}
+          {/* No way out here any more. Full screen keeps the app's own top
+              bar, and the window's restore button in it says "restore" and
+              does exactly this — two controls for the same thing, a hand's
+              width apart. Escape still leaves, and so does double-clicking
+              the plot. */}
         </span>
         {/* Its own subscriber, so that a badge which is absent almost all of the
             time does not wake the graph up to say so. */}
@@ -1888,34 +1875,35 @@ const FrequencyResponseChart = ({
         </div>
       )}
       <div className="graph-plot" ref={ref}>
-        {!isClean &&
-          (isLoading ? (
-            <div className="center full row">
-              <Spinner />
-            </div>
-          ) : (
-            <Chart
-              data={displayData}
-              // The band curves, which are also the only curves: the live trace
-              // is not in `data` at all any more, so nothing the analyser does can
-              // make the y-extent memos rescan every point.
-              scaleData={appliedChartData}
-              dimensions={dimensions}
-              editablePoints={canEditEqCurve ? editablePoints : []}
-              liveCurves={liveCurves}
-              isLiveOutputForeground={isLiveOutputForeground}
-              onMarqueeSelect={
-                canEditEqCurve
-                  ? (ids, additive) =>
-                      setSelectedFilterIds(
-                        additive
-                          ? [...new Set([...selectedFilterIds, ...ids])]
-                          : ids,
-                      )
-                  : undefined
-              }
-            />
-          ))}
+        {/* Mounted in Clean too, with nothing to draw: the grid is the
+            chart's, and Clean keeps the grid. */}
+        {isLoading ? (
+          <div className="center full row">
+            <Spinner />
+          </div>
+        ) : (
+          <Chart
+            data={displayData}
+            // The band curves, which are also the only curves: the live trace
+            // is not in `data` at all any more, so nothing the analyser does can
+            // make the y-extent memos rescan every point.
+            scaleData={appliedChartData}
+            dimensions={dimensions}
+            editablePoints={canEditEqCurve ? editablePoints : []}
+            liveCurves={liveCurves}
+            isLiveOutputForeground={isLiveOutputForeground}
+            onMarqueeSelect={
+              canEditEqCurve
+                ? (ids, additive) =>
+                    setSelectedFilterIds(
+                      additive
+                        ? [...new Set([...selectedFilterIds, ...ids])]
+                        : ids,
+                    )
+                : undefined
+            }
+          />
+        )}
       </div>
       {/* Inside the graph card, alongside the plot rather than over in a
           dialog of its own — what the panel is for is watching this chart

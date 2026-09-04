@@ -45,7 +45,7 @@ it under the terms of the GNU General Public License version 3 or later.
   max-width: 46ch;
   margin: 0 auto;
   color: $neon-yellow;
-  font-size: 0.92rem;
+  font-size: $text-title;
   font-weight: $weight-semibold;
   line-height: 1.55;
   text-align: center;
@@ -66,8 +66,8 @@ it under the terms of the GNU General Public License version 3 or later.
   margin: 14px auto 0;
   padding-top: 14px;
   border-top: 1px solid rgba($secondary-default, 0.14);
-  color: rgba($primary-lighter, 0.64);
-  font-size: 0.84rem;
+  color: $text-muted;
+  font-size: $text-lead;
   font-style: italic;
   line-height: 1.55;
   text-align: center;
@@ -161,8 +161,8 @@ it under the terms of the GNU General Public License version 3 or later.
     border-radius: $radius-s;
     background: linear-gradient(
       180deg,
-      rgba(#0a1420, 0.9),
-      rgba(#060d16, 0.94)
+      rgba($surface-base, 0.9),
+      rgba($surface-well, 0.94)
     );
   }
 
@@ -219,7 +219,7 @@ it under the terms of the GNU General Public License version 3 or later.
     right: 12px;
     left: 12px;
     color: $neon-yellow;
-    font-size: 0.82rem;
+    font-size: $text-lead;
     font-weight: $weight-semibold;
     text-align: center;
     text-shadow: 0 0 12px rgba($neon-yellow, 0.35);
@@ -237,7 +237,7 @@ it under the terms of the GNU General Public License version 3 or later.
     right: 0;
     left: 0;
     height: 1px;
-    background: rgba($primary-lighter, 0.1);
+    background: rgba($edge-tint, 0.1);
     content: '';
   }
 }
@@ -287,7 +287,7 @@ it under the terms of the GNU General Public License version 3 or later.
   justify-content: center;
   gap: 8px;
   margin: 0;
-  font-size: 0.64rem;
+  font-size: $text-small;
   font-weight: $weight-bold;
   letter-spacing: 0.1em;
   text-align: center;
@@ -299,7 +299,7 @@ it under the terms of the GNU General Public License version 3 or later.
 // it should feel like it is being paid out.
 .rhythm-game__verdict-multiplier {
   color: $neon-lime;
-  font-size: 0.7rem;
+  font-size: $text-body;
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.02em;
   animation: rhythm-multiplier-flare 520ms ease-out;
@@ -337,17 +337,17 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 
   &--good {
-    color: rgba($primary-lighter, 0.8);
+    color: $text-muted;
   }
 
   &--miss {
-    color: #ff8b98;
+    color: $red;
   }
 
   // The standing hint, before anyone has tapped. Quiet, and it does not animate
   // — it is instruction, not feedback.
   &--idle {
-    color: rgba($primary-lighter, 0.45);
+    color: $text-faint;
     animation: none;
     font-weight: $weight-regular;
     letter-spacing: 0.06em;

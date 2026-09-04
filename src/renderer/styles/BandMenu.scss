@@ -1,0 +1,89 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'theme' as *;
+
+// The menu's width, shared by the anchor: `AnchoredMenu` hangs a menu from
+// the RIGHT edge of what it is anchored to, which is right for a toolbar
+// button and wrong for a pointer. An anchor exactly as wide as the menu,
+// starting at the pointer, puts the menu's left edge at the pointer — a
+// context menu, where the click was.
+$band-menu-width: 200px;
+
+// An empty box parked where the band was right-clicked, for the menu to
+// hang from. Fixed, so it lands at the pointer wherever the plot has
+// scrolled to; portalled to the body so "fixed" means the viewport.
+.band-menu__anchor {
+  position: fixed;
+  z-index: 1000;
+  width: $band-menu-width;
+  height: 1px;
+  pointer-events: none;
+}
+
+// The same menu as View's and the Voicing pick's: the menu surface, rows
+// that light with the accent under the pointer, the icon beside the name.
+.band-menu {
+  @include menu-surface;
+  z-index: 1001;
+  display: grid;
+  width: $band-menu-width;
+  padding: 5px;
+  gap: 1px;
+
+  button {
+    display: grid;
+    align-items: center;
+    gap: 9px;
+    grid-template-columns: 16px minmax(0, 1fr);
+    padding: 8px 10px;
+    color: $text-primary;
+    border: 1px solid transparent;
+    border-radius: $radius-xs;
+    background: transparent;
+    font-size: $text-body;
+    text-align: left;
+    cursor: pointer;
+    transition: $transition-control;
+
+    &:hover,
+    &:focus-visible {
+      color: $white;
+      background: $hover-accent;
+      outline: none;
+    }
+  }
+}
+
+.band-menu__subject {
+  margin: 0;
+  padding: 6px 10px 5px;
+  color: $text-accent;
+  font-size: $text-eyebrow;
+  font-weight: $weight-bold;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.band-menu__icon {
+  width: 16px;
+  height: 16px;
+  color: $text-muted;
+
+  button:hover > &,
+  button:focus-visible > & {
+    color: $secondary-light;
+  }
+}
+
+.band-menu__rule {
+  height: 1px;
+  margin: 4px 6px;
+  background: $border-subtle;
+}

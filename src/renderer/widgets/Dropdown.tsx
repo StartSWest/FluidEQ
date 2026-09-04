@@ -33,7 +33,7 @@ import {
 } from 'react';
 import { createPortal } from 'react-dom';
 import { suggestSearches } from 'common/searchHistory';
-import ArrowIcon from '../icons/ArrowIcon';
+import Chevron from '../icons/Chevron';
 import '../styles/Dropdown.scss';
 import { useClickOutside, useFocusOutside } from '../utils/utils';
 import List, { renderOptionDisplay } from './List';
@@ -546,6 +546,10 @@ const Dropdown = ({
           isFilterable ? (
             <div className="dropdown-filter-tools">
               <div className="dropdown-filter-field">
+                <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+                  <circle cx="7" cy="7" r="4.5" />
+                  <path d="M10.5 10.5L14 14" />
+                </svg>
                 <TextInput
                   ref={filterInputRef}
                   value={searchString}
@@ -559,7 +563,7 @@ const Dropdown = ({
                 {searchString.length > 0 && (
                   <button
                     type="button"
-                    className="dropdown-filter-field__clear"
+                    className="menu-search__clear"
                     aria-label={t('common.clearSearch')}
                     title={t('common.clearSearch')}
                     // Pressing a button focuses it, and this one unmounts on
@@ -640,7 +644,7 @@ const Dropdown = ({
         {options.length !== 0
           ? selectedEntry || noSelectionPlaceholder || nullElement
           : emptyOptionsPlaceholder || nullElement}
-        <ArrowIcon type="down" className="arrow" />
+        <Chevron className="arrow" />
       </div>
       {menu && createPortal(menu, document.body)}
     </div>

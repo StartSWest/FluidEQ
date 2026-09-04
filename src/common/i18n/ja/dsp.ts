@@ -73,6 +73,7 @@ const dsp = {
     '残す信号を除去 — 取り除かれる成分だけが聞こえます。',
   'dsp.denoise.graphOutput': '出力',
   'dsp.denoise.graphFloor': 'ノイズフロア',
+  'dsp.denoise.graphHissAction': '適用中のヒス低減',
   'dsp.denoise.graphHum': 'ハム',
   'dsp.denoise.graphIdle': '待機',
   'dsp.denoise.graphClicks': 'クリック修復',

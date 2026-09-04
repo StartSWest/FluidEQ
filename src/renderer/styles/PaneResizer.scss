@@ -17,6 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 @use 'color' as *;
+@use 'theme' as *;
 
 // The divider between a pane and the one under it.
 //
@@ -39,7 +40,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     width: 44px;
     height: 3px;
     border-radius: 999px;
-    background: rgba($primary-lighter, 0.18);
+    background: rgba($edge-tint, 0.18);
     transition:
       background 140ms ease,
       width 140ms ease;

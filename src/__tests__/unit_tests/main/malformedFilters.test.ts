@@ -16,15 +16,16 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { stateToString } from '../../../main/flush';
 import {
+  DEFAULT_QUALITY,
   FilterTypeEnum,
   clampFrequency,
   clampGain,
   clampQuality,
   getDefaultState,
   IFilter,
-} from '../../../common/constants';
+} from 'common/constants';
+import { stateToString } from '../../../main/flush';
 
 const band = (over: Partial<IFilter>): IFilter => ({
   id: 'b',
@@ -51,7 +52,7 @@ describe('malformed bands never reach Equalizer APO', () => {
       expect(clampGain(NaN)).toBe(0);
       expect(clampGain(Infinity)).toBe(0);
       expect(clampGain(-Infinity)).toBe(0);
-      expect(clampQuality(NaN)).toBe(1);
+      expect(clampQuality(NaN)).toBe(DEFAULT_QUALITY);
       expect(clampFrequency(NaN)).toBe(1);
     });
 

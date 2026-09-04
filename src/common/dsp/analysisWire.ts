@@ -51,7 +51,8 @@ export const ANALYSIS_BASS_FORGE_BANDS = 8;
  * Denoise's forty floor bands then took it to 320. Then the two bass stages:
  * sixteen floats for Forge's eight bands in and out and three for Punch's
  * gains, which is 76 bytes onto 320 and lands on 396 — rounded to 400 by one
- * explicit pad float, for the same alignment reason.
+ * explicit pad float, for the same alignment reason. The forty actual hiss
+ * gain bands append 160 bytes after that complete layout, taking it to 560.
  * Every pre-existing offset is untouched on purpose: this constant, the
  * publisher in `meters.cpp` and the reader in `dspHost/wire.ts` all have to
  * move in one commit, and new fields go after everything already decoded,
@@ -65,7 +66,7 @@ export const ANALYSIS_BASS_FORGE_BANDS = 8;
  * believed: three separate readers of it set out to add a check that has been
  * there since the graphs were first fed from the engine.
  */
-export const ANALYSIS_HEADER_BYTES = 400;
+export const ANALYSIS_HEADER_BYTES = 560;
 
 /** The rack ceiling, matching FEQ_METER_MAX_BANDS. */
 export const ANALYSIS_MAX_BANDS = 64;
@@ -235,6 +236,8 @@ export interface IHostAnalysisDenoise {
    * moved underneath it. Same density units as `INoiseProfile.bandsDb`.
    */
   floorBandsDb: readonly number[];
+  /** Actual hiss gain per profile band in dB; zero means unchanged. */
+  hissReductionBandsDb: readonly number[];
 }
 
 /**

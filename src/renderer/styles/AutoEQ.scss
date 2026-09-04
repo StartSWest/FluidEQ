@@ -63,7 +63,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     align-items: center;
     gap: 7px;
     color: rgba($white, 0.88);
-    font-size: 0.72rem;
+    font-size: $text-body;
 
     .menu-icon {
       width: 15px;
@@ -87,7 +87,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     flex: 0 0 auto;
     place-items: center;
     padding: 0;
-    color: rgba($primary-lighter, 0.62);
+    color: $text-muted;
     border: 1px solid transparent;
     border-radius: $radius-xs;
     background: transparent;
@@ -128,7 +128,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   .opra-credit {
     display: grid;
     padding: 10px 0 2px;
-    border-top: 1px solid rgba($primary-lighter, 0.09);
+    border-top: 1px solid rgba($edge-tint, 0.09);
     margin-top: 4px;
     gap: 10px;
     grid-template-columns: max-content 1fr;
@@ -137,7 +137,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     p {
       margin: 0;
       color: $text-muted;
-      font-size: 0.68rem;
+      font-size: $text-small;
       line-height: 1.35;
     }
 
@@ -201,9 +201,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     flex-direction: column;
     justify-content: center;
     gap: 12px;
-    border: 1px solid rgba($white, 0.075);
+    border: 1px solid $border-subtle;
     border-radius: $radius-s;
-    background: rgba($black, 0.14);
+    // The block colour, like every other card on a pane. Black at 14% over
+    // the pane came out below the window's own floor, so the one box on this
+    // page that holds a drawing was the darkest thing on it.
+    background: $surface-plot;
   }
 
   .autoeq-curve--empty {
@@ -222,14 +225,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
     strong {
       color: rgba($white, 0.82);
-      font-size: 0.74rem;
+      font-size: $text-body;
     }
 
     p {
       max-width: 260px;
       margin: 0;
       color: $text-muted;
-      font-size: 0.66rem;
+      font-size: $text-small;
       line-height: 1.45;
     }
   }
@@ -250,12 +253,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
     strong {
       color: rgba($white, 0.9);
-      font-size: 0.72rem;
+      font-size: $text-body;
     }
 
     small {
       color: $text-muted;
-      font-size: 0.64rem;
+      font-size: $text-small;
     }
   }
 
@@ -265,7 +268,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     min-width: 0;
     max-width: 100%;
     justify-content: flex-end;
-    font-size: 0.66rem;
+    font-size: $text-small;
 
     .menu-icon {
       width: 13px;
@@ -284,7 +287,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     margin: 0;
     padding: 2px 0 0;
     color: $text-muted;
-    font-size: 0.66rem;
+    font-size: $text-small;
 
     a {
       color: $secondary-light;
@@ -312,7 +315,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   > .button {
     min-width: 104px;
-    height: $control-height-lg;
+    // The small button's own height, like every other button in the app. It
+    // was the large control height — 46px against the 32 the toolbar, the
+    // sidebar and the import row all use — so the one button on this page
+    // stood half a row taller than every button beside it.
+    height: $control-height-sm;
     align-self: end;
   }
 }
@@ -327,7 +334,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   &__title {
     @include truncate;
     color: rgba($white, 0.86);
-    font-size: 0.68rem;
+    font-size: $text-small;
     font-weight: $weight-semibold;
     letter-spacing: 0.02em;
     line-height: 18px;
@@ -338,8 +345,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // and left the reader to work out which card they belonged to.
   &__hint {
     margin: 0;
-    color: rgba($primary-lighter, 0.62);
-    font-size: 0.67rem;
+    color: $text-muted;
+    font-size: $text-small;
     line-height: 1.4;
   }
 }
@@ -371,8 +378,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 
   small {
-    color: rgba($primary-lighter, 0.58);
-    font-size: 0.6rem;
+    color: $text-faint;
+    font-size: $text-micro;
   }
 }
 
@@ -385,12 +392,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   strong {
     @include truncate;
     color: rgba($white, 0.92);
-    font-size: 0.72rem;
+    font-size: $text-body;
   }
 
   small {
-    color: rgba($primary-lighter, 0.6);
-    font-size: 0.62rem;
+    color: $text-muted;
+    font-size: $text-micro;
   }
 }
 
@@ -420,7 +427,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   justify-content: flex-end;
   gap: $spacing-s;
   color: $text-muted;
-  font-size: 0.67rem;
+  font-size: $text-small;
 }
 
 // *** Responsive *************************************************************

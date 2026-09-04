@@ -48,7 +48,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   h2 {
     margin: 0;
     color: $white;
-    font-size: 0.98rem;
+    font-size: $text-title;
   }
 
   button {
@@ -61,7 +61,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     border: none;
     border-radius: 50%;
     background: none;
-    color: rgba($primary-lighter, 0.6);
+    color: $text-muted;
     cursor: pointer;
 
     svg {
@@ -82,8 +82,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 .troubleshoot__lead {
   margin: 8px 0 14px;
-  color: rgba($primary-lighter, 0.8);
-  font-size: 0.78rem;
+  color: $text-muted;
+  font-size: $text-lead;
   line-height: 1.5;
 }
 
@@ -96,8 +96,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   > li {
     margin-bottom: 14px;
     padding-bottom: 14px;
-    border-bottom: 1px solid rgba($primary-lighter, 0.08);
-    color: rgba($primary-lighter, 0.78);
+    border-bottom: 1px solid rgba($edge-tint, 0.08);
+    color: $text-muted;
 
     &:last-child {
       margin-bottom: 0;
@@ -115,7 +115,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   p {
     margin: 4px 0 0;
-    font-size: 0.74rem;
+    font-size: $text-body;
     line-height: 1.5;
   }
 }
@@ -128,13 +128,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   h3 {
     margin: 0;
     color: $white;
-    font-size: 0.82rem;
+    font-size: $text-lead;
   }
 }
 
 .troubleshoot__tried {
   color: $secondary-light;
-  font-size: 0.6rem;
+  font-size: $text-micro;
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
@@ -143,7 +143,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // press a button that reboots their computer should not have to find that out
 // in the middle of a paragraph about symptoms.
 .troubleshoot__cost {
-  color: rgba($primary-lighter, 0.52);
+  color: $text-faint;
   font-style: italic;
 }
 
@@ -154,7 +154,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   border-radius: 999px;
   background: rgba($secondary-light, 0.12);
   color: $secondary-light;
-  font-size: 0.72rem;
+  font-size: $text-body;
   cursor: pointer;
   transition:
     background 140ms ease,
@@ -170,12 +170,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .troubleshoot__foot {
   margin: 16px 0 0;
   padding-top: 14px;
-  border-top: 1px solid rgba($primary-lighter, 0.08);
-  color: rgba($primary-lighter, 0.6);
-  font-size: 0.72rem;
+  border-top: 1px solid rgba($edge-tint, 0.08);
+  color: $text-muted;
+  font-size: $text-body;
   line-height: 1.5;
 
   strong {
-    color: rgba($primary-lighter, 0.85);
+    color: $text-primary;
   }
 }

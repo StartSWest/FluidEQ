@@ -16,6 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+@use 'sass:color' as sass-color;
 @use 'color' as *;
 @use 'theme' as *;
 
@@ -56,12 +57,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   align-items: center;
   gap: 6px;
   padding: 6px 10px;
-  color: $text-muted;
-  border: 1px solid rgba($primary-lighter, 0.18);
-  border-radius: $radius-xs;
-  background: rgba($primary-dark, 0.5);
-  font-size: 0.72rem;
-  font-weight: $weight-bold;
+  // The quiet button's face, like the selects it sits in a row with. It was
+  // half of `$primary-dark` — a violet near-black — so the one pick in the EQ
+  // toolbar was a dark hole between four lit controls.
+  @include choice-surface;
+  font-size: $text-body;
   white-space: nowrap;
   cursor: pointer;
   transition: $transition-control;
@@ -73,8 +73,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   &:hover:not(:disabled),
   &[aria-expanded='true'] {
     color: $white;
-    border-color: rgba($secondary-light, 0.42);
-    background: rgba($secondary-default, 0.12);
+    border-color: $border-field-hover;
+    background: rgba($secondary-default, 0.14);
   }
 
   &:focus-visible {
@@ -101,21 +101,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // rather than a second thing to read. It turns over when the menu is open,
 // which is the cheapest possible way to say the next press closes it.
 .rich-pick__caret {
-  width: 11px;
-  height: 11px;
-  flex: 0 0 auto;
   margin-left: 1px;
-  fill: none;
-  opacity: 0.7;
-  stroke: currentcolor;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-width: 2;
-  transition: transform 150ms ease;
-}
-
-.rich-pick__trigger[aria-expanded='true'] .rich-pick__caret {
-  transform: rotate(180deg);
 }
 
 // The toolbar has no room for six cards, so the names live in here instead.
@@ -149,49 +135,25 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // blurred backdrop, and rows passing underneath a translucent bar read as a
 // rendering fault rather than as scrolling.
 .rich-pick__search {
+  @include menu-search;
   position: sticky;
   z-index: 2;
   top: 0;
-  display: grid;
-  align-items: center;
-  gap: 7px;
-  grid-template-columns: 13px minmax(0, 1fr);
-  // Out to the menu's own padding, so the rule under it spans the full width
-  // rather than floating with a gap at each end.
+  // Out to the menu's own padding, so the hairline spans the full width. The
+  // strip the rows scroll under is painted by `::before`, in the menu's own
+  // colour.
   margin: 0 -6px 4px;
-  padding: 9px 12px;
-  border-bottom: 1px solid rgba($white, 0.07);
-  background: #18293e;
+  padding: 0 12px;
 
-  svg {
-    width: 13px;
-    height: 13px;
-    fill: none;
-    opacity: 0.5;
-    stroke: currentcolor;
-    stroke-linecap: round;
-    stroke-width: 1.7;
-  }
-
-  input {
-    width: 100%;
-    padding: 0 0 0 5px;
-    border: 0;
-    background: none;
-    color: rgba($white, 0.92);
-    font-family: inherit;
-    font-size: 0.72rem;
-
-    &::placeholder {
-      color: rgba($white, 0.38);
-    }
-
-    // The menu is the focus ring. A second one inside it, around a field that
-    // is focused the moment the menu opens, is a box drawn around the only
-    // thing you could possibly be typing into.
-    &:focus {
-      outline: none;
-    }
+  &::before {
+    position: absolute;
+    z-index: -1;
+    inset: 0;
+    // The menu's own colour, so the strip is invisible until rows scroll
+    // under it; a tone of its own here read as a header the menu did not
+    // have.
+    background: $surface-menu-face;
+    content: '';
   }
 }
 
@@ -201,7 +163,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .rich-pick__empty {
   padding: 15px 10px;
   color: rgba($white, 0.45);
-  font-size: 0.68rem;
+  font-size: $text-small;
   text-align: center;
 }
 
@@ -211,7 +173,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   margin: 8px 0 2px;
   padding: 0 8px;
   color: rgba($white, 0.45);
-  font-size: 0.62rem;
+  font-size: $text-micro;
   font-weight: $weight-bold;
   letter-spacing: 0.09em;
   text-transform: uppercase;
@@ -227,7 +189,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   gap: 9px;
   grid-template-columns: 18px minmax(0, 1fr);
   padding: 7px 8px;
-  color: rgba($white, 0.88);
+  color: $text-primary;
   border: 1px solid transparent;
   border-radius: $radius-xs;
   background: transparent;
@@ -242,27 +204,26 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   strong {
     display: block;
-    font-size: 0.74rem;
+    font-size: $text-body;
     font-weight: $weight-bold;
   }
 
   small {
     @include truncate;
     display: block;
-    color: rgba($primary-lighter, 0.56);
-    font-size: 0.62rem;
+    color: $text-muted;
+    font-size: $text-small;
   }
 
   &:hover,
   &:focus-visible {
-    border-color: rgba($secondary-light, 0.24);
-    background: rgba($secondary-default, 0.1);
+    background: $hover-accent;
     outline: none;
   }
 
   &.is-active {
-    border-color: rgba($secondary-light, 0.42);
-    background: rgba($secondary-default, 0.18);
+    border-color: $selected-border;
+    background: $selected-accent;
 
     strong {
       color: $secondary-light;

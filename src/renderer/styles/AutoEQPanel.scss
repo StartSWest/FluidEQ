@@ -78,7 +78,7 @@ it under the terms of the GNU General Public License version 3 or later.
     max-width: 680px;
     margin: 0;
     color: $text-muted;
-    font-size: 0.72rem;
+    font-size: $text-body;
     line-height: 1.45;
   }
 }
@@ -128,12 +128,8 @@ it under the terms of the GNU General Public License version 3 or later.
   gap: 9px;
   border: 1px solid rgba($secondary-light, 0.3);
   border-radius: $radius-s;
-  background: linear-gradient(
-    145deg,
-    rgba($secondary-default, 0.13),
-    rgba($secondary-default, 0.04)
-  );
-  font-size: 0.76rem;
+  background: rgba($secondary-default, 0.13);
+  font-size: $text-body;
 
   .menu-icon {
     width: 17px;
@@ -201,7 +197,7 @@ it under the terms of the GNU General Public License version 3 or later.
 // note about each one further down the page, they are what ties the two
 // together.
 .autoeq-panel__picker .autoeq-field__title {
-  font-size: 0.7rem;
+  font-size: $text-body;
 }
 
 // *** Responsive *************************************************************

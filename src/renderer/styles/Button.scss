@@ -28,7 +28,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   align-items: center;
   justify-content: center;
   padding: 8px 13px;
-  color: #03110f;
+  color: $surface-base;
   border: 1px solid rgba($secondary-light, 0.38);
   border-radius: $radius-s;
   background: $secondary-default;
@@ -46,14 +46,25 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     background 150ms ease,
     color 150ms ease;
 
-  path {
-    fill: $primary-dark;
+  // Filled glyphs take the dark ink of the button. A path that says it is
+  // NOT filled — an outline drawn with a stroke, like the restore arrow —
+  // keeps saying so: the rule used to override the attribute and paint the
+  // inside of every outlined icon near-black, so a stroked arrow on a quiet
+  // button carried a black blob in its bowl.
+  path:not([fill='none']) {
+    fill: $surface-well;
+  }
+
+  // The stroked icon sets say `fill="none"` once, on the svg, and the paths
+  // inherit it; the rule above cannot see that, so it is said again here.
+  svg[fill='none'] path {
+    fill: none;
   }
 
   &:hover:not([aria-disabled='true']):not(:disabled) {
     // The hover surface is the light cyan accent; keep the label dark enough
     // to stay readable.
-    color: #03201d;
+    color: $surface-base;
     background: $secondary-light;
     box-shadow:
       0 11px 28px rgba($secondary-default, 0.2),
@@ -64,7 +75,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 
   &:active:not([aria-disabled='true']):not(:disabled) {
-    color: #03201d;
+    color: $surface-base;
     background: $secondary-dark;
     transform: translateY(0);
   }
@@ -79,7 +90,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     min-height: $control-height-sm;
     padding: 6px 10px;
     border-radius: $radius-xs;
-    font-size: 0.72rem;
+    font-size: $text-body;
   }
 
   &.default {
@@ -121,13 +132,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // `.subtle` here looks right and changes nothing on screen.
   &[aria-disabled='true'],
   &:disabled {
-    color: rgba($primary-lighter, 0.6);
-    border-color: rgba($primary-lighter, 0.08);
-    // Matched to `field-disabled`: quieter than its neighbours, not a black
-    // rectangle. At 85% of `$primary-dark` this was the darkest thing on any
-    // panel it appeared on, so a button waiting for a prerequisite looked
-    // broken rather than merely unavailable.
-    background: rgba(#1a2b38, 0.42);
+    // An outline and dim text, nothing filled: unavailable is the quiet
+    // button with the light off, not a grey slab beside the lit ones.
+    color: $text-dim;
+    border-color: $border-subtle;
+    background: transparent;
     box-shadow: none;
     cursor: default;
   }

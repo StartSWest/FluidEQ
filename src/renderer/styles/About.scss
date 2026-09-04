@@ -34,8 +34,8 @@ it under the terms of the GNU General Public License version 3 or later.
   padding: 18px 20px 20px;
   gap: 10px;
   overflow-y: auto;
-  color: rgba($primary-lighter, 0.84);
-  font-size: 0.78rem;
+  color: $text-muted;
+  font-size: $text-lead;
   line-height: 1.6;
   @include slim-scrollbar;
 
@@ -59,7 +59,7 @@ it under the terms of the GNU General Public License version 3 or later.
     border-radius: $radius-xs;
     background: rgba($secondary-default, 0.1);
     font-family: $font-mono;
-    font-size: 0.72rem;
+    font-size: $text-body;
     word-break: break-all;
   }
 }
@@ -77,7 +77,7 @@ it under the terms of the GNU General Public License version 3 or later.
   h3 {
     margin: 0 0 7px;
     color: $secondary-light;
-    font-size: 0.66rem;
+    font-size: $text-small;
     font-weight: $weight-bold;
     letter-spacing: 0.12em;
     text-transform: uppercase;
@@ -90,13 +90,13 @@ it under the terms of the GNU General Public License version 3 or later.
 }
 
 .about__aside {
-  color: rgba($primary-lighter, 0.66);
+  color: $text-muted;
 }
 
 .about__footer {
   @include dialog.section-surface;
   margin: 0;
   padding: 12px 14px;
-  color: rgba($primary-lighter, 0.62);
-  font-size: 0.72rem;
+  color: $text-muted;
+  font-size: $text-body;
 }

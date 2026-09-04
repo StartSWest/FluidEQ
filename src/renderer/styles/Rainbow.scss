@@ -17,6 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 @use 'color' as *;
+@use 'theme' as *;
 
 /*
  * Rainbow mode, everywhere the graph is not.
@@ -64,7 +65,13 @@ html.is-euphoric {
 }
 
 // The bar under the open tab, which was the accent doing this job already.
-.is-euphoric .workspace-tab-group__bar {
+//
+// Both of them: the section rail inside the page, and the one under the chosen
+// place in the titlebar. They are the same mark doing the same job at two
+// levels, and a mode that swept one and not the other left the window looking
+// like the rainbow had only reached half of it.
+.is-euphoric .workspace-tab-group__bar,
+.is-euphoric .workspace-tabs__pill {
   background: var(--rainbow-sweep);
   background-size: 200% 100%;
   animation: rainbow-drift 12s linear infinite;
@@ -76,7 +83,7 @@ html.is-euphoric {
 .is-euphoric .dsp-import {
   border-color: transparent;
   background:
-    linear-gradient($primary-default, $primary-default) padding-box,
+    linear-gradient($surface-menu, $surface-menu) padding-box,
     var(--rainbow-sweep) border-box;
   background-size:
     auto,

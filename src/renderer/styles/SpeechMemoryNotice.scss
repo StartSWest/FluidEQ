@@ -30,7 +30,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
   padding: 14px 16px;
   border: 1px solid rgba($secondary-light, 0.4);
   border-radius: $radius-m;
-  background: linear-gradient(145deg, rgba(#0d2029, 0.97), rgba(#0a161d, 0.97));
+  background: rgba($surface-menu-top, 0.97);
   box-shadow: 0 16px 40px rgba($black, 0.45);
 }
 
@@ -49,12 +49,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
   strong {
     color: $secondary-light;
-    font-size: 0.78rem;
+    font-size: $text-lead;
   }
 
   span {
-    color: rgba($primary-lighter, 0.78);
-    font-size: 0.72rem;
+    color: $text-muted;
+    font-size: $text-body;
     line-height: 1.45;
   }
 }

@@ -30,6 +30,8 @@ import {
   stateToApoFiles,
 } from './flush';
 import { parseCustomFx } from '../common/customFx';
+import { forgetPath, scheduleWrite } from './asyncWriter';
+import readTextCached from './cachedRead';
 import { writeConvolutionWav } from './convolution';
 import { hydrateConvolutionAnalysis } from './convolutionAnalysis';
 
@@ -124,11 +126,13 @@ export const loadDeviceProfileSettings = (
 export const saveDeviceProfileSettings = (
   settings: IDeviceProfileSettings,
   userDataDir: string,
-) => {
-  fs.writeFileSync(
+): Promise<void> => {
+  // Asynchronous and coalesced — see asyncWriter. Rewritten on every edit
+  // that touches an assignment, which a drag does not, but the state it
+  // sits beside is.
+  return scheduleWrite(
     path.join(userDataDir, SETTINGS_FILENAME),
     JSON.stringify(settings, null, 2),
-    'utf8',
   );
 };
 
@@ -318,7 +322,7 @@ const readCustomFx = (
   try {
     return parseCustomFx(
       fileName,
-      fs.readFileSync(addFileToPath(configDirPath, fileName), 'utf8'),
+      readTextCached(addFileToPath(configDirPath, fileName)),
     );
   } catch {
     return undefined;
@@ -745,15 +749,13 @@ export const getStateForAudioDevice = (
  * the EQ file and the preamp, and nothing else — so rewriting the rest would
  * buy a reload per file for no change at all.
  */
-const writeIfChanged = (filePath: string, contents: string) => {
-  try {
-    if (fs.readFileSync(filePath, 'utf8') === contents) {
-      return;
-    }
-  } catch {
-    // Not there yet, or unreadable. Either way, write it.
-  }
-  fs.writeFileSync(filePath, contents, 'utf8');
+const writeIfChanged = (filePath: string, contents: string): Promise<void> => {
+  // The writer keeps the last contents it accepted for every path and skips
+  // a write that would change nothing, which is the whole of what this used
+  // to do by reading the file back from disk on every call — a synchronous
+  // read per config file per slider movement. The write itself is
+  // asynchronous and coalesced; see asyncWriter.
+  return scheduleWrite(filePath, contents);
 };
 
 /**
@@ -806,6 +808,10 @@ export const isGeneratedConfigFile = (fileName: string) =>
  * filling with the layers of every device ever plugged in, each looking like
  * something that is still applied.
  */
+// Per config directory, the generated-file set as of the last flush that
+// swept the directory. See flushDeviceProfiles.
+const lastFlushedFileSet = new Map<string, string>();
+
 const removeStaleFiles = (configDirPath: string, keep: ReadonlySet<string>) => {
   let fileNames: string[];
   try {
@@ -818,7 +824,9 @@ const removeStaleFiles = (configDirPath: string, keep: ReadonlySet<string>) => {
     .filter((fileName) => GENERATED_FILE.test(fileName) && !keep.has(fileName))
     .forEach((fileName) => {
       try {
-        fs.unlinkSync(addFileToPath(configDirPath, fileName));
+        const filePath = addFileToPath(configDirPath, fileName);
+        fs.unlinkSync(filePath);
+        forgetPath(filePath);
       } catch {
         // A file we cannot delete is one APO no longer includes anyway.
       }
@@ -858,7 +866,7 @@ export const flushDeviceProfiles = (
   activeOverride?: IActiveStateOverride,
   isEnabled = true,
   sessionHeadroom: ISessionHeadroom | undefined = undefined,
-) => {
+): Promise<void> => {
   const files = deviceProfilesToFiles(
     settings,
     presetDirForDevice,
@@ -881,23 +889,43 @@ export const flushDeviceProfiles = (
 
   // Before the device files that include them, like every other dependency
   // here: an Include must never name a file that is not there yet.
-  ensureCustomFiles(configDirPath, liveSlugs);
+  //
+  // Both directory sweeps — this one and the stale-file removal below — run
+  // only when the SET of files changes. They walk the config directory
+  // synchronously, and the set is the same on every slider movement; what
+  // changes then is the contents, which the writer handles.
+  const fileSet = [...files.keys(), ...liveSlugs].sort().join('|');
+  const fileSetChanged = fileSet !== lastFlushedFileSet.get(configDirPath);
+  if (fileSetChanged) {
+    ensureCustomFiles(configDirPath, liveSlugs);
+  }
 
   // In the map's order, which is dependency order: nothing names a file that
   // has not been written yet, so a reload landing between two of these writes
   // sees a config that is behind but never one that is broken.
+  // Collected, not awaited: the app never waits for these — a drag would
+  // stall on the disk if it did — but the promise is handed back so a caller
+  // that has to read the config it just wrote can say so.
+  const landed: Promise<void>[] = [];
   files.forEach((contents, fileName) => {
-    writeIfChanged(addFileToPath(configDirPath, fileName), contents);
+    landed.push(
+      writeIfChanged(addFileToPath(configDirPath, fileName), contents),
+    );
   });
 
   // After the root, so nothing is deleted while something still includes it.
   // A custom file is kept for as long as its output has a chain — it is the
   // one file here somebody may have put work into, and it goes only when the
   // output it belongs to does.
-  removeStaleFiles(
-    configDirPath,
-    new Set([...files.keys(), ...[...liveSlugs].map(customFileName)]),
-  );
+  if (fileSetChanged) {
+    removeStaleFiles(
+      configDirPath,
+      new Set([...files.keys(), ...[...liveSlugs].map(customFileName)]),
+    );
+    lastFlushedFileSet.set(configDirPath, fileSet);
+  }
+
+  return Promise.all(landed).then(() => undefined);
 };
 
 export * from './audioDevices';

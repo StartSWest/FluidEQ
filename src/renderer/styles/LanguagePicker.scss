@@ -18,7 +18,7 @@ it under the terms of the GNU General Public License version 3 or later.
   grid-template-columns: 16px minmax(0, 1fr);
   margin-top: 4px;
   padding-top: 10px;
-  border-top: 1px solid rgba($primary-lighter, 0.14);
+  border-top: 1px solid rgba($edge-tint, 0.14);
 
   .menu-icon {
     width: 16px;
@@ -43,7 +43,7 @@ it under the terms of the GNU General Public License version 3 or later.
     border-radius: $radius-xs;
     background: rgba($white, 0.035);
     box-shadow: none;
-    font-size: 0.7rem;
+    font-size: $text-body;
 
     &:hover:not([aria-disabled='true']),
     &:focus-visible {
@@ -97,7 +97,7 @@ it under the terms of the GNU General Public License version 3 or later.
       min-height: 30px;
       margin: 1px 0;
       padding: 6px 10px;
-      font-size: 0.7rem;
+      font-size: $text-body;
     }
   }
 }

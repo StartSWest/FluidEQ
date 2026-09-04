@@ -47,7 +47,7 @@ describe('reading the Equalizer APO config back', () => {
     },
   };
 
-  beforeEach(() => {
+  beforeEach(async () => {
     configDir = fs.mkdtempSync(path.join(os.tmpdir(), 'fluideq-read-config-'));
     presetsDir = fs.mkdtempSync(path.join(os.tmpdir(), 'fluideq-read-preset-'));
     fs.writeFileSync(
@@ -79,13 +79,13 @@ describe('reading the Equalizer APO config back', () => {
     );
   });
 
-  afterEach(() => {
+  afterEach(async () => {
     fs.rmSync(configDir, { recursive: true, force: true });
     fs.rmSync(presetsDir, { recursive: true, force: true });
   });
 
-  it('follows the includes and says which feature wrote what', () => {
-    flushDeviceProfiles(settings, () => presetsDir, configDir);
+  it('follows the includes and says which feature wrote what', async () => {
+    await flushDeviceProfiles(settings, () => presetsDir, configDir);
 
     const chain = readApoDeviceChain(configDir, GUID);
 
@@ -107,8 +107,8 @@ describe('reading the Equalizer APO config back', () => {
     expect(chain?.features?.smart).toContain('Fc 1000 Hz Gain 2 dB Q 1.4');
   });
 
-  it('keeps the preamp with the device, not with a feature', () => {
-    flushDeviceProfiles(settings, () => presetsDir, configDir);
+  it('keeps the preamp with the device, not with a feature', async () => {
+    await flushDeviceProfiles(settings, () => presetsDir, configDir);
 
     const chain = readApoDeviceChain(configDir, GUID);
 
@@ -120,7 +120,7 @@ describe('reading the Equalizer APO config back', () => {
 
   // A feature absent from the config is a statement, not a gap: it is how a
   // layer switched off stays switched off across a restart.
-  it('reports only the features the config actually includes', () => {
+  it('reports only the features the config actually includes', async () => {
     fs.writeFileSync(
       path.join(presetsDir, 'BandsOnly'),
       JSON.stringify({
@@ -136,7 +136,7 @@ describe('reading the Equalizer APO config back', () => {
         },
       }),
     );
-    flushDeviceProfiles(
+    await flushDeviceProfiles(
       {
         version: 1,
         assignments: {
@@ -159,7 +159,7 @@ describe('reading the Equalizer APO config back', () => {
   // An older FluidEQ's config, or a hand-written one. Nothing says where a
   // Filter line came from, so nothing is attributed and the caller falls back
   // to the cautious reading rather than guessing.
-  it('attributes nothing in a flat config', () => {
+  it('attributes nothing in a flat config', async () => {
     fs.writeFileSync(
       path.join(configDir, FLUIDEQ_CONFIG_FILENAME),
       [
@@ -177,7 +177,7 @@ describe('reading the Equalizer APO config back', () => {
     expect(chain?.shared).toBeUndefined();
   });
 
-  it('stops rather than looping on a config that includes itself', () => {
+  it('stops rather than looping on a config that includes itself', async () => {
     fs.writeFileSync(
       path.join(configDir, FLUIDEQ_CONFIG_FILENAME),
       [`Device: ${GUID}`, 'Channel: all', 'Include: loop.txt'].join('\r\n'),
@@ -197,7 +197,7 @@ describe('reading the Equalizer APO config back', () => {
 
   // The name comes out of a file on disk, so it is not trusted to stay in the
   // config directory.
-  it('refuses to follow an include that points outside the config directory', () => {
+  it('refuses to follow an include that points outside the config directory', async () => {
     const outside = path.join(configDir, '..', 'fluideq-outside-secret.txt');
     fs.writeFileSync(outside, 'Filter 1: ON PK Fc 80 Hz Gain 9 dB Q 1');
     fs.writeFileSync(
@@ -215,7 +215,7 @@ describe('reading the Equalizer APO config back', () => {
     fs.rmSync(outside, { force: true });
   });
 
-  it('returns nothing when there is no config at all', () => {
+  it('returns nothing when there is no config at all', async () => {
     expect(readApoDeviceChain(configDir, GUID)).toBeUndefined();
   });
 });

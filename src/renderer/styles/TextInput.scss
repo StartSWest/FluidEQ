@@ -28,7 +28,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     width: 100%;
     min-width: 0;
     min-height: $control-height;
-    font-size: 0.75rem;
+    font-size: $text-body;
 
     &[aria-invalid='true'] {
       border-color: $red;
@@ -46,7 +46,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   .errorText {
     padding-top: $spacing-xs;
     color: $red;
-    font-size: 0.66rem;
+    font-size: $text-small;
     line-height: 1.35;
   }
 }

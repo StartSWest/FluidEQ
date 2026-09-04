@@ -34,7 +34,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   border: 1px dashed rgba($white, 0.24);
   border-radius: $radius-s;
   background: transparent;
-  font-size: 0.62rem;
+  font-size: $text-micro;
   letter-spacing: 0.04em;
   cursor: pointer;
   // The titlebar is a drag region; a control inside one has to opt out or it

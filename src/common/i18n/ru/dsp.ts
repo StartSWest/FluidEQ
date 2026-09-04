@@ -78,6 +78,7 @@ const dsp = {
     'Сохраняемый сигнал убран — слышно только удаляемое.',
   'dsp.denoise.graphOutput': 'Выход',
   'dsp.denoise.graphFloor': 'Уровень шума',
+  'dsp.denoise.graphHissAction': 'Применённое подавление шипения',
   'dsp.denoise.graphHum': 'Фон',
   'dsp.denoise.graphIdle': 'Простой',
   'dsp.denoise.graphClicks': 'Устранение щелчков',

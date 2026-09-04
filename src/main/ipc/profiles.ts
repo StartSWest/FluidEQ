@@ -363,14 +363,14 @@ export const registerProfilesIpc = ({
           deviceProfileSettings.assignments[session.activeAudioDeviceId]
             ?.presetName === presetName;
 
-        deletePreset(presetName, activePresetDir());
+        await deletePreset(presetName, activePresetDir());
         deletePresetBaseline(presetName, activeBaselineDir());
         removeAssignmentForPreset(
           deviceProfileSettings,
           session.activeAudioDeviceId,
           presetName,
         );
-        saveDeviceProfileSettings(deviceProfileSettings, userDataDir);
+        await saveDeviceProfileSettings(deviceProfileSettings, userDataDir);
 
         // Deleting what this output was playing through leaves it with nothing.
         // Reset to neutral and hand it a fresh empty profile rather than leaving
@@ -429,7 +429,7 @@ export const registerProfilesIpc = ({
           return;
         }
 
-        renamePreset(oldName, newName, activePresetDir());
+        await renamePreset(oldName, newName, activePresetDir());
         renamePresetBaseline(oldName, newName, activeBaselineDir());
         renameAssignedPreset(
           deviceProfileSettings,
@@ -437,7 +437,7 @@ export const registerProfilesIpc = ({
           oldName,
           newName,
         );
-        saveDeviceProfileSettings(deviceProfileSettings, userDataDir);
+        await saveDeviceProfileSettings(deviceProfileSettings, userDataDir);
         await handleUpdate(event, channel);
       } catch (e) {
         handleError(event, channel, ErrorCode.PRESET_FILE_ERROR);
@@ -578,7 +578,7 @@ export const registerProfilesIpc = ({
         presetDirForDevice(assignment.deviceId),
       );
       assignDeviceProfile(deviceProfileSettings, assignment);
-      saveDeviceProfileSettings(deviceProfileSettings, userDataDir);
+      await saveDeviceProfileSettings(deviceProfileSettings, userDataDir);
       await handleUpdate(event, channel);
     } catch (e) {
       log.error('Failed to assign device profile', e);
@@ -589,7 +589,7 @@ export const registerProfilesIpc = ({
   ipcMain.on(ChannelEnum.REMOVE_DEVICE_PROFILE, async (event, arg) => {
     const channel = ChannelEnum.REMOVE_DEVICE_PROFILE;
     removeDeviceProfile(deviceProfileSettings, arg[0]);
-    saveDeviceProfileSettings(deviceProfileSettings, userDataDir);
+    await saveDeviceProfileSettings(deviceProfileSettings, userDataDir);
     await handleUpdate(event, channel);
   });
 };

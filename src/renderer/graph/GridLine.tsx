@@ -43,7 +43,9 @@ const GridLine = ({
   // Faint by default. A grid is a reference, not a subject — it exists so
   // the eye can place a curve, and the moment it competes with one it is
   // doing the opposite of its job.
-  color = 'rgba(255, 255, 255, 0.13)',
+  // The mist at the same alpha as the EQ face's major ticks, so the graph's
+  // paper and the sliders' paper are ruled in one ink. See `$edge-tint`.
+  color = 'rgba(214, 233, 247, 0.12)',
   disableAnimation,
 }: IGridLineProps) => {
   const ref = useRef<SVGGElement>(null);

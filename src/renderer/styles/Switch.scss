@@ -52,9 +52,12 @@ $switch-inset: 4px;
   height: var(--switch-height);
   align-items: center;
   justify-content: space-between;
-  border: 1px solid rgba($primary-lighter, 0.16);
+  border: 1px solid rgba($edge-tint, 0.14);
   border-radius: $radius-pill;
-  background: rgba($primary-light, 0.7);
+  // Off is the empty-track colour — see `$track-well`, the same one the
+  // meters show with no signal, so an unlit toggle and an unlit meter are
+  // the same material.
+  background: $track-well;
   box-shadow: inset 0 2px 5px rgba($black, 0.25);
   cursor: pointer;
   transition:
@@ -69,7 +72,7 @@ $switch-inset: 4px;
     width: var(--switch-thumb);
     height: var(--switch-thumb);
     border-radius: 50%;
-    background: rgba($primary-lighter, 0.9);
+    background: rgba($edge-tint, 0.88);
     box-shadow: 0 3px 9px rgba($black, 0.38);
     transition:
       left 200ms ease,
@@ -92,14 +95,14 @@ $switch-inset: 4px;
 
   &:checked + .switch-label {
     border-color: rgba($secondary-light, 0.44);
-    background: linear-gradient(90deg, $secondary-dark, $secondary-default);
+    background: $secondary-default;
     box-shadow:
       inset 0 1px 3px rgba($black, 0.25),
       0 0 18px rgba($secondary-default, 0.13);
 
     .switch-button {
       left: calc(100% - var(--switch-thumb) - var(--switch-inset));
-      background: #d9fffa;
+      background: $text-primary;
     }
   }
 
@@ -119,14 +122,14 @@ $switch-inset: 4px;
   }
 
   &:disabled + .switch-label {
-    border-color: rgba($primary-lighter, 0.1);
-    background: rgba($primary-light, 0.4);
-    box-shadow: inset 0 2px 5px rgba($black, 0.2);
+    border-color: $border-subtle;
+    background: $track-well;
+    box-shadow: none;
     cursor: default;
     opacity: 0.6;
 
     .switch-button {
-      background: rgba($primary-lighter, 0.6);
+      background: rgba($edge-tint, 0.6);
       box-shadow: none;
     }
   }

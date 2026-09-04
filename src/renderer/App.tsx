@@ -67,7 +67,7 @@ import {
 } from './utils/graphStyle';
 import {
   useIsChromeIdle,
-  useIsPointerNearBottom,
+  useIsPointerNearChrome,
   watchChromeIdle,
 } from './utils/idleChrome';
 import { reportError } from './utils/logger';
@@ -683,16 +683,21 @@ const AppContent = () => {
         className={`workspace-tab${isVideoTab ? ' is-active' : ''}`}
         onClick={() => selectTopWorkspaceTab('video')}
       >
-        {isMediaTabOneWord ? t('tabs.mediaShort') : t('tabs.media')}
+        <MenuIcon name="video" />
+        <span className="workspace-tab__label">
+          {isMediaTabOneWord ? t('tabs.mediaShort') : t('tabs.media')}
+        </span>
       </button>
       <button
         type="button"
         role="tab"
         aria-selected={isShareTab}
+        aria-label={t('tabs.share')}
         className={`workspace-tab${isShareTab ? ' is-active' : ''}`}
         onClick={() => selectTopWorkspaceTab('share')}
       >
-        {t('tabs.share')}
+        <MenuIcon name="waveform" />
+        <span className="workspace-tab__label">{t('tabs.share')}</span>
       </button>
       {/* Six places, not ten. The equaliser and everything that sets it
           are one tab with a row of pills inside — see EQ_GROUP_TABS.
@@ -705,12 +710,14 @@ const AppContent = () => {
         type="button"
         role="tab"
         aria-selected={isEqGroupTab(activeWorkspaceTab)}
+        aria-label={t('tabs.eq')}
         className={`workspace-tab${
           isEqGroupTab(activeWorkspaceTab) ? ' is-active' : ''
         }`}
         onClick={() => selectTopWorkspaceTab(lastEqTab)}
       >
-        {t('tabs.eq')}
+        <MenuIcon name="layout" />
+        <span className="workspace-tab__label">{t('tabs.eq')}</span>
       </button>
     </WorkspaceTabStrip>
   );
@@ -724,28 +731,34 @@ const AppContent = () => {
         type="button"
         role="tab"
         aria-selected={isDspTab}
+        aria-label={t('tabs.dsp')}
         className={`workspace-tab${isDspTab ? ' is-active' : ''}`}
         onClick={() => selectTopWorkspaceTab('dsp')}
       >
-        {t('tabs.dsp')}
+        <MenuIcon name="configure" />
+        <span className="workspace-tab__label">{t('tabs.dsp')}</span>
       </button>
       <button
         type="button"
         role="tab"
         aria-selected={isLibraryTab}
+        aria-label={t('tabs.library')}
         className={`workspace-tab${isLibraryTab ? ' is-active' : ''}`}
         onClick={() => selectTopWorkspaceTab('library')}
       >
-        {t('tabs.library')}
+        <MenuIcon name="album" />
+        <span className="workspace-tab__label">{t('tabs.library')}</span>
       </button>
       <button
         type="button"
         role="tab"
         aria-selected={isKaraokeTab}
+        aria-label={t('tabs.karaoke')}
         className={`workspace-tab${isKaraokeTab ? ' is-active' : ''}`}
         onClick={() => selectTopWorkspaceTab('karaoke')}
       >
-        {t('tabs.karaoke')}
+        <MenuIcon name="microphone" />
+        <span className="workspace-tab__label">{t('tabs.karaoke')}</span>
       </button>
     </WorkspaceTabStrip>
   );
@@ -941,7 +954,7 @@ const AppContent = () => {
   // why leaving it running would strand a faded workspace.
   const isChromeIdle = useIsChromeIdle();
   // The bar answers to the pointer, not to the clock — see `idleChrome`.
-  const isPointerNearBottom = useIsPointerNearBottom();
+  const isPointerNearChrome = useIsPointerNearChrome();
 
   // Published on `#root` for the stylesheets that have to know: a panel over
   // a floating bar clears it while it is up and takes the room back when it
@@ -950,10 +963,10 @@ const AppContent = () => {
     const root = document.getElementById('root');
     root?.classList.toggle(
       'is-chrome-idle',
-      isAppFullScreen && (!isPointerNearBottom || isChromeIdle),
+      isAppFullScreen && (!isPointerNearChrome || isChromeIdle),
     );
     return () => root?.classList.remove('is-chrome-idle');
-  }, [isAppFullScreen, isChromeIdle, isPointerNearBottom]);
+  }, [isAppFullScreen, isChromeIdle, isPointerNearChrome]);
   useEffect(() => {
     // Every mode the graph is drawn in, not only the ones that fill the screen.
     //
@@ -973,8 +986,13 @@ const AppContent = () => {
     return () => watchChromeIdle(false);
   }, [isChromeHidden, isMediaFullScreen, showsGraph]);
 
+  /** `undefined` leaves full screen; a tab takes it, and owns it. */
   /**
-   * Take the window fullscreen when the graph asks for it.
+   * Take the window full screen when the graph asks for its largest view.
+   *
+   * Full screen rather than maximised, and that is the point of the mode: the
+   * taskbar goes, so a video or a spectrum has the whole glass. FluidEQ's own
+   * header stays on top of it.
    *
    * Registered here rather than done in the store, because it is an IPC call
    * and a layout preference should not have to know the shape of the app's API
@@ -989,7 +1007,6 @@ const AppContent = () => {
     return () => onWindowFullScreenChange(() => undefined);
   }, []);
 
-  /** `undefined` leaves full screen; a tab takes it, and owns it. */
   const applyMediaFullScreen = useCallback(
     async (owner: TWorkspaceTab | undefined) => {
       const next = owner !== undefined;
@@ -1528,6 +1545,26 @@ const AppContent = () => {
    * other control and do nothing when pressed. Not rendering them is the honest
    * version of that. The main process refuses the same way, independently.
    */
+  /** As large as it goes, by either route. */
+  const isWindowFilled = isWindowMaximized || isAppFullScreen;
+
+  /** Out of full screen, whichever kind of full screen it is. */
+  const leaveFullScreen = useCallback(() => {
+    if (isMediaFullScreen) {
+      applyMediaFullScreen(undefined).catch(() => undefined);
+      return;
+    }
+    exitGraphFullScreen();
+  }, [applyMediaFullScreen, isMediaFullScreen]);
+
+  /**
+   * The strip of titlebar the system does not own.
+   *
+   * Windows answers the double-click everywhere the bar is a drag region —
+   * which is nearly all of it. This covers what is left: the identity block
+   * on the left is `no-drag` so the name can be hovered, and a double-click
+   * there should still maximise like a double-click an inch to its right.
+   */
   const handleTitlebarDoubleClick = (event: MouseEvent<HTMLElement>) => {
     const target = event.target as HTMLElement;
     if (target.closest('button, a, input, select, textarea')) {
@@ -1905,25 +1942,35 @@ const AppContent = () => {
                 <path d="M2 6h8" />
               </svg>
             </button>
+            {/* Full screen counts as filled, because the window really is:
+                the graph's largest view takes the screen for real, taskbar
+                and all. A button offering to maximise a window that has the
+                whole screen describes a state the window is not in, and
+                pressing it did nothing — a full-screen window cannot be
+                maximised. It reads and answers both states. */}
             <button
               type="button"
               className="window-control"
               aria-label={
-                isWindowMaximized
+                isWindowFilled
                   ? t('app.window.restoreApp')
                   : t('app.window.maximizeApp')
               }
               title={
-                isWindowMaximized
+                isWindowFilled
                   ? t('app.window.restore')
                   : t('app.window.maximize')
               }
-              onClick={() =>
-                handleToggleMaximizeWindow().catch(() => undefined)
-              }
+              onClick={() => {
+                if (isAppFullScreen) {
+                  leaveFullScreen();
+                  return;
+                }
+                handleToggleMaximizeWindow().catch(() => undefined);
+              }}
             >
               <svg viewBox="0 0 12 12" aria-hidden="true">
-                {isWindowMaximized ? (
+                {isWindowFilled ? (
                   <path d="M4 3h6v6M2 5v5h6V4" />
                 ) : (
                   <path d="M2 2h8v8H2z" />
@@ -2215,7 +2262,7 @@ const AppContent = () => {
             />
             <TabTransportBar
               activeTab={activeWorkspaceTab}
-              isIdle={isAppFullScreen && (!isPointerNearBottom || isChromeIdle)}
+              isIdle={isAppFullScreen && (!isPointerNearChrome || isChromeIdle)}
               isFloating={isAppFullScreen}
               onGoToTab={selectTopWorkspaceTab}
             />
@@ -2251,7 +2298,7 @@ const AppContent = () => {
                       activeTab={activeWorkspaceTab}
                       isIdle={
                         isAppFullScreen &&
-                        (!isPointerNearBottom || isChromeIdle)
+                        (!isPointerNearChrome || isChromeIdle)
                       }
                       isFloating={isAppFullScreen}
                       onReveal={revealPlayingTrack}
@@ -2385,22 +2432,11 @@ const AppContent = () => {
             in rather than imported there, so there is one definition of what
             "reinstall Equalizer APO" does — including the confirmation and the
             restart advice that follows it. */}
-        {/* The creature remains over a full-screen graph. When Karaoke is the
-            surface beneath that graph, the overlay class moves it into the
-            lower dock so it cannot cover the playlist or song metadata. A
-            native Karaoke full screen keeps the creature out entirely. */}
-        {isChromeHidden && !isMediaFullScreen && (
-          <div
-            className={`fullscreen-chrome${
-              isKaraokeTab ? ' is-karaoke-overlay' : ''
-            }${isChromeIdle ? ' is-idle' : ''}`}
-          >
-            <SupportPet
-              hasContributed={hasContributed}
-              onOpen={() => setShowSupportDialog(true)}
-            />
-          </div>
-        )}
+        {/* No creature in the corner while the header is away. The bar comes
+            back the moment the pointer reaches an edge — see the reveal in
+            GraphTheme — and the creature comes back with it, in the bar where
+            it lives. A second copy of it floating over the picture was a
+            piece of chrome that the mode exists to get rid of. */}
         {showTroubleshooter && (
           <AudioTroubleshooter
             onClose={() => setShowTroubleshooter(false)}

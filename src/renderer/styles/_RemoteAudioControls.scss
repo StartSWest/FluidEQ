@@ -19,13 +19,13 @@
 
   strong {
     color: $text-primary;
-    font-size: 0.72rem;
+    font-size: $text-body;
     font-weight: $weight-semibold;
   }
 
   span {
     color: $text-faint;
-    font-size: 0.62rem;
+    font-size: $text-micro;
   }
 }
 
@@ -43,9 +43,9 @@
   align-items: start;
   padding: 11px 12px;
   gap: 9px;
-  border: 1px solid rgba($primary-lighter, 0.13);
+  border: 1px solid $border-subtle;
   border-radius: $radius-xs;
-  background: rgba($primary-dark, 0.2);
+  background: $block-lift;
   color: $text-primary;
   cursor: pointer;
   grid-template-columns: auto minmax(0, 1fr) auto;
@@ -72,7 +72,7 @@
 
     small {
       color: $text-muted;
-      font-size: 0.64rem;
+      font-size: $text-small;
       line-height: 1.35;
     }
   }
@@ -80,7 +80,7 @@
   em {
     color: $secondary-light;
     font-family: $font-mono;
-    font-size: 0.61rem;
+    font-size: $text-micro;
     font-style: normal;
     white-space: nowrap;
   }
@@ -102,7 +102,7 @@
   }
 
   strong {
-    font-size: 0.72rem;
+    font-size: $text-body;
     font-weight: $weight-semibold;
   }
 }
@@ -113,9 +113,9 @@
   height: 14px;
   margin-top: 1px;
   place-items: center;
-  border: 1px solid rgba($primary-lighter, 0.32);
+  border: 1px solid rgba($edge-tint, 0.32);
   border-radius: 50%;
-  background: rgba($primary-dark, 0.5);
+  background: $track-well;
 
   &::after {
     width: 6px;
@@ -140,8 +140,8 @@
   gap: 6px;
 
   > span {
-    color: rgba($primary-lighter, 0.78);
-    font-size: 0.68rem;
+    color: $text-muted;
+    font-size: $text-small;
     font-weight: $weight-bold;
     letter-spacing: 0.04em;
     text-transform: uppercase;
@@ -153,7 +153,7 @@
     input {
       width: 100%;
       font-family: $font-mono;
-      font-size: 0.68rem;
+      font-size: $text-small;
     }
   }
 }
@@ -177,7 +177,7 @@
   align-items: center;
   overflow: hidden;
   color: $text-muted;
-  font-size: 0.66rem;
+  font-size: $text-small;
 
   > span,
   > strong {
@@ -200,9 +200,9 @@
   align-items: center;
   padding: 7px 11px;
   gap: 8px;
-  border: 1px solid rgba($primary-lighter, 0.11);
+  border: 1px solid $border-subtle;
   border-radius: $radius-s;
-  background: rgba($primary-dark, 0.16);
+  background: $block-lift;
   color: $text-muted;
 
   > span {
@@ -217,7 +217,7 @@
     display: -webkit-box;
     margin: 0;
     overflow: hidden;
-    font-size: 0.68rem;
+    font-size: $text-small;
     line-height: 1.35;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 2;

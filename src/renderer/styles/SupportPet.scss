@@ -547,7 +547,6 @@ $pet-hop-duration: 520ms;
   );
   opacity: 0.5;
   animation: pet-aura-spin 8s linear infinite;
-  filter: blur(13px);
 }
 
 @keyframes pet-aura-spin {

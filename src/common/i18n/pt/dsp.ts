@@ -78,6 +78,7 @@ const dsp = {
     'O sinal mantido foi removido — ouve-se apenas o que é retirado.',
   'dsp.denoise.graphOutput': 'Saída',
   'dsp.denoise.graphFloor': 'Piso de ruído',
+  'dsp.denoise.graphHissAction': 'Redução de chiado aplicada',
   'dsp.denoise.graphHum': 'Zumbido',
   'dsp.denoise.graphIdle': 'Inativo',
   'dsp.denoise.graphClicks': 'Reparo de estalos',

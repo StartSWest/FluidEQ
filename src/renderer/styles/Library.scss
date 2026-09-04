@@ -117,7 +117,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   border: 1px solid rgba($neon-yellow, 0.28);
   border-radius: $radius-s;
   background: rgba($surface-field, 0.38);
-  font-size: 0.68rem;
+  font-size: $text-small;
   line-height: 1.45;
 
   span {
@@ -131,7 +131,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     flex: 0 0 auto;
     place-items: center;
     padding: 0;
-    color: rgba($primary-lighter, 0.7);
+    color: $text-muted;
     border: 1px solid transparent;
     border-radius: $radius-xs;
     background: transparent;
@@ -247,7 +247,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .library-toolbar__view-modes {
   margin-left: $spacing-xs;
   padding-left: $spacing-m;
-  border-left: 1px solid rgba($primary-lighter, 0.14);
+  border-left: 1px solid rgba($edge-tint, 0.14);
 }
 
 // `.video-browser__site`'s pill, under this file's own name so the two can
@@ -258,11 +258,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // `.video-browser__site`'s own padding, to the pixel.
   padding: 4px 9px;
   gap: 5px;
-  border: 1px solid rgba($primary-lighter, 0.14);
+  border: 1px solid rgba($edge-tint, 0.14);
   border-radius: $radius-pill;
-  background: rgba($white, 0.03);
-  color: rgba($primary-lighter, 0.8);
-  font-size: 0.68rem;
+  background: rgba($secondary-default, 0.07);
+  color: $text-muted;
+  font-size: $text-small;
   white-space: nowrap;
   cursor: pointer;
   transition:
@@ -319,8 +319,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     cursor: default;
 
     &:hover {
-      border-color: rgba($primary-lighter, 0.14);
-      color: rgba($primary-lighter, 0.8);
+      border-color: rgba($edge-tint, 0.14);
+      color: $text-muted;
     }
   }
 }
@@ -375,12 +375,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   .dropdown > [role='menu'] {
     min-height: 0;
     padding: 4px 9px;
-    border: 1px solid rgba($primary-lighter, 0.14);
+    border: 1px solid rgba($edge-tint, 0.14);
     border-radius: $radius-pill;
-    background: rgba($white, 0.03);
+    background: rgba($secondary-default, 0.07);
     box-shadow: none;
-    color: rgba($primary-lighter, 0.8);
-    font-size: 0.68rem;
+    color: $text-muted;
+    font-size: $text-small;
     line-height: 13px;
     gap: 6px;
 
@@ -406,7 +406,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   padding: 4px 8px;
   flex: 0 0 auto;
   border-radius: $radius-xs;
-  font-size: 0.72rem;
+  font-size: $text-body;
   line-height: 13px;
 }
 
@@ -522,9 +522,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // Same disabled recipe as `.karaoke-workspace__actions .button:disabled`:
   // quieter than its neighbours rather than a flat grey rectangle.
   .button:disabled {
-    color: rgba($primary-lighter, 0.6);
-    border-color: rgba($primary-lighter, 0.08);
-    background: rgba(#1a2b38, 0.42);
+    color: $text-muted;
+    border-color: rgba($edge-tint, 0.08);
+    background: $block-lift;
     box-shadow: none;
     cursor: not-allowed;
   }
@@ -567,12 +567,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .library-folders-menu__path {
   @include truncate;
   color: $text-primary;
-  font-size: 0.72rem;
+  font-size: $text-body;
 }
 
 .library-folders-menu__offline {
   color: $text-faint;
-  font-size: 0.62rem;
+  font-size: $text-micro;
 }
 
 // Same 24px/11px dismiss-icon recipe as `.library-workspace__notice button`
@@ -584,7 +584,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   flex: 0 0 auto;
   place-items: center;
   padding: 0;
-  color: rgba($primary-lighter, 0.7);
+  color: $text-muted;
   border: 1px solid transparent;
   border-radius: $radius-xs;
   background: transparent;
@@ -636,12 +636,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   column-gap: 12px;
   row-gap: 8px;
   padding: 11px 12px;
-  color: #dffcf9;
+  color: $text-primary;
   box-shadow: 0 18px 42px rgba($black, 0.46);
   animation: library-scan-progress-in $motion-base $ease-out;
-  background:
-    radial-gradient(circle at 15% 0, rgba(30, 215, 199, 0.12), transparent 55%),
-    rgba(5, 27, 41, 0.96);
+  background: rgba($surface-menu-top, 0.96);
   border: 1px solid rgba($secondary-light, 0.31);
   border-radius: 13px;
 
@@ -657,12 +655,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   strong {
     overflow-wrap: anywhere;
-    font-size: 0.84rem;
+    font-size: $text-lead;
   }
 
   span {
     color: rgba(223, 252, 249, 0.76);
-    font-size: 0.76rem;
+    font-size: $text-body;
     font-variant-numeric: tabular-nums;
   }
 }
@@ -680,13 +678,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   height: 5px;
   grid-column: 1 / -1;
   overflow: hidden;
-  background: rgba(120, 166, 183, 0.17);
+  background: $track-well;
   border-radius: $radius-pill;
 
   > span {
     position: absolute;
     inset: 0 auto 0 0;
-    background: linear-gradient(90deg, #24d7c8, #7dfff3);
+    background: $secondary-default;
     border-radius: inherit;
     box-shadow: 0 0 12px rgba($secondary-default, 0.36);
     transition: width 180ms ease;
@@ -748,7 +746,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     max-width: 340px;
     margin: 0;
     color: $text-muted;
-    font-size: 0.78rem;
+    font-size: $text-lead;
     line-height: 1.55;
   }
 }
@@ -756,7 +754,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .library-empty__add {
   margin-top: $spacing-s;
   gap: 7px;
-  font-size: 0.72rem;
+  font-size: $text-body;
   font-weight: $weight-bold;
 }
 
@@ -770,7 +768,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   display: block;
   margin-top: $spacing-xxs;
   color: $text-faint;
-  font-size: 0.64rem;
+  font-size: $text-small;
   line-height: 1.5;
 }
 
@@ -778,9 +776,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   max-width: 340px;
   margin: $spacing-s 0 0;
   padding-top: $spacing-s;
-  border-top: 1px solid rgba($primary-lighter, 0.12);
+  border-top: 1px solid rgba($edge-tint, 0.12);
   color: $text-faint;
-  font-size: 0.62rem;
+  font-size: $text-micro;
   line-height: 1.5;
 }
 
@@ -846,7 +844,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   letter-spacing: 0.02em;
 
   .library-cover-art--row & {
-    font-size: 0.56rem;
+    font-size: $text-eyebrow;
   }
 
   .library-cover-art--tile & {
@@ -1009,7 +1007,7 @@ $library-row-height: 46px;
   display: grid;
   place-items: center;
   border-radius: inherit;
-  background: rgba(#020a12, 0.62);
+  background: rgba($surface-well, 0.62);
   color: $secondary-light;
   opacity: 0;
   inset: 0;
@@ -1029,7 +1027,7 @@ $library-row-height: 46px;
   flex: 0 0 auto;
   border-bottom: 1px solid rgba($secondary-light, 0.16);
   color: $text-faint;
-  font-size: 0.6rem;
+  font-size: $text-micro;
   font-weight: $weight-bold;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -1143,7 +1141,7 @@ $library-row-height: 46px;
 
 .library-list__col {
   @include truncate;
-  font-size: 0.7rem;
+  font-size: $text-body;
 
   &--art {
     display: flex;
@@ -1333,7 +1331,7 @@ $library-row-height: 46px;
 .library-list__subtitle {
   @include truncate;
   color: $text-faint;
-  font-size: 0.62rem;
+  font-size: $text-micro;
 }
 
 .library-list__badge {
@@ -1400,7 +1398,7 @@ $library-row-height: 46px;
     background: none;
     color: $secondary-light;
     font: inherit;
-    font-size: 0.72rem;
+    font-size: $text-body;
     font-weight: $weight-bold;
     text-align: left;
     cursor: pointer;
@@ -1429,7 +1427,7 @@ $library-row-height: 46px;
   padding: 4px 10px 6px;
   margin: 0;
   color: $text-faint;
-  font-size: 0.62rem;
+  font-size: $text-micro;
   font-weight: $weight-bold;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -1503,7 +1501,7 @@ $library-row-height: 46px;
 .library-list__menu-error {
   margin: 4px 6px 2px;
   color: $red;
-  font-size: 0.66rem;
+  font-size: $text-small;
   line-height: 1.35;
 }
 
@@ -1668,9 +1666,9 @@ $library-row-height: 46px;
   height: 22px;
   place-items: center;
   color: $text-faint;
-  border: 1px solid rgba($primary-lighter, 0.28);
+  border: 1px solid rgba($edge-tint, 0.28);
   border-radius: $radius-pill;
-  background: rgba(5, 27, 41, 0.96);
+  background: rgba($surface-menu-top, 0.96);
 }
 
 // The tail of a paged grid: how many tiles are still below. Spans the whole
@@ -1679,7 +1677,7 @@ $library-row-height: 46px;
 .library-grid__more {
   padding: $spacing-m 0;
   color: $text-faint;
-  font-size: 0.68rem;
+  font-size: $text-small;
   grid-column: 1 / -1;
   text-align: center;
 }
@@ -1687,7 +1685,7 @@ $library-row-height: 46px;
 .library-grid__title {
   @include truncate;
   color: $text-primary;
-  font-size: 0.76rem;
+  font-size: $text-body;
   font-weight: $weight-bold;
 }
 
@@ -1695,7 +1693,7 @@ $library-row-height: 46px;
   @include truncate;
   display: block;
   color: $text-faint;
-  font-size: 0.64rem;
+  font-size: $text-small;
 }
 
 // *** The video section **************************************************
@@ -1753,7 +1751,7 @@ $library-row-height: 46px;
   max-width: 320px;
   margin: 0;
   color: $text-faint;
-  font-size: 0.72rem;
+  font-size: $text-body;
   line-height: 1.55;
   text-align: center;
 }
@@ -1769,9 +1767,9 @@ $library-row-height: 46px;
   // pixels out of step with the scrollbar.
   padding-top: $spacing-s;
   padding-bottom: 7px;
-  border-bottom: 1px solid rgba($primary-lighter, 0.09);
+  border-bottom: 1px solid rgba($edge-tint, 0.09);
   color: $text-primary;
-  font-size: 0.72rem;
+  font-size: $text-body;
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
@@ -1805,7 +1803,7 @@ $library-row-height: 46px;
   color: $red;
   border: 1px solid rgba($red, 0.28);
   border-radius: $radius-pill;
-  background: rgba(5, 27, 41, 0.96);
+  background: rgba($surface-menu-top, 0.96);
 }
 
 // Same size, shape and quiet colour as `.library-grid__badge--pending`, but
@@ -1821,9 +1819,9 @@ $library-row-height: 46px;
   height: 22px;
   place-items: center;
   color: $text-faint;
-  border: 1px solid rgba($primary-lighter, 0.28);
+  border: 1px solid rgba($edge-tint, 0.28);
   border-radius: $radius-pill;
-  background: rgba(5, 27, 41, 0.96);
+  background: rgba($surface-menu-top, 0.96);
 }
 
 // *** The drill-in *****************************************************
@@ -1973,13 +1971,13 @@ $library-row-height: 46px;
   @include truncate;
   margin: 0;
   color: $text-muted;
-  font-size: 0.78rem;
+  font-size: $text-lead;
 }
 
 .library-detail__counts {
   margin: 0 0 $spacing-s;
   color: $text-faint;
-  font-size: 0.68rem;
+  font-size: $text-small;
 }
 
 // Emphasis follows recommendation: this is the drill-in's one filled
@@ -2043,7 +2041,7 @@ $library-row-height: 46px;
   border: 1px solid rgba($red, 0.45);
   border-radius: $radius-xs;
   color: $text-muted;
-  font-size: 0.72rem;
+  font-size: $text-body;
   gap: $spacing-xs;
 }
 
@@ -2053,7 +2051,7 @@ $library-row-height: 46px;
   display: grid;
   padding: $spacing-xl $spacing-m;
   color: $text-muted;
-  font-size: 0.82rem;
+  font-size: $text-lead;
   text-align: center;
   gap: $spacing-xxs;
   justify-items: center;
@@ -2065,7 +2063,7 @@ $library-row-height: 46px;
 
 .library-detail__empty-hint {
   color: $text-faint;
-  font-size: 0.72rem;
+  font-size: $text-body;
 }
 
 // *** Navigating between views *************************************************
@@ -2149,7 +2147,7 @@ $library-row-height: 46px;
   align-items: center;
   padding: 0 $spacing-s;
   color: $text-faint;
-  font-size: 0.64rem;
+  font-size: $text-small;
   font-weight: $weight-bold;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -2200,7 +2198,7 @@ $library-row-height: 46px;
   justify-content: center;
   padding: $spacing-m 0 $spacing-l;
   color: $text-faint;
-  font-size: 0.66rem;
+  font-size: $text-small;
   letter-spacing: 0.04em;
 }
 
@@ -2290,16 +2288,19 @@ $library-wave-step: 4ms;
   align-items: center;
   gap: 6px;
   padding: 0 3px 0 8px;
-  border: 1px solid rgba($primary-lighter, 0.14);
+  border: 1px solid rgba($edge-tint, 0.14);
   border-radius: $radius-pill;
-  background: rgba($white, 0.03);
+  background: rgba($secondary-default, 0.07);
   transition:
     border-color 140ms ease,
     background 140ms ease;
 
+  // Focus lights the EDGE, not the fill. A field that repaints when the
+  // caret lands in it is a field that changes colour for typing in — and it
+  // was a different colour from its own resting face, so two search boxes
+  // side by side looked like two kinds of control the moment one was used.
   &:focus-within {
-    border-color: rgba($secondary-light, 0.55);
-    background: rgba($secondary-light, 0.08);
+    border-color: $border-field-focus;
   }
 
   // A pill, open or shut.
@@ -2335,7 +2336,7 @@ $library-wave-step: 4ms;
   padding: 4px;
   border: 1px solid rgba($secondary-light, 0.28);
   border-radius: $radius-m;
-  background: linear-gradient(160deg, rgba(#0d2029, 0.99), rgba(#0a161d, 0.99));
+  background: rgba($surface-menu-top, 0.99);
   box-shadow: 0 18px 44px rgba($black, 0.5);
 
   ul {
@@ -2357,8 +2358,8 @@ $library-wave-step: 4ms;
 
 .library-search__suggestions-title {
   padding: 3px 8px 5px;
-  color: rgba($primary-lighter, 0.45);
-  font-size: 0.58rem;
+  color: $text-faint;
+  font-size: $text-eyebrow;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -2371,8 +2372,8 @@ $library-wave-step: 4ms;
   padding: 5px 8px;
   border: none;
   background: none;
-  color: rgba($primary-lighter, 0.88);
-  font-size: 0.68rem;
+  color: $text-primary;
+  font-size: $text-small;
   gap: 7px;
   text-align: left;
   cursor: pointer;
@@ -2382,7 +2383,7 @@ $library-wave-step: 4ms;
     height: 11px;
     flex: 0 0 auto;
     fill: none;
-    stroke: rgba($primary-lighter, 0.4);
+    stroke: rgba($edge-tint, 0.4);
     stroke-linecap: round;
     stroke-width: 1.5;
   }
@@ -2404,7 +2405,7 @@ $library-wave-step: 4ms;
   border: none;
   border-radius: 50%;
   background: none;
-  color: rgba($primary-lighter, 0.35);
+  color: $text-faint;
   cursor: pointer;
 
   svg {
@@ -2418,7 +2419,7 @@ $library-wave-step: 4ms;
 
   &:hover {
     background: rgba($white, 0.1);
-    color: $primary-lighter;
+    color: $text-primary;
   }
 }
 
@@ -2427,15 +2428,15 @@ $library-wave-step: 4ms;
   margin-top: 3px;
   padding: 5px 8px;
   border: none;
-  border-top: 1px solid rgba($primary-lighter, 0.08);
+  border-top: 1px solid rgba($edge-tint, 0.08);
   background: none;
-  color: rgba($primary-lighter, 0.5);
-  font-size: 0.62rem;
+  color: $text-faint;
+  font-size: $text-micro;
   text-align: left;
   cursor: pointer;
 
   &:hover {
-    color: $primary-lighter;
+    color: $text-primary;
   }
 }
 
@@ -2444,7 +2445,7 @@ $library-wave-step: 4ms;
   height: 12px;
   flex: 0 0 auto;
   fill: none;
-  stroke: rgba($primary-lighter, 0.55);
+  stroke: rgba($edge-tint, 0.55);
   stroke-linecap: round;
   stroke-width: 1.6;
 }
@@ -2461,11 +2462,11 @@ $library-wave-step: 4ms;
   outline: none;
   background: none;
   box-shadow: none;
-  color: $primary-lighter;
-  font-size: 0.7rem;
+  color: $text-primary;
+  font-size: $text-body;
 
   &::placeholder {
-    color: rgba($primary-lighter, 0.4);
+    color: $text-faint;
   }
 }
 
@@ -2476,7 +2477,7 @@ $library-wave-step: 4ms;
   flex: 0 0 auto;
   place-items: center;
   padding: 0;
-  color: rgba($primary-lighter, 0.6);
+  color: $text-muted;
   border: 0;
   border-radius: 50%;
   background: none;
@@ -2509,9 +2510,9 @@ $library-wave-step: 4ms;
   display: inline-flex;
   align-items: center;
   padding-right: 5px;
-  border: 1px solid rgba($primary-lighter, 0.14);
+  border: 1px solid rgba($edge-tint, 0.14);
   border-radius: $radius-pill;
-  background: rgba($white, 0.03);
+  background: rgba($secondary-default, 0.07);
   transition:
     background 140ms ease,
     border-color 140ms ease;
@@ -2598,13 +2599,13 @@ $library-wave-step: 4ms;
 }
 
 .library-toolbar__folder-option-name {
-  font-size: 0.78rem;
+  font-size: $text-lead;
   font-weight: $weight-semibold;
 }
 
 .library-toolbar__folder-option-hint {
   color: $text-muted;
-  font-size: 0.66rem;
+  font-size: $text-small;
 }
 
 // The folders inside the one that is open, above the files that are loose in
@@ -2649,7 +2650,7 @@ $library-wave-step: 4ms;
   margin-inline-end: auto;
   color: $text-muted;
   direction: rtl;
-  font-size: 0.66rem;
+  font-size: $text-small;
   text-align: left;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -2735,7 +2736,7 @@ $library-wave-step: 4ms;
   // competing with whatever was behind them, and floating over the shelf it
   // was two lists in the same rectangle. The same two colours the mixin ends
   // on, without the alpha.
-  background: linear-gradient(160deg, #18293e, #111c2c);
+  background: $surface-field-end;
 }
 
 // *** The queue over a video **************************************************
@@ -2893,8 +2894,8 @@ $library-wave-step: 4ms;
 .library-up-next__empty {
   padding: 14px 8px;
   margin: 0;
-  color: rgba($primary-lighter, 0.4);
-  font-size: 0.66rem;
+  color: $text-faint;
+  font-size: $text-small;
   text-align: center;
 }
 
@@ -2917,7 +2918,7 @@ $library-wave-step: 4ms;
 // like a caption rather than half the control.
 .library-up-next__keep-label {
   color: $text-muted;
-  font-size: 0.72rem;
+  font-size: $text-body;
   font-weight: $weight-semibold;
   white-space: nowrap;
   cursor: pointer;
@@ -2937,7 +2938,7 @@ $library-wave-step: 4ms;
   cursor: pointer;
 
   &:hover .library-up-next__title {
-    color: rgba($primary-lighter, 0.95);
+    color: $text-primary;
   }
 
   &:focus-visible {
@@ -2982,8 +2983,8 @@ $library-wave-step: 4ms;
 }
 
 .library-up-next__title {
-  color: rgba($primary-lighter, 0.72);
-  font-size: 0.62rem;
+  color: $text-muted;
+  font-size: $text-micro;
   font-weight: $weight-bold;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -2998,8 +2999,8 @@ $library-wave-step: 4ms;
   display: inline-flex;
   align-items: baseline;
   margin-left: auto;
-  color: rgba($primary-lighter, 0.4);
-  font-size: 0.62rem;
+  color: $text-faint;
+  font-size: $text-micro;
   font-variant-numeric: tabular-nums;
   gap: 2px;
 }
@@ -3063,7 +3064,7 @@ $library-wave-step: 4ms;
   padding: 6px 6px 3px;
   margin: 0;
   color: rgba($secondary-light, 0.62);
-  font-size: 0.6rem;
+  font-size: $text-micro;
   font-weight: $weight-bold;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -3087,7 +3088,7 @@ $library-wave-step: 4ms;
   transition: $transition-control;
 
   &:hover {
-    background: rgba($white, 0.06);
+    background: $block-lift;
   }
 
   &:focus-visible {
@@ -3111,13 +3112,13 @@ $library-wave-step: 4ms;
 .library-up-next__track {
   @include truncate;
   color: rgba($white, 0.88);
-  font-size: 0.7rem;
+  font-size: $text-body;
 }
 
 .library-up-next__artist {
   @include truncate;
   color: $text-faint;
-  font-size: 0.62rem;
+  font-size: $text-micro;
 }
 
 // Gone: a `@media (max-width: 1080px)` that hid the queue outright and zeroed
@@ -3147,7 +3148,7 @@ $library-wave-step: 4ms;
   gap: 2px;
 
   &:hover {
-    background: rgba($white, 0.06);
+    background: $block-lift;
   }
 
   &.is-dragging {
@@ -3182,7 +3183,7 @@ $library-wave-step: 4ms;
   border-radius: 50%;
   margin-right: 4px;
   background: none;
-  color: rgba($primary-lighter, 0.55);
+  color: $text-faint;
   cursor: pointer;
   opacity: 0;
   transition: $transition-control;
@@ -3236,8 +3237,8 @@ $library-wave-step: 4ms;
   padding: 10px 6px 4px;
   border-bottom: 1px solid rgba($secondary-light, 0.12);
   margin: 0;
-  color: rgba($primary-lighter, 0.5);
-  font-size: 0.58rem;
+  color: $text-faint;
+  font-size: $text-eyebrow;
   font-weight: $weight-bold;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -3253,7 +3254,7 @@ $library-wave-step: 4ms;
 // rule, because everything under it is a guess rather than a list anybody
 // asked for, and the heading has to be able to say so without a sentence.
 .library-up-next__section.is-continued {
-  color: rgba($primary-lighter, 0.38);
+  color: $text-faint;
   border-bottom-style: dashed;
 }
 
@@ -3326,7 +3327,7 @@ $library-wave-step: 4ms;
 // glyph, rather than the room a word needed.
 @container library-bar (max-width: 850px) {
   .library-toolbar__browse-modes .library-toolbar__chip {
-    font-size: 0.64rem;
+    font-size: $text-small;
   }
 }
 
@@ -3412,7 +3413,7 @@ $library-wave-step: 4ms;
   min-width: 18px;
   flex: 0 0 auto;
   color: $text-faint;
-  font-size: 0.66rem;
+  font-size: $text-small;
   font-variant-numeric: tabular-nums;
   text-align: right;
 }

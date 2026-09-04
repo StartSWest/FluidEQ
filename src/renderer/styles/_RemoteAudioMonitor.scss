@@ -3,29 +3,31 @@
 @use 'color' as *;
 @use 'theme' as *;
 
+// A group, not a card. One box per thing.
+//
+// This drew a bordered, filled, inset-shadowed box whose only content was a
+// heading and one more bordered, filled box holding the waveform — two frames
+// around a single drawing, on a page that was already three boxes deep by the
+// time it got here. The lane below is the card; this only spaces it.
 .remote-audio__monitor {
-  padding: 10px 11px 11px;
-  border: 1px solid rgba($primary-lighter, 0.12);
-  border-radius: $radius-s;
-  background: rgba(#07111f, 0.48);
-  box-shadow: inset 0 1px 8px rgba($black, 0.18);
+  display: grid;
+  gap: 9px;
 }
 
 .remote-audio__monitor-heading {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 9px;
   gap: 10px;
 
   strong,
   span {
-    font-size: 0.62rem;
+    font-size: $text-micro;
     font-weight: $weight-semibold;
   }
 
   strong {
-    color: rgba($primary-lighter, 0.82);
+    color: $text-muted;
     letter-spacing: 0.05em;
     text-transform: uppercase;
   }
@@ -40,9 +42,10 @@
 .remote-audio__monitor-lane {
   min-width: 0;
   padding: 8px 9px 9px;
-  border: 1px solid rgba($primary-lighter, 0.09);
+  border: 1px solid $border-subtle;
   border-radius: $radius-xs;
-  background: rgba($primary-dark, 0.17);
+  // It holds a waveform, so it wears what every plot in the app wears.
+  background: $surface-plot;
 
   &.is-primary .remote-audio__waveform {
     height: clamp(120px, 16vh, 180px);
@@ -67,7 +70,7 @@
   strong {
     overflow: hidden;
     color: $text-primary;
-    font-size: 0.68rem;
+    font-size: $text-small;
     font-weight: $weight-semibold;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -76,15 +79,15 @@
   > span:last-child {
     flex: 0 0 auto;
     color: $text-muted;
-    font-size: 0.62rem;
+    font-size: $text-micro;
   }
 }
 
 .remote-audio__monitor-address {
   overflow: hidden;
-  color: rgba($primary-lighter, 0.58);
+  color: $text-faint;
   font-family: $font-mono;
-  font-size: 0.6rem;
+  font-size: $text-micro;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -116,7 +119,7 @@
   }
 
   strong {
-    color: rgba($primary-lighter, 0.82);
+    color: $text-muted;
     letter-spacing: 0.05em;
     text-transform: uppercase;
   }
@@ -124,7 +127,7 @@
   span,
   small {
     color: $text-muted;
-    font-size: 0.62rem;
+    font-size: $text-micro;
     line-height: 1.25;
   }
 }
@@ -149,7 +152,7 @@
   gap: 10px;
   color: $text-muted;
   font-family: $font-mono;
-  font-size: 0.61rem;
+  font-size: $text-micro;
 
   > span {
     text-align: right;
@@ -201,10 +204,10 @@
   height: clamp(76px, 10vh, 112px);
   color: $secondary-light;
   border-radius: $radius-xs;
-  background-color: rgba($primary-dark, 0.2);
-  background-image:
-    linear-gradient(rgba($primary-lighter, 0.055) 1px, transparent 1px),
-    linear-gradient(90deg, rgba($primary-lighter, 0.055) 1px, transparent 1px);
+  // Nothing of its own: the lane it lies in IS the plot surface, and a second
+  // wash on top only drew a lighter rectangle inside a box the same shape.
+  background-color: transparent;
+  background-image: none;
   background-size: 25% 50%;
 }
 
@@ -213,13 +216,13 @@
   margin-top: 7px;
   overflow: hidden;
   border-radius: 2px;
-  background: rgba($primary-lighter, 0.08);
+  background: $track-well;
 
   > div {
     width: 100%;
     height: 100%;
     transform: scaleX(0);
     transform-origin: left center;
-    background: linear-gradient(90deg, $secondary-default, $analogous-2);
+    background: $secondary-default;
   }
 }

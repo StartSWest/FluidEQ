@@ -30,15 +30,20 @@ it under the terms of the GNU General Public License version 3 or later.
 
   span {
     @include truncate;
-    color: rgba($white, 0.92);
-    font-size: 0.76rem;
+    // Inherits: in the closed select this is the accent, like every other
+    // select's label; in the open list it is the row's white.
+    color: inherit;
+    font-size: $text-body;
     font-weight: $weight-semibold;
   }
 
   small {
     @include truncate;
-    color: rgba($primary-lighter, 0.6);
-    font-size: 0.64rem;
+    color: $text-muted;
+    font-size: $text-small;
+    // The line under the name is a description, not a second label: the
+    // select's own bold stops at the name.
+    font-weight: $weight-regular;
   }
 }
 
@@ -52,14 +57,14 @@ it under the terms of the GNU General Public License version 3 or later.
     display: flex;
     align-items: baseline;
     justify-content: space-between;
-    color: rgba($primary-lighter, 0.82);
-    font-size: 0.7rem;
-    font-weight: $weight-bold;
+    color: $text-primary;
+    font-size: $text-body;
+    font-weight: $weight-semibold;
   }
 
   output {
     color: $secondary-light;
-    font-size: 0.88rem;
+    font-size: $text-lead;
     font-variant-numeric: tabular-nums;
     font-weight: $weight-bold;
   }
@@ -82,12 +87,11 @@ it under the terms of the GNU General Public License version 3 or later.
       border-radius: $radius-pill;
       background:
         linear-gradient(
-            90deg,
             rgba($secondary-default, 0.95),
-            rgba($analogous-1, 0.95)
+            rgba($secondary-default, 0.95)
           )
           0 / var(--fill) 100% no-repeat,
-        rgba($primary-lighter, 0.16);
+        rgba($edge-tint, 0.14);
       box-shadow: inset 0 1px 2px rgba(#000, 0.45);
     }
 
@@ -95,7 +99,7 @@ it under the terms of the GNU General Public License version 3 or later.
       width: 16px;
       height: 16px;
       margin-top: -4.5px;
-      border: 2px solid rgba(#061019, 0.85);
+      border: 2px solid rgba($surface-well, 0.85);
       border-radius: 50%;
       background: $secondary-light;
       box-shadow:
@@ -123,18 +127,12 @@ it under the terms of the GNU General Public License version 3 or later.
   min-width: 0;
   gap: 3px;
   padding: 6px 8px 4px;
-  border: 1px solid rgba($primary-lighter, 0.12);
+  // A small plot, so it wears the face every small plot wears — see
+  // `$surface-plot`. It was an outline with nothing behind it, which left
+  // the driver's curve floating on the section instead of drawn on a chart.
+  @include lifted-surface;
+  background: $surface-plot;
   border-radius: $radius-xs;
-  background:
-    radial-gradient(
-      140% 120% at 50% 0%,
-      rgba($secondary-default, 0.08),
-      transparent 70%
-    ),
-    // The same lift the voicing cards got — off a near-black onto the wells
-    // the rest of the window uses. These two rows are the same control in two
-    // panels and were drifting apart.
-    rgba(#0b1626, 0.34);
 }
 
 .driver-curve {
@@ -148,13 +146,13 @@ it under the terms of the GNU General Public License version 3 or later.
 
 .driver-curve__grid {
   fill: none;
-  stroke: rgba($primary-lighter, 0.09);
+  stroke: rgba($edge-tint, 0.09);
   stroke-width: 1;
 }
 
 .driver-curve__zero {
   fill: none;
-  stroke: rgba($primary-lighter, 0.2);
+  stroke: rgba($edge-tint, 0.2);
   stroke-dasharray: 2 4;
   stroke-width: 1;
 }
@@ -171,8 +169,8 @@ it under the terms of the GNU General Public License version 3 or later.
 .driver-picker__scale {
   display: flex;
   justify-content: space-between;
-  color: rgba($primary-lighter, 0.4);
-  font-size: 0.56rem;
+  color: $text-faint;
+  font-size: $text-eyebrow;
   font-variant-numeric: tabular-nums;
 }
 
@@ -181,8 +179,8 @@ it under the terms of the GNU General Public License version 3 or later.
   position: absolute;
   top: 6px;
   right: 8px;
-  color: rgba($primary-lighter, 0.34);
-  font-size: 0.54rem;
+  color: $text-faint;
+  font-size: $text-eyebrow;
   font-variant-numeric: tabular-nums;
 }
 
@@ -215,8 +213,8 @@ it under the terms of the GNU General Public License version 3 or later.
 // all hang off the same left margin, and the fixed track still lines the pills
 // up with each other down the list.
 .driver-filter__freq {
-  color: rgba($white, 0.86);
-  font-size: 0.66rem;
+  color: $text-primary;
+  font-size: $text-small;
   font-variant-numeric: tabular-nums;
   font-weight: $weight-bold;
 }
@@ -230,7 +228,7 @@ it under the terms of the GNU General Public License version 3 or later.
   border: 1px solid rgba($secondary-light, 0.3);
   border-radius: $radius-pill;
   background: rgba($secondary-default, 0.12);
-  font-size: 0.6rem;
+  font-size: $text-micro;
   font-variant-numeric: tabular-nums;
   font-weight: $weight-bold;
   white-space: nowrap;
@@ -245,8 +243,8 @@ it under the terms of the GNU General Public License version 3 or later.
 
 .driver-filter__reason {
   grid-column: 1 / -1;
-  color: rgba($primary-lighter, 0.58);
-  font-size: 0.63rem;
+  color: $text-muted;
+  font-size: $text-small;
   line-height: 1.4;
 }
 
@@ -254,8 +252,8 @@ it under the terms of the GNU General Public License version 3 or later.
 // trust it rather than buried in a tooltip.
 .driver-picker__note {
   margin: 1px 0 0;
-  color: rgba($primary-lighter, 0.56);
-  font-size: 0.64rem;
+  color: $text-faint;
+  font-size: $text-small;
   font-style: italic;
   line-height: 1.4;
 }

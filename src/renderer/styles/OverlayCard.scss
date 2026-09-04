@@ -67,8 +67,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // Heavier and blurrier than the About panel's. That panel is something you
   // opened; these arrive on their own, and the workspace behind them should
   // not look like the thing to carry on reading.
-  background: rgba(#03070d, 0.82);
-  backdrop-filter: blur(8px);
+  background: rgba($surface-well, 0.82);
 }
 
 .overlay-card__backdrop--locked {
@@ -83,7 +82,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   grid-template-rows: auto minmax(0, 1fr) auto;
   border: 1px solid rgba($secondary-light, 0.28);
   border-radius: $radius-l;
-  background: linear-gradient(150deg, rgba(#101d2a, 0.99), rgba(#08121b, 0.99));
+  background: rgba($surface-menu-top, 0.99);
   box-shadow: 0 30px 80px rgba($black, 0.55);
 }
 
@@ -96,7 +95,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   align-items: flex-start;
   gap: $spacing-s;
   padding: 18px 20px 14px;
-  border-bottom: 1px solid rgba($primary-lighter, 0.12);
+  border-bottom: 1px solid rgba($edge-tint, 0.12);
 
   h2 {
     margin: 0;
@@ -151,8 +150,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   min-height: 0;
   padding: $spacing-m 20px;
   overflow-y: auto;
-  color: rgba($primary-lighter, 0.84);
-  font-size: 0.78rem;
+  color: $text-muted;
+  font-size: $text-lead;
   line-height: 1.6;
   @include slim-scrollbar;
 
@@ -176,8 +175,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // Quieter and smaller, so it reads as a footnote and not as another term.
 .overlay-card__aside {
   margin-top: $spacing-m;
-  color: rgba($primary-lighter, 0.55);
-  font-size: 0.72rem;
+  color: $text-faint;
+  font-size: $text-body;
 }
 
 .overlay-card__provenance {
@@ -191,7 +190,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   h3 {
     margin: 0 0 6px;
     color: rgba($white, 0.92);
-    font-size: 0.8rem;
+    font-size: $text-lead;
   }
 }
 
@@ -230,13 +229,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   margin-top: $spacing-s;
   overflow: hidden;
   border-radius: $radius-pill;
-  background: rgba($primary-lighter, 0.14);
+  background: rgba($edge-tint, 0.14);
 }
 
 .overlay-card__progress-fill {
   height: 100%;
   border-radius: $radius-pill;
-  background: linear-gradient(90deg, $secondary-dark, $secondary-default);
+  background: $secondary-default;
   transition: width $motion-base linear;
 }
 
@@ -247,7 +246,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   justify-content: flex-end;
   gap: $spacing-s;
   padding: 14px 20px 18px;
-  border-top: 1px solid rgba($primary-lighter, 0.12);
+  border-top: 1px solid rgba($edge-tint, 0.12);
 }
 
 .overlay-card__button {
@@ -258,7 +257,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   border-radius: $radius-xs;
   background: rgba($secondary-default, 0.14);
   cursor: pointer;
-  font-size: 0.78rem;
+  font-size: $text-lead;
   transition: $transition-control;
 
   &:hover:not(:disabled),
@@ -277,14 +276,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // For the way out of the acknowledgement, and for "later" on the update
 // notice. Present, reachable and visibly not the thing being asked for.
 .overlay-card__button--quiet {
-  color: rgba($primary-lighter, 0.8);
-  border-color: rgba($primary-lighter, 0.22);
+  color: $text-muted;
+  border-color: rgba($edge-tint, 0.22);
   background: transparent;
 
   &:hover:not(:disabled),
   &:focus-visible {
     color: rgba($white, 0.92);
-    border-color: rgba($primary-lighter, 0.45);
-    background: rgba($primary-lighter, 0.08);
+    border-color: rgba($edge-tint, 0.45);
+    background: rgba($edge-tint, 0.08);
   }
 }

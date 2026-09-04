@@ -154,6 +154,8 @@ typedef struct FeqDenoiseReport {
    * Same units as `bands_db`, so one drawing path serves both sources.
    */
   double floor_bands_db[FEQ_DENOISE_PROFILE_BANDS];
+  /** Actual per-band hiss gain in dB; zero means that band was unchanged. */
+  double hiss_reduction_bands_db[FEQ_DENOISE_PROFILE_BANDS];
 } FeqDenoiseReport;
 
 typedef struct FeqDenoise FeqDenoise;

@@ -78,6 +78,7 @@ const dsp = {
     'Il segnale mantenuto è rimosso: si sente solo ciò che viene tolto.',
   'dsp.denoise.graphOutput': 'Uscita',
   'dsp.denoise.graphFloor': 'Rumore di fondo',
+  'dsp.denoise.graphHissAction': 'Riduzione del fruscio applicata',
   'dsp.denoise.graphHum': 'Ronzio',
   'dsp.denoise.graphIdle': 'Inattivo',
   'dsp.denoise.graphClicks': 'Riparazione clic',

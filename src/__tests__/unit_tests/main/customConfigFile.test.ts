@@ -71,21 +71,21 @@ describe('the custom file in a device chain', () => {
       }),
     );
 
-  beforeEach(() => {
+  beforeEach(async () => {
     configDir = fs.mkdtempSync(path.join(os.tmpdir(), 'fluideq-custom-'));
     presetsDir = fs.mkdtempSync(path.join(os.tmpdir(), 'fluideq-custom-p-'));
     writeProfile(3);
   });
 
-  afterEach(() => {
+  afterEach(async () => {
     fs.rmSync(configDir, { recursive: true, force: true });
     fs.rmSync(presetsDir, { recursive: true, force: true });
   });
 
   // Created rather than waited for. A file that only appears once somebody has
   // found the right menu is a feature nobody discovers.
-  it('is there from the first flush, and included', () => {
-    flushDeviceProfiles(settings, () => presetsDir, configDir);
+  it('is there from the first flush, and included', async () => {
+    await flushDeviceProfiles(settings, () => presetsDir, configDir);
 
     const custom = customFileIn(configDir);
     expect(custom).toBeDefined();
@@ -103,8 +103,8 @@ describe('the custom file in a device chain', () => {
   // Last, and after the preamp. The file remains user-owned, while its
   // measurable EQ commands are read back so the generated preamp can protect
   // the complete chain.
-  it('is applied after the generated chain and its preamp', () => {
-    flushDeviceProfiles(settings, () => presetsDir, configDir);
+  it('is applied after the generated chain and its preamp', async () => {
+    await flushDeviceProfiles(settings, () => presetsDir, configDir);
 
     const deviceFile = fs
       .readdirSync(configDir)
@@ -120,8 +120,8 @@ describe('the custom file in a device chain', () => {
   });
 
   // The property the whole design rests on.
-  it('survives every flush, whatever is put in it', () => {
-    flushDeviceProfiles(settings, () => presetsDir, configDir);
+  it('survives every flush, whatever is put in it', async () => {
+    await flushDeviceProfiles(settings, () => presetsDir, configDir);
     const custom = path.join(configDir, customFileIn(configDir) as string);
 
     const mine = 'Preamp: -2 dB\r\nFilter 1: ON PK Fc 900 Hz Gain 4 dB Q 1';
@@ -129,15 +129,15 @@ describe('the custom file in a device chain', () => {
 
     // Everything a person does in the app: edit a band, flush, repeatedly.
     writeProfile(-4);
-    flushDeviceProfiles(settings, () => presetsDir, configDir);
+    await flushDeviceProfiles(settings, () => presetsDir, configDir);
     writeProfile(6);
-    flushDeviceProfiles(settings, () => presetsDir, configDir);
+    await flushDeviceProfiles(settings, () => presetsDir, configDir);
 
     expect(fs.readFileSync(custom, 'utf8')).toBe(mine);
   });
 
-  it('includes measurable custom gain when deriving the generated preamp', () => {
-    flushDeviceProfiles(settings, () => presetsDir, configDir);
+  it('includes measurable custom gain when deriving the generated preamp', async () => {
+    await flushDeviceProfiles(settings, () => presetsDir, configDir);
     const custom = path.join(configDir, customFileIn(configDir) as string);
     fs.writeFileSync(
       custom,
@@ -145,7 +145,7 @@ describe('the custom file in a device chain', () => {
       'utf8',
     );
 
-    flushDeviceProfiles(settings, () => presetsDir, configDir);
+    await flushDeviceProfiles(settings, () => presetsDir, configDir);
 
     const deviceFile = fs
       .readdirSync(configDir)
@@ -164,12 +164,12 @@ describe('the custom file in a device chain', () => {
 
   // It outlives its generated siblings, but not the output itself: a file for
   // a device nobody has any more is one more thing looking like it applies.
-  it('goes when the output it belongs to does', () => {
-    flushDeviceProfiles(settings, () => presetsDir, configDir);
+  it('goes when the output it belongs to does', async () => {
+    await flushDeviceProfiles(settings, () => presetsDir, configDir);
     const custom = customFileIn(configDir) as string;
     fs.writeFileSync(path.join(configDir, custom), 'Delay: 5 ms', 'utf8');
 
-    flushDeviceProfiles(
+    await flushDeviceProfiles(
       { version: 1, assignments: {} },
       () => presetsDir,
       configDir,

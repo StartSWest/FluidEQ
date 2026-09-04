@@ -70,6 +70,7 @@ const dsp = {
   'dsp.denoise.isolateOn': '保留信号已移除——现在只听到被去掉的部分。',
   'dsp.denoise.graphOutput': '输出',
   'dsp.denoise.graphFloor': '本底噪声',
+  'dsp.denoise.graphHissAction': '已应用的嘶声抑制',
   'dsp.denoise.graphHum': '哼声',
   'dsp.denoise.graphIdle': '空闲',
   'dsp.denoise.graphClicks': '爆音修复',

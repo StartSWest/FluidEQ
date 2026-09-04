@@ -55,7 +55,7 @@ it under the terms of the GNU General Public License version 3 or later.
   pointer-events: auto;
   // Enough that the trace behind stays legible while the panel is read, opaque
   // enough that the text on it is not sitting on moving bars.
-  background: rgba(#0e1520, 0.94);
+  background: rgba($surface-base, 0.94);
   // Clipped again. This was `visible` to let the panel's own form dropdown open
   // past the edge; that dropdown is gone — the picker in the header does the
   // job — and nothing left in here escapes its own box.
@@ -82,7 +82,7 @@ it under the terms of the GNU General Public License version 3 or later.
   h2 {
     margin: 0;
     color: $white;
-    font-size: 0.74rem;
+    font-size: $text-body;
     font-weight: $weight-bold;
     letter-spacing: 0.02em;
   }
@@ -94,7 +94,7 @@ it under the terms of the GNU General Public License version 3 or later.
   width: 20px;
   height: 20px;
   padding: 0;
-  font-size: 0.6rem;
+  font-size: $text-micro;
   line-height: 1;
 }
 
@@ -106,8 +106,8 @@ it under the terms of the GNU General Public License version 3 or later.
 .look-designer__pick {
   margin: 0;
   padding: 10px 12px 0;
-  color: rgba($primary-lighter, 0.55);
-  font-size: 0.58rem;
+  color: $text-faint;
+  font-size: $text-eyebrow;
   line-height: 1.35;
 }
 
@@ -163,7 +163,7 @@ it under the terms of the GNU General Public License version 3 or later.
 .look-designer__group {
   margin: 4px 0 0;
   color: #ffcc4d;
-  font-size: 0.58rem;
+  font-size: $text-eyebrow;
   font-weight: $weight-bold;
   letter-spacing: 0.09em;
   text-transform: uppercase;
@@ -174,7 +174,7 @@ it under the terms of the GNU General Public License version 3 or later.
   margin: 0;
   padding: 0 12px;
   color: rgba(#ff9d9d, 0.95);
-  font-size: 0.58rem;
+  font-size: $text-eyebrow;
   line-height: 1.35;
 }
 
@@ -183,8 +183,8 @@ it under the terms of the GNU General Public License version 3 or later.
   align-items: baseline;
   justify-content: space-between;
   gap: 8px;
-  color: rgba($primary-lighter, 0.78);
-  font-size: 0.64rem;
+  color: $text-muted;
+  font-size: $text-small;
   font-weight: $weight-semibold;
   letter-spacing: 0.02em;
 }
@@ -200,8 +200,8 @@ it under the terms of the GNU General Public License version 3 or later.
 }
 
 .look-designer__hint {
-  color: rgba($primary-lighter, 0.55);
-  font-size: 0.58rem;
+  color: $text-faint;
+  font-size: $text-eyebrow;
   line-height: 1.35;
 }
 
@@ -242,7 +242,7 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 
   &:disabled::-webkit-slider-thumb {
-    background: rgba($primary-lighter, 0.4);
+    background: rgba($edge-tint, 0.4);
     box-shadow: none;
   }
 }
@@ -274,7 +274,7 @@ it under the terms of the GNU General Public License version 3 or later.
   flex: 1 1 0;
   height: 24px;
   padding-inline: 8px;
-  font-size: 0.62rem;
+  font-size: $text-micro;
   font-weight: $weight-semibold;
 
   &.is-on {
@@ -318,7 +318,7 @@ it under the terms of the GNU General Public License version 3 or later.
   // Barely there. The swatch IS a colour, and a bright edge round it competes
   // with the thing it is supposed to be showing — which matters most at the
   // dark end of a ramp, where a light border reads as part of the colour.
-  border: 1px solid rgba($primary-lighter, 0.16);
+  border: 1px solid rgba($edge-tint, 0.16);
   border-radius: $radius-xs;
   cursor: pointer;
 
@@ -352,7 +352,7 @@ it under the terms of the GNU General Public License version 3 or later.
   width: 100%;
   height: 16px;
   padding: 0;
-  border: 1px solid rgba($primary-lighter, 0.18);
+  border: 1px solid rgba($edge-tint, 0.18);
   border-radius: 3px;
   cursor: pointer;
 
@@ -370,8 +370,8 @@ it under the terms of the GNU General Public License version 3 or later.
   align-items: center;
   justify-content: center;
   padding: 3px 0 1px;
-  color: rgba($primary-lighter, 0.7);
-  font-size: 0.54rem;
+  color: $text-muted;
+  font-size: $text-eyebrow;
   grid-column: 1 / -1;
   cursor: pointer;
 
@@ -394,11 +394,11 @@ it under the terms of the GNU General Public License version 3 or later.
   width: 13px;
   height: 13px;
   padding: 0;
-  border: 1px solid rgba($primary-lighter, 0.25);
+  border: 1px solid rgba($edge-tint, 0.25);
   border-radius: 50%;
   background: $surface-panel;
-  color: rgba($primary-lighter, 0.8);
-  font-size: 0.44rem;
+  color: $text-muted;
+  font-size: $text-eyebrow;
   line-height: 1;
   cursor: pointer;
   opacity: 0;
@@ -413,7 +413,7 @@ it under the terms of the GNU General Public License version 3 or later.
 
   &:hover {
     color: $white;
-    border-color: rgba(#ff6b6b, 0.8);
+    border-color: rgba($red, 0.8);
   }
 }
 
@@ -430,7 +430,7 @@ it under the terms of the GNU General Public License version 3 or later.
   flex: 0 0 auto;
   padding: 0;
   border-radius: $radius-xs;
-  font-size: 0.72rem;
+  font-size: $text-body;
   line-height: 1;
 }
 
@@ -443,7 +443,7 @@ it under the terms of the GNU General Public License version 3 or later.
 // height.
 .look-designer__ramp {
   height: 30px;
-  border: 1px solid rgba($primary-lighter, 0.12);
+  border: 1px solid rgba($edge-tint, 0.12);
   border-radius: $radius-xs;
 }
 
@@ -454,7 +454,7 @@ it under the terms of the GNU General Public License version 3 or later.
   background: none;
   color: rgba($secondary-light, 0.85);
   font: inherit;
-  font-size: 0.58rem;
+  font-size: $text-eyebrow;
   font-weight: $weight-semibold;
   text-decoration: underline;
   text-underline-offset: 3px;
@@ -485,7 +485,7 @@ it under the terms of the GNU General Public License version 3 or later.
   padding-inline: 8px;
   color: $white;
   font: inherit;
-  font-size: 0.66rem;
+  font-size: $text-small;
 
   &:focus-visible {
     @include focus-ring;
@@ -541,8 +541,8 @@ it under the terms of the GNU General Public License version 3 or later.
 
   &--danger:hover {
     color: $white;
-    border-color: rgba(#ff6b6b, 0.85);
-    background: rgba(#ff6b6b, 0.18);
+    border-color: rgba($red, 0.85);
+    background: rgba($red, 0.18);
   }
 }
 
@@ -559,7 +559,7 @@ it under the terms of the GNU General Public License version 3 or later.
   flex: 1 1 0;
   height: 26px;
   padding-inline: 8px;
-  font-size: 0.62rem;
+  font-size: $text-micro;
   font-weight: $weight-semibold;
   white-space: nowrap;
 
@@ -575,12 +575,12 @@ it under the terms of the GNU General Public License version 3 or later.
 
   &--danger {
     color: rgba(#ff9d9d, 0.9);
-    border-color: rgba(#ff6b6b, 0.4);
+    border-color: rgba($red, 0.4);
 
     &:hover:not(:disabled) {
       color: $white;
-      border-color: rgba(#ff6b6b, 0.85);
-      background: rgba(#ff6b6b, 0.18);
+      border-color: rgba($red, 0.85);
+      background: rgba($red, 0.18);
     }
   }
 }

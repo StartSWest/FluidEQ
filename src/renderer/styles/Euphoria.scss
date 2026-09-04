@@ -96,7 +96,7 @@ it under the terms of the GNU General Public License version 3 or later.
   // euphoria. A hue-sweeping rim around a static grid is still a visualiser.
   .waveform-visualizer.is-off {
     animation: none;
-    border-color: rgba($primary-lighter, 0.16);
+    border-color: rgba($edge-tint, 0.16);
     box-shadow: inset 0 1px 0 rgba($white, 0.04);
   }
 
@@ -491,10 +491,10 @@ it under the terms of the GNU General Public License version 3 or later.
 // up rather than as two things that happen to look similar.
 .euphoria-pill {
   padding: 2px 9px;
-  color: #06131d;
+  color: $surface-well;
   border-radius: $radius-pill;
   background: hsl(var(--euphoria-hue, 160deg) 95% 62%);
-  font-size: 0.55rem;
+  font-size: $text-eyebrow;
   font-weight: $weight-bold;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -530,8 +530,8 @@ it under the terms of the GNU General Public License version 3 or later.
   // disappeared. Drained of colour, not of presence: same shape, same place,
   // grey until it is on.
   &.is-dormant {
-    color: rgba($primary-lighter, 0.62);
-    background: rgba($primary-lighter, 0.1);
+    color: $text-muted;
+    background: rgba($edge-tint, 0.1);
 
     &:hover {
       color: $white;

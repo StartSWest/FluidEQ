@@ -17,6 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { ReactNode, useId, useState } from 'react';
+import Chevron from '../icons/Chevron';
 import '../styles/SidebarSection.scss';
 
 interface ISidebarSectionProps {
@@ -94,21 +95,7 @@ export default function SidebarSection({
           <span className="eyebrow">{eyebrow}</span>
           <span className="sidebar-section__title">{title}</span>
         </span>
-        <svg
-          className="sidebar-section__chevron"
-          viewBox="0 0 24 24"
-          aria-hidden="true"
-          focusable="false"
-        >
-          <path
-            d="M7 10l5 5 5-5"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.8"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
+        <Chevron className="sidebar-section__chevron" />
       </button>
 
       {aside && <div className="sidebar-section__aside">{aside}</div>}

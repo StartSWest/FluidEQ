@@ -58,15 +58,15 @@ const bands = () => ({
 describe('the source of an applied reference', () => {
   let dir: string;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fluideq-headset-source-'));
   });
 
-  afterEach(() => {
+  afterEach(async () => {
     fs.rmSync(dir, { recursive: true, force: true });
   });
 
-  it('survives a profile write and read', () => {
+  it('survives a profile write and read', async () => {
     const preset: IPresetV2 = {
       preAmp: -4,
       filters: bands(),
@@ -74,7 +74,7 @@ describe('the source of an applied reference', () => {
       headsetTarget: 'Harman 2018',
       headsetSource: SQUIG_SOURCE_ID,
     };
-    savePreset('Studio', preset, dir);
+    await savePreset('Studio', preset, dir);
 
     const restored = fetchPreset('Studio', dir);
     expect(restored.headset).toBe('HD 600');
@@ -82,7 +82,7 @@ describe('the source of an applied reference', () => {
     expect(restored.headsetSource).toBe(SQUIG_SOURCE_ID);
   });
 
-  it('leaves a profile written before the field existed loadable', () => {
+  it('leaves a profile written before the field existed loadable', async () => {
     // Exactly what is on users' disks today: a model name and nothing to say
     // where it came from. The validator has no additionalProperties clause and
     // does not require the field, so this must load rather than be rejected.
@@ -96,26 +96,26 @@ describe('the source of an applied reference', () => {
     expect(restored.headsetSource).toBeUndefined();
   });
 
-  it('survives an app restart', () => {
+  it('survives an app restart', async () => {
     const state = {
       ...getDefaultState(),
       headset: 'HD 600',
       headsetTarget: 'HD 600 ParametricEQ.txt',
       headsetSource: AUTOEQ_SOURCE_ID,
     };
-    save(state, dir);
+    await save(state, dir);
 
     const reloaded = fetchSettings(dir);
     expect(reloaded.headset).toBe('HD 600');
     expect(reloaded.headsetSource).toBe(AUTOEQ_SOURCE_ID);
   });
 
-  it('travels with the output it was applied to', () => {
+  it('travels with the output it was applied to', async () => {
     // The bug this guards is subtle: getStateForAudioDevice is applied over the
     // live state with Object.assign, so a source the next output does not have
     // must be present-and-undefined, not absent, or the previous output's
     // database follows the user across and gets auto-saved into their profile.
-    savePreset(
+    await savePreset(
       'Headphones',
       {
         preAmp: -4,
@@ -126,7 +126,7 @@ describe('the source of an applied reference', () => {
       },
       dir,
     );
-    savePreset('Speakers', { preAmp: 0, filters: bands() }, dir);
+    await savePreset('Speakers', { preAmp: 0, filters: bands() }, dir);
 
     const settings: IDeviceProfileSettings = {
       version: 1,

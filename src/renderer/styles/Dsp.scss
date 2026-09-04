@@ -103,7 +103,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .dsp-title-rate {
   color: rgba($white, 0.48);
   font-family: $font-mono;
-  font-size: 0.66rem;
+  font-size: $text-small;
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.04em;
 }
@@ -119,7 +119,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   max-width: 680px;
   margin: 0;
   color: rgba($white, 0.72);
-  font-size: 0.76rem;
+  font-size: $text-body;
   line-height: 1.45;
 
   // Waiting is an actionable state, not muted explanatory copy. The stored
@@ -138,14 +138,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   max-width: 680px;
   margin: 2px 0 0;
   color: rgba($white, 0.5);
-  font-size: 0.74rem;
+  font-size: $text-body;
   line-height: 1.4;
 }
 
 .dsp-unavailable {
   margin: 2px 0 0;
   color: $red;
-  font-size: 0.74rem;
+  font-size: $text-body;
   line-height: 1.4;
 }
 
@@ -173,7 +173,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 .dsp-global-power-state {
   color: rgba($white, 0.42);
-  font-size: 0.66rem;
+  font-size: $text-small;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   // The same fade the per-processor label has carried all along. Two words
@@ -227,7 +227,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 .dsp-dev-safety-spec {
   color: rgba($white, 0.42);
-  font-size: 0.58rem;
+  font-size: $text-eyebrow;
   line-height: 1.2;
   letter-spacing: 0.025em;
   text-transform: uppercase;
@@ -239,7 +239,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   gap: 4px 12px;
   color: rgba($white, 0.72);
   font-family: $font-mono;
-  font-size: 0.61rem;
+  font-size: $text-micro;
   font-variant-numeric: tabular-nums;
 }
 
@@ -256,9 +256,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .dsp-normalizer-live,
 .dsp-denoise-analysis {
   min-width: 0;
-  border: 1px solid rgba($white, 0.06);
+  border: 1px solid $border-subtle;
   border-radius: 10px;
-  background: rgba($black, 0.18);
+  // The block colour, like every other card on a pane. It was black at 18%,
+  // which over the pane came out darker than the floor the window stands on
+  // — a well rather than a card, and the only one in the app.
+  background: $block-lift;
 }
 
 // Denoise reuses the Normalizer's panel treatment rather than defining its
@@ -329,7 +332,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   flex-direction: column;
   border: 1px solid rgba($white, 0.06);
   border-radius: 10px;
-  background: rgba($black, 0.22);
+  background: $surface-plot;
 
   canvas {
     display: block;
@@ -350,7 +353,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   display: flex;
   align-items: center;
   color: rgba($white, 0.42);
-  font-size: 0.62rem;
+  font-size: $text-micro;
   gap: 5px;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -368,6 +371,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   &.is-floor::before {
     background: rgba(255, 176, 89, 0.85);
+  }
+
+  &.is-hiss-action::before {
+    background: rgba(197, 138, 249, 0.95);
   }
 
   &.is-hum::before {
@@ -595,7 +602,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   width: 240px;
   min-height: 16px;
   color: rgba($white, 0.52);
-  font-size: 0.64rem;
+  font-size: $text-small;
   line-height: 16px;
   text-align: right;
   text-overflow: ellipsis;
@@ -620,17 +627,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   height: 6px;
   flex: 0 0 6px;
   border-radius: 999px;
-  background: rgba($white, 0.07);
+  background: $track-well;
 
   span {
     display: block;
     height: 100%;
     border-radius: inherit;
-    background: linear-gradient(
-      90deg,
-      rgba($secondary-default, 0.5),
-      $secondary-default
-    );
+    background: $secondary-default;
     transition: width 160ms ease-out;
   }
 }
@@ -651,7 +654,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     padding: 6px 10px;
     border: 1px solid rgba($white, 0.05);
     border-radius: 8px;
-    background: rgba($black, 0.18);
+    background: $surface-plot;
   }
 
   dt,
@@ -664,7 +667,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   dt {
     color: rgba($white, 0.42);
-    font-size: 0.6rem;
+    font-size: $text-micro;
     letter-spacing: 0.06em;
     text-transform: uppercase;
   }
@@ -673,7 +676,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     min-height: 20px;
     color: rgba($white, 0.82);
     font-family: $font-mono;
-    font-size: 0.78rem;
+    font-size: $text-lead;
     font-variant-numeric: tabular-nums;
     line-height: 20px;
   }
@@ -724,7 +727,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   min-height: 150px;
   border: 1px solid rgba($white, 0.06);
   border-radius: 10px;
-  background: rgba($black, 0.18);
+  background: $surface-plot;
 }
 
 .dsp-crossfade-preview {
@@ -959,7 +962,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .dsp-crossfade-time {
   position: absolute;
   color: rgba($white, 0.48);
-  font-size: 0.62rem;
+  font-size: $text-micro;
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
@@ -972,7 +975,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   gap: 10px;
   color: rgba($white, 0.34);
   font-family: $font-mono;
-  font-size: 0.58rem;
+  font-size: $text-eyebrow;
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.03em;
   opacity: 0;
@@ -1085,7 +1088,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   grid-row: 1 / 3;
   color: rgba($white, 0.72);
   font-family: $font-mono;
-  font-size: 0.7rem;
+  font-size: $text-body;
   text-align: center;
 }
 
@@ -1099,7 +1102,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .dsp-normalizer-meter-name,
 .dsp-normalizer-meter-value {
   color: rgba($white, 0.52);
-  font-size: 0.62rem;
+  font-size: $text-micro;
 }
 
 .dsp-normalizer-meter-value {
@@ -1154,7 +1157,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   height: 8px;
   border: 1px solid rgba($white, 0.08);
   border-radius: 999px;
-  background: rgba($black, 0.34);
+  background: $track-well;
 }
 
 .dsp-normalizer-meter-fill {
@@ -1164,15 +1167,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   transition: width 70ms linear;
 
   &.is-before {
-    background: linear-gradient(90deg, rgba(255, 176, 89, 0.46), #ffb059);
+    background: rgba(255, 176, 89, 0.46);
   }
 
   &.is-after {
-    background: linear-gradient(
-      90deg,
-      rgba($secondary-default, 0.42),
-      $secondary-default
-    );
+    background: $secondary-default;
   }
 
   &.is-over {
@@ -1192,7 +1191,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 .dsp-dev-safety-label,
 .dsp-dev-safety-state {
-  font-size: 0.66rem;
+  font-size: $text-small;
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
@@ -1266,9 +1265,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     padding: 3px 7px;
     border: 1px solid rgba($white, 0.08);
     border-radius: 7px;
-    background: rgba($black, 0.58);
+    background: $surface-plot;
     color: rgba($white, 0.58);
-    font-size: 0.58rem;
+    font-size: $text-eyebrow;
     letter-spacing: 0.035em;
     text-transform: uppercase;
     white-space: nowrap;
@@ -1318,14 +1317,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     padding: 4px 9px;
     border: 1px solid rgba($white, 0.07);
     border-radius: 7px;
-    background: rgba($black, 0.34);
+    background: $surface-plot;
     color: rgba($white, 0.82);
-    font-size: 0.72rem;
+    font-size: $text-body;
     font-variant-numeric: tabular-nums;
 
     em {
       color: rgba($white, 0.44);
-      font-size: 0.58rem;
+      font-size: $text-eyebrow;
       font-style: normal;
       font-weight: $weight-medium;
       letter-spacing: 0.04em;
@@ -1355,7 +1354,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     span {
       padding-right: 5px;
       padding-left: 5px;
-      font-size: 0.52rem;
+      font-size: $text-eyebrow;
       letter-spacing: 0;
     }
   }
@@ -1404,11 +1403,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   container: dsp-card / inline-size;
   border: 1px solid rgba($white, 0.07);
   border-radius: 12px;
-  background: linear-gradient(
-    180deg,
-    rgba($primary-light, 0.34) 0%,
-    rgba($primary-dark, 0.3) 100%
-  );
+  background: $block-lift;
   box-shadow: inset 0 1px 0 rgba($white, 0.04);
   transition:
     border-color 160ms ease,
@@ -1457,7 +1452,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 .dsp-card-title {
   margin: 0;
-  font-size: 0.95rem;
+  font-size: $text-title;
   letter-spacing: 0.01em;
 }
 
@@ -1465,7 +1460,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   max-width: 620px;
   margin: 0;
   color: rgba($white, 0.48);
-  font-size: 0.7rem;
+  font-size: $text-body;
   line-height: 1.4;
 }
 
@@ -1499,12 +1494,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   padding: 8px 10px 4px;
   border: 1px solid rgba($white, 0.05);
   border-radius: 9px;
-  background: rgba($black, 0.16);
+  background: $surface-plot;
 }
 
 .dsp-band-title {
   color: rgba($white, 0.55);
-  font-size: 0.64rem;
+  font-size: $text-small;
   text-transform: uppercase;
   letter-spacing: 0.09em;
 }
@@ -1526,7 +1521,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .dsp-band-hint {
   margin: 0 0 2px;
   color: rgba($white, 0.44);
-  font-size: 0.68rem;
+  font-size: $text-small;
   line-height: 1.4;
 }
 
@@ -1553,7 +1548,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   border-radius: 6px;
   background: rgba($red, 0.08);
   color: $red;
-  font-size: 0.74rem;
+  font-size: $text-body;
   line-height: 1.4;
 }
 
@@ -1574,7 +1569,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   padding: 8px 10px 6px;
   border: 1px solid rgba($white, 0.06);
   border-radius: 10px;
-  background: rgba($black, 0.22);
+  background: $surface-plot;
 }
 
 // A DEFINITE height, never `auto` — the same rule the EQ graph and the phase
@@ -1599,7 +1594,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   li {
     color: rgba($white, 0.45);
-    font-size: 0.6rem;
+    font-size: $text-micro;
     letter-spacing: 0.06em;
     text-align: center;
     text-transform: uppercase;
@@ -1694,7 +1689,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .dsp-rail-group-label {
   padding: 0 11px 2px;
   color: rgba($white, 0.36);
-  font-size: 0.58rem;
+  font-size: $text-eyebrow;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -1709,7 +1704,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   border-radius: 9px;
   background: transparent;
   color: rgba($white, 0.62);
-  font-size: 0.78rem;
+  font-size: $text-lead;
   text-align: left;
   cursor: pointer;
   transition:
@@ -1749,7 +1744,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // the direction the stage lies is the difference between a list of names
   // and a set of controls.
   &:hover:not(:disabled) {
-    background: rgba($white, 0.045);
+    background: $surface-plot;
     color: rgba($white, 0.86);
     translate: 2px 0;
   }
@@ -1769,13 +1764,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 .dsp-rail-tab.is-active {
-  border-color: rgba($white, 0.075);
-  background: linear-gradient(
-    90deg,
-    rgba($white, 0.075),
-    rgba($white, 0.025) 72%,
-    transparent
-  );
+  border-color: $border-subtle;
+  background: $block-lift;
   box-shadow:
     inset 0 1px 0 rgba($white, 0.025),
     0 5px 14px rgba($black, 0.11);
@@ -1798,7 +1788,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   padding: 2px;
   border: 1px solid rgba($white, 0.045);
   border-radius: 6px;
-  background: rgba($white, 0.025);
+  background: $surface-plot;
   transition:
     background 140ms ease,
     border-color 140ms ease,
@@ -1852,7 +1842,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   height: 7px;
   border: 1px solid rgba($white, 0.1);
   border-radius: 50%;
-  background: rgba($black, 0.16);
+  background: $track-well;
   // The glow belongs in here with the colour. Switching a processor on sets
   // both, and with only `background` listed the halo snapped to full strength
   // while the dot it belongs to was still fading up — the lamp arrived in two
@@ -1916,13 +1906,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   height: 300px;
   border: 1px solid rgba($white, 0.07);
   border-radius: 10px;
-  background:
-    radial-gradient(
-      120% 100% at 50% 0%,
-      rgba($secondary-darker, 0.12) 0%,
-      transparent 70%
-    ),
-    rgba($black, 0.26);
+  background: $surface-plot;
   touch-action: none;
 }
 
@@ -1992,7 +1976,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   border-radius: 8px;
   // Just enough ground to stay legible over the spectrum without becoming a
   // panel: the plot is what the page is for and this sits on top of it.
-  background: rgba($black, 0.42);
+  background: $surface-plot;
   list-style: none;
   // The plot beneath is dragged to move bands, and a strip that swallowed the
   // pointer would make the top of the curve unreachable.
@@ -2005,7 +1989,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   align-items: center;
   gap: 6px;
   color: rgba($white, 0.55);
-  font-size: 0.66rem;
+  font-size: $text-small;
 }
 
 // Drawn from the same colours the canvas uses, passed in as  so one
@@ -2033,7 +2017,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // question the name has already raised.
 .dsp-eq-legend-scale {
   color: rgba($white, 0.32);
-  font-size: 0.6rem;
+  font-size: $text-micro;
 }
 
 .dsp-eq-picker {
@@ -2053,9 +2037,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   padding: 0;
   border: 1px solid rgba($white, 0.09);
   border-radius: 7px;
-  background: rgba($primary-light, 0.28);
+  background: rgba($secondary-default, 0.07);
   color: rgba($white, 0.55);
-  font-size: 0.7rem;
+  font-size: $text-body;
   font-variant-numeric: tabular-nums;
   line-height: 1;
   cursor: pointer;
@@ -2072,7 +2056,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     box-shadow 130ms ease;
 
   &:hover {
-    background: rgba($primary-light, 0.45);
+    background: rgba($secondary-default, 0.14);
     color: rgba($white, 0.85);
   }
 }
@@ -2157,7 +2141,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   padding: 10px 12px;
   border: 1px solid rgba($white, 0.06);
   border-radius: 10px;
-  background: rgba($black, 0.18);
+  background: $surface-plot;
 }
 
 // One row, centred: the selected band's controls and nothing else. Centring
@@ -2175,7 +2159,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   padding: 10px 14px;
   border: 1px solid rgba($white, 0.06);
   border-radius: 10px;
-  background: rgba($black, 0.18);
+  background: $surface-plot;
   flex-wrap: wrap;
 }
 
@@ -2209,7 +2193,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 .dsp-eq-field-label {
   color: rgba($white, 0.42);
-  font-size: 0.62rem;
+  font-size: $text-micro;
   text-transform: uppercase;
   letter-spacing: 0.07em;
 }
@@ -2257,7 +2241,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   padding: 6px 12px;
   border: 1px solid rgba($white, 0.06);
   border-radius: 10px;
-  background: rgba($black, 0.18);
+  background: $surface-plot;
 }
 
 .dsp-eq-dynamic-readout {
@@ -2268,7 +2252,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   justify-content: center;
   gap: 8px;
   color: rgba($white, 0.5);
-  font-size: 0.68rem;
+  font-size: $text-small;
   letter-spacing: 0.07em;
   text-transform: uppercase;
 }
@@ -2350,7 +2334,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   max-width: 620px;
   margin: 0;
   color: rgba($white, 0.48);
-  font-size: 0.7rem;
+  font-size: $text-body;
   line-height: 1.4;
 }
 
@@ -2360,7 +2344,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .dsp-eq-preset-label {
   flex: 0 0 auto;
   color: rgba($white, 0.42);
-  font-size: 0.62rem;
+  font-size: $text-micro;
   text-transform: uppercase;
   letter-spacing: 0.07em;
 }
@@ -2406,7 +2390,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   padding: 0;
   border: 1px solid rgba($white, 0.09);
   border-radius: 7px;
-  background: rgba($black, 0.24);
+  // A well cut into its card: the shell colour, which is the one thing in
+  // the palette that reads as "below". Black at 24% was a shade of nothing.
+  background: rgba($surface-base, 0.55);
   color: rgba($white, 0.55);
   cursor: pointer;
   transition:
@@ -2473,7 +2459,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   padding: 2px;
   border: 1px solid rgba($white, 0.09);
   border-radius: 8px;
-  background: rgba($black, 0.24);
+  background: $track-well;
 }
 
 .segmented__option {
@@ -2483,7 +2469,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   border-radius: 6px;
   background: none;
   color: rgba($white, 0.55);
-  font-size: 0.72rem;
+  font-size: $text-body;
   white-space: nowrap;
   cursor: pointer;
   transition:
@@ -2546,7 +2532,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   padding: 20px;
   border: 1px solid rgba($white, 0.09);
   border-radius: 12px;
-  background: $primary-default;
+  background: $surface-menu;
   box-shadow: 0 18px 48px rgba($black, 0.5);
 }
 
@@ -2558,7 +2544,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .dsp-import__hint {
   margin: 0;
   color: rgba($white, 0.48);
-  font-size: 0.72rem;
+  font-size: $text-body;
   line-height: 1.4;
 }
 
@@ -2571,9 +2557,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   padding: 9px 11px;
   border: 1px solid rgba($white, 0.1);
   border-radius: 8px;
-  background: rgba($black, 0.3);
+  background: $surface-plot;
   color: $white;
-  font-size: 0.86rem;
+  font-size: $text-lead;
 
   &:focus {
     border-color: rgba($secondary-default, 0.5);
@@ -2586,10 +2572,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   padding: 10px 12px;
   border: 1px solid rgba($white, 0.1);
   border-radius: 8px;
-  background: rgba($black, 0.28);
+  background: $surface-plot;
   color: $white;
   font-family: $font-mono;
-  font-size: 0.74rem;
+  font-size: $text-body;
   line-height: 1.5;
   resize: vertical;
   white-space: pre;
@@ -2600,7 +2586,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .dsp-import__error {
   margin: 0;
   color: $red;
-  font-size: 0.72rem;
+  font-size: $text-body;
 }
 
 .dsp-import__actions {
@@ -2625,7 +2611,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   flex: 1 0 100%;
   margin: 0;
   color: rgba($white, 0.62);
-  font-size: 0.72rem;
+  font-size: $text-body;
   line-height: 1.35;
 }
 
@@ -2678,7 +2664,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 .dsp-exciter-isolate-label {
   color: rgba($white, 0.4);
-  font-size: 0.66rem;
+  font-size: $text-small;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   transition: color 140ms ease;
@@ -2690,7 +2676,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 .dsp-monitor-isolate-label {
   color: rgba($white, 0.4);
-  font-size: 0.66rem;
+  font-size: $text-small;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   transition: color 140ms ease;
@@ -2702,7 +2688,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 .dsp-card-power-label {
   color: rgba($white, 0.4);
-  font-size: 0.66rem;
+  font-size: $text-small;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   transition: color 140ms ease;
@@ -2905,7 +2891,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   padding: 8px 12px 4px;
   border: 1px solid rgba($white, 0.06);
   border-radius: 10px;
-  background: rgba($black, 0.18);
+  background: $surface-plot;
 }
 
 // The block’s caption and its three mode glyphs share one line, so the icons
@@ -3625,7 +3611,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .dsp-dimension-guard-name,
 .dsp-dimension-guard-value {
   color: rgba($white, 0.52);
-  font-size: 0.62rem;
+  font-size: $text-micro;
 }
 
 .dsp-dimension-guard-value {
@@ -3639,7 +3625,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   height: 6px;
   overflow: hidden;
   border-radius: 3px;
-  background: rgba($white, 0.08);
+  background: $track-well;
 }
 
 // Full width means the guard is open and out of the way, so the bar reads as
@@ -3648,18 +3634,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   width: 100%;
   height: 100%;
   border-radius: 3px;
-  background: linear-gradient(
-    90deg,
-    rgba($secondary-default, 0.42),
-    $secondary-default
-  );
+  background: $secondary-default;
 }
 
 .dsp-dimension-note {
   width: 100%;
   margin: 0;
   color: rgba($white, 0.46);
-  font-size: 0.62rem;
+  font-size: $text-micro;
   line-height: 1.5;
 }
 
@@ -3702,7 +3684,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 .dsp-dimension-group-name {
   color: rgba($white, 0.52);
-  font-size: 0.62rem;
+  font-size: $text-micro;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -3729,7 +3711,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   width: 220px;
   height: 220px;
   border-radius: 10px;
-  background: #090c12;
+  background: $surface-well;
   border: 1px solid $border-subtle;
 }
 
@@ -3757,7 +3739,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   width: 100%;
   height: 64px;
   border-radius: 8px;
-  background: rgba($black, 0.28);
+  background: $surface-plot;
 }
 
 // Amber, matching the normalizer's before-bar: this is the one track here that

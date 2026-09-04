@@ -97,7 +97,7 @@ const fullyLoaded = (): IState => {
  * broke at least once while it was not.
  */
 describe('the Smart EQ layer in the Equalizer APO config', () => {
-  it('writes nothing when there is no correction', () => {
+  it('writes nothing when there is no correction', async () => {
     const state = getDefaultState();
     state.isFlat = true;
     state.smartEq = smartLayer({ 1000: 0 });
@@ -105,7 +105,7 @@ describe('the Smart EQ layer in the Equalizer APO config', () => {
     expect(stateToString(state)).not.toContain('Filter ');
   });
 
-  it('writes its bands with the numbering continued from the layers above', () => {
+  it('writes its bands with the numbering continued from the layers above', async () => {
     const state = fullyLoaded();
     const indices = filterLines(state).map((line) =>
       Number(/^Filter (\d+):/.exec(line)?.[1]),
@@ -119,7 +119,7 @@ describe('the Smart EQ layer in the Equalizer APO config', () => {
     expect(new Set(indices).size).toBe(indices.length);
   });
 
-  it('comes after every other layer and before the preamp', () => {
+  it('comes after every other layer and before the preamp', async () => {
     const state = fullyLoaded();
 
     const band = indexOfLine(state, 'Fc 100 Hz Gain 4 dB');
@@ -143,7 +143,7 @@ describe('the Smart EQ layer in the Equalizer APO config', () => {
     expect(preamp).toBeGreaterThan(smart);
   });
 
-  it('survives the reset that Clear EQ and Clear reference perform', () => {
+  it('survives the reset that Clear EQ and Clear reference perform', async () => {
     // Both of those go through the same reset, which rebuilds the bands and
     // sets isFlat. The layer is written outside that check on purpose: clearing
     // the bands the user tuned does not un-measure what came out of the
@@ -160,7 +160,7 @@ describe('the Smart EQ layer in the Equalizer APO config', () => {
 });
 
 describe('the Smart EQ layer and the shared preamp', () => {
-  it('still writes exactly one preamp for the whole chain', () => {
+  it('still writes exactly one preamp for the whole chain', async () => {
     // Every layer used to have its own, and stacking them buried the signal.
     const lines = configLines(fullyLoaded()).filter((line) =>
       line.startsWith('Preamp:'),
@@ -168,7 +168,7 @@ describe('the Smart EQ layer and the shared preamp', () => {
     expect(lines).toHaveLength(1);
   });
 
-  it('reserves the headroom its boost needs', () => {
+  it('reserves the headroom its boost needs', async () => {
     const withoutLayer = getDefaultState();
     withoutLayer.isFlat = true;
 
@@ -192,7 +192,7 @@ describe('the Smart EQ layer and the shared preamp', () => {
     );
   });
 
-  it('counts the layer as part of the combined peak, not on top of it', () => {
+  it('counts the layer as part of the combined peak, not on top of it', async () => {
     // Boosts at different frequencies never coincide, so summing each layer's
     // own peak would throw away volume for headroom nothing is using.
     const combined = getDefaultState();
@@ -225,15 +225,15 @@ describe('the Smart EQ layer and the shared preamp', () => {
 describe('the Smart EQ layer and the profile it belongs to', () => {
   let presetsDir: string;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     presetsDir = fs.mkdtempSync(path.join(os.tmpdir(), 'fluideq-smart-'));
   });
 
-  afterEach(() => {
+  afterEach(async () => {
     fs.rmSync(presetsDir, { recursive: true, force: true });
   });
 
-  it('round-trips through a profile save and load', () => {
+  it('round-trips through a profile save and load', async () => {
     // Device profile blocks are rendered from the preset file alone, so a
     // layer missing from it reaches APO for the active output only and
     // vanishes the moment a profile is attached.
@@ -246,7 +246,7 @@ describe('the Smart EQ layer and the profile it belongs to', () => {
       ),
     };
 
-    savePreset('measured', preset, presetsDir);
+    await savePreset('measured', preset, presetsDir);
     const loaded = fetchPreset('measured', presetsDir);
 
     expect(loaded.smartEq).toEqual(preset.smartEq);
@@ -254,8 +254,8 @@ describe('the Smart EQ layer and the profile it belongs to', () => {
     expect(loaded.smartEq?.status).toBe('partial');
   });
 
-  it('reaches Equalizer APO for a device that only has a profile', () => {
-    savePreset(
+  it('reaches Equalizer APO for a device that only has a profile', async () => {
+    await savePreset(
       'measured',
       {
         preAmp: 0,
@@ -283,11 +283,11 @@ describe('the Smart EQ layer and the profile it belongs to', () => {
     ).toContain('Fc 1000 Hz Gain 3 dB Q 1.4');
   });
 
-  it('does not follow the user onto an output that never measured', () => {
+  it('does not follow the user onto an output that never measured', async () => {
     // getStateForAudioDevice is applied over the live state with Object.assign,
     // so a key it omits leaves the previous device's value in place — and
     // auto-save then writes the leak into that device's profile for good.
-    savePreset(
+    await savePreset(
       'measured',
       {
         preAmp: 0,
@@ -296,7 +296,11 @@ describe('the Smart EQ layer and the profile it belongs to', () => {
       },
       presetsDir,
     );
-    savePreset('bare', { preAmp: 0, filters: getDefaultFilters() }, presetsDir);
+    await savePreset(
+      'bare',
+      { preAmp: 0, filters: getDefaultFilters() },
+      presetsDir,
+    );
 
     const settings: IDeviceProfileSettings = {
       version: 1,
@@ -354,7 +358,7 @@ describe('clearing the headphone reference', () => {
     state.headsetSource = undefined;
   };
 
-  it('leaves the measured correction standing', () => {
+  it('leaves the measured correction standing', async () => {
     const state = fullyLoaded();
     state.headset = 'HD 600';
     state.headsetTarget = 'Harman 2018';
@@ -367,7 +371,7 @@ describe('clearing the headphone reference', () => {
     expect(stateToString(state)).toContain('Fc 1000 Hz Gain 3 dB Q 1.4');
   });
 
-  it('and clearing the correction leaves the reference and the bands', () => {
+  it('and clearing the correction leaves the reference and the bands', async () => {
     const state = fullyLoaded();
     state.headset = 'HD 600';
 

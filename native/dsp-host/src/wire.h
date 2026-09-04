@@ -54,7 +54,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * both sides, so this number is what stands between them and a stale binary.
  * Move it, or the next person debugging silence starts where we started.
  */
-#define FEQ_WIRE_PROTOCOL_VERSION 5
+#define FEQ_WIRE_PROTOCOL_VERSION 6
 
 /* 'FEQ' plus a letter for the kind, so a desynchronised stream is obvious. */
 #define FEQ_MAGIC_HANDSHAKE 0x48514546u /* FEQH */
@@ -498,6 +498,14 @@ typedef struct FeqWireAnalysisFrame {
    * out is what keeps the TypeScript constant derivable by reading this file.
    */
   float bass_reserved_tail;
+  /**
+   * Hiss gain that actually reached the audio, in dB per profile band.
+   *
+   * Appended after the complete previous header. These are measured gains,
+   * not settings: sensitivity and smoothing depend on the signal, so the
+   * renderer cannot truthfully derive this curve from the dials.
+   */
+  float denoise_hiss_reduction_bands[FEQ_DENOISE_PROFILE_BANDS];
 } FeqWireAnalysisFrame;
 
 #ifdef __cplusplus
@@ -520,10 +528,10 @@ static_assert(sizeof(FeqWireStatsFrame) == 24, "stats frame size");
  * 120, then 136 when Master loudness landed, then Denoise's six words took it
  * to 160 and its forty floor bands to 320. The two bass stages add sixteen
  * floats for Forge and three for Punch — 76 bytes, which lands on 396 and is
- * rounded to 400 by the explicit `bass_reserved_tail`, because `correlation`
- * makes the whole struct eight-byte aligned.
+ * rounded to 400 by the explicit `bass_reserved_tail`. Denoise's forty live
+ * hiss-gain bands append 160 bytes, for a 560-byte header.
  */
-static_assert(sizeof(FeqWireAnalysisFrame) == 400, "analysis frame size");
+static_assert(sizeof(FeqWireAnalysisFrame) == 560, "analysis frame size");
 #endif
 
 #endif /* FLUIDEQ_HOST_WIRE_H */

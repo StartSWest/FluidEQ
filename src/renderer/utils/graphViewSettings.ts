@@ -846,12 +846,9 @@ export const useHiddenCurves = () =>
 /**
  * Whether full screen keeps FluidEQ's own top bar.
  *
- * On by default. Somebody arriving in this mode for the first time should still
- * be able to see where they are and how to get back — the creature, the
- * waveform and the actions menu all live in that bar — and the version without
- * it is the one to opt into rather than the one to discover you are in. The
- * switch is in the View menu beside the modes themselves, so taking it away is
- * one press from the control that got you here.
+ * On by default. The mode maximises the window rather than taking the screen,
+ * so the titlebar belongs there: it is a maximised window, and a maximised
+ * window with no chrome is a window with a piece missing.
  *
  * One switch rather than one per element. The bar is a single row and the parts
  * of it are not independently useful: a waveform with no creature beside it is
@@ -942,9 +939,14 @@ export const useWaveOrientation = () =>
 const fullScreenListeners = new Set<() => void>();
 
 /**
- * Taking the window fullscreen is the main process's business, so the store
+ * Taking the window full screen is the main process's business, so the store
  * cannot do it — and importing an IPC call here would tie a layout preference
  * to the shape of the app's API. App registers what to do instead.
+ *
+ * Full screen and not maximised: the point of the mode is that nothing of
+ * Windows is left on screen, so a video or a spectrum has the glass to
+ * itself. FluidEQ's own header stays — see `hasFullScreenTopBar` — because
+ * that is the app's, not the system's.
  */
 let applyWindowFullScreen: ((next: boolean) => void) | undefined;
 

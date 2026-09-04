@@ -41,7 +41,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // are the display's — and expanded it is the difference between a picture in
   // the column and a black square laid across it.
   border-radius: $radius-xl;
-  background: #050d16;
+  background: $surface-well;
   pointer-events: none;
   animation: library-stage-art-in $motion-slow $ease-out both;
 }
@@ -54,7 +54,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   width: 116%;
   height: 116%;
   opacity: 0.42;
-  filter: blur(46px) saturate(1.25);
   object-fit: cover;
 }
 
@@ -119,7 +118,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   small {
     display: block;
     margin-top: 2px;
-    color: rgba($primary-lighter, 0.6);
+    color: $text-muted;
     font-size: clamp(0.66rem, 1.3vh, 0.85rem);
   }
 }

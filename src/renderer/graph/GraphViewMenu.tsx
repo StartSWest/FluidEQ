@@ -225,8 +225,21 @@ const GraphViewMenu = ({
      */
     const menu = menuRef.current;
     const wanted = menu ? menu.scrollHeight : 0;
-    const below = window.innerHeight - trigger.bottom - MENU_EDGE_GAP;
-    const above = trigger.top - MENU_EDGE_GAP;
+    // The room is the window minus the chrome pinned over it. The titlebar
+    // and the transport bar are both fixed and both paint above this list,
+    // so a menu measured against the bare window edge opened up under the
+    // titlebar and lost its first rows behind it. Measured from the DOM
+    // rather than from a constant, so a hidden bar counts as no bar.
+    const chromeTop =
+      document.querySelector('.window-titlebar')?.getBoundingClientRect()
+        .bottom ?? 0;
+    const transport = document
+      .querySelector('.now-playing-bar')
+      ?.getBoundingClientRect();
+    const chromeBottom = transport ? window.innerHeight - transport.top : 0;
+    const below =
+      window.innerHeight - chromeBottom - trigger.bottom - MENU_EDGE_GAP;
+    const above = trigger.top - chromeTop - MENU_EDGE_GAP;
     const isAbove = wanted > below && above > below;
     const room = isAbove ? above : below;
     setPlacement({

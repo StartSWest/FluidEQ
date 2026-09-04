@@ -87,7 +87,7 @@ it under the terms of the GNU General Public License version 3 or later.
   // Endpoint names are long, arbitrary and full of brackets. Break them where
   // they must break rather than letting one push the panel sideways.
   overflow-wrap: anywhere;
-  font-size: 0.72rem;
+  font-size: $text-body;
   line-height: 1.25;
 }
 
@@ -107,7 +107,7 @@ it under the terms of the GNU General Public License version 3 or later.
     align-items: center;
     gap: 8px;
     color: $text-muted;
-    font-size: 0.68rem;
+    font-size: $text-small;
     font-weight: $weight-bold;
   }
 
@@ -147,7 +147,7 @@ it under the terms of the GNU General Public License version 3 or later.
   flex: 0 0 auto;
   min-width: 30px;
   color: $text-muted;
-  font-size: 0.6rem;
+  font-size: $text-micro;
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
@@ -158,7 +158,7 @@ it under the terms of the GNU General Public License version 3 or later.
   min-width: 0;
   overflow: hidden;
   color: $text-muted;
-  font-size: 0.62rem;
+  font-size: $text-small;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -173,7 +173,7 @@ it under the terms of the GNU General Public License version 3 or later.
   color: $secondary-light;
   border: 1px solid rgba($secondary-default, 0.35);
   border-radius: $radius-pill;
-  font-size: 0.58rem;
+  font-size: $text-micro;
   font-weight: $weight-bold;
 }
 
@@ -182,7 +182,7 @@ it under the terms of the GNU General Public License version 3 or later.
 .extra-outputs__obstacle {
   margin: 4px 0 0;
   color: $red;
-  font-size: 0.68rem;
+  font-size: $text-small;
   line-height: 1.35;
 }
 
@@ -191,20 +191,20 @@ it under the terms of the GNU General Public License version 3 or later.
 .extra-outputs__latency {
   margin: 4px 0 0;
   color: $neon-yellow;
-  font-size: 0.68rem;
+  font-size: $text-small;
   line-height: 1.35;
 }
 
 .extra-outputs__virtual {
   margin: 4px 0 0;
   color: $secondary-light;
-  font-size: 0.68rem;
+  font-size: $text-small;
   line-height: 1.35;
 }
 
 .extra-outputs__hint {
   margin: 2px 0 0;
   color: $text-muted;
-  font-size: 0.66rem;
+  font-size: $text-small;
   line-height: 1.35;
 }

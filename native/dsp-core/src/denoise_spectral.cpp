@@ -291,6 +291,7 @@ void denoise_spectral_configure(FeqDenoise* denoise) {
       channel.imaginary.assign(window, 0.0);
       channel.previous_gain.assign(bins, 1.0);
       channel.previous_magnitude.assign(bins, 0.0);
+      channel.applied_gain.assign(bins, 1.0);
       channel.adaptive_db.assign(bins, kDenoiseSilenceDb);
       channel.subwindow_minimum.assign(bins, 0.0);
       // Infinity, not zero: a slot that has never held a subwindow must not
@@ -356,6 +357,7 @@ void denoise_spectral_reset(FeqDenoise* denoise) {
     std::fill(channel.previous_gain.begin(), channel.previous_gain.end(), 1.0);
     std::fill(channel.previous_magnitude.begin(),
               channel.previous_magnitude.end(), 0.0);
+    std::fill(channel.applied_gain.begin(), channel.applied_gain.end(), 1.0);
     std::fill(channel.adaptive_db.begin(), channel.adaptive_db.end(),
               kDenoiseSilenceDb);
     std::fill(channel.subwindow_minimum.begin(),
@@ -630,6 +632,7 @@ double process_frame(FeqDenoise* denoise,
     // not allowed to touch lands exactly on unity — see `hiss_weight`.
     double gain = 1.0 - amount * denoise->hiss_weight[bin] * (1.0 - estimated);
     gain = std::max(whitened_floor, std::min(1.0, gain));
+    channel.applied_gain[bin] = gain;
 
     channel.real[bin] *= gain;
     channel.imaginary[bin] *= gain;
@@ -708,6 +711,31 @@ double process_frame(FeqDenoise* denoise,
           bin_power > kFloorEpsilon
               ? 10.0 * std::log10(bin_power / reference)
               : kDenoiseSilenceDb;
+
+      /*
+       * The mean of the channel gains in dB, not a setting-derived promise.
+       *
+       * Each channel owns its estimator, so stereo can legitimately receive
+       * different gains. Reading every channel's latest completed frame here
+       * makes the last channel processed publish the synchronized result; the
+       * earlier call can contain one frame from its neighbour for a fraction
+       * of a callback, which is the same harmless meter tear documented on the
+       * destination array.
+       */
+      double reduction_db = 0.0;
+      uint32_t reduction_channels = 0;
+      for (const auto& spectral_channel : denoise->spectral) {
+        if (bin < spectral_channel.applied_gain.size()) {
+          reduction_db += 20.0 * std::log10(
+                                     std::max(1e-6,
+                                              spectral_channel.applied_gain[bin]));
+          reduction_channels += 1;
+        }
+      }
+      denoise->live_hiss_reduction_db[band] =
+          reduction_channels == 0
+              ? 0.0
+              : reduction_db / static_cast<double>(reduction_channels);
     }
   }
 
@@ -743,6 +771,8 @@ double denoise_spectral_process(FeqDenoise* denoise,
                                 float* const* channels,
                                 uint32_t frames) {
   if (denoise->settings.hiss.enabled == 0 || denoise->window == 0) {
+    std::fill(denoise->live_hiss_reduction_db.begin(),
+              denoise->live_hiss_reduction_db.end(), 0.0);
     return 0.0;
   }
 

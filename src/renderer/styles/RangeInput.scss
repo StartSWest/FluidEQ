@@ -29,6 +29,9 @@ $range-thumb-height: 16px;
 // vertical space the rotated element occupies.
 .range {
   --range-length: var(--range-length-prop, 150px);
+  // The thumb's size along the track, for anything that has to know where
+  // the thumb's centre can reach: the guide lines under the EQ bands.
+  --range-thumb: #{$range-thumb-height};
 
   display: flex;
   width: 52px;
@@ -102,15 +105,15 @@ $range-thumb-height: 16px;
 
     &:disabled {
       &::-webkit-slider-runnable-track {
-        border-color: rgba($primary-lighter, 0.16);
-        background: $primary-light;
+        border-color: rgba($edge-tint, 0.16);
+        background: $surface-field;
         box-shadow: inset 0 1px 2px rgba($black, 0.3);
         cursor: default;
       }
 
       &::-webkit-slider-thumb {
-        border-color: rgba($primary-lighter, 0.3);
-        background: rgba($primary-lighter, 0.55);
+        border-color: rgba($edge-tint, 0.3);
+        background: rgba($edge-tint, 0.55);
         box-shadow: none;
         cursor: default;
       }

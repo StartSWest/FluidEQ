@@ -73,14 +73,28 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     background: none;
     box-shadow: none;
     outline: none;
-    font-size: 0.72rem;
+    font-size: $text-body;
     font-variant-numeric: tabular-nums;
 
+    // Never a fill of its own, in any state.
+    //
+    // The global control base hands every `input` the interactive field face,
+    // hover fill included, and here that fill landed ON TOP of the wrapper's
+    // own: a second, brighter rectangle that stopped short of the stepper
+    // arrows and carried the wrapper's rounded corner into the middle of the
+    // control. The wrapper is the visible field; the text area inside it is
+    // glass.
+    &:hover,
+    &:focus,
+    &:focus-visible,
     &:disabled {
-      color: rgba($primary-lighter, 0.55);
-      border: 0;
       background: none;
       box-shadow: none;
+    }
+
+    &:disabled {
+      color: $text-faint;
+      border: 0;
     }
   }
 

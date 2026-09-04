@@ -588,12 +588,12 @@ describe('profiles scoped to one output', () => {
     return settings;
   };
 
-  it('renames one output’s profile and leaves the other playing', () => {
+  it('renames one output’s profile and leaves the other playing', async () => {
     const settings = twoOutputsSharingAName();
 
     // What the IPC handler does: the file moves in one folder, so exactly one
     // assignment may follow it.
-    renamePreset('Untitled profile 1', 'Studio', dirFor('headphones'));
+    await renamePreset('Untitled profile 1', 'Studio', dirFor('headphones'));
     renameAssignedPreset(
       settings,
       'headphones',

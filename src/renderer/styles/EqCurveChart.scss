@@ -1,4 +1,5 @@
 @use 'color' as *;
+@use 'theme' as *;
 
 // The shared response preview. Panels set their own height and colours; what
 // lives here is only what has to look the same everywhere a curve is drawn
@@ -23,6 +24,6 @@
 }
 
 .eq-curve-chart__axis {
-  fill: rgba($primary-lighter, 0.5);
+  fill: rgba($edge-tint, 0.5);
   font-size: 9px;
 }

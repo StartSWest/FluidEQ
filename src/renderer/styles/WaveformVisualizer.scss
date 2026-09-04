@@ -6,6 +6,7 @@ This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License version 3 or later.
 */
 
+@use 'sass:color' as sass-color;
 @use 'color' as *;
 @use 'theme' as *;
 
@@ -53,7 +54,7 @@ it under the terms of the GNU General Public License version 3 or later.
   // App.scss and Euphoria.scss went to 65 for the same reason.
   height: 63px;
   padding: 0;
-  border: 1px solid rgba($primary-lighter, 0.1);
+  border: 1px solid rgba($edge-tint, 0.1);
   border-radius: 18px;
   // The same bargain the panels and the title bar make: translucent enough
   // that the shell's own colour comes through, opaque enough that a trace drawn
@@ -64,13 +65,16 @@ it under the terms of the GNU General Public License version 3 or later.
   // in the window rather than on it, while staying a shade under the title bar
   // it is set into, which is what keeps it reading as a well rather than as a
   // card. The wash above is its own and is unchanged.
-  background:
-    radial-gradient(
-      120% 160% at 50% -40%,
-      rgba($secondary-default, 0.09),
-      transparent 62%
-    ),
-    rgba($panel-bottom, 0.8);
+  // Cut into the bar, not laid on it: the shell colour, which is the one
+  // step in the palette that reads as below. The empty-track colour was
+  // tried here and it is a shade LIGHTER than the bar, so the pane floated
+  // instead of sinking; transparent before that let it disappear entirely.
+  // A shade under the bar and no more.
+  //
+  // The bar's own colour, taken down a shade. Opaque, and that matters as
+  // much as the value: painted as a translucent wash the pane picked up the
+  // bar's inset rim through it and the tone moved along its own height.
+  background: sass-color.scale($surface-panel, $lightness: -8%);
   box-shadow:
     inset 0 1px 0 rgba($white, 0.05),
     0 0 22px rgba($secondary-default, 0.04);
@@ -101,7 +105,7 @@ it under the terms of the GNU General Public License version 3 or later.
   // The trace goes flat and grey here too, but that is not this file's to say
   // any more — see the note at the bottom. The pane's own dimming still is.
   &.is-paused {
-    border-color: rgba($primary-lighter, 0.17);
+    border-color: rgba($edge-tint, 0.17);
     opacity: 0.78;
   }
 
@@ -160,8 +164,8 @@ it under the terms of the GNU General Public License version 3 or later.
   align-items: center;
   justify-content: space-between;
   padding-inline: 14px;
-  color: rgba($primary-lighter, 0.82);
-  font-size: 0.5rem;
+  color: $text-muted;
+  font-size: $text-eyebrow;
   font-weight: $weight-bold;
   letter-spacing: 0.14em;
   pointer-events: none;
@@ -179,7 +183,7 @@ it under the terms of the GNU General Public License version 3 or later.
   height: 5px;
   flex: 0 0 auto;
   border-radius: 50%;
-  background: rgba($primary-lighter, 0.48);
+  background: rgba($edge-tint, 0.48);
 }
 
 .is-active .waveform-visualizer__signal-dot {
@@ -198,7 +202,7 @@ it under the terms of the GNU General Public License version 3 or later.
 // they change, which they do several times a second.
 .waveform-visualizer__peak {
   color: rgba($secondary-light, 0.86);
-  font-size: 0.52rem;
+  font-size: $text-eyebrow;
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.04em;
   text-align: right;
@@ -214,7 +218,7 @@ it under the terms of the GNU General Public License version 3 or later.
   border: 1px solid rgba($red, 0.45);
   border-radius: 4px;
   background: rgba($red, 0.14);
-  font-size: 0.46rem;
+  font-size: $text-eyebrow;
   letter-spacing: 0.12em;
 }
 
@@ -236,7 +240,7 @@ it under the terms of the GNU General Public License version 3 or later.
   border: 1px solid rgba($secondary-light, 0.32);
   border-radius: 3px;
   background: rgba($panel-bottom, 0.72);
-  font-size: 0.5rem;
+  font-size: $text-eyebrow;
   font-weight: $weight-bold;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -283,7 +287,7 @@ it under the terms of the GNU General Public License version 3 or later.
 // one. Keep the grid-filled stage and the pane's click target; the component
 // releases its capture and keeps the existing style-name label visible as OFF.
 .waveform-visualizer.is-off {
-  border-color: rgba($primary-lighter, 0.16);
+  border-color: rgba($edge-tint, 0.16);
   box-shadow: inset 0 1px 0 rgba($white, 0.04);
 
   .waveform-visualizer__stage {
@@ -327,7 +331,7 @@ it under the terms of the GNU General Public License version 3 or later.
 @media (max-width: 760px) {
   .waveform-visualizer__meta {
     gap: 4px;
-    font-size: 0.44rem;
+    font-size: $text-eyebrow;
     letter-spacing: 0.1em;
   }
 

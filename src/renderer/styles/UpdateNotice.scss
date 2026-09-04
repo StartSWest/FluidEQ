@@ -26,7 +26,7 @@ it under the terms of the GNU General Public License version 3 or later.
   padding: 12px 14px;
   border: 1px solid rgba($secondary-light, 0.4);
   border-radius: $radius-m;
-  background: linear-gradient(145deg, rgba(#0d2029, 0.97), rgba(#0a161d, 0.97));
+  background: rgba($surface-menu-top, 0.97);
   box-shadow: 0 16px 40px rgba($black, 0.45);
 
   > div {
@@ -37,12 +37,12 @@ it under the terms of the GNU General Public License version 3 or later.
 
   strong {
     color: $secondary-light;
-    font-size: 0.76rem;
+    font-size: $text-body;
   }
 
   span {
-    color: rgba($primary-lighter, 0.78);
-    font-size: 0.7rem;
+    color: $text-muted;
+    font-size: $text-body;
     line-height: 1.4;
   }
 }
@@ -60,11 +60,11 @@ it under the terms of the GNU General Public License version 3 or later.
   flex: 0 0 auto;
   min-height: $control-height-sm;
   padding: 7px 12px;
-  color: #03110f;
+  color: $surface-base;
   border: 1px solid rgba($secondary-light, 0.42);
   border-radius: $radius-xs;
   background: $secondary-default;
-  font-size: 0.7rem;
+  font-size: $text-body;
   font-weight: $weight-bold;
   white-space: nowrap;
   cursor: pointer;

@@ -176,9 +176,13 @@ const ConvolutionPanel = () => {
               {t('convolution.search')}
             </span>
             <div className="convolution-search__field">
+              {/* A text input with the app's own clear cross, not a search
+                  input with the browser's: Chromium draws a grey blob in a
+                  `type="search"` field that no stylesheet can reach, and
+                  every other search in the app clears with this cross. */}
               <input
                 id="convolution-model-search"
-                type="search"
+                type="text"
                 aria-labelledby="convolution-model-search-label"
                 value={query}
                 onChange={(event) => {
@@ -190,6 +194,22 @@ const ConvolutionPanel = () => {
                 placeholder={t('convolution.searchPlaceholder')}
                 autoComplete="off"
               />
+              {query.length > 0 && (
+                <button
+                  type="button"
+                  className="menu-search__clear convolution-search__clear"
+                  aria-label={t('common.clearSearch')}
+                  title={t('common.clearSearch')}
+                  // Keeps the caret in the field: pressing a button focuses
+                  // it, and this one unmounts on the very next render.
+                  onMouseDown={(event) => event.preventDefault()}
+                  onClick={() => setQuery('')}
+                >
+                  <svg viewBox="0 0 12 12" aria-hidden="true" focusable="false">
+                    <path d="M3 3l6 6M9 3l-6 6" />
+                  </svg>
+                </button>
+              )}
               {isSearchFocused && searchSuggestions.length > 0 && (
                 <div className="convolution-search__history">
                   <div className="convolution-search__history-head">

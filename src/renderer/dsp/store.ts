@@ -513,6 +513,8 @@ export interface IDspDenoiseMeter {
   noiseFloorDb: number;
   /** The floor being subtracted right now, per band. See `floorBandsDb`. */
   floorBandsDb: readonly number[];
+  /** Actual per-band hiss gain in dB, sampled from the native processor. */
+  hissReductionBandsDb: readonly number[];
   clicksRepaired: number;
   voiceUnderruns: number;
   profileReady: boolean;
@@ -523,6 +525,7 @@ const DENOISE_METER_IDLE: IDspDenoiseMeter = {
   reductionDb: 0,
   noiseFloorDb: -120,
   floorBandsDb: [],
+  hissReductionBandsDb: [],
   clicksRepaired: 0,
   voiceUnderruns: 0,
   profileReady: false,

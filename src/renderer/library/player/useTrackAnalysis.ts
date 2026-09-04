@@ -382,7 +382,9 @@ export const useTrackAnalysis = (deps: ITrackAnalysisDeps): void => {
         window.electron.ipcRenderer.libraryTrackSignature(track.id),
       ]);
       if (!buffer || cancelled) {
-        restorePrevious();
+        if (!cancelled && analysisJobRef.current === analysisJob) {
+          restorePrevious();
+        }
         return;
       }
       const analysis = await analyzeInputTrack(buffer, {
@@ -416,24 +418,30 @@ export const useTrackAnalysis = (deps: ITrackAnalysisDeps): void => {
         }
         return;
       }
+      // A noise rescan must not quietly replace a previously accepted
+      // loudness or programme-edge measurement from a different decoder run.
+      // Only the field the user asked to refresh changes when one exists.
+      const completedAnalysis = previousAnalysis
+        ? { ...previousAnalysis, noise: analysis.noise }
+        : analysis;
       const deck = audioElementRef.current;
       if (
-        analysis.edges &&
+        completedAnalysis.edges &&
         deck &&
         elementTrackRef.current.get(deck) === track.id
       ) {
-        programmeEdgesRef.current.set(deck, analysis.edges);
+        programmeEdgesRef.current.set(deck, completedAnalysis.edges);
       }
       setDspNoiseProfile(analysis.noise);
       setDspInputAnalysis({
         trackId: track.id,
         status: 'ready',
         fraction: 1,
-        analysis,
+        analysis: completedAnalysis,
       });
       await window.electron.ipcRenderer.setLibraryTrackNormalization(
         track.id,
-        analysis,
+        completedAnalysis,
         signature ?? {
           sizeBytes: track.sizeBytes,
           mtimeMs: track.mtimeMs,

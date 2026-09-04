@@ -25,90 +25,82 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // sentence behind them line up instead of starting a few pixels apart.
 $song-eq-lead: 30px;
 
+// The two lines, sized to add up to the toolbar's button height with the
+// border and a pixel of breathing room each side: 2 + 14 + 12 + 2 + 2 = 32.
+$song-eq-label-line: 14px;
+$song-eq-status-line: 12px;
+
 // The save-for-this-song control, drawn as one chip.
 //
 // It used to be three loose pieces sitting between the toolbar's buttons: a
-// 50x28 settings-page switch — the largest object in a row of 32px controls,
-// and the quietest control in it — a 0.66rem label, and a sentence hanging
-// underneath, left-aligned inside a row that centres everything else. Nothing
-// said the three belonged together, and the stack made the toolbar ragged.
+// switch, a label and a sentence, each with its own gap, which read as a row
+// that had run out of layout. One outlined box makes them one control.
 //
-// One bordered chip in the row's own outline language fixes all three: it is
-// obviously one control, it sits on the row's baseline like the buttons do,
-// and the sentence is inside it rather than beside it.
+// Exactly the height of the buttons beside it and on the same face. It stood
+// seven pixels taller than the rest of the row, which pushed the whole toolbar
+// down by that much whenever a mode started and made the chip read as a card
+// that had been dropped in rather than as a control that belongs to the row.
 .song-eq-save {
-  display: inline-flex;
-  min-width: 0;
-  flex-direction: column;
-  justify-content: center;
-  // Tight enough that the chip clears `.button.small`'s 32px by a few pixels
-  // rather than by a dozen: it is one item in a row of eleven, and the tallest
-  // thing in a wrapping row is the thing that sets every line's height.
-  padding: 3px 10px;
-  border: 1px solid rgba($secondary-light, 0.14);
-  // The same radius `.button.small` uses, so the chip and the buttons either
-  // side of it are cut from one shape.
-  border-radius: $radius-xs;
-  background: rgba($secondary-default, 0.04);
-  gap: 2px;
-  transition: $transition-control;
+  @include field-surface;
 
-  // The same edge `.button.subtle` lights on hover, and for the same reason:
-  // every other item in this row answers the pointer, and one that sits there
-  // inert reads as decoration rather than as something to press.
+  display: inline-grid;
+  height: $control-height-sm;
+  min-width: 0;
+  box-sizing: border-box;
+  align-content: center;
+  align-items: center;
+  // Two on top and none below, which puts the pair one pixel under the box's
+  // centre. Measured by ink it was already centred; measured by eye it was
+  // not, because the bold bright label leans on the top edge and the small
+  // dim readout under it leaves its line box mostly empty, so the box read
+  // as heavy at the head. A pixel down balances what is seen.
+  padding: 2px 10px 0;
+  column-gap: 8px;
+  grid-template-columns: $song-eq-lead minmax(0, 1fr);
+  grid-template-rows: $song-eq-label-line $song-eq-status-line;
+
   &:hover {
-    border-color: rgba($secondary-light, 0.4);
+    border-color: $border-field-hover;
+    background: rgba($secondary-default, 0.14);
 
     .song-eq-save__label {
       color: $white;
     }
   }
 
-  // Both lines start at the same x. The switch leads the first, the progress
-  // track leads the second, and the two leaders are the same width so the
-  // label and the sentence stack rather than stagger.
+  // Sized to the first line, so the thumb rides level with the label.
   .switch {
     --switch-width: #{$song-eq-lead};
-    --switch-height: 16px;
+    --switch-height: #{$song-eq-label-line};
     --switch-thumb: 10px;
     --switch-inset: 2px;
   }
 }
 
+// The markup is two rows of two; the grid wants the four leaves directly, so
+// the rows dissolve and each leaf takes its cell.
 .song-eq-save__row {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
+  display: contents;
 }
 
+// Labelled like every other choice in the row: the quiet face's cyan, bold.
 .song-eq-save__label {
-  color: $text-muted;
-  // Matches `.button.small`, which is what it sits in a row of. At 0.66rem it
-  // read as a caption for the button beside it rather than as this control's
-  // own name.
-  font-size: 0.72rem;
-  font-weight: $weight-semibold;
+  color: $secondary-light;
+  // The small button's own size, so the label sits level with "Target".
+  font-size: $text-body;
+  font-weight: $weight-bold;
+  line-height: $song-eq-label-line;
   white-space: nowrap;
   cursor: pointer;
   transition: color $motion-fast ease;
 }
 
-// The two-minute floor, drawn.
-//
-// A countdown alone was the whole of the feedback: two minutes of a number
-// going down, with nothing showing how much of the wait is behind you. Same
-// bar recipe as `.overlay-card__progress` — a width and nothing that moves on
-// its own, so a session that has stopped advancing looks stopped.
 .song-eq-save__track {
   width: $song-eq-lead;
-  height: 4px;
-  flex: 0 0 auto;
+  height: 3px;
   overflow: hidden;
   border-radius: $radius-pill;
-  // Barely there while the switch is off: an empty meter drawn at full
-  // strength beside a dormant control reads as a broken element rather than as
-  // a track waiting for something to fill it.
-  background: rgba($primary-lighter, 0.08);
+  background: $track-well;
 }
 
 .song-eq-save__fill {
@@ -116,54 +108,42 @@ $song-eq-lead: 30px;
   width: 0;
   height: 100%;
   border-radius: $radius-pill;
-  background: linear-gradient(90deg, $secondary-dark, $secondary-default);
+  background: $secondary-default;
   transition: width $motion-base linear;
 }
 
+// The sentence under the label, in the sub-header grey: it is a readout, not
+// a second label.
 .song-eq-save__status {
   overflow: hidden;
-  color: rgba($secondary-light, 0.6);
-  font-size: 0.64rem;
-  line-height: 1.3;
+  color: $text-faint;
+  font-size: $text-micro;
+  line-height: $song-eq-status-line;
   text-overflow: ellipsis;
   white-space: nowrap;
-  // Fixed, not fluid. The sentence underneath changes as the song plays and a
-  // chip that resized with it would shove ten controls sideways every second —
-  // the same reflow `.eq-mode__bubble` had to be taken out of the flow to
-  // avoid. Whatever does not fit is in the `title`.
   width: 132px;
 }
 
-// Switched on: the outline the toolbar's own secondary buttons wear, so "this
-// is armed" reads without hovering it.
 .song-eq-save.is-on {
-  border-color: rgba($secondary-light, 0.24);
-  background: rgba($secondary-default, 0.07);
+  border-color: $border-field-hover;
+  background: rgba($secondary-default, 0.14);
 
   .song-eq-save__label {
-    color: rgba($white, 0.92);
-  }
-
-  .song-eq-save__track {
-    background: rgba($primary-lighter, 0.16);
+    color: $white;
   }
 
   .song-eq-save__status {
-    color: rgba($secondary-light, 0.82);
+    color: $text-muted;
   }
 }
 
-// `willSave` true: continuing to listen, exactly as things stand, ends in a
-// saved entry — the one state worth lighting, and lit in the same accent
-// `.song-eq-badge--will-save` uses for the same fact on every other tab.
+// Lit, flat: the border and the fill go to the bright cyan and nothing glows.
 .song-eq-save.is-will-save {
-  border-color: rgba($secondary-light, 0.5);
-  background: rgba($secondary-default, 0.14);
-  box-shadow: 0 0 18px rgba($secondary-default, 0.12);
+  border-color: rgba($secondary-light, 0.55);
+  background: rgba($secondary-default, 0.18);
 
   .song-eq-save__fill {
     background: $secondary-light;
-    box-shadow: 0 0 10px rgba($secondary-light, 0.7);
   }
 
   .song-eq-save__status {

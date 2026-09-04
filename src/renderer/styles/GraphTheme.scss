@@ -8,6 +8,7 @@ it under the terms of the GNU General Public License version 3 or later.
 
 @use 'color' as *;
 @use 'constant' as *;
+@use 'motion' as *;
 @use 'spacing' as *;
 @use 'theme' as *;
 
@@ -68,7 +69,7 @@ it under the terms of the GNU General Public License version 3 or later.
 
 .chart-limit__label {
   fill: #ffd24a;
-  font-size: 0.62rem;
+  font-size: $text-micro;
   font-weight: $weight-bold;
   letter-spacing: 0.02em;
   opacity: 0;
@@ -105,7 +106,7 @@ it under the terms of the GNU General Public License version 3 or later.
 // Only once both bars are full, when time really is the only thing left.
 .chart-coverage__countdown {
   fill: #ffd24a;
-  font-size: 0.6rem;
+  font-size: $text-micro;
   font-weight: $weight-bold;
   letter-spacing: 0.02em;
   pointer-events: none;
@@ -267,8 +268,8 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 
   text {
-    fill: $primary-lighter;
-    font-size: 0.7rem;
+    fill: $edge-tint;
+    font-size: $text-body;
     font-weight: $weight-bold;
     pointer-events: none;
   }
@@ -282,7 +283,7 @@ it under the terms of the GNU General Public License version 3 or later.
 // so it arrives on approach and leaves again.
 .chart-presence__label {
   fill: #ff8a97;
-  font-size: 0.62rem;
+  font-size: $text-micro;
   font-weight: $weight-bold;
   letter-spacing: 0.02em;
   opacity: 0;
@@ -422,9 +423,9 @@ it under the terms of the GNU General Public License version 3 or later.
   padding: 9px 18px;
   border: 1px solid rgba($secondary-light, 0.2);
   border-radius: $radius-pill;
-  background: rgba(#0c1a26, 0.82);
-  color: $primary-lighter;
-  font-size: 0.78rem;
+  background: rgba($surface-menu-top, 0.82);
+  color: $text-primary;
+  font-size: $text-lead;
   font-weight: $weight-bold;
   letter-spacing: 0.04em;
   white-space: nowrap;
@@ -475,16 +476,16 @@ it under the terms of the GNU General Public License version 3 or later.
 }
 
 .live-output-controls .graph-legend-menu__trigger {
+  // The quiet button's face, like every other control in this bar; it was
+  // a grey pill of its own.
+  @include choice-surface;
   display: inline-flex;
   min-height: 0;
   align-items: center;
   gap: 5px;
-  padding: 2px 8px;
-  border: 1px solid rgba($primary-lighter, 0.28);
-  border-radius: $radius-pill;
-  background: rgba($primary-lighter, 0.08);
-  color: $primary-lighter;
+  padding: 3px 9px;
   font: inherit;
+  font-weight: $weight-bold;
   white-space: nowrap;
   cursor: pointer;
 
@@ -500,8 +501,8 @@ it under the terms of the GNU General Public License version 3 or later.
 
   &:hover,
   &.is-on {
-    border-color: rgba($primary-lighter, 0.5);
-    background: rgba($primary-lighter, 0.18);
+    border-color: $border-field-hover;
+    background: rgba($secondary-default, 0.14);
     color: $white;
   }
 }
@@ -521,7 +522,7 @@ it under the terms of the GNU General Public License version 3 or later.
   padding: 6px;
   border: 1px solid rgba($secondary-light, 0.16);
   border-radius: $radius-m;
-  background: rgba(#0c1a26, 0.96);
+  background: rgba($surface-menu-top, 0.96);
   box-shadow: 0 12px 28px rgba($black, 0.5);
 }
 
@@ -551,7 +552,7 @@ it under the terms of the GNU General Public License version 3 or later.
     border: 0;
     border-radius: $radius-xs;
     background: none;
-    color: rgba($primary-lighter, 0.72);
+    color: $text-muted;
     font: inherit;
     font-weight: $weight-regular;
     cursor: pointer;
@@ -559,8 +560,8 @@ it under the terms of the GNU General Public License version 3 or later.
 
     &:hover,
     &:focus-visible {
-      color: $primary-lighter;
-      background: rgba($primary-lighter, 0.12);
+      color: $text-primary;
+      background: rgba($edge-tint, 0.12);
       outline: none;
     }
   }
@@ -583,7 +584,7 @@ it under the terms of the GNU General Public License version 3 or later.
   // Off: the wave flattens to the rule it is not, which is the shape of a
   // stilled trace.
   &.is-hidden .graph-legend__wave {
-    stroke: rgba($primary-lighter, 0.5);
+    stroke: rgba($edge-tint, 0.5);
     stroke-dasharray: 2 2;
   }
 
@@ -695,7 +696,7 @@ it under the terms of the GNU General Public License version 3 or later.
 }
 
 .graph-look-menu li {
-  font-size: 0.72rem;
+  font-size: $text-body;
 }
 
 // A look's name with its own drawing in front of it.
@@ -753,17 +754,15 @@ it under the terms of the GNU General Public License version 3 or later.
 // app that repaints continuously — each frame underneath forcing the blur to
 // be sampled and composited again. A flat, mostly opaque surface costs
 // nothing per frame and reads the same at this size.
+// A block on the graph, like the band editor is a block on the EQ card: the
+// same slate, an edge, no shadow. It was a translucent pill with a 26px
+// drop shadow, the one floating thing in a window of flat surfaces.
 .graph-legend-group {
+  @include inset-surface;
   display: inline-flex;
   align-items: center;
   padding: 5px 9px;
   gap: $spacing-s;
-  border: 1px solid rgba($secondary-light, 0.16);
-  border-radius: $radius-l;
-  background: rgba(#0c1a26, 0.86);
-  box-shadow:
-    0 10px 26px rgba($black, 0.42),
-    inset 0 1px 0 rgba($white, 0.05);
 
   // The shadow on the strip exists to hold loose text off a moving
   // background. Inside the pane there is no moving background, and it only
@@ -820,7 +819,7 @@ it under the terms of the GNU General Public License version 3 or later.
   border-radius: 0;
   background: none;
   box-shadow: none;
-  color: rgba($primary-lighter, 0.5);
+  color: $text-faint;
   cursor: pointer;
 
   svg {
@@ -857,7 +856,7 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 
   &[aria-pressed='false'] {
-    color: rgba($primary-lighter, 0.28);
+    color: $text-faint;
   }
 
   &[aria-pressed='true'] {
@@ -891,7 +890,7 @@ it under the terms of the GNU General Public License version 3 or later.
   border: 1px solid rgba($secondary-light, 0.32);
   border-radius: 4px;
   background: rgba($panel-bottom, 0.78);
-  font-size: 0.56rem;
+  font-size: $text-eyebrow;
   font-weight: $weight-bold;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -945,7 +944,9 @@ it under the terms of the GNU General Public License version 3 or later.
 // reads as the whole app lurching.
 .graph-view-menu__list {
   overscroll-behavior: contain;
-  scrollbar-width: thin;
+  // No `scrollbar-width`: the standard property hands the bar to the platform
+  // painter and the app's own bar never draws. See `html` in App.scss.
+  @include slim-scrollbar;
 
   // The shared floating-menu surface, rather than one built here.
   //
@@ -989,7 +990,7 @@ it under the terms of the GNU General Public License version 3 or later.
     // so every item still looked unavailable. Menu items are the content of a
     // menu; there is nothing for them to recede behind.
     color: $white;
-    font-size: 0.68rem;
+    font-size: $text-small;
     gap: 8px;
     text-align: left;
     cursor: pointer;
@@ -999,7 +1000,7 @@ it under the terms of the GNU General Public License version 3 or later.
     }
 
     &:hover {
-      background: rgba($secondary-light, 0.14);
+      background: $hover-accent;
       color: $white;
     }
 
@@ -1040,7 +1041,7 @@ it under the terms of the GNU General Public License version 3 or later.
 .graph-view-menu__divider {
   height: 1px;
   margin: 4px 2px;
-  background: rgba($primary-lighter, 0.1);
+  background: rgba($edge-tint, 0.1);
 }
 
 // The two sliders, laid out as menu rows rather than as controls in a strip.
@@ -1055,8 +1056,8 @@ it under the terms of the GNU General Public License version 3 or later.
   align-items: center;
   gap: $spacing-s;
   padding: 5px 8px;
-  color: rgba($primary-lighter, 0.72);
-  font-size: 0.68rem;
+  color: $text-muted;
+  font-size: $text-small;
   cursor: pointer;
 
   &.is-disabled {
@@ -1081,7 +1082,7 @@ it under the terms of the GNU General Public License version 3 or later.
     padding: 0;
     border: none;
     border-radius: 999px;
-    background: rgba($primary-lighter, 0.18);
+    background: rgba($edge-tint, 0.18);
     appearance: none;
     cursor: pointer;
 
@@ -1099,11 +1100,11 @@ it under the terms of the GNU General Public License version 3 or later.
 .graph-view-menu kbd {
   flex: 0 0 auto;
   padding: 1px 5px;
-  border: 1px solid rgba($primary-lighter, 0.16);
+  border: 1px solid rgba($edge-tint, 0.16);
   border-radius: 4px;
-  color: rgba($primary-lighter, 0.8);
+  color: $text-muted;
   font-family: inherit;
-  font-size: 0.58rem;
+  font-size: $text-eyebrow;
   white-space: nowrap;
 }
 
@@ -1124,17 +1125,14 @@ it under the terms of the GNU General Public License version 3 or later.
 // it to place the media underneath, and removing it makes that media jump. The
 // chart itself is not mounted in this state, while this rule removes the card
 // surface that would otherwise leave a dark sheet over the picture.
+//
+// The card itself stays in the normal view. It used to go with the drawing,
+// and in a column with nothing behind it that left a hole the shape of the
+// graph — the floor and the bloom showing through where a pane had been,
+// which read as the panel having been torn out rather than as a stage. The
+// expanded and full-screen rules further down still clear it, because there
+// the media really is behind it.
 .graph-wrapper.is-clean {
-  border-color: transparent;
-  background: none;
-  box-shadow: none;
-  backdrop-filter: none;
-
-  &::before {
-    background: none;
-    opacity: 0;
-  }
-
   // These describe a drawing that Clean deliberately does not mount. The mode
   // announcement remains for one beat so Ctrl+W still says where it landed.
   .graph-clip-warning,
@@ -1263,8 +1261,8 @@ it under the terms of the GNU General Public License version 3 or later.
   right: 0;
   bottom: 3px;
   left: 0;
-  color: rgba($primary-lighter, 0.68);
-  font-size: 0.69rem;
+  color: $text-faint;
+  font-size: $text-small;
   font-weight: $weight-bold;
   letter-spacing: 0.14em;
   text-align: center;
@@ -1328,8 +1326,8 @@ it under the terms of the GNU General Public License version 3 or later.
   border: 1px solid rgba($secondary-light, 0.3);
   border-radius: 11px;
   background: none;
-  color: rgba($primary-lighter, 0.75);
-  font-size: 0.62rem;
+  color: $text-muted;
+  font-size: $text-micro;
   font-weight: $weight-semibold;
   gap: 5px;
   letter-spacing: 0.03em;
@@ -1686,6 +1684,19 @@ it under the terms of the GNU General Public License version 3 or later.
   // one that is simply gone.
   pointer-events: none;
   transition-duration: 520ms;
+
+  // And neither do its children, which is where this was actually leaking.
+  //
+  // Both strips are transparent to the pointer by default so the plot and the
+  // video underneath stay draggable, and each one hands hit testing BACK to
+  // its own children one rule later. That rule does not know about idle, so
+  // every button, legend and picker in a strip faded to nothing was still
+  // catching presses: a click on empty graph opened the style menu. An
+  // ancestor set to `none` does not protect a descendant that asks for `auto`
+  // — it has to be taken away again here.
+  > * {
+    pointer-events: none;
+  }
 }
 
 // There is deliberately no bar behind the controls over the player.
@@ -1822,8 +1833,27 @@ it under the terms of the GNU General Public License version 3 or later.
 // Unless it is asked to stay. `has-top-bar` is the View menu's switch, and with
 // it on the bar stays where it always is. The creature is rendered in the bar
 // rather than in the corner then, so there is one of it either way.
+// Out of the way, not out of the tree.
+//
+// It was `display: none`, which is a bar that cannot come back: taking the
+// pointer to the top of the screen found nothing there. It goes the way the
+// transport goes — up and out, faded — so the same movement that brings the
+// transport up from the bottom brings this down from the top, and the two
+// strips of chrome are present or absent together.
 .window-titlebar:has(~ .app-workspace.is-app-full:not(.has-top-bar)) {
-  display: none;
+  opacity: 0;
+  transform: translateY(-100%);
+  pointer-events: none;
+  transition:
+    opacity $motion-base ease,
+    transform $motion-base ease;
+}
+
+#root:not(.is-chrome-idle)
+  > .window-titlebar:has(~ .app-workspace.is-app-full:not(.has-top-bar)) {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
 }
 
 // The padding goes either way, and the bar floats.
@@ -1846,7 +1876,31 @@ it under the terms of the GNU General Public License version 3 or later.
 // The strip normally starts 8px from the top of the card, and the card now
 // starts at the top of the display — so without this the controls sit behind
 // the title bar, which is a toolbar you can see and cannot press.
+// And it comes down with the header when the header comes back.
+//
+// With the top bar switched off the strip sits at the top of the plot, which
+// is where the header lands the moment the pointer reaches an edge — so the
+// controls ended up behind it. The header is not always there in this mode,
+// so the strip cannot simply be pushed down for good: it moves when the
+// header does, on the same flag and over the same time.
+#root:not(.is-chrome-idle)
+  .app-workspace.is-app-full:not(.has-top-bar)
+  .live-output-controls {
+  top: calc(#{$title-bar-height} + 17px);
+}
+
+.app-workspace.is-app-full .live-output-controls {
+  transition: top $motion-base ease;
+}
+
 .app-workspace.is-app-full.has-top-bar .live-output-controls {
+  // Lined up with the header above it. The strip sits 10px inside the graph
+  // card, which in full screen IS the window — so it ended 21px further out
+  // than the window controls it is stacked under, and two rows of controls
+  // that nearly line up read worse than two that plainly do not. The header
+  // holds its own contents at the shell's gutter plus its 18px of padding;
+  // this states the same sum.
+  right: calc(var(--shell-gutter, 12px) + 18px);
   // Karaoke's own fullscreen toolbar sits 9px inside a stage that starts 8px
   // below the titlebar. Use the same combined inset so swapping the Karaoke
   // toolbar for the graph toolbar does not move the controls or alter the gap
@@ -1976,7 +2030,9 @@ it under the terms of the GNU General Public License version 3 or later.
       pointer-events: none;
     }
 
-    > .graph-wrapper .live-output-controls > * {
+    // Same exception as everywhere else, and it stops at idle: a strip that
+    // has faded out over a video must not be reachable either.
+    > .graph-wrapper .live-output-controls:not(.is-idle) > * {
       pointer-events: auto;
     }
 
@@ -2064,7 +2120,6 @@ it under the terms of the GNU General Public License version 3 or later.
     // that a blur of zero is the literal keyword `none`. `blur(0px)` is still a
     // filter: it promotes a compositing layer and re-composites the region
     // every frame to produce a result identical to not doing it.
-    backdrop-filter: var(--graph-overlay-filter, none);
 
     // The surface, as a layer of its own behind the drawing.
     //
@@ -2084,11 +2139,7 @@ it under the terms of the GNU General Public License version 3 or later.
       // transparency. A flat colour here was the one place the graph stopped
       // looking like the panels around it, and full screen is where it is most
       // visible.
-      background: linear-gradient(
-        180deg,
-        panel-top($secondary-dark, 5%) 0%,
-        $panel-bottom 62%
-      );
+      background: panel-top($secondary-dark, 5%);
 
       // No fade at the edges. The card is a card: it has an edge, and the edge
       // is where it stops.
@@ -2122,7 +2173,6 @@ it under the terms of the GNU General Public License version 3 or later.
   > .graph-wrapper.is-clean {
     border-color: transparent;
     box-shadow: none;
-    backdrop-filter: none;
 
     &::before {
       background: none;

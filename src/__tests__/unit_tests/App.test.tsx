@@ -308,8 +308,15 @@ describe('App', () => {
         name: 'A stage built around your music',
       }),
     ).not.toBeInTheDocument();
+    // The graph's toolbar no longer carries a way out of its own: full
+    // screen keeps the app's top bar, and the window's own button in it says
+    // "restore" and does exactly that. Two controls for one thing, a hand's
+    // width apart, is what came out.
     expect(
-      screen.getByRole('button', { name: 'Exit full screen' }),
+      screen.queryByRole('button', { name: 'Exit full screen' }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Restore FluidEQ' }),
     ).toBeVisible();
 
     fireEvent.keyDown(window, { key: 'Escape', code: 'Escape' });

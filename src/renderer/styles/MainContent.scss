@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+@use 'sass:color' as sass-color;
 @use 'color' as *;
 @use 'constant' as *;
 @use 'spacing' as *;
@@ -132,7 +133,7 @@ $eq-caret-width: 24px;
   &:hover:not(.is-disabled) {
     .button.eq-mode__main:not([aria-disabled='true']),
     .eq-mode__caret:not(:disabled) {
-      color: #03201d;
+      color: $surface-base;
       background: $secondary-light;
     }
   }
@@ -158,12 +159,12 @@ $eq-caret-width: 24px;
     padding: 0;
     border: 1px solid rgba($secondary-light, 0.38);
     // The divider, and the only line between them.
-    border-left: 1px solid rgba(#03110f, 0.28);
+    border-left: 1px solid rgba($surface-base, 0.28);
     border-radius: 0 $radius-xs $radius-xs 0;
     background: $secondary-default;
     // The same fill and the same ink as the half it is attached to, because it
     // is not a second button — it is the end of this one.
-    color: #03110f;
+    color: $surface-base;
     box-shadow:
       0 8px 22px rgba($secondary-default, 0.12),
       inset 0 1px 0 rgba($white, 0.36);
@@ -225,6 +226,10 @@ $eq-caret-width: 24px;
   }
 }
 
+// The green face for the moment a correction lands: the covered-range green
+// at a fifth into the menu slate, opaque like the face it replaces.
+$eq-bubble-applied-face: sass-color.mix($analogous-2, $surface-menu-top, 20%);
+
 // What the correction is doing, said from the button that is doing it.
 //
 // Absolutely positioned so it cannot push the toolbar around: the sentence
@@ -252,25 +257,22 @@ $eq-caret-width: 24px;
   width: max-content;
   max-width: 300px;
   align-items: center;
-  padding: 6px 11px 6px 8px;
-  border: 1px solid rgba($secondary-light, 0.5);
+  padding: 5px 10px 5px 7px;
+  border: 1px solid $border-menu;
   // A rounded rectangle rather than a pill: a pill radius on a box that is
   // sometimes two lines tall turns into a lozenge, which is what it did.
-  border-radius: $radius-m;
-  // The row's own cyan, lit rather than dark. It is the app speaking, and the
-  // app speaks in cyan everywhere else — a near-black card here read as another
-  // panel that had appeared rather than as a remark from the button.
-  background: linear-gradient(
-    160deg,
-    rgba($secondary-default, 0.24),
-    rgba($secondary-default, 0.13)
-  );
-  box-shadow:
-    0 10px 26px rgba($black, 0.45),
-    0 0 22px rgba($secondary-default, 0.18),
-    inset 0 1px 0 rgba($white, 0.1);
-  gap: 8px;
-  backdrop-filter: blur(14px) saturate(1.2);
+  border-radius: $radius-s;
+  // The same material as an open menu, opaque. It was cyan at a quarter
+  // alpha with a glow around it, which over the graph came out as a lit
+  // slab with a tail in a different tone: the tail was a second wash at
+  // half the alpha, so where the two overlapped the seam showed. One opaque
+  // colour on both and there is no seam to show.
+  background: $surface-menu-face;
+  // Barely there. Nothing else in this row casts one — the buttons under it
+  // are flat — so a card lifted 20px off the page read as belonging to some
+  // other window. Enough to separate it from the graph behind, no more.
+  box-shadow: 0 2px 6px rgba($black, 0.22);
+  gap: 7px;
   pointer-events: none;
   // Rises as it arrives, and keeps drifting: a bubble that pops into place and
   // then sits perfectly still is a label. Written out rather than through the
@@ -283,22 +285,21 @@ $eq-caret-width: 24px;
   // The tail, which is what makes it a bubble rather than a floating label.
   // Underneath, pointing back down at the corner it grew from.
   //
-  // Filled with the gradient's LAST stop rather than a colour of its own. The
-  // bubble is a gradient and the tail was a flat wash close to its middle, so
-  // the two did not meet: it read as a small diamond lying next to a card
-  // instead of part of the same shape. This is the exact tone the bubble has
-  // where the tail joins it.
+  // Painted in the bubble's own opaque colour, and it has to be: the tail
+  // is a square turned through 45° whose top half lies over the bubble's
+  // bottom edge, and being opaque is what hides that edge where it crosses.
+  // A translucent tail showed the border running straight through it.
   &::before {
     position: absolute;
     bottom: -5px;
     left: 12px;
-    width: 9px;
-    height: 9px;
-    border-right: 1px solid rgba($secondary-light, 0.5);
-    border-bottom: 1px solid rgba($secondary-light, 0.5);
+    width: 8px;
+    height: 8px;
+    border-right: 1px solid $border-menu;
+    border-bottom: 1px solid $border-menu;
     // Softens the point, so it reads as drawn rather than as a clipped square.
     border-bottom-right-radius: 2px;
-    background: rgba($secondary-default, 0.13);
+    background: $surface-menu-face;
     content: '';
     transform: rotate(45deg);
   }
@@ -310,23 +311,20 @@ $eq-caret-width: 24px;
   // Green rather than a brighter cyan because cyan is what this thing says
   // everything else in; a second cyan meaning "done" is a shade, not a signal.
   // The same green the graph marks a covered range with, so "done" is one
-  // colour across the app rather than two that nearly match.
+  // colour across the app rather than two that nearly match. Mixed into the
+  // menu slate so it stays opaque, same as the resting face.
   &.is-applied {
-    border-color: rgba($analogous-2, 0.55);
-    background: linear-gradient(
-      160deg,
-      rgba($analogous-2, 0.26),
-      rgba($analogous-2, 0.14)
-    );
-    box-shadow:
-      0 10px 26px rgba($black, 0.45),
-      0 0 22px rgba($analogous-2, 0.2),
-      inset 0 1px 0 rgba($white, 0.1);
+    border-color: rgba($analogous-2, 0.5);
+    background: $eq-bubble-applied-face;
 
     &::before {
-      border-right-color: rgba($analogous-2, 0.55);
-      border-bottom-color: rgba($analogous-2, 0.55);
-      background: rgba($analogous-2, 0.14);
+      border-right-color: rgba($analogous-2, 0.5);
+      border-bottom-color: rgba($analogous-2, 0.5);
+      background: $eq-bubble-applied-face;
+    }
+
+    .eq-mode__bubble-text {
+      color: $analogous-2;
     }
   }
 }
@@ -394,7 +392,7 @@ $eq-caret-width: 24px;
 .eq-mode__bubble-text {
   min-width: 0;
   color: $secondary-light;
-  font-size: 0.68rem;
+  font-size: $text-small;
   font-weight: $weight-bold;
   line-height: 1.3;
 }
@@ -453,21 +451,21 @@ $eq-caret-width: 24px;
 
 .eq-mode__menu-name {
   grid-area: name;
-  font-size: 0.72rem;
+  font-size: $text-body;
   font-weight: $weight-bold;
 }
 
 .eq-mode__menu-note {
   grid-area: note;
-  color: rgba($primary-lighter, 0.72);
-  font-size: 0.63rem;
+  color: $text-muted;
+  font-size: $text-micro;
   font-weight: $weight-regular;
   line-height: 1.3;
 }
 
 // The Continuous button's pause bars.
 //
-// `.button path { fill: $primary-dark }` is what every icon inside a button
+// `.button path { fill: $surface-well }` is what every icon inside a button
 // inherits, and it is right for the solid buttons — a dark glyph on a bright
 // cyan surface. On the subtle variant the surface is dark too, so the same rule
 // draws a black rectangle nobody can see.
@@ -491,9 +489,23 @@ $eq-caret-width: 24px;
 //
 // It replaces the divider rather than joining it. Both at once is two
 // separators for one seam.
-// The layout picker is `eq-mode` wearing a different label: same split
-// button, same caret, same menu surface. All that is left to say here is how
-// wide the list is, because these rows carry a name and no sentence under it.
+// The layout picker is one piece, not a split button: pressing anywhere on it
+// opens the list, so there is no second half and no divider. It keeps
+// `eq-mode`'s classes for the hover and the menu surface, and takes its own
+// corners back from the rule above that squares the split button's main half.
+.quick-layouts .button.quick-layouts__trigger {
+  gap: 6px;
+  border-right: 1px solid rgba($secondary-light, 0.24);
+  border-top-right-radius: $radius-xs;
+  border-bottom-right-radius: $radius-xs;
+
+  .chevron {
+    margin-left: 1px;
+  }
+}
+
+// All that is left to say about the list is how wide it is, because these
+// rows carry a name and no sentence under it.
 .quick-layouts__menu {
   width: max-content;
   min-width: 148px;
@@ -509,7 +521,7 @@ $eq-caret-width: 24px;
   align-items: center;
   gap: 5px;
   color: $text-muted;
-  font-size: 0.66rem;
+  font-size: $text-small;
   font-weight: $weight-semibold;
   white-space: nowrap;
   cursor: pointer;
@@ -581,21 +593,24 @@ $eq-caret-width: 24px;
   // horizontal overflow: a scrollbar across the bottom of the workspace, for
   // the sake of four pixels nobody would have noticed either way.
   &::before {
-    @include inset-surface;
+    // A block cut into the page, like the selected-band editor under it and
+    // the cards in the sidebar: same colour, same edge. It was a frame with
+    // nothing behind it, which was right while the page was the darker of
+    // the two card colours — with the page lit, an unfilled frame left the
+    // instrument standing on the brightest surface in the window and the
+    // editor below it was the only recessed thing on the page.
+    //
+    // The dB guides are not drawn here — a line at this box's midpoint sat
+    // seven pixels off the thumbs' true 0 dB, because the box includes the
+    // caption rows above and below the tracks. Each band draws its own,
+    // measured from its own track; see `.bandWrapper .range` in
+    // FrequencyBand.scss.
     grid-row: 1;
     grid-column: 1 / -1;
     margin: -6px -4px;
+    border: 1px solid $border-subtle;
     border-radius: $radius-l;
-    // The 0 dB guide, moved here from `.bands` so it runs under the scale too.
-    // It used to stop at the band group's left edge, and with ten bands
-    // centred on a wide panel that left "0 dB" naming a line it did not reach.
-    background-image: linear-gradient(
-      to bottom,
-      transparent calc(50% - 0.5px),
-      rgba($primary-lighter, 0.12) calc(50% - 0.5px),
-      rgba($primary-lighter, 0.12) calc(50% + 0.5px),
-      transparent calc(50% + 0.5px)
-    );
+    background: $block-lift;
     content: '';
   }
 
@@ -634,8 +649,8 @@ $eq-caret-width: 24px;
   // Matches the frequency caption above and the gain caption below a band so
   // "0 dB" lines up with the middle of the slider tracks.
   padding: 22px 0 20px;
-  color: rgba($primary-lighter, 0.62);
-  font-size: 0.56rem;
+  color: $text-muted;
+  font-size: $text-eyebrow;
   font-variant-numeric: tabular-nums;
 
   // The middle one, brighter than the two ends.
@@ -646,7 +661,7 @@ $eq-caret-width: 24px;
   // markup — a top, a middle and a bottom — rather than a list that might grow
   // a fourth entry.
   span:nth-child(2) {
-    color: rgba($primary-lighter, 0.85);
+    color: $text-primary;
     font-weight: $weight-bold;
   }
 }
@@ -890,13 +905,9 @@ $eq-caret-width: 24px;
   align-items: stretch;
   justify-self: center;
   gap: 8px;
-  border: 1px solid rgba($secondary-default, 0.14);
+  // The same block as the face the bands stand on.
+  @include inset-surface;
   border-radius: $radius-l;
-  background: linear-gradient(
-    90deg,
-    rgba($secondary-default, 0.075),
-    rgba($primary-light, 0.12)
-  );
 }
 
 // Label row then control row, identical in every column, so every field lands
@@ -913,7 +924,7 @@ $eq-caret-width: 24px;
     @include truncate;
     min-height: 14px;
     color: rgba($white, 0.8);
-    font-size: 0.55rem;
+    font-size: $text-eyebrow;
     font-weight: $weight-bold;
     letter-spacing: 0.08em;
     line-height: 14px;
@@ -930,17 +941,17 @@ $eq-caret-width: 24px;
 //
 // A well and not a field: `field-surface` is what every editable control here
 // is built from, and wearing it would promise an edit that is not on offer.
+// A readout, not a field: it is the name of the band being edited and
+// nothing about it is pressable. In a box it read as an input that had
+// been disabled.
 .eq-flat-editor__identity strong {
-  @include inset-surface;
   display: flex;
   height: $control-height;
   align-items: center;
-  justify-content: center;
-  padding-inline: 10px;
-  border-radius: $radius-s;
   color: $secondary-light;
-  font-size: 0.76rem;
+  font-size: $text-title;
   font-variant-numeric: tabular-nums;
+  font-weight: $weight-bold;
 }
 
 .eq-flat-editor__control {
@@ -990,7 +1001,7 @@ $eq-caret-width: 24px;
   @include truncate;
   padding-block: 1px;
   color: rgba($white, 0.92);
-  font-size: 0.72rem;
+  font-size: $text-body;
   line-height: 1.45;
 }
 
@@ -1002,10 +1013,10 @@ $eq-caret-width: 24px;
   height: $control-height;
   align-items: center;
   justify-content: center;
-  color: rgba($primary-lighter, 0.6);
-  border: 1px dashed rgba($primary-lighter, 0.22);
+  color: $text-muted;
+  border: 1px dashed rgba($edge-tint, 0.22);
   border-radius: $radius-s;
-  font-size: 0.68rem;
+  font-size: $text-small;
   font-style: italic;
   cursor: help;
 }
@@ -1054,11 +1065,14 @@ $eq-caret-width: 24px;
 
 // The dial is a circle rather than a field, so it is optically centred on the
 // control row instead of being squashed into its exact height.
+// 50px, up from 46: the value drawn in the middle was six pixels tall and
+// could not be read. The extra height is taken out of the row's own gaps so
+// the dial keeps standing level with the fields beside it.
 .eq-flat-editor .knob {
-  width: 46px;
-  height: 46px;
-  flex-basis: 46px;
-  margin-block: -4px;
+  width: 50px;
+  height: 50px;
+  flex-basis: 50px;
+  margin-block: -6px;
   align-self: center;
   justify-self: center;
 }
@@ -1092,7 +1106,7 @@ $eq-caret-width: 24px;
   align-self: end;
   padding-inline: 12px;
   color: $text-muted;
-  border: 1px solid rgba($primary-lighter, 0.14);
+  border: 1px solid rgba($edge-tint, 0.14);
   border-radius: $radius-s;
   background: transparent;
   white-space: nowrap;
@@ -1199,7 +1213,7 @@ $eq-caret-width: 24px;
   }
 
   .eq-scale {
-    font-size: 0.5rem;
+    font-size: $text-eyebrow;
   }
 
   // A floor per band here, and only here: see `.bands`. On a wide window the

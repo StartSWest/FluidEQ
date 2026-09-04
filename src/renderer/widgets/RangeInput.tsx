@@ -16,7 +16,15 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { ChangeEvent, WheelEvent, CSSProperties, useMemo, useRef } from 'react';
+import {
+  ChangeEvent,
+  WheelEvent,
+  CSSProperties,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import ArrowButton from './ArrowButton';
 import '../styles/RangeInput.scss';
 import { clamp } from '../utils/utils';
@@ -56,11 +64,38 @@ const RangeInput = ({
   const isGestureActive = useRef(false);
   const factor = useMemo(() => 10 ** displayPrecision, [displayPrecision]);
 
+  // The thumb follows the pointer, not the store.
+  //
+  // `value` is the band's gain in the app state, and the state is fed by a
+  // throttled dispatch — the parent sends at most one update per hundred
+  // milliseconds so that thirty-one bands and the response graph are not
+  // re-rendered on every pointer event. Rendering the thumb from `value`
+  // alone therefore moved it in ten-per-second steps while the pointer moved
+  // smoothly, which is the whole of what a drag felt like. So during a
+  // gesture the input renders its own last position and the store catches up
+  // underneath; the draft is dropped the moment the store agrees with it, or
+  // once the gesture has ended and the store has moved at all (which is how a
+  // rejected write's rollback still reaches the thumb).
+  const [draft, setDraft] = useState<number | undefined>(undefined);
+  const clearDraftOnNextValue = useRef(false);
+  useEffect(() => {
+    if (draft === undefined) {
+      return;
+    }
+    if (Math.abs(value - draft) < 0.05 || clearDraftOnNextValue.current) {
+      clearDraftOnNextValue.current = false;
+      setDraft(undefined);
+    }
+  }, [value, draft]);
+
   // Quantise the value so the css variables driving the track fill have a
   // small range to work with, which avoids the repaint jitter from jat-82.
   // One decimal keeps the thumb visually on the real value; rounding to whole
   // units made the thumb disagree with the gain shown beneath it.
-  const rangeValue = useMemo(() => Math.round(value * 10) / 10, [value]);
+  const rangeValue = useMemo(
+    () => Math.round((draft ?? value) * 10) / 10,
+    [draft, value],
+  );
 
   const increment = useMemo(
     () => 1 / 10 ** incrementPrecision,
@@ -75,6 +110,7 @@ const RangeInput = ({
     const newValue: number =
       Math.round(clamp(parseFloat(e.target.value), min, max) * factor) / factor;
     lastValue.current = newValue;
+    setDraft(newValue);
     handleChange(newValue);
   };
 
@@ -102,6 +138,8 @@ const RangeInput = ({
     isGestureActive.current = false;
     const finalValue = lastValue.current;
     lastValue.current = undefined;
+    // The store's next move settles the thumb, whichever way it goes.
+    clearDraftOnNextValue.current = true;
     handleMouseUp(finalValue === undefined ? value : finalValue);
   };
 

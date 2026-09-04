@@ -17,6 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import {
+  DEFAULT_QUALITY,
   FilterTypeEnum,
   FixedBandSizeEnum,
   FIXED_BAND_FREQUENCIES,
@@ -68,7 +69,7 @@ const isSameFrequency = (left: number, right: number) =>
 const neutralBand = (frequency: number): ILayoutBand => ({
   frequency,
   gain: 0,
-  quality: 1,
+  quality: DEFAULT_QUALITY,
   type: FilterTypeEnum.PK,
 });
 

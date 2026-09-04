@@ -67,7 +67,7 @@ describe('switching a layer out of the config', () => {
     },
   });
 
-  it('writes nothing at all for the layer that is off', () => {
+  it('writes nothing at all for the layer that is off', async () => {
     const applied = stateToApoFiles(shaped());
     const bypassed = stateToApoFiles({ ...shaped(), bypassed: ['voicing'] });
 
@@ -84,7 +84,7 @@ describe('switching a layer out of the config', () => {
 
   // The bands are the case that could not be done before. One switch, one
   // absent file, and every gain still exactly where the user left it.
-  it('takes the bands out whole and leaves them untouched', () => {
+  it('takes the bands out whole and leaves them untouched', async () => {
     const state = { ...shaped(), bypassed: ['eq' as const] };
     const files = stateToApoFiles(state);
 
@@ -95,7 +95,7 @@ describe('switching a layer out of the config', () => {
   // Headroom is measured over what was written, so a boost that is no longer
   // applied stops being reserved for. Getting this wrong leaves the output
   // several dB down for a band nobody can hear.
-  it('gives back the headroom the layer was holding', () => {
+  it('gives back the headroom the layer was holding', async () => {
     const withBands = stateToApoFiles(shaped());
     const withoutBands = stateToApoFiles({ ...shaped(), bypassed: ['eq'] });
 
@@ -109,7 +109,7 @@ describe('switching a layer out of the config', () => {
   // The impulse has no file of its own — it is one Convolution line ahead of
   // the includes — so switching it off is that line not being written. Same
   // act, same switch, and the WAV never moves.
-  it('takes the impulse out of the chain and leaves its file alone', () => {
+  it('takes the impulse out of the chain and leaves its file alone', async () => {
     const withImpulse: IState = {
       ...shaped(),
       convolution: { name: 'Some HRTF', filters: {}, fileName: 'ir.wav' },
@@ -132,7 +132,7 @@ describe('switching a layer out of the config', () => {
     ).toEqual(['eq', 'voicing', 'smart']);
   });
 
-  it('leaves a GraphicEQ curve out just as completely', () => {
+  it('leaves a GraphicEQ curve out just as completely', async () => {
     const state: IState = {
       ...getDefaultState(),
       isFlat: false,
@@ -149,7 +149,7 @@ describe('switching a layer out of the config', () => {
   // The config states it, so a restart can read it back — which the old
   // session-only stash could never do, because a stash and a config would have
   // been two places disagreeing about what was applied.
-  it('survives the round trip through the config', () => {
+  it('survives the round trip through the config', async () => {
     const configDir = fs.mkdtempSync(path.join(os.tmpdir(), 'fluideq-bypass-'));
     const presetsDir = fs.mkdtempSync(path.join(os.tmpdir(), 'fluideq-bp-p-'));
     fs.writeFileSync(
@@ -174,7 +174,7 @@ describe('switching a layer out of the config', () => {
       },
     };
 
-    flushDeviceProfiles(settings, () => presetsDir, configDir);
+    await flushDeviceProfiles(settings, () => presetsDir, configDir);
     const chain = readApoDeviceChain(configDir, GUID);
 
     // The bands are there, the voicing is not, and the reader can say so.

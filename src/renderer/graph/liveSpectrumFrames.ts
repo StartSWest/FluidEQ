@@ -166,7 +166,11 @@ export const NO_LEVELS: IOutputLevel[] = [];
  */
 export const CLIP_RAIL_AMPLITUDE = 1;
 /** How long a clip indication stays up after the last railed frame. */
-export const CLIP_HOLD_MS = 1200;
+// Long enough that a clipped frame of 45ms cannot pass unseen, short enough
+// that the warning is about now. It was 1200, which with the fade after it
+// left a red edge standing for the better part of two seconds — long after
+// the passage that caused it.
+export const CLIP_HOLD_MS = 420;
 
 export const detectClipping = (timeDomainData: ArrayLike<number>): boolean => {
   for (let index = 0; index < timeDomainData.length; index += 1) {

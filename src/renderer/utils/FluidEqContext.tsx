@@ -51,6 +51,7 @@ import {
 } from '../../common/errors';
 import ChannelEnum from '../../common/channels';
 import { cloneFilters } from '../../common/utils';
+import { SelectionMode, nextBandSelection } from '../../common/bandSelection';
 import { getEqualizerState } from './equalizerApi';
 import { IBandRevealBand, planBandReveal, revealBands } from './bandReveal';
 
@@ -215,7 +216,14 @@ export interface IFluidEqContext extends IState {
   /** All filters selected for group editing. The first id is the primary band. */
   selectedFilterIds: string[];
   setSelectedFilterIds: (newValue: string[]) => void;
-  toggleFilterSelection: (id: string, additive?: boolean) => void;
+  /**
+   * The selection a click on a band produces — the band alone, toggled into
+   * the group, or a shift-range from the last plainly clicked band — without
+   * applying it. For the graph, which needs the ids before it sets up a drag.
+   */
+  nextFilterSelection: (id: string, mode: SelectionMode) => string[];
+  /** Apply a click on a band to the selection. */
+  toggleFilterSelection: (id: string, mode?: SelectionMode) => void;
   /** Filter currently hovered in either the EQ editor or response graph. */
   hoveredFilterId: string;
   setHoveredFilterId: (newValue: string) => void;
@@ -533,20 +541,33 @@ export const FluidEqProvider = ({ children }: IFluidEqProviderProps) => {
     [setSelectedFilterIds],
   );
 
-  const toggleFilterSelection = useCallback(
-    (id: string, additive = false) => {
-      if (!additive) {
-        setSelectedFilterIds(
-          selectedFilterIds.includes(id) ? selectedFilterIds : [id],
-        );
-        return;
+  // The band a shift-click ranges from: wherever the last click without
+  // shift landed, as in a file manager. A ref, because it is consulted only
+  // inside a click and changing it must not re-render anything.
+  const selectionAnchorRef = useRef<string | undefined>(undefined);
+
+  const nextFilterSelection = useCallback(
+    (id: string, mode: SelectionMode = 'replace') => {
+      const nextIds = nextBandSelection(
+        filters,
+        selectedFilterIds,
+        id,
+        mode,
+        selectionAnchorRef.current,
+      );
+      if (mode !== 'range') {
+        selectionAnchorRef.current = id;
       }
-      const nextIds = selectedFilterIds.includes(id)
-        ? selectedFilterIds.filter((selectedId) => selectedId !== id)
-        : [...selectedFilterIds, id];
-      setSelectedFilterIds(nextIds);
+      return nextIds;
     },
-    [selectedFilterIds, setSelectedFilterIds],
+    [filters, selectedFilterIds],
+  );
+
+  const toggleFilterSelection = useCallback(
+    (id: string, mode: SelectionMode = 'replace') => {
+      setSelectedFilterIds(nextFilterSelection(id, mode));
+    },
+    [nextFilterSelection, setSelectedFilterIds],
   );
 
   const setGraphViewOn = (newValue: boolean) => {
@@ -761,6 +782,7 @@ export const FluidEqProvider = ({ children }: IFluidEqProviderProps) => {
         setSelectedFilterId,
         selectedFilterIds,
         setSelectedFilterIds,
+        nextFilterSelection,
         toggleFilterSelection,
         hoveredFilterId,
         setHoveredFilterId,

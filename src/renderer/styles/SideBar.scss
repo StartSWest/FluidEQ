@@ -57,7 +57,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   h4 {
     margin: 6px 0 9px;
     color: rgba($white, 0.84);
-    font-size: 0.7rem;
+    font-size: $text-body;
     font-weight: $weight-semibold;
   }
 
@@ -127,15 +127,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // The "+20 dB" ceiling caption above the track. Not the knob, which is
   // also a div and also not `.slider` — it draws its own numbers.
   > div:not(.slider):not(.knob) {
-    color: rgba($primary-lighter, 0.82);
-    font-size: 0.58rem;
+    color: $text-muted;
+    font-size: $text-eyebrow;
     font-variant-numeric: tabular-nums;
   }
 
   // The "-20 dB" floor caption rendered by Slider under the track.
   .slider > div:not(.range):not(.number-input) {
-    color: rgba($primary-lighter, 0.82);
-    font-size: 0.58rem;
+    color: $text-muted;
+    font-size: $text-eyebrow;
     font-variant-numeric: tabular-nums;
   }
 }
@@ -177,9 +177,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     width: min($side-bar-width-compact, 86vw);
     padding: 14px;
     overflow-y: auto;
-    border-right: 1px solid rgba(63, 149, 173, 0.3);
-    background: rgba(6, 20, 33, 0.97);
-    box-shadow: 18px 0 48px rgba(0, 0, 0, 0.45);
+    border-right: 1px solid rgba($secondary-light, 0.22);
+    // The same card as when it is docked. As a drawer it painted its own
+    // near-black, so opening it slid in a darker panel than the one it had
+    // been a moment before.
+    background: $surface-panel;
+    box-shadow: 18px 0 48px rgba($black, 0.45);
     transform: translateX(-105%);
     transition: transform 180ms ease-out;
 
@@ -214,8 +217,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // Says why it cannot be dragged, right where the hand goes.
 .side-bar__preamp-note {
   margin: 2px 0 0;
-  color: rgba($primary-lighter, 0.5);
-  font-size: 0.56rem;
+  color: $text-faint;
+  font-size: $text-eyebrow;
   line-height: 1.35;
   text-align: center;
 }

@@ -27,7 +27,15 @@ $sidebar-width: 164px;
 // meter never did, and paying for it by growing the bar spent the window's
 // height on chrome; taking it out of the pane instead leaves the bar where it
 // has always been. Everything positioned under it derives from this number.
-$title-bar-height: 74px;
+// The strip the bar reserves, not the bar itself.
+//
+// The titlebar is a card now, the way the transport at the foot of the window
+// is: inset from the top and both sides by the shell gutter, rounded, on the
+// same surface. So this number is the 74 above plus the gutter it stands off
+// the top edge by, and the bar takes its own height back out of it. Everything
+// in the app that positions itself under the titlebar measures from here, so it
+// has to be where the card's bottom edge lands rather than how tall the card is.
+$title-bar-height: 86px;
 
 // Widths at which the workspace shell changes shape. The Electron window
 // cannot go below WINDOW_MIN_WIDTH (720px), so the three-column layout only
@@ -37,6 +45,11 @@ $title-bar-height: 74px;
 // the slide-over drawer; a 1600px fullscreen keeps the column.
 $bp-three-column: 1560px;
 $bp-two-column: 940px;
+// Full HD, and the titlebar's own tier above the two the shell has. With the
+// six tab names showing, the spectrum between them measures 420 at 1920, 332
+// at 1700 and 193 at 1561 — the names are what it is paying for, and a meter
+// under 200px is not a meter. Below a full-HD window the tabs are glyphs.
+$bp-desktop: 1920px;
 
 // The left column's width, docked and floating alike.
 //

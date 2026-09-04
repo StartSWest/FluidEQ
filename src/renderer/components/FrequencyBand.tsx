@@ -33,6 +33,7 @@ import {
 } from 'react';
 import { useThrottleAndExecuteLatest } from 'renderer/utils/utils';
 import { removeEqualizerSlider, setGain } from '../utils/equalizerApi';
+import { requestBandMenu } from './BandMenu';
 import { FilterActionEnum, useFluidEqContext } from '../utils/FluidEqContext';
 import Slider from './Slider';
 import '../styles/FrequencyBand.scss';
@@ -70,7 +71,12 @@ const FrequencyBand = forwardRef(
     }: IFrequencyBandProps,
     ref: ForwardedRef<HTMLDivElement>,
   ) => {
-    const INTERVAL = 100;
+    // How often a drag reaches the store and the engine: twenty times a
+    // second. The thumb itself follows the pointer on every event (see
+    // RangeInput); this is the cadence at which the response graph redraws
+    // and Equalizer APO is told. A hundred milliseconds — ten a second — was
+    // audible as steps while a band was dragged with music playing.
+    const INTERVAL = 50;
     const { setGlobalError, dispatchFilter } = useFluidEqContext();
     const [isLoading, setIsLoading] = useState(false);
     const isRemoveDisabled = useMemo(
@@ -160,6 +166,11 @@ const FrequencyBand = forwardRef(
           event.stopPropagation();
           onSelect?.(event);
         }}
+        // The same menu the band's handle on the graph opens.
+        onContextMenu={(event) => {
+          event.preventDefault();
+          requestBandMenu(filter.id, event.clientX, event.clientY);
+        }}
         onMouseEnter={() => onHover?.(true)}
         onMouseLeave={() => onHover?.(false)}
       >
@@ -195,7 +206,16 @@ const FrequencyBand = forwardRef(
             type="button"
             className="band-frequency-caption"
             aria-label={`Edit ${filter.frequency} Hz band`}
-            onClick={onSelect}
+            // Only a keyboard activation: a pointer press already reached the
+            // wrapper above, and answering the click as well toggled a
+            // Ctrl-click twice, which put the band straight back in the
+            // selection it had just left. A click from Enter or Space has no
+            // pointer and reports a detail of zero.
+            onClick={(event) => {
+              if (event.detail === 0) {
+                onSelect?.(event);
+              }
+            }}
           >
             {filter.frequency >= 1000
               ? `${Number((filter.frequency / 1000).toFixed(1))}k`

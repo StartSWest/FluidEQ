@@ -22,7 +22,7 @@ import {
   CHROME_IDLE_MS,
   revealChromeNow,
   useIsChromeIdle,
-  useIsPointerNearBottom,
+  useIsPointerNearChrome,
   watchChromeIdle,
 } from '../../../renderer/utils/idleChrome';
 
@@ -111,7 +111,7 @@ describe('idle chrome', () => {
     'karaoke-pitch',
   ])('keeps the transport open while the pointer is inside %s', (className) => {
     const idle = renderHook(() => useIsChromeIdle());
-    const nearBottom = renderHook(() => useIsPointerNearBottom());
+    const nearBottom = renderHook(() => useIsPointerNearChrome());
     const panel = render(
       <div className={className} data-testid="bottom-chrome-surface">
         <button type="button">Control</button>

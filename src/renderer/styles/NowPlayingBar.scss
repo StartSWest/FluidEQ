@@ -86,34 +86,32 @@ $now-playing-bar-height: 64px;
   gap: $spacing-l;
   height: $now-playing-bar-height;
   padding: 9px $spacing-l;
-  // All four sides now, and `$radius-xl` because that is what `panel-surface`
-  // gives every other card — 18px, not a number chosen here. The gradient,
-  // the inset highlight and the blur are untouched: this is the same surface
-  // it always was, cut to the shape the rest of the window uses.
-  // `$border-panel`, the line every other outermost card in the shell is drawn
-  // with, rather than cyan at 0.18. Measured side by side against the sidebar's
-  // bottom corner: this one was both brighter and more saturated than the card
-  // it sits under, so the bar read as outlined while the panels around it read
-  // as edged.
-  border: 1px solid $border-panel;
-  border-radius: $radius-xl;
-  // Opaque for the same reason as `.window-titlebar`: this card floats above
-  // the workspace and its canvases, so it gets a compositor layer regardless,
-  // and text on a layer only keeps its subpixel antialiasing over an opaque
-  // background. It was already 94-98%, so nothing about the colour moves.
-  background: linear-gradient(180deg, #163047, #07131f);
-  // `panel-surface`'s own shadow, verbatim, because this is a card in the same
-  // shell as the others and was the only one drawn as a raised object.
+  // The same surface as the workspace card and the right pane, from the same
+  // mixin rather than from numbers that resemble theirs.
   //
-  // What it had instead was an embossed edge: a white top highlight at twice
-  // every other card's strength, over a cast shadow at more than twice their
-  // darkness, plus a second shadow thrown UPWARD that nothing else in the
-  // window has. Bright edge over dark ground on all four sides is the recipe
-  // for a bevel, and beside the flat sidebar and the flat tab panel this one
-  // bar read as a 3D strip laid on top of the app.
-  box-shadow:
-    inset 0 1px 0 rgba($white, 0.035),
-    0 20px 48px rgba($black, 0.2);
+  // What it had was its own 64px ramp, `#163047` down to `#07131f`, and that
+  // ramp is the whole of why this bar looked like a different material: every
+  // other card takes its gradient from `background-attachment: fixed`, measured
+  // against the window, so inside a card the colour is all but flat. Compressed
+  // into 64px the same idea becomes a light top edge over a dark bottom one,
+  // which is a bevel — a glossy strip laid across the foot of a window of matte
+  // panels.
+  @include panel-surface;
+  // The border and the corner come from the mixin above; the colour and the
+  // lift come from `.right-content__footer` in `App.scss`, the strip that
+  // carries the fluideq.com button. Same two stops, same upward cast: both bars
+  // sit at the foot of the window and are the same kind of surface, so they are
+  // drawn the same way rather than nearly the same way.
+  //
+  // `background-color` under the gradient is what keeps it opaque. This bar
+  // floats at `z-index: 1100` over three accelerated canvases, so the
+  // compositor keeps it on a layer of its own, and text on a layer only keeps
+  // its subpixel antialiasing over an opaque background. The footer does not
+  // need this: it is inside a card, painted into the page.
+  background-color: $surface-panel;
+  // No shadow, for the reason the titlebar has none: it fell onto the foot
+  // of the columns above it as a darker band.
+  box-shadow: none;
   // No `backdrop-filter`, for the reason spelled out on `.window-titlebar`: it
   // is a compositor layer, and the track title, the artist and the two times
   // painted into it lost their subpixel antialiasing for it. This surface is
@@ -330,7 +328,7 @@ $now-playing-bar-height: 64px;
   }
 
   .library-cover-art__tile {
-    font-size: 0.72rem;
+    font-size: $text-body;
   }
 }
 
@@ -350,14 +348,14 @@ $now-playing-bar-height: 64px;
 .now-playing-bar__title {
   @include truncate;
   color: $text-primary;
-  font-size: 0.78rem;
+  font-size: $text-lead;
   font-weight: $weight-bold;
 }
 
 .now-playing-bar__artist {
   @include truncate;
   color: $text-faint;
-  font-size: 0.66rem;
+  font-size: $text-small;
 }
 
 // Codec, bitrate, sample rate — quieter than the artist above it, because it
@@ -365,8 +363,8 @@ $now-playing-bar-height: 64px;
 // and the separators keep this grey; the two figures do not, see below.
 .now-playing-bar__format {
   @include truncate;
-  color: rgba($primary-lighter, 0.42);
-  font-size: 0.58rem;
+  color: $text-faint;
+  font-size: $text-eyebrow;
   letter-spacing: 0.02em;
 }
 
@@ -395,7 +393,7 @@ $now-playing-bar-height: 64px;
 .now-playing-bar__unplayable {
   flex: 0 0 auto;
   color: $red;
-  font-size: 0.6rem;
+  font-size: $text-micro;
   font-weight: $weight-bold;
   white-space: nowrap;
 }
@@ -431,7 +429,6 @@ $now-playing-bar-height: 64px;
     border-radius: 0;
     background: none;
     box-shadow: none;
-    backdrop-filter: none;
 
     &::before {
       display: none;
@@ -512,12 +509,11 @@ $now-playing-bar-height: 64px;
   align-items: center;
   gap: 8px;
   padding: 3px 10px 3px 3px;
-  border: 1px solid rgba($secondary-light, 0.1);
+  // The same block as every wrapper in the window: the slate one step above
+  // the bar, an edge, no shadow. It was a mist wash of its own under a drop
+  // shadow, the one control tray drawn as a different material.
+  @include inset-surface;
   border-radius: $radius-pill;
-  background: rgba(#020a12, 0.38);
-  box-shadow:
-    0 5px 16px rgba($black, 0.22),
-    inset 0 1px 0 rgba($white, 0.035);
 }
 
 .now-playing-bar__buttons,
@@ -587,7 +583,7 @@ $now-playing-bar-height: 64px;
   }
 
   &:disabled {
-    color: rgba($primary-lighter, 0.3);
+    color: $text-faint;
     opacity: 0.7;
     cursor: default;
   }
@@ -599,23 +595,23 @@ $now-playing-bar-height: 64px;
   height: 44px;
   min-height: 44px;
   margin: -4px 1px;
-  color: #031411;
+  color: $surface-base;
   border: 1px solid rgba($white, 0.32);
   border-radius: 50%;
-  background: linear-gradient(145deg, $secondary-light, $secondary-default);
+  background: $secondary-default;
   box-shadow:
     0 8px 20px rgba($black, 0.34),
     0 0 22px rgba($secondary-default, 0.3),
     inset 0 1px 0 rgba($white, 0.42);
 
   &:hover:not(:disabled) {
-    color: #031411;
-    background: linear-gradient(145deg, $white, $secondary-light);
+    color: $surface-base;
+    background: $secondary-light;
   }
 
   &:disabled {
-    color: rgba($primary-lighter, 0.4);
-    background: rgba(#1a2b38, 0.6);
+    color: $text-faint;
+    background: rgba($surface-menu-top, 0.6);
     box-shadow: none;
   }
 }
@@ -633,13 +629,13 @@ $now-playing-bar-height: 64px;
 // It ends playback rather than moving within it, and at the same weight as
 // Next it read as one more way to change track.
 .now-playing-bar__stop {
-  color: rgba($primary-lighter, 0.62);
+  color: $text-muted;
 }
 
 .now-playing-bar__time {
   min-width: 30px;
   color: $text-faint;
-  font-size: 0.6rem;
+  font-size: $text-micro;
   font-variant-numeric: tabular-nums;
   text-align: center;
   white-space: nowrap;
@@ -683,7 +679,7 @@ $now-playing-bar-height: 64px;
   // Lit while shuffle is on, or while repeat is anything other than off — the
   // same "switched-on" glow `.button.is-running`'s neighbours use elsewhere.
   &[aria-pressed='true'] {
-    color: $primary-dark;
+    color: $surface-base;
     border-color: rgba($secondary-light, 0.7);
     background: $secondary-default;
     box-shadow: 0 0 15px rgba($secondary-default, 0.24);
@@ -697,11 +693,11 @@ $now-playing-bar-height: 64px;
     width: 13px;
     height: 13px;
     place-items: center;
-    color: #bafff7;
-    font-size: 0.62rem;
+    color: $secondary-light;
+    font-size: $text-micro;
     font-weight: $weight-bold;
     line-height: 1;
-    background: #0a3846;
+    background: $surface-panel;
     border: 1px solid rgba(105, 246, 233, 0.38);
     border-radius: 50%;
   }
@@ -745,10 +741,9 @@ $now-playing-bar-height: 64px;
   align-items: center;
   gap: 7px;
   padding: 4px 7px 4px 4px;
-  border: 1px solid rgba($secondary-light, 0.08);
+  // Same block as the deck beside it.
+  @include inset-surface;
   border-radius: $radius-pill;
-  background: rgba(#020a12, 0.25);
-  box-shadow: inset 0 1px 2px rgba($black, 0.24);
 }
 
 // The figure at the end of the fader, in the same grey the format line uses.
@@ -756,8 +751,8 @@ $now-playing-bar-height: 64px;
 // somebody notices where the fader is.
 .now-playing-bar__volume-value {
   @include truncate;
-  color: rgba($primary-lighter, 0.6);
-  font-size: 0.6rem;
+  color: $text-muted;
+  font-size: $text-micro;
   font-variant-numeric: tabular-nums;
   text-align: right;
 }
@@ -789,8 +784,8 @@ $now-playing-bar-height: 64px;
   }
 
   &[aria-pressed='true'] {
-    color: rgba($primary-lighter, 0.5);
-    background: rgba(#020a12, 0.4);
+    color: $text-faint;
+    background: rgba($edge-tint, 0.09);
   }
 }
 
@@ -876,10 +871,10 @@ $now-playing-bar-height: 64px;
     border-radius: $radius-pill;
     background: linear-gradient(
       90deg,
-      $secondary-light 0,
+      $secondary-default 0,
       $secondary-default var(--now-playing-progress),
-      rgba($primary-lighter, 0.12) var(--now-playing-progress),
-      rgba($primary-lighter, 0.12) 100%
+      rgba($edge-tint, 0.12) var(--now-playing-progress),
+      rgba($edge-tint, 0.12) 100%
     );
     box-shadow: inset 0 1px 2px rgba($black, 0.68);
   }
@@ -889,7 +884,7 @@ $now-playing-bar-height: 64px;
     width: 13px;
     height: 13px;
     margin-top: -4px;
-    border: 2px solid rgba(#dffffb, 0.92);
+    border: 2px solid rgba($text-primary, 0.92);
     border-radius: 50%;
     background: $secondary-default;
     box-shadow: 0 0 12px rgba($secondary-default, 0.45);
@@ -991,10 +986,10 @@ $now-playing-bar-height: 64px;
   height: 32px;
   padding: 0 12px 0 9px;
   color: rgba($white, 0.88);
-  border: 1px solid rgba($primary-lighter, 0.18);
+  border: 1px solid rgba($edge-tint, 0.18);
   border-radius: $radius-s;
-  background: rgba(4, 16, 26, 0.72);
-  font-size: 0.7rem;
+  background: rgba($surface-menu-top, 0.9);
+  font-size: $text-body;
   cursor: pointer;
   transition: $transition-control;
 
@@ -1029,9 +1024,9 @@ $now-playing-bar-height: 64px;
   place-items: center;
   padding: 0;
   color: rgba($white, 0.88);
-  border: 1px solid rgba($primary-lighter, 0.18);
+  border: 1px solid rgba($edge-tint, 0.18);
   border-radius: $radius-s;
-  background: rgba(4, 16, 26, 0.72);
+  background: rgba($surface-menu-top, 0.9);
   cursor: pointer;
   transition: $transition-control;
 
@@ -1049,7 +1044,7 @@ $now-playing-bar-height: 64px;
   &:focus-visible {
     color: $white;
     border-color: rgba($secondary-light, 0.5);
-    background: rgba(4, 16, 26, 0.9);
+    background: rgba($surface-menu-top, 0.96);
     outline: none;
   }
 }
@@ -1093,7 +1088,7 @@ $now-playing-bar-height: 64px;
     gap: $spacing-s;
     padding: 0 10px;
     border-radius: $radius-s;
-    font-size: 0.7rem;
+    font-size: $text-body;
   }
 
   .now-playing-bar__option-label {

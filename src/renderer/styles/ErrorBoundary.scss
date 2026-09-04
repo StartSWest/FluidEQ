@@ -16,7 +16,7 @@ it under the terms of the GNU General Public License version 3 or later.
   display: grid;
   padding: 24px;
   place-items: center;
-  background: rgba(#05090f, 0.96);
+  background: rgba($surface-well, 0.96);
 }
 
 .crash-screen__card {
@@ -37,8 +37,8 @@ it under the terms of the GNU General Public License version 3 or later.
 
 .crash-screen__lead {
   margin: 0;
-  color: rgba($primary-lighter, 0.82);
-  font-size: 0.84rem;
+  color: $text-muted;
+  font-size: $text-lead;
   line-height: 1.55;
 }
 
@@ -53,7 +53,7 @@ it under the terms of the GNU General Public License version 3 or later.
   border-radius: $radius-xs;
   background: rgba(#0a0508, 0.8);
   font-family: $font-mono;
-  font-size: 0.72rem;
+  font-size: $text-body;
   line-height: 1.5;
   overflow: auto;
   white-space: pre-wrap;
@@ -74,7 +74,7 @@ it under the terms of the GNU General Public License version 3 or later.
   min-height: $control-height;
   padding: 9px 16px;
   border-radius: $radius-xs;
-  font-size: 0.8rem;
+  font-size: $text-lead;
   font-weight: $weight-bold;
 
   &--primary {

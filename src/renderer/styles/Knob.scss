@@ -34,7 +34,7 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 
   &__track {
-    stroke: rgba($primary-lighter, 0.18);
+    stroke: rgba($edge-tint, 0.14);
   }
 
   &__value {
@@ -45,8 +45,7 @@ it under the terms of the GNU General Public License version 3 or later.
   // What the body casts onto the panel. Offset downward only — one light, from
   // above, which is the same light the body's own gradient is lit by.
   &__shadow {
-    fill: rgba($black, 0.55);
-    filter: blur(3px);
+    fill: rgba($black, 0.3);
   }
 
   &__bevel {
@@ -62,7 +61,7 @@ it under the terms of the GNU General Public License version 3 or later.
   // like they do. The dark under-stroke is what keeps it legible where it
   // crosses the bright top of the body.
   &__notch-groove {
-    stroke: rgba($black, 0.55);
+    stroke: rgba($surface-base, 0.55);
     stroke-width: 6;
     stroke-linecap: round;
   }
@@ -74,22 +73,28 @@ it under the terms of the GNU General Public License version 3 or later.
     filter: drop-shadow(0 0 5px rgba($secondary-default, 0.95));
   }
 
-  // Recessed, so the number sits in a well rather than on the metal.
+  // Recessed, so the number sits in a well rather than on the metal. The
+  // edge is mist, not black: a black ring on a navy body is not a shadow,
+  // it is a hole cut for the face.
   &__face {
-    stroke: rgba($black, 0.55);
+    stroke: rgba($edge-tint, 0.12);
     stroke-width: 1;
   }
 
+  // Sized for the 46-50px dials the editor rows use, where a ten-unit
+  // number came out six pixels tall. The 78px sidebar dial scales these up
+  // with it and they read as large there, which is fine — it is the one
+  // number on that whole card.
   &__number {
     fill: $white;
-    font-size: 10px;
+    font-size: 12.5px;
     font-weight: $weight-bold;
     font-variant-numeric: tabular-nums;
   }
 
   &__label {
-    fill: rgba($primary-lighter, 0.68);
-    font-size: 7px;
+    fill: $text-muted;
+    font-size: 7.5px;
     font-weight: $weight-bold;
     letter-spacing: 0.08em;
   }

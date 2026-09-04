@@ -53,13 +53,21 @@ export const registerWindowIpc = ({
     if (!mainWindow) {
       return false;
     }
-    if (mainWindow.isMaximized()) {
-      mainWindow.unmaximize();
-    } else {
+    // What was asked for, not what has happened yet.
+    //
+    // Windows applies the state change on its own message loop, so reading
+    // `isMaximized()` straight after the call gives the state the window is
+    // leaving: the button reported the wrong answer to the renderer every
+    // time, and the maximise glyph flipped to the wrong shape until the
+    // window's own event arrived a frame or two later and corrected it.
+    const next = !mainWindow.isMaximized();
+    if (next) {
       mainWindow.maximize();
+    } else {
+      mainWindow.unmaximize();
     }
     sendWindowState();
-    return mainWindow.isMaximized();
+    return next;
   });
 
   ipcMain.handle('window-close', () => {
@@ -110,8 +118,16 @@ export const registerWindowIpc = ({
     if (!mainWindow) {
       return false;
     }
+    // Straight there, and not by way of maximised.
+    //
+    // Going through maximised was tried, so the movement would carry the
+    // animation Windows gives a maximise instead of arriving as a snap. It
+    // does not work: `setFullScreen(true)` on a maximised window is ignored
+    // — measured, the window stayed at the work area's 1392px height with
+    // the taskbar still showing — so the smoother movement cost the mode
+    // itself. The snap stays until there is a way to have both.
     mainWindow.setFullScreen(!!next);
     sendWindowState();
-    return mainWindow.isFullScreen();
+    return !!next;
   });
 };

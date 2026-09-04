@@ -27,10 +27,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   color: $text-primary;
   text-align: start;
 
+  // The strip the filter row sits in: the menu's own colour and nothing
+  // else. It had a tone of its own and a rule under it, which read as a
+  // header the menu did not have.
   .starting-item {
     padding: 8px;
-    border-bottom: 1px solid rgba($primary-lighter, 0.1);
-    background: rgba($primary-light, 0.16);
+    border: 0;
+    background: transparent;
   }
 
   .list {
@@ -51,11 +54,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       margin: 2px 0;
       padding: 8px 10px;
       align-items: center;
-      color: rgba($white, 0.9);
+      color: $text-primary;
       border: 1px solid transparent;
       border-radius: $radius-xs;
       background: transparent;
-      font-size: 0.72rem;
+      font-size: $text-body;
       line-height: 1.25;
       cursor: pointer;
       transition: $transition-control;
@@ -65,22 +68,20 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       &:focus-visible,
       &:focus-within {
         color: $white;
-        border-color: rgba($secondary-light, 0.18);
-        background: rgba($secondary-default, 0.09);
+        background: $hover-accent;
         outline: none;
       }
 
       &.selected {
         color: $secondary-light;
-        border-color: rgba($secondary-light, 0.42);
-        background: rgba($secondary-default, 0.2);
-        box-shadow: inset 0 1px 0 rgba($white, 0.045);
+        border-color: $selected-border;
+        background: $selected-accent;
 
         &:hover,
         &:focus,
         &:focus-visible,
         &:focus-within {
-          background: rgba($secondary-default, 0.26);
+          background: rgba($secondary-default, 0.22);
         }
       }
 
@@ -92,10 +93,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
         padding: 5px 8px;
         color: rgba($secondary-light, 0.72);
         border: 0;
-        border-top: 1px solid rgba($primary-lighter, 0.08);
+        border-top: 1px solid $border-subtle;
         border-radius: 0;
         background: transparent;
-        font-size: 0.58rem;
+        font-size: $text-eyebrow;
         font-weight: $weight-bold;
         letter-spacing: 0.12em;
         text-transform: uppercase;

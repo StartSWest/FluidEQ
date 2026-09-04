@@ -22,6 +22,13 @@ import path from 'path';
 import log from 'electron-log';
 import { serializePreset, serializeState } from './apoRender';
 import {
+  forgetPath,
+  peekScheduled,
+  scheduleWrite,
+  settlePath,
+} from './asyncWriter';
+import readTextCached from './cachedRead';
+import {
   AutoEqFormat,
   FilterTypeEnum,
   APO_LAYERS,
@@ -383,24 +390,23 @@ export const fetchSettings = (settingsDir: string) => {
   }
 };
 
-export const save = (state: IState, settingsDir: string) => {
+// Asynchronous and coalesced — see asyncWriter. This runs after every edit,
+// which during a drag is many times a second, and it used to block the main
+// process on the disk each time.
+export const save = (state: IState, settingsDir: string): Promise<void> => {
   const settingsPath = path.join(settingsDir, LOCAL_STATE_FILENAME);
-  try {
-    fs.writeFileSync(settingsPath, serializeState(state), {
-      encoding: 'utf8',
-    });
-  } catch (ex) {
-    log.error(`Failed to save to ${settingsPath}`);
-    throw ex;
-  }
+  // The promise is the writer's, and nothing in the app waits on it: a drag
+  // must not. It is here so a caller that has to see the file — a test, a
+  // shutdown — can say so instead of guessing at a delay.
+  return scheduleWrite(settingsPath, serializeState(state));
 };
 
 export const fetchPreset = (presetName: string, presetsDir: string) => {
   try {
     const presetPath = presetFilePath(presetsDir, presetName);
-    const content = fs.readFileSync(presetPath, {
-      encoding: 'utf8',
-    });
+    // Through the cache: this runs for every attached profile on every
+    // slider movement, and what the writer last accepted beats the disk.
+    const content = readTextCached(presetPath);
     const json = JSON.parse(content);
     if (validatePresetV1(json)) {
       const oldFormat = json as IPresetV1;
@@ -471,17 +477,15 @@ export const savePreset = (
   presetInfo: IPresetV2,
   presetsDir: string,
   source = 'direct',
-) => {
-  try {
-    const presetPath = presetFilePath(presetsDir, presetName);
-    fs.writeFileSync(presetPath, serializePreset(presetInfo), {
-      encoding: 'utf8',
-    });
-  } catch (ex) {
-    log.error('Failed to save to preset %s', presetName);
-    throw ex;
-  }
+): Promise<void> => {
+  // Asynchronous and coalesced, like the state file: the attached profile
+  // is rewritten on every edit.
+  const landed = scheduleWrite(
+    presetFilePath(presetsDir, presetName),
+    serializePreset(presetInfo),
+  );
   logPresetWrite(presetName, source);
+  return landed;
 };
 
 /**
@@ -648,9 +652,13 @@ export const repairUnusedPreamps = (presetsDir: string): string[] => {
   return repaired;
 };
 
-export const deletePreset = (presetName: string, presetsDir: string) => {
+export const deletePreset = async (presetName: string, presetsDir: string) => {
+  const presetPath = presetFilePath(presetsDir, presetName);
+  // Let a write still in flight land first, or it lands after the unlink
+  // and the profile comes back from the dead.
+  await settlePath(presetPath);
+  forgetPath(presetPath);
   try {
-    const presetPath = presetFilePath(presetsDir, presetName);
     fs.unlinkSync(presetPath);
   } catch (ex) {
     log.error('Failed to delete preset');
@@ -668,6 +676,12 @@ export const doesPresetExist = (presetName: string, presetsDir: string) => {
     return false;
   }
   const testPath = addFileToPath(presetsDir, safeName);
+  // A profile whose first write is still in flight exists: the name is
+  // taken, and the numbering that picks "Untitled profile N" must not hand
+  // it out twice.
+  if (peekScheduled(testPath) !== undefined) {
+    return true;
+  }
   try {
     return fs.existsSync(testPath);
   } catch (ex) {
@@ -676,7 +690,7 @@ export const doesPresetExist = (presetName: string, presetsDir: string) => {
   }
 };
 
-export const renamePreset = (
+export const renamePreset = async (
   oldName: string,
   newName: string,
   presetsDir: string,
@@ -685,6 +699,9 @@ export const renamePreset = (
   // the one an attacker would choose.
   const oldPath = presetFilePath(presetsDir, oldName);
   const newPath = presetFilePath(presetsDir, newName);
+  // Same as delete: the old file has to be whole before it moves.
+  await settlePath(oldPath);
+  forgetPath(oldPath);
   try {
     fs.renameSync(oldPath, newPath);
   } catch (ex) {

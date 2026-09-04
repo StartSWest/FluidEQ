@@ -39,27 +39,27 @@ it under the terms of the GNU General Public License version 3 or later.
   display: flex;
   justify-content: flex-end;
   padding: 11px 16px 13px;
-  border-top: 1px solid rgba($primary-lighter, 0.1);
-  background: rgba(#07111c, 0.26);
+  border-top: 1px solid rgba($edge-tint, 0.1);
+  background: $block-lift;
 }
 
 .whats-new__ok {
   min-width: 96px;
   padding: 7px 18px;
-  color: #041f25;
+  color: $surface-base;
   border: 1px solid rgba(137, 255, 246, 0.82);
   border-radius: $radius-s;
-  background: linear-gradient(135deg, #64fff0, #10d7c7 72%);
+  background: $secondary-default;
   cursor: pointer;
-  font-size: 0.78rem;
+  font-size: $text-lead;
   font-weight: $weight-bold;
   transition: $transition-control;
 
   &:hover,
   &:focus-visible {
-    color: #03191d;
+    color: $surface-well;
     border-color: rgba(205, 255, 251, 0.94);
-    background: linear-gradient(135deg, #83fff4, #1be3d2 72%);
+    background: $secondary-default;
     box-shadow:
       inset 0 1px rgba(255, 255, 255, 0.42),
       0 0 18px rgba(25, 224, 205, 0.22);
@@ -74,8 +74,8 @@ it under the terms of the GNU General Public License version 3 or later.
   min-height: 0;
   padding: 12px 20px 20px;
   overflow-y: auto;
-  color: rgba($primary-lighter, 0.84);
-  font-size: 0.78rem;
+  color: $text-muted;
+  font-size: $text-lead;
   line-height: 1.6;
   @include slim-scrollbar;
 
@@ -89,12 +89,11 @@ it under the terms of the GNU General Public License version 3 or later.
     color: $secondary-light;
     border: 1px solid rgba($secondary-light, 0.16);
     border-radius: $radius-s;
-    background: rgba(#0b1726, 0.94);
+    background: rgba($surface-menu-top, 0.94);
     box-shadow:
       0 8px 18px rgba($black, 0.22),
       inset 0 1px 0 rgba($white, 0.035);
-    backdrop-filter: blur(12px);
-    font-size: 0.95rem;
+    font-size: $text-title;
 
     &:first-child {
       margin-top: 0;
@@ -105,7 +104,7 @@ it under the terms of the GNU General Public License version 3 or later.
   h4 {
     margin: 16px 0 4px;
     color: rgba($white, 0.9);
-    font-size: 0.7rem;
+    font-size: $text-body;
     font-weight: $weight-bold;
     letter-spacing: 0.12em;
     text-transform: uppercase;
@@ -152,6 +151,6 @@ it under the terms of the GNU General Public License version 3 or later.
     border-radius: $radius-xs;
     background: rgba($secondary-default, 0.1);
     font-family: $font-mono;
-    font-size: 0.72rem;
+    font-size: $text-body;
   }
 }

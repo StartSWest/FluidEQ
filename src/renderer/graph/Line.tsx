@@ -218,28 +218,48 @@ const Line = ({
 
   return (
     <>
+      {/* The halo: two wide, faint strokes under the line, not a blur. The
+          Gaussian filter this replaces was re-rasterised on every frame the
+          curve animated, and at the plot's edge it stopped dead in a vertical
+          cut. Two strokes cost what a stroke costs, and the clip they run
+          under reaches a little past the plot so the halo tails off rather
+          than being sliced. */}
       {glow && gradientId && (
-        <path
-          name={`${name} glow`}
-          className="chart-curve__glow"
-          d={d || undefined}
-          // The gradient travels with the halo as well as with the line, so a
-          // stylesheet can put either of them back to the spectrum. The
-          // attribute below is only the fallback: any CSS rule outranks a
-          // presentation attribute, which is what lets the halo be cyan at rest
-          // without this component knowing anything about the mode.
-          style={spectrum}
-          stroke={`url(#${gradientId})`}
-          strokeWidth={strokeWidth + 7}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          fill="none"
-          opacity={0.42}
-          filter="url(#chart-eq-neon-glow)"
-          clipPath="url(#chart-clip-path)"
-          pointerEvents="none"
-          transform="translate(0 3)"
-        />
+        <>
+          <path
+            name={`${name} glow`}
+            className="chart-curve__glow"
+            d={d || undefined}
+            // The gradient travels with the halo as well as with the line, so
+            // a stylesheet can put either of them back to the spectrum. The
+            // attribute below is only the fallback: any CSS rule outranks a
+            // presentation attribute, which is what lets the halo be cyan at
+            // rest without this component knowing anything about the mode.
+            style={spectrum}
+            stroke={`url(#${gradientId})`}
+            strokeWidth={strokeWidth + 14}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            fill="none"
+            opacity={0.09}
+            clipPath="url(#chart-halo-clip-path)"
+            pointerEvents="none"
+          />
+          <path
+            name={`${name} glow inner`}
+            className="chart-curve__glow"
+            d={d || undefined}
+            style={spectrum}
+            stroke={`url(#${gradientId})`}
+            strokeWidth={strokeWidth + 6}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            fill="none"
+            opacity={0.2}
+            clipPath="url(#chart-halo-clip-path)"
+            pointerEvents="none"
+          />
+        </>
       )}
       <path
         name={name}

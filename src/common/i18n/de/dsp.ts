@@ -79,6 +79,7 @@ const dsp = {
     'Das behaltene Signal ist entfernt — nur das Entfernte ist hörbar.',
   'dsp.denoise.graphOutput': 'Ausgang',
   'dsp.denoise.graphFloor': 'Rauschteppich',
+  'dsp.denoise.graphHissAction': 'Angewandte Rauschminderung',
   'dsp.denoise.graphHum': 'Brummen',
   'dsp.denoise.graphIdle': 'Inaktiv',
   'dsp.denoise.graphClicks': 'Knackser-Reparatur',

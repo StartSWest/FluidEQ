@@ -79,6 +79,7 @@ const dsp = {
     'Se eliminó la señal conservada; solo se oye lo que se quita.',
   'dsp.denoise.graphOutput': 'Salida',
   'dsp.denoise.graphFloor': 'Suelo de ruido',
+  'dsp.denoise.graphHissAction': 'Reducción de siseo aplicada',
   'dsp.denoise.graphHum': 'Zumbido',
   'dsp.denoise.graphIdle': 'Inactivo',
   'dsp.denoise.graphClicks': 'Reparación de clics',

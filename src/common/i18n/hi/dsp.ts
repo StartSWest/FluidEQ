@@ -75,6 +75,7 @@ const dsp = {
     'रखा गया सिग्नल हटा दिया गया — केवल हटाया जा रहा हिस्सा सुनाई दे रहा है।',
   'dsp.denoise.graphOutput': 'आउटपुट',
   'dsp.denoise.graphFloor': 'शोर स्तर',
+  'dsp.denoise.graphHissAction': 'लागू हिस कमी',
   'dsp.denoise.graphHum': 'हम',
   'dsp.denoise.graphIdle': 'निष्क्रिय',
   'dsp.denoise.graphClicks': 'क्लिक मरम्मत',

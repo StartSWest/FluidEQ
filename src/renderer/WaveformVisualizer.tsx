@@ -101,6 +101,7 @@ import {
   useLiveAudioFrame,
 } from './audio/LiveAudioContext';
 import { LEVEL_FLOOR_DB } from './graph/outputLevel';
+import { useInternalClipping } from './audio/internalClipping';
 import type { IChartPointData } from './graph/ChartController';
 import { useRhythmRun } from './utils/rhythmRun';
 import { useSmoothFrames } from './utils/useSmoothFrames';
@@ -140,6 +141,7 @@ const WaveformVisualizer = () => {
   // read here so the `spectrum` style can build real spectrum bars off it
   // rather than the time-domain envelope every other style uses.
   const { isClipping, points, waveform } = useLiveAudioFrame();
+  const isInternallyClipping = useInternalClipping();
   // `togglePaused` is deliberately not taken. Clicking cycles the meter style
   // now, so pausing has no trigger here — the analyser is still pausable
   // through the control context, it simply is not this button any more, and
@@ -806,7 +808,9 @@ const WaveformVisualizer = () => {
 
   // The capture's own verdict, from railed samples — the app's one
   // definition of clipping, and the same one the sidebar meter uses.
-  const isOverloading = isClipping;
+  // Both sources, like the meter: the capture's verdict and the engine's own
+  // — see `internalClipping.ts`.
+  const isOverloading = isClipping || isInternallyClipping;
   const isOverloadingRef = useRef(isOverloading);
   isOverloadingRef.current = isOverloading;
 

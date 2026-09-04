@@ -113,7 +113,7 @@ describe('renaming and deleting a profile through IPC', () => {
     return reply;
   };
 
-  beforeEach(() => {
+  beforeEach(async () => {
     handlers.clear();
     root = fs.mkdtempSync(path.join(os.tmpdir(), 'fluideq-profile-ipc-'));
     state = getDefaultState();
@@ -129,16 +129,20 @@ describe('renaming and deleting a profile through IPC', () => {
       },
     };
 
-    // Two outputs, two different profiles, one name.
-    [HEADPHONES, SPEAKERS].forEach((deviceId, index) => {
-      fs.mkdirSync(presetDirFor(deviceId), { recursive: true });
-      savePreset(SHARED, presetWith(index + 1), presetDirFor(deviceId));
-      savePresetBaseline(
-        SHARED,
-        presetWith(index + 1),
-        baselineDirFor(deviceId),
-      );
-    });
+    // Two outputs, two different profiles, one name. Awaited together
+    // rather than fired off inside a `forEach`: the writes are asynchronous,
+    // and the test that follows reads the files.
+    await Promise.all(
+      [HEADPHONES, SPEAKERS].map(async (deviceId, index) => {
+        fs.mkdirSync(presetDirFor(deviceId), { recursive: true });
+        await savePreset(SHARED, presetWith(index + 1), presetDirFor(deviceId));
+        savePresetBaseline(
+          SHARED,
+          presetWith(index + 1),
+          baselineDirFor(deviceId),
+        );
+      }),
+    );
 
     registerProfilesIpc({
       state,
@@ -180,7 +184,7 @@ describe('renaming and deleting a profile through IPC', () => {
     });
   });
 
-  afterEach(() => {
+  afterEach(async () => {
     fs.rmSync(root, { recursive: true, force: true });
   });
 
@@ -224,7 +228,7 @@ describe('renaming and deleting a profile through IPC', () => {
     // "Bass boost" on the speakers are two profiles that share a word. The flat
     // store had to refuse this, and refusing it now would be the old bug worn
     // the other way round.
-    savePreset('Bass boost', presetWith(9), presetDirFor(SPEAKERS));
+    await savePreset('Bass boost', presetWith(9), presetDirFor(SPEAKERS));
 
     await fire(ChannelEnum.RENAME_PRESET, [SHARED, 'Bass boost']);
 
@@ -234,7 +238,7 @@ describe('renaming and deleting a profile through IPC', () => {
   });
 
   it('refuses a name this output already uses', async () => {
-    savePreset('Bass boost', presetWith(9), presetDirFor(HEADPHONES));
+    await savePreset('Bass boost', presetWith(9), presetDirFor(HEADPHONES));
 
     await fire(ChannelEnum.RENAME_PRESET, [SHARED, 'Bass boost']);
 
@@ -280,7 +284,7 @@ describe('renaming and deleting a profile through IPC', () => {
   });
 
   it('lists saved copies for the active output only', async () => {
-    savePreset('Desk', presetWith(5), presetDirFor(SPEAKERS));
+    await savePreset('Desk', presetWith(5), presetDirFor(SPEAKERS));
     savePresetBaseline('Desk', presetWith(5), baselineDirFor(SPEAKERS));
 
     const onHeadphones = await fire(ChannelEnum.GET_PRESET_BASELINE_NAMES, []);

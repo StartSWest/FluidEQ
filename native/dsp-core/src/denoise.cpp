@@ -127,6 +127,7 @@ FeqDenoise* feq_denoise_create(double sample_rate,
   denoise->profile.floor_dbfs = kDenoiseSilenceDb;
 
   denoise->live_floor_db.assign(FEQ_DENOISE_PROFILE_BANDS, kDenoiseSilenceDb);
+  denoise->live_hiss_reduction_db.assign(FEQ_DENOISE_PROFILE_BANDS, 0.0);
 
   denoise->residual.resize(denoise->channels);
   for (auto& channel : denoise->residual) {
@@ -366,6 +367,10 @@ void feq_denoise_report(const FeqDenoise* denoise, FeqDenoiseReport* out) {
         band < denoise->live_floor_db.size()
             ? denoise->live_floor_db[band]
             : kDenoiseSilenceDb;
+    out->hiss_reduction_bands_db[band] =
+        band < denoise->live_hiss_reduction_db.size()
+            ? denoise->live_hiss_reduction_db[band]
+            : 0.0;
   }
 }
 

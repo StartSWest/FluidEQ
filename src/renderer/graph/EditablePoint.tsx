@@ -19,6 +19,8 @@ import {
   useRef,
 } from 'react';
 import { MAX_GAIN, MIN_GAIN } from 'common/constants';
+import { selectionModeFromEvent } from 'common/bandSelection';
+import { requestBandMenu } from '../components/BandMenu';
 import {
   GRAPH_END,
   GRAPH_START,
@@ -197,7 +199,7 @@ const EditablePoint = ({
      * that it is the pointer being tracked and nothing else.
      */
     point.onSelect(
-      event.ctrlKey || event.metaKey || event.shiftKey,
+      selectionModeFromEvent(event),
       getPointFromEvent(event) ?? { x: data.x, y: data.y },
     );
   };
@@ -246,6 +248,12 @@ const EditablePoint = ({
       onPointerCancel={handlePointerUp}
       onPointerEnter={() => point.onHover(true)}
       onPointerLeave={() => point.onHover(false)}
+      // The band's menu: reset it, or grow a neighbour on either side.
+      onContextMenu={(event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        requestBandMenu(point.id, event.clientX, event.clientY);
+      }}
       onWheel={handleWheel}
       style={
         {

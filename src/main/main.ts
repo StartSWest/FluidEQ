@@ -59,6 +59,7 @@ import {
   PRESET_BASELINES_DIR,
   repairUnusedPreamps,
 } from './flush';
+import { flushPendingWrites, hasUnsettledWrites } from './asyncWriter';
 import { getConfigPath, isEqualizerAPOInstalled } from './registry';
 import { runEqualizerApoSetup } from './equalizerApoSetup';
 import { gatherBugReportFacts } from './bugReportFacts';
@@ -1833,8 +1834,25 @@ const persistExternallyAdoptedState = () => {
 };
 
 const syncActiveApoFilesFromDisk = async () => {
-  if (apoAppWriteDepth > 0) {
-    apoSyncDeferredByAppWrite = true;
+  // Not while the app is writing — and "writing" now outlasts the handler
+  // that asked for it, because the config files go to disk asynchronously
+  // and coalesced. The watcher fires on every one of those writes as it
+  // lands; reading the chain back in the middle of a drag found the disk a
+  // step behind the state and adopted it, which reset every other band. So
+  // the sync waits for the writer to settle and then runs once, when what is
+  // on disk is what the state says and there is nothing to adopt.
+  if (apoAppWriteDepth > 0 || hasUnsettledWrites()) {
+    if (!apoSyncDeferredByAppWrite) {
+      apoSyncDeferredByAppWrite = true;
+      flushPendingWrites()
+        .catch(() => undefined)
+        .finally(() => {
+          if (apoAppWriteDepth === 0 && apoSyncDeferredByAppWrite) {
+            apoSyncDeferredByAppWrite = false;
+            queueApoDiskSync();
+          }
+        });
+    }
     return;
   }
   if (!session.configPath || !session.activeAudioDeviceId) {
@@ -2753,7 +2771,25 @@ app.on('window-all-closed', () => {
   }
 });
 
-app.on('before-quit', () => {
+// Set once the coalescing writer has drained; see `before-quit`.
+let pendingWritesFlushed = false;
+
+app.on('before-quit', (event) => {
+  // The state file, the attached profile and the APO config are written
+  // asynchronously and coalesced (asyncWriter), so a quit that arrives
+  // straight after a slider drag can find the last position still in the
+  // queue. Hold the quit until it lands, then quit again; the second pass
+  // falls through to the shutdown below. A few small files: milliseconds.
+  if (!pendingWritesFlushed) {
+    event.preventDefault();
+    flushPendingWrites()
+      .catch(() => undefined)
+      .finally(() => {
+        pendingWritesFlushed = true;
+        app.quit();
+      });
+    return;
+  }
   // The backstop for every quit that did not come from inside the app: an
   // installer, a session logout, Task Manager. Each of those reaches the
   // window's `close` handler, which cancels anything it is not told is a real

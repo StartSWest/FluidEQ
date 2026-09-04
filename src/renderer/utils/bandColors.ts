@@ -78,9 +78,15 @@ export const getBandColor = (progress: number): IBandColor => {
     Math.round(channel + (rightStop.color[index] - channel) * amount),
   );
   const color = `rgb(${rgb.join(', ')})`;
+  // The hue is at full strength; these two say how much of the column
+  // carries it. At 0.38 and 0.1 almost everything a band showed was the dot
+  // and the arrows — the track between them was a tenth of a colour over a
+  // dark card, which is a grey line, so a row of full-saturation bands read
+  // as pale. Two thirds and a quarter keep the reading the brightest thing
+  // on the band while letting the column itself be the colour it is.
   return {
     color,
-    muted: `rgba(${rgb.join(', ')}, 0.38)`,
-    track: `rgba(${rgb.join(', ')}, 0.1)`,
+    muted: `rgba(${rgb.join(', ')}, 0.62)`,
+    track: `rgba(${rgb.join(', ')}, 0.26)`,
   };
 };

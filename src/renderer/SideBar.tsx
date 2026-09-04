@@ -122,30 +122,28 @@ const SideBar = ({
               isDisabled={isAutoPreAmpOn}
               handleChange={setGain}
             />
+            {/* The field is always here, and only its availability moves.
+                It used to appear and disappear with auto normalize, which
+                made the card change height whenever the switch below it was
+                touched and left the dial as the only readout — a dial is a
+                poor way to read -6.5 exactly, whoever set it. Disabled while
+                auto owns the value says the same thing the swap did, without
+                the column jumping. */}
+            <NumberInput
+              name={t('sidebar.preampAria')}
+              value={preAmp}
+              min={MIN_GAIN}
+              max={MAX_GAIN}
+              floatPrecision={2}
+              isDisabled={isAutoPreAmpOn}
+              handleSubmit={setGain}
+            />
             {isAutoPreAmpOn ? (
               /* It says the level moves on its own, because it does. A number
                  that changes with nothing on screen to explain it reads as a
                  bug rather than as a feature. */
               <p className="side-bar__preamp-note">{t('sidebar.preampAuto')}</p>
-            ) : (
-              /* Typing it, but only while it is yours to type.
-                 The dial went in to save the column three hundred pixels and
-                 took the number field with it, which is the right trade while
-                 auto normalize owns the value — the dial is then a readout and
-                 a field you cannot use is just clutter. Off, the preamp is a
-                 setting somebody may want exact, and a dial is a poor way to
-                 ask for -6.5 precisely. So it appears with the responsibility
-                 and leaves with it. */
-              <NumberInput
-                name={t('sidebar.preampAria')}
-                value={preAmp}
-                min={MIN_GAIN}
-                max={MAX_GAIN}
-                floatPrecision={2}
-                isDisabled={false}
-                handleSubmit={setGain}
-              />
-            )}
+            ) : null}
           </div>
           <div className="col center auto-normalize-control side-bar__control-card side-bar__headroom">
             <span className="control-kicker">{t('sidebar.headroom')}</span>

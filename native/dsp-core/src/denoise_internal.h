@@ -100,6 +100,8 @@ struct DenoiseSpectralChannel {
   std::vector<double> imaginary;
   std::vector<double> previous_gain;
   std::vector<double> previous_magnitude;
+  /** The gain that reached the audio on the latest frame, per bin. */
+  std::vector<double> applied_gain;
   /**
    * The live floor estimate: minimum statistics over OVERLAPPING subwindows.
    *
@@ -333,6 +335,20 @@ struct FeqDenoise {
    * sixty times a second anyway.
    */
   std::vector<double> live_floor_db;
+
+  /**
+   * The real gain the hiss stage applied, sampled onto the profile bands.
+   *
+   * Kept separate from `live_floor_db`: the yellow floor is a measurement,
+   * while this is the result of that measurement meeting the signal and every
+   * control. Adding the two in the renderer draws the residual floor that is
+   * actually leaving the stage, so a dial cannot move without the picture
+   * moving with it.
+   *
+   * The audio thread writes and the panel thread reads, with the same
+   * acceptable one-band torn-read trade-off as `live_floor_db` above.
+   */
+  std::vector<double> live_hiss_reduction_db;
 
   /** Isolate's scratch: what the stage removed, kept to be emitted instead. */
   std::vector<std::vector<float>> residual;

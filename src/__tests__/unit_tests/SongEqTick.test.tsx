@@ -72,6 +72,7 @@ jest.mock('renderer/utils/FluidEqContext', () => ({
     setSelectedFilterId: jest.fn(),
     selectedFilterIds: [],
     setSelectedFilterIds: jest.fn(),
+    nextFilterSelection: jest.fn(() => []),
     toggleFilterSelection: jest.fn(),
     hoveredFilterId: '',
     setHoveredFilterId: jest.fn(),

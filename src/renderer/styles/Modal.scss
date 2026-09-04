@@ -41,7 +41,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   overflow-y: auto;
   border: 1px solid rgba($red, 0.5);
   border-radius: $radius-m;
-  background: rgba($primary-default, 0.98);
+  background: rgba($surface-menu, 0.98);
   box-shadow: 0 14px 36px rgba($black, 0.4);
   transform: translateX(-50%);
 
@@ -65,7 +65,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 .dependency-credit {
-  color: $primary-lighter;
-  font-size: 0.7rem;
+  color: $text-primary;
+  font-size: $text-body;
   line-height: 1.4;
 }

@@ -461,6 +461,8 @@ void drain_analysis(HostState& state) {
   for (uint32_t band = 0; band < FEQ_DENOISE_PROFILE_BANDS; band += 1) {
     frame.denoise_floor_bands[band] =
         static_cast<float>(denoise.floor_bands_db[band]);
+    frame.denoise_hiss_reduction_bands[band] =
+        static_cast<float>(denoise.hiss_reduction_bands_db[band]);
   }
   frame.denoise_profile_ready = denoise.profile_ready != 0 ? 1u : 0u;
   frame.denoise_voice_model_loaded =

@@ -121,7 +121,7 @@ $folder-chrome-bottom: sass-color.mix($secondary-darker, $panel-bottom, 40%);
 // picture inside the sleeve. The fallback is the drill-in header's 160px, so
 // this is right outside the carousel too.
 .library-folder-art .library-folder-art__sheet .library-cover-art__tile {
-  font-size: 0.5rem;
+  font-size: $text-eyebrow;
 }
 
 .library-folder-art--tile .library-folder-art__sheet .library-cover-art__tile {

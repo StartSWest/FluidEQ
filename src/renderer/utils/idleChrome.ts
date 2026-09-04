@@ -140,6 +140,20 @@ const TOP_WAKE_EDGE_PX = 120;
 export const BOTTOM_WAKE_EDGE_PX = 10;
 
 /**
+ * The same band in full screen, where the reason for ten pixels does not
+ * apply: nothing ends above the transport there — the plot is the window — so
+ * there are no controls near the foot to steal. Ten pixels of a 1440px screen
+ * is a target you have to aim at, and the bar reads as missing rather than
+ * hidden.
+ */
+const FULL_SCREEN_BOTTOM_WAKE_EDGE_PX = 90;
+
+const bottomWakeEdge = (): number =>
+  document.querySelector('.app-workspace.is-app-full')
+    ? FULL_SCREEN_BOTTOM_WAKE_EDGE_PX
+    : BOTTOM_WAKE_EDGE_PX;
+
+/**
  * Panels shortened by the floating transport become part of its interaction
  * region after it opens.
  *
@@ -156,15 +170,20 @@ const isInBottomChromeSurface = (event: PointerEvent): boolean =>
   event.target.closest(BOTTOM_CHROME_HOLD_SELECTOR) !== null;
 
 const isInWakeZone = (event: PointerEvent): boolean =>
-  event.clientY >= window.innerHeight - BOTTOM_WAKE_EDGE_PX ||
+  event.clientY >= window.innerHeight - bottomWakeEdge() ||
   event.clientY <= TOP_WAKE_EDGE_PX;
 
 /**
- * Whether the pointer is down where the transport bar lives.
+ * Whether the pointer is at one of the window's chrome edges.
  *
- * Entering the bottom edge reveals the bar. Leaving it starts the same
- * five-second clock as the rest of the chrome; it does not make the bar snap
- * shut under a pointer travelling to a neighbouring control.
+ * EITHER edge, and the two bars answer it together: going to the top brings
+ * the header AND the transport, going to the bottom brings both as well. They
+ * are the app's two strips of chrome and hiding one while showing the other
+ * made full screen feel like it had lost a piece rather than tidied itself.
+ *
+ * Entering an edge reveals them. Leaving starts the same five-second clock as
+ * the rest of the chrome; it does not make a bar snap shut under a pointer
+ * travelling to a neighbouring control.
  */
 let isNearBottom = false;
 const bottomListeners = new Set<() => void>();
@@ -184,8 +203,8 @@ const subscribeNearBottom = (listener: () => void) => {
   };
 };
 
-/** True while the pointer is within the bar's own strip of screen. */
-export const useIsPointerNearBottom = () =>
+/** True while the pointer is at either strip of chrome. */
+export const useIsPointerNearChrome = () =>
   useSyncExternalStore(
     subscribeNearBottom,
     () => isNearBottom,
@@ -203,7 +222,7 @@ const handleActivity = (event?: Event) => {
     // as `nearBottom` made a pointer in the middle of the screen summon the
     // transport — exactly the opposite of the ten-pixel wake target.
     bottomSurfaceHoldsOpen = isInBottomSurface && isNearBottom && !isIdle;
-    if (move.clientY >= window.innerHeight - BOTTOM_WAKE_EDGE_PX) {
+    if (isInWakeZone(move)) {
       setNearBottom(true);
     }
   }

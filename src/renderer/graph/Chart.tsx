@@ -93,9 +93,17 @@ const PRESENCE_GRAB_PX = 9;
  * the chart, so without this it would be a second copy of these four numbers
  * drifting quietly out of step with the first.
  */
+// A band's handle is a 12px circle when it is selected, drawn centred on
+// the curve, and the plot clips at its edge: a band at +20 dB with less
+// than that above it lost the top of its handle, and at -20 dB with no
+// gutter under it, the bottom. So the vertical inset is never less than the
+// handle's radius, in both layouts.
+// The halo is 12px across plus its stroke, so 14 keeps every pixel of it.
+const HANDLE_INSET = 14;
+
 const GRID_AXIS_PADDING: IMarginLike = {
   left: 50,
-  top: 10,
+  top: HANDLE_INSET,
   /**
    * The level scale's gutter, and it was 0 while this plot had only one axis.
    *
@@ -113,15 +121,33 @@ const GRID_AXIS_PADDING: IMarginLike = {
  * With the grid off there is nothing in any of the gutters, so the wave runs
  * edge to edge instead.
  */
+// Gridless is edge to edge sideways; up and down it still keeps the handles
+// whole.
 const NO_AXIS_PADDING: IMarginLike = {
   left: 0,
-  top: 0,
+  top: HANDLE_INSET,
   right: 0,
-  bottom: 0,
+  bottom: HANDLE_INSET,
 };
 
-export const getAxisPadding = (isGridHidden: boolean): IMarginLike =>
-  isGridHidden ? NO_AXIS_PADDING : GRID_AXIS_PADDING;
+/**
+ * The vertical inset exists for one thing: a band handle sitting at +20 or
+ * -20 dB is centred on the edge of the plot, and half of it would be cut off.
+ * With no handles drawn there is nothing to keep clear, and the inset is a
+ * band of empty page along the bottom of a drawing that is meant to reach the
+ * edge — most visible in the largest view, where the plot is the window.
+ */
+export const getAxisPadding = (
+  isGridHidden: boolean,
+  hasHandles = true,
+): IMarginLike => {
+  if (!isGridHidden) {
+    return GRID_AXIS_PADDING;
+  }
+  return hasHandles
+    ? NO_AXIS_PADDING
+    : { left: 0, top: 0, right: 0, bottom: 0 };
+};
 
 /**
  * The right-hand scale: dB below the programme's own peak, not dBFS.
@@ -927,7 +953,10 @@ const Chart = ({
   // The wave runs edge to edge instead.
   const isGridHidden = useGraphGridHidden();
 
-  const padding = useMemo(() => getAxisPadding(isGridHidden), [isGridHidden]);
+  const padding = useMemo(
+    () => getAxisPadding(isGridHidden, editablePoints.length > 0),
+    [editablePoints.length, isGridHidden],
+  );
 
   // Width of the plotting area itself, i.e. everything to the right of the
   // y-axis label gutter. Grid lines are drawn from that gutter, so they must
@@ -1132,6 +1161,11 @@ const Chart = ({
         ref={svgRef}
         width={svgWidth}
         height={svgHeight}
+        // The handles may stand on the very edge of the scale, and a circle
+        // centred on an edge is half outside it. The svg does not clip; the
+        // plot box around it does, and it has the toolbar's gutter above the
+        // svg to spend. Curves keep their own clip path.
+        overflow="visible"
         // Double-click the plot to fill the screen, and again to come back.
         //
         // The gesture every video player in the world uses, on the one pane here
@@ -1208,16 +1242,6 @@ const Chart = ({
             <stop offset="0%" stopColor="#54ff8a" stopOpacity="0.3" />
             <stop offset="100%" stopColor="#ff5a6e" stopOpacity="0.3" />
           </linearGradient>
-          <filter
-            id="chart-eq-neon-glow"
-            x="-30%"
-            y="-120%"
-            width="160%"
-            height="340%"
-            colorInterpolationFilters="sRGB"
-          >
-            <feGaussianBlur stdDeviation="5" />
-          </filter>
         </defs>
         {/* The paper, as one group, so it can be taken away as one thing.
           Grouped rather than each line carrying its own class: the hiding is a
@@ -1240,6 +1264,9 @@ const Chart = ({
             ]}
             size={svgHeight - padding.bottom - 20}
             transform={`translate(0, ${svgHeight - padding.bottom - 10})`}
+            // The minor lines, at half the ink of the decades: the EQ face's
+            // ±10 ticks against its ±20.
+            color="rgba(214, 233, 247, 0.06)"
           />
           <GridLine
             type="horizontal"
@@ -1256,8 +1283,9 @@ const Chart = ({
             // Unity gain is a reference, not a measurement, so it reads as a
             // brighter grid line rather than as another coloured curve. It was
             // pink, which put a fourth near-identical magenta on a chart that
-            // already had three.
-            color="rgba(255, 255, 255, 0.22)"
+            // already had three. The same pale accent, at the same alpha, as
+            // the 0 dB rule under the EQ bands.
+            color="rgba(156, 255, 244, 0.3)"
             transform={`translate(${padding.left}, 0)`}
           />
         </g>
@@ -1305,6 +1333,18 @@ const Chart = ({
         ))}
         <clipPath id="chart-clip-path">
           <rect x={padding.left} y={0} width={plotWidth} height={plotHeight} />
+        </clipPath>
+        {/* The halo's clip reaches twelve pixels past the plot on each side —
+          the halo's own half-width — so a curve that runs to the edge tails
+          off into the gutter instead of being cut square at the axis. The
+          line itself keeps the exact clip above. */}
+        <clipPath id="chart-halo-clip-path">
+          <rect
+            x={padding.left - 12}
+            y={0}
+            width={plotWidth + 24}
+            height={plotHeight}
+          />
         </clipPath>
         {/* The scales, in the same group as the lines they label. A decibel axis
           beside a plot with no grid is a ruler with no marks on it. */}

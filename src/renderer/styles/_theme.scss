@@ -120,42 +120,260 @@ $font-mono:
 
 // *** Surfaces ***************************************************************
 
-// Deep navy the whole shell sits on.
-$surface-base: #0c131d;
+// THE PALETTE. Five base colours from the window's floor to its text, one
+// accent, and nothing else in the chrome.
+//
+//   1. shell    $surface-base   #0a1826   the floor the cards stand on
+//   2. card     $surface-panel  #142c3e   every panel, the titlebar, the bar
+//   3. field    $surface-field  #1c3a4e   inputs, selects, quiet buttons, knobs
+//   4. mist     $edge-tint      #d6e9f7   borders, lifts, secondary text (alpha)
+//   5. text     $text-primary   #ecf5fb   names, values, titles
+//   +  accent   $secondary-*    cyan      the chosen thing, the live thing
+//
+// Wells, lifts, hovers and selection are these same five at an alpha, never a
+// sixth colour: a well is the shell over a card, a lift is mist over a well,
+// a hover is mist or the accent at a few percent. The rainbow (`$neon-*`)
+// stays for the spectrum, euphoria and the band colours — it is the music,
+// not the chrome — and the four semantic colours (lime on, red danger, yellow
+// warning, pink cut) keep their meanings. Anything else that turns up in a
+// stylesheet is a mistake to be pointed back at one of these.
+//
+// One hue, five steps. Every surface in the window is a slate navy at hue 206°
+// and the only thing that changes between them is how far up a short ladder
+// each one stands: shell, card, well, field, menu. Measured in the running
+// window before this, the same hue was being reached by five different routes
+// — a shell of radial cyan and lime washes over near-black, cards at 86% alpha
+// picking up whichever wash they happened to sit over, fields fading to a
+// violet-navy at their foot, menus at a bluer hue again — so the sidebar came
+// out rgb(14,33,49), the EQ card rgb(16,42,58) at its head and rgb(15,29,43)
+// at its waist, and the transport bar rgb(19,43,61), all from one mixin.
+//
+// The bar was the one that looked right, and it looked right because it was
+// the only card with an opaque colour underneath it. Now they all are.
+
+// *** The levels, by name *****************************************************
+//
+// Read top to bottom, this is the window: what is behind everything, what a
+// panel is, what sits inside a panel, and what sits inside that. Every
+// stylesheet says which level a thing is on by using the token for it, never
+// a colour of its own.
+//
+//   window bg          $surface-base (ramp $surface-base-top → -bottom)
+//     pane bg          $surface-panel — the titlebar, the sidebar, the EQ
+//                      card, the graph, the right column, the transport bar
+//       block in pane  `inset-surface`: $block-lift — one step DARKER:
+//                      the sidebar's cards, the face the bands stand on, a
+//                      folding section
+//         box on block `lifted-surface`: the block's colour, edged — the
+//                      mapping summary, the profile list, the driver curve
+//       field          `field-surface`: $surface-field → $surface-field-end
+//                      an input, a select, a dropdown trigger, a knob body
+//       menu           `menu-surface`: $surface-menu-top → $surface-menu
+//                      anything that floats: dropdown lists, popovers
+//
+//   primary text       $text-accent    cyan — a kicker, a live value, the
+//                      chosen thing (`.eyebrow` is this at $text-eyebrow, caps)
+//   secondary text     $text-primary   white — a title, a name, a value
+//   header text        $text-primary at $text-title, bold
+//   body / description $text-muted     grey 1, at $text-small
+//   hint / axis label  $text-faint     grey 2
+//   disabled / deco    $text-dim       grey 3
+//   edge               $border-subtle on blocks, $border-panel on panes,
+//                      $border-field on fields
+//   hover              $hover-lift (neutral) or $hover-accent (choosing)
+//   selected           $selected-accent with $selected-border
+
+// The floor the panes stand on. One clear step under the pane colour and no
+// more: at #0a1521 it was a black the cards floated over, and at the pane's
+// own colour (tried, and kept for a while) the three columns and the EQ
+// card were told apart by a hairline and nothing else. Five values of
+// lightness is enough to see a pane and not enough to see a hole.
+$surface-base: #0d2030;
+// The shell used to carry a two-stop ramp between these; it is flat now and
+// both names resolve to the one shell colour, kept so nothing has to move.
+$surface-base-top: $surface-base;
+$surface-base-bottom: $surface-base;
 // Card background used by the sidebar, EQ panel, graph and profile columns.
-$surface-panel: #101822;
-
-// Opaque endpoints of the shared card gradient. They are deliberately opaque
-// rather than alpha-over-the-page so that a workspace tab sitting above a
-// panel can reuse the exact same colour and the two read as one surface.
-// Both lean teal rather than violet, matching the shell ambience.
 //
-// These have been wrong in both directions and this pair is the middle of them.
-// At #142131/#0a121b the panels and the page they sit on were within a few
-// values of each other and the window had no structure — a row of controls
-// floating on nothing. At #1b2b3e/#111d2b there was structure and no mood: the
-// cards came forward far enough to read as light grey, which is not what this
-// app is. Halfway keeps the cards distinguishable from the shell without
-// lifting the whole window out of the dark it is supposed to sit in.
-//
-// The distance between the two is what shapes a card, and it is unchanged —
-// only where the pair starts has moved.
-$panel-top-base: #16253a;
-$panel-bottom: #0d1725;
-// Recessed background for fields, menus and inner wells.
-$surface-field: #16303f;
-$surface-field-end: #1b2138;
-$surface-menu: #0d1723;
+// The steel, and it is the lighter of the two card rungs on purpose. The
+// panes used to be the darker one with their blocks lit above them, which
+// made the middle of the window — the EQ page and the graph, which hold
+// almost no blocks — the dimmest thing on screen, a hole between two lit
+// columns. Turned around, the panes carry the light and the blocks on them
+// are recessed, so the three columns read level and a card reads as cut into
+// its pane rather than floated on it.
+$surface-panel: #1a3a4e;
 
-$border-subtle: rgba($primary-lighter, 0.12);
-$border-panel: rgba($primary-lighter, 0.14);
-$border-field: rgba($secondary-light, 0.26);
+// Both ends of what used to be the card ramp, now the one card colour. They
+// are kept as names because a handful of sheets mix from them; there is no
+// ramp any more, so they are the same colour on purpose.
+$panel-top-base: $surface-panel;
+$panel-bottom: $surface-panel;
+// Recessed background for fields, menus and inner wells. A field is one rung
+// above the card it is cut into; its foot used to run off to #1b2138, a
+// violet-navy from a different family, which is why every dropdown in the
+// window had a faint purple bottom edge.
+$surface-field: #1c3a4e;
+$surface-field-end: #173245;
+// A block inside a pane: the rung ABOVE it, same hue and saturation.
+//
+// Lifted, not recessed, and the two were tried the other way round. Panes
+// carrying their blocks below them made every card read as a hole cut in the
+// page, and with the floor close behind it the whole window flattened into
+// one navy: measured, the floor, the panes and the blocks sat within seven
+// values of lightness of each other and nothing had an edge except its
+// border.
+//
+// The step is half the one between the floor and a pane, and deliberately.
+// A full step made the band face the brightest thing on the page — it is the
+// largest block in the window, so the same lift that reads as a card in the
+// sidebar reads as a lamp across the EQ. Enough to see the block sitting on
+// its pane, not enough to make it the subject.
+$surface-block: #1e4257;
+
+// How much of the shell's own colour is laid over the blurred desktop
+// Windows draws behind the window. Must agree with
+// `WINDOW_BACKDROP_MATERIAL` in mainWindow.ts: an opaque floor here hides a
+// blur the system is still paying to compose.
+//
+// High enough that the app still reads as a dark application rather than as
+// a pane of glass — the panes are opaque, so this shows in the gutters
+// between them and behind the shell's own edges, which is where a little of
+// the desktop is worth seeing and no more.
+//
+// Raised from 0.82 after the material changed: what shows through is a tint
+// of the wallpaper rather than a live blur, and Windows mutes it further
+// while the window is not focused. A tenth is enough to carry that and not
+// enough to let the muting read as a colour change.
+$window-backdrop: rgba($surface-base, 0.9);
+// A menu is a pane that floats: the pane colour lifted five values with the
+// same hue and the same saturation, opaque. It was a desaturated slate at
+// 96% over an 18px blur, which came out grey and muddy over whatever it
+// happened to open across. `$surface-menu` is the strip at the head of a
+// menu (a search row), one step under the menu itself.
+$surface-menu: #163244;
+$surface-menu-top: #1a3a52;
+// The face of an open menu, and it is the closed select's own face.
+//
+// A menu is the list that drops out of a picker, so the two are one control
+// in two states — and they were two different materials: the trigger a cyan
+// tint over its card, the menu a slate of its own a shade bluer. Stated as
+// the trigger's colour composited over the block it opens on, so the list
+// looks like the field it came from. Opaque, because nothing blurs behind a
+// menu any more and a translucent card over unblurred rows reads as a fault.
+$surface-menu-face: sass-color.mix($secondary-default, $surface-block, 7%);
+$border-menu: rgba($secondary-light, 0.22);
+// The shade a well is painted in, over a card, at the alpha `inset-surface`
+// uses. Kept next to the shell colour it is derived from.
+$surface-well: #07111a;
+
+// Edges are a cool white, not the lavender `$primary-lighter`: at a tenth of
+// alpha over slate, lavender lands grey-violet and the whole window took on a
+// faint mauve outline that nobody had chosen.
+$edge-tint: #d6e9f7;
+// THE EMPTY TRACK, everywhere one is drawn.
+//
+// A meter with no signal, a switch that is off, a progress bar not yet
+// started: all of them are the same thing — a slot waiting to be filled — and
+// they had drifted to four different values between six and sixteen percent,
+// so the same idea read as four materials depending on which panel it was in.
+// One colour, not a percentage. Written as mist over the card underneath it,
+// the same track came out at a different colour on every surface — 41,72,92
+// on a pane, 46,79,99 on a block — so a switch beside a meter did not match
+// the meter. This is what the meter measured at, stated once: every empty
+// track in the app is exactly this, wherever it lies.
+// THE FACE OF A SMALL PLOT: the correction curve, the imported-EQ preview,
+// the driver's response sketch. Every one of them is a drawing rather than a
+// control, and on the block colour they were indistinguishable from the card
+// around them — a line floating on a panel instead of a line on a chart.
+//
+// It is the pane's own colour, because that is what the big graph is drawn
+// on. The response chart has no fill of its own — it sits straight on the
+// pane — so any tone invented here made the correction curve and the import
+// preview a different kind of chart from the one they are previews OF.
+// Measured off the running window: the main plot reads 27,58,78, which is
+// this exact surface under the shell's faint wash.
+$surface-plot: $surface-panel;
+$track-well: #2e4f63;
+$border-subtle: rgba($edge-tint, 0.09);
+$border-panel: rgba($edge-tint, 0.11);
+$border-field: rgba($secondary-light, 0.24);
 $border-field-hover: rgba($secondary-light, 0.5);
 $border-field-focus: $secondary-light;
 
-$text-primary: #eefcfb;
-$text-muted: rgba($primary-lighter, 0.72);
-$text-faint: rgba($primary-lighter, 0.56);
+// *** Interactive states *****************************************************
+
+// The whole vocabulary of "this responds to the pointer", in one place.
+//
+// Every hover in the app is one of two things: a neutral lift, for surfaces
+// that are merely interactive (a folding header, a row, a quiet button), or
+// the accent, for the thing you are about to choose. Selected is the accent
+// held. Nothing is allowed to invent a third — before this the section heads
+// hovered to a cyan gradient, the menu rows to cyan at 0.09, the list rows to
+// cyan at 0.2 and the pills to white at 0.05, four answers to one question.
+//
+// `$lift-rest` is the resting state of a surface that will lift: a header, a
+// list head. The same tint as `lifted-surface` so a box and a bar that both
+// stand on a well are the same colour until touched.
+$lift-rest: rgba($edge-tint, 0.04);
+// Two ways a thing answers the pointer, and a row that opens something (a
+// folding section, a tab) uses neither: its text goes to the accent instead,
+// so the surface under it stays put. `$hover-lift` is for a neutral surface
+// that is itself the thing being pressed; `$hover-accent` for a choice.
+$hover-lift: rgba($edge-tint, 0.08);
+// The one step up from a pane. Nothing inside a pane is ever darker than
+// the pane: a block (a section, a sidebar card, the face the bands stand on,
+// the band editor, the graph's toolbar) is the next rung of the same slate,
+// opaque — the same hue and the same saturation as the pane, two values
+// lighter. It was mist over the pane for a while, and mist is a bluish white:
+// at 4.5% it desaturated the slate into a grey that sat badly next to the
+// cyan-tinted fields standing on it. A box inside a block is NOT a further
+// step — it is the block's own colour with an edge round it.
+$block-lift: $surface-block;
+$hover-accent: rgba($secondary-default, 0.08);
+// Selected is the same tint held twice as strong, under accent text, with no
+// frame. At 0.18 with a cyan border the chosen row was a teal block that read
+// as a button dropped into the list; a row in a menu is a row, not a button.
+$selected-accent: rgba($secondary-default, 0.16);
+$selected-border: transparent;
+
+// Secondary text is the cool white too. `$primary-lighter` is a lavender, and
+// at 72% over slate it painted every description, hint and axis label a
+// grey-violet — the last of the old violet family still on screen after the
+// surfaces moved. The values are unchanged; only the tint is.
+// Five text colours and no more. Cyan is the primary — a title's kicker, a
+// live value, the chosen thing. White is the secondary — names, values, the
+// lead line of anything. Then three greys, in order of how much they matter:
+// muted for a description, faint for a hint or an axis label, dim for what
+// is disabled or decorative. Every one of the greys is the mist at an alpha,
+// so they sit on any surface in the ladder without picking up a cast.
+$text-accent: $secondary-light;
+$text-primary: #ecf5fb;
+$text-muted: rgba($edge-tint, 0.72);
+$text-faint: rgba($edge-tint, 0.55);
+$text-dim: rgba($edge-tint, 0.38);
+
+// *** Type scale for the side panes ******************************************
+
+// Four sizes and the eyebrow. The right column alone had fifteen distinct
+// font sizes between 0.54rem and 0.95rem, most of them one or two hundredths
+// apart — 0.62, 0.63, 0.64, 0.66, 0.67, 0.68 — which is not a scale, it is
+// every author rounding differently. Nobody can see 0.01rem; what they see is
+// that no two labels line up.
+//
+// $text-body is a name, an option, a value: the thing a row is about.
+// $text-small is what explains it underneath. $text-micro is a chip, a badge
+// or an axis label, and $text-eyebrow is the uppercase kicker over a title.
+$text-eyebrow: 0.58rem;
+$text-micro: 0.6rem;
+$text-small: 0.66rem;
+$text-body: 0.72rem;
+// The step between body and a title: a section's name, a card's heading, a
+// value that is the point of the row it sits in. It was missing, so anything
+// that wanted to be bigger than body without being a title picked its own
+// number — six of them between 0.78 and 0.86 across the app.
+$text-lead: 0.8rem;
+$text-title: 0.95rem;
 
 $transition-control:
   border-color 150ms ease,
@@ -177,35 +395,30 @@ $transition-control:
 // The standard editable surface: text inputs, number inputs, dropdown
 // triggers, native selects and search boxes.
 //
-// The gradient runs top-to-bottom, never diagonally: a diagonal ramp shades
-// the left and right of a control differently, which made composite controls
-// (a number input and its stepper arrows) look like two glued-together parts.
+// It is the secondary button, and it has to be exactly that. The window has
+// two kinds of control: the one you are meant to press — cyan, filled, the
+// `.button` — and everything else, which is an outline with a whisper of the
+// accent behind it. A select, a combo and the Voicing pick all sit in rows
+// beside `Clear EQ` and `Add band`, and the day they were a slate box with
+// white text they read as a third kind of control nobody had named. So a
+// field is the quiet button's face: the same faint cyan fill, the same
+// border, the same corner. What is typed into an input stays white; what a
+// select currently says is set in the accent, like a button's label.
 @mixin field-surface {
   color: $text-primary;
   border: 1px solid $border-field;
-  border-radius: $radius-s;
-  // Translucent, like the card it is set into.
-  //
-  // This was two nearly-opaque stops over an opaque `$surface-panel` backstop,
-  // which is three ways of saying the same thing: nothing behind a field ever
-  // showed. Now that the panels let the shell through, a field painted solid
-  // was the one element still asserting a flat colour of its own — a dark box
-  // stuck onto a lit surface.
-  //
-  // The backstop goes with the opacity. It existed so the gradient always had
-  // a known colour underneath; what it actually did was guarantee the card
-  // behind could never contribute anything.
-  //
-  // Deliberately more see-through than a panel. A field is a well cut into a
-  // card, and the way that reads is by showing more of what is beneath it, not
-  // less.
-  background: linear-gradient(
-    180deg,
-    rgba($surface-field, 0.6),
-    rgba($surface-field-end, 0.66)
-  );
-  box-shadow: inset 0 1px 0 rgba($white, 0.05);
+  border-radius: $radius-xs;
+  background: rgba($secondary-default, 0.07);
+  box-shadow: none;
   transition: $transition-control;
+}
+
+// A field that names a choice rather than holding typed text: the closed
+// face of a select or a pick. Same surface, labelled like a button.
+@mixin choice-surface {
+  @include field-surface;
+  color: $secondary-light;
+  font-weight: $weight-bold;
 }
 
 @mixin field-interactive {
@@ -213,11 +426,40 @@ $transition-control:
 
   &:hover:not(:disabled):not([aria-disabled='true']) {
     border-color: $border-field-hover;
+    background: rgba($secondary-default, 0.14);
   }
 
   &:focus-visible,
   &:focus-within {
     border-color: $border-field-focus;
+    @include focus-ring;
+  }
+}
+
+// A field you type into: the fill NEVER moves, only the edge.
+//
+// A box holding text the eye is reading — a pasted EQ export, a line of the
+// config — must not change colour under the pointer. The lift belongs to
+// controls you press, and on a text box it reads as the text being selected.
+// The number inputs have always behaved this way because their wrapper owns
+// the surface; every bare `<input>` and `<textarea>` needs it stated.
+//
+// The two `:not()`s are not decoration. The global control base carries them,
+// so a rule written without them is one pseudo-class short and loses — which
+// is exactly how these boxes kept lighting up after being "fixed" twice.
+@mixin field-static {
+  @include field-surface;
+
+  &:hover:not(:disabled):not([aria-disabled='true']) {
+    border-color: $border-field-hover;
+    background: rgba($secondary-default, 0.07);
+  }
+
+  &:focus,
+  &:focus-visible {
+    border-color: $border-field-focus;
+    background: rgba($secondary-default, 0.07);
+    outline: none;
     @include focus-ring;
   }
 }
@@ -232,7 +474,7 @@ $transition-control:
 @mixin field-disabled {
   color: rgba($primary-lighter, 0.5);
   border-color: rgba($primary-lighter, 0.1);
-  background: linear-gradient(180deg, rgba(#1a2b38, 0.4), rgba(#1d2334, 0.44));
+  background: rgba($surface-field, 0.4);
   box-shadow: none;
   cursor: default;
 }
@@ -248,7 +490,7 @@ $transition-control:
 // is behind — but 0.94 of the panel family reads as glass over the workspace
 // rather than as a hole cut in it.
 @mixin menu-surface {
-  border: 1px solid rgba($secondary-light, 0.22);
+  border: 1px solid $border-menu;
   border-radius: $radius-l;
   // Scrolls only if it has to. `AnchoredMenu` caps the height to the room
   // actually available; without somewhere for the overflow to go, that cap
@@ -264,12 +506,16 @@ $transition-control:
   // happened, so it should feel like it was waiting rather than like it is
   // being fetched.
   @include animate(pop-in, $motion-fast, $ease-spring);
-  background: linear-gradient(155deg, rgba(#18293e, 0.94), rgba(#141f31, 0.94));
+  // Top rung of the ladder, same hue as everything under it. This ran from
+  // #18293e to #141f31 — hue 218° to 225° — so an open menu was the bluest
+  // thing in a window that is slate everywhere else.
+  // The select's own tint, so the list that drops out of a select is the
+  // same material as the select.
+  background: $surface-menu-face;
   box-shadow:
     0 18px 44px rgba($black, 0.5),
     0 0 28px rgba($secondary-default, 0.08),
     inset 0 1px 0 rgba($white, 0.06);
-  backdrop-filter: blur(18px) saturate(1.25);
 
   // Euphoria mode reaches anything built on this surface, so a menu opened at
   // the ceiling belongs to the same moment as the window behind it rather than
@@ -299,87 +545,101 @@ $transition-control:
 // The exact colour at the top edge of a panel. Anything that has to butt up
 // against a panel and look continuous with it (workspace tabs) uses this
 // instead of eyeballing a similar value.
-@function panel-top($accent: $secondary-default, $amount: 6%) {
+@function panel-top($accent: $secondary-default, $amount: 0%) {
   @return sass-color.mix($accent, $panel-top-base, $amount);
 }
 
 // Top-level card. `$accent` tints the top edge so the sidebar, EQ, graph and
 // profile cards read as one family with slightly different personalities.
-@mixin panel-surface($accent: $secondary-default, $amount: 6%) {
+@mixin panel-surface($accent: $secondary-default, $amount: 0%) {
   border: 1px solid $border-panel;
   border-radius: $radius-xl;
-  // The ramp reaches its end at the foot of the window, not two thirds up it.
+  // Opaque, and nearly flat.
   //
-  // 62% was measured against the panel's own height, where it meant "most of
-  // the way down this card". Against the viewport it means the bottom third of
-  // the *window* is flat `$panel-bottom` — so every panel went uniformly dark
-  // below that line and the shell lost its gradient exactly where most of the
-  // controls are.
+  // This spent a long time as a translucent ramp — 86% alpha, lit at both ends,
+  // over a shell of radial washes — on the argument that the page's ambience
+  // should show through the cards. What showed through was the inconsistency:
+  // the shell was cyan in the corners, near-black in the middle and lime at
+  // the foot, and every card sampled a different patch of it. Measured, the
+  // four cards on the EQ screen came out at four colours from this one mixin,
+  // and the transport bar — the only one with a solid colour underneath — was
+  // the one that looked right.
   //
-  // Translucent, so the shell shows through.
+  // So the colour comes from the card now, not from what is behind it. The
+  // ramp is two values across the whole window, top to bottom: enough that a
+  // card is not a cut-out, not enough that a short card at the top and a tall
+  // one beside it read as different surfaces.
   //
-  // These endpoints were opaque on purpose, so that a tab panel sitting above
-  // another panel could reuse the exact colour and the two would read as one
-  // surface. That argument is spent: `background-attachment: fixed` below
-  // already guarantees two panels at the same height are the same colour,
-  // whatever they are stacked on.
+  // `background-color` is the same colour as the ramp's foot. Text keeps its
+  // subpixel antialiasing only over an opaque background, and two of these
+  // cards (the titlebar, the transport) live on compositor layers of their own
+  // where a gradient alone does not count as opaque.
+  // One flat colour, no ramp. The two-value ramp that stood here for a while
+  // was the last gradient on a card, and with the fields and menus flat it
+  // read as the cards alone being lit from above. `$accent` and `$amount`
+  // are kept so a caller can still tint a card deliberately; the default
+  // mixture is the panel colour itself.
   //
-  // What opacity cost was the page underneath — the shell carries four radial
-  // washes of cyan and teal, and every panel painted straight over them, so
-  // the app's own ambience only ever showed in the gaps between cards. At this
-  // alpha the washes come through the panels as a tint rather than a haze, and
-  // the window stops being a set of flat slabs on a coloured background and
-  // becomes one lit surface. Far enough from transparent that text keeps its
-  // contrast, which is the only hard limit here.
-  background-image: linear-gradient(
-    180deg,
-    rgba(panel-top($accent, $amount), 0.86) 0%,
-    rgba($panel-bottom, 0.86) 100%
-  );
-  // Measured against the window, not against the panel.
+  // Opaque. A tenth of transparency was tried so the bloom behind would
+  // come through the columns; what came through was the floor, unevenly,
+  // and every translucent pane is one more layer the compositor blends on
+  // every frame the spectrum redraws. The life in the pane is the ramp
+  // below, not what is behind it.
+  background-color: panel-top($accent, $amount);
+  // Flat. A light-from-above ramp was tried on every pane and on the tall
+  // ones — the EQ card, the graph — it ran the height of the content and
+  // read as a shadow laid over it. What is left of the "3D" is the one-pixel
+  // highlight on the top rim, which is all a matte surface needs.
   //
-  // The gradient used to run over whatever box it landed on, so a panel's
-  // colour depended on how tall that panel happened to be: the tab page above
-  // the graph is a fraction of the height of the column beside it, so it
-  // reached `$panel-bottom` far higher up the screen and read as a darker
-  // surface than the one it was supposed to match. Four panels, four heights,
-  // four different colours from one mixin.
-  //
-  // `fixed` anchors the background to the viewport, so every panel is showing
-  // one continuous ramp sampled at its own place on screen. Two panels level
-  // with each other are now the same colour whatever their sizes, which is
-  // what this mixin existed to guarantee and could not.
-  background-attachment: fixed;
-  background-size: 100% 100vh;
-  background-repeat: no-repeat;
-  box-shadow:
-    inset 0 1px 0 rgba($white, 0.035),
-    0 20px 48px rgba($black, 0.2);
+  // No drop shadow: it fell onto whatever pane stood below it — the
+  // titlebar's darkened the top twenty pixels of all three columns, which
+  // read as a second, darker strip inside each.
+  background-image: none;
+  box-shadow: inset 0 1px 0 rgba($white, 0.05);
 }
 
 // Recessed well used inside cards (mapping summary, sidebar control chips,
-// the profile list). Derived from the panel's own bottom colour so a well
-// reads as a dip in the card rather than a black hole punched through it.
-// A well cut into a card, and it reads as one by showing more of what is
-// underneath rather than by being painted darker.
+// the profile list, the face the bands stand on). One rung below the card:
+// the shell's colour at an alpha that leaves the card visible in it, so a well
+// reads as a dip in the surface rather than as a hole punched through to the
+// window behind.
 //
-// At 62% of a near-black it was doing the opposite: a solid dark patch on a
-// panel that now lets the shell's colour through, so the wells were the only
-// flat black left in the window. Lower alpha over a lighter base gets the same
-// recess with the card and the shell still visible in it.
+// A shallow dip. At 42% the wells were the darkest surfaces in the window —
+// the profile list, the meter slot and a switched-off toggle all landed
+// within a few values of each other and read as holes. A well only has to be
+// visibly below the card, and a quarter of the shell colour does that.
 @mixin inset-surface {
-  border: 1px solid rgba($secondary-light, 0.13);
+  border: 1px solid $border-subtle;
   border-radius: $radius-m;
-  background: rgba(#0b1626, 0.4);
-  box-shadow: inset 0 1px 3px rgba($black, 0.28);
+  // Up, not down. See `$block-lift`. Flat: the pane has the face, the
+  // blocks on it do not — a ramp on a 44px tray read as a bevelled button
+  // bar sitting in a lit card.
+  background: $block-lift;
+  box-shadow: none;
+}
+
+// A box standing ON a well, rather than cut into it: the mapping summary in
+// the output section, the profile list, the driver curve. These sit inside a
+// folding section that is already one rung down, and a second well inside
+// the first is how the darkest boxes in the app were made. Up is the only
+// direction left, so they lift by the same few percent of cool white every
+// slider track uses.
+@mixin lifted-surface {
+  border: 1px solid $border-subtle;
+  border-radius: $radius-m;
+  background: transparent;
+  box-shadow: none;
 }
 
 // Quiet, outline-only button (titlebar actions, graph overlay controls).
 @mixin ghost-button {
+  // The quiet button, everywhere: the same face as `.button.subtle` and as
+  // every select, so a titlebar tool and a graph overlay control are the same
+  // control as `Clear EQ` rather than a pill from a different kit.
   color: $secondary-light;
-  border: 1px solid rgba($secondary-light, 0.3);
-  border-radius: $radius-pill;
-  background: rgba($primary-dark, 0.42);
+  border: 1px solid $border-field;
+  border-radius: $radius-xs;
+  background: rgba($secondary-default, 0.07);
   font: inherit;
   cursor: pointer;
   transition: $transition-control;
@@ -412,9 +672,11 @@ $transition-control:
 // Identical to the document-level rules in App.scss, which cover every
 // scrolling surface that does not reach for this. Change one, change both.
 @mixin slim-scrollbar {
-  scrollbar-color: rgba($secondary-default, 0.6) transparent;
-  scrollbar-width: thin;
-
+  // Pseudo-elements only. `scrollbar-color` and `scrollbar-width` used to sit
+  // at the top of this mixin, and in Chromium the standard properties win
+  // over the pseudo-elements outright: every panel that included this got the
+  // platform's Fluent bar — 10px, with arrow buttons filled in cyan — and the
+  // rules under it never painted. See `html` in App.scss.
   &::-webkit-scrollbar {
     width: 8px;
     height: 8px;
@@ -424,19 +686,142 @@ $transition-control:
     background: transparent;
   }
 
+  // The quiet button's colour at rest and the primary's under the pointer:
+  // a scrollbar is a control, so it wears the two colours every control does.
   &::-webkit-scrollbar-thumb {
     min-height: 28px;
-    border: 1px solid rgba($primary-lighter, 0.08);
+    border: 2px solid transparent;
     border-radius: $radius-pill;
-    background: rgba($secondary-default, 0.6);
+    background: rgba($secondary-light, 0.34);
+    background-clip: padding-box;
 
     &:hover {
-      background: rgba($secondary-light, 0.85);
+      background-color: $secondary-default;
     }
   }
 
   &::-webkit-scrollbar-corner {
     background: transparent;
+  }
+}
+
+// The search row at the head of a menu. One shape for every list that can
+// be typed into — the Voicing pick, a long device list, the DSP presets: the
+// glass, the bare input beside it, and one hairline under the row to part it
+// from the results. No box round it and no fill: a boxed field inside a menu
+// read as a control of its own, and any tint under the pointer or on focus
+// read as a second one appearing. The caret is the whole answer.
+//
+// The line belongs to this row and to nothing else. The strip it sits in
+// used to draw one too, so the dropdowns had two rules a few pixels apart
+// while the Voicing pick had one.
+@mixin menu-search {
+  position: relative;
+  display: grid;
+  height: $control-height-sm;
+  align-items: center;
+  gap: 8px;
+  // Glass, field, cross. The third track collapses to nothing while the
+  // field is empty, so the row does not reserve a gap for a button that is
+  // not there.
+  grid-template-columns: 13px minmax(0, 1fr) auto;
+  // The Voicing pick's inset, now everyone's. The dropdowns sat at 4px inside
+  // a row that was already padded, so their glass hugged the menu edge while
+  // the pick's stood a comfortable third of a centimetre in, and the two read
+  // as two different controls doing the same job.
+  padding: 0 12px;
+  border: 0;
+  border-bottom: 1px solid $border-subtle;
+  border-radius: 0;
+  background: none;
+
+  // The one clear cross, in every menu that can be typed into. The Voicing
+  // pick had the browser's own — a grey blob that appears in `type="search"`
+  // and cannot be styled — while the dropdowns had this one.
+  .menu-search__clear {
+    display: grid;
+    width: 18px;
+    height: 18px;
+    place-items: center;
+    padding: 0;
+    color: $text-faint;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    cursor: pointer;
+    transition: $transition-control;
+
+    svg {
+      width: 9px;
+      height: 9px;
+      fill: none;
+      stroke: currentcolor;
+      stroke-linecap: round;
+      stroke-width: 1.8;
+    }
+
+    &:hover,
+    &:focus-visible {
+      color: $secondary-light;
+      background: $hover-accent;
+      outline: none;
+    }
+  }
+
+  // Chromium draws its own cross inside a search input; ours is the one that
+  // matches the app.
+  input[type='search']::-webkit-search-cancel-button {
+    display: none;
+  }
+
+  > svg {
+    width: 13px;
+    height: 13px;
+    fill: none;
+    opacity: 0.5;
+    stroke: currentcolor;
+    stroke-linecap: round;
+    stroke-width: 1.7;
+  }
+
+  // The bare field, however it is wrapped. The second selector is not
+  // decoration: a menu that reaches for the shared TextInput gets that
+  // component's own `min-height` on the input, which is the full 38px control
+  // height, and it grew a 32px row from the inside — the text sat low and the
+  // hairline was pushed off the row it belongs to. The pick, which writes its
+  // input by hand, never had it, which is exactly the difference between the
+  // two searches.
+  input,
+  .text-input input[type='text'] {
+    width: 100%;
+    height: auto;
+    min-height: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: none;
+    color: $text-primary;
+    box-shadow: none;
+    font-family: inherit;
+    font-size: 0.72rem;
+    font-weight: $weight-regular;
+
+    &::placeholder {
+      color: $text-faint;
+    }
+
+    // Written with the same two `:not()`s the global field rule carries, or
+    // it loses to it on specificity and the input keeps lighting up cyan
+    // under the pointer — measured in the running window, not assumed.
+    &:hover:not(:disabled):not([aria-disabled='true']),
+    &:focus,
+    &:focus-visible,
+    &:focus-within {
+      border: 0;
+      background: none;
+      box-shadow: none;
+      outline: none;
+    }
   }
 }
 

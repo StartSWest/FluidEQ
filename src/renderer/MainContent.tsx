@@ -33,6 +33,7 @@ import {
   FIXED_BAND_SIZES,
   IFilter,
   IFilterEdit,
+  DEFAULT_QUALITY,
   MAX_NUM_FILTERS,
   MAX_FREQUENCY,
   MAX_GAIN,
@@ -43,6 +44,7 @@ import {
   MIN_QUALITY,
   NO_GAIN_FILTER_TYPES,
 } from 'common/constants';
+import { selectionModeFromEvent } from 'common/bandSelection';
 import { ErrorDescription } from 'common/errors';
 import FrequencyBand from './components/FrequencyBand';
 import { FilterActionEnum, useFluidEqContext } from './utils/FluidEqContext';
@@ -64,6 +66,7 @@ import {
 import Dropdown from './widgets/Dropdown';
 import NumberInput from './widgets/NumberInput';
 import Knob from './widgets/Knob';
+import BandMenu, { BAND_MENU_EVENT } from './components/BandMenu';
 import { LABELLED_FILTER_OPTIONS } from './icons/FilterTypeIcon';
 import { useLiveAudioControl } from './audio/LiveAudioContext';
 import { toggleContinuousEq, useContinuousEq } from './utils/continuousEq';
@@ -80,6 +83,7 @@ import { useCorrectionFlash } from './utils/correctionFlash';
 import VoicingQuickPick from './components/VoicingQuickPick';
 import ActiveLayers from './components/ActiveLayers';
 import SongEqSaveSwitch from './components/SongEqSaveSwitch';
+import Chevron from './icons/Chevron';
 import MenuIcon from './icons/MenuIcon';
 import TrashIcon from './icons/TrashIcon';
 import { PetArt } from './SupportPet';
@@ -368,10 +372,20 @@ const MainContent = () => {
     // this file by the React type, and nothing here needs the pointer detail.
     const onPointerDown = (event: Event) => {
       const target = event.target as HTMLElement | null;
+      // The toolbar is not "outside". Add band places the new band beside
+      // the selected one, and the press on the button arrived here first and
+      // cleared the selection it was about to use — so every add landed at
+      // the 1 kHz default however carefully a band had been picked.
+      //
+      // Nor is the band menu, for the same reason one step later: it is
+      // portalled to the body, so a press on "Reset 5 bands" arrived here
+      // first, emptied the selection, and the click that followed found a
+      // menu that now covered one band.
       if (
         target?.closest?.(
-          '.bands-rail, .eq-flat-editor, .graph-wrapper, [role="dialog"]',
-        )
+          '.bands-rail, .eq-flat-editor, .graph-wrapper, .eq-toolbar, .main-content-title, [role="dialog"]',
+        ) ||
+        isInsideAnchoredMenu(target)
       ) {
         return;
       }
@@ -735,14 +749,33 @@ const MainContent = () => {
       return;
     }
 
+    await addFilterBeside(
+      explicitSelectedFilter,
+      explicitSelectedFilter.frequency >= 1000 ? 'right' : 'left',
+    );
+  };
+
+  /**
+   * A new band next to `anchorFilter`, on the side asked for, at the
+   * geometric midpoint between it and its neighbour there — or the edge of
+   * the range when there is no neighbour. Add band chooses the side by the
+   * 1 kHz rule; the band's own menu lets the user choose.
+   */
+  const addFilterBeside = async (
+    anchorFilter: IFilter,
+    side: 'left' | 'right',
+  ) => {
+    if (frequencySortedFilters.length >= MAX_NUM_FILTERS) {
+      return;
+    }
     const selectedFilterIndex = frequencySortedFilters.findIndex(
-      (filter) => filter.id === explicitSelectedFilter.id,
+      (filter) => filter.id === anchorFilter.id,
     );
     if (selectedFilterIndex === -1) {
       return;
     }
 
-    const shouldAddToRight = explicitSelectedFilter.frequency >= 1000;
+    const shouldAddToRight = side === 'right';
     const leftBoundary =
       frequencySortedFilters[
         shouldAddToRight ? selectedFilterIndex : selectedFilterIndex - 1
@@ -775,10 +808,70 @@ const MainContent = () => {
         id,
         frequency: boundedFrequency,
       });
+      // The new band is the one being worked on now.
+      setSelectedFilterIds([id]);
     } catch (e) {
       setGlobalError(e as ErrorDescription);
     }
   };
+
+  /** Gain back to nothing and Q back to the default: the bands as they were born. */
+  const resetFilters = async (targets: readonly IFilter[]) => {
+    const edits: IFilterEdit[] = targets.map((filter) => {
+      const edit: IFilterEdit = { id: filter.id, quality: DEFAULT_QUALITY };
+      if (!NO_GAIN_FILTER_TYPES.includes(filter.type)) {
+        edit.gain = 0;
+      }
+      return edit;
+    });
+    if (edits.length === 0) {
+      return;
+    }
+    dispatchFilter({ type: FilterActionEnum.EDITS, edits });
+    try {
+      await setFilterValues(edits);
+    } catch (e) {
+      setGlobalError(e as ErrorDescription);
+    }
+  };
+
+  // The band menu: opened by a right-click on a band's handle on the graph
+  // or on its slider, and answered here because this is where the actions
+  // live. The two surfaces are different components in different subtrees,
+  // so the request travels as an event with the band's id and the point on
+  // screen it was asked at.
+  const [bandMenu, setBandMenu] = useState<
+    { filterId: string; x: number; y: number } | undefined
+  >(undefined);
+  useEffect(() => {
+    const onOpen = (event: Event) => {
+      const { detail } = event as CustomEvent<{
+        filterId: string;
+        x: number;
+        y: number;
+      }>;
+      if (detail && filters[detail.filterId]) {
+        // A right-click on a band that is already part of a selection keeps
+        // the selection, and the menu then acts on all of it. On any other
+        // band it is that band alone, like a left-click.
+        if (!selectedFilterIds.includes(detail.filterId)) {
+          setSelectedFilterIds([detail.filterId]);
+        }
+        setBandMenu(detail);
+      }
+    };
+    window.addEventListener(BAND_MENU_EVENT, onOpen);
+    return () => window.removeEventListener(BAND_MENU_EVENT, onOpen);
+  }, [filters, selectedFilterIds, setSelectedFilterIds]);
+  const bandMenuFilter = bandMenu ? filters[bandMenu.filterId] : undefined;
+  // The bands the menu acts on: the whole selection when the clicked band is
+  // in it, otherwise just the clicked band.
+  let bandMenuFilters: IFilter[] = [];
+  if (bandMenuFilter) {
+    bandMenuFilters = selectedFilterIds.includes(bandMenuFilter.id)
+      ? selectedFilterIds.map((id) => filters[id]).filter(Boolean)
+      : [bandMenuFilter];
+  }
 
   return isLoading ? (
     <div className="center full row">
@@ -786,6 +879,21 @@ const MainContent = () => {
     </div>
   ) : (
     <>
+      {bandMenu && bandMenuFilter && (
+        // Keyed on where it was asked for, so a right-click on the same band
+        // somewhere else closes this one and opens a fresh one there rather
+        // than leaving the old one where it was.
+        <BandMenu
+          key={`${bandMenu.filterId}:${bandMenu.x}:${bandMenu.y}`}
+          filter={bandMenuFilter}
+          filters={bandMenuFilters}
+          x={bandMenu.x}
+          y={bandMenu.y}
+          onReset={resetFilters}
+          onAddBeside={addFilterBeside}
+          onClose={() => setBandMenu(undefined)}
+        />
+      )}
       <div className="main-content-title">
         <div>
           <span className="eyebrow">{t('eq.eyebrow')}</span>
@@ -963,32 +1071,25 @@ const MainContent = () => {
             }`}
             ref={layoutMenuHolder}
           >
-            <Button
-              ariaLabel={t('eq.quickLayouts')}
-              isDisabled={false}
-              className="small subtle eq-mode__main"
-              // Both halves open the list, and neither applies anything.
-              // Re-applying the layout it names is a rebuild of every band —
-              // gains, widths and all — and a control whose label is the
-              // thing you are already on must not be the one that throws it
-              // away. The layouts in the list are the only thing that acts.
-              handleChange={() => setIsLayoutMenuOpen((wasOpen) => !wasOpen)}
+            {/* One piece, like the Voicing pick beside it: the whole face opens
+                the list and nothing on it applies anything. Re-applying the
+                layout it names is a rebuild of every band — gains, widths and
+                all — and a control whose label is the thing you are already
+                on must not be the one that throws it away. The layouts in the
+                list are the only thing that acts. Smart EQ next to it keeps
+                its divider because there the two halves do two things. */}
+            <button
+              type="button"
+              className="button small subtle eq-mode__main quick-layouts__trigger"
+              aria-label={t('eq.quickLayouts')}
+              aria-expanded={isLayoutMenuOpen}
+              onClick={() => setIsLayoutMenuOpen((wasOpen) => !wasOpen)}
             >
               <MenuIcon name="layout" className="eq-toolbar__icon" />
               {activeBandLayout
                 ? t('eq.bandCount', { count: activeBandLayout })
                 : t('eq.quickLayouts')}
-            </Button>
-            <button
-              type="button"
-              className="eq-mode__caret"
-              aria-label={t('eq.quickLayouts')}
-              aria-expanded={isLayoutMenuOpen}
-              onClick={() => setIsLayoutMenuOpen((wasOpen) => !wasOpen)}
-            >
-              <svg viewBox="0 0 16 16" aria-hidden>
-                <path d="M4 6.5l4 4 4-4" />
-              </svg>
+              <Chevron />
             </button>
             {/* Only the layouts this button is not, the same way the mode menu
                 leaves out the mode you are already in. */}
@@ -1093,7 +1194,7 @@ const MainContent = () => {
                   onSelect={(event) =>
                     toggleFilterSelection(
                       filter.id,
-                      event.ctrlKey || event.metaKey || event.shiftKey,
+                      selectionModeFromEvent(event),
                     )
                   }
                   isHovered={hoveredFilterId === filter.id}
@@ -1242,6 +1343,9 @@ const MainContent = () => {
                 isDisabled={false}
                 step={0.01}
                 unit="Q"
+                // Ctrl+click puts the band back to the width every band
+                // starts at.
+                defaultValue={DEFAULT_QUALITY}
                 handleChange={(newValue) =>
                   updateSelectedGroup('quality', newValue)
                 }

@@ -47,7 +47,7 @@ describe('Convolution search history UI', () => {
   it('offers recent queries and reruns one when selected', () => {
     addConvolutionSearchToHistory('HD 650');
     renderPanel();
-    const search = screen.getByRole('searchbox', {
+    const search = screen.getByRole('textbox', {
       name: 'Search headphone models',
     });
 
@@ -59,7 +59,7 @@ describe('Convolution search history UI', () => {
 
   it('records a query when the debounced catalogue search runs', async () => {
     renderPanel();
-    const search = screen.getByRole('searchbox', {
+    const search = screen.getByRole('textbox', {
       name: 'Search headphone models',
     });
     fireEvent.change(search, { target: { value: 'Sundara' } });

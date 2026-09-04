@@ -95,6 +95,7 @@ const analysisFrame = (
       profileReady: false,
       voiceModelLoaded: false,
       floorBandsDb: [],
+      hissReductionBandsDb: [],
     },
     /**
      * Every band a different number, and the two runs sloped opposite ways.

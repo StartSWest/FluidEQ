@@ -85,6 +85,7 @@ const dsp = {
     'Kept signal dropped — you are hearing only what is removed.',
   'dsp.denoise.graphOutput': 'Output',
   'dsp.denoise.graphFloor': 'Noise floor',
+  'dsp.denoise.graphHissAction': 'Applied hiss reduction',
   'dsp.denoise.graphHum': 'Hum',
   'dsp.denoise.graphIdle': 'Idle',
   'dsp.denoise.graphClicks': 'Click repairs',

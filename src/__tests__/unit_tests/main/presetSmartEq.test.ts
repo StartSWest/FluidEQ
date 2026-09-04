@@ -127,19 +127,19 @@ describe('applying a model beside a measured correction', () => {
         }),
     );
 
-  beforeEach(() => {
+  beforeEach(async () => {
     configDir = fs.mkdtempSync(path.join(os.tmpdir(), 'fluideq-preset-'));
     presetsDir = fs.mkdtempSync(path.join(os.tmpdir(), 'fluideq-preset-p-'));
     writeProfile(bands(3));
   });
 
-  afterEach(() => {
+  afterEach(async () => {
     fs.rmSync(configDir, { recursive: true, force: true });
     fs.rmSync(presetsDir, { recursive: true, force: true });
   });
 
-  it('leaves the measurement where it was when the bands are replaced', () => {
-    flushDeviceProfiles(settings, () => presetsDir, configDir);
+  it('leaves the measurement where it was when the bands are replaced', async () => {
+    await flushDeviceProfiles(settings, () => presetsDir, configDir);
     const before = snapshot();
     const smartFile = Object.keys(before).find((name) =>
       name.endsWith('-smart.txt'),
@@ -150,7 +150,7 @@ describe('applying a model beside a measured correction', () => {
 
     // A model arriving: the bands are replaced and nothing else is said.
     writeProfile(bands(-5));
-    flushDeviceProfiles(settings, () => presetsDir, configDir);
+    await flushDeviceProfiles(settings, () => presetsDir, configDir);
     const after = snapshot();
 
     expect(after[eqFile as string].contents).not.toBe(
@@ -166,10 +166,10 @@ describe('applying a model beside a measured correction', () => {
     );
   });
 
-  it('keeps the correction readable as its own layer afterwards', () => {
-    flushDeviceProfiles(settings, () => presetsDir, configDir);
+  it('keeps the correction readable as its own layer afterwards', async () => {
+    await flushDeviceProfiles(settings, () => presetsDir, configDir);
     writeProfile(bands(-5));
-    flushDeviceProfiles(settings, () => presetsDir, configDir);
+    await flushDeviceProfiles(settings, () => presetsDir, configDir);
 
     const chain = readApoDeviceChain(configDir, GUID);
 
@@ -182,12 +182,12 @@ describe('applying a model beside a measured correction', () => {
   // profile reaches the writer without its measurement, the writer records
   // exactly that — so a Smart EQ that vanishes despite the test above is a
   // state bug, not a config one, and this is what it looks like from here.
-  it('writes no measurement for a profile that arrives without one', () => {
+  it('writes no measurement for a profile that arrives without one', async () => {
     fs.writeFileSync(
       path.join(presetsDir, 'Measured'),
       JSON.stringify({ preAmp: 0, isFlat: false, filters: bands(3) }),
     );
-    flushDeviceProfiles(settings, () => presetsDir, configDir);
+    await flushDeviceProfiles(settings, () => presetsDir, configDir);
 
     const chain = readApoDeviceChain(configDir, GUID);
 
@@ -197,8 +197,8 @@ describe('applying a model beside a measured correction', () => {
   // Which is why the state is no longer the only copy. The measurement is the
   // one layer whose file IS the layer, so whatever loses it, the config still
   // has it and startup can hand it back.
-  it('reads the measurement back out of its own file, whole', () => {
-    flushDeviceProfiles(settings, () => presetsDir, configDir);
+  it('reads the measurement back out of its own file, whole', async () => {
+    await flushDeviceProfiles(settings, () => presetsDir, configDir);
     const chain = readApoDeviceChain(configDir, GUID);
 
     const recovered = smartEqFromFilters(

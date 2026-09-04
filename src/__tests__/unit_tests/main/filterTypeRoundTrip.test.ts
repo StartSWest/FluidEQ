@@ -44,15 +44,15 @@ const ALL_TYPES = Object.values(FilterTypeEnum);
 describe('filter types survive a save and reload', () => {
   let dir: string;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fluideq-types-'));
   });
 
-  afterEach(() => {
+  afterEach(async () => {
     fs.rmSync(dir, { recursive: true, force: true });
   });
 
-  it('offers more than the three the schema used to allow', () => {
+  it('offers more than the three the schema used to allow', async () => {
     // Guards the premise: if the enum ever shrinks back to three, the rest of
     // this file would pass while proving nothing.
     expect(ALL_TYPES.length).toBeGreaterThan(3);
@@ -67,12 +67,12 @@ describe('filter types survive a save and reload', () => {
     expect(validateState(state)).toBe(true);
   });
 
-  it.each(ALL_TYPES)('round-trips %s through the state file', (type) => {
+  it.each(ALL_TYPES)('round-trips %s through the state file', async (type) => {
     const state = getDefaultState();
     state.filters = {
       a: { id: 'a', frequency: 120, gain: 0, quality: 0.7, type },
     };
-    save(state, dir);
+    await save(state, dir);
 
     const loaded = fetchSettings(dir);
     const loadedTypes = Object.values(loaded.filters).map(
@@ -83,7 +83,7 @@ describe('filter types survive a save and reload', () => {
     expect(loadedTypes).toEqual([type]);
   });
 
-  it.each(ALL_TYPES)('round-trips %s through a saved profile', (type) => {
+  it.each(ALL_TYPES)('round-trips %s through a saved profile', async (type) => {
     const preset = {
       preAmp: -2,
       filters: {
@@ -93,7 +93,7 @@ describe('filter types survive a save and reload', () => {
 
     expect(validatePresetV2(preset)).toBe(true);
 
-    savePreset('Mine', preset, dir);
+    await savePreset('Mine', preset, dir);
     const loaded = fetchPreset('Mine', dir);
 
     expect(Object.values(loaded.filters).map((filter) => filter.type)).toEqual([

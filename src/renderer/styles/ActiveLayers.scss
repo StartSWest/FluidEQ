@@ -72,8 +72,8 @@ it under the terms of the GNU General Public License version 3 or later.
 .active-layers__lede {
   flex: 0 0 auto;
   margin-right: 2px;
-  color: rgba($primary-lighter, 0.6);
-  font-size: 0.6rem;
+  color: $text-muted;
+  font-size: $text-micro;
   font-weight: $weight-bold;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -168,7 +168,7 @@ it under the terms of the GNU General Public License version 3 or later.
   border: 1px solid rgba($secondary-light, 0.24);
   border-radius: $radius-pill;
   background: rgba($secondary-default, 0.1);
-  font-size: 0.66rem;
+  font-size: $text-small;
 }
 
 // The chip's line on the graph, in the chip.
@@ -237,7 +237,7 @@ it under the terms of the GNU General Public License version 3 or later.
   flex: 0 0 auto;
   place-items: center;
   padding: 0;
-  color: rgba($primary-lighter, 0.7);
+  color: $text-muted;
   border: 0;
   border-radius: 50%;
   background: transparent;
