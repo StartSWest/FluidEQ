@@ -1,6 +1,6 @@
 /* FluidEQ — GPL-3.0-or-later */
 
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import RemoteAudioPanel from '../../../renderer/remoteAudio/RemoteAudioPanel';
 import type { IRemoteAudioValue } from '../../../renderer/remoteAudio/remoteAudioState';
 import RemoteAudioContext from '../../../renderer/remoteAudio/remoteAudioValueContext';
@@ -81,13 +81,20 @@ describe('Share Audio role tabs', () => {
     expect(radios[1].getAttribute('aria-checked')).toBe('true');
   });
 
-  it('stops an active role when changing tabs without starting the other one', async () => {
+  it('keeps an active connection running while browsing the other role', () => {
     const remote = remoteValue('listener');
     renderPanel(remote);
 
     fireEvent.click(screen.getAllByRole('radio')[1]);
 
-    await waitFor(() => expect(remote.stop).toHaveBeenCalledTimes(1));
+    // Read the attribute rather than matching it: this file registers no
+    // jest-dom matchers of its own, so `toHaveAttribute` was there or not
+    // depending on which worker had already loaded them — the suite passed or
+    // failed on run order.
+    expect(screen.getAllByRole('radio')[1].getAttribute('aria-checked')).toBe(
+      'true',
+    );
+    expect(remote.stop).not.toHaveBeenCalled();
     expect(remote.startListening).not.toHaveBeenCalled();
     expect(remote.startSending).not.toHaveBeenCalled();
   });

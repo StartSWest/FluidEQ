@@ -18,7 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import path from 'path';
-import { BrowserWindow, app, desktopCapturer, ipcMain, screen } from 'electron';
+import { BrowserWindow, app, desktopCapturer, ipcMain } from 'electron';
 import log from 'electron-log';
 import { PRODUCT_NAME } from '../common/branding';
 import {

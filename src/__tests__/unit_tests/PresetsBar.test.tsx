@@ -38,6 +38,7 @@ describe('PresetListItem', () => {
   const fetchPresets = jest.fn();
   const loadPreset = jest.fn();
   const savePreset = jest.fn();
+  const createPreset = jest.fn();
   const renamePreset = jest.fn();
   const deletePreset = jest.fn();
 
@@ -45,6 +46,7 @@ describe('PresetListItem', () => {
     fetchPresets.mockClear();
     loadPreset.mockClear();
     savePreset.mockClear();
+    createPreset.mockClear();
     renamePreset.mockClear();
     deletePreset.mockClear();
   });
@@ -57,6 +59,7 @@ describe('PresetListItem', () => {
           fetchPresets={fetchPresets}
           loadPreset={loadPreset}
           savePreset={savePreset}
+          createPreset={createPreset}
           renamePreset={renamePreset}
           deletePreset={deletePreset}
         />
@@ -79,6 +82,7 @@ describe('PresetListItem', () => {
             fetchPresets={fetchPresets}
             loadPreset={loadPreset}
             savePreset={savePreset}
+            createPreset={createPreset}
             renamePreset={renamePreset}
             deletePreset={deletePreset}
           />
@@ -103,6 +107,7 @@ describe('PresetListItem', () => {
             fetchPresets={fetchPresets}
             loadPreset={loadPreset}
             savePreset={savePreset}
+            createPreset={createPreset}
             renamePreset={renamePreset}
             deletePreset={deletePreset}
           />
@@ -124,6 +129,7 @@ describe('PresetListItem', () => {
             fetchPresets={fetchPresets}
             loadPreset={loadPreset}
             savePreset={savePreset}
+            createPreset={createPreset}
             renamePreset={renamePreset}
             deletePreset={deletePreset}
           />
@@ -154,6 +160,7 @@ describe('PresetListItem', () => {
             fetchPresets={fetchPresets}
             loadPreset={loadPreset}
             savePreset={savePreset}
+            createPreset={createPreset}
             renamePreset={renamePreset}
             deletePreset={deletePreset}
           />
@@ -162,8 +169,10 @@ describe('PresetListItem', () => {
     );
 
     await user.click(screen.getByLabelText(newPresetButtonLabel));
-    expect(savePreset).toHaveBeenCalledTimes(1);
-    expect(savePreset).toHaveBeenCalledWith('Untitled profile 1');
+    expect(createPreset).toHaveBeenCalledTimes(1);
+    expect(createPreset).toHaveBeenCalledWith('Untitled profile 1');
+    // Never the update call: that one overwrites whatever it is given.
+    expect(savePreset).not.toHaveBeenCalled();
   });
 
   it('should disallow invalid renamed presets for case sensitive systems', async () => {
@@ -177,6 +186,7 @@ describe('PresetListItem', () => {
             fetchPresets={fetchPresets}
             loadPreset={loadPreset}
             savePreset={savePreset}
+            createPreset={createPreset}
             renamePreset={renamePreset}
             deletePreset={deletePreset}
           />
@@ -224,6 +234,7 @@ describe('PresetListItem', () => {
             fetchPresets={fetchPresets}
             loadPreset={loadPreset}
             savePreset={savePreset}
+            createPreset={createPreset}
             renamePreset={renamePreset}
             deletePreset={deletePreset}
           />

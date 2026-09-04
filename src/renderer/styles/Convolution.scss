@@ -351,7 +351,7 @@ it under the terms of the GNU General Public License version 3 or later.
   &:disabled,
   &.is-applied {
     cursor: default;
-    opacity: 0.62;
+    opacity: $disabled-opacity;
   }
 
   &--quiet {

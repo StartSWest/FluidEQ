@@ -134,7 +134,7 @@ it under the terms of the GNU General Public License version 3 or later.
   // form changes, and leaves nowhere to say why it is not available. Greyed
   // out with its reason underneath answers the question instead of raising it.
   &.is-disabled {
-    opacity: 0.42;
+    opacity: $disabled-opacity;
   }
 
   &--switch {

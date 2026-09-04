@@ -98,6 +98,16 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     background: rgba($secondary-default, 0.07);
     box-shadow: none;
 
+    // The glyph takes the label's colour here, not the filled button's ink.
+    //
+    // The rule at the top of this file paints every filled path in the dark
+    // shade that reads on a cyan face — correct on the primary button, and on
+    // this one it put a near-black blob inside the icon on a dark face. The
+    // Reset arrow was the visible case: a cyan outline with a black bowl.
+    path:not([fill='none']) {
+      fill: currentcolor;
+    }
+
     &:hover:not([aria-disabled='true']):not(:disabled) {
       color: $white;
       border-color: rgba($secondary-light, 0.55);
@@ -133,6 +143,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     background: transparent;
     box-shadow: none;
     cursor: default;
+
+    // Same reason as `.subtle`: nothing is filled behind the glyph, so the
+    // dark ink would be a black shape on the panel.
+    path:not([fill='none']) {
+      fill: currentcolor;
+    }
   }
 
   // LAST, and for the same reason the block above had to move: every variant

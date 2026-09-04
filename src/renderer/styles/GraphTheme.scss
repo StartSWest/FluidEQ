@@ -353,9 +353,22 @@ it under the terms of the GNU General Public License version 3 or later.
 // rule: it remains a fully active live graph and omits the inactive EQ curves.
 .workspace-tab-panel--eq.is-engine-disabled,
 .workspace-tab-panel--presets.is-engine-disabled,
+.workspace-tab-panel--config.is-engine-disabled,
 .workspace-tab-panel--convolution.is-engine-disabled {
-  opacity: 0.46;
-  filter: saturate(0.35);
+  // The app's one dim, and no desaturation with it. The filter drained the
+  // colour out of a whole page, so a switched-off tab was grey beside tabs
+  // that are teal — which reads as broken rather than as idle, and made this
+  // page and the DSP page two different kinds of "off".
+  opacity: $disabled-opacity;
+}
+
+// The cursor belongs only to the pages whose controls have stopped working.
+// The config viewer is dimmed with them and stays usable — it reports what is
+// on disk, which is worth reading precisely when the engine is off — so a
+// "no entry" pointer over it would be a lie.
+.workspace-tab-panel--eq.is-engine-disabled,
+.workspace-tab-panel--presets.is-engine-disabled,
+.workspace-tab-panel--convolution.is-engine-disabled {
   cursor: not-allowed;
 }
 
@@ -1061,7 +1074,7 @@ it under the terms of the GNU General Public License version 3 or later.
   cursor: pointer;
 
   &.is-disabled {
-    opacity: 0.46;
+    opacity: $disabled-opacity;
     cursor: default;
   }
 

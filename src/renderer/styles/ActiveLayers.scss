@@ -262,7 +262,7 @@ it under the terms of the GNU General Public License version 3 or later.
 
   &:disabled {
     cursor: default;
-    opacity: 0.4;
+    opacity: $disabled-opacity;
   }
 }
 
@@ -430,6 +430,6 @@ button.active-layer__body {
 
   &:disabled {
     cursor: default;
-    opacity: 0.5;
+    opacity: $disabled-opacity;
   }
 }

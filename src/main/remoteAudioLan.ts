@@ -56,6 +56,39 @@ const MAX_PENDING_SOCKETS = 64;
 const MAX_PENDING_SOCKETS_PER_ADDRESS = 8;
 const AUTHENTICATION_TIMEOUT_MS = 5_000;
 const DISCOVERY_RETRY_DELAYS_MS = [0, 1_000, 2_000, 5_000] as const;
+const WEB_SOCKET_CLOSED = 3;
+
+/**
+ * Closing a `ws` client while it is still CONNECTING aborts its handshake by
+ * emitting an Error before `close`. The join cleanup removes its own Error
+ * listener once the attempt is settled, so a later abort used to escape as an
+ * uncaught main-process exception. Keep one close-only sink attached until the
+ * socket reaches its terminal event; disconnects can then feed the reconnect
+ * state machine instead of killing Electron.
+ */
+const closeWebSocketSafely = (
+  socket: WebSocket,
+  code?: number,
+  reason?: string,
+) => {
+  if (socket.readyState === WEB_SOCKET_CLOSED) {
+    return;
+  }
+  const absorbCloseError = () => undefined;
+  socket.once('error', absorbCloseError);
+  socket.once('close', () => {
+    socket.removeListener('error', absorbCloseError);
+  });
+  try {
+    socket.close(code, reason);
+  } catch {
+    try {
+      socket.terminate();
+    } catch {
+      socket.once('error', absorbCloseError);
+    }
+  }
+};
 
 const closeDiscoverySocket = (socket: dgram.Socket) => {
   socket.removeAllListeners();
@@ -116,7 +149,9 @@ const createRemoteAudioLan = (
     usedPeerIds.clear();
     // Keep the pending socket's close listener: it settles the outstanding
     // join promise from the real close event instead of from a guessed delay.
-    activePendingSocket?.close();
+    if (activePendingSocket) {
+      closeWebSocketSafely(activePendingSocket);
+    }
     if (activeDiscoveryRetryTimer) {
       clearTimeout(activeDiscoveryRetryTimer);
     }
@@ -127,7 +162,7 @@ const createRemoteAudioLan = (
     if (activeServer) {
       activeServer.clients.forEach((client) => {
         client.removeAllListeners();
-        client.close();
+        closeWebSocketSafely(client);
       });
       activeServer.close();
     }
@@ -138,12 +173,9 @@ const createRemoteAudioLan = (
   ): Promise<ILanHostSession> => {
     stop();
     const addresses = lanAddresses();
-    if (addresses.length === 0) {
-      throw new Error('No private IPv4 network is available.');
-    }
     const secret =
       credentials?.secret ?? crypto.randomBytes(32).toString('base64url');
-    const deviceName = os.hostname().trim() || addresses[0];
+    const deviceName = os.hostname().trim() || addresses[0] || 'FluidEQ';
     const nextKey = keyFromSecret(secret);
     const nextServer = new WebSocketServer({
       host: '0.0.0.0',
@@ -161,16 +193,28 @@ const createRemoteAudioLan = (
         '',
       );
       if (!remoteAddress || !isPrivateIpv4(remoteAddress)) {
-        candidate.close(1008, 'Only private LAN connections are allowed');
+        closeWebSocketSafely(
+          candidate,
+          1008,
+          'Only private LAN connections are allowed',
+        );
         return;
       }
       if (nextServer.clients.size - transport.size() > MAX_PENDING_SOCKETS) {
-        candidate.close(1008, 'Too many unauthenticated connections');
+        closeWebSocketSafely(
+          candidate,
+          1008,
+          'Too many unauthenticated connections',
+        );
         return;
       }
       const pendingForAddress = pendingSocketsByAddress.get(remoteAddress) ?? 0;
       if (pendingForAddress >= MAX_PENDING_SOCKETS_PER_ADDRESS) {
-        candidate.close(1008, 'Too many unauthenticated connections');
+        closeWebSocketSafely(
+          candidate,
+          1008,
+          'Too many unauthenticated connections',
+        );
         return;
       }
       pendingSocketsByAddress.set(remoteAddress, pendingForAddress + 1);
@@ -190,11 +234,11 @@ const createRemoteAudioLan = (
       candidate.once('close', releasePending);
       const challenge = createAuthChallenge();
       const authenticationTimer = setTimeout(() => {
-        candidate.close(1008, 'Authentication timed out');
+        closeWebSocketSafely(candidate, 1008, 'Authentication timed out');
       }, AUTHENTICATION_TIMEOUT_MS);
       candidate.once('close', () => clearTimeout(authenticationTimer));
       const onPendingError = () => {
-        candidate.close(1008, 'Authentication failed');
+        closeWebSocketSafely(candidate, 1008, 'Authentication failed');
       };
       candidate.once('error', onPendingError);
       const authenticate = (data: RawData) => {
@@ -209,7 +253,7 @@ const createRemoteAudioLan = (
             message.challenge !== challenge ||
             usedPeerIds.has(message.peerId)
           ) {
-            candidate.close(1008, 'Authentication failed');
+            closeWebSocketSafely(candidate, 1008, 'Authentication failed');
             return;
           }
           candidate.removeListener('error', onPendingError);
@@ -228,7 +272,7 @@ const createRemoteAudioLan = (
             sealAuthAccepted({ challenge, peerId: message.peerId }, nextKey),
             (error) => {
               if (error) {
-                candidate.close(1008, 'Authentication failed');
+                closeWebSocketSafely(candidate, 1008, 'Authentication failed');
                 return;
               }
               candidate.removeListener('close', releasePending);
@@ -246,13 +290,13 @@ const createRemoteAudioLan = (
             },
           );
         } catch {
-          candidate.close(1008, 'Authentication failed');
+          closeWebSocketSafely(candidate, 1008, 'Authentication failed');
         }
       };
       candidate.on('message', authenticate);
       candidate.send(sealAuthChallenge(challenge, nextKey), (error) => {
         if (error) {
-          candidate.close(1008, 'Authentication failed');
+          closeWebSocketSafely(candidate, 1008, 'Authentication failed');
         }
       });
     });
@@ -305,10 +349,9 @@ const createRemoteAudioLan = (
       );
     });
     nextDiscoverySocket.on('error', () => {
-      if (discoverySocket === nextDiscoverySocket) {
-        discoverySocket = undefined;
-        closeDiscoverySocket(nextDiscoverySocket);
-      }
+      // A wildcard UDP socket remains usable when an adapter disappears and
+      // later returns. Closing it here permanently removed discovery after a
+      // sleep or Wi-Fi change, even though the listener server stayed alive.
     });
     try {
       await new Promise<void>((resolve, reject) => {
@@ -365,8 +408,8 @@ const createRemoteAudioLan = (
       let challenge: string | undefined;
       let settled = false;
       const authenticationTimer = setTimeout(() => {
-        socket.close(1008, 'Authentication timed out');
         finishError(new Error('LAN authentication timed out.'));
+        closeWebSocketSafely(socket, 1008, 'Authentication timed out');
       }, AUTHENTICATION_TIMEOUT_MS);
       const releasePendingSocket = () => {
         if (pendingSocket === socket) {
@@ -437,12 +480,12 @@ const createRemoteAudioLan = (
             peerId,
           });
         } catch (error) {
-          socket.close(1008, 'Authentication failed');
           finishError(
             error instanceof Error
               ? error
               : new Error('LAN authentication failed.'),
           );
+          closeWebSocketSafely(socket, 1008, 'Authentication failed');
         }
       };
       socket.once('error', onError);

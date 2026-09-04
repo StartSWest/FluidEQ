@@ -66,7 +66,24 @@ enum ChannelEnum {
   ADD_FILTER = 'addFilter',
   REMOVE_FILTER = 'removeFilter',
   LOAD_PRESET = 'loadPreset',
+  /**
+   * Write the current sound into the profile of this name, whatever is in it.
+   *
+   * Separate from CREATE_PRESET because the two want opposite things from a
+   * name that already exists: an update must land on it, a create must never
+   * land on it. One channel deciding for itself is what made Update mint
+   * "Untitled profile 1 2" instead of saving into "Untitled profile 1".
+   */
   SAVE_PRESET = 'savePreset',
+  /**
+   * Make a new profile from the current sound and reply with its name.
+   *
+   * The name is numbered here rather than in the renderer: the folder on disk
+   * is the only thing that knows what this output already holds, and a
+   * renderer list that has not caught up would otherwise pick a name that
+   * exists and write over somebody's tuning.
+   */
+  CREATE_PRESET = 'createPreset',
   DELETE_PRESET = 'deletePreset',
   RENAME_PRESET = 'renamePreset',
   GET_PRESET_FILE_LIST = 'getPresetFileList',

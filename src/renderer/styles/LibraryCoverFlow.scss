@@ -214,7 +214,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // a control that vanishes takes its own affordance with it, and the reader
   // is left wondering whether the row ended or the button broke.
   &:disabled {
-    opacity: 0.22;
+    opacity: $disabled-opacity;
     cursor: default;
   }
 
@@ -632,7 +632,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // disappearing: buttons that come and go are ones nobody can learn the
   // position of, and the gap itself says something about the library.
   &:disabled {
-    opacity: 0.25;
+    opacity: $disabled-opacity;
     cursor: default;
   }
 

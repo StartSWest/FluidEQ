@@ -108,7 +108,9 @@ const loadWithoutReact = (): TGraphStyle => {
 const stored = (key: string) => window.localStorage.getItem(key);
 
 const GRID_STEM = 'fluideq.graphGridHidden';
+/** The three-step size this replaced, kept for the migration cases. */
 const STRETCH_STEM = 'fluideq.graphStretched';
+const WAVE_HEIGHT_STEM = 'fluideq.graphWaveHeight';
 const OPACITY_STEM = 'fluideq.graphOverlayOpacity';
 const BLUR_STEM = 'fluideq.graphOverlayBlur';
 
@@ -164,47 +166,44 @@ describe('one set of view settings per mode', () => {
     expect(stored(GRID_STEM)).toBeNull();
   });
 
-  it('keeps a wave size per mode', () => {
+  it('keeps the wave height per mode', () => {
     const { style } = load();
 
     style.setGraphView('expanded');
-    style.toggleGraphStretch();
+    style.setGraphWaveHeight(0.75);
     style.setGraphView('fullscreen');
-    style.toggleGraphStretch();
-    style.toggleGraphStretch();
+    style.setGraphWaveHeight(0.5);
 
-    // Three sizes on one control, so it cycles rather than toggling: the
-    // second press in full screen lands on compact instead of coming back.
-    expect(stored(`${STRETCH_STEM}.expanded`)).toBe('stretched');
-    expect(stored(`${STRETCH_STEM}.fullscreen`)).toBe('compact');
+    expect(stored(`${WAVE_HEIGHT_STEM}.expanded`)).toBe('0.75');
+    expect(stored(`${WAVE_HEIGHT_STEM}.fullscreen`)).toBe('0.5');
 
     style.setGraphView('expanded');
-    expect(style.getGraphStretched()).toBe(true);
+    expect(style.getGraphWaveHeight()).toBe(0.75);
     style.setGraphView('fullscreen');
-    // Compact keeps the edge-to-edge layout and only shortens the wave, so
-    // everything asking about margins still gets the same answer.
-    expect(style.getGraphStretched()).toBe(true);
-    expect(style.getGraphWaveSize()).toBe('compact');
+    expect(style.getGraphWaveHeight()).toBe(0.5);
 
+    // Untouched, so still the full height every mode starts at.
     style.setGraphView('normal');
-    expect(style.getGraphStretched()).toBe(false);
-    expect(style.getGraphWaveSize()).toBe('normal');
+    expect(style.getGraphWaveHeight()).toBe(1);
   });
 
-  it('reads a size stored as the old boolean', () => {
-    // Written by any build from while there were two sizes. Whatever it says is
-    // still true; it just has a different name now.
-    window.localStorage.setItem(`${STRETCH_STEM}.fullscreen`, 'true');
-    window.localStorage.setItem(`${STRETCH_STEM}.expanded`, 'false');
+  it('carries the old three-step size into the continuous one', () => {
+    // Written by any build from while the wave had three named sizes. Only
+    // `compact` was a different HEIGHT — `normal` and `stretched` differed by
+    // the plot's margins — so it is the only one that moves the slider.
+    window.localStorage.setItem(`${STRETCH_STEM}.fullscreen`, 'compact');
+    window.localStorage.setItem(`${STRETCH_STEM}.expanded`, 'stretched');
 
     const { style } = load();
     style.setGraphView('fullscreen');
-    expect(style.getGraphWaveSize()).toBe('stretched');
-    expect(style.getGraphStretched()).toBe(true);
+    expect(style.getGraphWaveHeight()).toBe(0.5);
 
     style.setGraphView('expanded');
-    expect(style.getGraphWaveSize()).toBe('normal');
-    expect(style.getGraphStretched()).toBe(false);
+    expect(style.getGraphWaveHeight()).toBe(1);
+
+    // And the old keys go, so the format cannot stay ambiguous.
+    expect(stored(`${STRETCH_STEM}.fullscreen`)).toBeNull();
+    expect(stored(`${STRETCH_STEM}.expanded`)).toBeNull();
   });
 
   it('keeps the see-through and the blur per mode', () => {
@@ -510,9 +509,11 @@ describe('carrying an older install across', () => {
 
     MODES.forEach((mode) => {
       expect(stored(`${GRID_STEM}.${mode}`)).toBe('true');
-      expect(stored(`${STRETCH_STEM}.${mode}`)).toBe('true');
       expect(stored(`${OPACITY_STEM}.${mode}`)).toBe('0.4');
       expect(stored(`${BLUR_STEM}.${mode}`)).toBe('18');
+      // The old size is seeded into the height it means rather than into a
+      // key of its own: `stretched` was never a different wave height.
+      expect(stored(`${WAVE_HEIGHT_STEM}.${mode}`)).toBe('1');
     });
   });
 
@@ -611,7 +612,7 @@ describe('carrying an older install across', () => {
     const { style, overlay } = load();
 
     expect(style.getGraphGridHidden()).toBe(false);
-    expect(style.getGraphStretched()).toBe(false);
+    expect(style.getGraphWaveHeight()).toBe(1);
     expect(overlay.getOverlayOpacity()).toBe(1);
     expect(overlay.getOverlayBlur()).toBe(0);
     expect(stored(`${GRID_STEM}.normal`)).toBeNull();
@@ -631,12 +632,12 @@ describe('carrying an older install across', () => {
     first.setGraphView('fullscreen');
     first.toggleGraphGrid();
     first.setGraphView('expanded');
-    first.toggleGraphStretch();
+    first.setGraphWaveHeight(0.4);
 
     const { style: second } = load();
     // The view is remembered too, so the reopened app is where it was left.
     expect(second.getGraphView()).toBe('expanded');
-    expect(second.getGraphStretched()).toBe(true);
+    expect(second.getGraphWaveHeight()).toBe(0.4);
     expect(second.getGraphGridHidden()).toBe(false);
     second.setGraphView('fullscreen');
     // Full screen hides the grid by default, so the toggle above turned it back
@@ -644,6 +645,7 @@ describe('carrying an older install across', () => {
     // restart would look identical to a value that was remembered, which is
     // exactly the bug this test exists to catch.
     expect(second.getGraphGridHidden()).toBe(false);
-    expect(second.getGraphStretched()).toBe(false);
+    // And the height set in the other mode did not leak into this one.
+    expect(second.getGraphWaveHeight()).toBe(1);
   });
 });

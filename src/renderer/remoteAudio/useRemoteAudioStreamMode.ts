@@ -13,27 +13,26 @@ const savedStreamMode = (): TRemoteAudioStreamMode => {
 
 const useRemoteAudioStreamMode = (
   roleRef: { current?: TRemoteAudioRole },
-  senderPeerIdRef: { current?: string },
+  reconnectSenderRef: {
+    current?: (mode: TRemoteAudioStreamMode) => Promise<void>;
+  },
 ) => {
   const [streamMode, setStreamModeState] =
     useState<TRemoteAudioStreamMode>(savedStreamMode);
   const streamModeRef = useRef(streamMode);
   const setStreamMode = useCallback(
     (next: TRemoteAudioStreamMode) => {
+      if (streamModeRef.current === next) {
+        return;
+      }
       streamModeRef.current = next;
       setStreamModeState(next);
       window.localStorage.setItem(STORAGE_KEY, next);
-      const peerId = senderPeerIdRef.current;
-      if (roleRef.current === 'sender' && peerId) {
-        window.electron.ipcRenderer
-          .sendRemoteAudioLanSignal({
-            peerId,
-            signal: { kind: 'stream-mode', mode: next },
-          })
-          .catch(() => undefined);
+      if (roleRef.current === 'sender') {
+        reconnectSenderRef.current?.(next).catch(() => undefined);
       }
     },
-    [roleRef, senderPeerIdRef],
+    [reconnectSenderRef, roleRef],
   );
 
   return { setStreamMode, streamMode, streamModeRef };

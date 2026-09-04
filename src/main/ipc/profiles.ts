@@ -312,9 +312,20 @@ export const registerProfilesIpc = ({
     }
   });
 
-  // Queued with the others. `reservePresetNameForActiveDevice` reads the whole
-  // catalogue to pick a free name, so two saves that overlap read the same
-  // catalogue and reserve the same name — the second then writes over the first.
+  /**
+   * Update: the sound on screen becomes what this profile holds.
+   *
+   * Writes the name it was given and no other. It used to ask for "a name this
+   * output may write to", which answers "taken" for the profile you are sitting
+   * in — so pressing Update on "Untitled profile 1" saved a second profile
+   * called "Untitled profile 1 2" and attached the output to that instead. The
+   * guard it was reaching for stopped one output overwriting another's tuning,
+   * and the folder per output does that on its own now: the only name this
+   * handler can collide with is one of your own, which is the one you asked to
+   * update.
+   *
+   * Queued with the other profile mutations — see `runProfileMutation`.
+   */
   ipcMain.on(ChannelEnum.SAVE_PRESET, async (event, arg) => {
     const channel = ChannelEnum.SAVE_PRESET;
     const presetName = arg[0];
@@ -327,15 +338,41 @@ export const registerProfilesIpc = ({
           return;
         }
 
-        // Never over the top of a profile another output is using. Saving on the
-        // speakers must not overwrite what the headphones are playing, however
-        // similar the two names are.
-        const targetName = availableProfileNameForActiveDevice(presetName);
-
         const preset = getCurrentPreset();
-        savePreset(targetName, preset, activePresetDir(), 'manual-save');
+        savePreset(presetName, preset, activePresetDir(), 'manual-save');
         // This is the copy the user chose to keep. Later edits auto-save over the
         // profile itself, so this is the only thing left to restore from.
+        savePresetBaseline(presetName, preset, activeBaselineDir());
+        attachPresetToActiveDevice(presetName);
+        await handleUpdateHelper<string>(event, channel, presetName, true);
+      } catch (e) {
+        handleError(event, channel, ErrorCode.PRESET_FILE_ERROR);
+      }
+    });
+  });
+
+  /**
+   * New profile: somewhere else to put the sound that is playing.
+   *
+   * The requested name is a suggestion — the folder decides. Numbering happens
+   * here, inside the mutation queue, because the renderer's copy of the list
+   * can be a moment behind and a create that lands on an existing profile
+   * destroys tuning the user never offered up.
+   */
+  ipcMain.on(ChannelEnum.CREATE_PRESET, async (event, arg) => {
+    const channel = ChannelEnum.CREATE_PRESET;
+    const requestedName = arg[0];
+
+    await runProfileMutation(async () => {
+      try {
+        if (isRestrictedPresetName(requestedName)) {
+          handleError(event, channel, ErrorCode.INVALID_PRESET_NAME);
+          return;
+        }
+
+        const targetName = availableProfileNameForActiveDevice(requestedName);
+        const preset = getCurrentPreset();
+        savePreset(targetName, preset, activePresetDir(), 'profile-created');
         savePresetBaseline(targetName, preset, activeBaselineDir());
         attachPresetToActiveDevice(targetName);
         await handleUpdateHelper<string>(event, channel, targetName, true);

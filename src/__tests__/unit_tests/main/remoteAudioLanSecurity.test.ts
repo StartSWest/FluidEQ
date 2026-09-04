@@ -13,16 +13,28 @@ interface IFakeServer extends EventEmitter {
 interface IFakeSocket extends EventEmitter {
   close: jest.Mock;
   deferSendCallbacks: boolean;
+  readyState?: number;
   removeAllListeners(): this;
   send: jest.Mock;
   sent: Buffer[];
+  terminate: jest.Mock;
 }
 
 const mockServers: IFakeServer[] = [];
+const mockWebSocket = jest.fn();
+const mockNetworkInterfaces = jest.fn(() => ({
+  Ethernet: [
+    {
+      address: '192.168.1.20',
+      family: 'IPv4',
+      internal: false,
+    },
+  ],
+}));
 
 jest.mock('ws', () => ({
   __esModule: true,
-  default: jest.fn(),
+  default: mockWebSocket,
   WebSocketServer: jest.fn(() => {
     const server = new EventEmitter() as IFakeServer;
     server.address = () => ({ port: 49_100 });
@@ -67,15 +79,7 @@ jest.mock('os', () => ({
   __esModule: true,
   default: {
     hostname: () => 'LISTENER-PC',
-    networkInterfaces: () => ({
-      Ethernet: [
-        {
-          address: '192.168.1.20',
-          family: 'IPv4',
-          internal: false,
-        },
-      ],
-    }),
+    networkInterfaces: mockNetworkInterfaces,
   },
 }));
 
@@ -87,6 +91,7 @@ import {
   keyFromSecret,
   openAuthChallenge,
   openPacket,
+  encodePairingCode,
   sealAuthReady,
 } from '../../../main/remoteAudioLanProtocol';
 
@@ -97,6 +102,7 @@ const fakeSocket = (): IFakeSocket => {
   socket.close = jest.fn((code?: number, reason?: string) => {
     socket.emit('close', code, reason);
   });
+  socket.terminate = jest.fn(() => socket.emit('close'));
   socket.send = jest.fn(
     (packet: Buffer, callback?: (error?: Error) => void) => {
       socket.sent.push(packet);
@@ -111,6 +117,16 @@ const fakeSocket = (): IFakeSocket => {
 describe('LAN listener authentication limits', () => {
   beforeEach(() => {
     mockServers.length = 0;
+    mockWebSocket.mockReset();
+    mockNetworkInterfaces.mockReturnValue({
+      Ethernet: [
+        {
+          address: '192.168.1.20',
+          family: 'IPv4',
+          internal: false,
+        },
+      ],
+    });
   });
 
   afterEach(() => jest.useRealTimers());
@@ -200,5 +216,54 @@ describe('LAN listener authentication limits', () => {
 
     expect(second.close).toHaveBeenCalledWith(1008, 'Authentication failed');
     lan.stop();
+  });
+
+  it('keeps the listener alive while every network adapter is offline', async () => {
+    mockNetworkInterfaces.mockReturnValue({ Ethernet: [] });
+    const lan = createRemoteAudioLan(
+      jest.fn(),
+      jest.fn(),
+      jest.fn(),
+      jest.fn(),
+    );
+
+    const session = await lan.startHost();
+
+    expect(session.details.deviceName).toBe('LISTENER-PC');
+    expect(session.details.options).toEqual([]);
+    expect(mockServers).toHaveLength(1);
+    lan.stop();
+  });
+
+  it('can abort a connecting client without an uncaught WebSocket error', async () => {
+    jest.useFakeTimers();
+    const socket = fakeSocket();
+    socket.readyState = 0;
+    socket.close.mockImplementation((code?: number, reason?: string) => {
+      socket.emit(
+        'error',
+        new Error('WebSocket was closed before the connection was established'),
+      );
+      socket.emit('close', code, reason);
+    });
+    mockWebSocket.mockImplementationOnce(() => socket);
+    const lan = createRemoteAudioLan(
+      jest.fn(),
+      jest.fn(),
+      jest.fn(),
+      jest.fn(),
+    );
+    const pairingCode = encodePairingCode(
+      '192.168.1.20',
+      49_100,
+      'c'.repeat(43),
+      'LISTENER-PC',
+    );
+
+    const joining = lan.join(pairingCode);
+    jest.advanceTimersByTime(5_000);
+
+    await expect(joining).rejects.toThrow('LAN authentication timed out.');
+    expect(socket.close).toHaveBeenCalledWith(1008, 'Authentication timed out');
   });
 });

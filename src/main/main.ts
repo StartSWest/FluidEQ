@@ -1288,23 +1288,19 @@ const switchToParametricEditing = () => {
 };
 
 /**
- * A profile name this output is allowed to write to.
+ * A free name for a profile about to be created on this output.
  *
- * Profiles are files named after the profile, and an assignment points an
- * output at one of them. Nothing stopped two outputs pointing at the same file,
- * so saving on the speakers silently overwrote the headphones' tuning if the
- * two happened to share a name — which is easy, because "Untitled profile 1" is
- * exactly the sort of name two outputs both end up with.
+ * For creating only — never for saving into a profile that already exists.
+ * Profiles are files named after the profile, so a second one of the same name
+ * on one output really would be the same file, and a number is appended the way
+ * a file manager does it.
  *
- * The rule: you may write to a name that is free, or one this output already
- * owns. Only this output's own folder is consulted, because that is the only
- * place the name can collide — what the speakers call their profiles has no
- * bearing on what the headphones may call theirs.
- *
- * A number is still appended when the name is taken *here*, the way a file
- * manager does it, because two profiles on one output really would be the same
- * file. That is the user's own duplicate, though, not one invented by another
- * output they were not looking at.
+ * Only this output's own folder is consulted, because that is the only place a
+ * name can collide now: each output keeps its profiles in a folder of its own,
+ * so what the speakers call their profiles has no bearing on the headphones.
+ * Asking this question on the way into a *save* is what made Update duplicate
+ * the profile it was meant to overwrite — the name was "taken" by the very
+ * profile being updated.
  */
 const availableProfileNameForActiveDevice = (requestedName: string) => {
   const dir = activePresetDir();

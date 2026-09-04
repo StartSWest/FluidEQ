@@ -85,8 +85,10 @@ const presetReducer: IPresetReducer = (
 interface IPresetsBarProps {
   fetchPresets: () => Promise<string[]>;
   loadPreset: (presetName: string) => Promise<void>;
-  /** Resolves with the name actually used, which may differ from the one asked for. */
-  savePreset: (presetName: string) => Promise<string>;
+  /** Overwrites the named profile. Never creates a second one beside it. */
+  savePreset: (presetName: string) => Promise<void>;
+  /** Resolves with the name actually used, which is numbered when taken. */
+  createPreset: (requestedName: string) => Promise<string>;
   renamePreset: (oldName: string, newName: string) => Promise<void>;
   deletePreset: (presetName: string) => Promise<void>;
 }
@@ -95,15 +97,23 @@ const PresetsBar = ({
   fetchPresets,
   loadPreset,
   savePreset,
+  createPreset,
   renamePreset,
   deletePreset,
 }: IPresetsBarProps) => {
-  const {
-    isBlockingError,
-    isCaseSensitiveFs,
-    performHealthCheck,
-    setGlobalError,
-  } = useFluidEqContext();
+  /**
+   * `refreshState`, never `performHealthCheck`.
+   *
+   * Both re-read the whole state; the health check also raises the app's
+   * loading flag, and the loading flag is the start-up screen — the workspace,
+   * the graph and every band are replaced by a spinner and then built again.
+   * Selecting a profile that way made the EQ vanish and come back rather than
+   * move to its new values, which is the one thing switching profile should
+   * look like. Nothing here is a start-up: the window is already up and the
+   * bands only need new numbers.
+   */
+  const { isBlockingError, isCaseSensitiveFs, refreshState, setGlobalError } =
+    useFluidEqContext();
   const { t } = useTranslation();
 
   const [presetName, setPresetName] = useState<string>('');
@@ -249,47 +259,51 @@ const PresetsBar = ({
       // Created for real, not just typed into the box. A button called "New
       // profile" that only clears a text field leaves you unsure whether you
       // have one until you press something else.
-      // Main has the last word on the name: it will not write over a profile
-      // another output owns, so what comes back may be numbered differently.
-      const saved = (await savePreset(name)) || name;
+      // Main has the last word on the name: it numbers it against the folder on
+      // disk, so what comes back may differ from what was asked for.
+      const saved = (await createPreset(name)) || name;
       dispatchPresetNames({ type: PresetActionEnum.CREATE, presetName: saved });
       await refreshOutputProfiles();
       setPresetName(saved);
-      performHealthCheck();
+      await refreshState();
     } catch (e) {
       setGlobalError(e as ErrorDescription);
     }
   }, [
     presetNames,
-    savePreset,
+    createPreset,
     refreshOutputProfiles,
-    performHealthCheck,
+    refreshState,
     setGlobalError,
     t,
   ]);
 
-  // Creating a new preset
-  const handleCreateOrSavePreset = useCallback(async () => {
-    // Do not create or save a preset if there is no name or if there is an error present
+  /**
+   * Update: the sound on screen becomes what the selected profile holds.
+   *
+   * Only ever writes the profile that is selected. It used to accept a
+   * different name back from the save and follow it, which is how pressing
+   * Update left a second profile called "… 2" attached to the output.
+   */
+  const handleSavePreset = useCallback(async () => {
+    // Do not save a preset if there is no name or if there is an error present
     if (!presetName) {
       return;
     }
 
     try {
-      const saved = (await savePreset(presetName)) || presetName;
+      await savePreset(presetName);
 
-      // A name main had to change is a new profile even if the one typed
-      // already existed — it belonged to a different output.
-      if (!isExistingPresetSelected || saved !== presetName) {
+      // The catalogue can be a moment behind the folder — a profile created on
+      // another surface is still one of this output's, and Update is where the
+      // list first hears about it.
+      if (!isExistingPresetSelected) {
         dispatchPresetNames({
           type: PresetActionEnum.CREATE,
-          presetName: saved,
+          presetName,
         });
       }
       await refreshOutputProfiles();
-      // Keep the newly saved profile selected while the list catches up with
-      // the assignment written by the main process.
-      setPresetName(saved);
     } catch (e) {
       setGlobalError(e as ErrorDescription);
     }
@@ -312,7 +326,7 @@ const PresetsBar = ({
         try {
           await loadPreset(presetToLoad);
           await refreshOutputProfiles();
-          performHealthCheck();
+          await refreshState();
         } catch (e) {
           setGlobalError(e as ErrorDescription);
         }
@@ -323,7 +337,7 @@ const PresetsBar = ({
       visiblePresetNames,
       loadPreset,
       refreshOutputProfiles,
-      performHealthCheck,
+      refreshState,
       setGlobalError,
     ],
   );
@@ -384,7 +398,7 @@ const PresetsBar = ({
     try {
       await restorePresetBaseline(restoreTarget);
       await refreshOutputProfiles();
-      performHealthCheck();
+      await refreshState();
     } catch (e) {
       setGlobalError(e as ErrorDescription);
     } finally {
@@ -538,7 +552,7 @@ const PresetsBar = ({
             ariaLabel={t('profiles.saveAria')}
             className="small profile-actions__save"
             isDisabled={isBlockingError || !presetName}
-            handleChange={handleCreateOrSavePreset}
+            handleChange={handleSavePreset}
           >
             <ProfileActionIcon action="save" />
             {t('profiles.update')}

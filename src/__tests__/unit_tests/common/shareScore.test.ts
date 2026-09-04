@@ -30,13 +30,14 @@ import { buildSupportConfig } from 'common/support';
 const REPO = 'https://github.com/StartSWest/FluidEQ';
 
 describe('buildShareText', () => {
-  it('leads with euphoria once it has been reached', () => {
+  it('names the rainbow once the ceiling has been reached', () => {
     const text = buildShareText(4200, 10);
-    expect(text).toContain('RAINBOW MODE');
+    expect(text).toContain('rainbow');
     expect(text).toContain('4200');
-    // The ceiling is the story and the number is the evidence, so it has to
-    // come first — a post that opens with a score reads as a leaderboard.
-    expect(text.indexOf('RAINBOW')).toBeLessThan(text.indexOf('4200'));
+    // The app leads and the run follows, in every version: a stranger has to
+    // know what this is before a number from it means anything, so the score
+    // comes after the sentence that introduces it — never as the headline.
+    expect(text.indexOf('equaliser')).toBeLessThan(text.indexOf('4200'));
   });
 
   it('does not claim euphoria below the ceiling', () => {
@@ -47,7 +48,9 @@ describe('buildShareText', () => {
   it('fits X with the link attached', () => {
     // The tightest limit of the three by a wide margin, and the only one that
     // silently truncates rather than refusing. A t.co link counts as 23.
-    const text = buildShareText(999999, 10);
+    // The X version is the one written to a budget; the others are read
+    // where there is no counter, and the copy button has no limit at all.
+    const text = buildShareText(999999, 10, true, 'x');
     expect(text.length + 1 + 23).toBeLessThanOrEqual(280);
   });
 

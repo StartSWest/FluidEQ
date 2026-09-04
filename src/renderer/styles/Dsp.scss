@@ -194,9 +194,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     filter $motion-base $ease-out;
 }
 
+// Faded, not drained. The desaturation took the cyan out of half the window
+// and left a grey page beside pages that were still teal — which is why this
+// one read as broken rather than as switched off. The dim is the whole of it,
+// and it is the same dim every other unavailable thing in the app uses.
 .dsp-stage.is-disabled {
-  opacity: 0.44;
-  filter: saturate(0.25);
+  opacity: $disabled-opacity;
   pointer-events: none;
   user-select: none;
 }
@@ -788,7 +791,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   &[aria-disabled='true'] {
     cursor: default;
-    opacity: 0.4;
+    opacity: $disabled-opacity;
   }
 }
 
@@ -851,7 +854,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   &:disabled {
     cursor: default;
-    opacity: 0.4;
+    opacity: $disabled-opacity;
   }
 }
 
@@ -1216,7 +1219,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 .dsp-dev-safety.is-off .dsp-dev-safety-details {
-  opacity: 0.42;
+  opacity: $disabled-opacity;
 }
 
 // Three equal Master scopes: loudness maximize, its adjacent gain match, and
@@ -1735,7 +1738,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 
   &:disabled {
-    opacity: 0.42;
+    opacity: $disabled-opacity;
     cursor: default;
   }
 
@@ -2068,7 +2071,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 .dsp-eq-pick.is-off {
-  opacity: 0.4;
+  opacity: $disabled-opacity;
 }
 
 // Which bands react, readable across the whole row without selecting each one.
@@ -2423,7 +2426,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // one control disagreeing with itself about whether it can be used.
   &:disabled {
     cursor: default;
-    opacity: 0.5;
+    opacity: $disabled-opacity;
   }
 }
 
@@ -2481,7 +2484,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 
   &:disabled {
-    opacity: 0.4;
+    opacity: $disabled-opacity;
     cursor: default;
   }
 
@@ -3649,7 +3652,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // switched off, so the row reads as part of a disabled card rather than as a
 // meter that has fallen to zero.
 .dsp-dimension-guard.is-off {
-  opacity: 0.42;
+  opacity: $disabled-opacity;
 }
 
 // Dimension's width curve. Sized like the other processor graphs so the pages
@@ -3763,7 +3766,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // -120 floor, and two flat lines along the bottom of a live-looking plot read
 // as a meter hearing silence rather than as a stage that is not running.
 .dsp-bass-forge-display.is-off {
-  opacity: 0.42;
+  opacity: $disabled-opacity;
 }
 
 // Definite for the same reason as every DSP canvas: its backing store follows
@@ -3812,7 +3815,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // choosing to change nothing — which is precisely what a centred Attack dial
 // means, and therefore the one reading an off stage must never borrow.
 .dsp-bass-punch-display.is-off {
-  opacity: 0.42;
+  opacity: $disabled-opacity;
 }
 
 // Definite for the same reason as every DSP canvas: its backing store follows

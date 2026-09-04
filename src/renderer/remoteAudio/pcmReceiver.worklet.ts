@@ -4,6 +4,11 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
+import {
+  IRemoteAudioPlaybackProfile,
+  REMOTE_AUDIO_PLAYBACK_PROFILES,
+} from './remoteAudioPlaybackProfiles';
+
 interface IQueuedChunk {
   channels: number;
   frames: number;
@@ -26,6 +31,7 @@ interface IPeerStream {
   primed: boolean;
   removing: boolean;
   sampleRate: number;
+  stableFrames: number;
   targetBufferSeconds: number;
 }
 
@@ -50,13 +56,6 @@ interface IConfigureMessage {
   peerId: string;
 }
 
-interface IPlaybackProfile {
-  deadbandSeconds: number;
-  maximumBufferSeconds: number;
-  recoveryStepSeconds: number;
-  startBufferSeconds: number;
-}
-
 const PROCESSOR_NAME = 'fluideq-remote-audio';
 const METER_FRAMES = 1_024;
 const FADE_SECONDS = 0.012;
@@ -67,25 +66,6 @@ const RESAMPLER_HALF = RESAMPLER_TAPS / 2;
 const RESAMPLER_PHASES = 256;
 const KAISER_BETA = 8.6;
 const KERNEL_CACHE = new Map<string, Float32Array>();
-const PLAYBACK_PROFILES: Record<'music' | 'video', IPlaybackProfile> = {
-  // A larger reservoir absorbs scheduler and Wi-Fi bursts. It changes delay,
-  // never the Float32 samples, codec, or resampler quality.
-  music: {
-    deadbandSeconds: 0.02,
-    maximumBufferSeconds: 0.6,
-    recoveryStepSeconds: 0.06,
-    startBufferSeconds: 0.24,
-  },
-  // Six capture packets at 48 kHz keeps video close to lip sync. A genuinely
-  // unstable link may underrun sooner, then earns a small amount of protection.
-  video: {
-    deadbandSeconds: 0.008,
-    maximumBufferSeconds: 0.18,
-    recoveryStepSeconds: 0.03,
-    startBufferSeconds: 0.06,
-  },
-};
-
 const besselI0 = (value: number): number => {
   let sum = 1;
   let term = 1;
@@ -221,7 +201,8 @@ class RemoteAudioProcessor extends AudioWorkletProcessor {
         const peer = this.peers.get(data.peerId);
         if (peer) {
           peer.targetBufferSeconds =
-            PLAYBACK_PROFILES[data.mode].startBufferSeconds;
+            REMOTE_AUDIO_PLAYBACK_PROFILES[data.mode].startBufferSeconds;
+          peer.stableFrames = 0;
         }
       } else if (isRemoveMessage(data)) {
         const peer = this.peers.get(data.peerId);
@@ -235,8 +216,10 @@ class RemoteAudioProcessor extends AudioWorkletProcessor {
     };
   }
 
-  private profileFor(peerId: string): IPlaybackProfile {
-    return PLAYBACK_PROFILES[this.peerModes.get(peerId) ?? 'music'];
+  private profileFor(peerId: string): IRemoteAudioPlaybackProfile {
+    return REMOTE_AUDIO_PLAYBACK_PROFILES[
+      this.peerModes.get(peerId) ?? 'music'
+    ];
   }
 
   private push(message: IPushMessage) {
@@ -263,6 +246,7 @@ class RemoteAudioProcessor extends AudioWorkletProcessor {
         primed: false,
         removing: false,
         sampleRate: message.sampleRate,
+        stableFrames: 0,
         targetBufferSeconds: this.profileFor(message.peerId).startBufferSeconds,
       };
       this.peers.set(message.peerId, peer);
@@ -281,6 +265,7 @@ class RemoteAudioProcessor extends AudioWorkletProcessor {
       peer.gain = 0;
       peer.position = 0;
       peer.primed = false;
+      peer.stableFrames = 0;
       peer.targetBufferSeconds = playbackProfile.startBufferSeconds;
     }
     peer.expectedSequence =
@@ -330,6 +315,7 @@ class RemoteAudioProcessor extends AudioWorkletProcessor {
 
   private mixPeer(peerId: string, peer: IPeerStream, output: Float32Array[]) {
     const playbackProfile = this.profileFor(peerId);
+    let renderedFrames = 0;
     const startFrames = peer.sampleRate * peer.targetBufferSeconds;
     if (!peer.primed) {
       if (peer.removing) {
@@ -388,6 +374,7 @@ class RemoteAudioProcessor extends AudioWorkletProcessor {
       if (peer.availableFrames < requiredFrames) {
         peer.gain = 0;
         peer.primed = false;
+        peer.stableFrames = 0;
         if (!peer.removing) {
           peer.targetBufferSeconds = Math.min(
             playbackProfile.maximumBufferSeconds,
@@ -442,8 +429,10 @@ class RemoteAudioProcessor extends AudioWorkletProcessor {
       }
       this.publishMeter(peerId, peer, mono / output.length);
       advanceStream(peer, rateRatio);
+      renderedFrames += 1;
       if (peer.fadeDirection < 0 && peer.gain === 0) {
         peer.primed = false;
+        peer.stableFrames = 0;
         if (!peer.removing) {
           // Increase protection only after a real starvation event. Stable LANs
           // keep the low lip-sync delay; bursty links earn more safety on the
@@ -465,6 +454,22 @@ class RemoteAudioProcessor extends AudioWorkletProcessor {
           this.peerModes.delete(peerId);
         }
         break;
+      }
+    }
+    const decaySeconds = playbackProfile.recoveryDecaySeconds;
+    if (
+      decaySeconds &&
+      peer.primed &&
+      !peer.removing &&
+      peer.targetBufferSeconds > playbackProfile.startBufferSeconds
+    ) {
+      peer.stableFrames += renderedFrames;
+      if (peer.stableFrames >= sampleRate * decaySeconds) {
+        peer.targetBufferSeconds = Math.max(
+          playbackProfile.startBufferSeconds,
+          peer.targetBufferSeconds - playbackProfile.recoveryStepSeconds,
+        );
+        peer.stableFrames = 0;
       }
     }
   }

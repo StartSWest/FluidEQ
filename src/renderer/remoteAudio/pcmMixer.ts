@@ -21,6 +21,10 @@ interface IAudioSink {
   setSinkId?(sinkId: string): Promise<void>;
 }
 
+interface IRoutableAudioContext extends AudioContext {
+  setSinkId?(sinkId: string): Promise<void>;
+}
+
 export interface IPcmMixer {
   push(chunk: ILanRemoteAudioChunk): void;
   removePeer(peerId: string): void;
@@ -57,19 +61,31 @@ export const createPcmMixer = async (
   onPlaybackBlocked: () => void,
   onMeter: TRemoteAudioMeterListener,
 ): Promise<IPcmMixer> => {
-  const context = new AudioContext({ latencyHint: 'interactive' });
+  const context = new AudioContext({
+    latencyHint: 'interactive',
+  }) as IRoutableAudioContext;
   await context.audioWorklet.addModule(workletUrl().href);
   const mixer = new AudioWorkletNode(context, PROCESSOR_NAME, {
     numberOfInputs: 0,
     numberOfOutputs: 1,
     outputChannelCount: [2],
   });
-  const destination = context.createMediaStreamDestination();
-  mixer.connect(destination);
-  const sink = createAudioSink();
-  sink.autoplay = true;
-  sink.volume = 1;
-  sink.srcObject = destination.stream;
+  const usesDirectOutput = typeof context.setSinkId === 'function';
+  const destination = usesDirectOutput
+    ? undefined
+    : context.createMediaStreamDestination();
+  const sink = usesDirectOutput ? undefined : createAudioSink();
+  if (destination && sink) {
+    mixer.connect(destination);
+    sink.autoplay = true;
+    sink.volume = 1;
+    sink.srcObject = destination.stream;
+  } else {
+    // Chromium's direct sink path avoids the extra MediaStream + <audio>
+    // playback queue. That queue was outside the measured network buffer and
+    // kept Video visibly behind even when its packets arrived on time.
+    mixer.connect(context.destination);
+  }
   let currentSinkId = outputSinkId;
   let isClosed = false;
   let playbackStarted = false;
@@ -82,7 +98,9 @@ export const createPcmMixer = async (
         if (isClosed) {
           return undefined;
         }
-        if (sink.setSinkId) {
+        if (context.setSinkId) {
+          await context.setSinkId(sinkId);
+        } else if (sink?.setSinkId) {
           await sink.setSinkId(sinkId);
         }
         currentSinkId = sinkId;
@@ -126,7 +144,7 @@ export const createPcmMixer = async (
         return;
       }
       await context.resume();
-      await sink.play();
+      await sink?.play();
     } catch {
       playbackStarted = false;
       onPlaybackBlocked();
@@ -166,9 +184,11 @@ export const createPcmMixer = async (
       await outputSwitch.catch(() => undefined);
       mixer.port.onmessage = null;
       mixer.disconnect();
-      sink.pause();
-      sink.srcObject = null;
-      destination.stream.getTracks().forEach((track) => track.stop());
+      if (sink) {
+        sink.pause();
+        sink.srcObject = null;
+      }
+      destination?.stream.getTracks().forEach((track) => track.stop());
       await context.close();
     },
   };

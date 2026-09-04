@@ -9,6 +9,7 @@ import {
 import useSelectedRemoteAudioOutput from '../../../renderer/remoteAudio/useSelectedRemoteAudioOutput';
 
 const resolveSelectedOutputSinkId = jest.fn();
+const directSetSinkId = jest.fn<Promise<void>, [string]>();
 
 jest.mock('../../../renderer/remoteAudio/selectedOutput', () => ({
   __esModule: true,
@@ -32,17 +33,23 @@ const sink = {
   volume: 0,
 };
 
-const installAudioFakes = () => {
+const installAudioFakes = (directOutput = false) => {
   Object.defineProperty(globalThis, 'AudioContext', {
     configurable: true,
-    value: jest.fn(() => ({
-      audioWorklet: { addModule: jest.fn().mockResolvedValue(undefined) },
-      close: jest.fn().mockResolvedValue(undefined),
-      createMediaStreamDestination: jest.fn(() => ({
-        stream: { getTracks: () => [] },
-      })),
-      resume: jest.fn().mockResolvedValue(undefined),
-    })),
+    value: jest.fn(() => {
+      const context = {
+        audioWorklet: { addModule: jest.fn().mockResolvedValue(undefined) },
+        close: jest.fn().mockResolvedValue(undefined),
+        createMediaStreamDestination: jest.fn(() => ({
+          stream: { getTracks: () => [] },
+        })),
+        destination: {},
+        resume: jest.fn().mockResolvedValue(undefined),
+      };
+      return directOutput
+        ? { ...context, setSinkId: directSetSinkId }
+        : context;
+    }),
   });
   Object.defineProperty(globalThis, 'AudioWorkletNode', {
     configurable: true,
@@ -57,7 +64,19 @@ const installAudioFakes = () => {
 describe('remote audio output following', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    directSetSinkId.mockResolvedValue(undefined);
     installAudioFakes();
+  });
+
+  it('uses Chromium direct output instead of an extra playback queue', async () => {
+    installAudioFakes(true);
+    const mixer = await createPcmMixer('default', jest.fn(), jest.fn());
+
+    await mixer.setOutput('speakers-direct');
+
+    expect(directSetSinkId).toHaveBeenCalledWith('speakers-direct');
+    expect(globalThis.Audio).not.toHaveBeenCalled();
+    await mixer.close();
   });
 
   it('serializes output changes and recovers after one device rejects', async () => {

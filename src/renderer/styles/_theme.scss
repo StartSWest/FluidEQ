@@ -44,6 +44,20 @@ $radius-pill: 999px;
 
 $field-padding-inline: 11px;
 
+// UNAVAILABLE, said once.
+//
+// Every control and card in the app that switches off does it by fading, and
+// the app had nine different answers for how far — 0.25, 0.35, 0.4, 0.42,
+// 0.44, 0.45, 0.46, 0.5 and 0.6 across forty-five rules — so two cards
+// greyed out side by side were two different greys, and a disabled button in
+// one panel read as broken next to the same button in another.
+//
+// 0.45 is the middle of what was already there, and it is the whole of the
+// treatment for a REGION: no desaturation with it. The filter went on the DSP
+// stage to say "off" and what it actually did was drain the palette out of
+// half the window, which is why that page looked muddy beside every other.
+$disabled-opacity: 0.45;
+
 // *** Typography *************************************************************
 
 // Five weights, because five is how many the eye can tell apart at UI sizes.
@@ -683,7 +697,7 @@ $transition-control:
 
   &:disabled {
     cursor: not-allowed;
-    opacity: 0.45;
+    opacity: $disabled-opacity;
   }
 }
 

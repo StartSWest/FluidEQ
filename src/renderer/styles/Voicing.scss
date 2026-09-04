@@ -172,7 +172,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   &:disabled {
     cursor: default;
-    opacity: 0.5;
+    opacity: $disabled-opacity;
   }
 }
 
@@ -346,7 +346,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
     &:disabled {
       cursor: default;
-      opacity: 0.5;
+      opacity: $disabled-opacity;
     }
   }
 }

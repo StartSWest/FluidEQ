@@ -190,7 +190,7 @@ $eq-caret-width: 24px;
 
     &:disabled {
       cursor: default;
-      opacity: 0.45;
+      opacity: $disabled-opacity;
     }
   }
 
@@ -1059,7 +1059,7 @@ $eq-bubble-applied-face: sass-color.mix($analogous-2, $surface-menu-top, 20%);
 
   &:disabled {
     cursor: default;
-    opacity: 0.35;
+    opacity: $disabled-opacity;
   }
 }
 
@@ -1128,7 +1128,7 @@ $eq-bubble-applied-face: sass-color.mix($analogous-2, $surface-menu-top, 20%);
 
   &:disabled {
     cursor: default;
-    opacity: 0.35;
+    opacity: $disabled-opacity;
   }
 }
 

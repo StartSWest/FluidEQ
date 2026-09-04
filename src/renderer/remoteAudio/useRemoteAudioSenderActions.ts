@@ -18,6 +18,7 @@ interface IRemoteAudioSenderActionsOptions {
     stopMode: TRemoteAudioStopMode,
   ): Promise<void>;
   publishConnected(name: string): void;
+  reconnectGenerationRef: { current: number };
   roleRef: { current: TRemoteAudioRole | undefined };
   setError(error: TRemoteAudioError | undefined): void;
   setPhase(phase: TRemoteAudioPhase): void;
@@ -28,6 +29,7 @@ interface IRemoteAudioSenderActionsOptions {
 const useRemoteAudioSenderActions = ({
   clearConnection,
   publishConnected,
+  reconnectGenerationRef,
   roleRef,
   setError,
   setPhase,
@@ -37,13 +39,18 @@ const useRemoteAudioSenderActions = ({
   const begin = useCallback(
     async (connect: () => Promise<ILanRemoteComputer | undefined>) => {
       await clearConnection(false, 'pause');
+      const attempt = reconnectGenerationRef.current + 1;
+      reconnectGenerationRef.current = attempt;
       roleRef.current = 'sender';
       setRole('sender');
       setError(undefined);
       setPhase('preparing');
       try {
         const listener = await connect();
-        if (roleRef.current !== 'sender') {
+        if (
+          roleRef.current !== 'sender' ||
+          reconnectGenerationRef.current !== attempt
+        ) {
           return;
         }
         if (listener) {
@@ -54,7 +61,10 @@ const useRemoteAudioSenderActions = ({
           setPhase('idle');
         }
       } catch {
-        if (roleRef.current === 'sender') {
+        if (
+          roleRef.current === 'sender' &&
+          reconnectGenerationRef.current === attempt
+        ) {
           roleRef.current = undefined;
           setRole(undefined);
           setError('lan');
@@ -62,7 +72,15 @@ const useRemoteAudioSenderActions = ({
         }
       }
     },
-    [clearConnection, publishConnected, roleRef, setError, setPhase, setRole],
+    [
+      clearConnection,
+      publishConnected,
+      reconnectGenerationRef,
+      roleRef,
+      setError,
+      setPhase,
+      setRole,
+    ],
   );
 
   const startSending = useCallback(

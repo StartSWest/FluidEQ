@@ -63,25 +63,39 @@ export const registerRemoteAudioIpc = ({
   const credentials = createRemoteAudioCredentialStore(userDataDir);
   let capture: IRemoteAudioCapture | undefined;
   let lastMeterAt = 0;
+  let sessionGeneration = 0;
+
+  const beginSessionOperation = () => {
+    sessionGeneration += 1;
+    return sessionGeneration;
+  };
+  const sessionIsCurrent = (generation: number) =>
+    sessionGeneration === generation;
 
   const stopCapture = () => {
     capture?.close();
     capture = undefined;
     lastMeterAt = 0;
   };
-  const failCapture = () => {
+  const failCapture = (generation: number) => {
+    if (!sessionIsCurrent(generation)) {
+      return;
+    }
     stopCapture();
     lan.stop();
     sendToWindow(LAN_ERROR_CHANNEL, undefined);
   };
-  const beginCapture = async (peerId: string) => {
+  const beginCapture = async (peerId: string, generation: number) => {
     if (process.platform !== 'win32') {
-      return;
+      return sessionIsCurrent(generation);
     }
     stopCapture();
-    capture = await startRemoteAudioCapture(
+    const nextCapture = await startRemoteAudioCapture(
       peerId,
       (chunk) => {
+        if (!sessionIsCurrent(generation)) {
+          return;
+        }
         try {
           // The transport owns the critical path. The visual meter is a
           // decimated renderer-only mirror and cannot delay a network packet.
@@ -92,13 +106,22 @@ export const registerRemoteAudioIpc = ({
             sendToWindow(LAN_AUDIO_CHANNEL, chunk);
           }
         } catch {
-          failCapture();
+          failCapture(generation);
         }
       },
-      failCapture,
+      () => failCapture(generation),
     );
+    if (!sessionIsCurrent(generation)) {
+      nextCapture.close();
+      return false;
+    }
+    capture = nextCapture;
+    return true;
   };
-  const restoreSavedSender = async (requestedMode: unknown) => {
+  const restoreSavedSender = async (
+    requestedMode: unknown,
+    generation: number,
+  ) => {
     const saved = credentials.readSender();
     if (!saved) {
       return undefined;
@@ -106,17 +129,24 @@ export const registerRemoteAudioIpc = ({
     stopCapture();
     const listener = await lan.restoreJoin(saved.code);
     try {
+      if (!sessionIsCurrent(generation)) {
+        return undefined;
+      }
       const streamMode = asStreamMode(requestedMode);
       lan.setStreamMode(listener.peerId, streamMode);
       lan.sendSignal({
         peerId: listener.peerId,
         signal: { kind: 'stream-mode', mode: streamMode },
       });
-      await beginCapture(listener.peerId);
+      if (!(await beginCapture(listener.peerId, generation))) {
+        return undefined;
+      }
       credentials.activate('sender');
       return listener;
     } catch (error) {
-      lan.stop();
+      if (sessionIsCurrent(generation)) {
+        lan.stop();
+      }
       throw error;
     }
   };
@@ -127,6 +157,8 @@ export const registerRemoteAudioIpc = ({
     () => credentials.readSender()?.code,
   );
   ipcMain.handle('remote-audio-lan-restore', async (_event, streamMode) => {
+    const generation = beginSessionOperation();
+    stopCapture();
     const saved = credentials.read();
     if (!saved) {
       return undefined;
@@ -137,25 +169,33 @@ export const registerRemoteAudioIpc = ({
         credentials,
         false,
       );
+      if (!sessionIsCurrent(generation)) {
+        return undefined;
+      }
       credentials.write({ role: 'listener', ...session.credentials });
       return {
         role: 'listener',
         details: session.details,
       } satisfies TLanRestoreResult;
     }
-    const listener = await restoreSavedSender(streamMode);
+    const listener = await restoreSavedSender(streamMode, generation);
     if (!listener) {
       return undefined;
     }
     return { role: 'sender', listener } satisfies TLanRestoreResult;
   });
   ipcMain.handle('remote-audio-lan-host', async (_event, replaceCode) => {
+    const generation = beginSessionOperation();
+    stopCapture();
     const session = await startRemoteAudioHostSession(
       lan,
       credentials,
       replaceCode === true,
     );
     try {
+      if (!sessionIsCurrent(generation)) {
+        throw new Error('LAN audio session was replaced.');
+      }
       credentials.write({ role: 'listener', ...session.credentials });
       return session.details;
     } catch (error) {
@@ -166,19 +206,28 @@ export const registerRemoteAudioIpc = ({
   ipcMain.handle(
     'remote-audio-lan-join',
     async (_event, code: unknown, streamMode: unknown) => {
+      const generation = beginSessionOperation();
+      stopCapture();
       const listener = await lan.join(code);
       try {
+        if (!sessionIsCurrent(generation)) {
+          throw new Error('LAN audio session was replaced.');
+        }
         const mode = asStreamMode(streamMode);
         lan.setStreamMode(listener.peerId, mode);
         lan.sendSignal({
           peerId: listener.peerId,
           signal: { kind: 'stream-mode', mode },
         });
-        await beginCapture(listener.peerId);
+        if (!(await beginCapture(listener.peerId, generation))) {
+          return undefined;
+        }
         credentials.write({ role: 'sender', code: String(code) });
         return listener;
       } catch (error) {
-        lan.stop();
+        if (sessionIsCurrent(generation)) {
+          lan.stop();
+        }
         throw error;
       }
     },
@@ -200,6 +249,7 @@ export const registerRemoteAudioIpc = ({
     }
   });
   ipcMain.handle('remote-audio-lan-stop', (_event, requestedMode: unknown) => {
+    beginSessionOperation();
     stopCapture();
     lan.stop();
     const mode = asStopMode(requestedMode);
@@ -211,6 +261,7 @@ export const registerRemoteAudioIpc = ({
   });
 
   return () => {
+    beginSessionOperation();
     stopCapture();
     lan.stop();
   };

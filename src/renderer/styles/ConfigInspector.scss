@@ -168,7 +168,7 @@ $name-column: 34ch;
   }
 
   &:disabled {
-    opacity: 0.5;
+    opacity: $disabled-opacity;
     cursor: progress;
   }
 }

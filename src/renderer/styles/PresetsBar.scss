@@ -280,7 +280,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
       &[aria-disabled='true'] {
         cursor: default;
-        opacity: 0.4;
+        opacity: $disabled-opacity;
         pointer-events: none;
       }
     }

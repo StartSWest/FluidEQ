@@ -25,7 +25,7 @@ const remoteAudio: Partial<Dictionary> = {
   'remoteAudio.stream.video.title': '動画',
   'remoteAudio.stream.video.body':
     '口の動きに合う最小遅延。混雑した Wi-Fi では途切れやすくなります。',
-  'remoteAudio.stream.video.buffer': '開始時 約60 ms',
+  'remoteAudio.stream.video.buffer': '開始時 約30 ms',
   'remoteAudio.stream.music.title': '音楽',
   'remoteAudio.stream.music.body':
     '途切れない再生を優先する大きな安全バッファー。',

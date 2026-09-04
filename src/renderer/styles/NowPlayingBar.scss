@@ -584,7 +584,7 @@ $now-playing-bar-height: 64px;
 
   &:disabled {
     color: $text-faint;
-    opacity: 0.7;
+    opacity: $disabled-opacity;
     cursor: default;
   }
 }
@@ -842,7 +842,7 @@ $now-playing-bar-height: 64px;
   }
 
   &:disabled {
-    opacity: 0.35;
+    opacity: $disabled-opacity;
   }
 }
 
@@ -866,6 +866,12 @@ $now-playing-bar-height: 64px;
   background: transparent;
   cursor: pointer;
 
+  // Flat, and on the same empty-track colour as every other groove in the app.
+  //
+  // The inset shadow that used to sit here read as a dark line ruled along the
+  // top of the bar rather than as depth — at 5px tall there is no room for a
+  // gradient to be anything else, and it was the only control in the window
+  // wearing one.
   &::-webkit-slider-runnable-track {
     height: 5px;
     border-radius: $radius-pill;
@@ -873,10 +879,10 @@ $now-playing-bar-height: 64px;
       90deg,
       $secondary-default 0,
       $secondary-default var(--now-playing-progress),
-      rgba($edge-tint, 0.12) var(--now-playing-progress),
-      rgba($edge-tint, 0.12) 100%
+      $track-well var(--now-playing-progress),
+      $track-well 100%
     );
-    box-shadow: inset 0 1px 2px rgba($black, 0.68);
+    box-shadow: none;
   }
 
   &::-webkit-slider-thumb {
@@ -902,7 +908,7 @@ $now-playing-bar-height: 64px;
 
   &:disabled {
     cursor: default;
-    opacity: 0.35;
+    opacity: $disabled-opacity;
   }
 }
 
@@ -975,77 +981,67 @@ $now-playing-bar-height: 64px;
 // Top corners rather than the foot: the now-playing bar already owns the
 // bottom of the window, and a control tucked under the picture reads as the
 // video's own chrome rather than the app's.
-.library-video-stage__back {
-  position: absolute;
-  z-index: 2;
-  top: $spacing-s;
-  left: $spacing-s;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  height: 32px;
-  padding: 0 12px 0 9px;
-  color: rgba($white, 0.88);
-  border: 1px solid rgba($edge-tint, 0.18);
-  border-radius: $radius-s;
-  background: rgba($surface-menu-top, 0.9);
-  font-size: $text-body;
-  cursor: pointer;
-  transition: $transition-control;
+//
+// BOTH ARE `button small subtle`, and everything that makes them look like a
+// button comes from there — the label colour, the outline, the radius, the
+// weight, the hover and the focus ring. They had a full set of their own
+// before: a different border tint, a different fill, a different hover, a
+// height and a radius nothing else in the app uses. Beside any other control
+// they read as belonging to a different program, which is exactly what the
+// quiet outline exists to stop being necessary.
+//
+// What stays here is placement, the glyph's size, and one fill.
+//
+// Written from inside `.library-video-stage` and compounded with the two
+// classes it is overriding, because `.button.subtle` states its fill and its
+// hover fill at two classes and five: a rule of one class loses to it wherever
+// it is written in the sheet, and a rule that merely ties loses or wins by
+// the order two stylesheets happen to be bundled in. This is the same
+// arithmetic the `[aria-disabled]` block in Button.scss had to be moved for.
+.library-video-stage {
+  .library-video-stage__back,
+  .library-video-stage__fullscreen {
+    position: absolute;
+    z-index: 2;
+    top: $spacing-s;
 
-  svg {
-    width: 15px;
-    height: 15px;
-    flex: 0 0 auto;
-    fill: none;
-    stroke: currentcolor;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    stroke-width: 1.6;
+    svg {
+      width: 15px;
+      height: 15px;
+      flex: 0 0 auto;
+      fill: none;
+      stroke: currentcolor;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-width: 1.6;
+    }
   }
 
-  &:hover,
-  &:focus-visible {
-    color: $white;
-    border-color: rgba($secondary-default, 0.5);
-    background: rgba($secondary-default, 0.22);
-    outline: none;
-  }
-}
+  // THE ONE THING TAKEN OFF `subtle`: it fills with 7% of the accent, which
+  // is a tint over a panel and nothing at all over a moving picture. The
+  // label needs a floor of its own here, or it is legible only for as long as
+  // the frame behind it happens to be dark.
+  .library-video-stage__back.button.subtle,
+  .library-video-stage__fullscreen.button.subtle {
+    background: $surface-panel;
 
-.library-video-stage__fullscreen {
-  position: absolute;
-  z-index: 2;
-  top: $spacing-s;
-  right: $spacing-s;
-  display: grid;
-  width: 32px;
-  height: 32px;
-  place-items: center;
-  padding: 0;
-  color: rgba($white, 0.88);
-  border: 1px solid rgba($edge-tint, 0.18);
-  border-radius: $radius-s;
-  background: rgba($surface-menu-top, 0.9);
-  cursor: pointer;
-  transition: $transition-control;
-
-  svg {
-    width: 15px;
-    height: 15px;
-    fill: none;
-    stroke: currentcolor;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    stroke-width: 1.6;
+    &:hover:not(:disabled) {
+      background: $surface-menu-top;
+    }
   }
 
-  &:hover,
-  &:focus-visible {
-    color: $white;
-    border-color: rgba($secondary-light, 0.5);
-    background: rgba($surface-menu-top, 0.96);
-    outline: none;
+  .library-video-stage__back {
+    left: $spacing-s;
+    gap: 6px;
+  }
+
+  .library-video-stage__fullscreen.button.small {
+    right: $spacing-s;
+    // Square: a glyph and nothing else, so the label padding `small` reserves
+    // would make an oblong with the icon adrift in the middle of it.
+    width: $control-height-sm;
+    min-width: 0;
+    padding: 0;
   }
 }
 

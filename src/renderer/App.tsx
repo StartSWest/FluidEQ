@@ -143,6 +143,7 @@ import RemoteAudioPanel from './remoteAudio/RemoteAudioPanel';
 import RemoteAudioProvider from './remoteAudio/RemoteAudioContext';
 import EuphoriaGlow from './components/EuphoriaGlow';
 import {
+  createPreset,
   deletePreset,
   getPresetListFromFiles,
   importConvolutionFile,
@@ -2203,16 +2204,20 @@ const AppContent = () => {
                 </div>
               </div>
             )}
-            {/* No engine-disabled state, unlike every panel above it.
-                Those are inert with the equaliser switched off because moving
-                their controls changes nothing you can hear. This one changes
-                nothing at all — it only reports what is on disk — and the
-                config is at its most worth reading precisely when something is
-                wrong, which includes the engine being off. */}
+            {/* Dimmed with the rest of the group, and still readable.
+                It used to be the one EQ page that stayed at full strength with
+                the engine off, on the argument that a config viewer is at its
+                most useful precisely then. What that produced was one page in
+                a row of five that did not react to the switch at all, so the
+                group read as three quarters disabled. It carries the same dim
+                now; nothing here is a control, so nothing is taken away by
+                it. */}
             {activeWorkspaceTab === 'config' && (
               <div
                 key={activeWorkspaceTab}
-                className="workspace-tab-panel workspace-tab-panel--config"
+                className={`workspace-tab-panel workspace-tab-panel--config${
+                  !isEngineUsable ? ' is-engine-disabled' : ''
+                }`}
               >
                 {eqGroupPills}
                 <div className="workspace-tab-panel__scroll">
@@ -2403,6 +2408,7 @@ const AppContent = () => {
               fetchPresets={getPresetListFromFiles}
               loadPreset={loadPreset}
               savePreset={savePreset}
+              createPreset={createPreset}
               renamePreset={renamePreset}
               deletePreset={deletePreset}
             />

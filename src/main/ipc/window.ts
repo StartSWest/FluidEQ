@@ -126,8 +126,18 @@ export const registerWindowIpc = ({
     // — measured, the window stayed at the work area's 1392px height with
     // the taskbar still showing — so the smoother movement cost the mode
     // itself. The snap stays until there is a way to have both.
+    // NOTHING IS PUSHED FROM HERE.
+    //
+    // The window's own `enter-full-screen` and `leave-full-screen` events
+    // push the state, and they fire when it is true. Pushing it from here as
+    // well announced the state the window is LEAVING — the same message-loop
+    // lag the maximise handler above documents — and the renderer does not
+    // treat that flag as cosmetic: a `false` arriving while a full-screen
+    // request is in flight is how it hears "the user left full screen by some
+    // other route", so it dropped the media surface it had just been given.
+    // The window went full screen and the tab laid itself out as though it
+    // had not, which is a full-screen press that visibly does nothing.
     mainWindow.setFullScreen(!!next);
-    sendWindowState();
     return !!next;
   });
 };

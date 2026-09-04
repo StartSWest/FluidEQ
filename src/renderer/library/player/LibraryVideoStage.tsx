@@ -138,7 +138,7 @@ const LibraryVideoStage = ({
         <>
           <button
             type="button"
-            className="library-video-stage__back"
+            className="button small subtle library-video-stage__back"
             aria-label={t('library.back')}
             title={t('library.back')}
             onClick={stop}
@@ -150,7 +150,7 @@ const LibraryVideoStage = ({
           </button>
           <button
             type="button"
-            className="library-video-stage__fullscreen"
+            className="button small subtle library-video-stage__fullscreen"
             aria-label={t('library.fullScreen')}
             title={t('library.fullScreen')}
             aria-pressed={isFullScreen}

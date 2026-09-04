@@ -191,7 +191,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // Dimmed rather than hidden: a back button that vanishes at the start of
   // history makes the row jump every time somebody navigates.
   &:disabled {
-    opacity: 0.3;
+    opacity: $disabled-opacity;
     cursor: default;
   }
 }
@@ -401,7 +401,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // Dimmed rather than hidden: a button that appears as the first character is
   // typed makes the whole box change width mid-word.
   &:disabled {
-    opacity: 0.35;
+    opacity: $disabled-opacity;
     cursor: default;
   }
 }
@@ -584,7 +584,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   &:disabled {
     cursor: default;
-    opacity: 0.5;
+    opacity: $disabled-opacity;
   }
 
   // What it did, in the only currency a glyph has. Held for a few seconds by

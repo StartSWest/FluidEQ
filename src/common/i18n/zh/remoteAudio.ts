@@ -25,7 +25,7 @@ const remoteAudio: Partial<Dictionary> = {
   'remoteAudio.stream.video.title': '视频',
   'remoteAudio.stream.video.body':
     '最低延迟以匹配口型。Wi-Fi 繁忙时更容易断续。',
-  'remoteAudio.stream.video.buffer': '起始约 60 ms',
+  'remoteAudio.stream.video.buffer': '起始约 30 ms',
   'remoteAudio.stream.music.title': '音乐',
   'remoteAudio.stream.music.body': '使用更大的安全缓冲区以保持连续播放。',
   'remoteAudio.stream.music.buffer': '起始约 240 ms',

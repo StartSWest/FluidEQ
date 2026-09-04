@@ -152,7 +152,12 @@ const SCOPE_FADE = 0.16;
  */
 const drawScope = (context: CanvasRenderingContext2D, box: IBox): void => {
   // Painted over rather than cleared, which is where the tail comes from.
-  context.fillStyle = `rgba(7,5,18,${SCOPE_FADE})`;
+  //
+  // The plot colour, like every other drawing in the app. It was a near-black
+  // violet from before the palette existed, so the one card on this page that
+  // shows a scope was a black rectangle dropped into a window that has no
+  // black in it.
+  context.fillStyle = `rgba(26,58,78,${SCOPE_FADE})`;
   context.fillRect(0, 0, box.width, box.height);
 
   const size = Math.min(box.width, box.height) - 6;

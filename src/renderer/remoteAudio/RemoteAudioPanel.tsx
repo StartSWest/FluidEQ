@@ -25,7 +25,12 @@ const RemoteAudioPanel = () => {
   );
   const [pairingCode, setPairingCode] = useState('');
   const [copiedCode, setCopiedCode] = useState('');
-  const displayedRole = remote.role ?? selectedRole;
+  const displayedRole = selectedRole;
+  useEffect(() => {
+    if (remote.role) {
+      setSelectedRole(remote.role);
+    }
+  }, [remote.role]);
   useEffect(() => {
     if (displayedRole !== 'sender' || pairingCode) {
       return undefined;
@@ -106,23 +111,11 @@ const RemoteAudioPanel = () => {
     }
   };
 
-  const chooseListener = async () => {
-    if (remote.role === 'listener') {
-      return;
-    }
-    if (remote.role) {
-      await remote.stop();
-    }
+  const chooseListener = () => {
     setSelectedRole('listener');
   };
 
-  const chooseSender = async () => {
-    if (remote.role === 'sender') {
-      return;
-    }
-    if (remote.role) {
-      await remote.stop();
-    }
+  const chooseSender = () => {
     setSelectedRole('sender');
   };
 
@@ -173,7 +166,7 @@ const RemoteAudioPanel = () => {
         active={monitorActive}
         connectedComputers={remote.connectedComputers}
         detail={monitorDetail}
-        mode={displayedRole}
+        mode={remote.role ?? displayedRole}
         networkStats={remote.networkStats}
         status={monitorStatus}
         subscribe={remote.subscribeMeter}
@@ -196,7 +189,7 @@ const RemoteAudioPanel = () => {
               role="radio"
               aria-checked={displayedRole === 'listener'}
               className="remote-audio__role-choice"
-              onClick={() => chooseListener().catch(() => undefined)}
+              onClick={chooseListener}
             >
               <span className="remote-audio__role-radio" aria-hidden="true" />
               <span className="remote-audio__role-icon" aria-hidden="true">
@@ -220,7 +213,7 @@ const RemoteAudioPanel = () => {
               role="radio"
               aria-checked={displayedRole === 'sender'}
               className="remote-audio__role-choice"
-              onClick={() => chooseSender().catch(() => undefined)}
+              onClick={chooseSender}
             >
               <span className="remote-audio__role-radio" aria-hidden="true" />
               <span className="remote-audio__role-icon" aria-hidden="true">

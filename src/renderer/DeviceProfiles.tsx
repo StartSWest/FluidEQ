@@ -37,8 +37,11 @@ interface IDeviceProfilesProps {
 }
 
 const DeviceProfiles = ({ onConfigureApo }: IDeviceProfilesProps) => {
-  const { isBlockingError, performHealthCheck, setGlobalError } =
-    useFluidEqContext();
+  // Re-read the state, do not raise the loading flag: that flag is the
+  // start-up screen, so noticing a headphone plug used to blank the whole
+  // workspace and rebuild it instead of moving the bands to that output's
+  // profile. See the same note in PresetsBar.
+  const { isBlockingError, refreshState, setGlobalError } = useFluidEqContext();
   const { t } = useTranslation();
   const [devices, setDevices] = useState<IAudioDevice[]>([]);
   const [settings, setSettings] =
@@ -65,7 +68,7 @@ const DeviceProfiles = ({ onConfigureApo }: IDeviceProfilesProps) => {
             detail: { deviceId: activeDevice.id },
           }),
         );
-        performHealthCheck();
+        refreshState();
       }
       setSelectedDeviceId((current) => {
         if (nextDevices.some((device) => device.id === current)) {
@@ -80,7 +83,7 @@ const DeviceProfiles = ({ onConfigureApo }: IDeviceProfilesProps) => {
     } catch (e) {
       setGlobalError(e as ErrorDescription);
     }
-  }, [performHealthCheck, setGlobalError]);
+  }, [refreshState, setGlobalError]);
 
   // Polled, because Windows does not tell us when someone plugs in headphones,
   // and paused whenever the window is hidden.
