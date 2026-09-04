@@ -84,8 +84,8 @@ const dsp = {
   'dsp.denoise.profileSource': 'शोर स्तर',
   'dsp.denoise.scanned': 'मापा गया',
   'dsp.denoise.adaptive': 'अनुकूली',
-  'dsp.denoise.fallingBack':
-    'इस स्रोत का कोई माप नहीं — शोर स्तर सीधे लाइव पढ़ा जा रहा है।',
+  'dsp.denoise.scanRequired':
+    'इस ट्रैक का कोई सहेजा हुआ स्कैन नहीं है। दोबारा स्कैन करने तक मापा गया मोड ध्वनि नहीं बदलेगा।',
   'dsp.denoise.hiss': 'हिस',
   'dsp.denoise.hissHint':
     'मापे गए स्तर के सापेक्ष व्यापक-बैंड दमन। चालू रहने पर 21 ms विलंब जोड़ता है।',
@@ -112,15 +112,15 @@ const dsp = {
     'आवेगी क्षति ढूँढ़कर पाटता है। जो भी क्लिक कहलाने के लिए बहुत लंबा है उसे छोड़ दिया जाता है, इसलिए ताल-वाद्य बचे रहते हैं।',
   'dsp.denoise.maxRepair': 'अधिकतम मरम्मत',
   'dsp.denoise.voice': 'आवाज़',
-  'dsp.denoise.background': 'पृष्ठभूमि',
   'dsp.denoise.voiceHint':
-    'वाणी पर प्रशिक्षित न्यूरल क्लीनर। पॉडकास्ट और साक्षात्कार पर उत्कृष्ट; संगीत पर यह झांझ और रीवर्ब की पूँछ भी ले जाता है।',
+    'वाणी के लिए प्रशिक्षित न्यूरल पृष्ठभूमि-शोर हटाना। पॉडकास्ट और साक्षात्कार के लिए सर्वोत्तम; यह संगीत स्टेम सेपरेटर नहीं है।',
   'dsp.denoise.voiceModelMissing':
     'चलने से पहले एक बार 10 MB का मॉडल डाउनलोड करना होगा।',
   'dsp.denoise.voiceDownload': 'मॉडल डाउनलोड करें',
   'dsp.denoise.voiceDownloading': 'मॉडल डाउनलोड हो रहा है · {progress}%',
   'dsp.denoise.voiceReady': 'मॉडल तैयार',
   'dsp.denoise.analysis': 'स्रोत विश्लेषण',
+  'dsp.denoise.rescan': 'फिर से स्कैन करें',
   'dsp.denoise.analyzing': 'शोर स्तर मापा जा रहा है · {progress}%',
   'dsp.denoise.waiting': 'मापने के लिए लाइब्रेरी का कोई ट्रैक चलाएँ।',
   'dsp.denoise.measuredFloor': 'शोर स्तर',

@@ -144,22 +144,40 @@ $motion-slow: 300ms;
   }
 }
 
+// `$fill` is `backwards` because everything here is an entrance and every
+// entrance keyframe above ends on the element's own resting style — so holding
+// the last frame afterwards buys nothing and costs a compositor layer for the
+// life of the element (see below). An animation that must hold a state its
+// element does not otherwise have — an exit ending at `opacity: 0` — passes
+// `forwards` and accepts that cost for as long as it is on screen.
 @mixin animate(
   $name,
   $duration: $motion-base,
   $easing: $ease-out,
-  $delay: 0ms
+  $delay: 0ms,
+  $fill: backwards
 ) {
-  animation: $name $duration $easing $delay both;
-  // Everything here animates opacity and transform only, so the compositor can
-  // run it without asking the main thread for a single frame. Stated so that a
-  // future keyframe cannot quietly start animating a layout property and drop
-  // the whole app to software painting.
-  will-change: opacity, transform;
+  animation: $name $duration $easing $delay $fill;
+  // Everything here animates opacity and transform only, so the compositor runs
+  // these without asking the main thread for a single frame. Chromium promotes
+  // an element for the length of such an animation by itself and drops the
+  // layer when it ends, which is the whole of what is needed here — every use
+  // of this mixin is an entrance that runs once.
+  //
+  // NO `will-change` HERE, and no `forwards` fill. Both of them keep an element
+  // on a compositor layer of its own for the rest of the session — `will-change`
+  // by asking for it outright, a forwards fill by leaving the animation owning
+  // the property forever, which the compositor reports as an animation that is
+  // still active. Text painted into a layer whose contents are not opaque loses
+  // subpixel antialiasing, so with both of these in place the whole app rendered
+  // in grey-scale AA and read visibly softer than the titlebar beside it, which
+  // is not animated and therefore never promoted. Measured in the running
+  // window: 39 layers, naming `WillChangeTransform,WillChangeOpacity` and then
+  // `ActiveTranslateAnimation,ActiveOpacityAnimation` as the reason for the
+  // panes; 22 once both were gone, none of them a pane.
 
   @media (prefers-reduced-motion: reduce) {
     animation: none;
-    will-change: auto;
   }
 }
 

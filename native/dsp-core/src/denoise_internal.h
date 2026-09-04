@@ -75,8 +75,8 @@ constexpr double kDenoiseSilenceDb = -120.0;
  * The deepest delay every module together can add, at any supported rate.
  *
  * The spectral window is the largest term: held at 42.7 ms, it reaches 8192
- * samples at 192 kHz. The 48 kHz neural module reaches 11520 after conversion
- * at 192 kHz, and the click repairer its lookahead at 144, for 19856 — so this
+ * samples at 192 kHz. The 48 kHz neural module reaches 9600 after conversion
+ * at 192 kHz, and the click repairer its lookahead at 144, for 17936 — so this
  * doubled when the window did, and it must move with it every time. It sizes
  * Isolate's dry delay once at construction so that no module toggle ever
  * reallocates a buffer the callback is reading; a value too small does not
@@ -285,8 +285,8 @@ struct FeqDenoise {
    * The measured profile, and whether one has ever arrived.
    *
    * `profile_ready` is not the same question as "is Scanned selected": a track
-   * that has never been analyzed has the control set to Scanned and no profile
-   * behind it, and the card has to be able to say which one is running.
+   * can select Scanned with no profile behind it, in which case the spectral
+   * path stays transparent until an explicit scan arrives.
    */
   FeqNoiseProfile profile{};
   bool profile_ready = false;

@@ -62,6 +62,7 @@ import Curve from './Curve';
 import EditablePoint from './EditablePoint';
 import LiveTraceCanvas from './LiveTraceCanvas';
 import { LIVE_FULL_SCALE_DB } from './liveSpectrumFrames';
+import { getWaveTransform } from './liveTracePaint';
 
 export interface ChartDimensions {
   height: number;
@@ -954,6 +955,47 @@ const Chart = ({
   const yAxisTickValues = useMemo(() => {
     return [MIN_GAIN, -10, 0, 10, MAX_GAIN];
   }, []);
+  // The live trace is projected through yScaleGain and then transformed on the
+  // canvas. Apply that same transform to its right-hand dB axis so the labels
+  // continue to describe the visible trace when its height or position changes.
+  const liveLevelScale = useMemo(() => {
+    const primaryLiveCurve = liveCurves[liveCurves.length - 1];
+    if (!primaryLiveCurve) {
+      return yScaleGain;
+    }
+
+    const range = yScaleGain.range().map(Number);
+    const plotTop = Math.min(...range);
+    const plotBottom = Math.max(...range);
+    const { translateY, scaleY } = getWaveTransform(
+      primaryLiveCurve,
+      plotBottom,
+      plotTop,
+    );
+
+    return yScaleGain
+      .copy()
+      .range(range.map((value) => translateY + scaleY * value));
+  }, [liveCurves, yScaleGain]);
+
+  // Near-flat waves cannot carry five legible labels. Thin the same scale
+  // rather than letting labels overlap; the remaining marks stay exact.
+  const liveLevelTickValues = useMemo(() => {
+    const span = Math.abs(
+      Number(liveLevelScale(MAX_GAIN)) - Number(liveLevelScale(MIN_GAIN)),
+    );
+
+    if (span < 22) {
+      return [MAX_GAIN];
+    }
+    if (span < 44) {
+      return [MIN_GAIN, MAX_GAIN];
+    }
+    if (span < 88) {
+      return [MIN_GAIN, 0, MAX_GAIN];
+    }
+    return yAxisTickValues;
+  }, [liveLevelScale, yAxisTickValues]);
   const yGridTickValues = useMemo(() => {
     return [MIN_GAIN, -10, 10, MAX_GAIN];
   }, []);
@@ -1274,15 +1316,14 @@ const Chart = ({
             tickValues={yAxisTickValues}
             tickFormat={yTickFormat}
           />
-          {/* Same pixels, second quantity. It shares `yScaleGain` because the
-              trace is plotted against that very scale — reading it off a
-              separate scale would put the labels where the trace is not. */}
+          {/* Same transformed pixels as the live wave it describes. */}
           <Axis
             type="right"
-            scale={yScaleGain}
+            scale={liveLevelScale}
             transform={`translate(${padding.left + plotWidth}, 0)`}
-            tickValues={yAxisTickValues}
+            tickValues={liveLevelTickValues}
             tickFormat={levelTickFormat}
+            disableAnimation
           />
           <Axis
             type="bottom"

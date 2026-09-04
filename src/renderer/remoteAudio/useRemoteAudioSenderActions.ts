@@ -3,6 +3,7 @@
 import { useCallback } from 'react';
 import type {
   ILanRemoteComputer,
+  TRemoteAudioStopMode,
   TRemoteAudioStreamMode,
 } from '../../common/remoteAudio';
 import type {
@@ -12,7 +13,10 @@ import type {
 } from './remoteAudioState';
 
 interface IRemoteAudioSenderActionsOptions {
-  clearConnection(notify: boolean, forget: boolean): Promise<void>;
+  clearConnection(
+    notify: boolean,
+    stopMode: TRemoteAudioStopMode,
+  ): Promise<void>;
   publishConnected(name: string): void;
   roleRef: { current: TRemoteAudioRole | undefined };
   setError(error: TRemoteAudioError | undefined): void;
@@ -32,7 +36,7 @@ const useRemoteAudioSenderActions = ({
 }: IRemoteAudioSenderActionsOptions) => {
   const begin = useCallback(
     async (connect: () => Promise<ILanRemoteComputer | undefined>) => {
-      await clearConnection(false, false);
+      await clearConnection(false, 'pause');
       roleRef.current = 'sender';
       setRole('sender');
       setError(undefined);
@@ -71,16 +75,7 @@ const useRemoteAudioSenderActions = ({
       ),
     [begin, streamModeRef],
   );
-  const resumeSending = useCallback(
-    () =>
-      begin(() =>
-        window.electron.ipcRenderer.resumeRemoteAudioLanSender(
-          streamModeRef.current,
-        ),
-      ),
-    [begin, streamModeRef],
-  );
-  return { resumeSending, startSending };
+  return { startSending };
 };
 
 export default useRemoteAudioSenderActions;

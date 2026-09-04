@@ -56,7 +56,7 @@ typedef enum FeqDenoiseHumMode {
   FEQ_DENOISE_HUM_SIXTY = 2
 } FeqDenoiseHumMode;
 
-/** Matches `DENOISE_VOICE_MODES`. */
+/** Legacy wire values. The speech denoiser now ignores this slot. */
 typedef enum FeqDenoiseVoiceMode {
   FEQ_DENOISE_VOICE_KEEP_VOICE = 0,
   FEQ_DENOISE_VOICE_KEEP_BACKGROUND = 1

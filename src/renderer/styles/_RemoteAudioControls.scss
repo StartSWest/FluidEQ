@@ -91,9 +91,12 @@
   align-items: center;
   gap: 6px;
 
+  // The glyph is what separates the two choices at a glance — the words below
+  // them are a sentence each, and at 17px the icon read as punctuation next to
+  // the label rather than as the thing being chosen.
   .menu-icon {
-    width: 17px;
-    height: 17px;
+    width: 22px;
+    height: 22px;
     flex: 0 0 auto;
     color: $secondary-light;
   }

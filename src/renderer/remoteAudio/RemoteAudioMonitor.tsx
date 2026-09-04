@@ -90,7 +90,7 @@ const RemoteAudioMeterLane = ({
   useEffect(() => {
     meterRef.current = EMPTY_METER;
     historyRef.current = emptyHistory();
-    if (meterKey === undefined) {
+    if (!active || meterKey === undefined) {
       return undefined;
     }
     return subscribe((meter) => {
@@ -103,7 +103,7 @@ const RemoteAudioMeterLane = ({
         appendHistory(historyRef.current, meter.waveform);
       }
     });
-  }, [meterKey, subscribe]);
+  }, [active, meterKey, subscribe]);
 
   useEffect(() => {
     let frameId = 0;

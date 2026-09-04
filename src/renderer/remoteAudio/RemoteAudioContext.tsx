@@ -12,6 +12,7 @@ import type {
   ILanPairingOption,
   ILanRemoteAudioChunk,
   ILanRemoteAudioSignal,
+  TRemoteAudioStopMode,
 } from '../../common/remoteAudio';
 import {
   useLiveAudioCapture,
@@ -122,12 +123,22 @@ const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
       setConnectedCount(1);
       setPhase('connected');
     } catch {
+      senderRef.current?.close();
+      senderRef.current = undefined;
+      senderPeerIdRef.current = undefined;
+      removeNetworkPeer(peerId);
+      await window.electron.ipcRenderer
+        .stopRemoteAudioLan('keep-active')
+        .catch(() => undefined);
+      roleRef.current = undefined;
+      setRole(undefined);
+      setConnectedCount(0);
       setError(capture ? 'connection' : 'capture');
       setPhase('error');
     } finally {
       senderStartingRef.current = false;
     }
-  }, [capture, publishMeter]);
+  }, [capture, publishMeter, removeNetworkPeer]);
 
   useEffect(() => {
     startPcmSender().catch(() => undefined);
@@ -183,6 +194,7 @@ const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
         removeNetworkPeer(peerId);
         publishListenerState();
       } else if (senderPeerIdRef.current === peerId) {
+        removeNetworkPeer(peerId);
         senderRef.current?.close();
         senderRef.current = undefined;
         senderPeerIdRef.current = undefined;
@@ -319,7 +331,7 @@ const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
   ]);
 
   const clearConnection = useCallback(
-    async (notify: boolean, forget: boolean) => {
+    async (notify: boolean, stopMode: TRemoteAudioStopMode) => {
       if (stoppingRef.current) {
         return;
       }
@@ -344,7 +356,7 @@ const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
       mixerRef.current = undefined;
       await mixer?.close().catch(() => undefined);
       await window.electron.ipcRenderer
-        .stopRemoteAudioLan(forget)
+        .stopRemoteAudioLan(stopMode)
         .catch(() => undefined);
       peerIdsRef.current.clear();
       peerNamesRef.current.clear();
@@ -367,7 +379,7 @@ const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
 
   const startListening = useCallback(
     async (replaceCode = false) => {
-      await clearConnection(false, false);
+      await clearConnection(false, 'pause');
       roleRef.current = 'listener';
       setRole('listener');
       setPhase('preparing');
@@ -419,7 +431,7 @@ const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
     [clearConnection, publishListenerState, publishMeter],
   );
 
-  const { resumeSending, startSending } = useRemoteAudioSenderActions({
+  const { startSending } = useRemoteAudioSenderActions({
     clearConnection,
     publishConnected: publishSenderConnection,
     roleRef,
@@ -449,11 +461,10 @@ const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
       networkStats,
       phase,
       role,
-      resumeSending,
       setStreamMode,
       startListening,
       startSending,
-      stop: () => clearConnection(true, false),
+      stop: () => clearConnection(true, 'pause'),
       resumePlayback,
       subscribeMeter,
       streamMode,
@@ -468,7 +479,6 @@ const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
       networkStats,
       phase,
       resumePlayback,
-      resumeSending,
       role,
       setStreamMode,
       subscribeMeter,

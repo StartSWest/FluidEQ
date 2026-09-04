@@ -90,18 +90,35 @@ $now-playing-bar-height: 64px;
   // gives every other card — 18px, not a number chosen here. The gradient,
   // the inset highlight and the blur are untouched: this is the same surface
   // it always was, cut to the shape the rest of the window uses.
-  border: 1px solid rgba($secondary-light, 0.18);
+  // `$border-panel`, the line every other outermost card in the shell is drawn
+  // with, rather than cyan at 0.18. Measured side by side against the sidebar's
+  // bottom corner: this one was both brighter and more saturated than the card
+  // it sits under, so the bar read as outlined while the panels around it read
+  // as edged.
+  border: 1px solid $border-panel;
   border-radius: $radius-xl;
-  background: linear-gradient(180deg, rgba(#163047, 0.94), rgba(#07131f, 0.98));
-  // The cast shadow spreads all round rather than only upward. It was
-  // directional because the card was anchored to the bottom edge and had no
-  // sides to cast from; now it floats and needs the same halo the other cards
-  // sit in.
+  // Opaque for the same reason as `.window-titlebar`: this card floats above
+  // the workspace and its canvases, so it gets a compositor layer regardless,
+  // and text on a layer only keeps its subpixel antialiasing over an opaque
+  // background. It was already 94-98%, so nothing about the colour moves.
+  background: linear-gradient(180deg, #163047, #07131f);
+  // `panel-surface`'s own shadow, verbatim, because this is a card in the same
+  // shell as the others and was the only one drawn as a raised object.
+  //
+  // What it had instead was an embossed edge: a white top highlight at twice
+  // every other card's strength, over a cast shadow at more than twice their
+  // darkness, plus a second shadow thrown UPWARD that nothing else in the
+  // window has. Bright edge over dark ground on all four sides is the recipe
+  // for a bevel, and beside the flat sidebar and the flat tab panel this one
+  // bar read as a 3D strip laid on top of the app.
   box-shadow:
-    0 10px 38px rgba($black, 0.45),
-    0 -10px 30px rgba($black, 0.28),
-    inset 0 1px 0 rgba($white, 0.07);
-  backdrop-filter: blur(18px) saturate(1.25);
+    inset 0 1px 0 rgba($white, 0.035),
+    0 20px 48px rgba($black, 0.2);
+  // No `backdrop-filter`, for the reason spelled out on `.window-titlebar`: it
+  // is a compositor layer, and the track title, the artist and the two times
+  // painted into it lost their subpixel antialiasing for it. This surface is
+  // 94-98% opaque and the shell reserves its height, so there was never
+  // anything behind it for the blur to soften.
 }
 
 // Closer to the edge in full screen. The gutter it keeps in a window is the

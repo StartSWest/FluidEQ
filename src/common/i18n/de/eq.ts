@@ -41,9 +41,12 @@ const eq: Partial<Dictionary> = {
   'graph.item.bands': 'Hörbereiche',
   'graph.item.meter': 'Pegelanzeige',
   'graph.item.topBar': 'obere Leiste',
-  'graph.fit': 'Diagramm einpassen',
-  'graph.stretch': 'Auf volle Größe strecken',
-  'graph.compact': 'Welle auf den Rand verkleinern',
+  'graph.waveHeight': 'Wellenhöhe',
+  'graph.waveHeightHint':
+    'Die Welle von einer flachen Bewegung bis zur vollen Diagrammhöhe zeichnen',
+  'graph.wavePosition': 'Wellenposition',
+  'graph.wavePositionHint':
+    'Die Welle vom unteren Rand in die Mitte des Diagramms verschieben',
   'graph.orientation.down': 'Welle nach unten hängen',
   'graph.orientation.mirror': 'Welle spiegeln',
   'graph.orientation.centre': 'Von der Mitte spiegeln',

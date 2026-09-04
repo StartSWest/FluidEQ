@@ -20,10 +20,10 @@ import { ReactNode, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { TranslationKey } from '../../common/i18n';
 import { useTranslation } from '../utils/I18nContext';
 import {
+  MIN_GRAPH_WAVE_HEIGHT,
   TGraphContents,
   TGraphCurve,
   TGraphView,
-  TGraphWaveSize,
   TWaveOrientation,
 } from '../utils/graphStyle';
 
@@ -76,8 +76,10 @@ interface IGraphViewMenuProps {
   onToggleMeter: () => void;
   isTitlebarWaveHidden: boolean;
   onToggleTitlebarWave: () => void;
-  waveSize: TGraphWaveSize;
-  onToggleStretch: () => void;
+  waveHeight: number;
+  onChangeWaveHeight: (next: number) => void;
+  wavePosition: number;
+  onChangeWavePosition: (next: number) => void;
   waveOrientation: TWaveOrientation;
   onCycleOrientation: () => void;
   /**
@@ -94,13 +96,6 @@ interface IGraphViewMenuProps {
   hasTopBar: boolean;
   onToggleTopBar: () => void;
 }
-
-/** Names the size the next press moves to, not the one you are in. */
-const WAVE_SIZE_LABEL: Record<TGraphWaveSize, TranslationKey> = {
-  normal: 'graph.stretch',
-  stretched: 'graph.compact',
-  compact: 'graph.fit',
-};
 
 /** Names the state the next press moves to, since three states cycle. */
 const ORIENTATION_LABEL: Record<TWaveOrientation, TranslationKey> = {
@@ -178,8 +173,10 @@ const GraphViewMenu = ({
   onToggleMeter,
   isTitlebarWaveHidden,
   onToggleTitlebarWave,
-  waveSize,
-  onToggleStretch,
+  waveHeight,
+  onChangeWaveHeight,
+  wavePosition,
+  onChangeWavePosition,
   waveOrientation,
   onCycleOrientation,
   overlayOpacity,
@@ -507,23 +504,63 @@ const GraphViewMenu = ({
             </span>
           </button>
 
-          {/* Three sizes, so it cycles and names the one the next press goes
-              to, exactly like the orientation row below. As a checkbox it could
-              only ever say "stretched or not", which is now two thirds of the
-              answer. */}
-          <button
-            type="button"
-            role="menuitem"
-            onClick={choose(onToggleStretch)}
+          {/* Continuous controls replace the three-stop Ctrl+B size mode. The
+              old control mixed plot margins with wave amplitude, which made
+              none of its three labels a complete description of what moved.
+              These stay open while dragged so the graph remains the readout. */}
+          <label
+            className={`graph-view-menu__slider${
+              isWaveHidden ? ' is-disabled' : ''
+            }`}
+            htmlFor="graph-wave-height"
+            title={t('graph.waveHeightHint')}
           >
             <Icon>
               <path d="M8 2.5v11M5.4 5.1L8 2.5l2.6 2.6M5.4 10.9L8 13.5l2.6-2.6" />
             </Icon>
-            <span>{t(WAVE_SIZE_LABEL[waveSize])}</span>
-            <kbd>Ctrl+B</kbd>
-          </button>
+            <span>{t('graph.waveHeight')}</span>
+            <input
+              id="graph-wave-height"
+              type="range"
+              min={MIN_GRAPH_WAVE_HEIGHT * 100}
+              max={100}
+              step={1}
+              value={Math.round(waveHeight * 100)}
+              disabled={isWaveHidden}
+              onChange={(event) =>
+                onChangeWaveHeight(Number(event.target.value) / 100)
+              }
+            />
+          </label>
 
-          {/* Three states, so it cycles and names the one it will go to next
+          <label
+            className={`graph-view-menu__slider${
+              isWaveHidden || waveOrientation === 'centred'
+                ? ' is-disabled'
+                : ''
+            }`}
+            htmlFor="graph-wave-position"
+            title={t('graph.wavePositionHint')}
+          >
+            <Icon>
+              <path d="M2 3h12M2 8h12M2 13h12M8 12.5V8.8M5.8 11l2.2 2.2 2.2-2.2" />
+            </Icon>
+            <span>{t('graph.wavePosition')}</span>
+            <input
+              id="graph-wave-position"
+              type="range"
+              min={0}
+              max={100}
+              step={1}
+              value={Math.round(wavePosition * 100)}
+              disabled={isWaveHidden || waveOrientation === 'centred'}
+              onChange={(event) =>
+                onChangeWavePosition(Number(event.target.value) / 100)
+              }
+            />
+          </label>
+
+          {/* Four states, so it cycles and names the one it will go to next
               rather than the one you are in. Every look is drawn from the same
               points, so this flips all forty at once. */}
           {/* Nothing to turn over when there is no wave. Greyed rather than

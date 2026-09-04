@@ -31,7 +31,7 @@ export const RemoteAudioListenerWorkspace = ({
   const { t } = useTranslation();
 
   return (
-    <div className="remote-audio__role-workspace is-listener">
+    <div className="remote-audio__role-workspace">
       <div className="remote-audio__codes">
         <h4>{t('remoteAudio.code.title')}</h4>
         <p>{t('remoteAudio.code.hint')}</p>
@@ -133,7 +133,7 @@ export const RemoteAudioSenderWorkspace = ({
   const { t } = useTranslation();
 
   return (
-    <div className="remote-audio__role-workspace is-sender">
+    <div className="remote-audio__role-workspace">
       <div className="remote-audio__stream-mode">
         <div className="remote-audio__stream-mode-heading">
           <strong>{t('remoteAudio.stream.title')}</strong>

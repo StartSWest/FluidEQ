@@ -39,6 +39,7 @@ constexpr std::uint32_t kAudioFrame = 2;
 // are copied verbatim.
 constexpr std::uint16_t kChunkFrames = 480;
 constexpr std::uint16_t kMaxChannels = 8;
+constexpr DWORD kActivationTimeoutMilliseconds = 10'000;
 
 #pragma pack(push, 1)
 struct FrameHeader {
@@ -236,8 +237,14 @@ class ActivationHandler final
   if (FAILED(result)) {
     return result;
   }
-  if (WaitForSingleObject(activation_event, INFINITE) != WAIT_OBJECT_0) {
-    return HRESULT_FROM_WIN32(GetLastError());
+  const DWORD wait_result =
+      WaitForSingleObject(activation_event, kActivationTimeoutMilliseconds);
+  if (wait_result == WAIT_TIMEOUT) {
+    return HRESULT_FROM_WIN32(ERROR_TIMEOUT);
+  }
+  if (wait_result != WAIT_OBJECT_0) {
+    return HRESULT_FROM_WIN32(wait_result == WAIT_FAILED ? GetLastError()
+                                                        : ERROR_GEN_FAILURE);
   }
   result = handler->result();
   if (SUCCEEDED(result)) {
@@ -360,10 +367,16 @@ int main(int argc, char** argv) {
       break;
     }
 
-    UINT32 packet_frames = 0;
-    while (running &&
-           SUCCEEDED(capture_client->GetNextPacketSize(&packet_frames)) &&
-           packet_frames > 0) {
+    while (running) {
+      UINT32 packet_frames = 0;
+      result = capture_client->GetNextPacketSize(&packet_frames);
+      if (FAILED(result)) {
+        running = false;
+        break;
+      }
+      if (packet_frames == 0) {
+        break;
+      }
       BYTE* data = nullptr;
       DWORD flags = 0;
       UINT64 device_position = 0;

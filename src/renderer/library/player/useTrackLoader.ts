@@ -9,8 +9,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
  *
  * Everything between choosing a track and hearing it: releasing the previous
  * source, deciding whether this is a cue or a handoff, driving the overlap,
- * reading the file for the blob swap, running the loudness and noise analysis,
- * and publishing what all of that produced.
+ * reading the file for the blob swap, running any required loudness analysis,
+ * loading a saved noise profile, and publishing what all of that produced.
  *
  * The dependency list below is long and is meant to be looked at. This effect
  * closes over most of the player's state, and that coupling was invisible
@@ -256,21 +256,12 @@ export const useTrackLoader = (deps: ITrackLoaderDeps): void => {
       swapBufferToBlob(audio, track.id, buffer);
     };
     const cachedAnalysis = track.normalization;
-    // Only the modules that actually consume a scanned profile. Clicks and the
-    // neural module need nothing measured, so having them on is not a reason
-    // to decode a file again.
-    const denoiseNeedsProfile =
-      dspSettingsRef.current.denoise.enabled &&
-      dspSettingsRef.current.denoise.profileSource === 'scanned' &&
-      (dspSettingsRef.current.denoise.hiss.enabled ||
-        dspSettingsRef.current.denoise.hum.enabled);
     const shouldAnalyze =
       dspSettingsRef.current.enabled &&
       (dspSettingsRef.current.normalizer.mode !== 'off' ||
         // The crossfade needs the same decode pass: it cannot know when this
         // song stops without measuring where its last audible sample is.
         transition.enabled ||
-        denoiseNeedsProfile ||
         (dspSettingsRef.current.master.enabled &&
           dspSettingsRef.current.master.loudnessMaximize));
     /**
@@ -561,11 +552,7 @@ export const useTrackLoader = (deps: ITrackLoaderDeps): void => {
         // An entry measured before the edges existed still holds correct
         // loudness numbers, so it is only worth decoding the file again for
         // the one feature that needs the missing half.
-        (!cachedAnalysis.edges && transition.enabled) ||
-        // Same rule for the noise floor, added the same way and for the same
-        // reason: no version bump, no library-wide re-measure, just one more
-        // decode for the one track whose missing half is now wanted.
-        (!cachedAnalysis.noise && denoiseNeedsProfile);
+        (!cachedAnalysis.edges && transition.enabled);
       if (!needsFreshAnalysis) {
         return;
       }
@@ -576,7 +563,6 @@ export const useTrackLoader = (deps: ITrackLoaderDeps): void => {
         sampleRateHint: track.sampleRate,
         signal: analysisJob.controller.signal,
         isCancelled: () => cancelled || analysisJobRef.current !== analysisJob,
-        measureNoise: denoiseNeedsProfile,
         onProgress: ({ fraction }) => {
           if (
             !cachedAnalysis &&

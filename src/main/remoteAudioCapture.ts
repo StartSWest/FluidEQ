@@ -15,6 +15,7 @@ const FRAME_AUDIO = 2;
 const HEADER_BYTES = 24;
 const MAX_PAYLOAD_BYTES = 8_192 * 8 * 4;
 const MAX_STDERR_BYTES = 4_096;
+const STARTUP_TIMEOUT_MS = 15_000;
 
 export interface IRemoteAudioCapture {
   close(): void;
@@ -100,6 +101,14 @@ export const startRemoteAudioCapture = async (
     let ready = false;
     let stopped = false;
     let failureReported = false;
+    let startupTimer: NodeJS.Timeout | undefined;
+
+    const clearStartupTimer = () => {
+      if (startupTimer) {
+        clearTimeout(startupTimer);
+        startupTimer = undefined;
+      }
+    };
 
     const captureHandle: IRemoteAudioCapture = {
       close: () => {
@@ -107,6 +116,7 @@ export const startRemoteAudioCapture = async (
           return;
         }
         stopped = true;
+        clearStartupTimer();
         child.kill();
       },
     };
@@ -116,6 +126,7 @@ export const startRemoteAudioCapture = async (
         return;
       }
       failureReported = true;
+      clearStartupTimer();
       if (!ready) {
         reject(error);
       } else {
@@ -123,6 +134,11 @@ export const startRemoteAudioCapture = async (
       }
       child.kill();
     };
+
+    startupTimer = setTimeout(() => {
+      failure(new Error('The lossless system-audio capture helper timed out.'));
+    }, STARTUP_TIMEOUT_MS);
+    startupTimer.unref?.();
 
     child.stderr.on('data', (data: Buffer) => {
       if (errorText.length < MAX_STDERR_BYTES) {
@@ -155,6 +171,7 @@ export const startRemoteAudioCapture = async (
             return;
           }
           ready = true;
+          clearStartupTimer();
           resolve(captureHandle);
         } else if (ready) {
           onAudio({

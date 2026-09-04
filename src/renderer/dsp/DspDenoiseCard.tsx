@@ -6,12 +6,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import {
   DENOISE_HUM_MODES,
-  DENOISE_VOICE_MODES,
   DSP_DEFAULTS,
   IDenoiseSettings,
   TDenoiseHumMode,
   TDenoiseProfileSource,
-  TDenoiseVoiceMode,
 } from '../../common/dsp/chain';
 import { NOISE_HUM_MAX_HARMONICS } from '../../common/dsp/noiseProfile';
 import Switch from '../widgets/Switch';
@@ -36,6 +34,7 @@ interface IDspDenoiseCardProps {
   analysisState: IDspInputAnalysisState;
   model: IDspVoiceModelState;
   onDownloadModel: () => void;
+  onRescan: () => void;
   onPatch: (next: IDenoiseSettings) => void;
   onCommit: () => void;
 }
@@ -54,16 +53,12 @@ const HUM_MODE_LABELS = {
   sixty: 'dsp.denoise.humSixty',
 } as const satisfies Record<TDenoiseHumMode, string>;
 
-const VOICE_MODE_LABELS = {
-  voice: 'dsp.denoise.voice',
-  background: 'dsp.denoise.background',
-} as const satisfies Record<TDenoiseVoiceMode, string>;
-
 const DspDenoiseCard = ({
   denoise,
   analysisState,
   model,
   onDownloadModel,
+  onRescan,
   onPatch,
   onCommit,
 }: IDspDenoiseCardProps) => {
@@ -93,17 +88,9 @@ const DspDenoiseCard = ({
     onCommit();
   };
 
-  /**
-   * Falling back is a fact about the run, not about the setting — and it is
-   * NOT the same fact as a scan being under way.
-   *
-   * Switching to Scanned on an unmeasured track starts a scan; saying "no scan
-   * for this source" while that scan is running describes the moment before
-   * the one the user is in, and reads as a refusal rather than as work in
-   * progress. The measuring line below says what is actually happening.
-   */
+  /** Scanned stays transparent until the user deliberately measures a floor. */
   const isScanning = analysisState.status === 'analyzing';
-  const isFallingBack =
+  const isWaitingForScan =
     denoise.profileSource === 'scanned' && !meter.profileReady && !isScanning;
 
   const value = (input: number | undefined, unit: string, digits = 1) =>
@@ -216,29 +203,44 @@ const DspDenoiseCard = ({
                 : undefined}
             </span>
           </div>
-          <div
-            className="segmented"
-            role="group"
-            aria-label={t('dsp.denoise.profileSource')}
-          >
-            {PROFILE_SOURCES.map(({ source, label }) => (
-              <button
-                key={source}
-                type="button"
-                className={`segmented__option${
-                  denoise.profileSource === source ? ' is-selected' : ''
-                }`}
-                aria-pressed={denoise.profileSource === source}
-                disabled={!isEnabled}
-                onClick={() => commitPatch({ profileSource: source })}
-              >
-                {t(label)}
-              </button>
-            ))}
+          <div className="dsp-denoise-analysis-actions">
+            <div
+              className="segmented"
+              role="group"
+              aria-label={t('dsp.denoise.profileSource')}
+            >
+              {PROFILE_SOURCES.map(({ source, label }) => (
+                <button
+                  key={source}
+                  type="button"
+                  className={`segmented__option${
+                    denoise.profileSource === source ? ' is-selected' : ''
+                  }`}
+                  aria-pressed={denoise.profileSource === source}
+                  disabled={!isEnabled}
+                  onClick={() => commitPatch({ profileSource: source })}
+                >
+                  {t(label)}
+                </button>
+              ))}
+            </div>
+            <button
+              type="button"
+              className="button small"
+              disabled={
+                !isEnabled ||
+                denoise.profileSource !== 'scanned' ||
+                isScanning ||
+                !analysisState.trackId
+              }
+              onClick={onRescan}
+            >
+              {t('dsp.denoise.rescan')}
+            </button>
           </div>
         </div>
-        {isEnabled && isFallingBack ? (
-          <p className="dsp-band-hint">{t('dsp.denoise.fallingBack')}</p>
+        {isEnabled && isWaitingForScan ? (
+          <p className="dsp-band-hint">{t('dsp.denoise.scanRequired')}</p>
         ) : null}
         <div
           className="dsp-normalizer-progress"
@@ -504,32 +506,6 @@ const DspDenoiseCard = ({
               }
               ariaLabel={t('dsp.denoise.voice')}
             />
-          </div>
-          <div
-            className="segmented"
-            role="group"
-            aria-label={t('dsp.denoise.voice')}
-          >
-            {DENOISE_VOICE_MODES.map((mode) => (
-              <button
-                key={mode}
-                type="button"
-                className={`segmented__option${
-                  denoise.voice.mode === mode ? ' is-selected' : ''
-                }`}
-                aria-pressed={denoise.voice.mode === mode}
-                disabled={
-                  !isEnabled ||
-                  !denoise.voice.enabled ||
-                  !meter.voiceModelLoaded
-                }
-                onClick={() =>
-                  commitPatch({ voice: { ...denoise.voice, mode } })
-                }
-              >
-                {t(VOICE_MODE_LABELS[mode])}
-              </button>
-            ))}
           </div>
           <div className="dsp-band-dials">
             <Dial

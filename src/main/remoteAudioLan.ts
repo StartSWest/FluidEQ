@@ -9,7 +9,7 @@ it under the terms of the GNU General Public License version 3 or later.
 import crypto from 'crypto';
 import dgram from 'dgram';
 import os from 'os';
-import { WebSocket, WebSocketServer, type RawData } from 'ws';
+import WebSocket, { WebSocketServer, type RawData } from 'ws';
 import {
   ILanRemoteComputer,
   ILanRemoteAudioChunk,
@@ -19,16 +19,24 @@ import {
 } from '../common/remoteAudio';
 import {
   MAX_PACKET_BYTES,
-  PACKET_SIGNAL,
+  PACKET_AUTH_ACCEPTED,
+  PACKET_AUTH_CHALLENGE,
+  PACKET_AUTH_READY,
   type ILanPairingPayload,
+  createAuthChallenge,
   decodePairingCode,
+  deriveSessionKey,
   encodePairingCode,
   isPrivateIpv4,
   keyFromSecret,
   lanAddresses,
+  openAuthAccepted,
+  openAuthChallenge,
+  openAuthReady,
   openPacket,
-  openSignal,
-  sealSignal,
+  sealAuthAccepted,
+  sealAuthChallenge,
+  sealAuthReady,
 } from './remoteAudioLanProtocol';
 import {
   REMOTE_AUDIO_DISCOVERY_PORT,
@@ -45,6 +53,9 @@ import type {
 } from './remoteAudioLanTypes';
 
 const MAX_PENDING_SOCKETS = 64;
+const MAX_PENDING_SOCKETS_PER_ADDRESS = 8;
+const AUTHENTICATION_TIMEOUT_MS = 5_000;
+const DISCOVERY_RETRY_DELAYS_MS = [0, 1_000, 2_000, 5_000] as const;
 
 const closeDiscoverySocket = (socket: dgram.Socket) => {
   socket.removeAllListeners();
@@ -78,6 +89,7 @@ const createRemoteAudioLan = (
 ): IRemoteAudioLan => {
   let server: WebSocketServer | undefined;
   let discoverySocket: dgram.Socket | undefined;
+  let discoveryRetryTimer: NodeJS.Timeout | undefined;
   let rejectDiscovery: ((error: Error) => void) | undefined;
   let pendingSocket: WebSocket | undefined;
   const usedPeerIds = new Set<string>();
@@ -92,10 +104,12 @@ const createRemoteAudioLan = (
     const activeServer = server;
     const activePendingSocket = pendingSocket;
     const activeDiscoverySocket = discoverySocket;
+    const activeDiscoveryRetryTimer = discoveryRetryTimer;
     const activeRejectDiscovery = rejectDiscovery;
     server = undefined;
     pendingSocket = undefined;
     discoverySocket = undefined;
+    discoveryRetryTimer = undefined;
     rejectDiscovery = undefined;
     key = undefined;
     transport.closeAll();
@@ -103,6 +117,9 @@ const createRemoteAudioLan = (
     // Keep the pending socket's close listener: it settles the outstanding
     // join promise from the real close event instead of from a guessed delay.
     activePendingSocket?.close();
+    if (activeDiscoveryRetryTimer) {
+      clearTimeout(activeDiscoveryRetryTimer);
+    }
     if (activeDiscoverySocket) {
       closeDiscoverySocket(activeDiscoverySocket);
     }
@@ -136,6 +153,7 @@ const createRemoteAudioLan = (
     });
     server = nextServer;
     key = nextKey;
+    const pendingSocketsByAddress = new Map<string, number>();
 
     nextServer.on('connection', (candidate, request) => {
       const remoteAddress = request.socket.remoteAddress?.replace(
@@ -150,6 +168,31 @@ const createRemoteAudioLan = (
         candidate.close(1008, 'Too many unauthenticated connections');
         return;
       }
+      const pendingForAddress = pendingSocketsByAddress.get(remoteAddress) ?? 0;
+      if (pendingForAddress >= MAX_PENDING_SOCKETS_PER_ADDRESS) {
+        candidate.close(1008, 'Too many unauthenticated connections');
+        return;
+      }
+      pendingSocketsByAddress.set(remoteAddress, pendingForAddress + 1);
+      let isPending = true;
+      const releasePending = () => {
+        if (!isPending) {
+          return;
+        }
+        isPending = false;
+        const remaining = (pendingSocketsByAddress.get(remoteAddress) ?? 1) - 1;
+        if (remaining > 0) {
+          pendingSocketsByAddress.set(remoteAddress, remaining);
+        } else {
+          pendingSocketsByAddress.delete(remoteAddress);
+        }
+      };
+      candidate.once('close', releasePending);
+      const challenge = createAuthChallenge();
+      const authenticationTimer = setTimeout(() => {
+        candidate.close(1008, 'Authentication timed out');
+      }, AUTHENTICATION_TIMEOUT_MS);
+      candidate.once('close', () => clearTimeout(authenticationTimer));
       const onPendingError = () => {
         candidate.close(1008, 'Authentication failed');
       };
@@ -158,11 +201,12 @@ const createRemoteAudioLan = (
         try {
           const packet = openPacket(data, nextKey);
           const message =
-            packet.kind === PACKET_SIGNAL
-              ? openSignal(packet.clear)
+            packet.kind === PACKET_AUTH_READY
+              ? openAuthReady(packet.clear)
               : undefined;
           if (
-            message?.signal.kind !== 'peer-ready' ||
+            !message ||
+            message.challenge !== challenge ||
             usedPeerIds.has(message.peerId)
           ) {
             candidate.close(1008, 'Authentication failed');
@@ -170,17 +214,47 @@ const createRemoteAudioLan = (
           }
           candidate.removeListener('error', onPendingError);
           candidate.removeListener('message', authenticate);
+          const sessionKey = deriveSessionKey(
+            nextKey,
+            challenge,
+            message.peerId,
+          );
+          // Reserve the peer identity before the asynchronous send callback.
+          // Otherwise two simultaneous responses using the same peer ID could
+          // both pass the duplicate check and race to replace one transport.
           usedPeerIds.add(message.peerId);
-          transport.attach(message.peerId, candidate, nextKey);
-          emitSignal({
-            ...message,
-            signal: { ...message.signal, address: remoteAddress },
-          });
+          candidate.once('close', () => usedPeerIds.delete(message.peerId));
+          candidate.send(
+            sealAuthAccepted({ challenge, peerId: message.peerId }, nextKey),
+            (error) => {
+              if (error) {
+                candidate.close(1008, 'Authentication failed');
+                return;
+              }
+              candidate.removeListener('close', releasePending);
+              clearTimeout(authenticationTimer);
+              releasePending();
+              transport.attach(message.peerId, candidate, sessionKey);
+              emitSignal({
+                peerId: message.peerId,
+                signal: {
+                  kind: 'peer-ready',
+                  address: remoteAddress,
+                  deviceName: message.deviceName,
+                },
+              });
+            },
+          );
         } catch {
           candidate.close(1008, 'Authentication failed');
         }
       };
       candidate.on('message', authenticate);
+      candidate.send(sealAuthChallenge(challenge, nextKey), (error) => {
+        if (error) {
+          candidate.close(1008, 'Authentication failed');
+        }
+      });
     });
 
     let port: number;
@@ -288,43 +362,92 @@ const createRemoteAudioLan = (
     key = nextKey;
 
     return new Promise<ILanRemoteComputer>((resolve, reject) => {
+      let challenge: string | undefined;
+      let settled = false;
+      const authenticationTimer = setTimeout(() => {
+        socket.close(1008, 'Authentication timed out');
+        finishError(new Error('LAN authentication timed out.'));
+      }, AUTHENTICATION_TIMEOUT_MS);
       const releasePendingSocket = () => {
         if (pendingSocket === socket) {
           pendingSocket = undefined;
         }
       };
-      const onError = (error: Error) => {
-        socket.removeListener('open', onOpen);
+      const cleanup = () => {
+        clearTimeout(authenticationTimer);
         socket.removeListener('close', onClose);
+        socket.removeListener('error', onError);
+        socket.removeListener('message', onHandshake);
         releasePendingSocket();
+      };
+      const finishError = (error: Error) => {
+        if (settled) {
+          return;
+        }
+        settled = true;
+        cleanup();
         reject(error);
       };
       const onClose = () => {
-        onError(new Error('LAN connection closed.'));
+        finishError(new Error('LAN connection closed.'));
       };
-      const onOpen = () => {
-        socket.removeListener('error', onError);
-        socket.removeListener('close', onClose);
-        releasePendingSocket();
-        transport.attach(peerId, socket, nextKey);
-        const ready: ILanRemoteAudioSignal = {
-          peerId,
-          signal: {
-            kind: 'peer-ready',
-            deviceName: os.hostname().trim() || pairing.address,
-          },
-        };
-        socket.send(sealSignal(ready, nextKey));
-        emitSignal(ready);
-        resolve({
-          address: pairing.address,
-          deviceName: pairing.deviceName,
-          peerId,
-        });
+      const onError = (error: Error) => finishError(error);
+      const onHandshake = (data: RawData) => {
+        try {
+          const packet = openPacket(data, nextKey);
+          if (!challenge) {
+            if (packet.kind !== PACKET_AUTH_CHALLENGE) {
+              throw new Error('LAN listener did not send a challenge.');
+            }
+            challenge = openAuthChallenge(packet.clear).challenge;
+            socket.send(
+              sealAuthReady(
+                {
+                  challenge,
+                  deviceName: os.hostname().trim() || pairing.address,
+                  peerId,
+                },
+                nextKey,
+              ),
+            );
+            return;
+          }
+          if (packet.kind !== PACKET_AUTH_ACCEPTED) {
+            throw new Error('LAN listener did not accept authentication.');
+          }
+          const accepted = openAuthAccepted(packet.clear);
+          if (accepted.challenge !== challenge || accepted.peerId !== peerId) {
+            throw new Error('LAN authentication acknowledgement changed.');
+          }
+          settled = true;
+          cleanup();
+          const sessionKey = deriveSessionKey(nextKey, challenge, peerId);
+          transport.attach(peerId, socket, sessionKey);
+          const ready: ILanRemoteAudioSignal = {
+            peerId,
+            signal: {
+              kind: 'peer-ready',
+              deviceName: os.hostname().trim() || pairing.address,
+            },
+          };
+          emitSignal(ready);
+          resolve({
+            address: pairing.address,
+            deviceName: pairing.deviceName,
+            peerId,
+          });
+        } catch (error) {
+          socket.close(1008, 'Authentication failed');
+          finishError(
+            error instanceof Error
+              ? error
+              : new Error('LAN authentication failed.'),
+          );
+        }
       };
       socket.once('error', onError);
       socket.once('close', onClose);
-      socket.once('open', onOpen);
+      socket.on('message', onHandshake);
     });
   };
 
@@ -349,6 +472,7 @@ const createRemoteAudioLan = (
     return new Promise<ILanRemoteComputer>((resolve, reject) => {
       let connecting = false;
       let settled = false;
+      let discoveryAttempt = 0;
       const finish = (
         outcome:
           | { computer: ILanRemoteComputer; error?: never }
@@ -358,6 +482,10 @@ const createRemoteAudioLan = (
           return;
         }
         settled = true;
+        if (discoveryRetryTimer) {
+          clearTimeout(discoveryRetryTimer);
+          discoveryRetryTimer = undefined;
+        }
         if (discoverySocket === socket) {
           discoverySocket = undefined;
         }
@@ -370,6 +498,33 @@ const createRemoteAudioLan = (
         }
       };
       rejectDiscovery = (error) => finish({ error });
+      const scheduleQuery = () => {
+        if (settled || discoveryRetryTimer) {
+          return;
+        }
+        const delay =
+          DISCOVERY_RETRY_DELAYS_MS[
+            Math.min(discoveryAttempt, DISCOVERY_RETRY_DELAYS_MS.length - 1)
+          ];
+        discoveryAttempt += 1;
+        discoveryRetryTimer = setTimeout(() => {
+          discoveryRetryTimer = undefined;
+          if (settled || connecting) {
+            scheduleQuery();
+            return;
+          }
+          try {
+            socket.send(
+              encodeDiscoveryQuery(savedPairing.secret),
+              REMOTE_AUDIO_DISCOVERY_PORT,
+              '255.255.255.255',
+              () => scheduleQuery(),
+            );
+          } catch {
+            scheduleQuery();
+          }
+        }, delay);
+      };
       socket.on('message', (data, sender) => {
         const announcement = decodeDiscoveryAnnouncement(
           data,
@@ -388,21 +543,17 @@ const createRemoteAudioLan = (
           .then((computer) => finish({ computer }))
           .catch(() => {
             connecting = false;
+            scheduleQuery();
           });
       });
-      socket.once('error', (error) => finish({ error }));
+      socket.on('error', () => {
+        // Network adapters can disappear during sleep or boot. Keep the
+        // durable pairing alive and let the next backoff tick try again.
+        scheduleQuery();
+      });
       socket.once('listening', () => {
         socket.setBroadcast(true);
-        socket.send(
-          encodeDiscoveryQuery(savedPairing.secret),
-          REMOTE_AUDIO_DISCOVERY_PORT,
-          '255.255.255.255',
-          (error) => {
-            if (error) {
-              finish({ error });
-            }
-          },
-        );
+        scheduleQuery();
       });
       socket.bind(REMOTE_AUDIO_DISCOVERY_PORT);
     });
@@ -412,14 +563,14 @@ const createRemoteAudioLan = (
     if (!key || !isLanRemoteAudioSignal(value)) {
       throw new Error('Invalid remote audio control message.');
     }
-    transport.sendSignal(value, key);
+    transport.sendSignal(value);
   };
 
   const sendAudio = (value: unknown) => {
     if (!key) {
       throw new Error('The LAN audio connection is not ready.');
     }
-    transport.sendAudio(value, key);
+    transport.sendAudio(value);
   };
 
   const setStreamMode = (peerId: string, mode: 'music' | 'video') =>

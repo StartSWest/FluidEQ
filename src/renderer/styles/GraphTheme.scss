@@ -1059,6 +1059,11 @@ it under the terms of the GNU General Public License version 3 or later.
   font-size: 0.68rem;
   cursor: pointer;
 
+  &.is-disabled {
+    opacity: 0.46;
+    cursor: default;
+  }
+
   svg {
     flex: 0 0 auto;
     opacity: 0.75;
@@ -2036,9 +2041,6 @@ it under the terms of the GNU General Public License version 3 or later.
     // A 3D transform forces this box onto a layer of its own, which does sort,
     // and costs one layer for as long as the mode is open.
     transform: translateZ(0);
-    // Which is what centres it: one in-flow child, given a share of the height
-    // rather than all of it, with the rest as air above and below.
-    justify-content: center;
     // The same edge as the side panes. It is still a panel laid over the
     // workspace, not a second window, and a card in the middle of the screen
     // with its own idea of a border reads as something that has gone wrong.
@@ -2106,24 +2108,11 @@ it under the terms of the GNU General Public License version 3 or later.
     }
   }
 
-  // Two thirds of the card, centred in it. The card is what covers the video;
-  // this is what the plot is measured from, and giving it the full height would
-  // stretch a frequency response over the height of a monitor — a shape that
-  // says nothing except that the window is tall.
-  // this is what the plot is measured from, and giving it the full height would
-  // stretch a frequency response over the height of a monitor — a shape that
-  // says nothing except that the window is tall.
+  // Expanded and full screen are height modes as well as width modes: the
+  // ruled plot grows with the card, rather than staying in the normal view's
+  // shorter band while the overlay itself covers the whole workspace.
   > .graph-wrapper > .graph-plot {
     min-height: 260px;
-    flex: 0 1 66%;
-  }
-
-  // Unless it has been told to fill.
-  //
-  // Two thirds is right for reading a response and wrong for watching one: the
-  // vertical exaggeration that ruins a measurement is exactly what makes a wave
-  // worth looking at, and a visualiser wants every pixel there is.
-  > .graph-wrapper.is-stretched > .graph-plot {
     flex: 1 1 auto;
   }
 

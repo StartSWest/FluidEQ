@@ -1196,87 +1196,98 @@ export const useTitlebarWaveHidden = () =>
     () => false,
   );
 
-/**
- * Whether the plot fills the card or keeps its share of it.
- *
- * The larger modes centre the drawing at two thirds of the card's height, on
- * the reasoning that a frequency response stretched over a whole monitor is a
- * shape that says nothing except that the window is tall. That is right for
- * reading a response and wrong for watching one: a spectrum used as a
- * visualiser wants every pixel it can have, and the vertical exaggeration that
- * ruins a measurement is exactly what makes a wave worth looking at.
- *
- * So it is a switch rather than a decision made here, and it sits beside the
- * others in the view menu — one per mode, because reading and watching are
- * usually done in different ones.
- *
- * Three sizes rather than two, because "fills the card" and "how tall the wave
- * itself is drawn" turned out to be different questions.
- *
- *  - `normal` — the plot keeps its share of the card, as it always has.
- *  - `stretched` — the drawing takes every pixel, top to bottom.
- *  - `compact` — the same edge-to-edge layout, with the wave drawn at half
- *    amplitude so it sits along the very edge of the screen rather than filling
- *    it. Which edge is the orientation's business, not this one's: upright puts
- *    it along the bottom, hanging puts it along the top, and the two-copy
- *    orientations put a smaller one at each.
- *
- * `compact` keeps `stretched`'s margins deliberately. A half-height wave inside
- * the normal margins would sit in the middle of the card with a band of nothing
- * under it, which is not what "along the bottom of the screen" means.
- */
-export type TGraphWaveSize = 'normal' | 'stretched' | 'compact';
+/** The wave never disappears completely under its own height control. */
+export const MIN_GRAPH_WAVE_HEIGHT = 0.05;
 
-const WAVE_SIZES: TGraphWaveSize[] = ['normal', 'stretched', 'compact'];
+const clampWaveHeight = (value: number) =>
+  Math.max(MIN_GRAPH_WAVE_HEIGHT, Math.min(1, value));
 
-/**
- * Read the old boolean as well as the new name.
- *
- * This was `parseFlag` over `'true'`/`'false'` for as long as there were two
- * sizes. Anything already in storage is one of those two strings, and it means
- * exactly what it always did.
- */
-const parseWaveSize = (raw: string): TGraphWaveSize => {
-  if (raw === 'true') {
-    return 'stretched';
-  }
-  if (raw === 'false') {
-    return 'normal';
-  }
-  return WAVE_SIZES.find((size) => size === raw) ?? 'normal';
+const clampWavePosition = (value: number) => Math.max(0, Math.min(1, value));
+
+const parseWaveHeight = (raw: string) => {
+  const value = Number(raw);
+  return Number.isFinite(value) ? clampWaveHeight(value) : 1;
 };
 
-const stretchSetting = createPerViewSetting<TGraphWaveSize>(
-  VIEW_KEYS.stretch,
-  'normal',
-  parseWaveSize,
-  (size) => size,
+const parseWavePosition = (raw: string) => {
+  const value = Number(raw);
+  return Number.isFinite(value) ? clampWavePosition(value) : 0;
+};
+
+const serializeWaveControl = (value: number) =>
+  String(Math.round(value * 100) / 100);
+
+/**
+ * Carry the only distinct old size forward before removing its three-step
+ * state. `compact` was a half-height wave; `normal` and `stretched` differed by
+ * the plot's margins rather than by the wave, so both become full height. The
+ * plot now decides its margins from whether the measurement grid is present,
+ * while these two controls describe only the wave they name.
+ */
+const migrateLegacyWaveSize = () => {
+  const legacyStem = 'fluideq.graphStretched';
+  const flat = readStored(legacyStem);
+  GRAPH_VIEWS.forEach((mode) => {
+    const legacyKey = `${legacyStem}.${mode}`;
+    const legacy = flat ?? readStored(legacyKey);
+    const heightKey = `${VIEW_KEYS.waveHeight}.${mode}`;
+    if (legacy !== null && readStored(heightKey) === null) {
+      writeStored(heightKey, legacy === 'compact' ? '0.5' : '1');
+    }
+    removeStored(legacyKey);
+  });
+  removeStored(legacyStem);
+};
+
+migrateLegacyWaveSize();
+
+/**
+ * How tall the live wave is, continuously, from a low ripple to the complete
+ * available height. Kept per view because a background wave under the editor
+ * and a full-screen visualiser are different arrangements.
+ */
+const waveHeightSetting = createPerViewSetting(
+  VIEW_KEYS.waveHeight,
+  1,
+  parseWaveHeight,
+  serializeWaveControl,
 );
 
-/** Cycles, because three states on one control is a cycle. */
-export const toggleGraphStretch = () => {
-  const at = WAVE_SIZES.indexOf(stretchSetting.get());
-  stretchSetting.set(WAVE_SIZES[(at + 1) % WAVE_SIZES.length]);
+export const setGraphWaveHeight = (next: number) => {
+  waveHeightSetting.set(clampWaveHeight(next));
 };
 
-export const getGraphWaveSize = () => stretchSetting.get();
+export const getGraphWaveHeight = () => waveHeightSetting.get();
 
-/**
- * Both of the larger sizes lay the drawing out edge to edge; only the amplitude
- * differs. Everything that asks this question is asking about the margins.
- */
-export const getGraphStretched = () => stretchSetting.get() !== 'normal';
-
-export const useGraphWaveSize = () =>
+export const useGraphWaveHeight = () =>
   useSyncExternalStore(
-    stretchSetting.subscribe,
-    stretchSetting.get,
-    () => 'normal' as TGraphWaveSize,
+    waveHeightSetting.subscribe,
+    waveHeightSetting.get,
+    () => 1,
   );
 
-export const useGraphStretched = () =>
+/**
+ * Where the wave stands vertically. Zero is its orientation's outer edge and
+ * one moves its baseline to the middle. For the ordinary upright wave that is
+ * exactly bottom-to-centre; the inverted and mirrored forms make the symmetric
+ * move from their own edges.
+ */
+const wavePositionSetting = createPerViewSetting(
+  VIEW_KEYS.wavePosition,
+  0,
+  parseWavePosition,
+  serializeWaveControl,
+);
+
+export const setGraphWavePosition = (next: number) => {
+  wavePositionSetting.set(clampWavePosition(next));
+};
+
+export const getGraphWavePosition = () => wavePositionSetting.get();
+
+export const useGraphWavePosition = () =>
   useSyncExternalStore(
-    stretchSetting.subscribe,
-    getGraphStretched,
-    () => false,
+    wavePositionSetting.subscribe,
+    wavePositionSetting.get,
+    () => 0,
   );

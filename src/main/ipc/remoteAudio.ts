@@ -10,6 +10,7 @@ import { BrowserWindow, ipcMain } from 'electron';
 import {
   isLanRemoteAudioSignal,
   type TLanRestoreResult,
+  type TRemoteAudioStopMode,
   type TRemoteAudioStreamMode,
 } from '../../common/remoteAudio';
 import {
@@ -27,6 +28,16 @@ const LAN_ERROR_CHANNEL = 'remote-audio-lan-error';
 
 const asStreamMode = (value: unknown): TRemoteAudioStreamMode =>
   value === 'video' ? 'video' : 'music';
+
+const asStopMode = (value: unknown): TRemoteAudioStopMode => {
+  if (value === 'pause' || value === false) {
+    return 'pause';
+  }
+  if (value === 'forget' || value === true) {
+    return 'forget';
+  }
+  return 'keep-active';
+};
 
 export interface IRemoteAudioIpcDeps {
   getMainWindow: () => BrowserWindow | null;
@@ -51,10 +62,12 @@ export const registerRemoteAudioIpc = ({
   );
   const credentials = createRemoteAudioCredentialStore(userDataDir);
   let capture: IRemoteAudioCapture | undefined;
+  let lastMeterAt = 0;
 
   const stopCapture = () => {
     capture?.close();
     capture = undefined;
+    lastMeterAt = 0;
   };
   const failCapture = () => {
     stopCapture();
@@ -70,10 +83,14 @@ export const registerRemoteAudioIpc = ({
       peerId,
       (chunk) => {
         try {
-          // Keep the local meter ahead of compression and encryption. This is
-          // a renderer-only mirror; it never adds work to the network stream.
-          sendToWindow(LAN_AUDIO_CHANNEL, chunk);
+          // The transport owns the critical path. The visual meter is a
+          // decimated renderer-only mirror and cannot delay a network packet.
           lan.sendAudio(chunk);
+          const now = Date.now();
+          if (now - lastMeterAt >= 33) {
+            lastMeterAt = now;
+            sendToWindow(LAN_AUDIO_CHANNEL, chunk);
+          }
         } catch {
           failCapture();
         }
@@ -166,9 +183,6 @@ export const registerRemoteAudioIpc = ({
       }
     },
   );
-  ipcMain.handle('remote-audio-lan-resume-sender', (_event, streamMode) =>
-    restoreSavedSender(streamMode),
-  );
   ipcMain.handle('remote-audio-lan-send', (_event, signal: unknown) => {
     if (
       isLanRemoteAudioSignal(signal) &&
@@ -185,11 +199,14 @@ export const registerRemoteAudioIpc = ({
       sendToWindow(LAN_ERROR_CHANNEL, undefined);
     }
   });
-  ipcMain.handle('remote-audio-lan-stop', (_event, forget: unknown) => {
+  ipcMain.handle('remote-audio-lan-stop', (_event, requestedMode: unknown) => {
     stopCapture();
     lan.stop();
-    if (forget === true) {
+    const mode = asStopMode(requestedMode);
+    if (mode === 'forget') {
       credentials.clear();
+    } else if (mode === 'pause') {
+      credentials.pause();
     }
   });
 

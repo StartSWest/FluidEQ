@@ -120,6 +120,7 @@ let outputSafetyEnabled = true;
 const listeners = new Set<() => void>();
 const outputSafetyListeners = new Set<() => void>();
 const inputAnalysisListeners = new Set<() => void>();
+const noiseRescanListeners = new Set<() => void>();
 const normalizerMeterListeners = new Set<() => void>();
 const denoiseMeterListeners = new Set<() => void>();
 
@@ -463,6 +464,39 @@ export const useDspInputAnalysis = (): IDspInputAnalysisState =>
     subscribeInputAnalysis,
     readDspInputAnalysis,
     readDspInputAnalysis,
+  );
+
+export interface IDspNoiseRescanRequest {
+  id: number;
+  trackId?: string;
+}
+
+let noiseRescanRequest: IDspNoiseRescanRequest = { id: 0 };
+
+const subscribeNoiseRescan = (listener: () => void) => {
+  noiseRescanListeners.add(listener);
+  return () => {
+    noiseRescanListeners.delete(listener);
+  };
+};
+
+/** Ask the player to replace the current track's frozen noise profile. */
+export const requestDspNoiseRescan = (trackId: string | undefined): void => {
+  if (!trackId) {
+    return;
+  }
+  noiseRescanRequest = { id: noiseRescanRequest.id + 1, trackId };
+  noiseRescanListeners.forEach((listener) => listener());
+};
+
+export const readDspNoiseRescanRequest = (): IDspNoiseRescanRequest =>
+  noiseRescanRequest;
+
+export const useDspNoiseRescanRequest = (): IDspNoiseRescanRequest =>
+  useSyncExternalStore(
+    subscribeNoiseRescan,
+    readDspNoiseRescanRequest,
+    readDspNoiseRescanRequest,
   );
 
 /**

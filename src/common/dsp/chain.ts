@@ -526,11 +526,12 @@ export interface IDenoiseClickSettings {
 export type TDenoiseVoiceMode = 'voice' | 'background';
 
 /**
- * Append-only: the native wire carries the index, not the string.
+ * Legacy values retained because the native wire carries the index.
  *
- * Voice keeps the model's cleaned speech. Background keeps the aligned
- * difference between the source and that speech — the noise and programme the
- * speech cleaner rejected, not a second stem-separation model.
+ * Background was removed from the product: this is a speech denoiser, not a
+ * stem separator. Settings now normalise the slot to Voice and the native
+ * engine ignores it, but the second value cannot be renumbered out of old
+ * presets or automation messages.
  */
 export const DENOISE_VOICE_MODES: readonly TDenoiseVoiceMode[] = [
   'voice',
@@ -546,6 +547,7 @@ export const DENOISE_VOICE_MODES: readonly TDenoiseVoiceMode[] = [
  */
 export interface IDenoiseVoiceSettings {
   enabled: boolean;
+  /** Legacy wire slot. The speech denoiser always keeps its cleaned output. */
   mode: TDenoiseVoiceMode;
   amount: number;
 }
@@ -1924,11 +1926,7 @@ export const clampDspSettings = (value: unknown): IDspSettings => {
           denoiseVoice.enabled,
           DSP_DEFAULTS.denoise.voice.enabled,
         ),
-        mode: DENOISE_VOICE_MODES.includes(
-          denoiseVoice.mode as TDenoiseVoiceMode,
-        )
-          ? (denoiseVoice.mode as TDenoiseVoiceMode)
-          : DSP_DEFAULTS.denoise.voice.mode,
+        mode: DSP_DEFAULTS.denoise.voice.mode,
         amount: clampNumber(
           denoiseVoice.amount,
           RANGES.denoiseAmount,

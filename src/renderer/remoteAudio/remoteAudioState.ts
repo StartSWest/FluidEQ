@@ -32,7 +32,6 @@ export interface IRemoteAudioValue {
   networkStats: ILanRemoteAudioNetworkStats[];
   phase: TRemoteAudioPhase;
   role?: TRemoteAudioRole;
-  resumeSending(): Promise<void>;
   startListening(replaceCode?: boolean): Promise<void>;
   startSending(code: string): Promise<void>;
   stop(): Promise<void>;

@@ -845,7 +845,7 @@ const LiveTraceCanvas = ({
       context.lineJoin = 'round';
 
       curves.forEach((curve) => {
-        const wave = getWaveTransform(curve, baseline);
+        const wave = getWaveTransform(curve, baseline, plot.top);
         context.save();
         context.translate(0, wave.translateY);
         context.scale(1, wave.scaleY);

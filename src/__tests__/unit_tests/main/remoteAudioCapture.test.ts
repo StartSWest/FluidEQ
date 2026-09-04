@@ -58,6 +58,8 @@ const fakeChild = () => {
 describe('native lossless LAN capture bridge', () => {
   beforeEach(() => mockSpawn.mockReset());
 
+  afterEach(() => jest.useRealTimers());
+
   it('forwards framed Float32 samples without changing any byte', async () => {
     const child = fakeChild();
     mockSpawn.mockReturnValue(child);
@@ -93,6 +95,17 @@ describe('native lossless LAN capture bridge', () => {
     child.stdout.emit('data', malformed);
 
     await expect(starting).rejects.toThrow('invalid frame');
+    expect(child.kill).toHaveBeenCalledTimes(1);
+  });
+
+  it('terminates a helper that never reports ready', async () => {
+    jest.useFakeTimers();
+    const child = fakeChild();
+    mockSpawn.mockReturnValue(child);
+    const starting = startRemoteAudioCapture('source-pc', jest.fn(), jest.fn());
+    jest.advanceTimersByTime(15_000);
+
+    await expect(starting).rejects.toThrow('timed out');
     expect(child.kill).toHaveBeenCalledTimes(1);
   });
 });

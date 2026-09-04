@@ -41,9 +41,12 @@ const eq: Partial<Dictionary> = {
   'graph.item.bands': 'диапазоны слышимости',
   'graph.item.meter': 'индикатор уровня',
   'graph.item.topBar': 'верхнюю панель',
-  'graph.fit': 'Вместить график',
-  'graph.stretch': 'Растянуть на всю область',
-  'graph.compact': 'Уменьшить волну к краю',
+  'graph.waveHeight': 'Высота волны',
+  'graph.waveHeightHint':
+    'Настройте волну от почти плоской до полной высоты графика',
+  'graph.wavePosition': 'Положение волны',
+  'graph.wavePositionHint':
+    'Переместите волну от нижнего края к центру графика',
   'graph.orientation.down': 'Опустить волну вниз',
   'graph.orientation.mirror': 'Отразить волну',
   'graph.orientation.centre': 'Отразить от центра',

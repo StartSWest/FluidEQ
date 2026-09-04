@@ -137,6 +137,13 @@ export interface ILiveCurveData {
    * than moving to the middle.
    */
   heightScale?: number;
+  /**
+   * How far the wave's baseline moves from its outer edge toward the centre.
+   * Zero keeps an upright wave on the bottom; one puts its baseline on the
+   * middle row. Inverted and mirrored copies make the symmetric move from
+   * their own edge.
+   */
+  verticalPosition?: number;
   /** What to paint with when the look brings no colours of its own. */
   colour: Color;
   /**

@@ -94,8 +94,8 @@ const dsp = {
   'dsp.denoise.profileSource': 'Noise floor',
   'dsp.denoise.scanned': 'Scanned',
   'dsp.denoise.adaptive': 'Adaptive',
-  'dsp.denoise.fallingBack':
-    'No scan for this source — following the floor live instead.',
+  'dsp.denoise.scanRequired':
+    'No saved scan for this track. Scanned stays transparent until you rescan.',
   'dsp.denoise.hiss': 'Hiss',
   'dsp.denoise.hissHint':
     'Broadband suppression against the measured floor. Adds 21 ms of latency while it is on.',
@@ -122,15 +122,15 @@ const dsp = {
     'Finds and bridges impulsive damage. Anything too long to be a click is left alone, so percussion survives.',
   'dsp.denoise.maxRepair': 'Longest repair',
   'dsp.denoise.voice': 'Voice',
-  'dsp.denoise.background': 'Background',
   'dsp.denoise.voiceHint':
-    'A neural cleaner trained on speech. Excellent on podcasts and interviews; on music it removes cymbals and reverb tails.',
+    'Neural background-noise removal trained for speech. Best for podcasts and interviews; it is not a music stem separator.',
   'dsp.denoise.voiceModelMissing':
     'Needs a one-time 10 MB model download before it can run.',
   'dsp.denoise.voiceDownload': 'Download model',
   'dsp.denoise.voiceDownloading': 'Downloading the model · {progress}%',
   'dsp.denoise.voiceReady': 'Model ready',
   'dsp.denoise.analysis': 'Source analysis',
+  'dsp.denoise.rescan': 'Rescan',
   'dsp.denoise.analyzing': 'Measuring the noise floor · {progress}%',
   'dsp.denoise.waiting': 'Play a Library track to measure it.',
   'dsp.denoise.measuredFloor': 'Noise floor',

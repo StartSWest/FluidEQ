@@ -88,8 +88,8 @@ const dsp = {
   'dsp.denoise.profileSource': 'Suelo de ruido',
   'dsp.denoise.scanned': 'Analizado',
   'dsp.denoise.adaptive': 'Adaptativo',
-  'dsp.denoise.fallingBack':
-    'Esta fuente no se ha analizado: siguiendo el suelo en vivo.',
+  'dsp.denoise.scanRequired':
+    'Esta pista no tiene un análisis guardado. Analizado permanece transparente hasta que pulses Reanalizar.',
   'dsp.denoise.hiss': 'Siseo',
   'dsp.denoise.hissHint':
     'Supresión de banda ancha contra el suelo medido. Añade 21 ms de latencia mientras está activo.',
@@ -116,15 +116,15 @@ const dsp = {
     'Encuentra y salva los daños impulsivos. Lo que sea demasiado largo para ser un chasquido se deja intacto, así la percusión sobrevive.',
   'dsp.denoise.maxRepair': 'Reparación máxima',
   'dsp.denoise.voice': 'Voz',
-  'dsp.denoise.background': 'Fondo',
   'dsp.denoise.voiceHint':
-    'Un limpiador neuronal entrenado con habla. Excelente en pódcast y entrevistas; en música se lleva los platillos y las colas de reverberación.',
+    'Reducción neuronal de ruido de fondo entrenada para voz. Ideal para pódcast y entrevistas; no separa las pistas de una canción.',
   'dsp.denoise.voiceModelMissing':
     'Necesita descargar una vez un modelo de 10 MB antes de poder funcionar.',
   'dsp.denoise.voiceDownload': 'Descargar modelo',
   'dsp.denoise.voiceDownloading': 'Descargando el modelo · {progress}%',
   'dsp.denoise.voiceReady': 'Modelo listo',
   'dsp.denoise.analysis': 'Análisis de la fuente',
+  'dsp.denoise.rescan': 'Reanalizar',
   'dsp.denoise.analyzing': 'Midiendo el suelo de ruido · {progress}%',
   'dsp.denoise.waiting': 'Reproduce una pista de la biblioteca para medirla.',
   'dsp.denoise.measuredFloor': 'Suelo de ruido',

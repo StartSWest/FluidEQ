@@ -24,8 +24,7 @@ import {
   getShareFileName,
   getShareUrl,
 } from 'common/shareScore';
-import { SUPPORT_CONFIG } from 'common/support';
-import { PRODUCT_NAME } from 'common/branding';
+import { OFFICIAL_SITE_URL, PRODUCT_NAME } from 'common/branding';
 import { EYE_WAVE_AMPLITUDE, EYE_WAVE_PERIOD } from '../SupportPet';
 import { useTranslation } from '../utils/I18nContext';
 import '../styles/ShareScore.scss';
@@ -66,7 +65,30 @@ interface IShareScoreCardProps {
 const SPECTRUM = ['#00e5ff', '#54ff8a', '#ffe66d', '#ff3cac', '#8b5cff'];
 
 const FONT_STACK =
-  '"Segoe UI", system-ui, -apple-system, Helvetica, sans-serif';
+  '-apple-system, BlinkMacSystemFont, "Segoe UI", Ubuntu, Cantarell, "Noto Sans", "DejaVu Sans", sans-serif';
+
+/**
+ * Keep long scores inside their column without making ordinary runs look
+ * timid. The card is generated from real scores, not a fixed demo value, so a
+ * layout tuned only against "100" eventually turns a strong run into clipped
+ * digits.
+ */
+const setFittedFont = (
+  context: CanvasRenderingContext2D,
+  text: string,
+  weight: number,
+  preferredSize: number,
+  minimumSize: number,
+  maximumWidth: number,
+) => {
+  context.font = `${weight} ${preferredSize}px ${FONT_STACK}`;
+  const measuredWidth = context.measureText(text).width;
+  const size = Math.max(
+    minimumSize,
+    Math.min(preferredSize, (preferredSize * maximumWidth) / measuredWidth),
+  );
+  context.font = `${weight} ${size}px ${FONT_STACK}`;
+};
 
 /**
  * The creature, drawn from the same coordinates her SVG uses.
@@ -282,7 +304,7 @@ const drawCard = (
   canvas: HTMLCanvasElement,
   score: number,
   multiplier: number,
-  downloadUrl: string,
+  siteUrl: string,
   euphoric: boolean,
 ) => {
   const context = canvas.getContext('2d');
@@ -297,9 +319,28 @@ const drawCard = (
   // is advertising rather than as a generic score graphic.
   const backdrop = context.createLinearGradient(0, 0, CARD_WIDTH, CARD_HEIGHT);
   backdrop.addColorStop(0, '#04090f');
-  backdrop.addColorStop(1, '#0a1622');
+  backdrop.addColorStop(0.55, '#07111b');
+  backdrop.addColorStop(1, '#0b1928');
   context.fillStyle = backdrop;
   context.fillRect(0, 0, CARD_WIDTH, CARD_HEIGHT);
+
+  // Two soft pools of colour give the artwork depth at feed-thumbnail size
+  // without competing with the score. Their edges end inside the card, so the
+  // spectrum rim stays crisp instead of turning into a general neon haze.
+  const petGlow = context.createRadialGradient(255, 230, 20, 255, 230, 310);
+  petGlow.addColorStop(0, 'rgba(53, 225, 214, 0.18)');
+  petGlow.addColorStop(1, 'rgba(53, 225, 214, 0)');
+  context.fillStyle = petGlow;
+  context.fillRect(0, 0, 580, CARD_HEIGHT);
+
+  const scoreGlow = context.createRadialGradient(820, 220, 20, 820, 220, 330);
+  scoreGlow.addColorStop(
+    0,
+    euphoric ? 'rgba(139, 92, 255, 0.14)' : 'rgba(46, 197, 192, 0.1)',
+  );
+  scoreGlow.addColorStop(1, 'rgba(139, 92, 255, 0)');
+  context.fillStyle = scoreGlow;
+  context.fillRect(500, 0, 700, 520);
 
   const sweep = context.createLinearGradient(0, 0, CARD_WIDTH, 0);
   SPECTRUM.forEach((color, index) => {
@@ -317,7 +358,21 @@ const drawCard = (
     context.restore();
   }
 
-  drawBands(context, euphoric, 540);
+  // Faint guides make the spectrum feel like part of an equaliser rather than
+  // decorative confetti. They stop before the footer so the address remains
+  // the cleanest secondary element on the card.
+  context.save();
+  context.strokeStyle = 'rgba(226, 240, 247, 0.055)';
+  context.lineWidth = 1;
+  [390, 432, 474, 516].forEach((y) => {
+    context.beginPath();
+    context.moveTo(58, y);
+    context.lineTo(CARD_WIDTH - 58, y);
+    context.stroke();
+  });
+  context.restore();
+
+  drawBands(context, euphoric, 532);
 
   // The game's own waveform, not a line graph of one.
   //
@@ -328,7 +383,7 @@ const drawCard = (
   //
   // Deterministic - a fixed sum of sines rather than noise - so two people who
   // scored the same get the same card.
-  const waveCentre = 442;
+  const waveCentre = 430;
   const amplitude = euphoric ? 40 : 30;
   const upper = [];
   const lower = [];
@@ -368,59 +423,99 @@ const drawCard = (
   // stacked down one column. 1200x630 is a wide letterbox and a single centred
   // stack leaves two big empty margins - and she is the most recognisable
   // thing the app has, so she earns half the frame.
-  drawPet(context, 250, 236, 290, euphoric);
+  // The small wordmark means the card still identifies the product when a
+  // social feed crops its footer. Its waveform is the same visual language as
+  // the full trace below, not a second logo competing for attention.
+  context.save();
+  context.strokeStyle = euphoric ? '#7ef7e6' : '#54d9d2';
+  context.lineWidth = 5;
+  context.lineCap = 'round';
+  context.beginPath();
+  context.moveTo(70, 74);
+  context.bezierCurveTo(82, 48, 95, 48, 108, 74);
+  context.bezierCurveTo(121, 100, 134, 100, 148, 74);
+  context.stroke();
+  context.fillStyle = '#ffffff';
+  context.font = `700 40px ${FONT_STACK}`;
+  context.textAlign = 'left';
+  context.fillText(PRODUCT_NAME, 168, 88);
+  context.fillStyle = 'rgba(226, 240, 247, 0.48)';
+  context.font = `700 18px ${FONT_STACK}`;
+  context.letterSpacing = '3px';
+  context.fillText('BEAT GAME', 170, 117);
+  context.restore();
 
-  const column = 782;
+  drawPet(context, 268, 250, 258, euphoric);
+
+  const column = 824;
   context.textAlign = 'center';
 
   // The pill, drawn the way the app draws it, because it is the badge the
   // whole post is about.
   if (euphoric) {
     const label = 'RAINBOW MODE';
-    context.font = `800 30px ${FONT_STACK}`;
+    context.font = `700 27px ${FONT_STACK}`;
     const pillWidth = context.measureText(label).width + 56;
     context.save();
     context.fillStyle = sweep;
     context.beginPath();
-    context.roundRect(column - pillWidth / 2, 96, pillWidth, 54, 27);
+    context.roundRect(column - pillWidth / 2, 70, pillWidth, 52, 26);
     context.fill();
     context.fillStyle = '#06131d';
-    context.fillText(label, column, 133);
+    context.fillText(label, column, 105);
     context.restore();
   } else {
     context.fillStyle = 'rgba(226, 240, 247, 0.55)';
-    context.font = `600 26px ${FONT_STACK}`;
-    context.fillText(`${PRODUCT_NAME.toUpperCase()} · BEAT GAME`, column, 133);
+    context.font = `700 24px ${FONT_STACK}`;
+    context.fillText('GREAT RUN', column, 105);
   }
 
+  context.fillStyle = 'rgba(226, 240, 247, 0.48)';
+  context.font = `700 20px ${FONT_STACK}`;
+  context.letterSpacing = '5px';
+  context.fillText('SCORE', column, 163);
+
+  const scoreText = String(Math.max(0, Math.floor(score)));
   context.fillStyle = '#ffffff';
-  context.font = `800 152px ${FONT_STACK}`;
-  context.fillText(String(Math.max(0, Math.floor(score))), column, 284);
+  context.letterSpacing = '0px';
+  setFittedFont(context, scoreText, 900, 150, 92, 500);
+  context.fillText(scoreText, column, 295);
 
   context.fillStyle = euphoric ? '#ffe66d' : '#54ff8a';
-  context.font = `750 54px ${FONT_STACK}`;
-  context.fillText(`×${Math.max(1, Math.floor(multiplier))}`, column, 346);
+  context.font = `900 48px ${FONT_STACK}`;
+  context.fillText(`×${Math.max(1, Math.floor(multiplier))}`, column, 354);
+
+  context.fillStyle = 'rgba(226, 240, 247, 0.52)';
+  context.font = `700 17px ${FONT_STACK}`;
+  context.letterSpacing = '3px';
+  context.fillText('STREAK MULTIPLIER', column, 384);
 
   // Where to get it. The point of the post is that somebody who has never
   // heard of FluidEQ sees the picture and can act on it, and a card that shows
   // off a mode without saying what the app is called or where it lives is an
   // advert for nothing. Drawn on the image rather than left to the link
   // preview, because the image is what gets reposted and screenshotted.
-  context.fillStyle = 'rgba(226, 240, 247, 0.85)';
-  context.font = `600 30px ${FONT_STACK}`;
-  context.fillText(
-    `${PRODUCT_NAME} — free system-wide EQ for Windows`,
-    CARD_WIDTH / 2,
-    584,
-  );
+  context.save();
+  context.fillStyle = 'rgba(3, 8, 14, 0.84)';
+  context.beginPath();
+  context.roundRect(52, 548, CARD_WIDTH - 104, 58, 18);
+  context.fill();
+  context.strokeStyle = 'rgba(226, 240, 247, 0.11)';
+  context.lineWidth = 1;
+  context.stroke();
 
-  context.fillStyle = 'rgba(226, 240, 247, 0.5)';
-  context.font = `400 24px ${FONT_STACK}`;
-  context.fillText(
-    downloadUrl.replace(/^https?:\/\//, ''),
-    CARD_WIDTH / 2,
-    614,
-  );
+  context.textAlign = 'left';
+  context.fillStyle = 'rgba(226, 240, 247, 0.78)';
+  context.font = `600 24px ${FONT_STACK}`;
+  context.letterSpacing = '0px';
+  context.fillText('Free system-wide EQ for Windows', 82, 586);
+
+  const displayUrl = siteUrl.replace(/^https?:\/\//, '').replace(/\/$/, '');
+  context.textAlign = 'right';
+  context.fillStyle = euphoric ? '#7ef7e6' : '#54d9d2';
+  context.font = `700 30px ${FONT_STACK}`;
+  context.fillText(displayUrl, CARD_WIDTH - 82, 587);
+  context.restore();
 };
 
 const ShareScoreCard = ({
@@ -437,10 +532,12 @@ const ShareScoreCard = ({
   const copiedTimer = useRef<number | undefined>(undefined);
 
   const text = buildShareText(score, multiplier, isEuphoric);
-  // The releases page, not the source tree. A share post is read by people
-  // who have never seen FluidEQ, and sending them somewhere they have to work
-  // out how to build it wastes the only click they were going to give.
-  const url = SUPPORT_CONFIG.downloadUrl;
+  // The site, not a releases page. A share post is read by people who have
+  // never seen FluidEQ: `fluideq.com` is a name they can read off a screenshot
+  // and type back in, which a host and a repository path with `/releases/latest`
+  // on the end is not. It is also the one address that stays right if the
+  // downloads ever move.
+  const url = OFFICIAL_SITE_URL;
 
   useEffect(() => {
     if (canvasRef.current) {
@@ -591,8 +688,17 @@ const ShareScoreCard = ({
             // which denies the popup and hands the URL to the real browser.
             // A composer inside an equaliser would be asking to be logged
             // into, which is not a thing this app should ever want.
+            // Each network gets the version written for it: X is the one on a
+            // character budget, and the other two read nothing like it.
             onClick={() =>
-              window.open(getShareUrl(network.id, text, url), '_blank')
+              window.open(
+                getShareUrl(
+                  network.id,
+                  buildShareText(score, multiplier, isEuphoric, network.id),
+                  url,
+                ),
+                '_blank',
+              )
             }
             title={
               carriesShareText(network.id)

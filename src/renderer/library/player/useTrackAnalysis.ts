@@ -8,8 +8,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * Measuring tracks in the background, for the numbers the loader had no reason
  * to produce.
  *
- * Two effects, and they are one subject because they share the rule that makes
- * either safe: **one track owns one analysis job.** `analysisJobRef` is that
+ * Three effects, and they are one subject because they share the rule that
+ * makes each safe: **one track owns one analysis job.** `analysisJobRef` is that
  * claim, and whichever of them starts a decode aborts the other's — two full
  * decodes at once makes the window drop frames, and a result that lands
  * against a track already replaced is worse than no result.
@@ -19,15 +19,14 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * over the opening bars. It is deliberately subordinate: while a job exists
  * for the audible track, it waits.
  *
- * The second measures the track that is ALREADY playing, and exists for the
- * case the loader deliberately skipped — the song was started with the
- * Normalizer, the crossfade and Denoise all off, and one of them has just been
- * switched on. It is keyed on those settings rather than on the track.
+ * The second measures the track that is ALREADY playing when Normalizer or the
+ * crossfade has just been switched on. The third is the explicit noise-floor
+ * rescan requested from Denoise; nothing else is allowed to start that scan.
  *
  * Neither restarts anything. The audio is already going; these only read the
  * file a second time to fill in what the panel and the overlap are missing.
  */
-import { MutableRefObject, useEffect } from 'react';
+import { MutableRefObject, useEffect, useRef } from 'react';
 import { IDspSettings } from '../../../common/dsp/chain';
 import {
   ILibraryQueue,
@@ -43,8 +42,15 @@ import {
   masterLoudnessGainDb,
   normalizerGainDb,
 } from '../../dsp/inputNormalizer';
-import { setDspInputAnalysis } from '../../dsp/store';
-import { setDspTrackLevelGains } from '../../dsp/useDspEngine';
+import {
+  readDspInputAnalysis,
+  setDspInputAnalysis,
+  useDspNoiseRescanRequest,
+} from '../../dsp/store';
+import {
+  setDspNoiseProfile,
+  setDspTrackLevelGains,
+} from '../../dsp/useDspEngine';
 
 export interface ITrackAnalysisDeps {
   track: ILibraryTrack | undefined;
@@ -79,6 +85,8 @@ export const useTrackAnalysis = (deps: ITrackAnalysisDeps): void => {
     programmeEdgesRef,
     analysisJobRef,
   } = deps;
+  const noiseRescanRequest = useDspNoiseRescanRequest();
+  const handledNoiseRescanRef = useRef(0);
 
   /**
    * Measure the NEXT track while this one plays.
@@ -180,16 +188,9 @@ export const useTrackAnalysis = (deps: ITrackAnalysisDeps): void => {
     // because the crossfade was switched on after it started.
     const wantsEdges =
       dspSettings.crossfade.enabled && !track?.normalization?.edges;
-    // Same shape as the edges above: a track measured before Denoise existed,
-    // or measured while the stage was off, is still missing this half.
-    const wantsNoise =
-      dspSettings.denoise.enabled &&
-      dspSettings.denoise.profileSource === 'scanned' &&
-      (dspSettings.denoise.hiss.enabled || dspSettings.denoise.hum.enabled) &&
-      !track?.normalization?.noise;
     if (
       !dspSettings.enabled ||
-      (!wantsLoudness && !wantsEdges && !wantsNoise) ||
+      (!wantsLoudness && !wantsEdges) ||
       !track ||
       track.kind !== 'audio' ||
       analysisJobRef.current?.trackId === track.id
@@ -220,7 +221,6 @@ export const useTrackAnalysis = (deps: ITrackAnalysisDeps): void => {
         sampleRateHint: track.sampleRate,
         signal: analysisJob.controller.signal,
         isCancelled: () => cancelled || analysisJobRef.current !== analysisJob,
-        measureNoise: wantsNoise,
         onProgress: ({ fraction }) => {
           if (!cancelled && analysisJobRef.current === analysisJob) {
             setDspInputAnalysis({
@@ -310,10 +310,6 @@ export const useTrackAnalysis = (deps: ITrackAnalysisDeps): void => {
     };
   }, [
     dspSettings.crossfade.enabled,
-    dspSettings.denoise.enabled,
-    dspSettings.denoise.hiss.enabled,
-    dspSettings.denoise.hum.enabled,
-    dspSettings.denoise.profileSource,
     dspSettings.enabled,
     dspSettings.master.enabled,
     dspSettings.master.loudnessMaximize,
@@ -325,6 +321,155 @@ export const useTrackAnalysis = (deps: ITrackAnalysisDeps): void => {
     analysisJobRef,
     audioElementRef,
     dspSettingsRef,
+    elementTrackRef,
+    programmeEdgesRef,
+    trackIdRef,
+  ]);
+
+  /**
+   * Replace the current track's frozen noise profile, only on an explicit
+   * request from the Denoise card.
+   *
+   * This is deliberately separate from the setting-driven analysis above.
+   * Scanned used to mean "start adaptive, decode in the background, then step
+   * onto the result", which changed the sound several seconds into every new
+   * song. A request id makes the scan an action with one owner, not a condition
+   * that silently becomes true whenever settings or library metadata change.
+   */
+  useEffect(() => {
+    const unseen = noiseRescanRequest.id > handledNoiseRescanRef.current;
+    if (!unseen) {
+      return undefined;
+    }
+    if (noiseRescanRequest.trackId !== track?.id) {
+      handledNoiseRescanRef.current = noiseRescanRequest.id;
+      return undefined;
+    }
+    if (!dspSettings.enabled || !track || track.kind !== 'audio') {
+      return undefined;
+    }
+
+    handledNoiseRescanRef.current = noiseRescanRequest.id;
+    analysisJobRef.current?.controller.abort();
+    const analysisJob = {
+      trackId: track.id,
+      controller: new AbortController(),
+    };
+    analysisJobRef.current = analysisJob;
+    let cancelled = false;
+    const current = readDspInputAnalysis();
+    const previousAnalysis =
+      current.trackId === track.id ? current.analysis : track.normalization;
+    const restorePrevious = () => {
+      setDspInputAnalysis({
+        trackId: track.id,
+        status: previousAnalysis ? 'ready' : 'unavailable',
+        fraction: previousAnalysis ? 1 : 0,
+        analysis: previousAnalysis,
+      });
+    };
+
+    setDspInputAnalysis({
+      trackId: track.id,
+      status: 'analyzing',
+      fraction: 0,
+      analysis: previousAnalysis,
+    });
+
+    const analyze = async () => {
+      const [buffer, signature] = await Promise.all([
+        window.electron.ipcRenderer.libraryTrackBytes(track.id),
+        window.electron.ipcRenderer.libraryTrackSignature(track.id),
+      ]);
+      if (!buffer || cancelled) {
+        restorePrevious();
+        return;
+      }
+      const analysis = await analyzeInputTrack(buffer, {
+        sampleRateHint: track.sampleRate,
+        signal: analysisJob.controller.signal,
+        isCancelled: () => cancelled || analysisJobRef.current !== analysisJob,
+        measureNoise: true,
+        onProgress: ({ fraction }) => {
+          if (!cancelled && analysisJobRef.current === analysisJob) {
+            setDspInputAnalysis({
+              trackId: track.id,
+              status: 'analyzing',
+              fraction,
+              analysis: previousAnalysis,
+            });
+          }
+        },
+      });
+      if (
+        !analysis?.noise ||
+        cancelled ||
+        analysisJobRef.current !== analysisJob ||
+        trackIdRef.current !== track.id
+      ) {
+        if (
+          !cancelled &&
+          analysisJobRef.current === analysisJob &&
+          !analysisJob.controller.signal.aborted
+        ) {
+          restorePrevious();
+        }
+        return;
+      }
+      const deck = audioElementRef.current;
+      if (
+        analysis.edges &&
+        deck &&
+        elementTrackRef.current.get(deck) === track.id
+      ) {
+        programmeEdgesRef.current.set(deck, analysis.edges);
+      }
+      setDspNoiseProfile(analysis.noise);
+      setDspInputAnalysis({
+        trackId: track.id,
+        status: 'ready',
+        fraction: 1,
+        analysis,
+      });
+      await window.electron.ipcRenderer.setLibraryTrackNormalization(
+        track.id,
+        analysis,
+        signature ?? {
+          sizeBytes: track.sizeBytes,
+          mtimeMs: track.mtimeMs,
+        },
+      );
+    };
+
+    analyze()
+      .catch(() => {
+        if (
+          !cancelled &&
+          analysisJobRef.current === analysisJob &&
+          !analysisJob.controller.signal.aborted
+        ) {
+          restorePrevious();
+        }
+      })
+      .finally(() => {
+        if (analysisJobRef.current === analysisJob) {
+          analysisJobRef.current = undefined;
+        }
+      });
+    return () => {
+      cancelled = true;
+      analysisJob.controller.abort();
+      if (analysisJobRef.current === analysisJob) {
+        analysisJobRef.current = undefined;
+      }
+    };
+  }, [
+    noiseRescanRequest.id,
+    noiseRescanRequest.trackId,
+    track,
+    dspSettings.enabled,
+    analysisJobRef,
+    audioElementRef,
     elementTrackRef,
     programmeEdgesRef,
     trackIdRef,

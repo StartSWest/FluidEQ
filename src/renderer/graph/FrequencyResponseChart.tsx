@@ -68,6 +68,8 @@ import {
   cycleWaveOrientation,
   exitGraphFullScreen,
   getSelectableLooks,
+  setGraphWaveHeight,
+  setGraphWavePosition,
   setGraphLook,
   setGraphPalette,
   setGraphView,
@@ -77,7 +79,6 @@ import {
   toggleGraphMeter,
   toggleTitlebarWave,
   toggleGraphGrid,
-  toggleGraphStretch,
   toggleFullScreenTopBar,
   cycleGraphContents,
   useGraphContents,
@@ -93,8 +94,8 @@ import {
   toggleGraphCurve,
   TGraphCurve,
   toggleGraphWave,
-  useGraphStretched,
-  useGraphWaveSize,
+  useGraphWaveHeight,
+  useGraphWavePosition,
   useWaveOrientation,
   useGraphView,
   useFullScreenTopBar,
@@ -141,14 +142,6 @@ type PendingPointEdit = Partial<
  * graph. At full strength five curves of similar weight read as a tangle with
  * no obvious answer in it.
  */
-
-/**
- * How tall the compact size draws the wave, as a fraction of its full depth.
- *
- * Half, so it reads as the same drawing along the edge of the screen rather
- * than as a different one. The orientation still decides which edge.
- */
-const COMPACT_WAVE_SCALE = 0.5;
 
 /**
  * How long silence has to last before the graph believes the music stopped.
@@ -570,8 +563,8 @@ const FrequencyResponseChart = ({
   // over a hairline gives nothing back.
   const areHandlesHidden = hiddenCurves.includes('eq') || isEqQuiet;
 
-  const isStretched = useGraphStretched();
-  const waveSize = useGraphWaveSize();
+  const waveHeight = useGraphWaveHeight();
+  const wavePosition = useGraphWavePosition();
   const waveOrientation = useWaveOrientation();
 
   /**
@@ -1242,7 +1235,6 @@ const FrequencyResponseChart = ({
           key === 'f' ||
           key === 'w' ||
           key === 'g' ||
-          key === 'b' ||
           key === 'i'
         ) {
           // Ctrl+S is Save and Ctrl+W is Close Window everywhere else, and
@@ -1256,8 +1248,6 @@ const FrequencyResponseChart = ({
             toggleGraphFullScreen();
           } else if (key === 'g') {
             toggleGraphGrid();
-          } else if (key === 'b') {
-            toggleGraphStretch();
           } else if (key === 'i') {
             cycleWaveOrientation();
           } else if (isEngineUsable) {
@@ -1320,14 +1310,14 @@ const FrequencyResponseChart = ({
       // it even wraps — so the top row of handles was underneath a row of
       // buttons that take pointer events, present on screen and impossible to
       // grab. See `plotTopMargin` for why this is measured rather than stated.
-      top: plotTopMargin(isStretched, controlsHeight),
+      top: plotTopMargin(isDisplayedGridHidden, controlsHeight),
       // Air at the sides, so a curve running off the edge of the plot is not
       // cut flush against the card. With the grid hidden there is nothing to
       // read at the edges and the wave is better for having them.
       right: isGridHidden ? 0 : 30,
       // The frequency labels live down here, and with the grid hidden there is
       // nothing to leave room for.
-      bottom: isStretched && isGridHidden ? 0 : 10,
+      bottom: isDisplayedGridHidden ? 0 : 10,
       left: isGridHidden ? 0 : 30,
     },
   };
@@ -1393,11 +1383,6 @@ const FrequencyResponseChart = ({
     const opacity = isLiveOutputForeground ? 1 : SUPPORTING_CURVE_OPACITY;
     const isHalfHeight =
       waveOrientation === 'mirrored' || waveOrientation === 'centred';
-    // The compact size draws the wave at half its amplitude against whichever
-    // edge the orientation anchors it to — along the bottom of the screen
-    // upright, along the top hanging, and a smaller pair at both edges for the
-    // two-copy orientations.
-    const heightScale = waveSize === 'compact' ? COMPACT_WAVE_SCALE : 1;
     return [
       // Hanging from the top, or mirrored below as well. Drawn first so the
       // upright copy lands over it.
@@ -1407,7 +1392,8 @@ const FrequencyResponseChart = ({
               isFlipped: true,
               isHalfHeight: true,
               isFromCentre: waveOrientation === 'centred',
-              heightScale,
+              heightScale: waveHeight,
+              verticalPosition: wavePosition,
               colour: ColorEnum.ANALOGOUS2,
               opacity,
             },
@@ -1417,7 +1403,8 @@ const FrequencyResponseChart = ({
         isFlipped: waveOrientation === 'down',
         isHalfHeight,
         isFromCentre: waveOrientation === 'centred',
-        heightScale,
+        heightScale: waveHeight,
+        verticalPosition: wavePosition,
         colour: ColorEnum.ANALOGOUS2,
         opacity,
       },
@@ -1426,7 +1413,8 @@ const FrequencyResponseChart = ({
     isDisplayedWaveHidden,
     isLiveOutputForeground,
     waveOrientation,
-    waveSize,
+    waveHeight,
+    wavePosition,
   ]);
 
   const editablePoints: IEditableChartPoint[] = useMemo(() => {
@@ -1501,7 +1489,7 @@ const FrequencyResponseChart = ({
         bypassed.includes('eq') ? ' is-eq-bypassed' : ''
       }${areHandlesHidden || isLiveOutputForeground ? ' is-handles-hidden' : ''}${
         isGridHidden ? ' is-gridless' : ''
-      }${isStretched ? ' is-stretched' : ''}${
+      }${isDisplayedGridHidden ? ' is-edge-to-edge' : ''}${
         isDesignerOpen ? ' is-designing' : ''
       }${isClean ? ' is-clean' : ''}`}
       // Read by the full-screen rules only. Handed down as variables rather
@@ -1828,8 +1816,10 @@ const FrequencyResponseChart = ({
               onToggleMeter={toggleGraphMeter}
               isTitlebarWaveHidden={isTitlebarWaveHidden}
               onToggleTitlebarWave={toggleTitlebarWave}
-              waveSize={waveSize}
-              onToggleStretch={toggleGraphStretch}
+              waveHeight={waveHeight}
+              onChangeWaveHeight={setGraphWaveHeight}
+              wavePosition={wavePosition}
+              onChangeWavePosition={setGraphWavePosition}
               waveOrientation={waveOrientation}
               onCycleOrientation={cycleWaveOrientation}
               overlayOpacity={overlayOpacity}
@@ -1878,13 +1868,10 @@ const FrequencyResponseChart = ({
           watches the frames at all, and the chart re-renders when a band moves
           and at no other time. */}
       {isSolo && <SilenceWatch onChange={setHasRecentAudio} />}
-      {/* The measured box, and the card around it are now two different things.
-          They used to be one, which is fine while the plot fills the card and
-          wrong the moment it should not: in full screen the card covers the
-          whole column so the frosting sits over all of the video, while the
-          drawing keeps a sensible height in the middle of it. Measuring the
-          card there would stretch the plot to the full height of the window,
-          which is the one thing a frequency response should not do. */}
+      {/* The measured plot stays separate from the card that carries the
+          overlay surface and controls. In expanded and full-screen modes CSS
+          grows this box through the card's available height, and the chart
+          measures that actual result. */}
       {/* What Ctrl+W just did, over the middle of the plot for a moment.
           A shortcut that rearranges five things at once is quick to use and
           impossible to learn: the drawing changes and nothing says which of the

@@ -19,17 +19,25 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import {
-  decodeAudio,
   decodeAudioAsync,
   decodePairingCode,
-  encodeAudio,
+  deriveSessionKey,
   encodeAudioAsync,
   encodePairingCode,
   isPrivateIpv4,
   keyFromSecret,
   normalizeAudioChunk,
+  openAuthAccepted,
+  openAuthChallenge,
+  openAuthReady,
   openPacket,
+  PACKET_AUTH_ACCEPTED,
+  PACKET_AUTH_CHALLENGE,
+  PACKET_AUTH_READY,
   PACKET_AUDIO,
+  sealAuthAccepted,
+  sealAuthChallenge,
+  sealAuthReady,
   sealPacket,
 } from '../../../main/remoteAudioLanProtocol';
 import { isRemoteAudioSignal } from '../../../common/remoteAudio';
@@ -58,6 +66,10 @@ describe('encrypted LAN audio protocol', () => {
     expect(isPrivateIpv4('172.32.0.1')).toBe(false);
     expect(isPrivateIpv4('127.0.0.1')).toBe(false);
     expect(isPrivateIpv4('192.168.1')).toBe(false);
+    expect(isPrivateIpv4('172.016.0.1')).toBe(false);
+    expect(isPrivateIpv4('192.168.01.1')).toBe(false);
+    expect(isPrivateIpv4('10.0.0.010')).toBe(false);
+    expect(isPrivateIpv4('+10.0.0.1')).toBe(false);
   });
 
   it('round-trips a reusable private-network pairing code', () => {
@@ -85,7 +97,7 @@ describe('encrypted LAN audio protocol', () => {
     );
   });
 
-  it('preserves every Float32 PCM bit through encryption and framing', () => {
+  it('preserves every Float32 PCM bit through encryption and framing', async () => {
     const samples = new Float32Array([
       0,
       -0,
@@ -111,9 +123,13 @@ describe('encrypted LAN audio protocol', () => {
     });
     const key = keyFromSecret('lossless-lan-audio-secret');
 
-    const encrypted = sealPacket(PACKET_AUDIO, encodeAudio(normalized), key);
+    const encrypted = sealPacket(
+      PACKET_AUDIO,
+      await encodeAudioAsync(normalized),
+      key,
+    );
     const opened = openPacket(encrypted, key);
-    const decoded = decodeAudio('source-pc', opened.clear);
+    const decoded = await decodeAudioAsync('source-pc', opened.clear);
 
     expect(opened.kind).toBe(PACKET_AUDIO);
     expect(decoded).toMatchObject({
@@ -126,7 +142,7 @@ describe('encrypted LAN audio protocol', () => {
     expect(Buffer.from(decoded.pcm)).toEqual(Buffer.from(pcm));
   });
 
-  it('compresses repetitive PCM without changing the restored samples', () => {
+  it('compresses repetitive PCM without changing the restored samples', async () => {
     const pcm = Buffer.alloc(8_192 * 2 * 4);
     const normalized = normalizeAudioChunk({
       channels: 2,
@@ -136,10 +152,12 @@ describe('encrypted LAN audio protocol', () => {
       sampleRate: 48_000,
       sequence: 4,
     });
-    const compressed = encodeAudio(normalized);
+    const compressed = await encodeAudioAsync(normalized);
 
     expect(compressed.byteLength).toBeLessThan(pcm.byteLength);
-    expect(Buffer.from(decodeAudio('quiet-pc', compressed).pcm)).toEqual(pcm);
+    expect(
+      Buffer.from((await decodeAudioAsync('quiet-pc', compressed)).pcm),
+    ).toEqual(pcm);
   });
 
   it('preserves every PCM bit through the asynchronous transport codec', async () => {
@@ -190,5 +208,53 @@ describe('encrypted LAN audio protocol', () => {
     tampered[lastByte] = (tampered[lastByte] + 1) % 256;
 
     expect(() => openPacket(tampered, key)).toThrow();
+  });
+
+  it('authenticates a peer with a fresh challenge and session key', () => {
+    const pairingKey = keyFromSecret('durable-pairing-secret');
+    const challenge = 'a'.repeat(43);
+    const peerId = 'sender-pc';
+    const openedChallenge = openPacket(
+      sealAuthChallenge(challenge, pairingKey),
+      pairingKey,
+    );
+    expect(openedChallenge.kind).toBe(PACKET_AUTH_CHALLENGE);
+    expect(openAuthChallenge(openedChallenge.clear)).toEqual({ challenge });
+
+    const openedReady = openPacket(
+      sealAuthReady({ challenge, deviceName: 'SOURCE-PC', peerId }, pairingKey),
+      pairingKey,
+    );
+    expect(openedReady.kind).toBe(PACKET_AUTH_READY);
+    expect(openAuthReady(openedReady.clear)).toEqual({
+      challenge,
+      deviceName: 'SOURCE-PC',
+      peerId,
+    });
+
+    const openedAccepted = openPacket(
+      sealAuthAccepted({ challenge, peerId }, pairingKey),
+      pairingKey,
+    );
+    expect(openedAccepted.kind).toBe(PACKET_AUTH_ACCEPTED);
+    expect(openAuthAccepted(openedAccepted.clear)).toEqual({
+      challenge,
+      peerId,
+    });
+  });
+
+  it('makes captured audio unusable after reconnecting', () => {
+    const pairingKey = keyFromSecret('durable-pairing-secret');
+    const peerId = 'sender-pc';
+    const firstSession = deriveSessionKey(pairingKey, 'a'.repeat(43), peerId);
+    const nextSession = deriveSessionKey(pairingKey, 'b'.repeat(43), peerId);
+    const captured = sealPacket(
+      PACKET_AUDIO,
+      Buffer.from('captured audio'),
+      firstSession,
+    );
+
+    expect(nextSession).not.toEqual(firstSession);
+    expect(() => openPacket(captured, nextSession)).toThrow();
   });
 });

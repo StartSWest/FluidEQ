@@ -2246,8 +2246,11 @@ $library-wave-step: 4ms;
 
 .library-list__row,
 .library-grid__tile {
-  animation: rise-in $motion-fast $ease-out both;
-  will-change: opacity, transform;
+  // No `will-change`: it would leave every row and every tile on a compositor
+  // layer of its own for as long as the list is open — a hundred and eighty
+  // layers, each one's text dropped to grey-scale antialiasing. See the note in
+  // `_motion.scss`; the entrance is promoted for its own duration regardless.
+  animation: rise-in $motion-fast $ease-out backwards;
 
   @for $i from 1 through $library-wave-span {
     &:nth-child(#{$i}) {
@@ -2260,7 +2263,6 @@ $library-wave-step: 4ms;
   .library-list__row,
   .library-grid__tile {
     animation: none;
-    will-change: auto;
   }
 }
 
@@ -2878,7 +2880,7 @@ $library-wave-step: 4ms;
 
 .library-up-next,
 .library-up-next__splitter {
-  animation: up-next-in $motion-base $ease-out both;
+  animation: up-next-in $motion-base $ease-out backwards;
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -145,6 +145,11 @@ it under the terms of the GNU General Public License version 3 or later.
   position: relative;
   height: 56px;
   overflow: hidden;
+  // The same corner the clip inside it draws, because euphoria hangs a glow on
+  // THIS box — and a box-shadow follows the border radius. At 0 the rainbow
+  // bloom came out as a hard square around a rounded pane, which is the only
+  // right angle anywhere in the dialog.
+  border-radius: $radius-s;
 
   // The scrolling wave, and only the wave, is clipped — so beats scroll in and
   // out rather than appearing and vanishing mid-air.

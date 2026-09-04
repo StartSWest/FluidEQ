@@ -26,19 +26,20 @@ export type TLanSenderCredentials = Extract<
 >;
 
 interface ICredentialState {
-  activeRole: TLanSavedRole;
+  activeRole?: TLanSavedRole;
   listener?: TLanListenerCredentials;
   sender?: TLanSenderCredentials;
 }
 
 interface IStoredCredentials {
   encrypted: string;
-  version: 1 | 2;
+  version: 1 | 2 | 3;
 }
 
 export interface IRemoteAudioCredentialStore {
   activate(role: TLanSavedRole): boolean;
   clear(): void;
+  pause(): void;
   read(): TLanCredentials | undefined;
   readListener(): TLanListenerCredentials | undefined;
   readSender(): TLanSenderCredentials | undefined;
@@ -86,6 +87,7 @@ const isCredentialState = (value: unknown): value is ICredentialState => {
     candidate.sender === undefined ||
     (candidate.sender.role === 'sender' && isCredentials(candidate.sender));
   const activeValid =
+    candidate.activeRole === undefined ||
     (candidate.activeRole === 'listener' &&
       candidate.listener?.role === 'listener') ||
     (candidate.activeRole === 'sender' && candidate.sender?.role === 'sender');
@@ -118,7 +120,9 @@ export const createRemoteAudioCredentialStore = (
         fs.readFileSync(filePath, 'utf8'),
       ) as Partial<IStoredCredentials>;
       if (
-        (stored.version !== 1 && stored.version !== 2) ||
+        (stored.version !== 1 &&
+          stored.version !== 2 &&
+          stored.version !== 3) ||
         typeof stored.encrypted !== 'string'
       ) {
         return undefined;
@@ -127,7 +131,7 @@ export const createRemoteAudioCredentialStore = (
         Buffer.from(stored.encrypted, 'base64'),
       );
       const decrypted: unknown = JSON.parse(clear);
-      if (stored.version === 2) {
+      if (stored.version === 2 || stored.version === 3) {
         return isCredentialState(decrypted) ? decrypted : undefined;
       }
       if (!isCredentials(decrypted)) {
@@ -148,17 +152,31 @@ export const createRemoteAudioCredentialStore = (
     const encrypted = safeStorage
       .encryptString(JSON.stringify(state))
       .toString('base64');
-    const stored: IStoredCredentials = { encrypted, version: 2 };
+    const stored: IStoredCredentials = { encrypted, version: 3 };
+    const temporaryPath = `${filePath}.tmp`;
     fs.mkdirSync(userDataDir, { recursive: true });
-    fs.writeFileSync(filePath, JSON.stringify(stored), {
-      encoding: 'utf8',
-      mode: 0o600,
-    });
+    try {
+      fs.writeFileSync(temporaryPath, JSON.stringify(stored), {
+        encoding: 'utf8',
+        mode: 0o600,
+      });
+      fs.renameSync(temporaryPath, filePath);
+    } catch (error) {
+      try {
+        fs.rmSync(temporaryPath, { force: true });
+      } catch {
+        // Preserve the original persistence error if cleanup also fails.
+      }
+      throw error;
+    }
   };
 
   const read = (): TLanCredentials | undefined => {
     const state = readState();
-    return state?.activeRole === 'listener' ? state.listener : state?.sender;
+    if (state?.activeRole === 'listener') {
+      return state.listener;
+    }
+    return state?.activeRole === 'sender' ? state.sender : undefined;
   };
 
   return {
@@ -171,10 +189,18 @@ export const createRemoteAudioCredentialStore = (
       return true;
     },
     clear: () => {
-      try {
-        fs.rmSync(filePath, { force: true });
-      } catch {
-        // A missing or already-locked preferences file is equivalent to clear.
+      [filePath, `${filePath}.tmp`].forEach((target) => {
+        try {
+          fs.rmSync(target, { force: true });
+        } catch {
+          // A missing or locked preferences file is equivalent to clear.
+        }
+      });
+    },
+    pause: () => {
+      const state = readState();
+      if (state) {
+        persist({ ...state, activeRole: undefined });
       }
     },
     read,

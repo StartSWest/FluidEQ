@@ -74,9 +74,9 @@ uint32_t device_frames_for(double device_rate, uint32_t model_frames) {
                                             device_rate / kVoiceRate));
 }
 
-/** One model window, plus the worker's four-hop scheduling headroom. */
+/** One overlap-add hop, plus the worker's four-hop scheduling headroom. */
 uint32_t voice_latency_for(double device_rate) {
-  return device_frames_for(device_rate, kVoiceWindow) +
+  return device_frames_for(device_rate, kVoiceHop) +
          device_frames_for(device_rate, kVoiceHop * kDenoiseVoiceLatencyFrames);
 }
 
@@ -528,10 +528,10 @@ void reset_runtime(VoiceRuntime& runtime) {
     runtime.dry_delay[c].assign(dry_capacity, 0.0f);
 
     /*
-     * Four finished hops are scheduling headroom. The model front end keeps a
-     * full two-hop analysis window before its output is on the source timeline;
-     * the dry path below carries both terms so partial Amount cannot double the
-     * speaker with a delayed copy.
+     * Four finished hops are scheduling headroom. The overlap-add front end
+     * contributes one more hop: the first input hop enters the right half of
+     * the window and is emitted after the next hop. The dry path carries both
+     * terms so partial Amount stays phase-coherent with the cleaned output.
      */
     float silence[64] = {0.0f};
     uint32_t remaining = device_frames_for(
@@ -623,8 +623,6 @@ uint32_t denoise_voice_process(FeqDenoise* denoise, float* const* channels,
   }
 
   const bool enabled = denoise->settings.voice.enabled != 0;
-  const bool keep_background =
-      denoise->settings.voice.mode == FEQ_DENOISE_VOICE_KEEP_BACKGROUND;
   const double amount =
       std::min(1.0, std::max(0.0, denoise->settings.voice.amount));
   uint32_t underruns = 0;
@@ -687,11 +685,8 @@ uint32_t denoise_voice_process(FeqDenoise* denoise, float* const* channels,
           const uint32_t at =
               (runtime->dry_cursor + i + dry_ring - runtime->voice_latency) %
               dry_ring;
-          const float selected = keep_background
-                                     ? line[at] - runtime->scratch[i]
-                                     : runtime->scratch[i];
-          buffer[i] =
-              static_cast<float>(line[at] * (1.0 - amount) + selected * amount);
+          buffer[i] = static_cast<float>(line[at] * (1.0 - amount) +
+                                         runtime->scratch[i] * amount);
         }
       }
     } else if (enabled) {

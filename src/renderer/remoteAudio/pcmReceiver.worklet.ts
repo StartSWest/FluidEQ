@@ -241,6 +241,7 @@ class RemoteAudioProcessor extends AudioWorkletProcessor {
 
   private push(message: IPushMessage) {
     let peer = this.peers.get(message.peerId);
+    const playbackProfile = this.profileFor(message.peerId);
     const streamChanged =
       peer &&
       (peer.sampleRate !== message.sampleRate ||
@@ -265,6 +266,22 @@ class RemoteAudioProcessor extends AudioWorkletProcessor {
         targetBufferSeconds: this.profileFor(message.peerId).startBufferSeconds,
       };
       this.peers.set(message.peerId, peer);
+    }
+    const hardMaximumFrames =
+      message.sampleRate *
+      (playbackProfile.maximumBufferSeconds +
+        Math.max(0.25, playbackProfile.startBufferSeconds));
+    if (peer.availableFrames + message.frames > hardMaximumFrames) {
+      // Falling many packets behind is worse than a controlled re-prime: it
+      // makes video permanently late and lets memory grow without a bound.
+      // This path only runs after transport backpressure has already failed.
+      peer.availableFrames = 0;
+      peer.chunks = [];
+      peer.fadeDirection = 1;
+      peer.gain = 0;
+      peer.position = 0;
+      peer.primed = false;
+      peer.targetBufferSeconds = playbackProfile.startBufferSeconds;
     }
     peer.expectedSequence =
       message.sequence === 0xffff_ffff ? 0 : message.sequence + 1;

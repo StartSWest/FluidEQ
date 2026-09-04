@@ -20,9 +20,9 @@ import {
 const RemoteAudioPanel = () => {
   const { t } = useTranslation();
   const remote = useRemoteAudio();
-  const [selectedRole, setSelectedRole] = useState<
-    'listener' | 'sender' | undefined
-  >(undefined);
+  const [selectedRole, setSelectedRole] = useState<'listener' | 'sender'>(
+    'listener',
+  );
   const [pairingCode, setPairingCode] = useState('');
   const [copiedCode, setCopiedCode] = useState('');
   const displayedRole = remote.role ?? selectedRole;
@@ -114,7 +114,6 @@ const RemoteAudioPanel = () => {
       await remote.stop();
     }
     setSelectedRole('listener');
-    await remote.startListening();
   };
 
   const chooseSender = async () => {
@@ -125,7 +124,11 @@ const RemoteAudioPanel = () => {
       await remote.stop();
     }
     setSelectedRole('sender');
-    await remote.resumeSending();
+  };
+
+  const startListenerSession = async () => {
+    setSelectedRole('listener');
+    await remote.startListening();
   };
 
   const stopSession = async () => {
@@ -177,79 +180,81 @@ const RemoteAudioPanel = () => {
       />
 
       <h3 className="remote-audio__choice-title">{t('remoteAudio.choose')}</h3>
-      <div
-        className="remote-audio__role-cards"
-        role="radiogroup"
-        aria-label={t('remoteAudio.choose')}
-      >
-        <article
-          className={`remote-audio__role-card${
-            displayedRole === 'listener' ? ' is-selected' : ''
-          }`}
+      <div className="remote-audio__role-shell">
+        <div
+          className="remote-audio__role-cards"
+          role="radiogroup"
+          aria-label={t('remoteAudio.choose')}
         >
-          <button
-            type="button"
-            role="radio"
-            aria-checked={displayedRole === 'listener'}
-            className="remote-audio__role-choice"
-            onClick={() => chooseListener().catch(() => undefined)}
+          <article
+            className={`remote-audio__role-card${
+              displayedRole === 'listener' ? ' is-selected' : ''
+            }`}
           >
-            <span className="remote-audio__role-radio" aria-hidden="true" />
-            <span className="remote-audio__role-icon" aria-hidden="true">
-              <MenuIcon name="model" />
-            </span>
-            <span className="control-kicker">
-              {t('remoteAudio.listen.kicker')}
-            </span>
-            <strong>{t('remoteAudio.listen.title')}</strong>
-            <span>{t('remoteAudio.listen.body')}</span>
-          </button>
-        </article>
+            <button
+              type="button"
+              role="radio"
+              aria-checked={displayedRole === 'listener'}
+              className="remote-audio__role-choice"
+              onClick={() => chooseListener().catch(() => undefined)}
+            >
+              <span className="remote-audio__role-radio" aria-hidden="true" />
+              <span className="remote-audio__role-icon" aria-hidden="true">
+                <MenuIcon name="model" />
+              </span>
+              <span className="control-kicker">
+                {t('remoteAudio.listen.kicker')}
+              </span>
+              <strong>{t('remoteAudio.listen.title')}</strong>
+              <span>{t('remoteAudio.listen.body')}</span>
+            </button>
+          </article>
 
-        <article
-          className={`remote-audio__role-card${
-            displayedRole === 'sender' ? ' is-selected' : ''
-          }`}
-        >
-          <button
-            type="button"
-            role="radio"
-            aria-checked={displayedRole === 'sender'}
-            className="remote-audio__role-choice"
-            onClick={() => chooseSender().catch(() => undefined)}
+          <article
+            className={`remote-audio__role-card${
+              displayedRole === 'sender' ? ' is-selected' : ''
+            }`}
           >
-            <span className="remote-audio__role-radio" aria-hidden="true" />
-            <span className="remote-audio__role-icon" aria-hidden="true">
-              <MenuIcon name="waveform" />
-            </span>
-            <span className="control-kicker">
-              {t('remoteAudio.send.kicker')}
-            </span>
-            <strong>{t('remoteAudio.send.title')}</strong>
-            <span>{t('remoteAudio.send.body')}</span>
-          </button>
-        </article>
+            <button
+              type="button"
+              role="radio"
+              aria-checked={displayedRole === 'sender'}
+              className="remote-audio__role-choice"
+              onClick={() => chooseSender().catch(() => undefined)}
+            >
+              <span className="remote-audio__role-radio" aria-hidden="true" />
+              <span className="remote-audio__role-icon" aria-hidden="true">
+                <MenuIcon name="waveform" />
+              </span>
+              <span className="control-kicker">
+                {t('remoteAudio.send.kicker')}
+              </span>
+              <strong>{t('remoteAudio.send.title')}</strong>
+              <span>{t('remoteAudio.send.body')}</span>
+            </button>
+          </article>
+        </div>
+
+        {displayedRole === 'listener' && (
+          <RemoteAudioListenerWorkspace
+            copiedCode={copiedCode}
+            copyCode={copyCode}
+            remote={remote}
+            replaceConnectionCode={replaceConnectionCode}
+            startListening={startListenerSession}
+            status={status}
+            stopSession={stopSession}
+          />
+        )}
+        {displayedRole === 'sender' && (
+          <RemoteAudioSenderWorkspace
+            pairingCode={pairingCode}
+            remote={remote}
+            setPairingCode={setPairingCode}
+            stopSession={stopSession}
+          />
+        )}
       </div>
-
-      {displayedRole === 'listener' && (
-        <RemoteAudioListenerWorkspace
-          copiedCode={copiedCode}
-          copyCode={copyCode}
-          remote={remote}
-          replaceConnectionCode={replaceConnectionCode}
-          startListening={chooseListener}
-          status={status}
-          stopSession={stopSession}
-        />
-      )}
-      {displayedRole === 'sender' && (
-        <RemoteAudioSenderWorkspace
-          pairingCode={pairingCode}
-          remote={remote}
-          setPairingCode={setPairingCode}
-          stopSession={stopSession}
-        />
-      )}
 
       <footer className="remote-audio__note">
         <strong>{t('remoteAudio.note.title')}</strong>

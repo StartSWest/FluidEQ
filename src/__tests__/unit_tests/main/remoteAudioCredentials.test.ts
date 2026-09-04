@@ -67,6 +67,31 @@ describe('secure LAN audio reconnect credentials', () => {
     expect(store.activate('listener')).toBe(true);
     expect(store.role()).toBe('listener');
     expect(store.readSender()).toEqual({ code, role: 'sender' });
+    expect(
+      fs.existsSync(path.join(directory, 'remote-audio-lan.json.tmp')),
+    ).toBe(false);
+  });
+
+  it('pauses automatic restore without deleting either role', () => {
+    const store = createRemoteAudioCredentialStore(directory);
+    const code = `FLUIDEQ-LAN-2.${'p'.repeat(80)}`;
+    const listener = {
+      port: 49_100,
+      role: 'listener' as const,
+      secret: 's'.repeat(43),
+    };
+    store.write(listener);
+    store.write({ code, role: 'sender' });
+
+    store.pause();
+    const reopened = createRemoteAudioCredentialStore(directory);
+
+    expect(reopened.role()).toBeUndefined();
+    expect(reopened.read()).toBeUndefined();
+    expect(reopened.readListener()).toEqual(listener);
+    expect(reopened.readSender()).toEqual({ code, role: 'sender' });
+    expect(reopened.activate('sender')).toBe(true);
+    expect(reopened.read()).toEqual({ code, role: 'sender' });
   });
 
   it('migrates a version-one sender without losing it', () => {
@@ -93,12 +118,16 @@ describe('secure LAN audio reconnect credentials', () => {
       code: `FLUIDEQ-LAN-2.${'b'.repeat(80)}`,
       role: 'sender',
     });
+    fs.writeFileSync(path.join(directory, 'remote-audio-lan.json.tmp'), 'old');
     store.clear();
 
     expect(store.read()).toBeUndefined();
     expect(fs.existsSync(path.join(directory, 'remote-audio-lan.json'))).toBe(
       false,
     );
+    expect(
+      fs.existsSync(path.join(directory, 'remote-audio-lan.json.tmp')),
+    ).toBe(false);
   });
 
   it('refuses to persist pairing material without OS encryption', () => {

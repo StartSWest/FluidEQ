@@ -493,4 +493,33 @@ describe('dsp worklet bundle', () => {
     processor.process([], recovered);
     expect(recovered[0][0][QUANTUM - 1]).toBeGreaterThan(0);
   });
+
+  it('bounds a stalled video playback queue and returns near real time', () => {
+    const processor = new (loadProcessor('fluideq-remote-audio'))();
+    processor.port.onmessage?.({
+      data: { kind: 'configure', mode: 'video', peerId: 'LATE-PC' },
+    });
+    pushRemoteAudio(
+      processor,
+      'LATE-PC',
+      new Float32Array(SAMPLE_RATE * 2 * 2).fill(0.2),
+    );
+
+    for (let quantum = 0; quantum < 8; quantum += 1) {
+      processor.process(
+        [],
+        [[new Float32Array(QUANTUM), new Float32Array(QUANTUM)]],
+      );
+    }
+
+    const meter = [...processor.port.messages]
+      .reverse()
+      .find(
+        (message) =>
+          typeof message === 'object' &&
+          message !== null &&
+          (message as { sourceId?: unknown }).sourceId === 'LATE-PC',
+      ) as { bufferedMs?: number } | undefined;
+    expect(meter?.bufferedMs).toBeLessThanOrEqual(430);
+  });
 });

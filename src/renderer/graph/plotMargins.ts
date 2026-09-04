@@ -43,15 +43,15 @@ export const MINIMUM_TOP_MARGIN = 30;
  * the stylesheet: the strip's height depends on what is in it and how wide the
  * pane is, and both change without this code being told.
  *
- * Stretching gives the headroom up on purpose — that space is most of the gap
- * this mode exists to reclaim, and there is no handle up there to clip once the
- * drawing is the point rather than the measurement.
+ * A gridless plot gives the headroom up on purpose. With no scale left to read,
+ * the pane is a visual stage and the height slider must be able to reach its
+ * real top edge. A ruled graph keeps enough room for its controls and handles.
  */
 export const plotTopMargin = (
-  isStretched: boolean,
+  isEdgeToEdge: boolean,
   controlsHeight: number,
 ): number => {
-  if (isStretched) {
+  if (isEdgeToEdge) {
     return 4;
   }
   if (!Number.isFinite(controlsHeight) || controlsHeight <= 0) {

@@ -8,13 +8,7 @@ it under the terms of the GNU General Public License version 3 or later.
 
 import crypto from 'crypto';
 import os from 'os';
-import {
-  constants,
-  zstdCompress,
-  zstdCompressSync,
-  zstdDecompress,
-  zstdDecompressSync,
-} from 'zlib';
+import { constants, zstdCompress, zstdDecompress } from 'zlib';
 import type { RawData } from 'ws';
 import {
   ILanRemoteAudioChunk,
@@ -26,6 +20,9 @@ const PAIRING_PREFIX = 'FLUIDEQ-LAN-2.';
 const PACKET_AAD = Buffer.from('FluidEQ encrypted LAN audio v2', 'utf8');
 export const PACKET_SIGNAL = 1;
 export const PACKET_AUDIO = 2;
+export const PACKET_AUTH_CHALLENGE = 3;
+export const PACKET_AUTH_READY = 4;
+export const PACKET_AUTH_ACCEPTED = 5;
 const SEALED_HEADER_BYTES = 1 + 12 + 16;
 const AUDIO_HEADER_BYTES = 4 + 4 + 1 + 2 + 1;
 const AUDIO_RAW = 0;
@@ -53,7 +50,25 @@ export interface IOpenedPacket {
   clear: Buffer;
 }
 
+export interface ILanAuthChallenge {
+  challenge: string;
+}
+
+export interface ILanAuthReady extends ILanAuthChallenge {
+  deviceName: string;
+  peerId: string;
+}
+
+export interface ILanAuthAccepted extends ILanAuthChallenge {
+  peerId: string;
+}
+
+const CANONICAL_IPV4 = /^(?:0|[1-9]\d{0,2})(?:\.(?:0|[1-9]\d{0,2})){3}$/;
+
 export const isPrivateIpv4 = (address: string): boolean => {
+  if (!CANONICAL_IPV4.test(address)) {
+    return false;
+  }
   const octets = address.split('.').map(Number);
   if (
     octets.length !== 4 ||
@@ -156,6 +171,24 @@ export const decodePairingCode = (code: unknown): ILanPairingPayload => {
 export const keyFromSecret = (secret: string): Buffer =>
   crypto.createHash('sha256').update(secret, 'utf8').digest();
 
+export const createAuthChallenge = (): string =>
+  crypto.randomBytes(32).toString('base64url');
+
+export const deriveSessionKey = (
+  pairingKey: Buffer,
+  challenge: string,
+  peerId: string,
+): Buffer =>
+  Buffer.from(
+    crypto.hkdfSync(
+      'sha256',
+      pairingKey,
+      Buffer.from(challenge, 'utf8'),
+      Buffer.from(`FluidEQ LAN audio session ${peerId}`, 'utf8'),
+      32,
+    ),
+  );
+
 const asBuffer = (data: RawData): Buffer => {
   if (Buffer.isBuffer(data)) {
     return data;
@@ -195,7 +228,13 @@ export const openPacket = (data: RawData, key: Buffer): IOpenedPacket => {
     throw new Error('Invalid encrypted LAN packet size.');
   }
   const kind = packet[0];
-  if (kind !== PACKET_SIGNAL && kind !== PACKET_AUDIO) {
+  if (
+    kind !== PACKET_SIGNAL &&
+    kind !== PACKET_AUDIO &&
+    kind !== PACKET_AUTH_CHALLENGE &&
+    kind !== PACKET_AUTH_READY &&
+    kind !== PACKET_AUTH_ACCEPTED
+  ) {
     throw new Error('Invalid encrypted LAN packet type.');
   }
   const decipher = crypto.createDecipheriv(
@@ -224,6 +263,72 @@ export const openSignal = (clear: Buffer): ILanRemoteAudioSignal => {
     throw new Error('Invalid LAN control message.');
   }
   return message;
+};
+
+const authValue = (clear: Buffer): Record<string, unknown> => {
+  const value: unknown = JSON.parse(clear.toString('utf8'));
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+    throw new Error('Invalid LAN authentication message.');
+  }
+  return value as Record<string, unknown>;
+};
+
+const validAuthToken = (value: unknown): value is string =>
+  typeof value === 'string' && /^[A-Za-z0-9_-]{43}$/.test(value);
+
+const sealAuthValue = (kind: number, value: object, key: Buffer): Buffer =>
+  sealPacket(kind, Buffer.from(JSON.stringify(value), 'utf8'), key);
+
+export const sealAuthChallenge = (challenge: string, key: Buffer): Buffer =>
+  sealAuthValue(PACKET_AUTH_CHALLENGE, { challenge }, key);
+
+export const openAuthChallenge = (clear: Buffer): ILanAuthChallenge => {
+  const value = authValue(clear);
+  if (!validAuthToken(value.challenge)) {
+    throw new Error('Invalid LAN authentication challenge.');
+  }
+  return { challenge: value.challenge };
+};
+
+export const sealAuthReady = (ready: ILanAuthReady, key: Buffer): Buffer =>
+  sealAuthValue(PACKET_AUTH_READY, ready, key);
+
+export const openAuthReady = (clear: Buffer): ILanAuthReady => {
+  const value = authValue(clear);
+  if (
+    !validAuthToken(value.challenge) ||
+    typeof value.peerId !== 'string' ||
+    value.peerId.length === 0 ||
+    value.peerId.length > 128 ||
+    typeof value.deviceName !== 'string' ||
+    value.deviceName.trim().length === 0 ||
+    value.deviceName.length > 128
+  ) {
+    throw new Error('Invalid LAN authentication response.');
+  }
+  return {
+    challenge: value.challenge,
+    deviceName: value.deviceName.trim(),
+    peerId: value.peerId,
+  };
+};
+
+export const sealAuthAccepted = (
+  accepted: ILanAuthAccepted,
+  key: Buffer,
+): Buffer => sealAuthValue(PACKET_AUTH_ACCEPTED, accepted, key);
+
+export const openAuthAccepted = (clear: Buffer): ILanAuthAccepted => {
+  const value = authValue(clear);
+  if (
+    !validAuthToken(value.challenge) ||
+    typeof value.peerId !== 'string' ||
+    value.peerId.length === 0 ||
+    value.peerId.length > 128
+  ) {
+    throw new Error('Invalid LAN authentication acknowledgement.');
+  }
+  return { challenge: value.challenge, peerId: value.peerId };
 };
 
 export const normalizeAudioChunk = (value: unknown): INormalizedAudioChunk => {
@@ -273,25 +378,6 @@ export const normalizeAudioChunk = (value: unknown): INormalizedAudioChunk => {
   };
 };
 
-export const encodeAudio = (
-  chunk: INormalizedAudioChunk,
-  compress = true,
-): Buffer => {
-  const header = Buffer.allocUnsafe(AUDIO_HEADER_BYTES);
-  header.writeUInt32LE(chunk.sequence, 0);
-  header.writeUInt32LE(chunk.sampleRate, 4);
-  header.writeUInt8(chunk.channels, 8);
-  header.writeUInt16LE(chunk.frames, 9);
-  header.writeUInt8(compress ? AUDIO_ZSTD : AUDIO_RAW, 11);
-  if (!compress) {
-    return Buffer.concat([header, chunk.pcm]);
-  }
-  const compressed = zstdCompressSync(chunk.pcm, {
-    params: { [constants.ZSTD_c_compressionLevel]: 1 },
-  });
-  return Buffer.concat([header, compressed]);
-};
-
 /**
  * Zstandard runs in Node's worker pool so lossless transport cannot hold up
  * Electron's main event loop or the loopback-driven UI meters.
@@ -317,53 +403,6 @@ export const encodeAudioAsync = async (
     );
   });
   return Buffer.concat([header, compressed]);
-};
-
-export const decodeAudio = (
-  peerId: string,
-  clear: Buffer,
-): ILanRemoteAudioChunk => {
-  if (clear.byteLength < AUDIO_HEADER_BYTES) {
-    throw new Error('Invalid LAN audio packet.');
-  }
-  const channels = clear.readUInt8(8);
-  const frames = clear.readUInt16LE(9);
-  if (channels < 1 || channels > 8 || frames < 1 || frames > 8_192) {
-    throw new Error('Invalid LAN audio packet.');
-  }
-  const expectedPcmBytes = channels * frames * 4;
-  const encoding = clear.readUInt8(11);
-  const payload = clear.subarray(AUDIO_HEADER_BYTES);
-  let pcm: Buffer;
-  if (encoding === AUDIO_RAW && payload.byteLength === expectedPcmBytes) {
-    pcm = payload;
-  } else if (encoding === AUDIO_ZSTD) {
-    try {
-      pcm = zstdDecompressSync(payload, {
-        maxOutputLength: expectedPcmBytes,
-      });
-    } catch {
-      throw new Error('Invalid LAN audio packet.');
-    }
-  } else {
-    throw new Error('Invalid LAN audio packet.');
-  }
-  const normalized = normalizeAudioChunk({
-    peerId,
-    sequence: clear.readUInt32LE(0),
-    sampleRate: clear.readUInt32LE(4),
-    channels,
-    frames,
-    pcm,
-  });
-  return {
-    peerId,
-    sequence: normalized.sequence,
-    sampleRate: normalized.sampleRate,
-    channels: normalized.channels,
-    frames: normalized.frames,
-    pcm: Uint8Array.from(normalized.pcm).buffer,
-  };
 };
 
 export const decodeAudioAsync = async (

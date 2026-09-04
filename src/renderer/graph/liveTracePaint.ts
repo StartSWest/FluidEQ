@@ -383,27 +383,58 @@ export interface IWaveTransform {
 export const getWaveTransform = (
   curve: Pick<
     ILiveCurveData,
-    'isFlipped' | 'isHalfHeight' | 'isFromCentre' | 'heightScale'
+    | 'isFlipped'
+    | 'isHalfHeight'
+    | 'isFromCentre'
+    | 'heightScale'
+    | 'verticalPosition'
   >,
-  plotHeight: number,
+  plotBottom: number,
+  plotTop = 0,
 ): IWaveTransform => {
   /**
-   * How much of its available depth the wave actually uses.
+   * Height and position are separate on purpose. The three-stop control this
+   * replaces coupled a half-height drawing to an edge-to-edge plot, which made
+   * a short centred wave impossible. Height scales around the baseline; the
+   * position then moves that baseline from its edge to the middle.
    *
-   * Every case below is written as "scale about the row this orientation is
-   * anchored to", which is what lets the compact size shorten the drawing
-   * without moving the edge it stands on. At 1 each expression reduces to the
-   * transform it had before this existed.
+   * Values are clamped here as well as in the settings store because this is a
+   * rendering boundary. A custom caller or stale stored value must not hand
+   * canvas a negative or non-finite transform and make the last valid frame
+   * remain frozen on screen.
    */
-  const scale = curve.heightScale ?? 1;
+  const requestedScale = curve.heightScale ?? 1;
+  const scale = Number.isFinite(requestedScale)
+    ? Math.max(0, Math.min(1, requestedScale))
+    : 1;
+  const requestedPosition = curve.verticalPosition ?? 0;
+  const position = Number.isFinite(requestedPosition)
+    ? Math.max(0, Math.min(1, requestedPosition))
+    : 0;
+  const depth = Math.max(0, plotBottom - plotTop);
+  const centre = plotTop + depth / 2;
 
   if (!curve.isFlipped && !curve.isHalfHeight) {
-    // Standing on the bottom: scaled about the bottom.
-    return { translateY: plotHeight * (1 - scale), scaleY: scale };
+    // Standing up: the baseline walks from the bottom to the centre. Its
+    // maximum available height follows it, so 100% always reaches the opposite
+    // plot edge rather than being clipped when the baseline moves.
+    const baseline = plotBottom - (position * depth) / 2;
+    const available = Math.max(0, baseline - plotTop);
+    const placedScale = scale * (available / Math.max(1, depth));
+    return {
+      translateY: baseline - placedScale * plotBottom,
+      scaleY: placedScale,
+    };
   }
   if (!curve.isHalfHeight) {
-    // Hanging from the top: scaled about the top.
-    return { translateY: plotHeight * scale, scaleY: -scale };
+    // Hanging down makes the symmetric move from the top to the centre.
+    const baseline = plotTop + (position * depth) / 2;
+    const available = Math.max(0, plotBottom - baseline);
+    const placedScale = scale * (available / Math.max(1, depth));
+    return {
+      translateY: baseline + placedScale * plotBottom,
+      scaleY: -placedScale,
+    };
   }
   if (curve.isFromCentre) {
     // Baseline at the middle, peaks reaching the edges. The upper copy is a
@@ -412,21 +443,25 @@ export const getWaveTransform = (
     // centre, which is the row they share.
     return curve.isFlipped
       ? {
-          translateY: (plotHeight * (1 - scale)) / 2,
+          translateY: centre - (scale * plotBottom) / 2,
           scaleY: 0.5 * scale,
         }
       : {
-          translateY: (plotHeight * (1 + scale)) / 2,
+          translateY: centre + (scale * plotBottom) / 2,
           scaleY: -0.5 * scale,
         };
   }
-  // Baseline at the edges, peaks meeting in the middle. Each copy scales about
-  // its own edge, so shortening them opens a gap in the middle rather than
-  // sliding both drawings inward.
+  // Baselines start at the two edges and walk toward each other. At the centre
+  // this becomes the familiar two-sided wave without making the position
+  // slider silently stop at the mirrored orientation.
   return curve.isFlipped
-    ? { translateY: (plotHeight * scale) / 2, scaleY: -0.5 * scale }
+    ? {
+        translateY: plotTop + (position * depth) / 2 + (scale * plotBottom) / 2,
+        scaleY: -0.5 * scale,
+      }
     : {
-        translateY: plotHeight * (1 - scale / 2),
+        translateY:
+          plotBottom - (position * depth) / 2 - (scale * plotBottom) / 2,
         scaleY: 0.5 * scale,
       };
 };

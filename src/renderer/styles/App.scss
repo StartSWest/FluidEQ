@@ -377,16 +377,31 @@ select option {
   //
   // Still the darkest surface on screen, deliberately. It is chrome — the
   // window's frame rather than part of the work — and the cards should come
-  // forward of it. The blur stays, because unlike the panels this thing is
-  // fixed with content scrolling underneath it, which is the case
-  // `backdrop-filter` is actually for.
-  background: linear-gradient(
-    180deg,
-    rgba($panel-bottom, 0.84),
-    rgba(#0a1220, 0.88)
-  );
+  // forward of it.
+  // Opaque, and that is about the text rather than the colour. This bar floats
+  // over the window at `z-index: 100`, above three accelerated canvases, so the
+  // compositor gives it a layer of its own whatever else is done to it — and on
+  // a layer it will only draw text with subpixel antialiasing if it can see an
+  // opaque background behind that text. At 0.84 it could not, and the brand,
+  // the tab names and the version all rendered grey and soft. What the
+  // transparency was buying was 16% of the shell's washes, measured at one to
+  // three units per channel through this surface; the colours below already
+  // carry the cyan the comment above is about.
+  background: linear-gradient(180deg, $panel-bottom, #0a1220);
   box-shadow: 0 6px 16px rgba($black, 0.1);
-  backdrop-filter: blur(20px) saturate(1.25);
+  // NO `backdrop-filter` on this bar, or on anything inside it that carries
+  // text. A backdrop filter is a compositor layer by definition, and text drawn
+  // into a layer whose contents are not opaque loses subpixel antialiasing — so
+  // the brand, the tab names and the version read grey and soft while the panels
+  // below them, which are not composited, read sharp.
+  //
+  // Nothing is lost by dropping it. `#root` reserves this bar's height, so in
+  // ordinary use nothing passes underneath and the only thing behind it is the
+  // shell's own washes, which are smooth radial gradients — blurring one is a
+  // no-op. The single case where real detail sits behind is the album picture
+  // under a full-screen graph, and that is already scaled, blurred by 46px and
+  // held at 0.42, so what reaches the eye through the 14% this bar leaves open
+  // is a soft wash either way.
   -webkit-app-region: drag;
   -webkit-user-select: none;
   user-select: none;
@@ -712,7 +727,8 @@ select option {
     // rather than replacing it — the same reason `.library-coverflow__arrow`
     // uses one.
     translate: 0 -50%;
-    backdrop-filter: blur(14px);
+    // No blur: at 96% opaque there was nothing behind this to soften, and it is
+    // a line of text.
     pointer-events: none;
     transition:
       opacity 160ms $ease-out,
@@ -747,8 +763,12 @@ select option {
     0 0 20px rgba($secondary-default, 0.055),
     inset 0 1px 0 rgba($white, 0.075),
     inset 0 -1px 0 rgba($black, 0.22);
-  backdrop-filter: blur(14px) saturate(1.2);
-  transform: translateZ(0);
+  // No glass here either, and no `translateZ(0)` — that was only ever holding
+  // the backdrop filter up. Both put this pill on its own layer, and a layer in
+  // the middle of the bar forces everything painted after it onto layers of
+  // their own too: the tab names sat on one of those. What it sits on is the
+  // bar's own vertical gradient, so blurring it showed nothing it does not show
+  // now.
   transition:
     border-color 220ms ease,
     box-shadow 220ms ease;
@@ -1078,8 +1098,7 @@ select option {
     0 0 18px rgba($secondary-default, 0.045),
     inset 0 1px 0 rgba($white, 0.075),
     inset 0 -1px 0 rgba($black, 0.2);
-  backdrop-filter: blur(14px) saturate(1.2);
-  transform: translateZ(0);
+  // Same reason as the transport pill beside it: see `.window-titlebar` above.
   transition:
     color 180ms ease,
     border-color 180ms ease,
@@ -1173,7 +1192,9 @@ select option {
     0 0 32px rgba($secondary-default, 0.1),
     inset 0 1px 0 rgba($white, 0.085),
     inset 0 0 0 1px rgba($black, 0.12);
-  backdrop-filter: blur(22px) saturate(1.25);
+  // This menu is a list of labels on a surface that is already 94-96% opaque,
+  // so the blur under it was invisible and cost every one of those labels its
+  // subpixel antialiasing.
   -webkit-app-region: no-drag;
 
   button {
@@ -1550,6 +1571,23 @@ textarea,
 
 .right-content {
   @include animate(rise-in, $motion-slow, $ease-out, 140ms);
+}
+
+// Each column is the containing block for its own fixed children, and its own
+// stacking context.
+//
+// Both were true before by accident: the entrance above used to leave
+// `will-change: transform` behind, and that is what full-screen Karaoke, the
+// full-screen graph and the library record art were all measured against —
+// `.graph-wrapper` resolves `position: fixed` against this column, not the
+// window, and its offsets are written that way. Taking the promotion away for
+// the sake of the app's text takes those two guarantees with it unless they are
+// asked for directly, and layout containment is how they are asked for: same
+// containing block, same stacking context, no compositor layer.
+.side-bar,
+.center-workspace,
+.right-content {
+  contain: layout;
 }
 
 .center-workspace {
@@ -2129,7 +2167,7 @@ $tab-border: rgba($secondary-light, 0.2);
   // The window darkens over the same 180ms the panel takes to arrive, rather
   // than in one frame the moment the tab is pressed. Appearing instantly, the
   // dimming read as the app blinking; faded, it reads as the panel casting it.
-  animation: drawer-backdrop-in $motion-base $ease-out both;
+  animation: drawer-backdrop-in $motion-base $ease-out backwards;
 }
 
 @keyframes drawer-backdrop-in {
@@ -2190,7 +2228,7 @@ $tab-border: rgba($secondary-light, 0.2);
 // unmounted -- it is the same element in both states.
 .side-bar.is-open > *,
 .right-content.is-open > * {
-  animation: drawer-content-in $motion-base $ease-out both;
+  animation: drawer-content-in $motion-base $ease-out backwards;
   animation-delay: 90ms;
 }
 

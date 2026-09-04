@@ -47,6 +47,7 @@ import type {
   ILanRemoteAudioSignal,
   TLanRestoreResult,
   TLanSavedRole,
+  TRemoteAudioStopMode,
   TRemoteAudioStreamMode,
 } from '../common/remoteAudio';
 import { dspHostBridge } from './dspHost/bridge';
@@ -532,13 +533,6 @@ const restoreRemoteAudioLan = (streamMode: TRemoteAudioStreamMode = 'music') =>
     TLanRestoreResult | undefined
   >;
 
-const resumeRemoteAudioLanSender = (
-  streamMode: TRemoteAudioStreamMode = 'music',
-) =>
-  ipcRenderer.invoke('remote-audio-lan-resume-sender', streamMode) as Promise<
-    ILanRemoteComputer | undefined
-  >;
-
 const joinRemoteAudioLan = (
   code: string,
   streamMode: TRemoteAudioStreamMode = 'music',
@@ -555,8 +549,8 @@ const sendRemoteAudioLanSignal = (message: ILanRemoteAudioSignal) =>
 const sendRemoteAudioLanAudio = (chunk: ILanRemoteAudioChunk) =>
   ipcRenderer.send('remote-audio-lan-audio-send', chunk);
 
-const stopRemoteAudioLan = (forget = false) =>
-  ipcRenderer.invoke('remote-audio-lan-stop', forget) as Promise<void>;
+const stopRemoteAudioLan = (mode: TRemoteAudioStopMode = 'keep-active') =>
+  ipcRenderer.invoke('remote-audio-lan-stop', mode) as Promise<void>;
 
 const onRemoteAudioLanSignal = (
   listener: (message: ILanRemoteAudioSignal) => void,
@@ -675,7 +669,6 @@ export default {
     getSavedRemoteAudioLanRole,
     getSavedRemoteAudioLanSenderCode,
     restoreRemoteAudioLan,
-    resumeRemoteAudioLanSender,
     joinRemoteAudioLan,
     sendRemoteAudioLanSignal,
     sendRemoteAudioLanAudio,

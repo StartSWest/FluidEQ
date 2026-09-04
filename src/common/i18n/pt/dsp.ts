@@ -87,8 +87,8 @@ const dsp = {
   'dsp.denoise.profileSource': 'Piso de ruído',
   'dsp.denoise.scanned': 'Analisado',
   'dsp.denoise.adaptive': 'Adaptativo',
-  'dsp.denoise.fallingBack':
-    'Sem análise para esta fonte — a seguir o piso ao vivo.',
+  'dsp.denoise.scanRequired':
+    'Esta faixa não tem uma análise guardada. Analisado permanece transparente até voltar a analisar.',
   'dsp.denoise.hiss': 'Chiado',
   'dsp.denoise.hissHint':
     'Supressão de banda larga face ao piso medido. Acrescenta 21 ms de latência enquanto está ligada.',
@@ -115,15 +115,15 @@ const dsp = {
     'Encontra e liga os danos impulsivos. Tudo o que seja demasiado longo para ser um estalo fica intacto, por isso a percussão sobrevive.',
   'dsp.denoise.maxRepair': 'Reparação máxima',
   'dsp.denoise.voice': 'Voz',
-  'dsp.denoise.background': 'Fundo',
   'dsp.denoise.voiceHint':
-    'Um limpador neural treinado com fala. Excelente em podcasts e entrevistas; na música leva os pratos e as caudas de reverberação.',
+    'Redução neural de ruído de fundo treinada para voz. Ideal para podcasts e entrevistas; não separa faixas musicais.',
   'dsp.denoise.voiceModelMissing':
     'Precisa de uma transferência única de 10 MB antes de poder funcionar.',
   'dsp.denoise.voiceDownload': 'Transferir modelo',
   'dsp.denoise.voiceDownloading': 'A transferir o modelo · {progress}%',
   'dsp.denoise.voiceReady': 'Modelo pronto',
   'dsp.denoise.analysis': 'Análise da fonte',
+  'dsp.denoise.rescan': 'Analisar novamente',
   'dsp.denoise.analyzing': 'A medir o piso de ruído · {progress}%',
   'dsp.denoise.waiting': 'Reproduz uma faixa da biblioteca para a medir.',
   'dsp.denoise.measuredFloor': 'Piso de ruído',

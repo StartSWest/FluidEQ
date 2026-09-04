@@ -105,6 +105,38 @@ final result: passed
 
 ---
 
+# Design QA — Share Audio connected drawer correction
+
+- Source visual truth:
+  - `C:\Users\ivanc\AppData\Local\Temp\codex-clipboard-b0d8d63d-760f-4ec9-90f3-7622a1d162b8.png`
+  - `C:\Users\ivanc\AppData\Local\Temp\codex-clipboard-ff73ab38-6722-433b-b7a3-1a046c2c74b0.png`
+  - `C:\Users\ivanc\AppData\Local\Temp\codex-clipboard-c7d82569-c6c6-4ff1-babd-a276c012b063.png`
+- Implementation screenshots:
+  - `C:\Users\ivanc\AppData\Local\Temp\fluideq-share-audio-tabs-edge-to-edge.png`
+  - `C:\Users\ivanc\AppData\Local\Temp\fluideq-share-audio-tabs-listener.png`
+- State: Spanish locale, Sender active; Receiver geometry previewed without changing the active audio session
+
+## Combined comparison evidence
+
+The marked references and corrected running render were inspected at the same 971px role-card width. The role choices and their active controls now live inside one outer card. There is no calculated bridge, overlay, negative gap, or separately painted expanded panel: the selected tab and drawer share the outer card's single solid surface.
+
+The two tabs meet edge-to-edge without the earlier 12px teal strip or a selected-tab divider. The inactive role's darker rounded surface creates the tab intersection naturally on either side. The expanded content reveals downward inside the card over the standard 220ms motion duration. The animation has no inherited stagger delay and is disabled when reduced motion is requested.
+
+## Findings
+
+- The earlier bridge and radius patches were removed. The tab row and expanded controls now have one structural parent surface and one continuous outer outline.
+- Receiver and Sender retain equal 108.625px tab heights and have no inter-tab gap.
+- No text, control, pairing row, or role behavior changed.
+
+## Verification
+
+- Final Receiver and Sender tab states were captured from the already-running Electron renderer; the app was not launched by the agent.
+- Both states keep one continuous background and outer border with no bridge seam or gap.
+
+final result: passed
+
+---
+
 # Design QA — Share Audio LAN
 
 - Source visual truth:
@@ -176,37 +208,5 @@ The focused side-by-side comparison keeps the graph, role choices, pairing row, 
 - Live DOM and computed-style inspection completed through the already-running Electron renderer; the app was not launched by the agent.
 - Component coverage confirms that two named computers, their two IP addresses, and two independent waveform lanes render together.
 - TypeScript, stylesheet compilation, formatting, lint, the complete JavaScript suite, and all native audio-host checks passed for the implementation before the final graph-height adjustment; the focused Share Audio checks are rerun after that adjustment.
-
-final result: passed
-
----
-
-# Design QA — Share Audio selected-card bridge
-
-- Source visual truth:
-  - `C:\Users\ivanc\AppData\Local\Temp\codex-clipboard-22268ba1-c6e2-464c-84c4-a6b22a88224f.png`
-- Implementation screenshot:
-  - `C:\Users\ivanc\AppData\Local\Temp\fluideq-share-audio-live.png`
-- Implementation pixels and CSS viewport: 2005 × 1392 at device scale 1
-- State: Spanish locale, Receiver selected, waiting for sender computers
-
-## Combined comparison evidence
-
-The source markup and implementation capture were reviewed together. The selected Receiver card and its full-width controls now read as one continuous surface. The bridge below the selected half is completely filled with the same solid panel color, with no dark seam. The inside corner beside the inactive Sender card is rounded, while the inactive card keeps visible separation above the expanded workspace.
-
-Both role cards measure 110.625px high in the captured closed-header state. Their full card surfaces remain interactive, their radio states are visible, and the larger existing FluidEQ headset/waveform icons remain aligned.
-
-## Findings
-
-- No actionable P0/P1/P2 mismatch remains in the compared state.
-- The full-width monitor, pairing row, actions, note, and fixed-height status area remain aligned without clipping or layout jumps.
-- Existing FluidEQ system typography, border treatment, teal selection color, spacing scale, buttons, and icon library are preserved.
-- No pairing secret is recorded in this QA document.
-
-## Verification
-
-- The already-running Electron renderer was inspected without launching a second app instance.
-- Reference and implementation screenshots were compared together at the same selected Receiver state.
-- Production build, TypeScript, Share Audio lint coverage, stylesheet compilation, encoding, the complete JavaScript suite, and all native audio-host checks passed before separate in-progress graph-control edits arrived. A later workspace-wide TypeScript rerun is blocked only by those graph edits outside Share Audio.
 
 final result: passed

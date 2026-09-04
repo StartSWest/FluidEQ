@@ -16,16 +16,37 @@ const useSelectedRemoteAudioOutput = (
   useEffect(() => {
     let cancelled = false;
     const followSelectedOutput = async () => {
+      let sinkId = 'default';
       try {
-        const sinkId = await resolveSelectedOutputSinkId(activeDeviceId);
-        if (cancelled) {
+        sinkId = await resolveSelectedOutputSinkId(activeDeviceId);
+      } catch {
+        // The default alias is the only safe fallback when labels are hidden.
+      }
+      if (cancelled) {
+        return;
+      }
+      const mixer = mixerRef.current;
+      if (!mixer) {
+        outputSinkIdRef.current = sinkId;
+        return;
+      }
+      try {
+        await mixer.setOutput(sinkId);
+        if (!cancelled) {
+          outputSinkIdRef.current = sinkId;
+        }
+      } catch {
+        if (cancelled || sinkId === 'default') {
           return;
         }
-        outputSinkIdRef.current = sinkId;
-        await mixerRef.current?.setOutput(sinkId);
-      } catch {
-        // The right-pane selection also becomes the Windows default output,
-        // so the default alias remains safe when Chromium hides device names.
+        try {
+          await mixer.setOutput('default');
+          if (!cancelled) {
+            outputSinkIdRef.current = 'default';
+          }
+        } catch {
+          // Keep the last confirmed output; the audio stream stays alive.
+        }
       }
     };
     followSelectedOutput().catch(() => undefined);

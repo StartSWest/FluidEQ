@@ -45,8 +45,8 @@ export interface IAnalyzeInputOptions {
    *
    * Off by default because it costs a second transform over every sample, and
    * a library whose owner never opens Denoise should not pay for it. The
-   * caller turns it on when the stage is enabled and the cached entry has no
-   * profile, which is the same lazy rule `edges` follows.
+   * caller turns it on only for an explicit noise-floor scan. Scanned profiles
+   * must not appear halfway through playback merely because the stage is on.
    */
   measureNoise?: boolean;
 }

@@ -32,6 +32,7 @@ import Switch from '../widgets/Switch';
 import {
   TDspEngineState,
   setDspOutputSafetyEnabled,
+  requestDspNoiseRescan,
   useDspNativeState,
   useDspOutputSafetyEnabled,
   useDspOutputSafetyMeter,
@@ -439,6 +440,7 @@ const DspPanel = ({
               analysisState={inputAnalysis}
               model={voiceModel}
               onDownloadModel={downloadVoiceModel}
+              onRescan={() => requestDspNoiseRescan(inputAnalysis.trackId)}
               onPatch={(next) => patch({ denoise: next })}
               onCommit={onCommit}
             />

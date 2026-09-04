@@ -88,8 +88,8 @@ const dsp = {
   'dsp.denoise.profileSource': 'Rauschteppich',
   'dsp.denoise.scanned': 'Gemessen',
   'dsp.denoise.adaptive': 'Adaptiv',
-  'dsp.denoise.fallingBack':
-    'Für diese Quelle liegt keine Messung vor — der Teppich wird live verfolgt.',
+  'dsp.denoise.scanRequired':
+    'Für diesen Titel ist keine Messung gespeichert. Gemessen bleibt transparent, bis neu gemessen wird.',
   'dsp.denoise.hiss': 'Rauschen',
   'dsp.denoise.hissHint':
     'Breitbandige Absenkung gegen den gemessenen Teppich. Fügt eingeschaltet 21 ms Latenz hinzu.',
@@ -116,15 +116,15 @@ const dsp = {
     'Findet impulsive Schäden und überbrückt sie. Alles, was zu lang für einen Knackser ist, bleibt unangetastet — so überlebt die Perkussion.',
   'dsp.denoise.maxRepair': 'Längste Reparatur',
   'dsp.denoise.voice': 'Stimme',
-  'dsp.denoise.background': 'Hintergrund',
   'dsp.denoise.voiceHint':
-    'Ein auf Sprache trainierter neuronaler Reiniger. Hervorragend bei Podcasts und Interviews; bei Musik nimmt er Becken und Hallfahnen mit.',
+    'Neuronale, auf Sprache trainierte Hintergrundgeräusch-Entfernung. Ideal für Podcasts und Interviews; sie ist kein Musik-Stem-Separator.',
   'dsp.denoise.voiceModelMissing':
     'Benötigt einen einmaligen Download von 10 MB, bevor es laufen kann.',
   'dsp.denoise.voiceDownload': 'Modell laden',
   'dsp.denoise.voiceDownloading': 'Modell wird geladen · {progress}%',
   'dsp.denoise.voiceReady': 'Modell bereit',
   'dsp.denoise.analysis': 'Quellenanalyse',
+  'dsp.denoise.rescan': 'Neu messen',
   'dsp.denoise.analyzing': 'Rauschteppich wird gemessen · {progress}%',
   'dsp.denoise.waiting':
     'Spiele einen Titel aus der Bibliothek ab, um ihn zu messen.',

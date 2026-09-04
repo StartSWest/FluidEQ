@@ -82,8 +82,8 @@ const dsp = {
   'dsp.denoise.profileSource': 'ノイズフロア',
   'dsp.denoise.scanned': '解析済み',
   'dsp.denoise.adaptive': '適応',
-  'dsp.denoise.fallingBack':
-    'この音源の解析結果がありません。フロアをリアルタイムで追従します。',
+  'dsp.denoise.scanRequired':
+    'このトラックには保存済みの解析がありません。再解析するまで解析済みモードは音を変えません。',
   'dsp.denoise.hiss': 'ヒス',
   'dsp.denoise.hissHint':
     '実測フロアに対する広帯域の抑制。オンの間は 21 ms の遅延が増えます。',
@@ -110,15 +110,15 @@ const dsp = {
     '衝撃的な損傷を見つけて繋ぎ直します。クリックと呼ぶには長すぎるものはそのまま残すので、打楽器は生き残ります。',
   'dsp.denoise.maxRepair': '最長修復',
   'dsp.denoise.voice': '音声',
-  'dsp.denoise.background': '背景音',
   'dsp.denoise.voiceHint':
-    '音声で学習したニューラルクリーナー。ポッドキャストやインタビューには最適ですが、音楽ではシンバルやリバーブの余韻まで持っていきます。',
+    '音声向けに学習したニューラル背景ノイズ除去です。ポッドキャストやインタビューに最適ですが、音楽のステム分離機能ではありません。',
   'dsp.denoise.voiceModelMissing':
     '動作させるには一度だけ 10 MB のモデルをダウンロードする必要があります。',
   'dsp.denoise.voiceDownload': 'モデルをダウンロード',
   'dsp.denoise.voiceDownloading': 'モデルをダウンロード中 · {progress}%',
   'dsp.denoise.voiceReady': 'モデル準備完了',
   'dsp.denoise.analysis': '音源の解析',
+  'dsp.denoise.rescan': '再解析',
   'dsp.denoise.analyzing': 'ノイズフロアを測定中 · {progress}%',
   'dsp.denoise.waiting': 'ライブラリの曲を再生すると測定します。',
   'dsp.denoise.measuredFloor': 'ノイズフロア',

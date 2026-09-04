@@ -13,6 +13,10 @@ it under the terms of the GNU General Public License version 3 or later.
 @use 'RemoteAudioMonitor';
 @use 'RemoteAudioPairing';
 
+// The one surface shared by the chosen role tab and its open panel. Anything
+// that paints over it has to use this exact value or the join shows as a step.
+$role-surface: #14313a;
+
 .remote-audio {
   display: flex;
   width: 100%;
@@ -108,45 +112,79 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
+// The chosen tab and the controls under it are one surface, so the shell alone
+// owns the outer border and the corner radius and clips the square tabs to it.
+// Every earlier seam here came from a tab carrying its own radius and its own
+// 1px ring: that ring landed on top of the shell's border as a doubled outline,
+// and its bottom corners curled away from the panel leaving a notch.
+.remote-audio__role-shell {
+  @include inset-surface;
+  display: flex;
+  min-width: 0;
+  flex: 0 0 auto;
+  flex-direction: column;
+  overflow: hidden;
+  border-color: rgba($secondary-light, 0.32);
+  background: $role-surface;
+  box-shadow: inset 0 1px 0 rgba($white, 0.035);
+}
+
 .remote-audio__role-cards {
   display: grid;
   flex: 0 0 auto;
   align-items: stretch;
-  gap: 12px;
+  gap: 0;
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .remote-audio__role-card {
-  @include inset-surface;
   position: relative;
   display: flex;
   min-width: 0;
   overflow: visible;
-  border-color: rgba($primary-lighter, 0.14);
+  border: 0;
+  border-radius: 0;
   background: rgba(#091526, 0.34);
   box-shadow: inset 0 1px 0 rgba($white, 0.025);
   transition:
-    border-color $motion-fast $ease-out,
     background $motion-fast $ease-out,
     box-shadow $motion-fast $ease-out;
 
-  &:has(.remote-audio__role-choice:hover) {
-    border-color: rgba($secondary-light, 0.3);
+  // The seam between the two tabs belongs to the second one, so it is drawn
+  // once whichever role is chosen.
+  + .remote-audio__role-card::before {
+    position: absolute;
+    z-index: 1;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 1px;
+    background: rgba($secondary-light, 0.28);
+    content: '';
   }
 
   &.is-selected {
     z-index: 2;
-    border-color: rgba($secondary-light, 0.55);
-    border-bottom-color: transparent;
-    border-bottom-right-radius: 0;
-    border-bottom-left-radius: 0;
-    background:
-      linear-gradient(145deg, rgba($secondary-default, 0.1), transparent 70%),
-      #14313a;
-    box-shadow:
-      inset 3px 0 0 $secondary-default,
-      inset 0 1px 0 rgba($white, 0.04);
+    background: $role-surface;
+    // A horizontal tab strip marks its choice on the edge it hangs from, the
+    // same way the DSP rail marks its own on the edge facing its page.
+    box-shadow: inset 0 2px 0 $secondary-default;
   }
+}
+
+// The unchosen tab sits behind the open panel, so the line closing it is the
+// panel's own top edge. The chosen tab has no such line, and that missing pixel
+// is the whole reason the panel reads as belonging to it.
+.remote-audio__role-shell:has(.remote-audio__role-workspace)
+  .remote-audio__role-card:not(.is-selected)::after {
+  position: absolute;
+  z-index: 1;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 1px;
+  background: rgba($secondary-light, 0.32);
+  content: '';
 }
 
 .remote-audio__role-choice {
@@ -191,8 +229,37 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
+.remote-audio__role-card.is-selected .remote-audio__role-choice {
+  background: linear-gradient(
+    145deg,
+    rgba($secondary-default, 0.1),
+    transparent 70%
+  );
+
+  &:hover {
+    background:
+      linear-gradient(145deg, rgba($secondary-default, 0.1), transparent 70%),
+      rgba($secondary-default, 0.04);
+  }
+}
+
+@keyframes remote-audio-drawer-in {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+    clip-path: inset(0 0 100% 0);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+    clip-path: inset(0);
+  }
+}
+
+// No surface of its own: the panel is the shell showing through below the
+// chosen tab, which is what makes the two read as one card.
 .remote-audio__role-workspace {
-  @include inset-surface;
   position: relative;
   display: flex;
   min-width: 0;
@@ -200,48 +267,17 @@ it under the terms of the GNU General Public License version 3 or later.
   flex-direction: column;
   padding: 14px 16px 16px;
   gap: 13px;
-  overflow: visible;
-  border-color: rgba($secondary-light, 0.32);
-  background:
-    linear-gradient(145deg, rgba($secondary-default, 0.05), transparent 72%),
-    #14313a;
-  box-shadow:
-    inset 3px 0 0 rgba($secondary-default, 0.84),
-    inset 0 1px 0 rgba($white, 0.035);
+  transform-origin: top center;
+  // No fill mode and no `will-change`: this is the panel whose text was
+  // reported soft, and it was the worst case in the app — the filled end frame
+  // left `translate3d(0, 0, 0)` applied for the life of the panel, which is a
+  // compositor layer that never goes away. Ending on the element's own styles
+  // instead means the layer lasts exactly as long as the reveal does. There is
+  // no delay here, so nothing needs a backwards fill either.
+  animation: remote-audio-drawer-in $motion-base $ease-out;
 
-  // The workspace itself fills the row gap only below the chosen card. Using
-  // the same solid base on both surfaces removes the dark stripe that appeared
-  // when a translucent bridge exposed the panel behind it.
-  &::before {
-    position: absolute;
-    z-index: 1;
-    top: -17px;
-    width: calc(50% - 5px);
-    height: 18px;
-    background: #14313a;
-    content: '';
-  }
-
-  &.is-listener {
-    border-top-left-radius: 0;
-
-    &::before {
-      left: -1px;
-      border-right: 1px solid rgba($secondary-light, 0.55);
-      border-left: 1px solid rgba($secondary-light, 0.55);
-      border-bottom-right-radius: $radius-s;
-    }
-  }
-
-  &.is-sender {
-    border-top-right-radius: 0;
-
-    &::before {
-      right: -1px;
-      border-right: 1px solid rgba($secondary-light, 0.55);
-      border-left: 1px solid rgba($secondary-light, 0.55);
-      border-bottom-left-radius: $radius-s;
-    }
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
   }
 }
 

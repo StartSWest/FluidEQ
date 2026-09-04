@@ -32,7 +32,10 @@ it under the terms of the GNU General Public License version 3 or later.
   transform-origin: top right;
 
   &.is-closing {
-    @include animate(pop-out, $motion-fast, $ease-out);
+    // The one animation in the app that has to hold its last frame: the panel
+    // is still mounted when this ends and must stay invisible until React drops
+    // it.
+    @include animate(pop-out, $motion-fast, $ease-out, 0ms, forwards);
   }
   // Whatever every other scrolling surface uses. It stopped taking a size on
   // purpose — a panel with its own slightly narrower scrollbar is the kind of

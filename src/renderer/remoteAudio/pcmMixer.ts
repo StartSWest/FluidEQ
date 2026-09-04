@@ -73,6 +73,24 @@ export const createPcmMixer = async (
   let currentSinkId = outputSinkId;
   let isClosed = false;
   let playbackStarted = false;
+  let outputSwitch = Promise.resolve();
+
+  const switchOutput = (sinkId: string): Promise<void> => {
+    const nextSwitch = outputSwitch
+      .catch(() => undefined)
+      .then(async () => {
+        if (isClosed) {
+          return undefined;
+        }
+        if (sink.setSinkId) {
+          await sink.setSinkId(sinkId);
+        }
+        currentSinkId = sinkId;
+        return undefined;
+      });
+    outputSwitch = nextSwitch;
+    return nextSwitch;
+  };
 
   mixer.port.onmessage = ({ data }: MessageEvent<unknown>) => {
     if (typeof data !== 'object' || data === null) {
@@ -103,8 +121,9 @@ export const createPcmMixer = async (
     }
     playbackStarted = true;
     try {
-      if (sink.setSinkId) {
-        await sink.setSinkId(currentSinkId);
+      await switchOutput(currentSinkId);
+      if (isClosed) {
+        return;
       }
       await context.resume();
       await sink.play();
@@ -137,16 +156,14 @@ export const createPcmMixer = async (
       }
     },
     setOutput: async (sinkId: string) => {
-      currentSinkId = sinkId;
-      if (sink.setSinkId) {
-        await sink.setSinkId(sinkId);
-      }
+      await switchOutput(sinkId);
     },
     close: async () => {
       if (isClosed) {
         return;
       }
       isClosed = true;
+      await outputSwitch.catch(() => undefined);
       mixer.port.onmessage = null;
       mixer.disconnect();
       sink.pause();

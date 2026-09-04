@@ -88,8 +88,8 @@ const dsp = {
   'dsp.denoise.profileSource': 'Plancher de bruit',
   'dsp.denoise.scanned': 'Analysé',
   'dsp.denoise.adaptive': 'Adaptatif',
-  'dsp.denoise.fallingBack':
-    'Aucune analyse pour cette source — suivi du plancher en direct.',
+  'dsp.denoise.scanRequired':
+    'Aucune analyse enregistrée pour cette piste. Le mode Analysé reste transparent jusqu’à une nouvelle analyse.',
   'dsp.denoise.hiss': 'Souffle',
   'dsp.denoise.hissHint':
     'Atténuation large bande par rapport au plancher mesuré. Ajoute 21 ms de latence lorsqu’il est actif.',
@@ -116,15 +116,15 @@ const dsp = {
     'Repère et comble les dégâts impulsionnels. Tout ce qui est trop long pour être un craquement est laissé intact, donc la percussion survit.',
   'dsp.denoise.maxRepair': 'Réparation maximale',
   'dsp.denoise.voice': 'Voix',
-  'dsp.denoise.background': 'Arrière-plan',
   'dsp.denoise.voiceHint':
-    'Un nettoyeur neuronal entraîné sur la parole. Excellent sur les podcasts et les entretiens ; sur la musique il emporte les cymbales et les queues de réverbération.',
+    'Réduction neuronale du bruit de fond entraînée pour la parole. Idéale pour les podcasts et les entretiens ; ce n’est pas un séparateur de pistes musicales.',
   'dsp.denoise.voiceModelMissing':
     'Nécessite un téléchargement unique de 10 Mo avant de pouvoir fonctionner.',
   'dsp.denoise.voiceDownload': 'Télécharger le modèle',
   'dsp.denoise.voiceDownloading': 'Téléchargement du modèle · {progress}%',
   'dsp.denoise.voiceReady': 'Modèle prêt',
   'dsp.denoise.analysis': 'Analyse de la source',
+  'dsp.denoise.rescan': 'Réanalyser',
   'dsp.denoise.analyzing': 'Mesure du plancher de bruit · {progress}%',
   'dsp.denoise.waiting': 'Lisez une piste de la bibliothèque pour la mesurer.',
   'dsp.denoise.measuredFloor': 'Plancher de bruit',

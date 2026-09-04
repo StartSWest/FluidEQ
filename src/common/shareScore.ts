@@ -69,26 +69,97 @@ export const getShareFileName = (score: number, euphoric = false): string =>
   )}.png`;
 
 /**
+ * Who the post is being written for.
+ *
+ * `copy` is the clipboard button, which has no limit and no house style — it is
+ * pasted wherever the reader is already writing.
+ */
+export type ShareAudience = ShareNetwork | 'copy';
+
+/**
+ * The run, in one clause.
+ *
+ * The score is the reason somebody pressed share; it is not the reason anybody
+ * else stops scrolling. So it goes at the END of every version below, after the
+ * app has been introduced — a person who has never heard of FluidEQ needs to
+ * know what it is before a number from it means anything.
+ *
+ * The multiplier is only claimed once it has been reached, because "×1" reads
+ * worse than saying nothing. Rainbow mode is named as what it is — a look the
+ * game unlocks — rather than as the headline it used to be.
+ */
+const runClause = (
+  score: number,
+  multiplier: number,
+  euphoric: boolean,
+  compact = false,
+) => {
+  const points = Math.max(0, Math.floor(score));
+  const peak = Math.max(1, Math.floor(multiplier));
+  const top = Math.max(EUPHORIA_MULTIPLIER, peak);
+  if (compact) {
+    return euphoric
+      ? `It hides a beat game: ×${top}, ${points} points, and the interface goes rainbow.`
+      : `It hides a beat game: ${points} points at ×${peak}.`;
+  }
+  if (euphoric) {
+    return `It also hides a beat game: I ran the streak to ×${top} for ${points} points and the whole interface went rainbow.`;
+  }
+  return `It also hides a beat game, where I just scored ${points} points at ×${peak}.`;
+};
+
+/**
  * What gets posted.
  *
- * The multiplier is only mentioned once it has been reached, because claiming
- * "×1" is worse than claiming nothing. Kept short enough to survive X's limit
- * with the URL attached, which is the tightest of the three by a wide margin.
+ * The app leads, every time. This text is an advert that happens to carry a
+ * score, not a score that happens to name an app: the reader is somebody who
+ * has never opened FluidEQ, and what reaches them has to say what it is and
+ * what it does before it says how well anyone played.
+ *
+ * One version per destination, because the three do not read the same. X counts
+ * characters and shows the words in the post itself; LinkedIn is read at work
+ * and strips prefilled text, so its version exists for the copy button beside
+ * it; Facebook is neither. The claims are the README's, unshortened past the
+ * point where they stay true.
+ *
+ * NO EM DASHES, in any of them. It is the single most recognisable tell of text
+ * a machine wrote, and a post advertising this app cannot be the thing people
+ * scroll past for that reason. Commas and full stops do the same work.
+ *
+ * The band count is not in here either. "Up to 128 bands" is a specification,
+ * and a stranger reading a post has no way to know whether that is a lot; what
+ * sells the app is that the tuning follows the device on its own.
+ *
+ * The address is NOT written into the words. Every path that uses this text
+ * appends the URL after it, so a site named in the sentence came out as
+ * "fluideq.com https://fluideq.com" in the composer.
  */
 export const buildShareText = (
   score: number,
   multiplier: number,
   euphoric = isEuphoricRun(multiplier),
+  audience: ShareAudience = 'copy',
 ): string => {
-  const points = Math.max(0, Math.floor(score));
-  const peak = Math.max(1, Math.floor(multiplier));
-  if (euphoric) {
-    // Reaching the ceiling is the whole story, so it leads. Thirty-six
-    // consecutive perfect taps is the thing worth telling people about; the
-    // number is the evidence, not the headline.
-    return `I hit RAINBOW MODE — ×${Math.max(EUPHORIA_MULTIPLIER, peak)}, ${points} points — on the beat game hidden inside ${PRODUCT_NAME}, a free open-source equaliser for Windows. The entire interface goes rainbow with the music.`;
+  const run = runClause(score, multiplier, euphoric);
+  switch (audience) {
+    // 280 characters including a link that counts as 23 whatever its length,
+    // so this is the one version written to a budget: 247 at the longest score
+    // and multiplier either sentence can carry. Everything that survives the
+    // cut is a thing the app does.
+    case 'x':
+      return `${PRODUCT_NAME} is a free, open-source system-wide equaliser for Windows. Tune an output once and every app on it follows, with headphone correction, voicing curves and Smart EQ. ${runClause(
+        score,
+        multiplier,
+        euphoric,
+        true,
+      )}`;
+    case 'linkedin':
+      return `${PRODUCT_NAME} is a free, open-source system-wide equaliser for Windows 10 and 11. Every setting belongs to the output it was made on, so the right tuning follows the right device with nothing to switch by hand: a published measurement for your exact headphones, curated voicing curves, and a Smart EQ built from a measurement of your own sound, all drawn over the live response. ${run}`;
+    case 'facebook':
+      return `If your headphones sound wrong in half the apps you use, this fixes it once. ${PRODUCT_NAME} is a free, open-source system-wide equaliser for Windows. Tune each output once, with a correction for your exact headphone model, voicing curves and a Smart EQ measured from your own sound, and it follows that device around by itself. ${run}`;
+    default:
+      return `${PRODUCT_NAME} is a free, open-source system-wide equaliser for Windows. Tune each output once, with headphone correction, voicing curves and a Smart EQ measured from your own sound, and the right tuning follows the right device by itself. ${run}`;
   }
-  return `I scored ${points} points at ×${peak} on the beat game hidden inside ${PRODUCT_NAME}, a free open-source equaliser for Windows.`;
 };
 
 /**

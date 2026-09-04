@@ -52,7 +52,7 @@ export const STORAGE_KEY = 'fluideq-graph-style';
  *
  * They are remembered anyway because of what the graph turned into. It is not
  * only a measurement now: it is a visualiser somebody sets up the way they want
- * it — this form, mirrored, no grid, stretched, full screen — and then leaves
+ * it — this form, mirrored, no grid, full-height, full screen — and then leaves
  * running. Rebuilding that arrangement by hand on every launch is the cost of
  * the old rule, and it is paid every single time. The way out is also better
  * signposted than it was: Escape leaves, the View menu lists every one of these
@@ -68,7 +68,9 @@ export const VIEW_KEYS = {
   // Four are still flat, and each says why where it is used: the meter and the
   // titlebar wave are not on the plot at all, the orientation is a property of
   // the drawing rather than of how much screen it has, and the view is the
-  // thing the rest are indexed by.
+  // thing the rest are indexed by. Wave height and position are per-view: a
+  // low wave over a film and a tall one in the editing pane are independent
+  // arrangements.
   wave: 'fluideq.graphWaveHidden',
   quietEq: 'fluideq.graphQuietEq',
   solo: 'fluideq.graphSolo',
@@ -77,7 +79,8 @@ export const VIEW_KEYS = {
   coverage: 'fluideq.graphCoverageHidden',
   meter: 'fluideq.graphMeterHidden',
   titlebarWave: 'fluideq.titlebarWaveHidden',
-  stretch: 'fluideq.graphStretched',
+  waveHeight: 'fluideq.graphWaveHeight',
+  wavePosition: 'fluideq.graphWavePosition',
   orientation: 'fluideq.waveOrientation',
   view: 'fluideq.graphView',
 };
@@ -149,7 +152,8 @@ export const createFlagSetting = (key: string, fallback: boolean) => {
  * Filled by `createPerViewSetting` and rung by `setGraphView`. It lives up here
  * with the rest of the storage machinery because the two ends are far apart in
  * the file: the things that fill it run from the plot's contents at the top to
- * the stretch at the bottom, and the view store that rings it sits between them.
+ * wave placement at the bottom, and the view store that rings it sits between
+ * them.
  */
 export const perViewEmitters = new Set<() => void>();
 

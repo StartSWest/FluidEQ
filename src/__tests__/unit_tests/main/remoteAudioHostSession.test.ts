@@ -30,6 +30,7 @@ const storeWith = (
 ): IRemoteAudioCredentialStore => ({
   activate: jest.fn(),
   clear: jest.fn(),
+  pause: jest.fn(),
   read: jest.fn(() => listener),
   readListener: jest.fn(() => listener),
   readSender: jest.fn(),

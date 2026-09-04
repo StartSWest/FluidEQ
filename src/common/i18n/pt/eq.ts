@@ -41,9 +41,12 @@ const eq: Partial<Dictionary> = {
   'graph.item.bands': 'as faixas de audição',
   'graph.item.meter': 'o medidor de nível',
   'graph.item.topBar': 'a barra superior',
-  'graph.fit': 'Ajustar o gráfico',
-  'graph.stretch': 'Esticar para preencher',
-  'graph.compact': 'Encolher a onda para a borda',
+  'graph.waveHeight': 'Altura da onda',
+  'graph.waveHeightHint':
+    'Ajuste a onda de quase plana até toda a altura do gráfico',
+  'graph.wavePosition': 'Posição da onda',
+  'graph.wavePositionHint':
+    'Mova a onda da borda inferior até o centro do gráfico',
   'graph.orientation.down': 'Pendurar a onda para baixo',
   'graph.orientation.mirror': 'Espelhar a onda',
   'graph.orientation.centre': 'Espelhar a partir do centro',

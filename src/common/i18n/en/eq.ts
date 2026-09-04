@@ -39,9 +39,12 @@ const eq = {
   'graph.item.bands': 'listening bands',
   'graph.item.meter': 'level meter',
   'graph.item.topBar': 'the top bar',
-  'graph.fit': 'Fit the graph',
-  'graph.stretch': 'Stretch to fill',
-  'graph.compact': 'Shrink the wave to the edge',
+  'graph.waveHeight': 'Wave height',
+  'graph.waveHeightHint':
+    'How tall the wave is drawn, from a low ripple to the full plot height',
+  'graph.wavePosition': 'Wave position',
+  'graph.wavePositionHint':
+    'Move the wave from the bottom edge to the centre of the plot',
   'graph.orientation.down': 'Hang the wave down',
   'graph.orientation.mirror': 'Mirror the wave',
   'graph.orientation.centre': 'Mirror from the centre',

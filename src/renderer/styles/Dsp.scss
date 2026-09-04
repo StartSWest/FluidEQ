@@ -289,8 +289,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   gap: 10px;
 }
 
-.dsp-denoise-analysis-head .segmented {
+.dsp-denoise-analysis-actions {
+  display: flex;
   flex: 0 0 auto;
+  align-items: center;
+  gap: 8px;
 }
 
 // Two across on a wide panel, one on a narrow one. Four modules stacked in a
@@ -504,7 +507,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     flex-direction: column;
   }
 
-  .dsp-denoise-analysis-head .segmented {
+  .dsp-denoise-analysis-actions {
     align-self: flex-start;
   }
 }

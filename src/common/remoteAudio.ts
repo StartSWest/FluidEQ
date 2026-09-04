@@ -38,6 +38,7 @@ export interface ILanRemoteAudioNetworkStats {
 }
 
 export type TLanSavedRole = 'listener' | 'sender';
+export type TRemoteAudioStopMode = 'keep-active' | 'pause' | 'forget';
 export type TRemoteAudioStreamMode = 'music' | 'video';
 
 export type TLanRestoreResult =

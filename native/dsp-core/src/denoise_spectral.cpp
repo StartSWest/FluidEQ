@@ -448,10 +448,17 @@ double process_frame(FeqDenoise* denoise,
   const double alpha = smoothing_alpha(hiss.smoothing);
   const double sensitivity_power = db_to_power(hiss.sensitivity_db);
   const double floor_gain = std::pow(10.0, hiss.floor_db / 20.0);
-  const double amount = std::min(1.0, std::max(0.0, hiss.amount));
-  // Falling back rather than refusing: a track that has never been analyzed
-  // has the control set to Scanned and no profile behind it, and the panel
-  // says which one is actually running.
+  const bool scanned_waiting =
+      denoise->settings.profile_source == FEQ_DENOISE_PROFILE_SCANNED &&
+      !denoise->profile_ready;
+  // Scanned is a frozen measurement, never a request to learn live. Until the
+  // user explicitly scans this track, keep the overlap-add path transparent.
+  // The adaptive estimator may still warm silently so switching to Adaptive
+  // is immediate, but none of its gain reaches the audio in Scanned mode.
+  const double amount =
+      scanned_waiting
+          ? 0.0
+          : std::min(1.0, std::max(0.0, hiss.amount));
   const bool adaptive =
       denoise->settings.profile_source == FEQ_DENOISE_PROFILE_ADAPTIVE ||
       !denoise->profile_ready;
@@ -691,10 +698,12 @@ double process_frame(FeqDenoise* denoise,
           std::min(static_cast<double>(bins - 1),
                    std::max(0.0, centre / bin_width)));
       const double bin_power =
-          adaptive ? (channel.adaptive_db[bin] <= kDenoiseSilenceDb
-                          ? 0.0
-                          : db_to_power(channel.adaptive_db[bin]))
-                   : profile_bin_power(denoise, bin);
+          scanned_waiting
+              ? 0.0
+              : adaptive ? (channel.adaptive_db[bin] <= kDenoiseSilenceDb
+                                ? 0.0
+                                : db_to_power(channel.adaptive_db[bin]))
+                         : profile_bin_power(denoise, bin);
       denoise->live_floor_db[band] =
           bin_power > kFloorEpsilon
               ? 10.0 * std::log10(bin_power / reference)

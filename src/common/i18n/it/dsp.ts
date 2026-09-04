@@ -87,8 +87,8 @@ const dsp = {
   'dsp.denoise.profileSource': 'Rumore di fondo',
   'dsp.denoise.scanned': 'Analizzato',
   'dsp.denoise.adaptive': 'Adattivo',
-  'dsp.denoise.fallingBack':
-    'Nessuna analisi per questa sorgente: il fondo viene seguito dal vivo.',
+  'dsp.denoise.scanRequired':
+    'Nessuna analisi salvata per questa traccia. Analizzato resta trasparente finché non esegui una nuova analisi.',
   'dsp.denoise.hiss': 'Fruscio',
   'dsp.denoise.hissHint':
     'Soppressione a banda larga rispetto al fondo misurato. Aggiunge 21 ms di latenza mentre è attiva.',
@@ -115,15 +115,15 @@ const dsp = {
     'Trova e ricuce i danni impulsivi. Tutto ciò che è troppo lungo per essere un click viene lasciato stare, così la percussione sopravvive.',
   'dsp.denoise.maxRepair': 'Riparazione massima',
   'dsp.denoise.voice': 'Voce',
-  'dsp.denoise.background': 'Sottofondo',
   'dsp.denoise.voiceHint':
-    'Un pulitore neurale addestrato sul parlato. Eccellente su podcast e interviste; sulla musica porta via piatti e code di riverbero.',
+    'Riduzione neurale del rumore di fondo addestrata per il parlato. Ideale per podcast e interviste; non separa le tracce musicali.',
   'dsp.denoise.voiceModelMissing':
     'Richiede un download una tantum da 10 MB prima di poter funzionare.',
   'dsp.denoise.voiceDownload': 'Scarica il modello',
   'dsp.denoise.voiceDownloading': 'Download del modello · {progress}%',
   'dsp.denoise.voiceReady': 'Modello pronto',
   'dsp.denoise.analysis': 'Analisi della sorgente',
+  'dsp.denoise.rescan': 'Rianalizza',
   'dsp.denoise.analyzing': 'Misurazione del rumore di fondo · {progress}%',
   'dsp.denoise.waiting': 'Riproduci un brano della libreria per misurarlo.',
   'dsp.denoise.measuredFloor': 'Rumore di fondo',
