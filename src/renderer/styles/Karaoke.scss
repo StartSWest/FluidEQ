@@ -738,7 +738,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   min-height: 0;
   flex-direction: column;
   padding: 10px;
-  background: rgba($surface-base, 0.34);
+  // The card colour `inset-surface` already gives it, and nothing over it.
+  // The shell colour at a third of its strength was a darker, different slate
+  // from the queue on the Library tab and from every card in the right rail,
+  // so the two playlists in the app were two colours. Full screen keeps its
+  // own translucent fill below, where the picture has to show through.
 }
 
 .karaoke-playlist__groups {
