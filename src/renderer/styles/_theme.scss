@@ -385,11 +385,25 @@ $transition-control:
 
 // Cyan focus ring shared by every focusable surface. Using one ring keeps
 // keyboard navigation legible without each component inventing its own.
+// Two rings, and the inner one is the one that always survives.
+//
+// The halo is drawn OUTSIDE the control, so any ancestor that clips — a
+// scrolling list, a card with rounded corners, a pane with `overflow: hidden`
+// — cuts it off, and a control sitting flush against that edge showed a ring
+// on two sides and nothing on the other two. That is worse than no ring: it
+// reads as a rendering fault rather than as focus. Which ancestors clip is
+// not knowable from here and changes with every layout, so the indicator
+// cannot depend on room being available outside the box.
+//
+// So focus is said twice: a hairline just inside the control's own edge,
+// which nothing can clip, and the soft halo around it for the controls that
+// have the room. Both are the accent, so together they read as one ring
+// rather than as two.
 @mixin focus-ring($color: $secondary-default) {
   outline: none;
   box-shadow:
-    0 0 0 3px rgba($color, 0.22),
-    inset 0 1px 0 rgba($white, 0.06);
+    inset 0 0 0 1px rgba($color, 0.75),
+    0 0 0 3px rgba($color, 0.22);
 }
 
 // The standard editable surface: text inputs, number inputs, dropdown
@@ -657,6 +671,14 @@ $transition-control:
     border-color: rgba($secondary-light, 0.7);
     background: rgba($secondary-default, 0.14);
     outline: none;
+  }
+
+  // Focus said as focus, not as hover. These carried the hover face and
+  // nothing else, so arriving by keyboard looked exactly like the pointer
+  // resting somewhere — and on a row of them there was no way to tell which
+  // one Enter would press.
+  &:focus-visible {
+    @include focus-ring;
   }
 
   &:disabled {

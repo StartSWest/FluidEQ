@@ -209,6 +209,12 @@ $role-surface: $surface-panel;
     background: rgba($secondary-default, 0.06);
   }
 
+  // Inside the ring, not around it: this fills its half of the pair, so a
+  // halo drawn outside would be cut by the shell that clips them both.
+  &:focus-visible {
+    @include focus-ring;
+  }
+
   > .control-kicker {
     padding-right: 34px;
     margin-bottom: 2px;

@@ -31,6 +31,12 @@
   min-height: 52px;
   max-height: 164px;
   flex-direction: column;
+  // A scroller clips sideways too, even when only the vertical axis can move,
+  // and Copy sits flush against this box's right edge — so its focus halo was
+  // being sliced off by one pixel of slack. Four pixels of room, taken back
+  // out with the margin so nothing moves.
+  padding-inline: 4px;
+  margin-inline: -4px;
   overflow-y: auto;
 }
 

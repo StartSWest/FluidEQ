@@ -499,6 +499,10 @@ it under the terms of the GNU General Public License version 3 or later.
   letter-spacing: 0.14em;
   text-transform: uppercase;
   white-space: nowrap;
+
+  &:focus-visible {
+    @include focus-ring($surface-well);
+  }
 }
 
 // The meter and its pill, as one positioned box.

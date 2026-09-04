@@ -1247,6 +1247,10 @@ it under the terms of the GNU General Public License version 3 or later.
   color: inherit;
   cursor: pointer;
   appearance: none;
+
+  &:focus-visible {
+    @include focus-ring;
+  }
 }
 
 .output-meter__canvas {

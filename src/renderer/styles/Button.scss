@@ -80,12 +80,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     transform: translateY(0);
   }
 
-  &:focus-visible {
-    @include focus-ring($white);
-    outline: 2px solid rgba($white, 0.8);
-    outline-offset: 2px;
-  }
-
   &.small {
     min-height: $control-height-sm;
     padding: 6px 10px;
@@ -139,6 +133,21 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     background: transparent;
     box-shadow: none;
     cursor: default;
+  }
+
+  // LAST, and for the same reason the block above had to move: every variant
+  // here sets `box-shadow`, and `.button.subtle` ties with `.button:focus-visible`
+  // on specificity — so while this sat at the top, the quiet buttons, which are
+  // most of the buttons in the app, showed no focus at all. Nothing below it
+  // may set a shadow.
+  //
+  // The ring only. An offset outline is drawn clear of the button, where any
+  // ancestor that clips cuts it, and a hard line sliced down one side is the
+  // loudest possible way to show a rendering fault. The mixin's inner hairline
+  // cannot be clipped, so focus stays unmistakable on a button pressed against
+  // the edge of a scrolling list.
+  &:focus-visible {
+    @include focus-ring($white);
   }
 
   // Only the div needs this: nothing else stops a click reaching its handler.

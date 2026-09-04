@@ -5105,9 +5105,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       0 0 16px rgba($secondary-default, 0.1) !important;
   }
 
+  // The shared ring, whose inner hairline no ancestor can clip — an offset
+  // outline on a control inside a scrolling panel loses whichever side is
+  // against the edge.
   &:focus-visible {
-    outline: 1px solid rgba($secondary-light, 0.78);
-    outline-offset: 2px;
+    @include focus-ring;
   }
 }
 
