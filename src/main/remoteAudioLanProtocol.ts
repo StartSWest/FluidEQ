@@ -8,7 +8,13 @@ it under the terms of the GNU General Public License version 3 or later.
 
 import crypto from 'crypto';
 import os from 'os';
-import { constants, zstdCompressSync, zstdDecompressSync } from 'zlib';
+import {
+  constants,
+  zstdCompress,
+  zstdCompressSync,
+  zstdDecompress,
+  zstdDecompressSync,
+} from 'zlib';
 import type { RawData } from 'ws';
 import {
   ILanRemoteAudioChunk,
@@ -21,7 +27,9 @@ const PACKET_AAD = Buffer.from('FluidEQ encrypted LAN audio v2', 'utf8');
 export const PACKET_SIGNAL = 1;
 export const PACKET_AUDIO = 2;
 const SEALED_HEADER_BYTES = 1 + 12 + 16;
-const AUDIO_HEADER_BYTES = 4 + 4 + 1 + 2;
+const AUDIO_HEADER_BYTES = 4 + 4 + 1 + 2 + 1;
+const AUDIO_RAW = 0;
+const AUDIO_ZSTD = 1;
 export const MAX_PACKET_BYTES = 512 * 1024;
 
 export interface ILanPairingPayload {
@@ -265,14 +273,48 @@ export const normalizeAudioChunk = (value: unknown): INormalizedAudioChunk => {
   };
 };
 
-export const encodeAudio = (chunk: INormalizedAudioChunk): Buffer => {
+export const encodeAudio = (
+  chunk: INormalizedAudioChunk,
+  compress = true,
+): Buffer => {
   const header = Buffer.allocUnsafe(AUDIO_HEADER_BYTES);
   header.writeUInt32LE(chunk.sequence, 0);
   header.writeUInt32LE(chunk.sampleRate, 4);
   header.writeUInt8(chunk.channels, 8);
   header.writeUInt16LE(chunk.frames, 9);
+  header.writeUInt8(compress ? AUDIO_ZSTD : AUDIO_RAW, 11);
+  if (!compress) {
+    return Buffer.concat([header, chunk.pcm]);
+  }
   const compressed = zstdCompressSync(chunk.pcm, {
     params: { [constants.ZSTD_c_compressionLevel]: 1 },
+  });
+  return Buffer.concat([header, compressed]);
+};
+
+/**
+ * Zstandard runs in Node's worker pool so lossless transport cannot hold up
+ * Electron's main event loop or the loopback-driven UI meters.
+ */
+export const encodeAudioAsync = async (
+  chunk: INormalizedAudioChunk,
+  compress = true,
+): Promise<Buffer> => {
+  const header = Buffer.allocUnsafe(AUDIO_HEADER_BYTES);
+  header.writeUInt32LE(chunk.sequence, 0);
+  header.writeUInt32LE(chunk.sampleRate, 4);
+  header.writeUInt8(chunk.channels, 8);
+  header.writeUInt16LE(chunk.frames, 9);
+  header.writeUInt8(compress ? AUDIO_ZSTD : AUDIO_RAW, 11);
+  if (!compress) {
+    return Buffer.concat([header, chunk.pcm]);
+  }
+  const compressed = await new Promise<Buffer>((resolve, reject) => {
+    zstdCompress(
+      chunk.pcm,
+      { params: { [constants.ZSTD_c_compressionLevel]: 1 } },
+      (error, result) => (error ? reject(error) : resolve(result)),
+    );
   });
   return Buffer.concat([header, compressed]);
 };
@@ -290,12 +332,71 @@ export const decodeAudio = (
     throw new Error('Invalid LAN audio packet.');
   }
   const expectedPcmBytes = channels * frames * 4;
+  const encoding = clear.readUInt8(11);
+  const payload = clear.subarray(AUDIO_HEADER_BYTES);
   let pcm: Buffer;
-  try {
-    pcm = zstdDecompressSync(clear.subarray(AUDIO_HEADER_BYTES), {
-      maxOutputLength: expectedPcmBytes,
-    });
-  } catch {
+  if (encoding === AUDIO_RAW && payload.byteLength === expectedPcmBytes) {
+    pcm = payload;
+  } else if (encoding === AUDIO_ZSTD) {
+    try {
+      pcm = zstdDecompressSync(payload, {
+        maxOutputLength: expectedPcmBytes,
+      });
+    } catch {
+      throw new Error('Invalid LAN audio packet.');
+    }
+  } else {
+    throw new Error('Invalid LAN audio packet.');
+  }
+  const normalized = normalizeAudioChunk({
+    peerId,
+    sequence: clear.readUInt32LE(0),
+    sampleRate: clear.readUInt32LE(4),
+    channels,
+    frames,
+    pcm,
+  });
+  return {
+    peerId,
+    sequence: normalized.sequence,
+    sampleRate: normalized.sampleRate,
+    channels: normalized.channels,
+    frames: normalized.frames,
+    pcm: Uint8Array.from(normalized.pcm).buffer,
+  };
+};
+
+export const decodeAudioAsync = async (
+  peerId: string,
+  clear: Buffer,
+): Promise<ILanRemoteAudioChunk> => {
+  if (clear.byteLength < AUDIO_HEADER_BYTES) {
+    throw new Error('Invalid LAN audio packet.');
+  }
+  const channels = clear.readUInt8(8);
+  const frames = clear.readUInt16LE(9);
+  if (channels < 1 || channels > 8 || frames < 1 || frames > 8_192) {
+    throw new Error('Invalid LAN audio packet.');
+  }
+  const expectedPcmBytes = channels * frames * 4;
+  const encoding = clear.readUInt8(11);
+  const payload = clear.subarray(AUDIO_HEADER_BYTES);
+  let pcm: Buffer;
+  if (encoding === AUDIO_RAW && payload.byteLength === expectedPcmBytes) {
+    pcm = payload;
+  } else if (encoding === AUDIO_ZSTD) {
+    try {
+      pcm = await new Promise<Buffer>((resolve, reject) => {
+        zstdDecompress(
+          payload,
+          { maxOutputLength: expectedPcmBytes },
+          (error, result) => (error ? reject(error) : resolve(result)),
+        );
+      });
+    } catch {
+      throw new Error('Invalid LAN audio packet.');
+    }
+  } else {
     throw new Error('Invalid LAN audio packet.');
   }
   const normalized = normalizeAudioChunk({

@@ -33,7 +33,11 @@ using Microsoft::WRL::RuntimeClassFlags;
 constexpr std::uint32_t kFrameMagic = 0x314e414cU;  // "LAN1" little-endian.
 constexpr std::uint32_t kReadyFrame = 1;
 constexpr std::uint32_t kAudioFrame = 2;
-constexpr std::uint16_t kChunkFrames = 1'024;
+// Ten milliseconds at the standard 48 kHz mix rate. The previous 1,024-frame
+// block held every sample for another 11 ms before transport could begin.
+// Smaller packets change only delivery cadence; the Float32 samples themselves
+// are copied verbatim.
+constexpr std::uint16_t kChunkFrames = 480;
 constexpr std::uint16_t kMaxChannels = 8;
 
 #pragma pack(push, 1)

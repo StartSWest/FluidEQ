@@ -57,6 +57,34 @@ describe('secure LAN audio reconnect credentials', () => {
     store.write({ code, role: 'sender' });
     expect(store.role()).toBe('sender');
     expect(store.read()).toEqual({ code, role: 'sender' });
+    expect(store.readListener()).toEqual({
+      port: 49_100,
+      role: 'listener',
+      secret,
+    });
+    expect(store.readSender()).toEqual({ code, role: 'sender' });
+
+    expect(store.activate('listener')).toBe(true);
+    expect(store.role()).toBe('listener');
+    expect(store.readSender()).toEqual({ code, role: 'sender' });
+  });
+
+  it('migrates a version-one sender without losing it', () => {
+    const code = `FLUIDEQ-LAN-2.${'m'.repeat(80)}`;
+    const encrypted = Buffer.from(
+      Buffer.from(JSON.stringify({ code, role: 'sender' }), 'utf8').map(
+        (byte) => (byte + 165) % 256,
+      ),
+    ).toString('base64');
+    fs.writeFileSync(
+      path.join(directory, 'remote-audio-lan.json'),
+      JSON.stringify({ encrypted, version: 1 }),
+    );
+    const store = createRemoteAudioCredentialStore(directory);
+
+    expect(store.readSender()).toEqual({ code, role: 'sender' });
+    store.write({ port: 49_100, role: 'listener', secret: 's'.repeat(43) });
+    expect(store.readSender()).toEqual({ code, role: 'sender' });
   });
 
   it('forgets a saved session only when explicitly cleared', () => {

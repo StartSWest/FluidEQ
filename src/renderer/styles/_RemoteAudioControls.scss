@@ -1,0 +1,238 @@
+/* FluidEQ — GPL-3.0-or-later */
+
+@use 'color' as *;
+@use 'motion' as *;
+@use 'theme' as *;
+
+.remote-audio__stream-mode {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.remote-audio__stream-mode-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+
+  strong {
+    color: $text-primary;
+    font-size: 0.72rem;
+    font-weight: $weight-semibold;
+  }
+
+  span {
+    color: $text-faint;
+    font-size: 0.62rem;
+  }
+}
+
+.remote-audio__stream-options {
+  display: grid;
+  min-width: 0;
+  gap: 8px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.remote-audio__stream-option {
+  position: relative;
+  display: grid;
+  min-width: 0;
+  align-items: start;
+  padding: 11px 12px;
+  gap: 9px;
+  border: 1px solid rgba($primary-lighter, 0.13);
+  border-radius: $radius-xs;
+  background: rgba($primary-dark, 0.2);
+  color: $text-primary;
+  cursor: pointer;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  text-align: left;
+  transition:
+    border-color $motion-fast $ease-out,
+    background $motion-fast $ease-out;
+
+  &:hover {
+    border-color: rgba($secondary-light, 0.34);
+    background: rgba($secondary-default, 0.055);
+  }
+
+  &.is-selected {
+    border-color: rgba($secondary-light, 0.5);
+    background: rgba($secondary-default, 0.09);
+  }
+
+  > span:nth-child(2) {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 3px;
+
+    small {
+      color: $text-muted;
+      font-size: 0.64rem;
+      line-height: 1.35;
+    }
+  }
+
+  em {
+    color: $secondary-light;
+    font-family: $font-mono;
+    font-size: 0.61rem;
+    font-style: normal;
+    white-space: nowrap;
+  }
+}
+
+.remote-audio__stream-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  .menu-icon {
+    width: 17px;
+    height: 17px;
+    flex: 0 0 auto;
+    color: $secondary-light;
+  }
+
+  strong {
+    font-size: 0.72rem;
+    font-weight: $weight-semibold;
+  }
+}
+
+.remote-audio__stream-radio {
+  display: grid;
+  width: 14px;
+  height: 14px;
+  margin-top: 1px;
+  place-items: center;
+  border: 1px solid rgba($primary-lighter, 0.32);
+  border-radius: 50%;
+  background: rgba($primary-dark, 0.5);
+
+  &::after {
+    width: 6px;
+    height: 6px;
+    transform: scale(0);
+    border-radius: 50%;
+    background: $secondary-light;
+    box-shadow: 0 0 6px rgba($secondary-light, 0.52);
+    content: '';
+    transition: transform $motion-fast $ease-out;
+  }
+}
+
+.remote-audio__stream-option.is-selected .remote-audio__stream-radio::after {
+  transform: scale(1);
+}
+
+.remote-audio__field {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 6px;
+
+  > span {
+    color: rgba($primary-lighter, 0.78);
+    font-size: 0.68rem;
+    font-weight: $weight-bold;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  > .text-input {
+    width: 100%;
+
+    input {
+      width: 100%;
+      font-family: $font-mono;
+      font-size: 0.68rem;
+    }
+  }
+}
+
+.remote-audio__sender-connect {
+  display: grid;
+  min-width: 0;
+  align-items: end;
+  gap: 10px;
+  grid-template-columns: minmax(0, 1fr) auto;
+
+  > .button {
+    width: 10.75rem;
+    justify-content: center;
+  }
+}
+
+.remote-audio__sender-detail {
+  display: flex;
+  height: 22px;
+  align-items: center;
+  overflow: hidden;
+  color: $text-muted;
+  font-size: 0.66rem;
+
+  > span,
+  > strong {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.remote-audio__destination {
+  display: block;
+  color: $secondary-light;
+  font-weight: $weight-semibold;
+}
+
+.remote-audio__connection-state {
+  display: flex;
+  height: 42px;
+  flex: 0 0 42px;
+  align-items: center;
+  padding: 7px 11px;
+  gap: 8px;
+  border: 1px solid rgba($primary-lighter, 0.11);
+  border-radius: $radius-s;
+  background: rgba($primary-dark, 0.16);
+  color: $text-muted;
+
+  > span {
+    width: 6px;
+    height: 6px;
+    flex: 0 0 auto;
+    border-radius: 50%;
+    background: $text-faint;
+  }
+
+  > p {
+    display: -webkit-box;
+    margin: 0;
+    overflow: hidden;
+    font-size: 0.68rem;
+    line-height: 1.35;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  &.is-active > span {
+    background: $analogous-2;
+    box-shadow: 0 0 7px rgba($analogous-2, 0.58);
+  }
+
+  &.is-error {
+    border-color: rgba($red, 0.32);
+    background: rgba($red, 0.07);
+    color: #ffc1cb;
+
+    > span {
+      background: $red;
+      box-shadow: 0 0 7px rgba($red, 0.58);
+    }
+  }
+}

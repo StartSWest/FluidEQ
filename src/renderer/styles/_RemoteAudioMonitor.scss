@@ -1,0 +1,225 @@
+/* FluidEQ — GPL-3.0-or-later */
+
+@use 'color' as *;
+@use 'theme' as *;
+
+.remote-audio__monitor {
+  padding: 10px 11px 11px;
+  border: 1px solid rgba($primary-lighter, 0.12);
+  border-radius: $radius-s;
+  background: rgba(#07111f, 0.48);
+  box-shadow: inset 0 1px 8px rgba($black, 0.18);
+}
+
+.remote-audio__monitor-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 9px;
+  gap: 10px;
+
+  strong,
+  span {
+    font-size: 0.62rem;
+    font-weight: $weight-semibold;
+  }
+
+  strong {
+    color: rgba($primary-lighter, 0.82);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+}
+
+.remote-audio__monitor-lanes {
+  display: grid;
+  min-width: 0;
+  gap: 8px;
+}
+
+.remote-audio__monitor-lane {
+  min-width: 0;
+  padding: 8px 9px 9px;
+  border: 1px solid rgba($primary-lighter, 0.09);
+  border-radius: $radius-xs;
+  background: rgba($primary-dark, 0.17);
+
+  &.is-primary .remote-audio__waveform {
+    height: clamp(120px, 16vh, 180px);
+  }
+}
+
+.remote-audio__monitor-lane-heading {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+  gap: 10px;
+}
+
+.remote-audio__monitor-source {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 7px;
+
+  strong {
+    overflow: hidden;
+    color: $text-primary;
+    font-size: 0.68rem;
+    font-weight: $weight-semibold;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  > span:last-child {
+    flex: 0 0 auto;
+    color: $text-muted;
+    font-size: 0.62rem;
+  }
+}
+
+.remote-audio__monitor-address {
+  overflow: hidden;
+  color: rgba($primary-lighter, 0.58);
+  font-family: $font-mono;
+  font-size: 0.6rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.remote-audio__monitor-source-dot {
+  width: 6px;
+  height: 6px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: $text-faint;
+
+  &.is-active {
+    background: $analogous-2;
+    box-shadow: 0 0 8px rgba($analogous-2, 0.68);
+  }
+}
+
+.remote-audio__monitor-identity {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+
+  > div {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 1px;
+  }
+
+  strong {
+    color: rgba($primary-lighter, 0.82);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  span,
+  small {
+    color: $text-muted;
+    font-size: 0.62rem;
+    line-height: 1.25;
+  }
+}
+
+.remote-audio__monitor-live {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: $text-faint;
+
+  &.is-active {
+    background: $analogous-2;
+    box-shadow: 0 0 8px rgba($analogous-2, 0.68);
+  }
+}
+
+.remote-audio__monitor-readouts {
+  display: grid;
+  align-items: center;
+  flex: 0 0 auto;
+  grid-template-columns: 10.5rem 12.5rem 8.5rem 7.25rem;
+  gap: 10px;
+  color: $text-muted;
+  font-family: $font-mono;
+  font-size: 0.61rem;
+
+  > span {
+    text-align: right;
+    white-space: nowrap;
+  }
+}
+
+.remote-audio__network-usage,
+.remote-audio__network-health,
+.remote-audio__buffer-readout,
+.remote-audio__level-readout {
+  min-width: 0;
+
+  &.is-unavailable {
+    visibility: hidden;
+  }
+}
+
+.remote-audio__network-health {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: $analogous-2;
+  font-weight: $weight-semibold;
+
+  &::before {
+    width: 5px;
+    height: 5px;
+    flex: 0 0 auto;
+    border-radius: 50%;
+    background: $analogous-2;
+    box-shadow: 0 0 7px rgba($analogous-2, 0.58);
+    content: '';
+  }
+
+  &.is-congested {
+    color: $red;
+
+    &::before {
+      background: $red;
+      box-shadow: 0 0 7px rgba($red, 0.58);
+    }
+  }
+}
+
+.remote-audio__waveform {
+  display: block;
+  width: 100%;
+  height: clamp(76px, 10vh, 112px);
+  color: $secondary-light;
+  border-radius: $radius-xs;
+  background-color: rgba($primary-dark, 0.2);
+  background-image:
+    linear-gradient(rgba($primary-lighter, 0.055) 1px, transparent 1px),
+    linear-gradient(90deg, rgba($primary-lighter, 0.055) 1px, transparent 1px);
+  background-size: 25% 50%;
+}
+
+.remote-audio__level {
+  height: 3px;
+  margin-top: 7px;
+  overflow: hidden;
+  border-radius: 2px;
+  background: rgba($primary-lighter, 0.08);
+
+  > div {
+    width: 100%;
+    height: 100%;
+    transform: scaleX(0);
+    transform-origin: left center;
+    background: linear-gradient(90deg, $secondary-default, $analogous-2);
+  }
+}

@@ -11,28 +11,23 @@ import dgram from 'dgram';
 import os from 'os';
 import { WebSocket, WebSocketServer, type RawData } from 'ws';
 import {
-  ILanHostDetails,
   ILanRemoteComputer,
   ILanRemoteAudioChunk,
+  ILanRemoteAudioNetworkStats,
   ILanRemoteAudioSignal,
   isLanRemoteAudioSignal,
 } from '../common/remoteAudio';
 import {
   MAX_PACKET_BYTES,
-  PACKET_AUDIO,
   PACKET_SIGNAL,
   type ILanPairingPayload,
-  decodeAudio,
   decodePairingCode,
-  encodeAudio,
   encodePairingCode,
   isPrivateIpv4,
   keyFromSecret,
   lanAddresses,
-  normalizeAudioChunk,
   openPacket,
   openSignal,
-  sealPacket,
   sealSignal,
 } from './remoteAudioLanProtocol';
 import {
@@ -42,6 +37,12 @@ import {
   encodeDiscoveryQuery,
   isDiscoveryQuery,
 } from './remoteAudioDiscovery';
+import createRemoteAudioTransport from './remoteAudioTransport';
+import type {
+  ILanHostCredentials,
+  ILanHostSession,
+  IRemoteAudioLan,
+} from './remoteAudioLanTypes';
 
 const MAX_PENDING_SOCKETS = 64;
 
@@ -60,84 +61,34 @@ const closeDiscoverySocket = (socket: dgram.Socket) => {
   }
 };
 
-export interface IRemoteAudioLan {
-  startHost(credentials?: ILanHostCredentials): Promise<ILanHostSession>;
-  join(code: unknown): Promise<ILanRemoteComputer>;
-  restoreJoin(code: unknown): Promise<ILanRemoteComputer>;
-  sendSignal(message: unknown): void;
-  sendAudio(chunk: unknown): void;
-  stop(): void;
-}
-
-export interface ILanHostCredentials {
-  port: number;
-  secret: string;
-}
-
-export interface ILanHostSession {
-  credentials: ILanHostCredentials;
-  details: ILanHostDetails;
-}
-
 /**
  * One encrypted, lossless PCM hub on the listening computer.
  *
  * Local certificates cannot prove which PC created them, so the WebSocket is
  * plain `ws://` and every packet inside it is authenticated and encrypted
- * with AES-256-GCM using the pairing secret. Audio is lossless Zstandard
- * compressed Float32 PCM over the reliable, ordered WebSocket; there is no
- * lossy media codec and no packet dropping.
+ * with AES-256-GCM using the pairing secret. Music mode uses lossless
+ * Zstandard; Video mode sends the same Float32 bits raw to remove codec delay.
+ * Both travel over the reliable, ordered WebSocket with no lossy media codec.
  */
-export const createRemoteAudioLan = (
+const createRemoteAudioLan = (
   emitSignal: (message: ILanRemoteAudioSignal) => void,
   emitAudio: (chunk: ILanRemoteAudioChunk) => void,
   emitError: () => void,
+  emitNetwork: (stats: ILanRemoteAudioNetworkStats) => void,
 ): IRemoteAudioLan => {
   let server: WebSocketServer | undefined;
   let discoverySocket: dgram.Socket | undefined;
   let rejectDiscovery: ((error: Error) => void) | undefined;
   let pendingSocket: WebSocket | undefined;
-  const sockets = new Map<string, WebSocket>();
   const usedPeerIds = new Set<string>();
   let key: Buffer | undefined;
-  let isStopping = false;
-
-  const attachSocket = (
-    peerId: string,
-    socket: WebSocket,
-    socketKey: Buffer,
-  ) => {
-    sockets.set(peerId, socket);
-    socket.on('message', (data) => {
-      try {
-        const packet = openPacket(data, socketKey);
-        if (packet.kind === PACKET_SIGNAL) {
-          const message = openSignal(packet.clear);
-          if (message.peerId !== peerId) {
-            throw new Error('Peer identity changed.');
-          }
-          emitSignal(message);
-        } else {
-          emitAudio(decodeAudio(peerId, packet.clear));
-        }
-      } catch {
-        socket.close(1008, 'Invalid encrypted packet');
-      }
-    });
-    const closed = () => {
-      if (sockets.get(peerId) === socket) {
-        sockets.delete(peerId);
-        if (!isStopping) {
-          emitSignal({ peerId, signal: { kind: 'stop' } });
-        }
-      }
-    };
-    socket.on('close', closed);
-    socket.on('error', closed);
-  };
+  const transport = createRemoteAudioTransport({
+    emitAudio,
+    emitNetwork,
+    emitSignal,
+  });
 
   const stop = () => {
-    isStopping = true;
     const activeServer = server;
     const activePendingSocket = pendingSocket;
     const activeDiscoverySocket = discoverySocket;
@@ -147,11 +98,7 @@ export const createRemoteAudioLan = (
     discoverySocket = undefined;
     rejectDiscovery = undefined;
     key = undefined;
-    sockets.forEach((socket) => {
-      socket.removeAllListeners();
-      socket.close();
-    });
-    sockets.clear();
+    transport.closeAll();
     usedPeerIds.clear();
     // Keep the pending socket's close listener: it settles the outstanding
     // join promise from the real close event instead of from a guessed delay.
@@ -167,7 +114,6 @@ export const createRemoteAudioLan = (
       });
       activeServer.close();
     }
-    isStopping = false;
   };
 
   const startHost = async (
@@ -200,7 +146,7 @@ export const createRemoteAudioLan = (
         candidate.close(1008, 'Only private LAN connections are allowed');
         return;
       }
-      if (nextServer.clients.size - sockets.size > MAX_PENDING_SOCKETS) {
+      if (nextServer.clients.size - transport.size() > MAX_PENDING_SOCKETS) {
         candidate.close(1008, 'Too many unauthenticated connections');
         return;
       }
@@ -225,7 +171,7 @@ export const createRemoteAudioLan = (
           candidate.removeListener('error', onPendingError);
           candidate.removeListener('message', authenticate);
           usedPeerIds.add(message.peerId);
-          attachSocket(message.peerId, candidate, nextKey);
+          transport.attach(message.peerId, candidate, nextKey);
           emitSignal({
             ...message,
             signal: { ...message.signal, address: remoteAddress },
@@ -360,7 +306,7 @@ export const createRemoteAudioLan = (
         socket.removeListener('error', onError);
         socket.removeListener('close', onClose);
         releasePendingSocket();
-        attachSocket(peerId, socket, nextKey);
+        transport.attach(peerId, socket, nextKey);
         const ready: ILanRemoteAudioSignal = {
           peerId,
           signal: {
@@ -466,24 +412,28 @@ export const createRemoteAudioLan = (
     if (!key || !isLanRemoteAudioSignal(value)) {
       throw new Error('Invalid remote audio control message.');
     }
-    const socket = sockets.get(value.peerId);
-    if (!socket || socket.readyState !== WebSocket.OPEN) {
-      throw new Error('That LAN computer is not connected.');
-    }
-    socket.send(sealSignal(value, key));
+    transport.sendSignal(value, key);
   };
 
   const sendAudio = (value: unknown) => {
     if (!key) {
       throw new Error('The LAN audio connection is not ready.');
     }
-    const chunk = normalizeAudioChunk(value);
-    const socket = sockets.get(chunk.peerId);
-    if (!socket || socket.readyState !== WebSocket.OPEN) {
-      throw new Error('That LAN computer is not connected.');
-    }
-    socket.send(sealPacket(PACKET_AUDIO, encodeAudio(chunk), key));
+    transport.sendAudio(value, key);
   };
 
-  return { startHost, join, restoreJoin, sendSignal, sendAudio, stop };
+  const setStreamMode = (peerId: string, mode: 'music' | 'video') =>
+    transport.setStreamMode(peerId, mode);
+
+  return {
+    startHost,
+    join,
+    restoreJoin,
+    sendSignal,
+    sendAudio,
+    setStreamMode,
+    stop,
+  };
 };
+
+export default createRemoteAudioLan;

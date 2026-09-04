@@ -4,7 +4,11 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import type { ILanPairingOption } from '../../common/remoteAudio';
+import type {
+  ILanPairingOption,
+  ILanRemoteAudioNetworkStats,
+  TRemoteAudioStreamMode,
+} from '../../common/remoteAudio';
 import type { TRemoteAudioMeterListener } from './meter';
 
 export type TRemoteAudioRole = 'listener' | 'sender';
@@ -25,11 +29,15 @@ export interface IRemoteAudioValue {
   deviceName?: string;
   error?: TRemoteAudioError;
   lanOptions: ILanPairingOption[];
+  networkStats: ILanRemoteAudioNetworkStats[];
   phase: TRemoteAudioPhase;
   role?: TRemoteAudioRole;
-  startListening(): Promise<void>;
+  resumeSending(): Promise<void>;
+  startListening(replaceCode?: boolean): Promise<void>;
   startSending(code: string): Promise<void>;
   stop(): Promise<void>;
   resumePlayback(): Promise<void>;
+  setStreamMode(mode: TRemoteAudioStreamMode): void;
+  streamMode: TRemoteAudioStreamMode;
   subscribeMeter(listener: TRemoteAudioMeterListener): () => void;
 }

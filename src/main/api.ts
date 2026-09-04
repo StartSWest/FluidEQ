@@ -43,9 +43,11 @@ import type {
   ILanHostDetails,
   ILanRemoteComputer,
   ILanRemoteAudioChunk,
+  ILanRemoteAudioNetworkStats,
   ILanRemoteAudioSignal,
   TLanRestoreResult,
   TLanSavedRole,
+  TRemoteAudioStreamMode,
 } from '../common/remoteAudio';
 import { dspHostBridge } from './dspHost/bridge';
 
@@ -509,23 +511,42 @@ const onLibraryPlaylistsChanged = (
   };
 };
 
-const startRemoteAudioLanHost = () =>
-  ipcRenderer.invoke('remote-audio-lan-host') as Promise<ILanHostDetails>;
+const startRemoteAudioLanHost = (replaceCode = false) =>
+  ipcRenderer.invoke(
+    'remote-audio-lan-host',
+    replaceCode,
+  ) as Promise<ILanHostDetails>;
 
 const getSavedRemoteAudioLanRole = () =>
   ipcRenderer.invoke('remote-audio-lan-saved-role') as Promise<
     TLanSavedRole | undefined
   >;
 
-const restoreRemoteAudioLan = () =>
-  ipcRenderer.invoke('remote-audio-lan-restore') as Promise<
+const getSavedRemoteAudioLanSenderCode = () =>
+  ipcRenderer.invoke('remote-audio-lan-saved-sender-code') as Promise<
+    string | undefined
+  >;
+
+const restoreRemoteAudioLan = (streamMode: TRemoteAudioStreamMode = 'music') =>
+  ipcRenderer.invoke('remote-audio-lan-restore', streamMode) as Promise<
     TLanRestoreResult | undefined
   >;
 
-const joinRemoteAudioLan = (code: string) =>
+const resumeRemoteAudioLanSender = (
+  streamMode: TRemoteAudioStreamMode = 'music',
+) =>
+  ipcRenderer.invoke('remote-audio-lan-resume-sender', streamMode) as Promise<
+    ILanRemoteComputer | undefined
+  >;
+
+const joinRemoteAudioLan = (
+  code: string,
+  streamMode: TRemoteAudioStreamMode = 'music',
+) =>
   ipcRenderer.invoke(
     'remote-audio-lan-join',
     code,
+    streamMode,
   ) as Promise<ILanRemoteComputer>;
 
 const sendRemoteAudioLanSignal = (message: ILanRemoteAudioSignal) =>
@@ -556,6 +577,19 @@ const onRemoteAudioLanAudio = (
   ipcRenderer.on('remote-audio-lan-audio', wrapped);
   return () => {
     ipcRenderer.removeListener('remote-audio-lan-audio', wrapped);
+  };
+};
+
+const onRemoteAudioLanNetwork = (
+  listener: (stats: ILanRemoteAudioNetworkStats) => void,
+) => {
+  const wrapped = (
+    _event: IpcRendererEvent,
+    stats: ILanRemoteAudioNetworkStats,
+  ) => listener(stats);
+  ipcRenderer.on('remote-audio-lan-network', wrapped);
+  return () => {
+    ipcRenderer.removeListener('remote-audio-lan-network', wrapped);
   };
 };
 
@@ -639,13 +673,16 @@ export default {
     onLibraryPlaylistsChanged,
     startRemoteAudioLanHost,
     getSavedRemoteAudioLanRole,
+    getSavedRemoteAudioLanSenderCode,
     restoreRemoteAudioLan,
+    resumeRemoteAudioLanSender,
     joinRemoteAudioLan,
     sendRemoteAudioLanSignal,
     sendRemoteAudioLanAudio,
     stopRemoteAudioLan,
     onRemoteAudioLanSignal,
     onRemoteAudioLanAudio,
+    onRemoteAudioLanNetwork,
     onRemoteAudioLanError,
     // Spread rather than nested, so the native engine's calls sit beside every
     // other one here. Its own module because this file is already long enough

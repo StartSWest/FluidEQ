@@ -2038,6 +2038,19 @@ $tab-border: rgba($secondary-light, 0.2);
   }
 }
 
+// Share Audio can be taller than the window while its graph and connection
+// workspace stay one continuous page. Its scroller used to stop at the
+// panel's right padding, leaving the thumb floating a full gutter away from
+// the card edge. Give the scroller the edge and put the content air inside it,
+// matching the panels whose scrollbar visibly belongs to the outer card.
+.workspace-tab-panel--share {
+  padding-right: 0;
+
+  > .workspace-tab-panel__scroll {
+    padding-right: 12px;
+  }
+}
+
 // Sections that fill a workspace card sit directly on it instead of painting
 // a second card on top: one surface, not a stack of nested boxes.
 .workspace-tab-panel--eq .workspace-tab-panel__scroll > .main-content,

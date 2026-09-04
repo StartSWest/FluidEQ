@@ -6,7 +6,10 @@ This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License version 3 or later.
 */
 
-import type { ILanRemoteAudioChunk } from '../../common/remoteAudio';
+import type {
+  ILanRemoteAudioChunk,
+  TRemoteAudioStreamMode,
+} from '../../common/remoteAudio';
 import type { IRemoteAudioMeter, TRemoteAudioMeterListener } from './meter';
 
 interface IAudioSink {
@@ -22,6 +25,7 @@ export interface IPcmMixer {
   push(chunk: ILanRemoteAudioChunk): void;
   removePeer(peerId: string): void;
   resume(): Promise<void>;
+  setPeerMode(peerId: string, mode: TRemoteAudioStreamMode): void;
   setOutput(sinkId: string): Promise<void>;
   close(): Promise<void>;
 }
@@ -126,6 +130,11 @@ export const createPcmMixer = async (
     resume: async () => {
       playbackStarted = false;
       await startPlayback();
+    },
+    setPeerMode: (peerId, mode) => {
+      if (!isClosed) {
+        mixer.port.postMessage({ kind: 'configure', mode, peerId });
+      }
     },
     setOutput: async (sinkId: string) => {
       currentSinkId = sinkId;

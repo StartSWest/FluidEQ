@@ -9,10 +9,10 @@ it under the terms of the GNU General Public License version 3 or later.
 @use 'color' as *;
 @use 'motion' as *;
 @use 'theme' as *;
+@use 'RemoteAudioControls';
+@use 'RemoteAudioMonitor';
+@use 'RemoteAudioPairing';
 
-// One workspace surface, like Presets, Voicing and Convolution. The cards below
-// are choices and recessed working areas rather than another page painted on
-// top of the tab panel.
 .remote-audio {
   display: flex;
   width: 100%;
@@ -30,7 +30,6 @@ it under the terms of the GNU General Public License version 3 or later.
   min-width: 0;
   flex: 0 0 auto;
   align-items: flex-start;
-  gap: 0;
 
   > div {
     width: 100%;
@@ -51,8 +50,6 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
-// Facts instead of three bright pills. They remain visible, but no longer
-// compete with the two decisions the user actually has to make.
 .remote-audio__facts {
   display: flex;
   width: fit-content;
@@ -60,7 +57,6 @@ it under the terms of the GNU General Public License version 3 or later.
   flex-wrap: nowrap;
   margin: 12px 0 0;
   padding: 7px 10px;
-  gap: 0;
   border: 1px solid rgba($primary-lighter, 0.1);
   border-radius: $radius-s;
   background: rgba($primary-dark, 0.18);
@@ -115,13 +111,9 @@ it under the terms of the GNU General Public License version 3 or later.
 .remote-audio__role-cards {
   display: grid;
   flex: 0 0 auto;
-  align-items: start;
+  align-items: stretch;
   gap: 12px;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-
-  &:not(:has(.is-selected)) {
-    align-items: stretch;
-  }
 }
 
 .remote-audio__role-card {
@@ -129,8 +121,7 @@ it under the terms of the GNU General Public License version 3 or later.
   position: relative;
   display: flex;
   min-width: 0;
-  flex-direction: column;
-  overflow: hidden;
+  overflow: visible;
   border-color: rgba($primary-lighter, 0.14);
   background: rgba(#091526, 0.34);
   box-shadow: inset 0 1px 0 rgba($white, 0.025);
@@ -144,12 +135,14 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 
   &.is-selected {
+    z-index: 2;
     border-color: rgba($secondary-light, 0.55);
-    background: linear-gradient(
-      145deg,
-      rgba($secondary-default, 0.14),
-      rgba(#0b1626, 0.42)
-    );
+    border-bottom-color: transparent;
+    border-bottom-right-radius: 0;
+    border-bottom-left-radius: 0;
+    background:
+      linear-gradient(145deg, rgba($secondary-default, 0.1), transparent 70%),
+      #14313a;
     box-shadow:
       inset 3px 0 0 $secondary-default,
       inset 0 1px 0 rgba($white, 0.04);
@@ -161,16 +154,18 @@ it under the terms of the GNU General Public License version 3 or later.
   display: flex;
   width: 100%;
   min-width: 0;
-  flex: 1 1 auto;
+  min-height: 108px;
   flex-direction: column;
-  padding: 18px 20px;
+  padding: 18px 20px 18px 72px;
   gap: 4px;
   color: $text-primary;
   border: 0;
+  border-radius: inherit;
   background: transparent;
   cursor: pointer;
   text-align: left;
   transition: background $motion-fast $ease-out;
+  overflow: hidden;
 
   &:hover {
     background: rgba($secondary-default, 0.06);
@@ -194,6 +189,86 @@ it under the terms of the GNU General Public License version 3 or later.
     font-size: 0.72rem;
     line-height: 1.45;
   }
+}
+
+.remote-audio__role-workspace {
+  @include inset-surface;
+  position: relative;
+  display: flex;
+  min-width: 0;
+  flex: 0 0 auto;
+  flex-direction: column;
+  padding: 14px 16px 16px;
+  gap: 13px;
+  overflow: visible;
+  border-color: rgba($secondary-light, 0.32);
+  background:
+    linear-gradient(145deg, rgba($secondary-default, 0.05), transparent 72%),
+    #14313a;
+  box-shadow:
+    inset 3px 0 0 rgba($secondary-default, 0.84),
+    inset 0 1px 0 rgba($white, 0.035);
+
+  // The workspace itself fills the row gap only below the chosen card. Using
+  // the same solid base on both surfaces removes the dark stripe that appeared
+  // when a translucent bridge exposed the panel behind it.
+  &::before {
+    position: absolute;
+    z-index: 1;
+    top: -17px;
+    width: calc(50% - 5px);
+    height: 18px;
+    background: #14313a;
+    content: '';
+  }
+
+  &.is-listener {
+    border-top-left-radius: 0;
+
+    &::before {
+      left: -1px;
+      border-right: 1px solid rgba($secondary-light, 0.55);
+      border-left: 1px solid rgba($secondary-light, 0.55);
+      border-bottom-right-radius: $radius-s;
+    }
+  }
+
+  &.is-sender {
+    border-top-right-radius: 0;
+
+    &::before {
+      right: -1px;
+      border-right: 1px solid rgba($secondary-light, 0.55);
+      border-left: 1px solid rgba($secondary-light, 0.55);
+      border-bottom-left-radius: $radius-s;
+    }
+  }
+}
+
+.remote-audio__role-icon {
+  position: absolute;
+  top: 18px;
+  left: 20px;
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  border: 1px solid rgba($primary-lighter, 0.16);
+  border-radius: $radius-xs;
+  background: rgba($primary-dark, 0.32);
+  color: rgba($primary-lighter, 0.68);
+
+  .menu-icon {
+    width: 22px;
+    height: 22px;
+  }
+}
+
+.remote-audio__role-card.is-selected .remote-audio__role-icon {
+  border-color: rgba($secondary-light, 0.36);
+  background: rgba($secondary-default, 0.1);
+  color: $secondary-light;
+  box-shadow: 0 0 12px rgba($secondary-default, 0.1);
 }
 
 .remote-audio__role-radio {
@@ -226,453 +301,5 @@ it under the terms of the GNU General Public License version 3 or later.
 
   &::after {
     transform: scale(1);
-  }
-}
-
-.remote-audio__role-content {
-  display: flex;
-  min-width: 0;
-  flex-direction: column;
-  flex: 1 1 auto;
-  padding: 14px 16px 16px;
-  gap: 13px;
-  border-top: 1px solid rgba($secondary-light, 0.18);
-  background: rgba($secondary-default, 0.035);
-}
-
-.remote-audio__role-status-row {
-  display: flex;
-  min-width: 0;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-
-  > strong {
-    font-size: 0.78rem;
-    font-weight: $weight-semibold;
-  }
-}
-
-.remote-audio__field {
-  display: flex;
-  min-width: 0;
-  flex-direction: column;
-  gap: 6px;
-
-  > span {
-    color: rgba($primary-lighter, 0.78);
-    font-size: 0.68rem;
-    font-weight: $weight-bold;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-  }
-
-  > .text-input {
-    width: 100%;
-
-    input {
-      width: 100%;
-      font-family: $font-mono;
-      font-size: 0.68rem;
-    }
-  }
-}
-
-.remote-audio__sender-connect {
-  display: grid;
-  min-width: 0;
-  align-items: end;
-  gap: 10px;
-  grid-template-columns: minmax(0, 1fr) auto;
-}
-
-.remote-audio__sender-copy {
-  margin: 0;
-  color: $text-muted;
-  font-size: 0.7rem;
-  line-height: 1.5;
-}
-
-.remote-audio__error {
-  padding: 9px 11px;
-  border: 1px solid rgba($red, 0.32);
-  border-radius: $radius-s;
-  background: rgba($red, 0.07);
-  color: #ffc1cb;
-  font-size: 0.7rem;
-  line-height: 1.45;
-}
-
-.remote-audio__status {
-  display: inline-flex;
-  flex: 0 0 auto;
-  align-items: center;
-  gap: 7px;
-  color: $text-muted;
-  font-size: 0.68rem;
-  font-weight: $weight-semibold;
-  white-space: nowrap;
-
-  &::before {
-    width: 7px;
-    height: 7px;
-    flex: 0 0 auto;
-    border-radius: 50%;
-    background: $secondary-default;
-    box-shadow: 0 0 9px rgba($secondary-default, 0.72);
-    content: '';
-  }
-}
-
-.remote-audio__status--connected {
-  color: $analogous-2;
-
-  &::before {
-    background: $analogous-2;
-    box-shadow: 0 0 9px rgba($analogous-2, 0.72);
-  }
-}
-
-.remote-audio__status--playback-blocked,
-.remote-audio__status--disconnected,
-.remote-audio__status--error {
-  color: $red;
-
-  &::before {
-    background: $red;
-    box-shadow: 0 0 9px rgba($red, 0.68);
-  }
-}
-
-.remote-audio__monitor {
-  padding: 10px 11px 11px;
-  border: 1px solid rgba($primary-lighter, 0.12);
-  border-radius: $radius-s;
-  background: rgba(#07111f, 0.48);
-  box-shadow: inset 0 1px 8px rgba($black, 0.18);
-}
-
-.remote-audio__monitor-heading {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 9px;
-  gap: 10px;
-
-  strong,
-  span {
-    font-size: 0.62rem;
-    font-weight: $weight-semibold;
-  }
-
-  strong {
-    color: rgba($primary-lighter, 0.82);
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-  }
-}
-
-.remote-audio__monitor-lanes {
-  display: grid;
-  min-width: 0;
-  gap: 8px;
-}
-
-.remote-audio__monitor-lane {
-  min-width: 0;
-  padding: 8px 9px 9px;
-  border: 1px solid rgba($primary-lighter, 0.09);
-  border-radius: $radius-xs;
-  background: rgba($primary-dark, 0.17);
-
-  &.is-primary .remote-audio__waveform {
-    height: clamp(120px, 16vh, 180px);
-  }
-}
-
-.remote-audio__monitor-lane-heading {
-  display: flex;
-  min-width: 0;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 6px;
-  gap: 10px;
-}
-
-.remote-audio__monitor-source {
-  display: flex;
-  min-width: 0;
-  align-items: center;
-  gap: 7px;
-
-  strong {
-    overflow: hidden;
-    color: $text-primary;
-    font-size: 0.68rem;
-    font-weight: $weight-semibold;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  > span:last-child {
-    flex: 0 0 auto;
-    color: $text-muted;
-    font-size: 0.62rem;
-  }
-}
-
-.remote-audio__monitor-address {
-  overflow: hidden;
-  color: rgba($primary-lighter, 0.58);
-  font-family: $font-mono;
-  font-size: 0.6rem;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.remote-audio__monitor-source-dot {
-  width: 6px;
-  height: 6px;
-  flex: 0 0 auto;
-  border-radius: 50%;
-  background: $text-faint;
-
-  &.is-active {
-    background: $analogous-2;
-    box-shadow: 0 0 8px rgba($analogous-2, 0.68);
-  }
-}
-
-.remote-audio__monitor-identity {
-  display: flex;
-  min-width: 0;
-  align-items: center;
-  gap: 8px;
-
-  > div {
-    display: flex;
-    min-width: 0;
-    flex-direction: column;
-    gap: 1px;
-  }
-
-  strong {
-    color: rgba($primary-lighter, 0.82);
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-  }
-
-  span,
-  small {
-    color: $text-muted;
-    font-size: 0.62rem;
-    line-height: 1.25;
-  }
-}
-
-.remote-audio__monitor-live {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: $text-faint;
-
-  &.is-active {
-    background: $analogous-2;
-    box-shadow: 0 0 8px rgba($analogous-2, 0.68);
-  }
-}
-
-.remote-audio__monitor-readouts {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  color: $text-muted;
-  font-family: $font-mono;
-}
-
-.remote-audio__waveform {
-  display: block;
-  width: 100%;
-  height: clamp(76px, 10vh, 112px);
-  color: $secondary-light;
-  border-radius: $radius-xs;
-  background-color: rgba($primary-dark, 0.2);
-  background-image:
-    linear-gradient(rgba($primary-lighter, 0.055) 1px, transparent 1px),
-    linear-gradient(90deg, rgba($primary-lighter, 0.055) 1px, transparent 1px);
-  background-size: 25% 50%;
-}
-
-.remote-audio__level {
-  height: 3px;
-  margin-top: 7px;
-  overflow: hidden;
-  border-radius: 2px;
-  background: rgba($primary-lighter, 0.08);
-
-  > div {
-    width: 100%;
-    height: 100%;
-    transform: scaleX(0);
-    transform-origin: left center;
-    background: linear-gradient(90deg, $secondary-default, $analogous-2);
-  }
-}
-
-.remote-audio__codes {
-  @include inset-surface;
-  display: flex;
-  flex-direction: column;
-  padding: 12px 14px 14px;
-  gap: 9px;
-
-  > h4,
-  > p {
-    margin: 0;
-  }
-
-  > h4 {
-    font-size: 0.78rem;
-  }
-
-  > p {
-    color: $text-muted;
-    font-size: 0.7rem;
-    line-height: 1.45;
-  }
-}
-
-.remote-audio__code {
-  display: flex;
-  min-width: 0;
-  flex-direction: column;
-  padding-top: 9px;
-  gap: 7px;
-  border-top: 1px solid rgba($primary-lighter, 0.1);
-}
-
-.remote-audio__code-heading {
-  display: grid;
-  min-width: 0;
-  align-items: center;
-  gap: 10px;
-  grid-template-columns: minmax(120px, auto) minmax(0, 1fr) auto;
-}
-
-.remote-audio__computer {
-  display: flex;
-  min-width: 0;
-  flex-direction: column;
-  gap: 1px;
-
-  strong {
-    color: $text-primary;
-    font-size: 0.72rem;
-  }
-
-  span {
-    color: $text-muted;
-    font-family: $font-mono;
-    font-size: 0.62rem;
-  }
-}
-
-.remote-audio__code-value {
-  display: block;
-  width: 100%;
-  min-width: 0;
-  padding: 10px 11px;
-  overflow: hidden;
-  border: 1px solid rgba($primary-lighter, 0.13);
-  border-radius: $radius-xs;
-  background: rgba($primary-dark, 0.24);
-  color: $text-muted;
-  font-family: $font-mono;
-  font-size: 0.64rem;
-  line-height: 1.35;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.remote-audio__session-actions {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  padding-top: 11px;
-  gap: 8px;
-  border-top: 1px solid rgba($primary-lighter, 0.12);
-}
-
-.remote-audio__destination {
-  display: block;
-  margin-bottom: 3px;
-  color: $secondary-light;
-  font-weight: $weight-semibold;
-}
-
-.remote-audio__note {
-  display: flex;
-  align-items: baseline;
-  margin-top: 2px;
-  padding-top: 10px;
-  gap: 8px;
-  color: $text-faint;
-  border-top: 1px solid rgba($primary-lighter, 0.09);
-  font-size: 0.66rem;
-  line-height: 1.45;
-
-  strong {
-    flex: 0 0 auto;
-    color: $text-muted;
-    font-weight: $weight-semibold;
-  }
-}
-
-@container eq-panel (max-width: 700px) {
-  .remote-audio__header {
-    flex-direction: column;
-    gap: 9px;
-  }
-
-  .remote-audio__facts {
-    width: 100%;
-    overflow-x: auto;
-  }
-
-  .remote-audio__role-cards {
-    grid-template-columns: 1fr;
-  }
-
-  .remote-audio__sender-connect {
-    grid-template-columns: 1fr;
-  }
-
-  .remote-audio__code-heading {
-    grid-template-columns: minmax(100px, auto) minmax(0, 1fr) auto;
-  }
-}
-
-@container eq-panel (max-width: 460px) {
-  .remote-audio__role-status-row,
-  .remote-audio__note {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-
-  .remote-audio__facts {
-    padding-inline: 8px;
-
-    li {
-      padding-inline: 7px;
-    }
-  }
-
-  .remote-audio__code-heading {
-    align-items: stretch;
-    grid-template-columns: 1fr auto;
-
-    .remote-audio__computer {
-      grid-column: 1 / -1;
-    }
   }
 }

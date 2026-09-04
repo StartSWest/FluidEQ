@@ -109,6 +109,35 @@ const loadProcessor = (name = 'fluideq-dsp'): TProcessorConstructor => {
 const monoOutputs = (): Float32Array[][] =>
   Array.from({ length: DSP_OUTPUT_COUNT }, () => [new Float32Array(QUANTUM)]);
 
+const pushRemoteAudio = (
+  processor: IProcessorLike,
+  peerId: string,
+  samples: Float32Array,
+  channels = 2,
+  sourceRate = SAMPLE_RATE,
+  firstSequence = 0,
+): number => {
+  const totalFrames = samples.length / channels;
+  let sequence = firstSequence;
+  for (let frame = 0; frame < totalFrames; frame += 8_192) {
+    const frames = Math.min(8_192, totalFrames - frame);
+    const pcm = samples.slice(frame * channels, (frame + frames) * channels);
+    processor.port.onmessage?.({
+      data: {
+        channels,
+        frames,
+        kind: 'push',
+        pcm: pcm.buffer,
+        peerId,
+        sampleRate: sourceRate,
+        sequence,
+      },
+    });
+    sequence += 1;
+  }
+  return sequence;
+};
+
 /** Push a signal through the processor a render quantum at a time. */
 const run = (processor: IProcessorLike, input: Float32Array): Float32Array => {
   const output = new Float32Array(input.length);
@@ -293,29 +322,17 @@ describe('dsp worklet bundle', () => {
 
   it('plays equal-rate LAN audio continuously across packet boundaries', () => {
     const processor = new (loadProcessor('fluideq-remote-audio'))();
-    const primingFrames = 9_600;
+    const primingFrames = 11_520;
     const frames = primingFrames + QUANTUM * 12;
     const samples = Float32Array.from(
       { length: frames * 2 },
       (_value, index) => Math.sin(Math.floor(index / 2) / 11) * 0.6,
     );
-    [
-      { at: 0, frames: 8_192, sequence: 0 },
-      { at: 8_192, frames: 1_408, sequence: 1 },
-    ].forEach((chunk) => {
-      const pcm = samples.slice(chunk.at * 2, (chunk.at + chunk.frames) * 2);
-      processor.port.onmessage?.({
-        data: {
-          channels: 2,
-          frames: chunk.frames,
-          kind: 'push',
-          pcm: pcm.buffer,
-          peerId: 'STUDIO-PC',
-          sampleRate: SAMPLE_RATE,
-          sequence: chunk.sequence,
-        },
-      });
-    });
+    const nextSequence = pushRemoteAudio(
+      processor,
+      'STUDIO-PC',
+      samples.slice(0, primingFrames * 2),
+    );
 
     const rendered = new Float32Array(QUANTUM * 12);
     for (let offset = 0; offset < rendered.length; offset += QUANTUM) {
@@ -329,7 +346,7 @@ describe('dsp worklet bundle', () => {
           pcm: pcm.buffer,
           peerId: 'STUDIO-PC',
           sampleRate: SAMPLE_RATE,
-          sequence: 2 + offset / QUANTUM,
+          sequence: nextSequence + offset / QUANTUM,
         },
       });
       const outputs = [[new Float32Array(QUANTUM), new Float32Array(QUANTUM)]];
@@ -337,7 +354,7 @@ describe('dsp worklet bundle', () => {
       rendered.set(outputs[0][0], offset);
     }
 
-    for (let frame = 512; frame < rendered.length; frame += 1) {
+    for (let frame = 640; frame < rendered.length; frame += 1) {
       expect(rendered[frame]).toBe(samples[frame * 2]);
     }
     expect(
@@ -353,30 +370,14 @@ describe('dsp worklet bundle', () => {
   it('keeps a 1 kHz LAN tone at 1 kHz when output rates differ', () => {
     const processor = new (loadProcessor('fluideq-remote-audio'))();
     const sourceRate = 44_100;
-    const frames = 8_820;
+    const frames = 17_640;
     const pcm = new Float32Array(frames * 2);
     for (let frame = 0; frame < frames; frame += 1) {
       const value = Math.sin((frame * Math.PI * 2 * 1_000) / sourceRate) * 0.5;
       pcm[frame * 2] = value;
       pcm[frame * 2 + 1] = value;
     }
-    [
-      { at: 0, frames: 8_192, sequence: 0 },
-      { at: 8_192, frames: 628, sequence: 1 },
-    ].forEach((chunk) => {
-      const samples = pcm.slice(chunk.at * 2, (chunk.at + chunk.frames) * 2);
-      processor.port.onmessage?.({
-        data: {
-          channels: 2,
-          frames: chunk.frames,
-          kind: 'push',
-          pcm: samples.buffer,
-          peerId: 'MUSIC-PC',
-          sampleRate: sourceRate,
-          sequence: chunk.sequence,
-        },
-      });
-    });
+    pushRemoteAudio(processor, 'MUSIC-PC', pcm, 2, sourceRate);
 
     const rendered = new Float32Array(QUANTUM * 16);
     for (let offset = 0; offset < rendered.length; offset += QUANTUM) {
@@ -403,23 +404,11 @@ describe('dsp worklet bundle', () => {
       { id: 'GAME-PC', value: 0.15 },
       { id: 'MUSIC-PC', value: -0.35 },
     ].forEach((source) => {
-      [
-        { frames: 8_192, sequence: 0 },
-        { frames: 1_408, sequence: 1 },
-      ].forEach((chunk) => {
-        const pcm = new Float32Array(chunk.frames * 2).fill(source.value);
-        processor.port.onmessage?.({
-          data: {
-            channels: 2,
-            frames: chunk.frames,
-            kind: 'push',
-            pcm: pcm.buffer,
-            peerId: source.id,
-            sampleRate: SAMPLE_RATE,
-            sequence: chunk.sequence,
-          },
-        });
-      });
+      pushRemoteAudio(
+        processor,
+        source.id,
+        new Float32Array(16_800 * 2).fill(source.value),
+      );
     });
 
     let sample = 0;
@@ -439,5 +428,69 @@ describe('dsp worklet bundle', () => {
       ),
     );
     expect(sourceIds).toEqual(new Set(['GAME-PC', 'MUSIC-PC']));
+  });
+
+  it('keeps playing through a short network stall instead of rebuffering early', () => {
+    const processor = new (loadProcessor('fluideq-remote-audio'))();
+    pushRemoteAudio(
+      processor,
+      'WIFI-PC',
+      new Float32Array(16_800 * 2).fill(0.4),
+    );
+
+    const rendered = new Float32Array(QUANTUM * 94);
+    for (let offset = 0; offset < rendered.length; offset += QUANTUM) {
+      const outputs = [[new Float32Array(QUANTUM), new Float32Array(QUANTUM)]];
+      processor.process([], outputs);
+      rendered.set(outputs[0][0], offset);
+    }
+
+    expect(rendered[rendered.length - 1]).toBeCloseTo(0.4, 5);
+    expect(peak(rendered, 1_024)).toBeCloseTo(0.4, 5);
+  });
+
+  it('starts near lip sync and adds protection only after a real underrun', () => {
+    const processor = new (loadProcessor('fluideq-remote-audio'))();
+    processor.port.onmessage?.({
+      data: { kind: 'configure', mode: 'video', peerId: 'VIDEO-PC' },
+    });
+    let sequence = pushRemoteAudio(
+      processor,
+      'VIDEO-PC',
+      new Float32Array(2_880 * 2).fill(0.3),
+    );
+    const first = [[new Float32Array(QUANTUM), new Float32Array(QUANTUM)]];
+    processor.process([], first);
+    expect(first[0][0][QUANTUM - 1]).toBeGreaterThan(0);
+
+    for (let quantum = 0; quantum < 22; quantum += 1) {
+      processor.process(
+        [],
+        [[new Float32Array(QUANTUM), new Float32Array(QUANTUM)]],
+      );
+    }
+    sequence = pushRemoteAudio(
+      processor,
+      'VIDEO-PC',
+      new Float32Array(4_000 * 2).fill(0.3),
+      2,
+      SAMPLE_RATE,
+      sequence,
+    );
+    const waiting = [[new Float32Array(QUANTUM), new Float32Array(QUANTUM)]];
+    processor.process([], waiting);
+    expect(peak(waiting[0][0])).toBe(0);
+
+    pushRemoteAudio(
+      processor,
+      'VIDEO-PC',
+      new Float32Array(320 * 2).fill(0.3),
+      2,
+      SAMPLE_RATE,
+      sequence,
+    );
+    const recovered = [[new Float32Array(QUANTUM), new Float32Array(QUANTUM)]];
+    processor.process([], recovered);
+    expect(recovered[0][0][QUANTUM - 1]).toBeGreaterThan(0);
   });
 });

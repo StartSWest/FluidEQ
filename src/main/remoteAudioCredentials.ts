@@ -16,15 +16,32 @@ const FILE_NAME = 'remote-audio-lan.json';
 export type TLanCredentials =
   | { role: 'listener'; port: number; secret: string }
   | { role: 'sender'; code: string };
+export type TLanListenerCredentials = Extract<
+  TLanCredentials,
+  { role: 'listener' }
+>;
+export type TLanSenderCredentials = Extract<
+  TLanCredentials,
+  { role: 'sender' }
+>;
+
+interface ICredentialState {
+  activeRole: TLanSavedRole;
+  listener?: TLanListenerCredentials;
+  sender?: TLanSenderCredentials;
+}
 
 interface IStoredCredentials {
   encrypted: string;
-  version: 1;
+  version: 1 | 2;
 }
 
 export interface IRemoteAudioCredentialStore {
+  activate(role: TLanSavedRole): boolean;
   clear(): void;
   read(): TLanCredentials | undefined;
+  readListener(): TLanListenerCredentials | undefined;
+  readSender(): TLanSenderCredentials | undefined;
   role(): TLanSavedRole | undefined;
   write(credentials: TLanCredentials): void;
 }
@@ -56,6 +73,25 @@ const isCredentials = (value: unknown): value is TLanCredentials => {
   );
 };
 
+const isCredentialState = (value: unknown): value is ICredentialState => {
+  if (typeof value !== 'object' || value === null) {
+    return false;
+  }
+  const candidate = value as Partial<ICredentialState>;
+  const listenerValid =
+    candidate.listener === undefined ||
+    (candidate.listener.role === 'listener' &&
+      isCredentials(candidate.listener));
+  const senderValid =
+    candidate.sender === undefined ||
+    (candidate.sender.role === 'sender' && isCredentials(candidate.sender));
+  const activeValid =
+    (candidate.activeRole === 'listener' &&
+      candidate.listener?.role === 'listener') ||
+    (candidate.activeRole === 'sender' && candidate.sender?.role === 'sender');
+  return listenerValid && senderValid && activeValid;
+};
+
 const secureEncryptionAvailable = (): boolean =>
   safeStorage.isEncryptionAvailable() &&
   (process.platform !== 'linux' ||
@@ -73,7 +109,7 @@ export const createRemoteAudioCredentialStore = (
 ): IRemoteAudioCredentialStore => {
   const filePath = path.join(userDataDir, FILE_NAME);
 
-  const read = (): TLanCredentials | undefined => {
+  const readState = (): ICredentialState | undefined => {
     try {
       if (!secureEncryptionAvailable()) {
         return undefined;
@@ -81,20 +117,59 @@ export const createRemoteAudioCredentialStore = (
       const stored = JSON.parse(
         fs.readFileSync(filePath, 'utf8'),
       ) as Partial<IStoredCredentials>;
-      if (stored.version !== 1 || typeof stored.encrypted !== 'string') {
+      if (
+        (stored.version !== 1 && stored.version !== 2) ||
+        typeof stored.encrypted !== 'string'
+      ) {
         return undefined;
       }
       const clear = safeStorage.decryptString(
         Buffer.from(stored.encrypted, 'base64'),
       );
-      const credentials: unknown = JSON.parse(clear);
-      return isCredentials(credentials) ? credentials : undefined;
+      const decrypted: unknown = JSON.parse(clear);
+      if (stored.version === 2) {
+        return isCredentialState(decrypted) ? decrypted : undefined;
+      }
+      if (!isCredentials(decrypted)) {
+        return undefined;
+      }
+      return decrypted.role === 'listener'
+        ? { activeRole: 'listener', listener: decrypted }
+        : { activeRole: 'sender', sender: decrypted };
     } catch {
       return undefined;
     }
   };
 
+  const persist = (state: ICredentialState) => {
+    if (!secureEncryptionAvailable()) {
+      throw new Error('Secure credential storage is unavailable.');
+    }
+    const encrypted = safeStorage
+      .encryptString(JSON.stringify(state))
+      .toString('base64');
+    const stored: IStoredCredentials = { encrypted, version: 2 };
+    fs.mkdirSync(userDataDir, { recursive: true });
+    fs.writeFileSync(filePath, JSON.stringify(stored), {
+      encoding: 'utf8',
+      mode: 0o600,
+    });
+  };
+
+  const read = (): TLanCredentials | undefined => {
+    const state = readState();
+    return state?.activeRole === 'listener' ? state.listener : state?.sender;
+  };
+
   return {
+    activate: (role) => {
+      const state = readState();
+      if (!state || !state[role]) {
+        return false;
+      }
+      persist({ ...state, activeRole: role });
+      return true;
+    },
     clear: () => {
       try {
         fs.rmSync(filePath, { force: true });
@@ -103,20 +178,16 @@ export const createRemoteAudioCredentialStore = (
       }
     },
     read,
+    readListener: () => readState()?.listener,
+    readSender: () => readState()?.sender,
     role: () => read()?.role,
     write: (credentials) => {
-      if (!secureEncryptionAvailable()) {
-        throw new Error('Secure credential storage is unavailable.');
-      }
-      const encrypted = safeStorage
-        .encryptString(JSON.stringify(credentials))
-        .toString('base64');
-      const stored: IStoredCredentials = { encrypted, version: 1 };
-      fs.mkdirSync(userDataDir, { recursive: true });
-      fs.writeFileSync(filePath, JSON.stringify(stored), {
-        encoding: 'utf8',
-        mode: 0o600,
-      });
+      const state = readState();
+      persist(
+        credentials.role === 'listener'
+          ? { ...state, activeRole: 'listener', listener: credentials }
+          : { ...state, activeRole: 'sender', sender: credentials },
+      );
     },
   };
 };

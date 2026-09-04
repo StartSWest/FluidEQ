@@ -178,3 +178,35 @@ The focused side-by-side comparison keeps the graph, role choices, pairing row, 
 - TypeScript, stylesheet compilation, formatting, lint, the complete JavaScript suite, and all native audio-host checks passed for the implementation before the final graph-height adjustment; the focused Share Audio checks are rerun after that adjustment.
 
 final result: passed
+
+---
+
+# Design QA — Share Audio selected-card bridge
+
+- Source visual truth:
+  - `C:\Users\ivanc\AppData\Local\Temp\codex-clipboard-22268ba1-c6e2-464c-84c4-a6b22a88224f.png`
+- Implementation screenshot:
+  - `C:\Users\ivanc\AppData\Local\Temp\fluideq-share-audio-live.png`
+- Implementation pixels and CSS viewport: 2005 × 1392 at device scale 1
+- State: Spanish locale, Receiver selected, waiting for sender computers
+
+## Combined comparison evidence
+
+The source markup and implementation capture were reviewed together. The selected Receiver card and its full-width controls now read as one continuous surface. The bridge below the selected half is completely filled with the same solid panel color, with no dark seam. The inside corner beside the inactive Sender card is rounded, while the inactive card keeps visible separation above the expanded workspace.
+
+Both role cards measure 110.625px high in the captured closed-header state. Their full card surfaces remain interactive, their radio states are visible, and the larger existing FluidEQ headset/waveform icons remain aligned.
+
+## Findings
+
+- No actionable P0/P1/P2 mismatch remains in the compared state.
+- The full-width monitor, pairing row, actions, note, and fixed-height status area remain aligned without clipping or layout jumps.
+- Existing FluidEQ system typography, border treatment, teal selection color, spacing scale, buttons, and icon library are preserved.
+- No pairing secret is recorded in this QA document.
+
+## Verification
+
+- The already-running Electron renderer was inspected without launching a second app instance.
+- Reference and implementation screenshots were compared together at the same selected Receiver state.
+- Production build, TypeScript, Share Audio lint coverage, stylesheet compilation, encoding, the complete JavaScript suite, and all native audio-host checks passed before separate in-progress graph-control edits arrived. A later workspace-wide TypeScript rerun is blocked only by those graph edits outside Share Audio.
+
+final result: passed

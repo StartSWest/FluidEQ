@@ -9,6 +9,7 @@ it under the terms of the GNU General Public License version 3 or later.
 /** Small control messages; the lossless PCM stream travels separately. */
 export type TRemoteAudioSignal =
   | { kind: 'peer-ready'; deviceName: string; address?: string }
+  | { kind: 'stream-mode'; mode: TRemoteAudioStreamMode }
   | { kind: 'stop' };
 
 export interface ILanPairingOption {
@@ -28,7 +29,16 @@ export interface ILanRemoteComputer {
   peerId: string;
 }
 
+export interface ILanRemoteAudioNetworkStats {
+  bytesPerSecond: number;
+  direction: 'receive' | 'send';
+  peerId: string;
+  queuedBytes: number;
+  queuedMilliseconds: number;
+}
+
 export type TLanSavedRole = 'listener' | 'sender';
+export type TRemoteAudioStreamMode = 'music' | 'video';
 
 export type TLanRestoreResult =
   | { role: 'listener'; details: ILanHostDetails }
@@ -43,9 +53,9 @@ export interface ILanRemoteAudioSignal {
 /**
  * Losslessly compressed samples from one sender.
  *
- * `pcm` contains the restored interleaved IEEE-754 Float32 samples. Zstandard
- * compression and AES-GCM encryption preserve every captured bit; no lossy
- * media codec is involved.
+ * `pcm` contains the restored interleaved IEEE-754 Float32 samples. Music mode
+ * uses Zstandard and Video mode bypasses compression; AES-GCM and either wire
+ * form preserve every captured bit, with no lossy media codec involved.
  */
 export interface ILanRemoteAudioChunk {
   peerId: string;
@@ -73,6 +83,8 @@ export const isRemoteAudioSignal = (
 ): value is TRemoteAudioSignal =>
   isRecord(value) &&
   (value.kind === 'stop' ||
+    (value.kind === 'stream-mode' &&
+      (value.mode === 'music' || value.mode === 'video')) ||
     (value.kind === 'peer-ready' &&
       typeof value.deviceName === 'string' &&
       value.deviceName.trim().length > 0 &&

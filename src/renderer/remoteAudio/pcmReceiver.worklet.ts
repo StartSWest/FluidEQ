@@ -26,6 +26,7 @@ interface IPeerStream {
   primed: boolean;
   removing: boolean;
   sampleRate: number;
+  targetBufferSeconds: number;
 }
 
 interface IPushMessage {
@@ -43,12 +44,22 @@ interface IRemoveMessage {
   peerId: string;
 }
 
+interface IConfigureMessage {
+  kind: 'configure';
+  mode: 'music' | 'video';
+  peerId: string;
+}
+
+interface IPlaybackProfile {
+  deadbandSeconds: number;
+  maximumBufferSeconds: number;
+  recoveryStepSeconds: number;
+  startBufferSeconds: number;
+}
+
 const PROCESSOR_NAME = 'fluideq-remote-audio';
 const METER_FRAMES = 1_024;
-const START_BUFFER_SECONDS = 0.2;
-const RECOVERY_BUFFER_SECONDS = 0.12;
-const FADE_SECONDS = 0.005;
-const DRIFT_DEADBAND_SECONDS = 0.01;
+const FADE_SECONDS = 0.012;
 const MAX_DRIFT_CORRECTION = 0.001;
 const DRIFT_RESPONSE = 0.01;
 const RESAMPLER_TAPS = 64;
@@ -56,6 +67,24 @@ const RESAMPLER_HALF = RESAMPLER_TAPS / 2;
 const RESAMPLER_PHASES = 256;
 const KAISER_BETA = 8.6;
 const KERNEL_CACHE = new Map<string, Float32Array>();
+const PLAYBACK_PROFILES: Record<'music' | 'video', IPlaybackProfile> = {
+  // A larger reservoir absorbs scheduler and Wi-Fi bursts. It changes delay,
+  // never the Float32 samples, codec, or resampler quality.
+  music: {
+    deadbandSeconds: 0.02,
+    maximumBufferSeconds: 0.6,
+    recoveryStepSeconds: 0.06,
+    startBufferSeconds: 0.24,
+  },
+  // Six capture packets at 48 kHz keeps video close to lip sync. A genuinely
+  // unstable link may underrun sooner, then earns a small amount of protection.
+  video: {
+    deadbandSeconds: 0.008,
+    maximumBufferSeconds: 0.18,
+    recoveryStepSeconds: 0.03,
+    startBufferSeconds: 0.06,
+  },
+};
 
 const besselI0 = (value: number): number => {
   let sum = 1;
@@ -136,6 +165,14 @@ const isRemoveMessage = (value: unknown): value is IRemoveMessage =>
   (value as Partial<IRemoveMessage>).kind === 'remove-peer' &&
   typeof (value as Partial<IRemoveMessage>).peerId === 'string';
 
+const isConfigureMessage = (value: unknown): value is IConfigureMessage =>
+  typeof value === 'object' &&
+  value !== null &&
+  (value as Partial<IConfigureMessage>).kind === 'configure' &&
+  typeof (value as Partial<IConfigureMessage>).peerId === 'string' &&
+  ((value as Partial<IConfigureMessage>).mode === 'music' ||
+    (value as Partial<IConfigureMessage>).mode === 'video');
+
 const streamSample = (
   peer: IPeerStream,
   channel: number,
@@ -174,10 +211,19 @@ const advanceStream = (peer: IPeerStream, frames: number) => {
 class RemoteAudioProcessor extends AudioWorkletProcessor {
   private readonly peers = new Map<string, IPeerStream>();
 
+  private readonly peerModes = new Map<string, 'music' | 'video'>();
+
   constructor() {
     super();
     this.port.onmessage = ({ data }: MessageEvent<unknown>) => {
-      if (isRemoveMessage(data)) {
+      if (isConfigureMessage(data)) {
+        this.peerModes.set(data.peerId, data.mode);
+        const peer = this.peers.get(data.peerId);
+        if (peer) {
+          peer.targetBufferSeconds =
+            PLAYBACK_PROFILES[data.mode].startBufferSeconds;
+        }
+      } else if (isRemoveMessage(data)) {
         const peer = this.peers.get(data.peerId);
         if (peer) {
           peer.removing = true;
@@ -187,6 +233,10 @@ class RemoteAudioProcessor extends AudioWorkletProcessor {
         this.push(data);
       }
     };
+  }
+
+  private profileFor(peerId: string): IPlaybackProfile {
+    return PLAYBACK_PROFILES[this.peerModes.get(peerId) ?? 'music'];
   }
 
   private push(message: IPushMessage) {
@@ -212,6 +262,7 @@ class RemoteAudioProcessor extends AudioWorkletProcessor {
         primed: false,
         removing: false,
         sampleRate: message.sampleRate,
+        targetBufferSeconds: this.profileFor(message.peerId).startBufferSeconds,
       };
       this.peers.set(message.peerId, peer);
     }
@@ -261,11 +312,12 @@ class RemoteAudioProcessor extends AudioWorkletProcessor {
   }
 
   private mixPeer(peerId: string, peer: IPeerStream, output: Float32Array[]) {
-    const startFrames = peer.sampleRate * START_BUFFER_SECONDS;
-    const recoveryFrames = peer.sampleRate * RECOVERY_BUFFER_SECONDS;
+    const playbackProfile = this.profileFor(peerId);
+    const startFrames = peer.sampleRate * peer.targetBufferSeconds;
     if (!peer.primed) {
       if (peer.removing) {
         this.peers.delete(peerId);
+        this.peerModes.delete(peerId);
         return;
       }
       if (peer.availableFrames < startFrames) {
@@ -278,11 +330,20 @@ class RemoteAudioProcessor extends AudioWorkletProcessor {
       peer.fadeDirection = 1;
     }
 
-    if (!peer.removing && peer.availableFrames < recoveryFrames) {
-      peer.fadeDirection = -1;
+    if (!peer.removing) {
+      const emergencyFrames =
+        peer.sampleRate * FADE_SECONDS + RESAMPLER_HALF + 1;
+      if (peer.availableFrames <= emergencyFrames) {
+        peer.fadeDirection = -1;
+      } else if (peer.fadeDirection < 0) {
+        // A packet that arrives during the emergency fade reverses it without
+        // a discontinuity. The old 120 ms cutoff forced a full rebuffer while
+        // valid audio was still queued, which caused the reported micro-stops.
+        peer.fadeDirection = 1;
+      }
     }
-    const targetFrames = peer.sampleRate * START_BUFFER_SECONDS;
-    const deadbandFrames = peer.sampleRate * DRIFT_DEADBAND_SECONDS;
+    const targetFrames = peer.sampleRate * peer.targetBufferSeconds;
+    const deadbandFrames = peer.sampleRate * playbackProfile.deadbandSeconds;
     const bufferError = peer.availableFrames - targetFrames;
     const correctedError =
       Math.abs(bufferError) <= deadbandFrames
@@ -310,6 +371,12 @@ class RemoteAudioProcessor extends AudioWorkletProcessor {
       if (peer.availableFrames < requiredFrames) {
         peer.gain = 0;
         peer.primed = false;
+        if (!peer.removing) {
+          peer.targetBufferSeconds = Math.min(
+            playbackProfile.maximumBufferSeconds,
+            peer.targetBufferSeconds + playbackProfile.recoveryStepSeconds,
+          );
+        }
         for (
           let silentFrame = frame;
           silentFrame < output[0].length;
@@ -360,6 +427,15 @@ class RemoteAudioProcessor extends AudioWorkletProcessor {
       advanceStream(peer, rateRatio);
       if (peer.fadeDirection < 0 && peer.gain === 0) {
         peer.primed = false;
+        if (!peer.removing) {
+          // Increase protection only after a real starvation event. Stable LANs
+          // keep the low lip-sync delay; bursty links earn more safety on the
+          // next fill without changing or discarding a single audio sample.
+          peer.targetBufferSeconds = Math.min(
+            playbackProfile.maximumBufferSeconds,
+            peer.targetBufferSeconds + playbackProfile.recoveryStepSeconds,
+          );
+        }
         for (
           let silentFrame = frame + 1;
           silentFrame < output[0].length;
@@ -369,6 +445,7 @@ class RemoteAudioProcessor extends AudioWorkletProcessor {
         }
         if (peer.removing) {
           this.peers.delete(peerId);
+          this.peerModes.delete(peerId);
         }
         break;
       }

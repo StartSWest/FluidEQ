@@ -9,16 +9,27 @@ const remoteAudio: Partial<Dictionary> = {
     'इस कंप्यूटर के लिए एक भूमिका चुनें। रिसीवर वह PC है जिस पर हेडसेट लगा है; बाकी PC सेंडर के रूप में जुड़ सकते हैं।',
   'remoteAudio.choose': 'इस कंप्यूटर की भूमिका चुनें',
   'remoteAudio.security': 'कनेक्शन की विशेषताएँ',
-  'remoteAudio.badge.local': 'केवल स्थानीय नेटवर्क',
-  'remoteAudio.badge.lossless': 'लॉसलेस 32-बिट PCM',
-  'remoteAudio.badge.encrypted': 'AES-256 एन्क्रिप्टेड',
+  'remoteAudio.badge.local': 'केवल निजी LAN',
+  'remoteAudio.badge.lossless': 'लॉसलेस Float32 PCM ट्रांसपोर्ट',
+  'remoteAudio.badge.encrypted': 'AES-256-GCM एन्क्रिप्टेड',
   'remoteAudio.listen.kicker': 'रिसीवर · सर्वर',
   'remoteAudio.listen.title': 'इस कंप्यूटर पर ऑडियो चलाएँ',
   'remoteAudio.listen.body':
     'हेडसेट या स्पीकर वाले कंप्यूटर पर यह भूमिका इस्तेमाल करें। यह एक या अधिक सेंडर स्वीकार करता है और FluidEQ में चुने गए आउटपुट पर उन्हें चलाता है।',
   'remoteAudio.listen.start': 'कनेक्शन कोड बनाएँ',
   'remoteAudio.listen.activeTitle': 'यह कंप्यूटर सुन रहा है',
+  'remoteAudio.listen.newCode': 'नया कोड बनाएँ',
   'remoteAudio.listen.stop': 'सुनना बंद करें',
+  'remoteAudio.stream.title': 'स्ट्रीम प्राथमिकता',
+  'remoteAudio.stream.lossless': 'दोनों लॉसलेस PCM भेजते हैं',
+  'remoteAudio.stream.video.title': 'वीडियो',
+  'remoteAudio.stream.video.body':
+    'लिप-सिंक के लिए सबसे कम देरी। व्यस्त Wi-Fi पर जल्दी रुक सकता है।',
+  'remoteAudio.stream.video.buffer': 'शुरुआत ~60 ms',
+  'remoteAudio.stream.music.title': 'संगीत',
+  'remoteAudio.stream.music.body':
+    'बिना रुकावट सुनने के लिए बड़ा सुरक्षा बफ़र।',
+  'remoteAudio.stream.music.buffer': 'शुरुआत ~240 ms',
   'remoteAudio.send.kicker': 'सेंडर · क्लाइंट',
   'remoteAudio.send.title': 'इस कंप्यूटर का ऑडियो भेजें',
   'remoteAudio.send.body':
@@ -31,6 +42,8 @@ const remoteAudio: Partial<Dictionary> = {
     'दोनों कंप्यूटरों पर FluidEQ खुला रखें। रिसीवर इस लॉसलेस स्ट्रीम को अन्य जुड़े प्रेषकों के साथ चलाता है।',
   'remoteAudio.send.destination': '{name} पर चल रहा है',
   'remoteAudio.send.stop': 'भेजना बंद करें',
+  'remoteAudio.send.readyHint':
+    'रोकने के बाद भी सेव किया गया कोड यहाँ रहता है।',
   'remoteAudio.status.preparing': 'तैयार हो रहा है…',
   'remoteAudio.status.waiting': 'कंप्यूटरों की प्रतीक्षा',
   'remoteAudio.status.connecting': 'कनेक्ट हो रहा है…',
@@ -45,23 +58,29 @@ const remoteAudio: Partial<Dictionary> = {
   'remoteAudio.monitor.ready': 'कनेक्शन कोड के लिए तैयार',
   'remoteAudio.monitor.waveform': 'साझा ऑडियो का लाइव वेवफ़ॉर्म',
   'remoteAudio.monitor.waveformFor': '{name} का लाइव ऑडियो वेवफ़ॉर्म',
-  'remoteAudio.monitor.buffer': '{milliseconds} ms बफ़र',
+  'remoteAudio.monitor.buffer': 'प्लेबैक {milliseconds} ms',
+  'remoteAudio.monitor.sendQueue': 'भेजने की कतार {milliseconds} ms',
   'remoteAudio.monitor.noRole': 'कोई भूमिका नहीं चुनी गई',
   'remoteAudio.monitor.noSources': 'कोई स्रोत कंप्यूटर कनेक्ट नहीं है',
   'remoteAudio.monitor.waitingSource': 'प्रेषक की प्रतीक्षा',
   'remoteAudio.monitor.outgoing': 'इस कंप्यूटर से भेजा गया ऑडियो',
   'remoteAudio.monitor.transmitting': 'प्रसारण जारी',
   'remoteAudio.monitor.quiet': 'शांत',
+  'remoteAudio.monitor.peakLevel': 'लाइव पीक ऑडियो स्तर',
+  'remoteAudio.monitor.peak': 'शिखर {decibels} dB',
+  'remoteAudio.monitor.networkUsage': 'LAN {megabits} Mb/s',
+  'remoteAudio.monitor.networkHealthy': 'नेटवर्क स्थिर',
+  'remoteAudio.monitor.networkQueued': '{milliseconds} ms कतार में',
   'remoteAudio.code.title': 'दूसरे कंप्यूटर पेयर करें',
   'remoteAudio.code.hint':
-    'हर प्रेषक में एक कोड कॉपी करें। रिसीवर चालू रहने तक वही कोड कई कंप्यूटर जोड़ सकता है। यदि कई पते दिखें, तो दोनों कंप्यूटरों वाला साझा नेटवर्क चुनें।',
+    'हर सेंडर में एक कोड कॉपी करें। ऐप बंद होने या PC रीस्टार्ट होने पर भी पेयरिंग सुरक्षित रहती है। यदि कई पते दिखें, तो दोनों कंप्यूटरों वाला साझा नेटवर्क चुनें।',
   'remoteAudio.code.copy': 'कोड कॉपी करें',
   'remoteAudio.code.copied': 'कॉपी हो गया',
   'remoteAudio.code.forAddress': '{address} के लिए पेयरिंग कोड',
   'remoteAudio.resume': 'ऑडियो फिर शुरू करें',
   'remoteAudio.note.title': 'कम आवाज़ से शुरू करें।',
   'remoteAudio.note.body':
-    'कई कंप्यूटरों का ऑडियो मिलाया जाता है और आवाज़ जल्दी बढ़ सकती है। पहला कनेक्शन करने से पहले हेडसेट की आवाज़ कम करें। रिसीवर रोकते ही उसका कोड अमान्य हो जाता है।',
+    'कई कंप्यूटरों का ऑडियो मिलाया जाता है और आवाज़ जल्दी बढ़ सकती है। पहला कनेक्शन करने से पहले हेडसेट की आवाज़ कम करें। केवल नया कोड बनाने से सुरक्षित पेयरिंग कटती हैं।',
   'remoteAudio.error.lan':
     'FluidEQ स्थानीय कनेक्शन नहीं खोल सका। सुनिश्चित करें कि दोनों कंप्यूटर एक ही निजी नेटवर्क पर हैं और फ़ायरवॉल FluidEQ को अनुमति देता है।',
   'remoteAudio.error.capture':
@@ -69,7 +88,7 @@ const remoteAudio: Partial<Dictionary> = {
   'remoteAudio.error.playback':
     'FluidEQ लॉसलेस ऑडियो इंजन शुरू नहीं कर सका। FluidEQ को फिर शुरू करके दोबारा कोशिश करें।',
   'remoteAudio.error.connection':
-    'एन्क्रिप्टेड ऑडियो कनेक्शन रुक गया। यह सत्र रोकें और नए कोड से दोबारा कनेक्ट करें।',
+    'एन्क्रिप्टेड ऑडियो कनेक्शन रुक गया। सेव किया गया कोड नीचे मौजूद है; रिसीवर तैयार होने पर दोबारा कनेक्ट करें।',
 };
 
 export default remoteAudio;

@@ -1,0 +1,199 @@
+/* FluidEQ — GPL-3.0-or-later */
+
+@use 'color' as *;
+@use 'theme' as *;
+
+.remote-audio__codes {
+  @include inset-surface;
+  display: flex;
+  flex-direction: column;
+  padding: 12px 14px 14px;
+  gap: 9px;
+
+  > h4,
+  > p {
+    margin: 0;
+  }
+
+  > h4 {
+    font-size: 0.78rem;
+  }
+
+  > p {
+    color: $text-muted;
+    font-size: 0.7rem;
+    line-height: 1.45;
+  }
+}
+
+.remote-audio__code-list {
+  display: flex;
+  min-height: 52px;
+  max-height: 164px;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+.remote-audio__code-placeholder {
+  display: flex;
+  min-height: 52px;
+  align-items: center;
+  gap: 8px;
+  color: $text-muted;
+  border-top: 1px solid rgba($primary-lighter, 0.1);
+  font-size: 0.68rem;
+
+  > span {
+    width: 6px;
+    height: 6px;
+    flex: 0 0 auto;
+    border-radius: 50%;
+    background: $secondary-default;
+    box-shadow: 0 0 7px rgba($secondary-default, 0.58);
+  }
+}
+
+.remote-audio__code {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  padding-top: 9px;
+  gap: 7px;
+  border-top: 1px solid rgba($primary-lighter, 0.1);
+}
+
+.remote-audio__code-heading {
+  display: grid;
+  min-width: 0;
+  align-items: center;
+  gap: 10px;
+  grid-template-columns: minmax(120px, auto) minmax(0, 1fr) auto;
+}
+
+.remote-audio__computer {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 1px;
+
+  strong {
+    color: $text-primary;
+    font-size: 0.72rem;
+  }
+
+  span {
+    color: $text-muted;
+    font-family: $font-mono;
+    font-size: 0.62rem;
+  }
+}
+
+.remote-audio__code-value {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  padding: 10px 11px;
+  overflow: hidden;
+  border: 1px solid rgba($primary-lighter, 0.13);
+  border-radius: $radius-xs;
+  background: rgba($primary-dark, 0.24);
+  color: $text-muted;
+  font-family: $font-mono;
+  font-size: 0.64rem;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.remote-audio__session-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  padding-top: 11px;
+  gap: 8px;
+  border-top: 1px solid rgba($primary-lighter, 0.12);
+}
+
+.remote-audio__note {
+  display: flex;
+  align-items: baseline;
+  margin-top: 2px;
+  padding-top: 10px;
+  gap: 8px;
+  color: $text-faint;
+  border-top: 1px solid rgba($primary-lighter, 0.09);
+  font-size: 0.66rem;
+  line-height: 1.45;
+
+  strong {
+    flex: 0 0 auto;
+    color: $text-muted;
+    font-weight: $weight-semibold;
+  }
+}
+
+@container eq-panel (max-width: 700px) {
+  .remote-audio__header {
+    flex-direction: column;
+    gap: 9px;
+  }
+
+  .remote-audio__facts {
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  .remote-audio__role-cards,
+  .remote-audio__sender-connect,
+  .remote-audio__stream-options {
+    grid-template-columns: 1fr;
+  }
+
+  .remote-audio__sender-connect > .button {
+    width: 100%;
+  }
+
+  .remote-audio__code-heading {
+    grid-template-columns: minmax(100px, auto) minmax(0, 1fr) auto;
+  }
+
+  .remote-audio__monitor-lane-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .remote-audio__monitor-readouts {
+    width: 100%;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@container eq-panel (max-width: 460px) {
+  .remote-audio__note,
+  .remote-audio__stream-mode-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .remote-audio__facts {
+    padding-inline: 8px;
+
+    li {
+      padding-inline: 7px;
+    }
+  }
+
+  .remote-audio__code-heading {
+    align-items: stretch;
+    grid-template-columns: 1fr auto;
+
+    .remote-audio__computer {
+      grid-column: 1 / -1;
+    }
+  }
+
+  .remote-audio__monitor-readouts {
+    gap: 6px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

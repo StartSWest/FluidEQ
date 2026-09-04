@@ -4,11 +4,14 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
+import type { TRemoteAudioStreamMode } from '../../common/remoteAudio';
+
 interface IRestoreSenderCallbacks {
   isActive(): boolean;
   onConnected(deviceName: string): void;
   onDisconnected(): void;
   onFailure(): void;
+  streamMode: TRemoteAudioStreamMode;
 }
 
 const restoreRemoteAudioSender = async ({
@@ -16,9 +19,11 @@ const restoreRemoteAudioSender = async ({
   onConnected,
   onDisconnected,
   onFailure,
+  streamMode,
 }: IRestoreSenderCallbacks) => {
   try {
-    const restored = await window.electron.ipcRenderer.restoreRemoteAudioLan();
+    const restored =
+      await window.electron.ipcRenderer.restoreRemoteAudioLan(streamMode);
     if (!isActive()) {
       return;
     }

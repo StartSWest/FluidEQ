@@ -20,8 +20,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import {
   decodeAudio,
+  decodeAudioAsync,
   decodePairingCode,
   encodeAudio,
+  encodeAudioAsync,
   encodePairingCode,
   isPrivateIpv4,
   keyFromSecret,
@@ -30,8 +32,21 @@ import {
   PACKET_AUDIO,
   sealPacket,
 } from '../../../main/remoteAudioLanProtocol';
+import { isRemoteAudioSignal } from '../../../common/remoteAudio';
 
 describe('encrypted LAN audio protocol', () => {
+  it('accepts only known per-sender stream modes', () => {
+    expect(isRemoteAudioSignal({ kind: 'stream-mode', mode: 'video' })).toBe(
+      true,
+    );
+    expect(isRemoteAudioSignal({ kind: 'stream-mode', mode: 'music' })).toBe(
+      true,
+    );
+    expect(isRemoteAudioSignal({ kind: 'stream-mode', mode: 'lossy' })).toBe(
+      false,
+    );
+  });
+
   it('accepts private LAN addresses and rejects public or malformed ones', () => {
     expect(isPrivateIpv4('10.0.0.12')).toBe(true);
     expect(isPrivateIpv4('172.16.4.2')).toBe(true);
@@ -125,6 +140,46 @@ describe('encrypted LAN audio protocol', () => {
 
     expect(compressed.byteLength).toBeLessThan(pcm.byteLength);
     expect(Buffer.from(decodeAudio('quiet-pc', compressed).pcm)).toEqual(pcm);
+  });
+
+  it('preserves every PCM bit through the asynchronous transport codec', async () => {
+    const pcm = Buffer.from(new Float32Array([0.125, -0.25, 0.5, -1]).buffer);
+    const normalized = normalizeAudioChunk({
+      channels: 2,
+      frames: 2,
+      pcm,
+      peerId: 'video-pc',
+      sampleRate: 48_000,
+      sequence: 9,
+    });
+    let settled = false;
+    const encodedPromise = encodeAudioAsync(normalized).then((encoded) => {
+      settled = true;
+      return encoded;
+    });
+
+    expect(settled).toBe(false);
+    const encoded = await encodedPromise;
+    const decoded = await decodeAudioAsync('video-pc', encoded);
+    expect(Buffer.from(decoded.pcm)).toEqual(pcm);
+  });
+
+  it('lets video mode bypass compression without changing one PCM bit', async () => {
+    const pcm = Buffer.from(new Float32Array([0.125, -0.25, 0.5, -1]).buffer);
+    const normalized = normalizeAudioChunk({
+      channels: 2,
+      frames: 2,
+      pcm,
+      peerId: 'video-pc',
+      sampleRate: 48_000,
+      sequence: 10,
+    });
+
+    const raw = await encodeAudioAsync(normalized, false);
+    const decoded = await decodeAudioAsync('video-pc', raw);
+
+    expect(raw.byteLength).toBe(pcm.byteLength + 12);
+    expect(Buffer.from(decoded.pcm)).toEqual(pcm);
   });
 
   it('rejects an encrypted packet changed in transit', () => {
