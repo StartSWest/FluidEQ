@@ -1219,6 +1219,47 @@ export const buildBalanceProgress = (
 };
 
 /**
+ * The progress republished between checkpoints, when only a flag has moved.
+ *
+ * Silence, a pause and a band-limited hold are all surfaced the moment they
+ * flip rather than at the next checkpoint, so the bubble does not sit on a
+ * stale "Listening 40%" while nothing is playing. THE RANGES STAY. This used
+ * to publish an empty region list, and the coverage overlay reads an empty
+ * list as "the measurement is over" — so the nine columns, their presence
+ * lines and the bars along the foot faded out on every flip and came back on
+ * the next checkpoint. The record dropping its bass for a bar is a flip; so is
+ * three seconds of quiet between tracks. Under the continuous modes that was
+ * the bands blinking in and out all evening, and during a band-limited hold,
+ * which stops the checkpoints outright, they stayed gone for the whole of it.
+ *
+ * Nothing about the ranges has changed at a flip, so everything but the three
+ * flags and the listened time is carried from the last full progress. Before
+ * there has been one there is nothing to carry, and an empty list is the
+ * truthful answer.
+ */
+export const flipBalanceProgress = (
+  last: IBalanceProgress | undefined,
+  flags: {
+    isSilent: boolean;
+    isPaused: boolean;
+    isBandLimited: boolean;
+    listenedMs: number;
+    percent: number;
+  },
+): IBalanceProgress => ({
+  ...(last ?? {
+    percent: flags.percent,
+    weakestLabel: '',
+    isSettling: false,
+    regions: [],
+  }),
+  isSilent: flags.isSilent,
+  isPaused: flags.isPaused,
+  isBandLimited: flags.isBandLimited,
+  listenedMs: flags.listenedMs,
+});
+
+/**
  * What the continuous modes are doing, which is several things at once.
  *
  * Its own describer rather than the one-shot's, because the two measurements

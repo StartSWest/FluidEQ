@@ -28,13 +28,21 @@ import {
 } from 'common/constants';
 import { describeSmartEqLayer, getSmartEqLayout } from 'common/smartEq';
 import { buildSmartEqSettings } from 'common/smartEqContinuous';
-import { ISpectrumSample } from 'renderer/utils/autoBalance';
-import { IBalanceResult } from 'renderer/utils/autoBalanceCapture';
+import {
+  BALANCE_REGION_EDGES,
+  BALANCE_REGION_LABELS,
+  ISpectrumSample,
+} from 'renderer/utils/autoBalance';
+import {
+  IBalanceReport,
+  IBalanceResult,
+} from 'renderer/utils/autoBalanceCapture';
 
 import MainContent from 'renderer/MainContent';
 import SmartEqEngine from 'renderer/SmartEqEngine';
 import { setSmartEqMode } from 'renderer/utils/smartEqMode';
 import {
+  noteSmartEqLayerReplaced,
   setSmartEqListening,
   setSmartEqRunning,
   setSmartEqStatus,
@@ -64,10 +72,12 @@ const mockSetSmartEqState = jest.fn((next?: ISmartEqSettings) => {
   mockLive.smartEq = next;
 });
 
-/** Enough of the capture's options to see which session is which. */
+/** Enough of the capture's options to see which session is which, and to
+ * hand a continuous one its checkpoints. */
 interface ICaptureOptions {
   signal: AbortSignal;
   isContinuous?: boolean;
+  onReport?: (report: IBalanceReport) => number[] | void;
 }
 
 /** Resolves the pending capture, so a run can be held open mid-listen. */
@@ -196,6 +206,63 @@ const RESULT: IBalanceResult = {
   // depend on a gain.
   regions: [],
 };
+
+/**
+ * One continuous checkpoint, every range heard and trusted, over `samples`.
+ *
+ * Trusted throughout so the loop has no reason to decline: what these tests
+ * are about is what the loop does with an answer, not whether it has one.
+ * The live levels sit above every presence line, so no range is gated.
+ */
+const reportOf = (samples: ISpectrumSample[]): IBalanceReport => {
+  const regions = BALANCE_REGION_LABELS.map((label, index) => ({
+    label,
+    lowFrequency: BALANCE_REGION_EDGES[index],
+    highFrequency: BALANCE_REGION_EDGES[index + 1],
+    centreFrequency: Math.sqrt(
+      BALANCE_REGION_EDGES[index] * BALANCE_REGION_EDGES[index + 1],
+    ),
+    levelDb: 0,
+    liveDb: 15,
+    typicalDb: 15,
+    weight: 100,
+    standardErrorDb: 0.1,
+    confidence: 1,
+    isCovered: true,
+  }));
+  return {
+    samples: samples.map((sample) => ({ ...sample, confidence: 1 })),
+    regions,
+    coverage: 1,
+    meanCoverage: 1,
+    weakest: regions[0],
+    listenedMs: 60000,
+    frames: 1000,
+    isConverged: false,
+    isStalled: false,
+    isBandLimited: false,
+    status: 'ready',
+  };
+};
+
+/**
+ * An output already on Balance's own line — eleven decibels a decade, no bumps
+ * — which is the one thing that mode has no reason to touch. Flat would not
+ * do: a flat output is too bright for a held slope, and the loop would be
+ * right to tilt it.
+ */
+const REFERENCE_SAMPLES: ISpectrumSample[] = SAMPLES.map((sample) => ({
+  frequency: sample.frequency,
+  level: -11 * Math.log10(sample.frequency / 1000),
+}));
+
+/**
+ * A curve of the kind a song's memory hands back: modest, in the middle, and
+ * one the loop itself could have made. A lone six-decibel bass band is not —
+ * the solve's own bounds on level and tilt would pull that in on sight, which
+ * is correct and is not what these tests are about.
+ */
+const REMEMBERED = layerOf({ 1000: 2, 1250: 2 });
 
 let rerenderHost: () => void = () => undefined;
 let showEqPanel: (isShown: boolean) => void = () => undefined;
@@ -410,5 +477,139 @@ describe('a continuous measurement while the view comes and goes', () => {
     expect(session.aborted).toBe(false);
     expect(mockCaptureBalanceProfile).toHaveBeenCalledTimes(1);
     expect(lastCaptureOptions().signal).toBe(session);
+  });
+});
+
+describe('a continuous measurement when the layer is replaced underneath it', () => {
+  /**
+   * The clock, held by hand. The loop keeps two windows against it — a settle
+   * after every write while Equalizer APO reloads, and a quiet window between
+   * corrections — and both are read straight off `Date.now`.
+   */
+  let nowMs = 1_000_000;
+  let clock: jest.SpyInstance<number, []>;
+  beforeEach(() => {
+    nowMs = 1_000_000;
+    clock = jest.spyOn(Date, 'now').mockImplementation(() => nowMs);
+  });
+  afterEach(() => {
+    clock.mockRestore();
+  });
+
+  const checkpoint = async (report: IBalanceReport) => {
+    const stale: number[] = [];
+    await act(async () => {
+      stale.push(...(lastCaptureOptions().onReport?.(report) ?? []));
+      // The write's promise settles here, which is what closes the settle
+      // window's start and opens the quiet one.
+      await Promise.resolve();
+      rerenderHost();
+    });
+    return stale;
+  };
+
+  /**
+   * THE REPORTED DEFECT. A song's remembered curve landed over the running
+   * loop, and within one quiet window the loop had walked it most of the way
+   * back to where it had been steering before — because everything the loop
+   * remembered described the previous song, and a fresh layer looked to it
+   * like a disagreement to be corrected.
+   *
+   * Two halves, and both have to hold: the evidence heard through the old
+   * layer is thrown away, and the destination averaged from it is forgotten.
+   * The second is the audible one. Without it, a flat checkpoint after the
+   * replacement still blends toward the old resonance cut and the loop writes
+   * a step toward it over the remembered curve.
+   */
+  it('forgets where it was steering when a remembered curve is applied', async () => {
+    setSmartEqMode('balance');
+    render(<Harness />);
+    await waitFor(() => expect(mockCaptureBalanceProfile).toHaveBeenCalled());
+
+    // A resonance to steer toward: the loop takes its first step against it.
+    await checkpoint(reportOf(SAMPLES));
+    expect(writtenLayers()).toHaveLength(1);
+    const stepped = lastWrittenLayer();
+    expect(stepped).toBeDefined();
+
+    // The song recorder applies a remembered curve, exactly as it does on a
+    // match: the loop is told first, then context follows.
+    await act(async () => {
+      noteSmartEqLayerReplaced(REMEMBERED);
+      mockLive.smartEq = REMEMBERED;
+      rerenderHost();
+    });
+
+    // Past the reload settle: every range's evidence is declared stale in one
+    // go, and nothing is written over the curve that just arrived.
+    nowMs += 1_000;
+    const stale = await checkpoint(reportOf(REFERENCE_SAMPLES));
+    expect(stale).toEqual(BALANCE_REGION_LABELS.map((_label, index) => index));
+    expect(writtenLayers()).toHaveLength(1);
+
+    // Past the quiet window, on evidence that agrees with the remembered
+    // curve: the loop has no opinion left over from before it, so it leaves
+    // it exactly where it is.
+    nowMs += 30_000;
+    await checkpoint(reportOf(REFERENCE_SAMPLES));
+    expect(writtenLayers()).toHaveLength(1);
+    expect(describeSmartEqLayer(mockLive.smartEq)).toBe(
+      describeSmartEqLayer(REMEMBERED),
+    );
+  });
+
+  /**
+   * The same protection for a write the loop only finds out about at its next
+   * checkpoint — the chip's clear button, a profile load — which reaches it
+   * through context alone.
+   */
+  it('notices a layer it did not write, without being told', async () => {
+    setSmartEqMode('balance');
+    render(<Harness />);
+    await waitFor(() => expect(mockCaptureBalanceProfile).toHaveBeenCalled());
+
+    await checkpoint(reportOf(SAMPLES));
+    expect(writtenLayers()).toHaveLength(1);
+
+    // Somebody clears the layer from the chip: context changes, nobody tells
+    // the loop.
+    await act(async () => {
+      mockLive.smartEq = undefined;
+      rerenderHost();
+    });
+
+    // The next checkpoint is spent noticing; the one after clears everything.
+    nowMs += 1_000;
+    expect(await checkpoint(reportOf(REFERENCE_SAMPLES))).toEqual([]);
+    nowMs += 1_000;
+    expect(await checkpoint(reportOf(REFERENCE_SAMPLES))).toEqual(
+      BALANCE_REGION_LABELS.map((_label, index) => index),
+    );
+
+    nowMs += 30_000;
+    await checkpoint(reportOf(REFERENCE_SAMPLES));
+    expect(writtenLayers()).toHaveLength(1);
+    expect(mockLive.smartEq).toBeUndefined();
+  });
+
+  /**
+   * And the loop's own echo is not mistaken for an outside write. Its writes
+   * come back through context looking like anything else's; if that reset the
+   * loop, it would forget its destination after every step it took.
+   */
+  it('keeps its memory through the echo of its own write', async () => {
+    setSmartEqMode('balance');
+    render(<Harness />);
+    await waitFor(() => expect(mockCaptureBalanceProfile).toHaveBeenCalled());
+
+    await checkpoint(reportOf(SAMPLES));
+    expect(writtenLayers()).toHaveLength(1);
+
+    // Only the ranges the step moved are stale, not all nine: the loop
+    // recognised the layer in context as its own.
+    nowMs += 1_000;
+    const stale = await checkpoint(reportOf(SAMPLES));
+    expect(stale.length).toBeGreaterThan(0);
+    expect(stale.length).toBeLessThan(BALANCE_REGION_LABELS.length);
   });
 });

@@ -17,6 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { useSyncExternalStore } from 'react';
+import type { ISmartEqSettings } from 'common/constants';
 
 /**
  * What Smart EQ is doing, and the handles for starting and stopping it.
@@ -49,6 +50,18 @@ export interface ISmartEqControl {
   /** Start a one-shot measurement, or cancel the one running. */
   run: () => void;
   cancel: () => void;
+  /**
+   * Somebody other than the engine has just put a layer into the chain.
+   *
+   * The continuous loop remembers where it was steering and what it has heard,
+   * and both describe the chain as it was a moment ago. A song's remembered
+   * curve landing over the top — or being handed back at the end of the song
+   * — is exactly the write the loop must not measure through its old memory:
+   * it would read the new layer as a disagreement with its own destination and
+   * walk it back, undoing the match within a quiet window. See the engine's
+   * `layerReplaced`.
+   */
+  layerReplaced: (settings: ISmartEqSettings | undefined) => void;
 }
 
 interface IRunState {
@@ -97,6 +110,16 @@ export const registerSmartEqControl = (next: ISmartEqControl | undefined) => {
 
 export const runSmartEq = () => control?.run();
 export const cancelSmartEq = () => control?.cancel();
+/**
+ * Told synchronously, at the moment of the write, rather than left for the
+ * engine to notice on its next render. The loop acts from an interval that
+ * can fire between a state update and the render that carries it, and a step
+ * taken in that gap is solved against the old layer and written over the new
+ * one — the match lost to its own timing.
+ */
+export const noteSmartEqLayerReplaced = (
+  settings: ISmartEqSettings | undefined,
+) => control?.layerReplaced(settings);
 
 const subscribe = (listener: () => void) => {
   listeners.add(listener);

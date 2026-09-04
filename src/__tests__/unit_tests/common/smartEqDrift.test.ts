@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { IFilter, MIN_GAIN } from 'common/constants';
+import { IFilter } from 'common/constants';
 import { gainAtFrequency, getTFCoefficients } from 'common/response';
 import { getReferenceShape } from 'common/referenceCurve';
 import { getSmartEqBands } from 'common/smartEq';
@@ -169,47 +169,35 @@ const play = (passes: number, perRecord: number, mode: string): IRun => {
   return { meanDb, spreadDb, lowestDb };
 };
 
-/**
- * What this simulation currently finds, recorded rather than papered over.
+/*
+ * WHAT THIS SIMULATION USED TO FIND, kept because each fix was a different
+ * thing and the next defect will be too.
  *
- * Every entry here is a real, reproducible defect that no other test in this
- * repository can see, because none of the others runs the loop long enough. A
- * single pass looks correct while all of this is happening: the errors are
- * fractions of a decibel, individually defensible, and only the accumulation is
- * wrong.
+ * Every one of these was a real, reproducible defect that no other test in
+ * this repository could see, because none of the others runs the loop long
+ * enough. A single pass looks correct while all of it is happening: the errors
+ * are fractions of a decibel, individually defensible, and only the
+ * accumulation is wrong. While they stood they were marked as expected
+ * failures rather than skipped, so the suite turned red the moment one was
+ * fixed and the assertion got read again.
  *
- * They are marked as expected failures rather than skipped, and rather than
- * given a threshold generous enough to pass. That keeps the suite honest in
- * both directions — it is green today, and each of these turns RED the moment
- * somebody fixes the underlying behaviour, which is when the assertion should
- * be read again and its entry removed from the table.
+ * The level leak went first — from bounding the layer's tilt, then completely
+ * once the layer's own level was zeroed. An attempt at it that very nearly
+ * shipped is worth recording: re-centring the whole layer after the clamps does
+ * remove the drift, and it also pushes bands past the cut limit and lifts
+ * ranges the presence gate had refused — three existing tests caught it.
  *
- * An attempt at fixing the level drift is worth recording too, because it very
- * nearly shipped. Re-centring the whole layer after the clamps does remove the
- * drift, and it also pushes bands past the cut limit and lifts ranges the
- * presence gate had refused — three existing tests caught it. Whatever the real
- * fix is, it has to hold those invariants, so it is not simply a subtraction.
+ * The spread went last, in all four modes at once. Cycling records that
+ * disagree walked every mode's V up against the clamps and left it there, and
+ * the cause was a resolution mismatch rather than any single rule: the
+ * measurement is smoothed an octave wide at the bottom, the bands sit a third
+ * apart, and the per-band rules — rolloff, gating, the clamps — could leave a
+ * band-to-band comb the octave-smoothed measurement was blind to. Every
+ * record after the bass-less one inherited that comb and none could see it to
+ * take it back. Smoothing the solved layer at the measurement's own width is
+ * what ended it; the one-shot had also been hiding an inherited slope inside
+ * its fitted reference line, which the determinism suite covers.
  */
-const KNOWN: Record<string, string[]> = {
-  // The level leak is GONE in all four — first from bounding the layer's tilt,
-  // then completely once the layer's own level was zeroed, which also ended
-  // most of the path dependence the determinism suite measures.
-  //
-  // What remains is the spread, in the saturation regime: cycling four records
-  // that disagree walks every mode's spread up against the clamps, and there it
-  // sits. Smart's entry is the marginal one — it lived within a decibel of the
-  // threshold all along and moved twelve hundredths over the line when the
-  // level zeroing landed. Same regime, same defect, now over instead of under.
-  // Smart came back under its line when the post-passes were clamped to the
-  // caller's limits rather than the axis.
-  smart: [],
-  detail: ['spread'],
-  balance: ['spread'],
-  target: ['spread'],
-};
-
-const check = (mode: string, what: string) =>
-  KNOWN[mode]?.includes(what) ? it.failing : it;
 
 describe('a Smart EQ loop left running all evening', () => {
   // Twenty records' worth, each held long enough to settle. At one correction
@@ -222,24 +210,31 @@ describe('a Smart EQ loop left running all evening', () => {
     const run = play(PASSES, PER_RECORD, mode);
 
     /**
-     * Averages of the settled part only.
+     * Averages of the settled part only, one whole lap of the records each.
      *
      * The first records of a run are the loop converging from flat, so their
      * spread is small because it has not finished moving rather than because
      * anything is right. Comparing against them measures the start-up, not the
      * drift — which is how the first version of this test failed the code for
      * behaving correctly.
+     *
+     * A whole lap, and not a quarter of the run: the records cycle, and the
+     * bass-less one leaves a wider layer than the other three every time it
+     * plays, so two windows that hold different numbers of it differ by that
+     * much with nothing having drifted at all. Five entries out of twenty was
+     * exactly that — one window caught the bass-less record twice, the other
+     * once — and the comparison read a decibel of growth off a loop that was
+     * repeating itself to the tenth.
      */
+    const lap = RECORDS.length;
     const half = Math.floor(run.meanDb.length / 2);
-    const quarter = Math.floor(run.meanDb.length / 4);
     const mean = (values: number[]) =>
       values.reduce((a, b) => a + b, 0) / values.length;
     const settledEarly = (values: number[]) =>
-      mean(values.slice(half, half + quarter));
-    const settledLate = (values: number[]) => mean(values.slice(-quarter));
+      mean(values.slice(half, half + lap));
+    const settledLate = (values: number[]) => mean(values.slice(-lap));
 
-    /* eslint-disable jest/no-standalone-expect */
-    check(mode, 'level')('does not quietly turn the record down', () => {
+    it('does not quietly turn the record down', () => {
       // The anchor's whole promise. Every entry is the mean gain after one
       // record; if the loop is leaking level, these march downward.
       //
@@ -252,19 +247,16 @@ describe('a Smart EQ loop left running all evening', () => {
       });
     });
 
-    check(mode, 'ratchet')(
-      'is no lower at the end than it was early on',
-      () => {
-        // A slow ratchet is invisible in any single pass. Comparing the settled
-        // end of the run with its settled middle says whether the evening as a
-        // whole went anywhere, which no snapshot can.
-        expect(settledLate(run.meanDb)).toBeGreaterThan(
-          settledEarly(run.meanDb) - 0.5,
-        );
-      },
-    );
+    it('is no lower at the end than it was early on', () => {
+      // A slow ratchet is invisible in any single pass. Comparing the settled
+      // end of the run with its settled middle says whether the evening as a
+      // whole went anywhere, which no snapshot can.
+      expect(settledLate(run.meanDb)).toBeGreaterThan(
+        settledEarly(run.meanDb) - 0.5,
+      );
+    });
 
-    check(mode, 'spread')('does not grow a deeper V with every record', () => {
+    it('does not grow a deeper V with every record', () => {
       // Spread is what a V looks like as a number. It may settle anywhere it
       // likes; what it may not do is be wider at the end of the evening than in
       // the middle of it.
@@ -272,12 +264,29 @@ describe('a Smart EQ loop left running all evening', () => {
         settledEarly(run.spreadDb) + 1,
       );
     });
-    /* eslint-enable jest/no-standalone-expect */
 
-    it('never drives a band into the clamps', () => {
+    it('settles on each record the same way every time round', () => {
+      // The other half of "does not grow": the same four records, in the same
+      // order, ten passes each, and by the second lap the loop has nothing
+      // left to learn from them. The spread after any record must match the
+      // spread after the same record a lap earlier, to within what the
+      // rounding of the gains allows. This is the comb that used to survive
+      // the bass-less record — it added a decibel to every lap, and this
+      // comparison is the one that reads it directly.
+      const lap = RECORDS.length;
+      run.spreadDb.slice(lap * 2).forEach((value, index) => {
+        expect(Math.abs(value - run.spreadDb[index + lap])).toBeLessThan(0.5);
+      });
+    });
+
+    it('never drives a band near the clamps', () => {
       // Reaching the floor is how the drift announced itself on screen. Nothing
-      // about these records justifies twenty decibels of anything.
-      expect(run.lowestDb).toBeGreaterThan(MIN_GAIN + 8);
+      // about these records justifies twenty decibels of anything — and once
+      // the comb was gone, nothing in them justified the nine-decibel cut
+      // ceiling either. Six is the deepest any mode goes on this material,
+      // measured with a margin; a band sitting on the ceiling again means a
+      // ratchet is back.
+      expect(run.lowestDb).toBeGreaterThan(-6);
     });
   });
 });

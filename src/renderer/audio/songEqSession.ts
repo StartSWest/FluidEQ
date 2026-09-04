@@ -37,6 +37,7 @@ import {
 } from 'renderer/utils/equalizerApi';
 import { useFluidEqContext } from 'renderer/utils/FluidEqContext';
 import { useIsAutoEqRunning } from 'renderer/utils/autoEqRunning';
+import { noteSmartEqLayerReplaced } from 'renderer/utils/smartEqRun';
 import { useNowPlayingIdentity } from './nowPlayingIdentity';
 
 /**
@@ -213,8 +214,12 @@ const performEffects = (effects: TSongEqEffect[]): void => {
       }
       case 'applyLayer': {
         const { settings } = effect;
-        // Mirrored into context first, matching every other Smart EQ writer
-        // (see the module comment) — then written over IPC.
+        // The continuous loop first, synchronously, so it stops steering
+        // toward the previous song before this layer lands under it — see
+        // `noteSmartEqLayerReplaced` for the tick this closes. Then mirrored
+        // into context, matching every other Smart EQ writer (see the module
+        // comment), and written over IPC.
+        noteSmartEqLayerReplaced(settings);
         liveSmartEqSetter?.(settings);
         setSmartEqApi(settings).catch(() => {
           // Reported nowhere on purpose, matching every other Smart EQ write

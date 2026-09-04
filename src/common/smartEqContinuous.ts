@@ -362,9 +362,17 @@ export const stepSmartEqGains = (
 export const buildSmartEqSettings = (
   bands: IFilter[],
   gains: Record<string, number>,
+  /**
+   * What the measurement found, and the one thing it must not decide.
+   *
+   * `intensity` is the listener's strength slider, passed through from the
+   * layer being replaced. It is not a result and no measurement sets it; it is
+   * here so a rebuilt layer does not come back at full strength over one that
+   * had been turned down.
+   */
   measurement: Pick<
     ISmartEqSettings,
-    'status' | 'lowFrequency' | 'highFrequency'
+    'status' | 'lowFrequency' | 'highFrequency' | 'intensity'
   > = {},
   /**
    * How far a band may be moved, in either direction.

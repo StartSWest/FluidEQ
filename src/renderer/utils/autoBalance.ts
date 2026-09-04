@@ -24,6 +24,7 @@ import {
   NO_GAIN_FILTER_TYPES,
 } from 'common/constants';
 import { IReferenceShape } from 'common/referenceCurve';
+import { gainAtFrequency, getTFCoefficients } from 'common/response';
 import { clamp } from './utils';
 import {
   BALANCE_MAX_FREQUENCY,
@@ -33,6 +34,7 @@ import {
   MIN_BAND_CONFIDENCE,
   MIN_TRUSTED_OCTAVES,
   ROLLOFF_MIN_DB_PER_OCTAVE,
+  SOLVE_HOME,
   SOLVE_RIDGE,
   TRUSTED_HIGH_ANCHOR_HZ,
   TRUSTED_LOW_ANCHOR_HZ,
@@ -616,7 +618,48 @@ export const buildBalancedGains = (
   // lifted toward it — and stays lifted, because what it is compared against no
   // longer moves when the music does. The shape on top is the rest of a target
   // curve, when there is one. See `common/referenceCurve`.
-  const fit = fitSpectralTilt(steered, reference.slope);
+  //
+  // FITTED TO THE RECORD, NOT TO THE RECORD WITH THIS LAYER ON IT.
+  //
+  // The measurement is the output, and the output carries the layer being
+  // solved for — deliberately, since that is what closes the loop. But a line
+  // fitted through the output absorbs whatever straight line the LAYER happens
+  // to contribute, slope and level alike, and a slope the fit has absorbed is
+  // one the deviation never sees. So a layer that arrived tilted stayed tilted:
+  // the same record, measured from a flat start and from a bent one, settled
+  // six to seven decibels apart in the fitted modes, and the divergence test
+  // recorded the number rather than hiding it. The line is meant to be the
+  // programme's own tilt, so it is fitted to the programme — the output with
+  // this layer's own response taken back off — and the layer is left inside
+  // the deviation, where the correction can see it and undo it.
+  //
+  // The held-slope modes never had this problem, because a held slope cannot
+  // absorb anything; their intercept is fitted the same way for the same
+  // reason, which changes nothing they do since the level is centred anyway.
+  const ownResponse = relativeToCurrentGain
+    ? filters
+        .filter(
+          (filter) =>
+            !NO_GAIN_FILTER_TYPES.includes(filter.type) &&
+            Number.isFinite(filter.gain) &&
+            filter.gain !== 0,
+        )
+        .map((filter) => getTFCoefficients(filter))
+    : [];
+  const programme =
+    ownResponse.length > 0
+      ? steered.map((sample) => ({
+          ...sample,
+          level:
+            sample.level -
+            ownResponse.reduce(
+              (total, coefficients) =>
+                total + gainAtFrequency(sample.frequency, coefficients),
+              0,
+            ),
+        }))
+      : steered;
+  const fit = fitSpectralTilt(programme, reference.slope);
   const hasShape = Boolean(reference.shape?.length);
   const deviation = smoothSpectrum(
     steered.map((sample) => ({
@@ -818,8 +861,15 @@ export const buildBalancedGains = (
     const meanDiagonal =
       normal.reduce((total, row, index) => total + row[index], 0) / n;
     const ridge = Math.max(meanDiagonal * SOLVE_RIDGE, 1e-6);
+    // And the pull on the total, which is what lets the layer forget a comb
+    // the measurement cannot see. The step is solved for, so pulling the
+    // TOTAL toward zero means asking the step to cancel what is already
+    // there: the diagonal carries the weight and the right-hand side carries
+    // the gain it is applied to. See `SOLVE_HOME` for the measurement.
+    const home = meanDiagonal * SOLVE_HOME;
     for (let i = 0; i < n; i += 1) {
-      normal[i][i] += ridge;
+      normal[i][i] += ridge + home;
+      rhs[i] -= home * (relativeToCurrentGain ? solvable[i].gain : 0);
     }
 
     const solved = solveLinearSystem(normal, rhs);

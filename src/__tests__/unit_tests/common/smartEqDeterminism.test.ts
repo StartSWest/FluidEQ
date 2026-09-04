@@ -45,43 +45,21 @@ import { buildBalancedGains } from 'renderer/utils/autoBalance';
  * Two starting points, deliberately far apart: nothing at all, and a layer bent
  * hard in the wrong direction. If the loop is honest they converge.
  *
- * THEY DO NOT, YET, AND THE NUMBERS ARE RECORDED RATHER THAN HIDDEN. Where the
- * correction ends up depends on where it began by six to seven decibels in
- * three of the four modes, which is audible and is the opposite of the promise.
- * Only Detail is clean, and for a reason that points at the cause: it is the
- * one mode that imposes no slope of its own.
+ * THEY DID NOT, FOR A LONG TIME, and the history is worth keeping because each
+ * cause was a different thing that remembered where it started. Balance and
+ * Target settled seven decibels apart until the layer's own level was zeroed —
+ * the fitted intercept had been absorbing it — and the edge-rolloff rule took
+ * away a bass hump both starts shared. The one-shot was the last to converge:
+ * its reference is a line fitted to the measurement, the measurement carries
+ * the layer, and a fitted line absorbs the layer's slope as readily as its
+ * level, so a slope the layer arrived with was invisible to every pass after.
+ * Fitting the line to the record with the layer's own response taken back off
+ * is what closed it. With the tilt bound disabled the same comparison once
+ * read 21.8 dB, so the bound was never the fix, only a cap on the damage.
  *
- * It is not new and it is not from bounding the tilt -- that measurement was
- * taken. With the bound disabled the same comparison reads 21.8 dB, so capping
- * the tilt took roughly two thirds of it away. What is left is whatever else in
- * the loop remembers its own history.
- *
- * Marked as expected failures so the suite is green today and turns red the
- * moment somebody fixes one, which is when these numbers should be read again.
+ * Every case is a hard failure now. Anything that reintroduces a memory —
+ * a corridor, an asymmetric clamp, a fit through the output — turns this red.
  */
-
-/**
- * Where the settled answer still depends on where it started, by mode and
- * material.
- *
- * Detail is clean everywhere, which points at the cause: it is the one mode
- * that imposes no slope. The dark record is clean in Balance and Target too,
- * and that fits the same explanation — it is the material those modes have to
- * push hardest, so both starting points end up pinned against the same limits
- * and arrive together for the wrong reason.
- */
-const PATH_DEPENDENT = new Set([
-  // Balance and Target converge now — zeroing the layer's own level removed
-  // the seven-decibel offset that the fitted intercept had been absorbing, and
-  // the edge-rolloff rule removed the bass hump both starts used to share.
-  // What is left is the one-shot's fitted tilt: a fitted line absorbs the
-  // layer's own slope as well as its level, so a slope the layer arrived with
-  // is invisible to it, and the tilt bound only caps that at three decibels
-  // end to end rather than removing it.
-  'smart|a modern master',
-  'smart|a dark one',
-  'smart|a bright one',
-]);
 
 const AXIS = Array.from(
   { length: 240 },
@@ -163,9 +141,7 @@ describe('the same sound, from anywhere', () => {
       const fromFlat = settle(level, mode, () => 0);
       const fromWrong = settle(level, mode, WRONG_START);
 
-      const known = PATH_DEPENDENT.has(`${mode}|${name}`) ? it.failing : it;
-      /* eslint-disable jest/no-standalone-expect */
-      known('lands in the same place whether it started flat or bent', () => {
+      it(`lands in the same place whether ${name} started flat or bent`, () => {
         const a = responseOf(fromFlat);
         const b = responseOf(fromWrong);
         const worst = Math.max(
@@ -178,7 +154,6 @@ describe('the same sound, from anywhere', () => {
         // little apart. Audibly the same record is the claim, not bit-exact.
         expect(worst).toBeLessThan(1.5);
       });
-      /* eslint-enable jest/no-standalone-expect */
 
       it('is the same twice from the same start', () => {
         // Determinism in the plainer sense. Nothing here reads a clock or a
@@ -213,14 +188,10 @@ describe('the same sound, from anywhere', () => {
           );
           return (band: IFilter) => byId[band.id] ?? 0;
         };
-        // The one-shot's fitted line absorbs the layer's slope as well as its
-        // level, so any inherited slope survives in it up to the tilt bound —
-        // and every mode's settled layer carries one, Detail's included, since
-        // its lift is itself a slope. The same defect the flat-vs-bent entries
-        // record, reached from every direction.
-        const known = to === 'smart' ? it.failing : it;
-        /* eslint-disable jest/no-standalone-expect */
-        known(`${from} to ${to} lands where ${to} lands from flat`, () => {
+        // Every mode's settled layer carries a slope, Detail's included, since
+        // its lift is itself one — so this is the flat-vs-bent comparison
+        // reached from every direction, and the one-shot is held to it too.
+        it(`${from} to ${to} lands where ${to} lands from flat`, () => {
           const handed = settle(modern, to, fromPrevious());
           const clean = responseOf(settledIn[to]);
           const inherited = responseOf(handed);
@@ -229,7 +200,6 @@ describe('the same sound, from anywhere', () => {
           );
           expect(worst).toBeLessThan(1.5);
         });
-        /* eslint-enable jest/no-standalone-expect */
       });
     });
   });

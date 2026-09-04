@@ -17,7 +17,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { useEffect, useRef } from 'react';
-import { describeSmartEqLayer, getSmartEqBands } from 'common/smartEq';
+import {
+  ISmartEqSettings,
+  describeSmartEqLayer,
+  getSmartEqBands,
+} from 'common/smartEq';
 import {
   CONTINUOUS_SETTLE_DB,
   TSmartEqDrift,
@@ -275,6 +279,25 @@ const SmartEqEngine = () => {
    */
   const movingBandsRef = useRef<Set<string>>(new Set());
   /**
+   * The layer as the loop last left it, or last accepted from somebody else,
+   * described the way it will be heard.
+   *
+   * What the loop compares the live layer against to tell its own echo from an
+   * outside write. Its own writes come back through context looking exactly
+   * like a profile load, and a comparison is the only thing that can tell them
+   * apart — see `layerReplaced` for what an outside write means to the loop.
+   */
+  const lastWrittenRef = useRef<string | undefined>(undefined);
+  /**
+   * Every range is stale, not just the ones a correction moved.
+   *
+   * Set when the layer under the capture was replaced from outside, and
+   * answered at the next checkpoint after the settle: everything heard so far
+   * was heard through a chain that no longer exists, and the accumulator has
+   * to be told that region by region.
+   */
+  const resetAllRegionsRef = useRef(false);
+  /**
    * Which reference the loop is holding records to, read from a ref.
    *
    * The capture runs for as long as the mode is on and the callback inside it
@@ -441,10 +464,12 @@ const SmartEqEngine = () => {
    * means the window closing: this component sits above the tabs and nothing
    * short of that takes it down.
    */
+  const layerReplacedRef = useRef((_settings?: ISmartEqSettings) => {});
   useEffect(() => {
     registerSmartEqControl({
       run: () => runAutoBalanceRef.current(),
       cancel: () => balanceAbortRef.current?.abort(),
+      layerReplaced: (settings) => layerReplacedRef.current(settings),
     });
     return () => registerSmartEqControl(undefined);
   }, []);
@@ -495,6 +520,49 @@ const SmartEqEngine = () => {
   smartEqRef.current = smartEq;
   const bypassedRef = useRef(bypassed);
   bypassedRef.current = bypassed;
+
+  /**
+   * The layer under the loop was replaced by something that is not the loop.
+   *
+   * THIS IS WHAT "RECOVERING" A SONG'S CURVE DEPENDS ON. A remembered curve
+   * arriving over the top of the running correction — or being handed back at
+   * the end of the song — is a write from outside, and the loop used to
+   * measure straight through it with everything it remembered: a destination
+   * averaged over the previous song, three windows of drift, a set of bands
+   * still travelling, and forty-five seconds of evidence heard through the
+   * OLD layer. The next solve then read the song's own curve as a
+   * disagreement with where the loop had been heading, and walked it back a
+   * step at a time. The match landed, and within one quiet window it was
+   * mostly gone — which from the outside is a feature that remembers a song
+   * and then forgets it again.
+   *
+   * So an outside write is treated exactly as a mode change is: the loop
+   * keeps the layer it was handed and starts its opinion from nothing. The
+   * long-run destination, the drift counts and the moving set go; every
+   * range's evidence is cleared once the reload has settled, because it was
+   * heard through a chain that no longer exists; and the disagreement bars,
+   * which described a comparison against the old layer, are taken down. The
+   * new layer is measured on its own merits, and a curve that was right for
+   * this song comes out inside the deadband and is left alone — which is the
+   * whole of what remembering it was for.
+   *
+   * Reached two ways. The song recorder says so at the moment of its write,
+   * because the loop acts from an interval that can fire between a state
+   * update and the render that carries it. Everything else — the chip's clear
+   * button, a profile load, the strength slider — is noticed at the next
+   * checkpoint by comparing the live layer with what the loop last wrote.
+   */
+  const layerReplaced = (settings: ISmartEqSettings | undefined) => {
+    smartEqRef.current = settings;
+    lastWrittenRef.current = describeSmartEqLayer(settings);
+    longRunTargetRef.current = {};
+    longRunDriftRef.current = {};
+    movingBandsRef.current = new Set();
+    resetAllRegionsRef.current = true;
+    applySettledAtRef.current = Date.now() + CONTINUOUS_SETTLE_MS;
+    setSmartEqDisagreement({});
+  };
+  layerReplacedRef.current = layerReplaced;
 
   /**
    * Everything audible, as one comparable string.
@@ -708,6 +776,10 @@ const SmartEqEngine = () => {
             status: result.status,
             lowFrequency: result.lowFrequency,
             highFrequency: result.highFrequency,
+            // The strength the listener set survives the run, as it does the
+            // continuous loop's writes: a measurement is a new shape for the
+            // layer, not a decision about how much of it to apply.
+            intensity: layer?.intensity,
           },
           getCorrectionLimit(),
         );
@@ -885,6 +957,23 @@ const SmartEqEngine = () => {
       Date.now() - applyStartedAtRef.current < CONTINUOUS_APPLY_TIMEOUT_MS;
     if (isWriteInFlight || Date.now() < applySettledAtRef.current) {
       return [];
+    }
+
+    // Somebody else wrote the layer since the loop last did. See
+    // `layerReplaced` for what that means to the loop; the settle it opens
+    // makes this checkpoint the last one before every range is cleared.
+    if (describeSmartEqLayer(smartEqRef.current) !== lastWrittenRef.current) {
+      layerReplaced(smartEqRef.current);
+      return [];
+    }
+
+    // Everything, after an outside write: what every range heard was heard
+    // through a layer that is gone. Ahead of the partial clear below, which
+    // it makes redundant — the ranges a correction moved are among these.
+    if (resetAllRegionsRef.current) {
+      resetAllRegionsRef.current = false;
+      pendingResetRef.current = [];
+      return report.regions.map((_region, index) => index);
     }
 
     // The transitional frames, thrown away now that the settle is over. The
@@ -1077,7 +1166,15 @@ const SmartEqEngine = () => {
     const measured = buildSmartEqSettings(
       bands,
       stepped,
-      { status: report.status === 'ready' ? 'ready' : 'partial' },
+      {
+        status: report.status === 'ready' ? 'ready' : 'partial',
+        // The strength the listener set, kept. A write that left it out came
+        // back at full strength, so a layer turned down to half snapped back
+        // to all of it on the next correction — and the comparison below,
+        // which describes the layer as heard, saw a change at every
+        // checkpoint for as long as it stayed turned down.
+        intensity: layer?.intensity,
+      },
       getCorrectionLimit(),
     );
     if (describeSmartEqLayer(measured) === describeSmartEqLayer(layer)) {
@@ -1108,7 +1205,9 @@ const SmartEqEngine = () => {
     // marked as writing, which is precisely the gap a race lives in.
     isApplyingRef.current = true;
     applyStartedAtRef.current = Date.now();
-    // Ours, so the song recorder keeps its loan through this refinement.
+    // Ours, so the song recorder keeps its loan through this refinement — and
+    // so the loop recognises its own echo when it comes back through context.
+    lastWrittenRef.current = describeSmartEqLayer(measured);
     noteSmartEqWrite(measured);
     setSmartEq(measured);
     setSmartEqApi(measured)
@@ -1260,6 +1359,11 @@ const SmartEqEngine = () => {
     longRunTargetRef.current = {};
     longRunDriftRef.current = {};
     movingBandsRef.current = new Set();
+    // Whatever is in the chain now is the loop's starting point, not an
+    // outside write to be noticed at the first checkpoint: a fresh capture
+    // has no evidence to throw away yet.
+    lastWrittenRef.current = describeSmartEqLayer(smartEqRef.current);
+    resetAllRegionsRef.current = false;
 
     captureBalanceProfile({
       signal: controller.signal,

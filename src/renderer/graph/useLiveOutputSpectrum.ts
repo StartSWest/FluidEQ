@@ -31,6 +31,7 @@ import {
   IAxisCell,
   createBalanceCaptureState,
   evaluateBalanceCapture,
+  flipBalanceProgress,
   isBalanceCheckDue,
   readAbsoluteLevels,
   resetBalanceRegion,
@@ -136,6 +137,12 @@ interface IBalanceSession {
   watchdog: ReturnType<typeof setTimeout> | undefined;
   lastAcceptedWallMs: number;
   lastPercent: number;
+  /**
+   * The last full progress published, so a flag flip between checkpoints can
+   * republish the ranges it already had rather than an empty list — see the
+   * flip in `evaluateSession` for what an empty list did to the plot.
+   */
+  lastProgress?: IBalanceProgress;
   wasSilent: boolean;
   wasPaused: boolean;
   /**
@@ -447,16 +454,16 @@ const useLiveOutputSpectrum = () => {
           session.wasSilent = silent;
           session.wasPaused = paused;
           session.wasBandLimited = bandLimited;
-          const flip = {
-            percent: session.lastPercent,
-            weakestLabel: '',
-            isSettling: false,
+          // The ranges it already had, with the flags moved — see
+          // `flipBalanceProgress` for what an empty list here did to the plot.
+          const flip = flipBalanceProgress(session.lastProgress, {
             isSilent: silent,
             isPaused: paused,
             isBandLimited: bandLimited,
             listenedMs: session.state.listenedMs,
-            regions: [],
-          };
+            percent: session.lastPercent,
+          });
+          session.lastProgress = flip;
           setBalanceProgress(flip);
           session.onProgress?.(flip);
         }
@@ -470,6 +477,7 @@ const useLiveOutputSpectrum = () => {
         isContinuous: session.isContinuous,
       });
       session.lastPercent = progress.percent;
+      session.lastProgress = progress;
       session.wasSilent = silent;
       session.wasPaused = paused;
       session.wasBandLimited = bandLimited;

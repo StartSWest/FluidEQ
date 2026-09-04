@@ -242,6 +242,29 @@ describe('the Smart EQ layer', () => {
     });
   });
 
+  describe('rebuilding the layer from a measurement', () => {
+    it('keeps the strength the listener set', () => {
+      // A measurement is a new shape, not a decision about how much of it to
+      // apply. A rebuilt layer used to come back at full strength, so a layer
+      // turned down to half snapped back to all of it on the next correction
+      // — and, described as heard, looked changed at every checkpoint.
+      const full = layerOf({ 1000: 4 });
+      const bands = getSmartEqBands(full);
+      const gains = Object.fromEntries(
+        bands.map((band) => [band.id, band.gain]),
+      );
+
+      const rebuilt = buildSmartEqSettings(bands, gains, { intensity: 0.5 });
+      expect(rebuilt?.intensity).toBe(0.5);
+      // Described as heard: half of four is what reaches Equalizer APO.
+      expect(describeSmartEqLayer(rebuilt)).toBe('1000/2');
+      expect(describeSmartEqLayer(full)).toBe('1000/4');
+
+      // And a layer that never had one stays that way, which reads as full.
+      expect(buildSmartEqSettings(bands, gains, {})?.intensity).toBeUndefined();
+    });
+  });
+
   describe('stepping toward a solve, for Continuous EQ', () => {
     const bandsAt = (gainsByFrequency: Record<number, number>) =>
       getSmartEqBands(layerOf(gainsByFrequency));

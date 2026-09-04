@@ -339,6 +339,34 @@ export const MIN_BAND_CONFIDENCE = 0.4;
  */
 export const SOLVE_RIDGE = 0.08;
 
+/**
+ * How hard the joint solve pulls the WHOLE layer toward zero, as a fraction of
+ * the mean diagonal — distinct from the ridge above, which damps only the step.
+ *
+ * The ridge makes each step small and cannot make the layer forget anything:
+ * a pattern the measurement is blind to earns a step of nothing and so stands
+ * forever. And the measurement is blind to more than nothing. It is smoothed an
+ * octave wide at the bottom while the bands sit a third apart, so a band-to-
+ * band comb down there has an octave-smoothed response of nearly zero — and
+ * the rules around the solve, which act on single bands, plant exactly that: a
+ * band inside a rolloff sent home while its neighbour is solved, a gated band
+ * cut where the next one is not. Measured over an evening of records with a
+ * bass-less one among them, every record after it inherited a +1 / −1.6 / +0.9
+ * comb around 80 Hz, and the spread of the layer grew by a decibel a record
+ * until it met the clamps.
+ *
+ * A pull on the total drains that. In a direction the measurement sees, the
+ * data term is large and this is a rounding error — at two hundredths it costs
+ * an eight-decibel resonance about a sixth of a decibel of its correction. In
+ * a direction the measurement cannot see, the data term is nothing and this is
+ * all there is, so the comb goes to zero on the pass after it appears. The same
+ * evening, replayed: the spread after every record is the same on every lap.
+ *
+ * Two hundredths, measured against five: five drained nothing more and cost
+ * that resonance half a decibel.
+ */
+export const SOLVE_HOME = 0.02;
+
 export const MIN_TRUSTED_OCTAVES = 4;
 export const TRUSTED_LOW_ANCHOR_HZ = 560;
 export const TRUSTED_HIGH_ANCHOR_HZ = 1120;

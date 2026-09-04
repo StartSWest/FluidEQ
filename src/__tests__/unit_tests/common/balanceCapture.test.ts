@@ -47,6 +47,7 @@ import {
   createBalanceCaptureState,
   createBalanceRegions,
   evaluateBalanceCapture,
+  flipBalanceProgress,
   isBalanceCheckDue,
   readAbsoluteLevels,
   resetBalanceRegion,
@@ -770,6 +771,57 @@ describe('balance capture', () => {
       expect(
         progress.regions.find((region) => region.label === 'mids')?.confidence,
       ).toBeGreaterThan(0);
+    });
+
+    // THE REPORTED DEFECT. The flip between checkpoints used to publish an
+    // empty region list, and the overlay reads that as the measurement being
+    // over — so the columns faded out whenever a range dropped under its
+    // floor or the music went quiet, and came back at the next checkpoint.
+    it('keeps the ranges when only a flag flips between checkpoints', () => {
+      const { report } = runCapture(podcast, seconds(6));
+      const progress = buildBalanceProgress(report, 40, {
+        isSilent: false,
+        isPaused: false,
+      });
+
+      const held = flipBalanceProgress(progress, {
+        isSilent: false,
+        isPaused: false,
+        isBandLimited: true,
+        listenedMs: progress.listenedMs + 500,
+        percent: progress.percent,
+      });
+      expect(held.regions).toBe(progress.regions);
+      expect(held.regions).toHaveLength(9);
+      expect(held.isBandLimited).toBe(true);
+      expect(held.listenedMs).toBe(progress.listenedMs + 500);
+      expect(held.percent).toBe(progress.percent);
+      expect(held.weakestLabel).toBe(progress.weakestLabel);
+
+      // And back, through the same helper, carrying the same ranges: a hold
+      // that ends between checkpoints must not blank the plot either.
+      const back = flipBalanceProgress(held, {
+        isSilent: true,
+        isPaused: false,
+        isBandLimited: false,
+        listenedMs: held.listenedMs,
+        percent: held.percent,
+      });
+      expect(back.regions).toBe(progress.regions);
+      expect(back.isSilent).toBe(true);
+      expect(back.isBandLimited).toBe(false);
+
+      // Before any checkpoint there is nothing to carry, and saying so is
+      // the truthful answer rather than an invented range.
+      const first = flipBalanceProgress(undefined, {
+        isSilent: true,
+        isPaused: false,
+        isBandLimited: false,
+        listenedMs: 0,
+        percent: 0,
+      });
+      expect(first.regions).toEqual([]);
+      expect(first.isSilent).toBe(true);
     });
 
     it('keeps progress monotone and names what is missing', () => {
