@@ -2336,7 +2336,7 @@ $library-wave-step: 4ms;
   padding: 4px;
   border: 1px solid rgba($secondary-light, 0.28);
   border-radius: $radius-m;
-  background: rgba($surface-menu-top, 0.99);
+  background: $surface-menu-face;
   box-shadow: 0 18px 44px rgba($black, 0.5);
 
   ul {

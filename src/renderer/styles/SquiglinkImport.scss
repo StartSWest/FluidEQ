@@ -193,7 +193,9 @@
 
   .button {
     display: inline-flex;
-    min-height: 29px;
+    // The row's height, like every other small button in the app. At 29 these
+    // two sat three pixels short of the controls they line up with.
+    min-height: $control-height-sm;
     align-items: center;
     gap: 6px;
     padding: 5px 11px;

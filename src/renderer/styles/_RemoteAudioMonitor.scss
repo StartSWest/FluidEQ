@@ -50,6 +50,14 @@
   &.is-primary .remote-audio__waveform {
     height: clamp(120px, 16vh, 180px);
   }
+
+  // Nothing is connected, so there is nothing to draw. It kept the full
+  // waveform height regardless — a 180px empty box that was the largest thing
+  // on the page, above the choice somebody has come here to make. A strip is
+  // enough to say the lane exists and is waiting.
+  &.is-placeholder .remote-audio__waveform {
+    height: 34px;
+  }
 }
 
 .remote-audio__monitor-lane-heading {

@@ -474,7 +474,14 @@ $transition-control:
 @mixin field-disabled {
   color: rgba($primary-lighter, 0.5);
   border-color: rgba($primary-lighter, 0.1);
-  background: rgba($surface-field, 0.4);
+  // Opaque, like every other surface in the window.
+  //
+  // At 40% alpha the control showed whatever it was standing on, so a row of
+  // unavailable fields on a card came out a different colour from the same
+  // row on a pane, and on the plot cards you could see the drawing through
+  // them. Unavailable should read as quieter than its neighbours, not as a
+  // window into the layer below.
+  background: $surface-plot;
   box-shadow: none;
   cursor: default;
 }
