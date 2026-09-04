@@ -229,7 +229,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   margin-top: $spacing-s;
   overflow: hidden;
   border-radius: $radius-pill;
-  background: rgba($edge-tint, 0.14);
+  // The empty-track colour, like every other groove in the app.
+  background: $track-well;
 }
 
 .overlay-card__progress-fill {

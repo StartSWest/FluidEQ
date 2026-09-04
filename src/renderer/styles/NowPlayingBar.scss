@@ -1106,7 +1106,7 @@ $now-playing-bar-height: 64px;
     height: 34px;
     padding: 0 10px;
     border-radius: $radius-s;
-    background: rgba($white, 0.03);
+    background: rgba($secondary-default, 0.07);
   }
 
   .now-playing-bar__volume-slider {

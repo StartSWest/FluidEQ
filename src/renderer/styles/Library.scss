@@ -2468,6 +2468,19 @@ $library-wave-step: 4ms;
   &::placeholder {
     color: $text-faint;
   }
+
+  // Glass in every state. The global control base's HOVER carries two
+  // `:not()`s, which outrank a plain two-class selector — so this field was
+  // quiet at rest and then painted a cyan rectangle inside the capsule as
+  // soon as the pointer crossed it.
+  &:hover:not(:disabled),
+  &:focus,
+  &:focus-visible {
+    border: none;
+    background: none;
+    box-shadow: none;
+    outline: none;
+  }
 }
 
 .library-search__clear {
