@@ -1474,6 +1474,35 @@ const LibraryWorkspace = ({
           `browseMode === 'video'` at all. The view-mode toggle (list/grid/
           Cover Flow) has nothing to say about a shelf grouped by folder, so
           it is ignored while this is what is browsed. */}
+          {/* WHERE THE READER IS STANDING, said on this shelf too. The
+          folder scope (`scopedTracks`) applies to videos exactly as it does
+          to albums and artists, so somebody who walked into `lana de rey`
+          on the Artists shelf and pressed Videos got that folder's videos —
+          none — with nothing on screen saying which folder, and no way out
+          but guessing. This is the same Back and the same path line the
+          drill-in draws, from the same classes; it leaves the folder the way
+          the drill-in's does, and the shelf under it says "no videos" for
+          what it is: this folder has none, not the library. */}
+          {index.tracks.length > 0 &&
+            !videoTrackId &&
+            browseMode === 'video' &&
+            openFolderPath !== undefined && (
+              <div className="library-detail__top">
+                <button
+                  type="button"
+                  className="library-toolbar__chip library-detail__back"
+                  onClick={handleBack}
+                >
+                  <svg viewBox="0 0 16 16" aria-hidden="true">
+                    <path d="M10 3L5 8l5 5" />
+                  </svg>
+                  <span>{t('library.back')}</span>
+                </button>
+                <span className="library-detail__folder" title={openFolderPath}>
+                  {openFolderPath}
+                </span>
+              </div>
+            )}
           {index.tracks.length > 0 &&
             !videoTrackId &&
             browseMode === 'video' && (
