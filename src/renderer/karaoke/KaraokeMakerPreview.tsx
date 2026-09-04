@@ -75,7 +75,7 @@ const KaraokeMakerPreviewNotes = ({
     }
     context.setTransform(ratio, 0, 0, ratio, 0, 0);
     context.clearRect(0, 0, width, height);
-    context.fillStyle = 'rgba(3, 17, 28, .68)';
+    context.fillStyle = 'rgba(13, 32, 48, .68)';
     context.beginPath();
     context.roundRect(0.5, 0.5, width - 1, height - 1, height / 2);
     context.fill();

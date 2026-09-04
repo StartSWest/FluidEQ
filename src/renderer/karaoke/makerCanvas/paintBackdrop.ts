@@ -106,8 +106,11 @@ export const paintBackdrop = (
   );
 
   const background = context.createLinearGradient(0, 0, width, height);
-  background.addColorStop(0, 'rgba(8, 24, 43, .96)');
-  background.addColorStop(1, 'rgba(5, 19, 34, .98)');
+  // The plot colour every drawing in the app lies on, flat. It was a ramp
+  // of two near-black blues, which made the editor the darkest thing in a
+  // window that has no black in it.
+  background.addColorStop(0, 'rgb(26, 58, 78)');
+  background.addColorStop(1, 'rgb(26, 58, 78)');
   context.fillStyle = background;
   context.fillRect(0, 0, width, height);
 
@@ -117,8 +120,9 @@ export const paintBackdrop = (
     0,
     headerHeight,
   );
-  lyricBackground.addColorStop(0, 'rgba(10, 35, 52, .72)');
-  lyricBackground.addColorStop(1, 'rgba(4, 22, 36, .9)');
+  // The lyric band is a card on the plot: the card colour, one step up.
+  lyricBackground.addColorStop(0, 'rgba(30, 66, 87, .9)');
+  lyricBackground.addColorStop(1, 'rgba(30, 66, 87, .96)');
   context.fillStyle = lyricBackground;
   context.fillRect(
     plotLeft,
@@ -127,7 +131,7 @@ export const paintBackdrop = (
     lyricSectionHeightPx + 6,
   );
   if (canvasSectionGroups.length) {
-    context.fillStyle = 'rgba(7, 29, 45, .94)';
+    context.fillStyle = 'rgba(30, 66, 87, .94)';
     context.fillRect(
       plotLeft,
       SECTION_GROUP_TOP - 3,

@@ -162,8 +162,9 @@ const KaraokeMakerNavigator = ({
     context.clearRect(0, 0, width, height);
 
     const background = context.createLinearGradient(0, 0, 0, height);
-    background.addColorStop(0, 'rgba(12, 42, 59, .92)');
-    background.addColorStop(1, 'rgba(4, 21, 35, .96)');
+    // The plot colour, like the editor above it.
+    background.addColorStop(0, 'rgb(26, 58, 78)');
+    background.addColorStop(1, 'rgb(26, 58, 78)');
     context.fillStyle = background;
     context.roundRect(0.5, 0.5, width - 1, height - 1, 8);
     context.fill();
@@ -233,7 +234,7 @@ const KaraokeMakerNavigator = ({
       viewportStartMs,
       viewportDurationMs,
     );
-    context.fillStyle = 'rgba(0, 7, 16, .46)';
+    context.fillStyle = 'rgba(13, 32, 48, .46)';
     context.fillRect(0, 2, viewportLeft, height - 4);
     context.fillRect(
       viewportLeft + viewportWidth,
@@ -269,7 +270,7 @@ const KaraokeMakerNavigator = ({
       context.beginPath();
       context.roundRect(edgeX - 3, height / 2 - 10, 6, 20, 3);
       context.fill();
-      context.fillStyle = '#087f83';
+      context.fillStyle = 'rgba(0, 229, 207, .55)';
       context.fillRect(edgeX - 0.6, height / 2 - 5, 1.2, 10);
     });
     context.shadowBlur = 0;
