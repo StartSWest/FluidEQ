@@ -406,7 +406,7 @@ button.active-layer__body {
 
   &::-webkit-slider-runnable-track {
     height: 4px;
-    border-radius: 999px;
+    border-radius: $radius-pill;
     background: linear-gradient(
       to right,
       rgba($secondary-default, 0.9) var(--fill, 100%),

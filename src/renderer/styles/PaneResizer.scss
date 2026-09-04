@@ -39,7 +39,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   span {
     width: 44px;
     height: 3px;
-    border-radius: 999px;
+    border-radius: $radius-pill;
     background: rgba($edge-tint, 0.18);
     transition:
       background 140ms ease,

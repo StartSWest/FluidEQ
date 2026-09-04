@@ -461,7 +461,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   gap: 5px;
   padding: 5px;
   border: 1px solid rgba($secondary-light, 0.17);
-  border-radius: 15px;
+  border-radius: $radius-l;
   background:
     linear-gradient(
       180deg,
@@ -887,7 +887,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   padding: 0;
   color: $text-muted;
   border: 1px solid rgba($edge-tint, 0.14);
-  border-radius: 8px;
+  border-radius: $radius-xs;
   background: linear-gradient(
     145deg,
     rgba($surface-field-end, 0.82),
@@ -956,7 +956,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   width: 26px;
   height: 26px;
   padding: 0;
-  border-radius: 8px;
+  border-radius: $radius-xs;
 }
 
 .karaoke-playlist__expand {
@@ -1326,7 +1326,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   overflow: hidden;
   color: rgba($white, 0.9);
   border: 1px solid rgba($secondary-light, 0.16);
-  border-radius: 12px;
+  border-radius: $radius-m;
   background:
     linear-gradient(
       150deg,
@@ -1476,7 +1476,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   padding: 4px 8px;
   color: $text-muted;
   border: 1px solid rgba($secondary-light, 0.13);
-  border-radius: 10px;
+  border-radius: $radius-s;
   background:
     linear-gradient(
       180deg,
@@ -1706,7 +1706,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   margin-top: -2px;
   padding: 8px 11px;
   border: 1px solid rgba($secondary-light, 0.18);
-  border-radius: 20px;
+  border-radius: $radius-xl;
   background:
     linear-gradient(
       180deg,
@@ -1856,7 +1856,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       visibility: hidden;
       background: rgba(4, 22, 35, 0.98);
       border: 1px solid rgba(76, 225, 214, 0.34);
-      border-radius: 7px;
+      border-radius: $radius-xs;
       box-shadow: 0 10px 28px rgba($black, 0.42);
       opacity: 0;
       transform: translate(-50%, 3px);
@@ -2170,7 +2170,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   grid-template-rows: 26px 18px;
   gap: 6px 8px;
   padding: 7px 8px 8px;
-  border-radius: 12px;
+  border-radius: $radius-m;
 
   .karaoke-transport__volume-icon {
     grid-row: 1;
@@ -2696,22 +2696,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // 18px corner of its own made two panels of the same row read as two
   // different kinds of thing, in a window as much as in full screen.
   border-radius: $radius-m;
-  background:
-    radial-gradient(
-      circle at 32% 0,
-      rgba($secondary-default, 0.08),
-      transparent 40%
-    ),
-    linear-gradient(
-      145deg,
-      rgba($surface-base, 0.96),
-      rgba($surface-well, 0.98)
-    ) !important;
-  box-shadow:
-    0 14px 36px rgba($black, 0.28),
-    0 0 30px rgba($secondary-default, 0.035),
-    inset 0 1px 0 rgba($white, 0.05),
-    inset 0 -1px 0 rgba($black, 0.28);
+  // The card colour, flat, like the playlist it shares a row with.
+  //
+  // What it had was a 145deg ramp from the shell colour to the well colour
+  // under a radial cyan wash, over a four-layer shadow with a light inset at
+  // the top and a dark one at the foot. That is a bevel, and it made the one
+  // panel on this page that is mostly empty space the glossiest thing in the
+  // window — beside a playlist that is a plain card, on the same row.
+  background: $block-lift !important;
+  box-shadow: 0 14px 36px rgba($black, 0.22);
   text-align: left;
   transform: translateZ(0);
   transition:
@@ -2739,19 +2732,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   &:focus-within {
     border-color: rgba($secondary-light, 0.22);
     box-shadow:
-      0 18px 42px rgba($black, 0.32),
-      0 0 36px rgba($secondary-default, 0.06),
-      inset 0 1px 0 rgba($white, 0.07),
-      inset 0 -1px 0 rgba($black, 0.26);
+      0 18px 42px rgba($black, 0.26),
+      0 0 36px rgba($secondary-default, 0.06);
   }
 
   &.is-microphone-live {
     border-color: rgba($secondary-light, 0.25);
     box-shadow:
-      0 16px 40px rgba($black, 0.3),
-      0 0 34px rgba($secondary-default, 0.1),
-      inset 0 1px 0 rgba($white, 0.07),
-      inset 0 -1px 0 rgba($black, 0.28);
+      0 16px 40px rgba($black, 0.24),
+      0 0 34px rgba($secondary-default, 0.1);
   }
 
   &.has-targets {
@@ -3091,7 +3080,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     width: 100%;
     grid-template-columns: auto minmax(90px, 1fr) auto;
     gap: 8px;
-    border-radius: 16px;
+    border-radius: $radius-l;
   }
 
   .karaoke-transport__time,
@@ -3406,7 +3395,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       rgba(7, 30, 47, 0.92)
     );
     border: 1px solid rgba(93, 174, 197, 0.28);
-    border-radius: 9px;
+    border-radius: $radius-s;
     box-shadow: inset 0 1px rgba(255, 255, 255, 0.035);
     cursor: pointer;
     transition:
@@ -3658,13 +3647,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   gap: 2px;
   padding: 2px;
   background: rgba(3, 18, 29, 0.55);
-  border-radius: 8px;
+  border-radius: $radius-xs;
 
   button {
     min-height: 23px;
     padding: 0 6px;
     font-size: $text-body;
-    border-radius: 6px;
+    border-radius: $radius-xs;
   }
 }
 
@@ -3717,7 +3706,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   padding: 4px;
   background: rgba(3, 17, 28, 0.42);
   border: 1px solid rgba(83, 174, 191, 0.12);
-  border-radius: 13px;
+  border-radius: $radius-l;
   box-shadow: inset 0 1px rgba(255, 255, 255, 0.025);
 }
 
@@ -3748,7 +3737,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     visibility: hidden;
     background: rgba(4, 22, 35, 0.98);
     border: 1px solid rgba(75, 220, 211, 0.32);
-    border-radius: 7px;
+    border-radius: $radius-xs;
     opacity: 0;
     transform: translate(-50%, -3px);
     transition:
@@ -3883,7 +3872,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     rgba(6, 25, 40, 0.66)
   );
   border: 1px solid rgba(76, 151, 174, 0.18);
-  border-radius: 11px;
+  border-radius: $radius-m;
   box-shadow:
     inset 0 1px rgba(255, 255, 255, 0.025),
     0 6px 18px rgba(0, 0, 0, 0.1);
@@ -4010,7 +3999,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     visibility: hidden;
     background: rgba(5, 24, 38, 0.98);
     border: 1px solid rgba(76, 211, 204, 0.34);
-    border-radius: 7px;
+    border-radius: $radius-xs;
     box-shadow: 0 10px 28px rgba(0, 0, 0, 0.42);
     opacity: 0;
     transform: translate(-50%, -3px);
@@ -4116,7 +4105,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     radial-gradient(circle at 30% 0, rgba(42, 128, 135, 0.16), transparent 52%),
     rgba(5, 24, 39, 0.985);
   border: 1px solid rgba(78, 190, 195, 0.32);
-  border-radius: 13px;
+  border-radius: $radius-l;
   box-shadow: 0 22px 48px rgba(0, 0, 0, 0.48);
   transform: translateX(-50%);
   @include slim-scrollbar;
@@ -4180,7 +4169,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     radial-gradient(circle at 8% 0, rgba(36, 215, 200, 0.12), transparent 58%),
     rgba(8, 35, 49, 0.72);
   border: 1px solid rgba(76, 185, 193, 0.2);
-  border-radius: 10px;
+  border-radius: $radius-s;
   box-shadow: inset 0 1px rgba(255, 255, 255, 0.035);
 }
 
@@ -4196,7 +4185,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   list-style: none;
   background: rgba(9, 26, 34, 0.42);
   border: 1px solid rgba(93, 240, 181, 0.11);
-  border-radius: 7px;
+  border-radius: $radius-xs;
 
   li {
     display: grid;
@@ -4292,7 +4281,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     font-weight: $weight-bold;
     background: rgba(24, 96, 103, 0.24);
     border: 1px solid rgba(64, 219, 205, 0.26);
-    border-radius: 8px;
+    border-radius: $radius-xs;
   }
 
   > button,
@@ -4307,7 +4296,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     font-weight: $weight-bold;
     background: rgba($secondary-default, 0.07);
     border: 1px solid $border-field;
-    border-radius: 7px;
+    border-radius: $radius-xs;
 
     svg {
       width: 12px;
@@ -4365,7 +4354,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     font-weight: $weight-semibold;
     background: rgba(4, 23, 36, 0.55);
     border: 1px solid rgba(97, 157, 174, 0.16);
-    border-radius: 7px;
+    border-radius: $radius-xs;
     transition:
       color 120ms ease,
       background 120ms ease,
@@ -4470,7 +4459,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   padding: 7px;
   background: rgba(9, 37, 52, 0.72);
   border: 1px solid rgba(69, 155, 172, 0.18);
-  border-radius: 9px;
+  border-radius: $radius-s;
 }
 
 .karaoke-maker__timing-shift button {
@@ -4478,7 +4467,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   height: 23px;
   padding: 0 5px;
   font-size: $text-lead;
-  border-radius: 6px;
+  border-radius: $radius-xs;
 }
 
 .karaoke-maker__timing-shift input[type='range'] {
@@ -4494,12 +4483,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   padding: 3px;
   background: rgba(5, 24, 38, 0.66);
   border: 1px solid rgba(68, 139, 160, 0.16);
-  border-radius: 9px;
+  border-radius: $radius-s;
 
   button {
     min-height: 27px;
     font-size: $text-lead;
-    border-radius: 7px;
+    border-radius: $radius-xs;
   }
 }
 
@@ -4544,7 +4533,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   padding: 5px;
   background: rgba(7, 28, 44, 0.98);
   border: 1px solid rgba(79, 190, 199, 0.38);
-  border-radius: 12px;
+  border-radius: $radius-m;
   box-shadow: 0 18px 38px rgba(0, 0, 0, 0.38);
 
   button {
@@ -4654,7 +4643,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     font-size: $text-body;
     background: rgba(24, 102, 110, 0.2);
     border-color: rgba(69, 229, 214, 0.3);
-    border-radius: 6px;
+    border-radius: $radius-xs;
   }
 }
 
@@ -4677,7 +4666,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   overflow: hidden;
   background: $surface-base;
   border: 1px solid rgba(65, 147, 172, 0.22);
-  border-radius: 13px;
+  border-radius: $radius-l;
   box-shadow:
     inset 0 0 32px rgba(0, 0, 0, 0.2),
     0 14px 36px rgba(0, 0, 0, 0.12);
@@ -4809,7 +4798,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     visibility: hidden;
     background: rgba(5, 24, 38, 0.98);
     border: 1px solid rgba(76, 211, 204, 0.3);
-    border-radius: 6px;
+    border-radius: $radius-xs;
     opacity: 0;
     transform: translate(-50%, 3px);
     content: attr(data-tooltip);
@@ -4880,7 +4869,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   touch-action: none;
   cursor: grab;
   outline: none;
-  border-radius: 8px;
+  border-radius: $radius-xs;
 
   &:focus-visible {
     box-shadow: 0 0 0 2px rgba(69, 234, 218, 0.45);
@@ -4949,7 +4938,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   overflow: hidden;
   background: rgba(4, 18, 31, 0.88);
   border: 1px solid rgba(77, 167, 188, 0.22);
-  border-radius: 11px;
+  border-radius: $radius-m;
   box-shadow:
     inset 0 1px rgba(255, 255, 255, 0.025),
     0 8px 22px rgba(0, 0, 0, 0.12);
@@ -5249,7 +5238,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       rgba($surface-base, 0.97)
     );
   border: 1px solid rgba($secondary-light, 0.32);
-  border-radius: 16px;
+  border-radius: $radius-l;
   box-shadow:
     0 14px 36px rgba($black, 0.36),
     0 0 24px rgba($secondary-default, 0.08),
@@ -5268,7 +5257,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     letter-spacing: 0.02em;
     background: linear-gradient(145deg, #8cfff5, #28dfcf);
     border: 1px solid rgba($white, 0.82);
-    border-radius: 11px;
+    border-radius: $radius-m;
     box-shadow:
       0 4px 0 rgba(#08766d, 0.82),
       0 0 20px rgba($secondary-default, 0.3);
@@ -5400,7 +5389,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     font-weight: $weight-bold;
     background: rgba($surface-base, 0.88);
     border: 1px solid rgba($secondary-light, 0.2);
-    border-radius: 6px;
+    border-radius: $radius-xs;
     box-shadow: inset 0 -2px rgba($black, 0.22);
   }
 
@@ -5439,7 +5428,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       rgba($surface-base, 0.985)
     );
   border: 1px solid rgba($secondary-light, 0.4);
-  border-radius: 18px;
+  border-radius: $radius-xl;
   box-shadow:
     0 18px 48px rgba($black, 0.44),
     0 0 34px rgba($secondary-default, 0.1),
@@ -5455,7 +5444,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   color: $secondary-light;
   background: rgba($secondary-default, 0.12);
   border: 1px solid rgba($secondary-light, 0.34);
-  border-radius: 14px;
+  border-radius: $radius-l;
   box-shadow: inset 0 0 20px rgba($secondary-default, 0.08);
 
   svg {
@@ -5515,7 +5504,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   font-weight: $weight-bold;
   background: linear-gradient(145deg, #8efff5, #25ddcd);
   border: 1px solid rgba($white, 0.78);
-  border-radius: 13px;
+  border-radius: $radius-l;
   box-shadow:
     0 5px 0 rgba(#08766d, 0.78),
     0 0 25px rgba($secondary-default, 0.26);
@@ -5673,7 +5662,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       rgba($surface-base, 0.99)
     );
   border: 1px solid rgba($secondary-light, 0.46);
-  border-radius: 20px;
+  border-radius: $radius-xl;
   box-shadow:
     0 20px 54px rgba($black, 0.54),
     0 0 34px rgba($secondary-default, 0.13),
@@ -5764,7 +5753,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   color: $text-faint;
   background: rgba($surface-well, 0.64);
   border-color: rgba($secondary-light, 0.18);
-  border-radius: 9px;
+  border-radius: $radius-s;
 
   &:hover,
   &:focus-visible {
@@ -5807,7 +5796,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       rgba($surface-base, 0.99)
     );
   border: 1px solid rgba($secondary-light, 0.44);
-  border-radius: 18px;
+  border-radius: $radius-xl;
   box-shadow:
     0 20px 54px rgba($black, 0.54),
     0 0 32px rgba($secondary-default, 0.12),
@@ -5846,7 +5835,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       rgba(7, 37, 52, 0.78)
     );
     border: 1px solid rgba(67, 205, 197, 0.31);
-    border-radius: 9px;
+    border-radius: $radius-s;
 
     &:hover,
     &:focus-visible {
@@ -5918,7 +5907,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   font-weight: $weight-display;
   background: rgba(3, 20, 31, 0.74);
   border: 1px solid rgba(74, 188, 194, 0.2);
-  border-radius: 11px;
+  border-radius: $radius-m;
 
   > span {
     flex: 0 0 auto;
@@ -5941,7 +5930,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       width: 2px;
       height: 20px;
       background: rgba(104, 160, 178, 0.3);
-      border-radius: 999px;
+      border-radius: $radius-pill;
       transition:
         height 140ms ease,
         background 140ms ease,
@@ -6149,7 +6138,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     radial-gradient(circle, rgba($secondary-default, 0.2), transparent 70%),
     rgba($surface-base, 0.82);
   border: 1px solid rgba($secondary-light, 0.44);
-  border-radius: 16px;
+  border-radius: $radius-l;
   box-shadow:
     inset 0 0 24px rgba($secondary-default, 0.1),
     0 0 18px rgba($secondary-default, 0.08);
@@ -6226,7 +6215,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   font-weight: $weight-bold;
   background: linear-gradient(145deg, #9bfff7, #27dfcf);
   border: 1px solid rgba($white, 0.82);
-  border-radius: 14px;
+  border-radius: $radius-l;
   box-shadow:
     0 5px 0 rgba(#08766d, 0.78),
     0 0 27px rgba($secondary-default, 0.29);
@@ -6257,7 +6246,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     font-weight: $weight-bold;
     background: rgba($white, 0.28);
     border: 1px solid rgba(#064d47, 0.22);
-    border-radius: 7px;
+    border-radius: $radius-xs;
     box-shadow: inset 0 -2px rgba(#064d47, 0.12);
   }
 }
@@ -6280,7 +6269,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   font-weight: $weight-bold;
   background: linear-gradient(180deg, rgba(#175b5a, 0.88), rgba(#073331, 0.92));
   border: 1px solid rgba($secondary-light, 0.48);
-  border-radius: 9px;
+  border-radius: $radius-s;
   box-shadow: inset 0 -2px rgba(#012523, 0.35);
 }
 
@@ -6325,7 +6314,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       font-size: $text-lead;
       background: rgba($surface-well, 0.74);
       border: 1px solid rgba($secondary-light, 0.28);
-      border-radius: 7px;
+      border-radius: $radius-xs;
     }
 
     &.is-primary {
@@ -6371,7 +6360,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     padding: 7px 8px;
     background: rgba($surface-well, 0.5);
     border: 1px solid rgba($secondary-light, 0.14);
-    border-radius: 11px;
+    border-radius: $radius-m;
 
     > svg {
       width: 20px;
@@ -6406,7 +6395,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       rgba($surface-panel, 0.96)
     );
     border: 1px solid rgba($secondary-light, 0.4);
-    border-radius: 7px;
+    border-radius: $radius-xs;
     box-shadow: inset 0 -2px rgba($surface-well, 0.5);
   }
 }
@@ -6688,7 +6677,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     color: #ddf5f8;
     background: $surface-plot;
     border: 1px solid rgba(75, 151, 174, 0.27);
-    border-radius: 8px;
+    border-radius: $radius-xs;
     outline: 0;
 
     &:focus {
@@ -6775,7 +6764,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     font-size: $text-lead;
     background: $surface-plot;
     border: 1px solid rgba(70, 174, 187, 0.27);
-    border-radius: 8px;
+    border-radius: $radius-xs;
     outline: 0;
 
     &:focus {
@@ -6793,7 +6782,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     font-size: $text-lead;
     background: rgba($secondary-default, 0.07);
     border: 1px solid $border-field;
-    border-radius: 8px;
+    border-radius: $radius-xs;
 
     svg {
       width: 12px;
@@ -6828,7 +6817,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     padding: 7px 10px;
     background: $surface-plot;
     border: 1px solid rgba(68, 190, 190, 0.15);
-    border-radius: 11px;
+    border-radius: $radius-m;
   }
 
   .karaoke-maker__selection-coach.is-word-selection
@@ -6912,7 +6901,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   font-size: $text-lead;
   background: rgba(9, 40, 54, 0.96);
   border: 1px solid rgba(45, 215, 200, 0.38);
-  border-radius: 11px;
+  border-radius: $radius-m;
   box-shadow: 0 14px 34px rgba(0, 0, 0, 0.32);
 
   &.is-error {
@@ -6965,7 +6954,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     radial-gradient(circle at 15% 0, rgba(30, 215, 199, 0.12), transparent 55%),
     rgba(5, 27, 41, 0.96);
   border: 1px solid rgba($secondary-light, 0.31);
-  border-radius: 13px;
+  border-radius: $radius-l;
   box-shadow:
     0 18px 48px rgba($black, 0.42),
     inset 0 1px rgba($white, 0.055);
@@ -7045,7 +7034,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   font-size: $text-lead;
   background: $block-lift;
   border: 1px solid rgba($secondary-light, 0.2);
-  border-radius: 10px;
+  border-radius: $radius-s;
 
   svg {
     width: 17px;
@@ -7059,7 +7048,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   grid-column: 1 / -1;
   width: 100%;
   height: 36px;
-  border-radius: 6px;
+  border-radius: $radius-xs;
   background: $surface-plot;
 }
 
@@ -7144,7 +7133,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     radial-gradient(circle at 12% 0, rgba(30, 215, 199, 0.13), transparent 58%),
     rgba(5, 27, 41, 0.98);
   border: 1px solid rgba($secondary-light, 0.34);
-  border-radius: 15px;
+  border-radius: $radius-l;
   box-shadow: 0 18px 44px rgba(0, 0, 0, 0.46);
 }
 
@@ -7165,7 +7154,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   flex: none;
   color: $surface-base;
   background: linear-gradient(135deg, $secondary-light, $secondary-default 72%);
-  border-radius: 10px;
+  border-radius: $radius-s;
   box-shadow: 0 6px 18px rgba(16, 215, 199, 0.35);
 
   svg {
@@ -7198,7 +7187,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   font-size: $text-title;
   background: $block-lift;
   border: 1px solid rgba($secondary-light, 0.2);
-  border-radius: 11px;
+  border-radius: $radius-m;
 
   // The size the toolbar buttons would otherwise have supplied.
   svg {
@@ -7252,7 +7241,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     color: $text-primary;
     background: rgba($secondary-default, 0.07);
     border: 1px solid rgba($secondary-light, 0.28);
-    border-radius: 8px;
+    border-radius: $radius-xs;
   }
 }
 
@@ -7269,13 +7258,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     height: 6px;
     appearance: none;
     border: 0;
-    border-radius: 999px;
+    border-radius: $radius-pill;
     overflow: hidden;
     background: $track-well;
 
     &::-webkit-progress-bar {
       background: $track-well;
-      border-radius: 999px;
+      border-radius: $radius-pill;
     }
 
     &::-webkit-progress-value {
@@ -7284,7 +7273,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
         rgba(30, 215, 199, 0.85),
         $secondary-light
       );
-      border-radius: 999px;
+      border-radius: $radius-pill;
       transition: width 140ms ease-out;
     }
 
@@ -7354,7 +7343,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     radial-gradient(circle at 15% 0, rgba(30, 215, 199, 0.12), transparent 55%),
     rgba(5, 27, 41, 0.96);
   border: 1px solid rgba($secondary-light, 0.31);
-  border-radius: 13px;
+  border-radius: $radius-l;
 
   > button {
     min-height: 30px;
@@ -7396,7 +7385,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   overflow: hidden auto;
   background: rgba(2, 14, 25, 0.52);
   border: 1px solid rgba(105, 196, 205, 0.13);
-  border-radius: 9px;
+  border-radius: $radius-s;
   scrollbar-color: rgba(45, 211, 198, 0.5) transparent;
   scrollbar-width: thin;
 }
@@ -7666,7 +7655,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     radial-gradient(circle at 8% 0, rgba(255, 80, 105, 0.16), transparent 54%),
     rgba(40, 15, 25, 0.97);
   border: 1px solid rgba(255, 105, 126, 0.48);
-  border-radius: 13px;
+  border-radius: $radius-l;
 
   > div:nth-child(2) {
     display: grid;
@@ -7730,7 +7719,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     line-height: 1;
     background: rgba(255, 70, 99, 0.2);
     border-color: rgba(255, 105, 126, 0.52);
-    border-radius: 9px;
+    border-radius: $radius-s;
 
     &:hover {
       background: rgba(255, 70, 99, 0.34);
@@ -7767,7 +7756,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   pointer-events: none;
   background: rgba(5, 31, 44, 0.92);
   border: 1px solid rgba($secondary-light, 0.32);
-  border-radius: 10px;
+  border-radius: $radius-s;
   box-shadow:
     0 14px 34px rgba($black, 0.36),
     0 0 18px rgba($secondary-default, 0.09),
@@ -7825,7 +7814,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     radial-gradient(circle at 20% 0, rgba(80, 35, 121, 0.24), transparent 42%),
     rgba(8, 28, 44, 0.99);
   border: 1px solid rgba(75, 204, 198, 0.35);
-  border-radius: 18px;
+  border-radius: $radius-xl;
   box-shadow: 0 26px 80px rgba(0, 0, 0, 0.56);
 
   h2 {
@@ -7849,7 +7838,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     line-height: 1.65;
     background: rgba(4, 18, 30, 0.84);
     border: 1px solid rgba(69, 145, 169, 0.28);
-    border-radius: 12px;
+    border-radius: $radius-m;
     outline: 0;
 
     &:focus {
@@ -7922,7 +7911,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   padding: 11px;
   background: rgba(3, 18, 30, 0.64);
   border: 1px solid rgba(66, 152, 169, 0.22);
-  border-radius: 13px;
+  border-radius: $radius-l;
 }
 
 .karaoke-maker__lyrics-source {
@@ -7937,7 +7926,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   overflow: hidden;
   background: rgba(4, 18, 30, 0.84);
   border: 1px solid rgba(69, 145, 169, 0.28);
-  border-radius: 12px;
+  border-radius: $radius-m;
 
   &:focus-within {
     border-color: rgba(41, 228, 210, 0.65);
@@ -8052,7 +8041,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   line-height: 1.4;
   background: rgba(9, 40, 54, 0.72);
   border: 1px solid rgba(45, 215, 200, 0.38);
-  border-radius: 9px;
+  border-radius: $radius-s;
 }
 
 .karaoke-maker__lyrics-line-number {
@@ -8108,7 +8097,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     font-weight: $weight-bold;
     background: rgba(14, 61, 76, 0.62);
     border: 1px solid rgba(62, 213, 199, 0.3);
-    border-radius: 8px;
+    border-radius: $radius-xs;
 
     svg {
       width: 13px;
@@ -8142,7 +8131,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   font-size: $text-body;
   background: rgba(16, 66, 77, 0.42);
   border: 1px solid rgba(65, 198, 190, 0.2);
-  border-radius: 8px;
+  border-radius: $radius-xs;
 
   svg {
     width: 14px;
@@ -8194,7 +8183,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     font-size: $text-lead;
     background: rgba(10, 39, 53, 0.72);
     border: 1px solid transparent;
-    border-radius: 7px;
+    border-radius: $radius-xs;
     transition:
       color 130ms ease,
       background 130ms ease,
@@ -8262,7 +8251,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     radial-gradient(circle, rgba(31, 211, 195, 0.08), transparent 64%),
     rgba(2, 15, 25, 0.45);
   border: 1px dashed rgba(62, 193, 184, 0.2);
-  border-radius: 10px;
+  border-radius: $radius-s;
 
   svg {
     width: 27px;
@@ -8291,7 +8280,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   padding: 13px;
   background: rgba(7, 31, 44, 0.86);
   border: 1px solid rgba(44, 211, 198, 0.25);
-  border-radius: 11px;
+  border-radius: $radius-m;
   box-shadow: inset 0 0 20px rgba(31, 220, 204, 0.035);
 }
 
@@ -8338,7 +8327,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       color: #a9f8f1;
       background: rgba(14, 61, 75, 0.72);
       border: 1px solid rgba(57, 197, 190, 0.25);
-      border-radius: 8px;
+      border-radius: $radius-xs;
 
       svg {
         width: 16px;
@@ -8373,7 +8362,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     font-weight: $weight-bold;
     background: rgba(14, 67, 76, 0.66);
     border: 1px solid rgba(56, 199, 189, 0.26);
-    border-radius: 8px;
+    border-radius: $radius-xs;
 
     svg {
       width: 15px;
@@ -8410,7 +8399,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     radial-gradient(circle at 12% 0, rgba(30, 215, 199, 0.12), transparent 58%),
     rgba(4, 22, 35, 0.86);
   border: 1px solid rgba($secondary-light, 0.27);
-  border-radius: 12px;
+  border-radius: $radius-m;
 
   strong,
   span {
@@ -8467,7 +8456,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     radial-gradient(circle at 18% 0, rgba(67, 39, 124, 0.25), transparent 46%),
     rgba(8, 28, 44, 0.99);
   border: 1px solid rgba(75, 204, 198, 0.35);
-  border-radius: 18px;
+  border-radius: $radius-xl;
   box-shadow: 0 26px 80px rgba(0, 0, 0, 0.56);
 
   h2 {
@@ -8497,7 +8486,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     radial-gradient(circle at 12% 0, rgba(134, 30, 55, 0.2), transparent 50%),
     rgba(8, 25, 39, 0.99);
   border: 1px solid rgba(255, 104, 129, 0.3);
-  border-radius: 16px;
+  border-radius: $radius-l;
   box-shadow: 0 26px 80px rgba(0, 0, 0, 0.56);
 
   > svg {
@@ -8531,7 +8520,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   line-height: 1.4;
   background: rgba(91, 24, 42, 0.3);
   border: 1px solid rgba(255, 103, 128, 0.24);
-  border-radius: 9px;
+  border-radius: $radius-s;
 }
 
 .karaoke-maker__modal-actions {
@@ -8622,7 +8611,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     height: min(720px, calc(100dvh - 16px));
     max-height: calc(100dvh - 16px);
     padding: 11px;
-    border-radius: 13px;
+    border-radius: $radius-l;
   }
 
   .karaoke-maker__lyrics-modal-head {
@@ -8651,7 +8640,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   .karaoke-maker__selection-coach {
     width: calc(100% - 16px);
     padding: 25px 42px 12px 12px;
-    border-radius: 15px;
+    border-radius: $radius-l;
   }
 
   .karaoke-maker__note-inspector {
@@ -8885,7 +8874,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     radial-gradient(circle at 50% 0, rgba(40, 225, 208, 0.08), transparent 65%),
     rgba(4, 24, 38, 0.72);
   border: 1px solid rgba(62, 181, 185, 0.2);
-  border-radius: 10px;
+  border-radius: $radius-s;
 
   label {
     display: grid;

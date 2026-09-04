@@ -17,6 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 @use 'color' as *;
+@use 'theme' as *;
 $spinner-height: 40px;
 $spinner-dot-height: 6px;
 
@@ -52,7 +53,7 @@ $spinner-dot-height: 6px;
   background: $white;
   left: 0px;
   top: 0px;
-  border-radius: 6px;
+  border-radius: $radius-xs;
 }
 
 .windows8 #wBall_1 {

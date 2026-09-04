@@ -1183,7 +1183,7 @@ select option {
   height: 44px;
   flex: 0 0 auto;
   border: 1px solid rgba($secondary-default, 0.35);
-  border-radius: 15px;
+  border-radius: $radius-l;
   background: rgba($secondary-default, 0.2);
   box-shadow:
     0 0 0 1px rgba($secondary-light, 0.06),

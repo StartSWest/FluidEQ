@@ -1094,7 +1094,7 @@ it under the terms of the GNU General Public License version 3 or later.
     flex: 0 0 auto;
     padding: 0;
     border: none;
-    border-radius: 999px;
+    border-radius: $radius-pill;
     background: rgba($edge-tint, 0.18);
     appearance: none;
     cursor: pointer;
@@ -1341,7 +1341,7 @@ it under the terms of the GNU General Public License version 3 or later.
   padding-block: 0;
   padding-inline: 9px;
   border: 1px solid rgba($secondary-light, 0.3);
-  border-radius: 11px;
+  border-radius: $radius-m;
   background: none;
   color: $text-muted;
   font-size: $text-micro;

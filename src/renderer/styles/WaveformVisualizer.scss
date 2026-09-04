@@ -55,7 +55,7 @@ it under the terms of the GNU General Public License version 3 or later.
   height: 63px;
   padding: 0;
   border: 1px solid rgba($edge-tint, 0.1);
-  border-radius: 18px;
+  border-radius: $radius-xl;
   // The same bargain the panels and the title bar make: translucent enough
   // that the shell's own colour comes through, opaque enough that a trace drawn
   // on it stays legible.
@@ -271,7 +271,7 @@ it under the terms of the GNU General Public License version 3 or later.
   // radius has to be stated: with square corners the clip cuts a straight
   // edge across the pane's own curve and the wave paints over the rounded
   // border at each bottom corner.
-  border-radius: 16px;
+  border-radius: $radius-l;
   // `overflow: hidden` alone does NOT round the canvas. Chromium gives a
   // canvas its own composited layer, and a composited child is clipped by
   // an ancestor's rectangle but not by its border-radius unless that

@@ -151,7 +151,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   margin-top: 9px;
   padding: 5px 12px;
   border: 1px solid rgba($secondary-light, 0.45);
-  border-radius: 999px;
+  border-radius: $radius-pill;
   background: rgba($secondary-light, 0.12);
   color: $secondary-light;
   font-size: $text-body;

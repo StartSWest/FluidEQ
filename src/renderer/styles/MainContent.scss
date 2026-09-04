@@ -878,7 +878,7 @@ $eq-bubble-applied-face: sass-color.mix($analogous-2, $surface-menu-top, 20%);
   position: absolute;
   z-index: 20;
   border: 1px solid rgba($secondary-light, 0.9);
-  border-radius: 6px;
+  border-radius: $radius-xs;
   background: rgba($secondary-default, 0.12);
   box-shadow: 0 0 18px rgba($secondary-default, 0.18);
   pointer-events: none;

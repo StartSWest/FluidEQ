@@ -218,7 +218,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   padding: 4px 9px;
   gap: 5px;
   border: 1px solid rgba($edge-tint, 0.14);
-  border-radius: 999px;
+  border-radius: $radius-pill;
   background: rgba($secondary-default, 0.07);
   color: $text-muted;
   font-size: $text-small;
@@ -282,7 +282,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   border: 1px solid rgba($edge-tint, 0.14);
   // Matches the site pills rather than the nav buttons: this is the other end
   // of the same row, and 26px tall against a 999px radius is a capsule.
-  border-radius: 999px;
+  border-radius: $radius-pill;
   background: rgba($secondary-default, 0.07);
   gap: 6px;
   transition:
@@ -384,7 +384,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   flex: 0 0 auto;
   padding: 3px 10px;
   border: none;
-  border-radius: 999px;
+  border-radius: $radius-pill;
   background: rgba($secondary-light, 0.16);
   color: $secondary-light;
   font-size: $text-small;
@@ -707,7 +707,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   flex: 0 0 auto;
   place-items: center;
   border: 1px solid rgba($secondary-light, 0.42);
-  border-radius: 11px;
+  border-radius: $radius-m;
   background: rgba($secondary-light, 0.1);
   color: $secondary-light;
 
@@ -751,7 +751,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   height: 4px;
   margin-top: 3px;
   overflow: hidden;
-  border-radius: 999px;
+  border-radius: $radius-pill;
   background: rgba($edge-tint, 0.14);
 
   > span {
@@ -793,7 +793,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   padding: 0;
   place-items: center;
   border: 1px solid rgba($edge-tint, 0.18);
-  border-radius: 8px;
+  border-radius: $radius-xs;
   background: transparent;
   color: $text-muted;
   cursor: pointer;
