@@ -949,9 +949,10 @@ const KaraokePitchLane = ({
           PLOT_LEFT + plotWidth,
           reviewY + reviewTrackHeight + 5,
         );
-        reviewSurface.addColorStop(0, 'rgba(8, 22, 36, 0.82)');
-        reviewSurface.addColorStop(0.55, 'rgba(5, 16, 28, 0.7)');
-        reviewSurface.addColorStop(1, 'rgba(4, 12, 23, 0.58)');
+        // The card colour over the plot, the same step every block in the
+        // app takes over its pane. It was a ramp of three near-black blues.
+        reviewSurface.addColorStop(0, 'rgba(30, 66, 87, 0.96)');
+        reviewSurface.addColorStop(1, 'rgba(30, 66, 87, 0.9)');
         context.save();
         context.fillStyle = reviewSurface;
         context.shadowColor = 'rgba(0, 0, 0, 0.24)';
@@ -1096,9 +1097,9 @@ const KaraokePitchLane = ({
           legendX + legendWidth,
           legendY + legendHeight,
         );
-        legendSurface.addColorStop(0, 'rgba(18, 39, 55, 0.93)');
-        legendSurface.addColorStop(0.58, 'rgba(8, 22, 35, 0.94)');
-        legendSurface.addColorStop(1, 'rgba(5, 14, 25, 0.96)');
+        // Same card colour as the review strip, for the same reason.
+        legendSurface.addColorStop(0, 'rgba(30, 66, 87, 0.97)');
+        legendSurface.addColorStop(1, 'rgba(30, 66, 87, 0.94)');
         context.save();
         context.fillStyle = legendSurface;
         context.shadowColor = 'rgba(0, 0, 0, 0.38)';

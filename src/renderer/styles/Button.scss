@@ -98,15 +98,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     background: rgba($secondary-default, 0.07);
     box-shadow: none;
 
-    // The glyph takes the label's colour here, not the filled button's ink.
-    //
-    // The rule at the top of this file paints every filled path in the dark
-    // shade that reads on a cyan face — correct on the primary button, and on
-    // this one it put a near-black blob inside the icon on a dark face. The
-    // Reset arrow was the visible case: a cyan outline with a black bowl.
-    path:not([fill='none']) {
-      fill: currentcolor;
-    }
+    // NO glyph rule of its own. One was here for a day: it painted every
+    // filled path in the label colour, meant for the DSP reset arrow, whose
+    // bowl the base rule above was inking black. But a stroked icon that
+    // says `fill="none"` on its svg has paths with no attribute of their
+    // own, so the rule matched the circle of the plus and the arc of the
+    // reset arrow too and filled them solid — Clear EQ and Add band became
+    // cyan discs. The arrow's real defect was that ITS svg did not say
+    // `fill="none"`, and that is fixed where it lives.
 
     &:hover:not([aria-disabled='true']):not(:disabled) {
       color: $white;
@@ -143,12 +142,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     background: transparent;
     box-shadow: none;
     cursor: default;
-
-    // Same reason as `.subtle`: nothing is filled behind the glyph, so the
-    // dark ink would be a black shape on the panel.
-    path:not([fill='none']) {
-      fill: currentcolor;
-    }
   }
 
   // LAST, and for the same reason the block above had to move: every variant

@@ -1946,10 +1946,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   min-width: 0;
   grid-template-columns: 26px minmax(56px, 1fr) minmax(42px, 78px);
   padding: 4px 7px 4px 4px;
-  border: 1px solid rgba($secondary-light, 0.08);
+  border: 1px solid $border-subtle;
   border-radius: $radius-pill;
-  background: rgba($surface-well, 0.25);
-  box-shadow: inset 0 1px 2px rgba($black, 0.24);
+  // The plot well, flat: a block on a menu, one step down from it, the
+  // way every other block in the app sits on its card.
+  background: $surface-plot;
 
   .karaoke-transport__volume-value {
     min-width: 0;
@@ -2014,10 +2015,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   justify-content: center;
   gap: 4px;
   padding: 4px;
-  border: 1px solid rgba($secondary-light, 0.08);
+  border: 1px solid $border-subtle;
   border-radius: $radius-pill;
-  background: rgba($surface-well, 0.25);
-  box-shadow: inset 0 1px 2px rgba($black, 0.24);
+  // The plot well, flat: a block on a menu, one step down from it, the
+  // way every other block in the app sits on its card.
+  background: $surface-plot;
 }
 
 .karaoke-transport button.karaoke-transport__mix-trigger {
@@ -2246,10 +2248,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       90deg,
       $secondary-light 0,
       $secondary-default var(--karaoke-range-progress),
-      rgba($edge-tint, 0.12) var(--karaoke-range-progress),
-      rgba($edge-tint, 0.12) 100%
+      $track-well var(--karaoke-range-progress),
+      $track-well 100%
     );
-    box-shadow: inset 0 1px 2px rgba($black, 0.68);
+    // Flat, like the library's transport line. The inset shadow read as a
+    // dark rule along the top of the groove — at 5px there is no room for
+    // it to be depth — and the empty half is the app's one empty-track
+    // colour rather than a wash of white.
+    box-shadow: none;
   }
 
   &::-webkit-slider-thumb {
@@ -2579,9 +2585,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   gap: 8px;
   padding: 9px 10px;
   color: $text-faint;
-  border: 1px solid rgba($edge-tint, 0.08);
+  border: 1px solid $border-subtle;
   border-radius: $radius-s;
-  background: rgba($surface-base, 0.36);
+  background: $surface-plot;
   font-size: $text-micro;
   font-weight: $weight-bold;
 
@@ -2833,26 +2839,18 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   overflow: hidden;
   border: 1px solid rgba($secondary-light, 0.1);
   border-radius: $radius-m;
-  background:
-    radial-gradient(
-      circle at 46% -25%,
-      rgba($secondary-default, 0.055),
-      transparent 48%
-    ),
-    rgba($surface-well, 0.78);
-  box-shadow:
-    inset 0 1px 10px rgba($black, 0.34),
-    0 1px 0 rgba($white, 0.025);
+  // The plot colour, flat. The drawing inside paints the same colour edge
+  // to edge, so a wash here only showed as a darker rim where the two did
+  // not quite meet.
+  background: $surface-plot;
+  box-shadow: none;
   transition:
     border-color 260ms ease,
     box-shadow 260ms ease;
 
   .karaoke-pitch.is-microphone-live & {
     border-color: rgba($secondary-light, 0.17);
-    box-shadow:
-      inset 0 1px 10px rgba($black, 0.34),
-      0 0 18px rgba($secondary-default, 0.045),
-      0 1px 0 rgba($white, 0.035);
+    box-shadow: 0 0 18px rgba($secondary-default, 0.045);
   }
 
   canvas {
@@ -2899,9 +2897,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   color: $text-primary;
   border: 1px solid rgba($secondary-light, 0.44);
   border-radius: $radius-l;
-  background: rgba($surface-well, 0.88);
+  // The card colour, like every other card. It was the old well colour at
+  // 88%, which over a picture was a black box with a number in it.
+  background: $block-lift;
   box-shadow:
-    0 20px 55px rgba($black, 0.55),
+    0 20px 55px rgba($black, 0.45),
     0 0 34px rgba($secondary-default, 0.17);
   pointer-events: none;
   transform: translate(-50%, -50%);

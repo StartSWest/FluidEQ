@@ -39,7 +39,20 @@ interface IDspBarIconProps {
 }
 
 const DspBarIcon = ({ name }: IDspBarIconProps) => (
-  <svg className="dsp-bar-icon" viewBox="0 0 16 16" aria-hidden="true">
+  // `fill="none"` on the svg, like every other stroked glyph in the app.
+  //
+  // These are outlines drawn with a stroke, and the stylesheet said so — but
+  // `.button` paints the inside of every path that does not carry the
+  // attribute itself, in the dark ink that reads on a cyan face, and it wins
+  // over the stylesheet here. On the quiet preset buttons that put a black
+  // blob inside the reset arrow's bowl. Saying it in the markup is what the
+  // button rule is written to respect.
+  <svg
+    className="dsp-bar-icon"
+    viewBox="0 0 16 16"
+    fill="none"
+    aria-hidden="true"
+  >
     <path d={PATHS[name]} />
   </svg>
 );
