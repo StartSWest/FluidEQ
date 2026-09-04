@@ -14,6 +14,9 @@ import type {
 interface IListenerReconnectOptions {
   reconnectGenerationRef: { current: number };
   roleRef: { current: TRemoteAudioRole | undefined };
+  setConnectedComputers(
+    computers: { address?: string; id: string; name: string }[],
+  ): void;
   setConnectedCount(count: number): void;
   setDeviceName(name: string): void;
   setError(error: TRemoteAudioError | undefined): void;
@@ -32,6 +35,7 @@ interface IListenerReconnectOptions {
 const useRemoteAudioListenerReconnect = ({
   reconnectGenerationRef,
   roleRef,
+  setConnectedComputers,
   setConnectedCount,
   setDeviceName,
   setError,
@@ -46,6 +50,7 @@ const useRemoteAudioListenerReconnect = ({
     }
     const attempt = reconnectGenerationRef.current + 1;
     reconnectGenerationRef.current = attempt;
+    setConnectedComputers([]);
     setConnectedCount(0);
     setError(undefined);
     setPhase('preparing');
@@ -79,6 +84,7 @@ const useRemoteAudioListenerReconnect = ({
   }, [
     reconnectGenerationRef,
     roleRef,
+    setConnectedComputers,
     setConnectedCount,
     setDeviceName,
     setError,

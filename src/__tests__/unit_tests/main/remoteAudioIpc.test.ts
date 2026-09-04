@@ -18,7 +18,6 @@ jest.mock('electron', () => ({
 }));
 
 const lan = {
-  join: jest.fn(),
   restoreJoin: jest.fn(),
   sendAudio: jest.fn(),
   sendSignal: jest.fn(),
@@ -54,6 +53,8 @@ jest.mock('../../../main/remoteAudioHostSession', () => ({
 
 // eslint-disable-next-line import/first
 import { registerRemoteAudioIpc } from '../../../main/ipc/remoteAudio';
+// eslint-disable-next-line import/first
+import { encodePairingCode } from '../../../main/remoteAudioLanProtocol';
 
 describe('remote audio IPC session persistence', () => {
   beforeEach(() => {
@@ -149,6 +150,61 @@ describe('remote audio IPC session persistence', () => {
     });
     await restoring;
 
+    expect(credentials.pause).toHaveBeenCalledTimes(1);
+    expect(credentials.activate).not.toHaveBeenCalled();
+  });
+
+  it('keeps a validated sender pairing active while its receiver is offline', async () => {
+    const code = encodePairingCode(
+      '192.168.1.20',
+      49_100,
+      'c'.repeat(43),
+      'HEADSET-PC',
+    );
+    let finishJoin: ((value: unknown) => void) | undefined;
+    lan.restoreJoin.mockReturnValue(
+      new Promise((resolve) => {
+        finishJoin = resolve;
+      }),
+    );
+    const join = handlers.get('remote-audio-lan-join');
+
+    const connecting = join?.({}, code, 'video');
+    await Promise.resolve();
+
+    expect(credentials.write).toHaveBeenCalledWith({
+      role: 'sender',
+      code,
+    });
+    expect(lan.restoreJoin).toHaveBeenCalledWith(code);
+    finishJoin?.({ deviceName: 'HEADSET-PC', peerId: 'peer-1' });
+    await connecting;
+  });
+
+  it('cancels that pending sender retry only after an explicit stop', async () => {
+    const code = encodePairingCode(
+      '192.168.1.20',
+      49_100,
+      'c'.repeat(43),
+      'HEADSET-PC',
+    );
+    let rejectJoin: ((error: Error) => void) | undefined;
+    lan.restoreJoin.mockReturnValue(
+      new Promise((_resolve, reject) => {
+        rejectJoin = reject;
+      }),
+    );
+    const join = handlers.get('remote-audio-lan-join');
+    const stop = handlers.get('remote-audio-lan-stop');
+
+    const connecting = join?.({}, code, 'video') as Promise<unknown>;
+    const connectingResult = connecting.catch((error: unknown) => error);
+    await Promise.resolve();
+    await stop?.({}, 'pause');
+    rejectJoin?.(new Error('stopped'));
+    await expect(connectingResult).resolves.toThrow('stopped');
+
+    expect(lan.stop).toHaveBeenCalledTimes(1);
     expect(credentials.pause).toHaveBeenCalledTimes(1);
     expect(credentials.activate).not.toHaveBeenCalled();
   });

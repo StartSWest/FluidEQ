@@ -20,6 +20,7 @@ import {
 import { createRemoteAudioCredentialStore } from '../remoteAudioCredentials';
 import startRemoteAudioHostSession from '../remoteAudioHostSession';
 import createRemoteAudioLan from '../remoteAudioLan';
+import { decodePairingCode } from '../remoteAudioLanProtocol';
 
 const LAN_SIGNAL_CHANNEL = 'remote-audio-lan-signal';
 const LAN_AUDIO_CHANNEL = 'remote-audio-lan-audio';
@@ -210,7 +211,13 @@ export const registerRemoteAudioIpc = ({
     async (_event, code: unknown, streamMode: unknown) => {
       const generation = beginSessionOperation();
       stopCapture();
-      const listener = await lan.join(code);
+      // A deliberate Connect makes this pairing durable immediately. Using
+      // the restore path means the sender waits through boot, sleep, Wi-Fi,
+      // and receiver restarts until the user explicitly presses Stop.
+      const normalizedCode = typeof code === 'string' ? code.trim() : '';
+      decodePairingCode(normalizedCode);
+      credentials.write({ role: 'sender', code: normalizedCode });
+      const listener = await lan.restoreJoin(normalizedCode);
       try {
         if (!sessionIsCurrent(generation)) {
           throw new Error('LAN audio session was replaced.');
@@ -224,7 +231,7 @@ export const registerRemoteAudioIpc = ({
         if (!(await beginCapture(listener.peerId, generation))) {
           return undefined;
         }
-        credentials.write({ role: 'sender', code: String(code) });
+        credentials.activate('sender');
         return listener;
       } catch (error) {
         if (sessionIsCurrent(generation)) {

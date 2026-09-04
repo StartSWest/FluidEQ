@@ -31,6 +31,22 @@ describe('remote audio background recovery', () => {
     expect(options.reconnectSender).not.toHaveBeenCalled();
   });
 
+  it('retries the active sender with its saved mode when the network returns', () => {
+    const listenerOptions = recoveryOptions();
+    const options = {
+      ...listenerOptions,
+      reconnectSender: jest.fn().mockResolvedValue(undefined),
+      role: 'sender' as const,
+      roleRef: { current: 'sender' as const },
+    };
+    renderHook(() => useRemoteAudioRecovery(options));
+
+    act(() => window.dispatchEvent(new Event('online')));
+
+    expect(options.reconnectSender).toHaveBeenCalledWith('video');
+    expect(options.reconnectListener).not.toHaveBeenCalled();
+  });
+
   it('does not retry a session after manual stop cleared its role', () => {
     const options = recoveryOptions();
     const { roleRef }: { roleRef: { current: 'listener' | undefined } } =

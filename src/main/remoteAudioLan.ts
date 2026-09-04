@@ -54,8 +54,10 @@ import type {
 
 const MAX_PENDING_SOCKETS = 64;
 const MAX_PENDING_SOCKETS_PER_ADDRESS = 8;
+const MAX_AUTHENTICATED_SOCKETS = 32;
 const AUTHENTICATION_TIMEOUT_MS = 5_000;
 const DISCOVERY_RETRY_DELAYS_MS = [0, 1_000, 2_000, 5_000] as const;
+const WEB_SOCKET_OPEN = 1;
 const WEB_SOCKET_CLOSED = 3;
 
 /**
@@ -124,7 +126,9 @@ const createRemoteAudioLan = (
   let discoverySocket: dgram.Socket | undefined;
   let discoveryRetryTimer: NodeJS.Timeout | undefined;
   let rejectDiscovery: ((error: Error) => void) | undefined;
+  let rejectHostStart: ((error: Error) => void) | undefined;
   let pendingSocket: WebSocket | undefined;
+  let lifecycleGeneration = 0;
   const usedPeerIds = new Set<string>();
   let key: Buffer | undefined;
   const transport = createRemoteAudioTransport({
@@ -134,16 +138,19 @@ const createRemoteAudioLan = (
   });
 
   const stop = () => {
+    lifecycleGeneration += 1;
     const activeServer = server;
     const activePendingSocket = pendingSocket;
     const activeDiscoverySocket = discoverySocket;
     const activeDiscoveryRetryTimer = discoveryRetryTimer;
     const activeRejectDiscovery = rejectDiscovery;
+    const activeRejectHostStart = rejectHostStart;
     server = undefined;
     pendingSocket = undefined;
     discoverySocket = undefined;
     discoveryRetryTimer = undefined;
     rejectDiscovery = undefined;
+    rejectHostStart = undefined;
     key = undefined;
     transport.closeAll();
     usedPeerIds.clear();
@@ -159,6 +166,7 @@ const createRemoteAudioLan = (
       closeDiscoverySocket(activeDiscoverySocket);
     }
     activeRejectDiscovery?.(new Error('LAN discovery stopped.'));
+    activeRejectHostStart?.(new Error('LAN listener stopped.'));
     if (activeServer) {
       activeServer.clients.forEach((client) => {
         client.removeAllListeners();
@@ -172,6 +180,7 @@ const createRemoteAudioLan = (
     credentials?: ILanHostCredentials,
   ): Promise<ILanHostSession> => {
     stop();
+    const operation = lifecycleGeneration;
     const addresses = lanAddresses();
     const secret =
       credentials?.secret ?? crypto.randomBytes(32).toString('base64url');
@@ -188,6 +197,10 @@ const createRemoteAudioLan = (
     const pendingSocketsByAddress = new Map<string, number>();
 
     nextServer.on('connection', (candidate, request) => {
+      if (lifecycleGeneration !== operation || server !== nextServer) {
+        closeWebSocketSafely(candidate);
+        return;
+      }
       const remoteAddress = request.socket.remoteAddress?.replace(
         /^::ffff:/,
         '',
@@ -251,12 +264,12 @@ const createRemoteAudioLan = (
           if (
             !message ||
             message.challenge !== challenge ||
-            usedPeerIds.has(message.peerId)
+            usedPeerIds.has(message.peerId) ||
+            usedPeerIds.size >= MAX_AUTHENTICATED_SOCKETS
           ) {
             closeWebSocketSafely(candidate, 1008, 'Authentication failed');
             return;
           }
-          candidate.removeListener('error', onPendingError);
           candidate.removeListener('message', authenticate);
           const sessionKey = deriveSessionKey(
             nextKey,
@@ -271,7 +284,11 @@ const createRemoteAudioLan = (
           candidate.send(
             sealAuthAccepted({ challenge, peerId: message.peerId }, nextKey),
             (error) => {
-              if (error) {
+              if (
+                error ||
+                !isPending ||
+                candidate.readyState !== WEB_SOCKET_OPEN
+              ) {
                 closeWebSocketSafely(candidate, 1008, 'Authentication failed');
                 return;
               }
@@ -279,6 +296,7 @@ const createRemoteAudioLan = (
               clearTimeout(authenticationTimer);
               releasePending();
               transport.attach(message.peerId, candidate, sessionKey);
+              candidate.removeListener('error', onPendingError);
               emitSignal({
                 peerId: message.peerId,
                 signal: {
@@ -304,12 +322,23 @@ const createRemoteAudioLan = (
     let port: number;
     try {
       port = await new Promise<number>((resolve, reject) => {
+        const cancel = (error: Error) => {
+          nextServer.removeListener('error', onError);
+          nextServer.removeListener('listening', onListening);
+          reject(error);
+        };
         const onError = (error: Error) => {
           nextServer.removeListener('listening', onListening);
+          if (rejectHostStart === cancel) {
+            rejectHostStart = undefined;
+          }
           reject(error);
         };
         const onListening = () => {
           nextServer.removeListener('error', onError);
+          if (rejectHostStart === cancel) {
+            rejectHostStart = undefined;
+          }
           const address = nextServer.address();
           if (typeof address === 'string' || address === null) {
             reject(new Error('LAN server did not receive a network port.'));
@@ -319,10 +348,16 @@ const createRemoteAudioLan = (
         };
         nextServer.once('error', onError);
         nextServer.once('listening', onListening);
+        rejectHostStart = cancel;
       });
     } catch (error) {
-      stop();
+      if (lifecycleGeneration === operation) {
+        stop();
+      }
       throw error;
+    }
+    if (lifecycleGeneration !== operation || server !== nextServer) {
+      throw new Error('LAN listener was stopped.');
     }
     nextServer.on('error', () => {
       if (server === nextServer) {
@@ -353,20 +388,44 @@ const createRemoteAudioLan = (
       // later returns. Closing it here permanently removed discovery after a
       // sleep or Wi-Fi change, even though the listener server stayed alive.
     });
+    nextDiscoverySocket.on('close', () => {
+      if (discoverySocket === nextDiscoverySocket) {
+        discoverySocket = undefined;
+        emitError();
+      }
+    });
     try {
       await new Promise<void>((resolve, reject) => {
+        const cancel = (error: Error) => {
+          nextDiscoverySocket.removeListener('error', onError);
+          nextDiscoverySocket.removeListener('listening', onListening);
+          reject(error);
+        };
         const onError = (error: Error) => {
           nextDiscoverySocket.removeListener('listening', onListening);
+          if (rejectHostStart === cancel) {
+            rejectHostStart = undefined;
+          }
           reject(error);
         };
         const onListening = () => {
           nextDiscoverySocket.removeListener('error', onError);
+          if (rejectHostStart === cancel) {
+            rejectHostStart = undefined;
+          }
           resolve();
         };
         nextDiscoverySocket.once('error', onError);
         nextDiscoverySocket.once('listening', onListening);
+        rejectHostStart = cancel;
         nextDiscoverySocket.bind(REMOTE_AUDIO_DISCOVERY_PORT);
       });
+      if (
+        lifecycleGeneration !== operation ||
+        discoverySocket !== nextDiscoverySocket
+      ) {
+        throw new Error('LAN listener was stopped.');
+      }
       nextDiscoverySocket.setBroadcast(true);
       nextDiscoverySocket.send(
         announcement,
@@ -375,7 +434,11 @@ const createRemoteAudioLan = (
         () => undefined,
       );
     } catch (error) {
-      stop();
+      if (lifecycleGeneration === operation) {
+        stop();
+      } else {
+        closeDiscoverySocket(nextDiscoverySocket);
+      }
       throw error;
     }
 
@@ -394,7 +457,11 @@ const createRemoteAudioLan = (
 
   const connectPairing = async (
     pairing: ILanPairingPayload,
+    operation: number,
   ): Promise<ILanRemoteComputer> => {
+    if (lifecycleGeneration !== operation) {
+      throw new Error('LAN connection was stopped.');
+    }
     const nextKey = keyFromSecret(pairing.secret);
     const peerId = crypto.randomUUID();
     const socket = new WebSocket(`ws://${pairing.address}:${pairing.port}`, {
@@ -462,6 +529,9 @@ const createRemoteAudioLan = (
           if (accepted.challenge !== challenge || accepted.peerId !== peerId) {
             throw new Error('LAN authentication acknowledgement changed.');
           }
+          if (lifecycleGeneration !== operation) {
+            throw new Error('LAN connection was stopped.');
+          }
           settled = true;
           cleanup();
           const sessionKey = deriveSessionKey(nextKey, challenge, peerId);
@@ -494,22 +564,24 @@ const createRemoteAudioLan = (
     });
   };
 
-  const join = async (code: unknown): Promise<ILanRemoteComputer> => {
-    stop();
-    return connectPairing(decodePairingCode(code));
-  };
-
   const restoreJoin = async (code: unknown): Promise<ILanRemoteComputer> => {
     stop();
+    const operation = lifecycleGeneration;
     const savedPairing = decodePairingCode(code);
     try {
-      return await connectPairing(savedPairing);
-    } catch {
+      return await connectPairing(savedPairing, operation);
+    } catch (error) {
+      if (lifecycleGeneration !== operation) {
+        throw error;
+      }
       // A saved address can change between launches. The authenticated
       // discovery exchange below finds only the listener holding this pairing
       // secret, so reconnect does not fall back to trusting a machine name.
     }
 
+    if (lifecycleGeneration !== operation) {
+      throw new Error('LAN connection was stopped.');
+    }
     const socket = dgram.createSocket({ type: 'udp4', reuseAddr: true });
     discoverySocket = socket;
     return new Promise<ILanRemoteComputer>((resolve, reject) => {
@@ -542,7 +614,11 @@ const createRemoteAudioLan = (
       };
       rejectDiscovery = (error) => finish({ error });
       const scheduleQuery = () => {
-        if (settled || discoveryRetryTimer) {
+        if (
+          settled ||
+          discoveryRetryTimer ||
+          lifecycleGeneration !== operation
+        ) {
           return;
         }
         const delay =
@@ -577,12 +653,15 @@ const createRemoteAudioLan = (
           return;
         }
         connecting = true;
-        connectPairing({
-          address: sender.address,
-          deviceName: announcement.deviceName,
-          port: announcement.port,
-          secret: savedPairing.secret,
-        })
+        connectPairing(
+          {
+            address: sender.address,
+            deviceName: announcement.deviceName,
+            port: announcement.port,
+            secret: savedPairing.secret,
+          },
+          operation,
+        )
           .then((computer) => finish({ computer }))
           .catch(() => {
             connecting = false;
@@ -621,7 +700,6 @@ const createRemoteAudioLan = (
 
   return {
     startHost,
-    join,
     restoreJoin,
     sendSignal,
     sendAudio,

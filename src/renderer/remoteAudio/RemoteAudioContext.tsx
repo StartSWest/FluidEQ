@@ -177,6 +177,7 @@ const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
   const reconnectListener = useRemoteAudioListenerReconnect({
     reconnectGenerationRef: senderReconnectGenerationRef,
     roleRef,
+    setConnectedComputers,
     setConnectedCount,
     setDeviceName,
     setError,

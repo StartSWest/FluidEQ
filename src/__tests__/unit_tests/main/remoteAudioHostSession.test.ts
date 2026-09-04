@@ -16,7 +16,6 @@ const session = (port: number, secret: string): ILanHostSession => ({
 });
 
 const lanWithHost = (startHost: jest.Mock): IRemoteAudioLan => ({
-  join: jest.fn(),
   restoreJoin: jest.fn(),
   sendAudio: jest.fn(),
   sendSignal: jest.fn(),
@@ -65,9 +64,12 @@ describe('durable LAN audio listener identity', () => {
       secret: 's'.repeat(43),
     };
     const recovered = session(49_300, saved.secret);
+    const addressInUse = Object.assign(new Error('port in use'), {
+      code: 'EADDRINUSE',
+    });
     const startHost = jest
       .fn()
-      .mockRejectedValueOnce(new Error('port in use'))
+      .mockRejectedValueOnce(addressInUse)
       .mockResolvedValueOnce(recovered);
 
     await expect(
@@ -81,6 +83,28 @@ describe('durable LAN audio listener identity', () => {
       port: 0,
       secret: saved.secret,
     });
+  });
+
+  it('does not restart a listener after its pending start was stopped', async () => {
+    const saved = {
+      port: 49_100,
+      role: 'listener' as const,
+      secret: 's'.repeat(43),
+    };
+    const stopped = Object.assign(new Error('listener stopped'), {
+      code: 'ERR_SERVER_NOT_RUNNING',
+    });
+    const startHost = jest.fn().mockRejectedValue(stopped);
+
+    await expect(
+      startRemoteAudioHostSession(
+        lanWithHost(startHost),
+        storeWith(saved),
+        false,
+      ),
+    ).rejects.toBe(stopped);
+
+    expect(startHost).toHaveBeenCalledTimes(1);
   });
 
   it('creates a new identity only when the user requests a new code', async () => {

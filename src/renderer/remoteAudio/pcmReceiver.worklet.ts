@@ -65,6 +65,7 @@ const RESAMPLER_TAPS = 64;
 const RESAMPLER_HALF = RESAMPLER_TAPS / 2;
 const RESAMPLER_PHASES = 256;
 const KAISER_BETA = 8.6;
+const MAX_CACHED_RESAMPLER_KERNELS = 16;
 const KERNEL_CACHE = new Map<string, Float32Array>();
 const besselI0 = (value: number): number => {
   let sum = 1;
@@ -91,6 +92,8 @@ const resamplerKernel = (
   const cacheKey = `${sourceSampleRate}:${outputSampleRate}`;
   const cached = KERNEL_CACHE.get(cacheKey);
   if (cached) {
+    KERNEL_CACHE.delete(cacheKey);
+    KERNEL_CACHE.set(cacheKey, cached);
     return cached;
   }
   const table = new Float32Array((RESAMPLER_PHASES + 1) * RESAMPLER_TAPS);
@@ -109,6 +112,12 @@ const resamplerKernel = (
           : 0;
       table[phase * RESAMPLER_TAPS + tap] =
         cutoff * sinc(cutoff * distance) * window;
+    }
+  }
+  if (KERNEL_CACHE.size >= MAX_CACHED_RESAMPLER_KERNELS) {
+    const oldestKey = KERNEL_CACHE.keys().next().value;
+    if (typeof oldestKey === 'string') {
+      KERNEL_CACHE.delete(oldestKey);
     }
   }
   KERNEL_CACHE.set(cacheKey, table);

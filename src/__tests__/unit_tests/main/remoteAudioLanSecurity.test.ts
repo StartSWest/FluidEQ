@@ -31,6 +31,27 @@ const mockNetworkInterfaces = jest.fn(() => ({
     },
   ],
 }));
+const mockCreateDgramSocket = jest.fn(() => {
+  const socket = new EventEmitter() as EventEmitter & {
+    bind: jest.Mock;
+    close: jest.Mock;
+    removeAllListeners(): EventEmitter;
+    send: jest.Mock;
+    setBroadcast: jest.Mock;
+  };
+  socket.bind = jest.fn(() => queueMicrotask(() => socket.emit('listening')));
+  socket.close = jest.fn();
+  socket.send = jest.fn(
+    (
+      _data: Buffer,
+      _port: number,
+      _address: string,
+      callback?: (error?: Error) => void,
+    ) => callback?.(),
+  );
+  socket.setBroadcast = jest.fn();
+  return socket;
+});
 
 jest.mock('ws', () => ({
   __esModule: true,
@@ -49,29 +70,7 @@ jest.mock('ws', () => ({
 jest.mock('dgram', () => ({
   __esModule: true,
   default: {
-    createSocket: jest.fn(() => {
-      const socket = new EventEmitter() as EventEmitter & {
-        bind: jest.Mock;
-        close: jest.Mock;
-        removeAllListeners(): EventEmitter;
-        send: jest.Mock;
-        setBroadcast: jest.Mock;
-      };
-      socket.bind = jest.fn(() =>
-        queueMicrotask(() => socket.emit('listening')),
-      );
-      socket.close = jest.fn();
-      socket.send = jest.fn(
-        (
-          _data: Buffer,
-          _port: number,
-          _address: string,
-          callback?: (error?: Error) => void,
-        ) => callback?.(),
-      );
-      socket.setBroadcast = jest.fn();
-      return socket;
-    }),
+    createSocket: mockCreateDgramSocket,
   },
 }));
 
@@ -98,6 +97,7 @@ import {
 const fakeSocket = (): IFakeSocket => {
   const socket = new EventEmitter() as IFakeSocket;
   socket.deferSendCallbacks = false;
+  socket.readyState = 1;
   socket.sent = [];
   socket.close = jest.fn((code?: number, reason?: string) => {
     socket.emit('close', code, reason);
@@ -118,6 +118,7 @@ describe('LAN listener authentication limits', () => {
   beforeEach(() => {
     mockServers.length = 0;
     mockWebSocket.mockReset();
+    mockCreateDgramSocket.mockClear();
     mockNetworkInterfaces.mockReturnValue({
       Ethernet: [
         {
@@ -162,6 +163,21 @@ describe('LAN listener authentication limits', () => {
       'Authentication timed out',
     );
     lan.stop();
+  });
+
+  it('settles a listener start that is manually stopped before binding', async () => {
+    const lan = createRemoteAudioLan(
+      jest.fn(),
+      jest.fn(),
+      jest.fn(),
+      jest.fn(),
+    );
+
+    const starting = lan.startHost();
+    lan.stop();
+
+    await expect(starting).rejects.toThrow('LAN listener stopped.');
+    expect(mockCreateDgramSocket).not.toHaveBeenCalled();
   });
 
   it('reserves a peer identity before its acknowledgement completes', async () => {
@@ -218,6 +234,124 @@ describe('LAN listener authentication limits', () => {
     lan.stop();
   });
 
+  it('bounds authenticated senders even when they all know the pairing code', async () => {
+    const lan = createRemoteAudioLan(
+      jest.fn(),
+      jest.fn(),
+      jest.fn(),
+      jest.fn(),
+    );
+    const session = await lan.startHost();
+    const server = mockServers[0];
+    const key = keyFromSecret(session.credentials.secret);
+    const candidates = Array.from({ length: 33 }, () => fakeSocket());
+
+    candidates.forEach((candidate, index) => {
+      server.clients.add(candidate);
+      server.emit('connection', candidate, {
+        socket: { remoteAddress: `192.168.1.${index + 50}` },
+      });
+      const packet = openPacket(candidate.sent[0], key);
+      const { challenge } = openAuthChallenge(packet.clear);
+      candidate.emit(
+        'message',
+        sealAuthReady(
+          {
+            challenge,
+            deviceName: `SOURCE-${index}`,
+            peerId: `peer-${index}`,
+          },
+          key,
+        ),
+      );
+    });
+
+    expect(candidates[31].close).not.toHaveBeenCalled();
+    expect(candidates[32].close).toHaveBeenCalledWith(
+      1008,
+      'Authentication failed',
+    );
+    lan.stop();
+  });
+
+  it('keeps an error listener during the authentication acknowledgement', async () => {
+    const lan = createRemoteAudioLan(
+      jest.fn(),
+      jest.fn(),
+      jest.fn(),
+      jest.fn(),
+    );
+    const session = await lan.startHost();
+    const server = mockServers[0];
+    const key = keyFromSecret(session.credentials.secret);
+    const candidate = fakeSocket();
+    server.clients.add(candidate);
+    server.emit('connection', candidate, {
+      socket: { remoteAddress: '192.168.1.90' },
+    });
+    const packet = openPacket(candidate.sent[0], key);
+    const { challenge } = openAuthChallenge(packet.clear);
+    candidate.deferSendCallbacks = true;
+    candidate.emit(
+      'message',
+      sealAuthReady(
+        {
+          challenge,
+          deviceName: 'SOURCE-PC',
+          peerId: 'pending-ack-peer',
+        },
+        key,
+      ),
+    );
+
+    expect(() =>
+      candidate.emit('error', new Error('socket failed')),
+    ).not.toThrow();
+    expect(candidate.close).toHaveBeenCalledWith(1008, 'Authentication failed');
+    lan.stop();
+  });
+
+  it('cannot attach a peer after its acknowledgement timed out', async () => {
+    const emitSignal = jest.fn();
+    const lan = createRemoteAudioLan(
+      emitSignal,
+      jest.fn(),
+      jest.fn(),
+      jest.fn(),
+    );
+    const session = await lan.startHost();
+    jest.useFakeTimers();
+    const server = mockServers[0];
+    const key = keyFromSecret(session.credentials.secret);
+    const candidate = fakeSocket();
+    server.clients.add(candidate);
+    server.emit('connection', candidate, {
+      socket: { remoteAddress: '192.168.1.91' },
+    });
+    const packet = openPacket(candidate.sent[0], key);
+    const { challenge } = openAuthChallenge(packet.clear);
+    candidate.deferSendCallbacks = true;
+    candidate.emit(
+      'message',
+      sealAuthReady(
+        {
+          challenge,
+          deviceName: 'SOURCE-PC',
+          peerId: 'timed-out-peer',
+        },
+        key,
+      ),
+    );
+
+    jest.advanceTimersByTime(5_000);
+    const acknowledge = candidate.send.mock.calls[1][1] as
+      ((error?: Error) => void) | undefined;
+    acknowledge?.();
+
+    expect(emitSignal).not.toHaveBeenCalled();
+    lan.stop();
+  });
+
   it('keeps the listener alive while every network adapter is offline', async () => {
     mockNetworkInterfaces.mockReturnValue({ Ethernet: [] });
     const lan = createRemoteAudioLan(
@@ -260,10 +394,36 @@ describe('LAN listener authentication limits', () => {
       'LISTENER-PC',
     );
 
-    const joining = lan.join(pairingCode);
+    const joining = lan.restoreJoin(pairingCode);
     jest.advanceTimersByTime(5_000);
+    await Promise.resolve();
+    lan.stop();
 
     await expect(joining).rejects.toThrow('LAN authentication timed out.');
     expect(socket.close).toHaveBeenCalledWith(1008, 'Authentication timed out');
+  });
+
+  it('does not start discovery after a pending restore was manually stopped', async () => {
+    const socket = fakeSocket();
+    socket.readyState = 0;
+    mockWebSocket.mockImplementationOnce(() => socket);
+    const lan = createRemoteAudioLan(
+      jest.fn(),
+      jest.fn(),
+      jest.fn(),
+      jest.fn(),
+    );
+    const pairingCode = encodePairingCode(
+      '192.168.1.20',
+      49_100,
+      'c'.repeat(43),
+      'LISTENER-PC',
+    );
+
+    const restoring = lan.restoreJoin(pairingCode);
+    lan.stop();
+
+    await expect(restoring).rejects.toThrow('LAN connection closed.');
+    expect(mockCreateDgramSocket).not.toHaveBeenCalled();
   });
 });

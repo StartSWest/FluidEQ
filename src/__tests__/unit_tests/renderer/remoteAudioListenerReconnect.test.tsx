@@ -22,6 +22,7 @@ describe('remote audio listener reconnect', () => {
       electron: { ipcRenderer: { restoreRemoteAudioLan } },
     });
     const setConnectedCount = jest.fn();
+    const setConnectedComputers = jest.fn();
     const setDeviceName = jest.fn();
     const setError = jest.fn();
     const setLanOptions = jest.fn();
@@ -30,6 +31,7 @@ describe('remote audio listener reconnect', () => {
       useRemoteAudioListenerReconnect({
         reconnectGenerationRef: { current: 0 },
         roleRef: { current: 'listener' },
+        setConnectedComputers,
         setConnectedCount,
         setDeviceName,
         setError,
@@ -43,6 +45,7 @@ describe('remote audio listener reconnect', () => {
     await act(() => result.current());
 
     expect(restoreRemoteAudioLan).toHaveBeenCalledWith('video');
+    expect(setConnectedComputers).toHaveBeenCalledWith([]);
     expect(setConnectedCount).toHaveBeenCalledWith(0);
     expect(setDeviceName).toHaveBeenCalledWith('HEADSET-PC');
     expect(setLanOptions).toHaveBeenCalledWith([
@@ -75,6 +78,7 @@ describe('remote audio listener reconnect', () => {
       useRemoteAudioListenerReconnect({
         reconnectGenerationRef: generationRef,
         roleRef,
+        setConnectedComputers: jest.fn(),
         setConnectedCount: jest.fn(),
         setDeviceName: jest.fn(),
         setError: jest.fn(),

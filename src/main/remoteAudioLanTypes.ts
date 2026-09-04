@@ -8,7 +8,6 @@ import type {
 
 export interface IRemoteAudioLan {
   startHost(credentials?: ILanHostCredentials): Promise<ILanHostSession>;
-  join(code: unknown): Promise<ILanRemoteComputer>;
   restoreJoin(code: unknown): Promise<ILanRemoteComputer>;
   sendSignal(message: unknown): void;
   sendAudio(chunk: unknown): void;
