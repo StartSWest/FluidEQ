@@ -124,9 +124,13 @@ $role-surface: $surface-panel;
   flex: 0 0 auto;
   flex-direction: column;
   overflow: hidden;
-  border-color: rgba($secondary-light, 0.32);
-  background: $role-surface;
-  box-shadow: inset 0 1px 0 rgba($white, 0.035);
+  // The card colour and the card's own edge, like every other card. It had
+  // a brighter cyan border and the pane colour for a fill, so the one card on
+  // the page you interact with was darker than the cards around it and
+  // outlined like a warning.
+  border-color: $border-subtle;
+  background: $block-lift;
+  box-shadow: none;
 }
 
 .remote-audio__role-cards {

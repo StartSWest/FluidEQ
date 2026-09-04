@@ -3,11 +3,17 @@
 @use 'color' as *;
 @use 'theme' as *;
 
+// A section of the open role panel, not a card inside it.
+//
+// It drew its own border and fill inside a shell that already has both, so
+// the pairing code sat three boxes deep — shell, card, field — under a
+// heading that is the only thing separating it from the role tabs above. A
+// rule across the top says where the section starts; the shell is the card.
 .remote-audio__codes {
-  @include inset-surface;
   display: flex;
   flex-direction: column;
-  padding: 12px 14px 14px;
+  padding: 14px 0 0;
+  border-top: 1px solid $border-subtle;
   gap: 9px;
 
   > h4,

@@ -47,8 +47,11 @@
   // It holds a waveform, so it wears what every plot in the app wears.
   background: $surface-plot;
 
+  // Enough for a waveform to breathe, not a third of the screen: at 16vh
+  // on a tall window this was a 180px box drawn around a line, and it was
+  // the first thing on the page.
   &.is-primary .remote-audio__waveform {
-    height: clamp(120px, 16vh, 180px);
+    height: clamp(88px, 10vh, 120px);
   }
 
   // Nothing is connected, so there is nothing to draw. It kept the full

@@ -193,16 +193,16 @@
   font-weight: $weight-semibold;
 }
 
+// One line of status, drawn as one line. It was a bordered, filled card
+// holding six words, at the foot of a page that already had four cards —
+// a box for its own sake.
 .remote-audio__connection-state {
   display: flex;
-  height: 42px;
-  flex: 0 0 42px;
+  min-height: 24px;
+  flex: 0 0 auto;
   align-items: center;
-  padding: 7px 11px;
+  padding: 0 2px;
   gap: 8px;
-  border: 1px solid $border-subtle;
-  border-radius: $radius-s;
-  background: $block-lift;
   color: $text-muted;
 
   > span {

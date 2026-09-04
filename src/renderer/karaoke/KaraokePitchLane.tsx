@@ -83,6 +83,15 @@ import {
   TKaraokePitchAnalysisStatus,
 } from './useKaraokeMicrophone';
 
+/**
+ * The system font, the same stack the stylesheet uses — a canvas cannot read
+ * it from there. Named for the platforms it ships on: Windows first, then
+ * macOS, then the Linux families, and never `Inter`, which was in here for
+ * the life of the lane without ever being bundled.
+ */
+const LANE_FONT =
+  "'Segoe UI', -apple-system, Ubuntu, Cantarell, 'Noto Sans', 'DejaVu Sans', sans-serif";
+
 interface IKaraokePitchLaneProps {
   isActive: boolean;
   isPlaying?: boolean;
@@ -315,9 +324,9 @@ const KaraokePitchLane = ({
         context.beginPath();
         context.rect(PLOT_LEFT, 0, plotWidth, PLOT_TOP - 3);
         context.clip();
-        let labelFontSize = isCurrent ? 11.5 : 10.5;
-        const labelWeight = isCurrent ? 800 : 680;
-        context.font = `${labelWeight} ${labelFontSize}px Inter, system-ui, sans-serif`;
+        let labelFontSize = isCurrent ? 14 : 12.5;
+        const labelWeight = isCurrent ? 700 : 600;
+        context.font = `${labelWeight} ${labelFontSize}px ${LANE_FONT}`;
         context.textAlign = 'center';
         context.textBaseline = 'middle';
         let textWidth = Math.max(1, context.measureText(word.text).width);
@@ -327,7 +336,7 @@ const KaraokePitchLane = ({
             8.5,
             labelFontSize * (availableLabelWidth / textWidth),
           );
-          context.font = `${labelWeight} ${labelFontSize}px Inter, system-ui, sans-serif`;
+          context.font = `${labelWeight} ${labelFontSize}px ${LANE_FONT}`;
           textWidth = Math.max(1, context.measureText(word.text).width);
         }
         const labelX = clamp(
@@ -388,7 +397,7 @@ const KaraokePitchLane = ({
         }
       });
 
-      context.font = '600 9px Arial, sans-serif';
+      context.font = `600 11px ${LANE_FONT}`;
       context.textBaseline = 'middle';
       context.textAlign = 'right';
       const bottomMidi = centerMidi - semitoneSpan / 2;
@@ -621,7 +630,7 @@ const KaraokePitchLane = ({
           PLOT_LEFT + 8,
           Math.min(PLOT_LEFT + plotWidth - 8, x + noteWidth / 2),
         );
-        context.font = '800 9px Arial, sans-serif';
+        context.font = `700 11px ${LANE_FONT}`;
         const labelWidth = context.measureText(noteName).width;
         const pitchRow = Math.round(midi);
         const previousLabelRight =
@@ -912,8 +921,8 @@ const KaraokePitchLane = ({
         const reviewY = height - 22;
         const reviewTrackHeight = 11;
         const reviewMinimumTrackWidth = Math.min(82, plotWidth * 0.42);
-        const reviewFontSize = width < 620 ? 7.5 : 8;
-        context.font = `760 ${reviewFontSize}px Inter, system-ui, sans-serif`;
+        const reviewFontSize = width < 620 ? 10 : 11;
+        context.font = `700 ${reviewFontSize}px ${LANE_FONT}`;
         const measuredLabelWidth = Math.ceil(
           context.measureText(reviewLabel).width,
         );
@@ -996,8 +1005,9 @@ const KaraokePitchLane = ({
           reviewTrackX,
           reviewY + reviewTrackHeight,
         );
-        trackGradient.addColorStop(0, 'rgba(1, 7, 14, 0.9)');
-        trackGradient.addColorStop(1, 'rgba(11, 30, 45, 0.88)');
+        // The empty-track colour, like every groove in the app — not black.
+        trackGradient.addColorStop(0, 'rgba(46, 79, 99, 0.95)');
+        trackGradient.addColorStop(1, 'rgba(46, 79, 99, 0.85)');
         context.fillStyle = trackGradient;
         context.strokeStyle = 'rgba(107, 233, 242, 0.13)';
         context.lineWidth = 1;
@@ -1144,7 +1154,7 @@ const KaraokePitchLane = ({
         context.lineTo(legendX + legendWidth - 9, legendY + 0.5);
         context.stroke();
 
-        context.font = '720 8.5px Inter, system-ui, sans-serif';
+        context.font = `600 11px ${LANE_FONT}`;
         context.textAlign = 'left';
         context.textBaseline = 'middle';
         legendItems.forEach(([symbol, label, color], index) => {
@@ -1169,11 +1179,11 @@ const KaraokePitchLane = ({
             );
             context.stroke();
           } else {
-            context.font = '820 9px Inter, system-ui, sans-serif';
+            context.font = `700 11px ${LANE_FONT}`;
             context.fillText(symbol, swatchX + 1, y);
           }
           context.shadowBlur = 0;
-          context.font = '720 8.5px Inter, system-ui, sans-serif';
+          context.font = `600 11px ${LANE_FONT}`;
           context.fillStyle = 'rgba(222, 232, 247, 0.9)';
           context.fillText(label, legendX + 34, y, legendWidth - 45);
         });

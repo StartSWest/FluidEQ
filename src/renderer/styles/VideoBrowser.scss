@@ -297,12 +297,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     border-color: $border-field-focus;
   }
 
-  // Squared off at the bottom while the list is open, so the two read as one
-  // piece rather than as a box with something floating under it.
-  &.is-open {
-    border-bottom-right-radius: $radius-s;
-    border-bottom-left-radius: $radius-s;
-  }
+  // A pill, open or shut. The bottom corners used to square off while the
+  // list was showing, on the reasoning that the two would read as one control
+  // — but the list hangs 4px BELOW the field rather than joining it, so what
+  // that produced was a capsule with two flattened corners floating over a
+  // separate card: a shape that belongs to neither of them, and the edge of
+  // the field looked broken the moment the list opened. The library search
+  // learned the same lesson first.
 }
 
 .video-search__icon {

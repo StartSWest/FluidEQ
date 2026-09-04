@@ -916,12 +916,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: $text-muted;
-  border: 1px solid rgba($edge-tint, 0.14);
-  background: rgba($secondary-default, 0.07);
-  box-shadow:
-    0 5px 15px rgba($black, 0.24),
-    inset 0 1px 0 rgba($white, 0.055);
+  // Opaque and lit: this floats over the artwork, and a translucent grey pill
+  // with grey text disappeared into any grey picture. The card colour under
+  // the accent's own label, like the queue chip over a library video.
+  color: $secondary-light;
+  border: 1px solid $border-field;
+  background: $block-lift;
+  box-shadow: 0 5px 15px rgba($black, 0.24);
   transition: $transition-control;
 
   svg {
@@ -1397,11 +1398,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 .karaoke-chords__current {
   min-width: 76px;
-  background: linear-gradient(
-    135deg,
-    rgba($secondary-default, 0.12),
-    transparent 76%
-  );
+  // No wash of its own: the card is one colour and the three cells stand on
+  // it. The current chord is already the brightest thing in the card — the
+  // cyan wash behind it only made the three cells three tones.
 
   strong {
     color: $secondary-light;
@@ -3342,7 +3341,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   animation: karaoke-maker-surface-enter 190ms cubic-bezier(0.2, 0.8, 0.2, 1)
     both;
   overflow: hidden;
-  color: #eafcff;
+  color: $text-muted;
   background:
     radial-gradient(
       circle at 17% 20%,
@@ -3351,7 +3350,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     ),
     radial-gradient(
       circle at 82% 12%,
-      rgba(0, 201, 186, 0.15),
+      rgba($secondary-default, 0.15),
       transparent 31%
     ),
     linear-gradient(
@@ -3371,15 +3370,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   button {
     min-height: 30px;
     padding: 0 11px;
-    color: rgba(224, 246, 251, 0.88);
-    background: linear-gradient(
-      180deg,
-      rgba(18, 55, 75, 0.88),
-      rgba(7, 30, 47, 0.92)
-    );
+    color: rgba($edge-tint, 0.79);
+    background: linear-gradient(180deg, rgba(18, 55, 75, 0.88), $block-lift);
     border: 1px solid rgba(93, 174, 197, 0.28);
     border-radius: $radius-s;
-    box-shadow: inset 0 1px rgba(255, 255, 255, 0.035);
+    box-shadow: inset 0 1px rgba($white, 0.035);
     cursor: pointer;
     transition:
       border-color 150ms ease,
@@ -3389,11 +3384,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
     &:hover:not(:disabled),
     &.is-active {
-      color: #f3ffff;
-      border-color: rgba(60, 236, 219, 0.64);
+      color: $text-muted;
+      border-color: rgba($secondary-default, 0.64);
       box-shadow:
-        inset 0 0 16px rgba(25, 224, 205, 0.09),
-        0 0 14px rgba(25, 224, 205, 0.08);
+        inset 0 0 16px rgba($secondary-default, 0.09),
+        0 0 14px rgba($secondary-default, 0.08);
     }
 
     &.is-primary,
@@ -3405,7 +3400,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
         $secondary-light,
         $secondary-default 72%
       );
-      border-color: rgba(137, 255, 246, 0.82);
+      border-color: rgba($secondary-light, 0.82);
     }
 
     // Bright primary actions need dark ink in every interaction state. The
@@ -3426,10 +3421,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
         $secondary-light,
         $secondary-default 72%
       );
-      border-color: rgba(205, 255, 251, 0.94);
+      border-color: rgba($edge-tint, 0.85);
       box-shadow:
-        inset 0 1px rgba(255, 255, 255, 0.42),
-        0 0 18px rgba(25, 224, 205, 0.22);
+        inset 0 1px rgba($white, 0.42),
+        0 0 18px rgba($secondary-default, 0.22);
     }
 
     &:disabled {
@@ -3595,9 +3590,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   gap: 8px 14px;
   min-height: 54px;
   padding: 5px 12px;
-  background: rgba(5, 18, 31, 0.78);
+  background: $block-lift;
   border-bottom: 1px solid rgba(63, 149, 173, 0.22);
-  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.14);
+  box-shadow: 0 12px 35px rgba($surface-base, 0.14);
 }
 
 .karaoke-maker__header-tools {
@@ -3629,7 +3624,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   display: flex;
   gap: 2px;
   padding: 2px;
-  background: rgba(3, 18, 29, 0.55);
+  background: rgba($surface-base, 0.55);
   border-radius: $radius-xs;
 
   button {
@@ -3655,7 +3650,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 .karaoke-maker__eyebrow {
-  color: #2fe4d2;
+  color: $secondary-default;
   font-size: $text-body;
   font-weight: $weight-bold;
   letter-spacing: 0.14em;
@@ -3665,7 +3660,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   width: 100%;
   min-width: 0;
   padding: 2px 0;
-  color: #f1fbff;
+  color: $text-muted;
   font-size: 15px;
   font-weight: $weight-bold;
   background: transparent;
@@ -3687,10 +3682,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   justify-content: flex-end;
   gap: 4px;
   padding: 4px;
-  background: rgba(3, 17, 28, 0.42);
-  border: 1px solid rgba(83, 174, 191, 0.12);
+  background: rgba($surface-base, 0.42);
+  border: 1px solid rgba($secondary-default, 0.12);
   border-radius: $radius-l;
-  box-shadow: inset 0 1px rgba(255, 255, 255, 0.025);
+  box-shadow: inset 0 1px rgba($white, 0.025);
 }
 
 .karaoke-maker__header-icon,
@@ -3712,14 +3707,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     left: 50%;
     z-index: 40;
     padding: 5px 7px;
-    color: #e4fffc;
+    color: $text-muted;
     font-size: $text-body;
     font-weight: $weight-bold;
     white-space: nowrap;
     pointer-events: none;
     visibility: hidden;
-    background: rgba(4, 22, 35, 0.98);
-    border: 1px solid rgba(75, 220, 211, 0.32);
+    background: $block-lift;
+    border: 1px solid rgba($secondary-default, 0.32);
     border-radius: $radius-xs;
     opacity: 0;
     transform: translate(-50%, -3px);
@@ -3794,15 +3789,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   height: 32px;
   min-height: 32px !important;
   padding: 0 !important;
-  color: rgba(164, 219, 228, 0.72) !important;
+  color: rgba($secondary-light, 0.72) !important;
   background: transparent !important;
   border-color: transparent !important;
   box-shadow: none !important;
 
   &:hover:not(:disabled) {
-    color: #8ffff4 !important;
-    background: rgba(24, 198, 188, 0.12) !important;
-    border-color: rgba(75, 227, 216, 0.22) !important;
+    color: $secondary-light !important;
+    background: rgba($secondary-default, 0.12) !important;
+    border-color: rgba($secondary-default, 0.22) !important;
   }
 }
 
@@ -3810,16 +3805,16 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   width: 32px;
   min-width: 32px !important;
   padding: 0 !important;
-  color: #8ffff4 !important;
-  background: rgba(24, 198, 188, 0.1) !important;
-  border-color: rgba(75, 227, 216, 0.24) !important;
+  color: $secondary-light !important;
+  background: rgba($secondary-default, 0.1) !important;
+  border-color: rgba($secondary-default, 0.24) !important;
   border-radius: 9px !important;
 }
 
 .karaoke-maker__header-back {
   flex: 0 0 auto;
-  background: rgba(10, 43, 59, 0.6) !important;
-  border-color: rgba(87, 178, 195, 0.19) !important;
+  background: rgba($surface-base, 0.6) !important;
+  border-color: rgba($secondary-default, 0.19) !important;
   border-radius: 10px !important;
 }
 
@@ -3852,13 +3847,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   background: linear-gradient(
     180deg,
     rgba(20, 54, 72, 0.58),
-    rgba(6, 25, 40, 0.66)
+    rgba($surface-base, 0.66)
   );
-  border: 1px solid rgba(76, 151, 174, 0.18);
+  border: 1px solid rgba($secondary-default, 0.18);
   border-radius: $radius-m;
   box-shadow:
-    inset 0 1px rgba(255, 255, 255, 0.025),
-    0 6px 18px rgba(0, 0, 0, 0.1);
+    inset 0 1px rgba($white, 0.025),
+    0 6px 18px rgba($surface-base, 0.1);
 }
 
 // The language Dropdown's trigger wears the tool-button surface, not
@@ -3880,7 +3875,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .karaoke-maker__translation-group .dropdown > [role='menu'] {
   min-height: $control-height-sm;
   padding: 0 10px;
-  color: rgba(186, 217, 228, 0.75);
+  color: rgba($edge-tint, 0.68);
   background: transparent;
   border-color: transparent;
   // $radius-xs (8px) matches .karaoke-maker__tool-button's own radius
@@ -3891,13 +3886,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   &:hover:not([aria-disabled='true']),
   &:focus-visible {
-    color: #7ffff2;
+    color: $secondary-light;
     background: linear-gradient(
       180deg,
       rgba(37, 141, 148, 0.2),
-      rgba(9, 55, 68, 0.32)
+      rgba($surface-base, 0.32)
     );
-    border-color: rgba(71, 236, 220, 0.38);
+    border-color: rgba($secondary-default, 0.38);
   }
 }
 
@@ -3918,7 +3913,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   height: 32px;
   min-height: 32px !important;
   padding: 0 !important;
-  color: rgba(186, 217, 228, 0.75) !important;
+  color: rgba($edge-tint, 0.68) !important;
   background: transparent !important;
   border-color: transparent !important;
   border-radius: 8px !important;
@@ -3937,19 +3932,19 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   &:hover:not(:disabled),
   &:focus-visible,
   &.is-active {
-    color: #7ffff2 !important;
+    color: $secondary-light !important;
     background: linear-gradient(
       180deg,
       rgba(37, 141, 148, 0.2),
-      rgba(9, 55, 68, 0.32)
+      rgba($surface-base, 0.32)
     ) !important;
-    border-color: rgba(71, 236, 220, 0.38) !important;
+    border-color: rgba($secondary-default, 0.38) !important;
     box-shadow:
-      inset 0 0 14px rgba(30, 224, 205, 0.08),
-      0 0 12px rgba(20, 208, 193, 0.08) !important;
+      inset 0 0 14px rgba($secondary-default, 0.08),
+      0 0 12px rgba($secondary-default, 0.08) !important;
 
     svg {
-      filter: drop-shadow(0 0 5px rgba(59, 243, 226, 0.42));
+      filter: drop-shadow(0 0 5px rgba($secondary-default, 0.42));
       transform: translateY(-1px);
     }
   }
@@ -3960,9 +3955,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     bottom: 3px;
     width: 4px;
     height: 4px;
-    background: #63fff0;
+    background: $secondary-default;
     border-radius: 50%;
-    box-shadow: 0 0 7px #29e6d5;
+    box-shadow: 0 0 7px $secondary-default;
     content: '';
   }
 
@@ -3973,17 +3968,17 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     z-index: 30;
     max-width: 210px;
     padding: 6px 8px;
-    color: #dffcfb;
+    color: $text-muted;
     font-size: $text-lead;
     font-weight: $weight-bold;
     line-height: 1.2;
     white-space: nowrap;
     pointer-events: none;
     visibility: hidden;
-    background: rgba(5, 24, 38, 0.98);
-    border: 1px solid rgba(76, 211, 204, 0.34);
+    background: $block-lift;
+    border: 1px solid rgba($secondary-default, 0.34);
     border-radius: $radius-xs;
-    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.42);
+    box-shadow: 0 10px 28px rgba($surface-base, 0.42);
     opacity: 0;
     transform: translate(-50%, -3px);
     transition:
@@ -4007,10 +4002,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   &.is-danger:hover:not(:disabled),
   &.is-danger:focus-visible {
-    color: #ff98a6 !important;
-    background: rgba(105, 24, 42, 0.32) !important;
+    color: $amber !important;
+    background: rgba($red, 0.32) !important;
     border-color: rgba(255, 103, 126, 0.4) !important;
-    box-shadow: inset 0 0 14px rgba(255, 67, 96, 0.08) !important;
+    box-shadow: inset 0 0 14px rgba($red, 0.08) !important;
   }
 }
 
@@ -4086,10 +4081,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   overscroll-behavior: contain;
   background:
     radial-gradient(circle at 30% 0, rgba(42, 128, 135, 0.16), transparent 52%),
-    rgba(5, 24, 39, 0.985);
-  border: 1px solid rgba(78, 190, 195, 0.32);
+    $block-lift;
+  border: 1px solid rgba($secondary-default, 0.32);
   border-radius: $radius-l;
-  box-shadow: 0 22px 48px rgba(0, 0, 0, 0.48);
+  box-shadow: 0 22px 48px rgba($surface-base, 0.48);
   transform: translateX(-50%);
   @include slim-scrollbar;
 }
@@ -4147,13 +4142,17 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   min-width: 292px;
   padding: 9px;
   margin-top: 3px;
-  color: rgba(205, 235, 240, 0.78);
+  color: rgba($edge-tint, 0.7);
   background:
-    radial-gradient(circle at 8% 0, rgba(36, 215, 200, 0.12), transparent 58%),
-    rgba(8, 35, 49, 0.72);
-  border: 1px solid rgba(76, 185, 193, 0.2);
+    radial-gradient(
+      circle at 8% 0,
+      rgba($secondary-default, 0.12),
+      transparent 58%
+    ),
+    $block-lift;
+  border: 1px solid rgba($secondary-default, 0.2);
   border-radius: $radius-s;
-  box-shadow: inset 0 1px rgba(255, 255, 255, 0.035);
+  box-shadow: inset 0 1px rgba($white, 0.035);
 }
 
 // One row per model the Maker can load. The same dot, name and state as the
@@ -4166,8 +4165,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   margin: 9px 0 2px;
   padding: 8px 9px;
   list-style: none;
-  background: rgba(9, 26, 34, 0.42);
-  border: 1px solid rgba(93, 240, 181, 0.11);
+  background: rgba($surface-base, 0.42);
+  border: 1px solid rgba($secondary-default, 0.11);
   border-radius: $radius-xs;
 
   li {
@@ -4180,19 +4179,19 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   > li > span:first-child {
     width: 6px;
     height: 6px;
-    background: rgba(139, 168, 179, 0.42);
+    background: rgba($track-well, 0.42);
     border-radius: 50%;
 
     &.is-ready {
-      background: #5df0b5;
-      box-shadow: 0 0 8px rgba(77, 241, 181, 0.55);
+      background: $secondary-default;
+      box-shadow: 0 0 8px rgba($secondary-default, 0.55);
     }
   }
 
   strong {
     min-width: 0;
     overflow: hidden;
-    color: #dcf4f2;
+    color: $text-muted;
     font-size: $text-lead;
     font-weight: $weight-semibold;
     text-overflow: ellipsis;
@@ -4200,7 +4199,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 
   em {
-    color: rgba(151, 197, 207, 0.66);
+    color: rgba($edge-tint, 0.59);
     font-size: $text-body;
     font-style: normal;
     white-space: nowrap;
@@ -4209,7 +4208,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 .karaoke-maker__memory-bytes {
   min-width: 58px;
-  color: rgba(190, 231, 240, 0.86);
+  color: rgba($edge-tint, 0.77);
   font-size: $text-body;
   font-variant-numeric: tabular-nums;
   text-align: right;
@@ -4225,12 +4224,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     width: 7px;
     height: 7px;
     grid-row: 1 / span 2;
-    background: rgba(139, 168, 179, 0.48);
+    background: rgba($track-well, 0.48);
     border-radius: 50%;
 
     &.is-ready {
-      background: #5df0b5;
-      box-shadow: 0 0 9px rgba(77, 241, 181, 0.58);
+      background: $secondary-default;
+      box-shadow: 0 0 9px rgba($secondary-default, 0.58);
     }
   }
 
@@ -4243,13 +4242,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 
   strong {
-    color: #e3fcfa;
+    color: $text-muted;
     font-size: $text-lead;
   }
 
   em {
     grid-column: 2;
-    color: rgba(151, 197, 207, 0.72);
+    color: rgba($edge-tint, 0.65);
     font-size: $text-body;
     font-style: normal;
   }
@@ -4259,11 +4258,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     grid-row: 1 / span 2;
     grid-column: 3;
     padding: 0 8px;
-    color: #89f5e8;
+    color: $secondary-light;
     font-size: $text-body;
     font-weight: $weight-bold;
     background: rgba(24, 96, 103, 0.24);
-    border: 1px solid rgba(64, 219, 205, 0.26);
+    border: 1px solid rgba($secondary-default, 0.26);
     border-radius: $radius-xs;
   }
 
@@ -4304,7 +4303,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .karaoke-maker__note-link {
   overflow: hidden;
   max-width: 150px;
-  color: rgba(167, 239, 233, 0.72);
+  color: rgba($secondary-light, 0.72);
   font-size: $text-body;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -4315,7 +4314,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // group headings above them rather than half of it.
 .karaoke-maker__memory-label,
 .karaoke-maker__memory-delay > span {
-  color: rgba(156, 193, 204, 0.72);
+  color: rgba($edge-tint, 0.65);
   font-size: $text-body;
   font-weight: $weight-bold;
   letter-spacing: 0.05em;
@@ -4332,10 +4331,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     min-height: 28px;
     flex: 1;
     padding: 0 9px;
-    color: rgba(185, 220, 226, 0.78);
+    color: rgba($edge-tint, 0.7);
     font-size: $text-body;
     font-weight: $weight-semibold;
-    background: rgba(4, 23, 36, 0.55);
+    background: rgba($surface-base, 0.55);
     border: 1px solid rgba(97, 157, 174, 0.16);
     border-radius: $radius-xs;
     transition:
@@ -4346,8 +4345,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     &:hover,
     &.is-active {
       color: $text-primary;
-      background: rgba(28, 153, 146, 0.18);
-      border-color: rgba(74, 224, 211, 0.34);
+      background: rgba($secondary-default, 0.18);
+      border-color: rgba($secondary-default, 0.34);
     }
   }
 }
@@ -4367,11 +4366,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   gap: 8px;
   width: min(360px, calc(100vw - 32px));
   padding: 10px;
-  border-color: rgba(91, 224, 216, 0.42);
+  border-color: rgba($secondary-default, 0.42);
   box-shadow:
-    0 24px 64px rgba(0, 0, 0, 0.54),
-    0 0 32px rgba(35, 220, 207, 0.09),
-    inset 0 1px rgba(255, 255, 255, 0.045);
+    0 24px 64px rgba($surface-base, 0.54),
+    0 0 32px rgba($secondary-default, 0.09),
+    inset 0 1px rgba($white, 0.045);
   transform: translate(-50%, -50%);
   animation: karaoke-maker-timing-arrive 150ms cubic-bezier(0.2, 0.8, 0.2, 1)
     both;
@@ -4383,18 +4382,18 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   align-items: center;
   gap: 7px;
   padding: 1px 3px;
-  color: rgba(210, 234, 240, 0.8);
+  color: rgba($edge-tint, 0.72);
   font-size: $text-lead;
   font-weight: $weight-bold;
 
   svg {
     width: 15px;
     height: 15px;
-    color: #5ff5e7;
+    color: $secondary-default;
   }
 
   output {
-    color: #7ff8ec;
+    color: $secondary-light;
     font-variant-numeric: tabular-nums;
   }
 }
@@ -4407,18 +4406,18 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   min-height: 23px !important;
   place-items: center;
   padding: 0 !important;
-  color: rgba(190, 224, 231, 0.64) !important;
+  color: rgba($edge-tint, 0.58) !important;
   font-size: 15px !important;
   line-height: 1;
-  background: rgba(4, 19, 31, 0.46) !important;
+  background: rgba($surface-base, 0.46) !important;
   border-color: rgba(91, 177, 190, 0.14) !important;
   border-radius: 7px !important;
   box-shadow: none !important;
 
   &:hover {
     color: #fff !important;
-    background: rgba(30, 193, 183, 0.14) !important;
-    border-color: rgba(86, 233, 221, 0.4) !important;
+    background: rgba($secondary-default, 0.14) !important;
+    border-color: rgba($secondary-default, 0.4) !important;
   }
 }
 
@@ -4440,8 +4439,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   align-items: center;
   gap: 7px;
   padding: 7px;
-  background: rgba(9, 37, 52, 0.72);
-  border: 1px solid rgba(69, 155, 172, 0.18);
+  background: $block-lift;
+  border: 1px solid rgba($secondary-default, 0.18);
   border-radius: $radius-s;
 }
 
@@ -4456,7 +4455,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .karaoke-maker__timing-shift input[type='range'] {
   width: 100%;
   min-width: 92px;
-  accent-color: #1ce5d2;
+  accent-color: $secondary-default;
 }
 
 .karaoke-maker__timing-scope {
@@ -4464,7 +4463,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   grid-template-columns: 1fr 1fr;
   gap: 4px;
   padding: 3px;
-  background: rgba(5, 24, 38, 0.66);
+  background: rgba($surface-base, 0.66);
   border: 1px solid rgba(68, 139, 160, 0.16);
   border-radius: $radius-s;
 
@@ -4479,7 +4478,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   min-height: 24px;
   margin: 0;
   padding: 1px 4px;
-  color: rgba(171, 204, 216, 0.68);
+  color: rgba($secondary-light, 0.68);
   font-size: 8.5px;
   line-height: 1.35;
 }
@@ -4494,11 +4493,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   display: flex;
   align-items: center;
   gap: 7px;
-  color: rgba(195, 216, 226, 0.74);
+  color: rgba($edge-tint, 0.67);
   font-size: $text-lead;
 
   input {
-    accent-color: #20ddcc;
+    accent-color: $secondary-default;
   }
 }
 
@@ -4514,10 +4513,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   display: grid;
   width: 164px;
   padding: 5px;
-  background: rgba(7, 28, 44, 0.98);
-  border: 1px solid rgba(79, 190, 199, 0.38);
+  background: $block-lift;
+  border: 1px solid rgba($secondary-default, 0.38);
   border-radius: $radius-m;
-  box-shadow: 0 18px 38px rgba(0, 0, 0, 0.38);
+  box-shadow: 0 18px 38px rgba($surface-base, 0.38);
 
   button {
     justify-content: flex-start;
@@ -4532,14 +4531,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   justify-content: space-between;
   gap: 16px;
   padding: 3px 15px;
-  color: rgba(167, 193, 208, 0.62);
+  color: rgba($edge-tint, 0.56);
   font-size: $text-lead;
   min-width: 0;
   background: transparent;
 
   .is-live {
-    color: #6bfff0;
-    text-shadow: 0 0 12px rgba(37, 232, 214, 0.34);
+    color: $secondary-default;
+    text-shadow: 0 0 12px rgba($secondary-default, 0.34);
   }
 }
 
@@ -4560,7 +4559,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   gap: 9px;
   padding: 2px 7px;
   white-space: nowrap;
-  background: rgba(3, 18, 29, 0.42);
+  background: rgba($surface-base, 0.42);
   border: 1px solid rgba(82, 145, 164, 0.12);
   border-radius: $radius-pill;
 
@@ -4575,20 +4574,20 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 
   .is-touched {
-    color: rgba(145, 245, 204, 0.86);
+    color: rgba($secondary-light, 0.86);
 
     i {
-      background: #56e8ac;
-      box-shadow: 0 0 7px rgba(74, 232, 172, 0.58);
+      background: $secondary-default;
+      box-shadow: 0 0 7px rgba($secondary-default, 0.58);
     }
   }
 
   .is-pending {
-    color: rgba(172, 199, 217, 0.64);
+    color: rgba($edge-tint, 0.58);
 
     i {
-      background: #7897ad;
-      box-shadow: 0 0 5px rgba(120, 151, 173, 0.22);
+      background: $track-well;
+      box-shadow: 0 0 5px rgba($track-well, 0.22);
     }
   }
 }
@@ -4622,10 +4621,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   button {
     min-height: 21px;
     padding: 0 7px;
-    color: #90fff5;
+    color: $secondary-light;
     font-size: $text-body;
     background: rgba(24, 102, 110, 0.2);
-    border-color: rgba(69, 229, 214, 0.3);
+    border-color: rgba($secondary-default, 0.3);
     border-radius: $radius-xs;
   }
 }
@@ -4651,8 +4650,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   border: 1px solid rgba(65, 147, 172, 0.22);
   border-radius: $radius-l;
   box-shadow:
-    inset 0 0 32px rgba(0, 0, 0, 0.2),
-    0 14px 36px rgba(0, 0, 0, 0.12);
+    inset 0 0 32px rgba($surface-base, 0.2),
+    0 14px 36px rgba($surface-base, 0.12);
 }
 
 .karaoke-maker__canvas {
@@ -4702,16 +4701,16 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   inset: 0 0 52px;
   display: grid;
   place-items: center;
-  color: #eafffb;
+  color: $text-muted;
   font-size: clamp(56px, 10vw, 150px);
   font-weight: $weight-display;
   text-shadow:
-    0 0 12px #16d9c7,
-    0 0 46px rgba(27, 235, 215, 0.7);
+    0 0 12px $secondary-default,
+    0 0 46px rgba($secondary-default, 0.7);
   background: radial-gradient(
     circle,
-    rgba(5, 38, 52, 0.34),
-    rgba(4, 15, 27, 0.06) 45%
+    rgba($surface-base, 0.34),
+    rgba($surface-base, 0.06) 45%
   );
   pointer-events: none;
   animation: karaoke-maker-count 520ms ease both;
@@ -4727,9 +4726,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   padding: 5px 8px;
   background:
     linear-gradient(90deg, rgba(29, 117, 126, 0.07), transparent 34%),
-    rgba(3, 17, 29, 0.97);
-  border-top: 1px solid rgba(71, 151, 171, 0.2);
-  box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.18);
+    $block-lift;
+  border-top: 1px solid rgba($secondary-default, 0.2);
+  box-shadow: 0 -10px 30px rgba($surface-base, 0.18);
 }
 
 .karaoke-maker-nav__summary {
@@ -4738,7 +4737,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   padding-inline: 4px 7px;
 
   span {
-    color: rgba(135, 178, 195, 0.54);
+    color: rgba($edge-tint, 0.49);
     font-size: $text-body;
     font-weight: $weight-bold;
     letter-spacing: 0.11em;
@@ -4747,7 +4746,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   strong {
     margin-top: 2px;
-    color: rgba(210, 238, 242, 0.82);
+    color: rgba($edge-tint, 0.74);
     font-size: $text-lead;
     font-variant-numeric: tabular-nums;
   }
@@ -4759,13 +4758,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   min-width: 30px;
   min-height: 34px !important;
   padding: 0 7px !important;
-  color: rgba(180, 220, 230, 0.74) !important;
+  color: rgba($edge-tint, 0.67) !important;
   background: linear-gradient(
     180deg,
     rgba(18, 58, 75, 0.7),
-    rgba(6, 28, 43, 0.78)
+    $block-lift
   ) !important;
-  border-color: rgba(75, 151, 172, 0.2) !important;
+  border-color: rgba($secondary-default, 0.2) !important;
   border-radius: 9px !important;
 
   &::after {
@@ -4774,13 +4773,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     left: 50%;
     z-index: 20;
     padding: 5px 7px;
-    color: #dffcfb;
+    color: $text-muted;
     font-size: $text-body;
     white-space: nowrap;
     pointer-events: none;
     visibility: hidden;
-    background: rgba(5, 24, 38, 0.98);
-    border: 1px solid rgba(76, 211, 204, 0.3);
+    background: $block-lift;
+    border: 1px solid rgba($secondary-default, 0.3);
     border-radius: $radius-xs;
     opacity: 0;
     transform: translate(-50%, 3px);
@@ -4803,17 +4802,17 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   min-height: 38px !important;
   place-items: center;
   padding: 0 !important;
-  color: rgba(134, 240, 231, 0.82) !important;
+  color: rgba($secondary-light, 0.82) !important;
   background: linear-gradient(
     180deg,
     rgba(20, 65, 80, 0.76),
-    rgba(4, 25, 39, 0.88)
+    $block-lift
   ) !important;
   border: 1px solid rgba(92, 200, 207, 0.22) !important;
   border-radius: 50% !important;
   box-shadow:
-    0 6px 16px rgba(0, 0, 0, 0.2),
-    inset 0 1px rgba(255, 255, 255, 0.05) !important;
+    0 6px 16px rgba($surface-base, 0.2),
+    inset 0 1px rgba($white, 0.05) !important;
 
   svg {
     width: 16px;
@@ -4826,13 +4825,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     background: linear-gradient(
       180deg,
       rgba(30, 120, 125, 0.62),
-      rgba(6, 42, 54, 0.88)
+      $block-lift
     ) !important;
-    border-color: rgba(102, 247, 235, 0.58) !important;
+    border-color: rgba($secondary-default, 0.58) !important;
     box-shadow:
-      0 8px 20px rgba(0, 0, 0, 0.24),
-      0 0 18px rgba(34, 224, 208, 0.16),
-      inset 0 1px rgba(255, 255, 255, 0.08) !important;
+      0 8px 20px rgba($surface-base, 0.24),
+      0 0 18px rgba($secondary-default, 0.16),
+      inset 0 1px rgba($white, 0.08) !important;
 
     svg {
       transform: scale(1.08);
@@ -4855,7 +4854,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   border-radius: $radius-xs;
 
   &:focus-visible {
-    box-shadow: 0 0 0 2px rgba(69, 234, 218, 0.45);
+    box-shadow: 0 0 0 2px rgba($secondary-default, 0.45);
   }
 }
 
@@ -4864,7 +4863,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   align-items: center;
   gap: 5px;
   min-width: max-content;
-  color: #d9fffb !important;
+  color: $text-muted !important;
   font-size: $text-body;
   font-weight: $weight-bold;
   text-shadow: 0 0 9px rgba($secondary-default, 0.22);
@@ -4882,7 +4881,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   &.is-active {
     color: $surface-well !important;
     text-shadow: none;
-    background: linear-gradient(135deg, #8ffff4, #27dfd0) !important;
+    background: $secondary-default !important;
     border-color: rgba($white, 0.46) !important;
   }
 
@@ -4892,7 +4891,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     background: linear-gradient(
       180deg,
       rgba(27, 92, 102, 0.88),
-      rgba(7, 39, 52, 0.94)
+      $block-lift
     ) !important;
   }
 }
@@ -4919,12 +4918,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   min-width: 0;
   margin: 6px 10px;
   overflow: hidden;
-  background: rgba(4, 18, 31, 0.88);
-  border: 1px solid rgba(77, 167, 188, 0.22);
+  background: $block-lift;
+  border: 1px solid rgba($secondary-default, 0.22);
   border-radius: $radius-m;
   box-shadow:
-    inset 0 1px rgba(255, 255, 255, 0.025),
-    0 8px 22px rgba(0, 0, 0, 0.12);
+    inset 0 1px rgba($white, 0.025),
+    0 8px 22px rgba($surface-base, 0.12);
 
   > header {
     display: flex;
@@ -4933,7 +4932,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     gap: 10px;
     min-height: 31px;
     padding: 3px 5px 3px 10px;
-    color: rgba(204, 235, 241, 0.82);
+    color: rgba($edge-tint, 0.74);
     font-size: $text-lead;
     font-weight: $weight-bold;
     letter-spacing: 0.04em;
@@ -4955,7 +4954,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     svg {
       width: 13px;
       height: 13px;
-      color: #4ee8dc;
+      color: $secondary-default;
     }
 
     > button {
@@ -5015,7 +5014,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   gap: 6px;
   padding: 2px 7px;
   color: $text-muted;
-  background: rgba(3, 17, 28, 0.6);
+  background: rgba($surface-base, 0.6);
   border: 1px solid rgba($secondary-light, 0.12);
   border-radius: $radius-pill;
 
@@ -5056,7 +5055,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   background: linear-gradient(
     180deg,
     rgba(24, 66, 81, 0.74),
-    rgba(5, 29, 43, 0.86)
+    $block-lift
   ) !important;
   border-color: rgba($secondary-light, 0.2) !important;
   border-radius: $radius-pill !important;
@@ -5238,7 +5237,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     font-size: 12px;
     font-weight: $weight-bold;
     letter-spacing: 0.02em;
-    background: linear-gradient(145deg, #8cfff5, #28dfcf);
+    background: $secondary-default;
     border: 1px solid rgba($white, 0.82);
     border-radius: $radius-m;
     box-shadow:
@@ -5248,10 +5247,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   &.is-end > kbd {
     color: #271b03;
-    background: linear-gradient(145deg, #fff1a1, #ffc84f);
+    background: $amber;
     box-shadow:
       0 4px 0 rgba(#9d6911, 0.82),
-      0 0 22px rgba(#ffc84f, 0.28);
+      0 0 22px rgba($amber, 0.28);
   }
 }
 
@@ -5319,13 +5318,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
     &.is-active {
       color: #062c29;
-      background: linear-gradient(135deg, $secondary-light, #28decd);
+      background: linear-gradient(135deg, $secondary-light, $secondary-default);
       border-color: rgba($white, 0.72);
       box-shadow: 0 0 16px rgba($secondary-default, 0.23);
     }
 
     &.is-complete {
-      color: #8ff7ed;
+      color: $secondary-light;
       background: rgba(#16706c, 0.32);
       border-color: rgba($secondary-light, 0.34);
     }
@@ -5465,7 +5464,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   > em {
     overflow: hidden;
     margin-top: 6px;
-    color: #a9fff6;
+    color: $secondary-light;
     font-size: 11px;
     font-style: normal;
     font-weight: $weight-bold;
@@ -5485,7 +5484,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   color: #032a27;
   font-size: 11px;
   font-weight: $weight-bold;
-  background: linear-gradient(145deg, #8efff5, #25ddcd);
+  background: $secondary-default;
   border: 1px solid rgba($white, 0.78);
   border-radius: $radius-l;
   box-shadow:
@@ -5653,10 +5652,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   will-change: transform;
 
   &.is-end {
-    border-color: rgba(#ffd56b, 0.5);
+    border-color: rgba($amber, 0.5);
     box-shadow:
       0 20px 54px rgba($black, 0.54),
-      0 0 32px rgba(#ffc94e, 0.12),
+      0 0 32px rgba($amber, 0.12),
       inset 0 1px rgba($white, 0.08);
   }
 
@@ -5794,11 +5793,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 .karaoke-maker__selection-coach-content {
   min-width: 0;
-  color: rgba(185, 210, 221, 0.76);
+  color: rgba($edge-tint, 0.68);
   font-size: 11px;
 
   > strong {
-    color: #85fff4;
+    color: $secondary-light;
     font-size: 13px;
   }
 
@@ -5809,15 +5808,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     justify-content: center;
     gap: 6px;
     padding: 0 10px;
-    color: #b9fbf5;
+    color: $text-muted;
     font-size: $text-lead;
     font-weight: $weight-bold;
-    background: linear-gradient(
-      180deg,
-      rgba(21, 80, 94, 0.68),
-      rgba(7, 37, 52, 0.78)
-    );
-    border: 1px solid rgba(67, 205, 197, 0.31);
+    background: linear-gradient(180deg, rgba(21, 80, 94, 0.68), $block-lift);
+    border: 1px solid rgba($secondary-default, 0.31);
     border-radius: $radius-s;
 
     &:hover,
@@ -5826,9 +5821,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       background: linear-gradient(
         180deg,
         rgba(27, 115, 120, 0.78),
-        rgba(8, 53, 65, 0.88)
+        $block-lift
       );
-      border-color: rgba(74, 228, 212, 0.62);
+      border-color: rgba($secondary-default, 0.62);
       box-shadow: 0 0 16px rgba($secondary-default, 0.12);
     }
 
@@ -5885,11 +5880,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   justify-content: center;
   overflow-x: auto;
   padding: 4px 10px;
-  color: #eafffd;
+  color: $text-muted;
   font-size: 22px;
   font-weight: $weight-display;
-  background: rgba(3, 20, 31, 0.74);
-  border: 1px solid rgba(74, 188, 194, 0.2);
+  background: $block-lift;
+  border: 1px solid rgba($secondary-default, 0.2);
   border-radius: $radius-m;
 
   > span {
@@ -5929,7 +5924,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
       > span {
         height: 28px;
-        background: #65fff1;
+        background: $secondary-default;
         box-shadow: 0 0 10px rgba($secondary-default, 0.72);
       }
     }
@@ -5958,7 +5953,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     overflow-x: auto;
 
     strong {
-      color: #a7fff7;
+      color: $secondary-light;
       font-size: 12px;
       white-space: nowrap;
     }
@@ -5979,8 +5974,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   .is-primary {
     color: #032825;
-    background: linear-gradient(135deg, #82fff3, #29ddcd);
-    border-color: rgba(#c4fff9, 0.74);
+    background: $secondary-default;
+    border-color: rgba($edge-tint, 0.67);
   }
 }
 
@@ -6002,7 +5997,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     // Full width, which is what turns four cramped lines into two easy ones.
     margin: 0;
     grid-column: 1 / -1;
-    color: rgba(177, 211, 221, 0.62);
+    color: rgba($secondary-light, 0.62);
     font-size: $text-body;
     line-height: 1.4;
   }
@@ -6017,14 +6012,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   strong {
     grid-row: 1 / span 2;
-    color: #85fff4;
+    color: $secondary-light;
     font-size: 20px;
     line-height: 1;
     text-shadow: 0 0 14px rgba($secondary-default, 0.28);
   }
 
   > span {
-    color: rgba(180, 211, 222, 0.66);
+    color: rgba($edge-tint, 0.59);
     font-size: $text-lead;
     white-space: nowrap;
   }
@@ -6040,8 +6035,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   align-self: center;
   justify-self: start;
   padding: 3px;
-  background: rgba(2, 17, 28, 0.7);
-  border: 1px solid rgba(64, 177, 183, 0.16);
+  background: $block-lift;
+  border: 1px solid rgba($secondary-default, 0.16);
 
   button {
     min-height: 28px;
@@ -6049,8 +6044,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
     &.is-active {
       color: $surface-base;
-      background: linear-gradient(135deg, #82fff3, #28dacb);
-      border-color: rgba(#bafff8, 0.82);
+      background: $secondary-default;
+      border-color: rgba($edge-tint, 0.74);
       box-shadow: 0 0 14px rgba($secondary-default, 0.2);
     }
   }
@@ -6097,14 +6092,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 
   strong {
-    color: #85fff4;
+    color: $secondary-light;
     font-size: 17px;
   }
 
   .karaoke-maker__note-link-help {
     flex: 1 1 300px;
     max-width: 470px;
-    color: rgba(177, 211, 221, 0.72);
+    color: rgba($secondary-light, 0.72);
     font-size: $text-lead;
     line-height: 1.35;
     white-space: normal;
@@ -6116,7 +6111,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   width: 44px;
   height: 44px;
   place-items: center;
-  color: #9afff6;
+  color: $secondary-light;
   background:
     radial-gradient(circle, rgba($secondary-default, 0.2), transparent 70%),
     rgba($surface-base, 0.82);
@@ -6173,7 +6168,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   > em {
     margin-top: 5px;
-    color: #affff8;
+    color: $secondary-light;
     font-size: 13px;
     font-style: normal;
     font-weight: $weight-bold;
@@ -6196,7 +6191,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   color: #032a27;
   font-size: 13px;
   font-weight: $weight-bold;
-  background: linear-gradient(145deg, #9bfff7, #27dfcf);
+  background: $secondary-default;
   border: 1px solid rgba($white, 0.82);
   border-radius: $radius-l;
   box-shadow:
@@ -6246,11 +6241,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   height: 34px;
   place-items: center;
   padding-inline: 9px;
-  color: #dffffc;
+  color: $text-muted;
   font-family: inherit;
   font-size: 11px;
   font-weight: $weight-bold;
-  background: linear-gradient(180deg, rgba(#175b5a, 0.88), rgba(#073331, 0.92));
+  background: linear-gradient(
+    180deg,
+    rgba($track-well, 0.88),
+    rgba(#073331, 0.92)
+  );
   border: 1px solid rgba($secondary-light, 0.48);
   border-radius: $radius-s;
   box-shadow: inset 0 -2px rgba(#012523, 0.35);
@@ -6259,7 +6258,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .karaoke-maker__capture-coach.is-end .karaoke-maker__capture-coach-enter {
   color: #fff1c8;
   background: linear-gradient(180deg, rgba(#76541e, 0.9), rgba(#3c2a0d, 0.94));
-  border-color: rgba(#ffc95b, 0.5);
+  border-color: rgba($amber, 0.5);
 }
 
 .karaoke-maker__capture-coach-controls {
@@ -6302,7 +6301,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
     &.is-primary {
       color: #032a27;
-      background: linear-gradient(145deg, #91fff6, #2bdccc);
+      background: $secondary-default;
       border-color: rgba($white, 0.72);
       box-shadow: 0 0 18px rgba($secondary-default, 0.2);
     }
@@ -6315,7 +6314,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       &:hover,
       &:focus-visible {
         color: $white;
-        background: rgba(#722139, 0.9);
+        background: rgba($red, 0.9);
         border-color: rgba(#ff8ba0, 0.68);
         box-shadow: 0 0 18px rgba(#ff5575, 0.16);
       }
@@ -6348,7 +6347,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     > svg {
       width: 20px;
       height: 20px;
-      color: #79f7eb;
+      color: $secondary-light;
       stroke-width: 1.8;
     }
 
@@ -6407,13 +6406,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
     &.is-active {
       color: #062c29;
-      background: linear-gradient(135deg, #93fff6, #2be1d0);
+      background: $secondary-default;
       border-color: rgba($white, 0.75);
       box-shadow: 0 0 18px rgba($secondary-default, 0.24);
     }
 
     &.is-complete {
-      color: #a5fff7;
+      color: $secondary-light;
       background: rgba(#16706c, 0.34);
       border-color: rgba($secondary-light, 0.38);
     }
@@ -6522,27 +6521,27 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 @keyframes karaoke-maker-preview-capture-confirm {
   0% {
     box-shadow:
-      inset 0 0 0 2px rgba(100, 255, 239, 0.92),
-      inset 0 0 42px rgba(53, 230, 214, 0.2);
+      inset 0 0 0 2px rgba($secondary-default, 0.92),
+      inset 0 0 42px rgba($secondary-default, 0.2);
   }
 
   100% {
     box-shadow:
-      inset 0 0 0 1px rgba(100, 255, 239, 0),
-      inset 0 0 0 rgba(53, 230, 214, 0);
+      inset 0 0 0 1px rgba($secondary-default, 0),
+      inset 0 0 0 rgba($secondary-default, 0);
   }
 }
 
 @keyframes karaoke-maker-preview-capture-ready {
   0%,
   100% {
-    box-shadow: inset 0 0 0 1px rgba(100, 255, 239, 0.16);
+    box-shadow: inset 0 0 0 1px rgba($secondary-default, 0.16);
   }
 
   50% {
     box-shadow:
-      inset 0 0 0 2px rgba(100, 255, 239, 0.75),
-      inset 0 0 36px rgba(53, 230, 214, 0.12);
+      inset 0 0 0 2px rgba($secondary-default, 0.75),
+      inset 0 0 36px rgba($secondary-default, 0.12);
   }
 }
 
@@ -6616,11 +6615,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   min-width: 0;
   background:
     linear-gradient(90deg, rgba(25, 105, 119, 0.07), transparent 42%),
-    rgba(5, 19, 31, 0.94);
-  border-top: 1px solid rgba(72, 161, 180, 0.22);
+    $block-lift;
+  border-top: 1px solid rgba($secondary-default, 0.22);
   box-shadow:
-    0 -14px 36px rgba(0, 0, 0, 0.24),
-    inset 0 1px rgba(255, 255, 255, 0.025);
+    0 -14px 36px rgba($surface-base, 0.24),
+    inset 0 1px rgba($white, 0.025);
 
   > .karaoke-transport {
     // Match the player's 12px workspace inset exactly, so switching into the
@@ -6649,7 +6648,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     display: flex;
     align-items: center;
     gap: 6px;
-    color: rgba(170, 196, 209, 0.65);
+    color: rgba($edge-tint, 0.59);
     font-size: $text-lead;
   }
 
@@ -6657,20 +6656,20 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     width: 110px;
     min-height: 27px;
     padding: 0 8px;
-    color: #ddf5f8;
+    color: $text-muted;
     background: $surface-plot;
-    border: 1px solid rgba(75, 151, 174, 0.27);
+    border: 1px solid rgba($secondary-default, 0.27);
     border-radius: $radius-xs;
     outline: 0;
 
     &:focus {
-      border-color: #24dccc;
+      border-color: $secondary-default;
     }
   }
 
   input[type='range'] {
     width: 90px;
-    accent-color: #22ddcc;
+    accent-color: $secondary-default;
   }
 }
 
@@ -6710,7 +6709,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   .karaoke-maker__word-inspector-title {
     min-width: 0;
     overflow: hidden;
-    color: #bafff8;
+    color: $text-muted;
     font-size: 16px;
     line-height: 1.05;
     text-overflow: ellipsis;
@@ -6720,7 +6719,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   .karaoke-maker__word-inspector-identity output {
     flex: 0 0 auto;
-    color: rgba(185, 225, 231, 0.66);
+    color: rgba($edge-tint, 0.59);
     font-size: $text-lead;
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
@@ -6731,7 +6730,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     gap: 2px;
 
     > span {
-      color: rgba(169, 203, 215, 0.58);
+      color: rgba($secondary-light, 0.58);
       font-size: $text-body;
       font-weight: $weight-bold;
       letter-spacing: 0.05em;
@@ -6743,15 +6742,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     width: 100%;
     min-height: 29px;
     padding: 0 9px;
-    color: #dbfbf7;
+    color: $text-muted;
     font-size: $text-lead;
     background: $surface-plot;
-    border: 1px solid rgba(70, 174, 187, 0.27);
+    border: 1px solid rgba($secondary-default, 0.27);
     border-radius: $radius-xs;
     outline: 0;
 
     &:focus {
-      border-color: rgba(44, 229, 211, 0.62);
+      border-color: rgba($secondary-default, 0.62);
     }
   }
 
@@ -6799,7 +6798,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     align-content: center;
     padding: 7px 10px;
     background: $surface-plot;
-    border: 1px solid rgba(68, 190, 190, 0.15);
+    border: 1px solid rgba($secondary-default, 0.15);
     border-radius: $radius-m;
   }
 
@@ -6840,8 +6839,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
       &:nth-child(2) {
         color: $surface-base;
-        background: linear-gradient(135deg, #8afff5, #31dfcf);
-        border-color: rgba(#cafffa, 0.78);
+        background: $secondary-default;
+        border-color: rgba($edge-tint, 0.7);
         box-shadow: 0 0 18px rgba($secondary-default, 0.16);
       }
     }
@@ -6851,14 +6850,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .karaoke-maker__audition {
   min-height: 25px;
   padding: 0 9px;
-  color: #8bfff4;
-  background: linear-gradient(
-    180deg,
-    rgba(25, 91, 103, 0.5),
-    rgba(7, 34, 48, 0.7)
-  );
-  border-color: rgba(55, 229, 212, 0.38);
-  box-shadow: inset 0 0 12px rgba(31, 224, 205, 0.06);
+  color: $secondary-light;
+  background: linear-gradient(180deg, rgba(25, 91, 103, 0.5), $block-lift);
+  border-color: rgba($secondary-default, 0.38);
+  box-shadow: inset 0 0 12px rgba($secondary-default, 0.06);
 
   &:active {
     transform: scale(0.96);
@@ -6880,12 +6875,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   max-width: min(620px, calc(100% - 32px));
   min-height: 37px;
   padding: 7px 10px;
-  color: #d8f8f5;
+  color: $text-muted;
   font-size: $text-lead;
-  background: rgba(9, 40, 54, 0.96);
-  border: 1px solid rgba(45, 215, 200, 0.38);
+  background: $block-lift;
+  border: 1px solid rgba($secondary-default, 0.38);
   border-radius: $radius-m;
-  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.32);
+  box-shadow: 0 14px 34px rgba($surface-base, 0.32);
 
   &.is-error {
     color: #ffd8dc;
@@ -6894,7 +6889,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   progress {
     width: 190px;
-    accent-color: #20dfce;
+    accent-color: $secondary-default;
   }
 }
 
@@ -6934,8 +6929,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   width: min(430px, calc(100% - 36px));
   padding: 13px 14px;
   background:
-    radial-gradient(circle at 15% 0, rgba(30, 215, 199, 0.12), transparent 55%),
-    rgba(5, 27, 41, 0.96);
+    radial-gradient(
+      circle at 15% 0,
+      rgba($secondary-default, 0.12),
+      transparent 55%
+    ),
+    $block-lift;
   border: 1px solid rgba($secondary-light, 0.31);
   border-radius: $radius-l;
   box-shadow:
@@ -6968,7 +6967,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 .karaoke-maker__tool-group-title {
   margin: 0;
-  color: rgba(223, 252, 249, 0.72);
+  color: rgba($edge-tint, 0.65);
   font-size: $text-lead;
   font-weight: $weight-bold;
   letter-spacing: 0.06em;
@@ -7048,7 +7047,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   gap: 9px;
   grid-template-columns: auto minmax(0, 1fr) auto;
   font-size: $text-lead;
-  color: rgba(223, 252, 249, 0.72);
+  color: rgba($edge-tint, 0.65);
 }
 
 .karaoke-maker__stem-level-value {
@@ -7101,7 +7100,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   inset: 0;
   padding: 24px;
   place-items: center;
-  background: rgba(3, 15, 24, 0.82);
+  background: $block-lift;
 }
 
 .karaoke-maker__wizard-panel {
@@ -7113,11 +7112,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   overflow-y: auto;
   color: $text-primary;
   background:
-    radial-gradient(circle at 12% 0, rgba(30, 215, 199, 0.13), transparent 58%),
-    rgba(5, 27, 41, 0.98);
+    radial-gradient(
+      circle at 12% 0,
+      rgba($secondary-default, 0.13),
+      transparent 58%
+    ),
+    $block-lift;
   border: 1px solid rgba($secondary-light, 0.34);
   border-radius: $radius-l;
-  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.46);
+  box-shadow: 0 18px 44px rgba($surface-base, 0.46);
 }
 
 .karaoke-maker__wizard-title {
@@ -7138,7 +7141,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   color: $surface-base;
   background: linear-gradient(135deg, $secondary-light, $secondary-default 72%);
   border-radius: $radius-s;
-  box-shadow: 0 6px 18px rgba(16, 215, 199, 0.35);
+  box-shadow: 0 6px 18px rgba($secondary-default, 0.35);
 
   svg {
     width: 19px;
@@ -7148,7 +7151,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 .karaoke-maker__wizard-intro {
   margin: 0;
-  color: rgba(223, 252, 249, 0.78);
+  color: rgba($edge-tint, 0.7);
   font-size: $text-lead;
   line-height: 1.45;
 }
@@ -7181,11 +7184,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   &.is-active {
     border-color: rgba($secondary-light, 0.62);
-    background: rgba(30, 215, 199, 0.12);
+    background: rgba($secondary-default, 0.12);
   }
 
   &.is-done {
-    color: rgba(223, 252, 249, 0.62);
+    color: rgba($edge-tint, 0.56);
   }
 }
 
@@ -7216,7 +7219,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   gap: 10px;
   grid-template-columns: auto minmax(0, 1fr);
   font-size: $text-lead;
-  color: rgba(223, 252, 249, 0.8);
+  color: rgba($edge-tint, 0.72);
 
   > select {
     min-height: 30px;
@@ -7253,7 +7256,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     &::-webkit-progress-value {
       background: linear-gradient(
         90deg,
-        rgba(30, 215, 199, 0.85),
+        rgba($secondary-default, 0.85),
         $secondary-light
       );
       border-radius: $radius-pill;
@@ -7266,10 +7269,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       background: linear-gradient(
           90deg,
           transparent 0%,
-          rgba(30, 215, 199, 0.7) 50%,
+          rgba($secondary-default, 0.7) 50%,
           transparent 100%
         )
-        rgba(255, 255, 255, 0.09);
+        rgba($track-well, 0.09);
       background-size: 40% 100%;
       background-repeat: no-repeat;
       animation: karaoke-wizard-sweep 1.15s ease-in-out infinite;
@@ -7278,7 +7281,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   > p {
     margin: 0;
-    color: rgba(223, 252, 249, 0.76);
+    color: rgba($edge-tint, 0.68);
     font-size: $text-lead;
   }
 }
@@ -7323,8 +7326,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   padding: 11px 12px;
   color: $text-primary;
   background:
-    radial-gradient(circle at 15% 0, rgba(30, 215, 199, 0.12), transparent 55%),
-    rgba(5, 27, 41, 0.96);
+    radial-gradient(
+      circle at 15% 0,
+      rgba($secondary-default, 0.12),
+      transparent 55%
+    ),
+    $block-lift;
   border: 1px solid rgba($secondary-light, 0.31);
   border-radius: $radius-l;
 
@@ -7347,13 +7354,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   grid-template-columns: minmax(0, 1fr) auto auto auto;
   align-items: center;
   gap: 8px;
-  color: rgba(190, 229, 234, 0.76);
+  color: rgba($edge-tint, 0.68);
   font-size: $text-body;
   font-variant-numeric: tabular-nums;
 
   strong {
     overflow: hidden;
-    color: #dcfffb;
+    color: $text-muted;
     font-size: inherit;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -7366,10 +7373,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   gap: 7px;
   padding: 7px;
   overflow: hidden auto;
-  background: rgba(2, 14, 25, 0.52);
+  background: rgba($surface-base, 0.52);
   border: 1px solid rgba(105, 196, 205, 0.13);
   border-radius: $radius-s;
-  scrollbar-color: rgba(45, 211, 198, 0.5) transparent;
+  scrollbar-color: rgba($secondary-default, 0.5) transparent;
   scrollbar-width: thin;
 }
 
@@ -7383,13 +7390,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   position: relative;
   height: 3px;
   overflow: hidden;
-  background: rgba(120, 166, 183, 0.14);
+  background: rgba($track-well, 0.14);
   border-radius: $radius-pill;
 
   > span {
     position: absolute;
     inset: 0 auto 0 0;
-    background: linear-gradient(90deg, #1bb9ae, #70eee2);
+    background: $secondary-default;
     border-radius: inherit;
     box-shadow: 0 0 8px rgba($secondary-default, 0.3);
     transition: width 240ms ease-out;
@@ -7407,7 +7414,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   height: 5px;
   grid-column: 1 / -1;
   overflow: hidden;
-  background: rgba(120, 166, 183, 0.17);
+  background: rgba($track-well, 0.17);
   border-radius: $radius-pill;
 
   > span {
@@ -7488,7 +7495,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .karaoke-maker__download-stats {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto auto;
-  color: rgba(174, 220, 228, 0.7);
+  color: rgba($secondary-light, 0.7);
   font-size: $text-body;
   font-variant-numeric: tabular-nums;
 
@@ -7506,8 +7513,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 .karaoke-maker__download-complete {
-  color: #69f0b2 !important;
-  text-shadow: 0 0 8px rgba(74, 239, 178, 0.45);
+  color: $analogous-2 !important;
+  text-shadow: 0 0 8px rgba($secondary-default, 0.45);
 }
 
 .karaoke-maker__analysis-activity {
@@ -7550,7 +7557,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     min-width: 0;
     align-items: center;
     gap: 6px;
-    color: rgba(155, 188, 202, 0.43);
+    color: rgba($edge-tint, 0.39);
 
     > span {
       display: grid;
@@ -7558,10 +7565,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       height: 16px;
       flex: 0 0 auto;
       place-items: center;
-      color: rgba(178, 213, 222, 0.55);
+      color: rgba($secondary-light, 0.55);
       font-size: $text-body;
       font-weight: $weight-bold;
-      background: rgba(92, 139, 158, 0.11);
+      background: rgba($track-well, 0.11);
       border: 1px solid rgba(112, 166, 183, 0.2);
       border-radius: 50%;
     }
@@ -7576,23 +7583,23 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     }
 
     &.is-complete {
-      color: rgba(136, 225, 206, 0.72);
+      color: rgba($secondary-light, 0.72);
 
       > span {
-        color: #77f1d8;
-        background: rgba(36, 215, 200, 0.12);
-        border-color: rgba(36, 215, 200, 0.27);
+        color: $secondary-default;
+        background: rgba($secondary-default, 0.12);
+        border-color: rgba($secondary-default, 0.27);
       }
     }
 
     &.is-active {
-      color: #e5fffb;
+      color: $text-muted;
 
       > span {
         color: $surface-base;
-        background: #6cf7e8;
+        background: $secondary-default;
         border-color: transparent;
-        box-shadow: 0 0 12px rgba(36, 215, 200, 0.38);
+        box-shadow: 0 0 12px rgba($secondary-default, 0.38);
       }
     }
   }
@@ -7635,7 +7642,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   padding: 12px;
   color: #ffe8eb;
   background:
-    radial-gradient(circle at 8% 0, rgba(255, 80, 105, 0.16), transparent 54%),
+    radial-gradient(circle at 8% 0, rgba($red, 0.16), transparent 54%),
     rgba(40, 15, 25, 0.97);
   border: 1px solid rgba(255, 105, 126, 0.48);
   border-radius: $radius-l;
@@ -7666,10 +7673,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   color: #fff;
   font-size: 15px;
   font-weight: $weight-bold;
-  background: rgba(255, 74, 101, 0.2);
+  background: rgba($red, 0.2);
   border: 1px solid rgba(255, 117, 137, 0.5);
   border-radius: 50%;
-  box-shadow: 0 0 18px rgba(255, 67, 96, 0.18);
+  box-shadow: 0 0 18px rgba($red, 0.18);
 }
 
 .karaoke-maker__analysis-error-actions {
@@ -7679,16 +7686,16 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   button {
     min-height: 30px;
     color: rgba(255, 232, 235, 0.92);
-    background: rgba(105, 28, 45, 0.42);
+    background: rgba($red, 0.42);
     border-color: rgba(255, 105, 126, 0.34);
     box-shadow: inset 0 1px rgba($white, 0.045);
 
     &:hover {
       color: $white;
-      background: rgba(145, 35, 56, 0.56);
+      background: rgba($red, 0.56);
       border-color: rgba(255, 125, 143, 0.58);
       box-shadow:
-        0 0 14px rgba(255, 67, 96, 0.14),
+        0 0 14px rgba($red, 0.14),
         inset 0 1px rgba($white, 0.07);
     }
   }
@@ -7700,12 +7707,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     color: #ffdce2;
     font-size: 15px;
     line-height: 1;
-    background: rgba(255, 70, 99, 0.2);
+    background: rgba($red, 0.2);
     border-color: rgba(255, 105, 126, 0.52);
     border-radius: $radius-s;
 
     &:hover {
-      background: rgba(255, 70, 99, 0.34);
+      background: rgba($red, 0.34);
       border-color: rgba(255, 145, 159, 0.78);
     }
   }
@@ -7737,7 +7744,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   font-size: $text-lead;
   font-weight: $weight-bold;
   pointer-events: none;
-  background: rgba(5, 31, 44, 0.92);
+  background: $block-lift;
   border: 1px solid rgba($secondary-light, 0.32);
   border-radius: $radius-s;
   box-shadow:
@@ -7780,7 +7787,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   display: grid;
   place-items: center;
   padding: 24px;
-  background: rgba(2, 10, 19, 0.7);
+  background: $block-lift;
 }
 
 .karaoke-maker__lyrics-modal {
@@ -7795,10 +7802,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   padding: 18px;
   background:
     radial-gradient(circle at 20% 0, rgba(80, 35, 121, 0.24), transparent 42%),
-    rgba(8, 28, 44, 0.99);
-  border: 1px solid rgba(75, 204, 198, 0.35);
+    $block-lift;
+  border: 1px solid rgba($secondary-default, 0.35);
   border-radius: $radius-xl;
-  box-shadow: 0 26px 80px rgba(0, 0, 0, 0.56);
+  box-shadow: 0 26px 80px rgba($surface-base, 0.56);
 
   h2 {
     margin: 3px 0;
@@ -7807,7 +7814,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   p {
     margin: 0;
-    color: rgba(188, 209, 221, 0.68);
+    color: rgba($edge-tint, 0.61);
     font-size: 11px;
   }
 
@@ -7817,16 +7824,16 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     height: 100%;
     padding: 14px;
     resize: vertical;
-    color: #e6f8fb;
+    color: $text-muted;
     line-height: 1.65;
-    background: rgba(4, 18, 30, 0.84);
+    background: $block-lift;
     border: 1px solid rgba(69, 145, 169, 0.28);
     border-radius: $radius-m;
     outline: 0;
 
     &:focus {
-      border-color: rgba(41, 228, 210, 0.65);
-      box-shadow: inset 0 0 22px rgba(21, 210, 194, 0.05);
+      border-color: rgba($secondary-default, 0.65);
+      box-shadow: inset 0 0 22px rgba($secondary-default, 0.05);
     }
   }
 
@@ -7858,9 +7865,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   min-height: 32px !important;
   place-items: center;
   padding: 0 !important;
-  color: rgba(210, 241, 244, 0.8) !important;
-  background: rgba(5, 29, 43, 0.82) !important;
-  border-color: rgba(75, 190, 194, 0.28) !important;
+  color: rgba($edge-tint, 0.72) !important;
+  background: $block-lift !important;
+  border-color: rgba($secondary-default, 0.28) !important;
   border-radius: 10px !important;
 
   svg {
@@ -7870,10 +7877,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   &:hover:not(:disabled),
   &:focus-visible {
-    color: #91fff5 !important;
+    color: $secondary-light !important;
     background: rgba(15, 69, 77, 0.9) !important;
-    border-color: rgba(79, 233, 219, 0.62) !important;
-    box-shadow: 0 0 15px rgba(32, 221, 205, 0.14) !important;
+    border-color: rgba($secondary-default, 0.62) !important;
+    box-shadow: 0 0 15px rgba($secondary-default, 0.14) !important;
   }
 }
 
@@ -7892,8 +7899,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   min-height: 0;
   gap: 9px;
   padding: 11px;
-  background: rgba(3, 18, 30, 0.64);
-  border: 1px solid rgba(66, 152, 169, 0.22);
+  background: rgba($surface-base, 0.64);
+  border: 1px solid rgba($secondary-default, 0.22);
   border-radius: $radius-l;
 }
 
@@ -7907,13 +7914,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   min-width: 0;
   min-height: 0;
   overflow: hidden;
-  background: rgba(4, 18, 30, 0.84);
+  background: $block-lift;
   border: 1px solid rgba(69, 145, 169, 0.28);
   border-radius: $radius-m;
 
   &:focus-within {
-    border-color: rgba(41, 228, 210, 0.65);
-    box-shadow: inset 0 0 22px rgba(21, 210, 194, 0.05);
+    border-color: rgba($secondary-default, 0.65);
+    box-shadow: inset 0 0 22px rgba($secondary-default, 0.05);
   }
 
   textarea,
@@ -7936,14 +7943,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     z-index: 2;
     min-height: 0;
     resize: none;
-    caret-color: #eafffc;
+    caret-color: $text-muted;
     color: transparent;
     -webkit-text-fill-color: transparent;
     background: transparent;
     border: 0;
     border-radius: 0;
     box-shadow: none;
-    scrollbar-color: rgba(29, 205, 190, 0.65) rgba(4, 24, 36, 0.72);
+    scrollbar-color: rgba($secondary-default, 0.65) $block-lift;
     scrollbar-gutter: stable;
     scrollbar-width: thin;
 
@@ -7953,12 +7960,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     }
 
     &::placeholder {
-      color: rgba(190, 213, 221, 0.5);
-      -webkit-text-fill-color: rgba(190, 213, 221, 0.5);
+      color: rgba($edge-tint, 0.45);
+      -webkit-text-fill-color: rgba($edge-tint, 0.45);
     }
 
     &::selection {
-      background: rgba(54, 217, 205, 0.28);
+      background: rgba($secondary-default, 0.28);
     }
   }
 }
@@ -7966,7 +7973,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .karaoke-maker__lyrics-source-highlight {
   z-index: 1;
   overflow: hidden;
-  color: rgba(226, 243, 247, 0.9);
+  color: rgba($edge-tint, 0.81);
   pointer-events: none;
   user-select: none;
 
@@ -7977,16 +7984,16 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 
   .is-timed {
-    color: #62f6e8;
-    text-shadow: 0 0 7px rgba(50, 226, 212, 0.16);
+    color: $secondary-default;
+    text-shadow: 0 0 7px rgba($secondary-default, 0.16);
   }
 
   .is-untimed {
-    color: rgba(224, 239, 244, 0.88);
+    color: rgba($edge-tint, 0.79);
   }
 
   .is-section {
-    color: #a6dff4;
+    color: $secondary-light;
   }
 }
 
@@ -8014,22 +8021,22 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   gap: 10px;
   grid-template-columns: auto minmax(0, 1fr);
   font-size: $text-lead;
-  color: rgba(223, 252, 249, 0.8);
+  color: rgba($edge-tint, 0.72);
 }
 
 .karaoke-maker__translation-mismatch {
   padding: 8px 10px;
-  color: #d8f8f5;
+  color: $text-muted;
   font-size: $text-lead;
   line-height: 1.4;
-  background: rgba(9, 40, 54, 0.72);
-  border: 1px solid rgba(45, 215, 200, 0.38);
+  background: $block-lift;
+  border: 1px solid rgba($secondary-default, 0.38);
   border-radius: $radius-s;
 }
 
 .karaoke-maker__lyrics-line-number {
   min-width: 18px;
-  color: rgba(169, 204, 216, 0.58);
+  color: rgba($secondary-light, 0.58);
   font-size: $text-body;
   text-align: right;
 }
@@ -8042,7 +8049,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   gap: 10px;
 
   strong {
-    color: #e6fffc;
+    color: $text-muted;
     font-size: $text-lead;
     letter-spacing: 0.035em;
     text-transform: uppercase;
@@ -8050,7 +8057,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   span {
     overflow: hidden;
-    color: rgba(169, 204, 216, 0.58);
+    color: rgba($secondary-light, 0.58);
     font-size: $text-body;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -8075,11 +8082,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     align-items: center;
     gap: 6px;
     padding: 0 8px;
-    color: #b9f8f2;
+    color: $text-muted;
     font-size: $text-body;
     font-weight: $weight-bold;
     background: rgba(14, 61, 76, 0.62);
-    border: 1px solid rgba(62, 213, 199, 0.3);
+    border: 1px solid rgba($secondary-default, 0.3);
     border-radius: $radius-xs;
 
     svg {
@@ -8093,7 +8100,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   min-height: 0;
   overflow: auto;
   padding: 3px 4px 8px 2px;
-  scrollbar-color: rgba(29, 205, 190, 0.65) rgba(4, 24, 36, 0.72);
+  scrollbar-color: rgba($secondary-default, 0.65) $block-lift;
   scrollbar-width: thin;
 }
 
@@ -8110,17 +8117,17 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   align-items: center;
   gap: 7px;
   padding: 6px 8px;
-  color: rgba(195, 232, 235, 0.72);
+  color: rgba($edge-tint, 0.65);
   font-size: $text-body;
   background: rgba(16, 66, 77, 0.42);
-  border: 1px solid rgba(65, 198, 190, 0.2);
+  border: 1px solid rgba($secondary-default, 0.2);
   border-radius: $radius-xs;
 
   svg {
     width: 14px;
     height: 14px;
     flex: 0 0 auto;
-    color: #64eee2;
+    color: $secondary-default;
   }
 
   span {
@@ -8135,7 +8142,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   &:hover {
     color: inherit;
-    background: rgba(10, 39, 53, 0.72);
+    background: $block-lift;
     transform: none;
   }
 }
@@ -8154,17 +8161,17 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     box-shadow 130ms ease;
 
   &.is-drop-target:not(.is-section) {
-    background: rgba(32, 218, 199, 0.1);
-    border-color: rgba(92, 255, 239, 0.48);
-    box-shadow: inset 0 0 0 1px rgba(92, 255, 239, 0.22);
+    background: rgba($secondary-default, 0.1);
+    border-color: rgba($secondary-default, 0.48);
+    box-shadow: inset 0 0 0 1px rgba($secondary-default, 0.22);
   }
 
   > button {
     min-height: 24px;
     padding: 0 8px;
-    color: rgba(215, 237, 242, 0.78);
+    color: rgba($edge-tint, 0.7);
     font-size: $text-lead;
-    background: rgba(10, 39, 53, 0.72);
+    background: $block-lift;
     border: 1px solid transparent;
     border-radius: $radius-xs;
     transition:
@@ -8174,32 +8181,32 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       transform 130ms ease;
 
     &:hover {
-      color: #efffff;
+      color: $text-muted;
       background: rgba(20, 76, 87, 0.8);
       transform: translateY(-1px);
     }
 
     &.is-untimed {
-      color: rgba(183, 200, 210, 0.5);
-      border-color: rgba(142, 164, 177, 0.18);
+      color: rgba($edge-tint, 0.45);
+      border-color: rgba($edge-tint, 0.16);
       border-style: dashed;
     }
 
     &.is-adjusted {
-      color: #aefbf4;
+      color: $secondary-light;
       background: rgba(18, 91, 91, 0.54);
     }
 
     &.is-current {
-      color: #ffffff;
-      box-shadow: 0 0 14px rgba(38, 230, 211, 0.2);
+      color: $text-muted;
+      box-shadow: 0 0 14px rgba($secondary-default, 0.2);
     }
 
     &.is-selected {
       color: $surface-base;
       font-weight: $weight-bold;
-      background: linear-gradient(135deg, #67fff1, #28d7c7);
-      border-color: rgba(201, 255, 249, 0.72);
+      background: $secondary-default;
+      border-color: rgba($edge-tint, 0.65);
     }
 
     &[draggable='true'] {
@@ -8213,7 +8220,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   &.is-section {
     min-height: 27px;
-    color: #7cebe1;
+    color: $secondary-light;
     font-size: $text-lead;
     font-weight: $weight-bold;
     letter-spacing: 0.08em;
@@ -8228,23 +8235,23 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   place-content: center;
   justify-items: center;
   padding: 20px;
-  color: rgba(183, 211, 220, 0.64);
+  color: rgba($edge-tint, 0.58);
   text-align: center;
   background:
-    radial-gradient(circle, rgba(31, 211, 195, 0.08), transparent 64%),
-    rgba(2, 15, 25, 0.45);
-  border: 1px dashed rgba(62, 193, 184, 0.2);
+    radial-gradient(circle, rgba($secondary-default, 0.08), transparent 64%),
+    rgba($surface-base, 0.45);
+  border: 1px dashed rgba($secondary-default, 0.2);
   border-radius: $radius-s;
 
   svg {
     width: 27px;
     height: 27px;
     margin-bottom: 8px;
-    color: #59e9dc;
+    color: $secondary-default;
   }
 
   strong {
-    color: #dffaf7;
+    color: $text-muted;
     font-size: 11px;
   }
 
@@ -8261,10 +8268,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   display: grid;
   gap: 11px;
   padding: 13px;
-  background: rgba(7, 31, 44, 0.86);
-  border: 1px solid rgba(44, 211, 198, 0.25);
+  background: $block-lift;
+  border: 1px solid rgba($secondary-default, 0.25);
   border-radius: $radius-m;
-  box-shadow: inset 0 0 20px rgba(31, 220, 204, 0.035);
+  box-shadow: inset 0 0 20px rgba($secondary-default, 0.035);
 }
 
 .karaoke-maker__lyrics-word-editor-head {
@@ -8278,7 +8285,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     min-width: 0;
 
     span {
-      color: rgba(169, 203, 215, 0.58);
+      color: rgba($secondary-light, 0.58);
       font-size: $text-lead;
       font-weight: $weight-bold;
       letter-spacing: 0.07em;
@@ -8287,7 +8294,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
     strong {
       overflow: hidden;
-      color: #92fff5;
+      color: $secondary-light;
       font-size: 17px;
       text-overflow: ellipsis;
       white-space: nowrap;
@@ -8307,9 +8314,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       min-height: 34px;
       place-items: center;
       padding: 0;
-      color: #a9f8f1;
+      color: $secondary-light;
       background: rgba(14, 61, 75, 0.72);
-      border: 1px solid rgba(57, 197, 190, 0.25);
+      border: 1px solid rgba($secondary-default, 0.25);
       border-radius: $radius-xs;
 
       svg {
@@ -8320,7 +8327,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
     output {
       min-width: 62px;
-      color: rgba(210, 235, 240, 0.82);
+      color: rgba($edge-tint, 0.74);
       font-size: $text-lead;
       font-weight: $weight-bold;
       text-align: center;
@@ -8340,11 +8347,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     align-items: center;
     gap: 6px;
     padding: 0 11px;
-    color: #acf9f2;
+    color: $secondary-light;
     font-size: $text-lead;
     font-weight: $weight-bold;
     background: rgba(14, 67, 76, 0.66);
-    border: 1px solid rgba(56, 199, 189, 0.26);
+    border: 1px solid rgba($secondary-default, 0.26);
     border-radius: $radius-xs;
 
     svg {
@@ -8356,19 +8363,19 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   button.is-primary {
     color: #022421;
     font-weight: $weight-bold;
-    background: linear-gradient(135deg, #66fff2, #1edac9);
-    border-color: rgba(126, 255, 244, 0.84);
-    box-shadow: 0 0 14px rgba(35, 228, 211, 0.14);
+    background: $secondary-default;
+    border-color: rgba($secondary-light, 0.84);
+    box-shadow: 0 0 14px rgba($secondary-default, 0.14);
   }
 
   > span {
     margin-left: auto;
-    color: rgba(181, 216, 225, 0.65);
+    color: rgba($edge-tint, 0.59);
     font-size: $text-lead;
     font-weight: $weight-bold;
 
     &.is-untimed {
-      color: #ffbd7b;
+      color: $amber;
     }
   }
 }
@@ -8379,8 +8386,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   padding: 11px 12px;
   color: $text-primary;
   background:
-    radial-gradient(circle at 12% 0, rgba(30, 215, 199, 0.12), transparent 58%),
-    rgba(4, 22, 35, 0.86);
+    radial-gradient(
+      circle at 12% 0,
+      rgba($secondary-default, 0.12),
+      transparent 58%
+    ),
+    $block-lift;
   border: 1px solid rgba($secondary-light, 0.27);
   border-radius: $radius-m;
 
@@ -8410,7 +8421,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 .karaoke-maker__modal-backdrop.is-processing {
   pointer-events: none;
-  background: rgba(2, 10, 19, 0.28);
+  background: rgba($surface-base, 0.28);
 
   .karaoke-maker__lyrics-modal {
     pointer-events: auto;
@@ -8437,10 +8448,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   padding: 22px;
   background:
     radial-gradient(circle at 18% 0, rgba(67, 39, 124, 0.25), transparent 46%),
-    rgba(8, 28, 44, 0.99);
-  border: 1px solid rgba(75, 204, 198, 0.35);
+    $block-lift;
+  border: 1px solid rgba($secondary-default, 0.35);
   border-radius: $radius-xl;
-  box-shadow: 0 26px 80px rgba(0, 0, 0, 0.56);
+  box-shadow: 0 26px 80px rgba($surface-base, 0.56);
 
   h2 {
     margin: 6px 0 10px;
@@ -8448,7 +8459,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 
   p {
-    color: rgba(201, 222, 232, 0.76);
+    color: rgba($edge-tint, 0.68);
     font-size: 11px;
     line-height: 1.55;
   }
@@ -8464,13 +8475,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   grid-template-columns: auto minmax(0, 1fr);
   gap: 12px;
   padding: 20px;
-  color: #f3fbfd;
+  color: $text-muted;
   background:
-    radial-gradient(circle at 12% 0, rgba(134, 30, 55, 0.2), transparent 50%),
-    rgba(8, 25, 39, 0.99);
+    radial-gradient(circle at 12% 0, rgba($red, 0.2), transparent 50%),
+    $block-lift;
   border: 1px solid rgba(255, 104, 129, 0.3);
   border-radius: $radius-l;
-  box-shadow: 0 26px 80px rgba(0, 0, 0, 0.56);
+  box-shadow: 0 26px 80px rgba($surface-base, 0.56);
 
   > svg {
     width: 24px;
@@ -8485,7 +8496,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   p {
     margin: 0;
-    color: rgba(203, 221, 229, 0.72);
+    color: rgba($edge-tint, 0.65);
     font-size: $text-lead;
     line-height: 1.55;
   }
@@ -8501,7 +8512,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   color: #ffd2d9;
   font-size: $text-lead;
   line-height: 1.4;
-  background: rgba(91, 24, 42, 0.3);
+  background: rgba($red, 0.3);
   border: 1px solid rgba(255, 103, 128, 0.24);
   border-radius: $radius-s;
 }
@@ -8516,7 +8527,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   > .is-danger {
     color: #fff0f2;
-    background: linear-gradient(135deg, #cb3c59, #8e263e);
+    background: $red;
     border-color: rgba(255, 132, 151, 0.38);
   }
 }
@@ -8854,9 +8865,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   gap: 5px 12px;
   padding: 6px 9px;
   background:
-    radial-gradient(circle at 50% 0, rgba(40, 225, 208, 0.08), transparent 65%),
-    rgba(4, 24, 38, 0.72);
-  border: 1px solid rgba(62, 181, 185, 0.2);
+    radial-gradient(
+      circle at 50% 0,
+      rgba($secondary-default, 0.08),
+      transparent 65%
+    ),
+    $block-lift;
+  border: 1px solid rgba($secondary-default, 0.2);
   border-radius: $radius-s;
 
   label {
@@ -8869,7 +8884,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       align-items: center;
       justify-content: space-between;
       gap: 8px;
-      color: rgba(171, 211, 220, 0.68);
+      color: rgba($secondary-light, 0.68);
       font-size: $text-body;
       font-weight: $weight-bold;
       letter-spacing: 0.05em;
@@ -8877,7 +8892,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     }
 
     output {
-      color: #9dfff7;
+      color: $secondary-light;
       font-size: $text-lead;
       font-variant-numeric: tabular-nums;
       letter-spacing: 0;
@@ -8893,11 +8908,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     background: transparent;
     border: 0;
     outline: 0;
-    accent-color: #25e3d2;
+    accent-color: $secondary-default;
     cursor: ew-resize;
 
     &:focus-visible {
-      filter: drop-shadow(0 0 5px rgba(53, 241, 224, 0.58));
+      filter: drop-shadow(0 0 5px rgba($secondary-default, 0.58));
     }
 
     &:disabled {
@@ -8908,7 +8923,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   small {
     grid-column: 1 / -1;
-    color: rgba(160, 197, 210, 0.48);
+    color: rgba($edge-tint, 0.43);
     font-size: $text-body;
     line-height: 1.3;
   }
@@ -8918,7 +8933,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     min-width: 220px;
     align-items: center;
     gap: 8px;
-    color: #ffbd7b;
+    color: $amber;
 
     small {
       min-width: 0;
