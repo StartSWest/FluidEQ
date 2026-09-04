@@ -1464,6 +1464,7 @@ const KaraokeWorkspace = ({
           <svg
             className="karaoke-button__icon"
             viewBox="0 0 24 24"
+            fill="none"
             aria-hidden="true"
           >
             <path d="m4 17-.8 3.8L7 20l10.8-10.8-3-3L4 17Zm9.5-9.5 3 3M13 20h8" />
@@ -1528,6 +1529,7 @@ const KaraokeWorkspace = ({
           <svg
             className="karaoke-button__icon"
             viewBox="0 0 24 24"
+            fill="none"
             aria-hidden="true"
           >
             <path d="M4 5.5h16v13H4zM4 15.5l4.5-4.5 3 3 3.5-3.5 5 5M14.6 9.6a1.15 1.15 0 1 0 2.3 0 1.15 1.15 0 1 0-2.3 0" />
@@ -1568,6 +1570,7 @@ const KaraokeWorkspace = ({
           <svg
             className="karaoke-button__icon"
             viewBox="0 0 24 24"
+            fill="none"
             aria-hidden="true"
           >
             <path d="M4 4.5h16v15H4zM4 9h16" />
@@ -1970,7 +1973,7 @@ const KaraokeWorkspace = ({
               title={t('karaoke.playlist.expand')}
               onClick={() => updateLayout({ playlistCollapsed: false }, true)}
             >
-              <svg viewBox="0 0 20 20" aria-hidden="true">
+              <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
                 <path d="M4 5.5h6M4 10h6M4 14.5h6M12.5 4.5 18 10l-5.5 5.5" />
               </svg>
               <span>{t('karaoke.playlist.title')}</span>
