@@ -552,5 +552,28 @@ describe('the Smart EQ closed loop', () => {
 
       expect(withBroken.every((level) => Number.isFinite(level))).toBe(true);
     });
+
+    it('is computed once per chain, not once per frame', () => {
+      // The capture asks for this thirty times a second and the chain only
+      // changes when somebody touches something. The same filters, rebuilt
+      // from the same profile with fresh objects, must hand back the answer
+      // already made; a changed gain must not.
+      const rebuilt = getVoicingFilters(voicing).map((filter, index) =>
+        asFilter(filter, `voicing-again-${index}`),
+      );
+      const first = buildChainGainDb(voicingFilters, AXIS);
+      expect(buildChainGainDb(rebuilt, AXIS)).toBe(first);
+
+      const nudged = voicingFilters.map((filter, index) =>
+        index === 0 ? { ...filter, gain: filter.gain + 1 } : filter,
+      );
+      const changed = buildChainGainDb(nudged, AXIS);
+      expect(changed).not.toBe(first);
+      expect(changed.some((level, index) => level !== first[index])).toBe(true);
+
+      // A different axis is a different device, and a different answer.
+      const otherAxis = AXIS.map((frequency) => frequency * 1.01);
+      expect(buildChainGainDb(voicingFilters, otherAxis)).not.toBe(first);
+    });
   });
 });

@@ -495,7 +495,16 @@ export const smoothSpectrum = (
     };
   });
 
-/** Linear interpolation of a spectrum field at an arbitrary frequency. */
+/**
+ * Linear interpolation of a spectrum field at an arbitrary frequency.
+ *
+ * `samples` must be in ascending frequency, which every curve here is: the
+ * measurement is sorted before it is used, and the response curves are built
+ * on an ascending grid. The neighbour is found by bisection rather than by
+ * scanning from the front — the chain curve has a thousand points, and this
+ * is asked for once per axis point for every solve and, until it was cached,
+ * on every frame.
+ */
 export const sampleSpectrumAt = (
   samples: ISpectrumSample[],
   frequency: number,
@@ -515,9 +524,19 @@ export const sampleSpectrumAt = (
     return read(last);
   }
 
-  const upperIndex = samples.findIndex(
-    (sample) => sample.frequency >= frequency,
-  );
+  // The first sample at or above `frequency`, which the guards above have
+  // already placed strictly inside the array.
+  let low = 0;
+  let high = samples.length - 1;
+  while (low < high) {
+    const middle = Math.floor((low + high) / 2);
+    if (samples[middle].frequency >= frequency) {
+      high = middle;
+    } else {
+      low = middle + 1;
+    }
+  }
+  const upperIndex = low;
   const upper = samples[upperIndex];
   const lower = samples[upperIndex - 1] ?? upper;
   const span = Math.log10(upper.frequency) - Math.log10(lower.frequency);
