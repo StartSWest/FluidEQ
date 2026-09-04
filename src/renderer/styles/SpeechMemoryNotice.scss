@@ -30,7 +30,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
   padding: 14px 16px;
   border: 1px solid rgba($secondary-light, 0.4);
   border-radius: $radius-m;
-  background: rgba($surface-menu-top, 0.97);
+  background: color-mix(in srgb, $surface-menu-top 97%, transparent);
   box-shadow: 0 16px 40px rgba($black, 0.45);
 }
 

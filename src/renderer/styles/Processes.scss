@@ -102,7 +102,7 @@ it under the terms of the GNU General Public License version 3 or later.
     padding: 9px 12px;
     border-bottom: 1px solid rgba($secondary-light, 0.16);
     color: $text-faint;
-    background: rgba($surface-menu-top, 0.96);
+    background: color-mix(in srgb, $surface-menu-top 96%, transparent);
     font-size: $text-small;
     font-weight: $weight-bold;
     letter-spacing: 0.08em;

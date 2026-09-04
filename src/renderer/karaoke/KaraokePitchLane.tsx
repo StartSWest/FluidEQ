@@ -82,6 +82,7 @@ import {
   TKaraokeMicrophoneStatus,
   TKaraokePitchAnalysisStatus,
 } from './useKaraokeMicrophone';
+import { readSurface, readSurfaceAlpha } from '../utils/theme';
 
 /**
  * The system font, the same stack the stylesheet uses — a canvas cannot read
@@ -218,7 +219,7 @@ const KaraokePitchLane = ({
       // darkest rectangle in the window and a different material from the
       // card it sits in. A canvas cannot read the stylesheet, so the value
       // is `$surface-plot` written out.
-      context.fillStyle = 'rgb(26, 58, 78)';
+      context.fillStyle = readSurface('--surface-panel', '#1a3a4e');
       context.fillRect(0, 0, width, height);
 
       const plotWidth = Math.max(1, width - PLOT_LEFT - PLOT_RIGHT);
@@ -960,8 +961,14 @@ const KaraokePitchLane = ({
         );
         // The card colour over the plot, the same step every block in the
         // app takes over its pane. It was a ramp of three near-black blues.
-        reviewSurface.addColorStop(0, 'rgba(30, 66, 87, 0.96)');
-        reviewSurface.addColorStop(1, 'rgba(30, 66, 87, 0.9)');
+        reviewSurface.addColorStop(
+          0,
+          readSurfaceAlpha('--surface-block', 0.96, 'rgba(30, 66, 87, 0.96)'),
+        );
+        reviewSurface.addColorStop(
+          1,
+          readSurfaceAlpha('--surface-block', 0.9, 'rgba(30, 66, 87, 0.9)'),
+        );
         context.save();
         context.fillStyle = reviewSurface;
         context.shadowColor = 'rgba(0, 0, 0, 0.24)';
@@ -1006,8 +1013,14 @@ const KaraokePitchLane = ({
           reviewY + reviewTrackHeight,
         );
         // The empty-track colour, like every groove in the app — not black.
-        trackGradient.addColorStop(0, 'rgba(46, 79, 99, 0.95)');
-        trackGradient.addColorStop(1, 'rgba(46, 79, 99, 0.85)');
+        trackGradient.addColorStop(
+          0,
+          readSurfaceAlpha('--track-well', 0.95, 'rgba(46, 79, 99, 0.95)'),
+        );
+        trackGradient.addColorStop(
+          1,
+          readSurfaceAlpha('--track-well', 0.85, 'rgba(46, 79, 99, 0.85)'),
+        );
         context.fillStyle = trackGradient;
         context.strokeStyle = 'rgba(107, 233, 242, 0.13)';
         context.lineWidth = 1;
@@ -1108,8 +1121,14 @@ const KaraokePitchLane = ({
           legendY + legendHeight,
         );
         // Same card colour as the review strip, for the same reason.
-        legendSurface.addColorStop(0, 'rgba(30, 66, 87, 0.97)');
-        legendSurface.addColorStop(1, 'rgba(30, 66, 87, 0.94)');
+        legendSurface.addColorStop(
+          0,
+          readSurfaceAlpha('--surface-block', 0.97, 'rgba(30, 66, 87, 0.97)'),
+        );
+        legendSurface.addColorStop(
+          1,
+          readSurfaceAlpha('--surface-block', 0.94, 'rgba(30, 66, 87, 0.94)'),
+        );
         context.save();
         context.fillStyle = legendSurface;
         context.shadowColor = 'rgba(0, 0, 0, 0.38)';

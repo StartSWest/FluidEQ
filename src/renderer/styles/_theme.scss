@@ -202,7 +202,14 @@ $font-mono:
 // own colour (tried, and kept for a while) the three columns and the EQ
 // card were told apart by a hairline and nothing else. Five values of
 // lightness is enough to see a pane and not enough to see a hole.
-$surface-base: #0d2030;
+// EVERY SURFACE IS A CUSTOM PROPERTY, and this is the whole of the theme
+// switch. The values live on `:root` in App.scss, once per theme; the Sass
+// names below are the same names every sheet has always used, and they now
+// resolve at paint time instead of at build time. Anything that needs the
+// colour with an alpha says `color-mix(in srgb, $surface-x N%, transparent)`
+// rather than `rgba($surface-x, a)`: Sass cannot do arithmetic on a
+// `var()`, and the browser can.
+$surface-base: var(--surface-base);
 // The shell used to carry a two-stop ramp between these; it is flat now and
 // both names resolve to the one shell colour, kept so nothing has to move.
 $surface-base-top: $surface-base;
@@ -216,7 +223,7 @@ $surface-base-bottom: $surface-base;
 // columns. Turned around, the panes carry the light and the blocks on them
 // are recessed, so the three columns read level and a card reads as cut into
 // its pane rather than floated on it.
-$surface-panel: #1a3a4e;
+$surface-panel: var(--surface-panel);
 
 // Both ends of what used to be the card ramp, now the one card colour. They
 // are kept as names because a handful of sheets mix from them; there is no
@@ -227,8 +234,8 @@ $panel-bottom: $surface-panel;
 // above the card it is cut into; its foot used to run off to #1b2138, a
 // violet-navy from a different family, which is why every dropdown in the
 // window had a faint purple bottom edge.
-$surface-field: #1c3a4e;
-$surface-field-end: #173245;
+$surface-field: var(--surface-field);
+$surface-field-end: var(--surface-field-end);
 // A block inside a pane: the rung ABOVE it, same hue and saturation.
 //
 // Lifted, not recessed, and the two were tried the other way round. Panes
@@ -243,7 +250,7 @@ $surface-field-end: #173245;
 // largest block in the window, so the same lift that reads as a card in the
 // sidebar reads as a lamp across the EQ. Enough to see the block sitting on
 // its pane, not enough to make it the subject.
-$surface-block: #1e4257;
+$surface-block: var(--surface-block);
 
 // How much of the shell's own colour is laid over the blurred desktop
 // Windows draws behind the window. Must agree with
@@ -259,14 +266,14 @@ $surface-block: #1e4257;
 // of the wallpaper rather than a live blur, and Windows mutes it further
 // while the window is not focused. A tenth is enough to carry that and not
 // enough to let the muting read as a colour change.
-$window-backdrop: rgba($surface-base, 0.9);
+$window-backdrop: color-mix(in srgb, var(--surface-base) 90%, transparent);
 // A menu is a pane that floats: the pane colour lifted five values with the
 // same hue and the same saturation, opaque. It was a desaturated slate at
 // 96% over an 18px blur, which came out grey and muddy over whatever it
 // happened to open across. `$surface-menu` is the strip at the head of a
 // menu (a search row), one step under the menu itself.
-$surface-menu: #163244;
-$surface-menu-top: #1a3a52;
+$surface-menu: var(--surface-menu);
+$surface-menu-top: var(--surface-menu-top);
 // The face of an open menu, and it is the closed select's own face.
 //
 // A menu is the list that drops out of a picker, so the two are one control
@@ -275,11 +282,11 @@ $surface-menu-top: #1a3a52;
 // the trigger's colour composited over the block it opens on, so the list
 // looks like the field it came from. Opaque, because nothing blurs behind a
 // menu any more and a translucent card over unblurred rows reads as a fault.
-$surface-menu-face: sass-color.mix($secondary-default, $surface-block, 7%);
+$surface-menu-face: var(--surface-menu-face);
 $border-menu: rgba($secondary-light, 0.22);
 // The shade a well is painted in, over a card, at the alpha `inset-surface`
 // uses. Kept next to the shell colour it is derived from.
-$surface-well: #07111a;
+$surface-well: var(--surface-well);
 
 // Edges are a cool white, not the lavender `$primary-lighter`: at a tenth of
 // alpha over slate, lavender lands grey-violet and the whole window took on a
@@ -308,7 +315,7 @@ $edge-tint: #d6e9f7;
 // Measured off the running window: the main plot reads 27,58,78, which is
 // this exact surface under the shell's faint wash.
 $surface-plot: $surface-panel;
-$track-well: #2e4f63;
+$track-well: var(--track-well);
 $border-subtle: rgba($edge-tint, 0.09);
 $border-panel: rgba($edge-tint, 0.11);
 $border-field: rgba($secondary-light, 0.24);
@@ -581,7 +588,7 @@ $transition-control:
 // against a panel and look continuous with it (workspace tabs) uses this
 // instead of eyeballing a similar value.
 @function panel-top($accent: $secondary-default, $amount: 0%) {
-  @return sass-color.mix($accent, $panel-top-base, $amount);
+  @return color-mix(in srgb, $accent $amount, $panel-top-base);
 }
 
 // Top-level card. `$accent` tints the top edge so the sidebar, EQ, graph and

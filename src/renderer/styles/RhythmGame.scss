@@ -161,8 +161,8 @@ it under the terms of the GNU General Public License version 3 or later.
     border-radius: $radius-s;
     background: linear-gradient(
       180deg,
-      rgba($surface-base, 0.9),
-      rgba($surface-well, 0.94)
+      color-mix(in srgb, $surface-base 90%, transparent),
+      color-mix(in srgb, $surface-well 94%, transparent)
     );
   }
 

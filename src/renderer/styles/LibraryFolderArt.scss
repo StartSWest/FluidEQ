@@ -39,8 +39,8 @@ $folder-silhouette: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000
 // piece of chrome in the library that has to read as "not artwork" at a
 // glance, and it does that by being made of the same two surfaces every other
 // well and card here is made of, tinted with the shell's own accent.
-$folder-chrome-top: sass-color.mix($secondary-dark, $surface-field, 30%);
-$folder-chrome-bottom: sass-color.mix($secondary-darker, $panel-bottom, 40%);
+$folder-chrome-top: color-mix(in srgb, $secondary-dark 30%, $surface-field);
+$folder-chrome-bottom: color-mix(in srgb, $secondary-darker 40%, $panel-bottom);
 
 .library-folder-art {
   position: relative;

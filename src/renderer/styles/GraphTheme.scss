@@ -436,7 +436,7 @@ it under the terms of the GNU General Public License version 3 or later.
   padding: 9px 18px;
   border: 1px solid rgba($secondary-light, 0.2);
   border-radius: $radius-pill;
-  background: rgba($surface-menu-top, 0.82);
+  background: color-mix(in srgb, $surface-menu-top 82%, transparent);
   color: $text-primary;
   font-size: $text-lead;
   font-weight: $weight-bold;
@@ -902,7 +902,7 @@ it under the terms of the GNU General Public License version 3 or later.
   color: rgba($white, 0.94);
   border: 1px solid rgba($secondary-light, 0.32);
   border-radius: 4px;
-  background: rgba($panel-bottom, 0.78);
+  background: color-mix(in srgb, $panel-bottom 78%, transparent);
   font-size: $text-eyebrow;
   font-weight: $weight-bold;
   letter-spacing: 0.14em;

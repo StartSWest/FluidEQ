@@ -61,7 +61,7 @@ it under the terms of the GNU General Public License version 3 or later.
   // like they do. The dark under-stroke is what keeps it legible where it
   // crosses the bright top of the body.
   &__notch-groove {
-    stroke: rgba($surface-base, 0.55);
+    stroke: color-mix(in srgb, $surface-base 55%, transparent);
     stroke-width: 6;
     stroke-linecap: round;
   }

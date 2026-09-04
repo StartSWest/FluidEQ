@@ -15,6 +15,7 @@ import {
   readDspBandLevels,
   subscribeDspAnalysers,
 } from './store';
+import { readSurfaceAlpha } from '../utils/theme';
 
 const MIN_HZ = 20;
 const MAX_HZ = 20_000;
@@ -843,7 +844,9 @@ const DspEqGraph = ({
         // window, so an unselected handle read as a hole punched through the
         // plot rather than as a knob standing on it. The cyan ring below is
         // what marks it; the fill only has to hide the curve behind it.
-        context.fillStyle = isPick ? '#00e5cf' : 'rgba(30,66,87,0.92)';
+        context.fillStyle = isPick
+          ? '#00e5cf'
+          : readSurfaceAlpha('--surface-block', 0.92, 'rgba(30, 66, 87, 0.92)');
         context.fill();
         context.strokeStyle = isPick ? '#ffffff' : 'rgba(0,229,207,0.7)';
         context.lineWidth = 2;

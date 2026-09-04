@@ -32,7 +32,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   display: grid;
   padding: $spacing-l;
   place-items: center;
-  background: rgba($surface-well, 0.72);
+  background: color-mix(in srgb, $surface-well 72%, transparent);
 }
 
 // A frame with a scrolling body inside it, rather than one box that scrolls.
@@ -64,7 +64,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // as a blur rather than as the thing itself lighting up.
   border-color: rgba($secondary-light, calc(0.26 + var(--pet-joy, 0) * 0.55));
   border-radius: $radius-xl;
-  background: rgba($surface-field-end, 0.97);
+  background: color-mix(in srgb, $surface-field-end 97%, transparent);
   box-shadow:
     0 32px 90px rgba($black, 0.64),
     inset 0 1px 0 rgba($white, 0.07),
@@ -181,7 +181,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     position: relative;
     overflow: hidden;
     padding: 24px 20px 20px;
-    background: rgba($surface-base, 0.42);
+    background: color-mix(in srgb, $surface-base 42%, transparent);
 
     &::after {
       position: absolute;
@@ -377,7 +377,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     color: $secondary-light;
     border: 1px solid rgba($secondary-light, 0.2);
     border-radius: $radius-xs;
-    background: rgba($surface-menu-top, 0.7);
+    background: color-mix(in srgb, $surface-menu-top 70%, transparent);
     font-family: $font-mono;
     font-size: $text-lead;
     line-height: 1.5;
@@ -452,7 +452,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .support-method--primary {
   position: relative;
   border-color: rgba($secondary-light, 0.34);
-  background: rgba($surface-menu-top, 0.72);
+  background: color-mix(in srgb, $surface-menu-top 72%, transparent);
   cursor: pointer;
   transition:
     $transition-control,
@@ -461,7 +461,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   &:hover,
   &:focus-visible {
     border-color: rgba($secondary-light, 0.62);
-    background: rgba($surface-field-end, 0.82);
+    background: color-mix(in srgb, $surface-field-end 82%, transparent);
     translate: 0 -2px;
     outline: none;
   }

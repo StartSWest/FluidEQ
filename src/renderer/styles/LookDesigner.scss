@@ -55,7 +55,7 @@ it under the terms of the GNU General Public License version 3 or later.
   pointer-events: auto;
   // Enough that the trace behind stays legible while the panel is read, opaque
   // enough that the text on it is not sitting on moving bars.
-  background: rgba($surface-base, 0.94);
+  background: color-mix(in srgb, $surface-base 94%, transparent);
   // Clipped again. This was `visible` to let the panel's own form dropdown open
   // past the edge; that dropdown is gone — the picker in the header does the
   // job — and nothing left in here escapes its own box.

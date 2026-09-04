@@ -14,6 +14,7 @@ import {
 import { IKaraokeMakerNote } from '../../common/karaoke/makerProject';
 import KaraokeMakerToolIcon from './KaraokeMakerToolIcon';
 import { KaraokeTransportIcon } from './KaraokeTransport';
+import { readSurface, readSurfaceAlpha } from '../utils/theme';
 
 interface IKaraokeMakerNavigatorProps {
   durationMs: number;
@@ -163,8 +164,8 @@ const KaraokeMakerNavigator = ({
 
     const background = context.createLinearGradient(0, 0, 0, height);
     // The plot colour, like the editor above it.
-    background.addColorStop(0, 'rgb(26, 58, 78)');
-    background.addColorStop(1, 'rgb(26, 58, 78)');
+    background.addColorStop(0, readSurface('--surface-panel', '#1a3a4e'));
+    background.addColorStop(1, readSurface('--surface-panel', '#1a3a4e'));
     context.fillStyle = background;
     context.roundRect(0.5, 0.5, width - 1, height - 1, 8);
     context.fill();
@@ -234,7 +235,11 @@ const KaraokeMakerNavigator = ({
       viewportStartMs,
       viewportDurationMs,
     );
-    context.fillStyle = 'rgba(13, 32, 48, .46)';
+    context.fillStyle = readSurfaceAlpha(
+      '--surface-base',
+      0.46,
+      'rgba(13, 32, 48, 0.46)',
+    );
     context.fillRect(0, 2, viewportLeft, height - 4);
     context.fillRect(
       viewportLeft + viewportWidth,

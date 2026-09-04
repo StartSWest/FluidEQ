@@ -2398,7 +2398,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   border-radius: $radius-xs;
   // A well cut into its card: the shell colour, which is the one thing in
   // the palette that reads as "below". Black at 24% was a shade of nothing.
-  background: rgba($surface-base, 0.55);
+  background: color-mix(in srgb, $surface-base 55%, transparent);
   color: rgba($white, 0.55);
   cursor: pointer;
   transition:

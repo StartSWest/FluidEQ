@@ -67,7 +67,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // Heavier and blurrier than the About panel's. That panel is something you
   // opened; these arrive on their own, and the workspace behind them should
   // not look like the thing to carry on reading.
-  background: rgba($surface-well, 0.82);
+  background: color-mix(in srgb, $surface-well 82%, transparent);
 }
 
 .overlay-card__backdrop--locked {
@@ -82,7 +82,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   grid-template-rows: auto minmax(0, 1fr) auto;
   border: 1px solid rgba($secondary-light, 0.28);
   border-radius: $radius-l;
-  background: rgba($surface-menu-top, 0.99);
+  background: color-mix(in srgb, $surface-menu-top 99%, transparent);
   box-shadow: 0 30px 80px rgba($black, 0.55);
 }
 

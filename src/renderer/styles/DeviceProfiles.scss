@@ -146,7 +146,7 @@ it under the terms of the GNU General Public License version 3 or later.
   overflow-y: auto;
   border: 1px solid rgba($red, 0.52);
   border-radius: $radius-m;
-  background: rgba($surface-menu, 0.98);
+  background: color-mix(in srgb, $surface-menu 98%, transparent);
   box-shadow: 0 18px 48px rgba($black, 0.48);
   gap: $spacing-m;
   transform: translateX(-50%);

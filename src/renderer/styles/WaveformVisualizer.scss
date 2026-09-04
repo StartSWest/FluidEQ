@@ -74,7 +74,7 @@ it under the terms of the GNU General Public License version 3 or later.
   // The bar's own colour, taken down a shade. Opaque, and that matters as
   // much as the value: painted as a translucent wash the pane picked up the
   // bar's inset rim through it and the tone moved along its own height.
-  background: sass-color.scale($surface-panel, $lightness: -8%);
+  background: color-mix(in srgb, $surface-panel 92%, black);
   box-shadow:
     inset 0 1px 0 rgba($white, 0.05),
     0 0 22px rgba($secondary-default, 0.04);
@@ -239,7 +239,7 @@ it under the terms of the GNU General Public License version 3 or later.
   color: rgba($white, 0.94);
   border: 1px solid rgba($secondary-light, 0.32);
   border-radius: 3px;
-  background: rgba($panel-bottom, 0.72);
+  background: color-mix(in srgb, $panel-bottom 72%, transparent);
   font-size: $text-eyebrow;
   font-weight: $weight-bold;
   letter-spacing: 0.14em;

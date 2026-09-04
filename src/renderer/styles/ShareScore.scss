@@ -29,7 +29,7 @@ it under the terms of the GNU General Public License version 3 or later.
   display: grid;
   padding: $spacing-m;
   place-items: center;
-  background: rgba($surface-well, 0.72);
+  background: color-mix(in srgb, $surface-well 72%, transparent);
 }
 
 .share-score {
@@ -38,7 +38,7 @@ it under the terms of the GNU General Public License version 3 or later.
   padding: 16px;
   border: 1px solid rgba($secondary-default, 0.22);
   border-radius: $radius-m;
-  background: rgba($surface-menu-top, 0.72);
+  background: color-mix(in srgb, $surface-menu-top 72%, transparent);
 }
 
 // Sized as a dialog once it is one.

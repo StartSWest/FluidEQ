@@ -252,6 +252,9 @@ const app: Partial<Dictionary> = {
   'provenance.repository': 'आधिकारिक स्रोत: github.com/StartSWest/FluidEQ',
   'language.title': 'भाषा',
   'language.aria': 'इंटरफ़ेस की भाषा',
+  'theme.aria': 'थीम',
+  'theme.ocean': 'महासागर',
+  'theme.black': 'काला',
 };
 
 export default app;

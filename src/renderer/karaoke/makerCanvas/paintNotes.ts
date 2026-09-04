@@ -32,6 +32,7 @@ import {
   midiName,
 } from '../makerCanvasGeometry';
 import { ICanvasLyricWord } from '../makerCanvasTypes';
+import { readSurface, readSurfaceAlpha } from '../../utils/theme';
 
 export interface IPaintNotesInput {
   plot: IMakerPlot;
@@ -326,7 +327,7 @@ export const paintNotes = (
       );
       context.stroke();
       context.setLineDash([]);
-      context.fillStyle = 'rgb(26, 58, 78)';
+      context.fillStyle = readSurface('--surface-panel', '#1a3a4e');
       context.beginPath();
       context.arc(indicatorX, centerY, 5.5, 0, Math.PI * 2);
       context.fill();
@@ -349,7 +350,7 @@ export const paintNotes = (
       if (!note.tokenId) {
         [left, right].forEach((handleX) => {
           context.beginPath();
-          context.fillStyle = 'rgb(30, 66, 87)';
+          context.fillStyle = readSurface('--surface-block', '#1e4257');
           context.strokeStyle = '#9efff6';
           context.lineWidth = 1.4;
           context.arc(handleX, centerY, 3.8, 0, Math.PI * 2);
@@ -358,7 +359,11 @@ export const paintNotes = (
         });
       }
       if (right - left >= 18) {
-        context.fillStyle = 'rgba(30, 66, 87, .94)';
+        context.fillStyle = readSurfaceAlpha(
+          '--surface-block',
+          0.94,
+          'rgba(30, 66, 87, 0.94)',
+        );
         context.strokeStyle = 'rgba(167, 255, 247, .82)';
         context.lineWidth = 1;
         drawRoundedRect(context, centerX - 7, centerY - 4, 14, 8, 4);

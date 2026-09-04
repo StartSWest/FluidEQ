@@ -26,7 +26,7 @@ it under the terms of the GNU General Public License version 3 or later.
   padding: 12px 14px;
   border: 1px solid rgba($secondary-light, 0.4);
   border-radius: $radius-m;
-  background: rgba($surface-menu-top, 0.97);
+  background: color-mix(in srgb, $surface-menu-top 97%, transparent);
   box-shadow: 0 16px 40px rgba($black, 0.45);
 
   > div {

@@ -126,6 +126,7 @@ import {
 import VoicingPanel from './VoicingPanel';
 import MenuIcon from './icons/MenuIcon';
 import LanguagePicker from './components/LanguagePicker';
+import ThemePicker from './components/ThemePicker';
 import UpdateNotice from './components/UpdateNotice';
 import SpeechMemoryNotice from './components/SpeechMemoryNotice';
 import SongEqNotice from './components/SongEqNotice';
@@ -1992,6 +1993,9 @@ const AppContent = () => {
                   <MenuIcon name="support" />
                   {t('app.menu.support')}
                 </button>
+                {/* The theme, above the language it sits beside: one row per
+                    thing that changes how the whole window looks. */}
+                <ThemePicker />
                 {/* Last, and always available: someone who cannot read the
                     rest of this menu needs to be able to reach it. */}
                 <LanguagePicker />

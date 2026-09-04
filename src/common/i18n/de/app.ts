@@ -258,6 +258,9 @@ const app: Partial<Dictionary> = {
     'Offizieller Quellcode: github.com/StartSWest/FluidEQ',
   'language.title': 'Sprache',
   'language.aria': 'Sprache der Oberfläche',
+  'theme.aria': 'Design',
+  'theme.ocean': 'Ozean',
+  'theme.black': 'Schwarz',
 };
 
 export default app;

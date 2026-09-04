@@ -16,7 +16,7 @@ it under the terms of the GNU General Public License version 3 or later.
   display: grid;
   padding: 24px;
   place-items: center;
-  background: rgba($surface-well, 0.96);
+  background: color-mix(in srgb, $surface-well 96%, transparent);
 }
 
 .crash-screen__card {

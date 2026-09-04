@@ -253,7 +253,7 @@ $filter-dropdown-width: 56px;
     place-items: center;
     border: 1px solid rgba($red, 0.24);
     border-radius: $radius-pill;
-    background: rgba($surface-menu, 0.96);
+    background: color-mix(in srgb, $surface-menu 96%, transparent);
     box-shadow: 0 6px 18px rgba($black, 0.35);
     opacity: 0;
     transform: translateX(50%);

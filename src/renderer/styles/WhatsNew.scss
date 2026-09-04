@@ -89,7 +89,7 @@ it under the terms of the GNU General Public License version 3 or later.
     color: $secondary-light;
     border: 1px solid rgba($secondary-light, 0.16);
     border-radius: $radius-s;
-    background: rgba($surface-menu-top, 0.94);
+    background: color-mix(in srgb, $surface-menu-top 94%, transparent);
     box-shadow:
       0 8px 18px rgba($black, 0.22),
       inset 0 1px 0 rgba($white, 0.035);

@@ -162,7 +162,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   color: $text-primary;
   border: 1px solid rgba($neon-yellow, 0.28);
   border-radius: $radius-s;
-  background: rgba($surface-field, 0.62);
+  background: color-mix(in srgb, $surface-field 62%, transparent);
   font-size: $text-title;
   line-height: 1.4;
   letter-spacing: 0.01em;
@@ -227,7 +227,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     &:disabled {
       color: $text-muted;
       border-color: rgba($edge-tint, 0.08);
-      background: rgba($surface-panel, 0.42);
+      background: color-mix(in srgb, $surface-panel 42%, transparent);
       box-shadow: none;
       cursor: not-allowed;
     }
@@ -424,8 +424,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   .karaoke-pane-splitter__handle > span {
     background: rgba($white, 0.62);
     box-shadow:
-      0 0 0 1px rgba($surface-well, 0.5),
-      0 2px 10px rgba($surface-well, 0.55);
+      0 0 0 1px color-mix(in srgb, $surface-well 50%, transparent),
+      0 2px 10px color-mix(in srgb, $surface-well 55%, transparent);
   }
 
   // Inset from the screen edges, and solid enough to read over a bright
@@ -467,10 +467,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   background:
     linear-gradient(
       180deg,
-      rgba($surface-field-end, 0.82),
-      rgba($surface-well, 0.88)
+      color-mix(in srgb, $surface-field-end 82%, transparent),
+      color-mix(in srgb, $surface-well 88%, transparent)
     ),
-    rgba($surface-base, 0.76);
+    color-mix(in srgb, $surface-base 76%, transparent);
   box-shadow:
     0 12px 30px rgba($black, 0.32),
     0 0 22px rgba($secondary-default, 0.06),
@@ -544,7 +544,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   padding: 9px 12px;
   border: 1px solid rgba($edge-tint, 0.16);
   border-radius: $radius-s;
-  background: rgba($surface-field, 0.38);
+  background: color-mix(in srgb, $surface-field 38%, transparent);
   color: $text-muted;
   font-size: $text-small;
   line-height: 1.45;
@@ -590,7 +590,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   color: $text-muted;
   border: 1px solid rgba($secondary-light, 0.15);
   border-radius: $radius-pill;
-  background: rgba($surface-well, 0.24);
+  background: color-mix(in srgb, $surface-well 24%, transparent);
   font-size: $text-small;
   font-weight: $weight-bold;
 
@@ -941,8 +941,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     border-color: rgba($secondary-default, 0.48);
     background: linear-gradient(
       145deg,
-      rgba($surface-field, 0.94),
-      rgba($surface-panel, 0.96)
+      color-mix(in srgb, $surface-field 94%, transparent),
+      color-mix(in srgb, $surface-panel 96%, transparent)
     );
     box-shadow:
       0 0 16px rgba($secondary-default, 0.14),
@@ -1079,8 +1079,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     ),
     linear-gradient(
       135deg,
-      rgba($surface-panel, 0.7),
-      rgba($surface-base, 0.45)
+      color-mix(in srgb, $surface-panel 70%, transparent),
+      color-mix(in srgb, $surface-base 45%, transparent)
     );
 
   &::before {
@@ -1135,7 +1135,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   color: $secondary-light;
   border: 1px dashed rgba($secondary-default, 0.72);
   border-radius: $radius-l;
-  background: rgba($surface-base, 0.9);
+  background: color-mix(in srgb, $surface-base 90%, transparent);
   font-size: $text-title;
   font-weight: $weight-bold;
   letter-spacing: 0.03em;
@@ -1158,7 +1158,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   color: $text-muted;
   border: 1px solid rgba($secondary-light, 0.12);
   border-radius: $radius-s;
-  background: rgba($surface-well, 0.32);
+  background: color-mix(in srgb, $surface-well 32%, transparent);
   font-size: $text-micro;
   text-align: center;
 }
@@ -1529,7 +1529,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       width: 13px;
       height: 13px;
       appearance: none;
-      border: 2px solid rgba($surface-base, 0.95);
+      border: 2px solid color-mix(in srgb, $surface-base 95%, transparent);
       border-radius: 50%;
       background: $secondary-light;
       box-shadow:
@@ -1568,7 +1568,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   gap: 5px;
   padding: 4px 9px !important;
   border-color: rgba($secondary-default, 0.34) !important;
-  background: rgba($surface-base, 0.9) !important;
+  background: color-mix(in srgb, $surface-base 90%, transparent) !important;
   box-shadow:
     0 5px 16px rgba($black, 0.3),
     0 0 14px rgba($secondary-default, 0.08);
@@ -1589,7 +1589,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   &.button:focus-visible {
     color: $secondary-light;
     border-color: rgba($secondary-default, 0.65) !important;
-    background: rgba($surface-panel, 0.96) !important;
+    background: color-mix(in srgb, $surface-panel 96%, transparent) !important;
   }
 }
 
@@ -1624,7 +1624,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   color: $text-muted;
   border: 1px solid rgba($secondary-default, 0.34);
   border-radius: $radius-xs;
-  background: rgba($surface-base, 0.9);
+  background: color-mix(in srgb, $surface-base 90%, transparent);
   box-shadow:
     0 5px 16px rgba($black, 0.3),
     0 0 14px rgba($secondary-default, 0.08);
@@ -1634,7 +1634,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   &:focus-visible {
     color: $secondary-light;
     border-color: rgba($secondary-default, 0.65);
-    background: rgba($surface-panel, 0.96);
+    background: color-mix(in srgb, $surface-panel 96%, transparent);
   }
 }
 
@@ -1646,7 +1646,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   padding: 3px 8px;
   color: $text-muted;
   border-radius: $radius-xs;
-  background: rgba($surface-base, 0.82);
+  background: color-mix(in srgb, $surface-base 82%, transparent);
   font-size: $text-eyebrow;
   text-align: right;
 }
@@ -1692,10 +1692,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   background:
     linear-gradient(
       180deg,
-      rgba($surface-field-end, 0.72),
-      rgba($surface-well, 0.84)
+      color-mix(in srgb, $surface-field-end 72%, transparent),
+      color-mix(in srgb, $surface-well 84%, transparent)
     ),
-    rgba($surface-base, 0.7);
+    color-mix(in srgb, $surface-base 70%, transparent);
   box-shadow:
     0 16px 42px rgba($black, 0.4),
     0 0 30px rgba($secondary-default, 0.055),
@@ -1741,7 +1741,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   padding: 3px;
   border: 1px solid rgba($secondary-light, 0.1);
   border-radius: $radius-pill;
-  background: rgba($surface-well, 0.38);
+  background: color-mix(in srgb, $surface-well 38%, transparent);
   box-shadow:
     0 5px 16px rgba($black, 0.22),
     inset 0 1px 0 rgba($white, 0.035);
@@ -1888,7 +1888,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
     &:disabled {
       color: $text-faint !important;
-      background: rgba($surface-panel, 0.6) !important;
+      background: color-mix(
+        in srgb,
+        $surface-panel 60%,
+        transparent
+      ) !important;
       box-shadow: none !important;
     }
 
@@ -1915,7 +1919,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   padding: 4px 7px;
   border: 1px solid rgba($secondary-light, 0.07);
   border-radius: $radius-pill;
-  background: rgba($surface-well, 0.24);
+  background: color-mix(in srgb, $surface-well 24%, transparent);
   box-shadow: inset 0 1px 2px rgba($black, 0.24);
 }
 
@@ -2274,7 +2278,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   &:focus-visible::-webkit-slider-thumb {
     box-shadow:
-      0 0 0 3px rgba($surface-base, 0.95),
+      0 0 0 3px color-mix(in srgb, $surface-base 95%, transparent),
       0 0 0 5px rgba($secondary-light, 0.72);
   }
 
@@ -2361,7 +2365,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     align-items: center;
     gap: 12px;
     padding: 13px 14px;
-    background: rgba($surface-base, 0.28);
+    background: color-mix(in srgb, $surface-base 28%, transparent);
   }
 
   h3,
@@ -2523,7 +2527,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     &:disabled {
       color: $text-faint;
       border-color: rgba($edge-tint, 0.08);
-      background: rgba($surface-panel, 0.4);
+      background: color-mix(in srgb, $surface-panel 40%, transparent);
       box-shadow: none;
     }
   }
@@ -2773,7 +2777,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   &:disabled {
     color: $text-faint;
     border-color: rgba($edge-tint, 0.08);
-    background: rgba($surface-panel, 0.34);
+    background: color-mix(in srgb, $surface-panel 34%, transparent);
     box-shadow: none;
   }
 }
@@ -3590,7 +3594,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   padding: 5px 12px;
   background: $block-lift;
   border-bottom: 1px solid rgba(63, 149, 173, 0.22);
-  box-shadow: 0 12px 35px rgba($surface-base, 0.14);
+  box-shadow: 0 12px 35px color-mix(in srgb, $surface-base 14%, transparent);
 }
 
 .karaoke-maker__header-tools {
@@ -3845,13 +3849,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   background: linear-gradient(
     180deg,
     rgba(20, 54, 72, 0.58),
-    rgba($surface-base, 0.66)
+    color-mix(in srgb, $surface-base 66%, transparent)
   );
   border: 1px solid rgba($secondary-default, 0.18);
   border-radius: $radius-m;
   box-shadow:
     inset 0 1px rgba($white, 0.025),
-    0 6px 18px rgba($surface-base, 0.1);
+    0 6px 18px color-mix(in srgb, $surface-base 10%, transparent);
 }
 
 // The language Dropdown's trigger wears the tool-button surface, not
@@ -3888,7 +3892,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     background: linear-gradient(
       180deg,
       rgba(37, 141, 148, 0.2),
-      rgba($surface-base, 0.32)
+      color-mix(in srgb, $surface-base 32%, transparent)
     );
     border-color: rgba($secondary-default, 0.38);
   }
@@ -3934,7 +3938,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     background: linear-gradient(
       180deg,
       rgba(37, 141, 148, 0.2),
-      rgba($surface-base, 0.32)
+      color-mix(in srgb, $surface-base 32%, transparent)
     ) !important;
     border-color: rgba($secondary-default, 0.38) !important;
     box-shadow:
@@ -3976,7 +3980,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     background: $block-lift;
     border: 1px solid rgba($secondary-default, 0.34);
     border-radius: $radius-xs;
-    box-shadow: 0 10px 28px rgba($surface-base, 0.42);
+    box-shadow: 0 10px 28px color-mix(in srgb, $surface-base 42%, transparent);
     opacity: 0;
     transform: translate(-50%, -3px);
     transition:
@@ -4082,7 +4086,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     $block-lift;
   border: 1px solid rgba($secondary-default, 0.32);
   border-radius: $radius-l;
-  box-shadow: 0 22px 48px rgba($surface-base, 0.48);
+  box-shadow: 0 22px 48px color-mix(in srgb, $surface-base 48%, transparent);
   transform: translateX(-50%);
   @include slim-scrollbar;
 }
@@ -4177,7 +4181,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   > li > span:first-child {
     width: 6px;
     height: 6px;
-    background: rgba($track-well, 0.42);
+    background: color-mix(in srgb, $track-well 42%, transparent);
     border-radius: 50%;
 
     &.is-ready {
@@ -4222,7 +4226,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     width: 7px;
     height: 7px;
     grid-row: 1 / span 2;
-    background: rgba($track-well, 0.48);
+    background: color-mix(in srgb, $track-well 48%, transparent);
     border-radius: 50%;
 
     &.is-ready {
@@ -4366,7 +4370,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   padding: 10px;
   border-color: rgba($secondary-default, 0.42);
   box-shadow:
-    0 24px 64px rgba($surface-base, 0.54),
+    0 24px 64px color-mix(in srgb, $surface-base 54%, transparent),
     0 0 32px rgba($secondary-default, 0.09),
     inset 0 1px rgba($white, 0.045);
   transform: translate(-50%, -50%);
@@ -4514,7 +4518,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   background: $block-lift;
   border: 1px solid rgba($secondary-default, 0.38);
   border-radius: $radius-m;
-  box-shadow: 0 18px 38px rgba($surface-base, 0.38);
+  box-shadow: 0 18px 38px color-mix(in srgb, $surface-base 38%, transparent);
 
   button {
     justify-content: flex-start;
@@ -4585,7 +4589,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
     i {
       background: $track-well;
-      box-shadow: 0 0 5px rgba($track-well, 0.22);
+      box-shadow: 0 0 5px color-mix(in srgb, $track-well 22%, transparent);
     }
   }
 }
@@ -4648,8 +4652,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   border: 1px solid rgba(65, 147, 172, 0.22);
   border-radius: $radius-l;
   box-shadow:
-    inset 0 0 32px rgba($surface-base, 0.2),
-    0 14px 36px rgba($surface-base, 0.12);
+    inset 0 0 32px color-mix(in srgb, $surface-base 20%, transparent),
+    0 14px 36px color-mix(in srgb, $surface-base 12%, transparent);
 }
 
 .karaoke-maker__canvas {
@@ -4707,8 +4711,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     0 0 46px rgba($secondary-default, 0.7);
   background: radial-gradient(
     circle,
-    rgba($surface-base, 0.34),
-    rgba($surface-base, 0.06) 45%
+    color-mix(in srgb, $surface-base 34%, transparent),
+    color-mix(in srgb, $surface-base 6%, transparent) 45%
   );
   pointer-events: none;
   animation: karaoke-maker-count 520ms ease both;
@@ -4726,7 +4730,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     linear-gradient(90deg, rgba(29, 117, 126, 0.07), transparent 34%),
     $block-lift;
   border-top: 1px solid rgba($secondary-default, 0.2);
-  box-shadow: 0 -10px 30px rgba($surface-base, 0.18);
+  box-shadow: 0 -10px 30px color-mix(in srgb, $surface-base 18%, transparent);
 }
 
 .karaoke-maker-nav__summary {
@@ -4809,7 +4813,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   border: 1px solid rgba(92, 200, 207, 0.22) !important;
   border-radius: 50% !important;
   box-shadow:
-    0 6px 16px rgba($surface-base, 0.2),
+    0 6px 16px color-mix(in srgb, $surface-base 20%, transparent),
     inset 0 1px rgba($white, 0.05) !important;
 
   svg {
@@ -4827,7 +4831,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     ) !important;
     border-color: rgba($secondary-default, 0.58) !important;
     box-shadow:
-      0 8px 20px rgba($surface-base, 0.24),
+      0 8px 20px color-mix(in srgb, $surface-base 24%, transparent),
       0 0 18px rgba($secondary-default, 0.16),
       inset 0 1px rgba($white, 0.08) !important;
 
@@ -4921,7 +4925,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   border-radius: $radius-m;
   box-shadow:
     inset 0 1px rgba($white, 0.025),
-    0 8px 22px rgba($surface-base, 0.12);
+    0 8px 22px color-mix(in srgb, $surface-base 12%, transparent);
 
   > header {
     display: flex;
@@ -5114,8 +5118,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     ),
     linear-gradient(
       135deg,
-      rgba($surface-panel, 0.7),
-      rgba($surface-base, 0.45)
+      color-mix(in srgb, $surface-panel 70%, transparent),
+      color-mix(in srgb, $surface-base 45%, transparent)
     );
 
   &::before {
@@ -5214,8 +5218,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     ),
     linear-gradient(
       180deg,
-      rgba($surface-panel, 0.96),
-      rgba($surface-base, 0.97)
+      color-mix(in srgb, $surface-panel 96%, transparent),
+      color-mix(in srgb, $surface-base 97%, transparent)
     );
   border: 1px solid rgba($secondary-light, 0.32);
   border-radius: $radius-l;
@@ -5309,7 +5313,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     font-size: $text-body;
     font-weight: $weight-bold;
     letter-spacing: 0.07em;
-    background: rgba($surface-well, 0.68);
+    background: color-mix(in srgb, $surface-well 68%, transparent);
     border: 1px solid rgba($secondary-light, 0.13);
     border-radius: $radius-pill;
     white-space: nowrap;
@@ -5404,8 +5408,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     radial-gradient(circle at 94% 100%, rgba($neon-pink, 0.1), transparent 40%),
     linear-gradient(
       150deg,
-      rgba($surface-field-end, 0.98),
-      rgba($surface-base, 0.985)
+      color-mix(in srgb, $surface-field-end 98%, transparent),
+      color-mix(in srgb, $surface-base 98.5%, transparent)
     );
   border: 1px solid rgba($secondary-light, 0.4);
   border-radius: $radius-xl;
@@ -5515,8 +5519,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   background: radial-gradient(
     circle,
     rgba(#0c5360, 0.5),
-    rgba($surface-well, 0.74) 50%,
-    rgba($surface-well, 0.36)
+    color-mix(in srgb, $surface-well 74%, transparent) 50%,
+    color-mix(in srgb, $surface-well 36%, transparent)
   );
   pointer-events: none;
   animation: karaoke-maker-capture-count 620ms ease both;
@@ -5638,8 +5642,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     ),
     linear-gradient(
       145deg,
-      rgba($surface-field-end, 0.985),
-      rgba($surface-base, 0.99)
+      color-mix(in srgb, $surface-field-end 98.5%, transparent),
+      color-mix(in srgb, $surface-base 99%, transparent)
     );
   border: 1px solid rgba($secondary-light, 0.46);
   border-radius: $radius-xl;
@@ -5680,8 +5684,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   color: $text-muted;
   background: linear-gradient(
     180deg,
-    rgba($surface-field, 0.98),
-    rgba($surface-base, 0.99)
+    color-mix(in srgb, $surface-field 98%, transparent),
+    color-mix(in srgb, $surface-base 99%, transparent)
   );
   border: 1px solid rgba($secondary-light, 0.44);
   border-radius: $radius-pill;
@@ -5701,8 +5705,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     color: $white;
     background: linear-gradient(
       180deg,
-      rgba($surface-field, 0.99),
-      rgba($surface-panel, 0.99)
+      color-mix(in srgb, $surface-field 99%, transparent),
+      color-mix(in srgb, $surface-panel 99%, transparent)
     );
     border-color: rgba($secondary-light, 0.76);
     box-shadow:
@@ -5731,7 +5735,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   place-items: center;
   padding: 0 !important;
   color: $text-faint;
-  background: rgba($surface-well, 0.64);
+  background: color-mix(in srgb, $surface-well 64%, transparent);
   border-color: rgba($secondary-light, 0.18);
   border-radius: $radius-s;
 
@@ -5772,8 +5776,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     ),
     linear-gradient(
       145deg,
-      rgba($surface-field-end, 0.985),
-      rgba($surface-base, 0.99)
+      color-mix(in srgb, $surface-field-end 98.5%, transparent),
+      color-mix(in srgb, $surface-base 99%, transparent)
     );
   border: 1px solid rgba($secondary-light, 0.44);
   border-radius: $radius-xl;
@@ -6112,7 +6116,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   color: $secondary-light;
   background:
     radial-gradient(circle, rgba($secondary-default, 0.2), transparent 70%),
-    rgba($surface-base, 0.82);
+    color-mix(in srgb, $surface-base 82%, transparent);
   border: 1px solid rgba($secondary-light, 0.44);
   border-radius: $radius-l;
   box-shadow:
@@ -6245,7 +6249,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   font-weight: $weight-bold;
   background: linear-gradient(
     180deg,
-    rgba($track-well, 0.88),
+    color-mix(in srgb, $track-well 88%, transparent),
     rgba(#073331, 0.92)
   );
   border: 1px solid rgba($secondary-light, 0.48);
@@ -6292,7 +6296,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       color: rgba($white, 0.88);
       font-family: inherit;
       font-size: $text-lead;
-      background: rgba($surface-well, 0.74);
+      background: color-mix(in srgb, $surface-well 74%, transparent);
       border: 1px solid rgba($secondary-light, 0.28);
       border-radius: $radius-xs;
     }
@@ -6338,7 +6342,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     align-items: center;
     gap: 5px 7px;
     padding: 7px 8px;
-    background: rgba($surface-well, 0.5);
+    background: color-mix(in srgb, $surface-well 50%, transparent);
     border: 1px solid rgba($secondary-light, 0.14);
     border-radius: $radius-m;
 
@@ -6371,12 +6375,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     font-weight: $weight-bold;
     background: linear-gradient(
       180deg,
-      rgba($surface-field, 0.92),
-      rgba($surface-panel, 0.96)
+      color-mix(in srgb, $surface-field 92%, transparent),
+      color-mix(in srgb, $surface-panel 96%, transparent)
     );
     border: 1px solid rgba($secondary-light, 0.4);
     border-radius: $radius-xs;
-    box-shadow: inset 0 -2px rgba($surface-well, 0.5);
+    box-shadow: inset 0 -2px color-mix(in srgb, $surface-well 50%, transparent);
   }
 }
 
@@ -6397,7 +6401,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     font-size: $text-lead;
     font-weight: $weight-bold;
     letter-spacing: 0.07em;
-    background: rgba($surface-well, 0.68);
+    background: color-mix(in srgb, $surface-well 68%, transparent);
     border: 1px solid rgba($secondary-light, 0.16);
     border-radius: $radius-pill;
     white-space: nowrap;
@@ -6616,7 +6620,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     $block-lift;
   border-top: 1px solid rgba($secondary-default, 0.22);
   box-shadow:
-    0 -14px 36px rgba($surface-base, 0.24),
+    0 -14px 36px color-mix(in srgb, $surface-base 24%, transparent),
     inset 0 1px rgba($white, 0.025);
 
   > .karaoke-transport {
@@ -6878,7 +6882,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   background: $block-lift;
   border: 1px solid rgba($secondary-default, 0.38);
   border-radius: $radius-m;
-  box-shadow: 0 14px 34px rgba($surface-base, 0.32);
+  box-shadow: 0 14px 34px color-mix(in srgb, $surface-base 32%, transparent);
 
   &.is-error {
     color: #ffd8dc;
@@ -7118,7 +7122,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     $block-lift;
   border: 1px solid rgba($secondary-light, 0.34);
   border-radius: $radius-l;
-  box-shadow: 0 18px 44px rgba($surface-base, 0.46);
+  box-shadow: 0 18px 44px color-mix(in srgb, $surface-base 46%, transparent);
 }
 
 .karaoke-maker__wizard-title {
@@ -7270,7 +7274,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
           rgba($secondary-default, 0.7) 50%,
           transparent 100%
         )
-        rgba($track-well, 0.09);
+        color-mix(in srgb, $track-well 9%, transparent);
       background-size: 40% 100%;
       background-repeat: no-repeat;
       animation: karaoke-wizard-sweep 1.15s ease-in-out infinite;
@@ -7388,7 +7392,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   position: relative;
   height: 3px;
   overflow: hidden;
-  background: rgba($track-well, 0.14);
+  background: color-mix(in srgb, $track-well 14%, transparent);
   border-radius: $radius-pill;
 
   > span {
@@ -7412,7 +7416,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   height: 5px;
   grid-column: 1 / -1;
   overflow: hidden;
-  background: rgba($track-well, 0.17);
+  background: color-mix(in srgb, $track-well 17%, transparent);
   border-radius: $radius-pill;
 
   > span {
@@ -7566,7 +7570,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       color: rgba($secondary-light, 0.55);
       font-size: $text-body;
       font-weight: $weight-bold;
-      background: rgba($track-well, 0.11);
+      background: color-mix(in srgb, $track-well 11%, transparent);
       border: 1px solid rgba(112, 166, 183, 0.2);
       border-radius: 50%;
     }
@@ -7803,7 +7807,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     $block-lift;
   border: 1px solid rgba($secondary-default, 0.35);
   border-radius: $radius-xl;
-  box-shadow: 0 26px 80px rgba($surface-base, 0.56);
+  box-shadow: 0 26px 80px color-mix(in srgb, $surface-base 56%, transparent);
 
   h2 {
     margin: 3px 0;
@@ -8237,7 +8241,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   text-align: center;
   background:
     radial-gradient(circle, rgba($secondary-default, 0.08), transparent 64%),
-    rgba($surface-base, 0.45);
+    color-mix(in srgb, $surface-base 45%, transparent);
   border: 1px dashed rgba($secondary-default, 0.2);
   border-radius: $radius-s;
 
@@ -8419,7 +8423,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 .karaoke-maker__modal-backdrop.is-processing {
   pointer-events: none;
-  background: rgba($surface-base, 0.28);
+  background: color-mix(in srgb, $surface-base 28%, transparent);
 
   .karaoke-maker__lyrics-modal {
     pointer-events: auto;
@@ -8449,7 +8453,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     $block-lift;
   border: 1px solid rgba($secondary-default, 0.35);
   border-radius: $radius-xl;
-  box-shadow: 0 26px 80px rgba($surface-base, 0.56);
+  box-shadow: 0 26px 80px color-mix(in srgb, $surface-base 56%, transparent);
 
   h2 {
     margin: 6px 0 10px;
@@ -8479,7 +8483,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     $block-lift;
   border: 1px solid rgba(255, 104, 129, 0.3);
   border-radius: $radius-l;
-  box-shadow: 0 26px 80px rgba($surface-base, 0.56);
+  box-shadow: 0 26px 80px color-mix(in srgb, $surface-base 56%, transparent);
 
   > svg {
     width: 24px;

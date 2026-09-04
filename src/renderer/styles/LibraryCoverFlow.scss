@@ -173,7 +173,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   border-radius: 50%;
   // The shell colour rather than a near-black of its own: this floats over
   // artwork, and it has to read as the app's own scrim, not as a hole.
-  background: rgba($surface-base, 0.55);
+  background: color-mix(in srgb, $surface-base 55%, transparent);
   cursor: pointer;
   // Its own `translate` rather than a `transform`, so the hover nudge below
   // composes with the centring instead of replacing it.

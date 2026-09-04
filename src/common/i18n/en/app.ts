@@ -248,6 +248,9 @@ const app = {
   'provenance.repository': 'Official source: github.com/StartSWest/FluidEQ',
   'language.title': 'Language',
   'language.aria': 'Interface language',
+  'theme.aria': 'Theme',
+  'theme.ocean': 'Ocean',
+  'theme.black': 'Black',
 } as const;
 
 export default app;

@@ -159,7 +159,7 @@ $eq-caret-width: 24px;
     padding: 0;
     border: 1px solid rgba($secondary-light, 0.38);
     // The divider, and the only line between them.
-    border-left: 1px solid rgba($surface-base, 0.28);
+    border-left: 1px solid color-mix(in srgb, $surface-base 28%, transparent);
     border-radius: 0 $radius-xs $radius-xs 0;
     background: $secondary-default;
     // The same fill and the same ink as the half it is attached to, because it
@@ -228,7 +228,11 @@ $eq-caret-width: 24px;
 
 // The green face for the moment a correction lands: the covered-range green
 // at a fifth into the menu slate, opaque like the face it replaces.
-$eq-bubble-applied-face: sass-color.mix($analogous-2, $surface-menu-top, 20%);
+$eq-bubble-applied-face: color-mix(
+  in srgb,
+  $analogous-2 20%,
+  $surface-menu-top
+);
 
 // What the correction is doing, said from the button that is doing it.
 //

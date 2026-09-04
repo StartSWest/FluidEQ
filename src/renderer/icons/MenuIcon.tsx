@@ -66,6 +66,8 @@ const PATHS: Record<string, string> = {
   // from the circled-i `info` glyph so "still being read" never looks like
   // "something went wrong reading it".
   pending: 'M12 4a8 8 0 1 0 0 16 8 8 0 0 0 0-16zM12 7.5V12l3 2',
+  // A circle half filled: light and dark in one glyph. The theme row.
+  theme: 'M12 4a8 8 0 1 0 0 16 8 8 0 0 0 0-16zM12 4v16a8 8 0 0 0 0-16z',
   // A globe: meridians and one parallel. Enough at 16px to read as 'world'.
   language:
     'M12 4a8 8 0 1 0 0 16 8 8 0 0 0 0-16zM4 12h16M12 4c2.2 2.2 3.3 5 3.3 8s-1.1 5.8-3.3 8c-2.2-2.2-3.3-5-3.3-8s1.1-5.8 3.3-8z',

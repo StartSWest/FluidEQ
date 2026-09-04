@@ -257,6 +257,9 @@ const app: Partial<Dictionary> = {
   'provenance.repository': '公式ソース: github.com/StartSWest/FluidEQ',
   'language.title': '言語',
   'language.aria': '表示言語',
+  'theme.aria': 'テーマ',
+  'theme.ocean': 'オーシャン',
+  'theme.black': 'ブラック',
 };
 
 export default app;

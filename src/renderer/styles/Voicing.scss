@@ -312,7 +312,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       width: 18px;
       height: 18px;
       margin-top: -5px;
-      border: 2px solid rgba($surface-well, 0.85);
+      border: 2px solid color-mix(in srgb, $surface-well 85%, transparent);
       border-radius: 50%;
       background: $secondary-light;
       box-shadow:

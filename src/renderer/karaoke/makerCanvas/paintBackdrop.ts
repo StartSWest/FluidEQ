@@ -33,6 +33,7 @@ import {
   lyricSectionHeight,
   midiName,
 } from '../makerCanvasGeometry';
+import { readSurface, readSurfaceAlpha } from '../../utils/theme';
 
 export interface IPaintBackdropInput {
   plot: IMakerPlot;
@@ -109,8 +110,8 @@ export const paintBackdrop = (
   // The plot colour every drawing in the app lies on, flat. It was a ramp
   // of two near-black blues, which made the editor the darkest thing in a
   // window that has no black in it.
-  background.addColorStop(0, 'rgb(26, 58, 78)');
-  background.addColorStop(1, 'rgb(26, 58, 78)');
+  background.addColorStop(0, readSurface('--surface-panel', '#1a3a4e'));
+  background.addColorStop(1, readSurface('--surface-panel', '#1a3a4e'));
   context.fillStyle = background;
   context.fillRect(0, 0, width, height);
 
@@ -121,8 +122,14 @@ export const paintBackdrop = (
     headerHeight,
   );
   // The lyric band is a card on the plot: the card colour, one step up.
-  lyricBackground.addColorStop(0, 'rgba(30, 66, 87, .9)');
-  lyricBackground.addColorStop(1, 'rgba(30, 66, 87, .96)');
+  lyricBackground.addColorStop(
+    0,
+    readSurfaceAlpha('--surface-block', 0.9, 'rgba(30, 66, 87, 0.9)'),
+  );
+  lyricBackground.addColorStop(
+    1,
+    readSurfaceAlpha('--surface-block', 0.96, 'rgba(30, 66, 87, 0.96)'),
+  );
   context.fillStyle = lyricBackground;
   context.fillRect(
     plotLeft,
@@ -131,7 +138,11 @@ export const paintBackdrop = (
     lyricSectionHeightPx + 6,
   );
   if (canvasSectionGroups.length) {
-    context.fillStyle = 'rgba(30, 66, 87, .94)';
+    context.fillStyle = readSurfaceAlpha(
+      '--surface-block',
+      0.94,
+      'rgba(30, 66, 87, 0.94)',
+    );
     context.fillRect(
       plotLeft,
       SECTION_GROUP_TOP - 3,

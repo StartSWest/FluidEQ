@@ -611,7 +611,7 @@ $now-playing-bar-height: 64px;
 
   &:disabled {
     color: $text-faint;
-    background: rgba($surface-menu-top, 0.6);
+    background: color-mix(in srgb, $surface-menu-top 60%, transparent);
     box-shadow: none;
   }
 }
@@ -902,7 +902,7 @@ $now-playing-bar-height: 64px;
 
   &:focus-visible::-webkit-slider-thumb {
     box-shadow:
-      0 0 0 3px rgba($surface-base, 0.95),
+      0 0 0 3px color-mix(in srgb, $surface-base 95%, transparent),
       0 0 0 5px rgba($secondary-light, 0.72);
   }
 
@@ -1041,7 +1041,7 @@ $now-playing-bar-height: 64px;
   .library-video-stage__back.button {
     color: $text-primary;
     border-color: rgba($edge-tint, 0.16);
-    background: rgba($surface-panel, 0.55);
+    background: color-mix(in srgb, $surface-panel 55%, transparent);
     box-shadow: 0 6px 18px rgba($black, 0.28);
     backdrop-filter: blur(22px) saturate(130%);
     -webkit-backdrop-filter: blur(22px) saturate(130%);
@@ -1057,7 +1057,7 @@ $now-playing-bar-height: 64px;
     &:hover:not([aria-disabled='true']):not(:disabled) {
       color: $white;
       border-color: rgba($edge-tint, 0.3);
-      background: rgba($surface-menu-top, 0.8);
+      background: color-mix(in srgb, $surface-menu-top 80%, transparent);
       box-shadow: 0 8px 22px rgba($black, 0.34);
       transform: none;
       filter: none;
@@ -1065,7 +1065,7 @@ $now-playing-bar-height: 64px;
 
     &:active:not([aria-disabled='true']):not(:disabled) {
       color: $white;
-      background: rgba($surface-menu-top, 0.92);
+      background: color-mix(in srgb, $surface-menu-top 92%, transparent);
     }
   }
 }
