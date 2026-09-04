@@ -7,16 +7,32 @@ it under the terms of the GNU General Public License version 3 or later.
 */
 
 /** Small control messages; the lossless PCM stream travels separately. */
-export type TRemoteAudioSignal = { kind: 'peer-ready' } | { kind: 'stop' };
+export type TRemoteAudioSignal =
+  | { kind: 'peer-ready'; deviceName: string; address?: string }
+  | { kind: 'stop' };
 
 export interface ILanPairingOption {
   address: string;
   code: string;
+  deviceName: string;
 }
 
 export interface ILanHostDetails {
+  deviceName: string;
   options: ILanPairingOption[];
 }
+
+export interface ILanRemoteComputer {
+  address: string;
+  deviceName: string;
+  peerId: string;
+}
+
+export type TLanSavedRole = 'listener' | 'sender';
+
+export type TLanRestoreResult =
+  | { role: 'listener'; details: ILanHostDetails }
+  | { role: 'sender'; listener: ILanRemoteComputer };
 
 /** One sender's control message, routed by the listening computer. */
 export interface ILanRemoteAudioSignal {
@@ -25,11 +41,11 @@ export interface ILanRemoteAudioSignal {
 }
 
 /**
- * Uncompressed samples from one sender.
+ * Losslessly compressed samples from one sender.
  *
- * `pcm` contains interleaved IEEE-754 Float32 samples. The byte-for-byte
- * capture values are encrypted and transferred without a codec or a lossy
- * conversion.
+ * `pcm` contains the restored interleaved IEEE-754 Float32 samples. Zstandard
+ * compression and AES-GCM encryption preserve every captured bit; no lossy
+ * media codec is involved.
  */
 export interface ILanRemoteAudioChunk {
   peerId: string;
@@ -55,4 +71,11 @@ export const isLanRemoteAudioSignal = (
 export const isRemoteAudioSignal = (
   value: unknown,
 ): value is TRemoteAudioSignal =>
-  isRecord(value) && (value.kind === 'peer-ready' || value.kind === 'stop');
+  isRecord(value) &&
+  (value.kind === 'stop' ||
+    (value.kind === 'peer-ready' &&
+      typeof value.deviceName === 'string' &&
+      value.deviceName.trim().length > 0 &&
+      value.deviceName.length <= 128 &&
+      (value.address === undefined ||
+        (typeof value.address === 'string' && value.address.length <= 64))));

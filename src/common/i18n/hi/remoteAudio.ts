@@ -2,36 +2,35 @@
 import { Dictionary } from '../en';
 
 const remoteAudio: Partial<Dictionary> = {
-  'tabs.share': 'साझा करें',
+  'tabs.share': 'ऑडियो साझा करें',
   'remoteAudio.eyebrow': 'LAN ऑडियो लिंक',
   'remoteAudio.title': 'अपने दूसरे कंप्यूटर यहाँ सुनें',
   'remoteAudio.subtitle':
-    'हेडसेट वाले कंप्यूटर को रिसीवर बनाएँ। उसी स्थानीय नेटवर्क पर FluidEQ वाले कितने भी कंप्यूटर जुड़कर अपना सिस्टम ऑडियो यहाँ भेज सकते हैं।',
+    'इस कंप्यूटर के लिए एक भूमिका चुनें। रिसीवर वह PC है जिस पर हेडसेट लगा है; बाकी PC सेंडर के रूप में जुड़ सकते हैं।',
+  'remoteAudio.choose': 'इस कंप्यूटर की भूमिका चुनें',
   'remoteAudio.security': 'कनेक्शन की विशेषताएँ',
   'remoteAudio.badge.local': 'केवल स्थानीय नेटवर्क',
   'remoteAudio.badge.lossless': 'लॉसलेस 32-बिट PCM',
   'remoteAudio.badge.encrypted': 'AES-256 एन्क्रिप्टेड',
-  'remoteAudio.listen.kicker': 'कंप्यूटर B · हेडसेट',
+  'remoteAudio.listen.kicker': 'रिसीवर · सर्वर',
   'remoteAudio.listen.title': 'इस कंप्यूटर पर ऑडियो चलाएँ',
   'remoteAudio.listen.body':
-    'यहाँ जुड़े हेडसेट या स्पीकर चुनें, फिर हर उस कंप्यूटर को पेयरिंग कोड दें जिसे आप सुनना चाहते हैं।',
-  'remoteAudio.listen.start': 'सुनना शुरू करें',
+    'हेडसेट या स्पीकर वाले कंप्यूटर पर यह भूमिका इस्तेमाल करें। यह एक या अधिक सेंडर स्वीकार करता है और FluidEQ में चुने गए आउटपुट पर उन्हें चलाता है।',
+  'remoteAudio.listen.start': 'कनेक्शन कोड बनाएँ',
   'remoteAudio.listen.activeTitle': 'यह कंप्यूटर सुन रहा है',
   'remoteAudio.listen.stop': 'सुनना बंद करें',
-  'remoteAudio.send.kicker': 'कंप्यूटर A · स्रोत',
+  'remoteAudio.send.kicker': 'सेंडर · क्लाइंट',
   'remoteAudio.send.title': 'इस कंप्यूटर का ऑडियो भेजें',
   'remoteAudio.send.body':
-    'हेडसेट वाले कंप्यूटर का कोड चिपकाएँ। FluidEQ सिस्टम लूपबैक ऑडियो को बिना कंप्रेशन भेजता है।',
-  'remoteAudio.send.codeLabel': 'हेडसेट वाले कंप्यूटर का पेयरिंग कोड',
-  'remoteAudio.send.codePlaceholder': 'FLUIDEQ-LAN-1… चिपकाएँ',
-  'remoteAudio.send.start': 'भेजना शुरू करें',
+    'हर उस कंप्यूटर पर यह करें जिसे आप सुनना चाहते हैं। हेडसेट कंप्यूटर पर दिखा कोड चिपकाएँ।',
+  'remoteAudio.send.codeLabel': 'कनेक्शन कोड',
+  'remoteAudio.send.codePlaceholder': 'FLUIDEQ-LAN-2… चिपकाएँ',
+  'remoteAudio.send.start': 'कनेक्ट करके भेजें',
   'remoteAudio.send.activeTitle': 'सिस्टम ऑडियो भेजा जा रहा है',
   'remoteAudio.send.activeBody':
     'दोनों कंप्यूटरों पर FluidEQ खुला रखें। रिसीवर इस लॉसलेस स्ट्रीम को अन्य जुड़े प्रेषकों के साथ चलाता है।',
+  'remoteAudio.send.destination': '{name} पर चल रहा है',
   'remoteAudio.send.stop': 'भेजना बंद करें',
-  'remoteAudio.output.label': 'इससे चलाएँ',
-  'remoteAudio.output.default': 'डिफ़ॉल्ट ऑडियो आउटपुट',
-  'remoteAudio.output.unnamed': 'ऑडियो आउटपुट {number}',
   'remoteAudio.status.preparing': 'तैयार हो रहा है…',
   'remoteAudio.status.waiting': 'कंप्यूटरों की प्रतीक्षा',
   'remoteAudio.status.connecting': 'कनेक्ट हो रहा है…',
@@ -41,6 +40,18 @@ const remoteAudio: Partial<Dictionary> = {
   'remoteAudio.status.playbackBlocked':
     'ऑडियो सुनने के लिए फिर शुरू करें दबाएँ',
   'remoteAudio.status.disconnected': 'रिसीवर डिस्कनेक्ट हो गया',
+  'remoteAudio.monitor.title': 'लाइव कनेक्शन',
+  'remoteAudio.monitor.inactive': 'शुरू करने के लिए भूमिका चुनें',
+  'remoteAudio.monitor.ready': 'कनेक्शन कोड के लिए तैयार',
+  'remoteAudio.monitor.waveform': 'साझा ऑडियो का लाइव वेवफ़ॉर्म',
+  'remoteAudio.monitor.waveformFor': '{name} का लाइव ऑडियो वेवफ़ॉर्म',
+  'remoteAudio.monitor.buffer': '{milliseconds} ms बफ़र',
+  'remoteAudio.monitor.noRole': 'कोई भूमिका नहीं चुनी गई',
+  'remoteAudio.monitor.noSources': 'कोई स्रोत कंप्यूटर कनेक्ट नहीं है',
+  'remoteAudio.monitor.waitingSource': 'प्रेषक की प्रतीक्षा',
+  'remoteAudio.monitor.outgoing': 'इस कंप्यूटर से भेजा गया ऑडियो',
+  'remoteAudio.monitor.transmitting': 'प्रसारण जारी',
+  'remoteAudio.monitor.quiet': 'शांत',
   'remoteAudio.code.title': 'दूसरे कंप्यूटर पेयर करें',
   'remoteAudio.code.hint':
     'हर प्रेषक में एक कोड कॉपी करें। रिसीवर चालू रहने तक वही कोड कई कंप्यूटर जोड़ सकता है। यदि कई पते दिखें, तो दोनों कंप्यूटरों वाला साझा नेटवर्क चुनें।',
@@ -55,6 +66,8 @@ const remoteAudio: Partial<Dictionary> = {
     'FluidEQ स्थानीय कनेक्शन नहीं खोल सका। सुनिश्चित करें कि दोनों कंप्यूटर एक ही निजी नेटवर्क पर हैं और फ़ायरवॉल FluidEQ को अनुमति देता है।',
   'remoteAudio.error.capture':
     'FluidEQ इस कंप्यूटर का सिस्टम ऑडियो कैप्चर नहीं कर सका। मौजूदा आउटपुट डिवाइस जाँचें, रोकें और फिर कोशिश करें।',
+  'remoteAudio.error.playback':
+    'FluidEQ लॉसलेस ऑडियो इंजन शुरू नहीं कर सका। FluidEQ को फिर शुरू करके दोबारा कोशिश करें।',
   'remoteAudio.error.connection':
     'एन्क्रिप्टेड ऑडियो कनेक्शन रुक गया। यह सत्र रोकें और नए कोड से दोबारा कनेक्ट करें।',
 };

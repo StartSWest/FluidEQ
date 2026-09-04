@@ -8,14 +8,25 @@ it under the terms of the GNU General Public License version 3 or later.
 
 import { useMemo, useState } from 'react';
 import { useTranslation } from '../utils/I18nContext';
+import TextInput from '../widgets/TextInput';
 import '../styles/RemoteAudio.scss';
-import { useRemoteAudio } from './RemoteAudioContext';
+import { useRemoteAudio } from './remoteAudioValueContext';
+import RemoteAudioMonitor from './RemoteAudioMonitor';
 
 const RemoteAudioPanel = () => {
   const { t } = useTranslation();
   const remote = useRemoteAudio();
+  const [selectedRole, setSelectedRole] = useState<
+    'listener' | 'sender' | undefined
+  >(undefined);
   const [pairingCode, setPairingCode] = useState('');
   const [copiedCode, setCopiedCode] = useState('');
+  const displayedRole = remote.role ?? selectedRole;
+  const errorBanner = remote.error ? (
+    <div className="remote-audio__error" role="alert">
+      {t(`remoteAudio.error.${remote.error}`)}
+    </div>
+  ) : null;
   const status = useMemo(() => {
     if (remote.phase === 'preparing') {
       return t('remoteAudio.status.preparing');
@@ -44,27 +55,19 @@ const RemoteAudioPanel = () => {
     }
     return '';
   }, [remote.connectedCount, remote.phase, remote.role, t]);
-
-  const outputPicker = (
-    <label className="remote-audio__field" htmlFor="remote-audio-output">
-      <span>{t('remoteAudio.output.label')}</span>
-      <select
-        id="remote-audio-output"
-        value={remote.outputId}
-        onChange={(event) => {
-          remote.setOutput(event.target.value).catch(() => undefined);
-        }}
-      >
-        <option value="">{t('remoteAudio.output.default')}</option>
-        {remote.outputs.map((output, index) => (
-          <option key={output.id} value={output.id}>
-            {output.label ||
-              t('remoteAudio.output.unnamed', { number: index + 1 })}
-          </option>
-        ))}
-      </select>
-    </label>
-  );
+  const monitorStatus =
+    status ||
+    (displayedRole === 'sender'
+      ? t('remoteAudio.monitor.ready')
+      : t('remoteAudio.monitor.inactive'));
+  const monitorDetail =
+    remote.role === 'sender' && remote.deviceName
+      ? t('remoteAudio.send.destination', { name: remote.deviceName })
+      : undefined;
+  const monitorActive =
+    remote.role !== undefined &&
+    remote.phase !== 'disconnected' &&
+    remote.phase !== 'error';
 
   const copyCode = async (code: string) => {
     try {
@@ -75,186 +78,256 @@ const RemoteAudioPanel = () => {
     }
   };
 
+  const chooseListener = async () => {
+    if (remote.role === 'listener') {
+      return;
+    }
+    if (remote.role) {
+      await remote.stop();
+    }
+    setSelectedRole('listener');
+    await remote.startListening();
+  };
+
+  const chooseSender = async () => {
+    if (remote.role === 'sender') {
+      return;
+    }
+    if (remote.role) {
+      await remote.stop();
+    }
+    setSelectedRole('sender');
+  };
+
+  const resetRoleChoice = () => {
+    setSelectedRole(undefined);
+    setPairingCode('');
+  };
+
+  const stopSession = async () => {
+    await remote.stop();
+    resetRoleChoice();
+  };
+
   return (
-    <section className="remote-audio">
+    <section className="remote-audio" aria-labelledby="remote-audio-title">
       <header className="remote-audio__header">
         <div>
-          <p className="remote-audio__eyebrow">{t('remoteAudio.eyebrow')}</p>
-          <h1>{t('remoteAudio.title')}</h1>
+          <p className="eyebrow">{t('remoteAudio.eyebrow')}</p>
+          <h2 id="remote-audio-title">{t('remoteAudio.title')}</h2>
           <p>{t('remoteAudio.subtitle')}</p>
-        </div>
-        <div
-          className="remote-audio__badges"
-          aria-label={t('remoteAudio.security')}
-        >
-          <span>{t('remoteAudio.badge.local')}</span>
-          <span>{t('remoteAudio.badge.lossless')}</span>
-          <span>{t('remoteAudio.badge.encrypted')}</span>
+          <ul
+            className="remote-audio__facts"
+            aria-label={t('remoteAudio.security')}
+          >
+            <li>{t('remoteAudio.badge.local')}</li>
+            <li>{t('remoteAudio.badge.lossless')}</li>
+            <li>{t('remoteAudio.badge.encrypted')}</li>
+          </ul>
         </div>
       </header>
 
-      {remote.error && (
-        <div className="remote-audio__error" role="alert">
-          {t(`remoteAudio.error.${remote.error}`)}
-        </div>
-      )}
+      {errorBanner}
+      <RemoteAudioMonitor
+        active={monitorActive}
+        connectedComputers={remote.connectedComputers}
+        detail={monitorDetail}
+        mode={displayedRole}
+        status={monitorStatus}
+        subscribe={remote.subscribeMeter}
+      />
 
-      {!remote.role && (
-        <div className="remote-audio__choices">
-          <article className="remote-audio__card remote-audio__card--listen">
-            <div className="remote-audio__role-mark" aria-hidden="true">
-              B
-            </div>
-            <div className="remote-audio__card-copy">
-              <p className="remote-audio__card-kicker">
-                {t('remoteAudio.listen.kicker')}
-              </p>
-              <h2>{t('remoteAudio.listen.title')}</h2>
-              <p>{t('remoteAudio.listen.body')}</p>
-            </div>
-            {outputPicker}
-            <button
-              type="button"
-              className="button small"
-              onClick={() => remote.startListening()}
-            >
-              {t('remoteAudio.listen.start')}
-            </button>
-          </article>
-
-          <article className="remote-audio__card">
-            <div className="remote-audio__role-mark" aria-hidden="true">
-              A
-            </div>
-            <div className="remote-audio__card-copy">
-              <p className="remote-audio__card-kicker">
-                {t('remoteAudio.send.kicker')}
-              </p>
-              <h2>{t('remoteAudio.send.title')}</h2>
-              <p>{t('remoteAudio.send.body')}</p>
-            </div>
-            <label
-              className="remote-audio__field"
-              htmlFor="remote-audio-pairing-code"
-            >
-              <span>{t('remoteAudio.send.codeLabel')}</span>
-              <textarea
-                id="remote-audio-pairing-code"
-                rows={3}
-                value={pairingCode}
-                placeholder={t('remoteAudio.send.codePlaceholder')}
-                spellCheck={false}
-                onChange={(event) => setPairingCode(event.target.value)}
-              />
-            </label>
-            <button
-              type="button"
-              className="button small"
-              disabled={!pairingCode.trim()}
-              onClick={() => remote.startSending(pairingCode)}
-            >
-              {t('remoteAudio.send.start')}
-            </button>
-          </article>
-        </div>
-      )}
-
-      {remote.role === 'listener' && (
-        <div className="remote-audio__session">
-          <div className="remote-audio__session-heading">
-            <div>
-              <p className="remote-audio__card-kicker">
-                {t('remoteAudio.listen.kicker')}
-              </p>
-              <h2>{t('remoteAudio.listen.activeTitle')}</h2>
-            </div>
-            <span
-              className={`remote-audio__status remote-audio__status--${remote.phase}`}
-              role="status"
-            >
-              {status}
+      <h3 className="remote-audio__choice-title">{t('remoteAudio.choose')}</h3>
+      <div
+        className="remote-audio__role-cards"
+        role="radiogroup"
+        aria-label={t('remoteAudio.choose')}
+      >
+        <article
+          className={`remote-audio__role-card${
+            displayedRole === 'listener' ? ' is-selected' : ''
+          }`}
+        >
+          <button
+            type="button"
+            role="radio"
+            aria-checked={displayedRole === 'listener'}
+            className="remote-audio__role-choice"
+            onClick={() => chooseListener().catch(() => undefined)}
+          >
+            <span className="remote-audio__role-radio" aria-hidden="true" />
+            <span className="control-kicker">
+              {t('remoteAudio.listen.kicker')}
             </span>
-          </div>
+            <strong>{t('remoteAudio.listen.title')}</strong>
+            <span>{t('remoteAudio.listen.body')}</span>
+          </button>
 
-          {outputPicker}
+          {displayedRole === 'listener' && (
+            <div className="remote-audio__role-content">
+              <div className="remote-audio__role-status-row">
+                <strong>{t('remoteAudio.listen.activeTitle')}</strong>
+                <span
+                  className={`remote-audio__status remote-audio__status--${remote.phase}`}
+                  role="status"
+                >
+                  {status || t('remoteAudio.status.preparing')}
+                </span>
+              </div>
 
-          {remote.lanOptions.length > 0 && (
-            <div className="remote-audio__codes">
-              <h3>{t('remoteAudio.code.title')}</h3>
-              <p>{t('remoteAudio.code.hint')}</p>
-              {remote.lanOptions.map((option) => (
-                <div className="remote-audio__code" key={option.address}>
-                  <div className="remote-audio__code-heading">
-                    <span>{option.address}</span>
+              {remote.lanOptions.length > 0 && (
+                <div className="remote-audio__codes">
+                  <h4>{t('remoteAudio.code.title')}</h4>
+                  <p>{t('remoteAudio.code.hint')}</p>
+                  {remote.lanOptions.map((option) => (
+                    <div className="remote-audio__code" key={option.address}>
+                      <div className="remote-audio__code-heading">
+                        <div className="remote-audio__computer">
+                          <strong>{option.deviceName}</strong>
+                          <span>{option.address}</span>
+                        </div>
+                        <code
+                          className="remote-audio__code-value"
+                          title={option.code}
+                          aria-label={t('remoteAudio.code.forAddress', {
+                            address: option.address,
+                          })}
+                        >
+                          {option.code}
+                        </code>
+                        <button
+                          type="button"
+                          className="button small subtle"
+                          onClick={() => copyCode(option.code)}
+                        >
+                          {copiedCode === option.code
+                            ? t('remoteAudio.code.copied')
+                            : t('remoteAudio.code.copy')}
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <div className="remote-audio__session-actions">
+                {!remote.role && (
+                  <button
+                    type="button"
+                    className="button small"
+                    onClick={() => chooseListener().catch(() => undefined)}
+                  >
+                    {t('remoteAudio.listen.start')}
+                  </button>
+                )}
+                {remote.phase === 'playback-blocked' && (
+                  <button
+                    type="button"
+                    className="button small"
+                    onClick={() => remote.resumePlayback()}
+                  >
+                    {t('remoteAudio.resume')}
+                  </button>
+                )}
+                {remote.role === 'listener' && (
+                  <button
+                    type="button"
+                    className="button small subtle"
+                    onClick={stopSession}
+                  >
+                    {t('remoteAudio.listen.stop')}
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+        </article>
+
+        <article
+          className={`remote-audio__role-card${
+            displayedRole === 'sender' ? ' is-selected' : ''
+          }`}
+        >
+          <button
+            type="button"
+            role="radio"
+            aria-checked={displayedRole === 'sender'}
+            className="remote-audio__role-choice"
+            onClick={() => chooseSender().catch(() => undefined)}
+          >
+            <span className="remote-audio__role-radio" aria-hidden="true" />
+            <span className="control-kicker">
+              {t('remoteAudio.send.kicker')}
+            </span>
+            <strong>{t('remoteAudio.send.title')}</strong>
+            <span>{t('remoteAudio.send.body')}</span>
+          </button>
+
+          {displayedRole === 'sender' && (
+            <div className="remote-audio__role-content">
+              {remote.role !== 'sender' ? (
+                <div className="remote-audio__sender-connect">
+                  <div className="remote-audio__field">
+                    <span>{t('remoteAudio.send.codeLabel')}</span>
+                    <TextInput
+                      value={pairingCode}
+                      ariaLabel={t('remoteAudio.send.codeLabel')}
+                      isDisabled={false}
+                      errorMessage=""
+                      placeholder={t('remoteAudio.send.codePlaceholder')}
+                      handleChange={setPairingCode}
+                      handleSubmit={(code) => {
+                        if (code.trim()) {
+                          remote.startSending(code).catch(() => undefined);
+                        }
+                      }}
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    className="button small"
+                    disabled={!pairingCode.trim()}
+                    onClick={() => remote.startSending(pairingCode)}
+                  >
+                    {t('remoteAudio.send.start')}
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <div className="remote-audio__role-status-row">
+                    <strong>{t('remoteAudio.send.activeTitle')}</strong>
+                    <span
+                      className={`remote-audio__status remote-audio__status--${remote.phase}`}
+                      role="status"
+                    >
+                      {status}
+                    </span>
+                  </div>
+                  <p className="remote-audio__sender-copy">
+                    {remote.deviceName && (
+                      <strong className="remote-audio__destination">
+                        {t('remoteAudio.send.destination', {
+                          name: remote.deviceName,
+                        })}
+                      </strong>
+                    )}
+                    {t('remoteAudio.send.activeBody')}
+                  </p>
+                  <div className="remote-audio__session-actions">
                     <button
                       type="button"
                       className="button small subtle"
-                      onClick={() => copyCode(option.code)}
+                      onClick={stopSession}
                     >
-                      {copiedCode === option.code
-                        ? t('remoteAudio.code.copied')
-                        : t('remoteAudio.code.copy')}
+                      {t('remoteAudio.send.stop')}
                     </button>
                   </div>
-                  <textarea
-                    rows={3}
-                    readOnly
-                    spellCheck={false}
-                    value={option.code}
-                    aria-label={t('remoteAudio.code.forAddress', {
-                      address: option.address,
-                    })}
-                  />
-                </div>
-              ))}
+                </>
+              )}
             </div>
           )}
-
-          {remote.phase === 'playback-blocked' && (
-            <button
-              type="button"
-              className="button small"
-              onClick={() => remote.resumePlayback()}
-            >
-              {t('remoteAudio.resume')}
-            </button>
-          )}
-          <button
-            type="button"
-            className="button small subtle remote-audio__stop"
-            onClick={() => remote.stop()}
-          >
-            {t('remoteAudio.listen.stop')}
-          </button>
-        </div>
-      )}
-
-      {remote.role === 'sender' && (
-        <div className="remote-audio__session remote-audio__session--sender">
-          <div className="remote-audio__session-heading">
-            <div>
-              <p className="remote-audio__card-kicker">
-                {t('remoteAudio.send.kicker')}
-              </p>
-              <h2>{t('remoteAudio.send.activeTitle')}</h2>
-            </div>
-            <span
-              className={`remote-audio__status remote-audio__status--${remote.phase}`}
-              role="status"
-            >
-              {status}
-            </span>
-          </div>
-          <p>{t('remoteAudio.send.activeBody')}</p>
-          <button
-            type="button"
-            className="button small subtle remote-audio__stop"
-            onClick={() => remote.stop()}
-          >
-            {t('remoteAudio.send.stop')}
-          </button>
-        </div>
-      )}
+        </article>
+      </div>
 
       <footer className="remote-audio__note">
         <strong>{t('remoteAudio.note.title')}</strong>

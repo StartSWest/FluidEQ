@@ -8,6 +8,7 @@ it under the terms of the GNU General Public License version 3 or later.
 
 import crypto from 'crypto';
 import os from 'os';
+import { constants, zstdCompressSync, zstdDecompressSync } from 'zlib';
 import type { RawData } from 'ws';
 import {
   ILanRemoteAudioChunk,
@@ -15,16 +16,17 @@ import {
   isLanRemoteAudioSignal,
 } from '../common/remoteAudio';
 
-const PAIRING_PREFIX = 'FLUIDEQ-LAN-1.';
-const PACKET_AAD = Buffer.from('FluidEQ encrypted LAN audio v1', 'utf8');
+const PAIRING_PREFIX = 'FLUIDEQ-LAN-2.';
+const PACKET_AAD = Buffer.from('FluidEQ encrypted LAN audio v2', 'utf8');
 export const PACKET_SIGNAL = 1;
 export const PACKET_AUDIO = 2;
 const SEALED_HEADER_BYTES = 1 + 12 + 16;
 const AUDIO_HEADER_BYTES = 4 + 4 + 1 + 2;
 export const MAX_PACKET_BYTES = 512 * 1024;
 
-interface ILanPairingPayload {
+export interface ILanPairingPayload {
   address: string;
+  deviceName: string;
   port: number;
   secret: string;
 }
@@ -90,14 +92,19 @@ export const encodePairingCode = (
   address: string,
   port: number,
   secret: string,
+  deviceName: string,
 ): string =>
   `${PAIRING_PREFIX}${Buffer.from(
-    JSON.stringify({ address, port, secret }),
+    JSON.stringify({ address, deviceName, port, secret }),
     'utf8',
   ).toString('base64url')}`;
 
 export const decodePairingCode = (code: unknown): ILanPairingPayload => {
-  if (typeof code !== 'string' || !code.startsWith(PAIRING_PREFIX)) {
+  if (
+    typeof code !== 'string' ||
+    code.length > 1_024 ||
+    !code.startsWith(PAIRING_PREFIX)
+  ) {
     throw new Error('Invalid FluidEQ LAN pairing code.');
   }
   let value: unknown;
@@ -120,11 +127,22 @@ export const decodePairingCode = (code: unknown): ILanPairingPayload => {
     (value as ILanPairingPayload).port > 65_535 ||
     typeof (value as ILanPairingPayload).secret !== 'string' ||
     (value as ILanPairingPayload).secret.length < 40 ||
-    (value as ILanPairingPayload).secret.length > 64
+    (value as ILanPairingPayload).secret.length > 64 ||
+    ((value as Partial<ILanPairingPayload>).deviceName !== undefined &&
+      (typeof (value as ILanPairingPayload).deviceName !== 'string' ||
+        (value as ILanPairingPayload).deviceName.trim().length === 0 ||
+        (value as ILanPairingPayload).deviceName.length > 128))
   ) {
     throw new Error('Invalid FluidEQ LAN pairing code.');
   }
-  return value as ILanPairingPayload;
+  const payload = value as Partial<ILanPairingPayload> &
+    Pick<ILanPairingPayload, 'address' | 'port' | 'secret'>;
+  return {
+    address: payload.address,
+    deviceName: payload.deviceName?.trim() || payload.address,
+    port: payload.port,
+    secret: payload.secret,
+  };
 };
 
 export const keyFromSecret = (secret: string): Buffer =>
@@ -253,7 +271,10 @@ export const encodeAudio = (chunk: INormalizedAudioChunk): Buffer => {
   header.writeUInt32LE(chunk.sampleRate, 4);
   header.writeUInt8(chunk.channels, 8);
   header.writeUInt16LE(chunk.frames, 9);
-  return Buffer.concat([header, chunk.pcm]);
+  const compressed = zstdCompressSync(chunk.pcm, {
+    params: { [constants.ZSTD_c_compressionLevel]: 1 },
+  });
+  return Buffer.concat([header, compressed]);
 };
 
 export const decodeAudio = (
@@ -263,13 +284,27 @@ export const decodeAudio = (
   if (clear.byteLength < AUDIO_HEADER_BYTES) {
     throw new Error('Invalid LAN audio packet.');
   }
+  const channels = clear.readUInt8(8);
+  const frames = clear.readUInt16LE(9);
+  if (channels < 1 || channels > 8 || frames < 1 || frames > 8_192) {
+    throw new Error('Invalid LAN audio packet.');
+  }
+  const expectedPcmBytes = channels * frames * 4;
+  let pcm: Buffer;
+  try {
+    pcm = zstdDecompressSync(clear.subarray(AUDIO_HEADER_BYTES), {
+      maxOutputLength: expectedPcmBytes,
+    });
+  } catch {
+    throw new Error('Invalid LAN audio packet.');
+  }
   const normalized = normalizeAudioChunk({
     peerId,
     sequence: clear.readUInt32LE(0),
     sampleRate: clear.readUInt32LE(4),
-    channels: clear.readUInt8(8),
-    frames: clear.readUInt16LE(9),
-    pcm: clear.subarray(AUDIO_HEADER_BYTES),
+    channels,
+    frames,
+    pcm,
   });
   return {
     peerId,

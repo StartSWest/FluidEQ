@@ -2525,6 +2525,7 @@ registerWindowIpc({
 
 const stopRemoteAudioLan = registerRemoteAudioIpc({
   getMainWindow: () => mainWindow,
+  userDataDir,
 });
 
 registerKaraokeIpc({

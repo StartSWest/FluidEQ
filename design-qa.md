@@ -102,3 +102,79 @@ No additional crop was needed. At this narrow width the three full-height captur
 - Verify Karaoke control clearance in graph fullscreen with the top bar both shown and hidden.
 
 final result: passed
+
+---
+
+# Design QA — Share Audio LAN
+
+- Source visual truth:
+  - `C:\Users\ivanc\AppData\Local\Temp\codex-clipboard-120df4e3-557a-48af-bcdd-44aa11eb34cf.png`
+  - `C:\Users\ivanc\AppData\Local\Temp\codex-clipboard-a5e9e294-2424-485e-bfbc-2cf3ba89497d.png`
+- Implementation screenshots:
+  - `C:\Users\ivanc\AppData\Local\Temp\fluideq-share-listener-qa.png`
+  - `C:\Users\ivanc\AppData\Local\Temp\fluideq-share-sender-qa.png`
+- Combined comparisons:
+  - `C:\Users\ivanc\AppData\Local\Temp\fluideq-share-design-comparison.png`
+  - `C:\Users\ivanc\AppData\Local\Temp\fluideq-share-design-focus.png`
+- Source pixels: 2343 × 914 and 1995 × 273
+- Implementation pixels: 2005 × 1392 for both Receiver and Sender
+- CSS viewport: 2005 × 1392
+- Density normalization: direct CSS-pixel Electron captures; the full comparison scales both captures to 1000px-wide panels, and the focused comparison aligns the Share Audio content regions at 1000 × 650
+- State: Receiver listening with no senders, Sender ready for a code, selected and collapsed role cards, and card hover
+
+## Full-view comparison evidence
+
+The earlier screen compressed the graph, pairing instructions, code, and stop action into one narrow centered card with large unused space around it. The revised screen uses the full center workspace, places the live graph above the role choice, and keeps both role cards visible so the current choice and alternative are understandable at a glance.
+
+The Receiver and Sender graph states both measured 1399 × 292.39px, with an identical 180px waveform plot. A single connected Receiver lane keeps that same primary height; two or more connected computers become compact stacked lanes so every source remains individually readable without overlaying waveforms.
+
+The selected card expands only for its relevant controls. The unselected card remains closed. Earlier live inspection confirmed the two cards have equal dimensions when both are closed and the role button covers the complete collapsed card surface, including its hover state.
+
+## Focused-region comparison evidence
+
+The focused side-by-side comparison keeps the graph, role choices, pairing row, and session action readable together. It confirms that the pairing code is now a single row with the computer identity and IP at the start and Copy code at the far end, while the Receiver/Sender choices use the existing FluidEQ surface, typography, border, and button language.
+
+## Findings
+
+- No actionable P0/P1/P2 visual or interaction mismatch remains for the requested Share Audio states.
+- Receiver and Sender now use the same top-graph height.
+- Every connected source has a dedicated labeled waveform lane, IP address, activity dot, live level, and Transmitting/Quiet state.
+- Multiple source waveforms are separate rather than overlaid, so one quiet computer cannot be confused with another active one.
+- The large disconnected error banner no longer dominates the normal idle layout; normal role selection and connection status live where the work happens.
+
+## Comparison history
+
+- Earlier P1: Receiver and Sender were presented as numbered steps even though they are mutually exclusive roles.
+  - Fix: replaced the step flow with two persistent radio-card choices that stop the previous role automatically.
+  - Post-fix evidence: both choices remain visible and the selected card alone reveals its controls.
+- Earlier P1: the graph and active connection controls were trapped in a narrow centered column.
+  - Fix: moved the live monitor above the choices and let it span the center workspace.
+  - Post-fix evidence: the monitor now measures 1399px wide in the running 2005px workspace.
+- Earlier P2: the top graph changed height when switching between Receiver and Sender.
+  - Fix: both single-lane states now use the same primary graph treatment; multiple sources use compact stacked lanes.
+  - Post-fix evidence: both roles measured exactly 292.39px overall and 180px for the waveform plot.
+
+## Required fidelity surfaces
+
+- Fonts and typography: existing system-font tokens and the approved weight scale are preserved; status and code readouts use the app's existing compact hierarchy and monospace token.
+- Spacing and layout rhythm: the monitor spans the available content width; role cards align in a two-column grid; the expanded content remains inside the selected card.
+- Colors and visual tokens: existing dark surfaces, cyan selection, muted copy, semantic green activity, and red error tokens are reused.
+- Image quality and assets: this utility screen contains no raster image assets; the live audio display is a functional canvas waveform rather than decorative placeholder art.
+- Copy and content: wording identifies Receiver/Server and Sender/Client, explains which computer gets the headset, and states that multiple senders can connect.
+
+## Primary interactions tested
+
+- Switched from Receiver to Sender and back; the previous role stopped automatically.
+- Confirmed the Receiver starts listening and creates a code when selected.
+- Confirmed the Sender opens its code field inside the selected card.
+- Measured identical graph heights in Receiver and Sender states.
+- Confirmed the full collapsed-card surface receives hover treatment.
+- Confirmed the output remains the one selected in FluidEQ's right pane.
+
+## Verification
+
+- Live DOM and computed-style inspection completed through the already-running Electron renderer; the app was not launched by the agent.
+- Component coverage confirms that two named computers, their two IP addresses, and two independent waveform lanes render together.
+- TypeScript, stylesheet compilation, formatting, lint, the complete JavaScript suite, and all native audio-host checks passed for the implementation before the final graph-height adjustment; the focused Share Audio checks are rerun after that adjustment.
+
+final result: passed

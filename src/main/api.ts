@@ -41,8 +41,11 @@ import type {
 import type { ILibraryPlaylists } from '../common/library/playlists';
 import type {
   ILanHostDetails,
+  ILanRemoteComputer,
   ILanRemoteAudioChunk,
   ILanRemoteAudioSignal,
+  TLanRestoreResult,
+  TLanSavedRole,
 } from '../common/remoteAudio';
 import { dspHostBridge } from './dspHost/bridge';
 
@@ -509,8 +512,21 @@ const onLibraryPlaylistsChanged = (
 const startRemoteAudioLanHost = () =>
   ipcRenderer.invoke('remote-audio-lan-host') as Promise<ILanHostDetails>;
 
+const getSavedRemoteAudioLanRole = () =>
+  ipcRenderer.invoke('remote-audio-lan-saved-role') as Promise<
+    TLanSavedRole | undefined
+  >;
+
+const restoreRemoteAudioLan = () =>
+  ipcRenderer.invoke('remote-audio-lan-restore') as Promise<
+    TLanRestoreResult | undefined
+  >;
+
 const joinRemoteAudioLan = (code: string) =>
-  ipcRenderer.invoke('remote-audio-lan-join', code) as Promise<void>;
+  ipcRenderer.invoke(
+    'remote-audio-lan-join',
+    code,
+  ) as Promise<ILanRemoteComputer>;
 
 const sendRemoteAudioLanSignal = (message: ILanRemoteAudioSignal) =>
   ipcRenderer.invoke('remote-audio-lan-send', message) as Promise<void>;
@@ -518,8 +534,8 @@ const sendRemoteAudioLanSignal = (message: ILanRemoteAudioSignal) =>
 const sendRemoteAudioLanAudio = (chunk: ILanRemoteAudioChunk) =>
   ipcRenderer.send('remote-audio-lan-audio-send', chunk);
 
-const stopRemoteAudioLan = () =>
-  ipcRenderer.invoke('remote-audio-lan-stop') as Promise<void>;
+const stopRemoteAudioLan = (forget = false) =>
+  ipcRenderer.invoke('remote-audio-lan-stop', forget) as Promise<void>;
 
 const onRemoteAudioLanSignal = (
   listener: (message: ILanRemoteAudioSignal) => void,
@@ -622,6 +638,8 @@ export default {
     removeTracksFromLibraryPlaylist,
     onLibraryPlaylistsChanged,
     startRemoteAudioLanHost,
+    getSavedRemoteAudioLanRole,
+    restoreRemoteAudioLan,
     joinRemoteAudioLan,
     sendRemoteAudioLanSignal,
     sendRemoteAudioLanAudio,

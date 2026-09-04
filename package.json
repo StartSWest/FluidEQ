@@ -282,7 +282,8 @@
         "from": "native/.build/bin",
         "to": "native",
         "filter": [
-          "FluidEQ-DSP*"
+          "FluidEQ-DSP*",
+          "FluidEQ-LAN-Capture*"
         ]
       },
       {

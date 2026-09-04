@@ -7,6 +7,7 @@ it under the terms of the GNU General Public License version 3 or later.
 */
 
 import type { ILanRemoteAudioChunk } from '../../common/remoteAudio';
+import type { IRemoteAudioMeter, TRemoteAudioMeterListener } from './meter';
 
 interface IAudioSink {
   srcObject: HTMLAudioElement['srcObject'];
@@ -17,13 +18,6 @@ interface IAudioSink {
   setSinkId?(sinkId: string): Promise<void>;
 }
 
-interface IPeerQueue {
-  bufferedSeconds: number;
-  nextTime?: number;
-  pending: ILanRemoteAudioChunk[];
-  scheduled: Set<AudioBufferSourceNode>;
-}
-
 export interface IPcmMixer {
   push(chunk: ILanRemoteAudioChunk): void;
   removePeer(peerId: string): void;
@@ -32,29 +26,72 @@ export interface IPcmMixer {
   close(): Promise<void>;
 }
 
-const INITIAL_BUFFER_SECONDS = 0.16;
-const RECOVERY_LEAD_SECONDS = 0.08;
+const PROCESSOR_NAME = 'fluideq-remote-audio';
+
+const workletUrl = (): URL =>
+  new URL(
+    process.env.NODE_ENV === 'production'
+      ? './dsp-worklet.js'
+      : '/dsp-worklet.dev.js',
+    window.location.href,
+  );
 
 const createAudioSink = (): IAudioSink => new Audio();
 
 /**
- * Mix every sender in one Web Audio graph and play that graph through the
- * selected headset. Chunks remain Float32 PCM; no encode/decode step exists.
+ * Keep every sender on one continuous audio-thread timeline.
+ *
+ * Creating one AudioBufferSourceNode per network packet restarted Chromium's
+ * resampler at every packet boundary. Small delivery variation then became a
+ * gap or overlap, heard as clicks and occasional pitch wobble. The worklet
+ * owns a per-sender FIFO instead, so equal-rate samples remain byte-identical
+ * and rate conversion, when the output hardware requires it, keeps one phase
+ * across all packets.
  */
-export const createPcmMixer = (
+export const createPcmMixer = async (
   outputSinkId: string,
   onPlaybackBlocked: () => void,
-): IPcmMixer => {
+  onMeter: TRemoteAudioMeterListener,
+): Promise<IPcmMixer> => {
   const context = new AudioContext({ latencyHint: 'interactive' });
+  await context.audioWorklet.addModule(workletUrl().href);
+  const mixer = new AudioWorkletNode(context, PROCESSOR_NAME, {
+    numberOfInputs: 0,
+    numberOfOutputs: 1,
+    outputChannelCount: [2],
+  });
   const destination = context.createMediaStreamDestination();
+  mixer.connect(destination);
   const sink = createAudioSink();
   sink.autoplay = true;
   sink.volume = 1;
   sink.srcObject = destination.stream;
-  const queues = new Map<string, IPeerQueue>();
   let currentSinkId = outputSinkId;
   let isClosed = false;
   let playbackStarted = false;
+
+  mixer.port.onmessage = ({ data }: MessageEvent<unknown>) => {
+    if (typeof data !== 'object' || data === null) {
+      return;
+    }
+    const meter = data as Partial<IRemoteAudioMeter> & { kind?: unknown };
+    if (
+      meter.kind === 'meter' &&
+      typeof meter.bufferedMs === 'number' &&
+      typeof meter.peak === 'number' &&
+      typeof meter.rms === 'number' &&
+      typeof meter.sourceId === 'string' &&
+      meter.waveform instanceof Float32Array
+    ) {
+      onMeter({
+        bufferedMs: meter.bufferedMs,
+        peak: meter.peak,
+        rms: meter.rms,
+        sourceId: meter.sourceId,
+        waveform: meter.waveform,
+      });
+    }
+  };
 
   const startPlayback = async () => {
     if (playbackStarted || isClosed) {
@@ -62,7 +99,7 @@ export const createPcmMixer = (
     }
     playbackStarted = true;
     try {
-      if (currentSinkId && sink.setSinkId) {
+      if (sink.setSinkId) {
         await sink.setSinkId(currentSinkId);
       }
       await context.resume();
@@ -73,85 +110,19 @@ export const createPcmMixer = (
     }
   };
 
-  const schedule = (queue: IPeerQueue, chunk: ILanRemoteAudioChunk) => {
-    const samples = new Float32Array(chunk.pcm);
-    if (samples.length !== chunk.frames * chunk.channels) {
-      return;
-    }
-    const buffer = context.createBuffer(
-      chunk.channels,
-      chunk.frames,
-      chunk.sampleRate,
-    );
-    for (let channel = 0; channel < chunk.channels; channel += 1) {
-      const channelSamples = buffer.getChannelData(channel);
-      for (let frame = 0; frame < chunk.frames; frame += 1) {
-        channelSamples[frame] = samples[frame * chunk.channels + channel];
-      }
-    }
-    const source = context.createBufferSource();
-    source.buffer = buffer;
-    source.connect(destination);
-    queue.scheduled.add(source);
-    source.onended = () => {
-      queue.scheduled.delete(source);
-      source.disconnect();
-    };
-    const earliest = context.currentTime + RECOVERY_LEAD_SECONDS;
-    const startAt = Math.max(queue.nextTime ?? earliest, earliest);
-    source.start(startAt);
-    queue.nextTime = startAt + chunk.frames / chunk.sampleRate;
-  };
-
-  const push = (chunk: ILanRemoteAudioChunk) => {
-    if (isClosed) {
-      return;
-    }
-    let queue = queues.get(chunk.peerId);
-    if (!queue) {
-      queue = {
-        bufferedSeconds: 0,
-        pending: [],
-        scheduled: new Set<AudioBufferSourceNode>(),
-      };
-      queues.set(chunk.peerId, queue);
-    }
-    if (queue.nextTime === undefined) {
-      queue.pending.push(chunk);
-      queue.bufferedSeconds += chunk.frames / chunk.sampleRate;
-      if (queue.bufferedSeconds < INITIAL_BUFFER_SECONDS) {
+  return {
+    push: (chunk) => {
+      if (isClosed) {
         return;
       }
-      queue.pending.forEach((pending) =>
-        schedule(queue as IPeerQueue, pending),
-      );
-      queue.pending = [];
-    } else {
-      schedule(queue, chunk);
-    }
-    startPlayback().catch(() => onPlaybackBlocked());
-  };
-
-  const removePeer = (peerId: string) => {
-    const queue = queues.get(peerId);
-    if (!queue) {
-      return;
-    }
-    queue.scheduled.forEach((source) => {
-      try {
-        source.stop();
-      } catch {
-        // Already ended between reading the set and stopping the source.
+      mixer.port.postMessage({ kind: 'push', ...chunk }, [chunk.pcm]);
+      startPlayback().catch(() => onPlaybackBlocked());
+    },
+    removePeer: (peerId) => {
+      if (!isClosed) {
+        mixer.port.postMessage({ kind: 'remove-peer', peerId });
       }
-      source.disconnect();
-    });
-    queue.pending = [];
-    queues.delete(peerId);
-  };
-
-  return {
-    push,
-    removePeer,
+    },
     resume: async () => {
       playbackStarted = false;
       await startPlayback();
@@ -167,7 +138,8 @@ export const createPcmMixer = (
         return;
       }
       isClosed = true;
-      [...queues.keys()].forEach(removePeer);
+      mixer.port.onmessage = null;
+      mixer.disconnect();
       sink.pause();
       sink.srcObject = null;
       destination.stream.getTracks().forEach((track) => track.stop());

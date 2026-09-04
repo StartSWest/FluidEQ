@@ -254,3 +254,20 @@ set_target_properties(fluideq-dsp-host PROPERTIES
   RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_BINARY_DIR}/bin"
   RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/bin"
 )
+
+# Windows process-loopback capture is separate from the DSP host because it
+# must exclude its own process tree. That places the tap before endpoint APOs:
+# the sender's EQ can still be heard locally, while the network receives the
+# unprocessed system mix and the receiver applies its own FluidEQ profile.
+if(WIN32)
+  add_executable(fluideq-remote-audio-capture
+    remote-audio-capture/src/main.cpp)
+  target_link_libraries(fluideq-remote-audio-capture PRIVATE
+    feq_strict ole32 avrt mmdevapi)
+  set_target_properties(fluideq-remote-audio-capture PROPERTIES
+    OUTPUT_NAME "FluidEQ-LAN-Capture"
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+    RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_BINARY_DIR}/bin"
+    RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/bin"
+  )
+endif()

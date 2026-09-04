@@ -140,7 +140,7 @@ import {
   useLiveAudioControl,
 } from './audio/LiveAudioContext';
 import RemoteAudioPanel from './remoteAudio/RemoteAudioPanel';
-import { RemoteAudioProvider } from './remoteAudio/RemoteAudioContext';
+import RemoteAudioProvider from './remoteAudio/RemoteAudioContext';
 import EuphoriaGlow from './components/EuphoriaGlow';
 import {
   deletePreset,
@@ -652,7 +652,7 @@ const AppContent = () => {
 
   /**
    * The six places, drawn in the titlebar either side of the live output
-   * meter — two on the left, four on the right.
+   * meter — three on the left, three on the right.
    *
    * Above the workspace rather than on it. The meter is the one element that
    * makes this window look like itself and it already floats across the top;
@@ -662,9 +662,8 @@ const AppContent = () => {
    * Split, because all six on one end left the spectrum sitting a couple of
    * hundred pixels left of the window's middle while the wrapper around it was
    * perfectly centred — the one drawing in this app that is meant to look
-   * centred was the one thing that was not. The names are dealt out so the two
-   * ends come to about the same width: Online Media, the longest of them,
-   * balances the three short ones on the right.
+   * centred was the one thing that was not. Share Audio belongs beside Online
+   * Media because both move audio between computers rather than shape it.
    *
    * Built here rather than in the header markup only because it is long, and
    * the titlebar reads better as four things than as four things and two
@@ -686,7 +685,16 @@ const AppContent = () => {
       >
         {isMediaTabOneWord ? t('tabs.mediaShort') : t('tabs.media')}
       </button>
-      {/* Five places, not nine. The equaliser and everything that sets it
+      <button
+        type="button"
+        role="tab"
+        aria-selected={isShareTab}
+        className={`workspace-tab${isShareTab ? ' is-active' : ''}`}
+        onClick={() => selectTopWorkspaceTab('share')}
+      >
+        {t('tabs.share')}
+      </button>
+      {/* Six places, not ten. The equaliser and everything that sets it
           are one tab with a row of pills inside — see EQ_GROUP_TABS.
 
           Last on this side, so it is the name against the meter's left edge
@@ -720,15 +728,6 @@ const AppContent = () => {
         onClick={() => selectTopWorkspaceTab('dsp')}
       >
         {t('tabs.dsp')}
-      </button>
-      <button
-        type="button"
-        role="tab"
-        aria-selected={isShareTab}
-        className={`workspace-tab${isShareTab ? ' is-active' : ''}`}
-        onClick={() => selectTopWorkspaceTab('share')}
-      >
-        {t('tabs.share')}
       </button>
       <button
         type="button"

@@ -1,16 +1,8 @@
-/*
-<FluidEQ: System-wide parametric audio equalizer interface>
-Copyright (C) <2026>  <Ivan Carmenates Garcia>
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License version 3 or later.
-*/
+/* FluidEQ — GPL-3.0-or-later */
 
 import {
-  createContext,
   ReactNode,
   useCallback,
-  useContext,
   useEffect,
   useMemo,
   useRef,
@@ -18,6 +10,7 @@ import {
 } from 'react';
 import type {
   ILanPairingOption,
+  ILanRemoteComputer,
   ILanRemoteAudioChunk,
   ILanRemoteAudioSignal,
 } from '../../common/remoteAudio';
@@ -25,63 +18,54 @@ import {
   useLiveAudioCapture,
   useLiveAudioControl,
 } from '../audio/LiveAudioContext';
-import { IRemoteAudioOutput, listRemoteAudioOutputs } from './outputs';
+import { useFluidEqContext } from '../utils/FluidEqContext';
 import { createPcmMixer, IPcmMixer } from './pcmMixer';
 import { createPcmSender, IPcmSender } from './pcmSender';
+import { measureRemoteAudioChunk } from './meter';
+import listenerState from './listenerState';
+import type {
+  TRemoteAudioError,
+  TRemoteAudioPhase,
+  TRemoteAudioRole,
+} from './remoteAudioState';
+import RemoteAudioContext from './remoteAudioValueContext';
+import restoreRemoteAudioSender from './restoreRemoteAudioSender';
+import useSelectedRemoteAudioOutput from './useSelectedRemoteAudioOutput';
+import useRemoteAudioMeterBus from './useRemoteAudioMeterBus';
 
-export type TRemoteAudioRole = 'listener' | 'sender';
-export type TRemoteAudioPhase =
-  | 'idle'
-  | 'preparing'
-  | 'waiting'
-  | 'connecting'
-  | 'connected'
-  | 'disconnected'
-  | 'playback-blocked'
-  | 'error';
-export type TRemoteAudioError = 'lan' | 'capture' | 'connection';
-
-interface IRemoteAudioValue {
-  connectedCount: number;
-  error?: TRemoteAudioError;
-  lanOptions: ILanPairingOption[];
-  outputs: IRemoteAudioOutput[];
-  outputId: string;
-  phase: TRemoteAudioPhase;
-  role?: TRemoteAudioRole;
-  startListening(): Promise<void>;
-  startSending(code: string): Promise<void>;
-  stop(): Promise<void>;
-  resumePlayback(): Promise<void>;
-  setOutput(id: string): Promise<void>;
-}
-
-const RemoteAudioContext = createContext<IRemoteAudioValue | undefined>(
-  undefined,
-);
-
-export const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
+const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
   const { capture } = useLiveAudioControl();
+  const { activeDeviceId } = useFluidEqContext();
   const [role, setRole] = useState<TRemoteAudioRole | undefined>(undefined);
   const [phase, setPhase] = useState<TRemoteAudioPhase>('idle');
   const [error, setError] = useState<TRemoteAudioError | undefined>(undefined);
   const [lanOptions, setLanOptions] = useState<ILanPairingOption[]>([]);
-  const [outputs, setOutputs] = useState<IRemoteAudioOutput[]>([]);
-  const [outputId, setOutputId] = useState('');
   const [connectedCount, setConnectedCount] = useState(0);
+  const [connectedComputers, setConnectedComputers] = useState<
+    { address?: string; id: string; name: string }[]
+  >([]);
+  const [deviceName, setDeviceName] = useState<string | undefined>(undefined);
 
   const roleRef = useRef<TRemoteAudioRole | undefined>(undefined);
-  const outputIdRef = useRef('');
+  const outputSinkIdRef = useRef('default');
   const mixerRef = useRef<IPcmMixer | undefined>(undefined);
   const senderRef = useRef<IPcmSender | undefined>(undefined);
+  const senderStartingRef = useRef(false);
   const senderPeerIdRef = useRef<string | undefined>(undefined);
   const peerIdsRef = useRef(new Set<string>());
+  const peerNamesRef = useRef(new Map<string, string>());
+  const peerAddressesRef = useRef(new Map<string, string>());
   const connectedPeerIdsRef = useRef(new Set<string>());
   const playbackBlockedRef = useRef(false);
   const stoppingRef = useRef(false);
+  const restoreAttemptedRef = useRef(false);
+  const { publishMeter, subscribeMeter } = useRemoteAudioMeterBus();
+
+  useSelectedRemoteAudioOutput(activeDeviceId, mixerRef, outputSinkIdRef);
 
   useLiveAudioCapture(
-    role === 'sender' &&
+    window.electron.platform !== 'win32' &&
+      role === 'sender' &&
       phase !== 'idle' &&
       phase !== 'disconnected' &&
       phase !== 'error',
@@ -92,47 +76,65 @@ export const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
     if (roleRef.current !== 'listener' || stoppingRef.current) {
       return;
     }
-    const count = connectedPeerIdsRef.current.size;
-    setConnectedCount(count);
-    if (playbackBlockedRef.current && count > 0) {
-      setPhase('playback-blocked');
-    } else if (count > 0) {
-      setPhase('connected');
-    } else if (peerIdsRef.current.size > 0) {
-      setPhase('connecting');
-    } else {
-      setPhase('waiting');
-    }
+    const next = listenerState(
+      peerIdsRef.current,
+      peerNamesRef.current,
+      peerAddressesRef.current,
+      connectedPeerIdsRef.current,
+      playbackBlockedRef.current,
+    );
+    setConnectedCount(next.connectedCount);
+    setConnectedComputers(next.computers);
+    setPhase(next.phase);
   }, []);
 
-  const startPcmSender = useCallback(() => {
+  const startPcmSender = useCallback(async () => {
     const peerId = senderPeerIdRef.current;
     if (
       roleRef.current !== 'sender' ||
       senderRef.current ||
+      senderStartingRef.current ||
       !peerId ||
+      window.electron.platform === 'win32' ||
       !capture
     ) {
       return;
     }
+    senderStartingRef.current = true;
     try {
-      senderRef.current = createPcmSender(capture, (chunk) => {
+      const sender = await createPcmSender(capture, (chunk) => {
+        publishMeter(measureRemoteAudioChunk(chunk));
         window.electron.ipcRenderer.sendRemoteAudioLanAudio({
           peerId,
           ...chunk,
         });
       });
+      if (roleRef.current !== 'sender' || senderPeerIdRef.current !== peerId) {
+        sender.close();
+        return;
+      }
+      senderRef.current = sender;
       setConnectedCount(1);
       setPhase('connected');
     } catch {
       setError(capture ? 'connection' : 'capture');
       setPhase('error');
+    } finally {
+      senderStartingRef.current = false;
     }
-  }, [capture]);
+  }, [capture, publishMeter]);
 
   useEffect(() => {
-    startPcmSender();
+    startPcmSender().catch(() => undefined);
   }, [startPcmSender]);
+
+  const publishSenderConnection = useCallback((name: string) => {
+    setDeviceName(name);
+    if (window.electron.platform === 'win32') {
+      setConnectedCount(1);
+      setPhase('connected');
+    }
+  }, []);
 
   const acceptSignal = useCallback(
     ({ peerId, signal }: ILanRemoteAudioSignal) => {
@@ -144,11 +146,15 @@ export const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
         setError(undefined);
         if (activeRole === 'listener') {
           peerIdsRef.current.add(peerId);
+          peerNamesRef.current.set(peerId, signal.deviceName);
+          if (signal.address) {
+            peerAddressesRef.current.set(peerId, signal.address);
+          }
           publishListenerState();
         } else {
           senderPeerIdRef.current = peerId;
-          setPhase(capture ? 'connecting' : 'preparing');
-          startPcmSender();
+          setPhase('connecting');
+          startPcmSender().catch(() => undefined);
         }
         return;
       }
@@ -156,6 +162,8 @@ export const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
       if (activeRole === 'listener') {
         mixerRef.current?.removePeer(peerId);
         peerIdsRef.current.delete(peerId);
+        peerNamesRef.current.delete(peerId);
+        peerAddressesRef.current.delete(peerId);
         connectedPeerIdsRef.current.delete(peerId);
         publishListenerState();
       } else if (senderPeerIdRef.current === peerId) {
@@ -163,17 +171,32 @@ export const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
         senderRef.current = undefined;
         senderPeerIdRef.current = undefined;
         setConnectedCount(0);
-        setPhase('disconnected');
-        window.electron.ipcRenderer.stopRemoteAudioLan().catch(() => undefined);
+        setPhase('connecting');
+        restoreRemoteAudioSender({
+          isActive: () => roleRef.current === 'sender' && !stoppingRef.current,
+          onConnected: publishSenderConnection,
+          onDisconnected: () => setPhase('disconnected'),
+          onFailure: () => {
+            setPhase('disconnected');
+            setError('connection');
+          },
+        }).catch(() => undefined);
       }
     },
-    [capture, publishListenerState, startPcmSender],
+    [publishListenerState, publishSenderConnection, startPcmSender],
   );
   const acceptSignalRef = useRef(acceptSignal);
   acceptSignalRef.current = acceptSignal;
 
   const acceptAudio = useCallback(
     (chunk: ILanRemoteAudioChunk) => {
+      if (
+        roleRef.current === 'sender' &&
+        senderPeerIdRef.current === chunk.peerId
+      ) {
+        publishMeter(measureRemoteAudioChunk(chunk));
+        return;
+      }
       if (
         roleRef.current !== 'listener' ||
         stoppingRef.current ||
@@ -185,15 +208,12 @@ export const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
       mixerRef.current?.push(chunk);
       publishListenerState();
     },
-    [publishListenerState],
+    [publishListenerState, publishMeter],
   );
   const acceptAudioRef = useRef(acceptAudio);
   acceptAudioRef.current = acceptAudio;
 
   useEffect(() => {
-    // Unit tests and non-Electron previews use a deliberately small bridge.
-    // The real preload always supplies these listeners, but a missing optional
-    // feature must not stop the rest of the window from mounting.
     const bridge = window.electron?.ipcRenderer;
     const unsubscribeSignal =
       bridge?.onRemoteAudioLanSignal?.((signal) => {
@@ -208,10 +228,18 @@ export const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
         if (!roleRef.current || stoppingRef.current) {
           return;
         }
-        if (roleRef.current === 'sender') {
-          senderRef.current?.close();
-          senderRef.current = undefined;
-        }
+        senderRef.current?.close();
+        senderRef.current = undefined;
+        senderPeerIdRef.current = undefined;
+        const mixer = mixerRef.current;
+        mixerRef.current = undefined;
+        mixer?.close().catch(() => undefined);
+        peerIdsRef.current.clear();
+        peerNamesRef.current.clear();
+        peerAddressesRef.current.clear();
+        connectedPeerIdsRef.current.clear();
+        roleRef.current = undefined;
+        setRole(undefined);
         setConnectedCount(0);
         setError('connection');
         setPhase('error');
@@ -224,69 +252,158 @@ export const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   useEffect(() => {
-    const refresh = () => {
-      listRemoteAudioOutputs()
-        .then(setOutputs)
-        .catch(() => setOutputs([]));
+    if (restoreAttemptedRef.current) {
+      return undefined;
+    }
+    restoreAttemptedRef.current = true;
+    const bridge = window.electron?.ipcRenderer;
+    if (!bridge?.getSavedRemoteAudioLanRole || !bridge.restoreRemoteAudioLan) {
+      return undefined;
+    }
+    let cancelled = false;
+    const restore = async () => {
+      const savedRole = await bridge.getSavedRemoteAudioLanRole();
+      if (cancelled || !savedRole || roleRef.current) {
+        return;
+      }
+      roleRef.current = savedRole;
+      setRole(savedRole);
+      setPhase('preparing');
+      let restoreError: TRemoteAudioError = 'connection';
+      try {
+        if (savedRole === 'listener') {
+          restoreError = 'playback';
+          const mixer = await createPcmMixer(
+            outputSinkIdRef.current,
+            () => {
+              playbackBlockedRef.current = true;
+              publishListenerState();
+            },
+            publishMeter,
+          );
+          if (cancelled || roleRef.current !== 'listener') {
+            await mixer.close().catch(() => undefined);
+            return;
+          }
+          mixerRef.current = mixer;
+        }
+        restoreError = 'connection';
+        const restored = await bridge.restoreRemoteAudioLan();
+        if (cancelled || roleRef.current !== savedRole) {
+          if (!cancelled) {
+            return;
+          }
+          await mixerRef.current?.close().catch(() => undefined);
+          mixerRef.current = undefined;
+          return;
+        }
+        if (!restored || restored.role !== savedRole) {
+          throw new Error('Saved LAN audio session is unavailable.');
+        }
+        if (restored.role === 'listener') {
+          setDeviceName(restored.details.deviceName);
+          setLanOptions(restored.details.options);
+          setPhase('waiting');
+        } else {
+          publishSenderConnection(restored.listener.deviceName);
+        }
+      } catch {
+        if (!cancelled && roleRef.current === savedRole) {
+          await mixerRef.current?.close().catch(() => undefined);
+          mixerRef.current = undefined;
+          roleRef.current = undefined;
+          setRole(undefined);
+          setError(restoreError);
+          setPhase('error');
+        }
+      }
     };
-    refresh();
-    navigator.mediaDevices?.addEventListener?.('devicechange', refresh);
+    restore().catch(() => undefined);
     return () => {
-      navigator.mediaDevices?.removeEventListener?.('devicechange', refresh);
+      cancelled = true;
     };
-  }, []);
+  }, [publishListenerState, publishMeter, publishSenderConnection]);
 
-  const clearConnection = useCallback(async (notify: boolean) => {
-    if (stoppingRef.current) {
-      return;
-    }
-    stoppingRef.current = true;
-    const peerIds = [...peerIdsRef.current];
-    const senderPeerId = senderPeerIdRef.current;
-    if (notify) {
-      await Promise.allSettled(
-        [...peerIds, ...(senderPeerId ? [senderPeerId] : [])].map((peerId) =>
-          window.electron.ipcRenderer.sendRemoteAudioLanSignal({
-            peerId,
-            signal: { kind: 'stop' },
-          }),
-        ),
-      );
-    }
-    senderRef.current?.close();
-    senderRef.current = undefined;
-    senderPeerIdRef.current = undefined;
-    const mixer = mixerRef.current;
-    mixerRef.current = undefined;
-    await mixer?.close().catch(() => undefined);
-    await window.electron.ipcRenderer
-      .stopRemoteAudioLan()
-      .catch(() => undefined);
-    peerIdsRef.current.clear();
-    connectedPeerIdsRef.current.clear();
-    playbackBlockedRef.current = false;
-    roleRef.current = undefined;
-    setRole(undefined);
-    setPhase('idle');
-    setLanOptions([]);
-    setConnectedCount(0);
-    setError(undefined);
-    stoppingRef.current = false;
-  }, []);
+  const clearConnection = useCallback(
+    async (notify: boolean, forget: boolean) => {
+      if (stoppingRef.current) {
+        return;
+      }
+      stoppingRef.current = true;
+      const peerIds = [...peerIdsRef.current];
+      const senderPeerId = senderPeerIdRef.current;
+      if (notify) {
+        await Promise.allSettled(
+          [...peerIds, ...(senderPeerId ? [senderPeerId] : [])].map((peerId) =>
+            window.electron.ipcRenderer.sendRemoteAudioLanSignal({
+              peerId,
+              signal: { kind: 'stop' },
+            }),
+          ),
+        );
+      }
+      senderRef.current?.close();
+      senderRef.current = undefined;
+      senderStartingRef.current = false;
+      senderPeerIdRef.current = undefined;
+      const mixer = mixerRef.current;
+      mixerRef.current = undefined;
+      await mixer?.close().catch(() => undefined);
+      await window.electron.ipcRenderer
+        .stopRemoteAudioLan(forget)
+        .catch(() => undefined);
+      peerIdsRef.current.clear();
+      peerNamesRef.current.clear();
+      peerAddressesRef.current.clear();
+      connectedPeerIdsRef.current.clear();
+      playbackBlockedRef.current = false;
+      roleRef.current = undefined;
+      setRole(undefined);
+      setPhase('idle');
+      setLanOptions([]);
+      setConnectedCount(0);
+      setConnectedComputers([]);
+      setDeviceName(undefined);
+      setError(undefined);
+      stoppingRef.current = false;
+    },
+    [],
+  );
 
   const startListening = useCallback(async () => {
-    await clearConnection(false);
+    await clearConnection(false, false);
     roleRef.current = 'listener';
     setRole('listener');
     setPhase('preparing');
+    let mixer: IPcmMixer;
     try {
-      mixerRef.current = createPcmMixer(outputIdRef.current, () => {
-        playbackBlockedRef.current = true;
-        publishListenerState();
-      });
+      mixer = await createPcmMixer(
+        outputSinkIdRef.current,
+        () => {
+          playbackBlockedRef.current = true;
+          publishListenerState();
+        },
+        publishMeter,
+      );
+    } catch {
+      if (roleRef.current === 'listener') {
+        roleRef.current = undefined;
+        setRole(undefined);
+        setError('playback');
+        setPhase('error');
+      }
+      return;
+    }
+    if (roleRef.current !== 'listener') {
+      await mixer.close().catch(() => undefined);
+      return;
+    }
+    mixerRef.current = mixer;
+    try {
       const details =
         await window.electron.ipcRenderer.startRemoteAudioLanHost();
       if (roleRef.current === 'listener') {
+        setDeviceName(details.deviceName);
         setLanOptions(details.options);
         setPhase('waiting');
       }
@@ -294,39 +411,37 @@ export const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
       await mixerRef.current?.close().catch(() => undefined);
       mixerRef.current = undefined;
       if (roleRef.current === 'listener') {
+        roleRef.current = undefined;
+        setRole(undefined);
         setError('lan');
         setPhase('error');
       }
     }
-  }, [clearConnection, publishListenerState]);
+  }, [clearConnection, publishListenerState, publishMeter]);
 
   const startSending = useCallback(
     async (code: string) => {
-      await clearConnection(false);
+      await clearConnection(false, false);
       roleRef.current = 'sender';
       setRole('sender');
       setPhase('preparing');
       try {
-        await window.electron.ipcRenderer.joinRemoteAudioLan(code.trim());
+        const listener: ILanRemoteComputer =
+          await window.electron.ipcRenderer.joinRemoteAudioLan(code.trim());
+        if (roleRef.current === 'sender') {
+          publishSenderConnection(listener.deviceName);
+        }
       } catch {
         if (roleRef.current === 'sender') {
+          roleRef.current = undefined;
+          setRole(undefined);
           setError('lan');
           setPhase('error');
         }
       }
     },
-    [clearConnection],
+    [clearConnection, publishSenderConnection],
   );
-
-  const setOutput = useCallback(async (id: string) => {
-    outputIdRef.current = id;
-    setOutputId(id);
-    try {
-      await mixerRef.current?.setOutput(id);
-    } catch {
-      setError('connection');
-    }
-  }, []);
 
   const resumePlayback = useCallback(async () => {
     try {
@@ -338,32 +453,32 @@ export const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [publishListenerState]);
 
-  const value = useMemo<IRemoteAudioValue>(
+  const value = useMemo(
     () => ({
       connectedCount,
+      connectedComputers,
+      deviceName,
       error,
       lanOptions,
-      outputs,
-      outputId,
       phase,
       role,
       startListening,
       startSending,
-      stop: () => clearConnection(true),
+      stop: () => clearConnection(true, true),
       resumePlayback,
-      setOutput,
+      subscribeMeter,
     }),
     [
       clearConnection,
       connectedCount,
+      connectedComputers,
+      deviceName,
       error,
       lanOptions,
-      outputId,
-      outputs,
       phase,
       resumePlayback,
       role,
-      setOutput,
+      subscribeMeter,
       startListening,
       startSending,
     ],
@@ -376,10 +491,4 @@ export const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
-export const useRemoteAudio = (): IRemoteAudioValue => {
-  const value = useContext(RemoteAudioContext);
-  if (!value) {
-    throw new Error('useRemoteAudio must be used inside RemoteAudioProvider');
-  }
-  return value;
-};
+export default RemoteAudioProvider;

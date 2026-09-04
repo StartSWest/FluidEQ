@@ -13,59 +13,49 @@ interface ICaptureSource {
   source: MediaStreamAudioSourceNode;
 }
 
-type TSendChunk = (chunk: Omit<ILanRemoteAudioChunk, 'peerId'>) => void;
+type TSendChunkMessage = Omit<ILanRemoteAudioChunk, 'peerId'>;
+type TSendChunk = (chunk: TSendChunkMessage) => void;
 
 export interface IPcmSender {
   close(): void;
 }
 
-const CAPTURE_FRAMES = 1024;
-const CAPTURE_CHANNELS = 2;
+const PROCESSOR_NAME = 'fluideq-remote-audio-capture';
+
+const workletUrl = (): URL =>
+  new URL(
+    process.env.NODE_ENV === 'production'
+      ? './dsp-worklet.js'
+      : '/dsp-worklet.dev.js',
+    window.location.href,
+  );
 
 /**
  * Tap the existing system loopback and send its exact Float32 PCM samples.
  *
- * ScriptProcessor is intentionally used here instead of turning the stream
- * into a MediaRecorder/WebRTC track: those paths select a lossy audio codec.
- * The zero-gain tail keeps Chromium pulling this branch without playing the
- * local loopback through the speakers a second time.
+ * Capture runs on the audio thread so renderer work cannot punch holes between
+ * chunks. MediaRecorder/WebRTC are deliberately avoided because those paths
+ * select a lossy codec. The zero-gain tail keeps Chromium pulling this branch
+ * without playing the local loopback through the speakers a second time.
  */
-export const createPcmSender = (
+export const createPcmSender = async (
   capture: ICaptureSource,
   sendChunk: TSendChunk,
-): IPcmSender => {
-  const processor = capture.context.createScriptProcessor(
-    CAPTURE_FRAMES,
-    CAPTURE_CHANNELS,
-    1,
-  );
+): Promise<IPcmSender> => {
+  await capture.context.audioWorklet.addModule(workletUrl().href);
+  const processor = new AudioWorkletNode(capture.context, PROCESSOR_NAME, {
+    numberOfInputs: 1,
+    numberOfOutputs: 1,
+    outputChannelCount: [1],
+  });
   const mute = capture.context.createGain();
   mute.gain.value = 0;
-  let sequence = 0;
   let isClosed = false;
 
-  processor.onaudioprocess = (event) => {
-    if (isClosed) {
-      return;
+  processor.port.onmessage = ({ data }: MessageEvent<TSendChunkMessage>) => {
+    if (!isClosed) {
+      sendChunk(data);
     }
-    const { inputBuffer } = event;
-    const channels = Math.min(inputBuffer.numberOfChannels, CAPTURE_CHANNELS);
-    const frames = inputBuffer.length;
-    const interleaved = new Float32Array(frames * channels);
-    for (let channel = 0; channel < channels; channel += 1) {
-      const samples = inputBuffer.getChannelData(channel);
-      for (let frame = 0; frame < frames; frame += 1) {
-        interleaved[frame * channels + channel] = samples[frame];
-      }
-    }
-    sendChunk({
-      sequence,
-      sampleRate: inputBuffer.sampleRate,
-      channels,
-      frames,
-      pcm: interleaved.buffer,
-    });
-    sequence = sequence === 0xffff_ffff ? 0 : sequence + 1;
   };
 
   capture.source.connect(processor);
@@ -78,7 +68,7 @@ export const createPcmSender = (
         return;
       }
       isClosed = true;
-      processor.onaudioprocess = null;
+      processor.port.onmessage = null;
       capture.source.disconnect(processor);
       processor.disconnect();
       mute.disconnect();

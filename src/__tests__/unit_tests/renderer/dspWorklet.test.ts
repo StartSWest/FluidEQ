@@ -61,7 +61,11 @@ const SAMPLE_RATE = 48_000;
 const QUANTUM = 128;
 
 interface IProcessorLike {
-  port: { onmessage: ((event: { data: unknown }) => void) | null };
+  port: {
+    messages: unknown[];
+    onmessage: ((event: { data: unknown }) => void) | null;
+    postMessage(message: unknown): void;
+  };
   process(inputs: Float32Array[][], outputs: Float32Array[][]): boolean;
 }
 
@@ -74,9 +78,10 @@ type TProcessorConstructor = new () => IProcessorLike;
  * the bundle reaches for that is not here is a runtime failure in the real
  * audio thread, and it should be a failure here too.
  */
-const loadProcessor = (): TProcessorConstructor => {
+const loadProcessor = (name = 'fluideq-dsp'): TProcessorConstructor => {
   const registered = new Map<string, TProcessorConstructor>();
   const scope = vm.createContext({
+    ArrayBuffer,
     sampleRate: SAMPLE_RATE,
     currentTime: 0,
     class_AudioWorkletProcessor: undefined,
@@ -85,15 +90,18 @@ const loadProcessor = (): TProcessorConstructor => {
     },
     AudioWorkletProcessor: class {
       port = {
+        messages: [] as unknown[],
         onmessage: null as ((event: { data: unknown }) => void) | null,
-        postMessage: () => undefined,
+        postMessage: (message: unknown) => {
+          this.port.messages.push(message);
+        },
       };
     },
   });
   vm.runInContext(fs.readFileSync(BUNDLE, 'utf8'), scope);
-  const ctor = registered.get('fluideq-dsp');
+  const ctor = registered.get(name);
   if (!ctor) {
-    throw new Error('The worklet bundle registered no fluideq-dsp processor.');
+    throw new Error(`The worklet bundle registered no ${name} processor.`);
   }
   return ctor;
 };
@@ -281,5 +289,155 @@ describe('dsp worklet bundle', () => {
     const [outLeft, outRight] = outputs[DSP_OUTPUT_INDEX.master];
     expect(outLeft[64]).toBeCloseTo(0.3, 6);
     expect(outRight[64]).toBeCloseTo(-0.7, 6);
+  });
+
+  it('plays equal-rate LAN audio continuously across packet boundaries', () => {
+    const processor = new (loadProcessor('fluideq-remote-audio'))();
+    const primingFrames = 9_600;
+    const frames = primingFrames + QUANTUM * 12;
+    const samples = Float32Array.from(
+      { length: frames * 2 },
+      (_value, index) => Math.sin(Math.floor(index / 2) / 11) * 0.6,
+    );
+    [
+      { at: 0, frames: 8_192, sequence: 0 },
+      { at: 8_192, frames: 1_408, sequence: 1 },
+    ].forEach((chunk) => {
+      const pcm = samples.slice(chunk.at * 2, (chunk.at + chunk.frames) * 2);
+      processor.port.onmessage?.({
+        data: {
+          channels: 2,
+          frames: chunk.frames,
+          kind: 'push',
+          pcm: pcm.buffer,
+          peerId: 'STUDIO-PC',
+          sampleRate: SAMPLE_RATE,
+          sequence: chunk.sequence,
+        },
+      });
+    });
+
+    const rendered = new Float32Array(QUANTUM * 12);
+    for (let offset = 0; offset < rendered.length; offset += QUANTUM) {
+      const at = primingFrames + offset;
+      const pcm = samples.slice(at * 2, (at + QUANTUM) * 2);
+      processor.port.onmessage?.({
+        data: {
+          channels: 2,
+          frames: QUANTUM,
+          kind: 'push',
+          pcm: pcm.buffer,
+          peerId: 'STUDIO-PC',
+          sampleRate: SAMPLE_RATE,
+          sequence: 2 + offset / QUANTUM,
+        },
+      });
+      const outputs = [[new Float32Array(QUANTUM), new Float32Array(QUANTUM)]];
+      processor.process([], outputs);
+      rendered.set(outputs[0][0], offset);
+    }
+
+    for (let frame = 512; frame < rendered.length; frame += 1) {
+      expect(rendered[frame]).toBe(samples[frame * 2]);
+    }
+    expect(
+      processor.port.messages.some(
+        (message) =>
+          typeof message === 'object' &&
+          message !== null &&
+          (message as { sourceId?: unknown }).sourceId === 'STUDIO-PC',
+      ),
+    ).toBe(true);
+  });
+
+  it('keeps a 1 kHz LAN tone at 1 kHz when output rates differ', () => {
+    const processor = new (loadProcessor('fluideq-remote-audio'))();
+    const sourceRate = 44_100;
+    const frames = 8_820;
+    const pcm = new Float32Array(frames * 2);
+    for (let frame = 0; frame < frames; frame += 1) {
+      const value = Math.sin((frame * Math.PI * 2 * 1_000) / sourceRate) * 0.5;
+      pcm[frame * 2] = value;
+      pcm[frame * 2 + 1] = value;
+    }
+    [
+      { at: 0, frames: 8_192, sequence: 0 },
+      { at: 8_192, frames: 628, sequence: 1 },
+    ].forEach((chunk) => {
+      const samples = pcm.slice(chunk.at * 2, (chunk.at + chunk.frames) * 2);
+      processor.port.onmessage?.({
+        data: {
+          channels: 2,
+          frames: chunk.frames,
+          kind: 'push',
+          pcm: samples.buffer,
+          peerId: 'MUSIC-PC',
+          sampleRate: sourceRate,
+          sequence: chunk.sequence,
+        },
+      });
+    });
+
+    const rendered = new Float32Array(QUANTUM * 16);
+    for (let offset = 0; offset < rendered.length; offset += QUANTUM) {
+      const outputs = [[new Float32Array(QUANTUM), new Float32Array(QUANTUM)]];
+      processor.process([], outputs);
+      rendered.set(outputs[0][0], offset);
+    }
+    let risingCrossings = 0;
+    for (let frame = 512; frame < rendered.length; frame += 1) {
+      if (rendered[frame - 1] <= 0 && rendered[frame] > 0) {
+        risingCrossings += 1;
+      }
+    }
+    const measuredHertz =
+      risingCrossings / ((rendered.length - 512) / SAMPLE_RATE);
+    expect(measuredHertz).toBeGreaterThan(990);
+    expect(measuredHertz).toBeLessThan(1_010);
+    expect(peak(rendered, 512)).toBeGreaterThan(0.45);
+  });
+
+  it('mixes several source computers and meters each one separately', () => {
+    const processor = new (loadProcessor('fluideq-remote-audio'))();
+    [
+      { id: 'GAME-PC', value: 0.15 },
+      { id: 'MUSIC-PC', value: -0.35 },
+    ].forEach((source) => {
+      [
+        { frames: 8_192, sequence: 0 },
+        { frames: 1_408, sequence: 1 },
+      ].forEach((chunk) => {
+        const pcm = new Float32Array(chunk.frames * 2).fill(source.value);
+        processor.port.onmessage?.({
+          data: {
+            channels: 2,
+            frames: chunk.frames,
+            kind: 'push',
+            pcm: pcm.buffer,
+            peerId: source.id,
+            sampleRate: SAMPLE_RATE,
+            sequence: chunk.sequence,
+          },
+        });
+      });
+    });
+
+    let sample = 0;
+    for (let quantum = 0; quantum < 8; quantum += 1) {
+      const outputs = [[new Float32Array(QUANTUM), new Float32Array(QUANTUM)]];
+      processor.process([], outputs);
+      sample = outputs[0][0][QUANTUM - 1];
+    }
+    expect(sample).toBeCloseTo(-0.2, 4);
+    const sourceIds = new Set(
+      processor.port.messages.flatMap((message) =>
+        typeof message === 'object' &&
+        message !== null &&
+        typeof (message as { sourceId?: unknown }).sourceId === 'string'
+          ? [(message as { sourceId: string }).sourceId]
+          : [],
+      ),
+    );
+    expect(sourceIds).toEqual(new Set(['GAME-PC', 'MUSIC-PC']));
   });
 });

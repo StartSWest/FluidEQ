@@ -214,9 +214,9 @@ describe('App', () => {
     // `useMediaQuery` reads as "not narrow", so this is the wide-window strip.
     expect(tabs.slice(0, 6).map((tab) => tab.textContent)).toEqual([
       'Online Media',
+      'Share Audio',
       'EQ',
       'DSP',
-      'Share',
       'Library',
       'Karaoke',
     ]);

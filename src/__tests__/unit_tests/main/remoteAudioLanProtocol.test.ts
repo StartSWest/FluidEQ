@@ -47,17 +47,23 @@ describe('encrypted LAN audio protocol', () => {
 
   it('round-trips a reusable private-network pairing code', () => {
     const secret = 'a'.repeat(43);
-    const code = encodePairingCode('192.168.1.24', 48_351, secret);
+    const code = encodePairingCode('192.168.1.24', 48_351, secret, 'STUDIO-PC');
 
     expect(decodePairingCode(code)).toEqual({
       address: '192.168.1.24',
+      deviceName: 'STUDIO-PC',
       port: 48_351,
       secret,
     });
   });
 
   it('refuses a pairing code that points outside the local network', () => {
-    const code = encodePairingCode('8.8.8.8', 48_351, 'a'.repeat(43));
+    const code = encodePairingCode(
+      '8.8.8.8',
+      48_351,
+      'a'.repeat(43),
+      'STUDIO-PC',
+    );
 
     expect(() => decodePairingCode(code)).toThrow(
       'Invalid FluidEQ LAN pairing code.',
@@ -103,6 +109,22 @@ describe('encrypted LAN audio protocol', () => {
       frames: 4,
     });
     expect(Buffer.from(decoded.pcm)).toEqual(Buffer.from(pcm));
+  });
+
+  it('compresses repetitive PCM without changing the restored samples', () => {
+    const pcm = Buffer.alloc(8_192 * 2 * 4);
+    const normalized = normalizeAudioChunk({
+      channels: 2,
+      frames: 8_192,
+      pcm,
+      peerId: 'quiet-pc',
+      sampleRate: 48_000,
+      sequence: 4,
+    });
+    const compressed = encodeAudio(normalized);
+
+    expect(compressed.byteLength).toBeLessThan(pcm.byteLength);
+    expect(Buffer.from(decodeAudio('quiet-pc', compressed).pcm)).toEqual(pcm);
   });
 
   it('rejects an encrypted packet changed in transit', () => {

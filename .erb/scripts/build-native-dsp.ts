@@ -307,4 +307,10 @@ const hostPath = path.join(BUILD_DIR, 'bin', hostName);
 if (!existsSync(hostPath)) {
   fail(`the host was not produced at ${hostPath}`);
 }
+if (isWindows) {
+  const capturePath = path.join(BUILD_DIR, 'bin', 'FluidEQ-LAN-Capture.exe');
+  if (!existsSync(capturePath)) {
+    fail(`the LAN capture helper was not produced at ${capturePath}`);
+  }
+}
 console.log(`native dsp build: ${hostPath}`);
