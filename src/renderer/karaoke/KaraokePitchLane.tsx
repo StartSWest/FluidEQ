@@ -203,11 +203,13 @@ const KaraokePitchLane = ({
       context.textRendering = 'optimizeLegibility';
       issueHitRegionsRef.current = [];
 
-      const background = context.createLinearGradient(0, 0, width, height);
-      background.addColorStop(0, 'rgba(12, 27, 46, 0.96)');
-      background.addColorStop(0.58, 'rgba(8, 20, 35, 0.96)');
-      background.addColorStop(1, 'rgba(5, 14, 25, 0.98)');
-      context.fillStyle = background;
+      // The plot colour every other drawing in the app lies on — the same
+      // one the EQ response, the correction curves and the DSP graphs use.
+      // It was a three-stop ramp of near-black blues, which made this the
+      // darkest rectangle in the window and a different material from the
+      // card it sits in. A canvas cannot read the stylesheet, so the value
+      // is `$surface-plot` written out.
+      context.fillStyle = 'rgb(26, 58, 78)';
       context.fillRect(0, 0, width, height);
 
       const plotWidth = Math.max(1, width - PLOT_LEFT - PLOT_RIGHT);

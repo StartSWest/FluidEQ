@@ -435,7 +435,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   .karaoke-workspace__player.has-playlist > .karaoke-playlist {
     margin: 12px 0 12px 12px;
     border-color: rgba($secondary-light, 0.2);
-    background: rgba($surface-base, 0.88);
+    // The card colour, opaque: the rows have to read over whatever the
+    // artwork is, and a card is what every other list in the app is.
+    background: $block-lift;
   }
 
   .karaoke-workspace__stage {
@@ -892,11 +894,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   color: $text-muted;
   border: 1px solid rgba($edge-tint, 0.14);
   border-radius: $radius-xs;
-  background: linear-gradient(
-    145deg,
-    rgba($surface-field-end, 0.82),
-    rgba($surface-base, 0.9)
-  );
+  background: rgba($secondary-default, 0.07);
   transition: $transition-control;
 
   svg {
@@ -920,11 +918,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   justify-content: center;
   color: $text-muted;
   border: 1px solid rgba($edge-tint, 0.14);
-  background: linear-gradient(
-    145deg,
-    rgba($surface-field-end, 0.82),
-    rgba($surface-base, 0.9)
-  );
+  background: rgba($secondary-default, 0.07);
   box-shadow:
     0 5px 15px rgba($black, 0.24),
     inset 0 1px 0 rgba($white, 0.055);
@@ -1292,10 +1286,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   color: $secondary-light;
   border: 1px solid rgba($secondary-default, 0.26);
   border-radius: $radius-pill;
-  background:
-    linear-gradient(180deg, rgba($secondary-default, 0.09), transparent),
-    rgba($surface-base, 0.54);
-  box-shadow: inset 0 1px 0 rgba($white, 0.05);
+  background: rgba($secondary-default, 0.07);
   font-size: $text-eyebrow;
   font-weight: $weight-bold;
   letter-spacing: 0.035em;
@@ -1331,13 +1322,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   color: rgba($white, 0.9);
   border: 1px solid rgba($secondary-light, 0.16);
   border-radius: $radius-m;
-  background:
-    linear-gradient(
-      150deg,
-      rgba($surface-field-end, 0.78),
-      rgba($surface-well, 0.86)
-    ),
-    rgba($surface-base, 0.7);
+  background: $block-lift;
   box-shadow:
     0 9px 24px rgba($black, 0.28),
     0 0 22px rgba($secondary-default, 0.06),
@@ -1481,13 +1466,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   color: $text-muted;
   border: 1px solid rgba($secondary-light, 0.13);
   border-radius: $radius-s;
-  background:
-    linear-gradient(
-      180deg,
-      rgba($surface-field-end, 0.68),
-      rgba($surface-well, 0.8)
-    ),
-    rgba($surface-base, 0.68);
+  background: $block-lift;
   box-shadow:
     0 6px 18px rgba($black, 0.24),
     0 0 16px rgba($secondary-default, 0.04),
