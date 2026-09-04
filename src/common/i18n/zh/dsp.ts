@@ -469,14 +469,14 @@ const dsp = {
   'dsp.master.meter': '最终输出',
   'dsp.master.safetyHint':
     '{factor}× 真峰值检测 · {ceiling} dBTP 上限 · {knee} dB 软拐点 · 立体声联动。',
-  'dsp.master.manualHint': '手动输出：不衰减峰值。高于 0 dBFS 的电平将削波。',
+  'dsp.master.manualHint': '手动输出增益。启用最终保护时，峰值仍受到保护。',
   'dsp.master.truePeak': 'TP 输入',
   'dsp.master.gainReduction': '增益衰减',
   'dsp.master.devSafety': '安全 A/B',
   'dsp.master.devSafetyHint':
     '仅开发环境：旁路全部最终保护，让你直接听到它带来的变化。',
   'dsp.master.devSafetySpec':
-    '+10 dBTP 以上紧急保护 · 2 ms 前瞻 · 无恢复校正 · 3 Hz 直流保护 · 无效采样修复',
+    '−0.1 dBTP 峰值保护 · 2 ms 前瞻 · 平滑恢复 · 直流与无效采样保护',
   'dsp.master.dcCorrection': '直流偏移',
   'dsp.master.faults': '故障',
   'dsp.master.graph.momentary': '瞬时',

@@ -173,6 +173,55 @@ describe('biquad processing', () => {
     return out;
   };
 
+  it.each([
+    FilterTypeEnum.PK,
+    FilterTypeEnum.NO,
+    FilterTypeEnum.LSC,
+    FilterTypeEnum.HSC,
+    FilterTypeEnum.LPQ,
+    FilterTypeEnum.HPQ,
+    FilterTypeEnum.BP,
+  ])(
+    'keeps %s stable when a preset corner reaches or exceeds Nyquist',
+    (type) => {
+      [16_000, 18_500, 20_000].forEach((frequency) => {
+        const coefficients = biquadCoefficients(
+          { type, frequency, gainDb: 6, quality: 0.707 },
+          32_000,
+        );
+        // The second-order stability inequalities fail before a pole outside
+        // the unit circle can turn a short impulse into sustained distortion.
+        expect(1 + coefficients.a1 + coefficients.a2).toBeGreaterThan(0);
+        expect(1 - coefficients.a1 + coefficients.a2).toBeGreaterThan(0);
+        expect(1 - coefficients.a2).toBeGreaterThan(0);
+        const signal = impulse(32_000);
+        processBiquad(createBiquadState(), signal, coefficients);
+        expect(signal.every(Number.isFinite)).toBe(true);
+        expect(
+          signal.subarray(30_000).every((value) => Math.abs(value) < 1e-5),
+        ).toBe(true);
+      });
+    },
+  );
+
+  it('still passes programme below an out-of-band low-pass corner', () => {
+    const signal = impulse(32_000);
+    processBiquad(
+      createBiquadState(),
+      signal,
+      biquadCoefficients(
+        {
+          type: FilterTypeEnum.LPQ,
+          frequency: 18_500,
+          gainDb: 0,
+          quality: 0.707,
+        },
+        32_000,
+      ),
+    );
+    expect(signal[0]).toBeGreaterThan(0.9);
+  });
+
   /**
    * The processed signal has to match the response the coefficients describe,
    * or `biquadMagnitudeDb` is measuring something the audio path does not do.

@@ -31,25 +31,13 @@ extern "C" {
 #define FEQ_SAFETY_CEILING_DB (-0.1)
 #define FEQ_SAFETY_LOOK_AHEAD_MS 2.0
 /**
- * How fast the guard hands the level back once the fault stops.
- *
- * This was an infinite release, so the coefficient was exactly one and the
- * release term `(required - gain) * (1 - 1)` was zero: the gain could move
- * down and never up. Peak-holding a guard armed at +10 dBTP means ONE
- * overdriven moment turns the output down for the rest of the session — an
- * exaggerated EQ band ducks it, setting the band back to flat does not bring
- * it back, and nothing says why, because the fault being guarded against is
- * over.
- *
- * One second is two and a half times the slowest release Master offers and far
- * slower than any musical event, so this still cannot behave as a loudness
- * processor, which is what the infinite release was protecting against. It
- * only runs below +10 dBTP, where nothing needs limiting anyway.
- *
- * Mirrors `OUTPUT_SAFETY_RELEASE_MS` in `outputSafety.ts` and must move with
- * it: the frozen parity corpus was generated from that side.
+ * A finite, slow recovery protects sustained bass from gain modulation and
+ * returns to unity after an overload. An infinite release previously left a
+ * single hot moment turning down the rest of the session.
  */
 #define FEQ_SAFETY_RELEASE_MS 1000.0
+/** One 20 Hz cycle: do not recover between bass peaks and modulate the note. */
+#define FEQ_SAFETY_RELEASE_HOLD_MS 50.0
 #define FEQ_SAFETY_DC_CUTOFF_HZ 3.0
 #define FEQ_SAFETY_DC_METER_CUTOFF_HZ 0.1
 
@@ -89,7 +77,7 @@ typedef struct FeqOutputSafetyTelemetry {
 } FeqOutputSafetyTelemetry;
 
 typedef struct FeqOutputSafetyOptions {
-  /** Master owns peak reduction; ordinary safeguards do not. */
+  /** The final ceiling can be bypassed explicitly for an A/B comparison. */
   int limiter_enabled;
   double ceiling;
   double activation_threshold;

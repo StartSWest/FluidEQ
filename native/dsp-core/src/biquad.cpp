@@ -27,7 +27,12 @@ FeqBiquadCoefficients feq_biquad_coefficients(FeqFilterType type,
                                               double quality,
                                               double sample_rate) {
   const double amplitude = std::pow(10.0, gain_db / 40.0);
-  const double omega = (2.0 * 3.14159265358979323846 * frequency) / sample_rate;
+  // A preset's 18-20 kHz corner is above Nyquist on a 32 kHz device. Passing
+  // it through made alpha negative and the poles unstable (notably Exciter
+  // Air). Keep every caller inside the realizable band, clear of Nyquist's
+  // degenerate poles. The renderer uses the same bound for its response.
+  const double safe_frequency = std::fmin(frequency, sample_rate * 0.499);
+  const double omega = (2.0 * 3.14159265358979323846 * safe_frequency) / sample_rate;
   const double cosine = std::cos(omega);
   const double sine = std::sin(omega);
   const double alpha = sine / (2.0 * quality);

@@ -501,14 +501,14 @@ const dsp = {
   'dsp.master.safetyHint':
     'Détection true peak {factor}× · plafond {ceiling} dBTP · coude doux {knee} dB · liaison stéréo.',
   'dsp.master.manualHint':
-    'Sortie manuelle : aucune réduction de crête. Les niveaux au-dessus de 0 dBFS satureront.',
+    'Gain de sortie manuel. La protection finale reste active sur les crêtes lorsqu’elle est activée.',
   'dsp.master.truePeak': 'TP entrée',
   'dsp.master.gainReduction': 'Réduction de gain',
   'dsp.master.devSafety': 'Sécurité A/B',
   'dsp.master.devSafetyHint':
     'Développement uniquement : contourne toute la protection finale pour entendre exactement son effet.',
   'dsp.master.devSafetySpec':
-    'Protection d’urgence au-dessus de +10 dBTP · anticipation 2 ms · correction sans relâchement · protection DC 3 Hz · réparation des échantillons invalides',
+    'Protection des crêtes à −0.1 dBTP · anticipation de 2 ms · retour progressif · protection DC et échantillons invalides',
   'dsp.master.dcCorrection': 'Décalage DC',
   'dsp.master.faults': 'Défauts',
   'dsp.master.graph.momentary': 'Momentané',

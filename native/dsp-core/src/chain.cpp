@@ -689,23 +689,23 @@ void feq_chain_process(FeqChain* chain, float* const* channels,
   chain_process_master_output(chain, channels, frames);
 
   if (chain->settings.output_safety_enabled != 0) {
-    // Safety is separate from Auto Headroom. It sanitizes invalid results and
-    // removes DC after the final gain, but its limiter stays at unity for
-    // ordinary audio and arms only at the pathological +10 dBTP threshold.
+    // EQ boosts and processor combinations can overload at 0 dB input even
+    // with Master and Maximizer off. The former +10 dBTP activation left that
+    // entire overload range to hard-clip at the device. Catch peaks at the
+    // actual output ceiling, after every stage and the final gain.
     FeqOutputSafetyOptions options{};
     options.limiter_enabled = 1;
     options.ceiling = std::pow(10.0, kOutputSafetyCeilingDb / 20.0);
-    options.activation_threshold =
-        std::pow(10.0, kOutputSafetyExtremeDbtp / 20.0);
-    // Safety is not a loudness processor, and a one-second release is not one:
-    // it is slower than every musical event and than Master's slowest setting.
-    // A coefficient of one, which is what this was, latched the attenuation
-    // instead — so a single overdriven moment turned the output down until the
-    // chain was rebuilt. See `FEQ_SAFETY_RELEASE_MS`.
+    options.activation_threshold = options.ceiling;
+    // Slow recovery avoids modulating sustained bass, but still restores the
+    // level after an overload. No drive or loudness makeup is added here.
     options.release_coefficient = std::exp(
         -1.0 / ((FEQ_SAFETY_RELEASE_MS / 1000.0) * chain->sample_rate));
     options.knee_db = 0.0;
-    options.release_hold_samples = 0.0;
+    // Without a hold the guard recovered between bass peaks: a clean 20 Hz
+    // note driven by +9 dB measured 0.63% THD+N despite never clipping.
+    options.release_hold_samples = std::floor(
+        (FEQ_SAFETY_RELEASE_HOLD_MS / 1000.0) * chain->sample_rate + 0.5);
     feq_output_safety_process(&chain->safety, channels, frames, &options);
   }
 

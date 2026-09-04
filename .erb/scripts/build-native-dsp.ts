@@ -279,6 +279,7 @@ if (shouldTest) {
   // After the build, not before: nothing but the tests reads the corpus, so an
   // ordinary `pnpm build` should not pay to expand it.
   extractParityFixtures();
+  generate('generate-preset-fixtures.ts');
   const ctest = path.join(
     path.dirname(tools.cmake),
     isWindows ? 'ctest.exe' : 'ctest',

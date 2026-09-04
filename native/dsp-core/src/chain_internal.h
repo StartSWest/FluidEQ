@@ -63,8 +63,7 @@ constexpr double kMaximizerSoftKneeDb = 1.5;
 constexpr double kMaximizerMaxLookAheadMs = 20.0;
 /** Completes even the slowest 1 s release inside four seconds. */
 constexpr double kMaximizerReleaseSnapRatio = 0.02;
-constexpr double kOutputSafetyCeilingDb = -0.1;
-constexpr double kOutputSafetyExtremeDbtp = 10.0;
+constexpr double kOutputSafetyCeilingDb = FEQ_SAFETY_CEILING_DB;
 
 /** Per-domain buffers and single-channel filter state. */
 struct ChainEqSlot {

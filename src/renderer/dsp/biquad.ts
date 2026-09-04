@@ -37,7 +37,10 @@ const cookbook = (
   sampleRate: number,
 ): IBiquadCoefficients => {
   const amplitude = 10 ** (gainDb / 40);
-  const omega = (2 * Math.PI * frequency) / sampleRate;
+  // Match the native filter's Nyquist guard: high preset corners must remain
+  // stable on lower-rate devices, and this graph must show the applied curve.
+  const safeFrequency = Math.min(frequency, sampleRate * 0.499);
+  const omega = (2 * Math.PI * safeFrequency) / sampleRate;
   const cosine = Math.cos(omega);
   const sine = Math.sin(omega);
   const alpha = sine / (2 * quality);

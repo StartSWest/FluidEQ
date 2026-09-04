@@ -506,14 +506,14 @@ const dsp = {
   'dsp.master.safetyHint':
     '{factor}× True-Peak-Erkennung · {ceiling} dBTP Obergrenze · {knee} dB Soft Knee · stereo-gekoppelt.',
   'dsp.master.manualHint':
-    'Manueller Ausgang: keine Spitzenabsenkung. Pegel über 0 dBFS übersteuern.',
+    'Manuelle Ausgangsverstärkung. Der aktivierte Endschutz begrenzt weiterhin Spitzen.',
   'dsp.master.truePeak': 'TP Eingang',
   'dsp.master.gainReduction': 'Pegelreduktion',
   'dsp.master.devSafety': 'Sicherheit A/B',
   'dsp.master.devSafetyHint':
     'Nur Entwicklung: Umgeht den vollständigen Endschutz, damit seine Wirkung direkt hörbar wird.',
   'dsp.master.devSafetySpec':
-    'Notfallschutz über +10 dBTP · 2 ms Vorausschau · Korrektur ohne Erholung · 3 Hz DC-Schutz · Reparatur ungültiger Samples',
+    'Spitzenschutz bei −0.1 dBTP · 2 ms Vorausschau · sanfte Erholung · Schutz vor DC und ungültigen Samples',
   'dsp.master.dcCorrection': 'DC-Offset',
   'dsp.master.faults': 'Fehler',
   'dsp.master.graph.momentary': 'Momentan',

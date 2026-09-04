@@ -493,14 +493,14 @@ const dsp = {
   'dsp.master.safetyHint':
     '{factor}× ट्रू-पीक डिटेक्शन · {ceiling} dBTP सीमा · {knee} dB सॉफ्ट नी · स्टीरियो-लिंक्ड।',
   'dsp.master.manualHint':
-    'मैनुअल आउटपुट: कोई पीक कटौती नहीं। 0 dBFS से ऊपर के स्तर क्लिप होंगे।',
+    'मैन्युअल आउटपुट गेन। अंतिम सुरक्षा चालू होने पर पीक सुरक्षित रहते हैं।',
   'dsp.master.truePeak': 'TP इन',
   'dsp.master.gainReduction': 'गेन रिडक्शन',
   'dsp.master.devSafety': 'सुरक्षा A/B',
   'dsp.master.devSafetyHint':
     'केवल डेवलपमेंट: पूरी अंतिम सुरक्षा को बायपास करता है ताकि उसका सटीक प्रभाव सुना जा सके।',
   'dsp.master.devSafetySpec':
-    '+10 dBTP से ऊपर आपात सुरक्षा · 2 ms लुक-अहेड · बिना रिलीज़ सुधार · 3 Hz DC सुरक्षा · अमान्य सैम्पल सुधार',
+    '−0.1 dBTP पर पीक सुरक्षा · 2 ms लुक-अहेड · सहज रिकवरी · DC और अमान्य सैम्पल सुरक्षा',
   'dsp.master.dcCorrection': 'DC ऑफसेट',
   'dsp.master.faults': 'फॉल्ट',
   'dsp.master.graph.momentary': 'क्षणिक',

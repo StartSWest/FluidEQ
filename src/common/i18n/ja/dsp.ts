@@ -489,14 +489,14 @@ const dsp = {
   'dsp.master.safetyHint':
     '{factor}×トゥルーピーク検出 · 上限{ceiling} dBTP · {knee} dBソフトニー · ステレオリンク。',
   'dsp.master.manualHint':
-    '手動出力：ピーク低減なし。0 dBFSを超えるレベルはクリップします。',
+    '手動出力ゲイン。最終保護が有効な間はピーク保護が働きます。',
   'dsp.master.truePeak': 'TP入力',
   'dsp.master.gainReduction': 'ゲインリダクション',
   'dsp.master.devSafety': 'セーフティA/B',
   'dsp.master.devSafetyHint':
     '開発環境のみ：最終保護をすべてバイパスし、変化をそのまま確認できます。',
   'dsp.master.devSafetySpec':
-    '+10 dBTP超の緊急保護 · 2 ms先読み · 復帰しない補正 · 3 Hz DC保護 · 無効サンプル修復',
+    '−0.1 dBTPでピーク保護 · 2 ms先読み · 滑らかな復帰 · DCと無効サンプルの保護',
   'dsp.master.dcCorrection': 'DCオフセット',
   'dsp.master.faults': '障害',
   'dsp.master.graph.momentary': 'モメンタリー',

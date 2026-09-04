@@ -508,14 +508,14 @@ const dsp = {
   'dsp.master.safetyHint':
     '{factor}× true-peak detection · {ceiling} dBTP ceiling · {knee} dB soft knee · stereo-linked.',
   'dsp.master.manualHint':
-    'Manual output: no peak reduction. Levels above 0 dBFS will clip.',
+    'Manual output gain. Final safety still protects peaks when enabled.',
   'dsp.master.truePeak': 'TP in',
   'dsp.master.gainReduction': 'Gain reduction',
   'dsp.master.devSafety': 'Safety A/B',
   'dsp.master.devSafetyHint':
     'Development only: bypasses the complete final protection so you can hear exactly what it changes.',
   'dsp.master.devSafetySpec':
-    'Emergency guard above +10 dBTP · 2 ms look-ahead · non-recovering correction · 3 Hz DC protection · invalid-sample repair',
+    'Peak protection at −0.1 dBTP · 2 ms look-ahead · smooth recovery · DC and invalid-sample protection',
   'dsp.master.dcCorrection': 'DC offset',
   'dsp.master.faults': 'Faults',
   'dsp.master.graph.momentary': 'Momentary',

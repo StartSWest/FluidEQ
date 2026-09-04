@@ -17,44 +17,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { existsSync, mkdtempSync, readFileSync, rmSync } from 'fs';
 import { tmpdir } from 'os';
 import path from 'path';
-import {
-  BASS_FORGE_PRESET_BY_ID,
-  bassForgePresetSettings,
-} from '../../src/common/dsp/bassForgePresets';
-import {
-  BASS_PUNCH_PRESET_BY_ID,
-  bassPunchPresetSettings,
-} from '../../src/common/dsp/bassPunchPresets';
 import { DSP_DEFAULTS, IDspSettings } from '../../src/common/dsp/chain';
 import { encodeChainSettings } from '../../src/common/dsp/chainWire';
-import {
-  COMPRESSOR_PRESET_BY_ID,
-  compressorPresetSettings,
-} from '../../src/common/dsp/compressorPresets';
-import {
-  DENOISE_PRESET_BY_ID,
-  denoisePresetSettings,
-} from '../../src/common/dsp/denoisePresets';
-import {
-  DIMENSION_PRESET_BY_ID,
-  dimensionPresetSettings,
-} from '../../src/common/dsp/dimensionPresets';
-import {
-  EQ_PRESETS,
-  eqSettingsForPreset,
-} from '../../src/common/dsp/eqPresets';
-import {
-  EXCITER_PRESET_BY_ID,
-  exciterPresetSettings,
-} from '../../src/common/dsp/exciterPresets';
-import {
-  MASTER_PRESET_BY_ID,
-  masterPresetSettings,
-} from '../../src/common/dsp/masterPresets';
-import {
-  MAXIMIZER_PRESET_BY_ID,
-  maximizerPresetSettings,
-} from '../../src/common/dsp/maximizerPresets';
+import { filterPresetCases } from './dsp-preset-cases';
 import { NATIVE_DSP_PARAMETERS } from '../../src/common/dsp/nativeParameters';
 import { DSP_PRESETS } from '../../src/common/dsp/presets';
 import { findDspHostExecutable } from '../../src/main/dspHost/hostPath';
@@ -73,12 +38,6 @@ interface IMetrics {
   dc: number;
   nearCeilingFraction: number;
   crestDb: number;
-}
-
-interface IFilterPresetCase {
-  family: string;
-  id: string;
-  settings: IDspSettings;
 }
 
 let failures = 0;
@@ -181,93 +140,6 @@ const passesShapeSafety = (metrics: IMetrics): boolean =>
 const dbRatio = (value: number, reference: number): number =>
   20 * Math.log10(Math.max(value, 1e-12) / Math.max(reference, 1e-12));
 
-/**
- * Every option exposed by every filter picker, materialised in isolation.
- *
- * Full chains catch interactions; these cases catch a profile that is broken
- * even before another stage touches it. Normalizer has modes rather than a
- * preset catalogue, and Crossfade is playback behaviour, so neither belongs
- * in this profile matrix.
- */
-const filterPresetCases = (): readonly IFilterPresetCase[] => [
-  ...Object.values(DENOISE_PRESET_BY_ID).map((preset) => ({
-    family: 'denoise',
-    id: preset.id,
-    settings: {
-      ...DSP_DEFAULTS,
-      denoise: denoisePresetSettings(preset.id, true),
-    },
-  })),
-  ...EQ_PRESETS.map((preset) => ({
-    family: 'equaliser',
-    id: preset.id,
-    settings: {
-      ...DSP_DEFAULTS,
-      eq: eqSettingsForPreset({ ...DSP_DEFAULTS.eq, enabled: true }, preset),
-    },
-  })),
-  ...Object.values(EXCITER_PRESET_BY_ID).map((preset) => ({
-    family: 'exciter',
-    id: preset.id,
-    settings: {
-      ...DSP_DEFAULTS,
-      exciter: exciterPresetSettings(preset.id, true),
-    },
-  })),
-  ...Object.values(BASS_FORGE_PRESET_BY_ID).map((preset) => ({
-    family: 'bass-forge',
-    id: preset.id,
-    settings: {
-      ...DSP_DEFAULTS,
-      bassForge: bassForgePresetSettings(preset.id, true),
-    },
-  })),
-  ...Object.values(BASS_PUNCH_PRESET_BY_ID).map((preset) => ({
-    family: 'bass-punch',
-    id: preset.id,
-    settings: {
-      ...DSP_DEFAULTS,
-      bassPunch: bassPunchPresetSettings(preset.id, true),
-    },
-  })),
-  ...Object.values(COMPRESSOR_PRESET_BY_ID).map((preset) => ({
-    family: 'compressor',
-    id: preset.id,
-    settings: {
-      ...DSP_DEFAULTS,
-      compressor: compressorPresetSettings(preset.id, true),
-    },
-  })),
-  ...Object.values(DIMENSION_PRESET_BY_ID).map((preset) => ({
-    family: 'dimension',
-    id: preset.id,
-    settings: {
-      ...DSP_DEFAULTS,
-      dimension: dimensionPresetSettings(preset.id, true),
-    },
-  })),
-  ...Object.values(MAXIMIZER_PRESET_BY_ID).map((preset) => ({
-    family: 'maximizer',
-    id: preset.id,
-    settings: {
-      ...DSP_DEFAULTS,
-      maximizer: maximizerPresetSettings(preset.id, true),
-    },
-  })),
-  ...Object.values(MASTER_PRESET_BY_ID).map((preset) => ({
-    family: 'master',
-    id: preset.id,
-    settings: {
-      ...DSP_DEFAULTS,
-      master: {
-        ...masterPresetSettings(preset.id, DSP_DEFAULTS.master),
-        enabled: true,
-        loudnessMaximize: true,
-      },
-    },
-  })),
-];
-
 const main = async (): Promise<void> => {
   const executablePath = findDspHostExecutable();
   if (!executablePath) {
@@ -278,9 +150,13 @@ const main = async (): Promise<void> => {
   // pass over a second file by naming it.
   const argumentsAfterScript = process.argv.slice(2);
   const chainsOnly = argumentsAfterScript.includes('--chains-only');
+  const synthetic = argumentsAfterScript.includes('--synthetic');
   const fixture = argumentsAfterScript.find(
-    (argument) => argument !== '--chains-only',
+    (argument) => argument !== '--chains-only' && argument !== '--synthetic',
   );
+  if (synthetic && fixture) {
+    throw new Error('preset smoke: choose a music fixture or --synthetic');
+  }
   const scratch = mkdtempSync(path.join(tmpdir(), 'fluideq-presets-'));
   /**
    * Real music where there is any, and synthesised programme where there is
@@ -322,7 +198,7 @@ const main = async (): Promise<void> => {
     if (!existsSync(source)) {
       throw new Error(`preset smoke: missing fixture ${source}`);
     }
-  } else if (existsSync(repositoryFixture)) {
+  } else if (!synthetic && existsSync(repositoryFixture)) {
     source = repositoryFixture;
   } else {
     source = path.join(scratch, 'programme.wav');
@@ -378,7 +254,13 @@ const main = async (): Promise<void> => {
     check(await host.loadDeck(0, source), 'the music fixture loads');
     check(await host.setPlaying(true), 'the transport starts');
 
-    const dry = await render(DSP_DEFAULTS, 'dry-reference');
+    // DSP Off must bypass the root. An enabled empty rack still runs final
+    // safety, so its attenuation would make every preset seem louder by the
+    // same amount when comparing against that already-limited reference.
+    const dry = await render(
+      { ...DSP_DEFAULTS, enabled: false },
+      'dry-reference',
+    );
     check(passesShapeSafety(dry), 'the reference is valid programme');
 
     // Positive control: a flat-topped constant must fail the same predicate.
@@ -391,7 +273,8 @@ const main = async (): Promise<void> => {
       'the safety check rejects clipped audio',
     );
 
-    for (const preset of DSP_PRESETS) {
+    for (let index = 0; index < DSP_PRESETS.length; index += 1) {
+      const preset = DSP_PRESETS[index];
       // eslint-disable-next-line no-await-in-loop -- one native chain owns one deck.
       const result = await render(preset.settings, `chain-${preset.id}`);
       const levelDb = dbRatio(result.rms, dry.rms);
@@ -417,37 +300,39 @@ const main = async (): Promise<void> => {
     }
 
     if (!chainsOnly) {
-      line('every filter profile, alone over real music');
-      const standaloneDry = await render(
-        DSP_DEFAULTS,
-        'filter-dry-reference',
-        -6,
-      );
-      for (const preset of filterPresetCases()) {
-        // eslint-disable-next-line no-await-in-loop -- one native chain owns one deck.
-        const result = await render(
-          preset.settings,
-          `${preset.family}-${preset.id}`,
-          -6,
-        );
-        const levelDb = dbRatio(result.rms, standaloneDry.rms);
-        line(
-          `       ${preset.family.padEnd(12)} ${preset.id.padEnd(16)} level ${levelDb.toFixed(2).padStart(6)} dB vs dry`,
-        );
-        check(
-          passesShapeSafety(result),
-          `${preset.family}/${preset.id}: no clip, silence, DC, or crushing`,
-        );
-        if (levelChecks) {
-          check(
-            levelDb > -12 && levelDb < 9,
-            `${preset.family}/${preset.id}: level remains bounded`,
+      // Keep the quiet calibration and also exercise the reported unity input.
+      const levels = [-6, 0];
+      const profiles = filterPresetCases();
+      for (let levelIndex = 0; levelIndex < levels.length; levelIndex += 1) {
+        const inputGainDb = levels[levelIndex];
+        line(`every filter profile at ${inputGainDb} dB input`);
+        for (let index = 0; index < profiles.length; index += 1) {
+          const preset = profiles[index];
+          // eslint-disable-next-line no-await-in-loop -- one native chain owns one deck.
+          const result = await render(
+            preset.settings,
+            `${preset.family}-${preset.id}`,
+            inputGainDb,
           );
-          if (preset.family === 'denoise') {
+          const levelDb = dbRatio(result.rms, dry.rms) - inputGainDb;
+          line(
+            `       ${preset.family.padEnd(12)} ${preset.id.padEnd(16)} level ${levelDb.toFixed(2).padStart(6)} dB vs dry`,
+          );
+          check(
+            passesShapeSafety(result),
+            `${preset.family}/${preset.id}: no clip, silence, DC, or crushing`,
+          );
+          if (levelChecks) {
             check(
-              levelDb > -2 && levelDb < 0.5,
-              `${preset.id}: does not hollow out clean music`,
+              levelDb > -12 && levelDb < 9,
+              `${preset.family}/${preset.id}: level remains bounded`,
             );
+            if (preset.family === 'denoise') {
+              check(
+                levelDb > -2 && levelDb < 0.5,
+                `${preset.id}: does not hollow out clean music`,
+              );
+            }
           }
         }
       }

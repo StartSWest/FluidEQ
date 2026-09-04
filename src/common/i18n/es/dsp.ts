@@ -498,14 +498,14 @@ const dsp = {
   'dsp.master.safetyHint':
     'Detección de pico verdadero {factor}× · techo de {ceiling} dBTP · rodilla suave de {knee} dB · enlace estéreo.',
   'dsp.master.manualHint':
-    'Salida manual: sin reducción de picos. Los niveles superiores a 0 dBFS saturarán.',
+    'Ganancia de salida manual. La protección final sigue controlando los picos cuando está activada.',
   'dsp.master.truePeak': 'TP entrada',
   'dsp.master.gainReduction': 'Reducción de ganancia',
   'dsp.master.devSafety': 'Seguridad A/B',
   'dsp.master.devSafetyHint':
     'Solo desarrollo: omite toda la protección final para que puedas escuchar exactamente lo que cambia.',
   'dsp.master.devSafetySpec':
-    'Protección de emergencia sobre +10 dBTP · 2 ms de anticipación · corrección sin recuperación · protección DC a 3 Hz · reparación de muestras inválidas',
+    'Protección de picos a −0.1 dBTP · 2 ms de anticipación · recuperación suave · protección contra DC y muestras inválidas',
   'dsp.master.dcCorrection': 'Desplazamiento DC',
   'dsp.master.faults': 'Fallos',
   'dsp.master.graph.momentary': 'Momentáneo',

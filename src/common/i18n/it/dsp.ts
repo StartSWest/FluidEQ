@@ -499,14 +499,14 @@ const dsp = {
   'dsp.master.safetyHint':
     'Rilevamento true peak {factor}× · tetto {ceiling} dBTP · ginocchio morbido {knee} dB · collegamento stereo.',
   'dsp.master.manualHint':
-    'Uscita manuale: nessuna riduzione dei picchi. I livelli oltre 0 dBFS satureranno.',
+    'Guadagno di uscita manuale. La protezione finale continua a controllare i picchi quando è attiva.',
   'dsp.master.truePeak': 'TP ingresso',
   'dsp.master.gainReduction': 'Riduzione guadagno',
   'dsp.master.devSafety': 'Sicurezza A/B',
   'dsp.master.devSafetyHint':
     'Solo sviluppo: esclude tutta la protezione finale per ascoltare esattamente cosa cambia.',
   'dsp.master.devSafetySpec':
-    'Protezione di emergenza sopra +10 dBTP · anticipo 2 ms · correzione senza rilascio · protezione DC 3 Hz · riparazione campioni non validi',
+    'Protezione dei picchi a −0.1 dBTP · anticipo di 2 ms · recupero graduale · protezione DC e campioni non validi',
   'dsp.master.dcCorrection': 'Offset DC',
   'dsp.master.faults': 'Guasti',
   'dsp.master.graph.momentary': 'Momentaneo',

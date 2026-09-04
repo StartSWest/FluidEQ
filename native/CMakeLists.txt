@@ -161,6 +161,21 @@ add_executable(fluideq-chain-meters-test dsp-core/tests/chain_meters_test.cpp)
 target_link_libraries(fluideq-chain-meters-test PRIVATE fluideq-dsp-core feq_strict)
 add_test(NAME chain-meters COMMAND fluideq-chain-meters-test)
 
+add_executable(fluideq-preset-safety-test dsp-core/tests/preset_safety_test.cpp)
+target_link_libraries(fluideq-preset-safety-test PRIVATE fluideq-dsp-core feq_strict)
+# Every cross-family pair is owned by its first family in catalogue order;
+# Master is last, so its pairs are already covered by the other families.
+foreach(partition individual chains denoise equaliser exciter bass-forge
+                  bass-punch compressor dimension maximizer)
+  add_test(NAME preset-safety-${partition}
+    COMMAND fluideq-preset-safety-test
+      "${CMAKE_BINARY_DIR}/preset-fixtures.txt" "${partition}")
+endforeach()
+
+add_executable(fluideq-output-quality-test dsp-core/tests/output_quality_test.cpp)
+target_link_libraries(fluideq-output-quality-test PRIVATE fluideq-dsp-core feq_strict)
+add_test(NAME output-quality COMMAND fluideq-output-quality-test)
+
 add_executable(fluideq-player-test dsp-core/tests/player_test.cpp)
 target_link_libraries(fluideq-player-test PRIVATE fluideq-dsp-core feq_strict)
 add_test(NAME player COMMAND fluideq-player-test)
