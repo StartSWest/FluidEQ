@@ -143,6 +143,21 @@ const installUpdate = () =>
 const isWindowMaximized = () =>
   ipcRenderer.invoke('window-is-maximized') as Promise<boolean>;
 
+/**
+ * Both window flags at once, for the renderer's first look.
+ *
+ * The window outlives the page: a renderer reload keeps it exactly as it was
+ * while every flag in the page starts again at nothing, and main's own
+ * announcement of the state fires on `did-finish-load` — before React has
+ * mounted anything that could hear it. Asked for on mount instead, the page
+ * meets the window it actually has rather than the one it assumes.
+ */
+const getWindowState = () =>
+  ipcRenderer.invoke('window-get-state') as Promise<{
+    isMaximized: boolean;
+    isFullScreen: boolean;
+  }>;
+
 /** Real fullscreen. The renderer's own Fullscreen API cannot do this. */
 const setWindowFullScreen = (next: boolean) =>
   ipcRenderer.invoke('window-set-full-screen', next) as Promise<boolean>;
@@ -619,6 +634,7 @@ export default {
     getChangelog,
     installUpdate,
     isWindowMaximized,
+    getWindowState,
     setWindowFullScreen,
     sendMediaTransport,
     watchSystemMedia,

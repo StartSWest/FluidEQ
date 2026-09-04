@@ -40,6 +40,15 @@ import type { TSetPlaybackHandoff } from '../../audio/playbackHandoff';
 export interface IPlaybackCommands {
   /** Pause and rewind the loaded item without discarding its queue. */
   stop: () => void;
+  /**
+   * Pause, and leave the playhead exactly where it is.
+   *
+   * `stop` with the rewind taken out, and the difference is the whole point
+   * of exposing it: closing a video has to leave from where the reader got
+   * to, because that number is what is remembered for next time. Stopping
+   * first put a nought there and every video came back to its own beginning.
+   */
+  pausePlayback: () => void;
   playTracks: (trackIds: readonly string[], startTrackId: string) => void;
   /** Play or pause, asked of whichever engine is actually playing. */
   toggle: () => void;
@@ -280,5 +289,5 @@ export const usePlaybackCommands = (options: {
     }
   }, [activeElement, hostOwnsTransportRef, setIsPlaying, setRetainWhenHidden]);
 
-  return { stop, playTracks, toggle };
+  return { stop, pausePlayback, playTracks, toggle };
 };

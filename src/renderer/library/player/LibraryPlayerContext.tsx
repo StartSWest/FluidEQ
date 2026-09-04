@@ -38,6 +38,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import {
   createContext,
   ReactNode,
+  useCallback,
   useContext,
   useEffect,
   useMemo,
@@ -278,15 +279,21 @@ export const LibraryPlayerProvider = ({
    * player redirects transport at it while a video is current. See
    * `useVideoElement`.
    */
-  const { videoTrackId, registerVideoElement, activeElement } = useVideoElement(
-    {
-      track,
-      videoElementRef,
-      audioElementRef,
-      volumeRef,
-      bindMediaEvents,
-    },
-  );
+  const {
+    videoTrackId,
+    closeVideo: hideVideoStage,
+    openVideo,
+    reopenVideo,
+    registerVideoElement,
+    activeElement,
+  } = useVideoElement({
+    track,
+    videoElementRef,
+    audioElementRef,
+    volumeRef,
+    bindMediaEvents,
+    setIsPlaying,
+  });
 
   /**
    * Putting a track on a deck. The largest single thing the player does,
@@ -373,7 +380,12 @@ export const LibraryPlayerProvider = ({
    * Start, stop and suspend — the three commands that decide whether there
    * is anything playing at all. See `usePlaybackCommands`.
    */
-  const { stop, playTracks, toggle } = usePlaybackCommands({
+  const {
+    stop,
+    pausePlayback,
+    playTracks: playTracksCommand,
+    toggle: toggleElement,
+  } = usePlaybackCommands({
     activeElement,
     audioElements,
     queueRef,
@@ -393,6 +405,59 @@ export const LibraryPlayerProvider = ({
     pendingRestore,
     audioElementRef,
   });
+
+  /**
+   * Play/pause, with one thing to check before it reaches an element.
+   *
+   * A video the reader closed has no element to reach — `closeVideo` takes
+   * the stage down and its own teardown releases the decoder — so the press
+   * would land on a hidden audio deck holding no file, and the bar's play
+   * button would be dead on a track it is still showing. Asking a closed
+   * video to play means show it again, so that is what happens; everything
+   * else is the ordinary command, unchanged.
+   */
+  const toggle = useCallback(() => {
+    if (reopenVideo()) {
+      return;
+    }
+    toggleElement();
+  }, [reopenVideo, toggleElement]);
+
+  /**
+   * Play these, and never mind what was put away.
+   *
+   * Pressing the same video again after Back produces the same track id, and
+   * the picture is remembered as closed BY that id — so the command loaded
+   * it, marked the row as playing and showed nothing, which is a worse
+   * failure than the one closing was added to fix. Asking for a track is the
+   * end of any decision to hide it.
+   */
+  const playTracks = useCallback(
+    (trackIds: readonly string[], startTrackId: string) => {
+      openVideo();
+      playTracksCommand(trackIds, startTrackId);
+    },
+    [openVideo, playTracksCommand],
+  );
+
+  /**
+   * The Back button over a picture: silence it, then put it away.
+   *
+   * PAUSE AND NOT STOP, because stopping rewinds — and the stage writes down
+   * where the reader got to as it unmounts, so a rewind first meant every
+   * video was remembered at nought and came back to its own beginning.
+   * Measured: closed at 3:25, stored as 0.
+   *
+   * Pausing before hiding, and that order matters too. Hiding first unmounts
+   * the element, and the pause resolves the element it acts on at the moment
+   * it runs — it would find the hidden audio deck instead, leaving the
+   * video's own decoder to be torn down mid-play by the unmount.
+   */
+  const closeVideo = useCallback(() => {
+    pausePlayback();
+    hideVideoStage();
+  }, [hideVideoStage, pausePlayback]);
+
   /**
    * Rearranging what is coming, none of which can make a sound. See
    * `useQueueControls` for why that is a boundary rather than a filing
@@ -476,6 +541,7 @@ export const LibraryPlayerProvider = ({
       isUnplayable,
       playTracks,
       stop,
+      closeVideo,
       toggle,
       retargetQueue,
       upNext,
@@ -502,6 +568,7 @@ export const LibraryPlayerProvider = ({
       isUnplayable,
       playTracks,
       stop,
+      closeVideo,
       toggle,
       retargetQueue,
       upNext,

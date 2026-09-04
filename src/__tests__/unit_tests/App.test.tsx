@@ -39,11 +39,16 @@ import { setGraphView } from '../../renderer/utils/graphStyle';
 
 describe('App', () => {
   const setWindowFullScreen = jest.fn(async (next: boolean) => next);
+  /** What the window says on start-up, and the way to make it say more. */
+  let windowStateOnLoad = { isMaximized: false, isFullScreen: false };
+  let announceWindowState: ((state: unknown) => void) | undefined;
   const sendMediaTransport = jest.fn(async (_action: string) => undefined);
 
   beforeEach(() => {
     setWindowFullScreen.mockClear();
     sendMediaTransport.mockClear();
+    windowStateOnLoad = { isMaximized: false, isFullScreen: false };
+    announceWindowState = undefined;
     resetPlaybackOwner();
     setGraphView('normal');
     window.localStorage.clear();
@@ -84,9 +89,12 @@ describe('App', () => {
         platform: 'win32',
         ipcRenderer: {
           sendMessage: (_channel: Channels, _args: unknown[]) => {},
-          on:
-            (_channel: Channels, _func: (...args: unknown[]) => void) =>
-            () => {},
+          on: (channel: Channels, func: (...args: unknown[]) => void) => {
+            if (channel === 'window-state-changed') {
+              announceWindowState = (state) => func(state);
+            }
+            return () => {};
+          },
           once: (_channel: Channels, _func: (...args: unknown[]) => void) => {},
           removeListener: (
             _channel: Channels,
@@ -100,6 +108,7 @@ describe('App', () => {
           toggleMaximizeWindow: async () => false,
           closeWindow: async () => {},
           isWindowMaximized: async () => false,
+          getWindowState: async () => windowStateOnLoad,
           setWindowFullScreen,
           sendMediaTransport,
           releaseKaraokeSeparationModel: jest.fn(),
@@ -555,6 +564,58 @@ describe('App', () => {
     expect(screen.getByRole('tab', { name: selected })).toHaveAttribute(
       'aria-selected',
       'true',
+    );
+  });
+
+  /**
+   * The window is the authority on whether it is full screen.
+   *
+   * The app used to hold its own copy of that fact and believe the window
+   * only while one of its requests was in flight — so a window left full
+   * screen by a renderer reload, or by any route the app had not asked for,
+   * kept its size while the app drew the windowed layout in it. The first
+   * full-screen press then only put the two back in step, which read as a
+   * press that did nothing.
+   */
+  it('takes an unclaimed full-screen window back out on start-up', async () => {
+    windowStateOnLoad = { isMaximized: false, isFullScreen: true };
+    const { container } = render(<App />);
+    await waitFor(() =>
+      expect(setWindowFullScreen).toHaveBeenLastCalledWith(false),
+    );
+    expect(container.querySelector('.app-workspace')).not.toHaveClass(
+      'is-app-full',
+    );
+  });
+
+  it('drops the media surface when the window reports it left full screen', async () => {
+    const { container } = render(<App />);
+    await act(async () => Promise.resolve());
+    fireEvent.click(screen.getByRole('tab', { name: 'Karaoke' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Enter full screen' }));
+    await waitFor(() =>
+      expect(setWindowFullScreen).toHaveBeenLastCalledWith(true),
+    );
+    expect(container.querySelector('.app-workspace')).toHaveClass(
+      'is-app-full',
+    );
+
+    // A window in full screen it asked for is not touched.
+    setWindowFullScreen.mockClear();
+    act(() => {
+      announceWindowState?.({ isMaximized: false, isFullScreen: true });
+    });
+    expect(setWindowFullScreen).not.toHaveBeenCalled();
+    expect(container.querySelector('.app-workspace')).toHaveClass(
+      'is-app-full',
+    );
+
+    // Taken out by a route the app never saw — F11, the system menu.
+    act(() => {
+      announceWindowState?.({ isMaximized: false, isFullScreen: false });
+    });
+    expect(container.querySelector('.app-workspace')).not.toHaveClass(
+      'is-app-full',
     );
   });
 

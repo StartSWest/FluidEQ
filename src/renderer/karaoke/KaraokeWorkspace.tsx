@@ -56,6 +56,7 @@ import { releasePlayback } from '../audio/playbackOwner';
 import { useTransportSlot } from '../audio/transportSlot';
 import { useTranslation } from '../utils/I18nContext';
 import { setChromeHeld } from '../utils/idleChrome';
+import { reportError } from '../utils/logger';
 import Spinner from '../icons/Spinner';
 import MenuIcon from '../icons/MenuIcon';
 import AnchoredMenu, { isInsideAnchoredMenu } from '../widgets/AnchoredMenu';
@@ -826,11 +827,48 @@ const KaraokeWorkspace = ({
         if (!ordered.length) {
           return false;
         }
-        libraryFilesRef.current = files;
-        playlistRef.current = ordered;
-        setPlaylist(ordered);
+        /**
+         * MERGED WITH WHATEVER ARRIVED WHILE THIS WAS READING, not written
+         * over the top of it.
+         *
+         * This used to assign both the file list and the playlist outright,
+         * on the reasonable-looking assumption that a restore runs into an
+         * empty workspace. It does not always: "Send to Karaoke" MOUNTS this
+         * component, so the song being sent is imported in the same commit
+         * that starts this read, and the read then finished a moment later
+         * and replaced the list with the saved session — the tab changed, the
+         * Maker closed, and the song was nowhere. Every first send after a
+         * launch failed that way; a second one, with the tab already mounted
+         * and restored, worked, which is what made it look intermittent.
+         *
+         * The imported file wins any collision. A restored entry is a
+         * placeholder carrying a name and a token rather than bytes (see
+         * `restoredKaraokeFile`), so where the two describe the same song the
+         * one that was actually read off disk is the one worth keeping.
+         */
+        const byIdentity = new Map(
+          files.map((file) => [importedFileIdentity(file), file]),
+        );
+        libraryFilesRef.current.forEach((file) =>
+          byIdentity.set(importedFileIdentity(file), file),
+        );
+        libraryFilesRef.current = Array.from(byIdentity.values());
+        const restoredIds = new Set(ordered.map((item) => item.id));
+        const merged = [
+          ...ordered,
+          ...playlistRef.current.filter((item) => !restoredIds.has(item.id)),
+        ];
+        playlistRef.current = merged;
+        setPlaylist(merged);
         const preciseProgress = readKaraokeProgress();
+        // A song imported while this was reading has already been chosen and
+        // loaded by `addFiles`, and it is the one the reader asked for. The
+        // saved session's own choice only applies when nothing has been.
+        const imported = merged.find(
+          (item) => item.id === selectedPlaylistIdRef.current,
+        );
         const selected =
+          imported ??
           ordered.find(
             (item) => item.id === preciseProgress?.selectedPlaylistId,
           ) ??
@@ -838,6 +876,11 @@ const KaraokeWorkspace = ({
           ordered[0];
         selectedPlaylistIdRef.current = selected.id;
         setSelectedPlaylistId(selected.id);
+        // Its audio is already loading, and the playhead below belongs to the
+        // saved session rather than to it.
+        if (imported) {
+          return true;
+        }
         // The media travels here too. Restoring passed only the pair, so the
         // song the app opened on lost the cover, background and video that
         // the very same song got back the moment it was clicked in the
@@ -1083,7 +1126,13 @@ const KaraokeWorkspace = ({
       // is not discarded — only put away.
       setIsMakerOpen(false);
       setRestoreMakerDraft(false);
-      addFiles([...taken]).catch(() => undefined);
+      // SAID OUT LOUD, not swallowed. This was `.catch(() => undefined)`, and
+      // an import that failed here failed in total silence: the tab changed,
+      // the Maker closed, and the song simply was not in the list — which is
+      // exactly the shape "Send to Karaoke does nothing" arrives in.
+      addFiles([...taken]).catch((error: unknown) => {
+        reportError('Could not add the song sent from the Library', error);
+      });
     }
   }, [pendingKaraokeFiles, addFiles, isMakerWorking]);
 

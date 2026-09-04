@@ -921,11 +921,26 @@ $now-playing-bar-height: 64px;
 
 .library-video-stage {
   position: relative;
-  width: 100%;
+  // NO `width: 100%`, and that is not the same as leaving it out.
+  //
+  // The card is a column flex, so this stretches to the card's content width
+  // on its own — and when the queue is open it must stretch to LESS than
+  // that, because the strip is reserved with a `margin-right` on every child
+  // (see `.library-workspace.has-up-next`). A percentage width is measured
+  // against the container and takes no notice of the element's own margins,
+  // so the picture stayed full width and ran under the queue: measured, a
+  // 958px stage inside a 946px box with the last 218px of it behind the list.
   min-height: 0;
   flex: 1 1 auto;
   overflow: hidden;
-  border-radius: $radius-m $radius-m $radius-xl $radius-xl;
+  // An inner pane's corners, all four of them — the same `$radius-m` the
+  // list and the grid in this tab take from `inset-surface`, and the same the
+  // queue beside it takes now. The bottom pair used to be the card's own
+  // 18px, copied from the Media tab's stage, where the picture runs flush to
+  // the card's bottom edge and has to share its corners. This one does not:
+  // it sits inside the card's padding, under the toolbar and beside a pane,
+  // and 18px there was a rounder corner than anything else on the tab.
+  border-radius: $radius-m;
   background: $black;
 
   &.is-fullscreen {
@@ -980,22 +995,22 @@ $now-playing-bar-height: 64px;
 // The one control on the picture, in the corner karaoke puts its own way back
 // — top left, 12px in, the same place `.karaoke-playlist__expand` stands.
 //
-// It is `button small subtle`, and everything that makes it look like a button
-// comes from there: the label colour, the outline, the radius, the weight, the
-// hover and the focus ring. It had a full set of its own before — a different
-// border tint, a different fill, a different hover, a height and a radius
-// nothing else in the app uses — which beside any other control read as
-// belonging to a different program. That is exactly what the quiet outline
-// exists to stop being necessary.
+// `button small` for its bones — the height, the radius, the weight, the
+// focus ring — and the header's glass for its face. NOT `subtle`: that is the
+// quiet outline for a control standing on a panel, and its cyan label on a
+// cyan hairline read as a piece of the equaliser's UI stuck to a film. A
+// control on a picture belongs to the picture's own chrome, which in this app
+// means the two bars that float over a full screen: a white label on the
+// panel colour, blurred, with a neutral hairline. Same material as the
+// titlebar it sits under and the queue it sits opposite — one idea, three
+// places.
 //
-// What stays here is placement, the glyph's size, and one fill.
-//
-// Written from inside `.library-video-stage` and compounded with the classes
-// it is overriding, because `.button.subtle` states its fill and its hover
-// fill at two classes and five: a rule of one class loses to it wherever it is
-// written in the sheet, and a rule that merely ties loses or wins by the order
-// two stylesheets happen to be bundled in. This is the same arithmetic the
-// `[aria-disabled]` block in Button.scss had to be moved for.
+// Written from inside `.library-video-stage` and compounded with `.button`,
+// because `.button` states its own colour, fill, border and shadow at one
+// class and its hover at three: a rule of one class merely ties with the
+// first and loses to the second, and a tie is settled by whichever stylesheet
+// the bundler happened to put last. Two classes here, and four on the hover,
+// so the answer does not depend on that.
 .library-video-stage {
   .library-video-stage__back {
     position: absolute;
@@ -1016,15 +1031,41 @@ $now-playing-bar-height: 64px;
     }
   }
 
-  // THE ONE THING TAKEN OFF `subtle`: it fills with 7% of the accent, which
-  // is a tint over a panel and nothing at all over a moving picture. The
-  // label needs a floor of its own here, or it is legible only for as long as
-  // the frame behind it happens to be dark.
-  .library-video-stage__back.button.subtle {
-    background: $surface-panel;
+  // The header's glass, from App.scss: `blur(22px) saturate(130%)` over the
+  // panel colour. The reasoning there applies exactly — the picture runs
+  // under this control, so an opaque fill is a chip of shell laid on the
+  // film, and a translucent one with no blur is worse because the frame
+  // carries on legibly underneath the word. Blurred, it is a pane over the
+  // picture and the picture stays whole behind it. Quieter than the queue on
+  // purpose: this is a way out, the queue is something to read.
+  .library-video-stage__back.button {
+    color: $text-primary;
+    border-color: rgba($edge-tint, 0.16);
+    background: rgba($surface-panel, 0.55);
+    box-shadow: 0 6px 18px rgba($black, 0.28);
+    backdrop-filter: blur(22px) saturate(130%);
+    -webkit-backdrop-filter: blur(22px) saturate(130%);
+    font-weight: $weight-semibold;
 
-    &:hover:not(:disabled) {
-      background: $surface-menu-top;
+    // `.button` inks every path that does not say `fill="none"` in the dark
+    // shade that reads on a cyan face. This chevron is an open stroke, and
+    // that ink would close it into a dark wedge behind the line.
+    path {
+      fill: none;
+    }
+
+    &:hover:not([aria-disabled='true']):not(:disabled) {
+      color: $white;
+      border-color: rgba($edge-tint, 0.3);
+      background: rgba($surface-menu-top, 0.8);
+      box-shadow: 0 8px 22px rgba($black, 0.34);
+      transform: none;
+      filter: none;
+    }
+
+    &:active:not([aria-disabled='true']):not(:disabled) {
+      color: $white;
+      background: rgba($surface-menu-top, 0.92);
     }
   }
 }

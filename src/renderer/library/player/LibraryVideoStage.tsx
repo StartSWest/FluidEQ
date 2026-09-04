@@ -21,6 +21,11 @@ import { libraryMediaUrl } from '../../../common/library/mediaUrl';
 import { useTranslation } from '../../utils/I18nContext';
 import { useGraphFullScreen } from '../../utils/graphStyle';
 import { useLibraryPlayerSession } from './LibraryPlayerContext';
+import {
+  readVideoPosition,
+  restorablePositionMs,
+  writeVideoPosition,
+} from './playbackMemory';
 import '../../styles/NowPlayingBar.scss';
 
 /**
@@ -48,7 +53,7 @@ const LibraryVideoStage = ({
   onToggleFullScreen,
 }: ILibraryVideoStageProps) => {
   const { t } = useTranslation();
-  const { videoTrackId, isPlaying, registerVideoElement, toggle, stop } =
+  const { videoTrackId, isPlaying, registerVideoElement, toggle, closeVideo } =
     useLibraryPlayerSession();
   const videoRef = useRef<HTMLVideoElement | null>(null);
   /**
@@ -107,6 +112,59 @@ const LibraryVideoStage = ({
     }
   }, [isPlaying, videoTrackId]);
 
+  /**
+   * WHERE THIS VIDEO WAS LEFT, WRITTEN WHENEVER IT STOPS BEING WATCHED.
+   *
+   * Three moments, and each is a real event rather than a clock: the video
+   * changing or the stage closing (this effect's own cleanup), and the window
+   * going away (`pagehide`, which is what a refresh and a quit both fire and
+   * the only thing either of them fires). Nothing is written while it plays —
+   * there is nothing to remember until somebody stops watching, and a store
+   * rewritten four times a second would be doing that work for a number that
+   * only matters once.
+   *
+   * The id is captured rather than read at cleanup time so the position lands
+   * on the video it belongs to: by the time the cleanup runs the queue has
+   * already moved on, and reading the current id there would file every
+   * video's playhead under the NEXT one.
+   */
+  useEffect(() => {
+    if (!videoTrackId) {
+      return undefined;
+    }
+    const remember = () => {
+      const element = videoRef.current;
+      if (!element) {
+        return;
+      }
+      // Its own end is not a place to come back to — a video watched through
+      // starts again next time, which is what removing the entry does.
+      const positionMs = element.ended ? 0 : element.currentTime * 1000;
+      writeVideoPosition(videoTrackId, positionMs);
+    };
+    window.addEventListener('pagehide', remember);
+    return () => {
+      window.removeEventListener('pagehide', remember);
+      remember();
+    };
+  }, [videoTrackId]);
+
+  /**
+   * Back: out of full screen as well as out of the video.
+   *
+   * Leaving the picture while the window stays full screen puts the reader on
+   * a library shelf with no titlebar and no way back to the rest of the app —
+   * a mode with nothing left in it that the mode was for. The window comes
+   * down first, so there is never a frame of a full-screen tab with no video
+   * in it.
+   */
+  const goBack = () => {
+    if (isFullScreen) {
+      onToggleFullScreen();
+    }
+    closeVideo();
+  };
+
   if (!videoTrackId) {
     return null;
   }
@@ -127,6 +185,32 @@ const LibraryVideoStage = ({
         src={libraryMediaUrl('track', videoTrackId)}
         onClick={toggle}
         onDoubleClick={onToggleFullScreen}
+        // BACK WHERE IT WAS LEFT, AND NOT BEFORE THE METADATA IS IN.
+        //
+        // `currentTime` assigned while the element is still at
+        // `HAVE_NOTHING` is what empties the seekable range and breaks
+        // seeking for the whole of that load — the same trap the audio
+        // loader's own restore documents, and the reason both wait for this
+        // event rather than seeking at load time. The duration is known by
+        // now too, which is what lets the last few seconds be refused: a
+        // video restored to its own ending is a film that ends the moment it
+        // is opened.
+        onLoadedMetadata={(event) => {
+          const element = event.currentTarget;
+          const stored = readVideoPosition(videoTrackId);
+          if (stored === undefined) {
+            return;
+          }
+          const restore = restorablePositionMs(
+            stored,
+            Number.isFinite(element.duration)
+              ? element.duration * 1000
+              : undefined,
+          );
+          if (restore !== undefined) {
+            element.currentTime = restore / 1000;
+          }
+        }}
       />
       {/* The way out, and the only control drawn on the picture.
           Without it a video owned the whole tab until the queue happened to
@@ -144,10 +228,10 @@ const LibraryVideoStage = ({
       {!isHidden && (
         <button
           type="button"
-          className="button small subtle library-video-stage__back"
+          className="button small library-video-stage__back"
           aria-label={t('library.back')}
           title={t('library.back')}
-          onClick={stop}
+          onClick={goBack}
         >
           <svg viewBox="0 0 20 20" aria-hidden="true">
             <path d="M12 4l-6 6 6 6" />

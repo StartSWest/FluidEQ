@@ -949,6 +949,23 @@ const AppContent = () => {
    * under a stage that should have filled it.
    */
   const isAppFullScreen = isGraphAppFullScreen || isMediaFullScreen;
+  /**
+   * Whether anything in here is actually claiming the full-screen window.
+   *
+   * Read from the window's own state messages, which arrive from outside
+   * React and therefore cannot see this render's values — hence a ref,
+   * rewritten every render. Its job is to answer one question: the window
+   * says it is full screen, but is that because we asked?
+   *
+   * When the answer is no the two have come apart, and they can: a renderer
+   * reload leaves the window exactly as it was while every piece of state in
+   * here starts again at nothing. What that looked like was a full-screen
+   * window with the windowed layout drawn in it, and a double-click that
+   * appeared to do nothing because it was the one putting the app back IN
+   * step — which is the "I have to do it twice" this exists to end.
+   */
+  const windowFullScreenClaimRef = useRef(false);
+  windowFullScreenClaimRef.current = isAppFullScreen;
   const editorHeight = useEditorHeight(activeWorkspaceTab);
 
   // Watched only in full screen, and stopped on the way out — see the store for
@@ -999,14 +1016,29 @@ const AppContent = () => {
    * and a layout preference should not have to know the shape of the app's API
    * to hold a value. The store says *what* it wants; this says how.
    */
+  /**
+   * THE ONE WAY THIS APP ASKS FOR A FULL-SCREEN WINDOW.
+   *
+   * Both routes to the mode go through here — the graph asking for its
+   * largest view, and a player taking the shared media surface — so the claim
+   * the window's own state messages are reconciled against is written in the
+   * same breath as the request that creates it. Two callers each doing their
+   * own IPC is how the app and the window came to disagree in the first
+   * place: whichever of them spoke last, nothing recorded that anybody had.
+   */
+  const requestWindowFullScreen = useCallback((next: boolean) => {
+    windowFullScreenClaimRef.current = next;
+    return window.electron.ipcRenderer.setWindowFullScreen(next);
+  }, []);
+
   useEffect(() => {
     onWindowFullScreenChange((next) => {
-      window.electron.ipcRenderer.setWindowFullScreen(next).catch((e) => {
+      requestWindowFullScreen(next).catch((e) => {
         reportError('Could not change the window to full screen', e);
       });
     });
     return () => onWindowFullScreenChange(() => undefined);
-  }, []);
+  }, [requestWindowFullScreen]);
 
   const applyMediaFullScreen = useCallback(
     async (owner: TWorkspaceTab | undefined) => {
@@ -1014,8 +1046,7 @@ const AppContent = () => {
       mediaFullScreenRequestedRef.current = next;
       setMediaFullScreenOwner(owner);
       try {
-        const applied =
-          await window.electron.ipcRenderer.setWindowFullScreen(next);
+        const applied = await requestWindowFullScreen(next);
         mediaFullScreenRequestedRef.current = next && applied;
         setMediaFullScreenOwner(next && applied ? owner : undefined);
       } catch (error) {
@@ -1024,7 +1055,7 @@ const AppContent = () => {
         reportError('Could not change the media surface full screen', error);
       }
     },
-    [],
+    [requestWindowFullScreen],
   );
 
   // Ctrl+F and Ctrl+S always mean graph fullscreen and expanded mode in a
@@ -1314,14 +1345,59 @@ const AppContent = () => {
   useEffect(() => {
     let mounted = true;
 
-    window.electron.ipcRenderer
-      .isWindowMaximized()
-      .then((maximized) => {
-        if (mounted) {
-          setIsWindowMaximized(maximized);
+    /**
+     * THE WINDOW IS THE AUTHORITY ON WHETHER IT IS FULL SCREEN.
+     *
+     * This used to believe it only while a request of ours was in flight,
+     * which left the app free to disagree with the window for as long as it
+     * liked — and it did. Two states for one fact is the bug Ivan named: the
+     * window full screen, this app drawing the windowed layout, and a
+     * full-screen press that appeared to do nothing because what it actually
+     * did was put the two back in step.
+     *
+     * Both directions are reconciled here, which is what makes this the one
+     * place that decides:
+     *
+     *  - Not full screen: nothing may still own a full-screen surface. That
+     *    covers the window being taken out of it by any route we did not ask
+     *    about, F11 and the system menu among them.
+     *
+     *  - Full screen with nothing in here claiming it: the two have come
+     *    apart, and the window is the half that is wrong — no tab is drawing
+     *    a full-screen layout, so it is showing a windowed one with the
+     *    titlebar gone. Put it back.
+     *
+     * Fed from two places, because the window outlives the page. Every state
+     * change the window announces comes through the listener below; the read
+     * on mount is for the announcement that was made before there was a page
+     * to hear it — main pushes the state on `did-finish-load`, which is before
+     * React has mounted this listener, so a renderer reload inside full screen
+     * kept the window and lost the flag. Measured: 1440px tall with the
+     * windowed layout in it, and a double-click that only repaired the
+     * disagreement.
+     */
+    const reconcileWindowState = (
+      state: { isMaximized?: boolean; isFullScreen?: boolean } | undefined,
+    ) => {
+      if (!mounted) {
+        return;
+      }
+      setIsWindowMaximized(Boolean(state?.isMaximized));
+      if (state?.isFullScreen === true) {
+        if (!windowFullScreenClaimRef.current) {
+          window.electron.ipcRenderer
+            .setWindowFullScreen(false)
+            .catch(() => undefined);
         }
-        return undefined;
-      })
+        return;
+      }
+      mediaFullScreenRequestedRef.current = false;
+      setMediaFullScreenOwner(undefined);
+    };
+
+    window.electron.ipcRenderer
+      .getWindowState()
+      .then(reconcileWindowState)
       .catch(() => {
         // The window state is only visual; keep the restore control usable if
         // the main process is not ready during a hot reload.
@@ -1330,16 +1406,10 @@ const AppContent = () => {
     const unsubscribe = window.electron.ipcRenderer.on(
       'window-state-changed',
       (...args: unknown[]) => {
-        const state = args[0] as
-          { isMaximized?: boolean; isFullScreen?: boolean } | undefined;
-        setIsWindowMaximized(Boolean(state?.isMaximized));
-        if (
-          state?.isFullScreen === false &&
-          mediaFullScreenRequestedRef.current
-        ) {
-          mediaFullScreenRequestedRef.current = false;
-          setMediaFullScreenOwner(undefined);
-        }
+        reconcileWindowState(
+          args[0] as
+            { isMaximized?: boolean; isFullScreen?: boolean } | undefined,
+        );
       },
     );
 

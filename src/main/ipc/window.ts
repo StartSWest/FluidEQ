@@ -99,6 +99,16 @@ export const registerWindowIpc = ({
     () => getMainWindow()?.isMaximized() ?? false,
   );
 
+  // The same two flags `sendWindowState` pushes, on request — for a page that
+  // mounted after the push and has to ask what window it woke up in.
+  ipcMain.handle('window-get-state', () => {
+    const mainWindow = getMainWindow();
+    return {
+      isMaximized: mainWindow?.isMaximized() ?? false,
+      isFullScreen: mainWindow?.isFullScreen() ?? false,
+    };
+  });
+
   /**
    * Real fullscreen — the OS kind, with the taskbar gone.
    *

@@ -17,6 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 @use 'color' as *;
+@use 'constant' as *;
 @use 'motion' as *;
 @use 'spacing' as *;
 @use 'theme' as *;
@@ -669,7 +670,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   animation: library-scan-progress-in $motion-base $ease-out;
   background: rgba($surface-menu-top, 0.96);
   border: 1px solid rgba($secondary-light, 0.31);
-  border-radius: 13px;
+  border-radius: $radius-l;
 
   > button {
     min-height: 30px;
@@ -2741,6 +2742,11 @@ $library-wave-step: 4ms;
 
 .library-up-next {
   @include panel-surface;
+  // An inner pane, not a card: `panel-surface` is the top-level card recipe
+  // and brings the card's 18px corners with it, which beside the list, the
+  // grid and the video — all `$radius-m` — made this the roundest thing on
+  // the tab. The surface stays; only the corner is the inner one.
+  border-radius: $radius-m;
   position: absolute;
   z-index: 3;
   // The card's own padding, restated.
@@ -2770,14 +2776,16 @@ $library-wave-step: 4ms;
   flex-direction: column;
   padding: 6px 4px 8px 10px;
   gap: 4px;
-  // OPAQUE, overriding `panel-surface`'s translucent one.
+  // OPAQUE, overriding `panel-surface`'s translucent one, and the CARD
+  // colour — the same one the right rail's sections and every other block
+  // in the window stand on.
   //
-  // That mixin lets the shell show through, which is right for a card sitting
+  // The mixin lets the shell show through, which is right for a card sitting
   // in the window and wrong for a list of rows: the queue's own titles were
-  // competing with whatever was behind them, and floating over the shelf it
-  // was two lists in the same rectangle. The same two colours the mixin ends
-  // on, without the alpha.
-  background: $surface-field-end;
+  // competing with whatever was behind them. It then took an opaque colour of
+  // its own, a darker slate than any card beside it, so the one panel that
+  // floats over the shelf was also the one panel in a different material.
+  background: $block-lift;
 }
 
 // *** The queue beside a video ************************************************
@@ -2819,9 +2827,156 @@ $library-wave-step: 4ms;
   }
 
   &:has(.library-video-stage.is-fullscreen) {
+    // THE BROWSE BAR IS NOT DRAWN OVER A FULL-SCREEN PICTURE.
+    //
+    // It earns its place while the tab is a tab — it is how you leave the
+    // video and how you search — and none of that applies to a picture
+    // filling the screen, where the way out is Escape or another
+    // double-click. Left up it did real damage rather than merely taking
+    // room: the row sits at `z-index: 5` and the queue at 3, so browse chips,
+    // a search box and the folder buttons were painted straight across the
+    // top of the list, taking its heading and the Keep playing switch with
+    // them.
+    .library-toolbar-row {
+      display: none;
+    }
+
+    // THE PICTURE IS THE SCREEN, and everything else is drawn on top of it.
+    //
+    // Fixed to the viewport rather than laid out in the card, which is what
+    // karaoke's own full-screen stage does and for the same reason: the card
+    // reserves the height of the optional FluidEQ bar at its top (see
+    // `has-top-bar` in App.scss), and a picture that respects that reservation
+    // leaves a band of shell between the bar and the top of the video — the
+    // one thing a full screen is not supposed to have. Fixed, it reaches all
+    // four edges and the bar floats over it, translucent, the way it already
+    // floats over the graph and over a karaoke stage.
+    //
+    // This is the fixed descendant `container-type: normal` above is given
+    // back for: with the card still an inline-size container, `inset: 0` would
+    // resolve against the card and the picture would fill the middle column
+    // instead of the window.
+    .library-video-stage {
+      position: fixed;
+      z-index: 0;
+      inset: 0;
+    }
+
     .library-up-next,
     .library-up-next__splitter {
-      top: 10px;
+      top: 12px;
+    }
+
+    // MORE PRESENT THAN THE SHELF VERSION, and made of the same glass as the
+    // Back button opposite it — the header's own `blur(22px) saturate(130%)`.
+    //
+    // Over a picture the flat field colour the panel wears on a shelf reads as
+    // a dark hole cut in the film; lifted onto the panel tone at 88% it is a
+    // pane the titles sit on and the picture carries on behind it. The two
+    // things drawn on this screen are now one material at two strengths: this
+    // one holds a list somebody is reading, so it is the stronger of them.
+    .library-up-next {
+      background: rgba($surface-panel, 0.88);
+      backdrop-filter: blur(22px) saturate(130%);
+      -webkit-backdrop-filter: blur(22px) saturate(130%);
+    }
+
+    // No toolbar to clear here — the picture owns the whole card — so the
+    // chip goes back to the corner it pairs with the Back button in.
+    .library-up-next__chip--over-video {
+      top: 12px;
+    }
+
+    // The picture is fixed, so the queue has nothing in the flow left to
+    // stand beside and the strip reserved for it would be reserved out of
+    // nothing. It floats on the picture in full screen — which is what
+    // karaoke does too, and it is the only arrangement that lets the video
+    // reach the edges.
+    > *:not(.library-up-next):not(.library-up-next__splitter) {
+      margin-right: 0;
+    }
+  }
+}
+
+// The queue clears the FluidEQ bar when that bar is kept over a full screen.
+//
+// The card reserves its height as padding, and an absolutely placed child is
+// laid against the padding BOX — which starts inside the border and knows
+// nothing about the padding — so the panel, its splitter and the folded chip
+// all began at the top of the SCREEN and ran up behind the bar: measured, the
+// queue's heading and its Keep playing switch were underneath it. The same
+// arithmetic App.scss uses for the padding, said again here because there is
+// no way for one to read the other.
+.app-workspace.is-app-full.is-media-full.has-top-bar
+  .library-workspace:has(.library-video-stage.is-fullscreen) {
+  .library-up-next,
+  .library-up-next__splitter,
+  .library-up-next__chip--over-video {
+    top: calc(#{$title-bar-height} + 8px + 12px);
+  }
+
+  // And so does the way out. The picture runs under the bar now, so a Back
+  // button 12px inside the picture is 12px inside the BAR — the one control
+  // on the screen, behind the one thing drawn over it.
+  .library-video-stage__back {
+    top: calc(#{$title-bar-height} + 8px + 12px);
+  }
+}
+
+// *** The chrome over a full-screen picture goes together **********************
+//
+// Back and the queue answer to the same stillness the transport bar answers
+// to, and they leave and arrive with it. Anything else is a picture that is
+// only half uncovered: the bar slides away after two seconds and a button and
+// a list of two thousand songs stay lit over the film.
+//
+// `#root.is-chrome-idle` is the flag App publishes for exactly this — full
+// screen, and either the pointer is away from the chrome or it has been still
+// long enough. The same class the queue already reads to take back the room
+// under a faded bar.
+//
+// Each leaves by its own edge, which is what the bar does rather than merely
+// fading: a panel that only faded would leave its shadow lying over the
+// picture. `pointer-events` goes with them so nothing invisible can swallow a
+// press meant for the video, and the movement that would bring them back has
+// already happened by the time a press could land.
+.library-workspace:has(.library-video-stage.is-fullscreen) {
+  .library-video-stage__back,
+  .library-up-next,
+  .library-up-next__splitter,
+  .library-up-next__chip--over-video {
+    transition:
+      opacity $motion-base $ease-out,
+      transform $motion-base $ease-out;
+  }
+}
+
+#root.is-chrome-idle
+  .library-workspace:has(.library-video-stage.is-fullscreen) {
+  .library-video-stage__back {
+    // Up and out through the top edge it sits against.
+    opacity: 0;
+    transform: translateY(calc(-100% - #{$title-bar-height}));
+    pointer-events: none;
+  }
+
+  .library-up-next,
+  .library-up-next__splitter,
+  .library-up-next__chip--over-video {
+    // Out through the right, the edge all three are anchored to.
+    opacity: 0;
+    transform: translateX(calc(100% + 12px));
+    pointer-events: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .library-workspace:has(.library-video-stage.is-fullscreen) {
+    .library-video-stage__back,
+    .library-up-next,
+    .library-up-next__splitter,
+    .library-up-next__chip--over-video {
+      transition: none;
     }
   }
 }
@@ -2848,12 +3003,20 @@ $library-wave-step: 4ms;
 .library-up-next__chip--over-video {
   position: absolute;
   z-index: 1160;
-  // Level with the Back button in the opposite corner, which is 12px inside
-  // the picture — and the picture itself starts at the card's own padding.
-  // An absolute child is placed against the padding BOX, which takes no
-  // notice of that padding, so both numbers have to be said here or the chip
-  // rides higher and further out than the control it is paired with.
-  top: calc(10px + 12px);
+  // UNDER THE TOOLBAR, not across it. The browse row is drawn over a video
+  // now (see `has-video`, which orders the picture below it), and at a fixed
+  // inset from the card this chip landed on top of that row — the same
+  // measured height the queue panel starts below is the only number that
+  // cannot be wrong about where the row ends.
+  //
+  // The 12px afterwards is the picture's own inset, which is what pairs it
+  // with the Back button in the opposite corner; an absolute child is placed
+  // against the padding BOX, so the card's own right padding has to be said
+  // again here or the chip rides further out than the control it matches.
+  // The last 12px is the picture's own inset, which is what pairs this with
+  // the Back button in the opposite corner — without it the chip sits exactly
+  // on the top edge of the picture while its partner sits 12px inside it.
+  top: calc(var(--library-chrome-height, 0px) + 10px + 8px + 12px);
   right: calc(12px + 12px);
 }
 

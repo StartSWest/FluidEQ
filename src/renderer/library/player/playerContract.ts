@@ -89,6 +89,17 @@ export interface ILibraryPlayerContextValue {
    * remain usable from another tab, and Play can resume the item from zero.
    */
   stop: () => void;
+  /**
+   * Puts the picture away and stops it, leaving the queue untouched.
+   *
+   * Not the same command as `stop`, and this is the distinction the video
+   * stage's Back button was missing: stopping rewinds and pauses, and a
+   * stopped video is still the current track, so the picture stayed up over
+   * a library nobody could get back to. Closing takes the stage down and
+   * gives the shelves the tab back; what is queued behind it survives, and
+   * asking that video to play again brings the picture with it.
+   */
+  closeVideo: () => void;
   toggle: () => void;
   /**
    * Re-aims what plays next at a new list, without touching what is playing.

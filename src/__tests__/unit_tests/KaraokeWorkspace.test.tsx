@@ -33,6 +33,7 @@ import { createKaraokeMakerProject } from '../../common/karaoke/makerProject';
 import { parseUltraStar } from '../../common/karaoke/ultrastar';
 import { setTransportSlot } from '../../renderer/audio/transportSlot';
 import KaraokeWorkspace from '../../renderer/karaoke/KaraokeWorkspace';
+import { sendFilesToKaraoke } from '../../renderer/library/karaokeHandoff';
 import { karaokeLayoutStorageKey } from '../../renderer/karaoke/karaokeLayout';
 
 const fireTestPointer = (
@@ -1363,6 +1364,67 @@ describe('KaraokeWorkspace', () => {
     expect(
       (container.querySelector('audio') as HTMLAudioElement).currentTime,
     ).toBe(3.25);
+  });
+
+  /**
+   * "Send to Karaoke" mounts this tab, and mounting starts the saved-session
+   * read — so the song being sent is imported while that read is still in
+   * flight. The read used to finish a moment later and replace the whole list
+   * with what it found; the tab changed, the Maker closed, and the song was
+   * nowhere. Every first send after a launch failed like that. The restore
+   * must merge with what arrived while it was reading, and the song that was
+   * asked for stays the one selected.
+   */
+  it('keeps a song sent while the saved playlist was still loading', async () => {
+    let finishRestore: (value: unknown) => void = () => undefined;
+    restoreKaraokeSession.mockReturnValueOnce(
+      new Promise((resolve) => {
+        finishRestore = resolve;
+      }),
+    );
+
+    render(<KaraokeWorkspace isHidden={false} />);
+    // Arrives before the read has answered — the drain runs on mount.
+    act(() => {
+      sendFilesToKaraoke([
+        setKaraokeRelativePath(
+          new File(['audio'], 'Sent Over.mp3', { type: 'audio/mpeg' }),
+          'Sent Over.mp3',
+        ),
+      ]);
+    });
+    expect((await screen.findAllByText('Sent Over')).length).toBeGreaterThan(0);
+
+    await act(async () => {
+      finishRestore({
+        files: [
+          {
+            token: 'saved-audio',
+            name: 'Restored.mp3',
+            relativePath: 'Album/Restored.mp3',
+            type: 'audio/mpeg',
+            lastModified: 100,
+            role: 'audio',
+          },
+        ],
+        playlistOrder: ['album/restored.mp3'],
+        selectedPlaylistId: 'album/restored.mp3',
+        playheadMs: 3_250,
+      });
+      await Promise.resolve();
+    });
+
+    // Both are in the list, and the sent one is still the one chosen.
+    expect(await screen.findByText('Restored')).toBeVisible();
+    expect(screen.getAllByText('Sent Over').length).toBeGreaterThan(0);
+    expect(screen.getByText('2')).toBeVisible();
+    const current = document.querySelector(
+      '.karaoke-playlist__song[aria-current="true"]',
+    );
+    expect(current).not.toBeNull();
+    expect(within(current as HTMLElement).getByText('Sent Over')).toBeVisible();
+    // The saved session's own song was never loaded over it.
+    expect(readKaraokeSessionFile).not.toHaveBeenCalled();
   });
 
   it('persists a newly opened song and clears the saved session on demand', async () => {

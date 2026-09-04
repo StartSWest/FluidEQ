@@ -229,6 +229,90 @@ export const writePlaybackMemory = (
  * restore in that case would mean the one launch after a scan forgets where
  * the reader was.
  */
+/**
+ * How far into each video the reader got, one entry per video.
+ *
+ * Its own store, and per track rather than per session, because a film is not
+ * a song: the session blob remembers ONE playhead — whatever was last playing
+ * — so coming back to a video watched two days ago started it from nought
+ * however far in you were. A queue of videos would only ever remember the
+ * last of them.
+ *
+ * Only videos. Audio has the session restore and needs nothing else: a
+ * three-minute song resumed from 1:40 a week later is a stranger thing than
+ * one that starts again.
+ */
+const VIDEO_POSITIONS_KEY = 'fluideq.library.videoPositions';
+
+/**
+ * How many videos are remembered.
+ *
+ * An entry is about forty bytes and a library can hold thousands, so the map
+ * is bounded rather than left to grow for the life of the install. Oldest
+ * written go first — `writeVideoPosition` rewrites an entry every time it is
+ * touched, so "oldest written" is "least recently watched".
+ */
+const MAX_VIDEO_POSITIONS = 300;
+
+const readVideoPositions = (): Record<string, number> => {
+  try {
+    const raw = window.localStorage.getItem(VIDEO_POSITIONS_KEY);
+    if (!raw) {
+      return {};
+    }
+    const parsed: unknown = JSON.parse(raw);
+    if (typeof parsed !== 'object' || parsed === null) {
+      return {};
+    }
+    const entries = Object.entries(parsed as Record<string, unknown>).filter(
+      (entry): entry is [string, number] =>
+        typeof entry[1] === 'number' &&
+        Number.isFinite(entry[1]) &&
+        entry[1] > 0,
+    );
+    return Object.fromEntries(entries);
+  } catch {
+    return {};
+  }
+};
+
+/** Where this video was left, or undefined. Untrusted like everything else
+ * that comes back out of storage; the caller still has to decide whether the
+ * number is worth restoring — see `restorablePositionMs`. */
+export const readVideoPosition = (trackId: string): number | undefined =>
+  readVideoPositions()[trackId];
+
+/**
+ * Remember where this video is, or forget it.
+ *
+ * A position at the very start is a removal rather than an entry: somebody
+ * who watched ten seconds and left has not started the film, and an entry
+ * saying so would outlive the interest that produced it.
+ */
+export const writeVideoPosition = (
+  trackId: string,
+  positionMs: number,
+): void => {
+  try {
+    const positions = readVideoPositions();
+    if (positionMs < MIN_RESTORE_MS) {
+      delete positions[trackId];
+    } else {
+      // Deleted before it is set, so a rewritten entry moves to the end of the
+      // insertion order and the trim below takes the least recently watched.
+      delete positions[trackId];
+      positions[trackId] = Math.round(positionMs);
+    }
+    const keys = Object.keys(positions);
+    keys
+      .slice(0, Math.max(0, keys.length - MAX_VIDEO_POSITIONS))
+      .forEach((key) => delete positions[key]);
+    window.localStorage.setItem(VIDEO_POSITIONS_KEY, JSON.stringify(positions));
+  } catch {
+    // Same as every other store here: it simply will not be there next time.
+  }
+};
+
 export const restorablePositionMs = (
   storedMs: number,
   durationMs: number | undefined,

@@ -274,6 +274,104 @@ describe('the shared Stop contract', () => {
   });
 });
 
+describe('the Back button over a video', () => {
+  /**
+   * The queue, the track and the playhead all survive; only the picture goes.
+   *
+   * Stop was the button's first implementation, and Stop rewinds — so the
+   * picture stayed up (a stopped video is still the current track) and, once
+   * closing was added, the position written on the way out was nought. Both
+   * are asserted against here: the stage must leave, the element must be
+   * paused and NOT rewound, and the stored position must be the real one.
+   */
+  it('closes the picture, pauses in place and remembers where it was', async () => {
+    window.localStorage.removeItem('fluideq.library.videoPositions');
+    const { getByRole } = renderHarness();
+    await act(async () => {
+      await Promise.resolve();
+    });
+    act(() => {
+      latestPlayer?.playTracks([videoTrack.id, audioTrack.id], videoTrack.id);
+    });
+    const videoElement = document.querySelector('video');
+    expect(videoElement).not.toBeNull();
+    if (videoElement) {
+      videoElement.currentTime = 131;
+    }
+    currentTimeSets.length = 0;
+
+    act(() => {
+      getByRole('button', { name: 'Back' }).click();
+    });
+
+    expect(document.querySelector('video')).toBeNull();
+    expect(latestPlayer?.videoTrackId).toBeUndefined();
+    expect(latestPlayer?.isPlaying).toBe(false);
+    // No rewind: the only write to `currentTime` is the teardown's own, and
+    // it must not be a nought before the position was read.
+    expect(currentTimeSets).not.toContain(0);
+    // The queue is intact — Back is not "throw away what is queued".
+    expect(latestPlayer?.track?.id).toBe(videoTrack.id);
+    expect(latestPlayer?.queue?.trackIds).toEqual([
+      videoTrack.id,
+      audioTrack.id,
+    ]);
+    // And the place it was left is on record, for that video by id.
+    const stored = JSON.parse(
+      window.localStorage.getItem('fluideq.library.videoPositions') ?? '{}',
+    ) as Record<string, number>;
+    expect(stored[videoTrack.id]).toBe(131_000);
+  });
+
+  it('shows the same video again when it is picked again', async () => {
+    const { getByRole } = renderHarness();
+    await act(async () => {
+      await Promise.resolve();
+    });
+    act(() => {
+      latestPlayer?.playTracks([videoTrack.id], videoTrack.id);
+    });
+    act(() => {
+      getByRole('button', { name: 'Back' }).click();
+    });
+    expect(document.querySelector('video')).toBeNull();
+
+    // The same id, from the same shelf: closing is remembered by id, and
+    // this is the press that used to land on a video still marked closed —
+    // no picture, no sound, a row lit up as playing.
+    act(() => {
+      latestPlayer?.playTracks([videoTrack.id], videoTrack.id);
+    });
+    expect(latestPlayer?.videoTrackId).toBe(videoTrack.id);
+    expect(document.querySelector('video')).not.toBeNull();
+    expect(latestPlayer?.isPlaying).toBe(true);
+  });
+
+  it('brings the picture back when the closed video is asked to play', async () => {
+    const { getByRole } = renderHarness();
+    await act(async () => {
+      await Promise.resolve();
+    });
+    act(() => {
+      latestPlayer?.playTracks([videoTrack.id], videoTrack.id);
+    });
+    act(() => {
+      getByRole('button', { name: 'Back' }).click();
+    });
+    expect(document.querySelector('video')).toBeNull();
+
+    // The transport's play button. With the picture closed there is no
+    // element for it to reach, so its ordinary route was a dead press on a
+    // track the bar was still showing.
+    act(() => {
+      latestPlayer?.toggle();
+    });
+    expect(latestPlayer?.videoTrackId).toBe(videoTrack.id);
+    expect(latestPlayer?.isPlaying).toBe(true);
+    expect(document.querySelector('video')).not.toBeNull();
+  });
+});
+
 describe('a root removed while its track is playing (blocker 2)', () => {
   it('pauses the hidden audio element and hides the bar even though trackId never changes', async () => {
     renderHarness();
