@@ -55,6 +55,87 @@ describe('encrypted LAN audio protocol', () => {
     );
   });
 
+  it("accepts a sender's bar description and bounds every field", () => {
+    const playing = {
+      title: 'Song',
+      subtitle: 'Artist',
+      artist: 'Artist',
+      isPlaying: true,
+      positionMs: 12_000,
+      durationMs: 180_000,
+      canNext: true,
+      canPrevious: false,
+      canStep: true,
+      canStop: false,
+    };
+    expect(isRemoteAudioSignal({ kind: 'now-playing', playing })).toBe(true);
+    // An empty bar on the sender is a message too, not a missing field.
+    expect(isRemoteAudioSignal({ kind: 'now-playing' })).toBe(true);
+    expect(
+      isRemoteAudioSignal({
+        kind: 'now-playing',
+        playing: { ...playing, title: ' ' },
+      }),
+    ).toBe(false);
+    expect(
+      isRemoteAudioSignal({
+        kind: 'now-playing',
+        playing: { ...playing, title: 'x'.repeat(257) },
+      }),
+    ).toBe(false);
+    expect(
+      isRemoteAudioSignal({
+        kind: 'now-playing',
+        playing: { ...playing, positionMs: Number.NaN },
+      }),
+    ).toBe(false);
+    expect(
+      isRemoteAudioSignal({
+        kind: 'now-playing',
+        playing: { ...playing, durationMs: -1 },
+      }),
+    ).toBe(false);
+    expect(
+      isRemoteAudioSignal({
+        kind: 'now-playing',
+        playing: { ...playing, canStop: 'yes' },
+      }),
+    ).toBe(false);
+  });
+
+  it("accepts the listener's bar presses and bounds the step", () => {
+    ['toggle', 'pause', 'stop', 'next', 'previous'].forEach((command) => {
+      expect(isRemoteAudioSignal({ kind: 'transport', command })).toBe(true);
+    });
+    expect(isRemoteAudioSignal({ kind: 'transport', command: 'seek' })).toBe(
+      false,
+    );
+    expect(
+      isRemoteAudioSignal({
+        kind: 'transport',
+        command: 'nudge',
+        deltaMs: -5000,
+      }),
+    ).toBe(true);
+    expect(
+      isRemoteAudioSignal({
+        kind: 'transport',
+        command: 'nudge',
+        deltaMs: 60_001,
+      }),
+    ).toBe(false);
+    expect(
+      isRemoteAudioSignal({
+        kind: 'transport',
+        command: 'nudge',
+        deltaMs: Number.POSITIVE_INFINITY,
+      }),
+    ).toBe(false);
+    expect(isRemoteAudioSignal({ kind: 'transport', command: 'nudge' })).toBe(
+      false,
+    );
+  });
+
   it('accepts private LAN addresses and rejects public or malformed ones', () => {
     expect(isPrivateIpv4('10.0.0.12')).toBe(true);
     expect(isPrivateIpv4('172.16.4.2')).toBe(true);

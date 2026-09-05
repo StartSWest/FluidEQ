@@ -211,7 +211,9 @@ const main = async (): Promise<void> => {
   // 44.1 kHz on purpose: the host runs at 48 offline, so the deck has to
   // convert. A player that ignored the file's rate would still make sound.
   const wav = path.join(scratch, 'tone.wav');
-  writeWav(wav, 44_100, 4, 1_000, 0.5);
+  // Leave headroom for the +12 dB EQ check: a half-scale tone hits the
+  // -0.1 dBTP output ceiling and measures the guard instead of the EQ gain.
+  writeWav(wav, 44_100, 4, 1_000, 0.1);
 
   const telemetry: IHostTelemetry[] = [];
   const host = new DspHostSupervisor({
@@ -247,7 +249,7 @@ const main = async (): Promise<void> => {
   };
 
   const flat = await peakOf('flat');
-  check(flat > 0.4 && flat < 0.6, 'the file plays through at its own level');
+  check(flat > 0.08 && flat < 0.12, 'the file plays through at its own level');
 
   /**
    * The same audio with a +12 dB band on it, which is the wiring under test.

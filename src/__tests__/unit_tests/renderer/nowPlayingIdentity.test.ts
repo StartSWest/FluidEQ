@@ -52,6 +52,33 @@ const sourceOf = (
 });
 
 describe('pickPlayingIdentity', () => {
+  it("is the other computer's song while it plays through this one", () => {
+    // Smart EQ said nothing was playing through a whole album arriving over
+    // the LAN link. The sender's song is the same kind of thing as the
+    // machine's own player: never the owner, playing all the same.
+    const remoteSong = buildSongIdentity(
+      'remote',
+      'SWEST-YOGA',
+      'Song C',
+      'Artist',
+    );
+    expect(
+      pickPlayingIdentity(
+        { remote: sourceOf('remote', true, remoteSong) },
+        undefined,
+        undefined,
+      ),
+    ).toEqual({ identity: remoteSong, isPlaying: true });
+    // And not while it is paused: a paused song is not being equalised.
+    expect(
+      pickPlayingIdentity(
+        { remote: sourceOf('remote', false, remoteSong) },
+        undefined,
+        undefined,
+      ),
+    ).toEqual({ identity: undefined, isPlaying: false });
+  });
+
   it('is nothing when nothing is playing', () => {
     expect(
       pickPlayingIdentity(

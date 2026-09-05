@@ -121,6 +121,48 @@ describe('which player the bar belongs to', () => {
     );
   });
 
+  it('gives the bar to a song arriving from another computer', () => {
+    // A sender's song comes out of this machine's speakers and its own bar
+    // used to say nothing was playing. Same rule as the machine's own player:
+    // it takes the bar by playing, on every page.
+    const sources = {
+      library: source('library'),
+      remote: source('remote', true),
+    };
+    expect(pickTransportOwner('library', sources, undefined, 'library')).toBe(
+      'remote',
+    );
+    expect(pickTransportOwner(undefined, sources, undefined, 'library')).toBe(
+      'remote',
+    );
+  });
+
+  it("prefers the machine's own player to the other computer's", () => {
+    // Both playing, with the one-player switch off. A browser tab here is
+    // what somebody just pressed play on; the sender is a room away.
+    const sources = {
+      system: source('system', true),
+      remote: source('remote', true),
+    };
+    expect(pickTransportOwner(undefined, sources, undefined, undefined)).toBe(
+      'system',
+    );
+  });
+
+  it('keeps a paused sender on the bar so it can be resumed', () => {
+    // Unlike a paused browser tab: the link is live and the press that paused
+    // it is the press that resumes it. `setTransportSource` lets `remote`
+    // into the last-owner slot in memory, and this is the rule that reads it.
+    const sources = { remote: source('remote', false) };
+    expect(pickTransportOwner(undefined, sources, undefined, 'remote')).toBe(
+      'remote',
+    );
+    // And once the sender has gone, so has the bar.
+    expect(pickTransportOwner(undefined, {}, undefined, 'remote')).toBe(
+      undefined,
+    );
+  });
+
   it('never takes the bar from a player of this app that is playing', () => {
     // Both are making sound — a video in the Media tab and something outside.
     // The one with controls that work is the one worth showing.
