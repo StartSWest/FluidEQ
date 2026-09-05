@@ -1,3 +1,5 @@
+import { addOutputFeaturePages } from './output-feature-slides.mjs';
+
 export async function addShowcasePages({
   page,
   picture,
@@ -12,18 +14,18 @@ export async function addShowcasePages({
   text(slide, 'FluidEQ', 64, 162, 860, 140, 110, white, true);
   text(
     slide,
-    'Your sound, finally\nworth watching',
+    'Your sound, across\ndevices and computers',
     64,
     308,
     880,
     172,
-    67,
+    63,
     white,
     true,
   );
   text(
     slide,
-    'Equalizer, music player and karaoke for Windows.',
+    'Second Output. Share Audio. System-wide EQ.',
     64,
     498,
     940,
@@ -47,7 +49,17 @@ export async function addShowcasePages({
     'What it does; Getting started; Supporting the work',
   );
 
-  slide = await page(2, 'Headphone correction');
+  await addOutputFeaturePages({
+    page,
+    picture,
+    text,
+    notes,
+    accent,
+    white,
+    muted,
+  });
+
+  slide = await page(4, 'Headphone correction');
   text(
     slide,
     'Tuning that fits\nyour headphones',
@@ -95,7 +107,7 @@ export async function addShowcasePages({
     'Start from a measurement',
   );
 
-  slide = await page(3, 'Automatic device profiles');
+  slide = await page(5, 'Automatic device profiles');
   text(
     slide,
     'Each device keeps\nits own sound',
@@ -153,7 +165,7 @@ export async function addShowcasePages({
     'Follows your output; Six layers, one chain; Plays in two places at once',
   );
 
-  slide = await page(4, 'DSP for local playback');
+  slide = await page(6, 'DSP for local playback');
   text(
     slide,
     'More control over\nyour local music',
@@ -201,7 +213,7 @@ export async function addShowcasePages({
     'Shape what FluidEQ itself plays',
   );
 
-  slide = await page(5, 'Local music library');
+  slide = await page(7, 'Local music library');
   text(
     slide,
     'Your collection,\nback in the spotlight',
@@ -250,7 +262,7 @@ export async function addShowcasePages({
     'Play what is already on the machine',
   );
 
-  slide = await page(6, 'Custom visualizers');
+  slide = await page(8, 'Custom visualizers');
   text(
     slide,
     'A visualizer\nwith your signature',
@@ -298,7 +310,7 @@ export async function addShowcasePages({
     'Watch the sound, however you like to',
   );
 
-  slide = await page(7, 'Karaoke player');
+  slide = await page(9, 'Karaoke player');
   text(
     slide,
     'Your next karaoke\nnight starts here',
@@ -346,7 +358,7 @@ export async function addShowcasePages({
     'Sing over what you already own',
   );
 
-  slide = await page(8, 'Karaoke Maker');
+  slide = await page(10, 'Karaoke Maker');
   text(
     slide,
     'A karaoke version\nyou can make yourself',
@@ -404,7 +416,7 @@ export async function addShowcasePages({
     'And make the file when the song does not have one; Local and account-free',
   );
 
-  slide = await page(9, 'Download FluidEQ', true);
+  slide = await page(11, 'Download FluidEQ', true);
   await picture(slide, 'assets/icon.png', 64, 78, 102, 102, 'FluidEQ logo');
   text(slide, 'FluidEQ', 64, 222, 880, 146, 108, white, true);
   text(

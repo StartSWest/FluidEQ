@@ -14,13 +14,13 @@ from reportlab.pdfgen import canvas
 root = Path.cwd()
 kit = root / "output/social/FluidEQ-Social-Kit"
 pages = sorted(kit.glob("[0-9][0-9]-FluidEQ.png"))
-assert len(pages) == 9, "Expected nine social pages"
+assert len(pages) == 11, "Expected eleven social pages"
 composition = json.loads((root / "build/social-showcase/composition.json").read_text())
 pdf = root / "output/pdf/FluidEQ-Social-Showcase.pdf"
 doc = canvas.Canvas(str(pdf), pagesize=(810, 1012.5), pageCompression=1)
-doc.setTitle("FluidEQ - Your sound, finally worth watching")
+doc.setTitle("FluidEQ - Your sound, across devices and computers")
 doc.setAuthor("Ivan Carmenates Garcia")
-doc.setSubject("FluidEQ product showcase: EQ, local music playback and karaoke for Windows")
+doc.setSubject("FluidEQ: Second Output, Share Audio, system-wide EQ, music and karaoke")
 for i, image_path in enumerate(pages):
     with Image.open(image_path) as image:
         assert image.size == (1080, 1350), (image_path.name, image.size)
@@ -28,12 +28,12 @@ for i, image_path in enumerate(pages):
     doc.bookmarkPage(f"page-{i + 1}")
     doc.addOutlineEntry(composition[i]["title"], f"page-{i + 1}")
     doc.linkURL("https://fluideq.com", (40, 20, 240, 65), relative=0)
-    if i == 8:
+    if i == 10:
         doc.linkURL("https://fluideq.com", (40, 280, 650, 380), relative=0)
     doc.showPage()
 doc.save()
 reader = PdfReader(pdf)
-assert len(reader.pages) == 9
+assert len(reader.pages) == 11
 assert all(len(page.get("/Annots", [])) >= 1 for page in reader.pages)
 
 copy2(pdf, kit / pdf.name)
@@ -73,6 +73,6 @@ with ZipFile(archive, "w", ZIP_DEFLATED) as bundle:
             bundle.write(item, "FluidEQ-Social-Kit/" + item.name)
 with ZipFile(archive) as bundle:
     assert bundle.testzip() is None
-    assert len(bundle.namelist()) == 14
-print(f"Verified {len(pages)} PNGs, {len(reader.pages)} PDF pages, clickable download links and 14 kit files.")
+    assert len(bundle.namelist()) == 16
+print(f"Verified {len(pages)} PNGs, {len(reader.pages)} PDF pages, clickable download links and 16 kit files.")
 print(f"PDF: {pdf.stat().st_size:,} bytes; ZIP: {archive.stat().st_size:,} bytes")

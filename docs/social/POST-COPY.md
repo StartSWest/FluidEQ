@@ -2,88 +2,78 @@
 
 ## What to upload
 
-- **LinkedIn:** attach `FluidEQ-Social-Showcase.pdf` as a document. Suggested document title: **FluidEQ: Your sound, finally worth watching**. Paste the LinkedIn caption below. [LinkedIn document-post instructions](https://www.linkedin.com/help/linkedin/answer/a518909).
-- **Facebook:** use the nine numbered PNG images in order for a photo post, with the Facebook caption below. For a shorter introduction, use images 01, 02, 06 and 07.
-- **X:** use the single-post copy with images 01, 02, 06 and 07, or use the three-post thread below. X allows up to four media items in a post. [X posting instructions](https://help.x.com/en/using-x/how-to-post).
+- **LinkedIn:** attach the revised eleven-page `FluidEQ-Social-Showcase.pdf`. Document title: **FluidEQ: Your sound, across devices and computers**.
+- **Facebook:** upload all eleven numbered PNGs in order.
+- **X:** upload images 01, 02, 03 and 08. The cover and both lead features appear in the first three images.
 
-The images are 1080 x 1350 pixels. The PowerPoint file is editable. The PDF preserves the exact image layouts; a separate text transcript and image descriptions are included. The download link is in each caption so readers can use it directly from the post.
+The images are 1080 x 1350 pixels. The PowerPoint text is editable. The PDF preserves the image layouts and includes download links. The kit includes a full text transcript and image descriptions.
 
 ## Facebook caption
 
-I built FluidEQ for the moments when you put on a favorite song and want to spend a little more time listening.
+Your sound, across devices and computers. Meet FluidEQ.
 
-It gives you a visual equalizer for Windows, headphone corrections, and tuning that remembers which speakers or headphones you are using.
+Second Output: play through multiple devices, each with its own volume and EQ profile.
+Share Audio: hear several PCs through one listening PC on the same private network.
 
-There is a local music player with Cover Flow, a visualizer you can make your own, and a karaoke stage for your songs. Karaoke Maker can even separate voice and backing on your PC and help you build a timed lyric project.
+Plus system-wide EQ, headphone correction, a music player, visualizers and karaoke. Free and open source for Windows 10 & 11.
 
-FluidEQ is free and open source. No FluidEQ account needed.
+Take a look through the pictures. What would you try first?
+https://fluideq.com
 
-Take a look through the pictures. What would you try first: the EQ, the visualizer, or karaoke?
-
-Download for Windows 10 & 11: https://fluideq.com
-
-#FluidEQ #MusicLovers #Karaoke
+#FluidEQ #Music #EQ #AudioPlayer #SystemWideEQ #MultiOutputAudio #AudioSharing #OpenSource
 
 ## LinkedIn caption
 
-I have been building FluidEQ, an open-source audio application for Windows, with a simple goal: make detailed sound controls feel approachable and enjoyable to use.
+Meet FluidEQ. Your sound, across devices and computers.
 
-It brings a visual interface to Equalizer APO, with up to 128 EQ bands per output and an offline library of corrections for 6,229 headphone models. Each output keeps its own tuning, so switching from headphones to speakers also brings back the settings for that device.
+Second Output: play through multiple devices, each with its own volume and EQ profile.
+Share Audio: hear several PCs through one listening PC on the same private network.
 
-The project also includes a local music library, customizable visualizers, and a nine-stage DSP rack for FluidEQ's own local player. Karaoke and Karaoke Maker add timed lyrics, live pitch feedback and local voice/backing separation.
+Plus system-wide EQ, headphone correction, a music player, visualizers and karaoke. Free and open source for Windows.
 
-This is an independent project I build and maintain. The Windows download is free, the source is open, and optional contributions help me keep developing it.
+Explore the showcase:
+https://fluideq.com
 
-The attached showcase walks through the experience. I would love to hear which part you would use, and what would make it more useful in your setup.
-
-Explore FluidEQ: https://fluideq.com
-
-#FluidEQ #OpenSource #AudioSoftware
+#FluidEQ #Music #EQ #AudioPlayer #SystemWideEQ #AudioSharing
 
 ## X: single post
 
-I built FluidEQ for people who love their music: visual EQ, headphone correction, a local player, custom visualizers and karaoke. Free and open source for Windows 10 & 11.
+FluidEQ: Second Output plays across audio devices. Share Audio brings several PCs to one listening PC on a private LAN. Plus system-wide EQ, music and karaoke. Free for Windows.
 
-What would you try first?
 https://fluideq.com
-#FluidEQ
+#FluidEQ #Music #EQ #AudioPlayer #SystemWideEQ #AudioSharing
 
 ## X: optional three-post thread
 
 ### Post 1, images 01-03
 
-Meet FluidEQ: a visual equalizer for Windows that remembers the sound you tuned for each device. Up to 128 bands per output, plus corrections for 6,229 headphone models.
+FluidEQ brings your sound across devices and computers. Second Output plays through multiple devices with individual levels and EQ profiles. Share Audio brings several PCs to one listening PC on the same private network.
 
-Free and open source.
 https://fluideq.com
+#FluidEQ
 
-### Post 2, images 04-06
+### Post 2, images 04-07
 
-Your local music gets a home, too: Cover Flow, an Up Next queue and visualizers you can customize. A nine-stage DSP rack shapes FluidEQ's own local playback, from noise cleanup to bass and loudness.
+Your tuning follows your output device. Explore headphone corrections, up to 128 EQ bands per output, a local music library and a nine-stage DSP rack for Library playback.
 
-### Post 3, images 07-09
+#FluidEQ #EQ #AudioPlayer
 
-And there is karaoke. Bring your songs, follow timed lyrics and see your pitch live. Karaoke Maker can split voice and backing on your PC, with optional model downloads.
+### Post 3, images 08-11
 
-What would you try first?
+Make your own visualizer, sing along with timed lyrics and live pitch feedback, or build a karaoke project with local voice/backing separation.
+
+Free and open source for Windows.
 https://fluideq.com
-
-## Optional first comment
-
-If FluidEQ earns a place in your setup, you can support the time behind it here: https://buymeacoffee.com/startswest
-
-Thank you for giving it a listen.
+#FluidEQ #Music #Karaoke
 
 ## Image descriptions
 
-Use the descriptions in `SLIDE-TEXT-AND-ALT-TEXT.txt` when adding alternative text to the photos. The same file contains the full slide text for an accessible text version of the showcase.
+Use `SLIDE-TEXT-AND-ALT-TEXT.txt` for alternative text and the full slide transcript.
 
 ## Source and asset notes
 
-Feature claims were checked against the repository README and the [FluidEQ website](https://fluideq.com/) on September 5, 2026. The public site lists v1.6.1 while the working repository has a newer version; this showcase intentionally makes no release-version claim and does not promote preview-only Share Audio or Black theme features.
+Feature evidence comes from the repository README, the current user guide and the FluidEQ Share Audio implementation. This revision explicitly includes Second Output and Share Audio at the owner's request. It makes no release-version claim. The public website is https://fluideq.com/.
 
-The original app screenshots and FluidEQ logo come from this repository. The screenshots retain their original appearance and may show an earlier interface version. Songs, album artwork and external services shown inside the screenshots belong to their respective owners. Their appearance demonstrates the interface and implies no endorsement. FluidEQ does not include music.
+The original app screenshots and FluidEQ logo come from this repository. Screenshots may show an earlier interface version. Music, album artwork and external services visible inside them belong to their respective owners and imply no endorsement. FluidEQ does not include music. The Share Audio capture shows no pairing code.
 
-The glass-wave background was created with the built-in OpenAI image generation tool. The full prompt and reproducible build instructions are in `docs/social/README.md` in the source repository.
-
-These are prepared posting assets and copy. No social posts have been published.
+The decorative glass-wave background was created with OpenAI image generation. Reproducible build instructions are in `docs/social/README.md`.

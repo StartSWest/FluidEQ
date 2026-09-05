@@ -101,14 +101,14 @@ async function page(number, title, art = false) {
       'Abstract aqua liquid-glass wave on dark navy',
       'cover',
     );
-  if (number !== 1 && number !== 9) {
+  if (number !== 1 && number !== 11) {
     await picture(slide, 'assets/icon.png', 64, 56, 44, 44, 'FluidEQ logo');
     text(slide, 'FluidEQ', 123, 57, 400, 45, 29, white, true);
   }
   text(slide, 'fluideq.com', 64, 1273, 500, 40, 26, muted);
   text(
     slide,
-    String(number).padStart(2, '0') + ' / 09',
+    String(number).padStart(2, '0') + ' / 11',
     905,
     1273,
     140,
@@ -138,13 +138,14 @@ await fs.writeFile(
 );
 const candidatePath = path.join(staging, 'candidate.pptx');
 await (await PresentationFile.exportPptx(presentation)).save(candidatePath);
+const validatedPath = path.join(
+  await fs.mkdtemp(path.join(staging, 'validated-')),
+  'FluidEQ-Social-Showcase.pptx',
+);
 await finalizePresentation({
   workspaceDir: root,
   candidatePath,
-  finalPath: path.join(
-    root,
-    'output/presentations/FluidEQ-Social-Showcase.pptx',
-  ),
+  finalPath: validatedPath,
   pythonExecutable: RUNTIME_PYTHON,
   integrityValidatorPath: path.join(
     PRESENTATION_SKILL_DIR,
@@ -159,12 +160,20 @@ await finalizePresentation({
     '10287000,12858750',
     '--validate-heading-fit',
   ],
-  explicitTotalSlideCount: 9,
+  explicitTotalSlideCount: 11,
   requiredNativeTableOwnerSlides: [],
   fontPolicy: { basis: 'design', families: ['Segoe UI'] },
   verifyArtifactToolImport: true,
-  receiptPath: path.join(staging, 'presentation-validation.json'),
+  receiptPath: path.join(
+    staging,
+    path.basename(path.dirname(validatedPath)) + '-validation.json',
+  ),
 });
+// Publish the validated revision to the stable delivery filename.
+await fs.copyFile(
+  validatedPath,
+  path.join(root, 'output/presentations/FluidEQ-Social-Showcase.pptx'),
+);
 for (let i = 0; i < presentation.slides.items.length; i++) {
   const output = await presentation.export({
     slide: presentation.slides.items[i],
@@ -176,4 +185,4 @@ for (let i = 0; i < presentation.slides.items.length; i++) {
     new Uint8Array(await output.arrayBuffer()),
   );
 }
-console.log('Created 9-slide editable showcase and social PNGs.');
+console.log('Created 11-slide editable showcase and social PNGs.');
