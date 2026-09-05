@@ -52,6 +52,12 @@ type TSlideEntry = Omit<ITourSlide, 'isNew'>;
 const NEW_BY_RELEASE: Record<string, TSlideEntry[]> = {
   '1.6': [
     {
+      id: 'second-output',
+      titleKey: 'tour.output.title',
+      subtitleKey: 'tour.output.subtitle',
+      Body: SecondOutputSlide,
+    },
+    {
       id: 'black-theme',
       titleKey: 'tour.theme.title',
       subtitleKey: 'tour.theme.subtitle',
@@ -117,10 +123,17 @@ const ALWAYS: TSlideEntry[] = [
   },
 ];
 
-export const featureTourFor = (version: string): ITourSlide[] => [
-  ...(NEW_BY_RELEASE[featureTourKey(version)] ?? []).map((entry) => ({
-    ...entry,
-    isNew: true,
-  })),
-  ...ALWAYS.map((entry) => ({ ...entry, isNew: false })),
-];
+export const featureTourFor = (version: string): ITourSlide[] => {
+  const featured = NEW_BY_RELEASE[featureTourKey(version)] ?? [];
+  const featuredIds = new Set(featured.map((entry) => entry.id));
+  return [
+    ...featured.map((entry) => ({
+      ...entry,
+      isNew: true,
+    })),
+    ...ALWAYS.filter((entry) => !featuredIds.has(entry.id)).map((entry) => ({
+      ...entry,
+      isNew: false,
+    })),
+  ];
+};

@@ -104,24 +104,24 @@ const tour: Partial<Dictionary> = {
   'tour.dsp.open': 'Abrir DSP',
 
   'tour.output.kicker': 'TOCA EM DOIS LUGARES',
-  'tour.output.title': 'Uma segunda saída',
+  'tour.output.title': 'Perfis da segunda saída',
   'tour.output.subtitle':
     'Fone e caixas ao mesmo tempo, cada um com seu perfil',
   'tour.output.lead':
-    'O que você ouve pode tocar também em um segundo dispositivo: o fone e as caixas da sala, a mesa e a cozinha. O espelhamento pega o som depois que o seu EQ o moldou e o reenvia, então a segunda saída ouve a mesma afinação. Com um driver de roteamento instalado, as duas saídas ficam sincronizadas e cada uma pode ter seu próprio perfil, como faria um mixer tipo Voicemeeter.',
+    'Ouça no headset e nos alto-falantes com EQs separados. A segunda saída recebe o som antes do EQ da saída principal e aplica seu próprio perfil salvo. Não é necessário um driver de roteamento.',
   'tour.output.point1':
-    'Escolha qualquer outra saída em “Espelhar em” e ela começa a tocar o que você já ouve, com volume próprio.',
+    'Ative outro dispositivo em Segunda saída e ajuste seu volume.',
   'tour.output.point2':
-    'Cada saída mantém seu próprio perfil de EQ, então caixas e fone podem ser ajustados separadamente.',
+    'Use o seletor de perfil de EQ abaixo do dispositivo para escolher um dos perfis salvos para ele. A saída principal mantém sua regulagem.',
   'tour.output.point3':
     'Um player por vez: iniciar algo no FluidEQ pausa o resto da máquina, e vice-versa.',
   'tour.output.point4':
-    'O som espelhado chega com cerca de um quinto de segundo de atraso: bom para música em outro cômodo, não para vídeo ou jogos.',
+    'Jogo/Vídeo começa com cerca de 30 ms de reserva e se sincroniza após uma interrupção; Música começa com cerca de 100 ms para uma reprodução mais suave. O buffer do dispositivo acrescenta atraso.',
   'tour.output.how':
-    'Na aba EQ, abra “Segunda saída” no painel da direita, escolha um dispositivo em “Espelhar em” e ajuste o volume. O cartão mostra ESPELHANDO enquanto funciona.',
+    'Abra a aba EQ e expanda Segunda saída à direita. Ative um dispositivo, escolha seu perfil de EQ abaixo do nome, ajuste o volume e selecione Jogo/Vídeo ou Música.',
   'tour.output.open': 'Abrir EQ',
   'tour.output.imageAlt':
-    'O cartão Segunda saída na aba EQ: uma lista das outras saídas, uma ligada com seu próprio volume, e uma nota sobre o atraso.',
+    'O painel Segunda saída com o BlackShark V2 Pro ativado, seu seletor de perfil de EQ, volume e os modos Jogo/Vídeo e Música.',
 
   'tour.looks.kicker': 'SEU PRÓPRIO VISUALIZADOR',
   'tour.looks.title': 'Visuais próprios para o gráfico',

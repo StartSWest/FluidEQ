@@ -113,24 +113,24 @@ const tour = {
   'tour.dsp.open': 'Open DSP',
 
   'tour.output.kicker': 'PLAYS IN TWO PLACES',
-  'tour.output.title': 'A second output',
+  'tour.output.title': 'Second-output profiles',
   'tour.output.subtitle':
     'Headset and speakers at once, each with its own profile',
   'tour.output.lead':
-    'What you hear can play out of a second device at the same time: the headset and the room speakers, the desk and the kitchen. Mirroring takes the sound after your EQ has shaped it and sends it on, so the second output hears the same tuning. With a routing driver installed, both outputs stay in sync and each can carry its own profile, the way a mixer like Voicemeeter would do it.',
+    'Play the headset and speakers together with separate EQ. The second output receives sound before the main output’s EQ, then applies its own saved profile. No routing driver is needed.',
   'tour.output.point1':
-    'Pick any other output under "Mirror to" and it starts playing what you already hear, with its own volume.',
+    'Switch on another device in Second output and set its own volume.',
   'tour.output.point2':
-    'Each output keeps its own EQ profile, so the speakers and the headset can be tuned separately.',
+    'Use the EQ profile picker below that device to choose one of its saved profiles. The main output keeps its tuning.',
   'tour.output.point3':
     'One player at a time: starting something in FluidEQ pauses the rest of the machine, and the other way round.',
   'tour.output.point4':
-    'Mirrored sound arrives about a fifth of a second late: fine for music in another room, not for video or games.',
+    'Game/Video starts with about 30 ms in reserve and catches up after a stall; Music starts with about 100 ms for smoother listening. Device buffering adds to the delay.',
   'tour.output.how':
-    'On the EQ tab, open "Second output" in the right-hand panel, choose a device under "Mirror to" and set its volume. The card says MIRRORING while it runs.',
+    'Open the EQ tab and expand Second output on the right. Switch on a device, choose its EQ profile below its name, then set the volume and choose Game/Video or Music.',
   'tour.output.open': 'Open EQ',
   'tour.output.imageAlt':
-    'The Second output card on the EQ tab: a list of the other outputs, one switched on with its own volume, and a note about the delay.',
+    'The Second output panel with a BlackShark V2 Pro headset enabled, its EQ profile picker and volume slider, and Game/Video and Music mode cards.',
 
   'tour.looks.kicker': 'YOUR OWN VISUALIZER',
   'tour.looks.title': 'Custom looks for the graph',

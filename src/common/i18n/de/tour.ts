@@ -104,24 +104,24 @@ const tour: Partial<Dictionary> = {
   'tour.dsp.open': 'DSP öffnen',
 
   'tour.output.kicker': 'SPIELT AN ZWEI ORTEN',
-  'tour.output.title': 'Eine zweite Ausgabe',
+  'tour.output.title': 'Profile für den zweiten Ausgang',
   'tour.output.subtitle':
     'Headset und Lautsprecher zugleich, jedes mit eigenem Profil',
   'tour.output.lead':
-    'Was Sie hören, kann gleichzeitig aus einem zweiten Gerät kommen: Headset und Raumlautsprecher, Schreibtisch und Küche. Das Spiegeln nimmt den Klang, nachdem Ihr EQ ihn geformt hat, und reicht ihn weiter, sodass die zweite Ausgabe dieselbe Abstimmung hört. Mit einem installierten Routing-Treiber bleiben beide Ausgaben synchron und jede kann ihr eigenes Profil tragen, so wie es ein Mischer wie Voicemeeter täte.',
+    'Kopfhörer und Lautsprecher gleichzeitig mit getrenntem EQ hören. Der zweite Ausgang erhält den Ton vor dem EQ des Hauptausgangs und wendet sein eigenes gespeichertes Profil an. Kein Routing-Treiber nötig.',
   'tour.output.point1':
-    'Wählen Sie unter „Spiegeln auf“ eine beliebige andere Ausgabe, und sie spielt, was Sie bereits hören, mit eigener Lautstärke.',
+    'Ein weiteres Gerät unter Zweiter Ausgang einschalten und seine Lautstärke einstellen.',
   'tour.output.point2':
-    'Jede Ausgabe behält ihr eigenes EQ-Profil, sodass Lautsprecher und Headset getrennt abgestimmt werden.',
+    'Im EQ-Profilwähler unter dem Gerät eines seiner gespeicherten Profile auswählen. Die Abstimmung des Hauptausgangs bleibt erhalten.',
   'tour.output.point3':
     'Ein Player zur Zeit: Etwas in FluidEQ zu starten pausiert den Rest des Rechners, und umgekehrt.',
   'tour.output.point4':
-    'Gespiegelter Klang kommt etwa eine fünftel Sekunde später an: gut für Musik im Nebenzimmer, nicht für Video oder Spiele.',
+    'Spiel/Video startet mit etwa 30 ms Reserve und holt nach einer Unterbrechung auf; Musik startet mit etwa 100 ms für gleichmäßigere Wiedergabe. Der Gerätepuffer erhöht die Verzögerung.',
   'tour.output.how':
-    'Öffnen Sie im Tab EQ „Zweite Ausgabe“ im rechten Panel, wählen Sie unter „Spiegeln auf“ ein Gerät und stellen Sie die Lautstärke ein. Die Karte zeigt SPIEGELT, solange es läuft.',
+    'Im EQ-Tab rechts Zweiter Ausgang öffnen. Ein Gerät einschalten, unter seinem Namen das EQ-Profil wählen, die Lautstärke einstellen und Spiel/Video oder Musik auswählen.',
   'tour.output.open': 'EQ öffnen',
   'tour.output.imageAlt':
-    'Die Karte Zweite Ausgabe im Tab EQ: die Liste der anderen Ausgaben, eine davon eingeschaltet mit eigener Lautstärke, und ein Hinweis zur Verzögerung.',
+    'Zweiter Ausgang mit aktiviertem BlackShark V2 Pro, EQ-Profilwähler, Lautstärkeregler und den Modi Spiel/Video und Musik.',
 
   'tour.looks.kicker': 'IHR EIGENER VISUALIZER',
   'tour.looks.title': 'Eigene Darstellungen für den Graphen',

@@ -6,6 +6,59 @@ actions menu opens it again any time.
 
 ---
 
+## 1.6.3
+
+Two outputs, each with its own sound. The second output now receives audio
+before the main output's EQ, and a profile picker sits directly below each
+enabled device. This update also fixes output-switching crashes and feedback,
+and keeps Smart EQ from undoing the tuning you chose.
+
+### New
+
+- **Choose the second output's profile right where it plays.** Its EQ profile
+  picker shows the profiles saved for that device. Switching it changes that
+  output's EQ without making it the main output or replacing the main output's
+  tuning. Each second output keeps its own volume.
+- **Game/Video and Music modes for second outputs.** Game/Video starts with
+  about 30 ms in reserve and catches up after a stall. Music starts with about
+  100 ms for smoother playback. The device's own buffering adds to that delay.
+- **The welcome tour leads with second-output profiles.** The updated screenshot
+  shows the profile picker and both playback modes. Second output, Black theme
+  and Share Audio remain the three NEW features at the top. The tour also
+  introduces the custom graph looks, with instructions in all ten languages.
+- **Named profiles comes first in the sidebar,** above Automatic profile, so
+  your saved sound is easier to find.
+
+### Fixed
+
+- **Headset B no longer inherits headset A's EQ.** On Windows, second outputs
+  receive the mix before endpoint effects, so each device applies its own APO
+  profile. Audio received through Share Audio remains part of the local mix.
+- **Switching the main output safely stops its mirrors.** Changing from A as
+  main and B as second to B as main no longer tries to disconnect an audio
+  connection that has already been removed. Pending starts are cancelled too.
+- **Second outputs cannot feed themselves back into the capture.** This
+  addresses the repeating sound on the main output and silent second output
+  reported after changing devices. Windows routes mirrors by permanent device
+  identity rather than by matching display names.
+- **Smart EQ preserves your tuning while correcting the source.** Manual EQ
+  bands and headphone, driver and voicing corrections are no longer treated as
+  faults in the recording. A deliberate cut stays in place while Smart EQ can
+  still correct a real hole or resonance in the source.
+- **The welcome screenshot stays inside its frame.** Tall captures scale to
+  fit without spilling into the Back and Next buttons.
+- **Black theme keeps gray listening bars.** Smart EQ's listening columns and
+  progress bars follow the selected theme instead of retaining Ocean's cyan.
+- **A failed window can recover without restarting everything.** FluidEQ stops
+  playback and reloads its window, with a limit on automatic attempts and a
+  choice to retry or quit if the problem repeats. A packaged app can also
+  restart once after an unexpected main-process error.
+- **Karaoke's native model processing runs in a separate process.** A model or
+  GPU failure leaves the app running, clears unusable sessions and allows a
+  bounded retry. Reloading the window cancels work from the previous page.
+
+---
+
 ## 1.6.2
 
 Two big things and a long list of smaller ones. Your other computers can now

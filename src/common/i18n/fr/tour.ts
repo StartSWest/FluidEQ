@@ -104,24 +104,24 @@ const tour: Partial<Dictionary> = {
   'tour.dsp.open': 'Ouvrir le DSP',
 
   'tour.output.kicker': 'JOUE À DEUX ENDROITS',
-  'tour.output.title': 'Une deuxième sortie',
+  'tour.output.title': 'Profils de la seconde sortie',
   'tour.output.subtitle':
     'Casque et enceintes en même temps, chacun avec son profil',
   'tour.output.lead':
-    'Ce que vous entendez peut aussi sortir d’un deuxième appareil : le casque et les enceintes du salon, le bureau et la cuisine. La duplication prend le son après que votre EQ l’a façonné et le renvoie, donc la deuxième sortie entend le même réglage. Avec un pilote de routage installé, les deux sorties restent synchronisées et chacune peut porter son propre profil, comme le ferait un mixeur du type Voicemeeter.',
+    'Écoutez au casque et sur les enceintes avec des égalisations séparées. La seconde sortie reçoit le son avant l’égalisation de la sortie principale, puis applique son propre profil enregistré. Aucun pilote de routage nécessaire.',
   'tour.output.point1':
-    'Choisissez n’importe quelle autre sortie sous « Dupliquer vers » et elle se met à jouer ce que vous entendez déjà, avec son propre volume.',
+    'Activez un autre appareil dans Seconde sortie et réglez son volume.',
   'tour.output.point2':
-    'Chaque sortie garde son propre profil d’EQ : les enceintes et le casque se règlent séparément.',
+    'Choisissez un profil enregistré avec le sélecteur de profil d’égalisation sous cet appareil. La sortie principale garde ses réglages.',
   'tour.output.point3':
     'Un lecteur à la fois : lancer quelque chose dans FluidEQ met le reste de la machine en pause, et inversement.',
   'tour.output.point4':
-    'Le son dupliqué arrive avec environ un cinquième de seconde de retard : parfait pour de la musique dans une autre pièce, pas pour la vidéo ni les jeux.',
+    'Jeu/Vidéo démarre avec environ 30 ms de réserve et se resynchronise après une interruption ; Musique démarre avec environ 100 ms pour une écoute plus fluide. Le tampon de l’appareil ajoute du retard.',
   'tour.output.how':
-    'Dans l’onglet EQ, ouvrez « Deuxième sortie » dans le panneau de droite, choisissez un appareil sous « Dupliquer vers » et réglez son volume. La carte affiche DUPLICATION pendant que ça tourne.',
+    'Ouvrez l’onglet EQ puis Seconde sortie à droite. Activez un appareil, choisissez son profil sous son nom, réglez le volume et sélectionnez Jeu/Vidéo ou Musique.',
   'tour.output.open': 'Ouvrir l’EQ',
   'tour.output.imageAlt':
-    'La carte Deuxième sortie dans l’onglet EQ : la liste des autres sorties, l’une activée avec son propre volume, et une note sur le délai.',
+    'Le panneau Seconde sortie avec un BlackShark V2 Pro activé, son sélecteur de profil, son volume et les modes Jeu/Vidéo et Musique.',
 
   'tour.looks.kicker': 'VOTRE PROPRE VISUALISEUR',
   'tour.looks.title': 'Des styles à vous pour le graphe',

@@ -104,24 +104,24 @@ const tour: Partial<Dictionary> = {
   'tour.dsp.open': 'Abrir DSP',
 
   'tour.output.kicker': 'SUENA EN DOS SITIOS',
-  'tour.output.title': 'Una segunda salida',
+  'tour.output.title': 'Perfiles de la segunda salida',
   'tour.output.subtitle':
     'Auriculares y altavoces a la vez, cada uno con su perfil',
   'tour.output.lead':
-    'Lo que oyes puede sonar también por un segundo dispositivo: los auriculares y los altavoces de la sala, el escritorio y la cocina. La duplicación toma el sonido después de que tu EQ lo haya moldeado y lo reenvía, así que la segunda salida oye el mismo ajuste. Con un controlador de enrutamiento instalado, las dos salidas van sincronizadas y cada una puede llevar su propio perfil, como haría un mezclador tipo Voicemeeter.',
+    'Escucha por auriculares y altavoces a la vez con EQ independiente. La segunda salida recibe el sonido antes del EQ de la principal y aplica su propio perfil guardado. No hace falta un controlador de enrutamiento.',
   'tour.output.point1':
-    'Elige cualquier otra salida en «Duplicar en» y empieza a sonar lo que ya oyes, con su propio volumen.',
+    'Activa otro dispositivo en Segunda salida y ajusta su volumen.',
   'tour.output.point2':
-    'Cada salida conserva su propio perfil de EQ, así que altavoces y auriculares se ajustan por separado.',
+    'Usa el selector de perfil de EQ bajo ese dispositivo para elegir uno de sus perfiles guardados. La salida principal conserva su ajuste.',
   'tour.output.point3':
     'Un reproductor a la vez: iniciar algo en FluidEQ pausa el resto de la máquina, y al revés.',
   'tour.output.point4':
-    'El sonido duplicado llega con un quinto de segundo de retraso: bien para música en otra habitación, no para vídeo ni juegos.',
+    'Juego/Vídeo empieza con unos 30 ms de reserva y se resincroniza tras una interrupción; Música empieza con unos 100 ms para una escucha más fluida. El búfer del dispositivo añade retardo.',
   'tour.output.how':
-    'En la pestaña EQ, abre «Segunda salida» en el panel derecho, elige un dispositivo en «Duplicar en» y ajusta su volumen. La tarjeta muestra DUPLICANDO mientras funciona.',
+    'Abre la pestaña EQ y despliega Segunda salida a la derecha. Activa un dispositivo, elige su perfil de EQ bajo el nombre, ajusta el volumen y selecciona Juego/Vídeo o Música.',
   'tour.output.open': 'Abrir EQ',
   'tour.output.imageAlt':
-    'La tarjeta Segunda salida en la pestaña EQ: una lista de las demás salidas, una activada con su propio volumen, y una nota sobre el retardo.',
+    'El panel Segunda salida con unos BlackShark V2 Pro activados, su selector de perfil de EQ, el volumen y los modos Juego/Vídeo y Música.',
 
   'tour.looks.kicker': 'TU PROPIO VISUALIZADOR',
   'tour.looks.title': 'Estilos propios para la gráfica',
