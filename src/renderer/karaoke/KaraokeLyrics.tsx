@@ -46,7 +46,7 @@ import {
   paintKaraokeLyricsTranslationLine,
   useKaraokeLyricsTranslationSelection,
 } from './karaokeLyricsTranslation';
-import { readAccent } from '../utils/theme';
+import { readAccent, readAccentLight } from '../utils/theme';
 
 interface IKaraokeLyricsProps {
   song: IKaraokeSong;
@@ -634,8 +634,8 @@ const KaraokeLyrics = ({
               context.fillStyle =
                 euphoriaFill ??
                 (isCaptureComplete
-                  ? 'rgb(208, 255, 251)'
-                  : 'rgb(103, 241, 232)');
+                  ? readAccentLight(1, 'rgb(208, 255, 251)')
+                  : readAccent(1, 'rgb(103, 241, 232)'));
               if (euphoriaFill) {
                 context.shadowColor = `hsla(${euphoriaHue}, 98%, 65%, 0.5)`;
                 context.shadowBlur = 13 * focusAmount;
@@ -735,7 +735,10 @@ const KaraokeLyrics = ({
           context.font = `800 ${size}px ${LYRIC_FONT_FAMILY}`;
           context.textAlign = 'center';
           context.textBaseline = 'middle';
-          context.shadowColor = readAccent(0.55, 'rgba(0, 229, 207, 0.55)');
+          context.shadowColor = readAccent(
+            0.55,
+            readAccent(0.55, 'rgba(0, 229, 207, 0.55)'),
+          );
           context.shadowBlur = 18;
           context.fillStyle = `rgba(126, 245, 232, ${0.9 * fade})`;
           context.fillText(label, width / 2, height - size * 1.1);

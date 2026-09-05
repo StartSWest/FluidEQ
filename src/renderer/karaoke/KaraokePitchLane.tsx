@@ -82,7 +82,12 @@ import {
   TKaraokeMicrophoneStatus,
   TKaraokePitchAnalysisStatus,
 } from './useKaraokeMicrophone';
-import { readSurface, readSurfaceAlpha } from '../utils/theme';
+import {
+  readAccent,
+  readAccentLight,
+  readSurface,
+  readSurfaceAlpha,
+} from '../utils/theme';
 
 /**
  * The system font, the same stack the stylesheet uses — a canvas cannot read
@@ -348,7 +353,7 @@ const KaraokePitchLane = ({
         const labelY = 10 + lane * 13;
         const textLeft = labelX - textWidth / 2;
         context.fillStyle = isComplete
-          ? 'rgba(151, 247, 238, .88)'
+          ? readAccentLight(0.88, 'rgba(151, 247, 238, .88)')
           : 'rgba(205, 216, 237, 0.72)';
         context.shadowColor = 'transparent';
         context.shadowBlur = 0;
@@ -363,15 +368,15 @@ const KaraokePitchLane = ({
             labelFontSize * 2,
           );
           context.clip();
-          context.fillStyle = '#73fff3';
-          context.shadowColor = 'rgba(33, 232, 214, .78)';
+          context.fillStyle = readAccentLight(1, '#73fff3');
+          context.shadowColor = readAccent(0.78, 'rgba(33, 232, 214, .78)');
           context.shadowBlur = isCurrent ? 9 : 4;
           context.fillText(word.text, labelX, labelY);
           context.restore();
         }
         context.restore();
 
-        context.strokeStyle = 'rgba(34, 224, 214, 0.25)';
+        context.strokeStyle = readAccent(0.25, 'rgba(34, 224, 214, 0.25)');
         context.lineWidth = 1.4;
         context.lineCap = 'round';
         context.beginPath();
@@ -383,11 +388,11 @@ const KaraokePitchLane = ({
             noteLeft + Math.max(1, noteRight - noteLeft) * wordProgress;
           context.save();
           context.strokeStyle = isComplete
-            ? 'rgba(91, 237, 224, .7)'
-            : '#49f2e3';
+            ? readAccent(0.7, 'rgba(91, 237, 224, .7)')
+            : readAccent(1, '#49f2e3');
           context.lineWidth = isCurrent ? 2.6 : 2;
           context.shadowColor = isCurrent
-            ? 'rgba(39, 235, 219, .7)'
+            ? readAccent(0.7, 'rgba(39, 235, 219, .7)')
             : 'transparent';
           context.shadowBlur = isCurrent ? 7 : 0;
           context.beginPath();
@@ -561,7 +566,7 @@ const KaraokePitchLane = ({
         const noteWidth = Math.max(3, xForSongTime(endMs) - x);
         const noteHeight = Math.max(4, semitoneHeight * 0.76);
         let noteColor = 'rgba(83, 139, 238, 0.68)';
-        let noteEdge = 'rgba(61, 214, 226, 0.88)';
+        let noteEdge = readAccent(0.88, 'rgba(61, 214, 226, 0.88)');
         if (note.kind === 'free') {
           noteColor = 'rgba(83, 139, 238, 0.25)';
           noteEdge = 'rgba(83, 139, 238, 0.42)';
@@ -583,8 +588,8 @@ const KaraokePitchLane = ({
           synchronizedPlayheadMs,
         );
         if (isPitchMatch) {
-          noteColor = 'rgba(40, 242, 213, 0.96)';
-          noteEdge = 'rgba(226, 255, 250, 1)';
+          noteColor = readAccent(0.96, 'rgba(40, 242, 213, 0.96)');
+          noteEdge = readAccentLight(1, 'rgba(226, 255, 250, 1)');
         }
         const noteY = yForMidi(midi) - noteHeight / 2;
         const noteGradient = context.createLinearGradient(
@@ -598,7 +603,7 @@ const KaraokePitchLane = ({
         noteGradient.addColorStop(1, noteColor);
         context.fillStyle = noteGradient;
         context.shadowColor = isPitchMatch
-          ? 'rgba(40, 242, 213, 0.98)'
+          ? readAccent(0.98, 'rgba(40, 242, 213, 0.98)')
           : noteEdge;
         context.shadowBlur = isPitchMatch ? 18 : 5;
         roundedRectPath(context, x, noteY, noteWidth, noteHeight);
@@ -606,14 +611,14 @@ const KaraokePitchLane = ({
         context.shadowBlur = 0;
 
         if (timingState !== 'idle') {
-          let timingBorder = 'rgba(34, 224, 214, 0.5)';
+          let timingBorder = readAccent(0.5, 'rgba(34, 224, 214, 0.5)');
           let timingGlow = 3;
           if (timingState === 'active') {
             timingBorder = 'rgba(48, 145, 255, 1)';
             timingGlow = 10;
           }
           if (isPitchMatch) {
-            timingBorder = 'rgba(226, 255, 250, 1)';
+            timingBorder = readAccentLight(1, 'rgba(226, 255, 250, 1)');
             timingGlow = 15;
           }
           context.strokeStyle = timingBorder;
@@ -642,10 +647,10 @@ const KaraokePitchLane = ({
           context.textAlign = 'center';
           context.textBaseline = labelAbove ? 'bottom' : 'top';
           context.fillStyle = isPitchMatch
-            ? 'rgba(226, 255, 250, 1)'
+            ? readAccentLight(1, 'rgba(226, 255, 250, 1)')
             : 'rgba(221, 233, 251, 0.9)';
           context.shadowColor = isPitchMatch
-            ? 'rgba(40, 242, 213, 0.8)'
+            ? readAccent(0.8, 'rgba(40, 242, 213, 0.8)')
             : 'rgba(5, 14, 25, 0.95)';
           context.shadowBlur = isPitchMatch ? 8 : 3;
           context.fillText(
@@ -697,7 +702,10 @@ const KaraokePitchLane = ({
         );
         guideGradient.addColorStop(0, 'rgba(91, 147, 235, 0.34)');
         guideGradient.addColorStop(0.2, 'rgba(123, 195, 255, 0.82)');
-        guideGradient.addColorStop(1, 'rgba(107, 233, 242, 0.76)');
+        guideGradient.addColorStop(
+          1,
+          readAccent(0.76, 'rgba(107, 233, 242, 0.76)'),
+        );
         context.lineCap = 'round';
         context.lineJoin = 'round';
         context.setLineDash([]);
@@ -721,7 +729,7 @@ const KaraokePitchLane = ({
         if (guideTargetMidi !== undefined) {
           const guideY = yForMidi(guideTargetMidi);
           const guideX = xForSongTime(synchronizedPlayheadMs);
-          context.fillStyle = '#dff8ff';
+          context.fillStyle = readAccentLight(1, '#dff8ff');
           context.shadowColor = '#5fb8ff';
           context.shadowBlur = 12;
           context.beginPath();
@@ -734,7 +742,7 @@ const KaraokePitchLane = ({
       // A visible zero line anchors the combined song-note/live-voice view.
       const baselineY = yForMidi(centerMidi);
       context.strokeStyle = isMicrophoneLive
-        ? 'rgba(34, 224, 214, 0.2)'
+        ? readAccent(0.2, 'rgba(34, 224, 214, 0.2)')
         : 'rgba(167, 181, 205, 0.13)';
       context.lineWidth = 1.2;
       context.setLineDash([4, 5]);
@@ -897,7 +905,7 @@ const KaraokePitchLane = ({
         );
         aura.addColorStop(0, last.voiced ? '#ffffff' : headColor);
         aura.addColorStop(0.22, headColor);
-        aura.addColorStop(1, 'rgba(34, 224, 214, 0)');
+        aura.addColorStop(1, readAccent(0, 'rgba(34, 224, 214, 0)'));
         context.fillStyle = aura;
         context.beginPath();
         context.arc(last.x, last.y, pulse * 2.8, 0, Math.PI * 2);
@@ -986,7 +994,7 @@ const KaraokePitchLane = ({
 
         context.textBaseline = 'middle';
         if (reviewLabelWidth > 0) {
-          context.fillStyle = 'rgba(107, 233, 242, 0.78)';
+          context.fillStyle = readAccent(0.78, 'rgba(107, 233, 242, 0.78)');
           context.beginPath();
           context.arc(
             PLOT_LEFT + 3,
@@ -1022,7 +1030,7 @@ const KaraokePitchLane = ({
           readSurfaceAlpha('--track-well', 0.85, 'rgba(46, 79, 99, 0.85)'),
         );
         context.fillStyle = trackGradient;
-        context.strokeStyle = 'rgba(107, 233, 242, 0.13)';
+        context.strokeStyle = readAccent(0.13, 'rgba(107, 233, 242, 0.13)');
         context.lineWidth = 1;
         roundedRectPath(
           context,
@@ -1144,7 +1152,7 @@ const KaraokePitchLane = ({
         );
         context.fill();
         context.restore();
-        context.strokeStyle = 'rgba(107, 233, 242, 0.16)';
+        context.strokeStyle = readAccent(0.16, 'rgba(107, 233, 242, 0.16)');
         context.lineWidth = 1;
         roundedRectPath(
           context,
@@ -1164,9 +1172,18 @@ const KaraokePitchLane = ({
           legendX + legendWidth - 9,
           0,
         );
-        legendHighlight.addColorStop(0, 'rgba(107, 233, 242, 0)');
-        legendHighlight.addColorStop(0.5, 'rgba(107, 233, 242, 0.32)');
-        legendHighlight.addColorStop(1, 'rgba(107, 233, 242, 0)');
+        legendHighlight.addColorStop(
+          0,
+          readAccent(0, 'rgba(107, 233, 242, 0)'),
+        );
+        legendHighlight.addColorStop(
+          0.5,
+          readAccent(0.32, 'rgba(107, 233, 242, 0.32)'),
+        );
+        legendHighlight.addColorStop(
+          1,
+          readAccent(0, 'rgba(107, 233, 242, 0)'),
+        );
         context.strokeStyle = legendHighlight;
         context.beginPath();
         context.moveTo(legendX + 9, legendY + 0.5);

@@ -14,7 +14,12 @@ import {
 import { IKaraokeMakerNote } from '../../common/karaoke/makerProject';
 import KaraokeMakerToolIcon from './KaraokeMakerToolIcon';
 import { KaraokeTransportIcon } from './KaraokeTransport';
-import { readAccent, readSurface, readSurfaceAlpha } from '../utils/theme';
+import {
+  readAccent,
+  readAccentLight,
+  readSurface,
+  readSurfaceAlpha,
+} from '../utils/theme';
 
 interface IKaraokeMakerNavigatorProps {
   durationMs: number;
@@ -170,7 +175,7 @@ const KaraokeMakerNavigator = ({
     context.roundRect(0.5, 0.5, width - 1, height - 1, 8);
     context.fill();
 
-    context.strokeStyle = 'rgba(99, 168, 186, .1)';
+    context.strokeStyle = readAccent(0.1, 'rgba(99, 168, 186, .1)');
     context.lineWidth = 1;
     for (let section = 1; section < 8; section += 1) {
       const x = (section / 8) * width;
@@ -184,8 +189,14 @@ const KaraokeMakerNavigator = ({
       const middle = height * 0.47;
       const amplitude = height * 0.27;
       const waveformGradient = context.createLinearGradient(0, 0, width, 0);
-      waveformGradient.addColorStop(0, 'rgba(49, 214, 203, .42)');
-      waveformGradient.addColorStop(0.55, 'rgba(82, 233, 220, .65)');
+      waveformGradient.addColorStop(
+        0,
+        readAccent(0.42, 'rgba(49, 214, 203, .42)'),
+      );
+      waveformGradient.addColorStop(
+        0.55,
+        readAccent(0.65, 'rgba(82, 233, 220, .65)'),
+      );
       waveformGradient.addColorStop(1, 'rgba(111, 120, 232, .42)');
       context.strokeStyle = waveformGradient;
       context.lineWidth = 1;
@@ -225,7 +236,7 @@ const KaraokeMakerNavigator = ({
       context.fillStyle =
         note.kind === 'golden'
           ? 'rgba(255, 207, 87, .78)'
-          : 'rgba(54, 225, 213, .68)';
+          : readAccent(0.68, 'rgba(54, 225, 213, .68)');
       context.fillRect(left, height - 5, Math.max(1, right - left), 2);
     });
 
@@ -254,13 +265,19 @@ const KaraokeMakerNavigator = ({
       viewportLeft + viewportWidth,
       0,
     );
-    viewportGradient.addColorStop(0, 'rgba(26, 187, 186, .27)');
-    viewportGradient.addColorStop(0.5, 'rgba(54, 232, 216, .18)');
+    viewportGradient.addColorStop(
+      0,
+      readAccent(0.27, 'rgba(26, 187, 186, .27)'),
+    );
+    viewportGradient.addColorStop(
+      0.5,
+      readAccent(0.18, 'rgba(54, 232, 216, .18)'),
+    );
     viewportGradient.addColorStop(1, 'rgba(82, 134, 226, .24)');
     context.fillStyle = viewportGradient;
-    context.strokeStyle = 'rgba(132, 255, 245, .98)';
+    context.strokeStyle = readAccentLight(0.98, 'rgba(132, 255, 245, .98)');
     context.lineWidth = 2;
-    context.shadowColor = 'rgba(35, 225, 209, .52)';
+    context.shadowColor = readAccent(0.52, 'rgba(35, 225, 209, .52)');
     context.shadowBlur = 11;
     context.beginPath();
     context.roundRect(viewportLeft, 2, viewportWidth, height - 4, 6);
@@ -269,13 +286,16 @@ const KaraokeMakerNavigator = ({
     context.shadowBlur = 0;
 
     [viewportLeft, viewportLeft + viewportWidth].forEach((edgeX) => {
-      context.fillStyle = '#bafff8';
-      context.shadowColor = 'rgba(59, 238, 222, .7)';
+      context.fillStyle = readAccentLight(1, '#bafff8');
+      context.shadowColor = readAccent(0.7, 'rgba(59, 238, 222, .7)');
       context.shadowBlur = 7;
       context.beginPath();
       context.roundRect(edgeX - 3, height / 2 - 10, 6, 20, 3);
       context.fill();
-      context.fillStyle = readAccent(0.55, 'rgba(0, 229, 207, 0.55)');
+      context.fillStyle = readAccent(
+        0.55,
+        readAccent(0.55, 'rgba(0, 229, 207, 0.55)'),
+      );
       context.fillRect(edgeX - 0.6, height / 2 - 5, 1.2, 10);
     });
     context.shadowBlur = 0;

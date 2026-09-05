@@ -1812,10 +1812,9 @@ textarea,
 // values apart on a faintly cool near-black, the edges are barely there, and
 // the accent is a colour with some restraint in it rather than pure white.
 //
-// The accent is an ice blue: cool like the ocean theme's cyan so the two
-// themes are plainly the same app, desaturated enough not to glow on black,
-// and far enough from the rainbow's cyan stop that a lit control is never
-// mistaken for a band. The rainbow stays — it is the music.
+// The accent is a green-cyan, taken from the Maker's own waveform: the same
+// family as the ocean theme's cyan so the two are plainly one app, softer so
+// it does not glow on black. The rainbow stays — it is the music.
 :root[data-theme='black'] {
   --surface-base: #050608;
   --surface-panel: #0c0e12;
@@ -1832,10 +1831,14 @@ textarea,
   --border-subtle: rgba(190, 205, 225, 0.06);
   --border-panel: rgba(190, 205, 225, 0.08);
   --border-menu: rgba(190, 205, 225, 0.14);
-  --accent: #8ecdf5;
-  --accent-light: #d4ecff;
-  --accent-dark: #5aa6dc;
-  --accent-darker: #3a7db0;
+  // A green-cyan, the one the Maker's song strip has always drawn its
+  // waveform in — softer and a touch greener than the ocean theme's cyan, so
+  // the two are the same family without being the same colour, and it sits
+  // on near-black without glowing.
+  --accent: #52e9dc;
+  --accent-light: #b6f7f0;
+  --accent-dark: #2fcfc2;
+  --accent-darker: #1f9e95;
 }
 
 // The shell's gutter, in one place. See `.app-workspace`, which consumes it,

@@ -33,7 +33,7 @@ import {
   lyricSectionHeight,
   midiName,
 } from '../makerCanvasGeometry';
-import { readSurface, readSurfaceAlpha } from '../../utils/theme';
+import { readAccent, readSurface, readSurfaceAlpha } from '../../utils/theme';
 
 export interface IPaintBackdropInput {
   plot: IMakerPlot;
@@ -170,12 +170,17 @@ export const paintBackdrop = (
       const groupGradient = context.createLinearGradient(left, 0, right, 0);
       groupGradient.addColorStop(
         0,
-        index % 2 ? 'rgba(34, 213, 199, .12)' : 'rgba(72, 196, 232, .1)',
+        index % 2
+          ? readAccent(0.12, 'rgba(34, 213, 199, .12)')
+          : readAccent(0.1, 'rgba(72, 196, 232, .1)'),
       );
-      groupGradient.addColorStop(1, 'rgba(17, 109, 126, .025)');
+      groupGradient.addColorStop(
+        1,
+        readAccent(0.025, 'rgba(17, 109, 126, .025)'),
+      );
       context.fillStyle = groupGradient;
       context.fillRect(left, SECTION_GROUP_TOP - 2, right - left, 25);
-      context.strokeStyle = 'rgba(63, 232, 216, .45)';
+      context.strokeStyle = readAccent(0.45, 'rgba(63, 232, 216, .45)');
       context.lineWidth = 1.2;
       context.beginPath();
       context.moveTo(left + 1, SECTION_GROUP_TOP + 22);
@@ -200,8 +205,8 @@ export const paintBackdrop = (
         22,
       );
       context.clip();
-      context.fillStyle = 'rgba(111, 255, 243, .94)';
-      context.shadowColor = 'rgba(36, 223, 207, .48)';
+      context.fillStyle = readAccent(0.94, 'rgba(111, 255, 243, .94)');
+      context.shadowColor = readAccent(0.48, 'rgba(36, 223, 207, .48)');
       context.shadowBlur = 7;
       context.textAlign = 'center';
       context.textBaseline = 'middle';
@@ -209,7 +214,7 @@ export const paintBackdrop = (
       context.restore();
     });
     context.restore();
-    context.strokeStyle = 'rgba(44, 226, 211, .2)';
+    context.strokeStyle = readAccent(0.2, 'rgba(44, 226, 211, .2)');
     context.beginPath();
     context.moveTo(plotLeft, lyricSectionTop - 3);
     context.lineTo(plotRight, lyricSectionTop - 3);
@@ -217,7 +222,7 @@ export const paintBackdrop = (
   }
   for (let lane = 1; lane < KARAOKE_MAKER_LYRIC_LANE_COUNT; lane += 1) {
     const laneY = lyricSectionTop + lane * lyricLaneHeight;
-    context.strokeStyle = 'rgba(76, 151, 174, .085)';
+    context.strokeStyle = readAccent(0.085, 'rgba(76, 151, 174, .085)');
     context.beginPath();
     context.moveTo(plotLeft, laneY);
     context.lineTo(plotRight, laneY);
@@ -228,13 +233,13 @@ export const paintBackdrop = (
     // between the last original lane and the translated row underneath it.
     const translationTop =
       lyricSectionTop + KARAOKE_MAKER_LYRIC_LANE_COUNT * lyricLaneHeight;
-    context.strokeStyle = 'rgba(76, 151, 174, .085)';
+    context.strokeStyle = readAccent(0.085, 'rgba(76, 151, 174, .085)');
     context.beginPath();
     context.moveTo(plotLeft, translationTop);
     context.lineTo(plotRight, translationTop);
     context.stroke();
   }
-  context.strokeStyle = 'rgba(44, 226, 211, .18)';
+  context.strokeStyle = readAccent(0.18, 'rgba(44, 226, 211, .18)');
   context.beginPath();
   context.moveTo(plotLeft, headerHeight - 1);
   context.lineTo(plotRight, headerHeight - 1);
@@ -267,7 +272,9 @@ export const paintBackdrop = (
   for (let midi = MIN_NOTE_MIDI; midi <= MAX_NOTE_MIDI; midi += 3) {
     const y = noteY(midi);
     context.strokeStyle =
-      midi % 12 === 0 ? 'rgba(65, 218, 203, .16)' : 'rgba(71, 116, 151, .08)';
+      midi % 12 === 0
+        ? readAccent(0.16, 'rgba(65, 218, 203, .16)')
+        : 'rgba(71, 116, 151, .08)';
     context.beginPath();
     context.moveTo(plotLeft, y);
     context.lineTo(plotRight, y);
@@ -342,9 +349,9 @@ export const paintBackdrop = (
       {
         peaks: waveform,
         label: stemWaveforms.labels.mix,
-        fill: 'rgba(22, 211, 198, .16)',
-        stroke: 'rgba(72, 246, 230, .26)',
-        text: 'rgba(111, 255, 243, .7)',
+        fill: readAccent(0.16, 'rgba(22, 211, 198, .16)'),
+        stroke: readAccent(0.26, 'rgba(72, 246, 230, .26)'),
+        text: readAccent(0.7, 'rgba(111, 255, 243, .7)'),
       },
       {
         peaks: stemWaveforms.instrumental,
@@ -377,8 +384,8 @@ export const paintBackdrop = (
       waveform,
       WAVEFORM_TOP,
       WAVEFORM_HEIGHT,
-      'rgba(22, 211, 198, .18)',
-      'rgba(72, 246, 230, .32)',
+      readAccent(0.18, 'rgba(22, 211, 198, .18)'),
+      readAccent(0.32, 'rgba(72, 246, 230, .32)'),
     );
   }
 };

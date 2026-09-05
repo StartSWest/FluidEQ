@@ -32,7 +32,12 @@ import {
   midiName,
 } from '../makerCanvasGeometry';
 import { ICanvasLyricWord } from '../makerCanvasTypes';
-import { readSurface, readSurfaceAlpha } from '../../utils/theme';
+import {
+  readAccent,
+  readAccentLight,
+  readSurface,
+  readSurfaceAlpha,
+} from '../../utils/theme';
 
 export interface IPaintNotesInput {
   plot: IMakerPlot;
@@ -120,10 +125,10 @@ export const paintNotes = (
     const endY = noteY(note.targetMidi);
     const controlX = (startX + endX) / 2;
     context.save();
-    context.strokeStyle = 'rgba(79, 231, 220, .7)';
+    context.strokeStyle = readAccent(0.7, 'rgba(79, 231, 220, .7)');
     context.lineWidth = 2;
     context.lineCap = 'round';
-    context.shadowColor = 'rgba(37, 226, 211, .5)';
+    context.shadowColor = readAccent(0.5, 'rgba(37, 226, 211, .5)');
     context.shadowBlur = 6;
     context.beginPath();
     context.moveTo(startX, startY);
@@ -186,15 +191,15 @@ export const paintNotes = (
     const noteProgress = active
       ? karaokeMakerNoteProgress(shape.startMs, shape.endMs, visualPlayheadMs)
       : 0;
-    let noteShadowColor = 'rgba(43, 216, 255, .54)';
+    let noteShadowColor = readAccent(0.54, 'rgba(43, 216, 255, .54)');
     let noteShadowBlur = 4;
-    let noteGradientTop = '#58bfd7';
+    let noteGradientTop = readAccent(1, '#58bfd7');
     let noteGradientBottom = '#316f9f';
     if (selected) {
       noteShadowColor = '#f5fb73';
       noteShadowBlur = 13;
-      noteGradientTop = '#bffff7';
-      noteGradientBottom = '#39e5d3';
+      noteGradientTop = readAccentLight(1, '#bffff7');
+      noteGradientBottom = readAccent(1, '#39e5d3');
     }
     context.save();
     context.shadowColor = noteShadowColor;
@@ -232,11 +237,11 @@ export const paintNotes = (
       );
       progressGradient.addColorStop(
         0,
-        note.kind === 'golden' ? '#fffde0' : '#e8fffd',
+        note.kind === 'golden' ? '#fffde0' : readAccentLight(1, '#e8fffd'),
       );
       progressGradient.addColorStop(
         1,
-        note.kind === 'golden' ? '#ffc743' : '#27ead8',
+        note.kind === 'golden' ? '#ffc743' : readAccent(1, '#27ead8'),
       );
       context.save();
       drawRoundedRect(
@@ -249,7 +254,8 @@ export const paintNotes = (
       );
       context.clip();
       context.fillStyle = progressGradient;
-      context.shadowColor = note.kind === 'golden' ? '#ffe571' : '#45fff0';
+      context.shadowColor =
+        note.kind === 'golden' ? '#ffe571' : readAccent(1, '#45fff0');
       context.shadowBlur = 14;
       context.fillRect(
         left,
@@ -263,7 +269,7 @@ export const paintNotes = (
       context.strokeStyle =
         note.kind === 'golden'
           ? 'rgba(255, 253, 210, .96)'
-          : 'rgba(221, 255, 252, .96)';
+          : readAccentLight(0.96, 'rgba(221, 255, 252, .96)');
       context.stroke();
 
       const playbackX = Math.max(left, Math.min(right, progressRight));
@@ -287,9 +293,11 @@ export const paintNotes = (
       );
       context.fill();
       context.save();
-      context.strokeStyle = note.kind === 'golden' ? '#fff7a3' : '#effffc';
+      context.strokeStyle =
+        note.kind === 'golden' ? '#fff7a3' : readAccentLight(1, '#effffc');
       context.lineWidth = 1.2;
-      context.shadowColor = note.kind === 'golden' ? '#ffe571' : '#4affef';
+      context.shadowColor =
+        note.kind === 'golden' ? '#ffe571' : readAccent(1, '#4affef');
       context.shadowBlur = 8;
       context.beginPath();
       context.moveTo(playbackX, centerY - noteHeight / 2 + 1);
@@ -301,7 +309,7 @@ export const paintNotes = (
     context.fillStyle =
       selected || active
         ? 'rgba(245, 255, 254, .98)'
-        : 'rgba(207, 231, 238, .7)';
+        : readAccentLight(0.7, 'rgba(207, 231, 238, .7)');
     context.font = `${active ? 750 : 600} 9px system-ui, sans-serif`;
     context.textAlign = 'center';
     context.fillText(
@@ -312,10 +320,10 @@ export const paintNotes = (
     if (controlLinkMode && selected) {
       const indicatorX = Math.max(left + 6, Math.min(right - 6, right - 7));
       context.save();
-      context.strokeStyle = '#cafffa';
+      context.strokeStyle = readAccentLight(1, '#cafffa');
       context.lineWidth = 1.3;
       context.setLineDash([4, 3]);
-      context.shadowColor = '#20e6d4';
+      context.shadowColor = readAccent(1, '#20e6d4');
       context.shadowBlur = 10;
       drawRoundedRect(
         context,
@@ -331,7 +339,7 @@ export const paintNotes = (
       context.beginPath();
       context.arc(indicatorX, centerY, 5.5, 0, Math.PI * 2);
       context.fill();
-      context.strokeStyle = '#bafff8';
+      context.strokeStyle = readAccentLight(1, '#bafff8');
       context.shadowBlur = 4;
       context.beginPath();
       context.arc(indicatorX - 1.7, centerY - 1, 2.1, -0.7, 2.2);
@@ -345,13 +353,13 @@ export const paintNotes = (
     ) {
       const centerX = left + (right - left) / 2;
       context.save();
-      context.shadowColor = '#22ead8';
+      context.shadowColor = readAccent(1, '#22ead8');
       context.shadowBlur = 9;
       if (!note.tokenId) {
         [left, right].forEach((handleX) => {
           context.beginPath();
           context.fillStyle = readSurface('--surface-block', '#1e4257');
-          context.strokeStyle = '#9efff6';
+          context.strokeStyle = readAccentLight(1, '#9efff6');
           context.lineWidth = 1.4;
           context.arc(handleX, centerY, 3.8, 0, Math.PI * 2);
           context.fill();
@@ -364,12 +372,12 @@ export const paintNotes = (
           0.94,
           'rgba(30, 66, 87, 0.94)',
         );
-        context.strokeStyle = 'rgba(167, 255, 247, .82)';
+        context.strokeStyle = readAccentLight(0.82, 'rgba(167, 255, 247, .82)');
         context.lineWidth = 1;
         drawRoundedRect(context, centerX - 7, centerY - 4, 14, 8, 4);
         context.fill();
         context.stroke();
-        context.fillStyle = '#bafff8';
+        context.fillStyle = readAccentLight(1, '#bafff8');
         [-3, 0, 3].forEach((offset) => {
           context.beginPath();
           context.arc(centerX + offset, centerY, 0.8, 0, Math.PI * 2);

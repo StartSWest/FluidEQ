@@ -8,6 +8,7 @@ import { useEffect, useRef } from 'react';
 import { useTranslation } from '../utils/I18nContext';
 import KaraokeMakerToolIcon from './KaraokeMakerToolIcon';
 import { KaraokeTransportIcon } from './KaraokeTransport';
+import { readAccent } from '../utils/theme';
 
 /**
  * One stem drawn as a waveform.
@@ -82,7 +83,9 @@ const StemWave = ({
       // Two colours, split at the playhead, so the wave itself is the
       // progress bar — the same reading the main transport teaches.
       paint.fillStyle =
-        x <= playedX ? 'rgba(30, 215, 199, 0.9)' : 'rgba(30, 215, 199, 0.42)';
+        x <= playedX
+          ? readAccent(0.9, 'rgba(30, 215, 199, 0.9)')
+          : readAccent(0.42, 'rgba(30, 215, 199, 0.42)');
       const half = Math.max(1, peaks[x] * middle);
       paint.fillRect(x, middle - half, 1, half * 2);
     }

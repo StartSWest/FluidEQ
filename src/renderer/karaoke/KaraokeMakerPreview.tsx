@@ -10,7 +10,7 @@ import {
 import { IKaraokeSong } from '../../common/karaoke/types';
 import KaraokeLyrics from './KaraokeLyrics';
 import KaraokeMakerToolIcon from './KaraokeMakerToolIcon';
-import { readSurfaceAlpha } from '../utils/theme';
+import { readAccent, readSurfaceAlpha } from '../utils/theme';
 
 interface IKaraokeMakerPreviewProps {
   song: IKaraokeSong;
@@ -84,7 +84,7 @@ const KaraokeMakerPreviewNotes = ({
     context.beginPath();
     context.roundRect(0.5, 0.5, width - 1, height - 1, height / 2);
     context.fill();
-    context.strokeStyle = 'rgba(102, 184, 202, .14)';
+    context.strokeStyle = readAccent(0.14, 'rgba(102, 184, 202, .14)');
     context.stroke();
 
     const windowMs = 8_000;
@@ -113,14 +113,14 @@ const KaraokeMakerPreviewNotes = ({
       let noteFill =
         note.kind === 'golden'
           ? 'rgba(255, 209, 84, .9)'
-          : 'rgba(61, 225, 217, .82)';
+          : readAccent(0.82, 'rgba(61, 225, 217, .82)');
       if (rainbow) {
         noteFill = `hsl(${(performance.now() / 10 + index * 17) % 360}, 94%, 67%)`;
       }
       context.fillStyle = noteFill;
       context.shadowColor = rainbow
         ? context.fillStyle
-        : 'rgba(47, 227, 214, .28)';
+        : readAccent(0.28, 'rgba(47, 227, 214, .28)');
       context.shadowBlur = 5;
       context.beginPath();
       context.roundRect(left, height / 2 - 2, Math.max(2, right - left), 4, 2);

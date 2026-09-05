@@ -29,6 +29,7 @@ import {
   INoteLinkDragState,
   INotePaintDraft,
 } from '../makerCanvasTypes';
+import { readAccent, readAccentLight } from '../../utils/theme';
 
 export interface IPaintOverlaysInput {
   plot: IMakerPlot;
@@ -100,10 +101,10 @@ export const paintOverlays = (
       (plotHeight / (MAX_NOTE_MIDI - MIN_NOTE_MIDI)) * 0.8,
     );
     context.save();
-    context.fillStyle = 'rgba(58, 242, 222, .34)';
-    context.strokeStyle = '#a2fff7';
+    context.fillStyle = readAccent(0.34, 'rgba(58, 242, 222, .34)');
+    context.strokeStyle = readAccentLight(1, '#a2fff7');
     context.lineWidth = 1.5;
-    context.shadowColor = '#20e6d4';
+    context.shadowColor = readAccent(1, '#20e6d4');
     context.shadowBlur = 12;
     drawRoundedRect(
       context,
@@ -137,11 +138,11 @@ export const paintOverlays = (
       Math.max(selectionBox.startY, selectionBox.currentY),
     );
     context.save();
-    context.fillStyle = 'rgba(31, 226, 208, .09)';
-    context.strokeStyle = 'rgba(126, 255, 244, .88)';
+    context.fillStyle = readAccent(0.09, 'rgba(31, 226, 208, .09)');
+    context.strokeStyle = readAccentLight(0.88, 'rgba(126, 255, 244, .88)');
     context.lineWidth = 1.25;
     context.setLineDash([6, 4]);
-    context.shadowColor = 'rgba(31, 226, 208, .55)';
+    context.shadowColor = readAccent(0.55, 'rgba(31, 226, 208, .55)');
     context.shadowBlur = 8;
     context.fillRect(
       left,
@@ -172,17 +173,21 @@ export const paintOverlays = (
           noteLinkDrag.currentY <= region.bottom,
       );
     context.save();
-    context.strokeStyle = targetWord ? '#b8fff8' : 'rgba(104, 241, 231, .8)';
+    context.strokeStyle = targetWord
+      ? readAccentLight(1, '#b8fff8')
+      : readAccent(0.8, 'rgba(104, 241, 231, .8)');
     context.lineWidth = targetWord ? 2.2 : 1.5;
     context.setLineDash(targetWord ? [] : [7, 5]);
-    context.shadowColor = '#20e6d4';
+    context.shadowColor = readAccent(1, '#20e6d4');
     context.shadowBlur = targetWord ? 14 : 8;
     context.beginPath();
     context.moveTo(noteLinkDrag.startX, noteLinkDrag.startY);
     context.lineTo(noteLinkDrag.currentX, noteLinkDrag.currentY);
     context.stroke();
     context.setLineDash([]);
-    context.fillStyle = targetWord ? '#eafffd' : '#74eee4';
+    context.fillStyle = targetWord
+      ? readAccentLight(1, '#eafffd')
+      : readAccent(1, '#74eee4');
     context.beginPath();
     context.arc(
       noteLinkDrag.currentX,
@@ -193,7 +198,7 @@ export const paintOverlays = (
     );
     context.fill();
     if (targetWord) {
-      context.strokeStyle = 'rgba(139, 255, 247, .9)';
+      context.strokeStyle = readAccentLight(0.9, 'rgba(139, 255, 247, .9)');
       context.lineWidth = 1.4;
       drawRoundedRect(
         context,
@@ -211,15 +216,15 @@ export const paintOverlays = (
   const playheadX = timeX(visualPlayheadMs);
   if (playheadX >= plotLeft && playheadX <= plotRight) {
     context.save();
-    context.strokeStyle = '#19e8d6';
+    context.strokeStyle = readAccent(1, '#19e8d6');
     context.lineWidth = 1.5;
-    context.shadowColor = '#1ee7d6';
+    context.shadowColor = readAccent(1, '#1ee7d6');
     context.shadowBlur = 8;
     context.beginPath();
     context.moveTo(playheadX, 4);
     context.lineTo(playheadX, plotBottom);
     context.stroke();
-    context.fillStyle = '#76fff4';
+    context.fillStyle = readAccentLight(1, '#76fff4');
     context.beginPath();
     context.arc(playheadX, plotTop - 4, 4, 0, Math.PI * 2);
     context.fill();
