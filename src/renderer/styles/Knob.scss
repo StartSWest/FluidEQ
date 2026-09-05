@@ -70,7 +70,9 @@ it under the terms of the GNU General Public License version 3 or later.
     stroke: $secondary-light;
     stroke-width: 3.6;
     stroke-linecap: round;
-    filter: drop-shadow(0 0 5px rgba($secondary-default, 0.95));
+    filter: drop-shadow(
+      0 0 5px color-mix(in srgb, $secondary-default 95%, transparent)
+    );
   }
 
   // Recessed, so the number sits in a well rather than on the metal. The
@@ -124,7 +126,9 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 
   &:hover {
-    filter: drop-shadow(0 0 12px rgba($secondary-default, 0.28));
+    filter: drop-shadow(
+      0 0 12px color-mix(in srgb, $secondary-default 28%, transparent)
+    );
 
     .knob__value {
       stroke: $secondary-light;

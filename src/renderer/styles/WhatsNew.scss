@@ -87,7 +87,7 @@ it under the terms of the GNU General Public License version 3 or later.
     margin: 14px -4px 8px;
     padding: 10px 12px 9px;
     color: $secondary-light;
-    border: 1px solid rgba($secondary-light, 0.16);
+    border: 1px solid color-mix(in srgb, $secondary-light 16%, transparent);
     border-radius: $radius-s;
     background: color-mix(in srgb, $surface-menu-top 94%, transparent);
     box-shadow:
@@ -136,7 +136,7 @@ it under the terms of the GNU General Public License version 3 or later.
       height: 5px;
       border-radius: 50%;
       background: $secondary-light;
-      box-shadow: 0 0 8px rgba($secondary-light, 0.45);
+      box-shadow: 0 0 8px color-mix(in srgb, $secondary-light 45%, transparent);
       content: '';
     }
   }
@@ -149,7 +149,7 @@ it under the terms of the GNU General Public License version 3 or later.
     padding: 1px 5px;
     color: $secondary-light;
     border-radius: $radius-xs;
-    background: rgba($secondary-default, 0.1);
+    background: color-mix(in srgb, $secondary-default 10%, transparent);
     font-family: $font-mono;
     font-size: $text-body;
   }

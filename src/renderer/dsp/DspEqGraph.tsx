@@ -15,7 +15,7 @@ import {
   readDspBandLevels,
   subscribeDspAnalysers,
 } from './store';
-import { readSurfaceAlpha } from '../utils/theme';
+import { readAccent, readAccentLight, readSurfaceAlpha } from '../utils/theme';
 
 const MIN_HZ = 20;
 const MAX_HZ = 20_000;
@@ -397,9 +397,9 @@ const DspEqGraph = ({
         }
         context.lineTo(PAD_L + plotW(W), floorY);
         context.closePath();
-        context.fillStyle = 'rgba(0,229,207,0.10)';
+        context.fillStyle = readAccent(0.1, 'rgba(0,229,207,0.10)');
         context.fill();
-        context.strokeStyle = 'rgba(0,229,207,0.22)';
+        context.strokeStyle = readAccent(0.22, 'rgba(0,229,207,0.22)');
         context.lineWidth = 1;
         context.stroke();
       }
@@ -466,7 +466,7 @@ const DspEqGraph = ({
         }
         const isPick = index === pick;
         context.strokeStyle = isPick
-          ? 'rgba(156,255,244,0.55)'
+          ? readAccentLight(0.55, 'rgba(156,255,244,0.55)')
           : 'rgba(255,255,255,0.15)';
         context.lineWidth = isPick ? 1.5 : 1;
         context.stroke();
@@ -587,7 +587,7 @@ const DspEqGraph = ({
         }
         // The curve's own colour at a third of its weight, so it reads as the
         // same line somewhere else rather than as a second, unrelated trace.
-        context.strokeStyle = 'rgba(0,229,207,0.32)';
+        context.strokeStyle = readAccent(0.32, 'rgba(0,229,207,0.32)');
         context.lineWidth = 1.5;
         context.setLineDash([6, 4]);
         context.stroke();
@@ -604,7 +604,7 @@ const DspEqGraph = ({
           context.lineTo(X(hz), y);
         }
       }
-      context.strokeStyle = '#00e5cf';
+      context.strokeStyle = readAccent(1, '#00e5cf');
       context.lineWidth = 2.5;
       context.lineJoin = 'round';
       context.stroke();
@@ -625,8 +625,8 @@ const DspEqGraph = ({
       context.lineTo(X(MIN_HZ), Y(0));
       context.closePath();
       const boostShade = context.createLinearGradient(0, PAD_T, 0, Y(0));
-      boostShade.addColorStop(0, 'rgba(0,229,207,0.16)');
-      boostShade.addColorStop(1, 'rgba(0,229,207,0.035)');
+      boostShade.addColorStop(0, readAccent(0.16, 'rgba(0,229,207,0.16)'));
+      boostShade.addColorStop(1, readAccent(0.035, 'rgba(0,229,207,0.035)'));
       context.fillStyle = boostShade;
       context.fill();
 
@@ -786,8 +786,16 @@ const DspEqGraph = ({
         // second, unrelated trace.
         const grain = 1 + liveEq.fuzzAmount * 2.5;
         [
-          { phase: 0.6, colour: 'rgba(0,229,207,0.42)', width: 1.2 },
-          { phase: -0.9, colour: 'rgba(156,255,244,0.28)', width: 1 },
+          {
+            phase: 0.6,
+            colour: readAccent(0.42, 'rgba(0,229,207,0.42)'),
+            width: 1.2,
+          },
+          {
+            phase: -0.9,
+            colour: readAccentLight(0.28, 'rgba(156,255,244,0.28)'),
+            width: 1,
+          },
         ].forEach(({ phase, colour, width }) => {
           context.beginPath();
           for (let i = 0; i <= steps; i += 1) {
@@ -845,10 +853,12 @@ const DspEqGraph = ({
         // plot rather than as a knob standing on it. The cyan ring below is
         // what marks it; the fill only has to hide the curve behind it.
         context.fillStyle = isPick
-          ? '#00e5cf'
+          ? readAccent(1, '#00e5cf')
           : readSurfaceAlpha('--surface-block', 0.92, 'rgba(30, 66, 87, 0.92)');
         context.fill();
-        context.strokeStyle = isPick ? '#ffffff' : 'rgba(0,229,207,0.7)';
+        context.strokeStyle = isPick
+          ? '#ffffff'
+          : readAccent(0.7, 'rgba(0,229,207,0.7)');
         context.lineWidth = 2;
         context.stroke();
         context.globalAlpha = 1;

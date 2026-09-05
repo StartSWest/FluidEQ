@@ -94,11 +94,11 @@ $switch-inset: 4px;
   }
 
   &:checked + .switch-label {
-    border-color: rgba($secondary-light, 0.44);
+    border-color: color-mix(in srgb, $secondary-light 44%, transparent);
     background: $secondary-default;
     box-shadow:
       inset 0 1px 3px rgba($black, 0.25),
-      0 0 18px rgba($secondary-default, 0.13);
+      0 0 18px color-mix(in srgb, $secondary-default 13%, transparent);
 
     .switch-button {
       left: calc(100% - var(--switch-thumb) - var(--switch-inset));

@@ -343,7 +343,7 @@ it under the terms of the GNU General Public License version 3 or later.
 // palette. Keep its legend in sync with the rendered line.
 .graph-legend--eq::before {
   background: $secondary-default;
-  box-shadow: 0 0 7px rgba($secondary-default, 0.72);
+  box-shadow: 0 0 7px color-mix(in srgb, $secondary-default 72%, transparent);
 }
 
 // No engine behind the sliders means these editors cannot affect the output —
@@ -434,7 +434,7 @@ it under the terms of the GNU General Public License version 3 or later.
   top: 50%;
   left: 50%;
   padding: 9px 18px;
-  border: 1px solid rgba($secondary-light, 0.2);
+  border: 1px solid color-mix(in srgb, $secondary-light 20%, transparent);
   border-radius: $radius-pill;
   background: color-mix(in srgb, $surface-menu-top 82%, transparent);
   color: $text-primary;
@@ -515,7 +515,7 @@ it under the terms of the GNU General Public License version 3 or later.
   &:hover,
   &.is-on {
     border-color: $border-field-hover;
-    background: rgba($secondary-default, 0.14);
+    background: color-mix(in srgb, $secondary-default 14%, transparent);
     color: $white;
   }
 }
@@ -533,7 +533,7 @@ it under the terms of the GNU General Public License version 3 or later.
   align-items: flex-start;
   gap: 2px;
   padding: 6px;
-  border: 1px solid rgba($secondary-light, 0.16);
+  border: 1px solid color-mix(in srgb, $secondary-light 16%, transparent);
   border-radius: $radius-m;
   background: $surface-menu-face;
   box-shadow: 0 12px 28px rgba($black, 0.5);
@@ -640,7 +640,7 @@ it under the terms of the GNU General Public License version 3 or later.
     overflow: visible;
 
     &:hover:not([aria-disabled='true']) {
-      border: 1px solid rgba($secondary-light, 0.65);
+      border: 1px solid color-mix(in srgb, $secondary-light 65%, transparent);
       color: $white;
     }
 
@@ -672,7 +672,7 @@ it under the terms of the GNU General Public License version 3 or later.
   // menu is — the one place a trigger has a state worth showing.
   .dropdown--open > [role='menu'] {
     border-color: $secondary-light;
-    background: rgba($secondary-light, 0.16);
+    background: color-mix(in srgb, $secondary-light 16%, transparent);
   }
 
   .dropdown--open > [role='menu'] {
@@ -873,7 +873,7 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 
   &[aria-pressed='true'] {
-    color: rgba($secondary-light, 0.95);
+    color: color-mix(in srgb, $secondary-light 95%, transparent);
   }
 
   &[aria-pressed='true']:hover,
@@ -900,7 +900,7 @@ it under the terms of the GNU General Public License version 3 or later.
   bottom: 10px;
   padding: 3px 7px;
   color: rgba($white, 0.94);
-  border: 1px solid rgba($secondary-light, 0.32);
+  border: 1px solid color-mix(in srgb, $secondary-light 32%, transparent);
   border-radius: 4px;
   background: color-mix(in srgb, $panel-bottom 78%, transparent);
   font-size: $text-eyebrow;
@@ -1340,7 +1340,7 @@ it under the terms of the GNU General Public License version 3 or later.
   align-items: center;
   padding-block: 0;
   padding-inline: 9px;
-  border: 1px solid rgba($secondary-light, 0.3);
+  border: 1px solid color-mix(in srgb, $secondary-light 30%, transparent);
   border-radius: $radius-m;
   background: none;
   color: $text-muted;
@@ -1353,13 +1353,13 @@ it under the terms of the GNU General Public License version 3 or later.
   cursor: pointer;
 
   &:hover {
-    border-color: rgba($secondary-light, 0.65);
+    border-color: color-mix(in srgb, $secondary-light 65%, transparent);
     color: $white;
   }
 
   &.is-on {
     border-color: $secondary-light;
-    background: rgba($secondary-light, 0.16);
+    background: color-mix(in srgb, $secondary-light 16%, transparent);
     color: $white;
   }
 }

@@ -65,7 +65,7 @@ it under the terms of the GNU General Public License version 3 or later.
   max-width: 46ch;
   margin: 14px auto 0;
   padding-top: 14px;
-  border-top: 1px solid rgba($secondary-default, 0.14);
+  border-top: 1px solid color-mix(in srgb, $secondary-default 14%, transparent);
   color: $text-muted;
   font-size: $text-lead;
   font-style: italic;
@@ -157,7 +157,7 @@ it under the terms of the GNU General Public License version 3 or later.
     position: absolute;
     inset: 0;
     overflow: hidden;
-    border: 1px solid rgba($secondary-default, 0.16);
+    border: 1px solid color-mix(in srgb, $secondary-default 16%, transparent);
     border-radius: $radius-s;
     background: linear-gradient(
       180deg,
@@ -180,14 +180,16 @@ it under the terms of the GNU General Public License version 3 or later.
   // ceiling: if the trace is already a rainbow there is nothing left for
   // reaching x10 to change, and the surprise is the entire reward.
   path {
-    fill: rgba($secondary-default, 0.42);
+    fill: color-mix(in srgb, $secondary-default 42%, transparent);
     stroke: $secondary-light;
     stroke-width: 1.4;
     stroke-linejoin: round;
     // Non-scaling, because `preserveAspectRatio: none` stretches the viewBox
     // to whatever width the dialog is and would take the stroke with it.
     vector-effect: non-scaling-stroke;
-    filter: drop-shadow(0 0 6px rgba($secondary-default, 0.5));
+    filter: drop-shadow(
+      0 0 6px color-mix(in srgb, $secondary-default 50%, transparent)
+    );
   }
 
   // One per detected hit, riding along with the wave. These are what the player
@@ -251,8 +253,8 @@ it under the terms of the GNU General Public License version 3 or later.
   bottom: 4px;
   width: 3px;
   border-radius: $radius-pill;
-  background: rgba($secondary-light, 0.8);
-  box-shadow: 0 0 10px rgba($secondary-default, 0.6);
+  background: color-mix(in srgb, $secondary-light 80%, transparent);
+  box-shadow: 0 0 10px color-mix(in srgb, $secondary-default 60%, transparent);
   translate: -1.5px 0;
   pointer-events: none;
 
@@ -274,8 +276,8 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 
   100% {
-    background: rgba($secondary-light, 0.8);
-    box-shadow: 0 0 10px rgba($secondary-default, 0.6);
+    background: color-mix(in srgb, $secondary-light 80%, transparent);
+    box-shadow: 0 0 10px color-mix(in srgb, $secondary-default 60%, transparent);
     scale: 1 1;
   }
 }

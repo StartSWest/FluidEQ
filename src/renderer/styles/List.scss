@@ -81,7 +81,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
         &:focus,
         &:focus-visible,
         &:focus-within {
-          background: rgba($secondary-default, 0.22);
+          background: color-mix(in srgb, $secondary-default 22%, transparent);
         }
       }
 
@@ -91,7 +91,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
         min-height: 24px;
         margin: 7px 4px 2px;
         padding: 5px 8px;
-        color: rgba($secondary-light, 0.72);
+        color: color-mix(in srgb, $secondary-light 72%, transparent);
         border: 0;
         border-top: 1px solid $border-subtle;
         border-radius: 0;

@@ -57,7 +57,7 @@ it under the terms of the GNU General Public License version 3 or later.
     padding: 1px 5px;
     color: $secondary-light;
     border-radius: $radius-xs;
-    background: rgba($secondary-default, 0.1);
+    background: color-mix(in srgb, $secondary-default 10%, transparent);
     font-family: $font-mono;
     font-size: $text-body;
     word-break: break-all;

@@ -107,7 +107,7 @@ $role-surface: $surface-panel;
   &::after {
     height: 1px;
     flex: 1 1 auto;
-    background: rgba($secondary-light, 0.22);
+    background: color-mix(in srgb, $secondary-light 22%, transparent);
     content: '';
   }
 }
@@ -163,7 +163,7 @@ $role-surface: $surface-panel;
     bottom: 0;
     left: 0;
     width: 1px;
-    background: rgba($secondary-light, 0.28);
+    background: color-mix(in srgb, $secondary-light 28%, transparent);
     content: '';
   }
 
@@ -187,7 +187,7 @@ $role-surface: $surface-panel;
   bottom: 0;
   left: 0;
   height: 1px;
-  background: rgba($secondary-light, 0.32);
+  background: color-mix(in srgb, $secondary-light 32%, transparent);
   content: '';
 }
 
@@ -210,7 +210,7 @@ $role-surface: $surface-panel;
   overflow: hidden;
 
   &:hover {
-    background: rgba($secondary-default, 0.06);
+    background: color-mix(in srgb, $secondary-default 6%, transparent);
   }
 
   // Inside the ring, not around it: this fills its half of the pair, so a
@@ -240,10 +240,10 @@ $role-surface: $surface-panel;
 }
 
 .remote-audio__role-card.is-selected .remote-audio__role-choice {
-  background: rgba($secondary-default, 0.1);
+  background: color-mix(in srgb, $secondary-default 10%, transparent);
 
   &:hover {
-    background: rgba($secondary-default, 0.1);
+    background: color-mix(in srgb, $secondary-default 10%, transparent);
   }
 }
 
@@ -307,10 +307,10 @@ $role-surface: $surface-panel;
 }
 
 .remote-audio__role-card.is-selected .remote-audio__role-icon {
-  border-color: rgba($secondary-light, 0.36);
-  background: rgba($secondary-default, 0.1);
+  border-color: color-mix(in srgb, $secondary-light 36%, transparent);
+  background: color-mix(in srgb, $secondary-default 10%, transparent);
   color: $secondary-light;
-  box-shadow: 0 0 12px rgba($secondary-default, 0.1);
+  box-shadow: 0 0 12px color-mix(in srgb, $secondary-default 10%, transparent);
 }
 
 .remote-audio__role-radio {
@@ -334,7 +334,7 @@ $role-surface: $surface-panel;
     transform: scale(0);
     border-radius: 50%;
     background: $secondary-light;
-    box-shadow: 0 0 7px rgba($secondary-light, 0.6);
+    box-shadow: 0 0 7px color-mix(in srgb, $secondary-light 60%, transparent);
     content: '';
     transition: transform $motion-fast $ease-out;
   }

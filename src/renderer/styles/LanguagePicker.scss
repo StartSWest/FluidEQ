@@ -23,7 +23,7 @@ it under the terms of the GNU General Public License version 3 or later.
   .menu-icon {
     width: 16px;
     height: 16px;
-    color: rgba($secondary-light, 0.72);
+    color: color-mix(in srgb, $secondary-light 72%, transparent);
     transition: color 160ms ease;
   }
 
@@ -48,12 +48,12 @@ it under the terms of the GNU General Public License version 3 or later.
     &:hover:not([aria-disabled='true']),
     &:focus-visible {
       color: $white;
-      border-color: rgba($secondary-light, 0.35);
-      background: rgba($secondary-default, 0.16);
+      border-color: color-mix(in srgb, $secondary-light 35%, transparent);
+      background: color-mix(in srgb, $secondary-default 16%, transparent);
     }
 
     .arrow {
-      color: rgba($secondary-light, 0.72);
+      color: color-mix(in srgb, $secondary-light 72%, transparent);
     }
   }
 

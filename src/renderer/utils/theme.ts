@@ -92,7 +92,9 @@ export const readSurface = (
     | '--surface-panel'
     | '--surface-block'
     | '--surface-well'
-    | '--track-well',
+    | '--track-well'
+    | '--accent'
+    | '--accent-light',
   fallback: string,
 ): string =>
   getComputedStyle(document.documentElement).getPropertyValue(name).trim() ||
@@ -119,3 +121,20 @@ export const readSurfaceAlpha = (
   const blue = parseInt(hex.slice(4, 6), 16);
   return `rgba(${red}, ${green}, ${blue}, ${alpha})`;
 };
+
+/**
+ * The accent as the theme paints it, at an alpha, for the drawings — the
+ * EQ's handles and curve on the DSP page, the meter's lit segments, the
+ * titlebar wave's glow. Ocean says cyan; a monochrome theme says white, and
+ * a drawing that kept cyan written in would be the one thing on screen that
+ * had not heard.
+ */
+export const readAccent = (alpha: number, fallback: string): string =>
+  alpha >= 1
+    ? readSurface('--accent', fallback)
+    : readSurfaceAlpha('--accent', alpha, fallback);
+
+export const readAccentLight = (alpha: number, fallback: string): string =>
+  alpha >= 1
+    ? readSurface('--accent-light', fallback)
+    : readSurfaceAlpha('--accent-light', alpha, fallback);

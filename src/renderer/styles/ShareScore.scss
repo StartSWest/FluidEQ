@@ -36,7 +36,7 @@ it under the terms of the GNU General Public License version 3 or later.
   display: grid;
   gap: 12px;
   padding: 16px;
-  border: 1px solid rgba($secondary-default, 0.22);
+  border: 1px solid color-mix(in srgb, $secondary-default 22%, transparent);
   border-radius: $radius-m;
   background: color-mix(in srgb, $surface-menu-top 72%, transparent);
 }
@@ -50,7 +50,7 @@ it under the terms of the GNU General Public License version 3 or later.
   padding: 20px;
   overflow-y: auto;
   @include slim-scrollbar;
-  border-color: rgba($secondary-default, 0.34);
+  border-color: color-mix(in srgb, $secondary-default 34%, transparent);
 }
 
 .share-score__head {
@@ -101,7 +101,7 @@ it under the terms of the GNU General Public License version 3 or later.
   display: block;
   width: 100%;
   aspect-ratio: 1200 / 630;
-  border: 1px solid rgba($secondary-default, 0.18);
+  border: 1px solid color-mix(in srgb, $secondary-default 18%, transparent);
   border-radius: $radius-s;
 }
 
@@ -165,12 +165,12 @@ it under the terms of the GNU General Public License version 3 or later.
 
 .share-score__copy {
   color: $text-primary;
-  border: 1px solid rgba($secondary-default, 0.3);
+  border: 1px solid color-mix(in srgb, $secondary-default 30%, transparent);
   background: transparent;
 
   &:hover {
-    border-color: rgba($secondary-default, 0.55);
-    background: rgba($secondary-default, 0.08);
+    border-color: color-mix(in srgb, $secondary-default 55%, transparent);
+    background: color-mix(in srgb, $secondary-default 8%, transparent);
   }
 }
 
@@ -188,8 +188,8 @@ it under the terms of the GNU General Public License version 3 or later.
 
   &:hover {
     color: $white;
-    border-color: rgba($secondary-default, 0.5);
-    background: rgba($secondary-default, 0.1);
+    border-color: color-mix(in srgb, $secondary-default 50%, transparent);
+    background: color-mix(in srgb, $secondary-default 10%, transparent);
   }
 }
 
@@ -206,7 +206,7 @@ it under the terms of the GNU General Public License version 3 or later.
   gap: 7px;
   padding: 5px 14px;
   color: $secondary-light;
-  border: 1px solid rgba($secondary-default, 0.35);
+  border: 1px solid color-mix(in srgb, $secondary-default 35%, transparent);
   border-radius: $radius-pill;
   background: transparent;
   font-size: $text-body;
@@ -233,8 +233,8 @@ it under the terms of the GNU General Public License version 3 or later.
 
   &:hover {
     color: $white;
-    border-color: rgba($secondary-default, 0.7);
-    background: rgba($secondary-default, 0.12);
+    border-color: color-mix(in srgb, $secondary-default 70%, transparent);
+    background: color-mix(in srgb, $secondary-default 12%, transparent);
   }
 
   // At the ceiling it stops being an outline and becomes the spectrum, because

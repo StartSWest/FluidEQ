@@ -29,11 +29,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   justify-content: center;
   padding: 8px 13px;
   color: $surface-base;
-  border: 1px solid rgba($secondary-light, 0.38);
+  border: 1px solid color-mix(in srgb, $secondary-light 38%, transparent);
   border-radius: $radius-s;
   background: $secondary-default;
   box-shadow:
-    0 8px 22px rgba($secondary-default, 0.12),
+    0 8px 22px color-mix(in srgb, $secondary-default 12%, transparent),
     inset 0 1px 0 rgba($white, 0.36);
   font-weight: $weight-bold;
   line-height: 1.15;
@@ -67,8 +67,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     color: $surface-base;
     background: $secondary-light;
     box-shadow:
-      0 11px 28px rgba($secondary-default, 0.2),
-      0 0 24px rgba($secondary-default, 0.18),
+      0 11px 28px color-mix(in srgb, $secondary-default 20%, transparent),
+      0 0 24px color-mix(in srgb, $secondary-default 18%, transparent),
       inset 0 1px 0 rgba($white, 0.42);
     transform: translateY(-1px);
     filter: brightness(1.06);
@@ -94,8 +94,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // Secondary action: reads as an outline against the panel.
   &.subtle {
     color: $secondary-light;
-    border-color: rgba($secondary-light, 0.24);
-    background: rgba($secondary-default, 0.07);
+    border-color: color-mix(in srgb, $secondary-light 24%, transparent);
+    background: color-mix(in srgb, $secondary-default 7%, transparent);
     box-shadow: none;
 
     // NO glyph rule of its own. One was here for a day: it painted every
@@ -109,13 +109,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
     &:hover:not([aria-disabled='true']):not(:disabled) {
       color: $white;
-      border-color: rgba($secondary-light, 0.55);
-      background: rgba($secondary-default, 0.16);
-      box-shadow: 0 0 18px rgba($secondary-default, 0.12);
+      border-color: color-mix(in srgb, $secondary-light 55%, transparent);
+      background: color-mix(in srgb, $secondary-default 16%, transparent);
+      box-shadow: 0 0 18px
+        color-mix(in srgb, $secondary-default 12%, transparent);
     }
 
     &:active:not([aria-disabled='true']):not(:disabled) {
-      background: rgba($secondary-default, 0.24);
+      background: color-mix(in srgb, $secondary-default 24%, transparent);
     }
   }
 
@@ -193,10 +194,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 @keyframes button-running {
   0%,
   100% {
-    box-shadow: 0 0 8px rgba($secondary-default, 0.12);
+    box-shadow: 0 0 8px color-mix(in srgb, $secondary-default 12%, transparent);
   }
 
   50% {
-    box-shadow: 0 0 22px rgba($secondary-default, 0.42);
+    box-shadow: 0 0 22px color-mix(in srgb, $secondary-default 42%, transparent);
   }
 }

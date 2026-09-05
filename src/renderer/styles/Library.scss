@@ -129,10 +129,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // panel is the target, so the whole panel has to answer back. Same
   // treatment as `.karaoke-workspace__stage.is-dragging`.
   &.is-drag-over {
-    border-color: rgba($secondary-default, 0.7);
+    border-color: color-mix(in srgb, $secondary-default 70%, transparent);
     box-shadow:
-      inset 0 0 0 1px rgba($secondary-default, 0.32),
-      0 0 30px rgba($secondary-default, 0.1);
+      inset 0 0 0 1px color-mix(in srgb, $secondary-default 32%, transparent),
+      0 0 30px color-mix(in srgb, $secondary-default 10%, transparent);
   }
 }
 
@@ -179,8 +179,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     &:hover,
     &:focus-visible {
       color: $secondary-light;
-      border-color: rgba($secondary-default, 0.4);
-      background: rgba($secondary-default, 0.12);
+      border-color: color-mix(in srgb, $secondary-default 40%, transparent);
+      background: color-mix(in srgb, $secondary-default 12%, transparent);
       outline: none;
     }
   }
@@ -289,7 +289,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   gap: 5px;
   border: 1px solid rgba($edge-tint, 0.14);
   border-radius: $radius-pill;
-  background: rgba($secondary-default, 0.07);
+  background: color-mix(in srgb, $secondary-default 7%, transparent);
   color: $text-muted;
   font-size: $text-small;
   white-space: nowrap;
@@ -300,7 +300,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     border-color 140ms ease;
 
   &:hover {
-    border-color: rgba($secondary-light, 0.45);
+    border-color: color-mix(in srgb, $secondary-light 45%, transparent);
     color: $secondary-light;
   }
 
@@ -310,8 +310,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 
   &.is-active {
-    border-color: rgba($secondary-light, 0.7);
-    background: rgba($secondary-light, 0.16);
+    border-color: color-mix(in srgb, $secondary-light 70%, transparent);
+    background: color-mix(in srgb, $secondary-light 16%, transparent);
     color: $secondary-light;
   }
 
@@ -319,8 +319,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // active state without claiming to be a current selection, which is what
   // `is-active` means everywhere else on this class.
   &--accent {
-    border-color: rgba($secondary-light, 0.6);
-    background: rgba($secondary-light, 0.14);
+    border-color: color-mix(in srgb, $secondary-light 60%, transparent);
+    background: color-mix(in srgb, $secondary-light 14%, transparent);
     color: $secondary-light;
   }
 
@@ -392,7 +392,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     height: 18px;
     flex: 0 0 auto;
     margin-inline-end: $spacing-xxs;
-    background: rgba($secondary-light, 0.16);
+    background: color-mix(in srgb, $secondary-light 16%, transparent);
     content: '';
   }
 
@@ -406,7 +406,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     padding: 4px 9px;
     border: 1px solid rgba($edge-tint, 0.14);
     border-radius: $radius-pill;
-    background: rgba($secondary-default, 0.07);
+    background: color-mix(in srgb, $secondary-default 7%, transparent);
     box-shadow: none;
     color: $text-muted;
     font-size: $text-small;
@@ -414,7 +414,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     gap: 6px;
 
     &:hover:not([aria-disabled='true']) {
-      border-color: rgba($secondary-light, 0.45);
+      border-color: color-mix(in srgb, $secondary-light 45%, transparent);
       color: $secondary-light;
     }
   }
@@ -537,7 +537,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     height: 18px;
     flex: 0 0 auto;
     margin-inline-end: $spacing-xxs;
-    background: rgba($secondary-light, 0.16);
+    background: color-mix(in srgb, $secondary-light 16%, transparent);
     content: '';
   }
 }
@@ -583,7 +583,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   border-radius: $radius-xs;
 
   &:hover {
-    background: rgba($secondary-default, 0.12);
+    background: color-mix(in srgb, $secondary-default 12%, transparent);
   }
 }
 
@@ -632,8 +632,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   &:hover,
   &:focus-visible {
     color: $secondary-light;
-    border-color: rgba($secondary-default, 0.4);
-    background: rgba($secondary-default, 0.12);
+    border-color: color-mix(in srgb, $secondary-default 40%, transparent);
+    background: color-mix(in srgb, $secondary-default 12%, transparent);
     outline: none;
   }
 }
@@ -669,7 +669,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   box-shadow: 0 18px 42px rgba($black, 0.46);
   animation: library-scan-progress-in $motion-base $ease-out;
   background: color-mix(in srgb, $surface-menu-top 96%, transparent);
-  border: 1px solid rgba($secondary-light, 0.31);
+  border: 1px solid color-mix(in srgb, $secondary-light 31%, transparent);
   border-radius: $radius-l;
 
   > button {
@@ -715,7 +715,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     inset: 0 auto 0 0;
     background: $secondary-default;
     border-radius: inherit;
-    box-shadow: 0 0 12px rgba($secondary-default, 0.36);
+    box-shadow: 0 0 12px color-mix(in srgb, $secondary-default 36%, transparent);
     transition: width 180ms ease;
   }
 
@@ -1054,7 +1054,7 @@ $library-row-height: 46px;
 
 .library-list__header {
   flex: 0 0 auto;
-  border-bottom: 1px solid rgba($secondary-light, 0.16);
+  border-bottom: 1px solid color-mix(in srgb, $secondary-light 16%, transparent);
   color: $text-faint;
   font-size: $text-micro;
   font-weight: $weight-bold;
@@ -1107,7 +1107,7 @@ $library-row-height: 46px;
   &:hover,
   &:focus-visible {
     color: $text-primary;
-    background: rgba($secondary-default, 0.12);
+    background: color-mix(in srgb, $secondary-default 12%, transparent);
     outline: none;
   }
 
@@ -1152,7 +1152,7 @@ $library-row-height: 46px;
   &--selected {
     position: relative;
     color: $text-primary;
-    background: rgba($secondary-default, 0.1);
+    background: color-mix(in srgb, $secondary-default 10%, transparent);
     opacity: 1;
 
     &::before {
@@ -1240,7 +1240,7 @@ $library-row-height: 46px;
   &:focus-visible {
     opacity: 1;
     color: $white;
-    background: rgba($secondary-default, 0.2);
+    background: color-mix(in srgb, $secondary-default 20%, transparent);
     outline: none;
   }
 
@@ -1292,7 +1292,9 @@ $library-row-height: 46px;
 .library-list__playing-bars rect {
   fill: $secondary-light;
   animation: library-playing-bar 1000ms ease-in-out infinite;
-  filter: drop-shadow(0 0 3px rgba($secondary-default, 0.55));
+  filter: drop-shadow(
+    0 0 3px color-mix(in srgb, $secondary-default 55%, transparent)
+  );
   transform-box: fill-box;
   transform-origin: bottom;
 }
@@ -1436,7 +1438,7 @@ $library-row-height: 46px;
     &:hover,
     &:focus-visible {
       color: $white;
-      background: rgba($secondary-default, 0.18);
+      background: color-mix(in srgb, $secondary-default 18%, transparent);
       outline: none;
     }
 
@@ -1472,7 +1474,7 @@ $library-row-height: 46px;
 .library-list__menu-rule {
   height: 1px;
   margin: 4px 6px;
-  background: rgba($secondary-light, 0.14);
+  background: color-mix(in srgb, $secondary-light 14%, transparent);
 }
 
 .library-list__menu-icon {
@@ -1521,7 +1523,8 @@ $library-row-height: 46px;
 // from the entries below it so it does not read as one of them.
 .library-list__menu button.library-list__menu-back {
   margin-bottom: 3px;
-  border-bottom: 1px solid rgba($secondary-default, 0.16);
+  border-bottom: 1px solid
+    color-mix(in srgb, $secondary-default 16%, transparent);
   border-radius: 0;
   color: $text-faint;
 }
@@ -1620,8 +1623,8 @@ $library-row-height: 46px;
 
   &:hover,
   &:focus-visible {
-    border-color: rgba($secondary-light, 0.4);
-    background: rgba($secondary-default, 0.08);
+    border-color: color-mix(in srgb, $secondary-light 40%, transparent);
+    background: color-mix(in srgb, $secondary-default 8%, transparent);
     transform: translateY(-1px);
     outline: none;
   }
@@ -1635,8 +1638,8 @@ $library-row-height: 46px;
   // `.library-list__row--selected` states: one filled tile sitting under a
   // moving pointer would read as two things hovered at once.
   &--selected {
-    border-color: rgba($secondary-light, 0.55);
-    box-shadow: 0 0 0 1px rgba($secondary-light, 0.35);
+    border-color: color-mix(in srgb, $secondary-light 55%, transparent);
+    box-shadow: 0 0 0 1px color-mix(in srgb, $secondary-light 35%, transparent);
     opacity: 1;
   }
 
@@ -1647,8 +1650,8 @@ $library-row-height: 46px;
   // hundred and eighty, not so much that it competes with selection, which
   // is a ring and reads as an outline rather than a light.
   &--playing {
-    border-color: rgba($secondary-light, 0.45);
-    box-shadow: 0 0 18px rgba($secondary-default, 0.3);
+    border-color: color-mix(in srgb, $secondary-light 45%, transparent);
+    box-shadow: 0 0 18px color-mix(in srgb, $secondary-default 30%, transparent);
     opacity: 1;
 
     .library-grid__title {
@@ -2319,7 +2322,7 @@ $library-wave-step: 4ms;
   padding: 0 3px 0 8px;
   border: 1px solid rgba($edge-tint, 0.14);
   border-radius: $radius-pill;
-  background: rgba($secondary-default, 0.07);
+  background: color-mix(in srgb, $secondary-default 7%, transparent);
   transition:
     border-color 140ms ease,
     background 140ms ease;
@@ -2363,7 +2366,7 @@ $library-wave-step: 4ms;
   left: 0;
   overflow: hidden;
   padding: 4px;
-  border: 1px solid rgba($secondary-light, 0.28);
+  border: 1px solid color-mix(in srgb, $secondary-light 28%, transparent);
   border-radius: $radius-m;
   background: $surface-menu-face;
   box-shadow: 0 18px 44px rgba($black, 0.5);
@@ -2380,7 +2383,7 @@ $library-wave-step: 4ms;
     border-radius: $radius-s;
 
     &:hover {
-      background: rgba($secondary-light, 0.14);
+      background: color-mix(in srgb, $secondary-light 14%, transparent);
     }
   }
 }
@@ -2529,7 +2532,7 @@ $library-wave-step: 4ms;
   &:hover,
   &:focus-visible {
     color: $secondary-light;
-    background: rgba($secondary-default, 0.16);
+    background: color-mix(in srgb, $secondary-default 16%, transparent);
     outline: none;
   }
 }
@@ -2554,18 +2557,18 @@ $library-wave-step: 4ms;
   padding-right: 5px;
   border: 1px solid rgba($edge-tint, 0.14);
   border-radius: $radius-pill;
-  background: rgba($secondary-default, 0.07);
+  background: color-mix(in srgb, $secondary-default 7%, transparent);
   transition:
     background 140ms ease,
     border-color 140ms ease;
 
   &:hover {
-    border-color: rgba($secondary-light, 0.45);
+    border-color: color-mix(in srgb, $secondary-light 45%, transparent);
   }
 
   &.is-active {
-    border-color: rgba($secondary-light, 0.7);
-    background: rgba($secondary-light, 0.16);
+    border-color: color-mix(in srgb, $secondary-light 70%, transparent);
+    background: color-mix(in srgb, $secondary-light 16%, transparent);
   }
 
   // Bare inside the pill: the pill is what is drawn, these are only where
@@ -2629,14 +2632,14 @@ $library-wave-step: 4ms;
 
   &:hover,
   &:focus-visible {
-    border-color: rgba($secondary-light, 0.3);
-    background: rgba($secondary-default, 0.1);
+    border-color: color-mix(in srgb, $secondary-light 30%, transparent);
+    background: color-mix(in srgb, $secondary-default 10%, transparent);
     outline: none;
   }
 
   &.is-active {
-    border-color: rgba($secondary-light, 0.42);
-    background: rgba($secondary-default, 0.16);
+    border-color: color-mix(in srgb, $secondary-light 42%, transparent);
+    background: color-mix(in srgb, $secondary-default 16%, transparent);
   }
 }
 
@@ -3080,7 +3083,7 @@ $library-wave-step: 4ms;
   width: 1px;
   height: 18px;
   flex: 0 0 auto;
-  background: rgba($secondary-light, 0.16);
+  background: color-mix(in srgb, $secondary-light 16%, transparent);
 }
 
 // The edge between the two. `KaraokePaneSplitter` draws itself — this only
@@ -3158,7 +3161,7 @@ $library-wave-step: 4ms;
   align-items: center;
   gap: 8px;
   padding: 8px 10px;
-  border-bottom: 1px solid rgba($secondary-light, 0.12);
+  border-bottom: 1px solid color-mix(in srgb, $secondary-light 12%, transparent);
 }
 
 // Same recipe as `.song-eq-save__label`, which is the app's other switch with
@@ -3180,7 +3183,7 @@ $library-wave-step: 4ms;
   align-items: center;
   padding: 4px 6px 8px 0;
   border: 0;
-  border-bottom: 1px solid rgba($secondary-light, 0.1);
+  border-bottom: 1px solid color-mix(in srgb, $secondary-light 10%, transparent);
   background: none;
   gap: 8px;
   cursor: pointer;
@@ -3200,7 +3203,7 @@ $library-wave-step: 4ms;
   height: 12px;
   flex: 0 0 auto;
   fill: none;
-  stroke: rgba($secondary-light, 0.7);
+  stroke: color-mix(in srgb, $secondary-light 70%, transparent);
   stroke-linecap: round;
   stroke-linejoin: round;
   stroke-width: 1.8;
@@ -3311,7 +3314,7 @@ $library-wave-step: 4ms;
   align-items: flex-end;
   padding: 6px 6px 3px;
   margin: 0;
-  color: rgba($secondary-light, 0.62);
+  color: color-mix(in srgb, $secondary-light 62%, transparent);
   font-size: $text-micro;
   font-weight: $weight-bold;
   letter-spacing: 0.08em;
@@ -3483,7 +3486,7 @@ $library-wave-step: 4ms;
   flex: 0 0 auto;
   align-items: flex-end;
   padding: 10px 6px 4px;
-  border-bottom: 1px solid rgba($secondary-light, 0.12);
+  border-bottom: 1px solid color-mix(in srgb, $secondary-light 12%, transparent);
   margin: 0;
   color: $text-faint;
   font-size: $text-eyebrow;
@@ -3495,7 +3498,7 @@ $library-wave-step: 4ms;
 // The listener's own half wears the accent; what merely follows does not.
 .library-up-next__section.is-added {
   color: $secondary-light;
-  border-bottom-color: rgba($secondary-light, 0.3);
+  border-bottom-color: color-mix(in srgb, $secondary-light 30%, transparent);
 }
 
 // And what the player chose for itself is quieter still than "then": a dashed
@@ -3643,7 +3646,7 @@ $library-wave-step: 4ms;
     z-index: 6;
     box-shadow:
       0 18px 44px rgba($black, 0.55),
-      0 0 0 1px rgba($secondary-light, 0.16);
+      0 0 0 1px color-mix(in srgb, $secondary-light 16%, transparent);
   }
 
   // Dragging the edge of something floating over the list has nothing to

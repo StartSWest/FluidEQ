@@ -14,7 +14,7 @@ import {
 import { IKaraokeMakerNote } from '../../common/karaoke/makerProject';
 import KaraokeMakerToolIcon from './KaraokeMakerToolIcon';
 import { KaraokeTransportIcon } from './KaraokeTransport';
-import { readSurface, readSurfaceAlpha } from '../utils/theme';
+import { readAccent, readSurface, readSurfaceAlpha } from '../utils/theme';
 
 interface IKaraokeMakerNavigatorProps {
   durationMs: number;
@@ -275,7 +275,7 @@ const KaraokeMakerNavigator = ({
       context.beginPath();
       context.roundRect(edgeX - 3, height / 2 - 10, 6, 20, 3);
       context.fill();
-      context.fillStyle = 'rgba(0, 229, 207, .55)';
+      context.fillStyle = readAccent(0.55, 'rgba(0, 229, 207, 0.55)');
       context.fillRect(edgeX - 0.6, height / 2 - 5, 1.2, 10);
     });
     context.shadowBlur = 0;

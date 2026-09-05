@@ -126,9 +126,9 @@ it under the terms of the GNU General Public License version 3 or later.
 .autoeq-panel__picker .sidebar-section .autoeq-applied {
   padding: 10px 12px;
   gap: 9px;
-  border: 1px solid rgba($secondary-light, 0.3);
+  border: 1px solid color-mix(in srgb, $secondary-light 30%, transparent);
   border-radius: $radius-s;
-  background: rgba($secondary-default, 0.13);
+  background: color-mix(in srgb, $secondary-default 13%, transparent);
   font-size: $text-body;
 
   .menu-icon {

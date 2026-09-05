@@ -87,8 +87,8 @@ it under the terms of the GNU General Public License version 3 or later.
       border-radius: $radius-pill;
       background:
         linear-gradient(
-            rgba($secondary-default, 0.95),
-            rgba($secondary-default, 0.95)
+            color-mix(in srgb, $secondary-default 95%, transparent),
+            color-mix(in srgb, $secondary-default 95%, transparent)
           )
           0 / var(--fill) 100% no-repeat,
         rgba($edge-tint, 0.14);
@@ -103,8 +103,8 @@ it under the terms of the GNU General Public License version 3 or later.
       border-radius: 50%;
       background: $secondary-light;
       box-shadow:
-        0 0 0 1px rgba($secondary-light, 0.5),
-        0 0 12px rgba($secondary-default, 0.6);
+        0 0 0 1px color-mix(in srgb, $secondary-light 50%, transparent),
+        0 0 12px color-mix(in srgb, $secondary-default 60%, transparent);
       cursor: grab;
       appearance: none;
     }
@@ -163,7 +163,9 @@ it under the terms of the GNU General Public License version 3 or later.
   stroke-linecap: round;
   stroke-linejoin: round;
   stroke-width: 2;
-  filter: drop-shadow(0 0 4px rgba($secondary-default, 0.55));
+  filter: drop-shadow(
+    0 0 4px color-mix(in srgb, $secondary-default 55%, transparent)
+  );
 }
 
 .driver-picker__scale {
@@ -225,9 +227,9 @@ it under the terms of the GNU General Public License version 3 or later.
   justify-self: start;
   padding: 1px 6px;
   color: $secondary-light;
-  border: 1px solid rgba($secondary-light, 0.3);
+  border: 1px solid color-mix(in srgb, $secondary-light 30%, transparent);
   border-radius: $radius-pill;
-  background: rgba($secondary-default, 0.12);
+  background: color-mix(in srgb, $secondary-default 12%, transparent);
   font-size: $text-micro;
   font-variant-numeric: tabular-nums;
   font-weight: $weight-bold;

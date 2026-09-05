@@ -171,7 +171,7 @@ it under the terms of the GNU General Public License version 3 or later.
   padding: 2px 6px;
   vertical-align: middle;
   color: $secondary-light;
-  border: 1px solid rgba($secondary-default, 0.35);
+  border: 1px solid color-mix(in srgb, $secondary-default 35%, transparent);
   border-radius: $radius-pill;
   font-size: $text-micro;
   font-weight: $weight-bold;

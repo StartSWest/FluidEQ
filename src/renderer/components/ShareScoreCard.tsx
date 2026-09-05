@@ -27,6 +27,7 @@ import {
 import { OFFICIAL_SITE_URL, PRODUCT_NAME } from 'common/branding';
 import { EYE_WAVE_AMPLITUDE, EYE_WAVE_PERIOD } from '../SupportPet';
 import { useTranslation } from '../utils/I18nContext';
+import { readAccentLight } from '../utils/theme';
 import '../styles/ShareScore.scss';
 
 /**
@@ -187,7 +188,7 @@ const drawPet = (
       }
       // The width and opacity the live one reaches at full joy, which is the
       // only state this ever draws in.
-      context.strokeStyle = '#9cfff4';
+      context.strokeStyle = readAccentLight(1, '#9cfff4');
       context.lineWidth = 0.9;
       context.lineCap = 'round';
       context.globalAlpha = 0.95;

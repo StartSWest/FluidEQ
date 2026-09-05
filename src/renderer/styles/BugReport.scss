@@ -99,7 +99,7 @@ it under the terms of the GNU General Public License version 3 or later.
     height: $control-height;
     padding-inline: 16px;
     color: $text-primary;
-    border: 1px solid rgba($secondary-default, 0.3);
+    border: 1px solid color-mix(in srgb, $secondary-default 30%, transparent);
     border-radius: $radius-s;
     background: $surface-plot;
     font-size: $text-lead;
@@ -108,8 +108,8 @@ it under the terms of the GNU General Public License version 3 or later.
     transition: $transition-control;
 
     &:hover {
-      border-color: rgba($secondary-default, 0.6);
-      background: rgba($secondary-default, 0.1);
+      border-color: color-mix(in srgb, $secondary-default 60%, transparent);
+      background: color-mix(in srgb, $secondary-default 10%, transparent);
     }
   }
 }

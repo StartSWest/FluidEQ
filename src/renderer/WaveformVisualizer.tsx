@@ -112,6 +112,7 @@ import {
 } from './utils/euphoriaMode';
 import { toggleTitlebarWave, useTitlebarWaveHidden } from './utils/graphStyle';
 import { useTranslation } from './utils/I18nContext';
+import { readAccentLight } from './utils/theme';
 import './styles/WaveformVisualizer.scss';
 
 type TWaveformCycleStyle = WaveformStyle | 'off';
@@ -589,7 +590,7 @@ const WaveformVisualizer = () => {
       SOFT_GLOW_WAVEFORM_STYLES.has(styleRef.current) && !isPausedRef.current;
     const softGlowColour = isEuphoricRef.current
       ? 'rgba(255, 60, 172, 0.55)'
-      : 'rgba(156, 255, 244, 0.66)';
+      : readAccentLight(0.66, 'rgba(156, 255, 244, 0.66)');
 
     if (figurePath) {
       let ramp: CanvasGradient = traceRamp;

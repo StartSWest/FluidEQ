@@ -86,8 +86,18 @@ export enum GrayScaleEnum {
   WHITE = '#ffffff',
 }
 
+/**
+ * `currentColor` is a colour too: it is how an SVG stroke follows the theme.
+ * The accent is a custom property now, and a presentation attribute cannot
+ * hold a `var()`, so the plot sets its `color` from the stylesheet and the
+ * curves that are the accent say so by inheriting it.
+ */
 export type Color =
-  PrimaryColorEnum | SecondaryColorEnum | ColorEnum | GrayScaleEnum;
+  | PrimaryColorEnum
+  | SecondaryColorEnum
+  | ColorEnum
+  | GrayScaleEnum
+  | 'currentColor';
 
 /**
  * The colour each layer is drawn in on the graph, keyed by `TApoLayer`.

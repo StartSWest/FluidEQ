@@ -103,7 +103,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   &::after {
     height: 1px;
     flex: 1 1 auto;
-    background: rgba($secondary-light, 0.24);
+    background: color-mix(in srgb, $secondary-light 24%, transparent);
     content: '';
   }
 }
@@ -138,12 +138,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 
   &:hover:not(:disabled) {
-    border-color: rgba($secondary-light, 0.4);
-    background: rgba($secondary-default, 0.08);
+    border-color: color-mix(in srgb, $secondary-light 40%, transparent);
+    background: color-mix(in srgb, $secondary-default 8%, transparent);
     transform: translateY(-1px);
 
     .voicing-card__icon {
-      border-color: rgba($secondary-light, 0.4);
+      border-color: color-mix(in srgb, $secondary-light 40%, transparent);
       color: $secondary-light;
     }
   }
@@ -154,9 +154,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 
   &.is-active {
-    border-color: rgba($secondary-light, 0.6);
-    background: rgba($secondary-default, 0.2);
-    box-shadow: 0 0 24px rgba($secondary-default, 0.14);
+    border-color: color-mix(in srgb, $secondary-light 60%, transparent);
+    background: color-mix(in srgb, $secondary-default 20%, transparent);
+    box-shadow: 0 0 24px color-mix(in srgb, $secondary-default 14%, transparent);
 
     strong {
       color: $secondary-light;
@@ -164,9 +164,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
     .voicing-card__icon {
       color: $secondary-light;
-      border-color: rgba($secondary-light, 0.55);
-      background: rgba($secondary-default, 0.2);
-      box-shadow: 0 0 18px rgba($secondary-default, 0.28);
+      border-color: color-mix(in srgb, $secondary-light 55%, transparent);
+      background: color-mix(in srgb, $secondary-default 20%, transparent);
+      box-shadow: 0 0 18px
+        color-mix(in srgb, $secondary-default 28%, transparent);
     }
   }
 
@@ -220,7 +221,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   height: 40px;
   margin-bottom: 8px;
   place-items: center;
-  color: rgba($secondary-light, 0.72);
+  color: color-mix(in srgb, $secondary-light 72%, transparent);
   border: 1px solid rgba($edge-tint, 0.14);
   border-radius: $radius-s;
   // Was `rgba(#050b12, 0.55)` — a near-black over a panel that now shows the
@@ -300,8 +301,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       border-radius: $radius-pill;
       background:
         linear-gradient(
-            rgba($secondary-default, 0.95),
-            rgba($secondary-default, 0.95)
+            color-mix(in srgb, $secondary-default 95%, transparent),
+            color-mix(in srgb, $secondary-default 95%, transparent)
           )
           0 / var(--fill) 100% no-repeat,
         rgba($edge-tint, 0.16);
@@ -316,8 +317,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       border-radius: 50%;
       background: $secondary-light;
       box-shadow:
-        0 0 0 1px rgba($secondary-light, 0.5),
-        0 0 14px rgba($secondary-default, 0.65);
+        0 0 0 1px color-mix(in srgb, $secondary-light 50%, transparent),
+        0 0 14px color-mix(in srgb, $secondary-default 65%, transparent);
       cursor: grab;
       appearance: none;
       transition: $transition-control;
@@ -325,8 +326,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
     &:hover::-webkit-slider-thumb {
       box-shadow:
-        0 0 0 1px rgba($secondary-light, 0.75),
-        0 0 20px rgba($secondary-default, 0.85);
+        0 0 0 1px color-mix(in srgb, $secondary-light 75%, transparent),
+        0 0 20px color-mix(in srgb, $secondary-default 85%, transparent);
     }
 
     &:active::-webkit-slider-thumb {
@@ -340,7 +341,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       &::-webkit-slider-thumb {
         box-shadow:
           0 0 0 2px $secondary-light,
-          0 0 20px rgba($secondary-default, 0.85);
+          0 0 20px color-mix(in srgb, $secondary-default 85%, transparent);
       }
     }
 
@@ -391,7 +392,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     }
 
     &:hover {
-      background: rgba($secondary-default, 0.08);
+      background: color-mix(in srgb, $secondary-default 8%, transparent);
     }
   }
 
@@ -401,9 +402,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     min-width: 108px;
     padding: 2px 7px;
     color: $secondary-light;
-    border: 1px solid rgba($secondary-light, 0.18);
+    border: 1px solid color-mix(in srgb, $secondary-light 18%, transparent);
     border-radius: $radius-xs;
-    background: rgba($secondary-default, 0.08);
+    background: color-mix(in srgb, $secondary-default 8%, transparent);
     font-family: $font-mono;
     font-size: $text-small;
     font-variant-numeric: tabular-nums;

@@ -38,7 +38,7 @@ it under the terms of the GNU General Public License version 3 or later.
   width: min($width, 100%);
   max-height: min($height, calc(100vh - #{$spacing-l} * 2));
   overflow: hidden;
-  border: 1px solid rgba($secondary-light, 0.27);
+  border: 1px solid color-mix(in srgb, $secondary-light 27%, transparent);
   border-radius: $radius-xl;
   background: color-mix(in srgb, $surface-field-end 97%, transparent);
   box-shadow:
@@ -54,7 +54,7 @@ it under the terms of the GNU General Public License version 3 or later.
     right: 9%;
     left: 9%;
     height: 1px;
-    background: rgba($secondary-light, 0.58);
+    background: color-mix(in srgb, $secondary-light 58%, transparent);
     content: '';
     pointer-events: none;
   }

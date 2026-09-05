@@ -55,13 +55,13 @@
     background $motion-fast $ease-out;
 
   &:hover {
-    border-color: rgba($secondary-light, 0.34);
-    background: rgba($secondary-default, 0.055);
+    border-color: color-mix(in srgb, $secondary-light 34%, transparent);
+    background: color-mix(in srgb, $secondary-default 5.5%, transparent);
   }
 
   &.is-selected {
-    border-color: rgba($secondary-light, 0.5);
-    background: rgba($secondary-default, 0.09);
+    border-color: color-mix(in srgb, $secondary-light 50%, transparent);
+    background: color-mix(in srgb, $secondary-default 9%, transparent);
   }
 
   > span:nth-child(2) {
@@ -123,7 +123,7 @@
     transform: scale(0);
     border-radius: 50%;
     background: $secondary-light;
-    box-shadow: 0 0 6px rgba($secondary-light, 0.52);
+    box-shadow: 0 0 6px color-mix(in srgb, $secondary-light 52%, transparent);
     content: '';
     transition: transform $motion-fast $ease-out;
   }

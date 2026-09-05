@@ -140,8 +140,8 @@ $pet-hop-duration: 520ms;
 
   &:hover,
   &:focus-visible {
-    border-color: rgba($secondary-light, 0.32);
-    background: rgba($secondary-default, 0.1);
+    border-color: color-mix(in srgb, $secondary-light 32%, transparent);
+    background: color-mix(in srgb, $secondary-default 10%, transparent);
     outline: none;
   }
 

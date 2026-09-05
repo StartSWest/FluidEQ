@@ -11,8 +11,8 @@ it under the terms of the GNU General Public License version 3 or later.
 // Marquee selection drawn over the response graph. The equivalent overlay for
 // the slider grid lives in MainContent.scss next to the `.bands` rules.
 .chart-selection-box {
-  fill: rgba($secondary-default, 0.12);
-  stroke: rgba($secondary-light, 0.9);
+  fill: color-mix(in srgb, $secondary-default 12%, transparent);
+  stroke: color-mix(in srgb, $secondary-light 90%, transparent);
   stroke-dasharray: 5 4;
   stroke-width: 1;
 }

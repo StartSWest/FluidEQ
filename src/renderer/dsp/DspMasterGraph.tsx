@@ -405,7 +405,9 @@ const DspMasterGraph = ({
         <li className="dsp-eq-legend-item">
           <span
             className="dsp-eq-legend-mark is-filled"
-            style={{ color: 'rgba(0,229,207,0.5)' }}
+            style={{
+              color: 'color-mix(in srgb, var(--accent) 50%, transparent)',
+            }}
           />
           {t('dsp.master.graph.momentary')}
         </li>

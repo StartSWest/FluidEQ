@@ -192,7 +192,7 @@ it under the terms of the GNU General Public License version 3 or later.
 
   &:hover,
   &:focus-visible {
-    background: rgba($secondary-default, 0.08);
+    background: color-mix(in srgb, $secondary-default 8%, transparent);
     outline: none;
   }
 }
@@ -227,7 +227,7 @@ it under the terms of the GNU General Public License version 3 or later.
   &.active {
     border-color: $secondary-light;
     background: $secondary-default;
-    box-shadow: 0 0 10px rgba($secondary-default, 0.8);
+    box-shadow: 0 0 10px color-mix(in srgb, $secondary-default 80%, transparent);
   }
 }
 

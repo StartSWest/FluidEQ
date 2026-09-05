@@ -61,7 +61,7 @@ $song-eq-status-line: 12px;
 
   &:hover {
     border-color: $border-field-hover;
-    background: rgba($secondary-default, 0.14);
+    background: color-mix(in srgb, $secondary-default 14%, transparent);
 
     .song-eq-save__label {
       color: $white;
@@ -126,7 +126,7 @@ $song-eq-status-line: 12px;
 
 .song-eq-save.is-on {
   border-color: $border-field-hover;
-  background: rgba($secondary-default, 0.14);
+  background: color-mix(in srgb, $secondary-default 14%, transparent);
 
   .song-eq-save__label {
     color: $white;
@@ -139,8 +139,8 @@ $song-eq-status-line: 12px;
 
 // Lit, flat: the border and the fill go to the bright cyan and nothing glows.
 .song-eq-save.is-will-save {
-  border-color: rgba($secondary-light, 0.55);
-  background: rgba($secondary-default, 0.18);
+  border-color: color-mix(in srgb, $secondary-light 55%, transparent);
+  background: color-mix(in srgb, $secondary-default 18%, transparent);
 
   .song-eq-save__fill {
     background: $secondary-light;

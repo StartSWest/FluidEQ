@@ -77,7 +77,7 @@ it under the terms of the GNU General Public License version 3 or later.
   align-items: center;
   justify-content: space-between;
   padding: 10px 12px 8px;
-  border-bottom: 1px solid rgba($secondary-light, 0.16);
+  border-bottom: 1px solid color-mix(in srgb, $secondary-light 16%, transparent);
 
   h2 {
     margin: 0;
@@ -226,7 +226,7 @@ it under the terms of the GNU General Public License version 3 or later.
   &::-webkit-slider-runnable-track {
     height: 3px;
     border-radius: $radius-pill;
-    background: rgba($secondary-light, 0.22);
+    background: color-mix(in srgb, $secondary-light 22%, transparent);
   }
 
   &::-webkit-slider-thumb {
@@ -238,7 +238,7 @@ it under the terms of the GNU General Public License version 3 or later.
     appearance: none;
     -webkit-appearance: none;
     background: $secondary-default;
-    box-shadow: 0 0 6px rgba($secondary-default, 0.55);
+    box-shadow: 0 0 6px color-mix(in srgb, $secondary-default 55%, transparent);
   }
 
   &:disabled::-webkit-slider-thumb {
@@ -280,7 +280,7 @@ it under the terms of the GNU General Public License version 3 or later.
   &.is-on {
     color: $white;
     border-color: $secondary-light;
-    background: rgba($secondary-light, 0.18);
+    background: color-mix(in srgb, $secondary-light 18%, transparent);
   }
 }
 
@@ -452,7 +452,7 @@ it under the terms of the GNU General Public License version 3 or later.
   padding: 0;
   border: 0;
   background: none;
-  color: rgba($secondary-light, 0.85);
+  color: color-mix(in srgb, $secondary-light 85%, transparent);
   font: inherit;
   font-size: $text-eyebrow;
   font-weight: $weight-semibold;
@@ -550,7 +550,7 @@ it under the terms of the GNU General Public License version 3 or later.
   display: flex;
   gap: 6px;
   padding: 9px 12px 11px;
-  border-top: 1px solid rgba($secondary-light, 0.16);
+  border-top: 1px solid color-mix(in srgb, $secondary-light 16%, transparent);
 }
 
 .look-designer__button {
@@ -566,10 +566,10 @@ it under the terms of the GNU General Public License version 3 or later.
   &--primary {
     color: $white;
     border-color: $secondary-light;
-    background: rgba($secondary-light, 0.2);
+    background: color-mix(in srgb, $secondary-light 20%, transparent);
 
     &:hover:not(:disabled) {
-      background: rgba($secondary-light, 0.32);
+      background: color-mix(in srgb, $secondary-light 32%, transparent);
     }
   }
 

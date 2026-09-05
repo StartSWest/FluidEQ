@@ -6,6 +6,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { TranslationKey } from '../../common/i18n/en';
 import { useTranslation } from '../utils/I18nContext';
+import { readAccent } from '../utils/theme';
 
 interface IDspEqLegendProps {
   /** Any band set to react, so the at-rest twin is on screen. */
@@ -48,13 +49,13 @@ const DspEqLegend = ({
   const entries: ILegendEntry[] = [
     {
       key: 'dsp.eq.legend.curve',
-      colour: '#00e5cf',
+      colour: readAccent(1, '#00e5cf'),
       isDashed: false,
       scale: 'gain',
     },
     {
       key: 'dsp.eq.legend.spectrum',
-      colour: 'rgba(0,229,207,0.5)',
+      colour: readAccent(0.5, 'rgba(0,229,207,0.5)'),
       isDashed: false,
       isFilled: true,
       scale: 'level',
@@ -64,7 +65,7 @@ const DspEqLegend = ({
   if (hasDynamic) {
     entries.push({
       key: 'dsp.eq.legend.atRest',
-      colour: 'rgba(0,229,207,0.6)',
+      colour: readAccent(0.6, 'rgba(0,229,207,0.6)'),
       isDashed: true,
       scale: 'gain',
     });

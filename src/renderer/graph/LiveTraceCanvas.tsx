@@ -101,6 +101,7 @@ import {
   spectrumBarsPath,
 } from '../waveformPaint';
 import { LEVEL_FLOOR_DB } from './outputLevel';
+import { readAccentLight } from '../utils/theme';
 
 /**
  * The euphoria halo: two wide, faint copies of the figure behind itself.
@@ -197,7 +198,7 @@ const TRACE_WIDTH_CYAN = 3.2;
 const TRACE_BLUR_RAINBOW = 14;
 const TRACE_BLUR_CYAN = 18;
 const TRACE_GLOW_RAINBOW = 'rgba(255, 60, 172, 0.55)';
-const TRACE_GLOW_CYAN = 'rgba(156, 255, 244, 0.66)';
+const traceGlowCyan = () => readAccentLight(0.66, 'rgba(156, 255, 244, 0.66)');
 
 interface ILiveTraceCanvasProps {
   /**
@@ -926,7 +927,7 @@ const LiveTraceCanvas = ({
         if (isWaveForm && tuning.glow > 0) {
           context.shadowColor = isEuphoric
             ? TRACE_GLOW_RAINBOW
-            : TRACE_GLOW_CYAN;
+            : traceGlowCyan();
           context.shadowBlur =
             (isEuphoric ? TRACE_BLUR_RAINBOW : TRACE_BLUR_CYAN) *
             (tuning.glow / DEFAULT_GLOW);
@@ -1110,7 +1111,7 @@ const LiveTraceCanvas = ({
             context.lineCap = 'round';
             context.shadowColor = isEuphoric
               ? TRACE_GLOW_RAINBOW
-              : TRACE_GLOW_CYAN;
+              : traceGlowCyan();
             /**
              * The look's glow and thickness, as multiples of their own
              * defaults rather than as raw values — multiplying by them

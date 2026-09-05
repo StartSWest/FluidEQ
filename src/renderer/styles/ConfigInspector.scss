@@ -145,9 +145,9 @@ $name-column: 34ch;
   flex: 0 0 auto;
   align-items: center;
   padding: 5px 12px;
-  border: 1px solid rgba($secondary-default, 0.35);
+  border: 1px solid color-mix(in srgb, $secondary-default 35%, transparent);
   border-radius: $radius-pill;
-  background: rgba($secondary-default, 0.14);
+  background: color-mix(in srgb, $secondary-default 14%, transparent);
   color: $secondary-light;
   cursor: pointer;
   font-size: $text-small;
@@ -163,7 +163,7 @@ $name-column: 34ch;
   }
 
   &:hover:not(:disabled) {
-    background: rgba($secondary-default, 0.26);
+    background: color-mix(in srgb, $secondary-default 26%, transparent);
     color: $white;
   }
 
@@ -244,15 +244,15 @@ $name-column: 34ch;
   transition: $transition-control;
 
   &:hover {
-    border-color: rgba($secondary-default, 0.4);
-    background: rgba($secondary-default, 0.1);
+    border-color: color-mix(in srgb, $secondary-default 40%, transparent);
+    background: color-mix(in srgb, $secondary-default 10%, transparent);
   }
 
   // Selection is a border and a fill, not a colour swap: the card goes on
   // saying the same thing whether or not it is the one being read.
   &.is-selected {
     border-color: $secondary-default;
-    background: rgba($secondary-default, 0.18);
+    background: color-mix(in srgb, $secondary-default 18%, transparent);
   }
 
   // The output being played through, which is the one somebody almost always
@@ -490,9 +490,9 @@ $name-column: 34ch;
 
   button {
     padding: 5px 11px;
-    border: 1px solid rgba($secondary-light, 0.28);
+    border: 1px solid color-mix(in srgb, $secondary-light 28%, transparent);
     border-radius: $radius-xs;
-    background: rgba($secondary-default, 0.08);
+    background: color-mix(in srgb, $secondary-default 8%, transparent);
     color: $secondary-light;
     font: inherit;
     font-size: $text-small;
@@ -502,8 +502,8 @@ $name-column: 34ch;
 
     &:hover,
     &:focus-visible {
-      border-color: rgba($secondary-light, 0.55);
-      background: rgba($secondary-default, 0.18);
+      border-color: color-mix(in srgb, $secondary-light 55%, transparent);
+      background: color-mix(in srgb, $secondary-default 18%, transparent);
       color: $white;
       outline: none;
     }
@@ -614,7 +614,7 @@ $name-column: 34ch;
     bottom: 0;
     left: -$spacing-m;
     width: 1px;
-    background: rgba($secondary-default, 0.18);
+    background: color-mix(in srgb, $secondary-default 18%, transparent);
     content: '';
   }
 
@@ -644,7 +644,7 @@ $name-column: 34ch;
   left: -$spacing-m;
   width: $spacing-m - $spacing-xs;
   height: 1px;
-  background: rgba($secondary-default, 0.18);
+  background: color-mix(in srgb, $secondary-default 18%, transparent);
   content: '';
 }
 
@@ -667,7 +667,7 @@ $name-column: 34ch;
   transition: $transition-control;
 
   &:hover {
-    background: rgba($secondary-default, 0.12);
+    background: color-mix(in srgb, $secondary-default 12%, transparent);
   }
 }
 
@@ -711,7 +711,7 @@ $name-column: 34ch;
   // margin, and that stopped being right the moment a row could carry two
   // pills — the gap landed in the middle of the pair instead of after it.
   margin-inline-start: auto;
-  background: rgba($secondary-default, 0.16);
+  background: color-mix(in srgb, $secondary-default 16%, transparent);
   color: $secondary-light;
   font-family: inherit;
   font-size: $text-micro;
@@ -749,9 +749,9 @@ $name-column: 34ch;
   max-width: 22rem;
   flex: 0 1 auto;
   padding: 1px 8px;
-  border: 1px solid rgba($secondary-light, 0.22);
+  border: 1px solid color-mix(in srgb, $secondary-light 22%, transparent);
   border-radius: $radius-pill;
-  background: rgba($secondary-default, 0.1);
+  background: color-mix(in srgb, $secondary-default 10%, transparent);
   color: $text-muted;
   font-size: $text-micro;
 }
@@ -782,9 +782,9 @@ $name-column: 34ch;
 .config-node__actions button {
   flex: 0 0 auto;
   padding: 3px 10px;
-  border: 1px solid rgba($secondary-default, 0.3);
+  border: 1px solid color-mix(in srgb, $secondary-default 30%, transparent);
   border-radius: $radius-pill;
-  background: rgba($secondary-default, 0.12);
+  background: color-mix(in srgb, $secondary-default 12%, transparent);
   color: $secondary-light;
   cursor: pointer;
   font-size: $text-micro;
@@ -792,7 +792,7 @@ $name-column: 34ch;
   transition: $transition-control;
 
   &:hover {
-    background: rgba($secondary-default, 0.24);
+    background: color-mix(in srgb, $secondary-default 24%, transparent);
     color: $white;
   }
 }

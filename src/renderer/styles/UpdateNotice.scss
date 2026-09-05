@@ -24,7 +24,7 @@ it under the terms of the GNU General Public License version 3 or later.
   align-items: center;
   gap: 12px;
   padding: 12px 14px;
-  border: 1px solid rgba($secondary-light, 0.4);
+  border: 1px solid color-mix(in srgb, $secondary-light 40%, transparent);
   border-radius: $radius-m;
   background: color-mix(in srgb, $surface-menu-top 97%, transparent);
   box-shadow: 0 16px 40px rgba($black, 0.45);
@@ -61,7 +61,7 @@ it under the terms of the GNU General Public License version 3 or later.
   min-height: $control-height-sm;
   padding: 7px 12px;
   color: $surface-base;
-  border: 1px solid rgba($secondary-light, 0.42);
+  border: 1px solid color-mix(in srgb, $secondary-light 42%, transparent);
   border-radius: $radius-xs;
   background: $secondary-default;
   font-size: $text-body;
@@ -111,8 +111,8 @@ it under the terms of the GNU General Public License version 3 or later.
   &:hover,
   &:focus-visible {
     color: $white;
-    border-color: rgba($secondary-light, 0.4);
-    background: rgba($secondary-default, 0.16);
+    border-color: color-mix(in srgb, $secondary-light 40%, transparent);
+    background: color-mix(in srgb, $secondary-default 16%, transparent);
     outline: none;
   }
 }

@@ -36,7 +36,7 @@ import {
   getCombinedLineData,
   getGraphicEqLineData,
 } from './utils';
-import { ColorEnum, SecondaryColorEnum } from '../styles/color';
+import { ColorEnum } from '../styles/color';
 import { getBandColor } from '../utils/bandColors';
 import { useTranslation } from '../utils/I18nContext';
 import { getVoicingFilters, getVoicingGraphicEq } from '../../common/voicing';
@@ -585,13 +585,13 @@ export const buildChartData = ({
               name: t('graph.curve.eq'),
               line: isEqQuiet
                 ? {
-                    color: SecondaryColorEnum.DEFAULT,
+                    color: 'currentColor',
                     strokeWidth: 1.5,
                     opacity: SUPPORTING_CURVE_OPACITY,
                     points: eqCurveData,
                   }
                 : {
-                    color: SecondaryColorEnum.DEFAULT,
+                    color: 'currentColor',
                     strokeWidth: 3,
                     points: eqCurveData,
                     gradientId: 'chart-eq-spectrum-gradient',

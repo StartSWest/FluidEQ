@@ -25,10 +25,14 @@ $primary-light: #29204a;
 $primary-lighter: #d8d2ff;
 
 // Secondary
-$secondary-darker: #007f95;
-$secondary-dark: #00a9d6;
-$secondary-default: #00e5cf;
-$secondary-light: #9cfff4;
+// THE ACCENT IS A THEME COLOUR. Ocean says cyan; a monochrome theme says
+// white. The values live beside the surfaces on `:root` in App.scss, and
+// everything that wants the accent at an alpha says `color-mix()` — see the
+// note on the surfaces in _theme.scss for why.
+$secondary-darker: var(--accent-darker);
+$secondary-dark: var(--accent-dark);
+$secondary-default: var(--accent);
+$secondary-light: var(--accent-light);
 
 // Complementary
 $complementary: #ff3cac;

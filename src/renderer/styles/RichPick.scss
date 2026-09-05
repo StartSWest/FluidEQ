@@ -74,7 +74,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   &[aria-expanded='true'] {
     color: $white;
     border-color: $border-field-hover;
-    background: rgba($secondary-default, 0.14);
+    background: color-mix(in srgb, $secondary-default 14%, transparent);
   }
 
   &:focus-visible {
@@ -90,8 +90,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // A voicing is on: say so without shouting.
   &.is-active {
     color: $secondary-light;
-    border-color: rgba($secondary-light, 0.42);
-    background: rgba($secondary-default, 0.14);
+    border-color: color-mix(in srgb, $secondary-light 42%, transparent);
+    background: color-mix(in srgb, $secondary-default 14%, transparent);
   }
 }
 
@@ -199,7 +199,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   .rich-pick__glyph {
     font-size: 18px;
-    color: rgba($secondary-light, 0.75);
+    color: color-mix(in srgb, $secondary-light 75%, transparent);
   }
 
   strong {

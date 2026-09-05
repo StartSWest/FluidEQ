@@ -157,7 +157,7 @@ $eq-caret-width: 24px;
     align-items: center;
     justify-content: center;
     padding: 0;
-    border: 1px solid rgba($secondary-light, 0.38);
+    border: 1px solid color-mix(in srgb, $secondary-light 38%, transparent);
     // The divider, and the only line between them.
     border-left: 1px solid color-mix(in srgb, $surface-base 28%, transparent);
     border-radius: 0 $radius-xs $radius-xs 0;
@@ -166,7 +166,7 @@ $eq-caret-width: 24px;
     // is not a second button — it is the end of this one.
     color: $surface-base;
     box-shadow:
-      0 8px 22px rgba($secondary-default, 0.12),
+      0 8px 22px color-mix(in srgb, $secondary-default 12%, transparent),
       inset 0 1px 0 rgba($white, 0.36);
     cursor: pointer;
     transition: $transition-control;
@@ -210,9 +210,9 @@ $eq-caret-width: 24px;
 .eq-mode.is-subtle {
   .eq-mode__caret {
     color: $secondary-light;
-    border-color: rgba($secondary-light, 0.24);
-    border-left-color: rgba($secondary-light, 0.24);
-    background: rgba($secondary-default, 0.07);
+    border-color: color-mix(in srgb, $secondary-light 24%, transparent);
+    border-left-color: color-mix(in srgb, $secondary-light 24%, transparent);
+    background: color-mix(in srgb, $secondary-default 7%, transparent);
     box-shadow: none;
   }
 
@@ -220,8 +220,8 @@ $eq-caret-width: 24px;
     .button.eq-mode__main:not([aria-disabled='true']),
     .eq-mode__caret:not(:disabled) {
       color: $white;
-      border-color: rgba($secondary-light, 0.55);
-      background: rgba($secondary-default, 0.16);
+      border-color: color-mix(in srgb, $secondary-light 55%, transparent);
+      background: color-mix(in srgb, $secondary-default 16%, transparent);
     }
   }
 }
@@ -443,7 +443,7 @@ $eq-bubble-applied-face: color-mix(
 
     &:hover,
     &:focus-visible {
-      background: rgba($secondary-default, 0.18);
+      background: color-mix(in srgb, $secondary-default 18%, transparent);
       outline: none;
 
       .eq-mode__menu-name {
@@ -499,7 +499,7 @@ $eq-bubble-applied-face: color-mix(
 // corners back from the rule above that squares the split button's main half.
 .quick-layouts .button.quick-layouts__trigger {
   gap: 6px;
-  border-right: 1px solid rgba($secondary-light, 0.24);
+  border-right: 1px solid color-mix(in srgb, $secondary-light 24%, transparent);
   border-top-right-radius: $radius-xs;
   border-bottom-right-radius: $radius-xs;
 
@@ -778,8 +778,12 @@ $eq-bubble-applied-face: color-mix(
 .bandWrapper .range .arrow-up,
 .bandWrapper .range .arrow-down {
   --slider-color: #{$secondary-default};
-  --slider-color-muted: #{rgba($secondary-default, 0.42)};
-  --slider-track: #{rgba($secondary-dark, 0.34)};
+  --slider-color-muted: #{color-mix(
+      in srgb,
+      $secondary-default 42%,
+      transparent
+    )};
+  --slider-track: #{color-mix(in srgb, $secondary-dark 34%, transparent)};
 }
 
 .is-euphoric .bandWrapper .range input[type='range'],
@@ -881,10 +885,10 @@ $eq-bubble-applied-face: color-mix(
 .bands__selection-box {
   position: absolute;
   z-index: 20;
-  border: 1px solid rgba($secondary-light, 0.9);
+  border: 1px solid color-mix(in srgb, $secondary-light 90%, transparent);
   border-radius: $radius-xs;
-  background: rgba($secondary-default, 0.12);
-  box-shadow: 0 0 18px rgba($secondary-default, 0.18);
+  background: color-mix(in srgb, $secondary-default 12%, transparent);
+  box-shadow: 0 0 18px color-mix(in srgb, $secondary-default 18%, transparent);
   pointer-events: none;
 }
 
@@ -1043,17 +1047,17 @@ $eq-bubble-applied-face: color-mix(
   height: $control-height;
   padding: 0;
   color: $secondary-light;
-  border: 1px solid rgba($secondary-default, 0.28);
+  border: 1px solid color-mix(in srgb, $secondary-default 28%, transparent);
   border-radius: $radius-s;
-  background: rgba($secondary-default, 0.08);
+  background: color-mix(in srgb, $secondary-default 8%, transparent);
   font-size: 1rem;
   line-height: 1;
   cursor: pointer;
   transition: $transition-control;
 
   &:hover:not(:disabled) {
-    border-color: rgba($secondary-light, 0.7);
-    background: rgba($secondary-default, 0.18);
+    border-color: color-mix(in srgb, $secondary-light 70%, transparent);
+    background: color-mix(in srgb, $secondary-default 18%, transparent);
   }
 
   &:focus-visible {

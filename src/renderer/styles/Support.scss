@@ -102,7 +102,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     bottom: -1px;
     left: 0;
     height: 1px;
-    background: rgba($secondary-light, 0.4);
+    background: color-mix(in srgb, $secondary-light 40%, transparent);
     content: '';
     opacity: calc(0.32 + var(--pet-joy, 0) * 0.68);
   }
@@ -142,7 +142,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   letter-spacing: 0.14em;
   box-shadow:
     inset 0 1px 0 rgba($white, 0.2),
-    0 0 18px rgba($secondary-light, 0.2);
+    0 0 18px color-mix(in srgb, $secondary-light 20%, transparent);
 }
 
 // One column or two, decided at the bottom of this file.
@@ -190,7 +190,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       left: 22%;
       height: 100px;
       border-radius: 50%;
-      background: rgba($secondary-default, 0.1);
+      background: color-mix(in srgb, $secondary-default 10%, transparent);
       content: '';
       pointer-events: none;
     }
@@ -303,8 +303,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   &:hover,
   &:focus-visible {
     color: $white;
-    border-color: rgba($secondary-light, 0.35);
-    background: rgba($secondary-default, 0.12);
+    border-color: color-mix(in srgb, $secondary-light 35%, transparent);
+    background: color-mix(in srgb, $secondary-default 12%, transparent);
     outline: none;
   }
 }
@@ -323,8 +323,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   margin: 0;
   padding: 12px 14px;
   color: $text-muted;
-  border: 1px solid rgba($secondary-light, 0.1);
-  border-left-color: rgba($secondary-light, 0.42);
+  border: 1px solid color-mix(in srgb, $secondary-light 10%, transparent);
+  border-left-color: color-mix(in srgb, $secondary-light 42%, transparent);
   border-radius: $radius-s;
   background: $block-lift;
   font-size: $text-lead;
@@ -355,7 +355,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
     // Ticker, so a donor can match the chain at a glance.
     em {
-      color: rgba($secondary-light, 0.7);
+      color: color-mix(in srgb, $secondary-light 70%, transparent);
       font-size: $text-micro;
       font-style: normal;
       font-weight: $weight-bold;
@@ -375,7 +375,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     margin-top: 6px;
     padding: 9px 10px;
     color: $secondary-light;
-    border: 1px solid rgba($secondary-light, 0.2);
+    border: 1px solid color-mix(in srgb, $secondary-light 20%, transparent);
     border-radius: $radius-xs;
     background: color-mix(in srgb, $surface-menu-top 70%, transparent);
     font-family: $font-mono;
@@ -432,7 +432,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     width: 124px;
     height: 124px;
     padding: 8px;
-    border: 1px solid rgba($secondary-light, 0.28);
+    border: 1px solid color-mix(in srgb, $secondary-light 28%, transparent);
     border-radius: $radius-s;
     background: $white;
     box-shadow: 0 6px 18px rgba($black, 0.32);
@@ -441,7 +441,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   &:hover .qr-code,
   &:focus-visible .qr-code {
-    border-color: rgba($secondary-light, 0.55);
+    border-color: color-mix(in srgb, $secondary-light 55%, transparent);
   }
 }
 
@@ -451,7 +451,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // because it was the only part that looked interactive.
 .support-method--primary {
   position: relative;
-  border-color: rgba($secondary-light, 0.34);
+  border-color: color-mix(in srgb, $secondary-light 34%, transparent);
   background: color-mix(in srgb, $surface-menu-top 72%, transparent);
   cursor: pointer;
   transition:
@@ -460,7 +460,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   &:hover,
   &:focus-visible {
-    border-color: rgba($secondary-light, 0.62);
+    border-color: color-mix(in srgb, $secondary-light 62%, transparent);
     background: color-mix(in srgb, $surface-field-end 82%, transparent);
     translate: 0 -2px;
     outline: none;
@@ -489,7 +489,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     // A chevron that leans in on hover. Cheap, and it says 'this opens
     // somewhere' without a word of explanation.
     &::after {
-      color: rgba($secondary-light, 0.55);
+      color: color-mix(in srgb, $secondary-light 55%, transparent);
       content: '→';
       font-size: $text-title;
       transition: translate 160ms $ease-out;
@@ -869,9 +869,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     flex: 0 0 auto;
     align-items: center;
     justify-content: center;
-    border: 1px solid rgba($secondary-light, 0.26);
+    border: 1px solid color-mix(in srgb, $secondary-light 26%, transparent);
     border-radius: $radius-s;
-    background: rgba($secondary-default, 0.1);
+    background: color-mix(in srgb, $secondary-default 10%, transparent);
     box-shadow: inset 0 1px 0 rgba($white, 0.06);
 
     svg {
@@ -888,10 +888,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .support-dialog__version {
   margin-left: 7px;
   padding: 1px 6px;
-  color: rgba($secondary-light, 0.72);
-  border: 1px solid rgba($secondary-light, 0.2);
+  color: color-mix(in srgb, $secondary-light 72%, transparent);
+  border: 1px solid color-mix(in srgb, $secondary-light 20%, transparent);
   border-radius: $radius-pill;
-  background: rgba($secondary-default, 0.08);
+  background: color-mix(in srgb, $secondary-default 8%, transparent);
   font-size: $text-eyebrow;
   font-variant-numeric: tabular-nums;
   font-weight: $weight-bold;

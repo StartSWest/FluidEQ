@@ -177,7 +177,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     width: min($side-bar-width-compact, 86vw);
     padding: 14px;
     overflow-y: auto;
-    border-right: 1px solid rgba($secondary-light, 0.22);
+    border-right: 1px solid
+      color-mix(in srgb, $secondary-light 22%, transparent);
     // The same card as when it is docked. As a drawer it painted its own
     // near-black, so opening it slid in a darker panel than the one it had
     // been a moment before.
@@ -203,14 +204,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   opacity: 1;
 
   &::-webkit-slider-runnable-track {
-    border-color: rgba($secondary-light, 0.22);
-    background: rgba($secondary-default, 0.14);
+    border-color: color-mix(in srgb, $secondary-light 22%, transparent);
+    background: color-mix(in srgb, $secondary-default 14%, transparent);
   }
 
   &::-webkit-slider-thumb {
-    border-color: rgba($secondary-light, 0.5);
-    background: rgba($secondary-light, 0.72);
-    box-shadow: 0 0 8px rgba($secondary-default, 0.35);
+    border-color: color-mix(in srgb, $secondary-light 50%, transparent);
+    background: color-mix(in srgb, $secondary-light 72%, transparent);
+    box-shadow: 0 0 8px color-mix(in srgb, $secondary-default 35%, transparent);
   }
 }
 

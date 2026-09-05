@@ -150,9 +150,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .troubleshoot__action {
   margin-top: 9px;
   padding: 5px 12px;
-  border: 1px solid rgba($secondary-light, 0.45);
+  border: 1px solid color-mix(in srgb, $secondary-light 45%, transparent);
   border-radius: $radius-pill;
-  background: rgba($secondary-light, 0.12);
+  background: color-mix(in srgb, $secondary-light 12%, transparent);
   color: $secondary-light;
   font-size: $text-body;
   cursor: pointer;
@@ -162,7 +162,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   &:hover {
     border-color: $secondary-light;
-    background: rgba($secondary-light, 0.24);
+    background: color-mix(in srgb, $secondary-light 24%, transparent);
     color: $white;
   }
 }

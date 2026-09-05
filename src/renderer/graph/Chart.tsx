@@ -1216,7 +1216,7 @@ const Chart = ({
             {(eqGradientStops.length > 0
               ? eqGradientStops
               : [
-                  { offset: 0, color: '#00e5cf' },
+                  { offset: 0, color: 'currentColor' },
                   { offset: 1, color: '#8b5cff' },
                 ]
             ).map((stop) => (
@@ -1285,7 +1285,7 @@ const Chart = ({
             // pink, which put a fourth near-identical magenta on a chart that
             // already had three. The same pale accent, at the same alpha, as
             // the 0 dB rule under the EQ bands.
-            color="rgba(156, 255, 244, 0.3)"
+            color="color-mix(in srgb, currentColor 30%, transparent)"
             transform={`translate(${padding.left}, 0)`}
           />
         </g>

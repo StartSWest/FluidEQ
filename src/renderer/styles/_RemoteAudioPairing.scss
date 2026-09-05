@@ -61,7 +61,7 @@
     flex: 0 0 auto;
     border-radius: 50%;
     background: $secondary-default;
-    box-shadow: 0 0 7px rgba($secondary-default, 0.58);
+    box-shadow: 0 0 7px color-mix(in srgb, $secondary-default 58%, transparent);
   }
 }
 

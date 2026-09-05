@@ -313,7 +313,7 @@ select option {
   min-height: 28px;
   border: 2px solid transparent;
   border-radius: $radius-pill;
-  background: rgba($secondary-light, 0.34);
+  background: color-mix(in srgb, $secondary-light 34%, transparent);
   background-clip: padding-box;
 
   &:hover {
@@ -386,7 +386,7 @@ select option {
   font-size: $text-eyebrow;
   font-weight: $weight-bold;
   letter-spacing: 0.16em;
-  text-shadow: 0 0 16px rgba($secondary-default, 0.35);
+  text-shadow: 0 0 16px color-mix(in srgb, $secondary-default 35%, transparent);
 }
 
 .section-heading {
@@ -415,7 +415,7 @@ select option {
   flex: 0 0 auto;
   border-radius: 50%;
   background: $secondary-default;
-  box-shadow: 0 0 10px rgba($secondary-default, 0.8);
+  box-shadow: 0 0 10px color-mix(in srgb, $secondary-default 80%, transparent);
 
   &.error {
     background: $red;
@@ -780,7 +780,7 @@ select option {
     // A seam rather than a tick. At a flat colour these were four hard little
     // sticks in a row of round shapes, and the two next to the lit pill read as
     // marks on it. Faded at both ends they stop short of anything.
-    background: rgba($secondary-light, 0.16);
+    background: color-mix(in srgb, $secondary-light 16%, transparent);
     content: '';
   }
 
@@ -904,7 +904,7 @@ select option {
 // The bar, up here where the row is taller and the glow has further to carry.
 .window-titlebar .workspace-tabs__pill {
   height: 2px;
-  box-shadow: 0 0 16px rgba($secondary-default, 0.8);
+  box-shadow: 0 0 16px color-mix(in srgb, $secondary-default 80%, transparent);
 
   // Nothing rises off it. There used to be a radial glow fading up behind the
   // chosen icon; with gradients gone from the chrome that became a solid
@@ -926,7 +926,7 @@ select option {
     width: 1px;
     height: 20px;
     flex: 0 0 auto;
-    background: rgba($secondary-light, 0.12);
+    background: color-mix(in srgb, $secondary-light 12%, transparent);
     content: '';
   }
 
@@ -1010,7 +1010,7 @@ select option {
     top: 50%;
     left: calc(100% + #{$spacing-xs});
     padding: 6px $spacing-s;
-    border: 1px solid rgba($secondary-light, 0.2);
+    border: 1px solid color-mix(in srgb, $secondary-light 20%, transparent);
     border-radius: $radius-s;
     background: color-mix(in srgb, $surface-menu-top 96%, transparent);
     box-shadow: 0 10px 26px rgba($black, 0.45);
@@ -1056,12 +1056,12 @@ select option {
   align-items: center;
   gap: 2px;
   padding: 3px 4px;
-  border: 1px solid rgba($secondary-light, 0.14);
+  border: 1px solid color-mix(in srgb, $secondary-light 14%, transparent);
   border-radius: $radius-pill;
   background: color-mix(in srgb, $surface-field-end 68%, transparent);
   box-shadow:
     0 8px 22px rgba($black, 0.3),
-    0 0 20px rgba($secondary-default, 0.055),
+    0 0 20px color-mix(in srgb, $secondary-default 5.5%, transparent),
     inset 0 1px 0 rgba($white, 0.075),
     inset 0 -1px 0 rgba($black, 0.22);
   // No glass here either, and no `translateZ(0)` — that was only ever holding
@@ -1081,17 +1081,17 @@ select option {
     right: 14%;
     left: 14%;
     height: 1px;
-    background: rgba($secondary-light, 0.38);
+    background: color-mix(in srgb, $secondary-light 38%, transparent);
     content: '';
     pointer-events: none;
   }
 
   &:hover,
   &:focus-within {
-    border-color: rgba($secondary-light, 0.26);
+    border-color: color-mix(in srgb, $secondary-light 26%, transparent);
     box-shadow:
       0 10px 26px rgba($black, 0.34),
-      0 0 24px rgba($secondary-default, 0.09),
+      0 0 24px color-mix(in srgb, $secondary-default 9%, transparent),
       inset 0 1px 0 rgba($white, 0.1),
       inset 0 -1px 0 rgba($black, 0.2);
   }
@@ -1099,7 +1099,7 @@ select option {
   .window-control--media {
     width: 30px;
     height: 30px;
-    color: rgba($secondary-light, 0.78);
+    color: color-mix(in srgb, $secondary-light 78%, transparent);
     border-color: transparent;
     border-radius: 50%;
     background: transparent;
@@ -1115,19 +1115,22 @@ select option {
       width: 15px;
       height: 15px;
       overflow: visible;
-      filter: drop-shadow(0 0 5px rgba($secondary-default, 0.2));
+      filter: drop-shadow(
+        0 0 5px color-mix(in srgb, $secondary-default 20%, transparent)
+      );
     }
 
     &:hover,
     &:focus-visible {
       color: $white;
       border-color: transparent;
-      background: rgba($secondary-default, 0.14);
-      box-shadow: 0 0 14px rgba($secondary-default, 0.12);
+      background: color-mix(in srgb, $secondary-default 14%, transparent);
+      box-shadow: 0 0 14px
+        color-mix(in srgb, $secondary-default 12%, transparent);
     }
 
     &:active {
-      background: rgba($secondary-default, 0.22);
+      background: color-mix(in srgb, $secondary-default 22%, transparent);
       transform: scale(0.92);
     }
   }
@@ -1141,7 +1144,7 @@ select option {
     background: $secondary-default;
     box-shadow:
       0 7px 17px rgba($black, 0.32),
-      0 0 19px rgba($secondary-default, 0.28),
+      0 0 19px color-mix(in srgb, $secondary-default 28%, transparent),
       inset 0 1px 0 rgba($white, 0.42);
 
     svg {
@@ -1157,7 +1160,7 @@ select option {
       background: $secondary-light;
       box-shadow:
         0 9px 21px rgba($black, 0.36),
-        0 0 27px rgba($secondary-default, 0.42),
+        0 0 27px color-mix(in srgb, $secondary-default 42%, transparent),
         inset 0 1px 0 rgba($white, 0.5);
     }
 
@@ -1182,12 +1185,12 @@ select option {
   width: 44px;
   height: 44px;
   flex: 0 0 auto;
-  border: 1px solid rgba($secondary-default, 0.35);
+  border: 1px solid color-mix(in srgb, $secondary-default 35%, transparent);
   border-radius: $radius-l;
-  background: rgba($secondary-default, 0.2);
+  background: color-mix(in srgb, $secondary-default 20%, transparent);
   box-shadow:
-    0 0 0 1px rgba($secondary-light, 0.06),
-    0 14px 38px rgba($secondary-default, 0.12);
+    0 0 0 1px color-mix(in srgb, $secondary-light 6%, transparent),
+    0 14px 38px color-mix(in srgb, $secondary-default 12%, transparent);
 
   svg {
     width: 30px;
@@ -1286,7 +1289,7 @@ select option {
 // Same shape as the failure notice, opposite meaning. Reusing the layout keeps
 // "something happened" in one place on screen rather than two.
 .workspace-notice--ok {
-  border-color: rgba($secondary-light, 0.42);
+  border-color: color-mix(in srgb, $secondary-light 42%, transparent);
   background: color-mix(in srgb, $surface-menu-top 97%, transparent);
 
   strong {
@@ -1295,8 +1298,8 @@ select option {
 
   button:hover,
   button:focus-visible {
-    border-color: rgba($secondary-light, 0.45);
-    background: rgba($secondary-default, 0.18);
+    border-color: color-mix(in srgb, $secondary-light 45%, transparent);
+    background: color-mix(in srgb, $secondary-default 18%, transparent);
   }
 }
 
@@ -1312,10 +1315,10 @@ select option {
 .workspace-header__version {
   flex: 0 0 auto;
   padding: 1px 6px;
-  color: rgba($secondary-light, 0.78);
-  border: 1px solid rgba($secondary-light, 0.24);
+  color: color-mix(in srgb, $secondary-light 78%, transparent);
+  border: 1px solid color-mix(in srgb, $secondary-light 24%, transparent);
   border-radius: $radius-pill;
-  background: rgba($secondary-default, 0.1);
+  background: color-mix(in srgb, $secondary-default 10%, transparent);
   font-size: $text-eyebrow;
   font-variant-numeric: tabular-nums;
   font-weight: $weight-bold;
@@ -1383,8 +1386,8 @@ select option {
   height: 36px;
   padding: 0 10px;
   @include ghost-button;
-  color: rgba($secondary-light, 0.82);
-  border-color: rgba($secondary-light, 0.15);
+  color: color-mix(in srgb, $secondary-light 82%, transparent);
+  border-color: color-mix(in srgb, $secondary-light 15%, transparent);
   // Above the bar, not below it. This is a raised control and it was painting
   // rgb(16,34,49) against a card of rgb(17,37,54) — darker than the surface it
   // stands on, which is the reading of a recess. The field rung puts it back
@@ -1412,7 +1415,7 @@ select option {
     right: 18%;
     left: 18%;
     height: 1px;
-    background: rgba($secondary-light, 0.34);
+    background: color-mix(in srgb, $secondary-light 34%, transparent);
     content: '';
     pointer-events: none;
   }
@@ -1425,7 +1428,9 @@ select option {
     stroke-linecap: round;
     stroke-linejoin: round;
     stroke-width: 1.6;
-    filter: drop-shadow(0 0 5px rgba($secondary-default, 0.2));
+    filter: drop-shadow(
+      0 0 5px color-mix(in srgb, $secondary-default 20%, transparent)
+    );
   }
 
   .status-dot {
@@ -1436,11 +1441,11 @@ select option {
   &:hover:not(:disabled),
   &:focus-visible {
     color: $white;
-    border-color: rgba($secondary-light, 0.3);
+    border-color: color-mix(in srgb, $secondary-light 30%, transparent);
     background: color-mix(in srgb, $surface-field 74%, transparent);
     box-shadow:
       0 10px 26px rgba($black, 0.32),
-      0 0 23px rgba($secondary-default, 0.1),
+      0 0 23px color-mix(in srgb, $secondary-default 10%, transparent),
       inset 0 1px 0 rgba($white, 0.1),
       inset 0 -1px 0 rgba($black, 0.18);
     outline: none;
@@ -1448,11 +1453,11 @@ select option {
 
   &[aria-expanded='true'] {
     color: $white;
-    border-color: rgba($secondary-light, 0.42);
+    border-color: color-mix(in srgb, $secondary-light 42%, transparent);
     background: color-mix(in srgb, $surface-field 78%, transparent);
     box-shadow:
       0 10px 28px rgba($black, 0.34),
-      0 0 25px rgba($secondary-default, 0.17),
+      0 0 25px color-mix(in srgb, $secondary-default 17%, transparent),
       inset 0 1px 0 rgba($white, 0.12),
       inset 0 -1px 0 rgba($black, 0.18);
   }
@@ -1474,13 +1479,13 @@ select option {
   // Two columns of items now, so it is wider than a single stack needed.
   width: 440px;
   padding: 10px;
-  border-color: rgba($secondary-light, 0.18);
+  border-color: color-mix(in srgb, $secondary-light 18%, transparent);
   // The menu surface's own colour. This had a diagonal ramp of its own that
   // ran off to rgb(8,23,37) in the bottom corner — darker than the shell — so
   // the widest menu in the app was also the only one with a black corner.
   box-shadow:
     0 22px 52px rgba($black, 0.52),
-    0 0 32px rgba($secondary-default, 0.1),
+    0 0 32px color-mix(in srgb, $secondary-default 10%, transparent),
     inset 0 1px 0 rgba($white, 0.085),
     inset 0 0 0 1px rgba($black, 0.12);
   // This menu is a list of labels on a surface that is already 94-96% opaque,
@@ -1523,7 +1528,7 @@ select option {
     .menu-icon {
       width: 16px;
       height: 16px;
-      color: rgba($secondary-light, 0.72);
+      color: color-mix(in srgb, $secondary-light 72%, transparent);
       transition: color 160ms ease;
     }
 
@@ -1548,9 +1553,9 @@ select option {
   &:hover,
   &:focus-visible {
     color: $white;
-    border-color: rgba($secondary-light, 0.35);
+    border-color: color-mix(in srgb, $secondary-light 35%, transparent);
     border-radius: $radius-xs;
-    background: rgba($secondary-default, 0.16);
+    background: color-mix(in srgb, $secondary-default 16%, transparent);
   }
 }
 
@@ -1625,8 +1630,8 @@ select option {
   &:hover,
   &:focus-visible {
     color: $white;
-    border-color: rgba($secondary-light, 0.3);
-    background: rgba($secondary-light, 0.12);
+    border-color: color-mix(in srgb, $secondary-light 30%, transparent);
+    background: color-mix(in srgb, $secondary-light 12%, transparent);
     outline: none;
   }
 
@@ -1697,9 +1702,9 @@ select option {
     background: conic-gradient(
       from 140deg,
       rgba($neon-cyan, 0.1),
-      rgba($secondary-default, 0.09),
+      color-mix(in srgb, $secondary-default 9%, transparent),
       rgba($neon-lime, 0.05),
-      rgba($secondary-dark, 0.08),
+      color-mix(in srgb, $secondary-dark 8%, transparent),
       rgba($neon-pink, 0.035),
       rgba($neon-cyan, 0.1)
     );
@@ -1787,23 +1792,43 @@ textarea,
   --surface-menu-face: #1c4a5f;
   --surface-well: #07111a;
   --track-well: #2e4f63;
+  // The edges, a cool white at a whisper: on slate they only have to part
+  // one pane from the next.
+  --border-subtle: rgba(214, 233, 247, 0.09);
+  --border-panel: rgba(214, 233, 247, 0.11);
+  --border-menu: rgba(156, 255, 244, 0.22);
+  // The accent: the chosen thing, the live thing, the thing to press.
+  --accent: #00e5cf;
+  --accent-light: #9cfff4;
+  --accent-dark: #00a9d6;
+  --accent-darker: #007f95;
 }
 
-// Black: the same ladder with the hue taken out. Not pure black on the panes
-// — a flat #000 card next to a #000 floor is a hole, and OLED-black text
-// halos on it — but the floor is, and every rung above it is a neutral grey
-// the same number of steps up that the ocean rungs are.
+// Black: no hue anywhere. The floor is true black and every rung above it is
+// a near-black grey a few values up — close enough that the edges do the
+// work of parting one card from the next. And the ACCENT is white: this is a
+// monochrome theme, so the chosen thing, the live thing and the thing to
+// press are white on black, with the light and dark accents a step either
+// side of it. Nothing cyan survives; the rainbow (the bands, the spectrum) is
+// the music and stays.
 :root[data-theme='black'] {
   --surface-base: #000000;
-  --surface-panel: #141414;
-  --surface-block: #1b1b1b;
-  --surface-field: #1c1c1c;
-  --surface-field-end: #161616;
-  --surface-menu: #121212;
-  --surface-menu-top: #181818;
-  --surface-menu-face: #1f2a2a;
-  --surface-well: #050505;
-  --track-well: #2c2c2c;
+  --surface-panel: #060606;
+  --surface-block: #0c0c0c;
+  --surface-field: #0f0f0f;
+  --surface-field-end: #0a0a0a;
+  --surface-menu: #090909;
+  --surface-menu-top: #0e0e0e;
+  --surface-menu-face: #141414;
+  --surface-well: #000000;
+  --track-well: #1e1e1e;
+  --border-subtle: rgba(255, 255, 255, 0.1);
+  --border-panel: rgba(255, 255, 255, 0.14);
+  --border-menu: rgba(255, 255, 255, 0.2);
+  --accent: #f2f2f2;
+  --accent-light: #ffffff;
+  --accent-dark: #bdbdbd;
+  --accent-darker: #8a8a8a;
 }
 
 // The shell's gutter, in one place. See `.app-workspace`, which consumes it,
@@ -2106,7 +2131,7 @@ textarea,
 // top of it any more, they are a control above it. `panel-top()` and the seam
 // that masked the dividing line went with the shape.
 
-$tab-border: rgba($secondary-light, 0.2);
+$tab-border: color-mix(in srgb, $secondary-light 20%, transparent);
 
 .workspace-tabs {
   position: relative;
@@ -2167,7 +2192,7 @@ $tab-bar-inset: 8px;
   border: 0;
   border-radius: 2px;
   background: $secondary-default;
-  box-shadow: 0 0 12px rgba($secondary-default, 0.75);
+  box-shadow: 0 0 12px color-mix(in srgb, $secondary-default 75%, transparent);
   pointer-events: none;
   transform: translateX(var(--tab-pill-x, 0));
   transition:
@@ -2235,7 +2260,7 @@ $tab-bar-inset: 8px;
       left: $tab-bar-inset;
       height: 2px;
       border-radius: 2px;
-      background: rgba($secondary-light, 0.3);
+      background: color-mix(in srgb, $secondary-light 30%, transparent);
       content: '';
     }
   }
@@ -2706,8 +2731,8 @@ $tab-bar-inset: 8px;
   flex: 0 0 auto;
   place-items: center;
   padding: 0;
-  color: rgba($secondary-light, 0.8);
-  border: 1px solid rgba($secondary-light, 0.12);
+  color: color-mix(in srgb, $secondary-light 80%, transparent);
+  border: 1px solid color-mix(in srgb, $secondary-light 12%, transparent);
   border-radius: 50%;
   background: rgba($edge-tint, 0.11);
   box-shadow: none;
@@ -2715,7 +2740,7 @@ $tab-bar-inset: 8px;
 
   &:hover {
     color: $white;
-    background: rgba($secondary-default, 0.16);
+    background: color-mix(in srgb, $secondary-default 16%, transparent);
   }
 
   svg {
@@ -2762,7 +2787,7 @@ $tab-bar-inset: 8px;
   }
 
   91% {
-    border-color: rgba($secondary-light, 0.95);
+    border-color: color-mix(in srgb, $secondary-light 95%, transparent);
     color: $white;
   }
 }
@@ -2831,7 +2856,7 @@ $tab-bar-inset: 8px;
   color: $secondary-light;
   border: 1px solid $border-field;
   border-radius: $radius-xs;
-  background: rgba($secondary-default, 0.07);
+  background: color-mix(in srgb, $secondary-default 7%, transparent);
   box-shadow: none;
   font-size: $text-body;
   font-weight: $weight-bold;
@@ -2843,8 +2868,8 @@ $tab-bar-inset: 8px;
   &:hover,
   &:focus-visible {
     color: $white;
-    border-color: rgba($secondary-light, 0.55);
-    background: rgba($secondary-default, 0.16);
+    border-color: color-mix(in srgb, $secondary-light 55%, transparent);
+    background: color-mix(in srgb, $secondary-default 16%, transparent);
     box-shadow: none;
     outline: none;
   }
@@ -2916,6 +2941,12 @@ $tab-bar-inset: 8px;
   flex: 1 1 auto;
   border-radius: inherit;
   overflow: hidden;
+  // The accent, for the drawing to inherit. The EQ curve, its control point
+  // and the 0 dB rule are SVG strokes set to `currentColor`, which is how a
+  // presentation attribute follows the theme — a `var()` in an attribute
+  // does not resolve, and a hex written into the chart data went cyan on a
+  // monochrome theme.
+  color: $secondary-default;
 }
 
 // Legend strip floating over the top of the chart. It has no surface of its
@@ -3160,7 +3191,11 @@ button.graph-legend {
 .graph-edit-point__halo,
 .graph-edit-point__dot {
   --point-color: #{$secondary-default};
-  --point-muted-color: #{rgba($secondary-default, 0.42)};
+  --point-muted-color: #{color-mix(
+      in srgb,
+      $secondary-default 42%,
+      transparent
+    )};
 }
 
 .is-euphoric .graph-edit-point__halo,
@@ -3297,7 +3332,7 @@ button.graph-legend {
   max-width: min(760px, calc(100vw - 40px));
   padding: $spacing-s $spacing-m;
   color: $white;
-  border: 1px solid rgba($secondary-light, 0.45);
+  border: 1px solid color-mix(in srgb, $secondary-light 45%, transparent);
   border-radius: $radius-m;
   background: color-mix(in srgb, $surface-menu 97%, transparent);
   box-shadow: 0 12px 32px rgba($black, 0.35);
@@ -3718,7 +3753,7 @@ button.graph-legend {
   // Nothing at the sides — the row centres itself — and nothing at the foot,
   // where the rule is the boundary.
   padding: 6px 0 0;
-  border-bottom: 1px solid rgba($secondary-light, 0.1);
+  border-bottom: 1px solid color-mix(in srgb, $secondary-light 10%, transparent);
   margin-bottom: $spacing-xs;
   gap: 6px;
 }
@@ -3736,7 +3771,7 @@ button.graph-legend {
   height: 2px;
   border-radius: 2px;
   background: $secondary-default;
-  box-shadow: 0 0 12px rgba($secondary-default, 0.75);
+  box-shadow: 0 0 12px color-mix(in srgb, $secondary-default 75%, transparent);
   pointer-events: none;
   transform: translateX(var(--section-bar-x, 0));
   transition:

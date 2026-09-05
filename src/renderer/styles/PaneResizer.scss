@@ -48,7 +48,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   &:hover span {
     width: 60px;
-    background: rgba($secondary-light, 0.6);
+    background: color-mix(in srgb, $secondary-light 60%, transparent);
   }
 
   // Reachable by keyboard, and visibly so — this is the only affordance
@@ -59,7 +59,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     span {
       width: 60px;
       background: $secondary-light;
-      box-shadow: 0 0 0 3px rgba($secondary-light, 0.25);
+      box-shadow: 0 0 0 3px
+        color-mix(in srgb, $secondary-light 25%, transparent);
     }
   }
 

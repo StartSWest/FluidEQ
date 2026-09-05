@@ -14,7 +14,7 @@ import {
   setDspPhaseView,
   useDspPhaseView,
 } from './store';
-import { readSurfaceAlpha } from '../utils/theme';
+import { readAccent, readSurfaceAlpha } from '../utils/theme';
 
 /** Where the arc is marked, and what to write there. */
 const TICKS: [number, string][] = [
@@ -72,7 +72,7 @@ const drawDial = (
   context.stroke();
   context.beginPath();
   context.arc(pivotX, pivotY, radius, START + SWEEP / 2, START + SWEEP);
-  context.strokeStyle = 'rgba(0,229,207,0.4)';
+  context.strokeStyle = readAccent(0.4, 'rgba(0,229,207,0.4)');
   context.stroke();
 
   context.font = `10px ${FONT}`;
@@ -196,7 +196,7 @@ const drawScope = (context: CanvasRenderingContext2D, box: IBox): void => {
   // 0.707 keeps a full-scale mono signal inside the box: the rotation adds the
   // two channels, and without it a legal signal would draw outside its display.
   const scale = half * 0.707;
-  context.fillStyle = 'rgba(0,229,207,0.55)';
+  context.fillStyle = readAccent(0.55, 'rgba(0,229,207,0.55)');
   for (let i = 0; i + 1 < pairs.length; i += 2) {
     const left = pairs[i];
     const right = pairs[i + 1];

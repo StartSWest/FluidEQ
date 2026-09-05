@@ -18,7 +18,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import * as d3 from 'd3';
 import { memo } from 'react';
-import { SecondaryColorEnum } from 'renderer/styles/color';
 import { IChartCurveData } from './ChartController';
 import Line, { AnimationOptionsEnum as LineAnimationOptionsEnum } from './Line';
 import Point, {
@@ -58,7 +57,7 @@ const Curve = ({ xScale, yScale, data }: ICurveProps) => {
           data={controlPoint}
           xScale={xScale}
           yScale={yScale}
-          color={SecondaryColorEnum.DEFAULT}
+          color="currentColor"
           radius={4}
           animation={PointAnimationOptionsEnum.FADE_IN}
         />

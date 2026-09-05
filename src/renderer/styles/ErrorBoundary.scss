@@ -83,7 +83,7 @@ it under the terms of the GNU General Public License version 3 or later.
 
   &--primary {
     color: $secondary-light;
-    border-color: rgba($secondary-light, 0.45);
-    background: rgba($secondary-default, 0.16);
+    border-color: color-mix(in srgb, $secondary-light 45%, transparent);
+    background: color-mix(in srgb, $secondary-default 16%, transparent);
   }
 }

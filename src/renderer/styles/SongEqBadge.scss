@@ -28,7 +28,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   height: 7px;
   flex: 0 0 auto;
   border-radius: 50%;
-  background: rgba($secondary-light, 0.45);
+  background: color-mix(in srgb, $secondary-light 45%, transparent);
 }
 
 // `willSave` true: continuing to listen, exactly as things stand, ends in a
@@ -37,5 +37,5 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // comment on what `willSave` already accounts for.
 .song-eq-badge--will-save {
   background: $secondary-light;
-  box-shadow: 0 0 8px rgba($secondary-light, 0.85);
+  box-shadow: 0 0 8px color-mix(in srgb, $secondary-light 85%, transparent);
 }

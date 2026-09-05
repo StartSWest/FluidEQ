@@ -165,9 +165,9 @@ it under the terms of the GNU General Public License version 3 or later.
   gap: 6px;
   grid-template-columns: minmax(0, 1fr) auto;
   padding: 4px 5px 4px 9px;
-  border: 1px solid rgba($secondary-light, 0.24);
+  border: 1px solid color-mix(in srgb, $secondary-light 24%, transparent);
   border-radius: $radius-pill;
-  background: rgba($secondary-default, 0.1);
+  background: color-mix(in srgb, $secondary-default 10%, transparent);
   font-size: $text-small;
 }
 
@@ -192,7 +192,7 @@ it under the terms of the GNU General Public License version 3 or later.
 
 .active-layer__label {
   flex: 0 0 auto;
-  color: rgba($secondary-light, 0.85);
+  color: color-mix(in srgb, $secondary-light 85%, transparent);
   font-weight: $weight-bold;
 }
 
@@ -409,7 +409,7 @@ button.active-layer__body {
     border-radius: $radius-pill;
     background: linear-gradient(
       to right,
-      rgba($secondary-default, 0.9) var(--fill, 100%),
+      color-mix(in srgb, $secondary-default 90%, transparent) var(--fill, 100%),
       rgba($white, 0.16) var(--fill, 100%)
     );
   }

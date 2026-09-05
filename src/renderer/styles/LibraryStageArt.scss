@@ -110,7 +110,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   p {
     margin: 2px 0 0;
-    color: rgba($secondary-light, 0.92);
+    color: color-mix(in srgb, $secondary-light 92%, transparent);
     font-size: clamp(0.8rem, 1.7vh, 1.05rem);
     font-weight: $weight-semibold;
   }

@@ -199,9 +199,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   &:hover:not(:disabled),
   &:focus-visible {
     color: $secondary-light;
-    border-color: rgba($secondary-light, 0.5);
-    background: rgba($secondary-default, 0.16);
-    box-shadow: 0 0 22px rgba($secondary-default, 0.28);
+    border-color: color-mix(in srgb, $secondary-light 50%, transparent);
+    background: color-mix(in srgb, $secondary-default 16%, transparent);
+    box-shadow: 0 0 22px color-mix(in srgb, $secondary-default 28%, transparent);
     scale: 1.08;
     outline: none;
   }
@@ -377,7 +377,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
     .library-cover-art--cover {
       box-shadow:
-        0 0 0 2px rgba($secondary-light, 0.85) inset,
+        0 0 0 2px color-mix(in srgb, $secondary-light 85%, transparent) inset,
         0 calc(var(--cover-flow-size) * 0.06)
           calc(var(--cover-flow-size) * 0.13) rgba($black, 0.55);
     }
@@ -619,7 +619,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     background 120ms ease;
 
   &:hover:not(:disabled) {
-    background: rgba($secondary-light, 0.14);
+    background: color-mix(in srgb, $secondary-light 14%, transparent);
     color: $secondary-light;
   }
 
@@ -638,7 +638,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   // Where the row is standing right now.
   &.is-current {
-    background: rgba($secondary-light, 0.18);
+    background: color-mix(in srgb, $secondary-light 18%, transparent);
     color: $secondary-light;
   }
 }

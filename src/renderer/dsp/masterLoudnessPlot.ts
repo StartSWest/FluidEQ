@@ -1,3 +1,4 @@
+import { readAccent } from '../utils/theme';
 /*
 <FluidEQ: System-wide parametric audio equalizer interface>
 Copyright (C) <2026>  <Ivan Carmenates Garcia>
@@ -111,7 +112,7 @@ export interface IMasterLoudnessPlot {
   reductionLabel: string;
 }
 
-const TEAL_FILL = 'rgba(0,229,207,0.14)';
+const tealFill = () => readAccent(0.14, 'rgba(0,229,207,0.14)');
 const TEAL_LINE = 'rgba(64,214,200,0.96)';
 const AMBER = 'rgba(255,176,89,0.85)';
 const AMBER_FILL = 'rgba(255,176,89,0.16)';
@@ -240,8 +241,8 @@ export const paintMasterLoudness = (
      * carried the same weight as the reading itself.
      */
     const envelope = context.createLinearGradient(0, plotTop, 0, floorY);
-    envelope.addColorStop(0, TEAL_FILL);
-    envelope.addColorStop(1, 'rgba(0,229,207,0)');
+    envelope.addColorStop(0, tealFill());
+    envelope.addColorStop(1, readAccent(0, 'rgba(0,229,207,0)'));
     context.fillStyle = envelope;
     context.fill();
 

@@ -220,7 +220,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     .menu-icon {
       width: 22px;
       height: 22px;
-      color: rgba($secondary-light, 0.5);
+      color: color-mix(in srgb, $secondary-light 50%, transparent);
     }
 
     strong {
@@ -455,8 +455,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // greyed: it is finished, not unavailable.
 .auto-eq .button.is-applied {
   color: $secondary-light;
-  border-color: rgba($secondary-light, 0.4);
-  background: rgba($secondary-default, 0.14);
+  border-color: color-mix(in srgb, $secondary-light 40%, transparent);
+  background: color-mix(in srgb, $secondary-default 14%, transparent);
   box-shadow: none;
   cursor: default;
   opacity: 1;

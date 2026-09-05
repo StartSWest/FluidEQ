@@ -46,6 +46,7 @@ import {
   paintKaraokeLyricsTranslationLine,
   useKaraokeLyricsTranslationSelection,
 } from './karaokeLyricsTranslation';
+import { readAccent } from '../utils/theme';
 
 interface IKaraokeLyricsProps {
   song: IKaraokeSong;
@@ -734,7 +735,7 @@ const KaraokeLyrics = ({
           context.font = `800 ${size}px ${LYRIC_FONT_FAMILY}`;
           context.textAlign = 'center';
           context.textBaseline = 'middle';
-          context.shadowColor = 'rgba(0, 229, 207, 0.55)';
+          context.shadowColor = readAccent(0.55, 'rgba(0, 229, 207, 0.55)');
           context.shadowBlur = 18;
           context.fillStyle = `rgba(126, 245, 232, ${0.9 * fade})`;
           context.fillText(label, width / 2, height - size * 1.1);

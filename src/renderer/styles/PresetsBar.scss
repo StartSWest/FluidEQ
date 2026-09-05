@@ -114,7 +114,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
       &:hover,
       &:focus-visible {
-        background: rgba($secondary-default, 0.2);
+        background: color-mix(in srgb, $secondary-default 20%, transparent);
         outline: none;
       }
     }

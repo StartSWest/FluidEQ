@@ -73,7 +73,7 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 
   &:focus-visible {
-    outline: 1px solid rgba($secondary-light, 0.65);
+    outline: 1px solid color-mix(in srgb, $secondary-light 65%, transparent);
     outline-offset: 2px;
   }
 }
@@ -330,7 +330,7 @@ it under the terms of the GNU General Public License version 3 or later.
   min-height: $control-height-sm;
   padding: 7px 11px;
   color: $surface-base;
-  border: 1px solid rgba($secondary-light, 0.42);
+  border: 1px solid color-mix(in srgb, $secondary-light 42%, transparent);
   border-radius: $radius-xs;
   background: $secondary-default;
   font-size: $text-body;
@@ -356,10 +356,10 @@ it under the terms of the GNU General Public License version 3 or later.
 
   &--quiet {
     color: $secondary-light;
-    background: rgba($secondary-default, 0.08);
+    background: color-mix(in srgb, $secondary-default 8%, transparent);
 
     &:hover:not(:disabled) {
-      background: rgba($secondary-default, 0.18);
+      background: color-mix(in srgb, $secondary-default 18%, transparent);
     }
   }
 }
@@ -388,9 +388,9 @@ it under the terms of the GNU General Public License version 3 or later.
   gap: 11px;
   grid-template-columns: auto minmax(0, 1fr) auto;
   padding: 10px 12px;
-  border: 1px solid rgba($secondary-light, 0.34);
+  border: 1px solid color-mix(in srgb, $secondary-light 34%, transparent);
   border-radius: $radius-s;
-  background: rgba($secondary-default, 0.14);
+  background: color-mix(in srgb, $secondary-default 14%, transparent);
 
   > div {
     display: grid;
@@ -413,7 +413,7 @@ it under the terms of the GNU General Public License version 3 or later.
 }
 
 .convolution-applied__label {
-  color: rgba($secondary-light, 0.82);
+  color: color-mix(in srgb, $secondary-light 82%, transparent);
   font-size: $text-eyebrow;
   font-weight: $weight-bold;
   letter-spacing: 0.14em;

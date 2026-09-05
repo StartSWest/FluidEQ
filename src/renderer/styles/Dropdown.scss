@@ -43,7 +43,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
     &:hover:not([aria-disabled='true']) {
       border-color: $border-field-hover;
-      background: rgba($secondary-default, 0.14);
+      background: color-mix(in srgb, $secondary-default 14%, transparent);
     }
 
     &:focus-visible {
@@ -222,7 +222,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     color: rgba($white, 0.82);
     border: 1px solid $border-subtle;
     border-radius: $radius-xs;
-    background: rgba($secondary-default, 0.07);
+    background: color-mix(in srgb, $secondary-default 7%, transparent);
     font-size: $text-micro;
     cursor: pointer;
     transition: $transition-control;
@@ -230,8 +230,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     &:hover,
     &:focus-visible {
       color: $secondary-light;
-      border-color: rgba($secondary-light, 0.36);
-      background: rgba($secondary-default, 0.12);
+      border-color: color-mix(in srgb, $secondary-light 36%, transparent);
+      background: color-mix(in srgb, $secondary-default 12%, transparent);
       outline: none;
     }
 

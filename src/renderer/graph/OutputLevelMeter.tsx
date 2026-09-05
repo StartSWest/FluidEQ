@@ -61,6 +61,7 @@ import {
   levelFraction,
   levelZone,
 } from './outputLevel';
+import { readAccent } from '../utils/theme';
 
 type TMeterCycleStyle = MeterStyle | 'off';
 
@@ -490,7 +491,7 @@ const drawChannel = (
     context.shadowBlur = isEuphoric ? 12 : 8;
     context.shadowColor = isEuphoric
       ? 'rgba(255, 60, 172, 0.55)'
-      : 'rgba(0, 229, 207, 0.7)';
+      : readAccent(0.7, 'rgba(0, 229, 207, 0.7)');
     context.fillStyle = paint;
     context.strokeStyle = paint;
     draw();
