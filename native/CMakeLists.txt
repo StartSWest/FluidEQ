@@ -197,16 +197,20 @@ add_executable(fluideq-dsp-host
 )
 target_link_libraries(fluideq-dsp-host PRIVATE fluideq-dsp-core feq_strict)
 
-# Warnings-as-errors, off for the vendored decoders and nowhere else.
+# Warnings-as-errors, off for the vendored decoders and nowhere else — on
+# GCC and Clang. The diagnostic pragmas in `vendor.cpp` cover -Wall and
+# -Wextra but not -Wpedantic, so -Werror comes off for this ONE source:
+# twenty-three thousand lines of somebody else's public domain code cannot be
+# held to this project's standard without patching every release, and
+# dropping it for the whole target would take our own code with it.
 #
-# `#pragma warning(push, 0)` inside the file silences the warnings but /WX has
-# already promoted them, so the pragma has nothing left to suppress. The flag
-# has to come off at the compiler invocation, and it comes off for this ONE
-# source: twenty-three thousand lines of somebody else's public domain code
-# cannot be held to this project's standard without patching every release,
-# and dropping /WX for the whole target would take our own code with it.
+# MSVC keeps /WX here. It used to get /WX- because `#pragma warning(push, 0)`
+# let one optimiser warning through, and the answer was to stop promoting it;
+# that produced D9025 ("overriding /WX with /WX-") on every build, which is a
+# warning about the fix for a warning. The file now disables the optimiser's
+# four by number, which is the mechanism that reaches them.
 set_source_files_properties(dsp-host/src/decoders/vendor/vendor.cpp
-  PROPERTIES COMPILE_OPTIONS "$<IF:$<BOOL:${MSVC}>,/WX-,-Wno-error>")
+  PROPERTIES COMPILE_OPTIONS "$<$<NOT:$<BOOL:${MSVC}>>:-Wno-error>")
 
 
 # The device backend, which is the only platform-specific code in the project.

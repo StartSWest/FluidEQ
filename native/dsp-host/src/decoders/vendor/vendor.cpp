@@ -35,6 +35,17 @@ SPDX-License-Identifier: GPL-3.0-or-later
  */
 
 #if defined(_MSC_VER)
+/*
+ * Four warnings the optimiser raises after the front end has finished:
+ * uninitialised local (4701, 4703), unreachable code (4702) and a missing
+ * return (4715). `push, 0` below does not reach them, because they are not
+ * produced by the pass the level applies to; they have to be disabled by
+ * number, at file scope, before any function they could fire in. Measured:
+ * stb_vorbis's seek probe raised 4701 through the level-0 push, and the
+ * build's answer was to take /WX off this file, which then warned about
+ * overriding /WX. Both are gone with this.
+ */
+#pragma warning(disable : 4701 4702 4703 4715)
 #pragma warning(push, 0)
 #else
 #pragma GCC diagnostic push
