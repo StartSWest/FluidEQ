@@ -25,6 +25,7 @@ interface IPeerStream extends IPcmStream {
   meterPeak: number;
   meterSamples: Float32Array;
   meterSquareSum: number;
+  minimumBufferedFrames: number;
   primed: boolean;
   removing: boolean;
   sampleRate: number;
@@ -138,6 +139,7 @@ class RemoteAudioProcessor extends AudioWorkletProcessor {
         peer.targetBufferSeconds =
           REMOTE_AUDIO_PLAYBACK_PROFILES[data.mode].startBufferSeconds;
         peer.stableFrames = 0;
+        peer.minimumBufferedFrames = Infinity;
       }
     } else if (isRemoveMessage(data)) {
       const peer = this.peers.get(data.peerId);
@@ -176,6 +178,7 @@ class RemoteAudioProcessor extends AudioWorkletProcessor {
         meterPeak: 0,
         meterSamples: new Float32Array(METER_FRAMES),
         meterSquareSum: 0,
+        minimumBufferedFrames: Infinity,
         position: 0,
         primed: false,
         removing: false,
@@ -202,6 +205,7 @@ class RemoteAudioProcessor extends AudioWorkletProcessor {
       peer.position = 0;
       peer.primed = false;
       peer.stableFrames = 0;
+      peer.minimumBufferedFrames = Infinity;
       peer.targetBufferSeconds = playbackProfile.startBufferSeconds;
       peer.skipFrames = 0;
       peer.skipBlend = 0;
@@ -338,6 +342,7 @@ class RemoteAudioProcessor extends AudioWorkletProcessor {
         peer.skipFrames = 0;
         peer.skipBlend = 0;
         peer.stableFrames = 0;
+        peer.minimumBufferedFrames = Infinity;
         if (!peer.removing) {
           peer.targetBufferSeconds = Math.min(
             playbackProfile.maximumBufferSeconds,
@@ -400,6 +405,7 @@ class RemoteAudioProcessor extends AudioWorkletProcessor {
         peer.skipFrames = 0;
         peer.skipBlend = 0;
         peer.stableFrames = 0;
+        peer.minimumBufferedFrames = Infinity;
         if (!peer.removing) {
           // Increase protection only after a real starvation event. Stable LANs
           // keep the low lip-sync delay; bursty links earn more safety on the
@@ -431,12 +437,29 @@ class RemoteAudioProcessor extends AudioWorkletProcessor {
       peer.targetBufferSeconds > playbackProfile.startBufferSeconds
     ) {
       peer.stableFrames += renderedFrames;
+      peer.minimumBufferedFrames = Math.min(
+        peer.minimumBufferedFrames,
+        peer.availableFrames - peer.skipFrames,
+      );
       if (peer.stableFrames >= sampleRate * decaySeconds) {
-        peer.targetBufferSeconds = Math.max(
-          playbackProfile.startBufferSeconds,
-          peer.targetBufferSeconds - playbackProfile.recoveryStepSeconds,
-        );
+        // "No underrun for two seconds" did not mean the link had improved:
+        // recurring packet bursts still used all the protection. Shrinking it
+        // unconditionally caused another dropout every recovery cycle. Only
+        // remove a step that the lowest observed reservoir can spare, keeping
+        // the starvation fade, resampler lookahead and one output quantum.
+        const safeReductionFrames =
+          peer.sampleRate *
+            (playbackProfile.recoveryStepSeconds + STARVATION_FADE_SECONDS) +
+          RESAMPLER_HALF +
+          output[0].length * rateRatio;
+        if (peer.minimumBufferedFrames > safeReductionFrames) {
+          peer.targetBufferSeconds = Math.max(
+            playbackProfile.startBufferSeconds,
+            peer.targetBufferSeconds - playbackProfile.recoveryStepSeconds,
+          );
+        }
         peer.stableFrames = 0;
+        peer.minimumBufferedFrames = Infinity;
       }
     }
   }

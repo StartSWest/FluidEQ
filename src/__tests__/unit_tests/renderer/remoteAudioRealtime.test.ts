@@ -50,16 +50,30 @@ const processor = (): IProcessor => {
   return instance;
 };
 
-const simulate = (delivery: (frame: number, sequence: number) => number) => {
+const simulate = (
+  delivery: (frame: number, sequence: number) => number,
+  durationSeconds = 4,
+  toneHz = 0,
+) => {
   const instance = processor();
   let sequence = 0;
   const outputs = [[new Float32Array(128), new Float32Array(128)]];
   let minimumStableSample = 1;
   let minimumRunningSample = 1;
+  let minimumStableRms = 1;
   let latestBufferMs = 0;
-  for (let at = 0; at < 48000 * 4; at += 128) {
+  for (let at = 0; at < 48000 * durationSeconds; at += 128) {
     while (delivery((sequence + 1) * 480, sequence) <= at) {
       const pcm = new Float32Array(960).fill(0.25);
+      if (toneHz) {
+        for (let frame = 0; frame < 480; frame += 1) {
+          const value =
+            0.25 *
+            Math.sin((2 * Math.PI * toneHz * (sequence * 480 + frame)) / 48000);
+          pcm[frame * 2] = value;
+          pcm[frame * 2 + 1] = -value;
+        }
+      }
       instance.port.onmessage({
         data: {
           kind: 'push',
@@ -79,6 +93,11 @@ const simulate = (delivery: (frame: number, sequence: number) => number) => {
     }
     if (at >= 48000 * 3) {
       minimumStableSample = Math.min(minimumStableSample, ...outputs[0][0]);
+      const squareSum = outputs[0][0].reduce(
+        (sum, value) => sum + value * value,
+        0,
+      );
+      minimumStableRms = Math.min(minimumStableRms, Math.sqrt(squareSum / 128));
     }
     const meter = instance.port.messages.pop();
     if (meter) {
@@ -86,10 +105,36 @@ const simulate = (delivery: (frame: number, sequence: number) => number) => {
     }
     instance.port.messages.length = 0;
   }
-  return { minimumStableSample, minimumRunningSample, latestBufferMs };
+  return {
+    minimumStableSample,
+    minimumRunningSample,
+    minimumStableRms,
+    latestBufferMs,
+  };
 };
 
 describe('video-mode continuous playback', () => {
+  it.each([40, 60, 80])(
+    'retains the protection needed by recurring %i ms delivery bursts',
+    (batchMs) => {
+      const batchFrames = 48 * batchMs;
+      const result = simulate(
+        (at) => Math.ceil(at / batchFrames) * batchFrames,
+        12,
+      );
+      // Cross several recovery windows: the old unconditional decay played
+      // cleanly for two seconds, then deliberately shrank into another dropout.
+      expect(result.minimumStableSample).toBeGreaterThan(0.245);
+      expect(result.latestBufferMs).toBeLessThan(batchMs + 30);
+    },
+  );
+
+  it('keeps an audible stereo tone continuous through recurring bursts', () => {
+    const result = simulate((at) => Math.ceil(at / 2880) * 2880, 8, 997);
+    expect(result.minimumStableRms).toBeGreaterThan(0.16);
+    expect(result.latestBufferMs).toBeLessThan(90);
+  });
+
   it('keeps ordinary 8 ms packet jitter at full level', () => {
     const result = simulate(
       (at, sequence) => at + (sequence % 4 === 0 ? 384 : 0),
