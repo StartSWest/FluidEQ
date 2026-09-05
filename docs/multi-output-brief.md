@@ -30,65 +30,59 @@ driver, no virtual audio device" as a feature, and a driver would end it.
 So there are two routes, and the decision taken was to build **both**, because
 they serve different situations honestly.
 
-## Route A — Mirror, no driver
+## Route A — Pre-EQ mirror, no driver
 
-FluidEQ already captures system audio; it is what draws the live spectrum on the
-graph, and it is currently measured and thrown away. The mirror feeds that same
-capture into a Web Audio graph, filters it, and renders it to a second output via
-`setSinkId`.
+On Windows, one native helper captures the process mix before endpoint effects
+and plays the mirrors itself. LAN sending leases that same helper. Its own
+process tree is excluded from capture, so neither local mirrors nor LAN can
+recapture the mirrored audio. Audio received from another PC and played by
+Electron remains part of the local mix.
 
 ```
-app -> APO -> headphones
-                 |
-                 '- FluidEQ captures the mix, already corrected
-                        |
-                        '- straight through -> speakers  (150-300ms later)
+application mix ─┬─ APO A ─ main output A
+                 └─ process loopback ─ native mirror ─ APO B ─ output B
 ```
 
-**Works with no install and nothing to configure.** That is its whole appeal.
+The helper opens the explicit Windows endpoint GUID in shared mode with effects
+enabled. Windows does endpoint format conversion and APO B applies B's profile.
+No inverse EQ is used: inverse peaking filters cannot recover clipping or undo
+arbitrary convolution and nonlinear effects in A's endpoint chain.
 
-**The delay is unavoidable.** Audio is played, captured back, processed, and
-played again. Say so in the UI rather than hoping nobody notices:
+Game/Video starts with about 30 ms of reserve and crossfades stale audio after a
+stall. Music starts with about 100 ms and keeps its queued audio. Small continuous
+rate corrections compensate independent device clocks. Both modes refill after
+underruns; device buffering adds delay beyond these reserve targets. The buffers
+are bounded and an unresponsive endpoint fails visibly.
 
-- Music into another room — fine.
-- Video or games — lips out of sync by a fifth of a second. Useless.
-- Both devices audible from one seat — a slapback echo.
-- Only works while FluidEQ is open. It is not a service.
+Each enabled output has its own saved-profile picker and level. The picker
+reads that endpoint's profile directory and changes its APO assignment, without
+making it the main device or loading its profile into the main EQ controls.
 
-### Mirrored outputs get their OWN EQ — this was wrong
+### Output switching and teardown
 
-The original argument: the captured audio has **already been EQ'd by APO for the
-primary device**, so mirroring it raw sends a headphone correction to a speaker,
-and the mirror therefore needs a second EQ engine in Web Audio applying the
-target device's profile.
+The old mirror branched from the spectrum's source node. Switching from A to B
+made the spectrum disconnect its source first, then the mirror tried to
+disconnect the now-absent edge and raised InvalidAccessError. Windows mirrors
+now own their playback in the native helper, independently of that graph. The
+non-Windows fallback owns a separate source node on the same captured stream.
 
-It was built that way. The first time anyone listened, it sounded hollow and
-phasey — "like cancelling" — and the level dropped whenever a second output was
-switched on. Two causes, neither visible from the code:
+Starts are cancellable and tied to the current output generation. Switching
+the main output stops running mirrors and waits for cancelled starts to clean
+up before changing Windows' default. A late start cannot resurrect an old
+mirror. Closing or reloading the window also releases its mirrors.
 
-1. **APO hooks the endpoint the mirror plays into.** Where it is attached
-   there, it applies that device's profile on the way out — so the Web Audio
-   chain was applying the same correction a second time. A doubled correction
-   is doubled in dB: a 6 dB dip becomes 12.
-2. **Chromium's echo canceller was running on the loopback.** The capture asked
-   for a bare `audio: true`, so voice processing applied. Echo cancellation
-   subtracts what the machine is playing from what it hears, and a mirror plays
-   the very audio being captured — so it chased its own output.
+### History
 
-Both are fixed. The mirror applies **no EQ at all**, and the capture explicitly
-asks for `autoGainControl`, `echoCancellation` and `noiseSuppression` off —
-which also stops the live curve describing Chromium's idea of loudness rather
-than the track's.
+The original endpoint-loopback mirror carried A's correction to B, where B's
+APO applied another correction. Reapplying B's filters in Web Audio compounded
+that problem. A hidden media player also added an uncontrolled playback queue.
+The current Windows path avoids both; the Web Audio path remains only as a
+fallback on other platforms.
 
-**What reaches a mirrored output is the primary device's correction**, baked
-into the capture before FluidEQ sees it. Both outputs therefore sound the same,
-and changing the primary's tuning changes every mirror with it. That was
-accepted rather than fixed.
-
-If it ever does need fixing, the answer is the **inverse** of the primary's
-chain — for peaking and shelf filters, the same filter with the gain negated,
-exact, from `getTFCoefficients` — and _not_ reapplying the target's. The
-mistake worth not repeating is correcting twice.
+Windows process-loopback exclusion is documented in Microsoft's
+[Application Loopback sample](https://github.com/microsoft/Windows-classic-samples/tree/main/Samples/ApplicationLoopback).
+Audio isolation, latency, and switching still require listening on real devices;
+compilation is not evidence of audible correctness.
 
 ## Route B — Virtual device, when one is present
 
@@ -108,45 +102,27 @@ somebody else's driver, which is the correct division.
 Endpoints worth detecting by name: `CABLE Input`, `VoiceMeeter Input`,
 `VoiceMeeter Aux Input`, `VoiceMeeter VAIO3`.
 
-## The wrinkle to solve first
+## Endpoint identity
 
-**Two different identity namespaces have to be bridged.**
+Windows mirrors open the stable endpoint GUID directly. They do not depend on
+Chromium permissions, display names, salted device IDs, or the movable
+`default` alias. The Web Audio fallback still uses the existing conservative
+name bridge and refuses ambiguous matches.
 
-- Windows and APO identify an endpoint by **GUID**. `IAudioDevice` in
-  `src/common/constants.ts` carries `id`, `name` and `guid`, and device profiles
-  are keyed on the GUID. This is what `Device:` blocks are written against.
-- Chromium's `setSinkId` needs a **`deviceId` from `enumerateDevices()`**, which
-  is hashed per origin and shares nothing with the GUID.
+## Implementation map
 
-The only bridge is the display name, which is neither guaranteed unique (two
-things called "Speakers") nor stable (a user can rename one). Everything else
-sits on top of this, so settle it before writing any audio code, and decide what
-happens when the match is ambiguous — silently mirroring to the wrong speaker is
-worse than refusing.
+| What                                     | Where                                                |
+| ---------------------------------------- | ---------------------------------------------------- |
+| Shared native capture leases             | `src/main/remoteAudioCapture.ts`                     |
+| Helper transport                         | `src/main/nativeCaptureProcess.ts`                   |
+| Native mirror playback and buffering     | `native/remote-audio-capture/src/mirror_output.cpp`  |
+| Native control and lifetime              | `native/remote-audio-capture/src/mirror_control.cpp` |
+| Window-scoped mirrors and switch barrier | `src/main/ipc/outputMirror.ts`                       |
+| Renderer cancellation and reconciliation | `src/renderer/audio/useMirrorPlayback.ts`            |
+| Second-output profile picker             | `src/renderer/SecondOutputProfilePicker.tsx`         |
+| Per-device profiles and APO config       | `src/main/deviceProfiles.ts`                         |
 
-## Where the existing pieces are
-
-| What                     | Where                                         |
-| ------------------------ | --------------------------------------------- |
-| System audio capture     | `src/renderer/graph/useLiveOutputSpectrum.ts` |
-| Live audio provider      | `src/renderer/audio/LiveAudioContext.tsx`     |
-| Device enumeration (IPC) | `ChannelEnum.GET_AUDIO_DEVICES`, `src/main/`  |
-| Device shape             | `IAudioDevice` in `src/common/constants.ts`   |
-| Per-device profiles      | `src/main/deviceProfiles.ts`                  |
-| Config writing           | `src/main/flush.ts`, `src/common/apoSync.ts`  |
-
-**Reuse the existing capture. Do not open a second one.** A previous session
-spent a long time on a memory leak caused by `getDisplayMedia` — Windows only
-offers loopback audio through the screen-sharing call, so a video track arrives
-whether or not anything wants one, and it must be `stop()`ed rather than
-disabled. See the 0.7.0 changelog entry, and `useLiveOutputSpectrum.ts`.
-
-## Suggested order
-
-1. Bridge the GUID <-> `deviceId` namespaces, and decide the ambiguous case.
-2. Mirror one extra device, no EQ, so the plumbing is provable by ear.
-3. ~~Per-mirror EQ sharing the band maths with the APO path.~~ Built, then
-   removed — see the section above. The mirror applies no EQ.
-4. Detect virtual devices and let each hold a profile.
-5. One checkbox UI over both, which names which mechanism is in use and warns
-   about latency only when the mirror is what is actually running.
+Windows mirrors share one native capture with LAN; the spectrum retains its
+separate endpoint capture because it measures the post-EQ output. The
+non-Windows fallback reuses the spectrum's stream without another display-media
+request. No additional screen/video capture is opened for a second output.

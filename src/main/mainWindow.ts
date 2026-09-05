@@ -33,6 +33,9 @@ import MenuBuilder from './menu';
 import { IAuthorizedAutoUpdater } from './signedAutoUpdates';
 import { isAppQuitting } from './tray';
 import { applyWindowBackdrop } from './windowBackdrop';
+import { installWindowRecovery } from './crashRecovery';
+import { shutdownDspHost } from './ipc/dspHost';
+import { shutdownNativeInference } from './nativeInference';
 
 /**
  * The desktop, blurred, behind the app's own floor.
@@ -243,6 +246,20 @@ export const createMainWindowFactory = ({
     applyWindowBackdrop(created);
 
     const rendererUrl = resolveHtmlPath('index.html');
+    const recoverWindow = installWindowRecovery(
+      created,
+      rendererUrl,
+      async () => {
+        const stopped = await Promise.allSettled([
+          shutdownNativeInference(),
+          shutdownDspHost(),
+        ]);
+        const failure = stopped.find((result) => result.status === 'rejected');
+        if (failure?.status === 'rejected') {
+          throw failure.reason;
+        }
+      },
+    );
     const appSession = created.webContents.session;
 
     // Permission requests from FluidEQ's own renderer are deliberate UI
@@ -469,6 +486,12 @@ export const createMainWindowFactory = ({
     });
 
     created.webContents.on('did-finish-load', sendWindowState);
+    // Recovery can replace the first load while it is still pending. Install
+    // the navigation policy before either document gets a chance to open links.
+    created.webContents.setWindowOpenHandler((edata) => {
+      openExternalIfSafe(edata.url);
+      return { action: 'deny' };
+    });
     // Polling for the dev server is an optimisation, not a gate. Giving up used
     // to throw out of createMainWindow with nothing to catch it, so a slow bundle
     // produced an unhandled rejection and no window at all — while
@@ -480,7 +503,13 @@ export const createMainWindowFactory = ({
         error,
       );
     });
-    await created.loadURL(rendererUrl);
+    await created.loadURL(rendererUrl).catch((error) => {
+      log.error('Initial window load failed; handing it to recovery', error);
+      return recoverWindow();
+    });
+    if (created.isDestroyed() || isAppQuitting()) {
+      return;
+    }
 
     // If ready-to-show was skipped by a fast dev-server response, reveal the
     // already-loaded window instead of leaving an invisible Electron process.
@@ -495,19 +524,6 @@ export const createMainWindowFactory = ({
 
     const menuBuilder = new MenuBuilder(created);
     menuBuilder.buildMenu();
-
-    // Open urls in the user's browser, if they are urls for a browser.
-    //
-    // `edata.url` is whatever asked for the window — a `target="_blank"` link, a
-    // `window.open`. Plenty of what this renderer draws did not originate here:
-    // lyrics, profile names, changelog text, rows from a synced measurement
-    // database. Handing any of that to the OS unchecked is how `file:` and every
-    // registered custom protocol become reachable, so the scheme is checked the
-    // same way the Remote Media player has always checked it.
-    created.webContents.setWindowOpenHandler((edata) => {
-      openExternalIfSafe(edata.url);
-      return { action: 'deny' };
-    });
 
     setUpAutoUpdates().catch((error) => {
       // A setup failure is still a disabled updater. Never recover by loading it

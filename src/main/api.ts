@@ -51,6 +51,7 @@ import type {
   TRemoteAudioStreamMode,
 } from '../common/remoteAudio';
 import { dspHostBridge } from './dspHost/bridge';
+import { outputMirrorBridge } from './outputMirrorBridge';
 
 export type Channels = string;
 
@@ -725,5 +726,6 @@ export default {
     // other one here. Its own module because this file is already long enough
     // that a reader has to search it — see the head of `dspHost/bridge.ts`.
     ...dspHostBridge,
+    ...outputMirrorBridge,
   },
 };

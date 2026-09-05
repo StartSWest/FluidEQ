@@ -321,9 +321,13 @@ export const getDeviceProfileSettings = (): Promise<IDeviceProfileSettings> => {
 
 export const assignDeviceProfile = (
   assignment: IDeviceProfileAssignment,
+  secondOutputOnly = false,
 ): Promise<void> => {
   const channel = ChannelEnum.ASSIGN_DEVICE_PROFILE;
-  window.electron.ipcRenderer.sendMessage(channel, [assignment]);
+  window.electron.ipcRenderer.sendMessage(
+    channel,
+    secondOutputOnly ? [assignment, true] : [assignment],
+  );
   return promisifyResult(setterResponseHandler, channel);
 };
 

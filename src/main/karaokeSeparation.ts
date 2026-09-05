@@ -8,6 +8,8 @@ import { app, ipcMain } from 'electron';
 import fs from 'fs';
 import path from 'path';
 import log from 'electron-log';
+import ort, { onInferenceInvalidated } from './nativeInference';
+import withRendererOperation from './rendererOperation';
 import {
   SEPARATION_CHUNK_SAMPLES,
   SEPARATION_FRAMES,
@@ -23,7 +25,7 @@ import {
 } from '../common/karaoke/separationDsp';
 
 /**
- * Vocal separation, run in the main process on the native ONNX runtime.
+ * Vocal separation, with native ONNX calls isolated in a utility process.
  *
  * It lived in a renderer worker on onnxruntime-web first, and that version is
  * gone for a reason worth recording: session creation died with a bare
@@ -58,6 +60,10 @@ type TOnnxSession = {
 let session: TOnnxSession | undefined;
 let sessionBackend = '';
 let cancelRequested = false;
+onInferenceInvalidated(() => {
+  session = undefined;
+  sessionBackend = '';
+});
 
 /** Whether the separation network is resident right now. */
 export const isSeparationLoaded = () => session !== undefined;
@@ -92,13 +98,14 @@ let running = false;
 const ensureFile = async (
   name: string,
   onBytes: (received: number, total: number) => void,
+  signal: AbortSignal,
 ): Promise<string> => {
   const target = path.join(modelDir(), name);
   if (fs.existsSync(target)) {
     return target;
   }
   fs.mkdirSync(modelDir(), { recursive: true });
-  const response = await fetch(`${MODEL_BASE}/${name}`);
+  const response = await fetch(`${MODEL_BASE}/${name}`, { signal });
   if (!response.ok || !response.body) {
     throw new Error(`Separation model download failed (${response.status}).`);
   }
@@ -134,17 +141,17 @@ const ensureFile = async (
  * 11.5 s, CPU at 12.4 s — and the one that loads is reported to the renderer
  * so a slow run can say why it is slow.
  */
-const loadSession = async (modelPath: string): Promise<TOnnxSession> => {
+const loadSession = async (
+  modelPath: string,
+  assertCurrent: () => void,
+): Promise<TOnnxSession> => {
   if (session) {
     return session;
   }
-  // Lazy so the app does not pay for the native runtime at startup, and so a
-  // machine that never touches Karaoke never loads it at all.
-  // eslint-disable-next-line global-require
-  const ort = require('onnxruntime-node');
   let lastError: unknown;
   const backends = ['webgpu', 'dml', 'cpu'];
   for (let index = 0; index < backends.length; index += 1) {
+    assertCurrent();
     try {
       // eslint-disable-next-line no-await-in-loop
       session = (await ort.InferenceSession.create(modelPath, {
@@ -173,11 +180,11 @@ interface ISeparateRequest {
 const separate = async (
   request: ISeparateRequest,
   onProgress: (fraction: number) => void,
+  assertCurrent: () => void,
 ) => {
-  // eslint-disable-next-line global-require
-  const ort = require('onnxruntime-node');
   const modelPath = path.join(modelDir(), MODEL_FILE);
-  const loaded = await loadSession(modelPath);
+  const loaded = await loadSession(modelPath, assertCurrent);
+  assertCurrent();
   const { left, right } = request;
   const total = left.length;
 
@@ -196,6 +203,7 @@ const separate = async (
   }
 
   for (let index = 0; index < starts.length; index += 1) {
+    assertCurrent();
     if (cancelRequested) {
       throw new Error('cancelled');
     }
@@ -291,24 +299,32 @@ const separate = async (
 
 /** Wire the channels. Called once from main during startup. */
 export const registerKaraokeSeparation = () => {
-  ipcMain.handle(
-    'karaoke-separate',
-    async (event, request: ISeparateRequest) => {
+  ipcMain.handle('karaoke-separate', (event, request: ISeparateRequest) =>
+    withRendererOperation(event, async (assertCurrent, signal) => {
+      if (running) {
+        throw new Error('Vocal separation is already running');
+      }
+      running = true;
       cancelRequested = false;
       const report = (stage: string, fraction: number) => {
+        assertCurrent();
         if (!event.sender.isDestroyed()) {
           event.sender.send('karaoke-separate-progress', { stage, fraction });
         }
       };
-      await ensureFile(MODEL_FILE, () => report('download', 0.01));
-      await ensureFile(WEIGHTS_FILE, (received, totalBytes) =>
-        report('download', totalBytes > 0 ? received / totalBytes : 0),
-      );
-      report('separate', 0);
-      running = true;
       try {
-        const result = await separate(request, (fraction) =>
-          report('separate', fraction),
+        await ensureFile(MODEL_FILE, () => report('download', 0.01), signal);
+        await ensureFile(
+          WEIGHTS_FILE,
+          (received, totalBytes) =>
+            report('download', totalBytes > 0 ? received / totalBytes : 0),
+          signal,
+        );
+        report('separate', 0);
+        const result = await separate(
+          request,
+          (fraction) => report('separate', fraction),
+          assertCurrent,
         );
         return result;
       } catch (error) {
@@ -317,7 +333,7 @@ export const registerKaraokeSeparation = () => {
       } finally {
         running = false;
       }
-    },
+    }),
   );
   ipcMain.on('karaoke-separate-cancel', () => {
     cancelRequested = true;

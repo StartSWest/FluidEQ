@@ -57,6 +57,7 @@ import {
 } from '../deviceProfiles';
 import { getConfigPath } from '../registry';
 import { TSuccess } from '../../renderer/utils/equalizerApi';
+import { withOutputMirrorsStopped } from './outputMirror';
 
 /**
  * Everything the profile handlers may touch, stated rather than implied.
@@ -577,7 +578,11 @@ export const registerProfilesIpc = ({
   ipcMain.on(ChannelEnum.SET_DEFAULT_AUDIO_DEVICE, async (event, arg) => {
     const channel = ChannelEnum.SET_DEFAULT_AUDIO_DEVICE;
     try {
-      await setDefaultAudioDevice(arg[0] as string);
+      // Finish teardown before B becomes primary; a queued start from the old
+      // selection must not briefly play a duplicate on the newly selected B.
+      await withOutputMirrorsStopped(() =>
+        setDefaultAudioDevice(arg[0] as string),
+      );
       const reply: TSuccess<void> = { result: undefined };
       event.reply(channel, reply);
     } catch (e) {
@@ -611,21 +616,60 @@ export const registerProfilesIpc = ({
     event.reply(ChannelEnum.GET_DEVICE_PROFILE_SETTINGS, reply);
   });
 
+  // A second output owns its own catalogue. Reading the active folder here
+  // would show A's profiles under B and silently choose the wrong tuning.
+  ipcMain.handle('output-mirror-profiles', async (event, deviceId: unknown) => {
+    if (
+      event.senderFrame !== event.sender.mainFrame ||
+      typeof deviceId !== 'string'
+    ) {
+      throw new Error('Invalid output profile request.');
+    }
+    const devices = await discoverAudioDevices();
+    if (!devices.some((device) => device.id === deviceId && device.isActive)) {
+      throw new Error('The selected output is unavailable.');
+    }
+    const current =
+      deviceProfileSettings.assignments[deviceId]?.presetName ?? '';
+    return {
+      current,
+      names: fs
+        .readdirSync(presetDirForDevice(deviceId))
+        .filter((name) => !isAutomaticPresetName(name) || name === current)
+        .sort(),
+    };
+  });
+
   ipcMain.on(ChannelEnum.ASSIGN_DEVICE_PROFILE, async (event, arg) => {
     const channel = ChannelEnum.ASSIGN_DEVICE_PROFILE;
     const assignment = arg[0] as IDeviceProfileAssignment;
-    try {
-      fetchPreset(
-        assignment.presetName,
-        presetDirForDevice(assignment.deviceId),
-      );
-      assignDeviceProfile(deviceProfileSettings, assignment);
-      await saveDeviceProfileSettings(deviceProfileSettings, userDataDir);
-      await handleUpdate(event, channel);
-    } catch (e) {
-      log.error('Failed to assign device profile', e);
-      handleError(event, channel, ErrorCode.PRESET_FILE_ERROR);
-    }
+    await runProfileMutation(async () => {
+      try {
+        const devices = await discoverAudioDevices();
+        const device = devices.find(
+          (candidate) => candidate.id === assignment.deviceId,
+        );
+        if (!device?.isActive || (arg[1] === true && device.isDefault)) {
+          throw new Error(
+            'The second output is unavailable or is now the main output.',
+          );
+        }
+        fetchPreset(
+          assignment.presetName,
+          presetDirForDevice(assignment.deviceId),
+        );
+        assignDeviceProfile(deviceProfileSettings, {
+          ...assignment,
+          deviceGuid: device.guid,
+          deviceName: device.name,
+        });
+        await saveDeviceProfileSettings(deviceProfileSettings, userDataDir);
+        await handleUpdate(event, channel);
+      } catch (e) {
+        log.error('Failed to assign device profile', e);
+        handleError(event, channel, ErrorCode.PRESET_FILE_ERROR);
+      }
+    });
   });
 
   ipcMain.on(ChannelEnum.REMOVE_DEVICE_PROFILE, async (event, arg) => {

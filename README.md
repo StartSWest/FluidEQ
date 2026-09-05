@@ -131,12 +131,15 @@ stack, flow and centre.
 
 **Plays in two places at once.** A second output mirrors what you are hearing to
 any number of other devices, with a level for each, and nothing to install.
-Mirrored sound arrives about a fifth of a second late — fine for music in another
-room, unusable for video or anywhere you can hear both at once — it runs only
-while FluidEQ is open, and every mirror carries the correction of the device you
-are listening on, because that is already in the sound before FluidEQ sees it.
+Game/Video starts with about 30 ms in reserve and catches up after a hiccup;
+Music starts with about 100 ms for smoother playback. Actual delay also depends
+on the devices. On Windows the mirror captures audio before endpoint EQ, so
+each output applies only its own APO profile. The profile picker below each
+enabled second output shows that device's saved profiles and applies a selection
+there without switching the main output. Mirroring runs only while FluidEQ is
+open. Switching the main output stops the old mirrors before the change.
 
-![The Second output panel open down the right of the window: every other endpoint on the machine listed with its own switch and level — an NVIDIA display output set to neutral, a second pair of Razer speakers turned on at 100%, a Realtek output and another monitor — each naming the profile attached to it, above the note that mirrored sound arrives about a fifth of a second late and plays only while FluidEQ is open. Above it, the automatic mapping panel says that editing any EQ control saves it to the current output, and that FluidEQ maps the stable endpoint ID so the sound follows the device whenever Windows selects it. Suno is playing inside Online Media to the left.](docs/02-online-media-multiple-outputs-one-player-at-a-time.png)
+![The Second output panel open down the right of the window: every other endpoint on the machine listed with its own switch and level — an NVIDIA display output set to neutral, a second pair of Razer speakers turned on at 100%, a Realtek output and another monitor — each naming the profile attached to it, above the note about how far behind the mirrored sound sits and that it plays only while FluidEQ is open. Above it, the automatic mapping panel says that editing any EQ control saves it to the current output, and that FluidEQ maps the stable endpoint ID so the sound follows the device whenever Windows selects it. Suno is playing inside Online Media to the left.](docs/02-online-media-multiple-outputs-one-player-at-a-time.png)
 
 **Ten languages.** English, 简体中文, हिन्दी, Español, Français, Português,
 Русский, 日本語, Deutsch, Italiano — the most-spoken left-to-right scripts.

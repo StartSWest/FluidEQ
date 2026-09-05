@@ -53,7 +53,7 @@ const I18nContext = createContext<II18nContext | undefined>(undefined);
  * explicitly, that choice wins forever after — the stored value is only ever
  * written by the picker.
  */
-const readInitialLocale = (): LocaleCode => {
+export const readInitialLocale = (): LocaleCode => {
   try {
     const stored = window.localStorage.getItem(STORAGE_KEY);
     if (stored) {

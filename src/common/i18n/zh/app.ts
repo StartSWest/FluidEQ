@@ -20,6 +20,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { Dictionary } from '../en';
 
 const app: Partial<Dictionary> = {
+  'recovery.title': 'FluidEQ 正在恢复',
+  'recovery.working':
+    '正在停止播放，并使用已保存的设置重新加载窗口。未保存的工作可能会丢失。',
+  'recovery.stopped':
+    'FluidEQ 无法安全恢复，已停止自动重试。你可以重新加载或退出。未保存的工作可能会丢失。',
+  'recovery.reload': '重新加载 FluidEQ',
+  'recovery.quit': '退出',
+  'recovery.copy': '复制详情',
   'app.tagline': '你的声音，每台设备，自动生效。',
   'app.actions': 'FluidEQ 操作',
   'app.actions.title': '音频操作',

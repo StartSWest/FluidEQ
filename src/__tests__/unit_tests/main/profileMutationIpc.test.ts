@@ -55,6 +55,7 @@ const handlers = new Map<string, THandler>();
 
 jest.mock('electron', () => ({
   ipcMain: {
+    handle: jest.fn(),
     on: (channel: string, handler: THandler) => {
       handlers.set(channel, handler);
     },

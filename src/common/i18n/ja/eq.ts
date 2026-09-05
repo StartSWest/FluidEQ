@@ -165,8 +165,19 @@ const eq: Partial<Dictionary> = {
   'extraOutput.none': 'ほかの出力が見つかりません',
   'extraOutput.active': 'ミラー中',
   'extraOutput.volume': '音量',
-  'extraOutput.latency':
-    'ミラーした音は約 5 分の 1 秒遅れて届きます。別の部屋で音楽を鳴らすには十分ですが、動画やゲームには使えません。両方が同時に聞こえる場所ではエコーになります。',
+  'extraOutput.mode.title': '追従のしかた',
+  'extraOutput.mode.video.title': 'ゲーム/動画',
+  'extraOutput.mode.video.body':
+    '映像から数百分の一秒以内に収まり、途切れたあとは自動で同期し直します。',
+  'extraOutput.mode.video.buffer': '開始時 約30 ms',
+  'extraOutput.mode.music.title': '音楽',
+  'extraOutput.mode.music.body':
+    '10 分の 1 秒を余裕として確保し、途切れません。',
+  'extraOutput.mode.music.buffer': '開始時 約100 ms',
+  'extraOutput.latency.video':
+    'ミラーした音は口の動きと合う程度に画面に追従します。同じ場所で両方の出力が聞こえると、わずかに二重に聞こえることがあります。',
+  'extraOutput.latency.music':
+    'ミラーした音は約 10 分の 1 秒遅れて届き、途切れません。別の部屋なら十分です。画面と合わせるならゲーム/動画に切り替えてください。',
   'extraOutput.virtual':
     'ルーティング用ドライバーが入っています。アプリの出力先をそちらに向ければ両方の出力がずれません。その上で、上の設定で各出力に個別のプロファイルを割り当ててください。',
   'extraOutput.ambiguous':
@@ -176,7 +187,10 @@ const eq: Partial<Dictionary> = {
   'extraOutput.labelsHidden':
     'FluidEQ はまだ出力の名前を読み取れないため、照合できません。FluidEQ にマイクへのアクセスを許可して、このパネルを開き直してください。',
   'extraOutput.hint':
-    'ミラーは、いま聞こえている音をもう 1 台の機器からも鳴らします。FluidEQ を開いている間だけ動作します。',
+    '各出力にはそれぞれのEQプロファイルが適用されます。ミラーリングはFluidEQを開いている間のみ動作します。',
+  'extraOutput.profile': 'EQプロファイル',
+  'extraOutput.profile.error':
+    'この出力のプロファイルを読み込みまたは変更できませんでした。',
   'driver.eyebrow': '何で聴いているか',
   'driver.title': 'ドライバー種別',
   'driver.none': '補正なし',

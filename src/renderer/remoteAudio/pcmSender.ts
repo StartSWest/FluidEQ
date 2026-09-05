@@ -7,6 +7,7 @@ it under the terms of the GNU General Public License version 3 or later.
 */
 
 import type { ILanRemoteAudioChunk } from '../../common/remoteAudio';
+import workletUrl from './workletUrl';
 
 interface ICaptureSource {
   context: AudioContext;
@@ -21,14 +22,6 @@ export interface IPcmSender {
 }
 
 const PROCESSOR_NAME = 'fluideq-remote-audio-capture';
-
-const workletUrl = (): URL =>
-  new URL(
-    process.env.NODE_ENV === 'production'
-      ? './dsp-worklet.js'
-      : '/dsp-worklet.dev.js',
-    window.location.href,
-  );
 
 /**
  * Tap the existing system loopback and send its exact Float32 PCM samples.

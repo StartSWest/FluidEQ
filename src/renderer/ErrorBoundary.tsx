@@ -18,6 +18,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { Component, ErrorInfo, ReactNode } from 'react';
 import { PRODUCT_NAME } from 'common/branding';
+import ChannelEnum from 'common/channels';
+import { translate } from 'common/i18n';
+import { readInitialLocale } from './utils/I18nContext';
+import {
+  getRendererFailure,
+  onRendererFailure,
+  requestWindowRecovery,
+} from './utils/crashRecovery';
 import { reportError } from './utils/logger';
 import './styles/ErrorBoundary.scss';
 
@@ -28,6 +36,7 @@ interface IErrorBoundaryProps {
 interface IErrorBoundaryState {
   error?: Error;
   componentStack?: string;
+  recoveryStopped?: boolean;
 }
 
 /**
@@ -46,13 +55,48 @@ export default class ErrorBoundary extends Component<
   IErrorBoundaryProps,
   IErrorBoundaryState
 > {
+  private unsubscribeFailure?: () => void;
+
+  private unsubscribeStatus?: () => void;
+
   constructor(props: IErrorBoundaryProps) {
     super(props);
-    this.state = {};
+    this.state = { error: getRendererFailure() };
   }
 
   static getDerivedStateFromError(error: Error): IErrorBoundaryState {
     return { error };
+  }
+
+  componentDidMount() {
+    this.unsubscribeFailure = onRendererFailure((error) => {
+      this.setState({ error });
+    });
+    try {
+      this.unsubscribeStatus = window.electron.ipcRenderer.on(
+        ChannelEnum.RECOVERY_STATUS,
+        () => this.setState({ recoveryStopped: true }),
+      );
+    } catch (error) {
+      reportError('Recovery bridge is unavailable', error);
+      this.setState({ recoveryStopped: true });
+    }
+    const { error } = this.state;
+    if (error) {
+      this.recover(true);
+    }
+  }
+
+  componentDidUpdate(
+    _props: IErrorBoundaryProps,
+    previous: IErrorBoundaryState,
+  ) {
+    // The error screen commits first, unmounting playback and measurement
+    // owners. Main then destroys the document before stopping native audio.
+    const { error } = this.state;
+    if (error && !previous.error) {
+      this.recover(true);
+    }
   }
 
   componentDidCatch(error: Error, info: ErrorInfo) {
@@ -67,9 +111,19 @@ export default class ErrorBoundary extends Component<
     this.setState({ componentStack: info.componentStack ?? undefined });
   }
 
+  componentWillUnmount() {
+    this.unsubscribeFailure?.();
+    this.unsubscribeStatus?.();
+  }
+
+  private recover = (automatic: boolean) => {
+    this.setState({ recoveryStopped: !requestWindowRecovery(automatic) });
+  };
+
   render() {
-    const { error, componentStack } = this.state;
+    const { error, componentStack, recoveryStopped } = this.state;
     const { children } = this.props;
+    const locale = readInitialLocale();
 
     if (!error) {
       return children;
@@ -78,11 +132,13 @@ export default class ErrorBoundary extends Component<
     return (
       <div className="crash-screen" role="alert">
         <div className="crash-screen__card">
-          <p className="eyebrow">SOMETHING BROKE</p>
-          <h1>{PRODUCT_NAME} hit an error while drawing the window</h1>
+          <p className="eyebrow">{PRODUCT_NAME}</p>
+          <h1>{translate(locale, 'recovery.title')}</h1>
           <p className="crash-screen__lead">
-            Your audio is unaffected — Equalizer APO keeps applying the last
-            settings {PRODUCT_NAME} wrote, whatever happens in here.
+            {translate(
+              locale,
+              recoveryStopped ? 'recovery.stopped' : 'recovery.working',
+            )}
           </p>
 
           <pre className="crash-screen__detail">
@@ -94,9 +150,9 @@ export default class ErrorBoundary extends Component<
             <button
               type="button"
               className="crash-screen__action crash-screen__action--primary"
-              onClick={() => window.location.reload()}
+              onClick={() => this.recover(false)}
             >
-              Reload {PRODUCT_NAME}
+              {translate(locale, 'recovery.reload')}
             </button>
             <button
               type="button"
@@ -109,7 +165,14 @@ export default class ErrorBoundary extends Component<
                   .catch(() => undefined);
               }}
             >
-              Copy details
+              {translate(locale, 'recovery.copy')}
+            </button>
+            <button
+              type="button"
+              className="crash-screen__action"
+              onClick={() => window.electron?.ipcRenderer.closeApp()}
+            >
+              {translate(locale, 'recovery.quit')}
             </button>
           </div>
         </div>

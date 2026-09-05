@@ -169,8 +169,19 @@ const eq: Partial<Dictionary> = {
   'extraOutput.none': 'Aucune autre sortie trouvée',
   'extraOutput.active': 'DUPLICATION',
   'extraOutput.volume': 'Volume',
-  'extraOutput.latency':
-    'Le son dupliqué arrive avec environ un cinquième de seconde de retard. Parfait pour de la musique dans une autre pièce, inutilisable pour la vidéo ou les jeux, et un écho si vous entendez les deux à la fois.',
+  'extraOutput.mode.title': 'Comment il suit',
+  'extraOutput.mode.video.title': 'Jeu/Vidéo',
+  'extraOutput.mode.video.body':
+    'Reste à quelques centièmes de seconde de l’image et se resynchronise seul après un accroc.',
+  'extraOutput.mode.video.buffer': 'Départ à ~30 ms',
+  'extraOutput.mode.music.title': 'Musique',
+  'extraOutput.mode.music.body':
+    'Garde un dixième de seconde en réserve pour ne jamais hacher.',
+  'extraOutput.mode.music.buffer': 'Départ à ~100 ms',
+  'extraOutput.latency.video':
+    'Le son dupliqué reste assez proche d’un écran pour la synchronisation labiale. Si vous entendez les deux sorties depuis la même place, un léger dédoublement peut se remarquer.',
+  'extraOutput.latency.music':
+    'Le son dupliqué arrive avec un dixième de seconde de retard et ne hache jamais. Parfait pour une autre pièce ; pour un écran, passez en Jeu/Vidéo.',
   'extraOutput.virtual':
     'Un pilote de routage est installé. Dirigez vos applications vers lui et les deux sorties restent synchronisées, puis donnez à chacune son propre profil ci-dessus.',
   'extraOutput.ambiguous':
@@ -180,7 +191,10 @@ const eq: Partial<Dictionary> = {
   'extraOutput.labelsHidden':
     'FluidEQ ne peut pas encore lire le nom des sorties et ne peut donc pas les associer. Autorisez l’accès au microphone pour FluidEQ puis rouvrez ce panneau.',
   'extraOutput.hint':
-    'La duplication joue ce que vous entendez déjà sur un second appareil. Elle ne fonctionne que tant que FluidEQ est ouvert.',
+    'Chaque sortie utilise son propre profil d’égalisation. La duplication fonctionne uniquement lorsque FluidEQ est ouvert.',
+  'extraOutput.profile': 'Profil d’égalisation',
+  'extraOutput.profile.error':
+    'Impossible de charger ou de modifier le profil de cette sortie.',
   'driver.eyebrow': 'CE AVEC QUOI VOUS ÉCOUTEZ',
   'driver.title': 'Type de transducteur',
   'driver.none': 'Sans compensation',

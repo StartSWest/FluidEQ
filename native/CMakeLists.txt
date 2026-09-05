@@ -280,7 +280,9 @@ set_target_properties(fluideq-dsp-host PROPERTIES
 # unprocessed system mix and the receiver applies its own FluidEQ profile.
 if(WIN32)
   add_executable(fluideq-remote-audio-capture
-    remote-audio-capture/src/main.cpp)
+    remote-audio-capture/src/main.cpp
+    remote-audio-capture/src/mirror_output.cpp
+    remote-audio-capture/src/mirror_control.cpp)
   target_link_libraries(fluideq-remote-audio-capture PRIVATE
     feq_strict ole32 avrt mmdevapi)
   set_target_properties(fluideq-remote-audio-capture PROPERTIES

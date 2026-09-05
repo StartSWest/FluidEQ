@@ -166,8 +166,19 @@ const eq = {
   'extraOutput.none': 'No other outputs found',
   'extraOutput.active': 'MIRRORING',
   'extraOutput.volume': 'Volume',
-  'extraOutput.latency':
-    'Mirrored sound arrives about a fifth of a second late. Fine for music in another room, unusable for video or games, and an echo if you can hear both at once.',
+  'extraOutput.mode.title': 'How it keeps up',
+  'extraOutput.mode.video.title': 'Game/Video',
+  'extraOutput.mode.video.body':
+    'Stays within a few hundredths of a second of the picture and re-syncs itself after a hiccup.',
+  'extraOutput.mode.video.buffer': '~30 ms start',
+  'extraOutput.mode.music.title': 'Music',
+  'extraOutput.mode.music.body':
+    'Keeps a tenth of a second in reserve so it never stutters.',
+  'extraOutput.mode.music.buffer': '~100 ms start',
+  'extraOutput.latency.video':
+    'Mirrored sound stays close enough to a screen for lip-sync. If you can hear both outputs from one seat you may notice a slight doubling.',
+  'extraOutput.latency.music':
+    'Mirrored sound arrives about a tenth of a second late and never stutters. Fine for another room; switch to Game/Video for a screen.',
   'extraOutput.virtual':
     'A routing driver is installed. Point your applications at it and both outputs stay in sync, then give each one its own profile above.',
   'extraOutput.ambiguous':
@@ -177,7 +188,10 @@ const eq = {
   'extraOutput.labelsHidden':
     'FluidEQ cannot read the output names yet, so it cannot match them. Allow microphone access for FluidEQ and reopen this panel.',
   'extraOutput.hint':
-    'Mirroring plays what you already hear out of a second device. It runs only while FluidEQ is open.',
+    'Each output uses its own EQ profile. Mirroring runs only while FluidEQ is open.',
+  'extraOutput.profile': 'EQ profile',
+  'extraOutput.profile.error':
+    'Could not load or change this output’s profile.',
   'driver.eyebrow': 'WHAT YOU LISTEN ON',
   'driver.title': 'Driver type',
   'driver.none': 'No compensation',

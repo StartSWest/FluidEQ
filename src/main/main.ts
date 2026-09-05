@@ -120,6 +120,7 @@ import {
 } from './unattendedUpdate';
 import { translate } from '../common/i18n';
 import { createMainWindowFactory } from './mainWindow';
+import { installMainFailureRecovery } from './crashRecovery';
 import { createApoAdoption } from './apoAdopt';
 import { registerTransferIpc } from './ipc/transfer';
 import { registerReferencesIpc } from './ipc/references';
@@ -145,6 +146,7 @@ import {
 import { registerProcessIpc } from './ipc/processes';
 import { registerLibraryPlaylistsIpc } from './ipc/libraryPlaylists';
 import { registerRemoteAudioIpc } from './ipc/remoteAudio';
+import { registerOutputMirrorIpc } from './ipc/outputMirror';
 import {
   handleLibraryMedia,
   registerLibraryMediaScheme,
@@ -2580,6 +2582,8 @@ const stopRemoteAudioLan = registerRemoteAudioIpc({
   userDataDir,
 });
 
+const stopOutputMirrors = registerOutputMirrorIpc(() => mainWindow);
+
 registerKaraokeIpc({
   userDataDir,
   getMainWindow: () => mainWindow,
@@ -2741,11 +2745,10 @@ const createMainWindow = createMainWindowFactory({
 });
 
 /**
- * Write down what killed it, before it dies.
+ * Log failures and replace a damaged main process once in packaged builds.
  *
- * Nothing here changes what happens — a throw with nobody to catch it still
- * ends the process, and it should. What changes is whether there is any record
- * afterwards. Without these, the only trace of a crash in a packaged build is
+ * Window recovery is owned by mainWindow; native inference and DSP failures
+ * are contained in child processes. Without these logs, the only trace is
  * the window disappearing, and the bug report that follows says "it closed",
  * which is not something anybody can fix.
  *
@@ -2759,13 +2762,7 @@ const setUpCrashLogging = () => {
   // and no further — including, by definition, every failure to get that far.
   log.transports.file.level = 'info';
 
-  process.on('uncaughtException', (error) => {
-    log.error('Uncaught exception in the main process', error);
-  });
-
-  process.on('unhandledRejection', (reason) => {
-    log.error('Unhandled promise rejection in the main process', reason);
-  });
+  installMainFailureRecovery();
 
   // The window's own process, or a video player's, dying underneath us. The
   // reason is Chromium's — 'crashed', 'oom', 'killed' — and it is the only
@@ -2832,6 +2829,7 @@ app.on('before-quit', (event) => {
   beginQuit();
   destroyTray();
   stopRemoteAudioLan();
+  stopOutputMirrors();
   // Here rather than in `will-quit`, which is already too late to wait for
   // anything asynchronous. A host left running holds an audio endpoint open,
   // and an endpoint held by a process whose parent has gone is one Windows

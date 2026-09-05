@@ -20,6 +20,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include <cstdio>
 #include <cstring>
 #include <string_view>
+#include "mirror_control.h"
 
 namespace {
 
@@ -152,6 +153,11 @@ class ActivationHandler final
   return write_header(output, kAudioFrame, sequence, sample_rate, channels,
                       kChunkFrames) &&
          write_all(output, samples, payload_bytes);
+}
+
+bool mirror_reply(std::uint32_t kind, std::uint32_t id, HRESULT result) {
+  return write_header(GetStdHandle(STD_OUTPUT_HANDLE), kind, id,
+                      static_cast<std::uint32_t>(result), 0, 0);
 }
 
 [[nodiscard]] bool is_float_mix_format(const WAVEFORMATEX* format) {
@@ -353,14 +359,32 @@ int main(int argc, char** argv) {
   std::uint16_t filled_frames = 0;
   std::uint32_t sequence = 0;
   bool running = true;
-  const std::array<HANDLE, 2> wait_handles{sample_event.get(), parent.get()};
+  // One helper serves LAN and local outputs. Its own playback is excluded
+  // from process-loopback, while remote audio played by Electron is included.
+  auto mirrors = std::make_unique<MirrorControl>(sample_rate, channels, mirror_reply);
+  if (!mirrors->valid()) {
+    audio_client->Stop();
+    CoUninitialize();
+    return fail("mirror command reader could not start", E_FAIL);
+  }
 
   while (running) {
+    std::vector<HANDLE> wait_handles{sample_event.get(), parent.get(), mirrors->event()};
+    mirrors->append_events(wait_handles);
     const DWORD wait_result = WaitForMultipleObjects(
         static_cast<DWORD>(wait_handles.size()), wait_handles.data(), FALSE,
         INFINITE);
     if (wait_result == WAIT_OBJECT_0 + 1) {
       break;
+    }
+    if (wait_result == WAIT_OBJECT_0 + 2) {
+      running = mirrors->commands();
+      continue;
+    }
+    if (wait_result >= WAIT_OBJECT_0 + 3 &&
+        wait_result < WAIT_OBJECT_0 + wait_handles.size()) {
+      mirrors->render(wait_handles[wait_result - WAIT_OBJECT_0]);
+      continue;
     }
     if (wait_result != WAIT_OBJECT_0) {
       running = false;
@@ -389,6 +413,8 @@ int main(int argc, char** argv) {
       }
 
       const auto* samples = reinterpret_cast<const float*>(data);
+      mirrors->push(samples, packet_frames,
+                    (flags & AUDCLNT_BUFFERFLAGS_SILENT) != 0);
       UINT32 consumed = 0;
       while (running && consumed < packet_frames) {
         const UINT32 capacity = kChunkFrames - filled_frames;
@@ -418,6 +444,7 @@ int main(int argc, char** argv) {
     }
   }
 
+  mirrors.reset();
   audio_client->Stop();
   if (mmcss != nullptr) {
     AvRevertMmThreadCharacteristics(mmcss);

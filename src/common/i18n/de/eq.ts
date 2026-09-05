@@ -169,8 +169,19 @@ const eq: Partial<Dictionary> = {
   'extraOutput.none': 'Keine weiteren Ausgänge gefunden',
   'extraOutput.active': 'SPIEGELT',
   'extraOutput.volume': 'Lautstärke',
-  'extraOutput.latency':
-    'Der gespiegelte Ton kommt etwa eine Fünftelsekunde später an. Für Musik in einem anderen Raum in Ordnung, für Video oder Spiele unbrauchbar, und ein Echo, wenn Sie beides gleichzeitig hören.',
+  'extraOutput.mode.title': 'So hält es Schritt',
+  'extraOutput.mode.video.title': 'Spiel/Video',
+  'extraOutput.mode.video.body':
+    'Bleibt wenige Hundertstelsekunden am Bild dran und synchronisiert sich nach einem Aussetzer selbst wieder.',
+  'extraOutput.mode.video.buffer': 'Start bei ~30 ms',
+  'extraOutput.mode.music.title': 'Musik',
+  'extraOutput.mode.music.body':
+    'Hält eine Zehntelsekunde in Reserve, damit es nie stottert.',
+  'extraOutput.mode.music.buffer': 'Start bei ~100 ms',
+  'extraOutput.latency.video':
+    'Der gespiegelte Ton bleibt nah genug am Bild für Lippensynchronität. Wenn Sie beide Ausgänge von einem Platz aus hören, kann eine leichte Verdopplung auffallen.',
+  'extraOutput.latency.music':
+    'Der gespiegelte Ton kommt etwa eine Zehntelsekunde später an und stottert nie. Für einen anderen Raum in Ordnung; für einen Bildschirm auf Spiel/Video wechseln.',
   'extraOutput.virtual':
     'Ein Routing-Treiber ist installiert. Richten Sie Ihre Anwendungen darauf aus, dann bleiben beide Ausgänge synchron, und geben Sie jedem oben sein eigenes Profil.',
   'extraOutput.ambiguous':
@@ -180,7 +191,10 @@ const eq: Partial<Dictionary> = {
   'extraOutput.labelsHidden':
     'FluidEQ kann die Namen der Ausgänge noch nicht lesen und sie deshalb nicht zuordnen. Erlauben Sie FluidEQ den Mikrofonzugriff und öffnen Sie diesen Bereich erneut.',
   'extraOutput.hint':
-    'Beim Spiegeln wird das, was Sie bereits hören, zusätzlich auf einem zweiten Gerät ausgegeben. Es läuft nur, solange FluidEQ geöffnet ist.',
+    'Jeder Ausgang verwendet sein eigenes EQ-Profil. Die Spiegelung läuft nur, solange FluidEQ geöffnet ist.',
+  'extraOutput.profile': 'EQ-Profil',
+  'extraOutput.profile.error':
+    'Das Profil dieses Ausgangs konnte nicht geladen oder geändert werden.',
   'driver.eyebrow': 'WOMIT SIE HÖREN',
   'driver.title': 'Treibertyp',
   'driver.none': 'Keine Korrektur',

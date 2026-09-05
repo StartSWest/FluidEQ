@@ -30,13 +30,15 @@ import {
   getAudioDevices,
   getDeviceProfileSettings,
 } from '../utils/equalizerApi';
-import { reportInfo } from '../utils/logger';
+import { reportInfo, reportError } from '../utils/logger';
+import { useTranslation } from '../utils/I18nContext';
+import { useMirrorPlayback, type IDesiredMirror } from './useMirrorPlayback';
 import { useLiveAudioCapture, useLiveAudioControl } from './LiveAudioContext';
 import {
   clampMirrorVolume,
-  IOutputMirror,
+  isMirrorMode,
   MAX_MIRROR_VOLUME,
-  startOutputMirror,
+  TMirrorMode,
 } from './outputMirror';
 
 /**
@@ -49,6 +51,12 @@ import {
 const MIRROR_TARGETS_KEY = 'fluideq-mirror-target-guids';
 /** Levels, keyed by the same GUIDs and for the same reason. */
 const MIRROR_VOLUMES_KEY = 'fluideq-mirror-volumes';
+/**
+ * Which way every mirror buffers. One setting rather than one per speaker:
+ * it says what is being watched or listened to, and that is true of the
+ * whole room at once.
+ */
+const MIRROR_MODE_KEY = 'fluideq-mirror-mode';
 
 const loadSelection = (): string[] => {
   try {
@@ -77,6 +85,16 @@ const loadVolumes = (): Record<string, number> => {
   }
 };
 
+/**
+ * Music unless asked otherwise. A mirror nobody has configured is most often
+ * a speaker in another room, where a tenth of a second is invisible and a
+ * stutter is not; a screen is the case someone notices and switches for.
+ */
+const loadMode = (): TMirrorMode => {
+  const stored = localStorage.getItem(MIRROR_MODE_KEY);
+  return isMirrorMode(stored) ? stored : 'music';
+};
+
 /** One endpoint, and whether it can currently be mirrored to. */
 export interface IMirrorTarget {
   device: IAudioDevice;
@@ -101,18 +119,6 @@ export interface IMirrorTarget {
    * say which profile the speaker is already playing.
    */
   presetName: string;
-}
-
-/** A mirror that should be running. */
-interface IDesiredMirror {
-  guid: string;
-  sinkId: string;
-}
-
-/** A mirror that is running, kept so the reconciler can spot a change. */
-interface IRunningMirror {
-  sinkId: string;
-  mirror: IOutputMirror;
 }
 
 /**
@@ -168,12 +174,10 @@ const listMediaOutputs = async (): Promise<IMediaOutputDevice[]> => {
  * doubled correction is doubled in dB: a 6 dB dip becomes 12, which is audible
  * as a hollow, phasey wrongness rather than as "a bit much".
  *
- * What the capture still carries is the *primary* device's correction, baked
- * in before FluidEQ ever sees it. That is the one real defect left in this
- * path, and the fix if it proves audible is to apply the inverse of the
- * primary's chain — not to re-apply the target's.
  */
 const useOutputMirror = () => {
+  const native = window.electron?.platform === 'win32';
+  const { t } = useTranslation();
   const { capture } = useLiveAudioControl();
   const [devices, setDevices] = useState<IAudioDevice[]>([]);
   const [outputs, setOutputs] = useState<IMediaOutputDevice[]>([]);
@@ -182,22 +186,15 @@ const useOutputMirror = () => {
   >(undefined);
   const [selectedGuids, setSelectedGuids] = useState<string[]>(loadSelection);
   const [volumes, setVolumes] = useState<Record<string, number>>(loadVolumes);
-  const [runningGuids, setRunningGuids] = useState<string[]>([]);
-  // A mirror is not a picture of the sound, it is the sound: this capture is
-  // what the second device is being fed. Releasing it because the window was
-  // minimised would silence that device, so a running mirror owns the endpoint
-  // outright.
-  useLiveAudioCapture(runningGuids.length > 0, 'work');
+  const [mode, setModeState] = useState<TMirrorMode>(loadMode);
+
   const [error, setError] = useState('');
-  const runningRef = useRef(new Map<string, IRunningMirror>());
-  /** Starts in flight, so one effect run cannot launch the same sink twice. */
-  const pendingRef = useRef(new Set<string>());
 
   const refresh = useCallback(async () => {
     try {
       const [nextDevices, nextOutputs, nextSettings] = await Promise.all([
         getAudioDevices(),
-        listMediaOutputs(),
+        native ? Promise.resolve([]) : listMediaOutputs(),
         getDeviceProfileSettings(),
       ]);
       setDevices(nextDevices);
@@ -207,18 +204,26 @@ const useOutputMirror = () => {
       // A failed enumeration is not worth an error banner: the list simply
       // stays as it was, and the next device change refreshes it again.
     }
-  }, []);
+  }, [native]);
 
   useEffect(() => {
     refresh();
+    window.addEventListener('fluideq-output-changed', refresh);
+    window.addEventListener('fluideq-presets-changed', refresh);
     if (!navigator.mediaDevices?.addEventListener) {
-      return undefined;
+      return () => {
+        window.removeEventListener('fluideq-output-changed', refresh);
+        window.removeEventListener('fluideq-presets-changed', refresh);
+      };
     }
     // Plugging a headset in changes both halves at once, and a stale list is
     // how a mirror ends up pointed at something that is no longer there.
     navigator.mediaDevices.addEventListener('devicechange', refresh);
-    return () =>
+    return () => {
       navigator.mediaDevices.removeEventListener('devicechange', refresh);
+      window.removeEventListener('fluideq-output-changed', refresh);
+      window.removeEventListener('fluideq-presets-changed', refresh);
+    };
   }, [refresh]);
 
   /** The endpoint the loopback is capturing, which can never be a target. */
@@ -255,10 +260,47 @@ const useOutputMirror = () => {
     });
   }, [captureSourceGuid]);
 
+  // Windows addresses the endpoint directly; Chromium's salted IDs and device
+  // names are only needed by the non-Windows fallback.
+  const desired = useMemo<IDesiredMirror[]>(() => {
+    const matches = native ? [] : matchAudioDevices(devices, outputs);
+    return devices.flatMap((device, index) => {
+      const sinkId = native ? device.guid : matches[index]?.sinkId;
+      return selectedGuids.includes(device.guid) &&
+        isEligibleMirrorTarget(device, captureSourceGuid) &&
+        sinkId
+        ? [{ guid: device.guid, sinkId, mode }]
+        : [];
+    });
+  }, [native, devices, outputs, selectedGuids, captureSourceGuid, mode]);
+  const onMirrorError = useCallback(
+    (mirrorError: unknown) => {
+      reportError('Second output failed', mirrorError);
+      setError(t('extraOutput.unmatched'));
+    },
+    [t],
+  );
+  const runningGuids = useMirrorPlayback(
+    desired,
+    volumes,
+    native ? undefined : capture,
+    native,
+    captureSourceGuid,
+    onMirrorError,
+  );
+  useLiveAudioCapture(!native && selectedGuids.length > 0, 'work');
+
   const targets = useMemo<IMirrorTarget[]>(() => {
     const matches = matchAudioDevices(devices, outputs);
     return devices.map((device, index) => {
-      const match = matches[index];
+      const match: IAudioDeviceMatch = native
+        ? {
+            guid: device.guid,
+            name: device.name,
+            status: DeviceMatchEnum.MATCHED,
+            sinkId: device.guid,
+          }
+        : matches[index];
       const isEligible = isEligibleMirrorTarget(device, captureSourceGuid);
       return {
         device,
@@ -273,6 +315,7 @@ const useOutputMirror = () => {
     });
   }, [
     assignments,
+    native,
     captureSourceGuid,
     devices,
     outputs,
@@ -290,124 +333,6 @@ const useOutputMirror = () => {
     () => targets.filter((target) => target.isSelected),
     [targets],
   );
-
-  const desired = useMemo<IDesiredMirror[]>(
-    () =>
-      selectedTargets.flatMap((target) =>
-        target.isUsable && target.match.sinkId
-          ? [{ guid: target.device.guid, sinkId: target.match.sinkId }]
-          : [],
-      ),
-    [selectedTargets],
-  );
-  const desiredRef = useRef(desired);
-  desiredRef.current = desired;
-  // Read by the reconciler when it starts a mirror, but deliberately not a
-  // dependency of it: a level is not a reason to tear a stream down and build
-  // another, and doing so would put a gap in the audio every time the slider
-  // moved. The effect below carries changes to the mirrors already running.
-  const volumesRef = useRef(volumes);
-  volumesRef.current = volumes;
-
-  // Reconcile what is running against what is wanted.
-  //
-  // Deliberately not a cleanup-and-rebuild: this effect re-runs whenever the
-  // device list refreshes, and tearing everything down each time would drop a
-  // hole in every other mirror because one of them changed. Only what actually
-  // differs is touched. Full teardown belongs to unmount, below.
-  useEffect(() => {
-    const running = runningRef.current;
-    // Publishing the same set must not produce a new array.
-    //
-    // `targets` reads this, `desired` is derived from `targets`, and this
-    // effect is keyed on `desired` — so handing React a fresh array every run
-    // closes a loop that re-renders forever. Returning the previous reference
-    // when nothing changed makes React bail out and the cycle stops.
-    const publish = () => {
-      const next = [...running.keys()];
-      setRunningGuids((current) =>
-        current.length === next.length &&
-        current.every((guid, index) => guid === next[index])
-          ? current
-          : next,
-      );
-    };
-
-    if (!capture) {
-      running.forEach((entry) => entry.mirror.stop());
-      running.clear();
-      publish();
-      return undefined;
-    }
-
-    running.forEach((entry, guid) => {
-      const want = desired.find((candidate) => candidate.guid === guid);
-      if (!want || want.sinkId !== entry.sinkId) {
-        entry.mirror.stop();
-        running.delete(guid);
-      }
-    });
-
-    desired.forEach((want) => {
-      if (running.has(want.guid) || pendingRef.current.has(want.guid)) {
-        return;
-      }
-      pendingRef.current.add(want.guid);
-      startOutputMirror({
-        context: capture.context,
-        source: capture.source,
-        sinkId: want.sinkId,
-        volume: volumesRef.current[want.guid] ?? MAX_MIRROR_VOLUME,
-      })
-        .then((mirror) => {
-          pendingRef.current.delete(want.guid);
-          // It may have been switched off while the sink was being selected.
-          // Anything no longer wanted stops itself rather than leaking a live
-          // element nothing holds.
-          const stillWanted = desiredRef.current.find(
-            (candidate) =>
-              candidate.guid === want.guid && candidate.sinkId === want.sinkId,
-          );
-          if (!stillWanted) {
-            mirror.stop();
-            return mirror;
-          }
-          running.set(want.guid, { sinkId: want.sinkId, mirror });
-          publish();
-          return mirror;
-        })
-        .catch((mirrorError: unknown) => {
-          pendingRef.current.delete(want.guid);
-          setError(
-            mirrorError instanceof Error
-              ? mirrorError.message
-              : 'A second output could not be started.',
-          );
-        });
-    });
-
-    publish();
-    return undefined;
-  }, [capture, desired]);
-
-  // Levels reach the running mirrors without going near the reconciler, so a
-  // slider changes how loud a speaker is and nothing else. `runningGuids` is
-  // in here so a mirror that has only just started picks up a level that was
-  // set while it was still opening its sink.
-  useEffect(() => {
-    runningRef.current.forEach((entry, guid) => {
-      entry.mirror.setVolume(volumes[guid] ?? MAX_MIRROR_VOLUME);
-    });
-  }, [runningGuids, volumes]);
-
-  // Unmount only. See the reconciler above for why this is not its cleanup.
-  useEffect(() => {
-    const running = runningRef.current;
-    return () => {
-      running.forEach((entry) => entry.mirror.stop());
-      running.clear();
-    };
-  }, []);
 
   const toggleTarget = useCallback((guid: string) => {
     setError('');
@@ -428,9 +353,18 @@ const useOutputMirror = () => {
     });
   }, []);
 
+  const setMode = useCallback((next: TMirrorMode) => {
+    setError('');
+    localStorage.setItem(MIRROR_MODE_KEY, next);
+    setModeState(next);
+  }, []);
+
   return {
     error,
     isVirtualRoutingAvailable,
+    /** Game/Video keeps the sound close to the picture; Music never stutters. */
+    mode,
+    setMode,
     setTargetVolume,
     /** True while audio is genuinely going somewhere extra. */
     isMirroring: runningGuids.length > 0,

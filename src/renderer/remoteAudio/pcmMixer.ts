@@ -12,6 +12,7 @@ import type {
 } from '../../common/remoteAudio';
 import type { IRemoteAudioMeter, TRemoteAudioMeterListener } from './meter';
 import openRemoteAudioPort from './openRemoteAudioPort';
+import workletUrl from './workletUrl';
 
 interface IAudioSink {
   srcObject: HTMLAudioElement['srcObject'];
@@ -36,14 +37,6 @@ export interface IPcmMixer {
 }
 
 const PROCESSOR_NAME = 'fluideq-remote-audio';
-
-const workletUrl = (): URL =>
-  new URL(
-    process.env.NODE_ENV === 'production'
-      ? './dsp-worklet.js'
-      : '/dsp-worklet.dev.js',
-    window.location.href,
-  );
 
 const createAudioSink = (): IAudioSink => new Audio();
 

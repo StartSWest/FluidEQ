@@ -23,6 +23,10 @@ const configuration: webpack.Configuration = {
   // bridge; `video-preload` runs inside the built-in player, next to a web page
   // we do not control, and shares none of it.
   entry: {
+    'inference-worker': path.join(
+      webpackPaths.srcMainPath,
+      'inferenceWorker.ts',
+    ),
     preload: path.join(webpackPaths.srcMainPath, 'preload.ts'),
     'video-preload': path.join(webpackPaths.srcMainPath, 'videoPreload.ts'),
     'library-scan-worker': path.join(

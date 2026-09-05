@@ -168,8 +168,19 @@ const eq: Partial<Dictionary> = {
   'extraOutput.none': 'Nenhuma outra saída encontrada',
   'extraOutput.active': 'ESPELHANDO',
   'extraOutput.volume': 'Volume',
-  'extraOutput.latency':
-    'O som espelhado chega cerca de um quinto de segundo depois. Serve para música em outro cômodo, é inútil para vídeo ou jogos, e vira eco se você ouvir as duas ao mesmo tempo.',
+  'extraOutput.mode.title': 'Como acompanha',
+  'extraOutput.mode.video.title': 'Jogo/Vídeo',
+  'extraOutput.mode.video.body':
+    'Fica a poucos centésimos de segundo da imagem e volta a sincronizar sozinho depois de um tropeço.',
+  'extraOutput.mode.video.buffer': 'Início ~30 ms',
+  'extraOutput.mode.music.title': 'Música',
+  'extraOutput.mode.music.body':
+    'Guarda um décimo de segundo de reserva para nunca engasgar.',
+  'extraOutput.mode.music.buffer': 'Início ~100 ms',
+  'extraOutput.latency.video':
+    'O som espelhado fica perto o bastante de uma tela para a fala bater com a boca. Se você ouvir as duas saídas do mesmo lugar, pode notar um leve eco.',
+  'extraOutput.latency.music':
+    'O som espelhado chega cerca de um décimo de segundo depois e nunca engasga. Serve para outro cômodo; para uma tela, mude para Jogo/Vídeo.',
   'extraOutput.virtual':
     'Há um driver de roteamento instalado. Aponte seus aplicativos para ele e as duas saídas ficam em sincronia; depois dê a cada uma o seu próprio perfil acima.',
   'extraOutput.ambiguous':
@@ -179,7 +190,10 @@ const eq: Partial<Dictionary> = {
   'extraOutput.labelsHidden':
     'O FluidEQ ainda não consegue ler os nomes das saídas e por isso não consegue combiná-las. Permita o acesso ao microfone para o FluidEQ e abra este painel de novo.',
   'extraOutput.hint':
-    'O espelhamento toca o que você já ouve em um segundo dispositivo. Funciona apenas enquanto o FluidEQ está aberto.',
+    'Cada saída usa seu próprio perfil de EQ. A duplicação funciona apenas enquanto o FluidEQ está aberto.',
+  'extraOutput.profile': 'Perfil de EQ',
+  'extraOutput.profile.error':
+    'Não foi possível carregar ou alterar o perfil desta saída.',
   'driver.eyebrow': 'NO QUE VOCÊ OUVE',
   'driver.title': 'Tipo de driver',
   'driver.none': 'Sem compensação',

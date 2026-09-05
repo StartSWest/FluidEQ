@@ -18,6 +18,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 /** The shell around everything: menus, tabs, updates, config, notices. */
 const app = {
+  'recovery.title': 'FluidEQ is recovering',
+  'recovery.working':
+    'Stopping playback and reloading the window with your saved settings. Unsaved work may be lost.',
+  'recovery.stopped':
+    'FluidEQ could not recover safely. Automatic retries have stopped. You can try reloading or quit. Unsaved work may be lost.',
+  'recovery.reload': 'Reload FluidEQ',
+  'recovery.quit': 'Quit',
+  'recovery.copy': 'Copy details',
   'app.tagline': 'Your sound. Every device. Automatically.',
   'app.actions': 'FluidEQ actions',
   'app.actions.title': 'Audio actions',

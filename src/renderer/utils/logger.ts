@@ -18,6 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import ChannelEnum from 'common/channels';
 import { PRODUCT_NAME } from 'common/branding';
+import { captureRendererFailure } from './crashRecovery';
 
 /**
  * Get a renderer failure into the log file.
@@ -79,9 +80,8 @@ export const reportInfo = (message: string) => {
  *    lands here.
  *
  * Neither is prevented — the console keeps its message and devtools keeps its
- * red line. This only makes sure a copy reaches the file, which is the whole
- * difference between a bug report that says what happened and one that says the
- * app "stopped working".
+ * red line. The root boundary also replaces the failed UI and requests bounded
+ * recovery from main, whose retry budget survives a renderer process death.
  */
 export const installGlobalErrorHandlers = () => {
   window.addEventListener('error', (event) => {
@@ -94,9 +94,11 @@ export const installGlobalErrorHandlers = () => {
       `Uncaught error at ${event.filename ?? 'unknown'}:${event.lineno ?? 0}`,
       event.error ?? event.message,
     );
+    captureRendererFailure(event.error ?? event.message);
   });
 
   window.addEventListener('unhandledrejection', (event) => {
     reportError('Unhandled promise rejection', event.reason);
+    captureRendererFailure(event.reason);
   });
 };

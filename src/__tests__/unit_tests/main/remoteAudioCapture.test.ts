@@ -18,7 +18,10 @@ jest.mock('../../../main/remoteAudioCapturePath', () => ({
 }));
 
 // eslint-disable-next-line import/first
-import { startRemoteAudioCapture } from '../../../main/remoteAudioCapture';
+import {
+  startRemoteAudioCapture,
+  startNativeOutputMirror,
+} from '../../../main/remoteAudioCapture';
 
 const MAGIC = 0x314e414c;
 
@@ -45,20 +48,21 @@ const fakeChild = () => {
   const child = new EventEmitter() as EventEmitter & {
     kill: jest.Mock;
     stderr: EventEmitter;
-    stdin: { end: jest.Mock };
+    stdin: EventEmitter & { write: jest.Mock; writableLength: number };
     stdout: EventEmitter;
   };
   child.kill = jest.fn();
   child.stderr = new EventEmitter();
-  child.stdin = { end: jest.fn() };
+  child.stdin = Object.assign(new EventEmitter(), {
+    write: jest.fn(),
+    writableLength: 0,
+  });
   child.stdout = new EventEmitter();
   return child;
 };
 
 describe('native lossless LAN capture bridge', () => {
   beforeEach(() => mockSpawn.mockReset());
-
-  afterEach(() => jest.useRealTimers());
 
   it('forwards framed Float32 samples without changing any byte', async () => {
     const child = fakeChild();
@@ -98,14 +102,75 @@ describe('native lossless LAN capture bridge', () => {
     expect(child.kill).toHaveBeenCalledTimes(1);
   });
 
-  it('terminates a helper that never reports ready', async () => {
-    jest.useFakeTimers();
+  it('reports the native activation deadline when the helper cannot become ready', async () => {
     const child = fakeChild();
     mockSpawn.mockReturnValue(child);
     const starting = startRemoteAudioCapture('source-pc', jest.fn(), jest.fn());
-    jest.advanceTimersByTime(15_000);
+    // The helper owns the WASAPI activation deadline; its failure must reach
+    // the caller even though no ready frame was ever written.
+    child.stderr.emit('data', Buffer.from('WASAPI activation timed out'));
+    child.emit('close', 1);
 
     await expect(starting).rejects.toThrow('timed out');
+    expect(child.kill).toHaveBeenCalledTimes(1);
+  });
+
+  it('shares one excluded process across LAN listeners and releases only the closing listener', async () => {
+    const child = fakeChild();
+    mockSpawn.mockReturnValue(child);
+    const firstAudio = jest.fn();
+    const secondAudio = jest.fn();
+    const first = startRemoteAudioCapture('first', firstAudio, jest.fn());
+    const second = startRemoteAudioCapture('second', secondAudio, jest.fn());
+    child.stdout.emit('data', frame(1, Buffer.alloc(0)));
+    const [a, b] = await Promise.all([first, second]);
+    expect(mockSpawn).toHaveBeenCalledTimes(1);
+    const pcm = Buffer.from(new Float32Array([0.25, -0.5]).buffer);
+    child.stdout.emit('data', frame(2, pcm));
+    expect(firstAudio.mock.calls[0][0].peerId).toBe('first');
+    expect(secondAudio.mock.calls[0][0].peerId).toBe('second');
+    a.close();
+    expect(child.kill).not.toHaveBeenCalled();
+    child.stdout.emit('data', frame(2, pcm));
+    expect(firstAudio).toHaveBeenCalledTimes(1);
+    expect(secondAudio).toHaveBeenCalledTimes(2);
+    b.close();
+    b.close();
+    expect(child.kill).toHaveBeenCalledTimes(1);
+  });
+
+  it('starts, updates and stops a GUID mirror without stopping the shared LAN capture', async () => {
+    const child = fakeChild();
+    mockSpawn.mockReturnValue(child);
+    const lanStart = startRemoteAudioCapture('source', jest.fn(), jest.fn());
+    child.stdout.emit('data', frame(1, Buffer.alloc(0)));
+    const lan = await lanStart;
+    const guid = '{12345678-1234-1234-1234-123456789abc}';
+    const acknowledge = async (verb: string) => {
+      await Promise.resolve();
+      const { calls } = child.stdin.write.mock;
+      const command = calls[calls.length - 1]?.[0] as string;
+      const [kind, requestId] = command.trim().split(' ');
+      expect(kind).toBe(verb);
+      child.stdout.emit(
+        'data',
+        frame(3, Buffer.alloc(0), Number(requestId), 0, 0, 0),
+      );
+      return command;
+    };
+    const starting = startNativeOutputMirror(guid, 'video', 0.7, jest.fn());
+    expect(await acknowledge('start')).toContain(`${guid} video 0.7`);
+    const mirror = await starting;
+    expect(mockSpawn).toHaveBeenCalledTimes(1);
+    const changing = mirror.setVolume(0.4);
+    expect(await acknowledge('volume')).toMatch(/ 0.4\n$/);
+    await changing;
+    const stopping = mirror.close();
+    expect(mirror.close()).toBe(stopping);
+    await acknowledge('stop');
+    await stopping;
+    expect(child.kill).not.toHaveBeenCalled();
+    lan.close();
     expect(child.kill).toHaveBeenCalledTimes(1);
   });
 });

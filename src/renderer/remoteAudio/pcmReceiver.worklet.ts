@@ -50,11 +50,16 @@ interface IRemoveMessage {
   peerId: string;
 }
 
-interface IConfigureMessage {
-  kind: 'configure';
-  mode: 'music' | 'video';
-  peerId: string;
-}
+/**
+ * How one source is buffered: a named network mode, or a profile spelled out.
+ *
+ * The network's two modes are sized for Wi-Fi. A source in the same machine —
+ * the second output — has no link to absorb and brings its own, tighter
+ * numbers rather than borrowing a reservoir meant for packet bursts.
+ */
+type TConfigureMessage = { kind: 'configure'; peerId: string } & (
+  { mode: 'music' | 'video' } | { profile: IRemoteAudioPlaybackProfile }
+);
 
 const PROCESSOR_NAME = 'fluideq-remote-audio';
 const METER_FRAMES = 1_024;
@@ -92,18 +97,57 @@ const isRemoveMessage = (value: unknown): value is IRemoveMessage =>
   (value as Partial<IRemoveMessage>).kind === 'remove-peer' &&
   typeof (value as Partial<IRemoveMessage>).peerId === 'string';
 
-const isConfigureMessage = (value: unknown): value is IConfigureMessage =>
-  typeof value === 'object' &&
-  value !== null &&
-  (value as Partial<IConfigureMessage>).kind === 'configure' &&
-  typeof (value as Partial<IConfigureMessage>).peerId === 'string' &&
-  ((value as Partial<IConfigureMessage>).mode === 'music' ||
-    (value as Partial<IConfigureMessage>).mode === 'video');
+const isOptionalSeconds = (value: unknown): boolean =>
+  value === undefined || (typeof value === 'number' && value >= 0);
+
+const isPlaybackProfile = (
+  value: unknown,
+): value is IRemoteAudioPlaybackProfile => {
+  if (typeof value !== 'object' || value === null) {
+    return false;
+  }
+  const profile = value as Partial<IRemoteAudioPlaybackProfile>;
+  return (
+    typeof profile.deadbandSeconds === 'number' &&
+    typeof profile.maximumBufferSeconds === 'number' &&
+    typeof profile.recoveryStepSeconds === 'number' &&
+    typeof profile.startBufferSeconds === 'number' &&
+    profile.startBufferSeconds > 0 &&
+    profile.maximumBufferSeconds >= profile.startBufferSeconds &&
+    isOptionalSeconds(profile.catchupThresholdSeconds) &&
+    isOptionalSeconds(profile.recoveryDecaySeconds)
+  );
+};
+
+const isConfigureMessage = (value: unknown): value is TConfigureMessage => {
+  if (typeof value !== 'object' || value === null) {
+    return false;
+  }
+  const message = value as { kind?: unknown; peerId?: unknown } & Partial<{
+    mode: unknown;
+    profile: unknown;
+  }>;
+  return (
+    message.kind === 'configure' &&
+    typeof message.peerId === 'string' &&
+    (message.mode === 'music' ||
+      message.mode === 'video' ||
+      isPlaybackProfile(message.profile))
+  );
+};
+
+const profileOf = (message: TConfigureMessage): IRemoteAudioPlaybackProfile =>
+  'profile' in message
+    ? message.profile
+    : REMOTE_AUDIO_PLAYBACK_PROFILES[message.mode];
 
 class RemoteAudioProcessor extends AudioWorkletProcessor {
   private readonly peers = new Map<string, IPeerStream>();
 
-  private readonly peerModes = new Map<string, 'music' | 'video'>();
+  private readonly peerProfiles = new Map<
+    string,
+    IRemoteAudioPlaybackProfile
+  >();
 
   private audioPort?: MessagePort;
 
@@ -124,7 +168,7 @@ class RemoteAudioProcessor extends AudioWorkletProcessor {
       }
       if (data.kind === 'reset' || data.kind === 'close') {
         this.peers.clear();
-        this.peerModes.clear();
+        this.peerProfiles.clear();
         if (data.kind === 'close') {
           this.audioPort?.close();
           this.audioPort = undefined;
@@ -133,11 +177,11 @@ class RemoteAudioProcessor extends AudioWorkletProcessor {
       }
     }
     if (isConfigureMessage(data)) {
-      this.peerModes.set(data.peerId, data.mode);
+      const profile = profileOf(data);
+      this.peerProfiles.set(data.peerId, profile);
       const peer = this.peers.get(data.peerId);
       if (peer) {
-        peer.targetBufferSeconds =
-          REMOTE_AUDIO_PLAYBACK_PROFILES[data.mode].startBufferSeconds;
+        peer.targetBufferSeconds = profile.startBufferSeconds;
         peer.stableFrames = 0;
         peer.minimumBufferedFrames = Infinity;
       }
@@ -153,9 +197,9 @@ class RemoteAudioProcessor extends AudioWorkletProcessor {
   }
 
   private profileFor(peerId: string): IRemoteAudioPlaybackProfile {
-    return REMOTE_AUDIO_PLAYBACK_PROFILES[
-      this.peerModes.get(peerId) ?? 'music'
-    ];
+    return (
+      this.peerProfiles.get(peerId) ?? REMOTE_AUDIO_PLAYBACK_PROFILES.music
+    );
   }
 
   private push(message: IPushMessage) {
@@ -262,7 +306,7 @@ class RemoteAudioProcessor extends AudioWorkletProcessor {
     if (!peer.primed) {
       if (peer.removing) {
         this.peers.delete(peerId);
-        this.peerModes.delete(peerId);
+        this.peerProfiles.delete(peerId);
         return;
       }
       if (peer.availableFrames < startFrames) {
@@ -424,7 +468,7 @@ class RemoteAudioProcessor extends AudioWorkletProcessor {
         }
         if (peer.removing) {
           this.peers.delete(peerId);
-          this.peerModes.delete(peerId);
+          this.peerProfiles.delete(peerId);
         }
         break;
       }

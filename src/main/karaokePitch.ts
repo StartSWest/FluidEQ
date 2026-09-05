@@ -8,11 +8,13 @@ import { app, ipcMain } from 'electron';
 import fs from 'fs';
 import path from 'path';
 import log from 'electron-log';
+import ort, { onInferenceInvalidated } from './nativeInference';
+import withRendererOperation from './rendererOperation';
 import { separationFft } from '../common/karaoke/separationDsp';
 import { isSeparationLoaded, separationWeightBytes } from './karaokeSeparation';
 
 /**
- * Vocal pitch detection in the main process: RMVPE first, SwiftF0 always.
+ * Vocal pitch detection with isolated native inference: RMVPE first, SwiftF0 always.
  *
  * RMVPE is the tracker the voice-conversion world standardised on — trained
  * to find a singing voice's pitch through noise and residue, which is exactly
@@ -65,6 +67,7 @@ const CENTS_FIRST = 1997.3794084376191;
 const CHUNK_FRAMES = 3_200;
 
 type TOnnxSession = {
+  release: () => Promise<void>;
   run: (
     feeds: Record<string, unknown>,
   ) => Promise<Record<string, { data: Float32Array; dims: readonly number[] }>>;
@@ -72,6 +75,11 @@ type TOnnxSession = {
 
 let rmvpeSession: TOnnxSession | undefined;
 let swiftSession: TOnnxSession | undefined;
+let running = false;
+onInferenceInvalidated(() => {
+  rmvpeSession = undefined;
+  swiftSession = undefined;
+});
 
 /** HTK mel filter bank over the 513 FFT bins, built once. */
 let melBankCache: Float64Array[] | undefined;
@@ -184,6 +192,7 @@ const decodeSalience = (
 /** Download RMVPE once, atomically, reporting bytes to the renderer. */
 const ensureRmvpe = async (
   onBytes: (received: number, total: number) => void,
+  signal: AbortSignal,
 ): Promise<string> => {
   const target = rmvpePath();
   if (fs.existsSync(target)) {
@@ -194,7 +203,7 @@ const ensureRmvpe = async (
   // Without this, a slow connection left the Maker on a generic analysis bar
   // and the model appeared not to be downloading at all.
   onBytes(0, 0);
-  const response = await fetch(RMVPE_URL);
+  const response = await fetch(RMVPE_URL, { signal });
   if (!response.ok || !response.body) {
     throw new Error(`RMVPE download failed (${response.status}).`);
   }
@@ -223,9 +232,8 @@ const ensureRmvpe = async (
 const runRmvpe = async (
   samples: Float32Array,
   onProgress: (fraction: number) => void,
+  assertCurrent: () => void,
 ) => {
-  // eslint-disable-next-line global-require
-  const ort = require('onnxruntime-node');
   if (!rmvpeSession) {
     // The same backend ladder separation climbs: WebGPU carried that model
     // fourteen times faster than CPU on this machine, and RMVPE is the same
@@ -234,6 +242,7 @@ const runRmvpe = async (
     const backends = ['webgpu', 'dml', 'cpu'];
     let lastError: unknown;
     for (let index = 0; index < backends.length; index += 1) {
+      assertCurrent();
       try {
         // eslint-disable-next-line no-await-in-loop
         rmvpeSession = (await ort.InferenceSession.create(rmvpePath(), {
@@ -249,10 +258,12 @@ const runRmvpe = async (
       throw lastError;
     }
   }
+  assertCurrent();
   const { mel, frames } = melSpectrogram(samples);
   const f0 = new Float32Array(frames);
   const confidence = new Float32Array(frames);
   for (let start = 0; start < frames; start += CHUNK_FRAMES) {
+    assertCurrent();
     const chunk = Math.min(CHUNK_FRAMES, frames - start);
     // The U-Net's stride demands a multiple of 32; the tail pads with the
     // silence value and the padded frames are simply not read back.
@@ -280,15 +291,15 @@ const runRmvpe = async (
   };
 };
 
-const runSwift = async (samples: Float32Array) => {
-  // eslint-disable-next-line global-require
-  const ort = require('onnxruntime-node');
+const runSwift = async (samples: Float32Array, assertCurrent: () => void) => {
+  assertCurrent();
   if (!swiftSession) {
     swiftSession = (await ort.InferenceSession.create(swiftPath(), {
       executionProviders: ['cpu'],
     })) as TOnnxSession;
     log.info('[karaoke][pitch] SwiftF0 session ready');
   }
+  assertCurrent();
   const output = await swiftSession.run({
     input_audio: new ort.Tensor('float32', samples, [1, samples.length]),
   });
@@ -302,64 +313,80 @@ const runSwift = async (samples: Float32Array) => {
 };
 
 export const registerKaraokePitch = () => {
-  ipcMain.handle('karaoke-pitch-f0', async (event, samples: Float32Array) => {
-    // The byte counts travel with the fraction rather than being thrown away
-    // here. `ensureRmvpe` has always measured them — it needs them to compute
-    // the fraction at all — but only the fraction crossed the IPC boundary, so
-    // the renderer could draw a bar and could not say what was being fetched
-    // or how big it is. That is 361MB of silence on the slowest thing the app
-    // ever does. See KaraokeMakerDownloadDetails for what the other side
-    // builds out of them.
-    const report = (
-      stage: string,
-      fraction: number,
-      bytes?: { loadedBytes: number; totalBytes: number; file: string },
-    ) => {
-      if (!event.sender.isDestroyed()) {
-        event.sender.send('karaoke-pitch-progress', {
-          stage,
-          fraction,
-          ...bytes,
-        });
+  ipcMain.handle('karaoke-pitch-f0', (event, samples: Float32Array) =>
+    withRendererOperation(event, async (assertCurrent, signal) => {
+      if (running) {
+        throw new Error('Pitch detection is already running');
       }
-    };
-    try {
+      running = true;
+      // The byte counts travel with the fraction rather than being thrown away
+      // here. `ensureRmvpe` has always measured them — it needs them to compute
+      // the fraction at all — but only the fraction crossed the IPC boundary, so
+      // the renderer could draw a bar and could not say what was being fetched
+      // or how big it is. That is 361MB of silence on the slowest thing the app
+      // ever does. See KaraokeMakerDownloadDetails for what the other side
+      // builds out of them.
+      const report = (
+        stage: string,
+        fraction: number,
+        bytes?: { loadedBytes: number; totalBytes: number; file: string },
+      ) => {
+        assertCurrent();
+        if (!event.sender.isDestroyed()) {
+          event.sender.send('karaoke-pitch-progress', {
+            stage,
+            fraction,
+            ...bytes,
+          });
+        }
+      };
       try {
-        await ensureRmvpe((received, total) =>
-          report('download', total > 0 ? received / total : 0, {
-            loadedBytes: received,
-            totalBytes: total,
-            file: 'rmvpe.onnx',
-          }),
-        );
+        try {
+          await ensureRmvpe(
+            (received, total) =>
+              report('download', total > 0 ? received / total : 0, {
+                loadedBytes: received,
+                totalBytes: total,
+                file: 'rmvpe.onnx',
+              }),
+            signal,
+          );
+        } catch (error) {
+          // The bundled tracker still produces a melody, but the failed optional
+          // download must reach the renderer. Swallowing it here made an offline
+          // run look completely successful and gave the user nothing to retry.
+          log.warn(
+            '[karaoke][pitch] RMVPE download failed, using SwiftF0',
+            error,
+          );
+          assertCurrent();
+          return {
+            ...(await runSwift(samples, assertCurrent)),
+            rmvpeDownloadFailed: true,
+          };
+        }
+        try {
+          assertCurrent();
+          return await runRmvpe(
+            samples,
+            (fraction) => report('detect', fraction),
+            assertCurrent,
+          );
+        } catch (error) {
+          // A downloaded model can still be unsupported by the available ONNX
+          // backend. That is a runtime fallback, not a failed download.
+          log.warn('[karaoke][pitch] RMVPE unavailable, using SwiftF0', error);
+          assertCurrent();
+          return await runSwift(samples, assertCurrent);
+        }
       } catch (error) {
-        // The bundled tracker still produces a melody, but the failed optional
-        // download must reach the renderer. Swallowing it here made an offline
-        // run look completely successful and gave the user nothing to retry.
-        log.warn(
-          '[karaoke][pitch] RMVPE download failed, using SwiftF0',
-          error,
-        );
-        return {
-          ...(await runSwift(samples)),
-          rmvpeDownloadFailed: true,
-        };
+        log.warn('[karaoke][pitch] pitch detection failed', error);
+        throw error;
+      } finally {
+        running = false;
       }
-      try {
-        return await runRmvpe(samples, (fraction) =>
-          report('detect', fraction),
-        );
-      } catch (error) {
-        // A downloaded model can still be unsupported by the available ONNX
-        // backend. That is a runtime fallback, not a failed download.
-        log.warn('[karaoke][pitch] RMVPE unavailable, using SwiftF0', error);
-        return runSwift(samples);
-      }
-    } catch (error) {
-      log.warn('[karaoke][pitch] pitch detection failed', error);
-      throw error;
-    }
-  });
+    }),
+  );
   // What is actually sitting in RAM right now, for the memory panel's
   // release affordance — the renderer cannot see main's sessions otherwise.
   //
@@ -381,8 +408,17 @@ export const registerKaraokePitch = () => {
     },
   }));
   ipcMain.on('karaoke-pitch-release', () => {
+    if (running) {
+      return;
+    }
+    const sessions = [rmvpeSession, swiftSession];
     rmvpeSession = undefined;
     swiftSession = undefined;
+    sessions.forEach((session) => {
+      session
+        ?.release()
+        .catch((error) => log.warn('Could not release pitch model', error));
+    });
     log.info('[karaoke][pitch] sessions released');
   });
 };

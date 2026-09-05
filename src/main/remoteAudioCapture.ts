@@ -1,207 +1,166 @@
-/*
-<FluidEQ: System-wide parametric audio equalizer interface>
-Copyright (C) <2026>  <Ivan Carmenates Garcia>
-SPDX-License-Identifier: GPL-3.0-or-later
-*/
-
-import { spawn } from 'child_process';
-import type { ChildProcessWithoutNullStreams } from 'child_process';
+/* FluidEQ — GPL-3.0-or-later */
+import log from 'electron-log';
 import type { ILanRemoteAudioChunk } from '../common/remoteAudio';
-import { findRemoteAudioCaptureExecutable } from './remoteAudioCapturePath';
-
-const FRAME_MAGIC = 0x314e414c;
-const FRAME_READY = 1;
-const FRAME_AUDIO = 2;
-const HEADER_BYTES = 24;
-const MAX_PAYLOAD_BYTES = 8_192 * 8 * 4;
-const MAX_STDERR_BYTES = 4_096;
-const STARTUP_TIMEOUT_MS = 15_000;
+import {
+  startNativeCaptureProcess,
+  type INativeCaptureProcess,
+} from './nativeCaptureProcess';
 
 export interface IRemoteAudioCapture {
   close(): void;
 }
-
-interface ICaptureFrame {
-  channels: number;
-  frames: number;
-  kind: number;
-  payloadBytes: number;
-  sampleRate: number;
-  sequence: number;
+interface IClient {
+  audio?: (chunk: ILanRemoteAudioChunk) => void;
+  failure(): void;
 }
-
-const decodeHeader = (buffer: Buffer): ICaptureFrame => ({
-  kind: buffer.readUInt32LE(4),
-  sequence: buffer.readUInt32LE(8),
-  sampleRate: buffer.readUInt32LE(12),
-  channels: buffer.readUInt16LE(16),
-  frames: buffer.readUInt16LE(18),
-  payloadBytes: buffer.readUInt32LE(20),
-});
-
-const frameIsValid = (header: ICaptureFrame): boolean => {
-  if (header.kind === FRAME_READY) {
-    return (
-      header.payloadBytes === 0 &&
-      header.frames === 0 &&
-      header.channels >= 1 &&
-      header.channels <= 8 &&
-      header.sampleRate >= 8_000 &&
-      header.sampleRate <= 384_000
-    );
-  }
-  return (
-    header.kind === FRAME_AUDIO &&
-    header.channels >= 1 &&
-    header.channels <= 8 &&
-    header.frames >= 1 &&
-    header.frames <= 8_192 &&
-    header.sampleRate >= 8_000 &&
-    header.sampleRate <= 384_000 &&
-    header.payloadBytes === header.frames * header.channels * 4 &&
-    header.payloadBytes <= MAX_PAYLOAD_BYTES
-  );
+interface ISession {
+  clients: Set<IClient>;
+  mirrors: Map<number, () => void>;
+  requests: Map<number, { resolve(): void; reject(error: Error): void }>;
+  opening?: Promise<INativeCaptureProcess>;
+  process?: INativeCaptureProcess;
+}
+let session: ISession | undefined;
+let nextId = 0;
+const allocateId = () => {
+  nextId = nextId === 0xffff_ffff ? 1 : nextId + 1;
+  return nextId;
 };
 
-/**
- * Capture the Windows process mix before endpoint effects such as Equalizer APO.
- *
- * The helper excludes its own silent process tree from process loopback, which
- * makes Windows provide every other rendered process independently of the
- * selected endpoint. Transport receives those Float32 bits directly; the
- * sender's endpoint EQ remains local and the listening PC applies its own EQ.
- */
+const failSession = (current: ISession) => {
+  if (session === current) {
+    session = undefined;
+  }
+  current.process?.close();
+  const error = new Error('The system audio capture stopped.');
+  current.requests.forEach((request) => request.reject(error));
+  current.requests.clear();
+  const clients = [...current.clients];
+  current.clients.clear();
+  current.mirrors.clear();
+  clients.forEach((client) => client.failure());
+};
+
+const acquire = (client: IClient) => {
+  session ??= { clients: new Set(), mirrors: new Map(), requests: new Map() };
+  const current = session;
+  current.clients.add(client);
+  current.opening ??= startNativeCaptureProcess(
+    'system',
+    (chunk) =>
+      current.clients.forEach((subscriber) => subscriber.audio?.(chunk)),
+    () => failSession(current),
+    (kind, id, result) => {
+      if (kind === 4) {
+        current.mirrors.get(id)?.();
+        current.mirrors.delete(id);
+        return;
+      }
+      const request = current.requests.get(id);
+      current.requests.delete(id);
+      if (result >= 0x8000_0000) {
+        request?.reject(
+          new Error(
+            `Windows could not open or update the second output (0x${result.toString(16)}).`,
+          ),
+        );
+      } else {
+        request?.resolve();
+      }
+    },
+  ).then((process) => {
+    current.process = process;
+    if (current.clients.size === 0) {
+      process.close();
+    }
+    return process;
+  });
+  const close = () => {
+    current.clients.delete(client);
+    if (current.clients.size === 0) {
+      current.process?.close();
+      if (session === current) {
+        session = undefined;
+      }
+    }
+  };
+  return { current, ready: current.opening, close };
+};
+
+/** LAN and every mirror share one excluded process, or LAN would recapture
+ * the mirrors. Closing either feature releases only its own lease. */
 export const startRemoteAudioCapture = async (
   peerId: string,
   onAudio: (chunk: ILanRemoteAudioChunk) => void,
   onFailure: () => void,
 ): Promise<IRemoteAudioCapture> => {
-  const executable = findRemoteAudioCaptureExecutable();
-  if (!executable) {
-    throw new Error('The lossless system-audio capture helper is unavailable.');
-  }
-
-  let child: ChildProcessWithoutNullStreams;
+  const lease = acquire({
+    audio: (chunk) => onAudio({ ...chunk, peerId }),
+    failure: onFailure,
+  });
   try {
-    child = spawn(executable, ['--parent-pid', String(process.pid)], {
-      stdio: ['pipe', 'pipe', 'pipe'],
-      windowsHide: true,
-    });
-    child.stdin.end();
+    await lease.ready;
+    return { close: lease.close };
   } catch (error) {
-    const detail = error instanceof Error ? ` ${error.message}` : '';
-    throw new Error(
-      `The lossless system-audio capture helper could not start.${detail}`,
-    );
+    lease.close();
+    throw error;
   }
+};
 
-  return new Promise<IRemoteAudioCapture>((resolve, reject) => {
-    let buffered = Buffer.alloc(0);
-    let errorText = '';
-    let ready = false;
-    let stopped = false;
-    let failureReported = false;
-    let startupTimer: NodeJS.Timeout | undefined;
+export interface INativeOutputMirror extends IRemoteAudioCapture {
+  close(): Promise<void>;
+  setVolume(volume: number): Promise<void>;
+}
 
-    const clearStartupTimer = () => {
-      if (startupTimer) {
-        clearTimeout(startupTimer);
-        startupTimer = undefined;
+export const startNativeOutputMirror = async (
+  guid: string,
+  mode: 'music' | 'video',
+  volume: number,
+  onFailure: () => void,
+): Promise<INativeOutputMirror> => {
+  const lease = acquire({ failure: onFailure });
+  const id = allocateId();
+  const { current } = lease;
+  let closed = false;
+  let closing: Promise<void> | undefined;
+  const command = async (kind: string, args = '') => {
+    const process = await lease.ready;
+    return new Promise<void>((resolve, reject) => {
+      const requestId = allocateId();
+      current.requests.set(requestId, { resolve, reject });
+      try {
+        process.command(`${kind} ${requestId} ${id}${args ? ` ${args}` : ''}`);
+      } catch (error) {
+        current.requests.delete(requestId);
+        reject(error);
       }
-    };
-
-    const captureHandle: IRemoteAudioCapture = {
+    });
+  };
+  try {
+    current.mirrors.set(id, onFailure);
+    await command('start', `${guid} ${mode} ${volume}`);
+    return {
+      setVolume: (value) =>
+        closed ? Promise.resolve() : command('volume', String(value)),
       close: () => {
-        if (stopped) {
-          return;
+        if (closing) {
+          return closing;
         }
-        stopped = true;
-        clearStartupTimer();
-        child.kill();
+        closed = true;
+        current.mirrors.delete(id);
+        closing = command('stop')
+          .catch((error: unknown) => {
+            log.error('Could not stop the second output', error);
+            // A failed stop must never leave an unowned speaker playing.
+            failSession(current);
+          })
+          .finally(lease.close);
+        return closing;
       },
     };
-
-    const failure = (error: Error) => {
-      if (failureReported || stopped) {
-        return;
-      }
-      failureReported = true;
-      clearStartupTimer();
-      if (!ready) {
-        reject(error);
-      } else {
-        onFailure();
-      }
-      child.kill();
-    };
-
-    startupTimer = setTimeout(() => {
-      failure(new Error('The lossless system-audio capture helper timed out.'));
-    }, STARTUP_TIMEOUT_MS);
-    startupTimer.unref?.();
-
-    child.stderr.on('data', (data: Buffer) => {
-      if (errorText.length < MAX_STDERR_BYTES) {
-        errorText += data
-          .toString('utf8')
-          .slice(0, MAX_STDERR_BYTES - errorText.length);
-      }
-    });
-    child.stdout.on('data', (data: Buffer) => {
-      buffered = Buffer.concat([buffered, data]);
-      while (buffered.byteLength >= HEADER_BYTES) {
-        if (buffered.readUInt32LE(0) !== FRAME_MAGIC) {
-          failure(new Error('The capture helper sent an invalid frame.'));
-          return;
-        }
-        const header = decodeHeader(buffered);
-        if (!frameIsValid(header)) {
-          failure(new Error('The capture helper sent invalid audio metadata.'));
-          return;
-        }
-        const frameBytes = HEADER_BYTES + header.payloadBytes;
-        if (buffered.byteLength < frameBytes) {
-          return;
-        }
-        const payload = buffered.subarray(HEADER_BYTES, frameBytes);
-        buffered = buffered.subarray(frameBytes);
-        if (header.kind === FRAME_READY) {
-          if (ready) {
-            failure(new Error('The capture helper restarted its stream.'));
-            return;
-          }
-          ready = true;
-          clearStartupTimer();
-          resolve(captureHandle);
-        } else if (ready) {
-          onAudio({
-            channels: header.channels,
-            frames: header.frames,
-            pcm: Uint8Array.from(payload).buffer,
-            peerId,
-            sampleRate: header.sampleRate,
-            sequence: header.sequence,
-          });
-        } else {
-          failure(
-            new Error('The capture helper sent audio before it was ready.'),
-          );
-          return;
-        }
-      }
-    });
-    child.once('error', (error) => failure(error));
-    child.once('close', (code) => {
-      if (stopped || failureReported) {
-        return;
-      }
-      const detail = errorText.trim();
-      failure(
-        new Error(
-          detail ||
-            `The lossless system-audio capture helper stopped with code ${code ?? 'unknown'}.`,
-        ),
-      );
-    });
-  });
+  } catch (error) {
+    current.mirrors.delete(id);
+    lease.close();
+    throw error;
+  }
 };

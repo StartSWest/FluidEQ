@@ -12,10 +12,13 @@ import { AUTOMATIC_PRESET_PREFIX } from 'common/constants';
 import { identifyVirtualDevice } from 'common/virtualAudioDevices';
 import SidebarSection from './components/SidebarSection';
 import Switch from './widgets/Switch';
+import MenuIcon from './icons/MenuIcon';
+import { MIRROR_MODES } from './audio/outputMirror';
 import useOutputMirror, { IMirrorTarget } from './audio/useOutputMirror';
 import { useTranslation } from './utils/I18nContext';
 import { setSinglePlayer, useSinglePlayer } from './utils/singlePlayer';
 import './styles/ExtraOutputs.scss';
+import SecondOutputProfilePicker from './SecondOutputProfilePicker';
 
 const ExtraOutputs = () => {
   const { t } = useTranslation();
@@ -24,7 +27,10 @@ const ExtraOutputs = () => {
     error,
     isMirroring,
     isVirtualRoutingAvailable,
+    mode,
+    refresh,
     selectedTargets,
+    setMode,
     setTargetVolume,
     targets,
     toggleTarget,
@@ -62,15 +68,9 @@ const ExtraOutputs = () => {
   // phrase. A named profile is worth showing; "no profile" is worth showing,
   // because it means that speaker gets no correction at all.
   const describeProfile = (target: IMirrorTarget): string => {
-    // Nothing, while it is actually mirroring — because the profile attached
-    // to this endpoint is not what it is playing.
-    //
-    // The capture is taken after Equalizer APO has corrected the output being
-    // listened on, so the *primary* device's chain is baked into the audio
-    // before FluidEQ sees it, and that is what reaches every mirror. Naming
-    // this endpoint's own profile beside it would say a speaker was playing a
-    // tuning it is not.
-    if (target.isRunning) {
+    // The native Windows path feeds pre-APO audio, so the profile on B is now
+    // exactly what B plays. Other platforms still use endpoint loopback.
+    if (target.isRunning && window.electron?.platform !== 'win32') {
       return '';
     }
     if (!target.presetName) {
@@ -167,7 +167,7 @@ const ExtraOutputs = () => {
                     sidebar this narrow cannot hold an endpoint name and a
                     profile name side by side, and splitting it put "Odyssey G5
                     (NVIDIA High Definition Audio)" across four lines. */}
-                <span className="extra-outputs__text">
+                <div className="extra-outputs__text">
                   <span className="extra-outputs__name">
                     {target.device.name}
                     {virtual && (
@@ -180,9 +180,17 @@ const ExtraOutputs = () => {
                       plays when it is the device you are listening on. Nothing
                       to set up: it follows the endpoint, and this only says
                       which it is. */}
-                  {profile && (
+                  {profile && !target.isSelected && (
                     <span className="extra-outputs__profile">{profile}</span>
                   )}
+                  {target.isSelected &&
+                    window.electron?.platform === 'win32' && (
+                      <SecondOutputProfilePicker
+                        device={target.device}
+                        presetName={target.presetName}
+                        onChanged={refresh}
+                      />
+                    )}
                   {/* Only for outputs that are on. A level control under a
                       switch that is off adjusts nothing, and seven of them
                       would bury the list it belongs to. */}
@@ -210,7 +218,7 @@ const ExtraOutputs = () => {
                       </span>
                     </div>
                   )}
-                </span>
+                </div>
               </li>
             );
           })}
@@ -224,11 +232,53 @@ const ExtraOutputs = () => {
       ))}
       {error && <p className="extra-outputs__obstacle">{error}</p>}
 
+      {/* Only once something is switched on. It decides how much sound is held
+          back before it plays, and a choice under a list with nothing on it
+          adjusts nothing. The same two cards as the LAN panel, because it is
+          the same choice: keep up with a picture, or never stutter. */}
+      {enabled.length > 0 && (
+        <div className="extra-outputs__mode">
+          <div
+            className="remote-audio__stream-options"
+            role="radiogroup"
+            aria-label={t('extraOutput.mode.title')}
+          >
+            {MIRROR_MODES.map((candidate) => (
+              <button
+                key={candidate}
+                type="button"
+                role="radio"
+                aria-checked={mode === candidate}
+                className={`remote-audio__stream-option${
+                  mode === candidate ? ' is-selected' : ''
+                }`}
+                onClick={() => setMode(candidate)}
+              >
+                <span
+                  className="remote-audio__stream-radio"
+                  aria-hidden="true"
+                />
+                <span>
+                  <span className="remote-audio__stream-title">
+                    <MenuIcon name={candidate === 'video' ? 'video' : 'song'} />
+                    <strong>{t(`extraOutput.mode.${candidate}.title`)}</strong>
+                  </span>
+                  <small>{t(`extraOutput.mode.${candidate}.body`)}</small>
+                </span>
+                <em>{t(`extraOutput.mode.${candidate}.buffer`)}</em>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Shown only while a mirror is what is actually running. With a routing
           driver in use there is no added delay, and warning about one anyway
           is how a user learns to stop reading warnings. */}
       {isMirroring && (
-        <p className="extra-outputs__latency">{t('extraOutput.latency')}</p>
+        <p className="extra-outputs__latency">
+          {t(`extraOutput.latency.${mode}`)}
+        </p>
       )}
       {isVirtualRoutingAvailable && (
         <p className="extra-outputs__virtual">{t('extraOutput.virtual')}</p>

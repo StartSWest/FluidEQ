@@ -170,8 +170,19 @@ const eq: Partial<Dictionary> = {
   'extraOutput.none': 'No se encontraron otras salidas',
   'extraOutput.active': 'DUPLICANDO',
   'extraOutput.volume': 'Volumen',
-  'extraOutput.latency':
-    'El sonido duplicado llega con casi un quinto de segundo de retraso. Bien para música en otra habitación, inservible para vídeo o juegos, y un eco si oyes las dos a la vez.',
+  'extraOutput.mode.title': 'Cómo sigue el ritmo',
+  'extraOutput.mode.video.title': 'Juego/Vídeo',
+  'extraOutput.mode.video.body':
+    'Se mantiene a unas centésimas de segundo de la imagen y se vuelve a sincronizar solo tras un tropiezo.',
+  'extraOutput.mode.video.buffer': 'Inicio ~30 ms',
+  'extraOutput.mode.music.title': 'Música',
+  'extraOutput.mode.music.body':
+    'Guarda una décima de segundo de reserva para no entrecortarse nunca.',
+  'extraOutput.mode.music.buffer': 'Inicio ~100 ms',
+  'extraOutput.latency.video':
+    'El sonido duplicado queda lo bastante cerca de una pantalla para que los labios cuadren. Si oyes las dos salidas desde el mismo sitio puedes notar un ligero doblado.',
+  'extraOutput.latency.music':
+    'El sonido duplicado llega con una décima de segundo de retraso y nunca se entrecorta. Bien para otra habitación; para una pantalla cambia a Juego/Vídeo.',
   'extraOutput.virtual':
     'Hay un controlador de enrutamiento instalado. Apunta tus aplicaciones a él y ambas salidas quedan sincronizadas; luego da a cada una su propio perfil arriba.',
   'extraOutput.ambiguous':
@@ -181,7 +192,10 @@ const eq: Partial<Dictionary> = {
   'extraOutput.labelsHidden':
     'FluidEQ aún no puede leer los nombres de las salidas, así que no puede emparejarlas. Permite el acceso al micrófono a FluidEQ y vuelve a abrir este panel.',
   'extraOutput.hint':
-    'Duplicar reproduce lo que ya oyes en un segundo dispositivo. Solo funciona mientras FluidEQ está abierto.',
+    'Cada salida usa su propio perfil de EQ. La duplicación funciona solo mientras FluidEQ está abierto.',
+  'extraOutput.profile': 'Perfil de EQ',
+  'extraOutput.profile.error':
+    'No se pudo cargar o cambiar el perfil de esta salida.',
   'driver.eyebrow': 'CON QUÉ ESCUCHAS',
   'driver.title': 'Tipo de transductor',
   'driver.none': 'Sin compensación',

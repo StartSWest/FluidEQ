@@ -186,6 +186,18 @@ it under the terms of the GNU General Public License version 3 or later.
   line-height: 1.35;
 }
 
+// The two buffering cards, borrowed whole from the LAN panel. That panel has
+// the width of a tab; this one has the width of a sidebar, and two cards that
+// each carry a title, a sentence and a figure do not fit side by side in it
+// without the sentence wrapping to four lines. Stacked, each reads in one.
+.extra-outputs__mode {
+  margin-top: 8px;
+
+  .remote-audio__stream-options {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 // The honest cost of the mirror. Deliberately not styled as an error: it is
 // working exactly as intended, and for music in another room it is fine.
 .extra-outputs__latency {

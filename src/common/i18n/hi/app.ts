@@ -20,6 +20,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { Dictionary } from '../en';
 
 const app: Partial<Dictionary> = {
+  'recovery.title': 'FluidEQ बहाल हो रहा है',
+  'recovery.working':
+    'प्लेबैक रोककर आपकी सहेजी गई सेटिंग के साथ विंडो फिर से लोड की जा रही है। बिना सहेजा काम खो सकता है।',
+  'recovery.stopped':
+    'FluidEQ सुरक्षित रूप से बहाल नहीं हो सका। अपने-आप दोबारा कोशिश करना रोक दिया गया है। आप फिर से लोड कर सकते हैं या बाहर निकल सकते हैं। बिना सहेजा काम खो सकता है।',
+  'recovery.reload': 'FluidEQ फिर से लोड करें',
+  'recovery.quit': 'बाहर निकलें',
+  'recovery.copy': 'विवरण कॉपी करें',
   'app.tagline': 'आपकी आवाज़। हर डिवाइस पर। अपने आप।',
   'app.actions': 'FluidEQ क्रियाएँ',
   'app.actions.title': 'ऑडियो क्रियाएँ',

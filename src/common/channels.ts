@@ -176,6 +176,8 @@ enum ChannelEnum {
   // error handling that can itself fail is not error handling.
   LOG_ERROR = 'logError',
   LOG_INFO = 'logInfo',
+  RECOVER_WINDOW = 'recoverWindow',
+  RECOVERY_STATUS = 'recoveryStatus',
 }
 
 export default ChannelEnum;

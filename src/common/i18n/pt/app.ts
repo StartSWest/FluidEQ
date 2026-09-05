@@ -20,6 +20,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { Dictionary } from '../en';
 
 const app: Partial<Dictionary> = {
+  'recovery.title': 'O FluidEQ está se recuperando',
+  'recovery.working':
+    'Parando a reprodução e recarregando a janela com suas configurações salvas. O trabalho não salvo pode ser perdido.',
+  'recovery.stopped':
+    'O FluidEQ não conseguiu se recuperar com segurança. As tentativas automáticas foram interrompidas. Você pode recarregar ou sair. O trabalho não salvo pode ser perdido.',
+  'recovery.reload': 'Recarregar FluidEQ',
+  'recovery.quit': 'Sair',
+  'recovery.copy': 'Copiar detalhes',
   'app.tagline': 'Seu som. Em todo dispositivo. Automaticamente.',
   'app.actions': 'Ações do FluidEQ',
   'app.actions.title': 'Ações de áudio',

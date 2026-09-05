@@ -162,8 +162,18 @@ const eq: Partial<Dictionary> = {
   'extraOutput.none': '未找到其他输出',
   'extraOutput.active': '镜像中',
   'extraOutput.volume': '音量',
-  'extraOutput.latency':
-    '镜像的声音大约会晚五分之一秒。在另一个房间放音乐没问题，用于视频或游戏则不可用；若两边同时听得见，会有回声。',
+  'extraOutput.mode.title': '跟随方式',
+  'extraOutput.mode.video.title': '游戏/视频',
+  'extraOutput.mode.video.body':
+    '与画面相差不过百分之几秒，卡顿后会自动重新对齐。',
+  'extraOutput.mode.video.buffer': '起始约 30 ms',
+  'extraOutput.mode.music.title': '音乐',
+  'extraOutput.mode.music.body': '预留十分之一秒，保证永不卡顿。',
+  'extraOutput.mode.music.buffer': '起始约 100 ms',
+  'extraOutput.latency.video':
+    '镜像的声音与屏幕足够贴近，口型能对上。若在同一位置同时听到两路输出，可能察觉轻微重影。',
+  'extraOutput.latency.music':
+    '镜像的声音约晚十分之一秒到达，且永不卡顿。放在另一个房间没问题；配合屏幕请切换到游戏/视频。',
   'extraOutput.virtual':
     '系统里已装有路由驱动。把应用的输出指向它，两路输出就能保持同步；然后在上面给每一路各自的配置。',
   'extraOutput.ambiguous':
@@ -173,7 +183,9 @@ const eq: Partial<Dictionary> = {
   'extraOutput.labelsHidden':
     'FluidEQ 还读不到输出的名称，因此无法匹配。请允许 FluidEQ 使用麦克风，然后重新打开此面板。',
   'extraOutput.hint':
-    '镜像会把你已经听到的声音同时送到第二台设备。只有 FluidEQ 打开时才有效。',
+    '每个输出使用自己的均衡器配置。镜像仅在 FluidEQ 打开时运行。',
+  'extraOutput.profile': '均衡器配置',
+  'extraOutput.profile.error': '无法加载或更改此输出的配置。',
   'driver.eyebrow': '你用什么在听',
   'driver.title': '单元类型',
   'driver.none': '不做补偿',
