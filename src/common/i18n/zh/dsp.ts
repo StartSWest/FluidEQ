@@ -19,9 +19,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 const dsp = {
   'dsp.title': 'DSP',
   'dsp.scopeNotice':
-    '仅作用于在 FluidEQ 内播放的音乐，不会改变 Spotify、YouTube 或其他应用。',
+    'DSP 仅处理从音乐库播放的音轨，不处理接收的共享音频、卡拉 OK、视频或其他应用的音频。',
   'dsp.idle':
-    '从音乐库播放音乐时 DSP 才会启用。它不会处理 Spotify、YouTube 或其他应用。',
+    '请从音乐库播放音轨以使用 DSP。它不处理接收的共享音频、卡拉 OK、视频或其他应用的音频。',
   'dsp.unavailable': '音频处理未能启动，播放不受影响。',
   'dsp.engineDown':
     '原生音频引擎无法启动，因此所有 DSP 处理级均已关闭。下方没有任何环节在处理你的音乐，控件也已禁用；播放本身不受影响。重启 FluidEQ 通常可以恢复。',

@@ -12,6 +12,12 @@ import { DSP_PRESETS } from '../../common/dsp/presets';
 import { FluidEqProviderWrapper } from '../../renderer/utils/FluidEqContext';
 import DspPanel from '../../renderer/dsp/DspPanel';
 import {
+  claimPlayback,
+  stopAllPlayback,
+} from '../../renderer/audio/playbackOwner';
+import RemoteAudioContext from '../../renderer/remoteAudio/remoteAudioValueContext';
+import type { IRemoteAudioValue } from '../../renderer/remoteAudio/remoteAudioState';
+import {
   TDspEngineState,
   readDspOutputSafetyEnabled,
   setDspNativeState,
@@ -27,28 +33,41 @@ import {
 const renderPanel = (
   settings: IDspSettings = DSP_DEFAULTS,
   engineState: TDspEngineState = 'running',
+  remoteAudio: IRemoteAudioValue | undefined = undefined,
 ) => {
   const onChange = jest.fn();
   const onCommit = jest.fn();
   const view = render(
-    <FluidEqProviderWrapper
-      value={{ ...defaultFluidEqContext, isEnabled: true }}
-    >
-      <DspPanel
-        settings={settings}
-        onChange={onChange}
-        onCommit={onCommit}
-        engineState={engineState}
-      />
-    </FluidEqProviderWrapper>,
+    <RemoteAudioContext.Provider value={remoteAudio}>
+      <FluidEqProviderWrapper
+        value={{ ...defaultFluidEqContext, isEnabled: true }}
+      >
+        <DspPanel
+          settings={settings}
+          onChange={onChange}
+          onCommit={onCommit}
+          engineState={engineState}
+        />
+      </FluidEqProviderWrapper>
+    </RemoteAudioContext.Provider>,
   );
   return { ...view, onChange, onCommit };
 };
 
 describe('DspPanel', () => {
-  beforeEach(() => act(() => setDspNativeState('engaged')));
+  beforeEach(() =>
+    act(() => {
+      claimPlayback('library');
+      setDspNativeState('engaged');
+    }),
+  );
 
-  afterEach(() => act(() => setDspNativeState('idle')));
+  afterEach(() =>
+    act(() => {
+      stopAllPlayback();
+      setDspNativeState('idle');
+    }),
+  );
 
   /**
    * The rule a test can check even though the ones it protects against cannot.
@@ -61,7 +80,14 @@ describe('DspPanel', () => {
    */
   it('states its scope in visible text', () => {
     renderPanel();
-    expect(screen.getByText(/does not change Spotify/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/DSP processes audio tracks played from Library only/i),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        /Received shared audio, karaoke, videos and other apps are not processed/i,
+      ),
+    ).toBeInTheDocument();
   });
 
   it('offers an ephemeral final-safety A/B in development', () => {
@@ -707,27 +733,19 @@ describe('DspPanel', () => {
    */
   it('does NOT claim a failure when the engine has simply not started', () => {
     act(() => setDspNativeState('idle'));
-    const { container } = renderPanel(DSP_DEFAULTS, 'idle');
+    const { container, onChange } = renderPanel(DSP_DEFAULTS, 'idle');
     expect(screen.queryByText(/could not start/i)).not.toBeInTheDocument();
     expect(
-      screen.getByText(/music is playing from Library/i),
+      screen.getByText(/Play an audio track from Library to use DSP/i),
     ).toBeInTheDocument();
-    expect(screen.getByText(/music is playing from Library/i)).toHaveClass(
-      'is-idle',
-    );
-    /*
-     * THE SWITCH KEEPS THE SETTING; THE UI IS WHAT GOES AWAY.
-     *
-     * It used to be forced unchecked while idle, so that it could not read ON
-     * over silence. That cure was worse: pausing a track flipped a saved
-     * preference underneath the user, and the panel was rewriting a setting to
-     * describe a transient.
-     *
-     * Disabled, and still checked, says both true things at once — this is
-     * what you have chosen, and it is not reaching anything at this instant.
-     * The idle line above, asserted already, is what explains the second half.
-     */
-    expect(screen.getByRole('checkbox', { name: 'DSP' })).toBeChecked();
+    expect(
+      screen.getByText(/Play an audio track from Library to use DSP/i),
+    ).toHaveClass('is-idle');
+    // The indicator reflects active processing, while the saved preference
+    // stays enabled so Library playback can restore it without another click.
+    expect(screen.getByRole('checkbox', { name: 'DSP' })).not.toBeChecked();
+    expect(DSP_DEFAULTS.enabled).toBe(true);
+    expect(onChange).not.toHaveBeenCalled();
     expect(screen.getByRole('checkbox', { name: 'DSP' })).toBeDisabled();
     expect(container.querySelector('.dsp-stage')).toHaveAttribute(
       'aria-disabled',
@@ -753,6 +771,53 @@ describe('DspPanel', () => {
         rail.querySelector('.dsp-rail-processors') as HTMLElement,
       ).getByRole('button', { name: /Normalizer/i }),
     ).toBeEnabled();
+  });
+
+  it.each(['karaoke', 'media', 'system'] as const)(
+    'disables DSP for %s and restores Library controls without changing the saved sound',
+    (owner) => {
+      const { container, onChange } = renderPanel();
+      expect(screen.getByRole('checkbox', { name: 'DSP' })).toBeEnabled();
+      act(() => claimPlayback(owner));
+      expect(screen.getByRole('checkbox', { name: 'DSP' })).toBeDisabled();
+      expect(screen.getByRole('checkbox', { name: 'DSP' })).not.toBeChecked();
+      expect(container.querySelector('.dsp-stage')).toHaveAttribute('inert');
+      expect(screen.getByRole('button', { name: /Crossfade/i })).toBeDisabled();
+      act(() => claimPlayback('library'));
+      expect(screen.getByRole('checkbox', { name: 'DSP' })).toBeChecked();
+      expect(screen.getByRole('checkbox', { name: 'DSP' })).toBeEnabled();
+      expect(container.querySelector('.dsp-stage')).not.toHaveAttribute(
+        'inert',
+      );
+      expect(onChange).not.toHaveBeenCalled();
+    },
+  );
+
+  it('keeps a loaded Library deck from enabling DSP over received shared audio', () => {
+    const remote: IRemoteAudioValue = {
+      connectedCount: 1,
+      connectedComputers: [],
+      lanOptions: [],
+      networkStats: [],
+      phase: 'connected',
+      role: 'listener',
+      startListening: jest.fn(),
+      startSending: jest.fn(),
+      stop: jest.fn(),
+      resumePlayback: jest.fn(),
+      setStreamMode: jest.fn(),
+      streamMode: 'video',
+      subscribeMeter: jest.fn(() => jest.fn()),
+    };
+    const { container, onChange } = renderPanel(
+      DSP_DEFAULTS,
+      'running',
+      remote,
+    );
+    expect(screen.getByRole('checkbox', { name: 'DSP' })).toBeDisabled();
+    expect(container.querySelector('.dsp-stage')).toHaveAttribute('inert');
+    expect(screen.getByRole('button', { name: /Crossfade/i })).toBeDisabled();
+    expect(onChange).not.toHaveBeenCalled();
   });
 
   /**

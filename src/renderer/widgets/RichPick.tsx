@@ -103,6 +103,11 @@ const RichPick = ({
 }: IRichPickProps) => {
   const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
+  // A DSP source change can disable the trigger while its portaled menu is
+  // open. The menu must stop accepting selections in that same render.
+  if (disabled && isOpen) {
+    setIsOpen(false);
+  }
   const [query, setQuery] = useState('');
   const rootRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);

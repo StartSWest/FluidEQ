@@ -4,7 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import {
   DSP_DEFAULTS,
   IBandSettings,
@@ -42,6 +42,8 @@ import {
 import '../styles/Dsp.scss';
 import { masterLoudnessBreakdown } from './inputNormalizer';
 import { useNativeMeters } from './useNativeBackend';
+import { usePlaybackOwner } from '../audio/playbackOwner';
+import RemoteAudioContext from '../remoteAudio/remoteAudioValueContext';
 
 interface IDspPanelProps {
   settings: IDspSettings;
@@ -146,37 +148,27 @@ const DspPanel = ({
   const sampleRate = useDspSampleRate();
   const outputSafetyEnabled = useDspOutputSafetyEnabled();
   const nativeState = useDspNativeState();
+  const playingOwner = usePlaybackOwner();
+  const remoteAudio = useContext(RemoteAudioContext);
   /**
-   * Three questions, and conflating them is what made the panel a mess.
-   *
-   * `isRackEngaged` is whether the engine is running RIGHT NOW, which it is
-   * only while a Library track plays. That is the right thing to disable the UI
-   * on: with nothing playing there is nothing to voice, so the controls go
-   * inert and the header line says why.
-   *
-   * `isRackLive` is what the SWITCH READS, and it must be the user's own
-   * setting. A commit ago it was `settings.enabled && isRackEngaged`, so
-   * pausing flipped the switch to BYPASSED underneath somebody who had turned
-   * it on — the panel changing a saved preference to describe a transient. The
-   * setting survives a pause; the switch says so.
-   *
-   * A failed host is the one case where the switch must contradict the
-   * setting, because then the rack genuinely is a row of knobs wired to
-   * nothing and will stay that way until the app restarts.
+   * A loaded Library deck keeps the host engaged after another player takes
+   * over. Host readiness alone therefore enabled controls for audio it never
+   * receives. The receiver has a separate mixer and does not claim playback,
+   * so its role must also exclude the rack, even with a Library deck loaded.
+   * This only gates the controls: the saved sound and host lifetime survive.
    */
-  const isRackEngaged = nativeState === 'engaged';
-  const isEngineDown = nativeState === 'failed';
-  const isRackLive = settings.enabled && !isEngineDown;
+  const hasLibraryPlayback =
+    playingOwner === 'library' && remoteAudio?.role !== 'listener';
+  const isRackEngaged = hasLibraryPlayback && nativeState === 'engaged';
+  const isRackLive = settings.enabled && isRackEngaged;
   /**
-   * And the third: whether a control is worth touching at all.
-   *
    * The rack goes inert while nothing is playing — there is nothing to voice,
    * and the header line already says to start a track. That is a presentation
    * decision and it stays entirely in this file: nothing here changes the
    * engine's lifetime, because tearing the engine down and rebuilding it around
    * a pause is what produced the multiplying processes and the doubled audio.
    */
-  const areControlsUsable = isRackLive && isRackEngaged;
+  const areControlsUsable = isRackLive;
   const outputSafetyMeter = useDspOutputSafetyMeter();
   const inputAnalysis = useDspInputAnalysis();
   const loudness = masterLoudnessBreakdown(
@@ -187,6 +179,8 @@ const DspPanel = ({
   // Which processor has the page. Local state: it is where the user is
   // looking, not part of the chain, and nothing outside this panel needs it.
   const [section, setSection] = useState<TDspSection>('normalizer');
+  const isStageDisabled =
+    section === 'crossfade' ? !hasLibraryPlayback : !areControlsUsable;
 
   /**
    * The Voice model's download, which is a fact about the machine.
@@ -337,7 +331,7 @@ const DspPanel = ({
         <div className="dsp-header-line">
           <h2 className="dsp-title">
             {t('dsp.title')}
-            {engineState === 'running' ? (
+            {engineState === 'running' && isRackEngaged ? (
               <span className="dsp-title-rate">
                 {(sampleRate / 1_000).toFixed(1).replace('.0', '')} kHz
               </span>
@@ -368,8 +362,8 @@ const DspPanel = ({
             />
           </div>
         </div>
-        <p className={`dsp-scope${nativeState === 'idle' ? ' is-idle' : ''}`}>
-          {t(nativeState === 'idle' ? 'dsp.idle' : 'dsp.scopeNotice')}
+        <p className={`dsp-scope${!isRackEngaged ? ' is-idle' : ''}`}>
+          {t(!isRackEngaged ? 'dsp.idle' : 'dsp.scopeNotice')}
         </p>
         {engineState === 'failed' ? (
           <p className="dsp-unavailable">{t('dsp.unavailable')}</p>
@@ -401,6 +395,7 @@ const DspPanel = ({
           active={section}
           onSelect={selectSection}
           filtersDisabled={!areControlsUsable}
+          playbackDisabled={!hasLibraryPlayback}
           enabled={{
             normalizer: normalizer.mode !== 'off',
             denoise: denoise.enabled,
@@ -417,13 +412,9 @@ const DspPanel = ({
         />
 
         <div
-          className={`dsp-stage${
-            section !== 'crossfade' && !areControlsUsable ? ' is-disabled' : ''
-          }`}
-          inert={
-            section !== 'crossfade' && !areControlsUsable ? true : undefined
-          }
-          aria-disabled={section !== 'crossfade' && !areControlsUsable}
+          className={`dsp-stage${isStageDisabled ? ' is-disabled' : ''}`}
+          inert={isStageDisabled ? true : undefined}
+          aria-disabled={isStageDisabled}
         >
           {section === 'normalizer' && (
             <DspNormalizerCard

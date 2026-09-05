@@ -15,6 +15,8 @@ interface IDspSideTabsProps {
   enabled: Record<TDspSection, boolean>;
   /** Root bypass disables filter pages, but never the playback transition. */
   filtersDisabled: boolean;
+  /** Transitions belong to Library playback, including its browser fallback. */
+  playbackDisabled: boolean;
 }
 
 /**
@@ -35,6 +37,7 @@ const DspSideTabs = ({
   onSelect,
   enabled,
   filtersDisabled,
+  playbackDisabled,
 }: IDspSideTabsProps) => {
   const { t } = useTranslation();
   const renderTab = ({ id, labelKey }: (typeof DSP_SECTIONS)[number]) => (
@@ -45,7 +48,7 @@ const DspSideTabs = ({
         enabled[id] ? ' is-on' : ''
       }`}
       aria-current={id === active ? 'true' : undefined}
-      disabled={id !== 'crossfade' && filtersDisabled}
+      disabled={id === 'crossfade' ? playbackDisabled : filtersDisabled}
       // The name is hidden by CSS on a narrow window, so the button would be
       // left with nothing an assistive reader could announce.
       title={t(labelKey)}

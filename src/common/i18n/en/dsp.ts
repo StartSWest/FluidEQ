@@ -28,9 +28,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 const dsp = {
   'dsp.title': 'DSP',
   'dsp.scopeNotice':
-    'Applies to music played inside FluidEQ. It does not change Spotify, YouTube or other apps.',
+    'DSP processes audio tracks played from Library only. Received shared audio, karaoke, videos and other apps are not processed.',
   'dsp.idle':
-    'DSP starts when music is playing from Library. It does not process Spotify, YouTube, or other apps.',
+    'Play an audio track from Library to use DSP. Received shared audio, karaoke, videos and other apps are not processed.',
   'dsp.unavailable':
     'Audio processing could not start. Playback is unaffected.',
   'dsp.engineDown':

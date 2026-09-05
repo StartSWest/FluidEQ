@@ -19,9 +19,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 const dsp = {
   'dsp.title': 'DSP',
   'dsp.scopeNotice':
-    'Se aplica a la música reproducida dentro de FluidEQ. No cambia Spotify, YouTube ni otras aplicaciones.',
+    'El DSP solo procesa pistas de audio reproducidas desde la Biblioteca. No procesa audio compartido recibido, karaoke, vídeos ni otras aplicaciones.',
   'dsp.idle':
-    'El DSP se activa cuando se reproduce música desde la Biblioteca. No procesa Spotify, YouTube ni otras aplicaciones.',
+    'Reproduce una pista de audio desde la Biblioteca para usar el DSP. No procesa audio compartido recibido, karaoke, vídeos ni otras aplicaciones.',
   'dsp.unavailable':
     'El procesado de audio no pudo iniciarse. La reproducción no se ve afectada.',
   'dsp.engineDown':

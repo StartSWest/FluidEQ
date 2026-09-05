@@ -74,6 +74,12 @@ const DspChainPresetBar = ({
   const [notice, setNotice] = useState('');
   const [isImporting, setIsImporting] = useState(false);
   const [isNaming, setIsNaming] = useState(false);
+  // A source change can disable the rack with a preset dialog still open.
+  // Those dialogs are portals, so disabling their trigger does not close them.
+  if (disabled && (isImporting || isNaming)) {
+    setIsImporting(false);
+    setIsNaming(false);
+  }
   const [isExporting, setIsExporting] = useState(false);
   const [userPresets, setUserPresets] = useState<IUserDspPreset[]>(() =>
     readUserDspPresets(),
