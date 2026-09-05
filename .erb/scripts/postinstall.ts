@@ -1,18 +1,18 @@
 import { execFileSync } from 'child_process';
 
 const pnpmScript = process.env.npm_execpath;
-const pnpmCommand =
-  pnpmScript && /\.[cm]?js$/i.test(pnpmScript) ? process.execPath : 'pnpm';
+if (!pnpmScript) {
+  throw new Error('Run postinstall through pnpm install.');
+}
+const pnpmIsScript = /\.[cm]?js$/i.test(pnpmScript);
+const pnpmCommand = pnpmIsScript ? process.execPath : pnpmScript;
 
 const runPnpm = (args: string[]) => {
-  execFileSync(
-    pnpmCommand,
-    pnpmCommand === process.execPath ? [pnpmScript!, ...args] : args,
-    {
-      stdio: 'inherit',
-      shell: process.platform === 'win32' && pnpmCommand === 'pnpm',
-    },
-  );
+  execFileSync(pnpmCommand, pnpmIsScript ? [pnpmScript, ...args] : args, {
+    stdio: 'inherit',
+    // npm_execpath names either pnpm's JS entry or its standalone executable.
+    // Invoke it directly: shell:true concatenates arguments and raises DEP0190.
+  });
 };
 
 runPnpm([

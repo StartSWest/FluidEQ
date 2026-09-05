@@ -160,8 +160,8 @@ importers:
         specifier: ^26.15.3
         version: 26.15.3(electron-builder-squirrel-windows@26.15.3)
       electron-chromedriver:
-        specifier: ^42.8.0
-        version: 42.8.0
+        specifier: ^43.2.0
+        version: 43.2.0
       electron-devtools-installer:
         specifier: ^4.0.0
         version: 4.0.0
@@ -3220,8 +3220,8 @@ packages:
     engines: {node: '>=14.0.0'}
     hasBin: true
 
-  electron-chromedriver@42.8.0:
-    resolution: {integrity: sha512-SoRYn60k+E7fJ0HqfdXjTsDjcIz07wwZmS4wka4b9WCJubU/GHqPYR1Uk9oJsSzeyloCaoQhLcitv5tMJM8J8A==}
+  electron-chromedriver@43.2.0:
+    resolution: {integrity: sha512-xILVqDcPsY4HnZPypWdFRjrj4HDvSKef88vMKLRjgbk4cA6XxYODAe4Id1b0GW4rwo67wYnTjRNdwlbX27TbTw==}
     engines: {node: '>=10.12.0'}
     hasBin: true
 
@@ -10727,7 +10727,7 @@ snapshots:
       - electron-builder-squirrel-windows
       - supports-color
 
-  electron-chromedriver@42.8.0:
+  electron-chromedriver@43.2.0:
     dependencies:
       '@electron/get': 2.0.3
       extract-zip: 2.0.1
