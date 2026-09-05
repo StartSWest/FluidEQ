@@ -27,7 +27,7 @@ const remoteAudio = {
   'remoteAudio.listen.stop': 'Stop listening',
   'remoteAudio.stream.title': 'Stream priority',
   'remoteAudio.stream.lossless': 'Both send lossless PCM',
-  'remoteAudio.stream.video.title': 'Video',
+  'remoteAudio.stream.video.title': 'Game/Video',
   'remoteAudio.stream.video.body':
     'Lowest delay for lip-sync. May stutter sooner on busy Wi-Fi.',
   'remoteAudio.stream.video.buffer': '~30 ms start',

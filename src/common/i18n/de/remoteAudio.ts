@@ -22,7 +22,7 @@ const remoteAudio: Partial<Dictionary> = {
   'remoteAudio.listen.stop': 'Empfang beenden',
   'remoteAudio.stream.title': 'Streaming-Priorität',
   'remoteAudio.stream.lossless': 'Beide senden PCM verlustfrei',
-  'remoteAudio.stream.video.title': 'Video',
+  'remoteAudio.stream.video.title': 'Spiel/Video',
   'remoteAudio.stream.video.body':
     'Geringste Verzögerung für Lippensynchronität. Kann bei ausgelastetem WLAN früher aussetzen.',
   'remoteAudio.stream.video.buffer': 'Start bei ~30 ms',

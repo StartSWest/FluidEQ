@@ -22,7 +22,7 @@ const remoteAudio: Partial<Dictionary> = {
   'remoteAudio.listen.stop': 'सुनना बंद करें',
   'remoteAudio.stream.title': 'स्ट्रीम प्राथमिकता',
   'remoteAudio.stream.lossless': 'दोनों लॉसलेस PCM भेजते हैं',
-  'remoteAudio.stream.video.title': 'वीडियो',
+  'remoteAudio.stream.video.title': 'गेम/वीडियो',
   'remoteAudio.stream.video.body':
     'लिप-सिंक के लिए सबसे कम देरी। व्यस्त Wi-Fi पर जल्दी रुक सकता है।',
   'remoteAudio.stream.video.buffer': 'शुरुआत ~30 ms',

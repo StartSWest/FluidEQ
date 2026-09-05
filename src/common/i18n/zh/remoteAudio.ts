@@ -22,7 +22,7 @@ const remoteAudio: Partial<Dictionary> = {
   'remoteAudio.listen.stop': '停止接收',
   'remoteAudio.stream.title': '传输优先级',
   'remoteAudio.stream.lossless': '两种模式都发送无损 PCM',
-  'remoteAudio.stream.video.title': '视频',
+  'remoteAudio.stream.video.title': '游戏/视频',
   'remoteAudio.stream.video.body':
     '最低延迟以匹配口型。Wi-Fi 繁忙时更容易断续。',
   'remoteAudio.stream.video.buffer': '起始约 30 ms',

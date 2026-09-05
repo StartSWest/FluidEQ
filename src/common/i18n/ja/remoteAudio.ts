@@ -22,7 +22,7 @@ const remoteAudio: Partial<Dictionary> = {
   'remoteAudio.listen.stop': '受信を停止',
   'remoteAudio.stream.title': 'ストリーム優先度',
   'remoteAudio.stream.lossless': 'どちらもロスレス PCM で送信',
-  'remoteAudio.stream.video.title': '動画',
+  'remoteAudio.stream.video.title': 'ゲーム/動画',
   'remoteAudio.stream.video.body':
     '口の動きに合う最小遅延。混雑した Wi-Fi では途切れやすくなります。',
   'remoteAudio.stream.video.buffer': '開始時 約30 ms',
