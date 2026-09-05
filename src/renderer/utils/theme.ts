@@ -138,3 +138,23 @@ export const readAccentLight = (alpha: number, fallback: string): string =>
   alpha >= 1
     ? readSurface('--accent-light', fallback)
     : readSurfaceAlpha('--accent-light', alpha, fallback);
+
+/**
+ * The light accent as channels, for a drawing that mixes its own tints — the
+ * meter's gas, which wants five shades of one colour and builds them from
+ * the channels rather than from five literals.
+ */
+export const readAccentLightChannels = (
+  fallback: [number, number, number],
+): [number, number, number] => {
+  const match = HEX.exec(readSurface('--accent-light', ''));
+  if (!match) {
+    return fallback;
+  }
+  const hex = match[1];
+  return [
+    parseInt(hex.slice(0, 2), 16),
+    parseInt(hex.slice(2, 4), 16),
+    parseInt(hex.slice(4, 6), 16),
+  ];
+};

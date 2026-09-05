@@ -1804,31 +1804,38 @@ textarea,
   --accent-darker: #007f95;
 }
 
-// Black: no hue anywhere. The floor is true black and every rung above it is
-// a near-black grey a few values up — close enough that the edges do the
-// work of parting one card from the next. And the ACCENT is white: this is a
-// monochrome theme, so the chosen thing, the live thing and the thing to
-// press are white on black, with the light and dark accents a step either
-// side of it. Nothing cyan survives; the rainbow (the bands, the spectrum) is
-// the music and stays.
+// Black: near-black, cool, and quiet — not a high-contrast theme.
+//
+// The first cut was white on true black with grey hairlines, and it read as
+// an accessibility mode: every edge shouting, every button a white slab. What
+// makes a dark theme feel expensive is the opposite — the surfaces are a few
+// values apart on a faintly cool near-black, the edges are barely there, and
+// the accent is a colour with some restraint in it rather than pure white.
+//
+// The accent is an ice blue: cool like the ocean theme's cyan so the two
+// themes are plainly the same app, desaturated enough not to glow on black,
+// and far enough from the rainbow's cyan stop that a lit control is never
+// mistaken for a band. The rainbow stays — it is the music.
 :root[data-theme='black'] {
-  --surface-base: #000000;
-  --surface-panel: #060606;
-  --surface-block: #0c0c0c;
-  --surface-field: #0f0f0f;
-  --surface-field-end: #0a0a0a;
-  --surface-menu: #090909;
-  --surface-menu-top: #0e0e0e;
-  --surface-menu-face: #141414;
-  --surface-well: #000000;
-  --track-well: #1e1e1e;
-  --border-subtle: rgba(255, 255, 255, 0.1);
-  --border-panel: rgba(255, 255, 255, 0.14);
-  --border-menu: rgba(255, 255, 255, 0.2);
-  --accent: #f2f2f2;
-  --accent-light: #ffffff;
-  --accent-dark: #bdbdbd;
-  --accent-darker: #8a8a8a;
+  --surface-base: #050608;
+  --surface-panel: #0c0e12;
+  --surface-block: #12151a;
+  --surface-field: #14181d;
+  --surface-field-end: #0f1216;
+  --surface-menu: #0e1116;
+  --surface-menu-top: #13171c;
+  --surface-menu-face: #171c23;
+  --surface-well: #030405;
+  --track-well: #222731;
+  // Cool and faint. The edges only have to hint where a card ends; at the
+  // first cut's alphas they drew a wireframe over the window.
+  --border-subtle: rgba(190, 205, 225, 0.06);
+  --border-panel: rgba(190, 205, 225, 0.08);
+  --border-menu: rgba(190, 205, 225, 0.14);
+  --accent: #8ecdf5;
+  --accent-light: #d4ecff;
+  --accent-dark: #5aa6dc;
+  --accent-darker: #3a7db0;
 }
 
 // The shell's gutter, in one place. See `.app-workspace`, which consumes it,

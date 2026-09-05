@@ -61,7 +61,32 @@ import {
   levelFraction,
   levelZone,
 } from './outputLevel';
-import { readAccent } from '../utils/theme';
+import { readAccent, readAccentLightChannels } from '../utils/theme';
+
+/**
+ * The gas, as five shades of the theme's light accent.
+ *
+ * These were six teal literals — lit ones, chosen when the gas covered the
+ * whole strip and had to stay out of the way — and they were the last cyan
+ * left on a theme that had none. Built from the accent's channels instead:
+ * a step darker, the colour itself, a step lighter, and back, so the haze
+ * still shimmers between tones without owning a hue of its own.
+ */
+const accentTints = (): string[] => {
+  const [r, g, b] = readAccentLightChannels([156, 255, 244]);
+  const shade = (k: number) =>
+    `${Math.round(Math.min(255, r * k))}, ${Math.round(
+      Math.min(255, g * k),
+    )}, ${Math.round(Math.min(255, b * k))}`;
+  return [
+    shade(0.72),
+    shade(0.88),
+    shade(1),
+    shade(1.08),
+    shade(0.94),
+    shade(0.8),
+  ];
+};
 
 type TMeterCycleStyle = MeterStyle | 'off';
 
@@ -1086,18 +1111,7 @@ const drawChannel = (
             '255, 90, 150',
             '190, 120, 255',
           ]
-        : [
-            // Lit teals rather than deep ones. They were chosen when the gas
-            // covered the whole strip and had to stay out of the way; drawn
-            // only over the reading, dark colours made the reading itself
-            // look switched off.
-            '90, 220, 230',
-            '120, 240, 235',
-            '156, 255, 244',
-            '190, 255, 250',
-            '140, 246, 240',
-            '105, 228, 234',
-          ];
+        : accentTints();
       const body = context.createLinearGradient(
         0,
         rect.y + rect.height,
