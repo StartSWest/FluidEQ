@@ -55,7 +55,7 @@ const tour: Partial<Dictionary> = {
     'Ouvrez FluidEQ là-bas, allez dans Partager l’audio, choisissez « Envoyer le son de cet ordinateur », collez le code et appuyez sur « Connecter et envoyer ». Son audio système commence à circuler.',
   'tour.share.step3Title': 'Choisissez une priorité et écoutez',
   'tour.share.step3':
-    'Musique garde un tampon plus large pour une écoute ininterrompue ; Jeu/Vidéo tourne avec le délai le plus court pour la synchronisation labiale. Chaque émetteur est mixé dans la sortie du récepteur et façonné par son EQ.',
+    'Musique garde un tampon plus large pour une écoute ininterrompue ; Jeu/Vidéo tourne avec le délai le plus court pour la synchronisation labiale. Chaque émetteur est mixé dans la sortie du récepteur et façonné par son EQ. La barre de lecture du récepteur affiche le morceau de chaque émetteur et ses boutons agissent à travers le réseau.',
   'tour.share.fact1Title': 'Sans perte',
   'tour.share.fact1':
     'PCM Float32 de bout en bout. Aucun codec, aucune perte de génération.',

@@ -26,11 +26,22 @@ protected from clipping at every sample rate.
   private LAN only, and the pairing survives app closes and reboots. Two
   priorities: Music keeps a larger safety buffer, Game/Video runs with the
   smaller 100–200 ms buffer to reduce delay for games and video.
-- **Control shared playback from the receiver.** The playback bar shows the
-  sending computer's song, artist and playback state. Play/pause, stop,
-  previous/next and time-step buttons work when the source supports them.
-  With "one player at a time" enabled, starting playback here pauses the
-  sender; starting another sender pauses the other active sources.
+- **The receiver shows and controls what the senders play.** The playback
+  bar on the headset PC used to say "Nothing playing" while a whole album
+  came in. It now shows the sending computer's song, artist and play state,
+  named after that computer on its third line — a library track, a browser
+  tab, Spotify or a game, whatever the sender's own bar shows. Play/pause,
+  stop, previous/next and the 5-second steps work across the wire, each
+  offered only when the sender's player answers it; pausing keeps the song on
+  the bar so the same button resumes it. Each sender's lane on the Share
+  Audio page carries its own NOW PLAYING or PAUSED line. Smart EQ recognises
+  the shared song, so "save for this song" works while receiving.
+- **One player at a time reaches across the wire.** With that switch on,
+  starting a song or a browser tab on the receiver pauses the sender, and
+  pressing play on the sender stops the receiver's own players and pauses
+  its browser or Spotify. With several senders, the one that just pressed
+  play is heard and the others are paused. With the switch off nothing is
+  paused, and the bar shows the sender that started most recently.
 - **The Black theme.** A true black floor, every surface a few values above
   it, hairlines instead of lightness for the edges, and an ice-blue accent
   that stays cool beside the rainbow. Every window follows, drawings
@@ -78,9 +89,8 @@ protected from clipping at every sample rate.
 
 ### Fixed
 
-- **Shared songs work with Smart EQ.** A song arriving from another computer
-  is recognised as playing, so song-specific EQ can follow it. Reception
-  meters now say "Receiving" instead of "Transmitting".
+- **Reception lanes say "Receiving"** instead of borrowing the sender's
+  "Transmitting".
 - **Background saves preserve complete EQ configurations.** Included files
   finish writing before the configuration that references them, and files
   from the previous output are removed only after the replacement is ready.

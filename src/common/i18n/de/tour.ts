@@ -55,7 +55,7 @@ const tour: Partial<Dictionary> = {
     'Öffnen Sie dort FluidEQ, gehen Sie zu Audio teilen, wählen Sie „Audio dieses Computers senden“, fügen Sie den Code ein und drücken Sie „Verbinden und senden“. Der Systemton beginnt zu fließen.',
   'tour.share.step3Title': 'Priorität wählen und hören',
   'tour.share.step3':
-    'Musik hält einen größeren Sicherheitspuffer für unterbrechungsfreies Hören; Spiel/Video läuft mit der geringsten Verzögerung für Lippensynchronität. Jeder Sender wird in den Ausgang des Empfängers gemischt und von dessen EQ geformt.',
+    'Musik hält einen größeren Sicherheitspuffer für unterbrechungsfreies Hören; Spiel/Video läuft mit der geringsten Verzögerung für Lippensynchronität. Jeder Sender wird in den Ausgang des Empfängers gemischt und von dessen EQ geformt. Die Wiedergabeleiste des Empfängers zeigt den Titel jedes Senders, und ihre Tasten wirken über das Netzwerk.',
   'tour.share.fact1Title': 'Verlustfrei',
   'tour.share.fact1':
     'Float32-PCM von Ende zu Ende. Kein Codec, kein Generationsverlust.',

@@ -55,7 +55,7 @@ const tour: Partial<Dictionary> = {
     'Abre FluidEQ allí, ve a Compartir audio, elige «Enviar el audio de este ordenador», pega el código y pulsa «Conectar y enviar». Su audio del sistema empieza a fluir.',
   'tour.share.step3Title': 'Elige una prioridad y escucha',
   'tour.share.step3':
-    'Música mantiene un búfer mayor para escuchar sin cortes; Juego/Vídeo funciona con el menor retardo para la sincronía labial. Cada emisor se mezcla en la salida del receptor y pasa por su EQ.',
+    'Música mantiene un búfer mayor para escuchar sin cortes; Juego/Vídeo funciona con el menor retardo para la sincronía labial. Cada emisor se mezcla en la salida del receptor y pasa por su EQ. La barra de reproducción del receptor muestra la canción de cada emisor y sus botones funcionan a través de la red.',
   'tour.share.fact1Title': 'Sin pérdidas',
   'tour.share.fact1':
     'PCM Float32 de extremo a extremo. Sin códec, sin pérdida de generación.',

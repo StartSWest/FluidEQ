@@ -64,7 +64,7 @@ const tour = {
     'Open FluidEQ there, go to Share Audio, choose "Send audio from this computer", paste the code and press "Connect and send". Its system audio starts flowing.',
   'tour.share.step3Title': 'Pick a priority and listen',
   'tour.share.step3':
-    'Music keeps a bigger safety buffer for uninterrupted listening; Game/Video runs with the lowest delay for lip-sync. Every sender is mixed into the receiver’s output and shaped by its EQ.',
+    'Music keeps a bigger safety buffer for uninterrupted listening; Game/Video runs with the lowest delay for lip-sync. Every sender is mixed into the receiver’s output and shaped by its EQ. The receiver’s playback bar shows each sender’s song and its buttons work across the wire.',
   'tour.share.fact1Title': 'Lossless',
   'tour.share.fact1':
     'Float32 PCM end to end. No media codec, no generation loss.',
