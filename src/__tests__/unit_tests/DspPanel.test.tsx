@@ -793,7 +793,13 @@ describe('DspPanel', () => {
     },
   );
 
-  it('keeps a loaded Library deck from enabling DSP over received shared audio', () => {
+  /**
+   * The receiver role describes a connection, not the source feeding the
+   * rack. A Library deck that owns playback keeps its controls while Share
+   * Audio is listening; it is only once nothing of the Library's is playing
+   * that received audio, which the rack never touches, leaves the page inert.
+   */
+  describe('while Share Audio is listening', () => {
     const remote: IRemoteAudioValue = {
       connectedCount: 1,
       connectedComputers: [],
@@ -809,15 +815,32 @@ describe('DspPanel', () => {
       streamMode: 'video',
       subscribeMeter: jest.fn(() => jest.fn()),
     };
-    const { container, onChange } = renderPanel(
-      DSP_DEFAULTS,
-      'running',
-      remote,
-    );
-    expect(screen.getByRole('checkbox', { name: 'DSP' })).toBeDisabled();
-    expect(container.querySelector('.dsp-stage')).toHaveAttribute('inert');
-    expect(screen.getByRole('button', { name: /Crossfade/i })).toBeDisabled();
-    expect(onChange).not.toHaveBeenCalled();
+
+    it('keeps the rack for a Library deck that owns playback', () => {
+      const { container, onChange } = renderPanel(
+        DSP_DEFAULTS,
+        'running',
+        remote,
+      );
+      expect(screen.getByRole('checkbox', { name: 'DSP' })).toBeEnabled();
+      expect(container.querySelector('.dsp-stage')).not.toHaveAttribute(
+        'inert',
+      );
+      expect(onChange).not.toHaveBeenCalled();
+    });
+
+    it('goes inert once nothing of the Library is playing', () => {
+      act(() => stopAllPlayback());
+      const { container, onChange } = renderPanel(
+        DSP_DEFAULTS,
+        'running',
+        remote,
+      );
+      expect(screen.getByRole('checkbox', { name: 'DSP' })).toBeDisabled();
+      expect(container.querySelector('.dsp-stage')).toHaveAttribute('inert');
+      expect(screen.getByRole('button', { name: /Crossfade/i })).toBeDisabled();
+      expect(onChange).not.toHaveBeenCalled();
+    });
   });
 
   /**
