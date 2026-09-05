@@ -16,15 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import {
-  IFilter,
-  IHeadphoneSettings,
-  TApoLayer,
-  parseBandShape,
-} from 'common/constants';
-import { getHeadphoneFilters } from 'common/headphone';
-import { IVoicingSettings, getVoicingFilters } from 'common/voicing';
-import { IDriverSettings, getDriverFilters } from 'common/driver';
+import { IFilter } from 'common/constants';
 import { getCombinedLineData, getFilterLineData } from '../graph/utils';
 import { IChartLineDataPointsById } from '../graph/ChartController';
 import { ISpectrumSample, sampleSpectrumAt } from './autoBalance';
@@ -41,53 +33,19 @@ const isRenderable = ({
   Number.isFinite(quality);
 
 /**
- * The shape Smart EQ should steer the output towards, rather than flat.
- *
- * Everything in this curve is present in the capture and is NOT error. Without
- * it the measurement reads every deliberate layer as a fault and cancels it out,
- * so what belongs in here is exactly the set of things that are supposed to be
- * in the sound.
- *
- * Three things qualify, and the test is the same for all of them: could the
- * measurement possibly know better?
- *
- * A voicing is a chosen colouration. The user asked for it by name.
- *
- * A driver correction compensates the headphone, and the headphone is the one
- * thing this measurement categorically cannot see — the capture is a digital
- * loopback, so it hears the file and the chain and never the transducer. A
- * correction for something invisible to the measurement will always look like
- * error to it, and cancelling it is always wrong.
- *
- * A headset correction from the AutoEQ panel is the same argument again, with
- * one wrinkle: it is written into the ordinary band editor, where the user's own
- * edits also live. It comes in here from `headsetSignature` — the bands exactly
- * as the reference wrote them — rather than from the live bands, so what is
- * excused is the correction as applied and nothing that has happened to it
- * since.
- *
- * THE USER'S OWN BANDS ARE NOT IN HERE, and that is the one thing about this
- * file worth reading twice, because they were and it was deliberate.
- *
- * The argument for including them was that a band moved by hand is as chosen as
- * a voicing. The argument against is what it does: it makes Smart EQ blind to
- * exactly the damage it exists to fix. Pull the 47 Hz slider to -16 dB and the
- * measurement subtracts that same -16 dB from what it heard, finds no residual,
- * and reports "listening" over a chain with a hole in the bass. Push 11.6 kHz to
- * +17 dB and it is content with that too. A correction that agrees with whatever
- * it is shown is not a correction.
- *
- * So the two are separated by provenance rather than by which map they sit in:
- * the headset correction is in the goal, and the distance the user has since
- * dragged a slider away from it is error, which is exactly the distinction
- * somebody makes when they say "keep my headphone fix, undo what I did to it".
- *
- * The Smart EQ layer itself is deliberately absent. It is in the measured output
- * on purpose — that is what makes the correction a residual and what makes
- * repeated runs converge instead of doubling.
+ * The combined response of a set of filters, as a spectrum.
  *
  * Filters run through the same biquad magnitude code as the response graph, so
  * this is the layers' true response rather than a sketch of it.
+ *
+ * This file used to build a second curve from the same helper: a target of
+ * layers the solver was told to leave alone — the voicing, the driver, the
+ * headset correction — while the user's own bands were deliberately left out of
+ * it so that Smart EQ would correct them. That is gone, and not into another
+ * file. The measurement now subtracts the whole chain (see `buildChainGainDb`),
+ * so nothing deliberate is in what the solver sees and nothing has to be
+ * classified as excused or fair game. The user's bands are the reason: measured
+ * from the output they read as error, and Smart EQ built their mirror image.
  */
 const curveOf = (
   filters: Pick<IFilter, 'frequency' | 'gain' | 'quality' | 'type'>[],
@@ -159,6 +117,9 @@ const chainKeyOf = (
 
 let lastChain: { key: string; axis: number[]; gainDb: number[] } | undefined;
 
+// Named, like every other helper the engine imports; a default export would
+// make this the one import in that list spelled differently.
+// eslint-disable-next-line import/prefer-default-export
 export const buildChainGainDb = (
   filters: Pick<IFilter, 'frequency' | 'gain' | 'quality' | 'type'>[],
   axis: number[],
@@ -175,49 +136,3 @@ export const buildChainGainDb = (
   lastChain = { key, axis, gainDb };
   return gainDb;
 };
-
-/**
- * What the solver must not try to undo — MINUS ANYTHING SWITCHED OFF.
- *
- * The bypass list is the point of the last argument, and leaving it out was a
- * fault rather than a missing nicety. A bypassed layer is not written to the
- * config, so the capture cannot contain it; summed here anyway, the solver is
- * told to expect a shape that is not in the sound. It reads the absence as
- * error and rebuilds the switched-off layer inside `smart`.
- *
- * Which turns the bypass into the opposite of what it is for. It is described
- * as an A/B switch — the same passage, both ways, a second apart — and a switch
- * that quietly recreates what it just removed cannot answer that question. The
- * chain-gain subtraction in `SmartEqEngine` already honoured this list; only its
- * partner did not, which is the shape every layer bug in this codebase has had.
- *
- * `headsetSignature` is deliberately NOT gated. It is not a layer and has no
- * switch: it describes a correction applied into the bands back when none of
- * this was a layer, so there is nothing to bypass and nothing to leave out.
- */
-export const buildLayerTargetCurve = (
-  voicing: IVoicingSettings | undefined,
-  driver: IDriverSettings | undefined,
-  headsetSignature?: string,
-  headphone?: IHeadphoneSettings,
-  bypassed: readonly TApoLayer[] = [],
-): ISpectrumSample[] =>
-  curveOf([
-    ...(bypassed.includes('voicing') ? [] : getVoicingFilters(voicing)),
-    ...(bypassed.includes('driver') ? [] : getDriverFilters(driver)),
-    /*
-     * The published correction, handed back as something not to undo.
-     *
-     * It corrects a transducer, and a digital loopback cannot hear a
-     * transducer — so to the measurement it will always look like error, and
-     * cancelling it is always wrong. Exactly the driver's argument, which is
-     * why it sits beside the driver here.
-     *
-     * The signature below stays for corrections applied before this was a layer
-     * of its own: those went into the bands, and a shape recorded at the time is
-     * all that is left of them. New ones arrive here instead, in full, rather
-     * than as a description reconstructed from a string.
-     */
-    ...(bypassed.includes('headphone') ? [] : getHeadphoneFilters(headphone)),
-    ...parseBandShape(headsetSignature),
-  ]);

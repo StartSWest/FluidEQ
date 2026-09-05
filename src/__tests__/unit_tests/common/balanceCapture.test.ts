@@ -53,6 +53,7 @@ import {
   resetBalanceRegion,
   shouldFinishBalanceCapture,
 } from 'renderer/utils/autoBalanceCapture';
+import { buildChainGainDb } from 'renderer/utils/layerTargetCurve';
 import { Translate, translate } from 'common/i18n';
 
 /* --- harness ----------------------------------------------------------- */
@@ -95,9 +96,11 @@ const buildFrame = (frameIndex: number, levelAt: LevelAt): IBalanceFrame => {
 const runCapture = (
   levelAt: LevelAt,
   frameCount: number,
-  bounds: IBalanceListenBounds = {},
+  bounds: IBalanceListenBounds | undefined = undefined,
+  chainGainDb: number[] | undefined = undefined,
 ) => {
   const state = createBalanceCaptureState(AXIS);
+  state.chainGainDb = chainGainDb;
   let report: IBalanceReport | undefined;
   let framesFed = 0;
 
@@ -592,6 +595,72 @@ describe('balance capture', () => {
       // A target must not become a licence to move a band that was not measured.
       expect(gains.b10000).toBe(2.5);
       expect(gains.b16000).toBe(-1);
+    });
+  });
+
+  /*
+   * The accumulated spectrum is the RECORD, not the output.
+   *
+   * The chain curve handed to the accumulator used to feed only the evidence
+   * gate; the levels that reached the solver were still the output, with the
+   * user's bands in them. So a slider dragged to -6 dB read as a 6 dB fault in
+   * the record and Smart EQ built its mirror image — the two curves on the graph
+   * fought each other in plain sight. These are the two sides of that: the same
+   * hole in the output produces a correction when the record has it and none
+   * when the user made it.
+   */
+  describe('Suite J - the chain is subtracted from what is accumulated', () => {
+    const cut = band(1000, -6);
+    const chain = buildChainGainDb([cut], AXIS);
+    /** A flat record heard through the user's cut. */
+    const throughCut = (frequency: number) =>
+      fullRange(frequency) + chain[AXIS.indexOf(frequency)];
+
+    const runThroughChain = (levelAt: LevelAt, chainGainDb: number[]) =>
+      runCapture(levelAt, seconds(30), {}, chainGainDb).report;
+
+    it('does not correct a hole the user cut into a clean record', () => {
+      const report = runThroughChain(throughCut, chain);
+      expect(report.status).toBe('ready');
+
+      const gains = buildBalancedGains(report.samples, TEN_BAND);
+      expect(Math.abs(gains.b1000)).toBeLessThan(1.2);
+    });
+
+    it('does correct the same hole when it is in the record', () => {
+      // Positive control: identical output, no chain to account for it, so the
+      // hole is the record's and is filled. Without this the line above cannot
+      // tell "left the user's cut alone" from "stopped correcting anything".
+      const report = runThroughChain(
+        throughCut,
+        AXIS.map(() => 0),
+      );
+      expect(report.status).toBe('ready');
+
+      const gains = buildBalancedGains(report.samples, TEN_BAND);
+      expect(gains.b1000).toBeGreaterThan(1.5);
+    });
+
+    it('still finds a fault in the record underneath the user’s cut', () => {
+      // The resonance is +9 and the cut is -6 over it, so the OUTPUT shows a
+      // mild bump. Measured from the record the bump is the full nine decibels,
+      // and the correction is the same one it would make with no cut at all.
+      const buried = (frequency: number) =>
+        withResonance(frequency) + chain[AXIS.indexOf(frequency)];
+      const underCut = buildBalancedGains(
+        runThroughChain(buried, chain).samples,
+        TEN_BAND,
+      );
+      const alone = buildBalancedGains(
+        runThroughChain(
+          withResonance,
+          AXIS.map(() => 0),
+        ).samples,
+        TEN_BAND,
+      );
+
+      expect(underCut.b1000).toBeLessThan(-1.5);
+      expect(underCut.b1000).toBeCloseTo(alone.b1000, 0);
     });
   });
 

@@ -614,22 +614,34 @@ export const accumulateBalanceFrame = (
    * Re-read every frame, because a continuous session changes the chain
    * underneath itself every time it corrects something.
    *
+   * EVERYTHING BELOW MEASURES THE RECORD — the gate, the presence followers,
+   * the reference level and the accumulated spectrum alike. That last one was
+   * the exception for a long time, on the argument that "what to correct" is a
+   * question about the output because the output is what anybody hears. The
+   * argument does not survive contact with a moved slider: averaging the output
+   * hands the solver the user's own bands as error, so it builds their mirror
+   * image, and the Smart EQ curve on the graph tracks every fader in reverse. A
+   * -6 dB cut at 2.6 kHz and a +10 dB lift at 4.3 kHz came back as a +6 and a
+   * -10 inside this layer, cancelling both. Measuring the record puts the
+   * correction under the user's EQ instead of against it: Smart EQ fixes the
+   * source, and whatever was applied on top stays applied.
+   *
    * Reconstruction is not resurrection. A point at the analyser's floor carries
    * no information and adding gain to it would manufacture a spectrum out of
    * dither, so those are dropped rather than compensated — which is the one
    * thing subtraction genuinely cannot get back.
    */
-  const { levels } = frame;
-  let gateLevels = levels;
-  let gatePeakDb = frame.peakDb;
+  let recordLevels = frame.levels;
+  let recordPeakDb = frame.peakDb;
   if (state.chainGainDb) {
-    if (!state.sourceLevels || state.sourceLevels.length !== levels.length) {
-      state.sourceLevels = new Float64Array(levels.length);
+    const output = frame.levels;
+    if (!state.sourceLevels || state.sourceLevels.length !== output.length) {
+      state.sourceLevels = new Float64Array(output.length);
     }
     const source = state.sourceLevels;
     let peak = Number.NEGATIVE_INFINITY;
-    for (let index = 0; index < levels.length; index += 1) {
-      const level = levels[index];
+    for (let index = 0; index < output.length; index += 1) {
+      const level = output[index];
       if (!Number.isFinite(level) || level < ABS_FLOOR_DBFS) {
         source[index] = Number.NaN;
       } else {
@@ -639,9 +651,9 @@ export const accumulateBalanceFrame = (
         }
       }
     }
-    gateLevels = source;
+    recordLevels = source;
     if (Number.isFinite(peak)) {
-      gatePeakDb = peak;
+      recordPeakDb = peak;
     }
   }
 
@@ -650,7 +662,7 @@ export const accumulateBalanceFrame = (
   // silence because of the user's own attenuation are frames the correction
   // never gets to learn from.
   const w = clamp01(
-    (gatePeakDb - FRAME_MIN_PEAK_DBFS) /
+    (recordPeakDb - FRAME_MIN_PEAK_DBFS) /
       (FRAME_FULL_PEAK_DBFS - FRAME_MIN_PEAK_DBFS),
   );
 
@@ -692,8 +704,8 @@ export const accumulateBalanceFrame = (
   // constant, so using it changes nothing downstream except the noise.
   let refPower = 0;
   let refCount = 0;
-  for (let index = 0; index < levels.length; index += 1) {
-    const level = levels[index];
+  for (let index = 0; index < recordLevels.length; index += 1) {
+    const level = recordLevels[index];
     if (Number.isFinite(level)) {
       refPower += 10 ** (level / 10);
       refCount += 1;
@@ -755,7 +767,7 @@ export const accumulateBalanceFrame = (
   // The record's peak, not the output's, for the same reason the levels below
   // are the record's: a reference that contains the correction moves when the
   // correction does, and everything referenced to it moves with it.
-  const peak = gatePeakDb;
+  const peak = recordPeakDb;
   if (Number.isFinite(peak)) {
     const released =
       state.trackReferenceDb === undefined
@@ -766,7 +778,6 @@ export const accumulateBalanceFrame = (
   const reference = state.trackReferenceDb;
 
   state.regions.forEach((region, regionIndex) => {
-    const absDb = regionLevelDb(levels, region.firstIndex, region.lastIndex);
     /*
      * THE PRESENCE LINE ASKS ABOUT THE RECORD, NOT ABOUT WHAT WE DID TO IT.
      *
@@ -782,7 +793,7 @@ export const accumulateBalanceFrame = (
      * not the music.
      */
     const sourceDb = regionLevelDb(
-      gateLevels,
+      recordLevels,
       region.firstIndex,
       region.lastIndex,
     );
@@ -852,35 +863,20 @@ export const accumulateBalanceFrame = (
       return;
     }
 
-    if (!Number.isFinite(absDb) || absDb < ABS_FLOOR_DBFS) {
+    if (!Number.isFinite(sourceDb) || sourceDb < ABS_FLOOR_DBFS) {
       return;
     }
 
     /*
-     * THE GATE ASKS ABOUT THE RECORD; EVERYTHING ELSE MEASURES THE OUTPUT.
-     *
-     * Two different questions, and running both off the same numbers gets one
-     * of them wrong whichever way it is done.
-     *
-     * What to correct is a question about the output, because the output is
-     * what anybody hears. Whether a range CAN be corrected is a question about
-     * the record, and asking it of the output is self-concealing: cut 6.5 kHz
-     * by 20 dB and the evidence that the cut is wrong goes down with it, so the
-     * range never gathers enough to act on and the measurement waits on it for
-     * the rest of the evening. The louder the mistake, the more completely it
-     * hides.
-     *
-     * So the gate runs on the reconstructed record — the capture with the chain
-     * removed, see `chainGainDb` — and the level that is accumulated below is
-     * the measured output, untouched.
+     * Whether this range has enough music in it to teach anything, asked of the
+     * record for the reason the header gives: asked of the output it is
+     * self-concealing. Cut 6.5 kHz by 20 dB and the evidence that the cut is
+     * wrong goes down with it, so the range never gathers enough to act on and
+     * the measurement waits on it for the rest of the evening. The louder the
+     * mistake, the more completely it hides.
      */
-    const gateDb = regionLevelDb(
-      gateLevels,
-      region.firstIndex,
-      region.lastIndex,
-    );
     const e = clamp01(
-      (gateDb - (gatePeakDb - REGION_FLOOR_DB)) / REGION_FLOOR_RAMP_DB,
+      (sourceDb - (recordPeakDb - REGION_FLOOR_DB)) / REGION_FLOOR_RAMP_DB,
     );
     if (e <= 0) {
       return;
@@ -898,7 +894,7 @@ export const accumulateBalanceFrame = (
 
     // Weighted Welford, so the standard error is available without keeping
     // every frame.
-    const x = clamp(absDb - refDb, LEVEL_CLAMP_LO, LEVEL_CLAMP_HI);
+    const x = clamp(sourceDb - refDb, LEVEL_CLAMP_LO, LEVEL_CLAMP_HI);
     const s = state.regionStates[regionIndex];
     s.weight += ww;
     const delta = x - s.mean;
@@ -906,7 +902,7 @@ export const accumulateBalanceFrame = (
     s.m2 += ww * delta * (x - s.mean);
 
     for (let index = region.firstIndex; index <= region.lastIndex; index += 1) {
-      const level = levels[index];
+      const level = recordLevels[index];
       if (Number.isFinite(level)) {
         const rel = clamp(level - refDb, LEVEL_CLAMP_LO, LEVEL_CLAMP_HI);
         state.power[index] += ww * 10 ** (rel / 10);

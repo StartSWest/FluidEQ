@@ -64,10 +64,7 @@ import {
   setSmartEqDisagreement,
   setSmartEqQuietUntil,
 } from './utils/smartEqDisagreement';
-import {
-  buildChainGainDb,
-  buildLayerTargetCurve,
-} from './utils/layerTargetCurve';
+import { buildChainGainDb } from './utils/layerTargetCurve';
 import { planBandReveal, revealBands } from './utils/bandReveal';
 import {
   registerSmartEqControl,
@@ -204,7 +201,6 @@ const SmartEqEngine = () => {
     setSmartEq,
     getBandSetGeneration,
     bypassed,
-    headsetSignature,
   } = useFluidEqContext();
   const { captureBalanceProfile, isActive: isLiveOutputActive } =
     useLiveAudioControl();
@@ -499,21 +495,14 @@ const SmartEqEngine = () => {
   const driverRef = useRef(driver);
   driverRef.current = driver;
   /*
-   * The published headphone correction, excused like the driver.
+   * The published headphone correction, subtracted like every other layer.
    *
-   * It corrects a transducer and a digital loopback cannot hear one, so it will
-   * always look like error to this measurement and cancelling it is always
-   * wrong. On a ref for the same reason every other layer here is: the capture
-   * runs for minutes and the closure would freeze whatever was applied when it
+   * On a ref for the same reason every other layer here is: the capture runs
+   * for minutes and the closure would freeze whatever was applied when it
    * started.
    */
   const headphoneRef = useRef(headphone);
   headphoneRef.current = headphone;
-  // The bands as the AutoEQ panel wrote them, which is how the target curve
-  // keeps a headphone correction while still correcting what the user has done
-  // to the same bands since.
-  const headsetSignatureRef = useRef(headsetSignature);
-  headsetSignatureRef.current = headsetSignature;
   const convolutionRef = useRef(convolution);
   convolutionRef.current = convolution;
   const smartEqRef = useRef(smartEq);
@@ -600,10 +589,10 @@ const SmartEqEngine = () => {
    * peaks and dips it finds while leaving the music's own spectral tilt alone.
    *
    * The answer lands in the Smart EQ layer, never in the bands on screen. What
-   * the measurement finds is the residual of the whole chain — the bands, the
-   * voicing, the driver compensation and the last Smart EQ correction, all
-   * heard together — so it belongs to none of them individually and writing it
-   * into the bands meant a measurement quietly rewrote a tuning someone had
+   * the measurement finds is what is wrong with the record itself, heard with
+   * every other layer subtracted and only the last Smart EQ correction still in
+   * — so it belongs to no band, no voicing and no driver profile, and writing
+   * it into the bands meant a measurement quietly rewrote a tuning someone had
    * built by hand.
    *
    * There is no fixed duration. The measurement runs until every frequency
@@ -723,30 +712,13 @@ const SmartEqEngine = () => {
         // merely flattening — the same reference the continuous modes use, so
         // Target means the same thing whichever way it is reached.
         //
-        // What the measurement is allowed to leave alone.
-        //
-        // The capture accumulates the output, so everything applied is in it.
-        // Driving all of that to the reference would cancel the layers somebody
-        // deliberately chose — pick a voicing and Smart EQ would quietly undo
-        // it, which is the least useful thing it could possibly do.
-        //
-        // TWO LAYERS ARE EXCUSED, AND ONLY TWO: the voicing and the driver.
-        //
-        // A voicing is a colouration somebody asked for by name. A driver
-        // correction compensates the transducer, which is the one thing a
-        // digital loopback categorically cannot hear — so it will always look
-        // like error to this measurement and cancelling it is always wrong.
-        //
-        // Everything else is what the correction listens for: the bands, a
-        // headset curve applied into them, and the convolution. All three are
-        // part of what is coming out, and if what is coming out is wrong they
-        // are corrected like anything else.
-        //
-        // The cost of putting the headset curve on that side belongs in
-        // writing, because it is not obvious: it is also a correction for
-        // something invisible to a loopback, so Smart EQ will flatten it over a
-        // few passes. A headphone correction that must survive belongs in the
-        // driver layer.
+        // Nothing is excused, because nothing needs to be. The capture
+        // subtracts every layer but this one (see `chainGainDb`), so the
+        // samples are the record plus the correction so far — the bands, the
+        // voicing, the driver and headphone corrections are not in them and
+        // cannot be undone by them. This used to hand the solver a target curve
+        // holding the voicing and the driver as "do not touch", which was right
+        // while the measurement was the raw output and doubles them now.
         const gains = buildBalancedGains(result.samples, bands, {
           reference: getReferenceShape(referenceModeRef.current),
           // A range nothing is playing in cannot be lifted, however loudly it
@@ -756,13 +728,6 @@ const SmartEqEngine = () => {
           // biases a centred correction; see `correctionLimit`.
           maxBoost: getCorrectionLimit(),
           maxCut: getCorrectionLimit(),
-          targetCurve: buildLayerTargetCurve(
-            voicingRef.current,
-            driverRef.current,
-            undefined,
-            headphoneRef.current,
-            bypassedRef.current,
-          ),
         });
         if (Object.keys(gains).length === 0) {
           setSmartEqStatus(tRef.current('eq.smart.status.notEnoughRange'));
@@ -1050,16 +1015,12 @@ const SmartEqEngine = () => {
       // decides the destination and nothing else does — see
       // `getReferenceShape`.
       reference: getReferenceShape(referenceModeRef.current),
-      // The same two exceptions the one-shot makes, for the same reasons: the
-      // voicing is a named choice and the driver corrects the one thing this
-      // measurement cannot hear. Everything else in the output is fair game.
-      targetCurve: buildLayerTargetCurve(
-        voicingRef.current,
-        driverRef.current,
-        undefined,
-        headphoneRef.current,
-        bypassedRef.current,
-      ),
+      // No layer is excused here, because none is in the measurement. The
+      // capture subtracts the whole chain but this layer (see `chainGainDb`),
+      // so what the solver sees is the record plus its own correction, and the
+      // destination is the mode's curve and nothing else. Excusing the voicing
+      // and the driver on top of that — as this did when the measurement was
+      // the raw output — would count them twice and rebuild them in here.
     });
     if (Object.keys(solved).length === 0) {
       // No answer this time. The tilt fit needs a wide trusted span and a range
@@ -1304,14 +1265,9 @@ const SmartEqEngine = () => {
         ...(bypassedRef.current.includes('driver')
           ? []
           : getDriverFilters(driverRef.current)),
-        // Named in the paragraph above since that paragraph was written, and
-        // not actually taken out until now. The layer was in the target curve —
-        // "do not undo this" — but not in the subtraction, so the reconstructed
-        // record still carried it: the gate then judged how much programme was
-        // in a range using levels the correction had already lifted or dropped
-        // by several decibels, and trusted or skipped ranges on that basis. The
-        // driver is in both lists for exactly the same reason; this was the one
-        // layer in one list and not the other.
+        // A digital loopback cannot hear the transducer this compensates.
+        // Subtracting its correction keeps both the evidence gate and the
+        // solver from treating the headphone response as part of the record.
         ...(bypassedRef.current.includes('headphone')
           ? []
           : getHeadphoneFilters(headphoneRef.current)),

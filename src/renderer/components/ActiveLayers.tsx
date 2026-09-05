@@ -141,9 +141,10 @@ const ActiveLayers = () => {
    * chip said modified the moment a reference was applied and never stopped.
    *
    * There is nothing to replace it with here, either: a band the user moved is
-   * a band, and this chip now says how many there are. `headsetSignature` still
-   * earns its keep elsewhere — `buildLayerTargetCurve` reads it to protect
-   * corrections applied before the split, which really did go into the bands.
+   * a band, and this chip now says how many there are. `headsetSignature` is
+   * kept in state for profiles saved before the split, which carry it; nothing
+   * in the renderer reads it any more, since Smart EQ subtracts the whole band
+   * layer and no longer needs to know which part of it was a headset curve.
    */
 
   /**
