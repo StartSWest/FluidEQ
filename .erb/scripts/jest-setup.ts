@@ -2,6 +2,25 @@ import { TextDecoder, TextEncoder } from 'util';
 
 Object.assign(globalThis, { TextDecoder, TextEncoder });
 
+// jsdom has neither a canvas renderer nor a media decoder. DOM tests exercise
+// the no-context path; drawing tests install their own measured context, and
+// native smoke tests exercise actual decoding. Model those missing APIs at
+// the boundary instead of letting jsdom emit an error on every paint/load.
+if (typeof HTMLCanvasElement !== 'undefined') {
+  Object.defineProperty(HTMLCanvasElement.prototype, 'getContext', {
+    configurable: true,
+    writable: true,
+    value: jest.fn(() => null),
+  });
+}
+if (typeof HTMLMediaElement !== 'undefined') {
+  Object.defineProperty(HTMLMediaElement.prototype, 'load', {
+    configurable: true,
+    writable: true,
+    value: jest.fn(),
+  });
+}
+
 /**
  * `ResizeObserver`, which jsdom does not implement and Electron always has.
  *

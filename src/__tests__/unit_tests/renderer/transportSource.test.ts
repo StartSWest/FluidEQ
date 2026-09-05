@@ -70,7 +70,7 @@ describe('the register of players', () => {
   });
 
   afterEach(() => {
-    resetTransportSource();
+    act(() => resetTransportSource());
   });
 
   it('remembers the last of this app’s own players', () => {

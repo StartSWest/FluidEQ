@@ -34,6 +34,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
+import log from 'electron-log';
+import { forgetPath } from '../../../main/asyncWriter';
 import { ErrorCode } from '../../../common/errors';
 import ChannelEnum from '../../../common/channels';
 import {
@@ -185,8 +187,45 @@ describe('renaming and deleting a profile through IPC', () => {
   });
 
   afterEach(async () => {
+    jest.restoreAllMocks();
     fs.rmSync(root, { recursive: true, force: true });
   });
+
+  it.each([ChannelEnum.SAVE_PRESET, ChannelEnum.CREATE_PRESET])(
+    '%s reports a failed write without replacing the saved restore point',
+    async (channel) => {
+      const report = jest
+        .spyOn(log, 'error')
+        .mockImplementation(() => undefined);
+      const write = jest
+        .spyOn(fs.promises, 'writeFile')
+        .mockRejectedValueOnce(new Error('disk unavailable'));
+      try {
+        await fire(channel, [SHARED]);
+        expect(write).toHaveBeenCalledTimes(1);
+        expect(report).toHaveBeenCalled();
+        expect(errors).toEqual([ErrorCode.PRESET_FILE_ERROR]);
+        const baseline = JSON.parse(
+          fs.readFileSync(
+            path.join(baselineDirFor(HEADPHONES), SHARED),
+            'utf8',
+          ),
+        );
+        expect(baseline.filters.a.gain).toBe(1);
+
+        // The same request must succeed after the disk recovers.
+        errors.length = 0;
+        await fire(channel, [SHARED]);
+        expect(errors).toEqual([]);
+        const saved = JSON.parse(
+          fs.readFileSync(path.join(presetDirFor(HEADPHONES), SHARED), 'utf8'),
+        );
+        expect(saved.filters.a.gain).toBe(0);
+      } finally {
+        forgetPath(path.join(presetDirFor(HEADPHONES), SHARED));
+      }
+    },
+  );
 
   it('renames the active output’s profile and nothing of the other’s', async () => {
     await fire(ChannelEnum.RENAME_PRESET, [SHARED, 'Studio']);

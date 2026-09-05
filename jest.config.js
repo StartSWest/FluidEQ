@@ -20,6 +20,10 @@ module.exports = {
   moduleDirectories: ['src', 'node_modules', 'release/app/node_modules'],
   moduleFileExtensions: ['js', 'jsx', 'ts', 'tsx', 'json'],
   moduleNameMapper: {
+    // Jest runs in Node even when jsdom supplies a DOM. Resolving the browser
+    // logger here waits for an Electron preload bridge that no unit test owns.
+    '^electron-log$': '<rootDir>/.erb/mocks/testLogger.js',
+    '^electron-log/renderer$': '<rootDir>/.erb/mocks/testLogger.js',
     '\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga|worklet)$':
       '<rootDir>/.erb/mocks/fileMock.js',
     '^@fluideq/whisper-wasm$': '<rootDir>/.erb/mocks/fileMock.js',

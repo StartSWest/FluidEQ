@@ -39,16 +39,22 @@ interface IPathState {
   /** Contents waiting to be written after the in-flight write, if any. */
   pending?: string;
   inFlight?: Promise<void>;
+  failure?: { error: unknown };
+  disk?: { mtimeMs: number; size: number };
 }
 
 const paths = new Map<string, IPathState>();
+const operations = new Map<
+  string,
+  { pending?: () => Promise<void>; inFlight: Promise<void> }
+>();
 
-const writeNow = async (filePath: string, contents: string): Promise<void> => {
-  try {
-    await fs.promises.writeFile(filePath, contents, 'utf8');
-  } catch (error) {
-    log.error(`Failed to write ${filePath}`, error);
-  }
+/** Observe background failures without changing the promise callers await. */
+const observed = (promise: Promise<void>): Promise<void> => {
+  promise.catch((error: unknown) =>
+    log.error('Background file write failed', error),
+  );
+  return promise;
 };
 
 const drain = (filePath: string, entry: IPathState): void => {
@@ -58,9 +64,20 @@ const drain = (filePath: string, entry: IPathState): void => {
   const contents = entry.pending;
   entry.pending = undefined;
   const landed = async () => {
-    await writeNow(filePath, contents);
-    entry.inFlight = undefined;
-    drain(filePath, entry);
+    try {
+      await fs.promises.writeFile(filePath, contents, 'utf8');
+      const stat = await fs.promises.stat(filePath);
+      entry.disk = { mtimeMs: stat.mtimeMs, size: stat.size };
+      entry.failure = undefined;
+    } catch (error) {
+      // A failed write is not a saved value: identical requests must retry,
+      // and callers waiting to confirm a save must receive the failure.
+      entry.failure = { error };
+      entry.disk = undefined;
+    } finally {
+      entry.inFlight = undefined;
+      drain(filePath, entry);
+    }
   };
   entry.inFlight = landed();
 };
@@ -75,6 +92,21 @@ export const settlePath = async (filePath: string): Promise<void> => {
   while (entry?.inFlight) {
     // eslint-disable-next-line no-await-in-loop -- one write at a time, by design
     await entry.inFlight;
+  }
+  if (entry?.failure) {
+    throw entry.failure.error;
+  }
+};
+
+const diskIsUnchanged = (filePath: string, entry: IPathState): boolean => {
+  if (!entry.disk) {
+    return false;
+  }
+  try {
+    const stat = fs.statSync(filePath);
+    return stat.mtimeMs === entry.disk.mtimeMs && stat.size === entry.disk.size;
+  } catch {
+    return false;
   }
 };
 
@@ -92,18 +124,22 @@ export const scheduleWrite = (
 ): Promise<void> => {
   const entry = paths.get(filePath);
   if (entry) {
-    if (entry.latest === contents) {
-      return settlePath(filePath);
+    if (
+      entry.latest === contents &&
+      !entry.failure &&
+      (entry.inFlight || diskIsUnchanged(filePath, entry))
+    ) {
+      return observed(settlePath(filePath));
     }
     entry.latest = contents;
     entry.pending = contents;
     drain(filePath, entry);
-    return settlePath(filePath);
+    return observed(settlePath(filePath));
   }
   const fresh: IPathState = { latest: contents, pending: contents };
   paths.set(filePath, fresh);
   drain(filePath, fresh);
-  return settlePath(filePath);
+  return observed(settlePath(filePath));
 };
 
 /**
@@ -111,8 +147,14 @@ export const scheduleWrite = (
  * have reached the disk yet. A reader that goes through here never sees a
  * file that is behind a write still in flight.
  */
-export const peekScheduled = (filePath: string): string | undefined =>
-  paths.get(filePath)?.latest;
+export const peekScheduled = (filePath: string): string | undefined => {
+  const entry = paths.get(filePath);
+  // Once a write settles, the disk owns the truth again. Keeping the last
+  // request forever hid external edits and even files that failed to save.
+  return entry?.inFlight || entry?.pending !== undefined
+    ? entry.latest
+    : undefined;
+};
 
 /**
  * Seed the writer with what a file holds now, so the first scheduled write
@@ -120,7 +162,11 @@ export const peekScheduled = (filePath: string): string | undefined =>
  */
 export const noteOnDisk = (filePath: string, contents: string): void => {
   if (!paths.has(filePath)) {
-    paths.set(filePath, { latest: contents });
+    const stat = fs.statSync(filePath);
+    paths.set(filePath, {
+      latest: contents,
+      disk: { mtimeMs: stat.mtimeMs, size: stat.size },
+    });
   }
 };
 
@@ -140,6 +186,7 @@ export const forgetPath = (filePath: string): void => {
  * back to where it had been a moment earlier.
  */
 export const hasUnsettledWrites = (): boolean =>
+  operations.size > 0 ||
   [...paths.values()].some(
     (entry) => entry.inFlight !== undefined || entry.pending !== undefined,
   );
@@ -152,10 +199,57 @@ export const flushPendingWrites = async (): Promise<void> => {
   const inFlight = [...paths.values()]
     .map((entry) => entry.inFlight)
     .filter((promise): promise is Promise<void> => promise !== undefined);
-  await Promise.all(inFlight);
+  const outcomes = await Promise.allSettled([
+    ...inFlight,
+    ...[...operations.values()].map((entry) => entry.inFlight),
+  ]);
   // A write that landed may have released a pending one; go again until
   // nothing is moving.
-  if ([...paths.values()].some((entry) => entry.inFlight)) {
+  if (hasUnsettledWrites()) {
     await flushPendingWrites();
   }
+  const rejected = outcomes.find(
+    (outcome): outcome is PromiseRejectedResult =>
+      outcome.status === 'rejected',
+  );
+  if (rejected) {
+    throw rejected.reason;
+  }
+  const failed = [...paths.values()].find((entry) => entry.failure);
+  if (failed?.failure) {
+    throw failed.failure.error;
+  }
+};
+
+/** Serialize dependent config snapshots while coalescing queued slider edits.
+ * The shutdown and APO watcher barriers include the whole operation, including
+ * files whose writes have not started yet. */
+export const scheduleWriteOperation = (
+  key: string,
+  work: () => Promise<void>,
+): Promise<void> => {
+  const existing = operations.get(key);
+  if (existing) {
+    existing.pending = work;
+    return existing.inFlight;
+  }
+  const entry: { pending?: () => Promise<void>; inFlight: Promise<void> } = {
+    pending: work,
+    inFlight: Promise.resolve(),
+  };
+  operations.set(key, entry);
+  const run = async () => {
+    try {
+      while (entry.pending) {
+        const next = entry.pending;
+        entry.pending = undefined;
+        await next();
+      }
+      return undefined;
+    } finally {
+      operations.delete(key);
+    }
+  };
+  entry.inFlight = Promise.resolve().then(run);
+  return observed(entry.inFlight);
 };

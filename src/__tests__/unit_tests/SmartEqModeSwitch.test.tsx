@@ -106,7 +106,7 @@ describe('switching Smart EQ mode', () => {
   });
 
   afterEach(() => {
-    setSmartEqMode('smart');
+    act(() => setSmartEqMode('smart'));
   });
 
   const renderEngine = async () => {

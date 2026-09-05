@@ -30,7 +30,11 @@ import {
   stateToApoFiles,
 } from './flush';
 import { parseCustomFx } from '../common/customFx';
-import { forgetPath, scheduleWrite } from './asyncWriter';
+import {
+  forgetPath,
+  scheduleWrite,
+  scheduleWriteOperation,
+} from './asyncWriter';
 import readTextCached from './cachedRead';
 import writeConvolutionWav from './convolution';
 import { hydrateConvolutionAnalysis } from './convolutionAnalysis';
@@ -894,38 +898,35 @@ export const flushDeviceProfiles = (
   // only when the SET of files changes. They walk the config directory
   // synchronously, and the set is the same on every slider movement; what
   // changes then is the contents, which the writer handles.
-  const fileSet = [...files.keys(), ...liveSlugs].sort().join('|');
-  const fileSetChanged = fileSet !== lastFlushedFileSet.get(configDirPath);
-  if (fileSetChanged) {
-    ensureCustomFiles(configDirPath, liveSlugs);
-  }
+  return scheduleWriteOperation(configDirPath, async () => {
+    const fileSet = [...files.keys(), ...liveSlugs].sort().join('|');
+    const fileSetChanged = fileSet !== lastFlushedFileSet.get(configDirPath);
+    if (fileSetChanged) {
+      ensureCustomFiles(configDirPath, liveSlugs);
+    }
 
-  // In the map's order, which is dependency order: nothing names a file that
-  // has not been written yet, so a reload landing between two of these writes
-  // sees a config that is behind but never one that is broken.
-  // Collected, not awaited: the app never waits for these — a drag would
-  // stall on the disk if it did — but the promise is handed back so a caller
-  // that has to read the config it just wrote can say so.
-  const landed: Promise<void>[] = [];
-  files.forEach((contents, fileName) => {
-    landed.push(
-      writeIfChanged(addFileToPath(configDirPath, fileName), contents),
-    );
+    // Starting writes in map order does not finish them in that order.
+    // Await each dependency before publishing its Include, and serialize whole
+    // snapshots so an older root cannot land after a newer cleanup. This is
+    // asynchronous; queued slider edits are coalesced by the operation writer.
+    const entries = [...files];
+    for (let index = 0; index < entries.length; index += 1) {
+      const [fileName, contents] = entries[index];
+      await writeIfChanged(addFileToPath(configDirPath, fileName), contents);
+    }
+
+    // After the root, so nothing is deleted while something still includes it.
+    // A custom file is kept for as long as its output has a chain — it is the
+    // one file here somebody may have put work into, and it goes only when the
+    // output it belongs to does.
+    if (fileSetChanged) {
+      removeStaleFiles(
+        configDirPath,
+        new Set([...files.keys(), ...[...liveSlugs].map(customFileName)]),
+      );
+      lastFlushedFileSet.set(configDirPath, fileSet);
+    }
   });
-
-  // After the root, so nothing is deleted while something still includes it.
-  // A custom file is kept for as long as its output has a chain — it is the
-  // one file here somebody may have put work into, and it goes only when the
-  // output it belongs to does.
-  if (fileSetChanged) {
-    removeStaleFiles(
-      configDirPath,
-      new Set([...files.keys(), ...[...liveSlugs].map(customFileName)]),
-    );
-    lastFlushedFileSet.set(configDirPath, fileSet);
-  }
-
-  return Promise.all(landed).then(() => undefined);
 };
 
 export * from './audioDevices';

@@ -4,6 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
+import log from 'electron-log/renderer';
 import {
   crossfadeGain,
   readDspCrossfadeMeter,
@@ -59,6 +60,7 @@ describe('DSP deck crossfade', () => {
   });
 
   afterEach(() => {
+    jest.restoreAllMocks();
     animationFrame.mockRestore();
     cancelFrame.mockRestore();
   });
@@ -164,6 +166,7 @@ describe('DSP deck crossfade', () => {
   });
 
   it('keeps fading on the registered gain nodes when Chromium rejects automation', () => {
+    const warning = jest.spyOn(log, 'warn').mockImplementation(() => undefined);
     const context = { currentTime: 6 } as AudioContext;
     const outgoing = {} as HTMLAudioElement;
     const incoming = {} as HTMLAudioElement;
@@ -189,11 +192,17 @@ describe('DSP deck crossfade', () => {
     expect(first.setValueAtTime.mock.calls[firstLast]?.[0]).toBeCloseTo(1, 6);
     expect(second.setValueAtTime.mock.calls[secondLast]?.[0]).toBeCloseTo(0, 6);
     expect(frame.callback).toBeDefined();
+    expect(warning).toHaveBeenCalledTimes(1);
+    expect(warning).toHaveBeenCalledWith('[dsp:renderer] code=2003', {
+      durationMs: 2000,
+      curve: 'smooth',
+    });
 
     unregister();
   });
 
   it('crossfades element volumes when the DSP mixer is not registered yet', () => {
+    const warning = jest.spyOn(log, 'warn').mockImplementation(() => undefined);
     const outgoing = { volume: 0.8 } as HTMLAudioElement;
     const incoming = { volume: 0.8 } as HTMLAudioElement;
     let now = 100;
@@ -214,6 +223,11 @@ describe('DSP deck crossfade', () => {
     frame.callback?.(now);
     expect(outgoing.volume).toBeCloseTo(0, 6);
     expect(incoming.volume).toBeCloseTo(0.8, 6);
+    expect(warning).toHaveBeenCalledTimes(1);
+    expect(warning).toHaveBeenCalledWith('[dsp:renderer] code=2001', {
+      durationMs: 2000,
+      curve: 'linear',
+    });
 
     clock.mockRestore();
   });

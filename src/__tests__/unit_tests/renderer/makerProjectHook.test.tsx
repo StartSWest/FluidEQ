@@ -44,8 +44,8 @@ const song = (): IKaraokeSong => ({
 const audioFile = () =>
   new File(['audio'], 'hook.mp3', { type: 'audio/mpeg' }) as File;
 
-const setup = () =>
-  renderHook(() =>
+const setup = async () => {
+  const view = renderHook(() =>
     useKaraokeMakerProject({
       song: song(),
       audioFile: audioFile(),
@@ -54,6 +54,13 @@ const setup = () =>
       onProjectAdopted: () => {},
     }),
   );
+  // Waveform decoding resolves after mount; settle that effect before testing
+  // edits or tearing down the hook.
+  await act(async () => {
+    await Promise.resolve();
+  });
+  return view;
+};
 
 /**
  * The project, its history and its draft on disk.
@@ -76,14 +83,14 @@ describe('the Maker project', () => {
     } as unknown as typeof window.electron;
   });
 
-  it('starts with nothing to undo or redo', () => {
-    const { result } = setup();
+  it('starts with nothing to undo or redo', async () => {
+    const { result } = await setup();
     expect(result.current.canUndo).toBe(false);
     expect(result.current.canRedo).toBe(false);
   });
 
   it('stamps every commit and makes it undoable', async () => {
-    const { result } = setup();
+    const { result } = await setup();
     const before = result.current.project.updatedAt;
 
     // `updatedAt` has millisecond resolution and this test is faster than
@@ -108,9 +115,9 @@ describe('the Maker project', () => {
     expect(result.current.project.title).toBe('Renamed');
   });
 
-  it('drops the redo branch when a new edit lands on top of an undo', () => {
+  it('drops the redo branch when a new edit lands on top of an undo', async () => {
     // The future belonged to a past that no longer happened.
-    const { result } = setup();
+    const { result } = await setup();
 
     act(() => result.current.commit((c) => ({ ...c, title: 'First' })));
     act(() => result.current.undo());
@@ -120,8 +127,8 @@ describe('the Maker project', () => {
     expect(result.current.canRedo).toBe(false);
   });
 
-  it('keeps the history bounded rather than growing all session', () => {
-    const { result } = setup();
+  it('keeps the history bounded rather than growing all session', async () => {
+    const { result } = await setup();
 
     act(() => {
       for (let index = 0; index < 120; index += 1) {
@@ -140,7 +147,7 @@ describe('the Maker project', () => {
   });
 
   it('rebuilds the imported original and deletes the draft it replaced', async () => {
-    const { result } = setup();
+    const { result } = await setup();
     act(() => result.current.commit((c) => ({ ...c, title: 'Edited' })));
 
     let original: { title: string } | undefined;
@@ -159,7 +166,7 @@ describe('the Maker project', () => {
   });
 
   it('decodes the waveform once and keeps it across an edit', async () => {
-    const { result } = setup();
+    const { result } = await setup();
 
     await waitFor(() =>
       expect(result.current.project.analysis.waveform).toHaveLength(2),

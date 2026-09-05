@@ -25,7 +25,12 @@ protected from clipping at every sample rate.
   and shaped by your EQ. Float32 PCM end to end, AES-256-GCM on every packet,
   private LAN only, and the pairing survives app closes and reboots. Two
   priorities: Music keeps a larger safety buffer, Game/Video runs with the
-  lowest delay for lip-sync.
+  smaller 100–200 ms buffer to reduce delay for games and video.
+- **Control shared playback from the receiver.** The playback bar shows the
+  sending computer's song, artist and playback state. Play/pause, stop,
+  previous/next and time-step buttons work when the source supports them.
+  With "one player at a time" enabled, starting playback here pauses the
+  sender; starting another sender pauses the other active sources.
 - **The Black theme.** A true black floor, every surface a few values above
   it, hairlines instead of lightness for the edges, and an ice-blue accent
   that stays cool beside the rainbow. Every window follows, drawings
@@ -73,6 +78,16 @@ protected from clipping at every sample rate.
 
 ### Fixed
 
+- **Shared songs work with Smart EQ.** A song arriving from another computer
+  is recognised as playing, so song-specific EQ can follow it. Reception
+  meters now say "Receiving" instead of "Transmitting".
+- **Background saves preserve complete EQ configurations.** Included files
+  finish writing before the configuration that references them, and files
+  from the previous output are removed only after the replacement is ready.
+  Failed saves are reported and can be retried; external profile edits are
+  no longer hidden by a previously saved copy in memory.
+- **Updating a profile keeps its name.** Update replaces the selected
+  profile; only creating a new profile adds a number when the name is taken.
 - **Smart EQ recovers a song's curve instead of walking it back.** The loop
   kept everything it knew about the previous song when the recorder replaced
   the layer under it, read the song's own curve as a disagreement and

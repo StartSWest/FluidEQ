@@ -19,6 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import '@testing-library/jest-dom';
 import {
   act,
+  cleanup,
   fireEvent,
   render,
   screen,
@@ -38,6 +39,11 @@ import {
 import { setGraphView } from '../../renderer/utils/graphStyle';
 
 describe('App', () => {
+  afterEach(async () => {
+    await act(async () => {
+      cleanup();
+    });
+  });
   const setWindowFullScreen = jest.fn(async (next: boolean) => next);
   /** What the window says on start-up, and the way to make it say more. */
   let windowStateOnLoad = { isMaximized: false, isFullScreen: false };
@@ -189,7 +195,9 @@ describe('App', () => {
     // Match the browser's real pointer sequence. The parent menu listens to
     // pointerdown while Dropdown commits the value on click.
     fireEvent.pointerDown(spanish);
-    fireEvent.click(spanish);
+    await act(async () => {
+      fireEvent.click(spanish);
+    });
 
     expect(document.documentElement).toHaveAttribute('lang', 'es');
     expect(window.localStorage.getItem('fluideq.locale')).toBe('es');
@@ -279,6 +287,7 @@ describe('App', () => {
 
     fireEvent.click(screen.getByRole('tab', { name: 'EQ Presets' }));
     expect(container.querySelector('.graph-wrapper')).toBeNull();
+    await act(async () => Promise.resolve());
   });
 
   it('uses the media surface for its control and graph fullscreen for Ctrl+F', async () => {

@@ -19,6 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import '@testing-library/jest-dom';
 import {
   act,
+  cleanup,
   fireEvent,
   render,
   screen,
@@ -145,8 +146,11 @@ describe('KaraokeWorkspace', () => {
     setTransportSlot(barSlot);
   });
 
-  afterEach(() => {
-    setTransportSlot(null);
+  afterEach(async () => {
+    await act(async () => {
+      cleanup();
+      setTransportSlot(null);
+    });
     barSlot?.remove();
     barSlot = undefined;
     jest.useRealTimers();
@@ -262,8 +266,9 @@ describe('KaraokeWorkspace', () => {
     ).not.toHaveLength(0);
   });
 
-  it('lets the pitch guide be hidden and restored independently of the mic', () => {
+  it('lets the pitch guide be hidden and restored independently of the mic', async () => {
     const { container } = render(<KaraokeWorkspace isHidden={false} />);
+    await act(async () => Promise.resolve());
 
     const hideGuide = screen.getByRole('button', {
       name: 'Hide pitch guide',
@@ -367,7 +372,7 @@ describe('KaraokeWorkspace', () => {
     ).toBe('true');
   });
 
-  it('toggles full screen from the Karaoke surface without hijacking controls', () => {
+  it('toggles full screen from the Karaoke surface without hijacking controls', async () => {
     const toggleFullScreen = jest.fn();
     const { container, rerender } = render(
       <KaraokeWorkspace
@@ -375,6 +380,7 @@ describe('KaraokeWorkspace', () => {
         onToggleFullScreen={toggleFullScreen}
       />,
     );
+    await act(async () => Promise.resolve());
     const stage = container.querySelector(
       '.karaoke-workspace__stage',
     ) as HTMLElement;
@@ -1220,10 +1226,11 @@ describe('KaraokeWorkspace', () => {
     canvasContext.mockRestore();
   });
 
-  it('only applies the idle fade to the full-screen actions', () => {
+  it('only applies the idle fade to the full-screen actions', async () => {
     const { rerender } = render(
       <KaraokeWorkspace isHidden={false} isFullScreen isChromeIdle />,
     );
+    await act(async () => Promise.resolve());
 
     expect(
       screen.getByRole('toolbar', { name: 'Karaoke actions' }),
@@ -1235,10 +1242,11 @@ describe('KaraokeWorkspace', () => {
     ).not.toHaveClass('is-stage-toolbar', 'is-idle');
   });
 
-  it('uses the fullscreen layout without duplicating Karaoke chrome under a graph', () => {
+  it('uses the fullscreen layout without duplicating Karaoke chrome under a graph', async () => {
     const { container } = render(
       <KaraokeWorkspace isHidden={false} isFullScreen isGraphOverlay />,
     );
+    await act(async () => Promise.resolve());
 
     expect(container.querySelector('.karaoke-workspace')).toHaveClass(
       'is-fullscreen',
@@ -2066,8 +2074,9 @@ describe('KaraokeWorkspace', () => {
     expect(audio.currentTime).toBe(0);
   });
 
-  it('releases the hidden stage DOM when another tab opens', () => {
+  it('releases the hidden stage DOM when another tab opens', async () => {
     const { container } = render(<KaraokeWorkspace isHidden />);
+    await act(async () => Promise.resolve());
     const workspace = container.querySelector('.karaoke-workspace');
 
     expect(workspace).not.toBeInTheDocument();

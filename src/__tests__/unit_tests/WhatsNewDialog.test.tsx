@@ -16,7 +16,14 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import {
+  act,
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from '@testing-library/react';
 import WhatsNewDialog from 'renderer/components/WhatsNewDialog';
 import { I18nProvider } from 'renderer/utils/I18nContext';
 
@@ -38,6 +45,12 @@ const NOTES = [
 
 /** What the main process was asked for, so the two entry points can be told apart. */
 let requestedScope: string | undefined;
+
+afterEach(async () => {
+  await act(async () => {
+    cleanup();
+  });
+});
 
 const showNotes = (
   markdown: string,
@@ -101,7 +114,9 @@ describe('the release notes the dialog draws', () => {
   });
 
   it('draws the version heading and not the document title', async () => {
-    await showNotes(NOTES);
+    await act(async () => {
+      showNotes(NOTES);
+    });
     await waitFor(() => expect(screen.getByText('1.2.0')).toBeTruthy());
   });
 

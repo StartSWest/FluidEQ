@@ -17,7 +17,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import '@testing-library/jest-dom';
-import { act, render } from '@testing-library/react';
+import { act, cleanup, render } from '@testing-library/react';
+import log from 'electron-log/renderer';
+import { resetDspDiagnosticsForTests } from '../../renderer/dsp/diagnostics';
 import type { ILibraryIndex, ILibraryTrack } from '../../common/library/types';
 import { DSP_DEFAULTS } from '../../common/dsp/chain';
 import {
@@ -158,8 +160,11 @@ beforeEach(() => {
   } as unknown as typeof window.electron;
 });
 
-afterEach(() => {
-  applyDspSettings(DSP_DEFAULTS);
+afterEach(async () => {
+  await act(async () => {
+    cleanup();
+    applyDspSettings(DSP_DEFAULTS);
+  });
 });
 
 const renderHarness = () =>
@@ -221,6 +226,7 @@ describe('leaving a video behind (Task 19 fix-round)', () => {
     // moved off the video rather than one stray element happening to get
     // cleaned up while another still renders.
     expect(document.querySelector('video')).toBeNull();
+    await act(async () => Promise.resolve());
   });
 });
 
@@ -408,6 +414,7 @@ describe('a root removed while its track is playing (blocker 2)', () => {
     expect(latestPlayer?.queue?.trackIds).toEqual([audioTrack.id]);
     expect(latestPlayer?.track).toBeUndefined();
     expect(mediaPause).toHaveBeenCalled();
+    await act(async () => Promise.resolve());
   });
 });
 
@@ -453,6 +460,8 @@ describe('loading a track', () => {
 
 describe('crossfade transport ownership', () => {
   it('keeps navigation on the working deck until the incoming song is playing', async () => {
+    resetDspDiagnosticsForTests();
+    const warning = jest.spyOn(log, 'warn').mockImplementation(() => undefined);
     const createdAudio: HTMLAudioElement[] = [];
     const audioConstructor = jest
       .spyOn(window, 'Audio')
@@ -580,7 +589,13 @@ describe('crossfade transport ownership', () => {
         latestPlayer?.seek(7_000);
       });
       expect(incomingSeeks).toEqual([7]);
+      expect(warning).toHaveBeenCalledTimes(1);
+      expect(warning).toHaveBeenCalledWith('[dsp:renderer] code=2001', {
+        durationMs: 2000,
+        curve: 'equalPower',
+      });
     } finally {
+      warning.mockRestore();
       audioConstructor.mockRestore();
     }
   });
@@ -684,6 +699,8 @@ describe('crossfade transport ownership', () => {
     }
   });
   it('keeps the outgoing track-level gain until the overlap is finished', async () => {
+    resetDspDiagnosticsForTests();
+    const warning = jest.spyOn(log, 'warn').mockImplementation(() => undefined);
     jest.useFakeTimers();
     const createdAudio: HTMLAudioElement[] = [];
     const audioConstructor = jest
@@ -771,7 +788,13 @@ describe('crossfade transport ownership', () => {
         jest.advanceTimersByTime(301);
       });
       expect(readDspInputAnalysis().trackId).toBe(next.id);
+      expect(warning).toHaveBeenCalledTimes(1);
+      expect(warning).toHaveBeenCalledWith('[dsp:renderer] code=2001', {
+        durationMs: 250,
+        curve: 'equalPower',
+      });
     } finally {
+      warning.mockRestore();
       audioConstructor.mockRestore();
       jest.useRealTimers();
     }
@@ -848,6 +871,7 @@ describe('Previous button behavior', () => {
     });
     expect(latestPlayer?.track?.id).toBe(audioTrack.id);
     expect(latestPlayer?.track?.id).not.toBe(videoTrack.id);
+    await act(async () => Promise.resolve());
   });
 });
 

@@ -143,7 +143,7 @@ describe('songEqSession', () => {
 
   afterEach(() => {
     jest.useRealTimers();
-    setSmartEqMode('smart');
+    act(() => setSmartEqMode('smart'));
   });
 
   /**

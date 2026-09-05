@@ -1691,7 +1691,7 @@ const handleUpdateHelperCore = async <T>(
         : undefined;
     // Flush changes to EqualizerAPO with a retry in case several requests to write are occuring at the same time
     await retryHelper(5, () => {
-      flushDeviceProfiles(
+      return flushDeviceProfiles(
         deviceProfileSettings,
         presetDirForDevice,
         session.configPath,
@@ -1940,7 +1940,7 @@ const syncActiveApoFilesFromDisk = async () => {
   // normalizing the other files in that same pass.
   if (generatedChanged && !containsUnsupportedCommands) {
     await retryHelper(5, () => {
-      flushDeviceProfiles(
+      return flushDeviceProfiles(
         deviceProfileSettings,
         presetDirForDevice,
         session.configPath,
