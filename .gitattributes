@@ -12,3 +12,6 @@
 *.woff2 binary
 *.onnx binary
 *.tar.br binary
+*.pdf   binary
+*.pptx  binary
+*.zip   binary
