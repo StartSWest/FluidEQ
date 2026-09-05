@@ -129,11 +129,11 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 
   &--1 {
-    fill: color-mix(in srgb, #c86bff 22%, $surface-well);
+    fill: color-mix(in srgb, $neon-purple 22%, $surface-well);
   }
 
   &--2 {
-    fill: color-mix(in srgb, #ffb347 22%, $surface-well);
+    fill: color-mix(in srgb, $neon-yellow 22%, $surface-well);
   }
 }
 
@@ -194,4 +194,49 @@ it under the terms of the GNU General Public License version 3 or later.
 
 .tour-art__ink {
   fill: $surface-base;
+}
+
+// The two output drawings and the looks tiles.
+.tour-art__headset-line {
+  fill: none;
+  stroke: $secondary-light;
+  stroke-linecap: round;
+  stroke-width: 4;
+}
+
+.tour-art__panel-lit {
+  fill: color-mix(in srgb, $secondary-default 12%, $surface-field-end);
+  stroke: color-mix(in srgb, $secondary-light 45%, transparent);
+  stroke-width: 1.2;
+}
+
+// Five stops of the rainbow the graph draws with, so the tiles read as
+// the spectrum and not as four boxes of the accent.
+.tour-art__spectrum {
+  &--0 {
+    fill: $neon-cyan;
+  }
+
+  &--1 {
+    fill: $neon-lime;
+  }
+
+  &--2 {
+    fill: $neon-yellow;
+  }
+
+  &--3 {
+    fill: $neon-pink;
+  }
+
+  &--4 {
+    fill: $neon-purple;
+  }
+}
+
+.tour-art__spectrum-line {
+  fill: color-mix(in srgb, $secondary-default 35%, transparent);
+  stroke: $secondary-light;
+  stroke-linejoin: round;
+  stroke-width: 2;
 }

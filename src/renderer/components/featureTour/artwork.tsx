@@ -312,3 +312,194 @@ export function OnlineMediaArt() {
     </svg>
   );
 }
+
+/** One source, split to a headset and a speaker, each with its own profile. */
+export function SecondOutputArt() {
+  return (
+    <svg className="tour-art" viewBox={BOX} aria-hidden="true">
+      {/* The player, on the left. */}
+      <rect
+        className="tour-art__panel"
+        x="24"
+        y="92"
+        width="120"
+        height="76"
+        rx="10"
+      />
+      <rect
+        className="tour-art__screen"
+        x="36"
+        y="102"
+        width="96"
+        height="44"
+        rx="6"
+      />
+      <path
+        className="tour-art__wave"
+        d="M42 124 C 52 124, 56 110, 66 112 S 80 136, 90 128 S 104 108, 114 118 S 124 130, 126 124"
+      />
+      <rect
+        className="tour-art__foot"
+        x="64"
+        y="154"
+        width="40"
+        height="5"
+        rx="2"
+      />
+
+      {/* The split: one line in, two out. */}
+      <path className="tour-art__link" d="M144 130 L188 130" />
+      <path className="tour-art__link" d="M188 130 C 220 130, 220 60, 252 60" />
+      <path
+        className="tour-art__link"
+        d="M188 130 C 220 130, 220 200, 252 200"
+      />
+      <circle className="tour-art__accent-fill" cx="188" cy="130" r="6" />
+
+      {/* Headset, top right. */}
+      <g transform="translate(262 24)">
+        <rect className="tour-art__panel" width="114" height="72" rx="10" />
+        <path className="tour-art__headset-line" d="M32 46 a25 25 0 0 1 50 0" />
+        <rect
+          className="tour-art__accent-fill"
+          x="24"
+          y="40"
+          width="12"
+          height="18"
+          rx="4"
+        />
+        <rect
+          className="tour-art__accent-fill"
+          x="78"
+          y="40"
+          width="12"
+          height="18"
+          rx="4"
+        />
+      </g>
+
+      {/* Speaker, bottom right. */}
+      <g transform="translate(262 164)">
+        <rect className="tour-art__panel" width="114" height="72" rx="10" />
+        <rect
+          className="tour-art__screen"
+          x="38"
+          y="10"
+          width="38"
+          height="52"
+          rx="6"
+        />
+        <circle className="tour-art__knob" cx="57" cy="42" r="12" />
+        <circle className="tour-art__accent-fill" cx="57" cy="42" r="4" />
+        <circle className="tour-art__knob" cx="57" cy="20" r="5" />
+      </g>
+
+      {/* Each output's own profile: a small curve beside it. */}
+      <path
+        className="tour-art__wave"
+        d="M270 112 C 290 104, 310 118, 330 108 S 360 100, 372 106"
+      />
+      <path
+        className="tour-art__wave"
+        d="M270 250 C 290 244, 310 256, 330 246 S 360 252, 372 244"
+      />
+    </svg>
+  );
+}
+
+/** Four forms of the same spectrum, one of them being edited. */
+export function CustomLooksArt() {
+  // Ten columns of one spectrum: where each stands, how tall, which stop of
+  // the rainbow. The x is the column's identity across all four tiles.
+  const columns = [18, 34, 52, 44, 60, 38, 30, 46, 24, 16].map(
+    (height, index) => ({ x: 18 + index * 14, height, hue: index % 5 }),
+  );
+  const tiles = [
+    [24, 24],
+    [204, 24],
+    [24, 148],
+    [204, 148],
+  ];
+  return (
+    <svg className="tour-art" viewBox={BOX} aria-hidden="true">
+      {tiles.map(([x, y], index) => (
+        <g key={`${x}-${y}`} transform={`translate(${x} ${y})`}>
+          <rect
+            className={index === 3 ? 'tour-art__panel-lit' : 'tour-art__panel'}
+            width="172"
+            height="100"
+            rx="10"
+          />
+          <rect
+            className="tour-art__screen"
+            x="10"
+            y="10"
+            width="152"
+            height="80"
+            rx="6"
+          />
+          {index === 0 &&
+            columns.map(({ x, height, hue }) => (
+              <rect
+                key={x}
+                className={`tour-art__spectrum tour-art__spectrum--${hue}`}
+                x={x}
+                y={84 - height}
+                width="9"
+                height={height}
+                rx="2"
+              />
+            ))}
+          {index === 1 && (
+            <path
+              className="tour-art__spectrum-line"
+              d={`M18 ${84 - columns[0].height} ${columns
+                .map(({ x, height }) => `L${x + 4} ${84 - height}`)
+                .join(' ')} L162 84 L18 84 Z`}
+            />
+          )}
+          {index === 2 &&
+            columns.map(({ x, height, hue }) => (
+              <circle
+                key={x}
+                className={`tour-art__spectrum tour-art__spectrum--${hue}`}
+                cx={x + 4}
+                cy={84 - height}
+                r="4"
+              />
+            ))}
+          {index === 3 &&
+            columns.map(({ x, height }) =>
+              Array.from({ length: Math.round(height / 8) }, (_, row) => (
+                <rect
+                  key={`${x}-${80 - row * 8}`}
+                  className={`tour-art__spectrum tour-art__spectrum--${row % 5}`}
+                  x={x}
+                  y={80 - row * 8}
+                  width="9"
+                  height="5"
+                  rx="1"
+                />
+              )),
+            )}
+        </g>
+      ))}
+      {/* The editor's hand: a colour ramp and a slider under the lit tile. */}
+      <g transform="translate(204 252)">
+        {[0, 1, 2, 3, 4].map((i) => (
+          <rect
+            key={i}
+            className={`tour-art__spectrum tour-art__spectrum--${i}`}
+            x={i * 20}
+            y="0"
+            width="16"
+            height="6"
+            rx="2"
+          />
+        ))}
+        <line className="tour-art__track" x1="112" y1="3" x2="172" y2="3" />
+        <circle className="tour-art__accent-fill" cx="150" cy="3" r="4" />
+      </g>
+    </svg>
+  );
+}

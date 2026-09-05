@@ -103,6 +103,41 @@ const tour: Partial<Dictionary> = {
     'Lancez une piste depuis la Bibliothèque, ouvrez l’onglet DSP, choisissez une chaîne sous Préréglages, puis cliquez sur un étage dans les onglets latéraux et activez-le.',
   'tour.dsp.open': 'Ouvrir le DSP',
 
+  'tour.output.kicker': 'JOUE À DEUX ENDROITS',
+  'tour.output.title': 'Une deuxième sortie',
+  'tour.output.subtitle':
+    'Casque et enceintes en même temps, chacun avec son profil',
+  'tour.output.lead':
+    'Ce que vous entendez peut aussi sortir d’un deuxième appareil : le casque et les enceintes du salon, le bureau et la cuisine. La duplication prend le son après que votre EQ l’a façonné et le renvoie, donc la deuxième sortie entend le même réglage. Avec un pilote de routage installé, les deux sorties restent synchronisées et chacune peut porter son propre profil, comme le ferait un mixeur du type Voicemeeter.',
+  'tour.output.point1':
+    'Choisissez n’importe quelle autre sortie sous « Dupliquer vers » et elle se met à jouer ce que vous entendez déjà, avec son propre volume.',
+  'tour.output.point2':
+    'Chaque sortie garde son propre profil d’EQ : les enceintes et le casque se règlent séparément.',
+  'tour.output.point3':
+    'Un lecteur à la fois : lancer quelque chose dans FluidEQ met le reste de la machine en pause, et inversement.',
+  'tour.output.point4':
+    'Le son dupliqué arrive avec environ un cinquième de seconde de retard : parfait pour de la musique dans une autre pièce, pas pour la vidéo ni les jeux.',
+  'tour.output.how':
+    'Dans l’onglet EQ, ouvrez « Deuxième sortie » dans le panneau de droite, choisissez un appareil sous « Dupliquer vers » et réglez son volume. La carte affiche DUPLICATION pendant que ça tourne.',
+  'tour.output.open': 'Ouvrir l’EQ',
+
+  'tour.looks.kicker': 'VOTRE PROPRE VISUALISEUR',
+  'tour.looks.title': 'Des styles à vous pour le graphe',
+  'tour.looks.subtitle': 'Cinquante-sept formes, vos couleurs, votre mouvement',
+  'tour.looks.lead':
+    'Le spectre sous l’EQ se dessine comme vous voulez. Choisissez une des cinquante-sept formes, des simples barres et lignes aux crêtes, à la soie, à la skyline et à la matrice de points ; colorez-la en aplat, par fréquence, par niveau ou par chaleur ; réglez la vitesse d’attaque et la durée de maintien d’un pic ; marquez les pics d’étincelles, de comètes, de halos ou de couronnes. Enregistrez-le comme style à vous, et partagez-le en fichier.',
+  'tour.looks.point1':
+    'Cinquante-sept formes, chacune avec ses réglages : pièces, espacement, remplissage, épaisseur, et pleine ou tracée.',
+  'tour.looks.point2':
+    'Couleur par fréquence, niveau ou chaleur avec une rampe de vos propres couleurs, ou une seule couleur en aplat.',
+  'tour.looks.point3':
+    'Attaque et relâchement fixent le mouvement ; les pics allumés et dix-huit marques de pic décident de l’allure d’un coup.',
+  'tour.looks.point4':
+    'Le mode arc-en-ciel ajoute une lueur sur le temps et un bord qui parcourt toute la roue des couleurs. Les styles s’exportent en fichier et s’importent depuis un fichier.',
+  'tour.looks.how':
+    'Dans l’onglet EQ, appuyez sur « Nouveau style » dans la barre du graphe. Choisissez une forme avec le sélecteur ou appuyez sur Espace pour les faire défiler, réglez couleurs et mouvement pendant que la musique joue, puis Enregistrer.',
+  'tour.looks.open': 'Ouvrir l’EQ',
+
   'tour.karaoke.kicker': 'UNE SCÈNE À LA MAISON',
   'tour.karaoke.title': 'Le karaoké avec guide de justesse',
   'tour.karaoke.subtitle': 'Vos chansons, vos paroles, votre micro',

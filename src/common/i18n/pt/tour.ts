@@ -103,6 +103,41 @@ const tour: Partial<Dictionary> = {
     'Toque uma faixa da Biblioteca, abra a aba DSP, escolha uma cadeia em Presets, depois clique em um estágio nas abas laterais e ligue-o.',
   'tour.dsp.open': 'Abrir DSP',
 
+  'tour.output.kicker': 'TOCA EM DOIS LUGARES',
+  'tour.output.title': 'Uma segunda saída',
+  'tour.output.subtitle':
+    'Fone e caixas ao mesmo tempo, cada um com seu perfil',
+  'tour.output.lead':
+    'O que você ouve pode tocar também em um segundo dispositivo: o fone e as caixas da sala, a mesa e a cozinha. O espelhamento pega o som depois que o seu EQ o moldou e o reenvia, então a segunda saída ouve a mesma afinação. Com um driver de roteamento instalado, as duas saídas ficam sincronizadas e cada uma pode ter seu próprio perfil, como faria um mixer tipo Voicemeeter.',
+  'tour.output.point1':
+    'Escolha qualquer outra saída em “Espelhar em” e ela começa a tocar o que você já ouve, com volume próprio.',
+  'tour.output.point2':
+    'Cada saída mantém seu próprio perfil de EQ, então caixas e fone podem ser ajustados separadamente.',
+  'tour.output.point3':
+    'Um player por vez: iniciar algo no FluidEQ pausa o resto da máquina, e vice-versa.',
+  'tour.output.point4':
+    'O som espelhado chega com cerca de um quinto de segundo de atraso: bom para música em outro cômodo, não para vídeo ou jogos.',
+  'tour.output.how':
+    'Na aba EQ, abra “Segunda saída” no painel da direita, escolha um dispositivo em “Espelhar em” e ajuste o volume. O cartão mostra ESPELHANDO enquanto funciona.',
+  'tour.output.open': 'Abrir EQ',
+
+  'tour.looks.kicker': 'SEU PRÓPRIO VISUALIZADOR',
+  'tour.looks.title': 'Visuais próprios para o gráfico',
+  'tour.looks.subtitle': 'Cinquenta e sete formas, suas cores, seu movimento',
+  'tour.looks.lead':
+    'O espectro abaixo do EQ pode ser desenhado do jeito que você quiser. Escolha uma de cinquenta e sete formas, de barras e linhas simples a cristas, seda, skyline e matriz de pontos; pinte de forma chapada, por frequência, por nível ou por calor; defina a rapidez do ataque e quanto tempo um pico fica no ar; e marque os picos com faíscas, cometas, halos ou coroas. Salve como um visual seu e compartilhe como arquivo.',
+  'tour.looks.point1':
+    'Cinquenta e sete formas, cada uma com seus controles: peças, espaço, preenchimento, espessura, e se é preenchida ou traçada.',
+  'tour.looks.point2':
+    'Cor por frequência, nível ou calor com uma rampa das suas próprias cores, ou uma única cor chapada.',
+  'tour.looks.point3':
+    'Ataque e release definem o movimento; picos acesos e dezoito marcas de pico definem como um golpe aparece.',
+  'tour.looks.point4':
+    'O modo arco-íris adiciona um brilho na batida e uma borda que percorre toda a roda de cores. Visuais exportam para um arquivo e importam de um.',
+  'tour.looks.how':
+    'Na aba EQ, pressione “Novo visual” na barra do gráfico. Escolha uma forma no seletor ou pressione Espaço para percorrê-las, ajuste cores e movimento com a música tocando e depois Salvar.',
+  'tour.looks.open': 'Abrir EQ',
+
   'tour.karaoke.kicker': 'UM PALCO EM CASA',
   'tour.karaoke.title': 'Karaokê com guia de afinação',
   'tour.karaoke.subtitle': 'Suas músicas, suas letras, seu microfone',

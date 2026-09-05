@@ -103,6 +103,41 @@ const tour: Partial<Dictionary> = {
     'Spielen Sie einen Titel aus der Bibliothek, öffnen Sie den Tab DSP, wählen Sie unter Presets eine Kette, klicken Sie dann in den Seitentabs auf eine Stufe und schalten Sie sie ein.',
   'tour.dsp.open': 'DSP öffnen',
 
+  'tour.output.kicker': 'SPIELT AN ZWEI ORTEN',
+  'tour.output.title': 'Eine zweite Ausgabe',
+  'tour.output.subtitle':
+    'Headset und Lautsprecher zugleich, jedes mit eigenem Profil',
+  'tour.output.lead':
+    'Was Sie hören, kann gleichzeitig aus einem zweiten Gerät kommen: Headset und Raumlautsprecher, Schreibtisch und Küche. Das Spiegeln nimmt den Klang, nachdem Ihr EQ ihn geformt hat, und reicht ihn weiter, sodass die zweite Ausgabe dieselbe Abstimmung hört. Mit einem installierten Routing-Treiber bleiben beide Ausgaben synchron und jede kann ihr eigenes Profil tragen, so wie es ein Mischer wie Voicemeeter täte.',
+  'tour.output.point1':
+    'Wählen Sie unter „Spiegeln auf“ eine beliebige andere Ausgabe, und sie spielt, was Sie bereits hören, mit eigener Lautstärke.',
+  'tour.output.point2':
+    'Jede Ausgabe behält ihr eigenes EQ-Profil, sodass Lautsprecher und Headset getrennt abgestimmt werden.',
+  'tour.output.point3':
+    'Ein Player zur Zeit: Etwas in FluidEQ zu starten pausiert den Rest des Rechners, und umgekehrt.',
+  'tour.output.point4':
+    'Gespiegelter Klang kommt etwa eine fünftel Sekunde später an: gut für Musik im Nebenzimmer, nicht für Video oder Spiele.',
+  'tour.output.how':
+    'Öffnen Sie im Tab EQ „Zweite Ausgabe“ im rechten Panel, wählen Sie unter „Spiegeln auf“ ein Gerät und stellen Sie die Lautstärke ein. Die Karte zeigt SPIEGELT, solange es läuft.',
+  'tour.output.open': 'EQ öffnen',
+
+  'tour.looks.kicker': 'IHR EIGENER VISUALIZER',
+  'tour.looks.title': 'Eigene Darstellungen für den Graphen',
+  'tour.looks.subtitle': 'Siebenundfünfzig Formen, Ihre Farben, Ihre Bewegung',
+  'tour.looks.lead':
+    'Das Spektrum unter dem EQ lässt sich zeichnen, wie Sie wollen. Wählen Sie eine von siebenundfünfzig Formen, von schlichten Balken und Linien bis zu Graten, Seide, Skyline und Punktmatrix; färben Sie sie flach, nach Frequenz, Pegel oder Hitze; legen Sie fest, wie schnell sie anspricht und wie lange eine Spitze hängt; markieren Sie Spitzen mit Funken, Kometen, Halos oder Kronen. Speichern Sie das Ergebnis als eigene Darstellung und teilen Sie es als Datei.',
+  'tour.looks.point1':
+    'Siebenundfünfzig Formen, jede mit eigenen Reglern: Teile, Abstand, Füllung, Stärke, und ob gefüllt oder gestrichelt.',
+  'tour.looks.point2':
+    'Farbe nach Frequenz, Pegel oder Hitze mit einer Rampe aus Ihren eigenen Farben, oder eine flache Farbe.',
+  'tour.looks.point3':
+    'Attack und Release bestimmen die Bewegung; leuchtende Spitzen und achtzehn Spitzenmarken bestimmen, wie ein Schlag aussieht.',
+  'tour.looks.point4':
+    'Der Regenbogenmodus legt ein Glühen auf den Beat und einen Rand, der das ganze Farbrad durchläuft. Darstellungen lassen sich als Datei exportieren und importieren.',
+  'tour.looks.how':
+    'Drücken Sie im Tab EQ „Neue Darstellung“ in der Leiste des Graphen. Wählen Sie eine Form mit dem Wähler oder blättern Sie mit der Leertaste, stellen Sie Farben und Bewegung bei laufender Musik ein und dann Speichern.',
+  'tour.looks.open': 'EQ öffnen',
+
   'tour.karaoke.kicker': 'EINE BÜHNE ZU HAUSE',
   'tour.karaoke.title': 'Karaoke mit Tonhöhenführung',
   'tour.karaoke.subtitle': 'Ihre Songs, Ihre Texte, Ihr Mikrofon',

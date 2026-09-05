@@ -7,11 +7,13 @@ it under the terms of the GNU General Public License version 3 or later.
 */
 
 import {
+  CustomLooksArt,
   DspArt,
   KaraokeArt,
   KaraokeMakerArt,
   LibraryArt,
   OnlineMediaArt,
+  SecondOutputArt,
 } from './artwork';
 import FeatureSlide from './FeatureSlide';
 import type { ISlideActions } from './slides';
@@ -41,6 +43,28 @@ export function DspSlide({ actions }: ISlideProps) {
       prefix="tour.dsp"
       tab="dsp"
       art={<DspArt />}
+      actions={actions}
+    />
+  );
+}
+
+export function SecondOutputSlide({ actions }: ISlideProps) {
+  return (
+    <FeatureSlide
+      prefix="tour.output"
+      tab="eq"
+      art={<SecondOutputArt />}
+      actions={actions}
+    />
+  );
+}
+
+export function CustomLooksSlide({ actions }: ISlideProps) {
+  return (
+    <FeatureSlide
+      prefix="tour.looks"
+      tab="eq"
+      art={<CustomLooksArt />}
       actions={actions}
     />
   );

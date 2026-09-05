@@ -103,6 +103,41 @@ const tour: Partial<Dictionary> = {
     'Reproduce una pista de la Biblioteca, abre la pestaña DSP, elige una cadena en Presets, luego haz clic en una etapa en las pestañas laterales y actívala.',
   'tour.dsp.open': 'Abrir DSP',
 
+  'tour.output.kicker': 'SUENA EN DOS SITIOS',
+  'tour.output.title': 'Una segunda salida',
+  'tour.output.subtitle':
+    'Auriculares y altavoces a la vez, cada uno con su perfil',
+  'tour.output.lead':
+    'Lo que oyes puede sonar también por un segundo dispositivo: los auriculares y los altavoces de la sala, el escritorio y la cocina. La duplicación toma el sonido después de que tu EQ lo haya moldeado y lo reenvía, así que la segunda salida oye el mismo ajuste. Con un controlador de enrutamiento instalado, las dos salidas van sincronizadas y cada una puede llevar su propio perfil, como haría un mezclador tipo Voicemeeter.',
+  'tour.output.point1':
+    'Elige cualquier otra salida en «Duplicar en» y empieza a sonar lo que ya oyes, con su propio volumen.',
+  'tour.output.point2':
+    'Cada salida conserva su propio perfil de EQ, así que altavoces y auriculares se ajustan por separado.',
+  'tour.output.point3':
+    'Un reproductor a la vez: iniciar algo en FluidEQ pausa el resto de la máquina, y al revés.',
+  'tour.output.point4':
+    'El sonido duplicado llega con un quinto de segundo de retraso: bien para música en otra habitación, no para vídeo ni juegos.',
+  'tour.output.how':
+    'En la pestaña EQ, abre «Segunda salida» en el panel derecho, elige un dispositivo en «Duplicar en» y ajusta su volumen. La tarjeta muestra DUPLICANDO mientras funciona.',
+  'tour.output.open': 'Abrir EQ',
+
+  'tour.looks.kicker': 'TU PROPIO VISUALIZADOR',
+  'tour.looks.title': 'Estilos propios para la gráfica',
+  'tour.looks.subtitle': 'Cincuenta y siete formas, tus colores, tu movimiento',
+  'tour.looks.lead':
+    'El espectro bajo el EQ puede dibujarse como quieras. Elige una de cincuenta y siete formas, desde barras y líneas hasta crestas, seda, skyline y matriz de puntos; coloréala plana, por frecuencia, por nivel o por calor; decide con qué rapidez ataca y cuánto se sostiene un pico, y marca los picos con chispas, cometas, halos o coronas. Guárdalo como un estilo propio y compártelo como archivo.',
+  'tour.looks.point1':
+    'Cincuenta y siete formas, cada una con sus controles: piezas, hueco, relleno, grosor y si va rellena o trazada.',
+  'tour.looks.point2':
+    'Color por frecuencia, nivel o calor con una rampa de tus propios colores, o un solo color plano.',
+  'tour.looks.point3':
+    'Ataque y liberación fijan el movimiento; los picos encendidos y dieciocho marcas de pico deciden cómo se ve un golpe.',
+  'tour.looks.point4':
+    'El modo arcoíris añade un brillo al ritmo y un borde que recorre toda la rueda de color. Los estilos se exportan a un archivo y se importan desde uno.',
+  'tour.looks.how':
+    'En la pestaña EQ, pulsa «Nuevo estilo» en la barra de la gráfica. Elige una forma con el selector o pulsa Espacio para recorrerlas, ajusta colores y movimiento mientras suena la música y luego Guardar.',
+  'tour.looks.open': 'Abrir EQ',
+
   'tour.karaoke.kicker': 'UN ESCENARIO EN CASA',
   'tour.karaoke.title': 'Karaoke con guía de tono',
   'tour.karaoke.subtitle': 'Tus canciones, tus letras, tu micrófono',

@@ -112,6 +112,41 @@ const tour = {
     'Play a track from the Library, open the DSP tab, pick a chain under Presets, then click a stage in the side tabs and switch it On.',
   'tour.dsp.open': 'Open DSP',
 
+  'tour.output.kicker': 'PLAYS IN TWO PLACES',
+  'tour.output.title': 'A second output',
+  'tour.output.subtitle':
+    'Headset and speakers at once, each with its own profile',
+  'tour.output.lead':
+    'What you hear can play out of a second device at the same time: the headset and the room speakers, the desk and the kitchen. Mirroring takes the sound after your EQ has shaped it and sends it on, so the second output hears the same tuning. With a routing driver installed, both outputs stay in sync and each can carry its own profile, the way a mixer like Voicemeeter would do it.',
+  'tour.output.point1':
+    'Pick any other output under "Mirror to" and it starts playing what you already hear, with its own volume.',
+  'tour.output.point2':
+    'Each output keeps its own EQ profile, so the speakers and the headset can be tuned separately.',
+  'tour.output.point3':
+    'One player at a time: starting something in FluidEQ pauses the rest of the machine, and the other way round.',
+  'tour.output.point4':
+    'Mirrored sound arrives about a fifth of a second late: fine for music in another room, not for video or games.',
+  'tour.output.how':
+    'On the EQ tab, open "Second output" in the right-hand panel, choose a device under "Mirror to" and set its volume. The card says MIRRORING while it runs.',
+  'tour.output.open': 'Open EQ',
+
+  'tour.looks.kicker': 'YOUR OWN VISUALIZER',
+  'tour.looks.title': 'Custom looks for the graph',
+  'tour.looks.subtitle': 'Fifty-seven forms, your colours, your motion',
+  'tour.looks.lead':
+    'The spectrum under the EQ can be drawn any way you like. Pick one of fifty-seven forms, from plain bars and lines to ridges, silk, skyline and dot matrix, then colour it flat, by frequency, by level or by heat, set how fast it attacks and how long a peak hangs, and mark the peaks with sparks, comets, halos or crowns. Save it as a look of your own, and share it as a file.',
+  'tour.looks.point1':
+    'Fifty-seven forms, each with its own controls: pieces, gap, fill, weight, and whether it is filled or stroked.',
+  'tour.looks.point2':
+    'Colour by frequency, level or heat with a ramp of your own colours, or one flat colour.',
+  'tour.looks.point3':
+    'Attack and release set the motion; lit peaks and eighteen peak marks set what a hit looks like.',
+  'tour.looks.point4':
+    'Rainbow mode adds a glow on the beat and a border that travels the whole colour wheel. Looks export to a file and import from one.',
+  'tour.looks.how':
+    'On the EQ tab, press "New look" in the graph\'s toolbar. Pick a form with the picker or press Space to cycle them, adjust the colours and motion while the music plays, then Save.',
+  'tour.looks.open': 'Open EQ',
+
   'tour.karaoke.kicker': 'A STAGE AT HOME',
   'tour.karaoke.title': 'Karaoke with a pitch guide',
   'tour.karaoke.subtitle': 'Your songs, your lyrics, your microphone',

@@ -23,7 +23,13 @@ import type { ISlideActions, TTourTab } from './slides';
 interface IFeatureSlideProps {
   /** `tour.library`, `tour.dsp`, ... */
   prefix:
-    'tour.library' | 'tour.dsp' | 'tour.karaoke' | 'tour.maker' | 'tour.media';
+    | 'tour.library'
+    | 'tour.dsp'
+    | 'tour.output'
+    | 'tour.looks'
+    | 'tour.karaoke'
+    | 'tour.maker'
+    | 'tour.media';
   tab: TTourTab;
   art: ReactNode;
   actions: ISlideActions;

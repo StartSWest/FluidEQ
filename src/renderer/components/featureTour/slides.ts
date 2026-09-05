@@ -12,15 +12,17 @@ import { featureTourKey } from '../../../common/featureTour';
 import BlackThemeSlide from './BlackThemeSlide';
 import ShareAudioSlide from './ShareAudioSlide';
 import {
+  CustomLooksSlide,
   DspSlide,
   KaraokeMakerSlide,
   KaraokeSlide,
   LibrarySlide,
   OnlineMediaSlide,
+  SecondOutputSlide,
 } from './evergreen';
 
 /** The workspace tabs a slide can send the user to. */
-export type TTourTab = 'share' | 'library' | 'dsp' | 'karaoke' | 'video';
+export type TTourTab = 'eq' | 'share' | 'library' | 'dsp' | 'karaoke' | 'video';
 
 /** What a slide can ask the app to do on the user's behalf. */
 export interface ISlideActions {
@@ -82,6 +84,18 @@ const ALWAYS: TSlideEntry[] = [
     titleKey: 'tour.dsp.title',
     subtitleKey: 'tour.dsp.subtitle',
     Body: DspSlide,
+  },
+  {
+    id: 'second-output',
+    titleKey: 'tour.output.title',
+    subtitleKey: 'tour.output.subtitle',
+    Body: SecondOutputSlide,
+  },
+  {
+    id: 'custom-looks',
+    titleKey: 'tour.looks.title',
+    subtitleKey: 'tour.looks.subtitle',
+    Body: CustomLooksSlide,
   },
   {
     id: 'karaoke',
