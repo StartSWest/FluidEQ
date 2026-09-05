@@ -106,11 +106,17 @@ export const readSurface = (
     | '--surface-well'
     | '--track-well'
     | '--accent'
-    | '--accent-light',
+    | '--accent-light'
+    | '--text-primary'
+    | '--text-muted'
+    | '--text-faint',
   fallback: string,
 ): string =>
   getComputedStyle(document.documentElement).getPropertyValue(name).trim() ||
   fallback;
+
+/** Canvas captions use the same opaque ink as DOM labels in both themes. */
+export const readTextInk = (): string => readSurface('--text-faint', '#bfd3e3');
 
 const HEX = /^#([0-9a-f]{6})$/i;
 

@@ -493,7 +493,9 @@ it under the terms of the GNU General Public License version 3 or later.
   padding: 2px 9px;
   color: $surface-well;
   border-radius: $radius-pill;
-  background: hsl(var(--euphoria-hue, 160deg) 95% 62%);
+  // The blue part of the sweep used to lose contrast against the dark text.
+  // This lightness keeps the label readable throughout the rainbow.
+  background: hsl(var(--euphoria-hue, 160deg) 95% 75%);
   font-size: $text-eyebrow;
   font-weight: $weight-bold;
   letter-spacing: 0.14em;

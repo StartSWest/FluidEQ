@@ -14,7 +14,7 @@ import {
   setDspPhaseView,
   useDspPhaseView,
 } from './store';
-import { readAccent, readSurfaceAlpha } from '../utils/theme';
+import { readTextInk, readAccent, readSurfaceAlpha } from '../utils/theme';
 
 /** Where the arc is marked, and what to write there. */
 const TICKS: [number, string][] = [
@@ -55,6 +55,7 @@ const drawDial = (
   box: IBox,
   value: number,
 ): void => {
+  const textInk = readTextInk();
   // As large as the box allows once the tick labels are accounted for, rather
   // than a dial floating inside a margin of it.
   const radius = Math.min(box.width / 2 - 6, box.height - 20);
@@ -94,7 +95,7 @@ const drawDial = (
     context.lineWidth = label === '' ? 1 : 1.5;
     context.stroke();
     if (label !== '') {
-      context.fillStyle = 'rgba(255,255,255,0.45)';
+      context.fillStyle = textInk;
       context.fillText(
         label,
         pivotX + cos * (radius - 17),

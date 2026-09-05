@@ -5,6 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { useEffect, useRef } from 'react';
+import { readTextInk } from '../utils/theme';
 import {
   IDenoiseClickSettings,
   IDenoiseHissSettings,
@@ -198,6 +199,7 @@ const DspDenoiseGraph = ({
       return undefined;
     }
     const paint = ({ schedule }: IGraphLoopFrame) => {
+      const textInk = readTextInk();
       const width = canvas.clientWidth;
       const height = canvas.clientHeight;
       if (width === 0 || height === 0) {
@@ -297,7 +299,7 @@ const DspDenoiseGraph = ({
       }
       context.font = '9px system-ui, sans-serif';
       context.textAlign = 'left';
-      context.fillStyle = `rgba(${SPECTRUM_INK}, 0.4)`;
+      context.fillStyle = textInk;
       context.fillText(
         laneLive
           ? t('dsp.denoise.graphClicksIn', {
@@ -312,7 +314,7 @@ const DspDenoiseGraph = ({
       /* ------------------------------------------------------------ grid */
       context.strokeStyle = 'rgba(255, 255, 255, 0.06)';
       context.lineWidth = 1;
-      context.fillStyle = 'rgba(255, 255, 255, 0.28)';
+      context.fillStyle = textInk;
       context.textAlign = 'center';
       GRID_HZ.forEach(([hz, label]) => {
         const x = Math.round(toX(hz)) + 0.5;
@@ -508,7 +510,7 @@ const DspDenoiseGraph = ({
         if (measured && measured.humHz > 0) {
           context.textAlign = 'left';
           context.font = '9px system-ui, sans-serif';
-          context.fillStyle = `rgba(${HUM_INK}, 0.7)`;
+          context.fillStyle = `rgb(${HUM_INK})`;
           context.fillText(
             t('dsp.denoise.graphHumAt', { hz: measured.humHz.toFixed(1) }),
             Math.min(toX(measured.humHz) + 5, PAD_L + plotW - 62),
@@ -520,7 +522,7 @@ const DspDenoiseGraph = ({
       /* ------------------------------------------------ what it is doing */
       context.textAlign = 'left';
       context.font = '10px system-ui, sans-serif';
-      context.fillStyle = `rgba(${SPECTRUM_INK}, 0.45)`;
+      context.fillStyle = textInk;
       context.fillText(
         live
           ? `${meter.reductionDb.toFixed(1)} dB`

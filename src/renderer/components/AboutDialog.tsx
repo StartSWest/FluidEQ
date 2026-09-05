@@ -24,7 +24,6 @@ import {
   LICENSE,
   LICENSE_DIR,
   PRODUCT_NAME,
-  PRODUCT_VERSION,
   REPOSITORY_URL,
   TRADEMARK,
   UPSTREAM,
@@ -36,6 +35,7 @@ import {
 } from 'common/disclaimer';
 import { useTranslation } from '../utils/I18nContext';
 import DialogHeader from './DialogHeader';
+import AboutBrand from './AboutBrand';
 import '../styles/About.scss';
 
 interface IAboutDialogProps {
@@ -52,9 +52,10 @@ interface IAboutDialogProps {
  * are things a user is entitled to be told without going to look for a
  * repository.
  *
- * Deliberately not translated, with one deliberate exception.
+ * The brand introduction and warranty notice are translated. The existing
+ * attribution and licence sections retain their original wording.
  *
- * Every other string here is an *identifier* — a licence name, a copyright
+ * Those sections contain *identifiers* — a licence name, a copyright
  * line, an attribution, a trademark reservation. Translating one of those
  * changes what it names, and a mistranslated one is worse than an English one
  * because it still looks authoritative. It follows the report-a-problem dialog,
@@ -100,23 +101,17 @@ export default function AboutDialog({ onClose }: IAboutDialogProps) {
         aria-modal="true"
         aria-labelledby="about-title"
       >
-        {/* The version is the shipped one, not a literal: it comes from the
-            same place the installer takes its own version number from, so what
-            this panel claims and what a user actually has cannot disagree. It
-            used to sit in a second identity row below this header, which said
-            the app's name twice on one card and left the tagline stranded a
-            line away from it. */}
         <DialogHeader
-          eyebrow="About"
-          title={PRODUCT_NAME}
+          eyebrow={t('about.eyebrow')}
+          title={t('about.title')}
           titleId="about-title"
-          version={PRODUCT_VERSION}
           closeLabel={t('support.close')}
           onClose={onClose}
           closeRef={closeRef}
         />
 
         <div className="about__body">
+          <AboutBrand />
           <section className="about__section">
             <h3>License</h3>
             <p>

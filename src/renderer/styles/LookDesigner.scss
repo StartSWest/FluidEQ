@@ -452,7 +452,7 @@ it under the terms of the GNU General Public License version 3 or later.
   padding: 0;
   border: 0;
   background: none;
-  color: color-mix(in srgb, $secondary-light 85%, transparent);
+  color: $text-accent;
   font: inherit;
   font-size: $text-eyebrow;
   font-weight: $weight-semibold;

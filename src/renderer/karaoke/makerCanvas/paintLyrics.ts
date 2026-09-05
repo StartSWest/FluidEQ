@@ -442,7 +442,7 @@ export const paintLyrics = (
     context.restore();
     let wordFill = userTouched
       ? 'rgba(128, 241, 194, .9)'
-      : 'rgba(181, 204, 222, .66)';
+      : 'rgb(214, 233, 247)';
     if (wordComplete) {
       wordFill = userTouched
         ? 'rgba(172, 255, 220, .98)'

@@ -162,7 +162,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // fix is to type less.
 .rich-pick__empty {
   padding: 15px 10px;
-  color: rgba($white, 0.45);
+  color: $text-faint;
   font-size: $text-small;
   text-align: center;
 }
@@ -172,7 +172,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .rich-pick__group {
   margin: 8px 0 2px;
   padding: 0 8px;
-  color: rgba($white, 0.45);
+  color: $text-faint;
   font-size: $text-micro;
   font-weight: $weight-bold;
   letter-spacing: 0.09em;
@@ -199,7 +199,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   .rich-pick__glyph {
     font-size: 18px;
-    color: color-mix(in srgb, $secondary-light 75%, transparent);
+    color: $text-accent;
   }
 
   strong {

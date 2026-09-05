@@ -5,6 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { PointerEvent as ReactPointerEvent, useEffect, useRef } from 'react';
+import { readTextInk } from '../utils/theme';
 import {
   EXCITER_BAND_LIMITS,
   EXCITER_MIN_OCTAVES,
@@ -375,6 +376,7 @@ const DspExciterGraph = ({
       return undefined;
     }
     const paint = ({ schedule }: IGraphLoopFrame) => {
+      const textInk = readTextInk();
       const width = canvas.clientWidth;
       const height = canvas.clientHeight;
       if (width === 0 || height === 0) {
@@ -610,7 +612,7 @@ const DspExciterGraph = ({
       }
 
       /* ------------------------------------------------------- the axis */
-      context.fillStyle = 'rgba(255, 255, 255, 0.34)';
+      context.fillStyle = textInk;
       context.font =
         '9px system-ui, -apple-system, "Segoe UI", Ubuntu, sans-serif';
       context.textAlign = 'center';
@@ -627,7 +629,7 @@ const DspExciterGraph = ({
         if (!current.enabled || !band.enabled) {
           return;
         }
-        context.fillStyle = `rgba(${BAND_INK[index]}, 0.85)`;
+        context.fillStyle = `rgb(${BAND_INK[index]})`;
         const { lowHz, highHz } = exciterBandEdgesForIndex(
           index,
           band.freqHz,

@@ -33,7 +33,12 @@ import {
   lyricSectionHeight,
   midiName,
 } from '../makerCanvasGeometry';
-import { readAccent, readSurface, readSurfaceAlpha } from '../../utils/theme';
+import {
+  readTextInk,
+  readAccent,
+  readSurface,
+  readSurfaceAlpha,
+} from '../../utils/theme';
 
 export interface IPaintBackdropInput {
   plot: IMakerPlot;
@@ -92,6 +97,7 @@ export const paintBackdrop = (
     effectiveDurationMs,
   }: IPaintBackdropInput,
 ) => {
+  const textInk = readTextInk();
   const {
     left: plotLeft,
     right: plotRight,
@@ -264,7 +270,7 @@ export const paintBackdrop = (
     context.moveTo(x, headerHeight - 2);
     context.lineTo(x, plotBottom);
     context.stroke();
-    context.fillStyle = 'rgba(174, 201, 222, .58)';
+    context.fillStyle = textInk;
     context.font = '10px system-ui, sans-serif';
     context.textAlign = 'center';
     context.fillText(formatClock(tick), x, height - 10);
@@ -280,7 +286,7 @@ export const paintBackdrop = (
     context.lineTo(plotRight, y);
     context.stroke();
     if (midi % 12 === 0) {
-      context.fillStyle = 'rgba(160, 244, 112, .72)';
+      context.fillStyle = 'rgb(160, 244, 112)';
       context.textAlign = 'right';
       context.fillText(midiName(midi), plotLeft - 8, y + 3);
     }
@@ -351,28 +357,28 @@ export const paintBackdrop = (
         label: stemWaveforms.labels.mix,
         fill: readAccent(0.16, 'rgba(22, 211, 198, .16)'),
         stroke: readAccent(0.26, 'rgba(72, 246, 230, .26)'),
-        text: readAccent(0.7, 'rgba(111, 255, 243, .7)'),
+        text: readAccent(1, '#6ffff3'),
       },
       {
         peaks: stemWaveforms.instrumental,
         label: stemWaveforms.labels.backing,
         fill: 'rgba(94, 158, 255, .2)',
         stroke: 'rgba(126, 180, 255, .28)',
-        text: 'rgba(158, 199, 255, .75)',
+        text: 'rgb(158, 199, 255)',
       },
       {
         peaks: stemWaveforms.vocals,
         label: stemWaveforms.labels.voice,
         fill: 'rgba(255, 176, 92, .3)',
         stroke: 'rgba(255, 200, 128, .3)',
-        text: 'rgba(255, 210, 150, .85)',
+        text: 'rgb(255, 210, 150)',
       },
     ];
     lanes.forEach((lane, index) => {
       const laneTop = WAVEFORM_TOP + index * (laneHeight + laneGap);
       paintWaveLane(lane.peaks, laneTop, laneHeight, lane.fill, lane.stroke);
       context.save();
-      context.font = '700 9px Inter, system-ui, sans-serif';
+      context.font = '700 9px system-ui, sans-serif';
       context.textAlign = 'left';
       context.textBaseline = 'top';
       context.fillStyle = lane.text;

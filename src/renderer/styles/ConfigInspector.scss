@@ -287,7 +287,7 @@ $name-column: 34ch;
   padding: 1px 7px;
   border-radius: $radius-pill;
   margin-top: 3px;
-  background: rgba($neon-lime, 0.18);
+  background: rgba($neon-lime, 0.1);
   color: $neon-lime;
   font-size: $text-eyebrow;
   font-weight: $weight-bold;
@@ -433,7 +433,7 @@ $name-column: 34ch;
 }
 
 .config-layer__state {
-  opacity: 0.75;
+  color: $text-muted;
   font-size: $text-eyebrow;
   text-transform: uppercase;
 }

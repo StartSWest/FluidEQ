@@ -221,7 +221,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   height: 40px;
   margin-bottom: 8px;
   place-items: center;
-  color: color-mix(in srgb, $secondary-light 72%, transparent);
+  color: $text-accent;
   border: 1px solid rgba($edge-tint, 0.14);
   border-radius: $radius-s;
   // Was `rgba(#050b12, 0.55)` — a near-black over a panel that now shows the

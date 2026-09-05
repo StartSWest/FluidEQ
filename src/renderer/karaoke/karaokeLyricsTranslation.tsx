@@ -17,6 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { ReactNode, useMemo, useRef, useState } from 'react';
+import { readTextInk } from '../utils/theme';
 import { IKaraokeLine, IKaraokeSong } from '../../common/karaoke/types';
 import { KARAOKE_ORIGINAL_LANGUAGE } from '../../common/karaoke/makerProject';
 import karaokeLanguageName from './karaokeLanguageName';
@@ -194,14 +195,6 @@ export const karaokeLyricsTranslationOptions = (
  */
 const TRANSLATION_FONT_WEIGHT = 400;
 
-/**
- * Reused, not invented: the same quiet secondary tone
- * `.karaoke-maker__lyrics-line-number` in Karaoke.scss already uses for a
- * line's own metadata, and the exact value the Maker's own
- * `makerCanvas/paintTranslation.ts` reused for the same reason.
- */
-const TRANSLATION_TEXT_COLOR = 'rgba(169, 204, 216, 0.58)';
-
 export interface IKaraokeLyricsTranslationBudget {
   /** This row's own font size, fixed for the frame — see the module doc. */
   fontSize: number;
@@ -310,7 +303,7 @@ export const paintKaraokeLyricsTranslationLine = ({
   context.globalAlpha = alpha;
   context.textAlign = 'center';
   context.textBaseline = 'middle';
-  context.fillStyle = TRANSLATION_TEXT_COLOR;
+  context.fillStyle = readTextInk();
   let { fontSize } = budget;
   context.font = `${TRANSLATION_FONT_WEIGHT} ${fontSize}px ${LYRIC_FONT_FAMILY}`;
   const textWidth = context.measureText(text).width;

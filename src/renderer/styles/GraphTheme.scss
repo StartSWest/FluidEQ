@@ -252,13 +252,10 @@ it under the terms of the GNU General Public License version 3 or later.
 // Put this range back, sitting in the ramp between the two lines it undoes.
 // Only drawn once the range has been moved, so it is never a dead button, and
 // only on approach, so nine of them do not stand over the trace.
-// Faint rather than absent at rest. Invisible does not mean unreachable — an
-// element at zero opacity is still hit — but it does mean unaimable, which from
-// the pointer's side is the same problem. A quarter of an opacity is enough to
-// say "there is something here" without joining the trace.
+// The reset remains usable at rest, so its text must not look disabled.
 .chart-presence__reset {
   cursor: pointer;
-  opacity: 0.25;
+  opacity: 1;
   transition: opacity 140ms ease;
 
   .chart-presence__reset-pad {
@@ -1301,9 +1298,9 @@ it under the terms of the GNU General Public License version 3 or later.
 // See `OutputLevelMeter.tsx` and its `drawChannel` for the ten shapes
 // the pane cycles through.
 
-// Nothing listening: dim so it cannot be mistaken for silence.
+// Nothing listening: remove the signal colour, but keep the style name
+// readable because this button can still switch the meter's appearance.
 .output-meter.is-idle {
-  opacity: 0.32;
   filter: saturate(0.4);
 }
 

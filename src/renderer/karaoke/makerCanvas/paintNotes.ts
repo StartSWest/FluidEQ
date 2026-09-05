@@ -309,8 +309,8 @@ export const paintNotes = (
     context.fillStyle =
       selected || active
         ? 'rgba(245, 255, 254, .98)'
-        : readAccentLight(0.7, 'rgba(207, 231, 238, .7)');
-    context.font = `${active ? 750 : 600} 9px system-ui, sans-serif`;
+        : readAccentLight(1, '#cfe7ee');
+    context.font = `${active ? 700 : 600} 9px system-ui, sans-serif`;
     context.textAlign = 'center';
     context.fillText(
       midiName(note.targetMidi),

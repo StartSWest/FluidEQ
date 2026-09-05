@@ -90,7 +90,7 @@
     flex-wrap: wrap;
     gap: 8px;
     padding: 10px 12px;
-    color: rgba($white, 0.78);
+    color: $text-muted;
     border: 1px solid $border-subtle;
     border-radius: $radius-s;
     // A step down from the panel, like the two cards under them.
@@ -417,7 +417,7 @@
   .menu-icon {
     width: 29px;
     height: 29px;
-    color: color-mix(in srgb, $secondary-light 70%, transparent);
+    color: $text-accent;
     margin-bottom: 3px;
   }
 

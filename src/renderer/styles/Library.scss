@@ -688,7 +688,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 
   span {
-    color: rgba(223, 252, 249, 0.76);
+    color: $text-muted;
     font-size: $text-body;
     font-variant-numeric: tabular-nums;
   }
@@ -1121,14 +1121,10 @@ $library-row-height: 46px;
     opacity: 0.5;
   }
 
-  // Same opacity as offline above — one dimmed look reused, not a second one
-  // invented — but a different reason, carried by the badge's own tooltip
-  // rather than a second one on the row: offline says a file cannot be
-  // reached right now, pending says it is fine and simply has not been read
-  // yet. Still fully clickable, same as offline: the file plays exactly as
-  // well before its tags arrive as after.
+  // Pending metadata does not prevent playback. The badge carries that
+  // status; fading the row made a playable song look unavailable.
   &--pending {
-    opacity: 0.5;
+    opacity: 1;
   }
 
   // Whatever the player is on, wherever it appears — the album's own table,
@@ -1666,12 +1662,9 @@ $library-row-height: 46px;
     opacity: 0.5;
   }
 
-  // Same dimming as offline above, same reasoning as `.library-list__row
-  // --pending`: one dimmed look reused rather than a second one invented,
-  // distinguished by the corner badge below instead of a second opacity
-  // value.
+  // The pending badge describes metadata, not whether this tile can play.
   &--pending {
-    opacity: 0.5;
+    opacity: 1;
   }
 }
 
@@ -3314,7 +3307,7 @@ $library-wave-step: 4ms;
   align-items: flex-end;
   padding: 6px 6px 3px;
   margin: 0;
-  color: color-mix(in srgb, $secondary-light 62%, transparent);
+  color: $text-accent;
   font-size: $text-micro;
   font-weight: $weight-bold;
   letter-spacing: 0.08em;

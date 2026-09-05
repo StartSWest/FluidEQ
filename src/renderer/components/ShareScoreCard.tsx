@@ -27,7 +27,7 @@ import {
 import { OFFICIAL_SITE_URL, PRODUCT_NAME } from 'common/branding';
 import { EYE_WAVE_AMPLITUDE, EYE_WAVE_PERIOD } from '../SupportPet';
 import { useTranslation } from '../utils/I18nContext';
-import { readAccentLight } from '../utils/theme';
+import { readAccentLight, readTextInk } from '../utils/theme';
 import '../styles/ShareScore.scss';
 
 /**
@@ -315,6 +315,7 @@ const drawCard = (
   canvas.width = CARD_WIDTH * CARD_SCALE;
   canvas.height = CARD_HEIGHT * CARD_SCALE;
   context.scale(CARD_SCALE, CARD_SCALE);
+  const textInk = readTextInk();
 
   // The app's own background, so the card reads as coming from the thing it
   // is advertising rather than as a generic score graphic.
@@ -440,7 +441,7 @@ const drawCard = (
   context.font = `700 40px ${FONT_STACK}`;
   context.textAlign = 'left';
   context.fillText(PRODUCT_NAME, 168, 88);
-  context.fillStyle = 'rgba(226, 240, 247, 0.48)';
+  context.fillStyle = textInk;
   context.font = `700 18px ${FONT_STACK}`;
   context.letterSpacing = '3px';
   context.fillText('BEAT GAME', 170, 117);
@@ -466,12 +467,12 @@ const drawCard = (
     context.fillText(label, column, 105);
     context.restore();
   } else {
-    context.fillStyle = 'rgba(226, 240, 247, 0.55)';
+    context.fillStyle = textInk;
     context.font = `700 24px ${FONT_STACK}`;
     context.fillText('GREAT RUN', column, 105);
   }
 
-  context.fillStyle = 'rgba(226, 240, 247, 0.48)';
+  context.fillStyle = textInk;
   context.font = `700 20px ${FONT_STACK}`;
   context.letterSpacing = '5px';
   context.fillText('SCORE', column, 163);
@@ -486,7 +487,7 @@ const drawCard = (
   context.font = `900 48px ${FONT_STACK}`;
   context.fillText(`×${Math.max(1, Math.floor(multiplier))}`, column, 354);
 
-  context.fillStyle = 'rgba(226, 240, 247, 0.52)';
+  context.fillStyle = textInk;
   context.font = `700 17px ${FONT_STACK}`;
   context.letterSpacing = '3px';
   context.fillText('STREAK MULTIPLIER', column, 384);
@@ -506,7 +507,7 @@ const drawCard = (
   context.stroke();
 
   context.textAlign = 'left';
-  context.fillStyle = 'rgba(226, 240, 247, 0.78)';
+  context.fillStyle = textInk;
   context.font = `600 24px ${FONT_STACK}`;
   context.letterSpacing = '0px';
   context.fillText('Free system-wide EQ for Windows', 82, 586);

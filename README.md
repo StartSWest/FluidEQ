@@ -646,6 +646,18 @@ FluidEQ is not affiliated with or endorsed by Dolby Laboratories.
 
 See [NOTICE.md](NOTICE.md) for the full derivative-work notice.
 
+## User guide
+
+Open **Help → User guide** in FluidEQ, or press **F1**, for the searchable
+offline handbook with 14 real interface captures and 16 practical chapters.
+Click any capture to enlarge it. The guide follows the app's selected language.
+
+The same instructions are available as an [illustrated, print-ready document](docs/user-guide.html)
+and a [Markdown user guide](docs/USER-GUIDE.md). Keep the HTML beside the PNG
+captures when copying it for offline use. Use its **Print / Save as PDF** button
+for a paper or PDF copy. Regenerate both documents with `pnpm docs:guide` after
+editing the guide text.
+
 ## License
 
 FluidEQ is free software under the

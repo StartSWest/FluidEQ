@@ -17,6 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { KARAOKE_MAKER_LYRIC_LANE_COUNT } from '../makerCanvasLayout';
+import { readTextInk } from '../../utils/theme';
 import {
   COMPACT_LYRIC_LANE_HEIGHT,
   IMakerPlot,
@@ -56,8 +57,6 @@ const CLEARANCE_TOP =
 const CANVAS_WEIGHT_REGULAR = 400;
 const CANVAS_WEIGHT_SEMIBOLD = 600;
 
-/** Reused from `.karaoke-maker__lyrics-line-number` in Karaoke.scss: the same quiet secondary tone this app already uses for a line's own metadata. */
-const TRANSLATION_TEXT_COLOR = 'rgba(169, 204, 216, .58)';
 /** Reused from the "touched" word fill in paintLyrics.ts: this file's own established colour for "this is correct". */
 const FIT_OK_COLOR = 'rgba(128, 241, 194, .9)';
 /** Reused from the "voice" stem label in paintBackdrop.ts: this file family's own amber for "look at this". */
@@ -135,7 +134,7 @@ export const paintLyricTranslationLine = (
     Math.min(plotRight - measuredWidth / 2 - 8, naturalCenterX),
   );
   context.textAlign = 'center';
-  context.fillStyle = TRANSLATION_TEXT_COLOR;
+  context.fillStyle = readTextInk();
   context.fillText(text, centerX, centerY);
 
   context.font = `${CANVAS_WEIGHT_SEMIBOLD} 10px ${LYRIC_FONT_FAMILY}`;

@@ -146,7 +146,7 @@ const lyricLineMotion = (offset: number) => {
     // The next phrase remains readable for preparation; the phrase already
     // sung recedes quickly. Both step down clearly in size so the active line
     // owns the stage instead of sitting in a wall of equally large text.
-    const directionOpacity = offset >= 0 ? 0.62 : 0.3;
+    const directionOpacity = offset >= 0 ? 0.85 : 0.3;
     const directionScale = offset >= 0 ? 0.84 : 0.78;
     return {
       opacity: 1 + (directionOpacity - 1) * distance,
@@ -154,8 +154,8 @@ const lyricLineMotion = (offset: number) => {
     };
   }
   const isUpcoming = offset > 0;
-  const nearOpacity = isUpcoming ? 0.62 : 0.3;
-  const farOpacity = isUpcoming ? 0.12 : 0.05;
+  const nearOpacity = isUpcoming ? 0.85 : 0.3;
+  const farOpacity = isUpcoming ? 0.65 : 0.05;
   const nearScale = isUpcoming ? 0.84 : 0.78;
   const farScale = 0.68;
   const fade = clamp(distance - 1, 0, 1);
@@ -576,7 +576,6 @@ const KaraokeLyrics = ({
             green = 255;
             blue = 247;
           }
-          const textAlpha = 0.42 + 0.56 * focusAmount;
 
           if (hasEuphoriaText) {
             // A dark outside key keeps every glyph readable; the thinner
@@ -611,7 +610,9 @@ const KaraokeLyrics = ({
             context.restore();
           }
 
-          context.fillStyle = `rgba(${red}, ${green}, ${blue}, ${textAlpha})`;
+          // Line motion already fades context. Multiplying it by a second
+          // text alpha made upcoming words look disabled before their turn.
+          context.fillStyle = `rgb(${red}, ${green}, ${blue})`;
           context.fillText(displayText, wordX, y);
 
           if (isTimingActive) {

@@ -101,7 +101,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 .dsp-title-rate {
-  color: rgba($white, 0.48);
+  color: $text-faint;
   font-family: $font-mono;
   font-size: $text-small;
   font-variant-numeric: tabular-nums;
@@ -121,7 +121,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // below it as the heading above it does, so a line that qualifies the whole
   // page read as a caption belonging to the first card in it.
   margin: 0 0 8px;
-  color: rgba($white, 0.72);
+  color: $text-muted;
   font-size: $text-body;
   line-height: 1.45;
 
@@ -140,7 +140,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .dsp-idle {
   max-width: 680px;
   margin: 2px 0 0;
-  color: rgba($white, 0.5);
+  color: $text-faint;
   font-size: $text-body;
   line-height: 1.4;
 }
@@ -175,7 +175,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 .dsp-global-power-state {
-  color: rgba($white, 0.42);
+  color: $text-faint;
   font-size: $text-small;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -214,7 +214,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   min-height: 30px;
   border-color: color-mix(in srgb, $secondary-default 24%, transparent);
   background: color-mix(in srgb, $secondary-default 4.5%, transparent);
-  color: rgba($white, 0.56);
+  color: $text-faint;
 }
 
 .dsp-dev-safety-control {
@@ -232,7 +232,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 .dsp-dev-safety-spec {
-  color: rgba($white, 0.42);
+  color: $text-faint;
   font-size: $text-eyebrow;
   line-height: 1.2;
   letter-spacing: 0.025em;
@@ -243,7 +243,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   display: flex;
   flex-wrap: wrap;
   gap: 4px 12px;
-  color: rgba($white, 0.72);
+  color: $text-muted;
   font-family: $font-mono;
   font-size: $text-micro;
   font-variant-numeric: tabular-nums;
@@ -358,7 +358,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .dsp-denoise-legend-key {
   display: flex;
   align-items: center;
-  color: rgba($white, 0.42);
+  color: $text-faint;
   font-size: $text-micro;
   gap: 5px;
   letter-spacing: 0.06em;
@@ -607,7 +607,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   overflow: hidden;
   width: 240px;
   min-height: 16px;
-  color: rgba($white, 0.52);
+  color: $text-faint;
   font-size: $text-small;
   line-height: 16px;
   text-align: right;
@@ -623,7 +623,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 
   &.is-unavailable {
-    color: rgba($white, 0.42);
+    color: $text-faint;
   }
 }
 
@@ -672,7 +672,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 
   dt {
-    color: rgba($white, 0.42);
+    color: $text-faint;
     font-size: $text-micro;
     letter-spacing: 0.06em;
     text-transform: uppercase;
@@ -710,7 +710,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .dsp-normalizer-limit {
   width: 100%;
   padding: 0 2px;
-  color: rgba($white, 0.66);
+  color: $text-muted;
   font-variant-numeric: tabular-nums;
 }
 
@@ -967,7 +967,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .dsp-crossfade-preview-label,
 .dsp-crossfade-time {
   position: absolute;
-  color: rgba($white, 0.48);
+  color: $text-faint;
   font-size: $text-micro;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -979,7 +979,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   left: 14px;
   display: flex;
   gap: 10px;
-  color: rgba($white, 0.34);
+  color: $text-faint;
   font-family: $font-mono;
   font-size: $text-eyebrow;
   font-variant-numeric: tabular-nums;
@@ -1010,7 +1010,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   &.is-incoming {
     right: 14px;
-    color: color-mix(in srgb, $secondary-default 82%, transparent);
+    color: $text-accent;
   }
 }
 
@@ -1092,7 +1092,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 .dsp-normalizer-meter-channel-name {
   grid-row: 1 / 3;
-  color: rgba($white, 0.72);
+  color: $text-muted;
   font-family: $font-mono;
   font-size: $text-body;
   text-align: center;
@@ -1107,7 +1107,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 .dsp-normalizer-meter-name,
 .dsp-normalizer-meter-value {
-  color: rgba($white, 0.52);
+  color: $text-faint;
   font-size: $text-micro;
 }
 
@@ -1272,7 +1272,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     border: 1px solid rgba($white, 0.08);
     border-radius: $radius-xs;
     background: $surface-plot;
-    color: rgba($white, 0.58);
+    color: $text-faint;
     font-size: $text-eyebrow;
     letter-spacing: 0.035em;
     text-transform: uppercase;
@@ -1281,7 +1281,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   .is-safe {
     border-color: color-mix(in srgb, $secondary-default 20%, transparent);
-    color: color-mix(in srgb, $secondary-default 78%, transparent);
+    color: $text-accent;
   }
 
   .is-fixed {
@@ -1329,7 +1329,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     font-variant-numeric: tabular-nums;
 
     em {
-      color: rgba($white, 0.44);
+      color: $text-faint;
       font-size: $text-eyebrow;
       font-style: normal;
       font-weight: $weight-medium;
@@ -1465,7 +1465,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .dsp-card-description {
   max-width: 620px;
   margin: 0;
-  color: rgba($white, 0.48);
+  color: $text-faint;
   font-size: $text-body;
   line-height: 1.4;
 }
@@ -1504,7 +1504,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 .dsp-band-title {
-  color: rgba($white, 0.55);
+  color: $text-faint;
   font-size: $text-small;
   text-transform: uppercase;
   letter-spacing: 0.09em;
@@ -1526,7 +1526,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // says what it is for.
 .dsp-band-hint {
   margin: 0 0 2px;
-  color: rgba($white, 0.44);
+  color: $text-faint;
   font-size: $text-small;
   line-height: 1.4;
 }
@@ -1599,7 +1599,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   list-style: none;
 
   li {
-    color: rgba($white, 0.45);
+    color: $text-faint;
     font-size: $text-micro;
     letter-spacing: 0.06em;
     text-align: center;
@@ -1694,7 +1694,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 .dsp-rail-group-label {
   padding: 0 11px 2px;
-  color: rgba($white, 0.36);
+  color: $text-faint;
   font-size: $text-eyebrow;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -1709,7 +1709,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   border: 1px solid transparent;
   border-radius: $radius-s;
   background: transparent;
-  color: rgba($white, 0.62);
+  color: $text-muted;
   font-size: $text-lead;
   text-align: left;
   cursor: pointer;
@@ -1994,7 +1994,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   display: flex;
   align-items: center;
   gap: 6px;
-  color: rgba($white, 0.55);
+  color: $text-faint;
   font-size: $text-small;
 }
 
@@ -2022,7 +2022,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // Which axis to read it against. Dimmer than the name: it is the answer to a
 // question the name has already raised.
 .dsp-eq-legend-scale {
-  color: rgba($white, 0.32);
+  color: $text-faint;
   font-size: $text-micro;
 }
 
@@ -2044,21 +2044,17 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   border: 1px solid rgba($white, 0.09);
   border-radius: $radius-xs;
   background: color-mix(in srgb, $secondary-default 7%, transparent);
-  color: rgba($white, 0.55);
+  color: $text-faint;
   font-size: $text-body;
   font-variant-numeric: tabular-nums;
   line-height: 1;
   cursor: pointer;
-  // `opacity` and `box-shadow` are here for the two states below that nothing
-  // else on this button reaches: switching a band off fades its pick, and a
-  // dynamic band that is also selected draws its inner ring. Both were being
-  // set on a button whose colour and fill were mid-fade, so one pick changed
-  // in two steps while its fourteen neighbours changed in one.
+  // Bypassed bands remain selectable; their dashed edge says off without
+  // fading the button needed to select and re-enable them.
   transition:
     background 130ms ease,
     color 130ms ease,
     border-color 130ms ease,
-    opacity 130ms ease,
     box-shadow 130ms ease;
 
   &:hover {
@@ -2074,7 +2070,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 .dsp-eq-pick.is-off {
-  opacity: $disabled-opacity;
+  border-style: dashed;
 }
 
 // Which bands react, readable across the whole row without selecting each one.
@@ -2198,7 +2194,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 .dsp-eq-field-label {
-  color: rgba($white, 0.42);
+  color: $text-faint;
   font-size: $text-micro;
   text-transform: uppercase;
   letter-spacing: 0.07em;
@@ -2257,7 +2253,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   align-self: stretch;
   justify-content: center;
   gap: 8px;
-  color: rgba($white, 0.5);
+  color: $text-faint;
   font-size: $text-small;
   letter-spacing: 0.07em;
   text-transform: uppercase;
@@ -2339,7 +2335,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   flex: 1 0 100%;
   max-width: 620px;
   margin: 0;
-  color: rgba($white, 0.48);
+  color: $text-faint;
   font-size: $text-body;
   line-height: 1.4;
 }
@@ -2349,7 +2345,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // of empty space to fit a single word.
 .dsp-eq-preset-label {
   flex: 0 0 auto;
-  color: rgba($white, 0.42);
+  color: $text-faint;
   font-size: $text-micro;
   text-transform: uppercase;
   letter-spacing: 0.07em;
@@ -2399,7 +2395,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // A well cut into its card: the shell colour, which is the one thing in
   // the palette that reads as "below". Black at 24% was a shade of nothing.
   background: color-mix(in srgb, $surface-base 55%, transparent);
-  color: rgba($white, 0.55);
+  color: $text-faint;
   cursor: pointer;
   transition:
     background 130ms ease,
@@ -2474,7 +2470,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   border: 0;
   border-radius: $radius-xs;
   background: none;
-  color: rgba($white, 0.55);
+  color: $text-faint;
   font-size: $text-body;
   white-space: nowrap;
   cursor: pointer;
@@ -2549,7 +2545,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 .dsp-import__hint {
   margin: 0;
-  color: rgba($white, 0.48);
+  color: $text-faint;
   font-size: $text-body;
   line-height: 1.4;
 }
@@ -2616,7 +2612,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .dsp-eq-notice {
   flex: 1 0 100%;
   margin: 0;
-  color: rgba($white, 0.62);
+  color: $text-muted;
   font-size: $text-body;
   line-height: 1.35;
 }
@@ -2669,7 +2665,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 .dsp-exciter-isolate-label {
-  color: rgba($white, 0.4);
+  color: $text-faint;
   font-size: $text-small;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -2681,7 +2677,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 .dsp-monitor-isolate-label {
-  color: rgba($white, 0.4);
+  color: $text-faint;
   font-size: $text-small;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -2693,7 +2689,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 .dsp-card-power-label {
-  color: rgba($white, 0.4);
+  color: $text-faint;
   font-size: $text-small;
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -2928,7 +2924,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   border: 0;
   border-radius: 5px;
   background: none;
-  color: rgba($white, 0.4);
+  color: $text-faint;
   cursor: pointer;
   transition:
     background 130ms ease,
@@ -2948,7 +2944,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 
   &:hover {
-    color: rgba($white, 0.8);
+    color: $text-muted;
   }
 
   &.is-selected {
@@ -3617,7 +3613,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 .dsp-dimension-guard-name,
 .dsp-dimension-guard-value {
-  color: rgba($white, 0.52);
+  color: $text-faint;
   font-size: $text-micro;
 }
 
@@ -3647,7 +3643,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .dsp-dimension-note {
   width: 100%;
   margin: 0;
-  color: rgba($white, 0.46);
+  color: $text-faint;
   font-size: $text-micro;
   line-height: 1.5;
 }
@@ -3690,7 +3686,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 .dsp-dimension-group-name {
-  color: rgba($white, 0.52);
+  color: $text-faint;
   font-size: $text-micro;
   letter-spacing: 0.08em;
   text-transform: uppercase;

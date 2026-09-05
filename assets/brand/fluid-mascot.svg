@@ -1,0 +1,39 @@
+<!-- Copyright (C) 2026 Ivan Carmenates Garcia. SPDX-License-Identifier: GPL-3.0-or-later -->
+<!-- Fluid's original PetArt geometry, isolated as an image so multiple instances cannot share SVG clip IDs. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" fill="none">
+  <defs>
+    <linearGradient
+      id="body"
+      x1="20"
+      y1="6"
+      x2="20"
+      y2="37"
+      gradientUnits="userSpaceOnUse"
+    >
+      <stop stop-color="#7ef7e6" />
+      <stop offset="1" stop-color="#17a5c4" />
+    </linearGradient>
+  </defs>
+  <path
+    d="M11 12 14 6 17 12M23 12 26 8 29 12"
+    stroke="url(#body)"
+    stroke-width="3"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+  <circle cx="20" cy="24" r="12.5" fill="url(#body)" />
+  <g fill="#06131d">
+    <circle cx="15.4" cy="22" r="3.4" />
+    <circle cx="24.6" cy="22" r="3.4" />
+  </g>
+  <g fill="#fff">
+    <circle cx="16.4" cy="21" r="1.15" />
+    <circle cx="25.6" cy="21" r="1.15" />
+  </g>
+  <path
+    d="M16.6 28.4Q20 31.4 23.4 28.4"
+    stroke="#06131d"
+    stroke-width="1.8"
+    stroke-linecap="round"
+  />
+</svg>

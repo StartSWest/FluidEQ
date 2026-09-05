@@ -20,7 +20,7 @@ it under the terms of the GNU General Public License version 3 or later.
 }
 
 .about {
-  @include dialog.surface(760px, 800px);
+  @include dialog.surface(960px, 860px);
   grid-template-rows: auto minmax(0, 1fr);
 }
 
@@ -30,6 +30,10 @@ it under the terms of the GNU General Public License version 3 or later.
 
 .about__body {
   display: grid;
+  // A clipped illustration has an automatic minimum of zero in a grid. Keep
+  // rows at their content height so the legal text scrolls instead of crushing it.
+  grid-auto-rows: max-content;
+  align-content: start;
   min-height: 0;
   padding: 18px 20px 20px;
   gap: 10px;
@@ -64,10 +68,137 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
-// The identity row that used to open the body — mark, name, version, tagline
-// — is gone. It repeated the name from the header two lines above it, and
-// stated the version as bare grey text in the one app whose own titlebar puts
-// a pill round it. The header carries all three now; see `DialogHeader.scss`.
+// The portrait is a static, isolated SVG asset: displaying Fluid here must
+// neither attach another audio analyser nor collide with the titlebar's SVG IDs.
+.about-brand {
+  @include dialog.section-surface;
+  display: grid;
+  grid-template-columns: minmax(170px, 30%) minmax(0, 1fr);
+  align-items: center;
+  gap: 24px;
+  padding: 28px;
+  overflow: hidden;
+  border-color: color-mix(in srgb, $secondary-light 24%, transparent);
+}
+
+.about-brand__portrait {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  min-width: 0;
+
+  img {
+    position: relative;
+    display: block;
+    width: min(100%, 240px);
+    height: auto;
+  }
+}
+
+.about-brand__orbit {
+  position: absolute;
+  inset: 14% -5% 10%;
+  border: 1px solid color-mix(in srgb, $secondary-light 18%, transparent);
+  border-radius: 50%;
+  background: radial-gradient(
+    ellipse,
+    color-mix(in srgb, $secondary-default 14%, transparent),
+    transparent 70%
+  );
+
+  &::after {
+    position: absolute;
+    inset: 12%;
+    border: 1px solid color-mix(in srgb, $secondary-light 12%, transparent);
+    border-radius: 50%;
+    content: '';
+  }
+}
+
+.about-brand__pet-name {
+  position: relative;
+  margin-top: 10px;
+  color: $text-accent;
+  font-size: 12px;
+  font-weight: $weight-semibold;
+  letter-spacing: 0.12em;
+}
+.about-brand__identity {
+  min-width: 0;
+}
+.about-brand__wordmark {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+
+  .brand-mark {
+    width: 44px;
+    height: 44px;
+    flex: 0 0 44px;
+  }
+  h2 {
+    margin: 0;
+    color: $text-primary;
+    font-size: clamp(30px, 3vw, 42px);
+    font-weight: $weight-bold;
+    line-height: 1.1;
+    letter-spacing: -0.035em;
+  }
+}
+
+.about__body .about-brand__tagline {
+  margin: 18px 0 10px;
+  color: $text-primary;
+  font-size: 19px;
+  font-weight: $weight-semibold;
+  line-height: 1.45;
+}
+.about-brand__description {
+  max-width: 440px;
+  font-size: 14px;
+}
+.about-brand__author {
+  color: $text-accent;
+  font-size: 12px;
+}
+.about-brand__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 20px;
+
+  a.button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+  }
+  a.button:not(.subtle) {
+    color: $surface-base;
+  }
+}
+
+@media (max-width: 660px) {
+  .about-brand {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+    padding: 22px;
+  }
+  .about-brand__portrait {
+    width: 140px;
+    justify-self: center;
+  }
+  .about-brand__wordmark {
+    justify-content: center;
+  }
+  .about-brand__identity {
+    text-align: center;
+  }
+  .about-brand__links {
+    justify-content: center;
+  }
+}
 
 .about__section {
   @include dialog.section-surface;

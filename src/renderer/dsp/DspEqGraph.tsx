@@ -15,7 +15,12 @@ import {
   readDspBandLevels,
   subscribeDspAnalysers,
 } from './store';
-import { readAccent, readAccentLight, readSurfaceAlpha } from '../utils/theme';
+import {
+  readTextInk,
+  readAccent,
+  readAccentLight,
+  readSurfaceAlpha,
+} from '../utils/theme';
 
 const MIN_HZ = 20;
 const MAX_HZ = 20_000;
@@ -262,6 +267,7 @@ const DspEqGraph = ({
 
     let frame = 0;
     const paint = () => {
+      const textInk = readTextInk();
       frame = 0;
       const box = canvas.getBoundingClientRect();
       if (box.width < 1) {
@@ -310,16 +316,14 @@ const DspEqGraph = ({
         context.moveTo(PAD_L, y);
         context.lineTo(boxRef.current.width - PAD_R, y);
         context.stroke();
-        context.fillStyle = 'rgba(255,255,255,0.38)';
+        context.fillStyle = textInk;
         context.textAlign = 'right';
         context.fillText(db > 0 ? `+${db}` : `${db}`, PAD_L - 8, y);
       });
 
-      // The level scale, on the right and deliberately dimmer than the gain
-      // scale: the curve is what this page is for, and the spectrum is the
-      // backdrop it is being read against.
+      // The level scale belongs to the spectrum; both axes need readable ink.
       context.textAlign = 'left';
-      context.fillStyle = 'rgba(255,255,255,0.26)';
+      context.fillStyle = textInk;
       GRID_DBFS.forEach((dbfs) => {
         const level =
           (dbfs - SPECTRUM_FLOOR_DB) / (SPECTRUM_TOP_DB - SPECTRUM_FLOOR_DB);
@@ -335,7 +339,7 @@ const DspEqGraph = ({
         context.moveTo(x, PAD_T);
         context.lineTo(x, PAD_T + plotH(H));
         context.stroke();
-        context.fillStyle = 'rgba(255,255,255,0.38)';
+        context.fillStyle = textInk;
         context.fillText(label, x, boxRef.current.height - PAD_B / 2);
       });
 

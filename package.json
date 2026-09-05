@@ -1,6 +1,6 @@
 {
   "name": "fluideq",
-  "version": "1.6.3",
+  "version": "1.6.4",
   "type": "commonjs",
   "description": "Open-source system-wide parametric EQ with automatic per-device profiles",
   "keywords": [
@@ -34,6 +34,7 @@
   ],
   "main": "./src/main/main.ts",
   "scripts": {
+    "docs:guide": "ts-node ./.erb/scripts/export-user-guide.ts",
     "dev": "node ./.erb/scripts/dev.cjs",
     "build": "pnpm build:native-dsp && concurrently \"pnpm build:main\" \"pnpm build:renderer\"",
     "build:native-dsp": "ts-node ./.erb/scripts/build-native-dsp.ts",

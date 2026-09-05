@@ -23,7 +23,10 @@ import {
   BUNDLED_ENGINE,
   COPYRIGHT,
   LICENSE,
+  OFFICIAL_SITE_URL,
   PRODUCT_NAME,
+  PRODUCT_VERSION,
+  REPOSITORY_URL,
   TRADEMARK,
   UPSTREAM,
 } from 'common/branding';
@@ -67,11 +70,31 @@ describe('AboutDialog', () => {
 
   it('names the product and its licence, and links to the full text', () => {
     const text = openAndRead();
-    expect(screen.getByRole('dialog')).toHaveAccessibleName(PRODUCT_NAME);
+    expect(screen.getByRole('dialog')).toHaveAccessibleName(
+      translate('en', 'about.title'),
+    );
     expect(text).toContain(LICENSE.name);
     expect(
       screen.getByRole('link', { name: /full licence text/i }),
     ).toHaveAttribute('href', LICENSE.url);
+  });
+
+  it('introduces Fluid with the product version and official project links', () => {
+    const text = openAndReadIn('es');
+    expect(
+      screen.getByRole('img', { name: translate('es', 'about.mascot') }),
+    ).toBeVisible();
+    expect(screen.getByRole('heading', { name: PRODUCT_NAME })).toBeVisible();
+    expect(text).toContain(`v${PRODUCT_VERSION}`);
+    expect(text).toContain(
+      translate('es', 'about.author', { author: AUTHOR_NAME }),
+    );
+    expect(
+      screen.getByRole('link', { name: translate('es', 'about.website') }),
+    ).toHaveAttribute('href', OFFICIAL_SITE_URL);
+    expect(
+      screen.getByRole('link', { name: translate('es', 'about.source') }),
+    ).toHaveAttribute('href', REPOSITORY_URL);
   });
 
   it('credits the upstream project and links to it', () => {

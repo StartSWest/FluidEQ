@@ -220,7 +220,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     .menu-icon {
       width: 22px;
       height: 22px;
-      color: color-mix(in srgb, $secondary-light 50%, transparent);
+      color: $text-accent;
     }
 
     strong {

@@ -30,7 +30,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   align-items: center;
   padding: 0 8px;
   gap: 6px;
-  color: rgba($white, 0.72);
+  color: $text-muted;
   border: 1px dashed rgba($white, 0.24);
   border-radius: $radius-s;
   background: transparent;
@@ -67,5 +67,5 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .memory-trace__detail {
   @include truncate;
   max-width: 190px;
-  color: rgba($white, 0.5);
+  color: $text-faint;
 }

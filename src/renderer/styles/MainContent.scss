@@ -931,7 +931,7 @@ $eq-bubble-applied-face: color-mix(
   > span {
     @include truncate;
     min-height: 14px;
-    color: rgba($white, 0.8);
+    color: $text-muted;
     font-size: $text-eyebrow;
     font-weight: $weight-bold;
     letter-spacing: 0.08em;

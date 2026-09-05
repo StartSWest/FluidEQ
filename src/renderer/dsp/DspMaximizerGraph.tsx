@@ -5,6 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { useEffect, useRef } from 'react';
+import { readTextInk } from '../utils/theme';
 import { IMaximizerSettings } from '../../common/dsp/chain';
 import { useTranslation } from '../utils/I18nContext';
 import { readDspMaximizerReduction, readDspPeak } from './store';
@@ -124,6 +125,7 @@ const DspMaximizerGraph = ({ maximizer }: IDspMaximizerGraphProps) => {
 
   useEffect(() => {
     const paint = ({ schedule }: IGraphLoopFrame) => {
+      const textInk = readTextInk();
       const canvas = canvasRef.current;
       const context = canvas?.getContext('2d');
       if (!canvas || !context) {
@@ -214,7 +216,7 @@ const DspMaximizerGraph = ({ maximizer }: IDspMaximizerGraphProps) => {
           context.lineTo(width - PAD_R, line);
           context.stroke();
           if (half === 0) {
-            context.fillStyle = 'rgba(255,255,255,0.38)';
+            context.fillStyle = textInk;
             context.textAlign = 'right';
             context.fillText(`${db}`, PAD_L - 6, line);
           }
@@ -224,7 +226,7 @@ const DspMaximizerGraph = ({ maximizer }: IDspMaximizerGraphProps) => {
       // Time runs left to right and the newest column is the right edge, so
       // "now" is where the eye already is when a peak arrives.
       context.textAlign = 'center';
-      context.fillStyle = 'rgba(255,255,255,0.3)';
+      context.fillStyle = textInk;
       for (let second = WINDOW_MS / 1_000; second >= 1; second -= 1) {
         const x = PAD_L + plotWidth * (1 - (second * 1_000) / WINDOW_MS);
         const line = Math.round(x) + 0.5;
@@ -383,7 +385,7 @@ const DspMaximizerGraph = ({ maximizer }: IDspMaximizerGraphProps) => {
         context.fillRect(meterX, Math.round(holdY), meterWidth, 2);
       }
       context.textAlign = 'left';
-      context.fillStyle = 'rgba(255,255,255,0.32)';
+      context.fillStyle = textInk;
       GR_TICKS_DB.forEach((db) => {
         const y = PAD_T + (db / GR_FULL_SCALE_DB) * plotHeight;
         context.fillText(db === 0 ? '0' : `-${db}`, meterX + meterWidth + 5, y);

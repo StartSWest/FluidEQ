@@ -1,4 +1,4 @@
-import { readAccent } from '../utils/theme';
+import { readTextInk, readAccent } from '../utils/theme';
 /*
 <FluidEQ: System-wide parametric audio equalizer interface>
 Copyright (C) <2026>  <Ivan Carmenates Garcia>
@@ -125,6 +125,7 @@ export const paintMasterLoudness = (
   height: number,
   plot: IMasterLoudnessPlot,
 ): void => {
+  const textInk = readTextInk();
   const plotWidth = Math.max(1, width - PAD_L - PAD_R);
   const laneTop = PAD_T;
   const laneBottom = PAD_T + GR_LANE_HEIGHT;
@@ -159,12 +160,12 @@ export const paintMasterLoudness = (
     context.moveTo(PAD_L, y);
     context.lineTo(width - PAD_R, y);
     context.stroke();
-    context.fillStyle = 'rgba(255,255,255,0.38)';
+    context.fillStyle = textInk;
     context.textAlign = 'right';
     context.fillText(`${Math.round(lufs)}`, PAD_L - 7, y);
   });
   // The unit, once, where a stray number on the axis could be read as dB.
-  context.fillStyle = 'rgba(255,255,255,0.28)';
+  context.fillStyle = textInk;
   context.textAlign = 'right';
   context.fillText('LUFS', PAD_L - 7, plotTop - 12);
 
@@ -219,7 +220,7 @@ export const paintMasterLoudness = (
   context.moveTo(PAD_L, laneBottom + 0.5);
   context.lineTo(width - PAD_R, laneBottom + 0.5);
   context.stroke();
-  context.fillStyle = 'rgba(255,196,126,0.7)';
+  context.fillStyle = 'rgb(255,196,126)';
   context.textAlign = 'right';
   context.fillText(plot.reductionLabel, PAD_L - 7, laneTop + 9);
 
@@ -315,7 +316,7 @@ export const paintMasterLoudness = (
     context.fillRect(meterX, meterTop, meterWidth, depth * meterHeight);
   }
   context.textAlign = 'left';
-  context.fillStyle = 'rgba(255,255,255,0.38)';
+  context.fillStyle = textInk;
   context.fillText('0', meterX + meterWidth + 5, meterTop + 5);
   context.fillText(
     `-${GR_FULL_SCALE_DB}`,
@@ -326,7 +327,7 @@ export const paintMasterLoudness = (
   // Seconds, so the width of the picture is a duration rather than a guess.
   // The newest column is right-aligned against the plot's own edge: centred,
   // its label ran into the reduction meter's scale in the margin beyond it.
-  context.fillStyle = 'rgba(255,255,255,0.38)';
+  context.fillStyle = textInk;
   for (let seconds = 0; seconds <= LOUDNESS_WINDOW_MS / 1000; seconds += 10) {
     const age = (seconds * 1000) / LOUDNESS_SAMPLE_MS;
     context.textAlign = seconds === 0 ? 'right' : 'center';

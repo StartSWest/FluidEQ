@@ -1,0 +1,1147 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="dark light" />
+    <title>FluidEQ · User guide</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #0b1926;
+        --panel: #152b3b;
+        --text: #ecf5fb;
+        --muted: #bed3df;
+        --accent: #70ddce;
+        --line: #304b5b;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html {
+        scroll-padding-top: 2rem;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font-family:
+          -apple-system, BlinkMacSystemFont, 'Segoe UI', Ubuntu, Cantarell,
+          'Noto Sans', 'DejaVu Sans', sans-serif;
+        font-variant-numeric: tabular-nums;
+        line-height: 1.75;
+      }
+      a {
+        color: var(--accent);
+        text-underline-offset: 4px;
+      }
+      a:focus-visible,
+      button:focus-visible {
+        outline: 3px solid var(--accent);
+        outline-offset: 4px;
+      }
+      .shell {
+        display: grid;
+        grid-template-columns: 270px minmax(0, 1fr);
+        max-width: 1600px;
+        margin: auto;
+      }
+      .rail {
+        position: sticky;
+        top: 0;
+        height: 100vh;
+        overflow: auto;
+        padding: 32px 22px;
+        background: var(--panel);
+        border-right: 1px solid var(--line);
+      }
+      .brand {
+        font-size: 24px;
+        font-weight: bold;
+        letter-spacing: -0.04em;
+      }
+      .rail small {
+        display: block;
+        color: var(--accent);
+        margin-bottom: 28px;
+      }
+      .rail nav {
+        display: grid;
+        gap: 7px;
+      }
+      .rail nav a {
+        color: var(--muted);
+        font-size: 14px;
+        text-decoration: none;
+        padding: 6px 0;
+      }
+      .rail nav a:hover {
+        color: var(--accent);
+      }
+      main {
+        min-width: 0;
+        padding: 60px clamp(22px, 5vw, 80px);
+      }
+      .hero {
+        padding-bottom: 38px;
+      }
+      .eyebrow {
+        text-transform: uppercase;
+        letter-spacing: 0.15em;
+        font-size: 12px;
+        color: var(--accent);
+      }
+      h1 {
+        font-size: clamp(36px, 4.5vw, 64px);
+        line-height: 1.08;
+        letter-spacing: -0.04em;
+        max-width: 750px;
+        margin: 26px 0;
+      }
+      h2 {
+        font-size: 28px;
+        line-height: 1.25;
+        margin: 0;
+      }
+      h3 {
+        font-size: 17px;
+      }
+      .lead {
+        font-size: 20px;
+        color: var(--muted);
+        max-width: 730px;
+      }
+      .note {
+        font-size: 13px;
+        color: var(--muted);
+        max-width: 760px;
+      }
+      .badge,
+      button {
+        display: inline-block;
+        border: 1px solid var(--line);
+        border-radius: 9px;
+        padding: 8px 13px;
+        font: inherit;
+        font-size: 13px;
+      }
+      .badge {
+        color: var(--accent);
+      }
+      button {
+        background: var(--accent);
+        color: var(--bg);
+        cursor: pointer;
+        margin: 10px 0;
+      }
+      section {
+        padding: 40px 0 52px;
+        border-top: 1px solid var(--line);
+      }
+      .chapter-heading {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+      }
+      .number {
+        color: var(--accent);
+        font-size: 18px;
+        border: 1px solid var(--line);
+        border-radius: 50%;
+        width: 44px;
+        height: 44px;
+        display: grid;
+        place-items: center;
+        flex-shrink: 0;
+      }
+      p {
+        margin: 18px 0 24px;
+      }
+      figure {
+        margin: 28px 0;
+      }
+      figure img {
+        display: block;
+        width: 100%;
+        height: auto;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+      }
+      figcaption {
+        color: var(--muted);
+        font-size: 12px;
+        margin-top: 8px;
+      }
+      li {
+        padding-left: 8px;
+        margin: 12px 0;
+      }
+      li::marker {
+        color: var(--accent);
+        font-weight: bold;
+      }
+      .tip {
+        background: var(--panel);
+        border-left: 3px solid var(--accent);
+        border-radius: 8px;
+        padding: 18px 22px;
+      }
+      .tip strong {
+        color: var(--accent);
+      }
+      .tip p {
+        margin: 4px 0 0;
+      }
+      footer {
+        font-size: 13px;
+        color: var(--muted);
+      }
+      @media (max-width: 850px) {
+        .shell {
+          display: block;
+        }
+        .rail {
+          position: static;
+          height: auto;
+          padding: 20px;
+        }
+        .rail nav {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        main {
+          padding: 32px 20px;
+        }
+        h2 {
+          font-size: 24px;
+        }
+      }
+      @media print {
+        :root {
+          color-scheme: light;
+          --bg: white;
+          --panel: #f2f6f7;
+          --text: #132b38;
+          --muted: #425d6d;
+          --accent: #17665e;
+          --line: #b7cbd4;
+        }
+        body {
+          font-size: 10pt;
+        }
+        .shell {
+          display: block;
+        }
+        .rail {
+          display: none;
+        }
+        main {
+          padding: 0;
+        }
+        .hero {
+          break-after: page;
+        }
+        h1 {
+          font-size: 38pt;
+        }
+        section {
+          break-before: page;
+          padding: 12pt 0;
+          border: 0;
+        }
+        .chapter-heading,
+        figure,
+        .tip {
+          break-inside: avoid;
+        }
+        figure img {
+          border-radius: 4px;
+        }
+        figure {
+          margin: 14pt 0;
+        }
+        h2 {
+          font-size: 20pt;
+        }
+        h3 {
+          break-after: avoid;
+        }
+        li {
+          margin: 6pt 0;
+        }
+        button {
+          display: none;
+        }
+        a {
+          color: inherit;
+          text-decoration: none;
+        }
+        @page {
+          size: A4;
+          margin: 16mm;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <aside class="rail">
+        <div class="brand">FluidEQ</div>
+        <small>User guide · Offline edition</small>
+        <nav aria-label="In this guide">
+          <a href="#start">01 &nbsp; Your first five minutes</a
+          ><a href="#eq">02 &nbsp; Shape your sound with EQ</a
+          ><a href="#headphones">03 &nbsp; Headphone correction &amp; imports</a
+          ><a href="#convolution">04 &nbsp; Use an impulse response</a
+          ><a href="#profiles"
+            >05 &nbsp; Devices, profiles &amp; second output</a
+          ><a href="#config">06 &nbsp; Inspect &amp; back up a chain</a
+          ><a href="#online">07 &nbsp; Listen with Online Media</a
+          ><a href="#share">08 &nbsp; Share audio between computers</a
+          ><a href="#library">09 &nbsp; Build your local library</a
+          ><a href="#queue">10 &nbsp; Albums &amp; your play queue</a
+          ><a href="#dsp">11 &nbsp; Explore the DSP rack</a
+          ><a href="#denoise">12 &nbsp; Denoise &amp; source analysis</a
+          ><a href="#visuals">13 &nbsp; Make the player your own</a
+          ><a href="#karaoke">14 &nbsp; Sing with Karaoke</a
+          ><a href="#maker">15 &nbsp; Create in Karaoke Maker</a
+          ><a href="#trouble">16 &nbsp; When something sounds wrong</a>
+        </nav>
+      </aside>
+      <main>
+        <header class="hero">
+          <span class="eyebrow">FluidEQ / The illustrated guide</span>
+          <h1>Find your sound. Make yourself at home.</h1>
+          <p class="lead">
+            A practical guide to FluidEQ, illustrated with real app captures.
+            Start with your first listening session, then explore each workspace
+            at your own pace.
+          </p>
+          <span class="badge"
+            >16 chapters · 14 real interface captures · Offline</span
+          >
+          <p><strong>In FluidEQ: Help → User guide, or press F1.</strong></p>
+          <button type="button" id="print">Print / Save as PDF</button>
+          <p class="note">
+            Real FluidEQ captures from version 1.6.x. Colours, labels and
+            control positions may differ in your version. Example settings are
+            illustrations, not recommended presets.
+          </p>
+        </header>
+        <section id="start">
+          <header class="chapter-heading">
+            <span class="number">01</span>
+            <h2>Your first five minutes</h2>
+          </header>
+          <p>
+            Start with a familiar song and a comfortable volume. The left rail
+            controls system EQ and headroom; the centre holds your workspace;
+            the right rail follows your output and its profiles. Playback
+            controls stay at the bottom.
+          </p>
+          <figure>
+            <a
+              href="03-eq-parametric-bands-and-live-response.png"
+              aria-label="Enlarge screenshot: Your first five minutes"
+              ><img
+                src="03-eq-parametric-bands-and-live-response.png"
+                width="2560"
+                height="1392"
+                alt="Your first five minutes"
+                loading="lazy"
+            /></a>
+            <figcaption>Your first five minutes · FluidEQ</figcaption>
+          </figure>
+          <h3>Try it</h3>
+          <ol>
+            <li>
+              On Windows, install Equalizer APO when the FluidEQ installer
+              offers it, select the listening device in its Device Selector, and
+              restart when requested.
+            </li>
+            <li>
+              Choose that device under Output device. Turn on System EQ and
+              leave Auto normalize enabled.
+            </li>
+            <li>
+              Play a song, open EQ → Bands, make a small change, and compare
+              with System EQ off and on.
+            </li>
+          </ol>
+          <aside class="tip">
+            <strong>Good to know</strong>
+            <p>
+              System-wide EQ requires Windows and Equalizer APO. The macOS and
+              Linux interfaces use demonstration endpoints; do not treat a
+              moving graph there as proof of system-wide processing.
+            </p>
+          </aside>
+        </section>
+        <section id="eq">
+          <header class="chapter-heading">
+            <span class="number">02</span>
+            <h2>Shape your sound with EQ</h2>
+          </header>
+          <p>
+            Frequency chooses where a band acts, Gain sets the boost or cut, and
+            Q sets its width: higher Q is narrower. Low frequencies affect bass,
+            the middle carries much of a voice, and the high end adds
+            brightness. Begin with small changes.
+          </p>
+          <figure>
+            <a
+              href="03-eq-parametric-bands-and-live-response.png"
+              aria-label="Enlarge screenshot: Shape your sound with EQ"
+              ><img
+                src="03-eq-parametric-bands-and-live-response.png"
+                width="2560"
+                height="1392"
+                alt="Shape your sound with EQ"
+                loading="lazy"
+            /></a>
+            <figcaption>Shape your sound with EQ · FluidEQ</figcaption>
+          </figure>
+          <h3>Try it</h3>
+          <ol>
+            <li>
+              Select a band in EQ → Bands. Adjust Frequency, Gain and Quality
+              (Q), or drag its point on the response graph.
+            </li>
+            <li>
+              Use a broad, gentle band for tonal balance. Compare before adding
+              another. The filter selector changes the shape, including peak and
+              shelves.
+            </li>
+            <li>
+              Use the layer switches and strengths to compare headphone
+              correction, EQ, voicing and Smart EQ separately. Leave Auto
+              normalize on while adding boosts.
+            </li>
+          </ol>
+          <aside class="tip">
+            <strong>Good to know</strong>
+            <p>
+              The response curve describes your filters; the moving spectrum
+              describes the signal being measured. Smart EQ needs audible
+              material to measure. Detail, Balance and Target make different
+              kinds of correction; begin by comparing one mode at a time.
+            </p>
+          </aside>
+        </section>
+        <section id="headphones">
+          <header class="chapter-heading">
+            <span class="number">03</span>
+            <h2>Headphone correction &amp; imports</h2>
+          </header>
+          <p>
+            A headphone correction compensates for a measured model. It is a
+            starting point you can combine with your own bands and voicing.
+            Check the exact model and the measurement author before applying a
+            result.
+          </p>
+          <figure>
+            <a
+              href="04-eq-headphone-correction-and-import.png"
+              aria-label="Enlarge screenshot: Headphone correction &amp; imports"
+              ><img
+                src="04-eq-headphone-correction-and-import.png"
+                width="2560"
+                height="1392"
+                alt="Headphone correction &amp; imports"
+                loading="lazy"
+            /></a>
+            <figcaption>
+              Headphone correction &amp; imports · FluidEQ
+            </figcaption>
+          </figure>
+          <h3>Try it</h3>
+          <ol>
+            <li>
+              Open EQ → EQ presets and search for your headphone model. Review
+              the available measurements and choose the matching entry.
+            </li>
+            <li>
+              For EQ text from another tool, use Import EQ settings in Audio
+              actions. Review the parsed bands and curve before applying.
+            </li>
+            <li>
+              For Squiglink, export the EQ text there, paste it into the import
+              panel, and press Apply imported EQ when the preview is right.
+            </li>
+          </ol>
+          <aside class="tip">
+            <strong>Good to know</strong>
+            <p>
+              A preview marked not applied is not changing your sound. Avoid
+              stacking two full corrections for the same headphones unless that
+              is deliberate; compare with the headphone layer switched off.
+            </p>
+          </aside>
+        </section>
+        <section id="convolution">
+          <header class="chapter-heading">
+            <span class="number">04</span>
+            <h2>Use an impulse response</h2>
+          </header>
+          <p>
+            Convolution applies a WAV impulse response as another correction
+            layer. FluidEQ includes a searchable AutoEq catalogue and can import
+            your own WAV. It remains separate from the editable parametric
+            bands.
+          </p>
+          <figure>
+            <a
+              href="05-eq-convolution-library.png"
+              aria-label="Enlarge screenshot: Use an impulse response"
+              ><img
+                src="05-eq-convolution-library.png"
+                width="2560"
+                height="1392"
+                alt="Use an impulse response"
+                loading="lazy"
+            /></a>
+            <figcaption>Use an impulse response · FluidEQ</figcaption>
+          </figure>
+          <h3>Try it</h3>
+          <ol>
+            <li>
+              Open EQ → Convolution. Search by model or measurement author.
+            </li>
+            <li>
+              Check the source and sample rate, then use Download and apply; use
+              Import a WAV for a file you already have.
+            </li>
+            <li>
+              Listen with the convolution layer enabled and disabled. Adjust its
+              strength before changing other layers.
+            </li>
+          </ol>
+          <aside class="tip">
+            <strong>Good to know</strong>
+            <p>
+              The impulse sample rate must match the output for Equalizer APO.
+              Catalogue downloads need an internet connection; the guide itself
+              does not.
+            </p>
+          </aside>
+        </section>
+        <section id="profiles">
+          <header class="chapter-heading">
+            <span class="number">05</span>
+            <h2>Devices, profiles &amp; second output</h2>
+          </header>
+          <p>
+            Your EQ follows the output device. Automatic mapping saves edits to
+            the current endpoint, while Named profiles lets you keep alternative
+            sounds. Second output mirrors playback to other devices with a
+            separate level for each.
+          </p>
+          <figure>
+            <a
+              href="02-online-media-multiple-outputs-one-player-at-a-time.png"
+              aria-label="Enlarge screenshot: Devices, profiles &amp; second output"
+              ><img
+                src="02-online-media-multiple-outputs-one-player-at-a-time.png"
+                width="2560"
+                height="1392"
+                alt="Devices, profiles &amp; second output"
+                loading="lazy"
+            /></a>
+            <figcaption>
+              Devices, profiles &amp; second output · FluidEQ
+            </figcaption>
+          </figure>
+          <h3>Try it</h3>
+          <ol>
+            <li>
+              Confirm Output device before editing. Use New profile for a sound
+              you want to keep; Update saves changes to that named profile, and
+              Restore brings its saved settings back.
+            </li>
+            <li>
+              Open Second output, enable a reachable device, and set its level.
+              In current versions, choose that device’s saved EQ profile
+              directly beneath it.
+            </li>
+            <li>
+              Use Game/Video for a smaller starting buffer or Music for more
+              reserve. Compare synchronization on your devices.
+            </li>
+          </ol>
+          <aside class="tip">
+            <strong>Good to know</strong>
+            <p>
+              Each mirrored Windows output uses its own APO profile. Mirroring
+              runs while FluidEQ is open; switching the main output stops the
+              old mirrors. Device latency still affects synchronization.
+            </p>
+          </aside>
+        </section>
+        <section id="config">
+          <header class="chapter-heading">
+            <span class="number">06</span>
+            <h2>Inspect &amp; back up a chain</h2>
+          </header>
+          <p>
+            EQ → Config shows what Equalizer APO actually has on disk. The
+            output cards and include tree help you see which device and layers
+            are involved. Export a chain before a large experiment or when
+            moving a setup.
+          </p>
+          <figure>
+            <a
+              href="06-eq-equalizer-apo-config.png"
+              aria-label="Enlarge screenshot: Inspect &amp; back up a chain"
+              ><img
+                src="06-eq-equalizer-apo-config.png"
+                width="2560"
+                height="1392"
+                alt="Inspect &amp; back up a chain"
+                loading="lazy"
+            /></a>
+            <figcaption>Inspect &amp; back up a chain · FluidEQ</figcaption>
+          </figure>
+          <h3>Try it</h3>
+          <ol>
+            <li>
+              Open EQ → Config and choose the output you want to inspect. Read
+              its status and active layers.
+            </li>
+            <li>
+              Use Export chain to save a .fluideq file. Keep a copy somewhere
+              you can find again.
+            </li>
+            <li>
+              To bring a chain back, select the intended output first, then use
+              Import chain and review the result.
+            </li>
+          </ol>
+          <aside class="tip">
+            <strong>Good to know</strong>
+            <p>
+              Generated layer files are rewritten when their settings change.
+              For manual APO commands, use the per-output custom file that
+              FluidEQ leaves alone; do not put lasting edits in generated
+              layers.
+            </p>
+          </aside>
+        </section>
+        <section id="online">
+          <header class="chapter-heading">
+            <span class="number">07</span>
+            <h2>Listen with Online Media</h2>
+          </header>
+          <p>
+            Online Media keeps supported sites beside your EQ. Site playback and
+            sign-in still depend on the provider and your connection. The
+            transport at the foot of FluidEQ follows the active player.
+          </p>
+          <figure>
+            <a
+              href="01-online-media-youtube-live-eq.png"
+              aria-label="Enlarge screenshot: Listen with Online Media"
+              ><img
+                src="01-online-media-youtube-live-eq.png"
+                width="2560"
+                height="1392"
+                alt="Listen with Online Media"
+                loading="lazy"
+            /></a>
+            <figcaption>Listen with Online Media · FluidEQ</figcaption>
+          </figure>
+          <h3>Try it</h3>
+          <ol>
+            <li>
+              Open Online Media and choose a supported site. Find and start
+              something on that page.
+            </li>
+            <li>
+              Switch to EQ to tune while listening, then return to the page when
+              you need its own controls.
+            </li>
+            <li>
+              Use One player at a time if you want FluidEQ and other players to
+              pause one another instead of overlapping.
+            </li>
+          </ol>
+          <aside class="tip">
+            <strong>Good to know</strong>
+            <p>
+              The DSP rack processes Library audio tracks, not Online Media. On
+              Windows, system EQ can still affect the selected APO-enabled
+              output.
+            </p>
+          </aside>
+        </section>
+        <section id="share">
+          <header class="chapter-heading">
+            <span class="number">08</span>
+            <h2>Share audio between computers</h2>
+          </header>
+          <p>
+            Share Audio sends system audio between computers on the same private
+            network. The receiver is the computer connected to your headphones
+            or speakers; other computers are senders. This is separate from
+            mirroring to a second device on one computer.
+          </p>
+          <figure>
+            <a
+              href="14-share-audio-roles.png"
+              aria-label="Enlarge screenshot: Share audio between computers"
+              ><img
+                src="14-share-audio-roles.png"
+                width="1976"
+                height="410"
+                alt="Share audio between computers"
+                loading="lazy"
+            /></a>
+            <figcaption>Share audio between computers · FluidEQ</figcaption>
+          </figure>
+          <h3>Try it</h3>
+          <ol>
+            <li>
+              On the listening computer, open Share Audio, choose Play audio on
+              this computer and create a connection code. Start at a low volume.
+            </li>
+            <li>
+              On each source computer, choose Send audio from this computer,
+              paste the receiver’s code, and connect. Keep FluidEQ open on both
+              computers.
+            </li>
+            <li>
+              Check the connection monitor. Stop sending or listening when
+              finished. If connection fails, check the shared private network
+              and firewall permission.
+            </li>
+          </ol>
+          <aside class="tip">
+            <strong>Good to know</strong>
+            <p>
+              Keep the connection code private: it authorizes pairing. Several
+              senders can mix together and raise the level. Received shared
+              audio bypasses the Library DSP rack.
+            </p>
+          </aside>
+        </section>
+        <section id="library">
+          <header class="chapter-heading">
+            <span class="number">09</span>
+            <h2>Build your local library</h2>
+          </header>
+          <p>
+            Library brings together music and video from your drives. Browse by
+            albums, artists, songs, folders or videos. Album art and metadata
+            come from your files, so the same collection may look different
+            depending on its tags.
+          </p>
+          <figure>
+            <a
+              href="08-library-artists-and-up-next.png"
+              aria-label="Enlarge screenshot: Build your local library"
+              ><img
+                src="08-library-artists-and-up-next.png"
+                width="2560"
+                height="1392"
+                alt="Build your local library"
+                loading="lazy"
+            /></a>
+            <figcaption>Build your local library · FluidEQ</figcaption>
+          </figure>
+          <h3>Try it</h3>
+          <ol>
+            <li>
+              Open Library and add the folder containing your media. Let
+              indexing finish before judging what is missing.
+            </li>
+            <li>
+              Choose an artist or album, or search for a song. Start a track
+              from the results.
+            </li>
+            <li>
+              Use the bottom transport to pause, seek, skip and adjust playback
+              volume while you work in another tab.
+            </li>
+          </ol>
+          <aside class="tip">
+            <strong>Good to know</strong>
+            <p>
+              Library needs access to the original files. If a drive is
+              disconnected or a folder moves, reconnect it or add the new
+              location.
+            </p>
+          </aside>
+        </section>
+        <section id="queue">
+          <header class="chapter-heading">
+            <span class="number">10</span>
+            <h2>Albums &amp; your play queue</h2>
+          </header>
+          <p>
+            The queue is the listening order; browsing is where you choose
+            music. Opening another album lets you explore without making it the
+            current song. The active track and Up next help you keep your place.
+          </p>
+          <figure>
+            <a
+              href="09-library-album-and-play-queue.png"
+              aria-label="Enlarge screenshot: Albums &amp; your play queue"
+              ><img
+                src="09-library-album-and-play-queue.png"
+                width="2560"
+                height="1392"
+                alt="Albums &amp; your play queue"
+                loading="lazy"
+            /></a>
+            <figcaption>Albums &amp; your play queue · FluidEQ</figcaption>
+          </figure>
+          <h3>Try it</h3>
+          <ol>
+            <li>
+              Open an album to inspect its tracks. Start the one you want to
+              hear.
+            </li>
+            <li>
+              Open the track menu for queue actions, such as playing next or
+              adding to the queue.
+            </li>
+            <li>
+              Inspect Up next, then use shuffle or repeat when you want a
+              different listening order.
+            </li>
+          </ol>
+          <aside class="tip">
+            <strong>Good to know</strong>
+            <p>
+              Starting Library playback takes over from FluidEQ’s other players.
+              Use the current track shown in the transport to confirm which
+              source owns playback.
+            </p>
+          </aside>
+        </section>
+        <section id="dsp">
+          <header class="chapter-heading">
+            <span class="number">11</span>
+            <h2>Explore the DSP rack</h2>
+          </header>
+          <p>
+            DSP processes audio tracks played from Library only. Karaoke,
+            videos, received shared audio and other apps bypass this rack. The
+            rack includes Normalizer, Denoise, Exciter, Bass Forge, Equaliser,
+            Bass Punch, Dimension, Maximizer and Master.
+          </p>
+          <figure>
+            <a
+              href="07-dsp-maximizer-and-processing-chain.png"
+              aria-label="Enlarge screenshot: Explore the DSP rack"
+              ><img
+                src="07-dsp-maximizer-and-processing-chain.png"
+                width="2560"
+                height="1392"
+                alt="Explore the DSP rack"
+                loading="lazy"
+            /></a>
+            <figcaption>Explore the DSP rack · FluidEQ</figcaption>
+          </figure>
+          <h3>Try it</h3>
+          <ol>
+            <li>
+              Play an audio track from Library, open DSP, and enable the rack.
+              Start with a preset or one stage.
+            </li>
+            <li>
+              Select a stage, change one control, and compare with that stage
+              bypassed at a similar listening volume.
+            </li>
+            <li>
+              Watch output levels as you add processing. Save a rack you like;
+              use Export and Import to exchange complete racks.
+            </li>
+          </ol>
+          <aside class="tip">
+            <strong>Good to know</strong>
+            <p>
+              The DSP Equaliser and system EQ are separate stages and can both
+              affect Library playback on Windows. Extra loudness can sound
+              better simply because it is louder; compare at similar volumes.
+            </p>
+          </aside>
+        </section>
+        <section id="denoise">
+          <header class="chapter-heading">
+            <span class="number">12</span>
+            <h2>Denoise &amp; source analysis</h2>
+          </header>
+          <p>
+            Denoise reduces unwanted noise in Library audio. Source analysis and
+            its graph help you judge what the stage is responding to. Stronger
+            reduction is not automatically better: listen for softened detail
+            and watery or pumping textures.
+          </p>
+          <figure>
+            <a
+              href="13-dsp-denoise-and-source-analysis.png"
+              aria-label="Enlarge screenshot: Denoise &amp; source analysis"
+              ><img
+                src="13-dsp-denoise-and-source-analysis.png"
+                width="2560"
+                height="1392"
+                alt="Denoise &amp; source analysis"
+                loading="lazy"
+            /></a>
+            <figcaption>Denoise &amp; source analysis · FluidEQ</figcaption>
+          </figure>
+          <h3>Try it</h3>
+          <ol>
+            <li>
+              Play a Library audio track with the noise you want to reduce and
+              select Denoise in DSP.
+            </li>
+            <li>
+              Begin with a light setting, enable the stage, and listen to both
+              quiet passages and musical detail.
+            </li>
+            <li>
+              Increase reduction gradually, then bypass the stage to check
+              whether the improvement is worth any loss of detail.
+            </li>
+          </ol>
+          <aside class="tip">
+            <strong>Good to know</strong>
+            <p>
+              This is not a microphone cleanup switch and does not process the
+              Online Media player. If you hear no change, first confirm the
+              source is a Library audio track and both rack and stage are
+              enabled.
+            </p>
+          </aside>
+        </section>
+        <section id="visuals">
+          <header class="chapter-heading">
+            <span class="number">13</span>
+            <h2>Make the player your own</h2>
+          </header>
+          <p>
+            The response graph, live spectrum and level meter show different
+            aspects of your sound. The visualizer offers multiple forms,
+            palettes and peak looks. Appearance changes are independent of EQ
+            settings.
+          </p>
+          <figure>
+            <a
+              href="10-library-customize-visualizer.png"
+              aria-label="Enlarge screenshot: Make the player your own"
+              ><img
+                src="10-library-customize-visualizer.png"
+                width="2560"
+                height="1392"
+                alt="Make the player your own"
+                loading="lazy"
+            /></a>
+            <figcaption>Make the player your own · FluidEQ</figcaption>
+          </figure>
+          <h3>Try it</h3>
+          <ol>
+            <li>
+              Turn on Response graph in the left rail. Use View on the graph to
+              choose its size.
+            </li>
+            <li>
+              Pick a visualizer form, then open New look to adjust colour, fill,
+              glow, spacing and peaks. Save the look with a name.
+            </li>
+            <li>
+              For the whole interface, open Audio actions and choose a theme or
+              language. Use Ctrl + plus, minus or 0 to enlarge, shrink or reset
+              UI zoom.
+            </li>
+          </ol>
+          <aside class="tip">
+            <strong>Good to know</strong>
+            <p>
+              A spectrum moving on screen is not proof that an EQ change reached
+              your device. Compare what you hear and check the output status
+              when diagnosing audio.
+            </p>
+          </aside>
+        </section>
+        <section id="karaoke">
+          <header class="chapter-heading">
+            <span class="number">14</span>
+            <h2>Sing with Karaoke</h2>
+          </header>
+          <p>
+            Karaoke pairs your own audio with lyrics. Timed lyrics follow
+            playback; pitch targets depend on the song’s note data. A microphone
+            adds your live pitch when configured, and the stage can fill the
+            screen.
+          </p>
+          <figure>
+            <a
+              href="11-karaoke-player.png"
+              aria-label="Enlarge screenshot: Sing with Karaoke"
+              ><img
+                src="11-karaoke-player.png"
+                width="2560"
+                height="1392"
+                alt="Sing with Karaoke"
+                loading="lazy"
+            /></a>
+            <figcaption>Sing with Karaoke · FluidEQ</figcaption>
+          </figure>
+          <h3>Try it</h3>
+          <ol>
+            <li>
+              Open Karaoke. Use Add files or Add folder to bring in audio and
+              matching lyric files.
+            </li>
+            <li>
+              Choose a song and start playback. Check that the correct lyrics
+              and backing track are paired.
+            </li>
+            <li>
+              Configure microphone input for live pitch, adjust lyric size for
+              your viewing distance, and use the stage’s fullscreen control to
+              sing.
+            </li>
+          </ol>
+          <aside class="tip">
+            <strong>Good to know</strong>
+            <p>
+              A lyric-only file does not contain target notes. Missing pitch
+              targets can mean the song has no note data; it does not by itself
+              mean your microphone has failed.
+            </p>
+          </aside>
+        </section>
+        <section id="maker">
+          <header class="chapter-heading">
+            <span class="number">15</span>
+            <h2>Create in Karaoke Maker</h2>
+          </header>
+          <p>
+            Maker turns your audio into an editable karaoke project. Its
+            timeline brings together audio, lyrics and pitch notes. Automatic
+            results are a starting point: check words, timing and notes against
+            the recording.
+          </p>
+          <figure>
+            <a
+              href="12-karaoke-maker-pitch-and-lyrics.png"
+              aria-label="Enlarge screenshot: Create in Karaoke Maker"
+              ><img
+                src="12-karaoke-maker-pitch-and-lyrics.png"
+                width="2560"
+                height="1392"
+                alt="Create in Karaoke Maker"
+                loading="lazy"
+            /></a>
+            <figcaption>Create in Karaoke Maker · FluidEQ</figcaption>
+          </figure>
+          <h3>Try it</h3>
+          <ol>
+            <li>
+              Open Make from Karaoke and load the source audio. Choose the
+              available separation or transcription tools you need.
+            </li>
+            <li>
+              Watch progress; first use of an AI tool may require a model
+              download. Review the resulting lyrics and notes in the timeline.
+            </li>
+            <li>
+              Play short passages, correct the timing and text, save the project
+              for later editing, then export the karaoke files.
+            </li>
+          </ol>
+          <aside class="tip">
+            <strong>Good to know</strong>
+            <p>
+              Model downloads need a connection and free disk space. Processing
+              time depends on your hardware and song length. Use audio you are
+              permitted to work with and review exports before sharing.
+            </p>
+          </aside>
+        </section>
+        <section id="trouble">
+          <header class="chapter-heading">
+            <span class="number">16</span>
+            <h2>When something sounds wrong</h2>
+          </header>
+          <p>
+            Start with the source and output, then isolate the layer. A graph, a
+            saved preset or an enabled switch alone cannot prove that sound
+            reached the intended device. The Help menu also leads to audio
+            troubleshooting and problem reporting.
+          </p>
+          <figure>
+            <a
+              href="06-eq-equalizer-apo-config.png"
+              aria-label="Enlarge screenshot: When something sounds wrong"
+              ><img
+                src="06-eq-equalizer-apo-config.png"
+                width="2560"
+                height="1392"
+                alt="When something sounds wrong"
+                loading="lazy"
+            /></a>
+            <figcaption>When something sounds wrong · FluidEQ</figcaption>
+          </figure>
+          <h3>Try it</h3>
+          <ol>
+            <li>
+              No sound: confirm playback is running, the expected output is
+              selected, volume is up, and the device is connected. Check whether
+              One player at a time paused another source.
+            </li>
+            <li>
+              No EQ change: confirm System EQ is enabled and the Windows
+              endpoint is selected in Equalizer APO. Use Fix audio problems for
+              the guided repair sequence; restarts interrupt audio.
+            </li>
+            <li>
+              Distortion or excessive bass: leave Auto normalize on, reduce
+              boosts and bypass layers one at a time. If it persists, use Report
+              a problem and review the report before sending.
+            </li>
+          </ol>
+          <aside class="tip">
+            <strong>Good to know</strong>
+            <p>
+              F1 opens this guide. Escape closes an enlarged capture, then the
+              guide. If the interface is too large, Ctrl + 0 resets zoom. For
+              DSP problems, first test a Library audio track rather than video
+              or another player.
+            </p>
+          </aside>
+        </section>
+        <footer>
+          FluidEQ · User guide · © 2026 Ivan Carmenates Garcia. Screenshots
+          remain unaltered. Keep this document beside its PNG files for offline
+          viewing.
+        </footer>
+      </main>
+    </div>
+    <script>
+      document.getElementById('print').addEventListener('click', async () => {
+        const button = document.getElementById('print');
+        button.disabled = true;
+        try {
+          await Promise.all(
+            Array.from(document.images, (image) => {
+              image.loading = 'eager';
+              return image.decode();
+            }),
+          );
+          window.print();
+        } catch (error) {
+          console.error(
+            'Cannot print the guide because a screenshot did not load.',
+            error,
+          );
+          button.textContent =
+            'A screenshot could not load. Keep the PNG files beside this document, then try again.';
+        } finally {
+          button.disabled = false;
+        }
+      });
+    </script>
+  </body>
+</html>

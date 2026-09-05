@@ -413,7 +413,7 @@ it under the terms of the GNU General Public License version 3 or later.
 }
 
 .convolution-applied__label {
-  color: color-mix(in srgb, $secondary-light 82%, transparent);
+  color: $text-accent;
   font-size: $text-eyebrow;
   font-weight: $weight-bold;
   letter-spacing: 0.14em;

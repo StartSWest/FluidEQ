@@ -138,6 +138,7 @@ import MandatoryUpdateModal from './components/MandatoryUpdateModal';
 import DisclaimerGate from './components/DisclaimerGate';
 import WhatsNewDialog from './components/WhatsNewDialog';
 import FeatureTour from './components/featureTour/FeatureTour';
+import HelpMenu from './help/HelpMenu';
 import { featureTourFor } from './components/featureTour/slides';
 import AboutDialog from './components/AboutDialog';
 import BrandMark from './icons/BrandMark';
@@ -1091,6 +1092,10 @@ const AppContent = () => {
       return undefined;
     }
     const onKeyDown = (event: KeyboardEvent) => {
+      // Reading help must not toggle the playback surface behind its modal.
+      if (document.querySelector('dialog.help-guide[open]')) {
+        return;
+      }
       const shortcut = event.key.toLowerCase();
       const wantsToggle =
         isMediaTab &&
@@ -1451,7 +1456,11 @@ const AppContent = () => {
       // titlebar menu without being clipped. It still belongs to this menu:
       // closing the parent on the option's pointerdown unmounts the picker
       // before List can deliver its click and the locale never changes.
-      if (!target.closest('.workspace-header__tools, .language-picker-menu')) {
+      if (
+        !target.closest(
+          '.workspace-header__tools:not(.help-menu), .language-picker-menu',
+        )
+      ) {
         setShowAudioToolsMenu(false);
       }
     };
@@ -1768,6 +1777,12 @@ const AppContent = () => {
               obvious from looking at them. `TitlebarMediaTransport` and the
               `sendMediaTransport` channel behind it are still there for
               whatever wants them next. */}
+          <HelpMenu
+            onTour={() => setShowFeatureTour(true)}
+            onTroubleshoot={() => setShowTroubleshooter(true)}
+            onReport={() => setShowBugReport(true)}
+            onAbout={() => setShowAbout(true)}
+          />
           <div className="workspace-header__tools">
             <button
               type="button"

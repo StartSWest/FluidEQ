@@ -359,19 +359,19 @@ $selected-accent: color-mix(in srgb, $secondary-default 16%, transparent);
 $selected-border: transparent;
 
 // Secondary text is the cool white too. `$primary-lighter` is a lavender, and
-// at 72% over slate it painted every description, hint and axis label a
-// grey-violet — the last of the old violet family still on screen after the
-// surfaces moved. The values are unchanged; only the tint is.
+// at reduced alpha over slate it painted descriptions and hints grey-violet.
 // Five text colours and no more. Cyan is the primary — a title's kicker, a
 // live value, the chosen thing. White is the secondary — names, values, the
 // lead line of anything. Then three greys, in order of how much they matter:
 // muted for a description, faint for a hint or an axis label, dim for what
-// is disabled or decorative. Every one of the greys is the mist at an alpha,
-// so they sit on any surface in the ladder without picking up a cast.
+// is disabled or decorative. Enabled text is opaque: translucent ink made
+// ordinary labels look disabled, especially on Ocean's lighter surfaces.
+// Even the quietest readable ink clears 5:1 on Ocean's menu face; disabled
+// ink alone keeps the faded treatment, separate from information hierarchy.
 $text-accent: $secondary-light;
 $text-primary: #ecf5fb;
-$text-muted: rgba($edge-tint, 0.72);
-$text-faint: rgba($edge-tint, 0.55);
+$text-muted: #d6e9f7;
+$text-faint: #bfd3e3;
 $text-dim: rgba($edge-tint, 0.38);
 
 // *** Type scale for the side panes ******************************************

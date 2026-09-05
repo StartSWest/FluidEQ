@@ -105,11 +105,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       border-bottom: none;
     }
 
-    // Dimmed once run, so somebody working down the list can see where they
-    // are. Dimmed rather than struck through: any of them can be run again,
-    // and a crossed-out step reads as one that is no longer available.
+    // A completed step can still be run again. Mark its edge without fading
+    // the instructions and the button inside it.
     &.is-tried {
-      opacity: 0.62;
+      border-bottom-color: $text-accent;
     }
   }
 

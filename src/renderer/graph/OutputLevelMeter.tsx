@@ -61,7 +61,11 @@ import {
   levelFraction,
   levelZone,
 } from './outputLevel';
-import { readAccent, readAccentLightChannels } from '../utils/theme';
+import {
+  readTextInk,
+  readAccent,
+  readAccentLightChannels,
+} from '../utils/theme';
 
 /**
  * The gas, as five shades of the theme's light accent.
@@ -1843,6 +1847,7 @@ const OutputLevelMeter = () => {
   const sizeRef = useRef({ width: 0, height: 0 });
   const drawFrame = useCallback(
     (deltaMs: number) => {
+      const textInk = readTextInk();
       const canvas = canvasRef.current;
       const context = contextRef.current;
       if (!canvas || !context) {
@@ -2160,7 +2165,7 @@ const OutputLevelMeter = () => {
       context.font = '700 8px system-ui, sans-serif';
       context.textAlign = 'center';
       context.textBaseline = 'top';
-      context.fillStyle = 'rgba(216, 210, 255, 0.6)';
+      context.fillStyle = textInk;
       const isStereo = channelCount > 1;
       for (let i = 0; i < channelCount; i += 1) {
         const letter = t(channelNameKey(i, isStereo));
@@ -2181,10 +2186,10 @@ const OutputLevelMeter = () => {
        * instrument, it is not part of what the instrument says.
        */
       context.save();
-      context.font = '800 11px system-ui, sans-serif';
+      context.font = '700 11px system-ui, sans-serif';
       context.textAlign = 'center';
       context.textBaseline = 'bottom';
-      context.fillStyle = 'rgba(216, 210, 255, 0.62)';
+      context.fillStyle = textInk;
       if (!isOff) {
         context.fillText(
           styleRef.current.toUpperCase(),

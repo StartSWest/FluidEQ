@@ -1099,7 +1099,7 @@ select option {
   .window-control--media {
     width: 30px;
     height: 30px;
-    color: color-mix(in srgb, $secondary-light 78%, transparent);
+    color: $text-accent;
     border-color: transparent;
     border-radius: 50%;
     background: transparent;
@@ -1260,7 +1260,7 @@ select option {
     flex: 0 0 auto;
     place-items: center;
     padding: 0;
-    color: rgba($white, 0.7);
+    color: $text-muted;
     border: 1px solid transparent;
     border-radius: $radius-xs;
     background: transparent;
@@ -1315,7 +1315,7 @@ select option {
 .workspace-header__version {
   flex: 0 0 auto;
   padding: 1px 6px;
-  color: color-mix(in srgb, $secondary-light 78%, transparent);
+  color: $text-accent;
   border: 1px solid color-mix(in srgb, $secondary-light 24%, transparent);
   border-radius: $radius-pill;
   background: color-mix(in srgb, $secondary-default 10%, transparent);
@@ -1386,7 +1386,7 @@ select option {
   height: 36px;
   padding: 0 10px;
   @include ghost-button;
-  color: color-mix(in srgb, $secondary-light 82%, transparent);
+  color: $text-accent;
   border-color: color-mix(in srgb, $secondary-light 15%, transparent);
   // Above the bar, not below it. This is a raised control and it was painting
   // rgb(16,34,49) against a card of rgb(17,37,54) — darker than the surface it
@@ -1528,7 +1528,7 @@ select option {
     .menu-icon {
       width: 16px;
       height: 16px;
-      color: color-mix(in srgb, $secondary-light 72%, transparent);
+      color: $text-accent;
       transition: color 160ms ease;
     }
 
@@ -1609,7 +1609,7 @@ select option {
   width: 42px;
   height: 36px;
   padding: 0;
-  color: rgba($white, 0.78);
+  color: $text-muted;
   border: 1px solid transparent;
   border-radius: $radius-xs;
   background: transparent;
@@ -1778,6 +1778,9 @@ textarea,
 // `data-theme` is set on the document element by `renderer/utils/theme.ts`,
 // which is also where the choice is remembered.
 :root {
+  --text-primary: #{$text-primary};
+  --text-muted: #{$text-muted};
+  --text-faint: #{$text-faint};
   // Ocean: the slate-navy the app was designed on. Hue 206 throughout; only
   // the lightness moves between rungs.
   --surface-base: #0d2030;
@@ -2244,7 +2247,7 @@ $tab-bar-inset: 8px;
   // own floor. In full screen it lies over a picture, and at 0.5 the names of
   // the places read as switched off. Two thirds is legible over both without
   // becoming a second lit thing beside the chosen one.
-  color: rgba($edge-tint, 0.68);
+  color: $text-muted;
   font-size: $text-body;
   // Bold, and it has to be bold rather than heavier.
   //
@@ -2751,7 +2754,7 @@ $tab-bar-inset: 8px;
   flex: 0 0 auto;
   place-items: center;
   padding: 0;
-  color: color-mix(in srgb, $secondary-light 80%, transparent);
+  color: $text-accent;
   border: 1px solid color-mix(in srgb, $secondary-light 12%, transparent);
   border-radius: 50%;
   background: rgba($edge-tint, 0.11);

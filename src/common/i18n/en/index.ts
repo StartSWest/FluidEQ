@@ -44,6 +44,8 @@ import songEq from './songEq';
 import dsp from './dsp';
 import remoteAudio from './remoteAudio';
 import tour from './tour';
+import help from './help';
+import about from './about';
 
 const en = {
   ...karaoke,
@@ -56,6 +58,8 @@ const en = {
   ...dsp,
   ...remoteAudio,
   ...tour,
+  ...help,
+  ...about,
 };
 
 export type TranslationKey = keyof typeof en;

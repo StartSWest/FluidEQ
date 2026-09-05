@@ -91,7 +91,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
         min-height: 24px;
         margin: 7px 4px 2px;
         padding: 5px 8px;
-        color: color-mix(in srgb, $secondary-light 72%, transparent);
+        color: $text-accent;
         border: 0;
         border-top: 1px solid $border-subtle;
         border-radius: 0;

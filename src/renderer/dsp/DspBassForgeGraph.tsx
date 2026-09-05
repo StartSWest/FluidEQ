@@ -5,6 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { useEffect, useRef } from 'react';
+import { readTextInk } from '../utils/theme';
 import { ANALYSIS_BASS_FORGE_BANDS } from '../../common/dsp/analysisWire';
 import { IBassForgeSettings } from '../../common/dsp/chain';
 import { useTranslation } from '../utils/I18nContext';
@@ -156,6 +157,7 @@ const DspBassForgeGraph = ({ bassForge }: IDspBassForgeGraphProps) => {
 
   useEffect(() => {
     const paint = ({ schedule }: IGraphLoopFrame) => {
+      const textInk = readTextInk();
       const canvas = canvasRef.current;
       const context = canvas?.getContext('2d');
       if (!canvas || !context) {
@@ -213,7 +215,7 @@ const DspBassForgeGraph = ({ bassForge }: IDspBassForgeGraphProps) => {
         context.moveTo(PAD_L, line);
         context.lineTo(width - PAD_R, line);
         context.stroke();
-        context.fillStyle = 'rgba(255,255,255,0.34)';
+        context.fillStyle = textInk;
         context.fillText(`${db}`, PAD_L - 5, line);
       });
 
@@ -226,7 +228,7 @@ const DspBassForgeGraph = ({ bassForge }: IDspBassForgeGraphProps) => {
         context.moveTo(line, PAD_T);
         context.lineTo(line, floorY);
         context.stroke();
-        context.fillStyle = 'rgba(255,255,255,0.34)';
+        context.fillStyle = textInk;
         context.fillText(label, toX(hz), floorY + 4);
       });
 
@@ -351,9 +353,7 @@ const DspBassForgeGraph = ({ bassForge }: IDspBassForgeGraphProps) => {
       const labelFlips = splitX > width - PAD_R - 40;
       context.textBaseline = 'top';
       context.textAlign = labelFlips ? 'right' : 'left';
-      context.fillStyle = enabled
-        ? 'rgba(255,255,255,0.6)'
-        : 'rgba(255,255,255,0.3)';
+      context.fillStyle = enabled ? textInk : 'rgba(255,255,255,0.3)';
       context.fillText(
         `${Math.round(splitHz)} Hz`,
         splitX + (labelFlips ? -4 : 4),

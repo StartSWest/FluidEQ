@@ -6,6 +6,46 @@ actions menu opens it again any time.
 
 ---
 
+## 1.6.4
+
+Meet Fluid, find your way around, and read every detail more comfortably.
+This release brings an illustrated offline user guide, a dedicated Help menu,
+a new About screen, and clearer text throughout both themes.
+
+### New
+
+- **An illustrated guide inside FluidEQ.** Open **Help → User guide** or press
+  **F1** for 16 chapters illustrated with 14 real interface captures. Learn the
+  EQ, headphone corrections, convolution, device profiles, second outputs,
+  Share Audio, online media, Library, DSP, visualizers, Karaoke and Karaoke
+  Maker, with practical steps and troubleshooting tips.
+- **Find a chapter and keep your place.** Search the guide, jump from its
+  numbered contents, and enlarge any capture. The current chapter highlights
+  as you scroll, and its number stays visible in the contents pane. The guide
+  adapts to smaller windows and works without an internet connection.
+- **A dedicated Help menu.** User guide, What's new, Fix audio, Report a
+  problem and About FluidEQ are together in the top bar, with keyboard
+  navigation and the F1 shortcut.
+- **Meet Fluid in About.** A large Fluid mascot joins the FluidEQ wordmark,
+  version, tagline, author credit, and links to the official website and source
+  code. The guide and new About introduction support all ten app languages.
+- **A guide you can keep beside the app.** The release includes an offline
+  HTML and Markdown guide with its original captures. Open the HTML edition
+  to print it or save it as a PDF.
+
+### Improved
+
+- **Clearer labels in Ocean and Black.** Descriptions, hints, tabs and ordinary
+  controls use brighter, solid text instead of appearing faded or disabled.
+  Disabled controls retain their separate, quieter treatment.
+- **More readable graphs and karaoke captions.** DSP scales, meters, timeline
+  labels, lyrics, translations, note labels and score-card captions follow the
+  same readable text colours as the rest of the app.
+- **The second-output tour matches your theme.** Ocean now shows its own real
+  interface capture, while Black keeps the matching dark screenshot.
+
+---
+
 ## 1.6.3
 
 Two outputs, each with its own sound. The second output now receives audio

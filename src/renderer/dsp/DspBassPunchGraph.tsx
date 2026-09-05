@@ -5,6 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { useEffect, useRef } from 'react';
+import { readTextInk } from '../utils/theme';
 import { IBassPunchSettings } from '../../common/dsp/chain';
 import { useTranslation } from '../utils/I18nContext';
 import { readDspBassPunchActivity } from './store';
@@ -160,6 +161,7 @@ const DspBassPunchGraph = ({ bassPunch }: IDspBassPunchGraphProps) => {
 
   useEffect(() => {
     const paint = ({ schedule }: IGraphLoopFrame) => {
+      const textInk = readTextInk();
       const canvas = canvasRef.current;
       const context = canvas?.getContext('2d');
       if (!canvas || !context) {
@@ -267,7 +269,7 @@ const DspBassPunchGraph = ({ bassPunch }: IDspBassPunchGraphProps) => {
         context.moveTo(PAD_L, line);
         context.lineTo(width - PAD_R, line);
         context.stroke();
-        context.fillStyle = 'rgba(255,255,255,0.36)';
+        context.fillStyle = textInk;
         context.fillText(db > 0 ? `+${db}` : `${db}`, PAD_L - 6, line);
       });
       DUCK_GRID_DB.forEach((db) => {
@@ -278,7 +280,7 @@ const DspBassPunchGraph = ({ bassPunch }: IDspBassPunchGraphProps) => {
         context.moveTo(PAD_L, line);
         context.lineTo(width - PAD_R, line);
         context.stroke();
-        context.fillStyle = 'rgba(255,255,255,0.36)';
+        context.fillStyle = textInk;
         context.fillText(`${db}`, PAD_L - 6, line);
       });
 
@@ -293,14 +295,14 @@ const DspBassPunchGraph = ({ bassPunch }: IDspBassPunchGraphProps) => {
         context.moveTo(line, PAD_T);
         context.lineTo(line, height - PAD_B);
         context.stroke();
-        context.fillStyle = 'rgba(255,255,255,0.3)';
+        context.fillStyle = textInk;
         context.fillText(`-${second}s`, x, height - PAD_B / 2);
       }
       // Right-aligned rather than centred on the last column: this margin is
       // 14px, not the 62 the Maximizer keeps for its meter, so a centred label
       // would hang half its width off the end of the canvas.
       context.textAlign = 'right';
-      context.fillStyle = 'rgba(255,255,255,0.3)';
+      context.fillStyle = textInk;
       context.fillText(
         t('dsp.bassPunch.graph.now'),
         width - PAD_R + 6,

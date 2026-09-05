@@ -83,6 +83,7 @@ import {
   TKaraokePitchAnalysisStatus,
 } from './useKaraokeMicrophone';
 import {
+  readTextInk,
   readAccent,
   readAccentLight,
   readSurface,
@@ -198,6 +199,7 @@ const KaraokePitchLane = ({
 
     let animationFrame = 0;
     const draw = () => {
+      const textInk = readTextInk();
       const bounds = canvas.getBoundingClientRect();
       const width = Math.max(1, bounds.width);
       const height = Math.max(1, bounds.height);
@@ -354,7 +356,7 @@ const KaraokePitchLane = ({
         const textLeft = labelX - textWidth / 2;
         context.fillStyle = isComplete
           ? readAccentLight(0.88, 'rgba(151, 247, 238, .88)')
-          : 'rgba(205, 216, 237, 0.72)';
+          : textInk;
         context.shadowColor = 'transparent';
         context.shadowBlur = 0;
         context.fillText(word.text, labelX, labelY);
@@ -456,7 +458,7 @@ const KaraokePitchLane = ({
           context.moveTo(x, PLOT_TOP);
           context.lineTo(x, PLOT_TOP + plotHeight);
           context.stroke();
-          context.fillStyle = 'rgba(167, 181, 205, 0.54)';
+          context.fillStyle = textInk;
           context.fillText(
             formatKaraokeTime(tickMs),
             x,
@@ -1005,7 +1007,7 @@ const KaraokePitchLane = ({
           );
           context.fill();
           context.textAlign = 'left';
-          context.fillStyle = 'rgba(187, 204, 229, 0.78)';
+          context.fillStyle = textInk;
           context.fillText(
             reviewLabel,
             PLOT_LEFT + 10,
@@ -1101,7 +1103,7 @@ const KaraokePitchLane = ({
         context.shadowBlur = 0;
         if (reviewCountWidth > 0) {
           context.textAlign = 'right';
-          context.fillStyle = 'rgba(175, 189, 214, 0.74)';
+          context.fillStyle = textInk;
           context.fillText(
             reviewCount,
             PLOT_LEFT + plotWidth - 3,

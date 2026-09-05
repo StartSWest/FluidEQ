@@ -23,7 +23,7 @@ it under the terms of the GNU General Public License version 3 or later.
   .menu-icon {
     width: 16px;
     height: 16px;
-    color: color-mix(in srgb, $secondary-light 72%, transparent);
+    color: $text-accent;
     transition: color 160ms ease;
   }
 
@@ -53,7 +53,7 @@ it under the terms of the GNU General Public License version 3 or later.
     }
 
     .arrow {
-      color: color-mix(in srgb, $secondary-light 72%, transparent);
+      color: $text-accent;
     }
   }
 
