@@ -232,7 +232,7 @@ const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
       if (signal.kind === 'transport') {
         // The listener's play button, pressed here on the sender's own bar.
         if (activeRole === 'sender' && senderPeerIdRef.current === peerId) {
-          performRemoteTransport(signal.command);
+          performRemoteTransport(signal);
         }
         return;
       }

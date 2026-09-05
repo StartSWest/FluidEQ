@@ -252,30 +252,36 @@ const publish = (next: Partial<Record<TPlaybackOwner, ITransportSource>>) => {
  * more than re-rendering a bar of six buttons.
  */
 export const setTransportSource = (next: ITransportSource): void => {
-  // THE MACHINE'S OWN PLAYER IS NEVER "THE LAST THING", AND NEITHER IS
-  // ANOTHER MACHINE'S.
+  // THE MACHINE'S OWN PLAYER IS NEVER "THE LAST THING".
   //
-  // They take the bar by playing and by nothing else — see `pickTransportOwner`
+  // It takes the bar by playing and by nothing else — see `pickTransportOwner`
   // — so on a tab that is not a player, with nothing making any sound, the bar
   // goes back to the last song of this app's rather than to a browser tab
   // somebody paused an hour ago. Which is the whole of the rule: something
   // outside is worth the bar while it is playing, and worth nothing once it
   // stops.
   //
+  // ANOTHER MACHINE'S IS, FOR AS LONG AS IT IS CONNECTED. A sender paused
+  // from this bar is not a tab somebody forgot: the link is live, the sender
+  // is still describing the song, and the press that paused it is the press
+  // that will resume it. Held in memory only — see `pickTransportOwner`,
+  // which reads the register, so a sender that has gone is simply not there;
+  // and never written down, because on the next launch the remembered owner
+  // decides which of this app's own players is mounted, and "the other
+  // computer" is not one of them.
+  //
   // Position republishes this source several times a second. Writing the same
   // owner through synchronous localStorage on every tick made a UI-only clock
   // wait on persistent storage; the preference changes only when the owner does.
-  if (
-    next.owner !== 'system' &&
-    next.owner !== 'remote' &&
-    lastOwner !== next.owner
-  ) {
+  if (next.owner !== 'system' && lastOwner !== next.owner) {
     lastOwner = next.owner;
-    try {
-      window.localStorage.setItem(LAST_OWNER_KEY, next.owner);
-    } catch {
-      // The preference then lasts as long as the window, which is what it
-      // did before it was written down at all.
+    if (next.owner !== 'remote') {
+      try {
+        window.localStorage.setItem(LAST_OWNER_KEY, next.owner);
+      } catch {
+        // The preference then lasts as long as the window, which is what it
+        // did before it was written down at all.
+      }
     }
   }
   const currentIdentity = identitySources[next.owner];
@@ -354,6 +360,16 @@ const subscribe = (listener: () => void) => {
 };
 
 const EMPTY: Partial<Record<TPlaybackOwner, ITransportSource>> = {};
+
+/**
+ * Whether one owner is making sound right now, for code that is not a render.
+ *
+ * The one-player rule lives in event handlers and subscriptions — a watcher
+ * reporting that a browser tab started, a sender reporting that its song did
+ * — and a hook cannot be read from there.
+ */
+export const isTransportPlaying = (owner: TPlaybackOwner): boolean =>
+  sources[owner]?.isPlaying === true;
 
 /** Every player that has something to show, by owner. */
 export const useTransportSources = (): Partial<

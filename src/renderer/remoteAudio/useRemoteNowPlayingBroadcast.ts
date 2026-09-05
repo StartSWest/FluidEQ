@@ -28,7 +28,7 @@ import type {
   IRemoteNowPlaying,
   TRemoteTransportCommand,
 } from '../../common/remoteAudio';
-import { usePlaybackOwner } from '../audio/playbackOwner';
+import { stopAllPlayback, usePlaybackOwner } from '../audio/playbackOwner';
 import pickTransportOwner from '../audio/transportRouting';
 import {
   useLastTransportOwner,
@@ -55,6 +55,14 @@ export const describeForRemote = (
     isPlaying: source.isPlaying,
     positionMs: wireMs(source.positionMs),
     durationMs: wireMs(source.durationMs),
+    canNext: source.next !== undefined,
+    canPrevious: source.previous !== undefined,
+    // The same two questions `SourceTransportBar` asks: a step needs either a
+    // relative nudge or a seekable, measured source.
+    canStep:
+      source.nudge !== undefined ||
+      (source.seek !== undefined && source.durationMs > 0),
+    canStop: source.stop !== undefined,
   };
 };
 
@@ -68,6 +76,10 @@ const wireKey = (playing: IRemoteNowPlaying | undefined): string =>
         playing.isPlaying,
         playing.durationMs,
         Math.floor(playing.positionMs / 1000),
+        playing.canNext,
+        playing.canPrevious,
+        playing.canStep,
+        playing.canStop,
       ])
     : '';
 
@@ -112,9 +124,57 @@ const useRemoteNowPlayingBroadcast = (
     () => undefined,
   );
   performRef.current = (command) => {
-    if (command === 'toggle') {
-      sourceRef.current?.toggle();
+    const { current } = sourceRef;
+    if (!current) {
+      return;
     }
+    if (command.command === 'toggle') {
+      current.toggle();
+      return;
+    }
+    if (command.command === 'stop') {
+      current.stop?.();
+      return;
+    }
+    if (command.command === 'next') {
+      current.next?.();
+      return;
+    }
+    if (command.command === 'previous') {
+      current.previous?.();
+      return;
+    }
+    if (command.command === 'nudge') {
+      // The source's own step first, for the reason the bar prefers it: where
+      // there is one, it is because this end cannot be trusted to know the
+      // position — see `ITransportSource.nudge`.
+      if (current.nudge) {
+        current.nudge(command.deltaMs);
+        return;
+      }
+      current.seek?.(
+        Math.min(
+          current.durationMs,
+          Math.max(0, current.positionMs + command.deltaMs),
+        ),
+      );
+      return;
+    }
+    // The listener started something of its own and its one-player rule says
+    // this must stop. Never a toggle: whatever is described here may already
+    // be paused, and a toggle would start it. The machine's own player is
+    // asked by name, as `useSystemMediaSource` asks it; a player of ours is
+    // stopped through the register, the way another of ours would stop it.
+    if (!current.isPlaying) {
+      return;
+    }
+    if (current.owner === 'system') {
+      window.electron?.ipcRenderer
+        .sendSystemMediaCommand('pause')
+        .catch(() => undefined);
+      return;
+    }
+    stopAllPlayback();
   };
   // Stable, so the signal handler that calls it need not re-subscribe.
   const performTransportRef = useRef((command: TRemoteTransportCommand) =>

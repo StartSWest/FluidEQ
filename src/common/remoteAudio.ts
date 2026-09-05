@@ -27,10 +27,32 @@ export interface IRemoteNowPlaying {
   isPlaying: boolean;
   positionMs: number;
   durationMs: number;
+  /** Which of the listener's buttons the sender's source will answer. A
+   * button the source cannot answer is not offered — the same rule the bar
+   * applies to a web page or a Windows session on this machine. */
+  canNext: boolean;
+  canPrevious: boolean;
+  canStep: boolean;
+  canStop: boolean;
 }
 
-/** The one transport command that reaches every player on the sender. */
-export type TRemoteTransportCommand = 'toggle';
+/**
+ * The listener's bar buttons, pressed on the sender's own bar.
+ *
+ * `pause` is the one-player rule reaching across the wire: never a toggle,
+ * because a toggle sent to something already paused would start it. `nudge`
+ * is the five-second step, carried as a delta because the listener's copy of
+ * the position is a second old — the sender resolves it against the truth.
+ * The rest are offered on the listener only where `IRemoteNowPlaying` says
+ * the sender's source answers them.
+ */
+export type TRemoteTransportCommand =
+  | { command: 'toggle' | 'pause' | 'stop' | 'next' | 'previous' }
+  | { command: 'nudge'; deltaMs: number };
+
+/** The furthest one step may reach: the bar steps five seconds, and a peer
+ * holding the key is still not trusted to throw the playhead anywhere. */
+export const REMOTE_NUDGE_LIMIT_MS = 60_000;
 
 /** Small control messages; the lossless PCM stream travels separately. */
 export type TRemoteAudioSignal =
@@ -39,7 +61,7 @@ export type TRemoteAudioSignal =
   /** Sender → listener. Absent `playing` means the sender's bar is empty. */
   | { kind: 'now-playing'; playing?: IRemoteNowPlaying }
   /** Listener → sender: a press on the listener's bar, carried out there. */
-  | { kind: 'transport'; command: TRemoteTransportCommand }
+  | ({ kind: 'transport' } & TRemoteTransportCommand)
   | { kind: 'stop' };
 
 export interface ILanPairingOption {
@@ -130,7 +152,29 @@ export const isRemoteNowPlaying = (
     (typeof value.artist === 'string' && value.artist.length <= 256)) &&
   typeof value.isPlaying === 'boolean' &&
   isMilliseconds(value.positionMs) &&
-  isMilliseconds(value.durationMs);
+  isMilliseconds(value.durationMs) &&
+  typeof value.canNext === 'boolean' &&
+  typeof value.canPrevious === 'boolean' &&
+  typeof value.canStep === 'boolean' &&
+  typeof value.canStop === 'boolean';
+
+const PLAIN_COMMANDS: readonly string[] = [
+  'toggle',
+  'pause',
+  'stop',
+  'next',
+  'previous',
+];
+
+export const isRemoteTransportCommand = (
+  value: Record<string, unknown>,
+): value is TRemoteTransportCommand =>
+  (typeof value.command === 'string' &&
+    PLAIN_COMMANDS.includes(value.command)) ||
+  (value.command === 'nudge' &&
+    typeof value.deltaMs === 'number' &&
+    Number.isFinite(value.deltaMs) &&
+    Math.abs(value.deltaMs) <= REMOTE_NUDGE_LIMIT_MS);
 
 export const isRemoteAudioSignal = (
   value: unknown,
@@ -139,7 +183,7 @@ export const isRemoteAudioSignal = (
   (value.kind === 'stop' ||
     (value.kind === 'now-playing' &&
       (value.playing === undefined || isRemoteNowPlaying(value.playing))) ||
-    (value.kind === 'transport' && value.command === 'toggle') ||
+    (value.kind === 'transport' && isRemoteTransportCommand(value)) ||
     (value.kind === 'stream-mode' &&
       (value.mode === 'music' || value.mode === 'video')) ||
     (value.kind === 'peer-ready' &&

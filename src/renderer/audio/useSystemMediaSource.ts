@@ -53,7 +53,11 @@ import { buildSongIdentity } from 'common/songIdentity';
 import type { ISystemMediaSnapshot } from '../../main/systemMedia';
 import { stopAllPlayback, usePlaybackOwner } from './playbackOwner';
 import type { TPlaybackOwner } from './playbackOwner';
-import { clearTransportSource, setTransportSource } from './transportSource';
+import {
+  clearTransportSource,
+  isTransportPlaying,
+  setTransportSource,
+} from './transportSource';
 import { isSinglePlayerEnabled } from '../utils/singlePlayer';
 
 /** What the bar shows for a player that has published no artist. */
@@ -74,14 +78,24 @@ const subtitleFor = (snapshot: ISystemMediaSnapshot): string | undefined =>
  * The other half is the same rule from the other side, and it lives in the
  * hook: when a player of ours starts, the machine's player is asked to pause.
  * One of the two is always making the sound.
+ *
+ * `remotePlaying` is another computer's song arriving over the LAN link — not
+ * a player of ours, so never the owner, but sound through this output all the
+ * same, and the browser tab starting is somebody choosing over it. Stopping
+ * "everything of ours" reaches it because the listener registers it as a
+ * player while it plays — see `useRemoteNowPlayingSource`.
  */
 export const shouldYieldToSystem = (
   wasPlaying: boolean,
   isPlaying: boolean,
   appOwner: TPlaybackOwner | undefined,
   isSinglePlayer: boolean,
+  remotePlaying = false,
 ): boolean =>
-  isSinglePlayer && isPlaying && !wasPlaying && appOwner !== undefined;
+  isSinglePlayer &&
+  isPlaying &&
+  !wasPlaying &&
+  (appOwner !== undefined || remotePlaying);
 
 export const useSystemMediaSource = (): void => {
   const playingOwner = usePlaybackOwner();
@@ -115,6 +129,7 @@ export const useSystemMediaSource = (): void => {
           snapshot?.isPlaying === true,
           playingOwnerRef.current,
           isSinglePlayerEnabled(),
+          isTransportPlaying('remote'),
         )
       ) {
         // Somebody pressed play somewhere else. Ours stops, the way it stops
