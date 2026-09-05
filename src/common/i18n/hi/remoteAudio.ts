@@ -25,7 +25,7 @@ const remoteAudio: Partial<Dictionary> = {
   'remoteAudio.stream.video.title': 'गेम/वीडियो',
   'remoteAudio.stream.video.body':
     'लिप-सिंक के लिए सबसे कम देरी। व्यस्त Wi-Fi पर जल्दी रुक सकता है।',
-  'remoteAudio.stream.video.buffer': 'शुरुआत ~30 ms',
+  'remoteAudio.stream.video.buffer': 'शुरुआत ~40 ms',
   'remoteAudio.stream.music.title': 'संगीत',
   'remoteAudio.stream.music.body':
     'बिना रुकावट सुनने के लिए बड़ा सुरक्षा बफ़र।',

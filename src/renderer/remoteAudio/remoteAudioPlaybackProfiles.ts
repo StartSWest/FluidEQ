@@ -21,7 +21,7 @@ export const REMOTE_AUDIO_PLAYBACK_PROFILES: Record<
     recoveryStepSeconds: 0.06,
     startBufferSeconds: 0.24,
   },
-  // Three capture packets at 48 kHz provide a 30 ms playout reservoir (not an
+  // Four capture packets at 48 kHz provide a 40 ms playout reservoir (not an
   // end-to-end latency claim). An underrun adds protection; after a stable
   // run that protection decays again instead of leaving the picture behind.
   video: {
@@ -30,6 +30,6 @@ export const REMOTE_AUDIO_PLAYBACK_PROFILES: Record<
     maximumBufferSeconds: 0.09,
     recoveryDecaySeconds: 2,
     recoveryStepSeconds: 0.01,
-    startBufferSeconds: 0.03,
+    startBufferSeconds: 0.04,
   },
 };

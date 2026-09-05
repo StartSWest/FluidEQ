@@ -30,7 +30,7 @@ const remoteAudio = {
   'remoteAudio.stream.video.title': 'Game/Video',
   'remoteAudio.stream.video.body':
     'Lowest delay for lip-sync. May stutter sooner on busy Wi-Fi.',
-  'remoteAudio.stream.video.buffer': '~30 ms start',
+  'remoteAudio.stream.video.buffer': '~40 ms start',
   'remoteAudio.stream.music.title': 'Music',
   'remoteAudio.stream.music.body':
     'Larger safety buffer for uninterrupted listening.',

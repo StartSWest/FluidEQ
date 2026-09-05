@@ -144,6 +144,14 @@ describe('video-mode continuous playback', () => {
     expect(result.latestBufferMs).toBeLessThan(50);
   });
 
+  it('absorbs 20 ms delivery jitter with the extra Game/Video capture packet', () => {
+    const result = simulate(
+      (at, sequence) => at + (sequence % 4 === 0 ? 960 : 0),
+    );
+    expect(result.minimumRunningSample).toBeGreaterThan(0.245);
+    expect(result.latestBufferMs).toBeLessThan(50);
+  });
+
   it('crossfades accumulated video backlog without stopping the playing stream', () => {
     const result = simulate((at) => (at >= 96000 ? at - 2880 : at));
     expect(result.minimumRunningSample).toBeGreaterThan(0.245);
@@ -163,7 +171,7 @@ describe('video-mode continuous playback', () => {
       close: jest.fn(),
     };
     instance.port.onmessage({ data: { kind: 'attach', port } });
-    const pcm = new Float32Array(2880).fill(0.25);
+    const pcm = new Float32Array(3840).fill(0.25);
     port.onmessage({
       data: {
         kind: 'push',
@@ -171,7 +179,7 @@ describe('video-mode continuous playback', () => {
         sequence: 0,
         sampleRate: 48000,
         channels: 2,
-        frames: 1440,
+        frames: 1920,
         pcm: pcm.buffer,
       },
     });

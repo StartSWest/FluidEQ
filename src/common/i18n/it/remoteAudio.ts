@@ -25,7 +25,7 @@ const remoteAudio: Partial<Dictionary> = {
   'remoteAudio.stream.video.title': 'Gioco/Video',
   'remoteAudio.stream.video.body':
     'Ritardo minimo per il labiale. Può interrompersi prima su Wi-Fi congestionato.',
-  'remoteAudio.stream.video.buffer': 'Avvio ~30 ms',
+  'remoteAudio.stream.video.buffer': 'Avvio ~40 ms',
   'remoteAudio.stream.music.title': 'Musica',
   'remoteAudio.stream.music.body':
     'Buffer di sicurezza maggiore per un ascolto senza interruzioni.',
