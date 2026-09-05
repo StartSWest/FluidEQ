@@ -507,8 +507,12 @@ $transition-control:
 // is broken". Disabled should read as quieter than its neighbours, not as a
 // hole in the panel.
 @mixin field-disabled {
-  color: rgba($primary-lighter, 0.5);
-  border-color: rgba($primary-lighter, 0.1);
+  // The app's own dim ink and hairline, not the lavender the old palette
+  // left here: `$primary-lighter` is a violet-white from the purple family
+  // nothing else in the window uses any more, and on a cool black it was
+  // the one warm edge on the page.
+  color: $text-dim;
+  border-color: $border-subtle;
   // Opaque, like every other surface in the window.
   //
   // At 40% alpha the control showed whatever it was standing on, so a row of
