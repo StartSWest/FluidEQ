@@ -34,13 +34,13 @@ jobs:
 
     steps:
       - name: Check out FluidEQ
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Install pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
 
       - name: Install Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: 22
           # Deliberately NOT cached. A cache is exactly what hides the failure
@@ -48,6 +48,7 @@ jobs:
           # empty machine can build this, and a warm cache answers a different
           # and much easier question.
           cache: ''
+          package-manager-cache: false
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
