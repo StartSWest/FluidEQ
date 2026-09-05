@@ -469,6 +469,8 @@ it under the terms of the GNU General Public License version 3 or later.
   // A grid so a capture can centre and be held to the column's height; the
   // drawings fill the width and are unaffected.
   display: grid;
+  grid-template-rows: minmax(0, 1fr);
+  min-width: 0;
   min-height: 0;
   margin: 0;
   place-items: center;

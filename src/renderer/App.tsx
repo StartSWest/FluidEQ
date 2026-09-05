@@ -2501,14 +2501,6 @@ const AppContent = () => {
         )}
         <div className={`right-content${rightPaneOpen ? ' is-open' : ''}`}>
           <div className="right-content__scroll">
-            <DeviceProfiles onConfigureApo={handleConfigureEqualizerApo} />
-            {/* Directly under the output picker: it is the same question asked
-                twice over — that one chooses where the sound goes, this one
-                adds a second somewhere. */}
-            <ExtraOutputs />
-            {/* Sits with the output device because it answers the same question:
-                what is this sound coming out of. */}
-            <DriverPicker />
             <PresetsBar
               fetchPresets={getPresetListFromFiles}
               loadPreset={loadPreset}
@@ -2517,6 +2509,14 @@ const AppContent = () => {
               renamePreset={renamePreset}
               deletePreset={deletePreset}
             />
+            <DeviceProfiles onConfigureApo={handleConfigureEqualizerApo} />
+            {/* Directly under the output picker: it is the same question asked
+                twice over — that one chooses where the sound goes, this one
+                adds a second somewhere. */}
+            <ExtraOutputs />
+            {/* Sits with the output device because it answers the same question:
+                what is this sound coming out of. */}
+            <DriverPicker />
           </div>
           <footer className="right-content__footer">
             <a

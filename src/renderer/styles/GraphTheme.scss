@@ -35,8 +35,12 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
+// A theme colour, not a literal. These two carried Ocean's cyan written out,
+// so on the black theme the listening bands were the one thing on the plot
+// still painted in the other theme's colour. Each theme names its own in
+// `--coverage-band` (App.scss): Ocean says the same cyan, black says gray.
 .chart-coverage__column {
-  fill: #00e5cf;
+  fill: var(--coverage-band);
   transition: opacity 400ms ease;
 }
 
@@ -45,7 +49,7 @@ it under the terms of the GNU General Public License version 3 or later.
 }
 
 .chart-coverage__fill {
-  fill: rgba(0, 229, 207, 0.55);
+  fill: color-mix(in srgb, var(--coverage-band) 55%, transparent);
   transition:
     width 400ms ease,
     fill 400ms ease;

@@ -1802,6 +1802,9 @@ textarea,
   --accent-light: #9cfff4;
   --accent-dark: #00a9d6;
   --accent-darker: #007f95;
+  // Smart EQ's listening bands: the columns over the plot and the confidence
+  // bar under each. Ocean paints them in its accent, as it always has.
+  --coverage-band: #00e5cf;
 }
 
 // Black: near-black, cool, and quiet — not a high-contrast theme.
@@ -1839,6 +1842,13 @@ textarea,
   --accent-light: #b6f7f0;
   --accent-dark: #2fcfc2;
   --accent-darker: #1f9e95;
+  // Gray, not the accent. The columns stand at 6-20% opacity over the whole
+  // plot; in the accent they were a green wash behind a green curve and
+  // the two fought. A cool mid gray — the borders' tint, darker than the
+  // light gray first tried, which sat too bright over near-black — reads as
+  // shading on the floor, and leaves the accent to the things that are
+  // chosen or live.
+  --coverage-band: #7a8594;
 }
 
 // The shell's gutter, in one place. See `.app-workspace`, which consumes it,
