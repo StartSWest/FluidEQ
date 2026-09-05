@@ -88,7 +88,8 @@ const simulate = (
       sequence += 1;
     }
     instance.process([], outputs);
-    if (at >= 4800) {
+    // Allow the advertised 100 ms startup reservoir and its 12 ms fade-in.
+    if (at >= 7200) {
       minimumRunningSample = Math.min(minimumRunningSample, ...outputs[0][0]);
     }
     if (at >= 48000 * 3) {
@@ -114,7 +115,7 @@ const simulate = (
 };
 
 describe('video-mode continuous playback', () => {
-  it.each([40, 60, 80])(
+  it.each([40, 60, 80, 160])(
     'retains the protection needed by recurring %i ms delivery bursts',
     (batchMs) => {
       const batchFrames = 48 * batchMs;
@@ -125,14 +126,14 @@ describe('video-mode continuous playback', () => {
       // Cross several recovery windows: the old unconditional decay played
       // cleanly for two seconds, then deliberately shrank into another dropout.
       expect(result.minimumStableSample).toBeGreaterThan(0.245);
-      expect(result.latestBufferMs).toBeLessThan(batchMs + 30);
+      expect(result.latestBufferMs).toBeLessThan(Math.max(100, batchMs) + 30);
     },
   );
 
   it('keeps an audible stereo tone continuous through recurring bursts', () => {
     const result = simulate((at) => Math.ceil(at / 2880) * 2880, 8, 997);
     expect(result.minimumStableRms).toBeGreaterThan(0.16);
-    expect(result.latestBufferMs).toBeLessThan(90);
+    expect(result.latestBufferMs).toBeLessThan(110);
   });
 
   it('keeps ordinary 8 ms packet jitter at full level', () => {
@@ -141,27 +142,27 @@ describe('video-mode continuous playback', () => {
     );
     expect(result.minimumStableSample).toBeGreaterThan(0.245);
     expect(result.minimumRunningSample).toBeGreaterThan(0.245);
-    expect(result.latestBufferMs).toBeLessThan(50);
+    expect(result.latestBufferMs).toBeLessThan(110);
   });
 
-  it('absorbs 20 ms delivery jitter with the extra Game/Video capture packet', () => {
+  it('absorbs 20 ms delivery jitter with the Game/Video reservoir', () => {
     const result = simulate(
       (at, sequence) => at + (sequence % 4 === 0 ? 960 : 0),
     );
     expect(result.minimumRunningSample).toBeGreaterThan(0.245);
-    expect(result.latestBufferMs).toBeLessThan(50);
+    expect(result.latestBufferMs).toBeLessThan(110);
   });
 
   it('crossfades accumulated video backlog without stopping the playing stream', () => {
     const result = simulate((at) => (at >= 96000 ? at - 2880 : at));
     expect(result.minimumRunningSample).toBeGreaterThan(0.245);
-    expect(result.latestBufferMs).toBeLessThan(50);
+    expect(result.latestBufferMs).toBeLessThan(110);
   });
 
   it('returns to a live buffer after a 90 ms stall instead of retaining its delay', () => {
     const result = simulate((at) => (at >= 96000 && at < 100320 ? 100320 : at));
     expect(result.minimumStableSample).toBeGreaterThan(0.245);
-    expect(result.latestBufferMs).toBeLessThan(50);
+    expect(result.latestBufferMs).toBeLessThan(110);
   });
 
   it('accepts the main-process port without relaying audio through the UI callback', () => {
@@ -171,7 +172,7 @@ describe('video-mode continuous playback', () => {
       close: jest.fn(),
     };
     instance.port.onmessage({ data: { kind: 'attach', port } });
-    const pcm = new Float32Array(3840).fill(0.25);
+    const pcm = new Float32Array(9600).fill(0.25);
     port.onmessage({
       data: {
         kind: 'push',
@@ -179,7 +180,7 @@ describe('video-mode continuous playback', () => {
         sequence: 0,
         sampleRate: 48000,
         channels: 2,
-        frames: 1920,
+        frames: 4800,
         pcm: pcm.buffer,
       },
     });

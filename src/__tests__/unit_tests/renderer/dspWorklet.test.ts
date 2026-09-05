@@ -457,13 +457,13 @@ describe('dsp worklet bundle', () => {
     let sequence = pushRemoteAudio(
       processor,
       'VIDEO-PC',
-      new Float32Array(2_880 * 2).fill(0.3),
+      new Float32Array(4_800 * 2).fill(0.3),
     );
     const first = [[new Float32Array(QUANTUM), new Float32Array(QUANTUM)]];
     processor.process([], first);
     expect(first[0][0][QUANTUM - 1]).toBeGreaterThan(0);
 
-    for (let quantum = 0; quantum < 22; quantum += 1) {
+    for (let quantum = 0; quantum < 38; quantum += 1) {
       processor.process(
         [],
         [[new Float32Array(QUANTUM), new Float32Array(QUANTUM)]],
@@ -484,7 +484,7 @@ describe('dsp worklet bundle', () => {
     pushRemoteAudio(
       processor,
       'VIDEO-PC',
-      new Float32Array(900 * 2).fill(0.3),
+      new Float32Array(3_680 * 2).fill(0.3),
       2,
       SAMPLE_RATE,
       sequence,
@@ -494,7 +494,7 @@ describe('dsp worklet bundle', () => {
     expect(recovered[0][0][QUANTUM - 1]).toBeGreaterThan(0);
   });
 
-  it('starts Game/Video playback at its advertised 40 ms buffer', () => {
+  it('starts Game/Video playback at its advertised 100 ms buffer', () => {
     const processor = new (loadProcessor('fluideq-remote-audio'))();
     processor.port.onmessage?.({
       data: { kind: 'configure', mode: 'video', peerId: 'LIP-SYNC-PC' },
@@ -502,7 +502,7 @@ describe('dsp worklet bundle', () => {
     let sequence = pushRemoteAudio(
       processor,
       'LIP-SYNC-PC',
-      new Float32Array(1_880 * 2).fill(0.25),
+      new Float32Array(4_760 * 2).fill(0.25),
     );
     const early = [[new Float32Array(QUANTUM), new Float32Array(QUANTUM)]];
     processor.process([], early);
