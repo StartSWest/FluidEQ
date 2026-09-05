@@ -44,7 +44,9 @@ export interface INowPlayingIdentity {
  * Three cases, in order:
  *
  * 1. A player of ours that holds playback wins outright.
- * 2. Failing that, the machine's own player while it says it is playing.
+ * 2. Failing that, the machine's own player while it says it is playing,
+ *    and then another computer's song arriving over the LAN link — the same
+ *    kind of thing one machine further away, and equalised by this one.
  * 3. Failing THAT — nobody playing right now — whatever `lastPlayingOwner`
  *    (see `transportSource.ts`) is currently describing, reported with
  *    `isPlaying: false` rather than vanishing outright.
@@ -75,6 +77,9 @@ export const pickPlayingIdentity = (
   }
   if (sources.system?.isPlaying === true) {
     return { identity: sources.system.identity, isPlaying: true };
+  }
+  if (sources.remote?.isPlaying === true) {
+    return { identity: sources.remote.identity, isPlaying: true };
   }
   const paused =
     lastPlayingOwner !== undefined
