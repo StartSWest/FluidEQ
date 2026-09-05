@@ -68,6 +68,7 @@ const remoteAudio = {
   'remoteAudio.monitor.waitingSource': 'Waiting for a sender',
   'remoteAudio.monitor.outgoing': 'Audio sent by this computer',
   'remoteAudio.monitor.transmitting': 'Transmitting',
+  'remoteAudio.monitor.receiving': 'Receiving',
   'remoteAudio.monitor.quiet': 'Quiet',
   'remoteAudio.monitor.nowPlaying': 'Now playing',
   'remoteAudio.monitor.paused': 'Paused',

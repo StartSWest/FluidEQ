@@ -63,6 +63,7 @@ const remoteAudio: Partial<Dictionary> = {
   'remoteAudio.monitor.waitingSource': 'En attente d’un émetteur',
   'remoteAudio.monitor.outgoing': 'Son envoyé par cet ordinateur',
   'remoteAudio.monitor.transmitting': 'Transmission',
+  'remoteAudio.monitor.receiving': 'Réception',
   'remoteAudio.monitor.quiet': 'Silencieux',
   'remoteAudio.monitor.nowPlaying': 'En lecture',
   'remoteAudio.monitor.paused': 'En pause',

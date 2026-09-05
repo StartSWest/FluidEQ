@@ -62,6 +62,7 @@ const remoteAudio: Partial<Dictionary> = {
   'remoteAudio.monitor.waitingSource': '正在等待发送端',
   'remoteAudio.monitor.outgoing': '此电脑发送的音频',
   'remoteAudio.monitor.transmitting': '正在传输',
+  'remoteAudio.monitor.receiving': '正在接收',
   'remoteAudio.monitor.quiet': '静音',
   'remoteAudio.monitor.nowPlaying': '正在播放',
   'remoteAudio.monitor.paused': '已暂停',

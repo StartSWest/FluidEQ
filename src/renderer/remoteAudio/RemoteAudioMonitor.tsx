@@ -27,6 +27,9 @@ interface IRemoteAudioMeterLaneProps {
   active: boolean;
   address?: string;
   bufferKind?: 'playback' | 'send';
+  /** The word beside the dot while sound is flowing: what this lane is doing
+   * with it — receiving on the listener, transmitting on the sender. */
+  activeState: string;
   idleState: string;
   label: string;
   large?: boolean;
@@ -70,6 +73,7 @@ const appendHistory = (history: IWaveformHistory, waveform: Float32Array) => {
 
 const RemoteAudioMeterLane = ({
   active,
+  activeState,
   address,
   bufferKind,
   idleState,
@@ -199,7 +203,7 @@ const RemoteAudioMeterLane = ({
       }
       if (activityRef.current) {
         activityRef.current.textContent = transmitting
-          ? t('remoteAudio.monitor.transmitting')
+          ? activeState
           : idleState;
       }
       activityDotRef.current?.classList.toggle('is-active', transmitting);
@@ -207,7 +211,7 @@ const RemoteAudioMeterLane = ({
     };
     frameId = window.requestAnimationFrame(paint);
     return () => window.cancelAnimationFrame(frameId);
-  }, [active, idleState, meterKey, t]);
+  }, [active, activeState, idleState, meterKey, t]);
 
   const emptyBufferReadout = bufferKind
     ? t(
@@ -344,6 +348,7 @@ const RemoteAudioMonitor = ({
             <RemoteAudioMeterLane
               key={computer.id}
               active={active}
+              activeState={t('remoteAudio.monitor.receiving')}
               address={computer.address}
               bufferKind="playback"
               idleState={t('remoteAudio.monitor.quiet')}
@@ -361,6 +366,7 @@ const RemoteAudioMonitor = ({
         {mode === 'listener' && connectedComputers.length === 0 && (
           <RemoteAudioMeterLane
             active={false}
+            activeState={t('remoteAudio.monitor.receiving')}
             bufferKind="playback"
             idleState={t('remoteAudio.monitor.waitingSource')}
             label={t('remoteAudio.monitor.noSources')}
@@ -371,6 +377,7 @@ const RemoteAudioMonitor = ({
         {mode === 'sender' && (
           <RemoteAudioMeterLane
             active={active}
+            activeState={t('remoteAudio.monitor.transmitting')}
             bufferKind="send"
             idleState={t('remoteAudio.monitor.quiet')}
             label={detail ?? t('remoteAudio.monitor.outgoing')}
@@ -383,6 +390,7 @@ const RemoteAudioMonitor = ({
         {!mode && (
           <RemoteAudioMeterLane
             active={false}
+            activeState={status}
             idleState={status}
             label={t('remoteAudio.monitor.noRole')}
             large
