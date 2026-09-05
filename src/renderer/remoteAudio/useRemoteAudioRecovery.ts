@@ -1,7 +1,10 @@
 /* FluidEQ — GPL-3.0-or-later */
 
 import { useCallback, useEffect } from 'react';
-import type { TRemoteAudioStreamMode } from '../../common/remoteAudio';
+import type {
+  IRemoteNowPlaying,
+  TRemoteAudioStreamMode,
+} from '../../common/remoteAudio';
 import type { IPcmMixer } from './pcmMixer';
 import type { TRemoteAudioPhase, TRemoteAudioRole } from './remoteAudioState';
 
@@ -13,6 +16,7 @@ interface IRemoteAudioRecoveryOptions {
   peerAddressesRef: { current: Map<string, string> };
   peerIdsRef: { current: Set<string> };
   peerNamesRef: { current: Map<string, string> };
+  peerNowPlayingRef: { current: Map<string, IRemoteNowPlaying> };
   phase: TRemoteAudioPhase;
   reconnectListener(): Promise<void>;
   reconnectSender(mode: TRemoteAudioStreamMode): Promise<void>;
@@ -31,6 +35,7 @@ const useRemoteAudioRecovery = ({
   peerAddressesRef,
   peerIdsRef,
   peerNamesRef,
+  peerNowPlayingRef,
   phase,
   reconnectListener,
   reconnectSender,
@@ -53,6 +58,7 @@ const useRemoteAudioRecovery = ({
     peerIdsRef.current.clear();
     peerNamesRef.current.clear();
     peerAddressesRef.current.clear();
+    peerNowPlayingRef.current.clear();
     connectedPeerIdsRef.current.clear();
     clearNetworkStats();
     reconnectListener().catch(() => undefined);
@@ -63,6 +69,7 @@ const useRemoteAudioRecovery = ({
     peerAddressesRef,
     peerIdsRef,
     peerNamesRef,
+    peerNowPlayingRef,
     reconnectListener,
     reconnectSender,
     roleRef,

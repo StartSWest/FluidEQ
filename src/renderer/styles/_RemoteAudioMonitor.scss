@@ -103,6 +103,47 @@
   white-space: nowrap;
 }
 
+// What the sender's bar is showing, one row above its waveform. The same
+// three-part shape as the source line above it — state, name, detail — so the
+// lane reads as one column rather than two different kinds of heading.
+.remote-audio__monitor-now-playing {
+  display: flex;
+  min-width: 0;
+  align-items: baseline;
+  margin-bottom: 6px;
+  gap: 7px;
+  font-size: $text-small;
+
+  > * {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  strong {
+    flex: 0 1 auto;
+    color: $text-primary;
+    font-weight: $weight-semibold;
+  }
+
+  > span:last-child {
+    flex: 1 1 auto;
+    color: $text-muted;
+  }
+}
+
+.remote-audio__monitor-now-playing-state {
+  flex: 0 0 auto;
+  color: $text-faint;
+  font-size: $text-micro;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+
+  .is-playing > & {
+    color: $analogous-2;
+  }
+}
+
 .remote-audio__monitor-source-dot {
   width: 6px;
   height: 6px;

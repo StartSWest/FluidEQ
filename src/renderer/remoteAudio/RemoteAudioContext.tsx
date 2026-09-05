@@ -12,6 +12,7 @@ import type {
   ILanPairingOption,
   ILanRemoteAudioChunk,
   ILanRemoteAudioSignal,
+  IRemoteNowPlaying,
   TRemoteAudioStopMode,
   TRemoteAudioStreamMode,
 } from '../../common/remoteAudio';
@@ -25,6 +26,7 @@ import { createPcmSender, IPcmSender } from './pcmSender';
 import { measureRemoteAudioChunk } from './meter';
 import listenerState from './listenerState';
 import type {
+  IRemoteAudioComputer,
   TRemoteAudioError,
   TRemoteAudioPhase,
   TRemoteAudioRole,
@@ -42,6 +44,8 @@ import useRemoteAudioSenderActions from './useRemoteAudioSenderActions';
 import useRemoteAudioSenderReconnect from './useRemoteAudioSenderReconnect';
 import useRemoteAudioRecovery from './useRemoteAudioRecovery';
 import useRemoteAudioStreamMode from './useRemoteAudioStreamMode';
+import useRemoteNowPlayingBroadcast from './useRemoteNowPlayingBroadcast';
+import useRemoteNowPlayingSource from './useRemoteNowPlayingSource';
 
 const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
   const { capture, setSharingAudio } = useLiveAudioControl();
@@ -60,7 +64,7 @@ const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
   const [lanOptions, setLanOptions] = useState<ILanPairingOption[]>([]);
   const [connectedCount, setConnectedCount] = useState(0);
   const [connectedComputers, setConnectedComputers] = useState<
-    { address?: string; id: string; name: string }[]
+    IRemoteAudioComputer[]
   >([]);
   const [deviceName, setDeviceName] = useState<string | undefined>(undefined);
   const roleRef = useRef<TRemoteAudioRole | undefined>(undefined);
@@ -72,6 +76,7 @@ const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
   const peerIdsRef = useRef(new Set<string>());
   const peerNamesRef = useRef(new Map<string, string>());
   const peerAddressesRef = useRef(new Map<string, string>());
+  const peerNowPlayingRef = useRef(new Map<string, IRemoteNowPlaying>());
   const connectedPeerIdsRef = useRef(new Set<string>());
   const playbackBlockedRef = useRef(false);
   const stoppingRef = useRef(false);
@@ -106,6 +111,7 @@ const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
       peerAddressesRef.current,
       connectedPeerIdsRef.current,
       playbackBlockedRef.current,
+      peerNowPlayingRef.current,
     );
     setConnectedCount(next.connectedCount);
     setConnectedComputers(next.computers);
@@ -194,6 +200,12 @@ const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
     stoppingRef,
     streamModeRef,
   });
+  const performRemoteTransport = useRemoteNowPlayingBroadcast(
+    role,
+    phase,
+    senderPeerIdRef,
+  );
+  useRemoteNowPlayingSource(role, connectedComputers);
   const acceptSignal = useCallback(
     ({ peerId, signal }: ILanRemoteAudioSignal) => {
       const activeRole = roleRef.current;
@@ -203,6 +215,25 @@ const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
       if (signal.kind === 'stream-mode') {
         // The main process sends this on the same port as PCM, preserving
         // ordering even when the UI is busy. Reapplying it here resets recovery.
+        return;
+      }
+      if (signal.kind === 'now-playing') {
+        // Only a sender describes its bar, and only the listener draws it.
+        if (activeRole === 'listener' && peerIdsRef.current.has(peerId)) {
+          if (signal.playing) {
+            peerNowPlayingRef.current.set(peerId, signal.playing);
+          } else {
+            peerNowPlayingRef.current.delete(peerId);
+          }
+          publishListenerState();
+        }
+        return;
+      }
+      if (signal.kind === 'transport') {
+        // The listener's play button, pressed here on the sender's own bar.
+        if (activeRole === 'sender' && senderPeerIdRef.current === peerId) {
+          performRemoteTransport(signal.command);
+        }
         return;
       }
       if (signal.kind === 'peer-ready') {
@@ -233,6 +264,7 @@ const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
         peerIdsRef.current.delete(peerId);
         peerNamesRef.current.delete(peerId);
         peerAddressesRef.current.delete(peerId);
+        peerNowPlayingRef.current.delete(peerId);
         connectedPeerIdsRef.current.delete(peerId);
         removeNetworkPeer(peerId);
         publishListenerState();
@@ -241,6 +273,7 @@ const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
       }
     },
     [
+      performRemoteTransport,
       publishListenerState,
       reconnectSender,
       removeNetworkPeer,
@@ -290,6 +323,7 @@ const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
     peerAddressesRef,
     peerIdsRef,
     peerNamesRef,
+    peerNowPlayingRef,
     phase,
     reconnectListener,
     reconnectSender,
@@ -386,6 +420,7 @@ const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
       peerIdsRef.current.clear();
       peerNamesRef.current.clear();
       peerAddressesRef.current.clear();
+      peerNowPlayingRef.current.clear();
       connectedPeerIdsRef.current.clear();
       playbackBlockedRef.current = false;
       roleRef.current = undefined;

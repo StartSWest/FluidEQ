@@ -134,6 +134,7 @@ const library: Partial<Dictionary> = {
   'library.nothingPlaying': '没有在播放',
   'library.nothingPlayingHint': '选择要播放的内容',
   'library.systemAudio': '系统音频',
+  'library.remoteAudio': '远程播放 · {name}',
 
   'library.trackActions': '对这首歌做什么',
   'library.browse.playlist': '播放列表',

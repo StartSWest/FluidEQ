@@ -63,6 +63,8 @@ const remoteAudio: Partial<Dictionary> = {
   'remoteAudio.monitor.outgoing': '此电脑发送的音频',
   'remoteAudio.monitor.transmitting': '正在传输',
   'remoteAudio.monitor.quiet': '静音',
+  'remoteAudio.monitor.nowPlaying': '正在播放',
+  'remoteAudio.monitor.paused': '已暂停',
   'remoteAudio.monitor.peakLevel': '实时音频峰值电平',
   'remoteAudio.monitor.peak': '峰值 {decibels} dB',
   'remoteAudio.monitor.networkUsage': '局域网 {megabits} Mb/s',

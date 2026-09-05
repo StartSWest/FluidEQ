@@ -20,7 +20,7 @@ import { CSSProperties, useCallback, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { ITransportSource } from '../../audio/transportSource';
 import { setTransportSlot } from '../../audio/transportSlot';
-import { useTransportStrip } from '../../audio/useTransportStrip';
+import useTransportStrip from '../../audio/useTransportStrip';
 import SongEqBadge from '../../components/SongEqBadge';
 import LibraryCoverArt from '../LibraryCoverArt';
 import { useTranslation } from '../../utils/I18nContext';
@@ -83,6 +83,12 @@ const SourceTransportBar = ({
     // is what it is rather than the name of a page in this app.
     if (source.owner === 'system') {
       return t('library.systemAudio');
+    }
+    // Another computer's sound, arriving over the LAN link. The line names
+    // the computer, because "remote" alone is the question and not the
+    // answer when two of them are connected.
+    if (source.owner === 'remote') {
+      return t('library.remoteAudio', { name: source.origin ?? '' });
     }
     return t('tabs.media');
   })();

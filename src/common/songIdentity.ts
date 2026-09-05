@@ -30,7 +30,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * store; importing across that line to save four words would put a renderer
  * module in main's bundle.
  */
-export type TSongSource = 'library' | 'karaoke' | 'media' | 'system';
+export type TSongSource = 'library' | 'karaoke' | 'media' | 'system' | 'remote';
 
 export interface ISongIdentity {
   /** Exact, source-scoped. Never collides across sources. */
@@ -226,11 +226,13 @@ export const buildSongIdentity = (
     if (source === 'media') {
       return mediaKey(exact, publishedTitle);
     }
-    if (source === 'system') {
+    if (source === 'system' || source === 'remote') {
       // The app alone is not a song: Spotify is one session playing a
       // different track every three minutes. Collapsed rather than raw so a
-      // republished title with different spacing is still the same key.
-      return `system:${exact}:${collapse(cleanTitle)}:${collapse(cleanArtist ?? '')}`;
+      // republished title with different spacing is still the same key. A
+      // remote sender is the same shape — `exact` is the sending computer,
+      // and it plays a different track every three minutes too.
+      return `${source}:${exact}:${collapse(cleanTitle)}:${collapse(cleanArtist ?? '')}`;
     }
     return `${source}:${exact}`;
   })();

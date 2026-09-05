@@ -65,6 +65,14 @@ const pickTransportOwner = (
   if (playingOwner === undefined && sources.system?.isPlaying === true) {
     return 'system';
   }
+  // And the same again for sound arriving from another computer over the LAN
+  // link — described by that computer's bar, playing through this one's
+  // output. After the machine's own player, because a browser tab here is
+  // nearer than a song there, and because the listener's own system session
+  // is what somebody just pressed play on.
+  if (playingOwner === undefined && sources.remote?.isPlaying === true) {
+    return 'remote';
+  }
   // A natural end is still the same listening session. Hold the actual
   // player's controls while its known next item starts; the player's bounded
   // handoff lease clears on `playing`, explicit pause/stop, error, or expiry.

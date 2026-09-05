@@ -11,6 +11,7 @@ const recoveryOptions = () => ({
   peerAddressesRef: { current: new Map<string, string>() },
   peerIdsRef: { current: new Set<string>() },
   peerNamesRef: { current: new Map<string, string>() },
+  peerNowPlayingRef: { current: new Map() },
   phase: 'disconnected' as const,
   reconnectListener: jest.fn().mockResolvedValue(undefined),
   reconnectSender: jest.fn().mockResolvedValue(undefined),

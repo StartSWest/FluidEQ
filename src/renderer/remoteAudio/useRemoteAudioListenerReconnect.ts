@@ -6,6 +6,7 @@ import type {
   TRemoteAudioStreamMode,
 } from '../../common/remoteAudio';
 import type {
+  IRemoteAudioComputer,
   TRemoteAudioError,
   TRemoteAudioPhase,
   TRemoteAudioRole,
@@ -14,9 +15,7 @@ import type {
 interface IListenerReconnectOptions {
   reconnectGenerationRef: { current: number };
   roleRef: { current: TRemoteAudioRole | undefined };
-  setConnectedComputers(
-    computers: { address?: string; id: string; name: string }[],
-  ): void;
+  setConnectedComputers(computers: IRemoteAudioComputer[]): void;
   setConnectedCount(count: number): void;
   setDeviceName(name: string): void;
   setError(error: TRemoteAudioError | undefined): void;

@@ -45,8 +45,14 @@ import { useSyncExternalStore } from 'react';
  * its own to show. It never claims playback and never registers a stopper:
  * FluidEQ cannot silence another program, and a claim it could not honour
  * would have the library's own audio stop for something that cannot stop.
+ *
+ * `remote` is the same kind of thing one machine further away: what another
+ * computer is sending over the LAN link, described by that computer's own
+ * bar. Like `system` it is shown while it plays and never claims playback —
+ * the sound is arriving whatever this app does.
  */
-export type TPlaybackOwner = 'library' | 'karaoke' | 'media' | 'system';
+export type TPlaybackOwner =
+  'library' | 'karaoke' | 'media' | 'system' | 'remote';
 
 /** What each player hands over when it registers: how to silence it. Called
  * when somebody else claims playback, and never called on the owner that is

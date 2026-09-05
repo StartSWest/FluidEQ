@@ -136,6 +136,7 @@ const library = {
   'library.nothingPlaying': 'Nothing playing',
   'library.nothingPlayingHint': 'Pick something to play',
   'library.systemAudio': 'System audio',
+  'library.remoteAudio': 'Playing remote · {name}',
 
   'library.trackActions': 'What to do with this song',
   'library.browse.playlist': 'Playlists',

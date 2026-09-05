@@ -6,10 +6,40 @@ This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License version 3 or later.
 */
 
+/**
+ * What the sending computer's transport bar is showing, as sent to the
+ * listener.
+ *
+ * The listener plays sound it did not start and cannot see the source of, so
+ * its own bar said "Nothing playing" while a whole song came through the
+ * wire. This is the sender's bar description — a library track, a karaoke
+ * session, a browser tab Windows reported — reduced to the fields another
+ * machine can honestly draw. No artwork: the cover is a file or a blob URL on
+ * the sender, and the bar generates a tile from the title anyway.
+ */
+export interface IRemoteNowPlaying {
+  title: string;
+  /** The line under the title: the artist, or the app where there is none. */
+  subtitle?: string;
+  /** The artist alone, for identifying the song. Absent where the subtitle
+   * is an app name rather than an artist. */
+  artist?: string;
+  isPlaying: boolean;
+  positionMs: number;
+  durationMs: number;
+}
+
+/** The one transport command that reaches every player on the sender. */
+export type TRemoteTransportCommand = 'toggle';
+
 /** Small control messages; the lossless PCM stream travels separately. */
 export type TRemoteAudioSignal =
   | { kind: 'peer-ready'; deviceName: string; address?: string }
   | { kind: 'stream-mode'; mode: TRemoteAudioStreamMode }
+  /** Sender → listener. Absent `playing` means the sender's bar is empty. */
+  | { kind: 'now-playing'; playing?: IRemoteNowPlaying }
+  /** Listener → sender: a press on the listener's bar, carried out there. */
+  | { kind: 'transport'; command: TRemoteTransportCommand }
   | { kind: 'stop' };
 
 export interface ILanPairingOption {
@@ -79,11 +109,37 @@ export const isLanRemoteAudioSignal = (
   value.peerId.length <= 128 &&
   isRemoteAudioSignal(value.signal);
 
+/** A count of milliseconds a peer could have measured: finite, not negative. */
+const isMilliseconds = (value: unknown): value is number =>
+  typeof value === 'number' && Number.isFinite(value) && value >= 0;
+
+/**
+ * Bounded the way `peer-ready` bounds its name: a peer holds the key, but a
+ * peer is not trusted to size the listener's memory or its bar.
+ */
+export const isRemoteNowPlaying = (
+  value: unknown,
+): value is IRemoteNowPlaying =>
+  isRecord(value) &&
+  typeof value.title === 'string' &&
+  value.title.trim().length > 0 &&
+  value.title.length <= 256 &&
+  (value.subtitle === undefined ||
+    (typeof value.subtitle === 'string' && value.subtitle.length <= 256)) &&
+  (value.artist === undefined ||
+    (typeof value.artist === 'string' && value.artist.length <= 256)) &&
+  typeof value.isPlaying === 'boolean' &&
+  isMilliseconds(value.positionMs) &&
+  isMilliseconds(value.durationMs);
+
 export const isRemoteAudioSignal = (
   value: unknown,
 ): value is TRemoteAudioSignal =>
   isRecord(value) &&
   (value.kind === 'stop' ||
+    (value.kind === 'now-playing' &&
+      (value.playing === undefined || isRemoteNowPlaying(value.playing))) ||
+    (value.kind === 'transport' && value.command === 'toggle') ||
     (value.kind === 'stream-mode' &&
       (value.mode === 'music' || value.mode === 'video')) ||
     (value.kind === 'peer-ready' &&

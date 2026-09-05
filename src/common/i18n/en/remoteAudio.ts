@@ -69,6 +69,8 @@ const remoteAudio = {
   'remoteAudio.monitor.outgoing': 'Audio sent by this computer',
   'remoteAudio.monitor.transmitting': 'Transmitting',
   'remoteAudio.monitor.quiet': 'Quiet',
+  'remoteAudio.monitor.nowPlaying': 'Now playing',
+  'remoteAudio.monitor.paused': 'Paused',
   'remoteAudio.monitor.peakLevel': 'Live peak audio level',
   'remoteAudio.monitor.peak': 'Peak {decibels} dB',
   'remoteAudio.monitor.networkUsage': '{megabits} Mb/s LAN',

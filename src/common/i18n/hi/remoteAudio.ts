@@ -66,6 +66,8 @@ const remoteAudio: Partial<Dictionary> = {
   'remoteAudio.monitor.outgoing': 'इस कंप्यूटर से भेजा गया ऑडियो',
   'remoteAudio.monitor.transmitting': 'प्रसारण जारी',
   'remoteAudio.monitor.quiet': 'शांत',
+  'remoteAudio.monitor.nowPlaying': 'अभी चल रहा है',
+  'remoteAudio.monitor.paused': 'रुका हुआ',
   'remoteAudio.monitor.peakLevel': 'लाइव पीक ऑडियो स्तर',
   'remoteAudio.monitor.peak': 'शिखर {decibels} dB',
   'remoteAudio.monitor.networkUsage': 'LAN {megabits} Mb/s',

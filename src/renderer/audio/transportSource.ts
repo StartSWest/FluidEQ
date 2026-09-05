@@ -116,6 +116,14 @@ export interface ITransportSource {
    * thing worth filing a correction under, and the recorder skips it.
    */
   identity?: ISongIdentity;
+  /**
+   * Where the sound is coming from, for a source that is not this machine's.
+   *
+   * The name of the computer sending over the LAN link. The bar's third line
+   * spends it, so that with two senders connected the line says which one
+   * this is rather than only that it is somewhere else.
+   */
+  origin?: string;
 }
 
 const listeners = new Set<() => void>();
@@ -183,6 +191,7 @@ const OWNERS: readonly TPlaybackOwner[] = [
   'karaoke',
   'media',
   'system',
+  'remote',
 ];
 
 /**
@@ -243,9 +252,10 @@ const publish = (next: Partial<Record<TPlaybackOwner, ITransportSource>>) => {
  * more than re-rendering a bar of six buttons.
  */
 export const setTransportSource = (next: ITransportSource): void => {
-  // THE MACHINE'S OWN PLAYER IS NEVER "THE LAST THING".
+  // THE MACHINE'S OWN PLAYER IS NEVER "THE LAST THING", AND NEITHER IS
+  // ANOTHER MACHINE'S.
   //
-  // It takes the bar by playing and by nothing else — see `pickTransportOwner`
+  // They take the bar by playing and by nothing else — see `pickTransportOwner`
   // — so on a tab that is not a player, with nothing making any sound, the bar
   // goes back to the last song of this app's rather than to a browser tab
   // somebody paused an hour ago. Which is the whole of the rule: something
@@ -255,7 +265,11 @@ export const setTransportSource = (next: ITransportSource): void => {
   // Position republishes this source several times a second. Writing the same
   // owner through synchronous localStorage on every tick made a UI-only clock
   // wait on persistent storage; the preference changes only when the owner does.
-  if (next.owner !== 'system' && lastOwner !== next.owner) {
+  if (
+    next.owner !== 'system' &&
+    next.owner !== 'remote' &&
+    lastOwner !== next.owner
+  ) {
     lastOwner = next.owner;
     try {
       window.localStorage.setItem(LAST_OWNER_KEY, next.owner);

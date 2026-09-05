@@ -5,13 +5,17 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { useEffect, useRef } from 'react';
-import type { ILanRemoteAudioNetworkStats } from '../../common/remoteAudio';
+import type {
+  ILanRemoteAudioNetworkStats,
+  IRemoteNowPlaying,
+} from '../../common/remoteAudio';
 import { useTranslation } from '../utils/I18nContext';
 import type { IRemoteAudioMeter, TRemoteAudioMeterListener } from './meter';
+import type { IRemoteAudioComputer } from './remoteAudioState';
 
 interface IRemoteAudioMonitorProps {
   active: boolean;
-  connectedComputers: { address?: string; id: string; name: string }[];
+  connectedComputers: IRemoteAudioComputer[];
   detail?: string;
   mode?: 'listener' | 'sender';
   networkStats: ILanRemoteAudioNetworkStats[];
@@ -28,6 +32,8 @@ interface IRemoteAudioMeterLaneProps {
   large?: boolean;
   meterKey?: string | null;
   network?: ILanRemoteAudioNetworkStats;
+  /** What the sender says its bar is showing — see `useRemoteNowPlayingSource`. */
+  nowPlaying?: IRemoteNowPlaying;
   subscribe(listener: TRemoteAudioMeterListener): () => void;
 }
 
@@ -71,6 +77,7 @@ const RemoteAudioMeterLane = ({
   large = false,
   meterKey,
   network,
+  nowPlaying,
   subscribe,
 }: IRemoteAudioMeterLaneProps) => {
   const { t } = useTranslation();
@@ -263,6 +270,26 @@ const RemoteAudioMeterLane = ({
           </span>
         </div>
       </div>
+      {/* What is coming down this lane, in the sender's own words. The bar
+          at the foot of the window shows one sender; this is the per-sender
+          answer, beside the meter it belongs to. */}
+      {nowPlaying && (
+        <div
+          className={`remote-audio__monitor-now-playing${
+            nowPlaying.isPlaying ? ' is-playing' : ''
+          }`}
+        >
+          <span className="remote-audio__monitor-now-playing-state">
+            {t(
+              nowPlaying.isPlaying
+                ? 'remoteAudio.monitor.nowPlaying'
+                : 'remoteAudio.monitor.paused',
+            )}
+          </span>
+          <strong>{nowPlaying.title}</strong>
+          {nowPlaying.subtitle && <span>{nowPlaying.subtitle}</span>}
+        </div>
+      )}
       <canvas
         ref={canvasRef}
         className="remote-audio__waveform"
@@ -327,6 +354,7 @@ const RemoteAudioMonitor = ({
                 (stats) =>
                   stats.direction === 'receive' && stats.peerId === computer.id,
               )}
+              nowPlaying={computer.nowPlaying}
               subscribe={subscribe}
             />
           ))}

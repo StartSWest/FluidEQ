@@ -65,6 +65,8 @@ const remoteAudio: Partial<Dictionary> = {
   'remoteAudio.monitor.outgoing': 'Áudio enviado por este computador',
   'remoteAudio.monitor.transmitting': 'Transmitindo',
   'remoteAudio.monitor.quiet': 'Silencioso',
+  'remoteAudio.monitor.nowPlaying': 'Tocando agora',
+  'remoteAudio.monitor.paused': 'Em pausa',
   'remoteAudio.monitor.peakLevel': 'Nível de pico do áudio ao vivo',
   'remoteAudio.monitor.peak': 'Pico {decibels} dB',
   'remoteAudio.monitor.networkUsage': 'LAN: {megabits} Mb/s',
