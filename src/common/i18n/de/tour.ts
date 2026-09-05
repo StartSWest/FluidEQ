@@ -120,6 +120,8 @@ const tour: Partial<Dictionary> = {
   'tour.output.how':
     'Öffnen Sie im Tab EQ „Zweite Ausgabe“ im rechten Panel, wählen Sie unter „Spiegeln auf“ ein Gerät und stellen Sie die Lautstärke ein. Die Karte zeigt SPIEGELT, solange es läuft.',
   'tour.output.open': 'EQ öffnen',
+  'tour.output.imageAlt':
+    'Die Karte Zweite Ausgabe im Tab EQ: die Liste der anderen Ausgaben, eine davon eingeschaltet mit eigener Lautstärke, und ein Hinweis zur Verzögerung.',
 
   'tour.looks.kicker': 'IHR EIGENER VISUALIZER',
   'tour.looks.title': 'Eigene Darstellungen für den Graphen',

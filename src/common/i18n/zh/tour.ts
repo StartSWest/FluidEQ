@@ -115,6 +115,8 @@ const tour: Partial<Dictionary> = {
   'tour.output.how':
     '在 EQ 标签页，展开右侧面板里的“第二路输出”，在“镜像到”中选一台设备并设置音量。运行时卡片会显示“镜像中”。',
   'tour.output.open': '打开 EQ',
+  'tour.output.imageAlt':
+    'EQ 标签页上的“第二路输出”卡片：其他输出的列表，其中一路已开启并有独立音量，以及一条关于延迟的说明。',
 
   'tour.looks.kicker': '你自己的可视化',
   'tour.looks.title': '自定义图表外观',

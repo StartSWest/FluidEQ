@@ -459,13 +459,19 @@ it under the terms of the GNU General Public License version 3 or later.
 // The standing slides: text on the left, a drawing on the right.
 
 .tour-slide--feature {
-  align-items: start;
+  // Stretched, not started at the top: the figure has to be as tall as the
+  // row so a capture can be held to it. A drawing centres in the room.
+  align-items: stretch;
   grid-template-columns: minmax(0, 1fr) minmax(0, 42%);
 }
 
 .tour-slide__art {
-  display: block;
+  // A grid so a capture can centre and be held to the column's height; the
+  // drawings fill the width and are unaffected.
+  display: grid;
+  min-height: 0;
   margin: 0;
+  place-items: center;
   padding: calc(var(--tour-unit) * 0.6);
   border: 1px solid rgba($edge-tint, 0.1);
   border-radius: $radius-l;

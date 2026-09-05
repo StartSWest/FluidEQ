@@ -196,13 +196,19 @@ it under the terms of the GNU General Public License version 3 or later.
   fill: $surface-base;
 }
 
-// The two output drawings and the looks tiles.
-.tour-art__headset-line {
-  fill: none;
-  stroke: $secondary-light;
-  stroke-linecap: round;
-  stroke-width: 4;
+// A capture in the drawing's place: sized by the room it has, never wider
+// than the column and never taller than the stage.
+.tour-art--shot {
+  width: auto;
+  max-width: 100%;
+  max-height: 100%;
+  margin: 0 auto;
+  border: 1px solid rgba($edge-tint, 0.14);
+  border-radius: $radius-m;
+  object-fit: contain;
 }
+
+// The looks tiles.
 
 .tour-art__panel-lit {
   fill: color-mix(in srgb, $secondary-default 12%, $surface-field-end);

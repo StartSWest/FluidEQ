@@ -13,8 +13,9 @@ import {
   KaraokeMakerArt,
   LibraryArt,
   OnlineMediaArt,
-  SecondOutputArt,
 } from './artwork';
+import { useTranslation } from '../../utils/I18nContext';
+import secondOutputShot from '../../../../assets/tour/second-output.png';
 import FeatureSlide from './FeatureSlide';
 import type { ISlideActions } from './slides';
 
@@ -48,12 +49,25 @@ export function DspSlide({ actions }: ISlideProps) {
   );
 }
 
+/**
+ * The one standing slide with a capture rather than a drawing: the panel
+ * is small, carries nothing personal beyond device names, and a list of
+ * real outputs with one switched on says what the feature is faster than
+ * any diagram of it.
+ */
 export function SecondOutputSlide({ actions }: ISlideProps) {
+  const { t } = useTranslation();
   return (
     <FeatureSlide
       prefix="tour.output"
       tab="eq"
-      art={<SecondOutputArt />}
+      art={
+        <img
+          className="tour-art tour-art--shot"
+          src={secondOutputShot}
+          alt={t('tour.output.imageAlt')}
+        />
+      }
       actions={actions}
     />
   );

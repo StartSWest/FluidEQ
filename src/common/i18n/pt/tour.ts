@@ -120,6 +120,8 @@ const tour: Partial<Dictionary> = {
   'tour.output.how':
     'Na aba EQ, abra “Segunda saída” no painel da direita, escolha um dispositivo em “Espelhar em” e ajuste o volume. O cartão mostra ESPELHANDO enquanto funciona.',
   'tour.output.open': 'Abrir EQ',
+  'tour.output.imageAlt':
+    'O cartão Segunda saída na aba EQ: uma lista das outras saídas, uma ligada com seu próprio volume, e uma nota sobre o atraso.',
 
   'tour.looks.kicker': 'SEU PRÓPRIO VISUALIZADOR',
   'tour.looks.title': 'Visuais próprios para o gráfico',

@@ -129,6 +129,8 @@ const tour = {
   'tour.output.how':
     'On the EQ tab, open "Second output" in the right-hand panel, choose a device under "Mirror to" and set its volume. The card says MIRRORING while it runs.',
   'tour.output.open': 'Open EQ',
+  'tour.output.imageAlt':
+    'The Second output card on the EQ tab: a list of the other outputs, one switched on with its own volume, and a note about the delay.',
 
   'tour.looks.kicker': 'YOUR OWN VISUALIZER',
   'tour.looks.title': 'Custom looks for the graph',

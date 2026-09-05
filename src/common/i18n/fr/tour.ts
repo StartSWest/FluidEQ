@@ -120,6 +120,8 @@ const tour: Partial<Dictionary> = {
   'tour.output.how':
     'Dans l’onglet EQ, ouvrez « Deuxième sortie » dans le panneau de droite, choisissez un appareil sous « Dupliquer vers » et réglez son volume. La carte affiche DUPLICATION pendant que ça tourne.',
   'tour.output.open': 'Ouvrir l’EQ',
+  'tour.output.imageAlt':
+    'La carte Deuxième sortie dans l’onglet EQ : la liste des autres sorties, l’une activée avec son propre volume, et une note sur le délai.',
 
   'tour.looks.kicker': 'VOTRE PROPRE VISUALISEUR',
   'tour.looks.title': 'Des styles à vous pour le graphe',

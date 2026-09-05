@@ -120,6 +120,8 @@ const tour: Partial<Dictionary> = {
   'tour.output.how':
     'EQ タブの右側パネルで「2 つめの出力」を開き、「ミラー先」で機器を選んで音量を決めます。動作中はカードに「ミラー中」と出ます。',
   'tour.output.open': 'EQ を開く',
+  'tour.output.imageAlt':
+    'EQ タブの「2 つめの出力」カード。ほかの出力の一覧、独自の音量でオンになった一つ、そして遅延についての注記。',
 
   'tour.looks.kicker': '自分だけのビジュアライザー',
   'tour.looks.title': 'グラフの表示を自分で作る',

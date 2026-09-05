@@ -120,6 +120,8 @@ const tour: Partial<Dictionary> = {
   'tour.output.how':
     'En la pestaña EQ, abre «Segunda salida» en el panel derecho, elige un dispositivo en «Duplicar en» y ajusta su volumen. La tarjeta muestra DUPLICANDO mientras funciona.',
   'tour.output.open': 'Abrir EQ',
+  'tour.output.imageAlt':
+    'La tarjeta Segunda salida en la pestaña EQ: una lista de las demás salidas, una activada con su propio volumen, y una nota sobre el retardo.',
 
   'tour.looks.kicker': 'TU PROPIO VISUALIZADOR',
   'tour.looks.title': 'Estilos propios para la gráfica',
