@@ -261,8 +261,6 @@ const useLiveOutputSpectrum = () => {
   );
   const retriesRef = useRef(0);
   const isStartingRef = useRef(false);
-  const captureGenerationRef = useRef(0);
-  const restartRequestedRef = useRef(false);
   const autoStartRef = useRef(true);
   const isPausedRef = useRef(false);
   /**
@@ -324,7 +322,6 @@ const useLiveOutputSpectrum = () => {
   );
 
   const stop = useCallback(() => {
-    captureGenerationRef.current += 1;
     // A capture must never outlive the stream it is measuring.
     abortBalance(tRef.current('eq.smart.error.streamStopped'));
     if (pumpRef.current !== undefined) {
@@ -524,7 +521,6 @@ const useLiveOutputSpectrum = () => {
     }
 
     isStartingRef.current = true;
-    const captureGeneration = captureGenerationRef.current;
     setError('');
     let stream: MediaStream | undefined;
     let audioContext: AudioContext | undefined;
@@ -564,11 +560,7 @@ const useLiveOutputSpectrum = () => {
       // The same window covers the last owner leaving: minimising the window
       // during the negotiation releases the display claim, and carrying on
       // would install exactly the stream that release was asking to avoid.
-      if (
-        captureGeneration !== captureGenerationRef.current ||
-        !autoStartRef.current ||
-        !isCaptureWanted()
-      ) {
+      if (!autoStartRef.current || !isCaptureWanted()) {
         stream.getTracks().forEach((track) => track.stop());
         return false;
       }
@@ -583,11 +575,7 @@ const useLiveOutputSpectrum = () => {
       await activeAudioContext.resume();
       // And again, for the same reason: `resume()` is a second await, and the
       // context it just started is a hardware stream nobody would ever close.
-      if (
-        captureGeneration !== captureGenerationRef.current ||
-        !autoStartRef.current ||
-        !isCaptureWanted()
-      ) {
+      if (!autoStartRef.current || !isCaptureWanted()) {
         stream.getTracks().forEach((track) => track.stop());
         activeAudioContext.close().catch(() => undefined);
         return false;
@@ -972,9 +960,6 @@ const useLiveOutputSpectrum = () => {
       audioTrack.addEventListener(
         'ended',
         () => {
-          if (captureGeneration !== captureGenerationRef.current) {
-            return;
-          }
           abortBalance(tRef.current('eq.smart.error.deviceChanged'));
           stop();
           // Let the current capture promise finish before retrying. This
@@ -1056,12 +1041,6 @@ const useLiveOutputSpectrum = () => {
       return false;
     } finally {
       isStartingRef.current = false;
-      // A handoff during getDisplayMedia/resume must discard that old request
-      // and start its replacement after the in-flight guard is released.
-      if (restartRequestedRef.current) {
-        restartRequestedRef.current = false;
-        scheduleStartRef.current();
-      }
     }
   }, [abortBalance, evaluateSession, isCaptureWanted, stop]);
 
@@ -1189,20 +1168,6 @@ const useLiveOutputSpectrum = () => {
    * the capture would silently never start.
    */
   scheduleStartRef.current = scheduleStart;
-
-  const restart = useCallback(() => {
-    stop();
-    retriesRef.current = 0;
-    if (retryTimerRef.current !== undefined) {
-      clearTimeout(retryTimerRef.current);
-      retryTimerRef.current = undefined;
-    }
-    if (isStartingRef.current) {
-      restartRequestedRef.current = true;
-    } else {
-      scheduleStartRef.current();
-    }
-  }, [stop]);
 
   useEffect(() => {
     // Minimising or fully occluding the window hides the document.
@@ -1342,7 +1307,6 @@ const useLiveOutputSpectrum = () => {
       error,
       isActive,
       isPaused,
-      restart,
       togglePaused,
       // So the notice about a failed capture can offer to try again rather
       // than only saying it went wrong. Windows refuses the loopback grab for
@@ -1365,7 +1329,6 @@ const useLiveOutputSpectrum = () => {
       error,
       isActive,
       isPaused,
-      restart,
       start,
       togglePaused,
     ],

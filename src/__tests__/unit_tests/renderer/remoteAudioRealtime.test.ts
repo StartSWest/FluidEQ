@@ -115,6 +115,48 @@ const simulate = (
 };
 
 describe('video-mode continuous playback', () => {
+  it('restores each startup buffer when switching Music to Game/Video and back', () => {
+    const instance = processor();
+    const outputs = [[new Float32Array(128), new Float32Array(128)]];
+    const modes = [
+      { mode: 'music', frames: 11_520 },
+      { mode: 'video', frames: 4_800 },
+      { mode: 'music', frames: 11_520 },
+    ];
+    modes.forEach(({ mode, frames }) => {
+      // Mode changes re-handshake the sender and reset the playback port.
+      // Exercise that same worklet instance so old profile state cannot leak.
+      instance.port.onmessage({ data: { kind: 'reset' } });
+      instance.port.onmessage({
+        data: { kind: 'configure', peerId: 'source', mode },
+      });
+      let sequence = 0;
+      const pushFrames = (count: number) => {
+        for (let offset = 0; offset < count; offset += 480) {
+          const packetFrames = Math.min(480, count - offset);
+          instance.port.onmessage({
+            data: {
+              kind: 'push',
+              peerId: 'source',
+              sequence,
+              sampleRate: 48_000,
+              channels: 2,
+              frames: packetFrames,
+              pcm: new Float32Array(packetFrames * 2).fill(0.25).buffer,
+            },
+          });
+          sequence += 1;
+        }
+      };
+      pushFrames(frames - 1);
+      instance.process([], outputs);
+      expect(outputs[0][0].every((sample) => sample === 0)).toBe(true);
+      pushFrames(1);
+      instance.process([], outputs);
+      expect(outputs[0][0][127]).toBeGreaterThan(0);
+    });
+  });
+
   it.each([40, 60, 80, 160])(
     'retains the protection needed by recurring %i ms delivery bursts',
     (batchMs) => {

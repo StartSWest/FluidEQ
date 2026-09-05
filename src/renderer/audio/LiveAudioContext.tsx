@@ -56,18 +56,6 @@ export const LiveAudioProvider = ({ children }: { children: ReactNode }) => {
   const { control, frame } = useLiveOutputSpectrum();
   const [sharingAudio, setSharingAudio] = useState(false);
   const senderFrame = useSenderSpectrum(sharingAudio, control.isPaused);
-  const { restart } = control;
-  const wasSharingAudioRef = useRef(sharingAudio);
-  useEffect(() => {
-    const wasSharing = wasSharingAudioRef.current;
-    wasSharingAudioRef.current = sharingAudio;
-    if (wasSharing && !sharingAudio) {
-      // The native sender feed can hide a stale Windows loopback capture.
-      // Stop/reconnect returns the displays to that capture; retry alone keeps
-      // an existing track, so explicitly reopen it at the source handoff.
-      restart();
-    }
-  }, [restart, sharingAudio]);
   const visibleFrame = useMemo(
     () => (senderFrame ? { ...frame, ...senderFrame } : frame),
     [frame, senderFrame],

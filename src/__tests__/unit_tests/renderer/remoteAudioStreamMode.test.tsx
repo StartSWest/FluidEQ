@@ -26,6 +26,14 @@ describe('remote audio stream mode', () => {
 
     act(() => result.current.setStreamMode('video'));
     expect(reconnect).toHaveBeenCalledTimes(1);
+
+    act(() => result.current.setStreamMode('music'));
+    expect(result.current.streamMode).toBe('music');
+    expect(result.current.streamModeRef.current).toBe('music');
+    expect(window.localStorage.getItem('fluideq.remoteAudio.streamMode')).toBe(
+      'music',
+    );
+    expect(reconnect.mock.calls).toEqual([['video'], ['music']]);
   });
 
   it('stores an idle or listener preference without starting a connection', () => {
