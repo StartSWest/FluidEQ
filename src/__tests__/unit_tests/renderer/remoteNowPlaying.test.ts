@@ -28,7 +28,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import type { IRemoteNowPlaying } from 'common/remoteAudio';
 import type { ITransportSource } from 'renderer/audio/transportSource';
 import listenerState from 'renderer/remoteAudio/listenerState';
-import { describeForRemote } from 'renderer/remoteAudio/useRemoteNowPlayingBroadcast';
+import {
+  describeForRemote,
+  pickSourceForRemote,
+} from 'renderer/remoteAudio/useRemoteNowPlayingBroadcast';
 import {
   pickRemoteNowPlaying,
   startedSenders,
@@ -98,6 +101,33 @@ describe('describeForRemote', () => {
     expect(describeForRemote({ ...seekable, durationMs: 0 })?.canStep).toBe(
       false,
     );
+  });
+});
+
+describe('pickSourceForRemote', () => {
+  const paused: ITransportSource = {
+    owner: 'system',
+    title: 'Song',
+    isPlaying: false,
+    positionMs: 0,
+    durationMs: 0,
+    toggle: () => undefined,
+  };
+
+  it('keeps describing the machine\x27s player after it is paused', () => {
+    // The sender's own bar drops a paused browser tab; the listener's bar
+    // must not, or the press that paused it has nothing left to resume.
+    expect(pickSourceForRemote({ system: paused }, undefined, undefined)).toBe(
+      paused,
+    );
+  });
+
+  it('still prefers the bar\x27s own answer while there is one', () => {
+    const library: ITransportSource = { ...paused, owner: 'library' };
+    expect(
+      pickSourceForRemote({ library, system: paused }, undefined, 'library'),
+    ).toBe(library);
+    expect(pickSourceForRemote({}, undefined, undefined)).toBeUndefined();
   });
 });
 

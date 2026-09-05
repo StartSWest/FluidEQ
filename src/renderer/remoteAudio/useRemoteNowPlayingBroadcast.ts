@@ -29,6 +29,7 @@ import type {
   TRemoteTransportCommand,
 } from '../../common/remoteAudio';
 import { stopAllPlayback, usePlaybackOwner } from '../audio/playbackOwner';
+import type { TPlaybackOwner } from '../audio/playbackOwner';
 import pickTransportOwner from '../audio/transportRouting';
 import {
   useLastTransportOwner,
@@ -66,6 +67,30 @@ export const describeForRemote = (
   };
 };
 
+/**
+ * What the sender describes to the listener: its own bar, and then the
+ * machine's own player even when paused.
+ *
+ * The bar here drops a paused browser tab — "worth nothing once it stops",
+ * see `setTransportSource` — because on this machine the tab somebody paused
+ * an hour ago is not what the bar is for. On the listener it is the opposite:
+ * the paused thing is exactly what the press on its bar will resume, and
+ * describing nothing took the bar away with the pause. So the sender falls
+ * through to the machine's player, paused or not, before saying it has
+ * nothing. Stop is different: a stopped session leaves Windows' list and the
+ * description honestly ends.
+ */
+export const pickSourceForRemote = (
+  sources: Partial<Record<TPlaybackOwner, ITransportSource>>,
+  playingOwner: TPlaybackOwner | undefined,
+  lastOwner: TPlaybackOwner | undefined,
+): ITransportSource | undefined => {
+  // No tab: the sender's bar on a page that is not a player, which is the
+  // one that falls through to whatever is actually making the sound.
+  const owner = pickTransportOwner(undefined, sources, playingOwner, lastOwner);
+  return owner === undefined ? sources.system : sources[owner];
+};
+
 /** Everything a message would say, so two that say the same are one. */
 const wireKey = (playing: IRemoteNowPlaying | undefined): string =>
   playing
@@ -91,10 +116,7 @@ const useRemoteNowPlayingBroadcast = (
   const sources = useTransportSources();
   const playingOwner = usePlaybackOwner();
   const lastOwner = useLastTransportOwner();
-  // No tab: the sender's bar on a page that is not a player, which is the
-  // one that falls through to whatever is actually making the sound.
-  const owner = pickTransportOwner(undefined, sources, playingOwner, lastOwner);
-  const source = owner === undefined ? undefined : sources[owner];
+  const source = pickSourceForRemote(sources, playingOwner, lastOwner);
   const sourceRef = useRef(source);
   sourceRef.current = source;
 
