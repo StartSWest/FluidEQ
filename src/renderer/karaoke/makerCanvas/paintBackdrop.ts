@@ -21,7 +21,7 @@ import {
   IKaraokeMakerSectionGroup,
   KARAOKE_MAKER_LYRIC_LANE_COUNT,
 } from '../makerCanvasLayout';
-import { formatClock } from '../makerFormat';
+import formatClock from '../makerFormat';
 import {
   IMakerPlot,
   MAX_NOTE_MIDI,

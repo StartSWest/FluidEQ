@@ -27,7 +27,7 @@ import { FLUIDEQ_CONFIG_FILENAME } from 'main/flush';
  * what APO does when it reads the config — splices each included file in where
  * its Include line stood — which is the thing these tests are actually about.
  */
-export const expandApoConfig = (
+const expandApoConfig = (
   files: TApoConfigFiles,
   fileName: string = FLUIDEQ_CONFIG_FILENAME,
 ): string =>
@@ -38,3 +38,5 @@ export const expandApoConfig = (
       return include ? expandApoConfig(files, include[1]) : line;
     })
     .join('\n');
+
+export default expandApoConfig;

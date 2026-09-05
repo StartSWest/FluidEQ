@@ -18,7 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { ReactNode, useLayoutEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { bottomInset } from '../utils/shellInset';
+import bottomInset from '../utils/shellInset';
 
 /**
  * A menu that opens over everything, from a control that is inside a box which

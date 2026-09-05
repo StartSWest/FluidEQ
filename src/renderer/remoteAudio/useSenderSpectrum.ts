@@ -17,6 +17,7 @@ import {
   type IOutputLevel,
 } from '../graph/outputLevel';
 import type { IChartPointData } from '../graph/ChartController';
+import { reportError } from '../utils/logger';
 import openRemoteAudioPort from './openRemoteAudioPort';
 import { SENDER_SPECTRUM_SIZE, type ISenderSpectrum } from './senderSpectrum';
 
@@ -115,7 +116,7 @@ const useSenderSpectrum = (enabled: boolean, paused: boolean) => {
         if (cancelled) {
           return;
         }
-        console.error('Could not attach the outgoing audio spectrum', error);
+        reportError('Could not attach the outgoing audio spectrum', error);
         setFrame(undefined);
         worker.terminate();
         cancelAnimationFrame(animation);
@@ -123,7 +124,7 @@ const useSenderSpectrum = (enabled: boolean, paused: boolean) => {
     worker.onerror = (event) => {
       cancelled = true;
       abort.abort();
-      console.error('Outgoing audio spectrum worker failed', event.message);
+      reportError('Outgoing audio spectrum worker failed', event.message);
       setFrame(undefined);
       worker.terminate();
       cancelAnimationFrame(animation);

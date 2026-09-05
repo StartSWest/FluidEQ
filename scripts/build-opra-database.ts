@@ -133,7 +133,7 @@ const splitProductId = (id: string) => {
   return { vendorId: parts[0], slug: parts[1] };
 };
 
-export const buildOpraDatabase = async (sourcePath?: string) => {
+const buildOpraDatabase = async (sourcePath?: string) => {
   const raw = sourcePath
     ? fs.readFileSync(sourcePath, 'utf8')
     : await download(SOURCE_URL);
@@ -319,15 +319,17 @@ if (require.main === module) {
     sourceFlag === -1 ? undefined : process.argv[sourceFlag + 1];
   buildOpraDatabase(sourcePath)
     .then((manifest) => {
-      console.log(
+      process.stdout.write(
         `Imported ${manifest.curveCount} curves for ${manifest.productCount}` +
           ` products from ${manifest.vendorCount} vendors` +
-          ` (source ${manifest.contentHash.slice(0, 12)})`,
+          ` (source ${manifest.contentHash.slice(0, 12)})\n`,
       );
       return manifest;
     })
     .catch((error: Error) => {
-      console.error(error.message);
+      process.stderr.write(`${error.message}\n`);
       process.exit(1);
     });
 }
+
+export default buildOpraDatabase;

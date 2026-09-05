@@ -79,8 +79,8 @@ const app: Partial<Dictionary> = {
   'app.menu.reinstallApp': 'Reinstalla {product}…',
   'app.menu.fixAudio': 'Risolvi problemi audio…',
   'app.menu.reinstallApo': 'Reinstalla Equalizer APO…',
-  'whatsNew.eyebrow': 'NOTE DI RILASCIO',
-  'whatsNew.title': 'Novità di FluidEQ',
+  'whatsNew.eyebrow': 'CRONOLOGIA VERSIONI',
+  'whatsNew.title': 'Note di rilascio di FluidEQ',
   'whatsNew.loading': 'Caricamento delle note di rilascio…',
   'whatsNew.missing':
     'Le note di rilascio non si trovano in questa build. Sono anche su GitHub.',

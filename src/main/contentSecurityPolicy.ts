@@ -85,7 +85,7 @@ const MODEL_HOSTS = [
  *    id against the index in Task 6 and Task 8, never by a path the document
  *    supplies.
  */
-export const contentSecurityPolicy = (isDebug: boolean): string =>
+const contentSecurityPolicy = (isDebug: boolean): string =>
   [
     "default-src 'self'",
     isDebug ? "script-src 'self' 'unsafe-eval'" : "script-src 'self'",
@@ -102,3 +102,5 @@ export const contentSecurityPolicy = (isDebug: boolean): string =>
     "form-action 'none'",
     "frame-src 'none'",
   ].join('; ');
+
+export default contentSecurityPolicy;

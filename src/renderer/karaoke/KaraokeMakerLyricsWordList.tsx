@@ -14,7 +14,7 @@ import {
 import { karaokeMakerLyricFocus } from './makerCanvasLayout';
 import { TSelection } from './useKaraokeMakerSelection';
 import { useTranslation } from '../utils/I18nContext';
-import { formatClock } from './makerFormat';
+import formatClock from './makerFormat';
 import KaraokeMakerToolIcon from './KaraokeMakerToolIcon';
 
 /**

@@ -78,7 +78,7 @@ import {
   useSmartEqMode,
 } from './utils/smartEqMode';
 import { cancelSmartEq, runSmartEq, useSmartEqRun } from './utils/smartEqRun';
-import { useIsAutoEqRunning } from './utils/autoEqRunning';
+import useIsAutoEqRunning from './utils/autoEqRunning';
 import { useCorrectionFlash } from './utils/correctionFlash';
 import VoicingQuickPick from './components/VoicingQuickPick';
 import ActiveLayers from './components/ActiveLayers';

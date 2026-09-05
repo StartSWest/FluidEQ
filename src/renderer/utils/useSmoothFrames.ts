@@ -52,7 +52,7 @@ const getFrameBudget = () =>
  * reason to keep waking up — a silent room should cost nothing. `kick` starts
  * it again when the next measurement lands.
  */
-export const useSmoothFrames = (
+const useSmoothFrames = (
   onFrame: (deltaMs: number) => boolean,
   { isEnabled }: { isEnabled: boolean },
 ) => {
@@ -102,3 +102,5 @@ export const useSmoothFrames = (
 
   return isEnabled ? kick : stop;
 };
+
+export default useSmoothFrames;

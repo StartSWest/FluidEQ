@@ -1024,19 +1024,23 @@ const VideoBrowser = ({
     // same number as the setup it belongs to, whichever order they land in.
     soloGeneration += 1;
     const generation = soloGeneration;
+    // Named rather than inline in the chain: the removal it may issue is a
+    // promise of its own, and a chain inside a handler is what reads as a
+    // race when it is not one.
+    const keepOrRemove = (inserted: string) => {
+      if (isCancelled) {
+        // The mode changed while this was in flight. Take it straight back
+        // out rather than leaving a sheet nothing holds the key to.
+        view.removeInsertedCSS(inserted).catch(() => undefined);
+      } else {
+        key = inserted;
+      }
+      return inserted;
+    };
     try {
       view
         .insertCSS(PLAYER_ONLY_CSS)
-        .then((inserted) => {
-          if (isCancelled) {
-            // The mode changed while this was in flight. Take it straight back
-            // out rather than leaving a sheet nothing holds the key to.
-            view.removeInsertedCSS(inserted).catch(() => undefined);
-          } else {
-            key = inserted;
-          }
-          return inserted;
-        })
+        .then(keepOrRemove)
         .catch(() => undefined);
       // The stylesheet does nothing until the chain is marked; the two go in
       // together and come out together.

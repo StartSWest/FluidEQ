@@ -78,8 +78,8 @@ const app: Partial<Dictionary> = {
   'app.menu.reinstallApp': '{product} を再インストール…',
   'app.menu.fixAudio': 'オーディオの問題を修復…',
   'app.menu.reinstallApo': 'Equalizer APO を再インストール…',
-  'whatsNew.eyebrow': 'リリースノート',
-  'whatsNew.title': 'FluidEQ の新機能',
+  'whatsNew.eyebrow': 'バージョン履歴',
+  'whatsNew.title': 'FluidEQ リリースノート',
   'whatsNew.loading': 'リリースノートを読み込んでいます…',
   'whatsNew.missing':
     'このビルドにリリースノートが見つかりませんでした。GitHub にもあります。',

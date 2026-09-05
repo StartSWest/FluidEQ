@@ -18,7 +18,7 @@ import {
   recordKaraokeMakerLineRange,
 } from '../../common/karaoke/makerProject';
 import { useTranslation } from '../utils/I18nContext';
-import { useKaraokeMakerProject } from './useKaraokeMakerProject';
+import useKaraokeMakerProject from './useKaraokeMakerProject';
 import { TSelection } from './useKaraokeMakerSelection';
 
 /** How far through arming a guided capture the user is. */

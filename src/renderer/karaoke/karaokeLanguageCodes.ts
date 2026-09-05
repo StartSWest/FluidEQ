@@ -17,7 +17,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * twice, so the two cannot quietly drift into disagreeing about what the
  * local model actually supports.
  */
-export const KARAOKE_LANGUAGE_CODES = [
+const KARAOKE_LANGUAGE_CODES = [
   ...['es', 'en', 'de', 'fr', 'it', 'pt', 'ru', 'ja', 'zh', 'hi'],
   ...(
     'af am ar as az ba be bg bn bo br bs ca cs cy da el et eu fa fi fo gl ' +
@@ -26,3 +26,5 @@ export const KARAOKE_LANGUAGE_CODES = [
     'so sq sr su sv sw ta te tg th tk tl tr tt uk ur uz vi yi yo yue'
   ).split(' '),
 ];
+
+export default KARAOKE_LANGUAGE_CODES;

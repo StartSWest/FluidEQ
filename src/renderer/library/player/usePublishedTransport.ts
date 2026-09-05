@@ -25,7 +25,7 @@ import {
   setTransportSource,
 } from '../../audio/transportSource';
 
-export const usePublishedTransport = (options: {
+const usePublishedTransport = (options: {
   track: ILibraryTrack | undefined;
   isPlaying: boolean;
   retainWhenHidden: boolean;
@@ -96,3 +96,5 @@ export const usePublishedTransport = (options: {
 
   useEffect(() => () => clearTransportSource('library'), []);
 };
+
+export default usePublishedTransport;

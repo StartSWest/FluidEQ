@@ -39,7 +39,7 @@ export * from './audio';
 export * from './analysisWindows';
 export * from './whisperSession';
 export * from './whisperProgress';
-export * from './whisperTranscribe';
+export { default as transcribeKaraokeWithWhisper } from './whisperTranscribe';
 export * from './wordMatching';
 export * from './monotonicRoute';
 export * from './vocalRests';

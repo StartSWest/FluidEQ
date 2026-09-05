@@ -10,7 +10,7 @@ import {
   validateKaraokeMakerProject,
 } from '../../common/karaoke/makerProject';
 import { useTranslation } from '../utils/I18nContext';
-import { useKaraokeMakerProject } from './useKaraokeMakerProject';
+import useKaraokeMakerProject from './useKaraokeMakerProject';
 import KaraokeMakerToolIcon from './KaraokeMakerToolIcon';
 import KaraokeMakerHeaderActions from './KaraokeMakerHeaderActions';
 import { TDestructiveMakerAction } from './KaraokeMakerConfirmDialog';

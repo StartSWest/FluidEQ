@@ -36,7 +36,7 @@ import {
   setSmartEq as setSmartEqApi,
 } from 'renderer/utils/equalizerApi';
 import { useFluidEqContext } from 'renderer/utils/FluidEqContext';
-import { useIsAutoEqRunning } from 'renderer/utils/autoEqRunning';
+import useIsAutoEqRunning from 'renderer/utils/autoEqRunning';
 import { noteSmartEqLayerReplaced } from 'renderer/utils/smartEqRun';
 import { useNowPlayingIdentity } from './nowPlayingIdentity';
 

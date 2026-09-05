@@ -30,7 +30,7 @@ import AnchoredMenu, { isInsideAnchoredMenu } from '../widgets/AnchoredMenu';
 import Dropdown from '../widgets/Dropdown';
 import { setFolderTree, useFolderTree } from './folderTree';
 import LibrarySearchField from './LibrarySearchField';
-import { librarySearchHistory } from '../utils/librarySearchHistory';
+import librarySearchHistory from '../utils/librarySearchHistory';
 import { IOptionEntry } from '../widgets/List';
 
 interface ILibraryToolbarProps {

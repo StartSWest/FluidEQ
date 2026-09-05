@@ -43,6 +43,7 @@ import library from './library';
 import songEq from './songEq';
 import dsp from './dsp';
 import remoteAudio from './remoteAudio';
+import tour from './tour';
 
 const en = {
   ...karaoke,
@@ -54,6 +55,7 @@ const en = {
   ...songEq,
   ...dsp,
   ...remoteAudio,
+  ...tour,
 };
 
 export type TranslationKey = keyof typeof en;

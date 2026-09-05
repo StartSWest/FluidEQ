@@ -87,7 +87,7 @@ const register = (userDataDir: string): void => {
     const fresh =
       // eslint-disable-next-line global-require -- an uncached copy per test is the whole point: `cached` in main/ipc/songEq.ts is module state
       require('../../../main/ipc/songEq') as typeof import('../../../main/ipc/songEq');
-    fresh.registerSongEqHandlers(userDataDir);
+    fresh.default(userDataDir);
   });
 };
 

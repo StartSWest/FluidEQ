@@ -12,7 +12,7 @@ import {
 } from '../../common/karaoke/makerProject';
 import { reportError, reportInfo } from '../utils/logger';
 import { useTranslation } from '../utils/I18nContext';
-import { useKaraokeMakerProject } from './useKaraokeMakerProject';
+import useKaraokeMakerProject from './useKaraokeMakerProject';
 import { flattenTokens } from './makerProjectEdits';
 import {
   IKaraokeMakerAnalysisResult,

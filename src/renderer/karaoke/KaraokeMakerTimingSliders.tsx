@@ -5,7 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { useTranslation } from '../utils/I18nContext';
-import { formatClock } from './makerFormat';
+import formatClock from './makerFormat';
 
 /**
  * The sliders that move one word's start and length.

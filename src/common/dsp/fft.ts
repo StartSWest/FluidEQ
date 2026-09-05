@@ -26,7 +26,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * element, which is both slower in the hot loop and further from every
  * reference implementation a reader might check this against.
  */
-export const fftInPlace = (
+const fftInPlace = (
   real: Float64Array,
   imaginary: Float64Array,
   inverse: boolean,
@@ -79,3 +79,5 @@ export const fftInPlace = (
   }
 };
 /* eslint-enable no-bitwise */
+
+export default fftInPlace;

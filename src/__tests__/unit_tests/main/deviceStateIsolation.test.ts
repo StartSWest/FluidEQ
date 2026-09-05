@@ -28,7 +28,7 @@ import {
   IDeviceProfileSettings,
   getDefaultState,
 } from '../../../common/constants';
-import { expandApoConfig } from '../../utils/apoConfig';
+import expandApoConfig from '../../utils/apoConfig';
 
 const GUID = '{2de2e800-7980-4b45-a318-34276fe3d3b4}';
 

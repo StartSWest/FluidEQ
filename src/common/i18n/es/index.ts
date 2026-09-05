@@ -27,6 +27,7 @@ import library from './library';
 import songEq from './songEq';
 import dsp from './dsp';
 import remoteAudio from './remoteAudio';
+import tour from './tour';
 
 const es: Partial<Dictionary> = {
   ...karaoke,
@@ -38,6 +39,7 @@ const es: Partial<Dictionary> = {
   ...songEq,
   ...dsp,
   ...remoteAudio,
+  ...tour,
 };
 
 export default es;

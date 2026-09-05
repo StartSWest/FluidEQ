@@ -44,7 +44,7 @@ import { ILibraryProgrammeEdges } from '../../../common/library/types';
 import { releasePlayback } from '../../audio/playbackOwner';
 import type { TSetPlaybackHandoff } from '../../audio/playbackHandoff';
 
-export const useTrackEnd = (options: {
+const useTrackEnd = (options: {
   queueRef: MutableRefObject<ILibraryQueue | undefined>;
   setQueue: Dispatch<SetStateAction<ILibraryQueue | undefined>>;
   setIsPlaying: Dispatch<SetStateAction<boolean>>;
@@ -207,3 +207,5 @@ export const useTrackEnd = (options: {
 
   return handleEnded;
 };
+
+export default useTrackEnd;

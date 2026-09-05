@@ -34,7 +34,7 @@ const karaokeMakerTextWeight = (text: string): number =>
  * notes linked to the word are cut at the same boundaries and linked to the
  * resulting syllable token, so no note can silently span two syllables.
  */
-export const splitKaraokeMakerWordIntoSyllables = (
+const splitKaraokeMakerWordIntoSyllables = (
   project: IKaraokeMakerProject,
   tokenId: string,
   language: string | undefined,
@@ -211,3 +211,5 @@ export const splitKaraokeMakerWordIntoSyllables = (
     },
   };
 };
+
+export default splitKaraokeMakerWordIntoSyllables;

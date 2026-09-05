@@ -13,8 +13,8 @@ import { karaokeLeadNoteArticulation } from '../../common/karaoke/melodyArticula
 import { midiName } from './makerCanvasGeometry';
 import { useTranslation } from '../utils/I18nContext';
 import useKaraokeNoteAudition from './useKaraokeNoteAudition';
-import { useKaraokeMakerProject } from './useKaraokeMakerProject';
-import { formatClock } from './makerFormat';
+import useKaraokeMakerProject from './useKaraokeMakerProject';
+import formatClock from './makerFormat';
 import { replaceNote, syllablesAtCutPoints } from './makerProjectEdits';
 import { ISyllableSplitDraft } from './useMakerNoteEditing';
 import KaraokeMakerToolIcon from './KaraokeMakerToolIcon';

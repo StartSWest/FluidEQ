@@ -31,6 +31,7 @@ import {
   app,
   BrowserWindow,
   contentTracing,
+  dialog,
   ipcMain,
   Notification,
   powerMonitor,
@@ -62,7 +63,7 @@ import {
 import { flushPendingWrites, hasUnsettledWrites } from './asyncWriter';
 import { getConfigPath, isEqualizerAPOInstalled } from './registry';
 import { runEqualizerApoSetup } from './equalizerApoSetup';
-import { gatherBugReportFacts } from './bugReportFacts';
+import gatherBugReportFacts from './bugReportFacts';
 import ChannelEnum from '../common/channels';
 import { compressChainToLimit } from '../common/response';
 import {
@@ -126,9 +127,9 @@ import { registerKaraokeIpc } from './ipc/karaoke';
 import { registerWindowIpc } from './ipc/window';
 import { registerFiltersIpc } from './ipc/filters';
 import { registerLayersIpc } from './ipc/layers';
-import { registerSongEqHandlers } from './ipc/songEq';
+import registerSongEqHandlers from './ipc/songEq';
 import { registerPreampIpc } from './ipc/preamp';
-import { registerVideoIpc } from './ipc/video';
+import registerVideoIpc from './ipc/video';
 import { registerKaraokeSeparation } from './karaokeSeparation';
 import { registerKaraokePitch } from './karaokePitch';
 import { registerProfilesIpc } from './ipc/profiles';
@@ -2398,6 +2399,43 @@ ipcMain.handle('open-equalizer-apo-settings', async () => {
   }
 });
 
+/**
+ * The two one-line dialogs the renderer needs: tell, and ask.
+ *
+ * They were `window.alert` and `window.confirm`. Electron does answer those
+ * with a native box, but a box with no owner and no title: it floats free of
+ * the window, and its title bar reads the page origin. Owned by the window
+ * and titled with the product, through the same API the file pickers use.
+ */
+ipcMain.handle('native-message', async (event, message: string) => {
+  const owner = BrowserWindow.fromWebContents(event.sender);
+  const options = { type: 'info' as const, title: PRODUCT_NAME, message };
+  await (owner
+    ? dialog.showMessageBox(owner, options)
+    : dialog.showMessageBox(options));
+});
+
+ipcMain.handle(
+  'native-confirm',
+  async (event, message: string, ok: string, cancel: string) => {
+    // The button labels come from the renderer, which is where the language
+    // lives; this process has no dictionary.
+    const owner = BrowserWindow.fromWebContents(event.sender);
+    const options = {
+      type: 'question' as const,
+      title: PRODUCT_NAME,
+      message,
+      buttons: [ok, cancel],
+      defaultId: 0,
+      cancelId: 1,
+    };
+    const { response } = await (owner
+      ? dialog.showMessageBox(owner, options)
+      : dialog.showMessageBox(options));
+    return response === 0;
+  },
+);
+
 ipcMain.handle('restart-windows-audio', async () => {
   if (process.platform !== 'win32') {
     return 'Restarting Windows Audio is only available on Windows.';
@@ -2862,103 +2900,105 @@ app.on('will-quit', () => {
   releaseInstanceMarker?.();
 });
 
-app
-  .whenReady()
-  .then(() => {
-    // Identity, set here rather than at module scope on purpose.
+/**
+ * Everything that runs once Electron is ready, as a function of its own.
+ *
+ * It used to be the body of a `.then` on `whenReady`, which made every
+ * promise chain inside it a chain nested in a handler. Named and hoisted
+ * out, the window creation can simply be awaited.
+ */
+const onAppReady = async () => {
+  // Identity, set here rather than at module scope on purpose.
+  //
+  // app.setName feeds app.getPath('userData'), which is read at import time
+  // (userDataDir, above) to find the presets. Renaming before that point
+  // would move the data directory out from under an existing install. By the
+  // time the app is ready the path is already resolved, so this reaches only
+  // app.getName() and the strings Electron derives from it — default dialog
+  // titles and the About panel.
+  //
+  // None of the Windows-visible identity comes from here: Task Manager reads
+  // the exe's FileDescription resource, which electron-builder stamps from
+  // build.productName at package time, and the taskbar groups by the AUMID
+  // set on the next line.
+  app.setName(PRODUCT_NAME);
+  if (process.platform === 'win32') {
+    // Without this the taskbar attributes the window to Electron itself,
+    // which is also why notifications and pinning misbehave in development.
+    // Must stay equal to electron-builder's `appId`, which is why it is
+    // written once, in branding.
+    app.setAppUserModelId(APP_ID);
+  }
+  // Before any window exists, so the player's session and the rules its web
+  // contents run under are in place by the time one can be attached.
+  setUpVideoBrowser();
+  // Needs the session to exist, which is why this is here and not beside
+  // `registerLibraryMediaScheme` at the top of the file — that call only
+  // declares the scheme's privileges and has to run before `whenReady`;
+  // this one answers its requests and has to run after.
+  handleLibraryMedia({ userDataDir, getIndex: libraryIndexSnapshot });
+  try {
+    await createMainWindow();
+    // AFTER THE WINDOW, NOT BEFORE IT.
     //
-    // app.setName feeds app.getPath('userData'), which is read at import time
-    // (userDataDir, above) to find the presets. Renaming before that point
-    // would move the data directory out from under an existing install. By the
-    // time the app is ready the path is already resolved, so this reaches only
-    // app.getName() and the strings Electron derives from it — default dialog
-    // titles and the About panel.
+    // This used to run first, so that the window's `close` handler could
+    // ask the tray about a quit from the very first close it saw. That
+    // ordering put a native shell call ahead of everything the app is for:
+    // when tray creation failed hard — not by throwing, which is caught,
+    // but by taking the process down — the app exited before a window ever
+    // appeared, and the only trace was four log lines and no error. An
+    // app that cannot open because its notification icon is unhappy has
+    // its priorities backwards.
     //
-    // None of the Windows-visible identity comes from here: Task Manager reads
-    // the exe's FileDescription resource, which electron-builder stamps from
-    // build.productName at package time, and the taskbar groups by the AUMID
-    // set on the next line.
-    app.setName(PRODUCT_NAME);
-    if (process.platform === 'win32') {
-      // Without this the taskbar attributes the window to Electron itself,
-      // which is also why notifications and pinning misbehave in development.
-      // Must stay equal to electron-builder's `appId`, which is why it is
-      // written once, in branding.
-      app.setAppUserModelId(APP_ID);
-    }
-    // Before any window exists, so the player's session and the rules its web
-    // contents run under are in place by the time one can be attached.
-    setUpVideoBrowser();
-    // Needs the session to exist, which is why this is here and not beside
-    // `registerLibraryMediaScheme` at the top of the file — that call only
-    // declares the scheme's privileges and has to run before `whenReady`;
-    // this one answers its requests and has to run after.
-    handleLibraryMedia({ userDataDir, getIndex: libraryIndexSnapshot });
-    createMainWindow()
-      .then(() => {
-        // AFTER THE WINDOW, NOT BEFORE IT.
-        //
-        // This used to run first, so that the window's `close` handler could
-        // ask the tray about a quit from the very first close it saw. That
-        // ordering put a native shell call ahead of everything the app is for:
-        // when tray creation failed hard — not by throwing, which is caught,
-        // but by taking the process down — the app exited before a window ever
-        // appeared, and the only trace was four log lines and no error. An
-        // app that cannot open because its notification icon is unhappy has
-        // its priorities backwards.
-        //
-        // Nothing is lost by waiting. `isAppQuitting` reports false until a
-        // quit is armed, which is the correct answer for every close that can
-        // happen in the milliseconds before this runs.
-        setUpTray({
-          getMainWindow: () => mainWindow,
-          // Same code path as the notification click and the in-window
-          // banner — installActiveUpdate is the one place that decides
-          // whether we have a downloaded, verified installer to run.
-          onInstallUpdate: installActiveUpdate,
-          // Fires the same check the four-hour schedule fires. A miss (the
-          // updater is not initialised yet, or the network fails) is not
-          // worth interrupting the user; `catch` keeps it in the log.
-          onCheckForUpdates: () => {
-            if (!activeAutoUpdater) {
-              log.info(
-                'Tray "check for updates" ignored: updater is not active.',
-              );
-              return;
-            }
-            activeAutoUpdater.checkNow().catch((error) => {
-              log.info('Manual update check failed', error);
-            });
-          },
-        });
-
-        // A launch that came back from an unattended update deliberately left
-        // the window off screen, because the tray is the way back to it. If
-        // the tray did not build, that way back does not exist: the process
-        // would be running with no icon and no window, which from the outside
-        // is indistinguishable from not starting at all. `isAppQuitting` is
-        // how tray.ts reports the failure — it arms the flag so the close
-        // button closes for real — and nothing legitimate has armed it this
-        // early in a launch.
-        if (didRestartForUnattendedUpdate && isAppQuitting()) {
-          log.warn(
-            'No tray icon after an unattended update; showing the window so FluidEQ can still be reached.',
-          );
-          revealMainWindow(() => mainWindow);
+    // Nothing is lost by waiting. `isAppQuitting` reports false until a
+    // quit is armed, which is the correct answer for every close that can
+    // happen in the milliseconds before this runs.
+    setUpTray({
+      getMainWindow: () => mainWindow,
+      // Same code path as the notification click and the in-window
+      // banner — installActiveUpdate is the one place that decides
+      // whether we have a downloaded, verified installer to run.
+      onInstallUpdate: installActiveUpdate,
+      // Fires the same check the four-hour schedule fires. A miss (the
+      // updater is not initialised yet, or the network fails) is not
+      // worth interrupting the user; `catch` keeps it in the log.
+      onCheckForUpdates: () => {
+        if (!activeAutoUpdater) {
+          log.info('Tray "check for updates" ignored: updater is not active.');
+          return;
         }
-        return undefined;
-      })
-      .catch((error) => {
+        activeAutoUpdater.checkNow().catch((error) => {
+          log.info('Manual update check failed', error);
+        });
+      },
+    });
+
+    // A launch that came back from an unattended update deliberately left
+    // the window off screen, because the tray is the way back to it. If
+    // the tray did not build, that way back does not exist: the process
+    // would be running with no icon and no window, which from the outside
+    // is indistinguishable from not starting at all. `isAppQuitting` is
+    // how tray.ts reports the failure — it arms the flag so the close
+    // button closes for real — and nothing legitimate has armed it this
+    // early in a launch.
+    if (didRestartForUnattendedUpdate && isAppQuitting()) {
+      log.warn(
+        'No tray icon after an unattended update; showing the window so FluidEQ can still be reached.',
+      );
+      revealMainWindow(() => mainWindow);
+    }
+  } catch (error) {
+    log.error(`Failed to create the ${PRODUCT_NAME} window`, error);
+  }
+  app.on('activate', () => {
+    // On macOS it's common to re-create a window in the app when the
+    // dock icon is clicked and there are no other windows open.
+    if (mainWindow === null) {
+      createMainWindow().catch((error) => {
         log.error(`Failed to create the ${PRODUCT_NAME} window`, error);
       });
-    app.on('activate', () => {
-      // On macOS it's common to re-create a window in the app when the
-      // dock icon is clicked and there are no other windows open.
-      if (mainWindow === null) {
-        createMainWindow().catch((error) => {
-          log.error(`Failed to create the ${PRODUCT_NAME} window`, error);
-        });
-      }
-    });
-  })
-  .catch(log.error);
+    }
+  });
+};
+
+app.whenReady().then(onAppReady).catch(log.error);

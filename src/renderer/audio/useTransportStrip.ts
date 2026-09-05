@@ -36,7 +36,7 @@ let stripOwner: symbol | undefined;
  */
 // eslint-disable-next-line import/prefer-default-export -- a hook, not a
 // component: the other files here export their store functions the same way.
-export const useTransportStrip = (
+const useTransportStrip = (
   ref: RefObject<HTMLElement | null>,
   isShowing: boolean,
   /**
@@ -128,3 +128,5 @@ export const useTransportStrip = (
     return () => observer.disconnect();
   }, [ref, isFloating, isShowing]);
 };
+
+export default useTransportStrip;

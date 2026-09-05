@@ -104,7 +104,7 @@ const FALLING: readonly [number, number] = [880, 587.33];
  * Never throws. This is feedback for a control, and a control that fails
  * because the machine has no sound card is a worse outcome than a silent one.
  */
-export const playChime = (direction: 'up' | 'down'): void => {
+const playChime = (direction: 'up' | 'down'): void => {
   const audio = getContext();
   if (!audio) {
     return;
@@ -126,3 +126,5 @@ export const playChime = (direction: 'up' | 'down'): void => {
     // As above.
   }
 };
+
+export default playChime;

@@ -32,10 +32,10 @@ import {
 import { IKaraokeSong } from '../../common/karaoke/types';
 import { useTranslation } from '../utils/I18nContext';
 import { useKaraokeMelodyTone } from './useKaraokeMelodyTone';
-import { formatClock } from './makerFormat';
+import formatClock from './makerFormat';
 import { useMakerCanvasGesture } from './useMakerCanvasGesture';
 import { IDragState } from './makerCanvasTypes';
-import { useKaraokeMakerProject } from './useKaraokeMakerProject';
+import useKaraokeMakerProject from './useKaraokeMakerProject';
 import { karaokeMakerAnalysisProgress } from './makerAnalysisProgress';
 import {
   normalizedLyricsText,
@@ -110,7 +110,7 @@ import {
 } from './useMakerLineCapture';
 import { IWhisperRunProfile, useMakerAnalysisRun } from './useMakerAnalysisRun';
 import { readKaraokeMakerEditorView } from './karaokeEditorPersistence';
-import { useMakerTranslations } from './useMakerTranslations';
+import useMakerTranslations from './useMakerTranslations';
 import { reconcileKaraokeMakerLyrics } from './makerLyricsReconcile';
 
 interface IKaraokeMakerProps {

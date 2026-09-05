@@ -18,7 +18,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
  */
 import { MutableRefObject, useEffect } from 'react';
 
-export const useDeckLifecycle = (options: {
+const useDeckLifecycle = (options: {
   audioElements: readonly HTMLAudioElement[];
   isDisposedRef: MutableRefObject<boolean>;
   /** Ends a running overlap before the decks are stopped. */
@@ -65,3 +65,5 @@ export const useDeckLifecycle = (options: {
     return () => unbind.forEach((one) => one());
   }, [audioElements, bindMediaEvents]);
 };
+
+export default useDeckLifecycle;

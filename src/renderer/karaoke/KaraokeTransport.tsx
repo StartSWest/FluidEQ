@@ -26,7 +26,7 @@ import {
 } from 'react';
 import { formatKaraokeTime } from '../../common/karaoke/clock';
 import { useTranslation } from '../utils/I18nContext';
-import { useMediaQuery } from '../utils/useMediaQuery';
+import useMediaQuery from '../utils/useMediaQuery';
 import AnchoredMenu, { isInsideAnchoredMenu } from '../widgets/AnchoredMenu';
 import { TKaraokePlaybackStatus } from './useKaraokeSession';
 import KaraokeMakerToolIcon, {

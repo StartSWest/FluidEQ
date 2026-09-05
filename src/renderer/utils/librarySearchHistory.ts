@@ -26,6 +26,8 @@ import { createSearchHistoryStore } from './searchHistoryStore';
  * music collection — or the reverse — would be a small but real leak between
  * two unrelated features. See `searchHistoryStore` for the rest.
  */
-export const librarySearchHistory = createSearchHistoryStore(
+const librarySearchHistory = createSearchHistoryStore(
   'fluideq.librarySearchHistory',
 );
+
+export default librarySearchHistory;

@@ -18,7 +18,7 @@ import {
 import { Translate } from '../../common/i18n';
 import { TSelection } from './useKaraokeMakerSelection';
 import { DEFAULT_VIEW_MS } from './useKaraokeMakerEditorView';
-import { useMediaQuery } from '../utils/useMediaQuery';
+import useMediaQuery from '../utils/useMediaQuery';
 import {
   BASE_LYRIC_SECTION_TOP,
   COMPACT_LYRIC_LANE_HEIGHT,

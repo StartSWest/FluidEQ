@@ -5,7 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { useTranslation } from '../utils/I18nContext';
-import { KARAOKE_LANGUAGE_CODES } from './karaokeLanguageCodes';
+import KARAOKE_LANGUAGE_CODES from './karaokeLanguageCodes';
 import Dropdown from '../widgets/Dropdown';
 import KaraokeMakerToolIcon from './KaraokeMakerToolIcon';
 

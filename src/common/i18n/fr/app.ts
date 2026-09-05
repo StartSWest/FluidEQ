@@ -79,8 +79,8 @@ const app: Partial<Dictionary> = {
   'app.menu.reinstallApp': 'Réinstaller {product}…',
   'app.menu.fixAudio': 'Résoudre les problèmes audio…',
   'app.menu.reinstallApo': 'Réinstaller Equalizer APO…',
-  'whatsNew.eyebrow': 'NOTES DE VERSION',
-  'whatsNew.title': 'Nouveautés de FluidEQ',
+  'whatsNew.eyebrow': 'HISTORIQUE DES VERSIONS',
+  'whatsNew.title': 'Notes de version de FluidEQ',
   'whatsNew.loading': 'Chargement des notes de version…',
   'whatsNew.missing':
     'Les notes de version sont introuvables dans cette build. Elles sont aussi sur GitHub.',

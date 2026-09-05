@@ -38,7 +38,7 @@ import { isContinuousMode, useSmartEqMode } from './smartEqMode';
  * with no automatic measurement behind it — and nothing but that measurement
  * ever writes the layer a save is made of.
  */
-export const useIsAutoEqRunning = (): boolean => {
+const useIsAutoEqRunning = (): boolean => {
   const { bypassed } = useFluidEqContext();
   const smartEqMode = useSmartEqMode();
   const isContinuousOn = useContinuousEq();
@@ -48,3 +48,5 @@ export const useIsAutoEqRunning = (): boolean => {
     !bypassed.includes('smart')
   );
 };
+
+export default useIsAutoEqRunning;

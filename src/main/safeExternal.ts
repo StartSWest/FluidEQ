@@ -39,7 +39,7 @@ import { shell } from 'electron';
  * Returns whether it was allowed, so a caller that wants to tell the user why
  * nothing happened can.
  */
-export const openExternalIfSafe = (url: string): boolean => {
+const openExternalIfSafe = (url: string): boolean => {
   let protocol: string;
   try {
     protocol = new URL(url).protocol;
@@ -57,3 +57,5 @@ export const openExternalIfSafe = (url: string): boolean => {
   });
   return true;
 };
+
+export default openExternalIfSafe;

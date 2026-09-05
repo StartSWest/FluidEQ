@@ -33,7 +33,7 @@ import {
   TKaraokeMakerWhisperStage,
 } from './whisperProgress';
 /** Download-on-demand Whisper transcription. Audio is processed locally. */
-export const transcribeKaraokeWithWhisper = async (
+const transcribeKaraokeWithWhisper = async (
   file: File,
   onProgress: (
     progress: number,
@@ -401,3 +401,5 @@ export const transcribeKaraokeWithWhisper = async (
     signal?.removeEventListener('abort', logAbort);
   }
 };
+
+export default transcribeKaraokeWithWhisper;

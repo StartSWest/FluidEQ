@@ -35,7 +35,7 @@ import { useEffect, useState } from 'react';
  */
 // eslint-disable-next-line import/prefer-default-export -- a hook, not a
 // component; the other files in this directory export the same way.
-export const useMediaQuery = (query: string): boolean => {
+const useMediaQuery = (query: string): boolean => {
   const [matches, setMatches] = useState(false);
   useEffect(() => {
     if (typeof window.matchMedia !== 'function') {
@@ -49,3 +49,5 @@ export const useMediaQuery = (query: string): boolean => {
   }, [query]);
   return matches;
 };
+
+export default useMediaQuery;

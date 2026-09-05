@@ -5,7 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { useTranslation } from '../utils/I18nContext';
-import { useKaraokeMakerProject } from './useKaraokeMakerProject';
+import useKaraokeMakerProject from './useKaraokeMakerProject';
 
 /**
  * The song's own details: artist, title, and who may use the result.

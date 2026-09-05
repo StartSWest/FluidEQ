@@ -8,6 +8,7 @@ import { createHash } from 'crypto';
 import fs from 'fs';
 import path from 'path';
 import { app } from 'electron';
+import log from 'electron-log';
 
 /**
  * The Voice module's model, downloaded once when the user asks for it.
@@ -219,16 +220,14 @@ export const downloadDenoiseModel = async (
       // Not a warning. A model whose bytes we cannot identify does not go into
       // the audio path, and leaving the file behind would make the next
       // attempt trust it.
-      console.error(
-        `denoise model: sha256 ${digest}, expected ${MODEL_SHA256}`,
-      );
+      log.error(`denoise model: sha256 ${digest}, expected ${MODEL_SHA256}`);
       return false;
     }
     fs.writeFileSync(temporary, bytes);
     fs.renameSync(temporary, target);
     return true;
   } catch (error) {
-    console.error('denoise model download failed', error);
+    log.error('denoise model download failed', error);
     return false;
   } finally {
     try {

@@ -43,6 +43,7 @@ import '../styles/Dsp.scss';
 import { masterLoudnessBreakdown } from './inputNormalizer';
 import { useNativeMeters } from './useNativeBackend';
 import { usePlaybackOwner } from '../audio/playbackOwner';
+import { useTransportIdentitySources } from '../audio/transportSource';
 import RemoteAudioContext from '../remoteAudio/remoteAudioValueContext';
 
 interface IDspPanelProps {
@@ -149,24 +150,30 @@ const DspPanel = ({
   const outputSafetyEnabled = useDspOutputSafetyEnabled();
   const nativeState = useDspNativeState();
   const playingOwner = usePlaybackOwner();
+  const sources = useTransportIdentitySources();
   const remoteAudio = useContext(RemoteAudioContext);
   /**
-   * A loaded Library deck keeps the host engaged after another player takes
-   * over. Host readiness alone therefore enabled controls for audio it never
-   * receives. The receiver has a separate mixer and does not claim playback,
-   * so its role must also exclude the rack, even with a Library deck loaded.
-   * This only gates the controls: the saved sound and host lifetime survive.
+   * Library playback wins even while Share Audio is listening: the receiver
+   * role describes a connection, not the source feeding the native rack.
+   * Requiring an ownership claim also locked out a paused/cued Library deck
+   * and the gap before native playback publishes its claim. Keep that deck
+   * editable unless another source has actually taken over. The Library's
+   * published play state covers the native handoff without relying on DOM
+   * events from its deliberately paused fallback element.
    */
   const hasLibraryPlayback =
-    playingOwner === 'library' && remoteAudio?.role !== 'listener';
+    playingOwner === 'library' ||
+    (playingOwner === undefined &&
+      (sources.library?.isPlaying === true ||
+        (sources.library !== undefined &&
+          sources.system?.isPlaying !== true &&
+          remoteAudio?.role !== 'listener')));
   const isRackEngaged = hasLibraryPlayback && nativeState === 'engaged';
   const isRackLive = settings.enabled && isRackEngaged;
   /**
-   * The rack goes inert while nothing is playing — there is nothing to voice,
-   * and the header line already says to start a track. That is a presentation
-   * decision and it stays entirely in this file: nothing here changes the
-   * engine's lifetime, because tearing the engine down and rebuilding it around
-   * a pause is what produced the multiplying processes and the doubled audio.
+   * Availability only gates the controls. The saved sound and host lifetime
+   * survive a source change; tearing the engine down around a pause caused
+   * multiplying processes and doubled audio.
    */
   const areControlsUsable = isRackLive;
   const outputSafetyMeter = useDspOutputSafetyMeter();

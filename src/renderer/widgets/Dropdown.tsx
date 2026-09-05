@@ -39,7 +39,7 @@ import { useClickOutside, useFocusOutside } from '../utils/utils';
 import List, { renderOptionDisplay } from './List';
 import TextInput from './TextInput';
 import { useTranslation } from '../utils/I18nContext';
-import { bottomInset } from '../utils/shellInset';
+import bottomInset from '../utils/shellInset';
 
 interface IOptionEntry {
   value: string;

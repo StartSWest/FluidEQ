@@ -70,7 +70,7 @@ const HISTORY_LIMIT = 80;
  *  - `HISTORY_LIMIT` used to be the number 79 written out at six call sites,
  *    each as `slice(-79)` on a stack capped at 80. It is one constant now.
  */
-export const useKaraokeMakerProject = ({
+const useKaraokeMakerProject = ({
   song,
   audioFile,
   restoreSavedDraft,
@@ -332,3 +332,5 @@ export const useKaraokeMakerProject = ({
     restoreToast,
   };
 };
+
+export default useKaraokeMakerProject;

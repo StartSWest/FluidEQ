@@ -66,7 +66,7 @@ const replyInvalidParameter = (
  * lookup returns and what a write changes both live in `common/songEq.ts`, so
  * every handler here is validation plus a call across that boundary.
  */
-export const registerSongEqHandlers = (userDataDir: string): void => {
+const registerSongEqHandlers = (userDataDir: string): void => {
   ipcMain.on(ChannelEnum.LOOKUP_SONG_EQ, (event, arg) => {
     const channel = ChannelEnum.LOOKUP_SONG_EQ;
     const deviceId = arg?.[0];
@@ -130,3 +130,5 @@ export const registerSongEqHandlers = (userDataDir: string): void => {
     event.reply(channel, reply);
   });
 };
+
+export default registerSongEqHandlers;

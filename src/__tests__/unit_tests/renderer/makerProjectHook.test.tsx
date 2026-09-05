@@ -18,7 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { act, renderHook, waitFor } from '@testing-library/react';
 import { IKaraokeSong } from 'common/karaoke/types';
-import { useKaraokeMakerProject } from 'renderer/karaoke/useKaraokeMakerProject';
+import useKaraokeMakerProject from 'renderer/karaoke/useKaraokeMakerProject';
 
 jest.mock('renderer/karaoke/makerAnalysis', () => ({
   extractKaraokeMakerWaveform: () =>

@@ -44,7 +44,7 @@ import {
 import log from 'electron-log';
 import fs from 'fs';
 import path from 'path';
-import { openExternalIfSafe } from './safeExternal';
+import openExternalIfSafe from './safeExternal';
 import {
   HOME_SITE,
   attachedPlayers,

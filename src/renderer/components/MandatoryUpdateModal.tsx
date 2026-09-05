@@ -240,12 +240,12 @@ const MandatoryUpdateModal = () => {
     // would land on a dismissed dialog and mark an install failed while the
     // user is somewhere else entirely — the one timer in this file that could
     // fire after its component was gone.
-    const done = () => {
+    const clearInstallTimer = () => {
       window.clearTimeout(timer);
       installTimerRef.current = undefined;
     };
-    window.electron.ipcRenderer.installUpdate().then(done, () => {
-      done();
+    window.electron.ipcRenderer.installUpdate().then(clearInstallTimer, () => {
+      clearInstallTimer();
       setIsInstalling(false);
       setLocalFailure('install');
     });

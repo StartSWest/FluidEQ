@@ -64,7 +64,7 @@ const getAccountName = (): string | undefined => {
   }
 };
 
-export const gatherBugReportFacts = async (): Promise<IGatheredFacts> => {
+const gatherBugReportFacts = async (): Promise<IGatheredFacts> => {
   const accountName = getAccountName();
   const logs = getLogDirectory();
 
@@ -93,3 +93,5 @@ export const gatherBugReportFacts = async (): Promise<IGatheredFacts> => {
     ),
   };
 };
+
+export default gatherBugReportFacts;

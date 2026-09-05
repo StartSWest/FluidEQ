@@ -45,7 +45,7 @@ import {
   saveLibraryIndex,
   trackPathById,
 } from '../library/libraryIndex';
-import { scanLibraryRootOffThread } from '../library/scanHost';
+import scanLibraryRootOffThread from '../library/scanHost';
 
 /**
  * The largest file the renderer is handed whole for playback.

@@ -21,7 +21,7 @@ const openExternal = jest.fn().mockResolvedValue(undefined);
 jest.mock('electron', () => ({ shell: { openExternal } }));
 
 // eslint-disable-next-line import/first
-import { openExternalIfSafe } from '../../../main/safeExternal';
+import openExternalIfSafe from '../../../main/safeExternal';
 
 /**
  * `shell.openExternal` does not open a web page. It asks Windows to do whatever

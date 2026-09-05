@@ -1,0 +1,197 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'theme' as *;
+
+// The drawings inside the feature tour: the Share Audio diagram and the five
+// standing-slide illustrations. All SVG, all painted through classes so they
+// follow the theme and the accent like everything else on the panel.
+
+.tour-share__diagram {
+  display: block;
+  width: 100%;
+  height: auto;
+  padding: calc(var(--tour-unit) * 0.6);
+  border: 1px solid rgba($edge-tint, 0.1);
+  border-radius: $radius-l;
+  background: color-mix(in srgb, $surface-well 70%, transparent);
+}
+
+.tour-share__device {
+  fill: color-mix(in srgb, $surface-field-end 92%, $white);
+  stroke: rgba($edge-tint, 0.22);
+  stroke-width: 1.2;
+}
+
+.tour-share__screen {
+  fill: $black;
+  stroke: rgba($edge-tint, 0.12);
+}
+
+.tour-share__wave {
+  fill: none;
+  stroke: $secondary-light;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+
+  &--big {
+    stroke-width: 2.5;
+  }
+}
+
+.tour-share__foot {
+  fill: rgba($edge-tint, 0.18);
+}
+
+.tour-share__link {
+  fill: none;
+  stroke: color-mix(in srgb, $secondary-default 45%, transparent);
+  stroke-dasharray: 5 6;
+  stroke-width: 1.6;
+}
+
+.tour-share__trunk {
+  fill: none;
+  stroke-linecap: round;
+  stroke-width: 5;
+}
+
+.tour-share__lock {
+  fill: $secondary-default;
+}
+
+.tour-share__lock-arc {
+  fill: none;
+  stroke: $secondary-default;
+  stroke-width: 3;
+}
+
+.tour-share__wire-label {
+  fill: $text-faint;
+  font-size: 11px;
+  font-weight: $weight-semibold;
+  letter-spacing: 0.08em;
+}
+
+.tour-share__headset {
+  fill: none;
+  stroke: $secondary-light;
+  stroke-linecap: round;
+  stroke-width: 4;
+}
+
+.tour-share__ear {
+  fill: $secondary-light;
+}
+
+.tour-share__caption {
+  fill: $text-muted;
+  font-size: 12px;
+}
+
+.tour-share__caption-label {
+  fill: $secondary-light;
+  font-weight: $weight-bold;
+  letter-spacing: 0.1em;
+}
+
+.tour-art {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.tour-art__panel {
+  fill: color-mix(in srgb, $surface-field-end 92%, $white);
+  stroke: rgba($edge-tint, 0.18);
+  stroke-width: 1.2;
+}
+
+.tour-art__screen {
+  fill: $black;
+  stroke: rgba($edge-tint, 0.12);
+}
+
+// Album tiles in three muted hues, so the grid reads as art and not as
+// six copies of the same box.
+.tour-art__tile {
+  stroke: rgba($edge-tint, 0.14);
+
+  &--0 {
+    fill: color-mix(in srgb, $secondary-default 22%, $surface-well);
+  }
+
+  &--1 {
+    fill: color-mix(in srgb, #c86bff 22%, $surface-well);
+  }
+
+  &--2 {
+    fill: color-mix(in srgb, #ffb347 22%, $surface-well);
+  }
+}
+
+.tour-art__word {
+  fill: rgba($edge-tint, 0.18);
+}
+
+.tour-art__note {
+  fill: color-mix(in srgb, $secondary-default 70%, $surface-well);
+}
+
+.tour-art__bar {
+  fill: rgba($edge-tint, 0.3);
+}
+
+.tour-art__tick {
+  stroke: rgba($edge-tint, 0.14);
+  stroke-dasharray: 3 4;
+}
+
+.tour-art__track {
+  stroke: rgba($edge-tint, 0.18);
+  stroke-linecap: round;
+  stroke-width: 3;
+}
+
+.tour-art__knob {
+  fill: $surface-well;
+  stroke: rgba($edge-tint, 0.3);
+  stroke-width: 1.5;
+}
+
+.tour-art__toggle {
+  fill: $secondary-default;
+}
+
+.tour-art__toggle-off {
+  fill: rgba($edge-tint, 0.18);
+}
+
+.tour-art__wave {
+  fill: none;
+  stroke: $secondary-light;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2.5;
+}
+
+.tour-art__accent {
+  stroke: $secondary-light;
+  stroke-linecap: round;
+  stroke-width: 3;
+}
+
+.tour-art__accent-fill {
+  fill: $secondary-default;
+}
+
+.tour-art__ink {
+  fill: $surface-base;
+}

@@ -26,10 +26,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * Negatives clamp to zero rather than rendering `-0:00.0` — a nudge can carry a
  * word past the start of the song, and the editor already refuses to store that.
  */
-export const formatClock = (valueMs: number): string => {
+const formatClock = (valueMs: number): string => {
   const safe = Math.max(0, valueMs);
   const minutes = Math.floor(safe / 60_000);
   const seconds = Math.floor((safe % 60_000) / 1_000);
   const tenths = Math.floor((safe % 1_000) / 100);
   return `${minutes}:${String(seconds).padStart(2, '0')}.${tenths}`;
 };
+
+export default formatClock;

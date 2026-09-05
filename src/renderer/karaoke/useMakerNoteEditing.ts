@@ -13,7 +13,7 @@ import {
 } from '../../common/karaoke/makerProject';
 import { splitKaraokeWordSyllables } from '../../common/karaoke/syllables';
 import { useTranslation } from '../utils/I18nContext';
-import { useKaraokeMakerProject } from './useKaraokeMakerProject';
+import useKaraokeMakerProject from './useKaraokeMakerProject';
 import { useKaraokeMakerSelection } from './useKaraokeMakerSelection';
 import {
   karaokeMakerWordTokensFor,

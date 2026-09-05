@@ -26,6 +26,8 @@ import { createSearchHistoryStore } from './searchHistoryStore';
  * different vocabularies — "remix", "live", a track number — and offering
  * either list inside the other box is noise rather than help.
  */
-export const libraryFilterHistory = createSearchHistoryStore(
+const libraryFilterHistory = createSearchHistoryStore(
   'fluideq.library.filterHistory',
 );
+
+export default libraryFilterHistory;

@@ -57,7 +57,7 @@ describe('the library scan host', () => {
 
   it('caches worker cover bytes with Electron and returns the id before accepting done', async () => {
     jest.spyOn(fs, 'existsSync').mockReturnValue(true);
-    const { scanLibraryRootOffThread } =
+    const { default: scanLibraryRootOffThread } =
       await import('../../../main/library/scanHost');
     const options: IScanOptions = {
       rootId: 'music-root',

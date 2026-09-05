@@ -7,8 +7,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { RefObject } from 'react';
 import { IKaraokeMakerProject } from '../../common/karaoke/makerProject';
 import { useTranslation } from '../utils/I18nContext';
-import { karaokeLanguageName } from './karaokeLanguageName';
-import { KARAOKE_LANGUAGE_CODES } from './karaokeLanguageCodes';
+import karaokeLanguageName from './karaokeLanguageName';
+import KARAOKE_LANGUAGE_CODES from './karaokeLanguageCodes';
 import Dropdown from '../widgets/Dropdown';
 import KaraokeMakerToolIcon from './KaraokeMakerToolIcon';
 import KaraokeMakerLyricsSourceEditor from './KaraokeMakerLyricsSourceEditor';

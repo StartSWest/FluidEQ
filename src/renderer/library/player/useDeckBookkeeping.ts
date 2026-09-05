@@ -20,7 +20,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { useRef } from 'react';
 import { ILibraryProgrammeEdges } from '../../../common/library/types';
 
-export const useDeckBookkeeping = () => {
+const useDeckBookkeeping = () => {
   /**
    * Which track each element is playing, so only one of them reports position.
    *
@@ -93,3 +93,5 @@ export const useDeckBookkeeping = () => {
     leadInSeekRef,
   };
 };
+
+export default useDeckBookkeeping;

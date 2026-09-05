@@ -109,6 +109,14 @@ const openEqualizerApoSettings = () =>
 const restartWindowsAudio = () =>
   ipcRenderer.invoke('restart-windows-audio') as Promise<string>;
 
+/** A native message box owned by the window; resolves when it is dismissed. */
+const showNativeMessage = (message: string) =>
+  ipcRenderer.invoke('native-message', message) as Promise<void>;
+
+/** A native OK/Cancel box; true when OK was pressed. */
+const confirmNative = (message: string, ok: string, cancel: string) =>
+  ipcRenderer.invoke('native-confirm', message, ok, cancel) as Promise<boolean>;
+
 const minimizeWindow = () =>
   ipcRenderer.invoke('window-minimize') as Promise<void>;
 
@@ -643,6 +651,8 @@ export default {
     openEqualizerApoConfigurator,
     openEqualizerApoSettings,
     restartWindowsAudio,
+    showNativeMessage,
+    confirmNative,
     minimizeWindow,
     toggleMaximizeWindow,
     closeWindow,

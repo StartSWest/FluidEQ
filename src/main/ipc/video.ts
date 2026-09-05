@@ -32,7 +32,7 @@ import {
  * navigation rules live in `videoBrowser.ts`, and these channels only ask it to
  * do things. Which is the shape every one of these modules is aiming at.
  */
-export const registerVideoIpc = () => {
+const registerVideoIpc = () => {
   ipcMain.on(ChannelEnum.SET_VIDEO_AD_BLOCK, (_event, arg) => {
     setVideoAdBlockEnabled(Boolean(arg[0]));
   });
@@ -59,3 +59,5 @@ export const registerVideoIpc = () => {
     }
   });
 };
+
+export default registerVideoIpc;

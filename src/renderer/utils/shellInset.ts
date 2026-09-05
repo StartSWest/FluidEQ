@@ -19,7 +19,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * being a second number to keep in step. Zero when nothing is playing, since
  * the class that carries them is not on the root then.
  */
-export const bottomInset = (): number => {
+const bottomInset = (): number => {
   const root = document.getElementById('root');
   if (!root?.classList.contains('has-now-playing')) {
     return 0;
@@ -32,3 +32,5 @@ export const bottomInset = (): number => {
     (Number.isFinite(gutter) ? gutter : 18)
   );
 };
+
+export default bottomInset;

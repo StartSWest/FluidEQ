@@ -42,11 +42,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 export * from './lineTokens';
 export * from './model';
-export * from './syllables';
+export { default as splitKaraokeMakerWordIntoSyllables } from './syllables';
 export * from './translationSeed';
 export * from './timeline';
 export * from './boundaries';
 export * from './recording';
 export * from './project';
-export * from './parse';
+export { default as parseKaraokeMakerProject } from './parse';
 export * from './song';

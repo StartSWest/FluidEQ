@@ -150,9 +150,7 @@ const sanitiseMakerLines = (
   });
 
 /** Parse an untrusted project without allowing unbounded arrays into the UI. */
-export const parseKaraokeMakerProject = (
-  contents: string,
-): IKaraokeMakerProject => {
+const parseKaraokeMakerProject = (contents: string): IKaraokeMakerProject => {
   const value = JSON.parse(contents) as Partial<IKaraokeMakerProject>;
   // Version 1 predates `lyrics.translations`. The field is additive, so an
   // old draft has nothing in it the new shape cannot represent — it loads
@@ -363,3 +361,5 @@ export const parseKaraokeMakerProject = (
       ),
   };
 };
+
+export default parseKaraokeMakerProject;

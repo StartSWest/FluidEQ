@@ -19,7 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { ReactNode, useMemo, useRef, useState } from 'react';
 import { IKaraokeLine, IKaraokeSong } from '../../common/karaoke/types';
 import { KARAOKE_ORIGINAL_LANGUAGE } from '../../common/karaoke/makerProject';
-import { karaokeLanguageName } from './karaokeLanguageName';
+import karaokeLanguageName from './karaokeLanguageName';
 import {
   clamp,
   groupKaraokeTokensIntoWords,

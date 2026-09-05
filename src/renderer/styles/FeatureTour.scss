@@ -1,0 +1,495 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'constant' as *;
+@use 'dialog' as dialog;
+@use 'motion' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+@use 'tour-art';
+
+// Below the changelog (1450): "full release notes" opens on top of this and
+// closes back onto it. Above the support dialog (1400) and every notice.
+.feature-tour-backdrop {
+  @include dialog.backdrop(1425);
+}
+
+// Two thirds of the window, both ways. The panel is a presentation, not a
+// form: it is sized to the screen rather than to its content, and the content
+// is sized to the panel — every font below is a fraction of the viewport so a
+// 4K window and a laptop show the same layout at different scales.
+.feature-tour {
+  @include dialog.surface(66vw, 66vh);
+  width: max(66vw, min(920px, 100vw - #{$spacing-l} * 2));
+  height: max(66vh, min(600px, 100vh - #{$spacing-l} * 2));
+  max-height: calc(100vh - #{$spacing-l} * 2);
+  grid-template-rows: auto minmax(0, 1fr) auto;
+
+  // The slide's type scale, one unit everything is a multiple of.
+  --tour-unit: clamp(11px, 0.78vw, 17px);
+}
+
+.feature-tour__body {
+  display: grid;
+  min-height: 0;
+  grid-template-columns: minmax(200px, 21%) minmax(0, 1fr);
+}
+
+// The rail: what is new, as a list. The active entry is the one on stage.
+.feature-tour__rail {
+  display: flex;
+  flex-direction: column;
+  padding: calc(var(--tour-unit) * 1.2) calc(var(--tour-unit) * 0.9);
+  border-right: 1px solid rgba($edge-tint, 0.08);
+  // Lighter than the stage, not darker: on Ocean a well-coloured rail read
+  // as a black slab against the slate panel.
+  background: rgba($white, 0.025);
+  gap: calc(var(--tour-unit) * 0.5);
+  overflow-y: auto;
+  @include slim-scrollbar;
+}
+
+.feature-tour__rail-item {
+  display: grid;
+  align-items: center;
+  padding: calc(var(--tour-unit) * 0.8) calc(var(--tour-unit) * 0.85);
+  color: $text-muted;
+  border: 1px solid transparent;
+  border-radius: $radius-m;
+  background: transparent;
+  gap: calc(var(--tour-unit) * 0.8);
+  grid-template-columns: auto minmax(0, 1fr);
+  text-align: left;
+  cursor: pointer;
+  transition: $transition-control;
+
+  &:hover {
+    color: $text-primary;
+    background: $block-lift;
+  }
+
+  &.is-active {
+    color: $text-primary;
+    border-color: color-mix(in srgb, $secondary-light 30%, transparent);
+    background: color-mix(in srgb, $secondary-default 10%, $block-lift);
+    box-shadow: inset 0 1px 0 rgba($white, 0.05);
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+    outline: none;
+  }
+}
+
+.feature-tour__rail-number {
+  display: grid;
+  width: calc(var(--tour-unit) * 2);
+  height: calc(var(--tour-unit) * 2);
+  color: $text-faint;
+  border: 1px solid rgba($edge-tint, 0.16);
+  border-radius: 50%;
+  font-size: calc(var(--tour-unit) * 0.85);
+  font-weight: $weight-bold;
+  place-items: center;
+
+  .is-active & {
+    color: $surface-base;
+    border-color: transparent;
+    background: $secondary-default;
+  }
+}
+
+.feature-tour__rail-text {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.feature-tour__rail-title {
+  font-size: calc(var(--tour-unit) * 1.05);
+  font-weight: $weight-bold;
+  line-height: 1.25;
+}
+
+.feature-tour__rail-subtitle {
+  color: $text-faint;
+  font-size: calc(var(--tour-unit) * 0.82);
+  line-height: 1.3;
+}
+
+// The stage. It scrolls when a slide is taller than the window allows, but
+// every slide is laid out to fit at the panel's size on a normal screen.
+.feature-tour__stage {
+  @include animate(rise-in, $motion-slow);
+  min-height: 0;
+  padding: calc(var(--tour-unit) * 1.6) calc(var(--tour-unit) * 2);
+  overflow-y: auto;
+  @include slim-scrollbar;
+}
+
+.feature-tour__footer {
+  display: grid;
+  align-items: center;
+  padding: 10px 16px 12px;
+  border-top: 1px solid rgba($edge-tint, 0.1);
+  background: $block-lift;
+  gap: $spacing-m;
+  grid-template-columns: auto 1fr auto;
+}
+
+.feature-tour__tick {
+  display: flex;
+  align-items: center;
+  color: $text-muted;
+  font-size: $text-body;
+  gap: $spacing-s;
+  cursor: pointer;
+  user-select: none;
+}
+
+.feature-tour__check {
+  width: 14px;
+  height: 14px;
+  margin: 0;
+  accent-color: $secondary-default;
+  cursor: pointer;
+}
+
+// A link, not a button: it is the way to the longer document, and it must
+// not compete with Next.
+.feature-tour__notes {
+  justify-self: start;
+  padding: 4px 2px;
+  color: $secondary-light;
+  border: 0;
+  background: transparent;
+  font-size: $text-body;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+
+  &:hover {
+    color: $text-primary;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+    border-radius: $radius-xs;
+    outline: none;
+  }
+}
+
+.feature-tour__nav {
+  display: flex;
+  align-items: center;
+  gap: $spacing-s;
+}
+
+.feature-tour__count {
+  margin-right: $spacing-s;
+  color: $text-faint;
+  font-size: $text-small;
+  font-variant-numeric: tabular-nums;
+}
+
+// ---------------------------------------------------------------------------
+// The slides themselves: shared type, then each slide's own layout.
+
+.tour-slide {
+  display: grid;
+  height: 100%;
+  min-height: 0;
+  gap: calc(var(--tour-unit) * 2);
+}
+
+.tour-slide__text {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: calc(var(--tour-unit) * 0.9);
+
+  // A flex column stretches its children; a button the width of the column
+  // read as a banner, not an action.
+  > .button {
+    align-self: flex-start;
+  }
+}
+
+.tour-slide__kicker {
+  color: $secondary-light;
+  font-size: calc(var(--tour-unit) * 0.8);
+  font-weight: $weight-bold;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.tour-slide__title {
+  margin: 0;
+  color: $text-primary;
+  font-size: calc(var(--tour-unit) * 2.4);
+  font-weight: $weight-display;
+  letter-spacing: -0.01em;
+  line-height: 1.08;
+}
+
+.tour-slide__lead {
+  margin: 0;
+  color: $text-muted;
+  font-size: calc(var(--tour-unit) * 1.15);
+  line-height: 1.55;
+}
+
+.tour-slide__points {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  gap: calc(var(--tour-unit) * 0.5);
+  list-style: none;
+
+  li {
+    @include dialog.section-surface;
+    position: relative;
+    padding: calc(var(--tour-unit) * 0.7) calc(var(--tour-unit) * 0.9)
+      calc(var(--tour-unit) * 0.7) calc(var(--tour-unit) * 2);
+    color: $text-muted;
+    font-size: calc(var(--tour-unit) * 0.98);
+    line-height: 1.45;
+
+    &::before {
+      position: absolute;
+      top: calc(var(--tour-unit) * 1.2);
+      left: calc(var(--tour-unit) * 0.9);
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: $secondary-light;
+      box-shadow: 0 0 8px color-mix(in srgb, $secondary-light 45%, transparent);
+      content: '';
+    }
+  }
+}
+
+.tour-slide__how {
+  @include dialog.section-surface;
+  display: grid;
+  margin-top: auto;
+  padding: calc(var(--tour-unit) * 0.9) calc(var(--tour-unit) * 1);
+  gap: calc(var(--tour-unit) * 0.5);
+  justify-items: start;
+
+  p {
+    margin: 0;
+    color: $text-muted;
+    font-size: calc(var(--tour-unit) * 0.98);
+    line-height: 1.45;
+  }
+}
+
+.tour-slide__how-title {
+  color: rgba($white, 0.9);
+  font-size: calc(var(--tour-unit) * 0.78);
+  font-weight: $weight-bold;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+// Slide 1 — the theme. The capture is the point, so it gets the wider column
+// and the text stands beside it.
+.tour-slide--theme {
+  align-items: stretch;
+  grid-template-columns: minmax(0, 62%) minmax(0, 1fr);
+}
+
+.tour-slide__figure {
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+  margin: 0;
+  align-content: center;
+}
+
+.tour-slide__shot {
+  display: block;
+  width: 100%;
+  max-height: 100%;
+  border: 1px solid color-mix(in srgb, $secondary-light 22%, transparent);
+  border-radius: $radius-l;
+  background: $black;
+  box-shadow:
+    0 24px 60px rgba($black, 0.55),
+    0 0 40px color-mix(in srgb, $secondary-default 14%, transparent);
+  object-fit: contain;
+}
+
+// Slide 2 — Share Audio. Steps on the left, the diagram and its facts on the
+// right.
+.tour-slide--share {
+  align-items: start;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 46%);
+}
+
+.tour-share__steps {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  gap: calc(var(--tour-unit) * 0.6);
+  list-style: none;
+
+  li {
+    @include dialog.section-surface;
+    display: grid;
+    align-items: start;
+    padding: calc(var(--tour-unit) * 0.8) calc(var(--tour-unit) * 0.9);
+    gap: calc(var(--tour-unit) * 0.8);
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  strong {
+    display: block;
+    margin-bottom: 2px;
+    color: $text-primary;
+    font-size: calc(var(--tour-unit) * 1.05);
+  }
+
+  p {
+    margin: 0;
+    color: $text-muted;
+    font-size: calc(var(--tour-unit) * 0.95);
+    line-height: 1.45;
+  }
+}
+
+.tour-share__step-number {
+  display: grid;
+  width: calc(var(--tour-unit) * 2);
+  height: calc(var(--tour-unit) * 2);
+  color: $surface-base;
+  border-radius: 50%;
+  background: $secondary-default;
+  font-size: calc(var(--tour-unit) * 0.95);
+  font-weight: $weight-bold;
+  place-items: center;
+}
+
+.tour-share__aside {
+  display: grid;
+  gap: calc(var(--tour-unit) * 0.9);
+}
+
+.tour-share__facts {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  gap: calc(var(--tour-unit) * 0.5);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  list-style: none;
+
+  li {
+    @include dialog.section-surface;
+    display: grid;
+    padding: calc(var(--tour-unit) * 0.7) calc(var(--tour-unit) * 0.8);
+    gap: 3px;
+  }
+
+  strong {
+    color: $secondary-light;
+    font-size: calc(var(--tour-unit) * 0.95);
+  }
+
+  span {
+    color: $text-muted;
+    font-size: calc(var(--tour-unit) * 0.82);
+    line-height: 1.4;
+  }
+}
+
+.tour-share__tip {
+  margin: 0;
+  padding: calc(var(--tour-unit) * 0.6) calc(var(--tour-unit) * 0.9);
+  color: $text-muted;
+  border-left: 3px solid $secondary-default;
+  border-radius: 0 $radius-xs $radius-xs 0;
+  background: color-mix(in srgb, $secondary-default 8%, transparent);
+  font-size: calc(var(--tour-unit) * 0.9);
+  line-height: 1.45;
+}
+
+// Narrow windows: the rail becomes a row of chips above the stage, and each
+// slide stacks its two columns.
+@media (max-width: 1100px) {
+  .feature-tour__body {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+
+  .feature-tour__rail {
+    flex-direction: row;
+    flex-wrap: wrap;
+    border-right: 0;
+    border-bottom: 1px solid rgba($edge-tint, 0.08);
+  }
+
+  .feature-tour__rail-item {
+    flex: 1 1 0;
+  }
+
+  .feature-tour__rail-subtitle {
+    display: none;
+  }
+
+  .feature-tour__rail-heading {
+    width: 100%;
+    padding-bottom: 0;
+  }
+
+  .tour-slide--theme,
+  .tour-slide--share,
+  .tour-slide--feature {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// The standing slides: text on the left, a drawing on the right.
+
+.tour-slide--feature {
+  align-items: start;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 42%);
+}
+
+.tour-slide__art {
+  display: block;
+  margin: 0;
+  padding: calc(var(--tour-unit) * 0.6);
+  border: 1px solid rgba($edge-tint, 0.1);
+  border-radius: $radius-l;
+  background: color-mix(in srgb, $surface-well 70%, transparent);
+}
+
+// The rail's two groups and the chip on what is new.
+.feature-tour__rail-heading {
+  padding: calc(var(--tour-unit) * 0.6) calc(var(--tour-unit) * 0.85) 2px;
+  color: $text-faint;
+  font-size: calc(var(--tour-unit) * 0.7);
+  font-weight: $weight-bold;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.feature-tour__rail-new {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 6px;
+  color: $surface-base;
+  border-radius: $radius-pill;
+  background: $secondary-light;
+  font-size: calc(var(--tour-unit) * 0.62);
+  letter-spacing: 0.1em;
+  vertical-align: 2px;
+}

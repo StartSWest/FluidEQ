@@ -220,15 +220,15 @@ const main = () => {
     );
   }
 
-  console.log(
+  process.stdout.write(
     `OPRA library valid: ${products.length} products, ${curveCount} curves,` +
-      ` ${bandCount} bands, source ${String(manifest.contentHash).slice(0, 12)}`,
+      ` ${bandCount} bands, source ${String(manifest.contentHash).slice(0, 12)}\n`,
   );
 };
 
 try {
   main();
 } catch (error) {
-  console.error((error as Error).message);
+  process.stderr.write(`${(error as Error).message}\n`);
   process.exit(1);
 }

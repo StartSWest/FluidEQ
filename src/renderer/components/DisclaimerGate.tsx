@@ -34,7 +34,7 @@ import {
   REPOSITORY_URL,
 } from 'common/branding';
 import { useTranslation } from '../utils/I18nContext';
-import { useFocusLock } from '../utils/useFocusLock';
+import useFocusLock from '../utils/useFocusLock';
 import '../styles/OverlayCard.scss';
 
 /**

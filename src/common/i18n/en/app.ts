@@ -76,8 +76,8 @@ const app = {
   'app.menu.reinstallApp': 'Reinstall {product}…',
   'app.menu.fixAudio': 'Fix audio problems…',
   'app.menu.reinstallApo': 'Reinstall Equalizer APO…',
-  'whatsNew.eyebrow': 'RELEASE NOTES',
-  'whatsNew.title': "What's new in FluidEQ",
+  'whatsNew.eyebrow': 'VERSION HISTORY',
+  'whatsNew.title': 'FluidEQ release notes',
   'whatsNew.loading': 'Loading the release notes…',
   'whatsNew.missing':
     'The release notes could not be found in this build. They are also on GitHub.',

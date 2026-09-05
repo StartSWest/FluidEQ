@@ -6,6 +6,7 @@ import {
   type IpcMainEvent,
   type MessagePortMain,
 } from 'electron';
+import log from 'electron-log';
 import type {
   ILanRemoteAudioChunk,
   ILanRemoteAudioSignal,
@@ -31,7 +32,7 @@ const createRemoteAudioPorts = (
     } catch (error) {
       // A terminated visual worker must never stop capture or disconnect its
       // network peer. The next visual subscriber replaces its closed port.
-      console.error(`Remote audio ${kind} port closed during delivery`, error);
+      log.error(`Remote audio ${kind} port closed during delivery`, error);
       if (ports.get(kind) === port) {
         ports.delete(kind);
       }

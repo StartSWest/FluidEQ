@@ -11,7 +11,7 @@ import {
   readKaraokeTextFile,
 } from '../../common/karaoke/files';
 import { useTranslation } from '../utils/I18nContext';
-import { useKaraokeMakerProject } from './useKaraokeMakerProject';
+import useKaraokeMakerProject from './useKaraokeMakerProject';
 import { TSelection } from './useKaraokeMakerSelection';
 import {
   plainLyrics,

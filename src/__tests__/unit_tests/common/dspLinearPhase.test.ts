@@ -4,7 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { fftInPlace } from '../../../common/dsp/fft';
+import fftInPlace from '../../../common/dsp/fft';
 import { DSP_DEFAULTS, IEqSettings } from '../../../common/dsp/chain';
 import {
   KERNEL_SIZE,

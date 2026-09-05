@@ -52,7 +52,7 @@ import {
 import { toggleGraphMeter, useGraphMeterHidden } from '../utils/graphStyle';
 import { useRhythmRun } from '../utils/rhythmRun';
 import { useIsEuphoric } from '../utils/euphoriaMode';
-import { useSmoothFrames } from '../utils/useSmoothFrames';
+import useSmoothFrames from '../utils/useSmoothFrames';
 import { readInternalClipping } from '../audio/internalClipping';
 import {
   LEVEL_FLOOR_DB,

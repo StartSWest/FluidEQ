@@ -41,7 +41,6 @@ interface FluidEqConfig {
 
 export const readFluidEqConfig = (configPath: string) => {
   const filePath = path.join(configPath, FLUIDEQ_CONFIG_FILENAME);
-  console.log(filePath);
   const content = fs.readFileSync(filePath, {
     encoding: 'utf8',
   });
@@ -117,7 +116,6 @@ export const readFluidEqConfig = (configPath: string) => {
       throw new Error(`Invalid config line ${line}`);
     }
   });
-  console.log(state);
   return state;
 };
 

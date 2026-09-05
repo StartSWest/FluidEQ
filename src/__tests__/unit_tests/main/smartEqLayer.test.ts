@@ -38,7 +38,7 @@ import {
   deviceProfilesToFiles,
   getStateForAudioDevice,
 } from 'main/deviceProfiles';
-import { expandApoConfig } from '../../utils/apoConfig';
+import expandApoConfig from '../../utils/apoConfig';
 
 const smartLayer = (
   gainsByFrequency: Record<number, number>,

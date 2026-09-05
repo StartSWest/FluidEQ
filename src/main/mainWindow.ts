@@ -27,8 +27,8 @@ import {
   WINDOW_MIN_WIDTH,
 } from '../common/constants';
 import { resolveHtmlPath, waitForRenderer } from './util';
-import { openExternalIfSafe } from './safeExternal';
-import { contentSecurityPolicy } from './contentSecurityPolicy';
+import openExternalIfSafe from './safeExternal';
+import contentSecurityPolicy from './contentSecurityPolicy';
 import MenuBuilder from './menu';
 import { IAuthorizedAutoUpdater } from './signedAutoUpdates';
 import { isAppQuitting } from './tray';

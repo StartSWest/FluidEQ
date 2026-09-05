@@ -58,20 +58,20 @@ import {
   ILibraryPlayerSession,
 } from './playerContract';
 import { useDeckAudio } from './useDeckAudio';
-import { useDeckBookkeeping } from './useDeckBookkeeping';
-import { useDeckLifecycle } from './useDeckLifecycle';
+import useDeckBookkeeping from './useDeckBookkeeping';
+import useDeckLifecycle from './useDeckLifecycle';
 import { useMediaEvents } from './useMediaEvents';
 import { usePlaybackCommands } from './usePlaybackCommands';
 import { usePlayerDecks } from './usePlayerDecks';
 import { usePlayerEngine } from './usePlayerEngine';
-import { usePublishedTransport } from './usePublishedTransport';
+import usePublishedTransport from './usePublishedTransport';
 import { useQueueControls } from './useQueueControls';
 import { useSessionMemory } from './useSessionMemory';
 import { useTrackAnalysis } from './useTrackAnalysis';
 import { useTransportControls } from './useTransportControls';
 import { useUpNext } from './useUpNext';
 import { useVideoElement } from './useVideoElement';
-import { useTrackEnd } from './useTrackEnd';
+import useTrackEnd from './useTrackEnd';
 import { useTrackLoader } from './useTrackLoader';
 
 // Re-exported so every existing importer keeps working: the contract moved,

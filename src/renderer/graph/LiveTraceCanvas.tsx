@@ -69,7 +69,7 @@ import {
   getGraphPeaks,
   hasGraphPieces,
 } from 'common/graphShapes';
-import { useSmoothFrames } from 'renderer/utils/useSmoothFrames';
+import useSmoothFrames from 'renderer/utils/useSmoothFrames';
 import { useGraphGridHidden, useGraphLook } from 'renderer/utils/graphStyle';
 import { useLiveAudioFrame } from '../audio/LiveAudioContext';
 import { createAccentState, paintGraphAccent } from './graphAccents';

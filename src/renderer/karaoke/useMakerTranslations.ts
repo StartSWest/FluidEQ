@@ -22,7 +22,7 @@ import {
  * exactly like the editor view and the lyric draft, which already have
  * hooks of their own.
  */
-export const useMakerTranslations = (
+const useMakerTranslations = (
   project: IKaraokeMakerProject,
   onProjectChange: (next: IKaraokeMakerProject) => void,
 ) => {
@@ -103,3 +103,5 @@ export const useMakerTranslations = (
     clearMismatch: useCallback(() => setMismatch(undefined), []),
   };
 };
+
+export default useMakerTranslations;

@@ -6,6 +6,113 @@ actions menu opens it again any time.
 
 ---
 
+## 1.6.2
+
+Two big things and a long list of smaller ones. Your other computers can now
+play through the headset on this one, losslessly and encrypted over your own
+network. The window has a second face, Black, and it is the default. A
+welcome window introduces both, then walks through the tabs you may never
+have opened. Underneath, the whole surface of the app was moved onto one
+colour ladder, the Library's video became a real player, Smart EQ stopped
+walking back curves it had already learned, and the DSP rack's presets are
+protected from clipping at every sample rate.
+
+### New
+
+- **Share Audio.** A new tab. Choose the computer with your headset as the
+  receiver and it creates a connection code; paste the code into FluidEQ on
+  every other computer and their system audio arrives here, mixed together
+  and shaped by your EQ. Float32 PCM end to end, AES-256-GCM on every packet,
+  private LAN only, and the pairing survives app closes and reboots. Two
+  priorities: Music keeps a larger safety buffer, Game/Video runs with the
+  lowest delay for lip-sync.
+- **The Black theme.** A true black floor, every surface a few values above
+  it, hairlines instead of lightness for the edges, and an ice-blue accent
+  that stays cool beside the rainbow. Every window follows, drawings
+  included: the pitch lane, the Maker's editor and the DSP's scope read the
+  theme per frame. Black is the default for a fresh install and for anyone
+  upgrading; Ocean is one pick away in the menu behind the pulse icon, and
+  the choice is remembered.
+- **A welcome window.** Two thirds of the screen, one slide per big thing:
+  what this version brought, marked NEW, then Library, the DSP rack,
+  Karaoke, the Karaoke Maker and Online Media, each with a drawing, four
+  highlights and the buttons to press. It opens on every launch until you
+  tick "don't show this again", and comes back once on the next version that
+  has something to show. The menu's "What's new" opens it; the release notes
+  are a link inside it.
+- **Native message boxes.** The confirmations before reinstalling Equalizer
+  APO or restarting Windows audio, and the notices after, are owned by the
+  window and titled with the product instead of floating free with the page
+  address in the title bar.
+
+### Changed
+
+- **One palette.** Every page had grown its own surfaces: washes of white at
+  a dozen strengths, black at a dozen more, three tones invented per file.
+  Pane, block, plot and track are stated once and used everywhere; 139
+  corner radii now sit on a five-step scale; "unavailable" is one dim
+  instead of nine; caution is one amber instead of three.
+- **The Library's video is a player.** The queue takes a strip beside the
+  picture instead of covering a quarter of it; full screen puts the picture
+  behind the header and the transport, the way Karaoke's stage is; Back
+  closes the picture and keeps the queue; where each video was left is
+  remembered per video, not per session; the toolbar stays over a playing
+  video so the tab has a way back.
+- **The window behaves natively.** Snap zones, drag-to-restore and
+  double-click-to-maximise work because the window is a real one again;
+  the Black theme takes the desktop blur off it so black stays black.
+- **Meters warn at the loopback's own ceiling** (-1 dBFS) instead of at
+  full scale: by the time samples rail in the capture, Windows has already
+  squashed the peak.
+- **Shift-click selects a range of bands** like a file list, on the dots and
+  on the sliders, and the multi-band reset applies to the whole selection.
+- **The DSP rack applies to Library playback only**, and says so on the
+  page; shared-audio reception and the other tabs are not routed through it.
+- **The release-notes dialog is titled "Release notes"**, since "What's new"
+  is the welcome window now.
+
+### Fixed
+
+- **Smart EQ recovers a song's curve instead of walking it back.** The loop
+  kept everything it knew about the previous song when the recorder replaced
+  the layer under it, read the song's own curve as a disagreement and
+  stepped it back within one quiet window. Its ranges also vanished from the
+  plot on every bass drop-out and every three seconds of quiet, because a
+  flag flip republished progress with an empty region list. Both fixed, and
+  the fitted-slope modes now converge to the same place from a flat start
+  and a bent one.
+- **DSP presets no longer clip or go unstable.** The final guard armed only
+  above +10 dBTP, so ordinary preset boosts at unity clipped at the output;
+  it now enforces its -0.1 dBTP ceiling after every processor and holds
+  reduction for a 20 Hz cycle. Filter corners are clamped below Nyquist: at
+  32 kHz several Exciter profiles had asked for a low-pass above it and got
+  unstable poles. 204 factory cases checked at seven sample rates, every
+  cross-family pair and every local replacement.
+- **Neural denoise works at every sample rate**, and the Denoise stage draws
+  the noise floor it is subtracting while it measures.
+- **Focus rings are never cut off.** The halo was drawn outside the control,
+  so any clipping ancestor sliced it; focus now says itself twice, with a
+  hairline just inside the edge that nothing can clip. Quiet buttons, most
+  of the buttons in the app, had shown no focus indicator at all.
+- **Stroked icons stay stroked.** The DSP reset arrow had a black bowl; the
+  first fix painted Clear EQ and Add band as cyan discs. Both right now.
+- **The Videos shelf says which folder it is in**, with the same Back and
+  path line the drill-in draws.
+- **The folded queue's chip is legible over a picture.**
+- **Send to Karaoke no longer loses the song** to the saved-playlist restore
+  that finished a moment after it arrived.
+- **Search fields stop lighting up on hover**, and the Online Media search
+  keeps its capsule while the suggestion list is open.
+
+### Faster
+
+- **The chain curve is rendered once per chain, not once per frame.** With
+  a continuous Smart EQ mode on, the capture rebuilt every layer's response
+  thirty times a second: 2.4 ms a frame with ten filters, 7.8 ms with forty.
+  Now 40 µs and 94 µs.
+
+---
+
 ## 1.6.1
 
 This patch makes the native DSP engine stay up and stay single, fixes the

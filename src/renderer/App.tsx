@@ -29,13 +29,17 @@ import {
 import { ErrorCode, ErrorDescription } from 'common/errors';
 import { SUPPORT_CONTRIBUTED_KEY } from 'common/support';
 import {
+  featureTourDismissal,
+  shouldShowFeatureTour,
+} from 'common/featureTour';
+import {
   LATEST_RELEASE_URL,
   OFFICIAL_SITE_URL,
   PRODUCT_NAME,
   PRODUCT_VERSION,
 } from 'common/branding';
 import { resetRhythmRun } from './utils/rhythmRun';
-import { useMediaQuery } from './utils/useMediaQuery';
+import useMediaQuery from './utils/useMediaQuery';
 import { useTitlebarSideWidth } from './utils/useTitlebarSideWidth';
 import ConfigInspector from './components/ConfigInspector';
 import { resetEuphoriaMode } from './utils/euphoriaMode';
@@ -133,6 +137,8 @@ import SongEqNotice from './components/SongEqNotice';
 import MandatoryUpdateModal from './components/MandatoryUpdateModal';
 import DisclaimerGate from './components/DisclaimerGate';
 import WhatsNewDialog from './components/WhatsNewDialog';
+import FeatureTour from './components/featureTour/FeatureTour';
+import { featureTourFor } from './components/featureTour/slides';
 import AboutDialog from './components/AboutDialog';
 import BrandMark from './icons/BrandMark';
 import { I18nProvider, useTranslation } from './utils/I18nContext';
@@ -156,8 +162,11 @@ import {
 import { startEqualizerApoInstall } from './utils/apoInstall';
 
 const APO_RESTART_RECOMMENDED_KEY = 'fluideq.apoRestartRecommended';
-/** The version whose notes have already been shown. */
-const WHATS_NEW_SEEN_KEY = 'fluideq.whatsNewSeen';
+/**
+ * The version on which "don't show this again" was ticked in the feature
+ * tour. Absent when it was never ticked, or was unticked on the last close.
+ */
+const FEATURE_TOUR_DISMISSED_KEY = 'fluideq.featureTourDismissed';
 
 /**
  * Shipped build version, substituted by webpack at compile time. Empty in any
@@ -167,6 +176,8 @@ const WHATS_NEW_SEEN_KEY = 'fluideq.whatsNewSeen';
  * Defined once in `common/branding`, alongside the name it sits next to.
  */
 const APP_VERSION = PRODUCT_VERSION;
+/** What this version brought, then the standing slides. */
+const TOUR_SLIDES = featureTourFor(APP_VERSION);
 
 /** The workspace tab the app was left on. */
 const WORKSPACE_TAB_KEY = 'fluideq.workspaceTab';
@@ -390,6 +401,9 @@ const TRANSPORT_TAB: Partial<Record<TPlaybackOwner, TWorkspaceTab>> = {
   library: 'library',
   karaoke: 'karaoke',
   media: 'video',
+  // The LAN audio page: it shows the sending computer and its live meter,
+  // which is the nearest thing this machine has to the player.
+  remote: 'share',
 };
 
 /**
@@ -803,15 +817,21 @@ const AppContent = () => {
   // the only route to "Install Equalizer APO" was gone until the error
   // changed, which for a missing engine it never does.
   const [prereqNonce, setPrereqNonce] = useState(0);
-  // Null when closed, otherwise how much of the changelog to show. The dialog
-  // that opens itself after an update answers "what changed in the version I
-  // just got"; the one somebody opens from a menu is a request to read, and
-  // gets the history. Same dialog, two questions.
+  // The feature tour: the big slides, what this version brought first and
+  // then the standing features. It is the launch notice; the changelog used
+  // to open itself after an update and no longer does, because two panels on
+  // top of each other on first run read as a malfunction. The changelog is
+  // one click away inside the tour, and in the menu.
+  const [showFeatureTour, setShowFeatureTour] = useState(() =>
+    shouldShowFeatureTour(
+      APP_VERSION,
+      localStorage.getItem(FEATURE_TOUR_DISMISSED_KEY),
+    ),
+  );
+  // Null when closed, otherwise how much of the changelog to show: `all`
+  // from the menu and the tour's link, both requests to read the history.
   const [whatsNewScope, setWhatsNewScope] = useState<'latest' | 'all' | null>(
-    () =>
-      !!APP_VERSION && localStorage.getItem(WHATS_NEW_SEEN_KEY) !== APP_VERSION
-        ? 'latest'
-        : null,
+    null,
   );
   // What the rest of the machine is playing, on the bar when this app has
   // nothing of its own there. Mounted at the root because it is nobody's tab:
@@ -1468,7 +1488,7 @@ const AppContent = () => {
     const error =
       await window.electron.ipcRenderer.openEqualizerApoConfigurator();
     if (error) {
-      window.alert(error);
+      await window.electron.ipcRenderer.showNativeMessage(error);
       return false;
     }
     localStorage.setItem(APO_RESTART_RECOMMENDED_KEY, 'true');
@@ -1491,12 +1511,14 @@ const AppContent = () => {
     // processes all of the machine's audio, and needs a restart afterwards.
     // None of that should happen because somebody was reading the menu with a
     // mouse in their hand.
-    const confirmed = window.confirm(
+    const confirmed = await window.electron.ipcRenderer.confirmNative(
       'Reinstall Equalizer APO?\n\n' +
         'Its setup will open so you can re-select which audio devices to ' +
         'equalise. Windows will ask for administrator permission, and your ' +
         'computer will need to restart afterwards.\n\n' +
         `Your ${PRODUCT_NAME} settings and profiles are not affected.`,
+      t('whatsNew.ok'),
+      t('config.cancel'),
     );
     if (!confirmed) {
       return;
@@ -1508,7 +1530,7 @@ const AppContent = () => {
       // error banner this used to raise, which showed the literal sentinel
       // `apo-bundle-missing` over "Please restart the application" — no
       // download, and nothing anybody could act on.
-      window.alert(
+      await window.electron.ipcRenderer.showNativeMessage(
         `This copy of ${PRODUCT_NAME} has no Equalizer APO installer inside it.\n\n` +
           "Opening Equalizer APO's own download page instead. Install it from " +
           `there and ${PRODUCT_NAME} will find it.`,
@@ -1517,7 +1539,7 @@ const AppContent = () => {
     }
 
     if (outcome === 'not-started') {
-      window.alert(
+      await window.electron.ipcRenderer.showNativeMessage(
         'Equalizer APO did not start.\n\n' +
           'It needs administrator permission — try again and approve the ' +
           'Windows prompt.',
@@ -1536,7 +1558,7 @@ const AppContent = () => {
   const handleOpenEqualizerApoSettings = async () => {
     const error = await window.electron.ipcRenderer.openEqualizerApoSettings();
     if (error) {
-      window.alert(error);
+      await window.electron.ipcRenderer.showNativeMessage(error);
     }
   };
 
@@ -1565,12 +1587,19 @@ const AppContent = () => {
   const handleImportConvolution = () => runImport(importConvolutionFile);
 
   const handleRestartWindowsAudio = async () => {
-    if (!window.confirm(t('notice.restartConfirm'))) {
+    const confirmed = await window.electron.ipcRenderer.confirmNative(
+      t('notice.restartConfirm'),
+      t('whatsNew.ok'),
+      t('config.cancel'),
+    );
+    if (!confirmed) {
       return;
     }
 
     const error = await window.electron.ipcRenderer.restartWindowsAudio();
-    window.alert(error || t('notice.restartDone'));
+    await window.electron.ipcRenderer.showNativeMessage(
+      error || t('notice.restartDone'),
+    );
     if (!error) {
       localStorage.removeItem(APO_RESTART_RECOMMENDED_KEY);
       setShowAudioRestartRecommendation(false);
@@ -1838,7 +1867,9 @@ const AppContent = () => {
                           role="menuitem"
                           onClick={() => {
                             setShowAudioToolsMenu(false);
-                            setWhatsNewScope('all');
+                            // The tour is what "what's new" means; its
+                            // release-notes link is the way to the changelog.
+                            setShowFeatureTour(true);
                           }}
                         >
                           <MenuIcon name="info" />
@@ -2581,17 +2612,39 @@ const AppContent = () => {
             playing while the user is on any tab, and the loaned curve is
             already audible before this ever draws. */}
         <SongEqNotice />
+        {showFeatureTour && (
+          <FeatureTour
+            version={APP_VERSION}
+            slides={TOUR_SLIDES}
+            onClose={(dontShowAgain) => {
+              const dismissal = featureTourDismissal(
+                APP_VERSION,
+                dontShowAgain,
+              );
+              if (dismissal) {
+                localStorage.setItem(FEATURE_TOUR_DISMISSED_KEY, dismissal);
+              } else {
+                localStorage.removeItem(FEATURE_TOUR_DISMISSED_KEY);
+              }
+              setShowFeatureTour(false);
+            }}
+            // The whole history, on top of the tour: someone who followed
+            // the link asked to read, not to be told the headline again.
+            onShowReleaseNotes={() => setWhatsNewScope('all')}
+            isCovered={whatsNewScope !== null}
+            onOpenTab={(tab) => {
+              // Landing on the tab is not being done with the tour: the tick
+              // was not offered a chance, so it counts as left unticked.
+              localStorage.removeItem(FEATURE_TOUR_DISMISSED_KEY);
+              setShowFeatureTour(false);
+              selectTopWorkspaceTab(tab);
+            }}
+          />
+        )}
         {whatsNewScope && (
           <WhatsNewDialog
             scope={whatsNewScope}
-            onClose={() => {
-              // Written on close rather than on open: a dialog dismissed by a
-              // crash should still be shown again.
-              if (APP_VERSION) {
-                localStorage.setItem(WHATS_NEW_SEEN_KEY, APP_VERSION);
-              }
-              setWhatsNewScope(null);
-            }}
+            onClose={() => setWhatsNewScope(null)}
           />
         )}
         {showProcessesDialog && (

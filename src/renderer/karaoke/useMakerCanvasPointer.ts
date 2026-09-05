@@ -32,7 +32,7 @@ import {
   ICanvasScrubState,
   IMakerCanvasGesture,
 } from './useMakerCanvasGesture';
-import { useKaraokeMakerProject } from './useKaraokeMakerProject';
+import useKaraokeMakerProject from './useKaraokeMakerProject';
 import {
   TSelection,
   useKaraokeMakerSelection,

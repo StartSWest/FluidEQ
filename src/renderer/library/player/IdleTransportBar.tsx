@@ -40,7 +40,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { useTransportStrip } from '../../audio/useTransportStrip';
+import useTransportStrip from '../../audio/useTransportStrip';
 import LibraryCoverArt from '../LibraryCoverArt';
 import { useTranslation } from '../../utils/I18nContext';
 import { TransportIcon } from './NowPlayingBar';

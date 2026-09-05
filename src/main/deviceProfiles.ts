@@ -32,7 +32,7 @@ import {
 import { parseCustomFx } from '../common/customFx';
 import { forgetPath, scheduleWrite } from './asyncWriter';
 import readTextCached from './cachedRead';
-import { writeConvolutionWav } from './convolution';
+import writeConvolutionWav from './convolution';
 import { hydrateConvolutionAnalysis } from './convolutionAnalysis';
 
 export interface IActiveStateOverride {

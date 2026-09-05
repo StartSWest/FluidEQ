@@ -77,7 +77,7 @@ const scanLibraryRootInMain = (options: IScanOptions): Promise<IScanResult> =>
       ((bytes) => cacheArtwork(options.userDataDir, bytes)),
   });
 
-export const scanLibraryRootOffThread = (
+const scanLibraryRootOffThread = (
   options: IScanOptions,
 ): Promise<IScanResult> => {
   const entry = workerUnavailable ? undefined : workerEntry();
@@ -252,3 +252,5 @@ export const scanLibraryRootOffThread = (
     child.postMessage(request);
   });
 };
+
+export default scanLibraryRootOffThread;

@@ -13,7 +13,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * locale returns the endonym, which is why there is no name table here to keep
  * in step across ten locale files.
  */
-export const karaokeLanguageName = (code: string): string => {
+const karaokeLanguageName = (code: string): string => {
   try {
     return new Intl.DisplayNames([code], { type: 'language' }).of(code) ?? code;
   } catch {
@@ -21,3 +21,5 @@ export const karaokeLanguageName = (code: string): string => {
     return code;
   }
 };
+
+export default karaokeLanguageName;

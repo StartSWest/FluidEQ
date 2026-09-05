@@ -31,7 +31,7 @@ import {
 } from '../../../main/deviceProfiles';
 import { FilterTypeEnum, getDefaultState } from '../../../common/constants';
 import { FLUIDEQ_CONFIG_FILENAME, renamePreset } from '../../../main/flush';
-import { expandApoConfig } from '../../utils/apoConfig';
+import expandApoConfig from '../../utils/apoConfig';
 
 /** The file a device's `Include:` points at, found through the root config. */
 const deviceFileFor = (files: TApoConfigFiles, devicePattern: string) => {

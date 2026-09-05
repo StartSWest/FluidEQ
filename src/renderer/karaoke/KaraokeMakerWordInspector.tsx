@@ -20,7 +20,7 @@ import { ReactNode } from 'react';
 import { IKaraokeMakerToken } from '../../common/karaoke/makerProject';
 import { useTranslation } from '../utils/I18nContext';
 import KaraokeMakerToolIcon from './KaraokeMakerToolIcon';
-import { formatClock } from './makerFormat';
+import formatClock from './makerFormat';
 
 interface IKaraokeMakerWordInspectorProps {
   /** Undefined shows the empty state rather than nothing. */

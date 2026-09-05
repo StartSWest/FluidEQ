@@ -141,7 +141,7 @@ const createImpulse = (filters: IFiltersMap) => {
 };
 
 /** Write a mono 32-bit float impulse response understood by Equalizer APO. */
-export const writeConvolutionWav = (filePath: string, filters: IFiltersMap) => {
+const writeConvolutionWav = (filePath: string, filters: IFiltersMap) => {
   const samples = createImpulse(filters);
   const dataSize = samples.length * 4;
   const wav = Buffer.alloc(44 + dataSize);
@@ -163,3 +163,5 @@ export const writeConvolutionWav = (filePath: string, filters: IFiltersMap) => {
   });
   fs.writeFileSync(filePath, wav);
 };
+
+export default writeConvolutionWav;

@@ -42,7 +42,7 @@ import {
 } from '../../common/library/types';
 import { useTranslation } from '../utils/I18nContext';
 import MenuIcon from '../icons/MenuIcon';
-import { libraryFilterHistory } from '../utils/libraryFilterHistory';
+import libraryFilterHistory from '../utils/libraryFilterHistory';
 import LibraryCoverArt from './LibraryCoverArt';
 import LibraryFolderArt from './LibraryFolderArt';
 import LibraryGridView from './LibraryGridView';

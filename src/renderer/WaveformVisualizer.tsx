@@ -104,7 +104,7 @@ import { LEVEL_FLOOR_DB } from './graph/outputLevel';
 import { useInternalClipping } from './audio/internalClipping';
 import type { IChartPointData } from './graph/ChartController';
 import { useRhythmRun } from './utils/rhythmRun';
-import { useSmoothFrames } from './utils/useSmoothFrames';
+import useSmoothFrames from './utils/useSmoothFrames';
 import {
   toggleEuphoriaEnabled,
   useIsEuphoriaAchieved,

@@ -4,7 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { fftInPlace } from '../dsp/fft';
+import fftInPlace from '../dsp/fft';
 
 /**
  * The short-time Fourier transform the vocal separation model expects.

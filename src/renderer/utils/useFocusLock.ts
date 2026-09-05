@@ -62,10 +62,7 @@ const FOCUSABLE =
  *
  * The element is focused on mount, so the first Tab starts from inside.
  */
-export const useFocusLock = (
-  ref: RefObject<HTMLElement | null>,
-  isActive = true,
-) => {
+const useFocusLock = (ref: RefObject<HTMLElement | null>, isActive = true) => {
   useEffect(() => {
     if (!isActive) {
       return undefined;
@@ -133,3 +130,5 @@ export const useFocusLock = (
     };
   }, [ref, isActive]);
 };
+
+export default useFocusLock;

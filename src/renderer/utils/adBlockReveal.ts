@@ -35,7 +35,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { useSyncExternalStore } from 'react';
 import { isEuphoriaEnabled } from './euphoriaMode';
-import { playChime } from './chime';
+import playChime from './chime';
 import {
   VIDEO_AD_BLOCK_REVEAL_STORAGE_KEY,
   VIDEO_AD_BLOCK_STORAGE_KEY,
