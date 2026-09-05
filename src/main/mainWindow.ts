@@ -32,6 +32,7 @@ import { contentSecurityPolicy } from './contentSecurityPolicy';
 import MenuBuilder from './menu';
 import { IAuthorizedAutoUpdater } from './signedAutoUpdates';
 import { isAppQuitting } from './tray';
+import { applyWindowBackdrop } from './windowBackdrop';
 
 /**
  * The desktop, blurred, behind the app's own floor.
@@ -57,7 +58,9 @@ import { isAppQuitting } from './tray';
  * Only Windows 11 has it. Older Windows, macOS and Linux ignore the option
  * and get the opaque floor the stylesheet falls back to.
  */
-const WINDOW_BACKDROP_MATERIAL = 'acrylic' as const;
+// The material itself, and whether the theme wants it, live in
+// `windowBackdrop.ts` — full screen and the theme both decide it, and two
+// callers writing the same property from two files is how they disagree.
 
 /**
  * How long a renderer gets to paint before the window is shown anyway.
@@ -202,7 +205,7 @@ export const createMainWindowFactory = ({
       // Not adjustable, and not negotiable while there is a backdrop
       // material: see `WINDOW_BACKDROP_MATERIAL`.
       roundedCorners: true,
-      backgroundMaterial: WINDOW_BACKDROP_MATERIAL,
+      // Set after creation by `applyWindowBackdrop`, from the theme.
       // Chromium paints white until the first frame of the page arrives. On a
       // frameless dark window that is a full-size white flash, and it happens
       // before any CSS has loaded, so no stylesheet can prevent it. Matching the
@@ -236,6 +239,8 @@ export const createMainWindowFactory = ({
       },
     });
     setMainWindow(created);
+    // The material the theme last asked for, from the first frame.
+    applyWindowBackdrop(created);
 
     const rendererUrl = resolveHtmlPath('index.html');
     const appSession = created.webContents.session;
@@ -414,14 +419,12 @@ export const createMainWindowFactory = ({
       // came to 2544x1424 at 8,8 with a strip of desktop down all four edges.
       // Full screen has nothing behind it to blur anyway — the window is the
       // screen — so the material is not being given up for anything.
-      created.setBackgroundMaterial('none');
+      applyWindowBackdrop(created);
       sendWindowState();
     });
 
     created.on('leave-full-screen', () => {
-      if (!created.isDestroyed()) {
-        created.setBackgroundMaterial(WINDOW_BACKDROP_MATERIAL);
-      }
+      applyWindowBackdrop(created);
       sendWindowState();
     });
     // Debounced: dragging a window fires 'resize' continuously, and writing a

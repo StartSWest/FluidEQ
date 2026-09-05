@@ -21,12 +21,18 @@ import { readStored, writeStored } from './graphStorage';
  *
  * `ocean` is the slate-navy the app was designed on and needs no attribute:
  * it is what `:root` declares. Anything else is named.
+ *
+ * `black` is nonetheless the default. It arrived in 1.6 and is what a fresh
+ * install and an upgrade from anything earlier both open in; Ocean stays one
+ * pick away and, once picked, is remembered like any other choice.
  */
 export const THEMES = ['ocean', 'black'] as const;
 export type TTheme = (typeof THEMES)[number];
 
 const STORAGE_KEY = 'fluideq.theme';
-const DEFAULT_THEME: TTheme = 'ocean';
+/** What `:root` paints with no attribute; see the note above. */
+const ROOT_THEME: TTheme = 'ocean';
+const DEFAULT_THEME: TTheme = 'black';
 
 const isTheme = (value: string | null): value is TTheme =>
   value !== null && (THEMES as readonly string[]).includes(value);
@@ -46,11 +52,17 @@ let current: TTheme = (() => {
  */
 const applyTheme = (theme: TTheme) => {
   const root = document.documentElement;
-  if (theme === DEFAULT_THEME) {
+  if (theme === ROOT_THEME) {
     root.removeAttribute('data-theme');
   } else {
     root.setAttribute('data-theme', theme);
   }
+  // The native window too: black wants no desktop blurred behind it. Every
+  // optional link is deliberate — tests stub the bridge with a handful of
+  // methods, and a theme is not worth taking a render down for.
+  window.electron?.ipcRenderer
+    ?.setWindowBackdrop?.(theme !== 'black')
+    ?.catch(() => undefined);
 };
 
 applyTheme(current);

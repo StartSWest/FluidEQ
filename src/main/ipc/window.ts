@@ -19,6 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { BrowserWindow, ipcMain } from 'electron';
 import { resolveLocale } from '../../common/i18n';
 import { setTrayLocale } from '../tray';
+import { setWindowBackdropWanted } from '../windowBackdrop';
 
 export interface IWindowIpcDeps {
   /** Resolved per call — the window outlives none of these handlers. */
@@ -92,6 +93,15 @@ export const registerWindowIpc = ({
     setTrayLocale(resolveLocale(typeof next === 'string' ? next : null), {
       getMainWindow,
     });
+  });
+
+  /**
+   * Whether the theme wants the desktop blurred behind the window. The
+   * renderer owns the theme and says so on startup and on every switch; the
+   * material is a window property only the main process can set.
+   */
+  ipcMain.handle('window-set-backdrop', (_event, wanted: unknown) => {
+    setWindowBackdropWanted(wanted !== false, getMainWindow());
   });
 
   ipcMain.handle(

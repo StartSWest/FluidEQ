@@ -128,6 +128,14 @@ const setAppLocale = (locale: string) =>
   ipcRenderer.invoke('window-set-locale', locale) as Promise<void>;
 
 /**
+ * Whether the window should show the desktop through a blur. The theme
+ * decides — a true-black theme wants an opaque window — and the material is
+ * a property of the native window, so it has to cross to main.
+ */
+const setWindowBackdrop = (wanted: boolean) =>
+  ipcRenderer.invoke('window-set-backdrop', wanted) as Promise<void>;
+
+/**
  * The release notes that shipped with this build.
  *
  * `latest` is the version just installed and nothing else; `all` is the whole
@@ -639,6 +647,7 @@ export default {
     toggleMaximizeWindow,
     closeWindow,
     setAppLocale,
+    setWindowBackdrop,
     getChangelog,
     installUpdate,
     isWindowMaximized,
