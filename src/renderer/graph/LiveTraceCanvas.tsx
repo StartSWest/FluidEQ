@@ -113,6 +113,7 @@ import {
 } from '../waveformPaint';
 import { readAccentLight } from '../utils/theme';
 import { useIsRootEuphoric } from '../utils/euphoriaMode';
+import { GraphLookTransition } from './graphLookTransition';
 
 /**
  * The euphoria halo: two wide, faint copies of the figure behind itself.
@@ -293,6 +294,7 @@ const LiveTraceCanvas = ({
   const motionRef = useRef(createGraphMotionState());
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const transitionRef = useRef(new GraphLookTransition());
   // Held rather than fetched per frame: the computed style is a live object
   // bound to the element, and it goes stale with the context if the canvas is
   // ever replaced, so the two are taken together.
@@ -391,7 +393,10 @@ const LiveTraceCanvas = ({
       if (canvas.width !== backingWidth || canvas.height !== backingHeight) {
         canvas.width = backingWidth;
         canvas.height = backingHeight;
+        transitionRef.current.reset();
       }
+      const now = performance.now();
+      transitionRef.current.prepare(canvas, lookRef.current.id, now);
       // Cleared in device pixels, so the rounding above cannot leave a seam of
       // last frame's drawing along an edge.
       context.setTransform(1, 0, 0, 1, 0, 0);
@@ -1107,7 +1112,8 @@ const LiveTraceCanvas = ({
         context.restore();
       });
 
-      return moving || (isEuphoric && tuning.border);
+      const transitioning = transitionRef.current.paint(context, now);
+      return transitioning || moving || (isEuphoric && tuning.border);
     },
     [curves, height, points, width, xScale, yScale],
   );
@@ -1134,6 +1140,7 @@ const LiveTraceCanvas = ({
     contextRef.current = canvas ? canvas.getContext('2d') : null;
     computedRef.current = canvas ? window.getComputedStyle(canvas) : null;
     if (!canvas) {
+      transitionRef.current.reset();
       easedRef.current = [];
       pumpRef.current = 0;
       shownOpacityRef.current = 0;
