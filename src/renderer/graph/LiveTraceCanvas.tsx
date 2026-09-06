@@ -285,9 +285,11 @@ const LiveTraceCanvas = ({
   // The measurement, straight from the analyser. This component re-renders with
   // every frame and nothing above it does — which is the entire arrangement.
   const { points: livePoints, waveform } = useLiveAudioFrame();
-  const { isActive, isPaused } = useLiveAudioControl();
+  const { isPaused } = useLiveAudioControl();
   const playingRef = useRef(false);
-  playingRef.current = isActive && !isPaused;
+  // Shared audio and look previews supply frames without opening the local
+  // capture. Only Pause freezes their motion; isActive describes that capture.
+  playingRef.current = !isPaused;
   const motionRef = useRef(createGraphMotionState());
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -1163,7 +1165,6 @@ const LiveTraceCanvas = ({
     isForeground,
     isGridHidden,
     isRainbow,
-    isActive,
     isPaused,
     kickFrames,
     look,
