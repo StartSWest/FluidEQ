@@ -277,25 +277,35 @@ export interface IGraphPiece {
 const PIECE_BUILDERS: Partial<
   Record<
     GraphStyle,
-    (x: number, y: number, baseline: number, width: number) => string
+    (
+      x: number,
+      y: number,
+      baseline: number,
+      width: number,
+      ceiling: number,
+    ) => string
   >
 > = {
   bars: (x, y, baseline, width) =>
     rect(x - width / 2, y, width, Math.max(0, baseline - y)),
   pillars: (x, y, baseline, width) =>
     rect(x - width / 2, y, width, Math.max(0, baseline - y)),
-  blocks: (x, y, baseline, width) => {
-    // Taller segments than the meter uses: this pane is far deeper, and a
-    // seven-pixel ladder over it is hundreds of rectangles per column.
-    const segment = 11;
-    const lit = Math.floor(Math.max(0, baseline - y) / segment);
+  blocks: (x, y, baseline, width, ceiling) => {
+    // A bounded row count keeps LEDs readable and the path affordable even
+    // when the visualizer fills a high-resolution display.
+    const segment = Math.max(8, (baseline - ceiling) / 28);
+    const separation = Math.max(2, segment * 0.22);
+    const lit = Math.floor(
+      Math.min(Math.max(0, baseline - ceiling), Math.max(0, baseline - y)) /
+        segment,
+    );
     let d = '';
     for (let level = 0; level < lit; level += 1) {
       d += rect(
         x - width / 2,
-        baseline - (level + 1) * segment + 1,
+        baseline - (level + 1) * segment + separation / 2,
         width,
-        segment - 2,
+        segment - separation,
       );
     }
     return d;
@@ -342,6 +352,7 @@ export const createGraphPieces = (
   baseline: number,
   columns?: number,
   gap = 0,
+  ceiling = 0,
 ): IGraphPiece[] => {
   const build = PIECE_BUILDERS[style];
   if (!build || points.length < 2) {
@@ -357,9 +368,9 @@ export const createGraphPieces = (
     PIECE_WIDTH_FLOORS[style] ?? 1,
     step * (1 - Math.max(0, Math.min(0.85, gap))),
   );
-  const depth = Math.max(1, baseline);
+  const depth = Math.max(1, baseline - ceiling);
   return figure.map(([x, y], index) => ({
-    d: build(x, y, baseline, width),
+    d: build(x, y, baseline, width, ceiling),
     across: figure.length > 1 ? index / (figure.length - 1) : 0,
     energy: Math.max(0, Math.min(1, (baseline - y) / depth)),
   }));
@@ -572,7 +583,7 @@ export const createGraphShape = (
       // it has a colour to give each one — see `createGraphPieces`. One
       // layout, so a border can never be drawn round pieces that are not
       // the pieces underneath it.
-      return createGraphPieces(points, style, baseline, columns, gap)
+      return createGraphPieces(points, style, baseline, columns, gap, ceiling)
         .map((piece) => piece.d)
         .join('');
 
@@ -620,7 +631,7 @@ export const createGraphShape = (
       // it has a colour to give each one — see `createGraphPieces`. One
       // layout, so a border can never be drawn round pieces that are not
       // the pieces underneath it.
-      return createGraphPieces(points, style, baseline, columns, gap)
+      return createGraphPieces(points, style, baseline, columns, gap, ceiling)
         .map((piece) => piece.d)
         .join('');
 
@@ -1485,6 +1496,7 @@ export const ACCENT_STYLES: AccentStyle[] = [
 ];
 
 const ACCENTS: Partial<Record<GraphStyle, 'bead' | 'trace'>> = {
+  blocks: 'bead',
   stems: 'bead',
   /**
    * The wave line over the fluid's bars.
@@ -1615,8 +1627,12 @@ export const getGlowStyle = (
  * half of what the form is. Everything else opens on the box, which is the
  * mark this graph has always drawn.
  */
-export const getDefaultAccentStyle = (style: GraphStyle): AccentStyle =>
-  ACCENTS[style] === 'trace' ? 'wave' : 'bead';
+export const getDefaultAccentStyle = (style: GraphStyle): AccentStyle => {
+  if (style === 'blocks') {
+    return 'fall';
+  }
+  return ACCENTS[style] === 'trace' ? 'wave' : 'bead';
+};
 
 export const hasGraphAccent = (style: GraphStyle): boolean =>
   Boolean(ACCENTS[style]);

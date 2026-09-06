@@ -453,7 +453,7 @@ const BALLISTICS: Partial<Record<GraphStyle, IGraphBallistics>> = {
   // Snap up, hang, drop away — a meter's manners.
   bars: { attackMs: 4, releaseMs: 45 },
   pillars: { attackMs: 4, releaseMs: 45 },
-  blocks: { attackMs: 3, releaseMs: 60 },
+  blocks: { attackMs: 8, releaseMs: 125 },
   // Peak marks: they exist to be caught, so they fall slowly enough to see.
   caps: { attackMs: 2, releaseMs: 110 },
   dots: { attackMs: 14, releaseMs: 160 },
@@ -610,6 +610,7 @@ const COLUMN_COUNT = 64;
  */
 const COLUMN_OVERRIDES: Partial<Record<GraphStyle, number>> = {
   dots: 48,
+  blocks: 40,
   skyline: 26,
   truss: 22,
   ecg: 26,
@@ -717,6 +718,7 @@ const FILL_OPACITY_OVERRIDES: Partial<Record<GraphStyle, number>> = {
   fluid: 0.92,
   bubbles: 0.85,
   dots: 0.9,
+  blocks: 0.84,
 };
 
 /**
@@ -734,7 +736,7 @@ const FILL_OPACITY_OVERRIDES: Partial<Record<GraphStyle, number>> = {
 const BAR_GAP_DEFAULTS: Partial<Record<GraphStyle, number>> = {
   fluid: 0,
   bars: 0.38,
-  blocks: 0.38,
+  blocks: 0.26,
   pillars: 0.04,
   skyline: 0.12,
   dots: 0.38,

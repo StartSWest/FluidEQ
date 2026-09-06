@@ -69,6 +69,7 @@ import {
   getGlowStyle,
   getGraphPeaks,
   hasGraphPieces,
+  toColumns,
 } from 'common/graphShapes';
 import useSmoothFrames from 'renderer/utils/useSmoothFrames';
 import { useGraphGridHidden, useGraphLook } from 'renderer/utils/graphStyle';
@@ -632,6 +633,7 @@ const LiveTraceCanvas = ({
               baseline,
               tuning.columns,
               tuning.gap,
+              plot.top,
             ).map((piece) => ({
               path: new Path2D(piece.d),
               energy: piece.energy,
@@ -762,12 +764,17 @@ const LiveTraceCanvas = ({
       const accentPositions: number[] = [];
       if (wantsPaintedAccent) {
         const accentDepth = depth;
-        for (let index = 0; index < projected.length; index += 1) {
-          accentPositions.push(projected[index][0]);
+        // LED caps belong to the displayed columns, not all analyser bins.
+        const accentPoints =
+          chosen === 'blocks'
+            ? toColumns(projected, tuning.columns)
+            : projected;
+        for (let index = 0; index < accentPoints.length; index += 1) {
+          accentPositions.push(accentPoints[index][0]);
           accentHeights.push(
             Math.max(
               0,
-              Math.min(1, (baseline - projected[index][1]) / accentDepth),
+              Math.min(1, (baseline - accentPoints[index][1]) / accentDepth),
             ),
           );
         }
@@ -1099,7 +1106,11 @@ const LiveTraceCanvas = ({
                 right: plot.right,
                 state: accentStateRef.current,
                 weight: tuning.accentWidth,
-                paint: paintFor(resolveAccentStroke(basePaint, euphoria)),
+                paint: paintFor(
+                  chosen === 'blocks'
+                    ? basePaint
+                    : resolveAccentStroke(basePaint, euphoria),
+                ),
               })
             ) {
               // A mote still in the air is motion, even once the music has

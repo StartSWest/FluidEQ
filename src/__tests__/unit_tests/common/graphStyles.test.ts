@@ -43,6 +43,8 @@ import {
   getGraphPeaks,
   hasGraphAccent,
   createGraphShape,
+  createGraphPieces,
+  getDefaultAccentStyle,
 } from 'common/graphShapes';
 
 const BASELINE = 300;
@@ -103,6 +105,62 @@ describe('connected spectrum beads', () => {
     const motion = getGraphBallistics('dots');
     expect(motion.releaseMs).toBeGreaterThanOrEqual(150);
     expect(motion.attackMs).toBeLessThan(motion.releaseMs);
+  });
+});
+
+describe('readable LED columns', () => {
+  it.each([300, 1440, 2880])(
+    'bounds the lit rows at a %i pixel depth',
+    (depth) => {
+      const top = 50;
+      const baseline = top + depth;
+      const pieces = createGraphPieces(
+        [
+          [0, top],
+          [100, top],
+        ],
+        'blocks',
+        baseline,
+        2,
+        0.26,
+        top,
+      );
+      pieces.forEach((piece) => {
+        expect(piece.d.match(/M /g)).toHaveLength(28);
+        expect(piece.energy).toBe(1);
+      });
+    },
+  );
+
+  it('shares the same LED geometry across whole-figure and per-column palettes', () => {
+    const top = 40;
+    const whole = createGraphShape(
+      points,
+      'blocks',
+      BASELINE,
+      40,
+      undefined,
+      0.26,
+      top,
+    );
+    const pieces = createGraphPieces(points, 'blocks', BASELINE, 40, 0.26, top);
+    expect(whole).toBe(pieces.map((piece) => piece.d).join(''));
+    expect(
+      createGraphPieces(
+        [
+          [0, BASELINE],
+          [100, BASELINE],
+        ],
+        'blocks',
+        BASELINE,
+      ).every((piece) => piece.d === ''),
+    ).toBe(true);
+  });
+
+  it('starts with falling peak markers and fewer, broader columns', () => {
+    expect(hasGraphAccent('blocks')).toBe(true);
+    expect(getDefaultAccentStyle('blocks')).toBe('fall');
+    expect(getGraphColumnCount('blocks')).toBe(40);
   });
 });
 
@@ -411,10 +469,11 @@ describe('the lit peaks', () => {
     expect(marks.length).toBeLessThanOrEqual(10);
   });
 
-  it('starts lit on the stems and nothing else', () => {
+  it('starts lit on stems and LED blocks while other shapes remain unmarked', () => {
     // The point of many drawings is that they do not all behave the same way.
     // A lit tip suits a stem and says nothing on a contour map, a slope field
-    // or a bridge truss — so exactly one form arrives with one, and this is
+    // or a bridge truss — so only stems and the LED meter arrive with one.
+    // This is
     // the test that stops a well-meaning refactor from switching it on for
     // everybody.
     //
@@ -427,7 +486,7 @@ describe('the lit peaks', () => {
     const lit = GRAPH_STYLES.filter(
       (style) => hasGraphAccent(style) && style !== 'fluid',
     );
-    expect(lit).toEqual(['stems']);
+    expect(lit).toEqual(['blocks', 'stems']);
   });
 
   it('draws the fluid a curve rather than a peak mark', () => {
