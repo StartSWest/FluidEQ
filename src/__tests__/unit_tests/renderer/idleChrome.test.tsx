@@ -34,15 +34,102 @@ const movePointer = (target: EventTarget, clientY: number): void => {
   });
 };
 
+const idleFrames = new Map<number, FrameRequestCallback>();
+let idleFrameId = 0;
+const advanceIdleTime = (milliseconds: number) => {
+  jest.advanceTimersByTime(milliseconds);
+  const callbacks = [...idleFrames.values()];
+  idleFrames.clear();
+  callbacks.forEach((callback) => callback(performance.now()));
+};
+
 describe('idle chrome', () => {
   beforeEach(() => {
     jest.useFakeTimers();
+    idleFrames.clear();
+    jest
+      .spyOn(window, 'requestAnimationFrame')
+      .mockImplementation((callback) => {
+        idleFrameId += 1;
+        idleFrames.set(idleFrameId, callback);
+        return idleFrameId;
+      });
+    jest
+      .spyOn(window, 'cancelAnimationFrame')
+      .mockImplementation((id) => idleFrames.delete(id));
     act(() => watchChromeIdle(false));
   });
 
   afterEach(() => {
     act(() => watchChromeIdle(false));
+    jest.restoreAllMocks();
     jest.useRealTimers();
+  });
+
+  it.each(['live-output-controls', 'graph-look-menu', 'graph-auto-cycle-menu'])(
+    'keeps controls visible while choosing inside %s, including a stationary pointer',
+    (className) => {
+      const idle = renderHook(() => useIsChromeIdle());
+      const panel = render(
+        <div className={className}>
+          <button type="button">Next look</button>
+        </div>,
+      );
+      act(() => watchChromeIdle(true));
+      movePointer(panel.getByRole('button'), 200);
+      act(() => advanceIdleTime(CHROME_IDLE_MS * 3));
+      expect(idle.result.current).toBe(false);
+      movePointer(window, 300);
+      act(() => advanceIdleTime(CHROME_IDLE_MS));
+      expect(idle.result.current).toBe(true);
+    },
+  );
+
+  it('reveals the current look while cycling with Space', () => {
+    const idle = renderHook(() => useIsChromeIdle());
+    act(() => watchChromeIdle(true));
+    act(() => advanceIdleTime(CHROME_IDLE_MS));
+    expect(idle.result.current).toBe(true);
+    act(() =>
+      window.dispatchEvent(
+        new KeyboardEvent('keydown', { key: ' ', code: 'Space' }),
+      ),
+    );
+    expect(idle.result.current).toBe(false);
+    act(() => advanceIdleTime(CHROME_IDLE_MS - 1));
+    expect(idle.result.current).toBe(false);
+  });
+
+  it('releases a menu hold when the menu disappears without a pointer move', () => {
+    const idle = renderHook(() => useIsChromeIdle());
+    const panel = render(
+      <div className="graph-look-menu">
+        <button type="button">Look</button>
+      </div>,
+    );
+    act(() => watchChromeIdle(true));
+    movePointer(panel.getByRole('button'), 200);
+    act(() => advanceIdleTime(CHROME_IDLE_MS));
+    expect(idle.result.current).toBe(false);
+    panel.unmount();
+    act(() => advanceIdleTime(CHROME_IDLE_MS));
+    expect(idle.result.current).toBe(true);
+  });
+
+  it('holds the toolbar while keyboard focus is in its portalled list', () => {
+    const idle = renderHook(() => useIsChromeIdle());
+    const panel = render(
+      <div className="graph-look-menu">
+        <button type="button">Look</button>
+      </div>,
+    );
+    act(() => watchChromeIdle(true));
+    act(() => panel.getByRole('button').focus());
+    act(() => advanceIdleTime(CHROME_IDLE_MS * 3));
+    expect(idle.result.current).toBe(false);
+    act(() => panel.getByRole('button').blur());
+    act(() => advanceIdleTime(CHROME_IDLE_MS));
+    expect(idle.result.current).toBe(true);
   });
 
   it('hides after five seconds and wakes only for a move into the chrome bands', () => {
@@ -52,10 +139,10 @@ describe('idle chrome', () => {
     expect(CHROME_IDLE_MS).toBe(5000);
     expect(result.current).toBe(false);
 
-    act(() => jest.advanceTimersByTime(CHROME_IDLE_MS - 1));
+    act(() => advanceIdleTime(CHROME_IDLE_MS - 1));
     expect(result.current).toBe(false);
 
-    act(() => jest.advanceTimersByTime(1));
+    act(() => advanceIdleTime(1));
     expect(result.current).toBe(true);
 
     // The middle of the screen is somebody watching, or a hand resting on a
@@ -88,7 +175,7 @@ describe('idle chrome', () => {
     });
     expect(result.current).toBe(false);
 
-    act(() => jest.advanceTimersByTime(CHROME_IDLE_MS));
+    act(() => advanceIdleTime(CHROME_IDLE_MS));
     expect(result.current).toBe(true);
 
     // And the head of it is where the graph's own toolbar is.
@@ -97,7 +184,7 @@ describe('idle chrome', () => {
     });
     expect(result.current).toBe(false);
 
-    act(() => jest.advanceTimersByTime(CHROME_IDLE_MS));
+    act(() => advanceIdleTime(CHROME_IDLE_MS));
     expect(result.current).toBe(true);
 
     act(() => revealChromeNow());
@@ -119,7 +206,7 @@ describe('idle chrome', () => {
     );
 
     act(() => watchChromeIdle(true));
-    act(() => jest.advanceTimersByTime(CHROME_IDLE_MS));
+    act(() => advanceIdleTime(CHROME_IDLE_MS));
     expect(idle.result.current).toBe(true);
     expect(nearBottom.result.current).toBe(false);
 
@@ -134,7 +221,7 @@ describe('idle chrome', () => {
     expect(nearBottom.result.current).toBe(true);
 
     movePointer(panel.getByRole('button'), Math.round(window.innerHeight / 2));
-    act(() => jest.advanceTimersByTime(CHROME_IDLE_MS));
+    act(() => advanceIdleTime(CHROME_IDLE_MS));
     expect(idle.result.current).toBe(false);
     expect(nearBottom.result.current).toBe(true);
 
@@ -144,11 +231,11 @@ describe('idle chrome', () => {
     expect(idle.result.current).toBe(false);
     expect(nearBottom.result.current).toBe(true);
 
-    act(() => jest.advanceTimersByTime(CHROME_IDLE_MS - 1));
+    act(() => advanceIdleTime(CHROME_IDLE_MS - 1));
     expect(idle.result.current).toBe(false);
     expect(nearBottom.result.current).toBe(true);
 
-    act(() => jest.advanceTimersByTime(1));
+    act(() => advanceIdleTime(1));
     expect(idle.result.current).toBe(true);
     expect(nearBottom.result.current).toBe(false);
   });

@@ -625,7 +625,7 @@ it under the terms of the GNU General Public License version 3 or later.
   // simply makes the pill wider, and a pill that is wider for some looks than
   // others is the shuffling this floor exists to prevent. The extra is the
   // icon and its gap, nothing more.
-  .dropdown {
+  .dropdown:has(.graph-look-name) {
     min-width: 194px;
   }
 

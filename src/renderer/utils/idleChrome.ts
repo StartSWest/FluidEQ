@@ -56,28 +56,30 @@ export const CHROME_IDLE_MS = 5000;
  * mid-keystroke would take the labels away exactly when the shortcut changed
  * what they say.
  */
-// Pressing is deliberately absent. A click on the drawing *toggles* the chrome
-// — see `toggleChromeNow` — and it cannot toggle anything if the press that
-// carries it has already brought the chrome back a moment earlier. Moving the
-// pointer still reveals, which is the gesture people actually reach for.
-const ACTIVITY_EVENTS = ['pointermove', 'keydown', 'wheel'];
+// Presses only count inside the controls. A press on the drawing must reach
+// its explicit show/hide toggle without first changing the state it toggles.
+const ACTIVITY_EVENTS = [
+  'pointermove',
+  'keydown',
+  'wheel',
+  'pointerdown',
+  'focusin',
+  'focusout',
+];
 
-/**
- * The one key that does not wake anything, and the reason for the exception.
- *
- * Space walks the visualiser styles, and walking them is the most watching
- * thing there is to do in this mode — several presses in a row, looking at the
- * result of each. Treating that as activity meant the toolbar reappeared on
- * every press, which is the opposite of what somebody flipping through looks is
- * asking for. Every other shortcut changes what the labels say, so every other
- * shortcut still brings them back to be read.
- */
-const isQuietKey = (event: KeyboardEvent) =>
-  event.code === 'Space' || event.key === ' ';
+// Dropdown lists are portalled out of the toolbar. Both surfaces must hold
+// its controls open while a look or interval is being chosen.
+const TOP_CHROME_SELECTOR =
+  '.live-output-controls, .graph-look-menu, .graph-auto-cycle-menu';
+const isTopChrome = (target: EventTarget | null): boolean =>
+  target instanceof Element && target.closest(TOP_CHROME_SELECTOR) !== null;
+let topPointerTarget: Element | null = null;
+const isUsingTopChrome = () =>
+  !!topPointerTarget?.isConnected || isTopChrome(document.activeElement);
 
 let isIdle = false;
 let isWatching = false;
-let timer: number | undefined;
+let idleFrame: number | undefined;
 
 /**
  * Something on screen needs the chrome to stay put.
@@ -114,10 +116,30 @@ const setIdle = (next: boolean) => {
 };
 
 const clearTimer = () => {
-  if (timer !== undefined) {
-    window.clearTimeout(timer);
-    timer = undefined;
+  if (idleFrame !== undefined) {
+    window.cancelAnimationFrame(idleFrame);
+    idleFrame = undefined;
   }
+};
+
+const startIdleClock = () => {
+  clearTimer();
+  let lastActiveAt = performance.now();
+  const tick = (now: number) => {
+    // A menu can unmount without a pointermove or blur. Check the real target
+    // on animation frames so that closing it releases the hold automatically.
+    if (isHeld || isUsingTopChrome()) {
+      lastActiveAt = now;
+    }
+    if (now - lastActiveAt >= CHROME_IDLE_MS) {
+      idleFrame = undefined;
+      setNearBottom(false);
+      setIdle(true);
+      return;
+    }
+    idleFrame = window.requestAnimationFrame(tick);
+  };
+  idleFrame = window.requestAnimationFrame(tick);
 };
 
 /**
@@ -212,6 +234,20 @@ export const useIsPointerNearChrome = () =>
   );
 
 const handleActivity = (event?: Event) => {
+  if (event?.type === 'pointerdown' && !isTopChrome(event.target)) {
+    return;
+  }
+  if (event?.type === 'pointermove' || event?.type === 'pointerdown') {
+    topPointerTarget = isTopChrome(event.target)
+      ? (event.target as Element)
+      : null;
+  }
+  if (isUsingTopChrome()) {
+    setNearBottom(true);
+    setIdle(false);
+    startIdleClock();
+    return;
+  }
   let isInBottomSurface = false;
   let bottomSurfaceHoldsOpen = false;
   if (event?.type === 'pointermove') {
@@ -225,9 +261,6 @@ const handleActivity = (event?: Event) => {
     if (isInWakeZone(move)) {
       setNearBottom(true);
     }
-  }
-  if (event?.type === 'keydown' && isQuietKey(event as KeyboardEvent)) {
-    return;
   }
   // Keys and the wheel are deliberate by nature and wake it at once. The
   // pointer has to be where the chrome is — see `isInWakeZone`.
@@ -264,11 +297,7 @@ const handleActivity = (event?: Event) => {
     return;
   }
   setIdle(false);
-  clearTimer();
-  timer = window.setTimeout(() => {
-    setNearBottom(false);
-    setIdle(true);
-  }, CHROME_IDLE_MS);
+  startIdleClock();
 };
 
 /**
@@ -365,6 +394,7 @@ export const watchChromeIdle = (next: boolean) => {
   // amount of moving the mouse would explain why. A hold is dropped for the
   // same reason: whatever was asking for it is gone with the mode.
   isHeld = false;
+  topPointerTarget = null;
   setIdle(false);
 };
 

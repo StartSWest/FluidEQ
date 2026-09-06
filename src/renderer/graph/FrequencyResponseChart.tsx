@@ -121,6 +121,7 @@ import { useCustomLooks } from '../utils/customLooks';
 import { useTranslation } from '../utils/I18nContext';
 import LookDesigner from '../components/LookDesigner';
 import Dropdown from '../widgets/Dropdown';
+import GraphAutoCycle from './GraphAutoCycle';
 import GraphViewMenu from './GraphViewMenu';
 import { hasHeadphoneLayer } from '../../common/headphone';
 import { hasSmartEqLayer } from '../../common/smartEq';
@@ -1661,6 +1662,11 @@ const FrequencyResponseChart = ({
                 <path d="M6 3.5l4 4.5-4 4.5" />
               </svg>
             </button>
+            <GraphAutoCycle
+              selectedLookId={selectedLookId}
+              isWaveHidden={isDisplayedWaveHidden}
+              isEditing={isDesignerOpen}
+            />
             {/* How the chosen form is coloured.
 
                 It used to be three rows of every form in the list itself, so
