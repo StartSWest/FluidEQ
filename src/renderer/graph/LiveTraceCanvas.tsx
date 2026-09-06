@@ -115,6 +115,7 @@ import {
 import { readAccentLight } from '../utils/theme';
 import { useIsRootEuphoric } from '../utils/euphoriaMode';
 import { GraphLookTransition } from './graphLookTransition';
+import getGraphMotionDelta from './graphMotionPacing';
 
 /**
  * The euphoria halo: two wide, faint copies of the figure behind itself.
@@ -409,8 +410,19 @@ const LiveTraceCanvas = ({
       // their numbers instead, which is the setting that changes a form's
       // character most and the reason the panel leads with them.
       const { tuning } = lookRef.current;
-      const rise = getEaseFactor(deltaMs, tuning.attackMs);
-      const fall = getEaseFactor(deltaMs, tuning.releaseMs);
+      const yRange = yScale.range?.();
+      const plotDepth = yRange ? Math.abs(yRange[1] - yRange[0]) : height;
+      const heightScale = curves.reduce(
+        (largest, curve) =>
+          Math.max(largest, Math.abs(getWaveTransform(curve, 1).scaleY)),
+        0,
+      );
+      const motionDeltaMs = getGraphMotionDelta(
+        deltaMs,
+        plotDepth * heightScale,
+      );
+      const rise = getEaseFactor(motionDeltaMs, tuning.attackMs);
+      const fall = getEaseFactor(motionDeltaMs, tuning.releaseMs);
       let moving = false;
       for (let index = 0; index < eased.length; index += 1) {
         const distance = data[index].y - eased[index].y;
@@ -429,7 +441,6 @@ const LiveTraceCanvas = ({
       // The plot's own edges, taken from the scales rather than from props, so
       // everything measured against them follows a resize without being told.
       const xRange = xScale.range?.();
-      const yRange = yScale.range?.();
       const plot = {
         left: xRange ? Math.min(xRange[0], xRange[1]) : 0,
         right: xRange ? Math.max(xRange[0], xRange[1]) : 0,
@@ -538,7 +549,7 @@ const LiveTraceCanvas = ({
           advanceWaveform(
             fluidWaveRef.current,
             waveformRef.current,
-            deltaMs,
+            motionDeltaMs,
             tuning,
           ) || moving;
       }
@@ -559,7 +570,7 @@ const LiveTraceCanvas = ({
             bars,
             data,
             MIN_GAIN,
-            deltaMs,
+            motionDeltaMs,
             tuning,
             MAX_GAIN - MIN_GAIN,
           ) || moving;
@@ -605,7 +616,7 @@ const LiveTraceCanvas = ({
           columns: tuning.columns,
           top: plot.top,
           bottom: baseline,
-          deltaMs,
+          deltaMs: motionDeltaMs,
           playing: playingRef.current,
           filled: isFilled,
           gap: tuning.gap,
@@ -689,7 +700,10 @@ const LiveTraceCanvas = ({
         const gap = energy - pumpRef.current;
         pumpRef.current +=
           gap *
-          getEaseFactor(deltaMs, gap > 0 ? GLOW_ATTACK_MS : GLOW_RELEASE_MS);
+          getEaseFactor(
+            motionDeltaMs,
+            gap > 0 ? GLOW_ATTACK_MS : GLOW_RELEASE_MS,
+          );
         // Still settling counts as motion, or the loop would stop with the glow
         // halfway down and leave it stuck there until the next measurement.
         if (gap > 0.002 || gap < -0.002) {
@@ -701,7 +715,7 @@ const LiveTraceCanvas = ({
         // The silhouette light comes off, which for most forms is not the form
         // — see `getGlowStyle`. Reused rather than rebuilt when the two are the
         // same shape, which is the common case for the simple forms.
-        const glowStyle = getGlowStyle(chosen, shape.length);
+        const glowStyle = getGlowStyle(chosen, shape.length, isFilled);
         halo =
           glowStyle === chosen || isFluidForm || hasGraphMotion(chosen)
             ? figure
@@ -743,6 +757,14 @@ const LiveTraceCanvas = ({
           )
         : '';
       const accent = accentShape ? new Path2D(accentShape) : undefined;
+      // Close an explicitly filled wave to the baseline; filling the open
+      // curve itself would draw a diagonal wedge between its endpoints.
+      const accentFill =
+        accentShape && tuning.accentFilled && tuning.accentStyle === 'wave'
+          ? new Path2D(
+              `${accentShape} L ${projected[projected.length - 1][0]},${baseline} L ${projected[0][0]},${baseline} Z`,
+            )
+          : undefined;
 
       /**
        * What the painted marks read: the peaks worth lighting, and every
@@ -766,7 +788,7 @@ const LiveTraceCanvas = ({
         const accentDepth = depth;
         // LED caps belong to the displayed columns, not all analyser bins.
         const accentPoints =
-          chosen === 'blocks'
+          chosen === 'blocks' && tuning.accentStyle !== 'live'
             ? toColumns(projected, tuning.columns)
             : projected;
         for (let index = 0; index < accentPoints.length; index += 1) {
@@ -787,7 +809,7 @@ const LiveTraceCanvas = ({
             peaks: accentPeaks,
             heights: accentHeights,
             state: accentStateRef.current,
-            deltaMs,
+            deltaMs: motionDeltaMs,
           }) || moving;
       } else if (accentStateRef.current.behaviour !== undefined) {
         accentStateRef.current = createAccentState();
@@ -909,6 +931,90 @@ const LiveTraceCanvas = ({
         const paintFor = (paint: TracePaint) =>
           paint === basePaint ? canvasPaint : toCanvasPaint(context, paint);
 
+        const paintPeaks = () => {
+          // Lit tips. Only the peaks, and only on the forms that have them — the
+          // point is that the loudest few bands in the current frame catch the
+          // light while the rest of the figure stays as it was.
+          /**
+           * Lit peaks.
+           *
+           * Two shapes of thing under one setting. The wave is a path — the
+           * titlebar's own curve — so it is stroked like any other figure. The
+           * other nine hang, sink, expand, fly or trail, none of which exists
+           * inside a single frame, so they are painted by something that keeps
+           * what they remember. See `graphAccents`.
+           */
+          if (tuning.accents) {
+            if (tuning.accentStyle === 'wave' && accent) {
+              /**
+               * One stroke over a shadow, which is how the titlebar lights it.
+               *
+               * No halo pass under it: two widths of the same curve read as a
+               * line with a blurrier line drawn around it, which is where the
+               * grey aura came from. And no fill — filling an open curve
+               * closes it, which is where the white slab came from.
+               *
+               * The accent shares the look's palette, so custom colours and
+               * Flat remain consistent with the figure underneath it.
+               */
+              context.save();
+              context.lineJoin = 'round';
+              context.lineCap = 'round';
+              if (accentFill) {
+                setAlpha(context, opacity * 0.2);
+                context.fillStyle = canvasPaint;
+                context.fill(accentFill);
+              }
+              context.shadowColor = isEuphoric
+                ? TRACE_GLOW_RAINBOW
+                : traceGlowCyan();
+              /**
+               * The look's glow and thickness, as multiples of their own
+               * defaults rather than as raw values — multiplying by them
+               * directly would undo the shipped look, since thickness defaults
+               * to 2 and would double a 4.2px line into 8.4.
+               */
+              context.shadowBlur =
+                (isEuphoric ? TRACE_BLUR_RAINBOW : 0) *
+                (tuning.glow / DEFAULT_GLOW);
+              setAlpha(context, opacity);
+              context.strokeStyle = canvasPaint;
+              context.lineWidth =
+                (isEuphoric ? TRACE_WIDTH_RAINBOW : TRACE_WIDTH_CYAN) *
+                tuning.accentWidth;
+              context.stroke(accent);
+              context.restore();
+            } else if (tuning.accentStyle !== 'wave') {
+              setAlpha(context, opacity);
+              if (
+                paintGraphAccent({
+                  context,
+                  behaviour: tuning.accentStyle,
+                  peaks: accentPeaks,
+                  heights: accentHeights,
+                  positions: accentPositions,
+                  baseline,
+                  top: plot.top,
+                  left: plot.left,
+                  right: plot.right,
+                  state: accentStateRef.current,
+                  weight: tuning.accentWidth,
+                  filled: tuning.accentFilled,
+                  paint: paintFor(
+                    chosen === 'blocks'
+                      ? basePaint
+                      : resolveAccentStroke(basePaint, euphoria),
+                  ),
+                })
+              ) {
+                // A mote still in the air is motion, even once the music has
+                // stopped — the loop has to keep drawing until it lands.
+                moving = true;
+              }
+            }
+          }
+        };
+
         // One beat-driven glow for every form, gated by Rainbow mode. Keeping
         // wave shadows separate made Glow work while its slider was disabled.
         if (haloPath) {
@@ -920,6 +1026,10 @@ const LiveTraceCanvas = ({
             context.lineWidth = strokeWidth + layer.widen * swell;
             context.stroke(haloPath);
           });
+        }
+
+        if (tuning.accentBehind) {
+          paintPeaks();
         }
 
         // One drawing for every style. A filled style paints the same shape
@@ -1044,80 +1154,8 @@ const LiveTraceCanvas = ({
           }
         }
 
-        // Lit tips. Only the peaks, and only on the forms that have them — the
-        // point is that the loudest few bands in the current frame catch the
-        // light while the rest of the figure stays as it was.
-        /**
-         * Lit peaks.
-         *
-         * Two shapes of thing under one setting. The wave is a path — the
-         * titlebar's own curve — so it is stroked like any other figure. The
-         * other nine hang, sink, expand, fly or trail, none of which exists
-         * inside a single frame, so they are painted by something that keeps
-         * what they remember. See `graphAccents`.
-         */
-        if (tuning.accents) {
-          if (tuning.accentStyle === 'wave' && accent) {
-            /**
-             * One stroke over a shadow, which is how the titlebar lights it.
-             *
-             * No halo pass under it: two widths of the same curve read as a
-             * line with a blurrier line drawn around it, which is where the
-             * grey aura came from. And no fill — filling an open curve
-             * closes it, which is where the white slab came from.
-             *
-             * The accent shares the look's palette, so custom colours and
-             * Flat remain consistent with the figure underneath it.
-             */
-            context.save();
-            context.lineJoin = 'round';
-            context.lineCap = 'round';
-            context.shadowColor = isEuphoric
-              ? TRACE_GLOW_RAINBOW
-              : traceGlowCyan();
-            /**
-             * The look's glow and thickness, as multiples of their own
-             * defaults rather than as raw values — multiplying by them
-             * directly would undo the shipped look, since thickness defaults
-             * to 2 and would double a 4.2px line into 8.4.
-             */
-            context.shadowBlur =
-              (isEuphoric ? TRACE_BLUR_RAINBOW : 0) *
-              (tuning.glow / DEFAULT_GLOW);
-            setAlpha(context, opacity);
-            context.strokeStyle = canvasPaint;
-            context.lineWidth =
-              (isEuphoric ? TRACE_WIDTH_RAINBOW : TRACE_WIDTH_CYAN) *
-              tuning.accentWidth;
-            context.stroke(accent);
-            context.restore();
-          } else if (tuning.accentStyle !== 'wave') {
-            setAlpha(context, opacity);
-            if (
-              paintGraphAccent({
-                context,
-                behaviour: tuning.accentStyle,
-                peaks: accentPeaks,
-                heights: accentHeights,
-                positions: accentPositions,
-                baseline,
-                top: plot.top,
-                left: plot.left,
-                right: plot.right,
-                state: accentStateRef.current,
-                weight: tuning.accentWidth,
-                paint: paintFor(
-                  chosen === 'blocks'
-                    ? basePaint
-                    : resolveAccentStroke(basePaint, euphoria),
-                ),
-              })
-            ) {
-              // A mote still in the air is motion, even once the music has
-              // stopped — the loop has to keep drawing until it lands.
-              moving = true;
-            }
-          }
+        if (!tuning.accentBehind) {
+          paintPeaks();
         }
 
         context.restore();

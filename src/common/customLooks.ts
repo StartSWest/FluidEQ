@@ -80,6 +80,10 @@ export interface ILookTuning {
   gap: number;
   /** Lit tips, for the forms that have them. */
   accents: boolean;
+  /** Fill the peak marks independently of the main figure. */
+  accentFilled: boolean;
+  /** Place the marks below the figure instead of above it. */
+  accentBehind: boolean;
   /**
    * How heavy a lit tip is, as a multiple of its own default.
    *
@@ -351,10 +355,12 @@ export const getDefaultTuning = (style: GraphStyle): ILookTuning => {
     attackMs: ballistics.attackMs,
     releaseMs: ballistics.releaseMs,
     filled: isFilledGraphStyle(style),
-    strokeWidth: DEFAULT_STROKE_WIDTH,
+    strokeWidth: style === 'line' ? 3 : DEFAULT_STROKE_WIDTH,
     fillOpacity: getGraphFillOpacity(style, DEFAULT_FILL_OPACITY),
     gap: getGraphBarGap(style),
     accents: hasGraphAccent(style),
+    accentFilled: style !== 'fluid',
+    accentBehind: false,
     accentWidth: DEFAULT_ACCENT_WIDTH,
     accentStyle: getDefaultAccentStyle(style),
     glow: DEFAULT_GLOW,
@@ -425,6 +431,8 @@ export const normalizeTuning = (
     // the table only decides where the switch starts. Gating here threw away
     // a choice somebody had already made.
     accents: readBoolean(source.accents, hasGraphAccent(style)),
+    accentFilled: readBoolean(source.accentFilled, defaults.accentFilled),
+    accentBehind: readBoolean(source.accentBehind, defaults.accentBehind),
     gap: readNumber(source.gap, MIN_BAR_GAP, MAX_BAR_GAP, defaults.gap),
     accentStyle: isAccentStyle(source.accentStyle)
       ? source.accentStyle

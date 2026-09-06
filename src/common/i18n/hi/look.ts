@@ -20,6 +20,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { Dictionary } from '../en';
 
 const look: Partial<Dictionary> = {
+  'look.peakFill': 'शिखर भरें',
+  'look.peak.live': 'लाइव शिखर',
+  'look.peakLayer': 'शिखर की स्थिति',
+  'look.peakFront': 'तरंग के आगे',
+  'look.peakBehind': 'तरंग के पीछे',
   'look.edit': 'रूप संपादित करें',
   'look.create': 'रूप बनाएँ',
   'look.new': 'नया रूप',

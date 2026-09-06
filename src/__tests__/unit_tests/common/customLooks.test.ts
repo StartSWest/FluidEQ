@@ -142,6 +142,8 @@ describe('normalizeTuning', () => {
       fillOpacity: 0.4,
       gap: 0.2,
       accents: false,
+      accentFilled: true,
+      accentBehind: false,
       accentWidth: DEFAULT_ACCENT_WIDTH,
       accentStyle: 'bead',
       glow: 0.5,
@@ -614,18 +616,21 @@ describe('every stored setting is validated', () => {
     });
   });
 
-  it.each(['filled', 'accents', 'border'] as (keyof ILookTuning)[])(
-    'refuses a non-boolean for %s',
-    (key) => {
-      // A form with no lit tips answers false whatever is asked, so the check
-      // is that nothing here ever produces a non-boolean.
-      ['yes', 1, 0, null, {}].forEach((value) => {
-        expect(typeof normalizeTuning({ [key]: value }, 'stems')[key]).toBe(
-          'boolean',
-        );
-      });
-    },
-  );
+  it.each([
+    'filled',
+    'accents',
+    'accentFilled',
+    'accentBehind',
+    'border',
+  ] as (keyof ILookTuning)[])('refuses a non-boolean for %s', (key) => {
+    // A form with no lit tips answers false whatever is asked, so the check
+    // is that nothing here ever produces a non-boolean.
+    ['yes', 1, 0, null, {}].forEach((value) => {
+      expect(typeof normalizeTuning({ [key]: value }, 'stems')[key]).toBe(
+        'boolean',
+      );
+    });
+  });
 
   it('refuses a lit-peak behaviour it does not have', () => {
     // It is written to disk as a string, so a hand-edited file or a look
@@ -655,6 +660,8 @@ describe('every stored setting is validated', () => {
       ...NUMERIC.map(([key]) => key),
       'filled',
       'accents',
+      'accentFilled',
+      'accentBehind',
       'border',
       // Neither a number nor a boolean: one of a fixed list of behaviours,
       // checked by the test below rather than by the tables above.

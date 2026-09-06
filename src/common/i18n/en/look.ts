@@ -18,6 +18,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 /** The Look Designer, the support panel, the creature and its game. */
 const look = {
+  'look.peakFill': 'Fill peaks',
+  'look.peak.live': 'Live peaks',
+  'look.peakLayer': 'Peak position',
+  'look.peakFront': 'In front of wave',
+  'look.peakBehind': 'Behind wave',
   'look.edit': 'Edit look',
   'look.create': 'Create look',
   'look.new': 'New look',

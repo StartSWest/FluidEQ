@@ -306,10 +306,16 @@ describe('peak animation', () => {
         }
         expect(state.motes).toHaveLength(1);
         const context = {
+          getTransform: jest.fn(() => ({ a: 1, d: 1 })),
+          translate: jest.fn(),
+          scale: jest.fn(),
           globalAlpha: 0.5,
           save: jest.fn(),
           restore: jest.fn(),
           beginPath: jest.fn(),
+          moveTo: jest.fn(),
+          lineTo: jest.fn(),
+          quadraticCurveTo: jest.fn(),
           arc: jest.fn(),
           stroke: jest.fn(),
           fill: jest.fn(),

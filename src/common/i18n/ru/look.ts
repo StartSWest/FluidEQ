@@ -20,6 +20,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { Dictionary } from '../en';
 
 const look: Partial<Dictionary> = {
+  'look.peakFill': 'Заливка пиков',
+  'look.peak.live': 'Пики в реальном времени',
+  'look.peakLayer': 'Положение пиков',
+  'look.peakFront': 'Перед волной',
+  'look.peakBehind': 'За волной',
   'look.edit': 'Изменить оформление',
   'look.create': 'Создать оформление',
   'look.new': 'Новое оформление',

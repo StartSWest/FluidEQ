@@ -58,6 +58,37 @@ const points: Projected[] = Array.from(
 const shapeOf = (style: GraphStyle) =>
   createGraphShape(points, style, BASELINE);
 
+describe('open trace glow', () => {
+  it.each(['line', 'hatch', 'blocks', 'wave-outline'] as const)(
+    'keeps a dense unfilled %s halo open instead of closing along the floor',
+    (style) => {
+      const glow = getGlowStyle(style, GLOW_COMPLEXITY_LIMIT + 1, false);
+      const path = createGraphShape(points, glow, BASELINE);
+      expect(path).toContain('Q');
+      expect(path).not.toMatch(/Z|,300\.0(?:\s|$)/);
+    },
+  );
+
+  it('rounds the trace while retaining its endpoints and explicitly closes only its fill', () => {
+    const line = createGraphShape(points, 'line', BASELINE);
+    expect(line).toMatch(/^M 0\.0,60\.0/);
+    expect(line).toMatch(/L 476\.0,250\.4$/);
+    expect(line).toContain('Q');
+    expect(
+      createGraphShape(
+        points,
+        'line',
+        BASELINE,
+        undefined,
+        undefined,
+        0,
+        0,
+        true,
+      ),
+    ).toMatch(/Z$/);
+  });
+});
+
 describe('connected spectrum beads', () => {
   it('draws round closed beads and a filled link between every neighbour', () => {
     const columns = 24;

@@ -20,6 +20,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { Dictionary } from '../en';
 
 const look: Partial<Dictionary> = {
+  'look.peakFill': '填充峰值',
+  'look.peak.live': '实时峰值',
+  'look.peakLayer': '峰值位置',
+  'look.peakFront': '波形前方',
+  'look.peakBehind': '波形后方',
   'look.edit': '编辑外观',
   'look.create': '创建外观',
   'look.new': '新建外观',

@@ -20,6 +20,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { Dictionary } from '../en';
 
 const look: Partial<Dictionary> = {
+  'look.peakFill': 'Spitzen füllen',
+  'look.peak.live': 'Live-Spitzen',
+  'look.peakLayer': 'Spitzenposition',
+  'look.peakFront': 'Vor der Welle',
+  'look.peakBehind': 'Hinter der Welle',
   'look.edit': 'Darstellung bearbeiten',
   'look.create': 'Darstellung erstellen',
   'look.new': 'Neue Darstellung',

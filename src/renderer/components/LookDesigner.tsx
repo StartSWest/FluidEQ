@@ -62,6 +62,7 @@ import {
   rebaseDraftLook,
   recolourDraftLook,
 } from 'common/customLooks';
+import Switch from '../widgets/Switch';
 import { BAND_SPECTRUM_HEX } from '../utils/bandColors';
 import { useIsRootEuphoric } from '../utils/euphoriaMode';
 import { useTranslation } from '../utils/I18nContext';
@@ -1012,6 +1013,43 @@ const LookDesigner = ({ onClose, isClosing = false }: ILookDesignerProps) => {
             />
           </label>
         </div>
+
+        <div className="look-designer__row look-designer__row--switch">
+          <div className="look-designer__caption">
+            <label htmlFor="look-designer-peak-filled">
+              {t('look.peakFill')}
+            </label>
+            <Switch
+              id="look-designer-peak-filled"
+              ariaLabel={t('look.peakFill')}
+              isOn={tuning.accentFilled}
+              isDisabled={!tuning.accents}
+              handleToggle={() => tune({ accentFilled: !tuning.accentFilled })}
+            />
+          </div>
+        </div>
+
+        <SettingRow
+          id="look-designer-peak-layer"
+          label={t('look.peakLayer')}
+          value={t(tuning.accentBehind ? 'look.peakBehind' : 'look.peakFront')}
+          isDisabled={!tuning.accents}
+        >
+          <div className="look-designer__choice">
+            {[false, true].map((behind) => (
+              <button
+                key={String(behind)}
+                type="button"
+                className={`look-designer__pill${tuning.accentBehind === behind ? ' is-on' : ''}`}
+                aria-pressed={tuning.accentBehind === behind}
+                disabled={!tuning.accents}
+                onClick={() => tune({ accentBehind: behind })}
+              >
+                {t(behind ? 'look.peakBehind' : 'look.peakFront')}
+              </button>
+            ))}
+          </div>
+        </SettingRow>
 
         {/* How heavy the mark is. Only once there is a mark to make heavy —
             greyed rather than hidden, like the mode's own settings above, so

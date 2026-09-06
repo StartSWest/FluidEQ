@@ -567,7 +567,11 @@ export const createGraphShape = (
 
   switch (style) {
     case 'line':
-      return filled ? closedUnder(polyline(points)) : polyline(points);
+      // Round the joins without inventing an oscillation between readings.
+      // Sharp FFT-bin corners became a jagged wire at full-screen height.
+      return filled
+        ? closedUnder(smoothPolyline(points))
+        : smoothPolyline(points);
 
     case 'area':
     case 'ridge': {
@@ -1471,6 +1475,7 @@ export const createGraphShape = (
  * fluid is half made of. It stays exactly as it is.
  */
 export type AccentStyle =
+  | 'live'
   | 'wave'
   | 'bead'
   | 'fall'
@@ -1483,6 +1488,7 @@ export type AccentStyle =
   | 'drip';
 
 export const ACCENT_STYLES: AccentStyle[] = [
+  'live',
   'bead',
   'fall',
   'ghost',
@@ -1593,7 +1599,13 @@ const GLOW_SILHOUETTES: Partial<Record<GraphStyle, GraphStyle>> = {
 export const getGlowStyle = (
   style: GraphStyle,
   pathLength: number,
+  filled = true,
 ): GraphStyle => {
+  // A filled silhouette closes along the floor. Using it behind an open
+  // trace drew a glowing box whenever the path crossed the complexity limit.
+  if (!filled) {
+    return pathLength <= GLOW_COMPLEXITY_LIMIT ? style : 'line';
+  }
   if (pathLength <= GLOW_COMPLEXITY_LIMIT) {
     // Few enough pieces that the light can follow the real thing, which always
     // looks better — it is the actual shape rather than an impression of it.

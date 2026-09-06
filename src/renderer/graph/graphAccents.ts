@@ -45,19 +45,17 @@ import { getEaseFactor } from 'common/smoothing';
  * to see a transient the figure has already forgotten — and fast enough that
  * a quiet passage is not haunted by the last loud one.
  */
-const FALL_PER_SECOND = 0.55;
+const FALL_PER_SECOND = 0.32;
+const PEAK_HOLD_MS = 180;
 
 /** How long a thrown or expanding mark lives, in seconds. */
-const MOTE_LIFE = 0.9;
-
-/** How far a ripple has grown by the time it dies, in mark widths. */
-const RIPPLE_REACH = 5;
+const MOTE_LIFE = 1.1;
 
 /** How many motes one peak may have in flight before it stops making more. */
 const MAX_MOTES = 90;
 
 /** How quickly the ghost's envelope forgets, in milliseconds to halve. */
-const GHOST_RELEASE_MS = 900;
+const GHOST_RELEASE_MS = 520;
 
 /**
  * A mark in flight: a spark thrown off a peak, or a ripple leaving one.
@@ -71,6 +69,7 @@ interface IMote {
   /** Pixels a second. Zero for a ripple, which grows rather than travels. */
   vx: number;
   vy: number;
+  gravity: number;
   /** The mark's own width when it was born. */
   size: number;
   /** 1 at birth, 0 at death. */
@@ -86,6 +85,7 @@ export interface IAccentState {
    * be reporting a band it no longer stands over.
    */
   held: number[];
+  holdRemaining: number[];
   /** The figure's own recent maximum, per column, for the ghost. */
   envelope: number[];
   motes: IMote[];
@@ -95,6 +95,7 @@ export interface IAccentState {
 
 export const createAccentState = (): IAccentState => ({
   held: [],
+  holdRemaining: [],
   envelope: [],
   motes: [],
   emissionLevels: new Map(),
@@ -102,6 +103,7 @@ export const createAccentState = (): IAccentState => ({
 
 /** The ten, by what they do rather than by what they look like. */
 export type AccentBehaviour =
+  | 'live'
   | 'bead'
   | 'fall'
   | 'ghost'
@@ -112,7 +114,7 @@ export type AccentBehaviour =
   | 'comet'
   | 'drip';
 
-interface IPaintAccentArgs {
+export interface IPaintAccentArgs {
   context: CanvasRenderingContext2D;
   behaviour: AccentBehaviour;
   peaks: readonly IGraphPeak[];
@@ -127,6 +129,7 @@ interface IPaintAccentArgs {
   state: IAccentState;
   /** How heavy the mark is drawn, as a multiple of its own default. */
   weight: number;
+  filled?: boolean;
   paint: string | CanvasGradient;
 }
 
@@ -157,14 +160,27 @@ export const advanceGraphAccent = (
     state.behaviour = behaviour;
   }
   fit(state.held, heights.length);
+  fit(state.holdRemaining, heights.length);
   fit(state.envelope, heights.length);
-  const fall = (FALL_PER_SECOND * deltaMs) / 1000;
   const forget = getEaseFactor(deltaMs, GHOST_RELEASE_MS);
   for (let index = 0; index < heights.length; index += 1) {
     // Snap up to a new high, sink at a fixed rate — which is a peak hold, and
     // the fixed rate is what makes it readable: an eased fall is fastest when
     // it matters most and crawls once nobody is looking.
-    state.held[index] = Math.max(heights[index], state.held[index] - fall);
+    if (heights[index] >= state.held[index]) {
+      state.held[index] = heights[index];
+      state.holdRemaining[index] = PEAK_HOLD_MS;
+    } else {
+      const fallingMs = Math.max(0, deltaMs - state.holdRemaining[index]);
+      state.holdRemaining[index] = Math.max(
+        0,
+        state.holdRemaining[index] - deltaMs,
+      );
+      state.held[index] = Math.max(
+        heights[index],
+        state.held[index] - (FALL_PER_SECOND * fallingMs) / 1000,
+      );
+    }
     // The envelope forgets on a half-life instead, because it is a shape
     // rather than a reading and a shape that drops linearly looks cut.
     state.envelope[index] = Math.max(
@@ -177,7 +193,9 @@ export const advanceGraphAccent = (
   for (let index = state.motes.length - 1; index >= 0; index -= 1) {
     const mote = state.motes[index];
     mote.x += mote.vx * seconds;
-    mote.y += mote.vy * seconds;
+    // Analytic integration gives the same arc at 30, 60 and 144 Hz.
+    mote.y += mote.vy * seconds + 0.5 * mote.gravity * seconds * seconds;
+    mote.vy += mote.gravity * seconds;
     mote.life -= seconds / MOTE_LIFE;
     if (mote.life <= 0) {
       // Swapped with the last rather than spliced: the order of a cloud of
@@ -223,7 +241,8 @@ export const advanceGraphAccent = (
         x: peak.x,
         y: peak.y,
         vx: behaviour === 'sparks' ? (seed - 0.5) * 60 : 0,
-        vy: { sparks: -40 - seed * 70, drip: 55, ripple: 0 }[behaviour],
+        vy: { sparks: -65 - seed * 90, drip: 28, ripple: 0 }[behaviour],
+        gravity: { sparks: 110, drip: 180, ripple: 0 }[behaviour],
         size: peak.size * (behaviour === 'ripple' ? 1 : 0.5),
         life: 1,
       });
@@ -234,216 +253,11 @@ export const advanceGraphAccent = (
     state.motes.length > 0 ||
     heights.some(
       (height, index) =>
-        (behaviour === 'fall' && state.held[index] - height > 0.004) ||
+        ((behaviour === 'fall' || behaviour === 'live') &&
+          state.held[index] - height > 0.004) ||
         (behaviour === 'ghost' && state.envelope[index] - height > 0.002),
     )
   );
 };
 
-/** A circle as a subpath, in the same `d` syntax everything else here uses. */
-const circle = (
-  context: CanvasRenderingContext2D,
-  x: number,
-  y: number,
-  r: number,
-) => {
-  context.beginPath();
-  context.arc(x, y, Math.max(0.5, r), 0, Math.PI * 2);
-};
-
-/**
- * Draw the chosen mark without advancing its state. Mirrored views paint
- * twice but advance once, so they retain the same speed and particle count.
- *
- * Returns whether anything is still moving, so the frame loop can keep
- * running while a spark is in the air after the music has stopped.
- */
-export const paintGraphAccent = (args: IPaintAccentArgs): boolean => {
-  const {
-    context,
-    behaviour,
-    peaks,
-    heights,
-    positions,
-    baseline,
-    top = 0,
-    left,
-    right,
-    state,
-    weight,
-    paint,
-  } = args;
-  const depth = Math.max(1, baseline - top);
-  const rowOf = (fraction: number) => baseline - fraction * depth;
-
-  context.save();
-  context.lineCap = 'round';
-  context.lineJoin = 'round';
-  context.fillStyle = paint;
-  context.strokeStyle = paint;
-  const opacity = context.globalAlpha;
-
-  switch (behaviour) {
-    case 'bead': {
-      // The plain one, kept because a drawing that says only "this one" is
-      // sometimes exactly what is wanted.
-      peaks.forEach((peak) => {
-        const size = peak.size * weight;
-        context.fillRect(peak.x - size / 2, peak.y - size / 2, size, size);
-      });
-      break;
-    }
-
-    case 'fall': {
-      /**
-       * The classic peak hold: a rule that catches the highest each column
-       * has been and sinks from there.
-       *
-       * Every column rather than only the marked peaks, because what this
-       * shows is the SHAPE of what has just happened — a row of hanging
-       * rules is a picture of the last second, and a handful of them is a
-       * picture of nothing.
-       */
-      const step = positions.length > 1 ? (right - left) / positions.length : 0;
-      const bar = Math.max(1, step * 0.7);
-      for (let index = 0; index < positions.length; index += 1) {
-        const row = rowOf(state.held[index]);
-        // Only where it is standing clear of the figure. A held peak drawn
-        // on top of the bar it came from is invisible and costs a fill.
-        if (state.held[index] - heights[index] > 0.004) {
-          context.fillRect(
-            positions[index] - bar / 2,
-            row - 1.5 * weight,
-            bar,
-            3 * weight,
-          );
-        }
-      }
-      break;
-    }
-
-    case 'ghost': {
-      /**
-       * The figure's own recent maximum, behind it.
-       *
-       * Not a mark on a peak at all — it is the whole envelope of the last
-       * second or so, which is the one treatment here that shows what the
-       * music WAS rather than pointing at what it is.
-       */
-      context.globalAlpha *= Math.min(1, 0.32 * weight);
-      context.beginPath();
-      context.moveTo(left, baseline);
-      for (let index = 0; index < positions.length; index += 1) {
-        context.lineTo(positions[index], rowOf(state.envelope[index]));
-      }
-      context.lineTo(right, baseline);
-      context.closePath();
-      context.fill();
-      break;
-    }
-
-    case 'ripple': {
-      // A ring leaving each peak and fading as it goes.
-      context.lineWidth = 1.4 * weight;
-      state.motes.forEach((mote) => {
-        context.globalAlpha = opacity * mote.life * 0.7;
-        circle(
-          context,
-          mote.x,
-          mote.y,
-          mote.size * (1 + (1 - mote.life) * RIPPLE_REACH),
-        );
-        context.stroke();
-      });
-      break;
-    }
-
-    case 'sparks': {
-      // Thrown upward and outward, and gone in under a second.
-      state.motes.forEach((mote) => {
-        context.globalAlpha = opacity * mote.life;
-        circle(context, mote.x, mote.y, mote.size * mote.life * weight);
-        context.fill();
-      });
-      break;
-    }
-
-    case 'beam': {
-      // A shaft from the peak to the ceiling, brightest at its foot.
-      peaks.forEach((peak) => {
-        const shaft = context.createLinearGradient(0, peak.y, 0, 0);
-        shaft.addColorStop(0, 'rgba(255, 255, 255, 0.5)');
-        shaft.addColorStop(1, 'rgba(255, 255, 255, 0)');
-        context.fillStyle = shaft;
-        const wide = peak.size * 0.5 * weight;
-        context.fillRect(peak.x - wide / 2, 0, wide, peak.y);
-      });
-      break;
-    }
-
-    case 'ceiling': {
-      /**
-       * One rule for the whole frame, at the loudest band there is.
-       *
-       * The only mark here that is not per peak. What it answers is "how
-       * loud is the loudest thing right now", which every other mark says
-       * several times over and none of them says as a number you can read
-       * against the axis.
-       */
-      let highest = 0;
-      for (let index = 0; index < heights.length; index += 1) {
-        if (heights[index] > highest) {
-          highest = heights[index];
-        }
-      }
-      if (highest > 0.01) {
-        context.globalAlpha *= 0.85;
-        context.fillRect(
-          left,
-          rowOf(highest) - 1 * weight,
-          right - left,
-          2 * weight,
-        );
-      }
-      break;
-    }
-
-    case 'comet': {
-      // A streak trailing back from the peak, the way something moving fast
-      // is drawn as where it has been.
-      peaks.forEach((peak) => {
-        const tail = peak.size * 6;
-        const streak = context.createLinearGradient(
-          peak.x,
-          0,
-          peak.x - tail,
-          0,
-        );
-        streak.addColorStop(0, 'rgba(255, 255, 255, 0.6)');
-        streak.addColorStop(1, 'rgba(255, 255, 255, 0)');
-        context.fillStyle = streak;
-        const thick = peak.size * 0.55 * weight;
-        context.fillRect(peak.x - tail, peak.y - thick / 2, tail, thick);
-      });
-      break;
-    }
-
-    case 'drip': {
-      // The peak lets go and falls away, which is the opposite of holding it.
-      state.motes.forEach((mote) => {
-        context.globalAlpha = opacity * mote.life * 0.9;
-        circle(context, mote.x, mote.y, mote.size * weight);
-        context.fill();
-      });
-      break;
-    }
-
-    default:
-      break;
-  }
-
-  context.restore();
-  // A mote still in the air is motion the loop has to keep drawing, and so is
-  // a held peak that has not finished sinking.
-  return state.motes.length > 0;
-};
+export { default as paintGraphAccent } from './graphAccentPaint';

@@ -450,8 +450,9 @@ export interface IGraphBallistics {
 const DEFAULT_BALLISTICS: IGraphBallistics = { attackMs: 10, releaseMs: 90 };
 
 const BALLISTICS: Partial<Record<GraphStyle, IGraphBallistics>> = {
+  line: { attackMs: 12, releaseMs: 150 },
   // Snap up, hang, drop away — a meter's manners.
-  bars: { attackMs: 4, releaseMs: 45 },
+  bars: { attackMs: 1, releaseMs: 250 },
   pillars: { attackMs: 4, releaseMs: 45 },
   blocks: { attackMs: 8, releaseMs: 125 },
   // Peak marks: they exist to be caught, so they fall slowly enough to see.
@@ -467,7 +468,7 @@ const BALLISTICS: Partial<Record<GraphStyle, IGraphBallistics>> = {
   // Landscapes. A hill that twitches is noise, so these are the slow ones.
   ridge: { attackMs: 22, releaseMs: 90 },
   terrace: { attackMs: 16, releaseMs: 70 },
-  area: { attackMs: 12, releaseMs: 48 },
+  area: { attackMs: 18, releaseMs: 145 },
   // The staircase steps by nature; easing it hard would blur the treads.
   steps: { attackMs: 10, releaseMs: 90 },
   weave: { attackMs: 16, releaseMs: 110 },
@@ -719,6 +720,10 @@ const FILL_OPACITY_OVERRIDES: Partial<Record<GraphStyle, number>> = {
   bubbles: 0.85,
   dots: 0.9,
   blocks: 0.84,
+  // Broad fills need enough colour to stand beside the brighter beads and
+  // LEDs; their old shared opacity made these two look washed out.
+  area: 0.78,
+  bars: 0.82,
 };
 
 /**
@@ -735,7 +740,7 @@ const FILL_OPACITY_OVERRIDES: Partial<Record<GraphStyle, number>> = {
  */
 const BAR_GAP_DEFAULTS: Partial<Record<GraphStyle, number>> = {
   fluid: 0,
-  bars: 0.38,
+  bars: 0.26,
   blocks: 0.26,
   pillars: 0.04,
   skyline: 0.12,

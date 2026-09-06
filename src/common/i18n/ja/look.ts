@@ -20,6 +20,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { Dictionary } from '../en';
 
 const look: Partial<Dictionary> = {
+  'look.peakFill': 'ピークを塗りつぶす',
+  'look.peak.live': 'ライブピーク',
+  'look.peakLayer': 'ピークの位置',
+  'look.peakFront': '波形の手前',
+  'look.peakBehind': '波形の背面',
   'look.edit': '表示を編集',
   'look.create': '表示を作成',
   'look.new': '新しい表示',
