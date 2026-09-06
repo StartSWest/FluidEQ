@@ -52,6 +52,7 @@ import {
   useState,
 } from 'react';
 import { getStreakJoy } from 'common/rhythmGame';
+import { MAX_GAIN, MIN_GAIN } from 'common/constants';
 import { easeTowards, getEaseFactor } from 'common/smoothing';
 import {
   WAVEFORM_STYLES,
@@ -79,7 +80,6 @@ import {
   paintSpectrumBars,
   spectrumBarCount,
   SPECTRUM_BAR_ATTACK_MS,
-  SPECTRUM_BAR_RANGE_DB,
   SPECTRUM_BAR_RELEASE_MS,
   SPECTRUM_HUE_FLAT,
   SOFT_GLOW_WAVEFORM_STYLES,
@@ -100,7 +100,6 @@ import {
   useLiveAudioControl,
   useLiveAudioFrame,
 } from './audio/LiveAudioContext';
-import { LEVEL_FLOOR_DB } from './graph/outputLevel';
 import { useInternalClipping } from './audio/internalClipping';
 import type { IChartPointData } from './graph/ChartController';
 import { useRhythmRun } from './utils/rhythmRun';
@@ -368,7 +367,7 @@ const WaveformVisualizer = () => {
     // frantic beside them — a symmetric rate that quick tracks the
     // waveform's own oscillation rather than the shape of the sound, so
     // the drawing shivers instead of moving.
-    const moving = easeTowards(
+    let moving = easeTowards(
       smoothed,
       targetRef.current,
       getEaseFactor(deltaMs, SPECTRUM_BAR_ATTACK_MS),
@@ -395,23 +394,17 @@ const WaveformVisualizer = () => {
         bufferForShape.length = bandCount;
         bufferForShape.fill(0);
       }
-      const stride = source.length / bandCount;
-      const dbRange = SPECTRUM_BAR_RANGE_DB;
-      for (let bar = 0; bar < bandCount; bar += 1) {
-        const start = Math.floor(bar * stride);
-        const end = Math.min(source.length, Math.floor((bar + 1) * stride));
-        let peakDb = LEVEL_FLOOR_DB;
-        for (let index = start; index < end; index += 1) {
-          const value = source[index].y;
-          if (value > peakDb) {
-            peakDb = value;
-          }
-        }
-        bufferForShape[bar] = Math.max(
-          0,
-          Math.min(1, (peakDb - LEVEL_FLOOR_DB) / dbRange),
-        );
-      }
+      // FFT forms need interpolation too; smoothing only the waveform left
+      // all seven of these jumping directly between capture frames.
+      moving =
+        advanceSpectrumBars(
+          bufferForShape,
+          source,
+          MIN_GAIN,
+          deltaMs,
+          undefined,
+          MAX_GAIN - MIN_GAIN,
+        ) || moving;
       spectrumMagnitudes = bufferForShape;
     }
 
@@ -506,7 +499,15 @@ const WaveformVisualizer = () => {
         buffer.length = barCount;
         buffer.fill(0);
       }
-      advanceSpectrumBars(buffer, pointsRef.current, LEVEL_FLOOR_DB, deltaMs);
+      moving =
+        advanceSpectrumBars(
+          buffer,
+          pointsRef.current,
+          MIN_GAIN,
+          deltaMs,
+          undefined,
+          MAX_GAIN - MIN_GAIN,
+        ) || moving;
       setAlpha(context, 1);
       paintSpectrumBars(
         context,

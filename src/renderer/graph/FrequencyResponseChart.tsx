@@ -43,6 +43,7 @@ import {
 } from 'react';
 import Spinner from 'renderer/icons/Spinner';
 import LookIcon from 'renderer/icons/LookIcon';
+import PaletteIcon from 'renderer/icons/PaletteIcon';
 import {
   FilterActionEnum,
   useFluidEqContext,
@@ -1690,15 +1691,7 @@ const FrequencyResponseChart = ({
                 )
               }
             >
-              {/* A ramp: three bars climbing in weight, which is what all
-                  three palettes are — one flat, one across the axis, one up
-                  it. Opacity rather than colour, so it takes the button's
-                  own lit and dimmed states like every other glyph here. */}
-              <svg viewBox="0 0 16 16" aria-hidden>
-                <rect x="2" y="9" width="3" height="5" opacity="0.4" />
-                <rect x="6.5" y="6" width="3" height="8" opacity="0.7" />
-                <rect x="11" y="2.5" width="3" height="11.5" />
-              </svg>
+              <PaletteIcon palette={graphPalette} />
             </button>
             {/* Make one of your own.
 

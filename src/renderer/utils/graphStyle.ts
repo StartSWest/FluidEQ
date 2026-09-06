@@ -24,6 +24,7 @@ import {
   GraphPalette,
   getGraphLook,
   graphLookId,
+  canonicalGraphStyle,
 } from 'common/graphStyles';
 import {
   ICustomLook,
@@ -50,8 +51,17 @@ const listeners = new Set<() => void>();
  * an id survives that where a held object would go stale.
  */
 let selectedId = DEFAULT_GRAPH_LOOK_ID;
+const canonicalLookId = (id: string) => {
+  if (isCustomLookId(id)) {
+    return id;
+  }
+  const look = getGraphLook(id);
+  return graphLookId(canonicalGraphStyle(look.style), look.palette);
+};
 try {
-  selectedId = window.localStorage.getItem(STORAGE_KEY) || selectedId;
+  selectedId = canonicalLookId(
+    window.localStorage.getItem(STORAGE_KEY) || selectedId,
+  );
 } catch {
   // Storage can be unavailable; the default is a perfectly good curve.
 }
@@ -221,10 +231,11 @@ export const cycleGraphLook = (direction: 1 | -1 = 1) => {
 };
 
 export const setGraphLook = (id: string) => {
-  if (id === selectedId) {
+  const next = canonicalLookId(id);
+  if (next === selectedId) {
     return;
   }
-  selectedId = id;
+  selectedId = next;
   persistSelection();
   refresh();
 };

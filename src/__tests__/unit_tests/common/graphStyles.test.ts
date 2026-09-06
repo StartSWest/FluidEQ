@@ -22,6 +22,7 @@ import {
   canGraphFill,
   GRAPH_PALETTES,
   GRAPH_STYLES,
+  SELECTABLE_GRAPH_STYLES,
   GRAPH_STYLE_LABELS,
   MAX_GRAPH_COLUMNS,
   MIN_GRAPH_COLUMNS,
@@ -97,7 +98,7 @@ describe('the graph style cycle', () => {
 
   it('comes back round', () => {
     let style: GraphStyle = GRAPH_STYLES[0];
-    GRAPH_STYLES.forEach(() => {
+    SELECTABLE_GRAPH_STYLES.forEach(() => {
       style = nextGraphStyle(style);
     });
     expect(style).toBe(GRAPH_STYLES[0]);

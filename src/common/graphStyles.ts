@@ -160,6 +160,24 @@ export const GRAPH_STYLES: GraphStyle[] = [
   'wave-lattice',
 ];
 
+// Keep legacy forms loadable for saved custom looks, but offer one geometry
+// per picker entry. Their differences are already available in Edit.
+export const canonicalGraphStyle = (style: GraphStyle): GraphStyle => {
+  if (style === 'ridge') {
+    return 'area';
+  }
+  if (style === 'pillars') {
+    return 'bars';
+  }
+  if (style === 'wave-ribbon') {
+    return 'wave-filled';
+  }
+  return style;
+};
+export const SELECTABLE_GRAPH_STYLES = GRAPH_STYLES.filter(
+  (style) => canonicalGraphStyle(style) === style,
+);
+
 /**
  * Human names for the picker.
  *
@@ -228,8 +246,11 @@ export const GRAPH_STYLE_LABELS: Record<GraphStyle, string> = {
 };
 
 export const nextGraphStyle = (style: GraphStyle): GraphStyle => {
-  const index = GRAPH_STYLES.indexOf(style);
-  return GRAPH_STYLES[(index + 1) % GRAPH_STYLES.length] ?? 'line';
+  const index = SELECTABLE_GRAPH_STYLES.indexOf(canonicalGraphStyle(style));
+  return (
+    SELECTABLE_GRAPH_STYLES[(index + 1) % SELECTABLE_GRAPH_STYLES.length] ??
+    'line'
+  );
 };
 
 /** Whether a style is painted rather than stroked, so the caller can say so. */
@@ -374,7 +395,8 @@ export const GRAPH_LOOKS: IGraphLook[] = GRAPH_STYLES.flatMap((style) =>
  * resolving and nothing has to be migrated.
  */
 export const GRAPH_FORM_LOOKS: IGraphLook[] = GRAPH_LOOKS.filter(
-  (look) => look.palette === 'signal',
+  (look) =>
+    look.palette === 'signal' && canonicalGraphStyle(look.style) === look.style,
 );
 
 /**
@@ -422,7 +444,7 @@ export interface IGraphBallistics {
   releaseMs: number;
 }
 
-const DEFAULT_BALLISTICS: IGraphBallistics = { attackMs: 8, releaseMs: 28 };
+const DEFAULT_BALLISTICS: IGraphBallistics = { attackMs: 10, releaseMs: 90 };
 
 const BALLISTICS: Partial<Record<GraphStyle, IGraphBallistics>> = {
   // Snap up, hang, drop away — a meter's manners.
@@ -437,20 +459,20 @@ const BALLISTICS: Partial<Record<GraphStyle, IGraphBallistics>> = {
   // Thin forms can afford to be instant; there is no mass to them.
   ribs: { attackMs: 3, releaseMs: 30 },
   stems: { attackMs: 4, releaseMs: 40 },
-  spikes: { attackMs: 3, releaseMs: 22 },
+  spikes: { attackMs: 8, releaseMs: 95 },
   crown: { attackMs: 4, releaseMs: 36 },
   // Landscapes. A hill that twitches is noise, so these are the slow ones.
   ridge: { attackMs: 22, releaseMs: 90 },
   terrace: { attackMs: 16, releaseMs: 70 },
   area: { attackMs: 12, releaseMs: 48 },
   // The staircase steps by nature; easing it hard would blur the treads.
-  steps: { attackMs: 6, releaseMs: 26 },
-  weave: { attackMs: 6, releaseMs: 30 },
+  steps: { attackMs: 10, releaseMs: 90 },
+  weave: { attackMs: 16, releaseMs: 110 },
 
   // More landscapes. A contour is drawn from where the level crosses a
   // threshold, so a jittery curve makes rings pop in and out of existence —
   // it is the slowest thing here on purpose.
-  contour: { attackMs: 26, releaseMs: 95 },
+  contour: { attackMs: 26, releaseMs: 160 },
   hatch: { attackMs: 18, releaseMs: 70 },
   bezier: { attackMs: 16, releaseMs: 55 },
   ribbon: { attackMs: 11, releaseMs: 46 },
@@ -469,14 +491,12 @@ const BALLISTICS: Partial<Record<GraphStyle, IGraphBallistics>> = {
   bubbles: { attackMs: 3, releaseMs: 92 },
   diamonds: { attackMs: 4, releaseMs: 78 },
 
-  // The pulse is a heartbeat. One that arrives late is not a heartbeat, so it
-  // is the fastest of the lot in both directions.
-  ecg: { attackMs: 1, releaseMs: 12 },
-  // A slope field draws the direction the spectrum is moving in. Smooth it and
-  // it starts pointing at where the music was, which is worse than useless.
-  slope: { attackMs: 3, releaseMs: 18 },
+  // Keep the attack readable without losing 85% of a pulse between 30Hz
+  // frames. Slope follows spatial direction, not instantaneous velocity.
+  ecg: { attackMs: 8, releaseMs: 110 },
+  slope: { attackMs: 14, releaseMs: 100 },
   feather: { attackMs: 4, releaseMs: 34 },
-  zipper: { attackMs: 4, releaseMs: 26 },
+  zipper: { attackMs: 12, releaseMs: 90 },
 
   // The arcade. These are toys, and toys have physics: the runner pops off the
   // ground on a kick and comes down under its own weight, the aliens hover
@@ -484,7 +504,7 @@ const BALLISTICS: Partial<Record<GraphStyle, IGraphBallistics>> = {
   // the bricks behave like the level meter they secretly are.
   racer: { attackMs: 6, releaseMs: 42 },
   invaders: { attackMs: 6, releaseMs: 85 },
-  starfield: { attackMs: 3, releaseMs: 26 },
+  starfield: { attackMs: 20, releaseMs: 150 },
 
   // Meters with a body to them. A candle and a barcode stripe are both read by
   // their size rather than their outline, so they keep the level meter's
@@ -498,7 +518,7 @@ const BALLISTICS: Partial<Record<GraphStyle, IGraphBallistics>> = {
 
   // Fire is the quickest thing here after the pulse, and has to be: a flame
   // that eases into position is a balloon.
-  flames: { attackMs: 3, releaseMs: 30 },
+  flames: { attackMs: 8, releaseMs: 90 },
 
   // Weather. Rain falls at its own speed no matter what the music does, so the
   // release is long — the drops thin out gradually rather than stopping dead.
@@ -521,24 +541,19 @@ const BALLISTICS: Partial<Record<GraphStyle, IGraphBallistics>> = {
   // The negative space of a landscape, so it moves like one — the slowest of
   // the new forms, for the same reason the ridge and the contour are slow.
   canyon: { attackMs: 15, releaseMs: 82 },
-  // Slow, and on purpose. These are the ballistics of the SPECTRUM half
-  // only — the level rule over it is drawn from the waveform and is not
-  // eased here at all, so a lazy body underneath is what lets the rule's
-  // own speed be visible as speed rather than as both halves twitching.
-  fluid: { attackMs: 14, releaseMs: 60 },
-  // The titlebar family. Quick, because what these draw is a wave and a
-  // wave that lags reads as syrup — the same reason the titlebar runs them
-  // fast. One pair for all ten, which is what makes them a family.
-  'wave-line': { attackMs: 5, releaseMs: 34 },
-  'wave-filled': { attackMs: 5, releaseMs: 34 },
-  'wave-bars': { attackMs: 5, releaseMs: 34 },
-  'wave-mirror': { attackMs: 5, releaseMs: 34 },
-  'wave-dots': { attackMs: 5, releaseMs: 34 },
-  'wave-ribbon': { attackMs: 5, releaseMs: 34 },
-  'wave-spikes': { attackMs: 5, releaseMs: 34 },
-  'wave-blocks': { attackMs: 5, releaseMs: 34 },
-  'wave-outline': { attackMs: 5, releaseMs: 34 },
-  'wave-lattice': { attackMs: 5, releaseMs: 34 },
+  // A quick attack with enough release for Fluid's body to remain readable.
+  fluid: { attackMs: 14, releaseMs: 100 },
+  // The wave family keeps a quick attack but rides out per-frame jitter.
+  'wave-line': { attackMs: 12, releaseMs: 100 },
+  'wave-filled': { attackMs: 12, releaseMs: 100 },
+  'wave-bars': { attackMs: 8, releaseMs: 100 },
+  'wave-mirror': { attackMs: 8, releaseMs: 100 },
+  'wave-dots': { attackMs: 10, releaseMs: 110 },
+  'wave-ribbon': { attackMs: 12, releaseMs: 100 },
+  'wave-spikes': { attackMs: 8, releaseMs: 95 },
+  'wave-blocks': { attackMs: 8, releaseMs: 110 },
+  'wave-outline': { attackMs: 12, releaseMs: 100 },
+  'wave-lattice': { attackMs: 10, releaseMs: 100 },
 };
 
 export const getGraphBallistics = (style: GraphStyle): IGraphBallistics =>
@@ -711,6 +726,7 @@ const FILL_OPACITY_OVERRIDES: Partial<Record<GraphStyle, number>> = {
  * contour — and reads zero, which it then ignores.
  */
 const BAR_GAP_DEFAULTS: Partial<Record<GraphStyle, number>> = {
+  fluid: 0,
   bars: 0.38,
   blocks: 0.38,
   pillars: 0.04,

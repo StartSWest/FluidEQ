@@ -237,7 +237,7 @@ export const createWaveformShape = (
           const magnitude =
             Math.max(0, Math.min(1, spectrumMagnitudes![index])) * height;
           fill += rect(
-            index * barStep + (barStep - barWidth) / 2,
+            origin.x + index * barStep + (barStep - barWidth) / 2,
             floor - magnitude,
             barWidth,
             magnitude,
@@ -270,7 +270,7 @@ export const createWaveformShape = (
           const magnitude =
             Math.max(0, Math.min(1, spectrumMagnitudes![index])) * (height / 2);
           fill += rect(
-            index * barStep + (barStep - barWidth) / 2,
+            origin.x + index * barStep + (barStep - barWidth) / 2,
             centre - magnitude,
             barWidth,
             magnitude * 2,

@@ -59,8 +59,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import type { AxisScale, NumberValue } from 'd3';
 import { useCallback, useEffect, useRef } from 'react';
 import { DEFAULT_GLOW } from 'common/customLooks';
-import { canGraphFill, heatHue } from 'common/graphStyles';
-import { easeTowards, getEaseFactor } from 'common/smoothing';
+import { MAX_GAIN, MIN_GAIN } from 'common/constants';
+import { canGraphFill } from 'common/graphStyles';
+import { getEaseFactor } from 'common/smoothing';
 import {
   createGraphAccent,
   createGraphPieces,
@@ -71,8 +72,21 @@ import {
 } from 'common/graphShapes';
 import useSmoothFrames from 'renderer/utils/useSmoothFrames';
 import { useGraphGridHidden, useGraphLook } from 'renderer/utils/graphStyle';
-import { useLiveAudioFrame } from '../audio/LiveAudioContext';
-import { createAccentState, paintGraphAccent } from './graphAccents';
+import {
+  useLiveAudioFrame,
+  useLiveAudioControl,
+} from '../audio/LiveAudioContext';
+import {
+  createGraphMotionState,
+  createMovingGraphShape,
+  hasGraphMotion,
+} from './graphMotion';
+import {
+  advanceGraphAccent,
+  createAccentState,
+  paintGraphAccent,
+} from './graphAccents';
+import { createFluidBarPaint, heatColour } from './lookColours';
 import { useLookPreviewPoints } from './lookPreview';
 import { IChartPointData, ILiveCurveData } from './ChartController';
 import {
@@ -91,17 +105,14 @@ import {
   resolveTracePaint,
 } from './liveTracePaint';
 import {
-  TRACE_CYAN_STOPS,
-  TRACE_RAINBOW_STOPS,
-  SPECTRUM_BAR_ATTACK_MS,
-  SPECTRUM_BAR_RELEASE_MS,
   SPECTRUM_HUE_BY_PALETTE,
   advanceSpectrumBars,
+  advanceWaveform,
   paintSpectrumBars,
   spectrumBarsPath,
 } from '../waveformPaint';
-import { LEVEL_FLOOR_DB } from './outputLevel';
 import { readAccentLight } from '../utils/theme';
+import { useIsRootEuphoric } from '../utils/euphoriaMode';
 
 /**
  * The euphoria halo: two wide, faint copies of the figure behind itself.
@@ -196,7 +207,6 @@ const STROKE_WIDTH_EPSILON = 0.01;
 const TRACE_WIDTH_RAINBOW = 4.2;
 const TRACE_WIDTH_CYAN = 3.2;
 const TRACE_BLUR_RAINBOW = 14;
-const TRACE_BLUR_CYAN = 18;
 const TRACE_GLOW_RAINBOW = 'rgba(255, 60, 172, 0.55)';
 const traceGlowCyan = () => readAccentLight(0.66, 'rgba(156, 255, 244, 0.66)');
 
@@ -275,6 +285,10 @@ const LiveTraceCanvas = ({
   // The measurement, straight from the analyser. This component re-renders with
   // every frame and nothing above it does — which is the entire arrangement.
   const { points: livePoints, waveform } = useLiveAudioFrame();
+  const { isActive, isPaused } = useLiveAudioControl();
+  const playingRef = useRef(false);
+  playingRef.current = isActive && !isPaused;
+  const motionRef = useRef(createGraphMotionState());
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   // Held rather than fetched per frame: the computed style is a live object
@@ -286,6 +300,7 @@ const LiveTraceCanvas = ({
   // Only the live trace has a look; every other curve on this chart is the
   // user's own tuning and has one right way to be drawn.
   const look = useGraphLook();
+  const isRainbow = useIsRootEuphoric();
   const lookRef = useRef(look);
   lookRef.current = look;
 
@@ -317,36 +332,12 @@ const LiveTraceCanvas = ({
   // nothing but the paths it hands to the rasteriser.
   const easedRef = useRef<IChartPointData[]>([]);
   const projectedRef = useRef<[number, number][]>([]);
-  /**
-   * The output envelope, for the one form built from both readings.
-   *
-   * Held in a ref and deliberately NOT eased. The spectrum is smoothed so it
-   * can be read; this is the reading that is supposed to be raw, and easing
-   * it would erase the difference in speed that the combined form exists to
-   * show. See `fluid` in `graphShapes.ts`.
-   */
+  // Capture frames remain raw; only this visualizer's copy is eased.
   const waveformRef = useRef<readonly number[]>(waveform);
   waveformRef.current = waveform;
-  /**
-   * The fluid's spectrum bars, carried between frames.
-   *
-   * They have their own ballistics — snap up, ease back — run per frame so
-   * the bars keep moving between the analyser's publishes. The eased points
-   * above cannot serve: those are the graph's own ballistics, which every
-   * other form shares and this one is not supposed to.
-   */
+  // Fluid eases its grouped magnitudes once with the look's ballistics.
   const fluidBarsRef = useRef<number[]>([]);
-  /**
-   * The wave's samples, eased toward each frame rather than drawn raw.
-   *
-   * This is what the titlebar does and the graph did not, and it is the
-   * whole difference between a line that moves and one that shivers: the
-   * envelope arrives about twenty-two times a second, so each frame lands
-   * as a visible jump. The rates are the bars' own — snap up on the frame a
-   * hit lands, ease back over a tenth of a second — because a symmetric
-   * rate that quick tracks the waveform's own oscillation rather than the
-   * shape of the sound.
-   */
+  // Shared by Wave forms and the Wave peak mark, using Edit's Attack/Release.
   const fluidWaveRef = useRef<number[]>([]);
   /**
    * What the lit peaks remember between frames.
@@ -502,16 +493,6 @@ const LiveTraceCanvas = ({
        * path can express. Advanced once per frame here rather than inside the
        * curve loop below, which runs twice when the wave is mirrored.
        */
-      /**
-       * The titlebar's ten, which are drawn there in one colour system
-       * whatever the style is: a ramp across the pane, cyan at rest and
-       * rainbow in euphoria. That is what `signal` should mean for these —
-       * the form's own colouring, the same reading the fluid's bars got —
-       * and it is most of why they did not look like the titlebar's.
-       *
-       * The other three palettes still reach them, because a look is a form
-       * AND a colouring and this only decides what the unmarked case is.
-       */
       const isWaveForm = chosen.startsWith('wave-');
       const isFluidForm = chosen === 'fluid';
       /**
@@ -534,6 +515,21 @@ const LiveTraceCanvas = ({
        */
       const fluidLeft = projected[0][0];
       const fluidRight = projected[projected.length - 1][0];
+      // The same Edit ballistics must reach the waveform and FFT. Previously
+      // the wave forms bypassed them, and Fluid's empty wave buffer never grew.
+      if (
+        isWaveForm ||
+        isFluidForm ||
+        (tuning.accents && tuning.accentStyle === 'wave')
+      ) {
+        moving =
+          advanceWaveform(
+            fluidWaveRef.current,
+            waveformRef.current,
+            deltaMs,
+            tuning,
+          ) || moving;
+      }
       if (isFluidForm) {
         // Whatever Pieces says, like every other form. The catalogue's
         // default for this one is set near the titlebar's eleven-pixel
@@ -544,16 +540,17 @@ const LiveTraceCanvas = ({
           bars.length = barCount;
           bars.fill(0);
         }
-        advanceSpectrumBars(bars, easedRef.current, LEVEL_FLOOR_DB, deltaMs);
-        easeTowards(
-          fluidWaveRef.current,
-          waveformRef.current,
-          getEaseFactor(deltaMs, SPECTRUM_BAR_ATTACK_MS),
-          getEaseFactor(deltaMs, SPECTRUM_BAR_RELEASE_MS),
-        );
-        // Still settling counts as motion, or the loop stops with the bars
-        // halfway down and leaves them there until the next measurement.
-        moving = true;
+        // These are graph-relative dB, not the meter's dBFS. Using -60 as
+        // their floor made a silent -20 frame produce half-height bars.
+        moving =
+          advanceSpectrumBars(
+            bars,
+            data,
+            MIN_GAIN,
+            deltaMs,
+            tuning,
+            MAX_GAIN - MIN_GAIN,
+          ) || moving;
       }
 
       /**
@@ -565,13 +562,13 @@ const LiveTraceCanvas = ({
        * different count at a different width, so the rainbow border was
        * drawn around bars it had never seen. Same geometry, same rectangles.
        */
-      const shape = isFluidForm
+      let shape = isFluidForm
         ? spectrumBarsPath(
             {
               x: fluidLeft,
-              y: 0,
+              y: plot.top,
               width: fluidRight - fluidLeft,
-              height: baseline,
+              height: depth,
             },
             fluidBarsRef.current,
             tuning.gap,
@@ -583,11 +580,28 @@ const LiveTraceCanvas = ({
             tuning.columns,
             // Read through a ref rather than closed over: this loop runs on
             // its own frames, and the envelope arrives on the pump's.
-            waveformRef.current,
+            fluidWaveRef.current,
             tuning.gap,
             plot.top,
             isFilled,
           );
+      if (hasGraphMotion(chosen)) {
+        const motion = createMovingGraphShape({
+          state: motionRef.current,
+          points: projected,
+          style: chosen,
+          columns: tuning.columns,
+          top: plot.top,
+          bottom: baseline,
+          deltaMs,
+          playing: playingRef.current,
+          filled: isFilled,
+        });
+        shape = motion.path;
+        moving = motion.moving || moving;
+      } else {
+        motionRef.current.key = '';
+      }
       const figure = new Path2D(shape);
 
       /**
@@ -675,7 +689,7 @@ const LiveTraceCanvas = ({
         // same shape, which is the common case for the simple forms.
         const glowStyle = getGlowStyle(chosen, shape.length);
         halo =
-          glowStyle === chosen
+          glowStyle === chosen || isFluidForm || hasGraphMotion(chosen)
             ? figure
             : new Path2D(
                 createGraphShape(
@@ -685,7 +699,7 @@ const LiveTraceCanvas = ({
                   tuning.columns,
                   // The halo has to be the same figure it sits behind, which
                   // includes standing in the same box.
-                  waveformRef.current,
+                  fluidWaveRef.current,
                   tuning.gap,
                   plot.top,
                 ),
@@ -711,6 +725,7 @@ const LiveTraceCanvas = ({
             baseline,
             fluidWaveRef.current,
             tuning.accentStyle,
+            plot.top,
           )
         : '';
       const accent = accentShape ? new Path2D(accentShape) : undefined;
@@ -729,12 +744,12 @@ const LiveTraceCanvas = ({
       const wantsPaintedAccent =
         tuning.accents && tuning.accentStyle !== 'wave';
       const accentPeaks = wantsPaintedAccent
-        ? getGraphPeaks(projected, chosen, baseline, tuning.columns)
+        ? getGraphPeaks(projected, chosen, baseline, tuning.columns, plot.top)
         : [];
       const accentHeights: number[] = [];
       const accentPositions: number[] = [];
       if (wantsPaintedAccent) {
-        const accentDepth = Math.max(1, baseline);
+        const accentDepth = depth;
         for (let index = 0; index < projected.length; index += 1) {
           accentPositions.push(projected[index][0]);
           accentHeights.push(
@@ -744,6 +759,19 @@ const LiveTraceCanvas = ({
             ),
           );
         }
+      }
+
+      if (tuning.accents && tuning.accentStyle !== 'wave') {
+        moving =
+          advanceGraphAccent({
+            behaviour: tuning.accentStyle,
+            peaks: accentPeaks,
+            heights: accentHeights,
+            state: accentStateRef.current,
+            deltaMs,
+          }) || moving;
+      } else if (accentStateRef.current.behaviour !== undefined) {
+        accentStateRef.current = createAccentState();
       }
 
       // The trace's presence, eased rather than transitioned.
@@ -815,20 +843,9 @@ const LiveTraceCanvas = ({
        * space as the figure, and the mirrored copy's transform is applied when
        * the clip is set rather than when it is built.
        */
-      /**
-       * Not on the fluid, which is the one form it neither suits nor can
-       * afford.
-       *
-       * The mask is an even-odd clip built from the whole figure, and this
-       * figure is a hundred and twenty-eight rectangles that change every
-       * frame — so it is a fresh path of that size, tessellated as a clip,
-       * sixty times a second. And the result is not worth it: a border round
-       * every bar at that density is not an edge on a shape, it is a grid,
-       * and the bars stop being readable behind their own outlines. The wave
-       * is where this form's light belongs.
-       */
-      const needsOutside =
-        isEuphoriaEdge && isFilled && figureStrokeWidth > 0 && !isFluidForm;
+      // Fluid uses the same bar path for fill and border, so the outline
+      // follows the selected density and gap instead of a different figure.
+      const needsOutside = isEuphoriaEdge && isFilled && figureStrokeWidth > 0;
       let outside: Path2D | undefined;
       if (needsOutside) {
         const bleed = figureStrokeWidth + 1;
@@ -867,41 +884,15 @@ const LiveTraceCanvas = ({
           // Only `heat` reads it, and for that one the loudness IS the colour.
           energy,
         );
-        const waveRamp =
-          isWaveForm && lookRef.current.palette === 'signal'
-            ? (() => {
-                const ramp = context.createLinearGradient(
-                  plot.left,
-                  0,
-                  plot.right,
-                  0,
-                );
-                (isEuphoric ? TRACE_RAINBOW_STOPS : TRACE_CYAN_STOPS).forEach(
-                  (stop) => {
-                    ramp.addColorStop(stop.offset, stop.colour);
-                  },
-                );
-                return ramp;
-              })()
-            : undefined;
-        const canvasPaint = waveRamp ?? toCanvasPaint(context, basePaint);
+        // Flat must stay one colour for Wave forms too. Geometry cannot
+        // override the palette that the button and Edit panel report.
+        const canvasPaint = toCanvasPaint(context, basePaint);
         const paintFor = (paint: TracePaint) =>
           paint === basePaint ? canvasPaint : toCanvasPaint(context, paint);
 
-        /**
-         * Behind the figure it echoes — except on the fluid, where Glow
-         * belongs to the wave and to nothing else.
-         *
-         * One setting lighting two things at once is not one setting: the
-         * bars would have taken a halo of their own from the same slider
-         * that sets the line's, and turning the line down would have dimmed
-         * a row of ghosts nobody was looking at. Glow means the wave here.
-         */
-        // The wave family is lit by its own shadow instead — see below, and
-        // see the titlebar's `SOFT_GLOW_WAVEFORM_STYLES`, which drops the
-        // halo for exactly these. Two lights on one figure is not twice as
-        // lit, it is a smear with no edge left.
-        if (haloPath && !isFluidForm && !isWaveForm) {
+        // One beat-driven glow for every form, gated by Rainbow mode. Keeping
+        // wave shadows separate made Glow work while its slider was disabled.
+        if (haloPath) {
           context.strokeStyle = paintFor(
             resolveGlowStroke(basePaint, isSelfColoured, euphoria),
           );
@@ -915,24 +906,6 @@ const LiveTraceCanvas = ({
         // One drawing for every style. A filled style paints the same shape
         // rather than stroking it — which is a fill, not a second figure, so
         // cycling styles never changes what is drawn, only how.
-        /**
-         * The wave family is lit by a soft shadow, not by the neon halo.
-         *
-         * That is how the titlebar lights them, and its own comment gives
-         * the reason: a multi-stroke halo does not suit a figure made of
-         * separate pieces — it outlines each one rather than lighting the
-         * drawing. Scaled by the look's Glow like everything else, so the
-         * setting still means something here and zero is flat.
-         */
-        if (isWaveForm && tuning.glow > 0) {
-          context.shadowColor = isEuphoric
-            ? TRACE_GLOW_RAINBOW
-            : traceGlowCyan();
-          context.shadowBlur =
-            (isEuphoric ? TRACE_BLUR_RAINBOW : TRACE_BLUR_CYAN) *
-            (tuning.glow / DEFAULT_GLOW);
-        }
-
         if (isFluidForm && isFilled) {
           // The titlebar's own bars, from the titlebar's own painter. The hue
           // sweep is the form's own fill — it is what makes this drawing this
@@ -943,9 +916,9 @@ const LiveTraceCanvas = ({
             context,
             {
               x: fluidLeft,
-              y: 0,
+              y: plot.top,
               width: fluidRight - fluidLeft,
-              height: baseline,
+              height: depth,
             },
             fluidBarsRef.current,
             isEuphoric,
@@ -962,7 +935,13 @@ const LiveTraceCanvas = ({
             GRAPH_BAR_LIFT,
             // Level is a meter: the ramp is pinned to the plot and each bar
             // shows its own slice of it, so a colour is a decibel.
-            lookRef.current.palette === 'level' ? canvasPaint : undefined,
+            createFluidBarPaint(
+              context,
+              lookRef.current.palette,
+              lookRef.current.colours,
+              plot.top,
+              baseline,
+            ),
           );
         } else if (isFilled && piecePaths) {
           /**
@@ -980,7 +959,10 @@ const LiveTraceCanvas = ({
            */
           setAlpha(context, opacity * tuning.fillOpacity);
           piecePaths.forEach((piece) => {
-            context.fillStyle = `hsl(${heatHue(piece.energy)}, 92%, 60%)`;
+            context.fillStyle = heatColour(
+              lookRef.current.colours,
+              piece.energy,
+            );
             context.fill(piece.path);
           });
         } else if (isFilled) {
@@ -992,20 +974,6 @@ const LiveTraceCanvas = ({
           context.fillStyle = canvasPaint;
           context.fill(figure);
         }
-        // The euphoria sweep does not take the fluid's border either — see
-        // `needsOutside`. Its bars are lit by their own hue and the wave over
-        // them; a travelling edge on each of a hundred-odd of them is noise.
-        // Put away before the outline and the marks: a shadow set for the
-        // figure would otherwise light everything drawn after it in the same
-        // save block, and a lit peak wearing the figure's glow reads as a
-        // smudge rather than as a mark.
-        const clearWaveGlow = () => {
-          if (isWaveForm) {
-            context.shadowBlur = 0;
-            context.shadowColor = 'transparent';
-          }
-        };
-
         const figureStroke = resolveFigureStroke(
           basePaint,
           isFilled,
@@ -1013,21 +981,9 @@ const LiveTraceCanvas = ({
           isSelfColoured,
           euphoria,
         );
-        /**
-         * The fluid is not stroked at all.
-         *
-         * A stroke follows the whole path, and this path is rectangles
-         * standing on the floor — so it drew a line along the bottom of
-         * every bar, brighter than the fade above it, and the plot grew a
-         * lit rail across its foot that nothing had asked for. The form's
-         * edges are its own fade and the wave over it.
-         */
-        clearWaveGlow();
-        if (
-          figureStroke !== undefined &&
-          figureStrokeWidth > 0 &&
-          !isFluidForm
-        ) {
+        // Stroked must draw Fluid too; excluding it erased the bars while
+        // the designer continued offering Weight and Border controls.
+        if (figureStroke !== undefined && figureStrokeWidth > 0) {
           setAlpha(context, opacity);
           context.strokeStyle = paintFor(figureStroke);
           if (outside) {
@@ -1091,21 +1047,9 @@ const LiveTraceCanvas = ({
              * grey aura came from. And no fill — filling an open curve
              * closes it, which is where the white slab came from.
              *
-             * The titlebar's ramp rather than the look's, wherever it is
-             * worn: this accent IS the titlebar's figure, so a given
-             * frequency keeps its colour whether the frame is loud or quiet.
+             * The accent shares the look's palette, so custom colours and
+             * Flat remain consistent with the figure underneath it.
              */
-            const ramp = context.createLinearGradient(
-              plot.left,
-              0,
-              plot.right,
-              0,
-            );
-            (isEuphoric ? TRACE_RAINBOW_STOPS : TRACE_CYAN_STOPS).forEach(
-              (stop) => {
-                ramp.addColorStop(stop.offset, stop.colour);
-              },
-            );
             context.save();
             context.lineJoin = 'round';
             context.lineCap = 'round';
@@ -1119,10 +1063,10 @@ const LiveTraceCanvas = ({
              * to 2 and would double a 4.2px line into 8.4.
              */
             context.shadowBlur =
-              (isEuphoric ? TRACE_BLUR_RAINBOW : TRACE_BLUR_CYAN) *
+              (isEuphoric ? TRACE_BLUR_RAINBOW : 0) *
               (tuning.glow / DEFAULT_GLOW);
             setAlpha(context, opacity);
-            context.strokeStyle = ramp;
+            context.strokeStyle = canvasPaint;
             context.lineWidth =
               (isEuphoric ? TRACE_WIDTH_RAINBOW : TRACE_WIDTH_CYAN) *
               tuning.accentWidth;
@@ -1138,10 +1082,10 @@ const LiveTraceCanvas = ({
                 heights: accentHeights,
                 positions: accentPositions,
                 baseline,
+                top: plot.top,
                 left: plot.left,
                 right: plot.right,
                 state: accentStateRef.current,
-                deltaMs,
                 weight: tuning.accentWidth,
                 paint: paintFor(resolveAccentStroke(basePaint, euphoria)),
               })
@@ -1156,7 +1100,7 @@ const LiveTraceCanvas = ({
         context.restore();
       });
 
-      return moving;
+      return moving || (isEuphoric && tuning.border);
     },
     [curves, height, points, width, xScale, yScale],
   );
@@ -1218,9 +1162,13 @@ const LiveTraceCanvas = ({
     height,
     isForeground,
     isGridHidden,
+    isRainbow,
+    isActive,
+    isPaused,
     kickFrames,
     look,
     points,
+    waveform,
     width,
   ]);
 

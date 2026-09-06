@@ -59,7 +59,7 @@ import { WaveformStyle, createWaveformShape } from './waveformStyles';
  * So the column stands at the centre of its bucket, which is a constant, and
  * carries the peak's height.
  */
-const toColumns = (
+export const toColumns = (
   points: readonly Projected[],
   count: number,
 ): Projected[] => {
@@ -1799,6 +1799,10 @@ const PEAK_ROWS: Partial<
   // Floor-standing in the titlebar too, and at full depth rather than 82%.
   'wave-bars': (baseline, energy) => baseline - energy * baseline,
   'wave-blocks': (baseline, energy) => baseline - energy * baseline,
+  'wave-dots': (baseline, energy) => baseline - energy * baseline,
+  'wave-spikes': (baseline, energy) => baseline - energy * baseline,
+  'wave-outline': (baseline, energy) => baseline - energy * baseline,
+  'wave-lattice': (baseline, energy) => baseline - energy * baseline,
 };
 
 /** The mirrored family, whose figure grows out of the middle. */
@@ -1807,10 +1811,6 @@ const MIRRORED_WAVE_FORMS: GraphStyle[] = [
   'wave-filled',
   'wave-ribbon',
   'wave-mirror',
-  'wave-dots',
-  'wave-spikes',
-  'wave-outline',
-  'wave-lattice',
 ];
 MIRRORED_WAVE_FORMS.forEach((style) => {
   PEAK_ROWS[style] = (baseline, energy) => (baseline / 2) * (1 - energy);
@@ -1840,6 +1840,7 @@ export const getGraphPeaks = (
   style: GraphStyle,
   baseline: number,
   columns?: number,
+  ceiling = 0,
 ): IGraphPeak[] => {
   if (points.length < 3) {
     return [];
@@ -1867,7 +1868,7 @@ export const getGraphPeaks = (
   }
   const size = Math.max(2.6, Math.min(MAX_ACCENT_BEAD, step * 0.5));
   const floor = tallest * ACCENT_THRESHOLD;
-  const depth = Math.max(1, baseline);
+  const depth = Math.max(1, baseline - ceiling);
   const peaks: IGraphPeak[] = [];
   let lastX = -Infinity;
   for (
@@ -1890,7 +1891,7 @@ export const getGraphPeaks = (
       peaks.push({
         x,
         // The row the DRAWING reaches, which is not always the point's own.
-        y: row ? row(baseline, energy) : y,
+        y: row ? ceiling + row(depth, energy) : y,
         size,
         energy,
       });
@@ -1907,6 +1908,7 @@ export const createGraphAccent = (
   waveform?: readonly number[],
   /** Which mark. Left out, the form's own starting choice. */
   accentStyle?: AccentStyle,
+  ceiling = 0,
 ): string => {
   /**
    * Only the wave is a path.
@@ -1925,12 +1927,12 @@ export const createGraphAccent = (
   return createWaveformShape(
     waveform !== undefined && waveform.length >= 2
       ? waveform
-      : toWaveSamples(toColumns(points, WAVE_SAMPLE_COUNT), baseline),
+      : toWaveSamples(toColumns(points, WAVE_SAMPLE_COUNT), baseline, ceiling),
     'fluid',
     Math.max(1, points[points.length - 1][0] - left),
-    baseline,
-    baseline / 2,
+    Math.max(1, baseline - ceiling),
+    Math.max(1, baseline - ceiling) / 2,
     undefined,
-    { x: left, y: 0 },
+    { x: left, y: ceiling },
   ).line;
 };

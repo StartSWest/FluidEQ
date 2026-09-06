@@ -16,8 +16,8 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { getEaseFactor } from 'common/smoothing';
-import { GraphPalette } from 'common/graphStyles';
+import { easeTowards, getEaseFactor } from 'common/smoothing';
+import { GraphPalette, IGraphBallistics } from 'common/graphStyles';
 import { WAVEFORM_STYLES, WaveformStyle } from 'common/waveformStyles';
 
 /**
@@ -179,14 +179,20 @@ export const advanceSpectrumBars = (
   levels: readonly { y: number }[],
   floorDb: number,
   deltaMs: number,
+  ballistics: IGraphBallistics = {
+    attackMs: SPECTRUM_BAR_ATTACK_MS,
+    releaseMs: SPECTRUM_BAR_RELEASE_MS,
+  },
+  rangeDb = SPECTRUM_BAR_RANGE_DB,
 ) => {
-  const rise = getEaseFactor(deltaMs, SPECTRUM_BAR_ATTACK_MS);
-  const fall = getEaseFactor(deltaMs, SPECTRUM_BAR_RELEASE_MS);
+  const rise = getEaseFactor(deltaMs, ballistics.attackMs);
+  const fall = getEaseFactor(deltaMs, ballistics.releaseMs);
+  let moving = false;
   if (levels.length === 0) {
     for (let bar = 0; bar < bars.length; bar += 1) {
       bars[bar] += (0 - bars[bar]) * fall;
     }
-    return;
+    return bars.some((bar) => bar > 0.002);
   }
   const stride = levels.length / bars.length;
   for (let bar = 0; bar < bars.length; bar += 1) {
@@ -198,13 +204,36 @@ export const advanceSpectrumBars = (
         peakDb = levels[index].y;
       }
     }
-    const target = Math.max(
-      0,
-      Math.min(1, (peakDb - floorDb) / SPECTRUM_BAR_RANGE_DB),
-    );
+    const target = Math.max(0, Math.min(1, (peakDb - floorDb) / rangeDb));
     const gap = target - bars[bar];
-    bars[bar] += gap * (gap > 0 ? rise : fall);
+    if (Math.abs(gap) > 0.002) {
+      bars[bar] += gap * (gap > 0 ? rise : fall);
+      moving = true;
+    } else {
+      bars[bar] = target;
+    }
   }
+  return moving;
+};
+
+export const advanceWaveform = (
+  current: number[],
+  target: readonly number[],
+  deltaMs: number,
+  ballistics: IGraphBallistics,
+): boolean => {
+  // Easing an empty buffer visits no samples; Fluid consequently drew its
+  // spectrum fallback forever instead of the captured waveform.
+  if (current.length !== target.length) {
+    current.length = target.length;
+    current.fill(0);
+  }
+  return easeTowards(
+    current,
+    target,
+    getEaseFactor(deltaMs, ballistics.attackMs),
+    getEaseFactor(deltaMs, ballistics.releaseMs),
+  );
 };
 
 interface ISpectrumBox {
@@ -288,6 +317,13 @@ const forEachSpectrumBar = (
  * `across` is the bar's place in the box, `energy` how tall it is.
  */
 export type SpectrumHue = (across: number, energy: number) => number;
+export type SpectrumBarPaint = (
+  across: number,
+  energy: number,
+  y: number,
+  height: number,
+  topAlpha: number,
+) => string | CanvasGradient;
 
 /** The titlebar's own: cyan through violet, coloured by position. */
 export const SPECTRUM_HUE_FLAT: SpectrumHue = (across) => 184 + across * 112;
@@ -360,10 +396,15 @@ export const paintSpectrumBars = (
    * on screen. Each bar shows its own slice of that one ramp, which is what
    * a meter is — and a per-bar hue would say something else entirely.
    */
-  paint?: string | CanvasGradient,
+  paint?: string | CanvasGradient | SpectrumBarPaint,
 ) => {
   const topAlpha = Math.min(1, (isRainbow ? 0.5 : 0.42) * (lift ?? 1));
   forEachSpectrumBar(box, bars, gap, (x, y, width, height, across, energy) => {
+    if (typeof paint === 'function') {
+      context.fillStyle = paint(across, energy, y, height, topAlpha);
+      context.fillRect(x, y, width, height);
+      return;
+    }
     if (paint === undefined) {
       const gradient = context.createLinearGradient(0, y, 0, y + height);
       const hue = hueAt(across, energy);

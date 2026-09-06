@@ -34,6 +34,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { GraphPalette, heatHue } from 'common/graphStyles';
 import { BAND_SPECTRUM_STOPS } from '../utils/bandColors';
 import { ILiveCurveData } from './ChartController';
+import { heatColour } from './lookColours';
 
 /**
  * A gradient described rather than built.
@@ -103,11 +104,9 @@ export const resolveTracePaint = (
    * cyan-to-red one below.
    */
   if (palette === 'heat') {
-    if (colours.length > 1) {
-      const at = Math.max(0, Math.min(1, level)) * (colours.length - 1);
-      return colours[Math.round(at)];
-    }
-    return colours[0] ?? `hsl(${heatHue(level)}, 92%, 60%)`;
+    return colours.length
+      ? heatColour(colours, level)
+      : `hsl(${heatHue(level)}, 92%, 60%)`;
   }
   // One colour is a flat fill whatever the palette is called, and no colours at
   // all means "the ones already on screen" — neither needs a gradient built.
@@ -229,7 +228,7 @@ export const resolveFigureStroke = (
    * The sweep RECOLOURS a stroke; it does not create one. Which colour wins
    * is left exactly as it was below.
    */
-  if (isFilled && !hasBorder) {
+  if (isFilled && (!hasBorder || !euphoria.isOn)) {
     return undefined;
   }
   /**

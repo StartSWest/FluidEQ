@@ -89,12 +89,15 @@ export interface IAccentState {
   /** The figure's own recent maximum, per column, for the ghost. */
   envelope: number[];
   motes: IMote[];
+  emissionLevels: Map<number, { energy: number; armed: boolean }>;
+  behaviour?: AccentBehaviour;
 }
 
 export const createAccentState = (): IAccentState => ({
   held: [],
   envelope: [],
   motes: [],
+  emissionLevels: new Map(),
 });
 
 /** The ten, by what they do rather than by what they look like. */
@@ -118,10 +121,10 @@ interface IPaintAccentArgs {
   /** Every column's x, matching `heights`. */
   positions: readonly number[];
   baseline: number;
+  top?: number;
   left: number;
   right: number;
   state: IAccentState;
-  deltaMs: number;
   /** How heavy the mark is drawn, as a multiple of its own default. */
   weight: number;
   paint: string | CanvasGradient;
@@ -142,8 +145,17 @@ const fit = (buffer: number[], length: number) => {
  * does not arrive at a cold buffer — a held peak that had to be re-learned
  * every time the setting moved would flash empty on every change.
  */
-const advance = (args: IPaintAccentArgs) => {
-  const { heights, state, deltaMs } = args;
+export const advanceGraphAccent = (
+  args: Pick<IPaintAccentArgs, 'heights' | 'state' | 'peaks' | 'behaviour'> & {
+    deltaMs: number;
+  },
+): boolean => {
+  const { heights, state, deltaMs, peaks, behaviour } = args;
+  if (state.behaviour !== behaviour) {
+    state.motes = [];
+    state.emissionLevels.clear();
+    state.behaviour = behaviour;
+  }
   fit(state.held, heights.length);
   fit(state.envelope, heights.length);
   const fall = (FALL_PER_SECOND * deltaMs) / 1000;
@@ -174,6 +186,58 @@ const advance = (args: IPaintAccentArgs) => {
       state.motes.pop();
     }
   }
+  if (
+    behaviour === 'ripple' ||
+    behaviour === 'sparks' ||
+    behaviour === 'drip'
+  ) {
+    // Emit on an audible rise, never on a paint. A steady peak previously
+    // spawned at monitor refresh rate, twice again when the view was mirrored.
+    const present = new Set(peaks.map((peak) => peak.x));
+    state.emissionLevels.forEach((_energy, x) => {
+      if (!present.has(x)) {
+        state.emissionLevels.delete(x);
+      }
+    });
+    peaks.forEach((peak) => {
+      const previous = state.emissionLevels.get(peak.x) ?? {
+        energy: 0,
+        armed: true,
+      };
+      const rising = previous.armed && peak.energy - previous.energy >= 0.08;
+      if (rising) {
+        state.emissionLevels.set(peak.x, { energy: peak.energy, armed: false });
+      } else if (!previous.armed && previous.energy - peak.energy >= 0.08) {
+        state.emissionLevels.set(peak.x, { energy: peak.energy, armed: true });
+      } else {
+        previous.energy = previous.armed
+          ? Math.min(previous.energy, peak.energy)
+          : Math.max(previous.energy, peak.energy);
+        state.emissionLevels.set(peak.x, previous);
+      }
+      if (!rising || state.motes.length >= MAX_MOTES) {
+        return;
+      }
+      const seed = ((peak.x * 7919) % 97) / 97;
+      state.motes.push({
+        x: peak.x,
+        y: peak.y,
+        vx: behaviour === 'sparks' ? (seed - 0.5) * 60 : 0,
+        vy: { sparks: -40 - seed * 70, drip: 55, ripple: 0 }[behaviour],
+        size: peak.size * (behaviour === 'ripple' ? 1 : 0.5),
+        life: 1,
+      });
+    });
+  }
+  // Holds and ghosts need their final decay drawn even after the FFT settles.
+  return (
+    state.motes.length > 0 ||
+    heights.some(
+      (height, index) =>
+        (behaviour === 'fall' && state.held[index] - height > 0.004) ||
+        (behaviour === 'ghost' && state.envelope[index] - height > 0.002),
+    )
+  );
 };
 
 /** A circle as a subpath, in the same `d` syntax everything else here uses. */
@@ -188,7 +252,8 @@ const circle = (
 };
 
 /**
- * Draw the chosen mark, and move whatever it remembers.
+ * Draw the chosen mark without advancing its state. Mirrored views paint
+ * twice but advance once, so they retain the same speed and particle count.
  *
  * Returns whether anything is still moving, so the frame loop can keep
  * running while a spark is in the air after the music has stopped.
@@ -201,14 +266,14 @@ export const paintGraphAccent = (args: IPaintAccentArgs): boolean => {
     heights,
     positions,
     baseline,
+    top = 0,
     left,
     right,
     state,
     weight,
     paint,
   } = args;
-  advance(args);
-  const depth = Math.max(1, baseline);
+  const depth = Math.max(1, baseline - top);
   const rowOf = (fraction: number) => baseline - fraction * depth;
 
   context.save();
@@ -216,6 +281,7 @@ export const paintGraphAccent = (args: IPaintAccentArgs): boolean => {
   context.lineJoin = 'round';
   context.fillStyle = paint;
   context.strokeStyle = paint;
+  const opacity = context.globalAlpha;
 
   switch (behaviour) {
     case 'bead': {
@@ -264,7 +330,7 @@ export const paintGraphAccent = (args: IPaintAccentArgs): boolean => {
        * second or so, which is the one treatment here that shows what the
        * music WAS rather than pointing at what it is.
        */
-      context.globalAlpha *= 0.32;
+      context.globalAlpha *= Math.min(1, 0.32 * weight);
       context.beginPath();
       context.moveTo(left, baseline);
       for (let index = 0; index < positions.length; index += 1) {
@@ -278,21 +344,9 @@ export const paintGraphAccent = (args: IPaintAccentArgs): boolean => {
 
     case 'ripple': {
       // A ring leaving each peak and fading as it goes.
-      peaks.forEach((peak) => {
-        if (state.motes.length < MAX_MOTES) {
-          state.motes.push({
-            x: peak.x,
-            y: peak.y,
-            vx: 0,
-            vy: 0,
-            size: peak.size,
-            life: 1,
-          });
-        }
-      });
       context.lineWidth = 1.4 * weight;
       state.motes.forEach((mote) => {
-        context.globalAlpha = mote.life * 0.7;
+        context.globalAlpha = opacity * mote.life * 0.7;
         circle(
           context,
           mote.x,
@@ -306,25 +360,8 @@ export const paintGraphAccent = (args: IPaintAccentArgs): boolean => {
 
     case 'sparks': {
       // Thrown upward and outward, and gone in under a second.
-      peaks.forEach((peak) => {
-        if (state.motes.length >= MAX_MOTES) {
-          return;
-        }
-        // Seeded from the peak's own position rather than from a random
-        // number, so a peak that holds still throws the same spray instead
-        // of boiling — the rule the starfield learned the hard way.
-        const seed = ((peak.x * 7919) % 97) / 97;
-        state.motes.push({
-          x: peak.x,
-          y: peak.y,
-          vx: (seed - 0.5) * 60,
-          vy: -40 - seed * 70,
-          size: peak.size * 0.4,
-          life: 1,
-        });
-      });
       state.motes.forEach((mote) => {
-        context.globalAlpha = mote.life;
+        context.globalAlpha = opacity * mote.life;
         circle(context, mote.x, mote.y, mote.size * mote.life * weight);
         context.fill();
       });
@@ -393,20 +430,8 @@ export const paintGraphAccent = (args: IPaintAccentArgs): boolean => {
 
     case 'drip': {
       // The peak lets go and falls away, which is the opposite of holding it.
-      peaks.forEach((peak) => {
-        if (state.motes.length < MAX_MOTES) {
-          state.motes.push({
-            x: peak.x,
-            y: peak.y,
-            vx: 0,
-            vy: 55,
-            size: peak.size * 0.5,
-            life: 1,
-          });
-        }
-      });
       state.motes.forEach((mote) => {
-        context.globalAlpha = mote.life * 0.9;
+        context.globalAlpha = opacity * mote.life * 0.9;
         circle(context, mote.x, mote.y, mote.size * weight);
         context.fill();
       });
