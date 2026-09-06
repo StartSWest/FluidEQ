@@ -57,7 +57,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import type { AxisScale, NumberValue } from 'd3';
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { DEFAULT_GLOW } from 'common/customLooks';
 import { MAX_GAIN, MIN_GAIN } from 'common/constants';
 import { canGraphFill } from 'common/graphStyles';
@@ -87,7 +87,7 @@ import {
   paintGraphAccent,
 } from './graphAccents';
 import { createFluidBarPaint, heatColour } from './lookColours';
-import { useLookPreviewPoints } from './lookPreview';
+import { resolveLookWaveform, useLookPreviewPoints } from './lookPreview';
 import { IChartPointData, ILiveCurveData } from './ChartController';
 import {
   IEuphoriaPaint,
@@ -326,6 +326,10 @@ const LiveTraceCanvas = ({
   // nothing else reading the analyser — the meter, the Smart EQ solver, the
   // rhythm game — should ever see an invented frame.
   const points = useLookPreviewPoints(livePoints, look.id);
+  const displayedWaveform = useMemo(
+    () => resolveLookWaveform(points, livePoints, waveform),
+    [points, livePoints, waveform],
+  );
 
   // The points, eased toward each new measurement between measurements.
   //
@@ -335,8 +339,8 @@ const LiveTraceCanvas = ({
   const easedRef = useRef<IChartPointData[]>([]);
   const projectedRef = useRef<[number, number][]>([]);
   // Capture frames remain raw; only this visualizer's copy is eased.
-  const waveformRef = useRef<readonly number[]>(waveform);
-  waveformRef.current = waveform;
+  const waveformRef = useRef<readonly number[]>(displayedWaveform);
+  waveformRef.current = displayedWaveform;
   // Fluid eases its grouped magnitudes once with the look's ballistics.
   const fluidBarsRef = useRef<number[]>([]);
   // Shared by Wave forms and the Wave peak mark, using Edit's Attack/Release.

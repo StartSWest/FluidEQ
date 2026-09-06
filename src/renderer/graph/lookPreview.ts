@@ -40,6 +40,31 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { MAX_GAIN, MIN_GAIN } from 'common/constants';
 import { IChartPointData } from './ChartController';
+import { WAVEFORM_POINT_COUNT } from './liveSpectrumFrames';
+
+export const resolveLookWaveform = (
+  displayed: IChartPointData[],
+  live: IChartPointData[],
+  waveform: readonly number[],
+): readonly number[] => {
+  if (displayed === live || displayed.length === 0) {
+    return waveform;
+  }
+  // A silent capture still supplies an array of zeroes. Letting that array
+  // override the preview spectrum erased Wave body's filled silhouette.
+  // Only the drawing's explicit preview gets an envelope; real silence stays
+  // silent, and keeping the sample count lets Attack/Release ease its exit.
+  const count = waveform.length >= 2 ? waveform.length : WAVEFORM_POINT_COUNT;
+  return Array.from({ length: count }, (_, index) => {
+    const at = (index / (count - 1)) * (displayed.length - 1);
+    const before = Math.floor(at);
+    const after = Math.min(displayed.length - 1, before + 1);
+    const level =
+      displayed[before].y +
+      (displayed[after].y - displayed[before].y) * (at - before);
+    return Math.max(0, Math.min(1, (level - MIN_GAIN) / (MAX_GAIN - MIN_GAIN)));
+  });
+};
 
 /** How long the frame stays up before it is allowed to fall away. */
 const PREVIEW_HOLD_MS = 1000;

@@ -9,6 +9,7 @@ import {
 } from 'renderer/graph/graphAccents';
 import { advanceSpectrumBars, advanceWaveform } from 'renderer/waveformPaint';
 import { createGraphShape } from 'common/graphShapes';
+import { resolveLookWaveform } from 'renderer/graph/lookPreview';
 import {
   canonicalGraphStyle,
   GRAPH_FORM_LOOKS,
@@ -25,6 +26,35 @@ const points: Projected[] = Array.from({ length: 64 }, (_, i) => [
 ]);
 
 describe('visualizer timing', () => {
+  it('previews a wave against a silent capture and eases back to real silence', () => {
+    const live = [
+      { x: 20, y: -20 },
+      { x: 20000, y: -20 },
+    ];
+    const preview = [
+      { x: 20, y: 20 },
+      { x: 20000, y: -10 },
+    ];
+    const silence = new Array<number>(96).fill(0);
+    expect(resolveLookWaveform(live, live, silence)).toBe(silence);
+    const target = resolveLookWaveform(preview, live, silence);
+    expect(target).toHaveLength(silence.length);
+    expect(Math.max(...target)).toBe(1);
+    const current: number[] = [];
+    const rates = { attackMs: 10, releaseMs: 100 };
+    advanceWaveform(current, target, 100, rates);
+    const full = Math.max(...current);
+    advanceWaveform(
+      current,
+      resolveLookWaveform(live, live, silence),
+      100,
+      rates,
+    );
+    expect(Math.max(...current)).toBeGreaterThan(0);
+    expect(Math.max(...current)).toBeLessThan(full);
+    expect(resolveLookWaveform(live, live, [0.2, 0.8])).toEqual([0.2, 0.8]);
+  });
+
   it.each(['flames', 'braid', 'bubbles', 'racer', 'invaders'] as const)(
     '%s moves continuously at every refresh rate and freezes on pause',
     (style) => {
