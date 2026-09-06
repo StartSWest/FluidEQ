@@ -577,11 +577,29 @@ export const createGraphShape = (
         .join('');
 
     case 'dots': {
-      const size = columnWidth(1.6);
+      const depth = Math.max(1, baseline - ceiling);
+      const reach = Math.min(columnWidth(1.6) / 2, depth * 0.08);
       let path = '';
+      // A narrow filled ribbon shares the beads' paint and works even when
+      // Edit disables borders. Joining centres leaves no gaps on steep slopes.
+      const thread = Math.min(0.8, reach * 0.12);
+      for (let index = 1; index < figure.length; index += 1) {
+        const [ax, ay] = figure[index - 1];
+        const [bx, by] = figure[index];
+        const length = Math.max(0.001, Math.hypot(bx - ax, by - ay));
+        const nx = (-(by - ay) / length) * thread;
+        const ny = ((bx - ax) / length) * thread;
+        path += `M ${(ax + nx).toFixed(2)},${(ay + ny).toFixed(2)} L ${(bx + nx).toFixed(2)},${(by + ny).toFixed(2)} L ${(bx - nx).toFixed(2)},${(by - ny).toFixed(2)} L ${(ax - nx).toFixed(2)},${(ay - ny).toFixed(2)} Z`;
+      }
       for (let index = 0; index < figure.length; index += 1) {
         const [x, y] = figure[index];
-        path += rect(x - size / 2, y - size / 2, size, size);
+        // A bead grows with its band, while the centre still reports the
+        // actual level. Closed arcs stay round with both fill and border.
+        const energy = Math.max(0, Math.min(1, (baseline - y) / depth));
+        const radius = reach * (0.48 + 0.52 * Math.sqrt(energy));
+        const r = radius.toFixed(2);
+        const diameter = (radius * 2).toFixed(2);
+        path += `M ${(x - radius).toFixed(2)},${y.toFixed(2)} a ${r},${r} 0 1,0 ${diameter},0 a ${r},${r} 0 1,0 -${diameter},0 Z`;
       }
       return path;
     }

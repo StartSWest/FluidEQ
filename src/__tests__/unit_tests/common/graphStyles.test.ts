@@ -56,6 +56,56 @@ const points: Projected[] = Array.from(
 const shapeOf = (style: GraphStyle) =>
   createGraphShape(points, style, BASELINE);
 
+describe('connected spectrum beads', () => {
+  it('draws round closed beads and a filled link between every neighbour', () => {
+    const columns = 24;
+    const path = createGraphShape(
+      points,
+      'dots',
+      BASELINE,
+      columns,
+      undefined,
+      0.38,
+      0,
+      true,
+    );
+    const arcs = [...path.matchAll(/a ([\d.]+),([\d.]+)/g)];
+    expect(arcs).toHaveLength(columns * 2);
+    arcs.forEach(([, rx, ry]) => {
+      expect(Number(rx)).toBeGreaterThan(0);
+      expect(rx).toBe(ry);
+    });
+    expect(path.match(/ Z/g)).toHaveLength(columns * 2 - 1);
+    expect(path.match(/ L /g)).toHaveLength((columns - 1) * 3);
+  });
+
+  it('grows with the level while still obeying the spacing setting', () => {
+    const radius = (y: number, gap: number) => {
+      const path = createGraphShape(
+        [
+          [0, y],
+          [100, y],
+        ],
+        'dots',
+        BASELINE,
+        2,
+        undefined,
+        gap,
+      );
+      return Number(path.match(/a ([\d.]+),/)?.[1]);
+    };
+    expect(radius(40, 0.38)).toBeGreaterThan(radius(280, 0.38));
+    expect(radius(40, 0.8)).toBeLessThan(radius(40, 0));
+  });
+
+  it('keeps a readable density and a slower fall than rise', () => {
+    expect(getGraphColumnCount('dots')).toBe(48);
+    const motion = getGraphBallistics('dots');
+    expect(motion.releaseMs).toBeGreaterThanOrEqual(150);
+    expect(motion.attackMs).toBeLessThan(motion.releaseMs);
+  });
+});
+
 describe('the graph style cycle', () => {
   it('offers fifty-seven distinct forms', () => {
     expect(GRAPH_STYLES).toHaveLength(57);

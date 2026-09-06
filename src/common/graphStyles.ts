@@ -456,7 +456,7 @@ const BALLISTICS: Partial<Record<GraphStyle, IGraphBallistics>> = {
   blocks: { attackMs: 3, releaseMs: 60 },
   // Peak marks: they exist to be caught, so they fall slowly enough to see.
   caps: { attackMs: 2, releaseMs: 110 },
-  dots: { attackMs: 5, releaseMs: 70 },
+  dots: { attackMs: 14, releaseMs: 160 },
   scatter: { attackMs: 5, releaseMs: 70 },
   dashes: { attackMs: 4, releaseMs: 85 },
   // Thin forms can afford to be instant; there is no mass to them.
@@ -609,6 +609,7 @@ const COLUMN_COUNT = 64;
  * the ornate forms are given fewer, larger columns and the sparse ones more.
  */
 const COLUMN_OVERRIDES: Partial<Record<GraphStyle, number>> = {
+  dots: 48,
   skyline: 26,
   truss: 22,
   ecg: 26,
@@ -715,6 +716,7 @@ const FILL_OPACITY_OVERRIDES: Partial<Record<GraphStyle, number>> = {
    */
   fluid: 0.92,
   bubbles: 0.85,
+  dots: 0.9,
 };
 
 /**
@@ -735,7 +737,7 @@ const BAR_GAP_DEFAULTS: Partial<Record<GraphStyle, number>> = {
   blocks: 0.38,
   pillars: 0.04,
   skyline: 0.12,
-  dots: 0.5,
+  dots: 0.38,
   stems: 0.58,
   dashes: 0.3,
   scatter: 0.66,
