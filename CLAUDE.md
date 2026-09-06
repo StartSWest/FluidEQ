@@ -83,11 +83,23 @@ only ever see the running app.
     request left on the list, nothing owed, nothing waiting on Ivan, no test
     unwritten, no check unrun, no "pending your launch". If a single item is
     still open, this is the wrong verdict.
-  - `Status: TASK DONE — Pending work: <a, b, c>` — the thing just asked for
-    is finished, but something else is not. This is the normal verdict for a
-    session with a list; `DONE` is the rarer one.
-  - `Status: IN PROGRESS — <what remains>`
-  - `Status: BLOCKED — <what is needed>`
+  - `Status: IN PROGRESS — Pending work: <what remains>` — required work is
+    still open and the agent can advance it. Keep working while it can.
+  - `Status: BLOCKED — Pending work: <items>; Needed: <input or external change>`
+    — the agent cannot advance without it.
+
+- **Never use `TASK DONE`, or combine a completion verdict with pending
+  work.** Completing a review, diagnosis, implementation step, or individual
+  request does not complete the whole outstanding request list. A review alone
+  can be done when that is all Ivan requested; it does not complete a requested
+  fix. Required implementation, regression coverage, verification, commit and
+  push remain part of a change request until completed or explicitly removed
+  from scope by Ivan. Required visual or listening verification also counts;
+  waiting for his window, ears or approval means blocked, not done.
+- **Do not invent an approval step.** A request to fix or change something
+  authorizes the ordinary implementation and relevant verification. A request
+  only to review or explain remains read-only. Ask only for a genuinely missing
+  decision, access, or action that is not already authorized.
 
 - **Whenever anything is outstanding, say what, on the verdict line.**
   `Pending work:` then the actual items — every request still on the list,

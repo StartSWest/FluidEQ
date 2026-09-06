@@ -6,6 +6,21 @@ everything in it applies here too. Read it. This file exists so the rules are
 found under the name other tools look for, and it repeats in full the one area
 where a plausible-looking change is most likely to be silently wrong.
 
+## Completion and autonomy
+
+- Use `Status: DONE` only when every outstanding request and its required
+  verification are complete, including the commit and push for a change request.
+- Never use `TASK DONE` or combine a completion verdict with pending work.
+  Finishing a review or one implementation step does not finish a requested fix.
+- While required work remains, use `Status: IN PROGRESS — Pending work: <items>`
+  and keep going while you can. If progress needs Ivan or an external change, use
+  `Status: BLOCKED — Pending work: <items>; Needed: <specific input or change>`.
+  Required regression, visual and listening checks count as unfinished work.
+- Do not invent approval gates for an already requested fix. Make ordinary
+  engineering decisions and complete the authorized work. Review-only requests
+  remain read-only; ask only for a genuinely missing decision, access, or action
+  that was not already authorized.
+
 ## Typography
 
 FluidEQ ships on Windows, macOS and Ubuntu and uses each one's system font, so
