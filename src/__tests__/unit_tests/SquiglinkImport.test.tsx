@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom';
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import {
   AutoEqFormat,
   FilterTypeEnum,
@@ -14,11 +14,13 @@ import defaultFluidEqContext from '__tests__/utils/mockFluidEqProvider';
 
 const mockImportEqText = jest.fn();
 const mockClearGains = jest.fn();
+const mockSetHeadphone = jest.fn();
 const SQUIGLINK_TEXT_STORAGE_KEY = 'fluideq.squiglink-import.text';
 
 jest.mock('renderer/utils/equalizerApi', () => ({
   clearGains: (...args: unknown[]) => mockClearGains(...args),
   importEqText: (...args: unknown[]) => mockImportEqText(...args),
+  setHeadphone: (...args: unknown[]) => mockSetHeadphone(...args),
 }));
 
 describe('Squiglink import preview', () => {
@@ -27,6 +29,7 @@ describe('Squiglink import preview', () => {
     window.localStorage.removeItem(SQUIGLINK_TEXT_STORAGE_KEY);
     mockImportEqText.mockResolvedValue('Imported');
     mockClearGains.mockResolvedValue(undefined);
+    mockSetHeadphone.mockResolvedValue(undefined);
   });
 
   it('draws the applied EQ curve from refreshed state', () => {
@@ -71,6 +74,8 @@ describe('Squiglink import preview', () => {
     const context: IFluidEqContext = {
       ...defaultFluidEqContext,
       eqImport: undefined,
+      preAmp: 0,
+      filters: {},
     };
     const { container } = render(
       <FluidEqProviderWrapper value={context}>
@@ -94,17 +99,114 @@ describe('Squiglink import preview', () => {
     expect(textarea).toHaveValue(exportText);
 
     await act(async () => {
-      fireEvent.click(
-        screen.getByRole('button', { name: 'Apply this imported EQ' }),
-      );
+      fireEvent.click(screen.getByRole('button', { name: 'Apply as EQ' }));
       await Promise.resolve();
     });
 
     expect(mockImportEqText).toHaveBeenCalledWith(
       exportText,
       'Squiglink export',
+      'eq',
     );
     expect(textarea).toHaveValue(exportText);
+  });
+
+  it.each(['eq', 'curve'] as const)(
+    'reviews existing bands before importing into %s',
+    async (destination) => {
+      const refreshState = jest.fn().mockResolvedValue(undefined);
+      render(
+        <FluidEqProviderWrapper
+          value={{ ...defaultFluidEqContext, preAmp: -3, refreshState }}
+        >
+          <SquiglinkImport />
+        </FluidEqProviderWrapper>,
+      );
+      const text = 'Filter 1: ON PK Fc 1000 Hz Gain 4 dB Q 1';
+      fireEvent.change(screen.getByRole('textbox'), {
+        target: { value: text },
+      });
+      fireEvent.click(screen.getByRole('button', { name: 'Apply as EQ' }));
+      const dialog = screen.getByRole('alertdialog');
+      expect(mockImportEqText).not.toHaveBeenCalled();
+      expect(
+        within(dialog).getByRole('button', { name: 'Apply as curve' }),
+      ).toHaveFocus();
+      await act(async () => {
+        fireEvent.click(
+          within(dialog).getByRole('button', {
+            name: destination === 'eq' ? 'Replace EQ' : 'Apply as curve',
+          }),
+        );
+      });
+      expect(mockImportEqText).toHaveBeenCalledWith(
+        text,
+        'Squiglink export',
+        destination,
+      );
+      expect(refreshState).toHaveBeenCalledWith({
+        revealBands: destination === 'eq',
+      });
+      expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+    },
+  );
+
+  it('cancels a replacement when the output changes, retaining the pasted text', () => {
+    const context = {
+      ...defaultFluidEqContext,
+      preAmp: -3,
+      activeDeviceId: 'first',
+    };
+    const { rerender } = render(
+      <FluidEqProviderWrapper value={context}>
+        <SquiglinkImport />
+      </FluidEqProviderWrapper>,
+    );
+    const text = 'Filter 1: ON PK Fc 1000 Hz Gain 4 dB Q 1';
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: text } });
+    fireEvent.click(screen.getByRole('button', { name: 'Apply as EQ' }));
+    expect(screen.getByRole('alertdialog')).toBeInTheDocument();
+    fireEvent.keyDown(document, { key: 'Escape' });
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Apply as EQ' }));
+    rerender(
+      <FluidEqProviderWrapper value={{ ...context, activeDeviceId: 'second' }}>
+        <SquiglinkImport />
+      </FluidEqProviderWrapper>,
+    );
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+    expect(mockImportEqText).not.toHaveBeenCalled();
+    expect(screen.getByRole('textbox')).toHaveValue(text);
+  });
+
+  it('removes an imported correction without clearing the independently edited EQ', async () => {
+    render(
+      <FluidEqProviderWrapper
+        value={{
+          ...defaultFluidEqContext,
+          headphone: {
+            filters: {},
+            intensity: 1,
+            eqImport: {
+              source: 'squiglink',
+              sourceUrl: 'https://squig.link/',
+              label: 'Correction',
+              eqFormat: AutoEqFormat.PARAMETRIC,
+              filterCount: 1,
+              text: 'Filter 1: ON PK Fc 1000 Hz Gain 4 dB Q 1',
+            },
+          },
+        }}
+      >
+        <SquiglinkImport />
+      </FluidEqProviderWrapper>,
+    );
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Remove import' }));
+    });
+    expect(mockSetHeadphone).toHaveBeenCalledWith(undefined);
+    expect(mockClearGains).not.toHaveBeenCalled();
+    expect(screen.getByText('Flat preview')).toBeInTheDocument();
   });
 
   it('shows a flat 0 dB preview after removing the applied import', async () => {

@@ -356,7 +356,7 @@ const OpraPicker = () => {
           )}
         </div>
         <HeadphoneCurvePreview
-          headphone={headphone}
+          headphone={headphone?.eqImport ? undefined : headphone}
           appliedLabel={
             appliedLabel ? t('autoeq.applied', { name: appliedLabel }) : ''
           }

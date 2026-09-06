@@ -448,9 +448,10 @@ export const importEqFile = (): Promise<string> => {
 export const importEqText = (
   text: string,
   label = 'Squiglink export',
+  destination: 'eq' | 'curve' = 'eq',
 ): Promise<string> => {
   const channel = ChannelEnum.IMPORT_EQ_TEXT;
-  window.electron.ipcRenderer.sendMessage(channel, [text, label]);
+  window.electron.ipcRenderer.sendMessage(channel, [text, label, destination]);
   return promisifyResult(simpleResponseHandler<string>(), channel);
 };
 

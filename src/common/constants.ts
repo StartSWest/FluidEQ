@@ -628,6 +628,8 @@ export const EQUALIZER_APO_OFFICIAL_DOWNLOAD =
  * kind of driver it is.
  */
 export interface IHeadphoneSettings {
+  /** Original text and attribution when this correction came from Squiglink. */
+  eqImport?: IEqImportReference;
   /** The correction as filters. Nothing audible means no layer at all. */
   filters: IFiltersMap;
   /**

@@ -353,7 +353,9 @@ const ActiveLayers = () => {
       key: 'headphone',
       icon: 'waveform',
       label: t('eq.layers.headphone'),
-      name: headsetName ?? headset ?? t('eq.layers.headphone'),
+      name: headphone?.eqImport
+        ? t('eq.layers.customHeadphone')
+        : (headsetName ?? headset ?? t('eq.layers.headphone')),
       percent: Math.round((headphone?.intensity ?? 0) * 100),
       strength: headphone?.intensity ?? 0,
       isInactive: (headphone?.intensity ?? 0) <= 0,

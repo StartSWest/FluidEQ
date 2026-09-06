@@ -8,78 +8,45 @@ the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 */
 
-import { ChangeEvent, useEffect, useMemo, useRef, useState } from 'react';
-import { AutoEqFormat, ICustomFxSettings } from 'common/constants';
+import {
+  ChangeEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import { AutoEqFormat } from 'common/constants';
 import { parseEqText } from 'common/apoText';
 import { ErrorDescription } from 'common/errors';
 import { useFluidEqContext } from './utils/FluidEqContext';
 import { useTranslation } from './utils/I18nContext';
 import Button from './widgets/Button';
 import MenuIcon from './icons/MenuIcon';
-import { clearGains, importEqText } from './utils/equalizerApi';
-import {
-  getCombinedLineData,
-  getFilterLineData,
-  getGraphicEqLineData,
-} from './graph/utils';
-import { IChartPointData } from './graph/ChartController';
+import { clearGains, importEqText, setHeadphone } from './utils/equalizerApi';
 import EqCurveChart from './graph/EqCurveChart';
-import {
-  ICurvePath,
-  PREVIEW_BOX,
-  makeCurve,
-  makePath,
-} from './graph/curvePreview';
+import SquiglinkImportConfirm from './components/SquiglinkImportConfirm';
+import { PREVIEW_BOX, makeCurve, makePath } from './graph/curvePreview';
 import { hasCustomFxCurve } from '../common/customFx';
+import {
+  formatName,
+  hasEqToReplace,
+  makeCustomCurve,
+  makeImportedHeadphoneCurve,
+  readStoredEqText,
+  persistEqText,
+} from './utils/squiglinkImport';
 import { ColorEnum } from './styles/color';
 import './styles/SquiglinkImport.scss';
 
 const SQUIGLINK_URL = 'https://squig.link/';
-const SQUIGLINK_TEXT_STORAGE_KEY = 'fluideq.squiglink-import.text';
-
-const formatName = (format?: AutoEqFormat) => {
-  if (format === AutoEqFormat.GRAPHIC) {
-    return 'GraphicEQ';
-  }
-  if (format === AutoEqFormat.FIXED_BAND) {
-    return 'Fixed Band EQ';
-  }
-  return 'Parametric EQ';
-};
-
-const makeCustomCurve = (customFx: ICustomFxSettings): ICurvePath => {
-  const lines: Record<string, IChartPointData[]> = {};
-  if (customFx.graphicEq?.length) {
-    lines['custom-graphic'] = getGraphicEqLineData(customFx.graphicEq);
-  }
-  Object.values(customFx.filters).forEach((filter) => {
-    lines[filter.id] = getFilterLineData(filter);
-  });
-  return makePath(getCombinedLineData(customFx.preAmp, lines), PREVIEW_BOX);
-};
-
-const readStoredEqText = (): string | undefined => {
-  try {
-    const stored = window.localStorage.getItem(SQUIGLINK_TEXT_STORAGE_KEY);
-    return stored === null ? undefined : stored;
-  } catch {
-    return undefined;
-  }
-};
-
-const persistEqText = (value: string) => {
-  try {
-    window.localStorage.setItem(SQUIGLINK_TEXT_STORAGE_KEY, value);
-  } catch {
-    // Local storage can be unavailable in a restricted renderer. The applied
-    // copy remains persisted with the EQ profile in that case.
-  }
-};
 
 const SquiglinkImport = () => {
   const { t } = useTranslation();
   const {
-    eqImport,
+    eqImport: bandImport,
+    activeDeviceId,
+    headphone,
     eqFormat,
     filters,
     graphicEq,
@@ -90,12 +57,18 @@ const SquiglinkImport = () => {
     refreshState,
     setGlobalError,
   } = useFluidEqContext();
+  const eqImport = headphone?.eqImport ?? bandImport;
   const storedEqTextRef = useRef<string | undefined>(readStoredEqText());
   const [text, setText] = useState(
     () => storedEqTextRef.current ?? eqImport?.text ?? '',
   );
   const [fileName, setFileName] = useState('');
   const [isImporting, setIsImporting] = useState(false);
+  const [confirmDeviceId, setConfirmDeviceId] = useState<string>();
+  const cancelImport = useCallback(() => setConfirmDeviceId(undefined), []);
+  useEffect(() => {
+    setConfirmDeviceId(undefined);
+  }, [activeDeviceId]);
   const [showFlatCurve, setShowFlatCurve] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -123,10 +96,10 @@ const SquiglinkImport = () => {
   const livePreview =
     parsedText && !parsedText.isEmpty ? parsedText : undefined;
   const isPendingImportPreview = Boolean(
-    livePreview &&
-    (bypassed.includes('eq') ||
-      !eqImport?.text ||
-      eqImport.text.trim() !== text.trim()),
+    (eqImport &&
+      (bypassed.includes(headphone?.eqImport ? 'headphone' : 'eq') ||
+        (headphone?.eqImport && headphone.intensity <= 0))) ||
+    (livePreview && (!eqImport?.text || eqImport.text.trim() !== text.trim())),
   );
   const hasCustomCurve =
     !showFlatCurve &&
@@ -146,6 +119,15 @@ const SquiglinkImport = () => {
     if (showFlatCurve) {
       return makeCurve(0, AutoEqFormat.PARAMETRIC, undefined, {}, PREVIEW_BOX);
     }
+    // Imported corrections share OPRA's audio layer, but their applied graph
+    // stays in this panel and follows that layer's strength.
+    if (
+      headphone?.eqImport &&
+      !isPendingImportPreview &&
+      (!hasText || livePreview)
+    ) {
+      return makeImportedHeadphoneCurve(headphone);
+    }
     if (livePreview) {
       return makeCurve(
         livePreview.preAmp,
@@ -158,12 +140,20 @@ const SquiglinkImport = () => {
     if (hasText || !eqImport) {
       return { path: '', min: -12, max: 12, points: [] };
     }
-    return makeCurve(preAmp, eqFormat, graphicEq, filters, PREVIEW_BOX);
+    return makeCurve(
+      preAmp,
+      headphone?.eqImport ? eqImport.eqFormat : eqFormat,
+      headphone?.eqImport ? headphone.graphicEq : graphicEq,
+      headphone?.eqImport ? headphone.filters : filters,
+      PREVIEW_BOX,
+    );
   }, [
     eqFormat,
     eqImport,
     filters,
     graphicEq,
+    headphone,
+    isPendingImportPreview,
     hasText,
     livePreview,
     preAmp,
@@ -191,7 +181,7 @@ const SquiglinkImport = () => {
     [chartBounds, customCurve],
   );
 
-  let previewBandCount = Object.keys(filters).length;
+  let previewBandCount = eqImport?.filterCount ?? Object.keys(filters).length;
   if (showFlatCurve) {
     previewBandCount = 0;
   } else if (livePreview) {
@@ -247,14 +237,14 @@ const SquiglinkImport = () => {
     }
   };
 
-  const handleImport = async () => {
+  const handleImport = async (destination: 'eq' | 'curve') => {
     if (!text.trim()) {
       return;
     }
     setIsImporting(true);
     try {
-      await importEqText(text, fileName || 'Squiglink export');
-      await refreshState({ revealBands: true });
+      await importEqText(text, fileName || 'Squiglink export', destination);
+      await refreshState({ revealBands: destination === 'eq' });
     } catch (error) {
       setGlobalError(error as ErrorDescription);
     } finally {
@@ -262,9 +252,28 @@ const SquiglinkImport = () => {
     }
   };
 
+  const requestEqImport = () => {
+    const hasEq = hasEqToReplace({
+      eqImport: bandImport,
+      preAmp,
+      graphicEq,
+      filters,
+    });
+    if (hasEq && livePreview) {
+      setConfirmDeviceId(activeDeviceId);
+    } else {
+      handleImport('eq');
+    }
+  };
+
   const handleClear = async () => {
     try {
-      await clearGains();
+      // Removing a correction must never reset the independently edited bands.
+      if (headphone?.eqImport) {
+        await setHeadphone(undefined);
+      } else {
+        await clearGains();
+      }
       setText('');
       setFileName('');
       setShowFlatCurve(true);
@@ -276,6 +285,15 @@ const SquiglinkImport = () => {
 
   return (
     <section className="squig-import" aria-labelledby="squig-import-title">
+      {confirmDeviceId !== undefined && confirmDeviceId === activeDeviceId && (
+        <SquiglinkImportConfirm
+          onCancel={cancelImport}
+          onApply={(destination) => {
+            cancelImport();
+            handleImport(destination);
+          }}
+        />
+      )}
       <div className="squig-import__heading">
         <div>
           <p className="eyebrow">{t('squigImport.eyebrow')}</p>
@@ -349,10 +367,21 @@ const SquiglinkImport = () => {
               className="small squig-import__apply"
               ariaLabel={t('squigImport.applyAria')}
               isDisabled={isBlockingError || isImporting || !text.trim()}
-              handleChange={handleImport}
+              handleChange={requestEqImport}
             >
               <MenuIcon name="import" />
               {applyButtonLabel}
+            </Button>
+            <Button
+              className="small squig-import__apply"
+              ariaLabel={t('squigImport.applyCurve')}
+              isDisabled={isBlockingError || isImporting || !text.trim()}
+              handleChange={() => handleImport('curve')}
+            >
+              <MenuIcon name="graph" />
+              {isImporting
+                ? t('squigImport.importing')
+                : t('squigImport.applyCurve')}
             </Button>
           </div>
         </div>

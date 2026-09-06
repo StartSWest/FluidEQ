@@ -2262,6 +2262,7 @@ registerTransferIpc({
   availableProfileNameForActiveDevice,
   activeBaselineDir,
   clearCurrentLayoutSettings,
+  resetEqToDefaults,
   deviceProfileSettings,
   getMainWindow: () => mainWindow,
   handleError,

@@ -25,6 +25,7 @@ import {
   IAudioDevice,
   IDeviceProfileSettings,
   IFiltersMap,
+  IEqImportReference,
   IState,
   TApoLayer,
 } from '../../common/constants';
@@ -87,6 +88,7 @@ export interface ITransferIpcDeps {
   availableProfileNameForActiveDevice: (presetName: string) => string;
   attachPresetToActiveDevice: (presetName: string) => void;
   clearCurrentLayoutSettings: () => void;
+  resetEqToDefaults: () => void;
   hydrateActiveConvolution: () => void;
   /** Bounds an imported reference so a bad measurement cannot silence output. */
   shieldReferenceBands: (filters: IFiltersMap) => IFiltersMap;
@@ -121,6 +123,7 @@ export const registerTransferIpc = ({
   handleUpdateHelper,
   hydrateActiveConvolution,
   presetDirForDevice,
+  resetEqToDefaults,
   session,
   shieldReferenceBands,
   state,
@@ -315,6 +318,11 @@ export const registerTransferIpc = ({
       const text = arg?.[0];
       const label =
         typeof arg?.[1] === 'string' ? arg[1].trim().slice(0, 240) : '';
+      const destination = arg?.[2] ?? 'eq';
+      if (destination !== 'eq' && destination !== 'curve') {
+        handleError(event, channel, ErrorCode.INVALID_PARAMETER);
+        return;
+      }
       if (typeof text !== 'string' || !text.trim()) {
         throw new Error('Paste a Squiglink EQ export before importing it.');
       }
@@ -329,7 +337,14 @@ export const registerTransferIpc = ({
         );
       }
 
-      clearCurrentLayoutSettings();
+      // Provenance identifies the counterpart to remove when switching modes;
+      // moving to curve must not clear a separately tuned user EQ.
+      if (destination === 'curve' && state.eqImport) {
+        resetEqToDefaults();
+      } else if (destination === 'eq' && state.headphone?.eqImport) {
+        state.headphone = undefined;
+        applyingLayer('headphone');
+      }
       state.preAmp = parsed.preAmp;
       // A preamp in the file is a decision, and automatic normalization would
       // quietly overrule it: the value lands in `preAmp`, the flush recomputes
@@ -341,20 +356,7 @@ export const registerTransferIpc = ({
       if (parsed.hasPreAmp) {
         state.isAutoPreAmpOn = false;
       }
-      state.filters = shieldReferenceBands(parsed.filters);
-      state.eqFormat = parsed.eqFormat;
-      state.graphicEq = parsed.graphicEq;
-      state.isFlat = false;
-      /*
-       * The headphone correction is left alone.
-       *
-       * `headset` and its two companions name `state.headphone`, a layer this
-       * handler never touches — an import replaces the user's bands and nothing
-       * else. Clearing them here blanked the OPRA picker while the correction it
-       * described was still applied and still audible, which is the same fault
-       * `clearGains` was fixed for in main.ts.
-       */
-      state.eqImport = {
+      const reference: IEqImportReference = {
         source: 'squiglink',
         sourceUrl: 'https://squig.link/',
         label: label || 'Squiglink export',
@@ -362,7 +364,29 @@ export const registerTransferIpc = ({
         filterCount: Object.keys(parsed.filters).length,
         text,
       };
-      applyingLayer('eq');
+      if (destination === 'curve') {
+        // Use OPRA's correction layer so band edits, resets and Smart EQ cannot
+        // overwrite the import. Its attribution belongs to that layer too.
+        state.headphone = {
+          filters: shieldReferenceBands(parsed.filters),
+          graphicEq: parsed.graphicEq,
+          intensity: 1,
+          eqImport: reference,
+        };
+        state.headset = undefined;
+        state.headsetTarget = undefined;
+        state.headsetSource = undefined;
+        state.headsetSignature = undefined;
+        applyingLayer('headphone');
+      } else {
+        clearCurrentLayoutSettings();
+        state.filters = shieldReferenceBands(parsed.filters);
+        state.eqFormat = parsed.eqFormat;
+        state.graphicEq = parsed.graphicEq;
+        state.isFlat = false;
+        state.eqImport = reference;
+        applyingLayer('eq');
+      }
 
       await handleUpdateHelper<string>(
         event,
