@@ -36,14 +36,14 @@ import { FilterTypeEnum } from '../constants';
  * Duplicating the bounds here would create a second authority that drifts.
  */
 /**
- * Bumped to 3 for the Voice output mode: adding parameters changes what a
+ * Bumped to 4 for Bass Punch Mix: adding parameters changes what a
  * renderer must see for the chain to be complete, and a renderer built
  * against an older host is missing the selector rather than one optional bit.
  * The version exists so that mismatch fails the handshake loudly, before any
  * audio runs, rather than the renderer silently rendering controls neither
  * stage is listening to.
  */
-export const NATIVE_DSP_PARAMETER_SCHEMA_VERSION = 3 as const;
+export const NATIVE_DSP_PARAMETER_SCHEMA_VERSION = 4 as const;
 
 export type TNativeParameterKind = 'boolean' | 'number' | 'enum';
 
@@ -238,6 +238,7 @@ export const NATIVE_DSP_PARAMETERS = [
   // feedback gain moves, so the dial never reallocates a buffer.
   { id: 2106, path: 'bassPunch.bloomDecayMs', kind: 'number' },
   { id: 2107, path: 'bassPunch.duck', kind: 'number' },
+  { id: 2109, path: 'bassPunch.mix', kind: 'number' },
 
   { id: 1701, path: 'master.enabled', kind: 'boolean' },
   { id: 1702, path: 'master.outputTrimDb', kind: 'number' },

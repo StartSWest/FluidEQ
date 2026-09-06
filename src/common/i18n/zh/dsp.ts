@@ -368,17 +368,20 @@ const dsp = {
 
   'dsp.bassPunch.title': '低音冲击',
   'dsp.bassPunch.isolate': '独听',
-  'dsp.bassPunch.isolateHint': '只听这一级正在做的塑形。',
+  'dsp.bassPunch.isolateHint': '只听此阶段对低音的改动。',
   'dsp.bassPunch.isolateOn':
-    '原始信号已移除——现在只听到 Punch 加进去的部分。所有旋钮归位时为静音。',
+    '现在只播放低音的改动。起音、延音和绽放均为零时，效果稳定后静音。',
   'dsp.bassPunch.description':
-    '塑造低频的起音和衰减，而非音色。起音和延音是双极的：中心以下更紧、更干；中心以上更长、更湿。',
-  'dsp.bassPunch.splitHz': '分频',
+    '塑造低音的起音和衰减，并将效果限制在低频。低音焦点选择作用范围；尾音闪避仅在新冲击到来时压低添加的绽放尾音。',
+  'dsp.bassPunch.splitHz': '低音焦点',
   'dsp.bassPunch.attack': '启动时间',
   'dsp.bassPunch.sustain': '延音',
   'dsp.bassPunch.bloomAmount': '绽放',
   'dsp.bassPunch.bloomDecayMs': '绽放衰减',
-  'dsp.bassPunch.duck': '闪避',
+  'dsp.bassPunch.duck': '尾音闪避',
+  'dsp.bassPunch.mix': '混合',
+  'dsp.bassPunch.mixHint':
+    '0% 保留原始声音；100% 为正常效果；200% 将添加的冲击和绽放加倍，并增强低音衰减。独听随混合比例变化。',
   'dsp.bassPunch.meterNote':
     '启动时间以独立的刻度绘制，因为每一刻度都是各自测量窗口内最大的摆幅。延音与闪避会跨越多个窗口，因此直接取样，画成连续的曲线。',
   'dsp.bassPunch.graph.now': '现在',

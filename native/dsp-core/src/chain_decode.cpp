@@ -158,6 +158,7 @@ int feq_chain_settings_decode(const double* values,
   out->bass_punch.bloom_amount = next();
   out->bass_punch.bloom_decay_ms = next();
   out->bass_punch.duck = next();
+  out->bass_punch.mix = next();
 
   out->eq.band_count = static_cast<uint32_t>(next());
   if (at != FEQ_CHAIN_PARAM_LEAD) {

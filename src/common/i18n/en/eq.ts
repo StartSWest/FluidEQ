@@ -195,6 +195,27 @@ const eq = {
   'extraOutput.profile': 'EQ profile',
   'extraOutput.profile.error':
     'Could not load or change this output’s profile.',
+  'driver.filter.presenceSoftening':
+    'Broad, gentle presence trim for a sound that feels too forward.',
+  'driver.filter.trebleSoftening':
+    'A small treble trim for sharp recordings or a bright fit.',
+  'driver.filter.vocalLift':
+    'A slight vocal lift to try when the midrange feels recessed.',
+  'driver.filter.bassTidying':
+    'A light upper-bass trim to reduce warmth that masks voices.',
+  'driver.filter.airLift':
+    'A small air lift to try only if the sound feels too soft.',
+  'driver.filter.edited': 'Edited in Equalizer APO',
+  'driver.profile.note.headphone':
+    'A subtle starting point to audition. Driver type does not predict your model’s tuning. Check the pad seal and prefer a measured profile for your exact headphones.',
+  'driver.profile.note.iem':
+    'Fit and ear tips change the sound. This is a gentle listening adjustment, not a correction for every IEM of this type. Use exact-model measurements when available.',
+  'driver.profile.note.material':
+    'Material alone cannot locate a treble peak. This broad taste adjustment avoids guessed resonance cuts. Leave it off if your headphones already sound balanced.',
+  'driver.profile.note.size':
+    'Diameter alone does not identify a response error. This shallow, broad trim is optional; it does not replace a measured profile for your exact model.',
+  'driver.profile.note.small':
+    'This gently reduces upper-bass congestion without adding deep bass. Size does not predict tuning; avoid forcing more bass from a small driver.',
   'driver.eyebrow': 'WHAT YOU LISTEN ON',
   'driver.title': 'Driver type',
   'driver.none': 'No compensation',

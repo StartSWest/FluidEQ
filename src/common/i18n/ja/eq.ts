@@ -194,6 +194,27 @@ const eq: Partial<Dictionary> = {
   'extraOutput.profile': 'EQプロファイル',
   'extraOutput.profile.error':
     'この出力のプロファイルを読み込みまたは変更できませんでした。',
+  'driver.filter.presenceSoftening':
+    '音が前に出すぎると感じる場合に、プレゼンス帯域を広く穏やかに抑えます。',
+  'driver.filter.trebleSoftening':
+    '鋭い録音や、装着によって明るく感じる音の高域を少し抑えます。',
+  'driver.filter.vocalLift':
+    '中域が引っ込んで聞こえる場合に試す、わずかなボーカルの持ち上げです。',
+  'driver.filter.bassTidying':
+    '声を覆う厚みを減らすため、上部低域を軽く抑えます。',
+  'driver.filter.airLift':
+    '音が柔らかすぎる場合にだけ試す、わずかな空気感の追加です。',
+  'driver.filter.edited': 'Equalizer APO で編集済み',
+  'driver.profile.note.headphone':
+    '試聴用の控えめな出発点です。ドライバーの種類だけでは機種の音作りは分かりません。イヤーパッドの密閉を確認し、正確な機種の測定に基づくプロファイルを優先してください。',
+  'driver.profile.note.iem':
+    '装着状態やイヤーピースで音は変わります。これは穏やかな試聴用調整であり、同じ種類のすべての IEM に対する補正ではありません。可能なら正確な機種の測定値を使ってください。',
+  'driver.profile.note.material':
+    '素材だけでは高域のピーク位置は分かりません。この幅広い好みの調整は、推測した共振のカットを避けます。すでにバランスが良ければオフのままにしてください。',
+  'driver.profile.note.size':
+    '直径だけでは周波数特性の問題は分かりません。この広く浅いカットは任意の調整であり、正確な機種の測定に基づくプロファイルの代わりにはなりません。',
+  'driver.profile.note.small':
+    '深い低音を加えずに、上部低域の混雑を穏やかに減らします。サイズから音作りは分からないため、小さなドライバーに無理に低音を求めないでください。',
   'driver.eyebrow': '何で聴いているか',
   'driver.title': 'ドライバー種別',
   'driver.none': '補正なし',

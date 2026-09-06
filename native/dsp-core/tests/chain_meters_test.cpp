@@ -265,7 +265,7 @@ void test_punch_gains_reach_the_meters() {
   settings.bass_punch.split_hz = 110.0;
   settings.bass_punch.attack = 1.0;
   settings.bass_punch.sustain = -1.0;
-  settings.bass_punch.bloom_amount = 0.0;
+  settings.bass_punch.bloom_amount = 1.0;
   settings.bass_punch.bloom_decay_ms = 120.0;
   settings.bass_punch.duck = 1.0;
 

@@ -197,6 +197,27 @@ const eq: Partial<Dictionary> = {
   'extraOutput.profile': 'Perfil de EQ',
   'extraOutput.profile.error':
     'Não foi possível carregar ou alterar o perfil desta saída.',
+  'driver.filter.presenceSoftening':
+    'Corte amplo e suave de presença quando o som parece demasiado frontal.',
+  'driver.filter.trebleSoftening':
+    'Um pequeno corte de agudos para gravações ásperas ou um encaixe brilhante.',
+  'driver.filter.vocalLift':
+    'Um leve reforço vocal para experimentar quando os médios parecem recuados.',
+  'driver.filter.bassTidying':
+    'Um corte leve nos graves altos para reduzir o calor que encobre as vozes.',
+  'driver.filter.airLift':
+    'Um pequeno reforço de ar para experimentar apenas se o som parecer abafado.',
+  'driver.filter.edited': 'Editado no Equalizer APO',
+  'driver.profile.note.headphone':
+    'Um ponto de partida subtil para ouvir. O tipo de driver não prevê a afinação do modelo. Verifique a vedação das almofadas e prefira um perfil medido para os seus auscultadores exatos.',
+  'driver.profile.note.iem':
+    'O encaixe e as ponteiras alteram o som. Este é um ajuste suave de escuta, não uma correção para todos os IEM deste tipo. Use medições do modelo exato quando disponíveis.',
+  'driver.profile.note.material':
+    'O material por si só não localiza um pico de agudos. Este ajuste amplo de gosto evita cortes em ressonâncias presumidas. Deixe desligado se os auscultadores já soarem equilibrados.',
+  'driver.profile.note.size':
+    'O diâmetro por si só não identifica um erro de resposta. Este corte amplo e ligeiro é opcional; não substitui um perfil medido para o modelo exato.',
+  'driver.profile.note.small':
+    'Reduz suavemente a congestão nos graves altos sem acrescentar graves profundos. O tamanho não prevê a afinação; evite exigir mais graves a um driver pequeno.',
   'driver.eyebrow': 'NO QUE VOCÊ OUVE',
   'driver.title': 'Tipo de driver',
   'driver.none': 'Sem compensação',

@@ -22,7 +22,10 @@ import {
   getDriverFilters,
   getDriverPeakBoost,
   getDriverProfile,
+  getDriverGraphicEq,
+  scaleDriverFilters,
 } from '../../../common/driver';
+import en from '../../../common/i18n/en';
 import { stateToString } from '../../../main/flush';
 import {
   FilterTypeEnum,
@@ -56,7 +59,7 @@ describe('driver compensation', () => {
       // here may be loud enough to ruin a listen on its own.
       DRIVER_PROFILES.forEach((profile) => {
         profile.filters.forEach((filter) => {
-          expect(Math.abs(filter.gain)).toBeLessThanOrEqual(2);
+          expect(Math.abs(filter.gain)).toBeLessThanOrEqual(0.6);
         });
       });
     });
@@ -75,9 +78,9 @@ describe('driver compensation', () => {
 
     it('explains every filter and every profile', () => {
       DRIVER_PROFILES.forEach((profile) => {
-        expect(profile.note.length).toBeGreaterThan(20);
+        expect(en[profile.note].length).toBeGreaterThan(20);
         profile.filters.forEach((filter) => {
-          expect(filter.reason.length).toBeGreaterThan(20);
+          expect(en[filter.reason].length).toBeGreaterThan(20);
         });
       });
     });
@@ -111,11 +114,10 @@ describe('driver compensation', () => {
 
       expect(half).toHaveLength(full.length);
       half.forEach((filter, index) => {
-        // Gains quantise to 0.1 dB, which is the resolution written to the APO
-        // config, so 1.5 dB halved lands on exactly 0.8 rather than 0.75. The
-        // assertion mirrors that rounding rather than allowing a tolerance,
-        // because the quantisation is the contract, not an approximation.
-        expect(filter.gain).toBe(Math.round((full[index].gain / 2) * 10) / 10);
+        // Hundredth-dB steps keep low-strength adjustments audible.
+        expect(filter.gain).toBe(
+          Math.round((full[index].gain / 2) * 100) / 100,
+        );
       });
     });
 
@@ -150,13 +152,67 @@ describe('driver compensation', () => {
       0,
     );
     expect(
-      getDriverPeakBoost({ profileId: 'balanced-armature-iem', intensity: 1 }),
+      getDriverPeakBoost({ profileId: 'planar-headphone', intensity: 1 }),
     ).toBeGreaterThan(0);
   });
 
   it('defaults below full strength', () => {
     expect(DEFAULT_DRIVER_INTENSITY).toBeGreaterThan(0);
     expect(DEFAULT_DRIVER_INTENSITY).toBeLessThan(1);
+  });
+
+  it('keeps fine steps in sync with the preview and the APO output', () => {
+    const profile = getDriverProfile('planar-headphone');
+    expect(profile).toBeDefined();
+    const filters = profile?.filters ?? [];
+    const a = scaleDriverFilters(filters, 0.5);
+    const b = scaleDriverFilters(filters, 0.52);
+    expect(a).not.toEqual(b);
+    expect(
+      getDriverFilters({ profileId: 'planar-headphone', intensity: 0.52 }),
+    ).toEqual(b);
+    expect(scaleDriverFilters(filters, 0)).toHaveLength(filters.length);
+  });
+
+  it.each([NaN, Infinity, -Infinity])(
+    'rejects invalid driver intensity %s',
+    (intensity) => {
+      const settings = { profileId: 'planar-headphone', intensity };
+      expect(getDriverFilters(settings)).toEqual([]);
+      expect(getDriverPeakBoost(settings)).toBe(0);
+    },
+  );
+
+  it('reserves the sum of overlapping boosts and respects graphic overrides', () => {
+    const filter = {
+      id: 'a',
+      type: FilterTypeEnum.PK,
+      frequency: 1000,
+      quality: 1,
+      gain: 3,
+    };
+    const settings = {
+      profileId: 'planar-headphone',
+      intensity: 1,
+      apoOverride: { filters: { a: filter, b: { ...filter, id: 'b' } } },
+    };
+    expect(getDriverPeakBoost(settings)).toBeGreaterThan(5.9);
+    expect(getDriverPeakBoost(settings)).toBeLessThanOrEqual(6);
+    const graphic = {
+      ...settings,
+      intensity: 0.5,
+      apoOverride: {
+        filters: {},
+        graphicEq: [
+          { frequency: 20, gain: 0 },
+          { frequency: 1000, gain: 6 },
+          { frequency: 20000, gain: 0 },
+        ],
+      },
+    };
+    expect(getDriverFilters(graphic)).toEqual([]);
+    expect(getDriverGraphicEq(graphic)[1].gain).toBe(3);
+    expect(getDriverPeakBoost(graphic)).toBeCloseTo(3, 1);
   });
 
   describe('as written into the APO config', () => {

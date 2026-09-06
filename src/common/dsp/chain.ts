@@ -22,6 +22,7 @@ import {
   ICrossfadeShape,
 } from './crossfadeShape';
 import { NOISE_HUM_MAX_HARMONICS } from './noiseProfile';
+import { BASS_PUNCH_PRESET_BY_ID } from './bassPunchPresets';
 
 /**
  * What the DSP chain is, as data.
@@ -345,6 +346,8 @@ export interface IBassPunchSettings {
   bloomAmount: number;
   bloomDecayMs: number;
   duck: number;
+  /** 0 is dry; 1 is normal; 2 doubles additions and deepens cuts in decibels. */
+  mix: number;
 }
 
 /**
@@ -995,8 +998,9 @@ const RANGES = {
   bassSplitHz: { min: 40, max: 200 },
   bassForgeDriveDb: { min: 0, max: 12 },
   bassAmount: { min: 0, max: 1 },
+  bassPunchMix: { min: 0, max: 2 },
   /**
-   * Forge's two generators reach two; every other bass dial stays a blend.
+   * Forge's two generators allow extra synthesis gain.
    *
    * Separate from `bassAmount` rather than a widening of it, because that
    * range also bounds Forge's `mix` and Punch's `bloomAmount` and `duck` —
@@ -1506,13 +1510,8 @@ export const DSP_DEFAULTS: IDspSettings = {
   bassPunch: {
     enabled: false,
     isolate: false,
-    presetId: '',
-    splitHz: 110,
-    attack: 0,
-    sustain: 0,
-    bloomAmount: 0,
-    bloomDecayMs: 120,
-    duck: 0,
+    presetId: 'default',
+    ...BASS_PUNCH_PRESET_BY_ID.default.settings,
   },
   /**
    * Off, but not at unity — switching it on should do the tasteful thing.
@@ -1722,7 +1721,9 @@ export const clampDspSettings = (value: unknown): IDspSettings => {
   const storedEqBands = Array.isArray(eq.bands) ? eq.bands : [];
   const exciter = isRecord(value.exciter) ? value.exciter : {};
   const bassForge = isRecord(value.bassForge) ? value.bassForge : {};
-  const bassPunch = isRecord(value.bassPunch) ? value.bassPunch : {};
+  const bassPunch = isRecord(value.bassPunch)
+    ? value.bassPunch
+    : DSP_DEFAULTS.bassPunch;
   const dimension = isRecord(value.dimension) ? value.dimension : {};
   const compressor = isRecord(value.compressor) ? value.compressor : {};
   const maximizer = isRecord(value.maximizer) ? value.maximizer : {};
@@ -2135,6 +2136,8 @@ export const clampDspSettings = (value: unknown): IDspSettings => {
         RANGES.bassAmount,
         DSP_DEFAULTS.bassPunch.duck,
       ),
+      // Older saved chains predate Mix and already played the complete effect.
+      mix: clampNumber(bassPunch.mix, RANGES.bassPunchMix, 1),
     },
     dimension: {
       enabled: clampBoolean(dimension.enabled, DSP_DEFAULTS.dimension.enabled),

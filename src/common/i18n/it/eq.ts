@@ -197,6 +197,27 @@ const eq: Partial<Dictionary> = {
   'extraOutput.profile': 'Profilo EQ',
   'extraOutput.profile.error':
     'Impossibile caricare o cambiare il profilo di questa uscita.',
+  'driver.filter.presenceSoftening':
+    'Un taglio ampio e delicato della presenza se il suono risulta troppo in primo piano.',
+  'driver.filter.trebleSoftening':
+    'Un piccolo taglio degli alti per registrazioni aspre o una vestibilità dal suono brillante.',
+  'driver.filter.vocalLift':
+    'Un lieve rinforzo delle voci da provare se i medi sembrano arretrati.',
+  'driver.filter.bassTidying':
+    'Un leggero taglio dei bassi superiori per ridurre il calore che copre le voci.',
+  'driver.filter.airLift':
+    'Un piccolo aumento dell’aria da provare solo se il suono sembra troppo ovattato.',
+  'driver.filter.edited': 'Modificato in Equalizer APO',
+  'driver.profile.note.headphone':
+    'Un punto di partenza delicato da ascoltare. Il tipo di driver non predice la taratura del modello. Controlla la tenuta dei cuscinetti e preferisci un profilo misurato per le tue cuffie esatte.',
+  'driver.profile.note.iem':
+    'La vestibilità e i gommini cambiano il suono. È una regolazione delicata da ascoltare, non una correzione per tutti gli IEM di questo tipo. Usa misurazioni del modello esatto, se disponibili.',
+  'driver.profile.note.material':
+    'Il solo materiale non permette di localizzare un picco degli alti. Questa regolazione ampia di gusto evita tagli su risonanze ipotetiche. Disattivala se le cuffie suonano già equilibrate.',
+  'driver.profile.note.size':
+    'Il solo diametro non identifica un errore di risposta. Questo taglio ampio e leggero è facoltativo e non sostituisce un profilo misurato per il modello esatto.',
+  'driver.profile.note.small':
+    'Riduce delicatamente la congestione dei bassi superiori senza aggiungere bassi profondi. Le dimensioni non predicono la taratura; evita di chiedere più bassi a un driver piccolo.',
   'driver.eyebrow': 'CON COSA ASCOLTI',
   'driver.title': 'Tipo di driver',
   'driver.none': 'Nessuna compensazione',

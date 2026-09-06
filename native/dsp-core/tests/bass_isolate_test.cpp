@@ -107,6 +107,7 @@ FeqBassPunchSettings punch_defaults() {
   settings.bloom_amount = 0.0;
   settings.bloom_decay_ms = 120.0;
   settings.duck = 0.0;
+  settings.mix = 1.0;
   return settings;
 }
 
@@ -148,7 +149,7 @@ double peak_from(const Signal& signal, size_t from) {
  * ulp.
  */
 template <typename Stage, typename Settings>
-double identity_residual(const Signal& input, Settings settings) {
+double identity_residual(const Signal& input, Settings settings, size_t delay = 0) {
   Signal normal = input;
   settings.isolate = 0;
   Stage{}.run(normal, settings);
@@ -160,7 +161,7 @@ double identity_residual(const Signal& input, Settings settings) {
   double worst = 0.0;
   for (size_t at = kSettled; at < input.left.size(); ++at) {
     const double rebuilt = static_cast<double>(isolated.left[at]) +
-                           static_cast<double>(input.left[at]);
+                           static_cast<double>(input.left[at - delay]);
     worst = std::fmax(worst,
                       std::fabs(rebuilt - static_cast<double>(normal.left[at])));
   }
@@ -233,7 +234,8 @@ void test_punch_isolate_is_the_contribution() {
   working.duck = 0.8;
 
   const double residual =
-      identity_residual<PunchStage>(input, working);
+      identity_residual<PunchStage>(input, working,
+                                    feq_bass_punch_latency_frames(kRate));
   check(residual < 1e-6,
         "isolated + input reconstructs the processed output");
 

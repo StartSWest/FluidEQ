@@ -178,6 +178,7 @@ typedef struct FeqChainSettings {
     double bloom_amount;
     double bloom_decay_ms;
     double duck;
+    double mix;
   } bass_punch;
   struct {
     int enabled;
@@ -229,7 +230,7 @@ typedef struct FeqChainSettings {
  * count — which has to stay last, because both `isChainWirePayload` and the
  * decoder read the tail's length from `FEQ_CHAIN_PARAM_LEAD - 1`.
  */
-#define FEQ_CHAIN_PARAM_LEAD 113
+#define FEQ_CHAIN_PARAM_LEAD 114
 #define FEQ_CHAIN_BAND_PARAMS 7
 
 /** Non-zero on success. Leaves `out` untouched on a layout it cannot read. */

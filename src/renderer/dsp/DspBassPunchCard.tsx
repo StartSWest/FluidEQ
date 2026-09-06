@@ -24,16 +24,12 @@ interface IDspBassPunchCardProps {
  * The dials sit in one group, the way Forge's do and unlike the paired boxes
  * the Maximizer and Dimension use, because this stage's decisions do not
  * divide into two either: Attack and Sustain are the two halves of one note,
- * Bloom and its decay are a single control in two numbers, and Duck buys the
- * same weight from somewhere else entirely. Split feeds every one of them.
+ * Bloom and its decay are a single control in two numbers. Tail duck keeps
+ * that added tail out of a new hit; it never suppresses the rest of the mix.
  *
- * Attack and Sustain are bipolar. Zero is not off here: it is the stage
- * running, hearing the note, and deciding to change nothing about it — which
- * is why they carry a default of 0 and a range symmetric about it rather than
- * an amount that starts at nothing. `Knob` reads that symmetry off the range
- * itself and grows the arc from the centre, so the rest position draws no arc
- * at all; the EQ's band gain and the side bar's preamp answer to the same
- * rule, and nothing here had to ask for it.
+ * Attack and Sustain are bipolar, with zero meaning no change. The starting
+ * profile raises Attack and lowers Sustain so enabling Punch has a sound;
+ * the user can still return either control to its neutral centre.
  */
 const DspBassPunchCard = ({
   bassPunch,
@@ -109,10 +105,8 @@ const DspBassPunchCard = ({
 
       <div className="dsp-band dsp-bass-punch-controls">
         <div className="dsp-band-dials">
-          {/* First, because every other dial on this page acts on the band
-              this one defines — and on the band it leaves behind, which is
-              what Duck pulls down. Bounds mirror `RANGES.bassSplitHz`, which
-              is what clamps them. */}
+          {/* Focus within the bass band. The final contribution filter also
+              contains the sidebands created by changing the bass envelope. */}
           <Dial
             labelKey="dsp.bassPunch.splitHz"
             value={bassPunch.splitHz}
@@ -187,9 +181,8 @@ const DspBassPunchCard = ({
             onCommit={onCommit}
             onChange={(bloomDecayMs) => patch({ bloomDecayMs })}
           />
-          {/* Last, and the only one that touches nothing below the split: it
-              pulls mid and high down under the low band's own envelope, so
-              bass gets room rather than more level. */}
+          {/* Tail duck clears the added bloom under a new bass hit. Without
+              bloom there is no generated tail for this control to reduce. */}
           <Dial
             labelKey="dsp.bassPunch.duck"
             value={bassPunch.duck}
@@ -198,9 +191,21 @@ const DspBassPunchCard = ({
             max={1}
             unit=""
             step={0.01}
-            isDisabled={!bassPunch.enabled}
+            isDisabled={!bassPunch.enabled || bassPunch.bloomAmount === 0}
             onCommit={onCommit}
             onChange={(duck) => patch({ duck })}
+          />
+          <Dial
+            labelKey="dsp.bassPunch.mix"
+            value={bassPunch.mix * 100}
+            defaultValue={DSP_DEFAULTS.bassPunch.mix * 100}
+            min={0}
+            max={200}
+            unit="%"
+            step={1}
+            isDisabled={!bassPunch.enabled}
+            onCommit={onCommit}
+            onChange={(mix) => patch({ mix: mix / 100 })}
           />
         </div>
       </div>
@@ -209,6 +214,7 @@ const DspBassPunchCard = ({
           say so. Nothing on the canvas can: the difference is in how the three
           numbers are SAMPLED, and a picture that looked uniform would be
           claiming they read alike. */}
+      <p className="dsp-dimension-note">{t('dsp.bassPunch.mixHint')}</p>
       <p className="dsp-dimension-note">{t('dsp.bassPunch.meterNote')}</p>
     </ProcessorCard>
   );

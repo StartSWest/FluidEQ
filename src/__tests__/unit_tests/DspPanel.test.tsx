@@ -309,17 +309,23 @@ describe('DspPanel', () => {
    * built, wired, metered and translated with no way for anyone to switch it
    * on. A page missing a dial is a parameter nobody can reach.
    */
-  it('gives Bass Punch a page with a dial for each of its six controls', () => {
+  it('gives Bass Punch a page with a dial for each of its seven controls', () => {
     renderPanel();
     fireEvent.click(screen.getByRole('button', { name: /Bass Punch/i }));
     const page = within(screen.getByRole('region', { name: /Bass Punch/i }));
     // Exact names, which is what separates "Bloom" from "Bloom decay" — a
     // pattern would match both and let either dial go missing unnoticed.
-    ['Split', 'Attack', 'Sustain', 'Bloom', 'Bloom decay', 'Duck'].forEach(
-      (name) => {
-        expect(page.getByRole('slider', { name })).toBeInTheDocument();
-      },
-    );
+    [
+      'Bass focus',
+      'Attack',
+      'Sustain',
+      'Bloom',
+      'Bloom decay',
+      'Tail duck',
+      'Mix',
+    ].forEach((name) => {
+      expect(page.getByRole('slider', { name })).toBeInTheDocument();
+    });
   });
 
   /**
@@ -328,7 +334,34 @@ describe('DspPanel', () => {
    * symmetric about the rest position, so a dial declared -1 to +1 is what
    * makes turning it LEFT a thing anybody thinks to do.
    */
-  it('rests Attack and Sustain at the centre of a symmetric range', () => {
+  it('displays 0–200% Mix and sends the full effect amount to the engine', () => {
+    const { onChange } = renderPanel({
+      ...DSP_DEFAULTS,
+      bassPunch: { ...DSP_DEFAULTS.bassPunch, enabled: true },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /Bass Punch/i }));
+    const mix = screen.getByRole('slider', { name: 'Mix' });
+    expect(mix).toHaveAttribute('aria-valuemin', '0');
+    expect(mix).toHaveAttribute('aria-valuemax', '200');
+    expect(mix).toHaveAttribute('aria-valuenow', '100');
+    fireEvent.change(mix, { target: { value: '1' } });
+    expect(onChange.mock.calls[0][0].bassPunch.mix).toBe(2);
+  });
+
+  it.each([0, 0.15])(
+    'only offers Tail Duck with generated Bloom (%s)',
+    (bloomAmount) => {
+      renderPanel({
+        ...DSP_DEFAULTS,
+        bassPunch: { ...DSP_DEFAULTS.bassPunch, enabled: true, bloomAmount },
+      });
+      fireEvent.click(screen.getByRole('button', { name: /Bass Punch/i }));
+      const duck = screen.getByRole('slider', { name: 'Tail duck' });
+      expect((duck as HTMLInputElement).disabled).toBe(bloomAmount === 0);
+    },
+  );
+
+  it('keeps Attack and Sustain bipolar with the audible default profile', () => {
     renderPanel();
     fireEvent.click(screen.getByRole('button', { name: /Bass Punch/i }));
     const page = within(screen.getByRole('region', { name: /Bass Punch/i }));
@@ -336,7 +369,10 @@ describe('DspPanel', () => {
       const dial = page.getByRole('slider', { name });
       expect(dial).toHaveAttribute('aria-valuemin', '-1');
       expect(dial).toHaveAttribute('aria-valuemax', '1');
-      expect(dial).toHaveAttribute('aria-valuenow', '0');
+      expect(dial).toHaveAttribute(
+        'aria-valuenow',
+        name === 'Attack' ? '0.65' : '-0.3',
+      );
     });
     // The positive control the three above need: Bloom is an AMOUNT on the
     // same page, and a card that made every dial bipolar would pass them.
@@ -400,7 +436,9 @@ describe('DspPanel', () => {
     const next = onChange.mock.calls[0][0] as IDspSettings;
     expect(next.bassPunch.presetId).toBe('default');
     expect(next.bassPunch.attack).toBeGreaterThan(0);
-    expect(next.bassPunch.duck).toBeGreaterThan(0);
+    expect(next.bassPunch.bloomAmount).toBe(0);
+    expect(next.bassPunch.sustain).toBeLessThan(0);
+    expect(next.bassPunch.mix).toBe(1);
     expect(next.bassPunch.enabled).toBe(false);
   });
 

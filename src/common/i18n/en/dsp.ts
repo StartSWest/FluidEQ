@@ -403,17 +403,20 @@ const dsp = {
 
   'dsp.bassPunch.title': 'Bass Punch',
   'dsp.bassPunch.isolate': 'Isolate',
-  'dsp.bassPunch.isolateHint': 'Hear only the shaping this stage is doing.',
+  'dsp.bassPunch.isolateHint': 'Hear only the bass changes from this stage.',
   'dsp.bassPunch.isolateOn':
-    'Programme dropped — you are hearing only what Punch adds. Silent when every dial is at rest.',
+    'Only the bass changes are playing. Silent after the effect settles when Attack, Sustain and Bloom are zero.',
   'dsp.bassPunch.description':
-    'Shapes the attack and decay of the low end, not its tone. Attack and sustain are bipolar: below centre is tighter and drier, above is longer and wetter.',
-  'dsp.bassPunch.splitHz': 'Split',
+    'Shapes bass attack and decay, with the effect filtered into the low end. Bass focus selects the working range; Tail duck reduces only the added Bloom under a new hit.',
+  'dsp.bassPunch.splitHz': 'Bass focus',
   'dsp.bassPunch.attack': 'Attack',
   'dsp.bassPunch.sustain': 'Sustain',
   'dsp.bassPunch.bloomAmount': 'Bloom',
   'dsp.bassPunch.bloomDecayMs': 'Bloom decay',
-  'dsp.bassPunch.duck': 'Duck',
+  'dsp.bassPunch.duck': 'Tail duck',
+  'dsp.bassPunch.mix': 'Mix',
+  'dsp.bassPunch.mixHint':
+    '0% keeps the original sound; 100% is the normal effect; 200% doubles added punch and Bloom, with stronger bass cuts. Isolate follows Mix.',
   'dsp.bassPunch.meterNote':
     'Attack is drawn as separate marks because each one is the largest swing inside its own measuring window. Sustain and duck last across several windows, so they are sampled and run as continuous traces.',
   'dsp.bassPunch.graph.now': 'now',

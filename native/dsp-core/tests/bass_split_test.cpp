@@ -5,37 +5,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 /**
- * What both bass stages deliver AT their own split, which is the one frequency
- * neither stage's property tests ever looked at.
- *
- * `bass_punch_test.cpp` measures at 60 Hz and at 2 kHz; `bass_forge_test.cpp`
- * measures at 30, 60, 120 and 180. Every one of those is away from the corner,
- * and the corner is where a band-plus-remainder construction can fail without
- * failing anywhere else: the two bands are recombined by subtraction, so the
- * delivered response is `rest_gain + (band_gain - rest_gain) * L(f)` and the
- * whole question is what `L` does at its own corner. A cascade of two
- * Butterworth sections — a Linkwitz-Riley 4th order — is exactly `-0.5` there:
- * half amplitude, and 180 degrees against the flat path it is added to. That
- * turns a boost into a cut, cancels completely at a band gain of three, and
- * inverts above it. Measured on the code that shipped to this review: a duck
- * asking for -6 dB delivered -11.98 dB at the split, and an attack asking for
- * more delivered 5.6 dB less.
- *
- * A one-pole lowpass cannot do that. Its Nyquist locus is the circle
- * `|L - 1/2| = 1/2`, so `Re(L) = |L|^2` at every frequency, and the identity
- * that falls out of it is the whole reason the split is built on one:
- *
- *     |rest + (band - rest) * L1(f)|^2 = rest^2 + (band^2 - rest^2) * u(f)
- *     u(f) = 1 / (1 + (f / split)^2)
- *
- * `u` runs from 1 at DC to 0 at Nyquist, so the delivered magnitude runs
- * monotonically from `band` to `rest` and can neither overshoot either end nor
- * pass through zero. That closed form is what these tests assert against — not
- * "the gain is roughly right", but the exact number, to a third of a decibel.
- *
- * These are separate from the two stage files because they are one property of
- * one shared construction, and because both of those files are already near
- * the length this project allows.
+ * Regression coverage at the bass boundary. The original LR4 audio split
+ * rotated its low band by 180 degrees at the corner, so adding gain could
+ * cancel the kick. Forge now uses a monotonic one-pole shelf. Punch uses a
+ * separate detector and a phase-aligned FIR contribution; its Tail Duck
+ * must change generated bass while preserving upper-band probes.
  */
 #include "fluideq/bass_forge.h"
 #include "fluideq/bass_punch.h"
@@ -159,37 +133,14 @@ FeqBassPunchSettings punch_defaults() {
   settings.bloom_amount = 0.0;
   settings.bloom_decay_ms = 120.0;
   settings.duck = 0.0;
+  settings.mix = 1.0;
   return settings;
 }
 
-/**
- * Duck across the corner, and why the reference is now a MEAN rather than the
- * meter's last reading.
- *
- * The duck used to hold one depth for a whole run: its ramp was absolute, so a
- * steady note pinned it at the bottom of the dial and the delivered response
- * could be read against that one number. That was also the defect — a depth
- * that never moved is a shelf, not a duck — so it now ramps on how far the low
- * band stands above its own running level, and no signal holds it still. A
- * peak-held envelope and a 150 ms one cannot keep a constant ratio: that is the
- * whole mechanism, not a gap in it.
- *
- * The closed form survives intact anyway, because the delivered response is
- * LINEAR in the duck gain. With the band gain at one it is
- * `d + (1 - d) * L1(f)`, so a probe tone that is steady through the window
- * comes out scaled by `d̄ + (1 - d̄) * L1(f)` exactly, where `d̄` is the mean of
- * the gain over that window — the sidebands the modulation makes land off the
- * probe's own bin and do not touch it. So the run is driven a sample at a time,
- * `d̄` is accumulated as a LINEAR gain rather than in decibels, and every probe
- * is held to `shelf_db(1.0, d̄, hz)` to the same third of a decibel as before.
- *
- * The check that `d̄` is meaningfully under unity is the positive control. A
- * duck that had stopped working entirely would leave every probe at 0 dB and
- * agree with a closed form evaluated at a gain of one, perfectly, at all seven
- * frequencies.
- */
+/** Compare identical Bloom runs with and without ducking. A moving meter and
+ * a changed bass probe are positive controls for the unchanged upper band. */
 void test_punch_duck_across_the_corner() {
-  std::printf("bass split: duck delivers a shelf, not a notch\n");
+  std::printf("bass split: tail duck changes bass without suppressing the upper band\n");
   // A kick four times a second on top of the probes: the duck needs something
   // to stand above, and a steady note is by construction not that.
   Signal input;
@@ -214,6 +165,12 @@ void test_punch_duck_across_the_corner() {
 
   FeqBassPunchSettings on = punch_defaults();
   on.duck = 1.0;
+  on.bloom_amount = 1.0;
+  FeqBassPunchSettings unducked = on;
+  unducked.duck = 0.0;
+  Signal reference = input;
+  PunchStage reference_stage;
+  reference_stage.run(reference, unducked);
   PunchStage stage;
   Signal out = input;
   // One sample per call, so the gain can be averaged over every sample the bin
@@ -235,37 +192,29 @@ void test_punch_duck_across_the_corner() {
               "window\n",
               deepest, 20.0 * std::log10(rest));
   check(deepest < -5.0, "the duck reaches the depth the dial asks for");
-  check(rest < 0.9, "and it is down far enough on average to measure a shelf");
+  check(rest < 0.9, "and the generated tail is ducked for a meaningful duration");
 
-  double previous = 1.0e9;
-  bool falling = true;
+  double bass_change = 0.0;
   for (size_t at = 0; at < kProbeCount; ++at) {
     const double hz = kPunchProbeHz[at];
-    const double measured = probe_db(out, input, hz);
-    const double expected = shelf_db(1.0, rest, hz);
-    std::printf("       %6.0f Hz: measured %+7.3f dB, shelf says %+7.3f dB\n",
-                hz, measured, expected);
-    check(std::fabs(measured - expected) < 0.35,
-          "the delivered gain is the shelf's, within a third of a decibel");
-    falling = falling && measured < previous + 0.02;
-    previous = measured;
+    const double measured = probe_db(out, reference, hz);
+    std::printf("       %6.0f Hz: tail duck changes %+7.3f dB\n", hz, measured);
+    if (hz >= 283.0) {
+      check(std::fabs(measured) < 0.01, "tail duck preserves the upper band");
+    } else {
+      bass_change = std::fmax(bass_change, std::fabs(measured));
+    }
   }
-  check(falling, "and it falls across the corner without a dip on the way");
+  check(bass_change > 0.05, "tail duck still changes the generated bass");
 }
 
-/**
- * And the other direction, which cannot be measured on a steady tone.
- *
- * The shaper's gain is a difference of envelopes, so a note that is not
- * starting has none — `test_steady_tone_settles_to_unity` is the assertion that
- * it has none. What can be measured is the leading edge, and it is measured on
- * a pulse whose carrier IS the corner, which is the case a 60 Hz pulse against
- * a 200 Hz corner cannot reach.
- */
+/** Measure attack at the 120 Hz detector focus inside Punch's bass band.
+ * bass_mix_test sweeps the independent FIR boundary through 200–8000 Hz. */
 void test_punch_attack_at_the_corner() {
   std::printf("\nbass split: the attack lifts the corner rather than "
               "cancelling it\n");
   constexpr size_t kPulsePeriod = 12000;
+  constexpr double focus_hz = 120.0;
   Signal train;
   // Thirteen pulses, of which the eight measured below sit inside it: the
   // sweep above needs two seconds and this needs three.
@@ -276,7 +225,7 @@ void test_punch_attack_at_the_corner() {
     const double seconds = static_cast<double>(at % kPulsePeriod) / kRate;
     double sample = 0.0;
     if (seconds <= 0.12) {
-      sample = 0.1 * std::sin(2.0 * kPi * kSplitHz * seconds) *
+      sample = 0.1 * std::sin(2.0 * kPi * focus_hz * seconds) *
                std::exp(-seconds / 0.035);
     }
     train.left[at] = static_cast<float>(sample);
@@ -290,7 +239,8 @@ void test_punch_attack_at_the_corner() {
     for (size_t pulse = 4; pulse < 12; ++pulse) {
       for (size_t at = 0; at < to; ++at) {
         const double sample =
-            static_cast<double>(signal.left[pulse * kPulsePeriod + at]);
+            static_cast<double>(signal.left[pulse * kPulsePeriod + at +
+                                           feq_bass_punch_latency_frames(kRate)]);
         total += sample * sample;
         ++seen;
       }
@@ -300,6 +250,7 @@ void test_punch_attack_at_the_corner() {
 
   const auto shaped = [&train](double attack) {
     FeqBassPunchSettings settings = punch_defaults();
+    settings.split_hz = focus_hz;
     settings.attack = attack;
     Signal out = train;
     PunchStage stage;

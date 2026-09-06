@@ -16,12 +16,14 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { useEffect, useMemo, useRef } from 'react';
+import { useMemo, useRef } from 'react';
 import { ErrorDescription } from 'common/errors';
 import {
   DRIVER_CATEGORY_LABELS,
   DRIVER_PROFILES,
+  DEFAULT_DRIVER_INTENSITY,
   getDriverProfile,
+  scaleDriverFilters,
 } from 'common/driver';
 import { NO_GAIN_FILTER_TYPES } from 'common/constants';
 import DriverCurve from './DriverCurve';
@@ -32,14 +34,6 @@ import Dropdown from '../widgets/Dropdown';
 import SidebarSection from './SidebarSection';
 import { IOptionEntry } from '../widgets/List';
 import '../styles/DriverPicker.scss';
-
-/**
- * How long to wait after the last change before writing.
- *
- * Long enough to coalesce a slider drag into one write, short enough that
- * letting go and listening feels immediate.
- */
-const WRITE_DEBOUNCE_MS = 140;
 
 /**
  * Driver compensation, chosen from a single combo on the EQ page.
@@ -54,7 +48,7 @@ const DriverPicker = () => {
   const { t } = useTranslation();
 
   const activeId = driver?.profileId ?? '';
-  const intensity = driver?.intensity ?? 0.6;
+  const intensity = driver?.intensity ?? DEFAULT_DRIVER_INTENSITY;
   const activeProfile = getDriverProfile(activeId);
 
   /**
@@ -68,11 +62,7 @@ const DriverPicker = () => {
    * shape at every strength and simply read 0 dB.
    */
   const displayFilters = useMemo(
-    () =>
-      (activeProfile?.filters ?? []).map((filter) => ({
-        ...filter,
-        gain: Math.round(filter.gain * intensity * 10) / 10,
-      })),
+    () => scaleDriverFilters(activeProfile?.filters ?? [], intensity),
     [activeProfile, intensity],
   );
 
@@ -110,28 +100,21 @@ const DriverPicker = () => {
     return entries;
   }, [t]);
 
-  const writeTimer = useRef<ReturnType<typeof setTimeout> | undefined>(
+  const pending = useRef<{ profileId: string; intensity: number } | undefined>(
     undefined,
   );
-
-  useEffect(
-    () => () => {
-      if (writeTimer.current !== undefined) {
-        clearTimeout(writeTimer.current);
-      }
-    },
-    [],
-  );
+  const write = useRef<Promise<void>>(Promise.resolve());
+  const isAdjusting = useRef(false);
 
   /**
-   * Apply a change, coalescing the writes behind it.
+   * Preview every one-percent step, then write at the end of the gesture.
    *
    * The UI updates immediately — the slider has to track the pointer. The IPC
-   * write does not: dragging from 0 to 100 in 5% steps fired twenty of them,
-   * each one rewriting the APO config and making Equalizer APO reload it. The
-   * trailing write wins, so the file still ends up matching the control.
+   * write waits for pointer release, key release or blur: a guessed debounce
+   * expired during slow drags and repeatedly reloaded APO. Serialize commits
+   * because replies share a channel and must not settle a later write early.
    */
-  const apply = (profileId: string, nextIntensity: number) => {
+  const preview = (profileId: string, nextIntensity: number) => {
     setDriver({
       profileId,
       intensity: nextIntensity,
@@ -140,15 +123,29 @@ const DriverPicker = () => {
         : {}),
     });
 
-    if (writeTimer.current !== undefined) {
-      clearTimeout(writeTimer.current);
+    pending.current = { profileId, intensity: nextIntensity };
+  };
+
+  const commit = () => {
+    const next = pending.current;
+    pending.current = undefined;
+    if (!next) {
+      return;
     }
-    writeTimer.current = setTimeout(() => {
-      writeTimer.current = undefined;
-      setDriverApi(profileId, nextIntensity).catch((e) =>
-        setGlobalError(e as ErrorDescription),
-      );
-    }, WRITE_DEBOUNCE_MS);
+    write.current = write.current
+      .then(() => setDriverApi(next.profileId, next.intensity))
+      .then(() => undefined)
+      .catch((error: unknown) => setGlobalError(error as ErrorDescription));
+  };
+
+  const finishAdjustment = () => {
+    isAdjusting.current = false;
+    commit();
+  };
+
+  const apply = (profileId: string, nextIntensity: number) => {
+    preview(profileId, nextIntensity);
+    commit();
   };
 
   return (
@@ -196,7 +193,7 @@ const DriverPicker = () => {
             type="range"
             min={0}
             max={100}
-            step={5}
+            step={1}
             value={Math.round(intensity * 100)}
             disabled={isBlockingError || !isEnabled}
             style={
@@ -204,9 +201,38 @@ const DriverPicker = () => {
                 '--fill': `${Math.round(intensity * 100)}%`,
               } as React.CSSProperties
             }
-            onChange={(event) =>
-              apply(activeProfile.id, Number(event.target.value) / 100)
-            }
+            onPointerDown={(event) => {
+              isAdjusting.current = true;
+              event.currentTarget.setPointerCapture(event.pointerId);
+            }}
+            onPointerUp={finishAdjustment}
+            onPointerCancel={finishAdjustment}
+            onLostPointerCapture={finishAdjustment}
+            onKeyDown={(event) => {
+              if (
+                [
+                  'ArrowLeft',
+                  'ArrowRight',
+                  'ArrowUp',
+                  'ArrowDown',
+                  'Home',
+                  'End',
+                  'PageUp',
+                  'PageDown',
+                ].includes(event.key)
+              ) {
+                isAdjusting.current = true;
+              }
+            }}
+            onKeyUp={finishAdjustment}
+            onBlur={finishAdjustment}
+            onChange={(event) => {
+              preview(activeProfile.id, Number(event.target.value) / 100);
+              // Assistive input may change a range without a pointer or key.
+              if (!isAdjusting.current) {
+                commit();
+              }
+            }}
           />
 
           {/* Every filter in plain sight, same as the voicing panel: this is a
@@ -228,12 +254,14 @@ const DriverPicker = () => {
                     ? filter.type
                     : `${filter.gain > 0 ? '+' : ''}${filter.gain} dB`}
                 </span>
-                <span className="driver-filter__reason">{filter.reason}</span>
+                <span className="driver-filter__reason">
+                  {t(filter.reason)}
+                </span>
               </li>
             ))}
           </ul>
 
-          <p className="driver-picker__note">{activeProfile.note}</p>
+          <p className="driver-picker__note">{t(activeProfile.note)}</p>
         </div>
       )}
     </SidebarSection>

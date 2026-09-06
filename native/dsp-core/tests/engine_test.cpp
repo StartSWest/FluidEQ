@@ -13,6 +13,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
  */
 
 #include "fluideq/chain.h"
+#include "fluideq/bass_punch.h"
 #include "fluideq/crossfade.h"
 #include "fluideq/linear_phase.h"
 #include "fluideq/dsp.h"
@@ -378,7 +379,7 @@ void test_linear_phase_engages() {
 
   // Still nothing: the kernel is built on the control thread and handed over,
   // and the audio thread has not been round yet to take delivery.
-  check(feq_chain_latency_frames(chain) == 0,
+  check(feq_chain_latency_frames(chain) == feq_bass_punch_latency_frames(48000.0),
         "a kernel in transit is not yet in the path");
 
   std::vector<float> left(512, 0.0f);
@@ -386,21 +387,23 @@ void test_linear_phase_engages() {
   float* channels[2] = {left.data(), right.data()};
   feq_chain_process(chain, channels, 512);
 
-  check(feq_chain_latency_frames(chain) == feq_linear_phase_latency(),
+  check(feq_chain_latency_frames(chain) == feq_linear_phase_latency() +
+                                           feq_bass_punch_latency_frames(48000.0),
         "linear phase engages once a block has adopted the kernel");
 
   // And it stands down again, by the same route.
   settings.eq.phase = FEQ_PHASE_MINIMUM;
   feq_chain_configure(chain, &settings);
   feq_chain_process(chain, channels, 512);
-  check(feq_chain_latency_frames(chain) == 0,
+  check(feq_chain_latency_frames(chain) == feq_bass_punch_latency_frames(48000.0),
         "and stands down when the mode leaves linear");
 
   // Isolate wants a kernel too, whatever the phase mode says.
   settings.eq.isolate = 1;
   feq_chain_configure(chain, &settings);
   feq_chain_process(chain, channels, 512);
-  check(feq_chain_latency_frames(chain) == feq_linear_phase_latency(),
+  check(feq_chain_latency_frames(chain) == feq_linear_phase_latency() +
+                                           feq_bass_punch_latency_frames(48000.0),
         "Minimum Isolate brings the convolver back on its own");
 
   feq_chain_destroy(chain);
@@ -441,14 +444,16 @@ void test_kernel_handoff_survives_a_drag() {
     feq_chain_configure(chain, &settings);
   }
   feq_chain_process(chain, channels, 512);
-  check(feq_chain_latency_frames(chain) == feq_linear_phase_latency(),
+  check(feq_chain_latency_frames(chain) == feq_linear_phase_latency() +
+                                           feq_bass_punch_latency_frames(48000.0),
         "the last kernel of a drag is the one that arrives");
 
   // The same settings again must not rebuild: that guard is the difference
   // between one kernel a frame and one per settings message.
   feq_chain_configure(chain, &settings);
   feq_chain_process(chain, channels, 512);
-  check(feq_chain_latency_frames(chain) == feq_linear_phase_latency(),
+  check(feq_chain_latency_frames(chain) == feq_linear_phase_latency() +
+                                           feq_bass_punch_latency_frames(48000.0),
         "and an unchanged rack leaves it alone");
 
   feq_chain_destroy(chain);

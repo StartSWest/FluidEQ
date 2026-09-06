@@ -184,6 +184,7 @@ const chainValues = (eqEnabled: boolean, gainDb: number): number[] => {
     0, // bloom amount
     120, // bloom decay
     0, // duck
+    1, // Bass Punch Mix
     1, // one EQ band
   );
   if (values.length !== CHAIN_PARAM_LEAD) {

@@ -52,6 +52,8 @@ interface IDspPresetRecipe {
   compressor?: TCompressorPresetId;
   dimension?: TDimensionPresetId;
   maximizer?: TMaximizerPresetId;
+  /** Keep a limiter profile's timing while calibrating full-rack drive. */
+  maximizerDriveDb?: number;
   master?: TMasterPresetId;
   /** Compare the processed chain at its incoming level, without LUFS makeup. */
   masterGainMatch?: boolean;
@@ -79,6 +81,16 @@ const masterProfile = (
   outputTrimDb,
   matchedBypass: gainMatch,
 });
+
+const maximizerProfile = (id: TMaximizerPresetId, driveDb?: number) => {
+  const settings = maximizerPresetSettings(id, true);
+  if (driveDb === undefined || driveDb === settings.driveDb) {
+    return settings;
+  }
+  // A calibrated rack still owns its named preset, but this individual stage
+  // must not claim to match a catalogue profile whose drive it no longer uses.
+  return { ...settings, driveDb, presetId: '' };
+};
 
 /**
  * A whole-rack pick owns every stage, including the bypassed ones.
@@ -111,7 +123,7 @@ const materialize = (recipe: IDspPresetRecipe): IDspSettings =>
       ? dimensionPresetSettings(recipe.dimension, true)
       : DSP_DEFAULTS.dimension,
     maximizer: recipe.maximizer
-      ? maximizerPresetSettings(recipe.maximizer, true)
+      ? maximizerProfile(recipe.maximizer, recipe.maximizerDriveDb)
       : DSP_DEFAULTS.maximizer,
     master: recipe.master
       ? masterProfile(
@@ -181,6 +193,8 @@ const RECIPES: readonly IDspPresetRecipe[] = [
     bassPunch: 'punch',
     compressor: 'gentle',
     maximizer: 'transparent',
+    // Punch already raises the bass hit; avoid pushing it harder into limiting.
+    maximizerDriveDb: 0,
   },
   {
     id: 'expansive',
@@ -293,6 +307,9 @@ const RECIPES: readonly IDspPresetRecipe[] = [
     compressor: 'electronic',
     dimension: 'expansive',
     maximizer: 'default',
+    // Retain a little level compensation for this EQ/compressor combination;
+    // zero drive made the complete preset 2.5 dB quieter in the music audit.
+    maximizerDriveDb: 1.5,
   },
 
   {
@@ -339,6 +356,7 @@ const RECIPES: readonly IDspPresetRecipe[] = [
     bassPunch: 'gaming',
     dimension: 'gaming',
     maximizer: 'gaming',
+    maximizerDriveDb: 0.5,
   },
   {
     id: 'movie',

@@ -5,38 +5,16 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 /**
- * How bass hits, which is a question about time and not about frequency.
+ * Bass transient shaping and a short mono bloom tail.
  *
- * Everything else in this rack that touches low end asks where the energy is.
- * This asks when: the first fifteen milliseconds of a kick against the two
- * hundred after it. That is the whole difference between a mix that thumps and
- * one that rumbles, and no filter can move it, because the two live at the
- * same frequency.
+ * The gain follows the bass envelope. Tail duck reduces the generated bloom
+ * under a new hit; it never attenuates the rest of the programme.
  *
- * The shaper is a difference of envelopes rather than a threshold. A fast
- * follower minus a slow one IS the transient, at any level — so a quiet kick
- * gets the same treatment as a loud one and there is no dial to set, no
- * material that slips under it, and no pumping when the level drifts across
- * it. Over any complete note the two followers converge, so the gain averages
- * to unity and this cannot become a tone control. That is asserted.
- *
- * The bloom is a decay extension and deliberately not a reverb. It is fed from
- * the low band summed to mono and it comes back mono, because stereo bass
- * reverb is the standard way to make a mix muddy and mono-incompatible — the
- * width is inaudible where it is applied and the cancellation is not.
- *
- * Duck exists because bass reading as powerful is mostly about what is NOT
- * competing with it. Pulling the upper band down under the low band's own
- * envelope buys more apparent weight than raising the bass does, and it costs
- * headroom instead of spending it.
- *
- * Under the low band's own envelope, and that is the whole of it: its depth is
- * a difference of envelopes like the shaper's, not a level. It shipped as a
- * level — a ramp over -45 to -18 dBFS — and every real low band sits over
- * -18 dBFS from the first bar to the last, so the ramp was pinned and the duck
- * meter read -6.00 to -6.00 for entire tracks. A depth that never lets go is a
- * shelf, and a shelf is what the stage's first paragraph says this rack does
- * not need another of.
+ * A final linear-phase filter confines the complete contribution to bass.
+ * Lookahead gives the bass detector time to catch the hit. The original
+ * waveform is delayed by lookahead plus filter alignment and added unchanged.
+ * Bypass keeps that alignment and current histories, avoiding timing jumps
+ * when this stage is switched on or off.
  */
 #ifndef FLUIDEQ_BASS_PUNCH_H
 #define FLUIDEQ_BASS_PUNCH_H
@@ -44,6 +22,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include <stdint.h>
 
 #include "fluideq/biquad.h"
+
+// Six averaging sections give a nonnegative, linear-phase low-pass response.
+// Capacity covers device rates up to 409.6 kHz without audio-thread allocation.
+#define FEQ_BASS_PUNCH_BAND_STAGES 6
+#define FEQ_BASS_PUNCH_BAND_CAPACITY 1024
+#define FEQ_BASS_PUNCH_DRY_CAPACITY (5 * FEQ_BASS_PUNCH_BAND_CAPACITY)
 
 #ifdef __cplusplus
 extern "C" {
@@ -63,41 +47,11 @@ extern "C" {
 
 typedef struct FeqBassPunchSettings {
   int enabled;
-  /**
-   * Hear the stage's contribution alone, with the programme dropped.
-   *
-   * This stage generates nothing — it applies gains and adds a tail — so its
-   * contribution is the only thing it can honestly isolate: the three deltas
-   * that the writeback already adds to the input, which are the transient
-   * shaping, the bloom, and the ducking of everything above the corner.
-   *
-   * With all four dials at rest that is **exactly** silence, because the same
-   * writeback comment records why the deltas are zero when both gains are
-   * one. A monitor that made noise there would be lying about a stage doing
-   * nothing, which is the failure this mode exists to detect.
-   *
-   * A monitoring mode, not a setting. `readStored` in the renderer drops it on
-   * load — never `clampDspSettings`, which also runs on every patch and every
-   * settings message and would strip the value between the button and the
-   * audio.
-   */
+  /** Hear only the band-limited contribution; zero controls settle to silence. */
   int isolate;
-  /**
-   * Where bass ends, 40 to 200 Hz. Structural: it moves both filters.
-   *
-   * The detector's corner and the shelf's midpoint at once — at this frequency
-   * the delivered gain is the root mean square of the two band gains, which is
-   * what a shelf's corner means everywhere else in audio.
-   */
+  /** Bass focus, 40–200 Hz; the final contribution stays within the bass band. */
   double split_hz;
-  /**
-   * The leading edge, -1 to +1. Positive is harder, negative is softer.
-   *
-   * What it scales is the amount by which the fast envelope stands ABOVE the
-   * slow one, which is only ever during a rise. In the tail the two have
-   * converged and this is exactly zero, so `attack` cannot reach the sustain
-   * and the two dials never fight over the same milliseconds.
-   */
+  /** Leading-edge amount, -1 to +1, with a short release across the bass hit. */
   double attack;
   /** The tail, -1 to +1: negative is dry and tight, positive is wet and long. */
   double sustain;
@@ -105,8 +59,10 @@ typedef struct FeqBassPunchSettings {
   double bloom_amount;
   /** Its decay, 40 to 250 ms, and it is a measured decay. See the source. */
   double bloom_decay_ms;
-  /** How hard the band above the split is pulled down under the bass, 0 to 1. */
+  /** How much bloom is pulled down while a new bass hit arrives, 0 to 1. */
   double duck;
+  /** 0 is dry; 1 is normal; 2 doubles additions and deepens cuts in decibels. */
+  double mix;
 } FeqBassPunchSettings;
 
 /** One delay line of the bloom network. The buffer is caller-owned. */
@@ -117,31 +73,28 @@ typedef struct FeqBassPunchDelay {
   uint32_t cursor;
 } FeqBassPunchDelay;
 
+typedef struct FeqBassPunchBand {
+  double history[FEQ_BASS_PUNCH_BAND_STAGES][FEQ_BASS_PUNCH_BAND_CAPACITY];
+  double sum[FEQ_BASS_PUNCH_BAND_STAGES];
+  double fresh_sum[FEQ_BASS_PUNCH_BAND_STAGES];
+  float dry[FEQ_BASS_PUNCH_DRY_CAPACITY];
+  uint32_t cursor;
+  uint32_t dry_cursor;
+} FeqBassPunchBand;
+
 typedef struct FeqBassPunch {
   /**
    * The DETECTOR's band: one Linkwitz-Riley 4th-order lowpass per channel.
    *
    * Steep, because what the followers are asked to find is a kick and not a
    * snare, and 24 dB per octave is what keeps a vocal out of the envelope. It
-   * is not what the gain is applied through; see `shelf` below for why those
-   * are two different filters.
+   * is separate from the phase-aligned contribution filter below.
    */
   FeqBiquadState split[2][2];
-  /**
-   * The GAIN's band: one pole per channel, and the one state a TDF-II
-   * first-order section needs.
-   *
-   * The two bands are recombined by subtraction, so the delivered response is
-   * `rest + (band - rest) * L(f)` and everything depends on what `L` does at
-   * the corner. A one-pole's Nyquist locus is the circle `|L - 1/2| = 1/2`,
-   * which gives `Re(L) = |L|^2` at every frequency and therefore
-   * `|delivered|^2 = rest^2 + (band^2 - rest^2) / (1 + (f/split)^2)` — a
-   * magnitude that runs monotonically from one gain to the other and can
-   * neither overshoot nor reach zero. No steeper filter has that property, and
-   * an LR4 lowpass is the worst case of not having it: it is exactly -0.5 at
-   * its own corner, so a boost arrives inverted there.
-   */
-  double shelf[2];
+  /** Band-limit the complete contribution, including modulation sidebands. */
+  FeqBassPunchBand band[2];
+  uint32_t band_length;
+  uint32_t lookahead_frames;
   /** The bloom's band limit. Mono, so one pair of stages rather than two. */
   FeqBiquadState bloom_low[2];
   FeqBassPunchDelay combs[FEQ_BASS_PUNCH_COMBS];
@@ -149,20 +102,13 @@ typedef struct FeqBassPunch {
   /** Smoothed, because the dial is dragged and these are the loop gains. */
   double comb_feedback[FEQ_BASS_PUNCH_COMBS];
   double all_pass_gain;
-  /**
-   * The three envelopes, each a slowed copy of the one before it.
-   *
-   * That cascade is what makes "the followers converge" exact rather than
-   * close: a single-constant smoother has unity gain at DC, so over a steady
-   * note the mean of `slow` IS the mean of `fast` and their difference is zero.
-   * Three independent attack/release followers do not have that property —
-   * measured, they leave a standing 0.7 dB offset on a 60 Hz tone, which is a
-   * tone control by another name.
-   */
+  /** Fast envelope, then two slower copies for onset and decay contrast. */
   double detector_mean_square;
   double fast;
   double slow;
   double slower;
+  /** Bounded onset emphasis, released over several cycles of a bass note. */
+  double punch_envelope_db;
   /** The duck's own follower, and the gain it produced. */
   double duck_level;
   /** Smoothed controls. `primed` is clear until the first block has run. */
@@ -171,6 +117,7 @@ typedef struct FeqBassPunch {
   double sustain;
   double bloom_amount;
   double duck;
+  double mix;
   /** What the meters read, in dB of applied gain. **Control thread.** */
   double transient_gain_db;
   double sustain_gain_db;
@@ -182,6 +129,9 @@ typedef struct FeqBassPunch {
 
 /** Longest bloom delay in samples at this rate, which sizes every line. */
 uint32_t feq_bass_punch_bloom_capacity(double sample_rate);
+
+/** The fixed dry-path alignment also runs while the stage is bypassed. */
+uint32_t feq_bass_punch_latency_frames(double sample_rate);
 
 /**
  * `low` is caller-owned and at least `frames * 2` long, where `frames` is the
@@ -203,10 +153,9 @@ void feq_bass_punch_reset(FeqBassPunch* state);
 /**
  * Shape in place, over the first two channels of a planar block.
  *
- * Disabled, and every control at rest, are both bit-exact passthrough rather
- * than approximate ones — the crossover recombines by subtraction so that they
- * can be. A stage that is only nearly transparent at zero is a stage nobody can
- * leave switched on.
+ * Bypass and zero controls preserve the original samples after the fixed
+ * alignment delay and the finite contribution tail have drained. They do not
+ * run the original waveform through an equalizer.
  */
 void feq_bass_punch_process(FeqBassPunch* state,
                             float* const* channels,
@@ -221,22 +170,7 @@ double feq_bass_punch_transient_db(const FeqBassPunch* state);
 /** Gain the sustain section is applying, in dB. **Control thread.** */
 double feq_bass_punch_sustain_db(const FeqBassPunch* state);
 
-/**
- * Gain the duck is applying to the upper band, in dB. **Control thread.**
- *
- * This is the gain the band is given, and above the split it is the gain the
- * output receives: `bass_split_test.cpp` holds the delivered response to the
- * shelf's closed form at seven frequencies, and it reaches this number four
- * octaves up. Across the corner it arrives gradually, as a shelf does — that
- * is the reading, not a discrepancy. Before the split was built on a one-pole
- * it was a discrepancy: this said -6.0 while 200 Hz measured -11.98.
- *
- * It MOVES, and a reader sampling it once a block is sampling a gain that
- * reaches the bottom of the dial on a hit and returns to unity between hits.
- * That is why the split test averages it over the window it bins rather than
- * taking the last reading: the delivered response is linear in this gain, so
- * the closed form holds against its mean and against nothing else.
- */
+/** Gain applied only to the generated bloom tail, in dB. **Control thread.** */
 double feq_bass_punch_duck_db(const FeqBassPunch* state);
 
 #ifdef __cplusplus

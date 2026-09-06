@@ -198,6 +198,27 @@ const eq: Partial<Dictionary> = {
   'extraOutput.profile': 'EQ-Profil',
   'extraOutput.profile.error':
     'Das Profil dieses Ausgangs konnte nicht geladen oder geändert werden.',
+  'driver.filter.presenceSoftening':
+    'Eine breite, sanfte Präsenzabsenkung, wenn der Klang zu aufdringlich wirkt.',
+  'driver.filter.trebleSoftening':
+    'Eine kleine Höhenabsenkung für scharfe Aufnahmen oder einen hellen Klang durch den Sitz.',
+  'driver.filter.vocalLift':
+    'Eine leichte Stimmverstärkung zum Ausprobieren bei zurückhaltenden Mitten.',
+  'driver.filter.bassTidying':
+    'Eine leichte Oberbassabsenkung gegen Wärme, die Stimmen verdeckt.',
+  'driver.filter.airLift':
+    'Eine kleine Anhebung der obersten Höhen, nur wenn der Klang zu weich wirkt.',
+  'driver.filter.edited': 'In Equalizer APO bearbeitet',
+  'driver.profile.note.headphone':
+    'Ein dezenter Ausgangspunkt zum Anhören. Die Treiberart sagt die Abstimmung deines Modells nicht voraus. Prüfe den Sitz der Polster und bevorzuge ein gemessenes Profil für deinen genauen Kopfhörer.',
+  'driver.profile.note.iem':
+    'Sitz und Ohrpassstücke verändern den Klang. Dies ist eine sanfte Höranpassung, keine Korrektur für alle IEMs dieses Typs. Nutze Messungen des genauen Modells, sofern verfügbar.',
+  'driver.profile.note.material':
+    'Das Material allein verrät keine Höhenresonanz. Diese breite Geschmacksanpassung vermeidet Eingriffe an vermuteten Resonanzen. Lass sie aus, wenn dein Kopfhörer bereits ausgewogen klingt.',
+  'driver.profile.note.size':
+    'Der Durchmesser allein verrät keinen Frequenzgangfehler. Diese breite, leichte Absenkung ist optional und ersetzt kein gemessenes Profil deines genauen Modells.',
+  'driver.profile.note.small':
+    'Verringert sanft überladenen Oberbass, ohne Tiefbass hinzuzufügen. Die Größe sagt die Abstimmung nicht voraus; fordere von einem kleinen Treiber nicht mehr Bass.',
   'driver.eyebrow': 'WOMIT SIE HÖREN',
   'driver.title': 'Treibertyp',
   'driver.none': 'Keine Korrektur',

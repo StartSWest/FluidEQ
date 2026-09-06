@@ -19,6 +19,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "fluideq/bass_punch.h"
 
+void bass_punch_band_reset(FeqBassPunch* state);
+void bass_punch_band_prepare(FeqBassPunch* state, double sample_rate);
+double bass_punch_band_sample(FeqBassPunch* state, uint32_t channel,
+                             double input, double gain, double bloom,
+                             double mix, bool isolate);
+
 /** Points every line at its caller-owned buffer and empties it. */
 void bass_punch_bloom_attach(FeqBassPunch* state,
                              float* const* buffers,

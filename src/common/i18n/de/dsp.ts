@@ -400,18 +400,20 @@ const dsp = {
 
   'dsp.bassPunch.title': 'Bass-Punch',
   'dsp.bassPunch.isolate': 'Isolieren',
-  'dsp.bassPunch.isolateHint':
-    'Nur die Formung hören, die diese Stufe vornimmt.',
+  'dsp.bassPunch.isolateHint': 'Nur die Bassänderungen dieser Stufe hören.',
   'dsp.bassPunch.isolateOn':
-    'Programm entfernt — zu hören ist nur, was Punch hinzufügt. Still, wenn alle Regler in Ruhe stehen.',
+    'Nur die Bassänderungen sind hörbar. Sobald der Effekt abgeklungen ist, herrscht bei Attack, Sustain und Blüte auf null Stille.',
   'dsp.bassPunch.description':
-    'Formt Attack und Ausklang der Bässe, nicht ihren Klang. Attack und Sustain sind bipolar: unterhalb der Mitte enger und trockener, oberhalb länger und nasser.',
-  'dsp.bassPunch.splitHz': 'Trennung',
+    'Formt Attack und Ausklang im Bass und begrenzt den Effekt auf tiefe Frequenzen. Bassfokus wählt den Arbeitsbereich; Nachklang senken reduziert nur die hinzugefügte Blüte bei einem neuen Anschlag.',
+  'dsp.bassPunch.splitHz': 'Bassfokus',
   'dsp.bassPunch.attack': 'Attack',
   'dsp.bassPunch.sustain': 'Sustain',
   'dsp.bassPunch.bloomAmount': 'Blüte',
   'dsp.bassPunch.bloomDecayMs': 'Blütedauer',
-  'dsp.bassPunch.duck': 'Ducking',
+  'dsp.bassPunch.duck': 'Nachklang senken',
+  'dsp.bassPunch.mix': 'Mix',
+  'dsp.bassPunch.mixHint':
+    '0 % erhält den Originalklang; 100 % ist der normale Effekt; 200 % verdoppelt zusätzlichen Punch und Blüte und verstärkt Bassabsenkungen. Isolieren folgt dem Mix.',
   'dsp.bassPunch.meterNote':
     'Attack wird als einzelne Marken gezeichnet, weil jede der größte Ausschlag innerhalb ihres eigenen Messfensters ist. Sustain und Ducking dauern über mehrere Fenster hinweg an, werden deshalb abgetastet und laufen als durchgehende Kurven.',
   'dsp.bassPunch.graph.now': 'jetzt',

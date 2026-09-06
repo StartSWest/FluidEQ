@@ -397,17 +397,20 @@ const dsp = {
   'dsp.bassPunch.title': 'Punch dos graves',
   'dsp.bassPunch.isolate': 'Isolar',
   'dsp.bassPunch.isolateHint':
-    'Ouvir apenas a modelação que esta etapa aplica.',
+    'Ouvir apenas as alterações nos graves desta etapa.',
   'dsp.bassPunch.isolateOn':
-    'Sinal original removido — ouve-se apenas o que o Punch acrescenta. Em silêncio com todos os controlos em repouso.',
+    'Só se ouvem as alterações nos graves. Fica em silêncio quando o efeito estabiliza com Ataque, Sustentação e Floração a zero.',
   'dsp.bassPunch.description':
-    'Molda o ataque e a queda dos graves, não o seu timbre. Ataque e sustentação são bipolares: abaixo do centro é mais apertado e seco, acima é mais longo e húmido.',
-  'dsp.bassPunch.splitHz': 'Corte',
+    'Molda o ataque e a queda dos graves, limitando o efeito às frequências baixas. Foco dos graves escolhe a zona de trabalho; Atenuar cauda reduz apenas a Floração acrescentada durante um novo impacto.',
+  'dsp.bassPunch.splitHz': 'Foco dos graves',
   'dsp.bassPunch.attack': 'Ataque',
   'dsp.bassPunch.sustain': 'Sustentação',
   'dsp.bassPunch.bloomAmount': 'Floração',
   'dsp.bassPunch.bloomDecayMs': 'Duração da floração',
-  'dsp.bassPunch.duck': 'Ducking',
+  'dsp.bassPunch.duck': 'Atenuar cauda',
+  'dsp.bassPunch.mix': 'Mistura',
+  'dsp.bassPunch.mixHint':
+    '0% mantém o som original; 100% é o efeito normal; 200% duplica o impacto e a Floração acrescentados, com cortes de graves mais fortes. Isolar acompanha a Mistura.',
   'dsp.bassPunch.meterNote':
     'O ataque é desenhado com marcas separadas, porque cada uma é a maior oscilação dentro da sua própria janela de medição. A sustentação e o ducking duram por várias janelas, por isso são amostrados e correm como traços contínuos.',
   'dsp.bassPunch.graph.now': 'agora',

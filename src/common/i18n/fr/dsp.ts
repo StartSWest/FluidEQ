@@ -396,17 +396,20 @@ const dsp = {
   'dsp.bassPunch.title': 'Punch des basses',
   'dsp.bassPunch.isolate': 'Isoler',
   'dsp.bassPunch.isolateHint':
-    'Écouter uniquement le modelage que cette étape applique.',
+    'Écouter uniquement les modifications des basses de cette étape.',
   'dsp.bassPunch.isolateOn':
-    'Signal d’origine retiré : on n’entend que ce que Punch ajoute. Silencieux quand tous les réglages sont au repos.',
+    'Seules les modifications des basses sont audibles. Le silence revient une fois l’effet stabilisé avec Attaque, Maintien et Éclosion à zéro.',
   'dsp.bassPunch.description':
-    "Façonne l'attaque et la chute des basses, pas leur timbre. Attaque et maintien sont bipolaires : en dessous du centre c'est plus serré et plus sec, au-dessus c'est plus long et plus humide.",
-  'dsp.bassPunch.splitHz': 'Coupure',
+    'Façonne l’attaque et le déclin des basses en limitant l’effet aux fréquences graves. Cible des basses choisit la zone de travail ; Réduire la traîne atténue uniquement l’Éclosion ajoutée lors d’un nouvel impact.',
+  'dsp.bassPunch.splitHz': 'Cible des basses',
   'dsp.bassPunch.attack': 'Attaque',
   'dsp.bassPunch.sustain': 'Maintien',
   'dsp.bassPunch.bloomAmount': 'Éclosion',
   'dsp.bassPunch.bloomDecayMs': "Durée de l'éclosion",
-  'dsp.bassPunch.duck': 'Ducking',
+  'dsp.bassPunch.duck': 'Réduire la traîne',
+  'dsp.bassPunch.mix': 'Mix',
+  'dsp.bassPunch.mixHint':
+    '0 % conserve le son original ; 100 % donne l’effet normal ; 200 % double le punch et l’Éclosion ajoutés, avec des réductions de basses plus fortes. Isoler suit le Mix.',
   'dsp.bassPunch.meterNote':
     "L'attaque est tracée en marques séparées, car chacune est le plus grand écart mesuré à l'intérieur de sa propre fenêtre. Le maintien et le ducking durent sur plusieurs fenêtres : ils sont échantillonnés et s'affichent en tracés continus.",
   'dsp.bassPunch.graph.now': 'maintenant',

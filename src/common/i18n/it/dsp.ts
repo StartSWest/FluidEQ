@@ -394,17 +394,20 @@ const dsp = {
   'dsp.bassPunch.title': 'Punch dei bassi',
   'dsp.bassPunch.isolate': 'Isola',
   'dsp.bassPunch.isolateHint':
-    'Ascolta solo la modellazione che questo stadio applica.',
+    'Ascolta solo le modifiche ai bassi di questo stadio.',
   'dsp.bassPunch.isolateOn':
-    'Segnale originale rimosso: si sente solo ciò che Punch aggiunge. In silenzio con tutti i comandi a riposo.',
+    'Si sentono solo le modifiche ai bassi. Torna il silenzio quando l’effetto si stabilizza con Attacco, Sostegno e Fioritura a zero.',
   'dsp.bassPunch.description':
-    "Modella l'attacco e il decadimento dei bassi, non il loro timbro. Attacco e sostegno sono bipolari: sotto il centro è più stretto e secco, sopra è più lungo e bagnato.",
-  'dsp.bassPunch.splitHz': 'Taglio',
+    'Modella attacco e decadimento dei bassi, limitando l’effetto alle frequenze basse. Fuoco dei bassi sceglie la zona di lavoro; Riduci coda attenua solo la Fioritura aggiunta durante un nuovo colpo.',
+  'dsp.bassPunch.splitHz': 'Fuoco dei bassi',
   'dsp.bassPunch.attack': 'Attacco',
   'dsp.bassPunch.sustain': 'Sostegno',
   'dsp.bassPunch.bloomAmount': 'Fioritura',
   'dsp.bassPunch.bloomDecayMs': 'Durata fioritura',
-  'dsp.bassPunch.duck': 'Ducking',
+  'dsp.bassPunch.duck': 'Riduci coda',
+  'dsp.bassPunch.mix': 'Mix',
+  'dsp.bassPunch.mixHint':
+    '0% mantiene il suono originale; 100% è l’effetto normale; 200% raddoppia il punch e la Fioritura aggiunti, con tagli dei bassi più marcati. Isola segue il Mix.',
   'dsp.bassPunch.meterNote':
     "L'attacco è disegnato a segni separati, perché ognuno è la massima escursione all'interno della propria finestra di misura. Sostegno e ducking durano per più finestre, quindi vengono campionati e scorrono come tracce continue.",
   'dsp.bassPunch.graph.now': 'ora',

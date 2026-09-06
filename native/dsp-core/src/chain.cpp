@@ -151,6 +151,7 @@ void feq_chain_settings_defaults(FeqChainSettings* settings) {
   settings->bass_forge.texture = 0.8;
   settings->bass_punch.split_hz = 110.0;
   settings->bass_punch.bloom_decay_ms = 120.0;
+  settings->bass_punch.mix = 1.0;
   settings->maximizer.ceiling_db = -0.1;
   settings->maximizer.look_ahead_ms = 5.0;
   settings->maximizer.release_ms = 150.0;
@@ -497,7 +498,7 @@ void feq_chain_reset(FeqChain* chain, FeqChainResetReason reason) {
 }
 
 uint32_t feq_chain_latency_frames(const FeqChain* chain) {
-  if (chain == nullptr) {
+  if (chain == nullptr || chain->settings.enabled == 0) {
     return 0;
   }
   uint32_t latency =
@@ -507,6 +508,11 @@ uint32_t feq_chain_latency_frames(const FeqChain* chain) {
   // less a hop. A stage reporting a latency it is not actually adding puts the
   // deck's crossfade out by that much on every handoff.
   latency += feq_denoise_latency_frames(chain->denoise);
+  if (chain->channels >= 2) {
+    // Bass Punch keeps this alignment under bypass, so only the rack bypass
+    // removes it. Account for it when aligning deck transitions.
+    latency += feq_bass_punch_latency_frames(chain->sample_rate);
+  }
   return latency;
 }
 
@@ -644,8 +650,8 @@ void feq_chain_process(FeqChain* chain, float* const* channels,
    * Its claim is that the leading edge and the tail are shaped independently
    * and that over a complete note the two followers converge, so the gain
    * averages to unity. A dial position cannot show either. Published every
-   * block for the same reason Forge's bands are: `chain_process_bass_punch`
-   * resets the stage while it is off, which puts all three at 0 dB.
+   * block for the same reason Forge's bands are. Bypass zeros the controls
+   * while keeping the dry alignment and finite contribution history current.
    */
   feq_meters_publish_bass_punch(chain->meters,
                                 feq_bass_punch_transient_db(&chain->bass_punch),

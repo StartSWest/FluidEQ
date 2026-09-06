@@ -385,17 +385,20 @@ const dsp = {
 
   'dsp.bassPunch.title': 'ベースパンチ',
   'dsp.bassPunch.isolate': 'アイソレート',
-  'dsp.bassPunch.isolateHint': 'この段が行っている整形だけを聴きます。',
+  'dsp.bassPunch.isolateHint': 'この段による低音の変化だけを聴きます。',
   'dsp.bassPunch.isolateOn':
-    '元の信号を外し、Punch が加えている成分だけを聴いています。すべてのつまみが中立のときは無音です。',
+    '低音の変化だけを再生しています。アタック、サステイン、膨らみがゼロなら、効果が収まると無音になります。',
   'dsp.bassPunch.description':
-    '低音のアタックとディケイを形づくるもので、音色は変えません。アタックとサステインは双極性です。中央より下は締まって乾いた質感に、上は長く濡れた質感になります。',
-  'dsp.bassPunch.splitHz': '分割',
+    '低音のアタックと減衰を整え、効果を低域に制限します。低音フォーカスで対象範囲を選び、テールダックで新しい打音の際に追加した膨らみだけを抑えます。',
+  'dsp.bassPunch.splitHz': '低音フォーカス',
   'dsp.bassPunch.attack': 'アタック',
   'dsp.bassPunch.sustain': 'サステイン',
   'dsp.bassPunch.bloomAmount': '膨らみ',
   'dsp.bassPunch.bloomDecayMs': '膨らみの減衰',
-  'dsp.bassPunch.duck': 'ダッキング',
+  'dsp.bassPunch.duck': 'テールダック',
+  'dsp.bassPunch.mix': 'ミックス',
+  'dsp.bassPunch.mixHint':
+    '0% は元の音、100% は通常の効果です。200% は追加するパンチと膨らみを2倍にし、低音のカットも強めます。アイソレートもミックス量に従います。',
   'dsp.bassPunch.meterNote':
     'アタックは個別の目盛りで描かれます。各目盛りはその測定窓の中で最も大きい振れだからです。サステインとダッキングは複数の窓にまたがって続くため、サンプリングして連続した線で描いています。',
   'dsp.bassPunch.graph.now': '現在',

@@ -65,6 +65,7 @@ FeqBassPunchSettings defaults() {
   settings.bloom_amount = 0.0;
   settings.bloom_decay_ms = 120.0;
   settings.duck = 0.0;
+  settings.mix = 1.0;
   return settings;
 }
 
@@ -102,10 +103,19 @@ struct Stage {
 };
 
 Signal process(const Signal& input, const FeqBassPunchSettings& settings) {
+  // Align measurements with source time, including the final delayed samples.
+  const size_t delay = feq_bass_punch_latency_frames(kRate);
   Signal out = input;
+  const size_t padded = input.left.size() + ((delay + kFrames - 1) / kFrames) * kFrames;
+  out.left.resize(padded, 0.0f);
+  out.right.resize(padded, 0.0f);
   Stage stage;
   stage.run(out, settings);
-  return out;
+  return Signal{
+      std::vector<float>(out.left.begin() + delay,
+                         out.left.begin() + delay + input.left.size()),
+      std::vector<float>(out.right.begin() + delay,
+                         out.right.begin() + delay + input.right.size())};
 }
 
 /**
@@ -497,6 +507,7 @@ void test_duck_is_a_duck_not_a_tilt() {
   std::printf("\nbass punch: duck rides the note instead of tilting the mix\n");
   FeqBassPunchSettings on = defaults();
   on.duck = 1.0;
+  on.bloom_amount = 1.0;
 
   // -6 dBFS, which is as present as a low band ever gets, and the old ramp's
   // full depth by a margin of twelve decibels.
@@ -540,9 +551,9 @@ void test_duck_is_a_duck_not_a_tilt() {
   std::printf("       kick over that note: meter swings %+.2f to %+.2f dB, "
               "2 kHz averages %+.2f dB\n",
               deepest, shallowest, pushed);
-  check(deepest < -5.0, "the hit takes the upper band most of the way down");
+  check(deepest < -5.0, "the hit pulls down the generated bloom tail");
   check(shallowest > -0.5, "and it is all given back before the next one");
-  check(pushed < -0.3, "and the upper band really was moved, not just metered");
+  check(std::fabs(pushed) < 0.01, "the upper band remains unchanged during ducking");
 }
 
 /**

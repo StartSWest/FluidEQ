@@ -115,6 +115,54 @@ describe('bass forge profiles', () => {
 });
 
 describe('bass punch profiles', () => {
+  it.each([0, 0.5, 1, 1.5, 2])(
+    'preserves Mix %s for every shipped profile',
+    (mix) => {
+      expect(BASS_PUNCH_PRESETS).toHaveLength(18);
+      BASS_PUNCH_PRESETS.forEach((preset) => {
+        expect(preset.settings.mix).toBe(1);
+        const bassPunch = {
+          ...DSP_DEFAULTS.bassPunch,
+          ...preset.settings,
+          mix,
+        };
+        expect(
+          clampDspSettings({ ...DSP_DEFAULTS, bassPunch }).bassPunch,
+        ).toEqual(bassPunch);
+      });
+    },
+  );
+
+  it('loads old saved profiles at full Mix and bounds malformed values', () => {
+    const { mix: _mix, ...old } = DSP_DEFAULTS.bassPunch;
+    expect(clampDspSettings({ bassPunch: old }).bassPunch.mix).toBe(1);
+    [
+      [-1, 0],
+      [3, 2],
+      [NaN, 1],
+      [Infinity, 1],
+    ].forEach(([mix, expected]) => {
+      expect(
+        clampDspSettings({ bassPunch: { ...old, mix } }).bassPunch.mix,
+      ).toBe(expected);
+    });
+  });
+
+  it('keeps hit-focused profiles dry and limits the Hip Hop and Club tails', () => {
+    (['default', 'tight', 'punch', 'slam'] as const).forEach((id) => {
+      const profile = BASS_PUNCH_PRESET_BY_ID[id].settings;
+      expect(profile.attack).toBeGreaterThanOrEqual(0.5);
+      expect(profile.sustain).toBeLessThan(0);
+      expect(profile.bloomAmount).toBe(0);
+    });
+    (['hiphop', 'club'] as const).forEach((id) => {
+      const profile = BASS_PUNCH_PRESET_BY_ID[id].settings;
+      expect(profile.bloomAmount).toBeGreaterThan(0);
+      expect(profile.bloomAmount).toBeLessThanOrEqual(0.15);
+      expect(profile.bloomDecayMs).toBeLessThanOrEqual(100);
+    });
+  });
+
   it('every one survives the engine clamp unchanged', () => {
     BASS_PUNCH_PRESETS.forEach((preset) => {
       expect(isBassPunchPresetId(preset.id)).toBe(true);

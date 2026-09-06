@@ -269,16 +269,10 @@ void chain_process_bass_punch(FeqChain* chain, float* const* channels,
   if (chain->channels < 2) {
     return;
   }
-  if (chain->settings.bass_punch.enabled == 0) {
-    // Reset every block it is off for, not left settled: a bloom network left
-    // full would replay the tail of whatever last played when the stage came
-    // back on, and `chain.cpp` publishes the three gains unconditionally, so a
-    // stage that kept its followers would hold a stale reading on screen.
-    feq_bass_punch_reset(&chain->bass_punch);
-    return;
-  }
+  // Keep dry alignment and histories current under bypass. Skipping this path
+  // would jump playback by the FIR delay whenever Bass Punch was toggled.
   FeqBassPunchSettings settings{};
-  settings.enabled = 1;
+  settings.enabled = chain->settings.bass_punch.enabled;
   settings.isolate = chain->settings.bass_punch.isolate;
   settings.split_hz = chain->settings.bass_punch.split_hz;
   settings.attack = chain->settings.bass_punch.attack;
@@ -286,6 +280,7 @@ void chain_process_bass_punch(FeqChain* chain, float* const* channels,
   settings.bloom_amount = chain->settings.bass_punch.bloom_amount;
   settings.bloom_decay_ms = chain->settings.bass_punch.bloom_decay_ms;
   settings.duck = chain->settings.bass_punch.duck;
+  settings.mix = chain->settings.bass_punch.mix;
   feq_bass_punch_process(&chain->bass_punch, channels, chain->channels, frames,
                          &settings, chain->sample_rate);
 }
@@ -414,4 +409,3 @@ void chain_process_master_output(FeqChain* chain, float* const* channels,
   }
   chain->master_gain_now = target;
 }
-

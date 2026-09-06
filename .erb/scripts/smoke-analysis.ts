@@ -184,6 +184,7 @@ const main = async (): Promise<void> => {
         enabled: true,
         attack: 1,
         sustain: -1,
+        bloomAmount: 1,
         duck: 1,
       },
     }),

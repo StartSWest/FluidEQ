@@ -393,17 +393,21 @@ const dsp = {
 
   'dsp.bassPunch.title': 'Pegada de graves',
   'dsp.bassPunch.isolate': 'Aislar',
-  'dsp.bassPunch.isolateHint': 'Escucha solo el modelado que hace esta etapa.',
+  'dsp.bassPunch.isolateHint':
+    'Escucha solo los cambios en los graves de esta etapa.',
   'dsp.bassPunch.isolateOn':
-    'Señal original quitada: solo se oye lo que Punch añade. En silencio con todos los mandos en reposo.',
+    'Solo se oyen los cambios en los graves. Queda en silencio al estabilizarse el efecto con Ataque, Sostenimiento y Florecimiento a cero.',
   'dsp.bassPunch.description':
-    'Da forma al ataque y a la caída de los graves, no a su timbre. Ataque y sostenimiento son bipolares: por debajo del centro es más ajustado y seco, por encima es más largo y húmedo.',
-  'dsp.bassPunch.splitHz': 'Corte',
+    'Moldea el ataque y la caída de los graves, limitando el efecto a las frecuencias bajas. Enfoque de graves elige la zona de trabajo; Atenuar cola reduce solo el Florecimiento añadido durante un nuevo golpe.',
+  'dsp.bassPunch.splitHz': 'Enfoque de graves',
   'dsp.bassPunch.attack': 'Ataque',
   'dsp.bassPunch.sustain': 'Sostenimiento',
   'dsp.bassPunch.bloomAmount': 'Florecimiento',
   'dsp.bassPunch.bloomDecayMs': 'Caída de florecimiento',
-  'dsp.bassPunch.duck': 'Ducking',
+  'dsp.bassPunch.duck': 'Atenuar cola',
+  'dsp.bassPunch.mix': 'Mezcla',
+  'dsp.bassPunch.mixHint':
+    '0% conserva el sonido original; 100% es el efecto normal; 200% duplica la pegada y el Florecimiento añadidos, con recortes de graves más intensos. Aislar sigue la Mezcla.',
   'dsp.bassPunch.meterNote':
     'El ataque se dibuja con marcas separadas porque cada una es la mayor oscilación dentro de su propia ventana de medida. El sostenimiento y el ducking duran varias ventanas, así que se muestrean y se trazan de forma continua.',
   'dsp.bassPunch.graph.now': 'ahora',

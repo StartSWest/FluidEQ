@@ -78,7 +78,13 @@ describe('preamp headroom', () => {
 
     const both = withBands();
     both.voicing = { profileId: 'music', intensity: 1 };
-    both.driver = { profileId: 'balanced-armature-iem', intensity: 1 };
+    // Only an overlapping boost raises this bass-heavy chain's peak. The
+    // refined built-in drivers may cut or boost elsewhere and need no reserve.
+    both.driver = {
+      profileId: 'planar-headphone',
+      intensity: 1,
+      apoOverride: { filters: { a: { ...both.filters.a, gain: 2 } } },
+    };
 
     expect(preampValue(voiced)).toBeLessThan(bands);
     expect(preampValue(both)).toBeLessThan(preampValue(voiced));

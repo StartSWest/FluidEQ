@@ -189,6 +189,24 @@ const eq: Partial<Dictionary> = {
     '每个输出使用自己的均衡器配置。镜像仅在 FluidEQ 打开时运行。',
   'extraOutput.profile': '均衡器配置',
   'extraOutput.profile.error': '无法加载或更改此输出的配置。',
+  'driver.filter.presenceSoftening':
+    '如果声音过于前冲，可尝试宽缓地削减临场感。',
+  'driver.filter.trebleSoftening':
+    '轻微削减高频，适合尖锐的录音或佩戴后偏亮的声音。',
+  'driver.filter.vocalLift': '如果中频听起来靠后，可尝试轻微提升人声。',
+  'driver.filter.bassTidying': '轻微削减中低频，减少掩盖人声的暖厚感。',
+  'driver.filter.airLift': '仅在声音过于柔暗时，尝试少量增加空气感。',
+  'driver.filter.edited': '已在 Equalizer APO 中编辑',
+  'driver.profile.note.headphone':
+    '供试听的轻微调整起点。单元类型不能预测具体型号的调音。请检查耳垫密封性，并优先使用针对准确耳机型号的实测配置。',
+  'driver.profile.note.iem':
+    '佩戴方式和耳塞套会改变声音。这是轻微的试听调整，不是对所有此类入耳式耳机的统一校正。若有具体型号的实测数据，请优先使用。',
+  'driver.profile.note.material':
+    '仅凭材料无法确定高频峰值的位置。这种宽缓的偏好调整不会削减猜测出的共振。若耳机声音已均衡，请保持关闭。',
+  'driver.profile.note.size':
+    '仅凭直径无法判断频响误差。这种轻微、宽缓的削减是可选项，不能替代具体型号的实测配置。',
+  'driver.profile.note.small':
+    '轻微减少中低频的拥挤感，不额外增加深低频。尺寸不能预测调音，请避免强迫小单元输出更多低音。',
   'driver.eyebrow': '你用什么在听',
   'driver.title': '单元类型',
   'driver.none': '不做补偿',

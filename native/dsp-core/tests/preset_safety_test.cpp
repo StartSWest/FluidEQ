@@ -257,6 +257,12 @@ int main(int argc, char** argv) {
       const Audio source = programme(rate);
       for (const auto& preset : presets) {
         verify(preset.settings, source, rate, preset.family + "/" + preset.id);
+        if (preset.settings.bass_punch.enabled) {
+          auto extra = preset.settings;
+          extra.bass_punch.mix = 2.0;
+          verify(extra, source, rate,
+                 preset.family + "/" + preset.id + " at 200% Punch Mix");
+        }
       }
       std::printf("  %.0f Hz: %zu individual presets checked\n", rate, presets.size());
       std::fflush(stdout);

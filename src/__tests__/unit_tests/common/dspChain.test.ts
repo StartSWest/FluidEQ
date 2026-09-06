@@ -13,6 +13,7 @@ import {
   clampDspSettings,
 } from '../../../common/dsp/chain';
 import { compressorPresetSettings } from '../../../common/dsp/compressorPresets';
+import { maximizerPresetSettings } from '../../../common/dsp/maximizerPresets';
 import { DSP_PRESETS, dspPresetSettings } from '../../../common/dsp/presets';
 
 describe('dsp chain settings', () => {
@@ -202,7 +203,11 @@ describe('dsp chain settings', () => {
     expect(punch?.settings.compressor).toEqual(
       compressorPresetSettings('gentle', true),
     );
-    expect(punch?.settings.maximizer.presetId).toBe('transparent');
+    expect(punch?.settings.maximizer).toEqual({
+      ...maximizerPresetSettings('transparent', true),
+      presetId: '',
+      driveDb: 0,
+    });
   });
 
   it('keeps Warm tonal instead of stacking harmonic generators', () => {
@@ -252,7 +257,6 @@ describe('dsp chain settings', () => {
       acoustic: 'acoustic',
       metal: 'metal',
       reggae: 'reggae',
-      gaming: 'gaming',
       movie: 'movie',
       podcast: 'podcast',
       audiobook: 'audiobook',
@@ -265,6 +269,22 @@ describe('dsp chain settings', () => {
       }).toEqual({ chainId, maximizerId });
     });
   });
+
+  it.each([
+    ['punch', 'transparent', 0],
+    ['drum-bass', 'default', 1.5],
+    ['gaming', 'gaming', 0.5],
+  ] as const)(
+    '%s preserves limiter timing and ceiling with reduced drive',
+    (id, profile, driveDb) => {
+      const chain = DSP_PRESETS.find((preset) => preset.id === id);
+      expect(chain?.settings.maximizer).toEqual({
+        ...maximizerPresetSettings(profile, true),
+        presetId: '',
+        driveDb,
+      });
+    },
+  );
 
   it('uses the purpose-built D&B transient profile', () => {
     const drumBass = DSP_PRESETS.find((preset) => preset.id === 'drum-bass');

@@ -198,6 +198,27 @@ const eq: Partial<Dictionary> = {
   'extraOutput.profile': 'Profil d’égalisation',
   'extraOutput.profile.error':
     'Impossible de charger ou de modifier le profil de cette sortie.',
+  'driver.filter.presenceSoftening':
+    'Une atténuation large et douce de la présence si le son paraît trop en avant.',
+  'driver.filter.trebleSoftening':
+    'Une légère atténuation des aigus pour les enregistrements agressifs ou une écoute brillante.',
+  'driver.filter.vocalLift':
+    'Un léger renfort vocal à essayer si les médiums semblent en retrait.',
+  'driver.filter.bassTidying':
+    'Une légère atténuation du haut grave pour réduire la chaleur qui masque les voix.',
+  'driver.filter.airLift':
+    'Un léger renfort d’air à essayer seulement si le son paraît trop feutré.',
+  'driver.filter.edited': 'Modifié dans Equalizer APO',
+  'driver.profile.note.headphone':
+    'Un point de départ subtil à écouter. Le type de transducteur ne prédit pas le réglage de votre modèle. Vérifiez l’étanchéité des coussinets et privilégiez un profil mesuré pour votre casque exact.',
+  'driver.profile.note.iem':
+    'L’ajustement et les embouts modifient le son. Il s’agit d’un réglage doux à écouter, pas d’une correction pour tous les intra-auriculaires de ce type. Privilégiez les mesures du modèle exact.',
+  'driver.profile.note.material':
+    'Le matériau seul ne permet pas de situer un pic d’aigus. Ce réglage large selon vos goûts évite de corriger des résonances supposées. Désactivez-le si votre casque est déjà équilibré.',
+  'driver.profile.note.size':
+    'Le diamètre seul ne révèle pas un défaut de réponse. Cette atténuation large et légère est facultative ; elle ne remplace pas un profil mesuré pour votre modèle exact.',
+  'driver.profile.note.small':
+    'Réduit doucement l’encombrement du haut grave sans ajouter de grave profond. La taille ne prédit pas le réglage ; évitez d’exiger davantage de basses d’un petit transducteur.',
   'driver.eyebrow': 'CE AVEC QUOI VOUS ÉCOUTEZ',
   'driver.title': 'Type de transducteur',
   'driver.none': 'Sans compensation',
