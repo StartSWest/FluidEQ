@@ -598,6 +598,7 @@ const LiveTraceCanvas = ({
           deltaMs,
           playing: playingRef.current,
           filled: isFilled,
+          gap: tuning.gap,
         });
         shape = motion.path;
         moving = motion.moving || moving;

@@ -25,6 +25,118 @@ const points: Projected[] = Array.from({ length: 64 }, (_, i) => [
 ]);
 
 describe('visualizer timing', () => {
+  it.each(['flames', 'braid', 'bubbles', 'racer', 'invaders'] as const)(
+    '%s moves continuously at every refresh rate and freezes on pause',
+    (style) => {
+      const paths = [30, 60, 144].map((hz) => {
+        const args = {
+          state: createGraphMotionState(),
+          points,
+          style,
+          columns: 32,
+          top: 20,
+          bottom: 300,
+          playing: true,
+          filled: true,
+          gap: 0.3,
+        };
+        const first = createMovingGraphShape({ ...args, deltaMs: 0 });
+        let last = first;
+        for (let frame = 0; frame < hz; frame += 1) {
+          last = createMovingGraphShape({ ...args, deltaMs: 1000 / hz });
+        }
+        expect(last.path).not.toBe(first.path);
+        expect(last.moving).toBe(true);
+        expect(last.path).not.toMatch(/NaN|Infinity/);
+        expect(
+          createMovingGraphShape({ ...args, playing: false, deltaMs: 80 }).path,
+        ).toBe(last.path);
+        return last.path.match(/-?\d+(?:\.\d+)?/g)?.map(Number) ?? [];
+      });
+      expect(paths[0].length).toBeGreaterThan(0);
+      paths.slice(1).forEach((path) => {
+        expect(path).toHaveLength(paths[0].length);
+        path.forEach((value, index) =>
+          expect(value).toBeCloseTo(paths[0][index], 2),
+        );
+      });
+    },
+  );
+
+  it.each([
+    'rain',
+    'starfield',
+    'flames',
+    'braid',
+    'bubbles',
+    'racer',
+    'invaders',
+    'echo',
+  ] as const)(
+    '%s responds to audio, stops scheduling in silence, and handles resized plots',
+    (style) => {
+      const args = {
+        state: createGraphMotionState(),
+        points,
+        style,
+        columns: 8,
+        top: 20,
+        bottom: 300,
+        playing: true,
+        filled: false,
+      };
+      const loud = createMovingGraphShape({ ...args, deltaMs: 0 });
+      const quietPoints: Projected[] = points.map(([x]) => [x, 300]);
+      let quiet = loud;
+      for (let i = 0; i < 10; i += 1) {
+        quiet = createMovingGraphShape({
+          ...args,
+          points: quietPoints,
+          deltaMs: 100,
+        });
+      }
+      expect(quiet.moving).toBe(false);
+      expect(quiet.path).not.toBe(loud.path);
+      const resized = createMovingGraphShape({
+        ...args,
+        columns: 160,
+        top: 80,
+        bottom: 500,
+        filled: true,
+        deltaMs: 16,
+      });
+      expect(resized.path.length).toBeGreaterThan(0);
+      expect(resized.path).not.toMatch(/NaN|Infinity/);
+    },
+  );
+
+  it.each(['bubbles', 'invaders'] as const)(
+    '%s preserves the editable gap during animation',
+    (style) => {
+      const args = {
+        points,
+        style,
+        columns: 32,
+        top: 20,
+        bottom: 300,
+        playing: true,
+        filled: true,
+        deltaMs: 30,
+      };
+      const wide = createMovingGraphShape({
+        ...args,
+        state: createGraphMotionState(),
+        gap: 0,
+      });
+      const narrow = createMovingGraphShape({
+        ...args,
+        state: createGraphMotionState(),
+        gap: 0.85,
+      });
+      expect(wide.path).not.toBe(narrow.path);
+    },
+  );
+
   it.each(['rain', 'starfield'] as const)(
     '%s travels at the same speed at 30, 60 and 144 Hz and freezes while paused',
     (style) => {
@@ -87,7 +199,9 @@ describe('visualizer timing', () => {
       points: high,
       deltaMs: 33,
     });
-    expect(first.path).toContain('100.00,284.80');
+    // The oldest trace still contains the quiet frame while the front is loud.
+    expect(first.path).toContain('102.16,233.20');
+    expect(first.path).toContain('100.00,30.00');
     let last = first;
     for (let i = 0; i < 400; i += 1) {
       last = createMovingGraphShape({
@@ -215,12 +329,15 @@ describe('peak animation', () => {
 });
 
 describe('curated forms and settings', () => {
-  it('removes duplicates from both picker and cycle without breaking old custom forms', () => {
-    expect(GRAPH_FORM_LOOKS).toHaveLength(54);
-    expect(SELECTABLE_GRAPH_STYLES).not.toEqual(
-      expect.arrayContaining(['ridge', 'pillars', 'wave-ribbon']),
-    );
-    (['ridge', 'pillars', 'wave-ribbon'] as const).forEach((style) => {
+  it('removes retired entries from picker and cycle without breaking saved custom forms', () => {
+    expect(GRAPH_FORM_LOOKS).toHaveLength(52);
+    expect(SELECTABLE_GRAPH_STYLES).toContain('bars');
+    expect(SELECTABLE_GRAPH_STYLES).toContain('blocks');
+    (
+      ['ridge', 'pillars', 'wave-ribbon', 'candles', 'honeycomb'] as const
+    ).forEach((style) => {
+      expect(SELECTABLE_GRAPH_STYLES).not.toContain(style);
+      expect(GRAPH_FORM_LOOKS.some((look) => look.style === style)).toBe(false);
       expect(createGraphShape(points, style, 300)).not.toBe('');
       expect(nextGraphStyle(style)).toBe(
         nextGraphStyle(canonicalGraphStyle(style)),

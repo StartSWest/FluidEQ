@@ -560,9 +560,12 @@ describe('the later forms are the right way up', () => {
 
   it('roots a flame on the floor and tips it at the level', () => {
     const path = createGraphShape(flat, 'flames', BASELINE);
-    const ys = pairsOf(path).map((pair) => pair.y);
-    // Nothing above the level and nothing below the floor: the tongue occupies
-    // exactly the band between them.
+    // The first closed contour is the flame body; the following core and
+    // rising ember are separate figures (arc arguments are not coordinates).
+    const body = pairsOf(path.split(' Z ')[0]);
+    const ys = body.map((pair) => pair.y);
+    expect(body[0].y).toBe(BASELINE);
+    expect(body[3].y).toBe(LEVEL);
     expect(Math.min(...ys)).toBeCloseTo(LEVEL, 1);
     expect(Math.max(...ys)).toBe(BASELINE);
   });

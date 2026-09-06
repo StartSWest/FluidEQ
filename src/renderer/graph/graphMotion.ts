@@ -1,5 +1,6 @@
 import type { GraphStyle, Projected } from 'common/graphStyles';
-import { toColumns } from 'common/graphShapes';
+import { createGraphShape, toColumns } from 'common/graphShapes';
+import { isGraphScene } from 'common/graphScenes';
 
 interface IHistoryFrame {
   time: number;
@@ -23,7 +24,10 @@ export const createGraphMotionState = (): IGraphMotionState => ({
 });
 
 export const hasGraphMotion = (style: GraphStyle): boolean =>
-  style === 'rain' || style === 'starfield' || style === 'echo';
+  style === 'rain' ||
+  style === 'starfield' ||
+  style === 'echo' ||
+  isGraphScene(style);
 
 interface IMotionArgs {
   state: IGraphMotionState;
@@ -35,6 +39,7 @@ interface IMotionArgs {
   deltaMs: number;
   playing: boolean;
   filled: boolean;
+  gap?: number;
 }
 
 const line = (points: readonly Projected[]) =>
@@ -67,6 +72,7 @@ export const createMovingGraphShape = ({
   deltaMs,
   playing,
   filled,
+  gap = 0,
 }: IMotionArgs): { path: string; moving: boolean } => {
   if (points.length < 2 || !hasGraphMotion(style)) {
     return { path: '', moving: false };
@@ -83,6 +89,31 @@ export const createMovingGraphShape = ({
   // the latter teleports a particle whenever the music changes its speed.
   const elapsed = playing ? Math.max(0, Math.min(100, deltaMs)) : 0;
   state.time += elapsed;
+  if (isGraphScene(style)) {
+    const energy =
+      points.reduce(
+        (sum, [, y]) => sum + Math.max(0, Math.min(1, (bottom - y) / height)),
+        0,
+      ) / points.length;
+    // Integrate the music's pace. Multiplying absolute time by the current
+    // level would jump every orbit, flame and car whenever the level changes.
+    state.travel[0] =
+      (state.travel[0] ?? 0) + (elapsed / 1000) * (0.5 + energy * 1.25);
+    return {
+      path: createGraphShape(
+        points,
+        style,
+        bottom,
+        columns,
+        undefined,
+        gap,
+        top,
+        filled,
+        state.travel[0],
+      ),
+      moving: playing && points.some(([, y]) => bottom - y > height * 0.002),
+    };
+  }
   if (style === 'echo') {
     const previous = state.history[state.history.length - 1];
     if (
@@ -111,14 +142,23 @@ export const createMovingGraphShape = ({
       state.history.shift();
     }
     const paths: string[] = [];
-    for (let copy = 0; copy <= 3; copy += 1) {
+    for (let copy = 3; copy >= 0; copy -= 1) {
       const old = historyAt(state.history, state.time - copy * 220);
-      const decay = 1 - copy * 0.24;
+      const decay = 1 - copy * 0.2;
+      const inset = copy * width * 0.018;
+      const floor = bottom - copy * height * 0.07;
       const trace = line(
-        old.map(([x, y]) => [x, bottom - (bottom - y) * decay]),
+        old.map(([x, y]) => [
+          left + inset + (x - left) * (1 - copy * 0.036),
+          floor - (bottom - y) * decay,
+        ]),
       );
       paths.push(
-        filled ? `${trace} L ${right},${bottom} L ${left},${bottom} Z` : trace,
+        // Close a narrow ribbon around each delayed trace. Four opaque areas
+        // piled to the floor hid the history the effect is meant to reveal.
+        filled
+          ? `${trace} ${line([...old].reverse().map(([x, y]) => [left + inset + (x - left) * (1 - copy * 0.036), floor - (bottom - y) * decay + 2 + (3 - copy) * 0.6])).replace(/^M/, 'L')} Z`
+          : trace,
       );
     }
     return {
@@ -140,23 +180,43 @@ export const createMovingGraphShape = ({
     const position = (previous + (elapsed / 1000) * speed) % 1;
     state.travel[index] = position;
     if (style === 'rain') {
-      // A drop crosses the plot in seconds; the spectrum controls its length
-      // and speed without making it jump to another row on every FFT frame.
       for (let layer = 0; layer < 3; layer += 1) {
-        const phase = (position + layer / 3) % 1;
-        const row = top + phase * height;
-        const length = 2 + energy * 12;
-        path += `M ${x.toFixed(2)},${row.toFixed(2)} V ${Math.min(bottom, row + length).toFixed(2)} `;
+        const phase = (position + layer / 3 + seed * layer * 0.17) % 1;
+        const landing = bottom - height * energy * 0.16;
+        const lane = width / bands.length;
+        const dropX = x + (layer - 1) * lane * 0.23;
+        const length = (3 + energy * 18) * (0.55 + layer * 0.23);
+        if (phase < 0.82) {
+          const fall = phase / 0.82;
+          const row = top + fall * (landing - top);
+          const wind = (1 - fall) * lane * 0.22;
+          path += `M ${(dropX + wind).toFixed(2)},${row.toFixed(2)} L ${(dropX + wind - length * 0.12).toFixed(2)},${Math.min(landing, row + length).toFixed(2)} `;
+        } else {
+          const splash = (phase - 0.82) / 0.18;
+          const spread = lane * 0.3 * splash;
+          const lift = Math.sin(splash * Math.PI) * (3 + energy * 9);
+          // Only the landing part of each drop's life splashes, so the floor
+          // has little expanding impacts instead of a permanent dotted line.
+          path += `M ${(dropX - spread).toFixed(2)},${(landing - lift).toFixed(2)} l ${(2 * (1 - splash)).toFixed(2)},${(2 * (1 - splash)).toFixed(2)} M ${(dropX + spread).toFixed(2)},${(landing - lift).toFixed(2)} l ${(-2 * (1 - splash)).toFixed(2)},${(2 * (1 - splash)).toFixed(2)} `;
+        }
       }
     } else {
-      const angle = index * 2.399963229728653;
-      const radius = position * position;
-      const tail = Math.max(0, radius - (0.015 + energy * 0.065));
       const cx = left + width / 2;
       const cy = top + height / 2;
-      const dx = Math.cos(angle) * width * 0.5;
-      const dy = Math.sin(angle) * height * 0.5;
-      path += `M ${(cx + dx * tail).toFixed(2)},${(cy + dy * tail).toFixed(2)} L ${(cx + dx * radius).toFixed(2)},${(cy + dy * radius).toFixed(2)} `;
+      for (let layer = 0; layer < 3; layer += 1) {
+        const angle = index * 2.399963229728653 + layer * 1.7;
+        const depth = (position + layer / 3) % 1;
+        const radius = depth ** 2;
+        const tail = Math.max(0, radius - (0.008 + energy * 0.09) * depth);
+        // Project to the rectangular viewport, not an ellipse occupying only
+        // its centre. Three depths give near streaks and distant pinpoints.
+        const cosine = Math.cos(angle);
+        const sine = Math.sin(angle);
+        const edge = 1 / Math.max(Math.abs(cosine), Math.abs(sine));
+        const dx = cosine * edge * width * 0.49;
+        const dy = sine * edge * height * 0.49;
+        path += `M ${(cx + dx * tail).toFixed(2)},${(cy + dy * tail).toFixed(2)} L ${(cx + dx * radius).toFixed(2)},${(cy + dy * radius).toFixed(2)} `;
+      }
     }
   });
   return { path, moving: playing && loudest > 0.002 };

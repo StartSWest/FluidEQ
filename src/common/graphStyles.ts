@@ -160,14 +160,17 @@ export const GRAPH_STYLES: GraphStyle[] = [
   'wave-lattice',
 ];
 
-// Keep legacy forms loadable for saved custom looks, but offer one geometry
-// per picker entry. Their differences are already available in Edit.
+// Keep retired forms loadable for saved custom looks. Built-in selections
+// migrate to a retained alternative so retired entries stay out of the picker.
 export const canonicalGraphStyle = (style: GraphStyle): GraphStyle => {
   if (style === 'ridge') {
     return 'area';
   }
-  if (style === 'pillars') {
+  if (style === 'pillars' || style === 'candles') {
     return 'bars';
+  }
+  if (style === 'honeycomb') {
+    return 'blocks';
   }
   if (style === 'wave-ribbon') {
     return 'wave-filled';
@@ -610,7 +613,7 @@ const COLUMN_OVERRIDES: Partial<Record<GraphStyle, number>> = {
   truss: 22,
   ecg: 26,
   matrix: 40,
-  bubbles: 40,
+  bubbles: 24,
   zipper: 40,
   sawtooth: 40,
   feather: 44,
@@ -711,6 +714,7 @@ const FILL_OPACITY_OVERRIDES: Partial<Record<GraphStyle, number>> = {
    * supposed to sit behind.
    */
   fluid: 0.92,
+  bubbles: 0.85,
 };
 
 /**

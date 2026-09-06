@@ -27,6 +27,7 @@ import {
   rect,
 } from './graphStyles';
 import { WaveformStyle, createWaveformShape } from './waveformStyles';
+import { createGraphScene, isGraphScene } from './graphScenes';
 
 /**
  * How each of the forty graph forms is actually drawn.
@@ -417,6 +418,7 @@ export const createGraphShape = (
    * which of the two it is being asked for.
    */
   filled = false,
+  seconds = 0,
 ): string => {
   if (points.length < 2) {
     return '';
@@ -433,6 +435,17 @@ export const createGraphShape = (
           : clampGraphColumns(columns),
       )
     : points;
+  if (isGraphScene(style)) {
+    return createGraphScene({
+      points: figure,
+      style,
+      top: ceiling,
+      bottom: baseline,
+      gap,
+      filled,
+      seconds,
+    });
+  }
   // Average spacing rather than per-pair, because the x axis is logarithmic:
   // a bar sized by the gap to its own neighbour would be hair-thin at 20Hz and
   // a slab at 20kHz.
@@ -1030,31 +1043,6 @@ export const createGraphShape = (
       return path;
     }
 
-    // A circle per column, sized by the level and floating at it. Area rather
-    // than height does the talking, which flatters the quiet end of the
-    // spectrum — a small bubble is still unmistakably there, where a two-pixel
-    // bar is not.
-    case 'bubbles': {
-      const largest = columnWidth(2);
-      let path = '';
-      for (let index = 0; index < figure.length; index += 1) {
-        const [x, y] = figure[index];
-        const radius = Math.max(
-          0.9,
-          Math.min(largest, 1 + Math.max(0, baseline - y) * 0.06),
-        );
-        const across = (radius * 2).toFixed(1);
-        path += `M ${(x - radius).toFixed(1)},${y.toFixed(
-          1,
-        )} a ${radius.toFixed(1)},${radius.toFixed(
-          1,
-        )} 0 1,0 ${across},0 a ${radius.toFixed(1)},${radius.toFixed(
-          1,
-        )} 0 1,0 -${across},0 Z`;
-      }
-      return path;
-    }
-
     // Gems on the peaks, cut larger where the signal is stronger.
     case 'diamonds': {
       const largest = columnWidth(2.5);
@@ -1143,80 +1131,6 @@ export const createGraphShape = (
       return path;
     }
 
-    // A car on a road, and the road is the spectrum.
-    //
-    // The trace becomes tarmac with a dashed centre line punched through it,
-    // and a little car rides the loudest band — so the camera pans across the
-    // frequency axis on its own as the music moves, without anything here
-    // knowing what a frame before this one looked like.
-    case 'racer': {
-      const half = 3.5;
-      const upper = points.map(([x, y]) => [x, y - half] as Projected);
-      const lower = points.map(([x, y]) => [x, y + half] as Projected);
-      let path = `${polyline(upper)} L ${[...lower]
-        .reverse()
-        .map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`)
-        .join(' L ')} Z`;
-      for (let index = 6; index < points.length; index += 12) {
-        const [x, y] = points[index];
-        path += hole(x - 3, y - 0.7, 6, 1.4);
-      }
-      /**
-       * The car rides the centre of energy, not the loudest bin.
-       *
-       * It used to take the argmax over every point, which teleports: two
-       * bands within a hair of each other trade the maximum from frame to
-       * frame and the car jumps the width of the plot between them. There
-       * is nowhere to keep a smoothed position either — this function is
-       * pure and sees one frame at a time.
-       *
-       * A weighted centroid needs no memory and cannot flicker: it is an
-       * average, so a rival band pulls it a little rather than seizing it.
-       * It is also the better reading. The argmax says which single bin
-       * won; the centroid says where the music actually sits.
-       */
-      let weightSum = 0;
-      let weighted = 0;
-      for (let index = 0; index < points.length; index += 1) {
-        // Squared, so the loud region still dominates and the car does not
-        // simply park in the middle of the axis on every mix.
-        const level = Math.max(0, baseline - points[index][1]) ** 2;
-        weightSum += level;
-        weighted += level * index;
-      }
-      const focus =
-        weightSum > 0
-          ? Math.round(weighted / weightSum)
-          : Math.floor(points.length / 2);
-      const [carX, carY] = points[Math.min(points.length - 1, focus)];
-      const road = carY - half;
-      path += rect(carX - 9, road - 9, 18, 6);
-      path += rect(carX - 4, road - 13, 9, 4);
-      path += rect(carX - 7.5, road - 4, 5, 4);
-      path += rect(carX + 3, road - 4, 5, 4);
-      return path;
-    }
-
-    // A rank of little sprites hanging at their own levels, eyes cut out of
-    // them. Loud bands sit high and quiet ones drift down the screen.
-    case 'invaders': {
-      const unit = Math.max(1.2, columnWidth(0) / 5);
-      let path = '';
-      for (let index = 0; index < figure.length; index += 1) {
-        const [x, y] = figure[index];
-        path += rect(x - unit * 2.5, y - unit, unit * 5, unit * 2.5);
-        path += rect(x - unit * 3.5, y - unit * 0.5, unit, unit * 2);
-        path += rect(x + unit * 2.5, y - unit * 0.5, unit, unit * 2);
-        path += rect(x - unit * 2, y - unit * 2.5, unit, unit * 1.5);
-        path += rect(x + unit, y - unit * 2.5, unit, unit * 1.5);
-        path += rect(x - unit * 2.5, y + unit * 1.5, unit, unit);
-        path += rect(x + unit * 1.5, y + unit * 1.5, unit, unit);
-        path += hole(x - unit * 1.5, y - unit * 0.5, unit, unit);
-        path += hole(x + unit * 0.5, y - unit * 0.5, unit, unit);
-      }
-      return path;
-    }
-
     // Stars streaking past, three depths of them.
     //
     // The offsets come from the column index rather than from a random number,
@@ -1289,31 +1203,6 @@ export const createGraphShape = (
         )},${control.toFixed(1)} ${(x + half).toFixed(1)},${baseline.toFixed(
           1,
         )} Z`;
-      }
-      return path;
-    }
-
-    // Tongues of fire: a wide base on the floor drawn up to a tip at the level,
-    // with the sides curving in the way a flame's do.
-    //
-    // The lean comes from the column index, not from a random number — the same
-    // rule the starfield follows. A flame that picked a new direction every
-    // frame would not flicker, it would strobe.
-    case 'flames': {
-      const half = Math.max(1.5, step * 0.42);
-      let path = '';
-      for (let index = 0; index < figure.length; index += 1) {
-        const [x, y] = figure[index];
-        const lean = (((index * 37) % 13) / 13 - 0.5) * half;
-        const waist = (y + baseline) / 2;
-        path += `M ${(x - half).toFixed(1)},${baseline.toFixed(1)} Q ${(
-          x -
-          half * 0.85
-        ).toFixed(1)},${waist.toFixed(1)} ${(x + lean).toFixed(1)},${y.toFixed(
-          1,
-        )} Q ${(x + half * 0.85).toFixed(1)},${waist.toFixed(1)} ${(
-          x + half
-        ).toFixed(1)},${baseline.toFixed(1)} Z`;
       }
       return path;
     }
@@ -1422,35 +1311,6 @@ export const createGraphShape = (
       path += rect(left, baseline - 22, right - left, 3);
       path += rect(left, baseline - 48, right - left, 3);
       return path;
-    }
-
-    // Two strands wound around the curve, crossing where they meet.
-    //
-    // Both are the same trace displaced by a sine of the point index, one
-    // inverted, so they braid at a fixed pitch while the width of the plait
-    // swells with the level. Unlike the zipper, which is two rails and a set of
-    // teeth, this is a single continuous rope and reads as one object.
-    case 'braid': {
-      const over: Projected[] = [];
-      const under: Projected[] = [];
-      for (let index = 0; index < points.length; index += 1) {
-        const [x, y] = points[index];
-        const swell = 2 + Math.min(13, Math.max(0, baseline - y) * 0.065);
-        // Radians per point, which is the pitch of the plait. Tied to the index
-        // rather than to x so the twist stays even across a logarithmic axis.
-        const twist = Math.sin(index * 0.42) * swell;
-        over.push([x, y + twist]);
-        under.push([x, y - twist]);
-      }
-      // Painted, the plait is the room between its two rails rather than the
-      // area under them — this form has no underside, it has a body, and that
-      // body already swells where the signal does. Closing it to the floor
-      // instead would bury the twist that is the whole form.
-      if (filled) {
-        const back = [...under].reverse();
-        return `${polyline(over)} ${polyline(back).replace(/^M/, 'L')} Z`;
-      }
-      return `${polyline(over)} ${polyline(under)}`;
     }
 
     // Needlework. A running thread along the peaks with a cross worked over
