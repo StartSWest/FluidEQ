@@ -166,7 +166,7 @@ export const canonicalGraphStyle = (style: GraphStyle): GraphStyle => {
   if (style === 'ridge') {
     return 'area';
   }
-  if (style === 'pillars' || style === 'candles') {
+  if (style === 'pillars' || style === 'candles' || style === 'barcode') {
     return 'bars';
   }
   if (style === 'honeycomb') {

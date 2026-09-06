@@ -360,11 +360,18 @@ describe('peak animation', () => {
 
 describe('curated forms and settings', () => {
   it('removes retired entries from picker and cycle without breaking saved custom forms', () => {
-    expect(GRAPH_FORM_LOOKS).toHaveLength(52);
+    expect(GRAPH_FORM_LOOKS).toHaveLength(51);
     expect(SELECTABLE_GRAPH_STYLES).toContain('bars');
     expect(SELECTABLE_GRAPH_STYLES).toContain('blocks');
     (
-      ['ridge', 'pillars', 'wave-ribbon', 'candles', 'honeycomb'] as const
+      [
+        'ridge',
+        'pillars',
+        'wave-ribbon',
+        'candles',
+        'honeycomb',
+        'barcode',
+      ] as const
     ).forEach((style) => {
       expect(SELECTABLE_GRAPH_STYLES).not.toContain(style);
       expect(GRAPH_FORM_LOOKS.some((look) => look.style === style)).toBe(false);
