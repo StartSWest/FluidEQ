@@ -64,6 +64,23 @@ const paintGraphAccent = (args: IPaintAccentArgs): boolean => {
   };
 
   switch (behaviour) {
+    case 'blink': {
+      peaks.forEach((peak) => {
+        const strength = state.blinks.get(peak.x) ?? 0;
+        if (strength <= 0) {
+          return;
+        }
+        const size = Math.max(3, peak.size * weight);
+        context.globalAlpha = opacity * strength;
+        drawRect(
+          peak.x - size / 2,
+          peak.y - (size * aspect) / 2,
+          size,
+          size * aspect,
+        );
+      });
+      break;
+    }
     case 'live':
     case 'fall': {
       const live = behaviour === 'live';

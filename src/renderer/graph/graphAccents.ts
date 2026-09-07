@@ -89,6 +89,7 @@ export interface IAccentState {
   /** The figure's own recent maximum, per column, for the ghost. */
   envelope: number[];
   motes: IMote[];
+  blinks: Map<number, number>;
   emissionLevels: Map<number, { energy: number; armed: boolean }>;
   behaviour?: AccentBehaviour;
 }
@@ -98,11 +99,13 @@ export const createAccentState = (): IAccentState => ({
   holdRemaining: [],
   envelope: [],
   motes: [],
+  blinks: new Map(),
   emissionLevels: new Map(),
 });
 
 /** The ten, by what they do rather than by what they look like. */
 export type AccentBehaviour =
+  | 'blink'
   | 'live'
   | 'bead'
   | 'fall'
@@ -156,6 +159,7 @@ export const advanceGraphAccent = (
   const { heights, state, deltaMs, peaks, behaviour } = args;
   if (state.behaviour !== behaviour) {
     state.motes = [];
+    state.blinks.clear();
     state.emissionLevels.clear();
     state.behaviour = behaviour;
   }
@@ -190,6 +194,15 @@ export const advanceGraphAccent = (
   }
 
   const seconds = deltaMs / 1000;
+  const blinkDecay = 1 - getEaseFactor(deltaMs, 80);
+  state.blinks.forEach((strength, x) => {
+    const next = strength * blinkDecay;
+    if (next < 0.015) {
+      state.blinks.delete(x);
+    } else {
+      state.blinks.set(x, next);
+    }
+  });
   for (let index = state.motes.length - 1; index >= 0; index -= 1) {
     const mote = state.motes[index];
     mote.x += mote.vx * seconds;
@@ -207,7 +220,8 @@ export const advanceGraphAccent = (
   if (
     behaviour === 'ripple' ||
     behaviour === 'sparks' ||
-    behaviour === 'drip'
+    behaviour === 'drip' ||
+    behaviour === 'blink'
   ) {
     // Emit on an audible rise, never on a paint. A steady peak previously
     // spawned at monitor refresh rate, twice again when the view was mirrored.
@@ -222,16 +236,27 @@ export const advanceGraphAccent = (
         energy: 0,
         armed: true,
       };
-      const rising = previous.armed && peak.energy - previous.energy >= 0.08;
+      const threshold = behaviour === 'blink' ? 0.045 : 0.08;
+      const rising =
+        previous.armed && peak.energy - previous.energy >= threshold;
       if (rising) {
         state.emissionLevels.set(peak.x, { energy: peak.energy, armed: false });
-      } else if (!previous.armed && previous.energy - peak.energy >= 0.08) {
+      } else if (
+        !previous.armed &&
+        previous.energy - peak.energy >= threshold
+      ) {
         state.emissionLevels.set(peak.x, { energy: peak.energy, armed: true });
       } else {
         previous.energy = previous.armed
           ? Math.min(previous.energy, peak.energy)
           : Math.max(previous.energy, peak.energy);
         state.emissionLevels.set(peak.x, previous);
+      }
+      if (behaviour === 'blink') {
+        if (rising) {
+          state.blinks.set(peak.x, 1);
+        }
+        return;
       }
       if (!rising || state.motes.length >= MAX_MOTES) {
         return;
@@ -250,6 +275,7 @@ export const advanceGraphAccent = (
   }
   // Holds and ghosts need their final decay drawn even after the FFT settles.
   return (
+    state.blinks.size > 0 ||
     state.motes.length > 0 ||
     heights.some(
       (height, index) =>

@@ -458,7 +458,7 @@ const BALLISTICS: Partial<Record<GraphStyle, IGraphBallistics>> = {
   // Peak marks: they exist to be caught, so they fall slowly enough to see.
   caps: { attackMs: 2, releaseMs: 110 },
   dots: { attackMs: 14, releaseMs: 160 },
-  scatter: { attackMs: 5, releaseMs: 70 },
+  scatter: { attackMs: 12, releaseMs: 220 },
   dashes: { attackMs: 6, releaseMs: 210 },
   // Thin forms can afford to be instant; there is no mass to them.
   ribs: { attackMs: 3, releaseMs: 30 },
@@ -615,6 +615,7 @@ const COLUMN_OVERRIDES: Partial<Record<GraphStyle, number>> = {
   stems: 48,
   terrace: 32,
   dashes: 48,
+  scatter: 48,
   skyline: 26,
   truss: 22,
   ecg: 26,
@@ -726,6 +727,7 @@ const FILL_OPACITY_OVERRIDES: Partial<Record<GraphStyle, number>> = {
   spikes: 0.74,
   stems: 0.84,
   terrace: 0.74,
+  scatter: 0.74,
   // Broad fills need enough colour to stand beside the brighter beads and
   // LEDs; their old shared opacity made these two look washed out.
   area: 0.78,
@@ -753,7 +755,7 @@ const BAR_GAP_DEFAULTS: Partial<Record<GraphStyle, number>> = {
   dots: 0.38,
   stems: 0.58,
   dashes: 0.36,
-  scatter: 0.66,
+  scatter: 0.56,
   caps: 0.34,
   ribs: 0.34,
   crown: 0.2,

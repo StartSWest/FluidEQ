@@ -141,6 +141,42 @@ const toColumnTroughs = (
   return troughs;
 };
 
+/** Keep each band's peak prominent and its measured floor smaller and quieter. */
+export const createGraphScatter = (
+  points: readonly Projected[],
+  columns: number,
+  gap: number,
+) => {
+  const bands = toColumns(points, columns);
+  if (bands.length < 2) {
+    return { primary: '', secondary: '', shape: '', satellites: [] };
+  }
+  const spacing =
+    (bands[bands.length - 1][0] - bands[0][0]) / (bands.length - 1);
+  const size = Math.max(1.4, spacing * (1 - gap));
+  const small = size * 0.58;
+  const troughs = toColumnTroughs(points, bands.length, bands === points);
+  let primary = '';
+  let secondary = '';
+  const satellites: { x: number; y: number; size: number; crest: number }[] =
+    [];
+  bands.forEach(([x, y], index) => {
+    primary += rect(x - size / 2, y - size / 2, size, size);
+    // Merge a narrow spread into one mark; duplicated overlapping squares
+    // made quiet bands look heavier than loud, clearly separated pairs.
+    if (troughs[index] - y > size) {
+      satellites.push({ x, y: troughs[index], size: small, crest: y });
+      secondary += rect(
+        x - small / 2,
+        troughs[index] - small / 2,
+        small,
+        small,
+      );
+    }
+  });
+  return { primary, secondary, shape: primary + secondary, satellites };
+};
+
 /**
  * How many readings the wave forms are drawn from.
  *
@@ -690,21 +726,7 @@ export const createGraphShape = (
      * spread the peak-only bucketing throws away everywhere else.
      */
     case 'scatter': {
-      const size = columnWidth(1.4);
-      const troughs = toColumnTroughs(points, figure.length, figure === points);
-      let path = '';
-      for (let index = 0; index < figure.length; index += 1) {
-        const [x, y] = figure[index];
-        path += rect(x - size / 2, y - size / 2, size, size);
-        const trough = troughs[index];
-        // Only when the two are far enough apart to read as two marks —
-        // otherwise a flat band draws one square on top of another and
-        // looks like a rendering fault.
-        if (trough - y > size) {
-          path += rect(x - size / 2, trough - size / 2, size, size);
-        }
-      }
-      return path;
+      return createGraphScatter(points, figure.length, gap).shape;
     }
 
     // A cap hovering above an empty column, the way a peak-hold reads.
@@ -1463,6 +1485,7 @@ export const createGraphShape = (
  * fluid is half made of. It stays exactly as it is.
  */
 export type AccentStyle =
+  | 'blink'
   | 'live'
   | 'wave'
   | 'bead'
@@ -1476,6 +1499,7 @@ export type AccentStyle =
   | 'drip';
 
 export const ACCENT_STYLES: AccentStyle[] = [
+  'blink',
   'live',
   'bead',
   'fall',
@@ -1490,6 +1514,7 @@ export const ACCENT_STYLES: AccentStyle[] = [
 ];
 
 const ACCENTS: Partial<Record<GraphStyle, 'bead' | 'trace'>> = {
+  scatter: 'bead',
   blocks: 'bead',
   /**
    * The wave line over the fluid's bars.
@@ -1627,6 +1652,9 @@ export const getGlowStyle = (
  * mark this graph has always drawn.
  */
 export const getDefaultAccentStyle = (style: GraphStyle): AccentStyle => {
+  if (style === 'scatter') {
+    return 'blink';
+  }
   if (style === 'blocks') {
     return 'fall';
   }

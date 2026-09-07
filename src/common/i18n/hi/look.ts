@@ -20,6 +20,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { Dictionary } from '../en';
 
 const look: Partial<Dictionary> = {
+  'look.peak.blink': 'ताल पर चमक',
   'look.peakFill': 'शिखर भरें',
   'look.peak.live': 'लाइव शिखर',
   'look.peakLayer': 'शिखर की स्थिति',

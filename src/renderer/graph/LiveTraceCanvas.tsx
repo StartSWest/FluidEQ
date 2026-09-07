@@ -68,6 +68,7 @@ import {
   createGraphAccent,
   createGraphPieces,
   createGraphShape,
+  createGraphScatter,
   getGlowStyle,
   getGraphPeaks,
   hasGraphPieces,
@@ -646,7 +647,20 @@ const LiveTraceCanvas = ({
       } else {
         motionRef.current.key = '';
       }
-      const figure = new Path2D(shape);
+      const scatter =
+        chosen === 'scatter'
+          ? createGraphScatter(projected, tuning.columns, tuning.gap)
+          : undefined;
+      const blinkingSatellites =
+        scatter && tuning.accents && tuning.accentStyle === 'blink';
+      const figure = new Path2D(blinkingSatellites ? scatter.primary : shape);
+      const scatterPaths =
+        scatter && isFilled
+          ? {
+              primary: new Path2D(scatter.primary),
+              secondary: new Path2D(scatter.secondary),
+            }
+          : undefined;
       const dashHistory =
         chosen === 'dashes'
           ? advanceDashTrails(
@@ -850,9 +864,19 @@ const LiveTraceCanvas = ({
        */
       const wantsPaintedAccent =
         tuning.accents && tuning.accentStyle !== 'wave';
-      const accentPeaks = wantsPaintedAccent
+      let accentPeaks = wantsPaintedAccent
         ? getGraphPeaks(projected, chosen, baseline, tuning.columns, plot.top)
         : [];
+      if (blinkingSatellites) {
+        accentPeaks = scatter.satellites.map(({ x, y, size, crest }) => ({
+          x,
+          y,
+          size,
+          // A satellite flashes with its own frequency band, while staying
+          // at the quieter sample underneath that band's main square.
+          energy: Math.max(0, Math.min(1, (baseline - crest) / depth)),
+        }));
+      }
       const accentHeights: number[] = [];
       const accentPositions: number[] = [];
       if (wantsPaintedAccent) {
@@ -1080,7 +1104,7 @@ const LiveTraceCanvas = ({
                   weight: tuning.accentWidth,
                   filled: tuning.accentFilled,
                   paint: paintFor(
-                    chosen === 'blocks'
+                    chosen === 'blocks' || tuning.accentStyle === 'blink'
                       ? basePaint
                       : resolveAccentStroke(basePaint, euphoria),
                   ),
@@ -1103,7 +1127,9 @@ const LiveTraceCanvas = ({
           GLOW_LAYERS.forEach((layer) => {
             setAlpha(context, layer.opacity * lit);
             context.lineWidth = strokeWidth + layer.widen * swell;
-            context.stroke(stemLayers?.tips ?? haloPath);
+            context.stroke(
+              scatterPaths?.primary ?? stemLayers?.tips ?? haloPath,
+            );
           });
         }
 
@@ -1114,7 +1140,15 @@ const LiveTraceCanvas = ({
         // One drawing for every style. A filled style paints the same shape
         // rather than stroking it — which is a fill, not a second figure, so
         // cycling styles never changes what is drawn, only how.
-        if (terraceTiers) {
+        if (scatterPaths) {
+          context.fillStyle = canvasPaint;
+          setAlpha(context, opacity * tuning.fillOpacity * 0.38);
+          if (!blinkingSatellites) {
+            context.fill(scatterPaths.secondary);
+          }
+          setAlpha(context, opacity * tuning.fillOpacity);
+          context.fill(scatterPaths.primary);
+        } else if (terraceTiers) {
           context.fillStyle = canvasPaint;
           context.strokeStyle = canvasPaint;
           terraceTiers.forEach((tier, index) => {

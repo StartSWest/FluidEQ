@@ -20,6 +20,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { Dictionary } from '../en';
 
 const look: Partial<Dictionary> = {
+  'look.peak.blink': '随节拍闪烁',
   'look.peakFill': '填充峰值',
   'look.peak.live': '实时峰值',
   'look.peakLayer': '峰值位置',

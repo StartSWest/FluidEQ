@@ -511,10 +511,10 @@ describe('the lit peaks', () => {
     expect(marks.length).toBeLessThanOrEqual(10);
   });
 
-  it('starts LED blocks with held caps while other shapes remain unmarked', () => {
+  it('starts LED blocks with held caps and Scatter with blinking satellites', () => {
     // The point of many drawings is that they do not all behave the same way.
     // Stems has its own square tips; adding separate peak boxes covered them.
-    // Only the LED meter starts with an additional held peak marker.
+    // Scatter uses its lower squares as beat markers; LED holds caps.
     // This is
     // the test that stops a well-meaning refactor from switching it on for
     // everybody.
@@ -528,7 +528,8 @@ describe('the lit peaks', () => {
     const lit = GRAPH_STYLES.filter(
       (style) => hasGraphAccent(style) && style !== 'fluid',
     );
-    expect(lit).toEqual(['blocks']);
+    expect(lit).toEqual(['blocks', 'scatter']);
+    expect(getDefaultAccentStyle('scatter')).toBe('blink');
   });
 
   it('draws the fluid a curve rather than a peak mark', () => {
