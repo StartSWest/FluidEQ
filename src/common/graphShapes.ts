@@ -828,17 +828,34 @@ export const createGraphShape = (
        * never thicken into each other when the thresholds crowd up in a quiet
        * passage.
        */
-      const weight = Math.max(1.5, Math.min(2.5, spacing * 0.3));
-      const band = (from: number, to: number, level: number) =>
-        rect(from, level - weight / 2, Math.max(weight, to - from), weight);
+      const weight = Math.max(1.5, Math.min(3, spacing * 0.3));
+      const band = (from: number, to: number, level: number) => {
+        const radius = Math.min(weight / 2, Math.max(0.2, (to - from) / 2));
+        const span = Math.max(0, to - from - radius * 2).toFixed(1);
+        const r = radius.toFixed(1);
+        const h = (radius * 2).toFixed(1);
+        return `M ${(from + radius).toFixed(1)},${(level - radius).toFixed(1)} h ${span} a ${r},${r} 0 0 1 0,${h} h -${span} a ${r},${r} 0 0 1 0,-${h} Z`;
+      };
       for (let level = baseline - spacing; level > ceiling; level -= spacing) {
         let from: number | undefined;
         for (let index = 0; index < points.length; index += 1) {
           const [x, y] = points[index];
+          const [previousX, previousY] = points[Math.max(0, index - 1)];
+          // Interpolate the threshold crossing: snapping to a whole FFT bin
+          // made contour ends jump sideways during an otherwise smooth fall.
+          const crossing =
+            previousY === y
+              ? x
+              : previousX +
+                (x - previousX) *
+                  Math.max(
+                    0,
+                    Math.min(1, (level - previousY) / (y - previousY)),
+                  );
           if (y <= level && from === undefined) {
-            from = x;
+            from = crossing;
           } else if (y > level && from !== undefined) {
-            path += band(from, x, level);
+            path += band(from, crossing, level);
             from = undefined;
           }
         }

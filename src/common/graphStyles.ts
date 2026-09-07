@@ -268,7 +268,6 @@ const STROKED_STYLES = new Set<GraphStyle>([
   'steps',
   'dashes',
   'weave',
-  'contour',
   'hatch',
   'bezier',
   'feather',
@@ -481,7 +480,7 @@ const BALLISTICS: Partial<Record<GraphStyle, IGraphBallistics>> = {
   // More landscapes. A contour is drawn from where the level crosses a
   // threshold, so a jittery curve makes rings pop in and out of existence —
   // it is the slowest thing here on purpose.
-  contour: { attackMs: 26, releaseMs: 160 },
+  contour: { attackMs: 24, releaseMs: 240 },
   hatch: { attackMs: 18, releaseMs: 70 },
   bezier: { attackMs: 16, releaseMs: 55 },
   ribbon: { attackMs: 11, releaseMs: 46 },
@@ -734,6 +733,7 @@ const FILL_OPACITY_OVERRIDES: Partial<Record<GraphStyle, number>> = {
   terrace: 0.74,
   scatter: 0.74,
   ribs: 1,
+  contour: 0.74,
   // Broad fills need enough colour to stand beside the brighter beads and
   // LEDs; their old shared opacity made these two look washed out.
   area: 0.78,
