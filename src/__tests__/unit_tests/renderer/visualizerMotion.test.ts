@@ -366,7 +366,7 @@ describe('peak animation', () => {
 
 describe('curated forms and settings', () => {
   it('removes retired entries from picker and cycle without breaking saved custom forms', () => {
-    expect(GRAPH_FORM_LOOKS).toHaveLength(48);
+    expect(GRAPH_FORM_LOOKS).toHaveLength(47);
     expect(SELECTABLE_GRAPH_STYLES).toContain('bars');
     expect(SELECTABLE_GRAPH_STYLES).toContain('blocks');
     (
@@ -380,6 +380,7 @@ describe('curated forms and settings', () => {
         'caps',
         'crown',
         'weave',
+        'matrix',
       ] as const
     ).forEach((style) => {
       expect(SELECTABLE_GRAPH_STYLES).not.toContain(style);

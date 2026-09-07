@@ -175,7 +175,7 @@ export const canonicalGraphStyle = (style: GraphStyle): GraphStyle => {
   if (style === 'pillars' || style === 'candles' || style === 'barcode') {
     return 'bars';
   }
-  if (style === 'honeycomb') {
+  if (style === 'honeycomb' || style === 'matrix') {
     return 'blocks';
   }
   if (style === 'wave-ribbon') {
