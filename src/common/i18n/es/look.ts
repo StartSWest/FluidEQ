@@ -45,6 +45,9 @@ const look: Partial<Dictionary> = {
     'El color sube por el eje e indica el volumen de cada barra.',
   'look.palette.heat': 'Calor',
   'look.palette.heatHint': 'El color sigue el volumen, de frío a rojo.',
+  'look.palette.auto': 'Auto',
+  'look.palette.autoHint':
+    'Cada forma con su propio color: una carretera iluminada por el volumen, las barras por su posición.',
   'look.colours': 'Colores',
   'look.colourValue': 'Color {number}: {colour}',
   'look.removeColour': 'Quitar color {number}',

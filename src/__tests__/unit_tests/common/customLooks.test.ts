@@ -143,6 +143,7 @@ describe('normalizeTuning', () => {
       gap: 0.2,
       accents: false,
       accentFilled: true,
+      connectingLine: false,
       accentBehind: false,
       accentWidth: DEFAULT_ACCENT_WIDTH,
       accentStyle: 'bead',
@@ -659,6 +660,7 @@ describe('every stored setting is validated', () => {
     const covered = new Set([
       ...NUMERIC.map(([key]) => key),
       'filled',
+      'connectingLine',
       'accents',
       'accentFilled',
       'accentBehind',

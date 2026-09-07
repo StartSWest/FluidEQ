@@ -44,6 +44,9 @@ const look: Partial<Dictionary> = {
   'look.palette.levelHint': '軸の上方向に色が変わり、各バーの音量を示します。',
   'look.palette.heat': 'ヒート',
   'look.palette.heatHint': '音量に応じて色が変化します。寒色から赤へ。',
+  'look.palette.auto': '自動',
+  'look.palette.autoHint':
+    '各フォームに合った色付け。道路は音量で、バーは位置で色付けされます。',
   'look.colours': '色',
   'look.colourValue': '色 {number}：{colour}',
   'look.removeColour': '色 {number} を削除',

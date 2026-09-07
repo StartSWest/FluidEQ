@@ -2,6 +2,7 @@ import { GraphStyle, Projected, hole, rect } from './graphStyles';
 import createGraphSawtooth from './graphSawtooth';
 import createGraphPulse from './graphPulse';
 import createGraphEcho from './graphEcho';
+import createGraphRoad from './graphRoad';
 
 export const isGraphScene = (style: GraphStyle): boolean =>
   [
@@ -99,44 +100,7 @@ export const createGraphScene = ({
   }
 
   if (style === 'racer') {
-    const road = smooth(points).map(([x, y]): Projected => [
-      x,
-      top + height * 0.18 + (y - top) * 0.72,
-    ]);
-    const upper = road.map(([x, y]): Projected => [x, y - 3]);
-    const lower = road.map(([x, y]): Projected => [x, y + 3]);
-    path = `${line(upper)} ${line([...lower].reverse()).replace(/^M/, 'L')} Z `;
-    for (let i = 4; i < road.length; i += 12) {
-      path += hole(road[i][0] - 3, road[i][1] - 0.6, 6, 1.2);
-    }
-    // Round trips have a smooth turn at each end; an energy centroid merely
-    // parked the car in the bass, then jumped it when the mix changed.
-    const position = 0.5 - Math.cos(seconds * 0.45) * 0.42;
-    const at = position * (road.length - 1);
-    const index = Math.min(road.length - 2, Math.floor(at));
-    const from = road[index];
-    const to = road[index + 1];
-    const mix = at - index;
-    const x = from[0] + (to[0] - from[0]) * mix;
-    const y = from[1] + (to[1] - from[1]) * mix - 3;
-    const size = Math.min(1.4, Math.max(0.65, width / 700));
-    const angle = Math.max(
-      -0.5,
-      Math.min(0.5, Math.atan2(to[1] - from[1], to[0] - from[0])),
-    );
-    const local = (dx: number, dy: number) =>
-      point(
-        x + size * (dx * Math.cos(angle) - dy * Math.sin(angle)),
-        y + size * (dx * Math.sin(angle) + dy * Math.cos(angle)),
-      );
-    path += `M ${local(-13, -5)} L ${local(-11, -11)} L ${local(-6, -12)} L ${local(-2, -18)} L ${local(7, -18)} L ${local(12, -11)} L ${local(17, -9)} L ${local(17, -5)} Z `;
-    path += `M ${local(-1, -16)} L ${local(-4, -12)} L ${local(9, -12)} L ${local(6, -16)} Z `;
-    [-7, 10].forEach((wheel) => {
-      const wx = x + size * (wheel * Math.cos(angle) + 3 * Math.sin(angle));
-      const wy = y + size * (wheel * Math.sin(angle) - 3 * Math.cos(angle));
-      path += circle(wx, wy, size * 3);
-    });
-    return path;
+    return createGraphRoad(points, top, bottom, seconds);
   }
 
   points.forEach(([x, y], index) => {

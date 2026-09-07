@@ -330,13 +330,22 @@ export const isFilledGraphStyle = (style: GraphStyle): boolean =>
  * it: level is still the meter ramp, and a meter ramp and a mood ring are two
  * different instruments.
  */
-export type GraphPalette = 'signal' | 'rainbow' | 'level' | 'heat';
+/**
+ * `auto` is the fifth and the only one that is not a colouring at all: it
+ * says "whatever this form looks best in". A road is lit by loudness and a
+ * row of bars by position, and a toggle that painted both the same way
+ * always had one of them wrong. Under auto every form resolves to its own
+ * palette through `resolveGraphPalette`, and nothing downstream ever sees
+ * the word: painters, icons and the designer all resolve first.
+ */
+export type GraphPalette = 'signal' | 'rainbow' | 'level' | 'heat' | 'auto';
 
 export const GRAPH_PALETTES: GraphPalette[] = [
   'signal',
   'rainbow',
   'level',
   'heat',
+  'auto',
 ];
 
 export const GRAPH_PALETTE_LABELS: Record<GraphPalette, string> = {
@@ -344,7 +353,97 @@ export const GRAPH_PALETTE_LABELS: Record<GraphPalette, string> = {
   rainbow: 'rainbow',
   level: 'level',
   heat: 'heat',
+  auto: 'auto',
 };
+
+/** A concrete palette, never `auto`. */
+export type ResolvedGraphPalette = Exclude<GraphPalette, 'auto'>;
+
+/**
+ * What each form is painted in under auto, decided by what the form IS.
+ *
+ * A spectrum of pieces spread across the axis — bars, dots, spikes — is
+ * coloured by where each piece sits, which is what a frequency ramp says.
+ * A meter reads its loudness up the axis — an LED ladder, a filled area, a
+ * terrain of contours or strata — and that is the level ramp. A single
+ * trace on a scope or a monitor, a silhouette, a structure, is one colour,
+ * because that is what the real thing is. A scene lit by how hard the
+ * music is playing — fire, a road at night — takes heat, one colour for
+ * the whole picture that moves with the loudness. Listed in full rather
+ * than derived, because this is taste and taste is not a rule.
+ */
+const OWN_PALETTES: Record<GraphStyle, ResolvedGraphPalette> = {
+  // Traces and silhouettes: one colour.
+  line: 'signal',
+  ridge: 'signal',
+  weave: 'signal',
+  bezier: 'signal',
+  ribbon: 'signal',
+  feather: 'signal',
+  zipper: 'signal',
+  truss: 'signal',
+  stalactites: 'signal',
+  sawtooth: 'signal',
+  ecg: 'signal',
+  starfield: 'signal',
+  barcode: 'signal',
+  rain: 'signal',
+  fence: 'signal',
+  'wave-line': 'signal',
+  'wave-mirror': 'signal',
+  'wave-ribbon': 'signal',
+  'wave-outline': 'signal',
+  // Pieces across the axis: coloured by where they sit.
+  bars: 'rainbow',
+  dots: 'rainbow',
+  steps: 'rainbow',
+  spikes: 'rainbow',
+  stems: 'rainbow',
+  dashes: 'rainbow',
+  scatter: 'rainbow',
+  caps: 'rainbow',
+  ribs: 'rainbow',
+  pillars: 'rainbow',
+  crown: 'rainbow',
+  hatch: 'rainbow',
+  matrix: 'rainbow',
+  slope: 'rainbow',
+  bubbles: 'rainbow',
+  diamonds: 'rainbow',
+  invaders: 'rainbow',
+  arches: 'rainbow',
+  honeycomb: 'rainbow',
+  braid: 'rainbow',
+  stitch: 'rainbow',
+  fluid: 'rainbow',
+  'wave-bars': 'rainbow',
+  'wave-dots': 'rainbow',
+  'wave-spikes': 'rainbow',
+  'wave-lattice': 'rainbow',
+  // Meters and terrain: the level ramp up the axis.
+  area: 'level',
+  blocks: 'level',
+  terrace: 'level',
+  contour: 'level',
+  echo: 'level',
+  candles: 'level',
+  canyon: 'level',
+  'wave-filled': 'level',
+  'wave-blocks': 'level',
+  // A scene lit by the music: one colour that moves with the loudness.
+  flames: 'heat',
+  // A city at night: its windows light up with the music.
+  skyline: 'heat',
+  // The road at night reads its ground by the level ramp: dark at the
+  // foot, lit at the ridge, brighter as the music climbs.
+  racer: 'level',
+};
+
+/** The palette a form is actually painted in: `auto` becomes its own. */
+export const resolveGraphPalette = (
+  style: GraphStyle,
+  palette: GraphPalette,
+): ResolvedGraphPalette => (palette === 'auto' ? OWN_PALETTES[style] : palette);
 
 /**
  * The colour heat shows at a given loudness, 0 at the floor to 1 at the top.
@@ -515,7 +614,9 @@ const BALLISTICS: Partial<Record<GraphStyle, IGraphBallistics>> = {
   // ground on a kick and comes down under its own weight, the aliens hover
   // rather than twitch, the warp streaks are as immediate as the pulse, and
   // the bricks behave like the level meter they secretly are.
-  racer: { attackMs: 6, releaseMs: 42 },
+  // Quick enough for the car, the trees and the lights to answer a beat;
+  // the hillside eases itself far slower on top of this — see roadTrip.
+  racer: { attackMs: 30, releaseMs: 200 },
   invaders: { attackMs: 6, releaseMs: 85 },
   starfield: { attackMs: 20, releaseMs: 150 },
 

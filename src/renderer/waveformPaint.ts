@@ -358,6 +358,8 @@ export const SPECTRUM_HUE_BY_PALETTE: Record<GraphPalette, SpectrumHue> = {
   // rather than left out because the table is exhaustive on purpose.
   level: SPECTRUM_HUE_FLAT,
   heat: SPECTRUM_HUE_LEVEL,
+  // Never reached: auto is resolved to a form's own palette before paint.
+  auto: SPECTRUM_HUE_FLAT,
 };
 
 /** Draw them into the given box. */

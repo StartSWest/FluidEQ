@@ -175,6 +175,7 @@ const PALETTE_LABEL_KEYS: Record<GraphPalette, TranslationKey> = {
   rainbow: 'look.palette.frequency',
   level: 'look.palette.level',
   heat: 'look.palette.heat',
+  auto: 'look.palette.auto',
 };
 
 /** How long the look's name stays up after it changes. */

@@ -17,7 +17,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { useId } from 'react';
-import { GraphPalette, GraphStyle } from 'common/graphStyles';
+import {
+  GraphPalette,
+  GraphStyle,
+  resolveGraphPalette,
+} from 'common/graphStyles';
+import { resolveLookColours } from 'common/customLooks';
 import { isTraceGradient, resolveTracePaint } from '../graph/liveTracePaint';
 
 /**
@@ -482,7 +487,13 @@ const LookIcon = ({
   className,
 }: ILookIconProps) => {
   const glyph = GLYPHS[FORM_GLYPHS[style]];
-  const paint = resolveTracePaint(palette, colours, FLAT_PAINT, ICON_PLOT);
+  const ownPalette = resolveGraphPalette(style, palette);
+  const paint = resolveTracePaint(
+    ownPalette,
+    resolveLookColours(ownPalette, colours),
+    FLAT_PAINT,
+    ICON_PLOT,
+  );
   /*
    * A gradient is referenced by id, so every icon on screen needs its own.
    *

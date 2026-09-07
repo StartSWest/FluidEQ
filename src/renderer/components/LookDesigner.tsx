@@ -26,8 +26,10 @@ import {
   canGraphFill,
   hasGraphGap,
   isDiscreteGraphStyle,
+  resolveGraphPalette,
+  ResolvedGraphPalette,
 } from 'common/graphStyles';
-import { ACCENT_STYLES } from 'common/graphShapes';
+import { ACCENT_STYLES, canConnectGraphMarks } from 'common/graphShapes';
 import {
   DEFAULT_LEVEL_COLOURS,
   DEFAULT_SIGNAL_COLOUR,
@@ -62,10 +64,10 @@ import {
   rebaseDraftLook,
   recolourDraftLook,
 } from 'common/customLooks';
-import Switch from '../widgets/Switch';
 import { BAND_SPECTRUM_HEX } from '../utils/bandColors';
 import { useIsRootEuphoric } from '../utils/euphoriaMode';
 import { useTranslation } from '../utils/I18nContext';
+import Switch from '../widgets/Switch';
 import {
   clearLookDraft,
   deleteCustomLook,
@@ -122,6 +124,11 @@ const PALETTE_CHOICES: {
     label: 'look.palette.heat',
     hint: 'look.palette.heatHint',
   },
+  {
+    value: 'auto',
+    label: 'look.palette.auto',
+    hint: 'look.palette.autoHint',
+  },
 ];
 
 /**
@@ -133,7 +140,7 @@ const PALETTE_CHOICES: {
  * one always returns something editable, starting from what is currently drawn
  * so the first thing the panel shows is not a change.
  */
-const seedPaletteColours = (palette: GraphPalette): string[] => {
+const seedPaletteColours = (palette: ResolvedGraphPalette): string[] => {
   // Heat walks a ramp with the loudness rather than painting one, so it opens
   // on the same stops as level — the colours mean the same thing in both, and
   // only what moves along them differs.
@@ -487,7 +494,9 @@ const LookDesigner = ({ onClose, isClosing = false }: ILookDesignerProps) => {
     (current: ICustomLook) =>
       current.colours.length
         ? current.colours
-        : seedPaletteColours(current.palette),
+        : seedPaletteColours(
+            resolveGraphPalette(current.style, current.palette),
+          ),
     [],
   );
 
@@ -554,7 +563,7 @@ const LookDesigner = ({ onClose, isClosing = false }: ILookDesignerProps) => {
    */
   const shownColours = draft.colours.length
     ? draft.colours
-    : seedPaletteColours(draft.palette);
+    : seedPaletteColours(resolveGraphPalette(draft.style, draft.palette));
 
   const paletteHintKey = PALETTE_CHOICES.find(
     (choice) => choice.value === draft.palette,
@@ -575,9 +584,12 @@ const LookDesigner = ({ onClose, isClosing = false }: ILookDesignerProps) => {
       shownColours.length === 1
         ? [shownColours[0], shownColours[0]]
         : shownColours;
-    const direction = draft.palette === 'level' ? 'to top' : 'to right';
+    const direction =
+      resolveGraphPalette(draft.style, draft.palette) === 'level'
+        ? 'to top'
+        : 'to right';
     return `linear-gradient(${direction}, ${stops.join(', ')})`;
-  }, [shownColours, draft.palette]);
+  }, [shownColours, draft.palette, draft.style]);
 
   const handleSave = () => {
     // A blank name is not an error — the placeholder has been showing what it
@@ -685,8 +697,10 @@ const LookDesigner = ({ onClose, isClosing = false }: ILookDesignerProps) => {
           <span className="look-designer__caption">
             <span>{t('look.colourBy')}</span>
           </span>
+          {/* Five pills do not fit the panel on one line; wrapped, the fifth
+              takes a second row instead of squeezing the other four. */}
           <div
-            className="look-designer__choice"
+            className="look-designer__choice look-designer__choice--wrap"
             role="group"
             aria-label={t('look.colourBy')}
           >
@@ -707,7 +721,12 @@ const LookDesigner = ({ onClose, isClosing = false }: ILookDesignerProps) => {
                     const next = recolourDraftLook(current, choice.value);
                     return next.colours.length
                       ? next
-                      : { ...next, colours: seedPaletteColours(next.palette) };
+                      : {
+                          ...next,
+                          colours: seedPaletteColours(
+                            resolveGraphPalette(next.style, next.palette),
+                          ),
+                        };
                   })
                 }
               >
@@ -727,7 +746,9 @@ const LookDesigner = ({ onClose, isClosing = false }: ILookDesignerProps) => {
               onClick={() =>
                 setDraft((current) => ({
                   ...current,
-                  colours: seedPaletteColours(current.palette),
+                  colours: seedPaletteColours(
+                    resolveGraphPalette(current.style, current.palette),
+                  ),
                 }))
               }
             >
@@ -957,20 +978,18 @@ const LookDesigner = ({ onClose, isClosing = false }: ILookDesignerProps) => {
             isEuphoric ? '' : ' is-disabled'
           }`}
         >
-          <label
-            className="look-designer__caption"
-            htmlFor="look-designer-border"
-          >
-            <span>{t('look.rainbowBorder')}</span>
-            <input
+          <div className="look-designer__caption">
+            <label htmlFor="look-designer-border">
+              {t('look.rainbowBorder')}
+            </label>
+            <Switch
               id="look-designer-border"
-              type="checkbox"
-              className="look-designer__check"
-              checked={tuning.border}
-              disabled={!isEuphoric}
-              onChange={(event) => tune({ border: event.target.checked })}
+              ariaLabel={t('look.rainbowBorder')}
+              isOn={tuning.border}
+              isDisabled={!isEuphoric}
+              handleToggle={() => tune({ border: !tuning.border })}
             />
-          </label>
+          </div>
           <span className="look-designer__hint">
             {isEuphoric ? t('look.rainbowBorderHint') : t('look.needsRainbow')}
           </span>
@@ -992,26 +1011,40 @@ const LookDesigner = ({ onClose, isClosing = false }: ILookDesignerProps) => {
           />
         </SettingRow>
 
+        {canConnectGraphMarks(style) && (
+          <div className="look-designer__row look-designer__row--switch">
+            <div className="look-designer__caption">
+              <label htmlFor="look-designer-connecting-line">
+                {t('look.connectingLine')}
+              </label>
+              <Switch
+                id="look-designer-connecting-line"
+                ariaLabel={t('look.connectingLine')}
+                isOn={tuning.connectingLine}
+                isDisabled={false}
+                handleToggle={() =>
+                  tune({ connectingLine: !tuning.connectingLine })
+                }
+              />
+            </div>
+          </div>
+        )}
+
         {/* Offered on every form. It used to be greyed out on all but one,
             which withheld a mark on somebody else's judgement about taste —
             and taste is the whole reason there is a switch. The forms it
             says nothing on simply arrive with it off. */}
         <div className="look-designer__row look-designer__row--switch">
-          {/* The control sits inside its own label, so the caption is part of
-              the hit target rather than a word next to one. */}
-          <label
-            className="look-designer__caption"
-            htmlFor="look-designer-accents"
-          >
-            <span>{t('look.litPeaks')}</span>
-            <input
+          <div className="look-designer__caption">
+            <label htmlFor="look-designer-accents">{t('look.litPeaks')}</label>
+            <Switch
               id="look-designer-accents"
-              type="checkbox"
-              className="look-designer__check"
-              checked={tuning.accents}
-              onChange={(event) => tune({ accents: event.target.checked })}
+              ariaLabel={t('look.litPeaks')}
+              isOn={tuning.accents}
+              isDisabled={false}
+              handleToggle={() => tune({ accents: !tuning.accents })}
             />
-          </label>
+          </div>
         </div>
 
         <div className="look-designer__row look-designer__row--switch">

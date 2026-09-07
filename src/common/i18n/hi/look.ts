@@ -45,6 +45,9 @@ const look: Partial<Dictionary> = {
     'रंग अक्ष पर ऊपर जाता है और हर पट्टी की तीव्रता दिखाता है।',
   'look.palette.heat': 'ताप',
   'look.palette.heatHint': 'रंग तेज़ी के साथ बदलता है, ठंडे से लाल तक।',
+  'look.palette.auto': 'ऑटो',
+  'look.palette.autoHint':
+    'हर आकार अपने रंग में — सड़क तेज़ी से, बार स्थिति से रंगते हैं।',
   'look.colours': 'रंग',
   'look.colourValue': 'रंग {number}: {colour}',
   'look.removeColour': 'रंग {number} हटाएँ',

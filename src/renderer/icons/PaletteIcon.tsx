@@ -31,6 +31,14 @@ const PaletteIcon = ({ palette }: { palette: GraphPalette }) => {
           <path d="M8 1C9 5 13 6 13 10a5 5 0 0 1-10 0c0-2 1-4 3-5 0 2 1 3 1 3 2-2 1-5 1-7Z" />
         </svg>
       );
+    case 'auto':
+      // A four-point star: "whatever suits it", the way a camera's auto
+      // mode is drawn.
+      return (
+        <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden>
+          <path d="M8 1 9.6 6.4 15 8 9.6 9.6 8 15 6.4 9.6 1 8 6.4 6.4Z" />
+        </svg>
+      );
     default:
       return null;
   }

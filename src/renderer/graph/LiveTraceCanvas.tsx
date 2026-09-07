@@ -58,9 +58,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import type { AxisScale, NumberValue } from 'd3';
 import { useCallback, useEffect, useMemo, useRef } from 'react';
-import { DEFAULT_GLOW } from 'common/customLooks';
+import { DEFAULT_GLOW, resolveLookColours } from 'common/customLooks';
 import { MAX_GAIN, MIN_GAIN } from 'common/constants';
-import { canGraphFill } from 'common/graphStyles';
+import { canGraphFill, resolveGraphPalette } from 'common/graphStyles';
 import { createGraphStems, STEM_FADE_LEVELS } from 'common/graphStems';
 import createGraphTerrace from 'common/graphTerrace';
 import { getEaseFactor } from 'common/smoothing';
@@ -81,6 +81,13 @@ import { useGraphGridHidden, useGraphLook } from 'renderer/utils/graphStyle';
 import createTrussRoad from 'common/graphTruss';
 import createGraphStalactites from 'common/graphStalactites';
 import createGraphSawtooth from 'common/graphSawtooth';
+import {
+  advanceRoadTrip,
+  createRoadTrip,
+  createRoadTripPaths,
+  ROAD_COLUMNS,
+  RoadLane,
+} from './roadTrip';
 import {
   advanceEchoWaves,
   createEchoWaves,
@@ -345,6 +352,7 @@ const LiveTraceCanvas = ({
   const sawtoothScopeRef = useRef(createSawtoothScope());
   const pulseMonitorRef = useRef(createPulseMonitor());
   const echoWavesRef = useRef(createEchoWaves());
+  const roadTripRef = useRef(createRoadTrip());
   const dashTrailsRef = useRef(createDashTrails());
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -726,9 +734,31 @@ const LiveTraceCanvas = ({
               isFilled,
             )
           : undefined;
+      // The road trip likewise: the band is its figure, the rest is scenery.
+      const roadPoints =
+        chosen === 'racer' ? toColumns(projected, ROAD_COLUMNS) : undefined;
+      if (roadPoints) {
+        advanceRoadTrip(
+          roadTripRef.current,
+          roadPoints,
+          plot.top,
+          baseline,
+          motionRef.current.travel[0] ?? 0,
+          playingRef.current,
+        );
+      }
+      const roadPaths = roadPoints
+        ? createRoadTripPaths(
+            roadTripRef.current,
+            roadPoints,
+            plot.top,
+            baseline,
+            motionRef.current.travel[0] ?? 0,
+          )
+        : undefined;
       let shape =
         stems?.shape ??
-        (pulsePaths || echoPaths ? '' : undefined) ??
+        (pulsePaths || echoPaths || roadPaths ? '' : undefined) ??
         (isFluidForm
           ? spectrumBarsPath(
               {
@@ -797,6 +827,7 @@ const LiveTraceCanvas = ({
       const figure =
         pulsePaths?.shape ??
         echoPaths?.shape ??
+        roadPaths?.shape ??
         new Path2D(
           blinkingSatellites && chosen === 'scatter' ? scatter.primary : shape,
         );
@@ -887,7 +918,8 @@ const LiveTraceCanvas = ({
        * palette that cannot be expressed any other way and for nothing else.
        */
       const piecePaths =
-        lookRef.current.palette === 'heat' && hasGraphPieces(chosen)
+        resolveGraphPalette(chosen, lookRef.current.palette) === 'heat' &&
+        hasGraphPieces(chosen)
           ? createGraphPieces(
               projected,
               chosen,
@@ -969,7 +1001,7 @@ const LiveTraceCanvas = ({
         // for the light to follow the real thing.
         const glowStyle = getGlowStyle(
           chosen,
-          pulsePaths || echoPaths ? 0 : shape.length,
+          pulsePaths || echoPaths || roadPaths ? 0 : shape.length,
           isFilled,
         );
         halo =
@@ -1127,10 +1159,14 @@ const LiveTraceCanvas = ({
       const opacity = shownOpacityRef.current;
       const strokeWidth = shownStrokeWidthRef.current;
 
-      const isSelfColoured = isSelfColouredLook(
-        lookRef.current.palette,
+      // Under auto a form is painted in its own palette; nothing below this
+      // line reads the look's palette directly.
+      const paintPalette = resolveGraphPalette(chosen, lookRef.current.palette);
+      const paintColours = resolveLookColours(
+        paintPalette,
         lookRef.current.colours,
       );
+      const isSelfColoured = isSelfColouredLook(paintPalette, paintColours);
       const figureStrokeWidth = resolveFigureStrokeWidth(
         strokeWidth,
         tuning.borderWidth,
@@ -1268,8 +1304,8 @@ const LiveTraceCanvas = ({
         // One descriptor, built once, so the halo and the tips can be tested
         // against it by identity and reuse the gradient the figure already has.
         const basePaint = resolveTracePaint(
-          lookRef.current.palette,
-          lookRef.current.colours,
+          paintPalette,
+          paintColours,
           curve.colour,
           plot,
           // Only `heat` reads it, and for that one the loudness IS the colour.
@@ -1409,6 +1445,62 @@ const LiveTraceCanvas = ({
         // One drawing for every style. A filled style paints the same shape
         // rather than stroking it — which is a fill, not a second figure, so
         // cycling styles never changes what is drawn, only how.
+        if (roadPaths && !isFilled) {
+          // Filled off: the whole scene as a wireframe, and depth is line
+          // weight — the far range a hairline, the hillside heavier, the
+          // near lane heaviest. Nothing is filled, so the layers read by
+          // their edges alone.
+          const wire = (path: Path2D, alpha: number, widthPx: number) => {
+            context.strokeStyle = canvasPaint;
+            context.lineWidth = widthPx;
+            setAlpha(context, opacity * alpha);
+            context.stroke(path);
+          };
+          context.fillStyle = '#fff';
+          setAlpha(context, opacity * 0.5);
+          context.fill(roadPaths.brightStars);
+          wire(roadPaths.moon, 0.7, 1);
+          wire(roadPaths.far, 0.3, 0.8);
+          wire(roadPaths.farTrees, 0.28, 0.6);
+        }
+        if (roadPaths && isFilled) {
+          // The night sky: stars, then the moon and its halo.
+          context.fillStyle = '#fff';
+          setAlpha(context, opacity * 0.35);
+          context.fill(roadPaths.stars);
+          setAlpha(context, opacity * 0.9);
+          context.fill(roadPaths.brightStars);
+          const [mx, my, mr] = roadPaths.moonCentre;
+          const moonlight = context.createRadialGradient(mx, my, 0, mx, my, mr);
+          moonlight.addColorStop(0, 'rgba(255,255,255,0.28)');
+          moonlight.addColorStop(1, 'rgba(255,255,255,0)');
+          context.fillStyle = moonlight;
+          setAlpha(context, opacity);
+          context.fill(roadPaths.moonHalo);
+          context.fillStyle = '#fff';
+          setAlpha(context, opacity * 0.85);
+          context.fill(roadPaths.moon);
+          // Behind the hillside: the far range, seen through air — lit at
+          // its ridge, sinking into haze — and its tree line.
+          context.fillStyle = canvasPaint;
+          setAlpha(context, opacity * 0.2);
+          context.fill(roadPaths.far);
+          const haze = context.createLinearGradient(
+            0,
+            roadPaths.rangeTop,
+            0,
+            baseline,
+          );
+          haze.addColorStop(0, 'rgba(255,255,255,0.16)');
+          haze.addColorStop(0.5, 'rgba(0,0,0,0.25)');
+          haze.addColorStop(1, 'rgba(0,0,0,0.6)');
+          context.fillStyle = haze;
+          setAlpha(context, opacity);
+          context.fill(roadPaths.far);
+          context.fillStyle = canvasPaint;
+          setAlpha(context, opacity * 0.28);
+          context.fill(roadPaths.farTrees);
+        }
         if (connector) {
           context.fillStyle = canvasPaint;
           setAlpha(context, opacity * (isFilled ? tuning.fillOpacity : 1));
@@ -1466,7 +1558,7 @@ const LiveTraceCanvas = ({
              * loudness. A palette that filled flat instead stopped being
              * this drawing.
              */
-            SPECTRUM_HUE_BY_PALETTE[lookRef.current.palette],
+            SPECTRUM_HUE_BY_PALETTE[paintPalette],
             tuning.gap,
             // Brighter at the top than the titlebar, and faded identically —
             // see the constant's own note.
@@ -1475,8 +1567,8 @@ const LiveTraceCanvas = ({
             // shows its own slice of it, so a colour is a decibel.
             createFluidBarPaint(
               context,
-              lookRef.current.palette,
-              lookRef.current.colours,
+              paintPalette,
+              paintColours,
               plot.top,
               baseline,
             ),
@@ -1497,10 +1589,7 @@ const LiveTraceCanvas = ({
            */
           setAlpha(context, opacity * tuning.fillOpacity);
           piecePaths.forEach((piece) => {
-            context.fillStyle = heatColour(
-              lookRef.current.colours,
-              piece.energy,
-            );
+            context.fillStyle = heatColour(paintColours, piece.energy);
             context.fill(piece.path);
           });
         } else if (isFilled) {
@@ -1754,6 +1843,137 @@ const LiveTraceCanvas = ({
         if (trussRoad) {
           setAlpha(context, opacity);
           paintTrussCars(context, trussRoad, trussTrafficRef.current);
+        }
+        if (roadPaths && !isFilled) {
+          const trip = roadTripRef.current;
+          const wire = (path: Path2D, alpha: number, widthPx: number) => {
+            context.strokeStyle = canvasPaint;
+            context.lineWidth = widthPx;
+            setAlpha(context, opacity * alpha);
+            context.stroke(path);
+          };
+          // The road's two edges over the hillside's own outline, the lane
+          // line between them, then the two lanes at two weights with the
+          // verge trees between.
+          wire(roadPaths.edges, 0.6, 1);
+          wire(roadPaths.dashes, 0.45, 1);
+          const wireLane = (lane: RoadLane, weight: number, alpha: number) => {
+            wire(lane.body, alpha, weight);
+            wire(lane.cabin, alpha * 0.7, weight * 0.8);
+            wire(lane.wheels, alpha, weight * 0.8);
+            wire(lane.wheelRims, alpha * 0.8, weight * 0.6);
+            context.fillStyle = '#fff';
+            setAlpha(context, opacity * alpha * (0.5 + trip.glow * 0.5));
+            context.fill(lane.lamps);
+            context.fillStyle = canvasPaint;
+            setAlpha(context, opacity * alpha * (0.4 + trip.glow * 0.6));
+            context.fill(lane.tail);
+          };
+          wireLane(roadPaths.farLane, 0.9, 0.55);
+          wire(roadPaths.near, 0.75, 1);
+          wireLane(roadPaths.nearLane, 1.4, 1);
+        }
+        if (roadPaths && isFilled) {
+          const trip = roadTripRef.current;
+          // Ground: lit at the ridge, dark at the foot, grass on the verge.
+          const ground = context.createLinearGradient(
+            0,
+            roadPaths.ridgeTop,
+            0,
+            baseline,
+          );
+          ground.addColorStop(0, 'rgba(255,255,255,0.22)');
+          ground.addColorStop(0.3, 'rgba(0,0,0,0)');
+          ground.addColorStop(1, 'rgba(0,0,0,0.5)');
+          context.fillStyle = ground;
+          setAlpha(context, opacity);
+          context.fill(figure);
+          context.strokeStyle = '#000';
+          context.lineWidth = 1;
+          setAlpha(context, opacity * 0.4);
+          context.stroke(roadPaths.tufts);
+          // The asphalt along the ridge: a dark stripe with light edges and
+          // the centre line between the lanes.
+          context.lineWidth = roadPaths.half * 2;
+          setAlpha(context, opacity * 0.6);
+          context.stroke(roadPaths.asphalt);
+          context.strokeStyle = '#fff';
+          context.lineWidth = 1;
+          setAlpha(context, opacity * 0.4);
+          context.stroke(roadPaths.edges);
+          context.lineWidth = 1.5;
+          setAlpha(context, opacity * 0.6);
+          context.stroke(roadPaths.dashes);
+          const strength = 0.22 + trip.glow * 0.35 + roadPaths.thump * 0.3;
+          const paintLane = (lane: RoadLane, depth: number) => {
+            // Every vehicle's glow, then its beam falling off along its
+            // length, then the vehicle and its lamps. `depth` dims the far lane.
+            context.fillStyle = canvasPaint;
+            setAlpha(
+              context,
+              opacity *
+                depth *
+                (0.08 + trip.glow * 0.18 + roadPaths.thump * 0.12),
+            );
+            context.fill(lane.halo);
+            lane.beams.forEach((beam) => {
+              const [fx, fy] = beam.from;
+              const [bx, by] = beam.to;
+              const light = context.createLinearGradient(fx, fy, bx, by);
+              light.addColorStop(
+                0,
+                'rgba(255,255,255,STRENGTH)'.replace(
+                  'STRENGTH',
+                  (strength * depth).toFixed(3),
+                ),
+              );
+              light.addColorStop(1, 'rgba(255,255,255,0)');
+              context.fillStyle = light;
+              setAlpha(context, opacity);
+              context.fill(beam.path);
+            });
+            context.fillStyle = canvasPaint;
+            setAlpha(context, opacity * depth);
+            context.fill(lane.body);
+            context.fillStyle = '#000';
+            setAlpha(context, opacity * (0.5 + (1 - depth) * 0.3));
+            context.fill(lane.body);
+            context.fillStyle = canvasPaint;
+            setAlpha(context, opacity * depth);
+            context.fill(lane.body);
+            context.fillStyle = '#000';
+            setAlpha(context, opacity * 0.5);
+            context.fill(lane.cabin);
+            context.fill(lane.wheels);
+            context.strokeStyle = '#fff';
+            context.lineWidth = 1;
+            setAlpha(context, opacity * 0.6 * depth);
+            context.stroke(lane.wheels);
+            context.stroke(lane.wheelRims);
+            context.fillStyle = '#fff';
+            setAlpha(context, opacity * depth * (0.6 + trip.glow * 0.4));
+            context.fill(lane.lamps);
+            // Tail lights breathing with the level, in the look's colour.
+            context.fillStyle = canvasPaint;
+            setAlpha(context, opacity * depth * (0.35 + trip.glow * 0.65));
+            context.fill(lane.tail);
+            context.fillStyle = '#fff';
+            setAlpha(context, opacity * depth * trip.glow * 0.5);
+            context.fill(lane.tail);
+          };
+          // The far lane, then the verge trees in front of it, then the
+          // near lane in front of the trees: three depths.
+          paintLane(roadPaths.farLane, 0.7);
+          context.fillStyle = canvasPaint;
+          setAlpha(context, opacity * 0.9);
+          context.fill(roadPaths.near);
+          context.fillStyle = '#000';
+          setAlpha(context, opacity * 0.55);
+          context.fill(roadPaths.near);
+          context.fillStyle = '#fff';
+          setAlpha(context, opacity * (0.12 + trip.glow * 0.25));
+          context.fill(roadPaths.lit);
+          paintLane(roadPaths.nearLane, 1);
         }
         if (!tuning.accentBehind) {
           paintPeaks();

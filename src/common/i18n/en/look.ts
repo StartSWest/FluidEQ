@@ -44,6 +44,9 @@ const look = {
   'look.palette.heat': 'Heat',
   'look.palette.heatHint':
     'Colour follows how loud it is, cool through to red.',
+  'look.palette.auto': 'Auto',
+  'look.palette.autoHint':
+    'Each form in its own colouring — a road lit by loudness, bars by position.',
   'look.colours': 'Colours',
   'look.colourValue': 'Colour {number}: {colour}',
   'look.removeColour': 'Remove colour {number}',

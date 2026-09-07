@@ -46,6 +46,9 @@ const look: Partial<Dictionary> = {
   'look.palette.heat': 'Нагрев',
   'look.palette.heatHint':
     'Цвет следует за громкостью, от холодного к красному.',
+  'look.palette.auto': 'Авто',
+  'look.palette.autoHint':
+    'Каждая форма в своей раскраске: дорога — по громкости, столбики — по положению.',
   'look.colours': 'Цвета',
   'look.colourValue': 'Цвет {number}: {colour}',
   'look.removeColour': 'Удалить цвет {number}',

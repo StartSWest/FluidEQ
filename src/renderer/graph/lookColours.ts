@@ -58,6 +58,8 @@ export const createFluidBarPaint = (
     rainbow: BAND_SPECTRUM_HEX,
     level: DEFAULT_LEVEL_COLOURS,
     heat: DEFAULT_LEVEL_COLOURS,
+    // Never reached: auto is resolved to a form's own palette before paint.
+    auto: [DEFAULT_SIGNAL_COLOUR],
   };
   const ramp = (colours.length ? colours : defaults[palette]).map(readHex);
   return (across, energy, y, height, topAlpha) => {

@@ -196,6 +196,20 @@ export const DEFAULT_LEVEL_COLOURS = [
 export const getDefaultPaletteColours = (palette: GraphPalette): string[] =>
   palette === 'level' || palette === 'heat' ? [...DEFAULT_LEVEL_COLOURS] : [];
 
+/**
+ * The stops a look is painted with once its palette has been resolved.
+ *
+ * A look saved under auto carries no colours of its own — auto has none —
+ * so when it resolves to level the ramp has no stops to build a gradient
+ * from and fell through to a flat fill. The resolved palette's own defaults
+ * stand in; colours somebody chose still win.
+ */
+export const resolveLookColours = (
+  palette: GraphPalette,
+  colours: readonly string[],
+): readonly string[] =>
+  colours.length ? colours : getDefaultPaletteColours(palette);
+
 /** `#rgb` or `#rrggbb`, which is all an SVG stop needs and all a colour input emits. */
 const HEX_COLOUR = /^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/i;
 
@@ -274,7 +288,10 @@ export const MAX_ACCENT_WIDTH = 3;
 export const MIN_ATTACK_MS = 1;
 export const MAX_ATTACK_MS = 60;
 export const MIN_RELEASE_MS = 4;
-export const MAX_RELEASE_MS = 250;
+// 400 so the forms with gravity in them — Stalactites and Truss let go over
+// 320ms — stay reachable on the slider; a default no slider can express is
+// one the Reset button cannot put back.
+export const MAX_RELEASE_MS = 400;
 export const MIN_STROKE_WIDTH = 1;
 export const MAX_STROKE_WIDTH = 6;
 export const MIN_FILL_OPACITY = 0.15;

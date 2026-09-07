@@ -123,6 +123,16 @@ placement or taste. Therefore:
 - **Verify visually before claiming done.** In dev the app exposes DevTools on
   `127.0.0.1:9222`; probe the DOM, computed styles and canvas pixels of the
   running window. "Compiles and tests pass" is not a UI verdict.
+- **Every UI change gets reviewed on screen, however small.** A fifth pill
+  added to a row of four overflowed the look editor and squeezed the other
+  four into unreadable stubs; one line of markup, and nothing in the suite
+  could see it. Before claiming any UI change done — a new control, a new
+  option in a list, a label, a spacing tweak — look at it in the running
+  window at the normal size AND at the extremes it can reach (fullscreen,
+  the narrowest panel, the longest translation), and confirm it wraps or
+  scrolls rather than clipping, keeps the design's spacing and emphasis, and
+  breaks nothing around it. If it cannot be looked at, say so; do not report
+  it done.
 - **Reuse the app's existing classes; never invent a style.** `button small` is
   the filled accent, `button small subtle` the quiet outline — measured, not
   assumed: when a style misbehaves, read `getComputedStyle` in the live window
