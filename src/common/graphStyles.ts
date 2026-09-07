@@ -463,7 +463,7 @@ const BALLISTICS: Partial<Record<GraphStyle, IGraphBallistics>> = {
   // Thin forms can afford to be instant; there is no mass to them.
   ribs: { attackMs: 3, releaseMs: 30 },
   stems: { attackMs: 4, releaseMs: 40 },
-  spikes: { attackMs: 8, releaseMs: 95 },
+  spikes: { attackMs: 8, releaseMs: 250 },
   crown: { attackMs: 4, releaseMs: 36 },
   // Landscapes. A hill that twitches is noise, so these are the slow ones.
   ridge: { attackMs: 22, releaseMs: 90 },
