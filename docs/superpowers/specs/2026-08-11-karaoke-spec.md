@@ -1,13 +1,13 @@
 # FluidEQ Karaoke — product and technical specification
 
-Status: Draft for implementation review
+Status: Historical. The feature shipped; the tab now sits after Library and before DSP, and the tree is the source of truth.
 Target: FluidEQ 1.x on Windows
 Source reviewed: the provided master Karaoke prompt
 
 ## 1. Decision summary
 
-FluidEQ should gain a `Karaoke` workspace tab immediately after `Media` and
-before `Config`. The tab is a local, account-free karaoke player that uses the
+FluidEQ should gain a `Karaoke` workspace tab (shipped between `Library`
+and `DSP`). The tab is a local, account-free karaoke player that uses the
 visual language already established by FluidEQ. Its first useful release loads
 audio and lyrics supplied by the user, keeps lyrics synchronized to playback,
 accepts a selectable microphone input, displays the singer's detected pitch,
@@ -449,7 +449,7 @@ than injected HTML.
 
 The commercial/licensing strategy is part of the architecture, not a final
 release chore. The detailed policy and candidate audit are in
-`docs/karaoke-licensing.md`.
+`docs/karaoke-licensing.md` (now `docs/superpowers/specs/2026-08-11-karaoke-licensing.md`).
 
 The selected model is an official paid FluidEQ build on `fluideq.com` with the
 complete corresponding source public on GitHub under GPL-3.0-or-later.

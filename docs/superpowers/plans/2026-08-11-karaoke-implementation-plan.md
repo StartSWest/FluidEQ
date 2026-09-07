@@ -1,6 +1,8 @@
 # FluidEQ Karaoke — implementation plan
 
-This plan implements the scope in `docs/karaoke-spec.md`. It intentionally
+Historical plan, kept as written. It implements the scope in
+`docs/superpowers/specs/2026-08-11-karaoke-spec.md`; the status log below stopped on
+2026-08-11 and the feature has shipped since (Karaoke Maker, translated lyrics, pitch guides). It intentionally
 delivers a narrow vertical slice before broad format compatibility and scoring.
 Every phase ends with a gate; a later phase does not hide a red earlier one.
 
@@ -76,7 +78,7 @@ remain open Phase 0/4 gate evidence; the app was not launched automatically.
   Zustand, Tailwind, Radix, Vitest, SQLite, FFmpeg, or a native audio backend.
 - Add no advertised format without a real fixture and parser test.
 - Add no dependency without the license/transitive/content gate in
-  `docs/karaoke-licensing.md`.
+  `docs/superpowers/specs/2026-08-11-karaoke-licensing.md`.
 - Keep realtime samples out of React state and DSP out of the main UI thread.
 - Do not launch FluidEQ automatically. The repository owner performs and
   records real-window/microphone checks when a gate calls for them.

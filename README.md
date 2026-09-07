@@ -407,20 +407,25 @@ with the pencil on its row.
 - **Windows only.** Equalizer APO is the audio engine and there is no
   equivalent to target elsewhere. On other platforms FluidEQ starts with two
   demonstration endpoints so the UI can be developed, and touches nothing.
+  The native DSP host builds on every platform but only has a real audio
+  backend on Windows, so `pnpm build` needs Visual Studio 2022 there and the
+  media player, Karaoke and Share Audio are Windows features.
 - **Traditional Chinese readers get Simplified.** Locale matching uses the
   primary subtag, so `zh-TW` resolves to `zh`.
 - **No right-to-left languages.** See above — the layout has not been mirrored.
 
 ## Where things live
 
-| Path            | What is in it                                                                                                                                                                                 |
-| --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `src/common/`   | Pure logic, no Electron: filter maths, the APO text reader and writer, voicing and driver profiles, translations, validation.                                                                 |
-| `src/main/`     | Electron main. `flush.ts` renders the chain, `deviceProfiles.ts` lays it out as files and writes them, `apoConfigReader.ts` reads it back, `main.ts` owns the IPC surface and the live state. |
-| `src/renderer/` | React. `FluidEqContext` holds the live EQ, `I18nContext` holds the language.                                                                                                                  |
-| `native/`       | The C++ audio engine behind the DSP tab: `dsp-core` is the chain itself, `dsp-host` the executable that runs it in a process of its own. Built with CMake.                                    |
-| `CHANGELOG.md`  | The release notes. The newest section is what the app shows in **What's new**.                                                                                                                |
-| `CLAUDE.md`     | The constraints that are not obvious from the code.                                                                                                                                           |
+| Path            | What is in it                                                                                                                                                                                           |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `src/common/`   | Pure logic, no Electron: filter maths, the APO text reader and writer, voicing and driver profiles, translations, validation.                                                                           |
+| `src/main/`     | Electron main. `flush.ts` renders the chain, `deviceProfiles.ts` lays it out as files and writes them, `apoConfigReader.ts` reads it back, `ipc/` and `main.ts` own the IPC surface and the live state. |
+| `src/renderer/` | React. `FluidEqContext` holds the live EQ, `I18nContext` holds the language.                                                                                                                            |
+| `native/`       | The C++ audio engine: `dsp-core` is the chain itself, `dsp-host` the executable that runs it in a process of its own, `remote-audio-capture` the Share Audio capture binary. Built with CMake.          |
+| `.erb/scripts/` | Every build, check, smoke-test and packaging script.                                                                                                                                                    |
+| `docs/`         | [ARCHITECTURE.md](docs/ARCHITECTURE.md), the generated user guide, design briefs and specs, and dated QA snapshots under `docs/qa/`.                                                                    |
+| `CHANGELOG.md`  | The release notes. The newest section is what the app shows in **What's new**.                                                                                                                          |
+| `CLAUDE.md`     | Instructions for coding agents; `AGENTS.md` points at it.                                                                                                                                               |
 
 ## Supporting the work
 
@@ -460,7 +465,7 @@ whole interface goes rainbow with the sound.
 ### Requirements
 
 - Windows 10 or 11
-- [Node.js](https://nodejs.org/) 20+ and pnpm
+- [Node.js](https://nodejs.org/) 22+ and pnpm
 - Visual Studio 2022 with **Desktop development with C++**
 - Equalizer APO, for real system-audio integration
 
@@ -479,11 +484,18 @@ and the device-assignment flow can be worked on without touching system audio.
 ### Commands
 
 ```powershell
-pnpm test:unit
+pnpm typecheck
+pnpm typecheck:styles
+pnpm typecheck:encoding
 pnpm lint
-pnpm build
+pnpm build            # native host first, then main and renderer bundles
+pnpm test             # unit tests, then the native smoke tests
+pnpm test:cucumber    # not part of pnpm test
 pnpm package
 ```
+
+Jest refuses to start without a build, so `pnpm build` always comes before
+`pnpm test`.
 
 `pnpm package` builds an installer into `release/build`, which is what you want
 for checking a change end to end on a real machine.
