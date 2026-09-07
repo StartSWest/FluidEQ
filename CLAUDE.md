@@ -195,3 +195,10 @@ This private repository's GitHub Free plan cannot enforce required status checks
 with branch protection. Treat a green `Verify` check as mandatory before merge;
 enable it as a required check if the repository becomes public or the plan later
 includes private-repository branch protection.
+
+## UI changes
+
+Always look at a UI change before delivering it. Open it and check that it
+does not break the layout and that it stays responsive, however small it is.
+One button can break a full-width layout and make a horizontal scrollbar
+appear. Check the narrow widths, not just the desktop one.
