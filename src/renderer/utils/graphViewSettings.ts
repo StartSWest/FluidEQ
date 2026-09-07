@@ -1246,11 +1246,14 @@ migrateLegacyWaveSize();
 /**
  * How tall the live wave is, continuously, from a low ripple to the complete
  * available height. Kept per view because a background wave under the editor
- * and a full-screen visualiser are different arrangements.
+ * and a full-screen visualiser are different arrangements — and they start
+ * differently: the pane's graph is a measurement and uses the whole plot,
+ * while the expanded and full-screen views are for watching, where three
+ * quarters leaves the scenes their sky and the curves their room.
  */
 const waveHeightSetting = createPerViewSetting(
   VIEW_KEYS.waveHeight,
-  1,
+  { normal: 1, expanded: 0.75, fullscreen: 0.75 },
   parseWaveHeight,
   serializeWaveControl,
 );

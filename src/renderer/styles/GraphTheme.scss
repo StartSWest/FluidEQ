@@ -1111,6 +1111,37 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
+// The wave height slider's snap ticks: the track in a box of its own so the
+// marks can sit on it. A range thumb travels the track minus its own width,
+// so a tick at a value goes at that fraction of the inner 75px, offset by
+// half the 11px thumb — the same place the thumb's centre lands.
+.graph-view-menu__track {
+  position: relative;
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+
+  input[type='range'] {
+    position: relative;
+  }
+}
+
+.graph-view-menu__snap {
+  position: absolute;
+  top: 50%;
+  // The value's fraction of the thumb's travel: 5.5px in from each end of
+  // an 86px track, 75px between.
+  left: calc(5.5px + var(--snap-frac, 0) * 75px);
+  // A hair the height of the track and a little over, faint: a hint of
+  // where the thumb will settle, not a scale.
+  width: 1px;
+  height: 5px;
+  border-radius: 1px;
+  background: rgba($edge-tint, 0.32);
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
 .graph-view-menu kbd {
   flex: 0 0 auto;
   padding: 1px 5px;
@@ -1453,11 +1484,9 @@ it under the terms of the GNU General Public License version 3 or later.
     opacity: 0;
   }
 
-  // The two sliders have nothing to act on here — the surface is already clear
-  // and there is nothing behind it to blur. A control that cannot change what
-  // you are looking at is worse than no control. They are rows in the View menu
-  // now; the reasoning is unchanged and so is the answer.
-  .graph-view-menu__slider {
+  // Only the overlay controls are irrelevant over the workspace. Hiding every
+  // slider also hid wave height and position when the wave was still visible.
+  .graph-view-menu__slider--overlay {
     display: none;
   }
 }

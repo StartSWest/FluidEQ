@@ -170,21 +170,31 @@ describe('one set of view settings per mode', () => {
     const { style } = load();
 
     style.setGraphView('expanded');
-    style.setGraphWaveHeight(0.75);
+    style.setGraphWaveHeight(0.65);
     style.setGraphView('fullscreen');
     style.setGraphWaveHeight(0.5);
 
-    expect(stored(`${WAVE_HEIGHT_STEM}.expanded`)).toBe('0.75');
+    expect(stored(`${WAVE_HEIGHT_STEM}.expanded`)).toBe('0.65');
     expect(stored(`${WAVE_HEIGHT_STEM}.fullscreen`)).toBe('0.5');
 
     style.setGraphView('expanded');
-    expect(style.getGraphWaveHeight()).toBe(0.75);
+    expect(style.getGraphWaveHeight()).toBe(0.65);
     style.setGraphView('fullscreen');
     expect(style.getGraphWaveHeight()).toBe(0.5);
 
-    // Untouched, so still the full height every mode starts at.
+    // Untouched, so still the full height the pane's graph starts at.
     style.setGraphView('normal');
     expect(style.getGraphWaveHeight()).toBe(1);
+  });
+
+  it('starts the watching views at three quarters and the pane at full', () => {
+    const { style } = load();
+    style.setGraphView('normal');
+    expect(style.getGraphWaveHeight()).toBe(1);
+    style.setGraphView('expanded');
+    expect(style.getGraphWaveHeight()).toBe(0.75);
+    style.setGraphView('fullscreen');
+    expect(style.getGraphWaveHeight()).toBe(0.75);
   });
 
   it('carries the old three-step size into the continuous one', () => {
@@ -645,7 +655,8 @@ describe('carrying an older install across', () => {
     // restart would look identical to a value that was remembered, which is
     // exactly the bug this test exists to catch.
     expect(second.getGraphGridHidden()).toBe(false);
-    // And the height set in the other mode did not leak into this one.
-    expect(second.getGraphWaveHeight()).toBe(1);
+    // And the height set in the other mode did not leak into this one:
+    // full screen is still at the three quarters it starts at.
+    expect(second.getGraphWaveHeight()).toBe(0.75);
   });
 });

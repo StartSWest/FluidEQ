@@ -16,7 +16,14 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { ReactNode, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import {
+  CSSProperties,
+  ReactNode,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from 'react';
 import { TranslationKey } from '../../common/i18n';
 import { useTranslation } from '../utils/I18nContext';
 import {
@@ -144,6 +151,23 @@ interface IPlacement {
  * It measures itself now, so nothing has to be kept in step with how many rows
  * the menu has. This is only the margin left around it.
  */
+/**
+ * The wave height slider snaps to the quarter marks.
+ *
+ * A half-height wave is a thing people set on purpose — it leaves the top
+ * half of the plot for the response curves — and landing on exactly 50
+ * with a mouse is luck. Within three points of a quarter the thumb goes
+ * to it; further away it is free.
+ */
+const WAVE_HEIGHT_SNAPS = [25, 50, 75];
+const WAVE_HEIGHT_SNAP_REACH = 3;
+export const snapWaveHeight = (percent: number): number => {
+  const near = WAVE_HEIGHT_SNAPS.find(
+    (snap) => Math.abs(percent - snap) <= WAVE_HEIGHT_SNAP_REACH,
+  );
+  return near ?? percent;
+};
+
 const MENU_EDGE_GAP = 12;
 const MENU_ESTIMATED_WIDTH = 210;
 
@@ -532,18 +556,38 @@ const GraphViewMenu = ({
               <path d="M8 2.5v11M5.4 5.1L8 2.5l2.6 2.6M5.4 10.9L8 13.5l2.6-2.6" />
             </Icon>
             <span>{t('graph.waveHeight')}</span>
-            <input
-              id="graph-wave-height"
-              type="range"
-              min={MIN_GRAPH_WAVE_HEIGHT * 100}
-              max={100}
-              step={1}
-              value={Math.round(waveHeight * 100)}
-              disabled={isWaveHidden}
-              onChange={(event) =>
-                onChangeWaveHeight(Number(event.target.value) / 100)
-              }
-            />
+            {/* The three snap points, drawn as ticks on the track so the
+                thumb is seen to land on something. */}
+            <span className="graph-view-menu__track">
+              {WAVE_HEIGHT_SNAPS.map((snap) => (
+                <i
+                  key={snap}
+                  className="graph-view-menu__snap"
+                  style={
+                    {
+                      '--snap-frac':
+                        (snap - MIN_GRAPH_WAVE_HEIGHT * 100) /
+                        (100 - MIN_GRAPH_WAVE_HEIGHT * 100),
+                    } as CSSProperties
+                  }
+                  aria-hidden
+                />
+              ))}
+              <input
+                id="graph-wave-height"
+                type="range"
+                min={MIN_GRAPH_WAVE_HEIGHT * 100}
+                max={100}
+                step={1}
+                value={Math.round(waveHeight * 100)}
+                disabled={isWaveHidden}
+                onChange={(event) =>
+                  onChangeWaveHeight(
+                    snapWaveHeight(Number(event.target.value)) / 100,
+                  )
+                }
+              />
+            </span>
           </label>
 
           <label
@@ -677,7 +721,7 @@ const GraphViewMenu = ({
               )}
 
               <label
-                className="graph-view-menu__slider"
+                className="graph-view-menu__slider graph-view-menu__slider--overlay"
                 htmlFor="graph-see-through"
                 title={t('graph.seeThroughHint')}
               >
@@ -702,7 +746,7 @@ const GraphViewMenu = ({
                 />
               </label>
               <label
-                className="graph-view-menu__slider"
+                className="graph-view-menu__slider graph-view-menu__slider--overlay"
                 htmlFor="graph-see-through-blur"
                 title={t('graph.blurHint')}
               >
