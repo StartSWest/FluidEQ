@@ -118,6 +118,7 @@ import { readAccentLight } from '../utils/theme';
 import { useIsRootEuphoric } from '../utils/euphoriaMode';
 import { GraphLookTransition } from './graphLookTransition';
 import getGraphMotionDelta from './graphMotionPacing';
+import { createDashTrails, advanceDashTrails } from './dashTrails';
 import {
   createTerraceJumper,
   advanceTerraceJumper,
@@ -302,6 +303,7 @@ const LiveTraceCanvas = ({
   playingRef.current = !isPaused;
   const motionRef = useRef(createGraphMotionState());
   const terraceJumperRef = useRef(createTerraceJumper());
+  const dashTrailsRef = useRef(createDashTrails());
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const transitionRef = useRef(new GraphLookTransition());
@@ -645,6 +647,27 @@ const LiveTraceCanvas = ({
         motionRef.current.key = '';
       }
       const figure = new Path2D(shape);
+      const dashHistory =
+        chosen === 'dashes'
+          ? advanceDashTrails(
+              dashTrailsRef.current,
+              toColumns(projected, tuning.columns),
+              baseline,
+              tuning.gap,
+              motionDeltaMs,
+              playingRef.current,
+            )
+          : undefined;
+      const dashTrails = dashHistory?.trails.map((trail) => ({
+        ...trail,
+        path: new Path2D(trail.path),
+      }));
+      if (dashHistory?.moving) {
+        moving = true;
+      }
+      if (!dashHistory) {
+        dashTrailsRef.current.key = '';
+      }
       const terraceJumper =
         chosen === 'terrace'
           ? advanceTerraceJumper(
@@ -978,6 +1001,14 @@ const LiveTraceCanvas = ({
         const canvasPaint = toCanvasPaint(context, basePaint);
         const paintFor = (paint: TracePaint) =>
           paint === basePaint ? canvasPaint : toCanvasPaint(context, paint);
+        if (dashTrails) {
+          context.strokeStyle = canvasPaint;
+          dashTrails.forEach((trail) => {
+            setAlpha(context, opacity * trail.opacity);
+            context.lineWidth = strokeWidth * trail.width;
+            context.stroke(trail.path);
+          });
+        }
 
         const paintPeaks = () => {
           // Lit tips. Only the peaks, and only on the forms that have them — the
