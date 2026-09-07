@@ -179,12 +179,97 @@ const levelAt = (
   );
 };
 
+/**
+ * One lane of traffic as paths: bodies, cabins, wheels with a turning spoke,
+ * lamps, tail lights, a glow halo per vehicle and a headlight beam each.
+ * Shared with the bridge, which runs the same traffic on its deck. A beat
+ * (`thump`, 0..1) bounces every vehicle a little on its springs.
+ */
+export const createLanePaths = (
+  poses: readonly IVehiclePose[],
+  seconds: number,
+  glow: number,
+  thump: number,
+  beamReach: number,
+) => {
+  const body = new Path2D();
+  const cabin = new Path2D();
+  const wheels = new Path2D();
+  const wheelRims = new Path2D();
+  const hubs = new Path2D();
+  const lamps = new Path2D();
+  const tail = new Path2D();
+  const halo = new Path2D();
+  const beams: { path: Path2D; from: Projected; to: Projected }[] = [];
+  poses.forEach((pose, order) => {
+    const sprung: IVehiclePose = {
+      ...pose,
+      y: pose.y - thump * 3 * pose.size,
+    };
+    polygon(
+      body,
+      pose.type.body.map((p) => placeOnCar(sprung, p)),
+    );
+    polygon(
+      cabin,
+      pose.type.cabin.map((p) => placeOnCar(sprung, p)),
+    );
+    pose.type.wheels.forEach((wheel) => {
+      const [wx, wy] = placeOnCar(pose, wheel);
+      wheels.moveTo(wx + 3.2 * pose.size, wy);
+      wheels.arc(wx, wy, 3.2 * pose.size, 0, Math.PI * 2);
+      // A spoke that turns with the wheel, so it is seen to roll.
+      const spin = seconds * 9 * pose.speed * pose.facing + order;
+      wheelRims.moveTo(wx, wy);
+      wheelRims.lineTo(
+        wx + Math.cos(spin) * 2.6 * pose.size,
+        wy + Math.sin(spin) * 2.6 * pose.size,
+      );
+      hubs.moveTo(wx + 1.1 * pose.size, wy);
+      hubs.arc(wx, wy, 1.1 * pose.size, 0, Math.PI * 2);
+    });
+    const [hx, hy] = placeOnCar(sprung, [0, -6]);
+    const haloR = pose.size * (14 + glow * 12 + thump * 8);
+    halo.moveTo(hx + haloR, hy);
+    halo.arc(hx, hy, haloR, 0, Math.PI * 2);
+    // The beam: a cone from the nose, longer and brighter with the music.
+    const reach = beamReach;
+    const [nx, ny] = pose.type.lamp;
+    const beam = new Path2D();
+    polygon(beam, [
+      placeOnCar(sprung, [nx, ny - 2]),
+      placeOnCar(sprung, [nx + reach, ny - 2 - reach * 0.3]),
+      placeOnCar(sprung, [nx + reach, ny + 3 + reach * 0.22]),
+      placeOnCar(sprung, [nx, ny + 2]),
+    ]);
+    beams.push({
+      path: beam,
+      from: placeOnCar(sprung, [nx, ny]),
+      to: placeOnCar(sprung, [nx + reach, ny]),
+    });
+    const [lx, ly] = placeOnCar(sprung, pose.type.lamp);
+    lamps.moveTo(lx + 1.5 * pose.size, ly);
+    lamps.arc(lx, ly, 1.5 * pose.size, 0, Math.PI * 2);
+    const [tx, ty] = placeOnCar(sprung, pose.type.tail);
+    tail.moveTo(tx + 1.3 * pose.size, ty);
+    tail.arc(tx, ty, 1.3 * pose.size, 0, Math.PI * 2);
+  });
+  return { body, cabin, wheels, wheelRims, hubs, lamps, tail, halo, beams };
+};
+export type RoadLane = ReturnType<typeof createLanePaths>;
+
 export const createRoadTripPaths = (
   state: RoadTrip,
   points: readonly Projected[],
   top: number,
   bottom: number,
   seconds: number,
+  /**
+   * The plot's true depth, for sizing what must not stretch. The points
+   * and the top and bottom may be in a scaled space — see the canvas —
+   * and a tree or a car sized from that would squash with the wave.
+   */
+  sizeHeight = bottom - top,
 ) => {
   const left = points[0]?.[0] ?? 0;
   const right = points[points.length - 1]?.[0] ?? 1;
@@ -201,8 +286,8 @@ export const createRoadTripPaths = (
     // keeps its own, flatter, relation to the plot.
     top + (y - top) * 0.8,
   ]);
-  const traffic = trafficPoses(road, seconds, left, width, height);
-  const size = vehicleSize(height);
+  const traffic = trafficPoses(road, seconds, left, width, sizeHeight);
+  const size = vehicleSize(sizeHeight);
   const half = roadHalf(size);
   const thump = highBeam(state, seconds);
   // The far line drifts against the right-bound lane's lead vehicle.
@@ -227,7 +312,7 @@ export const createRoadTripPaths = (
   const moonY = top + height * 0.2;
   // The moon itself swells on a beat, a quarter larger at the hit.
   const moonR =
-    Math.max(6, height * 0.045) * (1 + thump * 0.25 + state.glow * 0.1);
+    Math.max(6, sizeHeight * 0.045) * (1 + thump * 0.25 + state.glow * 0.1);
   moon.moveTo(moonX + moonR, moonY);
   moon.arc(moonX, moonY, moonR, 0, Math.PI * 2);
   const moonHalo = new Path2D();
@@ -287,7 +372,7 @@ export const createRoadTripPaths = (
   // each grown by the band under it.
   const farTrees = new Path2D();
   const drift = lead ? (lead.x - (left + width / 2)) * PARALLAX : 0;
-  const farTall = height * 0.07;
+  const farTall = sizeHeight * 0.07;
   if (range.length >= 2) {
     for (let slot = 0; slot * FAR_SPACING < width * 1.3; slot += 1) {
       const base =
@@ -307,7 +392,7 @@ export const createRoadTripPaths = (
   // to its own band. Seeded by slot, so the same road has the same trees.
   const near = new Path2D();
   const lit = new Path2D();
-  const nearTall = height * 0.13;
+  const nearTall = sizeHeight * 0.13;
   const beamReach = 50 + state.glow * 120 + thump * 60;
   if (road.length >= 2) {
     for (let slot = 0; slot * NEAR_SPACING < width; slot += 1) {
@@ -330,73 +415,18 @@ export const createRoadTripPaths = (
     }
   }
 
-  // The traffic, on its springs: a beat bounces every vehicle a little.
   // Built per lane, because the far lane is painted before the verge
   // trees and dimmer, the near lane after them and at full strength.
-  const buildLane = (poses: readonly IVehiclePose[]) => {
-    const body = new Path2D();
-    const cabin = new Path2D();
-    const wheels = new Path2D();
-    const wheelRims = new Path2D();
-    const lamps = new Path2D();
-    const tail = new Path2D();
-    const halo = new Path2D();
-    const beams: { path: Path2D; from: Projected; to: Projected }[] = [];
-    poses.forEach((pose, order) => {
-      const sprung: IVehiclePose = {
-        ...pose,
-        y: pose.y - thump * 3 * pose.size,
-      };
-      polygon(
-        body,
-        pose.type.body.map((p) => placeOnCar(sprung, p)),
-      );
-      polygon(
-        cabin,
-        pose.type.cabin.map((p) => placeOnCar(sprung, p)),
-      );
-      pose.type.wheels.forEach((wheel) => {
-        const [wx, wy] = placeOnCar(pose, wheel);
-        wheels.moveTo(wx + 3.2 * pose.size, wy);
-        wheels.arc(wx, wy, 3.2 * pose.size, 0, Math.PI * 2);
-        // A spoke that turns with the wheel, so it is seen to roll.
-        const spin = seconds * 9 * pose.speed * pose.facing + order;
-        wheelRims.moveTo(wx, wy);
-        wheelRims.lineTo(
-          wx + Math.cos(spin) * 2.6 * pose.size,
-          wy + Math.sin(spin) * 2.6 * pose.size,
-        );
-      });
-      const [hx, hy] = placeOnCar(sprung, [0, -6]);
-      const haloR = pose.size * (14 + state.glow * 12 + thump * 8);
-      halo.moveTo(hx + haloR, hy);
-      halo.arc(hx, hy, haloR, 0, Math.PI * 2);
-      // The beam: a cone from the nose, longer and brighter with the music.
-      const reach = beamReach;
-      const [nx, ny] = pose.type.lamp;
-      const beam = new Path2D();
-      polygon(beam, [
-        placeOnCar(sprung, [nx, ny - 2]),
-        placeOnCar(sprung, [nx + reach, ny - 2 - reach * 0.3]),
-        placeOnCar(sprung, [nx + reach, ny + 3 + reach * 0.22]),
-        placeOnCar(sprung, [nx, ny + 2]),
-      ]);
-      beams.push({
-        path: beam,
-        from: placeOnCar(sprung, [nx, ny]),
-        to: placeOnCar(sprung, [nx + reach, ny]),
-      });
-      const [lx, ly] = placeOnCar(sprung, pose.type.lamp);
-      lamps.moveTo(lx + 1.5 * pose.size, ly);
-      lamps.arc(lx, ly, 1.5 * pose.size, 0, Math.PI * 2);
-      const [tx, ty] = placeOnCar(sprung, pose.type.tail);
-      tail.moveTo(tx + 1.3 * pose.size, ty);
-      tail.arc(tx, ty, 1.3 * pose.size, 0, Math.PI * 2);
-    });
-    return { body, cabin, wheels, wheelRims, lamps, tail, halo, beams };
-  };
-  const farLane = buildLane(traffic.filter((pose) => pose.facing < 0));
-  const nearLane = buildLane(traffic.filter((pose) => pose.facing > 0));
+  const lane = (facing: 1 | -1) =>
+    createLanePaths(
+      traffic.filter((pose) => pose.facing === facing),
+      seconds,
+      state.glow,
+      thump,
+      beamReach,
+    );
+  const farLane = lane(-1);
+  const nearLane = lane(1);
 
   return {
     shape: hill,
@@ -424,5 +454,4 @@ export const createRoadTripPaths = (
 };
 
 export type RoadTripPaths = ReturnType<typeof createRoadTripPaths>;
-export type RoadLane = RoadTripPaths['nearLane'];
 export type { ICarPose };

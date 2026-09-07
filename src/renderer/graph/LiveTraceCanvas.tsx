@@ -60,7 +60,11 @@ import type { AxisScale, NumberValue } from 'd3';
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { DEFAULT_GLOW, resolveLookColours } from 'common/customLooks';
 import { MAX_GAIN, MIN_GAIN } from 'common/constants';
-import { canGraphFill, resolveGraphPalette } from 'common/graphStyles';
+import {
+  canGraphFill,
+  resolveGraphPalette,
+  type Projected,
+} from 'common/graphStyles';
 import { createGraphStems, STEM_FADE_LEVELS } from 'common/graphStems';
 import createGraphTerrace from 'common/graphTerrace';
 import { getEaseFactor } from 'common/smoothing';
@@ -78,8 +82,6 @@ import {
 } from 'common/graphShapes';
 import useSmoothFrames from 'renderer/utils/useSmoothFrames';
 import { useGraphGridHidden, useGraphLook } from 'renderer/utils/graphStyle';
-import createTrussRoad from 'common/graphTruss';
-import createGraphStalactites from 'common/graphStalactites';
 import createGraphSawtooth from 'common/graphSawtooth';
 import {
   advanceRoadTrip,
@@ -131,7 +133,21 @@ import {
   bubbleShake,
   createBubbleStorm,
 } from './bubbleStorm';
-import paintTrussCars from './trussCars';
+import {
+  advanceTrussBridge,
+  createTrussBridge,
+  createTrussBridgePaths,
+  FADE_BANDS,
+  LEVEL_BINS,
+} from './trussBridge';
+import {
+  advanceCaveDrips,
+  CAVE_CEILING,
+  CAVE_ROCK_COLOURS,
+  CAVE_WATER,
+  createCaveDrips,
+  createCaveDripsPaths,
+} from './caveDrips';
 import createSlopeFlow from './slopeFlow';
 import { resolveLookWaveform, useLookPreviewPoints } from './lookPreview';
 import { IChartPointData, ILiveCurveData } from './ChartController';
@@ -346,7 +362,13 @@ const LiveTraceCanvas = ({
   playingRef.current = !isPaused;
   const motionRef = useRef(createGraphMotionState());
   const terraceJumperRef = useRef(createTerraceJumper());
-  const trussTrafficRef = useRef(0);
+  const trussBridgeRef = useRef(createTrussBridge());
+  const caveDripsRef = useRef(createCaveDrips());
+  const caveClockRef = useRef(0);
+  const liveProjectedRef = useRef<[number, number][]>([]);
+  // The bridge is not a scene on the motion clock, so it keeps its own,
+  // advanced by the same paced delta while playing.
+  const trussClockRef = useRef(0);
   const slopeFlowRef = useRef(0);
   const bubbleStormRef = useRef(createBubbleStorm());
   const sawtoothScopeRef = useRef(createSawtoothScope());
@@ -553,11 +575,21 @@ const LiveTraceCanvas = ({
         projectedRef.current = eased.map(() => [0, 0] as [number, number]);
       }
       const projected = projectedRef.current;
+      // The frame as it arrived, projected the same way: what the scenes'
+      // beat trackers read. The eased trace above is what is DRAWN, and its
+      // attack and release are a look's choice; a beat read from it arrived
+      // late and soft, which is what "it lags" was.
+      if (liveProjectedRef.current.length !== data.length) {
+        liveProjectedRef.current = data.map(() => [0, 0] as [number, number]);
+      }
+      const liveProjected = liveProjectedRef.current;
       for (let index = 0; index < eased.length; index += 1) {
         const x = Number(xScale(eased[index].x)) || 0;
         projected[index][0] =
           stretch === 1 ? x : plot.left + (x - firstX) * stretch;
         projected[index][1] = Number(yScale(eased[index].y)) || 0;
+        [liveProjected[index][0]] = projected[index];
+        liveProjected[index][1] = Number(yScale(data[index].y)) || 0;
       }
 
       // The pixel row the filled styles stand on — the bottom of the plot, and
@@ -567,6 +599,19 @@ const LiveTraceCanvas = ({
       // fraction rather than in pixels — which is what keeps it reading the
       // same on a short card and a full-screen one.
       const depth = Math.max(1, plot.bottom - plot.top);
+      /**
+       * Scenes are built in the screen's vertical scale and painted with
+       * the wave scaling undone, so a car, a tree or a spark keeps its shape
+       * under the height slider instead of being squashed with the curve,
+       * and the mirror shows a true reflection of it. `sceneScale` is the
+       * shared |scaleY|. Sprites are sized from the true plot depth, not the
+       * scaled one.
+       */
+      const sceneScale = heightScale || 1;
+      const sceneTop = plot.top * sceneScale;
+      const sceneBase = baseline * sceneScale;
+      const sceneSpace = (points: readonly Projected[]): Projected[] =>
+        points.map(([x, y]) => [x, y * sceneScale]);
 
       const chosen = lookRef.current.style;
       /**
@@ -653,22 +698,13 @@ const LiveTraceCanvas = ({
               tuning.gap,
             )
           : undefined;
-      const mineral =
-        chosen === 'stalactites' && isFilled
-          ? createGraphStalactites(
-              toColumns(projected, tuning.columns),
-              baseline,
-              plot.top,
-              tuning.gap,
-            )
-          : undefined;
       // The scope's beam: the wave itself, stroked bright over the body.
       const sawTrace =
         chosen === 'sawtooth'
           ? new Path2D(
               createGraphSawtooth(
-                toColumns(projected, tuning.columns),
-                baseline,
+                sceneSpace(toColumns(projected, tuning.columns)),
+                sceneBase,
                 motionRef.current.travel[0] ?? 0,
               ).trace,
             )
@@ -677,27 +713,21 @@ const LiveTraceCanvas = ({
         advanceSawtoothScope(
           sawtoothScopeRef.current,
           sawTrace,
-          toColumns(projected, tuning.columns),
-          plot.top,
-          baseline,
+          sceneSpace(toColumns(projected, tuning.columns)),
+          sceneTop,
+          sceneBase,
           motionRef.current.travel[0] ?? 0,
           playingRef.current,
         );
       }
-      const mineralPaths = mineral
-        ? {
-            shade: new Path2D(mineral.shade),
-            light: new Path2D(mineral.light),
-          }
-        : undefined;
       // The monitor decides its beat first and hands back its own figure,
       // pumped by the thump; the static shape is never built for it.
       if (chosen === 'ecg') {
         advancePulseMonitor(
           pulseMonitorRef.current,
-          toColumns(projected, tuning.columns),
-          plot.top,
-          baseline,
+          sceneSpace(toColumns(projected, tuning.columns)),
+          sceneTop,
+          sceneBase,
           motionRef.current.travel[0] ?? 0,
           playingRef.current,
         );
@@ -706,8 +736,8 @@ const LiveTraceCanvas = ({
         chosen === 'ecg'
           ? createPulsePaths(
               pulseMonitorRef.current,
-              toColumns(projected, tuning.columns),
-              baseline,
+              sceneSpace(toColumns(projected, tuning.columns)),
+              sceneBase,
               motionRef.current.travel[0] ?? 0,
             )
           : undefined;
@@ -716,9 +746,9 @@ const LiveTraceCanvas = ({
       if (chosen === 'echo') {
         advanceEchoWaves(
           echoWavesRef.current,
-          toColumns(projected, SNAPSHOT_COLUMNS),
-          plot.top,
-          baseline,
+          sceneSpace(toColumns(projected, SNAPSHOT_COLUMNS)),
+          sceneTop,
+          sceneBase,
           motionRef.current.travel[0] ?? 0,
           playingRef.current,
         );
@@ -727,22 +757,87 @@ const LiveTraceCanvas = ({
         chosen === 'echo'
           ? createEchoWavePaths(
               echoWavesRef.current,
-              projected,
-              plot.top,
-              baseline,
+              sceneSpace(projected),
+              sceneTop,
+              sceneBase,
               motionRef.current.travel[0] ?? 0,
               isFilled,
             )
           : undefined;
+      // The bridge: the deck is its figure, the truss and the rest are scenery.
+      const trussColumns =
+        chosen === 'truss'
+          ? sceneSpace(toColumns(projected, tuning.columns))
+          : undefined;
+      if (trussColumns && playingRef.current) {
+        trussClockRef.current += motionDeltaMs / 1000;
+        moving = true;
+      }
+      if (trussColumns) {
+        advanceTrussBridge(
+          trussBridgeRef.current,
+          trussColumns,
+          sceneSpace(toColumns(liveProjected, tuning.columns)),
+          sceneTop,
+          sceneBase,
+          trussClockRef.current,
+          playingRef.current,
+        );
+      }
+      const trussPaths = trussColumns
+        ? createTrussBridgePaths(
+            trussBridgeRef.current,
+            trussColumns,
+            sceneBase,
+            sceneTop,
+            trussClockRef.current,
+            depth,
+          )
+        : undefined;
+      // The cave: the rock is its figure; the pool, the drips and the
+      // ripples are scenery. Its clock runs only while music plays.
+      const caveColumns =
+        chosen === 'stalactites'
+          ? sceneSpace(toColumns(projected, tuning.columns))
+          : undefined;
+      if (caveColumns && playingRef.current) {
+        caveClockRef.current += motionDeltaMs / 1000;
+        moving = true;
+      }
+      if (caveColumns) {
+        advanceCaveDrips(
+          caveDripsRef.current,
+          caveColumns,
+          sceneSpace(toColumns(liveProjected, tuning.columns)),
+          sceneTop,
+          sceneBase,
+          caveClockRef.current,
+          playingRef.current,
+          tuning.gap,
+          depth,
+        );
+      }
+      const cavePaths = caveColumns
+        ? createCaveDripsPaths(
+            caveDripsRef.current,
+            caveColumns,
+            sceneTop,
+            sceneBase,
+            caveClockRef.current,
+            depth,
+          )
+        : undefined;
       // The road trip likewise: the band is its figure, the rest is scenery.
       const roadPoints =
-        chosen === 'racer' ? toColumns(projected, ROAD_COLUMNS) : undefined;
+        chosen === 'racer'
+          ? sceneSpace(toColumns(projected, ROAD_COLUMNS))
+          : undefined;
       if (roadPoints) {
         advanceRoadTrip(
           roadTripRef.current,
           roadPoints,
-          plot.top,
-          baseline,
+          sceneTop,
+          sceneBase,
           motionRef.current.travel[0] ?? 0,
           playingRef.current,
         );
@@ -751,14 +846,23 @@ const LiveTraceCanvas = ({
         ? createRoadTripPaths(
             roadTripRef.current,
             roadPoints,
-            plot.top,
-            baseline,
+            sceneTop,
+            sceneBase,
             motionRef.current.travel[0] ?? 0,
+            depth,
           )
         : undefined;
+      const isScene = Boolean(
+        pulsePaths ||
+        echoPaths ||
+        roadPaths ||
+        trussPaths ||
+        cavePaths ||
+        sawTrace,
+      );
       let shape =
         stems?.shape ??
-        (pulsePaths || echoPaths || roadPaths ? '' : undefined) ??
+        (isScene && chosen !== 'sawtooth' ? '' : undefined) ??
         (isFluidForm
           ? spectrumBarsPath(
               {
@@ -828,18 +932,11 @@ const LiveTraceCanvas = ({
         pulsePaths?.shape ??
         echoPaths?.shape ??
         roadPaths?.shape ??
+        trussPaths?.shape ??
+        cavePaths?.shape ??
         new Path2D(
           blinkingSatellites && chosen === 'scatter' ? scatter.primary : shape,
         );
-      const trussRoad =
-        chosen === 'truss'
-          ? createTrussRoad(toColumns(projected, tuning.columns))
-          : undefined;
-      if (trussRoad && playingRef.current) {
-        trussTrafficRef.current =
-          (trussTrafficRef.current + motionDeltaMs / 24000) % 1;
-        moving = true;
-      }
       const connector =
         tuning.connectingLine &&
         chosen !== 'dots' &&
@@ -1001,7 +1098,7 @@ const LiveTraceCanvas = ({
         // for the light to follow the real thing.
         const glowStyle = getGlowStyle(
           chosen,
-          pulsePaths || echoPaths || roadPaths ? 0 : shape.length,
+          pulsePaths || echoPaths || roadPaths || trussPaths ? 0 : shape.length,
           isFilled,
         );
         halo =
@@ -1162,10 +1259,25 @@ const LiveTraceCanvas = ({
       // Under auto a form is painted in its own palette; nothing below this
       // line reads the look's palette directly.
       const paintPalette = resolveGraphPalette(chosen, lookRef.current.palette);
-      const paintColours = resolveLookColours(
+      // Auto with no colours of its own: a scene may paint itself the way
+      // the real thing looks, not only in one of the offered ramps.
+      const ownColours =
+        lookRef.current.palette === 'auto' &&
+        lookRef.current.colours.length === 0;
+      const caveOwnColours = ownColours && chosen === 'stalactites';
+      let paintColours = resolveLookColours(
         paintPalette,
         lookRef.current.colours,
       );
+      if (ownColours && chosen === 'truss') {
+        // The bridge's own colouring cycles the wheel: a full turn every
+        // twenty seconds of music, one hue for the whole structure.
+        paintColours = [
+          `hsl(${((trussClockRef.current * 18) % 360).toFixed(0)}, 85%, 62%)`,
+        ];
+      } else if (caveOwnColours) {
+        paintColours = CAVE_ROCK_COLOURS;
+      }
       const isSelfColoured = isSelfColouredLook(paintPalette, paintColours);
       const figureStrokeWidth = resolveFigureStrokeWidth(
         strokeWidth,
@@ -1226,19 +1338,7 @@ const LiveTraceCanvas = ({
       context.lineJoin = 'round';
 
       curves.forEach((curve) => {
-        const wave = getWaveTransform(
-          chosen === 'stalactites'
-            ? { ...curve, isFlipped: !curve.isFlipped }
-            : curve,
-          baseline,
-          plot.top,
-        );
-        if (chosen === 'stalactites') {
-          // This figure already grows down from its ceiling. Reflect its
-          // coordinate system so height scales around that edge, not the floor.
-          wave.translateY += wave.scaleY * (baseline + plot.top);
-          wave.scaleY *= -1;
-        }
+        const wave = getWaveTransform(curve, baseline, plot.top);
         const bubblePaths =
           chosen === 'bubbles' && wave.scaleY !== 0
             ? createBubblePaths(
@@ -1265,8 +1365,27 @@ const LiveTraceCanvas = ({
             : undefined;
         const dots = bubblePaths ?? dotPaths;
         const curveFigure = dots?.shape ?? figure;
+        // Everything a scene draws is in scene space: the wave's vertical
+        // STRETCH undone but its flip kept, so a mirrored curve shows the
+        // scene's reflection — cars and towers upside down in the lower
+        // half, the way water would show them — rather than a squashed copy
+        // or a second landscape.
+        const enterSceneSpace = () => {
+          context.save();
+          context.scale(1, 1 / Math.abs(wave.scaleY));
+        };
         let curveOutside = outside;
-        if (dots && needsOutside) {
+        if (isScene && needsOutside) {
+          const bleed = figureStrokeWidth + 1;
+          curveOutside = new Path2D();
+          curveOutside.rect(
+            plot.left - bleed,
+            -bleed,
+            plot.right - plot.left + bleed * 2,
+            sceneBase + bleed * 2,
+          );
+          curveOutside.addPath(curveFigure);
+        } else if (dots && needsOutside) {
           const bleed = figureStrokeWidth + 1;
           curveOutside = new Path2D();
           curveOutside.rect(
@@ -1297,9 +1416,15 @@ const LiveTraceCanvas = ({
         // Clipped in the figure's own space, exactly as the SVG clip path was:
         // it was referenced from inside the same transform, so a half-height
         // wave was already bounded to the half it is drawn in.
-        context.beginPath();
-        context.rect(plot.left, 0, plot.right - plot.left, baseline);
-        context.clip();
+        // A scene is never cut off: a firework that bursts above the plot,
+        // a spark that flies past its edge, a star in the margin, all of it
+        // is allowed to overflow the plot's box. Everything else is clipped
+        // to it as the SVG trace always was.
+        if (!isScene) {
+          context.beginPath();
+          context.rect(plot.left, 0, plot.right - plot.left, baseline);
+          context.clip();
+        }
 
         // One descriptor, built once, so the halo and the tips can be tested
         // against it by identity and reuse the gradient the figure already has.
@@ -1415,6 +1540,8 @@ const LiveTraceCanvas = ({
           if (dots) {
             context.save();
             context.scale(1, 1 / wave.scaleY);
+          } else if (isScene) {
+            enterSceneSpace();
           }
           context.strokeStyle = paintFor(
             resolveGlowStroke(basePaint, isSelfColoured, euphoria),
@@ -1429,7 +1556,7 @@ const LiveTraceCanvas = ({
                 haloPath,
             );
           });
-          if (dots) {
+          if (dots || isScene) {
             context.restore();
           }
         }
@@ -1440,11 +1567,155 @@ const LiveTraceCanvas = ({
         if (dots) {
           context.save();
           context.scale(1, 1 / wave.scaleY);
+        } else if (isScene) {
+          enterSceneSpace();
         }
 
         // One drawing for every style. A filled style paints the same shape
         // rather than stroking it — which is a fill, not a second figure, so
         // cycling styles never changes what is drawn, only how.
+        if (cavePaths) {
+          // The pool first: dark water in the look's colour, glowing with
+          // the bass, with the rock reflected in it, then the rings and the
+          // splashes on its surface, then the surface line. Filled, the
+          // water is a body; stroked, the surface and the rings alone.
+          const caveWater = caveOwnColours ? CAVE_WATER : canvasPaint;
+          if (isFilled) {
+            context.fillStyle = caveWater;
+            setAlpha(context, opacity * (0.5 + cavePaths.bass * 0.25));
+            context.fill(cavePaths.pool);
+            // The rock's reflection, under the water's own shading so it
+            // fades with depth rather than poking out of the floor.
+            context.save();
+            context.clip(cavePaths.pool);
+            context.fillStyle = canvasPaint;
+            setAlpha(context, opacity * 0.3);
+            context.fill(cavePaths.reflections);
+            context.restore();
+            // Lit at the surface, dark at the bottom: still water.
+            const water = context.createLinearGradient(
+              0,
+              cavePaths.poolTop,
+              0,
+              sceneBase,
+            );
+            water.addColorStop(0, 'rgba(255,255,255,0.18)');
+            water.addColorStop(0.3, 'rgba(0,0,0,0.25)');
+            water.addColorStop(1, 'rgba(0,0,0,0.7)');
+            context.fillStyle = water;
+            setAlpha(context, opacity);
+            context.fill(cavePaths.pool);
+          }
+          context.strokeStyle = '#fff';
+          context.lineWidth = 1;
+          cavePaths.ripples.forEach((band) => {
+            setAlpha(context, opacity * band.alpha * 0.5);
+            context.stroke(band.path);
+          });
+          context.lineWidth = 1.2;
+          setAlpha(context, opacity * 0.8);
+          context.stroke(cavePaths.splash);
+          context.lineWidth = 1;
+          setAlpha(context, opacity * (0.3 + cavePaths.bass * 0.35));
+          context.stroke(cavePaths.surface);
+        }
+        if (trussPaths) {
+          // The sky first: dim stars, then the twinkling ones, which flare
+          // with the beat.
+          context.fillStyle = '#fff';
+          setAlpha(context, opacity * 0.3);
+          context.fill(trussPaths.stars);
+          setAlpha(context, opacity * (0.7 + trussPaths.thump * 0.3));
+          context.fill(trussPaths.brightStars);
+          // The truss under the deck: four bands from the deck down, each
+          // fainter than the one above, so the members sink into the dark;
+          // within each, the members whose band is loud burn brighter, and
+          // on a beat the whole truss glows wider for a moment.
+          const bridgeGlow = trussPaths.thump;
+          trussPaths.members.forEach((band, depth) => {
+            const fade = 0.9 - (depth / FADE_BANDS) * 0.75;
+            band.forEach((members, bin) => {
+              const burn = 0.45 + (bin / (LEVEL_BINS - 1)) * 0.75;
+              if (bridgeGlow > 0) {
+                context.strokeStyle = canvasPaint;
+                context.lineWidth =
+                  Math.max(1, strokeWidth * 0.7) + 5 * bridgeGlow;
+                setAlpha(context, opacity * fade * burn * bridgeGlow * 0.35);
+                context.stroke(members);
+              }
+              context.strokeStyle = canvasPaint;
+              context.lineWidth = Math.max(1, strokeWidth * 0.7);
+              setAlpha(context, opacity * Math.min(1, fade * burn));
+              context.stroke(members);
+            });
+          });
+          setAlpha(context, opacity * 0.25);
+          context.stroke(trussPaths.footing);
+          // The sea behind the bridge: each swell a strip of the look's
+          // colour, faint at the horizon and deeper as it nears, every
+          // other one a shade darker so the swells read against each other
+          // without a line on the water; brighter with the bass that lifts
+          // it, under a thin bright horizon.
+          const seaLift = 0.8 + trussPaths.bass * 0.5;
+          context.fillStyle = canvasPaint;
+          trussPaths.sea.forEach((strip, index) => {
+            const near = (index + 1) / trussPaths.sea.length;
+            const shade = index % 2 === 0 ? 1 : 0.7;
+            setAlpha(context, opacity * (0.06 + near * 0.3) * shade * seaLift);
+            context.fill(strip);
+          });
+          context.strokeStyle = '#fff';
+          context.lineWidth = 1;
+          setAlpha(context, opacity * 0.22);
+          context.beginPath();
+          context.moveTo(
+            plot.left - (plot.right - plot.left),
+            trussPaths.horizon,
+          );
+          context.lineTo(
+            plot.right + (plot.right - plot.left),
+            trussPaths.horizon,
+          );
+          context.stroke();
+          // The suspension: piers and towers standing in the water, dark
+          // silhouettes edged in the look's colour, or solid in the colour
+          // when filled; the bracing between the legs, hangers faint, the
+          // main cables bright.
+          context.fillStyle = isFilled ? canvasPaint : '#000';
+          setAlpha(context, opacity * (isFilled ? 0.95 : 0.7));
+          context.fill(trussPaths.piers);
+          context.fill(trussPaths.towers);
+          context.fill(trussPaths.towersBelow);
+          context.strokeStyle = canvasPaint;
+          context.lineWidth = 1.2;
+          setAlpha(context, opacity * 0.7);
+          context.stroke(trussPaths.piers);
+          setAlpha(context, opacity * 0.9);
+          context.stroke(trussPaths.towers);
+          context.stroke(trussPaths.towersBelow);
+          context.lineWidth = 0.9;
+          setAlpha(context, opacity * 0.55);
+          context.stroke(trussPaths.bracing);
+          context.stroke(trussPaths.bracingBelow);
+          context.lineWidth = 0.8;
+          setAlpha(context, opacity * 0.4);
+          context.stroke(trussPaths.hangers);
+          // The cables pump with the bass: a fine wire that thickens a little
+          // and brightens with the kick, with a narrow tint of the look's
+          // colour under it — a wide glow here eclipsed the rest of the scene.
+          context.strokeStyle = canvasPaint;
+          context.lineWidth = 2 + trussPaths.bass * 2.5;
+          setAlpha(context, opacity * (0.12 + trussPaths.bass * 0.25));
+          context.stroke(trussPaths.cables);
+          context.strokeStyle = '#fff';
+          context.lineWidth =
+            1 + trussPaths.bass * 1.2 + trussPaths.thump * 0.5;
+          setAlpha(
+            context,
+            opacity * (0.45 + trussPaths.bass * 0.45 + trussPaths.thump * 0.1),
+          );
+          context.stroke(trussPaths.cables);
+        }
         if (roadPaths && !isFilled) {
           // Filled off: the whole scene as a wireframe, and depth is line
           // weight — the far range a hairline, the hillside heavier, the
@@ -1592,7 +1863,9 @@ const LiveTraceCanvas = ({
             context.fillStyle = heatColour(paintColours, piece.energy);
             context.fill(piece.path);
           });
-        } else if (isFilled) {
+        } else if (isFilled && !trussPaths) {
+          // The bridge has nothing to fill: its deck is a line over open
+          // water, and "filled" is its towers and piers going solid.
           // The fill and the stroke are composited separately here, where SVG
           // composited the element as a group. The only place the two differ is
           // the sliver where a translucent stroke sits over its own fill, and
@@ -1763,14 +2036,6 @@ const LiveTraceCanvas = ({
           setAlpha(context, opacity * 0.9);
           context.fill(createSparkPath(scope, clock, baseline, plot.top));
         }
-        if (mineralPaths) {
-          context.fillStyle = '#000';
-          setAlpha(context, opacity * tuning.fillOpacity * 0.25);
-          context.fill(mineralPaths.shade);
-          context.fillStyle = '#fff';
-          setAlpha(context, opacity * tuning.fillOpacity * 0.24);
-          context.fill(mineralPaths.light);
-        }
         if (terraceJumper) {
           setAlpha(context, opacity);
           paintTerraceJumper(
@@ -1837,12 +2102,166 @@ const LiveTraceCanvas = ({
           }
         }
 
-        if (dots) {
-          context.restore();
+        if (cavePaths) {
+          // The rock's shading: the flank away from the light darkened, a
+          // wet highlight down the lit flank — filled only; stroked, the
+          // outline is the rock. Then the bead swelling at every tip, and
+          // the drips in flight, each with its shine.
+          if (isFilled) {
+            context.fillStyle = '#000';
+            setAlpha(context, opacity * 0.32);
+            context.fill(cavePaths.shade);
+            context.fillStyle = '#fff';
+            setAlpha(context, opacity * 0.26);
+            context.fill(cavePaths.light);
+            context.strokeStyle = '#000';
+            context.lineWidth = 1;
+            setAlpha(context, opacity * 0.22);
+            context.stroke(cavePaths.bands);
+          }
+          context.fillStyle = '#fff';
+          setAlpha(context, opacity * 0.55);
+          context.fill(cavePaths.beads);
+          if (isFilled) {
+            context.fillStyle = canvasPaint;
+            setAlpha(context, opacity * 0.35);
+            context.fill(cavePaths.drips);
+            context.fillStyle = '#fff';
+            setAlpha(context, opacity * 0.6);
+            context.fill(cavePaths.drips);
+          } else {
+            context.strokeStyle = '#fff';
+            context.lineWidth = 1;
+            setAlpha(context, opacity * 0.8);
+            context.stroke(cavePaths.drips);
+          }
+          context.fillStyle = '#fff';
+          setAlpha(context, opacity * 0.95);
+          context.fill(cavePaths.shine);
+          // The ceiling last, over the roots: the stalactites grow out from
+          // under its ragged edge, so the rock covers them, not the reverse.
+          const caveRock = caveOwnColours ? CAVE_CEILING : canvasPaint;
+          if (isFilled) {
+            context.fillStyle = caveRock;
+            setAlpha(context, opacity);
+            context.fill(cavePaths.ceiling);
+            context.fillStyle = '#000';
+            setAlpha(context, opacity * 0.3);
+            context.fill(cavePaths.ceiling);
+          }
+          context.strokeStyle = caveRock;
+          context.lineWidth = 1;
+          setAlpha(context, opacity * 0.7);
+          context.stroke(cavePaths.ceiling);
+          context.strokeStyle = '#000';
+          setAlpha(context, opacity * 0.6);
+          context.stroke(cavePaths.cracks);
         }
-        if (trussRoad) {
-          setAlpha(context, opacity);
-          paintTrussCars(context, trussRoad, trussTrafficRef.current);
+        if (trussPaths) {
+          // The asphalt over the deck line, with light edges, then the cars
+          // on it, each its own colour, then the lamps: the lit half flares
+          // on the beat and settles back over 250ms.
+          context.strokeStyle = '#000';
+          context.lineWidth = trussPaths.roadHalf * 2;
+          setAlpha(context, opacity * 0.65);
+          context.stroke(figure);
+          context.strokeStyle = '#fff';
+          context.lineWidth = 1;
+          setAlpha(context, opacity * 0.2);
+          context.stroke(trussPaths.edges);
+          context.lineWidth = Math.max(1, trussPaths.roadHalf * 0.3);
+          setAlpha(context, opacity * 0.7);
+          context.stroke(trussPaths.dashes);
+          trussPaths.cars.forEach((car) => {
+            // The car's own shape glows: a wide soft stroke of its body in
+            // its colour, then a tighter one, both with the band under it.
+            context.strokeStyle = car.colour;
+            context.lineJoin = 'round';
+            context.lineWidth = 6 + car.level * 10;
+            setAlpha(context, opacity * car.level * 0.22);
+            context.stroke(car.body);
+            context.lineWidth = 2 + car.level * 4;
+            setAlpha(context, opacity * car.level * 0.4);
+            context.stroke(car.body);
+            if (isFilled) {
+              context.fillStyle = car.colour;
+              setAlpha(context, opacity);
+              context.fill(car.body);
+              context.fillStyle = '#10242c';
+              context.fill(car.dark);
+            } else {
+              // Stroked, the car is a wireframe like the bridge it drives
+              // on: its outline and its windows in its colour, nothing
+              // solid, so the two variants read as one design.
+              context.lineWidth = 1.2;
+              setAlpha(context, opacity);
+              context.stroke(car.body);
+              setAlpha(context, opacity * 0.7);
+              context.stroke(car.dark);
+            }
+            // The wheels: a light rim round the tyre and a hub in the middle,
+            // so they read as wheels rather than as two dark blobs.
+            context.strokeStyle = '#fff';
+            context.lineWidth = 1;
+            setAlpha(context, opacity * 0.4);
+            context.stroke(car.wheels);
+            context.fillStyle = car.colour;
+            setAlpha(context, opacity * 0.9);
+            context.fill(car.hubs);
+          });
+          context.fillStyle = canvasPaint;
+          setAlpha(context, opacity * 0.35);
+          context.fill(trussPaths.lampsOff);
+          context.fillStyle = '#fff';
+          setAlpha(context, opacity * (0.45 + trussPaths.thump * 0.55));
+          context.fill(trussPaths.lampsOn);
+          // The lights on the water under the bridge, shimmering.
+          context.strokeStyle = '#fff';
+          context.lineWidth = 1;
+          setAlpha(context, opacity * (0.12 + trussPaths.thump * 0.12));
+          context.stroke(trussPaths.reflections);
+          // Fireworks: each rocket its own hue. A trail while it climbs;
+          // then a flash, and sparks as a wide soft glow under a thin bright
+          // core, fading as they fall.
+          context.lineCap = 'round';
+          trussPaths.fireworks.forEach((firework) => {
+            const hue = firework.hue.toFixed(0);
+            const strength = firework.climbing ? 0.95 : firework.glow;
+            if (firework.flash) {
+              context.fillStyle = '#fff';
+              setAlpha(context, opacity * 0.7);
+              context.fill(firework.flash);
+            }
+            if (firework.tails) {
+              // Tapering: each piece further from the spark is thinner
+              // and fainter, and the caps are round so the joins vanish.
+              context.strokeStyle = `hsl(${hue}, 100%, 55%)`;
+              firework.tails.forEach((piece, step) => {
+                context.lineWidth = Math.max(
+                  0.5,
+                  firework.width * (0.9 - step * 0.3),
+                );
+                setAlpha(context, opacity * strength * (0.4 - step * 0.12));
+                context.stroke(piece);
+              });
+            }
+            context.strokeStyle = `hsl(${hue}, 100%, 60%)`;
+            context.lineWidth = firework.width * 3;
+            setAlpha(context, opacity * strength * 0.4);
+            context.stroke(firework.path);
+            context.strokeStyle = `hsl(${hue}, 100%, ${
+              firework.climbing ? 88 : 75
+            }%)`;
+            context.lineWidth = firework.width;
+            setAlpha(context, opacity * strength);
+            context.stroke(firework.path);
+            if (firework.twinkle) {
+              context.strokeStyle = '#fff';
+              context.lineWidth = firework.width * 1.6;
+              setAlpha(context, opacity * strength);
+              context.stroke(firework.twinkle);
+            }
+          });
         }
         if (roadPaths && !isFilled) {
           const trip = roadTripRef.current;
@@ -1950,6 +2369,9 @@ const LiveTraceCanvas = ({
             setAlpha(context, opacity * 0.6 * depth);
             context.stroke(lane.wheels);
             context.stroke(lane.wheelRims);
+            context.fillStyle = canvasPaint;
+            setAlpha(context, opacity * depth * 0.9);
+            context.fill(lane.hubs);
             context.fillStyle = '#fff';
             setAlpha(context, opacity * depth * (0.6 + trip.glow * 0.4));
             context.fill(lane.lamps);
@@ -1974,6 +2396,9 @@ const LiveTraceCanvas = ({
           setAlpha(context, opacity * (0.12 + trip.glow * 0.25));
           context.fill(roadPaths.lit);
           paintLane(roadPaths.nearLane, 1);
+        }
+        if (dots || isScene) {
+          context.restore();
         }
         if (!tuning.accentBehind) {
           paintPeaks();

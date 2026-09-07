@@ -276,11 +276,13 @@ const STROKED_STYLES = new Set<GraphStyle>([
   'hatch',
   'bezier',
   'feather',
-  'truss',
   'zipper',
   'slope',
   'ecg',
   'echo',
+  // The bridge: an open truss over water with wireframe cars, which is
+  // the design; filled only makes its posts solid.
+  'truss',
   'starfield',
   'rain',
   'braid',
@@ -382,7 +384,6 @@ const OWN_PALETTES: Record<GraphStyle, ResolvedGraphPalette> = {
   feather: 'signal',
   zipper: 'signal',
   truss: 'signal',
-  stalactites: 'signal',
   sawtooth: 'signal',
   ecg: 'signal',
   starfield: 'signal',
@@ -428,6 +429,8 @@ const OWN_PALETTES: Record<GraphStyle, ResolvedGraphPalette> = {
   echo: 'level',
   candles: 'level',
   canyon: 'level',
+  // The cave: the ramp lights the tips a different colour from the roots.
+  stalactites: 'level',
   'wave-filled': 'level',
   'wave-blocks': 'level',
   // A scene lit by the music: one colour that moves with the loudness.
@@ -523,8 +526,11 @@ export const GRAPH_FORM_LOOKS: IGraphLook[] = GRAPH_LOOKS.filter(
  * Named rather than positional. This was `GRAPH_LOOKS[0]` in five places,
  * which is not a choice — it is whichever form happens to be written first in
  * the cycle order, and that order is a list people append to.
+ *
+ * Under the auto colouring, so that the two-minute cycle a fresh install
+ * runs shows every form in its own colours rather than all of them flat.
  */
-export const DEFAULT_GRAPH_LOOK_ID = graphLookId('fluid', 'signal');
+export const DEFAULT_GRAPH_LOOK_ID = graphLookId('fluid', 'auto');
 
 export const DEFAULT_GRAPH_LOOK: IGraphLook =
   GRAPH_LOOKS.find((look) => look.id === DEFAULT_GRAPH_LOOK_ID) ??
@@ -593,7 +599,8 @@ const BALLISTICS: Partial<Record<GraphStyle, IGraphBallistics>> = {
   // Architecture. Buildings do not sway, so these are stiff going up and slow
   // coming down — the skyline should look built, not blown about.
   skyline: { attackMs: 5, releaseMs: 72 },
-  truss: { attackMs: 45, releaseMs: 320 },
+  // Quick, so the bridge rides the music; the deck eases itself on top.
+  truss: { attackMs: 20, releaseMs: 140 },
   matrix: { attackMs: 3, releaseMs: 66 },
   sawtooth: { attackMs: 4, releaseMs: 40 },
 
@@ -937,7 +944,6 @@ const STROKE_ONLY_STYLES = new Set<GraphStyle>([
   'starfield',
   'rain',
   'feather',
-  'truss',
   'zipper',
   'stitch',
   'hatch',

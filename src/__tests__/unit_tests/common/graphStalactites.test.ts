@@ -16,8 +16,15 @@ describe('mineral Stalactites', () => {
       expect(path).not.toMatch(/NaN|Infinity/);
       const rows = [...path.matchAll(/,(-?[\d.]+)/g)].map((m) => Number(m[1]));
       expect(Math.min(...rows)).toBe(20);
-      expect(Math.max(...rows)).toBe(140);
+      expect(Math.max(...rows)).toBeLessThanOrEqual(140);
     });
+    // The body and its shade reach the tip; the wet highlight stops short
+    // of it, where the bead of water sits.
+    const tipOf = (path: string) =>
+      Math.max(...[...path.matchAll(/,(-?[\d.]+)/g)].map((m) => Number(m[1])));
+    expect(tipOf(layers.shape)).toBe(140);
+    expect(tipOf(layers.shade)).toBe(140);
+    expect(tipOf(layers.light)).toBeLessThan(140);
     expect(layers.shade).not.toBe(layers.shape);
     expect(layers.light).not.toBe(layers.shade);
   });

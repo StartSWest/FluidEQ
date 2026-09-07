@@ -233,6 +233,7 @@ describe('the graph style cycle', () => {
     // drawing a fresh install starts with.
     expect(getGraphLook('nonsense')).toBe(DEFAULT_GRAPH_LOOK);
     expect(DEFAULT_GRAPH_LOOK.style).toBe('fluid');
+    expect(DEFAULT_GRAPH_LOOK.palette).toBe('auto');
   });
 
   it('comes back round', () => {
@@ -385,20 +386,25 @@ describe('createGraphShape', () => {
     // reads as the capture having died rather than as a switch having been
     // thrown. Whatever the form is, if the picker offers Filled for it then
     // asking for it has to draw.
-    GRAPH_STYLES.filter(canGraphFill).forEach((style) => {
-      expect(
-        createGraphShape(
-          points,
-          style,
-          BASELINE,
-          undefined,
-          undefined,
-          0,
-          0,
-          true,
-        ),
-      ).toMatch(/Z/);
-    });
+    // The bridge is the one exception: its deck is a line over open water
+    // in both variants, and Filled makes its towers and piers solid — the
+    // renderer paints those, not the shape.
+    GRAPH_STYLES.filter(canGraphFill)
+      .filter((style) => style !== 'truss')
+      .forEach((style) => {
+        expect(
+          createGraphShape(
+            points,
+            style,
+            BASELINE,
+            undefined,
+            undefined,
+            0,
+            0,
+            true,
+          ),
+        ).toMatch(/Z/);
+      });
   });
 
   it('does not frame the stroked forms in a box to achieve it', () => {

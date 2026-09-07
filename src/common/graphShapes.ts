@@ -1059,6 +1059,9 @@ export const createGraphShape = (
       }
       const last = joints[joints.length - 1];
       path += ` M ${last[0].toFixed(1)},${last[1].toFixed(1)} V ${baseline.toFixed(1)}`;
+      // Filled or not, the truss is open: the bridge's "filled" variant is
+      // its towers and piers going solid, and the water under the deck
+      // stays in view.
       return path;
     }
 
