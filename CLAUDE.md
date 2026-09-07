@@ -196,9 +196,14 @@ with branch protection. Treat a green `Verify` check as mandatory before merge;
 enable it as a required check if the repository becomes public or the plan later
 includes private-repository branch protection.
 
-## UI changes
+## UI
 
 Always look at a UI change before delivering it. Open it and check that it
 does not break the layout and that it stays responsive, however small it is.
 One button can break a full-width layout and make a horizontal scrollbar
 appear. Check the narrow widths, not just the desktop one.
+
+UI work must be impressive. Never settle for basic or default-looking UI:
+generic layouts, stock component styling, placeholder spacing. Design it with
+intent, then criticize it as if a demanding designer were reviewing it, and
+raise it until it is something worth showing.
