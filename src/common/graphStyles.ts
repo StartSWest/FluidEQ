@@ -169,7 +169,7 @@ export const canonicalGraphStyle = (style: GraphStyle): GraphStyle => {
   if (style === 'caps' || style === 'crown') {
     return 'dots';
   }
-  if (style === 'ridge') {
+  if (style === 'ridge' || style === 'ribbon') {
     return 'area';
   }
   if (style === 'pillars' || style === 'candles' || style === 'barcode') {
