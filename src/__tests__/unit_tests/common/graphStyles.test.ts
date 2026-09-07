@@ -350,7 +350,7 @@ describe('createGraphShape', () => {
     // The whole idea of the form is that it is read upside down. Drawn from
     // the baseline it would be indistinguishable from spikes.
     const path = shapeOf('stalactites');
-    expect(path).toMatch(/,0 L/);
+    expect(path).toMatch(/,0\.0 L/);
     expect(path).not.toContain(BASELINE.toFixed(1));
   });
 
@@ -377,7 +377,7 @@ describe('createGraphShape', () => {
     // capture having died rather than as a setting.
     const d = shapeOf('contour');
     expect(d).toMatch(/Z/);
-    expect(d).toMatch(/v [\d.]+/);
+    expect(d).toMatch(/a [1-9][\d.]*,[1-9][\d.]* 0 0 1 0,[1-9][\d.]*/);
   });
 
   it('leaves every fillable form something to paint', () => {
@@ -528,7 +528,8 @@ describe('the lit peaks', () => {
     const lit = GRAPH_STYLES.filter(
       (style) => hasGraphAccent(style) && style !== 'fluid',
     );
-    expect(lit).toEqual(['blocks', 'scatter']);
+    expect(lit).toEqual(['blocks', 'scatter', 'slope']);
+    expect(getDefaultAccentStyle('slope')).toBe('sparks');
     expect(getDefaultAccentStyle('scatter')).toBe('blink');
   });
 
