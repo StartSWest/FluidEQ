@@ -719,7 +719,7 @@ const FILL_OPACITY_OVERRIDES: Partial<Record<GraphStyle, number>> = {
   fluid: 0.92,
   bubbles: 0.85,
   dots: 0.9,
-  blocks: 0.84,
+  blocks: 0.74,
   // Broad fills need enough colour to stand beside the brighter beads and
   // LEDs; their old shared opacity made these two look washed out.
   area: 0.78,
