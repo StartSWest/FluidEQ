@@ -1141,36 +1141,6 @@ export const createGraphShape = (
       return path;
     }
 
-    // The trace, and three afterimages of it — each arriving a little to the
-    // right and standing a little lower, the way a delay repeat comes back
-    // late and quieter. Nothing here is remembered between frames; the echoes
-    // are the same instant redrawn smaller, which is a picture of decay rather
-    // than a recording of it.
-    case 'echo': {
-      const left = points[0][0];
-      const right = points[points.length - 1][0];
-      // Each repeat shuts against the floor on ITS own span, not on the live
-      // trace's — they are offset to the right, and closing all four between
-      // the same two verticals would slant every repeat's end wall.
-      const shut = (trace: string, late: number) =>
-        filled ? closedUnder(trace, left + late, right + late) : trace;
-      let path = shut(polyline(points), 0);
-      for (let copy = 1; copy <= 3; copy += 1) {
-        const decay = 1 - copy * 0.26;
-        const late = copy * 6;
-        path += ` ${shut(
-          polyline(
-            points.map(
-              ([x, y]) =>
-                [x + late, baseline - (baseline - y) * decay] as Projected,
-            ),
-          ),
-          late,
-        )}`;
-      }
-      return path;
-    }
-
     // Stars streaking past, three depths of them.
     //
     // The offsets come from the column index rather than from a random number,

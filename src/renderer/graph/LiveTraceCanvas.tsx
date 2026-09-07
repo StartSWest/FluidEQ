@@ -82,6 +82,12 @@ import createTrussRoad from 'common/graphTruss';
 import createGraphStalactites from 'common/graphStalactites';
 import createGraphSawtooth from 'common/graphSawtooth';
 import {
+  advanceEchoWaves,
+  createEchoWaves,
+  createEchoWavePaths,
+  SNAPSHOT_COLUMNS,
+} from './echoWaves';
+import {
   advancePulseMonitor,
   createPulseMonitor,
   createPulsePaths,
@@ -338,6 +344,7 @@ const LiveTraceCanvas = ({
   const bubbleStormRef = useRef(createBubbleStorm());
   const sawtoothScopeRef = useRef(createSawtoothScope());
   const pulseMonitorRef = useRef(createPulseMonitor());
+  const echoWavesRef = useRef(createEchoWaves());
   const dashTrailsRef = useRef(createDashTrails());
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -696,9 +703,32 @@ const LiveTraceCanvas = ({
               motionRef.current.travel[0] ?? 0,
             )
           : undefined;
+      // Echo keeps its own past and hands back the live wave as the figure;
+      // the static stack is never built for it.
+      if (chosen === 'echo') {
+        advanceEchoWaves(
+          echoWavesRef.current,
+          toColumns(projected, SNAPSHOT_COLUMNS),
+          plot.top,
+          baseline,
+          motionRef.current.travel[0] ?? 0,
+          playingRef.current,
+        );
+      }
+      const echoPaths =
+        chosen === 'echo'
+          ? createEchoWavePaths(
+              echoWavesRef.current,
+              projected,
+              plot.top,
+              baseline,
+              motionRef.current.travel[0] ?? 0,
+              isFilled,
+            )
+          : undefined;
       let shape =
         stems?.shape ??
-        (pulsePaths ? '' : undefined) ??
+        (pulsePaths || echoPaths ? '' : undefined) ??
         (isFluidForm
           ? spectrumBarsPath(
               {
@@ -766,6 +796,7 @@ const LiveTraceCanvas = ({
         scatter && tuning.accents && tuning.accentStyle === 'blink';
       const figure =
         pulsePaths?.shape ??
+        echoPaths?.shape ??
         new Path2D(
           blinkingSatellites && chosen === 'scatter' ? scatter.primary : shape,
         );
@@ -938,7 +969,7 @@ const LiveTraceCanvas = ({
         // for the light to follow the real thing.
         const glowStyle = getGlowStyle(
           chosen,
-          pulsePaths ? 0 : shape.length,
+          pulsePaths || echoPaths ? 0 : shape.length,
           isFilled,
         );
         halo =
@@ -1521,6 +1552,52 @@ const LiveTraceCanvas = ({
             context.lineWidth = 1;
             setAlpha(context, opacity * strength);
             context.stroke(batch);
+          });
+        }
+        if (echoPaths) {
+          // The horizon the waves roll toward: a faint line, brightest
+          // in the middle where they converge.
+          const glow = context.createLinearGradient(
+            plot.left,
+            0,
+            plot.right,
+            0,
+          );
+          glow.addColorStop(0, 'rgba(255,255,255,0)');
+          glow.addColorStop(0.5, 'rgba(255,255,255,0.35)');
+          glow.addColorStop(1, 'rgba(255,255,255,0)');
+          context.strokeStyle = glow;
+          context.lineWidth = 1;
+          setAlpha(context, opacity);
+          const horizon = new Path2D();
+          horizon.moveTo(plot.left, echoPaths.horizon);
+          horizon.lineTo(plot.right, echoPaths.horizon);
+          context.stroke(horizon);
+          // Back to front: each past wave dimmer and thinner with depth, a
+          // beat's wave heavier and brighter all the way back.
+          echoPaths.waves.forEach((wave) => {
+            const remaining = (1 - wave.depth) ** 1.5;
+            if (wave.body) {
+              context.fillStyle = canvasPaint;
+              setAlpha(
+                context,
+                opacity * tuning.fillOpacity * 0.14 * remaining,
+              );
+              context.fill(wave.body);
+            }
+            context.strokeStyle = canvasPaint;
+            context.lineWidth = 1 + wave.strength * 1.6;
+            setAlpha(
+              context,
+              opacity * remaining * (0.45 + wave.strength * 0.5),
+            );
+            context.stroke(wave.line);
+            if (wave.strength > 0.3) {
+              context.strokeStyle = '#fff';
+              context.lineWidth = 0.8;
+              setAlpha(context, opacity * remaining * wave.strength * 0.6);
+              context.stroke(wave.line);
+            }
           });
         }
         if (pulsePaths) {

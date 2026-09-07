@@ -202,49 +202,6 @@ describe('visualizer timing', () => {
     },
   );
 
-  it('echo retains earlier audio and eventually settles with bounded history', () => {
-    const state = createGraphMotionState();
-    const args = {
-      state,
-      style: 'echo' as const,
-      columns: 32,
-      top: 20,
-      bottom: 300,
-      playing: true,
-      filled: false,
-    };
-    const low: Projected[] = [
-      [40, 290],
-      [100, 280],
-      [200, 290],
-    ];
-    const high: Projected[] = [
-      [40, 90],
-      [100, 30],
-      [200, 90],
-    ];
-    createMovingGraphShape({ ...args, points: low, deltaMs: 0 });
-    const first = createMovingGraphShape({
-      ...args,
-      points: high,
-      deltaMs: 33,
-    });
-    // The oldest trace still contains the quiet frame while the front is loud.
-    expect(first.path).toContain('102.16,233.20');
-    expect(first.path).toContain('100.00,30.00');
-    let last = first;
-    for (let i = 0; i < 400; i += 1) {
-      last = createMovingGraphShape({
-        ...args,
-        points: high,
-        deltaMs: 1000 / 144,
-      });
-    }
-    expect(last.path).not.toBe(first.path);
-    expect(last.moving).toBe(false);
-    expect(state.history.length).toBeLessThanOrEqual(256);
-  });
-
   it('waveform smoothing initializes the buffer and respects Edit rates', () => {
     const fast: number[] = [];
     const slow: number[] = [];

@@ -1,6 +1,7 @@
 import { GraphStyle, Projected, hole, rect } from './graphStyles';
 import createGraphSawtooth from './graphSawtooth';
 import createGraphPulse from './graphPulse';
+import createGraphEcho from './graphEcho';
 
 export const isGraphScene = (style: GraphStyle): boolean =>
   [
@@ -11,6 +12,7 @@ export const isGraphScene = (style: GraphStyle): boolean =>
     'invaders',
     'sawtooth',
     'ecg',
+    'echo',
   ].includes(style);
 
 const point = (x: number, y: number) => `${x.toFixed(2)},${y.toFixed(2)}`;
@@ -62,6 +64,9 @@ export const createGraphScene = ({
   }
   if (style === 'ecg') {
     return createGraphPulse(points, bottom, filled);
+  }
+  if (style === 'echo') {
+    return createGraphEcho(points, top, bottom, filled);
   }
   const left = points[0][0];
   const width = Math.max(1, points[points.length - 1][0] - left);
