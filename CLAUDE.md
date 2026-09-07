@@ -133,6 +133,17 @@ placement or taste. Therefore:
   scrolls rather than clipping, keeps the design's spacing and emphasis, and
   breaks nothing around it. If it cannot be looked at, say so; do not report
   it done.
+- **Impressive, never basic.** The first version of a visualizer, a scene
+  or a control is never the one to show: a row of rhombi, a straight cable,
+  a grey wedge for a headlight beam, a hairline for a firework tail — every
+  one of those shipped to the window and every one was sent back as "sucks".
+  Before showing anything visual, look at it as the harshest critic in the
+  room would: does it read as the real thing (a bridge with foundations,
+  cables that drape, a road with markings and a dashed centre line), does it
+  move with the music in more than one way (level, beat, bass and treble
+  separately), does it keep its shape at every size and in the mirror, does
+  it have depth and light. If the honest answer to any of these is no, it is
+  not ready — fix it before the screenshot, not after the complaint.
 - **Reuse the app's existing classes; never invent a style.** `button small` is
   the filled accent, `button small subtle` the quiet outline — measured, not
   assumed: when a style misbehaves, read `getComputedStyle` in the live window
