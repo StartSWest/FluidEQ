@@ -467,7 +467,7 @@ const BALLISTICS: Partial<Record<GraphStyle, IGraphBallistics>> = {
   crown: { attackMs: 4, releaseMs: 36 },
   // Landscapes. A hill that twitches is noise, so these are the slow ones.
   ridge: { attackMs: 22, releaseMs: 90 },
-  terrace: { attackMs: 16, releaseMs: 70 },
+  terrace: { attackMs: 24, releaseMs: 240 },
   area: { attackMs: 18, releaseMs: 145 },
   // The staircase steps by nature; easing it hard would blur the treads.
   steps: { attackMs: 10, releaseMs: 90 },
@@ -613,6 +613,7 @@ const COLUMN_OVERRIDES: Partial<Record<GraphStyle, number>> = {
   dots: 48,
   blocks: 40,
   stems: 48,
+  terrace: 32,
   skyline: 26,
   truss: 22,
   ecg: 26,
@@ -870,6 +871,7 @@ export const DISCRETE_STYLES = new Set<GraphStyle>([
   'blocks',
   'spikes',
   'stems',
+  'terrace',
   'dashes',
   'scatter',
   'caps',

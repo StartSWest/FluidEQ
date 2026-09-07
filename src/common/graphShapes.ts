@@ -29,6 +29,7 @@ import {
 import { WaveformStyle, createWaveformShape } from './waveformStyles';
 import { createGraphScene, isGraphScene } from './graphScenes';
 import { createGraphStems } from './graphStems';
+import createGraphTerrace from './graphTerrace';
 
 /**
  * How each of the forty graph forms is actually drawn.
@@ -657,14 +658,9 @@ export const createGraphShape = (
     case 'stems':
       return createGraphStems(figure, baseline, gap).shape;
 
-    // The staircase, filled — levels rather than a slope.
     case 'terrace': {
-      let path = `M ${figure[0][0].toFixed(1)},${baseline.toFixed(1)}`;
-      for (let index = 0; index < figure.length; index += 1) {
-        const [x, y] = figure[index];
-        path += ` V ${y.toFixed(1)} H ${(x + step).toFixed(1)}`;
-      }
-      return `${path} V ${baseline.toFixed(1)} Z`;
+      const terrace = createGraphTerrace(figure, baseline);
+      return filled ? terrace.shape : terrace.outline;
     }
 
     // Just the tops, floating where the level is.

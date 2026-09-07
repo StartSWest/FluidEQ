@@ -62,6 +62,7 @@ import { DEFAULT_GLOW } from 'common/customLooks';
 import { MAX_GAIN, MIN_GAIN } from 'common/constants';
 import { canGraphFill } from 'common/graphStyles';
 import { createGraphStems, STEM_FADE_LEVELS } from 'common/graphStems';
+import createGraphTerrace from 'common/graphTerrace';
 import { getEaseFactor } from 'common/smoothing';
 import {
   createGraphAccent,
@@ -117,6 +118,11 @@ import { readAccentLight } from '../utils/theme';
 import { useIsRootEuphoric } from '../utils/euphoriaMode';
 import { GraphLookTransition } from './graphLookTransition';
 import getGraphMotionDelta from './graphMotionPacing';
+import {
+  createTerraceJumper,
+  advanceTerraceJumper,
+  paintTerraceJumper,
+} from './terraceJumper';
 
 /**
  * The euphoria halo: two wide, faint copies of the figure behind itself.
@@ -295,6 +301,7 @@ const LiveTraceCanvas = ({
   // capture. Only Pause freezes their motion; isActive describes that capture.
   playingRef.current = !isPaused;
   const motionRef = useRef(createGraphMotionState());
+  const terraceJumperRef = useRef(createTerraceJumper());
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const transitionRef = useRef(new GraphLookTransition());
@@ -638,6 +645,29 @@ const LiveTraceCanvas = ({
         motionRef.current.key = '';
       }
       const figure = new Path2D(shape);
+      const terraceJumper =
+        chosen === 'terrace'
+          ? advanceTerraceJumper(
+              terraceJumperRef.current,
+              toColumns(projected, tuning.columns),
+              motionDeltaMs,
+              playingRef.current,
+            )
+          : undefined;
+      if (terraceJumper && playingRef.current) {
+        moving = true;
+      }
+      const terraceTiers =
+        chosen === 'terrace' && isFilled
+          ? createGraphTerrace(
+              toColumns(projected, tuning.columns),
+              baseline,
+            ).tiers.map((tier) => ({
+              body: new Path2D(tier.body),
+              edge: new Path2D(tier.edge),
+              opacity: tier.opacity,
+            }))
+          : undefined;
       const stemLayers =
         isFilled && stems
           ? {
@@ -1053,7 +1083,17 @@ const LiveTraceCanvas = ({
         // One drawing for every style. A filled style paints the same shape
         // rather than stroking it — which is a fill, not a second figure, so
         // cycling styles never changes what is drawn, only how.
-        if (stemLayers) {
+        if (terraceTiers) {
+          context.fillStyle = canvasPaint;
+          context.strokeStyle = canvasPaint;
+          terraceTiers.forEach((tier, index) => {
+            setAlpha(context, opacity * tuning.fillOpacity * tier.opacity);
+            context.fill(tier.body, 'evenodd');
+            setAlpha(context, opacity * (index === 0 ? 0.85 : 0.3));
+            context.lineWidth = index === 0 ? 1.6 : 1;
+            context.stroke(tier.edge);
+          });
+        } else if (stemLayers) {
           context.fillStyle = canvasPaint;
           stemLayers.lines.forEach((path, level) => {
             const fade = 1 - (level + 0.5) / STEM_FADE_LEVELS;
@@ -1132,6 +1172,15 @@ const LiveTraceCanvas = ({
           setAlpha(context, opacity * tuning.fillOpacity);
           context.fillStyle = canvasPaint;
           context.fill(figure);
+        }
+        if (terraceJumper) {
+          setAlpha(context, opacity);
+          paintTerraceJumper(
+            context,
+            terraceJumper,
+            plot.right - plot.left,
+            depth * Math.abs(wave.scaleY),
+          );
         }
         const figureStroke = resolveFigureStroke(
           basePaint,

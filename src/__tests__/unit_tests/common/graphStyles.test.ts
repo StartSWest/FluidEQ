@@ -267,7 +267,18 @@ describe('every graph style', () => {
       // A painted style that is not closed leaves the fill to be guessed by
       // the renderer, which joins the gap in a straight line from wherever the
       // path happened to stop.
-      expect(shapeOf(style)).toMatch(/Z/);
+      expect(
+        createGraphShape(
+          points,
+          style,
+          BASELINE,
+          undefined,
+          undefined,
+          0,
+          0,
+          true,
+        ),
+      ).toMatch(/Z/);
     },
   );
 
