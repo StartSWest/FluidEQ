@@ -171,7 +171,7 @@ export const canonicalGraphStyle = (style: GraphStyle): GraphStyle => {
   ) {
     return 'line';
   }
-  if (style === 'caps' || style === 'crown') {
+  if (style === 'caps' || style === 'crown' || style === 'diamonds') {
     return 'dots';
   }
   if (style === 'ridge' || style === 'ribbon') {
