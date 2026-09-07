@@ -264,7 +264,6 @@ const STROKED_STYLES = new Set<GraphStyle>([
   'line',
   'steps',
   'dashes',
-  'ribs',
   'weave',
   'contour',
   'hatch',
@@ -464,7 +463,7 @@ const BALLISTICS: Partial<Record<GraphStyle, IGraphBallistics>> = {
   scatter: { attackMs: 12, releaseMs: 220 },
   dashes: { attackMs: 6, releaseMs: 210 },
   // Thin forms can afford to be instant; there is no mass to them.
-  ribs: { attackMs: 3, releaseMs: 30 },
+  ribs: { attackMs: 8, releaseMs: 180 },
   stems: { attackMs: 1, releaseMs: 250 },
   spikes: { attackMs: 8, releaseMs: 250 },
   crown: { attackMs: 4, releaseMs: 36 },
@@ -731,6 +730,7 @@ const FILL_OPACITY_OVERRIDES: Partial<Record<GraphStyle, number>> = {
   stems: 0.84,
   terrace: 0.74,
   scatter: 0.74,
+  ribs: 1,
   // Broad fills need enough colour to stand beside the brighter beads and
   // LEDs; their old shared opacity made these two look washed out.
   area: 0.78,
@@ -819,7 +819,6 @@ export const getGraphFillOpacity = (
  */
 const STROKE_ONLY_STYLES = new Set<GraphStyle>([
   'dashes',
-  'ribs',
   'slope',
   'starfield',
   'rain',

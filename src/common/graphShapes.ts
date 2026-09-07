@@ -743,16 +743,20 @@ export const createGraphShape = (
     // Horizontal rungs stacked up each column.
     case 'ribs': {
       const width = columnWidth(2);
-      // Rungs every nine pixels. Named for what it is: `gap` shadowed the
-      // column-gap parameter and read as though this form answered it.
       const pitch = 9;
+      const thickness = Math.min(2.4, width * 0.4);
+      const radius = thickness / 2;
       let path = '';
       for (let index = 0; index < figure.length; index += 1) {
         const [x, y] = figure[index];
-        for (let at = baseline; at > y; at -= pitch) {
-          path += `M ${(x - width / 2).toFixed(1)},${at.toFixed(
-            1,
-          )} h ${width.toFixed(1)} `;
+        // Closed rounded rungs make Fill a real opacity control. Starting at
+        // the crest also lets the top rung follow small musical changes.
+        for (let at = y; at + thickness < baseline; at += pitch) {
+          const left = x - width / 2;
+          const span = (width - thickness).toFixed(1);
+          const r = radius.toFixed(1);
+          const h = thickness.toFixed(1);
+          path += `M ${(left + radius).toFixed(1)},${at.toFixed(1)} h ${span} a ${r},${r} 0 0 1 0,${h} h -${span} a ${r},${r} 0 0 1 0,-${h} Z`;
         }
       }
       return path.trim();
