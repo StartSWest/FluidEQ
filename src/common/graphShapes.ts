@@ -1075,11 +1075,13 @@ export const createGraphShape = (
     // even, raked steeply through a crossover, and it makes a slope you would
     // never notice on a curve jump straight out.
     case 'slope': {
-      const length = Math.max(6, step * 0.85);
+      const length = Math.max(6, columnWidth(6));
       let path = '';
       for (let index = 0; index < figure.length; index += 1) {
-        const before = figure[Math.max(0, index - 1)];
-        const after = figure[Math.min(figure.length - 1, index + 1)];
+        // A wider neighbourhood steadies each direction through narrow FFT
+        // spikes, while its centre still reports the actual band level.
+        const before = figure[Math.max(0, index - 2)];
+        const after = figure[Math.min(figure.length - 1, index + 2)];
         const runX = after[0] - before[0] || 1;
         const runY = after[1] - before[1];
         const norm = Math.hypot(runX, runY) || 1;
@@ -1089,6 +1091,12 @@ export const createGraphShape = (
         path += `M ${(x - halfX).toFixed(1)},${(y - halfY).toFixed(1)} L ${(
           x + halfX
         ).toFixed(1)},${(y + halfY).toFixed(1)} `;
+        const wing = Math.min(3.5, length * 0.2);
+        const tipX = x + halfX;
+        const tipY = y + halfY;
+        const ux = runX / norm;
+        const uy = runY / norm;
+        path += `M ${(tipX - ux * wing - uy * wing * 0.65).toFixed(1)},${(tipY - uy * wing + ux * wing * 0.65).toFixed(1)} L ${tipX.toFixed(1)},${tipY.toFixed(1)} L ${(tipX - ux * wing + uy * wing * 0.65).toFixed(1)},${(tipY - uy * wing - ux * wing * 0.65).toFixed(1)} `;
       }
       return path.trim();
     }
@@ -1537,6 +1545,7 @@ export const ACCENT_STYLES: AccentStyle[] = [
 ];
 
 const ACCENTS: Partial<Record<GraphStyle, 'bead' | 'trace'>> = {
+  slope: 'bead',
   scatter: 'bead',
   blocks: 'bead',
   /**
@@ -1675,6 +1684,9 @@ export const getGlowStyle = (
  * mark this graph has always drawn.
  */
 export const getDefaultAccentStyle = (style: GraphStyle): AccentStyle => {
+  if (style === 'slope') {
+    return 'sparks';
+  }
   if (style === 'scatter') {
     return 'blink';
   }

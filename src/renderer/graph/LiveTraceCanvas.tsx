@@ -93,6 +93,7 @@ import {
 } from './graphAccents';
 import { createFluidBarPaint, heatColour } from './lookColours';
 import paintTrussCars from './trussCars';
+import createSlopeFlow from './slopeFlow';
 import { resolveLookWaveform, useLookPreviewPoints } from './lookPreview';
 import { IChartPointData, ILiveCurveData } from './ChartController';
 import {
@@ -307,6 +308,7 @@ const LiveTraceCanvas = ({
   const motionRef = useRef(createGraphMotionState());
   const terraceJumperRef = useRef(createTerraceJumper());
   const trussTrafficRef = useRef(0);
+  const slopeFlowRef = useRef(0);
   const dashTrailsRef = useRef(createDashTrails());
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -632,6 +634,22 @@ const LiveTraceCanvas = ({
               plot.top,
               isFilled,
             ));
+      if (chosen === 'slope' && playingRef.current) {
+        slopeFlowRef.current = (slopeFlowRef.current + motionDeltaMs / 480) % 1;
+        moving = true;
+      }
+      const slopeFlow =
+        chosen === 'slope'
+          ? createSlopeFlow(
+              toColumns(projected, tuning.columns),
+              slopeFlowRef.current,
+              baseline,
+              tuning.gap,
+            )
+          : undefined;
+      if (slopeFlow) {
+        shape = slopeFlow.path;
+      }
       if (hasGraphMotion(chosen)) {
         const motion = createMovingGraphShape({
           state: motionRef.current,
@@ -684,10 +702,12 @@ const LiveTraceCanvas = ({
               playingRef.current,
             )
           : undefined;
-      const dashTrails = dashHistory?.trails.map((trail) => ({
-        ...trail,
-        path: new Path2D(trail.path),
-      }));
+      const dashTrails = (slopeFlow?.trails ?? dashHistory?.trails)?.map(
+        (trail) => ({
+          ...trail,
+          path: new Path2D(trail.path),
+        }),
+      );
       if (dashHistory?.moving) {
         moving = true;
       }

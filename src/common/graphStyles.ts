@@ -507,7 +507,7 @@ const BALLISTICS: Partial<Record<GraphStyle, IGraphBallistics>> = {
   // Keep the attack readable without losing 85% of a pulse between 30Hz
   // frames. Slope follows spatial direction, not instantaneous velocity.
   ecg: { attackMs: 8, releaseMs: 110 },
-  slope: { attackMs: 14, releaseMs: 100 },
+  slope: { attackMs: 8, releaseMs: 220 },
   feather: { attackMs: 4, releaseMs: 34 },
   zipper: { attackMs: 12, releaseMs: 90 },
 
@@ -767,6 +767,7 @@ const BAR_GAP_DEFAULTS: Partial<Record<GraphStyle, number>> = {
   stems: 0.58,
   dashes: 0.36,
   scatter: 0.56,
+  slope: 0.25,
   caps: 0.34,
   ribs: 0.34,
   crown: 0.2,

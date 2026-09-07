@@ -356,7 +356,10 @@ export const getDefaultTuning = (style: GraphStyle): ILookTuning => {
     releaseMs: ballistics.releaseMs,
     filled: isFilledGraphStyle(style),
     strokeWidth:
-      style === 'line' || style === 'dashes' || style === 'truss'
+      style === 'line' ||
+      style === 'dashes' ||
+      style === 'truss' ||
+      style === 'slope'
         ? 3
         : DEFAULT_STROKE_WIDTH,
     fillOpacity: getGraphFillOpacity(style, DEFAULT_FILL_OPACITY),
