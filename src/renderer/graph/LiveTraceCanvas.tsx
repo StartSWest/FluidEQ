@@ -77,6 +77,7 @@ import {
 import useSmoothFrames from 'renderer/utils/useSmoothFrames';
 import { useGraphGridHidden, useGraphLook } from 'renderer/utils/graphStyle';
 import createTrussRoad from 'common/graphTruss';
+import createGraphStalactites from 'common/graphStalactites';
 import {
   useLiveAudioFrame,
   useLiveAudioControl,
@@ -609,6 +610,21 @@ const LiveTraceCanvas = ({
               tuning.gap,
             )
           : undefined;
+      const mineral =
+        chosen === 'stalactites' && isFilled
+          ? createGraphStalactites(
+              toColumns(projected, tuning.columns),
+              baseline,
+              plot.top,
+              tuning.gap,
+            )
+          : undefined;
+      const mineralPaths = mineral
+        ? {
+            shade: new Path2D(mineral.shade),
+            light: new Path2D(mineral.light),
+          }
+        : undefined;
       let shape =
         stems?.shape ??
         (isFluidForm
@@ -1269,6 +1285,14 @@ const LiveTraceCanvas = ({
           setAlpha(context, opacity * tuning.fillOpacity);
           context.fillStyle = canvasPaint;
           context.fill(figure);
+        }
+        if (mineralPaths) {
+          context.fillStyle = '#000';
+          setAlpha(context, opacity * tuning.fillOpacity * 0.25);
+          context.fill(mineralPaths.shade);
+          context.fillStyle = '#fff';
+          setAlpha(context, opacity * tuning.fillOpacity * 0.24);
+          context.fill(mineralPaths.light);
         }
         if (terraceJumper) {
           setAlpha(context, opacity);

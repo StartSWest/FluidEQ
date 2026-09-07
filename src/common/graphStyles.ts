@@ -500,7 +500,7 @@ const BALLISTICS: Partial<Record<GraphStyle, IGraphBallistics>> = {
 
   // Things that hang, fall or float have gravity in them: quick to appear,
   // reluctant to leave.
-  stalactites: { attackMs: 9, releaseMs: 120 },
+  stalactites: { attackMs: 45, releaseMs: 320 },
   bubbles: { attackMs: 3, releaseMs: 92 },
   diamonds: { attackMs: 4, releaseMs: 78 },
 
@@ -635,7 +635,7 @@ const COLUMN_OVERRIDES: Partial<Record<GraphStyle, number>> = {
   feather: 44,
   slope: 44,
   diamonds: 48,
-  stalactites: 52,
+  stalactites: 36,
   // The arcade forms are drawn as sprites, and a sprite squeezed into a
   // six-pixel column is a smudge. Fewer, bigger.
   invaders: 20,
@@ -739,6 +739,7 @@ const FILL_OPACITY_OVERRIDES: Partial<Record<GraphStyle, number>> = {
   scatter: 0.74,
   ribs: 1,
   contour: 0.74,
+  stalactites: 0.74,
   // Broad fills need enough colour to stand beside the brighter beads and
   // LEDs; their old shared opacity made these two look washed out.
   area: 0.78,
@@ -772,7 +773,7 @@ const BAR_GAP_DEFAULTS: Partial<Record<GraphStyle, number>> = {
   ribs: 0.34,
   crown: 0.2,
   matrix: 0.64,
-  stalactites: 0.38,
+  stalactites: 0.08,
   bubbles: 0.38,
   diamonds: 0.15,
   fence: 0.64,

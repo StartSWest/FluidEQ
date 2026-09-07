@@ -31,6 +31,7 @@ import { createGraphScene, isGraphScene } from './graphScenes';
 import { createGraphStems } from './graphStems';
 import createGraphTerrace from './graphTerrace';
 import createTrussRoad from './graphTruss';
+import createGraphStalactites from './graphStalactites';
 
 /**
  * How each of the forty graph forms is actually drawn.
@@ -1105,16 +1106,7 @@ export const createGraphShape = (
     // read upside down — loud is long, and the shape grows towards you from
     // the top of the plot instead of away from the bottom.
     case 'stalactites': {
-      const width = columnWidth(2);
-      let path = '';
-      for (let index = 0; index < figure.length; index += 1) {
-        const [x, y] = figure[index];
-        const length = Math.max(0, baseline - y);
-        path += `M ${(x - width / 2).toFixed(1)},0 L ${(x + width / 2).toFixed(
-          1,
-        )},0 L ${x.toFixed(1)},${length.toFixed(1)} Z`;
-      }
-      return path;
+      return createGraphStalactites(figure, baseline, ceiling, gap).shape;
     }
 
     // Gems on the peaks, cut larger where the signal is stronger.
