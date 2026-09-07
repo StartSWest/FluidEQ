@@ -109,7 +109,9 @@ describe('automatic visualizer switching', () => {
     expect(cycleGraphLook).toHaveBeenCalledTimes(1);
   });
 
-  it('remembers the interval and rejects invalid saved values', () => {
+  it('cycles every two minutes until told otherwise, remembers the interval and rejects invalid saved values', () => {
+    expect(readGraphAutoCycle()).toBe(120);
+    saveGraphAutoCycle(0);
     expect(readGraphAutoCycle()).toBe(0);
     saveGraphAutoCycle(30);
     expect(readGraphAutoCycle()).toBe(30);

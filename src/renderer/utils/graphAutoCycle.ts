@@ -3,15 +3,25 @@ import { cycleGraphLook } from './graphStyle';
 
 export const GRAPH_AUTO_CYCLE_INTERVALS = [0, 10, 20, 30, 60, 120] as const;
 const STORAGE_KEY = 'fluideq-graph-auto-cycle-seconds';
+/**
+ * A fresh install cycles every two minutes until told otherwise: the forms
+ * are the product's showpiece, and a new user who never opens the picker
+ * should still see more than one of them. Off stays one click away.
+ */
+export const DEFAULT_GRAPH_AUTO_CYCLE = 120;
 
 export const readGraphAutoCycle = (): number => {
   try {
-    const seconds = Number(window.localStorage.getItem(STORAGE_KEY));
+    const stored = window.localStorage.getItem(STORAGE_KEY);
+    if (stored === null) {
+      return DEFAULT_GRAPH_AUTO_CYCLE;
+    }
+    const seconds = Number(stored);
     return GRAPH_AUTO_CYCLE_INTERVALS.some((value) => value === seconds)
       ? seconds
       : 0;
   } catch {
-    return 0;
+    return DEFAULT_GRAPH_AUTO_CYCLE;
   }
 };
 

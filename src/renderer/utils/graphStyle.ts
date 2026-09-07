@@ -21,7 +21,9 @@ import {
   DEFAULT_GRAPH_LOOK,
   DEFAULT_GRAPH_LOOK_ID,
   GRAPH_FORM_LOOKS,
+  GRAPH_PALETTES,
   GraphPalette,
+  GraphStyle,
   getGraphLook,
   graphLookId,
   canonicalGraphStyle,
@@ -39,9 +41,57 @@ import {
   subscribeCustomLooks,
 } from './customLooks';
 
-import { STORAGE_KEY } from './graphStorage';
+import { readStored, STORAGE_KEY, writeStored } from './graphStorage';
 
 const listeners = new Set<() => void>();
+
+/**
+ * The palette each form was last shown in, from the toolbar toggle.
+ *
+ * The toggle used to be one setting for every form, so choosing Level for
+ * the bridge repainted the bars in Level too the moment they came round.
+ * A colouring suits a form, not a session: the choice is kept per form,
+ * and a form nobody has chosen for takes `auto`, its own colouring.
+ */
+const PALETTE_BY_FORM_KEY = 'fluideq-graph-palette-by-form';
+
+const isGraphPalette = (value: unknown): value is GraphPalette =>
+  typeof value === 'string' &&
+  GRAPH_PALETTES.some((palette) => palette === value);
+
+const readPalettesByForm = (): Partial<Record<GraphStyle, GraphPalette>> => {
+  const stored = readStored(PALETTE_BY_FORM_KEY);
+  if (!stored) {
+    return {};
+  }
+  try {
+    const parsed: unknown = JSON.parse(stored);
+    if (typeof parsed !== 'object' || parsed === null) {
+      return {};
+    }
+    const map: Partial<Record<GraphStyle, GraphPalette>> = {};
+    Object.entries(parsed).forEach(([style, palette]) => {
+      if (isGraphPalette(palette)) {
+        map[style as GraphStyle] = palette;
+      }
+    });
+    return map;
+  } catch {
+    // A mangled entry is nobody's choice; every form falls back to auto.
+    return {};
+  }
+};
+
+let palettesByForm = readPalettesByForm();
+
+/** The palette a form comes back in: what was chosen for it, else auto. */
+export const getFormPalette = (style: GraphStyle): GraphPalette =>
+  palettesByForm[style] ?? 'auto';
+
+const rememberFormPalette = (style: GraphStyle, palette: GraphPalette) => {
+  palettesByForm = { ...palettesByForm, [style]: palette };
+  writeStored(PALETTE_BY_FORM_KEY, JSON.stringify(palettesByForm));
+};
 
 /**
  * What the picker points at.
@@ -144,14 +194,23 @@ export const getSelectableLooks = (
    */
   palette: GraphPalette = getGraphPalette(),
 ): IResolvedLook[] => {
+  const selected = getGraphLook(selectedId).style;
   return [
-    // One row per form, shown in whichever palette is currently on. The
-    // palette is a toggle rather than three rows each, so the list is
-    // forty-seven entries instead of a hundred and forty-one — and the
-    // click-on-the-plot cycle walks forms rather than repainting the same
-    // form three times before reaching the next one.
+    // One row per form, each in the palette last chosen for it — the
+    // selected one in the palette that is on right now, which is the same
+    // thing once the toggle has written it down. The palette is a toggle
+    // rather than rows per palette, so the list is forty-odd entries rather
+    // than two hundred — and the click-on-the-plot cycle walks forms rather
+    // than repainting the same form five times before reaching the next.
     ...GRAPH_FORM_LOOKS.map((form) =>
-      resolveBuiltInLook(getGraphLook(graphLookId(form.style, palette))),
+      resolveBuiltInLook(
+        getGraphLook(
+          graphLookId(
+            form.style,
+            form.style === selected ? palette : getFormPalette(form.style),
+          ),
+        ),
+      ),
     ),
     ...customLooks.map(resolveCustomLook),
   ];
@@ -175,17 +234,18 @@ export const getGraphPalette = (): GraphPalette => {
 };
 
 /**
- * Repaint the selected form in another palette.
- *
- * Selecting the same form's other id rather than storing a mode, which is
- * what keeps this one line: the palette is part of the look's identity and
- * always was.
+ * Repaint the selected form in another palette, and remember it for that
+ * form: the next time it comes round, by picker or by cycle, it comes back
+ * in this palette. The palette is part of the look's identity, so the
+ * selection itself is just the form's other id.
  */
 export const setGraphPalette = (palette: GraphPalette) => {
   if (getCustomLook(selectedId)) {
     return;
   }
-  setGraphLook(graphLookId(getGraphLook(selectedId).style, palette));
+  const { style } = getGraphLook(selectedId);
+  rememberFormPalette(style, palette);
+  setGraphLook(graphLookId(style, palette));
 };
 
 export const getGraphLookId = () => selectedId;

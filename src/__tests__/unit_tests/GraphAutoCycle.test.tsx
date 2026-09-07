@@ -17,7 +17,8 @@ describe('Auto selector', () => {
     const trigger = screen.getByRole('menu', {
       name: 'Automatic visualizer switching',
     });
-    expect(trigger).toHaveTextContent('Auto: Off');
+    // A fresh install starts on the two-minute cycle.
+    expect(trigger).toHaveTextContent('Auto: 120s');
     fireEvent.click(trigger);
     expect(screen.getAllByRole('menuitem')).toHaveLength(6);
     fireEvent.click(screen.getByRole('menuitem', { name: 'Auto: 30s' }));
