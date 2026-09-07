@@ -1,4 +1,5 @@
 import type { Projected } from 'common/graphStyles';
+import { getEaseFactor } from 'common/smoothing';
 
 /** Where a bubble is on its climb, 0 at the floor and 1 at the surface. */
 export const bubblePhase = (index: number, layer: number, seconds: number) =>
@@ -40,6 +41,8 @@ export interface IBolt {
 export const createBubbleStorm = () => ({
   levels: [] as number[],
   beatLevel: 0,
+  /** The clock at the last decision, for a frame-rate-free tracker. */
+  trackedAt: -1,
   /** Bubble id → the clock reading when it burst. */
   pops: new Map<number, number>(),
   bolts: [] as IBolt[],
@@ -66,6 +69,7 @@ export const advanceBubbleStorm = (
   if (state.levels.length !== points.length) {
     state.levels = points.map(() => 0);
     state.beatLevel = 0;
+    state.trackedAt = -1;
     state.pops.clear();
     state.bolts = [];
   }
@@ -120,7 +124,15 @@ export const advanceBubbleStorm = (
       }
     });
   }
-  state.beatLevel = Math.max(mean, state.beatLevel * 0.9);
+  // The trackers release on the clock, not per frame: a per-frame factor
+  // decayed three times faster at 60Hz than at the analyser's 22Hz, and the
+  // hit threshold then meant a different thing on every machine. A fast
+  // release, so the next hit measures against where the band actually is.
+  const elapsedMs =
+    state.trackedAt < 0 ? 0 : Math.max(0, seconds - state.trackedAt) * 1000;
+  state.trackedAt = seconds;
+  const release = 1 - getEaseFactor(elapsedMs, 110);
+  state.beatLevel = Math.max(mean, state.beatLevel * release);
   // Three bands striking together is a thunderclap, and the room shakes.
   if (struck >= 3) {
     state.shakeAt = seconds;
@@ -131,10 +143,8 @@ export const advanceBubbleStorm = (
   } else if (seconds - state.shakeAt > SHAKE_LIFE) {
     state.shakeStrength = 0;
   }
-  // Track the level with a fast release so the next hit measures against
-  // where the band actually is, not against its last peak.
   levels.forEach((level, index) => {
-    state.levels[index] = Math.max(level, state.levels[index] * 0.9);
+    state.levels[index] = Math.max(level, state.levels[index] * release);
   });
 };
 

@@ -1141,23 +1141,6 @@ export const createGraphShape = (
       return path;
     }
 
-    // The waveform the oscillator makes: a slow ramp up to the level and a
-    // vertical drop back. Every tooth leans the same way, so the whole figure
-    // has a direction to it that a symmetrical bar chart does not.
-    case 'sawtooth': {
-      let path = '';
-      for (let index = 0; index < figure.length; index += 1) {
-        const [x, y] = figure[index];
-        path += `M ${(x - step * 0.5).toFixed(1)},${baseline.toFixed(1)} L ${(
-          x +
-          step * 0.5
-        ).toFixed(1)},${y.toFixed(1)} L ${(x + step * 0.5).toFixed(
-          1,
-        )},${baseline.toFixed(1)} Z`;
-      }
-      return path;
-    }
-
     // A heart monitor. The trace rests on its own line and deflects once per
     // column — a small dip, a tall spike, a smaller dip, back to rest —
     // instead of tracing the level continuously. Loud bands beat harder.

@@ -744,6 +744,9 @@ const FILL_OPACITY_OVERRIDES: Partial<Record<GraphStyle, number>> = {
   // LEDs; their old shared opacity made these two look washed out.
   area: 0.78,
   bars: 0.82,
+  // A scope's body is dim: the beam over it is the picture, and at the
+  // shared default the fill outshone it.
+  sawtooth: 0.28,
 };
 
 /**

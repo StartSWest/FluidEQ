@@ -1,7 +1,10 @@
 import { GraphStyle, Projected, hole, rect } from './graphStyles';
+import createGraphSawtooth from './graphSawtooth';
 
 export const isGraphScene = (style: GraphStyle): boolean =>
-  ['flames', 'braid', 'bubbles', 'racer', 'invaders'].includes(style);
+  ['flames', 'braid', 'bubbles', 'racer', 'invaders', 'sawtooth'].includes(
+    style,
+  );
 
 const point = (x: number, y: number) => `${x.toFixed(2)},${y.toFixed(2)}`;
 const line = (points: readonly Projected[]) =>
@@ -46,6 +49,9 @@ export const createGraphScene = ({
 }: ISceneArgs): string => {
   if (points.length < 2) {
     return '';
+  }
+  if (style === 'sawtooth') {
+    return createGraphSawtooth(points, bottom, seconds).shape;
   }
   const left = points[0][0];
   const width = Math.max(1, points[points.length - 1][0] - left);

@@ -80,6 +80,14 @@ import useSmoothFrames from 'renderer/utils/useSmoothFrames';
 import { useGraphGridHidden, useGraphLook } from 'renderer/utils/graphStyle';
 import createTrussRoad from 'common/graphTruss';
 import createGraphStalactites from 'common/graphStalactites';
+import createGraphSawtooth from 'common/graphSawtooth';
+import {
+  advanceSawtoothScope,
+  createSawtoothScope,
+  createSparkPath,
+  ghostGlow,
+  sawtoothFlare,
+} from './sawtoothScope';
 import {
   useLiveAudioFrame,
   useLiveAudioControl,
@@ -320,6 +328,7 @@ const LiveTraceCanvas = ({
   const trussTrafficRef = useRef(0);
   const slopeFlowRef = useRef(0);
   const bubbleStormRef = useRef(createBubbleStorm());
+  const sawtoothScopeRef = useRef(createSawtoothScope());
   const dashTrailsRef = useRef(createDashTrails());
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -629,6 +638,28 @@ const LiveTraceCanvas = ({
               tuning.gap,
             )
           : undefined;
+      // The scope's beam: the wave itself, stroked bright over the body.
+      const sawTrace =
+        chosen === 'sawtooth'
+          ? new Path2D(
+              createGraphSawtooth(
+                toColumns(projected, tuning.columns),
+                baseline,
+                motionRef.current.travel[0] ?? 0,
+              ).trace,
+            )
+          : undefined;
+      if (sawTrace) {
+        advanceSawtoothScope(
+          sawtoothScopeRef.current,
+          sawTrace,
+          toColumns(projected, tuning.columns),
+          plot.top,
+          baseline,
+          motionRef.current.travel[0] ?? 0,
+          playingRef.current,
+        );
+      }
       const mineralPaths = mineral
         ? {
             shade: new Path2D(mineral.shade),
@@ -1445,6 +1476,33 @@ const LiveTraceCanvas = ({
             setAlpha(context, opacity * strength);
             context.stroke(batch);
           });
+        }
+        if (sawTrace) {
+          const scope = sawtoothScopeRef.current;
+          const clock = motionRef.current.travel[0] ?? 0;
+          const flare = sawtoothFlare(scope, clock);
+          // Phosphor: the last few beams, oldest faintest, so a moving wave
+          // has a tail behind it.
+          context.strokeStyle = canvasPaint;
+          context.lineWidth = 1.4;
+          scope.ghosts.forEach((ghost) => {
+            setAlpha(context, opacity * 0.3 * ghostGlow(ghost, clock));
+            context.stroke(ghost.path);
+          });
+          // The beam: the look's colour wide and faint, white thin and bright
+          // on top, both swelling on a beat.
+          context.strokeStyle = canvasPaint;
+          context.lineWidth = 3 + flare * 5;
+          setAlpha(context, opacity * (0.35 + flare * 0.4));
+          context.stroke(sawTrace);
+          context.strokeStyle = '#fff';
+          context.lineWidth = 1.1 + flare * 1.4;
+          setAlpha(context, opacity * (0.85 + flare * 0.15));
+          context.stroke(sawTrace);
+          // Sparks off the tips.
+          context.fillStyle = '#fff';
+          setAlpha(context, opacity * 0.9);
+          context.fill(createSparkPath(scope, clock, baseline, plot.top));
         }
         if (mineralPaths) {
           context.fillStyle = '#000';
