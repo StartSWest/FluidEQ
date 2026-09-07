@@ -76,6 +76,7 @@ import {
 } from 'common/graphShapes';
 import useSmoothFrames from 'renderer/utils/useSmoothFrames';
 import { useGraphGridHidden, useGraphLook } from 'renderer/utils/graphStyle';
+import createTrussRoad from 'common/graphTruss';
 import {
   useLiveAudioFrame,
   useLiveAudioControl,
@@ -91,6 +92,7 @@ import {
   paintGraphAccent,
 } from './graphAccents';
 import { createFluidBarPaint, heatColour } from './lookColours';
+import paintTrussCars from './trussCars';
 import { resolveLookWaveform, useLookPreviewPoints } from './lookPreview';
 import { IChartPointData, ILiveCurveData } from './ChartController';
 import {
@@ -304,6 +306,7 @@ const LiveTraceCanvas = ({
   playingRef.current = !isPaused;
   const motionRef = useRef(createGraphMotionState());
   const terraceJumperRef = useRef(createTerraceJumper());
+  const trussTrafficRef = useRef(0);
   const dashTrailsRef = useRef(createDashTrails());
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -661,6 +664,15 @@ const LiveTraceCanvas = ({
               secondary: new Path2D(scatter.secondary),
             }
           : undefined;
+      const trussRoad =
+        chosen === 'truss'
+          ? createTrussRoad(toColumns(projected, tuning.columns))
+          : undefined;
+      if (trussRoad && playingRef.current) {
+        trussTrafficRef.current =
+          (trussTrafficRef.current + motionDeltaMs / 24000) % 1;
+        moving = true;
+      }
       const dashHistory =
         chosen === 'dashes'
           ? advanceDashTrails(
@@ -1298,6 +1310,10 @@ const LiveTraceCanvas = ({
           }
         }
 
+        if (trussRoad) {
+          setAlpha(context, opacity);
+          paintTrussCars(context, trussRoad, trussTrafficRef.current);
+        }
         if (!tuning.accentBehind) {
           paintPeaks();
         }

@@ -30,6 +30,7 @@ import { WaveformStyle, createWaveformShape } from './waveformStyles';
 import { createGraphScene, isGraphScene } from './graphScenes';
 import { createGraphStems } from './graphStems';
 import createGraphTerrace from './graphTerrace';
+import createTrussRoad from './graphTruss';
 
 /**
  * How each of the forty graph forms is actually drawn.
@@ -1030,19 +1031,20 @@ export const createGraphShape = (
     // cross-brace in every bay — the spectrum drawn as the thing that would
     // have to be built to hold it up.
     case 'truss': {
-      const rightEdge = figure[figure.length - 1][0];
-      let path = `${polyline(figure)} M ${figure[0][0].toFixed(
-        1,
-      )},${baseline.toFixed(1)} H ${rightEdge.toFixed(1)}`;
+      const road = createTrussRoad(figure);
+      const joints = road.filter((_point, index) => index % 8 === 0);
+      let path = `${polyline(road)} M ${figure[0][0]},${baseline} H ${figure[figure.length - 1][0]}`;
       for (let index = 0; index < figure.length - 1; index += 1) {
-        const [x, y] = figure[index];
-        const [nextX, nextY] = figure[index + 1];
-        path += ` M ${x.toFixed(1)},${y.toFixed(1)} L ${nextX.toFixed(
-          1,
-        )},${baseline.toFixed(1)} M ${nextX.toFixed(1)},${nextY.toFixed(
-          1,
-        )} L ${x.toFixed(1)},${baseline.toFixed(1)}`;
+        const [x, y] = joints[index];
+        const [nextX, nextY] = joints[index + 1];
+        path += ` M ${x.toFixed(1)},${y.toFixed(1)} V ${baseline.toFixed(1)}`;
+        path +=
+          index % 2 === 0
+            ? ` M ${x.toFixed(1)},${y.toFixed(1)} L ${nextX.toFixed(1)},${baseline.toFixed(1)}`
+            : ` M ${x.toFixed(1)},${baseline.toFixed(1)} L ${nextX.toFixed(1)},${nextY.toFixed(1)}`;
       }
+      const last = joints[joints.length - 1];
+      path += ` M ${last[0].toFixed(1)},${last[1].toFixed(1)} V ${baseline.toFixed(1)}`;
       return path;
     }
 

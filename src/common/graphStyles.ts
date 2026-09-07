@@ -489,7 +489,7 @@ const BALLISTICS: Partial<Record<GraphStyle, IGraphBallistics>> = {
   // Architecture. Buildings do not sway, so these are stiff going up and slow
   // coming down — the skyline should look built, not blown about.
   skyline: { attackMs: 5, releaseMs: 72 },
-  truss: { attackMs: 7, releaseMs: 32 },
+  truss: { attackMs: 45, releaseMs: 320 },
   matrix: { attackMs: 3, releaseMs: 66 },
   sawtooth: { attackMs: 4, releaseMs: 40 },
 
@@ -621,7 +621,7 @@ const COLUMN_OVERRIDES: Partial<Record<GraphStyle, number>> = {
   dashes: 48,
   scatter: 48,
   skyline: 26,
-  truss: 22,
+  truss: 28,
   ecg: 26,
   matrix: 40,
   bubbles: 24,
