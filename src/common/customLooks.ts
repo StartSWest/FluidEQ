@@ -59,6 +59,8 @@ import { PRODUCT_NAME } from './branding';
 export interface ILookTuning {
   /** How many pieces a discrete form is broken into. Ignored by the rest. */
   columns: number;
+  /** Join discrete marks with a thin line. */
+  connectingLine: boolean;
   /** Milliseconds to halve the distance upward. */
   attackMs: number;
   /** Milliseconds to halve the distance downward. */
@@ -352,6 +354,7 @@ export const getDefaultTuning = (style: GraphStyle): ILookTuning => {
   const ballistics = getGraphBallistics(style);
   return {
     columns: getGraphColumnCount(style),
+    connectingLine: style === 'dots',
     attackMs: ballistics.attackMs,
     releaseMs: ballistics.releaseMs,
     filled: isFilledGraphStyle(style),
@@ -438,6 +441,7 @@ export const normalizeTuning = (
     // a choice somebody had already made.
     accents: readBoolean(source.accents, hasGraphAccent(style)),
     accentFilled: readBoolean(source.accentFilled, defaults.accentFilled),
+    connectingLine: readBoolean(source.connectingLine, defaults.connectingLine),
     accentBehind: readBoolean(source.accentBehind, defaults.accentBehind),
     gap: readNumber(source.gap, MIN_BAR_GAP, MAX_BAR_GAP, defaults.gap),
     accentStyle: isAccentStyle(source.accentStyle)

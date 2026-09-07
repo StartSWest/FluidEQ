@@ -20,6 +20,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { Dictionary } from '../en';
 
 const look: Partial<Dictionary> = {
+  'look.connectingLine': '接続線',
   'look.peak.blink': 'ビート点滅',
   'look.peakFill': 'ピークを塗りつぶす',
   'look.peak.live': 'ライブピーク',

@@ -144,6 +144,26 @@ const toColumnTroughs = (
 };
 
 /** Keep each band's peak prominent and its measured floor smaller and quieter. */
+export const canConnectGraphMarks = (style: GraphStyle): boolean =>
+  ['dots', 'scatter', 'stems', 'dashes', 'caps'].includes(style);
+
+/** A closed narrow ribbon stays visible with either fill or stroke enabled. */
+export const createGraphConnector = (
+  figure: readonly Projected[],
+  thread = 0.8,
+): string => {
+  let path = '';
+  for (let index = 1; index < figure.length; index += 1) {
+    const [ax, ay] = figure[index - 1];
+    const [bx, by] = figure[index];
+    const length = Math.max(0.001, Math.hypot(bx - ax, by - ay));
+    const nx = (-(by - ay) / length) * thread;
+    const ny = ((bx - ax) / length) * thread;
+    path += `M ${(ax + nx).toFixed(2)},${(ay + ny).toFixed(2)} L ${(bx + nx).toFixed(2)},${(by + ny).toFixed(2)} L ${(bx - nx).toFixed(2)},${(by - ny).toFixed(2)} L ${(ax - nx).toFixed(2)},${(ay - ny).toFixed(2)} Z`;
+  }
+  return path;
+};
+
 export const createGraphScatter = (
   points: readonly Projected[],
   columns: number,
@@ -470,6 +490,7 @@ export const createGraphShape = (
    */
   filled = false,
   seconds = 0,
+  connectingLine = style === 'dots',
 ): string => {
   if (points.length < 2) {
     return '';
@@ -634,18 +655,10 @@ export const createGraphShape = (
     case 'dots': {
       const depth = Math.max(1, baseline - ceiling);
       const reach = Math.min(columnWidth(1.6) / 2, depth * 0.08);
-      let path = '';
       // A narrow filled ribbon shares the beads' paint and works even when
       // Edit disables borders. Joining centres leaves no gaps on steep slopes.
       const thread = Math.min(0.8, reach * 0.12);
-      for (let index = 1; index < figure.length; index += 1) {
-        const [ax, ay] = figure[index - 1];
-        const [bx, by] = figure[index];
-        const length = Math.max(0.001, Math.hypot(bx - ax, by - ay));
-        const nx = (-(by - ay) / length) * thread;
-        const ny = ((bx - ax) / length) * thread;
-        path += `M ${(ax + nx).toFixed(2)},${(ay + ny).toFixed(2)} L ${(bx + nx).toFixed(2)},${(by + ny).toFixed(2)} L ${(bx - nx).toFixed(2)},${(by - ny).toFixed(2)} L ${(ax - nx).toFixed(2)},${(ay - ny).toFixed(2)} Z`;
-      }
+      let path = connectingLine ? createGraphConnector(figure, thread) : '';
       for (let index = 0; index < figure.length; index += 1) {
         const [x, y] = figure[index];
         // A bead grows with its band, while the centre still reports the
@@ -1538,6 +1551,7 @@ export const ACCENT_STYLES: AccentStyle[] = [
 
 const ACCENTS: Partial<Record<GraphStyle, 'bead' | 'trace'>> = {
   slope: 'bead',
+  dots: 'bead',
   scatter: 'bead',
   blocks: 'bead',
   /**
@@ -1679,7 +1693,7 @@ export const getDefaultAccentStyle = (style: GraphStyle): AccentStyle => {
   if (style === 'slope') {
     return 'sparks';
   }
-  if (style === 'scatter') {
+  if (style === 'scatter' || style === 'dots') {
     return 'blink';
   }
   if (style === 'blocks') {

@@ -18,6 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 /** The Look Designer, the support panel, the creature and its game. */
 const look = {
+  'look.connectingLine': 'Connecting line',
   'look.peak.blink': 'Beat blink',
   'look.peakFill': 'Fill peaks',
   'look.peak.live': 'Live peaks',

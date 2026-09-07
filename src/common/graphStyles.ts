@@ -501,7 +501,7 @@ const BALLISTICS: Partial<Record<GraphStyle, IGraphBallistics>> = {
   // Things that hang, fall or float have gravity in them: quick to appear,
   // reluctant to leave.
   stalactites: { attackMs: 45, releaseMs: 320 },
-  bubbles: { attackMs: 3, releaseMs: 92 },
+  bubbles: { attackMs: 12, releaseMs: 190 },
   diamonds: { attackMs: 4, releaseMs: 78 },
 
   // Keep the attack readable without losing 85% of a pulse between 30Hz

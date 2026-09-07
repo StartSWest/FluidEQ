@@ -528,7 +528,7 @@ describe('the lit peaks', () => {
     const lit = GRAPH_STYLES.filter(
       (style) => hasGraphAccent(style) && style !== 'fluid',
     );
-    expect(lit).toEqual(['blocks', 'scatter', 'slope']);
+    expect(lit).toEqual(['dots', 'blocks', 'scatter', 'slope']);
     expect(getDefaultAccentStyle('slope')).toBe('sparks');
     expect(getDefaultAccentStyle('scatter')).toBe('blink');
   });

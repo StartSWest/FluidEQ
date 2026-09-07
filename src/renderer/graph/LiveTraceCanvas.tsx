@@ -69,6 +69,8 @@ import {
   createGraphPieces,
   createGraphShape,
   createGraphScatter,
+  createGraphConnector,
+  canConnectGraphMarks,
   getGlowStyle,
   getGraphPeaks,
   hasGraphPieces,
@@ -93,6 +95,13 @@ import {
   paintGraphAccent,
 } from './graphAccents';
 import { createFluidBarPaint, heatColour } from './lookColours';
+import createDotPaths from './dotPaths';
+import createBubblePaths from './bubblePaths';
+import {
+  advanceBubbleStorm,
+  bubbleShake,
+  createBubbleStorm,
+} from './bubbleStorm';
 import paintTrussCars from './trussCars';
 import createSlopeFlow from './slopeFlow';
 import { resolveLookWaveform, useLookPreviewPoints } from './lookPreview';
@@ -310,6 +319,7 @@ const LiveTraceCanvas = ({
   const terraceJumperRef = useRef(createTerraceJumper());
   const trussTrafficRef = useRef(0);
   const slopeFlowRef = useRef(0);
+  const bubbleStormRef = useRef(createBubbleStorm());
   const dashTrailsRef = useRef(createDashTrails());
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -649,6 +659,8 @@ const LiveTraceCanvas = ({
               tuning.gap,
               plot.top,
               isFilled,
+              0,
+              tuning.connectingLine,
             ));
       if (chosen === 'slope' && playingRef.current) {
         slopeFlowRef.current = (slopeFlowRef.current + motionDeltaMs / 480) % 1;
@@ -685,19 +697,14 @@ const LiveTraceCanvas = ({
         motionRef.current.key = '';
       }
       const scatter =
-        chosen === 'scatter'
+        chosen === 'scatter' || chosen === 'dots'
           ? createGraphScatter(projected, tuning.columns, tuning.gap)
           : undefined;
       const blinkingSatellites =
         scatter && tuning.accents && tuning.accentStyle === 'blink';
-      const figure = new Path2D(blinkingSatellites ? scatter.primary : shape);
-      const scatterPaths =
-        scatter && isFilled
-          ? {
-              primary: new Path2D(scatter.primary),
-              secondary: new Path2D(scatter.secondary),
-            }
-          : undefined;
+      const figure = new Path2D(
+        blinkingSatellites && chosen === 'scatter' ? scatter.primary : shape,
+      );
       const trussRoad =
         chosen === 'truss'
           ? createTrussRoad(toColumns(projected, tuning.columns))
@@ -707,6 +714,21 @@ const LiveTraceCanvas = ({
           (trussTrafficRef.current + motionDeltaMs / 24000) % 1;
         moving = true;
       }
+      const connector =
+        tuning.connectingLine &&
+        chosen !== 'dots' &&
+        canConnectGraphMarks(chosen)
+          ? new Path2D(
+              createGraphConnector(toColumns(projected, tuning.columns)),
+            )
+          : undefined;
+      const scatterPaths =
+        scatter && chosen === 'scatter' && isFilled
+          ? {
+              primary: new Path2D(scatter.primary),
+              secondary: new Path2D(scatter.secondary),
+            }
+          : undefined;
       const dashHistory =
         chosen === 'dashes'
           ? advanceDashTrails(
@@ -871,6 +893,18 @@ const LiveTraceCanvas = ({
         pumpRef.current = 0;
       }
       const haloPath = halo;
+      if (chosen === 'bubbles') {
+        // Once per frame, before the curves: a mirrored wave paints the same
+        // storm twice and must not trigger its rays twice.
+        advanceBubbleStorm(
+          bubbleStormRef.current,
+          toColumns(projected, tuning.columns),
+          plot.top,
+          baseline,
+          motionRef.current.travel[0] ?? 0,
+          playingRef.current,
+        );
+      }
 
       // The lit peaks. Same frame, same numbers, stroked faint-and-thick under
       // bright-and-thin — a glow made of strokes rather than of a filter,
@@ -923,6 +957,14 @@ const LiveTraceCanvas = ({
           // A satellite flashes with its own frequency band, while staying
           // at the quieter sample underneath that band's main square.
           energy: Math.max(0, Math.min(1, (baseline - crest) / depth)),
+        }));
+      } else if (tuning.accentStyle === 'blink') {
+        // Keep a blink inside the space beneath its crest on every form.
+        // The normal wave transform also puts it on the correct mirrored side.
+        accentPeaks = accentPeaks.map((peak) => ({
+          ...peak,
+          y: peak.y + Math.max(0, baseline - peak.y) * 0.35,
+          size: peak.size * 0.58,
         }));
       }
       const accentHeights: number[] = [];
@@ -1047,8 +1089,65 @@ const LiveTraceCanvas = ({
       context.lineJoin = 'round';
 
       curves.forEach((curve) => {
-        const wave = getWaveTransform(curve, baseline, plot.top);
+        const wave = getWaveTransform(
+          chosen === 'stalactites'
+            ? { ...curve, isFlipped: !curve.isFlipped }
+            : curve,
+          baseline,
+          plot.top,
+        );
+        if (chosen === 'stalactites') {
+          // This figure already grows down from its ceiling. Reflect its
+          // coordinate system so height scales around that edge, not the floor.
+          wave.translateY += wave.scaleY * (baseline + plot.top);
+          wave.scaleY *= -1;
+        }
+        const bubblePaths =
+          chosen === 'bubbles' && wave.scaleY !== 0
+            ? createBubblePaths(
+                toColumns(projected, tuning.columns),
+                plot.top,
+                baseline,
+                wave.scaleY,
+                motionRef.current.travel[0] ?? 0,
+                tuning.gap,
+                isFilled,
+                bubbleStormRef.current,
+              )
+            : undefined;
+        const dotPaths =
+          chosen === 'dots' && wave.scaleY !== 0
+            ? createDotPaths(
+                toColumns(projected, tuning.columns),
+                baseline,
+                plot.top,
+                tuning.gap,
+                wave.scaleY,
+                tuning.connectingLine,
+              )
+            : undefined;
+        const dots = bubblePaths ?? dotPaths;
+        const curveFigure = dots?.shape ?? figure;
+        let curveOutside = outside;
+        if (dots && needsOutside) {
+          const bleed = figureStrokeWidth + 1;
+          curveOutside = new Path2D();
+          curveOutside.rect(
+            plot.left - bleed,
+            Math.min(0, baseline * wave.scaleY) - bleed,
+            plot.right - plot.left + bleed * 2,
+            Math.abs(baseline * wave.scaleY) + bleed * 2,
+          );
+          curveOutside.addPath(curveFigure);
+        }
         context.save();
+        if (chosen === 'bubbles') {
+          const shake = bubbleShake(
+            bubbleStormRef.current,
+            motionRef.current.travel[0] ?? 0,
+          );
+          context.translate(shake.x, shake.y);
+        }
         context.translate(0, wave.translateY);
         context.scale(1, wave.scaleY);
         // Clipped in the figure's own space, exactly as the SVG clip path was:
@@ -1169,6 +1268,10 @@ const LiveTraceCanvas = ({
         // One beat-driven glow for every form, gated by Rainbow mode. Keeping
         // wave shadows separate made Glow work while its slider was disabled.
         if (haloPath) {
+          if (dots) {
+            context.save();
+            context.scale(1, 1 / wave.scaleY);
+          }
           context.strokeStyle = paintFor(
             resolveGlowStroke(basePaint, isSelfColoured, euphoria),
           );
@@ -1176,18 +1279,33 @@ const LiveTraceCanvas = ({
             setAlpha(context, layer.opacity * lit);
             context.lineWidth = strokeWidth + layer.widen * swell;
             context.stroke(
-              scatterPaths?.primary ?? stemLayers?.tips ?? haloPath,
+              dots?.beads ??
+                scatterPaths?.primary ??
+                stemLayers?.tips ??
+                haloPath,
             );
           });
+          if (dots) {
+            context.restore();
+          }
         }
 
         if (tuning.accentBehind) {
           paintPeaks();
         }
+        if (dots) {
+          context.save();
+          context.scale(1, 1 / wave.scaleY);
+        }
 
         // One drawing for every style. A filled style paints the same shape
         // rather than stroking it — which is a fill, not a second figure, so
         // cycling styles never changes what is drawn, only how.
+        if (connector) {
+          context.fillStyle = canvasPaint;
+          setAlpha(context, opacity * (isFilled ? tuning.fillOpacity : 1));
+          context.fill(connector);
+        }
         if (scatterPaths) {
           context.fillStyle = canvasPaint;
           setAlpha(context, opacity * tuning.fillOpacity * 0.38);
@@ -1284,7 +1402,49 @@ const LiveTraceCanvas = ({
           // buying that back would mean an offscreen layer per frame.
           setAlpha(context, opacity * tuning.fillOpacity);
           context.fillStyle = canvasPaint;
-          context.fill(figure);
+          context.fill(curveFigure);
+        }
+        if (bubblePaths) {
+          // The glassy body, faint so what is behind still shows through.
+          context.fillStyle = canvasPaint;
+          setAlpha(context, opacity * 0.09);
+          context.fill(bubblePaths.body);
+          // Light on the film: a hard glint high-left, a soft band low-right.
+          context.fillStyle = '#fff';
+          setAlpha(context, opacity * 0.85);
+          context.fill(bubblePaths.glints);
+          context.strokeStyle = '#fff';
+          context.lineWidth = 1.6;
+          setAlpha(context, opacity * 0.28);
+          context.stroke(bubblePaths.refraction);
+          // A burst: the rim expands and fades over four age batches, the
+          // freshest first, while droplets fly off it.
+          context.strokeStyle = canvasPaint;
+          context.lineWidth = 1.4;
+          bubblePaths.rings.forEach((batch, ageStep) => {
+            setAlpha(context, opacity * (1 - ageStep / 4) * 0.75);
+            context.stroke(batch);
+          });
+          context.fillStyle = '#fff';
+          setAlpha(context, opacity * 0.7);
+          context.fill(bubblePaths.droplets);
+          // A strike is light, not a line: a wide soft glow in the look's
+          // colour, a tighter one over it, and a thin white core. Batch 0 is
+          // the freshest and brightest; the whole thing is gone in 180ms.
+          bubblePaths.bolts.forEach((batch, ageStep) => {
+            const strength = 1 - ageStep / 4;
+            context.strokeStyle = canvasPaint;
+            context.lineWidth = 7;
+            setAlpha(context, opacity * strength * 0.22);
+            context.stroke(batch);
+            context.lineWidth = 2.6;
+            setAlpha(context, opacity * strength * 0.55);
+            context.stroke(batch);
+            context.strokeStyle = '#fff';
+            context.lineWidth = 1;
+            setAlpha(context, opacity * strength);
+            context.stroke(batch);
+          });
         }
         if (mineralPaths) {
           context.fillStyle = '#000';
@@ -1315,13 +1475,13 @@ const LiveTraceCanvas = ({
         if (figureStroke !== undefined && figureStrokeWidth > 0) {
           setAlpha(context, opacity);
           context.strokeStyle = paintFor(figureStroke);
-          if (outside) {
+          if (curveOutside) {
             // A painted form: the border goes round the outside of the fill,
             // double weight through the mask built above. See the note there.
             context.save();
-            context.clip(outside, 'evenodd');
+            context.clip(curveOutside, 'evenodd');
             context.lineWidth = figureStrokeWidth * 2;
-            context.stroke(figure);
+            context.stroke(curveFigure);
             context.restore();
           } else if (isEuphoriaEdge) {
             /**
@@ -1342,18 +1502,21 @@ const LiveTraceCanvas = ({
              * getting while their Rainbow border box did the asking.
              */
             context.lineWidth = strokeWidth + figureStrokeWidth * 2;
-            context.stroke(figure);
+            context.stroke(curveFigure);
             context.strokeStyle = canvasPaint;
             context.lineWidth = strokeWidth;
-            context.stroke(figure);
+            context.stroke(curveFigure);
           } else {
             // Either the look's own edge, or a trace with no colours of its own
             // for the sweep to take away. Centred, as it has always been.
             context.lineWidth = figureStrokeWidth;
-            context.stroke(figure);
+            context.stroke(curveFigure);
           }
         }
 
+        if (dots) {
+          context.restore();
+        }
         if (trussRoad) {
           setAlpha(context, opacity);
           paintTrussCars(context, trussRoad, trussTrafficRef.current);
