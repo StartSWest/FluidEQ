@@ -61,6 +61,7 @@ import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { DEFAULT_GLOW } from 'common/customLooks';
 import { MAX_GAIN, MIN_GAIN } from 'common/constants';
 import { canGraphFill } from 'common/graphStyles';
+import { createGraphStems, STEM_FADE_LEVELS } from 'common/graphStems';
 import { getEaseFactor } from 'common/smoothing';
 import {
   createGraphAccent,
@@ -585,29 +586,39 @@ const LiveTraceCanvas = ({
        * different count at a different width, so the rainbow border was
        * drawn around bars it had never seen. Same geometry, same rectangles.
        */
-      let shape = isFluidForm
-        ? spectrumBarsPath(
-            {
-              x: fluidLeft,
-              y: plot.top,
-              width: fluidRight - fluidLeft,
-              height: depth,
-            },
-            fluidBarsRef.current,
-            tuning.gap,
-          )
-        : createGraphShape(
-            projected,
-            chosen,
-            baseline,
-            tuning.columns,
-            // Read through a ref rather than closed over: this loop runs on
-            // its own frames, and the envelope arrives on the pump's.
-            fluidWaveRef.current,
-            tuning.gap,
-            plot.top,
-            isFilled,
-          );
+      const stems =
+        chosen === 'stems'
+          ? createGraphStems(
+              toColumns(projected, tuning.columns),
+              baseline,
+              tuning.gap,
+            )
+          : undefined;
+      let shape =
+        stems?.shape ??
+        (isFluidForm
+          ? spectrumBarsPath(
+              {
+                x: fluidLeft,
+                y: plot.top,
+                width: fluidRight - fluidLeft,
+                height: depth,
+              },
+              fluidBarsRef.current,
+              tuning.gap,
+            )
+          : createGraphShape(
+              projected,
+              chosen,
+              baseline,
+              tuning.columns,
+              // Read through a ref rather than closed over: this loop runs on
+              // its own frames, and the envelope arrives on the pump's.
+              fluidWaveRef.current,
+              tuning.gap,
+              plot.top,
+              isFilled,
+            ));
       if (hasGraphMotion(chosen)) {
         const motion = createMovingGraphShape({
           state: motionRef.current,
@@ -627,6 +638,13 @@ const LiveTraceCanvas = ({
         motionRef.current.key = '';
       }
       const figure = new Path2D(shape);
+      const stemLayers =
+        isFilled && stems
+          ? {
+              tips: new Path2D(stems.tips),
+              lines: stems.layers.map((path) => new Path2D(path)),
+            }
+          : undefined;
 
       /**
        * The figure again, as one path per piece — but only when something is
@@ -1024,7 +1042,7 @@ const LiveTraceCanvas = ({
           GLOW_LAYERS.forEach((layer) => {
             setAlpha(context, layer.opacity * lit);
             context.lineWidth = strokeWidth + layer.widen * swell;
-            context.stroke(haloPath);
+            context.stroke(stemLayers?.tips ?? haloPath);
           });
         }
 
@@ -1035,7 +1053,19 @@ const LiveTraceCanvas = ({
         // One drawing for every style. A filled style paints the same shape
         // rather than stroking it — which is a fill, not a second figure, so
         // cycling styles never changes what is drawn, only how.
-        if (isFluidForm && isFilled) {
+        if (stemLayers) {
+          context.fillStyle = canvasPaint;
+          stemLayers.lines.forEach((path, level) => {
+            const fade = 1 - (level + 0.5) / STEM_FADE_LEVELS;
+            setAlpha(
+              context,
+              opacity * tuning.fillOpacity * (0.03 + 0.48 * fade * fade),
+            );
+            context.fill(path);
+          });
+          setAlpha(context, opacity * tuning.fillOpacity);
+          context.fill(stemLayers.tips);
+        } else if (isFluidForm && isFilled) {
           // The titlebar's own bars, from the titlebar's own painter. The hue
           // sweep is the form's own fill — it is what makes this drawing this
           // drawing — but WHETHER it is filled, and how solidly, are settings

@@ -28,6 +28,7 @@ import {
 } from './graphStyles';
 import { WaveformStyle, createWaveformShape } from './waveformStyles';
 import { createGraphScene, isGraphScene } from './graphScenes';
+import { createGraphStems } from './graphStems';
 
 /**
  * How each of the forty graph forms is actually drawn.
@@ -653,17 +654,8 @@ export const createGraphShape = (
       return path;
     }
 
-    // A dot on the peak with a thread down to the floor.
-    case 'stems': {
-      const size = columnWidth(1.8);
-      let path = '';
-      for (let index = 0; index < figure.length; index += 1) {
-        const [x, y] = figure[index];
-        path += rect(x - 0.6, y, 1.2, Math.max(0, baseline - y));
-        path += rect(x - size / 2, y - size / 2, size, size);
-      }
-      return path;
-    }
+    case 'stems':
+      return createGraphStems(figure, baseline, gap).shape;
 
     // The staircase, filled — levels rather than a slope.
     case 'terrace': {
@@ -1503,7 +1495,6 @@ export const ACCENT_STYLES: AccentStyle[] = [
 
 const ACCENTS: Partial<Record<GraphStyle, 'bead' | 'trace'>> = {
   blocks: 'bead',
-  stems: 'bead',
   /**
    * The wave line over the fluid's bars.
    *

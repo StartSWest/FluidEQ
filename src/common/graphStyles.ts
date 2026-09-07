@@ -462,7 +462,7 @@ const BALLISTICS: Partial<Record<GraphStyle, IGraphBallistics>> = {
   dashes: { attackMs: 4, releaseMs: 85 },
   // Thin forms can afford to be instant; there is no mass to them.
   ribs: { attackMs: 3, releaseMs: 30 },
-  stems: { attackMs: 4, releaseMs: 40 },
+  stems: { attackMs: 1, releaseMs: 250 },
   spikes: { attackMs: 8, releaseMs: 250 },
   crown: { attackMs: 4, releaseMs: 36 },
   // Landscapes. A hill that twitches is noise, so these are the slow ones.
@@ -612,6 +612,7 @@ const COLUMN_COUNT = 64;
 const COLUMN_OVERRIDES: Partial<Record<GraphStyle, number>> = {
   dots: 48,
   blocks: 40,
+  stems: 48,
   skyline: 26,
   truss: 22,
   ecg: 26,
@@ -721,6 +722,8 @@ const FILL_OPACITY_OVERRIDES: Partial<Record<GraphStyle, number>> = {
   dots: 0.9,
   blocks: 0.74,
   spikes: 0.74,
+  stems: 0.84,
+  terrace: 0.74,
   // Broad fills need enough colour to stand beside the brighter beads and
   // LEDs; their old shared opacity made these two look washed out.
   area: 0.78,
