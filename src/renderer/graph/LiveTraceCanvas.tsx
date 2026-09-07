@@ -82,6 +82,14 @@ import createTrussRoad from 'common/graphTruss';
 import createGraphStalactites from 'common/graphStalactites';
 import createGraphSawtooth from 'common/graphSawtooth';
 import {
+  advancePulseMonitor,
+  createPulseMonitor,
+  createPulsePaths,
+  echoDrift,
+  pulseShake,
+  pulseThump,
+} from './pulseMonitor';
+import {
   advanceSawtoothScope,
   createSawtoothScope,
   createSparkPath,
@@ -329,6 +337,7 @@ const LiveTraceCanvas = ({
   const slopeFlowRef = useRef(0);
   const bubbleStormRef = useRef(createBubbleStorm());
   const sawtoothScopeRef = useRef(createSawtoothScope());
+  const pulseMonitorRef = useRef(createPulseMonitor());
   const dashTrailsRef = useRef(createDashTrails());
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -666,8 +675,30 @@ const LiveTraceCanvas = ({
             light: new Path2D(mineral.light),
           }
         : undefined;
+      // The monitor decides its beat first and hands back its own figure,
+      // pumped by the thump; the static shape is never built for it.
+      if (chosen === 'ecg') {
+        advancePulseMonitor(
+          pulseMonitorRef.current,
+          toColumns(projected, tuning.columns),
+          plot.top,
+          baseline,
+          motionRef.current.travel[0] ?? 0,
+          playingRef.current,
+        );
+      }
+      const pulsePaths =
+        chosen === 'ecg'
+          ? createPulsePaths(
+              pulseMonitorRef.current,
+              toColumns(projected, tuning.columns),
+              baseline,
+              motionRef.current.travel[0] ?? 0,
+            )
+          : undefined;
       let shape =
         stems?.shape ??
+        (pulsePaths ? '' : undefined) ??
         (isFluidForm
           ? spectrumBarsPath(
               {
@@ -733,9 +764,11 @@ const LiveTraceCanvas = ({
           : undefined;
       const blinkingSatellites =
         scatter && tuning.accents && tuning.accentStyle === 'blink';
-      const figure = new Path2D(
-        blinkingSatellites && chosen === 'scatter' ? scatter.primary : shape,
-      );
+      const figure =
+        pulsePaths?.shape ??
+        new Path2D(
+          blinkingSatellites && chosen === 'scatter' ? scatter.primary : shape,
+        );
       const trussRoad =
         chosen === 'truss'
           ? createTrussRoad(toColumns(projected, tuning.columns))
@@ -901,7 +934,13 @@ const LiveTraceCanvas = ({
         // The silhouette light comes off, which for most forms is not the form
         // — see `getGlowStyle`. Reused rather than rebuilt when the two are the
         // same shape, which is the common case for the simple forms.
-        const glowStyle = getGlowStyle(chosen, shape.length, isFilled);
+        // The monitor has no string to measure; its trace is simple enough
+        // for the light to follow the real thing.
+        const glowStyle = getGlowStyle(
+          chosen,
+          pulsePaths ? 0 : shape.length,
+          isFilled,
+        );
         halo =
           glowStyle === chosen || isFluidForm || hasGraphMotion(chosen)
             ? figure
@@ -1175,6 +1214,13 @@ const LiveTraceCanvas = ({
         if (chosen === 'bubbles') {
           const shake = bubbleShake(
             bubbleStormRef.current,
+            motionRef.current.travel[0] ?? 0,
+          );
+          context.translate(shake.x, shake.y);
+        }
+        if (pulsePaths) {
+          const shake = pulseShake(
+            pulseMonitorRef.current,
             motionRef.current.travel[0] ?? 0,
           );
           context.translate(shake.x, shake.y);
@@ -1477,6 +1523,53 @@ const LiveTraceCanvas = ({
             context.stroke(batch);
           });
         }
+        if (pulsePaths) {
+          const clock = motionRef.current.travel[0] ?? 0;
+          const thump = pulseThump(pulseMonitorRef.current, clock);
+          // Echoes of past beats passing behind, each drifting up and away.
+          pulseMonitorRef.current.echoes.forEach((echo) => {
+            const drift = echoDrift(echo, clock, depth);
+            if (drift.glow <= 0) {
+              return;
+            }
+            context.save();
+            context.translate(drift.x, drift.y);
+            context.strokeStyle = canvasPaint;
+            context.lineWidth = 1.4;
+            setAlpha(context, opacity * drift.glow * 0.55);
+            context.stroke(echo.path);
+            context.restore();
+          });
+          // The previous sweep, dim, then the tail brightening toward the
+          // head: colour wide and faint under a white core.
+          context.strokeStyle = canvasPaint;
+          context.lineWidth = 1.2;
+          setAlpha(context, opacity * 0.3);
+          context.stroke(pulsePaths.old);
+          pulsePaths.fresh.forEach((slice, index) => {
+            const nearness = (index + 1) / 4;
+            context.strokeStyle = canvasPaint;
+            context.lineWidth = 3 + thump * 3;
+            setAlpha(context, opacity * nearness * (0.35 + thump * 0.3));
+            context.stroke(slice);
+            context.strokeStyle = '#fff';
+            context.lineWidth = 1.2 + thump;
+            setAlpha(context, opacity * (0.3 + nearness * 0.7));
+            context.stroke(slice);
+          });
+          // The write-head: a dot that flares on the thump.
+          const [headX, headY] = pulsePaths.head;
+          const dot = new Path2D();
+          dot.arc(headX, headY, 2.5 + thump * 4, 0, Math.PI * 2);
+          context.fillStyle = canvasPaint;
+          setAlpha(context, opacity * 0.5);
+          context.fill(dot);
+          const core = new Path2D();
+          core.arc(headX, headY, 1.6 + thump * 2, 0, Math.PI * 2);
+          context.fillStyle = '#fff';
+          setAlpha(context, opacity);
+          context.fill(core);
+        }
         if (sawTrace) {
           const scope = sawtoothScopeRef.current;
           const clock = motionRef.current.travel[0] ?? 0;
@@ -1530,7 +1623,13 @@ const LiveTraceCanvas = ({
         );
         // Stroked must draw Fluid too; excluding it erased the bars while
         // the designer continued offering Weight and Border controls.
-        if (figureStroke !== undefined && figureStrokeWidth > 0) {
+        // The monitor's beam IS its outline: stroking the figure as well
+        // painted the whole trace bright over the sweep and hid it.
+        if (
+          figureStroke !== undefined &&
+          figureStrokeWidth > 0 &&
+          !pulsePaths
+        ) {
           setAlpha(context, opacity);
           context.strokeStyle = paintFor(figureStroke);
           if (curveOutside) {

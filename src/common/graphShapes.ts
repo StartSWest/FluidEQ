@@ -1141,28 +1141,6 @@ export const createGraphShape = (
       return path;
     }
 
-    // A heart monitor. The trace rests on its own line and deflects once per
-    // column — a small dip, a tall spike, a smaller dip, back to rest —
-    // instead of tracing the level continuously. Loud bands beat harder.
-    case 'ecg': {
-      const rest = baseline - 30;
-      const width = Math.max(1.5, step * 0.16);
-      let path = `M ${figure[0][0].toFixed(1)},${rest.toFixed(1)}`;
-      for (let index = 0; index < figure.length; index += 1) {
-        const [x, y] = figure[index];
-        const beat = Math.max(2, (baseline - y) * 0.72);
-        path += ` H ${(x - width * 2).toFixed(1)} L ${(x - width).toFixed(
-          1,
-        )},${(rest + beat * 0.16).toFixed(1)} L ${x.toFixed(1)},${(
-          rest - beat
-        ).toFixed(1)} L ${(x + width).toFixed(1)},${(
-          rest +
-          beat * 0.11
-        ).toFixed(1)} L ${(x + width * 2).toFixed(1)},${rest.toFixed(1)}`;
-      }
-      return filled ? closedUnder(path) : path;
-    }
-
     // The trace, and three afterimages of it — each arriving a little to the
     // right and standing a little lower, the way a delay repeat comes back
     // late and quieter. Nothing here is remembered between frames; the echoes
