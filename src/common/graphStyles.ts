@@ -163,6 +163,9 @@ export const GRAPH_STYLES: GraphStyle[] = [
 // Keep retired forms loadable for saved custom looks. Built-in selections
 // migrate to a retained alternative so retired entries stay out of the picker.
 export const canonicalGraphStyle = (style: GraphStyle): GraphStyle => {
+  if (style === 'weave') {
+    return 'line';
+  }
   if (style === 'caps' || style === 'crown') {
     return 'dots';
   }
