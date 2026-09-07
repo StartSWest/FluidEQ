@@ -1811,15 +1811,11 @@ it under the terms of the GNU General Public License version 3 or later.
   // the point of the mode. What it should not also do is change how many things
   // the grid is laying out, with a `<webview>` inside one of them.
   //
-  // So the panes stay in the grid and go off screen, their tracks collapse to
-  // zero, and the centre grows into the width. `visibility: hidden` as well, so
-  // nothing off screen is focusable or clickable.
-  > .side-bar,
-  > .right-content {
-    position: absolute;
-    left: -20000px;
-    visibility: hidden;
-  }
+  // So the panes leave the grid — as the slide-over drawers the narrow
+  // layout already has, summoned by their edge tabs; see SideBar.scss and
+  // App.scss — their tracks collapse to zero, and the centre grows into the
+  // width. They used to be parked at left:-20000px here, which no tab could
+  // bring back, and a profile or a preset then cost leaving the view.
 
   // Every edge the workspace normally keeps, given to the picture.
   //
@@ -1932,7 +1928,7 @@ it under the terms of the GNU General Public License version 3 or later.
 // header does, on the same flag and over the same time.
 #root:not(.is-chrome-idle)
   .app-workspace.is-app-full:not(.has-top-bar)
-  .live-output-controls {
+  :is(.live-output-controls, .look-designer) {
   top: calc(#{$title-bar-height} + 17px);
 }
 
@@ -1947,7 +1943,9 @@ it under the terms of the GNU General Public License version 3 or later.
   // that nearly line up read worse than two that plainly do not. The header
   // holds its own contents at the shell's gutter plus its 18px of padding;
   // this states the same sum.
-  right: calc(var(--shell-gutter, 12px) + 18px);
+  // Keep the normal view's editor reservation in fullscreen too; this more
+  // specific rule used to put the toolbar back underneath the open editor.
+  right: var(--graph-controls-right, calc(var(--shell-gutter, 12px) + 18px));
   // Karaoke's own fullscreen toolbar sits 9px inside a stage that starts 8px
   // below the titlebar. Use the same combined inset so swapping the Karaoke
   // toolbar for the graph toolbar does not move the controls or alter the gap
@@ -1956,7 +1954,7 @@ it under the terms of the GNU General Public License version 3 or later.
 }
 
 .app-workspace.is-app-full.has-top-bar .look-designer {
-  top: calc(#{$title-bar-height} + 8px);
+  top: calc(#{$title-bar-height} + 17px);
 }
 
 // And it must not run off the bottom having been pushed down.

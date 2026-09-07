@@ -2826,6 +2826,53 @@ $tab-bar-inset: 8px;
 
 // *** Right column ***********************************************************
 
+// The sound panel as a slide-over drawer, for the narrow layout and for full
+// screen: fixed at the right edge, above the left drawer and its tab (see
+// `.right-content-toggle`), slid off until its tab opens it.
+@mixin right-content-drawer {
+  position: fixed;
+  z-index: 62;
+  // Fixed positioning ignores #root's titlebar padding. Start at the real
+  // titlebar edge so its first section is never painted underneath chrome.
+  top: $title-bar-height;
+  right: 0;
+  // The same floor the left drawer keeps: above the transport bar, not
+  // behind it. Both drawers ran to the window's edge and the bar, which is
+  // fixed and drawn later, sat on top of the last thing in each of them.
+  bottom: calc(
+    var(--now-playing-bar-height, 0px) + var(--shell-gutter-bottom, 18px)
+  );
+  width: $sound-panel-width;
+  padding: 0;
+  overflow: hidden;
+  background: $surface-panel;
+  border-left: 1px solid rgba(63, 149, 173, 0.3);
+  box-shadow: -18px 0 48px rgba(0, 0, 0, 0.45);
+  transform: translateX(105%);
+  transition: transform 180ms ease-out;
+
+  &.is-open {
+    transform: translateX(0);
+  }
+}
+
+// In full screen the sound panel is a drawer over the picture too, summoned
+// by its edge tab — see the note on `.side-bar` in SideBar.scss.
+.app-workspace.is-app-full > .right-content {
+  @include right-content-drawer;
+
+  z-index: 72;
+
+  .right-content__scroll {
+    padding: 14px;
+  }
+}
+
+.app-workspace.is-app-full > .right-content-toggle {
+  display: grid;
+  z-index: 73;
+}
+
 .right-content {
   // The mixin's own mixture, like every other panel. It carried a different
   // accent and a different amount, which is half of why the columns never
@@ -3338,6 +3385,32 @@ button.graph-legend {
       filter: drop-shadow(0 0 10px var(--point-color));
     }
   }
+
+  // A band that is switched off: still on the graph, plainly not in the chain.
+  //
+  // Dashed rather than merely faint. Fading alone is what a distant or an
+  // unselected handle already looks like, so it says "further away" rather than
+  // "off" — and on a graph where the band contributes no curve at all, the
+  // handle is the only thing left that can say which of the two it is. The ring
+  // is drawn hollow for the same reason: there is nothing behind it.
+  //
+  // Last in the block on purpose, and it takes only the dot. Off outranks
+  // selected and hovered on the one thing the dot has to say, so it has to be
+  // able to win the source-order tie against both — while the halo is left
+  // alone, because that is what carries "this is the band you have hold of",
+  // which is still true of a band you have switched off.
+  // The three forms are the three weights it has to match: `--off` alone ties
+  // with `--selected`, and the two pseudo-class forms tie with `:hover` and
+  // `:focus-visible`, which are a class heavier. Source order settles each tie.
+  &--off .graph-edit-point__dot,
+  &--off:hover .graph-edit-point__dot,
+  &--off:focus-visible .graph-edit-point__dot {
+    fill: none;
+    stroke: var(--point-muted-color);
+    stroke-width: 2;
+    stroke-dasharray: 3 2.5;
+    filter: none;
+  }
 }
 
 // *** Floating notices *******************************************************
@@ -3398,31 +3471,7 @@ button.graph-legend {
   // The same panel as a slide-over drawer: summoned from the edge tab,
   // dismissed by its backdrop, scrolling on its own.
   .right-content {
-    position: fixed;
-    // Above the left drawer and its tab; see `.right-content-toggle`.
-    z-index: 62;
-    // Fixed positioning ignores #root's titlebar padding. Start at the real
-    // titlebar edge so its first section is never painted underneath chrome.
-    top: $title-bar-height;
-    right: 0;
-    // The same floor the left drawer keeps: above the transport bar, not
-    // behind it. Both drawers ran to the window's edge and the bar, which is
-    // fixed and drawn later, sat on top of the last thing in each of them.
-    bottom: calc(
-      var(--now-playing-bar-height, 0px) + var(--shell-gutter-bottom, 18px)
-    );
-    width: $sound-panel-width;
-    padding: 0;
-    overflow: hidden;
-    background: $surface-panel;
-    border-left: 1px solid rgba(63, 149, 173, 0.3);
-    box-shadow: -18px 0 48px rgba(0, 0, 0, 0.45);
-    transform: translateX(105%);
-    transition: transform 180ms ease-out;
-
-    &.is-open {
-      transform: translateX(0);
-    }
+    @include right-content-drawer;
   }
 
   .right-content__scroll {

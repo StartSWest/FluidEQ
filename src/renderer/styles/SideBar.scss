@@ -157,44 +157,64 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // a short window permanently. This is the arrangement the sound panel already
 // uses on the opposite edge: summoned by a tab, dismissed by its own backdrop,
 // and while it is shut the workspace has the whole window.
+@mixin side-bar-drawer {
+  position: fixed;
+  z-index: 60;
+  // Fixed positioning ignores #root's titlebar padding, the same way
+  // `.right-content` does — start at the real titlebar edge so the first
+  // card is never painted under the chrome.
+  top: $title-bar-height;
+  // Stops where the transport bar starts, rather than running under it.
+  // `--now-playing-bar-height` is the strip that bar reserves and is zero
+  // while there is no bar; the gutter is the same one every card keeps.
+  bottom: calc(
+    var(--now-playing-bar-height, 0px) + var(--shell-gutter-bottom, 18px)
+  );
+  left: 0;
+  // Exactly the column it replaces, so crossing the breakpoint moves the
+  // panel rather than resizing it.
+  width: min($side-bar-width-compact, 86vw);
+  padding: 14px;
+  overflow-y: auto;
+  border-right: 1px solid color-mix(in srgb, $secondary-light 22%, transparent);
+  // The same card as when it is docked. As a drawer it painted its own
+  // near-black, so opening it slid in a darker panel than the one it had
+  // been a moment before.
+  background: $surface-panel;
+  box-shadow: 18px 0 48px rgba($black, 0.45);
+  transform: translateX(-105%);
+  transition: transform 180ms ease-out;
+
+  &.is-open {
+    transform: translateX(0);
+  }
+}
+
 @media (max-width: $bp-two-column) {
   .side-bar {
-    position: fixed;
-    z-index: 60;
-    // Fixed positioning ignores #root's titlebar padding, the same way
-    // `.right-content` does — start at the real titlebar edge so the first
-    // card is never painted under the chrome.
-    top: $title-bar-height;
-    // Stops where the transport bar starts, rather than running under it.
-    // `--now-playing-bar-height` is the strip that bar reserves and is zero
-    // while there is no bar; the gutter is the same one every card keeps.
-    bottom: calc(
-      var(--now-playing-bar-height, 0px) + var(--shell-gutter-bottom, 18px)
-    );
-    left: 0;
-    // Exactly the column it replaces, so crossing the breakpoint moves the
-    // panel rather than resizing it.
-    width: min($side-bar-width-compact, 86vw);
-    padding: 14px;
-    overflow-y: auto;
-    border-right: 1px solid
-      color-mix(in srgb, $secondary-light 22%, transparent);
-    // The same card as when it is docked. As a drawer it painted its own
-    // near-black, so opening it slid in a darker panel than the one it had
-    // been a moment before.
-    background: $surface-panel;
-    box-shadow: 18px 0 48px rgba($black, 0.45);
-    transform: translateX(-105%);
-    transition: transform 180ms ease-out;
-
-    &.is-open {
-      transform: translateX(0);
-    }
+    @include side-bar-drawer;
   }
 
   .side-bar-toggle {
     display: grid;
   }
+}
+
+// In full screen the panes are put away — the picture is the window — but
+// they are not gone: the same edge tab the narrow layout uses summons the
+// same drawer over the picture, so a profile or a preset is one press away
+// without leaving the view. `GraphTheme.scss` used to park the pane at
+// left:-20000px in this mode, which no tab could bring back.
+.app-workspace.is-app-full > .side-bar {
+  @include side-bar-drawer;
+
+  // Above the plot's own fixed chrome and the full-screen header's glass.
+  z-index: 70;
+}
+
+.app-workspace.is-app-full > .side-bar-toggle {
+  display: grid;
+  z-index: 71;
 }
 
 // Auto normalize owns the preamp, so the slider is a readout rather than a
