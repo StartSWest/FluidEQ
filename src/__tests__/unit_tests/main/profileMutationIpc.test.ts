@@ -71,6 +71,11 @@ jest.mock('../../../main/registry', () => ({
 import { registerProfilesIpc } from '../../../main/ipc/profiles';
 // eslint-disable-next-line import/first
 import { savePreset, savePresetBaseline } from '../../../main/flush';
+// eslint-disable-next-line import/first
+import {
+  flushDeviceProfiles,
+  getCustomFileNameForDevice,
+} from '../../../main/deviceProfiles';
 
 const HEADPHONES = 'headphones';
 const SPEAKERS = 'speakers';
@@ -93,6 +98,7 @@ const assignmentFor = (deviceId: string, presetName: string) => ({
 
 describe('renaming and deleting a profile through IPC', () => {
   let root: string;
+  let configDir: string;
   let state: IState;
   let settings: IDeviceProfileSettings;
   let activeDeviceId: string;
@@ -119,6 +125,9 @@ describe('renaming and deleting a profile through IPC', () => {
   beforeEach(async () => {
     handlers.clear();
     root = fs.mkdtempSync(path.join(os.tmpdir(), 'fluideq-profile-ipc-'));
+    configDir = fs.mkdtempSync(
+      path.join(os.tmpdir(), 'fluideq-profile-ipc-cfg-'),
+    );
     state = getDefaultState();
     activeDeviceId = HEADPHONES;
     errors = [];
@@ -155,7 +164,7 @@ describe('renaming and deleting a profile through IPC', () => {
       activeBaselineDir: () => baselineDirFor(activeDeviceId),
       deviceProfileSettings: settings,
       session: {
-        configPath: '',
+        configPath: configDir,
         get activeAudioDeviceId() {
           return activeDeviceId;
         },
@@ -191,6 +200,7 @@ describe('renaming and deleting a profile through IPC', () => {
   afterEach(async () => {
     jest.restoreAllMocks();
     fs.rmSync(root, { recursive: true, force: true });
+    fs.rmSync(configDir, { recursive: true, force: true });
   });
 
   it.each([ChannelEnum.SAVE_PRESET, ChannelEnum.CREATE_PRESET])(
@@ -307,6 +317,36 @@ describe('renaming and deleting a profile through IPC', () => {
     // The other output keeps both its profile and its attachment to it.
     expect(presetExists(SPEAKERS, SHARED)).toBe(true);
     expect(baselineExists(SPEAKERS, SHARED)).toBe(true);
+    expect(settings.assignments[SPEAKERS].presetName).toBe(SHARED);
+  });
+
+  // Forgetting an output used to rely on a sweep that no longer deletes
+  // custom files at all (see customConfigFile.test.ts) — this is the one
+  // handler that still has to, because the user just said this output is
+  // gone for good, not merely unplugged.
+  it('deletes the custom file of the output being forgotten', async () => {
+    await flushDeviceProfiles(settings, presetDirFor, configDir);
+    const forgottenCustomFile = path.join(
+      configDir,
+      getCustomFileNameForDevice(HEADPHONES),
+    );
+    const otherCustomFile = path.join(
+      configDir,
+      getCustomFileNameForDevice(SPEAKERS),
+    );
+    expect(fs.existsSync(forgottenCustomFile)).toBe(true);
+    fs.writeFileSync(forgottenCustomFile, 'Delay: 5 ms', 'utf8');
+    fs.writeFileSync(otherCustomFile, 'Delay: 5 ms', 'utf8');
+
+    await fire(ChannelEnum.REMOVE_DEVICE_PROFILE, [HEADPHONES]);
+
+    expect(errors).toEqual([]);
+    expect(settings.assignments[HEADPHONES]).toBeUndefined();
+    expect(fs.existsSync(forgottenCustomFile)).toBe(false);
+    // The positive control: forgetting one output must not touch another's
+    // hand-written file, or this handler would be as unsafe as the sweep it
+    // replaces.
+    expect(fs.existsSync(otherCustomFile)).toBe(true);
     expect(settings.assignments[SPEAKERS].presetName).toBe(SHARED);
   });
 

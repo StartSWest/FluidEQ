@@ -787,7 +787,9 @@ const GENERATED_FILE = new RegExp(
     // Named here so the config editor may write it — see isGeneratedConfigFile
     // — and NOT so the sweep may delete it. It is the single file here that
     // holds somebody's own work, and CUSTOM_FILE below lifts it back out of
-    // everything removeStaleFiles is allowed to touch.
+    // everything removeStaleFiles is allowed to touch. The one place that may
+    // delete it deliberately is the REMOVE_DEVICE_PROFILE handler in
+    // ipc/profiles.ts, which the user reaches by choosing to forget an output.
     'custom',
   ].join('|')}))\\.txt$`,
 );
@@ -797,7 +799,10 @@ const GENERATED_FILE = new RegExp(
  *
  * Matched separately because it is the exception to the sweep below: FluidEQ
  * creates it empty and then never writes it again, so whatever is in it was
- * typed by hand and cannot be regenerated from anything.
+ * typed by hand and cannot be regenerated from anything. Deleting one is not
+ * this sweep's decision to make — see removeStaleFiles — it belongs to the
+ * REMOVE_DEVICE_PROFILE handler in ipc/profiles.ts, the one place the user has
+ * actually said the output is gone for good.
  */
 const CUSTOM_FILE = /^fluideq-[0-9a-f]{12}-custom\.txt$/;
 
@@ -815,22 +820,26 @@ export const isGeneratedConfigFile = (fileName: string) =>
 
 /**
  * Delete the files of outputs and features that no longer exist — except the
- * custom files, which are never deleted at all.
+ * custom files, which THIS SWEEP never deletes.
  *
  * A feature switched off stops being included, and an unreferenced file is
  * inaudible — but leaving it there would mean the config directory slowly
  * filling with the layers of every device ever plugged in, each looking like
  * something that is still applied.
  *
- * The custom file is exempt because "its output is gone" is not the same
+ * The custom file is exempt here because "its output is gone" is not the same
  * statement as "its output is gone for good", and this sweep cannot tell them
  * apart. An unplugged headset is an empty assignment list; so is a flush with
  * `isEnabled: false`, which is exactly what neutralising the engine being left
- * writes — and that sweep used to take every custom file in the directory with
+ * writes — and this sweep used to take every custom file in the directory with
  * it, deleting hand-written work on nothing more than the user picking the
  * other engine. A generated file can always be written again from the profile;
  * this one cannot be written again from anything, so it stays and waits for
- * its device to come back.
+ * its device to come back — unless the user deliberately forgets that output,
+ * which is a real "gone for good" this sweep is never told and must not guess
+ * at. That deletion happens by name, in the REMOVE_DEVICE_PROFILE handler in
+ * ipc/profiles.ts, the one place a disappearance is a fact rather than a
+ * side effect of an empty keep-set.
  */
 // Per config directory, the generated-file set as of the last flush that
 // swept the directory. See flushDeviceProfiles.
@@ -873,8 +882,10 @@ const removeStaleFiles = (configDirPath: string, keep: ReadonlySet<string>) => {
  * The existence check is the whole safety of it: this runs on every edit, and
  * writing the template unconditionally would erase whatever was in there on
  * the very next slider move. It is also what lets an output that comes back
- * find its own file again — nothing deletes these (see removeStaleFiles), so
- * the one that was there before an unplug or an engine switch is still there.
+ * find its own file again — the sweep below never deletes these (see
+ * removeStaleFiles), so the one that was there before an unplug or an engine
+ * switch is still there. Only forgetting the output on purpose removes it,
+ * through the REMOVE_DEVICE_PROFILE handler in ipc/profiles.ts.
  */
 const ensureCustomFiles = (configDirPath: string, slugs: ReadonlySet<string>) =>
   slugs.forEach((slug) => {
