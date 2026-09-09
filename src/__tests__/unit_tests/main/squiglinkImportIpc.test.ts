@@ -41,6 +41,7 @@ const setup = () => {
       activeAudioDeviceId: 'output',
       activeAudioDevice: undefined,
       hasActiveSessionOverride: false,
+      audioEngine: null,
     },
     activeBaselineDir: () => '',
     getMainWindow: () => null,

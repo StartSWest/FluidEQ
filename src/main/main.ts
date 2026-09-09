@@ -62,6 +62,7 @@ import {
 } from './flush';
 import { flushPendingWrites, hasUnsettledWrites } from './asyncWriter';
 import { getConfigPath, isEqualizerAPOInstalled } from './registry';
+import { TAudioEngine } from '../common/audioEngine';
 import { runEqualizerApoSetup } from './equalizerApoSetup';
 import gatherBugReportFacts from './bugReportFacts';
 import ChannelEnum from '../common/channels';
@@ -948,11 +949,20 @@ const session: {
   activeAudioDevice: IAudioDevice | undefined;
   /** The user opened a device explicitly, so its profile wins over the default. */
   hasActiveSessionOverride: boolean;
+  /**
+   * The persisted engine choice — `null` until Task 9 loads it from
+   * `audioEngineStore.ts` and wires up the engine dialog. Every
+   * `getConfigPath`/`isEngineInstalled` caller reads this rather than
+   * assuming Equalizer APO, so today's behaviour (always APO) survives
+   * unchanged by falling back to `'apo'` wherever it is still `null`.
+   */
+  audioEngine: TAudioEngine | null;
 } = {
   configPath: '',
   activeAudioDeviceId: '',
   activeAudioDevice: undefined,
   hasActiveSessionOverride: false,
+  audioEngine: null,
 };
 // The live APO reader must never observe the half-state between an app edit
 // mutating memory and that edit reaching the generated files. Otherwise it can
@@ -1579,7 +1589,7 @@ const updateConfigPath = async (
 ) => {
   try {
     // Retrive session.configPath assuming EqualizerAPO is installed
-    session.configPath = await getConfigPath();
+    session.configPath = await getConfigPath(session.audioEngine ?? 'apo');
     // Overwrite the config file if necessary
     if (!checkConfigFile(session.configPath)) {
       updateConfig(session.configPath);
@@ -1623,7 +1633,7 @@ const handleUpdateHelperCore = async <T>(
 
   try {
     if (!session.configPath) {
-      session.configPath = await getConfigPath();
+      session.configPath = await getConfigPath(session.audioEngine ?? 'apo');
     }
     startApoConfigWatcher();
     if (!checkConfigFile(session.configPath)) {
@@ -2129,7 +2139,7 @@ ipcMain.on(ChannelEnum.WRITE_APO_CONFIG_FILE, async (event, arg) => {
 
   try {
     if (!session.configPath) {
-      session.configPath = await getConfigPath();
+      session.configPath = await getConfigPath(session.audioEngine ?? 'apo');
     }
     fs.writeFileSync(path.join(session.configPath, fileName), contents, 'utf8');
     const reply: TSuccess<void> = { result: undefined };
@@ -2218,7 +2228,7 @@ ipcMain.on(ChannelEnum.GET_APO_CONFIG_TREE, async (event) => {
   const channel = ChannelEnum.GET_APO_CONFIG_TREE;
   try {
     if (!session.configPath) {
-      session.configPath = await getConfigPath();
+      session.configPath = await getConfigPath(session.audioEngine ?? 'apo');
     }
     const tree = readApoConfigTree(session.configPath);
     const reply: TSuccess<IApoConfigTree | undefined> = {
@@ -2368,7 +2378,9 @@ registerUpdatesIpc({ getActiveAutoUpdater: () => activeAutoUpdater });
 
 ipcMain.handle('open-equalizer-apo-configurator', async () => {
   try {
-    const equalizerApoRoot = path.dirname(await getConfigPath());
+    const equalizerApoRoot = path.dirname(
+      await getConfigPath(session.audioEngine ?? 'apo'),
+    );
     const configuratorPath = ['DeviceSelector.exe', 'Configurator.exe']
       .map((fileName) => path.join(equalizerApoRoot, fileName))
       .find((candidate) => fs.existsSync(candidate));
@@ -2385,7 +2397,9 @@ ipcMain.handle('open-equalizer-apo-configurator', async () => {
 
 ipcMain.handle('open-equalizer-apo-settings', async () => {
   try {
-    const equalizerApoRoot = path.dirname(await getConfigPath());
+    const equalizerApoRoot = path.dirname(
+      await getConfigPath(session.audioEngine ?? 'apo'),
+    );
     // Equalizer APO 1.4.x renamed the old Configurator executable to Editor.
     // Keep the legacy name as a fallback for older installations.
     const settingsPath = ['Editor.exe', 'Configurator.exe']

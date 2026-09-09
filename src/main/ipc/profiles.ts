@@ -56,6 +56,7 @@ import {
   TPresetDirForDevice,
 } from '../deviceProfiles';
 import { getConfigPath } from '../registry';
+import { TAudioEngine } from '../../common/audioEngine';
 import { TSuccess } from '../../renderer/utils/equalizerApi';
 import { withOutputMirrorsStopped } from './outputMirror';
 
@@ -118,6 +119,7 @@ export interface IProfilesIpcDeps {
     activeAudioDeviceId: string;
     activeAudioDevice: IAudioDevice | undefined;
     hasActiveSessionOverride: boolean;
+    audioEngine: TAudioEngine | null;
   };
   handleUpdate: (
     event: Electron.IpcMainEvent,
@@ -544,7 +546,9 @@ export const registerProfilesIpc = ({
         // later EQ edit is made in FluidEQ.
         try {
           if (!session.configPath) {
-            session.configPath = await getConfigPath();
+            session.configPath = await getConfigPath(
+              session.audioEngine ?? 'apo',
+            );
           }
           if (!checkConfigFile(session.configPath)) {
             updateConfig(session.configPath);

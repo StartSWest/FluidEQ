@@ -20,6 +20,7 @@ import path from 'path';
 import fs from 'fs';
 import { app } from 'electron';
 import { promisified as regedit, setExternalVBSLocation } from 'regedit';
+import { TAudioEngine } from '../common/audioEngine';
 
 // app will only be defined in the electron main process environment.
 // in the test environment, we expect it to be undefined.
@@ -58,19 +59,65 @@ export const isEqualizerAPOInstalled = () =>
     ? isSoftwareInstalled('EqualizerAPO')
     : Promise.resolve(true);
 
-export const getConfigPath = async () => {
-  if (process.platform !== 'win32') {
-    const demoConfigPath = path.join(
-      app.getPath('userData'),
-      'demo-equalizerapo',
-    );
-    fs.mkdirSync(demoConfigPath, { recursive: true });
-    const configFile = path.join(demoConfigPath, 'config.txt');
-    if (!fs.existsSync(configFile)) {
-      fs.writeFileSync(configFile, '', 'utf8');
-    }
-    return demoConfigPath;
+/**
+ * `%ProgramData%\FluidEQ\engine\config` — the FluidEQ Engine DLL watches this
+ * directory directly, the same way Equalizer APO watches its own. Nothing
+ * installs it into the registry, so this is a plain, computed path rather
+ * than a lookup.
+ */
+export const getFluidEngineConfigDir = (): string =>
+  path.join(
+    process.env.ProgramData ?? 'C:\\ProgramData',
+    'FluidEQ',
+    'engine',
+    'config',
+  );
+
+export const getFluidEngineDllPath = (): string =>
+  path.join(
+    process.env.ProgramFiles ?? 'C:\\Program Files',
+    'FluidEQ Engine',
+    'FluidEQ-Engine.dll',
+  );
+
+export const isEngineInstalled = (engine: TAudioEngine): Promise<boolean> =>
+  engine === 'apo'
+    ? isEqualizerAPOInstalled()
+    : Promise.resolve(fs.existsSync(getFluidEngineDllPath()));
+
+/**
+ * A config directory is unusable to Equalizer APO's own reader unless
+ * `config.txt` exists, so every code path that hands one out creates that
+ * file first — empty, never overwritten once present, because a config.txt
+ * an install already wrote (with a user's own other includes in it) must
+ * survive untouched. `checkConfigFile`/`updateConfig` in `flush.ts` are what
+ * add the `Include: fluideq.txt` line, once this file is known to exist.
+ */
+const ensureConfigDirWithEmptyConfigFile = (configDir: string): string => {
+  fs.mkdirSync(configDir, { recursive: true });
+  const configFile = path.join(configDir, 'config.txt');
+  if (!fs.existsSync(configFile)) {
+    fs.writeFileSync(configFile, '', 'utf8');
   }
+  return configDir;
+};
+
+export const getConfigPath = async (engine: TAudioEngine): Promise<string> => {
+  if (process.platform !== 'win32') {
+    // Neither engine is really installable off Windows; both resolve to the
+    // same sandbox directory this always used, regardless of which one was
+    // chosen.
+    return ensureConfigDirWithEmptyConfigFile(
+      path.join(app.getPath('userData'), 'demo-equalizerapo'),
+    );
+  }
+
+  if (engine === 'fluid') {
+    // The engine's directory is never in the registry — see
+    // `getFluidEngineConfigDir` — so no APO probe belongs on this path.
+    return ensureConfigDirWithEmptyConfigFile(getFluidEngineConfigDir());
+  }
+
   const isInstalled = await isEqualizerAPOInstalled();
   if (!isInstalled) {
     throw new Error('Equalizer APO not installed');

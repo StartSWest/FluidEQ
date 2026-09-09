@@ -38,6 +38,7 @@ import {
   getConvolutionCatalog,
 } from '../convolutionCatalog';
 import { getConfigPath } from '../registry';
+import { TAudioEngine } from '../../common/audioEngine';
 import { TSuccess } from '../../renderer/utils/equalizerApi';
 
 /**
@@ -53,7 +54,11 @@ import { TSuccess } from '../../renderer/utils/equalizerApi';
  */
 export interface IReferencesIpcDeps {
   state: IState;
-  session: { configPath: string; activeAudioDeviceId: string };
+  session: {
+    configPath: string;
+    activeAudioDeviceId: string;
+    audioEngine: TAudioEngine | null;
+  };
 
   /** Bounds a published curve so a bad measurement cannot silence the output. */
   shieldReferenceBands: (filters: IFiltersMap) => IFiltersMap;
@@ -221,7 +226,7 @@ export const registerReferencesIpc = ({
     }
     try {
       if (!session.configPath) {
-        session.configPath = await getConfigPath();
+        session.configPath = await getConfigPath(session.audioEngine ?? 'apo');
       }
       applyingLayer('convolution');
       state.convolution = await downloadConvolution(

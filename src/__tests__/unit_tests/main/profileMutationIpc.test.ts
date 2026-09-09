@@ -161,6 +161,7 @@ describe('renaming and deleting a profile through IPC', () => {
         },
         activeAudioDevice: undefined,
         hasActiveSessionOverride: false,
+        audioEngine: null,
       },
       handleUpdate: async () => undefined,
       handleUpdateHelper: async () => undefined,
