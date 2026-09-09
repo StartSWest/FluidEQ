@@ -16,9 +16,35 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import path from 'path';
-import os from 'os';
+import { EventEmitter } from 'events';
+
+/**
+ * `execFile` is mocked rather than spawning for real, for two reasons: a
+ * genuinely missing exe is one code path (the `error` event), but the
+ * stdout-cap test below needs a child that can emit more than 1 MiB of
+ * output on demand — not reproducible hermetically through a real spawn —
+ * and `execFile`'s exported binding is non-configurable at runtime, so
+ * `jest.spyOn` on the real module cannot override it per test. One fake
+ * child, driven by hand, covers both.
+ */
+class FakeChildProcess extends EventEmitter {
+  stdout = new EventEmitter();
+
+  stderr = new EventEmitter();
+}
+
+let fakeChild: FakeChildProcess;
+
+jest.mock('child_process', () => ({
+  execFile: jest.fn(() => fakeChild),
+}));
+
+// eslint-disable-next-line import/first
 import { parseEngineSetupOutput, runEngineSetup } from 'main/engineSetup';
+
+beforeEach(() => {
+  fakeChild = new FakeChildProcess();
+});
 
 describe('parsing the setup helper output', () => {
   it('reads a successful command, defaulting backupExists false', () => {
@@ -61,12 +87,39 @@ describe('parsing the setup helper output', () => {
 
 describe('running the setup helper', () => {
   it('resolves ok:false with the spawn error instead of throwing on a missing exe', async () => {
-    const missingExe = path.join(
-      os.tmpdir(),
-      'fluideq-engine-setup-does-not-exist.exe',
+    const promise = runEngineSetup(
+      'install',
+      [],
+      'C:\\fluideq-engine-setup-does-not-exist.exe',
     );
+    const spawnError = Object.assign(new Error('spawn ENOENT'), {
+      code: 'ENOENT',
+    });
+    fakeChild.emit('error', spawnError);
 
-    const result = await runEngineSetup('install', [], missingExe);
+    const result = await promise;
+
+    expect(result.ok).toBe(false);
+    expect(result.declined).toBe(false);
+    expect(result.error).toBeTruthy();
+    expect(result.endpoints).toEqual([]);
+  });
+
+  /**
+   * `execFile`'s own `maxBuffer` is a no-op without a callback (see the
+   * comment above `runEngineSetup`), so the cap is hand-rolled — this
+   * exercises that accumulate-and-compare logic directly, not the OS pipe
+   * underneath it.
+   */
+  it('treats stdout past 1 MiB as unreadable instead of growing without bound', async () => {
+    const promise = runEngineSetup('install', [], 'C:\\fake-setup.exe');
+    // One chunk past the 1 MiB cap — real stdout would arrive in many
+    // smaller chunks, but a single oversized one exercises the same
+    // accumulate-and-compare path.
+    fakeChild.stdout.emit('data', 'a'.repeat(1024 * 1024 + 1));
+    fakeChild.emit('close', 0);
+
+    const result = await promise;
 
     expect(result.ok).toBe(false);
     expect(result.declined).toBe(false);

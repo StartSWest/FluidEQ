@@ -77,25 +77,30 @@ interface IRawStatusEndpoint {
   backupExists?: unknown;
 }
 
-interface IParsedStatusEndpoint {
+interface IGuardedStatusEndpoint {
   guid: string;
   attached: boolean;
-  backupExists: boolean;
+  backupExists?: unknown;
 }
 
-const isRawStatusEndpoint = (value: unknown): value is IParsedStatusEndpoint =>
+const isRawStatusEndpoint = (value: unknown): value is IGuardedStatusEndpoint =>
   typeof value === 'object' &&
   value !== null &&
   typeof (value as IRawStatusEndpoint).guid === 'string' &&
-  typeof (value as IRawStatusEndpoint).attached === 'boolean' &&
-  typeof (value as IRawStatusEndpoint).backupExists === 'boolean';
+  typeof (value as IRawStatusEndpoint).attached === 'boolean';
 
+/**
+ * `backupExists` defaults to `false` when the helper omits it rather than
+ * dropping the whole endpoint — `guid` and `attached` are the only fields the
+ * helper's contract guarantees, so a document missing the third one is still
+ * a real endpoint, not a malformed one.
+ */
 const parseStatusEndpoints = (value: unknown): IFluidEngineEndpoint[] =>
   Array.isArray(value)
     ? value.filter(isRawStatusEndpoint).map((endpoint) => ({
         guid: endpoint.guid,
         attached: endpoint.attached,
-        backupExists: endpoint.backupExists,
+        backupExists: endpoint.backupExists === true,
       }))
     : [];
 
@@ -150,6 +155,17 @@ export const parseFluidEngineStatus = (stdout: string): IFluidEngineStatus => {
 };
 
 /**
+ * `execFile`'s own `maxBuffer` option only truncates output when a callback
+ * is passed to it — this module reads `stdout`/`stderr` by hand instead (see
+ * `runEngineSetup`'s own comment on the same point), so `maxBuffer` here
+ * would be silently ignored. Capped by hand instead: once accumulated stdout
+ * crosses this, further chunks are dropped and the result is treated as
+ * unreadable rather than let a runaway or hostile helper grow the buffer
+ * without bound.
+ */
+const MAX_STDOUT_BYTES = 1024 * 1024;
+
+/**
  * Runs the helper's `status` command — never elevates, never throws.
  *
  * A spawn failure (helper missing, e.g. running from a source checkout with
@@ -161,15 +177,32 @@ export const parseFluidEngineStatus = (stdout: string): IFluidEngineStatus => {
 export const readFluidEngineStatus = (): Promise<IFluidEngineStatus> =>
   new Promise((resolve) => {
     let stdout = '';
+    let stdoutBytes = 0;
+    let stdoutOverflowed = false;
+    let stderr = '';
     let settled = false;
 
     const child = execFile(getEngineSetupPath(), ['status'], {
       windowsHide: true,
-      maxBuffer: 1024 * 1024,
     });
 
     child.stdout?.on('data', (chunk: Buffer | string) => {
+      if (stdoutOverflowed) {
+        return;
+      }
+      stdoutBytes += Buffer.byteLength(chunk);
+      if (stdoutBytes > MAX_STDOUT_BYTES) {
+        stdoutOverflowed = true;
+        return;
+      }
       stdout += chunk.toString();
+    });
+
+    // Drained for the same reason `runEngineSetup` drains it: a chatty child
+    // must never be able to block on a full stderr pipe just because nothing
+    // here reads it.
+    child.stderr?.on('data', (chunk: Buffer | string) => {
+      stderr += chunk.toString();
     });
 
     child.on('error', (error) => {
@@ -186,9 +219,44 @@ export const readFluidEngineStatus = (): Promise<IFluidEngineStatus> =>
         return;
       }
       settled = true;
+      if (stderr.trim()) {
+        log.error(
+          `FluidEQ Engine status probe wrote to stderr: ${stderr.trim()}`,
+        );
+      }
+      if (stdoutOverflowed) {
+        log.error(
+          'FluidEQ Engine status probe stdout exceeded 1 MiB; treating as unreadable.',
+        );
+        resolve({ installed: false, endpoints: [] });
+        return;
+      }
       resolve(parseFluidEngineStatus(stdout));
     });
   });
+
+/**
+ * `isEqualizerAPOInstalled` goes through `regedit`, a real process spawn that
+ * can reject (a locked hive, a missing `reg.exe`) rather than only ever
+ * resolving `false` — same failure shape as any other registry read in this
+ * app. Caught here rather than left to reach `readAudioEngineStatus`'s
+ * `Promise.all`, because an unguarded rejection there would reject the whole
+ * status read and break the "never throws" contract every other probe in
+ * this file already honours; logged with context, then folded into the same
+ * "not installed" answer a genuine absence would produce.
+ */
+const probeApoInstalled = async (): Promise<boolean> => {
+  try {
+    return await isEqualizerAPOInstalled();
+  } catch (error) {
+    log.error(
+      `Equalizer APO install probe failed: ${
+        error instanceof Error ? error.message : String(error)
+      }`,
+    );
+    return false;
+  }
+};
 
 /**
  * The one status read the app needs before it can decide what to show: the
@@ -213,7 +281,7 @@ export const readAudioEngineStatus = async (
 ): Promise<IAudioEngineStatus> => {
   const shouldProbeApo = engine === 'apo' || engine === null;
   const [apoInstalled, fluid] = await Promise.all([
-    shouldProbeApo ? isEqualizerAPOInstalled() : Promise.resolve(false),
+    shouldProbeApo ? probeApoInstalled() : Promise.resolve(false),
     readFluidEngineStatus(),
   ]);
   return {

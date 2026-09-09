@@ -190,8 +190,16 @@ public static class AquaAudioDevices
                 if (!String.IsNullOrWhiteSpace(value) &&
                     value.IndexOf(clsid, StringComparison.OrdinalIgnoreCase) >= 0)
                     return true;
+            return false;
         }
-        return false;
+
+        // REG_SZ fallback, matching ContainsEqualizerApoClsid: some drivers
+        // write the composite effects value as a single string rather than
+        // REG_MULTI_SZ, and that must still be searched, not treated as absent.
+        var text = rawValue as string;
+        if (String.IsNullOrWhiteSpace(text))
+            return false;
+        return text.IndexOf(clsid, StringComparison.OrdinalIgnoreCase) >= 0;
     }
 
     // Reads only the two named composite effect lists rather than every

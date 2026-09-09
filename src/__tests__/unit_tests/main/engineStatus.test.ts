@@ -124,6 +124,18 @@ describe('parsing the status document', () => {
       endpoints: [],
     });
   });
+
+  it('defaults an endpoint missing backupExists to false rather than dropping it', () => {
+    const status = parseFluidEngineStatus(
+      JSON.stringify({
+        installed: true,
+        endpoints: [{ guid: '{A}', attached: true }],
+      }),
+    );
+    expect(status.endpoints).toEqual([
+      { guid: '{A}', attached: true, backupExists: false },
+    ]);
+  });
 });
 
 describe('reading the combined audio engine status', () => {
@@ -155,5 +167,18 @@ describe('reading the combined audio engine status', () => {
     await promise;
 
     expect(isEqualizerAPOInstalledSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('resolves apo.installed:false instead of rejecting when the registry probe fails', async () => {
+    isEqualizerAPOInstalledSpy.mockRejectedValueOnce(
+      new Error('registry read failed'),
+    );
+
+    const promise = readAudioEngineStatus('C:\\userData', 'apo');
+    resolveChild();
+
+    await expect(promise).resolves.toEqual(
+      expect.objectContaining({ apo: { installed: false } }),
+    );
   });
 });

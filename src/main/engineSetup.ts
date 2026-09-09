@@ -179,6 +179,17 @@ export const parseEngineSetupOutput = (
 };
 
 /**
+ * `execFile`'s own `maxBuffer` option only truncates output when a callback
+ * is passed to it; this module reads `stdout`/`stderr` off the events by
+ * hand instead (see below), so passing `maxBuffer` here would be silently
+ * ignored and stdout could grow without bound. Capped by hand instead: once
+ * accumulated stdout crosses this, further chunks are dropped and the result
+ * is treated as a parse failure rather than let a runaway helper grow the
+ * buffer forever.
+ */
+const MAX_STDOUT_BYTES = 1024 * 1024;
+
+/**
  * Runs one setup command and resolves with what happened — never rejects.
  *
  * `exePath` defaults to `getEngineSetupPath()` but stays a parameter so a
@@ -199,15 +210,24 @@ export const runEngineSetup = (
 ): Promise<IEngineSetupResult> =>
   new Promise((resolve) => {
     let stdout = '';
+    let stdoutBytes = 0;
+    let stdoutOverflowed = false;
     let stderr = '';
     let settled = false;
 
     const child = execFile(exePath, [command, ...args], {
       windowsHide: true,
-      maxBuffer: 1024 * 1024,
     });
 
     child.stdout?.on('data', (chunk: Buffer | string) => {
+      if (stdoutOverflowed) {
+        return;
+      }
+      stdoutBytes += Buffer.byteLength(chunk);
+      if (stdoutBytes > MAX_STDOUT_BYTES) {
+        stdoutOverflowed = true;
+        return;
+      }
       stdout += chunk.toString();
     });
     child.stderr?.on('data', (chunk: Buffer | string) => {
@@ -237,6 +257,18 @@ export const runEngineSetup = (
         log.error(
           `FluidEQ Engine Setup (${command}) wrote to stderr: ${stderr.trim()}`,
         );
+      }
+      if (stdoutOverflowed) {
+        log.error(
+          `FluidEQ Engine Setup (${command}) stdout exceeded 1 MiB; treating as unreadable.`,
+        );
+        resolve({
+          ok: false,
+          declined: false,
+          error: 'The setup helper produced too much output to read.',
+          endpoints: [],
+        });
+        return;
       }
       resolve(parseEngineSetupOutput(stdout, code));
     });
