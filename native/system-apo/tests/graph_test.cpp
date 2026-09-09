@@ -12,7 +12,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
  *
  * Chains are built by `resolve_chain` over an in-memory provider rather than
  * by filling a `Chain` by hand, so the same config grammar Equalizer APO
- * writes is exercised on the way in. The two convolution checks are the one
+ * writes is exercised on the way in. The convolution checks are the
  * exception that touches disk: `read_wav` is the only door an impulse
  * response comes through, and a test that bypassed it would not prove the
  * graph can load one.
@@ -146,12 +146,20 @@ size_t peak_near(const std::vector<float>& samples, size_t centre,
   return best;
 }
 
-/** The two-tap impulse response both convolution checks look for. */
+/** The two-tap impulse response the convolution checks look for. */
 std::vector<float> two_tap_impulse_response() {
   std::vector<float> kernel(64, 0.0f);
   kernel[0] = 1.0f;
   kernel[48] = 0.5f;
   return kernel;
+}
+
+/** Writes `kernel` as a WAV at `rate` and resolves a chain naming it. */
+Chain convolution_chain(const std::filesystem::path& path, uint32_t rate,
+                        const std::vector<float>& kernel,
+                        const std::string& extra_lines = "") {
+  CHECK(write_float_wav(path, rate, kernel));
+  return chain_from("Convolution: " + path.string() + "\r\n" + extra_lines);
 }
 
 // ---------------------------------------------------------------------------
@@ -290,9 +298,8 @@ void convolution_applies_kernel() {
   std::printf("an impulse response is convolved at the reported latency\n");
   const std::filesystem::path path =
       std::filesystem::temp_directory_path() / "fluideq-engine-ir-48000.wav";
-  CHECK(write_float_wav(path, 48000, two_tap_impulse_response()));
-
-  const Chain chain = chain_from("Convolution: " + path.string() + "\r\n");
+  const Chain chain =
+      convolution_chain(path, 48000, two_tap_impulse_response());
   CHECK(chain.matched);
   CHECK(!chain.convolution_path.empty());
 
@@ -320,9 +327,8 @@ void convolution_at_other_rate_is_resampled() {
   std::printf("an impulse response at 44.1 kHz is converted to the stream\n");
   const std::filesystem::path path =
       std::filesystem::temp_directory_path() / "fluideq-engine-ir-44100.wav";
-  CHECK(write_float_wav(path, 44100, two_tap_impulse_response()));
-
-  const Chain chain = chain_from("Convolution: " + path.string() + "\r\n");
+  const Chain chain =
+      convolution_chain(path, 44100, two_tap_impulse_response());
   CHECK(chain.matched);
 
   Graph graph(chain, kRate, 1, 512);
@@ -349,6 +355,96 @@ void convolution_at_other_rate_is_resampled() {
   std::filesystem::remove(path, ignored);
 }
 
+void convolution_and_graphic_eq_combine() {
+  std::printf("a convolution file and a flat graphic curve run in series\n");
+  const std::filesystem::path path =
+      std::filesystem::temp_directory_path() / "fluideq-engine-ir-combo.wav";
+  const Chain chain = convolution_chain(path, 48000, two_tap_impulse_response(),
+                                        "GraphicEQ: 20 0; 20000 0\r\n");
+  CHECK(chain.matched);
+  CHECK(chain.graphic.size() == 2);
+
+  Graph graph(chain, kRate, 1, 512);
+  // Two convolvers in series each add their own block-pipeline latency, so
+  // this reports twice the single-stage constant. It is NOT the whole story
+  // for a GraphicEQ stage specifically — see below.
+  CHECK(graph.latency_frames() == 2 * feq_convolver_latency());
+
+  std::vector<std::vector<float>> channels(1, std::vector<float>(8192, 0.0f));
+  channels[0][0] = 1.0f;
+  run_blocks(graph, channels, 512);
+
+  // `latency_frames()` is only the two convolvers' own block-pipeline delay.
+  // The GraphicEQ stage is ALSO a centred, linear-phase FIR (4097 taps at
+  // 48 kHz — graph.cpp's own kGraphicTapsAt48k, mirrored here since this
+  // test's sample rate equals the 48 kHz reference and needs no scaling),
+  // which adds a further (taps-1)/2 samples of real group delay on top of
+  // that pipeline latency. Measured: the tap lands at exactly
+  // latency_frames() + 2048, not at latency_frames() alone.
+  constexpr size_t kGraphicTapsAt48k = 4097;
+  const size_t expected = graph.latency_frames() + kGraphicTapsAt48k / 2;
+  const double first = static_cast<double>(channels[0][expected]);
+  const double second = static_cast<double>(channels[0][expected + 48]);
+  std::printf("       taps measure %.5f and %.5f at %zu (target 1.0, 0.5)\n",
+              first, second, expected);
+  // A flat (0 dB) GraphicEQ curve is a Hann-windowed frequency-sampled FIR,
+  // not a mathematically exact all-pass, so in principle it can ring by a
+  // small amount rather than reproducing the impulse response's own taps
+  // exactly — hence the looser tolerance than the single-stage check above,
+  // even though this kernel measures exact to print precision.
+  CHECK(std::fabs(first - 1.0) < 1e-3);
+  CHECK(std::fabs(second - 0.5) < 1e-3);
+
+  double peak = 0.0;  // Positive control: real signal, not near-silence.
+  for (const float sample : channels[0]) {
+    const double magnitude = std::fabs(static_cast<double>(sample));
+    peak = magnitude > peak ? magnitude : peak;
+  }
+  CHECK(peak > 0.3);
+
+  std::error_code ignored;
+  std::filesystem::remove(path, ignored);
+}
+
+void stereo_convolvers_do_not_share_history() {
+  std::printf("each channel's convolver keeps its own history\n");
+  const std::filesystem::path path =
+      std::filesystem::temp_directory_path() / "fluideq-engine-ir-stereo.wav";
+  const Chain chain =
+      convolution_chain(path, 48000, two_tap_impulse_response());
+  CHECK(chain.matched);
+
+  Graph graph(chain, kRate, 2, 512);
+  std::vector<std::vector<float>> channels(2, std::vector<float>(2048, 0.0f));
+  channels[0][0] = 1.0f;    // Channel 0: impulse at frame 0.
+  channels[1][100] = 1.0f;  // Channel 1: impulse at frame 100.
+  run_blocks(graph, channels, 512);
+
+  const size_t latency = graph.latency_frames();
+  const double left0 = static_cast<double>(channels[0][latency]);
+  const double left48 = static_cast<double>(channels[0][latency + 48]);
+  const double right0 = static_cast<double>(channels[1][latency + 100]);
+  const double right48 = static_cast<double>(channels[1][latency + 148]);
+  std::printf("       left %.5f/%.5f, right %.5f/%.5f\n", left0, left48,
+              right0, right48);
+  CHECK(std::fabs(left0 - 1.0) < 1e-4);
+  CHECK(std::fabs(left48 - 0.5) < 1e-4);
+  CHECK(std::fabs(right0 - 1.0) < 1e-4);
+  CHECK(std::fabs(right48 - 0.5) < 1e-4);
+
+  // Shared history would leak channel 1's later impulse into channel 0's
+  // output and vice versa; neither channel shows anything at the other's tap.
+  const double leak_left =
+      std::fabs(static_cast<double>(channels[0][latency + 100]));
+  const double leak_right = std::fabs(static_cast<double>(channels[1][latency]));
+  std::printf("       cross-talk %.6f / %.6f\n", leak_left, leak_right);
+  CHECK(leak_left < 1e-4);
+  CHECK(leak_right < 1e-4);
+
+  std::error_code ignored;
+  std::filesystem::remove(path, ignored);
+}
+
 void over_long_impulse_response_is_truncated() {
   std::printf("an impulse response past the engine's limit is truncated\n");
   const std::filesystem::path path =
@@ -360,9 +456,7 @@ void over_long_impulse_response_is_truncated() {
   std::vector<float> kernel(65537, 0.0f);
   kernel[0] = 1.0f;
   kernel[65536] = 0.5f;
-  CHECK(write_float_wav(path, 48000, kernel));
-
-  const Chain chain = chain_from("Convolution: " + path.string() + "\r\n");
+  const Chain chain = convolution_chain(path, 48000, kernel);
   Graph graph(chain, kRate, 1, 512);
   CHECK(mentions(graph.warnings(), "65537"));
   CHECK(mentions(graph.warnings(), "65536"));
@@ -470,6 +564,8 @@ int main() {
   state_inherits_across_gain_change();
   convolution_applies_kernel();
   convolution_at_other_rate_is_resampled();
+  convolution_and_graphic_eq_combine();
+  stereo_convolvers_do_not_share_history();
   over_long_impulse_response_is_truncated();
   graphic_eq_applies();
   unreadable_impulse_response_is_survived();

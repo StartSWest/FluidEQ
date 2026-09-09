@@ -24,6 +24,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #define FLUIDEQ_ENGINE_GRAPH_H
 
 #include <cstdint>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -32,6 +33,24 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "fluideq_engine/config.h"
 
 namespace fluideq_engine {
+
+namespace detail {
+
+// Stateless deleters so `std::unique_ptr` calls the matching `feq_*_destroy`
+// instead of `delete` on an opaque C handle. Both destroy functions already
+// treat a null pointer as a no-op, same as `delete`, so no extra guard here.
+struct ConvolverKernelDeleter {
+  void operator()(FeqConvolverKernel* kernel) const noexcept {
+    feq_convolver_kernel_destroy(kernel);
+  }
+};
+struct ConvolverDeleter {
+  void operator()(FeqConvolver* state) const noexcept {
+    feq_convolver_destroy(state);
+  }
+};
+
+}  // namespace detail
 
 class Graph {
  public:
@@ -112,10 +131,22 @@ class Graph {
 
   // The kernels outlive every convolver built from them, and each is shared
   // by all channels; only the per-channel `FeqConvolver` carries history.
-  FeqConvolverKernel* impulse_kernel_;
-  FeqConvolverKernel* graphic_kernel_;
-  std::vector<FeqConvolver*> impulse_;
-  std::vector<FeqConvolver*> graphic_;
+  //
+  // Owned through `unique_ptr` so a throw anywhere after one of these is
+  // created — `warnings_.push_back`, the FIR design's allocations, the next
+  // `feq_convolver_kernel_create` — still runs its destructor rather than
+  // leaking the handle. Declared AFTER the kernels on purpose: members are
+  // destroyed in reverse declaration order, and each convolver holds a
+  // pointer into the kernel it was built from, so the convolvers must go
+  // first.
+  std::unique_ptr<FeqConvolverKernel, detail::ConvolverKernelDeleter>
+      impulse_kernel_;
+  std::unique_ptr<FeqConvolverKernel, detail::ConvolverKernelDeleter>
+      graphic_kernel_;
+  std::vector<std::unique_ptr<FeqConvolver, detail::ConvolverDeleter>>
+      impulse_;
+  std::vector<std::unique_ptr<FeqConvolver, detail::ConvolverDeleter>>
+      graphic_;
 
   std::vector<std::string> warnings_;
 };

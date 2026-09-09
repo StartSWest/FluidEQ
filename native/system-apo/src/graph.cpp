@@ -8,8 +8,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <cmath>
 #include <cstddef>
+#include <memory>
 #include <optional>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "fluideq/resampler.h"
@@ -149,14 +151,18 @@ std::vector<float> load_impulse(const std::wstring& path, uint32_t sample_rate,
   if (wav->sample_rate != sample_rate) {
     kernel = resample_mono(kernel, static_cast<double>(wav->sample_rate),
                            static_cast<double>(sample_rate));
-    warnings.push_back("Convolution file is " +
-                       std::to_string(wav->sample_rate) + " Hz; resampled to " +
-                       std::to_string(sample_rate) + " Hz.");
+    // Checked, and the failure warning pushed, BEFORE the success warning
+    // below: a resample that produced nothing must not be logged as having
+    // resampled the file, which is what happened when the two lines were the
+    // other way round.
     if (kernel.empty()) {
       warnings.push_back("Convolution file could not be resampled: " +
                          narrow(path));
       return {};
     }
+    warnings.push_back("Convolution file is " +
+                       std::to_string(wav->sample_rate) + " Hz; resampled to " +
+                       std::to_string(sample_rate) + " Hz.");
   }
   if (kernel.size() > kMaxKernelTaps) {
     warnings.push_back("Convolution file is " + std::to_string(kernel.size()) +
@@ -174,37 +180,46 @@ std::vector<float> design_graphic(const std::vector<GraphicPoint>& points,
   const double scaled = static_cast<double>(kGraphicTapsAt48k) *
                         static_cast<double>(sample_rate) /
                         kGraphicReferenceRate;
-  const uint32_t wanted = static_cast<uint32_t>(std::lround(scaled)) | 1u;
-  uint32_t taps = wanted;
-  if (taps > kMaxKernelTaps) {
+  // Compared as a double BEFORE any narrowing. `sample_rate` arrives from a
+  // mix format this code did not write, and at rates the cap is meant to
+  // guard against, `scaled` can be far past what `std::lround` (into a 32-bit
+  // `long`) or a `uint32_t` can round-trip; narrowing first let that
+  // wraparound land back under `kMaxKernelTaps` and skip the cap entirely.
+  uint32_t taps;
+  if (scaled > static_cast<double>(kMaxKernelTaps)) {
     taps = (kMaxKernelTaps - 1u) | 1u;
-    warnings.push_back("Graphic EQ needs " + std::to_string(wanted) +
+    warnings.push_back("Graphic EQ needs " + std::to_string(std::llround(scaled)) +
                        " taps at " + std::to_string(sample_rate) +
                        " Hz; designed with " + std::to_string(taps) +
                        " instead.");
+  } else {
+    taps = static_cast<uint32_t>(std::lround(scaled)) | 1u;
   }
   return design_graphic_kernel(points, sample_rate, taps);
 }
+
+using ConvolverPtr = std::unique_ptr<FeqConvolver, detail::ConvolverDeleter>;
 
 /**
  * One convolver per channel, all or nothing.
  *
  * A stage that ran on some channels and not others would delay them by
  * different amounts, which collapses the stereo image — worse than the same
- * config running with no convolution at all.
+ * config running with no convolution at all. Failing partway needs no manual
+ * unwind: `out` holds `unique_ptr`s, so clearing it destroys whatever had
+ * already been built.
  */
 bool build_convolvers(const FeqConvolverKernel* kernel, uint32_t channels,
-                      std::vector<FeqConvolver*>& out) {
-  out.assign(channels, nullptr);
+                      std::vector<ConvolverPtr>& out) {
+  out.clear();
+  out.reserve(channels);
   for (uint32_t at = 0; at < channels; ++at) {
-    out[at] = feq_convolver_create(kernel);
-    if (out[at] == nullptr) {
-      for (FeqConvolver* built : out) {
-        feq_convolver_destroy(built);
-      }
+    ConvolverPtr convolver(feq_convolver_create(kernel));
+    if (!convolver) {
       out.clear();
       return false;
     }
+    out.push_back(std::move(convolver));
   }
   return true;
 }
@@ -218,9 +233,7 @@ Graph::Graph(const Chain& chain, uint32_t sample_rate, uint32_t channels,
       max_frames_(max_frames),
       passthrough_(true),
       preamp_linear_(1.0),
-      latency_frames_(0),
-      impulse_kernel_(nullptr),
-      graphic_kernel_(nullptr) {
+      latency_frames_(0) {
   // An endpoint the config never named gets nothing at all, not even a
   // preamp of 0 dB: `matched` is the difference between "this config has
   // something to say about this device" and "it does not".
@@ -249,10 +262,10 @@ Graph::Graph(const Chain& chain, uint32_t sample_rate, uint32_t channels,
     const std::vector<float> kernel =
         load_impulse(chain.convolution_path, sample_rate_, warnings_);
     if (!kernel.empty()) {
-      impulse_kernel_ = feq_convolver_kernel_create(
-          kernel.data(), static_cast<uint32_t>(kernel.size()));
-      if (impulse_kernel_ != nullptr &&
-          build_convolvers(impulse_kernel_, channels_, impulse_)) {
+      impulse_kernel_.reset(feq_convolver_kernel_create(
+          kernel.data(), static_cast<uint32_t>(kernel.size())));
+      if (impulse_kernel_ &&
+          build_convolvers(impulse_kernel_.get(), channels_, impulse_)) {
         latency_frames_ += feq_convolver_latency();
       } else {
         warnings_.push_back("Convolution could not be prepared; skipped.");
@@ -264,10 +277,10 @@ Graph::Graph(const Chain& chain, uint32_t sample_rate, uint32_t channels,
     const std::vector<float> kernel =
         design_graphic(chain.graphic, sample_rate_, warnings_);
     if (!kernel.empty()) {
-      graphic_kernel_ = feq_convolver_kernel_create(
-          kernel.data(), static_cast<uint32_t>(kernel.size()));
-      if (graphic_kernel_ != nullptr &&
-          build_convolvers(graphic_kernel_, channels_, graphic_)) {
+      graphic_kernel_.reset(feq_convolver_kernel_create(
+          kernel.data(), static_cast<uint32_t>(kernel.size())));
+      if (graphic_kernel_ &&
+          build_convolvers(graphic_kernel_.get(), channels_, graphic_)) {
         latency_frames_ += feq_convolver_latency();
       } else {
         warnings_.push_back("Graphic EQ could not be prepared; skipped.");
@@ -276,20 +289,14 @@ Graph::Graph(const Chain& chain, uint32_t sample_rate, uint32_t channels,
   }
 
   passthrough_ = coefficients_.empty() && impulse_.empty() &&
-                 graphic_.empty() && chain.preamp_db == 0.0;
+                 graphic_.empty() && preamp_linear_ == 1.0f;
 }
 
-Graph::~Graph() {
-  // Convolvers first: each holds a pointer into the kernel it was built from.
-  for (FeqConvolver* state : impulse_) {
-    feq_convolver_destroy(state);
-  }
-  for (FeqConvolver* state : graphic_) {
-    feq_convolver_destroy(state);
-  }
-  feq_convolver_kernel_destroy(impulse_kernel_);
-  feq_convolver_kernel_destroy(graphic_kernel_);
-}
+// Every owning member is a `unique_ptr` (the kernels) or a vector of them
+// (the per-channel convolvers), so the compiler-generated destruction order
+// — reverse of declaration in `graph.h` — already tears down the convolvers
+// before the kernels they point into. Nothing left to do by hand.
+Graph::~Graph() = default;
 
 void Graph::process(float* const* planar, uint32_t frames) noexcept {
   // A block larger than this graph was built for is passed through whole. The
@@ -309,10 +316,10 @@ void Graph::process(float* const* planar, uint32_t frames) noexcept {
     }
 
     if (!impulse_.empty()) {
-      feq_convolve(impulse_[channel], buffer, frames);
+      feq_convolve(impulse_[channel].get(), buffer, frames);
     }
     if (!graphic_.empty()) {
-      feq_convolve(graphic_[channel], buffer, frames);
+      feq_convolve(graphic_[channel].get(), buffer, frames);
     }
 
     FeqBiquadState* state =
@@ -321,7 +328,11 @@ void Graph::process(float* const* planar, uint32_t frames) noexcept {
       feq_biquad_process(state + band, buffer, frames, &coefficients_[band]);
     }
 
-    if (preamp != 1.0f) {
+    // Same test `passthrough_` uses (`preamp_linear_ == 1.0f`, computed once
+    // in the constructor): this used to compare the casted `preamp` against
+    // 1.0f while `passthrough_` compared `chain.preamp_db` against 0.0, so the
+    // two could disagree at the edges of what a cast rounds to.
+    if (preamp_linear_ != 1.0f) {
       for (uint32_t at = 0; at < frames; ++at) {
         buffer[at] *= preamp;
       }
