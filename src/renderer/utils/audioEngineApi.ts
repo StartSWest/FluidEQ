@@ -25,7 +25,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import ChannelEnum from 'common/channels';
-import type { IAudioEngineStatus, TAudioEngine } from 'common/audioEngine';
+import type {
+  IAudioEngineStatus,
+  TAudioEngine,
+  TSystemDspChainResult,
+} from 'common/audioEngine';
 import type { IEngineSetupResult } from 'main/engineSetup';
 import {
   buildResponseHandler,
@@ -113,12 +117,19 @@ export const detachFluidEngine = (
  * Send the DSP rack to the engine, so it runs on every output rather than
  * inside the Library player alone.
  *
- * Resolves `false` rather than rejecting when the rack did not go anywhere —
- * under Equalizer APO it never does, and that is a supported configuration
- * the DSP page explains, not an error to raise on every slider movement.
+ * Resolves with what became of it rather than rejecting when it did not go
+ * anywhere — under Equalizer APO it never does, and that is a supported
+ * configuration the DSP page explains, not an error to raise on every slider
+ * movement. Which of the three reasons it was is the whole point of the
+ * answer: they need three different sentences on screen.
  */
-export const setSystemDspChain = (values: number[]): Promise<boolean> => {
+export const setSystemDspChain = (
+  values: number[],
+): Promise<TSystemDspChainResult> => {
   const channel = ChannelEnum.SET_SYSTEM_DSP_CHAIN;
   window.electron.ipcRenderer.sendMessage(channel, [values]);
-  return promisifyResult<boolean>(simpleResponseHandler<boolean>(), channel);
+  return promisifyResult<TSystemDspChainResult>(
+    simpleResponseHandler<TSystemDspChainResult>(),
+    channel,
+  );
 };

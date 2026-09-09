@@ -69,6 +69,19 @@ export interface IAudioEngineStatus {
   fluidSupported: boolean;
 }
 
+/**
+ * What became of a system-wide DSP rack snapshot.
+ *
+ * Four answers rather than a boolean because three of them are "not written"
+ * for entirely different reasons, and the page that shows the rack has to say
+ * which: `'not-fluid'` is a supported configuration to explain (the rack runs
+ * in the Library player instead), `'not-installed'` is an engine that is
+ * chosen but missing, and `'rejected'` is a payload that never should have
+ * been sent at all — a bug in the window, not a state a user can be in.
+ */
+export type TSystemDspChainResult =
+  'written' | 'not-fluid' | 'not-installed' | 'rejected';
+
 /** Guards a value read off disk before it is trusted as an engine name. */
 export const isAudioEngine = (value: unknown): value is TAudioEngine =>
   typeof value === 'string' &&

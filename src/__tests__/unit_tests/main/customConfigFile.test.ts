@@ -162,9 +162,11 @@ describe('the custom file in a device chain', () => {
     expect(preamp).toBeLessThan(-5);
   });
 
-  // It outlives its generated siblings, but not the output itself: a file for
-  // a device nobody has any more is one more thing looking like it applies.
-  it('goes when the output it belongs to does', async () => {
+  // It outlives its generated siblings AND the output itself. An empty
+  // assignment list is not proof the headset is gone for good — it is also
+  // what an unplugged one looks like — and deleting on it costs somebody work
+  // that nothing in the app can write again.
+  it('stays when the output it belongs to goes away', async () => {
     await flushDeviceProfiles(settings, () => presetsDir, configDir);
     const custom = customFileIn(configDir) as string;
     fs.writeFileSync(path.join(configDir, custom), 'Delay: 5 ms', 'utf8');
@@ -175,6 +177,40 @@ describe('the custom file in a device chain', () => {
       configDir,
     );
 
-    expect(fs.existsSync(path.join(configDir, custom))).toBe(false);
+    expect(fs.readFileSync(path.join(configDir, custom), 'utf8')).toBe(
+      'Delay: 5 ms',
+    );
+    // The positive control: the generated files for that same output DO go,
+    // so the assertion above is about the exemption and not about a sweep
+    // that quietly stopped running.
+    expect(
+      fs.readdirSync(configDir).filter((name) => name.includes('-device-')),
+    ).toEqual([]);
+  });
+
+  // What switching engines does to the engine being left: one flush with the
+  // chain disabled, which used to empty the directory of custom files too.
+  it('survives the disabled flush that neutralises an engine', async () => {
+    await flushDeviceProfiles(settings, () => presetsDir, configDir);
+    const custom = customFileIn(configDir) as string;
+    const mine = 'Preamp: -2 dB\r\nFilter 1: ON PK Fc 900 Hz Gain 4 dB Q 1';
+    fs.writeFileSync(path.join(configDir, custom), mine, 'utf8');
+
+    await flushDeviceProfiles(
+      settings,
+      () => presetsDir,
+      configDir,
+      undefined,
+      false,
+    );
+
+    expect(fs.readFileSync(path.join(configDir, custom), 'utf8')).toBe(mine);
+    // Positive control again: the generated chain really was swept, so the
+    // custom file above survived an exemption rather than an inert sweep.
+    expect(
+      fs
+        .readdirSync(configDir)
+        .filter((name) => /-device-|-eq\.txt$/.test(name)),
+    ).toEqual([]);
   });
 });

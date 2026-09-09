@@ -37,6 +37,7 @@ import { ErrorCode } from '../../common/errors';
 import {
   IAudioEngineStatus,
   TAudioEngine,
+  TSystemDspChainResult,
   isAudioEngine,
 } from '../../common/audioEngine';
 import { isChainWirePayload } from '../../common/dsp/chainWire';
@@ -55,6 +56,16 @@ import { IEngineSetupResult, TEngineSetupCommand } from '../engineSetup';
  */
 const ENDPOINT_GUID = /^\{[0-9A-Fa-f-]{36}\}$/;
 
+/**
+ * What the update path answered, for a caller that ran it with no request in
+ * flight.
+ *
+ * `error` is the reply the update path would have sent to a window, carried
+ * across unchanged so the handler that asked for the reflush can send exactly
+ * that instead of inventing a second wording for the same failure.
+ */
+export type TReflushResult = { ok: true } | { ok: false; error: TError };
+
 export interface IAudioEngineIpcDeps {
   /** `%APPDATA%\FluidEQ` — where `audio-engine.json` is kept. */
   userDataDir: string;
@@ -72,9 +83,21 @@ export interface IAudioEngineIpcDeps {
    * engine's chain into the old engine's folder.
    */
   setEngine: (engine: TAudioEngine) => void;
+  /**
+   * Raised for the length of the switch, so an EQ edit that arrives while it
+   * runs does not flush into the directory being left.
+   *
+   * Between neutralising the old engine and reflushing into the new one the
+   * session still names the old engine's directory, and the update path would
+   * happily write the live chain back over the neutral root that was just put
+   * there — leaving both engines processing the same audio.
+   */
+  setSwitching: (isSwitching: boolean) => void;
   getConfigPath: (engine: TAudioEngine) => Promise<string>;
-  /** Re-runs the update path for the current state. */
-  reflush: () => Promise<void>;
+  /** Whether the engine's driver is on this machine at all. */
+  isEngineInstalled: (engine: TAudioEngine) => Promise<boolean>;
+  /** Re-runs the update path for the current state, and says whether it landed. */
+  reflush: () => Promise<TReflushResult>;
   runEngineSetup: (
     command: TEngineSetupCommand,
     args: string[],
@@ -97,7 +120,9 @@ export const registerAudioEngineIpc = ({
   userDataDir,
   getEngine,
   setEngine,
+  setSwitching,
   getConfigPath,
+  isEngineInstalled,
   reflush,
   runEngineSetup,
   readAudioEngineStatus,
@@ -109,15 +134,20 @@ export const registerAudioEngineIpc = ({
    * that one is not exported. Kept to one place in this file so the two
    * cannot drift apart line by line.
    */
+  const replyError = (
+    event: Electron.IpcMainEvent,
+    channel: ChannelEnum,
+    reply: TError,
+  ) => {
+    log.info(channel);
+    event.reply(channel, reply);
+  };
+
   const refuse = (
     event: Electron.IpcMainEvent,
     channel: ChannelEnum,
     errorCode: ErrorCode,
-  ) => {
-    const reply: TError = { errorCode };
-    log.info(channel);
-    event.reply(channel, reply);
-  };
+  ) => replyError(event, channel, { errorCode });
 
   const succeed = <T>(
     event: Electron.IpcMainEvent,
@@ -153,7 +183,11 @@ export const registerAudioEngineIpc = ({
    *
    * The preference is saved before the reflush rather than after it, so a
    * flush that fails still leaves the app restarting into the engine the user
-   * asked for instead of silently reverting.
+   * asked for instead of silently reverting. The reply, though, is the
+   * reflush's own answer: the choice is kept AND the failure is reported,
+   * because replying success on a chain that never reached an engine is how
+   * "I switched and nothing happened" becomes a silent bug rather than the
+   * banner that says which engine is missing.
    */
   ipcMain.on(ChannelEnum.SET_AUDIO_ENGINE, async (event, arg) => {
     const channel = ChannelEnum.SET_AUDIO_ENGINE;
@@ -170,13 +204,25 @@ export const registerAudioEngineIpc = ({
     }
 
     try {
-      if (current !== null) {
-        await neutraliseEngine(current);
+      // Cleared in `finally` and not after `setEngine`: a neutralise that
+      // throws must not leave the flag raised, or every EQ edit for the rest
+      // of the session would be silently swallowed by the update path.
+      setSwitching(true);
+      try {
+        if (current !== null) {
+          await neutraliseEngine(current);
+        }
+        saveAudioEnginePreference(userDataDir, next);
+        setEngine(next);
+      } finally {
+        setSwitching(false);
       }
-      saveAudioEnginePreference(userDataDir, next);
-      setEngine(next);
-      await reflush();
-      succeed(event, channel, undefined);
+      const outcome = await reflush();
+      if (outcome.ok) {
+        succeed(event, channel, undefined);
+      } else {
+        replyError(event, channel, outcome.error);
+      }
     } catch (error) {
       log.error(`Could not switch the audio engine to ${next}`, error);
       refuse(event, channel, ErrorCode.FAILURE);
@@ -190,6 +236,12 @@ export const registerAudioEngineIpc = ({
    * said no, the result says so, and the dialog shows that rather than an
    * error. Reflushing after a decline would write into a directory the
    * engine still is not reading.
+   *
+   * The reflush's own answer is deliberately not the reply here, unlike the
+   * switch: what was asked was "install this", and whether that worked is
+   * `result`. A flush that failed afterwards is logged where it happens and
+   * shows up as the banner, not as an install that is reported to have
+   * failed when it did not.
    */
   const runAndReflush = async (
     event: Electron.IpcMainEvent,
@@ -251,36 +303,54 @@ export const registerAudioEngineIpc = ({
   });
 
   /**
-   * The rack, system-wide — and the answer is a boolean rather than an error
-   * on purpose.
+   * The rack, system-wide — and the three ways it can decline are named
+   * rather than collapsed into one `false`.
    *
    * Under Equalizer APO the rack is Library-only and there is nothing wrong
    * with that: the DSP page says so and offers the engine dialog. Replying
    * with a blocking error every time a slider moves would turn a supported
-   * configuration into a wall.
+   * configuration into a wall — but a single boolean made "your engine is not
+   * the one that can do this", "the engine is chosen and missing" and "that
+   * payload was malformed" the same answer, and only the first of those is
+   * something the page can explain to anybody.
    *
-   * `isChainWirePayload` is the gate, and it already rejects `NaN` and
-   * `Infinity` (it requires every entry to be `Number.isFinite`) as well as
-   * any array whose length disagrees with the band count it carries.
+   * The installed check is not optional and not merely informative:
+   * `getConfigPath('fluid')` CREATES the engine's directory under
+   * `%ProgramData%`, so asking it first would leave a config folder on a
+   * machine with no engine to read it.
+   *
+   * `isChainWirePayload` is the gate on the values, and it already rejects
+   * `NaN` and `Infinity` (it requires every entry to be `Number.isFinite`) as
+   * well as any array whose length disagrees with the band count it carries.
    */
   ipcMain.on(ChannelEnum.SET_SYSTEM_DSP_CHAIN, async (event, arg) => {
     const channel = ChannelEnum.SET_SYSTEM_DSP_CHAIN;
     const values: unknown = Array.isArray(arg) ? arg[0] : undefined;
-    if (!isChainWirePayload(values) || getEngine() !== 'fluid') {
-      succeed(event, channel, false);
+    if (!isChainWirePayload(values)) {
+      succeed<TSystemDspChainResult>(event, channel, 'rejected');
+      return;
+    }
+    if (getEngine() !== 'fluid') {
+      succeed<TSystemDspChainResult>(event, channel, 'not-fluid');
       return;
     }
 
     try {
+      if (!(await isEngineInstalled('fluid'))) {
+        succeed<TSystemDspChainResult>(event, channel, 'not-installed');
+        return;
+      }
       // Resolved here rather than read off the session, because the session's
       // cached path is empty until the first flush of the launch and the rack
       // can be edited before that ever happens.
       const configDirPath = await getConfigPath('fluid');
       await writeSystemDspChain(configDirPath, values);
-      succeed(event, channel, true);
+      succeed<TSystemDspChainResult>(event, channel, 'written');
     } catch (error) {
+      // A disk that would not take the file is a fault, not one of the three
+      // supported refusals above, and is the one case here worth raising.
       log.error('Could not write the system-wide DSP chain', error);
-      succeed(event, channel, false);
+      refuse(event, channel, ErrorCode.FAILURE);
     }
   });
 };

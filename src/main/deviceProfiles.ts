@@ -784,13 +784,22 @@ const GENERATED_FILE = new RegExp(
   `^fluideq-(?:device-[0-9a-f]{12}|[0-9a-f]{12}-(?:${[
     ...APO_FEATURES,
     ...RETIRED_FEATURES,
-    // Swept like the rest, but only when its output is gone entirely — the
-    // keep-set below holds every live one. It is the single file here that may
-    // contain somebody's own work, so it outlives every generated sibling and
-    // goes only with the device.
+    // Named here so the config editor may write it — see isGeneratedConfigFile
+    // — and NOT so the sweep may delete it. It is the single file here that
+    // holds somebody's own work, and CUSTOM_FILE below lifts it back out of
+    // everything removeStaleFiles is allowed to touch.
     'custom',
   ].join('|')}))\\.txt$`,
 );
+
+/**
+ * The one generated name that is the user's file, not ours.
+ *
+ * Matched separately because it is the exception to the sweep below: FluidEQ
+ * creates it empty and then never writes it again, so whatever is in it was
+ * typed by hand and cannot be regenerated from anything.
+ */
+const CUSTOM_FILE = /^fluideq-[0-9a-f]{12}-custom\.txt$/;
 
 /**
  * Whether a name is one of the files FluidEQ writes into the config directory.
@@ -805,12 +814,23 @@ export const isGeneratedConfigFile = (fileName: string) =>
   GENERATED_FILE.test(fileName);
 
 /**
- * Delete the files of outputs and features that no longer exist.
+ * Delete the files of outputs and features that no longer exist — except the
+ * custom files, which are never deleted at all.
  *
  * A feature switched off stops being included, and an unreferenced file is
  * inaudible — but leaving it there would mean the config directory slowly
  * filling with the layers of every device ever plugged in, each looking like
  * something that is still applied.
+ *
+ * The custom file is exempt because "its output is gone" is not the same
+ * statement as "its output is gone for good", and this sweep cannot tell them
+ * apart. An unplugged headset is an empty assignment list; so is a flush with
+ * `isEnabled: false`, which is exactly what neutralising the engine being left
+ * writes — and that sweep used to take every custom file in the directory with
+ * it, deleting hand-written work on nothing more than the user picking the
+ * other engine. A generated file can always be written again from the profile;
+ * this one cannot be written again from anything, so it stays and waits for
+ * its device to come back.
  */
 // Per config directory, the generated-file set as of the last flush that
 // swept the directory. See flushDeviceProfiles.
@@ -825,7 +845,12 @@ const removeStaleFiles = (configDirPath: string, keep: ReadonlySet<string>) => {
   }
 
   fileNames
-    .filter((fileName) => GENERATED_FILE.test(fileName) && !keep.has(fileName))
+    .filter(
+      (fileName) =>
+        GENERATED_FILE.test(fileName) &&
+        !CUSTOM_FILE.test(fileName) &&
+        !keep.has(fileName),
+    )
     .forEach((fileName) => {
       try {
         const filePath = addFileToPath(configDirPath, fileName);
@@ -847,7 +872,9 @@ const removeStaleFiles = (configDirPath: string, keep: ReadonlySet<string>) => {
  *
  * The existence check is the whole safety of it: this runs on every edit, and
  * writing the template unconditionally would erase whatever was in there on
- * the very next slider move.
+ * the very next slider move. It is also what lets an output that comes back
+ * find its own file again — nothing deletes these (see removeStaleFiles), so
+ * the one that was there before an unplug or an engine switch is still there.
  */
 const ensureCustomFiles = (configDirPath: string, slugs: ReadonlySet<string>) =>
   slugs.forEach((slug) => {
@@ -916,14 +943,11 @@ export const flushDeviceProfiles = (
     }
 
     // After the root, so nothing is deleted while something still includes it.
-    // A custom file is kept for as long as its output has a chain — it is the
-    // one file here somebody may have put work into, and it goes only when the
-    // output it belongs to does.
+    // The keep set is the generated files alone: the custom files need no
+    // entry here because removeStaleFiles never touches one, live output or
+    // not.
     if (fileSetChanged) {
-      removeStaleFiles(
-        configDirPath,
-        new Set([...files.keys(), ...[...liveSlugs].map(customFileName)]),
-      );
+      removeStaleFiles(configDirPath, new Set(files.keys()));
       lastFlushedFileSet.set(configDirPath, fileSet);
     }
   });
