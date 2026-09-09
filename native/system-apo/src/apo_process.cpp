@@ -76,7 +76,7 @@ STDMETHODIMP Apo::LockForProcess(UINT32 input_count,
 
   try {
     channels_ = input_format.channels;
-    sample_rate_ = input_format.rate;
+    sample_rate_.store(input_format.rate, std::memory_order_relaxed);
     max_frames_ = in.u32MaxFrameCount;
 
     // One planar buffer per channel, carved out of a single allocation: the
@@ -90,8 +90,9 @@ STDMETHODIMP Apo::LockForProcess(UINT32 input_count,
     }
 
     log_ = std::make_unique<Log>(endpoint_.guid);
-    watcher_ = std::make_unique<Watcher>(slot_, *log_, endpoint_, config_dir(),
-                                         sample_rate_, channels_, max_frames_);
+    watcher_ = std::make_unique<Watcher>(
+        slot_, *log_, endpoint_, config_dir(),
+        sample_rate_.load(std::memory_order_relaxed), channels_, max_frames_);
   } catch (const std::bad_alloc&) {
     release_locked_state();
     return E_OUTOFMEMORY;
@@ -106,7 +107,8 @@ STDMETHODIMP Apo::LockForProcess(UINT32 input_count,
   // would leave Windows with an output it cannot open at all.
   try {
     log_->write("locked: " + std::to_string(channels_) + " ch, " +
-                std::to_string(sample_rate_) + " Hz, up to " +
+                std::to_string(sample_rate_.load(std::memory_order_relaxed)) +
+                " Hz, up to " +
                 std::to_string(max_frames_) + " frames, device \"" +
                 to_utf8(endpoint_.friendly_name) + "\"");
     if (!is_default_processing_mode()) {
@@ -159,7 +161,7 @@ void Apo::release_locked_state() noexcept {
   std::vector<float*>().swap(planes_);
   std::vector<float>().swap(scratch_);
   channels_ = 0;
-  sample_rate_ = 0;
+  sample_rate_.store(0, std::memory_order_relaxed);
   max_frames_ = 0;
   locked_ = false;
 }

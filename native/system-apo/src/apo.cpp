@@ -31,12 +31,20 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include <cstring>
 #include <new>
 #include <string>
+#include <utility>
 
 namespace fluideq_engine {
 
 // The three initialisation structures are told apart by their size, so a
 // future SDK that made two of them the same would silently make this code
 // read the wrong fields out of the right bytes.
+//
+// Their sizes are NOT ordered by version. On x64 version 1 is 56 bytes,
+// version 3 is 80 and version 2 is 88 — version 3 dropped version 2's
+// `pAPOSystemEffectsProperties` and `pReserved` and added one pointer back.
+// So the match below is exact per version rather than "at least as big as",
+// which would read a version 2 payload through version 3's layout and call
+// `Item` on what is really `pReserved`.
 static_assert(sizeof(APOInitSystemEffects) != sizeof(APOInitSystemEffects2),
               "APO init structures must stay distinguishable by size");
 static_assert(sizeof(APOInitSystemEffects) != sizeof(APOInitSystemEffects3),
@@ -72,57 +80,62 @@ constexpr GUID kDefaultProcessingMode = {
 
 constexpr GUID kNoProcessingMode = {};
 
-// 1 to 8: mono through 7.1. Above that the deinterleave scratch and the
-// per-channel filter states stop being a fixed cost and this effect has no
-// business in the signal path of a mixing desk.
-constexpr WORD kMaxChannels = 8;
-
 /**
- * The float32 answer to a format this effect cannot take.
+ * Three holders so nothing leaks when a `std::wstring` throws.
  *
- * Same channel count and same rate as the request — the only thing changed
- * is the sample type, because that is the only thing being refused. A
- * suggestion that also moved the rate would have the audio engine resample
- * for no reason this effect asked for.
+ * Everything `read_endpoint` touches is either a COM reference, a
+ * CoTaskMem allocation or a PROPVARIANT, and the only throwing expression
+ * anywhere near them is building the strings out of what they hold. A
+ * `bad_alloc` on the way past a hand-written release leaks an `IMMDevice`,
+ * an `IPropertyStore` and a device-name string inside audiodg.exe, once per
+ * endpoint that ever initialises while the machine is short of memory.
  */
-HRESULT suggest_float(const WAVEFORMATEX* requested,
-                      IAudioMediaType** supported) {
-  WORD channels = requested == nullptr ? 2 : requested->nChannels;
-  if (channels == 0) {
-    channels = 2;
+template <typename Interface>
+class ComPtr {
+ public:
+  ComPtr() = default;
+  ~ComPtr() {
+    if (pointer_ != nullptr) {
+      pointer_->Release();
+    }
   }
-  if (channels > kMaxChannels) {
-    channels = kMaxChannels;
-  }
-  DWORD rate = requested == nullptr ? 48000 : requested->nSamplesPerSec;
-  if (rate == 0) {
-    rate = 48000;
-  }
+  ComPtr(const ComPtr&) = delete;
+  ComPtr& operator=(const ComPtr&) = delete;
 
-  WAVEFORMATEXTENSIBLE format = {};
-  format.Format.wFormatTag = WAVE_FORMAT_EXTENSIBLE;
-  format.Format.nChannels = channels;
-  format.Format.nSamplesPerSec = rate;
-  format.Format.wBitsPerSample = 32;
-  format.Format.nBlockAlign = static_cast<WORD>(channels * 4);
-  format.Format.nAvgBytesPerSec = rate * format.Format.nBlockAlign;
-  format.Format.cbSize = sizeof(WAVEFORMATEXTENSIBLE) - sizeof(WAVEFORMATEX);
-  format.Samples.wValidBitsPerSample = 32;
-  format.SubFormat = KSDATAFORMAT_SUBTYPE_IEEE_FLOAT;
-  // Carried over when the request had one; zero otherwise, which is the
-  // documented "the channels are in their natural order" and is what a
-  // plain WAVEFORMATEX request means anyway.
-  if (requested != nullptr &&
-      requested->wFormatTag == WAVE_FORMAT_EXTENSIBLE &&
-      requested->cbSize >= sizeof(WAVEFORMATEXTENSIBLE) -
-                               sizeof(WAVEFORMATEX)) {
-    format.dwChannelMask =
-        reinterpret_cast<const WAVEFORMATEXTENSIBLE*>(requested)
-            ->dwChannelMask;
-  }
-  return CreateAudioMediaType(&format.Format, sizeof(WAVEFORMATEXTENSIBLE),
-                              supported);
-}
+  Interface** receive() noexcept { return &pointer_; }
+  Interface* get() const noexcept { return pointer_; }
+
+ private:
+  Interface* pointer_ = nullptr;
+};
+
+class CoTaskString {
+ public:
+  CoTaskString() = default;
+  ~CoTaskString() { CoTaskMemFree(text_); }
+  CoTaskString(const CoTaskString&) = delete;
+  CoTaskString& operator=(const CoTaskString&) = delete;
+
+  LPWSTR* receive() noexcept { return &text_; }
+  const wchar_t* get() const noexcept { return text_; }
+
+ private:
+  LPWSTR text_ = nullptr;
+};
+
+class PropVariant {
+ public:
+  PropVariant() { PropVariantInit(&value_); }
+  ~PropVariant() { PropVariantClear(&value_); }
+  PropVariant(const PropVariant&) = delete;
+  PropVariant& operator=(const PropVariant&) = delete;
+
+  PROPVARIANT* receive() noexcept { return &value_; }
+  const PROPVARIANT& get() const noexcept { return value_; }
+
+ private:
+  PROPVARIANT value_;
+};
 
 /**
  * The endpoint guid out of an `IMMDevice` id.
@@ -150,38 +163,6 @@ std::wstring guid_from_device_id(const wchar_t* id) {
 }
 
 }  // namespace
-
-ConnectionFormat describe_format(const WAVEFORMATEX* format) {
-  ConnectionFormat described;
-  if (format == nullptr) {
-    return described;
-  }
-  described.channels = format->nChannels;
-  described.rate = format->nSamplesPerSec;
-  if (format->wBitsPerSample != 32 || format->nChannels == 0 ||
-      format->nChannels > kMaxChannels || format->nSamplesPerSec == 0) {
-    return described;
-  }
-  if (format->wFormatTag == WAVE_FORMAT_IEEE_FLOAT) {
-    described.acceptable = true;
-    return described;
-  }
-  if (format->wFormatTag != WAVE_FORMAT_EXTENSIBLE ||
-      format->cbSize < sizeof(WAVEFORMATEXTENSIBLE) - sizeof(WAVEFORMATEX)) {
-    return described;
-  }
-  const auto* extensible =
-      reinterpret_cast<const WAVEFORMATEXTENSIBLE*>(format);
-  // A 32-bit container carrying fewer valid bits is a padded integer format
-  // wearing a float's clothes; those samples would not be floats.
-  if (extensible->Samples.wValidBitsPerSample != 32 &&
-      extensible->Samples.wValidBitsPerSample != 0) {
-    return described;
-  }
-  described.acceptable =
-      IsEqualGUID(extensible->SubFormat, KSDATAFORMAT_SUBTYPE_IEEE_FLOAT) != 0;
-  return described;
-}
 
 // ---------------------------------------------------------------------------
 
@@ -243,13 +224,16 @@ STDMETHODIMP Apo::GetLatency(HNSTIME* time) {
   }
   *time = 0;
   const uint32_t frames = slot_.latency();
-  if (frames == 0 || sample_rate_ == 0) {
+  // Read once into a local: read twice, an unlock landing between the two
+  // divides by the zero the second read returned.
+  const uint32_t rate = sample_rate_.load(std::memory_order_relaxed);
+  if (frames == 0 || rate == 0) {
     return S_OK;
   }
   // HNSTIME counts 100 ns units; done in 64-bit integers because the frame
   // counts here reach 65536 and the rates reach 384000.
   *time = static_cast<HNSTIME>(static_cast<uint64_t>(frames) * 10000000ULL /
-                               static_cast<uint64_t>(sample_rate_));
+                               static_cast<uint64_t>(rate));
   return S_OK;
 }
 
@@ -301,28 +285,40 @@ void Apo::read_endpoint(IMMDeviceCollection* collection, UINT index) {
   if (collection == nullptr) {
     return;
   }
-  IMMDevice* device = nullptr;
-  if (FAILED(collection->Item(index, &device)) || device == nullptr) {
+  ComPtr<IMMDevice> device;
+  if (FAILED(collection->Item(index, device.receive())) ||
+      device.get() == nullptr) {
     return;
   }
-  LPWSTR id = nullptr;
-  if (SUCCEEDED(device->GetId(&id))) {
-    endpoint_.guid = guid_from_device_id(id);
-    CoTaskMemFree(id);
-  }
-  IPropertyStore* store = nullptr;
-  if (SUCCEEDED(device->OpenPropertyStore(STGM_READ, &store)) &&
-      store != nullptr) {
-    PROPVARIANT value;
-    PropVariantInit(&value);
-    if (SUCCEEDED(store->GetValue(PKEY_Device_FriendlyName, &value)) &&
-        value.vt == VT_LPWSTR && value.pwszVal != nullptr) {
-      endpoint_.friendly_name = value.pwszVal;
+
+  // Built into locals first, and moved into the members only once every
+  // handle above has been released: a throw here leaves the endpoint
+  // unnamed, which is a pass-through, rather than half-named.
+  std::wstring guid;
+  {
+    CoTaskString id;
+    if (SUCCEEDED(device.get()->GetId(id.receive()))) {
+      guid = guid_from_device_id(id.get());
     }
-    PropVariantClear(&value);
-    store->Release();
   }
-  device->Release();
+
+  std::wstring name;
+  {
+    ComPtr<IPropertyStore> store;
+    if (SUCCEEDED(device.get()->OpenPropertyStore(STGM_READ,
+                                                  store.receive())) &&
+        store.get() != nullptr) {
+      PropVariant value;
+      if (SUCCEEDED(store.get()->GetValue(PKEY_Device_FriendlyName,
+                                          value.receive())) &&
+          value.get().vt == VT_LPWSTR && value.get().pwszVal != nullptr) {
+        name = value.get().pwszVal;
+      }
+    }
+  }
+
+  endpoint_.guid = std::move(guid);
+  endpoint_.friendly_name = std::move(name);
 }
 
 bool Apo::is_default_processing_mode() const {
@@ -344,19 +340,48 @@ STDMETHODIMP Apo::Initialize(UINT32 size, BYTE* data) {
     initialized_ = true;
     return S_OK;
   }
+  if (size < sizeof(APOInitBaseStruct)) {
+    return E_INVALIDARG;
+  }
+
+  // Which structure the host says it filled in, rather than how many bytes it
+  // happened to pass. `size` still caps it: reading past what was handed over
+  // is reading somebody else's stack, and a host that left `cbSize` at zero
+  // leaves `size` as the only number there is.
+  const auto* base = reinterpret_cast<const APOInitBaseStruct*>(data);
+  UINT32 declared = base->cbSize;
+  if (declared == 0 || declared > size) {
+    declared = size;
+  }
+
+  // The biggest layout this code knows, whichever version that happens to be:
+  // the versions are not ordered by size and a later SDK could reorder them
+  // again.
+  constexpr UINT32 kLargestKnown = static_cast<UINT32>(
+      sizeof(APOInitSystemEffects2) > sizeof(APOInitSystemEffects3)
+          ? sizeof(APOInitSystemEffects2)
+          : sizeof(APOInitSystemEffects3));
 
   try {
-    if (size == sizeof(APOInitSystemEffects3)) {
+    // Anything larger than every known version is a later SDK extending the
+    // newest layout, and is read as that rather than refused: refusing means
+    // the effect never loads and every output on the machine plays
+    // unprocessed, with nothing on screen to say why. Anything else has to
+    // match a known size exactly — a size between two of them names a layout
+    // this code cannot know, and guessing would mean dereferencing whatever
+    // sits where a pointer used to be.
+    if (declared > kLargestKnown ||
+        declared == sizeof(APOInitSystemEffects3)) {
       const auto* init = reinterpret_cast<const APOInitSystemEffects3*>(data);
       processing_mode_ = init->AudioProcessingMode;
       read_endpoint(init->pDeviceCollection,
                     init->nSoftwareIoDeviceInCollection);
-    } else if (size == sizeof(APOInitSystemEffects2)) {
+    } else if (declared == sizeof(APOInitSystemEffects2)) {
       const auto* init = reinterpret_cast<const APOInitSystemEffects2*>(data);
       processing_mode_ = init->AudioProcessingMode;
       read_endpoint(init->pDeviceCollection,
                     init->nSoftwareIoDeviceInCollection);
-    } else if (size == sizeof(APOInitSystemEffects)) {
+    } else if (declared == sizeof(APOInitSystemEffects)) {
       const auto* init = reinterpret_cast<const APOInitSystemEffects*>(data);
       // Version 1 has no index; the collection it carries holds the one
       // endpoint this instance was created for.
@@ -371,44 +396,6 @@ STDMETHODIMP Apo::Initialize(UINT32 size, BYTE* data) {
   }
   initialized_ = true;
   return S_OK;
-}
-
-STDMETHODIMP Apo::IsInputFormatSupported(IAudioMediaType* opposite,
-                                         IAudioMediaType* requested,
-                                         IAudioMediaType** supported) {
-  UNREFERENCED_PARAMETER(opposite);
-  if (supported == nullptr) {
-    return E_POINTER;
-  }
-  *supported = nullptr;
-  if (requested == nullptr) {
-    return E_POINTER;
-  }
-  const WAVEFORMATEX* format = requested->GetAudioFormat();
-  if (describe_format(format).acceptable) {
-    // The requested type handed straight back, with a reference of its own.
-    // The alternative reading of the contract — S_OK with a null out
-    // parameter — is the one that crashes a caller which dereferences it,
-    // and this one costs a caller that ignores it only a release it was
-    // going to make anyway.
-    *supported = requested;
-    requested->AddRef();
-    return S_OK;
-  }
-  const HRESULT made = suggest_float(format, supported);
-  if (FAILED(made)) {
-    *supported = nullptr;
-    return APOERR_FORMAT_NOT_SUPPORTED;
-  }
-  return S_FALSE;
-}
-
-STDMETHODIMP Apo::IsOutputFormatSupported(IAudioMediaType* opposite,
-                                          IAudioMediaType* requested,
-                                          IAudioMediaType** supported) {
-  // Symmetric by construction: this effect never changes the format, so a
-  // format it can read is exactly a format it can write.
-  return IsInputFormatSupported(opposite, requested, supported);
 }
 
 STDMETHODIMP Apo::GetInputChannelCount(UINT32* channels) {

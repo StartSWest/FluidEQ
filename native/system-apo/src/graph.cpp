@@ -281,7 +281,19 @@ Graph::Graph(const Chain& chain, uint32_t sample_rate, uint32_t channels,
           kernel.data(), static_cast<uint32_t>(kernel.size())));
       if (graphic_kernel_ &&
           build_convolvers(graphic_kernel_.get(), channels_, graphic_)) {
-        latency_frames_ += feq_convolver_latency();
+        // Two terms, not one. The convolver's block-pipeline latency, plus
+        // the FIR's own group delay: this kernel is designed linear-phase and
+        // therefore centred, so its energy sits at tap n/2 and the signal
+        // comes out that many frames later. Reporting only the first term
+        // told Windows a smaller number than the audio was actually delayed
+        // by on every endpoint with a `GraphicEQ:` line, which is what
+        // delay compensation uses to line this output up against the others.
+        //
+        // The impulse-response stage above adds no such term on purpose: an
+        // IR is causal, and whatever delay it carries is the room it is
+        // reproducing rather than a filter's phase response.
+        latency_frames_ += feq_convolver_latency() +
+                           static_cast<uint32_t>(kernel.size() / 2);
       } else {
         warnings_.push_back("Graphic EQ could not be prepared; skipped.");
       }

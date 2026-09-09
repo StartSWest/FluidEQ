@@ -9,14 +9,13 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include <process.h>
 
 #include <algorithm>
-#include <cstdio>
 #include <exception>
 #include <memory>
-#include <new>
 #include <optional>
 #include <string>
 #include <vector>
 
+#include "chain_signature.h"
 #include "paths.h"
 
 namespace fluideq_engine {
@@ -44,6 +43,38 @@ constexpr long long kMaxConfigBytes = 4LL * 1024 * 1024;
 // this list without bound; a machine that reaches it has already told the log
 // everything it had to say.
 constexpr size_t kMaxIgnoredSetsLogged = 32;
+
+/**
+ * The change-notification handle, closed on every way out of `run()`.
+ *
+ * `run()` builds log strings and can therefore throw, and the thread
+ * procedure above it swallows what escapes. A handle leaked on that path
+ * would hold a directory open for as long as audiodg.exe lives, on a machine
+ * that has already run out of memory once.
+ */
+class ChangeNotification {
+ public:
+  explicit ChangeNotification(HANDLE handle) noexcept : handle_(handle) {}
+  ~ChangeNotification() { close(); }
+
+  ChangeNotification(const ChangeNotification&) = delete;
+  ChangeNotification& operator=(const ChangeNotification&) = delete;
+
+  bool valid() const noexcept {
+    return handle_ != nullptr && handle_ != INVALID_HANDLE_VALUE;
+  }
+  HANDLE get() const noexcept { return handle_; }
+
+  void close() noexcept {
+    if (valid()) {
+      FindCloseChangeNotification(handle_);
+    }
+    handle_ = INVALID_HANDLE_VALUE;
+  }
+
+ private:
+  HANDLE handle_;
+};
 
 bool is_directory(const std::wstring& path) {
   if (path.empty()) {
@@ -92,80 +123,6 @@ std::optional<std::string> read_whole_file(const std::wstring& path) {
   CloseHandle(file);
   text.resize(filled);
   return text;
-}
-
-/** Exact enough to compare: `%.17g` round-trips every double. */
-std::string number(double value) {
-  char text[40] = {};
-  const int written = std::snprintf(text, sizeof(text), "%.17g", value);
-  if (written <= 0) {
-    return std::string("?");
-  }
-  return std::string(text, static_cast<size_t>(written));
-}
-
-/** A file's size and last-write time, or `-` when it is not there. */
-std::string stamp_of(const std::wstring& path) {
-  if (path.empty()) {
-    return std::string("-");
-  }
-  WIN32_FILE_ATTRIBUTE_DATA data = {};
-  if (GetFileAttributesExW(path.c_str(), GetFileExInfoStandard, &data) == 0) {
-    return std::string("-");
-  }
-  char text[64] = {};
-  const int written = std::snprintf(
-      text, sizeof(text), "%lu:%lu:%lu:%lu",
-      static_cast<unsigned long>(data.nFileSizeHigh),
-      static_cast<unsigned long>(data.nFileSizeLow),
-      static_cast<unsigned long>(data.ftLastWriteTime.dwHighDateTime),
-      static_cast<unsigned long>(data.ftLastWriteTime.dwLowDateTime));
-  if (written <= 0) {
-    return std::string("-");
-  }
-  return std::string(text, static_cast<size_t>(written));
-}
-
-/**
- * Everything about a resolved chain that could change what the effect does.
- *
- * The directory notification fires for any write anywhere under the config
- * directory, including files this endpoint's chain never mentions and an
- * editor's own temporary files. Rebuilding the graph on every one of those
- * would design a FIR and reallocate a convolver for nothing, so the graph is
- * only replaced when this string moves.
- *
- * The impulse response's size and timestamp are part of it because the app
- * rewrites `fluideq-convolution-*.wav` in place: every line of the config
- * stays identical while the audio it asks for changes completely.
- */
-std::string signature_of(const Chain& chain) {
-  std::string out;
-  out += chain.matched ? "m1" : "m0";
-  out += "|c=" + to_utf8(chain.convolution_path);
-  out += "|s=" + stamp_of(chain.convolution_path);
-  out += "|p=" + number(chain.preamp_db);
-  out += "|b=";
-  for (const Band& band : chain.bands) {
-    out += std::to_string(static_cast<int>(band.type));
-    out += ',' + number(band.frequency);
-    out += ',' + number(band.gain_db);
-    out += ',' + number(band.quality);
-    out += ';';
-  }
-  out += "|g=";
-  for (const GraphicPoint& point : chain.graphic) {
-    out += number(point.frequency) + ',' + number(point.gain_db) + ';';
-  }
-  out += "|f=";
-  for (const std::wstring& file : chain.files_read) {
-    out += to_utf8(file) + ';';
-  }
-  out += "|i=";
-  for (const std::string& command : chain.ignored) {
-    out += command + ';';
-  }
-  return out;
 }
 
 std::string join(const std::vector<std::string>& items) {
@@ -287,9 +244,9 @@ void Watcher::run() {
     if (watched.empty()) {
       break;
     }
-    const HANDLE change =
-        FindFirstChangeNotificationW(watched.c_str(), TRUE, kFilter);
-    if (change == INVALID_HANDLE_VALUE) {
+    const ChangeNotification change(
+        FindFirstChangeNotificationW(watched.c_str(), TRUE, kFilter));
+    if (!change.valid()) {
       log_.write("cannot watch " + to_utf8(watched) +
                  "; configuration changes will not be picked up");
       break;
@@ -302,11 +259,10 @@ void Watcher::run() {
     }
 
     bool rearm = false;
-    HANDLE handles[2] = {stop_event_, change};
+    HANDLE handles[2] = {stop_event_, change.get()};
     while (!rearm) {
       const DWORD woke = WaitForMultipleObjects(2, handles, FALSE, INFINITE);
       if (woke == WAIT_OBJECT_0) {
-        FindCloseChangeNotification(change);
         return;
       }
       if (woke != WAIT_OBJECT_0 + 1) {
@@ -319,11 +275,10 @@ void Watcher::run() {
         rearm = true;  // It exists now: watch it directly instead.
         break;
       }
-      if (FindNextChangeNotification(change) == 0) {
+      if (FindNextChangeNotification(change.get()) == 0) {
         rearm = true;  // Usually the watched directory itself was removed.
       }
     }
-    FindCloseChangeNotification(change);
   }
 
   // Nothing left to watch. Waiting on the stop event alone is not a poll and
@@ -334,22 +289,43 @@ void Watcher::run() {
   WaitForSingleObject(stop_event_, INFINITE);
 }
 
+bool Watcher::stop_requested() const noexcept {
+  // Before `start()` there is no event and nothing has asked to stop:
+  // `load_initial` runs this same path on the caller's thread.
+  return stop_event_ != nullptr &&
+         WaitForSingleObject(stop_event_, 0) == WAIT_OBJECT_0;
+}
+
 void Watcher::reload() {
   try {
     const FileProvider provider = [](const std::wstring& path) {
       return read_whole_file(path);
     };
     const Chain chain = resolve_chain(config_dir_, endpoint_, provider);
+    // `UnlockForProcess` waits for this thread with no timeout, so every
+    // phase that takes real time is followed by a chance to abandon: the
+    // resolve above reads a directory of files, the construction below
+    // designs a FIR and allocates a convolver per channel.
+    if (stop_requested()) {
+      return;
+    }
 
     const std::string next = signature_of(chain);
     if (have_signature_ && next == signature_) {
       return;
     }
-    signature_ = next;
-    have_signature_ = true;
 
     auto graph = std::make_unique<Graph>(chain, sample_rate_, channels_,
                                          max_frames_);
+    if (stop_requested()) {
+      // The half-built graph dies with the `unique_ptr`, having never been
+      // reachable from the slot. Recording the signature is left undone with
+      // it, so an abandoned rebuild cannot be mistaken for a loaded one.
+      return;
+    }
+    signature_ = next;
+    have_signature_ = true;
+
     // The audio thread is writing this graph's filter histories while they
     // are read. That race is deliberate and bounded: the values are one
     // biquad's last two samples, so the worst a stale or half-written one can

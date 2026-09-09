@@ -15,10 +15,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * thread that ever calls `delete` — frees the previous one once it can prove
  * the audio thread cannot still be inside it.
  *
- * That proof is what `GraphSlot` exists for, and it is easy to get subtly
- * wrong: a graph must never be invisible to the watcher while the audio
- * thread is picking it up, or a reclaim landing in that window frees a graph
- * that is one instruction away from being used.
+ * That proof is what `GraphSlot` exists for, and it rests on one invariant:
+ * a graph leaves `pending_` exactly once, by an atomic exchange, so exactly
+ * one thread ever holds it. The audio thread's exchange and the watcher's are
+ * the same operation on the same pointer, and only one of them can win.
  */
 #ifndef FLUIDEQ_ENGINE_WATCHER_H
 #define FLUIDEQ_ENGINE_WATCHER_H
@@ -47,22 +47,24 @@ namespace fluideq_engine {
 class GraphSlot {
  public:
   /**
-   * Audio thread, at the start of a block. Real-time safe: two atomic loads,
-   * at most one store and one compare-exchange, no allocation and no branch
-   * into the operating system.
+   * Audio thread, at the start of a block. Real-time safe: one exchange, at
+   * most one store, one load, no allocation and no branch into the operating
+   * system.
    *
-   * The order matters. `active_` is stored BEFORE `pending_` is cleared, so
-   * the incoming graph is reachable from one of the two pointers at every
-   * instant; taking it out of `pending_` first would leave a window in which
-   * the watcher, looking at both, would see it in neither and free it.
+   * THE INVARIANT: a graph is taken OUT of `pending_` by the exchange before
+   * it is published into `active_`, so exactly one thread ever holds a graph
+   * that came out of the slot. That is what makes `publish`'s reasoning true
+   * — a non-null result there is proof this thread never got it.
+   *
+   * Reading `pending_` first and clearing it afterwards is the shape that
+   * looks safer and is not: the watcher's own exchange could take the same
+   * graph back out in between and destroy it as unadopted, while this thread
+   * was already about to run it.
    */
   Graph* adopt() noexcept {
-    Graph* next = pending_.load(std::memory_order_acquire);
+    Graph* next = pending_.exchange(nullptr, std::memory_order_acq_rel);
     if (next != nullptr) {
       active_.store(next, std::memory_order_release);
-      pending_.compare_exchange_strong(next, nullptr,
-                                       std::memory_order_acq_rel,
-                                       std::memory_order_relaxed);
     }
     return active_.load(std::memory_order_relaxed);
   }
@@ -76,7 +78,18 @@ class GraphSlot {
     blocks_.fetch_add(1, std::memory_order_release);
   }
 
-  /** Watcher thread: what the audio thread is running now, for state carry-over. */
+  /**
+   * Watcher thread: what the audio thread is running now, for state
+   * carry-over.
+   *
+   * It cannot return a destroyed graph. A graph is only ever destroyed once
+   * two blocks have completed after the publish that superseded it, and the
+   * second of those two started after that publish — so its `adopt` stored
+   * the newer graph into `active_` before its `finish_block`. The watcher
+   * reads that counter with acquire, so observing the count that permits the
+   * free also makes the newer `active_` visible, and read-read coherence
+   * stops any later load here from seeing the older pointer again.
+   */
   Graph* active() const noexcept {
     return active_.load(std::memory_order_acquire);
   }
@@ -165,6 +178,17 @@ class Watcher {
   void run();
   /** Resolve the config and publish a graph if anything actually changed. */
   void reload();
+  /**
+   * Whether `stop()` has already been asked for.
+   *
+   * Not a wait and not a poll: the event is either set or it is not at the
+   * instant this is called, and a zero timeout asks exactly that. `reload()`
+   * consults it between its phases because `stop()` joins this thread with no
+   * timeout, so a rebuild left running is time `UnlockForProcess` spends
+   * blocked — and a rebuild is a directory of files read plus a 4097-tap FIR
+   * designed.
+   */
+  bool stop_requested() const noexcept;
   void publish(std::unique_ptr<Graph> graph);
   void reclaim();
   void log_chain(const Chain& chain, const Graph& graph);

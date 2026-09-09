@@ -152,7 +152,12 @@ class Apo final : public IAudioProcessingObject,
   // stopped: Windows does not call `APOProcess` outside a lock.
   bool locked_ = false;
   uint32_t channels_ = 0;
-  uint32_t sample_rate_ = 0;
+  // Atomic where the other two are not: `GetLatency` converts frames to
+  // hundred-nanosecond units with it, and Windows calls that from whichever
+  // thread it likes — including while `LockForProcess` is setting it on
+  // another. `channels_` and `max_frames_` are only ever read on the audio
+  // thread, which does not run outside a lock.
+  std::atomic<uint32_t> sample_rate_{0};
   uint32_t max_frames_ = 0;
 
   // `channels_ * max_frames_` samples, and one pointer into it per channel.

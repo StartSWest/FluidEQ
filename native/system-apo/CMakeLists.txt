@@ -41,17 +41,29 @@ target_link_libraries(fluideq-engine-graphic-eq-test
   PRIVATE fluideq-engine-dsp feq_strict)
 add_test(NAME engine-graphic-eq COMMAND fluideq-engine-graphic-eq-test)
 
+# The graph's biquads, preamp and state carry-over. Split from the
+# convolution checks below: one file holding both was past the 500-line limit,
+# and the two halves ask different questions — this one measures level in
+# decibels, the other measures where in time a tap lands.
 add_executable(fluideq-engine-graph-test tests/graph_test.cpp)
 target_link_libraries(fluideq-engine-graph-test
   PRIVATE fluideq-engine-dsp feq_strict)
 add_test(NAME engine-graph COMMAND fluideq-engine-graph-test)
+
+add_executable(fluideq-engine-graph-convolution-test
+  tests/graph_convolution_test.cpp)
+target_link_libraries(fluideq-engine-graph-convolution-test
+  PRIVATE fluideq-engine-dsp feq_strict)
+add_test(NAME engine-graph-convolution
+  COMMAND fluideq-engine-graph-convolution-test)
 
 # The effect itself: the DLL Windows loads into audiodg.exe once per output it
 # is attached to. `FluidEQ-Engine` rather than the target's name because this
 # file's name is what someone debugging a broken audio stack reads out of the
 # module list of a process they did not start.
 add_library(fluideq-engine SHARED
-  src/apo.cpp src/apo_process.cpp src/watcher.cpp src/paths.cpp src/log.cpp
+  src/apo.cpp src/apo_format.cpp src/apo_process.cpp
+  src/watcher.cpp src/chain_signature.cpp src/paths.cpp src/log.cpp
   src/dll.cpp
   # Exports by name, and a version resource so the module list can say whose
   # this is.
@@ -69,10 +81,20 @@ set_target_properties(fluideq-engine PROPERTIES
 set_source_files_properties(src/engine.rc PROPERTIES COMPILE_DEFINITIONS
   "FEQ_ENGINE_VERSION_STRING=\"${FEQ_CORE_VERSION}\"")
 
-# The smoke test loads the DLL the way audiodg.exe does, so it takes the path
+# Both DLL tests load the DLL the way audiodg.exe does, so they take the path
 # CMake put it at rather than one spelled out here.
+#
+# Two binaries rather than one: the COM surface and the audio path are
+# different bugs with different owners, and one file covering both was past
+# the 500-line limit.
 add_executable(fluideq-engine-dll-smoke-test tests/dll_smoke_test.cpp)
 target_link_libraries(fluideq-engine-dll-smoke-test
   PRIVATE feq_strict ole32 audiomediatypecrt)
 add_test(NAME engine-dll-smoke
   COMMAND fluideq-engine-dll-smoke-test $<TARGET_FILE:fluideq-engine>)
+
+add_executable(fluideq-engine-dll-process-test tests/dll_process_test.cpp)
+target_link_libraries(fluideq-engine-dll-process-test
+  PRIVATE feq_strict ole32 audiomediatypecrt)
+add_test(NAME engine-dll-process
+  COMMAND fluideq-engine-dll-process-test $<TARGET_FILE:fluideq-engine>)

@@ -98,7 +98,18 @@ class Graph {
    */
   bool is_passthrough() const noexcept;
 
-  /** Frames of delay this graph adds, for the host to report to Windows. */
+  /**
+   * Frames of delay this graph adds, for the host to report to Windows.
+   *
+   * Every convolution stage's block-pipeline latency, plus the graphic-EQ
+   * FIR's own group delay — it is designed linear-phase, so its energy sits
+   * at the centre tap and an n-tap kernel puts the signal out n/2 frames
+   * later. A `Convolution:` impulse response contributes no such term: it is
+   * causal, and its delay is part of the sound it reproduces.
+   *
+   * So this is 0, one convolver's latency, one plus the FIR's half-length,
+   * or both stages together — never a fixed constant.
+   */
   uint32_t latency_frames() const noexcept;
 
   /**

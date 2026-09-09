@@ -117,6 +117,13 @@ BOOL WINAPI DllMain(HINSTANCE module, DWORD reason, LPVOID reserved) {
     // Nothing here needs to know about threads, and audiodg.exe creates and
     // destroys plenty: every one of them would otherwise take the loader
     // lock to tell this module something it would ignore.
+    //
+    // THIS LINE MUST GO if this DLL is ever linked against the static CRT
+    // (/MT). A statically linked CRT does its own per-thread setup and
+    // teardown from DLL_THREAD_ATTACH and DLL_THREAD_DETACH, so silencing
+    // those leaks a block of per-thread state for every thread audiodg.exe
+    // ever runs. It is correct only because this DLL is /MD and the CRT DLL
+    // gets its own notifications.
     DisableThreadLibraryCalls(module);
   }
   return TRUE;
