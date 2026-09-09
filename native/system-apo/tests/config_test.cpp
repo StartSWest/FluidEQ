@@ -133,6 +133,27 @@ void include_cannot_escape_or_loop() {
   CHECK(chain.bands.size() == 1);  // loop.txt read once
 }
 
+void include_depth_is_limited() {
+  std::printf("include depth is limited\n");
+  Files files;
+  files[L"C:\\cfg\\config.txt"] = "Include: d1.txt\r\n";
+  for (int n = 1; n <= 9; ++n) {
+    const std::wstring path = L"C:\\cfg\\d" + std::to_wstring(n) + L".txt";
+    files[path] = "Preamp: -" + std::to_string(n) + "\r\nInclude: d" +
+                  std::to_string(n + 1) + ".txt\r\n";
+  }
+  const auto chain = resolve_chain(L"C:\\cfg", {L"{A}", L"X"}, provider(files));
+  // Depth is capped at 8 open frames (root config.txt + 7 Include levels):
+  // d7.txt is the 8th and last frame opened, so its "Preamp: -7" is the last
+  // one applied, and d7.txt's own "Include: d8.txt" is skipped rather than
+  // followed — d8.txt is never opened. See resolve_chain's doc comment.
+  CHECK(chain.preamp_db == -7.0);
+  CHECK(std::find(chain.files_read.begin(), chain.files_read.end(),
+                  L"C:\\cfg\\d7.txt") != chain.files_read.end());
+  CHECK(std::find(chain.files_read.begin(), chain.files_read.end(),
+                  L"C:\\cfg\\d8.txt") == chain.files_read.end());
+}
+
 void filter_grammar() {
   std::printf("filter grammar\n");
   CHECK(parse_filter("ON PK Fc 1000 Hz Gain -3 dB Q 1.41")->quality == 1.41);
@@ -173,6 +194,7 @@ int main() {
   missing_root_is_passthrough();
   device_pattern_rules();
   include_cannot_escape_or_loop();
+  include_depth_is_limited();
   filter_grammar();
   graphic_and_preamp_grammar();
   utf16_with_bom_is_read();

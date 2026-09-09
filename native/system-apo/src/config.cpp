@@ -115,11 +115,11 @@ std::wstring utf8_to_wide(std::string_view utf8) {
 //
 // There is no `PathCchCanonicalizeEx` here by construction (no Windows
 // headers), so escaping the config directory is refused by string rule
-// instead: no ".." segment, no drive letter, no UNC or rooted prefix, and the
-// joined result must still start with `config_dir + '\'`. That last check is
-// belt-and-braces once the first two hold, but it is what actually catches a
-// body written with forward slashes or mixed separators the segment scan
-// below did not anticipate.
+// instead: no ".." segment, no drive letter, no UNC or rooted prefix. Those
+// two checks are the entire escape protection — no canonicalisation of the
+// joined path is done, so a body that defeats both (there is none known
+// today, since `has_dotdot_segment` already splits on both `\` and `/`) would
+// not be caught by anything downstream.
 
 bool has_dotdot_segment(const std::wstring& path) {
   size_t i = 0;
@@ -157,12 +157,7 @@ std::optional<std::wstring> resolve_relative(const std::wstring& config_dir,
       has_dotdot_segment(body)) {
     return std::nullopt;
   }
-  const std::wstring joined = config_dir + L"\\" + body;
-  const std::wstring required_prefix = config_dir + L"\\";
-  if (joined.compare(0, required_prefix.size(), required_prefix) != 0) {
-    return std::nullopt;
-  }
-  return joined;
+  return config_dir + L"\\" + body;
 }
 
 // `Preamp:` allows an optional trailing unit the way `PREAMP_LINE` in

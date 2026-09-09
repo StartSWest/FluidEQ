@@ -92,6 +92,11 @@ using FileProvider =
  * from the app side. Never throws: an absent config, a cycle, an escaping
  * include, or a malformed line are all just a `Chain` with less in it, never
  * a signal a caller has to catch.
+ *
+ * Include depth is capped at 8 open frames, the root `config.txt` counted as
+ * the first: an `Include:` line encountered while 8 frames are already open
+ * is skipped rather than followed, so the 8th frame (root + 7 levels of
+ * Include) is the deepest file this resolver ever opens.
  */
 Chain resolve_chain(const std::wstring& config_dir, const Endpoint& endpoint,
                     const FileProvider& read);

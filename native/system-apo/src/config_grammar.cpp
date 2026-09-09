@@ -251,7 +251,7 @@ std::optional<Band> parse_filter(std::string_view body) {
     i += 3;
   }
 
-  double quality;
+  double quality = 0.0;
   if (i + 1 < tokens.size() && detail::iequals(tokens[i], "Q")) {
     if (!detail::parse_double(tokens[i + 1], quality)) {
       return std::nullopt;
