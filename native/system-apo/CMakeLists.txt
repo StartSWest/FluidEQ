@@ -98,3 +98,47 @@ target_link_libraries(fluideq-engine-dll-process-test
   PRIVATE feq_strict ole32 audiomediatypecrt)
 add_test(NAME engine-dll-process
   COMMAND fluideq-engine-dll-process-test $<TARGET_FILE:fluideq-engine>)
+
+# The decision the setup helper makes about an endpoint, with no Windows API
+# anywhere near it. Split out from the helper's executable so the rules that
+# decide what happens to somebody else's audio driver can be exercised on
+# fixtures instead of on their speakers.
+add_library(fluideq-engine-setup-core STATIC
+  setup/fx_list.cpp setup/json.cpp)
+target_link_libraries(fluideq-engine-setup-core PRIVATE feq_strict)
+
+add_executable(fluideq-engine-fx-list-test tests/fx_list_test.cpp)
+target_link_libraries(fluideq-engine-fx-list-test
+  PRIVATE fluideq-engine-setup-core feq_strict)
+add_test(NAME engine-fx-list COMMAND fluideq-engine-fx-list-test)
+
+# The helper that installs the effect, attaches it to outputs and takes it all
+# back out again. It ships beside the DLL and runs in place; nothing else in
+# the product writes the registry.
+add_executable(fluideq-engine-setup
+  setup/main.cpp setup/commands.cpp setup/registry.cpp setup/endpoints.cpp
+  setup/elevate.cpp setup/services.cpp setup/acl.cpp setup/backup.cpp
+  setup/fs.cpp
+  # The version resource is what the consent prompt shows the user before
+  # they decide whether to let this program change their machine.
+  setup/setup.rc)
+target_link_libraries(fluideq-engine-setup PRIVATE
+  fluideq-engine-setup-core feq_strict
+  # advapi32: the registry, the service control manager and the security
+  # descriptor. shell32: the known folders and the elevated relaunch. ole32:
+  # the device enumerator. version: the installed DLL's version resource.
+  advapi32 shell32 ole32 version)
+set_target_properties(fluideq-engine-setup PROPERTIES
+  OUTPUT_NAME "FluidEQ-Engine-Setup"
+  RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+  RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_BINARY_DIR}/bin"
+  RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/bin")
+set_source_files_properties(setup/setup.rc PROPERTIES COMPILE_DEFINITIONS
+  "FEQ_SETUP_VERSION_STRING=\"${FEQ_CORE_VERSION}\"")
+# Embedded rather than left beside the executable: a manifest in a separate
+# file is one the helper can be run without, and a helper running without its
+# manifest is one Windows decides the elevation policy for by guessing at the
+# file name.
+target_link_options(fluideq-engine-setup PRIVATE
+  "/MANIFEST:EMBED"
+  "/MANIFESTINPUT:${CMAKE_CURRENT_SOURCE_DIR}/setup/setup.manifest")
