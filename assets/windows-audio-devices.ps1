@@ -13,6 +13,19 @@ public static class AquaAudioDevices
         "{EC1CC9CE-FAED-4822-828A-82A81A6F018F}"
     };
 
+    // The FluidEQ Engine's own APO CLSID (see src/common/audioEngine.ts's
+    // FLUID_ENGINE_CLSID, which this must be kept equal to).
+    private const string FluidEngineClsid = "{B7E2C4D1-5A8F-4C3E-9D2B-6F1A0C8E7D34}";
+
+    // FxProperties stores the two composite effect lists (endpoint and mode)
+    // under value names shaped like "{format-guid},pid" rather than a plain
+    // name — these are PKEY_FX_EndpointEffectClsid (,15) and
+    // PKEY_FX_ModeEffectClsid (,14). Unlike the APO probe, which scans every
+    // value present, the engine's effect is only ever listed in one of these
+    // two, so only they are read.
+    private const string CompositeEndpointEffectsValue = "{d04e05a6-594b-4fb6-a80d-01af5eed7d1d},15";
+    private const string CompositeModeEffectsValue = "{d04e05a6-594b-4fb6-a80d-01af5eed7d1d},14";
+
     [ComImport, Guid("BCDE0395-E52F-467C-8E3D-C4579291692E")]
     private class MMDeviceEnumeratorComObject { }
 
@@ -114,6 +127,7 @@ public static class AquaAudioDevices
         public bool isDefault { get; set; }
         public bool isActive { get; set; }
         public Nullable<bool> isEqualizerApoAttached { get; set; }
+        public Nullable<bool> isFluidEngineAttached { get; set; }
     }
 
     private static bool ContainsEqualizerApoClsid(object rawValue)
@@ -167,6 +181,55 @@ public static class AquaAudioDevices
         }
     }
 
+    private static bool ContainsClsid(object rawValue, string clsid)
+    {
+        var values = rawValue as string[];
+        if (values != null)
+        {
+            foreach (var value in values)
+                if (!String.IsNullOrWhiteSpace(value) &&
+                    value.IndexOf(clsid, StringComparison.OrdinalIgnoreCase) >= 0)
+                    return true;
+        }
+        return false;
+    }
+
+    // Reads only the two named composite effect lists rather than every
+    // FxProperties value, because the engine's CLSID is only ever placed in
+    // one of those two REG_MULTI_SZ values, never under an arbitrary name.
+    private static Nullable<bool> IsFluidEngineAttached(string deviceGuid)
+    {
+        try
+        {
+            using (var machine = RegistryKey.OpenBaseKey(
+                RegistryHive.LocalMachine,
+                RegistryView.Registry64))
+            using (var properties = machine.OpenSubKey(
+                @"SOFTWARE\Microsoft\Windows\CurrentVersion\MMDevices\Audio\Render\" +
+                deviceGuid + @"\FxProperties"))
+            {
+                if (properties == null)
+                    return false;
+                var endpointEffects = properties.GetValue(
+                    CompositeEndpointEffectsValue,
+                    null,
+                    RegistryValueOptions.DoNotExpandEnvironmentNames);
+                var modeEffects = properties.GetValue(
+                    CompositeModeEffectsValue,
+                    null,
+                    RegistryValueOptions.DoNotExpandEnvironmentNames);
+                return ContainsClsid(endpointEffects, FluidEngineClsid) ||
+                    ContainsClsid(modeEffects, FluidEngineClsid);
+            }
+        }
+        catch
+        {
+            // Unknown is deliberately distinct from "not attached", same as
+            // the APO probe above.
+            return null;
+        }
+    }
+
     public static List<Device> GetRenderDevices()
     {
         var result = new List<Device>();
@@ -211,7 +274,8 @@ public static class AquaAudioDevices
                 guid = guid,
                 isDefault = String.Equals(id, defaultId, StringComparison.OrdinalIgnoreCase),
                 isActive = (state & 1) == 1,
-                isEqualizerApoAttached = IsEqualizerApoAttached(guid)
+                isEqualizerApoAttached = IsEqualizerApoAttached(guid),
+                isFluidEngineAttached = IsFluidEngineAttached(guid)
             });
         }
         return result;

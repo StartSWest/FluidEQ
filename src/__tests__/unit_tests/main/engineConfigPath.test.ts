@@ -80,10 +80,12 @@ describe('the engine-aware config directory', () => {
     const configDir = await getConfigPath('fluid');
     const configFile = path.join(configDir, 'config.txt');
     fs.writeFileSync(configFile, 'Include: fluideq.txt\n', 'utf8');
+    const mtimeBefore = fs.statSync(configFile).mtimeMs;
 
     await getConfigPath('fluid');
 
     expect(fs.readFileSync(configFile, 'utf8')).toBe('Include: fluideq.txt\n');
+    expect(fs.statSync(configFile).mtimeMs).toBe(mtimeBefore);
   });
 
   it('never asks the registry for the fluid engine directory', async () => {
