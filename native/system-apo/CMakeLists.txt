@@ -21,7 +21,7 @@ add_test(NAME engine-config COMMAND fluideq-engine-config-test)
 # a graphic-EQ FIR from a resolved `Chain`, and the per-output processing
 # graph that runs both of them alongside the biquads.
 add_library(fluideq-engine-dsp STATIC
-  src/wav.cpp src/graphic_eq.cpp src/graph.cpp)
+  src/wav.cpp src/graphic_eq.cpp src/dsp_chain.cpp src/graph.cpp)
 # PUBLIC on both: `graphic_eq.h`'s `design_graphic_kernel` takes a
 # `GraphicPoint` and `graph.h` takes a `Chain` — both defined in
 # fluideq-engine-config's public header, so anything that links this library
@@ -56,6 +56,15 @@ target_link_libraries(fluideq-engine-graph-convolution-test
   PRIVATE fluideq-engine-dsp feq_strict)
 add_test(NAME engine-graph-convolution
   COMMAND fluideq-engine-graph-convolution-test)
+
+# The DSP rack running system-wide: the file the app writes, what the DLL
+# decodes out of it, and where the rack sits relative to the EQ. Its own
+# binary because its fixture is a line frozen from the TypeScript encoder —
+# the only thing that can catch the two sides disagreeing about the layout.
+add_executable(fluideq-engine-dsp-chain-test tests/dsp_chain_test.cpp)
+target_link_libraries(fluideq-engine-dsp-chain-test
+  PRIVATE fluideq-engine-dsp feq_strict)
+add_test(NAME engine-dsp-chain COMMAND fluideq-engine-dsp-chain-test)
 
 # The effect itself: the DLL Windows loads into audiodg.exe once per output it
 # is attached to. `FluidEQ-Engine` rather than the target's name because this

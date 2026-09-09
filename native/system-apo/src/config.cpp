@@ -219,10 +219,25 @@ Chain resolve_chain(const std::wstring& config_dir, const Endpoint& endpoint,
   Chain chain;
   constexpr size_t kMaxDepth = 8;
 
+  // Before the config tree, and outside it. `SET_SYSTEM_DSP_CHAIN` writes
+  // this file whether or not the user has ever configured the EQ, and the
+  // rack has no `Device:` guard to be excluded by — so an endpoint with no
+  // config.txt at all still gets it, which is why this sits above the early
+  // return below rather than inside the walk.
+  //
+  // Not added to `files_read`: that list is the Equalizer APO include tree,
+  // and the watcher reads its emptiness as "there is no config.txt". A rack
+  // file counted there would report a machine with no EQ configuration as
+  // having one. `signature_of` covers this file's contents instead.
+  if (const std::optional<std::string> dsp_text =
+          read(config_dir + L"\\fluideq-dsp.txt")) {
+    chain.dsp_values = parse_dsp_values(*dsp_text);
+  }
+
   const std::wstring root_path = config_dir + L"\\config.txt";
   const std::optional<std::string> root_text = read(root_path);
   if (!root_text) {
-    return chain;  // No Equalizer APO config at all: passthrough.
+    return chain;  // No Equalizer APO config at all: the rack alone, if any.
   }
 
   std::set<std::wstring> opened;

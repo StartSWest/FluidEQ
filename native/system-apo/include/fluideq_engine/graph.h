@@ -29,6 +29,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include <vector>
 
 #include "fluideq/biquad.h"
+#include "fluideq/chain.h"
 #include "fluideq/convolver.h"
 #include "fluideq_engine/config.h"
 
@@ -48,6 +49,9 @@ struct ConvolverDeleter {
   void operator()(FeqConvolver* state) const noexcept {
     feq_convolver_destroy(state);
   }
+};
+struct ChainDeleter {
+  void operator()(FeqChain* chain) const noexcept { feq_chain_destroy(chain); }
 };
 
 }  // namespace detail
@@ -85,6 +89,12 @@ class Graph {
    * would feed a filter the tail of a differently shaped one, which rings.
    * The convolvers are deliberately NOT carried: their history is a spectrum
    * partitioned against one specific kernel and means nothing to another.
+   *
+   * Neither is the DSP rack, and for a harder reason: its state lives behind
+   * an opaque handle with no way to copy it, and the handle itself belongs to
+   * a graph the audio thread may still be inside. So a rack edit restarts the
+   * rack's delay lines — inaudible at the default minimum phase, and the
+   * length of the kernel under linear phase.
    */
   void inherit_state(const Graph& previous) noexcept;
 
@@ -109,6 +119,12 @@ class Graph {
    *
    * So this is 0, one convolver's latency, one plus the FIR's half-length,
    * or both stages together — never a fixed constant.
+   *
+   * Plus the rack's own (`feq_chain_latency_frames`), which linear-phase EQ
+   * dominates at 8192 frames — 171 ms at 48 kHz. That is why the constructor
+   * primes the rack rather than leaving its kernel to be adopted by the first
+   * audio block: this number is read once, at publish time, and cached for
+   * `GetLatency`.
    */
   uint32_t latency_frames() const noexcept;
 
@@ -158,6 +174,25 @@ class Graph {
       impulse_;
   std::vector<std::unique_ptr<FeqConvolver, detail::ConvolverDeleter>>
       graphic_;
+
+  /**
+   * The DSP rack, when `Chain::dsp_values` decoded into one.
+   *
+   * The same `fluideq-dsp-core` chain the Library player runs, with the
+   * stages that cannot live inside audiodg.exe taken out by
+   * `decode_dsp_chain`. Null whenever the app has not written a rack file,
+   * the file was unreadable, or the array was not a snapshot this build's
+   * decoder recognises — all of which leave the EQ below running.
+   */
+  std::unique_ptr<FeqChain, detail::ChainDeleter> rack_;
+  // How many of `channels_` the rack actually runs on: 1 or 2, never more.
+  // A stream with more carries the rest past it untouched, because the rack
+  // is a stereo processor (`FEQ_CHAIN_CHANNELS`) and there is no sensible
+  // answer for a centre channel or an LFE.
+  uint32_t rack_channels_ = 0;
+  // `rack_channels_` pointers, filled in `process`. A member because the
+  // audio thread may not allocate one per block.
+  std::vector<float*> rack_planes_;
 
   std::vector<std::string> warnings_;
 };

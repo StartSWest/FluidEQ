@@ -15,6 +15,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include <vector>
 
 #include "fluideq/resampler.h"
+#include "dsp_chain.h"
 #include "graphic_eq.h"
 #include "wav.h"
 
@@ -234,11 +235,30 @@ Graph::Graph(const Chain& chain, uint32_t sample_rate, uint32_t channels,
       passthrough_(true),
       preamp_linear_(1.0),
       latency_frames_(0) {
-  // An endpoint the config never named gets nothing at all, not even a
+  if (sample_rate_ == 0 || channels_ == 0 || max_frames_ == 0) {
+    return;
+  }
+
+  /**
+   * The rack first, and outside the `matched` guard below.
+   *
+   * `matched` says whether the Equalizer APO configuration names THIS
+   * endpoint. The rack is system-wide — one file, no `Device:` line — so it
+   * applies to an output the user has never opened the EQ page for, which is
+   * every output on a fresh install.
+   */
+  RackBuild rack = build_rack(chain.dsp_values, sample_rate_, channels_,
+                              max_frames_, warnings_);
+  rack_ = std::move(rack.chain);
+  rack_channels_ = rack.channels;
+  rack_planes_.assign(rack_channels_, nullptr);
+  latency_frames_ += rack.latency;
+
+  // An endpoint the config never named gets no EQ at all, not even a
   // preamp of 0 dB: `matched` is the difference between "this config has
   // something to say about this device" and "it does not".
-  if (!chain.matched || sample_rate_ == 0 || channels_ == 0 ||
-      max_frames_ == 0) {
+  if (!chain.matched) {
+    passthrough_ = rack_ == nullptr;
     return;
   }
 
@@ -300,8 +320,9 @@ Graph::Graph(const Chain& chain, uint32_t sample_rate, uint32_t channels,
     }
   }
 
-  passthrough_ = coefficients_.empty() && impulse_.empty() &&
-                 graphic_.empty() && preamp_linear_ == 1.0f;
+  passthrough_ = rack_ == nullptr && coefficients_.empty() &&
+                 impulse_.empty() && graphic_.empty() &&
+                 preamp_linear_ == 1.0f;
 }
 
 // Every owning member is a `unique_ptr` (the kernels) or a vector of them
@@ -317,6 +338,32 @@ void Graph::process(float* const* planar, uint32_t frames) noexcept {
   if (passthrough_ || planar == nullptr || frames == 0 ||
       frames > max_frames_) {
     return;
+  }
+
+  /**
+   * The rack, before the EQ and across the channels together.
+   *
+   * This order is the one the Library player already produces — the rack
+   * inside the app, then Equalizer APO on the device — so the same settings
+   * sound the same whether a track is played from the Library or from
+   * anything else on the machine. It also has to be this way round for the
+   * maximizer to mean anything: a ceiling followed by a preamp is a limiter
+   * with a make-up gain after it, while a preamp followed by a ceiling is a
+   * limiter working harder for the same result.
+   *
+   * All at once rather than per channel because the rack is stereo-linked:
+   * the limiter, the dimension stage and the mid/side EQ all need both
+   * channels of the same block in the same call.
+   */
+  if (rack_) {
+    bool usable = true;
+    for (uint32_t at = 0; at < rack_channels_; ++at) {
+      rack_planes_[at] = planar[at];
+      usable = usable && planar[at] != nullptr;
+    }
+    if (usable) {
+      feq_chain_process(rack_.get(), rack_planes_.data(), frames);
+    }
   }
 
   const size_t bands = coefficients_.size();

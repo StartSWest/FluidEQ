@@ -308,4 +308,34 @@ std::vector<GraphicPoint> parse_graphic(std::string_view body) {
   return points;
 }
 
+std::vector<double> parse_dsp_values(std::string_view text) {
+  const std::string decoded = strip_bom_and_decode(text);
+  std::vector<double> values;
+  size_t pos = 0;
+  while (pos <= decoded.size()) {
+    const size_t newline = decoded.find('\n', pos);
+    const bool last = newline == std::string::npos;
+    const size_t line_end = last ? decoded.size() : newline;
+    const std::string_view line =
+        trim(std::string_view(decoded.data() + pos, line_end - pos));
+    pos = last ? decoded.size() + 1 : newline + 1;
+
+    // The header line, whole. A '#' is NOT stripped mid-line the way
+    // `tokenize` strips it, because nothing in this file is a comment: a
+    // hash anywhere else means the line is not one this engine wrote, and
+    // silently keeping the numbers before it would run half a rack.
+    if (line.empty() || line.front() == '#') {
+      continue;
+    }
+    for (const std::string_view token : detail::split_ws(line)) {
+      double value = 0.0;
+      if (!detail::parse_double(token, value) || !std::isfinite(value)) {
+        return {};
+      }
+      values.push_back(value);
+    }
+  }
+  return values;
+}
+
 }  // namespace fluideq_engine

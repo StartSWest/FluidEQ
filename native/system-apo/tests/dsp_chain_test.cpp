@@ -1,0 +1,325 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+/**
+ * The DSP rack running system-wide: the file the app writes, what the DLL
+ * makes of it, and where it sits in the graph.
+ *
+ * The reference line below is the whole point of this file. It was produced
+ * by the ONE encoder there is — `encodeChainSettings` in
+ * `src/common/dsp/chainWire.ts` — rather than hand-written here, because a
+ * layout the two sides disagree about does not fail: it decodes a Q as a
+ * threshold and still sounds like music. A line frozen from the real encoder
+ * is the only thing that can catch that.
+ *
+ * Regenerate it, from the repository root, with:
+ *
+ *   pnpm exec cross-env TS_NODE_TRANSPILE_ONLY=true ts-node gen-chain-line.ts
+ *
+ * where `gen-chain-line.ts` is:
+ *
+ *   import { encodeChainSettings } from './src/common/dsp/chainWire';
+ *   import { DSP_DEFAULTS } from './src/common/dsp/chain';
+ *   const s = JSON.parse(JSON.stringify(DSP_DEFAULTS));
+ *   s.exciter.enabled = true;
+ *   console.log(encodeChainSettings(s, { outputSafetyEnabled: true })
+ *     .join(' '));
+ */
+
+#include "../src/dsp_chain.h"
+
+#include <cmath>
+#include <cstdint>
+#include <cstdio>
+#include <map>
+#include <string>
+#include <vector>
+
+#include "fluideq/chain.h"
+#include "fluideq/linear_phase.h"
+#include "fluideq_engine/config.h"
+#include "fluideq_engine/graph.h"
+#include "graph_test_support.h"
+
+using fluideq_engine::Chain;
+using fluideq_engine::decode_dsp_chain;
+using fluideq_engine::Graph;
+using fluideq_engine::parse_dsp_values;
+using fluideq_engine::resolve_chain;
+using fluideq_engine_test::endpoint;
+using fluideq_engine_test::Files;
+using fluideq_engine_test::kRate;
+using fluideq_engine_test::mentions;
+using fluideq_engine_test::provider;
+using fluideq_engine_test::report;
+using fluideq_engine_test::run_blocks;
+using fluideq_engine_test::tone;
+
+namespace {
+
+/** `DSP_DEFAULTS` with `exciter.enabled = 1`, from the command above. */
+const char* const kReferenceLine =
+    "1 1 1 0 0 0 0.45 0 0.35 700 0.3 1 77 0.3568123043805345 1.8 0.15 0.05 1 "
+    "950 0.3 2 0.2 0.18 1 7700 0.23727782085891017 2.6 0.38 0.6 0 0 0 1 0 0 0 "
+    "0 1 0 0 0 200 3000 -18 2 10 120 0 -18 2 10 120 0 -18 2 10 120 0 0 0.9 "
+    "1.05 1.25 200 3000 0.25 0 0 -1 5 100 0 0 0 -14 -1 200 0 0 0 0 1 0.15 -6 "
+    "-1 0.95 0 0 6 24 30 0 0.5 32 0 0 1 0 0 90 0 0 0 0.8 0 0 0 120 0.65 -0.3 "
+    "0 80 0 1 15 1 2 32 0 0.7 0 -24 1 0 50 0 1.4 0 -24 1 0 80 0 1.4 0 -24 1 0 "
+    "125 0 1.4 0 -24 1 0 200 0 1.4 0 -24 1 0 315 0 1.4 0 -24 1 0 500 0 1.4 0 "
+    "-24 1 0 800 0 1.4 0 -24 1 0 1250 0 1.4 0 -24 1 0 2000 0 1.4 0 -24 1 0 "
+    "3150 0 1.4 0 -24 1 0 5000 0 1.4 0 -24 1 0 8000 0 1.4 0 -24 1 0 12500 0 "
+    "1.4 0 -24 1 3 16000 0 0.7 0 -24";
+
+// Positions in that array, counted off `encodeChainSettings`. Named rather
+// than spelled inline because every one of them is a place a reader has to be
+// able to check against the encoder: the wire is a flat list, so an index is
+// the only name a field has.
+constexpr size_t kExciterEnabled = 2;
+constexpr size_t kEqEnabled = 29;
+// `EQ_PHASE_MODES.indexOf(phase)`: 0 is minimum, 1 is linear.
+constexpr size_t kEqPhase = 34;
+constexpr size_t kMaximizerEnabled = 65;
+constexpr size_t kMaximizerDriveDb = 66;
+constexpr size_t kMaximizerCeilingDb = 67;
+constexpr size_t kDenoiseEnabled = 77;
+// `CHAIN_PARAM_LEAD - 1`, which both sides read the tail's length from.
+constexpr size_t kBandCount = FEQ_CHAIN_PARAM_LEAD - 1;
+
+const std::wstring kConfigDir = L"C:\\cfg";
+const std::wstring kDspPath = L"C:\\cfg\\fluideq-dsp.txt";
+const std::wstring kConfigPath = L"C:\\cfg\\config.txt";
+
+/** The file the app writes: a `#` header line, the numbers, CRLF endings. */
+std::string dsp_file(const std::string& numbers) {
+  return "# FluidEQ Engine DSP chain v1\r\n" + numbers + "\r\n";
+}
+
+/** The reference array, ready to be edited one index at a time. */
+std::vector<double> reference_values() {
+  return parse_dsp_values(dsp_file(kReferenceLine));
+}
+
+std::string join(const std::vector<double>& values) {
+  std::string out;
+  char text[40] = {};
+  for (const double value : values) {
+    if (!out.empty()) {
+      out.push_back(' ');
+    }
+    const int written = std::snprintf(text, sizeof(text), "%.17g", value);
+    out.append(text, written > 0 ? static_cast<size_t>(written) : 0);
+  }
+  return out;
+}
+
+/** A chain resolved from a rack file, and optionally an APO config beside it. */
+Chain chain_with(const std::vector<double>& values,
+                 const std::string& config = "") {
+  Files files;
+  files[kDspPath] = dsp_file(join(values));
+  files[kConfigPath] = config;
+  return resolve_chain(kConfigDir, endpoint(), provider(files));
+}
+
+/** Largest magnitude in `samples` over `[from, to)`, in dBFS. */
+double peak_db(const std::vector<float>& samples, size_t from, size_t to) {
+  double peak = 0.0;
+  for (size_t at = from; at < to; ++at) {
+    const double value = std::fabs(static_cast<double>(samples[at]));
+    if (value > peak) {
+      peak = value;
+    }
+  }
+  return peak > 0.0 ? 20.0 * std::log10(peak) : -200.0;
+}
+
+/**
+ * A second of 1 kHz at -6 dBFS through `chain`, and the peak of its last half.
+ *
+ * The last half rather than the whole buffer because the maximizer has a
+ * 5 ms look-ahead and a 100 ms release: the first block comes out before the
+ * gain computer has seen anything, which is the one place the ceiling is
+ * legitimately over-shot.
+ */
+double limited_peak_db(const Chain& chain) {
+  constexpr uint32_t kFrames = kRate;
+  std::vector<std::vector<float>> channels(2, tone(1000.0, 0.5, kFrames, 0));
+  Graph graph(chain, kRate, 2, 480);
+  run_blocks(graph, channels, 480);
+  const double left = peak_db(channels[0], kFrames / 2, kFrames);
+  const double right = peak_db(channels[1], kFrames / 2, kFrames);
+  CHECK(std::fabs(left - right) < 0.1);
+  return left;
+}
+
+// ---------------------------------------------------------------------------
+
+void the_encoder_s_own_line_decodes() {
+  std::printf("the line the app writes decodes into the rack\n");
+  const std::vector<double> values = reference_values();
+  CHECK(values.size() ==
+        FEQ_CHAIN_PARAM_LEAD + 15u * FEQ_CHAIN_BAND_PARAMS);
+  CHECK(values[kBandCount] == 15.0);
+
+  const Chain chain = chain_with(values);
+  CHECK(chain.dsp_values.size() == values.size());
+
+  FeqChainSettings settings = {};
+  CHECK(decode_dsp_chain(chain.dsp_values, &settings));
+  CHECK(settings.enabled == 1);
+  CHECK(settings.exciter.enabled == 1);
+  CHECK(settings.eq.band_count == 15);
+}
+
+void a_header_only_or_broken_file_is_no_rack() {
+  std::printf("a file with no numbers, or a bad token, is no rack\n");
+  CHECK(parse_dsp_values("# FluidEQ Engine DSP chain v1\r\n").empty());
+  CHECK(parse_dsp_values(dsp_file("1 2 three 4")).empty());
+  // The positive control: the same shape, all numeric, does parse. Without it
+  // an `empty()` that came back for every input would look identical.
+  CHECK(parse_dsp_values(dsp_file("1 2 3 4")).size() == 4);
+}
+
+void denoise_is_forced_off() {
+  std::printf("denoise is off even when the file asks for it\n");
+  std::vector<double> values = reference_values();
+  values[kDenoiseEnabled] = 1.0;
+
+  FeqChainSettings settings = {};
+  CHECK(decode_dsp_chain(values, &settings));
+  // The neural runtime cannot be loaded into audiodg.exe, so the whole stage
+  // stays out of the system-wide rack whatever the file says.
+  CHECK(settings.denoise.enabled == 0);
+  // The positive control: this is the stage being forced off, not the decode
+  // having failed and left a zeroed struct behind.
+  CHECK(settings.exciter.enabled == 1);
+}
+
+void a_wrong_band_count_is_refused_and_the_eq_still_runs() {
+  std::printf("a line with the wrong band count leaves the EQ running\n");
+  std::vector<double> values = reference_values();
+  values[kBandCount] = 14.0;  // The tail is still 15 bands long.
+
+  FeqChainSettings settings = {};
+  CHECK(!decode_dsp_chain(values, &settings));
+
+  const Chain chain = chain_with(values, "Preamp: -6 dB\r\n");
+  Graph graph(chain, kRate, 2, 480);
+  CHECK(mentions(graph.warnings(), "DSP rack"));
+  CHECK(!graph.is_passthrough());
+  // The EQ half of the same chain is untouched: -6 dB of preamp on a
+  // -6 dBFS tone is -12 dBFS, with no rack in front of it.
+  std::vector<std::vector<float>> channels(2, tone(1000.0, 0.5, 4800, 0));
+  run_blocks(graph, channels, 480);
+  CHECK(std::fabs(peak_db(channels[0], 2400, 4800) + 12.0) < 0.1);
+}
+
+void the_maximizer_holds_its_ceiling() {
+  std::printf("the rack's maximizer holds -20 dBFS on a -6 dBFS tone\n");
+  std::vector<double> values = reference_values();
+  values[kExciterEnabled] = 0.0;  // Harmonics would move the peak.
+  values[kMaximizerEnabled] = 1.0;
+  values[kMaximizerDriveDb] = 0.0;
+  values[kMaximizerCeilingDb] = -20.0;
+
+  const double peak = limited_peak_db(chain_with(values));
+  CHECK(std::fabs(peak + 20.0) < 0.5);
+}
+
+void the_rack_runs_before_the_eq() {
+  std::printf("the rack runs first, then the EQ\n");
+  std::vector<double> values = reference_values();
+  values[kExciterEnabled] = 0.0;
+  values[kMaximizerEnabled] = 1.0;
+  values[kMaximizerDriveDb] = 0.0;
+  values[kMaximizerCeilingDb] = -20.0;
+
+  // Rack first: the limiter holds -20 dBFS and the preamp then lifts what
+  // came out of it to -14. The other order would put +6 dB into a limiter
+  // set to -20 and come out at -20, so these two numbers are the whole
+  // difference between the two orders.
+  const double peak = limited_peak_db(chain_with(values, "Preamp: 6 dB\r\n"));
+  CHECK(std::fabs(peak + 14.0) < 0.5);
+}
+
+void latency_includes_the_rack() {
+  std::printf("the reported latency includes the rack's own\n");
+  const std::vector<double> values = reference_values();
+  FeqChainSettings settings = {};
+  CHECK(decode_dsp_chain(values, &settings));
+
+  FeqChain* reference = feq_chain_create(static_cast<double>(kRate), 2, 480);
+  CHECK(reference != nullptr);
+  feq_chain_configure(reference, &settings);
+  const uint32_t rack = feq_chain_latency_frames(reference);
+  feq_chain_destroy(reference);
+  // A null test needs a positive control: the rack's own latency has to be a
+  // real number, or `latency_frames()` matching it proves nothing.
+  CHECK(rack > 0);
+
+  const Chain chain = chain_with(values);
+  Graph graph(chain, kRate, 2, 480);
+  CHECK(graph.latency_frames() == rack);
+}
+
+void linear_phase_latency_is_known_before_the_first_block() {
+  std::printf("linear phase reports its delay before any audio has run\n");
+  std::vector<double> values = reference_values();
+  values[kEqEnabled] = 1.0;
+  values[kEqPhase] = 1.0;
+
+  const Chain chain = chain_with(values);
+  Graph graph(chain, kRate, 2, 480);
+  // The number `GetLatency` hands Windows is read once, at publish time, from
+  // a graph that has never processed a block — so a chain that only learns
+  // its own latency after the audio thread has adopted its kernel would tell
+  // Windows the effect adds nothing while delaying it by 171 ms. That is what
+  // every video player's audio/video sync is computed from.
+  CHECK(graph.latency_frames() >= feq_linear_phase_latency());
+  // And the control: with minimum phase, the same rack does not report it.
+  const Chain minimum = chain_with(reference_values());
+  Graph plain(minimum, kRate, 2, 480);
+  CHECK(plain.latency_frames() < feq_linear_phase_latency());
+}
+
+void channels_beyond_two_pass_the_rack_by() {
+  std::printf("a surround stream runs the rack on the front pair only\n");
+  const Chain chain = chain_with(reference_values());
+  Graph graph(chain, kRate, 6, 480);
+  CHECK(mentions(graph.warnings(), "first two"));
+  CHECK(!graph.is_passthrough());
+}
+
+void a_rack_alone_is_not_a_pass_through() {
+  std::printf("a rack with no EQ configuration still processes\n");
+  Files files;
+  files[kDspPath] = dsp_file(kReferenceLine);
+  // No config.txt at all: `matched` stays false, and the rack is system-wide
+  // so it applies anyway. This is the endpoint a user has never opened the EQ
+  // page for.
+  const Chain chain = resolve_chain(kConfigDir, endpoint(), provider(files));
+  CHECK(!chain.matched);
+  CHECK(!chain.dsp_values.empty());
+  Graph graph(chain, kRate, 2, 480);
+  CHECK(!graph.is_passthrough());
+}
+
+}  // namespace
+
+int main() {
+  std::printf("fluideq engine system-wide DSP rack\n");
+  the_encoder_s_own_line_decodes();
+  a_header_only_or_broken_file_is_no_rack();
+  denoise_is_forced_off();
+  a_wrong_band_count_is_refused_and_the_eq_still_runs();
+  the_maximizer_holds_its_ceiling();
+  the_rack_runs_before_the_eq();
+  latency_includes_the_rack();
+  linear_phase_latency_is_known_before_the_first_block();
+  channels_beyond_two_pass_the_rack_by();
+  a_rack_alone_is_not_a_pass_through();
+  return report();
+}

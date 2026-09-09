@@ -412,6 +412,10 @@ void Watcher::log_chain(const Chain& chain, const Graph& graph) {
   line += " ir=" + (chain.convolution_path.empty()
                         ? std::string("none")
                         : to_utf8(chain.convolution_path));
+  line += " rack=" + (chain.dsp_values.empty()
+                          ? std::string("none")
+                          : std::to_string(chain.dsp_values.size()) +
+                                " values");
   line += " latency=" + std::to_string(graph.latency_frames()) + " frames";
   log_.write(line);
 

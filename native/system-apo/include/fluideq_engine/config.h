@@ -59,6 +59,22 @@ struct Chain {
   std::vector<GraphicPoint> graphic;
   std::vector<Band> bands;
   double preamp_db = 0.0;
+  /**
+   * The DSP rack, exactly as `encodeChainSettings` wrote it.
+   *
+   * Read from `<config_dir>\fluideq-dsp.txt`, which is not part of the
+   * Equalizer APO include tree above and is never named by an `Include:`
+   * line: it is one flat array of doubles the app rewrites on every rack
+   * change, and `feq_chain_settings_decode` on the other side is the only
+   * thing that knows what the numbers mean. Empty whenever the file is
+   * absent, empty, or carries a token that is not a plain decimal — all of
+   * which mean the rack is bypassed and the EQ below still runs.
+   *
+   * Deliberately NOT reflected in `matched`: the rack is system-wide and has
+   * no `Device:` guard, so it applies to an endpoint the EQ configuration
+   * never names.
+   */
+  std::vector<double> dsp_values;
   // The first token of every line whose command this resolver does not
   // recognise, deduplicated in the order first seen — the log needs to say
   // what a hand-edited config carried that FluidEQ silently walked past.
@@ -138,6 +154,18 @@ std::optional<Band> parse_filter(std::string_view body);
  * refuses the whole line and leaves the previous chain in place.
  */
 std::vector<GraphicPoint> parse_graphic(std::string_view body);
+
+/**
+ * Parse `fluideq-dsp.txt`: a `#` header line, then one line of doubles.
+ *
+ * All-or-nothing, for the same reason `parse_graphic` is: half a rack is a
+ * chain of stages the user never asked for, and a file this resolver could
+ * not read whole is one the app is in the middle of rewriting. Every token
+ * goes through `std::from_chars`, which is locale-free by construction —
+ * `strtod` on a machine whose locale uses a comma decimal separator reads
+ * `0.45` as `0`, silently, and the rack would simply sound wrong.
+ */
+std::vector<double> parse_dsp_values(std::string_view text);
 
 /**
  * Whether a `Device:` pattern names `endpoint`.
