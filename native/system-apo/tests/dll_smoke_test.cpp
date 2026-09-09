@@ -270,13 +270,25 @@ void run(const wchar_t* dll_path, const std::wstring& root) {
   CHECK(initialize_fresh(0, nullptr) == S_OK);
 
   // Too small to carry even the size field, and a size that matches no known
-  // version, are both refused rather than guessed at: guessing means
-  // dereferencing whatever sits where a pointer used to be.
+  // version even after the byte-count retry below, are both refused rather
+  // than guessed at: guessing means dereferencing whatever sits where a
+  // pointer used to be. The buffer passed in is deliberately the same length
+  // as `cbSize` here, so the retry against the real byte count lands on the
+  // same unmatched value and still refuses.
   alignas(APOInitSystemEffects) BYTE stub[sizeof(APOInitSystemEffects)] = {};
   CHECK(initialize_fresh(4, stub) == E_INVALIDARG);
   auto* stub_base = reinterpret_cast<APOInitBaseStruct*>(stub);
   stub_base->cbSize = sizeof(APOInitBaseStruct);
-  CHECK(initialize_fresh(sizeof(APOInitSystemEffects), stub) == E_INVALIDARG);
+  CHECK(initialize_fresh(sizeof(APOInitBaseStruct), stub) == E_INVALIDARG);
+
+  // A `cbSize` that names no known version does not refuse the payload when
+  // the byte count Windows actually passed matches one exactly: here the host
+  // miscomputed `cbSize` as 60 but handed over the full version 2 structure,
+  // and reading it is exactly as safe as if `cbSize` had been set correctly.
+  APOInitSystemEffects2 bad_cbsize = {};
+  bad_cbsize.APOInit.cbSize = 60;
+  bad_cbsize.APOInit.clsid = kEngineClsid;
+  CHECK(initialize_fresh(sizeof(APOInitSystemEffects2), &bad_cbsize) == S_OK);
 }
 
 }  // namespace

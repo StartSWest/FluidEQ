@@ -362,31 +362,51 @@ STDMETHODIMP Apo::Initialize(UINT32 size, BYTE* data) {
           ? sizeof(APOInitSystemEffects2)
           : sizeof(APOInitSystemEffects3));
 
-  try {
-    // Anything larger than every known version is a later SDK extending the
-    // newest layout, and is read as that rather than refused: refusing means
-    // the effect never loads and every output on the machine plays
-    // unprocessed, with nothing on screen to say why. Anything else has to
-    // match a known size exactly — a size between two of them names a layout
-    // this code cannot know, and guessing would mean dereferencing whatever
-    // sits where a pointer used to be.
-    if (declared > kLargestKnown ||
-        declared == sizeof(APOInitSystemEffects3)) {
+  // Tries one candidate size against the cascade; returns whether it named a
+  // known layout. Anything larger than every known version is a later SDK
+  // extending the newest layout, and is read as that rather than refused:
+  // refusing means the effect never loads and every output on the machine
+  // plays unprocessed, with nothing on screen to say why. Anything else has
+  // to match a known size exactly — a size between two of them names a layout
+  // this code cannot know, and guessing would mean dereferencing whatever
+  // sits where a pointer used to be.
+  const auto read_as = [&](UINT32 candidate) -> bool {
+    if (candidate > kLargestKnown ||
+        candidate == sizeof(APOInitSystemEffects3)) {
       const auto* init = reinterpret_cast<const APOInitSystemEffects3*>(data);
       processing_mode_ = init->AudioProcessingMode;
       read_endpoint(init->pDeviceCollection,
                     init->nSoftwareIoDeviceInCollection);
-    } else if (declared == sizeof(APOInitSystemEffects2)) {
+      return true;
+    }
+    if (candidate == sizeof(APOInitSystemEffects2)) {
       const auto* init = reinterpret_cast<const APOInitSystemEffects2*>(data);
       processing_mode_ = init->AudioProcessingMode;
       read_endpoint(init->pDeviceCollection,
                     init->nSoftwareIoDeviceInCollection);
-    } else if (declared == sizeof(APOInitSystemEffects)) {
+      return true;
+    }
+    if (candidate == sizeof(APOInitSystemEffects)) {
       const auto* init = reinterpret_cast<const APOInitSystemEffects*>(data);
       // Version 1 has no index; the collection it carries holds the one
       // endpoint this instance was created for.
       read_endpoint(init->pDeviceCollection, 0);
-    } else {
+      return true;
+    }
+    return false;
+  };
+
+  try {
+    // `declared` first, and — only when it names nothing this code knows —
+    // retried against `size`, the byte count Windows actually handed over. A
+    // host can miscompute `cbSize` while still passing a buffer that is
+    // exactly one known layout's size, and refusing that payload is the same
+    // silent failure as refusing an oversized one: the effect never loads.
+    // Reading `size` bytes is always in bounds, because the check above
+    // already guarantees `size` bytes exist. `read_as` has no effect when it
+    // returns false, so calling it twice with the same value when `declared`
+    // already equals `size` costs nothing.
+    if (!read_as(declared) && !read_as(size)) {
       return E_INVALIDARG;
     }
   } catch (...) {
