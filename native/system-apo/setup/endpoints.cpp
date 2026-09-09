@@ -25,11 +25,28 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include <string>
 #include <vector>
 
-#include "fs.h"
-
 namespace fluideq_engine::setup {
 
 namespace {
+
+/**
+ * An HRESULT as `0x88890008`, which is the only form worth printing.
+ *
+ * Not the Win32 error describer: an HRESULT is not a Win32 code, and
+ * `FormatMessage` given one either finds nothing or finds the unrelated
+ * message belonging to whatever Win32 error shares its bits. The hexadecimal
+ * is what a person can look up; a wrong sentence is what sends them looking in
+ * the wrong place.
+ */
+std::wstring describe_hresult(HRESULT code) {
+  const wchar_t digits[] = L"0123456789ABCDEF";
+  const unsigned long value = static_cast<unsigned long>(code);
+  std::wstring text = L"0x";
+  for (int shift = 28; shift >= 0; shift -= 4) {
+    text += digits[(value >> shift) & 0xFu];
+  }
+  return text;
+}
 
 /** A COM pointer that releases itself, so no early return leaks one. */
 template <typename Interface>
@@ -99,7 +116,7 @@ bool list_render_endpoints(std::vector<Endpoint>& out, std::wstring& error) {
                                       enumerator.receive()));
   if (FAILED(made) || enumerator.get() == nullptr) {
     error = L"could not reach the audio device list: " +
-            describe_error(static_cast<unsigned long>(made));
+            describe_hresult(made);
     return false;
   }
 
@@ -107,14 +124,14 @@ bool list_render_endpoints(std::vector<Endpoint>& out, std::wstring& error) {
   made = enumerator.get()->EnumAudioEndpoints(eRender, DEVICE_STATE_ACTIVE,
                                               devices.receive());
   if (FAILED(made) || devices.get() == nullptr) {
-    error = L"could not list the outputs: " +
-            describe_error(static_cast<unsigned long>(made));
+    error = L"could not list the outputs: " + describe_hresult(made);
     return false;
   }
 
   UINT count = 0;
-  if (FAILED(devices.get()->GetCount(&count))) {
-    error = L"could not count the outputs";
+  const HRESULT counted = devices.get()->GetCount(&count);
+  if (FAILED(counted)) {
+    error = L"could not count the outputs: " + describe_hresult(counted);
     return false;
   }
   for (UINT at = 0; at < count; ++at) {

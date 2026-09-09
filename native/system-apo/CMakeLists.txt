@@ -104,7 +104,7 @@ add_test(NAME engine-dll-process
 # decide what happens to somebody else's audio driver can be exercised on
 # fixtures instead of on their speakers.
 add_library(fluideq-engine-setup-core STATIC
-  setup/fx_list.cpp setup/json.cpp)
+  setup/fx_list.cpp setup/json.cpp setup/multi_sz.cpp)
 target_link_libraries(fluideq-engine-setup-core PRIVATE feq_strict)
 
 add_executable(fluideq-engine-fx-list-test tests/fx_list_test.cpp)
@@ -112,11 +112,22 @@ target_link_libraries(fluideq-engine-fx-list-test
   PRIVATE fluideq-engine-setup-core feq_strict)
 add_test(NAME engine-fx-list COMMAND fluideq-engine-fx-list-test)
 
+# Decoding the raw bytes of a registry string value, which is its own kind of
+# bug: a `REG_MULTI_SZ` whose last entry has no terminator, or whose byte count
+# is odd, is a heap over-read rather than a wrong effect list. Separate binary
+# because the fixtures are byte buffers rather than endpoint shapes, and one
+# file holding both was past the 500-line limit.
+add_executable(fluideq-engine-multi-sz-test tests/multi_sz_test.cpp)
+target_link_libraries(fluideq-engine-multi-sz-test
+  PRIVATE fluideq-engine-setup-core feq_strict)
+add_test(NAME engine-multi-sz COMMAND fluideq-engine-multi-sz-test)
+
 # The helper that installs the effect, attaches it to outputs and takes it all
 # back out again. It ships beside the DLL and runs in place; nothing else in
 # the product writes the registry.
 add_executable(fluideq-engine-setup
-  setup/main.cpp setup/commands.cpp setup/registry.cpp setup/endpoints.cpp
+  setup/main.cpp setup/commands.cpp setup/registry.cpp
+  setup/com_registration.cpp setup/endpoints.cpp
   setup/elevate.cpp setup/services.cpp setup/acl.cpp setup/backup.cpp
   setup/fs.cpp
   # The version resource is what the consent prompt shows the user before

@@ -66,6 +66,21 @@ struct FxValues {
   std::optional<std::wstring> legacy[kLegacyCount];
   /** `{d3993a3f-…},5/,6/,7` — the signal processing modes, REG_MULTI_SZ. */
   std::optional<std::vector<std::wstring>> modes[kSlotCount];
+  /**
+   * Whether pid 13, 14 or 15 was found as a `REG_SZ` rather than a list.
+   *
+   * Vendors do write one there, and it has to be read as a one-entry list so
+   * that its effect survives the edit — but the value type is the vendor's,
+   * not ours. Attaching beside it necessarily turns it into a `REG_MULTI_SZ`,
+   * and a detach that left it that way would hand back a value the vendor's
+   * own installer no longer recognises. This is what the backup carries so
+   * that the type goes back with the content.
+   *
+   * On the way in it describes what was read. On the way out it asks for a
+   * `REG_SZ` to be written, which only makes sense for a list of at most one
+   * entry — `write_fx_values` is where that is enforced.
+   */
+  bool composite_was_sz[kSlotCount] = {false, false, false};
 };
 
 bool operator==(const FxValues& left, const FxValues& right);

@@ -60,11 +60,17 @@ class JsonScanner {
   /** Skips whitespace, then consumes the literal `null`. */
   bool read_null();
 
+  /** Skips whitespace, then consumes `true` or `false` into `out`. */
+  bool read_bool(bool& out);
+
   /** Whether only whitespace is left. */
   bool at_end();
 
  private:
   void skip_space();
+
+  /** Consumes `literal` if that is exactly what comes next. */
+  bool read_literal(std::wstring_view literal);
 
   std::wstring_view text_;
   size_t at_ = 0;

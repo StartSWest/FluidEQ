@@ -16,6 +16,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "acl.h"
 #include "backup.h"
+#include "com_registration.h"
 #include "endpoints.h"
 #include "fs.h"
 #include "fx_list.h"
@@ -45,7 +46,13 @@ bool attach_one(const std::wstring& guid, Slot slot, bool& attached,
   if (!read_fx_values(guid, before, error)) {
     return false;
   }
-  if (!save_backup_once(guid, before, error)) {
+  // Not when the effect is already on this endpoint. Its backup either exists
+  // — in which case `save_backup_once` would do nothing anyway — or somebody
+  // deleted it by hand, and recreating it now would record the endpoint with
+  // ourselves already in it. A detach against that backup keeps us attached
+  // forever, because it says we were always there.
+  if (!is_attached(before, kEngineClsid) &&
+      !save_backup_once(guid, before, error)) {
     return false;
   }
   const FxPlan plan = plan_attach(before, kEngineClsid, slot);
@@ -170,8 +177,10 @@ void run_install(const Options& options, CommandResult& result) {
     return;
   }
   if (!ensure_directory(target)) {
-    fail(result, L"could not create " + target + L": " +
-                     describe_error(GetLastError()));
+    // Captured before the message is built: anything else that touches the
+    // Win32 API in between replaces the code with its own.
+    const unsigned long why = GetLastError();
+    fail(result, L"could not create " + target + L": " + describe_error(why));
     return;
   }
   // Every DLL beside the helper, not only the effect: the effect is built
@@ -259,8 +268,8 @@ bool ensure_engine_tree(std::wstring& error) {
   }
   if (!ensure_directory(root) || !ensure_directory(config_dir()) ||
       !ensure_directory(backup_dir())) {
-    error = L"could not create " + root + L": " +
-            describe_error(GetLastError());
+    const unsigned long why = GetLastError();
+    error = L"could not create " + root + L": " + describe_error(why);
     return false;
   }
   if (!apply_engine_acl(root, error)) {
@@ -273,8 +282,8 @@ bool ensure_engine_tree(std::wstring& error) {
   // creating it.
   const std::wstring config = config_dir() + L"\\config.txt";
   if (!path_exists(config) && !write_utf8(config, std::wstring())) {
-    error = L"could not create " + config + L": " +
-            describe_error(GetLastError());
+    const unsigned long why = GetLastError();
+    error = L"could not create " + config + L": " + describe_error(why);
     return false;
   }
   return true;
@@ -301,8 +310,15 @@ void run_command(const Options& options, CommandResult& result) {
       return;
     }
     attach_each(options.guids, options.slot, result);
-  } else {
+  } else if (options.command == L"detach") {
     detach_each(options.guids, result);
+  } else {
+    // The command line parser accepts a closed set and this function handles
+    // all of it, so getting here means the two lists have drifted apart. Named
+    // rather than folded into `detach`, where a new command would silently
+    // have taken effects off every output the caller named.
+    fail(result, L"the command " + options.command +
+                     L" reached the runner, which does not know how to run it");
   }
   if (result.ok && options.restart_audio && !restart_audio(result.error)) {
     result.ok = false;

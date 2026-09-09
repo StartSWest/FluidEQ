@@ -68,6 +68,9 @@ constexpr wchar_t kVendorMfx[] = L"{62DC1A93-CE3E-4B2C-9B3B-9F1B0E2A0002}";
 constexpr wchar_t kVendorEfx[] = L"{62DC1A93-CE3E-4B2C-9B3B-9F1B0E2A0003}";
 constexpr wchar_t kLegacyLfx[] = L"{62DC1A93-CE3E-4B2C-9B3B-9F1B0E2A0004}";
 constexpr wchar_t kLegacyGfx[] = L"{62DC1A93-CE3E-4B2C-9B3B-9F1B0E2A0005}";
+// A processing mode that is not DEFAULT — RAW, MOVIE and COMMUNICATIONS are
+// all real, and a vendor that named one of them meant it.
+constexpr wchar_t kVendorMode[] = L"{9CF2A70B-F377-403B-BD6B-360863E0355C}";
 
 std::vector<std::wstring> list(std::initializer_list<const wchar_t*> items) {
   std::vector<std::wstring> result;
@@ -92,7 +95,8 @@ void describe(const char* label, const FxValues& values) {
         std::printf("%ls ", entry.c_str());
       }
     }
-    std::printf(" modes[%d]=", slot);
+    std::printf(" wasSz[%d]=%s modes[%d]=", slot,
+                values.composite_was_sz[slot] ? "yes" : "no", slot);
     if (!values.modes[slot]) {
       std::printf("(absent)\n");
     } else {
@@ -171,6 +175,69 @@ void modern_singles_only() {
   const FxPlan plan = plan_attach(before, kOurs, Slot::Efx);
   CHECK(plan.changed);
   expect_values(plan.after, expected, "modern_singles_only");
+}
+
+/**
+ * An endpoint carrying pid 7 and nothing else in that slot.
+ *
+ * Ours goes on the end, behind the vendor's, because the list is an order the
+ * audio engine runs in and an equaliser in front of a speaker-protection
+ * effect is the wrong way round. The mode list is created only when there was
+ * not one: the vendor decided which modes its own effect runs in.
+ */
+void modern_efx_single_is_mirrored_first() {
+  std::printf("modern efx single is mirrored first\n");
+  FxValues before;
+  before.single[kEfx] = kVendorEfx;
+
+  FxValues expected;
+  expected.single[kEfx] = kVendorEfx;
+  expected.composite[kEfx] = list({kVendorEfx, kOurs});
+  expected.modes[kEfx] = list({kDefaultProcessingMode});
+
+  const FxPlan plan = plan_attach(before, kOurs, Slot::Efx);
+  CHECK(plan.changed);
+  expect_values(plan.after, expected, "modern_efx_single_is_mirrored_first");
+
+  // The same endpoint with the vendor's own mode list already beside it: the
+  // list is left exactly as found, DEFAULT or not.
+  FxValues with_modes = before;
+  with_modes.modes[kEfx] = list({kVendorMode});
+  FxValues expected_with_modes = expected;
+  expected_with_modes.modes[kEfx] = list({kVendorMode});
+
+  const FxPlan kept = plan_attach(with_modes, kOurs, Slot::Efx);
+  CHECK(kept.changed);
+  expect_values(kept.after, expected_with_modes,
+                "modern_efx_single_is_mirrored_first modes kept");
+}
+
+/**
+ * Both generations present at once: the singles win and the legacy pair is
+ * ignored.
+ *
+ * Rule 2 exists for endpoints that have only pids 1 and 2. If its guard were
+ * wrong it would run here too and overwrite the lists rule 1 has just
+ * mirrored — pid 13 would name the LFX effect instead of the SFX one, which
+ * is a driver's effect chain silently rewired rather than extended.
+ */
+void legacy_and_modern_prefer_singles() {
+  std::printf("legacy and modern prefer singles\n");
+  FxValues before;
+  before.single[kSfx] = kVendorSfx;
+  before.single[kMfx] = kVendorMfx;
+  before.legacy[0] = kLegacyLfx;
+  before.legacy[1] = kLegacyGfx;
+
+  FxValues expected = before;
+  expected.composite[kSfx] = list({kVendorSfx});
+  expected.composite[kMfx] = list({kVendorMfx});
+  expected.composite[kEfx] = list({kOurs});
+  expected.modes[kEfx] = list({kDefaultProcessingMode});
+
+  const FxPlan plan = plan_attach(before, kOurs, Slot::Efx);
+  CHECK(plan.changed);
+  expect_values(plan.after, expected, "legacy_and_modern_prefer_singles");
 }
 
 /** Pre-8.1 registration: LFX and GFX, mirrored forward and left in place. */
@@ -272,6 +339,44 @@ void detach_keeps_others_in_list() {
 }
 
 /**
+ * A vendor that wrote pid 15 as a single string gets a single string back.
+ *
+ * Reading it as a one-entry list is what keeps its effect alive through the
+ * edit, and attaching beside it necessarily makes the value a list — nothing
+ * else can hold two class ids. What must not happen is the value staying a
+ * list afterwards: the type is the vendor's, its installer reads it back, and
+ * a change this program made and never undid is a change no uninstall can.
+ */
+void detach_restores_sz_type() {
+  std::printf("detach restores sz type\n");
+  FxValues backup;
+  backup.composite[kEfx] = list({kVendorEfx});
+  backup.composite_was_sz[kEfx] = true;
+  backup.modes[kEfx] = list({kDefaultProcessingMode});
+
+  const FxValues attached = plan_attach(backup, kOurs, Slot::Efx).after;
+  CHECK(attached.composite[kEfx] == list({kVendorEfx, kOurs}));
+  // Two entries cannot be a single string, so the attach gives the type up.
+  CHECK(!attached.composite_was_sz[kEfx]);
+
+  const FxPlan plan = plan_detach(attached, backup, kOurs);
+  CHECK(plan.changed);
+  expect_values(plan.after, backup, "detach_restores_sz_type");
+  CHECK(plan.after.composite_was_sz[kEfx]);
+
+  // A slot that really was a list stays one: the type only goes back when the
+  // backup says it was a single string to begin with.
+  FxValues list_backup;
+  list_backup.composite[kEfx] = list({kVendorEfx});
+  list_backup.modes[kEfx] = list({kDefaultProcessingMode});
+  const FxValues list_attached =
+      plan_attach(list_backup, kOurs, Slot::Efx).after;
+  const FxPlan kept = plan_detach(list_attached, list_backup, kOurs);
+  expect_values(kept.after, list_backup, "detach_restores_sz_type list");
+  CHECK(!kept.after.composite_was_sz[kEfx]);
+}
+
+/**
  * The stack writes these class ids in whatever case it likes.
  *
  * A case-sensitive match attaches a second copy of the effect on every run
@@ -310,6 +415,10 @@ void json_round_trip() {
   values.composite[kEfx] = list({kVendorEfx, kOurs});
   values.legacy[1] = L"{62DC1A93-CE3E-4B2C-9B3B-9F1B0E2A0005}";
   values.modes[kMfx] = list({kDefaultProcessingMode});
+  // The value type travels with the value. A backup that records the entries
+  // and forgets that pid 14 was a single string cannot put the endpoint back
+  // the way it was found, and nothing would ever notice.
+  values.composite_was_sz[kMfx] = true;
 
   const std::wstring text = to_json(values);
   CHECK(text.find(L"\\\"") != std::wstring::npos);
@@ -317,10 +426,14 @@ void json_round_trip() {
   CHECK(text.find(L"\\n") != std::wstring::npos);
   CHECK(text.find(L'\n') == std::wstring::npos);
 
+  CHECK(text.find(L"\"compositeWasSz\":[false,true,false]") !=
+        std::wstring::npos);
+
   const std::optional<FxValues> parsed = from_json(text);
   CHECK(parsed.has_value());
   if (parsed.has_value()) {
     expect_values(*parsed, values, "json_round_trip");
+    CHECK(parsed->composite_was_sz[kMfx]);
   }
 
   // An empty structure is a legitimate backup: an endpoint with no effect
@@ -335,6 +448,17 @@ void json_round_trip() {
   CHECK(!from_json(L"not json at all").has_value());
   CHECK(!from_json(L"{\"single\":[null,null]}").has_value());
   CHECK(!from_json(L"{\"single\":[null,null,null]").has_value());
+  // A document that is otherwise ours but says nothing about the value types
+  // is refused rather than assumed to mean "all three were lists". Assuming
+  // is how a `REG_SZ` never comes back.
+  CHECK(!from_json(L"{\"single\":[null,null,null],\"composite\":"
+                   L"[null,null,null],\"legacy\":[null,null],\"modes\":"
+                   L"[null,null,null]}")
+             .has_value());
+  CHECK(!from_json(L"{\"single\":[null,null,null],\"composite\":"
+                   L"[null,null,null],\"compositeWasSz\":[false,0,false],"
+                   L"\"legacy\":[null,null],\"modes\":[null,null,null]}")
+             .has_value());
 }
 
 }  // namespace
@@ -343,11 +467,14 @@ int main() {
   std::printf("fx list\n\n");
   modern_with_composites();
   modern_singles_only();
+  modern_efx_single_is_mirrored_first();
+  legacy_and_modern_prefer_singles();
   legacy_only();
   already_attached();
   mfx_slot();
   detach_restores_created_keys();
   detach_keeps_others_in_list();
+  detach_restores_sz_type();
   case_insensitive_match();
   json_round_trip();
 

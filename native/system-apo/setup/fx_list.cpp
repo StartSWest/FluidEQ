@@ -101,6 +101,21 @@ void append_optional_list(
   out += L']';
 }
 
+bool read_bool_slots(JsonScanner& scanner, bool* out, int count) {
+  if (!scanner.consume(L'[')) {
+    return false;
+  }
+  for (int at = 0; at < count; ++at) {
+    if (at != 0 && !scanner.consume(L',')) {
+      return false;
+    }
+    if (!scanner.read_bool(out[at])) {
+      return false;
+    }
+  }
+  return scanner.consume(L']');
+}
+
 bool read_string_slots(JsonScanner& scanner, std::optional<std::wstring>* out,
                        int count) {
   if (!scanner.consume(L'[')) {
@@ -167,7 +182,8 @@ bool operator==(const FxValues& left, const FxValues& right) {
   for (int slot = 0; slot < kSlotCount; ++slot) {
     if (left.single[slot] != right.single[slot] ||
         left.composite[slot] != right.composite[slot] ||
-        left.modes[slot] != right.modes[slot]) {
+        left.modes[slot] != right.modes[slot] ||
+        left.composite_was_sz[slot] != right.composite_was_sz[slot]) {
       return false;
     }
   }
@@ -216,6 +232,12 @@ FxPlan plan_attach(const FxValues& before, std::wstring_view clsid, Slot slot) {
   }
   if (!contains_ci(*after.composite[index], clsid)) {
     after.composite[index]->emplace_back(clsid);
+    // A slot we add to stops being expressible as the vendor's single string:
+    // it now holds a list, and `REG_SZ` cannot hold one. The original type
+    // stays recorded in the backup, which is what puts it back on detach.
+    // Cleared only when something is actually appended, so that attaching a
+    // second time still writes nothing at all.
+    after.composite_was_sz[index] = false;
   }
 
   // 4. A list with no processing modes beside it is never reached: the engine
@@ -264,6 +286,16 @@ FxPlan plan_detach(const FxValues& current, const FxValues& backup,
     if (!backup.modes[at].has_value()) {
       after.modes[at].reset();
     }
+    // The value type goes back with the content, and only when the content is
+    // exactly what was there first. A slot the vendor wrote as a `REG_SZ` was
+    // coerced to a list to carry ours beside it; leaving it a list once ours
+    // is gone is a change to somebody else's registration that no uninstall
+    // would ever undo.
+    if (after.composite[at].has_value() && backup.composite_was_sz[at] &&
+        backup.composite[at].has_value() &&
+        *after.composite[at] == *backup.composite[at]) {
+      after.composite_was_sz[at] = true;
+    }
   }
 
   plan.changed = after != current;
@@ -295,6 +327,13 @@ std::wstring to_json(const FxValues& values) {
     }
     append_optional_list(out, values.composite[at]);
   }
+  out += L"],\"compositeWasSz\":[";
+  for (int at = 0; at < kSlotCount; ++at) {
+    if (at != 0) {
+      out += L',';
+    }
+    out += values.composite_was_sz[at] ? L"true" : L"false";
+  }
   out += L"],\"legacy\":[";
   for (int at = 0; at < kLegacyCount; ++at) {
     if (at != 0) {
@@ -321,6 +360,7 @@ std::optional<FxValues> from_json(std::wstring_view text) {
   FxValues values;
   bool seen_single = false;
   bool seen_composite = false;
+  bool seen_composite_was_sz = false;
   bool seen_legacy = false;
   bool seen_modes = false;
   if (!scanner.consume(L'}')) {
@@ -340,6 +380,11 @@ std::optional<FxValues> from_json(std::wstring_view text) {
       } else if (key == L"composite" && !seen_composite) {
         seen_composite = true;
         if (!read_list_slots(scanner, values.composite, kSlotCount)) {
+          return std::nullopt;
+        }
+      } else if (key == L"compositeWasSz" && !seen_composite_was_sz) {
+        seen_composite_was_sz = true;
+        if (!read_bool_slots(scanner, values.composite_was_sz, kSlotCount)) {
           return std::nullopt;
         }
       } else if (key == L"legacy" && !seen_legacy) {
@@ -364,8 +409,11 @@ std::optional<FxValues> from_json(std::wstring_view text) {
       break;
     }
   }
-  if (!scanner.at_end() || !seen_single || !seen_composite || !seen_legacy ||
-      !seen_modes) {
+  // Every key required, `compositeWasSz` included. A backup that does not say
+  // what type each composite slot had cannot restore one, and defaulting it to
+  // "a list" would be a guess written back into somebody's registry.
+  if (!scanner.at_end() || !seen_single || !seen_composite ||
+      !seen_composite_was_sz || !seen_legacy || !seen_modes) {
     return std::nullopt;
   }
   return values;

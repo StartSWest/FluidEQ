@@ -40,6 +40,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include <vector>
 
 #include "backup.h"
+#include "com_registration.h"
 #include "commands.h"
 #include "elevate.h"
 #include "endpoints.h"
@@ -173,9 +174,21 @@ std::wstring dll_version(const std::wstring& path) {
  *
  * It never elevates and never writes: the app calls it on every launch, and a
  * consent prompt for a question is the fastest way to make somebody stop
- * using a feature.
+ * using a feature. Returns the process exit code: 0, or 3 when the audio
+ * stack could not be asked at all.
  */
-void print_status() {
+int print_status() {
+  std::vector<Endpoint> endpoints;
+  std::wstring unreachable;
+  // Enumerated before anything is printed. An empty output list and an audio
+  // stack that could not be asked look identical once they are both `[]`, and
+  // the app reads that as "this machine has no outputs" rather than "ask
+  // again" — so the failure gets its own document and its own exit code.
+  if (!list_render_endpoints(endpoints, unreachable)) {
+    print_json(L"{\"error\":\"" + json_escape(unreachable) + L"\"}");
+    return 3;
+  }
+
   const std::wstring registered = registered_dll_path();
   const bool installed = !registered.empty() && path_exists(registered);
   std::wstring out = L"{\"installed\":";
@@ -187,10 +200,6 @@ void print_status() {
   out += L"\",\"configDir\":\"";
   out += json_escape(config_dir());
   out += L"\",\"endpoints\":[";
-
-  std::vector<Endpoint> endpoints;
-  std::wstring unreachable;
-  list_render_endpoints(endpoints, unreachable);
   for (size_t at = 0; at < endpoints.size(); ++at) {
     if (at != 0) {
       out += L',';
@@ -212,6 +221,7 @@ void print_status() {
   }
   out += L"]}";
   print_json(out);
+  return 0;
 }
 
 /** Runs the command here, having already established it may. */
@@ -290,7 +300,7 @@ int wmain(int argc, wchar_t** argv) {
 
   int code = 0;
   if (options.command == L"status") {
-    print_status();
+    code = print_status();
   } else if (is_elevated()) {
     code = run_elevated(options);
   } else {

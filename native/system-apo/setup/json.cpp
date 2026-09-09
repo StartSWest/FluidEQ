@@ -93,15 +93,28 @@ bool JsonScanner::at_end() {
   return at_ >= text_.size();
 }
 
-bool JsonScanner::read_null() {
+bool JsonScanner::read_literal(std::wstring_view literal) {
   skip_space();
-  const std::wstring_view literal = L"null";
   if (text_.size() - at_ < literal.size() ||
       text_.compare(at_, literal.size(), literal) != 0) {
     return false;
   }
   at_ += literal.size();
   return true;
+}
+
+bool JsonScanner::read_null() { return read_literal(L"null"); }
+
+bool JsonScanner::read_bool(bool& out) {
+  if (read_literal(L"true")) {
+    out = true;
+    return true;
+  }
+  if (read_literal(L"false")) {
+    out = false;
+    return true;
+  }
+  return false;
 }
 
 bool JsonScanner::read_string(std::wstring& out) {

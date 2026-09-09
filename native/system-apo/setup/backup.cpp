@@ -42,14 +42,18 @@ bool save_backup_once(const std::wstring& guid, const FxValues& values,
   if (path_exists(path)) {
     return true;
   }
+  // The code is read before the message is built. `backup_dir()` asks the
+  // shell for a known folder, which sets its own last error, so describing the
+  // failure inside the same expression describes the wrong call — and the
+  // message that reaches the user names an error that never happened.
   if (!ensure_directory(backup_dir())) {
-    error = L"could not create " + backup_dir() + L": " +
-            describe_error(GetLastError());
+    const unsigned long why = GetLastError();
+    error = L"could not create " + backup_dir() + L": " + describe_error(why);
     return false;
   }
   if (!write_utf8(path, to_json(values))) {
-    error = L"could not write " + path + L": " +
-            describe_error(GetLastError());
+    const unsigned long why = GetLastError();
+    error = L"could not write " + path + L": " + describe_error(why);
     return false;
   }
   return true;
