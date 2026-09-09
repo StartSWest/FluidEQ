@@ -31,6 +31,7 @@ import {
 } from 'fs';
 import path from 'path';
 import { brotliDecompressSync } from 'zlib';
+import { newestVersionDir } from './versionDirs';
 
 const ROOT = path.join(__dirname, '..', '..');
 const NATIVE_DIR = path.join(ROOT, 'native');
@@ -124,10 +125,11 @@ const crtRedistDir = (vsRoot: string): string | undefined => {
 
   const toolsRoot = path.join(vsRoot, 'VC', 'Tools', 'MSVC');
   const toolsetVersion = existsSync(toolsRoot)
-    ? readdirSync(toolsRoot)
-        .filter((name) => existsSync(path.join(toolsRoot, name, 'bin')))
-        .sort()
-        .pop()
+    ? newestVersionDir(
+        readdirSync(toolsRoot).filter((name) =>
+          existsSync(path.join(toolsRoot, name, 'bin')),
+        ),
+      )
     : undefined;
   if (toolsetVersion) {
     const matched = crtFolderUnder(
@@ -138,14 +140,13 @@ const crtRedistDir = (vsRoot: string): string | undefined => {
     }
   }
 
-  const redistVersions = readdirSync(redistRoot).sort().reverse();
-  for (const version of redistVersions) {
-    const matched = crtFolderUnder(path.join(redistRoot, version, 'x64'));
-    if (matched) {
-      return matched;
-    }
-  }
-  return undefined;
+  const redistVersionsWithCrt = readdirSync(redistRoot).filter(
+    (name) => crtFolderUnder(path.join(redistRoot, name, 'x64')) !== undefined,
+  );
+  const newestRedist = newestVersionDir(redistVersionsWithCrt);
+  return newestRedist
+    ? crtFolderUnder(path.join(redistRoot, newestRedist, 'x64'))
+    : undefined;
 };
 
 /**
