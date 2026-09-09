@@ -23,6 +23,8 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { IAudioEngineStatus } from 'common/audioEngine';
 import { getAudioEngineStatus } from './audioEngineApi';
 import { reportError } from './logger';
+import { subscribeAudioEngineChanged } from './audioEngineEvents';
+import { resetSystemDspChain } from '../dsp/systemChain';
 
 export interface IAudioEngineStatusHook {
   status: IAudioEngineStatus | undefined;
@@ -36,6 +38,15 @@ export const useAudioEngineStatus = (): IAudioEngineStatusHook => {
   // The page this sits on can be left before main answers, and a state write
   // after that is a warning that trains people to ignore warnings.
   const mounted = useRef(true);
+  /**
+   * The engine this hook last saw, read outside React state on purpose: it
+   * exists only to be compared against the next answer, never rendered, and
+   * a ref survives strict-mode's double effect run without asking `refresh`
+   * to close over a stale value.
+   */
+  const lastKnownEngine = useRef<IAudioEngineStatus['engine'] | undefined>(
+    undefined,
+  );
 
   useEffect(() => {
     mounted.current = true;
@@ -47,6 +58,20 @@ export const useAudioEngineStatus = (): IAudioEngineStatusHook => {
   const refresh = useCallback(async () => {
     try {
       const next = await getAudioEngineStatus();
+      // A rack this window already believes it delivered is only true of the
+      // engine it was delivered to. `main` can switch engines while this tab
+      // sits open — Task 11's dialog, or another window entirely — and the
+      // freshly chosen one has never seen a byte from here. Forgetting the
+      // cache on the first refresh that notices is what makes the next
+      // publish (see `DspPanel`'s effect on `isSystemWide`) actually send,
+      // instead of skipping because the array happens to match last time.
+      if (
+        lastKnownEngine.current !== undefined &&
+        lastKnownEngine.current !== next.engine
+      ) {
+        resetSystemDspChain();
+      }
+      lastKnownEngine.current = next.engine;
       if (mounted.current) {
         setStatus(next);
       }
@@ -60,6 +85,8 @@ export const useAudioEngineStatus = (): IAudioEngineStatusHook => {
   useEffect(() => {
     refresh();
   }, [refresh]);
+
+  useEffect(() => subscribeAudioEngineChanged(refresh), [refresh]);
 
   return { status, refresh };
 };

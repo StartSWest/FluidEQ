@@ -163,8 +163,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 .dsp-scope-pill {
-  // `inline-block`, not `inline-flex`: `text-overflow` has no effect on a
-  // flex item, so an inline-flex pill clips a long device name mid-letter
+  // `inline-block`, not `inline-flex`: `text-overflow` only applies to a
+  // block container, and `inline-flex` makes this element a flex container
+  // instead — so an inline-flex pill clipped a long device name mid-letter
   // instead of ending it in an ellipsis.
   display: inline-block;
   min-width: 0;

@@ -182,21 +182,6 @@ it under the terms of the GNU General Public License version 3 or later.
   gap: $spacing-s;
 }
 
-.link-button {
-  padding: 7px 9px;
-  color: $secondary-light;
-  border: 0;
-  border-radius: $radius-xs;
-  background: transparent;
-  cursor: pointer;
-
-  &:hover,
-  &:focus-visible {
-    background: color-mix(in srgb, $secondary-default 8%, transparent);
-    outline: none;
-  }
-}
-
 // Option row inside the output picker. Device names are long and arbitrary,
 // so they wrap in the open menu but are clipped to one line in the closed
 // trigger (which is a fixed-height field).

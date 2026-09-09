@@ -130,7 +130,8 @@ const DspPanel = ({
   const { t } = useTranslation();
   // Which engine is carrying the audio, which decides whether the rack this
   // page edits runs on everything or only on the Library player.
-  const { status: audioEngine } = useAudioEngineStatus();
+  const { status: audioEngine, refresh: refreshAudioEngineStatus } =
+    useAudioEngineStatus();
   const isSystemWide = audioEngine?.engine === 'fluid';
   useEffect(() => {
     // Opening this page under the engine is the moment to make sure the rack
@@ -141,6 +142,22 @@ const DspPanel = ({
       publishSystemDspChain();
     }
   }, [isSystemWide]);
+  useEffect(() => {
+    // `DeviceProfiles` raises this whenever Windows moves the default output,
+    // and a reattach is also how this window finds out the engine itself
+    // changed — main can switch engines while this tab is open, and nothing
+    // else here would notice. Re-fetching is what lets `isSystemWide` above
+    // flip and republish the rack; `DspScopeNotice` answers the same event to
+    // re-read the device name, which is a different question about the same
+    // moment.
+    const onOutputChanged = () => {
+      refreshAudioEngineStatus();
+    };
+    window.addEventListener('fluideq-output-changed', onOutputChanged);
+    return () => {
+      window.removeEventListener('fluideq-output-changed', onOutputChanged);
+    };
+  }, [refreshAudioEngineStatus]);
   /**
    * Native analysis belongs to the surface that draws it.
    *
@@ -193,7 +210,21 @@ const DspPanel = ({
         (sources.library !== undefined &&
           sources.system?.isPlaying !== true &&
           remoteAudio?.role !== 'listener')));
-  const isRackEngaged = hasLibraryPlayback && nativeState === 'engaged';
+  /**
+   * Whether the rack a listener can actually turn on and off right now.
+   *
+   * Under FluidEQ Engine the chain runs inside audiodg.exe, independent of
+   * whatever this window's Library deck is doing — the whole point of the
+   * system-wide rack is that it keeps running with nothing playing. Gating it
+   * on `hasLibraryPlayback` regardless of engine left every control on this
+   * page — the preset bar, the master switch, the "Enabled" readout, every
+   * stage — dimmed on a fresh window under the engine, while the pill above
+   * them was already saying the rack ran on everything. Equalizer APO keeps
+   * the original rule: that rack only exists inside the Library player's own
+   * host, so it is live only while that host is actually engaged.
+   */
+  const isRackEngaged =
+    isSystemWide || (hasLibraryPlayback && nativeState === 'engaged');
   const isRackLive = settings.enabled && isRackEngaged;
   /**
    * Availability only gates the controls. The saved sound and host lifetime

@@ -201,3 +201,28 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     box-shadow: 0 0 22px color-mix(in srgb, $secondary-default 42%, transparent);
   }
 }
+
+// Moved here from `DeviceProfiles.scss`, which is where this class first
+// appeared. It stayed byte-identical in the move: only its address changed.
+//
+// This file is the one every page can rely on, because `widgets/Button.tsx`
+// pulls it in and that component is used everywhere. `DeviceProfiles.scss`
+// is imported only by `DeviceProfiles.tsx`, so a page using `.link-button`
+// without that component mounted — the DSP page under FluidEQ Engine, whose
+// scope notice offers no such link but whose "Use FluidEQ Engine" link under
+// Equalizer APO reuses this exact class — depended on an unrelated sidebar
+// section happening to be on screen first.
+.link-button {
+  padding: 7px 9px;
+  color: $secondary-light;
+  border: 0;
+  border-radius: $radius-xs;
+  background: transparent;
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    background: color-mix(in srgb, $secondary-default 8%, transparent);
+    outline: none;
+  }
+}

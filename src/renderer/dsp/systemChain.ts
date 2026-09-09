@@ -36,15 +36,6 @@ import { reportError } from '../utils/logger';
 let lastSent: string | null = null;
 
 /**
- * Send `values` to the engine unless they are the ones already there.
- *
- * Fire and forget on purpose: nothing on the audio path may wait for a file
- * to be written, and the answer is only ever interesting when it says the
- * window sent something malformed. `'not-fluid'` and `'not-installed'` are
- * states the DSP page already describes on screen, so they are not errors to
- * log on every slider release.
- */
-/**
  * Let the next call send `key` again, unless something newer already has.
  *
  * A send that failed must not be remembered as delivered: the settings that
@@ -57,6 +48,19 @@ const forget = (key: string): void => {
   }
 };
 
+/**
+ * Send `values` to the engine unless they are the ones already there.
+ *
+ * Fire and forget on purpose: nothing on the audio path may wait for a file
+ * to be written, and the answer is only ever interesting when it says the
+ * window sent something malformed. `'not-fluid'` and `'not-installed'` are
+ * states the DSP page already describes on screen, so they are not errors to
+ * log on every slider release — but they are still, like a rejection or a
+ * throw, an array that never reached disk. Only `'written'` means it did, so
+ * every other answer forgets the key: a `'not-fluid'` machine that later
+ * switches engines, or a momentary IPC hiccup, must not leave the rack
+ * looking delivered when the engine never received it.
+ */
 export const sendSystemDspChain = (values: number[]): void => {
   const key = values.join(' ');
   if (key === lastSent) {
@@ -66,12 +70,16 @@ export const sendSystemDspChain = (values: number[]): void => {
   try {
     setSystemDspChain(values).then(
       (result) => {
-        if (result === 'rejected') {
-          // A payload main refused is a bug in the window rather than a state
-          // a user can be in — the encoder and the validator disagreeing
-          // about the wire is exactly the failure the log has to show.
+        if (result !== 'written') {
           forget(key);
-          reportError('the system-wide DSP chain was rejected', result);
+          if (result === 'rejected') {
+            // A payload main refused is a bug in the window rather than a
+            // state a user can be in — the encoder and the validator
+            // disagreeing about the wire is exactly the failure the log has
+            // to show. `'not-fluid'` and `'not-installed'` are not logged:
+            // the page already explains both on screen.
+            reportError('the system-wide DSP chain was rejected', result);
+          }
         }
         return result;
       },
