@@ -190,6 +190,13 @@ target_link_libraries(fluideq-dsp-parity-test
 add_test(NAME dsp-parity
   COMMAND fluideq-dsp-parity-test "${CMAKE_BINARY_DIR}/fixtures")
 
+# The system-wide engine's config resolver: Windows-only, and its own
+# subtree because everything past this task loads inside audiodg.exe rather
+# than the DSP host process below.
+if(WIN32)
+  add_subdirectory(system-apo)
+endif()
+
 add_executable(fluideq-dsp-host
   dsp-host/src/main.cpp
   dsp-host/src/decoders/pcm_decoder.cpp
