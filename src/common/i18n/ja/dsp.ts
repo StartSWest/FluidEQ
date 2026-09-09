@@ -22,6 +22,10 @@ const dsp = {
     'DSP はライブラリから再生する音声トラックのみを処理します。受信した共有音声、カラオケ、動画、他のアプリの音声は処理しません。',
   'dsp.idle':
     'DSP を使用するには、ライブラリから音声トラックを再生してください。受信した共有音声、カラオケ、動画、他のアプリの音声は処理しません。',
+  'dsp.scope.system': 'システム全体 · {output}',
+  'dsp.scope.systemAll': 'システム全体',
+  'dsp.scope.systemDelay': '遅延 {ms} ms',
+  'dsp.scope.useFluid': 'FluidEQ Engine を使う',
   'dsp.unavailable': '音声処理を開始できませんでした。再生には影響しません。',
   'dsp.engineDown':
     'ネイティブのオーディオエンジンを起動できなかったため、すべての DSP ステージがオフになっています。下の処理は一切かかっておらず、操作も無効です。再生そのものには影響しません。通常は FluidEQ を再起動すると復帰します。',
@@ -67,6 +71,7 @@ const dsp = {
   'dsp.denoisePreset.strong': '強力なクリーンアップ',
   'dsp.denoise.description':
     '色付けの前に音源を修復します。ヒス、電源ハム、クリック、そしてニューラル音声クリーナー。推測ではなく、曲そのものから実測した値で動きます。',
+  'dsp.denoise.libraryOnly': 'ライブラリ再生のみ',
   'dsp.denoise.isolate': 'アイソレート',
   'dsp.denoise.isolateHint': 'この段が取り除いている成分だけを聴きます。',
   'dsp.denoise.isolateOn':

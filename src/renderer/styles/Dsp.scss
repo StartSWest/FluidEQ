@@ -42,7 +42,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   @include animate(rise-in);
 }
 
-.dsp-scope {
+// Both forms of the same slot, on the same beat: whichever engine is running,
+// the line under the heading arrives at the same moment in the sequence.
+.dsp-scope,
+.dsp-scope-row {
   @include animate(rise-in, $motion-base, $ease-out, 55ms);
 }
 
@@ -132,6 +135,66 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   &.is-idle {
     color: $amber;
   }
+}
+
+// The way out of the Library-only scope, offered where the limitation is
+// stated rather than left to be found in a menu. Inline in the sentence, so
+// the button's own padding is taken back on the left and the row keeps its
+// baseline.
+.dsp-scope-link {
+  margin-left: 2px;
+  padding-block: 0;
+  padding-inline: 4px;
+  font-size: inherit;
+  font-weight: $weight-semibold;
+  vertical-align: baseline;
+}
+
+// The system-wide scope, which is good news and reads as it: a pill rather
+// than a sentence, because there is nothing to qualify. Under Equalizer APO
+// the same slot carries a two-line caveat, so this one has to sit on the same
+// margin or the whole header shifts when the engine is switched.
+.dsp-scope-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  margin: 0 0 8px;
+  gap: 8px;
+}
+
+.dsp-scope-pill {
+  // `inline-block`, not `inline-flex`: `text-overflow` has no effect on a
+  // flex item, so an inline-flex pill clips a long device name mid-letter
+  // instead of ending it in an ellipsis.
+  display: inline-block;
+  min-width: 0;
+  max-width: 100%;
+  padding: 3px 10px;
+  overflow: hidden;
+  border-radius: $radius-pill;
+  background: $selected-accent;
+  color: $text-accent;
+  font-size: $text-micro;
+  font-weight: $weight-semibold;
+  letter-spacing: 0.04em;
+  // A device name is arbitrary and can be very long ("Speakers (2- High
+  // Definition Audio Device)"), and the panel it sits in is resizable down to
+  // a narrow column. One line that ends in an ellipsis keeps the pill a pill;
+  // wrapping made it a paragraph with a rounded border.
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+// The price of linear phase, in the same face every other measured number in
+// this app is drawn in. Beside the pill rather than inside it: the scope is
+// the fact, the delay is the caveat, and only one of them is conditional.
+.dsp-scope-delay {
+  color: $text-faint;
+  font-family: $font-mono;
+  font-size: $text-small;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
 }
 
 // Not an error, and it must not look like one. The engine lives in the library

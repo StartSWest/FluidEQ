@@ -14,6 +14,8 @@ import {
   ANALYSIS_BASS_FORGE_BANDS,
   IHostAnalysisLoudness,
 } from '../../common/dsp/analysisWire';
+import { encodeChainSettings } from '../../common/dsp/chainWire';
+import { sendSystemDspChain } from './systemChain';
 import { TDspAnalyserStage } from './monitorOutputs';
 import { ILibraryNormalizationAnalysis } from '../../common/library/types';
 
@@ -134,6 +136,36 @@ const subscribe = (listener: () => void) => {
 };
 
 /**
+ * The rack, to the engine that runs it on every output.
+ *
+ * From here rather than from the player's chain push alone, because that one
+ * only fires while the host is engaged — and the whole point of the
+ * system-wide rack is that it applies with nothing playing at all. The send
+ * is de-duplicated inside `systemChain.ts`, so the two callers between them
+ * still make one IPC message per edit.
+ */
+const pushSystemChain = (): void => {
+  sendSystemDspChain(
+    encodeChainSettings(readDspSettings(), { outputSafetyEnabled }),
+  );
+};
+
+/**
+ * Send the rack as it currently stands, whether or not it just changed.
+ *
+ * For the moment the window learns it is running under FluidEQ Engine. The
+ * rack file survives between sessions, so it is usually already right — but
+ * "usually" covers a machine where it was deleted, a profile carried over
+ * from another installation, or an engine only just switched to, and in every
+ * one of those the engine would go on running last week's rack until the user
+ * happened to touch a control. The send is de-duplicated, so calling this
+ * when nothing has moved costs one array comparison.
+ */
+export const publishSystemDspChain = (): void => {
+  pushSystemChain();
+};
+
+/**
  * The current settings, loaded from storage on first read.
  *
  * Lazily rather than at module load: this module is imported by the player,
@@ -160,6 +192,7 @@ export const applyDspSettings = (next: IDspSettings): void => {
   settings = clampDspSettings(next);
   loaded = true;
   emit();
+  pushSystemChain();
 };
 
 /** Write whatever is currently applied. Called when a gesture ends. */
@@ -207,6 +240,9 @@ export const setDspOutputSafetyEnabled = (next: boolean): void => {
   }
   outputSafetyEnabled = next;
   emit();
+  // It rides on the same wire as the rack, so the A/B has to reach the
+  // system-wide engine too or the two paths stop being comparable.
+  pushSystemChain();
 };
 
 /**

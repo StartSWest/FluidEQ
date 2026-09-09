@@ -22,6 +22,10 @@ const dsp = {
     'DSP verarbeitet nur Audiotitel aus der Bibliothek. Empfangenes geteiltes Audio, Karaoke, Videos und andere Apps werden nicht verarbeitet.',
   'dsp.idle':
     'Spiele einen Audiotitel aus der Bibliothek ab, um DSP zu nutzen. Empfangenes geteiltes Audio, Karaoke, Videos und andere Apps werden nicht verarbeitet.',
+  'dsp.scope.system': 'Systemweit · {output}',
+  'dsp.scope.systemAll': 'Systemweit',
+  'dsp.scope.systemDelay': '{ms} ms Verzögerung',
+  'dsp.scope.useFluid': 'FluidEQ Engine verwenden',
   'dsp.unavailable':
     'Die Audioverarbeitung konnte nicht gestartet werden. Die Wiedergabe ist davon nicht betroffen.',
   'dsp.engineDown':
@@ -73,6 +77,7 @@ const dsp = {
   'dsp.denoisePreset.strong': 'Starke Bereinigung',
   'dsp.denoise.description':
     'Repariert die Quelle, bevor sie irgendetwas färbt: Rauschen, Netzbrummen, Knackser und ein neuronaler Sprachreiniger. Am Titel selbst gemessen, nicht geraten.',
+  'dsp.denoise.libraryOnly': 'Nur bei Wiedergabe aus der Bibliothek',
   'dsp.denoise.isolate': 'Isolieren',
   'dsp.denoise.isolateHint': 'Nur hören, was diese Stufe entfernt.',
   'dsp.denoise.isolateOn':

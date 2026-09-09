@@ -22,6 +22,10 @@ const dsp = {
     'El DSP solo procesa pistas de audio reproducidas desde la Biblioteca. No procesa audio compartido recibido, karaoke, vídeos ni otras aplicaciones.',
   'dsp.idle':
     'Reproduce una pista de audio desde la Biblioteca para usar el DSP. No procesa audio compartido recibido, karaoke, vídeos ni otras aplicaciones.',
+  'dsp.scope.system': 'En todo el sistema · {output}',
+  'dsp.scope.systemAll': 'En todo el sistema',
+  'dsp.scope.systemDelay': '{ms} ms de retardo',
+  'dsp.scope.useFluid': 'Usar FluidEQ Engine',
   'dsp.unavailable':
     'El procesado de audio no pudo iniciarse. La reproducción no se ve afectada.',
   'dsp.engineDown':
@@ -73,6 +77,7 @@ const dsp = {
   'dsp.denoisePreset.strong': 'Limpieza intensa',
   'dsp.denoise.description':
     'Repara la fuente antes de que nada la coloree: siseo, zumbido de red, chasquidos y un limpiador neuronal de voz. Medido a partir de la propia pista, no supuesto.',
+  'dsp.denoise.libraryOnly': 'Solo en la reproducción de la Biblioteca',
   'dsp.denoise.isolate': 'Aislar',
   'dsp.denoise.isolateHint': 'Escucha solo lo que esta etapa elimina.',
   'dsp.denoise.isolateOn':

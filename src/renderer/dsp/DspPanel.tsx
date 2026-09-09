@@ -25,14 +25,17 @@ import DspMaximizerCard from './DspMaximizerCard';
 import DspDenoiseCard, { IDspVoiceModelState } from './DspDenoiseCard';
 import DspNormalizerCard from './DspNormalizerCard';
 import DspChainPresetBar from './DspChainPresetBar';
+import DspScopeNotice from './DspScopeNotice';
 import DspSideTabs from './DspSideTabs';
 import { TDspSection } from './sections';
 import { useTranslation } from '../utils/I18nContext';
+import { useAudioEngineStatus } from '../utils/useAudioEngineStatus';
 import Switch from '../widgets/Switch';
 import {
   TDspEngineState,
   setDspOutputSafetyEnabled,
   requestDspNoiseRescan,
+  publishSystemDspChain,
   useDspNativeState,
   useDspOutputSafetyEnabled,
   useDspOutputSafetyMeter,
@@ -60,6 +63,14 @@ interface IDspPanelProps {
    * opened, so opening this tab first leaves it genuinely unstarted.
    */
   engineState: TDspEngineState;
+  /**
+   * Open the engine dialog from the scope notice.
+   *
+   * Optional because the dialog does not exist yet: the link renders only
+   * once something can answer it, so the page never offers a control that
+   * does nothing.
+   */
+  onOpenEngineDialog?: () => void;
 }
 
 /**
@@ -114,8 +125,22 @@ const DspPanel = ({
   onChange,
   onCommit,
   engineState,
+  onOpenEngineDialog,
 }: IDspPanelProps) => {
   const { t } = useTranslation();
+  // Which engine is carrying the audio, which decides whether the rack this
+  // page edits runs on everything or only on the Library player.
+  const { status: audioEngine } = useAudioEngineStatus();
+  const isSystemWide = audioEngine?.engine === 'fluid';
+  useEffect(() => {
+    // Opening this page under the engine is the moment to make sure the rack
+    // on disk is the rack in this window. Everything else only sends when a
+    // control moves, which is no help to a machine whose rack file was never
+    // written or was written by a different installation.
+    if (isSystemWide) {
+      publishSystemDspChain();
+    }
+  }, [isSystemWide]);
   /**
    * Native analysis belongs to the surface that draws it.
    *
@@ -369,9 +394,12 @@ const DspPanel = ({
             />
           </div>
         </div>
-        <p className={`dsp-scope${!isRackEngaged ? ' is-idle' : ''}`}>
-          {t(!isRackEngaged ? 'dsp.idle' : 'dsp.scopeNotice')}
-        </p>
+        <DspScopeNotice
+          status={audioEngine}
+          isRackEngaged={isRackEngaged}
+          phase={eq.phase}
+          onOpenEngineDialog={onOpenEngineDialog}
+        />
         {engineState === 'failed' ? (
           <p className="dsp-unavailable">{t('dsp.unavailable')}</p>
         ) : undefined}
@@ -435,6 +463,7 @@ const DspPanel = ({
           {section === 'denoise' && (
             <DspDenoiseCard
               denoise={denoise}
+              isSystemWide={isSystemWide}
               analysisState={inputAnalysis}
               model={voiceModel}
               onDownloadModel={downloadVoiceModel}

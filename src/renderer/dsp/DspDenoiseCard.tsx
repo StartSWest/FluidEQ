@@ -31,6 +31,16 @@ export interface IDspVoiceModelState {
 
 interface IDspDenoiseCardProps {
   denoise: IDenoiseSettings;
+  /**
+   * Whether the rest of this page is running on everything, not only the
+   * Library — because this one stage is not.
+   *
+   * The system-wide engine lives inside audiodg.exe, a protected process that
+   * will not load the ONNX runtime the voice module needs, so Denoise is the
+   * one card on the page whose scope pill at the top does not apply to it.
+   * Silence about that reads as the stage being broken.
+   */
+  isSystemWide: boolean;
   analysisState: IDspInputAnalysisState;
   model: IDspVoiceModelState;
   onDownloadModel: () => void;
@@ -55,6 +65,7 @@ const HUM_MODE_LABELS = {
 
 const DspDenoiseCard = ({
   denoise,
+  isSystemWide,
   analysisState,
   model,
   onDownloadModel,
@@ -172,6 +183,13 @@ const DspDenoiseCard = ({
         </div>
       }
     >
+      {/* First thing in the card, above the graph, because it qualifies
+          everything below it: the page's own pill says system-wide and this
+          stage is the exception to it. */}
+      {isSystemWide ? (
+        <p className="dsp-band-hint">{t('dsp.denoise.libraryOnly')}</p>
+      ) : undefined}
+
       {/* Above the numbers, because it is the reading that makes them mean
           something: a floor and a spectrum in the same units on the same
           axes. "Reducing: -4 dB" is the same number whether the stage is

@@ -761,6 +761,21 @@ export type TEqPhase = 'minimum' | 'linear';
 
 export const EQ_PHASE_MODES: readonly TEqPhase[] = ['minimum', 'linear'];
 
+/**
+ * Frames of delay linear phase costs. `FEQ_LINEAR_PHASE_KERNEL_LATENCY`.
+ *
+ * Half of the 16384-tap kernel: the filter is symmetric, so its energy sits at
+ * the centre tap and everything comes out that many frames later. 171 ms at
+ * 48 kHz, which is inaudible inside the Library player — the whole graph is
+ * delayed together — and very audible system-wide, where it puts the picture
+ * ahead of the sound. That is why the DSP page prints it beside the
+ * system-wide scope pill rather than leaving the user to discover it.
+ */
+export const LINEAR_PHASE_LATENCY_FRAMES = 8192;
+
+/** What the delay above works out to, at the rate Windows shared mode uses. */
+export const LINEAR_PHASE_REFERENCE_RATE = 48_000;
+
 /** 1 is off. Four is the most the two-stage oversampler is built for. */
 export const OVERSAMPLE_FACTORS: readonly number[] = [1, 2, 4];
 
