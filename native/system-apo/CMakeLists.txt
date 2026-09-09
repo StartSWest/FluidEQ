@@ -45,3 +45,34 @@ add_executable(fluideq-engine-graph-test tests/graph_test.cpp)
 target_link_libraries(fluideq-engine-graph-test
   PRIVATE fluideq-engine-dsp feq_strict)
 add_test(NAME engine-graph COMMAND fluideq-engine-graph-test)
+
+# The effect itself: the DLL Windows loads into audiodg.exe once per output it
+# is attached to. `FluidEQ-Engine` rather than the target's name because this
+# file's name is what someone debugging a broken audio stack reads out of the
+# module list of a process they did not start.
+add_library(fluideq-engine SHARED
+  src/apo.cpp src/apo_process.cpp src/watcher.cpp src/paths.cpp src/log.cpp
+  src/dll.cpp
+  # Exports by name, and a version resource so the module list can say whose
+  # this is.
+  src/engine.def src/engine.rc)
+target_link_libraries(fluideq-engine PRIVATE
+  fluideq-engine-config fluideq-engine-dsp feq_strict
+  # `audiomediatypecrt` is the static library that carries
+  # `CreateAudioMediaType`; there is no DLL to import it from.
+  ole32 propsys mmdevapi shell32 audiomediatypecrt)
+set_target_properties(fluideq-engine PROPERTIES
+  OUTPUT_NAME "FluidEQ-Engine"
+  RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+  RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_BINARY_DIR}/bin"
+  RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/bin")
+set_source_files_properties(src/engine.rc PROPERTIES COMPILE_DEFINITIONS
+  "FEQ_ENGINE_VERSION_STRING=\"${FEQ_CORE_VERSION}\"")
+
+# The smoke test loads the DLL the way audiodg.exe does, so it takes the path
+# CMake put it at rather than one spelled out here.
+add_executable(fluideq-engine-dll-smoke-test tests/dll_smoke_test.cpp)
+target_link_libraries(fluideq-engine-dll-smoke-test
+  PRIVATE feq_strict ole32 audiomediatypecrt)
+add_test(NAME engine-dll-smoke
+  COMMAND fluideq-engine-dll-smoke-test $<TARGET_FILE:fluideq-engine>)

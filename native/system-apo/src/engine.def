@@ -1,0 +1,15 @@
+; <FluidEQ: System-wide parametric audio equalizer interface>
+; Copyright (C) <2026>  <Ivan Carmenates Garcia>
+; SPDX-License-Identifier: GPL-3.0-or-later
+;
+; Two exports and no more. `DllRegisterServer` is deliberately absent: a
+; system effect that can register itself is one any stray `regsvr32` can
+; attach to somebody's speakers, and the installer helper is where that
+; decision is made and undone.
+;
+; PRIVATE keeps them out of the import library, which nothing links against —
+; Windows finds these by name through the loader, never at link time.
+
+EXPORTS
+    DllGetClassObject   PRIVATE
+    DllCanUnloadNow     PRIVATE
