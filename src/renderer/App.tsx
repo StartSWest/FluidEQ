@@ -72,6 +72,7 @@ import {
 import {
   useIsChromeIdle,
   useIsPointerNearChrome,
+  useIsPointerNearSideChrome,
   watchChromeIdle,
 } from './utils/idleChrome';
 import { reportError } from './utils/logger';
@@ -995,6 +996,8 @@ const AppContent = () => {
   const isChromeIdle = useIsChromeIdle();
   // The bar answers to the pointer, not to the clock — see `idleChrome`.
   const isPointerNearChrome = useIsPointerNearChrome();
+  // The drawer tabs answer the side edges the same way.
+  const isPointerNearSideChrome = useIsPointerNearSideChrome();
 
   // Published on `#root` for the stylesheets that have to know: a panel over
   // a floating bar clears it while it is up and takes the room back when it
@@ -1007,6 +1010,17 @@ const AppContent = () => {
     );
     return () => root?.classList.remove('is-chrome-idle');
   }, [isAppFullScreen, isChromeIdle, isPointerNearChrome]);
+  // And the same for the two drawer tabs, which are the only chrome that
+  // lives on the vertical edges. Kept apart from the flag above so that
+  // reaching for a panel does not also summon the header and the transport.
+  useEffect(() => {
+    const root = document.getElementById('root');
+    root?.classList.toggle(
+      'is-side-chrome-awake',
+      isAppFullScreen && isPointerNearSideChrome,
+    );
+    return () => root?.classList.remove('is-side-chrome-awake');
+  }, [isAppFullScreen, isPointerNearSideChrome]);
   useEffect(() => {
     // Every mode the graph is drawn in, not only the ones that fill the screen.
     //

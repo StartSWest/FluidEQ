@@ -20,9 +20,11 @@ import { act, render, renderHook } from '@testing-library/react';
 import {
   BOTTOM_WAKE_EDGE_PX,
   CHROME_IDLE_MS,
+  SIDE_WAKE_EDGE_PX,
   revealChromeNow,
   useIsChromeIdle,
   useIsPointerNearChrome,
+  useIsPointerNearSideChrome,
   watchChromeIdle,
 } from '../../../renderer/utils/idleChrome';
 
@@ -30,6 +32,20 @@ const movePointer = (target: EventTarget, clientY: number): void => {
   act(() => {
     target.dispatchEvent(
       new MouseEvent('pointermove', { bubbles: true, clientY }),
+    );
+  });
+};
+
+// The side tabs are the one piece of chrome that reads the horizontal
+// position, so these moves have to state both.
+const movePointerAt = (
+  target: EventTarget,
+  clientX: number,
+  clientY: number,
+): void => {
+  act(() => {
+    target.dispatchEvent(
+      new MouseEvent('pointermove', { bubbles: true, clientX, clientY }),
     );
   });
 };
@@ -238,5 +254,79 @@ describe('idle chrome', () => {
     act(() => advanceIdleTime(1));
     expect(idle.result.current).toBe(true);
     expect(nearBottom.result.current).toBe(false);
+  });
+
+  it('summons the drawer tabs from either side edge without waking the bars', () => {
+    const idle = renderHook(() => useIsChromeIdle());
+    const nearBottom = renderHook(() => useIsPointerNearChrome());
+    const nearSide = renderHook(() => useIsPointerNearSideChrome());
+    const middleY = Math.round(window.innerHeight / 2);
+    const middleX = Math.round(window.innerWidth / 2);
+
+    act(() => watchChromeIdle(true));
+    act(() => advanceIdleTime(CHROME_IDLE_MS));
+    expect(idle.result.current).toBe(true);
+    expect(nearSide.result.current).toBe(false);
+
+    // The middle of the picture is somebody watching it.
+    movePointerAt(window, middleX, middleY);
+    expect(nearSide.result.current).toBe(false);
+
+    // Reaching an edge shows the handle there — and nothing else. The header
+    // and the transport are a separate errand and stay where they were.
+    movePointerAt(window, 4, middleY);
+    expect(nearSide.result.current).toBe(true);
+    expect(idle.result.current).toBe(true);
+    expect(nearBottom.result.current).toBe(false);
+
+    movePointerAt(window, middleX, middleY);
+    expect(nearSide.result.current).toBe(false);
+
+    movePointerAt(window, window.innerWidth - 4, middleY);
+    expect(nearSide.result.current).toBe(true);
+
+    // Just inside the band, and just outside it.
+    movePointerAt(window, SIDE_WAKE_EDGE_PX, middleY);
+    expect(nearSide.result.current).toBe(true);
+    movePointerAt(window, SIDE_WAKE_EDGE_PX + 1, middleY);
+    expect(nearSide.result.current).toBe(false);
+    expect(nearBottom.result.current).toBe(false);
+  });
+
+  it('holds a tab under a resting pointer and drops it five seconds after the pointer leaves the display', () => {
+    const nearSide = renderHook(() => useIsPointerNearSideChrome());
+    const tab = render(
+      <button type="button" className="side-bar-toggle">
+        Sound
+      </button>,
+    );
+    const middleY = Math.round(window.innerHeight / 2);
+    const middleX = Math.round(window.innerWidth / 2);
+
+    act(() => watchChromeIdle(true));
+    act(() => advanceIdleTime(CHROME_IDLE_MS));
+
+    // An open drawer carries its tab inward, well clear of the band that
+    // revealed it, so the tab itself has to count as the edge.
+    movePointerAt(tab.getByRole('button'), middleX, middleY);
+    expect(nearSide.result.current).toBe(true);
+
+    act(() => advanceIdleTime(CHROME_IDLE_MS * 3));
+    expect(nearSide.result.current).toBe(true);
+
+    // Off the tab and away from the edge: gone at once, because the answer to
+    // "there is a panel this way" was no.
+    movePointerAt(window, middleX, middleY);
+    expect(nearSide.result.current).toBe(false);
+
+    // And the case with no further moves to read: a pointer that reached the
+    // edge and then left for another display. Five still seconds take the
+    // handle away, exactly as they take the bars.
+    movePointerAt(window, 4, middleY);
+    expect(nearSide.result.current).toBe(true);
+    act(() => advanceIdleTime(CHROME_IDLE_MS - 1));
+    expect(nearSide.result.current).toBe(true);
+    act(() => advanceIdleTime(1));
+    expect(nearSide.result.current).toBe(false);
   });
 });

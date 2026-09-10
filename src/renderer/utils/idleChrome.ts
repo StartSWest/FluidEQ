@@ -128,12 +128,19 @@ const startIdleClock = () => {
   const tick = (now: number) => {
     // A menu can unmount without a pointermove or blur. Check the real target
     // on animation frames so that closing it releases the hold automatically.
-    if (isHeld || isUsingTopChrome()) {
+    if (isHeld || isUsingTopChrome() || isUsingSideChrome()) {
       lastActiveAt = now;
     }
     if (now - lastActiveAt >= CHROME_IDLE_MS) {
       idleFrame = undefined;
       setNearBottom(false);
+      // The side tabs otherwise have no way back down: they follow the
+      // pointer, and a pointer that has left for a second monitor sends no
+      // more moves. Five still seconds is what takes the rest of the chrome
+      // away, and a handle left glowing at the edge of an unattended picture
+      // is the one thing it must not leave behind. Any movement in the band
+      // brings it straight back.
+      setNearSide(false);
       setIdle(true);
       return;
     }
@@ -233,7 +240,92 @@ export const useIsPointerNearChrome = () =>
     () => false,
   );
 
+/**
+ * The side edges, where the drawer tabs live.
+ *
+ * A separate flag from the two horizontal strips, and it follows the pointer
+ * rather than the clock. The header and the transport are read while you work
+ * — a level, a title, a position — so once summoned they stay for five still
+ * seconds. A drawer tab says one thing, "there is a panel this way", and it is
+ * answered by pressing it: leaving the edge without pressing means the answer
+ * was no, and a handle left glowing over the picture after that is chrome the
+ * mode exists to remove.
+ *
+ * Sixty-four pixels, of which the tab itself occupies thirty. That leaves half
+ * the band as approach — enough to be crossed on the way to the edge, narrow
+ * enough that dragging the lowest band of the curve, which lives at the left of
+ * the plot, does not keep summoning it.
+ */
+export const SIDE_WAKE_EDGE_PX = 64;
+
+/**
+ * Surfaces that hold the tabs out regardless of where the pointer is.
+ *
+ * An open drawer moves its tab inward to ride on the panel's edge (see
+ * `.side-bar-toggle.is-open`), which is nowhere near the band that revealed
+ * it. Without this, the tab you just pressed — the one that also closes the
+ * panel — faded out from under the pointer still resting on it.
+ */
+const SIDE_CHROME_SELECTOR =
+  '.side-bar-toggle, .right-content-toggle, .is-app-full > .side-bar, .is-app-full > .right-content';
+
+const isSideChrome = (target: EventTarget | null): boolean =>
+  target instanceof Element && target.closest(SIDE_CHROME_SELECTOR) !== null;
+
+const isInSideWakeZone = (event: PointerEvent): boolean =>
+  event.clientX <= SIDE_WAKE_EDGE_PX ||
+  event.clientX >= window.innerWidth - SIDE_WAKE_EDGE_PX ||
+  isSideChrome(event.target);
+
+/**
+ * The tab or panel the pointer is actually resting on, if any.
+ *
+ * The clock below clears the tabs after the same five still seconds as the
+ * rest of the chrome, and this is the exception to that: a handle underneath
+ * a stationary pointer is one being aimed at, and taking it away leaves the
+ * next press landing on the picture instead. Held the same way the toolbar
+ * holds itself open while a menu of its own is being read.
+ */
+let sidePointerTarget: Element | null = null;
+const isUsingSideChrome = () => !!sidePointerTarget?.isConnected;
+
+let isNearSide = false;
+const sideListeners = new Set<() => void>();
+
+const setNearSide = (next: boolean) => {
+  if (next === isNearSide) {
+    return;
+  }
+  isNearSide = next;
+  sideListeners.forEach((listener) => listener());
+};
+
+const subscribeNearSide = (listener: () => void) => {
+  sideListeners.add(listener);
+  return () => {
+    sideListeners.delete(listener);
+  };
+};
+
+/** True while the pointer is at a side edge, or on the chrome that edge opens. */
+export const useIsPointerNearSideChrome = () =>
+  useSyncExternalStore(
+    subscribeNearSide,
+    () => isNearSide,
+    () => false,
+  );
+
 const handleActivity = (event?: Event) => {
+  // Before every early return below: the side tabs answer the pointer's
+  // position and nothing else, so they must be updated on a move that the
+  // horizontal chrome ignores — including a move made while the chrome is
+  // already idle, which is the state they are meant to appear out of.
+  if (event?.type === 'pointermove') {
+    sidePointerTarget = isSideChrome(event.target)
+      ? (event.target as Element)
+      : null;
+    setNearSide(isInSideWakeZone(event as PointerEvent));
+  }
   if (event?.type === 'pointerdown' && !isTopChrome(event.target)) {
     return;
   }
@@ -269,6 +361,15 @@ const handleActivity = (event?: Event) => {
     event?.type === 'pointermove' &&
     !isInWakeZone(event as PointerEvent)
   ) {
+    // A side edge reached while the chrome is already away is the ordinary
+    // way to summon a drawer tab, and it must not bring the two bars back
+    // with it. It does need the clock, though: with nothing running, a
+    // pointer that reached the edge and then left the display altogether
+    // sends no further moves, and the handle stays lit over an unattended
+    // picture for good. Resting ON the tab holds it — see `sidePointerTarget`.
+    if (isNearSide) {
+      startIdleClock();
+    }
     return;
   }
   // Once revealed, the bar and every panel it pushes behave as one continuous
@@ -389,12 +490,14 @@ export const watchChromeIdle = (next: boolean) => {
   );
   clearTimer();
   setNearBottom(false);
+  setNearSide(false);
   // A dismissal belongs to the mode it was made in. Carrying it out would mean
   // the next time this mode opened, the toolbar was already hidden and no
   // amount of moving the mouse would explain why. A hold is dropped for the
   // same reason: whatever was asking for it is gone with the mode.
   isHeld = false;
   topPointerTarget = null;
+  sidePointerTarget = null;
   setIdle(false);
 };
 
